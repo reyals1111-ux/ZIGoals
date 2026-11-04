@@ -14,6 +14,7 @@ import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 import {ZgSkeleton} from '../skeleton/zg-skeleton';
 import './money-tools/money-tools.css';
 import './debt-planner.css';
+import {parseNumberInput} from '../../lib/numbers/parse';
 
 /**
  * Session AK (F5a, item 1): the debt payoff planner, snowball against avalanche, from the person's own debts in
@@ -85,7 +86,7 @@ export default function DebtPlanner() {
         for (const row of rows) {
           const min = d.minimums[row.id]?.trim(), rate = row.accountRate ? undefined : d.rates[row.id]?.trim();
           const minimum = min && parseCents(min) !== null ? centsText(parseCents(min)!) : undefined;
-          const next = {...(minimum ? {minimum} : {}), ...(rate && rateE4(rate) !== null ? {ratePercent: rate.replace(',', '.')} : {})};
+          const next = {...(minimum ? {minimum} : {}), ...(rate && rateE4(rate) !== null ? {ratePercent: (r => r.ok ? r.text : rate)(parseNumberInput(rate)) /* Session AL (3f) */} : {})};
           if (Object.keys(next).length) debts[row.id] = next; else delete debts[row.id];
         }
         // Debts that are no longer in the accounts are dropped.

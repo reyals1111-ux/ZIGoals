@@ -12,6 +12,7 @@ import {money} from './format';
 import {useChartWidth} from '../../charts/use-chart-width';
 import {ChartLookDefs, useChartLook} from '../../charts/chart-defs';
 import './money-tools.css';
+import {parseNumberInput} from '../../../lib/numbers/parse';
 
 /**
  * Session AK (lane M, item 12): "Financial freedom" — the target (yearly spending ÷ withdrawal rate), today's invested
@@ -20,7 +21,7 @@ import './money-tools.css';
  * the person asks. A model, not advice. Lazy-loaded on the calculator page.
  */
 type Draft = {invested: string; yearlySpend: string; withdrawalPct: string; monthlyContribution: string; returnPct: string; volatilityPct: string; years: string; currency: string};
-const num = (raw: string) => raw.trim() === '' ? Number.NaN : Number(raw.trim().replace(/\s/g, '').replace(',', '.'));
+const num = (raw: string) => { const r = parseNumberInput(raw, {allowNegative: true}); return r.ok ? r.value : Number.NaN; }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
 const START: Draft = {invested: '20000', yearlySpend: '30000', withdrawalPct: String(FI_DEFAULTS.withdrawalPct), monthlyContribution: '500', returnPct: String(FI_DEFAULTS.returnPct), volatilityPct: String(FI_DEFAULTS.volatilityPct), years: '40', currency: 'EUR'};
 // The chart is drawn at its measured width (FiChart), so its labels stay 14 px on every screen.
 const H = 196, PAD = 10, BOTTOM = 26;

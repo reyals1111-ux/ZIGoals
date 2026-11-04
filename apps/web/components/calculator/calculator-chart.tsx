@@ -73,8 +73,8 @@ export function CalculatorChart({result, start, currency, lines}: {result: Compo
       <polygon points={growthArea} fill={`url(#${id}-growth)`} />
       <polyline className="calc-balance" points={upper.join(' ')} filter={look.glow} />
       {result.milestones.map(m => <MilestoneMark key={m.threshold} m={m} x={x} top={padT} bottom={H - padB} />)}
-      {others.map(l => <polyline key={l.id} className="calc-whatif" points={l.points.map(p => `${x(p.x).toFixed(1)},${y(p.balance).toFixed(1)}`).join(' ')} stroke={l.tone} strokeDasharray={l.dash} />)}
-      {year !== null && <g className="calc-cursor"><line x1={x(year)} x2={x(year)} y1={padT - 6} y2={H - padB} />{here && <circle cx={x(year)} cy={y(here.balance)} r="5" />}{others.map(l => { const p = at(l.points, year); return p ? <circle key={l.id} cx={x(year)} cy={y(p.balance)} r="4" fill={l.tone} /> : null; })}</g>}
+      {others.map(l => <polyline key={l.id} className="calc-whatif" points={l.points.map(p => `${x(p.x).toFixed(1)},${y(p.balance).toFixed(1)}`).join(' ')} style={{stroke: l.tone}} strokeDasharray={l.dash} />)}
+      {year !== null && <g className="calc-cursor"><line x1={x(year)} x2={x(year)} y1={padT - 6} y2={H - padB} />{here && <circle cx={x(year)} cy={y(here.balance)} r="5" />}{others.map(l => { const p = at(l.points, year); return p ? <circle key={l.id} cx={x(year)} cy={y(p.balance)} r="4" style={{fill: l.tone}} /> : null; })}</g>}
     </svg>
     {year !== null && <div className="calc-tip" style={{left: tipLeft}} aria-live="polite">
       <strong>{year === 0 ? 'At the start' : year < 0 ? `${-year} ${year === -1 ? 'year' : 'years'} before now` : `After year ${year}`}</strong>
@@ -89,7 +89,7 @@ export function CalculatorChart({result, start, currency, lines}: {result: Compo
       <ChartLegend className="calc-legend" items={[
         {label: 'Put in', swatch: <i className="calc-swatch is-in" />},
         {label: 'Growth', swatch: <i className="calc-swatch is-growth" />},
-        ...others.map(l => ({label: l.label, swatch: <svg width="26" height="10" aria-hidden="true"><line x1="1" x2="25" y1="5" y2="5" stroke={l.tone} strokeWidth="3" strokeDasharray={l.dash} /></svg>})),
+        ...others.map(l => ({label: l.label, swatch: <svg width="26" height="10" aria-hidden="true"><line x1="1" x2="25" y1="5" y2="5" style={{stroke: l.tone}} strokeWidth="3" strokeDasharray={l.dash} /></svg>})),
         ...(result.milestones.length > 0 ? [{label: 'Milestones', swatch: <svg width="14" height="14" aria-hidden="true"><line x1="7" x2="7" y1="0" y2="14" className="calc-milestone-line" /></svg>}] : []),
       ]} />
     </figcaption>

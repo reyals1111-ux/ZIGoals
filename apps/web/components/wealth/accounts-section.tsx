@@ -3,8 +3,11 @@ import {holdingsBySource, SOURCE_LABEL, type SourceKind} from '../../lib/account
 import {isMoneyCurrency} from '../../lib/visual-format';
 import {Suspense, lazy, useEffect, useState} from 'react';
 import {accountForPrefill, BALANCE_PREFILL_EVENT, takeBalancePrefill} from '../../lib/ai/actions/balance-prefill';
-import {showToast} from '../ui/undo-toast';
-import {ACCOUNTS, accountsSchema, ASSET_KINDS, DEBT_KINDS, isDebtKind, type Account, type AccountKind, type Accounts} from '../../lib/accounts/schema';
+import {showUndo} from '../ui/undo-toast';
+import {reinsertAccount, unarchiveAccount} from '../../lib/wealth-undo';
+import {plausibilityWarning} from '../../lib/wealth-plausibility';
+import {PlausibleCheck, usePlausibleCheck} from './plausible-check';
+import {ACCOUNTS, ASSET_KINDS, DEBT_KINDS, isDebtKind, type Account, type AccountKind, type Accounts} from '../../lib/accounts/schema';
 import {add, addAccount, balanceOn, editAccount, holdingsOf, moneyText, netWorthTotal, netWorthHistory, payoffMonths, recordBalance, recordPayment, removeAccount, usualPayment, type Money} from '../../lib/accounts/net-worth';
 import {parseAmountInput} from '../../lib/amount-input';
 import {formatGoalAmount} from '../../lib/goal-summary';
@@ -63,7 +66,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   }, [handed, accounts.loaded, accounts.unreadable, accounts.data.items]);
   // Session AA-Cloud Part 6: archiving and removing also offer Undo in the shared toast.
   function change(fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) {
-    try { accounts.update(fn); setMessage(words); setError(''); if (undo) showToast({message: words, undo: () => accounts.update(undo.fn), undone: undo.done}); return true; } catch (cause) { /* Session AH (VA7): never the last success beside the error */ setMessage(''); setError(plainErrorMessage(cause, 'Not saved on this device.')); return false; }
+    try { accounts.update(fn); setMessage(words); setError(''); if (undo) showUndo({message: words, restore: () => accounts.update(undo.fn), undone: undo.done}); /* Session AL (3e): the one Undo; restore reads the latest record */ return true; } catch (cause) { /* Session AH (VA7): never the last success beside the error */ setMessage(''); setError(plainErrorMessage(cause, 'Not saved on this device.')); return false; }
   }
   const market = useMarketQuotes(wealthMarketRequests(platform.data)), now = useEvidenceNow(platform.data, market.now);
   if (!accounts.loaded) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title" aria-busy="true"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2></section>;
@@ -97,7 +100,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
     {(['assets', 'debts'] as const).filter(group => only === 'all' || (group === 'debts') === (only === 'debts')).map(group => { const list = active.filter(a => isDebtKind(a.kind) === (group === 'debts')); return list.length > 0 && <div key={group} className="accounts-group"><h3>{group === 'assets' ? 'What you own' : 'What you owe'}</h3><ul className="accounts-list">{list.map(a => <AccountRow key={a.id} account={a} today={today} open={open?.id === a.id ? open.mode : null} setOpen={mode => { setOpen(mode ? {id: a.id, mode} : null); setPrefill(null); }} change={change} {...(prefill?.id === a.id ? {prefill} : {})} />)}</ul>
       {/* Session AK (F5a, item 1): snowball or avalanche, from these debts; loads on the button. */}
       {group === 'debts' && <><button type="button" className="secondary accounts-plan-button" aria-expanded={planOpen} onClick={() => setPlanOpen(o => !o)}>{planOpen ? 'Close the payoff planner' : 'Plan paying off your debts'}</button>{planOpen && <Suspense fallback={<p className="fine">Loading…</p>}><DebtPlanner /></Suspense>}</>}</div>; })}
-    {archived.length > 0 && <details className="accounts-archived"><summary>Archived ({archived.length})</summary><ul className="accounts-list">{archived.map(a => <li key={a.id}><span>{a.name} · {KIND_LABEL[a.kind]}</span><div className="actions"><button type="button" className="quiet" onClick={() => change(g => editAccount(g, a.id, {archived: false}, new Date().toISOString()), `${a.name} restored.`)}>Restore</button><button type="button" className="quiet" onClick={() => { const at = items.findIndex(x => x.id === a.id); change(g => removeAccount(g, a.id), `${a.name} removed from this device.`, {fn: g => g.items.some(x => x.id === a.id) ? g : accountsSchema.parse({...g, items: [...g.items.slice(0, at), a, ...g.items.slice(at)]}), done: `${a.name} is back.`}); }}>Remove</button></div></li>)}</ul></details>}
+    {archived.length > 0 && <details className="accounts-archived"><summary>Archived ({archived.length})</summary><ul className="accounts-list">{archived.map(a => <li key={a.id}><span>{a.name} · {KIND_LABEL[a.kind]}</span><div className="actions"><button type="button" className="quiet" onClick={() => change(g => editAccount(g, a.id, {archived: false}, new Date().toISOString()), `${a.name} restored.`)}>Restore</button><button type="button" className="quiet" onClick={() => { const at = items.findIndex(x => x.id === a.id); change(g => removeAccount(g, a.id), `${a.name} removed from this device.`, {fn: reinsertAccount(a, at), done: `${a.name} is back.`}); }}>Remove</button></div></li>)}</ul></details>}
     {message && <p role="status">{message}</p>}
     {error && <p role="alert">{error}</p>}
   </section>;
@@ -110,18 +113,21 @@ function AssetsVsDebts({assets, holdings, debts, currency}: {assets: Money; hold
 }
 function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount>[1], words: string) => void; today: string}) {
   // Session Y Part 9: a refused currency or balance marks its own field (aria-invalid, described by the message) and takes the focus.
-  const [kind, setKind] = useState<AccountKind>('savings'), fe = useFieldErrors();
+  const [kind, setKind] = useState<AccountKind>('savings'), fe = useFieldErrors(), check = usePlausibleCheck();
   return <form className="platform-form accounts-add" aria-label="Add an account or debt" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let field = ''; try {
     const name = String(f.get('name')).trim(), currency = String(f.get('currency')).trim().toUpperCase(), balance = String(f.get('balance') ?? '').trim(), rate = rateText(String(f.get('rate') ?? ''));
     field = 'currency'; if (!isMoneyCurrency(currency)) throw Error(`“${currency}” is not a three-letter currency code ZIGoals knows. Use one such as EUR, USD or GBP.`);
     field = 'balance'; const money = balance ? toMoney(balance, String(f.get('date') || today)) : undefined; field = '';
+    // Session AL (P-TK-49, N-TK-12): a billion or more asks once ("check this?"); keeping it saves as typed.
+    if (!check.ask(`add:${currency}:${money ? moneyText(money) : ''}`, money ? plausibilityWarning(Number(moneyText(money)), currency, isDebtKind(kind) ? 'debt' : 'balance') : null)) { fe.clear(); return; }
     onAdd({id: crypto.randomUUID(), kind, name, currency, institution: String(f.get('institution') ?? ''), ...(rate ? {ratePercent: rate} : {}), ...(money ? {balance: money} : {})}, `${name} added.`); fe.clear();
   } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the account.'), ...(field ? [field] : [])); } }}>
     <label className="field">Kind<select value={kind} onChange={e => setKind(e.target.value as AccountKind)}><optgroup label="What you own">{ASSET_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup><optgroup label="What you owe">{DEBT_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup></select></label>
     <label className="field">Name<input name="name" required maxLength={80} placeholder={isDebtKind(kind) ? 'For example, car loan' : 'For example, savings account'} /></label>
     <label className="field">Currency<input name="currency" required maxLength={3} defaultValue="EUR" autoCapitalize="characters" {...fe.field('currency')} /></label>
     <label className="field">Bank or provider (optional)<input name="institution" maxLength={80} /></label>
-    <label className="field">{isDebtKind(kind) ? 'What you owe now (optional)' : 'Balance now (optional)'}<input name="balance" inputMode="decimal" autoComplete="off" {...fe.field('balance')} /></label>
+    <label className="field">{isDebtKind(kind) ? 'What you owe now (optional)' : 'Balance now (optional)'}<input name="balance" inputMode="decimal" autoComplete="off" {...fe.field('balance', check.describedBy ? {describedBy: check.describedBy} : {})} onInput={check.clear} /></label>
+    <PlausibleCheck id={check.id} warning={check.warning} />
     <label className="field">On<input name="date" type="date" defaultValue={today} max={today} /></label>
     <label className="field">Yearly rate, your own figure (optional, %)<input name="rate" inputMode="decimal" /></label>
     <button type="submit" className="primary">Add</button>
@@ -129,7 +135,7 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
   </form>;
 }
 function AccountRow({account: a, today, open, setOpen, change, prefill}: {account: Account; today: string; open: 'balance' | 'payment' | 'edit' | null; setOpen: (mode: 'balance' | 'payment' | 'edit' | null) => void; change: (fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) => boolean; prefill?: {amount: string; date: string}}) {
-  const b = balanceOn(a), debt = isDebtKind(a.kind), usual = debt ? usualPayment(a, today) : null, [monthly, setMonthly] = useState(''), fe = useFieldErrors(), [rateError, setRateError] = useState('');
+  const b = balanceOn(a), debt = isDebtKind(a.kind), usual = debt ? usualPayment(a, today) : null, [monthly, setMonthly] = useState(''), fe = useFieldErrors(), [rateError, setRateError] = useState(''), check = usePlausibleCheck();
   // Session AH (WE7, B-152): the payoff calculator takes a payment above zero and up to a trillion, else it shows nothing.
   const typedMonthly = monthly.trim() ? readNumber(monthly) : NaN, monthlyBad = monthly.trim() !== '' && !(typedMonthly > 0 && !amountIssue(typedMonthly));
   const monthlyNumber = monthly.trim() ? (monthlyBad ? NaN : typedMonthly) : usual ? Number(moneyText(usual)) : NaN;
@@ -142,8 +148,11 @@ function AccountRow({account: a, today, open, setOpen, change, prefill}: {accoun
     {open && open !== 'edit' && <form key={open === 'balance' && prefill ? `prefill:${prefill.amount}:${prefill.date}` : open} className="platform-form accounts-inline" aria-label={open === 'balance' ? `New balance for ${a.name}` : `Payment on ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const m = toMoney(String(f.get('amount')), String(f.get('date') || today));
       // Session AH (WE7, L-067, B-199): a payment is above zero and never more than what is owed.
       if (open === 'payment') { if (BigInt(m.value) <= 0n) throw Error('Enter a payment above zero.'); if (b && Number(moneyText(m)) > Number(moneyText(b))) throw Error(`That is more than the ${moneyText(b)} ${a.currency} owed. Enter the payment you made, up to the balance.`); }
+      // Session AL (P-TK-49, TK-039, N-TK-12): a balance of a billion or more asks once before it is saved.
+      else if (!check.ask(`${a.id}:${moneyText(m)}`, plausibilityWarning(Number(moneyText(m)), a.currency, debt ? 'debt' : 'balance'))) { fe.clear(); return; }
       if (change(g => open === 'balance' ? recordBalance(g, a.id, m, now()) : recordPayment(g, a.id, m, now()), open === 'balance' ? `${a.name}: balance saved for ${formatDate(m.date)}.` : `${a.name}: payment recorded for ${formatDate(m.date)}. Enter the new balance when your statement shows it.`)) setOpen(null); fe.clear(); } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the amount.'), 'amount'); } }}>
-      <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" autoComplete="off" required autoFocus defaultValue={open === 'balance' ? prefill?.amount : undefined} {...fe.field('amount')} /></label>
+      <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" autoComplete="off" required autoFocus defaultValue={open === 'balance' ? prefill?.amount : undefined} {...fe.field('amount', check.describedBy ? {describedBy: check.describedBy} : {})} onInput={check.clear} /></label>
+      <PlausibleCheck id={check.id} warning={check.warning} />
       <label className="field">On<input name="date" type="date" defaultValue={open === 'balance' && prefill ? prefill.date : today} max={today} /></label>
       <button type="submit" className="secondary">Save</button>
       {fe.error && <p role="alert" id={fe.messageId}>{fe.error}</p>}
@@ -152,7 +161,7 @@ function AccountRow({account: a, today, open, setOpen, change, prefill}: {accoun
       <label className="field">Name<input name="name" required maxLength={80} defaultValue={a.name} autoFocus /* Session AL (TK-129, TK-138): Edit puts the focus in Name */ /></label>
       <label className="field">Bank or provider<input name="institution" maxLength={80} defaultValue={a.institution ?? ''} /></label>
       <label className="field">Yearly rate, your own figure (%)<input name="rate" inputMode="decimal" autoComplete="off" defaultValue={a.ratePercent ?? ''} aria-invalid={rateError ? true : undefined} aria-describedby={rateError ? `${fe.messageId}-rate` : undefined} /></label>{rateError && <p className="field-error" role="alert" id={`${fe.messageId}-rate`}>{rateError}</p>}
-      <div className="actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={() => { if (change(g => editAccount(g, a.id, {archived: true}, now()), `${a.name} archived; its history is kept.`, {fn: g => editAccount(g, a.id, {archived: false}, now()), done: `${a.name} is back.`})) setOpen(null); }}>Archive</button></div>
+      <div className="actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={() => { if (change(g => editAccount(g, a.id, {archived: true}, now()), `${a.name} archived; its history is kept.`, {fn: unarchiveAccount(a.id), done: `${a.name} is back.`})) setOpen(null); }}>Archive</button></div>
     </form>}
     {debt && b && b.value > 0n && <details className="accounts-payoff"><summary>When would it be paid off?</summary>
       {a.ratePercent ? <><label className="field">Monthly payment ({a.currency}){usual ? `, usual: ${moneyText(usual)}` : ''}<input inputMode="decimal" value={monthly} onChange={e => setMonthly(e.target.value)} placeholder={usual ? moneyText(usual) : 'for example 250'} /></label>

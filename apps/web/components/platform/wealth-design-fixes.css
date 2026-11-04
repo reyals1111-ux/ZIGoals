@@ -17,3 +17,4 @@
    total stays on the first screen above the tab bar at 390 × 664 (it had crept 3 px under it as the header and the total's
    own figure grew). Phones only; computers and tablets are unchanged. */
 @media (max-width: 767.98px) { :root .wealth-product.wealth-workspace > .wealth-hero.wealth-summary { margin-top: -12px; } }
+:root .wealth-hero-total > .wealth-total-prices { display: block; max-width: 46ch; } /* Session AL (DV-278) */

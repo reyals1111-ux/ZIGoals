@@ -114,7 +114,9 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   await expect(page.locator('.money-status')).toContainText('Rule saved.');
   await page.getByRole('button', {name: 'Apply to the past 90 days…', exact: true}).click();
   await page.getByRole('button', {name: 'Apply to 3 entries', exact: true}).click();
-  await expect(page.locator('.money-status').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
+  // Session AL (PRIMITIVES 3e, deliberate): the rule run's Undo moved from a local link into the app's one Undo toast.
+  await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
+  await expect(page.locator('.money-status')).toContainText('3 entries changed.');
   await expect.poll(async () => (await moneyLog(page))!.entries.filter(e => e.note?.startsWith('Fictional Grocer')).map(e => e.category)).toEqual(['Groceries', 'Groceries', 'Groceries']);
 
   // A split: the hardware bill is half Home, half a Gift.

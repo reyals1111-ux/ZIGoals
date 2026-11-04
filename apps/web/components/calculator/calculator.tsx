@@ -11,7 +11,8 @@ import {formatMoney, formatSignedMoney} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useLocalToday} from '../use-local-today';
 import {SectionHeading} from '../ui/section-heading';
-import {showToast} from '../ui/undo-toast';
+import {showStatus, showUndo} from '../ui/undo-toast';
+import {calculatorCsv, contributionFor} from './calculator-extras';
 import {CalculatorChart, type ChartLine} from './calculator-chart';
 import {earnCalculatorPrefill} from '../../lib/earn/calculator-link';
 import './calculator.css';
@@ -24,7 +25,8 @@ import './calculator.css';
  * here is advice.
  */
 const AMOUNT = /^\d{1,13}(\.\d{1,2})?$/;
-const TONES = {higher: {tone: '#6fe6f6', dash: ''}, lower: {tone: '#ffc27a', dash: '8 5'}, earlier: {tone: '#f08bd6', dash: '2 5'}, custom: {tone: '#9ff0b5', dash: '12 4 3 4'}} as const;
+// Session AL (TK-057, TK-111): each tone is a theme token (calculator.css), so Light gets ink that reads on white.
+const TONES = {higher: {tone: 'var(--calc-tone-higher, #6fe6f6)', dash: ''}, lower: {tone: 'var(--calc-tone-lower, #ffc27a)', dash: '8 5'}, earlier: {tone: 'var(--calc-tone-earlier, #f08bd6)', dash: '2 5'}, custom: {tone: 'var(--calc-tone-custom, #9ff0b5)', dash: '12 4 3 4'}} as const;
 type Draft = {start: string; contribution: string; frequency: CompoundInput['frequency']; ratePercent: string; years: string; months: string; compounding: CompoundInput['compounding']; timing: CompoundInput['timing']; increasePercent: string; inflationPercent: string; currency: CompoundInput['currency']};
 type Compare = {higher: boolean; lower: boolean; earlier: boolean; custom: string};
 const toDraft = (i: CompoundInput): Draft => ({start: i.start, contribution: i.contribution, frequency: i.frequency, compounding: i.compounding, timing: i.timing, currency: i.currency, ratePercent: String(i.ratePercent), years: String(i.years), months: String(i.months ?? 0), increasePercent: String(i.increasePercent), inflationPercent: String(i.inflationPercent)});
@@ -37,9 +39,16 @@ const AMOUNT_HINT = 'An amount with up to two decimals, such as 250 or 99.50.';
 export const AMOUNT_TOO_LARGE = 'That is more than this calculator models. Enter an amount below 10 trillion (13 digits before the point).';
 export function amountText(raw: string): {value?: string; error?: string} {
   const v = raw.replace(/\s/g, '');
+  // Session AL (BN-089): say why — a negative amount is not a decimals problem.
+  if (/^[-−]/.test(v)) return {error: 'Enter an amount of 0 or more.'};
   if (/^\d{1,3}(,\d{3})+\.\d{1,2}$/.test(v) || /^\d{1,3}(,\d{3}){2,}$/.test(v)) return {value: v.replace(/,/g, '')};
   // Session AL (TK-159): a number that is simply too large says so, instead of the "two decimals" hint.
   try { const n = normalizeDecimalInput(v); if (AMOUNT.test(n)) return {value: n}; if (/^\d+(\.\d+)?$/.test(n) && n.split('.')[0]!.replace(/^0+/, '').length > 13) return {error: AMOUNT_TOO_LARGE}; return {error: AMOUNT_HINT}; } catch (e) { return {error: e instanceof Error ? e.message : AMOUNT_HINT}; }
+}
+/** Session AL (Part 15, C-TK-12): `?from=wealth&start=1500.50&currency=EUR` starts the plan at a Wealth total (USD or EUR only). */
+export function wealthPrefill(search: string): Pick<Draft, 'start' | 'currency'> | null {
+  const q = new URLSearchParams(search), start = amountText(q.get('start') ?? '').value, currency = q.get('currency');
+  return q.get('from') === 'wealth' && start && (currency === 'USD' || currency === 'EUR') ? {start, currency} : null;
 }
 /** Results past this are shown as too large to read reliably, never as long rows of exact-looking digits. */
 const SHOWN_LIMIT = new Decimal('1e15');
@@ -81,16 +90,18 @@ export function Calculator() {
   const record = useDeviceRecord(CALCULATOR), today = useLocalToday();
   const [draft, setDraft] = useState<Draft>(() => toDraft(DEFAULT_INPUT)), [restored, setRestored] = useState(false), [touched, setTouched] = useState(false);
   const [compare, setCompare] = useState<Compare>({higher: true, lower: true, earlier: false, custom: ''});
-  const [name, setName] = useState(''), [allRows, setAllRows] = useState(false);
+  const [name, setName] = useState(''), [allRows, setAllRows] = useState(false), [targetText, setTargetText] = useState('');
   // Session AF (L1, ADR-028 H17): opened from the Earn page (?from=earn&rate=…&label=illustration), the yearly return starts
   // at that live rate under an "illustration" banner; the first field the person touches clears it. Never remembered by itself.
-  const [illustration, setIllustration] = useState<string | null>(null);
+  const [illustration, setIllustration] = useState<string | null>(null), [fromWealth, setFromWealth] = useState(false);
   // The page opens on the inputs it showed last on this device.
   useEffect(() => {
     if (restored || !record.loaded) return;
     queueMicrotask(() => {
       setRestored(true);
-      const rate = earnCalculatorPrefill(window.location.search);
+      const rate = earnCalculatorPrefill(window.location.search), fromWealthStart = wealthPrefill(window.location.search);
+      // Session AL (Part 15, C-TK-12): opened from Wealth ("See where your holdings could grow"), the start is that total.
+      if (fromWealthStart) { setDraft(d => ({...(record.data.last ? toDraft(record.data.last) : d), ...fromWealthStart})); setIllustration(null); setFromWealth(true); return; }
       // Session AH (TR14, B-010): Earn's rate is a simple yearly rate, so it is added once a year here (as if the rewards
       // were restaked once a year), and the banner says so.
       if (record.data.last) setDraft(rate ? {...toDraft(record.data.last), ratePercent: rate, compounding: 'yearly'} : toDraft(record.data.last));
@@ -113,7 +124,7 @@ export function Calculator() {
       const r = safeCompound(w.input);
       if (r && !tooLarge(r.final)) out.push({id: w.id, label: w.label, ...TONES[w.id as 'higher' | 'lower' | 'earlier'], offset: w.id === 'earlier' ? -5 : 0, result: r});
     }
-    const custom = Number(compare.custom.replace(',', '.'));
+    const read = parseNumberInput(compare.custom, {allowNegative: true}), custom = read.ok ? read.value : NaN; // Session AL (3f)
     if (compare.custom.trim() && Number.isFinite(custom) && custom >= -50 && custom <= LIMITS.ratePercent && custom !== input.ratePercent) {
       const r = safeCompound({...input, ratePercent: Math.round(custom * 100) / 100});
       if (r && !tooLarge(r.final)) out.push({id: 'custom', label: `${Math.round(custom * 100) / 100} % return`, ...TONES.custom, offset: 0, result: r});
@@ -127,7 +138,7 @@ export function Calculator() {
     return () => window.clearTimeout(t);
   }, [parsed.input, restored, touched, record]);
 
-  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => { setTouched(true); setIllustration(null); setDraft(d => ({...d, [key]: value})); };
+  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => { setTouched(true); setIllustration(null); setFromWealth(false); setDraft(d => ({...d, [key]: value})); };
   const money = (v: string) => formatMoney(v, input.currency);
   const scenarios = record.loaded && !record.unreadable ? record.data.scenarios : [];
   const save = () => {
@@ -136,21 +147,33 @@ export function Calculator() {
     try {
       record.update(s => saveScenario(s, {id: `s${Date.now().toString(36)}`, name: title, input: parsed.input!, savedAt: new Date().toISOString()}));
       setName('');
-      showToast({message: `“${title}” saved on this device.`});
-    } catch (e) { showToast({message: e instanceof Error && e.message ? e.message : 'The scenario could not be saved on this device.'}); }
+      showStatus(`“${title}” saved on this device.`);
+    } catch (e) { showStatus(e instanceof Error && e.message ? e.message : 'The scenario could not be saved on this device.', {tone: 'error'}); }
   };
   const remove = (s: Scenario) => {
     const index = scenarios.findIndex(x => x.id === s.id);
     try {
       record.update(current => removeScenario(current, s.id));
-      showToast({message: `“${s.name}” removed.`, undo: () => record.update(current => restoreScenario(current, s, index)), undone: `“${s.name}” is back.`});
-    } catch { showToast({message: 'The scenario could not be removed.'}); }
+      showUndo({message: `“${s.name}” removed.`, restore: () => record.update(current => restoreScenario(current, s, index)), undone: `“${s.name}” is back.`}); // Session AL (3e)
+    } catch { showStatus('The scenario could not be removed.', {tone: 'error'}); }
   };
   const goalHref = result ? `/app/goals/new?${new URLSearchParams({from: 'calculator', name: `Grow to ${money(result.final)}`.slice(0, 100), target: result.final, currency: input.currency, date: addMonths(addYears(today, input.years), input.months ?? 0), contribution: input.contribution, every: input.frequency})}` : '/app/goals/new';
   const rows = result ? (allRows ? result.rows : result.rows.slice(0, 10)) : [];
   const busy = parsed.input !== undefined && input !== parsed.input;
+  // Session AL (Part 15, C-TK-29): "what would it take" — the contribution that reaches a target in this same plan.
+  const target = targetText.trim() ? amountText(targetText) : null, targetValue = target?.value;
+  const solved = useMemo(() => valid && targetValue && Number(targetValue) > 0 ? contributionFor(input, targetValue) : null, [valid, input, targetValue]);
+  const downloadCsv = () => {
+    if (!result) return;
+    // Session AL (Part 15, C-TK-31): the table with its assumptions, as a file kept on this device.
+    const url = URL.createObjectURL(new Blob([calculatorCsv(input, result, assumptionsText(input))], {type: 'text/csv;charset=utf-8'}));
+    const a = document.createElement('a'); a.href = url; a.download = `zigoals-calculator-${today}.csv`; document.body.append(a); a.click(); a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showStatus('Year-by-year estimate downloaded (CSV).');
+  };
 
   return <div className="calc">
+    {fromWealth && <p className="calc-illustration notice" role="status" style={{margin: "0 0 16px"}} data-wealth-start>The starting amount is your {draft.currency} holdings from Wealth today. The return, contributions and years are assumptions to change; an estimate, never a promise.</p>}
     {illustration && <p className="calc-illustration notice" role="status" style={{margin: "0 0 16px"}} data-earn-illustration={illustration}><b>Illustration, not a promise.</b> The yearly return starts at {illustration} %, ZIGChain’s native staking rate as the Earn page read it live (a simple yearly rate). Here it is added to the balance once a year, as if you restaked the rewards each year; without restaking, growth is lower. Rates move every block and nothing here is guaranteed. Change any field to use your own numbers.</p>}
     {!valid ? <section className="panel calc-results calc-results-invalid" aria-labelledby="calc-results-title"><h2 id="calc-results-title">Correct the marked field to see the estimate.</h2><p role="status">The figures come back as soon as every field is valid.</p></section> : !result ? <section className="panel calc-results" role="status"><h2>These numbers cannot be calculated.</h2><p>Check the return: a loss of 50 % or more in a single period is outside what this calculator models.</p></section> : tooLarge(result.final) || tooLarge(result.growth) ? <section className="panel calc-results" role="status"><h2>Too large to estimate here.</h2><p>With these numbers the result passes {formatMoney(SHOWN_LIMIT.toFixed(0), input.currency)}, beyond what this calculator shows reliably. Lower the return, the years or the amounts.</p></section> : <>
       <section className={`calc-results panel${parsed.input ? '' : ' is-stale'}`} aria-labelledby="calc-results-title" aria-busy={busy}>
@@ -224,7 +247,14 @@ export function Calculator() {
             <tbody>{rows.map(r => <tr key={r.year}><th scope="row">{r.months ? `${r.year} (${r.months} ${r.months === 1 ? 'month' : 'months'})` : r.year}</th><td>{money(r.contributedThisYear)}</td><td>{money(r.contributed)}</td><td>{formatSignedMoney(r.growth, input.currency)}</td><td><strong>{money(r.balance)}</strong></td>{result.realFinal && <td>{r.real ? money(r.real) : '—'}</td>}</tr>)}</tbody>
           </table>
         </div>
-        {result.rows.length > 10 && <button type="button" className="secondary" aria-expanded={allRows} onClick={() => setAllRows(v => !v)}>{allRows ? 'Show the first 10 years' : `Show all ${result.rows.length} years`}</button>}
+        <div className="calc-table-actions">{result.rows.length > 10 && <button type="button" className="secondary" aria-expanded={allRows} onClick={() => setAllRows(v => !v)}>{allRows ? 'Show the first 10 years' : `Show all ${result.rows.length} years`}</button>}
+          <button type="button" className="quiet" onClick={downloadCsv}>Download as CSV</button></div>
+      </section>
+
+      <section className="calc-solver panel" aria-labelledby="calc-solver-title">
+        <SectionHeading id="calc-solver-title" eyebrow="Work it backwards" title="What would it take?" level={3} lede={`The ${input.frequency === 'weekly' ? 'weekly' : input.frequency === 'monthly' ? 'monthly' : 'yearly'} contribution that would reach an amount in ${spanWords(input)}, with every other assumption above unchanged.`} />
+        <Field label="Amount to reach" error={target?.error} unit={input.currency}><input inputMode="decimal" autoComplete="off" value={targetText} onChange={e => setTargetText(e.target.value)} placeholder="for example 100000" /></Field>
+        {solved && <p className="calc-solved" role="status">{'reached' in solved ? `Your starting amount alone would already pass ${money(targetValue!)} in ${spanWords(input)} (estimate).` : 'outOfRange' in solved ? `${money(targetValue!)} is beyond what this calculator models for this plan. Try more years or a smaller amount.` : <>About <strong>{money(solved.contribution)}</strong> {PERIOD_WORDS[input.frequency]} would reach {money(targetValue!)} in {spanWords(input)} (estimate; returns are not guaranteed).</>}</p>}
       </section>
     </>}
 
@@ -238,8 +268,8 @@ export function Calculator() {
       {record.loaded && !record.unreadable && <p className="fine calc-saved-count" role="status">{scenarios.length} of {MAX_SCENARIOS} saved{scenarios.length >= MAX_SCENARIOS ? ' · remove one to save another (saving under an existing name replaces it)' : ''}</p>}
       {record.unreadable && <p className="notice" role="status">Saved scenarios on this device could not be read, so nothing is changed there.</p>}
       {scenarios.length ? <ul className="calc-scenarios">{scenarios.map(s => { const r = safeCompound(s.input); return <li key={s.id}>
-        <div><strong>{s.name}</strong><span>{formatMoney(s.input.start, s.input.currency)} to start, {formatMoney(s.input.contribution, s.input.currency)} {s.input.frequency === 'weekly' ? 'a week' : s.input.frequency === 'monthly' ? 'a month' : 'a year'}, {s.input.ratePercent} % for {spanWords(s.input)}</span>{r && <small>About {formatMoney(r.final, s.input.currency)} (estimate)</small>}</div>
-        <div className="calc-scenario-actions"><button type="button" className="secondary" onClick={() => { setTouched(true); setIllustration(null); setDraft(toDraft(s.input)); document.getElementById('calc-inputs-title')?.scrollIntoView({block: 'start'}); showToast({message: `“${s.name}” is in the calculator.`}); }} aria-label={`Open ${s.name}`}>Open</button><button type="button" className="quiet" onClick={() => remove(s)} aria-label={`Remove ${s.name}`}>Remove</button></div>
+        <div><strong>{s.name}</strong><span>{formatMoney(s.input.start, s.input.currency)} to start, {formatMoney(s.input.contribution, s.input.currency)} {s.input.frequency === 'weekly' ? 'a week' : s.input.frequency === 'monthly' ? 'a month' : 'a year'}, {s.input.ratePercent} % for {spanWords(s.input)}</span>{r && <small>{tooLarge(r.final) ? 'Too large to estimate here (beyond what this calculator shows reliably).' : `About ${formatMoney(r.final, s.input.currency)} (estimate)`}</small>}{/* Session AL (BN-090): no 22-digit false precision */}</div>
+        <div className="calc-scenario-actions"><button type="button" className="secondary" onClick={() => { setTouched(true); setIllustration(null); setDraft(toDraft(s.input)); document.getElementById('calc-inputs-title')?.scrollIntoView({block: 'start'}); showStatus(`“${s.name}” is in the calculator.`); }} aria-label={`Open ${s.name}`}>Open</button><button type="button" className="quiet" onClick={() => remove(s)} aria-label={`Remove ${s.name}`}>Remove</button></div>
       </li>; })}</ul> : <p className="calc-empty">No saved scenarios yet. Save one to compare plans later.</p>}
     </section>
   </div>;

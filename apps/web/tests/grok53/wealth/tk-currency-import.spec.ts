@@ -48,7 +48,8 @@ test('TK-216/TK-209 (P-TK-68) and TK-009/TK-011/TK-013 (P-TK-10; W13): the impor
   // Mapping, then the preview.
   await sheet.getByRole('button', {name: /^Next/}).click();
   const refused = sheet.locator('.import-refused');
-  await expect(refused).toHaveAttribute('open', '');
+  // Open without a click: the element's own open state (the attribute serializes as an empty string).
+  await expect(refused).toHaveJSProperty('open', true);
   await expect(refused).toContainText('Row 2: the same as row 1');
   await expect(refused).toContainText('Row 4: “XYZ” is not a currency code');
   await expect(sheet).toContainText('2 rows ready');

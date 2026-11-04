@@ -5,6 +5,7 @@ import {addLocalDays, localDate} from '../../lib/local-date';
 import {leverageCost, tiltLine, tiltSignals, tradeHealth, type LeverageInput, type LeverageResult} from '../../lib/portfolio/trader';
 import type {Portfolio} from '../../lib/portfolio/schema';
 import {formatMoney, formatMonth, formatNumber, formatSignedMoney} from '../../lib/visual-format';
+import {parseNumberInput} from '../../lib/numbers/parse';
 
 /**
  * Session AJ (item 30; owner decision D11): trader tools on a portfolio's Insights view, offered only when it has sells and
@@ -72,7 +73,7 @@ function LeverageCard({currency}: {currency: string}) {
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm(f => ({...f, [k]: v}));
   const work = (event: React.FormEvent) => {
     event.preventDefault(); setProblem('');
-    const clean = (v: string) => v.trim().replace(',', '.');
+    const clean = (v: string) => { const r = parseNumberInput(v); return r.ok ? r.text : v.trim(); }; // Session AL (PRIMITIVES 3f)
     if (![form.size, form.entry, form.rate].every(v => /^\d+(\.\d+)?$/.test(clean(v)))) { setResult(null); setProblem('Enter plain numbers, such as 1000 or 0.01.'); return; }
     try { const input: LeverageInput = {size: clean(form.size), leverage: Number(form.leverage), entry: clean(form.entry), side: form.side, rate: clean(form.rate), rateKind: form.rateKind, days: Number(form.days)}; setResult(leverageCost(input)); }
     catch (cause) { setResult(null); setProblem(cause instanceof Error ? cause.message : 'These figures cannot be worked out.'); }

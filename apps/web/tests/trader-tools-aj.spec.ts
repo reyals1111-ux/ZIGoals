@@ -13,7 +13,7 @@ test('trader tools: off until turned on; trade health, the tilt check and the le
   for (const path of ['**/api/market-assets*', '**/api/market-quotes', '**/api/market-insights', '**/api/market-detail', '**/api/market-history']) await page.route(path, route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.addInitScript(value => { try { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('zigoals:portfolio:v1', value); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); sessionStorage.setItem('seeded', '1'); } } catch { /* storage denied */ } }, JSON.stringify(PORTFOLIOS));
   await page.goto('/app/portfolio');
-  await page.getByRole('tab', {name: 'Insights'}).click();
+  await page.getByRole('tab', {name: 'Transactions'}).click(); // Session AL (COPY_AUDIT, deliberate): TK-030, the tab was "Insights"
   const offer = page.getByRole('region', {name: 'Trader tools'});
   await expect(offer).toContainText('Off until you turn them on; not advice.');
   await offer.getByRole('button', {name: 'Turn on trader tools'}).click();
@@ -45,7 +45,7 @@ test('trader tools: off until turned on; trade health, the tilt check and the le
   expect(Object.keys(prefs.trader).sort()).toEqual(['on', 'tiltHiddenUntil']);
   expect(JSON.stringify(prefs)).not.toContain('50000');
   await page.reload();
-  await page.getByRole('tab', {name: 'Insights'}).click();
+  await page.getByRole('tab', {name: 'Transactions'}).click(); // Session AL (COPY_AUDIT, deliberate): TK-030, the tab was "Insights"
   await expect(page.getByRole('region', {name: 'Trade health'})).toBeVisible();
   await expect(page.getByRole('note', {name: 'A moment to check in'})).toHaveCount(0);
   await page.getByRole('region', {name: 'Trade health'}).getByRole('button', {name: 'Turn off'}).click();

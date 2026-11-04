@@ -12,6 +12,11 @@ async function addAccount(page: Page, {kind, name, currency, balance}: {kind?: s
   await add.getByLabel('Currency').fill(currency);
   if (balance) await add.getByLabel(/What you owe now|Balance now/).fill(balance);
   await add.getByRole('button', {name: 'Add', exact: true}).click();
+  // Session AL (P-TK-49, pass 2): a billion or more asks once ("check this?"); the bot meant it, so it keeps it.
+  if (balance && Number(balance.replace(/[^\d.]/g, '')) >= 1e9) {
+    await expect(add.getByRole('status')).toContainText('is more than a billion');
+    await add.getByRole('button', {name: 'Keep this amount'}).click();
+  }
   await expect(page.getByRole('status').filter({hasText: `${name} added.`})).toBeVisible();
 }
 

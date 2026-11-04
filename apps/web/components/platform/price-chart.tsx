@@ -13,9 +13,11 @@ const cache=createMarketHistoryCache((request,refresh)=>fetchPublicMarketHistory
 const labels:Record<ChartHistoryRange,string>={'1d':'24H','7d':'7D','30d':'30D','90d':'90D','1y':'1Y',all:'Max'};
 const EMPTY_POINTS:HistoryPoint[]=[];
 /** `offline` (Session W Part 15, the Showcase's coin page): only `localPoints` (labelled fixture prices) are shown and nothing is asked. */
-export type PriceChartProps={marketRef:MarketAssetRef;currency:'USD'|'EUR';localPoints?:HistoryPoint[];title?:string;offline?:boolean};
+export type PriceChartProps={marketRef:MarketAssetRef;currency:'USD'|'EUR';localPoints?:HistoryPoint[];title?:string;offline?:boolean;/** Session AL (Part 15, C-TK-19): a dashed level, such as the person's average cost (a plain decimal price). */costLine?:{value:string;label:string}};
+/** A plain decimal as integer units at `decimals` places (cut, never rounded); null when it is not a plain decimal. */
+export function decimalUnits(value:string,decimals:number):bigint|null{if(!/^\d+(\.\d+)?$/.test(value))return null;const [whole,fraction='']=value.split('.');return BigInt(whole+(fraction+'0'.repeat(decimals)).slice(0,decimals));}
 /** localPoints are dated unit prices in currency, never holding totals. They remain in this component only. */
-export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='Price history',offline=false}:PriceChartProps){
+export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='Price history',offline=false,costLine}:PriceChartProps){
  const id=useId(),look=useChartLook();
  // One historical window per opened asset. Range controls filter real observations locally.
  const requestText=JSON.stringify({marketRef,currency,range:'90d'});
@@ -48,7 +50,8 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
  const refreshAllowed=!loading&&now>=(result?.nextAttemptAt??0);
  const decimals=Math.max(0,...points.map(p=>p.decimals));
  const units=points.map(p=>BigInt(p.value)*10n**BigInt(decimals-p.decimals));
- const minimum=units.length?units.reduce((a,b)=>a<b?a:b):0n,maximum=units.length?units.reduce((a,b)=>a>b?a:b):0n;
+ const cost=costLine&&units.length>1?decimalUnits(costLine.value,decimals):null;
+ const minimum=units.length?[...units,...(cost!==null?[cost]:[])].reduce((a,b)=>a<b?a:b):0n,maximum=units.length?[...units,...(cost!==null?[cost]:[])].reduce((a,b)=>a>b?a:b):0n;
  const times=points.map(p=>Date.parse(p.at)),start=times[0]??0,end=times[times.length-1]??0;
  const x=(at:string)=>28+(end===start?352:(Date.parse(at)-start)/(end-start)*704);
  const y=(value:bigint)=>maximum===minimum?124:214-Number((value-minimum)*18000n/(maximum-minimum))/100;
@@ -80,6 +83,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
     <g className="chart-grid" aria-hidden="true">{[34,94,154,214].map(gridY=><line key={gridY} x1="28" x2="732" y1={gridY} y2={gridY}/>)}</g>
     {groups.filter(group=>group.length>1).map((group,index)=>{const coordinates=group.map(i=>`${x(points[i]!.at)},${y(units[i]!)}`).join(' ');return <g key={index}><polygon points={`${x(points[group[0]!]!.at)},230 ${coordinates} ${x(points[group.at(-1)!]!.at)},230`} fill={`url(#${id}-fill)`}/><polyline className="price-chart-line zgc-line" pathLength={1} points={coordinates} fill="none" style={{stroke:look.stroke('a')}} filter={look.glow} strokeWidth="2.6" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/></g>;})}
     {points.map((point,index)=><circle data-observation key={point.at} cx={x(point.at)} cy={y(units[index]!)} r={point.at===current?.at?4:1.8} fill={point.at===current?.at?'#eef5ff':'#aab3ff'} style={{'--at':((x(point.at)-28)/704).toFixed(3)} as CSSProperties}><title>{formatDateTime(point.at)} · {formatHistoryPrice(point,currency)}</title></circle>)}
+    {cost!==null&&<line className="price-chart-cost" x1="28" x2="732" y1={y(cost)} y2={y(cost)} strokeDasharray="7 6" aria-hidden="true"/>}
     {current&&<line className="chart-cursor" x1={x(current.at)} x2={x(current.at)} y1="28" y2="222"/>}
 
    </svg>}
@@ -87,6 +91,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
    {points.length===1&&<div className="price-chart-single"><strong>Tracking starts here</strong><p>One observed price is saved. Earlier performance is not assumed.</p></div>}
   </>:<div className="price-chart-empty"><LazyPillarArt pillar="wealth" size={72}/><h4>{loading?'Loading observed prices':'Your price history starts here'}</h4><p>{loading?'Checking available market history.':'Prices will appear as verified observations become available. Earlier performance is not assumed.'}</p></div>}
   <figcaption>
+   {cost!==null&&costLine&&<span className="price-chart-cost-key"><svg width="26" height="10" aria-hidden="true"><line x1="1" x2="25" y1="5" y2="5" strokeDasharray="7 6"/></svg>Dashed line: {costLine.label}, {formatHistoryPrice({at:'',value:cost.toString(),decimals},currency)}.</span>}
    {points.length>1&&<span>Connecting lines are illustrative; gaps longer than seven days remain open. The vertical scale fits observed prices, not a zero baseline. This is market context, not your portfolio return.</span>}
    {offline?'Showcase fixture prices, not market data.':marketRef.kind==='rwa'?RWA_HISTORY_UNAVAILABLE:history?'Dated market observations. Lines connect observed prices; values between them are not recorded prices.':result?.error&&marketRef.kind==='coin'?null:'Saved local price observations. Market history is currently unavailable.'}
    {history&&<span>Fetched <time dateTime={history.fetchedAt}>{formatDateTime(history.fetchedAt)}</time> · {currency} per asset unit. The chart’s last observation can differ from the current price at the top of the page, which has its own time.</span>}

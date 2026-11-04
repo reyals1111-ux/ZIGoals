@@ -2,9 +2,11 @@
 import {useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {formatPlainDecimal} from '../../../lib/visual-format';
+import {moneyWhole} from '../money-tools/format';
 import type {ValuationSnapshot} from '../../../lib/positions';
 import {TARGET_ALLOCATION, assetPerformance, driftByCurrency, holdingRows, setTargets, targetSum, type DriftRow, type Performance, type TargetAllocation} from '../../../lib/allocation/target';
 import './allocation.css';
+import {parseNumberInput} from '../../../lib/numbers/parse';
 
 /**
  * Session AK (7.4): the person's target mix beside today's, one currency at a time (never converted), with the recorded
@@ -13,7 +15,9 @@ import './allocation.css';
  * Information, not advice: it says how far a share is from the target, never what to buy or sell. Lazy-loaded.
  */
 export type OverviewRow = {position: {id: string; asset: string; providerId: string; marketRef?: unknown; valuationMode?: 'manual' | 'automatic'}; wealthClass: string; currency?: string; value?: bigint};
-const money = (value: string, currency: string) => { try { return new Intl.NumberFormat('en-GB', {style: 'currency', currency, maximumFractionDigits: 0}).format(Number(value)); } catch { return `${value} ${currency}`; } };
+const money = (value: string, currency: string) => moneyWhole(value, currency); // Session AL (PRIMITIVES 3f)
+/** Session AL (PRIMITIVES 3f): a typed percent through the one number reader; the text as typed when it does not read. */
+const pctText = (raw: string) => { const r = parseNumberInput(raw); return r.ok ? r.text : raw.trim(); };
 const pct = (n: number) => `${formatPlainDecimal(n.toFixed(1))} %`;
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${formatPlainDecimal(Math.abs(n).toFixed(1))} pp`;
 const STATUS: Record<DriftRow['status'], string> = {within: 'Within your range', above: 'Above your target', below: 'Below your target', 'no-target': 'No target'};
@@ -35,7 +39,7 @@ export function TargetAllocationView({record, rows, snapshots, now, onChange}: T
   const priced = rows.filter(r => r.position.marketRef && r.position.valuationMode !== 'manual');
   const startEdit = () => { setBasis(record.basis); setDraft(Object.fromEntries(record.targets.map(t => [t.key, t.percent]))); setBand(String(record.band)); setEditing(true); setStatus(''); setProblem(''); };
   const save = () => {
-    const list = keys.map(([key, label]) => ({key, label, percent: (draft[key] ?? '').trim().replace(',', '.') || '0'}));
+    const list = keys.map(([key, label]) => ({key, label, percent: pctText(draft[key] ?? '') || '0'}));
     const bad = list.find(t => !/^\d{1,3}(\.\d{1,2})?$/.test(t.percent));
     if (bad) { setProblem(`Enter a percentage for ${bad.label}, for example 40 or 12.5.`); return; }
     const width = Number(band);
@@ -43,7 +47,7 @@ export function TargetAllocationView({record, rows, snapshots, now, onChange}: T
     try { onChange(r => setTargets(r, basis, list, width)); setEditing(false); setProblem(''); setStatus('Your targets are saved on this device.'); }
     catch (cause) { setProblem(cause instanceof Error ? cause.message : 'Not saved on this device.'); }
   };
-  const draftSum = keys.reduce((sum, [key]) => sum + (Number((draft[key] ?? '').replace(',', '.')) || 0), 0);
+  const draftSum = keys.reduce((sum, [key]) => sum + (Number(pctText(draft[key] ?? '')) || 0), 0);
   return <div className="alloc-body">
     {!record.targets.length && !editing && <p className="fine">Set the mix you aim for — for example 60 % stocks, 30 % crypto, 10 % cash — and see how today&rsquo;s compares.</p>}
     {views.length === 0 && <p className="fine">Add a valued asset to compare a mix.</p>}

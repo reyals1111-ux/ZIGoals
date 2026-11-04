@@ -44,7 +44,8 @@
 /* Session AF Gate C (design critique, money pages 7): the floating launchers on the right edge covered Solana's choice ring on a
    computer; while they are on the right, the page keeps the lane Earn's paths and Today's rail keep. On a phone ZIGi's
    button sits at the bottom right of the first screen, over step 1's line: that line keeps clear of it. */
-@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+/* Session AL (N-TK-11): only where launchers still float (901 px and up, owner decision O3); below that the column uses the whole width. */
+@media (min-width: 901px) and (pointer: fine), (min-width: 901px) and (min-height: 501px) {
   :root:not([data-zigi-side=left]) .add-money-page { padding-inline-end: 64px; }
   :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) .add-money-page { padding-inline-end: 72px; }
 }
@@ -56,3 +57,5 @@
 .add-money-link-here .wallet-more-trigger { min-height: 44px; min-width: 44px; }
 .add-money .add-money-step h2:focus { outline: none; }
 .add-money .add-money-step h2:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 6px; }
+/* Session AL (N-TK-25): the ZIG-via-ATOM estimate, a calm note (theme ink). */
+.add-money-route { margin: 0; padding: 12px 14px; border-left: 4px solid var(--brand-cyan, #23eaff); border-radius: 8px; background: color-mix(in srgb, var(--brand-cyan, #23eaff) 7%, transparent); }

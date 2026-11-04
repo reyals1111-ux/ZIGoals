@@ -171,7 +171,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
     <div className="portfolio-summary-big"><PortfolioSummary portfolio={portfolio} totals={totals} day={day} allTime={allTime} stale={stale} /></div>
     {!showcase && <SinceLastVisit portfolio={portfolio} value={totals.knownValue} ready={totals.held > 0 && totals.unpriced === 0 && !stale} />}
     {rows.length > 0 && <>
-      {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}<div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`} onKeyDown={event => tabKeys(PORTFOLIO_TABS, tab, setTab)(event)}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Insights']] as const).map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)}>{label}</button>)}</div>
+      {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}<div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`} onKeyDown={event => tabKeys(PORTFOLIO_TABS, tab, setTab)(event)}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Transactions']] as const) /* Session AL (TK-030, COPY_AUDIT): named for what it holds */.map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)}>{label}</button>)}</div>
       <div id={`${portfolio.id}-panel-coins`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-coins`} hidden={tab !== 'coins'}>
         {/* Session AA-Cloud Part 1: the holdings (the portfolio's items) come right after its figures. */}
         <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => removeTx(portfolio.id, id)} run={run} />
@@ -183,7 +183,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
       </div>
       <div id={`${portfolio.id}-panel-insights`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-insights`} hidden={tab !== 'insights'}>
         <AllTransactions portfolio={portfolio} onRemove={id => removeTx(portfolio.id, id)} run={run} />
-        <p className="fine">Insights are your own recorded trades and transfers, with Edit and Remove on each, and the trader tools once you have sold; nothing here predicts anything.</p>
+        <p className="fine">Your own recorded trades and transfers, with Edit and Remove on each, and the trader tools once you have sold; nothing here predicts anything.</p>
         {/* Session AJ (item 30, D11): trader tools, offered only when this portfolio has sells; loaded on use. */}
         {portfolio.transactions.some(t => t.kind === 'sell') && <LoadBoundary quiet><Suspense fallback={null}><TraderTools portfolio={portfolio} /></Suspense></LoadBoundary>}
       </div>

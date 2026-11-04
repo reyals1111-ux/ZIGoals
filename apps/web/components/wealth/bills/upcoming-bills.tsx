@@ -4,11 +4,13 @@ import {useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatDate} from '../../../lib/visual-format';
+import {moneyCents} from '../money-tools/format';
 import {MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
 import {detectBills, openCandidates, type BillCandidate} from '../../../lib/bills/detect';
 import {addManualBill, billOccurrences, cancelReminders, confirmCandidate, dismissCandidate, manualBillIssue, monthlyEstimate, removeBill, setCancelNote, totalsByCurrency, type BillOccurrence} from '../../../lib/bills/store';
 import {BILLS, BILL_CADENCES, type Bill, type BillCadence, type BillsRecord} from '../../../lib/bills/schema';
 import './bills.css';
+import {parseNumberInput} from '../../../lib/numbers/parse';
 
 /**
  * Session AK (7.3, COMPETITORS M7): Upcoming bills. Bills come from the person: confirmed from a repeat the money log
@@ -18,8 +20,9 @@ import './bills.css';
  */
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF'] as const;
 const CADENCE_LABEL: Record<BillCadence, string> = {weekly: 'Weekly', monthly: 'Monthly', quarterly: 'Every 3 months', yearly: 'Yearly'};
-export const money = (cents: number, currency: string) => { try { return new Intl.NumberFormat('en-GB', {style: 'currency', currency}).format(cents / 100); } catch { return `${(cents / 100).toFixed(2)} ${currency}`; } };
-const readAmount = (raw: string) => { const v = raw.trim().replace(/\s/g, '').replace(',', '.'); return /^\d{1,10}(\.\d{1,2})?$/.test(v) && Number(v) > 0 ? Number(v).toFixed(2) : v; };
+/** Session AL (PRIMITIVES 3f): the one format layer (display locale; USD/EUR as money, other codes as typed). */
+export const money = (cents: number, currency: string) => moneyCents(cents, currency);
+const readAmount = (raw: string) => { const r = parseNumberInput(raw), v = r.ok ? r.text : raw.trim(); return /^\d{1,10}(\.\d{1,2})?$/.test(v) && Number(v) > 0 ? Number(v).toFixed(2) : v; }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
 
 export type BillsViewProps = {
   record: BillsRecord; entries: readonly MoneyEntry[]; today: string; showcase?: boolean; unreadable?: boolean;

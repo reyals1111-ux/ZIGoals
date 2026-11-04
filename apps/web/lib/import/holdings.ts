@@ -98,7 +98,17 @@ export function manualCategory(text: string): typeof MANUAL_SOURCES[number] {
   if (/propert|real estate|house|apartment|land/.test(t)) return 'Property';
   return MANUAL_SOURCES.find(s => s.toLowerCase() === t) ?? 'Custom asset';
 }
-export type ReadyHolding = {row: number; input: ManualSource};
+/** `fileClass`: the file's own class word when Wealth files it under a broader kind ("ETF" under Stocks, "Vehicle" as a custom asset). */
+export type ReadyHolding = {row: number; input: ManualSource; fileClass?: string};
+/**
+ * Session AL (TK-010): the class word a file used, when it says more than the kind it is filed under: "ETF" is kept as
+ * Stocks and "Vehicle" as a custom asset (Wealth has no such kinds for a hand-added holding), so the word is not lost.
+ */
+export function fileClassNote(fileClass: string, category: ManualSource['category']): string | null {
+  const word = fileClass.replace(/\s+/g, ' ').trim().slice(0, 40);
+  if (!word || word.toLowerCase() === category.toLowerCase() || (category === 'Stocks' && /^(stocks?|shares?|equit(y|ies))$/i.test(word)) || (category === 'Precious metals' && /^(precious )?metals?$/i.test(word))) return null;
+  return `Class in your file: ${word} (kept as ${category === 'Custom asset' ? 'a custom asset' : category}).`;
+}
 const METALS: [RegExp, string][] = [[/^XAU$|\bgold\b/i, 'Gold'], [/^XAG$|\bsilver\b/i, 'Silver'], [/^XPT$|\bplatinum\b/i, 'Platinum'], [/^XPD$|\bpalladium\b/i, 'Palladium']];
 /** The metal a row names by its symbol (XAU, XAG, XPT, XPD) or its name, or null. */
 export function metalOf(symbol: string, name: string): string | null {
@@ -137,13 +147,14 @@ export function planHoldingsImport({rows, mapping, numberStyle}: {rows: readonly
     // Session AL (TK-013): a metal row keeps its own metal (XAG is silver, never "Gold") and a bar's weight from its name
     // ("Gold bar 100g", quantity 2 → 200 grams), said in the note so the person can check it.
     const weighed = category === 'Precious metals' && quantity ? barWeight(name, quantity) : null;
-    const notes = [cell(cells, mapping, 'notes'), weighed?.note ?? ''].filter(Boolean).join(' ').slice(0, 500);
+    const classWord = cell(cells, mapping, 'class'), classNote = classWord ? fileClassNote(classWord, category) : null;
+    const notes = [cell(cells, mapping, 'notes'), weighed?.note ?? '', classNote ?? ''].filter(Boolean).join(' ').slice(0, 500);
     const input: ManualSource = {category, name, quantity: weighed?.quantity ?? quantity ?? '', currency, ...(symbol && category !== 'Precious metals' ? {symbol} : {}), ...(category === 'Precious metals' ? {metal: metalFound ?? 'Gold', unit: weighed?.unit ?? unitOfAsset(symbol) ?? 'grams'} : {}), ...(value !== null ? {value} : {}), ...(notes ? {notes} : {})};
     // Session AL (TK-011, C-TK-05): the same holding twice in one file (name, quantity, value and currency) is left out once.
     const same = plan.ready.find(r => r.input.name.toLowerCase() === input.name.toLowerCase() && r.input.quantity === input.quantity && r.input.value === input.value && r.input.currency === input.currency);
     if (same) return refuse(`the same as row ${same.row} (name, quantity, value and currency), so it was left out to avoid counting it twice. If both are real, change one row and import again.`);
     try { manualSourcePosition(input, 'imp_check', '2000-01-01T00:00:00.000Z'); } catch (error) { return refuse(error instanceof Error ? error.message.replace(/\.$/, '').toLowerCase() + '.' : 'this holding cannot be added.'); }
-    plan.ready.push({row, input});
+    plan.ready.push({row, input, ...(classNote ? {fileClass: classWord.trim().slice(0, 40)} : {})});
   });
   return plan;
 }

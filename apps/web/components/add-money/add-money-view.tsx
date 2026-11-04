@@ -12,7 +12,7 @@ import {destinationsFor} from '../../lib/onramps/guard';
 import {handOffUrl, returnUrl} from '../../lib/onramps/urls';
 import {UNAVAILABLE_WORDS} from '../../lib/onramps/ramp-assets';
 import {shortAddress} from '../../lib/wallet-address';
-import {displayLocale, formatTime} from '../../lib/visual-format';
+import {formatCurrencyAmount, formatTime} from '../../lib/visual-format';
 import {HONEST_LINE} from '../../lib/onramps/copy';
 import {WalletMoreButton} from '../wallet/wallet-more-button';
 import {stillScroll} from '../../lib/primitives/field-focus';
@@ -29,7 +29,7 @@ const PROVIDERS: {id: ProviderId; name: string; entity: string; site: 'ramp-site
   {id: 'ramp', name: 'Ramp Network', entity: 'Ramp Swaps (Ireland) Ltd, authorised by the Central Bank of Ireland on 2 Dec 2025 (ESMA’s interim MiCA register, file of 16 Oct 2026).', site: 'ramp-site'},
   {id: 'banxa', name: 'Banxa', entity: 'EU Internet Ventures B.V., authorised by the AFM (Netherlands) on 8 Oct 2025 (ESMA’s interim MiCA register, file of 16 Oct 2026).', site: 'banxa-site'},
 ];
-const money = (n: number, currency: string) => new Intl.NumberFormat(displayLocale(), {style: 'currency', currency, maximumFractionDigits: 2}).format(n);
+const money = (n: number, currency: string) => formatCurrencyAmount(Number.isFinite(n) ? n.toFixed(2) : '', currency); // Session AL (PRIMITIVES 3f)
 function rampAsset(ramp: RampState, code: string | undefined) {
   return ramp.phase === 'ready' && ramp.data.status === 'ok' && code ? ramp.data.assets.find(a => a.code === code) : undefined;
 }
@@ -65,6 +65,8 @@ export default function AddMoneyView() {
     {asset && <section className="add-money-step panel" aria-labelledby={`${id}-s2`}>
       <h2 id={`${id}-s2`} tabIndex={-1}><span className="add-money-n">2</span> Which network?</h2>
       <p>{asset.recommendation}</p>
+      {/* Session AL (N-TK-25): the three-step route says what it costs and how long, before anything is chosen (an estimate, not a quote). */}
+      {asset.id === 'zig-via-atom' && <p className="add-money-route" data-route-estimate><strong>What the route costs and how long it takes (an estimate):</strong> the provider’s fee for the ATOM (step 4 shows it); then a small Cosmos Hub network fee to move it to ZIGChain, which usually arrives within a few minutes; then OroSwap’s swap fee and the price at that moment, both shown in Keplr before you sign. Plan on roughly 15 to 30 minutes in all once the ATOM arrives.</p>}
       <div className="add-money-options" role="group" aria-label="Network">{asset.offers.map(o => {
         const n = NETWORKS[o.network], fee = live(o.ramp?.value)?.networkFee;
         return <button key={o.network} type="button" aria-pressed={o.network === network} data-network={o.network} onClick={() => { setNetwork(o.network); setWalletId(null); setReveal(`${id}-s3`); }}>

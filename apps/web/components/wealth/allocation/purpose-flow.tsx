@@ -6,6 +6,7 @@ import {useChartWidth} from '../../charts/use-chart-width';
 import './allocation.css';
 import '../../charts/chart-look.css';
 import {ArtNote} from '../../illustrations/art-note';
+import {centsText, moneyWhole} from '../money-tools/format';
 
 /**
  * Session AK (7.5): what each asset is for — a hand-drawn Sankey-style flow from assets (left) to the Goals they are
@@ -14,7 +15,7 @@ import {ArtNote} from '../../illustrations/art-note';
  */
 type Row = {position: {id: string; asset: string; providerId: string; quantity: string}; wealthClass: string; currency?: string; value?: bigint};
 export type PurposeFlowProps = {rows: readonly Row[]; goals: readonly {id: string; name: string; status: string}[]; allocations: readonly {goalId: string; positionId: string; quantity: string}[]};
-const money = (cents: bigint, currency: string) => { try { return new Intl.NumberFormat('en-GB', {style: 'currency', currency, maximumFractionDigits: 0}).format(Number(cents) / 100); } catch { return `${(Number(cents) / 100).toFixed(0)} ${currency}`; } };
+const money = (cents: bigint, currency: string) => moneyWhole(centsText(cents), currency); // Session AL (PRIMITIVES 3f)
 const share = (part: bigint, total: bigint) => total > 0n ? `${(Number(part * 1000n / total) / 10).toFixed(1)} %` : '—';
 const short = (text: string, n = 22) => text.length > n ? `${text.slice(0, n - 1)}…` : text;
 /** Session AK (G3, R30): drawn at its measured width (charts/use-chart-width.ts), so the names and amounts are a true 14 px

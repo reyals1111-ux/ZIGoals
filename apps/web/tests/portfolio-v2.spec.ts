@@ -210,7 +210,8 @@ test('phone: the coin, its 24h change, value and result; allocation and transact
   await expect(table.getByRole('row').filter({hasText: 'Bitcoin'}).getByRole('cell').filter({visible: true}).nth(1)).toHaveText('$35,000.00');
   // Session AB-Design (owner request 27): allocation and transactions sit under the Analysis and Insights tabs, not folds.
   await expect(page.getByRole('tab', {name: 'Analysis', exact: true})).toHaveAttribute('aria-selected', 'false');
-  await expect(page.getByRole('tab', {name: 'Insights', exact: true})).toHaveAttribute('aria-selected', 'false');
+  // Session AL (COPY_AUDIT, deliberate): TK-030 — the tab holding transactions, Edit/Remove and the trader tools is named "Transactions" (was "Insights").
+  await expect(page.getByRole('tab', {name: 'Transactions', exact: true})).toHaveAttribute('aria-selected', 'false');
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
   for (const control of await page.locator('main :is(button, select, a.portfolio-coin-link)').all()) if (await control.isVisible()) expect((await control.boundingBox())!.height, await control.innerText()).toBeGreaterThanOrEqual(44);
 });

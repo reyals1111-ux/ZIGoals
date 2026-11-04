@@ -9,6 +9,12 @@ import {MAX_RULES, RULE_DIRECTIONS, RULE_FIELDS, RULE_OPS, type MoneyRule, type 
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {useMoneyGoals} from './use-money-goals';
 import {money} from './format';
+import {showUndo} from '../../ui/undo-toast';
+/** Session AL (3e, A7): puts back what a rule run changed, in the money log's latest record; returns how many came back. */
+export function undoRuleChanges(update: (fn: (current: MoneyLog) => MoneyLog) => unknown, changes: readonly RuleChange[]): number {
+  let n = 0; update(current => { const out = undoChanges(current, changes); n = out.restored; return out.log; }); return n;
+}
+import {parseNumberInput} from '../../../lib/numbers/parse';
 
 /**
  * Session AK (lane M, item 1): the transaction rules — the list in order (the first that matches wins), a form to add
@@ -19,7 +25,7 @@ const EMPTY: RuleDraft = {field: 'payee', op: 'contains', text: '', direction: '
 const FIELD_LABEL: Record<MoneyRule['field'], string> = {either: 'Payee or memo', payee: 'Payee', memo: 'Memo'};
 const OP_LABEL: Record<MoneyRule['op'], string> = {contains: 'contains', equals: 'is exactly', 'starts-with': 'starts with'};
 const DIR_LABEL: Record<MoneyRule['direction'], string> = {any: 'Money in or out', out: 'Money out', in: 'Money in'};
-const readAmount = (raw: string) => raw.trim().replace(/\s/g, '').replace(',', '.');
+const readAmount = (raw: string) => { const r = parseNumberInput(raw); return r.ok ? r.text : raw.trim(); }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
 type Form = {field: MoneyRule['field']; op: MoneyRule['op']; text: string; direction: MoneyRule['direction']; min: string; max: string; category: string; renameTo: string; tag: string; goalId: string};
 const toForm = (d: RuleDraft): Form => ({field: d.field, op: d.op, text: d.text, direction: d.direction, min: d.min ?? '', max: d.max ?? '', category: d.category ?? '', renameTo: d.renameTo ?? '', tag: d.tag ?? '', goalId: d.goalId ?? ''});
 const toDraft = (f: Form): RuleDraft => ({field: f.field, op: f.op, text: f.text, direction: f.direction, ...(f.min.trim() ? {min: readAmount(f.min)} : {}), ...(f.max.trim() ? {max: readAmount(f.max)} : {}), ...(f.category ? {category: f.category} : {}), ...(f.renameTo.trim() ? {renameTo: f.renameTo} : {}), ...(f.tag.trim() ? {tag: f.tag.trim().replace(/^#/, '').toLowerCase()} : {}), ...(f.goalId ? {goalId: f.goalId} : {})});
@@ -28,7 +34,7 @@ export default function RulesPanel({rules, log, prefill, onPrefillUsed}: {rules:
   const id = useId(), today = localDate(), {goals, nameOf} = useMoneyGoals();
   const [form, setForm] = useState<Form>(() => toForm(prefill ?? EMPTY)), [editing, setEditing] = useState<string | null>(null);
   const [problem, setProblem] = useState(''), [status, setStatus] = useState('');
-  const [preview, setPreview] = useState<RuleChange[] | null>(null), [applied, setApplied] = useState<RuleChange[] | null>(null);
+  const [preview, setPreview] = useState<RuleChange[] | null>(null);
   useEffect(() => { if (!prefill) return; queueMicrotask(() => { setForm(toForm(prefill)); setEditing(null); setStatus('A rule from this entry is filled in below. Check it, then save.'); onPrefillUsed(); }); }, [prefill, onPrefillUsed]);
   const set = <K extends keyof Form>(key: K, value: Form[K]) => setForm(f => ({...f, [key]: value}));
   const list = rules.data.rules;
@@ -41,19 +47,17 @@ export default function RulesPanel({rules, log, prefill, onPrefillUsed}: {rules:
     setStatus(editing ? 'Rule changed.' : 'Rule saved. It runs on new entries and imports from now on.'); setEditing(null); setForm(toForm(EMPTY)); setPreview(null);
   };
   const change = (fn: (r: MoneyRules) => MoneyRules, words: string) => { try { rules.update(fn); setStatus(words); setPreview(null); } catch (cause) { setProblem(plainErrorMessage(cause, 'Not saved on this device.')); } };
-  const runPreview = () => { setApplied(null); setStatus(''); setPreview(previewPast(log.data, list, today)); };
+  const runPreview = () => { setStatus(''); setPreview(previewPast(log.data, list, today)); };
   const apply = () => {
     if (!preview) return;
     try {
       let done: RuleChange[] = [];
       log.update(current => { const out = applyChanges(current, preview); done = out.applied; return out.log; });
-      setApplied(done); setPreview(null); setStatus(`${done.length} ${done.length === 1 ? 'entry' : 'entries'} changed.`);
+      const words = `${done.length} ${done.length === 1 ? 'entry' : 'entries'} changed.`;
+      setPreview(null); setStatus(words);
+      // Session AL (3e): the one Undo toast; its restore reverses exactly these changes in the LATEST money log.
+      if (done.length) showUndo({message: words, restore: () => { const out = undoRuleChanges(log.update, done); return {undone: `Undone: ${out} ${out === 1 ? 'entry is' : 'entries are'} back as before.`}; }});
     } catch (cause) { setProblem(plainErrorMessage(cause, 'Nothing was changed on this device.')); }
-  };
-  const undo = () => {
-    if (!applied) return;
-    try { let n = 0; log.update(current => { const out = undoChanges(current, applied); n = out.restored; return out.log; }); setApplied(null); setStatus(`Undone: ${n} ${n === 1 ? 'entry is' : 'entries are'} back as before.`); }
-    catch (cause) { setProblem(plainErrorMessage(cause, 'The change could not be undone.')); }
   };
   const describe = (r: MoneyRule) => describeRule(r, nameOf);
   const goalName = useMemo(() => (gid?: string) => gid ? nameOf(gid) ?? 'a Goal' : '', [nameOf]);
@@ -109,6 +113,6 @@ export default function RulesPanel({rules, log, prefill, onPrefillUsed}: {rules:
         <div className="money-actions"><button type="button" className="primary" onClick={apply}>Apply to {preview.length} {preview.length === 1 ? 'entry' : 'entries'}</button><button type="button" className="quiet" onClick={() => setPreview(null)}>Cancel</button></div>
       </> : <p className="fine">Your rules would change nothing in the past 90 days.</p>)}
     </div>}
-    <p className="money-status" role="status" aria-live="polite">{status}{applied && applied.length > 0 && <> <button type="button" className="text-link" onClick={undo}>Undo</button></>}</p>
+    <p className="money-status" role="status" aria-live="polite">{status}</p>
   </section>;
 }

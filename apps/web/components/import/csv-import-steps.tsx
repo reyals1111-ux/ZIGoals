@@ -7,7 +7,7 @@ import {guessNumberStyle, type NumberStyle} from '../../lib/csv/numbers';
 import {DATE_FORMAT_LABELS, guessDateFormat, type DateFormat} from '../../lib/csv/dates';
 import type {ImportRecord} from '../../lib/import/undo-schema';
 import type {ImportUndoStore} from './use-import-undo';
-import {formatDate} from '../../lib/visual-format';
+import {formatDate, formatDateTime} from '../../lib/visual-format';
 import './import.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 
@@ -85,6 +85,7 @@ export function MappingStep({setup, options, text, onChange, children}: {setup: 
       <select value={mapping[field.id] ?? ''} aria-required={field.required || undefined} onChange={event => { const value = event.target.value, next = {...mapping}; if (value === '') delete next[field.id]; else next[field.id] = Number(value); onChange(withGuesses({...setup, mapping: next}, options, {numbers: options.numberFields.includes(field.id), dates: field.id === options.dateField})); }}>
         <option value="">Not in this file</option>{parsed.header.map((name, index) => <option key={index} value={index}>{name || `Column ${index + 1}`}{example(index) ? ` · e.g. ${example(index)!.slice(0, 24)}` : ''}</option>)}
       </select></label>)}</div>
+    {(() => { /* Session AL (N-TK-01, TK-019): a column with no field is named, never dropped silently */ const used = new Set(Object.values(mapping)), unused = parsed.header.map((name, index) => ({name: name || `Column ${index + 1}`, index})).filter(c => !used.has(c.index)); return unused.length > 0 && <p className="fine import-unused">Not imported (no field for {unused.length === 1 ? 'it' : 'them'}): {unused.map(c => c.name).join(', ')}.</p>; })()}
     {options.numberFields.length > 0 && <label className="field"><span>Numbers use</span><select value={setup.numberStyle} onChange={event => onChange({...setup, numberStyle: event.target.value as NumberStyle})}><option value="point">Point for decimals · 1,234.56</option><option value="comma">Comma for decimals · 1.234,56</option></select>{numberSamples.length > 0 && <small>In this file: {numberSamples.join(' · ')}</small>}</label>}
     {options.dateField && <label className="field"><span>Dates are</span><select value={setup.dateFormat} onChange={event => onChange({...setup, dateFormat: event.target.value as DateFormat, ambiguousDates: false})}>{(Object.keys(DATE_FORMAT_LABELS) as DateFormat[]).map(f => <option key={f} value={f}>{DATE_FORMAT_LABELS[f]}</option>)}</select>{dateSamples.length > 0 && <small>In this file: {dateSamples.join(' · ')}</small>}</label>}
     {setup.ambiguousDates && <p role="status" className="import-ambiguous">These dates could be read both ways. Choose the order.</p>}
@@ -98,7 +99,8 @@ export function MappingStep({setup, options, text, onChange, children}: {setup: 
 /** Rows the plan refused, with their reasons; they are skipped, never a blocker unless nothing is ready. */
 export function RefusedRows({refused}: {refused: readonly {row: number; reason: string}[]}) {
   if (!refused.length) return null;
-  return <details className="import-refused"><summary>{refused.length} {refused.length === 1 ? 'row' : 'rows'} refused (skipped)</summary><ul>{refused.slice(0, 200).map(r => <li key={r.row}>{r.reason}</li>)}{refused.length > 200 && <li>… and {refused.length - 200} more.</li>}</ul></details>;
+  // Session AL (TK-009, W13): open by default, so each refused row's number and reason are seen without a click (a long list stays folded).
+  return <details className="import-refused" open={refused.length <= 20}><summary>{refused.length} {refused.length === 1 ? 'row' : 'rows'} refused (skipped)</summary><ul>{refused.slice(0, 200).map(r => <li key={r.row}>{r.reason}</li>)}{refused.length > 200 && <li>… and {refused.length - 200} more.</li>}</ul></details>;
 }
 
 /** The Back/Next row of a step. */
@@ -110,12 +112,15 @@ export function StepActions({onBack, onNext, nextLabel = 'Next', nextDisabled, b
 }
 
 /** The newest live import of this page's kind, as a status banner with Undo, until undone, dismissed or expired. */
+/** True for an import made in the last 24 hours (a clock set back counts as recent). */
+export const recentImport = (at: string, now = Date.now()) => { const t = Date.parse(at); return !Number.isFinite(t) || now - t < 86_400_000; };
 export function ImportBanner({imports, kind, onUndo}: {imports: ImportUndoStore; kind: ImportRecord['kind']; onUndo: (record: ImportRecord) => Promise<void>}) {
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
-  const record = imports.live.find(r => r.kind === kind && !r.dismissed);
+  // Session AL (N-TK-27): the page banner is for a recent import (the last 24 hours); an older one stays undoable from the import sheet's Recent imports.
+  const record = imports.live.find(r => r.kind === kind && !r.dismissed && recentImport(r.at));
   if (!record) return null;
   return <div role="status" className="import-banner">
-    <p>{record.label}.</p>
+    <p>{record.label} <span className="fine">(imported {formatDateTime(record.at)}).</span></p>
     <div className="actions"><button type="button" className="quiet" disabled={busy} onClick={() => { setBusy(true); setError(''); onUndo(record).catch(e => setError(plainErrorMessage(e, 'The import was not undone.'))).finally(() => setBusy(false)); }}>Undo import</button><button type="button" className="quiet" aria-label="Dismiss this notice" disabled={busy} onClick={() => { try { imports.dismiss(record.id); } catch (e) { setError(plainErrorMessage(e, 'Could not dismiss.')); } }}>Dismiss</button></div>
     {error && <p role="alert">{error}</p>}
   </div>;
