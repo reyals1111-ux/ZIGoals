@@ -12,6 +12,7 @@ import {GRADIENTS} from '../../lib/goal-extras/store';
 import {isShowcase} from '../../lib/showcase-storage';
 import {SHOWCASE_VISION_ART} from '../../lib/showcase/vision-art';
 import {ProgressRing} from '../platform/financial-ui';
+import {isFinished} from '../../lib/goals/finished';
 import {VisionArt} from './vision-art';
 import {ZigiFigure} from '../zigi/zigi-figure';
 import {progressPresentation} from '../../lib/visual-format';
@@ -21,7 +22,9 @@ import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 /** A goal without a chosen vision still gets a calm picture: one of the gradients, picked from its key. */
 const fallback = (key: string) => GRADIENTS[[...key].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7) % GRADIENTS.length]!;
 // Gate C (design critique): the words round as the ring beside them does (the ring read 95 % over "94% of the way").
-const progressWords = (g: GoalSummary) => g.status === 'completed' ? 'Finished' : g.progressBound === 'unavailable' ? 'Progress unknown' : `${progressPresentation(g.progressPct)?.label ?? Math.floor(Number(g.progressPct))}% of the way`;
+// Session AL (DV-043a, P-DV-23): ring and words read one rule; a goal shows 100 % only when it is finished (a closed goal's
+// ring read 99 % over "100 % of the way"), and a closed goal says so (DV-043b).
+const progressWords = (g: GoalSummary) => isFinished(g) ? (g.status === 'closed' ? 'Finished · closed' : 'Finished') : g.status === 'closed' ? 'Closed' : g.progressBound === 'unavailable' ? 'Progress unknown' : `${progressPresentation(g.progressPct, false)?.label ?? Math.floor(Number(g.progressPct))}% of the way`;
 
 /**
  * Session AB-Design (owner request 16): the vision board as a real mood board — big pictures in a collage, the goal's
@@ -80,7 +83,7 @@ export function VisionBoard({goals, extras, onVision}: {goals: readonly GoalSumm
             {picture ? <span className="vision-art vision-tile-art vision-tile-photo" role="img" aria-label={picture.alt}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={picture.src} alt="" loading="lazy" decoding="async"/></span> : <VisionArt vision={vision} name={g.name} className="vision-tile-art" />}
             <span className="vision-tile-shade" aria-hidden="true"/>
             <span className="vision-tile-body">
-              <span className="vision-tile-ring"><ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={52} label={`${g.name} progress`} complete={g.status === 'completed'} identity={`board-${g.key}`} bound={g.progressBound} /></span>
+              <span className="vision-tile-ring"><ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={52} label={`${g.name} progress`} complete={isFinished(g)} identity={`board-${g.key}`} bound={g.progressBound} /></span>
               <span className="vision-tile-text"><strong>{g.name}</strong><small>{progressWords(g)}</small>{why && <em>“{why}”</em>}</span>
             </span>
           </button>
@@ -108,7 +111,7 @@ function VisionFullScreen({goal: g, extras, picture, fallbackGradient, onClose}:
     <div className="vision-full-copy">
       <p className="eyebrow">{g.type}</p>
       <h2 id="vision-full-title">{g.name}</h2>
-      <p className="vision-full-progress"><ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={64} label={`${g.name} progress`} complete={g.status === 'completed'} identity={`full-${g.key}`} bound={g.progressBound} /><span>{progressWords(g)}{g.target ? ` · target ${formatGoalAmount(g.target, g.currency)}` : ''}</span></p>
+      <p className="vision-full-progress"><ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={64} label={`${g.name} progress`} complete={isFinished(g)} identity={`full-${g.key}`} bound={g.progressBound} /><span>{progressWords(g)}{g.target ? ` · target ${formatGoalAmount(g.target, g.currency)}` : ''}</span></p>
       {extra?.why && <p className="vision-full-why">“{extra.why}”</p>}
       {extra?.ifThen && <p className="fine">{extra.ifThen}</p>}
       <div className="vision-full-actions"><Link className="primary" href={g.href} onClick={() => dialog.current?.close()}>Open Goal →</Link><button type="button" className="secondary" onClick={() => dialog.current?.close()}>Close</button></div>

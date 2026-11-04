@@ -12,13 +12,15 @@ import {ProgressRing} from '../platform/financial-ui';
 import {progressPresentation} from '../../lib/visual-format';
 import './goals.css';
 import {goalCounts} from '../../lib/numbers/counts';
+import {isFinished} from '../../lib/goals/finished';
 
 export type {GoalsView} from './goals-view-switch';
 
 /** Goals' key figures under the header (Session AA-Cloud Part 2): active, finished, with a plan, sub-goals. */
 export function GoalsFigures({goals, averages, extras}: {goals: readonly GoalSummary[]; averages: readonly AverageGoal[]; extras: GoalExtras}) {
   // Session AH (TR6): the shared count, as Today and the goals widget read it.
-  const {active, finished} = goalCounts(goals, averages);
+  // Session AL (P-DV-22): a goal closed after it reached its target stays finished (lib/goals/finished.ts).
+  const {active, finished} = goalCounts(goals.map(g => isFinished(g) ? {status: 'completed'} : g), averages);
   const planned = Object.values(extras.goals).filter(e => e.why || e.ifThen).length;
   const areas = new Set(Object.values(extras.goals).map(e => e.area).filter(Boolean)).size;
   const figures: [string, number, string][] = [['Active', active, 'goals in motion'], ['Finished', finished, 'on the Hall of achievements'], ['With a plan', planned, 'why and if-then written'], ['Life areas', areas, 'with at least one goal']];
@@ -39,9 +41,9 @@ export function GoalTreeView({goals, extras}: {goals: readonly GoalSummary[]; ex
     const g = byKey.get(node.key)!, kids = node.children.map(c => byKey.get(c.key)!).filter(Boolean), area = areaOf(node.key);
     const r = kids.length ? rollUp(g, kids) : null;
     return <li key={node.key} data-depth={depth} style={area ? {'--area-color': area.color} as React.CSSProperties : undefined}>
-      <Link href={g.href} className="goal-tree-node" data-done={g.status === 'completed' || undefined}>
-        <ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={depth ? 44 : 56} label={`${g.name} progress`} complete={g.status === 'completed'} identity={`tree-${g.key}`} bound={g.progressBound} />
-        <span className="goal-tree-text"><strong>{g.name}</strong><small>{r ? rollUpWords(r, (v, c) => formatGoalAmount(v, c)) : g.status === 'completed' ? 'Finished' : g.progressBound === 'unavailable' ? 'Progress unknown' : `${progressPresentation(g.progressPct)?.label ?? Math.floor(Number(g.progressPct))}% of the way`}</small></span>
+      <Link href={g.href} className="goal-tree-node" data-done={isFinished(g) || undefined}>
+        <ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={depth ? 44 : 56} label={`${g.name} progress`} complete={isFinished(g)} identity={`tree-${g.key}`} bound={g.progressBound} />
+        <span className="goal-tree-text"><strong>{g.name}</strong><small>{r ? rollUpWords(r, (v, c) => formatGoalAmount(v, c)) : isFinished(g) ? (g.status === 'closed' ? 'Finished · closed' : 'Finished') : g.progressBound === 'unavailable' ? 'Progress unknown' : g.status === 'closed' ? 'Closed' : `${progressPresentation(g.progressPct, false)?.label ?? Math.floor(Number(g.progressPct))}% of the way`}</small></span>
         {area && <span className="goal-tree-area"><i aria-hidden="true"/>{area.label}</span>}
         {kids.length > 0 && <span className="goal-tree-count" aria-label={`${kids.length} sub-goals`}>{kids.length}</span>}
       </Link>

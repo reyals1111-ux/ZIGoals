@@ -49,7 +49,9 @@ function TemplateCard({t}: {t: LibraryTemplate}) {
     {t.average && <p className="template-detail">{t.average.direction === 'at-least' ? 'At least' : 'At most'} {t.average.target.toLocaleString('en')} {t.average.unit}, over {t.average.windowDays} days (yours to change)</p>}
     {t.milestones && <ol className="template-steps" aria-label="Steps">{t.milestones.map(m => <li key={m}>{m}</li>)}</ol>}
     {t.habits && <p className="template-detail"><strong>Habits that help:</strong> {t.habits.map(h => h.title).join(' · ')}</p>}
-    <Link className="primary template-use" href={templateHref(t)} aria-label={`Use the template: ${t.title}`}>Use this template</Link>
+    {/* Session AL (DV-181, DV-083b, P-DV-39): a weight goal lives with Health goals; the button says where it goes. */}
+    {t.kind === 'health-weight' && <p className="template-detail" id={`template-${t.id}-where`}>Opens Health goals on the Goals page, with a weight goal ready to fill in.</p>}
+    <Link className="primary template-use" href={templateHref(t)} aria-label={`Use the template: ${t.title}`} aria-describedby={t.kind === 'health-weight' ? `template-${t.id}-where` : undefined}>{t.kind === 'health-weight' ? 'Open Health goals' : 'Use this template'}</Link>
   </li>;
 }
 

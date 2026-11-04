@@ -1,7 +1,8 @@
 'use client';
 import type {Platform,PrivateGoal} from '../../lib/positions';
 import {revisionInstallments,canceledRevisionInstallments} from '../../lib/plan-revisions';
-import {shownAmount} from './common';
+import {amount,shownAmount} from './common';
+import {formatGoalAmount} from '../../lib/goal-summary';
 import { formatDate, formatDateTime } from '../../lib/visual-format';
 export function PlanHistory({goal,data,now}:{goal:PrivateGoal;data:Platform;now:number}){
  const today=new Date(now).toISOString().slice(0,10),end=new Date(now+366*86400000).toISOString().slice(0,10);
@@ -14,5 +15,5 @@ export function PlanHistory({goal,data,now}:{goal:PrivateGoal;data:Platform;now:
  </>;
 }
 export function GoalMilestones({goal}:{goal:PrivateGoal}){
- return <section aria-label="Retained Goal milestones"><h3>Retained Goal milestones</h3><p>Current attainment can rise or fall. A target reached with sufficient evidence stays in this history. A revised target or reopened Goal starts a new cycle.</p>{goal.lifecycle?.length?<ol>{goal.lifecycle.map(e=><li key={e.id}><strong>{e.kind==='completed'?'Target reached':e.kind==='closed'?'Closed':e.kind==='reopened'?'Reopened':'Target revised'}</strong> · {formatDateTime(e.at)} · target {shownAmount(e.target,e.decimals)} {e.asset}{e.current!==undefined?` · counted ${shownAmount(e.current,e.decimals)} ${e.asset}`:''}</li>)}</ol>:<p>No milestones have been observed and retained yet. Earlier completion dates are not inferred.</p>}</section>;
+ return <section aria-label="Retained Goal milestones"><h3>Retained Goal milestones</h3><p>Current attainment can rise or fall. A target reached with sufficient evidence stays in this history. A revised target or reopened Goal starts a new cycle.</p>{goal.lifecycle?.length?<ol>{goal.lifecycle.map(e=><li key={e.id}><strong>{e.kind==='completed'?'Target reached':e.kind==='closed'?'Closed':e.kind==='reopened'?'Reopened':'Target revised'}</strong> · {formatDateTime(e.at)} {/* Session AL (DV-041b, P-DV-19, M-049): a Project counts milestones, never money; amounts read in the Goal's own unit */}{goal.type==='PROJECT'?(e.kind==='completed'?' · every milestone done':''):` · target ${formatGoalAmount(amount(e.target,e.decimals),e.asset)}${e.current!==undefined?` · counted ${formatGoalAmount(amount(e.current,e.decimals),e.asset)}`:''}`}</li>)}</ol>:<p>No milestones have been observed and retained yet. Earlier completion dates are not inferred.</p>}</section>;
 }

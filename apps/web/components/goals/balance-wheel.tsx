@@ -1,6 +1,7 @@
 'use client';
 import {useId} from 'react';
 import type {AreaBalance} from '../../lib/life-balance';
+import {formatProgressPercent} from '../../lib/visual-format';
 
 /**
  * G2's balance wheel: one wedge per life area. The wedge's coloured depth is the area's progress this month (the
@@ -18,14 +19,14 @@ export function BalanceWheel({areas, size = 220}: {areas: readonly AreaBalance[]
   };
   const known = areas.filter(a => a.progress !== null), average = known.length ? known.reduce((t, a) => t + a.progress!, 0) / known.length : null;
   return <svg className="balance-wheel" viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-labelledby={`${id}-desc`}>
-    <desc id={`${id}-desc`}>{areas.map(a => `${a.label}: ${a.progress === null ? 'no data yet' : `${Math.round(a.progress * 100)}%`}`).join('; ')}</desc>
+    <desc id={`${id}-desc`}>{areas.map(a => `${a.label}: ${a.progress === null ? 'no data yet' : formatProgressPercent(a.progress * 100)}`).join('; ')}</desc>
     <defs><radialGradient id={`${id}-core`}><stop offset="0" stopColor="#1d2a52" /><stop offset="1" stopColor="#0b1428" /></radialGradient></defs>
     {areas.map((a, i) => <g key={a.id}>
       <path d={wedge(i, r1)} className="balance-track" style={{fill: a.color}} />
       {a.progress !== null && a.progress > 0 && <path d={wedge(i, r0 + (r1 - r0) * Math.max(0.06, a.progress))} className="balance-fill" style={{fill: a.color}} />}
     </g>)}
     <circle cx={c} cy={c} r={r0 - 4} fill={`url(#${id}-core)`} className="balance-core" />
-    <text x={c} y={c - size * 0.01} textAnchor="middle" className="balance-core-value" style={{fontSize: Math.min(26, Math.round(r0 * 0.62))}}>{average === null ? '—' : `${Math.round(average * 100)}%`}</text>
+    <text x={c} y={c - size * 0.01} textAnchor="middle" className="balance-core-value" style={{fontSize: Math.min(26, Math.round(r0 * 0.62))}}>{average === null ? '—' : formatProgressPercent(average * 100)}</text>
     <text x={c} y={c + Math.min(16, r0 * 0.42)} textAnchor="middle" className="balance-core-label" style={{fontSize: Math.min(14, Math.max(11, Math.round(r0 * 0.33)))}}>balance</text>
   </svg>;
 }
@@ -35,7 +36,7 @@ export function BalanceLegend({areas}: {areas: readonly AreaBalance[]}) {
   return <ul className="balance-legend">{areas.map(a => <li key={a.id}>
     <span className="balance-dot" style={{background: a.color}} aria-hidden="true" />
     <span className="balance-name">{a.label}</span>
-    <span className="balance-value">{a.progress === null ? (a.items ? 'No data yet' : 'Nothing here yet') : `${Math.round(a.progress * 100)}%`}</span>
+    <span className="balance-value">{/* Session AL (DV-039c, DV-058c, N-DV-01, P-DV-25): a known 0 says what it measures; unknown stays "No data yet" */}{a.progress === null ? (a.items ? 'No data yet' : 'Nothing here yet') : `${formatProgressPercent(a.progress * 100)} toward targets`}</span>
     <span className="balance-activity">{a.activity ? `${a.activity} ${a.activity === 1 ? 'record' : 'records'} this month` : a.items ? `${a.items} ${a.items === 1 ? 'item' : 'items'}` : ''}</span>
   </li>)}</ul>;
 }

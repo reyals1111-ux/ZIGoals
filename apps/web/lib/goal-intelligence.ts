@@ -48,6 +48,17 @@ export function contributionTotals(s:Platform,goalId:string,now=Date.now(),scope
  const latest=events.filter(e=>!e.reversesId&&e.provenance!=='REWARD_INCOME'&&e.direction==='IN'&&!reversed.has(e.id)).sort((a,b)=>Date.parse(b.occurredAt)-Date.parse(a.occurredAt)||b.id.localeCompare(a.id))[0];
  return {contributed:contributed.toString(),withdrawn:withdrawn.toString(),net:(contributed-withdrawn).toString(),rewardIncome:rewardIncome.toString(),latest,unvaluedCount};
 }
+/**
+ * Session AL (DV-037, P-DV-26): the net of a Goal's history-only records (fundingMode HISTORY_ONLY, net of reversals and
+ * withdrawals), in Goal base units. These are counted in "Actual contributed" but never in progress.
+ */
+export function historyOnlyNet(s:Platform,g:Pick<PrivateGoal,'id'|'asset'|'decimals'|'type'>,now=Date.now()):string{
+ const events=s.contributions.filter(e=>e.goalId===g.id&&e.goalScope==='private'&&Date.parse(e.occurredAt)<=now&&e.provenance!=='REWARD_INCOME');
+ const historyIds=new Set(events.filter(e=>e.fundingMode==='HISTORY_ONLY'&&!e.reversesId).map(e=>e.id));
+ let net=0n;
+ for(const e of events){const counts=historyIds.has(e.id)||(!!e.reversesId&&historyIds.has(e.reversesId));if(!counts)continue;const v=eventValueForGoal(e,g);if(v===null)continue;net+=e.direction==='IN'?v:-v;}
+ return net.toString();
+}
 /** Only explicit funding links consume scheduled installments; history and market changes do not. */
 export function scheduledFundingCredits(s:Platform,g:PrivateGoal,now:number):Map<string,bigint>{
  const credits=new Map<string,bigint>();
@@ -100,12 +111,26 @@ export function goalTimeline(s:Platform,goalId:string,scope:'private'|'local'='p
  if(scope==='private'){
   const goal=s.goals.find(g=>g.id===goalId);
   for(const r of goal?.planRevisions??[])result.push({id:r.id,goalId,at:r.recordedAt,kind:'plan_revision',label:`Plan terms effective ${r.effectiveFrom}${r.priorHistory==='unknown'?' · earlier terms unknown':''}`,provenance:'RETAINED_PLAN_REVISION'});
-  for(const e of goal?.lifecycle??[])result.push({id:e.id,goalId,at:e.at,kind:'lifecycle',label:e.kind==='completed'?'Target reached · retained milestone':e.kind==='closed'?'Goal closed':e.kind==='reopened'?'Goal reopened · new cycle':'Target revised · new cycle',provenance:'RETAINED_MILESTONE',quantity:e.current,asset:e.asset,decimals:e.decimals});
-  for(const h of s.goalHistory.filter(h=>h.goalId===goalId))result.push(h.kind==='valuation'?{id:h.id,goalId,at:h.capturedAt,kind:'valuation',label:'Counted Goal value snapshot',provenance:h.requiresReview?'INCOMPLETE_EVIDENCE':'PRIVATE_SNAPSHOT',quantity:h.current,asset:h.asset,decimals:h.decimals}:{id:h.id,goalId,at:h.capturedAt,kind:h.kind,label:h.label,provenance:h.provenance});
+  for(const e of goal?.lifecycle??[])result.push({id:e.id,goalId,at:e.at,kind:'lifecycle',label:/* Session AL (P-DV-75): plain words */e.kind==='completed'?'Target reached · goal completed':e.kind==='closed'?'Goal closed':e.kind==='reopened'?'Goal reopened':'Target changed',provenance:'RETAINED_MILESTONE',quantity:e.current,asset:e.asset,decimals:e.decimals});
+  // Session AL (DV-046a, DV-088, DV-113, P-DV-71; G-033, BUG-040): one close writes a lifecycle row and a status row; the
+  // timeline (and so Activity) shows the lifecycle row once and skips the status row that repeats it.
+  const lifecycleAt=(kind:string)=>(goal?.lifecycle??[]).filter(e=>e.kind===kind).map(e=>Date.parse(e.at));
+  const repeatsLifecycle=(h:GoalHistory)=>{if(h.kind!=='status')return false;const kind=h.label==='Goal closed'?'closed':h.label==='Goal completed'?'completed':h.label==='Goal reactivated'?'reopened':null;if(!kind)return false;const at=Date.parse(h.capturedAt);return lifecycleAt(kind).some(t=>Math.abs(t-at)<=60_000);};
+  for(const h of s.goalHistory.filter(h=>h.goalId===goalId&&!repeatsLifecycle(h)))result.push(h.kind==='valuation'?{id:h.id,goalId,at:h.capturedAt,kind:'valuation',label:'Counted Goal value snapshot',provenance:h.requiresReview?'INCOMPLETE_EVIDENCE':'PRIVATE_SNAPSHOT',quantity:h.current,asset:h.asset,decimals:h.decimals}:{id:h.id,goalId,at:h.capturedAt,kind:h.kind,label:h.label,provenance:h.provenance});
   const positions=new Set(s.allocations.filter(a=>a.goalId===goalId).map(a=>a.positionId));
   for(const [i,o] of s.snapshots.entries())if(positions.has(o.positionId)){const p=s.positions.find(p=>p.id===o.positionId);if(p)result.push({id:`observation:${o.positionId}:${o.observedAt}:${i}`,goalId,at:o.observedAt,kind:'observation',label:'Position quantity observed',provenance:p.provenance,quantity:o.quantity,asset:p.asset,decimals:p.decimals});}
  }
  return result.sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||a.id.localeCompare(b.id));
+}
+/** Session AL (DV-046b, P-DV-72): one line for a milestone change ("Milestone ticked: “Build”"), at most 300 characters. */
+export function milestoneChangeLabel(before:PrivateGoal['milestones'],after:PrivateGoal['milestones']):string{
+ const q=(t:string)=>`“${t.length>80?t.slice(0,79)+'…':t}”`;
+ const changes:string[]=[];
+ for(const m of after){const o=before.find(x=>x.id===m.id);if(!o)changes.push(`Milestone added: ${q(m.title)}`);else{if(o.title!==m.title)changes.push(`Milestone renamed: ${q(o.title)} → ${q(m.title)}`);if(o.done!==m.done)changes.push(`${m.done?'Milestone ticked':'Milestone unticked'}: ${q(m.title)}`);}}
+ for(const o of before)if(!after.some(m=>m.id===o.id))changes.push(`Milestone removed: ${q(o.title)}`);
+ if(!changes.length)return 'Milestones reordered';
+ const text=changes.length===1?changes[0]!:`${changes[0]} and ${changes.length-1} more ${changes.length===2?'change':'changes'}`;
+ return text.slice(0,300);
 }
 /** Record changed facts once at the private store mutation boundary, not on render. */
 export function recordGoalChanges(before:Platform,after:Platform,now=Date.now()):Platform {
@@ -114,7 +139,8 @@ export function recordGoalChanges(before:Platform,after:Platform,now=Date.now())
  for(const g of after.goals){const old=before.goals.find(x=>x.id===g.id);
   const add=(kind:'allocation'|'plan'|'milestone'|'status',label:string)=>added.push({id:`change:${g.id}:${kind}:${crypto.randomUUID()}`,goalId:g.id,kind,capturedAt,label,provenance:'LOCAL_EDIT'});
   if(JSON.stringify(old?.plan)!==JSON.stringify(g.plan))add('plan',!old?.plan?'Contribution plan created':g.plan?.active===false?'Contribution plan paused':'Contribution plan changed');
-  if(old&&JSON.stringify(old.milestones)!==JSON.stringify(g.milestones))add('milestone','Goal milestones changed');
+  // Session AL (DV-046b, DV-112, P-DV-72; G-035): the row says which milestone and what happened to it.
+  if(old&&JSON.stringify(old.milestones)!==JSON.stringify(g.milestones))add('milestone',milestoneChangeLabel(old.milestones,g.milestones));
   if(old&&old.status!==g.status)add('status',g.status==='completed'?'Goal completed':g.status==='closed'?'Goal closed':'Goal reactivated');
   if(JSON.stringify(before.allocations.filter(a=>a.goalId===g.id))!==JSON.stringify(after.allocations.filter(a=>a.goalId===g.id)))add('allocation','Goal allocation changed');
  }

@@ -13,17 +13,32 @@ import {effectiveContributionPlan,planDay,planZone} from './plan-revisions';
 import {fundingHealth} from './goal-intelligence';
 import {localDate} from './local-date';
 import { plural } from './plural';
+import {isUnitWord,unitAmount,unitWord} from './goals/goal-units';
+import {goalReached} from './goals/finished';
+const HUGE=new Decimal('1e18');
+/** A legacy amount of 10^18 or more (past every cap), written compactly ("$100,000,000T"); the exact digits stay in the record. */
+function hugeAmount(d:Decimal,currency:string,locale:string){
+ const n=d.toNumber();
+ if(isMoneyCurrency(currency))try{return new Intl.NumberFormat(locale,{style:'currency',currency,notation:'compact',maximumFractionDigits:1}).format(n);}catch{/* below */}
+ const text=new Intl.NumberFormat(locale,{notation:'compact',maximumFractionDigits:1}).format(n);
+ return `${text} ${isUnitWord(currency)?unitWord(currency):currency}`;
+}
 /**
  * How far the shown progress can be trusted (Session I, Part 10). 'at-least': some sources have no value yet, so the
  * figures are a lower bound (QA-38); 'unavailable': nothing has a value yet, or the Goal is a simulated-ZIG Goal in
  * EUR or USD, whose value is unknown (QA-37). Absent: exact.
  */
 export type ProgressBound='at-least'|'unavailable';
-export type GoalSummary={progressBound?:ProgressBound;unvaluedSources?:number;heldAsset?:string;assetMix?:AssetMix[];key:string;id:string;href:string;name:string;type:string;source:string;status:'active'|'completed'|'closed';scene:'horizon'|'mountains'|'home'|'garden'|'aurora';current:string;target?:string;currency:string;progressPct:string;remaining?:string;targetDate?:string;nextContributionDate?:string|null;fundingHealth:string;requiresReview:boolean;valuationLabel?:string;metadata:{label:string;value:string}[]};
+export type GoalSummary={/** Session AL (P-DV-22): true on a closed Goal that reached its target first (lib/goals/finished.ts isFinished). */reached?:boolean;progressBound?:ProgressBound;unvaluedSources?:number;heldAsset?:string;assetMix?:AssetMix[];key:string;id:string;href:string;name:string;type:string;source:string;status:'active'|'completed'|'closed';scene:'horizon'|'mountains'|'home'|'garden'|'aurora';current:string;target?:string;currency:string;progressPct:string;remaining?:string;targetDate?:string;nextContributionDate?:string|null;fundingHealth:string;requiresReview:boolean;valuationLabel?:string;metadata:{label:string;value:string}[]};
 /** Money (an ISO currency) always shows its minor digits (Session I, Part 5); quantities (ZIG, BTC, milestones) are unchanged. */
 export function formatGoalAmount(value:string,currency:string,locale=displayLocale()){
  if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value))return 'Unavailable';
  const decimal=new Decimal(value);if(!decimal.isFinite())return 'Unavailable';
+ // Session AL (DV-054/DV-057d/DV-084b/DV-125, D-195): a value saved before the trillion cap (1e20, 1e28) reads short, never
+ // as 29 digits that break a card, Today or Activity. New values are refused above a trillion (lib/goals/goal-amount.ts).
+ if(decimal.abs().gte(HUGE))return hugeAmount(decimal,currency,locale);
+ // Session AL (DV-014): a count Goal's own word reads "20 books" / "1 book", never "20 BOOKS" or a coin symbol.
+ if(!isMoneyCurrency(currency)&&isUnitWord(currency))return unitAmount(decimal.toDecimalPlaces(2,Decimal.ROUND_DOWN).toNumber(),currency);
  if(isMoneyCurrency(currency))return formatMoney(value,currency,locale,{display:currency==='USD'||currency==='EUR'?'symbol':'code'});
  const n=decimal.toDecimalPlaces(currency==='ZIG'?6:2,Decimal.ROUND_DOWN).toFixed();
  return `${formatExactNumber(n,locale)} ${currency}`;
@@ -63,7 +78,7 @@ export function privateGoalSummary(data:Platform,g:PrivateGoal,quotes:readonly M
  const applicablePlan=effectiveContributionPlan(g,planDay(now,planZone(g)));
  try{if(g.type!=='PROJECT'){const pulse=fundingHealth(data,g.id,now,quotes);funding=pulse.status.replaceAll('_',' ');if(g.status!=='closed')nextContributionDate=pulse.nextDate;}}catch{funding='Review assumptions';}
  const currency=g.type==='PROJECT'?'milestones':g.asset,bound=valuationBound(p);
- return {progressBound:bound.bound,unvaluedSources:bound.unvalued||undefined,assetMix:goalAssetMix(data,g,now,quotes),key:`private:${g.id}`,id:g.id,href:`/app/goals/tracked/${g.id}`,name:g.name,type:`${g.type[0]}${g.type.slice(1).toLowerCase()} Goal`,source:g.type==='PROJECT'?'Project':p.breakdown.length?'Existing wealth':g.plan?'Future contributions':'Private allocation',status:g.status==='closed'?'closed':!p.requiresReview&&BigInt(p.current)>=BigInt(p.target)?'completed':'active',scene:g.category?sceneFor(g.category):g.type==='PROJECT'?'mountains':g.type==='VALUE'?'home':g.type==='REWARD'?'aurora':'horizon',current:formatUnits(p.current,g.decimals),target:formatUnits(p.target,g.decimals),currency,progressPct:p.progressPct,remaining:formatUnits(p.remaining,g.decimals),targetDate:g.targetDate,nextContributionDate,fundingHealth:funding,requiresReview:p.requiresReview,valuationLabel:p.missingValuation?'Valuation unavailable':p.staleValuation?'Last verified value · needs refresh':g.type==='VALUE'&&p.manual!=='0'?'Includes manual valuation':undefined,metadata:[{label:g.type==='PROJECT'?'Progress':'Wealth sources',value:g.type==='PROJECT'?(n=>`${n} ${plural(n,'milestone')} done`)(g.milestones.filter(m=>m.done).length):`${p.breakdown.length} ${plural(p.breakdown.length,'Position')}`},{label:'Contribution plan',value:applicablePlan?`${formatGoalAmount(formatUnits(applicablePlan.amount,applicablePlan.decimals),applicablePlan.asset)} / ${applicablePlan.cadence}${applicablePlan.active?'':' · paused'}`:g.planRevisions?.length?'Scheduled for later':'Not set'}]};
+ return {progressBound:bound.bound,unvaluedSources:bound.unvalued||undefined,assetMix:goalAssetMix(data,g,now,quotes),/* Session AL (P-DV-22): set only for a closed goal that had reached its target (completed goals already say so) */...(g.status==='closed'&&goalReached(g)?{reached:true}:{}),key:`private:${g.id}`,id:g.id,href:`/app/goals/tracked/${g.id}`,name:g.name,type:`${g.type[0]}${g.type.slice(1).toLowerCase()} Goal`,source:g.type==='PROJECT'?'Project':p.breakdown.length?'Existing wealth':g.plan?'Future contributions':'Private allocation',status:g.status==='closed'?'closed':!p.requiresReview&&BigInt(p.current)>=BigInt(p.target)?'completed':'active',scene:g.category?sceneFor(g.category):g.type==='PROJECT'?'mountains':g.type==='VALUE'?'home':g.type==='REWARD'?'aurora':'horizon',current:formatUnits(p.current,g.decimals),target:formatUnits(p.target,g.decimals),currency,progressPct:p.progressPct,remaining:formatUnits(p.remaining,g.decimals),targetDate:g.targetDate,nextContributionDate,fundingHealth:funding,requiresReview:p.requiresReview,valuationLabel:p.missingValuation?'Valuation unavailable':p.staleValuation?'Last verified value · needs refresh':g.type==='VALUE'&&p.manual!=='0'?'Includes manual valuation':undefined,metadata:[{label:g.type==='PROJECT'?'Progress':'Wealth sources',value:g.type==='PROJECT'?(n=>`${n} ${plural(n,'milestone')} done`)(g.milestones.filter(m=>m.done).length):`${p.breakdown.length} ${plural(p.breakdown.length,'Position')}`},{label:'Contribution plan',value:applicablePlan?`${formatGoalAmount(formatUnits(applicablePlan.amount,applicablePlan.decimals),applicablePlan.asset)} / ${applicablePlan.cadence}${applicablePlan.active?'':' · paused'}`:g.planRevisions?.length?'Scheduled for later':'Not set'}]};
 }
 export function unifiedGoalSummaries(goals:readonly LocalGoal[],metadata:Record<string,GoalMetadata>,data:Platform,quotes:readonly MarketQuote[]=[],now=Date.now(),source='Local simulation'):GoalSummary[]{
  return [...goals.map(g=>legacyGoalSummary(g,metadata[g.id],source,now)),...data.goals.map(g=>privateGoalSummary(data,g,quotes,now))].sort((a,b)=>Number(!!data.goals.find(g=>b.key===`private:${g.id}`)?.pinned)-Number(!!data.goals.find(g=>a.key===`private:${g.id}`)?.pinned));

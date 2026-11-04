@@ -15,6 +15,8 @@ import { useShowcase } from "./showcase-controls";
 import {formatUnits} from "@zigoals/chain-config";
 import {formatMoney, formatQuantity, isMoneyCurrency} from "../lib/visual-format";
 import {amountWithUnit} from "../lib/asset-unit";
+import {formatGoalAmount} from "../lib/goal-summary";
+import {isUnitWord} from "../lib/goals/goal-units";
 import "./activity-product.css";
 import { activityTimeLabel } from "../lib/activity-time";
 import { activityKeys } from "./activity-keys";
@@ -24,7 +26,7 @@ import { useDeviceRecord } from "./ai/use-device-record";
 import { ACCOUNTS } from "../lib/accounts/schema";
 import { PRICE_ALERTS } from "../lib/price-alerts/schema";
 import { isDeletedHabitRef } from "../lib/habit-delete";
-import { plural } from "../lib/plural";
+import { countText, plural } from "../lib/plural";
 import { removeHealthItem } from "../lib/health";
 import { removeWater } from "../lib/health-daily";
 import { removeWithUndo } from "./ui/remove-with-undo";
@@ -45,11 +47,13 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   const alertEvents = priceAlerts.loaded && !priceAlerts.unreadable ? priceAlerts.data.fired.map(f => ({id: `price-alert:${f.alertId}:${f.at}`, category: "WEALTH", title: "Price alert reached", detail: f.text, at: f.at, href: "/app", source: "Your price alert (checked with prices already read)"})) : [];
   // Gate C design review (copy): an amount reads as money where it is money ("US$125.00", as Today writes it elsewhere, not
   // "125 USD"), and a custom asset by its own name ("1 Collectible camera", not "1 CUSTOM").
-  const amountOf=(e:{id:string;quantity?:string;asset?:string;decimals?:number},decimals:number)=>{if(!e.quantity)return '';const d=e.decimals??decimals;if(e.asset&&isMoneyCurrency(e.asset))return formatMoney(formatUnits(e.quantity,d),e.asset);return amountWithUnit(platform.data,formatQuantity(formatUnits(e.quantity,d)),e.asset??'',platform.data.contributions.find(c=>`contribution:${c.id}`===e.id)?.positionId);};
-  const financial=includeGoals?platform.data.goals.flatMap(g=>goalTimeline(platform.data,g.id).filter(e=>!['valuation','observation'].includes(e.kind)).map(e=>({id:e.id,category:'GOAL',title:e.label,detail:[g.name,g.type==='PROJECT'?(e.quantity?plural(Number(e.quantity),'milestone'):''):amountOf(e,g.decimals)].filter(Boolean).join(' · '),at:e.at,href:`/app/goals/tracked/${g.id}`,source:e.provenance==='REWARD_INCOME'?'Recorded income':e.provenance==='MANUAL_ATTRIBUTION'?'Explicit manual attribution':'Private Goal history'}))):[];
+  // Session AL (DV-054a, D-195, D-156, DV-014): money and a goal's own unit through the goal formatter (a legacy 23-digit amount
+  // reads short; "3 books", not "3 BOOKS"); money leaving a goal (a withdrawal or a correction) carries its minus sign.
+  const amountOf=(e:{id:string;quantity?:string;asset?:string;decimals?:number},decimals:number)=>{if(!e.quantity)return '';const d=e.decimals??decimals;const record=platform.data.contributions.find(c=>`contribution:${c.id}`===e.id),sign=record?.direction==='OUT'?'−':'';if(e.asset&&(isMoneyCurrency(e.asset)||isUnitWord(e.asset)))return sign+formatGoalAmount(formatUnits(e.quantity,d),e.asset);return sign+amountWithUnit(platform.data,formatQuantity(formatUnits(e.quantity,d)),e.asset??'',record?.positionId);};
+  const financial=includeGoals?platform.data.goals.flatMap(g=>goalTimeline(platform.data,g.id).filter(e=>!['valuation','observation'].includes(e.kind)).map(e=>({id:e.id,category:'GOAL',title:e.label,detail:[g.name,g.type==='PROJECT'?(e.quantity?countText(Number(e.quantity),'milestone'):''):amountOf(e,g.decimals)].filter(Boolean).join(' · '),at:e.at,href:`/app/goals/tracked/${g.id}`,source:/* Session AL (DV-046c, P-DV-75) */e.provenance==='REWARD_INCOME'?'Income you recorded':e.provenance==='MANUAL_ATTRIBUTION'?'Added by you':'Your goal’s history'}))):[];
   const base = [
     ...financial,
-    ...(includeGoals ? platform.data.goals.map(goal => ({ id: `created:${goal.id}`, category: "GOAL", title: "Goal created", detail: goal.name, at: goal.createdAt, href: `/app/goals/tracked/${goal.id}`, source: "Saved Goal creation date" })) : []),
+    ...(includeGoals ? platform.data.goals.map(goal => ({ id: `created:${goal.id}`, category: "GOAL", title: "Goal created", detail: goal.type === "PROJECT" ? `${goal.name} · ${plural(goal.milestones.length, "1 milestone", `${goal.milestones.length} milestones`)}` : `${goal.name} · target ${formatGoalAmount(formatUnits(goal.target, goal.decimals), goal.asset)}`, at: goal.createdAt, href: `/app/goals/tracked/${goal.id}`, source: "Added by you" })) : []),
     ...platform.data.assetEvents.map(e=>({id:e.id,category:"WEALTH",title:`${e.name} ${e.kind}`,detail:e.assetClass,assetType:(()=>{const ref=platform.data.positions.find(position=>position.id===e.positionId)?.marketRef;return ref?.kind==='rwa'?ref.assetType:undefined;})(),at:e.at,href:`/app/wealth/asset/${encodeURIComponent(e.positionId)}`,source:"Private asset record"})),
     ...(includeGoals && goals.mode === "local" ? goals.activity.map((event, index) => ({ id: `goal-${event.timestamp}-${index}`, category: "GOAL", title: event.action, detail: goals.metadata?.goals[event.goalId]?.name ?? `Goal #${event.goalId}`, at: event.timestamp, href: `/app/goals/${event.goalId}` })) : []),
     ...accountEvents, ...alertEvents,
