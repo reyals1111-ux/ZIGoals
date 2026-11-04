@@ -58,7 +58,8 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   await page.setViewportSize({width:1440,height:900});
   // (Governance hidden until shown since Session AG Polish 3, ADR-032 L19; it had been 16, then 15.) Session AK: NOVA (owner
   // follow-up 2, N2): 16. Session AK G2 (R2-10): Tasks, Notes and the Journal are 'compact', not in the desktop sidebar.
-  await expect.poll(()=>main.getByRole('link').count()).toBe(16);
+  // Session AL (owner decision O4, deliberate): NOVA moved to the sidebar's Apps group (tests/grok53/shell/o4-sidebar-apps.spec.ts): 15.
+  await expect.poll(()=>main.getByRole('link').count()).toBe(15);
   await page.locator('.app-sidebar').evaluate(s=>{s.scrollTop=0;});
   await expect.poll(async()=>{const b=(await help.boundingBox())!;return b.y+b.height;}).toBeLessThanOrEqual(900-24);
   const compact=(await logo.boundingBox())!;expect(compact.width).toBeGreaterThanOrEqual(84);expect(compact.height).toBeGreaterThanOrEqual(95);
@@ -104,7 +105,8 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
  // Session AF (ADR-028): Earn opens the money group; the Checklist sits before Settings.
  // Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until shown, in the Showcase too.
  // Session AK: NOVA (N2). Session AK G2 (R2-10): Tasks, Notes and the Journal are 'compact', not in the desktop sidebar.
- await expect.poll(()=>nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','NOVA','Checklist','Settings','Help']);
+ // Session AL (owner decision O4, deliberate): NOVA is in the sidebar's Apps group, not the main list.
+ await expect.poll(()=>nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
  const glide=page.locator('.nav-glide'),markets=nav.getByRole('link',{name:'Markets',exact:true});
  // Session U Part 4: the glide's moving state and the nav's data-gliding are recorded from before the click (a
  // MutationObserver), so a glide that ends before the first check on a loaded runner is still seen.

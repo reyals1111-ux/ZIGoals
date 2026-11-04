@@ -82,7 +82,7 @@ test('keyboard and pointer: the chevron says what it does, and the edge tab work
   await expect(openButton(page)).toBeFocused();
   // Undo still works as before.
   await chevron(page).click();
-  await page.locator('.ai-launcher-toast').getByRole('button', {name: 'Undo'}).click();
+  await page.locator('.aa-toast').filter({hasText: 'ZIGi is hidden'}).getByRole('button', {name: 'Undo'}).click();
   await expect(launcher(page)).toBeVisible();
   await expect(edgeTab(page)).toHaveCount(0);
 });

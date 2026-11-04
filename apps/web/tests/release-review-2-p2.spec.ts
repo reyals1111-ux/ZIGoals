@@ -61,41 +61,36 @@ test('R2-7: once the chain is chosen, the notice carries the sentence again', as
   await expect(alphaNotice(page).locator('.alpha-notice-sentence')).toHaveCount(0);
 });
 
-test('R2-10: in a tall window Tasks, Notes and the Journal are in the desktop sidebar, before Settings; at 900 px they wait', async ({page}) => {
-  // The Showcase with the chain chosen: the fullest list (sixteen destinations), the one the protected fit check measures.
+// Session AL (owner decision O4, deliberate): NOVA, Tasks, Notes, the Journal and the Agenda are the sidebar's own foldable
+// Apps group at every window height (tests/grok53/shell/o4-sidebar-apps.spec.ts), so the main list no longer grows in a tall
+// window and NOVA left it. Was: Tasks, Notes and the Journal joined the main list from 1380 px tall, NOVA in it always.
+test('R2-10: Tasks, Notes and the Journal are in the desktop sidebar (its Apps group) at every height; the main list stays the main pages', async ({page}) => {
+  // The Showcase with the chain chosen: the fullest list, the one the protected fit check measures.
   await chooseChain(page);
   await page.route('**/api/market-**', route => route.fulfill({status: 503, contentType: 'application/json', body: '{"error":"fixture offline"}'}));
   await showcase(page);
-  const nav = page.getByRole('navigation', {name: 'Main navigation'}), sidebar = page.locator('.app-sidebar');
-  const base = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'NOVA', 'Checklist'];
-  await page.setViewportSize({width: 1440, height: 900});
-  await expect.poll(() => nav.getByRole('link').allTextContents()).toEqual([...base, 'Settings', 'Help']);
-  for (const height of [TALL, 1600]) {
+  const nav = page.getByRole('navigation', {name: 'Main navigation'}), sidebar = page.locator('.app-sidebar'), apps = page.getByTestId('sidebar-apps-group');
+  const base = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Checklist'];
+  for (const height of [900, TALL, 1600]) {
     await page.setViewportSize({width: 1440, height});
-    await expect.poll(() => nav.getByRole('link').allTextContents(), `${height}`).toEqual([...base, 'Tasks', 'Notes', 'Journal', 'Settings', 'Help']);
+    await expect.poll(() => nav.getByRole('link').allTextContents(), `${height}`).toEqual([...base, 'Settings', 'Help']);
+    await expect.poll(() => apps.getByRole('link').allTextContents(), `${height}`).toEqual(['NOVA', 'Tasks', 'Notes', 'Journal', 'Agenda']);
     await sidebar.evaluate(s => { s.scrollTop = 0; });
-    // Room for them: Help's whole row ends inside the window with the same 24 px to spare as the 900 px check.
     const help = (await nav.getByRole('link', {name: 'Help', exact: true}).boundingBox())!;
     expect(help.y + help.height, `${height}`).toBeLessThanOrEqual(height - 24);
     for (const name of ['Tasks', 'Notes', 'Journal']) {
-      const box = (await nav.getByRole('link', {name, exact: true}).boundingBox())!;
+      const box = (await apps.getByRole('link', {name, exact: true}).boundingBox())!;
       expect(box.height, `${name} at ${height}`).toBeGreaterThanOrEqual(44);
     }
-    // In the last group, spaced like it (no new group, no divider).
-    const gaps = await nav.getByRole('link').evaluateAll(items => items.map((item, i) => i ? item.getBoundingClientRect().top - items[i - 1]!.getBoundingClientRect().bottom : 0));
-    for (let i = 13; i < 18; i++) expect(Math.abs(gaps[i]! - gaps[1]!), `row ${i} at ${height}`).toBeLessThan(1);
     expect(await sidebar.evaluate(s => s.scrollWidth - s.clientWidth)).toBe(0);
   }
-  // A real destination: the highlight and aria-current follow it, and the keyboard reaches it in the order seen.
-  await nav.getByRole('link', {name: 'Notes', exact: true}).click(); await page.waitForURL('**/app/notes');
-  await expect(nav.getByRole('link', {name: 'Notes', exact: true})).toHaveAttribute('aria-current', 'page');
+  // A real destination: aria-current follows it, and the keyboard reaches it in the order seen.
+  await apps.getByRole('link', {name: 'Notes', exact: true}).click(); await page.waitForURL('**/app/notes');
+  await expect(apps.getByRole('link', {name: 'Notes', exact: true})).toHaveAttribute('aria-current', 'page');
   await page.getByRole('link', {name: 'ZIGoals home', exact: true}).focus();
   const order: string[] = [];
-  for (let i = 0; i < 19; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '')); }
-  expect(order).toEqual([...base, 'Tasks', 'Notes', 'Journal', 'Settings', 'Help']);
-  // Back to a 900 px window: they leave the sidebar again (they stay in search, the tablet rail and the phone's More).
-  await page.setViewportSize({width: 1440, height: 900});
-  await expect(nav.getByRole('link', {name: 'Tasks', exact: true})).toBeHidden();
+  for (let i = 0; i < 21; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '')); }
+  expect(order).toEqual([...base, 'Settings', 'Help', 'Apps', 'NOVA', 'Tasks', 'Notes', 'Journal', 'Agenda']);
 });
 
 test('R2-24: at 1440 the Health and Wealth header actions sit with the title and subtitle, as on Goals and Habits', async ({page}) => {

@@ -26,7 +26,9 @@ const PREFS = 'zigoals:earn-prefs:v1';
  * and the Journal follow as 'compact' entries — the phone's More sheet (and the tablet rail), not the desktop sidebar;
  * components/nav-extras.ts keeps this order whatever registers first.
  */
-const SIDEBAR_EXTRAS = ['NOVA', 'Checklist'], MORE_EXTRAS = [...SIDEBAR_EXTRAS, 'Tasks', 'Notes', 'Journal'];
+// Session AL (owner decision O4, deliberate): on a computer NOVA is in the sidebar's Apps group, not the main list (it was
+// ['NOVA', 'Checklist']); the phone's More sheet keeps it.
+const SIDEBAR_EXTRAS = ['Checklist'], MORE_EXTRAS = ['NOVA', 'Checklist', 'Tasks', 'Notes', 'Journal'];
 const withExtras = (labels: string[]) => { const at = labels.indexOf('Settings'); return at < 0 ? [...labels, ...SIDEBAR_EXTRAS] : [...labels.slice(0, at), ...SIDEBAR_EXTRAS, ...labels.slice(at)]; };
 const pages = (hidden: string[], start?: string | null) => ({version: 1, items: Object.fromEntries(hidden.map(id => [id, {v: 'hidden', at: AT}])), ...(start !== undefined ? {start: {id: start, at: AT}} : {})});
 const settingsWith = (p?: object) => ({...presetSettings('balanced'), onboarded: true, ...(p ? {schemaVersion: 3, pages: p} : {})});

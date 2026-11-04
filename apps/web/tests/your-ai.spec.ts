@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {pressZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -50,7 +51,8 @@ function relaxedShowcase() { const records = buildShowcase('2026-09-20').records
 const launcher = (page: Page) => page.getByTestId('ai-launcher');
 const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi/});
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await openButton(page).click(); await expect(panel(page)).toBeVisible(); }
+// Session AL (O3): below 901 px through the "Apps & extras" sheet (tests/zigi-open.ts).
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); }
 const stored = (page: Page, key: string) => page.evaluate(k => localStorage.getItem(k), key);
 const habits = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k)!) as {habits: {id: string; title: string; entries: {date: string; count: number; disposition?: string}[]}[]}, HABITS_KEY);
@@ -352,7 +354,7 @@ test('hide with Undo, the Settings switch, ⌘K / Ctrl+K and focus back on the l
   await page.getByRole('button', {name: /Hide ZIGi/}).click();
   await expect(launcher(page)).toHaveCount(0);
   await expect(page.getByRole('status').filter({hasText: 'ZIGi is hidden'})).toBeVisible();
-  await page.locator('.ai-launcher-toast').getByRole('button', {name: 'Undo'}).click();
+  await page.locator('.aa-toast').filter({hasText: 'ZIGi is hidden'}).getByRole('button', {name: 'Undo'}).click();
   await expect(launcher(page)).toBeVisible();
   await page.getByRole('button', {name: /Hide ZIGi/}).click();
   expect(JSON.parse((await stored(page, AI_SETTINGS_KEY))!).launcherHidden).toBe(true);
@@ -396,28 +398,27 @@ test('motion: the pending indicator and ZIGi hold still under reduced motion and
   await expect(panel(page).locator('.ai-turn-assistant')).toContainText('Still here.');
 });
 
-test('phone: a full-height sheet with a 16 px composer, the launcher above the tabs and away while More is open', async ({page, isMobile}) => {
+// Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; it opens from "Apps & extras" in the
+// top bar, and the chevron's device hide (a computer's) does not take it away there. Was: "the launcher above the tabs and
+// away while More is open" and "Show ZIGi again" in More.
+test('phone: a full-height sheet with a 16 px composer, opened from Apps & extras; no floating launcher, even after a device hide', async ({page, isMobile}) => {
   test.skip(!isMobile, 'phone layout only');
   await seed(page, connectedLocal());
   await page.goto('/app');
-  const button = openButton(page), tabs = page.locator('.phone-tabbar');
-  const [b, t] = await Promise.all([button.boundingBox(), tabs.boundingBox()]);
-  expect(b!.y + b!.height).toBeLessThanOrEqual(t!.y + 1);
-  expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44);
+  await expect(page.getByTestId('apps-extras-button')).toBeVisible();
+  await expect(launcher(page)).toHaveCount(0);
   await page.getByRole('button', {name: 'More', exact: true}).click();
   await expect(page.locator('dialog.phone-more[open]')).toBeVisible();
-  await expect(launcher(page)).toHaveCount(0);
   await expect(page.locator('dialog.phone-more[open]').getByRole('button', {name: 'Show ZIGi again'})).toHaveCount(0);
   await page.getByRole('button', {name: 'Close More'}).click();
-  await expect(launcher(page)).toBeVisible();
-  // Hidden through its device key, the launcher comes back from the More sheet.
+  // Hidden through its device key: still no floating launcher, still in Apps & extras.
   await page.evaluate(k => { const s = JSON.parse(localStorage.getItem(k)!); s.launcherHidden = true; localStorage.setItem(k, JSON.stringify(s)); }, AI_SETTINGS_KEY);
   await page.reload();
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(launcher(page)).toHaveCount(0);
   await page.getByRole('button', {name: 'More', exact: true}).click();
-  await page.locator('dialog.phone-more[open]').getByRole('button', {name: 'Show ZIGi again'}).click();
-  await expect(launcher(page)).toBeVisible();
+  await expect(page.locator('dialog.phone-more[open]').getByRole('button', {name: 'Show ZIGi again'})).toHaveCount(0);
+  await page.getByRole('button', {name: 'Close More'}).click();
   await openChat(page);
   const box = (await panel(page).boundingBox())!, viewport = page.viewportSize()!;
   expect(box.width).toBeGreaterThanOrEqual(viewport.width - 1); expect(box.height).toBeGreaterThanOrEqual(viewport.height * 0.9);

@@ -171,20 +171,21 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  // Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until shown, in the Showcase too.
  // Session AK (owner follow-up 2, N2): NOVA is a navigation extra in the last group, before the Checklist. Session AK G2
  // (RELEASE_REVIEW_2 R2-10): Tasks, Notes and the Journal are 'compact' entries, not in the desktop sidebar (its fit is PROTECTED).
- await expect.poll(()=>links.allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','NOVA','Checklist','Settings','Help']);
+ // Session AL (owner decision O4, deliberate): NOVA is in the sidebar's Apps group (tests/grok53/shell/o4-sidebar-apps.spec.ts).
+ await expect.poll(()=>links.allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
  const gaps=await links.evaluateAll(items=>items.map((item,i)=>i?item.getBoundingClientRect().top-items[i-1]!.getBoundingClientRect().bottom:0));
  const gap=(i:number)=>gaps[i]!;
  // Space, not a line: the gap before the money group (Earn since Session AF) and before Ecosystem is clearly larger than inside a group.
  // With Portfolio in the money group (Session I, Part 11) and Earn first (Session AF), Ecosystem is item 9 (Governance hidden, Session AG Polish 3).
  expect(gap(5)).toBeGreaterThan(gap(1)+15);expect(gap(9)).toBeGreaterThan(gap(1)+15);expect(Math.abs(gap(6)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(7)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(8)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(10)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(13)-gap(1))).toBeLessThan(1);
- // Session AK: NOVA, the Checklist and Settings keep the in-group spacing (no new group, no divider).
+ // Session AK: NOVA, the Checklist and Settings keep the in-group spacing (no new group, no divider). Session AL (O4): the Checklist, Settings and Help.
  for(let i=12;i<15;i++)expect(Math.abs(gap(i)-gap(1)),`row ${i}`).toBeLessThan(1);
  await expect(nav.locator('hr, [role=separator], .nav-divider')).toHaveCount(0);
  // Keyboard order follows the visual order.
  await page.getByRole('link',{name:'ZIGoals home',exact:true}).focus();
  const order:string[]=[];
- for(let i=0;i<16;i++){await page.keyboard.press('Tab');order.push(await page.evaluate(()=>document.activeElement?.textContent?.trim()??''));}
- expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','NOVA','Checklist','Settings','Help']); // Session AK: sixteen destinations with NOVA, as listed above
+ for(let i=0;i<15;i++){await page.keyboard.press('Tab');order.push(await page.evaluate(()=>document.activeElement?.textContent?.trim()??''));}
+ expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']); // Session AL (O4, deliberate): fifteen; NOVA is in the Apps group, which follows Help
  // Owner decision (Session AH, LA2, 26 Oct; replaces Session AF Gate C's grouped header rows, deliberate): from 541 to
  // 900 px the navigation is a rail on the left, in the same order and groups, each link at least 44 px, the groups
  // apart, Settings and Help at its foot, and the page beside it with no navigation block above; Quick add (in the top
