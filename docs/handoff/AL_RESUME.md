@@ -40,15 +40,20 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - Load is high with many helpers, so unit timeouts under load are re-run alone.
 
 ## Lanes in flight
-- Second passes: L1, L2, L3, L4, L6, L7 and L10a. Each finishes its Open/partial rows, requests addressed to it, primitive adoption, copy, keep-list guards, then its competitor rows.
-- INT: backup/restore/export for Tasks and the Checklist, the holdings CSV, headers, the service worker.
+- **Committed:** second passes of L1, L2, L3, L4, L6, L10a and INT. Every lane reports 0 Open rows in docs/review/session-al/lanes/<lane>.md.
+- **Running:**
+  - L7 (ZIGi/NOVA) second pass;
+  - L5 (Tasks) second pass;
+  - L8 (HUD) second pass;
+  - the Part 14 earlier-scope map, which writes EARLIER_SCOPE.md.
+- **Running in the background:** the full tests/grok53 run (run 2) on the branch build 48ff38eb (:3101).
 
 ## Exact next step
-1. Commit each second pass as it reports.
-2. Rebuild the branch in the clean worktree.
-3. Re-run tests/grok53.
-4. Run the pillar replays (A1) with fresh agents, plus the HUD design critic.
-5. Then Parts 13-16.
+1. Read run 2 and send each failure to its lane, or fix it directly when the lane has finished.
+2. Commit L7, L5 and L8 when each reports, with the full typecheck before every commit.
+3. Rebuild, then start the pillar replays (A1) with fresh agents, at most two browser runs at once. Each lane's replay file is GROK53_REPLAY_<lane>_1.md.
+4. Run the HUD design critic, then the first-time viewer.
+5. Then Parts 13-16 and the A10 cycles.
 
 ## Open readings
 Q1–Q5 are in ADR-037.
