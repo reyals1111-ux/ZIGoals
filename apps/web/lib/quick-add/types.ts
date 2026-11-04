@@ -13,7 +13,8 @@ export type QuickAddLocale = {
 };
 export type QuickAddDay = 'today' | 'yesterday';
 export type QuickAddHabit = {id: string; title: string; unit: string; kind: 'boolean' | 'count' | 'duration' | 'quantity' | 'custom'; target: number};
-export type QuickAddContext = {habits: QuickAddHabit[]; counters: {id: string; name: string}[]; waterUnit: 'ml' | 'fl-oz-us'; weightUnit: 'kg' | 'lb'};
+/** Session AL (LS-040): `today` (the habits day) lets a weekday word name today or yesterday. Optional. */
+export type QuickAddContext = {habits: QuickAddHabit[]; counters: {id: string; name: string}[]; waterUnit: 'ml' | 'fl-oz-us'; weightUnit: 'kg' | 'lb'; today?: string};
 export type ActivityName = 'Run' | 'Walk' | 'Cycle' | 'Swim';
 export type QuickAddKnown =
   | {kind: 'water'; millilitres: number; shown: {amount: number; unit: 'glasses' | 'mL' | 'L' | 'US fl oz'}; day: QuickAddDay}

@@ -15,6 +15,7 @@ import type {PathSection} from '../../lib/path/model';
 // Session AG Polish 2 (owner Part 6a): the List's sections wear the path's own Habits banners, from the Habits page's sheet.
 import '../habits/habits-aa.css';
 import type {ChecklistState} from './use-checklist';
+import {ChecklistTasksToday, ListRowTools} from './list-extras';
 
 /**
  * The List view (P7.17). Session AG Polish (ADR-030 J14; owner Part 7): Todoist's calm, in our design. One section per
@@ -74,17 +75,19 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     const check = dot.intent === 'open' && dot.href
       ? <Link className="checklist-row-check" data-lit={done ? '' : undefined} href={dot.href} aria-label={label} data-step={dot.id} style={style}><span className="checklist-row-node orbit-node" data-lit={done ? '' : undefined} data-just={just ? '' : undefined}>{face}</span></Link>
       : <button type="button" className="checklist-row-check" data-lit={done ? '' : undefined} aria-label={label} aria-pressed={done} aria-expanded={dot.intent === 'value' ? panel?.id === dot.id : undefined} aria-busy={busy === dot.id || undefined} data-state={dot.state} data-step={dot.id} style={style} onClick={() => void press(dot, dot.intent ?? 'tick')}><span className="checklist-row-node orbit-node" data-lit={done ? '' : undefined} data-just={just ? '' : undefined}>{face}</span></button>;
-    const again = dot.intent === 'value' && dot.value && !done;
+    // Session AL (P-LS-18, LS-007): the "+" logs the usual amount, so a weigh-in shows it only after a real weigh-in (with no
+    // history it was "+70 kg", a weight nobody typed); otherwise ⋯ opens the stepper.
+    const again = dot.intent === 'value' && dot.value && !done && !(dot.input === 'weight' && dot.value.current === null);
     const content = <>
       <div className="checklist-row-line">
         {check}
         {/* (The path's name tab, from the node's right-centre to the right, longer, like a step: dark with a coloured edge,
             filled in the node's colour with dark words once done.) */}
-        <span className="checklist-row-text checklist-row-tab" data-lit={done ? '' : undefined} style={{'--node': colour} as CSSProperties}><span className="checklist-row-name" title={dot.label}>{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
+        <span className="checklist-row-text checklist-row-tab" data-lit={done ? '' : undefined} style={{'--node': colour} as CSSProperties}><span className="checklist-row-name" dir="auto" title={dot.label}>{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
         {again && <button type="button" className="checklist-row-plus" aria-label={`Log ${dot.value!.suggested} ${dot.value!.unit} for ${dot.label}`} disabled={busy === dot.id} onClick={() => void state.tick(dot, 'value', dot.value!.suggested)}>+{dot.value!.suggested}<span className="checklist-row-unit"> {dot.value!.unit}</span></button>}
         <button type="button" className="checklist-row-more" aria-label={`More for ${dot.label}`} aria-expanded={panel?.id === dot.id} onClick={() => setPanel(p => p?.id === dot.id ? null : {id: dot.id, mode: dot.intent === 'value' && !done ? 'value' : 'details'})}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg></button>
       </div>
-      {panel?.id === dot.id && <div className="checklist-row-panel">{renderPanel(dot)}</div>}
+      {panel?.id === dot.id && <div className="checklist-row-panel">{renderPanel(dot)}{panel.mode === 'details' && !dot.missing && <ListRowTools state={state} dot={dot}/>}</div>}
     </>;
     return done || dot.intent === 'open'
       ? <li key={dot.id} className="checklist-row" data-state={dot.state} data-counted={dot.counted ? undefined : 'no'}>{content}</li>
@@ -107,5 +110,6 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
         </>}
       </section>;
     })}
+    <ChecklistTasksToday/>
   </div>;
 }

@@ -9,12 +9,14 @@ const PAGE: Record<string, string> = {habit: 'Habits', goal: 'its Goal', 'goal-s
  * (with Undo for a tick made here, while this page is open); a refusal in the page's own words (a rest day, a closed
  * Goal, a record that is gone), with the way to its page.
  */
-export function DotPanel({dot, message, canUndo, onUndo, onClose}: {dot: DerivedDot; message?: string; canUndo: boolean; onUndo: () => void; onClose: () => void}) {
+/** Session AL (P-LS-27, LS-055/LS-H16/LS-H26): `onUntick` (a done habit with no Undo left) opens it again for today, with Undo. */
+export function DotPanel({dot, message, canUndo, onUndo, onClose, onUntick}: {dot: DerivedDot; message?: string; canUndo: boolean; onUndo: () => void; onClose: () => void; onUntick?: () => void}) {
   const page = PAGE[dot.kind] ?? 'its page', when = dot.doneAt ? formatTime(dot.doneAt) : null;
   return <div className="checklist-dot-panel" role="group" aria-label={`${dot.label}: details`}>
     {message ? <p role="alert">{message}</p> : <p><strong>{dot.state === 'done' ? 'Done' : dot.state === 'running' ? 'Running' : 'Waiting'}</strong>{when ? ` at ${when}` : ''}{dot.note ? ` · ${dot.note}` : ''}. {dot.kind === 'custom' ? 'Ticked on your path.' : `It lives on ${page}; the dot follows what ${page} says.`}</p>}
     <div className="checklist-dot-panel-actions">
       {canUndo && <button type="button" className="secondary" onClick={onUndo}>Undo this tick</button>}
+      {!canUndo && onUntick && <button type="button" className="secondary" onClick={onUntick}>Not done today</button>}
       {dot.href && <Link className="quiet" href={dot.href}>Open {page === 'its Goal' ? 'the Goal' : page}</Link>}
       <button type="button" className="quiet" onClick={onClose}>Close</button>
     </div>

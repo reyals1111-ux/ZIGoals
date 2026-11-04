@@ -16,10 +16,14 @@ const UNITS = /^(min|mins|minute|minutes|h|hr|hrs|hour|hours|km|m|mi|steps?|page
 const FILLER = /^(take|do|play|go|have|make|get|log|learn|practice|practise|try|a|an|the|my|your|for|to|of|and|or|with|in|on|at|by|before|after|today|tonight|each|every|day|daily|no|some|more|less|one|two|three|four|five|six|seven|eight|nine|ten|twenty|thirty|bed|morning|afternoon|evening|night)$/i;
 const word = (w: string) => { const t = w.replace(/^[^\p{L}]+|[^\p{L}-]+$/gu, ''); return t ? (t[0]!.toUpperCase() + t.slice(1)).slice(0, PATH_LABEL_MAX) : ''; };
 /** The suggested word for a name. */
-export function suggestPathLabel(name: string): string {
+export function suggestPathLabel(raw: string): string {
+  // Session AL (P-LS-16 honest part, LS-053): markup is never shown as a fragment ("<i>x</i>" was "I>x").
+  const name = raw.replace(/<[^>]*>/g, ' ').replace(/[<>]/g, ' ');
   for (const [re, label] of CURATED) if (re.test(name)) return label;
   const words = name.split(/[\s,·/&+()]+/).filter(Boolean);
-  const main = words.find(w => !/\d/.test(w) && !UNITS.test(w) && !FILLER.test(w) && /\p{L}/u.test(w));
+  // Session AL (LS-053, PR-031): a short capitals tag ("QA Floss", "QA Plants") is not the word that tells items apart.
+  const tag = (w: string) => /^\p{Lu}{1,3}$/u.test(w) && words.length > 1;
+  const main = words.find(w => !/\d/.test(w) && !UNITS.test(w) && !FILLER.test(w) && /\p{L}/u.test(w) && !tag(w)) ?? words.find(w => !/\d/.test(w) && !UNITS.test(w) && !FILLER.test(w) && /\p{L}/u.test(w));
   return word(main ?? words.find(w => /\p{L}/u.test(w)) ?? '') || 'Step';
 }
 /** A person's own word, as stored: one word, its first 12 letters; empty for none. */

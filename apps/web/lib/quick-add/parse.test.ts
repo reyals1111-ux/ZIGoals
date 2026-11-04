@@ -160,3 +160,28 @@ describe('A2 quick-add grammar (en)', () => {
     expect(line('water 400')).toBe('Water · 400 mL');
   });
 });
+
+/** Session AL (Part 8): LS-038 (meditation without a habit), LS-039 (a number in a habit's title), LS-040 (weekdays), LS-042 (a minus). */
+describe('Session AL quick-add readings', () => {
+  const base = {counters: [], waterUnit: 'ml' as const, weightUnit: 'kg' as const};
+  test('LS-042: "weight -5" asks for a number above zero; "-5 pushups" stays unknown', () => {
+    expect(parse('weight -5', 'en', {...base, habits: []})).toEqual({kind: 'needs-more', hint: 'Use a number above zero.'});
+    expect(parse('-5 pushups', 'en', {...base, habits: []}).kind).toBe('unknown');
+  });
+  test('LS-039: the 3 in "Journal 3 lines" is the title, not a count', () => {
+    const habits = [{id: 'j', title: 'Journal 3 lines', unit: 'times', kind: 'count' as const, target: 1}];
+    expect(parse('did journal 3 lines', 'en', {...base, habits})).toMatchObject({kind: 'habit', habitId: 'j', value: 1});
+    expect(parse('journal 3 lines 2 times', 'en', {...base, habits})).toMatchObject({kind: 'habit', value: 2});
+  });
+  test('LS-038: meditation with no Meditate habit says where it is logged', () => {
+    const r = parse('meditated 15 minutes', 'en', {...base, habits: []});
+    expect(r.kind).toBe('needs-more');
+    expect((r as {hint: string}).hint).toMatch(/Health › Mind/);
+  });
+  test('LS-040: a weekday is today, yesterday, or asked for — never dropped', () => {
+    const ctx = {...base, habits: [], today: '2026-11-04'}; // a Wednesday
+    expect(parse('ran 5k in 28 min on wednesday', 'en', ctx)).toMatchObject({kind: 'activity', day: 'today'});
+    expect(parse('ran 5k in 28 min on tuesday', 'en', ctx)).toMatchObject({kind: 'activity', day: 'yesterday'});
+    expect(parse('ran 5k in 28 min on monday', 'en', ctx)).toEqual({kind: 'needs-more', hint: 'Quick add logs for today or yesterday. For an earlier day, open the page (Health or Habits) and choose the day.'});
+  });
+});

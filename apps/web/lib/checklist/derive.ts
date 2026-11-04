@@ -1,4 +1,4 @@
-import {habitDay, habitRuleOn, latestHabitRule, measurementUnit, type HabitData} from '../habits';
+import {frequencyProgress, habitDay, habitRuleOn, latestHabitRule, measurementUnit, type HabitData} from '../habits';
 import {pathLabelOf} from './path-label';
 import {HEALTH_MEALS, type HealthData} from '../health';
 import {dailyData, waterSummary} from '../health-daily';
@@ -85,7 +85,14 @@ function habitDot(item: ChecklistItem, base: Base, s: DeriveSources, date: strin
   const value: StepValue | undefined = rule.type !== 'quit' && rule.measurement.kind !== 'boolean' && (rule.type === 'limit' || rule.target > 1 || rule.measurement.kind === 'duration')
     ? {current: item.lastValue ?? item.defaultValue ?? null, unit: measurementUnit(rule), suggested: item.defaultValue ?? (rule.type === 'limit' ? 0 : Math.max(1, Math.round((rule.target - day.count) * 100) / 100)), min: rule.type === 'limit' ? 0 : rule.measurement.kind === 'count' ? 1 : 0.5, max: 100_000, step: rule.measurement.kind === 'count' ? 1 : rule.measurement.kind === 'duration' ? 5 : 0.5}
     : undefined;
-  const state: StepState = day.status === 'complete' ? 'done' : running ? 'running' : 'undone';
+  // Session AL (P-LS-28, LS-036): an "X times a week" habit is lit on a day it was checked in ("1 of 2 this week"), as
+  // Habits counts that day; the week's own total stays on Habits.
+  const freq = rule.schedule.kind === 'frequency' ? frequencyProgress(habit, s.habitsDay) : null, checkedToday = !!freq && (entry?.count ?? 0) > 0 && entry?.disposition === 'logged';
+  const state: StepState = day.status === 'complete' || checkedToday ? 'done' : running ? 'running' : 'undone';
+  if (freq && (checkedToday || day.status !== 'complete')) {
+    const said = `${formatNumber(freq.done)} of ${formatNumber(freq.times)} this ${freq.period}`;
+    return {...dot, state, counted: true, note: said, ...(value ? {value, intent: 'value'} : {intent: 'tick'}), ...(state === 'done' && entry ? {doneAt: entry.updatedAt} : {})};
+  }
   const progress = day.status === 'partial' && day.target > 0 ? Math.min(.99, Math.max(.01, day.count / day.target)) : undefined;
   const note = day.status === 'complete' ? (rule.type === 'quit' ? 'Stayed clear' : rule.measurement.kind === 'boolean' ? undefined : `${formatNumber(day.count)} ${unitFor(day.count, measurementUnit(rule))}`.trim())
     : day.status === 'failed' ? 'Marked missed today' : running ? 'Timer running' : day.status === 'partial' ? `${formatNumber(day.count)} of ${formatNumber(day.target)} ${unitFor(day.target, measurementUnit(rule))}`.trim() : undefined;
@@ -127,7 +134,8 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
     case 'water': {
       const unit = prefs?.waterUnit === 'fl-oz-us' ? 'fl oz' : 'ml', sum = h ? waterSummary(h, day) : {entries: 0, millilitres: 0, targetMl: null};
       const suggested = item.defaultValue ?? (unit === 'ml' ? 250 : 8);
-      const note = sum.entries ? `${Math.round(sum.millilitres)} ml today${sum.targetMl ? ` of ${sum.targetMl}` : ''}` : undefined;
+      // Session AL (LS-056): the amount as logged (2.5 mL was shown as "3 ml"), with its target when one is set.
+      const note = sum.entries ? `${formatNumber(sum.millilitres, {maximumFractionDigits: 1})} ml today${sum.targetMl ? ` of ${formatNumber(sum.targetMl)}` : ''}` : undefined;
       return {...here, label: item.label ?? 'Water', state: sum.entries ? 'done' : 'undone', counted: true, ...(note ? {note} : {}), intent: 'value', value: unit === 'ml' ? {current: item.lastValue ?? null, unit, suggested, min: 1, max: LIMITS.waterEntryMl, step: 50} : {current: item.lastValue ?? null, unit, suggested, min: 1, max: Math.floor(LIMITS.waterEntryMl / ML_PER_US_FL_OZ), step: 1}}; // Session AH (VA3): the one water limit
     }
     case 'diary': {
@@ -175,7 +183,7 @@ type Base = Omit<DerivedDot, 'label' | 'state' | 'counted'>;
 /** Every dot on today's path, in the person's order (P7.4), each derived from its own page's record. */
 export function deriveDots(record: Checklist, today: ChecklistToday, date: string, sources: DeriveSources): DerivedDot[] {
   const receipts = new Set(today.ticks.map(t => t.id)), custom = new Set(today.custom);
-  return orderedItems(record).map(item => {
+  return distinctLabels(orderedItems(record).map(item => {
     const health = isHealthItem(item), kind: DotKind = health ? 'health' : item.kind as DotKind, sub = health ? item.input : item.kind;
     const colour = pathColour(item.colour, DEFAULT_COLOUR[sub] ?? 'cyan');
     const base: Base = {id: item.id, key: itemKey(item), kind, ...(health ? {input: item.input as HealthInput} : {}), section: sectionOfItem(record, item), colour, glyph: GLYPH[sub] ?? 'sparkle', item};
@@ -184,6 +192,18 @@ export function deriveDots(record: Checklist, today: ChecklistToday, date: strin
     if (item.kind === 'goal') return goalDot(item, base, sources, today);
     if (item.kind === 'goal-step') return goalStepDot(item, base, sources, date, receipts);
     return {...base, label: item.label ?? 'My item', state: custom.has(item.id) ? 'done' : 'undone', counted: true, intent: 'tick'} satisfies DerivedDot;
+  }));
+}
+/**
+ * Session AL (P-LS-67, LS-069; P-LS-70, LC-003): two planets with one name (two "QA Stretch" habits, the Meditate habit
+ * and Health's Meditate) get distinct names — "QA Stretch (2)" — so a screen reader and the List can tell them apart.
+ */
+function distinctLabels(dots: DerivedDot[]): DerivedDot[] {
+  const seen = new Map<string, number>();
+  return dots.map(d => {
+    const key = d.label.trim().toLowerCase(), n = (seen.get(key) ?? 0) + 1;
+    seen.set(key, n);
+    return n === 1 ? d : {...d, label: `${d.label} (${n})`};
   });
 }
 

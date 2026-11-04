@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {loopRuns, readLoopLevel} from '../../lib/motion-loops/loops';
 import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
@@ -131,6 +132,14 @@ export function ChecklistPage() {
   // once the day is one item from complete and not yet celebrated today (or when the celebration opens).
   const oneLeft = !!summary && summary.total > 0 && summary.total - summary.done === 1 && loaded && state.prefsLoaded && prefs.celebratedOn !== state.date;
   useEffect(() => { if (oneLeft) primeCelebrationVideo(); }, [oneLeft]);
+  // Session AL (P-LS-56, LS-H15; P-LS-57, LS-H38): the sheets' code loads once the page is idle, so Quick add, Options and
+  // Edit path open at once instead of "Opening…" for seconds (nothing is shown or written by this).
+  useEffect(() => {
+    const warm = () => { void import('./orbit-quick-add').catch(() => undefined); void import('./options-sheet').catch(() => undefined); void import('./edit-path').catch(() => undefined); };
+    const w = window as Window & {requestIdleCallback?: (f: () => void, o?: {timeout: number}) => number; cancelIdleCallback?: (id: number) => void};
+    if (w.requestIdleCallback) { const id = w.requestIdleCallback(warm, {timeout: 3000}); return () => w.cancelIdleCallback?.(id); }
+    const t = window.setTimeout(warm, 1500); return () => window.clearTimeout(t);
+  }, []);
 
   // Session AG Polish (owner Part 8): the top bar's flame ignites once when the day completes here and the streak grows.
   const lit = !!streak?.todayComplete, wasLit = useRef<boolean | null>(null), [ignite, setIgnite] = useState(0);
@@ -190,7 +199,7 @@ export function ChecklistPage() {
         </div>
         <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
         {/* Session AG Polish 2 (owner Part 5, pointer D-path 11): quick add where "⋯" stood; "⋯" moves to the far right. */}
-        <button type="button" className="checklist-plus-button" aria-label="Quick add to your Checklist" aria-expanded={sheet === 'quick'} onClick={() => { setMenu(false); setSheet(s => s === 'quick' ? null : 'quick'); }}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
+        <button type="button" className="checklist-plus-button" aria-label="Quick add to your Checklist" aria-expanded={sheet === 'quick'} onPointerEnter={() => void import('./orbit-quick-add').catch(() => undefined)} onClick={() => { setMenu(false); setSheet(s => s === 'quick' ? null : 'quick'); }}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
         <div className="checklist-menu-wrap">
           <button type="button" className="checklist-menu-button" aria-label="Checklist menu" aria-expanded={menu} onClick={() => setMenu(m => !m)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></button>
           {menu && <div className="checklist-menu" role="group" aria-label="Checklist menu">
@@ -268,6 +277,12 @@ function About({onClose}: {onClose: () => void}) {
       <li><strong>Perfect orbit</strong>: every planet in path order.</li>
       <li><strong>Sleep, Meditate, Fast</strong>: one tap starts, the next ends, saved on Health.</li>
       <li><strong>Edit path</strong> adds, removes and reorders your planets, or makes an item a habit.</li>
+      {/* Session AL (P-LS-29, LS-070/LS-033): what the flame counts, said once. */}
+      <li><strong>The streak</strong> counts the days every planet was lit. A habit’s own streak, with its rest and skip days, is on Habits.</li>
+      {/* Session AL (P-LS-54, DV-162, LS-H13/LS-074): the naming, plainly. */}
+      <li><strong>Checklist or Tasks?</strong> The Checklist is your daily routine: the same planets every day. One-off to-dos with a day, a repeat or a project live in <Link href="/app/tasks">Tasks</Link>; the List view shows the ones due today.</li>
+      {/* Session AL (P-LA-31 page-side, LA-001/LZ-029): why ZIGi does not open here. */}
+      <li><strong>ZIGi is paused here</strong>: the Checklist is a private screen, so ⌘K or Ctrl+K does nothing until you close it.</li>
     </ul>
     <p className="fine checklist-limits">Your Checklist stays on this device: favourites, your own items and the day history are not synced yet, so another device starts with an empty path.</p>
   </section>;

@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent} from 'react';
 import {PageHeader} from '../page-header';
 import {OrbitArt} from '../header-art/orbit-art';
 import {RemindersGlyph} from '../header-art/glyphs/reminders';
@@ -18,6 +18,7 @@ import {useTaskList} from '../tasks/use-task-list';
 import {TaskAddForm, TaskStatusLine, PRIORITY_WORDS} from '../tasks/task-parts';
 import {useGoalOptions, type GoalOption} from '../tasks/use-goal-options';
 import {addLocalDays} from '../../lib/local-date';
+import {editTask} from '../../lib/tasks/engine';
 import {useAgenda} from './use-agenda';
 import './agenda.css';
 
@@ -78,6 +79,13 @@ export function AgendaPage() {
     try { record.update(r => setExtraShown(r, source, shown)); setNote(''); } catch { setNote('That filter could not be kept on this device.'); }
   };
   const tickTask = (item: TaskAgendaItem, done: boolean) => { const t = list.tasks.data.tasks.find(x => x.id === item.taskId); if (t) list.toggle(t, done); };
+  // Session AL (P-LS-10, C-LS-16/17/18): a task moves to another day (and time) by dragging it onto a day, or with its
+  // Move control (the keyboard way); the toast offers Undo.
+  const moveTask = (taskId: string, date: string, time?: string | null) => {
+    const t = list.tasks.data.tasks.find(x => x.id === taskId); if (!t || t.doneAt) return;
+    if (t.due === date && (time === undefined || (time ?? undefined) === t.time)) return;
+    list.change(r => editTask(r, taskId, {due: date, ...(time !== undefined ? {time} : {})}, today, {allowPast: true}), `Moved “${t.title}” to ${date === today ? 'today' : formatDate(date, {weekday: true, year: false})}${time ? ` at ${formatClock(time)}` : ''}.`, `“${t.title}” is back on its day.`);
+  };
   const [calStatus, setCalStatus] = useState<{text: string; undo?: () => void} | null>(null);
   const removeCal = (calId: string) => {
     const index = calendars.data.calendars.findIndex(c => c.id === calId), cal = calendars.data.calendars[index];
@@ -88,7 +96,7 @@ export function AgendaPage() {
   const label = view === 'day' ? formatDate(at, {weekday: true}) : view === 'week' ? `${formatDate(range.from, {year: range.from.slice(0, 4) === range.to.slice(0, 4) ? false : undefined})} – ${formatDate(range.to)}` : formatMonth(range.first);
   const total = days ? days.filter(d => view !== 'month' || (d.date >= range.first && d.date <= range.last)).reduce((n, d) => n + d.items.length, 0) : 0;
   const kinds = AGENDA_SOURCES.length + EXTRA_SOURCES.length, hiddenCount = hidden.length + hiddenExtra.length;
-  const rowProps = {today, goals: goals.byKey, onTick: tickTask};
+  const rowProps = {today, goals: goals.byKey, onTick: tickTask, onMove: moveTask};
 
   return <div className="agenda-page" data-agenda={loaded ? 'ready' : 'loading'}>
     {AGENDA_VIEWS.map(v => <ActionIntent key={v} param="view" value={v} onAction={() => setChosen(v)} />)}
@@ -131,7 +139,7 @@ export function AgendaPage() {
         <h2 id="agenda-export-title">Export to a calendar</h2>
         <p>Make an .ics file on this device and open it with your calendar app. You choose what goes in it: titles and days only, unless you add the details.</p>
         {!exporting ? <button ref={exportButton} type="button" className="secondary" onPointerEnter={() => void import('./agenda-export').catch(() => undefined)} onClick={() => setExporting(true)}>Choose what to export</button>
-          : <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening the export…</p>}><AgendaExport input={input} hidden={hidden} view={view} viewFrom={view === 'month' ? range.first : range.from} viewTo={view === 'month' ? range.last : range.to} viewLabel={label} today={today} showcase={showcase} onClose={() => { setExporting(false); queueMicrotask(() => exportButton.current?.focus()); }} /></Suspense></LoadBoundary>}
+          : <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening the export…</p>}><AgendaExport input={input} tasks={list.tasks.loaded && !list.tasks.unreadable ? list.tasks.data : null} hidden={hidden} view={view} viewFrom={view === 'month' ? range.first : range.from} viewTo={view === 'month' ? range.last : range.to} viewLabel={label} today={today} showcase={showcase} onClose={() => { setExporting(false); queueMicrotask(() => exportButton.current?.focus()); }} /></Suspense></LoadBoundary>}
       </section>
       <section className="panel agenda-export-panel agenda-import-panel" aria-labelledby="agenda-import-title">
         <h2 id="agenda-import-title" tabIndex={-1}>Import a calendar</h2>
@@ -143,7 +151,7 @@ export function AgendaPage() {
         {calendars.data.calendars.length > 0 && <p className="fine">{formatNumber(storedEventCount(calendars.data))} of 1,500 imported events kept on this device.</p>}
         <p role="status" className="fine">{calStatus?.text} {calStatus?.undo && <button type="button" className="text-link" onClick={() => { const undo = calStatus.undo!; setCalStatus(null); undo(); }}>Undo</button>}</p>
         {!importing ? <button ref={importButton} type="button" className="secondary" disabled={calendars.unreadable} onPointerEnter={() => void import('./calendar-import').catch(() => undefined)} onClick={() => setImporting(true)}>Choose a calendar file</button>
-          : <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening the import…</p>}><CalendarImport today={today} onAdded={(text, undo) => setCalStatus({text, undo: () => { try { undo(); setCalStatus({text: 'The import was undone.'}); } catch { setCalStatus({text: 'The import could not be undone on this device.'}); } }})} onClose={() => { setImporting(false); queueMicrotask(() => importButton.current?.focus()); }} /></Suspense></LoadBoundary>}
+          : <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening the import…</p>}><CalendarImport today={today} applyTasks={list.change} onAdded={(text, undo) => setCalStatus({text, undo: () => { try { undo(); setCalStatus({text: 'The import was undone.'}); } catch { setCalStatus({text: 'The import could not be undone on this device.'}); } }})} onClose={() => { setImporting(false); queueMicrotask(() => importButton.current?.focus()); }} /></Suspense></LoadBoundary>}
       </section>
       <p className="fine agenda-fine">The agenda is read from your records each time you open it. Tasks can be ticked here, with Undo; everything else opens on its own page to check it in, fund it or log it. Imported events are read-only and stay on this device. A bill shows its day, never its amount.</p>
     </>}
@@ -151,12 +159,19 @@ export function AgendaPage() {
 }
 export default AgendaPage;
 
-type RowProps = {today: string; goals: ReadonlyMap<string, GoalOption>; onTick: (item: TaskAgendaItem, done: boolean) => void};
-function DayList({day, today, heading, goals, onTick}: {day: DayWithExtras; heading: boolean} & RowProps) {
+type RowProps = {today: string; goals: ReadonlyMap<string, GoalOption>; onTick: (item: TaskAgendaItem, done: boolean) => void; onMove: (taskId: string, date: string, time?: string | null) => void};
+const DRAG_TYPE = 'application/x-zigoals-task';
+function DayList({day, today, heading, goals, onTick, onMove}: {day: DayWithExtras; heading: boolean} & RowProps) {
   const title = <>{formatDate(day.date, {weekday: true, year: false})}{day.date === today && <span className="agenda-today">Today</span>}</>;
-  return <div className="agenda-day" data-today={day.date === today || undefined}>
+  const [over, setOver] = useState(false);
+  const drop = {
+    onDragOver: (e: DragEvent<HTMLDivElement>) => { if (e.dataTransfer.types.includes(DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setOver(true); } },
+    onDragLeave: () => setOver(false),
+    onDrop: (e: DragEvent<HTMLDivElement>) => { const id = e.dataTransfer.getData(DRAG_TYPE); setOver(false); if (id) { e.preventDefault(); onMove(id, day.date); } },
+  };
+  return <div className="agenda-day" data-today={day.date === today || undefined} data-drop={over || undefined} {...drop}>
     {heading && <h3 className="agenda-day-title">{title}</h3>}
-    {day.items.length ? <ul className="agenda-items">{day.items.map(i => i.source === 'task' ? <TaskItemRow key={i.id} item={i} goals={goals} onTick={onTick} /> : i.source === 'event' ? <EventItemRow key={i.id} item={i} /> : <ItemRow key={i.id} item={i} />)}</ul> : <p className="agenda-nothing">Nothing planned.</p>}
+    {day.items.length ? <ul className="agenda-items">{day.items.map(i => i.source === 'task' ? <TaskItemRow key={i.id} item={i} goals={goals} onTick={onTick} onMove={onMove} today={today} /> : i.source === 'event' ? <EventItemRow key={i.id} item={i} /> : <ItemRow key={i.id} item={i} />)}</ul> : <p className="agenda-nothing">Nothing planned.</p>}
   </div>;
 }
 function ItemRow({item}: {item: AgendaItem}) {
@@ -170,9 +185,11 @@ function ItemRow({item}: {item: AgendaItem}) {
 }
 
 /** Session AK (T1): a task on the Agenda — tick it here (the page's status line has the Undo), open it, or focus on it. */
-function TaskItemRow({item, goals, onTick}: {item: TaskAgendaItem; goals: ReadonlyMap<string, GoalOption>; onTick: (item: TaskAgendaItem, done: boolean) => void}) {
+function TaskItemRow({item, goals, onTick, onMove, today}: {item: TaskAgendaItem; goals: ReadonlyMap<string, GoalOption>; onTick: (item: TaskAgendaItem, done: boolean) => void; onMove: RowProps['onMove']; today: string}) {
   const goal = item.goal ? goals.get(item.goal) : undefined, done = item.state === 'done';
-  return <li className="agenda-item agenda-task" data-source="task" data-pillar={item.pillar} data-state={item.state}>
+  const [moving, setMoving] = useState(false), [day, setDay] = useState(item.date), [time, setTime] = useState(item.time ?? '');
+  return <li className="agenda-item agenda-task" data-source="task" data-pillar={item.pillar} data-state={item.state} draggable={!done}
+    onDragStart={e => { e.dataTransfer.setData(DRAG_TYPE, item.taskId); e.dataTransfer.setData('text/plain', item.title); e.dataTransfer.effectAllowed = 'move'; }}>
     <span className="agenda-time">{item.time ? formatClock(item.time) : 'Any time'}</span>
     <div className="agenda-item-main agenda-task-main">
       <label className="agenda-task-tick"><input type="checkbox" checked={done} onChange={e => onTick(item, e.target.checked)} /><span className="sr-only">{done ? `Mark “${item.title}” not done` : `Mark “${item.title}” done`}</span></label>
@@ -181,7 +198,14 @@ function TaskItemRow({item, goals, onTick}: {item: TaskAgendaItem; goals: Readon
         <p className="agenda-item-meta"><span>Task</span>{item.priority !== 'normal' && <span> · {PRIORITY_WORDS[item.priority]} priority</span>}{item.overdueSince && <span className="agenda-overdue"> · Overdue since {formatDate(item.overdueSince, {year: false})}</span>}{goal && <span> · {goal.name}</span>}{done && <span className="agenda-badge"> Done</span>}</p>
       </div>
       {!done && <Link prefetch={false} className="text-link agenda-task-focus" href={`/app/tasks?focus=${encodeURIComponent(item.taskId)}`} aria-label={`Focus on “${item.title}”`}>Focus</Link>}
+      {!done && <button type="button" className="text-link agenda-task-focus" aria-expanded={moving} aria-label={`Move “${item.title}” to another day or time`} onClick={() => setMoving(m => !m)}>Move</button>}
     </div>
+    {moving && <form className="agenda-task-move" aria-label={`Move “${item.title}”`} onSubmit={e => { e.preventDefault(); if (day) { onMove(item.taskId, day, time || null); setMoving(false); } }}>
+      <label className="field"><span>Day</span><input type="date" value={day} onChange={e => setDay(e.target.value)} /></label>
+      <label className="field"><span>Time (optional)</span><input type="time" value={time} onChange={e => setTime(e.target.value)} /></label>
+      <button type="button" className="quiet" onClick={() => { onMove(item.taskId, addLocalDays(today, 1)); setMoving(false); }}>Tomorrow</button>
+      <button type="submit" className="secondary" disabled={!day}>Move</button><button type="button" className="quiet" onClick={() => setMoving(false)}>Cancel</button>
+    </form>}
   </li>;
 }
 /** Session AK (T2): an imported event — read-only, named by its calendar; it opens nothing. */
@@ -196,7 +220,7 @@ function EventItemRow({item}: {item: Extract<DayItem, {source: 'event'}>}) {
 }
 
 /** The month as a grid of day buttons (arrows move, Page Up/Down change month, Home/End the week's ends); the chosen day's items below. */
-function MonthGrid({days, first, last, selected, today, onSelect, goals, onTick}: {days: DayWithExtras[]; first: string; last: string; selected: string; onSelect: (date: string) => void} & RowProps) {
+function MonthGrid({days, first, last, selected, today, onSelect, goals, onTick, onMove}: {days: DayWithExtras[]; first: string; last: string; selected: string; onSelect: (date: string) => void} & RowProps) {
   const grid = useRef<HTMLOListElement>(null), moved = useRef(false);
   useEffect(() => { if (moved.current) { moved.current = false; grid.current?.querySelector<HTMLButtonElement>(`[data-date="${selected}"]`)?.focus(); } }, [selected]);
   const go = (date: string) => { moved.current = true; onSelect(date); };
@@ -220,6 +244,6 @@ function MonthGrid({days, first, last, selected, today, onSelect, goals, onTick}
         </button>
       </li>;
     })}</ol>
-    <DayList day={chosen} today={today} heading goals={goals} onTick={onTick} />
+    <DayList day={chosen} today={today} heading goals={goals} onTick={onTick} onMove={onMove} />
   </div>;
 }

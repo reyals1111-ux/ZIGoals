@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {useEffect, useId, useRef, useState, type CSSProperties, type FormEvent} from 'react';
 import {OrbitNodeFace} from '../orbit-path/orbit-node';
 import {orbitTitle} from '../orbit-path/orbit-banner';
@@ -129,6 +130,8 @@ export function OrbitQuickAdd({state, onClose, onAdded}: {state: ChecklistState;
           {DAYS.map(([n, short, long]) => <label key={n} className="checklist-quick-chip"><input type="checkbox" checked={days.includes(n)} aria-label={long} onChange={e => setDays(d => e.target.checked ? [...d, n] : d.filter(x => x !== n))}/><span aria-hidden="true">{short}</span></label>)}
         </div>}
         {!every && problem('days')}
+        {/* Session AL (P-LS-55, LS-H28). */}
+        <p className="fine">More repeat options (every other day, 3 times a week, monthly) are on <Link className="text-link" href="/app/habits?add=habit">Habits</Link>.</p>
       </fieldset>
       <fieldset className="checklist-quick-group"><legend>Colour</legend>
         <div className="checklist-quick-chips">

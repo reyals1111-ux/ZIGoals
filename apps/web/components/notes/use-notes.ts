@@ -1,4 +1,5 @@
 'use client';
+import {showUndo} from '../ui/undo-toast';
 import {useCallback, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {usePlatform} from '../platform/use-platform';
@@ -20,7 +21,11 @@ export function useNotes() {
   /** Applies a pure change; a change that returns `{record, undo}` offers that Undo. */
   const change = useCallback((fn: (r: Notes) => Notes | WithUndo, said: string, offer?: NotesUndo | null): boolean => {
     let made: NotesUndo | null = offer ?? null;
-    try { notes.update(r => { const out = fn(r); if (withUndo(out)) { made = out.undo; return out.record; } return out; }); setStatus(said); setUndo(made); return true; }
+    // Session AL (PRIMITIVES 3e): Undo is the app's toast; its restore puts the notes record back.
+    try { notes.update(r => { const out = fn(r); if (withUndo(out)) { made = out.undo; return out.record; } return out; }); setStatus(made ? '' : said); setUndo(null);
+      const offered = made as NotesUndo | null;
+      if (offered) showUndo({message: said, undone: offered.said, restore: () => { notes.update(r => applyUndo(r, offered)); }});
+      return true; }
     catch (e) { setStatus(e instanceof Error ? e.message : 'This could not be saved on this device. Nothing was changed.'); setUndo(null); return false; }
   }, [notes]);
   const runUndo = useCallback(() => { if (!undo) return; try { notes.update(r => applyUndo(r, undo)); setStatus(undo.said); } catch (e) { setStatus(e instanceof Error ? e.message : 'Undo could not be applied.'); } setUndo(null); }, [notes, undo]);

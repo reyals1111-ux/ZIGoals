@@ -167,11 +167,12 @@ export function addSection(record: Checklist, input: {label: string; colour?: st
   if (!label || label.length > MAX_SECTION_LABEL) throw new ChecklistError(`Give the orbit a name of 1 to ${MAX_SECTION_LABEL} characters.`);
   return save({...record, sections: [...sections, {id, label, colour: pathColour(input.colour, 'teal')}]});
 }
-export function removeSection(record: Checklist, id: string): Checklist {
+/** Session AL (P-LS-22): `to` names the orbit its items move to (Edit path asks, Anytime first); without it, the last one. */
+export function removeSection(record: Checklist, id: string, target?: string): Checklist {
   const sections = sectionsOf(record), rest = sections.filter(s => s.id !== id);
   if (rest.length === sections.length) return record;
   if (!rest.length) throw new ChecklistError('A path keeps at least one orbit.');
-  const to = rest[rest.length - 1]!.id, move = <T extends ChecklistItem | ChecklistHealthItem>(i: T): T => i.section === id ? {...i, section: to} : i;
+  const to = (target && rest.some(s => s.id === target) ? target : rest[rest.length - 1]!.id), move = <T extends ChecklistItem | ChecklistHealthItem>(i: T): T => i.section === id ? {...i, section: to} : i;
   return save({...record, sections: rest, items: record.items.map(move), healthItems: record.healthItems.map(move)});
 }
 /** The orbit an item is drawn in (an orbit removed by another device falls back to the last one). */

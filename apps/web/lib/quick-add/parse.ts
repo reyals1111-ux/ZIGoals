@@ -14,6 +14,9 @@ export const LIMITS = {waterMl: 10_000, weightGrams: 1_000_000, steps: 1_000_000
 export const OUTSIDE = 'That number is outside what the journal keeps.', ABOVE_ZERO = 'Use a number above zero.', MINUTES_HINT = 'Add the minutes, for example ran 5k in 28 min';
 export const UNCLEAR_NUMBER = 'Type that number without a thousands separator, for example 1234.';
 export const WATER_UNIT_HINT = 'Name the unit, for example 2 glasses of water or 500 ml.';
+export const EARLIER_DAY = 'Quick add logs for today or yesterday. For an earlier day, open the page (Health or Habits) and choose the day.';
+export const MEDITATE_HINT = 'Meditation is logged on Health › Mind (or with the Checklist’s Meditate tile). To log it here, make a “Meditate” habit.';
+const WEEKDAY_WORDS: Record<string, number> = {sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6};
 const LOCALES: Record<'en' | 'nl', QuickAddLocale> = {en, nl};
 const ACTIVITY: Record<Exclude<VerbKind, 'water' | 'weight' | 'sleep'>, 'Run' | 'Walk' | 'Cycle' | 'Swim'> = {walk: 'Walk', run: 'Run', cycle: 'Cycle', swim: 'Swim'};
 type Num = {value: number; grouped: boolean; plus: boolean; thousands: boolean};
@@ -65,10 +68,23 @@ export function parse(text: string, localeName: 'en' | 'nl', context: QuickAddCo
   const trimmed = text.trim();
   if (!trimmed || trimmed.length > 200) return unknown(locale);
   const tokens = tokenize(trimmed, locale);
+  // Session AL (P-LS-49, LS-042): "weight -5" names what it logs, so it gets the range message, not "didn't understand".
+  if (!tokens && /(^|[\s(])[-−]\s*\d/.test(trimmed) && !/\d\s*e\s*[+-]?\d/i.test(trimmed) && trimmed.toLowerCase().split(/[^\p{L}]+/u).some(w => locale.verbs[w] || locale.units[w])) return needsMore(ABOVE_ZERO);
   if (!tokens || !tokens.length) return unknown(locale);
   if (tokens.some(t => locale.conjunctions.includes(t.word))) return unknown(locale);
   let day: QuickAddDay = 'today';
   for (const t of tokens) { const d = locale.dayWords[t.word]; if (d) { day = d; t.used = true; } }
+  // Session AL (LS-040): a weekday ("ran 5k on monday") was dropped silently and saved for today. A log leans to the
+  // past: today's or yesterday's weekday is that day; any other day is asked for on its page instead of guessed.
+  for (let i = 0; i < tokens.length; i++) {
+    const weekday = WEEKDAY_WORDS[tokens[i]!.word];
+    if (weekday === undefined || context.habits.some(h => h.title.toLowerCase().split(/\s+/).includes(tokens[i]!.word))) continue;
+    const todayWeekday = context.today ? new Date(`${context.today}T12:00:00Z`).getUTCDay() : null;
+    if (todayWeekday === weekday) { tokens[i]!.used = true; day = 'today'; }
+    else if (todayWeekday !== null && (todayWeekday + 6) % 7 === weekday) { tokens[i]!.used = true; day = 'yesterday'; }
+    else return needsMore(EARLIER_DAY);
+    if (tokens[i - 1]?.word === 'on' || tokens[i - 1]?.word === 'last') tokens[i - 1]!.used = true;
+  }
   if (tokens.every(t => t.used)) return unknown(locale);
   // "half a glass", "a couple of glasses": an article next to another number word is not a second number.
   for (let i = 0; i < tokens.length; i++) if ((tokens[i]!.word === 'a' || tokens[i]!.word === 'an') && (tokens[i - 1]?.num?.value === 0.5 || tokens[i + 1]?.num)) tokens[i]!.num = undefined;
@@ -181,6 +197,9 @@ export function parse(text: string, localeName: 'en' | 'nl', context: QuickAddCo
       const title = normalizeName(habit.title), first = normalizeName(habit.title.split(/\s+/)[0] ?? '');
       const firstWord = normalizeName(stemmed[0] ?? ''), firstRaw = normalizeName(words[0] ?? '');
       if (!title || !(joined === title || joinedRaw === title || (first && (firstWord === first || firstRaw === first)))) continue;
+      // Session AL (P-LS-47, LS-039): a number that is part of the habit's own title ("Journal 3 lines") is not a count.
+      const titleNumbers = new Set((habit.title.match(/\d+(?:[.,]\d+)?/g) ?? []).map(n => Number(n.replace(',', '.'))));
+      const count = tokens.find(t => t.num && !titleNumbers.has(t.num.value));
       let value: number;
       if (habit.kind === 'duration') {
         // Session AH (HA5; T-134, B-192, D-244): a timed habit takes a time. A bare number counts as minutes only when no
@@ -201,5 +220,7 @@ export function parse(text: string, localeName: 'en' | 'nl', context: QuickAddCo
   const choices = [...explicit, ...own];
   if (choices.length === 1) return choices[0]!;
   if (choices.length > 1) return {kind: 'ambiguous', choices};
+  // Session AL (P-LS-47, LS-038): "meditated 15 min" with no Meditate habit says where meditation is logged.
+  if (stemmed.some(w => w === 'meditate' || w === 'meditation')) return needsMore(MEDITATE_HINT);
   return unknown(locale);
 }

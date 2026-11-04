@@ -5,9 +5,11 @@ import {LoadBoundary} from './load-boundary';
 import Link from 'next/link';
 import {AppIcon} from './app-icon';
 import {useBackCloses} from './use-back-closes';
+import {pushToastLayer} from './ui/undo-toast';
+// Session AL (P-LS-04, C-LS-27): a Task row opens Tasks with the add field ready.
 // Session AK G2 (RELEASE_REVIEW_2 R2-13): the most frequent first, as MacroFactor's and Daylio's "+" do — the daily logs (a
 // Health entry, a habit), a note, a contribution, then the rarer creations (a goal, an asset). Note is one of these rows.
-const ACTIONS=[{name:'Health entry',copy:'Log a meal, movement or weight.',href:'/app/health?add=entry',icon:'health'},{name:'Habit',copy:'Build a rhythm that lasts.',href:'/app/habits?add=habit',icon:'habits'},{name:'Note',copy:'Capture a thought, a photo or your voice; file it later.',href:'',icon:'notes'},{name:'Contribution',copy:'Choose a Goal and record your next step.',href:'/app/goals?add=contribution',icon:'activity'},{name:'Goal',copy:'Give your next chapter a target.',href:'/app/goals/new',icon:'goals'},{name:'Asset',copy:'Add something to your wealth picture.',href:'/app/wealth?add=asset',icon:'wallet'}];
+const ACTIONS=[{name:'Health entry',copy:'Log a meal, movement or weight.',href:'/app/health?add=entry',icon:'health'},{name:'Habit',copy:'Build a rhythm that lasts.',href:'/app/habits?add=habit',icon:'habits'},{name:'Note',copy:'Capture a thought, a photo or your voice; file it later.',href:'',icon:'notes'},{name:'Task',copy:'A to-do with a day, a repeat or a project.',href:'/app/tasks?add=1',icon:'tasks'},{name:'Contribution',copy:'Choose a Goal and record your next step.',href:'/app/goals?add=contribution',icon:'activity'},{name:'Goal',copy:'Give your next chapter a target.',href:'/app/goals/new',icon:'goals'},{name:'Asset',copy:'Add something to your wealth picture.',href:'/app/wealth?add=asset',icon:'wallet'}];
 // Session AA-Cloud weights: the sheet's heavier parts (the typed line with Health and Habits, the Goal choice) load
 // once the page is idle and online (or at the first tap), never with the page's own scripts; offline, a failed load says
 // so inside the sheet (LoadBoundary) and the page keeps working; the trigger and the dialog are here
@@ -25,6 +27,9 @@ export function QuickAdd({triggerClassName='secondary'}:{triggerClassName?:strin
  const titleId=useId(),dialog=useRef<HTMLDialogElement>(null),trigger=useRef<HTMLButtonElement>(null),[contribution,setContribution]=useState(false),[note,setNote]=useState(false),[host,setHost]=useState<HTMLElement|null>(null),[opened,setOpened]=useState(false),[openWhenReady,setOpenWhenReady]=useState(false),[showing,setShowing]=useState(false);
  // Session AH Part 3 (DS9): Back closes the sheet first.
  useBackCloses(showing,()=>dialog.current?.close());
+ // Session AL (P-LS-48, P-LS-04): while the sheet is open (a modal leaves the page inert), the app's toast sits inside it,
+ // so the Undo of a save made here can be pressed.
+ useEffect(()=>{if(!showing||!dialog.current)return;return pushToastLayer(dialog.current);},[showing]);
  useEffect(()=>setHost(document.body),[]);
  // Session AH Part 2: a tap that lands after hydration but before the dialog is in the page (it mounts into <body> one
  // effect later) opens it as soon as it is there, instead of calling showModal on nothing (run9-2-product:30, phones).

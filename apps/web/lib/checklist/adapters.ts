@@ -10,7 +10,7 @@ import {endedSession, sessionFrom, startRun} from '../meditation/timer';
 import {logFastToHabit, removeFast, runningSession, startFast, stopFast} from '../fasting/engine';
 import type {Fasting} from '../fasting/schema';
 import {wallClock} from '../zone-time';
-import {discardHabitTimer, finishHabitTimer, pauseHabitTimer, resumeHabitTimer, startHabitTimer} from '../habit-timer-actions';
+import {discardHabitTimer, pauseHabitTimer, resumeHabitTimer, startHabitTimer} from '../habit-timer-actions';
 import {addReceipt, dropReceipt, setCustomDone} from './day';
 import {mealAt, type DerivedDot} from './derive';
 import type {ChecklistDays} from './schema';
@@ -189,7 +189,16 @@ export function focusPlan(habit: Habit | undefined, ctx: TickContext): TickPlan 
   // Session AH (TO5, M-137): a paused timer resumes; only a running one is finished and logged (a paused "25:00" had
   // been logged in one tap).
   if (timer?.state === 'paused') return {writes: [w('habits', d => resumeHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [w('habits', d => d.habits.find(h => h.id === habit.id)?.timer?.state === 'running' ? pauseHabitTimer(d, habit.id, timer.id, new Date()) : d)], message: `Focus resumed: ${habit.title}.`, undone: 'Focus paused again.', done: false, signal: 'checklist_tick'};
-  if (timer) return {writes: [w('habits', d => finishHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [], message: `${habit.title}: your time is logged on Habits. Change it there if needed.`, undone: '', done: true, signal: 'checklist_tick'};
+  if (timer) {
+    // Session AL (P-LS-31, LS-034/LC-010): Focus logs whole minutes (12 seconds was "0.19 of 30 minutes"); under a minute
+    // saves nothing, as Sleep and Fast say under ten minutes; the end toast offers Undo (the habit as it was, timer running).
+    const before = habit, elapsed = timer.elapsedMs + Math.max(0, ctx.now.getTime() - Date.parse(timer.segmentStartedAt));
+    const minutes = Math.floor(elapsed / 60_000), back = w('habits', d => d.habits.some(h => h.id === before.id) ? {...d, habits: d.habits.map(h => h.id === before.id ? before : h)} : d);
+    if (minutes < 1) return {writes: [w('habits', d => discardHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [back], message: 'Focus stopped after less than a minute, so nothing was saved.', undone: 'Focus is running again.', done: false, signal: 'checklist_tick'};
+    const unit = habitRuleOn(habit, timer.date)?.measurement, value = unit && 'unit' in unit && unit.unit === 'hours' ? minutes / 60 : minutes;
+    return {writes: [w('habits', d => logHabitValue(discardHabitTimer(d, habit.id, timer.id, ctx.now), habit.id, timer.date, value, {mode: 'add'}, ctx.now))], undo: [back],
+      message: `${habit.title}: ${minutes} ${minutes === 1 ? 'minute' : 'minutes'} of focus logged on Habits.`, undone: 'Focus is running again; nothing was logged.', done: true, signal: 'checklist_tick'};
+  }
   const timerId = crypto.randomUUID();
   return {writes: [w('habits', d => startHabitTimer(d, habit.id, timerId, ctx.now))], undo: [w('habits', d => d.habits.find(h => h.id === habit.id)?.timer?.id === timerId ? discardHabitTimer(d, habit.id, timerId, new Date()) : d)], message: `Focus started: ${habit.title}.`, undone: 'Focus not started.', done: false, signal: 'checklist_tick'};
 }

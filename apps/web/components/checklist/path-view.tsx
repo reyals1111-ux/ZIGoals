@@ -10,6 +10,8 @@ import type {PathModel, PathStep, StepIntent} from '../../lib/path/model';
 import {DotPanel} from './dot-panel';
 import {ValueStepper} from './value-stepper';
 import {useEscapeLayer} from './escape-layers';
+import {logHabitValue} from '../../lib/habits';
+import {showUndo} from '../ui/undo-toast';
 import type {ChecklistState} from './use-checklist';
 // Session AF (L3b): the orbit look of the shared path, the Checklist's own (Earn's paths never load it).
 import '../path/path-orbit.css';
@@ -41,14 +43,25 @@ export function useDotPress(state: ChecklistState) {
     setBusy(null);
     setPanel(out.ok ? null : {id: dot.id, mode: 'value', message: out.message});
   }, [state]);
+  // Session AL (P-LS-27): a done habit can be opened again for today from its details, with Undo (Habits keeps the record).
+  const untick = useCallback(async (dot: DerivedDot, habitId: string) => {
+    const habits = state.stores.habits, before = habits.data.habits.find(h => h.id === habitId);
+    try {
+      await habits.update(h => logHabitValue(h, habitId, habits.today, 0));
+      setPanel(null);
+      showUndo({message: `${dot.label}: not done today.`, undone: `${dot.label}: done again.`, restore: () => habits.update(h => before && h.habits.some(x => x.id === habitId) ? {...h, habits: h.habits.map(x => x.id === habitId ? before : x)} : h)});
+    } catch (e) { setPanel({id: dot.id, mode: 'details', message: e instanceof Error && e.message.length < 200 ? e.message : 'Not changed. Open Habits to change it.'}); }
+  }, [state.stores.habits]);
   const renderPanel = useCallback((dot: DerivedDot) => {
     if (!panel || panel.id !== dot.id) return null;
     if (panel.mode === 'value' && dot.value) return <>
       <ValueStepper key={dot.id} label={dot.label} value={dot.value} colour={PATH_COLOURS[nebulaColour(dot.colour)].token} busy={busy === dot.id} onLog={n => void log(dot, n)} onCancel={() => setPanel(null)}/>
       {panel.message && <p className="checklist-stepper-error" role="alert">{panel.message}</p>}
     </>;
-    return <DotPanel dot={dot} message={panel.message} canUndo={state.canUndo(dot.id)} onUndo={() => void state.undoLast(dot.id).then(out => setPanel(out.ok ? null : {id: dot.id, mode: 'details', message: out.message}))} onClose={() => setPanel(null)}/>;
-  }, [panel, busy, log, state]);
+    const habitId = dot.kind === 'habit' && dot.state === 'done' ? (dot.item.ref as {habitId?: string} | undefined)?.habitId : undefined;
+    return <DotPanel dot={dot} message={panel.message} canUndo={state.canUndo(dot.id)} onUndo={() => void state.undoLast(dot.id).then(out => setPanel(out.ok ? null : {id: dot.id, mode: 'details', message: out.message}))} onClose={() => setPanel(null)}
+      onUntick={habitId ? () => void untick(dot, habitId) : undefined}/>;
+  }, [panel, busy, log, state, untick]);
   return {panel, setPanel, press, renderPanel, busy};
 }
 
