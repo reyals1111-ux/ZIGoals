@@ -74,6 +74,8 @@ Bots re-tested #53 after Sessions AH–AK. In their conditions, many rows those 
 - **Q3, Node.** The sandbox shipped Node 22. Node 24.19.0, the project's pin, is installed outside the repository (`/opt/node24`). Nothing is committed for it.
 - **Q4, ledger files.** `GROK53_LEDGER.md` holds the AL rows, the counts and the keep-list. `ledger/<bot>.md` holds one line per finding id.
 - **Q5, Premium label.** "Premium · free during Alpha" is aligned to "Premium · free during the Alpha" (O2), and the badge links to `/app/plans`.
+- **Q6, ZIGi on Settings (O3 vs the sensitive-screen rule).** O3 says the Apps & extras sheet, ZIGi included, works on every page, Settings too. Before this, ZIGi stayed off on all of Settings because the page holds a sign-in email field. ZIGi now opens on Settings. The sensitive rule applies only while a sensitive field (email, PIN, password, key, seed or recovery) has focus, or a sensitive section is open. During that time ZIGi reads nothing from the screen and says why.
+- **Q7, old ids without new evidence.** 238 old ids that the bots marked NOT RETESTED or out of their area have no 4 Nov evidence. They are not AL defect rows. They are replay-checked with the AH/AI scope rows in Part 14, and whatever fails there becomes a row.
 
 ## The ledger (R1), in numbers
 - **In:** 4,033 item lines from the eight bot files:
