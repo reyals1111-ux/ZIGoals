@@ -9,7 +9,7 @@ import {useVaultControls} from '../vault-sync-controls';
 import {formatDate} from '../../lib/visual-format';
 import './restore-backup.css';
 import {plainErrorMessage} from '../../lib/plain-error';
-import {CHECKLIST_NOT_RESTORED} from '../../lib/restore/checklist-note';
+import {CHECKLIST_RESTORE_NOTE} from '../../lib/restore/checklist-note';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): Settings → Your data → "Restore from a backup". The
@@ -94,7 +94,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
   const mergeAll = () => preview && setModes(Object.fromEntries(preview.rows.map(r => [r.id, r.problem ? 'leave' : 'merge'])));
 
   return <div className="restore-backup">
-    <p className="fine">Choose a ZIP made by &ldquo;Export everything&rdquo;. You see what it holds before anything changes; keys and secrets are never in it and never restored. {CHECKLIST_NOT_RESTORED}</p>
+    <p className="fine">Choose a ZIP made by &ldquo;Export everything&rdquo;. You see what it holds before anything changes; keys and secrets are never in it and never restored. {CHECKLIST_RESTORE_NOTE}</p>
     <label className="rb-file">Export everything ZIP<input key={fileKey} type="file" accept=".zip,application/zip" disabled={busy} onChange={e => void open(e.target.files?.[0])} /></label>
     {busy && <p className="fine" aria-live="polite">{restoring ? 'Restoring… You can stop between two parts.' : 'Working…'}</p>}
     {restoring && <div className="dh-actions"><button type="button" className="secondary" onClick={() => stop.current?.abort()}>Stop restoring</button></div>}

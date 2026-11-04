@@ -107,7 +107,9 @@ const ICON = PUSH_ART.icon, BADGE = PUSH_ART.badge;
 // Release review R12: the pages the manifest's shortcuts and the bottom bar open are kept at install, with the hashed
 // files each one loads, so an installed app's shortcuts work offline before each page was visited. They hold no
 // personal data (the records live in this browser's storage); a page or file that fails is simply left for later.
-const INSTALL_PAGES = ['/app', '/app/today', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/checklist', '/app/settings', '/app/nova', '/app/notes'];
+// Session AL (P-LS-38, LS-013): Tasks and the Agenda too; the Agenda has no navigation entry, so it was only ever reached
+// inside the app and never kept as a page.
+const INSTALL_PAGES = ['/app', '/app/today', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/checklist', '/app/settings', '/app/nova', '/app/notes', '/app/tasks', '/app/agenda'];
 const MAX_INSTALL_FILES = 160;
 async function precache() {
   const pages = await caches.open(PAGES), files = new Set();
@@ -135,6 +137,9 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     for (const key of await caches.keys()) if (key.startsWith('zigoals-') && !KEEP.includes(key)) await caches.delete(key);
     await self.clients.claim();
+    // Session AL (P-LS-38, LS-013): the page a first visit opened loaded before this worker existed, so it was never
+    // kept; it is kept now, so a reload offline in the first session opens it.
+    if (OFFLINE) for (const client of await self.clients.matchAll({type: 'window'})) { try { await keepDocument(new URL(client.url)); } catch { /* kept on the next visit */ } }
   })());
 });
 // Session AK (journey bug J6-1): after Erase everything this worker keeps nothing more: "zigoals:sw-forget" stops every
@@ -183,6 +188,19 @@ async function networkFirst(request, url) {
     return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline · ZIGoals</title><body style="font:16px system-ui;background:#020918;color:#eef;padding:24px"><h1>You are offline</h1><p>This page was not saved on this device yet. Open ZIGoals once while online and it will work offline next time.</p><p><a style="color:#9cf" href="/app">Open Today</a></p>', {status: 503, headers: {'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store'}});
   }
 }
+/**
+ * Session AL (P-LS-38, LS-013): a page reached inside the app arrives as page data (an RSC request), never as a document,
+ * so a reload offline found no copy. Once per build, its plain document is fetched and kept too (same origin, no query,
+ * the same rules as every kept page; never for a prefetch, so links merely shown fetch nothing extra).
+ */
+async function keepDocument(url) {
+  if (forgotten || url.origin !== self.location.origin || !url.pathname.startsWith('/app') || neverStored(url)) return;
+  const address = new Request(url.origin + url.pathname, {credentials: 'same-origin'}), cache = await caches.open(PAGES);
+  if (await cache.match(address)) return;
+  const response = await fetch(address);
+  if (forgotten || !cacheable(response) || response.redirected) return; // a redirected answer cannot be served to a navigation
+  await cache.put(address, response); trim(PAGES, MAX_PAGES);
+}
 async function cacheFirst(request) {
   const cache = await caches.open(STATIC), cached = await cache.match(request);
   if (cached) return cached;
@@ -211,7 +229,10 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
   if (isHashed(url)) { event.respondWith(cacheFirst(request)); return; }
   if (isAsset(url)) { event.respondWith(assetNetworkFirst(request)); return; }
-  if (isPage(request, url) && url.pathname.startsWith('/app')) event.respondWith(networkFirst(request, url));
+  if (isPage(request, url) && url.pathname.startsWith('/app')) {
+    event.respondWith(networkFirst(request, url));
+    if (request.mode !== 'navigate' && request.headers.get('Next-Router-Prefetch') !== '1') event.waitUntil(keepDocument(url).catch(() => {}));
+  }
 });
 
 // ---- IndexedDB (read the snapshot; queue actions) ----------------------------------------------------------------

@@ -2,7 +2,9 @@ import {CALCULATOR_KEY} from '../compound/store';
 import {WORKOUTS_KEY, workoutsSchema, type Workouts} from '../workouts/schema';
 import {MONEY_LOG_KEY, moneyLogSchema, type MoneyLog} from '../money-log/schema';
 import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
-import {TASKS_KEY} from '../tasks/schema';
+import {TASKS_KEY, tasksSchema, type Tasks} from '../tasks/schema';
+import {checklistDaysSchema, checklistSchema, type Checklist, type ChecklistDays} from '../checklist/schema';
+import {READABLE_HOLDINGS_HEADER, readableHoldingsCsv} from '../import/holdings-export';
 import {READING_SOURCES_KEY} from '../wealth-sources/schema';
 import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
 import {NOTIFY_KEY} from '../notify/prefs';
@@ -210,7 +212,8 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   ...Object.fromEntries(AB_CLOUD_PERSONAL_KEYS.map(k => [k.slice(8, -3).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), k])) as Record<'healthVitamins' | 'pointTell', string>,
   // Session AE (Part 6, ADR-027): the wallets linked read-only (public addresses, personal): exported, never synced, never restored.
   linkedWallets: LINKED_WALLETS_KEY,
-  // Session AF (ADR-028): Earn's progress and choices, the Checklist's two records; exported, never synced, never restored.
+  // Session AF (ADR-028): Earn's progress and choices, the Checklist's two records; exported. Since Session AK the Checklist
+  // syncs (extras section) and since Session AL it restores (lib/restore/plan.ts, today's ticks excepted).
   ...EARN_EXPORT_KEYS, ...AF_CHECKLIST_EXPORT_KEYS, stakingJournal: STAKING_JOURNAL_KEY, stakingPrefs: STAKING_PREFS_KEY, validatorAlerts: VALIDATOR_ALERTS_KEY, ...WALLET_EXPORT_KEYS, ...AF_ZIGI_EXPORT_KEYS, ...AF_EXTRAS_EXPORT_KEYS,
   // Session AL (lib/al-device-keys.ts): the Apps & extras display choices (O3, O4).
   ...AL_EXPORT_KEYS} as const;
@@ -224,7 +227,12 @@ export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check
   // Session AI (B3): one row per expense or income entry.
   'money-log.csv',
   // Session AI (B3): one row per journal entry; one row per day's energy.
-  'journal.csv', 'energy.csv'] as const;
+  'journal.csv', 'energy.csv',
+  // Session AL (P-LS-36): Tasks and the Checklist (its path and its day history), each a plain copy of its stored record.
+  'tasks.csv', 'checklist.csv', 'checklist-days.csv',
+  // Session AL (TK-018, P-TK-13): Wealth's holdings as a person reads them, in the columns Wealth's CSV import takes back
+  // (lib/import/holdings-export.ts): decimal quantity and value, currency, kind of asset. Archived assets left out.
+  'wealth-holdings.csv'] as const;
 export type CsvFileName = typeof CSV_FILES[number];
 export type EverythingTexts = Record<string, string | null>;
 export type LocalSimulationExport = {section: string; warning: string | null} | null;
@@ -239,7 +247,8 @@ const CSV_HEADERS: Record<CsvFileName, string[]> = {
   'habits.csv': ['id', 'title', 'category', 'type', 'measurement', 'unit', 'target', 'target_period', 'schedule', 'state', 'start_date', 'time_of_day', 'goal_link', 'created_at_utc', 'updated_at_utc', 'description', 'notes'],
   'check-ins.csv': ['habit_id', 'habit_title', 'date', 'count', 'disposition', 'mood', 'note', 'updated_at_utc', 'source', 'auto_applied_at'],
   'health-diary.csv': ['record_id', 'date', 'kind', 'name', 'meal', 'quantity', 'unit', 'serving_weight_g', 'kcal_per_serving', 'protein_mg_per_serving', 'carbs_mg_per_serving', 'fat_mg_per_serving', 'source', 'created_at_utc', 'updated_at_utc'],
-  'weights.csv': ['id', 'date', 'grams', 'source', 'observed_at_utc', 'timezone', 'created_at_utc', 'updated_at_utc'],
+  // Session AL (P-MO-60): kg is the stored grams over 1000 (exact); lb is converted (1 lb = 453.59237 g) and rounded to 0.01.
+  'weights.csv': ['id', 'date', 'grams', 'source', 'observed_at_utc', 'timezone', 'created_at_utc', 'updated_at_utc', 'kg', 'lb_converted'],
   'water.csv': ['id', 'date', 'amount', 'unit', 'millilitres', 'created_at_utc', 'updated_at_utc'],
   'activity.csv': ['id', 'date', 'kind', 'name', 'steps', 'minutes', 'count', 'created_at_utc', 'updated_at_utc'],
   'wealth-positions.csv': ['id', 'name', 'asset', 'asset_class', 'source_type', 'network', 'quantity', 'decimals', 'valuation_value', 'valuation_currency', 'valuation_decimals', 'valuation_source', 'observed_at_utc', 'archived_at_utc', 'provenance', 'notes'],
@@ -252,6 +261,10 @@ const CSV_HEADERS: Record<CsvFileName, string[]> = {
   'journal.csv': ['entry_id', 'date', 'text', 'tags', 'follow_up_question', 'follow_up_answer', 'created_at_utc'],
   'energy.csv': ['date', 'energy_1_to_5', 'rated_at_utc'],
   'money-log.csv': ['entry_id', 'date', 'kind', 'amount', 'currency', 'category', 'note', 'created_at_utc'],
+  'tasks.csv': ['id', 'title', 'priority', 'level', 'due', 'time', 'project', 'section', 'parent_id', 'labels', 'repeats', 'goal', 'habit', 'health_link', 'notes', 'created_at_utc', 'done_at_utc', 'updated_at_utc'],
+  'checklist.csv': ['item_id', 'type', 'kind', 'label', 'orbit', 'health_input', 'habit_id', 'goal_id', 'added_at_utc'],
+  'checklist-days.csv': ['date', 'total', 'done', 'perfect'],
+  'wealth-holdings.csv': [...READABLE_HOLDINGS_HEADER],
   'workout-sets.csv': ['workout_id', 'workout_name', 'date', 'started_at_utc', 'ended_at_utc', 'exercise', 'exercise_id', 'set_number', 'set_kind', 'weight_kg', 'reps', 'distance_km', 'seconds'],
   // Session AH Part 3 (DS6, N-042): Portfolio's own trades and transfers (its record is in everything.json since Session U).
   'portfolio-transactions.csv': ['portfolio_id', 'portfolio_name', 'portfolio_kind', 'currency', 'transaction_id', 'coin', 'coin_name', 'symbol', 'kind', 'quantity', 'price_per_coin', 'fee', 'date', 'note', 'created_at_utc'],
@@ -268,6 +281,10 @@ function dayIn(iso: string, zone: string): string {
 /** Milligrams as a decimal gram text without locale formatting (integer arithmetic). */
 const gramsText = (milligrams: number) => { const whole = Math.floor(milligrams / 1000), rest = milligrams % 1000; return rest ? `${whole}.${String(rest).padStart(3, '0').replace(/0+$/, '')}` : String(whole); };
 const milliText = (milli: number) => gramsText(milli);
+/** A weight in milligrams as kg (exact decimal text) and lb (converted, two decimals); empty when it is not a whole number. */
+const weightUnits = (milligrams: number): [string, string] => Number.isSafeInteger(milligrams) && milligrams >= 0 ? [kgText(milligrams), (Math.round(milligrams / 453_592.37 * 100) / 100).toFixed(2)] : ['', ''];
+/** Milligrams as kilograms without locale formatting (integer arithmetic). */
+const kgText = (milligrams: number) => { const whole = Math.floor(milligrams / 1_000_000), rest = milligrams % 1_000_000; return rest ? `${whole}.${String(rest).padStart(6, '0').replace(/0+$/, '')}` : String(whole); };
 const scheduleText = (schedule: ReturnType<typeof latestHabitRule>['schedule']) => schedule.kind === 'daily' ? 'daily' : schedule.kind === 'weekdays' ? `weekdays ${schedule.days.join(' ')}` : schedule.kind === 'interval' ? `every ${schedule.every} days from ${schedule.anchor}` : schedule.kind === 'frequency' ? `${schedule.times} per ${schedule.period}` : `month dates ${schedule.days.join(' ')}`;
 
 /** Reads every key, a module held in transactional storage through its durable path. Throws when the account is locked (the storage getter throws). */
@@ -349,7 +366,7 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   out['habits.csv'] = csv(CSV_HEADERS['habits.csv'], (habits?.habits ?? []).map(h => { const rule = latestHabitRule(h); return [h.id, h.title, h.category, rule.type, rule.measurement.kind, 'unit' in rule.measurement ? rule.measurement.unit : '', rule.target, rule.targetPeriod, scheduleText(rule.schedule), rule.state, h.startDate, h.timeOfDay, h.goalLink ? `${h.goalLink.chainId}:${h.goalLink.goalId}` : '', h.createdAt, h.updatedAt, h.description, h.notes]; }));
   out['check-ins.csv'] = csv(CSV_HEADERS['check-ins.csv'], (habits?.habits ?? []).flatMap(h => h.entries.map(e => [h.id, h.title, e.date, e.count, e.disposition, e.mood ?? '', e.note, e.updatedAt, (e as {source?: string}).source ?? '', applied.find(a => a.habitId === h.id && a.date === e.date)?.appliedAt ?? ''])));
   out['health-diary.csv'] = health ? exportHealthCsv(health, '1900-01-01', '2199-12-31') : csv(CSV_HEADERS['health-diary.csv'], []);
-  out['weights.csv'] = csv(CSV_HEADERS['weights.csv'], [...(health?.weights ?? []).map(w => [w.id, w.date, w.grams, 'manual-date-only', '', '', w.createdAt, w.updatedAt] as Cell[]), ...(health?.measurements ?? []).filter(m => m.kind === 'weight').map(m => [m.id, dayIn(m.observedAt, m.timezone), gramsText(m.canonical), 'measurement', new Date(m.observedAt).toISOString(), m.timezone, m.createdAt, m.recordedAt] as Cell[])]);
+  out['weights.csv'] = csv(CSV_HEADERS['weights.csv'], [...(health?.weights ?? []).map(w => [w.id, w.date, w.grams, 'manual-date-only', '', '', w.createdAt, w.updatedAt, ...weightUnits(w.grams * 1000)] as Cell[]), ...(health?.measurements ?? []).filter(m => m.kind === 'weight').map(m => [m.id, dayIn(m.observedAt, m.timezone), gramsText(m.canonical), 'measurement', new Date(m.observedAt).toISOString(), m.timezone, m.createdAt, m.recordedAt, ...weightUnits(m.canonical)] as Cell[])]);
   out['water.csv'] = csv(CSV_HEADERS['water.csv'], (health?.daily?.water ?? []).map(w => [w.id, w.date, milliText(w.amountMilli), w.unit === 'ml' ? 'mL' : 'US fl oz', w.unit === 'ml' ? milliText(w.amountMilli) : String(Math.round(w.amountMilli / 1000 * 29.5735295625 * 1000) / 1000), w.createdAt, w.updatedAt]));
   out['activity.csv'] = csv(CSV_HEADERS['activity.csv'], [...(health?.activity ?? []).map(a => [a.id, a.date, 'activity', a.name, a.steps, a.minutes, '', a.createdAt, a.updatedAt] as Cell[]), ...(health ? exerciseData(health).days.map(d => { const counter = exerciseData(health).counters.find(c => c.id === d.counterId); return [d.id, d.date, 'counter', counter?.name ?? d.counterId, '', '', d.count, '', ''] as Cell[]; }) : [])]);
   out['wealth-positions.csv'] = csv(CSV_HEADERS['wealth-positions.csv'], (platform?.positions ?? []).map(p => [p.id, p.providerId, p.asset, p.assetClass ?? '', p.sourceType, p.network, p.quantity, p.decimals, p.valuation?.value ?? '', p.valuation?.currency ?? '', p.valuation?.decimals ?? '', p.valuation?.source ?? '', p.observedAt, p.archivedAt ?? '', p.provenance, p.notes]));
@@ -378,6 +395,16 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   out['journal.csv'] = csv(CSV_HEADERS['journal.csv'], (journal?.entries ?? []).map(x => [x.id, x.date, x.text, (x.tags ?? []).join(' '), x.followUp?.question ?? '', x.followUp?.answer ?? '', x.createdAt]));
   const energy = typed<Energy>('Energy', json.device.energy, v => energySchema.safeParse(v));
   out['energy.csv'] = csv(CSV_HEADERS['energy.csv'], Object.entries(energy?.days ?? {}).sort(([a], [b]) => a.localeCompare(b)).map(([d, x]) => [d, String(x.energy), x.at]));
+  const tasks = typed<Tasks>('Tasks', json.device.tasks, v => tasksSchema.safeParse(v));
+  const projects = new Map((tasks?.projects ?? []).map(p => [p.id, p.name] as const)), sections = new Map((tasks?.sections ?? []).map(x => [x.id, x.name] as const));
+  out['tasks.csv'] = csv(CSV_HEADERS['tasks.csv'], (tasks?.tasks ?? []).map(t => [t.id, t.title, t.priority, t.level ? `p${t.level}` : '', t.due ?? '', t.time ?? '', t.projectId ? projects.get(t.projectId) ?? t.projectId : '', t.sectionId ? sections.get(t.sectionId) ?? t.sectionId : '', t.parentId ?? '', (t.labels ?? []).join(' '), t.recur?.text ?? (t.recur ? `every ${t.recur.interval} ${t.recur.every}` : ''), t.goal ?? '', t.habit ?? '', t.health ?? '', t.notes ?? '', t.createdAt, t.doneAt ?? '', t.updatedAt ?? '']));
+  const checklist = typed<Checklist>('Checklist', json.device.checklist, v => checklistSchema.safeParse(v));
+  const orbits = new Map((checklist?.sections ?? []).map(x => [x.id, x.label] as const)), orbit = (id?: string) => id ? orbits.get(id) ?? id : '';
+  out['checklist.csv'] = csv(CSV_HEADERS['checklist.csv'], [...(checklist?.items ?? []).map(i => [i.id, 'item', i.kind, i.label ?? '', orbit(i.section), '', i.ref?.habitId ?? '', i.ref?.goalId ?? '', i.addedAt] as Cell[]), ...(checklist?.healthItems ?? []).map(i => [i.id, 'health-quick-input', i.kind, i.label ?? '', orbit(i.section), i.input, '', '', i.addedAt] as Cell[])]);
+  const checklistDays = typed<ChecklistDays>('Checklist day history', json.device.checklistDays, v => checklistDaysSchema.safeParse(v));
+  out['checklist-days.csv'] = csv(CSV_HEADERS['checklist-days.csv'], Object.entries(checklistDays?.days ?? {}).sort(([a], [b]) => a.localeCompare(b)).map(([d, x]) => [d, x.total, x.done, x.perfect === undefined ? '' : String(x.perfect)]));
+  // The Wealth CSV import's own columns; the trailing line break dropped, as in every other CSV here.
+  out['wealth-holdings.csv'] = readableHoldingsCsv({positions: platform?.positions ?? []}).replace(/\r\n$/, '');
   return {json, csv: out, unreadable, warnings};
 }
 /**

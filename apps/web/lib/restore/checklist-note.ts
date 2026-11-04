@@ -1,6 +1,6 @@
 /**
- * Session AK (journey question J6-2, owner): the Checklist is never restored from a backup (lib/restore/plan.ts
- * NEVER_RESTORED lists "Checklist favourites and day history"); the restore screen and "Test a backup" say so plainly
- * instead of implying that every part comes back. The rule itself is unchanged.
+ * Session AL (P-LS-36, LS-025, LS-064; reopens AK's journey question J6-2): the Checklist now restores from a backup,
+ * in the parts plan.ts names (its path and day history with Today and Life, its Health quick inputs only with the Health
+ * choice); only today's ticks never come back. The restore screen and "Test a backup" say so in these words.
  */
-export const CHECKLIST_NOT_RESTORED = 'The Checklist is never restored from a backup: its path, favourites and day history stay as they are on this device.';
+export const CHECKLIST_RESTORE_NOTE = 'The Checklist restores too: its path, favourites and day history with Today and Life, its Health quick inputs only with Health. Today’s ticks stay as they are on this device.';
