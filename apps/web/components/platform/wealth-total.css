@@ -16,3 +16,26 @@
 /* The chip's words stay on one line (a phone's split rows measure every amount span as one line). */
 .wealth-other-chip-button { white-space: nowrap; }
 /* Owner request 24 (Phase 2, Part 12): the "Totals in USD | EUR" choice beside the summary's tools. */
+
+/* Session AL (TK-039, TK-132): net worth after debts under the holdings headline, and a plain warning when debts are larger. */
+.wealth-hero-networth { display: grid; gap: 6px; margin-top: 10px; max-width: 52ch; font-size: 15px; }
+.wealth-hero-networth p { margin: 0; overflow-wrap: anywhere; }
+.wealth-hero-networth p > span { margin-right: 8px; color: var(--text-meta, #c2d0e5); font-weight: 600; }
+.wealth-hero-networth b { font-variant-numeric: tabular-nums; color: var(--text-strong, #fff); }
+.wealth-hero-networth b[data-negative] { color: #ffc0cb; }
+.wealth-hero-debt-warning { padding: 8px 12px; border-radius: 12px; border: 1px solid #ffb4c066; background: #3a0f1f99; color: #ffe3e8; line-height: 1.45; }
+:root[data-theme=light] .wealth-hero-networth b[data-negative] { color: #a1123a; }
+:root[data-theme=light] .wealth-hero-debt-warning { border-color: #c2184b55; background: #fff1f4; color: #6d0f2b; }
+
+/* Session AL (TK-116, P-TK-44): in the Allocated/Available rows the "+ € … held in EUR" chip wraps inside its card on a
+   computer instead of running past its edge; phones keep the one-line chip (their rows size to it). */
+@media (min-width: 701px) {
+  .wealth-split dd { min-width: 0; }
+  .wealth-split dd .wealth-other-chip { max-width: 100%; }
+  .wealth-split dd .wealth-other-chip-button { white-space: normal; text-align: left; height: auto; padding-block: 4px; overflow-wrap: anywhere; }
+}
+
+/* Session AL (TK-164, TK-6B-07): by day the Wealth total is one solid ink (the pale gradient faded ".00" below 3:1 and
+   changed colour mid-number); night themes keep the figure gradient. Also steady digits while it counts (TK-090, N-TK-17). */
+:root[data-theme=light] .wealth-total-headline .nebula-flow.is-figure { background-image: none; -webkit-text-fill-color: currentColor; color: #1b1f4a; }
+.wealth-total-headline, .wealth-total-headline .nebula-flow, .split-figure { font-variant-numeric: tabular-nums; }

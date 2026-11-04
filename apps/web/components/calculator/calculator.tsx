@@ -4,6 +4,7 @@ import {CountUp} from './count-up';
 import {useDeferredValue, useEffect, useMemo, useState, type ReactNode} from 'react';
 import Decimal from 'decimal.js';
 import {normalizeDecimalInput} from '../../lib/decimal-input';
+import {parseNumberInput} from '../../lib/numbers/parse';
 import {COMPOUNDING, DEFAULT_INPUT, FREQUENCY, LIMITS, compound, compoundInputSchema, milestoneWhen, whatIfs, type CompoundInput, type CompoundResult} from '../../lib/compound/engine';
 import {CALCULATOR, MAX_SCENARIOS, removeScenario, rememberInput, restoreScenario, saveScenario, type Scenario} from '../../lib/compound/store';
 import {formatMoney, formatSignedMoney} from '../../lib/visual-format';
@@ -33,10 +34,12 @@ const toDraft = (i: CompoundInput): Draft => ({start: i.start, contribution: i.c
  * could mean 1500 or 1.5.
  */
 const AMOUNT_HINT = 'An amount with up to two decimals, such as 250 or 99.50.';
-function amountText(raw: string): {value?: string; error?: string} {
+export const AMOUNT_TOO_LARGE = 'That is more than this calculator models. Enter an amount below 10 trillion (13 digits before the point).';
+export function amountText(raw: string): {value?: string; error?: string} {
   const v = raw.replace(/\s/g, '');
   if (/^\d{1,3}(,\d{3})+\.\d{1,2}$/.test(v) || /^\d{1,3}(,\d{3}){2,}$/.test(v)) return {value: v.replace(/,/g, '')};
-  try { const n = normalizeDecimalInput(v); return AMOUNT.test(n) ? {value: n} : {error: AMOUNT_HINT}; } catch (e) { return {error: e instanceof Error ? e.message : AMOUNT_HINT}; }
+  // Session AL (TK-159): a number that is simply too large says so, instead of the "two decimals" hint.
+  try { const n = normalizeDecimalInput(v); if (AMOUNT.test(n)) return {value: n}; if (/^\d+(\.\d+)?$/.test(n) && n.split('.')[0]!.replace(/^0+/, '').length > 13) return {error: AMOUNT_TOO_LARGE}; return {error: AMOUNT_HINT}; } catch (e) { return {error: e instanceof Error ? e.message : AMOUNT_HINT}; }
 }
 /** Results past this are shown as too large to read reliably, never as long rows of exact-looking digits. */
 const SHOWN_LIMIT = new Decimal('1e15');
@@ -45,7 +48,7 @@ const tooLarge = (v: string) => new Decimal(v).abs().gt(SHOWN_LIMIT);
 function parseDraft(d: Draft): {input?: CompoundInput; errors: Partial<Record<keyof Draft, string>>} {
   const errors: Partial<Record<keyof Draft, string>> = {};
   const num = (key: keyof Draft, v: string, min: number, max: number, int = false) => {
-    const n = Number(v.replace(',', '.'));
+    const read = parseNumberInput(v, {allowNegative: min < 0}), n = read.ok ? read.value : NaN; // Session AL (PRIMITIVES 3f): one number reader
     if (v.trim() === '' || !Number.isFinite(n) || n < min || n > max || (int && !Number.isInteger(n))) { errors[key] = key === 'months' ? `Whole months from ${min} to ${max}.` : int ? `Whole years from ${min} to ${max}.` : `A number from ${min} to ${max}.`; return 0; }
     return Math.round(n * 100) / 100;
   };
@@ -149,7 +152,7 @@ export function Calculator() {
 
   return <div className="calc">
     {illustration && <p className="calc-illustration notice" role="status" style={{margin: "0 0 16px"}} data-earn-illustration={illustration}><b>Illustration, not a promise.</b> The yearly return starts at {illustration} %, ZIGChain’s native staking rate as the Earn page read it live (a simple yearly rate). Here it is added to the balance once a year, as if you restaked the rewards each year; without restaking, growth is lower. Rates move every block and nothing here is guaranteed. Change any field to use your own numbers.</p>}
-    {!valid ? <section className="panel calc-results" aria-labelledby="calc-results-title"><h2 id="calc-results-title">Correct the marked field to see the estimate.</h2><p role="status">The figures come back as soon as every field is valid.</p></section> : !result ? <section className="panel calc-results" role="status"><h2>These numbers cannot be calculated.</h2><p>Check the return: a loss of 50 % or more in a single period is outside what this calculator models.</p></section> : tooLarge(result.final) || tooLarge(result.growth) ? <section className="panel calc-results" role="status"><h2>Too large to estimate here.</h2><p>With these numbers the result passes {formatMoney(SHOWN_LIMIT.toFixed(0), input.currency)}, beyond what this calculator shows reliably. Lower the return, the years or the amounts.</p></section> : <>
+    {!valid ? <section className="panel calc-results calc-results-invalid" aria-labelledby="calc-results-title"><h2 id="calc-results-title">Correct the marked field to see the estimate.</h2><p role="status">The figures come back as soon as every field is valid.</p></section> : !result ? <section className="panel calc-results" role="status"><h2>These numbers cannot be calculated.</h2><p>Check the return: a loss of 50 % or more in a single period is outside what this calculator models.</p></section> : tooLarge(result.final) || tooLarge(result.growth) ? <section className="panel calc-results" role="status"><h2>Too large to estimate here.</h2><p>With these numbers the result passes {formatMoney(SHOWN_LIMIT.toFixed(0), input.currency)}, beyond what this calculator shows reliably. Lower the return, the years or the amounts.</p></section> : <>
       <section className={`calc-results panel${parsed.input ? '' : ' is-stale'}`} aria-labelledby="calc-results-title" aria-busy={busy}>
         <SectionHeading id="calc-results-title" eyebrow={`After ${spanWords(input)} · an estimate`} title="What it could grow to" />
         <dl className="calc-figures" aria-live="polite">
@@ -161,6 +164,7 @@ export function Calculator() {
         {/* Session AH (TR14, B-021, N-029): every assumption behind the figures, beside them. */}
         <p className="calc-assumptions" data-calc-assumptions>{assumptionsText(input)}</p>
         <p className="calc-estimate">An estimate; returns are not guaranteed. Real returns vary from year to year, and fees and taxes are not included.</p>
+        {/* Session AL (TK-222, C1): which model this is, and where the other one lives */}<p className="fine calc-model">This calculator adds interest to the balance {input.compounding === 'daily' ? 'every day' : input.compounding === 'monthly' ? 'every month' : input.compounding === 'quarterly' ? 'every quarter' : 'once a year'} (compounding). The staking calculator on Earn shows a simple yearly rate without compounding, so the same rate grows less there.</p>
         <CalculatorChart result={result} start={input.start} currency={input.currency} lines={lines} />
         <fieldset className="calc-compare">
           <legend>Compare with</legend>
@@ -207,6 +211,7 @@ export function Calculator() {
     {result && <>
       <section className="calc-milestones panel" aria-labelledby="calc-milestones-title">
         <SectionHeading id="calc-milestones-title" eyebrow="Along the way" title="Milestones" level={3} />
+        <p className="fine">When the estimated balance would first pass 10,000, 100,000 and 1,000,000 in your currency (10k, 100k, 1M).</p>
         <ul>{[10_000, 100_000, 1_000_000].map(t => { const m = result.milestones.find(x => x.threshold === t); const already = Number(input.start) >= t; return <li key={t} data-reached={Boolean(m) || already}><strong>{money(t.toFixed(2)).replace(/[.,]00(?=\D*$)/, '')}</strong><span>{already ? 'Already there at the start' : m ? `${milestoneWhen(m)} (estimate)` : `Not within ${input.years} ${input.years === 1 ? 'year' : 'years'}`}</span></li>; })}</ul>
       </section>
 

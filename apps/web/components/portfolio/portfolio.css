@@ -235,3 +235,9 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
    Remove covered Edit at 390 px. With two buttons the row gains a column and Remove takes it. */
 .portfolio-transactions li:has(> button + button) { grid-template-columns: minmax(0, 1fr) auto auto; }
 .portfolio-transactions li > button + button { grid-column: 3; }
+.field-with-error { display: grid; gap: 4px; min-width: 0; align-content: start; }
+/* Session AL (TK-027): Save sits under the form at its own size, not stretched beside the Type list; each FIFO/LIFO
+   label stays on one line beside its own radio. */
+.portfolio-form > button.primary { justify-self: start; min-width: 180px; min-height: 44px; }
+.portfolio-lots-methods { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.portfolio-lots-methods label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; white-space: nowrap; }

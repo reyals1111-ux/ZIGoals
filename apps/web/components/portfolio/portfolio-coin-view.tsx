@@ -54,9 +54,9 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
   const coin = lookup.state === 'found' ? lookup.coin : null, currency = portfolio?.currency ?? 'USD';
   const market = usePortfolioMarket(coin ? [coin] : [], currency, store.showcase, !!coin && store.loaded);
   const [message, setMessage] = useState(''), [error, setError] = useState('');
-  const run = (change: (data: PortfolioData) => PortfolioData, done: string, fallback: string) => {
+  const run = (change: (data: PortfolioData) => PortfolioData, done: string, fallback: string, options?: {inline?: (message: string, cause: unknown) => void}) => {
     setError(''); setMessage('');
-    try { store.update(change); setMessage(done); return true; } catch (cause) { setError(cause instanceof HoldingsBelowZero || cause instanceof PortfolioUnreadable ? cause.message : storageMessageOr(cause, fallback)); return false; }
+    try { store.update(change); setMessage(done); return true; } catch (cause) { const text = cause instanceof HoldingsBelowZero || cause instanceof PortfolioUnreadable ? cause.message : storageMessageOr(cause, fallback); if (options?.inline) options.inline(text, cause); else setError(text); return false; }
   };
   // Session AH Part 3 (A5/DS5, BUG-032): removing a transaction offers a labelled Undo that puts it back.
   const removeTx = (portfolioId: string, tid: string) => {

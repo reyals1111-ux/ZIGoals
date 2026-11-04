@@ -19,7 +19,8 @@ import {useFieldErrors} from '../field-errors';
 import './accounts.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {formatDate, formatMoney, formatNumber} from '../../lib/visual-format';
-import {amountIssue, moneyUnitsIssue, within} from '../../lib/limits/plausibility';
+import {amountIssue, moneyUnitsIssue, validateValue, within} from '../../lib/limits/plausibility';
+import {parseNumberInput} from '../../lib/numbers/parse';
 // Session AK (F5a, items 1 and 3): the debt payoff planner (on its button) and the net-worth milestones, each its own chunk.
 const DebtPlanner = lazy(() => import('./debt-planner'));
 const NetWorthMilestones = lazy(() => import('./networth-milestones'));
@@ -33,6 +34,10 @@ const NetWorthMilestones = lazy(() => import('./networth-milestones'));
  */
 export const KIND_LABEL: Record<AccountKind, string> = {cash: 'Cash', savings: 'Savings', investment: 'Investment', pension: 'Pension', property: 'Property', vehicle: 'Vehicle', 'other-asset': 'Other asset', loan: 'Loan', mortgage: 'Mortgage', 'credit-card': 'Credit card', 'other-debt': 'Other debt'};
 const show = (m: Money, currency: string) => formatGoalAmount(moneyText(m), currency);
+/** Session AL (PRIMITIVES 3f): typed numbers through the one reader (decimal commas, grouping); NaN when unreadable. */
+const readNumber = (text: string) => { const r = parseNumberInput(text); return r.ok ? r.value : NaN; };
+/** A yearly rate as canonical text ("4,5" → "4.5"), '' when empty; refuses what isn't a number from 0 to 100. */
+const rateText = (raw: string) => { if (!raw.trim()) return ''; const v = validateValue('percent', raw); if (!v.ok) throw Error(`The yearly rate: ${v.error}`); return v.text; };
 const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); within(moneyUnitsIssue(value, 2)); /* Session AH (VA2, B3) */ if (value < 0n) throw Error('Enter the amount as a positive number; a debt’s balance is what is owed.'); return {value, decimals: 2, date}; };
 /** Session AC: inside Wealth's one holdings list, `only` follows its chips (Accounts: what you own; Debts: what you owe). */
 export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?: 'all' | 'accounts' | 'debts'}) {
@@ -107,7 +112,7 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
   // Session Y Part 9: a refused currency or balance marks its own field (aria-invalid, described by the message) and takes the focus.
   const [kind, setKind] = useState<AccountKind>('savings'), fe = useFieldErrors();
   return <form className="platform-form accounts-add" aria-label="Add an account or debt" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let field = ''; try {
-    const name = String(f.get('name')).trim(), currency = String(f.get('currency')).trim().toUpperCase(), balance = String(f.get('balance') ?? '').trim(), rate = String(f.get('rate') ?? '').trim().replace(',', '.');
+    const name = String(f.get('name')).trim(), currency = String(f.get('currency')).trim().toUpperCase(), balance = String(f.get('balance') ?? '').trim(), rate = rateText(String(f.get('rate') ?? ''));
     field = 'currency'; if (!isMoneyCurrency(currency)) throw Error(`“${currency}” is not a three-letter currency code ZIGoals knows. Use one such as EUR, USD or GBP.`);
     field = 'balance'; const money = balance ? toMoney(balance, String(f.get('date') || today)) : undefined; field = '';
     onAdd({id: crypto.randomUUID(), kind, name, currency, institution: String(f.get('institution') ?? ''), ...(rate ? {ratePercent: rate} : {}), ...(money ? {balance: money} : {})}, `${name} added.`); fe.clear();
@@ -116,7 +121,7 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
     <label className="field">Name<input name="name" required maxLength={80} placeholder={isDebtKind(kind) ? 'For example, car loan' : 'For example, savings account'} /></label>
     <label className="field">Currency<input name="currency" required maxLength={3} defaultValue="EUR" autoCapitalize="characters" {...fe.field('currency')} /></label>
     <label className="field">Bank or provider (optional)<input name="institution" maxLength={80} /></label>
-    <label className="field">{isDebtKind(kind) ? 'What you owe now (optional)' : 'Balance now (optional)'}<input name="balance" inputMode="decimal" {...fe.field('balance')} /></label>
+    <label className="field">{isDebtKind(kind) ? 'What you owe now (optional)' : 'Balance now (optional)'}<input name="balance" inputMode="decimal" autoComplete="off" {...fe.field('balance')} /></label>
     <label className="field">On<input name="date" type="date" defaultValue={today} max={today} /></label>
     <label className="field">Yearly rate, your own figure (optional, %)<input name="rate" inputMode="decimal" /></label>
     <button type="submit" className="primary">Add</button>
@@ -124,9 +129,9 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
   </form>;
 }
 function AccountRow({account: a, today, open, setOpen, change, prefill}: {account: Account; today: string; open: 'balance' | 'payment' | 'edit' | null; setOpen: (mode: 'balance' | 'payment' | 'edit' | null) => void; change: (fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) => boolean; prefill?: {amount: string; date: string}}) {
-  const b = balanceOn(a), debt = isDebtKind(a.kind), usual = debt ? usualPayment(a, today) : null, [monthly, setMonthly] = useState(''), fe = useFieldErrors();
+  const b = balanceOn(a), debt = isDebtKind(a.kind), usual = debt ? usualPayment(a, today) : null, [monthly, setMonthly] = useState(''), fe = useFieldErrors(), [rateError, setRateError] = useState('');
   // Session AH (WE7, B-152): the payoff calculator takes a payment above zero and up to a trillion, else it shows nothing.
-  const typedMonthly = monthly.trim() ? Number(monthly.replace(',', '.')) : NaN, monthlyBad = monthly.trim() !== '' && !(typedMonthly > 0 && !amountIssue(typedMonthly));
+  const typedMonthly = monthly.trim() ? readNumber(monthly) : NaN, monthlyBad = monthly.trim() !== '' && !(typedMonthly > 0 && !amountIssue(typedMonthly));
   const monthlyNumber = monthly.trim() ? (monthlyBad ? NaN : typedMonthly) : usual ? Number(moneyText(usual)) : NaN;
   const months = debt && b && a.ratePercent && Number.isFinite(monthlyNumber) ? payoffMonths(Number(moneyText(b)), Number(a.ratePercent), monthlyNumber) : undefined;
   const now = () => new Date().toISOString();
@@ -138,15 +143,15 @@ function AccountRow({account: a, today, open, setOpen, change, prefill}: {accoun
       // Session AH (WE7, L-067, B-199): a payment is above zero and never more than what is owed.
       if (open === 'payment') { if (BigInt(m.value) <= 0n) throw Error('Enter a payment above zero.'); if (b && Number(moneyText(m)) > Number(moneyText(b))) throw Error(`That is more than the ${moneyText(b)} ${a.currency} owed. Enter the payment you made, up to the balance.`); }
       if (change(g => open === 'balance' ? recordBalance(g, a.id, m, now()) : recordPayment(g, a.id, m, now()), open === 'balance' ? `${a.name}: balance saved for ${formatDate(m.date)}.` : `${a.name}: payment recorded for ${formatDate(m.date)}. Enter the new balance when your statement shows it.`)) setOpen(null); fe.clear(); } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the amount.'), 'amount'); } }}>
-      <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" required defaultValue={open === 'balance' ? prefill?.amount : undefined} {...fe.field('amount')} /></label>
+      <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" autoComplete="off" required autoFocus defaultValue={open === 'balance' ? prefill?.amount : undefined} {...fe.field('amount')} /></label>
       <label className="field">On<input name="date" type="date" defaultValue={open === 'balance' && prefill ? prefill.date : today} max={today} /></label>
       <button type="submit" className="secondary">Save</button>
       {fe.error && <p role="alert" id={fe.messageId}>{fe.error}</p>}
     </form>}
-    {open === 'edit' && <form className="platform-form accounts-inline" aria-label={`Edit ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); const rate = String(f.get('rate') ?? '').trim().replace(',', '.'); if (change(g => editAccount(g, a.id, {name: String(f.get('name')).trim(), institution: String(f.get('institution') ?? '').trim() || null, ratePercent: rate || null}, now()), `${a.name} saved.`)) setOpen(null); }}>
-      <label className="field">Name<input name="name" required maxLength={80} defaultValue={a.name} /></label>
+    {open === 'edit' && <form className="platform-form accounts-inline" aria-label={`Edit ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let rate: string; try { rate = rateText(String(f.get('rate') ?? '')); } catch (cause) { setRateError(plainErrorMessage(cause, 'Check the rate.')); return; } setRateError(''); const newName = String(f.get('name')).trim(); if (change(g => editAccount(g, a.id, {name: newName, institution: String(f.get('institution') ?? '').trim() || null, ratePercent: rate || null}, now()), `${newName || a.name} saved.` /* Session AL (TK-005): the name as saved, not the old one */)) setOpen(null); }}>
+      <label className="field">Name<input name="name" required maxLength={80} defaultValue={a.name} autoFocus /* Session AL (TK-129, TK-138): Edit puts the focus in Name */ /></label>
       <label className="field">Bank or provider<input name="institution" maxLength={80} defaultValue={a.institution ?? ''} /></label>
-      <label className="field">Yearly rate, your own figure (%)<input name="rate" inputMode="decimal" defaultValue={a.ratePercent ?? ''} /></label>
+      <label className="field">Yearly rate, your own figure (%)<input name="rate" inputMode="decimal" autoComplete="off" defaultValue={a.ratePercent ?? ''} aria-invalid={rateError ? true : undefined} aria-describedby={rateError ? `${fe.messageId}-rate` : undefined} /></label>{rateError && <p className="field-error" role="alert" id={`${fe.messageId}-rate`}>{rateError}</p>}
       <div className="actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={() => { if (change(g => editAccount(g, a.id, {archived: true}, now()), `${a.name} archived; its history is kept.`, {fn: g => editAccount(g, a.id, {archived: false}, now()), done: `${a.name} is back.`})) setOpen(null); }}>Archive</button></div>
     </form>}
     {debt && b && b.value > 0n && <details className="accounts-payoff"><summary>When would it be paid off?</summary>

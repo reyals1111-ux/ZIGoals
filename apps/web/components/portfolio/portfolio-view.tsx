@@ -66,9 +66,10 @@ export function PortfolioView() {
   const selected = store.data.portfolios.find(p => p.id === selectedId) ?? store.data.portfolios[0];
   const live = !store.showcase && !!selected;
   const market = usePortfolioMarket(selected?.coins ?? NO_COINS, selected?.currency ?? 'USD', store.showcase, !!selected);
-  const run = (change: Parameters<typeof store.update>[0], done: string, fallback: string, options?: {replaceUnreadable?: boolean}) => {
+  // Session AL (TK-024, P6): a form that passes `inline` shows a refused save (an oversell) at its own field, not at the page's top.
+  const run = (change: Parameters<typeof store.update>[0], done: string, fallback: string, options?: {replaceUnreadable?: boolean; inline?: (message: string, cause: unknown) => void}) => {
     setError(''); setMessage('');
-    try { store.update(change, options); setMessage(done); return true; } catch (cause) { setError(failure(cause, fallback)); return false; }
+    try { store.update(change, options?.replaceUnreadable === undefined ? undefined : {replaceUnreadable: options.replaceUnreadable}); setMessage(done); return true; } catch (cause) { const text = failure(cause, fallback); if (options?.inline) options.inline(text, cause); else setError(text); return false; }
   };
   // Session AH Part 3 (A5/DS5, BUG-032): removing a transaction offers a labelled Undo that puts it back.
   const removeTx = (portfolioId: string, tid: string) => {
@@ -173,7 +174,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
       {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}<div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`} onKeyDown={event => tabKeys(PORTFOLIO_TABS, tab, setTab)(event)}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Insights']] as const).map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)}>{label}</button>)}</div>
       <div id={`${portfolio.id}-panel-coins`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-coins`} hidden={tab !== 'coins'}>
         {/* Session AA-Cloud Part 1: the holdings (the portfolio's items) come right after its figures. */}
-        <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => removeTx(portfolio.id, id)} />
+        <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => removeTx(portfolio.id, id)} run={run} />
         {attribution && <p className="fine portfolio-attribution">Prices by CoinGecko, when available. A price that needs a refresh says so with its time.</p>}
         {showcase && <p className="fine portfolio-attribution">{marketOfPriced(portfolio, marketOf) ? 'Showcase prices as loaded when the Showcase opened; the 24h and 7-day lines are examples.' : 'Showcase fixture prices, not market data.'}</p>}
       </div>
@@ -182,7 +183,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
       </div>
       <div id={`${portfolio.id}-panel-insights`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-insights`} hidden={tab !== 'insights'}>
         <AllTransactions portfolio={portfolio} onRemove={id => removeTx(portfolio.id, id)} run={run} />
-        <p className="fine">Insights are your own recorded trades and transfers; nothing here predicts anything.</p>
+        <p className="fine">Insights are your own recorded trades and transfers, with Edit and Remove on each, and the trader tools once you have sold; nothing here predicts anything.</p>
         {/* Session AJ (item 30, D11): trader tools, offered only when this portfolio has sells; loaded on use. */}
         {portfolio.transactions.some(t => t.kind === 'sell') && <LoadBoundary quiet><Suspense fallback={null}><TraderTools portfolio={portfolio} /></Suspense></LoadBoundary>}
       </div>

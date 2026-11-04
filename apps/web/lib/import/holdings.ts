@@ -99,6 +99,27 @@ export function manualCategory(text: string): typeof MANUAL_SOURCES[number] {
   return MANUAL_SOURCES.find(s => s.toLowerCase() === t) ?? 'Custom asset';
 }
 export type ReadyHolding = {row: number; input: ManualSource};
+const METALS: [RegExp, string][] = [[/^XAU$|\bgold\b/i, 'Gold'], [/^XAG$|\bsilver\b/i, 'Silver'], [/^XPT$|\bplatinum\b/i, 'Platinum'], [/^XPD$|\bpalladium\b/i, 'Palladium']];
+/** The metal a row names by its symbol (XAU, XAG, XPT, XPD) or its name, or null. */
+export function metalOf(symbol: string, name: string): string | null {
+  for (const [pattern, metal] of METALS) if (pattern.test(symbol) || pattern.test(name)) return metal;
+  return null;
+}
+/** The weight unit an asset code carries, as Wealth's own export writes it ("SILVER TROY OUNCES" → troy ounces). */
+export function unitOfAsset(symbol: string): 'grams' | 'kilograms' | 'troy ounces' | null {
+  const t = symbol.toLowerCase();
+  return /troy ounces?$/.test(t) ? 'troy ounces' : /kilograms?$/.test(t) ? 'kilograms' : /grams?$/.test(t) ? 'grams' : null;
+}
+/** A bar or coin's own weight in its name ("Gold bar 100g", "1 oz coin"): the file's quantity counts pieces, so the weight is quantity × size. */
+export function barWeight(name: string, quantity: string): {quantity: string; unit: 'grams' | 'kilograms' | 'troy ounces'; note: string} | null {
+  const m = /(\d+(?:[.,]\d+)?)\s*(kg|kilograms?|g|grams?|oz|ozt|troy ounces?)\b/i.exec(name);
+  if (!m) return null;
+  const size = Number(m[1]!.replace(',', '.')), count = Number(quantity);
+  if (!(size > 0) || !(count > 0)) return null;
+  const word = m[2]!.toLowerCase(), unit = word.startsWith('k') ? 'kilograms' : word.startsWith('g') ? 'grams' : 'troy ounces';
+  const total = String(Math.round(size * count * 1e6) / 1e6);
+  return {quantity: total, unit, note: `${quantity} × ${m[1]} ${unit} read from the name “${name}”.`};
+}
 export type HoldingsPlan = {ready: ReadyHolding[]; refused: {row: number; reason: string}[]};
 export function planHoldingsImport({rows, mapping, numberStyle}: {rows: readonly (readonly string[])[]; mapping: Mapping; numberStyle: NumberStyle}): HoldingsPlan {
   const plan: HoldingsPlan = {ready: [], refused: []};
@@ -112,8 +133,15 @@ export function planHoldingsImport({rows, mapping, numberStyle}: {rows: readonly
     let quantity: string | null, value: string | null;
     try { quantity = parseNumberCell(cell(cells, mapping, 'quantity'), numberStyle); } catch { return refuse('the quantity is not a number.'); }
     try { value = parseNumberCell(cell(cells, mapping, 'value'), numberStyle); } catch { return refuse('the value is not a number.'); }
-    const category = manualCategory(cell(cells, mapping, 'class')), symbol = cell(cells, mapping, 'asset').toUpperCase();
-    const input: ManualSource = {category, name, quantity: quantity ?? '', currency, ...(symbol ? {symbol} : {}), ...(value !== null ? {value} : {}), ...(cell(cells, mapping, 'notes') ? {notes: cell(cells, mapping, 'notes').slice(0, 500)} : {})};
+    const symbol = cell(cells, mapping, 'asset').toUpperCase(), metalFound = metalOf(symbol, name), category = metalFound && !cell(cells, mapping, 'class') ? 'Precious metals' : manualCategory(cell(cells, mapping, 'class'));
+    // Session AL (TK-013): a metal row keeps its own metal (XAG is silver, never "Gold") and a bar's weight from its name
+    // ("Gold bar 100g", quantity 2 → 200 grams), said in the note so the person can check it.
+    const weighed = category === 'Precious metals' && quantity ? barWeight(name, quantity) : null;
+    const notes = [cell(cells, mapping, 'notes'), weighed?.note ?? ''].filter(Boolean).join(' ').slice(0, 500);
+    const input: ManualSource = {category, name, quantity: weighed?.quantity ?? quantity ?? '', currency, ...(symbol && category !== 'Precious metals' ? {symbol} : {}), ...(category === 'Precious metals' ? {metal: metalFound ?? 'Gold', unit: weighed?.unit ?? unitOfAsset(symbol) ?? 'grams'} : {}), ...(value !== null ? {value} : {}), ...(notes ? {notes} : {})};
+    // Session AL (TK-011, C-TK-05): the same holding twice in one file (name, quantity, value and currency) is left out once.
+    const same = plan.ready.find(r => r.input.name.toLowerCase() === input.name.toLowerCase() && r.input.quantity === input.quantity && r.input.value === input.value && r.input.currency === input.currency);
+    if (same) return refuse(`the same as row ${same.row} (name, quantity, value and currency), so it was left out to avoid counting it twice. If both are real, change one row and import again.`);
     try { manualSourcePosition(input, 'imp_check', '2000-01-01T00:00:00.000Z'); } catch (error) { return refuse(error instanceof Error ? error.message.replace(/\.$/, '').toLowerCase() + '.' : 'this holding cannot be added.'); }
     plan.ready.push({row, input});
   });

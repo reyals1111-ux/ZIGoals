@@ -4,6 +4,7 @@ import * as z from 'zod';
 import {marketAssetRefSchema,marketRequestKey,MARKET_RETRY_MS} from './market-assets';
 import {boundedQuoteText,QUOTE_FRESH_MS} from './market-quotes';
 import {decimalLexeme,exactMarketJson,JsonNumber} from './exact-market-json';
+import {formatPrice} from './visual-format';
 
 export const HISTORY_DAYS={'1d':1,'7d':7,'30d':30,'90d':90,'1y':365} as const;
 export type HistoryRange=keyof typeof HISTORY_DAYS;
@@ -16,6 +17,8 @@ export const MAX_HISTORY_POINTS=2500;
 export const MAX_HISTORY_CACHE_ENTRIES=24;
 export const MAX_HISTORY_CACHE_BYTES=2*1024*1024;
 const DAY_MS=86400000;
+/** The share of a range the observations must span for that range to be offered (the provider's first sample can start a little late). */
+export const RANGE_COVERAGE=0.97;
 const historySchema=historyRequestSchema.extend({source:z.literal('CoinGecko'),fetchedAt:z.iso.datetime(),points:z.array(historyPointSchema).max(MAX_HISTORY_POINTS)}).strict();
 export type MarketHistory=z.infer<typeof historySchema>;
 export type MarketHistoryResult={history:MarketHistory|null;error:string|null;stale:boolean;nextAttemptAt:number};
@@ -62,7 +65,8 @@ export function historyPointsForRange(points:readonly HistoryPoint[],range:Chart
 }
 export function availableHistoryRanges(points:readonly HistoryPoint[]):ChartHistoryRange[]{
  if(points.length<2)return [];const span=Date.parse(points[points.length-1]!.at)-Date.parse(points[0]!.at);
- return [...(Object.keys(HISTORY_DAYS) as HistoryRange[]).filter(range=>span>=HISTORY_DAYS[range]*DAY_MS&&historyPointsForRange(points,range).length>=2),'all'];
+ // Session AL (TK-215, M11): a 90-day request whose first sample lands an hour after the window opens still offers 90D.
+ return [...(Object.keys(HISTORY_DAYS) as HistoryRange[]).filter(range=>span>=HISTORY_DAYS[range]*DAY_MS*RANGE_COVERAGE&&historyPointsForRange(points,range).length>=2),'all'];
 }
 /** Small process/tab-local LRU, shared pending work and retry gating. No persistent or private storage. */
 export function createMarketHistoryCache(loader:(request:MarketHistoryRequest,refresh:boolean)=>Promise<MarketHistory|MarketHistoryResult>,clock=()=>Date.now()){
@@ -106,3 +110,6 @@ export async function fetchPublicMarketHistory(raw:MarketHistoryRequest,refresh=
  if(!response.ok&&!body.history)throw Error(HISTORY_UNAVAILABLE);
  return {...body,history:body.history?verifiedMarketHistory(body.history,request,now):null,error:body.error?HISTORY_UNAVAILABLE:null};
 }
+/** Session AL (TK-028, TK-120, TK-155, TK-202, TK-213; W8, M13, M14): an observed price as every other price in the app
+ * reads ("$76,841.77", "$0.0412"), never the provider's 14-digit decimal. The exact table keeps the exact value. */
+export function formatHistoryPrice(point:HistoryPoint,currency:'USD'|'EUR'):string{return formatPrice(formatHistoryValue(point),currency);}

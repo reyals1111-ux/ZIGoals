@@ -44,8 +44,10 @@ export const isVerifiedAsset=(ref:{provider?:string;id:string;kind?:string})=>re
 export function searchMarketAssets(query:string,catalog:readonly MarketCatalogAsset[],limit=20):MarketCatalogAsset[]{
  const term=query.trim().toLocaleLowerCase();if(!term)return [];
  const rank=(asset:MarketCatalogAsset)=>{const id=asset.ref.id.toLocaleLowerCase(),name=asset.name.toLocaleLowerCase(),symbol=asset.symbol.toLocaleLowerCase(),values=[id,name,symbol];
-  const base=id===term||name===term?0:symbol===term?1:values.some(v=>v.startsWith(term))?2:values.some(v=>v.includes(term))?3:9;
-  return base===9?9:isVerifiedAsset(asset.ref)?base:4+base;};
+  // Session AL (TK-002, W15): "eth" inside "Tether" is the weakest match: after every symbol, id or word-start match, verified or not.
+  const wordStart=name.split(/[^\p{L}\p{N}]+/u).some(w=>w.startsWith(term));
+  const base=id===term||name===term?0:symbol===term?1:values.some(v=>v.startsWith(term))?2:symbol.includes(term)||id.split('-').some(w=>w.startsWith(term))||wordStart?3:name.includes(term)||id.includes(term)?8:9;
+  return base>=8?base:isVerifiedAsset(asset.ref)?base:4+base;};
  return catalog.map((asset,index)=>({asset,index,rank:rank(asset)})).filter(v=>v.rank<9).sort((a,b)=>a.rank-b.rank||a.index-b.index).slice(0,Math.max(0,Math.min(100,limit))).map(v=>v.asset);
 }
 

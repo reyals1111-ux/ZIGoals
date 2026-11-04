@@ -25,3 +25,10 @@
 @media (max-width: 639.98px) { .data-col-optional { display: none; } .data-table :is(th, td) { padding: 8px 10px; } }
 /* A phone keeps the name, the 24h change and the main figure; each row's own page has the rest. */
 @media (max-width: 479.98px) { .data-col-wide { display: none; } }
+/* Session AL (TK-204, M2): sortable headers are buttons that look like the header text, with a 44 px target. */
+.data-table th .data-sort { all: unset; display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; font: inherit; color: inherit; white-space: nowrap; }
+.data-table th .data-sort:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 4px; }
+/* The sort mark is drawn by CSS, so a header's text stays its name ("Market"). */
+.data-table th .data-sort::after { content: '↕' / ''; margin-left: 4px; opacity: .7; }
+.data-table th[aria-sort=ascending] .data-sort::after { content: '▲' / ''; opacity: 1; }
+.data-table th[aria-sort=descending] .data-sort::after { content: '▼' / ''; opacity: 1; }

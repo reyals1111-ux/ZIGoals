@@ -51,3 +51,8 @@
 @media (max-width: 767.98px) {
   :root:not([data-zigi-side=left]) .add-money-hint { padding-inline-end: 60px; }
 }
+/* Session AL (TK-034): the wallet choices right in step 3, not only in the status row. */
+.add-money-link-here { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 10px; }
+.add-money-link-here .wallet-more-trigger { min-height: 44px; min-width: 44px; }
+.add-money .add-money-step h2:focus { outline: none; }
+.add-money .add-money-step h2:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 6px; }

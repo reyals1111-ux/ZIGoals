@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useSyncExternalStore} from 'react';
-import {getAppStorage} from '../../lib/showcase-storage';
+import {getAppStorage,isShowcase} from '../../lib/showcase-storage';
 import {marketRequestKey,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from '../../lib/market-assets';
 import {createMarketInsightsCache} from '../../lib/market-insights-cache';
 import {fetchPublicMarketInsights} from '../../lib/market-insights-client';
@@ -18,8 +18,8 @@ export function useMarketInsights(refs:readonly MarketAssetRef[],currency:'USD'|
  useEffect(()=>{
  // A mode change reloads the app; an in-flight response must not cross storage scopes.
  if(!hydrated){hydrated=true;try{const storage=getAppStorage();cache.hydrate({getItem:key=>storage.getItem(key),setItem:(key,value)=>{if(getAppStorage()===storage)storage.setItem(key,value);}});}catch{/* Public metadata persistence is optional. */}}
- users++;cache.tick();void cache.refresh(JSON.parse(requestKey) as MarketQuoteRequest[]);if(!timer)timer=setInterval(()=>cache.tick(),30000);
+ users++;cache.tick();void cache.refresh(JSON.parse(requestKey) as MarketQuoteRequest[],false,isShowcase());if(!timer)timer=setInterval(()=>cache.tick(),30000);
  return()=>{users--;if(!users&&timer){clearInterval(timer);timer=undefined;}};
  },[requestKey]);
- return {...snapshot,refresh:()=>cache.refresh(requests,true)};
+ return {...snapshot,refresh:()=>cache.refresh(requests,true,isShowcase())};
 }
