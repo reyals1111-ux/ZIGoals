@@ -5,6 +5,7 @@ import {AF_CHECKLIST_CATALOG_LABELS} from '../af-checklist-keys';
 import {WALLET_CATALOG_LABELS} from '../af-wallet-keys';
 import {AF_ZIGI_CATALOG_LABELS} from '../af-zigi-keys';
 import {AF_EXTRAS_CATALOG_LABELS} from '../af-extras-keys';
+import {AL_CATALOG_LABELS} from '../al-device-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -103,6 +104,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   // Session AF (L4, L5b): ZIGi's plans; My universe, Day timeline and Stories.
   zigiPlans: [AF_ZIGI_CATALOG_LABELS.zigiPlans[0], AF_ZIGI_CATALOG_LABELS.zigiPlans[1]],
   universe: [AF_EXTRAS_CATALOG_LABELS.universe[0], AF_EXTRAS_CATALOG_LABELS.universe[1]], dayTimeline: [AF_EXTRAS_CATALOG_LABELS.dayTimeline[0], AF_EXTRAS_CATALOG_LABELS.dayTimeline[1]], stories: [AF_EXTRAS_CATALOG_LABELS.stories[0], AF_EXTRAS_CATALOG_LABELS.stories[1]],
+  // Session AL (lib/al-device-keys.ts): the Apps & extras display choices (O3, O4).
+  appsPrefs: [AL_CATALOG_LABELS.appsPrefs[0], AL_CATALOG_LABELS.appsPrefs[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page

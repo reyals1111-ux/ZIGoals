@@ -1,0 +1,22 @@
+/**
+ * Session AL (ADR-037): this session's device keys and their rows for the shared registries, as literals in a module with
+ * no imports (the lib/af-extras-keys.ts pattern), so the welcome check, Export everything, the data catalog and the account
+ * erase can name them without shipping a schema; lib/al-device-keys.test.ts proves each literal equals its owner's
+ * constant and that every registry carries it. Every record is device only, versioned and loose, exported, erased with
+ * the account and never synced (TIER 3 stored format: additive keys only).
+ * - `zigoals:apps:v1` (display; owner decisions O3, O4): which app pages are switched off and whether the sidebar's Apps
+ *   group is folded (lib/ui-prefs/apps.ts). A display choice: never restored.
+ */
+export const APPS_PREFS_KEY_LITERAL = 'zigoals:apps:v1';
+/** Personal device records: a device holding one is not new (onboarding `DEVICE_RECORD_KEYS`). */
+export const AL_PERSONAL_KEYS: readonly string[] = [];
+/** Display records (onboarding `NON_PERSONAL_KEYS`): a device holding only these is still new. */
+export const AL_DISPLAY_KEYS: readonly string[] = [APPS_PREFS_KEY_LITERAL];
+/** Export everything (`DEVICE_KEYS`): the names in everything.json. */
+export const AL_EXPORT_KEYS = {appsPrefs: APPS_PREFS_KEY_LITERAL} as const;
+/** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
+export const AL_CATALOG_LABELS = {
+  appsPrefs: ['Apps & extras: which apps show and the sidebar Apps group folded or open', 'Settings'],
+} as const;
+/** The account erase (`lib/aa-device-forget.ts`): every key above. */
+export const AL_ERASE_KEYS: readonly string[] = [...AL_PERSONAL_KEYS, ...AL_DISPLAY_KEYS];
