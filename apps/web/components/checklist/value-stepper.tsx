@@ -14,6 +14,7 @@ export function ValueStepper({label, value, colour, busy, onLog, onCancel}: {lab
   const id = useId(), start = value.current ?? value.suggested, places = decimals(value.step);
   const [text, setText] = useState(String(Number(start.toFixed(places)))), [error, setError] = useState('');
   const read = () => Number(text.replace(',', '.').trim());
+  const typed = read(), valid = !!text.trim() && /^\d+(?:[.,]\d+)?$/.test(text.trim()) && Number.isFinite(typed) && typed >= value.min && typed <= value.max;
   const bump = (delta: number) => { const n = read(); const next = clamp((Number.isFinite(n) ? n : start) + delta, value); setText(String(Number(next.toFixed(places)))); setError(''); };
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); const n = read();
@@ -25,14 +26,16 @@ export function ValueStepper({label, value, colour, busy, onLog, onCancel}: {lab
     <div className="checklist-stepper-row">
       <button type="button" className="checklist-stepper-bump" aria-label={`Less, by ${value.step} ${value.unit}`} onClick={() => bump(-value.step)} disabled={busy}>−</button>
       <label className="checklist-stepper-field" htmlFor={id}><span className="sr-only">{label} in {value.unit}</span>
-        <input id={id} inputMode="decimal" autoComplete="off" value={text} onChange={e => { setText(e.target.value); setError(''); }} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined}/>
+        <input id={id} inputMode="decimal" autoComplete="off" value={text} onChange={e => { setText(e.target.value); setError(''); }} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : text.trim() && !valid ? `${id}-hint` : undefined}/>
         <span className="checklist-stepper-unit" aria-hidden="true">{value.unit}</span>
       </label>
       <button type="button" className="checklist-stepper-bump" aria-label={`More, by ${value.step} ${value.unit}`} onClick={() => bump(value.step)} disabled={busy}>+</button>
     </div>
     {error && <p className="checklist-stepper-error" id={`${id}-error`} role="alert">{error}</p>}
+    {!error && text.trim() && !valid && <p className="checklist-stepper-error" id={`${id}-hint`}>{`Choose ${formatNumber(value.min)} to ${formatNumber(value.max)} ${value.unit}.`}</p>}
     <div className="checklist-stepper-actions">
-      <button type="submit" className="primary" disabled={busy}>{busy ? 'Saving…' : `Log ${text.trim() || '…'} ${value.unit}`.trim()}</button>
+      {/* Session AL (LS-057, P-LS-20): the button echoes the amount only while it is a number it would log ("Log -250 ml" never) */}
+      <button type="submit" className="primary" disabled={busy}>{busy ? 'Saving…' : valid ? `Log ${text.trim()} ${value.unit}`.trim() : 'Log'}</button>
       <button type="button" className="quiet" onClick={onCancel}>Cancel</button>
     </div>
   </form>;

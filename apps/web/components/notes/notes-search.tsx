@@ -13,9 +13,10 @@ import type {EverythingHit} from '../../lib/search/notes-everything';
  * loads its code when switched on. Nothing leaves the device.
  */
 const KIND_WORD: Record<EverythingHit['kind'], string> = {note: 'Note', journal: 'Journal', goal: 'Goal', habit: 'Habit', food: 'Food', recipe: 'Recipe', workout: 'Workout', money: 'Money', asset: 'Asset'};
-export function NotesSearch({notes}: {notes: readonly Note[]}) {
+export function NotesSearch({notes, onSearching}: {notes: readonly Note[]; /** Session AL (PR-105): told while a search is typed, so the page shows only its results. */ onSearching?: (searching: boolean) => void}) {
   const [query, setQuery] = useState(''), [wide, setWide] = useState(false), [found, setFound] = useState<{q: string; hits: EverythingHit[]; unread: string[]} | null>(null);
   const q = query.trim();
+  useEffect(() => { onSearching?.(!!q); }, [q, onSearching]);
   const local = useMemo(() => q && !wide ? searchNotes(notes, q, 20) : [], [notes, q, wide]);
   useEffect(() => {
     if (!wide || !q) return;

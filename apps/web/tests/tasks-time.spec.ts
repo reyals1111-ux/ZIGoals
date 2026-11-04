@@ -114,7 +114,8 @@ test('a Pomodoro started from a task runs, saves its block, and ticks the task a
   await pomodoro.getByLabel('Blocks').selectOption('1');
   await pomodoro.getByLabel('Long break').selectOption('10');
   await expect(pomodoro.getByRole('checkbox', {name: /Play a focus sound/})).not.toBeChecked();
-  await expect(pomodoro.getByRole('checkbox', {name: 'Mark “Fictional: draft the plan” done when the run finishes (you can undo it)'})).toBeChecked();
+  // Session AL (COPY_AUDIT, deliberate; LS-H20): the label says the tick comes after the last break, which can be finished early.
+  await expect(pomodoro.getByRole('checkbox', {name: 'Mark “Fictional: draft the plan” done when the run finishes, after its last break (you can finish the break early; you can undo it)'})).toBeChecked();
   await pomodoro.getByRole('button', {name: 'Start the Pomodoro'}).click();
   await expect(pomodoro.getByRole('timer')).toHaveText('15:00');
   await expect(pomodoro).toContainText('Block 1 of 1');
@@ -126,7 +127,8 @@ test('a Pomodoro started from a task runs, saves its block, and ticks the task a
   await expect.poll(async () => !!(await read<Stored>(page, TASKS_KEY)).tasks[0]!.doneAt).toBe(true);
   const focus = await read<{sessions: {mode?: string; taskId?: string; plannedMinutes: number; outcome: string}[]}>(page, FOCUS_SESSIONS_KEY);
   expect(focus.sessions).toMatchObject([{mode: 'pomodoro', taskId: 'task_fictional', plannedMinutes: 15, outcome: 'grown'}]);
-  await pomodoro.getByRole('button', {name: 'Undo'}).click();
+  // Session AL (PRIMITIVES 3e, deliberate): the Undo is the app's one toast now (its restore puts the stored task back).
+  await page.locator('.aa-toast').getByRole('button', {name: 'Undo'}).click();
   await expect.poll(async () => (await read<Stored>(page, TASKS_KEY)).tasks[0]!.doneAt).toBeUndefined();
   // The same run is offered on Journey's Focus Sessions as a mode.
   await page.goto('/app/journey#focus');

@@ -144,6 +144,21 @@ export const servesGoal = (task: Task, goalId: string) => !!task.goal && (task.g
 export const goalNextActions = (record: Tasks, goalId: string, today: string): Task[] => openTasks(record, today).filter(t => servesGoal(t, goalId));
 
 /**
+ * Session AL (P-LS-43, LS-035; for lane L4's close flow): the open tasks still linked to a goal (subtasks included), and
+ * what closing the goal can do with them — keep them, unlink them (they stay as plain tasks) or mark them done. A
+ * repeating task marked done here ends its series (the goal it served is closed), keeping its past occurrences.
+ */
+export const tasksLinkedTo = (record: Tasks, goalId: string): Task[] => record.tasks.filter(t => !t.doneAt && servesGoal(t, goalId));
+export function unlinkGoalTasks(record: Tasks, goalId: string, at = new Date()): Tasks {
+  const stamp = at.toISOString();
+  return tasksSchema.parse({...record, tasks: record.tasks.map(t => !t.doneAt && servesGoal(t, goalId) ? {...omit(t, 'goal'), updatedAt: stamp} : t)});
+}
+export function finishGoalTasks(record: Tasks, goalId: string, at = new Date()): Tasks {
+  const stamp = at.toISOString();
+  return tasksSchema.parse({...record, tasks: record.tasks.map(t => !t.doneAt && servesGoal(t, goalId) ? {...t, doneAt: stamp, updatedAt: stamp} : t)});
+}
+
+/**
  * The tasks a day shows (the Agenda and NOVA): open tasks due that day; on today also every overdue open task (it is
  * still to do, so it is carried to today rather than left on a past day); and a finished task on its due day, or on
  * the day it was finished when that came after its due day (`doneDay` reads that day from the finish time). Tasks with

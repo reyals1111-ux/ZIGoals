@@ -2,7 +2,7 @@ import {habitCalendarDay, habitDataSchema, habitRuleOn, logHabitValue, setHabitE
 import {logHealthItem, newHealthId, removeHealthItem, saveWeight, type HealthData} from '../health';
 import {addWater, removeWater} from '../health-daily';
 import type {Platform} from '../positions';
-import {SHORTEST_SLEEP_MS, deleteNight, endNight, napOrNight, runningNights, startNight, wakeGreeting} from '../sleep/engine';
+import {deleteNight, endNight, napOrNight, runningNights, startNight, wakeGreeting} from '../sleep/engine';
 import type {Sleep} from '../sleep/schema';
 import {addSession, deleteSession, newSessionId, saveManual} from '../meditation/engine';
 import {emptyMeditationRun, type Meditation, type MeditationRun} from '../meditation/schema';
@@ -16,6 +16,8 @@ import {mealAt, type DerivedDot} from './derive';
 import type {ChecklistDays} from './schema';
 import {formatDate} from '../visual-format';
 import { unitFor } from '../plural';
+// Session AL (L2's request, PR-018 / P-PR-22): the one timer rule and its words, shared with Health's own Stop buttons.
+import {tooShortText, tooShortToSave} from '../health-timer-rules';
 
 /**
  * Ticking a dot writes the real record through its page's own functions (Session AF, L3; P7.10): a habit check-in
@@ -133,7 +135,7 @@ export function sleepPlan(dot: DerivedDot | null, ctx: TickContext): TickPlan {
     // Session AH Part 3 (DS2, T-110, T-116, M-134): a second tap moments after the first never saves a near-empty night
     // (it used to stand in for last night's 7 h 17 min); under ten minutes the sleep is simply stopped, with an Undo.
     const startMs = Date.parse(running.start), endMs = ctx.now.getTime();
-    if (endMs - startMs < SHORTEST_SLEEP_MS) return {writes: [w('sleep', s => s.nights.some(n => n.id === running.id) ? deleteNight(s, running.id) : s)], undo: [resume], message: 'Stopped after less than ten minutes, so nothing was saved.', undone: 'The sleep is running again.', done: false, signal: 'checklist_tick'};
+    if (tooShortToSave('sleep', endMs - startMs)) return {writes: [w('sleep', s => s.nights.some(n => n.id === running.id) ? deleteNight(s, running.id) : s)], undo: [resume], message: tooShortText('sleep'), undone: 'The sleep is running again.', done: false, signal: 'checklist_tick'};
     // A short daytime sleep is a nap (lib/sleep/engine.ts napOrNight), and the words follow the local time of day.
     const kind = napOrNight(startMs, endMs, running.timeZone), greeting = wakeGreeting(endMs, ctx.zone);
     const r = dot ? receiptWrites(dot, ctx, {kind: 'sleep', id: running.id}) : null;
@@ -149,9 +151,9 @@ export function fastPlan(dot: DerivedDot | null, ctx: TickContext, targetHours =
   if (running) {
     const r = dot ? receiptWrites(dot, ctx, {kind: 'fast', id: running.id}) : null;
     // Session AH (HE7, M-136): a fast stopped within ten minutes saves nothing (no "0.0 h" fast), as Sleep does; Undo resumes it.
-    if (ctx.now.getTime() - Date.parse(running.startedAt) < 10 * 60_000) {
+    if (tooShortToSave('fast', ctx.now.getTime() - Date.parse(running.startedAt))) {
       const resume = (f: Fasting) => f.sessions.some(s => s.id === running.id) ? f : startFast(f, {id: running.id, now: new Date(running.startedAt), targetHours: running.targetHours, timeZone: running.timeZone, ...(running.habitId ? {habitId: running.habitId} : {})});
-      return {writes: [w('fasting', f => removeFast(f, running.id))], undo: [w('fasting', resume)], message: 'Stopped after less than ten minutes, so nothing was saved.', undone: 'The fast is running again.', done: false, signal: 'checklist_tick'};
+      return {writes: [w('fasting', f => removeFast(f, running.id))], undo: [w('fasting', resume)], message: tooShortText('fast'), undone: 'The fast is running again.', done: false, signal: 'checklist_tick'};
     }
     // The linked duration habit gets the fast's time on the habit journal's day of the stop, as Health's Stop adds it.
     const stopped = stopFast(ctx.snapshot!.fasting!, running.id, ctx.now).sessions.find(s => s.id === running.id)!, habitId = running.habitId;
@@ -171,7 +173,7 @@ export function meditationTimerPlan(ctx: TickContext, minutes = 10): TickPlan {
   const run = ctx.snapshot?.meditationRun?.run;
   if (run) {
     const ended = endedSession(run, ctx.now.getTime()), held: MeditationRun = {version: 1, run};
-    if (!ended) return {writes: [w('meditationRun', () => emptyMeditationRun())], undo: [w('meditationRun', () => held)], message: 'Less than a second: nothing to save.', undone: 'The session is running again.', done: false, signal: 'checklist_tick'};
+    if (!ended) return {writes: [w('meditationRun', () => emptyMeditationRun())], undo: [w('meditationRun', () => held)], message: tooShortText('meditation'), undone: 'The session is running again.', done: false, signal: 'checklist_tick'};
     const session = sessionFrom(ended, {id: newSessionId(), timeZone: ctx.zone, now: ctx.now});
     return {writes: [w('meditation', m => addSession(m, session)), w('meditationRun', () => emptyMeditationRun())], undo: [w('meditation', m => m.sessions.some(s => s.id === session.id) ? deleteSession(m, session.id) : m), w('meditationRun', () => held)],
       // Session AH (HE13, M-135): the toast says what the record holds (6 s, not "1 min").

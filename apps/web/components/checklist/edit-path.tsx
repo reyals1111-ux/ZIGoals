@@ -6,7 +6,7 @@ import {PATH_COLOURS, pathColour} from '../../lib/path/colours';
 import {CHECKLIST_COLOUR_IDS, nebulaColour} from '../../lib/path/orbit-colours';
 import {HEALTH_MEALS} from '../../lib/health';
 import {habitCalendarDay, latestHabitRule, logHabitValue} from '../../lib/habits';
-import {ChecklistError, MAX_PATH_ITEMS, addCustom, addFavourite, addSection, customToHabit, isFavourite, moveItem, moveWithinSection, newChecklistId, orderedItems, removeItem, removeSection, sectionOfItem, sectionsOf, updateItem, updateSection, type FavouriteRef} from '../../lib/checklist/store';
+import {ChecklistError, MAX_PATH_ITEMS, addCustom, addFavourite, addSection, customToHabit, isFavourite, moveItem, moveWithinSection, newChecklistId, stepItem, orderedItems, removeItem, removeSection, sectionOfItem, sectionsOf, updateItem, updateSection, type FavouriteRef} from '../../lib/checklist/store';
 import type {DerivedDot} from '../../lib/checklist/derive';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import {PathGlyph} from '../path/path-glyphs';
@@ -77,7 +77,11 @@ export function EditPath({state, onClose, addTo}: {state: ChecklistState; onClos
   function onHandleKey(e: KeyboardEvent<HTMLButtonElement>, id: string, label: string) {
     if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
     e.preventDefault();
-    if (write(r => moveWithinSection(r, id, e.key === 'ArrowUp' ? -1 : 1), `${label} moved ${e.key === 'ArrowUp' ? 'up' : 'down'}.`)) requestAnimationFrame(() => list.current?.querySelector<HTMLElement>(`[data-edit-handle="${CSS.escape(id)}"]`)?.focus());
+    // Session AL (PR-070, P-PR-19): each press moves one place, across into the next orbit at an orbit's edge, and the
+    // words say what really happened (an item already first or last says so).
+    const up = e.key === 'ArrowUp', step = stepItem(record.data, id, up ? -1 : 1), orbit = sections.find(x => x.id === step.section)?.label ?? 'its orbit';
+    if (!step.moved) { setStatus(`${label} is already ${up ? 'first' : 'last'} on your path.`); return; }
+    if (write(r => stepItem(r, id, up ? -1 : 1).record, step.moved === 'orbit' ? `${label} moved into ${orbit}.` : `${label} moved ${up ? 'up' : 'down'}.`)) requestAnimationFrame(() => list.current?.querySelector<HTMLElement>(`[data-edit-handle="${CSS.escape(id)}"]`)?.focus());
   }
   async function makeHabit(id: string, label: string, section: string) {
     try {

@@ -1,7 +1,7 @@
 'use client';
 import {useCallback, useMemo, useState} from 'react';
 import {Path} from '../path/path';
-import {checklistMilestones, checklistPath, type DerivedDot} from '../../lib/checklist/derive';
+import {checklistMilestones, checklistPath, pathLine, type DerivedDot} from '../../lib/checklist/derive';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import {nebulaColour} from '../../lib/path/orbit-colours';
@@ -78,6 +78,6 @@ export function PathView({state, jumpDock = null, arrive = null}: {state: Checkl
     return finaleOnly(checklistPath(state.record.data, state.dots.map(d => ({...d, colour: colours.get(d.id) ?? d.colour, glyph: orbitGlyph(d)})), checklistMilestones({on: false, dayXp: 0})));
   }, [state.record.data, state.dots]);
   const onStep = useCallback((step: PathStep, intent: StepIntent) => { const dot = byId.get(step.id); if (dot) void press(dot, intent); }, [byId, press]);
-  const say = state.summary && state.summary.total > 0 && state.summary.done === 0 ? 'Tap a planet to begin' : state.summary?.next === null && (state.summary?.total ?? 0) > 0 ? 'All planets lit!' : undefined;
+  const say = pathLine(state.summary, state.dots); // Session AL (PR-085): "All planets lit!" only when every planet is lit
   return <Path model={model} ariaLabel="Today's path" onStep={onStep} panelFor={panel?.id ?? null} renderPanel={step => { const dot = byId.get(step.id); return dot ? renderPanel(dot) : null; }} zigi={say ? {say} : {}} className="checklist-path" variant="orbit" jumpDock={jumpDock} arrive={arrive}/>;
 }

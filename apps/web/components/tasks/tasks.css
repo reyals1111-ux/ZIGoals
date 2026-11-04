@@ -170,3 +170,8 @@
 .tasks-today-reminders .text-link { min-height: 44px; }
 .goal-next-summary { margin: 0; }
 .tasks-status[data-empty] { min-height: 0; margin: 0; }
+/* Session AL (P-LS-43): a closed goal's linked tasks — keep, unlink or mark done. */
+.goal-close-tasks { margin: 0 0 12px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--cyan, #5fd4ff) 35%, transparent); border-radius: 12px; }
+.goal-close-tasks p { margin: 0 0 10px; }
+.goal-close-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.goal-close-actions button { min-height: 44px; }

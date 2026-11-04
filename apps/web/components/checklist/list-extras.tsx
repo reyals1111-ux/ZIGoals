@@ -6,7 +6,8 @@ import {viewTasks} from '../../lib/tasks/engine';
 import {dueText} from '../tasks/task-parts';
 import {sectionsOf, sectionOfItem, removeItem, updateItem} from '../../lib/checklist/store';
 import {ChecklistError} from '../../lib/checklist/store';
-import {habitCalendarDay, logHabitValue} from '../../lib/habits';
+import {habitCalendarDay, logHabitValue, setHabitEntryStatus} from '../../lib/habits';
+import {restoreHabit} from '../../lib/checklist/habit-undo';
 import {addLocalDays} from '../../lib/local-date';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import type {DerivedDot} from '../../lib/checklist/derive';
@@ -20,8 +21,8 @@ import type {ChecklistState} from './use-checklist';
  * - "Tasks due today" (P-LS-54, LS-074): the to-do list's tasks due today or overdue, ticked here, opened in Tasks. The
  *   Checklist stays the daily routine; Tasks is the to-do list (DV-162).
  * - A row's More (P-LS-32, LS-019/LC-005): move it to another orbit, rename your own item, take it off the path (Undo),
- *   and "Done yesterday" for a habit you forgot to tick (P-LS-30, LS-032; Habits keeps the record, so its history and
- *   streak follow).
+ *   "Done yesterday" for a habit you forgot to tick (P-LS-30, LS-032) and "Skip today" (C-DVG-75); Habits keeps the record,
+ *   so its history and streak follow.
  */
 const said = (e: unknown, fallback: string) => e instanceof ChecklistError ? e.message : storageMessageOr(e, e instanceof Error && e.message.length < 200 ? e.message : fallback);
 
@@ -52,14 +53,27 @@ export function ListRowTools({state, dot}: {state: ChecklistState; dot: DerivedD
       await habits.update(h => logHabitValue(h, habitId, day, 1, {mode: 'add'}, now));
       const words = `${dot.label}: done yesterday, on Habits.`;
       setStatus(words);
-      showUndo({message: words, undone: `${dot.label}: yesterday is as it was.`, restore: () => habits.update(h => before && h.habits.some(x => x.id === habitId) ? {...h, habits: h.habits.map(x => x.id === habitId ? before : x)} : h)});
+      showUndo({message: words, undone: `${dot.label}: yesterday is as it was.`, restore: () => habits.update(h => restoreHabit(h, before))});
     } catch (e) { setStatus(said(e, 'Yesterday could not be changed. Open Habits to change it.')); }
+  };
+  // Session AL (C-DVG-75, C-LS-32, P-LS-32): skip today for a habit, as Habits records a skip (the streak follows its rule).
+  const skipToday = async () => {
+    if (!habitId) return;
+    const habits = state.stores.habits, now = new Date(), day = habitCalendarDay(habits.data, now);
+    const before = habits.data.habits.find(h => h.id === habitId);
+    try {
+      await habits.update(h => setHabitEntryStatus(h, habitId, day, 'skipped', 'Skipped from the Checklist', now));
+      const words = `${dot.label}: skipped today, on Habits.`;
+      setStatus(words);
+      showUndo({message: words, undone: `${dot.label}: today is as it was.`, restore: () => habits.update(h => restoreHabit(h, before))});
+    } catch (e) { setStatus(said(e, 'Today could not be skipped. Open Habits to change it.')); }
   };
   return <div className="checklist-row-tools" role="group" aria-label={`More for ${dot.label}`}>
     <label className="field">Orbit<select value={section} onChange={e => write(r => updateItem(r, dot.id, {section: e.target.value}), `${dot.label} moved to ${sections.find(s => s.id === e.target.value)?.label ?? 'that orbit'}.`)}>{sections.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}</select></label>
     {dot.kind === 'custom' && <form className="checklist-row-rename" noValidate onSubmit={e => { e.preventDefault(); if (!name.trim()) { setStatus('An item needs a name.'); return; } write(r => updateItem(r, dot.id, {label: name}), `Renamed to ${name.trim()}.`); }}>
       <label className="field">Name<input dir="auto" value={name} maxLength={60} onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet">Rename</button></form>}
     {habitId && <button type="button" className="quiet" onClick={() => void yesterday()}>Done yesterday</button>}
+    {habitId && dot.state !== 'done' && dot.counted && <button type="button" className="quiet" onClick={() => void skipToday()}>Skip today</button>}
     <button type="button" className="quiet" onClick={() => { removeWithUndo(record.update, r => removeItem(r, dot.id), `${dot.label} is off your path. Its records stay on its page.`, 'Back on your path.').catch(e => setStatus(said(e, 'Not saved on this device. Try again.'))); }}>Take off the path</button>
     <p className="fine" role="status">{status}</p>
   </div>;

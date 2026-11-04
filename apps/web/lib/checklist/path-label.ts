@@ -24,7 +24,11 @@ export function suggestPathLabel(raw: string): string {
   // Session AL (LS-053, PR-031): a short capitals tag ("QA Floss", "QA Plants") is not the word that tells items apart.
   const tag = (w: string) => /^\p{Lu}{1,3}$/u.test(w) && words.length > 1;
   const main = words.find(w => !/\d/.test(w) && !UNITS.test(w) && !FILLER.test(w) && /\p{L}/u.test(w) && !tag(w)) ?? words.find(w => !/\d/.test(w) && !UNITS.test(w) && !FILLER.test(w) && /\p{L}/u.test(w));
-  return word(main ?? words.find(w => /\p{L}/u.test(w)) ?? '') || 'Step';
+  const chosen = word(main ?? words.find(w => /\p{L}/u.test(w)) ?? '') || 'Step';
+  // Session AL (PR-069, P-PR-17): a closing number tells same-named items apart ("QA Task 3" → "Task 3", not "Task"),
+  // kept when the word and the number fit the 12 letters.
+  const last = words[words.length - 1] ?? '', ending = /^\d{1,2}$/.test(last) && main && words.indexOf(main) < words.length - 1 ? last : '';
+  return ending && `${chosen} ${ending}`.length <= PATH_LABEL_MAX ? `${chosen} ${ending}` : chosen;
 }
 /** A person's own word, as stored: one word, its first 12 letters; empty for none. */
 export function cleanPathLabel(input: string): string {

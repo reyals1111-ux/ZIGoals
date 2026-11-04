@@ -69,6 +69,8 @@ test('any order; a value dot opens the stepper with the default, logs to Health 
   await expect(stepper.getByRole('textbox')).toHaveValue('250');
   await stepper.getByRole('button', {name: 'More, by 50 ml'}).click();
   await stepper.getByRole('button', {name: 'Log 300 ml'}).click();
+  // Session AL (P-LS-19, LS-016/LC-002, deliberate): Water is done at the daily target when one is set (Health › Water);
+  // this seed sets none, so one entry is the day's water and this line holds (tests/grok53/checklist covers the target).
   await expect(page.getByRole('button', {name: /^Water: 300 ml today: done$/})).toBeVisible();
   const health = await stored<{daily?: {water: {amountMilli: number; unit: string; date: string}[]}}>(page, HEALTH_STORAGE_KEY);
   expect(health?.daily?.water.map(w => [w.amountMilli, w.unit, w.date])).toEqual([[300000, 'ml', await browserToday(page)]]);

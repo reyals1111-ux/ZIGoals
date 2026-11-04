@@ -36,7 +36,9 @@ const QuickAddBundle = lazy(() => import('./quick-add-bundle').catch(() => ({def
  * `initialText`: they are previewed at once, and with `onlyIfUnderstood` nothing shows unless the parser understood them.
  * Nothing is written before Save, exactly as in Quick add.
  */
-export function QuickAddLine({initialText, onlyIfUnderstood = false, close}: {initialText?: string; onlyIfUnderstood?: boolean; /** Closes Quick add when a confirmed goal opens the goal form. */ close?: () => void} = {}) {
+export function QuickAddLine({initialText, onlyIfUnderstood = false, close, onUnderstood}: {initialText?: string; onlyIfUnderstood?: boolean; /** Closes Quick add when a confirmed goal opens the goal form. */ close?: () => void;
+  /** Session AL (BN-069, for L7): told once whether `initialText` was understood (a preview shows), so ZIGi can leave out its examples list above a real preview. */
+  onUnderstood?: (understood: boolean) => void} = {}) {
   const health = useHealth(), habits = useHabits();
   const [text, setText] = useState(''), [result, setResult] = useState<QuickAddResult | null>(null), [chosen, setChosen] = useState<QuickAddKnown | null>(null);
   const [saved, setSaved] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false), [wake, setWake] = useState('');
@@ -51,7 +53,8 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false, close}: {in
   }, [health.data, habits.data, habits.today]);
   const ready = health.loaded && habits.loaded && !health.error && !habits.error;
   const primed = useRef(false);
-  useEffect(() => { if (!initialText || primed.current || !ready) return; primed.current = true; setText(initialText); setResult(parse(initialText, 'en', context)); }, [initialText, ready, context]);
+  const told = useRef(onUnderstood); told.current = onUnderstood;
+  useEffect(() => { if (!initialText || primed.current || !ready) return; primed.current = true; setText(initialText); const read = parse(initialText, 'en', context); setResult(read); told.current?.(read.kind !== 'unknown'); }, [initialText, ready, context]);
   const [multi, setMulti] = useState<string | null>(null), [task, setTask] = useState<TaskIntent | null>(null);
   /**
    * Session AL (P-LS-04, LS-004): a to-do ("call mom tomorrow at 5pm", "task buy milk", "remind me to floss at 21:00")
@@ -104,14 +107,16 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false, close}: {in
   if (onlyIfUnderstood && !saved && (!result || result.kind === 'unknown')) return null;
   return <form className="quick-add-line" aria-label="Type a line" onSubmit={event => { event.preventDefault(); preview(); }}>
     <label className="field"><span>Type a line</span><input ref={field} data-sheet-focus type="text" value={text} maxLength={200} autoComplete="off" enterKeyHint="go" placeholder="drank 2 glasses of water" disabled={!ready || busy} onChange={event => { setText(event.target.value); if (result) setResult(null); if (chosen) setChosen(null); if (task) setTask(null); }} /></label>
-    <div className="actions"><button type="submit" className="quiet" disabled={!ready || busy || !text.trim()}>Preview</button></div>
+    <div className="actions"><button type="submit" className="quiet" disabled={!ready || busy || !text.trim()} aria-describedby={!ready || !text.trim() ? 'quick-add-preview-why' : undefined}>Preview</button>
+      {/* Session AL (D-072, P-DVR-69): a disabled Preview says why */}
+      <span id="quick-add-preview-why" className={ready ? 'sr-only' : 'fine quick-add-line-why'}>{health.error || habits.error ? 'Quick add needs your Health and Habits, which could not be read on this device.' : !ready ? 'Reading your habits and Health on this device…' : !text.trim() ? 'Type a line to preview it.' : ''}</span></div>
     {!onlyIfUnderstood && <QuickAddMic disabled={!ready || busy} onText={words => { setText(words); preview(words); }}/>}
     <div aria-live="polite" className="quick-add-line-preview">
       {active && <div className="quick-add-line-card"><p className="quick-add-line-will">Will save: {describeQuickAdd(active)} · {active.day}</p>
         {active.kind === 'water' && active.shown.unit === 'glasses' && <p className="fine">A glass is counted as 250 mL.</p>}
         {active.kind === 'sleep' && <><label className="field"><span>When did you wake up ({active.day})?</span><input type="time" required value={wake} onChange={event => setWake(event.target.value)} /></label>
           <p className="fine">{bedtime ? `A night in Sleep: in bed from ${formatClock(bedtime)}, worked out from your wake time and how long you slept.` : 'It becomes a night in Health → Sleep, ending when you woke up.'} Time to fall asleep and time awake aren’t known, so Sleep marks it estimated.</p></>}
-        <div className="actions"><button type="button" className="primary" disabled={busy || needsWake} onClick={() => void save(active)}>{busy ? 'Saving…' : 'Save'}</button><button type="button" className="quiet" disabled={busy} onClick={() => { setResult(null); setChosen(null); setText(''); setWake(''); field.current?.focus(); }}>Clear</button></div></div>}
+        <div className="actions"><button type="button" className="primary" disabled={busy || needsWake} aria-describedby={needsWake ? 'quick-add-wake-hint' : undefined} onClick={() => void save(active)}>{busy ? 'Saving…' : 'Save'}</button>{/* Session AL (MO-064, for L7): a disabled Save says why */}{needsWake && <span id="quick-add-wake-hint" className="fine quick-add-line-why">Add your wake time to save.</span>}<button type="button" className="quiet" disabled={busy} onClick={() => { setResult(null); setChosen(null); setText(''); setWake(''); field.current?.focus(); }}>Clear</button></div></div>}
       {task && <div className="quick-add-line-card" data-kind="task"><p className="quick-add-line-will">Will add a task: “<span dir="auto">{task.parsed.title}</span>”{task.parsed.due ? ` · ${task.parsed.due < tasksToday() ? `${formatDate(task.parsed.due, {weekday: true, year: false})} (overdue)` : task.parsed.due === tasksToday() ? 'today' : formatDate(task.parsed.due, {weekday: true, year: false})}` : ' · no day'}{task.parsed.time ? ` · ${formatClock(task.parsed.time)}` : ''}{task.parsed.recur ? ` · ${describeRecur(task.parsed.recur)}` : ''}{task.parsed.level ? ` · ${LEVEL_WORDS[task.parsed.level]}` : ''}{task.parsed.labels.map(l => ` · @${l}`).join('')}</p>
         <p className="fine">It goes to your Tasks Inbox{task.parsed.due ? ' and shows on your Agenda on its day' : ''}. Not a log: nothing is added to Health.</p>
         <div className="actions"><button type="button" className="primary" disabled={busy} onClick={() => void saveTask(task)}>{busy ? 'Saving…' : 'Add task'}</button>

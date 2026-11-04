@@ -95,6 +95,8 @@ export function OrbitQuickAdd({state, onClose, onAdded}: {state: ChecklistState;
 
   return <section className="panel checklist-quick" aria-labelledby={`${uid}-title`} style={{'--node': shownColour} as CSSProperties}>
     <div className="checklist-options-head"><h2 id={`${uid}-title`}>Quick add</h2><button type="button" className="quiet" onClick={onClose}>Close</button></div>
+    {/* Session AL (PR-071, P-PR-20; O6): says what it makes, and where a one-off belongs */}
+    <p className="fine checklist-quick-what">This adds a habit to your path; it lives on <Link className="text-link" href="/app/habits">Habits</Link>, where you can delete it for good. A one-off to-do belongs in <Link className="text-link" href="/app/tasks?add=1">Tasks</Link>.</p>
     <form className="checklist-quick-form" noValidate onSubmit={e => void submit(e)}>
       {/* The node it becomes, live: its glyph follows the name, its colour the choice below. */}
       <div className="checklist-quick-preview" aria-hidden="true">

@@ -129,3 +129,12 @@
 .agenda-task[draggable=true] { cursor: grab; }
 .agenda-task-move { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 6px 0; }
 .agenda-task-move input, .agenda-task-move button { min-height: 44px; }
+/* Session AL (DV-193, DV-194, P-DV-125): folded habits, the month legend, the filter's visible control, a wider month. */
+.agenda-habit-group details summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 6px; }
+.agenda-habit-group details summary small { font-weight: 500; color: var(--text-secondary); }
+.agenda-habit-group details .agenda-items { margin-top: 6px; }
+.agenda-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 0; }
+.agenda-legend .agenda-cell-dots i[data-pillar=life], .agenda-cell-dots i[data-pillar=life] { background: var(--brand-cyan, var(--cyan)); }
+.agenda-filter-change { margin-left: 10px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; color: var(--brand-cyan, var(--cyan)); }
+.agenda-filter[open] .agenda-filter-change { display: none; }
+@media (min-width: 900px) { .agenda-month { max-width: none; width: 100%; } .agenda-cell { min-height: 72px; } }

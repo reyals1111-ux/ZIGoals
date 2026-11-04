@@ -11,6 +11,7 @@ import {ActionIntent} from '../action-intent';
 import {formatClock, formatDate, formatMonth, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {AGENDA_SOURCES, AGENDA_VIEWS, SOURCE_LABEL, agendaRange, buildAgenda, countBySource, shiftAnchor, sourcesWithRecords, type AgendaItem, type AgendaSource, type AgendaView} from '../../lib/agenda/build';
 import {setAgendaView, setExtraShown, setSourceShown} from '../../lib/agenda/store';
+import {daySummary, foldAnytimeHabits} from '../../lib/agenda/group';
 import {EXTRA_LABEL, EXTRA_SOURCES, countExtras, eventAgendaItems, taskAgendaItems, withExtras, type DayItem, type DayWithExtras, type ExtraSource, type TaskAgendaItem} from '../../lib/agenda/time-items';
 import {removeCalendar, restoreCalendar, storedEventCount} from '../../lib/ics/calendar';
 import {deviceDay} from '../../lib/tasks/device';
@@ -21,6 +22,8 @@ import {addLocalDays} from '../../lib/local-date';
 import {editTask} from '../../lib/tasks/engine';
 import {useAgenda} from './use-agenda';
 import './agenda.css';
+import {useUndoShortcut} from '../tasks/use-undo-shortcut';
+import {showStatus, showUndo} from '../ui/undo-toast';
 
 /**
  * /app/agenda (Session AK, F5d): one calendar of the person's own plans — habits, planned contributions, bills, workouts,
@@ -50,6 +53,7 @@ export function AgendaPage() {
   const {loaded, input, today, showcase, record, unreadable, calendars, zone} = useAgenda();
   // Session AK (T1): tasks are the one kind the Agenda ticks (with Undo), and the day view adds them.
   const list = useTaskList(), goals = useGoalOptions();
+  useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
   const [importing, setImporting] = useState(false), importButton = useRef<HTMLButtonElement>(null);
   const [chosen, setChosen] = useState<AgendaView | null>(null), [anchor, setAnchor] = useState<string | null>(null), [exporting, setExporting] = useState(false), [note, setNote] = useState('');
   const view: AgendaView = chosen ?? (record.loaded && !record.unreadable ? record.data.view : undefined) ?? 'week';
@@ -90,8 +94,10 @@ export function AgendaPage() {
   const removeCal = (calId: string) => {
     const index = calendars.data.calendars.findIndex(c => c.id === calId), cal = calendars.data.calendars[index];
     if (!cal || calendars.unreadable) return;
-    try { calendars.update(r => removeCalendar(r, calId)); setCalStatus({text: `Removed “${cal.name}” from your agenda.`, undo: () => { try { calendars.update(r => restoreCalendar(r, cal, index)); setCalStatus({text: `“${cal.name}” is back.`}); } catch { setCalStatus({text: 'The calendar could not be put back on this device.'}); } }}); }
-    catch { setCalStatus({text: 'The calendar could not be removed on this device.'}); }
+    // Session AL (A7, PRIMITIVES 3e): the one Undo toast; restore puts the calendar back into the latest record, in its place
+    // (lib/ics/calendar.ts restoreCalendar, tested in lib/ics/import.test.ts).
+    try { calendars.update(r => removeCalendar(r, calId)); setCalStatus(null); showUndo({message: `Removed “${cal.name}” from your agenda.`, undone: `“${cal.name}” is back.`, restore: () => calendars.update(r => restoreCalendar(r, cal, index))}); }
+    catch { showStatus('The calendar could not be removed on this device.', {tone: 'error'}); }
   };
   const label = view === 'day' ? formatDate(at, {weekday: true}) : view === 'week' ? `${formatDate(range.from, {year: range.from.slice(0, 4) === range.to.slice(0, 4) ? false : undefined})} – ${formatDate(range.to)}` : formatMonth(range.first);
   const total = days ? days.filter(d => view !== 'month' || (d.date >= range.first && d.date <= range.last)).reduce((n, d) => n + d.items.length, 0) : 0;
@@ -122,7 +128,7 @@ export function AgendaPage() {
         </div>
         <h2 id="agenda-range" className="agenda-range" aria-live="polite">{label} <small>{plural(total, 'item')}</small></h2>
         <details className="agenda-filter">
-          <summary>Show: {hiddenCount ? `${kinds - hiddenCount} of ${kinds} kinds` : 'everything'}</summary>
+          <summary>Show: {hiddenCount ? `${kinds - hiddenCount} of ${kinds} kinds` : 'everything'} <span className="agenda-filter-change">{/* Session AL (DV-194): the control says it opens */}Choose kinds</span></summary>
           <fieldset><legend className="sr-only">Kinds of items to show</legend>
             {AGENDA_SOURCES.map(s => <label key={s} className="agenda-check" data-pillar={s}><input type="checkbox" checked={!hidden.includes(s)} onChange={e => toggle(s, e.target.checked)} /><span>{SOURCE_LABEL[s]}</span><small>{counts[s] ? formatNumber(counts[s]) : known.has(s) ? '0' : 'none yet'}</small></label>)}
             {EXTRA_SOURCES.map(s => <label key={s} className="agenda-check" data-pillar={s}><input type="checkbox" checked={!hiddenExtra.includes(s)} onChange={e => toggleExtra(s, e.target.checked)} /><span>{EXTRA_LABEL[s]}</span><small>{extraCounts[s] ? formatNumber(extraCounts[s]) : knownExtra.has(s) ? '0' : 'none yet'}</small></label>)}
@@ -164,6 +170,7 @@ const DRAG_TYPE = 'application/x-zigoals-task';
 function DayList({day, today, heading, goals, onTick, onMove}: {day: DayWithExtras; heading: boolean} & RowProps) {
   const title = <>{formatDate(day.date, {weekday: true, year: false})}{day.date === today && <span className="agenda-today">Today</span>}</>;
   const [over, setOver] = useState(false);
+  const fold = heading ? foldAnytimeHabits(day.items) : {habits: [], rest: day.items};
   const drop = {
     onDragOver: (e: DragEvent<HTMLDivElement>) => { if (e.dataTransfer.types.includes(DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setOver(true); } },
     onDragLeave: () => setOver(false),
@@ -171,7 +178,13 @@ function DayList({day, today, heading, goals, onTick, onMove}: {day: DayWithExtr
   };
   return <div className="agenda-day" data-today={day.date === today || undefined} data-drop={over || undefined} {...drop}>
     {heading && <h3 className="agenda-day-title">{title}</h3>}
-    {day.items.length ? <ul className="agenda-items">{day.items.map(i => i.source === 'task' ? <TaskItemRow key={i.id} item={i} goals={goals} onTick={onTick} onMove={onMove} today={today} /> : i.source === 'event' ? <EventItemRow key={i.id} item={i} /> : <ItemRow key={i.id} item={i} />)}</ul> : <p className="agenda-nothing">Nothing planned.</p>}
+    {day.items.length ? <ul className="agenda-items">{fold.rest.map(i => i.source === 'task' ? <TaskItemRow key={i.id} item={i} goals={goals} onTick={onTick} onMove={onMove} today={today} /> : i.source === 'event' ? <EventItemRow key={i.id} item={i} /> : <ItemRow key={i.id} item={i} />)}
+      {/* Session AL (DV-193, P-DV-125): in the week and month views, habits with no time are one row ("4 habits · any time") */}
+      {fold.habits.length > 0 && <li className="agenda-item agenda-habit-group" data-source="habit" data-pillar="habits">
+        <span className="agenda-time">Any time</span>
+        <details className="agenda-item-main"><summary className="agenda-item-title">{plural(fold.habits.length, 'habit')} <small>({fold.habits.filter(h => h.state === 'done').length} done)</small></summary>
+          <ul className="agenda-items">{fold.habits.map(i => <ItemRow key={i.id} item={i as AgendaItem} />)}</ul></details>
+      </li>}</ul> : <p className="agenda-nothing">Nothing planned.</p>}
   </div>;
 }
 function ItemRow({item}: {item: AgendaItem}) {
@@ -237,13 +250,15 @@ function MonthGrid({days, first, last, selected, today, onSelect, goals, onTick,
       const out = d.date < first || d.date > last, pillars = [...new Set(d.items.map(i => i.pillar))];
       return <li key={d.date} data-out={out || undefined}>
         <button type="button" className="agenda-cell" data-date={d.date} tabIndex={d.date === chosen.date ? 0 : -1} aria-pressed={d.date === chosen.date} aria-current={d.date === today ? 'date' : undefined}
-          aria-label={`${formatDate(d.date, {weekday: true})}: ${d.items.length ? plural(d.items.length, 'item') : 'nothing planned'}`} onClick={() => onSelect(d.date)} onKeyDown={e => keys(e, d.date)}>
+          aria-label={`${formatDate(d.date, {weekday: true})}: ${d.items.length ? daySummary(d.items) : 'nothing planned'}`} title={d.items.length ? daySummary(d.items) : undefined} onClick={() => onSelect(d.date)} onKeyDown={e => keys(e, d.date)}>
           <span className="agenda-cell-weekday" aria-hidden="true">{formatWeekday(d.date)}</span>
           <span className="agenda-cell-day" aria-hidden="true">{Number(d.date.slice(8))}</span>
           {d.items.length > 0 && <span className="agenda-cell-dots" aria-hidden="true">{pillars.slice(0, 4).map(p => <i key={p} data-pillar={p} />)}<b>{d.items.length}</b></span>}
         </button>
       </li>;
     })}</ol>
+    {/* Session AL (DV-194, P-DV-125): what the dots and numbers mean */}
+    <p className="fine agenda-legend"><span className="agenda-cell-dots" aria-hidden="true"><i data-pillar="habits" /></span> Habits <span className="agenda-cell-dots" aria-hidden="true"><i data-pillar="health" /></span> Health <span className="agenda-cell-dots" aria-hidden="true"><i data-pillar="goals" /></span> Goals <span className="agenda-cell-dots" aria-hidden="true"><i data-pillar="wealth" /></span> Money <span className="agenda-cell-dots" aria-hidden="true"><i data-pillar="life" /></span> Tasks and events · the number is how many items that day. Choose a day to see them.</p>
     <DayList day={chosen} today={today} heading goals={goals} onTick={onTick} onMove={onMove} />
   </div>;
 }

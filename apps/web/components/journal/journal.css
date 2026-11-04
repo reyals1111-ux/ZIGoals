@@ -4,7 +4,8 @@
 .journal-energy legend{font-size:14px;margin-bottom:6px;padding:0}
 .journal-energy-dot{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;cursor:pointer}
 .journal-energy-dot input{position:absolute;opacity:0;width:1px;height:1px}
-.journal-energy-dot span[aria-hidden]{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:1px solid var(--line,rgba(140,160,220,.35));font-size:15px}
+.journal-energy-dot span[aria-hidden]{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:2px solid color-mix(in srgb,currentColor 58%,transparent);font-size:15px}
+/* Session AL (DV-257a, P-DV-47): the circle's outline is drawn from the text colour, so it stays ≥ 3:1 in Dark, Nebula and Light. */
 .journal-energy-dot input:checked+span{background:linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));color:#0b1020;border-color:transparent}
 .journal-energy-dot input:focus-visible+span{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
 .journal-energy-word{margin-left:6px}

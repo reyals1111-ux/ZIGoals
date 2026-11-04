@@ -26,6 +26,9 @@ import { useEffect } from "react";
 import { useDeviceRecord } from "./ai/use-device-record";
 import { ACCOUNTS } from "../lib/accounts/schema";
 import { PRICE_ALERTS } from "../lib/price-alerts/schema";
+import { TASKS } from "../lib/tasks/schema";
+import { TASK_ACTIVITY_PRESENTATION, getTaskActivities } from "../lib/tasks/activity";
+import { deviceDay } from "../lib/tasks/device";
 import { isDeletedHabitRef } from "../lib/habit-delete";
 import { countText, plural } from "../lib/plural";
 import { removeHealthItem } from "../lib/health";
@@ -49,7 +52,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   const showcase = useShowcase();
   const platform=usePlatform();
   const averages = useAverageGoals();
-  const goals = useGoals(), habits = useHabits(), health = useHealth(), zigi = useZigiActions(), accounts = useDeviceRecord(ACCOUNTS), priceAlerts = useDeviceRecord(PRICE_ALERTS);
+  const goals = useGoals(), habits = useHabits(), health = useHealth(), zigi = useZigiActions(), accounts = useDeviceRecord(ACCOUNTS), priceAlerts = useDeviceRecord(PRICE_ALERTS), tasks = useDeviceRecord(TASKS);
   // Session AH (B-199, WE7): balances and debt payments entered in Wealth appear here too, under their own day.
   const midnight = (date: string) => { const d = new Date(`${date}T00:00:00`); return Number.isNaN(d.getTime()) ? `${date}T00:00:00.000Z` : d.toISOString(); };
   const accountEvents = accounts.loaded && !accounts.unreadable ? accounts.data.items.flatMap(a => [
@@ -80,6 +83,8 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     ...(includeGoals && goals.mode === "local" ? goals.activity.map((event, index) => ({ id: `goal-${event.timestamp}-${index}`, category: "GOAL", title: event.action, detail: goals.metadata?.goals[event.goalId]?.name ?? `Goal #${event.goalId}`, at: event.timestamp, href: `/app/goals/${event.goalId}` })) : []),
     ...accountEvents, ...alertEvents,
     ...getHabitActivities(habits.data), ...getHealthActivities(health.data, (() => { try { return dailyData(health.data).preferences.weightUnit; } catch { return "kg" as const; } })()), ...getWaterActivities(health.data),
+    // Session AL (DV-172, for L4 by lane L5): a task added and each time one was finished, under its day in the app's zone.
+    ...(tasks.loaded && !tasks.unreadable ? getTaskActivities(tasks.data, deviceDay) : []),
   ];
   // Session V Part 7, "Actions by ZIGi": the entries made from ZIGi's cards, plus a line for each confirmed card whose
   // record has no entry of its own here (water, a recipe, a reminder…).
@@ -117,7 +122,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     {(habits.error || health.error) && <p className="fine">Some private history needs attention in Settings; stored data has been preserved.</p>}
     {showcase && <p className="activity-history-source">Showcase example history · fictional records</p>}
     {entries.length ? <ol>{entries.map((event, index) => {
-      const presentation = activityPresentation(event);
+      const presentation = event.category === "TASK" ? TASK_ACTIVITY_PRESENTATION : activityPresentation(event);
       // Session AH (TR12): grouped under the record's own day, newest day first.
       const heading = activityDayHeading(event.dayKey);
       const startsDay = index === 0 || event.dayKey !== entries[index - 1]!.dayKey;

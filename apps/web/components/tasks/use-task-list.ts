@@ -4,6 +4,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {TASKS, type Task, type Tasks} from '../../lib/tasks/schema';
 import {addTask, editTask, finishTask, removeTask, reopenTask, restoreTasks, type TaskInput, type TaskPatch as EnginePatch} from '../../lib/tasks/engine';
 import {deviceDay, tasksClock, tasksToday} from '../../lib/tasks/device';
+import {undoOfChange} from '../../lib/tasks/undo';
 import {showStatus, showUndo, shownToasts} from '../ui/undo-toast';
 import {changeWithUndo} from '../ui/remove-with-undo';
 
@@ -60,11 +61,8 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
     if (!toast) {
       // The surface's own line: the Undo puts back exactly the tasks this change touched (the latest record otherwise kept).
       try {
-        const before = latest.current.data, after = latest.current.update(fn);
-        const touched = before.tasks.filter(t => { const now = after.tasks.find(x => x.id === t.id); return !now || JSON.stringify(now) !== JSON.stringify(t); });
-        const added = after.tasks.filter(t => !before.tasks.some(x => x.id === t.id)).map(t => t.id);
-        const meta = JSON.stringify([before.projects, before.sections, before.filters]) !== JSON.stringify([after.projects, after.sections, after.filters]) ? {projects: before.projects, sections: before.sections, filters: before.filters} : null;
-        setStatus({text, undo: () => { try { latest.current.update(r => ({...restoreTasks(r, touched, added), ...(meta ?? {})})); setStatus({text: undone}); } catch (cause) { fail(cause); } }}); setError(''); return true;
+        const before = latest.current.data, after = latest.current.update(fn), reverse = undoOfChange(before, after);
+        setStatus({text, undo: () => { try { latest.current.update(reverse); setStatus({text: undone}); } catch (cause) { fail(cause); } }}); setError(''); return true;
       } catch (cause) { return fail(cause); }
     }
     try {

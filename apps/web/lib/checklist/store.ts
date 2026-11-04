@@ -154,6 +154,24 @@ export function moveWithinSection(record: Checklist, id: string, delta: -1 | 1):
   return moveItem(record, id, all.findIndex(i => i.id === swap.id));
 }
 
+/**
+ * Session AL (PR-070, P-PR-19): the keyboard's one step (Arrow Up / Down on an item's handle). Within its orbit it moves
+ * one place; at the orbit's edge it moves into the next orbit along the path (the end of the one before, the start of
+ * the one after), as a drag can. `moved` says what happened, so the words never claim a move that did not happen.
+ */
+export function stepItem(record: Checklist, id: string, delta: -1 | 1): {record: Checklist; moved: 'within' | 'orbit' | null; section: string} {
+  const all = orderedItems(record), item = all.find(i => i.id === id); if (!item) throw new ChecklistError(ITEM_MISSING_MESSAGE);
+  const section = sectionOrDefault(record, item.section), mates = all.filter(i => sectionOrDefault(record, i.section) === section), at = mates.findIndex(i => i.id === id);
+  if (mates[at + delta]) return {record: moveWithinSection(record, id, delta), moved: 'within', section};
+  const orbits = sectionsOf(record).map(s => s.id), next = orbits[orbits.indexOf(section) + delta];
+  if (!next) return {record, moved: null, section};
+  const moved = updateItem(record, id, {section: next}), order = orderedItems(moved), others = order.filter(i => i.id !== id && sectionOrDefault(moved, i.section) === next);
+  // Into the end of the orbit before, or the start of the orbit after.
+  const anchorItem = delta < 0 ? others[others.length - 1] : others[0];
+  if (!anchorItem) return {record: moved, moved: 'orbit', section: next};
+  const ids = order.map(i => i.id).filter(x => x !== id), place = ids.indexOf(anchorItem.id) + (delta < 0 ? 1 : 0);
+  return {record: moveItem(moved, id, place), moved: 'orbit', section: next};
+}
 /** Orbits (P7.5): rename, recolour, add, remove (its items move to the last remaining orbit). */
 export function updateSection(record: Checklist, id: string, patch: {label?: string; colour?: string}): Checklist {
   const sections = sectionsOf(record); if (!sections.some(s => s.id === id)) throw new ChecklistError(ITEM_MISSING_MESSAGE);

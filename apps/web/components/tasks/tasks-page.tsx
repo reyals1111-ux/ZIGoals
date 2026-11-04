@@ -25,6 +25,7 @@ import {MAX_TASKS, TASK_COLOURS, type Task, type TaskColour, type TaskLevel, typ
 import {isShowcase} from '../../lib/showcase';
 import {formatClock, formatDate, formatNumber} from '../../lib/visual-format';
 import {showStatus} from '../ui/undo-toast';
+import {isTypingTarget, isUndoShortcut} from '../../lib/tasks/undo-shortcut';
 import './tasks.css';
 
 /**
@@ -42,7 +43,7 @@ const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', tit
 /** Session AL (P-LS-40, LS-030): a long group shows its first 50 rows; the rest one tap away. */
 const SHOWN_PER_GROUP = 50;
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
-const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+const typing = (t: EventTarget | null) => t instanceof HTMLElement && isTypingTarget(t);
 
 export function TasksPage() {
   const list = useTaskList({toast: true}), goals = useGoalOptions(), {tasks, today, clock} = list, record = tasks.data;
@@ -128,7 +129,7 @@ export function TasksPage() {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || document.querySelector('dialog[open], [aria-modal="true"]')) return;
       // Ctrl/⌘+Z: the visible toast's Undo (LS-072), outside text fields (they keep their own undo).
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z' && !typing(e.target)) {
+      if (isUndoShortcut(e, e.target as HTMLElement | null)) {
         const undo = document.querySelector<HTMLButtonElement>('.aa-toast .aa-toast-undo:not([disabled])');
         if (undo) { e.preventDefault(); undo.click(); }
         return;

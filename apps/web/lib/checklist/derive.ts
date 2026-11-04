@@ -1,7 +1,8 @@
 import {frequencyProgress, habitDay, habitRuleOn, latestHabitRule, measurementUnit, type HabitData} from '../habits';
 import {pathLabelOf} from './path-label';
 import {HEALTH_MEALS, type HealthData} from '../health';
-import {dailyData, waterSummary} from '../health-daily';
+import {dailyData, waterOn} from '../health-daily';
+import {weightText} from '../health-units';
 import type {Platform} from '../positions';
 import type {Sleep} from '../sleep/schema';
 import {nightDay, runningNights} from '../sleep/engine';
@@ -132,11 +133,14 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
   const h = s.health, day = s.healthDay, prefs = h ? dailyData(h).preferences : null, here = {...base, href: '/app/health', ...forDay(day, date)};
   switch (item.input) {
     case 'water': {
-      const unit = prefs?.waterUnit === 'fl-oz-us' ? 'fl oz' : 'ml', sum = h ? waterSummary(h, day) : {entries: 0, millilitres: 0, targetMl: null};
+      const unit = prefs?.waterUnit === 'fl-oz-us' ? 'fl oz' : 'ml', sum = h ? waterOn(h, day) : {entries: 0, millilitres: 0, targetMl: null, reached: null};
+      // Session AL (P-LS-19, LS-016/LS-056/LC-002; the one water rule, lib/health-daily waterOn): with a daily target the
+      // planet lights when the target is reached; with no target, one entry is the day's water.
+      const done = sum.entries > 0 && sum.reached !== false;
       const suggested = item.defaultValue ?? (unit === 'ml' ? 250 : 8);
       // Session AL (LS-056): the amount as logged (2.5 mL was shown as "3 ml"), with its target when one is set.
-      const note = sum.entries ? `${formatNumber(sum.millilitres, {maximumFractionDigits: 1})} ml today${sum.targetMl ? ` of ${formatNumber(sum.targetMl)}` : ''}` : undefined;
-      return {...here, label: item.label ?? 'Water', state: sum.entries ? 'done' : 'undone', counted: true, ...(note ? {note} : {}), intent: 'value', value: unit === 'ml' ? {current: item.lastValue ?? null, unit, suggested, min: 1, max: LIMITS.waterEntryMl, step: 50} : {current: item.lastValue ?? null, unit, suggested, min: 1, max: Math.floor(LIMITS.waterEntryMl / ML_PER_US_FL_OZ), step: 1}}; // Session AH (VA3): the one water limit
+      const note = sum.entries ? `${formatNumber(sum.millilitres, {maximumFractionDigits: 1})} ml today${sum.targetMl ? ` of ${formatNumber(sum.targetMl)} ml` : ''}` : undefined;
+      return {...here, label: item.label ?? 'Water', state: done ? 'done' : 'undone', counted: true, ...(note ? {note} : {}), intent: 'value', value: unit === 'ml' ? {current: item.lastValue ?? null, unit, suggested, min: 1, max: LIMITS.waterEntryMl, step: 50} : {current: item.lastValue ?? null, unit, suggested, min: 1, max: Math.floor(LIMITS.waterEntryMl / ML_PER_US_FL_OZ), step: 1}}; // Session AH (VA3): the one water limit
     }
     case 'diary': {
       const sourceId = item.ref?.sourceId, kind = item.ref?.sourceKind;
@@ -153,7 +157,7 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
       const today = h?.weights.find(w => w.date === day), latest = h ? [...h.weights].sort((a, b) => b.date.localeCompare(a.date))[0] : undefined;
       const lb = prefs?.weightUnit === 'lb', show = (g: number) => Math.round((lb ? g / LB : g / 1000) * 10) / 10;
       const last = item.lastValue ?? latest?.grams ?? null;
-      return {...here, label: item.label ?? 'Weigh in', state: today ? 'done' : 'undone', counted: true, ...(today ? {note: `${show(today.grams)} ${lb ? 'lb' : 'kg'}`, doneAt: today.updatedAt} : {}), intent: 'value',
+      return {...here, label: item.label ?? 'Weigh in', state: today ? 'done' : 'undone', counted: true, ...(today ? {note: weightText(today.grams, lb ? 'lb' : 'kg') /* Session AL (PRIMITIVES format layer) */, doneAt: today.updatedAt} : {}), intent: 'value',
         value: {current: last === null ? null : show(last), unit: lb ? 'lb' : 'kg', suggested: last === null ? (lb ? 150 : 70) : show(last), min: lb ? 44 : 20, max: lb ? 880 : 400, step: 0.1}};
     }
     case 'sleep': {
@@ -221,6 +225,16 @@ export function summarise(dots: DerivedDot[], today: ChecklistToday): DaySummary
   return {total: counted.length, done: done.length, perfect, orderKnown, next: counted.find(d => d.state !== 'done') ?? null};
 }
 
+/**
+ * Session AL (PR-085, P-PR-21): ZIGi's line on the path. "All planets lit!" only when every planet on it is lit; when
+ * every planet due today is lit but some rest today (not scheduled, paused, closed), it says that instead.
+ */
+export function pathLine(summary: Pick<DaySummary, 'total' | 'done' | 'next'> | null, dots: readonly Pick<DerivedDot, 'state'>[]): string | undefined {
+  if (!summary || summary.total === 0) return undefined;
+  if (summary.done === 0) return 'Tap a planet to begin';
+  if (summary.next !== null) return undefined;
+  return dots.every(d => d.state === 'done') ? 'All planets lit!' : 'Every planet due today is lit';
+}
 /** The chests (P7.7): half way and all lit; their reward lines only with the game layer on. */
 export function checklistMilestones(game: {on: boolean; dayXp: number; badge?: string | null}): PathMilestone[] {
   return [

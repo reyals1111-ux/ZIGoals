@@ -185,3 +185,20 @@ describe('Session AL quick-add readings', () => {
     expect(parse('ran 5k in 28 min on monday', 'en', ctx)).toEqual({kind: 'needs-more', hint: 'Quick add logs for today or yesterday. For an earlier day, open the page (Health or Habits) and choose the day.'});
   });
 });
+
+/** Session AL second pass (TK-053, for L7): a question about "P&L" is never a litre of water. */
+describe('Session AL quick-add: letters are not units', () => {
+  const base = {counters: [], waterUnit: 'ml' as const, weightUnit: 'kg' as const, habits: []};
+  test('TK-053: "Explain my P&L" and a bare "l" log nothing', () => {
+    expect(parse('Explain my P&L', 'en', base).kind).toBe('unknown');
+    expect(parse('explain my p l', 'en', base).kind).toBe('unknown');
+    expect(parse('What is R&D', 'en', base).kind).toBe('unknown');
+    expect(parse('explain my P & L', 'en', base).kind).toBe('unknown');
+    expect(parse('pnl this month', 'en', base).kind).toBe('unknown');
+  });
+  test('a litre next to its number still reads', () => {
+    expect(parse('drank 1 l water', 'en', base)).toMatchObject({kind: 'water', millilitres: 1000});
+    expect(parse('1l water', 'en', base)).toMatchObject({kind: 'water', millilitres: 1000});
+    expect(parse('1.5 l', 'en', base)).toMatchObject({kind: 'water', millilitres: 1500});
+  });
+});

@@ -33,7 +33,8 @@ function readNumber(raw: string): Num | null {
 }
 function tokenize(input: string, locale: QuickAddLocale): Token[] | null {
   if (/\d\s*e\s*[+-]?\d/i.test(input) || /(^|[\s(])[-−]\s*\d/.test(input)) return null;
-  let text = input.toLowerCase().replace(/[’']/g, '').replace(/[.,!?;:]+(?=\s|$)/g, ' ').replace(/[^\p{L}\p{N}+.,\s-]/gu, ' ');
+  // Session AL (TK-053, for L7): "P&L", "R&D": letters joined by "&" are one word, never "p" and a litre "l".
+  let text = input.toLowerCase().replace(/[’']/g, '').replace(/(\p{L})&(?=\p{L})/gu, '$1').replace(/[.,!?;:]+(?=\s|$)/g, ' ').replace(/[^\p{L}\p{N}+.,\s-]/gu, ' ');
   text = text.replace(/(\d)([a-z])/g, '$1 $2').replace(/([a-z])(\d)/g, '$1 $2');
   const tokens: Token[] = [];
   for (const raw of text.split(/\s+/).filter(Boolean)) {
@@ -49,6 +50,8 @@ function tokenize(input: string, locale: QuickAddLocale): Token[] | null {
   }
   // "5k" and "8k": a bare k after a number multiplies by a thousand (steps) or names kilometres (a run, a walk, a ride).
   for (let i = 1; i < tokens.length; i++) if (tokens[i]!.word === 'k' && tokens[i - 1]!.num && !tokens[i]!.unit) tokens[i]!.unit = 'k' as UnitKind;
+  // Session AL (TK-053): a one-letter unit ("l", "g") is a unit only next to a number ("1 l", "1l"); alone it is a letter.
+  for (let i = 0; i < tokens.length; i++) { const t = tokens[i]!; if (t.unit && t.word.length === 1 && !tokens[i - 1]?.num && !tokens[i + 1]?.num) t.unit = undefined; }
   return tokens;
 }
 const unknown = (locale: QuickAddLocale): QuickAddResult => ({kind: 'unknown', examples: locale.examples});

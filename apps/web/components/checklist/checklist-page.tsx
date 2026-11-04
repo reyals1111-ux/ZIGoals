@@ -18,6 +18,7 @@ import {FlameMark} from './checklist-marks';
 import {LoadBoundary} from '../load-boundary';
 import {escapeTop, useEscapeLayer} from './escape-layers';
 import './checklist.css';
+import {useUndoShortcut} from '../tasks/use-undo-shortcut';
 
 /**
  * Session AK P8c (owner decision 6): while the Checklist is open, the shell's other parts are not drawn. These two rules
@@ -84,6 +85,8 @@ export function ChecklistPage() {
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
   const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | 'quick' | null>(null), [arrive, setArrive] = useState<string | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
   const narrow = useMedia(NARROW), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
+  // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo here too (never in a text field; the page's own dialog does not count).
+  useUndoShortcut({page: dialog});
 
   // Into the top layer: the server's page carries the dialog open (so the first paint already shows only the Checklist);
   // once the page runs it becomes modal. Our own close here is not the person's close.

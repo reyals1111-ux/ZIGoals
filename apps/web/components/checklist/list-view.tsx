@@ -5,7 +5,9 @@ import {PATH_COLOURS} from '../../lib/path/colours';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {sectionsOf} from '../../lib/checklist/store';
 import {orbitGlyph} from '../../lib/checklist/glyphs';
-import {formatTime} from '../../lib/visual-format';
+import {formatClock, formatTime} from '../../lib/visual-format';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {HABIT_EXTRAS} from '../../lib/habits-extras/schema';
 import {OrbitBanner, orbitTitle} from '../orbit-path/orbit-banner';
 import {OrbitNodeFace} from '../orbit-path/orbit-node';
 import {SwipeRow} from '../swipe/swipe-row';
@@ -34,6 +36,8 @@ const KEEP_MS = 900;
 export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; onAdd?: (section?: string) => void; arrive?: string | null}) {
   const {panel, setPanel, press, renderPanel, busy} = useDotPress(state);
   const colours = checklistDisplayColours(state.record.data, state.dots);
+  // Session AL (C-DVG-76): a habit's own clock time (set on Habits) on its row while it is still to do: "at 07:30".
+  const extras = useDeviceRecord(HABIT_EXTRAS), habitTimes = extras.loaded && !extras.unreadable ? extras.data.times ?? {} : {};
   const sections = useMemo(() => sectionsOf(state.record.data), [state.record.data]);
   const groups = sections.map(s => ({id: s.id, label: s.label, dots: state.dots.filter(d => d.section === s.id)})).filter(g => g.dots.length);
   const [folded, setFolded] = useState<Record<string, boolean>>({});
@@ -68,7 +72,8 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     const done = dot.state === 'done', colour = PATH_COLOURS[colours.get(dot.id) ?? dot.colour].token, just = recent.has(dot.id);
     const label = `${dot.label}${dot.note ? `: ${dot.note}` : ''}: ${done ? 'done' : dot.state === 'running' ? 'running' : dot.counted ? 'not done yet' : 'not counted today'}`;
     const kind = KIND_WORD[dot.kind] ?? '', time = done && dot.doneAt ? formatTime(dot.doneAt) : '';
-    const sub = [dot.note, kind, time].filter(Boolean).join(' · ');
+    const habitId = dot.kind === 'habit' ? (dot.item.ref as {habitId?: string} | undefined)?.habitId : undefined, clock = !done && habitId ? habitTimes[habitId] : undefined;
+    const sub = [dot.note, kind, time, clock ? `at ${formatClock(clock)}` : ''].filter(Boolean).join(' · ');
     // Session AG Polish 2 (owner Part 6b): the node is the path's own at the path's own size (80, 72 or 62 px), and the
     // button is the node.
     const face = <OrbitNodeFace glyph={orbitGlyph(dot)} just={just}/>, style = {'--node': colour} as CSSProperties;
