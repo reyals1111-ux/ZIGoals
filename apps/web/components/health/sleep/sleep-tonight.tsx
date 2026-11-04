@@ -1,9 +1,10 @@
 'use client';
 import {useState, type FormEvent} from 'react';
-import {SHORTEST_SLEEP_MS, deleteNight, endNight, inBedMinutes, runningNights, startNight, wakeGreeting} from '../../../lib/sleep/engine';
+import {deleteNight, endNight, inBedMinutes, runningNights, startNight, wakeGreeting} from '../../../lib/sleep/engine';
 import {MAX_NIGHT_MINUTES, type SleepNight} from '../../../lib/sleep/schema';
 import {formatMinutes, instantAt, wallClock} from '../../../lib/zone-time';
 import type {SleepStore} from './use-sleep';
+import {tooShortText, tooShortToSave} from '../../../lib/health-timer-rules';
 import {formatDate, formatTime} from '../../../lib/visual-format';
 
 const message = (error: unknown) => error instanceof Error && error.message ? error.message : 'Could not save. Try again.';
@@ -43,7 +44,8 @@ export function SleepTonight({store, onDone}: {store: SleepStore; onDone: (text:
   }
   function wakeUp(night: SleepNight) {
     const now = new Date();
-    if (now.getTime() - Date.parse(night.start) < SHORTEST_SLEEP_MS) void act(s => s.nights.some(n => n.id === night.id) ? deleteNight(s, night.id) : s, 'Stopped after less than ten minutes, so nothing was saved.');
+    // Session AL (PR-018): the one timer rule (lib/health-timer-rules.ts), the same words as the Checklist and the fast.
+    if (tooShortToSave('sleep', now.getTime() - Date.parse(night.start))) void act(s => s.nights.some(n => n.id === night.id) ? deleteNight(s, night.id) : s, tooShortText('sleep'));
     else void act(s => endNight(s, night.id, now), `${wakeGreeting(now.getTime(), night.timeZone)} Your night is saved.`);
   }
   return <div className="sleep-tonight">

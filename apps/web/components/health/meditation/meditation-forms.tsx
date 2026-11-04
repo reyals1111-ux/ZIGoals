@@ -7,7 +7,7 @@ import {DEFAULT_BELLS, saveManual, setBells, setMeditationGoal} from '../../../l
 import {BELLS, ring, wakeAudio, type BellSound} from '../../../lib/meditation/bells';
 import {PATTERNS, type BreathingPattern} from '../../../lib/meditation/breathing';
 import {MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, startRun} from '../../../lib/meditation/timer';
-import {wallClock} from '../../../lib/zone-time';
+import {instantAt, wallClock} from '../../../lib/zone-time';
 import type {MeditationStore} from './use-meditation';
 import {zigiSignals} from '../../zigi/bus';
 
@@ -77,10 +77,12 @@ export function ManualForm({store, session, onDone, onCancel}: {store: Meditatio
   const now = wallClock(store.now, zone);
   // Session AH Part 17: a new session defaults to the Health journal's linked day (`?date=`), never a future one.
   const linkedDay = useLinkedDay(now.date);
+  // Session AL (P-PR-10, as Sleep's form): before 07:10 today, a new entry starts ten minutes ago, never in the future.
+  const early = !session && linkedDay === now.date && instantAt(linkedDay, '07:00', zone) + 10 * 60_000 > store.now ? wallClock(store.now - 10 * 60_000, zone) : null;
   return <form className="meditation-form" onSubmit={submit} aria-label={session ? 'Edit this session' : 'Log mindful minutes'} noValidate>
     <div className="meditation-form-row">
-      <label className="field">Began (date)<input type="date" name="date" required defaultValue={start?.date ?? linkedDay}/></label>
-      <label className="field">Began (time)<input type="time" name="time" required defaultValue={start?.clock ?? '07:00'}/></label>
+      <label className="field">Began (date)<input type="date" name="date" required defaultValue={start?.date ?? early?.date ?? linkedDay}/></label>
+      <label className="field">Began (time)<input type="time" name="time" required defaultValue={start?.clock ?? early?.clock ?? '07:00'}/></label>
       <label className="field">Minutes<input type="text" inputMode="numeric" name="minutes" autoComplete="off" required defaultValue={session ? String(Math.round(session.seconds / 60)) : '10'}/></label>
     </div>
     <p className="fine">Times in {zone}.</p>

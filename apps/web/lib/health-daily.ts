@@ -170,6 +170,27 @@ export function waterSummary(data: HealthData, date: string) {
   const millilitres = Math.round(entries.reduce((sum, w) => sum + w.amountMilli / 1000 * (w.unit === "ml" ? 1 : 29.5735295625), 0) * 1000) / 1000;
   return { entries: entries.length, millilitres, targetMl: dailyData(data).preferences.waterTargetMl };
 }
+/**
+ * Session AL (NB-082, P-PR-03, PR-019, X3-12, X3-26, MO-063): THE water number for a day, read by every page (Health,
+ * Today, the Drink water habit, the Checklist, NOVA and ZIGi). The day is the Health journal's day in its zone, the sum
+ * is every entry in millilitres (fl oz converted), and `reached` compares it with the person's own target: null while no
+ * target is set (never "done" after one glass because no target exists). Unknown is not zero: `entries` 0 means nothing
+ * was logged.
+ */
+export type WaterDay = { day: string; millilitres: number; entries: number; targetMl: number | null; unit: WaterEntry["unit"]; reached: boolean | null };
+export function waterOn(data: HealthData, day: string): WaterDay {
+  const s = waterSummary(data, day), unit = dailyData(data).preferences.waterUnit;
+  return { day, millilitres: s.millilitres, entries: s.entries, targetMl: s.targetMl, unit, reached: s.targetMl ? s.millilitres >= s.targetMl : null };
+}
+export function waterToday(data: HealthData, now = new Date()): WaterDay {
+  return waterOn(data, healthDay(dailyData(data).preferences.timezone, now));
+}
+/**
+ * Session AL (NB-081, NB-089, P-NB-27): the Undo of a water log: removes exactly the entry with that id from the LATEST
+ * record (any other entry, logged since in this tab or another, stays). Use it as the restore of the toast:
+ *   showUndo({message, restore: () => health.update(undoWaterLog(id))}).
+ */
+export const undoWaterLog = (id: string) => (latest: HealthData): HealthData => dailyData(latest).water.some(w => w.id === id) ? removeWater(latest, id) : latest;
 /** The Health journal's zone: the Health zone (an override), then the journal zone (Session W Part 17, T2-A), then the device's. */
 export function healthZone(timezone: string | null): string {
   return healthTimezoneSchema.parse(timezone ?? journalTimeZone() ?? Intl.DateTimeFormat().resolvedOptions().timeZone);

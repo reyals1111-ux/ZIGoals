@@ -22,6 +22,19 @@ export function weeklyRateOf(weights: Pick<HealthData, 'weights'>['weights'], to
   const sxy = rows.reduce((a, r) => a + (r.x - mx) * (r.y - my), 0), sxx = rows.reduce((a, r) => a + (r.x - mx) ** 2, 0);
   return sxx ? Math.round(sxy / sxx * 7) : null;
 }
+/**
+ * Session AL (P-MO-70 / P-PR-23; MO-149, X3-16): what the weekly rate still needs, in words the coach can say. The coach
+ * said "two in the last week will do" to a person with seven daily readings: the rate needs readings at least SEVEN days
+ * apart within the last 28 days, which six or seven daily readings in one week are not. `readyOn` is the first day a
+ * reading would give the rate (the first reading plus seven days), or null when there is no reading in the window.
+ */
+export type RateReadiness = {readings: number; first: string | null; last: string | null; readyOn: string | null; ready: boolean};
+export function rateReadiness(weights: Pick<HealthData, 'weights'>['weights'], today: string): RateReadiness {
+  const start = addLocalDays(today, -(RATE_WINDOW_DAYS - 1));
+  const days = [...new Set(weights.filter(w => w.date >= start && w.date <= today).map(w => w.date))].sort();
+  const first = days[0] ?? null, last = days.at(-1) ?? null;
+  return {readings: days.length, first, last, readyOn: first ? addLocalDays(first, 7) : null, ready: weeklyRateOf(weights, today) !== null};
+}
 export const TREND_ALPHA = 0.1;
 export type TrendPoint = {date: string; grams: number | null; trend: number | null};
 export type WeightTrend = {points: TrendPoint[]; latestTrend: number | null; weeklyRate: number | null; readings: number; goalGrams: number | null; latestReading: {date: string; grams: number} | null};

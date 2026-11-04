@@ -1,6 +1,7 @@
 'use client';
 import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {addSession, DEFAULT_BELLS, newSessionId} from '../../../lib/meditation/engine';
+import {tooShortText, tooShortToSave} from '../../../lib/health-timer-rules';
 import {heartSnapshot, heartSummary, SERVER_HEART, subscribeHeart} from '../../../lib/bluetooth/heart-store';
 import {audioContext, audioReady, strike, type Strike} from '../../../lib/meditation/bells';
 import {bellTimes, clockText, elapsedMs, endedSession, isDone, isPaused, pauseRun, remainingMs, resumeRun, sessionFrom, type Run} from '../../../lib/meditation/timer';
@@ -67,6 +68,8 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
   async function save() {
     const ended = endedSession(run, store.now);
     if (!ended) { write(() => emptyMeditationRun()); onDone('Nothing to save: less than a second.'); return; }
+    // Session AL (PR-018): the one timer rule (lib/health-timer-rules.ts) decides what is too short, here and on the Checklist.
+    if (tooShortToSave('meditation', ended.seconds * 1000)) { write(() => emptyMeditationRun()); onDone(tooShortText('meditation')); return; }
     setBusy(true); setError('');
     try {
       const pulse = keepHeart ? heartSummary(Date.parse(ended.startedAt), Date.parse(ended.startedAt) + ended.seconds * 1000) : null;

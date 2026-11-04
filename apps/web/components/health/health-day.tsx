@@ -2,7 +2,7 @@
 import {createContext, useContext, useRef, type KeyboardEvent, type TouchEvent} from 'react';
 import {addLocalDays} from '../../lib/local-date';
 import {useSearchParams} from 'next/navigation';
-import {dayHint, dayName, journalDay} from '../../lib/health-day';
+import {dayHint, dayName, journalDay, JOURNAL_MIN_DAY} from '../../lib/health-day';
 import './health-day.css';
 
 /**
@@ -41,7 +41,7 @@ export function PastDayLine({date, today, children}: HealthDay & {children: Reac
 export function HealthDateBar({date, today, onChoose}: HealthDay & {onChoose: (day: string) => void}) {
   const input = useRef<HTMLInputElement>(null), touch = useRef<{x: number; y: number} | null>(null), first = useRef(date);
   const isToday = date >= today;
-  const step = (days: number) => { const next = addLocalDays(date, days); if (next >= '1900-01-01' && next <= today) onChoose(next); };
+  const step = (days: number) => { const next = addLocalDays(date, days); if (next >= JOURNAL_MIN_DAY && next <= today) onChoose(next); };
   const onKey = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.target === input.current || event.altKey || event.ctrlKey || event.metaKey) return;
     if (event.key === 'ArrowLeft') { event.preventDefault(); step(-1); } else if (event.key === 'ArrowRight') { event.preventDefault(); step(1); }
@@ -54,12 +54,12 @@ export function HealthDateBar({date, today, onChoose}: HealthDay & {onChoose: (d
     if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx > 0 ? -1 : 1);
   };
   return <div className="health-date health-date-bar" role="group" aria-label="Journal day" tabIndex={0} onKeyDown={onKey} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-    <button type="button" className="health-date-step" aria-label="Previous day" disabled={date <= '1900-01-01'} onClick={() => step(-1)}><span aria-hidden="true">←</span></button>
+    <button type="button" className="health-date-step" aria-label="Previous day" disabled={date <= JOURNAL_MIN_DAY} onClick={() => step(-1)}><span aria-hidden="true">←</span></button>
     <label className="health-date-pick">
       <span key={date} className={`health-date-text${date !== first.current ? ' is-new' : ''}`}><strong>{dayName(date, today)}</strong><small id="health-date-hint">{dayHint(date, today)}</small></span>
-      <input ref={input} type="date" aria-label="Journal date" aria-describedby="health-date-hint" min="1900-01-01" max={today} value={date}
+      <input ref={input} type="date" aria-label="Journal date" aria-describedby="health-date-hint" min={JOURNAL_MIN_DAY} max={today} value={date}
         onClick={event => { try { event.currentTarget.showPicker?.(); } catch { /* the browser opens its own picker */ } }}
-        onChange={event => { const value = event.target.value; if (value >= '1900-01-01' && value <= today) onChoose(value); }}/>
+        onChange={event => { const value = event.target.value; if (value >= JOURNAL_MIN_DAY && value <= today) onChoose(value); }}/>
     </label>
     <button type="button" className="health-date-step" aria-label="Next day" disabled={isToday} onClick={() => step(1)}><span aria-hidden="true">→</span></button>
     {!isToday && <button type="button" className="health-date-today" onClick={() => onChoose(today)}>Today</button>}

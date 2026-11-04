@@ -1,5 +1,7 @@
 'use client';
 import {removeWithUndo} from '../ui/remove-with-undo';
+import {showUndo} from '../ui/undo-toast';
+import {timerRuleText, tooShortText, tooShortToSave} from '../../lib/health-timer-rules';
 import {useState} from 'react';
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_HOURS, elapsedMs, fastingHistory, formatFast, logFastToHabit, removeFast, startFast, stopFast} from '../../lib/fasting/engine';
 import type {HealthData} from '../../lib/health';
@@ -42,6 +44,15 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
   async function stop() {
     if (!running) return; setError(''); setResult('');
     try {
+      // Session AL (PR-018, P-MO-55; MO-025, MO-132, M-136): the one timer rule. A fast stopped within ten minutes is
+      // not kept (it was stored as "0.0 h"); Undo starts it again from its own start time.
+      if (tooShortToSave('fast', Date.now() - Date.parse(running.startedAt))) {
+        const held = running;
+        await fasting.update(current => current.sessions.some(x => x.id === held.id) ? removeFast(current, held.id) : current);
+        showUndo({message: tooShortText('fast'), undone: 'The fast is running again.', restore: () => fasting.update(current => current.sessions.some(x => x.id === held.id) || current.sessions.some(x => x.endedAt === null) ? current : startFast(current, {id: held.id, now: new Date(held.startedAt), targetHours: held.targetHours, timeZone: held.timeZone, ...(held.habitId ? {habitId: held.habitId} : {})}))});
+        setResult(tooShortText('fast'));
+        return;
+      }
       const now = new Date(), next = await fasting.update(current => stopFast(current, running.id, now)), session = next.sessions.find(s => s.id === running.id)!;
       const elapsed = elapsedMs(session, now).ms;
       let line = `Stopped at ${formatFast(elapsed)}. Your target was ${session.targetHours} h.`;
@@ -59,7 +70,7 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
   return <section {...layout} className="panel fasting-timer" id="fasting" aria-labelledby="fasting-title">
     <div className="habit-section-heading"><div><p className="eyebrow">A clock, nothing more</p><h2 id="fasting-title">Fasting timer</h2></div><StarToggle item={{kind: 'health', input: 'fast'}} label="Fast" defaultValue={16} unit="h"/></div>
     <p className="fasting-safety" role="note">{FASTING_SAFETY_NOTE}</p>
-    <p className="fine">ZIGoals shows the clock only. It gives no medical or nutritional advice.</p>
+    <p className="fine">ZIGoals shows the clock only. It gives no medical or nutritional advice. {timerRuleText}</p>
     <PastDayLine date={day.date} today={day.today}>{dayFasts.length ? dayFasts.map(row => `${formatFast(row.hours * 3_600_000)} fast`).join(', ') : 'no fast begun that day'}</PastDayLine>
     {fasting.unreadable ? fasting.error ? <div className="notice" role="alert"><p>{fasting.error}</p></div> : <div className="notice" role="alert"><p>Your saved fasts on this device could not be read. They were not changed.</p>
       {confirming ? <div className="actions"><p className="fine">Start over keeps the old bytes as a recovery copy and continues with no fasts.</p><button type="button" className="secondary" onClick={() => { setConfirming(false); fasting.startOver().catch(e => setError(saveFailureMessage(e))); }}>Start over</button><button type="button" className="quiet" onClick={() => setConfirming(false)}>Keep them</button></div> : <button type="button" className="quiet" onClick={() => setConfirming(true)}>Start over…</button>}</div>

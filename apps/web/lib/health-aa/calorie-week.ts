@@ -52,5 +52,7 @@ export function weekBudget(data: HealthData, r: CalorieWeek, anchor: string, tod
     const budget = Math.max(KCAL_FLOOR, base + shifts[i]!) + carried;
     days.push({date, base, shift: shifts[i]!, carried, budget, eaten, remaining: eaten === null ? null : budget - eaten, past: date < today});
   }
-  return {days, weeklyBudget: base * 7, eaten: days.reduce((a, d) => a + (d.eaten ?? 0), 0), base};
+  // Session AL (P-MO-68, MO-151): the week's total is the sum of the days as shown, so a target under the floor reads
+  // "8,400" beside seven days of 1,200 (it said "7,000 (1,000 × 7)").
+  return {days, weeklyBudget: days.reduce((a, d) => a + d.budget - d.carried, 0), eaten: days.reduce((a, d) => a + (d.eaten ?? 0), 0), base};
 }

@@ -120,7 +120,9 @@
 /* N9: measurement charts and progress photos */
 .health-measure-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
 .health-measure-chart { display: grid; gap: 6px; padding: 14px; border-radius: 16px; border: 1px solid #8ab9ff22; background: #0d162980; }
-.health-measure-chart h3 { margin: 0; font-size: 16px; display: flex; justify-content: space-between; }
+.health-measure-chart h3 { margin: 0; font-size: 16px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; }
+/* Session AL (MO-140): the name never breaks mid-word ("Wais/t"); the value wraps under it when narrow. */
+.health-measure-chart h3 > span { flex: 0 0 auto; word-break: normal; overflow-wrap: normal; }
 .health-measure-chart svg { width: 100%; height: auto; }
 .health-measure-chart small { font-size: 14px; color: var(--text-meta); }
 .health-custom-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; }

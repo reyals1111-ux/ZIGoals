@@ -1,5 +1,7 @@
 'use client';
 import {showToast} from '../../ui/undo-toast';
+import {removeWithUndo} from '../../ui/remove-with-undo';
+import {announceHealthRemoval} from '../../../lib/health-events';
 import Link from 'next/link';
 import {lazy, useState} from 'react';
 import {asleep, balanceWords, BALANCE_MIN_NIGHTS, clockFromMidnight, clockFromNoon, consistency, dailySeries, deleteNight, inBedMinutes, nightDay, shortNights, sleepBalance, sleepDebt, summary, wakeConsistency} from '../../../lib/sleep/engine';
@@ -47,8 +49,11 @@ export default function SleepView() {
   const done = (text: string) => { setNote(text); setEditing(null); setSaves(n => n + 1); showToast({message: text}); };
   async function remove(id: string) {
     // Session AH Part 3 (DS3, L-009/L-010): a nap is called a nap.
-    const kind = store.sleep.nights.find(n => n.id === id)?.kind;
-    try { await store.update(s => deleteNight(s, id)); setConfirm(null); setNote(kind === 'nap' ? 'The nap is deleted.' : 'The night is deleted.'); } catch (error) { setNote(plainErrorMessage(error, 'Could not delete.')); }
+    const held = store.sleep.nights.find(n => n.id === id), kind = held?.kind, day = held ? nightDay(held) : null;
+    // Session AL (P-MO-56, MO-114/MO-136): a deleted night or nap gets the app's labelled Undo, as food, water and weight
+    // do; Undo puts that exact record back in the latest sleep log.
+    const said = kind === 'nap' ? 'The nap is deleted.' : 'The night is deleted.';
+    try { await removeWithUndo(store.update, s => deleteNight(s, id), said, kind === 'nap' ? 'The nap is back.' : 'The night is back.'); setConfirm(null); setNote(said); if (day) announceHealthRemoval({measures: ['sleepMinutes'], dates: [day]}); } catch (error) { setNote(plainErrorMessage(error, 'Could not delete.')); }
   }
   return <div className="sleep-view">
     <div className="page-heading header-art-host"><div>
