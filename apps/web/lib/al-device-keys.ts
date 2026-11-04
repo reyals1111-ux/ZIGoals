@@ -12,17 +12,20 @@ export const APPS_PREFS_KEY_LITERAL = 'zigoals:apps:v1';
 export const WALLET_NAMES_KEY_LITERAL = 'zigoals:wallet-names:v1';
 /** BN-100/121 (display): the daily chess puzzle's moves so far (lib/chess/puzzle.ts); a public puzzle, no personal text. */
 export const CHESS_PUZZLE_KEY_LITERAL = 'zigoals:chess-puzzle:v1';
+/** Part 11 (display): NOVA's look (Holo or Classic) and HUD preset (lib/nova/layout.ts NOVA_HUD). */
+export const NOVA_HUD_KEY_LITERAL = 'zigoals:nova-hud:v1';
 /** Personal device records: a device holding one is not new (onboarding `DEVICE_RECORD_KEYS`). */
 export const AL_PERSONAL_KEYS: readonly string[] = [WALLET_NAMES_KEY_LITERAL];
 /** Display records (onboarding `NON_PERSONAL_KEYS`): a device holding only these is still new. */
-export const AL_DISPLAY_KEYS: readonly string[] = [APPS_PREFS_KEY_LITERAL, CHESS_PUZZLE_KEY_LITERAL];
+export const AL_DISPLAY_KEYS: readonly string[] = [APPS_PREFS_KEY_LITERAL, CHESS_PUZZLE_KEY_LITERAL, NOVA_HUD_KEY_LITERAL];
 /** Export everything (`DEVICE_KEYS`): the names in everything.json. */
-export const AL_EXPORT_KEYS = {appsPrefs: APPS_PREFS_KEY_LITERAL, walletNames: WALLET_NAMES_KEY_LITERAL, chessPuzzle: CHESS_PUZZLE_KEY_LITERAL} as const;
+export const AL_EXPORT_KEYS = {appsPrefs: APPS_PREFS_KEY_LITERAL, walletNames: WALLET_NAMES_KEY_LITERAL, chessPuzzle: CHESS_PUZZLE_KEY_LITERAL, novaHud: NOVA_HUD_KEY_LITERAL} as const;
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AL_CATALOG_LABELS = {
   appsPrefs: ['Apps & extras: which apps show and the sidebar Apps group folded or open', 'Settings'],
   walletNames: ['Names you gave tracked wallets', 'Wallet'],
   chessPuzzle: ['Today\'s chess puzzle: your moves so far', 'Chess'],
+  novaHud: ['NOVA: Holo or Classic look and the HUD preset', 'NOVA'],
 } as const;
 /** The account erase (`lib/aa-device-forget.ts`): every key above. */
 export const AL_ERASE_KEYS: readonly string[] = [...AL_PERSONAL_KEYS, ...AL_DISPLAY_KEYS];
