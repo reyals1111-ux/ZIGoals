@@ -37,3 +37,32 @@ describe('finished', () => {
     expect(achievementsOf([goal('closed', [life('closed', 0, 2)])], [], {version: 1, areas: [], goals: {}} as never)).toEqual([]);
   });
 });
+
+// Session AL (DV-025b, P-DV-31): lowering the target below what is already counted is an edit, not a win.
+import {platformSchema, positionSchema} from '../positions';
+import {recordGoalChanges} from '../goal-intelligence';
+import {reachedByTargetEdit} from './finished';
+describe('a target lowered to what is counted', () => {
+  const now = Date.parse('2026-11-04T10:00:00Z'), stamp = new Date(now).toISOString();
+  const cash = positionSchema.parse({id: 'p', providerId: 'manual', sourceType: 'MANUAL', network: 'manual', account: 'local', asset: 'USD', denom: 'USD', quantity: '20000', decimals: 2, verification: 'MANUAL', observedAt: stamp, liquidity: 'LIQUID', provenance: 'User entry', valuation: {value: '20000', currency: 'USD', decimals: 2, source: 'MANUAL', observedAt: stamp}});
+  const fund = privateGoalSchema.parse({id: '1', name: 'Emergency fund', type: 'VALUE', status: 'active', asset: 'USD', denom: 'USD', decimals: 2, target: '100000', notes: '', createdAt: stamp, milestones: []});
+  const funded = () => platformSchema.parse(recordGoalChanges(platformSchema.parse({...emptyPlatform(), positions: [cash], goals: [fund]}), platformSchema.parse({...emptyPlatform(), positions: [cash], goals: [fund], allocations: [{goalId: '1', positionId: 'p', quantity: '20000'}]}), now));
+  it('records "Target changed" but no "Target reached", and the page reads it as reached by an edit', () => {
+    const s = funded();
+    expect(s.goals[0]!.status).toBe('active');
+    const edited = platformSchema.parse(recordGoalChanges(s, {...s, goals: [{...s.goals[0]!, target: '5000'}]}, now + 60_000));
+    const g = edited.goals[0]!;
+    expect(g.status).toBe('completed');
+    expect(g.lifecycle?.map(e => e.kind)).toEqual(['target_changed']);
+    expect(reachedByTargetEdit(g)).toBe(true);
+    expect(edited.goalHistory.some(h => h.kind === 'status' && h.label === 'Goal completed')).toBe(false);
+  });
+  it('real progress that crosses the target still records the win and celebrates', () => {
+    const s = funded();
+    const more = platformSchema.parse(recordGoalChanges(s, {...s, positions: [{...cash, quantity: '100000', valuation: {...cash.valuation!, value: '100000'}}], allocations: [{goalId: '1', positionId: 'p', quantity: '100000'}]}, now + 60_000));
+    expect(more.goals[0]!.lifecycle?.map(e => e.kind)).toEqual(['completed']);
+    expect(reachedByTargetEdit(more.goals[0]!)).toBe(false);
+    // A legacy completed goal with no lifecycle rows still celebrates.
+    expect(reachedByTargetEdit({status: 'completed', lifecycle: undefined})).toBe(false);
+  });
+});

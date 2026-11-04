@@ -370,8 +370,12 @@ export function localGoalLocked(s:Platform,goalId:string):boolean{return Boolean
 /** UI locks guard every private-store mutation, including stale forms in other tabs. */
 export function assertGoalEditsUnlocked(before:Platform,after:Platform):void {
  assertFinancialEvidenceAppendOnly(before,after);
- for(const g of before.goals){const next=after.goals.find(x=>x.id===g.id);for(const key of ['planRevisions','lifecycle'] as const)if((g[key]?.length??0)>0&&JSON.stringify(next?.[key]?.slice(0,g[key]!.length))!==JSON.stringify(g[key]))throw Error('Goal plan and milestone history is append-only.');}
- for(const event of before.contributions)if(JSON.stringify(after.contributions.find(e=>e.id===event.id))!==JSON.stringify(event))throw Error('Contribution history is append-only. Record a reversal instead.');
+ // Session AL (TIER 3, P-DV-09): Delete removes an unlocked Goal together with ALL of its private contributions (the page
+ // keeps them for the one Undo). Only then does its own history leave with it; a locked Goal, a Goal that stays, or a
+ // Goal removed while any of its contributions stay is checked exactly as before.
+ const removed=new Set(before.goals.filter(g=>!g.locked&&!after.goals.some(x=>x.id===g.id)&&!after.contributions.some(e=>e.goalScope==='private'&&e.goalId===g.id)).map(g=>g.id));
+ for(const g of before.goals){if(removed.has(g.id))continue;const next=after.goals.find(x=>x.id===g.id);for(const key of ['planRevisions','lifecycle'] as const)if((g[key]?.length??0)>0&&JSON.stringify(next?.[key]?.slice(0,g[key]!.length))!==JSON.stringify(g[key]))throw Error('Goal plan and milestone history is append-only.');}
+ for(const event of before.contributions)if(!(event.goalScope==='private'&&removed.has(event.goalId))&&JSON.stringify(after.contributions.find(e=>e.id===event.id))!==JSON.stringify(event))throw Error('Contribution history is append-only. Record a reversal instead.');
  for(const e of after.contributions)if(e.goalScope==='local'&&localGoalLocked(before,e.goalId)&&!confirmedLocalObservation(e)&&!before.contributions.some(old=>old.id===e.id))throw Error('Unlock this Goal before editing.');
  for(const goal of before.goals.filter(g=>g.locked)){
   const next=after.goals.find(g=>g.id===goal.id);

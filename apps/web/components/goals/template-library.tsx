@@ -10,7 +10,7 @@ import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
 import {TemplatesGlyph} from '../header-art/glyphs/templates';
 import './goals.css';
 
-const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: 'Milestones goal', average: 'Keep an average', 'health-weight': 'Health goal'};
+const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: 'Milestones goal', count: 'Count goal', average: 'Keep an average', 'health-weight': 'Health goal'};
 /** Where a template opens: the goal wizard, the average form, or Health goals for a weight. */
 export const templateHref = (t: LibraryTemplate) => t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : t.kind === 'health-weight' ? '/app/goals#goals-health' : `/app/goals/new?template=${t.id}`;
 
@@ -47,6 +47,7 @@ function TemplateCard({t}: {t: LibraryTemplate}) {
     <h2>{t.title}</h2>
     <p>{t.summary}</p>
     {t.average && <p className="template-detail">{t.average.direction === 'at-least' ? 'At least' : 'At most'} {t.average.target.toLocaleString('en')} {t.average.unit}, over {t.average.windowDays} days (yours to change)</p>}
+    {t.count && <p className="template-detail">{t.count.target.toLocaleString('en')} {t.count.unit}, counted as you go (yours to change)</p>}
     {t.milestones && <ol className="template-steps" aria-label="Steps">{t.milestones.map(m => <li key={m}>{m}</li>)}</ol>}
     {t.habits && <p className="template-detail"><strong>Habits that help:</strong> {t.habits.map(h => h.title).join(' · ')}</p>}
     {/* Session AL (DV-181, DV-083b, P-DV-39): a weight goal lives with Health goals; the button says where it goes. */}

@@ -17,14 +17,16 @@ import {isFinished} from '../../lib/goals/finished';
 export type {GoalsView} from './goals-view-switch';
 
 /** Goals' key figures under the header (Session AA-Cloud Part 2): active, finished, with a plan, sub-goals. */
-export function GoalsFigures({goals, averages, extras}: {goals: readonly GoalSummary[]; averages: readonly AverageGoal[]; extras: GoalExtras}) {
+export function GoalsFigures({goals, averages, extras, healthActive = 0}: {goals: readonly GoalSummary[]; averages: readonly AverageGoal[]; extras: GoalExtras; healthActive?: number}) {
   // Session AH (TR6): the shared count, as Today and the goals widget read it.
   // Session AL (P-DV-22): a goal closed after it reached its target stays finished (lib/goals/finished.ts).
   const {active, finished} = goalCounts(goals.map(g => isFinished(g) ? {status: 'completed'} : g), averages);
   const planned = Object.values(extras.goals).filter(e => e.why || e.ifThen).length;
   const areas = new Set(Object.values(extras.goals).map(e => e.area).filter(Boolean)).size;
   const figures: [string, number, string][] = [['Active', active, 'goals in motion'], ['Finished', finished, 'on the Hall of achievements'], ['With a plan', planned, 'why and if-then written'], ['Life areas', areas, 'with at least one goal']];
-  return <dl className="goals-figures" aria-label="Your goals at a glance">{figures.map(([label, n, hint]) => <div key={label}><dt>{label}</dt><dd><strong>{n}</strong><small>{hint}</small></dd></div>)}</dl>;
+  // Session AL (DV-022d, DV-027c, P-DV-24): Health goals live in their own section (they read the Health journal); the
+  // figures say so instead of leaving them out silently.
+  return <dl className="goals-figures" aria-label="Your goals at a glance">{figures.map(([label, n, hint]) => <div key={label}><dt>{label}</dt><dd><strong>{n}</strong><small>{hint}{label === 'Active' && healthActive > 0 && <> · <a className="text-link" href="#goals-health">+ {healthActive} health {healthActive === 1 ? 'goal' : 'goals'} below</a></>}</small></dd></div>)}</dl>;
 }
 
 /**
@@ -43,7 +45,7 @@ export function GoalTreeView({goals, extras}: {goals: readonly GoalSummary[]; ex
     return <li key={node.key} data-depth={depth} style={area ? {'--area-color': area.color} as React.CSSProperties : undefined}>
       <Link href={g.href} className="goal-tree-node" data-done={isFinished(g) || undefined}>
         <ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={depth ? 44 : 56} label={`${g.name} progress`} complete={isFinished(g)} identity={`tree-${g.key}`} bound={g.progressBound} />
-        <span className="goal-tree-text"><strong>{g.name}</strong><small>{r ? rollUpWords(r, (v, c) => formatGoalAmount(v, c)) : isFinished(g) ? (g.status === 'closed' ? 'Finished · closed' : 'Finished') : g.progressBound === 'unavailable' ? 'Progress unknown' : g.status === 'closed' ? 'Closed' : `${progressPresentation(g.progressPct, false)?.label ?? Math.floor(Number(g.progressPct))}% of the way`}</small></span>
+        <span className="goal-tree-text"><strong>{g.name}</strong><small>{/* Session AL (L-055, G-012, P-DVR-12): the ring is the goal's own progress; the roll-up says it is the sub-goals' */}{r ? `${isFinished(g) ? 'Finished' : g.progressBound === 'unavailable' ? 'Own progress unknown' : `${progressPresentation(g.progressPct, false)?.label ?? Math.floor(Number(g.progressPct))}% on its own`} · ${rollUpWords(r, (v, c) => formatGoalAmount(v, c))}` : isFinished(g) ? (g.status === 'closed' ? 'Finished · closed' : 'Finished') : g.progressBound === 'unavailable' ? 'Progress unknown' : g.status === 'closed' ? 'Closed' : `${progressPresentation(g.progressPct, false)?.label ?? Math.floor(Number(g.progressPct))}% of the way`}</small></span>
         {area && <span className="goal-tree-area"><i aria-hidden="true"/>{area.label}</span>}
         {kids.length > 0 && <span className="goal-tree-count" aria-label={`${kids.length} sub-goals`}>{kids.length}</span>}
       </Link>

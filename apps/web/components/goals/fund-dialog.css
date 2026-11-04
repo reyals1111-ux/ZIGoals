@@ -1,0 +1,6 @@
+/* Session AL (T-094, P-DVR-81): the Fund your Goal dialog never scrolls sideways at desktop widths. Long asset names and
+   amounts wrap, fields and tables keep inside the dialog, and grid items may shrink below their content's width. */
+dialog:has(.contribution-mode) { overflow-x: hidden; }
+dialog:has(.contribution-mode) :is(div, fieldset, form, label, section) { min-width: 0; }
+dialog:has(.contribution-mode) :is(p, strong, span, small, label, legend, dd, dt, td, th) { overflow-wrap: anywhere; }
+dialog:has(.contribution-mode) :is(input, select, textarea, table, img, svg) { max-width: 100%; }

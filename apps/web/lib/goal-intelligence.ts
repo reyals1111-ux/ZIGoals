@@ -138,10 +138,14 @@ export function recordGoalChanges(before:Platform,after:Platform,now=Date.now())
  const capturedAt=timestamp(now),added:GoalHistory[]=[];
  for(const g of after.goals){const old=before.goals.find(x=>x.id===g.id);
   const add=(kind:'allocation'|'plan'|'milestone'|'status',label:string)=>added.push({id:`change:${g.id}:${kind}:${crypto.randomUUID()}`,goalId:g.id,kind,capturedAt,label,provenance:'LOCAL_EDIT'});
-  if(JSON.stringify(old?.plan)!==JSON.stringify(g.plan))add('plan',!old?.plan?'Contribution plan created':g.plan?.active===false?'Contribution plan paused':'Contribution plan changed');
+  // Session AL (P-DV-09): Undo of a Delete brings the Goal back with its own history rows; no new "plan created" row.
+  const restored=!old&&after.goalHistory.some(h=>h.goalId===g.id);
+  if(!restored&&JSON.stringify(old?.plan)!==JSON.stringify(g.plan))add('plan',!old?.plan?'Contribution plan created':g.plan?.active===false?'Contribution plan paused':'Contribution plan changed');
   // Session AL (DV-046b, DV-112, P-DV-72; G-035): the row says which milestone and what happened to it.
   if(old&&JSON.stringify(old.milestones)!==JSON.stringify(g.milestones))add('milestone',milestoneChangeLabel(old.milestones,g.milestones));
-  if(old&&old.status!==g.status)add('status',g.status==='completed'?'Goal completed':g.status==='closed'?'Goal closed':'Goal reactivated');
+  // Session AL (DV-025b): a target lowered to what is already counted reads as reached, said as such (not "Goal completed").
+  const byEdit=g.status==='completed'&&old?.target!==g.target&&!g.lifecycle?.some(e=>e.kind==='completed'&&e.cycle===(g.lifecycle?.at(-1)?.cycle??0));
+  if(old&&old.status!==g.status)add('status',byEdit?'Target lowered to what is counted · reads as reached':g.status==='completed'?'Goal completed':g.status==='closed'?'Goal closed':'Goal reactivated');
   if(JSON.stringify(before.allocations.filter(a=>a.goalId===g.id))!==JSON.stringify(after.allocations.filter(a=>a.goalId===g.id)))add('allocation','Goal allocation changed');
  }
  return added.length?compactHistory({...after,goalHistory:[...after.goalHistory,...added]}):after;

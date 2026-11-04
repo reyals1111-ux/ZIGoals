@@ -14,6 +14,7 @@ export type GoalAmountWhat = 'target' | 'amount' | 'plan';
 
 const MISSING: Record<GoalAmountWhat, string> = {target: 'Enter your target.', amount: 'Enter an amount.', plan: 'Enter the planned amount.'};
 export const ABOVE_ZERO = 'Enter an amount above 0.';
+export const UNREADABLE = 'Enter a number, like 1500 or 12.50.';
 export const OVER_CAP = 'Enter an amount up to a trillion (1,000,000,000,000).';
 
 /**
@@ -27,8 +28,9 @@ export function readGoalAmount(raw: string, unit: string, what: GoalAmountWhat =
  const signed = parseNumberInput(typed, {allowNegative: true});
  if (signed.ok && signed.value <= 0) return {ok: false, text: null, error: ABOVE_ZERO};
  if (signed.ok && signed.value > LIMITS.amountMax) return {ok: false, text: null, error: OVER_CAP};
- // Unreadable text keeps the sentence every money form gives it (parseAmountInput; pinned by a11y-field-errors.spec.ts).
- try { parseAmountInput(typed, 18); } catch (e) { return {ok: false, text: null, error: e instanceof Error && e.message ? e.message : 'Enter a number, like 1500 or 0.5.'}; }
+ // Unreadable text: the reason parseAmountInput gives (an ambiguous "1,234" says why), but never the jargon "non-negative
+ // decimal" (DV-003c: 0 is refused too, so the old words were wrong); Session AL second pass, COPY_AUDIT §2.
+ try { parseAmountInput(typed, 18); } catch (e) { const said = e instanceof Error ? e.message : ''; return {ok: false, text: null, error: said && !/non-negative decimal/i.test(said) ? said : UNREADABLE}; }
  const money = unit === 'USD' || unit === 'EUR';
  const read = money ? validateValue('money', typed, unit) : validateValue('goalTarget', typed);
  if (!read.ok) return {ok: false, text: null, error: read.error};

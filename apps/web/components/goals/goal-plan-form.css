@@ -1,0 +1,11 @@
+/* Session AL (DV-033b, P-DV-55): the contribution plan form on a goal's page reads top to bottom at every width. At
+   1920 px the cadence choices floated as big tiles at the far right and "Active plan" sat beside Save. Fields flow in
+   columns of at least 260 px; the cadence choices sit inline on their own row; the checkbox and the buttons each get
+   their own row under the fields. */
+:root .goal-plan-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 14px 18px; align-items: start; }
+:root .goal-plan-form > :is(fieldset, .checkbox, .goal-plan-actions) { grid-column: 1 / -1; }
+:root .goal-plan-form > fieldset.goal-choice-tiles { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+:root .goal-plan-form > fieldset.goal-choice-tiles > legend { width: 100%; margin-bottom: 6px; }
+:root .goal-plan-form > fieldset.goal-choice-tiles > label { flex: 0 1 auto; min-height: 44px; }
+:root .goal-plan-form > .checkbox { justify-self: start; min-height: 44px; }
+:root .goal-plan-actions { display: flex; flex-wrap: wrap; gap: 10px; }

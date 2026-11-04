@@ -22,6 +22,7 @@ import {formatDate} from '../../lib/visual-format';
 import {StarToggle} from '../checklist/star-toggle';
 import {plainErrorMessage} from '../../lib/plain-error';
 import { plural } from '../../lib/plural';
+import {moveMilestone} from '../../lib/goals/milestone-templates';
 
 /**
  * A Goal's milestones (Session W Part 11): each with an optional target value (where the Goal keeps it) and target date
@@ -74,6 +75,11 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
         <small>{[m.target ? `at ${money(m.target)}` : '', date ? `by ${formatDate(date)}` : '', state === 'reached' ? 'reached by your recorded progress' : state === 'done' ? 'done' : date && date < today ? 'past its date' : ''].filter(Boolean).join(' · ')}</small>
         {!closed && <StarToggle item={{kind: 'goal-step', goalId: goal.id, milestoneId: m.id}} label={m.title}/>}
         {!closed && <button type="button" className="quiet" aria-label={`Edit milestone ${m.title}`} onClick={() => setEditing(m.id)}>Edit</button>}
+        {/* Session AL (DV-019e-1, DV-040a; P-DV-59): a project's steps can be put in order, by keyboard or pointer */}
+        {!closed && project && goal.milestones.length > 1 && <span className="goal-milestone-move" role="group" aria-label={`Move ${m.title}`}>
+          <button type="button" className="quiet" aria-label={`Move ${m.title} up`} disabled={goal.milestones[0]?.id === m.id} onClick={() => void run(() => update(s => withMilestones(s, goal.id, list => moveMilestone(list, m.id, -1))), `“${m.title}” moved up.`)}>↑</button>
+          <button type="button" className="quiet" aria-label={`Move ${m.title} down`} disabled={goal.milestones.at(-1)?.id === m.id} onClick={() => void run(() => update(s => withMilestones(s, goal.id, list => moveMilestone(list, m.id, 1))), `“${m.title}” moved down.`)}>↓</button>
+        </span>}
       </div>}
     </>; const done = () => void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done: true} : x)))); return phone ? <Suspense key={m.id} fallback={<li>{row}</li>}><SwipeRow as="li" label={m.title} nameRow={false} completeLabel="Done" onComplete={!closed && !m.done ? done : undefined}>{row}</SwipeRow></Suspense> : <li key={m.id}>{row}</li>; })}</ul> : <p>No milestones yet.</p>}
     {!closed && <form className="platform-form goal-milestone-add" aria-label="Add a milestone" noValidate onSubmit={e => { e.preventDefault(); const form = e.currentTarget, f = new FormData(form); try { /* Session AH (GO6, N-070) and Session AL (DV-019b/c, DV-040d/e): one rule for a milestone name (lib/goals/milestone-lines.ts) */ const issue = milestoneNameIssue(String(f.get('title') ?? ''), (goal.milestones ?? []).map(x => x.title)); if (issue) throw Error(issue); if (String(f.get('date') ?? '') && String(f.get('date')) < today) throw Error(PAST_DATE); setError(''); const title = visibleName(String(f.get('title')).trim(), 'Name the milestone with at least one visible character.'), target = parseTarget(String(f.get('target') ?? '')), id = crypto.randomUUID(), date = String(f.get('date') ?? ''); void run(async () => { await update(s => withMilestones(s, goal.id, list => [...list, {id, title, done: false, ...(target ? {target} : {})}])); if (date) saveDate(id, date); form.reset(); }, `Milestone added: “${title}”.`); } catch (cause) { setError(plainErrorMessage(cause, 'Check the milestone.')); } }}>
@@ -83,7 +89,9 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
       <button className="secondary">Add milestone</button>
       {error && !editing && <p role="alert" className="field-error" id="goal-milestone-error">{error}</p>}
     </form>}
-    <p className="fine">A milestone’s value sits on your Goal’s track and reads “reached” once your recorded progress passes it; “done” is your own tick. Target dates are kept on this device and, with an account, travel in your encrypted sync.</p>
+    {/* Session AL (DV-040f, P-DV-130): one idea per goal kind. A project's milestone is simply done when you tick it; only a
+        valued milestone also reads "reached" from recorded progress. */}
+    <p className="fine">{goal.type === 'PROJECT' || !goal.milestones.some(m => m.target) ? 'Tick a milestone when it is done.' : 'A milestone’s value sits on your Goal’s track and reads “reached” once your recorded progress passes it; “done” is your own tick.'} Target dates are kept on this device and, with an account, travel in your encrypted sync.</p>
     {error && closed && <p role="alert">{error}</p>}
   </>;
 }

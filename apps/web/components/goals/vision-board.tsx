@@ -14,11 +14,15 @@ import {SHOWCASE_VISION_ART} from '../../lib/showcase/vision-art';
 import {ProgressRing} from '../platform/financial-ui';
 import {isFinished} from '../../lib/goals/finished';
 import {VisionArt} from './vision-art';
+import {SceneArt} from '../scene-art';
+import {goalArt} from '../../lib/goals/goal-art';
+import {CARD_ARTS} from '../../lib/card-art/catalog';
 import {ZigiFigure} from '../zigi/zigi-figure';
 import {progressPresentation} from '../../lib/visual-format';
 import './vision-board.css';
 import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 
+const sceneName = (art: string) => (CARD_ARTS.find(a => a.id === art)?.label ?? 'goal').toLowerCase();
 /** A goal without a chosen vision still gets a calm picture: one of the gradients, picked from its key. */
 const fallback = (key: string) => GRADIENTS[[...key].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7) % GRADIENTS.length]!;
 // Gate C (design critique): the words round as the ring beside them does (the ring read 95 % over "94% of the way").
@@ -77,10 +81,12 @@ export function VisionBoard({goals, extras, onVision}: {goals: readonly GoalSumm
   return <>
     <ul className="vision-board" aria-label="Vision board">
       {goals.map((g, i) => {
-        const vision = extras.goals[g.key]?.vision ?? {kind: 'gradient' as const, gradient: fallback(g.key)}, why = extras.goals[g.key]?.why, picture = art(g);
+        // Session AL (DV-022a, DV-043b, D-208, BUG-019, L-066; P-DV-63): a goal without its own vision shows its card's artwork
+        // (the same picture as on Cards and its page, and "Change artwork" changes it here too), not an unrelated gradient.
+        const chosenVision = extras.goals[g.key]?.vision, vision = chosenVision ?? {kind: 'gradient' as const, gradient: fallback(g.key)}, why = extras.goals[g.key]?.why, picture = art(g);
         return <li key={g.key} className="vision-tile" data-size={i % 5 === 0 ? 'wide' : i % 3 === 1 ? 'tall' : undefined}>
           <button type="button" className="vision-tile-open" aria-label={`${g.name}: ${progressWords(g)}. Open full screen`} onClick={() => setOpen(g.key)}>
-            {picture ? <span className="vision-art vision-tile-art vision-tile-photo" role="img" aria-label={picture.alt}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={picture.src} alt="" loading="lazy" decoding="async"/></span> : <VisionArt vision={vision} name={g.name} className="vision-tile-art" />}
+            {picture ? <span className="vision-art vision-tile-art vision-tile-photo" role="img" aria-label={picture.alt}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={picture.src} alt="" loading="lazy" decoding="async"/></span> : chosenVision ? <VisionArt vision={vision} name={g.name} className="vision-tile-art" /> : <span className="vision-art vision-tile-art vision-tile-scene" role="img" aria-label={`The ${sceneName(goalArt(g, extras.goals[g.key]?.cardArt))} picture for ${g.name}`}><SceneArt scene={goalArt(g, extras.goals[g.key]?.cardArt)}/></span>}
             <span className="vision-tile-shade" aria-hidden="true"/>
             <span className="vision-tile-body">
               <span className="vision-tile-ring"><ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={52} label={`${g.name} progress`} complete={isFinished(g)} identity={`board-${g.key}`} bound={g.progressBound} /></span>
@@ -107,7 +113,7 @@ function VisionFullScreen({goal: g, extras, picture, fallbackGradient, onClose}:
   useEffect(() => { dialog.current?.showModal(); }, []);
   const extra = extras.goals[g.key], vision = extra?.vision ?? {kind: 'gradient' as const, gradient: fallbackGradient};
   return createPortal(<dialog ref={dialog} className="vision-full" aria-labelledby="vision-full-title" onClose={onClose} onClick={e => { if (e.target === dialog.current) dialog.current.close(); }}>
-    <div className="vision-full-art">{picture ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={picture.src} alt={picture.alt}/> : <VisionArt vision={vision} name={g.name} className="vision-full-vision" />}</div>
+    <div className="vision-full-art">{picture ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={picture.src} alt={picture.alt}/> : extra?.vision ? <VisionArt vision={vision} name={g.name} className="vision-full-vision" /> : <span className="vision-art vision-full-vision vision-tile-scene" role="img" aria-label={`The ${sceneName(goalArt(g, extra?.cardArt))} picture for ${g.name}`}><SceneArt scene={goalArt(g, extra?.cardArt)}/></span>}</div>
     <div className="vision-full-copy">
       <p className="eyebrow">{g.type}</p>
       <h2 id="vision-full-title">{g.name}</h2>

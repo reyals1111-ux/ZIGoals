@@ -42,3 +42,8 @@
   :root .unified-activity ol { gap: 8px; }
 }
 .activity-filter-count { font-variant-numeric: tabular-nums; opacity: .8; }
+/* Session AL (DV-036d, P-DV-76): the source cards' titles show their part of the list; they read as the card's title, with
+   a full-size target (24 px+ inline, 44 px tall where the title stands alone). */
+.activity-context .activity-source-link { font: inherit; color: inherit; padding: 0; min-height: 24px; text-align: left; }
+.activity-context strong > .activity-source-link { min-height: 44px; }
+.activity-context .activity-source-link[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 4px; }

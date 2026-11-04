@@ -11,3 +11,7 @@
 .milestone-habit-add label { display: grid; gap: 4px; }
 .milestone-habit-add select { min-height: 44px; }
 .goal-share-panel { margin-top: 16px; }
+/* Session AL (DV-019g, P-DV-130): the habit links fold under one summary; each milestone's picker opens on demand. */
+.milestone-habits > details > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.milestone-habits > details > summary h3 { display: inline; margin: 0; font-size: inherit; }
+.milestone-habit-open { justify-self: start; min-height: 32px; }

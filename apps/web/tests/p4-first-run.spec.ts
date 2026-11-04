@@ -21,7 +21,8 @@ const shown = (page: Page) => page.locator('main').evaluate(el => (el as HTMLEle
 
 test('FR-1: saving for a holiday on a fresh device stays in plain money words, from the wizard to the goal page', async ({page}) => {
   await ready(page, '/app/goals/new');
-  await page.getByRole('button', {name: 'Start from the idea: A holiday'}).click();
+  // Session AL (COPY_AUDIT, deliberate): DV-176/DV-183, the idea is the library's "Holiday fund" and names the goal the same.
+  await page.getByRole('button', {name: 'Start from the idea: Holiday fund'}).click();
   await page.getByLabel('Target amount', {exact: true}).fill('1500');
   await page.getByRole('button', {name: 'Continue →', exact: true}).click();
   await expect(page.getByRole('heading', {name: 'What counts toward this Goal?'})).toBeVisible();

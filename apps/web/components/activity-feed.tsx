@@ -13,7 +13,7 @@ import { activityPresentation, activityDay, activityDayHeading, activityTimeZone
 import { dailyData, getWaterActivities } from "../lib/health-daily";
 import { useShowcase } from "./showcase-controls";
 import {formatUnits} from "@zigoals/chain-config";
-import {formatMoney, formatQuantity, isMoneyCurrency} from "../lib/visual-format";
+import {formatExactNumber, formatMoney, formatQuantity, isMoneyCurrency} from "../lib/visual-format";
 import {amountWithUnit} from "../lib/asset-unit";
 import {formatGoalAmount} from "../lib/goal-summary";
 import {isUnitWord} from "../lib/goals/goal-units";
@@ -21,6 +21,7 @@ import "./activity-product.css";
 import { activityTimeLabel } from "../lib/activity-time";
 import { activityKeys } from "./activity-keys";
 import { useZigiActions } from "./activity/use-zigi-actions";
+import { useAverageGoals } from "./goals/use-average-goals";
 import { useEffect } from "react";
 import { useDeviceRecord } from "./ai/use-device-record";
 import { ACCOUNTS } from "../lib/accounts/schema";
@@ -30,12 +31,24 @@ import { countText, plural } from "../lib/plural";
 import { removeHealthItem } from "../lib/health";
 import { removeWater } from "../lib/health-daily";
 import { removeWithUndo } from "./ui/remove-with-undo";
-import { showToast } from "./ui/undo-toast";
+import { showStatus, showUndo } from "./ui/undo-toast";
 import { entryOn, restoreHabitEntry, type HabitEntry } from "../lib/timeline/actions";
 import { storageMessageOr } from "../lib/storage-error-copy";
+/** Session AL (DV-117, P-DV-80): each filter's empty view says what belongs there and where to start it. */
+function emptyFor(category: string): {title: string; body: string; href?: string; link?: string} {
+  switch (category) {
+    case "GOAL": return {title: "No goal steps yet.", body: "Creating a goal, funding it and ticking its milestones show here.", href: "/app/goals", link: "Go to Goals →"};
+    case "WEALTH": return {title: "No wealth records yet.", body: "Assets you add, balances and payments you enter show here.", href: "/app/wealth", link: "Go to Wealth →"};
+    case "HABIT": return {title: "No habit check-ins yet.", body: "Each day you check in a habit shows here.", href: "/app/habits", link: "Log one on Habits →"};
+    case "HEALTH": return {title: "No health logs yet.", body: "Water, weight and workouts you log show here.", href: "/app/health", link: "Log one on Health →"};
+    case "ZIGI": return {title: "Nothing from ZIGi yet.", body: "What you confirm from a ZIGi card shows here."};
+    default: return {title: "Your next step belongs here.", body: "Goal actions, habit check-ins and health logs will build your story."};
+  }
+}
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void }) {
   const showcase = useShowcase();
   const platform=usePlatform();
+  const averages = useAverageGoals();
   const goals = useGoals(), habits = useHabits(), health = useHealth(), zigi = useZigiActions(), accounts = useDeviceRecord(ACCOUNTS), priceAlerts = useDeviceRecord(PRICE_ALERTS);
   // Session AH (B-199, WE7): balances and debt payments entered in Wealth appear here too, under their own day.
   const midnight = (date: string) => { const d = new Date(`${date}T00:00:00`); return Number.isNaN(d.getTime()) ? `${date}T00:00:00.000Z` : d.toISOString(); };
@@ -51,8 +64,17 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   // reads short; "3 books", not "3 BOOKS"); money leaving a goal (a withdrawal or a correction) carries its minus sign.
   const amountOf=(e:{id:string;quantity?:string;asset?:string;decimals?:number},decimals:number)=>{if(!e.quantity)return '';const d=e.decimals??decimals;const record=platform.data.contributions.find(c=>`contribution:${c.id}`===e.id),sign=record?.direction==='OUT'?'−':'';if(e.asset&&(isMoneyCurrency(e.asset)||isUnitWord(e.asset)))return sign+formatGoalAmount(formatUnits(e.quantity,d),e.asset);return sign+amountWithUnit(platform.data,formatQuantity(formatUnits(e.quantity,d)),e.asset??'',record?.positionId);};
   const financial=includeGoals?platform.data.goals.flatMap(g=>goalTimeline(platform.data,g.id).filter(e=>!['valuation','observation'].includes(e.kind)).map(e=>({id:e.id,category:'GOAL',title:e.label,detail:[g.name,g.type==='PROJECT'?(e.quantity?countText(Number(e.quantity),'milestone'):''):amountOf(e,g.decimals)].filter(Boolean).join(' · '),at:e.at,href:`/app/goals/tracked/${g.id}`,source:/* Session AL (DV-046c, P-DV-75) */e.provenance==='REWARD_INCOME'?'Income you recorded':e.provenance==='MANUAL_ATTRIBUTION'?'Added by you':'Your goal’s history'}))):[];
+  // Session AL (DV-054c, DV-047c, P-DV-73): average goals are goals too: started, each day logged by hand, finished.
+  const averageEvents = includeGoals && averages.loaded && !averages.unreadable ? averages.data.goals.flatMap(g => {
+    const href = `/app/goals/average/${encodeURIComponent(g.id)}`, unit = g.unit ? ` ${g.unit}` : '';
+    return [
+      {id: `average-created:${g.id}`, category: "GOAL", title: "Average goal started", detail: `${g.name} · ${g.direction === 'at-most' ? 'at most' : 'at least'} ${formatExactNumber(String(g.target))}${unit}, over ${g.windowDays} days`, at: g.createdAt, href, source: "Added by you"},
+      ...g.entries.map(e => ({id: `average-day:${g.id}:${e.day}`, category: "GOAL", title: `Day logged · ${g.name}`, detail: `${formatExactNumber(String(e.value))}${unit}`, at: midnight(e.day), day: e.day, href, source: "Added by you"})),
+      ...(g.status === 'completed' && g.completedAt ? [{id: `average-finished:${g.id}`, category: "GOAL", title: "Average goal finished", detail: g.name, at: g.completedAt, href, source: "Marked by you"}] : []),
+    ];
+  }) : [];
   const base = [
-    ...financial,
+    ...financial, ...averageEvents,
     ...(includeGoals ? platform.data.goals.map(goal => ({ id: `created:${goal.id}`, category: "GOAL", title: "Goal created", detail: goal.type === "PROJECT" ? `${goal.name} · ${plural(goal.milestones.length, "1 milestone", `${goal.milestones.length} milestones`)}` : `${goal.name} · target ${formatGoalAmount(formatUnits(goal.target, goal.decimals), goal.asset)}`, at: goal.createdAt, href: `/app/goals/tracked/${goal.id}`, source: "Added by you" })) : []),
     ...platform.data.assetEvents.map(e=>({id:e.id,category:"WEALTH",title:`${e.name} ${e.kind}`,detail:e.assetClass,assetType:(()=>{const ref=platform.data.positions.find(position=>position.id===e.positionId)?.marketRef;return ref?.kind==='rwa'?ref.assetType:undefined;})(),at:e.at,href:`/app/wealth/asset/${encodeURIComponent(e.positionId)}`,source:"Private asset record"})),
     ...(includeGoals && goals.mode === "local" ? goals.activity.map((event, index) => ({ id: `goal-${event.timestamp}-${index}`, category: "GOAL", title: event.action, detail: goals.metadata?.goals[event.goalId]?.name ?? `Goal #${event.goalId}`, at: event.timestamp, href: `/app/goals/${event.goalId}` })) : []),
@@ -63,11 +85,15 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   // record has no entry of its own here (water, a recipe, a reminder…).
   const shownIds = new Set(base.map(event => event.id));
   // Gate B: a note that names a habit deleted for good is left out (the habit's name went with it).
-  const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId) && !isDeletedHabitRef(a.activityId, habits.deletedIds)).map(a => { const how = a.auto ? "Added by ZIGi (auto-accept)" : "Confirmed from a ZIGi card"; return {id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: how, at: a.at, href: a.href, source: how}; });
+  // Session AL (DV-115, DV-169, P-DV-74): a habit check-in or skip always has its own row while it exists, so one without
+  // a row was removed since; it leaves "Actions by ZIGi" too (it stayed there, counted nowhere). Its line says how once.
+  const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId) && !isDeletedHabitRef(a.activityId, habits.deletedIds) && !/^(check-in|skip)$/.test(a.kind)).map(a => { const how = a.auto ? "Added by ZIGi (auto-accept)" : "Confirmed from a ZIGi card"; return {id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: "", at: a.at, href: a.href, source: how}; });
   // Session X-Local Part 5b after the merge: a record ZIGi added under auto-accept says so on its own event too (before the merge
   // the feed listed such records only as ZIGi's entries; X-Cloud's feed now shows the record itself, marked by ZIGi).
   const autoById = new Map(zigi.actions.filter(a => a.auto).map(a => [a.activityId, true] as const));
-  const allEntries = (category === "ZIGI" ? [...base.filter(event => zigi.ids.has(event.id)), ...zigiOnly] : base.filter(event => category === "ALL" || event.category === category)).map(event => ({...event, dayKey: activityDay(event)})).sort((a, b) => b.dayKey.localeCompare(a.dayKey) || b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
+  // Session AL (DV-046d, DV-169, P-DV-74): one selection for the list and for its chip's count.
+  const select = (c: string) => c === "ZIGI" ? [...base.filter(event => zigi.ids.has(event.id)), ...zigiOnly] : base.filter(event => c === "ALL" || event.category === c);
+  const allEntries = select(category).map(event => ({...event, dayKey: activityDay(event)})).sort((a, b) => b.dayKey.localeCompare(a.dayKey) || b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
   const entries = allEntries.slice(0, limit), keys = activityKeys(entries);
   // Session AI (SE5): a Health entry can be removed from the log itself, with the app's one Undo; the others keep the undo
   // where they were made (a habit day in its day editor, a goal's contribution on its goal).
@@ -81,11 +107,11 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     const day = habitDay(id); if (!day) return;
     let previous: HabitEntry | undefined, captured = false;
     void Promise.resolve(habits.update(d => { if (!captured) { previous = entryOn(d, day.habitId, day.date); captured = true; } return restoreHabitEntry(d, day.habitId, day.date, undefined); }))
-      .then(() => showToast({message: `Removed: ${title}, that day.`, undo: () => habits.update(d => restoreHabitEntry(d, day.habitId, day.date, previous)), undone: `${title} is back for that day.`}))
-      .catch(e => showToast({message: storageMessageOr(e, 'This day could not be changed on this device.')}));
+      .then(() => showUndo({message: `Removed: ${title}, that day.`, restore: () => habits.update(d => restoreHabitEntry(d, day.habitId, day.date, previous)), undone: `${title} is back for that day.`})) /* Session AL (A7): the one Undo */
+      .catch(e => showStatus(storageMessageOr(e, 'This day could not be changed on this device.')));
   };
   const contributionGoal = (id: string) => { if (!id.startsWith("contribution:")) return null; const c = platform.data.contributions.find(x => `contribution:${x.id}` === id); return c && !c.reversesId && c.goalScope === "private" && !platform.data.contributions.some(r => r.reversesId === c.id) ? c.goalId : null; };
-  const counts = JSON.stringify(Object.fromEntries(["GOAL", "WEALTH", "HABIT", "HEALTH"].map(c => [c, base.filter(e => e.category === c).length]).concat([["ALL", base.length]])));
+  const counts = JSON.stringify(Object.fromEntries(["ALL", "GOAL", "WEALTH", "HABIT", "HEALTH", ...(zigi.actions.length ? ["ZIGI"] : [])].map(c => [c, select(c).length])));
   useEffect(() => { onCounts?.(JSON.parse(counts) as Record<string, number>); }, [counts, onCounts]);
   return <div className="unified-activity">
     {(habits.error || health.error) && <p className="fine">Some private history needs attention in Settings; stored data has been preserved.</p>}
@@ -99,14 +125,14 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
         {startsDay && <h3 className="activity-date-heading">{heading}</h3>}
         <article className="activity-event" data-category={event.category} data-tone={presentation.tone}>
           <span className={`timeline-icon timeline-${presentation.tone}`}><AppIcon name={presentation.icon} size={28} /></span>
-          <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link><p>{event.detail}</p><small>{showcase ? "Showcase example" : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
+          <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link>{event.detail && <p>{event.detail}</p>}<small>{/* Session AL (D-227, P-DVR-42): the Showcase is said once above the list, not on every row */'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
           {(() => { const time = activityTimeLabel(event.at, activityTimeZone()); return time ? <time dateTime={event.at}>{time}</time> : null; })()}
           {!showcase && event.category === "HABIT" && habitDay(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => removeHabitDay(event.id, event.title)}>Remove</button>}
           {!showcase && (() => { const goal = contributionGoal(event.id); return goal ? <Link className="text-link activity-remove" href={`/app/goals/tracked/${goal}#funding-wealth`} aria-label={`Reverse on its goal: ${event.title}`}>Reverse on its goal →</Link> : null; })()}
           {!showcase && event.category === "HEALTH" && healthKind(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => remove(event.id, event.title)}>Remove</button>}
         </article>
       </li>;
-    })}</ol> : <EmptyState className="timeline-empty" zigi="encouraging" title="Your next step belongs here.">Goal actions, habit check-ins and health logs will build your story.</EmptyState>}
+    })}</ol> : (e => <EmptyState className="timeline-empty" zigi="encouraging" title={e.title} action={e.href ? <Link className="text-link" href={e.href}>{e.link}</Link> : undefined}>{e.body}</EmptyState>)(emptyFor(category))}
     {onMore && allEntries.length > limit && <button className="quiet" onClick={onMore}>Show more activity</button>}
   </div>;
 }

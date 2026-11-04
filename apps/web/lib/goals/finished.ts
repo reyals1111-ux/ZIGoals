@@ -32,3 +32,16 @@ export function isFinished(row: {status: string; reached?: boolean}): boolean {
 export function finishedCounts(rows: readonly {status: string; reached?: boolean}[]): {active: number; finished: number} {
  return {active: rows.filter(r => r.status === 'active').length, finished: rows.filter(isFinished).length};
 }
+
+/**
+ * Session AL (DV-025b, P-DV-31): a Goal that reads as reached only because its target was lowered to what was already
+ * counted. Its current cycle starts with "Target changed" and holds no "Target reached" (lib/plan-revisions.ts records none
+ * for an edit), so the page says so calmly instead of celebrating. A Goal without lifecycle rows (older records) is not this.
+ */
+export function reachedByTargetEdit(goal: Pick<PrivateGoal, 'status' | 'lifecycle'>): boolean {
+ if (goal.status !== 'completed') return false;
+ const events = goal.lifecycle ?? [], cycle = events.at(-1)?.cycle;
+ if (cycle === undefined) return false;
+ const current = events.filter(e => e.cycle === cycle);
+ return current.some(e => e.kind === 'target_changed') && !current.some(e => e.kind === 'completed');
+}

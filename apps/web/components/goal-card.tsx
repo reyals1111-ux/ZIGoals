@@ -15,9 +15,11 @@ const SceneArt = lazy(() => import('./scene-art').then(m => ({default: m.SceneAr
 import {ProgressRing} from './platform/financial-ui';
 import {formatDate, formatPlainDecimal, isMoneyCurrency} from '../lib/visual-format';
 import {PinToToday} from './pin-to-today';
+import {CardOptions} from './card-options';
 import type {LayoutAttrs} from './layout-edit';
 import {Suspense, lazy, useId, useState} from 'react';
 import {useCardArt} from './goals/use-card-art';
+import {goalArt} from '../lib/goals/goal-art';
 import type {CardArt} from '../lib/card-art/catalog';
 import './goal-card-ab.css';
 import {StarToggle} from './checklist/star-toggle';
@@ -37,14 +39,18 @@ export function unvaluedNote(g:Pick<GoalSummary,'progressBound'|'unvaluedSources
 export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&{summary:GoalSummary;compact?:boolean}){
  // Session AB-Design (owner request 17): the chosen artwork (AB-Cloud's cardArt through the mirror, or the Showcase's), previewed while the picker is open; the card's size never changes.
  const chosen=useCardArt(g.key),[picker,setPicker]=useState(false),[preview,setPreview]=useState<CardArt|null>(null),gid=useId();
- const scene:CardArt=preview??chosen??g.scene;
+ // Session AL (DV-022a, D-208, P-DV-63): the same picture as the Vision board and the goal page; a fitting default.
+ const scene:CardArt=preview??goalArt(g,chosen);
  const morph=!compact&&g.href.startsWith('/app/goals/tracked/'),open=()=>noteGoalOpen(g.id,g.name);
  // Session AL (DV-013/DV-049c/DV-057b, P-DV-20): the card names the kind in plain words ("Savings goal", not "VALUE GOAL"),
  // with or without the chain; a local-simulation category stays as it is.
  const kind=kindLabel(g.type,false);
+ // Session AL (DV-021e, DV-043e, DV-056a, DV-102; P-DV-61): the card's ⋯ also opens the goal where it is managed: its details
+ // to edit, and its status to close or reopen (a private goal's page opens that section from the address).
+ const manage=g.key.startsWith('private:')?<><Link href={g.href}>Open goal</Link><Link href={`${g.href}#edit-goal`}>Edit details</Link><Link href={`${g.href}#goal-status`}>{g.status==='closed'?'Reopen…':'Close…'}</Link></>:null;
  return <article {...layout} className={`goal-card destination-card unified-goal-card${compact?' compact-goal':''}`} data-tone={visualTone(g.id)} data-goal-key={g.key}>
   <div className="goal-card-art"><Suspense fallback={null}><SceneArt scene={scene}/></Suspense><span>{kind}</span></div>
-  <div className="card-top"><span className="eyebrow">{kind}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span>{/* Session AF (the lead): the Checklist star and the card's options stay together at the row's end, so the options menu never opens past the card when the row wraps (it opened under the sidebar at 1280 × 720). */}{!compact&&g.status!=='closed'&&<span className="card-top-tools">{g.key.startsWith('private:')&&<StarToggle item={{kind:'goal',goalId:g.id}} label={g.name}/>}<PinToToday label={g.name} askName={g.name} choices={[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`,menu:'progress'},{kind:'goal',metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`,menu:'next contribution'}]} extra={<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button>}/></span>}</div>
+  <div className="card-top"><span className="eyebrow">{kind}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span>{/* Session AF (the lead): the Checklist star and the card's options stay together at the row's end, so the options menu never opens past the card when the row wraps (it opened under the sidebar at 1280 × 720). */}{!compact&&g.status!=='closed'&&<span className="card-top-tools">{g.key.startsWith('private:')&&<StarToggle item={{kind:'goal',goalId:g.id}} label={g.name}/>}<PinToToday label={g.name} askName={g.name} choices={[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`,menu:'progress'},{kind:'goal',metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`,menu:'next contribution'}]} extra={<>{manage}<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button></>}/></span>}{/* Session AL (DV-043e, P-DV-61): a closed card keeps its ⋯, with Reopen and the artwork */}{!compact&&g.status==='closed'&&<span className="card-top-tools"><CardOptions label={g.name}>{manage}<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button></CardOptions></span>}</div>
   {picker&&<Suspense fallback={null}><GoalArtPicker goalKey={g.key} name={g.name} current={scene} onClose={()=>setPicker(false)} onPreview={setPreview}/></Suspense>}
   {/* Session AK M1: a private goal's full card (one per goal on its page) shares its title with the goal page's heading. */}
   {morph?<GoalTitleMorph id={g.id}><h2 className="nebula-number"><Link href={g.href} onClick={open}>{g.name}</Link></h2></GoalTitleMorph>:<h2 className="nebula-number"><Link href={g.href}>{g.name}</Link></h2>}

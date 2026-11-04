@@ -18,9 +18,9 @@ import {Skeleton} from '../ui/skeleton';
  * after the page (weights): the page itself never reads the goal extras.
  */
 type Props = {goals: readonly GoalSummary[]; averages: readonly AverageGoal[]};
-export function FiguresSection({goals, averages}: Props) {
+export function FiguresSection({goals, averages, healthActive}: Props & {healthActive?: number}) {
   const extras = useGoalExtras();
-  return <GoalsFigures goals={goals} averages={averages} extras={extras.data} />;
+  return <GoalsFigures goals={goals} averages={averages} extras={extras.data} healthActive={healthActive} />;
 }
 /** The board and the tree show the filtered `goals` (Session AB-Design: the figures are their own block and the switch sits in the toolbar). */
 export function GoalsAltView({view, goals, averages, ...layout}: Props & LayoutAttrs & {view: 'board' | 'tree'}) {

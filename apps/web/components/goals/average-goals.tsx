@@ -2,7 +2,7 @@
 import type {LayoutAttrs} from '../layout-edit';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {Suspense, lazy, useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useState} from 'react';
 import {AVERAGE_METRICS, WINDOWS, addAverageGoal, averageKey, editAverageGoal, logAverageValue, removeAverageGoal, removeAverageValue, setAverageStatus, type AverageGoal, type AverageMetric} from '../../lib/average-goals/store';
 import {averageProgress} from '../../lib/average-goals/progress';
 import {setGoalArea, setGoalTemplate} from '../../lib/goal-extras/store';
@@ -22,6 +22,7 @@ import {useUnifiedGoals} from '../use-unified-goals';
 import './goals.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 import '../skeleton/zg-skeleton.css';
+import {useDefaultCurrency} from '../../lib/default-currency';
 // Session AK (B3, lane B): the notes that link to this goal ([[name]]), their own chunk.
 const NoteBacklinks = lazy(() => import('../notes/note-backlinks'));
 
@@ -42,7 +43,7 @@ export function AverageGoalCard({goal, ...layout}: LayoutAttrs & {goal: AverageG
       <ProgressRing percent={p.share === null ? null : String(p.share * 100)} size={94} label={`${goal.name}: how close the average is`} complete={p.met === true} identity={`average-${goal.id}`} valueText={p.average === null ? 'No data' : undefined} />
       <div><strong>{p.average === null ? 'No data yet' : `${value(goal, p.average)}`}</strong><span>{p.average === null ? '' : goal.unit}</span><small>{verdict(goal, p)}</small></div>
     </div>
-    <p className={`average-goal-state${p.met ? ' is-met' : ''}`}>{p.met === null ? 'Waiting for your first day.' : p.met ? 'On target over the last ' + goal.windowDays + ' days.' : 'Not on target yet over the last ' + goal.windowDays + ' days.'}</p>
+    <p className={`average-goal-state${p.met ? ' is-met' : ''}`}>{/* Session AL (G-014, P-DVR-13): a finished goal never reads "Not on target yet"; a near miss says it is close */goal.status === 'completed' ? 'Finished. It is on the Hall of achievements.' : p.met === null ? 'Waiting for your first day.' : p.met ? 'On target over the last ' + goal.windowDays + ' days.' : p.share !== null && p.share >= 0.9 ? 'Close: within a tenth of your target over the last ' + goal.windowDays + ' days.' : 'Not on target yet over the last ' + goal.windowDays + ' days.'}</p>
     <Link className="text-link" href={`/app/goals/average/${goal.id}`}>Open Goal →</Link>
   </article>;
 }
@@ -54,6 +55,9 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
   const [name, setName] = useState(t?.title ?? ''), [metric, setMetric] = useState<AverageMetric>(preset?.metric ?? 'sleep-hours');
   const [target, setTarget] = useState(preset && !preset.askTarget ? String(preset.target) : ''), [direction, setDirection] = useState<'at-least' | 'at-most'>(preset?.direction ?? 'at-least');
   const [windowDays, setWindow] = useState<7 | 14 | 30>(preset?.windowDays ?? 7), [unit, setUnit] = useState(preset?.unit ?? AVERAGE_METRICS['sleep-hours'].unit), [error, setError] = useState('');
+  // Session AL (DV-184, P-DV-40): a spending cap names the person's currency ("EUR spent a day"), never a bare "spent a day".
+  const currency = useDefaultCurrency();
+  useEffect(() => { if (preset?.askTarget) queueMicrotask(() => setUnit(u => u === preset.unit ? `${currency} ${preset.unit}` : u)); }, [currency, preset]);
   function save(e: React.FormEvent) {
     e.preventDefault(); setError('');
     // Session AL (DV-052a, P-DV-02): the target through the limits table for its measure (25 h of sleep a night was saved).
@@ -123,7 +127,7 @@ export function AverageGoalDetail({id}: {id: string}) {
     <section className="panel average-goal-settings" aria-labelledby="average-settings-title">
       <h2 id="average-settings-title">Goal status</h2>
       <div className="dashboard-actions">
-        {goal.status !== 'completed' ? <button type="button" className="secondary" onClick={() => { run(s => setAverageStatus(s, goal.id, 'completed', new Date().toISOString()), 'Marked as finished. It is on the Hall of achievements.', s => setAverageStatus(s, goal.id, goal.status, new Date().toISOString())); zigiSignals.emitValidated('goal_funded'); zigiSignals.emitValidated('achievement_unlocked'); /* Session AA-Local, merged second (ADR-022 B52): a finished average goal is an achievement; one celebration a day */ }}>Mark as finished</button> : <button type="button" className="secondary" onClick={() => run(s => setAverageStatus(s, goal.id, 'active', new Date().toISOString()), 'Active again.')}>Make active again</button>}
+        {goal.status !== 'completed' ? <button type="button" className="secondary" onClick={() => { run(s => setAverageStatus(s, goal.id, 'completed', new Date().toISOString()), 'Marked as finished. It is on the Hall of achievements.', s => setAverageStatus(s, goal.id, goal.status, new Date().toISOString())); /* Session AL (for L3, NB-049): finishing is "A goal finished", not "Goal funded" */ zigiSignals.emitValidated('goal_finished'); zigiSignals.emitValidated('achievement_unlocked'); /* Session AA-Local, merged second (ADR-022 B52): a finished average goal is an achievement; one celebration a day */ }}>Mark as finished</button> : <button type="button" className="secondary" onClick={() => run(s => setAverageStatus(s, goal.id, 'active', new Date().toISOString()), 'Active again.')}>Make active again</button>}
         <label className="field average-window-edit"><span>Window</span><select value={goal.windowDays} onChange={e => run(s => editAverageGoal(s, goal.id, {windowDays: Number(e.target.value) as 7 | 14 | 30}), 'Window changed.', s => editAverageGoal(s, goal.id, {windowDays: goal.windowDays}))}>{WINDOWS.map(w => <option key={w} value={w}>{w} days</option>)}</select></label>
         {/* Session AL (DV-052b, P-DV-10, P-DVR-09): Remove asks first, right here, and then offers the one Undo (the goal and every day). */}
         <button type="button" className="quiet danger" aria-expanded={confirmRemove} aria-controls="average-remove-confirm" onClick={() => setConfirmRemove(v => !v)}>Remove this goal</button>

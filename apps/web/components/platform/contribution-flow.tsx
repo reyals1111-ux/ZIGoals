@@ -24,6 +24,7 @@ import {goalUnitsInAsset} from '../../lib/allocation/autopilot';
 import {isOwnUnitGoal,newOwnUnitPosition,ownUnitPosition,unitWord} from '../../lib/goals/goal-units';
 import {readGoalAmount} from '../../lib/goals/goal-amount';
 import {validateValue} from '../../lib/limits/plausibility';
+import '../goals/fund-dialog.css'; // Session AL (T-094): no sideways scroll in the Fund dialog
 /** `due` (Session W Part 12): the plan day "Fund now" came from and its amount in Goal units; that day's instalment is chosen and, for an asset in the Goal's own units, the amount filled in for the person to check. */
 export function ContributionFlow({data,goal,quotes,update,due,onClose,onSaved}:{data:Platform;goal:PrivateGoal;quotes:readonly MarketQuote[];update:(fn:(s:Platform)=>Platform)=>Promise<void>;due?:{date:string;amount:string};onClose:()=>void;onSaved:(text:string)=>void}){
  // Session AL (DV-014/DV-034b/DV-035/DV-103/DV-123, P-DV-27): a count Goal of the person's own unit ("20 books") is funded in

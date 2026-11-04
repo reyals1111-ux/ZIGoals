@@ -15,7 +15,8 @@ describe('readGoalAmount', () => {
   it('says what is missing, and keeps the money forms\' sentence for unreadable text', () => {
     expect(readGoalAmount('', 'USD', 'target').error).toBe('Enter your target.');
     expect(readGoalAmount(' ', 'USD', 'plan').error).toBe('Enter the planned amount.');
-    expect(readGoalAmount('lots', 'USD').error).toBe('Enter a non-negative decimal amount.');
+    // Session AL second pass (COPY_AUDIT, deliberate): plain words for unreadable text, no "non-negative decimal".
+    expect(readGoalAmount('lots', 'USD').error).toBe('Enter a number, like 1500 or 12.50.');
   });
   it('reads a decimal comma and grouping; money keeps 2 decimals', () => {
     expect(readGoalAmount('1,5', 'EUR')).toMatchObject({ok: true, text: '1.5'});

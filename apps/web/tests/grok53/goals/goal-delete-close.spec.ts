@@ -20,7 +20,8 @@ test('DV-041a/D-035: Close from Goal status opens its confirm right under the bu
   await expect(page.getByRole('status').filter({hasText: 'Goal closed. Its history stays, and you can reopen it.'})).toBeVisible();
   // The menu now offers Reopen, not Close (DV-021e).
   await page.getByLabel('Goal actions').click();
-  await expect(page.getByRole('button', {name: 'Reopen Goal', exact: true})).toBeVisible();
+  // The menu's own Reopen (the Goal status card below keeps "Reopen Goal": two places, two names).
+  await expect(page.getByRole('button', {name: 'Reopen this goal', exact: true})).toBeVisible();
   await expect(page.getByRole('button', {name: 'Close Goal', exact: true})).toHaveCount(0);
 });
 
@@ -43,21 +44,57 @@ test('DV-026a/b: Delete asks next to the menu, deletes, and the one Undo puts th
   await expect(page.getByRole('heading', {name: 'Fictional bike', exact: true})).toBeVisible();
 });
 
-test('DV-021b/c, DV-100: when the store keeps a goal\'s history, Delete is off and says why inside the menu', async ({page}) => {
-  const reached = project('73', ['Plan', 'Build'], 2, {status: 'completed', lifecycle: [{id: 'l1', kind: 'completed', cycle: 0, at: '2026-11-04T09:00:00.000Z', target: '1', asset: 'USD', decimals: 0}]});
+test('DV-021b, BUG-010, P-DV-09: a goal with history deletes (its history goes with it) and the one Undo restores everything', async ({page}) => {
+  // Session AL second pass: lib/positions.ts lets an unlocked goal leave together with all of its own records (TIER 3).
+  const lifecycle = [{id: 'l1', kind: 'completed' as const, cycle: 0, at: '2026-11-04T09:00:00.000Z', target: '1', asset: 'USD', decimals: 0}];
+  const reached = project('73', ['Plan', 'Build'], 2, {status: 'completed', lifecycle});
   await seedGoals(page, [reached], '/app/goals/tracked/73');
   await page.getByLabel('Goal actions').click();
   const del = page.getByRole('button', {name: 'Delete Goal', exact: true});
-  if (await del.isDisabled()) {
-    const why = page.locator('#goal-delete-why');
-    await expect(del).toHaveAccessibleDescription(/This goal keeps a reached target for good/);
-    // In the menu, beside the button (it sat at the top of the header card, far from the greyed item).
-    const [b, w] = [await del.boundingBox(), await why.boundingBox()];
-    expect(Math.abs(w!.y - (b!.y + b!.height))).toBeLessThan(120);
-  } else {
-    // The store accepts removing a goal with its history (integrator change): Delete works with Undo.
-    await del.click();
-    await page.getByRole('button', {name: 'Confirm delete'}).click();
-    await expect(page.locator('.aa-toast')).toContainText('Deleted');
-  }
+  await expect(del).toBeEnabled();
+  await del.click();
+  await page.getByRole('button', {name: 'Confirm delete'}).click();
+  await expect(page).toHaveURL(/\/app\/goals$/);
+  const toast = page.locator('.aa-toast').filter({hasText: 'Deleted'});
+  await expect(toast).toBeVisible();
+  await expect.poll(async () => (await stored(page)).goals.length).toBe(0);
+  await toast.getByRole('button', {name: /Undo/}).click();
+  await expect.poll(async () => (await stored(page)).goals[0]?.lifecycle).toEqual(lifecycle);
+});
+
+test('DV-021c, DV-100: a locked goal keeps Delete off and says why inside the menu, beside the button', async ({page}) => {
+  await seedGoals(page, [goal('74', {locked: true})], '/app/goals/tracked/74');
+  await page.getByLabel('Goal actions').click();
+  const del = page.getByRole('button', {name: 'Delete Goal', exact: true});
+  await expect(del).toBeDisabled();
+  await expect(del).toHaveAccessibleDescription('Unlock this goal to delete it.');
+  const [b, w] = [await del.boundingBox(), await page.locator('#goal-delete-why').boundingBox()];
+  expect(Math.abs(w!.y - (b!.y + b!.height))).toBeLessThan(120);
+});
+
+const cash = {id: 'cash', providerId: 'Fictional cash', sourceType: 'MANUAL', network: 'manual', account: 'local', asset: 'USD', denom: 'USD', quantity: '10000', decimals: 2, verification: 'MANUAL', sync: 'MANUAL', liquidity: 'LIQUID', observedAt: '2026-11-04T08:00:00.000Z', provenance: 'User entry', assetClass: 'Cash', valuation: {value: '10000', currency: 'USD', decimals: 2, source: 'MANUAL', observedAt: '2026-11-04T08:00:00.000Z'}};
+
+test('DV-099, P-DV-34: Close frees what the goal counted and its Undo reopens it and counts it again', async ({page}) => {
+  await seedGoals(page, [goal('75', {name: 'Fictional fund'})], '/app/goals/tracked/75', {positions: [cash], allocations: [{goalId: '75', positionId: 'cash', quantity: '10000'}]} as never);
+  await page.getByLabel('Goal actions').click();
+  await page.getByRole('button', {name: 'Close Goal', exact: true}).click();
+  await page.getByRole('button', {name: 'Confirm close'}).click();
+  const toast = page.locator('.aa-toast').filter({hasText: 'Goal closed. What it counted is free for other goals'});
+  await expect(toast).toBeVisible();
+  await expect.poll(async () => (await stored(page)).allocations).toEqual([]);
+  await toast.getByRole('button', {name: /Undo/}).click();
+  await expect.poll(async () => (await stored(page)).goals[0]?.status).not.toBe('closed');
+  await expect.poll(async () => (await stored(page)).allocations).toEqual([{goalId: '75', positionId: 'cash', quantity: '10000'}]);
+});
+
+test('DV-099, P-DV-34: Reopen later says what closing freed (no silent 0 %)', async ({page}) => {
+  const closed = goal('76', {name: 'Fictional trip', status: 'closed', lifecycle: [{id: 'c1', kind: 'closed', cycle: 0, at: '2026-11-04T08:30:00.000Z', target: '50000', asset: 'USD', decimals: 2}]});
+  const snapshot = {id: 'v1', goalId: '76', kind: 'valuation', capturedAt: '2026-11-04T08:10:00.000Z', current: '10000', target: '50000', asset: 'USD', decimals: 2, actualContributed: '0', rewardIncome: '0', planned: '0', requiresReview: false, evidence: [{positionId: 'cash', quantity: '10000', counted: '10000'}]};
+  await seedGoals(page, [closed], '/app/goals/tracked/76', {positions: [cash], goalHistory: [snapshot]} as never);
+  await page.getByLabel('Goal actions').click();
+  await page.getByRole('button', {name: 'Reopen this goal', exact: true}).click();
+  const toast = page.locator('.aa-toast').filter({hasText: 'Before it closed it counted $100.00'});
+  await expect(toast).toBeVisible();
+  await toast.getByRole('button', {name: 'Count it again'}).click();
+  await expect.poll(async () => (await stored(page)).allocations).toEqual([{goalId: '76', positionId: 'cash', quantity: '10000'}]);
 });

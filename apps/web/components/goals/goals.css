@@ -226,3 +226,12 @@
    and its line wraps as balanced lines ("14 of / 14 days" split the count). */
 .goal-grid > .average-goal-card, .goal-grid .average-goal-card { align-self: start; }
 .average-goal-figure > div > small { text-wrap: balance; }
+
+/* Session AL (DV-012e, P-DV-56): an average goal's page uses the goal pages' width. It sat in a 920 px column with the
+   right 40 % of a 1920 px screen empty; wide screens now put the day entry and the goal's settings side by side under
+   the overview, as the other goal pages fill their width. */
+:root .average-goal-page { max-width: none; }
+@media (min-width: 1200px) {
+  :root .average-goal-page { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+  :root .average-goal-page > :not(.average-goal-entry, .average-goal-settings) { grid-column: 1 / -1; }
+}

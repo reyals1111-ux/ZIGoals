@@ -10,7 +10,9 @@ test('DV-035/DV-103: "Read 20 books" is funded in books, and every view says boo
   const hero = page.getByTestId('tracked-progress');
   await expect(hero).toContainText('0 books');
   await expect(hero).toContainText('of 20 books');
-  await expect(hero).not.toContainText(/BOOKS|ZIG|Current wealth/i);
+  // The artefacts were the upper-case symbol ("20 BOOKS", "20 ZIG") and "CURRENT WEALTH" (any case); "books" itself is right.
+  await expect(hero).not.toContainText(/BOOKS|\bZIG\b/);
+  await expect(hero).not.toContainText(/current wealth/i);
   await page.getByRole('button', {name: 'Fund Goal', exact: true}).click();
   const sheet = page.getByRole('dialog');
   // No asset picker and no money value: the goal's own unit is chosen.
@@ -37,5 +39,6 @@ test('DV-037: history-only books are named as such next to "Actual contributed";
   await sheet.getByLabel('How many books (history only)').fill('3');
   await sheet.getByRole('button', {name: 'Save history only'}).click();
   await expect(page.getByTestId('tracked-progress')).toContainText('0 books');
-  await expect(page.getByRole('region', {name: 'Funding Wealth overview'})).toContainText('Includes 3 books recorded as history only, which never changes progress');
+  // Session AL (COPY_AUDIT, deliberate): DV-007a, "Funding Wealth" reads "Your saving plan" until the chain is chosen.
+  await expect(page.getByRole('region', {name: 'Your saving plan overview'})).toContainText('Includes 3 books recorded as history only, which never changes progress');
 });
