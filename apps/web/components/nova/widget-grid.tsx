@@ -1,12 +1,15 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ComponentType, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject} from 'react';
+import {useRouter} from 'next/navigation';
+import {Suspense, lazy, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ComponentType, type KeyboardEvent, type PointerEvent, type MouseEvent, type ReactNode, type RefObject} from 'react';
 import {LoadBoundary} from '../load-boundary';
-import {BENTO_SPAN, MAX_LEAN, dropPlace, placeOrbit, rowsFit, visibleFor, type Placed} from '../../lib/nova/layout';
+import {BENTO_SPAN, MAX_LEAN, dropPlace, phoneColumn, placeOrbit, rowsFit, visibleFor, type HudLook, type Placed} from '../../lib/nova/layout';
 import {settleDelay} from '../../lib/nova/orb';
 import {WIDGET_SIZES, type NovaLayout, type NovaWidget, type WidgetSize} from '../../lib/nova/store';
 import {widgetSpec} from '../../lib/nova/widgets/catalog';
 import {NovaIcon} from './icons';
+import {openWithMorph} from './holo/morph';
+import {useOffscreenMark} from './holo/use-hud-motion';
 import './widgets/widgets.css';
 
 /** Each widget's body is its own chunk, loaded only while that widget is on the stage. */
@@ -16,10 +19,18 @@ const BODIES: Record<string, Body> = {
   water: lazy(() => import('./widgets/water')), focus: lazy(() => import('./widgets/focus')), 'now-playing': lazy(() => import('./widgets/now-playing')),
   money: lazy(() => import('./widgets/money')), 'goal-pace': lazy(() => import('./widgets/goal-pace')), sleep: lazy(() => import('./widgets/sleep')),
   briefs: lazy(() => import('./widgets/briefs')), notes: lazy(() => import('./widgets/notes')), markets: lazy(() => import('./widgets/markets')),
+  // Session AL Part 11 (lane L8): the holographic HUD's instruments (in both looks; drawn as neon instruments).
+  'health-hud': lazy(() => import('./widgets/health-hud')), 'habits-hud': lazy(() => import('./widgets/habits-hud')), 'goals-hud': lazy(() => import('./widgets/goals-hud')),
+  'wealth-hud': lazy(() => import('./widgets/wealth-hud')), 'agenda-clock': lazy(() => import('./widgets/agenda-clock')),
 };
+/** Session AL Part 11 (lane L8): the Holo look of earlier widgets where an instrument says more (holo/skins.tsx); the rest keep their bodies. */
+const skin = (name: 'HoloWater' | 'HoloSleep' | 'HoloOrbit' | 'HoloNext' | 'HoloTasks' | 'HoloNotes'): Body => lazy(() => import('./holo/skins').then(m => ({default: m[name]})));
+const HOLO_BODIES: Record<string, Body> = {water: skin('HoloWater'), sleep: skin('HoloSleep'), orbit: skin('HoloOrbit'), next: skin('HoloNext'), tasks: skin('HoloTasks'), notes: skin('HoloNotes')};
 const SIZE_WORD: Record<WidgetSize, string> = {S: 'Small', M: 'Medium', L: 'Large'};
 
-export type GridActions = {move: (id: string, to: number) => void; nudge: (id: string, by: -1 | 1) => void; resize: (id: string, size: WidgetSize) => void; remove: (id: string) => void};
+export type GridActions = {move: (id: string, to: number) => void; nudge: (id: string, by: -1 | 1) => void; resize: (id: string, size: WidgetSize) => void; remove: (id: string) => void;
+  /** Session AL Part 11 (lane L8): a Holo panel's quick actions (the dashboard opens them in NOVA's sheet). */
+  quick?: (id: string) => void};
 /** Session AK P3 (ND-1): the stage area's own height (its content box), read before paint and on every resize. */
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 function useStageHeight(ref: RefObject<HTMLElement | null>): number | null {
@@ -43,8 +54,8 @@ function useStageHeight(ref: RefObject<HTMLElement | null>): number | null {
  * alone. While arranging, each panel has Move earlier / Move later, its size and Remove as buttons, and a grip that
  * drags it (pointer) or moves it with the arrow keys (keyboard): the same change three ways.
  */
-export function WidgetGrid({layout, widgets, stage, editing, opening, actions}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions}) {
-  const shown = visibleFor(layout, widgets), order = shown.map(w => w.id);
+export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean}) {
+  const shown = phone ? phoneColumn(layout, widgets) : visibleFor(layout, widgets), order = shown.map(w => w.id);
   const [drag, setDrag] = useState<{id: string; target: string | null; dx: number; dy: number} | null>(null);
   const start = useRef<{x: number; y: number}>({x: 0, y: 0}), box = useRef<HTMLDivElement>(null), stageHeight = useStageHeight(box);
   const grip = (w: NovaWidget) => ({
@@ -62,7 +73,9 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions}: 
     },
   });
   const frame = (w: NovaWidget, index: number, style: CSSProperties, place?: Placed) => <WidgetFrame key={w.id} widget={w} index={index} count={shown.length} style={style} side={place?.side}
-    editing={editing} opening={opening} dragging={drag?.id === w.id ? drag : null} dropTarget={drag?.target === w.id} grip={grip(w)} actions={actions}/>;
+    editing={editing} opening={opening} dragging={drag?.id === w.id ? drag : null} dropTarget={drag?.target === w.id} grip={grip(w)} actions={actions} holo={look === 'holo'}/>;
+  // Session AL Part 11 (lane L8): a phone in Holo shows the star, then the same panels in one column (the layout's own set).
+  if (phone) return <div ref={box} className="holo-phone-column">{stage}{shown.map((w, i) => frame(w, i, {}))}</div>;
   if (layout === 'orbit') {
     // Session AK P3 (ND-1, ND-2, ND-16): the star owns the stage's whole height (its middle is the window's optical middle);
     // the side columns hold what fits beside it, each centred on the star and sized to its content, and lean in by their
@@ -86,11 +99,13 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions}: 
   return <div ref={box} className="nova-minimal">{stage}</div>;
 }
 
-function WidgetFrame({widget, index, count, style, side, editing, opening, dragging, dropTarget, grip, actions}: {
+function WidgetFrame({widget, index, count, style, side, editing, opening, dragging, dropTarget, grip, actions, holo}: {
   widget: NovaWidget; index: number; count: number; style: CSSProperties; side?: Placed['side']; editing: boolean; opening: boolean;
-  dragging: {dx: number; dy: number} | null; dropTarget: boolean; grip: Record<string, unknown>; actions: GridActions;
+  dragging: {dx: number; dy: number} | null; dropTarget: boolean; grip: Record<string, unknown>; actions: GridActions; holo: boolean;
 }) {
-  const spec = widgetSpec(widget.id), id = useId(), Body = BODIES[widget.id];
+  const spec = widgetSpec(widget.id), id = useId(), Body = (holo ? HOLO_BODIES[widget.id] : undefined) ?? BODIES[widget.id], router = useRouter();
+  const panel = useRef<HTMLElement>(null);
+  useOffscreenMark(panel, holo);
   // Session AK P3 (ND-2): a card ends where its content ends, up to its size's height; content past it fades out softly
   // (the full view is one tap away, on the header's link).
   const body = useRef<HTMLDivElement>(null), inner = useRef<HTMLDivElement>(null), [cut, setCut] = useState(false);
@@ -103,15 +118,26 @@ function WidgetFrame({widget, index, count, style, side, editing, opening, dragg
     return () => observer.disconnect();
   }, []);
   if (!spec || !Body) return null;
-  const css = {...style, '--settle': `${opening ? settleDelay(index, count) : 0}ms`, ...(dragging ? {'--dx': `${dragging.dx}px`, '--dy': `${dragging.dy}px`} : {})} as CSSProperties;
-  return <article className="nova-widget" data-widget={widget.id} data-size={widget.size} data-pillar={spec.pillar} data-side={side} data-dragging={dragging ? '' : undefined} data-drop={dropTarget ? '' : undefined} data-cut={cut && !editing ? '' : undefined} style={css} aria-labelledby={`${id}-t`}>
+  const css = {...style, '--settle': `${opening ? settleDelay(index, count) : 0}ms`, ...(holo ? {'--sheen-delay': `${(index * 2.3) % 14}s`} : {}), ...(dragging ? {'--dx': `${dragging.dx}px`, '--dy': `${dragging.dy}px`} : {})} as CSSProperties;
+  // Session AL Part 11 (lane L8): the widget → page morph. A plain click opens the page with the panel growing into it
+  // (Full) or fading (Calm); a modified click (a new tab) and Motion Off keep the link's own behaviour.
+  const open = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault(); openWithMorph(panel.current, spec.href, href => router.push(href));
+  };
+  // Tapping the instrument itself opens the quick actions too (the header's button is the keyboard's way); a tap on a
+  // link, button or field inside it does what that control does.
+  const tap = holo && !editing && actions.quick ? (e: MouseEvent<HTMLDivElement>) => { if (!(e.target as Element).closest('a, button, input, textarea, select, label, summary')) actions.quick!(widget.id); } : undefined;
+  return <article ref={panel} className="nova-widget" data-widget={widget.id} data-size={widget.size} data-pillar={spec.pillar} data-side={side} data-holo={holo ? '' : undefined} data-dragging={dragging ? '' : undefined} data-drop={dropTarget ? '' : undefined} data-cut={cut && !editing ? '' : undefined} style={css} aria-labelledby={`${id}-t`}>
     <span className="nova-widget-planet" aria-hidden="true"/>
+    {holo && <><span className="holo-brackets" aria-hidden="true"/><span className="holo-sheen" aria-hidden="true"/></>}
     <header className="nova-widget-head">
       <h3 id={`${id}-t`}>{spec.title}</h3>
       {editing ? <button type="button" className="nova-grip" aria-label={`Move ${spec.title}: drag, or use the arrow keys`} {...grip}><NovaIcon name="grip" size={18}/></button>
-        : <Link className="nova-widget-open" href={spec.href} prefetch={false}>{spec.open}<span aria-hidden="true"> →</span></Link>}
+        : <>{holo && actions.quick && <button type="button" className="holo-act" aria-haspopup="dialog" aria-label={`Quick actions: ${spec.title}`} title="Quick actions" onClick={() => actions.quick!(widget.id)}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg></button>}
+          <Link className="nova-widget-open" href={spec.href} prefetch={false} onClick={open}>{spec.open}<span aria-hidden="true"> →</span></Link></>}
     </header>
-    <div ref={body} className="nova-widget-body"><div ref={inner} className="nova-widget-inner"><LoadBoundary quiet><Suspense fallback={<p className="nova-reading">Reading…</p>}><Body size={widget.size}/></Suspense></LoadBoundary></div></div>
+    <div ref={body} className={`nova-widget-body${tap ? ' holo-instrument' : ''}`} onClick={tap}><div ref={inner} className="nova-widget-inner"><LoadBoundary quiet><Suspense fallback={<p className="nova-reading">Reading…</p>}><Body size={widget.size}/></Suspense></LoadBoundary></div></div>
     {editing && <div className="nova-widget-edit" role="group" aria-label={`Arrange ${spec.title}`}>
       <button type="button" className="nova-mini-btn" onClick={() => actions.nudge(widget.id, -1)} disabled={index === 0} aria-label={`Move ${spec.title} earlier`}><NovaIcon name="up" size={18}/></button>
       <button type="button" className="nova-mini-btn" onClick={() => actions.nudge(widget.id, 1)} disabled={index === count - 1} aria-label={`Move ${spec.title} later`}><NovaIcon name="down" size={18}/></button>

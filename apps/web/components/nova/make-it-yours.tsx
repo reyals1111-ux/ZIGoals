@@ -1,7 +1,7 @@
 'use client';
 import {useId, useState, type ChangeEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 import {ACCENT_LABEL, MAX_INSTRUCTIONS, MAX_PERSONA_NAME, MAX_YOUR_NAME, NOVA_ACCENTS, NOVA_LAYOUTS, PERSONA_AVATARS, accentOf, instructionsOf, setStartOnNova, startsOnNova, layoutOf, personaOf, setAccent, setInstructions, setLayout, setPersona, setShortcuts, setYourName, shortcutsOn, yourNameOf, type NovaRecord} from '../../lib/nova/store';
 import {keyLabel, moveDock, resetDock, setDockHidden, type DockEntry} from '../../lib/nova/dock';
 import {ACCENT_STOPS, LAYOUT_LABEL, SETUP_FILE_NAME, applySetupShare, buildSetupShare, parseSetupShare, setupFileText, setupSummary, type SetupShare} from '../../lib/nova/share-setup';
@@ -9,6 +9,8 @@ import {NOVA_WORKFLOWS, importSetupWorkflows, workflowsForSetupShare} from '../.
 import {plainErrorMessage} from '../../lib/plain-error';
 import {NovaIcon} from './icons';
 import {PersonaMark} from './persona-mark';
+import {LookPicker, PresetPicker} from './holo/presets';
+import type {HudLook, HudPreset} from '../../lib/nova/layout';
 
 /**
  * Session AK (owner follow-up 2 N2 "Make it yours"; lane NA): the person's NOVA. Persona (NOVA's name and avatar: the orb
@@ -18,7 +20,9 @@ import {PersonaMark} from './persona-mark';
  * import is previewed first and can be undone).
  */
 type Save = (change: (r: NovaRecord) => NovaRecord, done?: string) => boolean;
-export default function MakeItYours({record, save, entries, onReplay, status}: {record: NovaRecord; save: Save; entries: DockEntry[]; onReplay: () => void; status: string}) {
+/** Session AL Part 11 (lane L8): the HUD's look (Holo or Classic) and its presets. */
+type HudChoices = {look: HudLook; onLook: (l: HudLook) => void; preset: HudPreset | null; onPreset: (p: HudPreset) => void};
+export default function MakeItYours({record, save, entries, onReplay, status, hud}: {record: NovaRecord; save: Save; entries: DockEntry[]; onReplay: () => void; status: string; hud?: HudChoices}) {
   const id = useId(), persona = personaOf(record), workflows = useDeviceRecord(NOVA_WORKFLOWS);
   const [name, setName] = useState(persona.name === 'NOVA' ? '' : persona.name), [you, setYou] = useState(yourNameOf(record)), [text, setText] = useState(instructionsOf(record));
   const [incoming, setIncoming] = useState<{share: SetupShare; leftOut: number} | null>(null), [problem, setProblem] = useState(''), [shareNote, setShareNote] = useState('');
@@ -50,7 +54,7 @@ export default function MakeItYours({record, save, entries, onReplay, status}: {
     if (!save(r => applySetupShare(r, incoming.share))) return;
     if (incoming.share.workflows.length && workflows.loaded && !workflows.unreadable) try { const out = importSetupWorkflows(workflows.data, incoming.share.workflows, new Date()); workflows.update(() => out.record); added = out.added; } catch { added = 0; }
     setIncoming(null);
-    showToast({message: `Setup applied${added ? `, with ${added} ${added === 1 ? 'workflow' : 'workflows'}` : ''}.`, undone: 'Your previous setup is back.', undo: () => { save(() => before); if (added) try { workflows.update(() => beforeWorkflows); } catch { /* the workflows stay */ } }});
+    showUndo({message: `Setup applied${added ? `, with ${added} ${added === 1 ? 'workflow' : 'workflows'}` : ''}.`, undone: 'Your previous setup is back.', restore: () => { if (!save(() => before)) throw Error('Your previous setup could not be put back on this device.'); if (added) try { workflows.update(() => beforeWorkflows); } catch { /* the workflows stay */ } }});
   };
   return <div className="nova-yours">
     {status && <p className="nova-status-line" role="status">{status}</p>}
@@ -71,6 +75,8 @@ export default function MakeItYours({record, save, entries, onReplay, status}: {
     </section>
     <section className="nova-yours-part" aria-labelledby={`${id}-l`}>
       <h3 id={`${id}-l`}>Look</h3>
+      {hud && <LookPicker look={hud.look} onLook={hud.onLook}/>}
+      {hud && <PresetPicker shown={hud.preset} onApply={hud.onPreset}/>}
       <fieldset className="nova-fieldset"><legend>Layout</legend><div className="nova-segment">{NOVA_LAYOUTS.map(l => <label key={l} className="nova-seg"><input type="radio" name={`${id}-layout`} checked={layoutOf(record) === l} onChange={() => save(r => setLayout(r, l), `${LAYOUT_LABEL[l]} layout.`)}/><span>{LAYOUT_LABEL[l]}</span></label>)}</div></fieldset>
       <fieldset className="nova-fieldset"><legend>Accent</legend><div className="nova-accents">{NOVA_ACCENTS.map(a => <label key={a} className="nova-accent"><input type="radio" name={`${id}-accent`} checked={accentOf(record) === a} onChange={() => save(r => setAccent(r, a), `${ACCENT_LABEL[a]}.`)}/><span className="nova-swatch" data-accent={a} aria-hidden="true"/><span>{ACCENT_LABEL[a]}</span></label>)}</div></fieldset>
       <button type="button" className="nova-btn" onClick={onReplay}><NovaIcon name="star" size={18}/>Replay the opening</button>

@@ -7,7 +7,9 @@ import {DEFAULT_WIDGETS} from '../store';
 
 describe('the widget gallery', () => {
   it('names every widget the brief asks for, each with its page and a way to open it', () => {
-    expect(WIDGETS.map(w => w.id)).toEqual(['orbit', 'next', 'tasks', 'glance', 'water', 'focus', 'now-playing', 'money', 'goal-pace', 'sleep', 'briefs', 'notes', 'markets']);
+    expect(WIDGETS.map(w => w.id)).toEqual(['orbit', 'next', 'tasks', 'glance', 'water', 'focus', 'now-playing', 'money', 'goal-pace', 'sleep', 'briefs', 'notes', 'markets',
+      // Session AL Part 11 (lane L8), a deliberate extension: the holographic HUD's five instruments.
+      'health-hud', 'habits-hud', 'goals-hud', 'wealth-hud', 'agenda-clock']);
     for (const w of WIDGETS) { expect(w.href.startsWith('/app/')).toBe(true); expect(w.open.length).toBeGreaterThan(3); expect(w.about.endsWith('.')).toBe(true); }
     for (const w of DEFAULT_WIDGETS) expect(isWidgetId(w.id)).toBe(true);
   });

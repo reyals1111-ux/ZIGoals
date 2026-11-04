@@ -38,15 +38,18 @@ function Menu({label, current, icon, align, children}: {label: string; current: 
   </div>;
 }
 
-export function ViewControls({layout, widgets, available, editing, onLayout, onToggle, onSize, onArrange}: {
+export function ViewControls({layout, widgets, available, editing, onLayout, onToggle, onSize, onArrange, extra}: {
   layout: NovaLayout; widgets: NovaWidget[]; available: WidgetSpec[]; editing: boolean;
   onLayout: (l: NovaLayout) => void; onToggle: (id: string, on: boolean) => void; onSize: (id: string, size: WidgetSize) => void; onArrange: () => void;
+  /** Session AL Part 11 (lane L8): the HUD presets, under the layout. */
+  extra?: ReactNode;
 }) {
   const id = useId();
   return <Menu label="View controls" current={`View · ${LAYOUT_LABEL[layout]}`} icon="widgets" align="start">{close => <>
     <fieldset className="nova-fieldset"><legend>Layout</legend>
       <div className="nova-segment">{NOVA_LAYOUTS.map(l => <label key={l} className="nova-seg"><input type="radio" name={`${id}-layout`} checked={layout === l} onChange={() => onLayout(l)}/><span>{LAYOUT_LABEL[l]}</span></label>)}</div>
     </fieldset>
+    {extra}
     <fieldset className="nova-fieldset"><legend>On the stage</legend>
       {/* Session AK P3 (ND-15): each row is the widget's name and its size as one S/M/L segment (the arrange bar's own). */}
       <ul className="nova-widget-toggles">{available.map(spec => { const on = widgets.find(w => w.id === spec.id); return <li key={spec.id}>

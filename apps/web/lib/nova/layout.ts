@@ -1,3 +1,5 @@
+import * as z from 'zod';
+import type {DeviceRecordSpec} from '../device-record';
 import type {NovaLayout, NovaWidget, WidgetSize} from './store';
 
 /**
@@ -114,3 +116,61 @@ export function carouselIndex(scrollLeft: number, cardWidth: number, gap: number
   if (count <= 0 || !(cardWidth > 0)) return 0;
   return Math.max(0, Math.min(count - 1, Math.round(scrollLeft / (cardWidth + Math.max(0, gap)))));
 }
+
+/* ---- Session AL Part 11 (lane L8): the holographic HUD's own device record ------------------------------------------
+ *
+ * TIER 3 (stored format), additive: a NEW device-only key, `zigoals:nova-hud:v1`, beside NOVA's record (which keeps the
+ * widgets and the layout exactly as before; older builds never read this key, and this build reads every older NOVA
+ * record unchanged). It holds NOVA's look — "holo" (the default: the holographic HUD) or "classic" (AK's glass cards) —
+ * and the last preset applied. Tolerant: a missing record, an unknown look or preset, or bytes that do not parse read as
+ * the defaults; a read never writes. Shape: {version: 1, look?: 'holo' | 'classic', preset?: 'command' | 'health' |
+ * 'wealth' | 'minimal'}.
+ */
+export const NOVA_HUD_KEY = 'zigoals:nova-hud:v1';
+export const HUD_LOOKS = ['holo', 'classic'] as const;
+export type HudLook = (typeof HUD_LOOKS)[number];
+export const HUD_LOOK_LABEL: Record<HudLook, string> = {holo: 'Holo', classic: 'Classic'};
+export const HUD_PRESETS = ['command', 'health', 'wealth', 'minimal'] as const;
+export type HudPreset = (typeof HUD_PRESETS)[number];
+export const HUD_PRESET_LABEL: Record<HudPreset, string> = {command: 'Command', health: 'Health HUD', wealth: 'Wealth HUD', minimal: 'Minimal'};
+export const HUD_PRESET_ABOUT: Record<HudPreset, string> = {
+  command: 'Every pillar around the star: health, habits, goals, wealth, your agenda and tasks.',
+  health: 'Your body first: the health HUD, water, sleep, habits and focus.',
+  wealth: 'Your money first: the wealth HUD, bills, goals and their pace.',
+  minimal: 'The star and three quiet widgets.',
+};
+export const novaHudSchema = z.looseObject({
+  version: z.literal(1),
+  look: z.enum(HUD_LOOKS).optional().catch(undefined),
+  preset: z.enum(HUD_PRESETS).optional().catch(undefined),
+});
+export type NovaHud = z.infer<typeof novaHudSchema>;
+export const emptyHud = (): NovaHud => ({version: 1});
+export const NOVA_HUD: DeviceRecordSpec<NovaHud> = {key: NOVA_HUD_KEY, schema: novaHudSchema, empty: emptyHud};
+/** The look in effect: Holo unless the person chose Classic. */
+export const hudLookOf = (r: NovaHud): HudLook => r.look === 'classic' ? 'classic' : 'holo';
+export const setHudLook = (r: NovaHud, look: HudLook): NovaHud => novaHudSchema.parse({...r, version: 1, look});
+export const setHudPreset = (r: NovaHud, preset: HudPreset): NovaHud => novaHudSchema.parse({...r, version: 1, preset});
+
+type PresetPlan = {layout: NovaLayout; widgets: {id: string; size: WidgetSize}[]};
+/** What each preset puts on NOVA: a layout and its widgets, in orbit order (the first ones sit beside the star). */
+export const HUD_PRESET_PLAN: Record<HudPreset, PresetPlan> = {
+  command: {layout: 'orbit', widgets: [{id: 'health-hud', size: 'M'}, {id: 'habits-hud', size: 'M'}, {id: 'goals-hud', size: 'M'}, {id: 'wealth-hud', size: 'M'}, {id: 'agenda-clock', size: 'M'}, {id: 'tasks', size: 'M'}, {id: 'orbit', size: 'M'}, {id: 'notes', size: 'S'}]},
+  health: {layout: 'orbit', widgets: [{id: 'health-hud', size: 'L'}, {id: 'habits-hud', size: 'M'}, {id: 'water', size: 'S'}, {id: 'sleep', size: 'S'}, {id: 'focus', size: 'S'}, {id: 'agenda-clock', size: 'M'}]},
+  wealth: {layout: 'orbit', widgets: [{id: 'wealth-hud', size: 'L'}, {id: 'goals-hud', size: 'M'}, {id: 'money', size: 'M'}, {id: 'goal-pace', size: 'M'}, {id: 'markets', size: 'M'}, {id: 'tasks', size: 'S'}]},
+  minimal: {layout: 'focus', widgets: [{id: 'orbit', size: 'M'}, {id: 'agenda-clock', size: 'M'}, {id: 'water', size: 'S'}]},
+};
+/** A preset's widgets as NOVA stores them, keeping only those `available` here (a market watch needs Markets in use). */
+export function presetWidgets(preset: HudPreset, available: (id: string) => boolean = () => true): NovaWidget[] {
+  return HUD_PRESET_PLAN[preset].widgets.filter(w => available(w.id)).map((w, slot) => ({...w, slot}));
+}
+/** The preset the stage shows right now, or null once the person has changed anything (a layout, a widget, a size, the order). */
+export function presetShown(layout: NovaLayout, widgets: readonly NovaWidget[], available: (id: string) => boolean = () => true): HudPreset | null {
+  for (const preset of HUD_PRESETS) {
+    const want = presetWidgets(preset, available);
+    if (HUD_PRESET_PLAN[preset].layout === layout && want.length === widgets.length && want.every((w, i) => widgets[i]?.id === w.id && widgets[i]?.size === w.size)) return preset;
+  }
+  return null;
+}
+/** One column on a phone (Holo): every widget the layout shows, in order (Minimal: none, the star alone). */
+export const phoneColumn = (layout: NovaLayout, widgets: readonly NovaWidget[]): NovaWidget[] => visibleFor(layout, widgets);

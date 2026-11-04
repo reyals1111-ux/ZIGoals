@@ -41,20 +41,23 @@ export function StatusChips({brain, showcase = false}: {brain: Brain; showcase?:
   const sees = seesLine({today: scopes.today, goals: scopes.goals, habits: scopes.habits, wealth: scopes.wealth, health: !!healthSeen});
   const mode = setup.loaded && !setup.unreadable ? setup.data.privacyMode ?? null : null;
   const setupChips = brain.kind !== 'none';
-  const notes = memory.data.notes?.length ?? 0, remembering = options.loaded && memory.loaded && !memory.unreadable && usingNotes(options.data, memory.data);
+  // Session AL Part 11 (lane L8; BN-044, P-BN-06): one source of truth with Permissions — the chip says the "Use my memory"
+  // switch itself (on unless turned off), then how many notes it holds; it read "off" while the switch was on and no note
+  // was kept yet (usingNotes needs a note). `usingNotes` still decides what goes to a model.
+  const notes = memory.data.notes?.length ?? 0, switchOn = options.loaded && options.data.useNotes !== false, remembering = switchOn && memory.loaded && !memory.unreadable && usingNotes(options.data, memory.data);
   // Session AK P3 (ND-4, ND-12): the key and its value read apart ("Brain · On-device answers"), each dot takes its chip's
   // colour, at most three chips stand in the row (Privacy and Memory fold into one when the centre is narrow), and "Test
   // my setup" is the Brain chip's own link once a brain is connected.
   const chip = (key: string, value: string) => <span><span className="nova-chip-key">{key}</span><span className="nova-chip-sep" aria-hidden="true"> · </span><span className="nova-chip-value">{value}</span></span>;
-  const privacy = mode ? PRIVACY_WORDS[mode].label : 'not chosen yet', remember = remembering ? `on · ${notes} ${notes === 1 ? 'note' : 'notes'}` : 'off';
+  const privacy = mode ? PRIVACY_WORDS[mode].label : 'not chosen yet', remember = !switchOn ? 'off' : remembering ? `on · ${notes} ${notes === 1 ? 'note' : 'notes'}` : 'on · no notes yet';
   return <ul className="nova-chips" aria-label="NOVA’s status">
     <li><Link className="nova-chip" data-kind={brain.kind} href={setupChips ? `${SETUP_HREF}?test=1` : SETUP_HREF} prefetch={false} title={setupChips ? 'Test my setup' : 'Build the brain'}><span className="nova-chip-dot" aria-hidden="true"/>{chip('Brain', brain.words)}{setupChips && <span className="sr-only">, test my setup</span>}</Link></li>
     {/* Release review 2 (R2-3): before a brain is connected nothing leaves the device, so the privacy mode, memory and the
         setup test wait until one is (the guide keeps them); the brain and what NOVA sees stay. */}
     {setup.loaded && setupChips && <li className="nova-chip-wide"><Link className="nova-chip" data-kind={mode ?? 'unset'} href={`${SETUP_HREF}#privacy`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/>{chip('Privacy', privacy)}</Link></li>}
-    {memory.loaded && setupChips && <li className="nova-chip-wide"><Link className="nova-chip" data-kind={remembering ? 'on' : 'off'} href={`${SETUP_HREF}#memory`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/>{chip('Memory', remember)}</Link></li>}
+    {memory.loaded && setupChips && <li className="nova-chip-wide"><Link className="nova-chip" data-kind={switchOn ? 'on' : 'off'} href={`${SETUP_HREF}#memory`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/>{chip('Memory', remember)}</Link></li>}
     {setup.loaded && memory.loaded && setupChips && <li className="nova-chip-narrow"><Link className="nova-chip" data-kind={mode ?? 'unset'} href={`${SETUP_HREF}#privacy`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Privacy</span><span className="nova-chip-sep" aria-hidden="true"> · </span><span className="nova-chip-value">{privacy}</span><span className="nova-chip-sep" aria-hidden="true"> · </span><span className="nova-chip-key">Memory</span><span className="nova-chip-sep" aria-hidden="true"> · </span><span className="nova-chip-value">{remember}</span></span></Link></li>}
-    {settings.loaded && <li><a className="nova-chip" data-kind="scopes" title={`What NOVA can see: ${sees}. Change it in Permissions`} href="#nova-permissions"><span className="nova-chip-dot" aria-hidden="true"/>{chip('Sees', sees)}</a></li>}
+    {settings.loaded && <li><a className="nova-chip" data-kind="scopes" title={`What NOVA reads: ${sees}. Change it in Permissions`} href="#nova-permissions"><span className="nova-chip-dot" aria-hidden="true"/>{chip('Reads', sees)}</a></li>}
     {/* Session AK P3 (ND-1): on a computer the Showcase label stands with the status (it made the star's stack taller). */}
     {showcase && <li><span className="nova-chip nova-showcase"><span className="nova-chip-dot" aria-hidden="true"/>Showcase · fictional example data</span></li>}
     {!online && <li><span className="nova-chip" data-kind="offline" role="status"><span className="nova-chip-dot" aria-hidden="true"/>{chip('Offline', 'on-device answers still work')}</span></li>}

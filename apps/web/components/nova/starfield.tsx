@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import {SKY_FPS, deviceHints, driftX, makeStars, nebulaClouds, skyMode, starCount, twinkleAt, type SkyMode, type Star} from '../../lib/nova/orb-starfield';
+import {MOTE_TINTS, makeMotes, moteAt, type Mote} from '../../lib/nova/holo/motes';
 
 /**
  * Session AK (owner follow-up 2, N2 and M2; lane NA): NOVA's starfield and nebula band on a canvas behind everything. It
@@ -41,7 +42,19 @@ function drawStars(g: CanvasRenderingContext2D, stars: readonly Star[], w: numbe
   g.globalAlpha = 1;
 }
 
-export function Starfield({motion, accent}: {motion: boolean; accent: string}) {
+/** Session AL Part 11 (lane L8): the HUD's floating motes ride on this one canvas (no second canvas), in its loop. */
+function drawMotes(g: CanvasRenderingContext2D, motes: readonly Mote[], w: number, h: number, seconds: number) {
+  for (const m of motes) {
+    const p = moteAt(m, seconds);
+    if (p.a <= 0) continue;
+    g.globalAlpha = p.a; g.fillStyle = MOTE_TINTS[m.tint];
+    g.beginPath(); g.arc(p.x * w, p.y * h, m.r, 0, Math.PI * 2); g.fill();
+  }
+  g.globalAlpha = 1;
+}
+/** Frames the sky has drawn in this tab (a still or paused sky draws none): the HUD's motion specs read it. */
+const countFrame = () => { const w = window as Window & {__zgHudFrames?: number}; w.__zgHudFrames = (w.__zgHudFrames ?? 0) + 1; };
+export function Starfield({motion, accent, motes = false}: {motion: boolean; accent: string; motes?: boolean}) {
   const canvas = useRef<HTMLCanvasElement>(null), [mode, setMode] = useState<SkyMode>('none');
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +73,7 @@ export function Starfield({motion, accent}: {motion: boolean; accent: string}) {
     const nebula = document.createElement('canvas'), ng = nebula.getContext('2d');
     const start = performance.now();
     let w = 0, h = 0, stars: Star[] = [], frame = 0, last = 0, stopped = false;
+    const dust = motes && mode === 'running' ? makeMotes() : [];
     const size = () => {
       const rect = el.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 1.75);
       w = Math.max(1, Math.round(rect.width)); h = Math.max(1, Math.round(rect.height));
@@ -74,12 +88,13 @@ export function Starfield({motion, accent}: {motion: boolean; accent: string}) {
       const sway = Math.sin(seconds / 90) * w * 0.015;
       g.globalAlpha = 0.9; g.drawImage(nebula, sway, 0, w, h); g.globalAlpha = 1;
       drawStars(g, stars, w, h, seconds);
+      if (dust.length) drawMotes(g, dust, w, h, seconds);
     };
     const loop = (now: number) => {
       if (stopped) return;
       frame = requestAnimationFrame(loop);
       if (now - last < 1000 / SKY_FPS - 1) return;
-      last = now; paint((now - start) / 1000);
+      last = now; paint((now - start) / 1000); countFrame();
     };
     size();
     if (mode === 'still') paint(0);
@@ -94,7 +109,7 @@ export function Starfield({motion, accent}: {motion: boolean; accent: string}) {
     };
     document.addEventListener('visibilitychange', visible);
     return () => { stopped = true; cancelAnimationFrame(frame); resize.disconnect(); document.removeEventListener('visibilitychange', visible); };
-  }, [mode, accent]);
+  }, [mode, accent, motes]);
   return <canvas ref={canvas} className="nova-sky-canvas" data-sky={mode} aria-hidden="true"/>;
 }
 export default Starfield;

@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useEffect, useState} from 'react';
+import {Suspense, lazy, useEffect, useState, type ReactNode} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {NOVA_SETUP, setupProgress, showSetupCard, setCardHidden} from '../../lib/nova/setup';
@@ -45,11 +45,13 @@ function NovaGreeting({greeting, typingFrom}: {greeting: string; typingFrom: num
  * day line and the Showcase label below — so the star sits at the optical centre of whatever holds it (the window, on the
  * Orbit, Minimal and phone layouts). The setup invitation left the stack: it is the slim banner under the status chips.
  */
-export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase, onTalk, talkOpen}: {
+export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase, onTalk, talkOpen, core}: {
   persona: Persona; orb: NovaOrbState; greeting: string; typingFrom: number | null; counts: NovaCounts; showcase: boolean; onTalk: () => void; talkOpen: boolean;
+  /** Session AL Part 11 (lane L8): the Holo core — four pillar rings around the orb and their readout under the day line. */
+  core?: {rings: ReactNode; readout: ReactNode};
 }) {
   const letters = persona.name.toUpperCase().split('').join('·').replace(/·\s·/g, ' ');
-  return <div className="nova-stage">
+  return <div className="nova-stage" data-holo-core={core ? '' : undefined}>
     <svg className="nova-rings" viewBox="-500 -500 1000 1000" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
       <circle className="nova-ring nova-ring-1" r="190"/><circle className="nova-ring nova-ring-2" r="300"/><circle className="nova-ring nova-ring-3" r="420"/>
       {/* ND-16: both moons ride the middle ring, on arcs the side columns leave open. */}
@@ -59,6 +61,7 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
     <button type="button" className="nova-orb-button" onClick={onTalk} aria-expanded={talkOpen} aria-controls={talkOpen ? "nova-talk" : undefined} aria-describedby="nova-orb-state">
       {persona.avatar === 'zigi' ? <PersonaMark avatar="zigi" size={170} state={orb}/> : <NovaOrb state={orb} size={220}/>}
       <span className="sr-only">Talk to {persona.name}</span>
+      {core?.rings}
     </button>
     <div className="nova-stage-below">
       <p className="nova-orb-state" id="nova-orb-state" data-state={orb}><span className="nova-orb-state-word">{ORB_STATE_LABEL[orb]}</span><span className="nova-orb-state-hint">{orb === 'idle' ? 'Tap to talk' : orb === 'listening' ? 'Speak now' : orb === 'thinking' ? 'Working on it' : 'Answering'}</span></p>
@@ -66,6 +69,7 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
           assistive technology as one sentence, and the line keeps its width while it types). */}
       <NovaGreeting key={typingFrom ?? 'done'} greeting={greeting} typingFrom={typingFrom}/>
       <LoadBoundary quiet><Suspense fallback={<p className="nova-dayline"> </p>}><NovaDayLine counts={counts}/></Suspense></LoadBoundary>
+      {core?.readout}
       {showcase && <p className="nova-showcase"><span className="nova-chip-dot" aria-hidden="true"/>Showcase · fictional example data</p>}
     </div>
   </div>;

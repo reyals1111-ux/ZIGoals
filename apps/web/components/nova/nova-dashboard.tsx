@@ -8,7 +8,7 @@ import {usePagesView} from '../pages/use-pages-view';
 import {askZigi, launcherShown} from '../ai/ask';
 import {openMusicPlayer} from '../music/music-events';
 import {openSearch} from '../search/search-trigger';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 import {isShown} from '../../lib/pages/visibility';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {DUO_IDLE, duoState, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, novaHandoffPending, subscribeDuo} from '../../lib/nova/bridge';
@@ -17,6 +17,11 @@ import {greetingFor, openingSkippedNote, type NovaOrbState} from '../../lib/nova
 import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full / Calm / Off
 import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
+import {HUD_PRESET_LABEL, HUD_PRESET_PLAN, presetShown, presetWidgets, setHudLook, setHudPreset, type HudLook, type HudPreset} from '../../lib/nova/layout';
+import {useHudRecord} from './holo/hud-record';
+import {useHudMotion} from './holo/use-hud-motion';
+import {PresetPicker} from './holo/presets';
+import './holo/holo.css';
 import type {NovaPanelId} from './panels/nova-panels';
 import {CommandField, RoutingMenu, ViewControls} from './nova-command';
 import {NovaLeft} from './nova-left';
@@ -47,8 +52,11 @@ const NovaMiniWindow = lazy(() => import('./mini-window'));
 const NovaDuo = lazy(() => import('./chat/nova-duo'));
 /** Session AK lane P1 (M3): "Running now", NOVA's live activity chips (components/nova/live/live-chips.tsx; its own chunk). */
 const NovaLive = lazy(() => import('./live/live-chips'));
+/** Session AL Part 11 (lane L8): the Holo core around the orb and a panel's quick actions, each its own chunk. */
+const HoloCore = lazy(() => import('./holo/holo-core'));
+const QuickActions = lazy(() => import('./holo/quick-actions'));
 
-type Sheet = {kind: 'day'} | {kind: 'panels'; id: NovaPanelId} | {kind: 'yours'} | {kind: 'quick'};
+type Sheet = {kind: 'day'} | {kind: 'panels'; id: NovaPanelId} | {kind: 'yours'} | {kind: 'quick'} | {kind: 'actions'; id: string};
 const PANEL_HASH = /^#nova-(memory|permissions|activity|workflows|cost|models)$/;
 const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 /** Session AK lane EXF (EX-2): a key from inside the conversation (its composer, its buttons, its sheet) is never a shortcut. */
@@ -80,6 +88,8 @@ export default function NovaDashboard() {
   const root = useRef<HTMLDivElement>(null), command = useRef<HTMLInputElement>(null), fsLeftAt = useRef(0);
   // Session AK WA (N1): the duo state NOVA's chat writes while it hands a task to ZIGi or Hermes (lib/nova/bridge.ts).
   const duo = useSyncExternalStore(subscribeDuo, duoState, () => DUO_IDLE);
+  // Session AL Part 11 (lane L8): the look (Holo by default, Classic on choice) and the HUD's motion state (O5).
+  const {hud, look} = useHudRecord(), holo = look === 'holo', hudMove = useHudMotion(phone);
 
   const novaUpdate = nova.update;
   const save = useCallback((change: (r: NovaRecord) => NovaRecord, done?: string): boolean => {
@@ -90,6 +100,7 @@ export default function NovaDashboard() {
   const ctx: WidgetContext = useMemo(() => ({markets: isShown(pagesView, 'markets'), notes: true, briefs: true}), [pagesView]);
   const widgets = useMemo(() => widgetsFor(r, id => widgetAvailable(id, ctx)), [r, ctx]);
   const available = useMemo(() => gallery(ctx, widgets.map(w => w.id)), [ctx, widgets]);
+  const canShow = useCallback((id: string) => widgetAvailable(id, ctx), [ctx]);
   const entries = useMemo(() => dockEntries(r, {pageShown: page => isShown(pagesView, page), earn: chain.earnShown}), [r, pagesView, chain.earnShown]);
   const panels = panelsOf(r, width), left = phone ? 'hidden' : panels.left, right = phone ? 'hidden' : panels.right;
 
@@ -198,18 +209,31 @@ export default function NovaDashboard() {
     resize: (id, size: WidgetSize) => { save(rr => resizeWidget(rr, id, size), `${title(id)} is ${size === 'S' ? 'small' : size === 'M' ? 'medium' : 'large'} now.`); },
     remove: id => {
       const before = widgetsFor(r);
-      if (save(rr => removeWidget(rr, id))) showToast({message: `${title(id)} left the stage.`, undone: `${title(id)} is back.`, undo: () => save(rr => restoreWidgets(rr, before))});
+      if (save(rr => removeWidget(rr, id))) showUndo({message: `${title(id)} left the stage.`, undone: `${title(id)} is back.`, restore: () => { if (!save(rr => restoreWidgets(rr, before))) throw Error('This could not be put back on this device.'); }});
     },
+    quick: id => setSheet({kind: 'actions', id}),
   };
+  // Session AL Part 11 (lane L8): a preset replaces the layout and the widgets in one step, with Undo putting both back.
+  const applyPreset = (preset: HudPreset) => {
+    const before = {layout, widgets: widgetsFor(r)}, plan = HUD_PRESET_PLAN[preset];
+    if (!save(rr => restoreWidgets(setLayout(rr, plan.layout), presetWidgets(preset, canShow)))) return;
+    try { hud.update(h => setHudPreset(h, preset)); } catch { /* the stage changed; remembering the preset's name is a nicety */ }
+    showUndo({message: `${HUD_PRESET_LABEL[preset]} preset on the stage.`, undone: 'Your previous arrangement is back.', restore: () => { if (!save(rr => restoreWidgets(setLayout(rr, before.layout), before.widgets))) throw Error('This could not be put back on this device.'); }});
+  };
+  const setLook = (next: HudLook) => { try { hud.update(h => setHudLook(h, next)); setStatus(next === 'holo' ? 'Holo look: a holographic HUD.' : 'Classic look: the glass cards.'); } catch (e) { setStatus(plainErrorMessage(e, 'This choice could not be saved on this device.')); } };
+  const shownPreset = presetShown(layout, widgets, canShow);
   const toggleWidget = (id: string, on: boolean) => { if (on) save(rr => addWidget(rr, id, widgetSpec(id)?.size ?? 'M'), `${title(id)} is on the stage.`); else actions.remove(id); };
 
   if (!nova.loaded) return <div className="nova-frame" data-accent="violet" data-opening="waiting"><Reading label={`${persona.name} is starting…`}/></div>;
-  const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen}/>;
+  const core = holo ? {rings: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="rings"/></Suspense></LoadBoundary>, readout: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="readout"/></Suspense></LoadBoundary>} : undefined;
+  const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen/></Suspense></LoadBoundary>;
-  return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined}
+  return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={holo ? hudMove.state : undefined}
     data-left={left} data-right={right} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
-    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent}/></Suspense></LoadBoundary></div>
+    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent} motes={holo && hudMove.motes}/></Suspense></LoadBoundary></div>
+    {/* Session AL Part 11 (lane L8): the HUD's depth layers — a far grid plane and a near glow at the edges (decoration). */}
+    {holo && <div className="holo-depth" aria-hidden="true"><div className="holo-plane"/><div className="holo-glow"/></div>}
     {left !== 'hidden' && <NovaLeft state={left} onCycle={cycleLeft} you={you} brain={brain} counts={counts} pages={p => isShown(pagesView, p)} earn={chain.earnShown} chess={isShown(pagesView, 'chess')}
       persona={persona.name} onNova={openChat} onZigi={() => { if (launcherShown()) askZigi(''); else router.push('/app/zigi'); }} zigiStatus={brain.kind === 'none' ? 'calm' : 'on'} hermes={hermes}/>}
     <div className="nova-centre">
@@ -222,14 +246,14 @@ export default function NovaDashboard() {
       {!chatOpen && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       <LoadBoundary quiet><Suspense fallback={null}><NovaLive/></Suspense></LoadBoundary>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area">{phone ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing} opening={opening.phase === 'play'} actions={actions}/>}</div>
+      <div className="nova-stage-area">{phone && !holo ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">
         {chatOpen && !phone && <div id="nova-talk" className="nova-talk" role="region" aria-label={`Conversation with ${persona.name}`}>{chat}</div>}
         {!chatOpen && <div className="nova-foot-row">
           {!phone && <ViewControls layout={layout} widgets={widgets} available={available} editing={editing} onLayout={l => save(rr => setLayout(rr, l), `${l[0]!.toUpperCase()}${l.slice(1)} layout.`)} onToggle={toggleWidget}
-            onSize={actions.resize} onArrange={() => setEditing(v => !v)}/>}
+            onSize={actions.resize} onArrange={() => setEditing(v => !v)} extra={<PresetPicker compact shown={shownPreset} onApply={applyPreset}/>}/>}
           <CommandField you={you} persona={persona.name} inputRef={command} onOpen={openChat}/>
           {/* Release review 2 (R2-3): model routing appears once a brain is connected (with none, there is nothing to route). */}
           {!phone && brain.kind !== 'none' && <RoutingMenu brain={brain} routing={routingOf(r)} onRouting={rt => save(rr => setRouting(rr, rt), rt === 'auto' ? 'Automatic: your connected brain answers.' : undefined)} openModels={() => setSheet({kind: 'panels', id: 'models'})}/>}
@@ -244,12 +268,16 @@ export default function NovaDashboard() {
     {sheet?.kind === 'day' && <NovaSheet title="Your day" eyebrow="Morning brief and evening recap" place="right" onClose={closeSheet}><LoadBoundary label="Your day"><Suspense fallback={<Reading label="Reading your day…"/>}><NovaBriefs/></Suspense></LoadBoundary></NovaSheet>}
     {sheet?.kind === 'panels' && <NovaSheet title={`${persona.name}’s panels`} eyebrow="Memory, permissions, activity, workflows, cost, models" place="right" wide onClose={closeSheet}><LoadBoundary label="The panels"><Suspense fallback={<Reading label="Opening…"/>}><NovaPanels initial={sheet.id}/></Suspense></LoadBoundary></NovaSheet>}
     {sheet?.kind === 'yours' && <NovaSheet title={`Make ${persona.name} yours`} eyebrow="On this device" place="right" wide onClose={closeSheet}><LoadBoundary label="Make it yours"><Suspense fallback={<Reading label="Opening…"/>}>
-      <MakeItYours record={r} save={save} entries={entries} status={status} onReplay={() => { closeSheet(); requestAnimationFrame(() => { if (!opening.replay()) setStatus(openingSkippedNote(motionLevel)); }); }}/>
+      <MakeItYours record={r} save={save} entries={entries} status={status} hud={{look, onLook: setLook, preset: shownPreset, onPreset: applyPreset}} onReplay={() => { closeSheet(); requestAnimationFrame(() => { if (!opening.replay()) setStatus(openingSkippedNote(motionLevel)); }); }}/>
     </Suspense></LoadBoundary></NovaSheet>}
     {sheet?.kind === 'quick' && <NovaSheet title="Quick access" place="bottom" onClose={closeSheet}><nav aria-label="Quick access"><ul className="nova-quick-sheet">
       {entries.filter(e => !e.hidden).map(e => <li key={e.id}><QuickTile entry={e} shortcuts={false} labelled act={entry => { closeSheet(); act(entry); }}/></li>)}
       <li><button type="button" className="nova-tile nova-tile-labelled" onClick={() => setSheet({kind: 'yours'})}><span className="nova-tile-planet" aria-hidden="true"><NovaIcon name="yours" size={20}/></span><span className="nova-tile-label">Customize</span></button></li>
     </ul></nav></NovaSheet>}
+    {sheet?.kind === 'actions' && <NovaSheet title={`Quick actions · ${title(sheet.id)}`} eyebrow="Each one saves to your records, with Undo" place={phone ? 'bottom' : 'right'} onClose={closeSheet}>
+      <LoadBoundary label="Quick actions"><Suspense fallback={<Reading label="Opening…"/>}><QuickActions widget={sheet.id}/></Suspense></LoadBoundary>
+      {widgetSpec(sheet.id) && <p className="nova-row-actions"><a className="nova-btn" href={widgetSpec(sheet.id)!.href} onClick={e => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); const href = widgetSpec(sheet.id)!.href; closeSheet(); router.push(href); }}>{widgetSpec(sheet.id)!.open}</a></p>}
+    </NovaSheet>}
     {pip && <LoadBoundary quiet><Suspense fallback={null}><NovaMiniWindow win={pip} persona={persona.name} orb={orb} accent={accent}/></Suspense></LoadBoundary>}
     <p className="sr-only" role="status" aria-live="polite">{status}</p>
   </div>;

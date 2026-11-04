@@ -35,6 +35,12 @@ export const WIDGETS: readonly WidgetSpec[] = [
   {id: 'briefs', title: 'NOVA briefs', about: 'Your morning brief and evening recap, made on this device.', pillar: 'orbit', href: '/app/nova#briefs', open: 'Read your briefs', size: 'S', needs: 'briefs'},
   {id: 'notes', title: 'Notes inbox', about: 'Captured notes waiting to be filed.', pillar: 'orbit', href: '/app/notes', open: 'Open your notes', size: 'S', needs: 'notes'},
   {id: 'markets', title: 'Market watch', about: 'The markets you follow, with each price’s time.', pillar: 'wealth', href: '/app/markets', open: 'Open Markets', size: 'M', needs: 'markets'},
+  // Session AL Part 11 (lane L8): the holographic HUD's instruments. Older builds leave these ids out (widgetsFor's `known`).
+  {id: 'health-hud', title: 'Health HUD', about: 'Calories, protein, carbs, fat, water, sleep and steps against your own targets.', pillar: 'health', href: '/app/health', open: 'Open Health', size: 'L'},
+  {id: 'habits-hud', title: 'Habits HUD', about: 'Your streaks, the last seven days and your consistency over 30 days.', pillar: 'habits', href: '/app/habits', open: 'Open Habits', size: 'M'},
+  {id: 'goals-hud', title: 'Goals HUD', about: 'Your active goals’ progress, and the pace of your lead goal with its estimate.', pillar: 'goals', href: '/app/goals', open: 'Open Goals', size: 'M'},
+  {id: 'wealth-hud', title: 'Wealth HUD', about: 'Your tracked wealth over time, its mix, and what is set aside for goals.', pillar: 'wealth', href: '/app/wealth', open: 'Open Wealth', size: 'L'},
+  {id: 'agenda-clock', title: 'Agenda clock', about: 'Today on a 24-hour clock: every item at its time, the rest any time.', pillar: 'orbit', href: '/app/agenda', open: 'Open your agenda', size: 'M'},
 ];
 const BY_ID = new Map(WIDGETS.map(w => [w.id, w]));
 export const widgetSpec = (id: string): WidgetSpec | undefined => BY_ID.get(id);
