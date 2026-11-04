@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-location-assign-relative-destination */
 import {useEffect} from 'react';
 import {isShowcase, markShowcaseUndoOffered, readShowcaseUndo, undoShowcaseReset} from '../../lib/showcase';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 
 /**
  * Session AH Part 3 (DS4): right after a Showcase reset, the page that opens offers it back once — "Showcase reset to
@@ -16,7 +16,7 @@ export function ShowcaseUndoOffer() {
       const session = window.sessionStorage, undo = isShowcase() ? readShowcaseUndo(session) : null;
       if (!undo || undo.offered) return;
       markShowcaseUndoOffered(session);
-      showToast({message: 'Showcase reset to fresh examples.', undone: 'Your earlier Showcase is back.', undo: () => { if (undoShowcaseReset(window.sessionStorage)) window.location.assign('/app'); else return {undone: 'Nothing to undo: the earlier Showcase is no longer in this tab.'}; }});
+      showUndo({message: 'Showcase reset to fresh examples.', undone: 'Your earlier Showcase is back.', restore: () => { if (undoShowcaseReset(window.sessionStorage)) window.location.assign('/app'); else return {undone: 'Nothing to undo: the earlier Showcase is no longer in this tab.'}; }});
     } catch { /* No sessionStorage: nothing was kept to undo. */ }
   }, []);
   return null;
