@@ -1,3 +1,18 @@
+# Session AL — "FIX EVERYTHING" (ADR-037) (2026-11-04/…, `feature/session-al-fix-everything`; in progress, not merged, not deployed)
+**Base:** `main` `17069c7d` (Merge #99, Session AK; live as Alpha #53). **Rules (owner):** the brief (Parts 0–17, R1–R9, O1–O7), the approved plan and the owner amendments A1–A12 (verbatim in ADR-037). One plan, one approval; no owner step during the session.
+
+## Part 0 — records (owner-reported, 4 Nov; AL_SCOPE E)
+- **Session AK** merged into `main` as `17069c7d` ([PR #99](https://github.com/reyals1111-ux/ZIGoals/pull/99)). Main CI ("Milestone quality", run 1479) on `17069c7d`: attempts 1 and 2 had **web checks cancelled at 22m47s** (with web integration and the Alpha gate cancelled; the "web" summary red; WebKit skipped on push by design) on a tree byte-identical to the green PR head `e3789ff0` (25 checks); **attempt 3 passed** (completed 3 Nov 23:11 UTC, checked by this session).
+- **Food Worker** `zigoals-acctest-food-lookup` deployed first from `17069c7d`: version `7d43fb1f-bebd-4956-af5e-64257c32a8b6`, rollback `0bff7eb3-89b1-44e7-8a6c-e2c15f87c893` (4 Nov ≈ 00:11). `FDC_API_KEY` is set as a secret; `FOOD_USER_AGENT` is a var.
+- **Alpha #53** = Manual Alpha deployment run 56 (`17069c7d89824a3799f6749beb37e6ab50122b4a`): version `6ea13ee8-0455-450b-bb10-61773264605f`, rollback `226adce0-19b2-4069-8159-4e7711cb5f4c` (#52), 4 Nov ≈ 00:15. "New version answering on every route: confirmed after 6 reads". The run is **red only from the stale "Local Demo" smoke text** (`scripts/lib/alpha-smoke.mjs:155`; AK's consumer-first fix R2 removed that wording). No automatic rollback, by design.
+- **Owner browser checks on #53:** Settings shows build `17069c7d…`; barcode `3017620422003` → Open Food Facts match; NOVA opens; Studio-4 art visible; Diagnostics show testnet v6.0.0 with the base fee.
+- **Hosted verifier:** not runnable (`ERR_MODULE_NOT_FOUND`: `packages/chain-config/src/index.ts` imports `./reviewed-versions` without an extension; Part 1b).
+- **Landing** `zigoals` deployed from `17069c7d` (AK's 24 landing files): version `1a2c1c75-6b00-4459-8da5-e9446ab2eed1`, rollback `8708970d-270f-4383-bc58-0e3e713f481f` (4 Nov ≈ 20:42 Brussels); `/`, `/privacy`, `/terms` 200 with the full header set, `/_headers` 404; owner browser check OK.
+- Rollback floor #32. **The next deploy is run 57 = Alpha #54.** Frozen readers are #37–#53 from now on (`scripts/frozen-readers.mjs`, #53 = `17069c7d`).
+- **Dependabot:** two moderate alerts (glob GHSA-3g3m-2fjr-6pw4, minimatch GHSA-g3hv-75wg-m249), build/lint tooling only; reviewed in [`docs/dependencies/AL_REVIEW.md`](dependencies/AL_REVIEW.md); nothing bumped (**Waits on owner**).
+
+Decisions: `docs/architecture/ADR-037-session-al.md`. Ledger and replays: `docs/review/session-al/`. Resume file: `docs/handoff/AL_RESUME.md`. (The rest of this entry is written as the parts close; the final commit completes it.)
+
 # Session AK — "NUMBER ONE" (ADR-036) (2026-10-31/11-03, `feature/session-ak-number-one`, [PR #99](https://github.com/reyals1111-ux/ZIGoals/pull/99); complete, not merged, not deployed)
 **Base:** `main` `7000807` (Merge #98, Session AJ; live as Alpha #52). **Rules (owner):** the brief (Parts 0–16, D1–D12, MUSIC, RAMP/BANXA), the approved plan, the owner amendments A1–A22, owner follow-ups 1–5, owner decisions 6 and 7 and "Part 13 restored" (all verbatim in ADR-036). One plan, one approval; no owner step during the session.
 
