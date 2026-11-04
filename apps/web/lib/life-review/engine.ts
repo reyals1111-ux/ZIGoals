@@ -121,7 +121,7 @@ export function lifeReview(input: {
     }
     // Session AL (NB-227): one line per goal for its milestone changes, however often a milestone was ticked and unticked.
     const changes = platform.goalHistory.filter(h => h.goalId === goal.id && h.kind === 'milestone' && inNow(dayOf(h.capturedAt)));
-    if (changes.length === 1) goalsMoved.push({name: goal.name, href: summary.href, line: changes[0]!.label});
+    if (changes.length === 1) goalsMoved.push({name: goal.name, href: summary.href, line: 'label' in changes[0]! ? changes[0]!.label : 'Milestone changed'});
     else if (changes.length > 1) goalsMoved.push({name: goal.name, href: summary.href, line: `Milestones changed ${countText(changes.length, 'time')}${goal.milestones.length ? ` · ${formatNumber(goal.milestones.filter(m => m.done).length)} of ${countText(goal.milestones.length, 'milestone')} done now` : ''}`});
   }
   // Finished in the period: a tracked goal's last "completed" step (as the Hall reads it), an average goal's own day.
