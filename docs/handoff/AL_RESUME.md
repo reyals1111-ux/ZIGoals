@@ -9,23 +9,46 @@
 4. Read ADR-037, this file and `docs/review/session-al/GROK53_LEDGER.md`, then continue from "Exact next step".
 
 ## Done (pushed)
-- Part 0: branch; Draft PR [reyals1111-ux/ZIGoals#100](https://github.com/reyals1111-ux/ZIGoals/pull/100); frozen reader #53; STATUS Part 0 records; ADR-037 skeleton; ROOT_CAUSE_KEYS.md; Dependabot review (Waits on owner); all eight per-bot ledgers in `docs/review/session-al/ledger/`.
-- Part 1 (L9): 1a smoke `73d1a3e2`; 1b verifier under plain Node + stage 12 `a8188f0c`; 1c CI limits and 12 shards `65712e97`; 1f chunked PR review `51e624f9`; 1d/1e/1g docs `0d1ae858`; two intermittents fixed `1826c58a`.
-- Part 3d/3e/3f (L10b): primitives `434309c3`; APIs and per-lane migration list in `docs/review/session-al/PRIMITIVES.md`.
+- **Part 0:**
+  - Draft PR [reyals1111-ux/ZIGoals#100](https://github.com/reyals1111-ux/ZIGoals/pull/100); frozen reader #53; STATUS records; ADR-037 (O1-O7, A1-A12, Q1-Q9, the lessons); ROOT_CAUSE_KEYS.
+  - Eight per-bot ledgers; the merged GROK53_LEDGER (642 AL rows from 3,654 ids); HISTORY_MAP (150 reopened rows).
+  - Dependabot review (waits on owner).
+- **Part 1 (L9):** smoke, verifier under plain Node + stage 12, CI limits and 12 shards, chunked PR review, docs, two intermittents.
+- **Part 3:**
+  - L10b primitives `434309c3`.
+  - L10a shell, O3, O4, Plans `57fb1e5e`, with the O3/O4 pin tests `fda12454`.
+  - 59 existing specs moved to O3 `3d1f575c`.
+  - Device-key registry `lib/al-device-keys.ts`: apps, wallet-names, chess-puzzle, nova-hud.
+- **First passes of every pillar lane:**
+  - L1 `671dd1f5`, L2 `3a46e44f`, L4 `97b8f85c`, L6 `1b1712aa`, L3 `9dead12c`.
+  - L8 HUD `17a96b86`, L7 `ff274875`, L5 Tasks `3bf6f507`.
+
+## Reproduction and proof so far (branch c727d662 production build on :3101)
+| grok53 folder | Branch | Status |
+|---|---|---|
+| markets | 10/10 pass | — |
+| wealth | 8/12 pass | 2 specs sent back to L1 |
+| health | 24/28 pass | 2 specs sent back to L2 |
+| All other folders | running | — |
+
+The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expected).
 
 ## Local setup used
-- A baseline production build of main `17069c7d` is in a separate worktree (`/home/user/zig-base`) and serves on :3102 (reproductions, expected red). Branch builds serve on :3101.
-- Builds need `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox (the default 2 GB heap runs out during type checking).
+- A baseline production build of main `17069c7d` lives in a separate worktree (`/home/user/zig-base`) and serves on :3102.
+- The branch head is built in a clean worktree (`/home/user/zig-branch`, `git checkout --detach <sha>`, then build) and serves on :3101. Building there keeps the lanes' unfinished edits out.
+- Builds need `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
+- Load is high with many helpers, so unit timeouts under load are re-run alone.
 
 ## Lanes in flight
-- L1 Wealth, L2 Health, L3 Habits/Today, L4 Goals/Activity/copy, L5 Tasks, L6 chain/Settings/Help, L7 ZIGi/NOVA, L8 HUD and L10a shell/Plans.
-- Plus the ledger-merge helper: GROK53_LEDGER.md + HISTORY_MAP.md.
+- Second passes: L1, L2, L3, L4, L6, L7 and L10a. Each finishes its Open/partial rows, requests addressed to it, primitive adoption, copy, keep-list guards, then its competitor rows.
+- INT: backup/restore/export for Tasks and the Checklist, the holdings CSV, headers, the service worker.
 
 ## Exact next step
-1. Review and commit each lane as it reports (lint, typecheck, unit).
-2. Then a branch production build on :3101.
-3. Run the `tests/grok53` specs red on :3102 and green on :3101 (the reproduction map, R3/R5).
-4. Pillar replays (A1).
+1. Commit each second pass as it reports.
+2. Rebuild the branch in the clean worktree.
+3. Re-run tests/grok53.
+4. Run the pillar replays (A1) with fresh agents, plus the HUD design critic.
+5. Then Parts 13-16.
 
 ## Open readings
 Q1–Q5 are in ADR-037.
@@ -33,4 +56,4 @@ Q1–Q5 are in ADR-037.
 ## Live counts
 | Ledger findings in | AL rows out | Reproduced | Already fixed | Reopened | Fixed | STILL OPEN |
 |---|---|---|---|---|---|---|
-| ~1,465 new + 1,348 old-id lines + 467 prompts + 290 gaps | 809 proposed rows (merge to AL rows in progress) | — | — | (history map in progress) | — | — |
+| 4,033 item lines (3,654 ids) | 642 AL rows | first specs red on main | per lane files | 150 | first passes: ~340 rows Fixed-pending-proof | lanes report Open rows in their second pass |
