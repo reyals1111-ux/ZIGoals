@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "//": "Session AL (A8): the workspace packages are loaded by plain Node 24 (scripts/verify-hosted-alpha.mjs, verify:network) through its built-in type stripping, so they may use erasable TypeScript syntax only.",
+  "compilerOptions": {"erasableSyntaxOnly": true},
+  "include": ["packages/**/*.ts"]
+}

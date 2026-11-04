@@ -9,8 +9,9 @@
  *   malformed or missing value) fails closed as before.
  * - zig-test-2: v5.1 (Session X, docs/research/ZIGCHAIN_V5_1.md) and v6.0 (Session AJ, docs/research/ZIGCHAIN_V6.md;
  *   live v6.0.0 since height 8,423,210 on 27 Oct 2026).
- * - zigchain-1: v5.1 and v6.0. Mainnet stays on v5.1.2 until on-chain proposal #45 ("Software Upgrade to v6", ZIGChain
- *   Core Team, binaries in ZIGChain/networks) upgrades it at height 13,466,800 (about 3 Nov 2026 09:30 UTC); P2.
+ * - zigchain-1: v5.1 and v6.0. On-chain proposal #45 ("Software Upgrade to v6", ZIGChain Core Team, binaries in
+ *   ZIGChain/networks) upgraded mainnet at height 13,466,800 (about 3 Nov 2026 09:30 UTC); P2. Verified v6.0.0 on
+ *   4 Nov 2026 (Session AL A13, docs/review/session-al/A13_MAINNET_V6.md).
  *
  * Fee models (P3): v5.1 takes the node's fixed minimum gas price (2.5 Gazig per gas). v6.0 takes an EIP-1559 base fee
  * from `x/feemarket` (floor 2.5 Gazig, rising up to 1/8 per block): the quote reads it at quote time and prices at

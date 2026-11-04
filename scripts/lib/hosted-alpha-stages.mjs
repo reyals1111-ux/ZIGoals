@@ -17,6 +17,7 @@ import {BASE_FEE_REST_PATH, TESTNET, checkVersion, formatGazig, parseBaseFee} fr
 import {readPolicyWindow, policyWindowNote} from './market-policy-window.mjs';
 import {CHECKLIST_SENTINELS, CHECKLIST_STAGE} from './hosted-alpha-checklist.mjs';
 import {AK_STAGE} from './hosted-alpha-ak.mjs';
+import {AL_STAGE} from './hosted-alpha-al.mjs';
 import {EARN_STAGE} from './hosted-alpha-earn.mjs';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal, todayQuickAdd} from './hosted-alpha-goal-stage.mjs';
 
@@ -259,6 +260,8 @@ export const VERIFIER_STAGES = Object.freeze([
   CHECKLIST_STAGE,
   // Session AK Part 14 (TIER 3 (verifier)): the AK stage; its off switches are recorded, never a failure.
   AK_STAGE,
+  // Session AL (TIER 3 (verifier)): plans, tasks and the Apps entries; a part the build lacks is recorded, never a failure.
+  AL_STAGE,
 ].map(stage => Object.freeze(stage)));
 
 /**
