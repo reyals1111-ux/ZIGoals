@@ -45,7 +45,7 @@ export default function HealthHighlights({data, today, unit}: {data: HealthData;
           : <><strong className="health-hl-figure">{weightText(tenths(trend.latestTrend), unit)}</strong><span className="health-hl-note">{rate ? `${rate} a week` : 'smoothed, six weeks'} · an estimate</span><TrendInk values={ink}/></>}
       </a></li>
       <li><a className="health-hl-tile" data-tone="energy" href="#health-energy">
-        <span className="health-hl-label">Energy estimate</span>
+        <span className="health-hl-label">Maintenance estimate</span>
         {energy.ready && energy.expenditure !== null ? <><strong className="health-hl-figure">{formatNumber(energy.expenditure)} <small>kcal a day</small></strong><span className="health-hl-note">about {formatNumber(energy.low ?? 0)}–{formatNumber(energy.high ?? 0)} · an estimate</span></>
           : /* Session AK RB (R2-14): the input still missing, by name ("3 more weigh-ins to go"), never "28 of 14 days". */
             ((p) => <><strong className="health-hl-figure is-quiet">{p.figure}</strong><span className="health-hl-note">{p.note}</span><span className="health-hl-bar" aria-hidden="true"><i style={{width: `${Math.round(p.share * 100)}%`}}/></span></>)(energyProgress(energy))}

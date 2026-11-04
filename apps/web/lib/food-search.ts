@@ -31,3 +31,13 @@ const foodSearchSchema=z.strictObject({results:z.array(genericFoodSchema).max(5)
 export function parseFoodSearch(raw:unknown){return foodSearchSchema.parse(raw);}
 /** "52 kcal per 100 g", or that the calories are unknown. */
 export function genericFoodSummary(food:GenericFood){return food.nutrients.kcal===null?'Calories unknown':`${food.nutrients.kcal} kcal per 100 g`;}
+/**
+ * Session AL (P-MO-65, MO-106): the Swiss database's answers in a reader's order: a name that starts with the words typed
+ * first, then a plain raw food before a product made from it ("Bananas, raw" before "Banana nectar"), then the shorter
+ * name. The server's own order was shown as it came.
+ */
+export function rankFoodResults<T extends {name:string}>(results:readonly T[],query:string):T[]{
+ const q=query.normalize('NFC').trim().toLowerCase(),norm=(s:string)=>s.normalize('NFC').toLowerCase();
+ const starts=(n:string)=>norm(n).startsWith(q)?0:1,raw=(n:string)=>/(^|[\s,])(raw|cru|crue|roh|crudo|cruda)([\s,]|$)/.test(norm(n))?0:1;
+ return [...results].sort((a,b)=>starts(a.name)-starts(b.name)||raw(a.name)-raw(b.name)||a.name.length-b.name.length);
+}

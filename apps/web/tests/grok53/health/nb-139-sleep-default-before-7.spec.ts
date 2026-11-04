@@ -5,7 +5,8 @@ import {hydrated} from '../../ah-helpers';
 // Session AL lane L2 (P-NB-44 / P-PR-10 / P-MO-45): Nairobi NB-139/NB-196, Professor PR-064, Moscow MO-021/MO-023/
 // MO-113, BUG-023/BUG-079. Opened before 07:00, the untouched "Log a night" form (23:00 → 07:00) ended in the future and
 // Save failed with "A night cannot end in the future.". Brussels time, desktop width, a fresh empty profile.
-test.use({timezoneId: 'Europe/Brussels', viewport: {width: 1280, height: 900}});
+// The bot's own conditions: Brussels, a 24-hour clock (en-GB), so the app writes now as "03:10".
+test.use({timezoneId: 'Europe/Brussels', locale: 'en-GB', viewport: {width: 1280, height: 900}});
 const form = (page: import('@playwright/test').Page) => page.getByRole('form', {name: 'Log a night or a nap'});
 
 for (const [label, instant, clock] of [['03:10', '2026-11-04T02:10:00.000Z', '03:10'], ['06:59', '2026-11-04T05:59:00.000Z', '06:59']] as const) {

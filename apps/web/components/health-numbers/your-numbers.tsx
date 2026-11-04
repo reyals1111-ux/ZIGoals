@@ -1,6 +1,7 @@
 'use client';
 import {Suspense, lazy, useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
+import {showUndo} from '../ui/undo-toast';
 import {HEALTH_NUMBERS, type HealthNumber} from '../../lib/health-numbers/store';
 import {BP_LINE, LAB_LINE, VERDICT_WORDS, addNumbers, bpEntry, bpReadings, knownNames, labEntry, markers, rangeText, removeNumber, restoreNumber, verdictOf, type Marker} from '../../lib/health-numbers/engine';
 import type {DraftRow} from '../../lib/health-numbers/scan';
@@ -19,16 +20,15 @@ const LabSheetScan = lazy(() => import('./lab-sheet-scan'));
  */
 const newId = () => `hn-${crypto.randomUUID()}`;
 const fmt = (v: number) => formatNumber(v, {maximumFractionDigits: 3});
-type Removed = {entry: HealthNumber; label: string} | null;
 
 export default function YourNumbers({today}: {today: string}) {
   const rec = useDeviceRecord(HEALTH_NUMBERS), id = useId();
-  const [status, setStatus] = useState(''), [removed, setRemoved] = useState<Removed>(null);
+  const [status, setStatus] = useState('');
   const bp = useMemo(() => bpReadings(rec.data), [rec.data]), labs = useMemo(() => markers(rec.data), [rec.data]);
   if (!rec.loaded) return <p className="fine">Reading your numbers…</p>;
   const write = (fn: Parameters<typeof rec.update>[0], said: string) => { try { rec.update(fn); setStatus(said); return true; } catch (e) { setStatus(e instanceof Error && e.message ? e.message : 'This could not be saved on this device. Nothing was changed.'); return false; } };
-  const remove = (e: HealthNumber, label: string) => { if (write(r => removeNumber(r, e.id), `Removed: ${label}.`)) setRemoved({entry: e, label}); };
-  const undo = () => { if (removed && write(r => restoreNumber(r, removed.entry), `Back: ${removed.label}.`)) setRemoved(null); };
+  // Session AL (3e): the one Undo toast; its restore puts the entry back into the device record (not only the screen).
+  const remove = (e: HealthNumber, label: string) => { if (write(r => removeNumber(r, e.id), `Removed: ${label}.`)) showUndo({message: `Removed: ${label}.`, undone: `Back: ${label}.`, restore: () => { rec.update(r => r.entries.some(x => x.id === e.id) ? r : restoreNumber(r, e)); setStatus(`Back: ${label}.`); }}); };
   return <div className="your-numbers">
     <p className="your-numbers-lede">{BP_LINE} {LAB_LINE}</p>
     {rec.unreadable && <p role="alert">Your saved numbers could not be read on this device, so none show. Nothing was changed.</p>}
@@ -51,7 +51,7 @@ export default function YourNumbers({today}: {today: string}) {
         : <p className="health-empty-inline">No lab values yet. Copy a value from your lab sheet with its unit, and the reference range printed beside it if there is one. Each value then gets its own line, and is marked only as inside or outside that range.</p>}
       <LabForm today={today} names={knownNames(rec.data)} onAdd={(entries, said) => write(r => addNumbers(r, entries), said)}/>
     </section>
-    <p className="your-numbers-status" role="status" aria-live="polite">{status}{removed && <> <button type="button" className="text-link" onClick={undo}>Undo</button></>}</p>
+    <p className="your-numbers-status" role="status" aria-live="polite">{status}</p>
     <p className="fine">Kept on this device only; in Export everything. Settings → Your data → Report for a visit can include them.</p>
   </div>;
 }

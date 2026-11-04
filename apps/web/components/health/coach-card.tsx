@@ -11,14 +11,14 @@ import {dailyData} from '../../lib/health-daily';
 import {setHealthTargets, type HealthData} from '../../lib/health';
 import {scaledTargets} from '../../lib/health-aa/energy';
 import {ConfirmInline} from '../ui/confirm-inline';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 import {useState} from 'react';
 import {registerSlotCard} from '../game/slot-local';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import type {HealthPerform} from './aa-types';
 import {usePagesView} from '../pages/use-pages-view';
 import {isShown} from '../../lib/pages/visibility';
-import {coachSlotShown} from '../../lib/health-aa/coach-slot';
+import {coachSlotShown, LOG_WEIGHT_HREF} from '../../lib/health-aa/coach-slot';
 import Link from 'next/link';
 import './health-aa.css';
 
@@ -44,8 +44,8 @@ export function CoachCard({data, today, perform, compact = false}: {data: Health
     setAsking(false);
     if (what === 'adjust' && kcal) {
       const before = data.targets;
-      void perform(latest => setHealthTargets(latest, scaledTargets(latest.targets, kcal)), `Calorie target adjusted to ${kcal} kcal a day; protein, carbs and fat scaled with it.`, () => { record(); showToast({message: `Calorie target now ${kcal} kcal a day.`, undone: `Calorie target back to ${before.kcal ?? 'none'}.`, undo: () => perform(latest => setHealthTargets(latest, before), 'Your earlier targets are back.')}); });
-    } else { record(); if (what === 'keep') showToast({message: 'Target kept for this week.', undone: 'Your answer for this week is cleared.', undo: () => { try { coach.update(r => clearCoachAnswer(r, c.weekStart)); } catch { /* the answer stays; the next week asks again */ } }}); }
+      void perform(latest => setHealthTargets(latest, scaledTargets(latest.targets, kcal)), `Calorie target adjusted to ${kcal} kcal a day; protein, carbs and fat scaled with it.`, () => { record(); showUndo({message: `Calorie target now ${kcal} kcal a day.`, undone: `Calorie target back to ${before.kcal ?? 'none'}.`, restore: () => perform(latest => setHealthTargets(latest, before), 'Your earlier targets are back.')}); });
+    } else { record(); if (what === 'keep') showUndo({message: 'Target kept for this week.', undone: 'Your answer for this week is cleared.', restore: () => { try { coach.update(r => clearCoachAnswer(r, c.weekStart)); } catch { /* the answer stays; the next week asks again */ } }}); }
   };
   // Session AK (task 4.5): the week's facts: the estimated maintenance once two weeks of logs are in, the weekly trend,
   // and the small step the suggestion takes (or how far the logs still are from it).
@@ -59,7 +59,8 @@ export function CoachCard({data, today, perform, compact = false}: {data: Health
     {asking && c.suggestion && <ConfirmInline title={`Set your calorie target to ${c.suggestion.kcal} kcal a day?`} confirmLabel="Adjust my target" cancelLabel="Keep it as it is" tone="neutral" onConfirm={() => answer('adjust')} onCancel={() => setAsking(false)}><p>Now {c.currentKcal === null ? 'no target' : `${c.currentKcal} kcal`}{c.changeKcal !== null && c.changeKcal !== 0 ? ` (${signed(c.changeKcal)} kcal)` : ''}. Protein, carbs and fat scale with it. A change moves at most {c.rails.maxStepPercent} % at a time and never below {formatNumber(c.rails.floorKcal)} kcal. You can undo it right after.</p></ConfirmInline>}
     <p className="fine">{c.suggestion ? `The adjustment comes from your energy estimate and a pace of ${paceLabel(c.suggestion.paceKg, unit)} toward your goal.` : 'The adjustment appears once the energy estimate has two weeks of logs.'} <span className="health-estimate-tag">{/* Session AK P4 (FR-15): a sentence of its own, capitalised */}An estimate, not medical advice</span></p>
     {/* Session AK P4 (FR-15): with no weight yet, the card says where the first one goes. */}
-    {compact && !data.weights.length && <p><Link className="text-link" href="/app/health?add=entry" prefetch={false}>Log a weight →</Link></p>}
+    {/* Session AL (NB-254): to the Weight view with its field focused, not the Diary. */}
+    {compact && !data.weights.length && <p><Link className="text-link" href={LOG_WEIGHT_HREF} prefetch={false}>Log a weight →</Link></p>}
   </section>;
 }
 /** The slot card for Today and the Life review: the same check-in, from the Health store directly. */
@@ -68,7 +69,9 @@ export function CoachSlotCard() {
   if (!health.loaded || health.error) return null;
   // Session AK P4 (FIRST_RUN_REVIEW FR-15): a person who chose no Health (the page is hidden) and logged no weight is not
   // asked for weights on Today.
-  if (!coachSlotShown({healthShown: isShown(view, 'health'), weights: health.data.weights.length})) return null;
+  // Session AL (NB-244): with nothing logged at all, a shown Health page alone does not bring the coach.
+  const records = health.data.weights.length + health.data.diary.length + health.data.activity.length + dailyData(health.data).water.length;
+  if (!coachSlotShown({healthShown: isShown(view, 'health'), weights: health.data.weights.length, records})) return null;
   const perform: HealthPerform = async (updater, _message, after) => { await health.update(updater); after?.(); };
   return <CoachCard data={health.data} today={today} perform={perform} compact />;
 }

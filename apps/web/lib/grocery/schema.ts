@@ -58,3 +58,10 @@ export function removeGroceryItem(r: GroceryRecord, weekStart: string, key: stri
   if (list.length) added[weekStart] = list; else delete added[weekStart];
   return groceryRecordSchema.parse({...r, added});
 }
+
+/** Session AL (P-MO-32/P-MO-52): what is wrong with a typed grocery item ('' when it can be added). */
+export function groceryNameIssue(text: string): string {
+  const name = text.trim();
+  if (!name) return 'Type an item to add, like coffee or soap.';
+  return name.length > 120 ? `An item can be at most 120 characters (this one has ${name.length}).` : '';
+}

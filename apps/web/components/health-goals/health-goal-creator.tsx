@@ -7,6 +7,8 @@ import type {HealthGoalDraft} from '../../lib/health-goals/store';
 import type {ExerciseCounter} from '../../lib/health-counters';
 import {INVISIBLE_NAME, isInvisibleName} from '../../lib/visible-text';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {checkGoalTarget} from '../../lib/health-goals/target';
+import {FieldError, useFormErrors} from '../primitives/field-error';
 
 export type HealthUnits = {weightUnit: 'kg' | 'lb'; waterUnit: 'ml' | 'fl-oz-us'};
 const MEASURES: {value: HealthGoalMeasure; label: string}[] = [{value: 'steps', label: 'Steps per day'}, {value: 'water', label: 'Water days'}, {value: 'exercise', label: 'Exercise counter'}, {value: 'activeMinutes', label: 'Active minutes'}, {value: 'weight', label: 'Weight'}];
@@ -21,9 +23,9 @@ export function targetFromText(text: string, measure: HealthGoalMeasure): Health
 }
 const targetText = (goal: HealthGoal) => formNumberText(Number(goal.target.value) / 10 ** goal.target.decimals);
 /** The health goal creator (G3): a sheet on phones, a panel elsewhere. Units follow the Health journal; nothing is suggested. */
-export function HealthGoalCreator({goal, counters, units, today, onSave, onCancel}: {goal?: HealthGoal; counters: readonly ExerciseCounter[]; units: HealthUnits; today: string; onSave: (draft: HealthGoalDraft) => Promise<void>; onCancel: () => void}) {
-  const [name, setName] = useState(goal?.name ?? '');
-  const [measure, setMeasure] = useState<HealthGoalMeasure>(goal?.measure ?? 'steps');
+export function HealthGoalCreator({goal, startMeasure, counters, units, today, onSave, onCancel}: {goal?: HealthGoal; startMeasure?: HealthGoalMeasure; counters: readonly ExerciseCounter[]; units: HealthUnits; today: string; onSave: (draft: HealthGoalDraft) => Promise<void>; onCancel: () => void}) {
+  const [name, setName] = useState(goal?.name ?? (startMeasure === 'weight' ? 'Reach my weight' : ''));
+  const [measure, setMeasure] = useState<HealthGoalMeasure>(goal?.measure ?? startMeasure ?? 'steps');
   const [exerciseId, setExerciseId] = useState(goal?.exerciseId ?? counters[0]?.id ?? '');
   const [direction, setDirection] = useState<'down' | 'up'>(goal?.direction === 'up' ? 'up' : 'down');
   const [target, setTarget] = useState(goal ? targetText(goal) : '');
@@ -33,13 +35,18 @@ export function HealthGoalCreator({goal, counters, units, today, onSave, onCance
   const [notes, setNotes] = useState(goal?.notes ?? '');
   const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   const unit = goalUnit(measure, units);
+  // Session AL (DV-027a): each empty or wrong field says why, under the field itself.
+  const form = useFormErrors();
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (isInvisibleName(name)) { setError(`Name: ${INVISIBLE_NAME}`); return; }
+    const checkedTarget = checkGoalTarget(target, measure, units);
+    const nameIssue = !name.trim() ? 'Give the goal a name.' : isInvisibleName(name) ? INVISIBLE_NAME : null;
+    const weeksIssue = windowKind === 'rolling' && !/^\s*\d{1,3}\s*$/.test(weeks) || windowKind === 'rolling' && (Number(weeks) < 1 || Number(weeks) > 104) ? 'Enter whole weeks from 1 to 104.' : null;
+    const dateIssue = windowKind === 'by' && !(byDate > today) ? 'Choose a date after today.' : null;
+    if (form.fail({name: nameIssue, target: checkedTarget.ok ? null : checkedTarget.error, date: dateIssue, weeks: weeksIssue})) { setError(''); return; }
     let draft: HealthGoalDraft;
     try {
-      const parsedTarget = (() => { try { return targetFromText(target, measure); } catch { throw Error('Enter a target above zero.'); } })();
-      if (windowKind === 'by' && !(byDate > today)) throw Error('Choose a date after today.');
+      const parsedTarget = targetFromText(checkedTarget.text ?? target, measure);
       const rolling = windowKind === 'rolling' ? readFormNumber(weeks, {min: 1, max: 104, whole: true}) : 0;
       draft = {name: name.trim(), measure, direction: measure === 'weight' ? direction : 'at-least', target: parsedTarget, unit, window: windowKind === 'by' ? {kind: 'by', date: byDate} : {kind: 'rolling', weeks: rolling}, ...(measure === 'exercise' ? {exerciseId} : {}), ...(notes.trim() ? {notes: notes.trim()} : {})};
       const issue = healthGoalIssue({version: 1, id: goal?.id ?? '00000000-0000-4000-8000-000000000000', status: 'active', createdAt: new Date(0).toISOString(), updatedAt: new Date(0).toISOString(), ...draft});
@@ -50,18 +57,18 @@ export function HealthGoalCreator({goal, counters, units, today, onSave, onCance
   }
   return <section className="panel health-goal-creator" aria-labelledby="health-goal-creator-title">
     <div className="habit-section-heading"><div><p className="eyebrow">Your body, your measure</p><h2 id="health-goal-creator-title">{goal ? 'Edit health goal' : 'New health goal'}</h2></div></div>
-    <form onSubmit={submit}><fieldset disabled={busy} className="habit-form-fields">
-      <label className="field">Name<input autoFocus data-sheet-focus required maxLength={100} value={name} onChange={event => setName(event.target.value)} placeholder="Walk more" /></label>
+    <form onSubmit={submit} noValidate><fieldset disabled={busy} className="habit-form-fields">
+      <label className="field">Name<input autoFocus data-sheet-focus required maxLength={100} {...form.field('name')} value={name} onChange={event => setName(event.target.value)} placeholder="Walk more" /></label><FieldError {...form.message('name')}/>
       <div className="habit-form-grid">
         <label className="field">Measure<select value={measure} onChange={event => setMeasure(event.target.value as HealthGoalMeasure)}>{MEASURES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}</select></label>
         {measure === 'exercise' && <label className="field">Counter<select value={exerciseId} onChange={event => setExerciseId(event.target.value)}><option value="">Choose a counter</option>{counters.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
         {measure === 'weight' ? <label className="field">Direction<select value={direction} onChange={event => setDirection(event.target.value as 'down' | 'up')}><option value="down">Towards a lower weight</option><option value="up">Towards a higher weight</option></select></label> : <p className="field health-goal-fixed"><span>Direction</span><strong>At least</strong></p>}
-        <label className="field">Target<span className="health-goal-target"><input type="text" inputMode="decimal" autoComplete="off" required aria-label="Target" value={target} onChange={event => setTarget(event.target.value)} /><span>{unit}</span></span></label>
+        <div><label className="field">Target<span className="health-goal-target"><input type="text" inputMode="decimal" autoComplete="off" required aria-label="Target" {...form.field('target')} value={target} onChange={event => setTarget(event.target.value)} /><span>{unit}</span></span></label><FieldError {...form.message('target')}/></div>
       </div>
       <div className="health-goal-window" role="radiogroup" aria-label="Window">
-        <label><input type="radio" name="health-goal-window" value="by" checked={windowKind === 'by'} onChange={() => setWindowKind('by')} /><span>By a date</span><input type="date" aria-label="Date" min={addLocalDays(today, 1)} disabled={windowKind !== 'by'} value={byDate} onChange={event => setByDate(event.target.value)} /></label>
-        <label><input type="radio" name="health-goal-window" value="rolling" checked={windowKind === 'rolling'} onChange={() => setWindowKind('rolling')} /><span>Rolling</span><input type="text" inputMode="numeric" autoComplete="off" aria-label="Weeks" disabled={windowKind !== 'rolling'} value={weeks} onChange={event => setWeeks(event.target.value)} /><span>weeks</span></label>
-      </div>
+        <label><input type="radio" name="health-goal-window" value="by" checked={windowKind === 'by'} onChange={() => setWindowKind('by')} /><span>By a date</span><input type="date" aria-label="Date" min={addLocalDays(today, 1)} disabled={windowKind !== 'by'} {...form.field('date')} value={byDate} onChange={event => setByDate(event.target.value)} /></label>
+        <label><input type="radio" name="health-goal-window" value="rolling" checked={windowKind === 'rolling'} onChange={() => setWindowKind('rolling')} /><span>Rolling</span><input type="text" inputMode="numeric" autoComplete="off" aria-label="Weeks" disabled={windowKind !== 'rolling'} {...form.field('weeks')} value={weeks} onChange={event => setWeeks(event.target.value)} /><span>weeks</span></label>
+      </div><FieldError {...form.message('date')}/><FieldError {...form.message('weeks')}/>
       <label className="field">Notes (optional)<textarea maxLength={2000} rows={2} value={notes} onChange={event => setNotes(event.target.value)} /></label>
       <p className="fine">Units follow your Health journal settings ({unit}). ZIGoals never suggests a target and does not give medical advice.</p>
       {error && <p role="alert">{error}</p>}

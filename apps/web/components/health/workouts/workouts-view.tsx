@@ -4,7 +4,7 @@ import {LoggingFor, useLinkedDay} from '../health-day';
 import {lazy, Suspense, useEffect, useMemo, useState} from 'react';
 import {NebulaFlow} from '../../nebula-flow';
 import {ConfirmInline} from '../../ui/confirm-inline';
-import {showToast} from '../../ui/undo-toast';
+import {showStatus} from '../../ui/undo-toast';
 import {useHealth} from '../use-health';
 import {dailyData, healthDay, healthZone} from '../../../lib/health-daily';
 import {newHealthId, removeHealthItem, saveActivity} from '../../../lib/health';
@@ -17,11 +17,15 @@ import {leaveSuperset, restAfter, restFor, RPE_VALUES, RPE_WORDS, setExerciseRes
 import {importInfo} from '../../../lib/workouts/import-file';
 import type {LiftsPlan} from '../../../lib/workouts/import-lifts';
 import {CATEGORIES, MEASURES, SET_KINDS, type ExerciseEntry, type Measure, type Workout, type WorkoutSet, type Workouts} from '../../../lib/workouts/schema';
-import {clock, fromUnit, readClock, setText, toUnit, weightShown} from './units';
+import {clock, estimateShown, weightPrefillText, fromUnit, readClock, setText, weightShown} from './units';
 import {useWorkouts} from './use-workouts';
 import {WorkoutsImport, importedLine, type ImportChoice} from './workouts-import';
 import './workouts.css';
 import {ArtNote} from '../../illustrations/art-note';
+import {Skeleton} from '../../ui/skeleton';
+import {SlowReload} from '../slow-reload';
+/** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
+const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
 // Session AK (4.9): the warm-up and plate calculators and the muscle-group view load only when used.
 const WorkoutTools = lazy(() => import('./workouts-tools'));
@@ -39,11 +43,12 @@ const KIND_WORDS: Record<WorkoutSet['kind'], string> = {warmup: 'Warm-up', norma
 const MEASURE_WORDS: Record<Measure, string> = {'weight-reps': 'Weight and reps', reps: 'Reps', time: 'Time', 'distance-time': 'Distance and time'};
 /** Session AK (4.9): one calm line for the new bests, shown once when the workout is saved. */
 const celebration = (bests: PersonalBest[], unit: 'kg' | 'lb') => bests.length === 1 ? `A new personal best: ${bestWords(bests[0]!, unit)}. Well earned.` : `${bests.length} new personal bests today. Well earned.`;
-const bestWords = (b: PersonalBest, unit: 'kg' | 'lb') => `${b.name}: ${b.what === 'weight' ? `heaviest ${weightShown(b.value, unit)}` : b.what === 'one-rep max' ? `estimated one-rep max ${weightShown(b.value, unit)}` : b.what === 'reps' ? `most reps, ${b.value}` : b.what === 'time' ? `longest, ${clock(b.value)}` : `farthest, ${formatNumber(b.value)} km`}`;
+const bestWords = (b: PersonalBest, unit: 'kg' | 'lb') => `${b.name}: ${b.what === 'weight' ? `heaviest ${weightShown(b.value, unit)}` : b.what === 'one-rep max' ? `estimated one-rep max ${estimateShown(b.value, unit)}` : b.what === 'reps' ? `most reps, ${b.value}` : b.what === 'time' ? `longest, ${clock(b.value)}` : `farthest, ${formatNumber(b.value)} km`}`;
 
 export default function WorkoutsView() {
   const record = useWorkouts(), health = useHealth();
   const [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now()), [restUntil, setRestUntil] = useState<number | null>(null);
+  const [tookMinutes, setTookMinutes] = useState('');
   const [asking, setAsking] = useState<null | 'finish' | 'discard' | {remove: string}>(null), [summary, setSummary] = useState<{workout: Workout; bests: PersonalBest[]} | null>(null);
   const [historyOf, setHistoryOf] = useState('');
   const ready = record.loaded && health.loaded && !health.error;
@@ -57,7 +62,8 @@ export default function WorkoutsView() {
   useEffect(() => { if (restUntil !== null && now >= restUntil) { setRestUntil(null); setNote('Rest is over. Next set when you are ready.'); } }, [now, restUntil]);
   const change = (fn: (w: Workouts) => Workouts, said?: string) => { try { record.update(fn); if (said) setNote(said); return true; } catch (e) { setNote(plainErrorMessage(e, 'That could not be saved on this device.')); return false; } };
 
-  if (!record.loaded || !health.loaded) return <section className="panel"><h1>Workouts</h1><p>Opening your workout log…</p></section>;
+  // Session AL (P-MO-22, MO-026): a skeleton under the line while the log opens, and Reload after 10 s.
+  if (!record.loaded || !health.loaded) return <section className="panel"><h1>Workouts</h1><p>Opening your workout log…</p><Skeleton label="Opening your workout log" lines={4}/><SlowReload/></section>;
   if (health.error) return <section className="panel"><h1>Workouts</h1><p role="alert">Workouts keep their minutes in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const w = record.data, past = finished(w), last = past[0], week = weekSummary(w, today), library = allExercises(w.exercises);
 
@@ -66,14 +72,19 @@ export default function WorkoutsView() {
     setAsking(null);
     try {
       let result: ReturnType<typeof finishWorkout> | undefined;
-      record.update(x => { result = finishWorkout(x, new Date()); return result.workouts; });
+      // Session AL (P-MO-82, MO-148): a workout logged afterwards takes the minutes typed; else it runs until now.
+      const typed = tookMinutes.trim(), took = typed ? Number(typed) : undefined;
+      if (took !== undefined && (!/^\d{1,4}$/.test(typed) || took < 1 || took > 1440)) { setNote('Enter whole minutes from 1 to 1,440, or leave “Took” empty to end it now.'); return; }
+      record.update(x => { result = finishWorkout(x, new Date(), took); return result.workouts; });
+      setTookMinutes(''); setNote(''); // the "Workout started…" line no longer stays above the finished workout (MO-137)
       const {workout, bests} = result!, minutes = Math.min(1440, Math.max(1, durationMinutes(workout)));
       // The minutes go to Health's activity log, so Today, the weekly review and a linked exercise habit count them.
       const activityId = newHealthId();
       try { await health.update(h => saveActivity(h, {id: activityId, date: workout.date, name: workout.name, steps: 0, minutes}, new Date().toISOString())); record.update(x => withActivity(x, workout.id, activityId)); }
       catch { setNote('The workout is saved; its minutes could not be added to Health.'); }
       setRestUntil(null); setSummary({workout, bests});
-      showToast({message: `${workout.name} saved · ${minutes} min${bests.length ? ` · ${bests.length} new ${plural(bests.length, 'personal best')}` : ''}.`});
+      // Session AL (P-MO-82, MO-137): a workout under a minute reads "under 1 min" (it read "0 min" in places).
+      showStatus(`${workout.name} saved · ${durationMinutes(workout) < 1 ? 'under 1 min' : `${minutes} min`}${bests.length ? ` · ${bests.length} new ${plural(bests.length, 'personal best')}` : ''}.`);
     } catch (e) { setNote(plainErrorMessage(e, 'The workout could not be finished.')); }
   }
   // Session AJ (item 27, D12): an imported workout is saved like a finished one, minutes in Health included. Session AK
@@ -132,10 +143,11 @@ export default function WorkoutsView() {
     {note && <p className="workouts-note" role="status">{note}</p>}
     {record.unreadable && <p className="notice" role="alert">The workout log on this device could not be read. Its bytes are kept; nothing was changed. Starting a workout writes a new log.</p>}
 
-    {current ? <CurrentWorkout workout={current} w={w} unit={unit} now={now} library={library} restUntil={restUntil} change={change}
+    {current ? <><CurrentWorkout workout={current} w={w} unit={unit} now={now} library={library} restUntil={restUntil} change={change}
         onRest={startRest} onSkipRest={() => setRestUntil(null)}
         onFinish={() => { const open = current.exercises.reduce((n, e) => n + e.sets.filter(s => !s.done && setReady(e.measure, s)).length, 0); if (open) setAsking('finish'); else void finish(); }}
         onDiscard={() => setAsking('discard')}/>
+      <label className="field workouts-took">Took (minutes, optional: for a workout you log afterwards)<input type="text" inputMode="numeric" autoComplete="off" value={tookMinutes} onChange={e => setTookMinutes(e.target.value)}/></label></>
       : <section className="panel workouts-start" aria-labelledby="workouts-start-title">
         <h2 id="workouts-start-title">Start a workout</h2>
         {past.some(x => x.exercises.length) && <Suspense fallback={null}><MuscleFreshToday w={w} library={library} today={today}/></Suspense>}
@@ -155,7 +167,7 @@ export default function WorkoutsView() {
 
     {summary && <section className="panel workouts-summary" aria-labelledby="workouts-summary-title">
       <h2 id="workouts-summary-title">{summary.workout.name}, done</h2>
-      <p>{durationMinutes(summary.workout)} min · {doneSets(summary.workout).length} {plural(doneSets(summary.workout).length, 'set')}{(() => { const v = summary.workout.exercises.reduce((t, e) => t + volumeKg(e), 0); return v ? ` · ${weightShown(v, unit)} lifted` : ''; })()}.</p>
+      <p>{minText(durationMinutes(summary.workout))} · {doneSets(summary.workout).length} {plural(doneSets(summary.workout).length, 'set')}{(() => { const v = summary.workout.exercises.reduce((t, e) => t + volumeKg(e), 0); return v ? ` · ${weightShown(v, unit)} lifted` : ''; })()}.</p>
       {summary.bests.length > 0 && <p className="workouts-celebrate" role="status"><span aria-hidden="true">★ </span>{celebration(summary.bests, unit)}</p>}
       {summary.bests.length > 0 ? <><h3>New personal bests</h3><ul>{summary.bests.map(b => <li key={`${b.exerciseId}-${b.what}`}>{bestWords(b, unit)}</li>)}</ul></> : <p className="fine">No new personal best this time; consistency is what counts.</p>}
       <SaveRoutine workout={summary.workout} onSave={name => change(x => saveTemplate(x, summary.workout, name, new Date()), `Routine ${name || summary.workout.name} saved. Start it from here next time.`)}/>
@@ -165,7 +177,7 @@ export default function WorkoutsView() {
       <h2 id="workouts-history-title">Your workouts</h2>
       <WorkoutsImport w={w} dayOf={iso => healthDay(dailyData(health.data).preferences.timezone, new Date(iso))} zone={healthZone(dailyData(health.data).preferences.timezone)} unit={unit} onAdd={addImported} onAddLifts={addLifts}/>
       {past.length ? <ul className="workouts-past">{past.slice(0, 30).map(x => <li key={x.id}>
-        <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {durationMinutes(x)} min · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
+        <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
           {importInfo(x) && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unit)}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
@@ -246,7 +258,7 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
 
 function SetRow({entry, set, n, previous, unit, change, onDone, rpe}: {entry: ExerciseEntry; set: WorkoutSet; n: number; previous?: WorkoutSet; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onDone: () => void; rpe: boolean}) {
   const m = entry.measure, label = `${entry.name}, set ${n}`;
-  const [weight, setWeight] = useState(set.weightKg === undefined ? '' : String(Math.round(toUnit(set.weightKg, unit) * 100) / 100));
+  const [weight, setWeight] = useState(set.weightKg === undefined ? '' : weightPrefillText(set.weightKg, unit));
   const [reps, setReps] = useState(set.reps === undefined ? '' : String(set.reps)), [time, setTime] = useState(set.seconds ? clock(set.seconds) : ''), [dist, setDist] = useState(set.distanceKm === undefined ? '' : String(set.distanceKm));
   const [problem, setProblem] = useState('');
   const read = (): Partial<WorkoutSet> | null => {
@@ -266,7 +278,7 @@ function SetRow({entry, set, n, previous, unit, change, onDone, rpe}: {entry: Ex
     if (!setReady(m, {...set, ...patch})) { setProblem(m === 'weight-reps' ? 'Enter the weight and the reps first.' : m === 'reps' ? 'Enter the reps first.' : m === 'time' ? 'Enter the time first.' : 'Enter the distance or the time first.'); return; }
     if (change(x => updateSet(x, entry.id, set.id, {...patch, done: true}))) onDone();
   };
-  const fill = () => { if (!previous) return; if (previous.weightKg !== undefined) setWeight(String(Math.round(toUnit(previous.weightKg, unit) * 100) / 100)); if (previous.reps !== undefined) setReps(String(previous.reps)); if (previous.seconds) setTime(clock(previous.seconds)); if (previous.distanceKm !== undefined) setDist(String(previous.distanceKm)); };
+  const fill = () => { if (!previous) return; if (previous.weightKg !== undefined) setWeight(weightPrefillText(previous.weightKg, unit)); if (previous.reps !== undefined) setReps(String(previous.reps)); if (previous.seconds) setTime(clock(previous.seconds)); if (previous.distanceKm !== undefined) setDist(String(previous.distanceKm)); };
   return <><tr data-done={set.done || undefined} data-kind={set.kind}>
     <th scope="row"><select className="workouts-kind" value={set.kind} aria-label={`${label}: type`} onChange={e => change(x => updateSet(x, entry.id, set.id, {kind: e.target.value as WorkoutSet['kind']}))}>{SET_KINDS.map(k => <option key={k} value={k}>{k === 'normal' ? String(n) : k === 'warmup' ? 'W' : k === 'drop' ? 'D' : 'F'}</option>)}</select><span className="sr-only">{KIND_WORDS[set.kind]}</span></th>
     <td>{previous ? <button className="text-link workouts-prev" type="button" onClick={fill} aria-label={`${label}: use last time, ${setText(m, previous, unit)}`}>{setText(m, previous, unit)}</button> : <span className="fine">—</span>}</td>
@@ -317,7 +329,7 @@ function ProgressLine({h, unit}: {h: NonNullable<ReturnType<typeof exerciseHisto
   const value = (s: (typeof h.sessions)[number]) => { const b = s.best; if (!b) return null; if (h.measure === 'weight-reps') return b.weightKg !== undefined && b.reps ? oneRepMax(b.weightKg, Math.min(b.reps, 12)) : null; if (h.measure === 'reps') return b.reps ?? null; if (h.measure === 'time') return b.seconds ?? null; return b.distanceKm ?? null; };
   const points = [...h.sessions].reverse().slice(-20).map(s => ({date: s.date, v: value(s)})).filter((p): p is {date: string; v: number} => typeof p.v === 'number' && p.v > 0);
   if (points.length < 2) return null;
-  const shown = (v: number) => h.measure === 'weight-reps' ? weightShown(v, unit) : h.measure === 'time' ? clock(v) : h.measure === 'reps' ? `${v} reps` : `${formatNumber(v, {maximumFractionDigits: 2})} km`;
+  const shown = (v: number) => h.measure === 'weight-reps' ? estimateShown(v, unit) : h.measure === 'time' ? clock(v) : h.measure === 'reps' ? `${v} reps` : `${formatNumber(v, {maximumFractionDigits: 2})} km`;
   const W = 300, H = 72, lo = Math.min(...points.map(p => p.v)), hi = Math.max(...points.map(p => p.v)), span = hi - lo || 1;
   const d = points.map((p, i) => `${i ? 'L' : 'M'}${(i / (points.length - 1) * (W - 8) + 4).toFixed(1)} ${(H - 6 - (p.v - lo) / span * (H - 12)).toFixed(1)}`).join(' ');
   const first = points[0]!, last = points.at(-1)!;

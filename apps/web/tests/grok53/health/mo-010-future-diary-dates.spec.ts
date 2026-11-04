@@ -18,6 +18,11 @@ test('MO-010: a copy to a later day is refused at its date; nothing reaches the 
   await expect(first).toHaveValue('2026-11-04');
   await first.fill('2026-11-06');
   await copy.getByRole('button', {name: 'Preview copy'}).click();
-  await expect(page.getByRole('alert')).toContainText('Choose today or an earlier day');
+  // FIELD-ERROR rule: the refusal is said under its own date field, which is marked invalid and takes the focus.
+  await expect(copy.locator('.field-error')).toContainText('Choose today or an earlier day');
+  await expect(copy.locator('.field-error')).toHaveAttribute('role', 'alert');
+  await expect(first).toHaveAttribute('aria-invalid', 'true');
+  await expect(first).toBeFocused();
+  await expect(page.getByRole('region', {name: 'Copy preview'})).toHaveCount(0);
   expect((await storedHealth(page))?.diary.filter(e => e.date > '2026-11-04') ?? []).toEqual([]);
 });

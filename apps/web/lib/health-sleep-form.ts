@@ -1,5 +1,6 @@
 import {addDays, instantAt, wallClock} from './zone-time';
 import {JOURNAL_MIN_DAY} from './health-day';
+import type {NightInput} from './sleep/engine';
 
 /**
  * Session AL (P-NB-44 / P-PR-10 / P-MO-45; NB-139, NB-196, PR-064, MO-021, BUG-079): the times the "Log a night or a
@@ -56,4 +57,31 @@ export function optionalWhole(raw: string, max: number, what: 'minutes' | 'count
   if (!text) return {};
   if (!/^\d{1,4}$/.test(text) || Number(text) > max) return {issue: what === 'minutes' ? `Enter whole minutes from 0 to ${max}, or leave it empty.` : `Enter a whole number from 0 to ${max}, or leave it empty.`};
   return {value: Number(text)};
+}
+
+/**
+ * Session AL (for L3, NB-139): the wake time "When did you wake up?" starts with, for a night still open since `startMs`:
+ * 07:00 on the morning after an evening start (the same day for a start after midnight), never later than now. It used
+ * to be 07:00 on the start's own date, which is before an evening start, and in the future before 07:00.
+ */
+export function defaultWakeFor(startMs: number, nowMs: number, zone: string): {date: string; time: string} {
+  const start = wallClock(startMs, zone);
+  const day = start.minutes >= 12 * 60 ? addDays(start.date, 1) : start.date;
+  const t = defaultNightTimes(day, nowMs, zone);
+  // A night started this very morning (or later than the default) cannot be offered a wake time before it began.
+  if (instantAt(t.wakeDate, t.wakeTime, zone) <= startMs) { const now = wallClock(nowMs, zone); return {date: now.date, time: now.clock}; }
+  return {date: t.wakeDate, time: t.wakeTime};
+}
+
+/**
+ * Session AL (for L3/Today, NB-138): the one quick "last night" write Today can call: a night of `hours` that ended at
+ * the default wake time of the journal day `day` (07:00, or now before 07:00), so "7 h" logs 00:00 → 07:00. Returns the
+ * night for `saveNight` (lib/sleep/engine.ts), which still refuses an overlap. Nothing is written here:
+ *   sleep.update(s => saveNight(s, quickLastNight(7, today, Date.now(), zone), new Date()))
+ */
+export function quickLastNight(hours: number, day: string, nowMs: number, zone: string): NightInput {
+  if (!Number.isFinite(hours) || hours <= 0 || hours > 16) throw new RangeError('Enter from 0.5 to 16 hours.');
+  const t = defaultNightTimes(day, nowMs, zone);
+  const end = instantAt(t.wakeDate, t.wakeTime, zone);
+  return {kind: 'night', start: end - Math.round(hours * 60) * MINUTE, end, timeZone: zone};
 }

@@ -1,6 +1,6 @@
 'use client';
 import {useId, useMemo, useState} from 'react';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 import {formatDate, formatWeekday} from '../../lib/visual-format';
 import type {HealthData} from '../../lib/health';
 import {DIET_TEMPLATES, TEMPLATE_FOODS, type DietTemplate, type FoodKey} from '../../lib/diet-templates/templates';
@@ -41,7 +41,7 @@ export default function DietTemplates({data, anyDay, perform}: {data: HealthData
       const said = `${template.name} template added to the week of ${weekWords}. Nothing is logged as eaten until you tap Log.`;
       await perform(latest => { const r = applyTemplate(latest, template, anyDay, lib.foods, new Date().toISOString()); added = r.added; return r.data; }, said, () => {
         const what = added!;
-        showToast({message: said, undoLabel: `Undo the ${template.name} template`, undone: 'The template’s plans are removed; anything already logged stays.', undo: () => perform(latest => undoTemplate(latest, what).data, 'The template’s plans are removed.')});
+        showUndo({message: said, undoLabel: `Undo the ${template.name} template`, undone: 'The template’s plans are removed; anything already logged stays.', restore: () => perform(latest => undoTemplate(latest, what).data, 'The template’s plans are removed.')});
       });
       setState({kind: 'idle'});
     } catch (e) { setState({kind: 'problem', line: e instanceof Error && e.message ? e.message : 'The template could not be added. Nothing was changed.'}); }

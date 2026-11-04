@@ -53,15 +53,17 @@ export function HealthDateBar({date, today, onChoose}: HealthDay & {onChoose: (d
     const dx = to.clientX - from.x, dy = to.clientY - from.y;
     if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx > 0 ? -1 : 1);
   };
-  return <div className="health-date health-date-bar" role="group" aria-label="Journal day" tabIndex={0} onKeyDown={onKey} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-    <button type="button" className="health-date-step" aria-label="Previous day" disabled={date <= JOURNAL_MIN_DAY} onClick={() => step(-1)}><span aria-hidden="true">←</span></button>
+  // Session AL (P-MO-29, N-MO-32): one tab stop for the pager: the bar itself (← / → move a day); its arrow buttons stay
+  // for a pointer and are skipped by Tab, so the day is not announced twice ("Journal day", then "←").
+  return <div className="health-date health-date-bar" role="group" aria-label="Journal day" aria-keyshortcuts="ArrowLeft ArrowRight" tabIndex={0} onKeyDown={onKey} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <button type="button" className="health-date-step" aria-label="Previous day" tabIndex={-1} disabled={date <= JOURNAL_MIN_DAY} onClick={() => step(-1)}><span aria-hidden="true">←</span></button>
     <label className="health-date-pick">
       <span key={date} className={`health-date-text${date !== first.current ? ' is-new' : ''}`}><strong>{dayName(date, today)}</strong><small id="health-date-hint">{dayHint(date, today)}</small></span>
       <input ref={input} type="date" aria-label="Journal date" aria-describedby="health-date-hint" min={JOURNAL_MIN_DAY} max={today} value={date}
         onClick={event => { try { event.currentTarget.showPicker?.(); } catch { /* the browser opens its own picker */ } }}
         onChange={event => { const value = event.target.value; if (value >= JOURNAL_MIN_DAY && value <= today) onChoose(value); }}/>
     </label>
-    <button type="button" className="health-date-step" aria-label="Next day" disabled={isToday} onClick={() => step(1)}><span aria-hidden="true">→</span></button>
+    <button type="button" className="health-date-step" aria-label="Next day" tabIndex={-1} disabled={isToday} onClick={() => step(1)}><span aria-hidden="true">→</span></button>
     {!isToday && <button type="button" className="health-date-today" onClick={() => onChoose(today)}>Today</button>}
   </div>;
 }

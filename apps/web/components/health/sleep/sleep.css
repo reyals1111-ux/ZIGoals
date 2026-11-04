@@ -94,3 +94,10 @@
 .sleep-wind-down-sounds { display: grid; gap: 8px; max-width: 460px; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line, #7fc8ff1a); }
 .sleep-wind-down-sounds p { margin: 0; }
 .sleep-wind-down-sounds button { min-height: 44px; justify-self: start; }
+/* Session AL (P-MO-77, MO-022): a day with no night is a short dash on the baseline; the key names it and the naps rule. */
+.sleep-missing { stroke: #9aa6bf; stroke-width: 2; stroke-linecap: round; }
+.sleep-key-missing { width: 12px; height: 2px; background: #9aa6bf; border-radius: 1px; }
+.sleep-key-naps { width: 12px; height: 12px; border-radius: 3px; background: #6f7ff5; }
+/* Session AL (P-MO-102, N-MO-09): each chip is at least 44 px both ways at every width. */
+.sleep-form fieldset > label:not(.field) span { min-width: 44px; justify-content: center; box-sizing: border-box; }
+:root .sleep-form fieldset > label:not(.field) > span { min-height: 44px; }

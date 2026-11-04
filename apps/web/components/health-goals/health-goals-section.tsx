@@ -1,7 +1,7 @@
 'use client';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 import {EmptyState} from '../ui/empty-state';
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import type {HealthData} from '../../lib/health';
 import {dailyData} from '../../lib/health-daily';
 import {exerciseData} from '../../lib/health-counters';
@@ -25,6 +25,15 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
   const phone = usePhoneActive(), preferences = dailyData(health).preferences, today = useHealthToday(preferences.timezone);
   const [editor, setEditor] = useState<'new' | HealthGoal | null>(null); const [showDone, setShowDone] = useState(false); const [confirming, setConfirming] = useState(false);
   const [message, setMessage] = useState(''); const [error, setError] = useState('');
+  // Session AL (DV-181, for L4): the weight template ("A weight goal ↗") arrives with ?health-goal=weight (or
+  // #goals-health-weight): the creator opens with Weight chosen and a name to keep or change, and the section is shown.
+  const [startWeight, setStartWeight] = useState(false);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('health-goal') !== 'weight' && url.hash !== '#goals-health-weight') return;
+    setStartWeight(true); setEditor('new');
+    requestAnimationFrame(() => document.getElementById('goals-health')?.scrollIntoView({block: 'start', behavior: 'instant'}));
+  }, []);
   const counters = exerciseData(health).counters, units = useMemo(() => ({weightUnit: preferences.weightUnit, waterUnit: preferences.waterUnit}), [preferences.weightUnit, preferences.waterUnit]);
   const active = goals.data.goals.filter(g => g.status === 'active'), rest = goals.data.goals.filter(g => g.status !== 'active');
   async function save(draft: HealthGoalDraft) {
@@ -35,7 +44,7 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
   async function status(goal: HealthGoal, next: HealthGoal['status']) {
     setError(''); setMessage(''); try { await goals.update(current => setHealthGoalStatus(current, goal.id, next)); const said = next === 'done' ? `${goal.name} marked done.` : next === 'closed' ? `${goal.name} ended.` : `${goal.name} reopened.`;
       // Session AH Part 3 (DS5, M-131): ending (or finishing) a health goal gives a labelled Undo back to its earlier state.
-      if (next === 'active' || next === goal.status) setMessage(said); else showToast({message: said, undone: `${goal.name} is as it was.`, undo: () => goals.update(current => setHealthGoalStatus(current, goal.id, goal.status))}); } catch (e) { setError(`The health goal was not changed. ${deviceSettingFailureMessage(e)}`); }
+      if (next === 'active' || next === goal.status) setMessage(said); else showUndo({message: said, undone: `${goal.name} is as it was.`, restore: () => goals.update(current => setHealthGoalStatus(current, goal.id, goal.status))}); } catch (e) { setError(`The health goal was not changed. ${deviceSettingFailureMessage(e)}`); }
   }
   const row = (goal: HealthGoal) => {
     const progress = healthLoaded ? healthGoalProgress(goal, health, today) : {kind: 'no-data' as const};
@@ -55,10 +64,10 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
       </div>
     </li>;
   };
-  const creator = editor ? <HealthGoalCreator key={editor === 'new' ? 'new' : editor.id} goal={editor === 'new' ? undefined : editor} counters={counters} units={units} today={today} onSave={save} onCancel={() => setEditor(null)} /> : null;
+  const creator = editor ? <HealthGoalCreator key={editor === 'new' ? 'new' : editor.id} goal={editor === 'new' ? undefined : editor} startMeasure={editor === 'new' && startWeight ? 'weight' : undefined} counters={counters} units={units} today={today} onSave={save} onCancel={() => setEditor(null)} /> : null;
   return <section className="panel health-goals" id="goals-health" aria-labelledby="health-goals-title">
     <div className="habit-section-heading"><div><p className="eyebrow">Your body, your measure</p><h2 id="health-goals-title">Health goals</h2><p className="fine">Progress from your own Health journal. Nothing is suggested, and nothing is scored. {SYNC_WRITES ? 'Kept with your Health records.' : 'Kept on this device.'}</p></div>
-      {!goals.unreadable && <button type="button" className="primary" disabled={!goals.loaded} onClick={() => { setEditor('new'); setMessage(''); }}>+ Health goal</button>}</div>
+      {!goals.unreadable && <button type="button" className="primary" disabled={!goals.loaded} onClick={() => { setStartWeight(false); setEditor('new'); setMessage(''); }}>+ Health goal</button>}</div>
     {goals.unreadable ? goals.error ? <div className="notice" role="alert"><p>{goals.error}</p></div> : <div className="notice" role="alert"><p>Your saved health goals on this device could not be read. They were not changed.</p>
       {confirming ? <div className="actions"><p className="fine">Start over keeps the old bytes as a recovery copy and continues with no health goals.</p><button type="button" className="secondary" onClick={() => { setConfirming(false); goals.startOver().then(() => setMessage('Your health goals on this device start over.'), e => setError(deviceSettingFailureMessage(e))); }}>Start over</button><button type="button" className="quiet" onClick={() => setConfirming(false)}>Keep them</button></div> : <button type="button" className="quiet" onClick={() => setConfirming(true)}>Start over…</button>}</div> : <>
       {goals.loaded && !goals.data.goals.length && !editor && <EmptyState className="health-goals-empty" zigi="encouraging" title="No health goals yet.">Choose a measure you already record in Health, and a target you’ve chosen yourself.</EmptyState>}

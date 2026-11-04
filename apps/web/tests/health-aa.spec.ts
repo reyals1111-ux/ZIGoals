@@ -40,7 +40,8 @@ test('N1–N3: the trend, the energy estimate and the coach show from six weeks 
   const trend = page.getByRole('region', {name: 'Weight trend'});
   await expect(trend.getByText(/trend today · .*\/week/)).toBeVisible();
   await expect(trend.getByRole('img', {name: /^Trend 7\d\.\d kg, [−-]0\.\d kg a week, goal 70 kg; 21 readings in 42 days\.$/})).toBeVisible();
-  const energy = page.getByRole('region', {name: 'Energy estimate'});
+  // Session AL (COPY_AUDIT, deliberate): P-DV-120 (DV-280) renamed the card "Maintenance estimate" (Journal energy is a mood).
+  const energy = page.getByRole('region', {name: 'Maintenance estimate'});
   await expect(energy.getByText(/kcal a day, about \d+–\d+/)).toBeVisible();
   await expect(energy.getByText('an estimate, not medical advice').first()).toBeVisible();
   const coach = page.getByRole('region', {name: 'Your coach'});

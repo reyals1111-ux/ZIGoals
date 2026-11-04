@@ -74,6 +74,15 @@ export function previewMealCopy(items: MealItem[], dates: string[], meal: Health
     return diarySchema.parse({ id: `${operationId}-${d}-${i}`, sourceId: parsed.sourceId, sourceKind: parsed.sourceKind, snapshot: parsed.snapshot, quantityMilli: parsed.quantityMilli, date, meal, createdAt: at, updatedAt: at });
   }));
 }
+/**
+ * Session AL (P-MO-74, MO-011): a whole day copied with each entry kept in its own meal (breakfast stays breakfast),
+ * checked like previewMealCopy. The ids follow the same operation pattern, so commitMealCopy accepts the preview.
+ */
+export function previewDayCopy(data: HealthData, from: string, dates: string[], operationId: string, at: string): HealthDiaryEntry[] {
+  const entries = data.diary.filter(e => e.date === from);
+  if (dates.length < 1 || dates.length > 7 || new Set(dates).size !== dates.length || !entries.length || entries.length > 100) throw Error("Choose one to seven distinct dates and a day with entries.");
+  return dates.flatMap((date, d) => entries.map((e, i) => diarySchema.parse({ id: `${operationId}-${d}-${i}`, sourceId: e.sourceId, sourceKind: e.sourceKind, snapshot: structuredClone(e.snapshot), quantityMilli: e.quantityMilli, date, meal: e.meal, createdAt: at, updatedAt: at })));
+}
 export function commitMealCopy(data: HealthData, preview: HealthDiaryEntry[], operationId: string): HealthData {
   const state = dailyData(data);
   if (state.copyOperations.includes(operationId)) return data;
@@ -230,7 +239,14 @@ export function exportHealthCsv(data: HealthData, from: string, to: string): str
   for (const w of data.weights.filter(inRange)) rows.push([w.id, w.date, "weight", "Body weight", "", w.grams, "g", "", "", "", "", "", "manual", w.createdAt, w.updatedAt]);
   for (const a of data.activity.filter(inRange)) for (const unit of ["steps", "minutes"] as const) rows.push([a.id, a.date, "activity", a.name, "", a[unit], unit, "", "", "", "", "", "manual", a.createdAt, a.updatedAt]);
   for (const w of dailyData(data).water.filter(inRange)) rows.push([w.id, w.date, "water", "Water", "", w.amountMilli / 1000, w.unit, "", "", "", "", "", "manual", w.createdAt, w.updatedAt]);
-  rows[0]!.push("serving_volume_ml","recipe_version","recipe_yield_quantity","recipe_yield_unit",...additionalNutrients.map(([key])=>key.replace(/Mg$/, "_mg_per_serving")));
-  const diaryById=new Map(data.diary.map(e=>[e.id,e]));for(const row of rows.slice(1)){const entry=row[2]==='diary'?diaryById.get(String(row[0])):undefined;row.push(entry?.snapshot.servingMl??"",entry?.snapshot.recipeVersion??"",entry?.snapshot.recipeYield?entry.snapshot.recipeYield.quantityMilli/1000:"",entry?.snapshot.recipeYield?.unit??"",...additionalNutrients.map(([key])=>entry?.snapshot.nutrients[key]??""));}
+  // Session AL (P-MO-60; MO-016, MO-031): the rest of the Health journal in the same columns, as added rows: body
+  // measurements (original unit), sleep (nights and naps, minutes in bed, on the day they ended) and meditation (minutes).
+  for (const m of data.measurements ?? []) { const day = healthDay(m.timezone, new Date(m.observedAt)); if (day >= from && day <= to) rows.push([m.id, day, "measurement", m.kind, "", m.quantityMilli / 1000, m.unit, "", "", "", "", "", m.sourceLabel, m.recordedAt, m.recordedAt]); }
+  for (const n of data.sleep?.nights ?? []) { if (n.end === null) continue; const day = healthDay(n.timeZone, new Date(n.end)); if (day >= from && day <= to) rows.push([n.id, day, n.kind === "nap" ? "nap" : "sleep", n.kind === "nap" ? "Nap" : "Night", "", Math.round((Date.parse(n.end) - Date.parse(n.start)) / 60_000), "minutes in bed", "", "", "", "", "", n.source, n.createdAt, n.updatedAt]); }
+  for (const m of data.meditation?.sessions ?? []) { const day = healthDay(dailyData(data).preferences.timezone, new Date(m.startedAt)); if (day >= from && day <= to) rows.push([m.id, day, "meditation", m.kind === "breathing" ? "Breathing" : "Meditation", "", Math.round(m.seconds / 6) / 10, "minutes", "", "", "", "", "", m.kind, m.startedAt, m.startedAt]); }
+  rows[0]!.push("serving_volume_ml","recipe_version","recipe_yield_quantity","recipe_yield_unit",...additionalNutrients.map(([key])=>key.replace(/Mg$/, "_mg_per_serving")),"weight_kg","weight_lb");
+  const diaryById=new Map(data.diary.map(e=>[e.id,e]));for(const row of rows.slice(1)){const entry=row[2]==='diary'?diaryById.get(String(row[0])):undefined;row.push(entry?.snapshot.servingMl??"",entry?.snapshot.recipeVersion??"",entry?.snapshot.recipeYield?entry.snapshot.recipeYield.quantityMilli/1000:"",entry?.snapshot.recipeYield?.unit??"",...additionalNutrients.map(([key])=>entry?.snapshot.nutrients[key]??""));
+    // Session AL (P-MO-60): a weight row also reads in kilograms and pounds (two decimals), beside its exact grams.
+    const grams=row[2]==='weight'?Number(row[5]):NaN;row.push(Number.isFinite(grams)?Math.round(grams/10)/100:"",Number.isFinite(grams)?Math.round(grams/453.59237*100)/100:"");}
   return rows.map(row => row.map(csvCell).join(",")).join("\r\n");
 }

@@ -1,6 +1,6 @@
 'use client';
 import {LoggingFor, useLinkedDay} from '../health-day';
-import {showToast} from '../../ui/undo-toast';
+import {showUndo} from '../../ui/undo-toast';
 import {useState, type FormEvent} from 'react';
 import {SLEEP_TAGS, type SleepNight} from '../../../lib/sleep/schema';
 import {nightDay, saveNight, setSleepGoal} from '../../../lib/sleep/engine';
@@ -116,7 +116,7 @@ export function SleepGoalForm({store, onDone}: {store: SleepStore; onDone: (text
     setBusy(true); setError('');
     // Session AH Part 3 (DS5): removing the goal gives a labelled Undo that sets the same goal again.
     const previous = store.sleep.goal;
-    try { await store.update(s => setSleepGoal(s, null, new Date())); onDone('Your sleep goal is removed.'); if (previous) { const {updatedAt: _at, ...goal} = previous; void _at; showToast({message: 'Your sleep goal is removed.', undone: 'Your sleep goal is back.', undo: () => store.update(s => s.goal ? s : setSleepGoal(s, goal, new Date()))}); } }
+    try { await store.update(s => setSleepGoal(s, null, new Date())); onDone('Your sleep goal is removed.'); if (previous) { const {updatedAt: _at, ...goal} = previous; void _at; showUndo({message: 'Your sleep goal is removed.', undone: 'Your sleep goal is back.', restore: () => store.update(s => s.goal ? s : setSleepGoal(s, goal, new Date()))}); } }
     catch (err) { setError(message(err)); }
     finally { setBusy(false); }
   }

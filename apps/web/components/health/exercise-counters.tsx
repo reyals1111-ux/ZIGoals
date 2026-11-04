@@ -10,8 +10,8 @@ import type {HealthData} from '../../lib/health';
 import './exercise-counters.css';
 import {updateRefusalMessage} from '../../lib/storage-error-copy';
 import {dayName} from '../../lib/health-day';
-import {repsIssue} from '../../lib/limits/plausibility';
-import {showToast} from '../ui/undo-toast';
+import {repsIssue, validateValue} from '../../lib/limits/plausibility';
+import {showUndo} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
 
@@ -37,10 +37,10 @@ function Dialog({title,onClose,children}:{title:string;onClose:()=>void;children
 }
 function CounterEditor({initial,gradient,onSave,onClose}:{initial?:ExerciseCounter;gradient:string;onSave:(name:string,icon:ExerciseIcon)=>Promise<void>;onClose:()=>void}){
  const [name,setName]=useState(initial?.name??''),[icon,setIcon]=useState<ExerciseIcon>(initial?.icon??'run'),[error,setError]=useState(''),[busy,setBusy]=useState(false);
- return <Dialog title={initial?`Edit ${initial.name}`:'Add a counter'} onClose={onClose}><form className="exercise-editor" onSubmit={async event=>{event.preventDefault();setBusy(true);setError('');try{await onSave(name,icon);onClose();}catch(e){setError(plainErrorMessage(e, 'Could not save this counter.'));}finally{setBusy(false);}}}>
-  <label className="field"><span>Counter name</span><input value={name} maxLength={40} required onChange={event=>setName(event.target.value)} placeholder="Planks, burpees, lunges…"/></label>
+ return <Dialog title={initial?`Edit ${initial.name}`:'Add a counter'} onClose={onClose}><form className="exercise-editor" noValidate onSubmit={async event=>{event.preventDefault();/* Session AL (P-MO-50, MO-144): an empty name says so (Add did nothing) */const checked=validateValue('label',name);if(!checked.ok){setError(checked.error.replace(/^A label/,'A counter name'));return;}setBusy(true);setError('');try{await onSave(checked.value,icon);onClose();}catch(e){setError(plainErrorMessage(e, 'Could not save this counter.'));}finally{setBusy(false);}}}>
+  <label className="field"><span>Counter name</span><input value={name} maxLength={40} required aria-invalid={error?true:undefined} aria-describedby={error?'exercise-editor-error':undefined} onChange={event=>{setName(event.target.value);setError('');}} placeholder="Planks, burpees, lunges…"/></label>
   <fieldset className="exercise-icon-choices"><legend>Icon</legend>{EXERCISE_ICONS.map(choice=><label key={choice} className="exercise-icon-choice"><input type="radio" name="exercise-icon" value={choice} checked={icon===choice} onChange={()=>setIcon(choice)}/><span><ExerciseIconGlyph icon={choice} gradient={gradient} size={28}/><small>{EXERCISE_ICON_LABELS[choice]}</small></span></label>)}</fieldset>
-  {error&&<p role="alert">{error}</p>}
+  {error&&<p role="alert" className="field-error" id="exercise-editor-error">{error}</p>}
   <div className="dashboard-actions"><button type="button" className="secondary" onClick={onClose}>Cancel</button><button className="primary" disabled={busy}>{busy?'Saving…':initial?'Save counter':'Add counter'}</button></div>
  </form></Dialog>;
 }
@@ -51,7 +51,7 @@ export function ExerciseCounters({data,update,date}:{data:HealthData;update:Upda
  const journalToday=healthDay(dailyData(data).preferences.timezone),today=date&&date<=journalToday?date:journalToday,isToday=today===journalToday;
  const onDay=isToday?'today':`on ${dayName(today,journalToday)}`;
  const exercise=exerciseData(data);
- const [editor,setEditor]=useState<ExerciseCounter|'new'|null>(null),[removing,setRemoving]=useState<ExerciseCounter|null>(null),[managing,setManaging]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState('');
+ const [editor,setEditor]=useState<ExerciseCounter|'new'|null>(null),[fromManage,setFromManage]=useState(false),[removing,setRemoving]=useState<ExerciseCounter|null>(null),[managing,setManaging]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState('');
  // Taps are applied one after another, each to the latest saved Health data.
  const queue=useRef(Promise.resolve());
  function run(updater:(h:HealthData)=>HealthData,done?:string){
@@ -67,7 +67,7 @@ export function ExerciseCounters({data,update,date}:{data:HealthData;update:Upda
   const previous=countOn(data,c.id,today),before=previous??0;
   const issue=repsIssue(value);if(issue){setFieldError({id:c.id,text:issue});return false;}
   setFieldError(null);if(previous!==null&&value===before||previous===null&&value===0)return true;
-  void run(h=>changeCount(h,c.id,today,value-(countOn(h,c.id,today)??0)),`${c.name}: ${value.toLocaleString('en-GB')} ${onDay}.`).then(()=>showToast({message:`${c.name} set to ${value.toLocaleString('en-GB')} ${onDay}.`,undoLabel:`Undo the ${c.name} count`,undo:()=>run(h=>restoreCount(h,c.id,today,previous),previous===null?`${c.name} has no entry ${onDay} again.`:`${c.name} is back to ${before.toLocaleString('en-GB')}.`)})).catch(()=>{});
+  void run(h=>changeCount(h,c.id,today,value-(countOn(h,c.id,today)??0)),`${c.name}: ${value.toLocaleString('en-GB')} ${onDay}.`).then(()=>showUndo({message:`${c.name} set to ${value.toLocaleString('en-GB')} ${onDay}.`,undoLabel:`Undo the ${c.name} count`,restore:()=>run(h=>restoreCount(h,c.id,today,previous),previous===null?`${c.name} has no entry ${onDay} again.`:`${c.name} is back to ${before.toLocaleString('en-GB')}.`)})).catch(()=>{});
   return true;
  };
  const card=(c:ExerciseCounter)=>{
@@ -92,8 +92,8 @@ export function ExerciseCounters({data,update,date}:{data:HealthData;update:Upda
   <div className="exercise-counter-grid"><LayoutRegion region="counters" grid items={exercise.counters.map(c=>({id:entityLayoutId(c.id),label:c.name,node:card(c)}))}/></div>
   {exercise.counters.length>=MAX_COUNTERS&&<p className="fine">You have {MAX_COUNTERS} counters, the most this row keeps. Delete one to add another.</p>}
   <p className="exercise-counters-status" role="status">{status}</p>{error&&<p role="alert">{error}</p>}
-  {editor&&<CounterEditor key={editor==='new'?'new':editor.id} gradient={gradient} initial={editor==='new'?undefined:editor} onClose={()=>setEditor(null)} onSave={(name,icon)=>run(h=>editor==='new'?addCounter(h,name,icon,`health_counter-${crypto.randomUUID()}`):editCounter(h,editor.id,{name,icon}),editor==='new'?`${name.trim()} counter added.`:'Counter saved.')}/>}
-  {managing&&<Dialog title="Manage counters" onClose={()=>setManaging(false)}><p className="fine">Rename a counter, change its icon or delete it. To reorder, unlock the page layout and move the rows.</p><ul className="exercise-manage-list">{exercise.counters.map(c=><li key={c.id}><span className="exercise-medallion"><ExerciseIconGlyph icon={c.icon} gradient={gradient}/></span><strong>{c.name}</strong><span className="exercise-manage-actions"><button type="button" className="secondary" onClick={()=>{setManaging(false);setEditor(c);}}>Rename or change icon</button><button type="button" className="quiet" onClick={()=>{setManaging(false);setRemoving(c);}}>Delete counter</button></span></li>)}</ul><div className="dashboard-actions"><button type="button" className="secondary" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>{setManaging(false);setEditor('new');}}>+ Add counter</button><button type="button" className="primary" onClick={()=>setManaging(false)}>Done</button></div></Dialog>}
+  {editor&&<CounterEditor key={editor==='new'?'new':editor.id} gradient={gradient} initial={editor==='new'?undefined:editor} onClose={()=>{setEditor(null);/* Session AL (MO-144): Save or Cancel goes back to the Manage list it came from */if(fromManage){setFromManage(false);setManaging(true);}}} onSave={(name,icon)=>run(h=>editor==='new'?addCounter(h,name,icon,`health_counter-${crypto.randomUUID()}`):editCounter(h,editor.id,{name,icon}),editor==='new'?`${name.trim()} counter added.`:'Counter saved.')}/>}
+  {managing&&<Dialog title="Manage counters" onClose={()=>setManaging(false)}><p className="fine">Rename a counter, change its icon or delete it. To reorder, unlock the page layout and move the rows.</p><ul className="exercise-manage-list">{exercise.counters.map(c=><li key={c.id}><span className="exercise-medallion"><ExerciseIconGlyph icon={c.icon} gradient={gradient}/></span><strong>{c.name}</strong><span className="exercise-manage-actions"><button type="button" className="secondary" onClick={()=>{setManaging(false);setFromManage(true);setEditor(c);}}>Rename or change icon</button><button type="button" className="quiet" onClick={()=>{setManaging(false);setRemoving(c);}}>Delete counter</button></span></li>)}</ul><div className="dashboard-actions"><button type="button" className="secondary" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>{setManaging(false);setFromManage(true);setEditor('new');}}>+ Add counter</button><button type="button" className="primary" onClick={()=>setManaging(false)}>Done</button></div></Dialog>}
   {removing&&<Dialog title={`Delete ${removing.name}?`} onClose={()=>setRemoving(null)}><p>This removes the {removing.name} counter and its daily history from your Health journal. Other Health records are not changed.</p><div className="dashboard-actions"><button type="button" className="secondary" autoFocus onClick={()=>setRemoving(null)}>Keep counter</button><button type="button" className="primary" onClick={()=>{const target=removing;setRemoving(null);void run(h=>deleteCounter(h,target.id),`${target.name} counter deleted.`).catch(()=>{});}}>Delete counter</button></div></Dialog>}
  </section>;
 }
@@ -103,12 +103,13 @@ export function ExerciseCounters({data,update,date}:{data:HealthData;update:Upda
 function CountField({name,count,onDay,error,onSet,onTyping}:{name:string;count:number|null;onDay:string;error:string|null;onSet:(value:number)=>boolean;onTyping:()=>void}){
  const [editing,setEditing]=useState(false),[draft,setDraft]=useState(''),errorId=useId(),field=useRef<HTMLInputElement>(null),button=useRef<HTMLButtonElement>(null),cancelled=useRef(false);
  useEffect(()=>{if(editing){field.current?.focus();field.current?.select();}},[editing]);
- const commit=()=>{if(cancelled.current){cancelled.current=false;return;}const text=draft.trim();if(text===''){setEditing(false);return;}const value=/^\d+$/.test(text)?Number(text):NaN;if(onSet(value)){setEditing(false);requestAnimationFrame(()=>button.current?.focus());}};
+ const commit=()=>{if(cancelled.current){cancelled.current=false;return;}const text=draft.trim();if(text===''){setEditing(false);return;}/* Session AL (P-MO-50, MO-027): the one limits table reads the count (99999 is refused with the range, not cut) */const checked=validateValue('reps',text),value=checked.ok?checked.value:NaN;if(onSet(value)){setEditing(false);requestAnimationFrame(()=>button.current?.focus());}};
  return <span className="exercise-count-slot">
   {editing
-   ?<input ref={field} className="exercise-count exercise-count-input" inputMode="numeric" pattern="[0-9]*" maxLength={5} aria-label={`${name} count ${onDay}`} aria-invalid={error?true:undefined} aria-describedby={error?errorId:undefined} value={draft}
+   ?<input ref={field} className="exercise-count exercise-count-input" inputMode="numeric" pattern="[0-9]*" placeholder="0–9,999" aria-label={`${name} count ${onDay}`} aria-invalid={error?true:undefined} aria-describedby={error?`${errorId} ${errorId}-hint`:`${errorId}-hint`} value={draft}
      onChange={e=>{setDraft(e.target.value);onTyping();}} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();commit();}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();cancelled.current=true;setEditing(false);onTyping();requestAnimationFrame(()=>button.current?.focus());}}} onBlur={commit}/>
    :<button ref={button} type="button" className="exercise-count" aria-label={`${name} count, edit`} aria-describedby={error?errorId:undefined} data-empty={count===null||undefined} onClick={()=>{cancelled.current=false;setDraft(count===null?'':String(count));setEditing(true);}}>{count===null?<><span aria-hidden="true">—</span><span className="sr-only">No entry {onDay}</span></>:String(count)}</button>}
+  {editing&&<span className="sr-only" id={`${errorId}-hint`}>A whole number from 0 to 9,999.</span>}
   {error&&<span className="exercise-count-error" id={errorId} role="alert">{error}</span>}
   <output className="exercise-count-live sr-only" aria-live="polite" aria-label={`${name} ${onDay}`}>{count===null?`No entry ${onDay}`:`${name} ${onDay}: ${count}`}</output>
  </span>;

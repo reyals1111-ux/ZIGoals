@@ -211,3 +211,52 @@
 @media (hover: hover) and (pointer: fine) { :root :where(.health-page) .panel:not(.health-aa-card):hover, :root :where(.health-page) .health-aa-card:hover { border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent)); } }
 :root :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible), :root :where(.health-page) .health-aa-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.health-page) .panel:not(.health-aa-card), :root :where(.health-page) .health-aa-card { box-shadow: none; } }
+
+/* Session AL (P-MO-25; MO-002, MO-033, MO-079): a macro headline is a number that fits its tile; "Partial · 5 of 6
+   entries" is a small line under it, never the hero font. */
+.health-page .health-macro strong { font-size: clamp(1.3rem, 5vw, 2rem); white-space: nowrap; overflow-wrap: normal; }
+.health-page .health-macro .health-macro-partial { display: block; margin-top: 4px; font-size: 14px; color: var(--health-muted, #ced6e5); }
+/* Session AL (P-MO-26, MO-085): a meal card's title never breaks mid-word ("Breakfa / st"); the total wraps under it. */
+.health-meal > .health-section-heading { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; column-gap: 10px; }
+.health-meal > .health-section-heading h2 { overflow-wrap: normal; word-break: keep-all; hyphens: none; white-space: nowrap; }
+.health-meal > .health-section-heading > span { justify-self: end; min-width: 0; white-space: normal; text-align: end; }
+@media (max-width: 480px) {
+  .health-meal > .health-section-heading { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .health-meal > .health-section-heading > span { grid-row: 2; grid-column: 1 / -1; justify-self: start; text-align: start; }
+}
+/* Session AL (P-MO-27, MO-080): the view strip's edge cue (data-more-right, components/ui/use-scroll-edges.ts) over its
+   own background on a phone. */
+@media (max-width: 767.98px) { .health-views[data-more-right] { box-shadow: inset -26px 0 18px -16px #000000b3; } .health-views[data-more-left] { box-shadow: inset 26px 0 18px -16px #000000b3; } .health-views[data-more-left][data-more-right] { box-shadow: inset 26px 0 18px -16px #000000b3, inset -26px 0 18px -16px #000000b3; } }
+/* Session AL (P-MO-29, MO-084; DV-269a): Health's hero buttons read in the same order at every width, and Tab follows it
+   (the shared phone rule reverses the row visually, so Tab ran backwards). */
+.health-page .health-heading .pillar-hero-buttons { flex-direction: row; justify-content: flex-start; }
+@media (min-width: 768px) { .health-page .health-heading .pillar-hero-buttons { justify-content: flex-end; } }
+/* Session AL (P-MO-32; MO-092, N-MO-06): a grocery row's tick is a 44 px target (the whole label), its actions and aisle
+   sit together at the row's end; the week arrows are drawn large enough to read in their 44 px boxes. */
+.health-grocery-aisle li > label { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding-inline-end: 6px; cursor: pointer; }
+.health-grocery-aisle li > label input[type=checkbox] { width: 24px; height: 24px; margin: 10px; flex: none; }
+.health-grocery-actions { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; margin-inline-start: auto; }
+.health-week-step { min-width: 44px; min-height: 44px; font-size: 1.5rem; line-height: 1; }
+.health-micro-edit .field-error { flex-basis: 100%; margin: 4px 0 0; }
+/* Session AL (P-MO-39, MO-074): "Read the label from a photo", "Start from a template" and "Suggest foods I log often"
+   look like the buttons they are (a bordered pill with a small mark), not plain text. */
+.health-fold-button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--line, #a9c9ff4d); border-radius: 12px; background: #ffffff0d; color: inherit; font: inherit; font-weight: 600; cursor: pointer; list-style: none; width: fit-content; max-width: 100%; }
+summary.health-fold-button::-webkit-details-marker { display: none; }
+.health-fold-button::before { content: ""; flex: none; width: 1em; height: 1em; background: currentColor; -webkit-mask: var(--fold-icon) center / contain no-repeat; mask: var(--fold-icon) center / contain no-repeat; }
+.health-fold-button[data-icon="camera"] { --fold-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M4 7h3l2-3h6l2 3h3v12H4z'/%3E%3Ccircle cx='12' cy='13' r='3.5'/%3E%3C/svg%3E"); }
+.health-fold-button[data-icon="template"] { --fold-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Crect x='4' y='4' width='16' height='16' rx='2'/%3E%3Cpath d='M4 10h16M10 10v10'/%3E%3C/svg%3E"); }
+.health-fold-button[data-icon="suggest"] { --fold-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3v3M5 6l2 2M19 6l-2 2M8 14a4 4 0 1 1 8 0c0 2-2 3-2 5h-4c0-2-2-3-2-5z'/%3E%3C/svg%3E"); }
+details[open] > summary.health-fold-button { margin-bottom: 10px; }
+.health-micro-coverage { display: block; color: inherit; } /* Session AL (P-MO-66): neutral, on its own line */
+/* Session AL (P-MO-73, MO-009): a familiar food's actions sit in one fixed column at the row's end. */
+.health-quick-picks li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.health-pick-actions { display: inline-grid; grid-template-columns: 44px 44px minmax(4.5em, auto); align-items: center; justify-items: center; }
+/* Session AL (P-MO-76, MO-028): the one-line nourishment summary on views other than the Diary. */
+.health-page .health-summary.health-summary-compact { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 14px 18px; min-height: 0; }
+.health-summary-compact p { margin: 0; }
+.health-summary-compact .eyebrow { margin-inline-end: 8px; }
+/* Session AL (P-MO-24, MO-068 Health part): no Health grid child is wider than its column at 375 (a long word or a
+   table in a grid cell set the column's minimum), and the page clips the rest instead of panning sideways. Tables and
+   the view strip keep their own sideways scroll. */
+.health-page { overflow-x: clip; }
+.health-page :is(.health-two-columns, .health-macro-grid, .health-form-grid, .health-planning-grid, .health-diary-layout) > * { min-width: 0; }

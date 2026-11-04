@@ -1,5 +1,6 @@
 import {habitCalendarDay, habitRuleOn, logHabitValue, type HabitData, type HabitRule} from '../habits';
 import {healthDay} from '../health-daily';
+import {addDays, instantAt} from '../zone-time';
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_FASTING_SESSIONS, MAX_HOURS, type Fasting, type FastingSession} from './schema';
 
 export {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_HOURS};
@@ -58,4 +59,34 @@ export function logFastToHabit(habits: HabitData, session: FastingSession, now =
   if (value <= 0) return {data: habits, logged: null};
   try { return {data: logHabitValue(habits, habit.id, date, value, {mode: 'add'}, now), logged: value}; }
   catch { return {data: habits, logged: null, reason: `${habit.title} isn't scheduled today.`}; }
+}
+
+/**
+ * Session AL (P-MO-55; MO-025, MO-115, C-MO-34, C-MO-36): a fast that began before the tap. "Started at 20:30" means the
+ * last 20:30 in `zone` that is not after now (today's, or yesterday's when today's is still ahead), so it is never in the
+ * future and always under 24 hours ago.
+ */
+export function fastStartAt(clock: string, nowMs: number, zone: string): Date {
+  if (!/^\d{2}:\d{2}$/.test(clock)) throw new RangeError('Enter the time the fast started, like 20:30.');
+  const today = healthDay(zone, new Date(nowMs));
+  let start = instantAt(today, clock, zone);
+  if (start > nowMs) start = instantAt(addDays(today, -1), clock, zone);
+  return new Date(start);
+}
+
+/**
+ * Session AL (P-MO-55, MO-025): a past fast, typed afterwards: it ended before now, lasted from ten minutes (the one
+ * timer rule) to 24 hours, and does not lie over another fast. Saved as ended, stopped by the person.
+ */
+export function logPastFast(data: Fasting, {id, start, end, targetHours, timeZone, now}: {id: string; start: Date; end: Date; targetHours: number; timeZone: string; now: Date}): Fasting {
+  const s = start.getTime(), e = end.getTime();
+  if (!Number.isFinite(s) || !Number.isFinite(e)) throw new RangeError('Enter when the fast started and ended.');
+  if (e > now.getTime()) throw new RangeError('A past fast ends before now.');
+  if (e - s < 10 * 60_000) throw new RangeError('A fast lasts at least ten minutes: check the times.');
+  if (e - s > MAX_HOURS * HOUR) throw new RangeError(`A fast lasts at most ${MAX_HOURS} hours: check the dates.`);
+  if (!Number.isInteger(targetHours) || targetHours < 1 || targetHours > MAX_CUSTOM_HOURS) throw new RangeError(`Choose a target from 1 to ${MAX_CUSTOM_HOURS} hours.`);
+  if (data.sessions.length >= MAX_FASTING_SESSIONS) throw Error('Your fasting history is full. Remove old sessions to continue.');
+  const clash = data.sessions.find(x => s < (x.endedAt === null ? now.getTime() : Date.parse(x.endedAt)) && Date.parse(x.startedAt) < e);
+  if (clash) throw new RangeError('This overlaps another fast. Change the times, or remove that fast first.');
+  return {...data, sessions: [...data.sessions, {id, startedAt: start.toISOString(), endedAt: end.toISOString(), targetHours, timeZone, stoppedBy: 'person'}]};
 }

@@ -1,6 +1,6 @@
 'use client';
 import {useLinkedDay} from '../health-day';
-import {showToast} from '../../ui/undo-toast';
+import {showUndo} from '../../ui/undo-toast';
 import {useState, type FormEvent} from 'react';
 import {BELL_SOUNDS, BREATHING_PATTERNS, type MeditationSession} from '../../../lib/meditation/schema';
 import {DEFAULT_BELLS, saveManual, setBells, setMeditationGoal} from '../../../lib/meditation/engine';
@@ -106,7 +106,7 @@ export function MeditationGoalForm({store, onDone}: {store: MeditationStore; onD
     setBusy(true); setError('');
     // Session AH Part 3 (DS5): removing the goal gives a labelled Undo that sets the same goal again.
     const previous = store.meditation.goal;
-    try { await store.update(m => setMeditationGoal(m, null, new Date())); onDone('Your weekly goal is removed.'); if (previous) showToast({message: 'Your weekly meditation goal is removed.', undone: 'Your weekly goal is back.', undo: () => store.update(m => m.goal ? m : setMeditationGoal(m, previous.minutesPerWeek, new Date()))}); } catch (err) { setError(message(err)); } finally { setBusy(false); }
+    try { await store.update(m => setMeditationGoal(m, null, new Date())); onDone('Your weekly goal is removed.'); if (previous) showUndo({message: 'Your weekly meditation goal is removed.', undone: 'Your weekly goal is back.', restore: () => store.update(m => m.goal ? m : setMeditationGoal(m, previous.minutesPerWeek, new Date()))}); } catch (err) { setError(message(err)); } finally { setBusy(false); }
   }
   const choices = goal && !(GOAL_CHOICES as readonly number[]).includes(goal.minutesPerWeek) ? [...GOAL_CHOICES, goal.minutesPerWeek].sort((a, b) => a - b) : GOAL_CHOICES;
   return <form className="meditation-form" onSubmit={submit} aria-label="Your weekly goal">

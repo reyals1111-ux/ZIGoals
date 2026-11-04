@@ -50,7 +50,7 @@ export function MealQuick({data, date, today, meal, perform}: {data: HealthData;
       {date === today ? `Copy yesterday’s ${word}` : `Copy ${word} from ${formatDate(before.date)}`} ({before.meals[meal]} {plural(before.meals[meal], 'entry', 'entries')})
     </button>}
     {chips.length > 0 && <div className="health-chips" role="group" aria-label={`One tap for ${word}`}>{chips.map(c => <button type="button" className="secondary health-chip" key={`${c.kind}:${c.id}`} aria-label={`Log ${c.name}, ${servings(c.quantityMilli)}, to ${word}`} onClick={() => log(c)}>
-      <span aria-hidden="true">+ </span>{c.name}<small> · {formatHealthGrams(c.quantityMilli)}</small>
+      <span aria-hidden="true">+ </span>{c.name}<small> ×{formatHealthGrams(c.quantityMilli)}</small>{/* Session AL (P-MO-73, MO-009): "×1.5" servings, not "· 1.5" */}
     </button>)}</div>}
   </div>;
 }

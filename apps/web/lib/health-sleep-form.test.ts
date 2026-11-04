@@ -1,5 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {defaultNightTimes, nightLabels, nightTimeIssues, optionalWhole} from './health-sleep-form';
+import {defaultNightTimes, defaultWakeFor, nightLabels, nightTimeIssues, optionalWhole, quickLastNight} from './health-sleep-form';
+import {emptySleep} from './sleep/schema';
+import {saveNight} from './sleep/engine';
 import {instantAt} from './zone-time';
 
 // Session AL (NB-139, NB-196, PR-064, MO-021, MO-023, MO-113, BUG-023, BUG-079): the sleep form's first times never end
@@ -48,5 +50,29 @@ describe('MO-113/NB-196: each wrong time names its field', () => {
     expect(optionalWhole('999', 720, 'minutes')).toEqual({issue: 'Enter whole minutes from 0 to 720, or leave it empty.'});
     expect(optionalWhole(' 3 ', 100, 'count')).toEqual({value: 3});
     expect(optionalWhole('', 100, 'count')).toEqual({});
+  });
+});
+
+// Session AL (for L3: NB-139 sleep-tonight "When did you wake up?", NB-138 Today's quick "last night").
+describe('NB-139: an open night asks for its wake time with a default that can be saved', () => {
+  it('an evening start defaults to 07:00 the morning after, not 07:00 on the start date', () => {
+    expect(defaultWakeFor(at('2026-11-01', '23:30'), at('2026-11-04', '10:00'), BXL)).toEqual({date: '2026-11-02', time: '07:00'});
+  });
+  it('a start after midnight keeps its own date; before 07:00 today the default is now', () => {
+    expect(defaultWakeFor(at('2026-11-02', '01:00'), at('2026-11-04', '10:00'), BXL)).toEqual({date: '2026-11-02', time: '07:00'});
+    expect(defaultWakeFor(at('2026-11-03', '22:00'), at('2026-11-04', '03:10'), BXL)).toEqual({date: '2026-11-04', time: '03:10'});
+  });
+});
+describe('NB-138: quickLastNight, the write Today can call', () => {
+  it('"7 h" at 10:30 is 00:00 → 07:00 and saves; before 07:00 it ends now', () => {
+    const n = quickLastNight(7, '2026-11-04', at('2026-11-04', '10:30'), BXL);
+    expect([clock(n.start), clock(n.end), n.kind, n.timeZone]).toEqual(['00:00', '07:00', 'night', BXL]);
+    const early = quickLastNight(8, '2026-11-04', at('2026-11-04', '05:00'), BXL);
+    expect(clock(early.end)).toBe('05:00');
+    const s = saveNight(emptySleep(), n, new Date(at('2026-11-04', '10:30')));
+    expect(s.nights).toHaveLength(1);
+  });
+  it('refuses hours that are not a night', () => {
+    for (const h of [0, -1, 17, Number.NaN]) expect(() => quickLastNight(h, '2026-11-04', at('2026-11-04', '10:30'), BXL)).toThrow();
   });
 });
