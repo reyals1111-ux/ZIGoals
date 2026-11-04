@@ -105,7 +105,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   zigiPlans: [AF_ZIGI_CATALOG_LABELS.zigiPlans[0], AF_ZIGI_CATALOG_LABELS.zigiPlans[1]],
   universe: [AF_EXTRAS_CATALOG_LABELS.universe[0], AF_EXTRAS_CATALOG_LABELS.universe[1]], dayTimeline: [AF_EXTRAS_CATALOG_LABELS.dayTimeline[0], AF_EXTRAS_CATALOG_LABELS.dayTimeline[1]], stories: [AF_EXTRAS_CATALOG_LABELS.stories[0], AF_EXTRAS_CATALOG_LABELS.stories[1]],
   // Session AL (lib/al-device-keys.ts): the Apps & extras display choices (O3, O4).
-  appsPrefs: [AL_CATALOG_LABELS.appsPrefs[0], AL_CATALOG_LABELS.appsPrefs[1]],
+  appsPrefs: [AL_CATALOG_LABELS.appsPrefs[0], AL_CATALOG_LABELS.appsPrefs[1]], walletNames: [AL_CATALOG_LABELS.walletNames[0], AL_CATALOG_LABELS.walletNames[1]],
+  chessPuzzle: [AL_CATALOG_LABELS.chessPuzzle[0], AL_CATALOG_LABELS.chessPuzzle[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page

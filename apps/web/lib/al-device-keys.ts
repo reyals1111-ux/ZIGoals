@@ -8,15 +8,21 @@
  *   group is folded (lib/ui-prefs/apps.ts). A display choice: never restored.
  */
 export const APPS_PREFS_KEY_LITERAL = 'zigoals:apps:v1';
+/** BN-085/BN-112 (personal): names given to tracked wallets on this device (lib/staking/tracked-wallets.ts). */
+export const WALLET_NAMES_KEY_LITERAL = 'zigoals:wallet-names:v1';
+/** BN-100/121 (display): the daily chess puzzle's moves so far (lib/chess/puzzle.ts); a public puzzle, no personal text. */
+export const CHESS_PUZZLE_KEY_LITERAL = 'zigoals:chess-puzzle:v1';
 /** Personal device records: a device holding one is not new (onboarding `DEVICE_RECORD_KEYS`). */
-export const AL_PERSONAL_KEYS: readonly string[] = [];
+export const AL_PERSONAL_KEYS: readonly string[] = [WALLET_NAMES_KEY_LITERAL];
 /** Display records (onboarding `NON_PERSONAL_KEYS`): a device holding only these is still new. */
-export const AL_DISPLAY_KEYS: readonly string[] = [APPS_PREFS_KEY_LITERAL];
+export const AL_DISPLAY_KEYS: readonly string[] = [APPS_PREFS_KEY_LITERAL, CHESS_PUZZLE_KEY_LITERAL];
 /** Export everything (`DEVICE_KEYS`): the names in everything.json. */
-export const AL_EXPORT_KEYS = {appsPrefs: APPS_PREFS_KEY_LITERAL} as const;
+export const AL_EXPORT_KEYS = {appsPrefs: APPS_PREFS_KEY_LITERAL, walletNames: WALLET_NAMES_KEY_LITERAL, chessPuzzle: CHESS_PUZZLE_KEY_LITERAL} as const;
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AL_CATALOG_LABELS = {
   appsPrefs: ['Apps & extras: which apps show and the sidebar Apps group folded or open', 'Settings'],
+  walletNames: ['Names you gave tracked wallets', 'Wallet'],
+  chessPuzzle: ['Today\'s chess puzzle: your moves so far', 'Chess'],
 } as const;
 /** The account erase (`lib/aa-device-forget.ts`): every key above. */
 export const AL_ERASE_KEYS: readonly string[] = [...AL_PERSONAL_KEYS, ...AL_DISPLAY_KEYS];

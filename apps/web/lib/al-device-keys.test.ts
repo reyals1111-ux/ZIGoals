@@ -1,6 +1,9 @@
 import {describe, expect, test} from 'vitest';
 import {AL_CATALOG_LABELS, AL_DISPLAY_KEYS, AL_ERASE_KEYS, AL_EXPORT_KEYS, AL_PERSONAL_KEYS, APPS_PREFS_KEY_LITERAL} from './al-device-keys';
 import {APPS_PREFS_KEY} from './ui-prefs/apps';
+import {WALLET_NAMES_KEY} from './staking/tracked-wallets';
+import {PUZZLE_PROGRESS_KEY} from './chess/puzzle';
+import {CHESS_PUZZLE_KEY_LITERAL, WALLET_NAMES_KEY_LITERAL} from './al-device-keys';
 import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from './onboarding';
 import {DEVICE_KEYS, EVERYTHING_KEYS, MODULE_KEYS} from './export/everything';
 import {DEVICE_ONLY, SYNCED} from './data-health/catalog';
@@ -20,6 +23,8 @@ const all = [...AL_PERSONAL_KEYS, ...AL_DISPLAY_KEYS];
 describe('Session AL device keys', () => {
   test('the literals equal the owners\' constants', () => {
     expect(APPS_PREFS_KEY_LITERAL).toBe(APPS_PREFS_KEY);
+    expect(WALLET_NAMES_KEY_LITERAL).toBe(WALLET_NAMES_KEY);
+    expect(CHESS_PUZZLE_KEY_LITERAL).toBe(PUZZLE_PROGRESS_KEY);
   });
   test('versioned keys; personal ones make a device not new, display ones do not', () => {
     for (const key of all) expect(key).toMatch(/^zigoals:[a-z-]+:v\d+$/);
