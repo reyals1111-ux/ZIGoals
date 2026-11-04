@@ -14,6 +14,13 @@ import {useLayoutEffect, useRef, useState} from 'react';
 import {currentMotionLevel} from '../../lib/motion/level';
 import {formatLike, parseFigure, shouldTick, tickValue, TICK_MS} from '../../lib/motion/ticker';
 
+/* Session AL (DV-259, P-TK-42): the copies are placed inline too (as CountUp's), so a style sheet that arrives late never
+   draws the figure two or three times side by side; motion-2026.css keeps the same rules. */
+const SR_ONLY = {position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', clipPath: 'inset(50%)', whiteSpace: 'nowrap', border: 0} as const;
+const RUNNING_HOST = {position: 'relative', display: 'inline-block'} as const;
+const SIZE_COPY = {visibility: 'hidden'} as const;
+const RUN_COPY = {position: 'absolute', insetInlineStart: 0, top: 0, whiteSpace: 'nowrap'} as const;
+
 export function NumberTicker({text, className = '', duration = TICK_MS}: {text: string; className?: string; duration?: number}) {
   const host = useRef<HTMLSpanElement>(null), run = useRef<HTMLSpanElement>(null), finalText = useRef(text), played = useRef(false);
   const [running, setRunning] = useState<string | null>(null);
@@ -55,9 +62,9 @@ export function NumberTicker({text, className = '', duration = TICK_MS}: {text: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   if (running === null) return <span ref={host} className={`zg-ticker ${className}`.trim()}>{text}</span>;
-  return <span ref={host} className={`zg-ticker ${className}`.trim()} data-running="">
-    <span className="sr-only">{text}</span>
-    <span className="zg-ticker-size" aria-hidden="true">{text}</span>
-    <span ref={run} className="zg-ticker-run" aria-hidden="true">{running}</span>
+  return <span ref={host} className={`zg-ticker ${className}`.trim()} data-running="" style={RUNNING_HOST}>
+    <span className="sr-only" style={SR_ONLY}>{text}</span>
+    <span className="zg-ticker-size" aria-hidden="true" style={SIZE_COPY}>{text}</span>
+    <span ref={run} className="zg-ticker-run" aria-hidden="true" style={RUN_COPY}>{running}</span>
   </span>;
 }

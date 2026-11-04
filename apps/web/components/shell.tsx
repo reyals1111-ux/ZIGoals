@@ -222,6 +222,11 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
             Session AE (Part 1, ADR-027; owner): the demo balance is no longer repeated here or in the phone's Status sheet; Today's wallet card shows the simulated balance. */}
         <div className="status-row">
         <ShowcaseChip/>
+        {/* Session AL (N-LS-01, P-LS-69): computers had Quick add only in Today's hero (the sidebar's copy is hidden there, the
+            sidebar's layout PROTECTED), so on every other page it could not be reached. It sits here, in the status row Gamify
+            already holds at 44 px (no shift); hidden below 901 px (the phone bar and tablet rail carry theirs) and wherever the
+            page shows its own (Today's hero, NOVA), shell/shell-ab.css. */}
+        {showQuickAdd&&<div className="status-quick-add"><QuickAdd/></div>}
         {/* Session AE (Part 6, ADR-027): the ▾ opens the other wallet choices (read-only links, Disconnect); its menu is a lazy chunk. */}
         {/* Session AK X1 (RELEASE_REVIEW R2): the wallet buttons wait until the chain is chosen (lib/chain-choice.ts). */}
         {banners&&chain.chosen&&<div className="wallet status-wallet">{walletButtons}<WalletMoreButton disabled={showcase}/></div>}

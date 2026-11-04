@@ -40,8 +40,9 @@
 .purpose-node{fill:var(--cyan,#6fd3ff)}
 .purpose-node-goal{fill:var(--violet,#8b7cff)}
 .purpose-node-available{fill:color-mix(in srgb,var(--text,#e8eefc) 45%,transparent)}
-.purpose-label{fill:var(--text,#e8eefc);font-size:12px;font-weight:600}
-.purpose-value{fill:var(--muted,var(--text,#e8eefc));font-size:11px;font-weight:400}
+/* Session AL (R30): the plain fallback is 14 px too (the .zg-chart rules below set the look). */
+.purpose-label{fill:var(--text,#e8eefc);font-size:14px;font-weight:600}
+.purpose-value{fill:var(--text-secondary,var(--text,#e8eefc));font-size:14px;font-weight:400}
 /* Session AK (G3, R30): the flow is drawn at its measured width (purpose-flow.tsx), so these are a true 14 px; the names in
    the strong text colour, the amounts in the secondary one, both with the chart look's halo (charts/chart-look.css). */
 svg.zg-chart .purpose-label{fill:var(--text-strong,var(--text));font-size:14px;font-weight:650}

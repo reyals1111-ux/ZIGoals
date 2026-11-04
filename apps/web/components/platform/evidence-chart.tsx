@@ -10,7 +10,10 @@ export type EvidencePoint={at:string;value:string;dateOnly?:boolean};
 export type EvidenceSeries={label:string;color:string;points:EvidencePoint[];kind?:'observation'|'cumulative'|'event';maxGapMs?:number};
 const DEFAULT_GAP=7*86400000;
 /** Values and times remain real observations. Lines are visual guides, never added data. */
-export function EvidenceChart({series,decimals,currency,label}:{series:EvidenceSeries[];decimals:number;currency:string;label:string}){
+/** Session AL (P-DVR-18; B-115, G-017, N-080): `ceiling` (an integer string in the points' own units, e.g. a Goal's target)
+ * lifts the scale's top to at least that value, so a goal chart shows how far the history is from it; with `ceilingLabel`
+ * it is drawn as a dashed line with its name. Without it the scale fits the observed range, as before. */
+export function EvidenceChart({series,decimals,currency,label,ceiling,ceilingLabel}:{series:EvidenceSeries[];decimals:number;currency:string;label:string;ceiling?:string;ceilingLabel?:string}){
  const id=useId(),look=useChartLook(),ref=useEntrance<HTMLElement>(`history:${label}`,series.some(s=>s.points.length>1));
  const signed=(value:string)=>`${value.startsWith('-')?'-':''}${amount(value.replace(/^-/,''),decimals)}`;
  const exact=(value:string)=>signed(value),display=(value:string)=>formatExactNumber(exact(value));
@@ -19,7 +22,7 @@ export function EvidenceChart({series,decimals,currency,label}:{series:EvidenceS
  const points=clean.flatMap(s=>s.points),invalid=series.reduce((n,s)=>n+s.points.filter(p=>!valid(p)).length,0);
  if(!points.length)return <EmptyState className="intelligence-empty" zigi="curious" title="Your history starts here">{invalid?'Some observations are unavailable because their values or dates could not be read.':'Real observations and recorded contributions will build this view. No earlier performance is assumed.'}</EmptyState>;
  const times=points.map(p=>Date.parse(p.at)),start=Math.min(...times),end=Math.max(...times),values=points.map(p=>BigInt(p.value));
- const lo=values.reduce((a,b)=>a<b?a:b),hi=values.reduce((a,b)=>a>b?a:b),padding=(hi-lo)/10n||1n,/* Session AH (GO6; L-024, L-025, B-187): a scale of amounts or milestones never dips below zero when nothing is negative */min=lo>=0n&&lo-padding<0n?0n:lo-padding,max=hi+padding,range=max-min;
+ const lo=values.reduce((a,b)=>a<b?a:b),hi=values.reduce((a,b)=>a>b?a:b),padding=(hi-lo)/10n||1n,/* Session AH (GO6; L-024, L-025, B-187): a scale of amounts or milestones never dips below zero when nothing is negative */min=lo>=0n&&lo-padding<0n?0n:lo-padding,top=ceiling!==undefined&&/^-?\d+$/.test(ceiling)&&BigInt(ceiling)>min?BigInt(ceiling):null,lifted=top!==null&&top>hi+padding,max=lifted?top!:hi+padding,range=max-min;
  const x=(at:string)=>24+(end===start?268:(Date.parse(at)-start)/(end-start)*536);
  const y=(value:string)=>174-Number((BigInt(value)-min)*14800n/range)/100;
  function segments(s:typeof clean[number]){
@@ -31,18 +34,19 @@ export function EvidenceChart({series,decimals,currency,label}:{series:EvidenceS
  return <figure ref={ref} className="evidence-chart" aria-label={label}>
   <div className="evidence-chart-legend">{clean.filter(s=>s.points.length).map(s=><span key={s.label}><i style={{background:s.color}}/>{s.label}</span>)}</div>
   {points.length===1?<div className="evidence-first"><span className="eyebrow">First observation</span><strong>{display(points[0]!.value)} <small>{currency}</small></strong><time dateTime={points[0]!.at}>{formatDate(points[0]!.at)}</time><p>A starting point, not a trend. Your next observation will add context.</p></div>:<>
-   <div className="evidence-chart-range"><span>Scale maximum: {display(max.toString())} {currency}</span><span>Scale minimum: {display(min.toString())} {currency}</span></div>
+   <div className="evidence-chart-range"><span>Scale maximum: {display(max.toString())} {currency}{top!==null&&ceilingLabel?` · dashed line: ${ceilingLabel} ${display(top.toString())} ${currency}`:''}</span><span>Scale minimum: {display(min.toString())} {currency}</span></div>
    <svg className="zg-chart" viewBox="0 0 584 198" role="img" aria-labelledby={id}>
     {/* Session AK (G3): the one chart look — the main (first) series keeps its legend colour and gets the one soft glow (none by day). */}<ChartLookDefs id={look.id} width={584} height={198}/>
     <title id={id}>{`${label}. ${points.length} dated observations in ${currency}. Lines are illustrative between observations; exact values in the history table below.`}</title>
     {[26,75,124,174].map(v=><line key={v} x1="24" x2="560" y1={v} y2={v} stroke="currentColor" opacity=".12"/>)}
+    {top!==null&&ceilingLabel&&<line className="evidence-ceiling" x1="24" x2="560" y1={y(top.toString())} y2={y(top.toString())} stroke="currentColor" strokeDasharray="6 5" opacity=".7" vectorEffect="non-scaling-stroke"><title>{`${ceilingLabel}: ${display(top.toString())} ${currency}`}</title></line>}
     {clean.map((s,si)=><g key={s.label} filter={si===0?look.glow:undefined}>
      {s.kind!=='event'&&segments(s).filter(group=>group.length>1).map((group,i)=><polyline className="evidence-line" key={i} pathLength={1} points={group.flatMap((p,j)=>s.kind==='cumulative'&&j?[`${x(p.at)},${y(group[j-1]!.value)}`,`${x(p.at)},${y(p.value)}`]:[`${x(p.at)},${y(p.value)}`]).join(' ')} fill="none" stroke={s.color} strokeWidth="2.5" vectorEffect="non-scaling-stroke"/>)}
      {s.points.map((p,i)=><circle className="evidence-point" key={`${p.at}:${i}`} cx={x(p.at)} cy={y(p.value)} r={s.points.length<=2?3.5:2} fill={s.color} style={{'--at':((x(p.at)-24)/536).toFixed(3)} as CSSProperties}><title>{`${s.label} · ${p.dateOnly?formatDate(p.at):formatDateTime(p.at)} · ${formatPlainDecimal(exact(p.value))} ${currency}`}</title></circle>)}
     </g>)}
    </svg>
    <div className="evidence-chart-axis"><time dateTime={new Date(start).toISOString()}>{formatDate(start)}</time><time dateTime={new Date(end).toISOString()}>{formatDate(end)}</time></div>
-   <figcaption>Recorded evidence only. Connecting lines are illustrative; gaps longer than seven days are left open unless the source supplies a different interval. Scale fits the observed range with 10% padding; it does not imply a return.</figcaption>
+   <figcaption>Recorded evidence only. Connecting lines are illustrative; gaps longer than seven days are left open unless the source supplies a different interval. {lifted?`Scale fits the observed range with 10% padding and reaches ${ceilingLabel??'the given ceiling'}; it does not imply a return.`:'Scale fits the observed range with 10% padding; it does not imply a return.'}</figcaption>
   </>}
   {invalid>0&&<p className="notice">Some observations are unavailable; this history is partial.</p>}{table}
  </figure>;

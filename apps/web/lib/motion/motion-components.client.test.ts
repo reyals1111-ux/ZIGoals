@@ -58,6 +58,15 @@ describe('NumberTicker', () => {
     expect(host.textContent).toBe('Unknown');
     await act(async () => root.unmount());
   });
+  it('Session AL (DV-259): while counting, the hidden copies are placed inline, so a late style sheet never shows the figure twice', async () => {
+    const {host, root} = await mount('$1,250.00');
+    const sr = host.querySelector<HTMLElement>('.sr-only')!, size = host.querySelector<HTMLElement>('.zg-ticker-size')!, run = host.querySelector<HTMLElement>('.zg-ticker-run')!;
+    expect([sr.style.position, sr.style.width, sr.style.height, sr.style.overflow, sr.style.clipPath]).toEqual(['absolute', '1px', '1px', 'hidden', 'inset(50%)']);
+    expect(size.style.visibility).toBe('hidden');
+    expect(run.style.position).toBe('absolute');
+    expect(host.querySelector<HTMLElement>('[data-running]')!.style.position).toBe('relative');
+    await act(async () => root.unmount());
+  });
   it('on the first page load, a figure already on screen keeps its painted value', async () => {
     document.documentElement.removeAttribute('data-app-hydrated');
     Object.defineProperty(window, 'innerHeight', {value: 800, configurable: true});

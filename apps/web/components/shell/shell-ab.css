@@ -25,6 +25,13 @@
 /* The status row: one thin utility row (the Showcase chip left; wallet, the page's tools, Gamify and the lock right).
    Session AE (Part 1, ADR-027; owner): the demo balance is no longer in this row; Today's wallet card shows it. */
 .status-row { position: relative; z-index: 31; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 0 2px; }
+/* Session AL (N-LS-01): Quick add on computers, in the status row; only one Quick add is ever shown (shell.tsx). */
+.status-quick-add { display: none; }
+@media (min-width: 901px) {
+  .status-row > .status-quick-add { display: inline-flex; flex: none; }
+  .status-row > .status-quick-add .quick-add-trigger { min-height: 44px; white-space: nowrap; }
+  :root:has(main .quick-add-trigger) .status-row > .status-quick-add { display: none; }
+}
 .status-row .status-wallet { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .status-row .status-wallet button { font-size: 14px; min-height: 40px; }
 .status-row .status-wallet .wallet-connect { gap: 10px; min-width: 0; padding-inline: 12px; }
@@ -64,7 +71,7 @@
   .status-row .showcase-chip, .status-row .gamify, .status-row .layout-lock-slot { flex: none; }
   .status-row .showcase-chip-button { padding: 0 9px 0 8px; font-size: 12px; }
 }
-@media (max-width: 359.98px) { .alpha-notice strong { font-size: 11px; } }
+@media (max-width: 359.98px) { .alpha-notice strong { font-size: 12px; letter-spacing: .04em; } } /* Session AL (R30): never below 12 px; the short line ellipses first */
 @media (forced-colors: active) { .alpha-notice, .showcase-chip-button, .showcase-chip-panel { border-color: CanvasText; } }
 
 /* Session AB-Design (owner request 9): a page's game card place, at the very bottom; nothing is reserved while it is empty. */
