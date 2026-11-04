@@ -17,12 +17,13 @@ export type SidebarAppId = typeof SIDEBAR_APP_IDS[number];
 export const SWITCHED_HERE: readonly AppsExtraId[] = SIDEBAR_APP_IDS;
 
 export type AppsExtra = {id: AppsExtraId; label: string; icon: string; note: string; href?: string};
+// Session AL (DV-162, DV-255): the one-line notes tell the Checklist, Tasks and Notes apart (the same words in More).
 export const APPS_EXTRAS: Readonly<Record<AppsExtraId, AppsExtra>> = {
   zigi: {id: 'zigi', label: 'ZIGi', icon: 'star', note: 'Your Personal AI Companion'},
   nova: {id: 'nova', label: 'NOVA', icon: 'star', note: 'Your whole life on one screen', href: '/app/nova'},
-  checklist: {id: 'checklist', label: 'Checklist', icon: 'checklist', note: 'Today’s path of starred dots', href: '/app/checklist'},
-  tasks: {id: 'tasks', label: 'Tasks', icon: 'tasks', note: 'Things to do, with a day or a goal', href: '/app/tasks'},
-  notes: {id: 'notes', label: 'Notes', icon: 'notes', note: 'Capture now, file later', href: '/app/notes'},
+  checklist: {id: 'checklist', label: 'Checklist', icon: 'checklist', note: 'Today’s short list: the few things you starred', href: '/app/checklist'},
+  tasks: {id: 'tasks', label: 'Tasks', icon: 'tasks', note: 'Everything to do, by day, project or goal', href: '/app/tasks'},
+  notes: {id: 'notes', label: 'Notes', icon: 'notes', note: 'Quick thoughts to keep and sort later', href: '/app/notes'},
   journal: {id: 'journal', label: 'Journal', icon: 'journal', note: 'How your days felt, in your words', href: '/app/journal'},
   agenda: {id: 'agenda', label: 'Agenda', icon: 'today', note: 'Your day, hour by hour', href: '/app/agenda'},
   earn: {id: 'earn', label: 'Earn', icon: 'earn', note: 'Every way to earn, with live numbers and risks', href: '/app/earn'},

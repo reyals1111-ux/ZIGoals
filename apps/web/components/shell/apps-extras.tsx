@@ -10,7 +10,8 @@ import {useChainChoice} from '../chain/use-chain-choice';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {isSensitiveScreen} from '../ai/use-sensitive-screen';
 import {usePagesView} from '../pages/use-pages-view';
-import {useCompactShell} from '../phone/use-phone-layout';
+import {useCompactShell, usePhoneActive} from '../phone/use-phone-layout';
+import {LazyThemeSwitch} from './theme-switch-lazy';
 import {openZigiPanel} from '../zigi-door';
 import {openMusicPlayer} from '../music/music-events';
 import {hrefShown, isShown} from '../../lib/pages/visibility';
@@ -64,7 +65,7 @@ function Medallion({id}: {id: AppsExtraId}) {
 
 /** The sheet itself, mounted once by the shell. */
 export function AppsExtrasSheet() {
-  const compact = useCompactShell(), open = useAppsExtrasOpen(), path = usePathname() ?? '';
+  const compact = useCompactShell(), phone = usePhoneActive(), open = useAppsExtrasOpen(), path = usePathname() ?? '';
   const dialog = useRef<HTMLDialogElement>(null), handoff = useRef(false), titleId = useId(), noteId = useId();
   const view = usePagesView(), chain = useChainChoice(), ui = useUiPrefs(), apps = useDeviceRecord(APPS_PREFS);
   // ZIGi steps aside while a sign-in, unlock or recovery form shows on the page behind (ADR-012 rule 8): read as the
@@ -106,6 +107,9 @@ export function AppsExtrasSheet() {
         })}
       </ul> : <p className="apps-extras-empty">Every app and extra is switched off. Turn the ones you want back on in Settings.</p>}
       <Link className="apps-extras-settings text-link" href="/app/settings#your-pages" prefetch={false} onClick={done}>Choose what shows here →</Link>
+      {/* Session AL (MO-157, DV-244, AL-NAV-012): beside the tablet rail (768–900 px) the theme had no control outside
+          Settings; it is here, as in the phone's More sheet. Phones keep theirs in More. */}
+      {!phone && <div className="apps-extras-theme"><h3 className="apps-extras-subhead">Theme</h3><LazyThemeSwitch compact/></div>}
     </div>
   </dialog>;
 }

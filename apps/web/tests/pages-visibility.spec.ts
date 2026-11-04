@@ -280,7 +280,8 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   // It follows Staking: hidden with it, back with it.
   const staking = section(page).getByRole('switch', {name: 'Staking', exact: true});
   await staking.click();
-  await expect(section(page).getByRole('status')).toHaveText('Staking is hidden. You can show it again here at any time.');
+  // Session AL (COPY_AUDIT, deliberate; P-BN-34, BN-186): a switch that changes more than itself says so beside it.
+  await expect(section(page).getByRole('status')).toHaveText('Staking is hidden. You can show it again here at any time. Governance hides with it, since it shows only while Staking shows.');
   await expectNav(page, ALL.filter(label => label !== 'Staking'));
   await staking.click();
   await expect(section(page).getByRole('status')).toHaveText('Staking shows again.');

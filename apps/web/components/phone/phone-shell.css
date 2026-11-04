@@ -7,6 +7,16 @@
 .phone-topbar, .phone-tabbar { display: none; }
 /* Session Z-Cloud Part 4.2: the phone's one status line (components/shell.tsx) is phones-only. */
 .phone-status-line { display: none; }
+/* Session AL (MO-139, P-MO-35): the Status & wallet sheet keeps its own look at any width and in every theme. It opens from
+   the phone's More, but stays open if the window then widens past the phone query, where it had shown as a bare dialog
+   (white box, words run together). The phone rules below still win on phones. */
+dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet) { box-sizing: border-box; width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0 16px 16px; border: 1px solid #7fc8ff2e; border-radius: 22px; background: linear-gradient(180deg, #0b1a33fa, #050c1efa); color: var(--text); box-shadow: 0 30px 70px -20px #000c; }
+dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet)::backdrop { background: #01050dc7; }
+dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet) .phone-form-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; }
+dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet) .phone-form-sheet-head h2 { margin: 0; font-size: 22px; line-height: 1.2; }
+.phone-status-sheet { display: grid; gap: 14px; }
+.phone-status-sheet p { display: grid; gap: 4px; margin: 0; font-size: 15px; line-height: 1.45; color: var(--text-secondary, #dde7f7); }
+.phone-status-sheet strong { font-size: 13px; letter-spacing: .03em; color: var(--text-strong, #f4f8ff); }
 
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   :root {

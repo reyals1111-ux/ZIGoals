@@ -70,7 +70,8 @@ test('pick a part by pointer and by keyboard, note it, see its marker, edit, rem
   await list.getByRole('button', {name: 'Remove note 1'}).click();
   await expect(page.getByText('Note 1 removed.')).toBeVisible();
   expect((await stored(page)).pins).toEqual([]);
-  await page.locator('[data-point-tell]').getByRole('button', {name: 'Undo'}).click();
+  // Session AL (3e, deliberate): Point & tell's Undo is the app's one toast now (showUndo), outside the mode's own element.
+  await page.locator('.aa-toast').getByRole('button', {name: 'Undo'}).click();
   await expect(page.getByText('Note 1 is back.')).toBeVisible();
   expect((await stored(page)).pins).toMatchObject([{n: 1, note: 'Bigger and higher on the page'}]);
 

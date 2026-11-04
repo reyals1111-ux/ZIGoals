@@ -8,7 +8,7 @@ import {firstScreenControls, restLift} from './launcher-rest';
 import {ZigiFigure} from '../zigi/zigi-figure';
 import {useZigiState, zigiSignals, zigiState} from '../zigi/bus';
 import {useAccountCleanup, useLauncherRecord, useZigiLook} from './use-launcher-record';
-import {isSensitiveScreen, useSensitiveScreen} from './use-sensitive-screen';
+import {SENSITIVE_SELECTOR, isSensitiveScreen, useSensitiveScreen} from './use-sensitive-screen';
 import {ZIGI_OPEN_EVENT} from '../zigi-door';
 import {ASK_EVENT, LAUNCHER_SHOWN_ATTRIBUTE} from './ask';
 import {usePagesView} from '../pages/use-pages-view';
@@ -55,13 +55,35 @@ function talkChoices(): {tapToTalk: boolean; used: boolean} {
   catch { return {tapToTalk: false, used: false}; }
 }
 /** ZIGi greets once when the person comes back from a reminder notification (the worker's message or its address). */
+/**
+ * Session AL (ADR-037 Q6; L7's request): the parts of the sensitive rule that hold while something shows (an open dialog,
+ * a private step, a shown secret), as opposed to a sensitive field that merely has the focus. Only these close an open
+ * panel; a focused field leaves it open, paused ("On this private screen I read nothing from the page").
+ */
+const STANDING_SENSITIVE = SENSITIVE_SELECTOR.split(', ').filter(part => !part.includes(':focus')).join(', ');
+const standingSensitive = (root: ParentNode = document): boolean => root.querySelector(STANDING_SENSITIVE) !== null;
+/** Whether the screen is sensitive because of what it shows (not only a focused field); checked on the same signals as the rule. */
+function useStandingSensitive(sensitive: boolean): boolean {
+  const [standing, setStanding] = useState(false);
+  useEffect(() => {
+    if (!sensitive) return;
+    let frame = 0;
+    const check = () => { frame = 0; setStanding(standingSensitive()); };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(check); };
+    schedule();
+    const observer = new MutationObserver(schedule);
+    observer.observe(document.body, {subtree: true, childList: true, attributes: true, attributeFilter: ['open', 'type', 'readonly', 'class']});
+    return () => { observer.disconnect(); if (frame) cancelAnimationFrame(frame); };
+  }, [sensitive]);
+  return sensitive && standing;
+}
 function greetOnce(): void {
   zigiState.set('greeting');
   window.setTimeout(() => { if (zigiState.get() === 'greeting') zigiState.set('idle'); }, 2500);
 }
 export function AiLauncher() {
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false);
-  const launcher = useLauncherRecord(), {look, loaded: lookLoaded} = useZigiLook(), sensitive = useSensitiveScreen(), phone = usePhoneActive(), compact = useCompactShell(), pathname = usePathname() ?? '', zigi = useZigiState();
+  const launcher = useLauncherRecord(), {look, loaded: lookLoaded} = useZigiLook(), sensitive = useSensitiveScreen(), standing = useStandingSensitive(sensitive), phone = usePhoneActive(), compact = useCompactShell(), pathname = usePathname() ?? '', zigi = useZigiState();
   // Session W Part 2: the synced "ZIGi button" switch (Your pages & buttons) hides it on every device, edge tab and ⌘K
   // included; the chevron below the button stays this device's own hide.
   const switchedOff = !isShown(usePagesView(), 'zigi'), hidden = (launcher.record.launcherHidden && !compact) || switchedOff;
@@ -100,7 +122,8 @@ export function AiLauncher() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [sensitive, hidden, toggle, requestTalk]);
-  useEffect(() => { if ((sensitive || switchedOff) && open) setOpen(false); }, [sensitive, switchedOff, open]);
+  // Session AL (Q6): a private step or dialog that shows closes the panel; a sensitive field that only has the focus pauses it.
+  useEffect(() => { if ((standing || switchedOff) && open) setOpen(false); }, [standing, switchedOff, open]);
   // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
   useEffect(() => { const onAsk = () => { if (!hidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [hidden, sensitive]);
   // Session AL (O3): the "Apps & extras" sheet's ZIGi entry. The sheet has closed and the screen is checked again here, so a
@@ -126,6 +149,8 @@ export function AiLauncher() {
   const shown = mounted && pathname.startsWith('/app') && launcher.loaded && !hidden && !sensitive;
   useEffect(() => { const root = document.documentElement; if (shown) root.dataset[LAUNCHER_SHOWN_ATTRIBUTE] = 'shown'; else delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; return () => { delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; }; }, [shown]);
   const visible = mounted && pathname.startsWith('/app') && launcher.loaded && lookLoaded && !hidden && !sensitive;
+  // Session AL (Q6): the open panel stays while only a focused field makes the screen sensitive; it reads nothing then.
+  const panelVisible = mounted && pathname.startsWith('/app') && launcher.loaded && lookLoaded && !hidden && !standing;
   // Session AL (O3): the floating button and its edge tab are a computer's only (the panel follows `visible`).
   const floating = visible && !compact;
   // Session X-Local Part 9, the owner's H7 (ADR-017 S81): on a phone, at the top of a page, the launcher rests where it
@@ -209,7 +234,7 @@ export function AiLauncher() {
       </div>
     </div>}
     {edgeTab && <button type="button" className={`ai-edge-tab${phone ? ' ai-edge-tab-phone' : ''}`} data-side={look.side} aria-label="Show ZIGi" onClick={showAgain}><ZigiFigure state="peek"/></button>}
-    {loaded && <ZigiPartBoundary label="ZIGi's chat" className="ai-launcher-toast"><Suspense fallback={null}><AiChat open={open && visible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense></ZigiPartBoundary>}
+    {loaded && <ZigiPartBoundary label="ZIGi's chat" className="ai-launcher-toast"><Suspense fallback={null}><AiChat open={open && panelVisible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense></ZigiPartBoundary>}
     {lookLoaded && (look.knock || agents) && <ZigiPartBoundary quiet><Suspense fallback={null}><ZigiCompanion knock={look.knock} agents={agents} away={!floating || open} visible={floating} sensitive={sensitive} phone={phone} side={look.side} onPropose={reopen}/></Suspense></ZigiPartBoundary>}
   </>;
 }

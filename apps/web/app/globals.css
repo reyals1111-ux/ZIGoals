@@ -1399,7 +1399,10 @@ body .metric-note, body .wallet-subtitle {
    there while more of it lies to the right (components/scroll-cues.tsx marks it); a row that fits, or one scrolled to its
    end, never fades. A static mask: nothing moves. */
 @media (max-width: 767.98px) {
-  :root [data-scroll-more] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+  /* Session AL (DV-087a, DV-222, DV-252a, DV-267b; P-DV-51): most rows bleed to the screen's edge with a 16 px gutter of
+     padding, so a 28 px fade fell mostly on that empty gutter and could not be seen. The fade now covers the last chip
+     itself (72 px, ending 4 px from the edge). */
+  :root [data-scroll-more] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 76px), #0000 calc(100% - 4px)); mask-image: linear-gradient(to right, #000 calc(100% - 76px), #0000 calc(100% - 4px)); }
 }
 /* Session AH (LA8, D-213/D-006): while a hard reload opens the private data (the workspace stays hidden until then),
    the page shows a quiet outline of a page instead of an empty void. It is decoration only and never takes a tap. */
@@ -1427,6 +1430,10 @@ html:not([data-zigi-launcher="shown"]) .page-ask-zigi { display: none !important
 /* Session AK (M7, layout audit): the hidden-page note's one button ("show it in the sidebar") sits in its sentence but is a
    button, so it is a full 44 px target (33 px at 390 px on Portfolio since X1 keeps the crypto pages off until chosen). */
 .hidden-page-banner button.text-link { min-height: 44px; }
+/* Session AL (AL-NAV-013): a page that is not in the menu yet gets one quiet line, not a notice box (TK-6B-03: ~80 px). */
+.hidden-page-chip { margin: 0 0 8px; }
+.hidden-page-chip > p { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 10px; margin: 0; padding: 0 4px 0 14px; border: 1px solid var(--line, #2a325a); border-radius: 999px; color: var(--text); font-size: 14px; }
+.hidden-page-chip button.text-link { font-weight: 700; }
 /* Session AL (3g): the app's 404 (app/app/not-found.tsx): the header pattern's eyebrow and a short list of the main pages. */
 .app-not-found { max-width: 720px; }
 .app-not-found > .eyebrow { margin: 0 0 6px; }

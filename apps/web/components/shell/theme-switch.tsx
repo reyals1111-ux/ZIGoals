@@ -3,11 +3,17 @@ import {useSyncExternalStore} from 'react';
 import {THEME_EVENT, chooseTheme, readTheme} from '../../lib/ui-prefs/theme';
 import type {Theme} from '../../lib/ui-prefs/theme';
 import {SidebarSky} from './sidebar-sky';
+import {THEME_SHEETS} from '../../lib/ui-prefs/theme-sheets';
 /** The line under the bar on phones and in Settings. Session AF (L5a, Part 10.7, ADR-028 H31): the sidebar's bar has no
  *  line under it any more; that the choice stays on this device is said in Settings → Appearance, Settings → Your data
  *  ("How pages look on this device") and Help ("What are Light, Nebula and Dark?"). */
 // Session AH (SE9; D-191): no "coming later" in the product's own words.
-const THEME_NOTE = 'Nebula is the look you know. Light and Dark are the same app by day and by night.';
+// Session AL (TK-183, AL-COPY-067): the line speaks of the theme that is chosen (it said Nebula's line with Light chosen).
+const THEME_NOTE: Readonly<Record<Theme, string>> = {
+  nebula: 'Nebula is the look you know. Light and Dark are the same app by day and by night.',
+  light: 'Light is ZIGoals by day: bright pages, the same nebula colours a shade deeper. Nebula and Dark are its night looks.',
+  dark: 'Dark is ZIGoals by night: the nebula deeper and calmer, with less glow. Light is the day look; Nebula the one you know.',
+};
 
 const Sun = () => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"/></g></svg>;
 /** Session AE (Part 3.1, ADR-027): Nebula's mark is the ZIGoals logo drawn as one plain line in the sun's and moon's style
@@ -29,14 +35,38 @@ const subscribe = (change: () => void) => { window.addEventListener(THEME_EVENT,
  * choice is a device setting (lib/ui-prefs/theme.ts), applied at once and before the first paint on every later page. The
  * chosen one is a solid nebula pill. On phones and in Settings the same control shows its words and one line about Nebula.
  */
+/**
+ * Session AL (NB-075, NB-086; AL-MOTION-002): the chosen theme's sheet is fetched as soon as the pointer or the focus rests
+ * on its button, so the switch's cross-fade starts at once instead of waiting for the download.
+ */
+function warmSheet(theme: Theme) {
+  if (theme === 'nebula') return;
+  try {
+    const href = THEME_SHEETS[theme];
+    if (document.querySelector(`link[href="${href}"]`)) return;
+    const link = document.createElement('link'); link.rel = 'preload'; link.as = 'style'; link.href = href; document.head.appendChild(link);
+  } catch { /* a preload is only a head start */ }
+}
+/**
+ * Session AL (DV-029a, DV-051c; AL-LAYOUT-DESKTOP-017): the sidebar keeps its scroll position through a theme switch (the
+ * new sheet's sizes, the cross-fade and the focus on the bar at its foot must not move the list under the person).
+ */
+function keepSidebarScroll(): void {
+  const aside = document.querySelector<HTMLElement>('aside.app-sidebar');
+  if (!aside) return;
+  const top = aside.scrollTop;
+  let frames = 0;
+  const hold = () => { if (aside.scrollTop !== top) aside.scrollTop = top; if (++frames < 30) requestAnimationFrame(hold); };
+  requestAnimationFrame(hold);
+}
 export function ThemeSwitch({compact}: {compact?: boolean}) {
   const theme = useSyncExternalStore(subscribe, () => readTheme(), () => 'nebula' as Theme);
-  const choose = (next: Theme) => { if (next === theme) return; try { chooseTheme(next); } catch { /* storage refused: the page keeps its theme */ } };
+  const choose = (next: Theme) => { if (next === theme) return; try { keepSidebarScroll(); chooseTheme(next); } catch { /* storage refused: the page keeps its theme */ } };
   return <div className={`theme-switch-wrap${compact ? ' theme-switch-wrap-compact' : ''}`}>
     <div className={`theme-switch${compact ? ' theme-switch-compact' : ''}`} role="radiogroup" aria-label="Theme">
-      {OPTIONS.map(o => <button key={o.theme} type="button" role="radio" aria-checked={theme === o.theme} className="theme-option" data-theme-option={o.theme} aria-label={o.label} title={o.tip} onClick={() => choose(o.theme)}><o.icon/><span>{o.word}</span></button>)}
+      {OPTIONS.map(o => <button key={o.theme} type="button" role="radio" aria-checked={theme === o.theme} className="theme-option" data-theme-option={o.theme} aria-label={o.label} title={o.tip} onClick={() => choose(o.theme)} onPointerEnter={() => warmSheet(o.theme)} onFocus={() => warmSheet(o.theme)}><o.icon/><span>{o.word}</span></button>)}
     </div>
-    {compact && <p className="theme-switch-note">{THEME_NOTE}</p>}
+    {compact && <p className="theme-switch-note" aria-live="polite">{THEME_NOTE[theme]}</p>}
     {/* Session AF (L5a, Part 10.1): the sidebar's bar also drives the sidebar sky's parallax (renders nothing). */}
     {!compact && <SidebarSky/>}
   </div>;

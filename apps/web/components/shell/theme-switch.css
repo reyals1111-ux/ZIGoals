@@ -35,7 +35,8 @@
 /* Session AE (Part 3.5, ADR-027): a theme switch is one short colour cross-fade of the whole page (lib/ui-prefs/theme.ts
    starts it only where the browser has view transitions and motion is welcome, and only once the new sheet is in). This
    sheet loads with the bar, the only place a switch starts. Opacity only; none under reduced motion or Motion Off. */
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
+/* Session AL (NB-075, NB-086): shorter (it was 280 ms); with the sheet fetched on hover or focus it starts at once. */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
 @media (prefers-reduced-motion: reduce) { ::view-transition-old(root), ::view-transition-new(root) { animation: none; } }
 :root[data-app-motion=off]::view-transition-old(root), :root[data-app-motion=off]::view-transition-new(root) { animation: none; }
 /* Session AF (L5a, Part 10.2, ADR-028 H13): the ink twins of the nebula's accent colours, for small coloured words. Here,

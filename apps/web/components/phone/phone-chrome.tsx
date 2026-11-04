@@ -54,13 +54,14 @@ const MORE_NOTES: Record<string, string> = {
   "/app/activity": "Your recent steps, in order",
   "/app/settings": "Backups, privacy, motion and Showcase",
   "/app/help": "Answers, feedback and the Alpha's facts",
-  "/app/journey": "Your XP, quests and badges",
-  "/app/checklist": "Today's path of starred dots",
+  "/app/journey": "Your level, quests and badges",
+  // Session AL (DV-162, DV-255): plain words that tell the Checklist, Tasks and Notes apart.
+  "/app/checklist": "Today's short list: the few things you starred",
   "/app/governance": "Proposals in plain words, and your vote",
   // Session AK G2 (RELEASE_REVIEW_2 R2-10): the navigation extras of More, each with its one line too.
-  "/app/nova": "ZIGi's full-screen command center",
-  "/app/tasks": "Things to do, with a day or a goal",
-  "/app/notes": "Capture now, file later",
+  "/app/nova": "Your whole day on one screen, with your own AI",
+  "/app/tasks": "Everything to do, by day, project or goal",
+  "/app/notes": "Quick thoughts to keep and sort later",
   "/app/journal": "How your days felt, in your words",
 };
 
@@ -197,7 +198,10 @@ export function PhoneTabBar() {
   const { items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items, isNavPage), moreStarts = groupStarts(MORE, navGroupOf), gameOn = useGameEnabled();
   // Phase 2, Part 10 (owner request 10): the pages first, then the Journey (while Gamify is on), ZIGi and the soundtrack
   // when they are tucked away, Status & wallet — and Settings and Help always last.
-  const LAST = ["/app/settings", "/app/help"], morePages = MORE.filter(([href]) => !LAST.includes(href)), moreLast = MORE.filter(([href]) => LAST.includes(href));
+  // Session AL (DV-095, NB-028, BN-072): one Journey row. The game layer also registers Journey as a navigation entry
+  // (components/game/registrar.tsx, read from this browser's storage), so More leaves that entry out and keeps its own row,
+  // which follows the game switch the person sees (useGameEnabled), Showcase included.
+  const LAST = ["/app/settings", "/app/help"], morePages = MORE.filter(([href]) => !LAST.includes(href) && (href as string) !== "/app/journey"), moreLast = MORE.filter(([href]) => LAST.includes(href));
   useTabArrival(tabs, path);
   useFocusRescue(tabs, TABS.map(([href]) => href).join(" "));
   useSheetDrag(show);
@@ -237,7 +241,7 @@ export function PhoneTabBar() {
           })}
           {gameOn && <li data-group-start="journey"><Link href="/app/journey" prefetch={false} className="phone-more-row" aria-label="Journey" aria-current={isNavActive(path, "/app/journey") ? "page" : undefined} onClick={() => setOpen(false)}>
             <span className="icon-medallion"><AppIcon name="star" size={22} luminous /></span>
-            <span className="phone-more-copy" data-note="Your level, quests and badges"><strong>Journey</strong></span>
+            <span className="phone-more-copy" data-note={MORE_NOTES["/app/journey"]}><strong>Journey</strong></span>
             <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
           </Link></li>}
           <AiMoreRow onNavigate={() => setOpen(false)} />
@@ -245,7 +249,7 @@ export function PhoneTabBar() {
           {/* Session AB-Design: the notices in full and the wallet buttons (the Status & wallet sheet), then the theme switch. */}
           <li><button type="button" className="phone-more-row phone-more-status" aria-label="Status & wallet" onClick={() => { setOpen(false); window.dispatchEvent(new Event(PHONE_STATUS_EVENT)); }}>
             <span className="icon-medallion"><AppIcon name="wallet" size={22} luminous /></span>
-            <span className="phone-more-copy" data-note="The Alpha's facts, the mode and your wallet"><strong>Status &amp; wallet</strong></span>
+            <span className="phone-more-copy" data-note="The Alpha's status and your wallet"><strong>Status &amp; wallet</strong></span>
             <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
           </button></li>
           {moreLast.map(([href, label, icon]) => {

@@ -39,6 +39,8 @@ dialog.apps-extras-sheet::backdrop { background: #01050dc7; }
 .apps-extras-copy strong { font-size: 16px; line-height: 1.25; overflow-wrap: anywhere; }
 .apps-extras-copy span { color: var(--muted); font-size: 14px; line-height: 1.35; overflow-wrap: anywhere; }
 .apps-extras-empty { margin: 8px 0; font-size: 15px; }
+.apps-extras-theme { margin-top: 12px; padding-top: 12px; border-top: 1px solid #7fc8ff1f; }
+.apps-extras-subhead { margin: 0; font-size: 15px; font-weight: 700; color: var(--text); }
 .apps-extras-settings { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; }
 @media (hover: hover) { .apps-extras-item:hover { border-color: #6fdcff66; } }
 @media (prefers-reduced-motion: reduce) { dialog.apps-extras-sheet { transition: none; } @starting-style { dialog.apps-extras-sheet[open] { transform: none; } } }
