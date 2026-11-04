@@ -79,7 +79,10 @@
    Session AK P2 (ADR-036 Q31): they join the sidebar only where the window has room for them with its design unchanged:
    with the full spacing of windows over 1000 px, the Showcase's fullest list (sixteen plus these three) ends Help at
    1336 px, so from 1380 px tall Help keeps the 24 px to spare the 900 px check asks for (tests/release-review-2-p2.spec.ts). */
-@media(min-width:901px) and (max-height:1379.98px) { .app-sidebar .app-nav a[data-nav-compact] { display:none; } }
+/* Session AL (owner decision O4, deliberate): on a computer NOVA, Tasks, Notes and the Journal live in the sidebar's own
+   foldable Apps group (components/shell/sidebar-apps.tsx) at every window height, so the main list keeps the main pages,
+   the Checklist, Settings and Help (it had shown the compact entries from 1380 px tall). */
+@media(min-width:901px) and (min-height:501px),(min-width:901px) and (pointer:fine) { .app-sidebar .app-nav a:is([data-nav-compact],[data-nav-app]) { display:none; } }
 /* 901–1100 px: the sidebar's side padding is 13 px, so the planet's full-bleed margins match it (they were 18 px, which
    let the sidebar scroll 5 px sideways). */
 @media(min-width:901px) and (max-width:1100px) { .app-sidebar .sidebar-destination { margin-left:-13px;margin-right:-13px; } }

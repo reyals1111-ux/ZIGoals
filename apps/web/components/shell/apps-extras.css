@@ -1,0 +1,56 @@
+/* Session AL (owner decision O3): the "Apps & extras" button and sheet, below 901 px only (components/shell/apps-extras.tsx).
+   Nebula glass like the phone's More sheet; Light and Dark get their versions from scripts/themes/build-themes.mjs. */
+.apps-extras-button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 14px; background: transparent; color: var(--text); font: inherit; cursor: pointer; }
+.apps-extras-button-word { display: none; }
+.apps-extras-button[aria-expanded="true"] { background: #0d2a44; box-shadow: inset 0 0 0 1px #6fdcff55; }
+.apps-extras-button:focus-visible { outline: 3px solid var(--brand-cyan, #63e7ff); outline-offset: 2px; }
+.apps-extras-glyph { flex: none; filter: drop-shadow(0 0 5px #2bccff55); }
+/* In the tablet rail: one more rail item at the foot of the navigation, its short name under the icon like the others. */
+.apps-extras-rail { display: none; }
+@media (min-width: 541px) and (max-width: 900.98px) and (min-height: 501px), (min-width: 541px) and (max-width: 900.98px) and (pointer: fine) {
+  :root .app-sidebar .apps-extras-rail:not(#\-) { display: block; flex: none; width: 100%; margin-top: 10px; }
+  :root .apps-extras-rail .apps-extras-button { flex-direction: column; width: 100%; min-height: 56px; padding: 6px 2px; border: 1px solid #7fc8ff26; border-radius: 11px; color: #a9bbd8; font-size: 12px; line-height: 1.15; }
+  :root .apps-extras-rail .apps-extras-button-word { display: block; }
+}
+
+/* The sheet: from the bottom edge on a phone, a centred card beside the rail; safe areas respected. */
+dialog.apps-extras-sheet { position: fixed; inset: auto 0 0 0; box-sizing: border-box; width: 100%; max-width: 640px; max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 16px); margin: 0 auto; padding: 0; overflow-y: auto; overscroll-behavior: contain;
+  border: 1px solid #7fc8ff33; border-bottom: 0; border-radius: 26px 26px 0 0; background: linear-gradient(180deg, #0b1a33fa, #050c1efa); color: var(--text); box-shadow: 0 -20px 70px #000b, inset 0 1px 0 #b1c5ff14;
+  transform: none; transition: transform 280ms cubic-bezier(.22, 1, .36, 1); }
+@starting-style { dialog.apps-extras-sheet[open] { transform: translateY(100%); } }
+dialog.apps-extras-sheet::backdrop { background: #01050dc7; }
+.apps-extras-panel { padding: 8px calc(env(safe-area-inset-right, 0px) + 16px) calc(env(safe-area-inset-bottom, 0px) + 20px) calc(env(safe-area-inset-left, 0px) + 16px); }
+.apps-extras-grabber { width: 40px; height: 5px; margin: 0 auto 4px; border-radius: 3px; background: #9fb6d866; }
+.apps-extras-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
+.apps-extras-head h2 { margin: 0; font-size: 22px; letter-spacing: -.01em; background: var(--nebula-emphasis, linear-gradient(110deg, #63e7ff, #826cff 60%, #ff74be)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.apps-extras-close { display: grid; place-items: center; flex: none; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid #9fc8ff33; border-radius: 50%; background: #0e2038; color: var(--text); font-size: 26px; line-height: 1; cursor: pointer; }
+.apps-extras-note { margin: 0 0 12px; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.apps-extras-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.apps-extras-item { box-sizing: border-box; display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px 12px; border: 1px solid #7fc8ff1f; border-radius: 18px;
+  background: linear-gradient(130deg, #0a1b33e6, #0a1128e6 60%, #1a1438e0); color: var(--text); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.apps-extras-item[aria-current="page"] { border-color: #6fdcff88; box-shadow: inset 0 0 16px #1dc7ff22; }
+.apps-extras-item[aria-disabled="true"] { cursor: default; opacity: .78; }
+.apps-extras-item:focus-visible, .apps-extras-close:focus-visible, .apps-extras-settings:focus-visible { outline: 3px solid var(--brand-cyan, #63e7ff); outline-offset: 2px; }
+:root .apps-extras-item .icon-medallion { width: 44px; height: 44px; }
+:root .apps-extras-item .icon-medallion svg { width: 24px; height: 24px; }
+.apps-extras-zigi { overflow: hidden; }
+.apps-extras-zigi img { display: block; width: 30px; height: auto; }
+.apps-extras-copy { display: grid; gap: 2px; min-width: 0; }
+.apps-extras-copy strong { font-size: 16px; line-height: 1.25; overflow-wrap: anywhere; }
+.apps-extras-copy span { color: var(--muted); font-size: 14px; line-height: 1.35; overflow-wrap: anywhere; }
+.apps-extras-empty { margin: 8px 0; font-size: 15px; }
+.apps-extras-settings { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; }
+@media (hover: hover) { .apps-extras-item:hover { border-color: #6fdcff66; } }
+@media (prefers-reduced-motion: reduce) { dialog.apps-extras-sheet { transition: none; } @starting-style { dialog.apps-extras-sheet[open] { transform: none; } } }
+:root[data-app-motion="off"] dialog.apps-extras-sheet { transition: none; }
+@starting-style { :root[data-app-motion="off"] dialog.apps-extras-sheet[open] { transform: none; } }
+@media (forced-colors: active) {
+  dialog.apps-extras-sheet, .apps-extras-item, .apps-extras-close { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .apps-extras-head h2 { color: CanvasText; background: none; }
+}
+/* The phone's top bar holds one more 44 px button: under 360 px its gaps and side padding tighten so home, the Checklist
+   check, Quick add, search, the wallet shortcut, Apps and More (7 × 44 px) still fit a 320 px screen without scrolling. */
+@media (max-width: 359.98px) {
+  :root .phone-topbar:not(#\-) { padding-left: calc(var(--safe-left, 0px) + 4px); padding-right: calc(var(--safe-right, 0px) + 4px); }
+  :root .phone-topbar-row:not(#\-), :root .phone-actions:not(#\-) { gap: 0; }
+}

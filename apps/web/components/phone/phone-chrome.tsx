@@ -34,6 +34,7 @@ import { usePhoneActive, usePhoneChrome } from "./use-phone-layout";
 import { useVisualViewportInsets } from "./use-visual-viewport";
 import { useSheetDrag } from "./use-sheet-drag";
 import { PhoneChecklistButton } from "../checklist/phone-checklist-button";
+import { AppsExtrasButton } from "../shell/apps-extras";
 
 /**
  * The phone shell (Session E): a top bar with the page's identity, Quick add and Settings, and a glass tab bar whose More
@@ -166,6 +167,9 @@ export function PhoneTopBar() {
         <OfflinePill />
         {/* The wallet shortcut keeps its icon while that button is shown; Settings moved into More (Session AB-Design). */}
         {wealthShortcut && <Link className="phone-wealth" href="/app/wealth" prefetch={navPrefetch("/app/wealth")} aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /></Link>}
+        {/* Session AL (owner decision O3): ZIGi, Music, Earn and the apps live here below 901 px; nothing floats over the page.
+            Served with the bar, like the Checklist pill, so it never pushes the bar's icons aside after load (layout shift). */}
+        <AppsExtrasButton className="phone-apps-extras" />
         {/* Owner decision D2 (kept, owner follow-up): + / Search / More; Settings and Help are More's last rows. */}
         <button type="button" className="phone-more-top" aria-haspopup="dialog" aria-expanded={moreOpen} aria-label="More" data-current={moreCurrent || undefined} onClick={() => setMoreOpen(true)}><AppIcon name="more" size={22} luminous={moreCurrent} /></button>
       </div>

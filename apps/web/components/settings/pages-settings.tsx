@@ -18,14 +18,17 @@ import type {PageId, Pages, VisibilityId} from '../../lib/pages/schema';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {useChainChoice} from '../chain/use-chain-choice';
 import {chainChosenFrom} from '../../lib/chain-choice';
+import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
+import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
+import {APPS_EXTRAS, APPS_PREFS, SIDEBAR_APP_HREFS, SIDEBAR_APP_IDS, appShown, withAppShown, type SidebarAppId} from '../../lib/ui-prefs/apps';
 // Session AK (BUILD list 2 #16, lane G1a): the opt-in cycle log's switch, under Health (device-only, off by default).
 const CycleSwitch = lazy(() => import('../cycle/cycle-switch'));
 
 const NOTES: Partial<Record<VisibilityId, string>> = {
   'quick-add': 'In the sidebar, the phone top bar and on Today.',
-  zigi: 'The ZIGi button and ⌘K / Ctrl+K, on every device you sync.',
   'wealth-shortcut': 'The wallet button next to Settings in the phone top bar, while Wealth shows.',
-  music: 'A round button opposite ZIGi’s, a row in the phone’s More sheet and a Today widget.',
+  zigi: 'The ZIGi button on a computer, ZIGi in Apps & extras below 901 px, and ⌘K / Ctrl+K, on every device you sync.',
+  music: 'A round button opposite ZIGi’s on a computer, a row in Apps & extras and the phone’s More sheet, and a Today widget.',
 };
 /**
  * Settings → "Your pages & buttons" (Session W Part 2, owner decision W4): a switch per page and button, the start page,
@@ -40,6 +43,18 @@ export function PagesSettings() {
   const governance = earnPrefsOf(prefs.data).governanceShown, prefsUsable = prefs.loaded && !prefs.unreadable, chain = useChainChoice();
   const [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null), [confirming, setConfirming] = useState(false);
   const resetButton = useRef<HTMLButtonElement>(null);
+  // Session AL (owner decisions O3, O4): the app pages' switches and the Checklist button, on this device.
+  const apps = useDeviceRecord(APPS_PREFS), ui = useUiPrefs(), appsUsable = apps.loaded && !apps.unreadable, uiUsable = ui.loaded && !ui.unreadable;
+  const showApp = (id: SidebarAppId, on: boolean) => {
+    setMessage(null);
+    try { apps.update(p => withAppShown(p, id, on)); setMessage({text: on ? `${APPS_EXTRAS[id].label} shows on this device.` : `${APPS_EXTRAS[id].label} is hidden on this device. The page still opens from a link or search.`}); }
+    catch (cause) { setMessage({text: deviceSettingFailureMessage(cause), failed: true}); }
+  };
+  const showChecklistButton = (on: boolean) => {
+    setMessage(null);
+    try { ui.update(p => ({...p, checklist: {...(p.checklist ?? {}), launcher: on}})); setMessage({text: on ? 'The Checklist button shows on this device.' : 'The Checklist button is hidden on this device. The Checklist still opens from Today and the navigation.'}); }
+    catch (cause) { setMessage({text: deviceSettingFailureMessage(cause), failed: true}); }
+  };
   const ready = settings.loaded && !settings.error;
   // Session AK X1 (RELEASE_REVIEW R3): the crypto pages start off until the chain is chosen (lib/chain-choice.ts).
   const pagesChoice = ready ? settingsGroupIn(settings.data, 'pages') : undefined;
@@ -67,8 +82,9 @@ export function PagesSettings() {
   // Session AH (ST9, B-174, D-217): the sidebar as it really is, with the pages other parts add (the Checklist, Journey).
   // Session AK G2 (RELEASE_REVIEW_2 R2-10): the 'compact' entries (Tasks, Notes, the Journal) join the desktop sidebar only in a
   // tall window (Session AK P2, ADR-036 Q31; components/navigation.css), so the summary names them as such.
-  const items = useVisibleNav().items, sidebar = items.filter(item => !navCompact(item)), tall = items.filter(navCompact);
-  const summary = `Sidebar: ${sidebar.map(([, label]) => label).join(', ')}${tall.length ? `; in a tall window also ${tall.map(([, label]) => label).join(', ')}` : ''}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
+  // Session AL (O4): the sidebar's main list, then its Apps group (NOVA, Tasks, Notes, the Journal, the Agenda; those shown).
+  const items = useVisibleNav().items, sidebar = items.filter(item => !navCompact(item) && !SIDEBAR_APP_HREFS.includes(item[0])), appsGroup = SIDEBAR_APP_IDS.filter(id => appShown(apps.data, id)).map(id => APPS_EXTRAS[id].label);
+  const summary = `Sidebar: ${sidebar.map(([, label]) => label).join(', ')}${appsGroup.length ? `; its Apps group: ${appsGroup.join(', ')}` : ''}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
   return <section className="panel pages-settings" id="your-pages" aria-labelledby="your-pages-title">
     <p className="eyebrow">YOUR APP</p><h2 id="your-pages-title">Your pages & buttons</h2>
     <p>Hide what you don&rsquo;t use; your records stay as they are. Settings and Help always show. A hidden page still opens from a link, with a way to show it again.</p>
@@ -107,7 +123,22 @@ export function PagesSettings() {
             </label>
             {NOTES[id] && <small className="pages-switch-note" id={`pages-note-${id}`}>{NOTES[id]}</small>}
           </div>)}
+          <div className="pages-switch-row">
+            <label className="pages-switch">
+              <input type="checkbox" role="switch" checked={uiUsable && checklistPrefsOf(ui.data).launcher} disabled={!uiUsable} aria-describedby="pages-note-checklist" onChange={e => showChecklistButton(e.currentTarget.checked)}/>
+              <span>Checklist button</span>
+            </label>
+            <small className="pages-switch-note" id="pages-note-checklist">On this device. The round button on a computer and the Checklist in Apps & extras; the phone’s top-bar pill follows it too.</small>
+          </div>
           {isShown(view, 'zigi') && launcher.loaded && launcher.record.launcherHidden && <p className="fine pages-device-note">ZIGi is hidden on this device with its chevron. <button type="button" className="text-link" onClick={() => launcher.setLauncherHidden(false)}>Show ZIGi on this device</button></p>}
+        </fieldset>
+        <fieldset className="pages-switches" aria-describedby="pages-note-apps">
+          <legend>Apps</legend>
+          <small className="pages-switch-note" id="pages-note-apps">On this device. On a computer they form the sidebar’s Apps group; below 901 px they are in Apps &amp; extras (with ZIGi, Earn and Music).</small>
+          {SIDEBAR_APP_IDS.map(id => <label key={id} className="pages-switch">
+            <input type="checkbox" role="switch" checked={appsUsable && appShown(apps.data, id)} disabled={!appsUsable} onChange={e => showApp(id, e.currentTarget.checked)}/>
+            <span>{APPS_EXTRAS[id].label}</span>
+          </label>)}
         </fieldset>
       </div>
       <div className="pages-start">
@@ -129,7 +160,7 @@ export function PagesSettings() {
       {confirming ? <div className="pages-reset-confirm" role="group" aria-labelledby="pages-reset-question">
         <p id="pages-reset-question">Show every page and button again? Your start page stays as it is.</p>
         <div className="actions">
-          <button type="button" className="primary" autoFocus onClick={() => { setConfirming(false); try { prefs.update(r => setEarnPref(r, {governanceShown: true, pageShown: true})); } catch { /* this device refused: Governance stays as it was */ } void save(pages => showEverything(pages, new Date().toISOString()), 'Every page and button shows again.').then(() => resetButton.current?.focus()); }}>Show everything</button>
+          <button type="button" className="primary" autoFocus onClick={() => { setConfirming(false); try { prefs.update(r => setEarnPref(r, {governanceShown: true, pageShown: true})); } catch { /* this device refused: Governance stays as it was */ } try { apps.update(p => SIDEBAR_APP_IDS.reduce((r, id) => withAppShown(r, id, true), p)); } catch { /* this device refused: the apps stay as they were */ } void save(pages => showEverything(pages, new Date().toISOString()), 'Every page and button shows again.').then(() => resetButton.current?.focus()); }}>Show everything</button>
           <button type="button" className="quiet" onClick={() => { setConfirming(false); requestAnimationFrame(() => resetButton.current?.focus()); }}>Cancel</button>
         </div>
       </div> : <button ref={resetButton} type="button" className="secondary" onClick={() => setConfirming(true)}>Show everything again</button>}

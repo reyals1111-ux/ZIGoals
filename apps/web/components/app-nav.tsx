@@ -9,6 +9,7 @@ import { entranceAllowed } from "./use-entrance";
 import { usePagesView } from "./pages/use-pages-view";
 import { groupStarts, hrefShown } from "../lib/pages/visibility";
 import { useChainChoice } from "./chain/use-chain-choice";
+import { SIDEBAR_APP_HREFS } from "../lib/ui-prefs/apps";
 
 /**
  * The single source of navigation order and grouping, for the desktop sidebar, the tablet header and the phone More sheet
@@ -162,9 +163,13 @@ export function AppNav() {
   const columns = Math.max(1, ...[1, 2, 3].map(group => items.filter(([href]) => navGroupOf(href) === group).length));
   return (
     <nav ref={nav} className="app-nav" aria-label="Main navigation" style={{ "--nav-cols": columns } as CSSProperties}>
+      {/* Session AL (owner decision O4): NOVA, Tasks, Notes and the Journal sit in the sidebar's Apps group on a computer
+          (components/shell/sidebar-apps.tsx), so the main list leaves them out there (`data-nav-app`, navigation.css); the
+          tablet rail, the phone's More sheet and search keep them here. */}
       {items.map((item) => { const [href, label, icon] = item; return (
         <Link key={href} href={href} prefetch={navPrefetch(href)}
           data-group-start={starts.get(href)} data-nav-compact={navCompact(item) || undefined}
+          data-nav-app={SIDEBAR_APP_HREFS.includes(href) || undefined}
           aria-current={isActive(href) ? "page" : undefined}>
           <AppIcon name={icon} luminous={isActive(href)} /><span>{label}</span>
         </Link>

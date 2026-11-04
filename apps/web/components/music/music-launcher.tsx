@@ -8,7 +8,7 @@ import {isShown} from '../../lib/pages/visibility';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {MUSIC_KEY} from '../../lib/w-device-keys';
 import {usePagesView} from '../pages/use-pages-view';
-import {usePhoneActive} from '../phone/use-phone-layout';
+import {useCompactShell, usePhoneActive} from '../phone/use-phone-layout';
 import {MUSIC_OPEN_EVENT, SOUNDSCAPE_EVENT, SOUNDSCAPE_RESULT_EVENT} from './music-events';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import './music-launcher.css';
@@ -20,6 +20,8 @@ import './music-launcher.css';
  * (`zigoals:music:v1`, without its schema) and whether a focus sound plays. Today's widget, the phone's More sheet and
  * Settings → Music open the same panel. Session Z-Cloud Part 4.12 (persona item 12): on a phone ZIGi is the one floating
  * button; the player opens from ZIGi's "⋯" menu and the More sheet (the mini-bar, when chosen, stays).
+ * Session AL (owner decision O3): below 901 px (the tablet rail too) the round button is gone; the "Apps & extras" sheet
+ * opens the same panel. The mini-bar is the person's own choice of player and stays.
  */
 const MusicPanel = lazy(() => import('./music-panel'));
 const MusicMini = lazy(() => import('./music-mini'));
@@ -31,7 +33,7 @@ function readMini(): boolean {
 const MusicNote = () => { const id = `mn${useId().replace(/[^a-zA-Z0-9]/g, '')}`; return <svg className="music-note" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false"><defs><linearGradient id={id} x1="3" y1="20" x2="21" y2="4" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#63e7ff"/><stop offset=".42" stopColor="#826cff"/><stop offset=".75" stopColor="#c664ff"/><stop offset="1" stopColor="#ff74be"/></linearGradient></defs><g fill={`url(#${id})`} stroke={`url(#${id})`} strokeLinecap="round" strokeLinejoin="round"><path d="M9 6.4 20 4.1v2.7L9 9.1z" strokeWidth=".6"/><path d="M9.2 7.4v10.2M19.8 5.2v9.9" fill="none" strokeWidth="1.8"/><ellipse cx="6.7" cy="17.7" rx="3" ry="2.3" transform="rotate(-20 6.7 17.7)" strokeWidth=".4"/><ellipse cx="17.3" cy="15.4" rx="3" ry="2.3" transform="rotate(-20 17.3 15.4)" strokeWidth=".4"/></g><path d="M4.6 3.2l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z" fill="#d9f6ff"/></svg>; };
 export function MusicLauncher() {
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false), [mini, setMini] = useState(false);
-  const pathname = usePathname() ?? '', shown = isShown(usePagesView(), 'music'), phone = usePhoneActive();
+  const pathname = usePathname() ?? '', shown = isShown(usePagesView(), 'music'), phone = usePhoneActive(), compact = useCompactShell();
   const ambient = useSyncExternalStore(subscribeAmbient, ambientState, serverAmbientState), button = useRef<HTMLButtonElement>(null);
   // Session AB-Design (owner request 6): the button sits above ZIGi's and can be tucked into the screen's edge (zigoals:ui-prefs:v1).
   const prefs = useUiPrefs(), folded = prefs.loaded && !prefs.unreadable && !!prefs.data.musicFolded;
@@ -59,11 +61,12 @@ export function MusicLauncher() {
   useEffect(() => { if (!shown && open) queueMicrotask(() => setOpen(false)); }, [shown, open]);
   // On a phone the player opens from ZIGi's "⋯" menu or the More sheet (Session Z-Cloud Part 4.12), whose items are gone
   // once it shows, so focus returns to ZIGi's launcher there, or to More when ZIGi's button is not shown.
-  const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => (button.current ?? document.querySelector<HTMLElement>('.music-mini-open') ?? document.querySelector<HTMLElement>('[data-testid="ai-launcher"] .ai-launcher-button') ?? document.querySelector<HTMLElement>('.phone-more-top'))?.focus({preventScroll: true})); }, []);
+  // Session AL (O3): below 901 px the player opens from the "Apps & extras" sheet, whose button takes the focus back.
+  const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => (button.current ?? document.querySelector<HTMLElement>('.music-mini-open') ?? document.querySelector<HTMLElement>('[data-testid="ai-launcher"] .ai-launcher-button') ?? document.querySelector<HTMLElement>('[data-testid="apps-extras-button"]') ?? document.querySelector<HTMLElement>('.phone-more-top'))?.focus({preventScroll: true})); }, []);
   if (!mounted || !shown || !pathname.startsWith('/app')) return null;
   return <>
     {mini ? <Suspense fallback={null}><MusicMini phone={phone} onOpen={open ? close : show} expanded={open}/></Suspense>
-      : !phone && (folded
+      : !compact && (folded
         ? <button ref={button} type="button" className="music-edge-tab" data-playing={ambient.playing ? '' : undefined} aria-label="Show the music button" onClick={() => setFolded(false)}><MusicNote/></button>
         : <div className="music-launcher-stack">
           <button ref={button} type="button" className="music-launcher" data-playing={ambient.playing ? '' : undefined} aria-haspopup="dialog" aria-expanded={open} aria-label={open ? 'Close the music player' : 'Open the music player'} onClick={() => open ? close() : show()}><MusicNote/></button>

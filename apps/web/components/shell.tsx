@@ -53,6 +53,9 @@ import { LengthCounterHost } from "./ui/length-counter";
 import { SearchButton, SearchHost } from "./search/search-trigger";
 import { ShortcutHost } from "./shortcut-host";
 import { AiLauncher } from "./ai/ai-launcher";
+import { AppsExtrasButton, AppsExtrasSheet } from "./shell/apps-extras"; // Session AL (O3): no floating launchers below 901 px
+import { SidebarApps } from "./shell/sidebar-apps"; // Session AL (O4): the desktop sidebar's foldable Apps group
+import { useCompactShell, usePhoneActive } from "./phone/use-phone-layout";
 import { NavPages } from "./nav-pages"; // Session AK G2 (RELEASE_REVIEW_2 R2-10): Tasks, Notes, Journal and Music as navigation entries
 import { GameRegistrar } from "./game/registrar"; // Session AA-Local, merged second (ADR-022 B52): the game cards and Journey's nav entry, once for every page
 import { LoadBoundary } from "./load-boundary";
@@ -117,6 +120,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   const pagesView=usePagesView(),startHold=useStartPage(pagesState,pagesView),pathname=usePathname();
   const hiddenPage=pagesState==="ready"?pageIdForPath(pathname):null,showQuickAdd=isShown(pagesView,"quick-add");
   const dialog = useRef<HTMLDialogElement>(null);
+  const compact = useCompactShell(), phoneChrome = usePhoneActive(), railApps = compact && !phoneChrome;
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
   }, [s.pending]);
@@ -184,6 +188,9 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>
         <AppNav />
+        <SidebarApps />
+        {/* Session AL (O3): the tablet rail's "Apps & extras" (phones carry it in their top bar; one button at a time). */}
+        {railApps && <div className="apps-extras-rail"><AppsExtrasButton /></div>}
         {/* Session AA-Cloud Part 4: search, on computers right under the navigation (tablets carry it beside Quick add). */}
         <div className="sidebar-search"><SearchButton className="search-trigger is-wide" label/><OfflinePill/></div>
         {/* The tablet header shows Quick add below the navigation, so it follows it in tab order too (hidden on desktop). */}
@@ -295,7 +302,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         <OfflineNotice />
         <SearchHost/><ShortcutHost/><UndoToastHost /><ShowcaseUndoOffer /><LengthCounterHost /><GameRegistrar /><NavPages />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><EarnDock /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
+        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AppsExtrasSheet /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><EarnDock /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>
       {/* Session AB-Design (owner request 2): one full-width footer banner, outside the workspace's 1600 px column. */}
       {/* Phase 2 (weights; no-JavaScript honesty): the footer banner is a server component from the app layout. Session AC:

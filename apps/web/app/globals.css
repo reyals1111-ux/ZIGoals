@@ -1427,3 +1427,10 @@ html:not([data-zigi-launcher="shown"]) .page-ask-zigi { display: none !important
 /* Session AK (M7, layout audit): the hidden-page note's one button ("show it in the sidebar") sits in its sentence but is a
    button, so it is a full 44 px target (33 px at 390 px on Portfolio since X1 keeps the crypto pages off until chosen). */
 .hidden-page-banner button.text-link { min-height: 44px; }
+/* Session AL (3g): the app's 404 (app/app/not-found.tsx): the header pattern's eyebrow and a short list of the main pages. */
+.app-not-found { max-width: 720px; }
+.app-not-found > .eyebrow { margin: 0 0 6px; }
+.app-not-found-places { margin-top: 20px; }
+.app-not-found-places > p { margin: 0 0 6px; }
+.app-not-found-places ul { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0 0 10px; padding: 0; list-style: none; }
+.app-not-found-places .text-link { display: inline-flex; align-items: center; min-height: 44px; }

@@ -12,8 +12,17 @@ import {expect, type Locator, type Page} from '@playwright/test';
 const COLD = {timeout: 15_000};
 export const zigiPanel = (page: Page) => page.locator('dialog.ai-chat[open]');
 export const zigiBox = (page: Page) => zigiPanel(page).getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});
+/**
+ * Session AL (owner decision O3): below 901 px ZIGi has no floating button; it opens from the "Apps & extras" sheet (the
+ * phone's top bar, the tablet rail). On a computer this is the launcher's own button, as before.
+ */
+export async function pressZigi(page: Page) {
+  if ((page.viewportSize()?.width ?? 1440) >= 901) { await page.getByRole('button', {name: /Open ZIGi/}).click(); return; }
+  await page.getByTestId('apps-extras-button').click();
+  await page.getByRole('dialog', {name: 'Apps & extras'}).getByRole('button', {name: /^ZIGi\b/}).click();
+}
 export async function openZigi(page: Page) {
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   await expect(zigiPanel(page)).toBeVisible(COLD);
   // The panel's own box takes the focus (the subscription bridge shows a second box, "Your question", which may take it).
   await expect(zigiPanel(page).locator('textarea:focus, input:focus')).toHaveCount(1, COLD);
