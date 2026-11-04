@@ -1,5 +1,6 @@
 import type {ToolEnv} from '../tools/env';
-import {zigiOverview, type LocalReply} from './engine';
+import {localAnswer, zigiOverview, type LocalReply} from './engine';
+import {alFirst, alMoreAnswer, fixTypos, rewriteQuestion} from './al-more';
 import {normalizeSpoken} from '../spoken/normalize';
 import {alFactsAnswer} from './al-facts';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
@@ -58,7 +59,7 @@ export function howToReply(text: string, lang: ReplyLanguage): LocalReply | null
  * aside for a new bike", "Ik wil sparen voor een vakantie") is a goal the person wants to start. The reply offers the goal
  * form with the name filled in from their words (nothing is saved before they create it there).
  */
-const SAVE_EN = /\b(?:sav(?:e|ing)(?:\s+(?:up|money))?|put(?:ting)?\s+(?:some\s+)?(?:money\s+)?(?:aside|away)|set(?:ting)?\s+(?:some\s+)?(?:money\s+)?aside|budget(?:ing)?|(?:start|make|build|open)\s+(?:a\s+)?(?:savings?\s+)?fund)\s+(?:up\s+)?(?:for|towards?)\b\s*(.*)$/i;
+const SAVE_EN = /\b(?:sav(?:e|ing)(?:\s+(?:up|money))?(?:\s+(?:[$€]\s?\d[\d,.]*|\d[\d,.]*\s?(?:dollars?|euros?|usd|eur|[$€])))?|put(?:ting)?\s+(?:some\s+)?(?:money\s+)?(?:aside|away)|set(?:ting)?\s+(?:some\s+)?(?:money\s+)?aside|budget(?:ing)?|(?:start|make|build|open)\s+(?:a\s+)?(?:savings?\s+)?fund)\s+(?:up\s+)?(?:for|towards?)\b\s*(.*)$/i;
 const SAVE_NL = /\b(?:sparen|spaar|opzij\s*zetten|geld\s+opzij(?:\s*zetten)?)\s+(?:voor|om)\b\s*(.*)$/i;
 /** Words a question can carry around its noun ("a", "my", "next year") that are no part of the goal's name. */
 const NAME_LEAD = /^(?:a|an|the|my|our|some|een|de|het|mijn|onze|new|nieuwe?)\s+/i;
@@ -116,13 +117,29 @@ export function noModelReply(text: string, env: ToolEnv | null): LocalReply {
   // Session AL (lane L7; DV-074, P-DV-83): with no model, ZIGi answers the questions NOVA's overview answers (English; a whole
   // Dutch question keeps the Dutch introduction and the examples, as the golden pins nl-question / x-nl-whole hold).
   const overview = env && lang === 'en' ? zigiOverview(normalizeSpoken(text), env) : null;
-  const reply = simpleCommand(text) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? alFactsAnswer(normalizeSpoken(text), env, lang) ?? examplesIn(env, lang);
+  // Session AL second pass (L7): typos fixed and loose wordings asked again in the words the device answers; then the
+  // remaining facts (al-more.ts). A "Remember…", a medicine word, a fast, a target, a task or a workflow comes first, so
+  // its numbers are never read as a log (al-more.ts `alFirst`).
+  const fixed = fixTypos(text), again = env && lang === 'en' ? askAgain(fixed !== text ? fixed : null, rewriteQuestion(fixed), env) : null;
+  const reply = simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? examplesIn(env, lang);
   // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
   // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
   const other = otherLanguage(text);
   return other && reply.kind === 'examples' ? {...reply, text: `${OTHER_NOTE[other]} ${reply.text}`} : reply;
 }
 
+/** The device's own answer to the typo-fixed question, then to a looser wording asked again (null when neither answers). */
+function askAgain(fixed: string | null, rewritten: string | null, env: ToolEnv): LocalReply | null {
+  for (const q of [fixed, rewritten]) {
+    if (!q) continue;
+    let r: LocalReply = {kind: 'none'};
+    try { r = localAnswer(q, env); } catch { r = {kind: 'none'}; }
+    if (r.kind === 'answer' || r.kind === 'choices' || r.kind === 'refusal') return r;
+    const own = zigiOverview(normalizeSpoken(q), env);
+    if (own) return own;
+  }
+  return null;
+}
 /**
  * Session AI (J10, ZI11): with no model, a line of several things done, eaten or drunk becomes one card each, made on this
  * device ("30 push-ups, 500 ml water and a banana"). A single item Quick add already previews stays with Quick add; a

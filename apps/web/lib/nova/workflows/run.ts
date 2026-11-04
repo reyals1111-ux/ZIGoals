@@ -54,6 +54,8 @@ export async function* runWorkflow(def: WorkflowDef, deps: RunDeps): AsyncGenera
     } else if (step.kind === 'words') {
       yield {type: 'step', id: step.id, label: step.label, state: 'running'};
       const fallback = deviceWords(facts);
+      // Session AL (N-033): with nothing read, the step says so instead of a "Done" for words that were never made.
+      if (!facts.length) { yield {type: 'step', id: step.id, label: step.label, state: 'skipped', note: 'Nothing to put into words: the steps above found nothing NOVA may read.'}; yield {type: 'words', text: fallback, by: 'device'}; continue; }
       // Z1A-5: an imported workflow the person has not confirmed never reaches a model (the panel asks first; this is the backstop).
       if (!deps.model || !deps.send || def.imported) {
         yield {type: 'step', id: step.id, label: step.label, state: 'done', note: 'Worded on this device (no model in use for workflows).'};

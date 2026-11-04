@@ -42,7 +42,8 @@ test('no AI: a Dutch question is introduced in Dutch with working examples; "cre
   await expect(food.getByRole('listitem').first()).toHaveText('Health → Foods & recipes → New food.');
   await expect(food.locator('.ai-card')).toHaveCount(1);
   await expect(food.locator('.ai-card')).toContainText('Open Health');
-  await food.locator('.ai-card').getByRole('button', {name: 'Open the form'}).click();
+  // Session AL (COPY_AUDIT, deliberate): a card that opens a page names the page (DV-063b, P-DV-94), not 'Open the form'.
+  await food.locator('.ai-card').getByRole('button', {name: 'Open Health'}).click();
   await expect(page).toHaveURL(/\/app\/health/);
   expect(external).toEqual([]);
 });

@@ -5,6 +5,8 @@ import {fromCents, totals, weekOf} from '../money-log/engine';
 import {briefLines, eveningRecap, morningBrief, type BriefExtras} from '../ai/proactive/brief';
 import type {ToolEnv} from '../ai/tools/env';
 import type {NovaScopes} from '../ai/context-pack/nova';
+import {runTool} from '../ai/tools/registry';
+import {formatDate} from '../visual-format';
 
 /**
  * NOVA's morning brief and evening recap (Session AK, owner follow-up 2 N6 and N3 step 8), composed ON THE DEVICE from the
@@ -84,6 +86,19 @@ function moneySection(env: ToolEnv, kind: BriefKind): {id: string; label: string
   return text ? {id: 'money', label: 'Spent today', text: `${text}.`} : null;
 }
 /**
+ * Session AL second pass (Denver DV-077, N-045; P-DV-101): one goal line in the morning brief, from the Goals page's own
+ * figures: a goal behind its plan first, else the goal with the nearest planned step. No amount, no advice.
+ */
+function goalSection(env: ToolEnv): {id: string; label: string; text: string} | null {
+  const r = runTool('list_goals', {}, env);
+  if (!r.ok) return null;
+  const goals = ((r.data.goals ?? []) as Record<string, unknown>[]).filter(g => g.status === 'active');
+  const behind = goals.find(g => /behind|off track/i.test(String(g.funding ?? '')));
+  if (behind) return {id: 'goal', label: 'Goal', text: `${String(behind.name).slice(0, 80)} can catch up with its plan${behind.progress && behind.progress !== 'unknown' ? ` (${behind.progress} of the target so far)` : ''}; Goals shows the next step.`};
+  const next = goals.filter(g => /^\d{4}-\d{2}-\d{2}$/.test(String(g.nextPlannedDate ?? ''))).sort((a, b) => String(a.nextPlannedDate).localeCompare(String(b.nextPlannedDate)))[0];
+  return next ? {id: 'goal', label: 'Goal', text: `Next planned step: ${String(next.name).slice(0, 80)} on ${formatDate(String(next.nextPlannedDate))}.`} : null;
+}
+/**
  * The brief for one day, made on this device: ZIGi's morning brief or evening recap (with their v2 sections) inside the
  * scopes, plus the money line. `day` must be the records' own today (`env.habitDay`): a brief is never made for another
  * day. Null when there is nothing to say (an empty start then shows the teaching card, never an empty brief).
@@ -94,6 +109,7 @@ export function composeBrief(kind: BriefKind, briefDay: string, env: ToolEnv, op
   const base = kind === 'morning' ? morningBrief(scoped, extras) : eveningRecap(scoped, extras);
   const sections: {id: string; label: string; text: string}[] = (base?.sections ?? []).map(s => ({id: s.id, label: s.label, text: s.text}));
   const money = moneySection(scoped, kind); if (money) sections.push(money);
+  const goal = kind === 'morning' && scopes.goals ? goalSection(scoped) : null; if (goal) sections.push(goal);
   const lines = base?.lines ?? [];
   if (!lines.length && !sections.length) return null;
   return {id: `${kind}:${briefDay}`, kind, day: briefDay, at: (options.now ?? env.now).toISOString(), lines: lines.slice(0, MAX_LINES).map(l => l.slice(0, 400)), sections: sections.slice(0, MAX_SECTIONS).map(s => ({id: s.id.slice(0, 40), label: s.label.slice(0, 60), text: s.text.slice(0, 600)}))};

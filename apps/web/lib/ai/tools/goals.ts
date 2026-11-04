@@ -7,7 +7,7 @@ import {planDay, planZone} from '../../plan-revisions';
 import {reviewState, reviewWindow, weekSummary} from '../../weekly-review/engine';
 import {addLocalDays} from '../../local-date';
 import type {ToolEnv} from './env';
-import {capRows, ok, plural, provenance, refuse, text} from './format';
+import {capRows, goalUnits, ok, plural, provenance, refuse, text} from './format';
 import {parseRange, type DayRange} from './range';
 import {matchByName} from './subjects';
 import type {ToolDefinition, ToolRefusal} from './types';
@@ -66,7 +66,7 @@ export const goalProgress: ToolDefinition<{goal: string}> = {
     if (privateGoal && privateGoal.type !== 'PROJECT') {
       try {
         const pulse = fundingHealth(env.platform, privateGoal.id, env.now.getTime(), env.quotes);
-        data.plan = {contributedNet: `${formatUnits(pulse.actual, privateGoal.decimals)} ${privateGoal.asset}`, plannedThroughToday: `${formatUnits(pulse.plannedThroughToday, privateGoal.decimals)} ${privateGoal.asset}`, aheadOrBehind: BigInt(pulse.variance) === 0n ? 'on plan' : `${BigInt(pulse.variance) > 0n ? 'ahead by' : 'behind by'} ${formatUnits((BigInt(pulse.variance) < 0n ? -BigInt(pulse.variance) : BigInt(pulse.variance)).toString(), privateGoal.decimals)} ${privateGoal.asset}`, nextDate: pulse.nextDate ?? 'none', projectedCompletion: pulse.completionDate ?? 'unknown', status: pulse.status.replaceAll('_', ' ').toLowerCase(), notes: pulse.warnings.map(w => text(w, 200))};
+        data.plan = {contributedNet: goalUnits(pulse.actual, privateGoal.decimals, privateGoal.asset), plannedThroughToday: goalUnits(pulse.plannedThroughToday, privateGoal.decimals, privateGoal.asset), aheadOrBehind: BigInt(pulse.variance) === 0n ? 'on plan' : `${BigInt(pulse.variance) > 0n ? 'ahead by' : 'behind by'} ${goalUnits((BigInt(pulse.variance) < 0n ? -BigInt(pulse.variance) : BigInt(pulse.variance)).toString(), privateGoal.decimals, privateGoal.asset)}`, nextDate: pulse.nextDate ?? 'none', projectedCompletion: pulse.completionDate ?? 'unknown', status: pulse.status.replaceAll('_', ' ').toLowerCase(), notes: pulse.warnings.map(w => text(w, 200))};
       } catch { data.plan = 'needs review in Goals'; }
     }
     return ok('goal_progress', label, where(env, text(goal.name, 60), null), data);

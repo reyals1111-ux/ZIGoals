@@ -27,6 +27,7 @@ const NOT_RECORDS: Record<string, string> = {
   'zigoals:step-up:v1': 'a key-derivation label (HKDF info), not a storage key',
   'zigoals:device-lock:v1': 'the optional device lock\'s verifier; a lock must not travel in an export (Settings → Device lock)',
   'zigoals:deleted-habit:v1': 'a short-lived mark that a habit was deleted for good, so its notes stay hidden; no content',
+  'zigoals:zigi-open-chat:v1': 'sessionStorage: which ZIGi chat is open in this tab and when (id and time only, no text), so a reload reopens it within 30 minutes (Session AL, PR-025/PR-041); gone when the tab closes',
   'zigoals:habit-draft:v1': 'sessionStorage: an unsaved new-habit form kept across a reload in this tab only (Session AL, NB-077); gone when the tab closes',
   'zigoals:welcome-draft:v1': 'sessionStorage: the welcome wizard\'s step and picks kept across a reload in this tab only (Session AL, NB-011); gone when the tab closes',
   'zigoals:extras-sync-choice:v1': 'this device\'s consent for the encrypted extras sync; consent is asked again on a new device',

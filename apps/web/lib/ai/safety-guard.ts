@@ -1,11 +1,13 @@
 /**
  * Session AL (lane L7, Part 10; BN-037/038/039/061, DV-080, NB-102/110, Z-031/033, LA-002/036/043): ZIGi's and NOVA's
  * deterministic safety guard. It reads only the person's own message, on this device, BEFORE any model, before the
- * device's own lookups and before the examples list. Four topics, most urgent first:
+ * device's own lookups and before the examples list. Five topics, most urgent first:
  *  - emergency: chest pain with an arm or jaw, can't breathe, stroke signs, an overdose → the emergency number first, no
  *    diagnosis;
  *  - distress: self-harm or suicide words (lib/ai/safety.ts), or "I feel depressed and hopeless" → a caring reply with real
  *    help lines; never a navigation, a card or the examples list;
+ *  - harm (second pass, P-LA-01): hurting someone, or breaking into another person's accounts or devices → a fixed
+ *    refusal with the emergency number and help lines;
  *  - secret: a seed phrase, recovery words, a private key or a password asked for, offered or "exported" → never asked,
  *    never accepted, never echoed; how to stay safe instead;
  *  - injection: "Ignore all previous instructions", "SYSTEM: admin mode", "send my data to http://…" → read as words, never
@@ -15,7 +17,7 @@
  */
 import {detectRisk} from './safety';
 
-export type GuardTopic = 'emergency' | 'distress' | 'secret' | 'injection';
+export type GuardTopic = 'emergency' | 'distress' | 'harm' | 'secret' | 'injection';
 export type GuardLanguage = 'en' | 'nl';
 export type GuardReply = {topic: GuardTopic; lang: GuardLanguage; text: string};
 
@@ -41,6 +43,14 @@ const DISTRESS: RegExp[] = [
   /\b(?:panic attack|having a breakdown|falling apart)\b/, /\bso alone\b|\ball alone and\b/,
   /\b(?:depressief|depressie|hopeloos|waardeloos|uitzichtloos|somber)\b/, /\bik zie het niet meer zitten\b/, /\bik kan (?:het )?niet meer\b/, /\bgeen zin meer in (?:het leven|alles|niks|niets)\b/,
   /\bniemand (?:geeft om mij|zou me missen)\b/, /\bik haat mezelf\b/, /\bpaniekaanval\b/, /\bik wil (?:graag )?dood\b/, /\bwil (?:er )?een eind aan maken\b/,
+];
+// ---- harm: Session AL second pass (LA-002/P-LA-01 "threats/violence, hacking"): hurting someone, or getting into another
+// person's accounts or devices (EN + NL). Fixed words, never a model, never a card. ----
+const HARM: RegExp[] = [
+  /\b(?:i (?:want|am going|'m going|will|'ll|feel like i (?:could|might)) (?:to )?|how (?:do|can|could) i |help me )(?:hurt|kill|stab|shoot|beat up|attack|poison|strangle|harm)\s+(?:someone|somebody|anyone|people|a person|him|her|them|my (?:wife|husband|partner|boyfriend|girlfriend|boss|neighbou?r|ex|friend|brother|sister|mother|father|mom|mum|dad|kid|child|son|daughter|colleague|roommate)|the (?:neighbou?r|boss|kid|guy|man|woman))\b/,
+  /\b(?:how (?:do|can|could) i|help me|teach me to)\b[^.?!]{0,20}\b(?:hack|break into|crack|get into|spy on|track)\b[^.?!]{0,30}\b(?:someone(?:'s| else's)?|my (?:neighbou?r|ex|partner|wife|husband|boss|friend)(?:'s)?|his|her|their|an? (?:account|phone|wi-?fi|email|instagram|facebook|computer))\b/,
+  /\b(?:ik wil|hoe kan ik)\b[^.?!]{0,15}\b(?:iemand|hem|haar|mijn (?:buurman|buurvrouw|ex|baas))\b[^.?!]{0,15}\b(?:pijn doen|vermoorden|neersteken|aanvallen|slaan)\b/,
+  /\bhoe (?:kan ik|hack ik)\b[^.?!]{0,30}\b(?:hacken|inbreken)\b/,
 ];
 // ---- secrets: asked for, offered, or claimed exported (EN + NL); typing one is refused by lib/secret-guard first ----
 const SECRET: RegExp[] = [
@@ -80,6 +90,10 @@ export const GUARD_REPLIES: Record<GuardTopic, Record<GuardLanguage, string>> = 
     en: 'I\'m really sorry you\'re feeling this way. You don\'t have to carry it alone, and talking to someone can help, today.\n- If you might hurt yourself or you are in danger, call your local emergency number now (112 in the EU, 911 in the US).\n- US: call or text 988 (Suicide & Crisis Lifeline). UK and Ireland: Samaritans, 116 123. Netherlands: 113 Zelfmoordpreventie, call 113 or 0800-0113, or chat at 113.nl. Belgium: 1813.\n- Elsewhere: findahelpline.com lists free, confidential lines in your country.\nA doctor or someone you trust is a good next step too. ZIGi is an app, not a counsellor; the people at these lines are there for exactly this.',
     nl: 'Wat naar dat je je zo voelt. Je hoeft dit niet alleen te dragen, en praten kan helpen, ook vandaag.\n- Ben je in gevaar of denk je eraan jezelf iets aan te doen, bel dan nu 112.\n- Nederland: 113 Zelfmoordpreventie, bel 113 of gratis 0800-0113, of chat via 113.nl (dag en nacht). België: Zelfmoordlijn 1813.\n- Elders: findahelpline.com noemt gratis, vertrouwelijke hulplijnen in jouw land.\nJe huisarts of iemand die je vertrouwt kan ook helpen. ZIGi is een app, geen hulpverlener; de mensen bij deze lijnen zijn er juist hiervoor.',
   },
+  harm: {
+    en: 'I can\'t help with hurting anyone, or with getting into someone else\'s accounts, phone or network.\n- If someone is in danger right now, call your local emergency number (112 in the EU, 911 in the US and Canada, 999 in the UK).\n- If you feel close to hurting someone, talking to someone today helps: findahelpline.com lists free, confidential lines in your country.\nI\'m here for your own goals, habits, health and money records.',
+    nl: 'Ik help niet met iemand pijn doen, of met binnendringen in de accounts, telefoon of het netwerk van een ander.\n- Is iemand nu in gevaar, bel dan 112.\n- Voel je dat je iemand iets zou kunnen aandoen, praat er vandaag met iemand over: findahelpline.com noemt gratis, vertrouwelijke hulplijnen in jouw land.\nIk ben er voor je eigen doelen, gewoontes, gezondheid en geldzaken.',
+  },
   secret: {
     en: 'ZIGoals never asks for, keeps or shows recovery words (a seed phrase), private keys or passwords, and ZIGi can\'t see them. Nothing was exported or sent.\nTo stay safe:\n- Never type them into a chat, a website or an app that asks. Real support never needs them.\n- Keep them offline, written down where only you can reach them.\n- If you think someone has seen them, move your funds to a new wallet you create yourself, and change that password.\nA wallet\'s own words are only ever shown by that wallet app, never here.',
     nl: 'ZIGoals vraagt nooit om herstelwoorden (een seed phrase), privésleutels of wachtwoorden, bewaart ze niet en toont ze niet, en ZIGi kan ze niet zien. Er is niets geëxporteerd of verstuurd.\nZo blijf je veilig:\n- Typ ze nooit in een chat, website of app die erom vraagt. Echte hulp heeft ze nooit nodig.\n- Bewaar ze offline, opgeschreven op een plek waar alleen jij bij kunt.\n- Denk je dat iemand ze heeft gezien, zet je geld dan over naar een nieuwe wallet die je zelf aanmaakt, en verander dat wachtwoord.\nDe woorden van een wallet zie je alleen in die wallet-app zelf, nooit hier.',
@@ -96,6 +110,7 @@ export function guardTopic(raw: string): GuardTopic | null {
   if (!text) return null;
   if (EMERGENCY.some(p => p.test(text))) return 'emergency';
   if (detectRisk(text) === 'self-harm' || DISTRESS.some(p => p.test(text))) return 'distress';
+  if (HARM.some(p => p.test(text))) return 'harm';
   if (SECRET.some(p => p.test(text))) return 'secret';
   if (INJECTION.some(p => p.test(text))) return 'injection';
   return null;

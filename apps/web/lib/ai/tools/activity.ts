@@ -1,10 +1,10 @@
 import * as z from 'zod';
 import {formatUnits, TESTNET} from '@zigoals/chain-config';
-import {habitRuleOn, type HabitRule} from '../../habits';
+import {habitEntryText, habitRuleOn} from '../../habits';
 import {goalTimeline} from '../../goal-intelligence';
 import {formatHealthGrams} from '../../health';
 import type {ToolEnv} from './env';
-import {capRows, ok, provenance, refuse, text} from './format';
+import {capRows, HEALTH_CLOSED, ok, provenance, refuse, text} from './format';
 import {parseRange} from './range';
 import type {ToolDefinition} from './types';
 
@@ -13,8 +13,6 @@ import type {ToolDefinition} from './types';
  * asset events, habit check-ins, Health entries), newest first, each only when its area is readable for this purpose.
  * Health entries, and habit check-ins a Health link filled in, are left out entirely when the Health gate is closed.
  */
-/** The habit engine's own rule for one check-in (lib/habits.ts `individualSuccess`): build reaches the target, quit and limit stay within it. */
-const success = (rule: HabitRule, count: number) => rule.type === 'build' ? count >= rule.target : count <= rule.target;
 const CATEGORIES = ['all', 'goals', 'wealth', 'habits', 'health'] as const;
 type Event = {at: string; area: 'goals' | 'wealth' | 'habits' | 'health'; title: string; detail: string};
 function events(env: ToolEnv): Event[] {
@@ -33,7 +31,7 @@ function events(env: ToolEnv): Event[] {
       const rule = habitRuleOn(habit, entry.date);
       if (!rule || (rule.type === 'build' && entry.count <= 0)) continue;
       if (entry.source === 'health' && !env.health) continue;
-      out.push({at: entry.updatedAt, area: 'habits', title: text(habit.title, 60), detail: `${entry.date} · ${entry.count} / ${rule.target} ${success(rule, entry.count) ? 'completed' : 'logged'}`});
+      out.push({at: entry.updatedAt, area: 'habits', title: text(habit.title, 60), detail: `${entry.date} · ${habitEntryText(rule, entry.count)}`}); // Session AL (L3's request): the words Activity uses
     }
   }
   if (env.health && env.areas.health) {
@@ -52,7 +50,7 @@ export const recentActivity: ToolDefinition<{area?: (typeof CATEGORIES)[number];
   run(args, env, label) {
     const range = parseRange(args.range?.trim() || 'the last 7 days', env.habitDay);
     if (!range.ok) return refuse('recent_activity', label, 'range', range.message);
-    if (args.area === 'health' && !env.health) return refuse('recent_activity', label, 'gate', 'Health isn’t shared with ZIGi — turn it on in Settings → ZIGi · Your Personal AI Companion (Include Health), with Health on Today.');
+    if (args.area === 'health' && !env.health) return refuse('recent_activity', label, 'gate', HEALTH_CLOSED);
     // Events carry instants; the range is compared on their UTC day (the Activity page groups by the device's day).
     const rows = events(env).filter(e => (!args.area || args.area === 'all' || e.area === args.area) && e.at.slice(0, 10) >= range.from && e.at.slice(0, 10) <= range.to)
       .map(e => ({at: e.at.slice(0, 16).replace('T', ' '), area: e.area, title: e.title, detail: e.detail}));

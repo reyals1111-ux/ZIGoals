@@ -48,7 +48,8 @@ test('ZI5: the sharing switches and "Include Health" show before any AI is conne
   await page.goto('/app/settings'); await hydrated(page);
   const privacy = page.getByRole('region', {name: 'Privacy & data'});
   await expect(privacy).toContainText('What each page may share', {timeout: 30_000});
-  await expect(privacy).toContainText('These apply once you connect your own AI. With no AI connected, nothing leaves this device');
+  // Session AL (COPY_AUDIT, deliberate): the switches also decide what ZIGi's on-device answers read (MO-052, P-MO-12).
+  await expect(privacy).toContainText('With no AI connected, nothing leaves this device: ZIGi answers from your records here, and these switches decide which pages those answers may read.');
   await expect(privacy.getByRole('switch', {name: /^Include Health/})).toBeAttached();
   expect(await privacy.getByRole('switch').count()).toBeGreaterThan(3);
 });

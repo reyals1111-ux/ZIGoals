@@ -7,7 +7,7 @@ import {newChat, type Chat, type ChatStore, type ChatSummary} from '../../lib/ai
 import {fitToBudget, type Fit} from '../../lib/ai/context/budget';
 import {buildSystemParts, buildSystemPrompt} from '../../lib/ai/context/specialists';
 import type {Handle} from '../../lib/ai/context/types';
-import {AiError, errorSteps, isAbortLike, mapNetworkError} from '../../lib/ai/errors';
+import {AiError, assistantWords, errorSteps, isAbortLike, mapNetworkError} from '../../lib/ai/errors';
 import {readKey} from '../../lib/ai/keys';
 import {PROVIDERS} from '../../lib/ai/providers';
 import {currentChatStore} from '../../lib/ai/scope';
@@ -115,7 +115,7 @@ export type SendOptions = {withContext?: boolean; confirmed?: boolean; reuse?: b
  */
 export type NovaSurface = {persona: string;
   /** NOVA's own context pack (lane NE, lib/ai/context-pack/nova.ts), built at the moment of each of NOVA's own messages. */
-  novaPack: () => NovaPack | null;
+  novaPack: (question?: string) => NovaPack | null;
   /** A page's records, for a task NOVA hands to ZIGi or to the person's own agent (lib/nova/bridge-pack.ts). */
   pack: (area: PageArea) => PageContext | null;
   /**
@@ -336,7 +336,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     // Session AK (NOVA): with a NOVA surface and a page named, that page's records, built now under this page's gates; else this page's.
     // NOVA's own message reads NOVA's pack (lane NE) under its own prompt; a task for ZIGi or an agent reads that page's records.
     const novaOwn = !!nova && !options.zigi && !agent;
-    const novaPack = novaOwn && options.withContext !== false ? (() => { try { return nova!.novaPack(); } catch { return null; } })() : null;
+    const novaPack = novaOwn && options.withContext !== false ? (() => { try { return nova!.novaPack(text); } catch { return null; } })() : null;
     const novaArea = nova && !novaOwn && options.area ? options.area : null;
     const pack = novaArea && options.withContext !== false ? (() => { try { return nova!.pack(novaArea); } catch { return null; } })() : undefined;
     const area = novaArea ?? (novaOwn ? 'today' : context.area);
@@ -483,7 +483,8 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
         const aiError = error instanceof AiError ? error : mapNetworkError(providerId, error, {local: !hosted && conf.provider === 'local', online: navigator.onLine});
         if (reply) done(`Interrupted: ${aiError.message}`.slice(0, 200));
         const hostedPage = !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
-        setFailure({kind: aiError.kind, title: aiError.message, steps: hosted ? [] : errorSteps(aiError, {providerName, local: conf.provider === 'local' ? {server: conf.localServer, baseUrl: conf.baseUrl ?? ''} : undefined, hostedPage, keysUrl: provider.keysUrl})});
+        // Session AL second pass (BN-047, P-BN-09): in NOVA's panel the words say NOVA and point to NOVA's own settings.
+        setFailure({kind: aiError.kind, title: nova ? assistantWords(aiError.message, 'NOVA') : aiError.message, steps: hosted ? [] : errorSteps(aiError, {providerName, local: conf.provider === 'local' ? {server: conf.localServer, baseUrl: conf.baseUrl ?? ''} : undefined, hostedPage, keysUrl: provider.keysUrl, ...(nova ? {assistant: 'NOVA' as const} : {})})});
         zigiSignals.emit('recoverable_error');
       }
     } finally {

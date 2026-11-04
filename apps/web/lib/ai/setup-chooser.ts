@@ -50,7 +50,7 @@ export function recommend(answers: Answers, {onDevice, hosted = false, hostedPro
   if (answers.where === 'phone' && answers.matters === 'privacy') {
     // A phone runs no model, so an AI always means sending something; the bridge sends only what the person copies, but it
     // needs a subscription (Session Z-Local, the persona round: with nothing, it suggested a bridge to nothing).
-    if (answers.have !== 'subscription') return {...API, why: 'A phone cannot run a model, so any AI means sending your question somewhere. ZIGi\'s own answers about your records never leave the phone; a key sends only what you ask, to your provider.', ...(hosted ? {also: 'hosted' as const} : {})};
+    if (answers.have !== 'subscription') return {...API, why: 'No AI setup keeps everything on a phone: a phone cannot run a model, so any AI means sending your question somewhere. The closest fit is a key of your own: ZIGi\'s own answers about your records never leave the phone, and a key sends only what you ask, to your provider. With no AI at all, nothing ever leaves.', ...(hosted ? {also: 'hosted' as const} : {})};
     return {...BRIDGE, why: 'A phone cannot run a model, so any AI means sending something. With the bridge you see and copy exactly what goes, and ZIGi’s own answers about your records never leave the phone.'};
   }
   if (answers.matters === 'free') {

@@ -15,7 +15,8 @@ test('slash commands: the nine listed commands (Session AF adds /brief; /recap i
   expect(parseSlash('  /REMEMBER  I train before work ')).toMatchObject({command: {name: '/remember'}, rest: 'I train before work'});
   expect(parseSlash('/review')).toMatchObject({command: {name: '/review'}, rest: ''});
   expect(parseSlash('/unknown thing')).toBeNull(); expect(parseSlash('please /log this')).toBeNull(); expect(parseSlash('/')).toBeNull();
-  expect(suggestCommands('/').map(c => c.name)).toHaveLength(9);
+  // Session AL (COPY_AUDIT, deliberate): "/" lists all ten, /recap last, the same list as /help (X3-07, P-PR-78).
+  expect(suggestCommands('/').map(c => c.name)).toEqual([...SLASH_COMMANDS.map(c => c.name), '/recap']);
   expect(suggestCommands('/r').map(c => c.name)).toEqual(['/review', '/remember']);
   expect(suggestCommands('/log ')).toEqual([]); expect(suggestCommands('log')).toEqual([]);
   for (const c of [...SLASH_COMMANDS, ...EXTRA_COMMANDS]) expect(helpText()).toContain(`${c.name}: ${c.hint}.`);

@@ -38,17 +38,24 @@ function failureOf(error: unknown, providerName: string, local?: {server: 'ollam
  * Session AK P4 (FIRST_RUN_REVIEW FR-10, FR-11): `assistant` is whose setup this is (NOVA's guide says NOVA, not ZIGi);
  * `suggest` is the guide's pick and the memory it chose, so a found local model is chosen already (lib/ai/suggest-model.ts).
  */
+/** The program the person runs, as far as its answer and port say (MO-061: never "Ollama" for LM Studio's port). */
+function serverName(server: 'ollama' | 'openai-compatible', baseUrl: string): string {
+  if (server === 'ollama') return 'Ollama';
+  const port = (() => { try { return new URL(baseUrl).port; } catch { return ''; } })();
+  return port === '1234' ? 'LM Studio (an OpenAI-compatible server)' : port === '9931' || port === '8080' ? 'llama.cpp (an OpenAI-compatible server)' : 'an OpenAI-compatible server';
+}
 export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi', suggest}: {settings: AiSettingsStore; scope: string; seed?: SetupSeed; onDone?: () => void; assistant?: string; suggest?: {prefer?: readonly string[]; maxParams?: number | null}}) {
   const showcase = scope === SHOWCASE_SCOPE, phone = usePhoneActive();
   const [path, setPath] = useState<Path | null>(seed ? 'api' : null), [provider, setProvider] = useState<ProviderId>(seed?.provider ?? 'openai'), [key, setKey] = useState(seed?.key ?? '');
   const [remember, setRemember] = useState(seed ? seed.remember : settings.installed && !showcase);
-  const [baseUrl, setBaseUrl] = useState<string>(LOCAL_SERVER_DEFAULTS.ollama), [localServer, setLocalServer] = useState<'ollama' | 'openai-compatible' | null>(null), [token, setToken] = useState('');
+  const [baseUrl, setBaseUrl] = useState<string>(() => settings.data.provider === 'local' && settings.data.baseUrl ? settings.data.baseUrl : LOCAL_SERVER_DEFAULTS.ollama), /* Session AL (BN-049, P-BN-05): the address in use stays in the form */ [localServer, setLocalServer] = useState<'ollama' | 'openai-compatible' | null>(null), [token, setToken] = useState('');
   const [app, setApp] = useState<SubscriptionAppId>('chatgpt');
   const [models, setModels] = useState<ModelInfo[] | null>(null), [model, setModel] = useState<string | null>(null), [suggested, setSuggested] = useState<string | null>(null), [busy, setBusy] = useState<'test' | 'connect' | 'signin' | null>(null), [failure, setFailure] = useState<Failure | null>(null), [done, setDone] = useState(false);
   useEffect(() => { setRemember(settings.installed && !showcase); }, [settings.installed, showcase]);
   const reset = () => { setModels(null); setModel(null); setFailure(null); };
   const test = useCallback(async () => {
-    setBusy('test'); setFailure(null); setModels(null); setModel(null);
+    // Session AL second pass (Moscow MO-061, P-MO-16): a new test starts from a clean status, never an earlier "Found …".
+    setBusy('test'); setFailure(null); setModels(null); setModel(null); setLocalServer(null);
     try {
       if (path === 'api') {
         const list = await testConnection({provider, key: key.trim() || null});
@@ -123,7 +130,7 @@ export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi
         {hostedPage() && <li><strong>Chrome and Edge</strong> ask once whether this site may &ldquo;Access other apps and services on this device&rdquo;; <strong>Firefox</strong> asks too: allow it. <strong>Safari</strong> cannot reach a model on this computer from this site: use Chrome, Edge or Firefox here.</li>}
         {phone && <li><strong>A phone cannot reach a computer&rsquo;s localhost.</strong> Use a cloud provider here, or ZIGoals on the computer.</li>}
       </ul></details>
-      <div className="ai-card-actions"><button type="button" className="secondary" disabled={!baseUrl.trim() || busy !== null} onClick={() => void test()}>{busy === 'test' ? 'Testing…' : 'Test connection'}</button>{localServer && <span className="ai-note">Found {localServer === 'ollama' ? 'Ollama' : 'an OpenAI-compatible server'} at {baseUrl}.</span>}</div>
+      <div className="ai-card-actions"><button type="button" className="secondary" disabled={!baseUrl.trim() || busy !== null} onClick={() => void test()}>{busy === 'test' ? 'Testing…' : 'Test connection'}</button>{localServer && models !== null && !failure && busy === null && <span className="ai-note" role="status">Found {serverName(localServer, baseUrl)} at {baseUrl}.</span>}</div>
     </div>}
     {path === 'subscription' && <div className="ai-setup-form">
       <p>A subscription to a chat app gives no connection a browser app may use, and ZIGoals never asks for your password or reads your cookies. Instead, ZIGi writes the question with your page data; you copy it, open the app, and paste.</p>

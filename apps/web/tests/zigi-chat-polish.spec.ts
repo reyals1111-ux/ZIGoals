@@ -5,7 +5,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {AI_MEMORY_KEY, AI_OPTIONS_KEY, ZIGI_KEY} from '../lib/ai/store/keys';
-import {PLAN_NOTE, SLASH_COMMANDS} from '../lib/ai/slash';
+import {EXTRA_COMMANDS, PLAN_NOTE, SLASH_COMMANDS} from '../lib/ai/slash';
 import {LOCAL_LABEL} from '../lib/ai/local-answers/words';
 
 /**
@@ -85,7 +85,8 @@ test('the "/" list: every command by keyboard; /help and /remember answer on the
   // Session AJ (item 13): each typed command is confirmed in the box before the list is read (tests/zigi-open.ts).
   await typeInZigi(page, '/', {submitEnabled: false});
   const list = panel(page).getByRole('listbox', {name: 'Commands'});
-  await expect(list.getByRole('option')).toHaveCount(SLASH_COMMANDS.length);
+  // Session AL (COPY_AUDIT, deliberate): "/" lists every command /help names, /recap included (X3-07, P-PR-78).
+  await expect(list.getByRole('option')).toHaveCount(SLASH_COMMANDS.length + EXTRA_COMMANDS.length);
   await expect(box(page)).toHaveAttribute('aria-controls', (await list.getAttribute('id'))!);
   await typeInZigi(page, '/r', {submitEnabled: false});
   await expect(list.getByRole('option')).toHaveText([/^\/review/, /^\/remember/]);

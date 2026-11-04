@@ -8,12 +8,13 @@ import type {Workouts} from '../../workouts/schema';
 import type {RemindersPlan} from '../../reminders-plan/schema';
 import {buildAgenda, type AgendaDay, type AgendaInput, type AgendaSource} from '../../agenda/build';
 import {showcaseAgendaExtras} from '../../agenda/showcase';
+import {taskAgendaItems} from '../../agenda/time-items';
 import {unbondingEvents} from '../../zigchain-eco/staking-clarity';
 import {STATUS_WORDS, TOP_N, nakamotoCount, powerRanks, spreadLine, statusOf, type ChooserValidator} from '../../zigchain-eco/validators';
 import type {EarnSnapshot} from '../../earn/snapshot';
 import {addLocalDays} from '../../local-date';
 import type {ToolEnv} from './env';
-import {capRows, ok, provenance, text} from './format';
+import {capRows, goalQty, ok, provenance, text} from './format';
 import {DEBT_MODEL, DEBT_PLANNER_WHERE, debtFreeMonth, debtMoney, debtView} from './f9-debt';
 import {NO_ARGS, type ToolDefinition} from './types';
 
@@ -74,13 +75,20 @@ export const agendaDays = (env: ToolEnv, from: string, days: number): AgendaDay[
 const SOURCE: Record<AgendaSource, string> = {habit: 'habit', contribution: 'goal contribution', bill: 'bill', workout: 'workout', meal: 'meal', unbonding: 'unbonding', review: 'review'};
 export const agendaTool: ToolDefinition<{from?: string; days?: number}> = {
   name: 'agenda', title: 'Agenda', area: 'today',
-  description: 'The agenda: the person\'s plans from every page in one calendar for some days (habits on their days, planned contributions, bills, meals, workouts, unbonding dates, reviews), with titles, times and whether each is done. No amounts.',
+  description: 'The agenda: the person\'s plans from every page in one calendar for some days (habits on their days, tasks with their time and priority, planned contributions, bills, meals, workouts, unbonding dates, reviews), with titles, times and whether each is done. No amounts.',
   parameters: {type: 'object', properties: {from: {type: 'string', description: 'The first day, YYYY-MM-DD (default today).'}, days: {type: 'integer', description: 'How many days, 1 to 31 (default 7).'}}},
   args: z.object({from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), days: z.number().int().min(1).max(31).optional()}),
   label: args => `Agenda · ${args.days ?? 7} days`,
   run(args, env, label) {
     const days = agendaDays(env, args.from ?? env.habitDay, args.days ?? 7);
-    const rows = days.flatMap(d => d.items.map(i => ({day: d.date, ...(i.time ? {time: i.time} : {}), what: text(i.title, 80), kind: SOURCE[i.source], state: i.state})));
+    // Session AL second pass (Lisbon LA-022, P-LA-14): the person's tasks are on the Agenda page, so they are in its answer too
+    // (lib/agenda/time-items.ts, the page's own reading), with their time and priority; a list not read stays out (unknown).
+    const from = days[0]?.date ?? env.habitDay, to = days.at(-1)?.date ?? from;
+    const tasks = env.nova?.tasks ? taskAgendaItems(env.nova.tasks, from, to, env.habitDay, iso => { try { return new Date(iso).toLocaleDateString('en-CA', {timeZone: env.habitZone}); } catch { return iso.slice(0, 10); } }) : [];
+    const items = [...days.flatMap(d => d.items.map(i => ({day: d.date, time: i.time, what: text(i.title, 80), kind: SOURCE[i.source], state: i.state}))),
+      ...tasks.map(t => ({day: t.date, time: t.time, what: text(t.title, 80), kind: t.priority === 'normal' ? 'task' : `task, ${t.priority} priority`, state: t.state}))]
+      .sort((a, b) => a.day.localeCompare(b.day) || (a.time === null ? -1 : 0) - (b.time === null ? -1 : 0) || (a.time ?? '').localeCompare(b.time ?? ''));
+    const rows = items.map(({day, time, ...rest}) => ({day, ...(time ? {time} : {}), ...rest}));
     const capped = capRows(rows, env, false);
     return ok('agenda', label, where(env, 'agenda (read from each page\'s records)'), {from: days[0]?.date, to: days.at(-1)?.date, items: capped.rows, ...(rows.length ? {} : {note: 'Nothing planned on these days.'}), rule: 'titles and days only, no amounts; each item lives on its own page'}, capped.truncated);
   },
@@ -116,7 +124,7 @@ export const savingsChallengesTool: ToolDefinition<Record<string, never>> = {
     const record = env.ak?.savingsChallenges, goals = new Map(env.platform.goals.map(g => [g.id, g]));
     const rows = Object.entries(record?.goals ?? {}).flatMap(([id, c]) => { const g = goals.get(id); if (!g) return [];
       return [{goal: env.handles.add('goal', `private:${g.id}`, g.name), name: text(g.name, 60), challenge: c.kind, since: c.startedOn, week: challengeWeek(c.startedOn, env.habitDay),
-        ...(c.kind === '52-week' ? {step: `${c.step ?? 'not set'} ${g.asset}`, order: c.order ?? 'up'} : c.kind === 'no-spend' ? {aimDays: c.targetDays ?? 'not set', markedDays: (c.noSpendDays ?? []).length} : {roundTo: c.roundTo ?? 1})}]; });
+        ...(c.kind === '52-week' ? {step: c.step == null ? 'not set' : goalQty(String(c.step), g.asset), order: c.order ?? 'up'} : c.kind === 'no-spend' ? {aimDays: c.targetDays ?? 'not set', markedDays: (c.noSpendDays ?? []).length} : {roundTo: c.roundTo ?? 1})}]; });
     if (!rows.length) return ok('savings_challenges', label, where(env, 'Goals'), {challenges: [], note: 'No savings challenge is set up. One starts from a challenge template in Goals, or ZIGi proposes one as a card.'});
     return ok('savings_challenges', label, where(env, 'Goals'), {challenges: rows, rule: 'progress only from the person\'s own records; the goal page shows it; nothing moves money'});
   },

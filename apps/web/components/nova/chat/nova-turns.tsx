@@ -1,5 +1,9 @@
 'use client';
-import {useMemo, useState} from 'react';
+import {Suspense, lazy, useMemo, useState} from 'react';
+import {quickAddOffered} from '../../../lib/ai/actions/decline';
+import {guardMessage} from '../../../lib/ai/safety-guard';
+import {detectRisk} from '../../../lib/ai/safety';
+import {LoadBoundary} from '../../load-boundary';
 import {parseReply} from '../../../lib/ai/actions/parse';
 import {copyText} from '../../../lib/ai/chat-window';
 import type {ChatTurn} from '../../../lib/ai/chats';
@@ -19,13 +23,14 @@ import {ReplyIcon, ReplyMore} from '../../ai/reply-actions';
 import {SafeText} from '../../ai/safe-text';
 // Session AL (lane L7; MO-060/P-MO-03): NOVA shows careful mode's note under the person's message, as ZIGi does.
 import {CareNote} from '../../ai/care-note';
-import {FeedbackButtons, LongText, SourceLine, TurnKind, TurnTime} from '../../ai/turn-extras';
+import {FeedbackButtons, LongText, MoneyNote, SourceLine, TurnKind, TurnTime} from '../../ai/turn-extras';
 import type {AutoAccept} from '../../ai/use-auto-accept';
 import type {ChatSession} from '../../ai/use-chat-session';
 import type {useReadAloud} from '../../ai/use-voice';
 import type {useProposals} from '../../ai/use-proposals';
 import {ZigiAvatar} from '../../zigi/zigi-avatar';
 import {AgentGlyph, PersonaFigure, type NovaPersona} from './nova-figure';
+const QuickAddLine = lazy(() => import('../../quick-add-line').then(m => ({default: m.QuickAddLine})));
 
 /**
  * One turn in NOVA's chat (Session AK, owner follow-up 2 N1). The same pieces as ZIGi's panel: the reply rendered from the
@@ -94,6 +99,10 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
           <button type="button" className="secondary" onClick={() => { onNavigate(); window.location.hash = PERMISSIONS_HASH; }}>Open {persona.name} → Permissions</button>
         </p>}
         {common.firstLocalReply === turn.id && turn.model && <p className="fine nova-first-local">{firstLocalReplyLine(turn.model)}</p>}
+        {/* Session AL second pass (Moscow NP-06/07/08, Lisbon LA-037; P-MO-06, P-LA-23): with no model, NOVA's last on-device
+            answer offers the same Quick add line as ZIGi's, under the same rule (never under a question, a careful topic or a guarded message). */}
+        {local && !connected && isLast && !busy && asked && quickAddOffered(asked, {guarded: !!guardMessage(asked), careful: !!detectRisk(asked)}) && <div className="ai-quick-add"><LoadBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={asked} onlyIfUnderstood/></Suspense></LoadBoundary></div>}
+        {!local && <MoneyNote text={parsed.text}/>}
         <SourceLine short={short} full={full}/>
         {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
         <div className={`ai-reply-row${isLast ? ' ai-reply-row-latest' : ''}`}>

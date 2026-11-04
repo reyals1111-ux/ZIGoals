@@ -1,5 +1,5 @@
 import {habitDay, habitStats, latestHabitRule} from '../../habits';
-import {waterSummary} from '../../health-daily';
+import {waterOn} from '../../health-daily';
 import {addLocalDays} from '../../local-date';
 import {asleep, nightDay} from '../../sleep/engine';
 import {healthGroupIn} from '../../vault/w-homes';
@@ -64,7 +64,7 @@ export function morningBrief(env: ToolEnv, extras?: BriefExtras | null): Brief |
   const run = done.map(h => ({h, s: streaks.get(h.id)!})).filter(x => x.s.streakUnit === 'days' && x.s.currentStreak >= 2).sort((a, b) => b.s.currentStreak - a.s.currentStreak || a.h.title.localeCompare(b.h.title))[0];
   let win: string | null = run ? `From yesterday: ${shortName(run.h.title)}, ${run.s.currentStreak} days in a row.`
     : done.length ? `From yesterday: ${done.length === 1 ? `${shortName(done[0]!.title)} checked in` : `${done.length} habits checked in`}.` : null;
-  if (!win && env.health) { const water = waterSummary(env.health, yesterday); if (water.entries > 0) win = `From yesterday: ${fmtLitres(water.millilitres)} of water logged.`; }
+  if (!win && env.health) { const water = waterOn(env.health, yesterday); if (water.entries > 0) win = `From yesterday: ${fmtLitres(water.millilitres)} of water logged.`; }
   // Session W Part 21: else the night that ended this morning, from Health's Sleep (estimated when it says so).
   if (!win && env.health) {
     const night = (healthGroupIn(env.health, 'sleep')?.nights ?? []).filter(n => n.kind === 'night' && n.end !== null && nightDay(n) === today).sort((a, b) => b.end!.localeCompare(a.end!))[0];
@@ -97,7 +97,7 @@ export function eveningRecap(env: ToolEnv, extras: BriefExtras = {}): Brief | nu
   const kept = done.map(h => ({h, s: habitStats(h, today)})).filter(x => x.s.streakUnit === 'days' && x.s.currentStreak >= 2).sort((a, b) => b.s.currentStreak - a.s.currentStreak || a.h.title.localeCompare(b.h.title)).slice(0, 2);
   add('streaks', 'Streaks kept', kept.length ? `${kept.map(x => `${shortName(x.h.title)}, ${x.s.currentStreak} days in a row`).join('; ')}.` : null);
   if (env.health) {
-    const water = waterSummary(env.health, env.healthDay), steps = env.health.activity.filter(a => a.date === env.healthDay).reduce((n, a) => n + (a.steps ?? 0), 0), meals = env.health.diary.filter(e => e.date === env.healthDay).length;
+    const water = waterOn(env.health, env.healthDay), steps = env.health.activity.filter(a => a.date === env.healthDay).reduce((n, a) => n + (a.steps ?? 0), 0), meals = env.health.diary.filter(e => e.date === env.healthDay).length;
     const bits = [water.entries ? `water ${fmtLitres(water.millilitres)}` : null, steps ? `${steps.toLocaleString('en-US')} steps` : null, meals ? `${meals} ${meals === 1 ? 'food' : 'foods'} logged` : null].filter(Boolean) as string[];
     add('health', 'Health', bits.length ? `${bits.join(' · ').replace(/^./, c => c.toUpperCase())}.` : null);
   }

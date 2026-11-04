@@ -147,3 +147,13 @@ The device now decides these before any model (built and scored with no model: `
 | Governance and Settings facts (BN-052, BN-054) | "How long is the voting period?", "Where is Erase everything?", "Does Health sync?" with a model | no invented periods, buttons or menus; "open Governance" / the Help path instead |
 
 Send back the request log (ids and whether a request was made) and the replies of the failing cases.
+
+### Session AL second pass (lane L7): checks that need a real model (none run; no key)
+
+| What | Ask (with a model connected) | Pass when |
+|---|---|---|
+| NOVA's question-aware pack (BN-041, BN-052; P-BN-13) | in NOVA: "How long is the voting period?", "Should I take creatine?" | the request log shows no habit, goal or money line in the pack for the first, and only Health lines for the second; the reply invents no period |
+| A compact prompt for a small local model (BN-034, BN-050; P-BN-08 rest) | Ollama with qwen2.5:0.5b on a CPU-only box: "What is due today?" | first token within the scaled wait (1–4 min), answer uses the pack's figures; record the prompt's token count so the pack budget can be tuned |
+| The money footer (BN-040, B-055; P-BN-14) | "Should I put my savings into BTC?" with a model | the reply carries "Information, not financial advice: the choice is yours." under it, and refuses to recommend |
+| A Retry after a stall (BN-047) | a 15k-token NOVA prompt on Ollama that stalls once | the second try answers sooner, as the new stall copy says |
+| Workflow wording with an amount (DV-073) | NOVA → Workflows → "Turn this journal entry into a goal and habits" with a journal entry "I want to save 300 dollars for a new bike. I want to cycle every morning." and a model | the words name no number the entry does not hold; the cards are a 300 USD savings goal and a "Cycle" habit (made on the device) |

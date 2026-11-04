@@ -109,7 +109,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const nova = useMemo<NovaSurface>(() => ({
     persona: persona.name,
     // Built at the moment of each send, from the records of that moment, under this page's gates and NOVA's scopes.
-    novaPack: () => { const input = packInput(); return input ? buildNovaPack(input) : null; },
+    novaPack: (question?: string) => { const input = packInput(); return input ? buildNovaPack({...input, ...(question ? {question} : {})}) : null; },
     // Security review Z1A-4: a task for ZIGi or Hermes meets NOVA → Permissions too (Health off by default), read at the send.
     pack: area => pagePack({area, sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}}),
     taskEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),
@@ -139,7 +139,18 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   useEffect(() => {
     if (!focusOnOpen) return;
     const frame = requestAnimationFrame(() => composer.current?.focus({preventScroll: true}));
-    return () => cancelAnimationFrame(frame);
+    // Session AL second pass (Berlin BN-046, P-BN-11): a letter typed before that focus landed was lost ("hould I…"). For
+    // the first two seconds a printable key pressed outside a field moves the focus into the composer while the key is
+    // still being handled, so the browser types it there.
+    const until = Date.now() + 2000;
+    const early = (e: KeyboardEvent) => {
+      if (Date.now() > until || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(?:INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      composer.current?.focus({preventScroll: true});
+    };
+    window.addEventListener('keydown', early, true);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('keydown', early, true); };
   }, [focusOnOpen]);
 
   // ---- Sending ----
@@ -276,7 +287,12 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     }
     lastReplies.current = replies;
   }, [replies, session.chat.turns, session.parsed, data.voice.readAloud, reader, vprefs.muted, vprefs.readSpoken, zigiRec.data]);
-  useEffect(() => { const el = log.current; if (!el) return; if (el.scrollHeight - el.scrollTop - el.clientHeight < 200) toLatest(el); }, [session.chat.turns.length, session.draft]);
+  // Session AL second pass (Lisbon LA-013 at 375 px, P-LA-25): "at the end" is read before the new message grew the log, and
+  // the person's own question always goes to the end.
+  const wasAtEnd = useRef(true), lastTurns = useRef(session.chat.turns.length);
+  useEffect(() => { const el = log.current; if (!el) return; const onScroll = () => { wasAtEnd.current = el.scrollHeight - el.scrollTop - el.clientHeight < 200; }; el.addEventListener('scroll', onScroll, {passive: true}); return () => el.removeEventListener('scroll', onScroll); });
+  useEffect(() => { const el = log.current; if (!el) return; const grew = session.chat.turns.length > lastTurns.current, mine = grew && session.chat.turns.at(-1)?.role === 'user'; lastTurns.current = session.chat.turns.length;
+    if (mine || wasAtEnd.current || el.scrollHeight - el.scrollTop - el.clientHeight < 200) { toLatest(el); wasAtEnd.current = true; } }, [session.chat.turns.length, session.draft]); // eslint-disable-line react-hooks/exhaustive-deps -- the turns' count and the draft
 
   const shownDraft = useMemo(() => { if (!session.draft) return ''; const draft = stripHint(session.draft); if (hasOpenFence(draft)) { const at = draft.search(/(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals/i); return at >= 0 ? draft.slice(0, at) : draft; } return parseReply(draft).text; }, [session.draft]);
   const lastAssistant = [...session.chat.turns].reverse().find(t => t.role === 'assistant'), lastAsked = lastQuestion(session.chat);
@@ -318,7 +334,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
           <button type="button" className="secondary nova-chat-tool" disabled={!session.chat.turns.length || !session.kept} onClick={() => void downloadChat(session.chat.id, persona.name).then(ok => setNote(ok ? 'Saved this conversation as a Markdown file on this device.' : 'This conversation is not saved yet.'))}>Save as Markdown</button>
         </ChatMore>
         {onCollapse && <button type="button" className="nova-close" aria-label={`Fold ${persona.name}’s chat into the command field`} title="Fold into the command field" onClick={onCollapse}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>}
-        {onClose && <button type="button" className="nova-close" aria-label={`Close ${persona.name}’s chat`} title="Close" onClick={onClose}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg></button>}
+        {onClose && layout !== 'sheet' && /* Session AL (LA-016, P-LA-26): on a phone the sheet's own Close is the one */ <button type="button" className="nova-close" aria-label={`Close ${persona.name}’s chat`} title="Close" onClick={onClose}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg></button>}
       </div>
     </header>
     {view === 'list' ? <NovaConversations session={session} persona={persona.name} onOpen={() => { setView('chat'); composer.current?.focus(); }}/> : <>
@@ -369,7 +385,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
           {session.failure.steps.length > 0 && <ul>{session.failure.steps.map((step, i) => <li key={i}>{step}</li>)}</ul>}
           <div className="ai-card-actions">
             {failureRetry && <button type="button" className="secondary" onClick={() => { session.dismissFailure(); retry(); }}>Retry</button>}
-            {['bad-key', 'missing-key', 'not-connected', 'model-missing', 'local-unreachable', 'cors'].includes(session.failure.kind) && <><Link className="secondary" href={NOVA_SETUP_HREF}>Open the setup guide</Link><Link className="text-link" href={SETTINGS_HREF}>ZIGi settings</Link></>}
+            {['bad-key', 'missing-key', 'not-connected', 'model-missing', 'local-unreachable', 'cors'].includes(session.failure.kind) && <><Link className="secondary" href={NOVA_SETUP_HREF}>Open the setup guide</Link><Link className="text-link" href={SETTINGS_HREF}>Brain settings (shared with ZIGi)</Link></>}
             <button type="button" className="text-link" onClick={session.dismissFailure}>Dismiss</button>
           </div>
         </div>}

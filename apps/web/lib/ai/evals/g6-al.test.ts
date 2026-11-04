@@ -31,6 +31,13 @@ describe('the AL regression set', () => {
       return;
     }
     expect(guard, 'not guarded').toBeNull();
+    if ('card' in e) {
+      const local = localAnswer(c.ask, env), reply = local.kind === 'none' ? noModelReply(c.ask, env) : local, parsed = parseReply(textOf(reply));
+      expect(parsed.rejected).toEqual([]);
+      expect(parsed.proposals[0]?.kind).toBe(e.card);
+      expect(parsed.proposals[0]).toMatchObject(e.fields ?? {});
+      return;
+    }
     if ('answer' in e) {
       const local = localAnswer(c.ask, env), reply = local.kind === 'none' ? noModelReply(c.ask, env) : local, text = textOf(reply);
       expect(['answer', 'refusal']).toContain(reply.kind);

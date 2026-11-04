@@ -1,7 +1,7 @@
 import type {GoalMetadata} from '@zigoals/shared-types';
 import {habitDay as habitDayOf, habitStats, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitData} from '../../habits';
 import {createEmptyHealth, dailyHealthSummary, nutritionSummaryText, scaleNutrition, type HealthData} from '../../health';
-import {dailyData, waterSummary} from '../../health-daily';
+import {dailyData, waterOn} from '../../health-daily';
 import {countOn, exerciseData} from '../../health-counters';
 import {elapsedMs, fastingHistory, formatFast, runningSession} from '../../fasting/engine';
 import type {Fasting} from '../../fasting/schema';
@@ -91,7 +91,7 @@ function goalsSection(input: BuilderInput, handles: Handles, brief: boolean): Se
 }
 function healthSection(input: BuilderInput, handles: Handles, full: boolean): Section {
   const {health, healthDay} = input, prefs = dailyData(health).preferences, lines: string[] = [];
-  const summary = dailyHealthSummary(health, healthDay), water = waterSummary(health, healthDay);
+  const summary = dailyHealthSummary(health, healthDay), water = waterOn(health, healthDay);
   lines.push(`Diary ${healthDay}: ${summary.entries} entries · energy ${nutritionSummaryText(summary, 'kcal', 'kcal')} · protein ${nutritionSummaryText(summary, 'proteinMg', 'g', 1000)} · carbs ${nutritionSummaryText(summary, 'carbsMg', 'g', 1000)} · fat ${nutritionSummaryText(summary, 'fatMg', 'g', 1000)}`);
   lines.push(`Water ${healthDay}: ${num(water.millilitres, 0)} mL in ${water.entries} entries${water.targetMl ? ` · daily target ${water.targetMl} mL` : ' · no target set'}${prefs.waterUnit === 'fl-oz-us' ? ' · shown in US fl oz in the app' : ''}`);
   lines.push(`Steps ${healthDay}: ${summary.steps} · active minutes ${summary.minutes}`);

@@ -1,3 +1,4 @@
+import {novaEnvInfo} from './nova-env';
 import Decimal from 'decimal.js';
 import {briefChatText} from '../proactive/brief';
 import type {ToolEnv} from '../tools/env';
@@ -115,11 +116,16 @@ function whyAnswer(lang: Lang, q: string, env: ToolEnv): LocalReply {
     `${r.currency}: ${r.change}${r.changePercent ? ` (${r.changePercent})` : ''}, van ${r.from!.total} op ${r.from!.at} naar ${r.to!.total} op ${r.to!.at}.${r.movedMost?.length ? ` Grootste bewegingen: ${r.movedMost.map(m => `${m.assetClass} ${m.change}`).join(', ')}.` : ''}`));
   return {kind: 'answer', text: `${lines.join('\n')}\n${say(lang, 'From your recorded wealth totals (tracked holdings; accounts and debts are not in this history), the same rule as the Wealth chart.', 'Uit je vastgelegde vermogenstotalen (bijgehouden bezittingen; rekeningen en schulden zitten niet in deze geschiedenis), dezelfde regel als de Vermogen-grafiek.')}`, calls: [w.record]};
 }
+/**
+ * Session AL second pass (Denver DV-075, DV-082, N-007, N-064; P-DV-92): in NOVA it speaks as NOVA and points to NOVA →
+ * Permissions; auto-accept is named only as what it is (a choice under Auto-accept once an AI is connected, each with Undo
+ * for ten seconds), never as something already on.
+ */
 function whatSeeAnswer(lang: Lang, env: ToolEnv): LocalReply {
-  const health = env.areas.health;
+  const health = env.areas.health, nova = !!novaEnvInfo(env), who = nova ? 'NOVA' : 'ZIGi', where = nova ? 'NOVA → Permissions' : 'Settings → ZIGi → What your AI sees', whereNl = nova ? 'NOVA → Permissions' : 'Instellingen → ZIGi → Wat je AI ziet';
   return {kind: 'answer', text: say(lang,
-    `This answer was made on this device: nothing was sent anywhere. When your own AI is connected, ZIGi sends it your question and the records of the areas you share with it (Settings → ZIGi → What your AI sees), and only what the question needs. Health is ${health ? 'shared now' : 'not shared now'} ("Include Health"). Nothing is changed without your OK: every change is a card you add, or a kind you chose yourself to have added automatically (Settings → ZIGi, always with Undo).`,
-    `Dit antwoord is op dit apparaat gemaakt: er is niets verstuurd. Als je eigen AI gekoppeld is, stuurt ZIGi je vraag en de gegevens van de gebieden die je deelt (Instellingen → ZIGi → Wat je AI ziet), en alleen wat de vraag nodig heeft. Gezondheid wordt ${health ? 'nu gedeeld' : 'nu niet gedeeld'} („Include Health”). Er verandert niets zonder jouw OK: elke wijziging is een kaart die je toevoegt, of een soort die je zelf automatisch liet toevoegen (Instellingen → ZIGi, altijd met Ongedaan maken).`), calls: []};
+    `This answer was made on this device: nothing was sent anywhere. When your own AI is connected, ${who} sends it your question and the records of the areas you share with it (${where}), and only what the question needs. Health is ${health ? 'shared now' : 'not shared now'}${nova ? '' : ' ("Include Health")'}. Nothing is changed without your OK: every change is a card you add, and an added card has Undo. Once an AI is connected you may also choose kinds it adds by itself (Settings → ZIGi → Auto-accept), each with Undo for ten seconds.`,
+    `Dit antwoord is op dit apparaat gemaakt: er is niets verstuurd. Als je eigen AI gekoppeld is, stuurt ${who} je vraag en de gegevens van de gebieden die je deelt (${whereNl}), en alleen wat de vraag nodig heeft. Gezondheid wordt ${health ? 'nu gedeeld' : 'nu niet gedeeld'}${nova ? '' : ' („Include Health”)'}. Er verandert niets zonder jouw OK: elke wijziging is een kaart die je toevoegt, en een toegevoegde kaart heeft Ongedaan maken. Met een gekoppelde AI kun je ook soorten kiezen die hij zelf toevoegt (Instellingen → ZIGi → Auto-accept), elk tien seconden ongedaan te maken.`), calls: []};
 }
 function newHabitAnswer(lang: Lang, title: string): LocalReply {
   const name = title.trim().replace(/\s+/g, ' ');

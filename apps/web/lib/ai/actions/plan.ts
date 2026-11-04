@@ -86,6 +86,8 @@ import {PRICE_ALERTS_KEY} from '../../price-alerts/schema';
 import {alertLine, newAlertId} from '../../price-alerts/engine';
 import './meal-estimate-writes';
 import {MEAL_ESTIMATES_KEY, NUTRIENT_RANGES, middleOf, rangeText} from '../../meal-estimates/schema';
+import {diaryDayIssue} from '../../health-day';
+import {goalQty} from '../tools/format';
 
 /**
  * From a validated proposal to a card and two writes (ADR-012, Part 5). `write` runs at confirm time on the latest
@@ -311,6 +313,8 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'log-food': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
+      // Session AL (L2's request, MO-010): the diary takes the days Health's own forms take (diaryDayIssue), never later.
+      const diaryIssue = diaryDayIssue(day.day, env.healthDay); if (diaryIssue) return refuse(diaryIssue);
       const entryId = healthId(), quantityMilli = Math.round(action.quantity * 1000);
       if (action.food) {
         const found = env.handles.find(h => h.handle === action.food && (h.kind === 'food' || h.kind === 'recipe'));
@@ -407,10 +411,12 @@ export function planAction(action: Action, env: Env): PlanResult {
       const draft = privateGoalSchema.safeParse({id, name: action.name, category: action.category, network: 'zigchain-1', type: action.type, status: 'active', asset: currency, denom, decimals, target, notes: action.notes, createdAt: at, targetDate: action.targetDate, milestones: (action.milestones ?? []).map((title, i) => ({id: `zigi-milestone-${i + 1}`, title, done: false}))});
       if (!draft.success) return refuse(`This goal cannot be created as proposed: ${draft.error.issues[0]?.message ?? 'check its fields'}.`);
       const goal = draft.data, milestones = action.milestones ?? [];
+      // Session AL (DV-072): an open goal of the same name is named on the card, so a second Add is a choice, not a surprise.
+      const twinGoal = stores.platform.goals.find(g => g.status !== 'closed' && g.name.trim().toLowerCase() === action.name.trim().toLowerCase());
       const headline = project ? `${GOAL_TYPE_LABEL.PROJECT} · ${milestones.length} milestone${milestones.length === 1 ? '' : 's'}` : `${GOAL_TYPE_LABEL[action.type]} · target ${action.target!.toLocaleString('en-US')} ${currency}`;
-      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Create the goal "${action.name}"`, lines: [`${headline}${action.targetDate ? ` by ${action.targetDate}` : ''}${action.category ? ` · ${action.category}` : ''}`, ...(action.notes ? [`Notes: ${action.notes}`] : []), ...(milestones.length ? [`Milestones: ${milestones.join(' · ')}`] : []), project ? 'A draft: only milestones you tick off in Goals count toward it; nothing moves' : 'A draft without a plan or funding: nothing moves; you shape it in Goals'], where: 'Goals', day: null, estimate: false},
+      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Create the goal "${action.name}"`, lines: [...(twinGoal ? [`A goal called "${twinGoal.name}" is already in Goals: this adds a second one`] : []), `${headline}${action.targetDate ? ` by ${action.targetDate}` : ''}${action.category ? ` · ${action.category}` : ''}`, ...(action.notes ? [`Notes: ${action.notes}`] : []), ...(milestones.length ? [`Milestones: ${milestones.join(' · ')}`] : []), project ? 'A draft: only milestones you tick off in Goals count toward it; nothing moves' : 'A draft without a plan or funding: nothing moves; you shape it in Goals'], where: 'Goals', day: null, estimate: false},
         write: s => { if (s.platform.goals.some(g => g.id === id)) throw Error('Another goal took this place meanwhile. Ask ZIGi again.'); return {platform: platformSchema.parse({...s.platform, goals: [...s.platform.goals, goal]})}; },
-        undo: {label: 'Remove this goal draft', write: s => ({platform: deletePrivateGoal(s.platform, id)}), unchanged: (after, current) => same(after.platform.goals.find(g => g.id === id), current.platform.goals.find(g => g.id === id))}, activity: {id: `created:${id}`, title: `Goal created: ${action.name}`}}};
+        undo: {label: 'Remove this goal draft', write: s => ({platform: deletePrivateGoal(s.platform, id)}), unchanged: (after, current) => same(after.platform.goals.find(g => g.id === id), current.platform.goals.find(g => g.id === id))}, activity: {id: `created:${id}`, title: `Goal created: ${action.name}`}, ...(twinGoal ? {duplicate: true} : {})}};
     }
     case 'add-goal-note': {
       const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message);
@@ -674,7 +680,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       }
       const id = (env.newHabitId ?? (() => crypto.randomUUID()))(), milestone = {id, title: action.title, done: false, ...(target ? {target} : {})};
       const mine = (s: Stores) => s.platform.goals.find(g => g.id === goal.id)?.milestones.find(m => m.id === id);
-      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Add a milestone to "${goal.name}"`, lines: [action.title, ...(action.value !== undefined ? [`At ${action.value.toLocaleString('en-US')} ${goal.asset}`] : []), 'Give it a date in Goals if you like; nothing moves money'], where: 'Goals · Milestones', day: null, estimate: false},
+      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Add a milestone to "${goal.name}"`, lines: [action.title, ...(action.value !== undefined ? [`At ${goalQty(action.value.toLocaleString('en-US'), goal.asset)}`] : []), 'Give it a date in Goals if you like; nothing moves money'], where: 'Goals · Milestones', day: null, estimate: false},
         write: s => { const current = s.platform.goals.find(g => g.id === goal.id); writableGoal(current); if (current.milestones.length >= 100) throw Error('This goal already has 100 milestones.'); if (target && BigInt(target) > BigInt(current.target)) throw Error('This milestone is now above the goal\'s target. Ask ZIGi again.'); return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, milestones: [...g.milestones, milestone]} : g)})}; },
         undo: {label: 'Remove this milestone', write: s => ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, milestones: g.milestones.filter(m => m.id !== id)} : g)})}), unchanged: (after, current) => same(mine(after), mine(current))},
         activity: {id: `milestone:${goal.id}:${id}`, title: `Milestone added to ${goal.name}: ${action.title}`}}};
@@ -754,7 +760,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (action.target !== undefined && goal.type === 'PROJECT') return refuse('A project counts its milestones, not an amount: change its milestones in Goals.');
       const changes: string[] = [];
       let target = goal.target;
-      if (action.target !== undefined) { try { target = parseAmountInput(String(action.target), goal.decimals).toString(); } catch { return refuse('The target amount could not be read.'); } if (target !== goal.target) changes.push(`Target: ${num(Number(goal.target) / 10 ** goal.decimals, 2)} → ${action.target.toLocaleString('en-US')} ${goal.asset}`); }
+      if (action.target !== undefined) { try { target = parseAmountInput(String(action.target), goal.decimals).toString(); } catch { return refuse('The target amount could not be read.'); } if (target !== goal.target) changes.push(`Target: ${num(Number(goal.target) / 10 ** goal.decimals, 2)} → ${goalQty(action.target.toLocaleString('en-US'), goal.asset)}`); }
       if (action.name !== undefined && action.name !== goal.name) changes.push(`Name: ${goal.name} → ${action.name}`);
       if (action.targetDate !== undefined && (action.targetDate ?? undefined) !== goal.targetDate) changes.push(action.targetDate ? `Target date: ${goal.targetDate ?? 'none'} → ${action.targetDate}` : 'Target date removed');
       if (action.category !== undefined && action.category !== goal.category) changes.push(`Category: ${goal.category ?? 'none'} → ${action.category}`);
@@ -962,6 +968,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (hits.length !== 1) return refuse(hits.length ? `${hits.length} entries named "${action.name}" on ${day.day}: change the one you mean in the diary.` : `No "${action.name}" in the diary on ${day.day}.`);
       const entry = hits[0]!, next = {date: action.move_to ?? entry.date, meal: action.meal ?? entry.meal, quantityMilli: action.quantity !== undefined ? Math.round(action.quantity * 1000) : entry.quantityMilli};
       if (next.date > env.healthDay) return refuse('A diary entry cannot move to a day that has not come yet.');
+      { const diaryIssue = diaryDayIssue(next.date, env.healthDay); if (diaryIssue) return refuse(diaryIssue); }
       if (next.date === entry.date && next.meal === entry.meal && next.quantityMilli === entry.quantityMilli) return refuse('Nothing changes on that entry.');
       const was = {date: entry.date, meal: entry.meal, quantityMilli: entry.quantityMilli}, changes = [...(next.meal !== entry.meal ? [`Meal: ${entry.meal} → ${next.meal}`] : []), ...(next.quantityMilli !== entry.quantityMilli ? [`Servings: ${num(entry.quantityMilli / 1000, 2)} → ${num(next.quantityMilli / 1000, 2)}`] : []), ...(next.date !== entry.date ? [`Day: ${entry.date} → ${next.date}`] : [])];
       const mine = (s: Stores) => s.health.diary.find(e => e.id === entry.id);
@@ -971,6 +978,7 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'log-meal-plan': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
+      const diaryIssue = diaryDayIssue(day.day, env.healthDay); if (diaryIssue) return refuse(diaryIssue);
       const plans = dailyData(stores.health).plans.filter(p => p.date === day.day && !p.loggedAt && (!action.meal || p.meal === action.meal));
       if (plans.length !== 1) return refuse(plans.length ? `${plans.length} planned meals on ${day.day}: say which meal.` : `No planned meal left to log on ${day.day}.`);
       const plan = plans[0]!;
@@ -1218,7 +1226,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       const day = resolveDay(action.day, env.habitDay, env.habitDay); if (!day.ok) return refuse(day.message);
       const amount = typeof action.amount === 'number' ? num(action.amount, 8) : action.amount, asset = action.asset ?? goal.asset;
       const contribution: ContributionPrefill = {goalId: goal.id, goal: goal.name, amount, asset, date: day.day, ...(action.note ? {note: action.note} : {})};
-      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Pre-fill a contribution to "${goal.name}"`, lines: [`${amount} ${asset} on ${day.day}`, ...(action.note ? [action.note] : []), 'Opens the goal\'s Fund form filled in; nothing is recorded and no money moves until you save it there'], where: 'Goals', day: day.day, estimate: false},
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Pre-fill a contribution to "${goal.name}"`, lines: [`${goalQty(String(amount), asset)} on ${day.day}`, ...(action.note ? [action.note] : []), 'Opens the goal\'s Fund form filled in; nothing is recorded and no money moves until you save it there'], where: 'Goals', day: day.day, estimate: false},
         write: () => ({}), undo: null, contribution}};
     }
     case 'prefill-account': {

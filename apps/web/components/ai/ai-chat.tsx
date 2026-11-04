@@ -69,7 +69,7 @@ import {HistoryView} from './history-view';
 import {ShortcutsSheet} from './shortcuts-sheet';
 import {openSideBySide} from './side-by-side';
 import {SlashMenu, useSlashMenu} from './slash-menu';
-import {FeedbackButtons, FollowupChips, SourceLine, TurnTime, TurnKind, LongText} from './turn-extras';
+import {FeedbackButtons, FollowupChips, MoneyNote, SourceLine, TurnTime, TurnKind, LongText} from './turn-extras';
 import {CareNote} from './care-note';
 import {KnockOffer} from './knock-offer';
 import {AgentProposals} from './agent-proposals';
@@ -243,7 +243,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   // "Jump to the latest message" button then appeared under the finger before the release, which took the click (an
   // Undo that never happened). While a press is down the jump button keeps its state; it is decided again on release.
   const pressing = useRef(false);
-  const markAway = (el: HTMLElement) => { const far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; if (!pressing.current) setAway(far && !jumping.current); };
+  const markAway = (el: HTMLElement) => { const far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; wasAtEnd.current = !far; if (!far) jumping.current = false; if (!pressing.current) setAway(far && !jumping.current); };
   const keepReadingPlace = () => { const el = log.current; if (!el) return; const fromEnd = el.scrollHeight - el.scrollTop; requestAnimationFrame(() => requestAnimationFrame(() => { const now = log.current; if (now) now.scrollTop = Math.max(0, now.scrollHeight - fromEnd); })); };
   const popOut = async () => { keepReadingPlace(); if (await mini.popOut()) onClose(); else setNote('The mini window could not open here.'); };
   // Announced once per reply: when the wait starts, and when the reply has arrived.
@@ -273,7 +273,12 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   useEffect(() => { if (!open) reader.stop(); }, [open, reader]);
   // Session AK (G1 #20): a chat that is not kept is gone once the panel closes (the mini window keeps it while it is open).
   useEffect(() => { if (!open && !mini.win && !session.kept) { session.startNew(); setView('chat'); } }, [open, mini.win]); // eslint-disable-line react-hooks/exhaustive-deps -- only closing ends it
-  useEffect(() => { const el = log.current; if (!el) return; if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) toLatest(el); }, [session.chat.turns.length, session.draft]);
+  // Session AL second pass (Lisbon LA-013, Nairobi NB-108; P-LA-25, P-NB-62): whether the person was at the end is read
+  // BEFORE the new message grew the log (a long answer made the distance after it larger than the threshold, so the newest
+  // answer stayed below); the person's own new question always goes to the end.
+  const wasAtEnd = useRef(true), lastTurns = useRef(session.chat.turns.length);
+  useEffect(() => { const el = log.current; if (!el) return; const grew = session.chat.turns.length > lastTurns.current, mine = grew && session.chat.turns.at(-1)?.role === 'user'; lastTurns.current = session.chat.turns.length;
+    if (mine || wasAtEnd.current || el.scrollHeight - el.scrollTop - el.clientHeight < 160) { toLatest(el); wasAtEnd.current = true; } }, [session.chat.turns.length, session.draft]); // eslint-disable-line react-hooks/exhaustive-deps -- the turns' count and the draft
   const trapTab = useCallback((event: ReactKeyboardEvent<HTMLElement>) => {
     if ((event.target as Element).closest?.('.ai-shortcuts')) return;
     if (event.key === '?' && !(event.target as Element).closest?.('textarea, input, select, [contenteditable="true"]')) { event.preventDefault(); setShortcuts(true); return; }
@@ -522,6 +527,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {repeated > 0 && <p className="ai-note">{`${repeated} of these cards were also in an earlier reply. Add only what you still want.`}</p>}
       {(cards.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={cards} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
+      <MoneyNote text={parsed.text}/>
       {/* Panel polish round 2: the source as one short line; the full sentence for screen readers and in its tooltip. */}
       <SourceLine short={shortLabel} full={label} extra={turn.mode === 'deep' ? <span className="ai-turn-deep ai-sr-only">Thought deeper with {turn.model}</span> : null} deeper={turn.mode === 'deep'} time={<TurnTime at={turn.at}/>}/>
       {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
@@ -628,7 +634,10 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   const slash = useSlashMenu(text, (command: SlashCommand) => setText(command.takesText ? `${command.name} ` : command.name));
   // A page's ask fills the composer; the records behind a number (Part 9) go to the panel as a removable chip.
   const aboutRef = useRef(onAbout); useEffect(() => { aboutRef.current = onAbout; });
-  useEffect(() => { const pending = takePendingAsk(); if (pending) { setText(pending.text); aboutRef.current?.(pending.about); } const onAsk = (event: Event) => { const detail = (event as CustomEvent<{text: string; about?: AskAbout}>).detail; if (detail?.text) { takePendingAsk(); setText(detail.text); aboutRef.current?.(detail.about); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
+  // Session AL second pass (Nairobi NB-120, P-NB-64): after the prefill the box holds the focus with the caret at the end, so
+  // the person can add to the question or press Enter straight away.
+  const caretAtEnd = useCallback(() => requestAnimationFrame(() => requestAnimationFrame(() => { const box = (ref as {current: HTMLTextAreaElement | null} | null)?.current; if (!box || !box.isConnected) return; box.focus({preventScroll: true}); const end = box.value.length; try { box.setSelectionRange(end, end); } catch { /* not a text field */ } })), [ref]);
+  useEffect(() => { const pending = takePendingAsk(); if (pending) { setText(pending.text); aboutRef.current?.(pending.about); caretAtEnd(); } const onAsk = (event: Event) => { const detail = (event as CustomEvent<{text: string; about?: AskAbout}>).detail; if (detail?.text) { takePendingAsk(); setText(detail.text); aboutRef.current?.(detail.about); caretAtEnd(); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- once per composer
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
   // Session Z-Cloud Part 3: talk to ZIGi through the browser's own speech recognition, connected or not; provider

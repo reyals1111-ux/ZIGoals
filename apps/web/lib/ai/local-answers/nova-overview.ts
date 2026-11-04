@@ -1,3 +1,4 @@
+import {formatGoalAmount} from '../../goal-summary';
 import {dailyData} from '../../health-daily';
 import {formatClock} from '../../visual-format';
 import {waterAmount} from '../../nova/widgets/words';
@@ -54,7 +55,8 @@ const say = (lang: Lang, en: string, nl: string) => lang === 'nl' ? nl : en;
 const run = (tool: string, args: Record<string, unknown>, env: ToolEnv): {result: ToolResult; record: ToolCallRecord} => { const result = runTool(tool, args, env); return {result, record: {tool, args, label: result.label}}; };
 const dataOf = (r: ToolResult): Data => (r as ToolOk).data as Data;
 /** "9000 USD" → "9,000.00 USD"; anything else as it is. */
-const money = (value: unknown) => { const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(String(value ?? '')); return m ? amount(m[1]!, m[2]!) : String(value ?? ''); };
+// Session AL (DV-078, P-DV-95): money with the app's formatter ("$0 of $500"), a count goal's word as typed ("20 books").
+const money = (value: unknown) => { const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(String(value ?? '')); return !m ? String(value ?? '') : m[2] === 'USD' || m[2] === 'EUR' ? formatGoalAmount(m[1]!, m[2]).replace(/\.00(?!\d)/, '') : amount(m[1]!, m[2]!); };
 
 export function novaOverviewAnswer(question: string, env: ToolEnv, info: NovaEnvInfo): LocalReply | null {
   const q = question.trim().replace(/[’`]/g, '\'').replace(/\s+/g, ' ');
@@ -78,7 +80,8 @@ function goalsAnswer(env: ToolEnv, lang: Lang): LocalReply {
   if (!r.result.ok) return env.areas.goals ? {kind: 'refusal', text: r.result.refusal, calls: [r.record]} : {kind: 'refusal', text: novaAreaClosed('Goals', lang), calls: []};
   const goals = (dataOf(r.result).goals ?? []) as Data[], active = goals.filter(g => g.status === 'active'), done = goals.filter(g => g.status === 'completed').length;
   if (!active.length) return {kind: 'answer', text: say(lang, `You have no active goals yet${done ? ` (${plural(done, 'goal')} completed)` : ''}. Open Goals to create one, or tell me the goal and I will draft it as a card.`, `Je hebt nog geen actieve doelen${done ? ` (${done} afgerond)` : ''}. Open Goals om er een te maken, of vertel me het doel en ik maak er een kaart van.`), calls: [r.record]};
-  const shown = active.slice(0, 8), year = env.habitDay.slice(0, 4);
+  // DV-078: up to twelve in the answer; any more are named as a count with where to see them all (a chat cannot unfold).
+  const shown = active.slice(0, 12), year = env.habitDay.slice(0, 4);
   const line = (g: Data) => {
     const figures = g.now && g.target && g.now !== 'unknown' && g.target !== 'unknown' ? say(lang, ` — ${money(g.now)} of ${money(g.target)}`, ` — ${money(g.now)} van ${money(g.target)}`) : '';
     const left = g.remaining && !/^0(?:\.0+)? /.test(String(g.remaining)) && g.remaining !== 'unknown' ? say(lang, `, ${money(g.remaining)} to go`, `, nog ${money(g.remaining)} te gaan`) : '';
@@ -86,7 +89,7 @@ function goalsAnswer(env: ToolEnv, lang: Lang): LocalReply {
     return `• ${clean(String(g.name), 60)}: ${g.progress && g.progress !== 'unknown' ? g.progress : say(lang, 'progress unknown', 'voortgang onbekend')}${figures}${left}${next}`;
   };
   const head = say(lang, `${plural(active.length, 'active goal')}, from your own records:`, `${active.length} actieve ${active.length === 1 ? 'doel' : 'doelen'}, uit je eigen gegevens:`);
-  const more = active.length > shown.length ? [say(lang, `…and ${plural(active.length - shown.length, 'more')}.`, `…en nog ${active.length - shown.length}.`)] : [];
+  const more = active.length > shown.length ? [say(lang, `…and ${plural(active.length - shown.length, 'more goal')}: Goals shows all ${active.length}.`, `…en nog ${active.length - shown.length}: Goals toont ze alle ${active.length}.`)] : [];
   const tail = [...(done ? [say(lang, `${plural(done, 'goal')} completed.`, `${done} ${done === 1 ? 'doel' : 'doelen'} afgerond.`)] : []), say(lang, 'Ask about one goal by its name for its plan and pace. Your own figures; not financial advice.', 'Vraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.')];
   return {kind: 'answer', text: [head, ...shown.map(line), ...more, ...tail].join('\n'), calls: [r.record]};
 }

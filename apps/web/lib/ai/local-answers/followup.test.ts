@@ -11,3 +11,13 @@ describe('follow-ups on the device', () => {
   ])('"%s" after "%s"', (q, prev, want) => expect(followUpQuestion(q, prev)).toBe(want));
   test.each([['Log a coffee', 'How much water today?'], ['yesterday?', null], ['make it two', 'Log a coffee']])('"%s" stays as typed', (q, prev) => expect(followUpQuestion(q, prev)).toBeNull());
 });
+// Session AL second pass (TK-078, P-TK-33): a coin or a currency follow-up carries the question over.
+describe('coin and currency follow-ups', () => {
+  test.each([
+    ['and in EUR?', 'What is the price of BTC in USD?', 'What is the price of BTC in EUR?'],
+    ['and ETH?', 'How much BTC do I hold?', 'How much ETH do I hold?'],
+    ['what about SOL?', 'What is the price of BTC?', 'What is the price of SOL?'],
+    ['and in USD?', 'What is the price of BTC?', 'What is the price of BTC in USD?'],
+  ])('"%s" after "%s"', (q, prev, want) => expect(followUpQuestion(q, prev)).toBe(want));
+  test.each([['and Read?', 'How many minutes of Read this week?'], ['and in USD?', 'How much water did I drink?']])('"%s" stays as typed', (q, prev) => expect(followUpQuestion(q, prev)).toBeNull());
+});

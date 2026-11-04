@@ -1,3 +1,4 @@
+import {unitAmountText} from '../../plural';
 import * as z from 'zod';
 import {habitDay, habitRuleOn, habitStats, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitRule} from '../../habits';
 import type {ToolEnv} from './env';
@@ -71,7 +72,7 @@ export const listHabits: ToolDefinition<{include_archived?: boolean}> = {
     const rows = habits.map(habit => {
       const rule = latestHabitRule(habit), day = habitDay(habit, env.habitDay, env.habitDay), stats = habitStats(habit, env.habitDay);
       const entry = habit.entries.find(e => e.date === env.habitDay);
-      return {handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), type: rule.type, measure: unitOf(rule), schedule: scheduleLabel(rule.schedule, habit.id), target: `${rule.target}${measurementUnit(rule) ? ` ${measurementUnit(rule)}` : ''} per ${rule.targetPeriod}`, state: rule.state, today: day.status, todayValue: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count || 0, streak: `${stats.currentStreak} ${stats.streakUnit}`, timeOfDay: habit.timeOfDay};
+      return {handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), type: rule.type, measure: unitOf(rule), schedule: scheduleLabel(rule.schedule, habit.id), target: `${measurementUnit(rule) ? unitAmountText(rule.target, measurementUnit(rule)) : rule.target} per ${rule.targetPeriod}` /* Session AL (P-LA-30): "1 time", never "1 times" */, state: rule.state, today: day.status, todayValue: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count || 0, streak: `${stats.currentStreak} ${stats.streakUnit}`, timeOfDay: habit.timeOfDay};
     });
     const capped = capRows(rows, env, false);
     return ok('list_habits', 'Your habits', provenance(env, 'Habits journal', null, null, null), {habits: capped.rows, count: rows.length, today: env.habitDay}, capped.truncated);
@@ -178,7 +179,7 @@ export const habitsDue: ToolDefinition<Record<string, never>> = {
       const day = habitDay(habit, env.habitDay, env.habitDay);
       if (day.status !== 'due' && day.status !== 'partial') return [];
       const rule = latestHabitRule(habit), entry = habit.entries.find(e => e.date === env.habitDay);
-      return [{handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), status: day.status, logged: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count, target: `${rule.target}${measurementUnit(rule) ? ` ${measurementUnit(rule)}` : ''}`, timeOfDay: habit.timeOfDay}];
+      return [{handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), status: day.status, logged: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count, target: measurementUnit(rule) ? unitAmountText(rule.target, measurementUnit(rule)) : `${rule.target}`, timeOfDay: habit.timeOfDay}];
     });
     return ok('habits_due', 'Habits open today', provenance(env, 'Habits journal', null, {from: env.habitDay, to: env.habitDay, label: 'today'}, env.habitZone), {open: rows, count: rows.length});
   },
