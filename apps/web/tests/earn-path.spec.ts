@@ -12,7 +12,9 @@ test.beforeEach(async ({page}) => { await chooseChain(page); });
  * step ZIGoals cannot see can be marked done on this device and taken back; what it can see — a linked wallet, a confirmed
  * practice stake in the staking journal, real stake read through the relay — is ticked by itself, with no mark offered.
  */
-const STEPS = ['Get a wallet', 'Practice first', 'Add money', 'Get ZIG', 'Your first real stake', 'Explore more'];
+// Session AL (COPY_AUDIT, deliberate): P-BN-54, the last step is a description (was "Your first real stake"), and with
+// nothing done the progress line says "none done yet" (was "0 of 6 steps done").
+const STEPS = ['Get a wallet', 'Practice first', 'Add money', 'Get ZIG', 'Staking on the real network', 'Explore more'];
 const dot = (page: import('@playwright/test').Page, label: string) => page.locator(`#start-here .path-dot[aria-label^="${label}:"]`);
 test.beforeEach(async ({page}) => { await seedShowcase(page); });
 
@@ -25,7 +27,7 @@ test('six steps, each opening its guide with the right links; mark as done is ke
   await expect(stage).toBeVisible();
   await expect(stage.locator('button.path-dot')).toHaveCount(6);
   expect(await stage.locator('button.path-dot').evaluateAll(els => els.map(e => e.getAttribute('aria-label')!.split(':')[0]))).toEqual(STEPS);
-  await expect(section.locator('.earn-start-progress')).toContainText('0 of 6 steps done');
+  await expect(section.locator('.earn-start-progress')).toContainText('Six steps · none done yet');
   // Each dot opens its own guide.
   const panel = (id: string) => section.locator(`[data-start-panel="${id}"]`);
   await dot(page, 'Get a wallet').click();
@@ -42,7 +44,7 @@ test('six steps, each opening its guide with the right links; mark as done is ke
   await expect(panel('get-zig')).toContainText('fees in ZIG only');
   await expect(panel('get-zig')).toContainText(/OroSwap’s fee on that pool, read live: 0\.01\s% a swap/);
   await expect(panel('get-zig').getByRole('link', {name: /Open Skip Go/})).toHaveAttribute('href', verifiedLink('zig-finance', 'skip-go').url);
-  await dot(page, 'Your first real stake').click();
+  await dot(page, 'Staking on the real network').click();
   await expect(panel('first-stake').getByRole('link', {name: 'Stake on Staking'})).toHaveAttribute('href', '/app/staking');
   await expect(panel('first-stake')).toContainText('21 days');
   await dot(page, 'Explore more').click();
@@ -60,7 +62,7 @@ test('six steps, each opening its guide with the right links; mark as done is ke
   await expect(panel('add-money')).toContainText('Marked done.');
   await panel('add-money').getByRole('button', {name: 'Not done yet'}).click();
   await expect(dot(page, 'Add money')).toHaveAttribute('aria-pressed', 'false');
-  await expect(section.locator('.earn-start-progress')).toContainText('0 of 6 steps done');
+  await expect(section.locator('.earn-start-progress')).toContainText('Six steps · none done yet');
 });
 
 test('what ZIGoals can see ticks itself: a linked wallet, a confirmed practice stake, real stake read through the relay', async ({page}) => {
@@ -78,7 +80,7 @@ test('what ZIGoals can see ticks itself: a linked wallet, a confirmed practice s
   ]}}); });
   await page.goto('/app/earn#start-here');
   const section = page.locator('#start-here');
-  for (const step of ['Get a wallet', 'Practice first', 'Add money', 'Get ZIG', 'Your first real stake']) await expect(dot(page, step), step).toHaveAttribute('aria-pressed', 'true');
+  for (const step of ['Get a wallet', 'Practice first', 'Add money', 'Get ZIG', 'Staking on the real network']) await expect(dot(page, step), step).toHaveAttribute('aria-pressed', 'true');
   await expect(dot(page, 'Explore more')).toHaveAttribute('aria-pressed', 'false');
   await expect(section.locator('.earn-start-progress')).toContainText('5 of 6 steps done');
   await dot(page, 'Practice first').click();

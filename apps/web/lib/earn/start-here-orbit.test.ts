@@ -13,7 +13,8 @@ import {startHereModel, startStates, type StartFacts} from './start-here';
  */
 const FACTS: StartFacts = {linked: 0, connected: 0, journal: [], reads: []};
 const LIVE = {chain: {phase: 'loading'}, oroswap: {phase: 'loading'}} as const;
-const STEPS = ['Get a wallet', 'Practice first', 'Add money', 'Get ZIG', 'Your first real stake', 'Explore more'];
+// Session AL (COPY_AUDIT, deliberate): the last step is named "Staking on the real network" (was "Your first real stake").
+const STEPS = ['Get a wallet', 'Practice first', 'Add money', 'Get ZIG', 'Staking on the real network', 'Explore more'];
 const render = (open: string | null, marked: string[] = []) => {
   const states = startStates(FACTS, {version: 1, steps: Object.fromEntries(marked.map(id => [id, {done: true, at: '2026-10-30T09:00:00.000Z'}]))});
   return new JSDOM(renderToStaticMarkup(createElement(StartHerePath, {states, open, onOpen: () => undefined, onMark: () => undefined, live: LIVE}))).window.document;

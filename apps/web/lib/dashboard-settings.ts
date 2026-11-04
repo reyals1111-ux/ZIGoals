@@ -248,3 +248,20 @@ export function resetDashboardPlacement(s:DashboardSettings,expectedRevision?:nu
  if(JSON.stringify(p.main)===JSON.stringify(defaults.main)&&JSON.stringify(p.rail)===JSON.stringify(defaults.rail))return s;
  return dashboardSettingsSchema.parse({...s,onboarded:true,placement:{...p,revision:p.revision+1,main:defaults.main,rail:defaults.rail}});
 }
+/**
+ * Session AL (NB-166, P-NB-53; delegated to L6): once a goal exists, Today shows "Your destinations" (the goals overview
+ * widget) even when the Today the person chose at the start had none (Habits + Health, Health-only). Display only: the
+ * stored record is not changed. It applies only while the person has never arranged Today (no saved placement): an
+ * arranged Today, or a goals overview the person hid there, keeps its own choice. The financial cards (wallet, staking…)
+ * stay as they were: the placement given is the original default plus this one widget.
+ */
+export const AUTO_DESTINATIONS_ID='auto-goals-overview';
+export function withDestinationsOnceGoals(s:DashboardSettings,goalCount:number):DashboardSettings{
+ if(!(goalCount>0)||s.placement||s.widgets.some(w=>w.kind==='goals'&&!w.hidden))return s;
+ const existing=s.widgets.find(w=>w.kind==='goals'&&w.metric==='overview');
+ if(!existing&&s.widgets.length>=24)return s;
+ const base=defaultPlacement(s),widget:DashboardWidget=existing?{...existing,hidden:false}:{id:AUTO_DESTINATIONS_ID,kind:'goals',metric:'overview',title:'',size:'compact',hidden:false,revision:1};
+ const widgets=existing?s.widgets.map(w=>w.id===existing.id?widget:w):[...s.widgets,widget];
+ const ref={kind:'widget' as const,id:widget.id},main=base.main.some(r=>r.kind==='widget'&&r.id===widget.id)?base.main:[...base.main,ref];
+ return dashboardSettingsSchema.parse({...s,widgets,placement:{...base,main}});
+}

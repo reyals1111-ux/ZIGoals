@@ -82,3 +82,6 @@
 @media (hover: hover) and (pointer: fine) { :root :where(.help-page) .panel:hover { border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent)); } }
 :root :where(.help-page) .panel:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.help-page) .panel { box-shadow: none; } }
+/* Session AL (P-DV-126, DV-174): the way back to the topic list at the end of each topic; a 44 px target. */
+.help-to-top { margin: 14px 0 0; }
+.help-to-top a { display: inline-flex; align-items: center; min-height: 44px; }

@@ -65,7 +65,8 @@ test('a new device: no money tools in the navigation, no wallet buttons, the neu
 
 test('a new device: Settings groups no wallet, network or contract rows; its notices sit behind Licences', async ({page, isMobile}) => {
   await ready(page, '/app/settings');
-  await expect(page.locator('.page-heading .page-lede')).toHaveText('Everything you add stays on this device.');
+  // Session AL (COPY_AUDIT, deliberate): DV-261, the line is true once sync exists (it said "Everything … stays on this device").
+  await expect(page.locator('.page-heading .page-lede')).toHaveText('Your records live on this device unless you turn on sync.');
   await expect(page.locator('#wallet-network, #account, #network, #contract')).toHaveCount(0);
   await expect(page.getByText('Wallet & network (advanced)')).toHaveCount(0);
   await expect(page.getByText('Earn dock — on this device')).toHaveCount(0);

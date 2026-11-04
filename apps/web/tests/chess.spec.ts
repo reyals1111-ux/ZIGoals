@@ -88,7 +88,8 @@ test('Settings → Chess saves the usernames; the page asks each site one reques
   for (const s of seen) { expect(s.headers.cookie, s.url).toBeUndefined(); expect(s.headers.referer, s.url).toBeUndefined(); }
   const games = page.getByRole('region', {name: 'Recent games'});
   await expect(games).toContainText('Won');
-  await expect(games).toContainText('Opponent 1498 · Italian Game');
+  // Session AL (COPY_AUDIT, deliberate): P-DVR-65/D-085, every rating in one number format (as the rating cards).
+  await expect(games).toContainText(/Opponent 1[,.\u202f\u00a0 ]?498 · Italian Game/);
   await expect(games).toContainText('All recent games1 won · 1 drawn · 1 lost');
   await expect(games.getByRole('link', {name: 'Open on chess.com'}).first()).toHaveAttribute('rel', 'noopener noreferrer');
   await expect(page.getByRole('region', {name: 'Ratings over time'})).toContainText('Lichess · Blitz');
@@ -165,7 +166,8 @@ test('the habit chess ticks off: once on a day a game ended, kept after an undo'
   await expect.poll(async () => (await stored(page, SETTINGS)).chess.applied).toEqual([{date: '2026-10-07', appliedAt: expect.any(String)}]);
   const saved = await stored(page, HABITS);
   expect(saved.habits[0].entries).toEqual([expect.objectContaining({date: '2026-10-07', count: 1, note: 'Ticked off by Chess: a game ended today.'})]);
-  await expect(page.getByLabel('On a day you finish a game, tick off')).toHaveValue(HABIT);
+  // Session AL (COPY_AUDIT, deliberate): P-DVR-65/D-085, the habit choice in plain words (was "On a day you finish a game, tick off").
+  await expect(page.getByLabel('When you finish a game, tick off this habit (once a day)')).toHaveValue(HABIT);
 });
 
 test('Showcase: fictional ratings and games, and no request to either site', async ({page}) => {

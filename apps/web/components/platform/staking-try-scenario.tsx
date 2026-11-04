@@ -3,6 +3,7 @@ import {useId, useState} from 'react';
 import {useEarnLive} from '../earn/use-earn-live';
 import {pctShort} from '../../lib/earn/format';
 import {formatNumber} from '../../lib/visual-format';
+import {parseNumberInput} from '../../lib/numbers/parse';
 
 /**
  * Session AH (ST3; N-027, N-198, N-201, B-065, L-042, D-082, T-129): the reward scenario before any wallet is tracked, and
@@ -15,7 +16,9 @@ export function StakingTryScenario() {
   const live = chain.phase === 'ok' ? chain.answer.data.apr.beforeCommission : null;
   const [amount, setAmount] = useState('1000'), [rate, setRate] = useState<string | null>(null);
   const shownRate = rate ?? (live ? String(Math.round(Number(live) * 10_000) / 100) : '');
-  const a = AMOUNT.test(amount.trim()) ? Number(amount.trim().replace(',', '.')) : NaN, r = RATE.test(shownRate.trim()) ? Number(shownRate.trim().replace(',', '.')) : NaN;
+  // Session AL (primitives 3f): the shape check keeps the digit limits; the value is read by the one number reader.
+  const read = (text: string, shape: RegExp) => { const t = text.trim(), n = shape.test(t) ? parseNumberInput(t) : null; return n?.ok ? n.value : NaN; };
+  const a = read(amount, AMOUNT), r = read(shownRate, RATE);
   const amountBad = amount.trim() !== '' && Number.isNaN(a), rateBad = shownRate.trim() !== '' && (Number.isNaN(r) || r > 100);
   const ok = !Number.isNaN(a) && !Number.isNaN(r) && r <= 100;
   return <div className="staking-try" data-staking-try>

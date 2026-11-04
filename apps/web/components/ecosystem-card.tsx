@@ -1,9 +1,15 @@
 'use client';
-import {useId} from 'react';
+import {useId, useState} from 'react';
 import Image from 'next/image';
 import {isSafeReferenceUrl} from '@zigoals/ecosystem-registry/links';
 import type {DirectoryEntry} from '@zigoals/ecosystem-registry/providers';
-import {PinToToday} from './pin-to-today';
+import {CardOptions} from './card-options';
+import {AskZigiItem} from './ai/ask-zigi-item';
+import {usePrivateStore} from './use-private-store';
+import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, type DashboardWidget} from '../lib/dashboard-settings';
+import {addShortcut, removeShortcut, restoreShortcut, shortcutOf} from '../lib/zigchain-eco/today-shortcut';
+import {showUndo} from './ui/undo-toast';
+import {plainErrorMessage} from '../lib/plain-error';
 import {AppIcon} from './app-icon';
 import {formatDate} from '../lib/visual-format';
 import {EcosystemLiveLine} from './ecosystem-live';
@@ -32,6 +38,41 @@ const KYC: Record<DirectoryEntry['provider']['eligibility']['kyc'], string> = {
 const ACTION_LABEL = {Website: 'Visit website', App: 'Open app', Docs: 'Read docs'} as const;
 const external = {target: '_blank', rel: 'noopener noreferrer'} as const;
 
+/**
+ * Session AL (P-BN-57, BN-097): the ⋯ menu reads Today's widgets, so it works like a favourite: "Add … to Today" while the
+ * shortcut is not there, "On Today · Remove …" once it is. Removing offers Undo, which puts the same widget back.
+ */
+export function EcosystemTodayOptions({id, name}: {id: string; name: string}) {
+  const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
+  const [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  const label = `${name} research shortcut`, ready = settings.loaded && !settings.error;
+  const onToday = ready ? shortcutOf(settings.data, id) : undefined;
+  async function add() {
+    setBusy(true); setMessage('');
+    try {
+      if (!ready) throw Error('Today settings need recovery in Settings.');
+      const widgetId = crypto.randomUUID();
+      await settings.update(latest => addShortcut(latest, id, widgetId));
+      setMessage(`${label} added to Today.`);
+    } catch (e) { setMessage(plainErrorMessage(e, 'Could not add this card to Today.')); } finally { setBusy(false); }
+  }
+  async function remove(widget: DashboardWidget) {
+    setBusy(true); setMessage('');
+    try {
+      await settings.update(latest => removeShortcut(latest, id));
+      setMessage(`${label} removed from Today.`);
+      showUndo({message: `${label} removed from Today.`, undone: `${label} is back on Today.`,
+        restore: () => settings.update(latest => restoreShortcut(latest, widget))});
+    } catch (e) { setMessage(plainErrorMessage(e, 'Could not remove this card from Today.')); } finally { setBusy(false); }
+  }
+  return <div className="pin-to-today"><CardOptions label={name}>
+    {onToday
+      ? <button type="button" disabled={busy} onClick={() => void remove(onToday)} aria-label={`On Today. Remove ${label} from Today`}>On Today · Remove from Today</button>
+      : <button type="button" disabled={busy || !ready} onClick={() => void add()} aria-label={`Add ${label} to Today`}>Add {label} to Today</button>}
+    <AskZigiItem kind="ecosystem" metric="directory"/>
+  </CardOptions>{message && <p role="status" className="pin-to-today-status">{message}</p>}</div>;
+}
+
 export function EcosystemCard({entry, open, onToggle, llama}: {entry: DirectoryEntry; open: boolean; onToggle: () => void; llama?: LiveState<DefillamaData>}) {
   const p = entry.provider, id = useId(), detailsId = `project-${entry.id}-details`, titleId = `${id}-title`;
   const documentation = p.documentation.filter(isSafeReferenceUrl).filter(url => !entry.actions.some(a => a.url === url));
@@ -41,7 +82,7 @@ export function EcosystemCard({entry, open, onToggle, llama}: {entry: DirectoryE
         ? <span className="ecosystem-logo"><Image src={entry.logo.path} alt={`${entry.name} official site icon`} width={64} height={64} loading="lazy" unoptimized /></span>
         : <span className="ecosystem-initials" role="img" aria-label={`${entry.name} initials; official logo unavailable`} title={entry.logo.reason}>{entry.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('')}</span>}
       <div><p className="eyebrow">{entry.category}</p><h2 id={titleId}><button type="button" className="ecosystem-toggle" aria-expanded={open} aria-controls={detailsId} onClick={onToggle}><span>{entry.name}</span><span className="ecosystem-toggle-hint" aria-hidden="true">{open ? 'Less' : 'Details'}<AppIcon name="chevron" size={18} /></span></button></h2></div>
-      <PinToToday label={entry.name} choices={[{kind: 'ecosystem', metric: 'directory', entity: entry.id, label: `${entry.name} research shortcut`}]} />
+      <EcosystemTodayOptions id={entry.id} name={entry.name}/>
     </header>
     <p className="ecosystem-description">{entry.description}<small><a href={entry.descriptionSource} {...external}>Description source ↗</a></small></p>
     {llama && <EcosystemLiveLine id={entry.id} llama={llama}/>}

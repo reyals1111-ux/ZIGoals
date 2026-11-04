@@ -9,7 +9,7 @@ import {useRef, useState} from 'react';
 export function HelpTopics({topics, shown = 6}: {topics: readonly (readonly [id: string, label: string])[]; shown?: number}) {
   const [all, setAll] = useState(false), nav = useRef<HTMLElement>(null);
   const open = () => { setAll(true); requestAnimationFrame(() => nav.current?.querySelectorAll('a')[shown]?.focus()); };
-  return <nav ref={nav} className="help-topics" aria-label="Help topics" data-all={all ? '' : undefined}>
+  return <nav ref={nav} id="help-topics" className="help-topics" aria-label="Help topics" data-all={all ? '' : undefined}>
     {topics.map(([id, label], i) => <a key={id} href={`#${id}`} data-more={i >= shown ? '' : undefined}>{label}</a>)}
     {!all && topics.length > shown && <button type="button" className="secondary help-topics-all" onClick={open}>All topics</button>}
   </nav>;

@@ -16,7 +16,7 @@ import {StorageInternals} from "../../../components/settings/storage-internals";
 import {MotionPreference} from "../../../components/motion-preference";
 import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
 import {LazyCustomizeSettings} from "../../../components/settings/customize-settings-lazy";
-import {ShowcaseControls} from "../../../components/showcase-controls";
+import {ShowcaseSlot} from "../../../components/settings/showcase-slot";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";
 import { EraseEverything } from "../../../components/settings/erase-everything";
@@ -121,9 +121,10 @@ export default function Settings() {
           <p className="eyebrow page-eyebrow"><NebulaFlow identity="settings-eyebrow">Keep your plans with you</NebulaFlow></p>
           <h1><NebulaFlow identity="settings-title">Your data. Your control.</NebulaFlow></h1>
           <p className="page-lede">
-            {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Everything you add stays on this device."}
+            {/* Session AL (COPY_AUDIT P-DV-112, DV-261, deliberate): true even where sync exists (it is off until turned on). */}
+            {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Your records live on this device unless you turn on sync."}
           </p>
-          <p><Link className="text-link" href="/app/help" style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help: install on iPhone, keep your data safe, send feedback →</Link></p>
+          <p><Link className="text-link" href="/app/help" style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help &amp; feedback →</Link></p>
         </div>
         <HeaderArtCorner><OrbitArt glyph={SettingsGlyph} spin={12}/></HeaderArtCorner>
       </div>
@@ -139,8 +140,8 @@ export default function Settings() {
         <Link className="panel data-health-door" href="/app/settings/data"><span><strong>Your data</strong><small>Where each part lives, what this device holds and what ZIGi can see.</small></span><span aria-hidden="true">→</span></Link>
         {/* Session AI (SE3): one "Backup & restore" card; its four parts keep their own anchors and headings (the specs pin them). */}
         <section className="panel backup-restore" id="backup-restore" aria-labelledby="backup-restore-title">
-          <p className="eyebrow">BACKUP &amp; RESTORE</p><h2 id="backup-restore-title">Backup &amp; restore</h2>
-          {/* Session AK P2 (RELEASE_REVIEW_2 R2-16): one recommended path leads; the other ways follow it, named once. */}<p className="fine"><strong>Recommended:</strong> a protected copy, the first card below, encrypted with a recovery secret only you keep. More ways to back up follow it: backups per module, one readable file with everything, and your history from another app.</p>
+          {/* Session AL (DV-267, deliberate): no eyebrow repeating the heading; one plain sentence. */}<h2 id="backup-restore-title">Backup &amp; restore</h2>
+          {/* Session AK P2 (RELEASE_REVIEW_2 R2-16): one recommended path leads; the other ways follow it, named once. */}<p className="fine"><strong>Recommended:</strong> an encrypted backup (the first card), locked with a recovery secret only you keep. Other options below: a backup of each area, one readable file of everything, and importing from another app.</p>
           <PrivateVaultTools/>
           <PrivateBackups/>
           <ExportEverything/>
@@ -216,7 +217,7 @@ export default function Settings() {
         </div>
       </SettingsGroup>
       <SettingsGroup id="settings-app" title="Your app">
-        <ShowcaseControls/>
+        <ShowcaseSlot at="top"/>
         {/* Session AL (O2, shell lane request): the Plan row beside Your pages & buttons; nothing is bought here. */}
         <PlanSettingsRow/>
         <PagesSettings/>
@@ -232,6 +233,7 @@ export default function Settings() {
         <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">How ZIGoals looks on this device. Your choice stays here and is never synced.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/>{/* Session AJ (item 32, D5): font, text size, density and glow, on this device only. */}<LazyCustomizeSettings/></section>
         <MusicSettings/>
         <LinksSettings/>
+        <ShowcaseSlot at="bottom"/>
       </SettingsGroup>
       <SettingsGroup id="settings-areas" title="Your areas">
         <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><WeeklyReviewDay /></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health →</Link></section></div>

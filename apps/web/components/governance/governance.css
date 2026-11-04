@@ -55,3 +55,11 @@
 }
 /* Session AL (BN-008, BN-180): the label beside a test or template proposal title; words carry it, not colour. */
 .governance-test-tag{margin:4px 0 0;font-size:.95rem;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+/* Session AL (Part 15, P-BN-74/P-BN-75): the list's filters and search. */
+.governance-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 16px; margin: 12px 0 16px; }
+.governance-filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.governance-filter-chips .chip { min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line, #6c9cc555); background: transparent; color: var(--text-strong, inherit); font: inherit; cursor: pointer; }
+.governance-filter-chips .chip.is-active { background: var(--brand-cyan, #74d5e9); border-color: transparent; color: #07111f; }
+.governance-filter-count { opacity: 0.8; font-variant-numeric: tabular-nums; }
+.governance-search { flex: 1 1 220px; min-width: 0; }
+.governance-search input { width: 100%; min-height: 44px; }

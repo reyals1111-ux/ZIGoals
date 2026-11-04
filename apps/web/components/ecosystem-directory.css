@@ -54,3 +54,7 @@
 :root[data-app-motion=off] .ecosystem-project[data-open] .ecosystem-details{animation:none}
 :root[data-app-motion=off] .ecosystem-toggle-hint svg{transition:none}
 @media(max-width:760px){.ecosystem-details{grid-template-columns:minmax(0,1fr)}}
+/* Session AL (Part 15, P-BN-82/P-BN-83): five controls (search, category, status, sort, clear) in one row on a wide
+   screen, two rows on a tablet, one column on a phone (the 650 px rule above). */
+@media(min-width:1101px){.ecosystem-controls{grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(140px,.6fr)) auto}}
+@media(max-width:1100px) and (min-width:651px){.ecosystem-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}

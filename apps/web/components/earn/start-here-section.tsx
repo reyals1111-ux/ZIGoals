@@ -29,7 +29,7 @@ export function StartHereSection({facts, live}: {facts: StartFacts; live: StartL
   return <section id="start-here" className="earn-start panel" aria-labelledby="start-here-title" data-done={done}>
     <SectionHeading id="start-here-title" eyebrow="New here? Start here" title="How staking works, step by step"
       lede="Six steps, about 30 minutes in all, on the apps’ own pages and in your own wallet. Press a dot for its guide. ZIGoals ticks what it can see and never signs for you. You can stop at any step: practising is enough, and nothing here says you should buy or stake."/>
-    <p className="earn-start-progress" aria-live="polite"><b>{done} of 6 steps done</b>{next ? <> · next: {STEP_WORDS[next.id].label}</> : ' · all done'}</p>
+    <p className="earn-start-progress" aria-live="polite"><b>{done ? `${done} of 6 steps done` : 'Six steps · none done yet'}</b>{next ? <> · next: {STEP_WORDS[next.id].label}</> : ' · all done'}</p>
     {ready
       ? <LoadBoundary label="The Start-here path"><Suspense fallback={<StartList states={states}/>}><StartHerePath states={states} open={open} onOpen={setOpen} onMark={mark} live={live} markError={error}/></Suspense></LoadBoundary>
       : <StartList states={states}/>}

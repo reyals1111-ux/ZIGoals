@@ -102,7 +102,8 @@ export const STEP_WORDS: Readonly<Record<StartStepId, {label: string; short: str
   // network to explore more), never a heart or a clock borrowed from elsewhere.
   'add-money': {label: 'Add money', short: 'Card or bank', glyph: 'plus'},
   'get-zig': {label: 'Get ZIG', short: 'Onto ZIGChain', glyph: 'drop'},
-  'first-stake': {label: 'Your first real stake', short: 'Real network', glyph: 'flag'},
+  // Session AL (COPY_AUDIT P-BN-54/P-DVR-59, deliberate): a description, not a directive (it read "Your first real stake").
+  'first-stake': {label: 'Staking on the real network', short: 'Real network', glyph: 'flag'},
   explore: {label: 'Explore more', short: 'Liquid staking, pools, votes', glyph: 'ecosystem'},
 });
 /** The path model the shared renderer draws: three orbits of two dots, a chest after practice and one at the end. */

@@ -159,6 +159,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["aa-review", "What is the Life review, and what does “On the same days” show?"],
   ["aa-data", "Where can I see what is stored, and where?"],
   ["aa-home-screen", "Can I add shortcuts to my Home Screen, or share to ZIGoals from another app?"],
+  ["al-xp", "Where does XP come from, and why does water stop adding it?"],
   ["auto-checkins", "Can a habit tick itself off from my Health journal?"],
   ["health-goals", "What is a health goal, and where does its progress come from?"],
   ["skips", "I’m away for a week. Will my streak break?"],

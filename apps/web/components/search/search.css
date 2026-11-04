@@ -59,3 +59,6 @@
 /* Session AK (F8, WCAG 2.4.7): the field has no outline of its own, so the row under it shows where the keyboard is — a
    cyan rule along its bottom edge while the field has focus (the palette is dark in every theme). */
 :root .search-field:has(input:focus-visible) { border-bottom-color: #8fe6f4; box-shadow: inset 0 -2px 0 #8fe6f4; }
+/* Session AL (P-DVR-35, D-051/D-079): a long query wraps in its rows instead of running off the palette. */
+:root .search-row-title, :root .search-row-detail, :root .search-empty, :root .search-preview-title { overflow-wrap: anywhere; min-width: 0; }
+:root .search-foot code { font-size: 0.95em; padding: 0 3px; border-radius: 4px; background: #ffffff14; }

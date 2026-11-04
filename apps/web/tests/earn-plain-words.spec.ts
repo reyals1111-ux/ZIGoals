@@ -82,7 +82,7 @@ test('Earn: each section offers its taps once, where the word first appears; eve
   // Start here: the guides under its dots (one open at a time) carry their own.
   const start = page.locator('#start-here');
   const dot = (name: string) => start.locator(`.path-dot[aria-label^="${name}:"]`);
-  for (const [step, terms] of [['Get a wallet', ['seed-phrase']], ['Practice first', ['practice-network']], ['Get ZIG', ['bridge', 'gas']], ['Your first real stake', ['unbonding']], ['Explore more', ['liquid-staking', 'pool', 'proposal']]] as const) {
+  for (const [step, terms] of [['Get a wallet', ['seed-phrase']], ['Practice first', ['practice-network']], ['Get ZIG', ['bridge', 'gas']], ['Staking on the real network', ['unbonding']] /* Session AL (COPY_AUDIT, deliberate): renamed step */, ['Explore more', ['liquid-staking', 'pool', 'proposal']]] as const) {
     await dot(step).click();
     const panel = start.locator('.earn-start-panel');
     await expect(panel).toHaveCount(1);

@@ -1,0 +1,7 @@
+/* Session AL (P-TK-56, P-DV-111; TK-165, TK-184, DV-045b): Settings' checkbox rows keep the box beside its words.
+   The global `label` is a column (a field over its input), and `.platform-form input` is 100 % wide; a checkbox row
+   needs neither: the box sits at its label's start, at a steady 22 px, and the row spans the form. */
+.settings-page :is(.game-setting-row, .af-checklist-setting-row, .af-extras-row, .af-signing-setting-row) { flex-direction: row; }
+.settings-page .platform-form label.checkbox { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; min-height: 44px; }
+.settings-page .platform-form label.checkbox input[type="checkbox"] { width: 22px; height: 22px; min-height: 22px; flex: 0 0 auto; margin: 0; }
+.settings-page .settings-try-it { margin-top: 8px; }

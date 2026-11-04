@@ -31,6 +31,7 @@ import {ProposalCard, type VoteState} from './proposal-card';
 import {WhatsThis} from '../earn/whats-this';
 import '../staking/staking.css';
 import './governance.css';
+import {PROPOSAL_FILTERS, filterCount, filterProposals, type ProposalFilter} from '../../lib/governance/filter';
 
 /**
  * Session AF chunk 3 (lane L2a; ADR-028 H16, H46, H61, H87; P6.5, P6.6, D6): /app/governance. Live proposals of the chosen
@@ -73,6 +74,8 @@ export function GovernanceView() {
   // Session AL (BN-093, BN-073): a failed read keeps the last good list of this network (this page visit's memory, never
   // stored) with the reason beside it, and tries once more by itself after a short wait; Read again stays.
   const [stale, setStale] = useState<string | null>(null), [retrying, setRetrying] = useState(false);
+  // Session AL (Part 15, P-BN-74/P-BN-75): filters and a search over the list, kept for this visit only.
+  const [filter, setFilter] = useState<ProposalFilter>('all'), [query, setQuery] = useState('');
   const retryTimer = useRef<number | undefined>(undefined);
   const load = useCallback(async (auto = false) => {
     window.clearTimeout(retryTimer.current); setRetrying(false);
@@ -171,6 +174,7 @@ export function GovernanceView() {
   const myVotes = useMemo(() => votesOf(journal.data, chainId, wallet?.address), [journal.data, chainId, wallet?.address]);
   const wire = proposals?.phase === 'ok' ? proposals.wire : null;
   const ordered = wire ? [...wire.proposals.filter(p => p.state === 'voting'), ...wire.proposals.filter(p => p.state === 'deposit'), ...wire.proposals.filter(p => p.state !== 'voting' && p.state !== 'deposit')] : [];
+  const shown = filterProposals(ordered, filter, query);
   const eligible = stake.phase === 'ok' && stake.eligibility.eligible;
   return <div className="dashboard governance-page">
     <PageHeader className="page-heading" titleId="governance-title" eyebrow="Staking · Governance" title="Governance"
@@ -222,7 +226,12 @@ export function GovernanceView() {
           {stale && <p className="notice" role="status">The newest read did not work: {stale} The list below is the one read earlier, at block {wire!.height}.{retrying ? ' ZIGoals tries once more by itself in a moment.' : ''}</p>}
           <p className="fine">Read from {wire!.source} at block {wire!.height}, {formatDateTime(wire!.observedAt!)}. {ordered.some(p => p.state === 'voting') ? `${ordered.filter(p => p.state === 'voting').length} open for voting now.` : 'None is open for voting right now.'} <button type="button" className="text-link" onClick={readAgain}>Read again</button></p>
           {!ordered.length && <p>No proposals on this network yet.</p>}
-          {ordered.map(p => <ProposalCard key={p.id} explainQuorum={p === ordered.find(o => o.tallyKind !== 'none')} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
+          {ordered.length > 0 && <div className="governance-filters">
+            <div role="radiogroup" aria-label="Show proposals" className="governance-filter-chips">{PROPOSAL_FILTERS.map(([id, label]) => <button key={id} type="button" role="radio" aria-checked={filter === id} className={filter === id ? 'chip is-active' : 'chip'} onClick={() => setFilter(id)}>{label} <span className="governance-filter-count">{filterCount(ordered, id)}</span></button>)}</div>
+            <label className="field governance-search">Search proposals<input type="search" value={query} maxLength={80} placeholder="A word, or a number like 43" onChange={e => setQuery(e.target.value)} autoComplete="off"/></label>
+          </div>}
+          {ordered.length > 0 && shown.length === 0 && <p role="status">No proposal here fits{query.trim() ? ` “${query.trim()}”` : ''}{filter !== 'all' ? ` among ${PROPOSAL_FILTERS.find(([id]) => id === filter)![1].toLowerCase()}` : ''}. <button type="button" className="text-link" onClick={() => { setFilter('all'); setQuery(''); }}>Show them all</button></p>}
+          {shown.map(p => <ProposalCard key={p.id} explainQuorum={p === shown.find(o => o.tallyKind !== 'none')} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
             voting={wallet && !showcase ? {eligible, reviewing: reviewing === p.id, myVote: votes[p.id] ?? {phase: 'idle'}, journal: confirmedVote(myVotes, p.id), onReview: review, error: voteErrors[p.id]} : undefined}/>)}
         </>}
     </section>

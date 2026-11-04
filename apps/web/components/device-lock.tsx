@@ -57,6 +57,8 @@ export function DeviceLockGate() {
   }
   return createPortal(<div className="device-lock-host"><div className="device-lock" role="dialog" aria-modal="true" aria-labelledby={`${id}-t`}>
     <h1 id={`${id}-t`}>ZIGoals is locked on this device</h1>
+    {/* Session AL (P-DV-127, DV-121): said up front, not only behind "Forgot the PIN?". */}
+    <p className="fine">A screen cover: it hides ZIGoals in this browser. Your records are not encrypted by it.</p>
     <form onSubmit={e => void unlock(e)}>
       <label className="field">PIN<input type="password" inputMode="numeric" autoComplete="off" autoFocus maxLength={8} value={pin} onChange={e => setPin(e.target.value.replace(/\D/g, ''))} aria-describedby={`${id}-m`} disabled={wait > 0} /></label>
       <button className="primary" type="submit" disabled={busy || wait > 0 || !PIN_RULE.test(pin)}>{wait > 0 ? `Wait ${seconds(wait)} s` : 'Unlock'}</button>
@@ -112,8 +114,9 @@ export function DeviceLockSettings() {
   }
   const lockNow = () => { markUnlocked(false); window.dispatchEvent(new Event(LOCK_EVENT)); };
   return <section className="panel device-lock-settings" id="device-lock" aria-labelledby={`${id}-t`}>
-    <p className="eyebrow">THIS DEVICE</p><h2 id={`${id}-t`}>Screen lock</h2>
-    <p>Optional, and off unless you turn it on. A PIN hides ZIGoals when a new tab or window opens in this browser: every tab and window of this browser profile locks, not only this one. It does not encrypt your records, and a forgotten PIN never locks them away: the lock screen can remove the lock after a short wait, or erase this device&rsquo;s data.</p>
+    <p className="eyebrow">THIS DEVICE · SCREEN LOCK</p><h2 id={`${id}-t`}>Screen cover with a PIN</h2>
+    {/* Session AL (P-DV-127, DV-121): named for what it is, a cover; anyone at this browser can wait a minute and remove it. */}
+    <p>Optional, and off unless you turn it on. It is a screen cover, not a lock on your records. A PIN hides ZIGoals when a new tab or window opens in this browser: every tab and window of this browser profile locks, not only this one. It does not encrypt your records, and a forgotten PIN never locks them away: the lock screen can remove the lock after a short wait, or erase this device&rsquo;s data.</p>
     {lock ? <>
       <div className="actions"><button type="button" className="secondary" onClick={lockNow}>Lock now</button></div>
       <form className="platform-form" onSubmit={e => void turnOff(e)} aria-label="Turn the lock off">

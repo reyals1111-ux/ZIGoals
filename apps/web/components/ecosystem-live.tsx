@@ -1,12 +1,13 @@
 'use client';
 import type {LiveState} from '../lib/earn/client';
 import type {DefillamaData} from '../lib/earn/live/types';
-import {formatTime} from '../lib/visual-format';
+import {formatDateTime} from '../lib/visual-format';
 
 /**
  * Session AH (CO7; owner note: "reuse it in ecosystem where it fits"): the value locked that Earn already reads from
  * DefiLlama (a third party, through ZIGoals' own /api/earn/defillama route), on the five Ecosystem cards Earn covers,
  * with its source, the time it was read and a way to Earn's section. Nothing new is fetched from outside.
+ * Session AL (BN-027): the read says its date with its time ("Nov 4, 2026, 1:33 AM"), never a time alone.
  */
 export const ECOSYSTEM_LIVE: Readonly<Record<string, {slug: keyof DefillamaData['protocols']; earn: string}>> = Object.freeze({
   valdora: {slug: 'valdora-finance', earn: 'valdora'},
@@ -24,7 +25,7 @@ export function EcosystemLiveLine({id, llama}: {id: string; llama: LiveState<Def
   const figure = llama.phase === 'loading' ? 'reading…' : protocol?.status === 'ok' && protocol.tvlUsd !== null ? usd(protocol.tvlUsd) : 'unavailable right now';
   return <p className="ecosystem-live fine" data-live={protocol?.status === 'ok' && protocol.tvlUsd !== null || undefined}>
     Value locked: <strong>{figure}</strong>
-    {llama.phase === 'ok' && <> · DefiLlama, a third party · read <time dateTime={llama.answer.fetchedAt}>{formatTime(llama.answer.fetchedAt)}</time>{llama.answer.stale ? ' (earlier read)' : ''}</>}
+    {llama.phase === 'ok' && <> · DefiLlama, a third party · read <time dateTime={llama.answer.fetchedAt}>{formatDateTime(llama.answer.fetchedAt)}</time>{llama.answer.stale ? ' (earlier read)' : ''}</>}
     {' · '}<a className="text-link" href={`/app/earn#${link.earn}`}>On Earn →</a>
   </p>;
 }
