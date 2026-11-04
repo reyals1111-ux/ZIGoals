@@ -15188,6 +15188,59 @@
         --pillar: #c790f6
     }
 }
+/*  components/plans/plans.css  */
+@scope (:root[data-theme=dark]) {
+    .plans-placeholder:not(#\-) {
+        border-color: #ffd27a55;
+        background-image: linear-gradient(110deg, #0e060099, #060317aa);
+        background-color: transparent;
+        color: var(--text)
+    }
+    .plan-price strong:not(#\-) {
+        background-image: var(--nebula-emphasis, linear-gradient(110deg, #63e7ff, #826cff 60%, #ff74be));
+        background-color: transparent;
+        color: transparent
+    }
+    .plan-price span:not(#\-) {
+        color: var(--muted)
+    }
+    .plan-note:not(#\-) {
+        color: var(--muted)
+    }
+    .plan-free:not(#\-) {
+        color: var(--brand-cyan, #63e7ff)
+    }
+    @media (forced-colors: active) {
+        .plan-price strong:not(#\-) {
+            color: CanvasText;
+            background-image: none;
+            background-color: transparent
+        }
+    }
+}
+/*  components/plans/premium-badge.css  */
+@scope (:root[data-theme=dark]) {
+    .premium-badge:not(#\-) {
+        border-color: #c664ff66;
+        background-image: linear-gradient(110deg, #0a011b99, #000c1caa);
+        background-color: transparent;
+        color: var(--text)
+    }
+    .premium-badge:hover:not(#\-) {
+        border-color: #ff74beaa
+    }
+    .premium-badge:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #63e7ff)
+    }
+    .plan-settings-row p:not(#\-) {
+        color: var(--muted)
+    }
+    @media (forced-colors: active) {
+        .premium-badge:not(#\-) {
+            border-color: LinkText
+        }
+    }
+}
 /*  components/platform/asset-search.css  */
 @scope (:root[data-theme=dark]) {
     .valuation-mode-card:not(#\-) {
@@ -17438,6 +17491,98 @@
         background-color: #01050fcc
     }
 }
+/*  components/shell/apps-extras.css  */
+@scope (:root[data-theme=dark]) {
+    .apps-extras-button:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text)
+    }
+    .apps-extras-button[aria-expanded="true"]:not(#\-) {
+        background-image: none;
+        background-color: #000c1c;
+        box-shadow: inset 0 0 0 1px #6fdcff55
+    }
+    .apps-extras-button:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #63e7ff)
+    }
+    .apps-extras-glyph:not(#\-) {
+        filter: drop-shadow(0 0 5px #2bccff55)
+    }
+    @media (min-width: 541px) and (max-width: 900.98px) and (min-height: 501px), (min-width: 541px) and (max-width: 900.98px) and (pointer: fine) {
+        :scope .apps-extras-rail .apps-extras-button:not(#\-) {
+            border-color: #7fc8ff26;
+            color: #a9bbd8
+        }
+    }
+    dialog.apps-extras-sheet:not(#\-) {
+        border-color: #7fc8ff33;
+        border-bottom-color: currentcolor;
+        background-image: linear-gradient(180deg, #010514fa, #010209fa);
+        background-color: transparent;
+        color: var(--text);
+        box-shadow: 0 -20px 70px #000b, inset 0 1px 0 #b1c5ff14
+    }
+    dialog.apps-extras-sheet:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #000103c7
+    }
+    .apps-extras-grabber:not(#\-) {
+        background-image: none;
+        background-color: #9fb6d866
+    }
+    .apps-extras-head h2:not(#\-) {
+        background-image: var(--nebula-emphasis, linear-gradient(110deg, #63e7ff, #826cff 60%, #ff74be));
+        background-color: transparent;
+        color: transparent
+    }
+    .apps-extras-close:not(#\-) {
+        border-color: #9fc8ff33;
+        background-image: none;
+        background-color: #010816;
+        color: var(--text)
+    }
+    .apps-extras-note:not(#\-) {
+        color: var(--muted)
+    }
+    .apps-extras-item:not(#\-) {
+        border-color: #7fc8ff1f;
+        background-image: linear-gradient(130deg, #010614e6, #01030ee6 60%, #060317e0);
+        background-color: transparent;
+        color: var(--text)
+    }
+    .apps-extras-item[aria-current="page"]:not(#\-) {
+        border-color: #6fdcff88;
+        box-shadow: inset 0 0 16px #1dc7ff22
+    }
+    .apps-extras-item:focus-visible:not(#\-), .apps-extras-close:focus-visible:not(#\-), .apps-extras-settings:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #63e7ff)
+    }
+    .apps-extras-copy span:not(#\-) {
+        color: var(--muted)
+    }
+    @media (hover: hover) {
+        .apps-extras-item:hover:not(#\-) {
+            border-color: #6fdcff66
+        }
+    }
+    @media (forced-colors: active) {
+        dialog.apps-extras-sheet:not(#\-), .apps-extras-item:not(#\-), .apps-extras-close:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: CanvasText;
+            border-color: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .apps-extras-head h2:not(#\-) {
+            color: CanvasText;
+            background-image: none;
+            background-color: transparent
+        }
+    }
+}
 /*  components/shell/shell-ab.css  */
 @scope (:root[data-theme=dark]) {
     .alpha-notice:not(#\-) {
@@ -17501,6 +17646,43 @@
     @media (forced-colors: active) {
         .alpha-notice:not(#\-), .showcase-chip-button:not(#\-), .showcase-chip-panel:not(#\-) {
             border-color: CanvasText
+        }
+    }
+}
+/*  components/shell/sidebar-apps.css  */
+@scope (:root[data-theme=dark]) {
+    .sidebar-apps-toggle:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: transparent;
+        color: #a9bbd8
+    }
+    .sidebar-apps-toggle:hover:not(#\-) {
+        color: var(--text)
+    }
+    .sidebar-apps-toggle:focus-visible:not(#\-), .sidebar-apps-list a:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #63e7ff)
+    }
+    .sidebar-apps-list a:not(#\-) {
+        border-color: transparent;
+        color: #a9bbd8
+    }
+    .sidebar-apps-list a svg:not(#\-) {
+        color: #86b7f9
+    }
+    .sidebar-apps-list a:hover:not(#\-) {
+        color: var(--text)
+    }
+    .sidebar-apps-list a[aria-current="page"]:not(#\-) {
+        border-color: #63e7ff5c;
+        color: var(--text);
+        background-image: linear-gradient(115deg, #000f1d, #040511);
+        background-color: transparent;
+        box-shadow: inset 0 0 16px #3db7ff17, 0 0 15px #3d73ff0d
+    }
+    @media (forced-colors: active) {
+        .sidebar-apps-list a[aria-current="page"]:not(#\-) {
+            border-color: Highlight
         }
     }
 }

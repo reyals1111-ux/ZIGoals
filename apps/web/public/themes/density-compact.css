@@ -133,6 +133,10 @@
 :where(:root[data-density=compact]) .site-not-found-mark:not(#\-) { margin-top: 0; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .unavailable-pill:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
 :root:where([data-density=compact]) dl > div > dd.dd-note:not(#\-):not(#\-):not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .app-not-found > .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 4.5px; }
+:where(:root[data-density=compact]) .app-not-found-places:not(#\-) { margin-top: 20px; }
+:where(:root[data-density=compact]) .app-not-found-places > p:not(#\-) { margin-top: 0; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .app-not-found-places ul:not(#\-) { row-gap: 3px; margin-top: 0; margin-bottom: 7.5px; padding-top: 0; padding-bottom: 0; }
 /*  app/visual-theme.css  */
 :where(:root[data-density=compact]) .network-banner:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) header:not(#\-) { padding-top: 23px; padding-bottom: 23px; }
@@ -464,6 +468,7 @@
 @media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) { :root:where([data-density=compact]) .staking-card .text-link:not(#\-) { padding-top: 1px; padding-bottom: 1px; margin-top: -1px; margin-bottom: -1px; } }
 :where(:root[data-density=compact]) .load-boundary:not(#\-) { row-gap: 10px; margin-top: 12px; margin-bottom: 12px; padding-top: 16px; padding-bottom: 16px; }
 :where(:root[data-density=compact]) .load-boundary p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+@media (min-width: 768px) and (max-width: 1099.98px) { :root:where([data-density=compact]) .pillar-hero > .pillar-hero-actions:not(#\-):not(#\-) { margin-top: 14px; } }
 /*  components/ui/ui.css  */
 :root:where([data-density=compact]) .aa-section-heading:not(#\-) { row-gap: 12px; margin-top: 0; margin-bottom: 12px; }
 :root:where([data-density=compact]) .aa-section-heading .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 3px; }
@@ -4305,6 +4310,22 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .pillar-mark:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .page-header[data-pillar] .page-eyebrow:not(#\-) { row-gap: 7.5px; }
 :where(:root[data-density=compact]) .wealth-hero .page-eyebrow:not(#\-), :where(:root[data-density=compact]) .habit-hero .page-eyebrow:not(#\-) { row-gap: 10px; }
+/*  components/plans/plans.css  */
+:where(:root[data-density=compact]) .plans-route:not(#\-) { row-gap: 18px; }
+:where(:root[data-density=compact]) .plans-placeholder:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .plans-grid:not(#\-) { row-gap: 13.5px; }
+:where(:root[data-density=compact]) .plan-card:not(#\-) { row-gap: 7.5px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .plan-card h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .plan-price:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .plan-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .plan-includes:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .plan-free:not(#\-) { margin-top: auto; margin-bottom: 0; padding-top: 8px; }
+:where(:root[data-density=compact]) .plans-facts ul:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .plans-links:not(#\-) { margin-top: 12px; margin-bottom: 0; }
+/*  components/plans/premium-badge.css  */
+:where(:root[data-density=compact]) .premium-badge:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .plan-settings-row:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .plan-settings-row p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/platform/asset-search.css  */
 :where(:root[data-density=compact]) .valuation-mode:not(#\-) { row-gap: 12px; margin-top: 18px; margin-bottom: 18px; }
 :where(:root[data-density=compact]) .valuation-mode-card:not(#\-) { row-gap: 3.75px; padding-top: 12px; padding-bottom: 12px; }
@@ -5138,6 +5159,24 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .share-card:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 12px; padding-bottom: 12px; row-gap: 6px; }
 :root:where([data-density=compact]) .share-card p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :root:where([data-density=compact]) .share-actions:not(#\-) { row-gap: 10px; }
+/*  components/shell/apps-extras.css  */
+:where(:root[data-density=compact]) .apps-extras-button:not(#\-) { row-gap: 4px; padding-top: 0; padding-bottom: 0; }
+@media (min-width: 541px) and (max-width: 900.98px) and (min-height: 501px), (min-width: 541px) and (max-width: 900.98px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar .apps-extras-rail:not(#\-):not(#\-) { margin-top: 10px; } }
+@media (min-width: 541px) and (max-width: 900.98px) and (min-height: 501px), (min-width: 541px) and (max-width: 900.98px) and (pointer: fine) { :root:where([data-density=compact]) .apps-extras-rail .apps-extras-button:not(#\-) { padding-top: 6px; padding-bottom: 6px; } }
+:where(:root[data-density=compact]) dialog.apps-extras-sheet:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .apps-extras-panel:not(#\-) { padding-top: 6px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); }
+:where(:root[data-density=compact]) .apps-extras-grabber:not(#\-) { margin-top: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .apps-extras-head:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .apps-extras-head h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .apps-extras-close:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .apps-extras-note:not(#\-) { margin-top: 0; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .apps-extras-list:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .apps-extras-item:not(#\-) { row-gap: 9px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .apps-extras-copy:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .apps-extras-empty:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .apps-extras-settings:not(#\-) { margin-top: 8px; }
+@media (max-width: 359.98px) { :root:where([data-density=compact]) .phone-actions:not(#\-):not(#\-) { row-gap: 0; } }
+@media (max-width: 359.98px) { :root:where([data-density=compact]) .phone-topbar-row:not(#\-):not(#\-) { row-gap: 0; } }
 /*  components/shell/shell-ab.css  */
 :where(:root[data-density=compact]) .alpha-notice:not(#\-) { row-gap: 10px; margin-top: 14px; margin-bottom: 0; padding-top: 9px; padding-bottom: 9px; }
 :where(:root[data-density=compact]) .alpha-notice p:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -5167,6 +5206,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 900px) { :where(:root[data-density=compact]) .alpha-notice .text-link:not(#\-) { margin-top: 0; margin-bottom: 0; } }
 @media (max-width: 767.98px) { :root:where([data-density=compact]) .site-footer-inner:not(#\-) { padding-bottom: calc(32px + 72px); } }
 @media (min-width: 768px) and (max-width: 1279.98px) { :root:where([data-density=compact]) .workspace > .status-row:not(#\-) { row-gap: 6px; } }
+/*  components/shell/sidebar-apps.css  */
+:where(:root[data-density=compact]) .sidebar-apps:not(#\-) { margin-top: 18px; }
+:where(:root[data-density=compact]) .sidebar-apps-toggle:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .sidebar-apps-list:not(#\-) { row-gap: 1.5px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .sidebar-apps-list a:not(#\-) { row-gap: 15px; padding-top: 10px; padding-bottom: 10px; }
 /*  components/shell/tablet-rail.css  */
 @media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar:not(#\-):not(#\-) { row-gap: 0; padding-top: 8px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); } }
 @media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar .app-nav:not(#\-):not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; } }

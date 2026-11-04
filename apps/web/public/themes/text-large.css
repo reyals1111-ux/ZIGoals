@@ -2177,6 +2177,16 @@
 @media (max-width: 767.98px) { :root:where([data-text=large]) main :is(.page-heading, .page-header) :is(.page-lede, h1 + p):not(#\-) { font-size: calc(16px * 1.125); } }
 /*  components/pillars.css  */
 :where(:root[data-text=large]) .pillar-mark-word:not(#\-) { font-size: calc(13px * 1.125); }
+/*  components/plans/plans.css  */
+:where(:root[data-text=large]) .plans-placeholder:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .plan-card h2:not(#\-) { font-size: calc(24px * 1.125); }
+:where(:root[data-text=large]) .plan-price strong:not(#\-) { font-size: calc(40px * 1.125); }
+:where(:root[data-text=large]) .plan-price span:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .plan-note:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .plan-includes:not(#\-) { font-size: calc(16px * 1.125); }
+/*  components/plans/premium-badge.css  */
+:where(:root[data-text=large]) .premium-badge:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .plan-settings-row p:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/platform/asset-search.css  */
 :where(:root[data-text=large]) .valuation-mode-card span:not(#\-) { font-size: calc(.875rem * 1.125); }
 :where(:root[data-text=large]) .asset-search-heading h4:not(#\-) { font-size: calc(1.15rem * 1.125); }
@@ -2665,6 +2675,14 @@
 /*  components/share/share.css  */
 :root:where([data-text=large]) .share-card strong:not(#\-) { font-size: calc(18px * 1.125); }
 :root:where([data-text=large]) .share-card p:not(#\-) { font-size: calc(16px * 1.125); }
+/*  components/shell/apps-extras.css  */
+@media (min-width: 541px) and (max-width: 900.98px) and (min-height: 501px), (min-width: 541px) and (max-width: 900.98px) and (pointer: fine) { :root:where([data-text=large]) .apps-extras-rail .apps-extras-button:not(#\-) { font-size: calc(12px * 1.125); } }
+:where(:root[data-text=large]) .apps-extras-head h2:not(#\-) { font-size: calc(22px * 1.125); }
+:where(:root[data-text=large]) .apps-extras-close:not(#\-) { font-size: calc(26px * 1.125); }
+:where(:root[data-text=large]) .apps-extras-note:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .apps-extras-copy strong:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .apps-extras-copy span:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .apps-extras-empty:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/shell/shell-ab.css  */
 :where(:root[data-text=large]) .alpha-notice:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .alpha-notice p:is(.alpha-notice-essentials, .alpha-notice-sentence):not(#\-) { font-size: calc(14px * 1.125); }
@@ -2678,6 +2696,9 @@
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .alpha-notice strong:not(#\-) { font-size: calc(12px * 1.125); } }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .status-row .showcase-chip-button:not(#\-) { font-size: calc(12px * 1.125); } }
 @media (max-width: 359.98px) { :where(:root[data-text=large]) .alpha-notice strong:not(#\-) { font-size: calc(11px * 1.125); } }
+/*  components/shell/sidebar-apps.css  */
+:where(:root[data-text=large]) .sidebar-apps-toggle:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .sidebar-apps-list a:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/shell/tablet-rail.css  */
 @media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) { :root:where([data-text=large]) .app-sidebar .app-nav a:not(#\-):not(#\-) { font-size: calc(12px * 1.125); } }
 @media (min-width: 768px) and (max-width: 900px) and (min-height: 501px), (min-width: 768px) and (max-width: 900px) and (pointer: fine) { :root:where([data-text=large]) .app-sidebar .brand .brand-wordmark:not(#\-):not(#\-) { font-size: calc(24px * 1.125); } }
