@@ -1,5 +1,5 @@
 "use client";
-import { showToast } from "../ui/undo-toast";
+import { showUndo } from "../ui/undo-toast";
 import { useState, type FormEvent } from "react";
 import type { Habit } from "../../lib/habits";
 import { addLocalDays } from "../../lib/local-date";
@@ -22,7 +22,7 @@ export function PlanSkip({ habit, store }: { habit: Habit; store: HabitCardStore
   async function remove(day: string, why = "") {
     setBusy(true); setMessage(""); setError("");
     // Session AH Part 3 (DS5): a labelled Undo plans the same skip again, with its reason.
-    try { await store.unplanSkip(habit.id, day); showToast({message: `Planned skip on ${longDate(day)} removed.`, undone: "The planned skip is back.", undo: () => store.planSkip(habit.id, day, why)}); } catch (e) { setError(storageMessageOr(e, "The planned skip was not removed.")); } finally { setBusy(false); }
+    try { await store.unplanSkip(habit.id, day); showUndo({message: `Planned skip on ${longDate(day)} removed.`, undone: "The planned skip is back.", restore: () => store.planSkip(habit.id, day, why)}); } catch (e) { setError(storageMessageOr(e, "The planned skip was not removed.")); } finally { setBusy(false); }
   }
   return <div className="habit-plan-skip">
     {!open && <button type="button" className="quiet" disabled={busy} onClick={() => { setOpen(true); setMessage(""); }}>Plan a skip</button>}

@@ -1,6 +1,7 @@
 import {habitDay, habitRuleOn, type HabitData} from '../habits';
 import type {HealthData} from '../health';
 import {goalProgress, type Platform} from '../positions';
+import {closedAfterReaching} from '../goals/finished';
 import type {WeeklyReview} from '../weekly-review/schema';
 import {addLocalDays, localWeekday} from '../local-date';
 import {levelProgress, type LevelProgress} from './levels';
@@ -86,13 +87,17 @@ export function goalXpEvents(platform: Platform, today: string): XpEvent[] {
     if (doneDay) out.push({id: `goal-done:${g.id}`, day: doneDay, xp: XP_RULES.goalStatus, kind: 'goal', title: `Goal reached: ${g.name}`});
   }
   const reversed = new Set(platform.contributions.flatMap(c => c.reversesId ? [c.reversesId] : []));
-  for (const c of platform.contributions) { if (c.direction !== 'IN' || c.reversesId || reversed.has(c.id)) continue; const day = isoDay(c.occurredAt); if (day <= today) out.push({id: `contribution:${c.id}`, day, xp: XP_RULES.contribution, kind: 'goal', title: 'A contribution'}); }
+  // Session AL (DV-023c, P-DV-32): a history-only record never moves the goal, so it earns no XP either.
+  for (const c of platform.contributions) { if (c.direction !== 'IN' || c.reversesId || reversed.has(c.id) || c.fundingMode === 'HISTORY_ONLY') continue; const day = isoDay(c.occurredAt); if (day <= today) out.push({id: `contribution:${c.id}`, day, xp: XP_RULES.contribution, kind: 'goal', title: 'A contribution'}); }
   return out;
 }
 /** Whether a goal's target is reached now: its status says so, or (closed) its counted progress still meets the target. */
 function goalReached(platform: Platform, id: string, status: string): boolean {
   if (status === 'completed') return true;
   if (status !== 'closed') return false;
+  // Session AL (P-DV-22): the one "finished" rule first (reached in the cycle it was closed in), then the progress check.
+  const goal = platform.goals.find(g => g.id === id);
+  if (goal && closedAfterReaching(goal)) return true;
   try { const p = goalProgress(platform, id); return !p.requiresReview && BigInt(p.current) >= BigInt(p.target); } catch { return false; }
 }
 export const weekStart = (day: string) => addLocalDays(day, -((localWeekday(day) + 6) % 7));

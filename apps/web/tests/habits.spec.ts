@@ -176,9 +176,11 @@ test("templates, distinct habit types, measurement and reflection controls work 
   const card = page.getByRole("article", { name: "No impulse buys", exact: true });
   await expect(card.getByText("QUIT", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: "Stayed on track for No impulse buys" }).click();
-  await expect(card.getByText("Complete", { exact: true })).toBeVisible();
+  // Session AL (COPY_AUDIT, deliberate; DV-131): a quit day reads "On track today" and a slip "A slip today", not
+  // "Complete" beside "Stayed on track" and "Failed".
+  await expect(card.getByText("On track today", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: "Record one event for No impulse buys" }).click();
-  await expect(card.getByText("Failed", { exact: true })).toBeVisible();
+  await expect(card.getByText("A slip today", { exact: true })).toBeVisible();
 
   await openHabitDetails(card);
   await card.getByText("History & reflection", { exact: true }).click();

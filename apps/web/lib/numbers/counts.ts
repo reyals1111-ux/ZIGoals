@@ -1,6 +1,7 @@
 import {habitDay, type Habit} from '../habits';
 import {automaticMarketRef} from '../wealth';
 import type {Platform, Position} from '../positions';
+import {isFinished} from '../goals/finished';
 
 /**
  * Session AH Part 4 (TR6/B5; BUG-031, BUG-041, BUG-062, M-085, D-238): one count per thing, so two pages never disagree.
@@ -15,10 +16,11 @@ export function assetCounts(platform: Pick<Platform, 'positions'>) {
   const owned = platform.positions.filter(p => !p.archivedAt), live = owned.filter(isLivePriced).length;
   return {assets: owned.length, livePriced: live, manual: owned.length - live};
 }
-type WithStatus = {status: string};
+type WithStatus = {status: string; reached?: boolean};
+/** Session AL (P-DV-22): finished uses the one rule (lib/goals/finished.ts), so a goal reached and then closed still counts. */
 export function goalCounts(goals: readonly WithStatus[], averages: readonly WithStatus[] = []) {
   const all = [...goals, ...averages];
-  return {active: all.filter(g => g.status === 'active').length, finished: all.filter(g => g.status === 'completed').length};
+  return {active: all.filter(g => g.status === 'active').length, finished: all.filter(isFinished).length};
 }
 /** Check-ins on one day: habits whose scheduled day is complete. */
 export function checkInsOn(habits: readonly Habit[], date: string, today: string) {

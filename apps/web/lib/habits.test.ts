@@ -117,7 +117,8 @@ describe("calendar completion and cadence", () => {
   });
   it("projects real logged activity with no private values in the URL", () => {
     const data = logHabitCount(make(), id, "2026-09-07", 1, "Private sentinel", at("2026-09-07"));
-    expect(getHabitActivities(data)).toEqual([{ id: `habit:${id}:2026-09-07`, category: "HABIT", title: "Walk outside", detail: "Sep 7, 2026 · 1 / 1 completed", at: at("2026-09-07").toISOString(), day: "2026-09-07", href: "/app/habits" }]); // Session AH (TR12): the record's own day
+    expect(getHabitActivities(data)).toEqual([{ id: `habit:${id}:2026-09-07`, category: "HABIT", title: "Walk outside", detail: "Sep 7, 2026 · Done", at: at("2026-09-07").toISOString(), day: "2026-09-07", href: "/app/habits" }]); // Session AH (TR12): the record's own day
+    // Session AL (COPY_AUDIT, deliberate; DV-047a): was "1 / 1 completed"; the row now says the day in words with its unit (lib/al-habits.test.ts covers units, quit and limit).
     expect(getHabitActivities(logHabitCount(data, id, "2026-09-07", 0, "", at("2026-09-07")))).toEqual([]);
   });
 });

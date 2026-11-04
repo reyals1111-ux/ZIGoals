@@ -1,4 +1,5 @@
-import {formNumberText, readFormNumber} from '../decimal-input';
+import {formNumberText} from '../decimal-input';
+import {readHabitNumber} from '../habit-number';
 import {newAutoRule} from './engine';
 import {SOURCE_UNIT, autoRuleIssue, type AutoComparator, type AutoRule, type AutoSource} from './schema';
 
@@ -24,7 +25,7 @@ export function ruleFromDraft(draft: AutoRuleDraft, now = new Date(), base?: Pic
   let threshold: number | undefined;
   if (draft.comparator === 'at-least') {
     const max = draft.source === 'sleep' ? 24 : draft.source === 'workout' || draft.source === 'active-minutes' ? 1440 : 1_000_000_000;
-    try { threshold = readFormNumber(draft.threshold, {min: 0, max, positive: true, whole: draft.source === 'steps'}); } catch (cause) { throw draft.source === 'sleep' ? Error('Enter the hours of sleep, for example 7.5.') : cause; }
+    try { threshold = readHabitNumber(draft.threshold, {min: 0, max, positive: true, whole: draft.source === 'steps'}); } catch (cause) { throw draft.source === 'sleep' ? Error('Enter the hours of sleep, for example 7.5.') : cause; }
   }
   const input = {source: draft.source, comparator: draft.comparator, habitId: draft.habitId, ...(threshold === undefined ? {} : {threshold}), ...(draft.source === 'contribution' ? {goalId: draft.goalId} : {}), ...(draft.source === 'workout' && draft.workoutType ? {workoutType: draft.workoutType} : {})};
   const issue = autoRuleIssue({...input, unit: SOURCE_UNIT[draft.source]});

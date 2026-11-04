@@ -1,6 +1,7 @@
 'use client';
 import {useState} from 'react';
-import {formNumberText, readFormNumber} from '../../lib/decimal-input';
+import {formNumberText} from '../../lib/decimal-input';
+import {readHabitNumber} from '../../lib/habit-number';
 import {healthLinkV4Issue, type HabitHealthLinkV4 as HabitHealthLink, type HealthMeasureV4 as HealthMeasure} from '../../lib/habit-health-links/schema';
 import type {ExerciseCounter} from '../../lib/health-counters';
 import {SYNC_WRITES} from '../../lib/vault/sync-writes';
@@ -45,10 +46,10 @@ export function healthLinkFromDraft(draft: HealthLinkDraft, waterUnit: 'ml' | 'f
     target = Number(match[1]) * 60 + Number(match[2]);
   } else if (draft.measure === 'sleepMinutes' && rule === 'at-least') {
     let hours: number;
-    try { hours = readFormNumber(draft.target, {min: 0, max: 24}); } catch { throw Error('Enter the hours of sleep, for example 7.5.'); }
+    try { hours = readHabitNumber(draft.target, {min: 0, max: 24}); } catch { throw Error('Enter the hours of sleep, for example 7.5.'); }
     target = Math.round(hours * 60);
   } else if (rule === 'at-least') {
-    try { target = readFormNumber(draft.target, {min: 0, max: 1_000_000_000, whole: draft.measure === 'steps' || draft.measure === 'exercise' || draft.measure === 'meditationMinutes'}); } catch { throw Error('Enter a target above zero.'); }
+    try { target = readHabitNumber(draft.target, {min: 0, max: 1_000_000_000, whole: draft.measure === 'steps' || draft.measure === 'exercise' || draft.measure === 'meditationMinutes'}); } catch { throw Error('Enter a target above zero.'); }
     if (draft.measure === 'water' && waterUnit === 'fl-oz-us') target = Math.round(target * FL_OZ * 1000) / 1000;
   }
   const link: HabitHealthLink = {version: 1, measure: draft.measure, rule, ...(target === undefined ? {} : {target}), ...(draft.measure === 'exercise' && draft.exerciseId ? {exerciseId: draft.exerciseId} : {}), updatedAt: now.toISOString()};

@@ -9,6 +9,7 @@ import {clearAutoCheckIn, recordAutoCheckIn} from '../../lib/habit-health-links/
 import {useJournalZone} from '../use-journal-zone';
 import {everyHalfMinute} from '../half-minute';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {HEALTH_ENTRY_REMOVED} from '../../lib/health-events';
 
 // A refused automatic check-in is said once on its habit's card and retried on the next run (H7, "Hook").
 const notices = new Map<string, string>();
@@ -41,7 +42,9 @@ export function useAutoCheckIns({habits, health}: {habits: Pick<HabitsStore, 'da
     const again = () => check.current();
     const stop = everyHalfMinute(again);
     window.addEventListener('focus', again);
-    return () => { stop(); window.removeEventListener('focus', again); };
+    // Session AL (MO-125; L2 request): Health says when an entry is removed; the next run takes back a tick it no longer backs.
+    window.addEventListener(HEALTH_ENTRY_REMOVED, again);
+    return () => { stop(); window.removeEventListener('focus', again); window.removeEventListener(HEALTH_ENTRY_REMOVED, again); };
   }, []);
   const {data: linkData, loaded: linksLoaded, unreadable, update: updateLinks} = links;
   const {data: habitData, loaded: habitsLoaded, error: habitsError, update: updateHabits} = habits;

@@ -157,3 +157,9 @@
 .habit-empty-ideas { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 14px; width: 100%; }
 .habit-empty-ideas > button { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 44px; text-align: start; }
 .habit-empty-ideas > button small { font-size: 13px; font-weight: 500; opacity: .85; }
+/* Session AL (DV-188b, P-DV-123): the Health rule reads as one line per choice at any width, never stacked and centred
+   by the form's own label styles. */
+.habit-editor .habit-health-link-rule label { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-items: center; text-align: start; }
+.habit-editor .habit-health-link-rule label > input[type="radio"] { flex: 0 0 auto; width: 22px; }
+.habit-editor .habit-health-link-rule label > input[type="text"] { flex: 0 0 auto; width: 7.5rem; }
+.habit-quit-note { margin: 0; align-self: center; }

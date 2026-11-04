@@ -25,7 +25,7 @@ export function GamifyButton() {
     </button>
     {open && <div className="gamify-menu" role="group" aria-label="Game layer options">
       <button type="button" role="switch" aria-checked={on} className="gamify-switch" onClick={toggle}><span>Game layer</span><span className="gamify-state">{on ? 'On' : 'Off'}</span></button>
-      <p className="gamify-note">{on ? 'XP, quests and badges show at the bottom of pages and on your Journey.' : 'Streaks stay. No XP, quests or badges until you switch it on.'}</p>
+      <p className="gamify-note">{on ? /* Session AL (DV-023a, P-DV-33): where they really show */ 'XP, quests and badges show on your Journey, with a small card at the bottom of Habits, Health, Wealth and Activity.' : 'Streaks stay. No XP, quests or badges until you switch it on.'}</p>
       <Link className="gamify-journey" href="/app/journey" onClick={() => setOpen(false)}>Open your Journey →</Link>
       {error && <p role="alert" className="gamify-note">{error}</p>}
     </div>}

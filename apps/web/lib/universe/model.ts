@@ -7,6 +7,7 @@ import type {AverageGoal} from '../average-goals/store';
 import {addLocalDays} from '../local-date';
 import {formatNumber} from '../visual-format';
 import {derivedGoalStatus} from '../positions';
+import {closedAfterReaching} from '../goals/finished';
 
 /**
  * My Universe (Session AF, L5b; P9.1, ADR-028 H55, H77): a personal star system with one planet per pillar, derived on
@@ -120,14 +121,19 @@ export function universeCounts({habits, health, platform, fasting, averages = []
       // An older record without the finishing step counts as reached on every day (its day is not recorded).
       if (!done || dayOf(done.at) <= asOf) goalsReached++;
     }
-    if (g.status === 'closed') goalsSetAside++;
+    // Session AL (DV-045a, P-DV-22): a goal reached and then closed is still reached (lib/goals/finished.ts), never "set aside".
+    if (g.status === 'closed' && closedAfterReaching(g)) {
+      const done = [...(g.lifecycle ?? [])].reverse().find(l => l.kind === 'completed');
+      if (!done || dayOf(done.at) <= asOf) goalsReached++;
+    } else if (g.status === 'closed') goalsSetAside++;
   }
   for (const a of averages) {
     if (dayOf(a.createdAt) > asOf) continue;
     if (a.status === 'completed' && (!a.completedAt || dayOf(a.completedAt) <= asOf)) goalsReached++;
   }
   const goalsAny = platform.goals.some(g => dayOf(g.createdAt) <= asOf) || averages.some(a => dayOf(a.createdAt) <= asOf);
-  const contributionsIn = platform.contributions.filter(c => c.direction === 'IN' && !c.reversesId && dayOf(c.occurredAt) <= asOf);
+  // Session AL (DV-023c): a history-only record never moves a goal, so it lights no Wealth ring either.
+  const contributionsIn = platform.contributions.filter(c => c.direction === 'IN' && !c.reversesId && c.fundingMode !== 'HISTORY_ONLY' && dayOf(c.occurredAt) <= asOf);
   const goalMovedToday = contributionsIn.some(c => dayOf(c.occurredAt) === asOf)
     || platform.goalHistory.some(h => (h.kind === 'milestone' || h.kind === 'status') && dayOf(h.capturedAt) === asOf);
 

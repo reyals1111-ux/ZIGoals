@@ -169,3 +169,5 @@
 .journey-xp-table th, .journey-xp-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, .12)); }
 .journey-xp-history { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 15px; }
 .journey-xp-history li { display: flex; justify-content: space-between; gap: 12px; }
+/* Session AL (NB-227, NB-229): an unmet quest links to the place it is done; a full touch target. */
+.journey-quest-go { display: inline-flex; align-items: center; min-height: 44px; }

@@ -1,8 +1,9 @@
 'use client';
 import Link from 'next/link';
-import type {ReactNode} from 'react';
+import {useRef, type ReactNode} from 'react';
 import {habitDay} from '../../lib/habits';
-import {addWater, dailyData, removeWater, waterSummary} from '../../lib/health-daily';
+import {dailyData, waterOn} from '../../lib/health-daily';
+import {logWaterWithUndo} from '../health/water-log';
 import {waterButtons} from '../../lib/health-quick/quick';
 import {asleep, nightsIn} from '../../lib/sleep/engine';
 import {elapsedMs, formatFast} from '../../lib/fasting/engine';
@@ -18,7 +19,7 @@ import {useFasting} from '../health/use-fasting';
 import {AppIcon} from '../app-icon';
 import {Slot} from '../progress/slot';
 import {SectionHeading} from '../ui/section-heading';
-import {showStatus, showUndo} from '../ui/undo-toast';
+import {showStatus} from '../ui/undo-toast';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {newHealthId} from '../../lib/health';
 
@@ -54,23 +55,22 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
   const done = due.filter(h => habitDay(h, habits.today, habits.today).status === 'complete').length;
   const healthReady = health.loaded && !health.error;
   const daily = healthReady ? dailyData(health.data) : undefined;
-  const water = healthReady ? waterSummary(health.data, healthDate) : undefined;
+  // Session AL (L2 request; P-NB-28 source): the one water reading Health uses (its journal day, mL, `reached` null without a target).
+  const water = healthReady ? waterOn(health.data, healthDate) : undefined;
   const firstWater = healthReady ? waterButtons(health.data)[0] : undefined;
   const lastNight = healthReady && health.data.sleep ? nightsIn(health.data.sleep, healthDate, 1).at(-1) : undefined;
   const slept = lastNight ? asleep(lastNight) : null;
-  async function logWater() {
+  const lastTap = useRef(-Infinity);
+  async function logWater(tapAt: number) {
     if (!firstWater) return;
+    // Session AL (MO-111, P-MO-97): a second tap within 350 ms (the event's own time) is one tap, as on Health.
+    if (tapAt - lastTap.current < 350) return;
+    lastTap.current = tapAt;
     // Session AH (HE1; N-105, B-001): the same id and payload as Health's own water button (a bare UUID is refused).
-    const id = newHealthId(), at = new Date().toISOString();
+    // Session AL (P-NB-27; NB-081, NB-089; L2 request): Health's one water write. Undo removes exactly THIS entry from the
+    // latest Health record (an entry logged since stays), through the app's one toast.
     try {
-      await health.update(latest => addWater(latest, {id, date: healthDate, amountMilli: firstWater.amountMilli, unit: firstWater.unit}, at));
-      // Session AL (P-NB-27; NB-081, NB-089): Undo removes THIS entry from the Health store (the latest record), and says
-      // so only once it is gone; a removal that finds nothing to remove says that instead of "removed".
-      showUndo({message: `Water logged: ${firstWater.label.replace(/^Add /, '')}.`, undoLabel: `Undo the water entry: ${firstWater.label.replace(/^Add /, '')}`, restore: async () => {
-        let found = false;
-        await health.update(latest => { found = dailyData(latest).water.some(w => w.id === id); return found ? removeWater(latest, id) : latest; });
-        return {undone: found ? 'Water entry removed.' : 'That water entry was already removed.'};
-      }});
+      await logWaterWithUndo(health.update, {id: newHealthId(), date: healthDate, amountMilli: firstWater.amountMilli, unit: firstWater.unit}, firstWater.label.replace(/^Add /, ''));
     } catch (e) {
       showStatus(plainErrorMessage(e, 'Could not log water on this device.'), {tone: 'error'});
     }
@@ -106,7 +106,7 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
         {!healthReady || !water || !daily ? <p role="status">{health.error ? 'Health needs attention.' : 'Loading Health…'}</p> : <>
           <strong>{waterText(water.millilitres, daily.preferences.waterUnit)}</strong>
           <p>{water.targetMl ? `of ${waterText(water.targetMl, daily.preferences.waterUnit)} today` : `${water.entries} ${water.entries === 1 ? 'entry' : 'entries'} today`}</p>
-          <div className="focus-actions">{firstWater && <button type="button" className="secondary" aria-label={`${firstWater.label} of water`} onClick={() => void logWater()}>{firstWater.label}</button>}<Link prefetch={false} className="text-link" href="/app/health?add=entry">Log food →</Link></div>
+          <div className="focus-actions">{firstWater && <button type="button" className="secondary" aria-label={`${firstWater.label} of water`} onClick={e => void logWater(e.timeStamp)}>{firstWater.label}</button>}<Link prefetch={false} className="text-link" href="/app/health?add=entry">Log food →</Link></div>
         </>}
       </article>}
       {showHealth && <article className="focus-tile" data-tone="rest" aria-label={fasting.running ? 'Focus: fasting' : 'Focus: sleep'}>

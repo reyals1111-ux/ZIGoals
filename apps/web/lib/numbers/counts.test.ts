@@ -26,6 +26,10 @@ test('a check-in is a scheduled day completed, once per habit; partly done and s
 test('Goals: active and finished from each status, average goals included', () => {
   expect(goalCounts([{status: 'active'}, {status: 'completed'}, {status: 'closed'}], [{status: 'active'}, {status: 'completed'}])).toEqual({active: 2, finished: 2});
 });
+test('Session AL (P-DV-22, DV-057a): a goal reached and then closed counts as finished, the same on Today and the goals widget', () => {
+  // A summary carries `reached`; a closed goal that never reached its target is neither active nor finished.
+  expect(goalCounts([{status: 'closed', reached: true}, {status: 'closed', reached: false}, {status: 'active'}])).toEqual({active: 1, finished: 1});
+});
 test('assets: live-priced by Wealth\'s rule, the rest manual; archived left out', () => {
   const base = {providerId: 'manual', sourceType: 'MANUAL', network: 'manual', account: 'local', denom: 'x', quantity: '1', decimals: 0, verification: 'MANUAL', observedAt: '2026-09-01T00:00:00.000Z', liquidity: 'LIQUID', provenance: 'User entry'} as const;
   const live = positionSchema.parse({...base, id: 'p1', asset: 'BTC', marketRef: {provider: 'coingecko', kind: 'coin', id: 'bitcoin'}, valuationMode: 'automatic'});

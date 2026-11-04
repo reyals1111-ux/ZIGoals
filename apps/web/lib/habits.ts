@@ -1,7 +1,8 @@
 import * as z from "zod";
 import { addLocalDays, localDate, localWeekday } from "./local-date";
 import { journalTimeZone } from "./journal-zone";
-import { formatDate } from "./visual-format";
+import { formatDate, formatNumber } from "./visual-format";
+import { unitAmountText } from "./plural";
 import { minutesIssue, within } from "./limits/plausibility";
 
 export const HABITS_KEY = "zigoals:habits:v1";
@@ -507,6 +508,16 @@ function computeHabitStats(habit: Habit, today: string) {
   const currentPeriod = aggregatePeriod(habitRuleOn(habit,today)??habit.rules[0]!); const streakUnit: StreakUnit = currentPeriod ? `${currentPeriod}s` as StreakUnit : "days";
   return { currentStreak: streakBoard[streakUnit].current, bestStreak: streakBoard[streakUnit].best, streakUnit, streakBoard, weeklyCompleted, weeklyScheduled, weeklyConsistency: weeklyScheduled ? Math.round(weeklyCompleted / weeklyScheduled * 100) : 0, successCount, failCount, skipCount, completionPercentage, consistency: completionPercentage };
 }
+/**
+ * Session AL (DV-028, P-DV-65): this week's consistency in words: "Not due yet this week" while no scheduled day has
+ * come (never "0%", which reads as failure), else "N% this week" (the one percent rule: half up, 100 only when complete).
+ */
+export function weeklyConsistencyText(habit: Habit, today = localDate()): string {
+  const s = habitStats(habit, today);
+  if (!s.weeklyScheduled) return "Not due yet this week";
+  const pct = s.weeklyCompleted >= s.weeklyScheduled ? 100 : Math.min(99, Math.floor(s.weeklyCompleted / s.weeklyScheduled * 100 + 0.5));
+  return `${pct}% this week`;
+}
 export function habitTrends(habit: Habit, today = localDate()) { return memoized(habit, `trends:${today}`, () => computeHabitTrends(habit, today)); }
 function computeHabitTrends(habit: Habit, today: string) {
   const windows = [{ key: "day", days: 1 }, { key: "week", days: 7 }, { key: "month", days: 30 }, { key: "year", days: 365 }] as const;
@@ -528,13 +539,24 @@ export function scheduleLabel(schedule: HabitRule["schedule"], habitId?: string)
 }
 export function measurementUnit(rule: HabitRule): string { return rule.measurement.kind === "boolean" ? "" : rule.measurement.unit; }
 export function smartDoneValue(rule: HabitRule): number { return rule.type === "build" ? rule.target : 0; }
+/**
+ * Session AL (DV-047a, DV-171, DV-207; P-DV-75 habit rows): one logged day in words, with the habit's own unit:
+ * "Done", "500 of 2,000 mL · done", "1 of 3 times", a quit day "Stayed on track" or "2 slips", a limit "2 of at most 3 cups".
+ */
+export function habitEntryText(rule: HabitRule, count: number): string {
+  const unit = measurementUnit(rule), ok = individualSuccess(rule, count), n = formatNumber(count, { maximumFractionDigits: 2 });
+  if (rule.type === "quit") return count <= rule.target ? "Stayed on track" : unit && unit !== "times" ? `${unitAmountText(count, unit)} · a slip` : `${n} ${count === 1 ? "slip" : "slips"}`;
+  if (rule.type === "limit") return `${n} of at most ${unit ? unitAmountText(rule.target, unit) : formatNumber(rule.target)}${ok ? " · within limit" : " · over the limit"}`;
+  if (rule.measurement.kind === "boolean" || (unit === "times" && rule.target === 1 && count <= 1)) return ok ? "Done" : "Logged";
+  return `${n} of ${unit ? unitAmountText(rule.target, unit) : formatNumber(rule.target)}${ok ? " · done" : ""}`;
+}
 export function getHabitActivities(data: HabitData): { id: string; category: "HABIT"; title: string; detail: string; at: string; day: string; href: string }[] {
   return data.habits.flatMap((habit) => habit.entries.filter((entry) => {
     if (entry.disposition !== "logged") return false;
     const rule = habitRuleOn(habit, entry.date);
     return !!rule && (rule.type !== "build" || entry.count > 0);
   }).map((entry) => {
-    const rule = habitRuleOn(habit, entry.date)!; const outcome = individualSuccess(rule, entry.count) ? "completed" : "logged";
-    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${formatDate(entry.date)} · ${entry.count} / ${rule.target} ${outcome}`, at: entry.updatedAt, day: entry.date, href: "/app/habits" };
+    const rule = habitRuleOn(habit, entry.date)!;
+    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${formatDate(entry.date)} · ${habitEntryText(rule, entry.count)}`, at: entry.updatedAt, day: entry.date, href: "/app/habits" };
   })).sort((a, b) => b.at.localeCompare(a.at));
 }

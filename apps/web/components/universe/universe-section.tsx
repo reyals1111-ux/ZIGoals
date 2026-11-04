@@ -1,7 +1,7 @@
 'use client';
 import {useMemo, useState, type CSSProperties} from 'react';
 import {NebulaFlow} from '../nebula-flow';
-import {showToast} from '../ui/undo-toast';
+import {showStatus} from '../ui/undo-toast';
 import {drawShareCard, shareOrSave} from '../../lib/share-image';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import {crossPillarInsights, CROSS_MIN_PER_SIDE} from '../../lib/insights/cross-pillar';
@@ -38,8 +38,8 @@ export function UniverseSection() {
       const card = universeShareCard(universe, formatDate(state.today));
       const blob = await drawShareCard({...card, footer: 'Made on this device with ZIGoals', accent: [PILLAR_HEX.habits, PILLAR_HEX.goals, PILLAR_HEX.health]});
       const how = await shareOrSave(blob, `my-universe-${state.today}.png`, 'My universe');
-      showToast({message: how === 'shared' ? 'Shared.' : 'Image saved.'});
-    } catch { showToast({message: 'The image could not be made on this device.'}); } finally { setBusy(false); }
+      showStatus(how === 'shared' ? 'Shared.' : 'Image saved.');
+    } catch { showStatus('The image could not be made on this device.', {tone: 'error'}); } finally { setBusy(false); }
   };
   const title = !universe ? 'My universe' : universe.empty ? 'Your universe is waiting for its first light.' : `${plural(universe.totals.rings, 'ring')}, ${plural(universe.totals.moons, 'moon')}`;
   return <section id="universe" className="panel universe-section" aria-labelledby="universe-title" data-universe={!loaded ? 'loading' : universe?.empty ? 'empty' : 'ready'}>
@@ -61,7 +61,7 @@ export function UniverseSection() {
         <ul className="universe-facts">{p.facts.map(f => <li key={f}>{keepWords(f)}</li>)}</ul>
       </li>)}</ul>
       {discovery && (discovery.ready[0] ? <div className="universe-discovery" role="note" aria-label="Discovery"><p className="eyebrow">Discovery · {discovery.ready[0].title}</p><p>{discovery.ready[0].sentence}</p><p className="fine">Seen together in your own records over the last 90 days, never a cause.</p></div>
-        : discovery.pending[0] && <div className="universe-discovery is-pending" role="note" aria-label="Discovery"><p className="eyebrow">A discovery is forming</p><p>{discovery.pending[0].title}: {Math.min(discovery.pending[0].withA, CROSS_MIN_PER_SIDE)} and {Math.min(discovery.pending[0].withoutA, CROSS_MIN_PER_SIDE)} of the {CROSS_MIN_PER_SIDE} days on each side it needs.</p></div>)}
+        : discovery.pending[0] && <div className="universe-discovery is-pending" role="note" aria-label="Discovery"><p className="eyebrow">A discovery is forming</p><p>{/* Session AL (DV-023e, P-DV-33): what it is waiting for, in plain words */}{discovery.pending[0].title}: it compares days with and without, and needs {CROSS_MIN_PER_SIDE} of each. So far {Math.min(discovery.pending[0].withA, CROSS_MIN_PER_SIDE)} with and {Math.min(discovery.pending[0].withoutA, CROSS_MIN_PER_SIDE)} without.</p></div>)}
       {/* Session AJ (item 29, D10): the Life Score, opt-in. */}
       {state.input && <LifeScorePanel input={state.input} />}
       {/* Session AJ (item 34, A7) */}

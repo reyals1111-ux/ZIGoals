@@ -170,7 +170,9 @@ test('6. Delete for good: an archived habit goes after its name is typed, its st
   await confirm.getByLabel('Type the habit’s name to confirm').fill('Stretch');
   await go.click();
   await expect(card).toHaveCount(0);
-  const undo = page.getByRole('status').filter({hasText: '“Stretch” was deleted for good.'}).getByRole('button', {name: /^Undo · \d+ s$/});
+  // Session AL (COPY_AUDIT/PRIMITIVES 3e, deliberate): the delete's Undo moved onto the app's one Undo toast (showUndo, ten
+  // seconds), so its button is the toast's "Undo deleting Stretch", no longer the page's own "Undo · N s" countdown.
+  const undo = page.locator('.aa-toast').filter({hasText: '“Stretch” was deleted for good.'}).getByRole('button', {name: 'Undo deleting Stretch', exact: true});
   await expect(undo).toBeVisible();
   const stored = async () => (await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), HABITS_KEY)) as {habits: {id: string; title: string; notes: string; entries: unknown[]; stackAfterId?: string; ruleRevisions?: unknown[]}[]};
   let record = await stored();
@@ -191,7 +193,8 @@ test('6. Delete for good: an archived habit goes after its name is typed, its st
   await page.getByRole('article', {name: 'Stretch', exact: true}).getByRole('button', {name: 'Delete for good…', exact: true}).click();
   await page.getByLabel('Type the habit’s name to confirm').fill('Stretch');
   await page.getByRole('button', {name: 'Delete for good', exact: true}).click();
-  await expect(page.getByRole('button', {name: /^Undo · \d+ s$/})).toHaveCount(0, {timeout: 15_000});
+  // Session AL (deliberate, as above): the toast's Undo is gone after its ten seconds.
+  await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo deleting Stretch', exact: true})).toHaveCount(0, {timeout: 15_000});
   await expect(page.getByText('Deleted habit')).toHaveCount(0);
   await page.getByRole('group', {name: 'Filter habits'}).getByRole('button', {name: 'All', exact: true}).click();
   await expect(page.getByText('Deleted habit')).toHaveCount(0);
