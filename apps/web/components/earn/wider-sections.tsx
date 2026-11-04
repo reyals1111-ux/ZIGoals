@@ -4,6 +4,7 @@ import type {LiveState} from '../../lib/earn/client';
 import {bps, decimal, tokenAmount} from '../../lib/earn/format';
 import type {OroswapData, VaultsData} from '../../lib/earn/live/types';
 import {NOBLE_USDC, ZIG_ROUTES} from '../../lib/earn/options';
+import {nobleUsdcLine} from '../../lib/earn/dated';
 import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
 import {GOAL_VAULTS, partsOf} from '../../lib/goal-vaults/store';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -92,7 +93,7 @@ function GoalVaultsFigure({now}: {now: number}) {
 }
 
 export function GoalVaultsSection({now}: {now: number}) {
-  return <OptionSection id="goal-vaults" eyebrow="ZIGoals · Goal Vaults" title="Put your stake to work for a goal"
+  return <OptionSection id="goal-vaults" eyebrow="ZIGoals · Goal Vaults" title="Link stake you already hold to a goal"
     lede={<>Link stake or stZIG you already hold to one of your goals, and see the goal move with it: what you staked, the rewards waiting, and the growth since you linked it. <WhatsThis term="rewards"/></>}
     logo={{alt: '', glyph: <EarnGlyphMark/>}}
     tags={[{tone: 'live', text: 'In ZIGoals'}, {tone: 'keys', text: 'You keep the keys'}]}
@@ -129,12 +130,12 @@ export function GoalVaultsSection({now}: {now: number}) {
 export function StablecoinsSection({oroswap, vaults, now}: {oroswap: LiveState<OroswapData>; vaults: LiveState<VaultsData>; now: number}) {
   const pool = (id: string) => shown(oroswap, d => { const p = d.pools.find(x => x.id === id); return p ? p.reserves.map(r => tokenAmount(r.amount, r.decimals, r.symbol, {compact: true})).join(' + ') : null; });
   const hint = (id: string) => { const p = oroswap.phase === 'ok' ? oroswap.answer.data.pools.find(x => x.id === id) : null; return p ? <>1 {p.price.base} = {decimal(p.price.value, 5)} {p.price.quote} · fee {bps(p.feeBps)} a swap</> : undefined; };
-  return <OptionSection id="stablecoins" eyebrow="USDC and USDT on ZIGChain" title="Earn with stablecoins"
+  return <OptionSection id="stablecoins" eyebrow="USDC and USDT on ZIGChain" title="Stablecoins on ZIGChain: what exists"
     lede={<>What exists on ZIGChain for USDC and USDT today, in plain words. It is not much yet, and every network fee is paid in ZIG. <WhatsThis term="gas"/></>}
     logo={{alt: '', glyph: <EarnGlyphMark/>}}
     tags={[{tone: 'beta', text: 'Honestly thin today'}, {tone: 'paused', text: 'Fees in ZIG only'}]}
     notice={<>
-      <p><b>Two kinds of USDC reach ZIGChain.</b> USDC.inj comes from Injective and is the one Circle and the bridges point new money to. USDC on Noble (USDC.n) still arrives, but {continueSentence(NOBLE_USDC.text)} <span className="fine">({NOBLE_USDC.source}, read {day(NOBLE_USDC.readOn)})</span> <VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink> <WhatsThis term="bridge"/></p>
+      <p><b>Two kinds of USDC reach ZIGChain.</b> USDC.inj comes from Injective and is the one Circle and the bridges point new money to. USDC on Noble (USDC.n) still arrives, but {continueSentence(nobleUsdcLine(now))} <span className="fine">({NOBLE_USDC.source}, read {day(NOBLE_USDC.readOn)}) · a dated notice, its dates worded from today; not a live figure</span> <VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink> <WhatsThis term="bridge"/></p>
       <p>{ZIG_ROUTES.fees}</p>
     </>}
     facts={[

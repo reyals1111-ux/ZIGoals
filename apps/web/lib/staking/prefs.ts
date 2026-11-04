@@ -2,6 +2,7 @@ import * as z from 'zod';
 import {readDeviceRecord, updateDeviceRecord, type DeviceRecordSpec} from '../device-record';
 import {STAKING_PREFS_KEY} from '../af-signing-keys';
 import {isValoper} from './address';
+import {ZIGI_STORE_EVENT} from '../ai/store/keys';
 
 /**
  * Session AF (ADR-028 H46, L2 design §12; `TIER 3 (storage)`): the person's staking choices on this device.
@@ -53,5 +54,8 @@ export const readStakingPrefs = (storage: Read) => readDeviceRecord(storage, STA
 export const updateStakingPrefs = (storage: ReadWrite, change: (prefs: StakingPrefs) => StakingPrefs) => {
   const current = readStakingPrefs(storage);
   if (current.unreadable) throw Error('Your staking choices could not be read on this device, so nothing was changed.');
-  return updateDeviceRecord(storage, STAKING_PREFS, change);
+  const next = updateDeviceRecord(storage, STAKING_PREFS, change);
+  // Session AL (BN-083): every reader on the page (the Staking totals' network note) follows a network change at once.
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: STAKING_PREFS_KEY}));
+  return next;
 };

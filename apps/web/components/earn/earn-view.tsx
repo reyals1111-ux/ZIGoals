@@ -83,8 +83,8 @@ export function EarnView() {
         <SectionBoundary id="permapod" title="Borrow and lend: Permapod"><PermapodSection llama={llama} now={now}/></SectionBoundary>
         <SectionBoundary id="zignaly" title="Zignaly is closing: how to withdraw"><ZignalySection now={now}/></SectionBoundary>
         <SectionBoundary id="governance" title="Have a say: governance"><GovernanceSection/></SectionBoundary>
-        <SectionBoundary id="goal-vaults" title="Put your stake to work for a goal"><GoalVaultsSection now={now}/></SectionBoundary>
-        <SectionBoundary id="stablecoins" title="Earn with stablecoins"><StablecoinsSection oroswap={oroswap} vaults={vaults} now={now}/></SectionBoundary>
+        <SectionBoundary id="goal-vaults" title="Link stake you already hold to a goal"><GoalVaultsSection now={now}/></SectionBoundary>
+        <SectionBoundary id="stablecoins" title="Stablecoins on ZIGChain: what exists"><StablecoinsSection oroswap={oroswap} vaults={vaults} now={now}/></SectionBoundary>
         <SectionBoundary id="validators" title="Choose a validator from facts"><ValidatorsSection validators={validators} now={now}/></SectionBoundary>
         <SectionBoundary id="academy" title="Earn Academy"><AcademySection/></SectionBoundary>
         <section id="calculator" className="earn-calculator panel" aria-labelledby="calculator-title">

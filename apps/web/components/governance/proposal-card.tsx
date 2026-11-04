@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {lazy, Suspense, useId, useState, type FormEvent} from 'react';
 import {explorerLinksFor} from '@zigoals/ecosystem-registry/links';
-import {CHOICE_WORDS, STATE_WORDS, deadlineWords, durationWords, percentOf, scaled, tallyView, whatChanges} from '../../lib/governance/plain-words';
+import {CHOICE_WORDS, STATE_WORDS, deadlineWords, durationWords, looksLikeTest, percentOf, plainMarkdown, scaled, tallyView, whatChanges} from '../../lib/governance/plain-words';
 import {VOTE_CHOICES, type GovParams, type ProposalWire, type VoteChoiceWire, type VoteWire} from '../../lib/governance/wire';
 import type {JournalVote} from '../../lib/governance/votes';
 import {zigText} from '../../lib/staking/view';
@@ -44,6 +44,8 @@ export function ProposalCard({proposal, params, bondedTotal, now, chainId, votin
     <header className="governance-proposal-head">
       <p className="eyebrow"><span className={`governance-state is-${proposal.state}`}>{STATE_WORDS[proposal.state]}</span> · Proposal #{proposal.id}{proposal.expedited ? ' · expedited' : ''}</p>
       <h3 id={`${id}-title`}>{proposal.title}</h3>
+      {/* Session AL (BN-008, BN-180): a test or an unfilled template says so by its title; it stays as the chain holds it. */}
+      {looksLikeTest(proposal.title) && <p className="governance-test-tag"><span className="pill">Looks like a test or template</span> Its title reads like a test or an unfilled template, so it may not be a real decision.</p>}
       <p className="governance-deadline"><strong>{deadlineWords(proposal, now)}</strong>{proposal.votingEndTime ? <> · <time dateTime={proposal.votingEndTime}>{formatDateTime(proposal.votingEndTime)}</time></> : null}</p>
     </header>
     <section className="governance-changes" aria-label={`What it would change, proposal #${proposal.id}`}>{/* F8: unique per card (landmark-unique) */}
@@ -59,7 +61,8 @@ export function ProposalCard({proposal, params, bondedTotal, now, chainId, votin
         </div>
         <ul className="governance-shares">{SHARES.map(([k, label]) => <li key={k} className={`is-${k}`}><span>{label}</span> <strong>{view.shares[k]}</strong></li>)}</ul>
       </> : <p>No votes {live ? 'yet' : 'were counted'}.</p>}
-      <p className="fine">To pass, at least {percentOf(scaled(params.quorum))} of all staked ZIG must vote (the quorum), Yes must be more than {percentOf(scaled(threshold))} of the votes that are not Abstain, and No with veto must stay at or below {percentOf(scaled(params.vetoThreshold))} of all votes{params.burnVoteVeto ? ' (above it, the deposit is burned)' : ''}. These are the chain&rsquo;s own numbers.{explainQuorum && <> <WhatsThis term="quorum"/></>}</p>
+      {/* Session AL (BN-008; P-BN-28): the rules once, on the first card with votes; the others point to it. */}
+      {!explainQuorum ? <p className="fine">The passing rules (quorum, threshold and veto) are under the first proposal&rsquo;s votes above.</p> : <p className="fine">To pass, at least {percentOf(scaled(params.quorum))} of all staked ZIG must vote (the quorum), Yes must be more than {percentOf(scaled(threshold))} of the votes that are not Abstain, and No with veto must stay at or below {percentOf(scaled(params.vetoThreshold))} of all votes{params.burnVoteVeto ? ' (above it, the deposit is burned)' : ''}. These are the chain&rsquo;s own numbers. <WhatsThis term="quorum"/></p>}
       {live && view.verdict && <p className="governance-verdict">{view.verdict} Turnout so far: {view.turnout} of staked ZIG.</p>}
     </section>}
     <dl className="governance-facts">
@@ -67,11 +70,13 @@ export function ProposalCard({proposal, params, bondedTotal, now, chainId, votin
       {/* Session AH (ST7, D-169): an ended or running proposal states its own voting period, not today's setting. */}
       <div><dt>Voting period</dt><dd>{proposal.votingStartTime && proposal.votingEndTime && Date.parse(proposal.votingEndTime) > Date.parse(proposal.votingStartTime) ? <>{durationWords(Math.round((Date.parse(proposal.votingEndTime) - Date.parse(proposal.votingStartTime)) / 1000))} for this proposal</> : <>{durationWords(proposal.expedited ? params.expeditedVotingPeriodSeconds : params.votingPeriodSeconds)} on this network</>}</dd></div>
       <div><dt>Submitted</dt><dd><time dateTime={proposal.submitTime}>{formatDateTime(proposal.submitTime)}</time></dd></div>
+      {/* Session AL (BN-178): the deposit period apart from the voting period, so "10 minutes" and the dates agree. */}
+      {proposal.votingStartTime && Date.parse(proposal.votingStartTime) - Date.parse(proposal.submitTime) > 60_000 && <div><dt>Voting started</dt><dd><time dateTime={proposal.votingStartTime}>{formatDateTime(proposal.votingStartTime)}</time>, once its deposit was complete (the time before that is the deposit period, not voting)</dd></div>}
       {/* Session AH (ST7, L-043, B-112): "Rejected" with mostly Yes votes is explained in words; the chain's own reason is quoted as the chain's. */}
-      {proposal.state === 'rejected' && BigInt(proposal.tally.yes) > BigInt(proposal.tally.no) + BigInt(proposal.tally.noWithVeto) && <div><dt>Why Rejected with mostly Yes</dt><dd>A proposal also needs enough of all staked ZIG to vote (the quorum, above). When too few vote, the chain rejects it whatever the votes say.</dd></div>}
+      {proposal.state === 'rejected' && BigInt(proposal.tally.yes) > BigInt(proposal.tally.no) + BigInt(proposal.tally.noWithVeto) && <div><dt>Why Rejected with mostly Yes</dt><dd>A proposal also needs enough of all staked ZIG to vote (the quorum, above). When too few vote, the chain rejects it whatever the votes say. {/* Session AL (BN-177) */}ZIGoals cannot show this proposal&rsquo;s turnout: the chain keeps its final votes, but not how much ZIG was staked when voting ended.</dd></div>}
       {proposal.failedReason && <div><dt>The chain&rsquo;s own reason</dt><dd><q>{proposal.failedReason}</q></dd></div>}
     </dl>
-    {proposal.summary && <details className="governance-summary"><summary>In the proposer&rsquo;s own words</summary><p className="fine">The proposer wrote this; ZIGoals has not checked it.</p><p className="governance-summary-text">{proposal.summary}</p></details>}
+    {proposal.summary && <details className="governance-summary"><summary>In the proposer&rsquo;s own words</summary><p className="fine">The proposer wrote this; ZIGoals has not checked it.</p><p className="governance-summary-text">{plainMarkdown(proposal.summary)}</p></details>}
     {voting?.journal && <p className="governance-journal" role="status">You voted <strong>{CHOICE_WORDS[voting.journal.choice].label}</strong> from this device on {formatDateTime(voting.journal.at)}.{links.map(link => <span key={link.url}> <a href={link.url} target="_blank" rel="noopener noreferrer">Check it on {link.name} ↗</a></span>)}</p>}
     {proposal.state === 'voting' && voting && <form className="governance-vote" onSubmit={submit} aria-label={`Your vote on proposal ${proposal.id}`}>
       {voting.myVote.phase === 'reading' && <p className="fine">Reading your vote from the chain…</p>}

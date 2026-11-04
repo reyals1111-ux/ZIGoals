@@ -312,7 +312,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   const max = action === 'delegate' ? undefined : delegations.find(d => d.validator === validator)?.amount;
   return <section className={`panel staking-actions is-${network}`} aria-labelledby="staking-actions-title">
     <div className="staking-actions-head">
-      <div><p className="eyebrow">Signed in your own wallet</p><h2 id="staking-actions-title">Stake, unstake and claim</h2></div>
+      <div><p className="eyebrow">{/* Session AL (D-169, N-BN-02): a fact about how it works, not a status */}You sign every action in your own wallet</p><h2 id="staking-actions-title">Stake, unstake and claim</h2></div>
       <NetworkSwitch network={network} onChoose={choose} disabled={quoting || !!quote}/>
     </div>
     <NetworkBanner network={network}/>

@@ -29,6 +29,9 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:activity', kind: 'page', title: 'Activity', href: '/app/activity', keywords: ['history', 'timeline', 'log']},
   {id: 'page:settings', kind: 'page', title: 'Settings', href: '/app/settings', keywords: ['preferences', 'options']},
   {id: 'page:help', kind: 'page', title: 'Help', href: '/app/help', keywords: ['questions', 'faq', 'support']},
+  // Session AL (O2, O3; shell lane request): the Plans page, and where the assistant and small apps live on each screen.
+  {id: 'page:plans', kind: 'page', title: 'Plans and prices', href: '/app/plans', keywords: ['plan', 'plans', 'price', 'prices', 'premium', 'pricing', 'cost', 'free', 'alpha', 'pay', 'subscription']},
+  {id: 'page:apps-extras', kind: 'page', title: 'Apps & extras', subtitle: 'Help', href: '/app/help#nova', keywords: ['apps', 'extras', 'zigi', 'nova', 'checklist', 'tasks', 'notes', 'journal', 'agenda', 'music', 'earn', 'launcher', 'sheet', 'where']},
   // Session AA-Local's pages and views (merged second, ADR-022 B52).
   {id: 'page:journey', kind: 'page', title: 'Journey', href: '/app/journey', keywords: ['game', 'level', 'quests', 'badges', 'xp', 'freeze']},
   {id: 'page:checklist', kind: 'page', title: 'Checklist', href: '/app/checklist', keywords: ['path', 'dots', 'favourites', 'favorites', 'daily', 'orbit', 'star', 'checklist']},
@@ -88,6 +91,7 @@ export const HELP_TOPICS: readonly [string, string][] = [
   ["backups", "Optional backups"],
   ["your-ai", "ZIGi · Your Personal AI Companion"],
   ["nova", "NOVA, notes and tasks"],
+  ["more-pages", "Earn, Staking, Ecosystem and Chess"],
   ["questions", "Questions"],
   ["whats-new-alpha", "What's new"],
   // Session AK G2 (RELEASE_REVIEW R24): the release topics ("New: …") are one "Earlier updates" topic; their answers keep their ids.
@@ -133,6 +137,11 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["ak-unkept-chat", "Can I have a chat that is not kept?"],
   ["notes-what", "How do notes work?"],
   ["tasks-what", "How do tasks, calendar import and Pomodoro work?"],
+  // Session AL (BN-025): Help's own topic for the opt-in money and chain pages and Chess.
+  ["al-more-pages", "Where are Earn, Staking, Governance and Ecosystem?"],
+  ["al-wallets", "Can I rename or remove a wallet I track?"],
+  ["al-ecosystem", "What is the Ecosystem page?"],
+  ["al-chess", "What does the Chess page do?"],
   ["y-vacation", "Can I end a vacation early?"],
   ["y-minus", "I tapped “+” once too often. Can I take it back?"],
   ["y-unit", "Can I change an asset’s unit?"],

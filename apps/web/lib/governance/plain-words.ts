@@ -135,3 +135,24 @@ export function deadlineWords(proposal: Pick<ProposalWire, 'state' | 'votingEndT
   }
   return proposal.votingEndTime ? 'Voting ended' : 'No voting took place';
 }
+
+/**
+ * Session AL (BN-179; P-BN-29): a proposer's summary is often Markdown. ZIGoals never renders it as markup; it shows the
+ * words without the Markdown marks ("## Summary" → "Summary", "**bold**" → "bold", "[text](url)" → "text (url)"), so
+ * the expanded text reads like the collapsed preview. Everything else, angle brackets included, stays exactly as written.
+ */
+export function plainMarkdown(text: string): string {
+  return text.split('\n').map(line => line
+    .replace(/^\s{0,3}#{1,6}\s+/, '')
+    .replace(/^\s{0,3}>\s?/, '')
+    .replace(/^(\s*)[-*+]\s+/, '$1• ')
+    .replace(/\[([^\]\n]{1,300})\]\(([^)\s]{1,500})\)/g, '$1 ($2)')
+    .replace(/(\*\*|__)(?=\S)([^\n]*?\S)\1/g, '$2')
+    .replace(/`([^`\n]+)`/g, '$1')
+    .replace(/^\s*([-*_])(\s*\1){2,}\s*$/, '')).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+/**
+ * Session AL (BN-008, BN-180; P-BN-28): a title that reads like a test or an unfilled template ("[COMPANY_NAME] …",
+ * "Test proposal", "…_Test"). Only a label beside the title: the proposal stays in the list, as the chain holds it.
+ */
+export const looksLikeTest = (title: string) => /\[[A-Z][A-Z0-9_ ]{2,}\]/.test(title) || /(^|[\s_\-:])test(s|ing)?($|[\s_\-:.!])/i.test(title);

@@ -132,3 +132,9 @@
 .staking-order-toggle input{width:22px;height:22px;flex:none}
 .staking-validator-hint{color:var(--text-secondary,#b7c8de);font-size:15px}
 .staking-spread{margin:0}
+/* Session AL (BN-003; P-BN-44): at phone width the real-network confirm stacks its buttons full width, the main one first,
+   and long labels wrap, so "Continue on the real network" is never clipped. */
+@media (max-width: 480px) {
+  .staking-real-confirm .staking-sheet-actions { flex-direction: column-reverse; align-items: stretch; }
+  .staking-real-confirm .staking-sheet-actions button { width: 100%; white-space: normal; min-height: 44px; }
+}

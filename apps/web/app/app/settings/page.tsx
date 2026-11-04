@@ -2,6 +2,7 @@
 import { DataHome } from "../../../components/bottom-sections";
 import {WhatsThis} from "../../../components/earn/whats-this";
 import {DeviceLockSettings} from "../../../components/device-lock";
+import {PlanSettingsRow} from "../../../components/plans/plan-settings-row";
 import { SendFeedback } from "../../../components/help/send-feedback";
 import { AboutThisAlpha } from "../../../components/alpha/about-this-alpha";
 import { PointTellSetting } from "../../../components/point-tell/point-tell-setting";
@@ -30,7 +31,7 @@ import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import { NovaSettingsLinks } from "../../../components/settings/nova-settings-links";
 import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { useGoals } from "../../../components/goal-provider";
 import { ConnectionDiagnostics } from "../../../components/connection-diagnostics";
 import { shortAccount } from "../../../lib/diagnostics";
@@ -52,6 +53,8 @@ import { AfEarnSection } from "../../../components/settings/af-earn-section";
 import { AfSigningSection } from "../../../components/settings/af-signing-section";
 import { AfExtrasSection } from "../../../components/settings/af-extras-section";
 import { useChainChoice } from "../../../components/chain/use-chain-choice";
+// Session AL (BN-112): its own chunk, loaded only once the chain is chosen and the wallet group shows.
+const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wallets"));
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
@@ -214,6 +217,8 @@ export default function Settings() {
       </SettingsGroup>
       <SettingsGroup id="settings-app" title="Your app">
         <ShowcaseControls/>
+        {/* Session AL (O2, shell lane request): the Plan row beside Your pages & buttons; nothing is bought here. */}
+        <PlanSettingsRow/>
         <PagesSettings/>
         <AfChecklistSection/>
         {/* Session AK X1 (RELEASE_REVIEW R4): Earn's, Staking's and Governance's own choices once the chain is chosen. */}
@@ -250,6 +255,8 @@ export default function Settings() {
           <section className="panel" id="network"><p className="eyebrow">NETWORK</p><h2>ZIGChain networks.</h2>{/* Session AH (DE1, ST1, AF4; the owner's 18 Oct decision): practice on zig-test-2, real on zigchain-1 after a one-time confirm, signed in Keplr. */}<p>Goals and the wallet control above: the practice network, zig-test-2 · ZIG (18 decimals), no real value. <WhatsThis term="practice-network"/></p><p>Staking: the practice network, or the real network (zigchain-1, real ZIG) after a one-time confirmation. You sign every step in Keplr.</p><p>Wealth, Earn and Staking read the real network&rsquo;s public figures, read-only.</p><span className="badge">Practice network · real staking opt-in</span><p className="fine">Connect or reconnect explicitly with the wallet control above. Reload returns to Local Demo.</p></section>
           <section className="panel" id="contract"><p className="eyebrow">GOALS / CONTRACT</p><h2>The financial layer.</h2><p>Goal Manager: {deployment.success && deployment.data.status === "DEPLOYED" ? "See deployment diagnostics" : "NOT DEPLOYED"}</p><p>Code ID: {deployment.success ? deployment.data.codeId ?? "NOT DEPLOYED" : "Configuration invalid"}</p><p className="fine">Idle strategy. Contract execution is disabled in the public Alpha.</p></section>
         </div>
+        {/* Session AL (BN-112): the tracked public wallets, each with Rename and Remove (the Staking page has the same list). */}
+        <section className="panel" id="tracked-wallets"><LoadBoundary label="Tracked wallets"><Suspense fallback={null}><TrackedWallets/></Suspense></LoadBoundary></section>
         </section>}
       </SettingsGroup>
       <SettingsGroup id="settings-zigi" title="Your assistant">

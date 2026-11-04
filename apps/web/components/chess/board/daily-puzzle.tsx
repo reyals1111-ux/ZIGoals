@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
-import {fetchDailyPuzzle, puzzleMove, puzzlePosition, revealNext, startProgress, type DailyPuzzle as Puzzle, type PuzzleProgress} from '../../../lib/chess/puzzle';
+import {fetchDailyPuzzle, puzzleMove, puzzlePosition, readPuzzleProgress, revealNext, savePuzzleProgress, startProgress, type DailyPuzzle as Puzzle, type PuzzleProgress} from '../../../lib/chess/puzzle';
+import {getAppStorage} from '../../../lib/showcase-storage';
 import {findUci, inCheck, parseSquare, replay} from '../../../lib/chess/rules';
 import {applyPuzzleCheckIn, puzzleCheckIn} from '../../../lib/skills/chess/puzzle';
 import {markApplied} from '../../../lib/skills/chess/engine';
@@ -16,12 +17,15 @@ import {ChessBoard, MoveInput, MoveList} from './chess-board';
  * off the habit chosen in Chess, once a day, like a finished game; the Showcase changes nothing.
  */
 const sideName = (c: 'white' | 'black') => c === 'white' ? 'White' : 'Black';
+const store = () => { try { return getAppStorage(); } catch { return null; } };
 export function DailyPuzzle({state, habits}: {state: ReturnType<typeof useChess>; habits: Pick<HabitsStore, 'data' | 'loaded' | 'error' | 'update'>}) {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null), [loading, setLoading] = useState(false), [error, setError] = useState('');
   const [progress, setProgress] = useState<PuzzleProgress>(startProgress), [hold, setHold] = useState(false), [said, setSaid] = useState<{text: string; tone?: 'good' | 'bad'} | null>(null), [ticked, setTicked] = useState('');
   const timer = useRef<number | undefined>(undefined), tickedFor = useRef<string | null>(null);
   useEffect(() => () => window.clearTimeout(timer.current), []);
   const {settings, showcase} = state;
+  // Session AL (BN-183): the moves so far are kept for this puzzle, so a reload brings them back.
+  useEffect(() => { if (puzzle) savePuzzleProgress(store(), puzzle, progress); }, [puzzle, progress]);
   useEffect(() => {
     if (!puzzle || !progress.solved || progress.revealed || showcase || tickedFor.current === puzzle.id) return;
     if (!settings.loaded || settings.error || !habits.loaded || habits.error) return;
@@ -39,7 +43,13 @@ export function DailyPuzzle({state, habits}: {state: ReturnType<typeof useChess>
 
   async function load() {
     setLoading(true); setError('');
-    try { const p = await fetchDailyPuzzle(); setPuzzle(p); setProgress(startProgress()); setSaid({text: `Find the best move for ${sideName(p.color)}.`}); }
+    try {
+      const p = await fetchDailyPuzzle(), saved = readPuzzleProgress(store(), p);
+      // A puzzle solved before this reload was already counted then; it is not counted again.
+      if (saved?.solved) tickedFor.current = p.id;
+      setPuzzle(p); setProgress(saved ?? startProgress());
+      setSaid({text: saved?.solved ? 'Solved earlier today. Start again to play it once more.' : saved?.played.length ? 'Your moves so far are back. Find the next move.' : `Find the best move for ${sideName(p.color)}.`});
+    }
     catch (e) { setError(e instanceof Error && e.message ? e.message : 'The puzzle could not be loaded.'); }
     finally { setLoading(false); }
   }

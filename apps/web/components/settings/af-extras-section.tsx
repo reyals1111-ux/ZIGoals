@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useState, type ReactNode} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {formatNumber} from '../../lib/visual-format';
 import {STORIES_ROUTE, TIMELINE_ROUTE, UNIVERSE_ROUTE} from '../../lib/af-extras-keys';
@@ -24,7 +24,7 @@ function Row<T>({record, title, count, cleared, button, children}: {record: Devi
   const usable = record.loaded && !record.unreadable;
   const clear = () => {
     const previous = record.data;
-    try { record.clear(); setError(''); showToast({message: cleared, undo: () => record.update(() => previous), undone: 'Put back as it was.'}); }
+    try { record.clear(); setError(''); showUndo({message: cleared, restore: () => record.update(() => previous), undone: 'Put back as it was.'}); /* Session AL (3e): the one Undo; restore writes the record back */ }
     catch (cause) { setError(deviceSettingFailureMessage(cause)); }
   };
   return <div className="af-extras-row">

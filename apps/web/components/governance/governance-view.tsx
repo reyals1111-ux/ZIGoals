@@ -46,6 +46,9 @@ const ReviewSheet = lazy(() => import('../staking/review-sheet').then(m => ({def
 const session = () => { try { return window.sessionStorage; } catch { return null; } };
 const storage = () => { try { return getAppStorage(); } catch { return null; } };
 const NO_NAMES: ReadonlyMap<string, string> = new Map();
+/** Session AL (BN-093): the last list read well per network, kept in memory for this visit only (never stored). */
+const LAST_GOOD = new Map<string, ProposalsWire>();
+const AUTO_RETRY_MS = 20_000;
 type Stake = {phase: 'idle'} | {phase: 'reading'} | {phase: 'ok'; eligibility: Eligibility} | {phase: 'unavailable'};
 export function GovernanceView() {
   const showcase = useShowcase(), phone = usePhoneActive(), journal = useDeviceRecord(STAKING_JOURNAL);
@@ -67,8 +70,20 @@ export function GovernanceView() {
   }, [showcase]);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(timer); }, []);
   // Proposals of the chosen network: on open, on a network change, and every minute while one is being voted on.
-  const load = useCallback(async () => { setProposals(await readProposals(chainId)); }, [chainId]);
-  useEffect(() => { setProposals(null); void load(); }, [load]);
+  // Session AL (BN-093, BN-073): a failed read keeps the last good list of this network (this page visit's memory, never
+  // stored) with the reason beside it, and tries once more by itself after a short wait; Read again stays.
+  const [stale, setStale] = useState<string | null>(null), [retrying, setRetrying] = useState(false);
+  const retryTimer = useRef<number | undefined>(undefined);
+  const load = useCallback(async (auto = false) => {
+    window.clearTimeout(retryTimer.current); setRetrying(false);
+    const answer = await readProposals(chainId);
+    if (answer.phase === 'ok') { LAST_GOOD.set(chainId, answer.wire); setStale(null); setProposals(answer); return; }
+    const kept = LAST_GOOD.get(chainId);
+    if (kept) { setStale(answer.reason); setProposals({phase: 'ok', wire: kept}); } else { setStale(null); setProposals(answer); }
+    if (!auto) { setRetrying(true); retryTimer.current = window.setTimeout(() => void load(true), AUTO_RETRY_MS); }
+  }, [chainId]);
+  useEffect(() => { const kept = LAST_GOOD.get(chainId); setStale(null); setProposals(kept ? {phase: 'ok', wire: kept} : null); void load(); return () => window.clearTimeout(retryTimer.current); }, [load, chainId]);
+  const readAgain = () => { if (!LAST_GOOD.has(chainId)) setProposals(null); void load(); };
   const anyVoting = proposals?.phase === 'ok' && proposals.wire.proposals.some(p => p.state === 'voting');
   useEffect(() => {
     if (!anyVoting) return;
@@ -168,7 +183,7 @@ export function GovernanceView() {
     </section>
     <section className={`panel staking-actions governance-network is-${network}`} aria-labelledby="governance-network-title">
       <div className="staking-actions-head">
-        <div><p className="eyebrow">Signed in your own wallet</p><h2 id="governance-network-title">Vote on a network</h2></div>
+        <div><p className="eyebrow">{/* Session AL (D-169, N-BN-02): a fact about how it works, not a status */}You sign every action in your own wallet</p><h2 id="governance-network-title">Vote on a network</h2></div>
         {/* Session AH (ST7, M-052): the Showcase never offers the real network (no real-money warning inside the demo). */}<NetworkSwitch network={network} onChoose={choose} disabled={showcase || !!quote || !!reviewing}/>
       </div>
       <NetworkBanner network={network}/>
@@ -202,9 +217,10 @@ export function GovernanceView() {
     <section className="governance-proposals" aria-labelledby="governance-proposals-title">
       <h2 id="governance-proposals-title">Proposals on {words.name}</h2>
       {!proposals ? <p role="status">Reading the proposals…</p>
-        : proposals.phase === 'unavailable' ? <p className="notice" role="status">Proposals are unavailable: {proposals.reason} <button type="button" className="text-link" onClick={() => { setProposals(null); void load(); }}>Read again</button></p>
+        : proposals.phase === 'unavailable' ? <p className="notice" role="status">Proposals are unavailable: {proposals.reason}{retrying ? ' ZIGoals tries once more by itself in a moment.' : ''} <button type="button" className="text-link" onClick={readAgain}>Read again</button></p>
         : <>
-          <p className="fine">Read from {wire!.source} at block {wire!.height}, {formatDateTime(wire!.observedAt!)}. {ordered.some(p => p.state === 'voting') ? `${ordered.filter(p => p.state === 'voting').length} open for voting now.` : 'None is open for voting right now.'} <button type="button" className="text-link" onClick={() => { setProposals(null); void load(); }}>Read again</button></p>
+          {stale && <p className="notice" role="status">The newest read did not work: {stale} The list below is the one read earlier, at block {wire!.height}.{retrying ? ' ZIGoals tries once more by itself in a moment.' : ''}</p>}
+          <p className="fine">Read from {wire!.source} at block {wire!.height}, {formatDateTime(wire!.observedAt!)}. {ordered.some(p => p.state === 'voting') ? `${ordered.filter(p => p.state === 'voting').length} open for voting now.` : 'None is open for voting right now.'} <button type="button" className="text-link" onClick={readAgain}>Read again</button></p>
           {!ordered.length && <p>No proposals on this network yet.</p>}
           {ordered.map(p => <ProposalCard key={p.id} explainQuorum={p === ordered.find(o => o.tallyKind !== 'none')} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
             voting={wallet && !showcase ? {eligible, reviewing: reviewing === p.id, myVote: votes[p.id] ?? {phase: 'idle'}, journal: confirmedVote(myVotes, p.id), onReview: review, error: voteErrors[p.id]} : undefined}/>)}

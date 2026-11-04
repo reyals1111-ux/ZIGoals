@@ -53,3 +53,5 @@
   :root:not([data-zigi-side=left]) .governance-page { padding-inline-end: 64px; }
   :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) .governance-page { padding-inline-end: 72px; }
 }
+/* Session AL (BN-008, BN-180): the label beside a test or template proposal title; words carry it, not colour. */
+.governance-test-tag{margin:4px 0 0;font-size:.95rem;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
