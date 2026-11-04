@@ -6,6 +6,7 @@ import {FASTING_PRESETS, MAX_CUSTOM_HOURS, fastingSchema, type Fasting} from '..
 import {earliestHabitChange} from '../../habit-actions';
 import {clearVacation, createHabit, editHabit, habitDataSchema, habitInputSchema, latestHabitRule, logHabitValue, measurementUnit, planSkip, setHabitEntryStatus, setHabitState, setVacation, smartDoneValue, unplanSkip, type Habit, type HabitData, type HabitInput} from '../../habits';
 import {recipeRef} from './refs';
+import {looksLikeInjection} from '../safety-guard';
 import {editDiaryEntry, foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, setHealthTargets, type HealthData, type HealthFood} from '../../health';
 import {addWater, dailyData, logMealPlan, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, saveMealPlan, setFavorite} from '../../health-daily';
 import {addCounter, changeCount, countOn, deleteCounter, editCounter, exerciseData} from '../../health-counters';
@@ -345,6 +346,8 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'check-in': {
       const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
+      // Session AL (L7; LA-014/LA-041): a habit whose name reads like an instruction never gets a card from a chat.
+      if (looksLikeInjection(found.habit.title)) return refuse('This habit’s name reads like an instruction, so ZIGi makes no card for it. Check it in on Habits yourself.');
       const day = resolveDay(action.day, env.habitDay, env.habitDay); if (!day.ok) return refuse(day.message);
       const {habit} = found, rule = latestHabitRule(habit), unit = measurementUnit(rule), previous = entryOn(stores.habits, habit.id, day.day);
       const amount = amountFor(rule, action); if (!amount.ok) return refuse(amount.message);

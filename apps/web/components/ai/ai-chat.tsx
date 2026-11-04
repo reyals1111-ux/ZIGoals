@@ -79,6 +79,11 @@ import {ReplyIcon, ReplyMore} from './reply-actions';
 import {useAgentBatches} from './agent-inbox';
 import {localDate} from '../../lib/local-date';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
+// Session AL (lane L7; ZI1 family): no Quick add preview under a question, a negation, a careful topic or a guarded message.
+import {guardMessage} from '../../lib/ai/safety-guard';
+import {quickAddOffered} from '../../lib/ai/actions/decline';
+import {readDraft, writeDraft} from '../../lib/ai/composer-draft';
+import {PremiumBadge} from '../plans/premium-badge';
 import {copyText, nextFrame} from '../../lib/ai/chat-window';
 import {useMiniWindow} from './use-mini-window';
 import './pip.css';
@@ -292,7 +297,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       status={(() => { const text = hosted ? (hosted.provider === 'Anthropic' ? `via ZIGoals AI · ${modelLabel(hosted.model)}` : `${hosted.provider} · ${hosted.model} via ZIGoals hosted`) : connected ? `via ${providerName} · ${modelLabel(data.model ?? "")}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'answers on this device';
         const full = hosted ? (hosted.provider === 'Anthropic' ? `${CLAUDE_HOSTED_NAME} · ${hosted.model}` : text) : connected ? `via ${providerName} · ${data.model}` : text;
         return connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} status={text} full={full}/> : <span className="ai-chat-via-text" title={full}>{text}</span>; })()}
-      premium={entitlement(hosted ? 'hosted' : 'your-ai').label.replace(/ · free during (the )?Alpha$/i, '')}
+      premium={hosted ? entitlement('hosted').label.replace(/ · free during (the )?Alpha$/i, '') : <PremiumBadge className="ai-chat-premium-badge"/>}
       onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => { keepReadingPlace(); setExpanded(e => !e); }} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
       more={[
         {key: 'history', label: 'History', name: 'Chat history', pressed: view === 'history', onSelect: () => setView(v => v === 'history' ? 'chat' : 'history')},
@@ -433,7 +438,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
       {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
-      {!connected && isLast && question && quickAdd && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood/></Suspense></ZigiPartBoundary></div>}
+      {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood/></Suspense></ZigiPartBoundary></div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
         <summary>What your AI sees if you ask for more</summary>
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
@@ -495,7 +500,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
   // An earlier reply shows its buttons on hover or focus, or after a tap on it (a phone has no hover).
   const [shown, setShown] = useState(false);
   // "Edit" sits just after the message, not inside it: the message stays only the person's own words.
-  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><LongText text={turn.text}/><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
+  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><LongText text={turn.text}/><CareNote text={turn.text} inChat/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
     {onEdit && <p className="ai-turn-edit"><ReplyIcon glyph="edit" label="Edit your last message" tip="Edit" onClick={onEdit}/></p>}</>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
   // Session AJ (item 9): when a follow-up reply re-sends cards an earlier reply of this chat proposed, every card still shows
@@ -614,7 +619,9 @@ function rememberReply(rest: string): string {
 }
 const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; title?: string; local: boolean; chips?: ReactNode; onAsked?: (text: string) => void; onSpoken?: () => void; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; onAbout?: (about: AskAbout | undefined) => void; photo?: PhotoAllowance; providerName?: string;
   onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onSpoken, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
-  const [text, setText] = useState(''), [disclosed, setDisclosed] = useState(false), listId = useId(), logNoteId = useId();
+  // Session AL (L7; D7): the words typed so far live in this page's memory too, so a remount (on-device → connected) keeps them.
+  const [text, setText] = useState(() => readDraft(scope)), [disclosed, setDisclosed] = useState(false), listId = useId(), logNoteId = useId();
+  useEffect(() => { writeDraft(scope, text); }, [scope, text]);
   // Session V Part 10: an edit puts the last question back in the box; the "/" list helps with the commands.
   const editSeq = editing?.seq;
   useEffect(() => { if (editing) setText(editing.text); }, [editSeq]); // eslint-disable-line react-hooks/exhaustive-deps -- a new edit, not every render

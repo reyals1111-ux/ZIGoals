@@ -175,6 +175,20 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return words(af); const own = novaOverviewAnswer(normalizeSpoken(question), env, nova); if (own) return words('text' in own ? {...own, text: groupUnits(own.text)} : own); }
   return words(engineAnswer(question, env, subject));
 }
+/**
+ * Session AL (lane L7; DV-074, LA-005, LZ-009, P-DV-83, P-LA-15): NOVA's overview answers (goals overview, due today, sleep,
+ * habits left, water to go, the week, the day) in ZIGi's words, for ZIGi's no-model path (lib/ai/local-answers/no-model.ts):
+ * with no model to answer, ZIGi gives the same answer NOVA gives instead of the examples list. `localAnswer` itself stays as
+ * pinned (with a model connected these questions still go to the model).
+ */
+export function zigiOverview(question: string, env: ToolEnv): LocalReply | null {
+  const own = novaOverviewAnswer(question, env, {healthScope: true, healthGate: !!env.health});
+  if (!own || !('text' in own)) return own;
+  if (own.kind === 'refusal' && /^Health (?:is|staat)/.test(own.text)) return {kind: 'refusal', text: HEALTH_CLOSED, calls: []};
+  const text = own.text.replace(/ is off for NOVA, so it is not read here\. Turn it on in NOVA → Permissions\./g, ' isn’t shared with ZIGi here. Turn it on in Settings → ZIGi · Your Personal AI Companion.')
+    .replace(/off for NOVA, so not read \(NOVA → Permissions\)/g, 'not shared with ZIGi here (Settings → ZIGi)').replace(/staan? uit voor NOVA, dus niet gelezen \(NOVA → Permissions\)/g, 'niet gedeeld met ZIGi hier (Settings → ZIGi)').replace(/NOVA → Permissions/g, 'Settings → ZIGi').replace(/\bNOVA\b/g, 'ZIGi');
+  return {...own, text: groupUnits(text)};
+}
 function engineAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AF (L4): the Checklist commands, the Earn coach, the page and the brief, each with its own stop rule, first.
   if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return af; }

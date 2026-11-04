@@ -12,7 +12,7 @@ import {notesForAi} from '../ai/memory';
 import type {NovaRecord} from './store';
 import {DEFAULT_PERSONA_NAME} from './store';
 import {redactionSummary, redactText} from './redact';
-import {LOCAL_SERVERS} from './local-servers';
+import {LOCAL_SERVERS, verifyOllama} from './local-servers';
 import type {PrivacyMode} from './setup';
 
 /**
@@ -67,6 +67,8 @@ export async function checkBrain({settings, mode, key, fetcher, onDevice, onDevi
   if (mode === 'strict' && isCloudTarget(provider, false, model)) return fail(`${targetName(provider, false, model)} is a cloud model, and Strict sends nothing to a cloud. Connect a local model, or choose Guarded or Relaxed in step 2.`);
   if (provider !== 'local' && !key) return fail(`Your ${PROVIDERS[provider].name} key is not on this device. Paste it again below.`);
   try {
+    // Session AL (BN-035): a server on Ollama's port that does not answer like Ollama is refused before anything is sent.
+    if (provider === 'local' && settings.localServer === 'ollama' && settings.baseUrl) { const real = await verifyOllama(settings.baseUrl, {fetcher, signal}); if (!real.ok) return fail(real.message); }
     const list = await listModels({provider, key, baseUrl: settings.baseUrl ?? undefined, localServer: settings.localServer ?? undefined, fetcher, signal});
     if (!list.some(m => m.id === model)) return fail(`${provider === 'local' ? serverName(settings) : PROVIDERS[provider].name} answered, but ${model} is not in its list. Choose another model below${provider === 'local' ? ', or download it first' : ''}.`);
     if (provider === 'local') return pass(`Found ${model} on ${serverName(settings)} at ${settings.baseUrl}.${isOllamaCloudModel(model) ? ' Note: this model runs on ollama.com, not on this computer.' : ' It runs on this computer.'}`);

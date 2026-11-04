@@ -9,7 +9,9 @@ import {AI_CHATS_SESSION_KEY, PAGE_AREAS, type PageArea} from './settings';
  * was attached. Zod-validated, read-tolerant (an unreadable record is skipped, never rewritten), bounded.
  */
 export const AI_CHATS_DATABASE = 'zigoals-ai-chats-v1';
-const STORE = 'chats', LIMIT_MS = 3000;
+// Session AL (BN-045): a busy computer (Berlin's box ran at load 30–80) can take longer than 3 s to open the database for a
+// write; a save waits up to 10 s and is tried once more before the panel says it could not be saved.
+const STORE = 'chats', LIMIT_MS = 3000, WRITE_LIMIT_MS = 10_000;
 export const MAX_CHATS = 200, MAX_TURNS = 200, MAX_TURN_CHARS = 20_000, MAX_SHOWCASE_CHATS = 50;
 /**
  * Session AI (G5, ZI15; Grok's BUG-038/060, L-003): the longest message the box takes. 15,000 characters (about 3,500
@@ -68,8 +70,30 @@ const extraKeys = (value: object, known: Set<string>) => Object.entries(value).s
 /** True when a version 1 reader would refuse the chat (it uses a V field): it is stored as version 2. */
 export function needsVersion2(chat: Chat): boolean { return extraKeys(chat, V1_CHAT_KEYS) || chat.turns.some(turn => extraKeys(turn, V1_TURN_KEYS)); }
 const definedOnly = <T extends object>(value: T, known: Set<string>) => Object.fromEntries(Object.entries(value).filter(([key, v]) => known.has(key) && v !== undefined));
+/**
+ * Session AL (lane L7; Berlin BN-045 "This chat could not be saved on this device"): a chat in memory is made to fit the
+ * stored limits before it is checked, so one odd field (a usage count that is not a whole number, an over-long title, label
+ * or stop line, a stray empty label) never costs the whole conversation. Only lengths and counts are trimmed; nothing new.
+ */
+const cut = (text: string, max: number) => text.length > max ? `${text.slice(0, max - 1)}…` : text;
+const whole = (n: number | null | undefined) => typeof n === 'number' && Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
+export function fitForStore(chat: Chat): Chat {
+  const turns = chat.turns.slice(-MAX_TURNS).map(turn => {
+    const next: ChatTurn = {...turn, id: turn.id.slice(0, 80), text: turn.text.slice(0, MAX_TURN_CHARS)};
+    if (turn.usage) next.usage = {input: whole(turn.usage.input), output: whole(turn.usage.output)};
+    if (turn.model) next.model = turn.model.slice(0, 200);
+    if (turn.stopped !== undefined) next.stopped = cut(turn.stopped, 200);
+    if (turn.mode !== undefined) { if (turn.mode.trim()) next.mode = turn.mode.slice(0, 40); else delete next.mode; }
+    if (turn.records) { const records = turn.records.filter(r => r.trim()).map(r => cut(r, 80)).slice(0, 40); if (records.length) next.records = records; else delete next.records; }
+    if (turn.tools) { const tools = turn.tools.slice(0, 16).map(t => ({...t, tool: t.tool.slice(0, 60) || 'tool', label: cut(t.label, 160) || 'Lookup'})); next.tools = tools; }
+    if (turn.attachments) next.attachments = turn.attachments.slice(0, 4);
+    return next;
+  });
+  return {...chat, id: chat.id.slice(0, 80), title: cut(chat.title.trim() || 'New chat', 120), model: chat.model ? chat.model.slice(0, 200) : chat.model, turns};
+}
 /** The record to store: version 1 when nothing new is used (fields without a value dropped), else version 2. Throws when invalid. */
 export function storedChat(chat: Chat): z.infer<typeof storedChatSchema> {
+  chat = fitForStore(chat);
   if (needsVersion2(chat)) return chatV2Schema.parse({...chat, version: 2});
   return chatSchema.parse({...definedOnly(chat, V1_CHAT_KEYS), version: 1, turns: chat.turns.map(turn => definedOnly(turn, V1_TURN_KEYS))});
 }
@@ -95,9 +119,9 @@ export function newChat(scope: string, provider: Chat['provider'], model: string
 const matches = (chat: Chat, query: string) => { const q = query.trim().toLowerCase(); return !q || chat.title.toLowerCase().includes(q) || chat.turns.some(t => t.text.toLowerCase().includes(q)); };
 const CAP_MESSAGE = `You have ${MAX_CHATS} saved chats on this device. Delete some in History before starting another.`;
 
-function limited<T>(work: Promise<T>): Promise<T> {
+function limited<T>(work: Promise<T>, ms = LIMIT_MS): Promise<T> {
   return new Promise((resolve, reject) => {
-    let settled = false; const timer = setTimeout(() => { settled = true; reject(Error('Chat storage did not answer in time.')); }, LIMIT_MS);
+    let settled = false; const timer = setTimeout(() => { settled = true; reject(Error('Chat storage did not answer in time.')); }, ms);
     work.then(value => { clearTimeout(timer); if (!settled) { settled = true; resolve(value); } }, error => { clearTimeout(timer); if (!settled) { settled = true; reject(error); } });
   });
 }
@@ -123,7 +147,7 @@ function writable(): Promise<IDBDatabase> {
     request.onupgradeneeded = () => { const db = request.result; if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE); };
     request.onerror = () => reject(request.error);
     request.onsuccess = () => { const db = request.result; db.onversionchange = () => db.close(); resolve(db); };
-  }));
+  }), WRITE_LIMIT_MS);
 }
 const slot = (scope: string, id: string) => `${scope}:${id}`;
 const scopeRange = (scope: string) => IDBKeyRange.bound(`${scope}:`, `${scope}:￿`);
@@ -140,6 +164,7 @@ export function indexedDbChatStore(scope: string): ChatStore {
     read: async id => { const db = await existing(); if (!db) return null; try { const chat = readChat(await answer(db.transaction(STORE, 'readonly').objectStore(STORE).get(slot(scope, id)))); return chat && chat.scope === scope ? chat : null; } finally { db.close(); } },
     save: async chat => {
       const valid = storedChat({...chat, scope});
+      const once = async () => {
       const db = await writable();
       try {
         const t = db.transaction(STORE, 'readwrite'), store = t.objectStore(STORE), key = slot(scope, valid.id);
@@ -147,6 +172,9 @@ export function indexedDbChatStore(scope: string): ChatStore {
         if (present === undefined && count >= MAX_CHATS) { t.abort(); throw Error(CAP_MESSAGE); }
         store.put(valid, key); await finished(t);
       } finally { db.close(); }
+      };
+      try { await once(); }
+      catch (error) { if (error instanceof Error && error.message === CAP_MESSAGE) throw error; await new Promise(r => setTimeout(r, 250)); await once(); }
     },
     rename: async (id, title) => { const db = await existing(); if (!db) return; try { const t = db.transaction(STORE, 'readwrite'), store = t.objectStore(STORE), current = store.get(slot(scope, id)); current.onsuccess = () => { const chat = readChat(current.result); if (chat) store.put(storedChat({...chat, title, updatedAt: new Date().toISOString()}), slot(scope, id)); }; await finished(t); } finally { db.close(); } },
     remove: id => write(store => { store.delete(slot(scope, id)); }).catch(() => undefined),

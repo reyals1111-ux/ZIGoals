@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {lazy, Suspense, useEffect, useId, useState, useSyncExternalStore, type ReactNode} from 'react';
+import {lazy, Suspense, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode} from 'react';
 import {readKey} from '../../../../lib/ai/keys';
 import {onDeviceAvailability} from '../../../../lib/ai/on-device';
 import {PROVIDERS} from '../../../../lib/ai/providers';
@@ -12,7 +12,7 @@ import {brainWayTag, keyRefused, NOVA_PHONE_QUERY} from '../../../../lib/nova/ph
 import {setPrivacyMode} from '../../../../lib/nova/setup';
 import {localDate} from '../../../../lib/local-date';
 import {checkBrain} from '../../../../lib/nova/setup-checks';
-import {detectOs, KEY_NOTES, llamaCppSteps, lmStudioSteps, MAX_PARAMS, MODEL_PICKS, MODEL_RULE, OLLAMA_STRICT_NOTE, ollamaSteps, OPENROUTER_NOTE, OS_LABELS, pickFor, SERVER_LABELS, SPENDING_ADVICE, SUBSCRIPTION_DETAILS, SUBSCRIPTION_NOTE, type GuideStep, type KeyProvider, type MemoryBudget, type Os, type ServerId} from '../../../../lib/nova/setup-guide';
+import {CONTEXT_NOTE, CPU_NOTE, defaultBudget, detectOs, KEY_NOTES, llamaCppSteps, lmStudioSteps, MAX_PARAMS, MODEL_PICKS, MODEL_RULE, OLLAMA_STRICT_NOTE, ollamaSteps, OPENROUTER_NOTE, OS_LABELS, pickFor, SERVER_LABELS, SPENDING_ADVICE, SUBSCRIPTION_DETAILS, SUBSCRIPTION_NOTE, type GuideStep, type KeyProvider, type MemoryBudget, type Os, type ServerId} from '../../../../lib/nova/setup-guide';
 import {readDeviceRecord} from '../../../../lib/device-record';
 import {getAppStorage} from '../../../../lib/showcase-storage';
 import {AiSetup} from '../../../ai/ai-setup';
@@ -54,8 +54,11 @@ export default function BrainStep({setup}: {setup: SetupState}) {
   const [way, setWay] = useState<Way>(phone ? 'key' : 'local'), [os, setOs] = useState<Os | null>(null), [server, setServer] = useState<ServerId>('ollama');
   const [budget, setBudget] = useState<MemoryBudget>('ram16'), [scan, setScan] = useState<ScanResult[] | null>(null), [scanning, setScanning] = useState(false), [permission, setPermission] = useState<LoopbackState>('unknown');
   const shownOs = os ?? detectOs(ua), pick = pickFor(budget);
+  // Session AL (BN-034): the memory choice starts from this computer's own hints, once, after the first paint.
+  const budgetTouched = useRef(false);
+  useEffect(() => { if (!budgetTouched.current) setBudget(defaultBudget(navigator as Navigator & {deviceMemory?: number})); }, []);
   useEffect(() => { let live = true; void loopbackPermission().then(p => { if (live) setPermission(p); }); return () => { live = false; }; }, [scan]);
-  const findServers = async () => { setScanning(true); try { setScan(await scanLocalServers()); } finally { setScanning(false); } };
+  const findServers = async () => { setScanning(true); try { setScan(await scanLocalServers({verify: true})); } finally { setScanning(false); } };
   const run = async () => {
     const data = settings.data, scope = currentAiScope();
     let key: string | null = null; if (data.provider) { try { key = await readKey(scope, data.provider); } catch { key = null; } }
@@ -72,9 +75,10 @@ export default function BrainStep({setup}: {setup: SetupState}) {
       <h3 id={`${id}-local`}>A model on this computer</h3>
       <p>Free, private and offline once set up: nothing leaves your computer. It needs a computer (not a phone) and Chrome, Edge or Firefox.</p>
       <p className="nova-note" role="note">{loopbackNote(browserKind(ua), phone)}{permission === 'denied' && <b> This site is blocked from apps on this device now: allow it in the site settings, then reload.</b>}</p>
-      <label className="field">How much memory does this computer have?<select value={budget} onChange={e => setBudget(e.target.value as MemoryBudget)} aria-describedby={`${id}-mem`}>{MODEL_PICKS.map(p => <option key={p.budget} value={p.budget}>{p.label}</option>)}</select></label>
+      <label className="field">How much memory does this computer have?<select value={budget} onChange={e => { budgetTouched.current = true; setBudget(e.target.value as MemoryBudget); }} aria-describedby={`${id}-mem`}>{MODEL_PICKS.map(p => <option key={p.budget} value={p.budget}>{p.label}</option>)}</select></label>
       <p className="fine" id={`${id}-mem`}>{pick.hint}.</p>
       <p className="nova-pick"><b>Model: {pick.ollama}</b> ({pick.size}; {pick.licence}). Also good: {pick.also}. <span className="fine">{MODEL_RULE}</span></p>
+      <p className="fine">{CPU_NOTE} {CONTEXT_NOTE}</p>
       <Choice label="Your computer" value={shownOs} options={(['mac', 'windows', 'linux'] as const).map(o => ({id: o, label: OS_LABELS[o]}))} onChange={setOs}/>
       <Choice label="The program that runs the model" value={server} options={(['ollama', 'lmstudio', 'llamacpp'] as const).map(s => ({id: s, label: SERVER_LABELS[s]}))} onChange={setServer}/>
       <GuideSteps steps={steps}/>

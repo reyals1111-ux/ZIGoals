@@ -60,3 +60,6 @@
    untouched): depth from a soft violet shadow and the nebula's cyan along the left edge. Theme tokens only, no motion. */
 .ai-stat{box-shadow:inset 3px 0 0 color-mix(in srgb,var(--brand-cyan) 65%,transparent),0 14px 30px -26px color-mix(in srgb,var(--brand-violet) 70%,transparent)}
 @media (forced-colors:active){.ai-stat{box-shadow:none}}
+/* Session AL (O2): the Premium badge in the panel's header, a little smaller than on Settings; its target stays 44 px tall. */
+.ai-chat-via .ai-chat-premium-badge { min-height: 28px; padding: 2px 10px; font-size: 13px; margin-inline-start: 6px; }
+.ai-chat-via .ai-chat-premium-badge::after { inset: -8px 0; }

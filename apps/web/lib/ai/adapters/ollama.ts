@@ -22,12 +22,56 @@ function ollamaMessage(m: ChatRequest['messages'][number]): Record<string, unkno
   if (m.role === 'user' && m.images?.length) return {role: 'user', content: m.content, images: m.images.map(i => i.data)};
   return {role: m.role, content: m.content};
 }
+/**
+ * Session AL (lane L7; Berlin BN-034 BLOCKER, BN-050, BN-054): Ollama's default context is 4,096 tokens (2,048 on older
+ * builds), and a request longer than that is cut or refused ("try increasing it"); NOVA sent ~9–15k tokens with no
+ * `num_ctx`. Each request now names its own window: about the size of what it sends (a rough 3.5 characters per token),
+ * plus the reply cap and room to spare, rounded up to a power of two, never below 4,096 nor above 32,768 (a bigger window
+ * costs memory on a CPU-only computer). The same estimate sets how long to wait for the first token (below).
+ */
+export const NUM_CTX = {min: 4096, max: 32768} as const;
+export function estimateTokens(request: Pick<ChatRequest, 'system' | 'messages' | 'tools'>): number {
+  const chars = request.system.length + request.messages.reduce((n, m) => n + m.content.length + 8, 0) + (request.tools?.length ? JSON.stringify(request.tools).length : 0);
+  return Math.ceil(chars / 3.5);
+}
+export function ollamaContextSize(request: Pick<ChatRequest, 'system' | 'messages' | 'tools' | 'maxOutputTokens'>): number {
+  const need = estimateTokens(request) * 1.15 + (request.maxOutputTokens ?? 1024) + 256;
+  let size = NUM_CTX.min; while (size < need && size < NUM_CTX.max) size *= 2;
+  return size;
+}
+/** The first token's wait: a minute, or longer for a long prompt a CPU reads slowly (about 12 ms a token), at most 4 minutes. */
+export const firstTokenMs = (tokens: number): number => Math.min(240_000, Math.max(60_000, Math.round(tokens * 12)));
+/**
+ * Session AL (lane L7; Berlin BN-042): Ollama 0.40 answered HTTP 400 "schema must be an object" at
+ * `…/range/properties/carbs_g/items`: Zod writes a [low, high] pair as `prefixItems` with `items: false` (JSON Schema
+ * 2020-12), and Ollama's schema reader needs `items` to be an object. Every schema sent to Ollama (tools and the
+ * structured-output format) is rewritten to that older shape: a fixed-length array of one item schema, no boolean `items`.
+ */
+export function ollamaSchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(ollamaSchema);
+  if (!schema || typeof schema !== 'object') return schema;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(schema as Record<string, unknown>)) {
+    if (key === '$schema') continue;
+    if (key === 'items' && (typeof value === 'boolean' || Array.isArray(value))) continue;
+    out[key] = ollamaSchema(value);
+  }
+  const node = schema as Record<string, unknown>;
+  const tuple = Array.isArray(node.prefixItems) ? node.prefixItems : Array.isArray(node.items) ? node.items : null;
+  if (tuple) {
+    delete out.prefixItems;
+    if (tuple.length) out.items = ollamaSchema(tuple[0]);
+    if (out.minItems === undefined) out.minItems = tuple.length;
+    if (out.maxItems === undefined) out.maxItems = tuple.length;
+  }
+  return out;
+}
 export function ollamaBody(request: Pick<ChatRequest, 'model' | 'system' | 'messages' | 'maxOutputTokens' | 'tools' | 'think' | 'format'>): Record<string, unknown> {
   // `think` (Session X-Local Part 6d): off unless asked; a model without thinking accepts the field (checked on phi4-mini).
-  const body: Record<string, unknown> = {model: request.model, stream: true, think: request.think === true, options: {num_predict: request.maxOutputTokens}, messages: [{role: 'system', content: request.system}, ...request.messages.map(ollamaMessage)]};
-  if (request.tools?.length) body.tools = request.tools.map(t => ({type: 'function', function: {name: t.name, description: t.description, parameters: t.parameters}}));
+  const body: Record<string, unknown> = {model: request.model, stream: true, think: request.think === true, options: {num_predict: request.maxOutputTokens, num_ctx: ollamaContextSize(request)}, messages: [{role: 'system', content: request.system}, ...request.messages.map(ollamaMessage)]};
+  if (request.tools?.length) body.tools = request.tools.map(t => ({type: 'function', function: {name: t.name, description: t.description, parameters: ollamaSchema(t.parameters)}}));
   // Phase 2: structured output on the repair round (Ollama enforces the JSON schema; the reply is then the JSON alone).
-  if (request.format) body.format = request.format;
+  if (request.format) body.format = ollamaSchema(request.format);
   return body;
 }
 export async function* streamOllama(request: ChatRequest, base: string): AsyncGenerator<ChatEvent> {
@@ -35,13 +79,15 @@ export async function* streamOllama(request: ChatRequest, base: string): AsyncGe
   const headers: Record<string, string> = {'content-type': 'application/json'};
   if (request.key) headers.authorization = `Bearer ${request.key}`;
   let response: Response;
+  const wait = firstTokenMs(estimateTokens(request));
   try {
-    response = await fetchWithStall(fetcher, `${base}/api/chat`, {method: 'POST', headers, body: JSON.stringify(ollamaBody(request)), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'});
+    response = await fetchWithStall(fetcher, `${base}/api/chat`, {method: 'POST', headers, body: JSON.stringify(ollamaBody(request)), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}, wait);
   } catch (error) { throw mapNetworkError(request.provider, error, {local: true, online: typeof navigator === 'undefined' ? undefined : navigator.onLine}); }
   if (!response.ok) throw mapHttpError(request.provider, response.status, await response.text().catch(() => ''), response.headers);
   if (!response.body) throw new AiError('unreadable', 'The server sent an empty answer.', {provider: request.provider});
   let calls = 0;
-  for await (const value of ndjson(response.body, request.signal)) {
+  // The first line may wait for the whole prompt to be read on a CPU, so the wait between lines follows the same estimate.
+  for await (const value of ndjson(response.body, request.signal, wait)) {
     const line = value as Line;
     if (line.error) throw mapHttpError(request.provider, /not found/i.test(line.error) ? 404 : 500, JSON.stringify({error: line.error}));
     const text = line.message?.content;

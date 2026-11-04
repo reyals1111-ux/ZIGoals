@@ -136,3 +136,27 @@ export function answerOnly(reply: string, message: string): string {
   const kept = reply.replace(FENCE, block => READ_ONLY_BLOCK.test(block) ? block : '');
   return kept === reply ? reply : tidy(kept);
 }
+/** Every block that would write is dropped (read-only blocks stay); used in careful mode, where no card sets or logs a restriction. */
+export function stripWriteBlocks(reply: string): string {
+  if (reply.search(FENCE) < 0) return reply;
+  const kept = reply.replace(FENCE, block => READ_ONLY_BLOCK.test(block) ? block : '');
+  return kept === reply ? reply : tidy(kept);
+}
+/**
+ * Session AL (lane L7; ZI1 family: BN-068, NB-103/118/121, MO-056, LA-018, TK-053, P-LA-09): whether ZIGi's no-AI panel may
+ * put a Quick add preview ("Will save: Water 250 mL") under its answer. Never under a question ("How much water did I
+ * drink?", "Hoeveel water heb ik gedronken?", "Explain my P&L", "average water this week"), a negation ("I didn't drink
+ * any water"), a goal statement ("lose 10 kg in 1 week"), a careful-mode message or anything the safety guard answered.
+ * A log line ("drank 2 glasses of water") still gets it.
+ */
+const NEGATION = /\b(?:didn'?t|did not|don'?t|do not|haven'?t|have not|hasn'?t|never|no longer|not yet|niet|geen|nooit|nog niet)\b/i;
+const CREATE_RECORD = /\b(?:create|make|set ?up|start|plan|new|add|maak|nieuwe?|begin)\b[^.?!]{0,25}\b(?:goals?|habits?|doel(?:en)?|gewoontes?)\b/i; // DV-060: "create a goal … by next Friday" is not a workout line
+const GOAL_STATEMENT = /\b(?:want to|wanna|going to|gonna|plan to|trying to|try to|need to|goal (?:is|of)|wil|ga|moet|doel)\b[^.?!]{0,30}\b(?:lose|gain|reach|drink|walk|run|sleep|eat|afvallen|aankomen|halen|drinken|lopen|slapen|eten)\b/i;
+export function quickAddOffered(message: string, flags: {guarded?: boolean; careful?: boolean} = {}): boolean {
+  const text = message.trim();
+  if (!text || flags.guarded || flags.careful) return false;
+  if (isPureQuestion(text) || /\?\s*$/.test(text)) return false;
+  if (NEGATION.test(text) || GOAL_STATEMENT.test(text) || CREATE_RECORD.test(text)) return false;
+  if (/\bp\s*&\s*l\b|\bpnl\b|\bprofit and loss\b/i.test(text)) return false; // TK-053: the "L" in P&L is not litres
+  return true;
+}

@@ -46,6 +46,10 @@ import type {ChatImage, ChatRequest} from '../../lib/ai/types';
 import {forgetChatAreas, rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
+// Session AL (lane L7): the deterministic guard before any model and before the device's own answers (ZIGi and NOVA alike).
+import {CARD_STEPS, CARD_TITLE, cardNumberIn, guardLanguage, guardMessage, SECRET_REPLY_NOTE, withHonestClaims} from '../../lib/ai/safety-guard';
+import {stripWriteBlocks} from '../../lib/ai/actions/decline';
+import {noteOpenChat, openChatFor} from '../../lib/ai/composer-draft';
 import {localDate} from '../../lib/local-date';
 import {applyDayCue} from '../../lib/ai/actions/day-cue';
 import {reviseEdits} from '../../lib/ai/actions/revise';
@@ -58,7 +62,9 @@ import {getAccountScope} from '../../lib/account-session';
 import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, onDevicePrompts, parseRewrite, readAs, shortReply} from '../../lib/ai/on-device-chat';
 import {staleHandles} from '../../lib/ai/handles';
 // Session AK (BUILD list 2 #1): recovery words or a key are never sent to an AI provider, nor kept in a chat.
-import {looksSecret, messagesHoldSecret, ZIGI_SECRET_STEPS, ZIGI_SECRET_TITLE} from '../../lib/secret-guard/guard';
+import {guardText, looksSecret, messagesHoldSecret, ZIGI_SECRET_STEPS, ZIGI_SECRET_TITLE} from '../../lib/secret-guard/guard';
+/** A model reply that shows a private key, or recovery words next to a seed or recovery word (BN-038's invented phrase). */
+const guardTextReply = (text: string): boolean => { const found = guardText(text); return !!found && (found.kind === 'key' || /seed|recovery|mnemonic|herstel|private key|privésleutel/i.test(text)); };
 // Session AK (owner follow-up 2, lane NC): the privacy mode's one hook in the send path (see `counted` below).
 import {guardRequest} from '../../lib/ai/privacy-mode';
 
@@ -180,6 +186,8 @@ export type ChatSession = {
    */
   kept: boolean; setKept: (keep: boolean) => void;
 };
+/** Session AL (BN-042): the model's server refused the card format on the retry, so this reply carries no card. */
+export const CARDS_REFUSED_NOTE = 'No card this time: your model’s server refused the card format, so nothing is proposed or saved. Try again, choose a model that supports tools, or add it on its page.';
 const SAVE_NOTE = 'This chat could not be saved on this device; it stays here until you close it.';
 /** A local answer's records once more, under the same gate, for its chart (Session V Part 10; nothing is stored). */
 /** Session V Part 15: the person turned on Chrome's on-device model, and this browser has it. */
@@ -216,8 +224,16 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   // A new scope (account change) starts a fresh, empty conversation; nothing from the previous one is kept in memory.
   useEffect(() => { abort.current?.abort(); handles.current.clear(); fresh.current.clear(); keepAgain(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setDraft(''); setStatus('idle'); }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps -- only the scope resets the chat
   useEffect(() => () => { abort.current?.abort(); frame.current?.(); }, []);
+  // Session AL (L7; PR-011/PR-025/PR-041): a ZIGi panel mounted again in this page reopens the conversation it had open.
+  useEffect(() => {
+    if (nova) return;
+    const id = openChatFor(scope); if (!id || chatRef.current.turns.length) return;
+    let live = true;
+    store.read(id).then(found => { if (live && found && !chatRef.current.turns.length) setChat(found); }, () => undefined);
+    return () => { live = false; };
+  }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps -- once per mount and scope
   // Session AK (G1 #20): a chat that is not kept is never written (`keptRef`, read at the moment of each save).
-  const persist = useCallback((next: Chat) => { if (!keptRef.current || !next.turns.length) return; saving.current = store.save(next).then(() => setSaveNote(null)).catch(() => setSaveNote(SAVE_NOTE)); }, [store]);
+  const persist = useCallback((next: Chat) => { if (!keptRef.current || !next.turns.length) return; if (!nova) noteOpenChat(scope, next.id); /* AL (PR-025): a remounted panel reopens it */ saving.current = store.save(next).then(() => setSaveNote(null)).catch(() => setSaveNote(SAVE_NOTE)); }, [nova, scope, store]);
   const parsed = useMemo(() => { const map = new Map<string, ParsedReply>(); for (const turn of chat.turns) if (turn.role === 'assistant') map.set(turn.id, parseReply(turn.text)); return map; }, [chat.turns]);
   // A reply's handles (h1, h2…) name the records of the page it was asked on, kept in memory for this session. A turn from
   // before a reload or from History has none: its cards may still name a record by its title on this page, never by a
@@ -230,6 +246,11 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     // Session X-Local Part 4: the AI's one emotion hint is read and stripped here, before the turn is stored or shown.
     const {text: shown, hint} = extractHint(text);
     text = shown;
+    // Session AL (L7; BN-037/BN-038): a reply that holds a private key (or recovery words it calls a seed) is never shown,
+    // and a claim that something was exported, sent or deleted gets the app's own note (only a confirmed card writes).
+    const secret = guardTextReply(text);
+    if (secret) text = SECRET_REPLY_NOTE;
+    text = withHonestClaims(text, guardLanguage(text));
     const made = {...assistantTurn({text, provider: extra.provider ?? (hosted ? null : settings.provider), model: extra.model ?? (hosted ? hosted.model : settings.model), usage, stopped}), ...(hosted ? {source: 'hosted' as const} : {})};
     // What the AI looked at (tool, arguments, label; never the results) and "deep" make the chat a version 2 record.
     const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(l.args), label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {}), ...(extra.records?.length ? {records: extra.records} : {})};
@@ -255,9 +276,37 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   /** The page a chat started on, for History's filter (Session V Part 10); never on Settings, which attaches nothing. */
   // Session AK (NOVA): a NOVA chat keeps its start in NOVA's own map instead (ZIGi's index then shows it under "All pages").
   const rememberArea = useCallback((chatId: string) => { if (!keptRef.current) return; /* G1 #20: a chat that is not kept leaves no index entry */ if (nova) { try { nova.remember?.(chatId); } catch { /* the origin is a convenience */ } return; } if (!context.attaches) return; try { rememberChatArea(getAppStorage(), chatId, context.area); } catch { /* History's filter is a convenience */ } }, [context.area, context.attaches, nova]);
+  /** A local answer: the person's question and ZIGi's answer from the records, both marked local (never sent to an AI later). */
+  const answerLocally = useCallback((shown: string, question: string, reply: LocalReply, {replace, results, source = 'local', untrusted = false}: {replace?: string; results?: readonly ToolResult[]; source?: 'local' | 'on-device'; untrusted?: boolean} = {}) => {
+    if (reply.kind === 'none') return;
+    // Session AL (L7; MO-053, P-MO-01): careful mode carries no card that sets or logs anything, on the device too.
+    if (reply.kind === 'answer' && detectRisk(shown)) reply = {...reply, text: stripWriteBlocks(reply.text)};
+    const before = replace ? editTarget(chatRef.current, replace) ?? chatRef.current : chatRef.current;
+    const user = {...userTurn(shown), source};
+    const answer = {...assistantTurn({text: reply.text, provider: null, model: null, usage: null}), source, ...(reply.calls.length ? {tools: reply.calls.slice(0, 16).map(c => ({tool: c.tool, args: c.args, label: c.label.slice(0, 160)}))} : {})};
+    let next: Chat;
+    try { next = appendTurn(appendTurn(before, user), answer); }
+    catch { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
+    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})}); if (!untrusted) fresh.current.add(answer.id); /* Z1A-2: a pasted question's cards wait for a tap */ countZigi('device-answer'); // Session AI (G14): counted only when the person turned the counts on
+    setFailure(null); setConfirmation(null); setChat(next); persist(next);
+    if (!before.turns.length) rememberArea(next.id);
+    zigiSignals.emit(localSignal(reply, question));
+  }, [persist, rememberArea, setChat]);
+  /**
+   * Session AL (lane L7): an emergency, distress, a secret asked for, or an injection gets the guard's fixed reply on this
+   * device, before any model, lookup or examples list. True when the guard answered.
+   */
+  const guarded = useCallback((text: string, options: SendOptions = {}): boolean => {
+    const hit = guardMessage(text); if (!hit) return false;
+    if (!options.reuse) answerLocally(text, text, {kind: 'answer', text: hit.text, calls: []}, {replace: options.replace, untrusted: true});
+    zigiSignals.emit('careful_topic');
+    return true;
+  }, [answerLocally]);
   const send = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
     if (looksSecret(text)) { setFailure({kind: 'blocked', title: ZIGI_SECRET_TITLE, steps: [...ZIGI_SECRET_STEPS]}); return; } // Session AK (B2a #1): refused before anything is stored or sent
+    if (cardNumberIn(text)) { setFailure({kind: 'blocked', title: CARD_TITLE, steps: [...CARD_STEPS]}); return; } // Session AL (LA-045): never kept or sent
+    if (guarded(text, options)) return; // Session AL (L7): never reaches a model
     // Session AK (NOVA, owner follow-up 3 N11): a task for the person's own agent (Hermes Agent) goes to that agent's own
     // OpenAI-compatible server, with that page's records and the same rules; its reply is parsed like any reply (cards only,
     // nothing executed). Only with a NOVA surface; ZIGi's panel never names an agent, so `conf` is its settings unchanged.
@@ -405,15 +454,17 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
       const again = [...messages, {role: 'assistant' as const, content: stripHint(firstTry)}, {role: 'user' as const, content: repairPrompt(check)}];
       reply = ''; pendingText.current = ''; writing = false; setDraft(''); setStatus('pending'); zigiSignals.emit('assistant_thinking');
       const structured = !hosted && conf.provider === 'local' && conf.localServer === 'ollama' ? {format: structuredFormat()} : {};
-      try { await run('attach', again, structured); } catch (error) { if (isAbortLike(error)) { reply = firstTry; usage = firstUsage; pendingText.current = firstTry; throw error; } reply = ''; }
-      if (!reply.trim()) { reply = firstTry; usage = firstUsage; return; }
+      let refused = false;
+      try { await run('attach', again, structured); } catch (error) { if (isAbortLike(error)) { reply = firstTry; usage = firstUsage; pendingText.current = firstTry; throw error; } reply = ''; refused = error instanceof AiError && (error.kind === 'request' || error.kind === 'server'); }
+      // Session AL (L7; BN-042): a server that refused the card format no longer ends in silent prose: the reply says so.
+      if (!reply.trim()) { reply = refused ? `${firstTry}\n\n${CARDS_REFUSED_NOTE}` : firstTry; usage = firstUsage; return; }
       reply = `${REPAIR_NOTE}\n\n${fenceStructured(reply)}`; pendingText.current = reply;
     };
     // Round 6 (ADR-017 S69): a log card that says today while the message names yesterday, the day before, or a weekday takes that day.
     // Round 8 (ADR-017 S74): a correction of a card the previous reply only proposed (an edit of a record that does not exist) becomes that card again, corrected.
     // Round 9 (ADR-017 S75): a money ask the reply declines in words carries no card (the protocol's own rule, enforced).
     const previousReply = [...before.turns].reverse().find(t => t.role === 'assistant')?.text ?? null;
-    const done = (stopped: string | undefined) => finish(answerOnly(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, ...(agent ? {provider: 'local' as const} : {}), lookups: found, deep: !!options.deep, careful: !!risk, ...(replyUntrusted({nova: !!nova, packUntrusted: !!novaPack?.untrusted, pasted: !!options.pasted, agent: !!agent, lookups: found.map(l => l.result.tool), extraUntrusted: !!options.extra?.untrusted}) ? {untrusted: true} : {}), records: recordsSent(mode === 'tools' ? [...toolHandles.list] : contextHandles, pageText ? area : null)}); // Session Z-Local, persona finding #7
+    const done = (stopped: string | undefined) => finish((risk ? stripWriteBlocks : (r: string) => r)(answerOnly(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), text)), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, ...(agent ? {provider: 'local' as const} : {}), lookups: found, deep: !!options.deep, careful: !!risk, ...(replyUntrusted({nova: !!nova, packUntrusted: !!novaPack?.untrusted, pasted: !!options.pasted, agent: !!agent, lookups: found.map(l => l.result.tool), extraUntrusted: !!options.extra?.untrusted}) ? {untrusted: true} : {}), records: recordsSent(mode === 'tools' ? [...toolHandles.list] : contextHandles, pageText ? area : null)}); // Session Z-Local, persona finding #7
     try {
       try { await run(mode); }
       catch (error) {
@@ -440,7 +491,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
       abort.current = null; frame.current?.(); frame.current = null;
       setStatus('idle'); setDraft(''); setLooking([]); pendingText.current = '';
     }
-  }, [capabilityFor, context, finish, persist, rememberArea, scope, setChat, settings, hosted, nova]);
+  }, [capabilityFor, context, finish, guarded, persist, rememberArea, scope, setChat, settings, hosted, nova]);
   const stop = useCallback(() => abort.current?.abort(), []);
   const again = useCallback(async (deep: boolean) => {
     if (abort.current) return;
@@ -458,20 +509,6 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   /** What this session knows about the current model: its published capability and whether it refused tools. */
   const toolState = useCallback((model: string | null) => { if (!settings.provider || !model) return {capability: null, fellBack: false}; const id = fallbackKey(settings.provider, model); return {capability: known.current.get(id) ?? null, fellBack: fellBack.current.has(id)}; }, [settings.provider]);
   const connected = !!hosted || (settings.enabled && settings.mode !== 'subscription' && !!settings.provider && !!settings.model);
-  /** A local answer: the person's question and ZIGi's answer from the records, both marked local (never sent to an AI later). */
-  const answerLocally = useCallback((shown: string, question: string, reply: LocalReply, {replace, results, source = 'local', untrusted = false}: {replace?: string; results?: readonly ToolResult[]; source?: 'local' | 'on-device'; untrusted?: boolean} = {}) => {
-    if (reply.kind === 'none') return;
-    const before = replace ? editTarget(chatRef.current, replace) ?? chatRef.current : chatRef.current;
-    const user = {...userTurn(shown), source};
-    const answer = {...assistantTurn({text: reply.text, provider: null, model: null, usage: null}), source, ...(reply.calls.length ? {tools: reply.calls.slice(0, 16).map(c => ({tool: c.tool, args: c.args, label: c.label.slice(0, 160)}))} : {})};
-    let next: Chat;
-    try { next = appendTurn(appendTurn(before, user), answer); }
-    catch { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
-    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})}); if (!untrusted) fresh.current.add(answer.id); /* Z1A-2: a pasted question's cards wait for a tap */ countZigi('device-answer'); // Session AI (G14): counted only when the person turned the counts on
-    setFailure(null); setConfirmation(null); setChat(next); persist(next);
-    if (!before.turns.length) rememberArea(next.id);
-    zigiSignals.emit(localSignal(reply, question));
-  }, [persist, rememberArea, setChat]);
   const localEnv = useCallback(() => {
     if (nova?.localEnv) { try { return nova.localEnv(); } catch { return null; } } // R2-2: NOVA's answers under NOVA → Permissions
     const sources = context.toolSources(); return sources ? toolEnv(sources, context.gates, 'local') : null;
@@ -517,6 +554,8 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   const ask = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
     if (looksSecret(text)) { setFailure({kind: 'blocked', title: ZIGI_SECRET_TITLE, steps: [...ZIGI_SECRET_STEPS]}); return; } // Session AK (B2a #1): not answered, kept or sent
+    if (cardNumberIn(text)) { setFailure({kind: 'blocked', title: CARD_TITLE, steps: [...CARD_STEPS]}); return; } // Session AL (LA-045): never kept or sent
+    if (guarded(text, options)) return; // Session AL (L7): before the device's lookups, the examples list and any model
     if (connected && (options.images?.length || options.log || options.direct || options.plan)) return send(text, options);
     const env = localEnv();
     let reply: LocalReply = {kind: 'none'};
@@ -527,7 +566,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     if (reply.kind === 'none' && onDeviceOn()) return askOnDevice(text, env, options.replace);
     // Session AB-Cloud Part 9 (ADR-023 C30): without a model, the steps for a "create/plan" ask, or the examples in the question's language.
     answerLocally(text, text, reply.kind === 'none' ? noModelReply(text, env) : reply, {replace: options.replace, results: resultsFor(reply, env), untrusted: !!options.pasted});
-  }, [answerLocally, askOnDevice, connected, localEnv, send]);
+  }, [answerLocally, askOnDevice, connected, guarded, localEnv, send]);
   const choose = useCallback((question: string, choice: LocalChoice) => {
     const env = localEnv(); if (!env || abort.current) return;
     let reply: LocalReply = {kind: 'none'};
@@ -550,7 +589,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   const localFor = useCallback((turnId: string) => locals.current.get(turnId), []);
   /** Session V Part 10: words ZIGi writes on the device (the /help list, a command that needs an AI), kept as a local turn. */
   const say = useCallback((shown: string, text: string) => answerLocally(shown, shown, {kind: 'answer', text, calls: []}), [answerLocally]);
-  const startNew = useCallback(() => { abort.current?.abort(); fresh.current.clear(); keepAgain(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setSpendCheck(null); setUsageNote(null); }, [keepAgain, scope, setChat, settings.model, settings.provider]);
+  const startNew = useCallback(() => { abort.current?.abort(); fresh.current.clear(); keepAgain(); if (!nova) noteOpenChat(scope, null); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setSpendCheck(null); setUsageNote(null); }, [keepAgain, nova, scope, setChat, settings.model, settings.provider]);
   const open = useCallback(async (id: string) => { const found = await store.read(id); if (found) { abort.current?.abort(); fresh.current.clear(); keepAgain(); setChat(found); setFailure(null); setConfirmation(null); } }, [keepAgain, setChat, store]);
   const rename = useCallback(async (id: string, title: string) => { await store.rename(id, title); if (chatRef.current.id === id) setChat({...chatRef.current, title: title.trim() || chatRef.current.title}); }, [setChat, store]);
   const remove = useCallback(async (id: string) => { await store.remove(id); if (chatRef.current.id === id) startNew(); }, [startNew, store]);
@@ -581,12 +620,13 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     const current = chatRef.current;
     if (keep) { persist(current); if (current.turns.length) rememberArea(current.id); return; }
     setSaveNote(null);
+    if (!nova) noteOpenChat(scope, null);
     if (!current.turns.length) return;
     const id = current.id;
     void saving.current.then(() => store.remove(id)).catch(() => undefined);
     try { forgetChatAreas(getAppStorage(), [id]); } catch { /* the index is a convenience */ }
     if (nova?.forget) { try { nova.forget(id); } catch { /* NOVA's record is a convenience */ } }
-  }, [nova, persist, rememberArea, store]);
+  }, [nova, persist, rememberArea, scope, store]);
   return {chat, status, draft, failure, confirmation, saveNote, parsed, handlesFor, claimFresh, send, stop, regenerate, dismissFailure, cancelConfirmation, ask, choose, askMore, moreText, localFor, startNew, open, list, search, rename, remove, removeAll,
     looking, lookupsFor, lastMode, thinkDeeper, spendCheck, confirmSpend, cancelSpend, usageNote, toolState, pin, setFeedback, say, kept, setKept};
 }

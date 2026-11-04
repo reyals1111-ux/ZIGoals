@@ -21,21 +21,25 @@ import {listNames, shortName} from './calm';
  * times only; every earning figure is the person's own tracked record with its "as of", or the Earn snapshot's figure
  * with its source and "as of" (lib/earn/snapshot.ts), never a number ZIGi made.
  */
-export type ChecklistToday = {date: string; total: number; done: number; open: string[]; healthHidden: number};
+export type ChecklistToday = {date: string; total: number; done: number; open: string[]; healthHidden: number; /** Session AL (LA-004): habit dots not read while Habits is not shared. */ habitsHidden?: number};
 /** Today's dots on the person's Checklist path, derived from the records (Health dots only with the gate). */
 export function checklistToday(env: ToolEnv): ChecklistToday | null {
   const source = env.checklist;
   if (!source || source.unreadable) return null;
   const healthOpen = !!env.health && env.areas.health !== false;
-  const record = healthOpen ? source.record : {...emptyChecklist(), ...source.record, healthItems: []};
+  // Session AL (L7; Lisbon LA-004, P-LA-04): with Habits not shared, the path's habit dots are not read either (their titles
+  // are Habits data); the answer says they are hidden instead of listing them.
+  const habitsOpen = env.areas.habits !== false, habitsHidden = habitsOpen ? 0 : source.record.items.filter(i => i.kind === 'habit').length;
+  const base = habitsOpen ? source.record : {...source.record, items: source.record.items.filter(i => i.kind !== 'habit')};
+  const record = healthOpen ? base : {...emptyChecklist(), ...base, healthItems: []};
   const healthHidden = healthOpen ? 0 : source.record.healthItems.length;
-  if (!record.items.length && !record.healthItems.length) return healthHidden ? {date: source.date, total: 0, done: 0, open: [], healthHidden} : null;
+  if (!record.items.length && !record.healthItems.length) return healthHidden || habitsHidden ? {date: source.date, total: 0, done: 0, open: [], healthHidden, ...(habitsHidden ? {habitsHidden} : {})} : null;
   const today = todayOf(source.days, source.date);
   const health = healthOpen ? env.health : null;
   const dots = deriveDots(record, today, source.date, {habits: env.habits, habitsDay: env.habitDay, health, healthDay: env.healthDay, sleep: health ? healthGroupIn(health, 'sleep') ?? null : null,
     meditation: health ? healthGroupIn(health, 'meditation') ?? null : null, meditationRun: null, fasting: healthOpen ? env.fasting : null, platform: env.platform, zone: env.healthZone, now: env.now});
   const summary = summarise(dots, today), counted = dots.filter(d => d.counted);
-  return {date: source.date, total: summary.total, done: summary.done, open: counted.filter(d => d.state !== 'done').map(d => shortName(d.label)), healthHidden};
+  return {date: source.date, total: summary.total, done: summary.done, open: counted.filter(d => d.state !== 'done').map(d => shortName(d.label)), healthHidden, ...(habitsHidden ? {habitsHidden} : {})};
 }
 const clockIn = (iso: string, zone: string) => { try { return wallClock(Date.parse(iso), zone).clock; } catch { return iso.slice(11, 16); } };
 /** Timers running now: a habit's timer (Habits), a night or a fast (Health, gated). */

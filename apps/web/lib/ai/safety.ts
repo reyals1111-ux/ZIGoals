@@ -22,9 +22,9 @@ const EATING_DISORDER = [
   /\blaxatives? to (lose|drop)\b/, /\bpro[- ]?ana\b/, /\beating disorder\b/, /\beetstoornis\b/, /\btrouble(s)? (du comportement )?alimentaire/, /\bessst(ö|oe)rung\b/,
 ];
 const KCAL = '(?:k?cal(?:ories)?|kcals?)';
-/** "I eat 600 kcal a day", "keep it under 700 calories", "only 500 calories today": a day under 800 kcal. */
+/** "I eat 600 kcal a day", "500 kcal/day" (Session AL, MO-053), "keep it under 700 calories", "only 500 calories today": a day under 800 kcal. */
 function veryLowIntake(text: string): boolean {
-  const patterns = [new RegExp(`\\b(\\d{2,4})\\s*${KCAL}\\b[^.?!]{0,30}\\b(a|per|each|every)\\s+day\\b`), new RegExp(`\\b(\\d{2,4})\\s*${KCAL}\\s*(a|per)\\s*day\\b`),
+  const patterns = [new RegExp(`\\b(\\d{2,4})\\s*${KCAL}\\b[^.?!]{0,30}\\b(a|per|each|every)\\s+day\\b`), new RegExp(`\\b(\\d{2,4})\\s*${KCAL}\\s*(?:(?:a|per)\\s*day\\b|\\/\\s*(?:day|d)\\b|daily\\b|per dag\\b|een dag\\b|p\\.?d\\.?\\b)`),
     new RegExp(`\\b(?:under|below|less than|max(?:imum)?|only|just|limit(?:ing)? (?:myself )?to|stay under|keep (?:it|myself) under)\\s+(?:(?:eat|eating|ate|have|having|had)\\s+)?(\\d{2,4})\\s*${KCAL}`)];
   return patterns.some(p => { const m = p.exec(text); return !!m && Number(m[1]) > 0 && Number(m[1]) < 800; });
 }

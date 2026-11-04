@@ -1,5 +1,7 @@
 import type {ToolEnv} from '../tools/env';
-import type {LocalReply} from './engine';
+import {zigiOverview, type LocalReply} from './engine';
+import {normalizeSpoken} from '../spoken/normalize';
+import {alFactsAnswer} from './al-facts';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {simpleCommand} from './ai-session';
 import {quickLogItems, quickLogReply} from '../../quick-log/multi';
@@ -97,11 +99,28 @@ export function capabilitiesReply(text: string, lang: ReplyLanguage, env: ToolEn
   const nl = 'Nu beantwoord ik vragen uit je eigen gegevens, op dit apparaat: wat er vandaag open staat, hoe je gewoontes en doelen gaan en wat je geld bij elkaar is. Noem een nieuwe gewoonte (“Maak een gewoonte Wandelen”) of een spaardoel (“Ik wil sparen voor een vakantie”) en ik zet het klaar; jij bevestigt.\nMet een eigen brein (een model op je computer, of je eigen sleutel) kan ik ook met je plannen en meedenken.';
   return {kind: 'answer', text: (lang === 'nl' || nlAsk ? nl : en) + `\n\n\`\`\`zigoals-action\n${where}\n\`\`\``, calls: []};
 }
+const FRENCH = /\b(je|tu|mon|ma|mes|combien|quel(?:le)?s?|est-ce|pourquoi|aujourd'hui|j'ai|eau|objectifs?|habitudes?|bu|dormi)\b/gi;
+const SPANISH = /\b(yo|mi|mis|cu[aá]nt[oa]s?|cu[aá]l(?:es)?|por qu[eé]|hoy|tengo|he|agua|metas?|h[aá]bitos?|dorm[ií]|beb[ií])\b/gi;
+const OTHER_NOTE = {fr: 'Pour l’instant, je réponds en anglais (et en néerlandais).', es: 'Por ahora respondo en inglés (y en neerlandés).'} as const;
+/** French or Spanish when it carries at least two of their words and more of them than English ones. */
+export function otherLanguage(text: string): 'fr' | 'es' | null {
+  const count = (re: RegExp) => new Set((text.match(re) ?? []).map(w => w.toLowerCase())).size, en = count(ENGLISH), fr = count(FRENCH), es = count(SPANISH);
+  if (fr >= 2 && fr > en && fr >= es) return 'fr';
+  if (es >= 2 && es > en) return 'es';
+  return null;
+}
 /** Everything ZIGi says without a model after the device's own answers had none. */
 export function noModelReply(text: string, env: ToolEnv | null): LocalReply {
   const lang = questionLanguage(text);
   // Session AI (ZI11): a simple command gets its card here, with no model ("Create a habit called Yoga").
-  return simpleCommand(text) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? examplesIn(env, lang);
+  // Session AL (lane L7; DV-074, P-DV-83): with no model, ZIGi answers the questions NOVA's overview answers (English; a whole
+  // Dutch question keeps the Dutch introduction and the examples, as the golden pins nl-question / x-nl-whole hold).
+  const overview = env && lang === 'en' ? zigiOverview(normalizeSpoken(text), env) : null;
+  const reply = simpleCommand(text) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? alFactsAnswer(normalizeSpoken(text), env, lang) ?? examplesIn(env, lang);
+  // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
+  // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
+  const other = otherLanguage(text);
+  return other && reply.kind === 'examples' ? {...reply, text: `${OTHER_NOTE[other]} ${reply.text}`} : reply;
 }
 
 /**

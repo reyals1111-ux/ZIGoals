@@ -27,6 +27,13 @@ export function checkNovaScopes(scopes: NovaScopes, pack: Pick<NovaPack, 'includ
   const leaked = pack.included.filter(p => !scopeOpen(scopes, PILLAR_SCOPE[p], chainChosen) || (PILLAR_SCOPE[p] === 'health' && !healthGate));
   if (leaked.length) return {ok: false, note: `The preview holds something you did not share (${leaked.join(', ')}). Reload and check again.`};
   const open = (Object.keys(scopes) as (keyof NovaScopes)[]).filter(s => scopeOpen(scopes, s, chainChosen) && (s !== 'health' || healthGate));
+  // Session AL (lane L7; Lisbon LA-003, Denver DV-062, Moscow MO-058; P-LA-05, P-DV-91, P-MO-14): the check and the preview
+  // read one state. A scope that is on while the preview reads nothing of it (its page switch in Settings → ZIGi is off) is
+  // a disagreement and fails, saying which switch; "NOVA can see" names only what the preview really carries.
+  const unread = open.filter(s => s !== 'health' && pack.notShared.some(p => PILLAR_SCOPE[p] === s) && !pack.included.some(p => PILLAR_SCOPE[p] === s));
+  if (unread.length) return {ok: false, note: `NOVA → Permissions lets NOVA see ${unread.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}, but the preview reads nothing of it: its page switch under Settings → ZIGi · Your Personal AI Companion → What each page may share is off. Turn both on (or both off), then check again.`};
   const health = scopes.health ? healthGate ? 'Health: on.' : 'Health: chosen, but its gate is still closed (see the note).' : 'Health: off.';
-  return {ok: true, note: open.length ? `NOVA can see: ${open.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}. ${health}` : `NOVA sees no records. ${health}`};
+  const seen = open.filter(s => pack.included.some(p => PILLAR_SCOPE[p] === s)), quiet = open.filter(s => !seen.includes(s));
+  const none = quiet.length ? ` Nothing recorded yet in: ${quiet.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}.` : '';
+  return {ok: true, note: seen.length ? `NOVA can see: ${seen.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}.${none} ${health}` : open.length ? `NOVA may read ${open.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}, but nothing there holds records yet. ${health}` : `NOVA sees no records. ${health}`};
 }

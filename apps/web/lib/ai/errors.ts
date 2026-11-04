@@ -91,7 +91,7 @@ export function errorSteps(error: AiError, context: {providerName: string; local
     case 'request': return ['Try a shorter message, or choose another model.'];
     case 'server': return ['Try again in a moment.'];
     case 'unreadable': return ['Try again; if it keeps happening, choose another model or provider.'];
-    case 'stalled': return ['What arrived is kept above; ask ZIGi to continue, or send again.', context.local ? 'A local model that stops mid-reply is often out of memory or swapping: a smaller model or a shorter context budget helps.' : 'If it keeps happening, choose another model.'];
+    case 'stalled': return ['What arrived is kept above; ask ZIGi to continue, or send again.', context.local ? 'A local model that stops mid-reply is often out of memory or swapping: a smaller model or a shorter context budget helps. On a computer without a graphics card, try a small model such as qwen2.5:0.5b or llama3.2:1b (Settings → ZIGi · Your Personal AI Companion → Model).' : 'If it keeps happening, choose another model.'];
     case 'aborted': return [];
   }
 }

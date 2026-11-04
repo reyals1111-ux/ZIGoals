@@ -17,6 +17,8 @@ import {DataViz} from '../../ai/data-viz';
 import {ProposalList} from '../../ai/proposal-list';
 import {ReplyIcon, ReplyMore} from '../../ai/reply-actions';
 import {SafeText} from '../../ai/safe-text';
+// Session AL (lane L7; MO-060/P-MO-03): NOVA shows careful mode's note under the person's message, as ZIGi does.
+import {CareNote} from '../../ai/care-note';
 import {FeedbackButtons, LongText, SourceLine, TurnKind, TurnTime} from '../../ai/turn-extras';
 import type {AutoAccept} from '../../ai/use-auto-accept';
 import type {ChatSession} from '../../ai/use-chat-session';
@@ -39,7 +41,7 @@ export type TurnCommon = {session: ChatSession; runner: ReturnType<typeof usePro
 export function NovaUserTurn({turn, mark, persona, onEdit}: {turn: ChatTurn; mark?: DelegatedTurn; persona: NovaPersona; onEdit?: () => void}) {
   return <>
     <article className="nova-turn nova-turn-user" aria-label="You">
-      <div className="nova-turn-body"><p className="nova-turn-who" aria-hidden="true">You</p><LongText text={turn.text}/></div>
+      <div className="nova-turn-body"><p className="nova-turn-who" aria-hidden="true">You</p><LongText text={turn.text}/><CareNote text={turn.text} inChat/></div>
     </article>
     {onEdit && <p className="nova-turn-edit"><ReplyIcon glyph="edit" label="Edit your last message" tip="Edit" onClick={onEdit}/></p>}
     {mark?.role === 'task' && (mark.agent === 'hermes'

@@ -22,7 +22,10 @@ export function toneProblem(line: string, insight = false): string | null {
 /** A record's name shortened for a chip or a brief line ("Meditate", "Japan adventure"). */
 export function shortName(name: string, max = 28): string {
   const clean = name.replace(/\s+/g, ' ').trim();
-  return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
+  if (clean.length <= max) return clean;
+  // Session AL (LA-014): cut at a word boundary when one is near, never mid-word.
+  const cut = clean.slice(0, max - 1), space = cut.lastIndexOf(' ');
+  return `${(space >= max / 2 ? cut.slice(0, space) : cut).trimEnd()}…`;
 }
 /** "Read", "Read and Walk", "Read, Walk and 2 more". */
 export function listNames(names: readonly string[], shown = 3): string {
