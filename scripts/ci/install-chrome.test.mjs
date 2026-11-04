@@ -64,7 +64,9 @@ describe.skipIf(process.platform!=='linux').concurrent('CI Chrome install retrie
   expect(r.code).toBe(0);expect(r.attempts).toBe(2);expect(r.out).toContain('Chrome install attempt 1 of 3 failed.');expect(r.out).not.toContain('Waiting');expect(r.seconds).toBeGreaterThanOrEqual(1);
  },20_000);
  test('an apt-get left holding the dpkg lock is waited for, then the retry succeeds',async()=>{
-  const r=await install('orphan:2,apt');
+  // Session AL (CI_INTERMITTENTS Fix 1): the orphan may take seconds to start on a slow runner, so the attempt limit
+  // outlasts the fake's own 10 s wait for it.
+  const r=await install('orphan:2,apt',{ZIGOALS_CHROME_ATTEMPT_SECONDS:'11'});
   expect(r.code).toBe(0);expect(r.attempts).toBe(2);expect(r.orphan).toMatch(/^\d+$/);
   const failed=r.out.indexOf('Chrome install attempt 1 of 3 failed.'),waiting=r.out.indexOf(`Waiting for the apt/dpkg lock held by PID ${r.orphan} (python3 `),released=r.out.search(/apt\/dpkg locks released after \d+ s\./);
   expect(failed).toBeGreaterThanOrEqual(0);expect(waiting).toBeGreaterThan(failed);expect(released).toBeGreaterThan(waiting);expect(r.out).not.toContain('Could not get lock');
@@ -74,7 +76,7 @@ describe.skipIf(process.platform!=='linux').concurrent('CI Chrome install retrie
   expect(r.code).toBe(1);expect(r.attempts).toBe(3);expect(r.out.match(/E: Could not get lock/g)).toHaveLength(2);expect(r.out).toContain('::error::Chrome install failed after 3 attempts');
  },20_000);
  test('a lock held past the bound fails clearly, naming its holder, without another attempt',async()=>{
-  const r=await install('orphan:30,ok',{ZIGOALS_CHROME_LOCK_WAIT_SECONDS:'2'});
+  const r=await install('orphan:30,ok',{ZIGOALS_CHROME_LOCK_WAIT_SECONDS:'2',ZIGOALS_CHROME_ATTEMPT_SECONDS:'11'});
   expect(r.code).toBe(1);expect(r.attempts).toBe(1);
   expect(r.out).toMatch(new RegExp(`::error::An apt/dpkg lock is still held after [23] s by PID ${r.orphan} \\(python3 .*hold\\.py`));
   expect(r.out).toContain('Re-run the job once; if it fails again, investigate.');
@@ -98,12 +100,14 @@ describe.skipIf(process.platform!=='linux').concurrent('CI Chrome install retrie
  // Session M: CI sets no ceiling, so the wait may use what the step limit leaves after one full attempt. In run 37034640434
  // a timed-out attempt's apt-get still held the lock at 241 s, just past the old fixed 240 s.
  test('with no fixed ceiling, a lock held past the old one is waited for while one full attempt still fits',async()=>{
-  const r=await install('orphan:9,apt',{ZIGOALS_CHROME_LOCK_WAIT_SECONDS:'',ZIGOALS_CHROME_STEP_SECONDS:'40'});
+  // Bound = 46 - 11 - 1 = 34 s, as with 40 - 5 - 1 before; the attempt limit outlasts the orphan's start (CI on bd11e313).
+  const r=await install('orphan:9,apt',{ZIGOALS_CHROME_LOCK_WAIT_SECONDS:'',ZIGOALS_CHROME_ATTEMPT_SECONDS:'11',ZIGOALS_CHROME_STEP_SECONDS:'46'});
   expect(r.code).toBe(0);expect(r.attempts).toBe(2);
   expect(r.out).toMatch(/of at most 3[0-4] s\./);expect(r.out).toMatch(/apt\/dpkg locks released after ([7-9]|1[0-9]) s\./);expect(r.out).not.toContain('Could not get lock');
  },30_000);
  test('with no fixed ceiling, the step limit still ends the wait in time',async()=>{
-  const r=await install('orphan:30,ok',{ZIGOALS_CHROME_LOCK_WAIT_SECONDS:'',ZIGOALS_CHROME_STEP_SECONDS:'12'});
+  // Bound = 18 - 11 - 1 = 6 s, as with 12 - 5 - 1 before.
+  const r=await install('orphan:30,ok',{ZIGOALS_CHROME_LOCK_WAIT_SECONDS:'',ZIGOALS_CHROME_ATTEMPT_SECONDS:'11',ZIGOALS_CHROME_STEP_SECONDS:'18'});
   expect(r.code).toBe(1);expect(r.attempts).toBe(1);expect(r.out).toMatch(/of at most [4-6] s\./);expect(r.out).toContain('::error::An apt/dpkg lock is still held after');expect(r.seconds).toBeLessThan(12);
  },30_000);
  test('a missing install command is a usage error',async()=>{
