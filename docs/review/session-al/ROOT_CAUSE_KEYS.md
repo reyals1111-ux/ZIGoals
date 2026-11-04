@@ -53,6 +53,13 @@ Every ledger line carries exactly one primary key from this list (a second key m
 | SECURITY-LOCK | PIN / screen lock / privacy lock behaviour |
 | PRIVACY | Data sharing defaults, what AI can see, privacy copy truth |
 | COMPETITOR-GAP | A "missing vs competitors" item (Part 15; one AL row each, A11) |
+| ACTIVITY | Activity feed events missing, duplicated, vague or fake |
+| ALLOCATION | Allocation dials/targets and their maths (Wealth) |
+| CHARTS | Chart scales, axes, series and labels |
+| CONSOLE | Console errors/warnings with an app cause (e.g. /api/push 503, Permissions-Policy) |
+| DISCOVERABILITY | A feature exists but people can't find it |
+| FEATURE-GAP | A missing capability that isn't a competitor comparison |
+| HEALTH-SAFETY | Health/diet safety lines (e.g. very low kcal targets) |
 | ENV-ONLY | Caused by the test environment; still investigated for an app cause (R7) |
 | POSITIVE | Keep-list (regression guard), not a defect |
 
