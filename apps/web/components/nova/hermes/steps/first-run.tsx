@@ -4,7 +4,7 @@ import {readKey} from '../../../../lib/ai/keys';
 import {guardRequest} from '../../../../lib/ai/privacy-mode';
 import {currentAiScope} from '../../../../lib/ai/scope';
 import {askHermes, HERMES_DELEGATE_SYSTEM, hermesDataBlock, hermesRequest} from '../../../../lib/nova/hermes';
-import {HERMES_KEY_SLOT, NOVA_HERMES, withCheckTime} from '../../../../lib/nova/hermes-record';
+import {HERMES_KEY_SLOT, localModelStillConfirmed, NOVA_HERMES, withCheckTime} from '../../../../lib/nova/hermes-record';
 import {NOVA_SETUP} from '../../../../lib/nova/setup';
 import {SafeText} from '../../../ai/safe-text';
 import {useAiSettings} from '../../../ai/use-ai-settings';
@@ -27,7 +27,7 @@ const goalsOf = (markdown: string) => { const at = markdown.indexOf('## Goals');
 export default function FirstRunStep({hermes}: {hermes: HermesState}) {
   const settings = useAiSettings(), setup = useDeviceRecord(NOVA_SETUP), hermesRecord = useDeviceRecord(NOVA_HERMES), {pack} = useContextPack(settings.data);
   const scope = useSyncExternalStore(subscribeNothing, currentAiScope, () => 'local');
-  const mode = setup.unreadable ? 'strict' : setup.data.privacyMode ?? null, confirmed = hermesRecord.data.localModelConfirmed === true;
+  const mode = setup.unreadable ? 'strict' : setup.data.privacyMode ?? null, confirmed = localModelStillConfirmed(hermesRecord.data); // Z1A-I5: for this address and version
   const [task, setTask] = useState(TASK), [reply, setReply] = useState(''), [busy, setBusy] = useState(false), abort = useRef<AbortController | null>(null);
   const goals = useMemo(() => pack ? goalsOf(pack.markdown) : '', [pack]);
   // Security reviews Z1A-5 and Z1A-11: the goals go as one marked data block, recovery words hidden (lib/nova/hermes.ts).

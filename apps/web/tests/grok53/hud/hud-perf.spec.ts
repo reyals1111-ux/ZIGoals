@@ -12,7 +12,10 @@ import {frame, freshNova, runningInNova, skyFrames} from './hud-helpers';
 // A true capability skip: CPU throttling and the Performance metrics exist only over Chromium's DevTools protocol; and the
 // target (AL_SCOPE B) is a mid laptop profile, so the phone-emulating project does not run it.
 test.skip(({browserName, isMobile}) => browserName !== 'chromium' || isMobile, 'CDP CPU throttling needs Chromium; the target is a laptop profile');
-test.use({viewport: {width: 1440, height: 900}, timezoneId: 'Europe/Brussels'});
+// No trace for this probe (Session AL L8c): the suite's `trace: 'retain-on-failure'` records a screencast frame for every
+// visual change, and at CPU 4× that recorder alone held the page to 20 fps (median 50 ms with it, 16.7 ms without, same
+// build). The probe measures the HUD, not Playwright's recorder; the JSON below is the evidence a failure needs.
+test.use({viewport: {width: 1440, height: 900}, timezoneId: 'Europe/Brussels', trace: 'off'});
 
 const MEDIAN_FRAME_GUARD_MS = 20, HIDDEN_CPU_SHARE_GUARD = 0.2;
 const pct = (sorted: number[], p: number) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))] ?? 0;

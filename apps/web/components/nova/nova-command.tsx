@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect, useId, useRef, useState, type FormEvent, type ReactNode} from 'react';
 import {MAX_INPUT_CHARS} from '../../lib/ai/chats';
-import {sendToNova} from '../../lib/nova/bridge';
+import {noteNovaDraft, sendToNova} from '../../lib/nova/bridge';
 import {probeServer, type ScanModel} from '../../lib/nova/local-servers';
 import {NOVA_LAYOUTS, WIDGET_SIZES, type NovaLayout, type NovaWidget, type WidgetSize} from '../../lib/nova/store';
 import {LAYOUT_LABEL} from '../../lib/nova/share-setup';
@@ -22,7 +22,9 @@ import type {Brain} from './status-chips';
  */
 function Menu({label, current, icon, align, children}: {label: string; current: string; icon: string; align: 'start' | 'end'; children: (close: () => void) => ReactNode}) {
   const [open, setOpen] = useState(false), id = useId(), button = useRef<HTMLButtonElement>(null), box = useRef<HTMLDivElement>(null);
-  const close = () => { setOpen(false); requestAnimationFrame(() => button.current?.focus()); };
+  // The focus goes back to the menu's button only if it was lost with the closing panel (Session AL L8c: a frame later it
+  // must not pull the focus back from wherever the person, or a test, already moved it, e.g. a panel's grip after Arrange).
+  const close = () => { setOpen(false); requestAnimationFrame(() => { const at = document.activeElement; if (!at || at === document.body || box.current?.contains(at)) button.current?.focus(); }); };
   useEffect(() => {
     if (!open) return;
     const away = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node) && !button.current?.contains(e.target as Node)) setOpen(false); };
@@ -103,12 +105,14 @@ export function CommandField({you, persona, inputRef, onOpen, value, onValue, on
   const [own, setOwn] = useState(''), hint = useId(), pasted = useRef(false); // Z1A-2: a paste is marked, so no card from the reply is auto-accepted
   const text = value ?? own, setText = (t: string) => { if (onValue) onValue(t); else setOwn(t); };
   const apple = useApplePlatform(); // Session AK P3 (ND-21): ⌘K on Apple devices, Ctrl K elsewhere
+  // Session AL Part 14 (DV-070): every change is noted as NOVA's draft, so the chat that opens while the person types starts
+  // from these words; a successful sendToNova clears it.
   const submit = (e: FormEvent) => { e.preventDefault(); const t = text.trim(); if (t && sendToNova(t, {pasted: pasted.current})) { setText(''); pasted.current = false; } onOpen(); };
   // Session AK P3 (ND-5): one calm glass field (the input draws no box of its own) and a one-line hint.
   return <form className="nova-command zg-glass" onSubmit={submit} aria-label={`Ask ${persona}`}>
     <NovaIcon name="star" size={22}/>
     <div className="nova-command-text">
-      <input ref={inputRef} value={text} onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} aria-keyshortcuts={commandKeyShortcut(apple, 'k')} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
+      <input ref={inputRef} value={text} onChange={e => { const t = e.target.value.slice(0, MAX_INPUT_CHARS); setText(t); if (!t) pasted.current = false; noteNovaDraft(t, {pasted: pasted.current}); }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} aria-keyshortcuts={commandKeyShortcut(apple, 'k')} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
       <small id={hint}>Enter to ask {persona} · nothing is sent before you press it.</small>
     </div>
     {onKeys && <button type="button" className="holo-keys-btn" onClick={onKeys} aria-label="Keyboard shortcuts" aria-haspopup="dialog" aria-keyshortcuts={keysOn ? '?' : undefined} data-tip="Keyboard shortcuts · ?"><span aria-hidden="true">?</span></button>}

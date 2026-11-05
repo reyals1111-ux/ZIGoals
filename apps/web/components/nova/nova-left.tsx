@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useId, useState} from 'react';
 import type {LeftState} from '../../lib/nova/store';
-import type {HermesStatus} from '../../lib/nova/hermes-record';
+import {hermesPanel, type HermesStatus} from '../../lib/nova/hermes-record';
 import {NovaIcon} from './icons';
 import type {Brain} from './status-chips';
 import type {NovaCounts} from './use-counts';
@@ -14,7 +14,12 @@ import type {NovaCounts} from './use-counts';
  * and at the foot NOVA's line and the brain's status. Open, folded to an icon rail, or hidden (the button cycles; "[" too
  * while single-key shortcuts are on); remembered per device.
  */
-export type LeftEntry = {id: string; label: string; href?: string; onPick?: () => void; icon: string; tone: string; count?: number | null; countLabel?: string; section: 'pillars' | 'pages' | 'agents'; status?: 'on' | 'calm' | 'off'};
+export type LeftEntry = {id: string; label: string; href?: string; onPick?: () => void; icon: string; tone: string; count?: number | null; countLabel?: string; section: 'pillars' | 'pages' | 'agents'; status?: 'on' | 'calm' | 'off'; statusWord?: string};
+/** The Hermes row's dot and word: ready when reachable, calm with the panel's pill when it answered with a problem. */
+function hermesRow(hermes: HermesStatus): {status: 'on' | 'calm' | 'off'; statusWord?: string} {
+  const p = hermesPanel(hermes);
+  return hermes.reachable ? {status: 'on'} : p.on ? {status: 'calm', statusWord: p.pill.toLowerCase()} : {status: 'off'};
+}
 const SECTION_LABEL = {pillars: 'Your pillars', pages: 'Your pages', agents: 'Agents'} as const;
 export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess, persona, onNova, onZigi, zigiStatus, hermes}: {
   state: LeftState; onCycle: () => void; you: string; brain: Brain; counts: NovaCounts; pages: (id: 'goals' | 'habits' | 'health' | 'wealth') => boolean;
@@ -40,7 +45,8 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
     {id: 'settings', label: 'Settings', href: '/app/settings', icon: 'settings', tone: 'muted', section: 'pages'},
     {id: 'nova', label: persona, onPick: onNova, icon: 'star', tone: 'violet', section: 'agents', status: brain.kind === 'none' ? 'calm' : 'on'},
     {id: 'zigi', label: 'ZIGi', onPick: onZigi, icon: 'zigi', tone: 'cyan', section: 'agents', status: zigiStatus},
-    ...(hermes?.connected ? [{id: 'hermes', label: 'Hermes Agent', href: '/app/nova/hermes', icon: 'test', tone: 'magenta', section: 'agents' as const, status: hermes.reachable ? 'on' as const : 'off' as const}] : []),
+    // EX3 left-over 1: a gateway that answered but refused or wanted the key is "key refused", never "not reachable".
+    ...(hermes?.connected ? [{id: 'hermes', label: 'Hermes Agent', href: '/app/nova/hermes', icon: 'test', tone: 'magenta', section: 'agents' as const, ...hermesRow(hermes)}] : []),
   ];
   const q = query.trim().toLowerCase(), found = q ? entries.filter(e => e.label.toLowerCase().includes(q) || e.id.includes(q)) : entries;
   const row = (e: LeftEntry) => {
@@ -50,7 +56,7 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
       {/* ND-14: a zero says nothing at a glance; it stays in the row's name for assistive technology. */}
       {count !== null && count > 0 && !rail && <span className="nova-left-count" aria-hidden="true">{count}</span>}
     </>;
-    const name = `${e.label}${count !== null ? `, ${count} ${e.countLabel}` : ''}${e.status ? `, ${e.status === 'on' ? 'ready' : e.status === 'calm' ? 'on-device answers' : 'not reachable'}` : ''}`;
+    const name = `${e.label}${count !== null ? `, ${count} ${e.countLabel}` : ''}${e.status ? `, ${e.statusWord ?? (e.status === 'on' ? 'ready' : e.status === 'calm' ? 'on-device answers' : 'not reachable')}` : ''}`;
     return <li key={e.id}>{e.href
       ? <Link className="nova-left-row" href={e.href} prefetch={false} aria-label={name} title={rail ? name : undefined}>{inner}</Link>
       : <button type="button" className="nova-left-row" onClick={e.onPick} aria-label={name} title={rail ? name : undefined}>{inner}</button>}</li>;
@@ -80,7 +86,8 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
     {!rail && <div className="nova-left-foot">
       <p className="nova-signature"><strong>{persona}</strong> · your life and your own AI, in one private place.</p>
       <p className="nova-left-brain"><span className="nova-chip-dot" data-kind={brain.kind} aria-hidden="true"/>Brain: {brain.words}</p>
-      {hermes?.connected && <p className="nova-left-brain"><span className="nova-chip-dot" data-kind={hermes.reachable ? 'on' : 'offline'} aria-hidden="true"/>Hermes gateway {hermes.reachable ? 'reachable at the last check' : 'not reachable at the last check'}</p>}
+      {/* Session AL Part 14 (EX3 left-over 1): a gateway that answered but refused or wanted the key was reached. */}
+      {hermes?.connected && (() => { const p = hermesPanel(hermes); return <p className="nova-left-brain"><span className="nova-chip-dot" data-kind={p.on ? 'on' : 'offline'} aria-hidden="true"/>{p.line}</p>; })()}
     </div>}
   </aside>;
 }

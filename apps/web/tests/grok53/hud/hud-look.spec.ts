@@ -76,6 +76,10 @@ test.describe('computer', () => {
     await expect(view).toHaveAttribute('aria-expanded', 'true');
     await page.getByRole('button', {name: 'Arrange on the orbits'}).focus();
     await page.keyboard.press('Enter');
+    // Session AL L8c: the closing menu hands the focus back to its button one frame later. Wait for it, so the grip's focus
+    // below is not taken back by that frame (the race failed this step about one run in two on the production build).
+    await expect(view).toBeFocused();
+    await expect(view).toHaveAttribute('aria-expanded', 'false');
     const before = await order();
     await page.getByRole('button', {name: /^Move Water: drag/}).focus();
     await page.keyboard.press('ArrowUp');
