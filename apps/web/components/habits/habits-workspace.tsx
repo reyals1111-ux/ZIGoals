@@ -76,6 +76,7 @@ import "./habits-aa.css";
 import { ProgressSlot } from "../game/slot-local";
 import {Skeleton} from '../ui/skeleton';
 import { showStatus, showUndo } from "../ui/undo-toast";
+import { duplicateHabitInput } from "../../lib/habits-duplicate";
 // Session AA-Local Part 1: the routine player and the year view load when they are opened.
 const RoutinePlayer = lazy(() => import("./routine-player").then((m) => ({ default: m.RoutinePlayer })));
 const YearView = lazy(() => import("./year-view").then((m) => ({ default: m.YearView })));
@@ -105,6 +106,8 @@ const EmptyHabitIdeas = lazy(() => import("./empty-ideas"));
 // here from the habit extras (lib/habits-order/extras.ts, small).
 const AutoRulesKeeper = lazy(() => import("./auto-rules-keeper"));
 const AutoRulesEditor = lazy(() => import("./auto-rules-editor"));
+/** Session AL fourth pass (NB-201): what a habit's own Health setting cannot watch; the rest is "Done automatically when". */
+const PAGE_RULE_SOURCES = ["workout", "contribution"] as const;
 const HabitReorderList = lazy(() => import("./reorder-list"));
 const HabitCompactView = lazy(() => import("./habit-compact-view"));
 // The Cards / Compact switch: fetched with the page (withPage, above), beside the Reorder button that holds the row's height.
@@ -146,7 +149,7 @@ export function HabitsWorkspace() {
   // H7: the Health journal for the link choices, and the automatic check-ins applied on this page (the hook returns this device's links).
   const health = useHealth();
   const links = useAutoCheckIns({ habits: store, health });
-  const healthLinkContext = useMemo(() => ({ counters: exerciseData(health.data).counters, waterUnit: dailyData(health.data).preferences.waterUnit }), [health.data]);
+  const healthLinkContext = useMemo(() => ({ counters: exerciseData(health.data).counters, waterUnit: dailyData(health.data).preferences.waterUnit, ...(health.loaded && !health.error ? { health: health.data } : {}) }), [health.data, health.loaded, health.error]);
   const phone = usePhoneActive();
   const goals = useGoals();
   const platform = usePlatform();
@@ -261,6 +264,17 @@ export function HabitsWorkspace() {
   // Session AL (3e, A7): the app's one Undo toast. Restore puts the habit record back in the store (the latest record,
   // through the store's own update); a habit changed since says so instead.
   const deleteForGoodAction = store.deleteForGood, undoDeleteAction = store.undoDelete;
+  // Session AL fourth pass (NB-133): Duplicate in a card's ⋯ menu adds a copy with the same rule and no history; its Undo
+  // takes the copy away again (the same-day delete, as a habit with nothing recorded has). The copy's card takes the focus.
+  const createAction = store.create, latestTitles = useRef<string[]>([]), todayRef = useRef(store.today);
+  latestTitles.current = store.data.habits.map((h) => h.title); todayRef.current = store.today;
+  const duplicateHabit = useCallback(async (habit: Habit) => {
+    const input = duplicateHabitInput(habit, latestTitles.current, todayRef.current), id = crypto.randomUUID();
+    try { await createAction(input, id); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The copy was not added."); return; }
+    setMessage(""); setFilter("All"); setFocusTarget(`habit-${id}`);
+    showUndo({message: `“${input.title}” added: the same rule, no history yet.`, undoLabel: `Undo the copy of ${habit.title}`,
+      restore: async () => { await deleteForGoodAction(id); return {undone: `The copy of “${habit.title}” is gone.`}; }});
+  }, [createAction, deleteForGoodAction]);
   const deleteForGood = useCallback(async (habit: Habit) => {
     const deleted = await deleteForGoodAction(habit.id); setMessage("");
     showUndo({message: `“${habit.title}” was deleted for good.`, undoLabel: `Undo deleting ${habit.title}`, timeoutMs: 10_000,
@@ -270,7 +284,7 @@ export function HabitsWorkspace() {
         const privateGoal = habit.goalLink?.chainId === "private" && habit.goalLink.owner === "local" ? platform.data.goals.find((goal) => goal.id === habit.goalLink!.goalId) : undefined;
         const contractGoalName = habit.goalLink && !privateGoal && goals.goals.some((goal) => goal.id === habit.goalLink!.goalId) ? goals.metadata?.goals[habit.goalLink.goalId]?.name ?? `Goal #${habit.goalLink.goalId}` : undefined;
         const scope = privateGoal ? PRIVATE_SCOPE : contractScope;
-        return {id: entityLayoutId(habit.id), label: habit.title, node: <HabitCard key={habit.id} habit={habit} store={store.card} scope={scope} privateGoal={privateGoal} stackNext={stacks.get(habit.id)} onViewStack={viewStack} goalName={privateGoal?.name ?? contractGoalName} goalHref={privateGoal ? `/app/goals/tracked/${encodeURIComponent(privateGoal.id)}` : habit.goalLink ? `/app/goals/${encodeURIComponent(habit.goalLink.goalId)}` : undefined} stackName={store.data.habits.find((candidate) => candidate.id === habit.stackAfterId)?.title} onEdit={editHabit} onDeleteForGood={deleteForGood} reminderAt={reminders.loaded ? reminders.data.habits[habit.id]?.time ?? null : null} />};
+        return {id: entityLayoutId(habit.id), label: habit.title, node: <HabitCard key={habit.id} habit={habit} store={store.card} scope={scope} privateGoal={privateGoal} stackNext={stacks.get(habit.id)} onViewStack={viewStack} goalName={privateGoal?.name ?? contractGoalName} goalHref={privateGoal ? `/app/goals/tracked/${encodeURIComponent(privateGoal.id)}` : habit.goalLink ? `/app/goals/${encodeURIComponent(habit.goalLink.goalId)}` : undefined} stackName={store.data.habits.find((candidate) => candidate.id === habit.stackAfterId)?.title} onEdit={editHabit} onDeleteForGood={deleteForGood} onDuplicate={duplicateHabit} reminderAt={reminders.loaded ? reminders.data.habits[habit.id]?.time ?? null : null} />};
   };
   const usedAreas = extras.loaded ? extras.areas.filter((a) => store.data.habits.some((h) => habitArea(extras.data, h.id) === a.id)) : [];
   const sectioned = SECTIONED.includes(filter);
@@ -307,7 +321,7 @@ export function HabitsWorkspace() {
             ? <PhoneFormSheet title={editingHabit ? "Edit habit" : "Create a habit"} onClose={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }}>{habitEditor}</PhoneFormSheet>
             : habitEditor)}
           {vacation && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><VacationPanel data={store.data} today={store.today} onMark={(range) => store.setVacation(range)} onClear={(range) => store.clearVacation(range)} onClose={() => setVacation(false)} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Vacation days" onClose={() => setVacation(false)}>{panel}</PhoneFormSheet> : panel; })()}
-          {ideas && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><HabitIdeas data={store.data} today={store.today} onClose={() => setIdeas(false)} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); await linkWaterIdea(id, input); setMessage(""); showStatus(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
+          {ideas && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><HabitIdeas data={store.data} today={store.today} onClose={() => { setIdeas(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('.habit-ideas-button')?.focus()); }} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); await linkWaterIdea(id, input); setMessage(""); showStatus(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
           {phone && <div className="habit-phone-ideas"><button className="quiet habit-ideas-button" disabled={!store.loaded || !!store.error} aria-expanded={ideas} onClick={() => { setIdeas((open) => !open); setMessage(""); }}>Habit ideas</button></div>}
           {pageHabit ? <div className="habit-page-bar" role="group" aria-label="One habit"><p className="eyebrow">One habit</p><h2 className="habit-page-title">{pageHabit.title}</h2><p className="fine">Its check-ins, history, consistency and actions, on one page.</p><Link className="text-link" href="/app/habits">← All habits</Link></div> : <>          <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => { setFilter(item); setShown(PAGE); }}>{item}</button>)}<label className="habit-sort"><span>Sort</span><select aria-label="Sort habits" value={sort} onChange={(event) => { setSort(event.target.value as HabitSort); setShown(PAGE); }}>{HABIT_SORTS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
           {usedAreas.length > 0 && <div className="habit-area-bar" role="group" aria-label="Filter by area"><span className="eyebrow">Area</span><button className="quiet" aria-pressed={area === "all"} onClick={() => setArea("all")}>All areas</button>{usedAreas.map((a) => <button className="quiet" key={a.id} aria-pressed={area === a.id} onClick={() => setArea(a.id)}>{a.label}</button>)}</div>}
@@ -322,8 +336,8 @@ export function HabitsWorkspace() {
           {/* Session AL (GAP-086): every note and mood from check-ins, searchable; its chunk loads when the fold opens. */}
           {hasReflections && !pageHabit && <details className="panel habit-reflections-fold" onToggle={e => setReflectionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary className="habit-reflections-summary">Your notes and moods</summary>{reflectionsOpen && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening your notes and moods…" block/>}><HabitReflections data={store.data} /></Suspense></LoadBoundary>}</details>}
           {/* Session AK (5.6): "When steps ≥ 8,000 → Walk is done", each rule a plain sentence; the editor loads when opened. */}
-          {store.data.habits.length > 0 && <section className="panel habit-auto-rules" aria-labelledby="habit-auto-rules-title"><div className="habit-section-heading"><div><p className="eyebrow">Done for you</p><h2 id="habit-auto-rules-title">Auto-complete rules</h2><p className="fine">{autoRules?.rules.length ? `${autoRules.rules.length} ${autoRules.rules.length === 1 ? "rule" : "rules"}: ` : ""}Tick a habit off from what this device already records, such as “When steps ≥ 8,000 → Walk is done”.</p></div><button type="button" className="secondary" aria-expanded={rulesOpen} onClick={() => setRulesOpen((open) => !open)}>{rulesOpen ? "Close rules" : "Set up rules"}</button></div>
-            {rulesOpen && (autoRules ? autoRules.unreadable ? <p role="alert">Your rules on this device could not be read, so they are not shown or changed.</p> : <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening your rules…" block/>}><AutoRulesEditor rules={autoRules.rules} habits={reorderable.filter((habit) => habitRuleOn(habit, store.today)?.type === "build").map((habit) => ({ id: habit.id, title: habit.title }))} goals={platform.data.goals.filter((goal) => goal.status === "active").map((goal) => ({ id: goal.id, name: goal.name }))} onSave={autoRules.save} onRemove={autoRules.remove} onPause={autoRules.pause} /></Suspense></LoadBoundary> : <Skeleton label="Opening your rules…" block/>)}
+          {store.data.habits.length > 0 && <section className="panel habit-auto-rules" aria-labelledby="habit-auto-rules-title"><div className="habit-section-heading"><div><p className="eyebrow">Done for you</p><h2 id="habit-auto-rules-title">Workout and contribution rules</h2><p className="fine">{autoRules?.rules.length ? `${autoRules.rules.length} ${autoRules.rules.length === 1 ? "rule" : "rules"}: ` : ""}{/* Session AL fourth pass (NB-201): one automatic setting per kind of record. Water, steps, sleep and active minutes are the habit's own "Done automatically when" (Edit the habit); rules here add what that cannot watch. */}Tick a habit off when a workout is logged or a goal gets a contribution. For water, steps, sleep or active minutes, edit the habit and choose “Done automatically when”.</p></div><button type="button" className="secondary" aria-expanded={rulesOpen} onClick={() => setRulesOpen((open) => !open)}>{rulesOpen ? "Close rules" : "Set up rules"}</button></div>
+            {rulesOpen && (autoRules ? autoRules.unreadable ? <p role="alert">Your rules on this device could not be read, so they are not shown or changed.</p> : <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening your rules…" block/>}><AutoRulesEditor rules={autoRules.rules} habits={reorderable.filter((habit) => habitRuleOn(habit, store.today)?.type === "build").map((habit) => ({ id: habit.id, title: habit.title }))} goals={platform.data.goals.filter((goal) => goal.status === "active").map((goal) => ({ id: goal.id, name: goal.name }))} onSave={autoRules.save} onRemove={autoRules.remove} onPause={autoRules.pause} sources={PAGE_RULE_SOURCES} /></Suspense></LoadBoundary> : <Skeleton label="Opening your rules…" block/>)}
           </section>}
         </div>},
         // Session AE (Part 4, ADR-027): the owner's S4. Routines and your stacks (the same chains, played or listed) are their own

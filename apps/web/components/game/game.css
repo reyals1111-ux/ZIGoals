@@ -175,3 +175,19 @@
    rules stacked it above the words). */
 label.game-setting-row { display: flex; flex-direction: row; align-items: flex-start; }
 label.game-setting-row > input { display: inline-block; }
+/* Session AL fourth pass (DV-118, G-031): a celebration found on arrival sits in a corner, never over the page. */
+.celebration-quiet { position: fixed; z-index: 70; right: 24px; bottom: 24px; width: min(340px, calc(100vw - 32px)); }
+.celebration-quiet .celebration-card { width: 100%; gap: 6px; padding: 18px 18px 16px; border-radius: 22px; }
+.celebration-quiet .celebration-symbol { width: 52px; height: 52px; font-size: 26px; }
+.celebration-quiet .celebration-card h2 { font-size: 22px; }
+.celebration-quiet .celebration-line { font-size: 15px; }
+.celebration-quiet .celebration-card .primary { margin-top: 4px; min-height: 44px; }
+@media (max-width: 900px) { .celebration-quiet { left: 16px; right: 16px; width: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); } }
+.celebration-quiet[data-still] .celebration-symbol { box-shadow: none; }
+/* Session AL fourth pass (DV-045e): the path's "show the whole path" toggle, 44 px. */
+.journey-path-more { justify-self: start; min-height: 44px; }
+/* Session AL fourth pass (DV-045e): Journey's "On this page" row; each link 44 px tall, headings land below the top bar. */
+.journey-jump ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.journey-jump a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #a184e244; color: inherit; text-decoration: none; font-size: 15px; }
+.journey-jump a:focus-visible { outline: 2px solid #d8bdff; outline-offset: 2px; }
+.journey-page :is(#universe, #rewards-shelf, [id^="journey-"][id$="-title"]) { scroll-margin-top: 88px; }

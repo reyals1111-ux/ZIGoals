@@ -219,7 +219,8 @@ test('the welcome\'s "Crypto & ZIGChain" extra is the explicit chain choice: the
   const step = (title: string) => expect(flow.getByRole('heading', {level: 1, name: title})).toBeVisible();
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
   await step('Two or three things to focus on.');
-  await flow.getByRole('button', {name: 'Continue without choosing', exact: true}).click();
+  // Session AL (COPY_AUDIT, deliberate; N-NB-01): a step with nothing picked says "Skip this step", as the tour says "Skip the tour" (was "Continue without choosing").
+  await flow.getByRole('button', {name: 'Skip this step', exact: true}).click();
   await step('A few things to start with.');
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
   await step('A quick look around.');

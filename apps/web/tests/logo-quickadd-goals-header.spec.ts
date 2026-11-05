@@ -73,7 +73,8 @@ test('"See how it works" opens the brand film, which loads nothing until opened,
  await expect(trigger).toBeVisible();await expect(page.getByRole('list',{name:'How ZIGoals works',exact:true})).toBeAttached(); // Session AB-Design: the steps are the footer's
  await page.waitForLoadState('networkidle');expect(media).toEqual([]);
  // Session AB-Design (owner request 13): "See how it works" opens the how-to first; the film is its "Watch the film" button.
- const howTo=await openFilm(page),film=howTo.getByRole('button',{name:'Watch the film (16 s)',exact:true});
+ // Session AL (COPY_AUDIT, deliberate; D-184): the film's button says its length in words.
+ const howTo=await openFilm(page),film=howTo.getByRole('button',{name:'Watch the 16-second film',exact:true});
  const dialog=page.getByRole('dialog',{name:'ZIGoals brand film',exact:true}),video=dialog.locator('video'),close=dialog.getByRole('button',{name:'Close brand film',exact:true});
  await expect(dialog).toBeVisible();await expect(dialog).toContainText('A 16-second film: the Z folds into a swan, lotus, butterfly, heart and bull');await expect(close).toBeFocused();
  const c=(await close.boundingBox())!;expect(c.width).toBeGreaterThanOrEqual(44);expect(c.height).toBeGreaterThanOrEqual(44);

@@ -45,6 +45,7 @@ import {AUTO_RULES} from '../auto-rules/schema';
 import {FOOD_SCANS} from '../food-scans/schema';
 import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
 import {HEALTH_EXTRAS} from '../health-extras';
+import {PROFILE_NAME} from '../onboarding-setup';
 import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {COMPARE_PAIR} from '../compare/schema';
@@ -218,6 +219,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('govReminders', 'Governance vote reminders', 'Goals and Wealth', GOV_REMINDERS),
   dev('insightFeedback', 'Was this useful? on ZIGi notes', 'Today and Life', INSIGHT_FEEDBACK),
   dev('focusRounds', 'Focus bell and breaks', 'Today and Life', FOCUS_ROUNDS),
+  // Session AL (NB-006): the name the person gave in setup, for Today's greeting.
+  dev('profileName', 'Your name for the greeting', 'Today and Life', PROFILE_NAME),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),
   dev('healthNumbers', 'Your numbers (blood pressure and lab values)', 'Health', HEALTH_NUMBERS, true),

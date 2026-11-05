@@ -27,13 +27,14 @@ import {storageMessageOr} from '../../lib/storage-error-copy';
 import './game.css';
 import {ConfirmInline} from '../ui/confirm-inline';
 
+const JOURNEY_JUMPS: readonly [string, string][] = [['#universe', 'My universe'], ['#journey-level-title', 'Level'], ['#journey-quests-title', 'Quests'], ['#journey-badges-title', 'Badges'], ['#journey-path-title', 'Path'], ['#journey-freeze-title', 'Freezes'], ['#rewards-shelf', 'Rewards']];
 /**
  * /app/journey (H7): the level ring, XP this week, today's quests, the weekly challenges against yourself, the badge
  * cabinet, the path of milestones (a vertical nebula path) and the next unlock; streak repair with an earned freeze.
  * Everything is derived from the journals (lib/game); only the switch and what was seen live on the device.
  */
 export function JourneyPage() {
-  const game = useGame(), [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [asking, setAsking] = useState<string | null>(null);
+  const game = useGame(), [wholePath, setWholePath] = useState(false), [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [asking, setAsking] = useState<string | null>(null);
   const d = game.derived;
   // Session AK Part 8.6: badges are a choice of their own (off from a first switch-on); off, they leave the cabinet, the
   // path labels, the next unlock and the celebrations.
@@ -49,6 +50,8 @@ export function JourneyPage() {
     {/* Session AB-Design Phase 2 (ADR-024 P5): the shared pillar header, with the Gamify rocket as its mark. */}
     <PillarHero pillar="journey" titleId="journey-title" className="journey-hero" art={<OrbitArt glyph={JourneyGlyph} tone="journey" spin={24}/>} eyebrow="Your journey" title="Small steps, counted kindly." lede="Levels, quests and badges grow from the check-ins and logs you already make. A badge, once earned, stays; XP follows your records, so an Undo takes back only what it gave."
       mark={<span className="pillar-mark" data-pillar="journey" aria-hidden="true"><span className="pillar-mark-disc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 15c-1.5 1.5-3.5 2-5 2 0-1.5.5-3.5 2-5M9 12l3-3c2.5-2.5 6-4 9-4 0 3-1.5 6.5-4 9l-3 3M9 12l3 3"/><circle cx="15.5" cy="8.5" r="1.4"/></svg></span></span>}><LayoutLockButton /></PillarHero>
+    {/* Session AL fourth pass (DV-045e): a long page gets a way around it; each link goes to its section's heading. */}
+    {game.loaded && game.enabled && d && <nav className="journey-jump" aria-label="On this page"><ul>{JOURNEY_JUMPS.map(([href, label]) => <li key={href}><a href={href}>{label}</a></li>)}</ul></nav>}
     {/* Session AF (L5b; P9.1, ADR-028 H77): My Universe, the full view, above the game sections — with Gamify on or off. */}
     <UniverseSection />
     {/* Session AJ (item 34, D13): Focus Sessions, with something growing in My Universe while you stay. */}
@@ -74,8 +77,13 @@ export function JourneyPage() {
       <section className="panel journey-badges" aria-labelledby="journey-badges-title"><p className="eyebrow">Earned from your records</p><h2 id="journey-badges-title"><NebulaFlow identity="journey-badges">Badge cabinet</NebulaFlow></h2>
         {showBadges ? <ul className="journey-badge-grid">{d.badges.map(b => <li key={b.id} data-earned={b.earned || undefined} aria-label={`${b.title}: ${b.earned ? 'earned' : 'not yet'}`}><span className="journey-badge-symbol" aria-hidden="true">{b.symbol}</span><strong>{keepWords(b.title)}</strong><small>{keepWords(b.blurb)}</small></li>)}</ul> : <p>Badges are off. Turn them on to see the cabinet; the badges you have already earned are there, quietly, with no celebration after the fact.</p>}
         <label className="game-setting-row"><input type="checkbox" role="switch" aria-label="Badges" aria-checked={showBadges} checked={showBadges} disabled={!game.loaded || game.game.unreadable} onChange={e => toggleBadges(e.target.checked)} /><span><strong>Badges</strong><small>Optional. Off, levels and quests stay; badges leave the cabinet, the path and the celebrations.</small></span></label></section>
+      {/* Session AL fourth pass (DV-045e): the path and the freezes side by side on a computer. */}
+      <div className="journey-grid journey-pair">
       <section className="panel journey-path-panel" aria-labelledby="journey-path-title"><p className="eyebrow">The path</p><h2 id="journey-path-title"><NebulaFlow identity="journey-path">Milestones</NebulaFlow></h2>
-        <ol className="journey-path">{d.path.map(stop => <li key={stop.level} data-reached={stop.reached || undefined} data-current={stop.current || undefined} style={{'--planet-hue': `${(stop.level * 47) % 360}deg`} as CSSProperties}><span className="journey-path-node" aria-hidden="true">{stop.reached ? '✓' : stop.level}</span><div><strong>Level {stop.level} · {stop.name}</strong><small>{stop.reached ? stop.current ? 'You are here' : 'Reached' : `${stop.xp - d.xp.total} XP to go`}</small>{showBadges && stop.badges.length > 0 && <small className="journey-path-badge">{/* Phase 2 closing pass (design critique): words, not the badge's symbol glyph (it drew as a broken mark here). */}{`${stop.badges.length === 1 ? 'Badge' : 'Badges'} · ${stop.badges.map(b => b.title).join(' · ')}`}</small>}</div></li>)}</ol>
+        {/* Session AL fourth pass (DV-045e): the path shows the levels reached and the next two; the rest of the twelve is one
+            tap away, so the page is not a long scroll of stops far ahead. */}
+        <ol className="journey-path" id="journey-path-list">{(wholePath ? d.path : d.path.filter((stop, i) => stop.reached || i <= d.path.findIndex(s => !s.reached) + 1)).map(stop => <li key={stop.level} data-reached={stop.reached || undefined} data-current={stop.current || undefined} style={{'--planet-hue': `${(stop.level * 47) % 360}deg`} as CSSProperties}><span className="journey-path-node" aria-hidden="true">{stop.reached ? '✓' : stop.level}</span><div><strong>Level {stop.level} · {stop.name}</strong><small>{stop.reached ? stop.current ? 'You are here' : 'Reached' : `${stop.xp - d.xp.total} XP to go`}</small>{showBadges && stop.badges.length > 0 && <small className="journey-path-badge">{/* Phase 2 closing pass (design critique): words, not the badge's symbol glyph (it drew as a broken mark here). */}{`${stop.badges.length === 1 ? 'Badge' : 'Badges'} · ${stop.badges.map(b => b.title).join(' · ')}`}</small>}</div></li>)}</ol>
+        {d.path.some((stop, i) => !stop.reached && i > d.path.findIndex(s => !s.reached) + 1) && <button type="button" className="quiet journey-path-more" aria-expanded={wholePath} aria-controls="journey-path-list" onClick={() => setWholePath(v => !v)}>{wholePath ? 'Show fewer levels' : `Show the whole path (${d.path.length} levels)`}</button>}
         <p className="journey-next"><span className="eyebrow">Next unlock</span>{(() => { const next = showBadges ? d.badges.find(b => !b.earned) : undefined; const stop = d.path.find(s => !s.reached); return <strong>{next ? keepWords(`${next.symbol} ${next.title}: ${next.blurb}`) : stop ? `Level ${stop.level} · ${stop.name}` : 'Everything on the path, reached.'}</strong>; })()}</p></section>
       <section className="panel journey-freeze" aria-labelledby="journey-freeze-title"><p className="eyebrow">Streak repair</p><h2 id="journey-freeze-title"><NebulaFlow identity="journey-freeze">Freezes</NebulaFlow></h2>
         <p>{d.freezes > 0 ? `You have ${d.freezes} ${d.freezes === 1 ? 'freeze' : 'freezes'}: each turns one missed day of the last week into a rest day.` : 'No freeze in hand yet.'}</p>
@@ -84,6 +92,7 @@ export function JourneyPage() {
         {d.freezes > 0 && d.repairable.length > 0 && <ul className="journey-repair-list">{d.repairable.slice(0, 6).map(r => <li key={`${r.habitId}:${r.date}`}><span>{r.title} · {formatDate(r.date, {weekday: true, year: false})}</span><button type="button" className="secondary" disabled={busy} onClick={() => setAsking(`${r.habitId}:${r.date}`)}>Use a freeze</button>{asking === `${r.habitId}:${r.date}` && <ConfirmInline tone="neutral" title={`Use a freeze on ${r.title}, ${formatDate(r.date, {weekday: true, year: false})}?`} confirmLabel="Use a freeze" busy={busy} onConfirm={() => void repair(r.habitId, r.date)} onCancel={() => setAsking(null)}><p>That missed day becomes a rest day and the streak holds. You will have {d.freezes - 1} left.</p></ConfirmInline>}</li>)}</ul>}
         {d.freezes > 0 && d.repairable.length === 0 && <p className="fine">Nothing to repair this week.</p>}
         {message && <p role="status" className="fine">{message}</p>}</section>
+      </div>
       <LoadBoundary quiet><Suspense fallback={null}><JourneyWrappedLink /></Suspense></LoadBoundary>
       <LoadBoundary quiet><Suspense fallback={null}><RewardsShelf xpTotal={d.xp.total} /></Suspense></LoadBoundary>
       <section className="panel journey-settings"><GameSetting /></section>

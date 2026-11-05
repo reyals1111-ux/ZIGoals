@@ -16,7 +16,8 @@ export default function HabitDeleteForm({ habit, onDelete, onCancel }: { habit: 
   return <form className="habit-delete habit-delete-confirm" aria-label={`Delete ${habit.title} for good`} onSubmit={(event) => { event.preventDefault(); if (!matches || busy) return; setBusy(true); setError(""); onDelete(habit).catch((cause) => { setError(plainErrorMessage(cause, "The habit was not deleted. Try again.")); setBusy(false); }); }}>
     {/* Session AL (DV-187a/c, P-DV-121): the promise first, short; what stays is said plainly after it. */}
     <p><strong>Delete “{habit.title}” for good?</strong> Its name, notes and every check-in are removed here and on every device you sync. You can undo for ten seconds.</p>
-    <p className="fine">Goals and Health stop using it. Only an unnamed placeholder stays, so your devices stay in step. Older protected copies, and ZIGi’s chats and notes on this device, keep what they already hold.</p>
+    {/* Session AL fourth pass (DV-187): short, and nothing that sounds kept; what older copies hold is said plainly. */}
+    <p className="fine">Goals and Health stop using it. Backups you made earlier, your notes and ZIGi’s past chats still hold what they had.</p>
     <label className="field" htmlFor={id}>Type the habit’s name to confirm<small className="habit-delete-hint">Type “{habit.title}” (capital letters don’t matter)</small><input id={id} value={typed} onChange={(event) => setTyped(event.target.value)} autoComplete="off" spellCheck={false} placeholder={habit.title} autoFocus /></label>
     <div className="actions"><button type="submit" className="primary" disabled={!matches || busy}>Delete for good</button><button type="button" className="quiet" onClick={onCancel}>Cancel</button></div>
     {error && <p role="alert">{error}</p>}

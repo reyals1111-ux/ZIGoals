@@ -4,7 +4,7 @@ import {openHabitMoreOptions} from '../../habit-form-helpers';
 
 /** NB-076/NB-158 (P-NB-23; H-008): a "3× per week" habit's card says how the week stands, not only "0 / 1 time today". */
 test.use({viewport: {width: 1280, height: 800}, timezoneId: 'Europe/Brussels'});
-test('NB-076/NB-158: a 3× per week habit shows "0 of 3 this week", then "1 of 3" after a check-in', async ({page}) => {
+test('NB-076/NB-158: a 3× per week habit shows "0 / 3 this week", then "1 / 3" after a check-in', async ({page}) => {
   await page.clock.install({time: new Date('2026-11-04T09:00:00Z')});
   await emptyDevice(page);
   await open(page, '/app/habits');
@@ -17,7 +17,9 @@ test('NB-076/NB-158: a 3× per week habit shows "0 of 3 this week", then "1 of 3
   await openHabitMoreOptions(page);
   await page.getByRole('button', {name: 'Create habit', exact: true}).click();
   const card = page.getByRole('article', {name: 'Gym', exact: true});
-  await expect(card.locator('.habit-period-progress')).toHaveText('0 of 3 this week');
+  // Session AL (COPY_AUDIT, deliberate; fourth pass PR-061/NB-076): a one-a-day "3× per week" count is the week itself
+  // ("0 / 3 this week" in the count, no "0 / 1 time today"), and today's state is its own line.
+  await expect(card.locator('.habit-count')).toHaveText('0 / 3 this week');
   await card.getByRole('button', {name: /^Complete Gym$/}).click();
-  await expect(card.locator('.habit-period-progress')).toHaveText('1 of 3 this week');
+  await expect(card.locator('.habit-count')).toHaveText('1 / 3 this week');
 });

@@ -20,12 +20,24 @@ const PARTICLES = 22;
  * set, so one tap never opens two stacked cards; what is due at the same moment shows together on ONE card.
  */
 const CLAIMED = new Set<string>();
+const eyebrowOf = (c: Celebration) => c.kind === 'level' ? 'Level up' : c.kind === 'badge' ? 'A new badge' : c.kind === 'streak' ? 'A streak' : c.kind === 'fast' ? 'Fasting' : c.kind === 'checklist' ? 'Your orbit' : 'A goal';
 const GOAL_SIGNALS = new Set(['goal_milestone_reached', 'goal_funded', 'goal_finished', 'achievement_unlocked']);
 export function CelebrationHost({game, fasting}: {game: GameState; fasting?: Parameters<typeof pendingCelebrations>[4]}) {
   const [queue, setQueue] = useState<Celebration[]>([]);
   const {celebrations, derived, enabled, today} = game;
   const seenReady = celebrations.loaded && !celebrations.unreadable;
-  const claim = (list: Celebration[]) => { const mine = list.filter(c => !CLAIMED.has(c.id)); for (const c of mine) CLAIMED.add(c.id); if (mine.length) setQueue(q => [...q, ...mine]); };
+  // Session AL fourth pass (DV-118, M-140, G-031, T-039): a celebration that follows something the person did on this
+  // page (a tap, a key) opens as the card it always was. One found on arrival, for what was done elsewhere (a milestone
+  // ticked on a goal, then Activity opened), is a quiet card in the corner: no backdrop, the focus stays where it is, and
+  // the page can be read and used around it.
+  const acted = useRef(false), queueLength = useRef(0), [quiet, setQuiet] = useState(false);
+  queueLength.current = queue.length;
+  useEffect(() => {
+    const mark = (e: Event) => { if (e.isTrusted) acted.current = true; };
+    document.addEventListener('pointerdown', mark, true); document.addEventListener('keydown', mark, true);
+    return () => { document.removeEventListener('pointerdown', mark, true); document.removeEventListener('keydown', mark, true); };
+  }, []);
+  const claim = (list: Celebration[]) => { const mine = list.filter(c => !CLAIMED.has(c.id)); for (const c of mine) CLAIMED.add(c.id); if (!mine.length) return; if (!queueLength.current) setQuiet(!acted.current); queueLength.current += mine.length; setQueue(q => [...q, ...mine]); };
   useEffect(() => {
     if (!enabled || !derived || !seenReady || !game.game.loaded) return;
     const due = pendingCelebrations(game.stores, game.game.data, celebrations.data.seen, today, fasting);
@@ -67,13 +79,28 @@ export function CelebrationHost({game, fasting}: {game: GameState; fasting?: Par
     else { try { zigiSignals.emitValidated('journey_step'); } catch { /* decoration */ } } // Session AK Part 12: a Journey step (streak, fast, Checklist orbit), a Studio-4 reaction once its art lands
   }, [ids, calm]); // eslint-disable-line react-hooks/exhaustive-deps
   const current = queue[0];
-  if (!current || !calm) return null;
+  // The quiet card is said once to a screen reader (it takes no focus); the status line stays mounted so it is heard.
+  const [said, setSaid] = useState('');
+  useEffect(() => { if (!current || !calm || !quiet) { setSaid(''); return; } const t = requestAnimationFrame(() => setSaid(`${current.title}. ${current.line}`)); return () => cancelAnimationFrame(t); }, [current?.id, calm, quiet]); // eslint-disable-line react-hooks/exhaustive-deps
+  const status = <p className="sr-only" role="status">{said}</p>;
+  if (!current || !calm) return status;
   const still = !motionAllowed(), rest = queue.slice(1), close = () => setQueue([]);
-  return <div className="celebration-backdrop" role="dialog" aria-modal="true" aria-labelledby="celebration-title" data-still={still || undefined} onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } }}>
+  const onKeyDown = (e: React.KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  if (quiet) return <>{status}<div className="celebration-quiet" role="dialog" aria-modal="false" aria-labelledby="celebration-title" data-still={still || undefined} onKeyDown={onKeyDown}>
+    <section className="celebration-card">
+      <span className="celebration-symbol" aria-hidden="true">{current.symbol}</span>
+      <p className="eyebrow">{eyebrowOf(current)}</p>
+      <h2 id="celebration-title">{current.title}</h2>
+      <p className="celebration-line">{current.line}</p>
+      {rest.length > 0 && <ul className="celebration-also" aria-label="Also today">{rest.map(c => <li key={c.id}><span aria-hidden="true">{c.symbol} </span>{c.title}</li>)}</ul>}
+      <button type="button" className="primary" onClick={close}>Lovely</button>
+    </section>
+  </div></>;
+  return <div className="celebration-backdrop" role="dialog" aria-modal="true" aria-labelledby="celebration-title" data-still={still || undefined} onKeyDown={onKeyDown}>
     <section className="celebration-card">
       {!still && <div className="celebration-particles" aria-hidden="true">{Array.from({length: PARTICLES}, (_, i) => <i key={i} style={{'--i': i, '--a': `${(i * 137) % 360}deg`, '--d': `${70 + (i * 53) % 90}px`, '--t': `${900 + (i * 97) % 500}ms`} as React.CSSProperties} />)}</div>}
       <span className="celebration-symbol" aria-hidden="true">{current.symbol}</span>
-      <p className="eyebrow">{current.kind === 'level' ? 'Level up' : current.kind === 'badge' ? 'A new badge' : current.kind === 'streak' ? 'A streak' : current.kind === 'fast' ? 'Fasting' : current.kind === 'checklist' ? 'Your orbit' : 'A goal'}</p>
+      <p className="eyebrow">{eyebrowOf(current)}</p>
       <h2 id="celebration-title"><NebulaFlow identity={`celebration:${current.id}`}>{current.title}</NebulaFlow></h2>
       <p className="celebration-line">{current.line}</p>
       {rest.length > 0 && <ul className="celebration-also" aria-label="Also today">{rest.map(c => <li key={c.id}><span aria-hidden="true">{c.symbol} </span>{c.title}</li>)}</ul>}

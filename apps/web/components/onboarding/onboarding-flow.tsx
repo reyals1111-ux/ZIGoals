@@ -25,7 +25,7 @@ import { createAllocatedGoal } from "../../lib/wealth";
 import { localDate } from "../../lib/local-date";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
-import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, SAVING_HABIT, focusHabitInput, focusHabitRhythm, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
+import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, PROFILE_NAME, SAVING_HABIT, cleanProfileName, focusHabitInput, focusHabitRhythm, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
 import { setHabitState } from "../../lib/habits";
 import { readDeviceRecord, updateDeviceRecord } from "../../lib/device-record";
 import { WIDGET_CATALOG, removeWidget, saveWidget, type WidgetKind } from "../../lib/dashboard-settings";
@@ -41,7 +41,8 @@ import { formatMinutes } from "../../lib/zone-time";
 import { updateHealthGroup } from "../../lib/w-homes-store";
 import { HABIT_GROUP_LABEL, habitTemplateInputOf, hasHabitLike } from "../../lib/templates/habits";
 import { EXTRA_PILLARS, MAIN_PILLARS, PILLAR_TEXT, pagesForPillars, pagesShownFor, presetForPillars, starterHabits, type Pillar } from "../../lib/templates/pillars";
-import { PAGE_LABEL, startHref, viewOf } from "../../lib/pages/visibility";
+import { PAGE_LABEL, startHref, viewOf, withChoice } from "../../lib/pages/visibility";
+import type { VisibilityId } from "../../lib/pages/schema";
 import { settingsGroupIn, withSettingsGroup } from "../../lib/vault/w-homes";
 import { announceModuleChange, updateSettings } from "../../lib/sync-homes-store";
 import { getAppStorage } from "../../lib/showcase-storage";
@@ -61,6 +62,7 @@ import { showStatus } from "../ui/undo-toast";
  */
 const STEPS = ["welcome", "pillars", "focuses", "starters", "tour", "install", "zigi", "data"] as const;
 type Step = typeof STEPS[number];
+const READ_ONLY_STEPS: ReadonlySet<Step> = new Set(["tour", "install"]);
 const TITLES: Record<Step, string> = {
   welcome: "Welcome to ZIGoals.",
   pillars: "What do you want to improve?",
@@ -74,14 +76,14 @@ const TITLES: Record<Step, string> = {
 const TOUR: {title: string; text: string}[] = [
   {title: "Today", text: "Your day at a glance: the habits, health and goals you chose, and a few calm suggestions under For you."},
   {title: "Your pages", text: "The navigation shows the pages you picked. Settings → Your pages & buttons shows or hides any of them later."},
-  {title: "Quick add", text: "+ Quick add logs a meal, a habit or a contribution from wherever you are."},
+  {title: "Quick add", text: "+ Quick add, at the top of every page, logs a meal, a habit or a contribution from wherever you are."},
   {title: "Settings", text: "Backups, privacy, encrypted sync, your time zone and ZIGi all live in Settings, with Help one tap away."},
 ];
 type GoalDraft = {category: NonNullable<PrivateGoal["category"]> | ""; name: string; target: string; currency: "USD" | "EUR"; date: string};
 const NO_GOAL: GoalDraft = {category: "", name: "", target: "", currency: "USD", date: ""};
 /** Session AL (P-NB-09): the wizard draft in this tab (`zigoals:welcome-draft:v1`, session storage only; tolerant reads). */
 const WELCOME_DRAFT_KEY = "zigoals:welcome-draft:v1";
-type WelcomeDraft = {step?: string; pillars?: string[]; focuses?: string[]; habitIds?: string[]; skipped?: string[]; goal?: Partial<GoalDraft>; steps?: number | null; water?: number | null; sleep?: number | null};
+type WelcomeDraft = {step?: string; name?: string; pillars?: string[]; focuses?: string[]; habitIds?: string[]; skipped?: string[]; goal?: Partial<GoalDraft>; steps?: number | null; water?: number | null; sleep?: number | null};
 function readWelcomeDraft(): WelcomeDraft | null {
   try {
     const raw = window.sessionStorage.getItem(WELCOME_DRAFT_KEY); if (!raw) return null;
@@ -90,12 +92,14 @@ function readWelcomeDraft(): WelcomeDraft | null {
     const num = (v: unknown) => v === null || (typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 1_000_000) ? v as number | null : undefined;
     const g = d.goal && typeof d.goal === "object" ? d.goal as Record<string, unknown> : null;
     const goal: Partial<GoalDraft> | undefined = g ? {...(typeof g.category === "string" && (g.category === "" || GOAL_TEMPLATES.some(t => t.category === g.category)) ? {category: g.category as GoalDraft["category"]} : {}), ...(typeof g.name === "string" && g.name.length <= 100 ? {name: g.name} : {}), ...(typeof g.target === "string" && g.target.length <= 40 ? {target: g.target} : {}), ...(g.currency === "USD" || g.currency === "EUR" ? {currency: g.currency as GoalDraft["currency"]} : {}), ...(typeof g.date === "string" && /^(\d{4}-\d{2}-\d{2})?$/.test(g.date) ? {date: g.date} : {})} : undefined;
-    return {step: typeof d.step === "string" ? d.step : undefined, pillars: strings(d.pillars), focuses: strings(d.focuses), habitIds: strings(d.habitIds), skipped: strings(d.skipped), goal, steps: num(d.steps), water: num(d.water), sleep: num(d.sleep)};
+    return {step: typeof d.step === "string" ? d.step : undefined, name: typeof d.name === "string" && d.name.length <= 60 ? d.name : undefined, pillars: strings(d.pillars), focuses: strings(d.focuses), habitIds: strings(d.habitIds), skipped: strings(d.skipped), goal, steps: num(d.steps), water: num(d.water), sleep: num(d.sleep)};
   } catch { return null; }
 }
 function writeWelcomeDraft(draft: WelcomeDraft | null) {
   try { if (draft === null) window.sessionStorage.removeItem(WELCOME_DRAFT_KEY); else window.sessionStorage.setItem(WELCOME_DRAFT_KEY, JSON.stringify(draft)); } catch { /* the draft is a convenience */ }
 }
+/** Session AL fourth pass (N-NB-02): the small apps show beside the pages; the preview names them, not only the pages. */
+const APPS_LINE = "The Checklist and the small apps (NOVA, Tasks, Notes, Journal, Agenda) show too while they are switched on; Settings → Your pages & buttons turns any of them off.";
 /** Session AL (P-NB-15; NB-017): a first goal's currency starts in euros where the device's time zone is in Europe. */
 function homeCurrency(): "USD" | "EUR" { try { return Intl.DateTimeFormat().resolvedOptions().timeZone.startsWith("Europe/") ? "EUR" : "USD"; } catch { return "USD"; } }
 const litres = (ml: number) => `${formatNumber(ml / 1000, {maximumFractionDigits: 1})} L`;
@@ -129,9 +133,20 @@ export function OnboardingFlow() {
   const [goalError, setGoalError] = useState<{field: 'name' | 'target' | 'date'; text: string} | null>(null);
   const [steps, setSteps] = useState<number | null>(null), [water, setWater] = useState<number | null>(null), [sleepGoal, setSleepGoalChoice] = useState<number | null>(null);
   const [skippedFocusHabits, setSkippedFocusHabits] = useState<string[]>([]);
+  // Session AL fourth pass (NB-006): an optional name for ZIGi to use, saved on Finish (device only).
+  const [name, setName] = useState("");
   const [tour, setTour] = useState<number | null>(null), [syncNext, setSyncNext] = useState(false), [installed, setInstalled] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null), first = useRef(true), id = useId();
   const index = STEPS.indexOf(step);
+  // Session AL fourth pass (NB-019): the tour's Quick add card points at the real button: each visible "+ Quick add" is
+  // marked while that card shows (a ring, onboarding.css; still under reduced motion and Motion Off).
+  const tourSpot = step === "tour" && tour !== null ? TOUR[tour]?.title : undefined;
+  useEffect(() => {
+    if (tourSpot !== "Quick add") return;
+    const marked = [...document.querySelectorAll<HTMLElement>(".quick-add-trigger")].filter(el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden");
+    for (const el of marked) el.dataset.tourSpot = "";
+    return () => { for (const el of marked) delete el.dataset.tourSpot; };
+  }, [tourSpot]);
   // Session AH (TO4, N-106): each step opens at its top (a step had opened mid-page, where the last one's button was).
   useEffect(() => { if (first.current) { first.current = false; return; } window.scrollTo({top: 0}); heading.current?.focus({preventScroll: true}); }, [step]);
   const [installContext, setInstallContext] = useState<ReturnType<typeof currentInstallContext> | null>(null);
@@ -176,14 +191,19 @@ export function OnboardingFlow() {
   }, [pickedTitles]);
   // Session AL (P-NB-09; NB-011): the wizard's step and picks survive a reload in this tab (session storage, cleared on
   // Finish, Skip setup and Explore the demo); read after mount, so the server's first render and the client's agree.
-  const restored = useRef(false);
+  // Fourth pass (NB-011 en-GB): writing waits for the render that holds the restored picks. In any locale but en-US the
+  // Shell remounts the page once in the hydration commit (components/display-locale.ts); React runs this instance's
+  // effects first, and a ref set here let the write effect save the empty first state over the draft before the remount
+  // read it. State, unlike a ref, is thrown away with the unmounted instance, so nothing is written until the picks are in.
+  const [restored, setRestored] = useState(false);
   useEffect(() => {
-    const d = readWelcomeDraft(); restored.current = true; if (!d) return;
+    const d = readWelcomeDraft(); setRestored(true); if (!d) return;
     if (d.pillars) setPillars(d.pillars as Pillar[]); if (d.focuses) setFocuses(d.focuses as FocusId[]); if (d.habitIds) setHabitIds(d.habitIds); if (d.skipped) setSkippedFocusHabits(d.skipped);
     if (d.goal) setDraft(g => ({...g, ...d.goal})); if (d.steps !== undefined) { touched.current.steps = true; setSteps(d.steps); } if (d.water !== undefined) { touched.current.water = true; setWater(d.water); } if (d.sleep !== undefined) setSleepGoalChoice(d.sleep);
+    if (d.name !== undefined) setName(d.name);
     if (d.step && STEPS.includes(d.step as Step)) setStep(d.step as Step);
   }, []);
-  useEffect(() => { if (restored.current) writeWelcomeDraft({step, pillars, focuses, habitIds, skipped: skippedFocusHabits, goal: draft, ...(touched.current.steps ? {steps} : {}), ...(touched.current.water ? {water} : {}), sleep: sleepGoal}); }, [step, pillars, focuses, habitIds, skippedFocusHabits, draft, steps, water, sleepGoal]);
+  useEffect(() => { if (restored) writeWelcomeDraft({step, ...(name ? {name} : {}), pillars, focuses, habitIds, skipped: skippedFocusHabits, goal: draft, ...(touched.current.steps ? {steps} : {}), ...(touched.current.water ? {water} : {}), sleep: sleepGoal}); }, [restored, step, name, pillars, focuses, habitIds, skippedFocusHabits, draft, steps, water, sleepGoal]);
   // Release review R7: the goal's own problem is said next to its field (aria-invalid, aria-describedby), in plain words.
   function go(next: Step) { setError(""); setGoalError(null); setStep(next); }
   function leaveFocuses() {
@@ -200,9 +220,22 @@ export function OnboardingFlow() {
       if (done.habitIds.length) { const { deleteHabitForGood } = await import("../../lib/habit-delete-write"); const now = new Date(); await habits.update(data => done.habitIds.reduce((acc, id) => acc.habits.some(h => h.id === id) ? deleteHabitForGood(setHabitState(acc, id, "archived", now), id, now).data : acc, data)); }
       if (done.goalId) { const goalId = done.goalId; await platform.update(data => data.goals.some(g => g.id === goalId) ? deletePrivateGoal(data, goalId) : data); }
       if (done.widgetIds.length) { await updateSettings(getAppStorage(), latest => done.widgetIds.reduce((acc, id) => acc.widgets.some(w => w.id === id) ? removeWidget(acc, id) : acc, latest)); announceModuleChange([DASHBOARD_SETTINGS_KEY]); }
+      // Session AL fourth pass (NB-241): the pages and buttons the setup switched go back as they were, each only while it is
+      // still as the setup left it (a page switched since stays as the person set it). A new choice, stamped now.
+      let restoredPages = 0, keptPages = 0;
+      if (done.pages?.length) {
+        const flips = done.pages, stamp = new Date().toISOString();
+        await updateSettings(getAppStorage(), latest => {
+          const current = settingsGroupIn(latest, "pages") ?? {version: 1 as const, items: {}}, view = viewOf(current);
+          let pages = current; restoredPages = 0; keptPages = 0;
+          for (const f of flips) { const shownNow = !view.hidden.includes(f.id as VisibilityId); if (shownNow === f.was) continue; try { pages = withChoice(pages, f.id as VisibilityId, f.was, stamp); restoredPages++; } catch { keptPages++; } }
+          return pages === current ? latest : withSettingsGroup(latest, "pages", pages, false);
+        });
+        announceModuleChange([DASHBOARD_SETTINGS_KEY]);
+      }
       const next = updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, r => ({...r, undone: true})); setSetupDone(next);
-      // Session AL (P-NB-09; NB-241): Undo setup says what it took back, and what it leaves (the page choices are yours to change).
-      showStatus(`Setup undone: ${setupLine(done)} removed. Your page choices stay; change them in Settings → Your pages & buttons.`);
+      // Session AL (P-NB-09; NB-241): Undo setup says what it took back.
+      showStatus(`Setup undone: ${setupLine(done)} removed${restoredPages ? `, and the ${restoredPages === 1 ? "page it switched is" : "pages it switched are"} back as they were` : ""}.${keptPages ? " A page you changed since stays as you set it." : ""}`);
     } catch (e) { setError(plainErrorMessage(e, "The setup was not undone.")); } finally { setUndoBusy(false); }
   }
   function skip() { writeWelcomeDraft(null); markOnboardingSeen(window.localStorage); router.push("/app"); }
@@ -233,12 +266,17 @@ export function OnboardingFlow() {
     setBusy(true); setError("");
     const at = new Date().toISOString();
     try {
-      let pagesAfter = currentPages;
+      let pagesAfter = currentPages, pageFlips: {id: VisibilityId; was: boolean}[] = [];
       if (preset || pagesChange) {
         await updateSettings(getAppStorage(), latest => {
           let next = preset ? applyDashboardPreset(latest, preset) : latest;
-          const change = pagesForPillars(pillars, at, settingsGroupIn(next, "pages"), also);
-          if (change) next = withSettingsGroup(next, "pages", change, false);
+          const before = settingsGroupIn(next, "pages"), change = pagesForPillars(pillars, at, before, also);
+          if (change) {
+            // Session AL fourth pass (NB-241): what the setup switched, and how it was, so Undo setup can put it back.
+            const was = viewOf(before), now = viewOf(change);
+            pageFlips = [...new Set([...was.hidden, ...now.hidden])].filter(id => was.hidden.includes(id) !== now.hidden.includes(id)).map(id => ({id, was: !was.hidden.includes(id)}));
+            next = withSettingsGroup(next, "pages", change, false);
+          }
           pagesAfter = settingsGroupIn(next, "pages");
           return next;
         });
@@ -256,8 +294,11 @@ export function OnboardingFlow() {
       });
       // Session W Part 4: the sleep goal, in Health v4's sleep group (written only when one was chosen).
       if (showSleep && sleepGoal !== null) { const minutes = sleepGoal; await updateHealthGroup("sleep", current => setSleepGoal(current, {minutes, ...(current.goal?.bedFrom && current.goal.bedTo ? {bedFrom: current.goal.bedFrom, bedTo: current.goal.bedTo} : {})}, new Date())); }
+      // Session AL fourth pass (NB-006): the name, only when one was given (device only; an empty field writes nothing).
+      const kept = cleanProfileName(name);
+      if (kept) { try { updateDeviceRecord(getAppStorage(), PROFILE_NAME, () => ({version: 1 as const, name: kept, at})); } catch { /* a name is a nicety */ } }
       // Written only when the setup made something; choosing nothing anywhere leaves only the seen flag behind.
-      if (createdHabitIds.length || goal || createdWidgetIds.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses})); } catch { /* the undo is a convenience */ } }
+      if (createdHabitIds.length || goal || createdWidgetIds.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1 as const, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses, ...(pageFlips.length ? {pages: pageFlips} : {})})); } catch { /* the undo is a convenience */ } }
       markOnboardingSeen(window.localStorage); writeWelcomeDraft(null);
       // Session AK P4 (FR-4): Today greets the finished setup with "You're set" and moves the focus to it, once (tab only).
       if (createdHabitIds.length || goal) { try { window.sessionStorage.setItem(LANDING_NOTE, at); } catch { /* the card still shows; only the focus waits */ } }
@@ -294,6 +335,7 @@ export function OnboardingFlow() {
     suggested.widgets.length > 0 && `Widgets on Today: ${suggested.widgets.join(", ")}.`,
     pagesChange && `Your pages: ${[...shown.map(p => PAGE_LABEL[p]), "Settings"].join(", ")}.`,
     goal && `Your goal “${goal.name}”.`,
+    cleanProfileName(name) && `ZIGi calls you “${cleanProfileName(name)}” (on this device only).`,
     showHealth && steps !== null && `A daily step target of ${steps.toLocaleString("en")}.`,
     showHealth && water !== null && `A daily water target of ${litres(water)}.`,
     showSleep && sleepGoal !== null && `A sleep goal of ${formatMinutes(sleepGoal)}.`,
@@ -303,7 +345,8 @@ export function OnboardingFlow() {
   return <section className="onboarding panel" aria-labelledby={`${id}-title`} data-step={step}>
     {undoable && <section className="onboarding-undo" aria-label="Undo the last setup"><p><strong>Your last setup is still fresh.</strong> {setupLine(setupDone)} can be taken back for a day.</p><button type="button" className="secondary" disabled={undoBusy} onClick={() => void undoSetup()}>{undoBusy ? "Undoing…" : "Undo setup"}</button></section>}
     <div className="onboarding-progress">
-      <p className="eyebrow">Step {index + 1} of {STEPS.length}</p>
+      {/* Session AL fourth pass (NB-234): a step with nothing to choose says so beside its number. */}
+      <p className="eyebrow">Step {index + 1} of {STEPS.length}{READ_ONLY_STEPS.has(step) && <span className="onboarding-step-kind"> · nothing to choose here</span>}</p>
       <GlassBar identity="onboarding-steps" className="onboarding-track" aria-hidden="true" value={(index + 1) / STEPS.length} />
     </div>
     <h1 id={`${id}-title`} ref={heading} tabIndex={-1}><NebulaFlow identity="welcome-title">{TITLES[step]}</NebulaFlow></h1>
@@ -339,7 +382,8 @@ export function OnboardingFlow() {
           {EXTRA_PILLARS.map(p => <Choice key={p} name="onboarding-pillar" checked={pillars.includes(p)} onChange={() => setPillars(list => toggle(list, p))} label={PILLAR_TEXT[p].label} note={PILLAR_TEXT[p].note} />)}
         </fieldset>
         <p className="fine onboarding-shown" aria-live="polite">{pagesChange ? `You’ll see: ${[...shown.map(p => PAGE_LABEL[p]), "Settings"].join(", ")}.` : "Every page stays as it is."}</p>
-        <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("focuses")}>{pillars.length ? "Continue" : "Continue without choosing"}</button>{back("welcome")}</div>
+        <p className="fine onboarding-apps">{APPS_LINE}</p>
+        <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("focuses")}>{pillars.length ? "Continue" : "Skip this step"}</button>{back("welcome")}</div>
       </>}
 
       {step === "focuses" && <>
@@ -350,7 +394,7 @@ export function OnboardingFlow() {
         {/* Session AL (P-NB-11; NB-007, NB-035): the count, and the cap said, not a silent fourth tap. */}
         <p className="onboarding-count" aria-live="polite">{focuses.length} of 3 chosen{focuses.length >= 3 ? " · that’s the most for now: untick one to pick another" : ""}</p>
         <p className="fine onboarding-shown" aria-live="polite">{focuses.length ? `Suggested: ${[...suggested.habits, ...(suggested.goal ? [`the goal “${suggested.goal.name}”`] : [])].join(", ") || "widgets on Today"}.` : "Skip this and choose by hand on the next step."}</p>
-        <div className="onboarding-actions"><button type="button" className="primary" onClick={leaveFocuses}>{focuses.length ? "Continue" : "Continue without choosing"}</button>{back("pillars")}</div>
+        <div className="onboarding-actions"><button type="button" className="primary" onClick={leaveFocuses}>{focuses.length ? "Continue" : "Skip this step"}</button>{back("pillars")}</div>
       </>}
 
       {step === "starters" && <>
@@ -426,6 +470,8 @@ export function OnboardingFlow() {
 
       {step === "zigi" && <>
         <div className="onboarding-zigi"><ZigiFigure state="idle" /><p><strong>I’m here when you want me.</strong> Tap my button, or press ⌘K or Ctrl+K, to ask about your own records.</p></div>
+        {/* Session AL fourth pass (NB-006): an optional name, kept on this device only; empty is fine. */}
+        <label className="field onboarding-name">What should ZIGi call you? (optional)<input value={name} maxLength={40} autoComplete="given-name" aria-describedby={`${id}-name-hint`} onChange={e => setName(e.target.value)} placeholder="Your first name, or nothing" /><small id={`${id}-name-hint`}>Kept on this device only, never synced or sent. Leave it empty and ZIGi simply says hello.</small></label>
         <ul className="onboarding-points">
           <li><strong>Your own AI, later.</strong> Connect the AI you already use in Settings → ZIGi · Your Personal AI Companion. Until you do, nothing is sent anywhere.</li>
           <li><strong>You stay in charge.</strong> I only suggest; anything I propose waits for your confirmation.</li>

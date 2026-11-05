@@ -299,7 +299,8 @@ test('the first run: “Sleep & mind” offers a sleep goal, saved with Finish',
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
   // Session AA-Local S4 (deliberate): the focuses step sits between pillars and starters; passed without choosing.
   await expect(flow.getByRole('heading', {level: 1, name: 'Two or three things to focus on.'})).toBeFocused();
-  await flow.getByRole('button', {name: 'Continue without choosing', exact: true}).click();
+  // Session AL (COPY_AUDIT, deliberate; N-NB-01): a step with nothing picked says "Skip this step", as the tour says "Skip the tour" (was "Continue without choosing").
+  await flow.getByRole('button', {name: 'Skip this step', exact: true}).click();
   const goal = flow.getByRole('radiogroup', {name: 'Sleep goal'});
   await expect(goal.getByRole('radio', {name: 'No sleep goal', exact: true})).toBeChecked();
   await goal.getByRole('radio', {name: '7 h 30 min asleep', exact: true}).check();

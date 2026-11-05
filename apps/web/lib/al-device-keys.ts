@@ -22,12 +22,14 @@ export const STABLECOINS_AS_CASH_KEY_LITERAL = 'zigoals:stablecoins-as-cash:v1';
 export const PUZZLE_LOG_KEY_LITERAL = 'zigoals:chess-puzzle-log:v1';
 /** C-BN-14 (display): Ecosystem value-locked figures this device read (lib/zigchain-eco/tvl-history.ts); public numbers. */
 export const TVL_HISTORY_KEY_LITERAL = 'zigoals:eco-tvl-history:v1';
+/** NB-006 (personal): the first name the person chose to give in setup, for Today's greeting (lib/onboarding-setup.ts PROFILE_NAME). */
+export const PROFILE_NAME_KEY_LITERAL = 'zigoals:profile-name:v1';
 /** Personal device records: a device holding one is not new (onboarding `DEVICE_RECORD_KEYS`). */
-export const AL_PERSONAL_KEYS: readonly string[] = [WALLET_NAMES_KEY_LITERAL, HEALTH_EXTRAS_KEY_LITERAL];
+export const AL_PERSONAL_KEYS: readonly string[] = [WALLET_NAMES_KEY_LITERAL, HEALTH_EXTRAS_KEY_LITERAL, PROFILE_NAME_KEY_LITERAL];
 /** Display records (onboarding `NON_PERSONAL_KEYS`): a device holding only these is still new. */
 export const AL_DISPLAY_KEYS: readonly string[] = [APPS_PREFS_KEY_LITERAL, CHESS_PUZZLE_KEY_LITERAL, NOVA_HUD_KEY_LITERAL, STABLECOINS_AS_CASH_KEY_LITERAL, PUZZLE_LOG_KEY_LITERAL, TVL_HISTORY_KEY_LITERAL];
 /** Export everything (`DEVICE_KEYS`): the names in everything.json. */
-export const AL_EXPORT_KEYS = {appsPrefs: APPS_PREFS_KEY_LITERAL, walletNames: WALLET_NAMES_KEY_LITERAL, chessPuzzle: CHESS_PUZZLE_KEY_LITERAL, novaHud: NOVA_HUD_KEY_LITERAL, healthExtras: HEALTH_EXTRAS_KEY_LITERAL, stablecoinsAsCash: STABLECOINS_AS_CASH_KEY_LITERAL, chessPuzzleLog: PUZZLE_LOG_KEY_LITERAL, ecoTvlHistory: TVL_HISTORY_KEY_LITERAL} as const;
+export const AL_EXPORT_KEYS = {appsPrefs: APPS_PREFS_KEY_LITERAL, walletNames: WALLET_NAMES_KEY_LITERAL, chessPuzzle: CHESS_PUZZLE_KEY_LITERAL, novaHud: NOVA_HUD_KEY_LITERAL, healthExtras: HEALTH_EXTRAS_KEY_LITERAL, stablecoinsAsCash: STABLECOINS_AS_CASH_KEY_LITERAL, chessPuzzleLog: PUZZLE_LOG_KEY_LITERAL, ecoTvlHistory: TVL_HISTORY_KEY_LITERAL, profileName: PROFILE_NAME_KEY_LITERAL} as const;
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AL_CATALOG_LABELS = {
   appsPrefs: ['Apps & extras: which apps show and the sidebar Apps group folded or open', 'Settings'],
@@ -38,6 +40,7 @@ export const AL_CATALOG_LABELS = {
   stablecoinsAsCash: ['Wealth: count stablecoins as cash', 'Wealth'],
   chessPuzzleLog: ['Chess: daily puzzles you played', 'Chess'],
   ecoTvlHistory: ['Ecosystem: value-locked figures this device read', 'Ecosystem'],
+  profileName: ['The name you gave in setup, for Today\'s greeting', 'Today'],
 } as const;
 /** The account erase (`lib/aa-device-forget.ts`): every key above. */
 export const AL_ERASE_KEYS: readonly string[] = [...AL_PERSONAL_KEYS, ...AL_DISPLAY_KEYS];

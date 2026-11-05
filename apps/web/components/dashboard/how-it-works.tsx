@@ -7,10 +7,11 @@ import {BullGlyph, ButterflyGlyph, HeartGlyph, LotusGlyph} from '../footer/pilla
 import {IntroVideo} from './intro-video';
 import './how-it-works.css';
 
+// Session AL fourth pass (D-184): what to tap first, in sentences (no arrow shorthand), and the film's length in words.
 const STEPS = [
-  {n: '01', title: 'Goals', glyph: <LotusGlyph size={28}/>, body: 'Name what matters and give it a target: a sum, a date, or milestones.', how: 'Goals → + Create a goal. Pick a life area, write why, and link the wealth that funds it.', href: '/app/goals/new', cta: 'Create a goal'},
-  {n: '02', title: 'Habits & Health', glyph: <><ButterflyGlyph size={28}/><HeartGlyph size={22}/></>, body: 'Take a small step each day and let the pattern build.', how: 'Habits → + New habit, then −/+ and Done on the card. Health → Log food or Log water, a weight, a night of sleep.', href: '/app/habits', cta: 'Open Habits'},
-  {n: '03', title: '= Wealth', glyph: <BullGlyph size={28}/>, body: 'See everything you own and everything you are working toward in one view.', how: 'Wealth → + Add asset (cash, crypto, stocks, metals, property). Prices refresh on request; nothing moves and nothing is signed.', href: '/app/wealth', cta: 'Open Wealth'},
+  {n: '01', title: 'Goals', glyph: <LotusGlyph size={28}/>, body: 'Name what matters and give it a target: a sum, a date, or milestones.', how: 'On Goals, tap “+ Create a goal”. Pick a life area, write why it matters, and link the wealth that funds it.', href: '/app/goals/new', cta: 'Create a goal'},
+  {n: '02', title: 'Habits & Health', glyph: <><ButterflyGlyph size={28}/><HeartGlyph size={22}/></>, body: 'Take a small step each day and let the pattern build.', how: 'On Habits, tap “+ New habit”, then use − and + or Complete on its card. On Health, log a meal, water, a weight or a night of sleep.', href: '/app/habits', cta: 'Open Habits'},
+  {n: '03', title: '= Wealth', glyph: <BullGlyph size={28}/>, body: 'See everything you own and everything you are working toward in one view.', how: 'On Wealth, tap “+ Add asset” for cash, crypto, stocks, metals or property. Prices refresh when you ask; nothing moves and nothing is signed.', href: '/app/wealth', cta: 'Open Wealth'},
 ] as const;
 
 /**
@@ -34,7 +35,7 @@ export function HowItWorks() {
             <div><strong>{s.title}</strong><p>{s.body}</p><p className="how-it-works-how">{s.how}</p><Link className="text-link" href={s.href} onClick={() => dialog.current?.close()}>{s.cta} →</Link></div>
           </li>)}
         </ol>
-        <div className="how-it-works-foot"><IntroVideo label="Watch the film (16 s)"/><p className="fine">Practice money with no real value · nothing is placed onchain · browser storage is not a backup.</p></div>
+        <div className="how-it-works-foot"><IntroVideo label="Watch the 16-second film"/><p className="fine">Practice money with no real value · nothing is placed onchain · browser storage is not a backup.</p></div>
       </div>}
     </dialog>, host)}
   </>;

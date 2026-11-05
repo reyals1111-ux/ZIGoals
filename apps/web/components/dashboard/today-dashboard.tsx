@@ -90,6 +90,10 @@ import {deficitSignature,dismissIntegrity,integrityDismissed} from '../../lib/to
 import {ONBOARDING_SETUP_KEY} from '../../lib/aa-device-keys';
 import {usePagesView} from '../pages/use-pages-view';
 import {isShown,todayItemShown} from '../../lib/pages/visibility';
+import {PAGE_IDS,type PagesView} from '../../lib/pages/schema';
+import {settingsGroupIn} from '../../lib/vault/w-homes';
+/** Session AL fourth pass (NB-220): a built-in named as its card's heading reads, where the two differ. */
+const BUILTIN_HEADING:Partial<Record<string,string>>={summary:'Your snapshot'};
 import {linksOf,sortedLinks} from '../../lib/links/engine';
 import {TodayLinks} from '../links/today-links';
 import {TodaySoundtrack} from '../music/today-soundtrack';
@@ -130,7 +134,7 @@ export function TodayDashboard(){
  const platform=usePlatform(),legacy=useGoals(),habits=useHabits(),health=useHealth(),today=useLocalToday();
  // H7: linked habits tick themselves off from the Health journal on this page; the cards word it with the counter names.
  useAutoCheckIns({habits,health});
- const healthLinkContext=useMemo(()=>({counters:exerciseData(health.data).counters,waterUnit:dailyData(health.data).preferences.waterUnit}),[health.data]);
+ const healthLinkContext=useMemo(()=>({counters:exerciseData(health.data).counters,waterUnit:dailyData(health.data).preferences.waterUnit,...(health.loaded&&!health.error?{health:health.data}:{})}),[health.data,health.loaded,health.error]);
  const showcase=useShowcase(),[welcomeDismissed,setWelcomeDismissed]=useState(false),phone=usePhoneActive();
  // Session W Part 2: Quick add and the Health shortcut follow Your pages & buttons.
  const pagesView=usePagesView(),showQuickAdd=isShown(pagesView,'quick-add'),showHealth=isShown(pagesView,'health');
@@ -142,6 +146,9 @@ export function TodayDashboard(){
  const storesReady=settings.loaded&&!settings.error&&platform.loaded&&!platform.error&&habits.loaded&&!habits.error&&health.loaded&&!health.error&&legacy.loaded;
  let brandNew=false;
  if(!welcomeDismissed&&!showcase&&storesReady&&!settings.data.onboarded&&!platform.data.goals.length&&!platform.data.positions.length&&!habits.data.habits.length&&!legacy.goals.length){try{brandNew=!getAccountScope()&&!onboardingSeen(window.localStorage)&&noExistingData(window.localStorage);}catch{brandNew=false;}}
+ // Session AL (P-NB-08; NB-002, NB-033): with nothing recorded and no setup made, the setup entry is Today's one first
+ // action (defined here, before the cards that step back for it; fourth pass: the destination panel's link is secondary).
+ const emptyDevice=storesReady&&!showcase&&!brandNew&&!setupMade&&!habits.data.habits.length&&!platform.data.goals.length&&!platform.data.positions.length&&!legacy.goals.length;
  // Session AL (P-NB-10; NB-041): money cards ("Your goals", the destination panel) follow the pages the person shows too, so
  // a Habits and Health setup that left Goals and Wealth off sees no goal tiles (the PROTECTED hero itself is unchanged).
  const domains=visibleDomains(settings.data),financial=(domains.includes('wealth')&&isShown(pagesView,'wealth'))||(domains.includes('goals')&&isShown(pagesView,'goals'));
@@ -160,6 +167,12 @@ export function TodayDashboard(){
  // arranging, the stored record is shown and edited as it is).
  const view=customize?settings.data:withDestinationsOnceGoals(settings.data,goals.length);
  const placement=reconcileDashboardPlacement(view);
+ // Session AL fourth pass (NB-220): the pages this person switched off themselves (a stamped "hidden"), apart from the
+ // pages that are off until chosen and were never switched on.
+ const stampedPages=settings.loaded&&!settings.error?settingsGroupIn(settings.data,'pages'):undefined;
+ const chosenHiddenView:PagesView={version:1,hidden:PAGE_IDS.filter(id=>stampedPages?.items[id]?.v==='hidden')};
+ // Session AL fourth pass (NB-092, DV-024b): a hidden built-in whose widget twin is on Today says why it stands down.
+ const twinShown=(id:DashboardBuiltinId)=>view.widgets.some(w=>!w.hidden&&twinOf(w)===id);
  const [insertAt,setInsertAt]=useState<{region:DashboardRegion;anchor:DashboardItemRef}|null>(null);
  // Session V Part 1b: the widget rows a person left open on a phone stay open (zigoals:today-folds:v1), written only when
  // the person opens or closes a row. Read on the client's first render, so a remembered row is open the first time it
@@ -214,7 +227,11 @@ export function TodayDashboard(){
   void change(s=>moveDashboardItem(s,ref,{region:target},placement.revision),`${label} moved to ${target==='rail'?'the rail':'the main column'}.`).then(()=>requestAnimationFrame(()=>document.getElementById(itemId(ref))?.focus())).catch(()=>{});
  }
  const layoutId=(ref:DashboardItemRef)=>`${ref.kind}:${ref.id}`;
- const refLabel=(ref:DashboardItemRef)=>{if(ref.kind==='widget'){const w=view.widgets.find(x=>x.id===ref.id);if(!w)return 'Widget';const base=(x:DashboardWidget)=>x.title||WIDGET_CATALOG[x.kind].label;/* Session AL (DV-155, P-DV-70): two cards with one name are told apart by what they show */const twins=view.widgets.filter(x=>!x.hidden&&base(x)===base(w));if(twins.length<2)return base(w);const same=twins.filter(x=>x.metric===w.metric);return `${base(w)} · ${widgetMetricLabel(w.metric,w.kind)}${same.length>1?` ${same.indexOf(w)+1}`:''}`;}return meta(ref.id as DashboardBuiltinId).label;};
+ // Session AL fourth pass (NB-220, DV-155): each card is named as its heading reads ("Water today", not the catalog's
+ // "Health metric"; "Your snapshot", not "Widget summary"), and a hidden built-in says so, so the arrow buttons and the
+ // move messages never name two cards alike.
+ const titleCache=new Map<string,string>(),cardTitle=(x:DashboardWidget)=>{let t=titleCache.get(x.id);if(t===undefined){try{t=widgetMetric(x,sources).title;}catch{t=x.title||WIDGET_CATALOG[x.kind].label;}titleCache.set(x.id,t);}return t;};
+ const refLabel=(ref:DashboardItemRef)=>{if(ref.kind==='widget'){const w=view.widgets.find(x=>x.id===ref.id);if(!w)return 'Widget';const base=cardTitle;/* Session AL (DV-155, P-DV-70): two cards with one name are told apart by what they show */const twins=view.widgets.filter(x=>!x.hidden&&base(x)===base(w));if(twins.length<2)return base(w);const same=twins.filter(x=>x.metric===w.metric);return `${base(w)} · ${widgetMetricLabel(w.metric,w.kind)}${same.length>1?` ${same.indexOf(w)+1}`:''}`;}const id=ref.id as DashboardBuiltinId,name=BUILTIN_HEADING[id]??meta(id).label;return placement.hiddenBuiltins.includes(id)?`${name} (hidden)`:name;};
  /** Drag or arrow moves on Today go through the existing synced placement: the card is placed before (or after) its new visible neighbour. */
  async function placeAt(region:DashboardRegion,id:string,to:number,order:string[]){
   const ref=placement[region].find(r=>layoutId(r)===id);if(!ref)return;
@@ -264,7 +281,7 @@ export function TodayDashboard(){
    // Session AE (Part 6, ADR-027): the same card, with the wallet chooser and the display currency (components/wallet/wallet-card.tsx).
    case 'wallet':return financial&&chainChosen?<WalletCard plainWords={plainWords}/>:null;
    case 'staking':return financial&&chainChosen?<StakingCard/>:null;
-   case 'destination':return financial?<section className="destination-panel" aria-labelledby="destination-title"><div><p className="eyebrow">{active.length?'Your destinations':'Start with what matters'}</p><h2 id="destination-title"><NebulaFlow identity="today-destination-title">{active.length?`${active.length} ${active.length===1?'goal':'goals'} in motion. Room for another.`:'A destination for your next chapter.'}</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for. {plainWords?'Give your savings a purpose.':'Give your ZIG a purpose.'}</p><Link href="/app/goals/new" className="primary">{goals.length?'Plan my next goal →':'Plan my first goal →'}</Link><div className="destination-steps"><div><AppIcon name="settings" luminous/><strong>Set a goal</strong><small>Define your future</small></div><div><AppIcon name="goals" luminous/><strong>Stay consistent</strong><small>Track your progress</small></div><div><AppIcon name="today" luminous/><strong>Reach farther</strong><small>A brighter tomorrow</small></div></div></div></section>:null;
+   case 'destination':return financial?<section className="destination-panel" aria-labelledby="destination-title"><div><p className="eyebrow">{active.length?'Your destinations':'Start with what matters'}</p><h2 id="destination-title"><NebulaFlow identity="today-destination-title">{active.length?`${active.length} ${active.length===1?'goal':'goals'} in motion. Room for another.`:'A destination for your next chapter.'}</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for. {plainWords?'Give your savings a purpose.':'Give your ZIG a purpose.'}</p><Link href="/app/goals/new" className={emptyDevice?'secondary':'primary'}>{goals.length?'Plan my next goal →':'Plan my first goal →'}</Link><div className="destination-steps"><div><AppIcon name="settings" luminous/><strong>Set a goal</strong><small>Define your future</small></div><div><AppIcon name="goals" luminous/><strong>Stay consistent</strong><small>Track your progress</small></div><div><AppIcon name="today" luminous/><strong>Reach farther</strong><small>A brighter tomorrow</small></div></div></div></section>:null;
    case 'activity':return financial?<section className="recent-panel"><div className="section-heading"><h2>Recent activity</h2><Link href="/app/activity" className="text-link">View all →</Link></div><ActivityFeed limit={phone?2:4}/></section>:null;
   }
  }
@@ -286,6 +303,10 @@ export function TodayDashboard(){
   // Session W Part 13: an item of a hidden page leaves Today with it (kept, and back when the page shows again).
   const withPage=ref.kind==='widget'?todayItemShown(pagesView,{widgetDomain:WIDGET_CATALOG[widget!.kind].domain}):todayItemShown(pagesView,{builtin:ref.id});
   if(!withPage&&!customize)return null;
+  // Session AL fourth pass (NB-220): a built-in of a page that was never switched on (Markets' Watchlist on a device that
+  // never chose the chain) is not one of this person's cards: Arrange leaves it out instead of saying it is "hidden with
+  // its page". A page the person hid keeps its cards listed, kept for when it shows again.
+  if(!withPage&&ref.kind==='builtin'&&todayItemShown(chosenHiddenView,{builtin:ref.id}))return null;
   const label=ref.kind==='widget'?widget!.title||WIDGET_CATALOG[widget!.kind].label:builtin!.label;
   // Session U follow-up F3: on a phone each widget card also folds to a row named by the widget and opens in place; the
   // overview ("Your selected widgets") still shows every widget's value at a glance, so nothing is removed. While Today
@@ -298,7 +319,7 @@ export function TodayDashboard(){
   const foldDetail=ref.kind==='widget'&&!standsIn&&foldLabel&&loaded(WIDGET_CATALOG[widget!.kind].domain)&&!domainError(WIDGET_CATALOG[widget!.kind].domain)?widgetMetric(widget!,sources).value:undefined;
   return <div key={`${ref.kind}:${ref.id}`} id={itemId(ref)} tabIndex={-1} className="placed-module" data-kind={ref.kind} data-module={ref.id} data-size={widget?.size} data-hidden={hidden?'true':undefined} data-stands-in={standsIn?twin!:undefined}>
    {customize&&ref.kind==='builtin'&&<div className="dashboard-builtin-options"><CardOptions label={label}><button type="button" disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,label)}>Move earlier</button><button type="button" disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,label)}>Move later</button>{builtin!.hideable&&<button type="button" disabled={busy} onClick={()=>apply(s=>setDashboardBuiltinHidden(s,ref.id as DashboardBuiltinId,!hidden,placement.revision))}>{hidden?'Show card':'Hide card'}</button>}</CardOptions></div>}
-   {!withPage?<p className="dashboard-hidden-placeholder">{label} is hidden with its page. Show the page again in Settings, under Your pages &amp; buttons.</p>:hidden&&ref.kind==='builtin'?<p className="dashboard-hidden-placeholder">{label} is hidden from Today.</p>:foldLabel?<PhoneFold label={foldLabel} detail={foldDetail} {...(ref.kind==='widget'?{remembered:!!folds&&isFoldOpen(folds,ref.id),onToggle:(open:boolean)=>toggleFold(ref.id,open)}:{})}>{content}</PhoneFold>:content}
+   {!withPage?<p className="dashboard-hidden-placeholder">{label} is hidden with its page. Show the page again in Settings, under Your pages &amp; buttons.</p>:hidden&&ref.kind==='builtin'?<p className="dashboard-hidden-placeholder">{label} is hidden from Today.{twinShown(ref.id as DashboardBuiltinId)?` Your ${label} widget shows the same list, so this card stands down; Show card brings it back as well.`:' Show card brings it back.'}</p>:foldLabel?<PhoneFold label={foldLabel} detail={foldDetail} {...(ref.kind==='widget'?{remembered:!!folds&&isFoldOpen(folds,ref.id),onToggle:(open:boolean)=>toggleFold(ref.id,open)}:{})}>{content}</PhoneFold>:content}
    {customize&&<button type="button" className="dashboard-insert-here" disabled={busy||settings.data.widgets.length>=24} onClick={()=>addAfter(ref,region)}>+ Add widget after {label}</button>}
   </div>;
  }
@@ -320,7 +341,6 @@ export function TodayDashboard(){
  const widgetArea=useMountOnView({hashPrefixes:WIDGET_AREA_HASHES,force:customize||brandNew});
  // Session AL (P-NB-08; NB-002, NB-033): a device with nothing recorded and no setup made keeps one way into the setup on
  // Today after "Not now" (the welcome itself shows once); while it shows, it is the page's one first action.
- const emptyDevice=storesReady&&!showcase&&!brandNew&&!setupMade&&!habits.data.habits.length&&!platform.data.goals.length&&!platform.data.positions.length&&!legacy.goals.length;
  // Session AL (TK-148, N-TK-21): with records already kept, the chooser moves after the data and can be put away.
  const hasRecords=storesReady&&!showcase&&(habits.data.habits.length>0||platform.data.goals.length>0||platform.data.positions.length>0||legacy.goals.length>0);
  const makeToday=emptyDevice?<FirstRunEntry demoAvailable={legacy.mode==='local'}/>:settings.loaded&&!settings.error&&!settings.data.onboarded?<Suspense fallback={<TodayReserve part="make"/>}><MakeToday hasRecords={hasRecords} chosen={settings.data.preset} onChoose={setPreset} onContinue={()=>apply(s=>({...s,onboarded:true}))}/></Suspense>:null;
