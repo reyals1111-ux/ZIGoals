@@ -443,4 +443,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
   /* Session AB-Cloud Gate B (ADR-023 C21c): what focus or a scroll brings into view stops below the sticky index, never under
      it (WCAG 2.4.11, as globals.css does for the bottom buttons); the index wraps to two rows on narrower screens. */
   html:has(.settings-page .settings-sections) { scroll-padding-top: 128px; }
+  /* Session AL (TK-184, P-TK-56): one row of 44 px links at any width (it wrapped to three rows, ~134 px, at 768 px and
+     covered the page); the row scrolls sideways inside itself, never the page. */
+  :root .settings-page .settings-sections { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+  :root .settings-page .settings-sections a { flex: none; white-space: nowrap; }
 }

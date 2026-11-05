@@ -32,5 +32,5 @@ export function TodayLine({habits, health, platform, quotes, now, today, healthD
     }
   }
   if (!parts.length) return null;
-  return <p className="today-line" data-today-line><span className="today-line-label">Today</span> {parts.join(' · ')}</p>;
+  return <p className="today-line" data-today-line>{/* Session AL (N-TK-22): a visible separator, so the line never reads as one sentence ("Today tracked wealth…") */}<span className="today-line-label">Today</span><span aria-hidden="true" className="today-line-sep">·</span> {parts.join(' · ')}</p>;
 }

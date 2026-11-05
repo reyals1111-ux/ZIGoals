@@ -124,6 +124,7 @@
 @media (max-width: 640px) { .today-line { display: none; } }
 .today-line { margin: 0 0 12px; font-size: 15px; line-height: 1.5; color: var(--text-secondary); overflow-wrap: anywhere; }
 .today-line-label { font-weight: 650; color: var(--text-primary, inherit); margin-inline-end: 4px; }
+.today-line-sep { margin-inline-end: 2px; color: var(--text-secondary, inherit); }
 /* Session AK G2 (RELEASE_REVIEW R11): the widget area's place while it waits to mount on a phone (components/use-mount-on-view.ts),
    so the cards under it start below it and do not move up into view and back. */
 .dashboard-widget-reserve { min-height: 60vh; }
