@@ -30,6 +30,8 @@ export function GameRegistrar() {
     window.addEventListener('storage', read); window.addEventListener(ZIGI_STORE_EVENT, onStore);
     return () => { window.removeEventListener('storage', read); window.removeEventListener(ZIGI_STORE_EVENT, onStore); };
   }, []);
-  useEffect(() => { if (!enabled) return; return registerNavExtra(['/app/journey', 'Journey', 'journey']); }, [enabled]);
+  // Session AL (O4: "Journey, Life review, Stories and ZIGi states stay out of the sidebar"): a compact entry, so the
+  // tablet rail, the phone's More and search list it, never the desktop sidebar (components/nav-extras.ts).
+  useEffect(() => { if (!enabled) return; return registerNavExtra(['/app/journey', 'Journey', 'journey', 'compact']); }, [enabled]);
   return null;
 }

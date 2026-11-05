@@ -19,6 +19,9 @@ const record = (page: Page) => page.addInitScript(() => {
     let area = 0;
     for (const el of document.querySelectorAll<HTMLElement>('[style*="view-transition-name"]')) {
       if (!el.style.viewTransitionName || el.style.viewTransitionName === 'none') continue;
+      // Session AL (fix-up, spec): the root's picture is the window (the snapshot containing block), not <html>'s full
+      // document height; the gate names the root for a tall leaving page's crossfade (lib/motion/view-transition-gate.ts).
+      if (el === document.documentElement) { area += innerWidth * innerHeight; continue; }
       const r = el.getBoundingClientRect(); area += r.width * r.height;
     }
     const entry: Entry = {mode: document.documentElement.getAttribute('data-zg-vt-page'), namedDevicePx: Math.round(area * devicePixelRatio ** 2)};

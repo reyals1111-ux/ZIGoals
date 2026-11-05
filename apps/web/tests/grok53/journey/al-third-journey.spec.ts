@@ -10,10 +10,14 @@ async function showcase(page: Page) {
   await page.waitForURL('**/app');
 }
 
-test('registrar: the Showcase (game layer on in its own tab storage) lists Journey in the desktop sidebar', async ({page}) => {
+// Session AL (deliberate, owner decision O4): "Journey, Life review, Stories and ZIGi states stay out of the sidebar".
+// The registrar now reads the Showcase's switch (the rail test below proves the entry registers); on a computer the
+// entry is compact, so the desktop sidebar does not show it.
+test('registrar: the Showcase (game layer on in its own tab storage) keeps Journey out of the desktop sidebar (O4)', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   await showcase(page);
-  await expect(page.getByRole('navigation', {name: 'Main navigation'}).getByRole('link', {name: 'Journey', exact: true})).toBeAttached();
+  await expect(page.locator('.app-sidebar a[href="/app/journey"]')).toBeAttached(); // registered (the rail and search use it)
+  await expect(page.getByRole('navigation', {name: 'Main navigation'}).getByRole('link', {name: 'Journey', exact: true})).toHaveCount(0);
 });
 
 test('registrar: and in the tablet rail at 820 px', async ({page}) => {
