@@ -120,6 +120,12 @@ The bots' run reopened **150 AL rows** (226 proposed rows) that earlier sessions
 7. **Guard what already works.** New work broke earlier fixes (the Checklist launcher re-created the overlap; a parser change made "meditated" unreadable). Keep-list items become specs before the next feature lands near them.
 8. **"Not reproduced" is not "fixed".** Rows closed as not reproduced came back under the bot's conditions (before 07:00 local, fresh profile, short windows). Reproduce with the reporter's time, profile and width before closing.
 
+9. **Locale is one of the bot's conditions.** Setup's draft survived a reload in en-US (the spec's locale) and was lost in en-GB: outside en-US the shell remounts the page once in the hydration commit, and the first instance's effect wrote the empty state over the draft (NB-011, found by the L3 replay, fixed in the L3 fourth pass). Specs for anything that is saved or restored now run in en-GB and en-US.
+10. **A test helper that retries hides the bug.** The goal creator lost the first key typed on an idle page (a capture-phase input handler re-rendered before onChange). The shared `tests/goal-name.ts` retried the fill until it stuck, so every spec passed for three sessions (BN-153/188). New specs type once, with `pressSequentially`, and never retry a person's action.
+11. **A lane's own green specs are not the replay.** In round 1 the lanes' specs passed (health 31/31, L3 39/39) while fresh replays through the screens found 29–45 STILL OPEN per lane: specs that seed storage directly, run in one locale, or skip the scroll a person does. Replays drive the screens, and a lane is ticked only on its replay (A1).
+12. **Measure performance after design changes, alone.** The HUD design pass made the motes redraw the window-sized sky under every glass panel (49.9 ms at CPU 4x, alone, against 16.7 ms before). Perf specs run after every HUD change, on a quiet machine, before the change is called done.
+13. **Spec measurements must model the browser.** The page-transition spec summed `<html>`'s whole document height for the root picture, which the browser captures at window size; 20 failures were the spec's, not the app's. Before changing an app to satisfy a measuring spec, check what the spec measures.
+
 ## Closing table (R9)
 Outcomes: Fixed (commit, test, replay FIXED) · Already fixed (replay FIXED on main before any change, with the evidence) · Owner decision (named) · Not possible (evidence) · Waits on owner (the named step).
 
