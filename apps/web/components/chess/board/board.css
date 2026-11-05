@@ -83,3 +83,8 @@
 .chess-promotion-glyph { font-size: 1.5rem; margin-right: 6px; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", "Apple Symbols", serif; }
 .chess-actions-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .chess-play-message { margin: 0; }
+/* Session AL (C-BN-22): the dated puzzle log under the daily puzzle. */
+.chess-puzzle-days { display: grid; gap: 6px; }
+.chess-puzzle-days h4 { margin: 4px 0 0; font-size: 16px; }
+.chess-puzzle-days p { margin: 0; }
+.chess-puzzle-days-list { margin: 0; padding-left: 20px; display: grid; gap: 4px; }

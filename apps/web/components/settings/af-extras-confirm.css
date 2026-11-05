@@ -1,0 +1,4 @@
+/* Session AL (DV-275, P-DV-111): the in-place confirm of a reset row (components/settings/af-extras-section.tsx). */
+.af-extras-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.af-extras-confirm > span { flex-basis: 100%; font-size: 15px; color: var(--text-secondary); }
+.af-extras-row .af-extras-confirm .quiet:not(:disabled) { color: inherit; border-color: transparent; }

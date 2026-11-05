@@ -11,7 +11,6 @@ import {PageHeader} from '../page-header';
 import {SectionHeading} from '../ui/section-heading';
 import {AcademySection} from './academy-section';
 import {DefaSection, NawaSection, PermapodSection, ZignalySection} from './apps-sections';
-import {EarnAppsStrip} from './earn-apps-strip';
 import {EarnChips} from './earn-chips';
 import {EarnGlyph} from './earn-glyph';
 import {EarnJump} from './earn-jump';
@@ -45,7 +44,7 @@ const StakingClarity = lazy(() => import('../zigchain-eco/staking-clarity'));
 const Summary = memo(LiveSummary), StartHere = memo(StartHereSection), Native = memo(NativeSection), Valdora = memo(ValdoraSection);
 const Vaults = memo(VaultsSection), Oroswap = memo(OroswapSection), Nawa = memo(NawaSection), Defa = memo(DefaSection), Permapod = memo(PermapodSection);
 const Zignaly = memo(ZignalySection), Governance = memo(GovernanceSection), GoalVaults = memo(GoalVaultsSection), Stablecoins = memo(StablecoinsSection);
-const Validators = memo(ValidatorsSection), Academy = memo(AcademySection), Safety = memo(SafetyBlock), AppsStrip = memo(EarnAppsStrip);
+const Validators = memo(ValidatorsSection), Academy = memo(AcademySection), Safety = memo(SafetyBlock);
 
 /**
  * Session AF (L1, ADR-028 H5, H16, H17, H84): the Earn hub, /app/earn. Every way to earn on ZIGChain that is live today,
@@ -56,7 +55,7 @@ const Validators = memo(ValidatorsSection), Academy = memo(AcademySection), Safe
  *
  * Session AF chunk 2 (amendment 3, P1.7–P1.30, Part 5): the Start-here path, every other way to earn in depth (the USDC
  * vaults, Nawa, DeFa, Permapod, Zignaly, governance, Goal Vaults, stablecoins), the measured staking figure beside the
- * issuance figure (H97), the Academy, and on phones the dock's app strip. Each wallet is read once for the summary and the
+ * issuance figure (H97), the Academy. Each wallet is read once for the summary and the
  * Start-here detectors.
  */
 export function EarnView() {
@@ -78,7 +77,9 @@ export function EarnView() {
         actions={<><a className="primary" href="#start-here">Start here</a> <a className="secondary" href="#safety">Safety first</a></>}
         art={<OrbitArt glyph={EarnGlyph} tone="wealth" spin={-24}/>}/>
       <p className="earn-hero-note fine">Options are listed in the order the network is built, not by how much they pay. Nothing here is advice or a promise of returns.</p>
-      <AppsStrip/>
+      {/* Session AL (P-BN-48; BN-074, BN-126, N-BN-05, D-123): one topic strip. The phones' round app strip repeated five
+          of this index's targets on the first screen (at 500 px it sat under the bottom bar); O3 put the Earn dock's role
+          below 901 px in Apps & extras, so the index alone leads every width. */}
       <EarnChips chips={chips}/>
       <div className="earn-sections">
         <EarnJump/>

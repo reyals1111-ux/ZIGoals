@@ -120,6 +120,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["your-ai-suggestions", "Where do ZIGi’s chips, brief and patterns come from?"],
   ["your-ai-commands", "Which slash commands and shortcuts does ZIGi know?"],
   ["your-ai-mini-window", "What is ZIGi’s mini window?"],
+  ["your-ai-private", "Which screens pause ZIGi, and why?"],
   ["your-ai-knock", "Can ZIGi knock when a reminder is due?"],
   ["your-ai-agents", "Can an AI agent in my browser use ZIGoals?"],
   ["your-ai-which-setup", "Which setup fits me?"],

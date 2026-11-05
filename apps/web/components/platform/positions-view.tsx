@@ -26,6 +26,7 @@ import {FieldError,useFormErrors} from '../primitives/field-error';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {STAKING_PREFS,networkChoiceOf} from '../../lib/staking/prefs';
 import {canonicalAddress} from '../../lib/staking/tracked-wallets';
+import {zigAddressProblem} from '../../lib/staking/address';
 import {stakingWidgetSource} from '../../lib/dashboard-metrics';
 import './run92-gap-fixes.css';
 import {NebulaFlow} from '../nebula-flow';
@@ -87,7 +88,8 @@ export function PositionsView(){
  // Session AL (BN-080): an empty or mistyped address is said under the field (aria-invalid, focus), never only by the browser's own bubble.
  if(!account_){addressForm.fail({address:'Type a public ZIG address first. It starts with zig1 and is 42 characters long. Nothing was read or saved.'});return;}
  // Session AH (ST8, L-019): the address is checked here first; a mistyped one is named as such and nothing is stored for it.
- if(!publicZigAddress.safeParse(account_).success){addressForm.fail({address:'Could not verify public positions: this is not a ZIGChain address. A public ZIG address starts with zig1 and is 42 characters long; check it and try again. Nothing was read or saved.'});return;}
+ // Session AL (N-BN-16): a wrong prefix (cosmos1, 0x, zigvaloper1), a wrong length and a mistyped character each say so.
+ const problem=publicZigAddress.safeParse(account_).success?null:zigAddressProblem(account_)??'Could not verify public positions: this is not a ZIGChain address. Nothing was read or saved.';if(problem){addressForm.fail({address:problem});return;}
  addressForm.clear();
  setBusy(true);try{
   const data=await readPublicPositions(mode,account_);await store.update(s=>({...replaceObservation(s,network,account_,data),watchScope:{network,account:account_}}));setMessage('Public snapshot saved. No wallet authority requested.');setSheet(null);

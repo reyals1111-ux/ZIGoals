@@ -89,7 +89,11 @@ test.describe('on a computer', () => {
   });
 });
 
-test('on a phone: no floating dock; the Earn page shows the apps as a strip', async ({page}, info) => {
+// Session AL (P-BN-48; BN-074, BN-126, N-BN-05, D-123; deliberate, O3): the phone's round app strip repeated five of the
+// chip index's targets on the first screen, and at 500 px it sat under the bottom bar. O3 moved the Earn dock's role below
+// 901 px into Apps & extras, so the strip is gone and the one index leads. Same strength: the five apps' sections are
+// still reachable from the first screen, from the index, with 44 px targets, and nothing scrolls sideways.
+test('on a phone: no floating dock; the Earn page has one topic strip, on the first screen, with the five apps', async ({page}, info) => {
   test.skip(info.project.name !== 'mobile', 'A phone check');
   await seedShowcase(page);
   await earnRoutes(page);
@@ -97,13 +101,12 @@ test('on a phone: no floating dock; the Earn page shows the apps as a strip', as
   await expect(page.locator('main')).toBeVisible();
   await expect(page.locator('.earn-dock-button, .earn-dock-edge')).toHaveCount(0);
   await page.goto('/app/earn');
-  const strip = page.getByRole('navigation', {name: 'Ecosystem apps', exact: true});
-  // Gate C test audit: the design fix round's three-link strip ("Start here" once) moved Start here and ZIGChain staking
-  // into the chip index, which is not on a phone's first screen; the strip, the phone's Earn dock (P5.5), keeps all five
-  // on the first screen, as this test held it.
-  await expect(strip).toBeVisible();
-  await expect(strip).toBeInViewport();
-  expect(await strip.getByRole('link').evaluateAll(els => els.map(a => a.getAttribute('href')))).toEqual(['#start-here', '#native-staking', '#valdora', '#oroswap', '#nawa']);
-  for (const link of await strip.getByRole('link').all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await expect(page.getByRole('navigation', {name: 'Ecosystem apps', exact: true})).toHaveCount(0);
+  const index = page.getByRole('navigation', {name: 'On this page', exact: true});
+  await expect(index).toBeVisible();
+  await expect(index).toBeInViewport();
+  const hrefs = await index.getByRole('link').evaluateAll(els => els.map(a => a.getAttribute('href')));
+  for (const href of ['#start-here', '#native-staking', '#valdora', '#oroswap', '#nawa']) expect(hrefs, href).toContain(href);
+  for (const link of await index.getByRole('link').all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
 });

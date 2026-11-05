@@ -11,6 +11,7 @@ import {DAY_TIMELINE} from '../../lib/timeline/store';
 import {STORIES} from '../../lib/stories/store';
 import type {DeviceRecordState} from '../ai/use-device-record';
 import '../universe/extras-setting.css';
+import './af-extras-confirm.css';
 
 /**
  * Session AF (L5b; ADR-028 H73, H76–H78): what My Universe, the Day Timeline and Stories keep on this device, and a way
@@ -20,16 +21,18 @@ import '../universe/extras-setting.css';
  */
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
 function Row<T>({record, title, count, cleared, button, children}: {record: DeviceRecordState<T>; title: string; count: number; cleared: string; button: string; children: ReactNode}) {
-  const [error, setError] = useState('');
+  const [error, setError] = useState(''), [asking, setAsking] = useState(false);
   const usable = record.loaded && !record.unreadable;
   const clear = () => {
-    const previous = record.data;
+    const previous = record.data; setAsking(false);
     try { record.clear(); setError(''); showUndo({message: cleared, restore: () => record.update(() => previous), undone: 'Put back as it was.'}); /* Session AL (3e): the one Undo; restore writes the record back */ }
     catch (cause) { setError(deviceSettingFailureMessage(cause)); }
   };
   return <div className="af-extras-row">
     <p><strong>{title}</strong><small>{children}</small></p>
-    <button type="button" className="secondary" disabled={!usable || count === 0} onClick={clear}>{button}</button>
+    {/* Session AL (DV-275, P-DV-111): a reset asks once in place, then keeps its Undo. */}
+    {!asking ? <button type="button" className="secondary" disabled={!usable || count === 0} onClick={() => setAsking(true)}>{button}</button>
+      : <div className="af-extras-confirm" role="group" aria-label={`${button}?`}><span>{button}? Undo stays for a few seconds after.</span><button type="button" className="secondary" onClick={clear}>Yes, {button.charAt(0).toLowerCase()}{button.slice(1)}</button><button type="button" className="quiet" onClick={() => setAsking(false)}>Keep it</button></div>}
     {record.unreadable && <p className="fine">This record could not be read on this device; it is left as it is.</p>}
     {error && <p role="alert">{error}</p>}
   </div>;
@@ -47,7 +50,8 @@ export function AfExtrasSection() {
     <Row record={stories} title="Stories" count={opened} cleared="Which stories you opened is forgotten on this device." button="Forget opened stories">
       {plural(opened, 'story', 'stories')} opened. The stories themselves are drawn from your records each time. <Link className="text-link" href={STORIES_ROUTE}>Open your stories →</Link>
     </Row>
-    <p className="fine">All three stay on this device: never synced, in Export everything, erased with your account.</p>
+    {/* Session AL (DV-275): "erased with your account" read as if an account were needed; said plainly. */}
+    <p className="fine">All three stay on this device only: never synced, and included in Export everything. Erase everything on this device removes them too.</p>
   </div>;
 }
 export default AfExtrasSection;

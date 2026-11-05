@@ -9,6 +9,9 @@ import {motionAllowed} from '../../zigi/motion';
 import type {HabitsStore} from '../../habits/use-habits';
 import type {useChess} from '../use-chess';
 import {ChessBoard, MoveInput, MoveList} from './chess-board';
+import {puzzleLogSummary, readPuzzleLog, savePuzzleLog, withPuzzle, type PuzzleLog} from '../../../lib/chess/puzzle-log';
+import {localDate} from '../../../lib/local-date';
+import {formatDate} from '../../../lib/visual-format';
 
 /**
  * Session AK (ADR-036 Q8, lane C): Lichess's daily puzzle on the same board, loaded only on a tap (no key, no token, no
@@ -22,10 +25,20 @@ export function DailyPuzzle({state, habits}: {state: ReturnType<typeof useChess>
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null), [loading, setLoading] = useState(false), [error, setError] = useState('');
   const [progress, setProgress] = useState<PuzzleProgress>(startProgress), [hold, setHold] = useState(false), [said, setSaid] = useState<{text: string; tone?: 'good' | 'bad'} | null>(null), [ticked, setTicked] = useState('');
   const timer = useRef<number | undefined>(undefined), tickedFor = useRef<string | null>(null);
+  // Session AL (C-BN-22, GAP-152): the dated puzzle log, read once on this device.
+  const [log, setLog] = useState<PuzzleLog | null>(null);
+  useEffect(() => { setLog(readPuzzleLog(store())); }, []);
   useEffect(() => () => window.clearTimeout(timer.current), []);
   const {settings, showcase} = state;
   // Session AL (BN-183): the moves so far are kept for this puzzle, so a reload brings them back.
   useEffect(() => { if (puzzle) savePuzzleProgress(store(), puzzle, progress); }, [puzzle, progress]);
+  // A puzzle's first finish goes into the log with today's date: solved by the person, or with the answer shown. The
+  // Showcase writes nothing; playing it again later never changes the entry.
+  useEffect(() => {
+    if (!puzzle || !progress.solved || showcase || !log) return;
+    const next = withPuzzle(log, {day: localDate(), id: puzzle.id, rating: puzzle.rating, result: progress.revealed ? 'shown' : 'solved', mistakes: progress.mistakes});
+    if (next !== log) { savePuzzleLog(store(), next); setLog(next); }
+  }, [puzzle, progress.solved, progress.revealed, progress.mistakes, showcase, log]);
   useEffect(() => {
     if (!puzzle || !progress.solved || progress.revealed || showcase || tickedFor.current === puzzle.id) return;
     if (!settings.loaded || settings.error || !habits.loaded || habits.error) return;
@@ -57,6 +70,7 @@ export function DailyPuzzle({state, habits}: {state: ReturnType<typeof useChess>
     <p>Solve Lichess&apos;s puzzle of the day on this board. Solving it ticks off your chess habit, like a game.</p>
     <div className="chess-actions-row"><button type="button" className="secondary" disabled={loading} onClick={() => void load()}>{loading ? 'Loading…' : 'Load today’s puzzle'}</button></div>
     {error && <p role="alert" className="chess-play-message">{error}</p>}
+    <PuzzleDays log={log} />
   </section>;
 
   const shown = hold ? {...progress, played: progress.played.slice(0, -1)} : progress;
@@ -94,5 +108,21 @@ export function DailyPuzzle({state, habits}: {state: ReturnType<typeof useChess>
         <p className="fine">Puzzle by Lichess (CC0). Your moves are checked on this device; nothing is sent back.</p>
       </div>
     </div>
+    <PuzzleDays log={log} />
   </section>;
+}
+
+const days = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
+/** Session AL (C-BN-22, GAP-152): how the puzzle days went, from the dated log on this device. */
+function PuzzleDays({log}: {log: PuzzleLog | null}) {
+  if (!log) return null;
+  const today = localDate(), s = puzzleLogSummary(log, today);
+  return <div className="chess-puzzle-days" aria-labelledby="chess-puzzle-days-title">
+    <h4 id="chess-puzzle-days-title">Your puzzle days</h4>
+    {s.recent.length === 0 ? <p className="fine">None yet. Each daily puzzle you finish here is noted with its date, on this device only.</p> : <>
+      <p>Last 30 days: solved on {days(s.solved)}{s.shown ? `, finished with the answer shown on ${days(s.shown)}` : ''}.{s.run > 1 ? ` ${s.run} days in a row solved.` : ''}</p>
+      <ul className="chess-puzzle-days-list">{s.recent.map(e => <li key={e.id}>{formatDate(e.day)} · {e.result === 'shown' ? 'answer shown' : e.mistakes ? `solved after ${e.mistakes} wrong ${e.mistakes === 1 ? 'try' : 'tries'}` : 'solved at the first try'}{e.rating ? ` · rated ${e.rating}` : ''}</li>)}</ul>
+      <p className="fine">Kept on this device only, never synced.</p>
+    </>}
+  </div>;
 }

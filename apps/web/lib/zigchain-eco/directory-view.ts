@@ -20,3 +20,11 @@ export function viewDirectory<E extends {id: string; name: string}>(entries: rea
   if (sort === 'status') return kept.map((e, i) => [e, i] as const).sort((a, b) => rankOf(a[0].id) - rankOf(b[0].id) || a[1] - b[1]).map(([e]) => e);
   return kept;
 }
+/**
+ * Session AL third pass (Part 15, C-BN-15 / P-BN-80): "Only projects with an audit report listed" — the registry's own
+ * audit references (provider.audits). A listed report is a dated review of some code, never a safety rating; the page
+ * says so beside the box.
+ */
+export function withAuditReports<E extends {provider: {audits: readonly unknown[]}}>(entries: readonly E[], only: boolean): E[] {
+  return only ? entries.filter(e => e.provider.audits.length > 0) : [...entries];
+}

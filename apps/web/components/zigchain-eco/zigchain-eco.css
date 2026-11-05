@@ -37,3 +37,7 @@
 @media (max-width:599.98px){.zeco .zeco-art{width:72px}}
 @media (prefers-reduced-motion:reduce){.zeco-card{transition:none}}
 :root[data-app-motion=off] .zeco-card{transition:none}
+/* Session AL (C-BN-16, GAP-146): "Used by you" on a card, as the status line reads; its Wealth link is a 44 px target. */
+.ecosystem-project .ecosystem-used{grid-column:1}
+.ecosystem-used{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0}
+.ecosystem-used .text-link{display:inline-flex;align-items:center;min-height:44px}

@@ -20,3 +20,10 @@ test('C-BN-17: name sort is A to Z ignoring case; status sort puts live first an
   expect(['live', 'tool']).toContain(directoryStatusOf(byStatus[0]!.id)?.kind);
   expect(viewDirectory(directoryEntries, 'any', 'directory')).toEqual(directoryEntries);
 });
+test('C-BN-15: "audit report listed" keeps exactly the projects whose record lists one, in the same order', async () => {
+  const {withAuditReports} = await import('./directory-view');
+  const kept = withAuditReports(directoryEntries, true);
+  expect(kept.map(e => e.id)).toEqual(directoryEntries.filter(e => e.provider.audits.length > 0).map(e => e.id));
+  expect(kept.map(e => e.id)).toEqual(expect.arrayContaining(['valdora', 'oroswap', 'nawa', 'permapod']));
+  expect(withAuditReports(directoryEntries, false)).toEqual(directoryEntries);
+});
