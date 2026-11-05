@@ -328,7 +328,9 @@ test.describe('Part 3: liquid glass',()=>{
  test('keyboard focus gives the same lift with the focus ring',async({page,isMobile})=>{
   test.skip(isMobile,'Keyboard check on desktop');
   await showcase(page);await page.goto('/app/goals');
-  const link=page.locator('.goal-grid .unified-goal-card').first().getByRole('link',{name:'Open Goal →'});
+  // Session AL (D-029, deliberate; components/goal-card.tsx): the card's one tab stop is its title link ("Open Goal →"
+  // is the same place and left the tab order). Keyboard focus on that stop gives the lift and the ring, as before.
+  const link=page.locator('.goal-grid .unified-goal-card').first().locator('h2 a');
   await link.focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');
   await expect(link).toBeFocused();
   const card=page.locator('.goal-grid .unified-goal-card').first();

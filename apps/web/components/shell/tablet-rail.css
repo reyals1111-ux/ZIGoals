@@ -30,6 +30,9 @@
   :root .app-sidebar .app-nav a[data-group-start]:not(:first-child):not(#\-) { margin-top: 10px; }
   /* Settings and Help at the rail's foot (when the rail is taller than its links). */
   :root .app-sidebar .app-nav a[href="/app/settings"]:not(#\-) { margin-top: auto; }
+  /* CI fix (page-marks): when the links fill the rail (the Showcase's Journey makes twenty) the auto margin is 0, so the
+     link before Settings keeps a group's gap below it: Settings and Help stay apart from the rest. */
+  :root .app-sidebar .app-nav a:has(+ a[href="/app/settings"]):not(#\-) { margin-bottom: 10px; }
   :root .app-sidebar :is(.product-descriptor, .sidebar-search, .sidebar-destination, .theme-switch-slot, .sidebar-star):not(#\-) { display: none; }
   :root .app-content:not(#\-) { margin-left: var(--rail-w); }
   :root .phone-tabbar:not(#\-) { display: none; }

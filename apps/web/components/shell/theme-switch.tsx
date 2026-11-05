@@ -67,7 +67,9 @@ export function ThemeSwitch({compact}: {compact?: boolean}) {
     <div className={`theme-switch${compact ? ' theme-switch-compact' : ''}`} role="radiogroup" aria-label="Theme">
       {OPTIONS.map(o => <button key={o.theme} type="button" role="radio" aria-checked={theme === o.theme} className="theme-option" data-theme-option={o.theme} aria-label={o.label} title={o.tip} onClick={() => choose(o.theme)} onPointerEnter={() => warmSheet(o.theme)} onFocus={() => warmSheet(o.theme)}><o.icon/><span>{o.word}</span></button>)}
     </div>
-    {compact && <p className="theme-switch-note" aria-live="polite">{THEME_NOTE[theme]}</p>}
+    {/* CI fix (theme parity H75, with TK-183's line per theme): the three lines differ in length, so the other two sit
+        hidden in the same grid cell and the slot is always as tall as the longest: switching never moves the page. */}
+    {compact && <div className="theme-switch-note-slot"><p className="theme-switch-note" aria-live="polite">{THEME_NOTE[theme]}</p>{OPTIONS.filter(o => o.theme !== theme).map(o => <p key={o.theme} className="theme-switch-note theme-switch-note-ghost" aria-hidden="true">{THEME_NOTE[o.theme]}</p>)}</div>}
     {/* Session AF (L5a, Part 10.1): the sidebar's bar also drives the sidebar sky's parallax (renders nothing). */}
     {!compact && <SidebarSky/>}
   </div>;

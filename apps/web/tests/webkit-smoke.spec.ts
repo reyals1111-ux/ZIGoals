@@ -65,8 +65,9 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
   for (const path of PAGES) {
     await page.goto(path);
     await expect(page.locator('main'), path).toBeVisible();
-    // Settings is a sensitive screen (account, sync, recovery): the launcher stays away there by the app's own rule.
-    if (path === '/app/settings') { await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toHaveCount(0); await settled(page); await readLoops(); continue; }
+    // Session AL (owner reading Q6, ADR-037, deliberate; components/ai/use-sensitive-screen.ts): ZIGi opens on Settings too;
+    // only an open private step or a focused secret field there is sensitive. So Settings is checked like every other page
+    // (the launcher and its poster on a computer). Was: no launcher on Settings at all.
     // Session AL (owner decision O3, deliberate): below 901 px (the phone project) ZIGi has no floating button; "Apps & extras"
     // is there instead, and its sheet shows ZIGi's still (the reduced-motion test below). Was: the launcher and its poster on
     // every page at every width. On a computer, as before.

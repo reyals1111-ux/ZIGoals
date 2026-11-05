@@ -80,6 +80,14 @@ button:disabled {
   color: #000;
   z-index: 100;
 }
+/* CI fix (touch targets, 44 px): a skip link is a target too once it shows (Health's "Skip to Health views" sits in the
+   page, 25 px tall); it stays out of sight above the page until focused. */
+.skip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+}
 .skip:focus {
   top: 10px;
 }

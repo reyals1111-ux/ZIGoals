@@ -59,7 +59,9 @@ for(const width of [320,360,390,430])
     name:h3.textContent,
     nameBesideIcon:icon.right<=name.left&&Math.abs((icon.top+icon.bottom)/2-(name.top+name.bottom)/2)<=12,
     controlsOnNameRow:minus.top<name.bottom&&name.top<minus.bottom&&Math.abs(minus.top-plus.top)<1&&name.right<=minus.left+1,
-    nameOneLine:name.height<30&&name.width>=40,
+    // Session AL (P-MO-28 / N-MO-07, deliberate; components/health/exercise-counters.css): at a phone's width (≤ 480 px)
+    // a long name takes two lines rather than "Push-…"; never a third, and never squeezed below 40 px.
+    nameTwoLinesAtMost:name.height<=2*parseFloat(getComputedStyle(h3).lineHeight)+1&&name.width>=40,
     countWhole:out.scrollWidth<=out.clientWidth+1&&count.right<=plus.left+1&&count.left>=minus.right-1,
     targets:[minus,plus].every(t=>t.width>=43.99&&t.height>=43.99),
     inside:[icon,name,minus,count,plus].every(t=>t.left>=b.left-.5&&t.right<=b.right+.5&&t.top>=b.top-.5&&t.bottom<=b.bottom+.5),
@@ -67,7 +69,7 @@ for(const width of [320,360,390,430])
   }));
   const menu=(await page.locator('.exercise-counters-tools .card-options-trigger').boundingBox())!;expect(menu.width).toBeGreaterThanOrEqual(43.99);expect(menu.height).toBeGreaterThanOrEqual(43.99);
   expect(bars).toHaveLength(6);
-  for(const bar of bars)expect(bar,`${width}px ${bar.name}`).toMatchObject({nameBesideIcon:true,controlsOnNameRow:true,nameOneLine:true,countWhole:true,targets:true,inside:true});
+  for(const bar of bars)expect(bar,`${width}px ${bar.name}`).toMatchObject({nameBesideIcon:true,controlsOnNameRow:true,nameTwoLinesAtMost:true,countWhole:true,targets:true,inside:true});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
   await page.locator('.exercise-counters').screenshot({path:info.outputPath(`counters-${width}.png`)});
  });

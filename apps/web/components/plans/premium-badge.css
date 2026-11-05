@@ -9,3 +9,5 @@
 .plan-settings-row p { margin: 0; color: var(--muted); font-size: 15px; }
 .plan-settings-row .text-link { display: inline-flex; align-items: center; min-height: 44px; }
 @media (forced-colors: active) { .premium-badge { border-color: LinkText; } }
+/* CI fix (touch targets): with a touch screen the badge itself is 44 px tall, not only its widened hit area. */
+@media (pointer: coarse) { .premium-badge { min-height: 44px; } }

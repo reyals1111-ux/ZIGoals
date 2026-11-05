@@ -158,10 +158,11 @@
 :root .calc-figures .calc-final dd { font-size: clamp(22px, min(calc(2.4vw + 18px), calc((100cqi - 8px) / (var(--chars, 12) * .62))), 46px); }
 
 /* Session AL (TK-057, TK-111): by day the milestone pill, its line and the balance line keep strong ink (≥ 4.5:1 for the
-   pill's words, ≥ 3:1 for the lines) instead of night colours on a pale card. */
-:root[data-theme=light] .calc-milestone rect { fill: #fff3d1; stroke: #9a6100; }
+   pill's words, ≥ 3:1 for the lines) instead of night colours on a pale card. CI fix (theme parity, H130/day-ink): the
+   amber is Nebula's own hue made deeper (#9a6d00, 80° against Nebula's 85°; #9a6100 turned 15°), 4.6:1 on white. */
+:root[data-theme=light] .calc-milestone rect { fill: #fff3d1; stroke: #9a6d00; }
 :root[data-theme=light] .calc-milestone text { fill: #5a3800; }
-:root[data-theme=light] .calc-milestone-line { stroke: #9a6100; }
+:root[data-theme=light] .calc-milestone-line { stroke: #9a6d00; }
 :root[data-theme=light] .calc-balance { stroke: #1f3b73; }
 :root[data-theme=light] .calc-cursor line { stroke: #1f3b73aa; }
 /* Session AL (TK-036): while a field is wrong the results card keeps its place and size (TR14: no figure is shown), so the page doesn't jump. */

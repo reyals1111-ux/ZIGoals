@@ -194,7 +194,9 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  const rail=await page.locator('.app-nav a').evaluateAll(links=>links.map(a=>{const r=a.getBoundingClientRect();return {name:a.textContent!.trim(),x:Math.round(r.x),y:Math.round(r.y),w:r.width,h:r.height,bottom:Math.round(r.bottom)};}));
  // Session AK: NOVA; Session AK G2 (RELEASE_REVIEW_2 R2-10, deliberate): the rail also lists the 'compact' Tasks, Notes and
  // Journal, nineteen in all, which still fit a 1180 px rail with Settings and Help apart at its foot.
- expect(rail.map(l=>l.name)).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','NOVA','Checklist','Tasks','Notes','Journal','Settings','Help']);
+ // Session AL (L3 registrar fix + O4, deliberate; components/game/registrar.tsx, tests/grok53/journey/al-third-journey.spec.ts):
+ // the Showcase's Journey registers as a compact entry, so the rail lists it after the Journal (as More does), twenty in all.
+ expect(rail.map(l=>l.name)).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','NOVA','Checklist','Tasks','Notes','Journal','Journey','Settings','Help']);
  expect(new Set(rail.map(l=>l.x)).size).toBe(1);
  for(let i=1;i<rail.length;i++)expect(rail[i]!.y).toBeGreaterThan(rail[i-1]!.y);
  for(const l of rail){expect(l.h).toBeGreaterThanOrEqual(44);expect(l.w).toBeGreaterThanOrEqual(44);}

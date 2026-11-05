@@ -70,6 +70,9 @@
   /* Session AE (Part 1): with the balance gone (it filled the row's middle), Gamify and the lock still hug the right edge;
      the wallet buttons are hidden here but present, so the computer's "no auto margin after the wallet" rule is undone. */
   .status-row:has(.status-wallet):not(:has(.page-tools-slot:not(:empty))) > .gamify { margin-left: auto; }
+  /* CI fix (ui-design-pass Part 18.4): Session AL hides Gamify on phones (gamify-button.tsx, AL-LAYOUT-375-011), so the
+     lock is the one that hugs the right edge there, as Gamify did. */
+  .status-row:has(.status-wallet):not(:has(.gamify)):not(:has(.page-tools-slot:not(:empty))) > .layout-lock-slot { margin-left: auto; }
   .status-row .showcase-chip, .status-row .gamify, .status-row .layout-lock-slot { flex: none; }
   .status-row .showcase-chip-button { padding: 0 9px 0 8px; font-size: 12px; }
 }
