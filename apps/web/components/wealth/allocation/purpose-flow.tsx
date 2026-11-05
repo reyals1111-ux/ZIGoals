@@ -7,6 +7,7 @@ import './allocation.css';
 import '../../charts/chart-look.css';
 import {ArtNote} from '../../illustrations/art-note';
 import {centsText, moneyWhole} from '../money-tools/format';
+import {formatPercent} from '../../../lib/visual-format';
 
 /**
  * Session AK (7.5): what each asset is for — a hand-drawn Sankey-style flow from assets (left) to the Goals they are
@@ -16,7 +17,8 @@ import {centsText, moneyWhole} from '../money-tools/format';
 type Row = {position: {id: string; asset: string; providerId: string; quantity: string}; wealthClass: string; currency?: string; value?: bigint};
 export type PurposeFlowProps = {rows: readonly Row[]; goals: readonly {id: string; name: string; status: string}[]; allocations: readonly {goalId: string; positionId: string; quantity: string}[]};
 const money = (cents: bigint, currency: string) => moneyWhole(centsText(cents), currency); // Session AL (PRIMITIVES 3f)
-const share = (part: bigint, total: bigint) => total > 0n ? `${(Number(part * 1000n / total) / 10).toFixed(1)} %` : '—';
+// Session AL sweep 4 (L8f note 2): one decimal, rounded down, written as NOVA writes it ("12.7%", never "12.7 %").
+const share = (part: bigint, total: bigint) => total > 0n ? formatPercent(Number(part * 1000n / total) / 10, {decimals: 1, fixed: true}) : '—';
 const short = (text: string, n = 22) => text.length > n ? `${text.slice(0, n - 1)}…` : text;
 /** Session AK (G3, R30): drawn at its measured width (charts/use-chart-width.ts), so the names and amounts are a true 14 px
  * on every screen instead of a 760-wide drawing scaled down to 11 px. The label columns take about a quarter each. */

@@ -6,7 +6,7 @@
 .earn-page .earn-hero { margin-bottom: 8px; }
 .earn-hero-note { max-width: 680px; margin: 0 0 18px; color: var(--text-meta); }
 .earn-sections { display: grid; gap: 24px; }
-.earn-sections > .panel { margin: 0; }
+.earn-sections > .panel, .earn-sections > .phone-fold > .phone-fold-body > .panel { margin: 0; }
 
 /* The chip index */
 .earn-chips { position: sticky; top: var(--earn-chip-top); z-index: 20; margin: 0 -12px 20px; padding: 10px 12px; border-radius: 0 0 18px 18px; background: linear-gradient(180deg, #060b19f7, #0a1224ef); -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); }
@@ -33,7 +33,7 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 /* Earn's other sections (Start here, the validators, the Academy, the calculator, safety, the summary) are the options'
    peers: their titles take the same size, over the app's smaller in-panel heading (`:root .panel :is(.aa-section-heading,
    …) h2`, 19–22 px). */
-:root .earn-page .earn-sections > .panel > .aa-section-heading h2 { font-size: clamp(24px, 2.2vw + 10px, 32px); line-height: 1.15; }
+:root .earn-page .earn-sections > .panel > .aa-section-heading h2, :root .earn-page .earn-sections > .phone-fold > .phone-fold-body > .panel > .aa-section-heading h2 { font-size: clamp(24px, 2.2vw + 10px, 32px); line-height: 1.15; }
 :root .earn-page .earn-option-title > .eyebrow { text-wrap: balance; }
 .earn-option-lede { margin: 0 0 12px; color: var(--text-secondary); font-size: 17px; line-height: 1.5; max-width: 720px; }
 .earn-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -166,7 +166,7 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
   .earn-chips-rail::-webkit-scrollbar { display: none; }
   .earn-chip { scroll-snap-align: center; }
   html:has(.earn-chips) { scroll-padding-top: calc(var(--phone-bar, 52px) + var(--safe-top, 0px) + 72px); }
-  .earn-sections > .panel { padding: 20px 16px; }
+  .earn-sections > .panel, .earn-sections > .phone-fold > .phone-fold-body > .panel { padding: 20px 16px; } /* Session AL sweep 4: a folded section's too */
   .earn-option-head { grid-template-columns: minmax(0, 1fr); }
   .earn-medallion { width: 56px; height: 56px; }
   .earn-option-actions > * { flex: 1 1 100%; }

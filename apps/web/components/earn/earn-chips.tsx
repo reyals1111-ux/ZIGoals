@@ -38,7 +38,8 @@ export function EarnChips({chips}: {chips: readonly Chip[]}) {
       // The line sits under the index, and never above where a jump lands a section (the page's scroll padding), so a
       // section reached from its chip is the one marked, whatever the index's height (one row, or two with a mouse).
       const index = rail.current?.parentElement?.getBoundingClientRect().bottom ?? 0, padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0, line = Math.max(index + 48, padding + 64);
-      const sections = chips.map(c => document.getElementById(c.id)).filter((el): el is HTMLElement => !!el);
+      // Session AL sweep 4 (N-BN-05): a section folded on a phone has no box (its top would read 0), so it is skipped.
+      const sections = chips.map(c => document.getElementById(c.id)).filter((el): el is HTMLElement => !!el && el.getClientRects().length > 0);
       if (!sections.length) return;
       const end = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
       const passed = end ? sections.at(-1)! : [...sections].reverse().find(el => el.getBoundingClientRect().top <= line) ?? sections[0]!;

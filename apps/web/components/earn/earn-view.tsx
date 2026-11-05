@@ -29,6 +29,7 @@ import {VaultsSection} from './vaults-section';
 import {GoalVaultsSection, GovernanceSection, StablecoinsSection} from './wider-sections';
 import {SourceLine, Unavailable} from './live-figure';
 import {SectionBoundary} from './section-boundary';
+import {PhoneFold} from '../phone/phone-fold';
 import './earn.css';
 
 // Session AK (F4): staking clarity (claimable rewards, the unbonding calendar, rewards claimed here, the CSV) loads only
@@ -90,13 +91,16 @@ export function EarnView() {
         <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><Valdora valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary>
         <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><Vaults vaults={vaults} valdora={valdora} now={now} shares={shares}/></SectionBoundary>
         <SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><Oroswap oroswap={oroswap} llama={llama} now={now} shares={shares}/></SectionBoundary>
-        <SectionBoundary id="nawa" title="Shariah-compliant vaults: Nawa"><Nawa vaults={vaults} llama={llama} now={now}/></SectionBoundary>
-        <SectionBoundary id="defa" title="Invoice finance pools: DeFa"><Defa vaults={vaults} llama={llama} now={now}/></SectionBoundary>
-        <SectionBoundary id="permapod" title="Borrow and lend: Permapod"><Permapod llama={llama} now={now}/></SectionBoundary>
-        <SectionBoundary id="zignaly" title="Zignaly is closing: how to withdraw"><Zignaly now={now}/></SectionBoundary>
-        <SectionBoundary id="governance" title="Have a say: governance"><Governance/></SectionBoundary>
-        <SectionBoundary id="goal-vaults" title="Link stake you already hold to a goal"><GoalVaults now={now}/></SectionBoundary>
-        <SectionBoundary id="stablecoins" title="Stablecoins on ZIGChain: what exists"><Stablecoins oroswap={oroswap} vaults={vaults} now={now}/></SectionBoundary>
+        {/* Session AL sweep 4 (N-BN-05, D-005): on a phone the wider ways to earn fold to one row each (components/phone/
+            phone-fold.tsx), so the page is shorter to scan; the index's links and any #hash open the one they point to.
+            Wider screens show them as before. */}
+        <PhoneFold label="Shariah-compliant vaults: Nawa"><SectionBoundary id="nawa" title="Shariah-compliant vaults: Nawa"><Nawa vaults={vaults} llama={llama} now={now}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Invoice finance pools: DeFa"><SectionBoundary id="defa" title="Invoice finance pools: DeFa"><Defa vaults={vaults} llama={llama} now={now}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Borrow and lend: Permapod"><SectionBoundary id="permapod" title="Borrow and lend: Permapod"><Permapod llama={llama} now={now}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Zignaly is closing: how to withdraw"><SectionBoundary id="zignaly" title="Zignaly is closing: how to withdraw"><Zignaly now={now}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Have a say: governance"><SectionBoundary id="governance" title="Have a say: governance"><Governance/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Link stake you already hold to a goal"><SectionBoundary id="goal-vaults" title="Link stake you already hold to a goal"><GoalVaults now={now}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Stablecoins on ZIGChain: what exists"><SectionBoundary id="stablecoins" title="Stablecoins on ZIGChain: what exists"><Stablecoins oroswap={oroswap} vaults={vaults} now={now}/></SectionBoundary></PhoneFold>
         <SectionBoundary id="validators" title="Choose a validator from facts"><Validators validators={validators} now={now}/></SectionBoundary>
         <SectionBoundary id="academy" title="Earn Academy"><Academy/></SectionBoundary>
         <section id="calculator" className="earn-calculator panel" aria-labelledby="calculator-title">

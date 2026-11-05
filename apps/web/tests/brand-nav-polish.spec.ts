@@ -24,9 +24,10 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   await expect(page.locator('.app-sidebar')).toBeHidden();
   const bar=(await page.locator('.phone-topbar').boundingBox())!;expect(mark.x).toBeLessThanOrEqual(24);expect(mark.y+mark.height).toBeLessThanOrEqual(bar.y+bar.height);
   await expect(page.locator('.sidebar-signature')).toBeHidden();await expect(page.locator('.phone-topbar .quick-add-trigger')).toBeVisible();
-  const sheet=await openMore(page),descriptor=sheet.locator('.phone-more-descriptor'),word=sheet.locator('.brand-wordmark');
-  await expect(descriptor).toHaveText('Your Financial Orbit');await expect(word).toBeVisible();
-  expect((await descriptor.boundingBox())!.y+(await descriptor.boundingBox())!.height).toBeLessThanOrEqual((await word.boundingBox())!.y+1);
+  // Session AL (COPY_AUDIT, deliberate): DV-256 — the decorative "Your Financial Orbit" banner at the sheet's foot is gone;
+  // the wordmark still signs the sheet off, readable (tests/grok53/shell/sweep2-shell.spec.ts).
+  const sheet=await openMore(page),word=sheet.locator('.brand-wordmark');
+  await expect(sheet.locator('.phone-more-descriptor')).toHaveCount(0);await expect(sheet).not.toContainText(/Your Financial Orbit/i);await expect(word).toBeVisible();
   // Session I: the "Shape & Fold / Your Own Future" tagline is gone everywhere (the Today swan mark carries those words).
   await expect(sheet.locator('.phone-more-tagline')).toHaveCount(0);await expect(sheet).not.toContainText(/Shape & Fold|Your Own Future/i);
   await page.keyboard.press('Escape');

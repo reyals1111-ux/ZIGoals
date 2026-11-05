@@ -225,11 +225,12 @@ export function formatProgressPercent(value:number|string|null|undefined,complet
 /**
  * Any other percentage (a share of a total, a change): half up to `decimals` (0 by default), the locale's percent sign,
  * "+" before a gain when `signed`; −0 reads 0. `value` is in percent (12.5 means 12.5 %). Unknown is "—".
+ * Session AL sweep 4 (L8f note 2): `fixed` keeps every decimal ("25.0%"), for a figure shown beside one that has them.
  */
-export function formatPercent(value:number|null|undefined,{decimals=0,signed=false}:{decimals?:number;signed?:boolean}={}){
+export function formatPercent(value:number|null|undefined,{decimals=0,signed=false,fixed=false}:{decimals?:number;signed?:boolean;fixed?:boolean}={}){
  if(value===null||value===undefined||!Number.isFinite(value))return '—';
  const rounded=roundHalfUp(value,decimals);
- return numberFormat(active,{style:'percent',minimumFractionDigits:0,maximumFractionDigits:decimals,...(signed?{signDisplay:'exceptZero' as const}:{})}).format(rounded/100);
+ return numberFormat(active,{style:'percent',minimumFractionDigits:fixed?decimals:0,maximumFractionDigits:decimals,...(signed?{signDisplay:'exceptZero' as const}:{})}).format(rounded/100);
 }
 /** A measure or count half up to at most `decimals` (1 by default), grouped: the same rounding as every other figure. */
 export function formatRounded(value:number|null|undefined,decimals=1){

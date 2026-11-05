@@ -1,5 +1,5 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
-import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {earnRoutes, openEarnFolds, seedShowcase} from './earn-fixtures';
 import {seedChecklist, settled} from './checklist-fixtures';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist} from '../lib/checklist/schema';
@@ -25,6 +25,8 @@ async function openEarn(page: Page) {
   await page.goto('/app/earn');
   await expect(page.locator('[data-live-figure="native-apr"]')).toHaveAttribute('data-state', 'ok');
   await expect.poll(() => page.locator('[data-live-figure][data-state="loading"]').count()).toBe(0);
+  // Session AL (D-088, deliberate): on a phone the wider sections are folded rows; they are opened first, as a person would.
+  await openEarnFolds(page);
 }
 
 test.describe('Earn', () => {

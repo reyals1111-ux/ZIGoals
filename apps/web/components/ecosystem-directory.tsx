@@ -16,7 +16,11 @@ import {newestDay} from '../lib/earn/dated';
 // Session AL (BN-027): the header's date is the newest source read, not the registry's first review day.
 const SOURCES_READ=newestDay([directoryReviewedAt.slice(0,10),...DIRECTORY_SOURCES_READ]);
 import './zigchain-eco/zigchain-eco.css';
-import {SORTS,STATUS_FILTERS,viewDirectory,withAuditReports,type DirectorySort,type StatusFilter} from '../lib/zigchain-eco/directory-view';
+import {SORTS,STATUS_FILTERS,VALUE_SORT,sourcesReadDay,viewDirectory,withAuditReports,type DirectorySort,type StatusFilter,type ValueSort} from '../lib/zigchain-eco/directory-view';
+import {ECOSYSTEM_LIVE} from './ecosystem-live';
+import {localDate} from '../lib/local-date';
+// Session AL sweep 4 (C-BN-17): the value-locked sort sits after the plain sorts.
+const SORT_OPTIONS=[...SORTS,VALUE_SORT] as const;
 export function EcosystemDirectory(){
  // Session AH (CO7): Earn's DefiLlama read, once for the page (every 10 minutes while it is visible), for the cards Earn covers.
  const llama=useEarnLive('defillama');
@@ -24,10 +28,14 @@ export function EcosystemDirectory(){
  const platform=usePlatform(),positions=platform.loaded?platform.data.positions:[];
  const [query,setQuery]=useState(''),[category,setCategory]=useState('All');
  // Session AL (Part 15, P-BN-82/P-BN-83): a status filter and a sort beside the search and the category.
- const [status,setStatus]=useState<StatusFilter>('any'),[sort,setSort]=useState<DirectorySort>('directory');
+ const [status,setStatus]=useState<StatusFilter>('any'),[sort,setSort]=useState<DirectorySort|ValueSort>('directory');
  // Session AL (C-BN-15): an optional box for projects whose record lists an audit report (a dated review, not a rating).
  const [audited,setAudited]=useState(false);
- const visible=viewDirectory(withAuditReports(filterDirectory(directoryEntries,query,category),audited),status,sort);
+ // Session AL sweep 4 (C-BN-17): a project's value locked from the page's one DefiLlama read, null when unknown.
+ const valueLocked=(id:string)=>{const l=ECOSYSTEM_LIVE[id];const p=l&&llama.phase==='ok'?llama.answer.data.protocols[l.slug]:undefined;return p?.status==='ok'?p.tvlUsd:null;};
+ const visible=viewDirectory(withAuditReports(filterDirectory(directoryEntries,query,category),audited),status,sort,valueLocked);
+ // Session AL sweep 4 (BN-027, B-122): the header's day is the newest read on the page, the live read included.
+ const readDay=sourcesReadDay(SOURCES_READ,llama.phase==='ok'?llama.answer.fetchedAt:null,iso=>localDate(new Date(iso)));
  // Open cards (Session I, Part 6): any number at once. A #project-<id> link opens its card and brings it into view.
  const [open,setOpen]=useState<ReadonlySet<string>>(()=>new Set());
  function toggle(id:string){setOpen(current=>{const next=new Set(current);if(!next.delete(id))next.add(id);return next;});}
@@ -37,9 +45,9 @@ export function EcosystemDirectory(){
  },[]);
  function clear(){setQuery('');setCategory('All');setAudited(false);}
  return <section className="ecosystem-directory" aria-labelledby="ecosystem-directory-title">
-  <div className="ecosystem-intro header-art-host"><p className="eyebrow page-eyebrow"><NebulaFlow identity="ecosystem-eyebrow">ZIG Chain ecosystem</NebulaFlow></p><h1 id="ecosystem-directory-title"><NebulaFlow identity="ecosystem-title">Explore the ZIGChain ecosystem.</NebulaFlow></h1><p className="page-lede">Discover projects, understand their role, and follow official sources. Your plan stays yours.</p><div className="ecosystem-review"><span>{directoryEntries.length} research records</span><span>Sources last read <time dateTime={SOURCES_READ}>{formatDate(SOURCES_READ)}</time></span><span>No external execution in ZIGoals</span></div><HeaderArtCorner><OrbitArt glyph={EcosystemGlyph} spin={4}/></HeaderArtCorner></div>
+  <div className="ecosystem-intro header-art-host"><p className="eyebrow page-eyebrow"><NebulaFlow identity="ecosystem-eyebrow">ZIG Chain ecosystem</NebulaFlow></p><h1 id="ecosystem-directory-title"><NebulaFlow identity="ecosystem-title">Explore the ZIGChain ecosystem.</NebulaFlow></h1><p className="page-lede">Discover projects, understand their role, and follow official sources. Your plan stays yours.</p><div className="ecosystem-review"><span>{directoryEntries.length} research records</span><span>Sources last read <time dateTime={readDay}>{formatDate(readDay)}</time></span><span>No external execution in ZIGoals</span></div><HeaderArtCorner><OrbitArt glyph={EcosystemGlyph} spin={4}/></HeaderArtCorner></div>
   <p className="ecosystem-context">An ecosystem listing is not a ZIGoals partnership, endorsement or security audit. Descriptions summarize project or network sources. External sites set their own network, access rules and terms.</p>
-  <div className="ecosystem-controls"><label>Search projects<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Name, role or topic"/></label><label>Category<select value={category} onChange={e=>setCategory(e.target.value)}>{directoryCategories.map(c=><option key={c}>{c}</option>)}</select></label><label>Status<select value={status} onChange={e=>setStatus(e.target.value as StatusFilter)}>{STATUS_FILTERS.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label><label>Sort<select value={sort} onChange={e=>setSort(e.target.value as DirectorySort)}>{SORTS.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label><button type="button" className="quiet" onClick={()=>{clear();setStatus('any');}} disabled={!query&&category==='All'&&status==='any'&&!audited}>Clear filters</button><label className="ecosystem-audited"><input type="checkbox" checked={audited} onChange={e=>setAudited(e.target.checked)}/><span>Only projects with an audit report listed<small>A report is a dated review of some of a project&rsquo;s code, not a safety rating: an audited project can still fail.</small></span></label></div>
+  <div className="ecosystem-controls"><label>Search projects<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Name, role or topic"/></label><label>Category<select value={category} onChange={e=>setCategory(e.target.value)}>{directoryCategories.map(c=><option key={c}>{c}</option>)}</select></label><label>Status<select value={status} onChange={e=>setStatus(e.target.value as StatusFilter)}>{STATUS_FILTERS.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label><label>Sort<select value={sort} onChange={e=>setSort(e.target.value as DirectorySort|ValueSort)}>{SORT_OPTIONS.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label><button type="button" className="quiet" onClick={()=>{clear();setStatus('any');}} disabled={!query&&category==='All'&&status==='any'&&!audited}>Clear filters</button><label className="ecosystem-audited"><input type="checkbox" checked={audited} onChange={e=>setAudited(e.target.checked)}/><span>Only projects with an audit report listed<small>A report is a dated review of some of a project&rsquo;s code, not a safety rating: an audited project can still fail.</small></span></label></div>
   <p className="ecosystem-result" role="status">{visible.length} of {directoryEntries.length} projects{category!=='All'?` · ${category}`:''}{status!=='any'?` · ${STATUS_FILTERS.find(([id])=>id===status)![1]}`:''}{audited?' · with an audit report listed':''}</p>
   {!visible.length?<div className="panel ecosystem-no-results"><h2>No projects match these filters.</h2><p>Try another name, topic or category.</p></div>:<div className="ecosystem-projects">{visible.map(entry=><EcosystemCard key={entry.id} llama={llama} used={usedByMe(entry.id,positions)} entry={entry} open={open.has(entry.id)} onToggle={()=>toggle(entry.id)}/>)}</div>}
   {/* Session AK (F4): what is announced for ZIGChain but not live yet, said plainly. */}

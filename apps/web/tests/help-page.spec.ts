@@ -232,9 +232,14 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
 test('at phone width the top bar names Help and steps back to Settings', async ({page}) => {
   // Any window narrower than 768 px gets the phone layout, so both projects run this.
   await page.setViewportSize({width: 390, height: 844});
+  // Session AL (D-159, deliberate): the bar steps back to Settings only when Settings' Help link opened Help; opened
+  // directly it offers no way back to a page the person never came from (components/help/help-back.tsx).
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.locator('.phone-title')).toHaveText('Help');
-  const back = page.getByRole('link', {name: 'Back to Settings', exact: true});
+  await expect(page.locator('.phone-topbar').getByRole('link', {name: 'Back to Settings', exact: true})).toHaveCount(0);
+  await page.goto('/app/settings');await page.getByRole('link', {name: 'Help & feedback →', exact: true}).click();
+  await expect(page).toHaveURL(/\/app\/help$/);await expect(page.locator('.phone-title')).toHaveText('Help');
+  const back = page.locator('.phone-topbar').getByRole('link', {name: 'Back to Settings', exact: true});
   await expect(back).toBeVisible();
   await back.click();
   await expect(page).toHaveURL(/\/app\/settings$/);

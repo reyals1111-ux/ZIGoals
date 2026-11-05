@@ -73,7 +73,7 @@ describe('the preferences', () => {
 });
 
 type Shown = {title: string; options: {body: string; actions?: unknown[]; data?: {url: string; items: unknown[]}}};
-function swSandbox({snapshot, failDb = false, fetchImpl, idb, cachesImpl}: {snapshot?: unknown; failDb?: boolean; fetchImpl?: (url: string, init?: unknown) => Promise<unknown>; idb?: unknown; cachesImpl?: unknown} = {}) {
+function swSandbox({snapshot, failDb = false, fetchImpl, idb, cachesImpl, timer = setTimeout}: {snapshot?: unknown; failDb?: boolean; fetchImpl?: (url: string, init?: unknown) => Promise<unknown>; idb?: unknown; cachesImpl?: unknown; timer?: typeof setTimeout} = {}) {
   const handlers: Record<string, (e: unknown) => void> = {}, shown: Shown[] = [], posted: unknown[] = [];
   const store = new Map<string, unknown>([['snapshot', snapshot]]);
   const fakeIdb = {
@@ -98,7 +98,7 @@ function swSandbox({snapshot, failDb = false, fetchImpl, idb, cachesImpl}: {snap
     registration: {active: null, showNotification: async (title: string, options: Shown['options']) => { shown.push({title, options}); }},
     crypto: {randomUUID: () => 'x'},
   };
-  const context = vm.createContext({self, indexedDB: idb ?? fakeIdb, caches: cachesImpl ?? {keys: async () => [], open: async () => ({}), delete: async () => true}, fetch: fetchImpl ?? (async () => { throw Error('offline'); }), Request, Response, URL, Date, Promise, setTimeout, clearTimeout, Math, JSON, Number, String, Array, Set, Map, Object, Error, BigInt});
+  const context = vm.createContext({self, indexedDB: idb ?? fakeIdb, caches: cachesImpl ?? {keys: async () => [], open: async () => ({}), delete: async () => true}, fetch: fetchImpl ?? (async () => { throw Error('offline'); }), Request, Response, URL, Date, Promise, setTimeout: timer, clearTimeout, Math, JSON, Number, String, Array, Set, Map, Object, Error, BigInt});
   vm.runInContext(readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8'), context);
   const push = async () => { const waits: Promise<unknown>[] = []; handlers.push!({data: null, waitUntil: (p: Promise<unknown>) => waits.push(p)}); await Promise.all(waits); };
   return {handlers, shown, posted, push, compose: (self as unknown as {zigoalsCompose: (s: unknown, now: number) => {body: string; actions: {action: string}[]; data: {url: string}}}).zigoalsCompose, appPath: (self as unknown as {zigoalsAppPath: (h: unknown) => string | null}).zigoalsAppPath};
@@ -305,4 +305,32 @@ test('vote reminders: a one-off at the morning of their day, never at the propos
   // Due today after the morning: it wakes now (rounded up to the minute), never at the proposal's minute.
   const late = buildPlan(base({now: at(day, '15:00') + 20_000, votes: [{id: 'governance:zig-test-2:9', at: at(day, '15:10')}]}));
   expect(late.registration.once).toEqual([Math.ceil((at(day, '15:00') + 20_000) / 60000)]);
+});
+
+// Session AL sweep 4 (PR-054): a first visit slower than the worker's 3.5 s timeout, with no copy on the device, gets the
+// answer already on its way, not the offline page; only a real network error gets "Offline · ZIGoals". The worker's
+// timeout fires at once here (its 3,500 ms becomes 0); the network answers 20 ms later.
+describe('the service worker on a slow first visit (PR-054)', () => {
+  const quickTimeout = ((fn: () => void, ms?: number) => setTimeout(fn, ms !== undefined && ms >= 3500 ? 0 : ms)) as typeof setTimeout;
+  const later = <T,>(make: () => T) => new Promise<T>((resolve, reject) => setTimeout(() => { try { resolve(make()); } catch (e) { reject(e); } }, 20));
+  it('slow, no cached copy: the page from the network, kept for next time', async () => {
+    const caches = fakeCaches(), answer = ok();
+    const sw = swSandbox({cachesImpl: caches.impl, timer: quickTimeout, fetchImpl: () => later(() => answer)});
+    expect(await fetchThrough(sw, page('/app/habits'))).toBe(answer);
+    expect([...caches.stores.get('zigoals-pages-abc123')!.keys()]).toEqual(['https://app.test/app/habits']);
+  });
+  it('slow, with a cached copy: the copy at once, as before', async () => {
+    const caches = fakeCaches();
+    (await caches.impl.open('zigoals-pages-abc123')).put({url: 'https://app.test/app/habits'}, 'kept habits page');
+    const sw = swSandbox({cachesImpl: caches.impl, timer: quickTimeout, fetchImpl: () => later(() => ok())});
+    expect(await fetchThrough(sw, page('/app/habits'))).toBe('kept habits page');
+  });
+  it('a real network error, at once or after the timeout: "Offline · ZIGoals"', async () => {
+    for (const fetchImpl of [async () => { throw new TypeError('Failed to fetch'); }, () => later(() => { throw new TypeError('Failed to fetch'); })]) {
+      const sw = swSandbox({cachesImpl: fakeCaches().impl, timer: quickTimeout, fetchImpl});
+      const offline = await fetchThrough(sw, page('/app/habits')) as Response;
+      expect(offline.status).toBe(503);
+      expect(await offline.text()).toContain('<title>Offline · ZIGoals</title>');
+    }
+  });
 });

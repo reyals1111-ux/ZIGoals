@@ -35,6 +35,7 @@ import { useVisualViewportInsets } from "./use-visual-viewport";
 import { useSheetDrag } from "./use-sheet-drag";
 import { PhoneChecklistButton } from "../checklist/phone-checklist-button";
 import { AppsExtrasButton } from "../shell/apps-extras";
+import { helpOpenedFromSettings } from "../help/help-back";
 
 /**
  * The phone shell (Session E): a top bar with the page's identity, Quick add and Settings, and a glass tab bar whose More
@@ -67,6 +68,8 @@ const MORE_NOTES: Record<string, string> = {
 };
 
 export type PhoneRoute = { title: string; back?: { href: string; label: string } };
+/** The pages that start off (Chess always, the chain's pages until chosen) and that More's "More pages" row points to. */
+const MORE_PAGES_OFF = ["staking", "ecosystem", "chess"] as const;
 /** The top bar's title and back link for a path. Detail and creation pages step back to their list. */
 /** Session AF (ADR-028 H68): a phone tab is always one of the navigation's pages, never an extra another lane registers. */
 const isNavPage = (href: string) => NAV_ITEMS.some(([h]) => h === href);
@@ -150,7 +153,8 @@ export function PhoneTopBar() {
   useTitleOnScroll(active, bar, path);
   const { view, items } = useVisibleNav(), moreOpen = useMoreOpen(); // every hook before the early return
   if (!show) return null;
-  const route = phoneRoute(path), onWealth = isNavActive(path, "/app/wealth");
+  // Session AL sweep 4 (D-159): Help steps back to Settings only when Settings' Help link opened it; otherwise the logo.
+  const routed = phoneRoute(path), route = path === "/app/help" && !helpOpenedFromSettings() ? { title: routed.title } : routed, onWealth = isNavActive(path, "/app/wealth");
   const wealthShortcut = isShown(view, "wealth") && isShown(view, "wealth-shortcut");
   // Session AB-Design (owner request 10, ADR-024 D2): More opens from the top bar; Settings and Help are its last rows.
   const moreCurrent = phoneTabs(items, isNavPage).more.some(([href]) => isNavActive(path, href));
@@ -198,7 +202,9 @@ function useTabArrival(tabs: RefObject<HTMLDivElement | null>, path: string) {
 
 export function PhoneTabBar() {
   const show = usePhoneChrome(), path = usePathname(), sheet = useRef<HTMLDialogElement>(null), tabs = useRef<HTMLDivElement>(null), titleId = useId(), open = useMoreOpen(), setOpen = setMoreOpen;
-  const { items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items, isNavPage), moreStarts = groupStarts(MORE, navGroupOf), gameOn = useGameEnabled();
+  const { view, items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items, isNavPage), moreStarts = groupStarts(MORE, navGroupOf), gameOn = useGameEnabled();
+  // Session AL sweep 4 (BN-001): while a page that starts off is still off, More says where to switch it on.
+  const pagesOff = MORE_PAGES_OFF.some(id => !isShown(view, id));
   // Phase 2, Part 10 (owner request 10): the pages first, then the Journey (while Gamify is on), ZIGi and the soundtrack
   // when they are tucked away, Status & wallet — and Settings and Help always last.
   // Session AL (DV-095, NB-028, BN-072): one Journey row. The game layer also registers Journey as a navigation entry
@@ -247,6 +253,11 @@ export function PhoneTabBar() {
             <span className="phone-more-copy" data-note={MORE_NOTES["/app/journey"]}><strong>Journey</strong></span>
             <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
           </Link></li>}
+          {pagesOff && <li data-group-start="more-pages"><Link href="/app/settings#your-pages" prefetch={false} className="phone-more-row" aria-label="More pages" onClick={() => setOpen(false)}>
+            <span className="icon-medallion"><AppIcon name="more" size={22} luminous /></span>
+            <span className="phone-more-copy" data-note="Earn, Staking, Ecosystem, Chess: switch them on"><strong>More pages</strong></span>
+            <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
+          </Link></li>}
           <AiMoreRow onNavigate={() => setOpen(false)} />
           <MusicMoreRow onNavigate={() => setOpen(false)} />
           {/* Session AB-Design: the notices in full and the wallet buttons (the Status & wallet sheet), then the theme switch. */}
@@ -269,8 +280,8 @@ export function PhoneTabBar() {
         {/* Session AL third pass (DV-256): the switch is named on screen too, as in Apps & extras. */}
         <h3 className="phone-more-theme-head">Theme</h3>
         <ThemeSwitch compact />
+        {/* Session AL sweep 4 (DV-256): the decorative "Your Financial Orbit" picture banner is gone; the wordmark signs off plainly. */}
         <div className="phone-more-signature">
-          <p className="phone-more-descriptor">Your Financial Orbit</p>
           <Wordmark />
         </div>
       </div>

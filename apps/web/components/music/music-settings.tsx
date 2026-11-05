@@ -30,7 +30,9 @@ export function MusicSettings() {
     <p>Focus sounds made on this device, or what Spotify plays, from one small player at the side opposite ZIGi.</p>
     {shown ? <div className="actions"><button type="button" className="secondary" onClick={openMusicPlayer}>Open the player</button></div>
       : <p>The music player is hidden. <button type="button" className="text-link" onClick={() => void showPlayer()}>Show the music player</button></p>}
-    {prefs.loaded && <label className="checkbox"><input type="checkbox" checked={prefs.data.mini} onChange={e => mini(e.currentTarget.checked)}/><span>Show a mini-bar instead of the round button (this device)</span></label>}
+    {/* Session AL sweep 4 (D-218): the mini-bar replaces the player's button, so it is only a choice while the player shows. */}
+    {prefs.loaded && <label className="checkbox"><input type="checkbox" checked={prefs.data.mini} disabled={!shown} aria-describedby={shown ? undefined : 'music-mini-off'} onChange={e => mini(e.currentTarget.checked)}/><span>Show a mini-bar instead of the round button (this device)</span></label>}
+    {prefs.loaded && !shown && <p className="fine" id="music-mini-off">Turn the Music player on under Your pages &amp; buttons to choose this.</p>}
     <h3>Spotify{!showcase && config.loaded && !config.clientId && <span className="unavailable-pill">Not set up</span>}</h3>
     <p className="music-settings-state">{spotifyState}</p>
     {!showcase && config.clientId && spotify.scope && spotify.connected === false && <button type="button" className="secondary" onClick={() => void spotify.connect()}>Connect Spotify</button>}

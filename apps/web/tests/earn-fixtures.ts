@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import type {Page} from '@playwright/test';
+import {expect, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -45,3 +45,16 @@ export async function earnRoutes(page: Page, {unavailable = {}, missingValidator
 }
 /** Every outgoing link of the Earn page (its sections and the guide panel; the app's shell and footer are not Earn's): href, target and rel. */
 export const outgoing = (page: Page) => page.locator('.earn-page a[href^="http"], .earn-guide-panel a[href^="http"]').evaluateAll(els => els.map(a => ({href: (a as HTMLAnchorElement).getAttribute('href')!, target: a.getAttribute('target'), rel: a.getAttribute('rel')})));
+/**
+ * Session AL sweep 4 (N-BN-05, D-005): on a phone, Earn's wider sections (Nawa, DeFa, Permapod, Zignaly, Governance,
+ * Goal Vaults, Stablecoins) are folded rows (components/phone/phone-fold.tsx). A spec that works inside them opens each
+ * row first, as a person would; on wider screens there are no rows and nothing happens.
+ */
+export async function openEarnFolds(page: Page) {
+  const phone = await page.evaluate(() => matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches);
+  if (!phone) return;
+  const toggles = page.locator('.earn-sections .phone-fold-toggle');
+  await toggles.first().waitFor();
+  for (let i = 0, n = await toggles.count(); i < n; i++) if (await toggles.nth(i).getAttribute('aria-expanded') === 'false') await toggles.nth(i).click();
+  for (let i = 0, n = await toggles.count(); i < n; i++) await expect(toggles.nth(i)).toHaveAttribute('aria-expanded', 'true');
+}

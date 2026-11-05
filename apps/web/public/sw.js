@@ -46,6 +46,9 @@
     if (bills.length) lines.push(named && bills.every(function (b) { return b.label; }) ? bills.slice(0, 2).map(function (b) { return b.label + (b.detail ? ' · ' + b.detail : ''); }).join(' · ') : plural(bills.length, 'bill due tomorrow', 'bills due tomorrow'));
     if (kinds.supplement) lines.push('A reminder you set in Health');
     if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
+    // Session AL sweep 4 (C-DVG-68, C-BN-06): from the positions last read on the device; never a name or an amount.
+    if (kinds.unbonding) lines.push('Unstaked ZIG is back in your wallet today');
+    if (kinds.validator) lines.push('A validator you stake with is not earning: see Staking');
     if (kinds.windDown) lines.push('Time to wind down');
     if (kinds.review) lines.push('Your weekly Life review is ready');
     var summary = summaryLine(snapshot);
@@ -173,20 +176,30 @@ function storable(url) {
   for (const key of url.searchParams.keys()) if (key !== '_rsc') return false;
   return true;
 }
-const race = request => Promise.race([fetch(request), new Promise((_, reject) => setTimeout(() => reject(Error('slow')), NETWORK_MS))]);
+// Session AL sweep 4 (PR-054): the timeout's own reason, told apart from a real network error. The request in flight is
+// kept, so a slow first visit (no copy yet) still gets its page instead of the offline line.
+const SLOW = Object.freeze({slow: true});
+function raced(request) {
+  const inFlight = fetch(request);
+  inFlight.catch(() => {}); // a late failure after the timeout is not an unhandled rejection
+  return {inFlight, first: Promise.race([inFlight, new Promise((_, reject) => setTimeout(() => reject(SLOW), NETWORK_MS))])};
+}
+const race = request => raced(request).first;
 async function trim(name, max) { const cache = await caches.open(name), keys = await cache.keys(); for (let i = 0; i < keys.length - max; i++) await cache.delete(keys[i]); }
 function cacheable(response) { return response && response.status === 200 && response.type === 'basic' && !response.headers.get('content-disposition'); }
 async function networkFirst(request, url) {
-  const cache = await caches.open(PAGES), keep = storable(url);
+  const cache = await caches.open(PAGES), keep = storable(url), {inFlight, first} = raced(request);
+  const kept = async response => { if (keep && !forgotten && cacheable(response)) { await cache.put(request, response.clone()); trim(PAGES, MAX_PAGES); } return response; };
   try {
-    const response = await race(request);
-    if (keep && !forgotten && cacheable(response)) { await cache.put(request, response.clone()); trim(PAGES, MAX_PAGES); }
-    return response;
-  } catch {
+    return await kept(await first);
+  } catch (error) {
     // Only this page's own copy: another page's would open at the wrong address. An address with a query opens its page's
     // plain copy (the address, query and all, stays in the browser). A page never visited gets the plain line below.
     const cached = keep ? await cache.match(request, {ignoreVary: false}) : request.mode === 'navigate' && !neverStored(url) ? await cache.match(new Request(url.origin + url.pathname), {ignoreVary: false}) : null;
     if (cached) return cached;
+    // Session AL sweep 4 (PR-054): only slow, with no copy to show: wait for the answer already on its way. Only a real
+    // network error (now or later) gets the offline line.
+    if (error === SLOW) { try { return await kept(await inFlight); } catch { /* the network failed after all */ } }
     return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline · ZIGoals</title><body style="font:16px system-ui;background:#020918;color:#eef;padding:24px"><h1>You are offline</h1><p>This page was not saved on this device yet. Open ZIGoals once while online and it will work offline next time.</p><p><a style="color:#9cf" href="/app">Open Today</a></p>', {status: 503, headers: {'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store'}});
   }
 }

@@ -297,6 +297,13 @@
 ::view-transition-group(zg-hud-morph) { animation-duration: 520ms; }
 :root[data-hud-morph=zoom]::view-transition-old(zg-hud-morph) { animation: 520ms cubic-bezier(.25, .8, .25, 1) both zg-hud-zoom-2; }
 :root[data-hud-morph=zoom]::view-transition-new(root) { animation-delay: 120ms; }
+/* Session AL sweep 4 (L8f m7): the page's hero takes the panel's name for the morph only (while morph.ts keeps
+   data-hud-morph on the root, about 1.5 s; Full motion only, never Calm), so the panel's picture travels into the hero
+   instead of into nothing. NOVA's own page (the old picture) never matches: two elements with one name would cancel the
+   transition. With a hero to land in, the panel's picture keeps its place in the moving group and fades at the end. */
+:root[data-hud-morph=zoom] #main:not(:has(.nova-frame)) :is(.pillar-hero, .page-header, .today-hero, .markets-hero, .checklist-title) { view-transition-name: zg-hud-morph; }
+@keyframes zg-hud-handoff { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
+:root[data-hud-morph=zoom]:not(:has(#main .nova-frame)):has(#main :is(.pillar-hero, .page-header, .today-hero, .markets-hero, .checklist-title))::view-transition-old(zg-hud-morph) { animation: 520ms ease-out both zg-hud-handoff; }
 /* m1: the motes keep to the star's core — a disc around the orb inside its four rings, where no word ever sits (NOVA's name
    is above the rings, its state and readout below) — instead of the whole column, where specks landed on "Good morning",
    "4 of 7" or "Habits". The orb button is their anchor; where anchor positioning is missing they stay in the column. */

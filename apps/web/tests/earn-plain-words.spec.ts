@@ -1,7 +1,7 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {GLOSSARY} from '../lib/ai/earn/glossary';
 import {PLAIN_ASK, PLAIN_TERMS, type PlainTerm} from '../lib/earn/plain-words';
-import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {earnRoutes, openEarnFolds, seedShowcase} from './earn-fixtures';
 import {governanceRelay, openGovernance} from './governance-chain';
 import {SIGNER_CALLS, fakeChain, fakeKeplr, openStaking, relay} from './staking-chain';
 import {chooseChain} from './chain-choice';
@@ -69,6 +69,8 @@ test('Earn: each section offers its taps once, where the word first appears; eve
   await earnRoutes(page);
   await page.goto('/app/earn');
   await expect(page.locator('[data-live-figure="native-apr"]')).toHaveAttribute('data-state', 'ok');
+  // Session AL (D-088, deliberate): on a phone the wider sections are folded rows; they are opened first, as a person would.
+  await openEarnFolds(page);
   const seen = new Set<string>();
   for (const [id, expected] of Object.entries(EARN)) {
     const section = page.locator(`#${id}`);

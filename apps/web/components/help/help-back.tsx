@@ -9,6 +9,8 @@ import {useEffect, useState} from 'react';
  */
 let fromSettings = false;
 export const markHelpFromSettings = () => { fromSettings = true; };
+/** Session AL sweep 4 (D-159): the phone's top bar asks the same mark for its back link on Help. */
+export const helpOpenedFromSettings = () => fromSettings;
 
 export function HelpBack() {
   const [show, setShow] = useState(false);
