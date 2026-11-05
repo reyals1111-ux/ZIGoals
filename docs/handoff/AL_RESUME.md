@@ -51,7 +51,15 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - **All CI fix lanes are committed (head `18330e5e`, tree clean):** CI1 `305cb322`, CI2 `2decc91b`, CI3 `0bd34036`,
   CI4 `db3d9bd2` + `18330e5e`, CI5 `f982d6a9` (TIER 3) + `9148262a`, CI6 `c8d78e0e`, CI7 in `18330e5e`; verifier pin
   `f4079ea9` (TIER 3); theme sheets regenerated. Full unit suite: only the sandbox-only pre-run11-setup failure left.
-- **No helper running.** CI runs on `18330e5e`; :3103 is being rebuilt at `18330e5e` (one shared build).
+- **CI run 1561 (head 22137364):** ~77 browser failures (from 389), the Alpha gate's packaged-runtime artifact test and the
+  integration job; list in the scratchpad ci/fail-1561.txt (also: local batch runs on :3103 → /tmp/claude-0/nb/run{1,2}.log).
+- **Running (4, the cap):** CI8 (wizard focus vs skip link, NOVA focus under the pinned field, Habits "Completion count"),
+  CI9 (React #418 server-vs-browser dates, ui-design-pass:105), CI10 (P13 consistency, Settings fold, L6/L1 grok53 specs,
+  Tasks theme parity), CI11 (governance, j03, pages-visibility, phone-shell, health/habit/recovery specs, search-aa,
+  earn-plain-words, page-marks, l10a-third, a11y-wcag-x, WebKit twins, packaged-runtime, integration).
+- **Waiting for a slot (CI12, ZIGi):** zigi-face-z, zigi-knock, zigi-memory, zigi-oneline-z, zigi-page-awareness-af,
+  zigi-personality, zigi-phone-rest, grok53/ai/l7-fourth-answers and l7-fourth-safety (all in CI run 1561).
+- :3103 serves `18330e5e` (one shared build).
 - **Open from the CI lanes (not CI failures):** PR-069 path label numbers closed by owner amendment 10 until O6's
   distinctPathLabels is switched on; Earn/Settings deeper folds beyond D-088's; CI5's request to register
   `markets-view` (no code uses it — check before adding).
