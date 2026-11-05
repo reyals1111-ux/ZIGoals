@@ -27,6 +27,17 @@ const ROUTES = [
   '/app/zigi', '/app/zigi/memory', '/app/settings', '/app/settings/data', '/app/settings/reminders', '/app/help',
 ];
 const STOPS = 25;
+/**
+ * Session AL (BUG-049, deliberate): the goal creator opens with the focus already in Goal name, inside the content (a
+ * keyboard user there no longer starts on the page body, 46 Tabs away). The page itself has bypassed the repeated blocks,
+ * so its first Tab goes on in the form. The skip link is still checked as strictly as anywhere else: the page must have
+ * put the focus in that field inside #main, Shift+Tab from it must come back to "Skip to content" (shown, with a focus
+ * indicator) without leaving the page, and Enter on it must put the next Tab in the content. Every other route keeps the
+ * first-Tab check.
+ */
+const FOCUS_ON_ARRIVAL: Readonly<Record<string, string>> = {'/app/goals/new': 'Goal name'};
+/** Shift+Tab back from the arrival field to the skip link; the shell holds well under 80 stops before the content. */
+const BACK_TO_SKIP = 80;
 type Stop = {key: string; where: string; visible: boolean; ring: boolean; covered: boolean; segmented: boolean; start: boolean};
 /** What has focus now, and how it shows. `key` identifies the element across steps (a mark on it, set once). */
 const stop = (page: Page) => page.evaluate((): Stop | null => {
@@ -84,15 +95,30 @@ for (const theme of THEMES) for (const [half, routes] of HALVES.entries()) {
     const findings: Findings = {};
     for (const path of routes) {
       await open(page, path);
-      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+      const arrival = FOCUS_ON_ARRIVAL[path];
+      const onSkip = () => page.evaluate(() => { const el = document.activeElement; return !!el && el.matches('a.skip') && el.textContent?.trim() === 'Skip to content'; });
+      if (arrival) {
+        // BUG-049: the page puts the focus in its first field inside the content (the wizard retries until the shell shows).
+        const inField = () => page.evaluate(name => { const el = document.activeElement as HTMLInputElement | null; return !!el && !!document.getElementById('main')?.contains(el) && [...(el.labels ?? [])].some(l => l.textContent?.trim().startsWith(name)); }, arrival);
+        await expect.poll(inField, {timeout: 6_000}).toBe(true).catch(() => note(findings, path, [`the page does not open with the focus in ${arrival}`]));
+      } else await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
       await watchExit(page);
       // The two full-screen views, NOVA (components/nova/nova-chrome.css) and the Checklist's overlay (a modal dialog;
       // components/checklist/checklist.css), hide the sidebar and bars with the skip link: no repeated block, so no skip
       // link is needed there (2.4.1); their walk starts in the view itself. Anywhere else the skip link must be there.
       const bars = await page.evaluate(() => document.documentElement.dataset.novaView !== 'on' && !document.querySelector('.checklist-overlay[open]'));
-      await page.keyboard.press('Tab');
+      if (arrival) {
+        // Shift+Tab walks back from the field, over the shell, to the skip link, which stays the first stop of the page.
+        let reached = false;
+        for (let i = 0; i < BACK_TO_SKIP && !reached; i++) {
+          await page.keyboard.press('Shift+Tab');
+          if (await page.evaluate(() => !!(window as unknown as {p6Out?: boolean}).p6Out)) break;
+          reached = await onSkip();
+        }
+        if (!reached) { note(findings, path, [`Shift+Tab from ${arrival} does not come back to "Skip to content"`]); continue; }
+      } else await page.keyboard.press('Tab');
       if (bars) {
-        if (!await page.evaluate(() => { const el = document.activeElement; return !!el && el.matches('a.skip') && el.textContent?.trim() === 'Skip to content'; })) { note(findings, path, ['the first Tab does not reach "Skip to content"']); continue; }
+        if (!await onSkip()) { note(findings, path, ['the first Tab does not reach "Skip to content"']); continue; }
         const skipRing = await stop(page);
         if (skipRing && !skipRing.ring) note(findings, path, ['"Skip to content" shows no focus indicator']);
         await page.keyboard.press('Enter');
