@@ -39,20 +39,13 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - Builds need `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Load is high with many helpers, so unit timeouts under load are re-run alone.
 
-## Lanes in flight (6 Nov, early)
-- **Committed since the last resume update (head `c521574f`):**
-  - INT third pass (TIER 3 auth/sync, stored format: backup format 4 with record sections, range export, erase one area);
-  - L7 third pass; L8d (every HUD design-review finding; TIER 3 stored format, additive);
-  - L10a, L10b and L5 third passes; theme sheets regenerated;
-  - the full unit suite fixed at its causes (secret-scan fixture, date guard, AK G3 block order, `:has()` guard, sw test's FetchEvent, DV-145 copy pin);
-  - GROK53_REPLAY_L1_1.md (L1 replay round 1: 40 STILL OPEN, 13 CHANGED).
-- **Running:** L1-4 (L1 fourth pass on the replay's STILL OPEN rows); SW2 (small cross-lane leftovers, NOVA M5 water wording, Showcase valuations p4).
-- **Known local-only failure:** `scripts/pre-run11-setup.test.mjs` — corepack in a temp folder picks pnpm 12 in this sandbox; CI pins 11.19.0.
-- **Servers:**
-  - :3101 is being rebuilt at `c521574f` (/home/user/zig-branch);
-  - :3103 runs cfbdc591 (/home/user/zig-branch2);
-  - :3102 runs main.
-- **Browser runs** go through the flock lock.
+## Lanes in flight (6 Nov, morning)
+- **Committed since the last update (head `4c0f4dad`):** SW2; L1, L2, L3, L4 fourth passes (each on its replay's STILL OPEN rows); L8e (HUD back to 16.7 ms, needs a build to prove); the grok53 spec fixes (page transitions 22/22, O4 Journey out of the sidebar); replay files L2/L3/L4 round 1; ADR lessons 9–13.
+- **Replay round 1 results:** L1 40 STILL OPEN / 13 CHANGED; L2 29 / 32; L3 27 / 24; L4 45 / 43 (all sent back; fourth passes committed, round 2 due on the next build).
+- **Running:** replays L5 and L6 (on :3101 `c521574f`); FX-G53a (checklist, tasks, shell specs); FX-G53b (ai, wealth specs); SW3 (requests from the fourth passes); the HUD first-time-viewer review (on :3103 `60309361`); the grok53 loop (settings, first-run, journey, p14a left).
+- **grok53 on `c521574f`:** health, habits, today, data, markets, chain all green; failures in shell, hud, tasks, checklist, goals, wealth, ai are fixed or with a lane.
+- **Waiting:** Part 13 Showcase (the Showcase "Drink water" habit in litres with the water link, PR-002/PR-019); L7 and L8 replays; the CI run on `7912b142` (pushes held so it can finish).
+- **Servers:** :3101 `c521574f` (/home/user/zig-branch); :3103 `60309361` (/home/user/zig-branch2); :3102 main.
 
 ## Exact next step
 1. Commit each lane as it reports; CI run 1522 on `c521574f` → dispatch fix lanes by area.
