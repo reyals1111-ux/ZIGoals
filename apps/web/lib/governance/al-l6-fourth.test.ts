@@ -47,3 +47,9 @@ describe('C-BN-12: whose vote to read', () => {
     expect(voterAccountOf('')).toHaveProperty('problem');
   });
 });
+
+test('CI11: a turnout estimate over 100 % of today\'s staked total is not shown (the total does not fit the proposal)', () => {
+  const tally = {yes: '900', no: '100', abstain: '0', noWithVeto: '0'} as Parameters<typeof turnoutOf>[0];
+  expect(turnoutOf(tally, '10', {quorum: '0.334000000000000000'})).toBeNull();
+  expect(turnoutOf(tally, '2000', {quorum: '0.334000000000000000'})!.fraction).toBeCloseTo(0.5, 3);
+});

@@ -181,6 +181,9 @@ export function failedReasonWords(reason: string): string {
 export function turnoutOf(tally: Tally, bonded: string | undefined, params: Pick<GovParams, 'quorum'>): {share: string; fraction: number; quorum: string; quorumFraction: number; met: boolean} | null {
   if (bonded === undefined || !/^\d+$/.test(bonded) || BigInt(bonded) <= 0n) return null;
   const total = BigInt(tally.yes) + BigInt(tally.no) + BigInt(tally.abstain) + BigInt(tally.noWithVeto);
+  // Session AL (CI11): more votes than today's staked total means the total read does not fit this proposal (an older
+  // one, a smaller stake today): an estimate over 100 % is not shown at all (unknown is not a number).
+  if (total > BigInt(bonded)) return null;
   const share = ratio(total, BigInt(bonded)), quorum = scaled(params.quorum);
   const asNumber = (f: bigint) => Math.min(1, Number((f * 10000n) / SCALE) / 10000);
   return {share: percentOf(share), fraction: asNumber(share), quorum: percentOf(quorum), quorumFraction: asNumber(quorum), met: share >= quorum};
