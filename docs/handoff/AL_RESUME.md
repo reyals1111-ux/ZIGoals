@@ -39,30 +39,24 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - Builds need `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Load is high with many helpers, so unit timeouts under load are re-run alone.
 
-## Lanes in flight (5 Nov, evening)
-- **Committed since the restart:**
-  - FX-L2L4 and FX-L3 fix-ups (the NB-081 Undo primitive bug, `db35de20`);
-  - P14-A (TIER 3 wallet `be9c97a0`), P14-B, P14-D, INT-2;
-  - L8c (HUD perf: a 16.7 ms median frame at CPU 4x);
-  - third passes of L1, L2, L3, L4 and L6 (TIER 3 API `ccfad605`, positions `5b839b4a`);
-  - CROSS_LANE.md;
-  - the HUD design critic's review (not stunning yet: 2 Blocker, 11 Major).
-- **Running:**
-  - FX-MIX (tasks/checklist/data/shell/ai specs);
-  - the replay of L1, round 1;
-  - L8d (fixing every HUD review finding);
-  - L7 third pass;
-  - the sweep of small leftover requests.
-- **Next code lanes:** INT third pass (14 asks plus 3 competitor rows), once FX-MIX frees the vault files; L5/L10a/L10b third passes after FX-MIX.
+## Lanes in flight (6 Nov, early)
+- **Committed since the last resume update (head `c521574f`):**
+  - INT third pass (TIER 3 auth/sync, stored format: backup format 4 with record sections, range export, erase one area);
+  - L7 third pass; L8d (every HUD design-review finding; TIER 3 stored format, additive);
+  - L10a, L10b and L5 third passes; theme sheets regenerated;
+  - the full unit suite fixed at its causes (secret-scan fixture, date guard, AK G3 block order, `:has()` guard, sw test's FetchEvent, DV-145 copy pin);
+  - GROK53_REPLAY_L1_1.md (L1 replay round 1: 40 STILL OPEN, 13 CHANGED).
+- **Running:** L1-4 (L1 fourth pass on the replay's STILL OPEN rows); SW2 (small cross-lane leftovers, NOVA M5 water wording, Showcase valuations p4).
+- **Known local-only failure:** `scripts/pre-run11-setup.test.mjs` — corepack in a temp folder picks pnpm 12 in this sandbox; CI pins 11.19.0.
 - **Servers:**
-  - :3101 runs the branch at 5848c55c (/home/user/zig-branch);
-  - :3103 runs the branch at cfbdc591 (/home/user/zig-branch2), used for the HUD review;
+  - :3101 is being rebuilt at `c521574f` (/home/user/zig-branch);
+  - :3103 runs cfbdc591 (/home/user/zig-branch2);
   - :3102 runs main.
 - **Browser runs** go through the flock lock.
 
 ## Exact next step
-1. Commit each lane as it reports.
-2. Rebuild the branch on :3101 and run 3 of tests/grok53.
+1. Commit each lane as it reports; CI run 1522 on `c521574f` → dispatch fix lanes by area.
+2. Once :3101 serves `c521574f`, run tests/grok53 and start the pillar replays L2–L8.
 3. Pillar replays L2-L8 (A1).
 4. The HUD first-time-viewer review after L8d.
 5. Parts 13 and 16 and the A10 cycles.
