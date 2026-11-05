@@ -1,6 +1,7 @@
 'use client';
 import {Suspense, lazy, useMemo, useState} from 'react';
-import {quickAddOffered} from '../../../lib/ai/actions/decline';
+import {localReplyHandles} from '../../../lib/ai/actions/local-handles';
+import {quickAddOffered, quickAddUnder} from '../../../lib/ai/actions/decline';
 import {guardMessage} from '../../../lib/ai/safety-guard';
 import {detectRisk} from '../../../lib/ai/safety';
 import {LoadBoundary} from '../../load-boundary';
@@ -75,7 +76,8 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
   const info = local ? session.localFor(turn.id) : undefined, reply = info?.reply, question = info?.question ?? asked;
   const calls = useMemo(() => (turn.tools ?? []).map(c => ({tool: c.tool, args: c.args ?? {}, label: c.label})), [turn.tools]);
   // An answer made on this device names a habit by its exact title, so the person's habits are its handles (as in ZIGi's panel).
-  const localHandles = useMemo(() => runner.stores.habits.habits.map((h, i) => ({handle: `h${i + 1}`, kind: 'habit' as const, id: h.id, label: h.title})), [runner.stores.habits.habits]);
+  // Session AL fourth pass (L7-4b; DV-079): habits and open goals by their titles, so a goal card made here resolves on Goals.
+  const localHandles = useMemo(() => localReplyHandles(runner.stores), [runner.stores]);
   const providerLabel = (turn.provider && turn.provider !== 'local' ? PROVIDERS[turn.provider].name : providerName).replace(/^your /, '');
   const full = turn.source === 'on-device' ? ON_DEVICE_LABEL : local ? LOCAL_LABEL : hermes ? `Answer from your Hermes Agent${turn.model ? ` (${turn.model})` : ''}, on your own computer, not from ZIGoals` : `Answer from your AI (${providerLabel}), not from ZIGoals`;
   const short = turn.source === 'on-device' ? 'Chrome’s on-device model' : local ? 'On-device answers · no AI used' : hermes ? 'From your Hermes Agent' : `From your AI · ${providerLabel}`;
@@ -93,7 +95,7 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
         {parsed.text && !(cardShown && reply?.kind === 'examples') && <SafeText className={local ? 'ai-local-answer' : undefined} text={parsed.text}/>}
         {!local && turn.tools && turn.tools.length > 0 && <p className="nova-looked"><span>{zigi ? 'ZIGi looked at:' : 'Looked at:'}</span> {turn.tools.map((t, i) => <span key={i} className="ai-source-chip">{t.label}</span>)}</p>}
         <DataViz results={local ? info?.results : session.lookupsFor(turn.id)?.map(l => l.result)}/>
-        {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={local ? localHandles : session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
+        {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList onDevice={local} proposals={parsed.proposals} rejected={parsed.rejected} handles={local ? localHandles : session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
         {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions answered on this device">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
         {chips.length > 0 && !(cardShown && reply?.kind === 'examples') && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions answered on this device' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
         {local && (parsed.text.includes(NOVA_PERMISSIONS) || parsed.text.includes(NOVA_PERMISSIONS_NL)) && <p className="nova-turn-permissions">
@@ -103,7 +105,7 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
         {common.firstLocalReply === turn.id && turn.model && <p className="fine nova-first-local">{firstLocalReplyLine(turn.model)}</p>}
         {/* Session AL second pass (Moscow NP-06/07/08, Lisbon LA-037; P-MO-06, P-LA-23): with no model, NOVA's last on-device
             answer offers the same Quick add line as ZIGi's, under the same rule (never under a question, a careful topic or a guarded message). */}
-        {local && !connected && isLast && !busy && asked && quickAddOffered(asked, {guarded: !!guardMessage(asked), careful: !!detectRisk(asked)}) && <div className="ai-quick-add"><LoadBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={asked} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)}/></Suspense></LoadBoundary></div>}
+        {local && !connected && isLast && !busy && asked && quickAddOffered(asked, {guarded: !!guardMessage(asked), careful: !!detectRisk(asked)}) && quickAddUnder(reply) && <div className="ai-quick-add"><LoadBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={asked} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)}/></Suspense></LoadBoundary></div>}
         {!local && <MoneyNote text={parsed.text}/>}
         <SourceLine short={short} full={full}/>
         {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}

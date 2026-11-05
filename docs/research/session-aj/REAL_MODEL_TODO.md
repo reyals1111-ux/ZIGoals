@@ -181,3 +181,15 @@ The no-model parts are built and held by `lib/ai/evals/g6-p14b.ts` (third-pass c
 | A food's calories with a model (P14-B) | "How many calories in my plate of pasta?" and "Hoeveel calorieën zitten er in een bord pasta?" with a model connected (the device now leaves these to it: `isFoodEstimateAsk`) | an estimate labelled as one (a range, or "about"), per a stated portion; never today's diary total; a card only if offered as a `log-food` with `estimate` the person adds |
 | The week with a model (P14-B) | "How was my week?" with a model and tools | the figures equal the `weekly_review` tool's (check-ins, contributions, busiest day); no judgement words; Health lines only with Health shared |
 | A Health card while Health is not shared (LA-032, P-LA-06) | Health page data off, a model connected, "I'm going to bed" / "drank 500 ml water" | if the model proposes a Health card, the card shows "Health isn’t shared with ZIGi, but adding this card still saves it to Health on this device." |
+
+### Session AL fourth pass (lane L7-4b): answers that need a real model (none run; no key)
+
+The no-model parts are held by `lib/ai/evals/l7-fourth.ts` (157 cases, ZIGi and NOVA) and `lib/ai/al-fourth-pass.test.ts`.
+
+| What | Ask / setup | Pass when |
+|---|---|---|
+| A plan with a model | Lisbon L2, "Plan my evening using my checklist", "plan my week" | a plan in words from the open habits and tasks; no task card titled with the question |
+| Coaching and stacks | "suggest a habit stack to sleep better", "why do I keep missing my mornings" | suggestions that name the person's own habits; facts equal the habit_stats figures; no shame words |
+| Goal focus with a model | Denver, "Which goal should I focus on?" | names the nearest target date and the plan state from list_goals; no instruction presented as advice |
+| Weekly review with a model | "Give me my weekly review", "Give me a weekly health review" (Health shared) | figures equal weekly_review / sleep_summary; Health only with the gate |
+| Cards a model proposes for goals | on /app/goals, "Log 50 dollars to Holiday", "Add a milestone Book flights to Holiday" | the card plans (the goal resolves by its handle), never "not in this page's context" |

@@ -3,11 +3,12 @@ import {text as clean} from '../tools/format';
 import {runTool} from '../tools/registry';
 import type {ToolOk} from '../tools/types';
 import type {LocalReply} from './engine';
-import {amount} from './words';
+import {amount, dayText} from './words';
 import {MEMORY_CATEGORIES} from '../store/records';
 import {novaEnvInfo} from './nova-env';
 import {taskIntent} from '../../tasks/intent';
 import {addLocalDays as addDays} from '../../local-date';
+import {checklistAnswer, isChecklistAsk} from './al-fourth';
 
 /**
  * Session AL second pass (lane L7): what ZIGi's and NOVA's no-model path still answered with the examples list on the bots'
@@ -35,7 +36,7 @@ const norm = (raw: string) => raw.trim().replace(/[’`]/g, '\'').replace(/\s+/g
 
 // ---- typos (P-DV-86, P-DVR-47, P-LA-17, P-TK-33, P-NB-59): common slips in the words the device routes on ----
 const TYPOS: Record<string, string> = {
-  hw: 'how', hwo: 'how', mch: 'much', muhc: 'much', mcuh: 'much', hav: 'have', ahve: 'have', waht: 'what', whta: 'what', teh: 'the', fo: 'of',
+  hw: 'how', hwo: 'how', mch: 'much', muhc: 'much', mcuh: 'much', hav: 'have', ahve: 'have', waht: 'what', whta: 'what', whatt: 'what', progres: 'progress', progess: 'progress', emergancy: 'emergency', emergeny: 'emergency', teh: 'the', fo: 'of',
   goasl: 'goals', gaols: 'goals', goales: 'goals', habbits: 'habits', habbit: 'habit', habtis: 'habits', watter: 'water', wtaer: 'water', waer: 'water',
   todya: 'today', tday: 'today', yesterdy: 'yesterday', yestrday: 'yesterday', streek: 'streak', stepps: 'steps', slep: 'sleep', sleeep: 'sleep', wieght: 'weight', weigth: 'weight',
   holdigns: 'holdings', hodlings: 'holdings', protien: 'protein', calroies: 'calories', budjet: 'budget', debst: 'debts', networth: 'net worth', whats: 'what is', whts: 'what is', im: 'I am',
@@ -119,7 +120,9 @@ export function alFirst(question: string, env: ToolEnv | null, lang: Lang): Loca
   const todo = env && !howTo ? taskIntent(q, env.habitDay) : null;
   if (todo?.confidence === 'sure') {
     const t = todo.parsed, title = t.title.trim(), due = t.due === env!.habitDay ? 'today' : t.due, priority = t.level === 1 || t.level === 2 ? 'high' : t.level === 4 ? 'low' : undefined;
-    if (title.length >= 1 && (!due || due === 'today' || due >= env!.habitDay)) return {kind: 'answer', text: say(lang, 'A task for your list, added only when you add it (Tasks shows and edits it).', 'Een taak voor je lijst, pas toegevoegd als je haar toevoegt (Tasks toont en bewerkt haar).') + block({kind: 'add-task', title: `${title[0]!.toUpperCase()}${title.slice(1)}`.slice(0, 140), ...(due ? {due: due === addDays(env!.habitDay, 1) ? 'tomorrow' : due} : {}), ...(due && t.time ? {time: t.time} : {}), ...(priority ? {priority} : {})}), calls: []};
+    // Session AL fourth pass (L7-4b; Lisbon #008): "every Monday" stays the task's repeat, never dropped to a one-off.
+    const r = t.recur, repeat = r && due && ['day', 'week', 'month', 'year'].includes(r.every) ? {every: r.every, interval: r.interval ?? 1, ...(r.weekdays?.length ? {weekdays: r.weekdays} : {})} : null;
+    if (title.length >= 1 && (!due || due === 'today' || due >= env!.habitDay)) return {kind: 'answer', text: say(lang, `A task for your list${repeat ? ', repeating' : ''}, added only when you add it (Tasks shows and edits it).`, `Een taak voor je lijst${repeat ? ', die herhaalt' : ''}, pas toegevoegd als je haar toevoegt (Tasks toont en bewerkt haar).`) + block({kind: 'add-task', title: `${title[0]!.toUpperCase()}${title.slice(1)}`.slice(0, 140), ...(due ? {due: due === addDays(env!.habitDay, 1) ? 'tomorrow' : due} : {}), ...(due && t.time ? {time: t.time} : {}), ...(priority ? {priority} : {}), ...(repeat ? {repeat} : {})}), calls: []};
   }
   const goalLog = GOAL_LOG.exec(q), milestone = MILESTONE.exec(q);
   if (goalLog && env) {
@@ -127,7 +130,9 @@ export function alFirst(question: string, env: ToolEnv | null, lang: Lang): Loca
     const asset = /^(?:\$|dollars?|usd)$/.test(word) ? 'USD' : /^(?:€|euros?|eur)$/.test(word) ? 'EUR' : undefined;
     if (Number.isFinite(value) && value > 0) return {kind: 'answer', text: say(lang, 'A contribution to the goal: the goal’s own contribution form opens filled in, and nothing is saved until you save it there.', 'Een inleg voor het doel: het inlegformulier van het doel opent ingevuld, en er wordt niets bewaard tot je het daar opslaat.') + block({kind: 'prefill-contribution', goal: goalLog[3]!.trim().slice(0, 120), amount: value, ...(asset ? {asset} : {}), day: 'today'}), calls: []};
   }
-  if (milestone && env) return {kind: 'answer', text: say(lang, 'A milestone for the goal, added only when you add it.', 'Een mijlpaal voor het doel, pas toegevoegd als je hem toevoegt.') + block({kind: 'add-milestone', goal: milestone[2]!.trim().slice(0, 120), title: `${milestone[1]![0]!.toUpperCase()}${milestone[1]!.slice(1)}`.slice(0, 100)}), calls: []};
+  // Session AL fourth pass (L7-4b; Denver Z-008): the milestone's name without the quotes it was said in.
+  const stone = milestone?.[1]?.trim().replace(/^["“'‘]+|["”'’]+$/g, '').trim();
+  if (milestone && env && stone) return {kind: 'answer', text: say(lang, 'A milestone for the goal, added only when you add it.', 'Een mijlpaal voor het doel, pas toegevoegd als je hem toevoegt.') + block({kind: 'add-milestone', goal: milestone[2]!.trim().slice(0, 120), title: `${stone[0]!.toUpperCase()}${stone.slice(1)}`.slice(0, 100)}), calls: []};
   // P-LA-19 (LA-009): a workflow named in chat opens NOVA's workflows, where each runs with its steps shown.
   if (WORKFLOW.test(q)) return {kind: 'answer', text: say(lang, 'Workflows run in NOVA → Workflows, step by step on this device; every change is a card you confirm. “Review my week” is one of them.', 'Workflows draaien in NOVA → Workflows, stap voor stap op dit apparaat; elke wijziging is een kaart die je bevestigt. “Review my week” is er een van.') + open('nova'), calls: []};
   return null;
@@ -193,13 +198,10 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     if (!rows.length) return {kind: 'answer', text: `${/not read on this path/i.test(String(d.note)) ? say(lang, 'Your budgets are not read on this path, so I can’t say them here (unknown, not none).', 'Je budgetten worden hier niet gelezen, dus ik kan ze niet noemen (onbekend, niet nul).') : say(lang, 'No budget is set yet.', 'Er is nog geen budget ingesteld.')} ${say(lang, 'Wealth → Spending → Budgets shows and sets them; the weekly room to spend is on the same page.', 'Wealth → Spending → Budgets toont en zet ze; de ruimte per week staat op dezelfde pagina.')}` + open('wealth'), calls: [r.record]};
     return {kind: 'answer', text: [say(lang, `Your budgets for ${d.month ?? 'this month'}:`, `Je budgetten voor ${d.month ?? 'deze maand'}:`), ...rows.slice(0, 10).map(b => `• ${clean(String(b.category ?? b.name ?? ''), 40)}: ${[b.spent && `${say(lang, 'spent', 'uitgegeven')} ${b.spent}`, b.budget && `${say(lang, 'of', 'van')} ${b.budget}`, b.left && `(${b.left} ${say(lang, 'left', 'over')})`].filter(Boolean).join(' ')}`)].join('\n'), calls: [r.record]};
   }
-  if (CHECKLIST.test(q)) {
-    const r = run('checklist_today', {}, env); if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
-    const d = dataOf(r.result);
-    if (d.note) return {kind: 'answer', text: `${clean(String(d.note), 200)} ${say(lang, 'The Checklist page shows today’s path and its counter.', 'De Checklist-pagina toont het pad van vandaag en de teller.')}` + open('checklist'), calls: [r.record]};
-    const items = (d.items ?? d.dots ?? []) as Data[], done = items.filter(i => /done|complete/i.test(String(i.state ?? i.status ?? ''))), left = items.filter(i => !done.includes(i));
-    return {kind: 'answer', text: [say(lang, `Checklist today: ${done.length} of ${items.length} done.`, `Checklist vandaag: ${done.length} van ${items.length} gedaan.`), ...(left.length ? [say(lang, 'Still open, in path order:', 'Nog open, in de volgorde van het pad:'), ...left.slice(0, 12).map(i => `• ${clean(String(i.title ?? i.label ?? i.name ?? ''), 60)}`)] : [say(lang, 'Everything on today’s path is done.', 'Alles op het pad van vandaag is gedaan.')])].join('\n'), calls: [r.record]};
-  }
+  // Session AL fourth pass (L7-4b; Lisbon #001, #002, #013, #047, LA-017): the counter, orbits, yesterday and history from the
+  // Checklist's own reading (al-fourth.ts), one source with the page and "Show my checklist"; this read `items`, which the
+  // tool never had, and said "0 of 0 done".
+  if (CHECKLIST.test(q) || isChecklistAsk(q)) { const r = checklistAnswer(q, env, lang); if (r) return r; }
   if (BEST_HABIT.test(q) || SKIPPED.test(q) || HABITS_WEEK.test(q) || YESTERDAY.test(q)) {
     const list = run('list_habits', {}, env); if (!list.result.ok) return {kind: 'refusal', text: list.result.refusal, calls: [list.record]};
     const habits = ((dataOf(list.result).habits ?? []) as Data[]).filter(h => h.state === 'active').slice(0, 12);
@@ -236,13 +238,19 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     const d = dataOf(r.result), recent = (d.recent ?? []) as Data[];
     if (!recent.length) return {kind: 'answer', text: `${/not read on this path/i.test(String(d.note)) ? say(lang, 'Your workout log is not read on this path, so I can’t say it here (unknown, not none).', 'Je trainingslog wordt hier niet gelezen (onbekend, niet nul).') : say(lang, 'No workout is logged yet.', 'Er is nog geen training gelogd.')} ${say(lang, 'Health → Workouts shows them.', 'Health → Workouts toont ze.')}` + open('workouts'), calls: [r.record]};
     const last = recent[0]!;
-    return {kind: 'answer', text: say(lang, `Your last workout: ${clean(String(last.name ?? last.title ?? 'a workout'), 60)}${last.day ? ` on ${last.day}` : ''}${last.minutes ? `, ${last.minutes}` : ''}${last.sets ? `, ${last.sets} sets` : ''}.${d.thisWeek ? ` This week: ${d.thisWeek.workouts} workouts, ${d.thisWeek.minutes} minutes.` : ''}`, `Je laatste training: ${clean(String(last.name ?? last.title ?? 'een training'), 60)}${last.day ? ` op ${last.day}` : ''}.`), calls: [r.record]};
+    // Session AL fourth pass (L7-4b; Moscow ZP-06, NP-05): the workout's own name, a readable day, minutes with their unit.
+    const name = clean(String(last.workout ?? last.name ?? last.title ?? say(lang, 'a workout', 'een training')), 60), day = last.day ? dayText(String(last.day), env.healthDay.slice(0, 4)) : '';
+    const week = d.thisWeek ? say(lang, ` This week: ${d.thisWeek.workouts === 1 ? '1 workout' : `${d.thisWeek.workouts} workouts`}, ${d.thisWeek.minutes} min.`, ` Deze week: ${d.thisWeek.workouts} trainingen, ${d.thisWeek.minutes} min.`) : '';
+    return {kind: 'answer', text: say(lang, `Your last workout: ${name}${last.type ? ` (${last.type})` : ''}${day ? ` on ${day}` : ''}${last.minutes ? `, ${last.minutes} min` : ''}${last.sets ? `, ${last.sets === 1 ? '1 set' : `${last.sets} sets`}` : ''}.${week}`, `Je laatste training: ${name}${day ? ` op ${day}` : ''}${last.minutes ? `, ${last.minutes} min` : ''}.${week}`), calls: [r.record]};
   }
   if (STAKED.test(q)) {
     const r = run('staking_watch', {}, env); if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
     const d = dataOf(r.result), rows = (d.staking ?? []) as Data[];
     if (!rows.length) return {kind: 'answer', text: say(lang, 'No staking is tracked on this device yet, so nothing staked and no rewards to add up (none tracked, not zero). Staking shows a wallet’s delegations once you connect it there.', 'Er wordt op dit apparaat nog geen staking bijgehouden.') + open('staking'), calls: [r.record]};
-    return {kind: 'answer', text: [say(lang, 'Staking tracked in Wealth (watch-only):', 'Staking bijgehouden in Wealth (alleen bekijken):'), ...rows.slice(0, 8).map(s => `• ${clean(String(s.asset), 20)}: ${s.quantity}${s.value && s.value !== 'no price' ? ` (${money(s.value)})` : ''}${s.held ? ` · ${s.held}` : ''}`), say(lang, 'ZIGoals and ZIGi never stake, unstake, claim or move funds; Staking shows the network’s own figures.', 'ZIGoals en ZIGi staken, unstaken of claimen nooit.')].join('\n'), calls: [r.record]};
+    // Session AL fourth pass (L7-4b; Tokyo TK #7, TK:Z3, TK-049): a holding marked "for staking rewards" is the person's own
+    // entry in Wealth, not a delegation read from the network; said as such, with the amount grouped.
+    const qty = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n.toLocaleString('en-GB', {maximumFractionDigits: 8}) : String(v ?? ''); };
+    return {kind: 'answer', text: [say(lang, 'No delegation is read in a chat: what is staked on the network shows on Staking once a wallet is connected there. In Wealth, your own entries marked for staking (watch-only):', 'In een chat wordt geen delegatie gelezen: wat op het netwerk gestaket is, toont Staking zodra een wallet daar gekoppeld is. In Wealth, je eigen invoer voor staking (alleen bekijken):'), ...rows.slice(0, 8).map(s => `• ${qty(s.quantity)} ${clean(String(s.asset), 20)}${s.value && s.value !== 'no price' ? ` (${money(s.value)})` : ''}${s.held ? ` · ${say(lang, 'held for', 'voor')} ${s.held}` : ''}`), say(lang, 'ZIGoals and ZIGi never stake, unstake, claim or move funds.', 'ZIGoals en ZIGi staken, unstaken of claimen nooit.')].join('\n') + open('staking'), calls: [r.record]};
   }
   // P-NB-60 (NB-105): with no portfolio read here, "what is my portfolio worth" is answered from Wealth's own totals, labelled.
   if (/\bportfolios?\b[^?]{0,30}\b(?:worth|value|valued|total)\b|\b(?:worth|value) of my portfolios?\b/i.test(q)) {

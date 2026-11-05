@@ -31,3 +31,12 @@ export function followUpQuestion(question: string, previous: string | null): str
   if (!prev || FOLLOW.test(prev)) return null;
   return TIME_IN.test(prev) ? prev.replace(TIME_IN, when) : `${prev.replace(/[?.!]+$/, '')} ${when}?`;
 }
+
+/**
+ * Session AL fourth pass (lane L7-4b; Tokyo TK #14–#16, TK:Z12, C-TK-35): the question a follow-up refers to is the last one
+ * that was not itself a bare follow-up, so "How much ETH do I have?", "and in EUR?", "and BTC?" asks about BTC.
+ */
+export const isBareFollowUp = (text: string) => FOLLOW.test(text.trim()) || FOLLOW_ASSET.test(text.trim()) || /^(?:and|what about|how about)\s+(?:the\s+)?(?:first|second|third|last|for\s+\S.*)\s*\??$/i.test(text.trim());
+export function previousQuestion(asked: readonly string[]): string | null {
+  return asked.find(t => !isBareFollowUp(t)) ?? asked[0] ?? null;
+}

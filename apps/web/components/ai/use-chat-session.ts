@@ -56,7 +56,8 @@ import {localDate} from '../../lib/local-date';
 import {applyDayCue} from '../../lib/ai/actions/day-cue';
 import {reviseEdits} from '../../lib/ai/actions/revise';
 import {answerOnly, stripDeclinedBlocks} from '../../lib/ai/actions/decline';
-import {followUpQuestion} from '../../lib/ai/local-answers/followup';
+import {followUpQuestion, previousQuestion} from '../../lib/ai/local-answers/followup';
+import {novaWording} from '../../lib/ai/local-answers/nova-env';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {streamHosted} from '../../lib/ai/hosted';
 import type {HostedState} from './use-hosted';
@@ -300,10 +301,13 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
    */
   const guarded = useCallback((text: string, options: SendOptions = {}): boolean => {
     const hit = guardMessage(text); if (!hit) return false;
-    if (!options.reuse) answerLocally(text, text, {kind: 'answer', text: hit.text, calls: []}, {replace: options.replace, untrusted: true});
+    // Session AL fourth pass (L7-4b; Berlin BN-047, AL-COPY-060): in NOVA the guard's fixed reply speaks as NOVA ("NOVA is an
+    // app, not a counsellor"); its numbers and steps are the guard's own, unchanged.
+    const said = nova ? novaWording({kind: 'answer', text: hit.text, calls: []}, {healthScope: false, healthGate: false}) : {kind: 'answer' as const, text: hit.text, calls: []};
+    if (!options.reuse) answerLocally(text, text, said, {replace: options.replace, untrusted: true});
     zigiSignals.emit('careful_topic');
     return true;
-  }, [answerLocally]);
+  }, [answerLocally, nova]);
   const send = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
     if (looksSecret(text)) { setFailure({kind: 'blocked', title: ZIGI_SECRET_TITLE, steps: [...ZIGI_SECRET_STEPS]}); return; } // Session AK (B2a #1): refused before anything is stored or sent
@@ -568,11 +572,13 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     let reply: LocalReply = {kind: 'none'};
     try { if (env) reply = localAnswer(text, env); } catch { reply = {kind: 'none'}; }
     // Session AI (G4): "and yesterday?" after a question the device answered is that question for yesterday.
-    if (reply.kind === 'none' && env) { const previous = [...chatRef.current.turns].reverse().find(t => t.role === 'user')?.text ?? null, again = followUpQuestion(text, previous); if (again) { try { const r = localAnswer(again, env); if (r.kind === 'answer' || r.kind === 'choices') reply = r; } catch { /* the question as typed stands */ } } }
+    // Session AL fourth pass (L7-4b): the question a follow-up refers to skips earlier bare follow-ups ("and in EUR?", "and BTC?").
+    const previous = previousQuestion([...chatRef.current.turns].reverse().filter(t => t.role === 'user').map(t => t.text));
+    if (reply.kind === 'none' && env) { const again = followUpQuestion(text, previous); if (again) { try { const r = localAnswer(again, env); if (r.kind === 'answer' || r.kind === 'choices') reply = r; } catch { /* the question as typed stands */ } } }
     if (reply.kind === 'none' && connected) return send(text, options);
     if (reply.kind === 'none' && onDeviceOn()) return askOnDevice(text, env, options.replace);
     // Session AB-Cloud Part 9 (ADR-023 C30): without a model, the steps for a "create/plan" ask, or the examples in the question's language.
-    answerLocally(text, text, reply.kind === 'none' ? noModelReply(text, env) : reply, {replace: options.replace, results: resultsFor(reply, env), untrusted: !!options.pasted});
+    answerLocally(text, text, reply.kind === 'none' ? noModelReply(text, env, previous) : reply, {replace: options.replace, results: resultsFor(reply, env), untrusted: !!options.pasted});
   }, [answerLocally, askOnDevice, connected, guarded, localEnv, send]);
   const choose = useCallback((question: string, choice: LocalChoice) => {
     const env = localEnv(); if (!env || abort.current) return;

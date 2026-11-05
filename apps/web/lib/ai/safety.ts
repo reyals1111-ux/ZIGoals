@@ -14,31 +14,59 @@ export const RISK_TOPICS: readonly RiskTopic[] = ['self-harm', 'eating-disorder'
 const SELF_HARM = [
   /\b(kill|hurt|harm|cut|injure)(ing)? myself\b/, /\bend (it all|my life|things)\b/, /\bsuicid(e|al)\b/, /\bself[- ]?harm/, /\b(want|wanting|wish) to die\b/,
   /\bdon'?t want to (live|be alive|be here)\b/, /\bwish i (was|were) dead\b/, /\bno reason to live\b/, /\bbetter off (dead|without me)\b/,
+  // Session AL fourth pass (L7-4a; LA-002): the -ing and past forms ("I feel like ending it all").
+  /\b(ending|ended) (it all|my life)\b/, /\b(take|taking) my (own )?life\b/,
+  /\bmezelf (iets aan(doen| te doen)|van kant maken|ombrengen)\b/, /\ber een eind(e)? aan (maken|willen maken)\b/, /\buit het leven stappen\b/,
   /\bzelfmoord\b/, /\bdood willen\b/, /\bme suicider\b/, /\benvie de mourir\b/, /\bselbstmord\b/, /\bmich umbringen\b/, /\bsterben wollen\b/, /\bnicht mehr leben\b/, /\bniet meer leven\b/, /\bplus envie de vivre\b/,
 ];
 const EATING_DISORDER = [
   /\banorexi[ac]?\b/, /\bbulimi[ac]?\b/, /\bpurg(e|ed|es|ing)\b/, /\b(throw|throwing|threw) up after (eating|meals?|food|dinner|lunch|breakfast)\b/,
   /\bmake myself (sick|throw up|vomit)\b/, /\bmaking myself (sick|throw up|vomit)\b/, /\bbinge and purge\b/, /\bstarv(e|ing) myself\b/,
   /\blaxatives? to (lose|drop)\b/, /\bpro[- ]?ana\b/, /\beating disorder\b/, /\beetstoornis\b/, /\btrouble(s)? (du comportement )?alimentaire/, /\bessst(ö|oe)rung\b/,
+  // Session AL fourth pass (L7-4a; ZP-24, NP-18, N-MO-05): more forms, EN and NL.
+  /\b(vomit|vomiting|vomited|be sick|being sick) after (eating|meals?|food|dinner|lunch|breakfast)\b/, /\bthrow(ing)? up (what|everything) i eat\b/,
+  /\b(mezelf|me) (laten )?(overgeven|braken|uithongeren)\b/, /\b(overgeven|braken|kotsen) na (het )?(eten|maaltijden?|avondeten)\b/, /\buithongeren\b/, /\blaxeermiddel(en)? (om|voor) (af te vallen|gewicht)\b/,
 ];
-const KCAL = '(?:k?cal(?:ories)?|kcals?)';
+const KCAL = '(?:k?cal(?:ories|orieën|orieen)?|kcals?)';
 /** "I eat 600 kcal a day", "500 kcal/day" (Session AL, MO-053), "keep it under 700 calories", "only 500 calories today": a day under 800 kcal. */
 function veryLowIntake(text: string): boolean {
   const patterns = [new RegExp(`\\b(\\d{2,4})\\s*${KCAL}\\b[^.?!]{0,30}\\b(a|per|each|every)\\s+day\\b`), new RegExp(`\\b(\\d{2,4})\\s*${KCAL}\\s*(?:(?:a|per)\\s*day\\b|\\/\\s*(?:day|d)\\b|daily\\b|per dag\\b|een dag\\b|p\\.?d\\.?\\b)`),
-    new RegExp(`\\b(?:under|below|less than|max(?:imum)?|only|just|limit(?:ing)? (?:myself )?to|stay under|keep (?:it|myself) under)\\s+(?:(?:eat|eating|ate|have|having|had)\\s+)?(\\d{2,4})\\s*${KCAL}`)];
+    new RegExp(`\\b(?:under|below|less than|max(?:imum)?|only|just|limit(?:ing)? (?:myself )?to|stay under|keep (?:it|myself) under|maar|slechts|hooguit|maximaal|minder dan|onder)\\s+(?:(?:eat|eating|ate|have|having|had|eten)\\s+)?(\\d{2,4})\\s*${KCAL}`)];
   return patterns.some(p => { const m = p.exec(text); return !!m && Number(m[1]) > 0 && Number(m[1]) < 800; });
 }
-const WORD_NUMBERS: Record<string, number> = {a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, ten: 10};
+const WORD_NUMBERS: Record<string, number> = {a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, ten: 10, een: 1, 'één': 1, twee: 2, drie: 3, vier: 4, vijf: 5, zes: 6, zeven: 7, tien: 10};
 const amount = (v: string) => WORD_NUMBERS[v] ?? Number(v.replace(',', '.'));
 /** "lose 10 kg in 2 weeks", "drop 15 pounds in a week": more than about 1 kg (2 lb) a week. */
 function rapidWeightLoss(text: string): boolean {
   // Session X-Local Part 6b: "this week", "per week", "a week", "every week" are a one-week span too.
   const m = /\b(?:lose|losing|drop|dropping|shed|shedding|cut)\s+(\d+(?:[.,]\d+)?|a|one|two|three|four|five|six|seven|ten)\s*(kg|kgs|kilos?|kilograms?|lbs?|pounds?|stone)\s+(?:(?:in|within|by)\s+(?:(\d+|a|an|one|two|three|four|five|six|seven|ten)\s+)?(days?|weeks?|months?)|(?:this|per|a|every|each)\s+(week|day|month))\b/.exec(text);
-  if (!m) return false;
+  if (!m) return rapidWeightLossNl(text);
   const lost = amount(m[1]!), unit = m[2]!, count = m[3] ? amount(m[3]) : 1, span = m[4] ?? m[5]!;
   const kg = unit.startsWith('lb') || unit.startsWith('pound') ? lost * 0.4536 : unit === 'stone' ? lost * 6.35 : lost;
   const weeks = span.startsWith('day') ? count / 7 : span.startsWith('month') ? count * 4.35 : count;
   return weeks > 0 && kg / weeks > 1;
+}
+/** Session AL fourth pass (L7-4a): "10 kilo afvallen in 1 week", "in een week 5 kg kwijt": more than about 1 kg a week, in Dutch. */
+const NL_NUM = '(\\d+(?:[.,]\\d+)?|een|één|twee|drie|vier|vijf|zes|zeven|tien)';
+function rapidWeightLossNl(text: string): boolean {
+  const after = new RegExp(`\\b${NL_NUM}\\s*(?:kg|kilo'?s?)\\s+(?:afvallen|afgevallen|verliezen|kwijtraken|kwijt raken|kwijt|lichter)\\s+(?:in|binnen)\\s+(?:${NL_NUM}\\s+)?(dag|dagen|week|weken|maand|maanden)\\b`).exec(text);
+  const before = after ? null : new RegExp(`\\b(?:in|binnen)\\s+(?:${NL_NUM}\\s+)?(dag|dagen|week|weken|maand|maanden)\\s+(?:tijd\\s+)?${NL_NUM}\\s*(?:kg|kilo'?s?)\\s+(?:afvallen|verliezen|kwijtraken|kwijt|lichter)\\b`).exec(text);
+  const parts = after ? {lost: after[1]!, count: after[2], span: after[3]!} : before ? {lost: before[3]!, count: before[1], span: before[2]!} : null;
+  if (!parts) return false;
+  const kg = amount(parts.lost), count = parts.count ? amount(parts.count) : 1;
+  const weeks = parts.span.startsWith('dag') ? count / 7 : parts.span.startsWith('maand') ? count * 4.35 : count;
+  return weeks > 0 && kg / weeks > 1;
+}
+/** "I haven't eaten in 3 days", "no food for days", "al 3 dagen niet gegeten": two days or more without food (Session AL fourth pass, LA-036). */
+function daysWithoutFood(text: string): boolean {
+  const en = /\b(?:haven'?t|have not|hasn'?t|has not|didn'?t|did not|not|barely)\s+(?:eaten|eat|had (?:any )?food|had anything to eat|eaten anything)(?:\s+anything)?\s+(?:in|for)\s+(?:(?:over|more than|almost|nearly|about)\s+)?(?:(\d+|two|three|four|five|six|seven|ten|a few|several|many)\s+(days?|weeks?)|(days|a week|weeks))\b/.exec(text)
+    ?? /\b(?:eaten|had|eat|ate)\s+nothing\s+(?:in|for)\s+(?:(\d+|two|three|four|five|six|seven|ten|a few|several|many)\s+(days?|weeks?)|(days|a week|weeks))\b/.exec(text);
+  if (en) return !!en[3] || /^(?:a few|several|many)$/.test(en[1]!) || en[2]!.startsWith('week') || amount(en[1]!) >= 2;
+  const nl = /\b(?:al\s+)?(\d+|twee|drie|vier|vijf|zes|zeven|tien|een paar|een week|dagen)\s*(dagen|dag|weken|week)?\s+(?:niet|niks|niets)\s+(?:meer\s+)?gegeten\b/.exec(text)
+    ?? /\b(?:niet|niks|niets)\s+(?:meer\s+)?gegeten\s+(?:in|sinds|voor)\s+(\d+|twee|drie|vier|vijf|zes|zeven|tien|een paar)\s+(dagen|weken)\b/.exec(text);
+  if (!nl) return false;
+  if (/^(?:een paar|een week|dagen)$/.test(nl[1]!)) return true;
+  return !!nl[2] && (nl[2].startsWith('we') || amount(nl[1]!) >= 2);
 }
 /** Fasting for 48 hours or more, several days without food, or a dry fast. */
 function extremeFasting(text: string): boolean {
@@ -48,7 +76,10 @@ function extremeFasting(text: string): boolean {
   if (hours && Number(hours[1]) >= 48) return true;
   const without = /\b(?:not eat(?:ing)?|no food|without (?:eating|food))\s+for\s+(\d+|two|three|four|five|six|seven|ten|a week)\s*(days?|weeks?)?\b/.exec(text);
   if (without && (without[1] === 'a week' || amount(without[1]!) >= 2 || without[2]?.startsWith('week'))) return true;
-  return /\bdry fast(?:ing)?\b/.test(text);
+  if (daysWithoutFood(text)) return true;
+  const nlDays = /\b(\d+|twee|drie|vier|vijf|zes|zeven|tien)[- ]?(?:daagse|dagen)\s+(?:water)?vast(?:en|kuur)\b/.exec(text);
+  if (nlDays && amount(nlDays[1]!) >= 2) return true;
+  return /\bdry fast(?:ing)?\b|\bdroog vasten\b/.test(text);
 }
 /** The first topic the words touch, most serious first; null for anything else. */
 export function detectRisk(raw: string): RiskTopic | null {

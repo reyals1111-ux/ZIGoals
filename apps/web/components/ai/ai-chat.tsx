@@ -1,5 +1,7 @@
 'use client';
 import {ZigiPartBoundary} from '../zigi/part-boundary';
+import {rememberCardText} from '../../lib/ai/local-answers/al-fourth';
+import {localReplyHandles} from '../../lib/ai/actions/local-handles';
 import Link from 'next/link';
 import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
@@ -57,7 +59,6 @@ import type {ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {photoAllowance, preparePhoto, type Photo, type PhotoAllowance} from '../../lib/ai/photo';
 import type {ChatImage} from '../../lib/ai/types';
 import {useRouter} from 'next/navigation';
-import {actionSchema} from '../../lib/ai/actions/schema';
 import {turnMarkdown} from '../../lib/ai/continue';
 import {stripHint} from '../../lib/ai/emotion-hint';
 import {lastQuestion} from '../../lib/ai/session';
@@ -83,7 +84,7 @@ import {localDate} from '../../lib/local-date';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
 // Session AL (lane L7; ZI1 family): no Quick add preview under a question, a negation, a careful topic or a guarded message.
 import {guardMessage} from '../../lib/ai/safety-guard';
-import {quickAddOffered} from '../../lib/ai/actions/decline';
+import {quickAddUnder, quickAddOffered} from '../../lib/ai/actions/decline';
 import {readDraft, writeDraft} from '../../lib/ai/composer-draft';
 import {PremiumBadge} from '../plans/premium-badge';
 import {copyText, nextFrame} from '../../lib/ai/chat-window';
@@ -440,20 +441,21 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   const label = turn.source === 'on-device' ? ON_DEVICE_LABEL : LOCAL_LABEL;
   // Session AF (L4): a card ZIGi made on this device names a habit by its exact title (a Checklist command, a timer), so
   // the person's habits are its handles; the device wrote the words itself from the records, no model was involved.
-  const localHandles = useMemo(() => runner.stores.habits.habits.map((h, i) => ({handle: `h${i + 1}`, kind: 'habit' as const, id: h.id, label: h.title})), [runner.stores.habits.habits]);
+  // Session AL fourth pass (L7-4b; DV-079): habits and open goals by their titles, so a goal card made here resolves on Goals.
+  const localHandles = useMemo(() => localReplyHandles(runner.stores), [runner.stores]);
   const copy = () => { copyText(`${shown}\n\n${label}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
   return <article ref={turnBox} className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       <TurnKind cards={!!parsed && parsed.proposals.length > 0}/>
       {!quiet && <SafeText className="ai-local-answer" text={shown}/>}
-      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
+      {parsed && parsed.proposals.length > 0 && <ProposalList onDevice proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
       <DataViz results={info?.results}/>
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
       {chips.length > 0 && !quiet && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
-      {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)}/></Suspense></ZigiPartBoundary></div>}
+      {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && quickAddUnder(reply) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)}/></Suspense></ZigiPartBoundary>{cardShown && !context.gates.localHealth && HEALTH_LINE.test(question) && <p className="ai-note">Health isn’t shared with ZIGi, but saving this line still saves it to Health.</p>}</div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
         <summary>What your AI sees if you ask for more</summary>
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
@@ -623,16 +625,12 @@ function MicGlyph({on}: {on: boolean}) {
 export type ComposerExtra = {images?: readonly ChatImage[]; log?: boolean; direct?: boolean; plan?: boolean; replace?: string};
 /** The last question put back in the composer to be edited (Session V Part 10); `seq` tells two edits of one turn apart. */
 type Editing = {id: string; text: string; seq: number};
+/** Session AL fourth pass (L7-4b; Lisbon #280–289d, LA-032): a line Quick add saves to Health (water, a run, sleep, weight, food). */
+const HEALTH_LINE = /\b(?:water|glass(?:es)?|ml|litres?|liters?|ran|run|walked|walk|km|steps?|slept|sleep|weigh\w*|kg|lbs?|ate|eat|breakfast|lunch|dinner|snack|kcal|calories|workout|push-?ups?)\b/i;
 const NEEDS_AI = 'This command needs your own AI connected (Settings → ZIGi · Your Personal AI Companion). Here, ZIGi answers questions about your records on this device, with no AI.';
 /** /remember: the person's words as a "Remember this?" card, in the same action block an AI reply would use (Session V Part 10). */
-function rememberReply(rest: string): string {
-  if (!rest) return 'Type what ZIGi should remember after /remember, for example: /remember I train before work.';
-  const parsed = actionSchema.safeParse({kind: 'remember', text: rest});
-  if (!parsed.success) return 'That is too long to keep as one note: 500 characters at most.';
-  // Backticks are escaped inside the block (JSON's \u0060), so the words can never close it early.
-  const json = JSON.stringify(parsed.data).replace(/`/g, '\\u0060');
-  return `Here is your note as a card: nothing is kept until you add it.\n\n\`\`\`zigoals-action\n${json}\n\`\`\``;
-}
+// Session AL fourth pass (L7-4b; N-MO-04): the note's category is read from its words (lib/ai/local-answers/al-fourth.ts).
+const rememberReply = (rest: string): string => rememberCardText(rest, 'ZIGi');
 const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; title?: string; local: boolean; chips?: ReactNode; onAsked?: (text: string) => void; onSpoken?: () => void; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; onAbout?: (about: AskAbout | undefined) => void; photo?: PhotoAllowance; providerName?: string;
   onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onSpoken, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
   // Session AL (L7; D7): the words typed so far live in this page's memory too, so a remount (on-device → connected) keeps them.

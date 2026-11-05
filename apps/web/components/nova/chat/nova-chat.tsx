@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {rememberCardText} from '../../../lib/ai/local-answers/al-fourth';
 import {useRouter} from 'next/navigation';
 import {useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
 import {hasOpenFence, parseReply} from '../../../lib/ai/actions/parse';
@@ -179,6 +180,8 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
         if (prefs.readAloud && !vprefs.muted) reader.speak(text.replace(BRIEF_LABEL, ''));
         return true;
       }
+      // Session AL fourth pass (L7-4b; Moscow NP-30): /remember is a note card here too, never a trip to ZIGi's panel.
+      case '/remember': say(typed, rememberCardText(rest, 'NOVA')); return true;
       default: say(typed, `${name} opens a view in ZIGi’s panel: open ZIGi with ⌘/Ctrl + Shift + Z. Everything else works here.`); return true;
     }
   }, [ask, connected, context, localEnvNow, reader, say, sensitive, vprefs.muted]);
@@ -249,10 +252,23 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const latestId = useMemo(() => latestNovaChat(bridge.data), [bridge.data]), [lastChat, setLastChat] = useState<{id: string; title: string} | null>(null);
   useEffect(() => {
     let live = true;
-    if (!latestId || latestId === session.chat.id) { setLastChat(null); return; }
-    currentChatStore().read(latestId).then(found => { if (live) setLastChat(found && found.turns.length ? {id: latestId, title: found.title} : null); }, () => { if (live) setLastChat(null); });
+    // Session AL fourth pass (L7-4b; Moscow MO-054, MO-062, MO:Z-043, Denver N-DV-03): the history is shared, so a chat started
+    // with ZIGi (on Habits, say) is offered too: the newest conversation with turns, NOVA's own or ZIGi's, never this one.
+    const store = currentChatStore();
+    store.list().then(async all => {
+      const newest = all.filter(c => c.turnCount > 0 && c.id !== session.chat.id).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+      const id = newest?.id ?? (latestId && latestId !== session.chat.id ? latestId : null);
+      const found = id ? await store.read(id) : null;
+      if (live) setLastChat(found && found.turns.length ? {id: found.id, title: found.title} : null);
+    }).catch(() => { if (live) setLastChat(null); });
     return () => { live = false; };
   }, [latestId, session.chat.id]);
+  // Session AL fourth pass (L7-4b; Nairobi N-NB-17, Tokyo TK-074, N-TK-29): NOVA opens with its field ready to type in, as
+  // ZIGi's panel does, unless something else already holds the focus; on touch screens the keyboard is not opened by itself.
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => { const at = document.activeElement, fine = window.matchMedia?.('(pointer: fine)').matches ?? true; if (fine && (!at || at === document.body)) composer.current?.focus({preventScroll: true}); });
+    return () => window.cancelAnimationFrame(id);
+  }, []);
   const handoff = useRef<() => void>(() => undefined);
   handoff.current = () => {
     const taken = takeNovaHandoff(); if (!taken) return;

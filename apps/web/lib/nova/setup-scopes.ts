@@ -23,8 +23,17 @@ export function packPrivacyMode(mode: PrivacyMode | null, target: {provider: Pro
   return sendDecision(mode, target) === 'redact' ? 'guarded' : null;
 }
 /** Planet 5's check: every pillar in the pack belongs to an open scope, and no open scope's records were left out unread. */
-export function checkNovaScopes(scopes: NovaScopes, pack: Pick<NovaPack, 'included' | 'notShared'>, chainChosen: boolean, healthGate: boolean): CheckResult {
+/**
+ * Session AL fourth pass (lane L7-4b; Lisbon LA-003, Denver DV-062, Moscow MO-058, X3-11, X3-23): with no model connected
+ * nothing is sent, so the preview (the send's own input, security review Z1A-10) is empty; the check says that, and what
+ * NOVA will read once a model is connected, instead of blaming page switches that are on.
+ */
+export function checkNovaScopes(scopes: NovaScopes, pack: Pick<NovaPack, 'included' | 'notShared'>, chainChosen: boolean, healthGate: boolean, connected = true): CheckResult {
   const leaked = pack.included.filter(p => !scopeOpen(scopes, PILLAR_SCOPE[p], chainChosen) || (PILLAR_SCOPE[p] === 'health' && !healthGate));
+  if (!connected && !pack.included.length) {
+    const will = (Object.keys(scopes) as (keyof NovaScopes)[]).filter(s => scopeOpen(scopes, s, chainChosen) && (s !== 'health' || healthGate)).map(s => NOVA_SCOPE_LABELS[s].split(':')[0]);
+    return {ok: true, note: `No model is connected yet, so nothing is sent and the preview is empty. Once one is, NOVA reads ${will.length ? will.join('; ') : 'nothing (every area is off)'}, as NOVA → Permissions and the page switches say. Health: ${scopes.health && healthGate ? 'on' : 'off'}.`};
+  }
   if (leaked.length) return {ok: false, note: `The preview holds something you did not share (${leaked.join(', ')}). Reload and check again.`};
   const open = (Object.keys(scopes) as (keyof NovaScopes)[]).filter(s => scopeOpen(scopes, s, chainChosen) && (s !== 'health' || healthGate));
   // Session AL (lane L7; Lisbon LA-003, Denver DV-062, Moscow MO-058; P-LA-05, P-DV-91, P-MO-14): the check and the preview
@@ -37,3 +46,4 @@ export function checkNovaScopes(scopes: NovaScopes, pack: Pick<NovaPack, 'includ
   const none = quiet.length ? ` Nothing recorded yet in: ${quiet.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}.` : '';
   return {ok: true, note: seen.length ? `NOVA can see: ${seen.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}.${none} ${health}` : open.length ? `NOVA may read ${open.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}, but nothing there holds records yet. ${health}` : `NOVA sees no records. ${health}`};
 }
+

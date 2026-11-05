@@ -12,7 +12,7 @@ import {attachesContext} from './context/pages';
  * - Settings attaches nothing (its account, sync and recovery controls are there), and a sensitive screen reads nothing;
  * - the person's notes for ZIGi (Part 8) follow the same page rule, and those about health or diet need the Health gate.
  * `local` is the narrower set ZIGi may read to answer on this device with no AI at all (local answers, chips, the brief):
- * every area works before setup because nothing leaves the device, except Health, which still needs its gate.
+ * every area whose page switch is on works before setup because nothing leaves the device; Health still needs its gate.
  * Every consumer receives Health as `null` when `health` is false, so no code path can read it by mistake.
  */
 export type AreaFlags = Record<PageArea, boolean>;
@@ -50,7 +50,11 @@ export function aiGates(input: GatesInput): Gates {
   const areas: AreaFlags = connected && attaches
     ? {today: share.today, goals: share.goals, habits: share.habits, health, wealth: share.wealth, help: share.help}
     : NONE;
-  const local: AreaFlags = {today: true, goals: true, habits: true, health, wealth: true, help: true};
+  // Session AL fourth pass (L7-4b; Lisbon LA-004, Z060/Z061, LA-026, MO-059, NB-112, PR-005, X3-14): a page switch the person
+  // turned off ("Habits page data") closes that area for the on-device answers too, as Settings says; ZIGi and NOVA read
+  // through these same flags (lib/nova/local-env.ts). Before, ZIGi still listed the habits, their Checklist titles and the
+  // streaks. Wealth stays open on the device as lib/nova/zf-security.test.ts (Z1A-9) pins it: the integrator's call.
+  const local: AreaFlags = {today: share.today, goals: share.goals, habits: share.habits, health, wealth: true, help: share.help};
   return {connected, paused: false, page, areas, health: connected && attaches && health, local, localHealth: health, notes: connected && attaches, reasons: page.reasons};
 }
 /** The defaults before anything was chosen, for tests and for the shell: nothing shared, nothing paused. */

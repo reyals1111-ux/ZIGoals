@@ -142,7 +142,8 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
     if (items.length) { anything = true; lines.push(say(lang, `Also planned today: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${i.kind})`).join(', ')}`, `Ook gepland vandaag: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${AGENDA_KIND_NL[i.kind] ?? i.kind})`).join(', ')}`)); }
   }
   const head = say(lang, `Today (${dayText(today)}), from your own records:`, `Vandaag (${dayText(today)}), uit je eigen gegevens:`);
-  const tail = anything ? say(lang, 'Titles and times, no amounts; each item opens where it lives.', 'Titels en tijden, geen bedragen; elk item opent waar het staat.') : say(lang, 'Nothing else is due today in your records.', 'Verder staat er vandaag niets in je gegevens.');
+  // Session AL fourth pass (L7-4b; Denver N-025): a habit's own target is shown ("0 of 2 liters"), so the line names what stays out: money.
+  const tail = anything ? say(lang, 'Titles, times and habit targets, no money amounts; each item opens where it lives.', 'Titels, tijden en gewoontedoelen, geen geldbedragen; elk item opent waar het staat.') : say(lang, 'Nothing else is due today in your records.', 'Verder staat er vandaag niets in je gegevens.');
   return {kind: 'answer', text: [head, ...lines.map(l => `• ${l}`), tail].join('\n'), calls};
 }
 

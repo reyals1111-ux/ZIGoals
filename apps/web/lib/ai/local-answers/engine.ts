@@ -22,6 +22,7 @@ import {novaOverviewAnswer} from './nova-overview';
 import {questionLanguage} from './no-model';
 import {isStreakBreak, streakBreakWords} from './p14b';
 import {isFoodEstimateAsk} from './al-third';
+import {safetyFirst} from '../safety-guard';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -116,6 +117,13 @@ const ASSET_NAMES: Record<string, string> = {bitcoin: 'BTC', bitcoins: 'BTC', et
 const MIN_UNITS = new Set(['minutes', 'minute', 'min', 'mins']);
 
 type HabitHit = {habit: Habit; strength: 'strong' | 'weak' | 'partial'};
+/**
+ * Session AL fourth pass (lane L7-4b; Lisbon #038, #240, LA-005, C-LA-09): the words every question about habits or goals
+ * carries ("How many habits are left today?", "my A goal") never name a record by themselves: a habit called "… delete all
+ * my habits" was answered for "How many habits are left today?". A title made only of such words is matched whole.
+ */
+const GENERIC = new Set(['habit', 'habits', 'goal', 'goals', 'today', 'done', 'left', 'open', 'all', 'and', 'also', 'only', 'with', 'the', 'for', 'this', 'that', 'what', 'how', 'many', 'much', 'are', 'your']);
+const meaningful = (t: string) => t.length >= 3 && !GENERIC.has(t);
 const words = (q: string) => normalise(q).split(' ').filter(Boolean);
 // ADR-022 B51: a prefix match needs five letters on both sides (stems already fold inflections), so "lately" no longer names a "Late-night" habit.
 const close = (a: string, b: string) => a === b || (a.length >= 5 && b.length >= 5 && (a.startsWith(b) || b.startsWith(a)));
@@ -124,7 +132,7 @@ function habitHits(env: ToolEnv, q: string): HabitHit[] {
   const qStems = words(q).map(stem), hits: HabitHit[] = [];
   for (const habit of env.habits.habits) {
     if (latestHabitRule(habit).state === 'archived') continue;
-    const title = tokens(habit.title).map(stem).filter(t => t.length >= 3);
+    const title = tokens(habit.title).map(stem).filter(meaningful);
     if (!title.length) continue;
     const present = title.filter(t => qStems.some(w => close(w, t)));
     if (!present.length) continue;
@@ -179,6 +187,9 @@ const GOVERNANCE_ASK = /\b(?:governance|proposals?|quorum|veto|voting period|dep
 const TWO_QUESTIONS = /\b(?:what|how|which|who|where|when|why|is|are|does|do)\b[^?]{2,}?,?\s+and\s+(?:what|how|which|who|where|when|why)\s+(?:is|are|does|do|did|much|many|long|about)\b/i;
 export function strongMatchOnly(question: string): boolean { return GOVERNANCE_ASK.test(question) || TWO_QUESTIONS.test(question); }
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
+  // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
+  // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.
+  if (safetyFirst(question)) return NONE;
   if (!subject && strongMatchOnly(question)) return NONE;
   // Session AL third pass (L7; P14-B): "how many calories in my plate of pasta" asks about a food, not today's diary. The
   // lookups stay out: the person's AI answers it, or with none, no-model.ts says what the food library holds.
@@ -337,6 +348,9 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   if (ACTION.test(q) || STATEMENT.test(q) || MIXED.test(q)) return NONE;
   if (ADVICE.test(q)) return NONE;
   const habitList = habitListAnswer(env, q); if (habitList) return habitList;
+  // Session AL fourth pass (L7-4b; Moscow ZP-05, NP-04): "calories and macros" is the macros answer (al-more.ts), never kcal alone;
+  // a spending question about food is Wealth's (ai-session.ts), never the diary (Nairobi P26, NB:N-065).
+  if (!subject && (/\bmacros?\b/.test(q) || /\bspen[dt]\b|\bspending\b/.test(q))) return NONE;
   if (env.areas.today === false && env.areas.habits === false && env.areas.goals === false && env.areas.wealth === false && !env.health) return {kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []};
   // A lookup asks: question words, or a figure's name ending in a question mark ("Minutes of reading this month?").
   const asked = /\?\s*$/.test(q) && (W.minutes.test(q) || W.streak.test(q) || W.average.test(q) || W.rate.test(q) || /\b(steps|water|calories|protein)\b/.test(q) || WEALTH_TOTAL.test(q) || OWE.test(q));
@@ -352,13 +366,25 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   const ranges = (today: string) => findRanges(q, today);
   // Wealth first: a coin or asset the person holds, or the wealth total.
   const asset = mentionedAsset(env, q);
-  if (WEALTH_TOTAL.test(q)) return wealthTotal(env);
+  // Session AL fourth pass (Tokyo TK #4–#6, TK-049): "what changed in my wealth", "how much of my wealth is crypto" and "can you
+  // export my wealth data" ask something else than the total; their own answers come after (ai-session.ts, al-fourth.ts).
+  if (WEALTH_TOTAL.test(q) && !/\b(?:chang\w*|moved?|crypto\w*|share|percent\w*|export\w*|download|backup)\b|%/.test(q)) return wealthTotal(env);
   if (PORTFOLIO_WORTH.test(q) && env.portfolio) return portfolioAnswer(env);
-  if (asset && HOLD.test(q) && !CONTRIBUTION.test(q)) return holding(env, asset);
+  // Session AL fourth pass (Tokyo TK #7, TK:Z3): "how much ZIG have I staked?" asks about staking, never the holding.
+  if (asset && HOLD.test(q) && !CONTRIBUTION.test(q) && !/\bstak(?:e|ed|ing)\b|\brewards?\b/.test(q)) return holding(env, asset);
   // Session W Part 21: accounts and debts, chess, My links, challenges and milestones (each behind its own area's switch),
   // and mindful minutes (Health). A habit the question names keeps its answer: "how often did I play chess" with a habit
   // called Chess, and "meditation" with a habit called Meditate, stay habit answers.
   if (OWE.test(q)) return accountsAnswer(env, q);
+  // Session AL fourth pass (Denver N-028, N-029, N-037, N-039, DV-063a, DV-076): a goal the question names by its whole name,
+  // or with the word "goal", is that goal: "my chess goal" is "Reach a chess rating", "my 52-week savings challenge" is the
+  // goal of that name, never the chess ratings or a habit challenge.
+  if (!subject && !MILESTONE.test(q) && (CHESS.test(q) || CHALLENGE.test(q))) {
+    const named = mentionedGoals(env, q), whole = named.filter(g => namesGoal(g.name, q));
+    const pick = whole.length ? whole : /\bgoal\b/.test(q) && (CHESS.test(q) || CHALLENGE.test(q)) ? named : [];
+    // "Is my 52-week savings challenge on track?": the on-track answer for that goal (ai-session.ts) comes after the lookups.
+    if (pick.length === 1) return /\bon (?:track|schedule)\b/.test(q) ? NONE : goalProgress(env, pick[0]!.key, q);
+  }
   if (CHESS.test(q) && (CHESS_SITE.test(q) || !strongestHabits(habitHits(env, q), q).some(h => h.strength === 'strong'))) return chessAnswer(env, q, ranges(env.habitDay));
   if (LINKS.test(q)) return linksAnswer(env);
   if (CHALLENGE.test(q)) return challengesAnswer(env);
@@ -625,9 +651,16 @@ function diaryAnswer(env: ToolEnv, found: DayRange[]): LocalReply {
   const multi = range.from !== range.to;
   return {kind: 'answer', text: lines(`You logged ${plural(d.count, 'item')} ${when}:`, [...entries.slice(0, 12).map(e => `${multi ? `${dayText(e.date, env.healthDay.slice(0, 4))}, ` : ''}${e.meal}: ${e.item} (${e.servings} ${e.servings === '1' ? 'serving' : 'servings'}, ${typeof e.kcal === 'number' ? `${n(e.kcal, 0)} kcal` : 'kcal unknown'})`), entries.length > 12 && `${plural(entries.length - 12, 'more item')} in Health`]), calls: [r.record]};
 }
+/** The goal's whole name stands in the question as written ("my 52-week savings challenge", "my A goal"). */
+const namesGoal = (name: string, q: string) => { const n = normalise(name); return n.length >= 3 && ` ${normalise(q)} `.includes(` ${n} `); };
 function mentionedGoals(env: ToolEnv, q: string) {
   const all = summaries(env).filter(g => g.status !== 'closed'), stems = words(q).map(stem);
-  const scored = all.map(goal => { const t = tokens(goal.name).map(stem).filter(x => x.length >= 3); return {goal, hits: t.filter(x => stems.some(w => close(w, x))).length, size: t.length}; }).filter(s => s.hits > 0);
+  const scored = all.map(goal => {
+    const t = tokens(goal.name).map(stem).filter(meaningful);
+    // "A goal", "B goal": no word of its own, so only the whole name, as written, names it.
+    if (!t.length) return {goal, hits: namesGoal(goal.name, q) ? 1 : 0, size: 1};
+    return {goal, hits: t.filter(x => stems.some(w => close(w, x))).length, size: t.length};
+  }).filter(s => s.hits > 0);
   if (!scored.length) return [];
   const best = Math.max(...scored.map(s => s.hits / Math.max(s.size, 1)));
   return scored.filter(s => s.hits / Math.max(s.size, 1) === best).map(s => s.goal);
@@ -805,7 +838,8 @@ function bestStreakAnswer(env: ToolEnv): LocalReply {
     const st = dataOf(s.result).streak as {current: number; best: number; unit: string};
     found.push({title: clean(h.title, 60), best: st.best, current: st.current, unit: st.unit.replace(/s$/, '')});
   }
-  if (!found.length) return {kind: 'answer', text: 'No streak yet: the first check-in starts one.', calls};
+  // Session AL fourth pass (Lisbon LA-004): Habits not shared is said as such, never "No streak yet" (Drink water had one).
+  if (!found.length) { const first = calls.length ? runTool('habit_stats', {habit: clean(habits[0]!.title, 60), metric: 'streak'}, env) : null; if (first && !first.ok) return {kind: 'refusal', text: first.refusal, calls}; return {kind: 'answer', text: 'No streak yet: the first check-in starts one.', calls}; }
   found.sort((a, b) => b.best - a.best);
   // ZI3 (tied streaks): habits that share the longest streak are named together, never one of them as "the" longest.
   const top = found[0]!, tied = found.filter(f => f.best === top.best && f.unit === top.unit), rest = found.filter(f => !tied.includes(f)).slice(0, 2).filter(f => f.best > 0);

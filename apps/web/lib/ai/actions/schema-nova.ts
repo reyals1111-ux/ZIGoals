@@ -35,8 +35,11 @@ const clock = z.string().trim().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'A time is 
 
 export const NOVA_ACTION_SCHEMAS = [
   z.strictObject({kind: z.literal('add-task'), title: text(140), due: z.union([z.literal('today'), z.literal('tomorrow'), isoDay]).optional(), time: clock.optional(),
-    priority: z.enum(NOVA_TASK_PRIORITIES).optional(), goal: text(120).optional()})
-    .refine(a => a.time === undefined || a.due !== undefined, 'A time belongs to a day: give "due" as well.'),
+    priority: z.enum(NOVA_TASK_PRIORITIES).optional(), goal: text(120).optional(),
+    // Session AL fourth pass (L7-4b; Lisbon #008, LA-008, C-LA-01): "every Monday" kept as the task's own repeat (Tasks' rule).
+    repeat: z.strictObject({every: z.enum(['day', 'week', 'month', 'year']), interval: z.number().int().min(1).max(365).default(1), weekdays: z.array(z.number().int().min(0).max(6)).min(1).max(7).optional()}).optional()})
+    .refine(a => a.time === undefined || a.due !== undefined, 'A time belongs to a day: give "due" as well.')
+    .refine(a => a.repeat === undefined || a.due !== undefined, 'A repeating task needs its first day: give "due" as well.'),
   z.strictObject({kind: z.literal('log-workout'), name: text(80).optional(), type: z.enum(AK_WORKOUT_TYPES).default('other'), minutes: z.number().int().min(1).max(600),
     day: z.union([z.literal('today'), z.literal('yesterday'), isoDay]).default('today'), time: clock.optional(), note: z.string().trim().max(500).optional()}),
   z.strictObject({kind: z.literal('capture-note'), text: text(MAX_NOVA_NOTE), title: z.string().trim().max(120).optional()}),

@@ -61,10 +61,13 @@ export function planNovaAction(action: Action, env: Env, h: AaHelpers): PlanResu
       if (record.tasks.some(t => !t.doneAt && fold(t.title) === fold(title) && (t.due ?? null) === (due ?? null))) return h.refuse(`"${short(title)}" is already on your tasks${due ? ` for ${formatDate(due)}` : ''}.`);
       const id = newId('task'), priority = action.priority ?? 'normal';
       const when = due ? `Due ${formatDate(due)}${action.time ? ` at ${formatClock(action.time)}` : ''}` : 'No day yet (on your task list until you give it one)';
-      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Task: ${title}`, lines: [when, ...(priority !== 'normal' ? [`Priority: ${priority}`] : []), ...(goal ? [`For your goal ${goal.name}`] : []),
+      const repeat = action.repeat ? {every: action.repeat.every, interval: action.repeat.interval ?? 1, ...(action.repeat.weekdays ? {weekdays: action.repeat.weekdays} : {})} : null;
+      const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const repeats = repeat ? `Repeats every ${repeat.interval > 1 ? `${repeat.interval} ${repeat.every}s` : repeat.every}${repeat.weekdays?.length ? ` on ${repeat.weekdays.map(d => DAYS[d]).join(', ')}` : ''}` : null;
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Task: ${title}`, lines: [when, ...(repeats ? [repeats] : []), ...(priority !== 'normal' ? [`Priority: ${priority}`] : []), ...(goal ? [`For your goal ${goal.name}`] : []),
         ...(due ? ['It shows on the agenda that day'] : []), 'Undo takes it off again; change it later in your tasks'], where: 'Tasks', day: due ?? null, estimate: false},
         write: () => ({}), undo: null, ak: {button: 'Add the task'},
-        device: {key: TASKS_KEY, patch: {add: {id, title, priority, ...(due ? {due} : {}), ...(action.time ? {time: action.time} : {}), ...(goal ? {goal: goalKeyOf(goal.id)} : {}), at, today}}, label: `Task added: ${short(title)}`,
+        device: {key: TASKS_KEY, patch: {add: {id, title, priority, ...(due ? {due} : {}), ...(action.time ? {time: action.time} : {}), ...(goal ? {goal: goalKeyOf(goal.id)} : {}), ...(repeat ? {recur: repeat} : {}), at, today}}, label: `Task added: ${short(title)}`,
           undo: {patch: {remove: {id, title, createdAt: at}}, label: 'Take the task off again'}}}};
     }
     case 'log-workout': {
