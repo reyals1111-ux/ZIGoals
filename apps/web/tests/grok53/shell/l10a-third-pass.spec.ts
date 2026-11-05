@@ -25,8 +25,9 @@ test('DV-256 / DV-261: plain captions in More and on Settings, and a named theme
   await page.setViewportSize({width: 388, height: 844});
   await applyTheme(page, 'light'); await freshDevice(page);
   await ready(page, '/app/settings');
-  await expect(page.locator('.phone-settings')).toContainText('Encrypted backup and copies of each area');
-  await expect(page.locator('.phone-settings')).not.toContainText('module copies');
+  // Session AL (fix-up, spec): the phone's Settings rows are .phone-settings-list (components/phone/phone-settings.tsx).
+  await expect(page.locator('.phone-settings-list')).toContainText('Encrypted backup and copies of each area');
+  await expect(page.locator('.phone-settings-list')).not.toContainText('module copies');
   await page.getByRole('button', {name: 'More', exact: true}).click();
   const more = page.getByRole('dialog').filter({has: page.getByRole('link', {name: 'Help', exact: true})});
   await expect(more.locator('[data-note="Backups, privacy, display and the demo tour"]')).toHaveCount(1);
