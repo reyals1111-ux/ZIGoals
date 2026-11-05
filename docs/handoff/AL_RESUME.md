@@ -47,26 +47,26 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - One production build per integration point, shared; never one per helper.
 - Weekly reset: Sunday 12:00 Brussels; no extra usage. Before the limit: all committed and pushed, this file current, the task list true; never commit a half-finished fix.
 
-## Lanes in flight (6 Nov, evening)
-- **All CI fix lanes are committed (head `18330e5e`, tree clean):** CI1 `305cb322`, CI2 `2decc91b`, CI3 `0bd34036`,
-  CI4 `db3d9bd2` + `18330e5e`, CI5 `f982d6a9` (TIER 3) + `9148262a`, CI6 `c8d78e0e`, CI7 in `18330e5e`; verifier pin
-  `f4079ea9` (TIER 3); theme sheets regenerated. Full unit suite: only the sandbox-only pre-run11-setup failure left.
-- **CI run 1561 (head 22137364):** ~77 browser failures (from 389), the Alpha gate's packaged-runtime artifact test and the
-  integration job; list in the scratchpad ci/fail-1561.txt (also: local batch runs on :3103 → /tmp/claude-0/nb/run{1,2}.log).
-- **Running (4, the cap):** CI8 (wizard focus vs skip link, NOVA focus under the pinned field, Habits "Completion count"),
-  CI9 (React #418 server-vs-browser dates, ui-design-pass:105), CI10 (P13 consistency, Settings fold, L6/L1 grok53 specs,
-  Tasks theme parity), CI11 (governance, j03, pages-visibility, phone-shell, health/habit/recovery specs, search-aa,
-  earn-plain-words, page-marks, l10a-third, a11y-wcag-x, WebKit twins, packaged-runtime, integration).
-- **Waiting for a slot (CI12, ZIGi):** zigi-face-z, zigi-knock, zigi-memory, zigi-oneline-z, zigi-page-awareness-af,
-  zigi-personality, zigi-phone-rest, grok53/ai/l7-fourth-answers and l7-fourth-safety (all in CI run 1561).
-- :3103 serves `18330e5e` (one shared build).
+## Lanes in flight (5 Nov, night)
+- **Committed through `9d563c8f`:** CI1–CI12 (see the commits), CI11's turnout item `14958e1a`, CI13 page weights `9d563c8f`
+  (Settings, Staking, Goals, Portfolio, Journey estimated under budget; measured after the next build).
+- **CI run 1569 (head `14958e1a`):** 6 browser failures (from ~77 in run 1561) plus page weights in the integration job
+  (all its tests passed): `grok53/hud/hud-perf:23` (median 33.4 ms at CPU 4x, guard 20), `grok53/chain/bn-018-023:15`
+  (rate field not aria-invalid), `brand-nav-polish:165` (no `.today-hero .hero-star`), `theme-parity-af:15` mobile
+  /app/ecosystem (light boxes 1–3 px taller), WebKit `grok53/tasks/ls-006-043:11` on /app (Ctrl+Shift+Z does nothing),
+  WebKit `zigi-accept-correct:271` add-link (same run had a WebKit compositor segfault: class B?).
+- **Running (4, the cap):** CI14 page weights second pass (Today, Health, Activity, Checklist, Habits, Earn, Agenda,
+  Tasks), CI15 HUD frame time, CI16 the three Chromium specs, CI17 the WebKit shortcut.
+- **Unit suite on `9d563c8f`:** 4 failing files reported (one is `lib/vault/zod-jitless.test.ts`, a 120 s timeout under
+  load); a full re-run is identifying the other three before a follow-up commit (CI13's message said exit 0: the pipe hid it).
 - **Open from the CI lanes (not CI failures):** PR-069 path label numbers closed by owner amendment 10 until O6's
-  distinctPathLabels is switched on; Earn/Settings deeper folds beyond D-088's; CI5's request to register
-  `markets-view` (no code uses it — check before adding).
-- **Servers:** :3103 → `18330e5e` (/home/user/zig-branch2); :3101 `c521574f` (old); :3102 main.
+  distinctPathLabels is switched on; CI5's request to register `markets-view` (no code uses it, not added).
+- **Servers:** :3103 → `14958e1a` (/home/user/zig-branch2); :3101 `c521574f` (old); :3102 main. Next: one build at the
+  head once CI14–CI17 are committed, then the weights and the six specs re-measured.
 
 ## Exact next step
-1. Read CI on `18330e5e`; fix what is left at its cause (≤ 4 helpers until green; one re-run per known intermittent, docs/review/session-al/CI_INTERMITTENTS.md).
+1. Commit CI14–CI17 (typecheck, unit tests, lint first), rebuild :3103 once, measure weights and run the six specs; push;
+   read CI on that head (one re-run per known intermittent, docs/review/session-al/CI_INTERMITTENTS.md).
 2. Once CI is green: replay round 2 in the order L7, L3, L2, L5, L4, L6, L8 on :3103 (≤ 5 helpers; replays read only their lane's AL rows and per id that finding's steps); regenerate ADR-037's closing table after each (docs/review/session-al/tools/closing_table.py).
 3. After the weekly reset: the L1 fifth pass (TK-199 GBP symbol, TK-191 bluetooth policy warning, TK-024, TK-149, TK-196, D-155 and the 7 CHANGED), Parts 13–16, ONE A10 cycle, the final full replay round, Part 17.
 
