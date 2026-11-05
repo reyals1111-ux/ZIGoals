@@ -12,7 +12,7 @@ import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
 import {ProgressRing} from '../platform/financial-ui';
 import {showStatus, showUndo} from '../ui/undo-toast';
-import {readAverageValue} from '../../lib/goals/average-limits';
+import {averageValueCheck, readAverageValue} from '../../lib/goals/average-limits';
 import {SectionHeading} from '../ui/section-heading';
 import {useAverageGoals, useGoalExtras} from './use-goal-extras';
 import {zigiSignals} from '../zigi/bus';
@@ -54,7 +54,7 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
   const store = useAverageGoals(), extras = useGoalExtras(), router = useRouter(), id = useId();
   const [name, setName] = useState(t?.title ?? ''), [metric, setMetric] = useState<AverageMetric>(preset?.metric ?? 'sleep-hours');
   const [target, setTarget] = useState(preset && !preset.askTarget ? String(preset.target) : ''), [direction, setDirection] = useState<'at-least' | 'at-most'>(preset?.direction ?? 'at-least');
-  const [windowDays, setWindow] = useState<7 | 14 | 30>(preset?.windowDays ?? 7), [unit, setUnit] = useState(preset?.unit ?? AVERAGE_METRICS['sleep-hours'].unit), [error, setError] = useState('');
+  const [windowDays, setWindow] = useState<7 | 14 | 30>(preset?.windowDays ?? 7), [unit, setUnit] = useState(preset?.unit ?? AVERAGE_METRICS['sleep-hours'].unit), [error, setError] = useState(''), [targetCheck, setTargetCheck] = useState(''), [targetAsked, setTargetAsked] = useState('');
   // Session AL (DV-184, P-DV-40): a spending cap names the person's currency ("EUR spent a day"), never a bare "spent a day".
   const currency = useDefaultCurrency();
   useEffect(() => { if (preset?.askTarget) queueMicrotask(() => setUnit(u => u === preset.unit ? `${currency} ${preset.unit}` : u)); }, [currency, preset]);
@@ -65,6 +65,10 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
     if (!name.trim()) return setError('Name the goal.');
     if (!read.ok) return setError(read.error);
     const n = read.value;
+    // Fourth pass (DV-012a, DV-052a, G-044): 20 to 24 hours of sleep is asked once, in Health's words; Save again keeps it.
+    const check = averageValueCheck(metric, n);
+    if (check && targetAsked !== `${metric}:${target}`) { setTargetAsked(`${metric}:${target}`); setTargetCheck(check); return; }
+    setTargetCheck('');
     const goalId = crypto.randomUUID().slice(0, 18), at = new Date().toISOString();
     try {
       store.update(s => addAverageGoal(s, {id: goalId, name: name.trim(), metric, unit: unit.trim() || AVERAGE_METRICS[metric].unit, target: n, direction, windowDays, createdAt: at}));
@@ -84,7 +88,7 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
     </div>
     {preset?.askTarget && <p className="fine" id={`${id}-own-target`}>Write your own cap per day, in your currency. Log what you spend on the goal’s page each day; a day with no spending is a 0.</p>}
     <fieldset className="average-windows"><legend>Over the last</legend>{WINDOWS.map(w => <label key={w}><input type="radio" name={`${id}-window`} checked={windowDays === w} onChange={() => setWindow(w)} /><span>{w} days</span></label>)}</fieldset>
-    {error && <p role="alert">{error}</p>}
+    {error && <p role="alert">{error}</p>}{targetCheck && <p className="plausible-check" role="status">{targetCheck}</p>}
     <p className="fine">Kept on this device and, with an account, in your encrypted sync. A day without a value is left out of the average, never counted as zero.</p>
     <div className="dashboard-actions"><Link className="secondary" href="/app/goals">Cancel</Link><button className="primary" disabled={!store.loaded || store.unreadable}>Save goal</button></div>
   </form>;
@@ -94,7 +98,7 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
 export function AverageGoalDetail({id}: {id: string}) {
   const store = useAverageGoals(), health = useHealth(), today = useLocalToday(), unified = useUnifiedGoals(), router = useRouter();
   const goal = store.data.goals.find(g => g.id === id);
-  const [day, setDay] = useState(today), [entry, setEntry] = useState(''), [entryError, setEntryError] = useState(''), [confirmRemove, setConfirmRemove] = useState(false);
+  const [day, setDay] = useState(today), [entry, setEntry] = useState(''), [entryError, setEntryError] = useState(''), [confirmRemove, setConfirmRemove] = useState(false), [entryCheck, setEntryCheck] = useState(''), [entryAsked, setEntryAsked] = useState('');
   const p = useMemo(() => goal ? averageProgress(goal, health.loaded && !health.error ? health.data : undefined, today) : null, [goal, health.loaded, health.error, health.data, today]);
   if (!store.loaded) return <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div>;
   if (!goal || !p) return <section className="panel"><h1>Goal unavailable</h1><p>This average goal is not kept on this device.</p><Link className="text-link" href="/app/goals">Back to Goals →</Link></section>;
@@ -110,17 +114,17 @@ export function AverageGoalDetail({id}: {id: string}) {
         <div><strong>{p.average === null ? 'No data yet' : value(goal, p.average)}</strong><span>{p.average === null ? '' : goal.unit}</span><small>Target: {goal.direction === 'at-least' ? 'at least' : 'at most'} {value(goal, goal.target)} {goal.unit}. {verdict(goal, p)}.</small></div>
       </div>
       <ol className="average-days" aria-label={`The last ${goal.windowDays} days`}>{p.series.map(d => <li key={d.day} data-empty={d.value === null || undefined} data-met={d.value !== null && (goal.direction === 'at-least' ? d.value >= goal.target : d.value <= goal.target) || undefined}><span className="average-day-bar" style={{height: d.value === null ? undefined : `${Math.max(8, Math.min(100, d.value / (goal.target * 1.5) * 100))}%`}} /><span className="sr-only">{formatDay(d.day)}: {d.value === null ? 'nothing recorded' : `${value(goal, d.value)} ${goal.unit}`}</span></li>)}</ol>
-      <p className="fine">{p.source === 'manual' ? 'From your own entries.' : p.source === 'health' ? 'From your Health journal.' : 'From your Health journal and your own entries (yours win on the same day).'} Days with nothing recorded are left out, never counted as zero.</p>
+      <p className="fine">{/* Session AL fourth pass (DV-012d): a Health measure says where its days come from, even before Health has any */p.source === 'manual' ? (goal.metric in AVERAGE_METRICS && AVERAGE_METRICS[goal.metric as AverageMetric].source === 'health' ? `From your own entries so far. Days you record in Health (${AVERAGE_METRICS[goal.metric as AverageMetric].label.toLowerCase()}) count here too; yours win on the same day.` : 'From your own entries.') : p.source === 'health' ? 'From your Health journal.' : 'From your Health journal and your own entries (yours win on the same day).'} Days with nothing recorded are left out, never counted as zero.</p>
     </section>
     <section className="panel average-goal-entry" aria-labelledby="average-entry-title">
       <h2 id="average-entry-title">Add or correct a day</h2>
-      <form onSubmit={e => { e.preventDefault(); /* Session AL (DV-052a): a day's value within its measure (30 h of sleep was saved), said under the field */ const read = readAverageValue(goal.metric, entry); if (!read.ok) { setEntryError(read.error); return; } setEntryError(''); const v = read.value; run(s => logAverageValue(s, goal.id, {day, value: v}), `${formatDay(day)} saved.`, s => before ? logAverageValue(s, goal.id, before) : removeAverageValue(s, goal.id, day)); setEntry(''); }}>
+      <form onSubmit={e => { e.preventDefault(); /* Session AL (DV-052a): a day's value within its measure (30 h of sleep was saved), said under the field */ const read = readAverageValue(goal.metric, entry); if (!read.ok) { setEntryError(read.error); return; } setEntryError(''); const v = read.value; /* fourth pass (DV-012a, G-044): asked once */ const check = averageValueCheck(goal.metric, v); if (check && entryAsked !== `${day}:${entry}`) { setEntryAsked(`${day}:${entry}`); setEntryCheck(check); return; } setEntryCheck(''); run(s => logAverageValue(s, goal.id, {day, value: v}), `${formatDay(day)} saved.`, s => before ? logAverageValue(s, goal.id, before) : removeAverageValue(s, goal.id, day)); setEntry(''); }}>
         <div className="average-goal-row">
           <label className="field"><span>Day</span><input type="date" value={day} max={today} onChange={e => setDay(e.target.value)} /></label>
-          <label className="field"><span>{goal.unit || 'Value'}</span><input inputMode="decimal" value={entry} aria-invalid={entryError ? true : undefined} aria-describedby={entryError ? 'average-entry-error' : undefined} onChange={e => { setEntry(e.target.value); setEntryError(''); }} /></label>
+          {/* Session AL fourth pass (G-043): the field is named by what it records, with its unit (it read only "mL a day") */}<label className="field"><span>{goal.unit ? `Value (${goal.unit})` : 'Value'}</span><input inputMode="decimal" aria-label={`${goal.name}: value for ${formatDay(day)}${goal.unit ? `, in ${goal.unit}` : ''}`} value={entry} aria-invalid={entryError ? true : undefined} aria-describedby={entryError ? 'average-entry-error' : undefined} onChange={e => { setEntry(e.target.value); setEntryError(''); }} /></label>
           <button className="secondary">Save the day</button>
         </div>
-        {entryError && <p role="alert" className="field-error" id="average-entry-error">{entryError}</p>}
+        {entryError && <p role="alert" className="field-error" id="average-entry-error">{entryError}</p>}{entryCheck && <p className="plausible-check" role="status">{entryCheck}</p>}
       </form>
       {goal.entries.length > 0 && <ul className="average-entries">{[...goal.entries].reverse().slice(0, 10).map(e => <li key={e.day}><span>{formatDay(e.day)}</span><strong>{value(goal, e.value)} {goal.unit}</strong><button type="button" className="text-link" onClick={() => run(s => removeAverageValue(s, goal.id, e.day), `${formatDay(e.day)} removed.`, s => logAverageValue(s, goal.id, e))}>Remove</button></li>)}</ul>}
     </section>

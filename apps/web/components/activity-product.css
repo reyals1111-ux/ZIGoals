@@ -47,3 +47,7 @@
 .activity-context .activity-source-link { font: inherit; color: inherit; padding: 0; min-height: 24px; text-align: left; }
 .activity-context strong > .activity-source-link { min-height: 44px; }
 .activity-context .activity-source-link[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 4px; }
+/* Session AL fourth pass (DV-170): Remove / Reverse on a row is a quiet secondary action, below the row's own link in
+   weight (it read as the row's equal and sat next to it); still a full 44 px target, with the Undo toast after it. */
+.unified-activity .activity-event .activity-remove { font-weight: 500; font-size: 14px; color: var(--muted); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; min-height: 44px; min-width: 44px; padding-inline: 8px; display: inline-flex; align-items: center; justify-content: center; }
+.unified-activity .activity-event .activity-remove:hover, .unified-activity .activity-event .activity-remove:focus-visible { color: var(--text, inherit); }

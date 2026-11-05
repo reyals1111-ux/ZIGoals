@@ -95,7 +95,8 @@ test('goal wizard: a missing name, then a target that does not read, each mark t
   await page.getByRole('radio', {name: 'Save an amount', exact: true}).check();
   const name = page.getByLabel('Goal name', {exact: true}), target = page.getByLabel('Target amount', {exact: true});
   await page.getByRole('button', {name: 'Continue →'}).click();
-  await invalidWithMessage(name, page, /^Give your Goal a name\.$/);
+  // Session AL (COPY_AUDIT, deliberate; DV-007b/X3-19): "goal" is lower case mid-sentence.
+  await invalidWithMessage(name, page, /^Give your goal a name\.$/);
   await name.fill('Fictional trip');
   await target.fill('lots');
   await page.getByRole('button', {name: 'Continue →'}).click();

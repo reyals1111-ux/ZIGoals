@@ -21,7 +21,8 @@ test('GO3: the Goal wizard has its four steps, and "Create goal" is offered on s
   await freshDevice(page);
   await page.goto('/app/goals/new'); await hydrated(page);
   const steps = page.getByRole('list', {name: 'Goal creation progress'}).getByRole('listitem');
-  await expect(steps).toHaveText([/^1\s*Purpose$/, /^2\s*Optional sources$/, /^3\s*Optional Habit$/, /^4\s*Review$/]);
+  // Session AL (COPY_AUDIT, deliberate; D-008/T-014): still four steps, named for what each is for.
+  await expect(steps).toHaveText([/^1\s*Your goal$/, /^2\s*What counts$/, /^3\s*A rhythm \(optional\)$/, /^4\s*Review$/]);
   await expect(steps.first()).toHaveAttribute('aria-current', 'step');
   await expect(page.getByRole('button', {name: 'Create goal', exact: true})).toBeVisible();
   await expect(page.getByRole('button', {name: 'Continue →', exact: true})).toBeVisible();

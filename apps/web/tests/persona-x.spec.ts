@@ -70,6 +70,8 @@ test('funding a EUR Goal: a new cash asset starts in euros with a matching name,
   await expect(sheet.getByLabel('Asset name')).toHaveValue('EUR Cash');
   await sheet.getByLabel('Cash amount', {exact: true}).fill('200');
   await sheet.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
+  await sheet.getByRole('button', {name: 'Change the amount', exact: true}).click();
   await sheet.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('200');
   await sheet.getByRole('button', {name: 'Preview contribution', exact: true}).click();
   await expect(sheet.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();

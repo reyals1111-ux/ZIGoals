@@ -1,5 +1,6 @@
 /** Private financial facts and zero-return forecasts. No network or execution dependencies. */
 import {contributionEventSchema,platformSchema,localGoalLocked,confirmedLocalObservation,goalProgress,planScenario,rescaleUnits,scenarioHorizon,type ContributionEvent,type Platform,type PrivateGoal,type GoalHistory,type ValuationSnapshot} from './positions';
+import {dateObservedCompletions} from './goals/observed-completion';
 import {marketQuoteSchema,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import type {z} from 'zod';
 import {capturePlanChanges,captureGoalLifecycle,revisionInstallments,effectiveContributionPlan,planDay,planZone,shiftPlanDay} from './plan-revisions';
@@ -116,7 +117,9 @@ export function goalTimeline(s:Platform,goalId:string,scope:'private'|'local'='p
   // timeline (and so Activity) shows the lifecycle row once and skips the status row that repeats it.
   const lifecycleAt=(kind:string)=>(goal?.lifecycle??[]).filter(e=>e.kind===kind).map(e=>Date.parse(e.at));
   const repeatsLifecycle=(h:GoalHistory)=>{if(h.kind!=='status')return false;const kind=h.label==='Goal closed'?'closed':h.label==='Goal completed'?'completed':h.label==='Goal reactivated'?'reopened':null;if(!kind)return false;const at=Date.parse(h.capturedAt);return lifecycleAt(kind).some(t=>Math.abs(t-at)<=60_000);};
-  for(const h of s.goalHistory.filter(h=>h.goalId===goalId&&!repeatsLifecycle(h)))result.push(h.kind==='valuation'?{id:h.id,goalId,at:h.capturedAt,kind:'valuation',label:'Counted Goal value snapshot',provenance:h.requiresReview?'INCOMPLETE_EVIDENCE':'PRIVATE_SNAPSHOT',quantity:h.current,asset:h.asset,decimals:h.decimals}:{id:h.id,goalId,at:h.capturedAt,kind:h.kind,label:h.label,provenance:h.provenance});
+  // Session AL fourth pass (DV-041b, NB-098, NB-174): a project counts milestones; its daily value snapshots ("0 USD")
+  // are not part of its story, so its timeline lists milestones, status and lifecycle only.
+  for(const h of s.goalHistory.filter(h=>h.goalId===goalId&&!repeatsLifecycle(h)&&!(goal?.type==='PROJECT'&&h.kind==='valuation')))result.push(h.kind==='valuation'?{id:h.id,goalId,at:h.capturedAt,kind:'valuation',label:'Counted value snapshot',provenance:h.requiresReview?'INCOMPLETE_EVIDENCE':'PRIVATE_SNAPSHOT',quantity:h.current,asset:h.asset,decimals:h.decimals}:{id:h.id,goalId,at:h.capturedAt,kind:h.kind,label:h.label,provenance:h.provenance});
   const positions=new Set(s.allocations.filter(a=>a.goalId===goalId).map(a=>a.positionId));
   for(const [i,o] of s.snapshots.entries())if(positions.has(o.positionId)){const p=s.positions.find(p=>p.id===o.positionId);if(p)result.push({id:`observation:${o.positionId}:${o.observedAt}:${i}`,goalId,at:o.observedAt,kind:'observation',label:'Position quantity observed',provenance:p.provenance,quantity:o.quantity,asset:p.asset,decimals:p.decimals});}
  }
@@ -159,7 +162,8 @@ function compactHistory(s:Platform):Platform {
 }
 /** Collection and byte ceilings reject new captures instead of deleting earlier evidence. */
 export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=Date.now()):Platform {
- s=captureGoalLifecycle(s,s,now,quotes);
+ // PR-057/B-058 (fourth pass): a completion this tick only notices is dated where the goal's own history first showed it.
+ {const ticked=captureGoalLifecycle(s,s,now,quotes);s=dateObservedCompletions(s,ticked,now);}
  const capturedAt=timestamp(now),day=capturedAt.slice(0,10),valuations:ValuationSnapshot[]=[],goals:GoalHistory[]=[];
  const captureDays={...s.historyCaptureDays};
  for(const p of s.positions.filter(p=>!p.archivedAt)){

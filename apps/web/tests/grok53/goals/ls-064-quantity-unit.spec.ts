@@ -33,9 +33,10 @@ test('LS-H46: the Project preview reads the name as it is typed, and the name\'s
   await page.getByRole('radio', {name: 'Finish a project', exact: true}).check();
   await page.getByLabel('Milestones, one per line').fill('Plan\nBuild');
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();
-  await expect(wizard.getByRole('alert')).toHaveText('Give your Goal a name.');
+  // Session AL (COPY_AUDIT, deliberate; DV-007b/X3-19): "goal" is lower case mid-sentence.
+  await expect(wizard.getByRole('alert')).toHaveText('Give your goal a name.');
   await typeGoalName(page, 'Fictional shed');
   const preview = page.getByRole('region', {name: 'Goal preview'});
   await expect(preview.getByRole('heading', {level: 3})).toHaveText('Fictional shed');
-  await expect(wizard).not.toContainText('Give your Goal a name.');
+  await expect(wizard).not.toContainText('Give your goal a name.');
 });

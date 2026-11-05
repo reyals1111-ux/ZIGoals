@@ -13,7 +13,7 @@ import {effectiveContributionPlan,planDay,planZone} from './plan-revisions';
 import {fundingHealth} from './goal-intelligence';
 import {localDate} from './local-date';
 import { plural } from './plural';
-import {isUnitWord,unitAmount,unitWord} from './goals/goal-units';
+import {isOwnUnitGoal,isUnitWord,unitAmount,unitWord} from './goals/goal-units';
 import {goalReached} from './goals/finished';
 import {goalValueReason} from './goals/value-reason';
 import {releasedByArchive} from './goals/released';
@@ -81,7 +81,7 @@ export function privateGoalSummary(data:Platform,g:PrivateGoal,quotes:readonly M
  try{if(g.type!=='PROJECT'){const pulse=fundingHealth(data,g.id,now,quotes);funding=pulse.status.replaceAll('_',' ');if(g.status!=='closed')nextContributionDate=pulse.nextDate;}}catch{funding='Review assumptions';}
  const currency=g.type==='PROJECT'?'milestones':g.asset,bound=valuationBound(p);
  const valueReason=bound.bound?goalValueReason(data,g,p.breakdown.filter(b=>b.valuation?.state==='missing').map(b=>b.positionId)):null,released=releasedByArchive(data,g.id).length;
- return {...(valueReason?{valueReason}:{}),...(released?{released}:{}),progressBound:bound.bound,unvaluedSources:bound.unvalued||undefined,assetMix:goalAssetMix(data,g,now,quotes),/* Session AL (P-DV-22): set only for a closed goal that had reached its target (completed goals already say so) */...(g.status==='closed'&&goalReached(g)?{reached:true}:{}),key:`private:${g.id}`,id:g.id,href:`/app/goals/tracked/${g.id}`,name:g.name,type:`${g.type[0]}${g.type.slice(1).toLowerCase()} Goal`,source:g.type==='PROJECT'?'Project':p.breakdown.length?'Existing wealth':g.plan?'Future contributions':'Private allocation',status:g.status==='closed'?'closed':!p.requiresReview&&BigInt(p.current)>=BigInt(p.target)?'completed':'active',scene:g.category?sceneFor(g.category):g.type==='PROJECT'?'mountains':g.type==='VALUE'?'home':g.type==='REWARD'?'aurora':'horizon',current:formatUnits(p.current,g.decimals),target:formatUnits(p.target,g.decimals),currency,progressPct:p.progressPct,remaining:formatUnits(p.remaining,g.decimals),targetDate:g.targetDate,nextContributionDate,fundingHealth:funding,requiresReview:p.requiresReview||released>0,valuationLabel:p.missingValuation?'Valuation unavailable':p.staleValuation?'Last verified value · needs refresh':g.type==='VALUE'&&p.manual!=='0'?'Includes manual valuation':undefined,metadata:[{label:g.type==='PROJECT'?'Progress':'Wealth sources',value:g.type==='PROJECT'?(n=>`${n} ${plural(n,'milestone')} done`)(g.milestones.filter(m=>m.done).length):`${p.breakdown.length} ${plural(p.breakdown.length,'Position')}`},{label:'Contribution plan',value:applicablePlan?`${formatGoalAmount(formatUnits(applicablePlan.amount,applicablePlan.decimals),applicablePlan.asset)} / ${applicablePlan.cadence}${applicablePlan.active?'':' · paused'}`:g.planRevisions?.length?'Scheduled for later':'Not set'}]};
+ return {...(valueReason?{valueReason}:{}),...(released?{released}:{}),progressBound:bound.bound,unvaluedSources:bound.unvalued||undefined,assetMix:goalAssetMix(data,g,now,quotes),/* Session AL (P-DV-22): set only for a closed goal that had reached its target (completed goals already say so) */...(g.status==='closed'&&goalReached(g)?{reached:true}:{}),key:`private:${g.id}`,id:g.id,href:`/app/goals/tracked/${g.id}`,name:g.name,type:`${g.type[0]}${g.type.slice(1).toLowerCase()} Goal`,source:g.type==='PROJECT'?'Project':/* Session AL fourth pass (DV-034a, DV-104): a count of books is the person's own count, never wealth */isOwnUnitGoal(g)?'Your own count':p.breakdown.length?'Existing wealth':g.plan?'Future contributions':'Private allocation',status:g.status==='closed'?'closed':!p.requiresReview&&BigInt(p.current)>=BigInt(p.target)?'completed':'active',scene:g.category?sceneFor(g.category):g.type==='PROJECT'?'mountains':g.type==='VALUE'?'home':g.type==='REWARD'?'aurora':'horizon',current:formatUnits(p.current,g.decimals),target:formatUnits(p.target,g.decimals),currency,progressPct:p.progressPct,remaining:formatUnits(p.remaining,g.decimals),targetDate:g.targetDate,nextContributionDate,fundingHealth:funding,requiresReview:p.requiresReview||released>0,valuationLabel:p.missingValuation?'Valuation unavailable':p.staleValuation?'Last verified value · needs refresh':g.type==='VALUE'&&p.manual!=='0'?'Includes manual valuation':undefined,metadata:[{label:g.type==='PROJECT'?'Progress':'Wealth sources',value:g.type==='PROJECT'?(n=>`${n} ${plural(n,'milestone')} done`)(g.milestones.filter(m=>m.done).length):`${p.breakdown.length} ${plural(p.breakdown.length,'Position')}`},{label:'Contribution plan',value:applicablePlan?`${formatGoalAmount(formatUnits(applicablePlan.amount,applicablePlan.decimals),applicablePlan.asset)} / ${applicablePlan.cadence}${applicablePlan.active?'':' · paused'}`:g.planRevisions?.length?'Scheduled for later':'Not set'}]};
 }
 export function unifiedGoalSummaries(goals:readonly LocalGoal[],metadata:Record<string,GoalMetadata>,data:Platform,quotes:readonly MarketQuote[]=[],now=Date.now(),source='Local simulation'):GoalSummary[]{
  return [...goals.map(g=>legacyGoalSummary(g,metadata[g.id],source,now)),...data.goals.map(g=>privateGoalSummary(data,g,quotes,now))].sort((a,b)=>Number(!!data.goals.find(g=>b.key===`private:${g.id}`)?.pinned)-Number(!!data.goals.find(g=>a.key===`private:${g.id}`)?.pinned));
@@ -95,12 +95,16 @@ export function goalEyebrow(goal:Pick<PrivateGoal,'type'>,summary:Pick<GoalSumma
  if(chain)return `${summary.type} · ${summary.source}`;
  const kind=goal.type==='VALUE'?'Savings goal':goal.type==='PROJECT'?'Project':goal.type==='REWARD'?'Rewards goal':'Count goal';
  if(goal.type==='PROJECT')return kind;
+ // Session AL fourth pass (DV-034a, DV-104, NB-243): a count goal counts units, so no money words ("Money you have").
+ if(goal.type==='QUANTITY')return `${kind} · ${summary.source==='Your own count'?'Your own count':summary.source==='Existing wealth'?'What you hold':summary.source==='Future contributions'?'Adding by plan':'Your own plan'}`;
  const source=summary.source==='Existing wealth'?'Money you have':summary.source==='Future contributions'?'Saving plan':'Your own plan';
  return `${kind} · ${source}`;
 }
 /** The funding fact's label and value (FR-1): plain words until the chain is chosen. */
-export function fundingFact(summary:Pick<GoalSummary,'requiresReview'|'status'|'fundingHealth'>,chain:boolean):{label:string;value:string}{
+export function fundingFact(summary:Pick<GoalSummary,'requiresReview'|'status'|'fundingHealth'>,chain:boolean,type?:PrivateGoal['type']):{label:string;value:string}{
  const value=summary.requiresReview?'Needs review':summary.status==='completed'?'Completed':summary.fundingHealth;
  if(chain)return {label:'Funding Wealth',value};
+ // DV-034a, DV-104 (fourth pass): a count goal's plan adds units, not savings.
+ if(type==='QUANTITY')return {label:'Plan',value:/^no plan$/i.test(value)?'No plan yet':value[0]!.toUpperCase()+value.slice(1).toLowerCase()};
  return {label:'Saving plan',value:/^no plan$/i.test(value)?'No saving plan yet':value[0]!.toUpperCase()+value.slice(1).toLowerCase()};
 }

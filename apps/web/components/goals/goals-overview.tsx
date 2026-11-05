@@ -23,7 +23,7 @@ export function GoalsFigures({goals, averages, extras, healthActive = 0}: {goals
   const {active, finished} = goalCounts(goals.map(g => isFinished(g) ? {status: 'completed'} : g), averages);
   const planned = Object.values(extras.goals).filter(e => e.why || e.ifThen).length;
   const areas = new Set(Object.values(extras.goals).map(e => e.area).filter(Boolean)).size;
-  const figures: [string, number, string][] = [['Active', active, 'goals in motion'], ['Finished', finished, 'on the Hall of achievements'], ['With a plan', planned, 'why and if-then written'], ['Life areas', areas, 'with at least one goal']];
+  const figures: [string, number, string][] = [['Active', active, 'goals in motion'], ['Finished', finished, 'on the Hall of achievements'], /* fourth pass (DV-022e): "plan" means the saving plan elsewhere; this counts goals with a written why */['With a why', planned, 'reason and if-then written'], ['Life areas', areas, 'with at least one goal']];
   // Session AL (DV-022d, DV-027c, P-DV-24): Health goals live in their own section (they read the Health journal); the
   // figures say so instead of leaving them out silently.
   return <dl className="goals-figures" aria-label="Your goals at a glance">{figures.map(([label, n, hint]) => <div key={label}><dt>{label}</dt><dd><strong>{n}</strong><small>{hint}{label === 'Active' && healthActive > 0 && <> · <a className="text-link" href="#goals-health">+ {healthActive} health {healthActive === 1 ? 'goal' : 'goals'} below</a></>}</small></dd></div>)}</dl>;
@@ -78,6 +78,6 @@ export function GoalTreeView({goals, extras, onMove}: {goals: readonly GoalSumma
       <p className="goal-tree-root" data-drop={dragging ? true : undefined} onDragOver={e => { if (dragging) e.preventDefault(); }} onDrop={e => { e.preventDefault(); const key = e.dataTransfer.getData('text/plain'); setDragging(null); if (key) move(key, null); }}><span className="goal-tree-root-mark" aria-hidden="true">✦</span><strong>Your goals</strong><small>{tree.length} {tree.length === 1 ? 'destination' : 'destinations'}{goals.length > tree.length ? ` · ${goals.length - tree.length} sub-goals` : ''}</small></p>
       <ul className="goal-tree is-page">{tree.map(n => row(n, 0))}</ul>
     </div>
-    {tree.every(n => !n.children.length) && <p className="fine">No sub-goals yet. Drag a goal onto another, or use its ⋯ menu here or “Part of a bigger goal” on its page (three levels at most: year, quarter, month).</p>}
+    {tree.every(n => !n.children.length) && <p className="fine">No sub-goals yet. Drag a goal onto another, or use its ⋯ menu here (move it, or add a sub-goal under it) or “Part of a bigger goal” on its page (three levels at most: year, quarter, month).</p>}
   </section>;
 }

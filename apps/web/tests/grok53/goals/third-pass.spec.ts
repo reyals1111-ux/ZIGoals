@@ -163,6 +163,7 @@ test('GAP-124/122/125, DV-172 (P-DVG-13/11/14, P-DV-73): Activity has a report b
   await report.getByRole('button', {name: 'All time'}).click();
   await expect(report).toContainText('All time: 1 goal step');
   await expect(report.getByRole('heading', {name: 'Perfect weeks'})).toBeVisible();
-  await expect(page.getByText(/Not listed here: journal entries and notes/)).toBeVisible();
+  // Session AL (COPY_AUDIT, deliberate; fourth pass PR-065): the footer also names the money log.
+  await expect(page.getByText(/Not listed here: journal entries, notes, and the spending and income you log under Wealth/)).toBeVisible();
   await expect(page.getByText(/sleep nights, journal entries/)).toHaveCount(0);
 });

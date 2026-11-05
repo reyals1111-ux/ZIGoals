@@ -161,6 +161,8 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   const fund = page.getByRole('dialog', {name: 'Fund your Goal'});
   await fund.getByLabel('Cash amount', {exact: true}).fill('200');
   await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
+  await fund.getByRole('button', {name: 'Change the amount', exact: true}).click();
   await fund.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('50');
   await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click();
   await expect(fund.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
@@ -204,7 +206,8 @@ test('@journey 3b bug J3-1: weekly "Fund Goal" contributions from cash make a rh
     await nextDay(page, at(day, '10:00'), `/app/goals/tracked/${GOAL_ID}`);
     await page.getByRole('button', {name: 'Record contribution', exact: true}).click();
     const fund = page.getByRole('dialog', {name: 'Fund your Goal'});
-    if (i === 0) { await fund.getByLabel('Cash amount', {exact: true}).fill('500'); await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click(); }
+    // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
+    if (i === 0) { await fund.getByLabel('Cash amount', {exact: true}).fill('500'); await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click(); await fund.getByRole('button', {name: 'Change the amount', exact: true}).click(); }
     else await fund.getByRole('button', {name: /^EUR Cash/}).click();
     await fund.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('50');
     await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click();
@@ -227,6 +230,8 @@ test('@journey 3c bug J3-2: "Fill in" from the contribution rhythm fills the amo
   let fund = page.getByRole('dialog', {name: 'Fund your Goal'});
   await fund.getByLabel('Cash amount', {exact: true}).fill('200');
   await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
+  await fund.getByRole('button', {name: 'Change the amount', exact: true}).click();
   await fund.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('50');
   await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click();
   await fund.getByRole('button', {name: 'Confirm & fund Goal', exact: true}).click();

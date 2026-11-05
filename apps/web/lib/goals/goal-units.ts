@@ -62,3 +62,11 @@ export function newOwnUnitPosition(goal: Pick<PrivateGoal, 'asset' | 'denom' | '
   provenance: `Your own count for “${goal.name.slice(0, 200)}”`, notes: '',
  });
 }
+
+/**
+ * Session AL fourth pass (DV-147): the tracked source that holds a count goal's own unit ("T9 Count pages", 40 pages) is
+ * that goal's tally, not wealth. Other goals' Fund dialogs, the goal creator and the Wealth counts leave it out.
+ */
+export function isOwnCountSource(p: Pick<Position, 'sourceType' | 'asset' | 'denom'>, goals: readonly Pick<PrivateGoal, 'type' | 'asset' | 'denom'>[]): boolean {
+ return p.sourceType === 'MANUAL' && p.denom.startsWith('manual:') && goals.some(g => isOwnUnitGoal(g) && g.asset === p.asset && g.denom === p.denom);
+}

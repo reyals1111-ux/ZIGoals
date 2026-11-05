@@ -10,7 +10,7 @@ import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
 import {TemplatesGlyph} from '../header-art/glyphs/templates';
 import './goals.css';
 
-const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: 'Milestones goal', count: 'Count goal', average: 'Keep an average', 'health-weight': 'Health goal'};
+const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: /* fourth pass (G-040): the card's own name */ 'Project', count: 'Count goal', average: 'Keep an average', 'health-weight': 'Health goal'};
 /** Where a template opens: the goal wizard, the average form, or Health goals for a weight. */
 // Session AL third pass (DV-181, P-DV-39): a weight template opens the Health goal creator with Weight chosen
 // (?health-goal=weight, read by components/health-goals/health-goals-section.tsx); it only jumped to the section.

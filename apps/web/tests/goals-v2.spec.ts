@@ -63,7 +63,8 @@ test('"On track?": what is left, what the date would take with no growth, the re
   await expect(section).toContainText('Still to go: €4,500.00, from what is counted now.');
   await expect(section).toContainText('To reach it by Dec 30, 2026 with no growth: about €350.00 a week, or €1,500.00 every 30 days.');
   await expect(section).toContainText('Recorded here over the last 90 days: €266.66 in every 30 days, net of withdrawals.');
-  await expect(section).toContainText('At that pace, with no growth, about Feb 20, 2028.');
+  // Session AL (COPY_AUDIT, deliberate; PR-024): "On track?" says the goal's one pace forecast (lib/goal-forecast.ts), not a second date.
+  await expect(section).toContainText('Your pace forecast, with no growth: about Mar 27, 2028 (an estimate, not a promise).');
   await section.locator('summary', {hasText: 'What if it grew?'}).click();
   await section.getByLabel('Growth you assume, % a year').fill('0');
   await section.getByLabel(/Added every month/).fill('500');

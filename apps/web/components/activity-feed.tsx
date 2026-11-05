@@ -22,7 +22,7 @@ import { activityTimeLabel } from "../lib/activity-time";
 import { activityKeys } from "./activity-keys";
 import { useZigiActions } from "./activity/use-zigi-actions";
 import { useAverageGoals } from "./goals/use-average-goals";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDeviceRecord } from "./ai/use-device-record";
 import { ACCOUNTS } from "../lib/accounts/schema";
 import { PRICE_ALERTS } from "../lib/price-alerts/schema";
@@ -42,6 +42,9 @@ import { getSleepActivities } from "../lib/health-sleep-activities";
 import { habitLifecycleRows } from "../lib/habit-lifecycle";
 import { ActivityReport } from "./activity/activity-report";
 import { localDate } from "../lib/local-date";
+import {REMOVAL_UNDO_MS} from '../lib/goals/goal-removal';
+import {SHOWCASE_ROW_SOURCE, isShowcaseRow, showcaseRowIds} from "./activity-showcase";
+import {showcaseDay} from "../lib/showcase-storage";
 /** Session AL (DV-117, P-DV-80): each filter's empty view says what belongs there and where to start it. */
 function emptyFor(category: string): {title: string; body: string; href?: string; link?: string} {
   switch (category) {
@@ -55,6 +58,15 @@ function emptyFor(category: string): {title: string; body: string; href?: string
 }
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts, report = false }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void; /** The Activity page's report card above the list (GAP-124). */ report?: boolean }) {
   const showcase = useShowcase();
+  // Session AL fourth pass (PR-066, PR-099, N-170, D-227): which rows are the Showcase's own examples, from its records
+  // (loaded only while the Showcase is on); a row the person added keeps its own source.
+  const [seeded, setSeeded] = useState<ReadonlySet<string> | null>(null);
+  useEffect(() => {
+    if (!showcase) { setSeeded(null); return; }
+    let live = true; const day = showcaseDay();
+    if (day) void import('../lib/showcase-data').then(m => { if (live) setSeeded(showcaseRowIds(m.buildShowcase(day).records)); }, () => { /* rows keep their own source */ });
+    return () => { live = false; };
+  }, [showcase]);
   const platform=usePlatform();
   const averages = useAverageGoals();
   const goals = useGoals(), habits = useHabits(), health = useHealth(), zigi = useZigiActions(), accounts = useDeviceRecord(ACCOUNTS), priceAlerts = useDeviceRecord(PRICE_ALERTS), tasks = useDeviceRecord(TASKS);
@@ -81,9 +93,18 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
       ...(g.status === 'completed' && g.completedAt ? [{id: `average-finished:${g.id}`, category: "GOAL", title: "Average goal finished", detail: g.name, at: g.completedAt, href, source: "Marked by you"}] : []),
     ];
   }) : [];
+  // Session AL fourth pass (DV-036b): "Goal created" names the target it was created with (the first recorded reading
+  // before any target change), not a later edit; when that is not known, it says the target changed since.
+  const createdDetail = (goal: (typeof platform.data.goals)[number]) => {
+    const money = (units: string) => formatGoalAmount(formatUnits(units, goal.decimals), goal.asset);
+    const changedAt = (goal.lifecycle ?? []).find(e => e.kind === 'target_changed')?.at;
+    if (!changedAt) return `${goal.name} · target ${money(goal.target)}`;
+    const first = platform.data.goalHistory.find(h => h.goalId === goal.id && h.kind === 'valuation' && h.asset === goal.asset && h.decimals === goal.decimals && h.capturedAt < changedAt);
+    return first && first.kind === 'valuation' ? `${goal.name} · target ${money(first.target)}` : `${goal.name} · target since changed, now ${money(goal.target)}`;
+  };
   const base = [
     ...financial, ...averageEvents,
-    ...(includeGoals ? platform.data.goals.map(goal => ({ id: `created:${goal.id}`, category: "GOAL", title: "Goal created", detail: goal.type === "PROJECT" ? `${goal.name} · ${plural(goal.milestones.length, "1 milestone", `${goal.milestones.length} milestones`)}` : `${goal.name} · target ${formatGoalAmount(formatUnits(goal.target, goal.decimals), goal.asset)}`, at: goal.createdAt, href: `/app/goals/tracked/${goal.id}`, source: "Added by you" })) : []),
+    ...(includeGoals ? platform.data.goals.map(goal => ({ id: `created:${goal.id}`, category: "GOAL", title: "Goal created", detail: goal.type === "PROJECT" ? `${goal.name} · ${plural(goal.milestones.length, "1 milestone", `${goal.milestones.length} milestones`)}` : createdDetail(goal), at: goal.createdAt, href: `/app/goals/tracked/${goal.id}`, source: "Added by you" })) : []),
     ...platform.data.assetEvents.map(e=>({id:e.id,category:"WEALTH",title:`${e.name} ${e.kind}`,detail:e.assetClass,assetType:(()=>{const ref=platform.data.positions.find(position=>position.id===e.positionId)?.marketRef;return ref?.kind==='rwa'?ref.assetType:undefined;})(),at:e.at,href:`/app/wealth/asset/${encodeURIComponent(e.positionId)}`,source:"Private asset record"})),
     ...(includeGoals && goals.mode === "local" ? goals.activity.map((event, index) => ({ id: `goal-${event.timestamp}-${index}`, category: "GOAL", title: event.action, detail: goals.metadata?.goals[event.goalId]?.name ?? `Goal #${event.goalId}`, at: event.timestamp, href: `/app/goals/${event.goalId}` })) : []),
     ...accountEvents, ...alertEvents,
@@ -121,7 +142,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     const day = habitDay(id); if (!day) return;
     let previous: HabitEntry | undefined, captured = false;
     void Promise.resolve(habits.update(d => { if (!captured) { previous = entryOn(d, day.habitId, day.date); captured = true; } return restoreHabitEntry(d, day.habitId, day.date, undefined); }))
-      .then(() => showUndo({message: `Removed: ${title}, that day.`, restore: () => habits.update(d => restoreHabitEntry(d, day.habitId, day.date, previous)), undone: `${title} is back for that day.`})) /* Session AL (A7): the one Undo */
+      .then(() => showUndo({timeoutMs: REMOVAL_UNDO_MS, message: `Removed: ${title}, that day.`, restore: () => habits.update(d => restoreHabitEntry(d, day.habitId, day.date, previous)), undone: `${title} is back for that day.`})) /* Session AL (A7): the one Undo */
       .catch(e => showStatus(storageMessageOr(e, 'This day could not be changed on this device.')));
   };
   const contributionGoal = (id: string) => { if (!id.startsWith("contribution:")) return null; const c = platform.data.contributions.find(x => `contribution:${x.id}` === id); return c && !c.reversesId && c.goalScope === "private" && !platform.data.contributions.some(r => r.reversesId === c.id) ? c.goalId : null; };
@@ -130,7 +151,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   return <div className="unified-activity">
     {report && <ActivityReport rows={base.map(event => ({category: event.category, dayKey: activityDay(event)}))} habits={habits.data.habits} today={localDate()}/>}
     {(habits.error || health.error) && <p className="fine">Some private history needs attention in Settings; stored data has been preserved.</p>}
-    {showcase && <p className="activity-history-source">Showcase example history · fictional records</p>}
+    {showcase && <p className="activity-history-source">Showcase example history: rows marked “Showcase example” are fictional; what you add here is yours.</p>}
     {entries.length ? <ol>{entries.map((event, index) => {
       const presentation = event.category === "TASK" ? TASK_ACTIVITY_PRESENTATION : activityPresentation(event);
       // Session AH (TR12): grouped under the record's own day, newest day first.
@@ -140,7 +161,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
         {startsDay && <h3 className="activity-date-heading">{heading}</h3>}
         <article className="activity-event" data-category={event.category} data-tone={presentation.tone}>
           <span className={`timeline-icon timeline-${presentation.tone}`}><AppIcon name={presentation.icon} size={28} /></span>
-          <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link>{event.detail && <p>{event.detail}</p>}<small>{/* Session AL (D-227, P-DVR-42): the Showcase is said once above the list, not on every row */'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
+          <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link>{event.detail && <p>{event.detail}</p>}<small>{/* Session AL (D-227, P-DVR-42): the Showcase is said once above the list, not on every row */showcase && seeded && isShowcaseRow(event.id, seeded) ? SHOWCASE_ROW_SOURCE : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
           {(() => { const time = activityTimeLabel(event.at, activityTimeZone()); return time ? <time dateTime={event.at}>{time}</time> : null; })()}
           {!showcase && event.category === "HABIT" && habitDay(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => removeHabitDay(event.id, event.title)}>Remove</button>}
           {!showcase && (() => { const goal = contributionGoal(event.id); return goal ? <Link className="text-link activity-remove" href={`/app/goals/tracked/${goal}#funding-wealth`} aria-label={`Reverse on its goal: ${event.title}`}>Reverse on its goal →</Link> : null; })()}

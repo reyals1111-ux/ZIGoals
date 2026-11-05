@@ -7,6 +7,7 @@
 import {LIMITS, validateValue} from '../limits/plausibility';
 import {parseNumberInput} from '../numbers/parse';
 import type {AverageMetric} from '../average-goals/store';
+import {sleepHoursWarning} from '../health-plausible';
 
 const say = (n: number) => n.toLocaleString('en-GB');
 
@@ -27,4 +28,12 @@ export function readAverageValue(metric: AverageMetric, raw: string, target = fa
  else out = plain(raw, 1_000_000, '');
  if (out.ok && target && !(out.value > 0)) return {ok: false, error: 'Choose a target above zero.'};
  return out;
+}
+
+/**
+ * Session AL fourth pass (DV-012a, DV-052a, G-044; for lane L2): a possible but unlikely value, asked once before it is
+ * kept, in Health's own words (lib/health-plausible.ts sleepHoursWarning: 20 to 24 hours of sleep). Null when nothing to ask.
+ */
+export function averageValueCheck(metric: AverageMetric, value: number): string | null {
+ return metric === 'sleep-hours' ? sleepHoursWarning(value) : null;
 }

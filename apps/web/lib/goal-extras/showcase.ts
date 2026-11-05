@@ -25,7 +25,8 @@ export function showcaseGoalExtras(day: string): {extras: GoalExtras; averages: 
       'private:9205': {area: 'custom-creative', template: 'side-project', why: 'Work I am proud to sign.', obstacle: 'Doubting the first version.', ifThen: 'If I start to polish forever, then I ship it to one person first.', vision: {kind: 'gradient', gradient: 'nebula', emoji: '🎨'}, updatedAt},
       'private:9206': {area: 'wealth', vision: {kind: 'gradient', gradient: 'glacier', emoji: '✨'}, updatedAt},
       'average:showcase-create': {area: 'custom-creative', parentKey: 'private:9205', vision: {kind: 'gradient', gradient: 'dusk', emoji: '✍️'}, updatedAt},
-      'average:showcase-sleep': {area: 'health', parentKey: 'average:showcase-create', template: 'sleep-7h', why: 'Rested mornings are my best creative hours.', vision: {kind: 'gradient', gradient: 'aurora', emoji: '🌙'}, updatedAt},
+      // Session AL fourth pass (PR-022, N-PR-04): no 'sleep-7h' template on the 8 h goal (it said 7 h beside the goal's 8 h).
+      'average:showcase-sleep': {area: 'health', parentKey: 'average:showcase-create', why: 'Rested mornings are my best creative hours.', vision: {kind: 'gradient', gradient: 'aurora', emoji: '🌙'}, updatedAt},
       'average:showcase-water': {area: 'health', template: 'water-2l', story: 'Two litres a day for a whole month, with a glass at every meal.', vision: {kind: 'gradient', gradient: 'ocean', emoji: '💧'}, updatedAt},
       'average:showcase-steps': {area: 'health', template: 'steps-8000', story: 'A walk after dinner, every day of the summer.', vision: {kind: 'gradient', gradient: 'forest', emoji: '👟'}, updatedAt},
     },
@@ -36,7 +37,7 @@ export function showcaseGoalExtras(day: string): {extras: GoalExtras; averages: 
   const averages = averageGoalsSchema.parse({version: 1, goals: [
     {id: 'showcase-create', name: 'Create 2 hours a day', metric: 'custom', unit: 'h a day', target: 2, direction: 'at-least', windowDays: 14, status: 'active', createdAt: created(-45), entries: createEntries},
     // Session AL sweep 2 (P-PR-25; PR-022, N-PR-04): 8 hours, as the Showcase's sleep goal (lib/sleep/showcase.ts, 480 min),
-    // so Goals and Sleep state one target. The extras keep the 'sleep-7h' template id (a stored reference, not a name).
+    // so Goals and Sleep state one target, in hours here and 480 minutes there.
     {id: 'showcase-sleep', name: 'Sleep 8 hours a night', metric: 'sleep-hours', unit: 'h a night', target: 8, direction: 'at-least', windowDays: 14, status: 'active', createdAt: created(-40), entries: []},
     {id: 'showcase-water', name: 'Drink 2 litres a day', metric: 'water-ml', unit: 'mL a day', target: 2000, direction: 'at-least', windowDays: 30, status: 'completed', createdAt: created(-75), completedAt: at(-14), entries: []},
     {id: 'showcase-steps', name: '8,000 steps a day, all summer', metric: 'steps', unit: 'steps a day', target: 8000, direction: 'at-least', windowDays: 30, status: 'completed', createdAt: created(-120), completedAt: at(-38), entries: []},

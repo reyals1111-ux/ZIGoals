@@ -23,6 +23,7 @@ import {StarToggle} from '../checklist/star-toggle';
 import {plainErrorMessage} from '../../lib/plain-error';
 import { plural } from '../../lib/plural';
 import {moveMilestone} from '../../lib/goals/milestone-templates';
+import {REMOVAL_UNDO_MS} from '../../lib/goals/goal-removal';
 
 /**
  * A Goal's milestones (Session W Part 11): each with an optional target value (where the Goal keeps it) and target date
@@ -69,7 +70,7 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
         <label className="field">Target date (optional, this device)<input name="date" type="date" defaultValue={date ?? ''} /></label>
         <div className="actions"><button className="secondary" type="submit">Save milestone</button><button className="quiet" type="button" onClick={() => setEditing(null)}>Cancel</button><button className="quiet" type="button" onClick={() => void run(async () => { const at = (goal.milestones ?? []).findIndex(x => x.id === m.id), before = date ?? null; await update(s => withMilestones(s, goal.id, list => list.filter(x => x.id !== m.id))); try { dates.update(d => setMilestoneDate(d, goal.id, m.id, null)); } catch { /* a stale date is harmless: nothing reads a removed milestone's date */ } setEditing(null);
           // Session AA-Cloud Part 6: Undo puts the milestone back in its place, with its date.
-          showUndo({message: `“${m.title}” removed.`, restore: async () => { await update(s => withMilestones(s, goal.id, list => list.some(x => x.id === m.id) ? list : [...list.slice(0, Math.max(0, at)), m, ...list.slice(Math.max(0, at))])); if (before) { try { dates.update(d => setMilestoneDate(d, goal.id, m.id, before)); } catch { /* the milestone is back; its date can be set again */ } } }, undone: `“${m.title}” is back.`}); }, `“${m.title}” removed.`)}>Remove milestone</button></div>{error && <p role="alert" className="field-error">{error}</p>}
+          showUndo({timeoutMs: REMOVAL_UNDO_MS, message: `“${m.title}” removed.`, restore: async () => { await update(s => withMilestones(s, goal.id, list => list.some(x => x.id === m.id) ? list : [...list.slice(0, Math.max(0, at)), m, ...list.slice(Math.max(0, at))])); if (before) { try { dates.update(d => setMilestoneDate(d, goal.id, m.id, before)); } catch { /* the milestone is back; its date can be set again */ } } }, undone: `“${m.title}” is back.`}); }, `“${m.title}” removed.`)}>Remove milestone</button></div>{error && <p role="alert" className="field-error">{error}</p>}
       </form> : <div className="goal-milestone-row">
         <label className="checkbox"><input type="checkbox" checked={m.done} disabled={closed} onChange={e => { const done = e.target.checked; void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done} : x))), done ? `Milestone done: “${m.title}”.` : `Milestone open again: “${m.title}”.`); }} />{m.title}</label>
         <small>{[m.target ? `at ${money(m.target)}` : '', date ? `by ${formatDate(date)}` : '', state === 'reached' ? 'reached by your recorded progress' : state === 'done' ? 'done' : date && date < today ? 'past its date' : ''].filter(Boolean).join(' · ')}</small>

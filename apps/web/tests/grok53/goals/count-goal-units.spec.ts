@@ -40,5 +40,6 @@ test('DV-037: history-only books are named as such next to "Actual contributed";
   await sheet.getByRole('button', {name: 'Save history only'}).click();
   await expect(page.getByTestId('tracked-progress')).toContainText('0 books');
   // Session AL (COPY_AUDIT, deliberate): DV-007a, "Funding Wealth" reads "Your saving plan" until the chain is chosen.
-  await expect(page.getByRole('region', {name: 'Your saving plan overview'})).toContainText('Includes 3 books recorded as history only, which never changes progress');
+  // Session AL (COPY_AUDIT, deliberate; fourth pass DV-034a/DV-104): a count goal's panel is "Your plan" (books are not savings).
+  await expect(page.getByRole('region', {name: 'Your plan overview'})).toContainText('Includes 3 books recorded as history only, which never changes progress');
 });

@@ -40,7 +40,8 @@ test('DV-054c/DV-047c (P-DV-73), DV-169 (P-DV-74): an average goal shows in Acti
   await expect(nav.getByRole('button', {name: 'Goal', exact: true}).locator('.activity-filter-count')).toHaveText(` · ${shown}`);
   // Session AL (deliberate): sleep nights, tasks and habit archive/delete rows are listed now (DV-172, DV-206, Tasks in
   // Activity), so the footer names only what still isn't.
-  await expect(timeline).toContainText('Not listed here: journal entries and notes');
+  // Session AL (COPY_AUDIT, deliberate; fourth pass PR-065): the footer also names the money log.
+  await expect(timeline).toContainText('Not listed here: journal entries, notes, and the spending and income you log under Wealth');
 });
 
 test('DV-036d (P-DV-76): the source cards show their part of the list', async ({page}) => {
