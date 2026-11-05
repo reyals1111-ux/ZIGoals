@@ -39,24 +39,33 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - Builds need `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Load is high with many helpers, so unit timeouts under load are re-run alone.
 
-## Lanes in flight (after the container restart of 5 Nov)
-- **Committed:** every pillar lane's second pass; INT; Part 14 lanes P14-B and P14-D; the HUD second pass; themes regenerated (`32e0bebd`).
+## Lanes in flight (5 Nov, evening)
+- **Committed since the restart:**
+  - FX-L2L4 and FX-L3 fix-ups (the NB-081 Undo primitive bug, `db35de20`);
+  - P14-A (TIER 3 wallet `be9c97a0`), P14-B, P14-D, INT-2;
+  - L8c (HUD perf: a 16.7 ms median frame at CPU 4x);
+  - third passes of L1, L2, L3, L4 and L6 (TIER 3 API `ccfad605`, positions `5b839b4a`);
+  - CROSS_LANE.md;
+  - the HUD design critic's review (not stunning yet: 2 Blocker, 11 Major).
 - **Running:**
-  - P14-A (chain/settings/INT/CI earlier rows plus L6's failing specs; resumed);
-  - FX-L3 (habits/today specs);
-  - FX-L2L4 (health/goals specs plus small requests);
   - FX-MIX (tasks/checklist/data/shell/ai specs);
-  - L8c (NOVA panels, the HUD specs and perf numbers);
-  - the replay of L1, round 1 (GROK53_REPLAY_L1_1.md).
-- **Servers:** :3101 serves the branch build 5848c55c (/home/user/zig-branch); :3102 serves main 17069c7d (/home/user/zig-base). Both restart after a container restart, with `next start` in each `apps/web`.
-- **Browser runs** go through `flock -o /tmp/claude-0/zig-browser.lock`. `/tmp/claude-0/run2.done` marks the integrator's run as done.
+  - the replay of L1, round 1;
+  - L8d (fixing every HUD review finding);
+  - L7 third pass;
+  - the sweep of small leftover requests.
+- **Next code lanes:** INT third pass (14 asks plus 3 competitor rows), once FX-MIX frees the vault files; L5/L10a/L10b third passes after FX-MIX.
+- **Servers:**
+  - :3101 runs the branch at 5848c55c (/home/user/zig-branch);
+  - :3103 runs the branch at cfbdc591 (/home/user/zig-branch2), used for the HUD review;
+  - :3102 runs main.
+- **Browser runs** go through the flock lock.
 
 ## Exact next step
-1. Commit each fix-up as it reports, with the full tsc before each commit.
-2. Rebuild, then run run 3 of tests/grok53.
-3. Pillar replays for L2-L8 once their fix-ups land.
-4. The HUD design critic, then the first-time viewer.
-5. Then Parts 13, 15 and 16, and the A10 cycles.
+1. Commit each lane as it reports.
+2. Rebuild the branch on :3101 and run 3 of tests/grok53.
+3. Pillar replays L2-L8 (A1).
+4. The HUD first-time-viewer review after L8d.
+5. Parts 13 and 16 and the A10 cycles.
 
 ## Open readings
 Q1–Q5 are in ADR-037.
