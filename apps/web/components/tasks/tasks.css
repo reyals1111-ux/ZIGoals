@@ -68,7 +68,9 @@
 .tasks-nav-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
 .tasks-nav-item small { font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
 .tasks-nav-item:hover { border-color: var(--line, rgba(128, 128, 160, .3)); }
-.tasks-nav-item[aria-current=page] { border-color: var(--cyan); background: color-mix(in oklab, var(--cyan) 12%, transparent); font-weight: 650; }
+/* Session AL (CI10, ADR-028 H75/H112): the selected list's violet tint is the same in Nebula, Light and Dark (a coloured fill
+   keeps Nebula's colour; was cyan by day and grey at night). */
+.tasks-nav-item[aria-current=page] { border-color: var(--cyan); background: color-mix(in oklab, #8e6cf0 18%, transparent); font-weight: 650; }
 .tasks-nav-item[data-colour]::before { content: ""; flex: 0 0 10px; height: 10px; border-radius: 50%; background: var(--task-colour, #8a8fa3); margin-inline-end: -2px; }
 .tasks-nav-item span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .tasks-nav-new, .tasks-nav .text-link { min-height: 44px; }
@@ -162,10 +164,9 @@
 .tasks-shortcuts th, .tasks-shortcuts td { text-align: start; padding: 6px 8px; border-bottom: 1px solid var(--line, rgba(128, 128, 160, .2)); vertical-align: top; }
 .tasks-shortcuts kbd { font: inherit; font-weight: 650; white-space: nowrap; }
 .tasks-shortcuts header button { min-width: 44px; min-height: 44px; }
-/* P-LS-61 (LS-H39): Dark is the plain dark theme on Tasks — neutral greys where Nebula has its violet tint. */
-:root[data-theme=dark] .tasks-page .tasks-nav-item[aria-current=page], :root[data-theme=dark] .tasks-page .tasks-toggle button[aria-pressed=true] { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .55); }
+/* P-LS-61 (LS-H39): Dark differs from Nebula on Tasks by its deeper neutral lines and surfaces only (ADR-028 H75/H112:
+   the owner's "the eye should see no other difference"); the selected list and the pressed view keep Nebula's colours. */
 :root[data-theme=dark] .tasks-page .task { border-bottom-color: rgba(255, 255, 255, .12); }
-:root:not([data-theme]) .tasks-page .tasks-nav-item[aria-current=page], :root[data-theme=nebula] .tasks-page .tasks-nav-item[aria-current=page] { background: color-mix(in oklab, #8e6cf0 18%, transparent); }
 @media (prefers-reduced-motion: reduce) { .tasks-page * { scroll-behavior: auto; } }
 .tasks-today-reminders { list-style: none; margin: 0 0 8px; padding: 8px 10px; display: grid; gap: 2px; border-radius: 12px; border: 1px solid var(--warning, #e8a33d); }
 .tasks-today-reminders li { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; overflow-wrap: anywhere; }

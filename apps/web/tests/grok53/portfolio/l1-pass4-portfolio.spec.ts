@@ -59,9 +59,15 @@ test('TK-024 / P8: a refused Sell (oversell, then an empty quantity) keeps Save 
   await form.getByLabel('Price per coin (USD)').fill('61000');
   for (const quantity of ['10', '']) {
     await form.getByLabel('Quantity').fill(quantity);
-    await save.scrollIntoViewIfNeeded();
+    // Session AL (CI10, spec mistake): the pointer rests on Save once its transitions are over, and the press lands where
+    // the box was measured. locator.click() on a button still in transition retries with a forced scroll (aligned to the
+    // top), so it moved Save between "before" and the click and measured Playwright's scroll, not the app's.
+    const settled = () => save.evaluate(el => Promise.all(el.getAnimations().map(a => a.finished.catch(() => null))));
+    await save.scrollIntoViewIfNeeded(); await settled();
+    const box = (await save.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await settled();
     const before = (await save.boundingBox())!;
-    await save.click();
+    await page.mouse.down(); await page.mouse.up();
     await expect(form.getByLabel('Quantity')).toHaveAttribute('aria-invalid', 'true');
     await expect(form.getByLabel('Quantity')).toBeFocused();
     await expect(form.locator('.field-error').first()).toBeInViewport();

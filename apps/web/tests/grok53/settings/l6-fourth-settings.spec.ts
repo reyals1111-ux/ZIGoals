@@ -50,8 +50,10 @@ test('BN-165/B-193/BN-024/D-091: Help’s recovery steps say "with an account on
 test('B-109/B-202: Help’s "fewer cards" answer matches the Showcase Today (one Daily Habits card)', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   await loadShowcase(page);
-  await page.goto('/app/help#ac-today'); await hydrated(page);
-  const answer = page.locator('#ac-today');
+  // Session AL (CI10, spec mistake): Help's questions carry the id "help-<id>" (components/help/help-question.tsx, as
+  // What's new links them), so the answer is #help-ac-today.
+  await page.goto('/app/help#help-ac-today'); await hydrated(page);
+  const answer = page.locator('#help-ac-today');
   await expect(answer).toContainText('today’s habits show in one card named Daily Habits, your habits widget, and the second, built-in copy of that list stands aside');
   await expect(answer).not.toContainText('Daily Habits and “Your next goal action” stand aside');
 });

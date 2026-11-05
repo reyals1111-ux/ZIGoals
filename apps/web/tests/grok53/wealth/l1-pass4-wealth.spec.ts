@@ -119,7 +119,11 @@ test('TK-196 / W24: Showcase — archiving USD Coin (it released Emergency fund)
   await page.goto('/app/wealth/asset/showcase-usdc'); await hydrated(page);
   await page.getByRole('button', {name: 'Archive asset'}).click();
   await page.getByRole('button', {name: 'Release allocations & archive'}).click();
+  // Session AL (CI10, spec race): the archive finishes on this page first (its notice shows); a goto sent before that was
+  // sometimes overtaken by the page's own update and left the phone run on the asset page.
+  await expect(page.locator('.asset-archived-notice')).toContainText('Archived.');
   await page.goto('/app/goals'); await hydrated(page);
+  await expect(page).toHaveURL(/\/app\/goals$/);
   await expect(page.locator('article, li, section').filter({hasText: 'Emergency fund'}).filter({hasText: 'An archived asset no longer counts toward this goal.'}).first()).toBeVisible();
 });
 
@@ -188,7 +192,22 @@ test.describe('375 px, crypto modules chosen, Showcase', () => {
     await loadShowcase(page);
     for (const path of ['/app/wealth', '/app/portfolio', '/app/markets', '/app/wealth/add-money', '/app/wealth/calculator', '/app/wealth/asset/showcase-btc']) {
       await page.goto(path); await hydrated(page);
-      const wide = await page.evaluate(() => ({scroll: document.documentElement.scrollWidth, past: [...document.querySelectorAll<HTMLElement>('main *, .alpha-notice, .alpha-notice *')].filter(el => { const r = el.getBoundingClientRect(); if (r.width === 0 || r.right <= innerWidth + 1) return false; for (let at = el.parentElement; at; at = at.parentElement) { const o = getComputedStyle(at).overflowX; if (o === 'auto' || o === 'scroll' || o === 'hidden' || o === 'clip') return false; } return true; }).slice(0, 3).map(el => `${el.tagName.toLowerCase()}.${el.className}`)}));
+      // Session AL (CI10, spec mistake): inside an <svg> the box of a rotated or animated group is the box around its rotated
+      // box, wider than anything drawn (Markets and Add money: groups "reached" 379–388 px while their rings end at 358 px).
+      // So what an <svg> draws is measured on its shapes' own outlines (points along each one, stroke included); every
+      // other element, the <svg> itself included, by its box as before.
+      const wide = await page.evaluate(() => {
+        const right = (el: Element) => {
+          if (!(el instanceof SVGElement) || el instanceof SVGSVGElement) return el.getBoundingClientRect().right;
+          if (!(el instanceof SVGGeometryElement)) return -Infinity;
+          const m = el.getScreenCTM(); let len = 0; try { len = el.getTotalLength(); } catch { return el.getBoundingClientRect().right; }
+          if (!m) return -Infinity;
+          const half = (parseFloat(getComputedStyle(el).strokeWidth) || 0) / 2;
+          let most = -Infinity; for (let i = 0; i <= 120; i++) { const p = el.getPointAtLength(len * i / 120); most = Math.max(most, m.a * p.x + m.c * p.y + m.e + half); }
+          return most;
+        };
+        return {scroll: document.documentElement.scrollWidth, past: [...document.querySelectorAll<Element>('main *, .alpha-notice, .alpha-notice *')].filter(el => { const r = el.getBoundingClientRect(); if (r.width === 0 || right(el) <= innerWidth + 1) return false; for (let at = el.parentElement; at; at = at.parentElement) { const o = getComputedStyle(at).overflowX; if (o === 'auto' || o === 'scroll' || o === 'hidden' || o === 'clip') return false; } return true; }).slice(0, 3).map(el => `${el.tagName.toLowerCase()}.${el.getAttribute('class') ?? ''}`)};
+      });
       expect(wide.past, path).toEqual([]);
       expect(wide.scroll, path).toBeLessThanOrEqual(375);
     }

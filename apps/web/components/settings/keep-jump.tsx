@@ -11,12 +11,15 @@ const PERSON = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
  * above the target as they load. A slow phone loads Settings' ZIGi panels one after another for longer than two seconds,
  * so each move restarts the wait (Pass 1 rerun).
  */
-export function holdInView(target: HTMLElement, ms = 2000, most = 10_000): () => void {
+export function holdInView(target: HTMLElement, ms = 2000, most = 10_000, still: () => boolean = () => true): () => void {
   if (typeof ResizeObserver !== 'function') return () => {};
   const top = target.getBoundingClientRect().top;
   let stop = () => {}, timer = window.setTimeout(() => stop(), ms);
   const cap = window.setTimeout(() => stop(), most);
   const observer = new ResizeObserver(() => {
+    // A newer jump already scrolled the page to its own target (its hashchange comes after this callback): let go, never
+    // pull the page back to the old one (D-088, CI10).
+    if (!still()) { stop(); return; }
     const moved = target.getBoundingClientRect().top - top;
     if (Math.abs(moved) > 4) { window.scrollBy(0, moved); window.clearTimeout(timer); timer = window.setTimeout(() => stop(), ms); }
   });
@@ -37,7 +40,7 @@ export function KeepSettingsJump() {
     const keep = () => {
       stop();
       const id = hashId(window.location.hash), target = id ? document.getElementById(id) : null;
-      if (target) stop = holdInView(target);
+      if (target) stop = holdInView(target, undefined, undefined, () => hashId(window.location.hash) === id);
     };
     window.addEventListener('hashchange', keep);
     if (window.location.hash) keep();

@@ -25,7 +25,9 @@ test('Showcase: water and the Drink water habit agree on Today, Health and Habit
   await expect(page.getByRole('region', {name: 'Water journal', exact: true})).toContainText('2,000 mL personal target');
   await open(page, '/app/habits');
   const card = page.getByRole('article', {name: 'Drink water', exact: true});
-  await expect(card.locator('.habit-count')).toHaveText('1 / 2 liters');
+  // Session AL (CI10, spec mistake): a daily target's counter has said its period since Session AK ("per day",
+  // habit-completion.tsx), so the card reads "1 / 2 liters per day" — still 1 liter, the same fact as Today and Health.
+  await expect(card.locator('.habit-count')).toHaveText('1 / 2 liters per day');
   await open(page, '/app/goals');
   await expect(page.locator('.goals-figures div').filter({hasText: 'Active'}).locator('strong')).toHaveText('7');
   await expect(page.locator('.goals-figures div').filter({hasText: 'Finished'}).locator('strong')).toHaveText('3');
@@ -38,5 +40,7 @@ test('fresh profile: Today\'s water tile says "—" and why, never a measured 0 
   const tile = page.getByRole('article', {name: 'Focus: water today'});
   await expect(tile.locator('strong')).toHaveText('—');
   await expect(tile).toContainText('No water logged yet today');
-  await expect(tile).not.toContainText('0 mL');
+  // Session AL (CI10, spec mistake): "Add 250 mL" (the tile's one-tap button) holds the substring "0 mL"; a measured
+  // zero is "0 mL" on its own, so the check is for a 0 mL with no digit or separator before the 0.
+  await expect(tile).not.toContainText(/(?<![\d.,])0\s?mL/);
 });
