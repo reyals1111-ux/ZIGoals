@@ -88,6 +88,8 @@ type Session = {topic: string; namespaces: unknown; peer?: {metadata?: {name?: u
 type Client = {
   connect(params: {optionalNamespaces: Record<string, WcNamespace>}): Promise<{uri?: string; approval: () => Promise<Session>}>;
   disconnect(params: {topic: string; reason: {code: number; message: string}}): Promise<void>;
+  /** The client's own events; only the two that end a session are listened to (Z1C-I2). Optional for older fakes. */
+  on?(event: 'session_delete' | 'session_expire', listener: (args: {topic?: unknown}) => void): unknown;
 };
 type Loader = () => Promise<{SignClient: {init(options: Record<string, unknown>): Promise<unknown>}}>;
 /**
@@ -99,6 +101,16 @@ export type WalletConnectLive = {client: Client; session: Session | null; stakin
 let live: WalletConnectLive | null = null;
 /** For lane L2a's signer: the live client and approved session of this tab, or null. */
 export const walletConnectSession = () => live;
+/**
+ * Session AL (Z1C-I3): the name the approved session's wallet gives itself (its peer metadata), for labels; null when it
+ * gives none. Shown as plain text only, trimmed to 40 characters, control characters dropped.
+ */
+export function walletConnectPeerName(current: {session?: {peer?: {metadata?: {name?: unknown}}} | null} | null = live): string | null {
+  const name = current?.session?.peer?.metadata?.name;
+  if (typeof name !== 'string') return null;
+  const clean = name.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 40);
+  return clean || null;
+}
 /**
  * Session AK (AFL9 wiring; `TIER 3 (wallet)`): a window event (no detail) each time this tab's session is approved or ends,
  * so the Staking panel can offer Keplr Mobile, or drop a connection whose pairing ended. It carries nothing; listeners
@@ -135,6 +147,16 @@ export async function startWalletConnect({projectId, origin, cosmosMethods, stak
   if (!isWalletConnectUri(uri)) throw new WalletConnectUnavailable('WalletConnect did not give a pairing link.');
   const staking = !!stakingMethods;
   live = {client, session: null, staking};
+  // Session AL (Z1C-I2; `TIER 3 (wallet)`, bookkeeping only): the wallet may end or let the session expire on its side.
+  // This tab's session is then dropped and the change announced, so the Staking panel stops saying it is paired.
+  const ended = (args?: {topic?: unknown}) => {
+    if (live?.client !== client || !live.session || live.session.topic !== args?.topic) return;
+    live = null;
+    if (typeof window !== 'undefined') window.removeEventListener(ACCOUNT_CHANGE, endOnAccountChange);
+    changed();
+  };
+  client.on?.('session_delete', ended);
+  client.on?.('session_expire', ended);
   if (typeof window !== 'undefined') window.addEventListener(ACCOUNT_CHANGE, endOnAccountChange);
   return {uri, approval: approval().then(async session => {
     // A pairing that was ended (a newer one, Remove, or an account change) before the wallet approved is closed at once.

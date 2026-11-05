@@ -155,6 +155,8 @@ export async function executeSigned(ticket: SignTicket, keplr: KeplrSigner, onSt
  */
 export const WC_STAKING_METHODS = Object.freeze(['cosmos_getAccounts', 'cosmos_signDirect'] as const);
 /** The chains a staking pairing asks for (lib/wallets/walletconnect.ts stakingNamespaces): signing exists on these only. */
+/** Z1C-I3: the plain words when the wallet answers with an account its approved session does not list. */
+export const WC_ACCOUNT_NOT_APPROVED = 'Your phone wallet answered with a different account from the one you approved when pairing. Nothing was connected or signed. Pair it again with the account you want to use.';
 export const WC_STAKING_CHAINS = Object.freeze(['zigchain-1', 'zig-test-2'] as const);
 type WcLive = {client: unknown; session: {topic: string; namespaces: unknown} | null; staking?: unknown} | null;
 type WcRequester = {request(args: {topic: string; chainId: string; request: {method: string; params: unknown}}): Promise<unknown>};
@@ -170,7 +172,8 @@ const unb64 = (text: unknown) => { if (typeof text !== 'string' || !/^[A-Za-z0-9
  * - `no-signing`: the wallet did not approve the one signing method for it.
  */
 export type WalletConnectStakingCheck = {ok: true} | {ok: false; reason: 'none' | 'linking-only' | 'no-chain' | 'no-signing'};
-type WcPairing = {client: WcRequester; topic: string; caip: string};
+/** `approved`: the addresses the approved session lists for this chain (its CAIP-10 accounts), Z1C-I3. */
+type WcPairing = {client: WcRequester; topic: string; caip: string; approved: readonly string[]};
 function stakingPairing(live: WcLive, chainId: string): WcPairing | WalletConnectStakingCheck & {ok: false} {
   const session = live?.session;
   if (!session || typeof session.topic !== 'string') return {ok: false, reason: 'none'};
@@ -186,18 +189,22 @@ function stakingPairing(live: WcLive, chainId: string): WcPairing | WalletConnec
   if (cosmos?.chains !== undefined && !(Array.isArray(cosmos.chains) && cosmos.chains.includes(caip))) return {ok: false, reason: 'no-chain'};
   if (!accounts.some(a => typeof a === 'string' && a.startsWith(`${caip}:`))) return {ok: false, reason: 'no-chain'};
   if (!methods.includes('cosmos_signDirect')) return {ok: false, reason: 'no-signing'};
-  return {client: live!.client as WcRequester, topic: session.topic, caip};
+  const approved = accounts.filter((a): a is string => typeof a === 'string' && a.startsWith(`${caip}:`)).map(a => a.slice(caip.length + 1));
+  return {client: live!.client as WcRequester, topic: session.topic, caip, approved};
 }
 export function walletConnectStakingCheck(live: WcLive, chainId: string): WalletConnectStakingCheck {
   const pairing = stakingPairing(live, chainId);
   return 'ok' in pairing ? pairing : {ok: true};
 }
 /** The wallet's one ZIGChain account over the pairing (`cosmos_getAccounts`, the read; no signing method). */
-const wcAccounts = ({client, topic, caip}: WcPairing) => async () => {
+const wcAccounts = ({client, topic, caip, approved}: WcPairing) => async () => {
   const answer = await client.request({topic, chainId: caip, request: {method: 'cosmos_getAccounts', params: {}}});
   const list = Array.isArray(answer) ? answer as {address?: unknown; algo?: unknown; pubkey?: unknown}[] : [];
   const first = list[0];
   if (!first || typeof first.address !== 'string' || first.algo !== 'secp256k1') throw Error('The wallet shared no ZIGChain account. Nothing was signed.');
+  // Session AL (Z1C-I3; `TIER 3 (wallet)`, a refusal only): the account must be one the approved session lists for this
+  // network, the address the person saw when they paired. Anything else stops here, before any review or signature.
+  if (!approved.includes(first.address)) throw Error(WC_ACCOUNT_NOT_APPROVED);
   return [{address: first.address, algo: 'secp256k1' as const, pubkey: unb64(first.pubkey)}];
 };
 /**
