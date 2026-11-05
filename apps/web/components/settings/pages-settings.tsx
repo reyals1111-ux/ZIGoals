@@ -61,7 +61,7 @@ export function PagesSettings() {
   const view = viewOf(pagesChoice, showcase, chainChosenFrom({linked: chain.linked, pages: pagesChoice, earn: chain.earn}));
   const save = (change: (pages: Pages) => Pages, done: string) => {
     setMessage(null);
-    return updateSettingsGroup('pages', change).then(() => setMessage({text: done}), (error: unknown) => setMessage({text: plainErrorMessage(error, 'Could not save.'), failed: true}));
+    return updateSettingsGroup('pages', change).then(() => { setMessage({text: done}); return true; }, (error: unknown) => { setMessage({text: plainErrorMessage(error, 'Could not save.'), failed: true}); return false; });
   };
   // Session AL (P-BN-34; BN-016, BN-186, T-132): a switch that changes more than itself says so, next to the switches.
   const sideEffect = (id: VisibilityId | 'governance' | 'earn', on: boolean): string => {
@@ -72,7 +72,16 @@ export function PagesSettings() {
     if (on && id === 'governance' && !isShown(view, 'staking')) return ' It shows once Staking shows too.';
     return '';
   };
-  const toggle = (id: VisibilityId, label: string, on: boolean) => void save(pages => withChoice(pages, id, on, new Date().toISOString()), (on ? `${label} shows again.` : `${label} is hidden. You can show it again here at any time.`) + sideEffect(id, on));
+  // The synced choice is saved asynchronously and the settings are read back after that, so a switch held its old state for
+  // a moment (a click "did not change" it; o3-apps-extras at 500 px). It shows the choice at once, until the settings are
+  // read again (whatever they then say wins) or the save fails.
+  const [pending, setPending] = useState<Partial<Record<VisibilityId, {on: boolean; base: unknown}>>>({});
+  const shown = (id: VisibilityId) => { const choice = pending[id]; return choice && choice.base === settings.data ? choice.on : isShown(view, id); };
+  const toggle = (id: VisibilityId, label: string, on: boolean) => {
+    setPending(current => ({...current, [id]: {on, base: settings.data}}));
+    void save(pages => withChoice(pages, id, on, new Date().toISOString()), (on ? `${label} shows again.` : `${label} is hidden. You can show it again here at any time.`) + sideEffect(id, on))
+      .then(saved => { if (!saved) setPending(current => { const next = {...current}; delete next[id]; return next; }); });
+  };
   const showGovernance = (on: boolean) => {
     setMessage(null);
     try { prefs.update(r => setEarnPref(r, {governanceShown: on})); setMessage({text: (on ? 'Governance shows on this device.' : 'Governance is hidden. You can show it again here at any time.') + sideEffect('governance', on)}); }
@@ -105,7 +114,7 @@ export function PagesSettings() {
           <legend>Pages</legend>
           {AVAILABLE_PAGES.map(id => <Fragment key={id}>
             <label className="pages-switch">
-              <input type="checkbox" role="switch" checked={isShown(view, id)} onChange={e => toggle(id, PAGE_LABEL[id], e.currentTarget.checked)}/>
+              <input type="checkbox" role="switch" checked={shown(id)} onChange={e => toggle(id, PAGE_LABEL[id], e.currentTarget.checked)}/>
               <span>{PAGE_LABEL[id]}</span>
             </label>
             {id === 'health' && <Suspense fallback={null}><CycleSwitch healthShown={isShown(view, 'health')}/></Suspense>}
@@ -129,7 +138,7 @@ export function PagesSettings() {
           <legend>Buttons</legend>
           {AVAILABLE_BUTTONS.map(id => <div key={id} className="pages-switch-row">
             <label className="pages-switch">
-              <input type="checkbox" role="switch" checked={isShown(view, id)} aria-describedby={NOTES[id] ? `pages-note-${id}` : undefined} onChange={e => toggle(id, BUTTON_LABEL[id], e.currentTarget.checked)}/>
+              <input type="checkbox" role="switch" checked={shown(id)} aria-describedby={NOTES[id] ? `pages-note-${id}` : undefined} onChange={e => toggle(id, BUTTON_LABEL[id], e.currentTarget.checked)}/>
               <span>{BUTTON_LABEL[id]}</span>
             </label>
             {NOTES[id] && <small className="pages-switch-note" id={`pages-note-${id}`}>{NOTES[id]}</small>}

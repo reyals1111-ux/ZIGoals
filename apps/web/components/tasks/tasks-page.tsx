@@ -175,8 +175,24 @@ export function TasksPage() {
   });
 
   /* ---- drag (pointer); the keyboard alternative is Alt+↑/↓ and the row's Move up / Move down ---- */
+  // A focused row shows more (Add a subtask, its notes) and the row it leaves shows less. Focus comes with the press of a
+  // mouse, so that change moved the rows under the pointer before its release (and the page scrolled with it), and the
+  // click landed on another control: Edit did not open, a shift-click selected nothing (ls-025, ls-007). During a press the
+  // row's focus waits for the release.
+  const pressing = useRef(false), focusAfterPress = useRef<string | null>(null);
+  const pressRow = () => {
+    if (pressing.current) return;
+    pressing.current = true;
+    const release = () => {
+      window.removeEventListener('pointerup', release, true); window.removeEventListener('pointercancel', release, true);
+      pressing.current = false;
+      const id = focusAfterPress.current; focusAfterPress.current = null;
+      if (id) window.setTimeout(() => setFocusId(id), 0); // after the click that ends the press
+    };
+    window.addEventListener('pointerup', release, true); window.addEventListener('pointercancel', release, true);
+  };
   const dragProps = (t: Task) => ({
-    draggable: !t.doneAt, tabIndex: -1, onFocus: () => setFocusId(t.id),
+    draggable: !t.doneAt, tabIndex: -1, onPointerDown: pressRow, onFocus: () => { if (pressing.current) focusAfterPress.current = t.id; else setFocusId(t.id); },
     onDragStart: (e: DragEvent<HTMLElement>) => { e.stopPropagation(); setDragId(t.id); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', t.id); },
     onDragEnd: () => setDragId(null),
     onDragOver: (e: DragEvent<HTMLElement>) => { if (dragId && dragId !== t.id) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } },

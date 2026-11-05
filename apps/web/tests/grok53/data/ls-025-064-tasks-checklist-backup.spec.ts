@@ -54,7 +54,8 @@ test('LS-025: the encrypted backup holds Tasks and the Checklist, previews them 
   const vault = page.locator('#private-vault');
   await vault.getByLabel('Include my Health records in this encrypted download.').check();
   await vault.getByRole('button', {name: 'Prepare encrypted backup'}).click();
-  const secret = await vault.getByLabel('Recovery secret').inputValue();
+  // Exact: "I saved the recovery secret." and "Backup recovery secret" (distinct names a person can tell apart) contain it too.
+  const secret = await vault.getByLabel('Recovery secret', {exact: true}).inputValue();
   await vault.getByLabel('I saved the recovery secret.').check();
   const download = page.waitForEvent('download');
   await vault.getByRole('button', {name: 'Download encrypted backup'}).click();

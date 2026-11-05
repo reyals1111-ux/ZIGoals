@@ -42,7 +42,8 @@ test('LS-003/P-LS-02: a repeating task rolls to its next day when ticked, its oc
   await page.goto('/app/tasks');
   const row = page.locator('#task-task_rent');
   await expect(row).toContainText('Every month on the 4th');
-  await row.getByRole('checkbox', {name: 'Mark “Fictional rent” done'}).check();
+  // Ticked, the task moves to next month and leaves Today at once, so check() could not read the box back: click.
+  await row.getByRole('checkbox', {name: 'Mark “Fictional rent” done'}).click();
   await expect(toast(page)).toContainText('It comes back on its next day');
   await expect.poll(async () => (await storedTasks(page))!.tasks[0]).toMatchObject({due: '2026-12-04', completions: [{due: DAY}]});
   await toast(page).getByRole('button', {name: 'Undo'}).click();

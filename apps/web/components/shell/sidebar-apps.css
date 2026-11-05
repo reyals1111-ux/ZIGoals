@@ -1,6 +1,8 @@
 /* Session AL (owner decision O4): the desktop sidebar's foldable Apps group (sidebar-apps.tsx), compact under the main
    pages: 44 px rows (the main list's are 47 px), the same link look, a small header that folds it. Computers only. */
-.sidebar-apps { flex: none; margin-top: 18px; }
+/* A block: the global `nav { display: flex }` (globals.css) set the header and the list side by side, so the list ran 26 px
+   past the sidebar's edge (o4-sidebar-apps, 1440 px). */
+.sidebar-apps { display: block; flex: none; margin-top: 18px; }
 .sidebar-apps-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 0 16px; border: 1px solid transparent; border-radius: 11px; background: none;
   color: #a9bbd8; font: inherit; font-size: 14px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
 .sidebar-apps-toggle:hover { color: var(--text); }

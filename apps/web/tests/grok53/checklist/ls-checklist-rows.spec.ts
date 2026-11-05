@@ -93,8 +93,10 @@ test('LS-074/P-LS-54: the List view shows "Tasks due today" linking into Tasks; 
   const section = page.getByRole('region', {name: 'Tasks due today'});
   await expect(section).toContainText('Fictional post the letter');
   await expect(section.getByRole('link', {name: 'Open Tasks →'})).toHaveAttribute('href', '/app/tasks?view=today');
-  await section.getByRole('checkbox').check();
+  // A ticked task leaves the list at once (by design: it is done in Tasks), so check() could not read the box back: click.
+  await section.getByRole('checkbox').click();
   await expect.poll(async () => !!(await stored<{tasks: {doneAt?: string}[]}>(page, TASKS_KEY))!.tasks[0]!.doneAt).toBe(true);
+  await expect(section).toContainText('Nothing due today in Tasks.');
   await page.getByRole('button', {name: `More for ${TITLE.custom}`}).click();
   const tools = page.getByRole('group', {name: `More for ${TITLE.custom}`});
   await tools.getByLabel('Orbit').selectOption('morning');

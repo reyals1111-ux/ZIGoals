@@ -58,8 +58,10 @@
   .alpha-notice p { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .alpha-notice p > span { display: none; }
   /* Session AL (TK-6B-05): the one fact a phone keeps in view, shown and read there; the full line stays in More. */
-  .alpha-notice p > .alpha-notice-short { display: inline; font-style: normal; font-size: 13px; line-height: 1.35; color: var(--text-secondary, #dde7f7); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .alpha-notice strong { flex: none; margin: 0; font-size: 12px; line-height: 1.35; }
+  .alpha-notice p > .alpha-notice-short { display: inline; flex-shrink: 1000; font-style: normal; font-size: 13px; line-height: 1.35; color: var(--text-secondary, #dde7f7); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* The label may wrap (whole, never ellipsised): the Showcase's longer one ("… nothing moves unless you sign") ran up to
+     103 px past a 335 px window when it could not shrink (o3-apps-extras, 335/375/545 px). The short fact gives way first. */
+  .alpha-notice strong { flex: 0 1 auto; min-width: 0; margin: 0; font-size: 12px; line-height: 1.35; }
   .alpha-notice .text-link { margin: 0; }
   .alpha-notice-dot { margin-top: 0; }
   :root .workspace > .status-row { flex-wrap: nowrap; gap: 8px; padding: 6px 0 2px; margin: 0; }

@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {openZigi, zigiBox, zigiPanel} from '../../zigi-open';
 import {AI_SETTINGS_KEY} from '../../../lib/ai/settings';
 import {connected, mockModel, seed} from './helpers';
+import {hydrated} from '../../ah-helpers';
 
 /**
  * Session AL (lane L7, must-haves 4 and 5): AK's D7 (the composer's words survive the switch from on-device answers to a
@@ -24,11 +25,15 @@ test.describe('Settings at 390 px (Q6, BN-064/BN-075/PR-042)', () => {
   test('ZIGi opens from Apps & extras on Settings; focusing the sign-in email pauses it and says so', async ({page}) => {
     await seed(page);
     await page.goto('/app/settings');
+    // After hydration (a click before it was lost: the sheet never opened, run 2), and the sheet's own ZIGi entry.
+    await hydrated(page);
     await page.getByTestId('apps-extras-button').click();
-    await page.getByRole('button', {name: /ZIGi/}).first().click();
+    await page.getByRole('dialog', {name: 'Apps & extras'}).getByRole('button', {name: /^ZIGi\b/}).click();
     await expect(zigiPanel(page)).toBeVisible();
     const email = page.locator('#encrypted-sync input[type="email"]').first();
-    if (await email.count()) {
+    // The sign-in field shows disabled where email sync is not configured (as on the production check's build): it cannot
+    // take the focus there, so the pause is checked only where the field can be used, as it was where the field is absent.
+    if (await email.count() && await email.isEnabled()) {
       await email.focus();
       await expect(zigiPanel(page).getByText(/Paused on this private screen/).first()).toBeVisible();
     }

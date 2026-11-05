@@ -14,7 +14,8 @@ test('LS-004: "call mom tomorrow at 5pm" in Quick add is a task, saved with Undo
   await page.locator('html[data-app-hydrated]').waitFor({state: 'attached'});
   await page.locator('.quick-add-trigger:visible').first().click();
   const dialog = page.getByRole('dialog', {name: 'What would you like to add?'});
-  const line = dialog.getByLabel('Type a line');
+  // The line's form is named "Type a line" too (other specs find it by that name), so getByLabel matched both: the field by role.
+  const line = dialog.getByRole('textbox', {name: 'Type a line'});
   await line.fill('call mom tomorrow at 5pm');
   await dialog.getByRole('button', {name: 'Preview'}).click();
   await expect(dialog).toContainText('Will add a task: “call mom”');

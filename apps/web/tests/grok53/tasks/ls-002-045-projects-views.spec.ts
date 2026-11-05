@@ -51,10 +51,14 @@ test('P-LS-06/LS-045: ?view= is honoured; Today shows overdue first; Upcoming by
   await expect(page.locator('.tasks-main .task-title')).toHaveText(['Fictional today', 'Fictional next']);
   await page.goto('/app/tasks?view=today');
   await expect(page.locator('.tasks-main .task-title')).toHaveText(['Fictional late', 'Fictional today']);
-  await page.getByRole('checkbox', {name: 'Mark “Fictional today” done'}).check();
+  // A ticked task leaves Today at once (its toast has Undo), so check() could not read the box back: click, then the toast.
+  await page.getByRole('checkbox', {name: 'Mark “Fictional today” done'}).click();
+  await expect(toast(page)).toContainText('Done: “Fictional today”.');
+  await expect(page.locator('.tasks-main .task-title')).toHaveText(['Fictional late']);
   await page.goto('/app/tasks?view=completed');
   await expect(page.locator('.tasks-main')).toContainText('Fictional today');
-  await page.getByRole('checkbox', {name: 'Mark “Fictional today” not done'}).uncheck();
+  // Opened again, it leaves Completed at once too: click.
+  await page.getByRole('checkbox', {name: 'Mark “Fictional today” not done'}).click();
   await expect(toast(page)).toContainText('is open again');
   await expect.poll(async () => (await storedTasks(page))!.tasks.find(t => t.id === 'task_today')!.doneAt).toBeUndefined();
   await page.goto('/app/tasks?view=calendar');

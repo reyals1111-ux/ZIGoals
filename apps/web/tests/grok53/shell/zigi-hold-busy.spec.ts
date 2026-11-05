@@ -3,6 +3,7 @@ import {buildShowcase} from '../../../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../../../lib/whats-new';
 import {ZIGI_VOICE_KEY} from '../../../lib/z-device-keys';
+import {GAME_KEY} from '../../../lib/aa-device-keys';
 import {NOVA_SETUP_KEY, setPrivacyMode} from '../../../lib/nova/setup';
 import {hydrated, offlineApi} from '../../ah-helpers';
 
@@ -31,6 +32,9 @@ async function seed(page: Page) {
   const values: Record<string, string> = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]})};
   values[ZIGI_VOICE_KEY] = JSON.stringify({version: 1, disclosed: {chrome: '2026-09-01T00:00:00.000Z', safari: '2026-09-01T00:00:00.000Z', other: '2026-09-01T00:00:00.000Z'}});
   values[NOVA_SETUP_KEY] = JSON.stringify(setPrivacyMode(JSON.parse(values[NOVA_SETUP_KEY] ?? '{"version":1}'), 'guarded', DAY));
+  // The Showcase is built for DAY but the page runs on the real date, so the game layer celebrated a badge earned since
+  // ("Thirty days clear"); its full-screen card (z-index 70) took the press meant for the launcher. The layer is off here.
+  values[GAME_KEY] = JSON.stringify({...JSON.parse(values[GAME_KEY] ?? '{"version":1}'), enabled: false});
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);
   await page.waitForLoadState('networkidle');
 }

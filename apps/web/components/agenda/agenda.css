@@ -102,8 +102,9 @@
 .agenda-check[data-pillar=task], .agenda-check[data-pillar=event] { font-size: 16px; }
 .agenda-task-main { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0 6px; }
 .agenda-task-tick { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
-/* Session AL (P-LS-44, LS-023): a 24 px box (WCAG 2.5.8) inside the 44 px target. */
-.agenda-task-tick input { width: 24px; height: 24px; margin: 0; }
+/* Session AL (P-LS-44, LS-023): a 24 px box (WCAG 2.5.8) inside the 44 px target. Specific enough to beat the phones'
+   22 px rule for every checkbox in main (phone-base.css), which made it 22 px at 375 px. */
+:root .agenda-task-tick input[type="checkbox"] { width: 24px; height: 24px; margin: 0; }
 .agenda-task-text { display: grid; min-width: 0; }
 .agenda-task-focus { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
 .agenda-task[data-state=done] .agenda-item-title { text-decoration: line-through; text-decoration-thickness: 1px; }
