@@ -63,7 +63,7 @@ describe('LA-004, Z060/Z061: a page switch turned off closes the area for on-dev
     const off = {...settingsWith(false), pageShare: {...settingsWith(false).pageShare, habits: false}};
     const gates = aiGates({settings: off, area: 'today', pathname: '/app/tasks', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false});
     expect(gates.local.habits).toBe(false);
-    expect(gates.local.wealth).toBe(true); // lib/nova/zf-security.test.ts Z1A-9 pins the device brief's money line
+    expect(gates.local.wealth).toBe(true); // only Habits is off here; Wealth follows its own switch (Q14)
     const env = zigiEnv(lisbon('L2'), {habits: false});
     expect(localAnswer('Longest streak?', env).kind).toBe('refusal');
     expect(textOf(noModelReply('How many habits are left today?', env))).not.toContain('Stretch 5 min');

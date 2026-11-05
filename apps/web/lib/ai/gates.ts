@@ -53,8 +53,9 @@ export function aiGates(input: GatesInput): Gates {
   // Session AL fourth pass (L7-4b; Lisbon LA-004, Z060/Z061, LA-026, MO-059, NB-112, PR-005, X3-14): a page switch the person
   // turned off ("Habits page data") closes that area for the on-device answers too, as Settings says; ZIGi and NOVA read
   // through these same flags (lib/nova/local-env.ts). Before, ZIGi still listed the habits, their Checklist titles and the
-  // streaks. Wealth stays open on the device as lib/nova/zf-security.test.ts (Z1A-9) pins it: the integrator's call.
-  const local: AreaFlags = {today: share.today, goals: share.goals, habits: share.habits, health, wealth: true, help: share.help};
+  // streaks. Wealth too (integrator, reading Q14): Settings says these switches decide which pages the answers may read,
+  // with or without an AI, so a person who turned off "Wealth page data" gets no money line on the device either.
+  const local: AreaFlags = {today: share.today, goals: share.goals, habits: share.habits, health, wealth: share.wealth, help: share.help};
   return {connected, paused: false, page, areas, health: connected && attaches && health, local, localHealth: health, notes: connected && attaches, reasons: page.reasons};
 }
 /** The defaults before anything was chosen, for tests and for the shell: nothing shared, nothing paused. */
