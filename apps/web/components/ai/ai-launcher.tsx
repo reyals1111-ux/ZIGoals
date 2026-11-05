@@ -248,6 +248,7 @@ export function AiLauncher() {
     </div>}
     {edgeTab && <button type="button" className={`ai-edge-tab${phone ? ' ai-edge-tab-phone' : ''}`} data-side={look.side} aria-label="Show ZIGi" onClick={showAgain}><ZigiFigure state="peek"/></button>}
     {loaded && <ZigiPartBoundary label="ZIGi's chat" className="ai-launcher-toast"><Suspense fallback={null}><AiChat open={open && panelVisible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense></ZigiPartBoundary>}
-    {lookLoaded && (look.knock || agents) && <ZigiPartBoundary quiet><Suspense fallback={null}><ZigiCompanion knock={look.knock} agents={agents} away={!floating || open} visible={floating} sensitive={sensitive} phone={phone} side={look.side} onPropose={reopen}/></Suspense></ZigiPartBoundary>}
+    {/* Session AL (CI 1539, zigi-browser-agents): browser agents follow ZIGi's own visibility, so below 901 px (ZIGi in Apps & extras) the tools are offered too; the knock keeps to the floating launcher through `away` (Q8). */}
+    {lookLoaded && (look.knock || agents) && <ZigiPartBoundary quiet><Suspense fallback={null}><ZigiCompanion knock={look.knock} agents={agents} away={!floating || open} visible={visible} sensitive={sensitive} phone={phone} side={look.side} onPropose={reopen}/></Suspense></ZigiPartBoundary>}
   </>;
 }
