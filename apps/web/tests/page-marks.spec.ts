@@ -207,7 +207,10 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  expect(railGap('Settings')).toBeGreaterThan(railGap('Goals'));expect(help.bottom).toBeGreaterThan(1180-80);
  expect(main.x).toBeGreaterThanOrEqual(aside.x+aside.width);expect(main.y).toBeLessThan(330);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(820);
+ // Session AL (owner decision O3, deliberate; components/shell/apps-extras.tsx): the rail ends with "Apps & extras" below
+ // Help, so Tab from Help reaches it first, then Quick add in the top bar.
  await page.locator('.app-nav a[href="/app/help"]').focus();await page.keyboard.press('Tab');
+ await expect(page.locator('.apps-extras-rail [data-testid="apps-extras-button"]')).toBeFocused();await page.keyboard.press('Tab');
  await expect(page.locator('.app-sidebar .quick-add-trigger')).toBeFocused();
 });
 

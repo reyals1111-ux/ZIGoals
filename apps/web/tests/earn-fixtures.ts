@@ -55,6 +55,14 @@ export async function openEarnFolds(page: Page) {
   if (!phone) return;
   const toggles = page.locator('.earn-sections .phone-fold-toggle');
   await toggles.first().waitFor();
-  for (let i = 0, n = await toggles.count(); i < n; i++) if (await toggles.nth(i).getAttribute('aria-expanded') === 'false') await toggles.nth(i).click();
+  // Session AL (CI11): each row is opened and seen open before the next; a row whose tap was not taken (CI 1561: the first
+  // tap landed while Earn's later chunks were still arriving and the row stayed shut) is tapped again, never twice open.
+  for (let i = 0, n = await toggles.count(); i < n; i++) {
+    const toggle = toggles.nth(i);
+    await expect(async () => {
+      if (await toggle.getAttribute('aria-expanded') === 'false') await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'true', {timeout: 2_000});
+    }).toPass({timeout: 15_000});
+  }
   for (let i = 0, n = await toggles.count(); i < n; i++) await expect(toggles.nth(i)).toHaveAttribute('aria-expanded', 'true');
 }

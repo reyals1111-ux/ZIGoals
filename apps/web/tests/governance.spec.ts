@@ -47,7 +47,9 @@ test('without a wallet: practice proposals in plain words, the open one first, i
   await expect(open).toContainText(/Voting ends in [5-8] minutes/);
   await expect(open.getByRole('region', {name: 'What it would change'})).toContainText('Changes the staking rules, such as how many validators are active or how long unstaking takes.');
   const tally = open.getByRole('region', {name: 'Votes so far'});
-  await expect(tally.getByRole('img')).toHaveAttribute('aria-label', 'Yes 83.33%, No 13.88%, Abstain 2.77%, No with veto 0%');
+  // Session AL (L-043/D-154, deliberate): the tally region now also holds the turnout bar (a second img); this pins the votes bar.
+  await expect(tally.locator('.governance-bar[role="img"]')).toHaveAttribute('aria-label', 'Yes 83.33%, No 13.88%, Abstain 2.77%, No with veto 0%');
+  await expect(tally.locator('.governance-turnout-bar[role="img"]')).toHaveAttribute('aria-label', 'Turnout so far 36% of staked ZIG; the quorum is 33.4%, reached');
   await expect(tally).toContainText('To pass, at least 33.4% of all staked ZIG must vote (the quorum), Yes must be more than 51% of the votes that are not Abstain, and No with veto must stay at or below 33.4% of all votes (above it, the deposit is burned). These are the chain’s own numbers.');
   await expect(tally).toContainText('If voting ended now it would pass: Yes is above 51% of the votes that are not Abstain. Turnout so far: 36% of staked ZIG.');
   await expect(open).toContainText('Voting period10 minutes for this proposal'); // Session AH (ST7): its own voting period
@@ -94,7 +96,8 @@ test('the real network asks the first-real confirm, then reads zigchain-1: the r
   await expect(latest).toContainText('Passed · Proposal #43');
   await expect(latest).toContainText('Memesdotfun Whitelist address for Wasm uploads');
   await expect(latest).toContainText('Adds addresses to the list allowed to upload smart contracts.');
-  await expect(latest.getByRole('region', {name: 'Final votes'}).getByRole('img')).toHaveAttribute('aria-label', 'Yes 100%, No 0%, Abstain 0%, No with veto 0%');
+  // Session AL (L-043/D-154, deliberate): the final-votes region also holds the (estimated) turnout bar; this pins the votes bar.
+  await expect(latest.getByRole('region', {name: 'Final votes'}).locator('.governance-bar[role="img"]')).toHaveAttribute('aria-label', 'Yes 100%, No 0%, Abstain 0%, No with veto 0%');
   await expect(latest).toContainText('Deposit10,000 ZIG');
   await expect(latest).toContainText('Voting period4 days for this proposal'); // Session AH (ST7): its own voting period
   await expect(view.locator('article[data-proposal="39"]')).toContainText('Spends ZIG from the community pool.');

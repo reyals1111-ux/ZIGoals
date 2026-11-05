@@ -44,7 +44,10 @@ test('LA-024 / N-LS-05: the phone top bar is the banner; the Checklist button is
   const banner = page.getByRole('banner');
   await expect(banner).toHaveCount(1);
   await expect(banner.getByRole('link', {name: 'ZIGoals home'})).toBeVisible();
-  await ready(page, '/app/help');
+  // Session AL (D-159, sweep 4, deliberate; components/help/help-back.tsx): the top bar's back link on Help shows only when
+  // Help was opened from Settings, so it is opened from Settings' own link, as a person does.
+  await page.getByRole('main').getByRole('link', {name: 'Help & feedback →', exact: true}).click();
+  await page.waitForURL('**/app/help');
   await expect(page.getByRole('banner').getByRole('link', {name: /^Back to /})).toBeVisible();
   await page.setViewportSize({width: 1280, height: 900});
   await ready(page, '/app/habits');

@@ -18782,7 +18782,7 @@
     .tasks-nav-item[aria-current=page]:not(#\-) {
         border-color: var(--cyan);
         background-image: none;
-        background-color: color-mix(in oklab, var(--cyan) 12%, transparent)
+        background-color: color-mix(in oklab, #8e6cf0 18%, transparent)
     }
     .tasks-nav-item[data-colour]:not(#\-)::before {
         background-image: none;
@@ -18901,10 +18901,6 @@
     }
     .tasks-shortcuts th:not(#\-), .tasks-shortcuts td:not(#\-) {
         border-bottom-color: var(--line, #302f4b4d)
-    }
-    :scope:not([data-theme]) .tasks-page .tasks-nav-item[aria-current=page]:not(#\-), :scope[data-theme=nebula] .tasks-page .tasks-nav-item[aria-current=page]:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, #8e6cf0 18%, transparent)
     }
     .tasks-today-reminders:not(#\-) {
         border-color: var(--warning, #e8a33d)

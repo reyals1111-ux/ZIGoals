@@ -56,7 +56,10 @@ async function expectNav(page: Page, visible: string[], {journey = false}: {jour
   await openMore(page);
   // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): while Gamify is on (the Showcase), the
   // Journey is a row of More after the pages, since it is no longer a tab.
-  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), ...MORE_EXTRAS, ...(journey ? ['Journey'] : []), 'Settings', 'Help']);
+  // Session AL (BN-001, L6 sweep 4, deliberate): while Staking, Ecosystem or Chess is off, More ends its pages with a
+  // "More pages" row to Settings → Your pages & buttons, after the Journey.
+  const morePages = ['Staking', 'Ecosystem', 'Chess'].some(label => !visible.includes(label));
+  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), ...MORE_EXTRAS, ...(journey ? ['Journey'] : []), ...(morePages ? ['More pages'] : []), 'Settings', 'Help']);
   await page.keyboard.press('Escape');
 }
 const section = (page: Page) => page.getByRole('region', {name: 'Your pages & buttons', exact: true});
@@ -308,6 +311,8 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   await expectNav(page, ALL);
   // Hidden, its page still opens from Earn.
   await page.goto('/app/earn');
+  // Session AL (sweep 4, deliberate): on a phone Earn's wide sections are folded rows; the person opens "Have a say".
+  if (await isPhone(page)) await page.getByRole('button', {name: 'Have a say: governance', exact: true}).click();
   const open = page.locator('main a[href="/app/governance"]:visible').first();
   await expect(open).toBeVisible();
   await open.click();

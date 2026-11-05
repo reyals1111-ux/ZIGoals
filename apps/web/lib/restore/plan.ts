@@ -60,7 +60,7 @@ import {HEALTH_NUMBERS} from '../health-numbers/store';
 import {NOVA_HERMES} from '../nova/hermes-record';
 import {NOVA_SETUP} from '../nova/setup';
 import {NOVA_WORKFLOWS} from '../nova/workflows/schema';
-import {NOVA_BRIEFS} from '../nova/briefs';
+import {NOVA_BRIEFS} from '../nova/briefs-record';
 import {NOVA_BRIDGE} from '../nova/bridge';
 import {NOVA_STORE} from '../nova/store';
 import {CALENDAR_IMPORT} from '../ics/calendar';

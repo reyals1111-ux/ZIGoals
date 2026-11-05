@@ -297,16 +297,6 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .fasting-timeline-stops li[data-edge="end"] { transform: translateX(-100%); justify-items: end; }
 .fasting-timeline-stops li[data-edge="start"] { transform: none; justify-items: start; }
 
-/* Session AK (G3): richer cards, as the new surfaces (F6). Health: Depth from a soft violet shadow; the pillar's colour
-   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
-   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
-   keyboard focus. Theme tokens only; no motion of its own. */
-:root :where(.health-page) .panel:not(.health-aa-card) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-health) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
-:root :where(.health-page) .health-aa-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
-@media (hover: hover) and (pointer: fine) { :root :where(.health-page) .panel:not(.health-aa-card):hover, :root :where(.health-page) .health-aa-card:hover { border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent)); } }
-:root :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible), :root :where(.health-page) .health-aa-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
-@media (forced-colors: active) { :root :where(.health-page) .panel:not(.health-aa-card), :root :where(.health-page) .health-aa-card { box-shadow: none; } }
-
 /* Session AL (CI2): the Water card within a screen on a desktop (ui-design-pass) and Health within its phone ceiling
    (pillar-phone-length), without removing anything. The one-tap row keeps "Change" beside the sizes (its form takes the
    full row when open); the amount, unit, drink and caffeine sit two by two on a phone and in one row on a wide card;
@@ -326,5 +316,19 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
   .health-water .reminder-form > .reminder-time-field > * { grid-column: 1 / -1; }
   .health-water .reminder-form > .reminder-time-field > input { grid-column: 1; grid-row: 2; width: 9.5rem; }
   .health-water .reminder-form > .actions { grid-column: 2; grid-row: 2; margin: 0; }
+  /* Session AL (CI11): "Save reminder time" is 170 px on one line and the column beside the 9.5rem field has 130-160 px
+     from 360 to 390 px, so Save went past the card's edge (CI 1561, health-daily at 360). It keeps to its column and wraps. */
+  .health-water .reminder-form > .actions { min-width: 0; }
+  .health-water .reminder-form > .actions > button { max-width: 100%; white-space: normal; line-height: 1.25; text-wrap: balance; }
   .health-water .reminder-form > p { grid-column: 1 / -1; }
 }
+
+/* Session AK (G3): richer cards, as the new surfaces (F6). Health: Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+:root :where(.health-page) .panel:not(.health-aa-card) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-health) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+:root :where(.health-page) .health-aa-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root :where(.health-page) .panel:not(.health-aa-card):hover, :root :where(.health-page) .health-aa-card:hover { border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent)); } }
+:root :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible), :root :where(.health-page) .health-aa-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
+@media (forced-colors: active) { :root :where(.health-page) .panel:not(.health-aa-card), :root :where(.health-page) .health-aa-card { box-shadow: none; } }

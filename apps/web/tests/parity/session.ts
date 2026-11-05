@@ -48,6 +48,10 @@ export async function openIn(page: Page, route: string, theme: Theme) {
   const step = (top: number) => Promise.race([page.evaluate(t => { scrollTo(0, t); return document.documentElement.scrollHeight - innerHeight; }, top), new Promise<null>(done => setTimeout(() => done(null), 15_000))]);
   for (let y = 0; y < 40_000; y += 700) { const max = await step(y); if (max === null) break; await page.waitForTimeout(40); if (y > max) break; }
   await page.waitForLoadState('networkidle');
+  // Session AL (CI11; D9, components/earn/academy-section.tsx): the Earn Academy loads its path once the sweep brings it
+  // near; WebKit collected Nebula with the plain list still in its place and Light with the path (CI 1561, /app/earn, its
+  // lessons 25 px against 1197 px). Every theme waits for the path, so the drawn Academy is compared.
+  if (await page.locator('#academy').count()) await expect(page.locator('#academy .earn-academy-path')).toBeAttached({timeout: 15_000});
   await page.evaluate(async () => { scrollTo({top: 0, left: 0, behavior: 'instant'}); await document.fonts.ready; });
   // Session AF (CI's WebKit job on bf72baa0): the phone bar's title, ZIGi's resting spot and Earn's chip rail follow the
   // page's scroll a few frames late (the rail by a smooth scroll of its own), and WebKit took longer than the wait above, so

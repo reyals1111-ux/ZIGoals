@@ -14,7 +14,9 @@ const LOCKED=new Set(['/app','/app/goals','/app/staking','/app/habits','/app/hea
 // Activity, the Checklist, Settings and Help (it held Earn, Markets, Staking, Portfolio and Ecosystem first).
 // Session AK (owner follow-up 2, N2): NOVA is a row of More before the Checklist. Session AK G2 (RELEASE_REVIEW_2 R2-10,
 // deliberate): Tasks, Notes and the Journal follow it (navigation extras, never tabs); Music waits for its own switch.
-const MORE=['Activity','NOVA','Checklist','Tasks','Notes','Journal','Settings','Help'];
+// Session AL (BN-001, L6 sweep 4, deliberate): while Staking, Ecosystem or Chess is off (a new device), More ends its pages
+// with "More pages", a link to Settings → Your pages & buttons, before Settings.
+const MORE=['Activity','NOVA','Checklist','Tasks','Notes','Journal','More pages','Settings','Help'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
 

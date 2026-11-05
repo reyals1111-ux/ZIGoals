@@ -117,6 +117,9 @@ test('recent searches stay on this device and clear; nothing matching says so; t
 test('on a phone, search is a full-screen sheet from the top bar', async ({page, isMobile}) => {
   test.skip(!isMobile, 'the phone sheet');
   await page.goto('/app');
+  // Session AL (CI11): tapped once the shell has hydrated, as above: on a slow runner (CPU ×4 here) a tap that lands before
+  // the app's script runs is never seen and the sheet never opens; after <html data-app-hydrated> it opens every time.
+  await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
   await page.locator('.phone-top-bar, .phone-topbar, header').getByRole('button', {name: 'Search'}).first().click();
   const box = (await palette(page).boundingBox())!, viewport = page.viewportSize()!;
   expect(box.width).toBeGreaterThanOrEqual(viewport.width - 1);

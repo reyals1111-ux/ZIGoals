@@ -30,7 +30,7 @@ import {HEALTH_NUMBERS_KEY} from '../health-numbers/store';
 import {NOVA_HERMES_KEY} from '../nova/hermes-record';
 import {NOVA_SETUP_KEY} from '../nova/setup';
 import {NOVA_WORKFLOWS_KEY} from '../nova/workflows/schema';
-import {NOVA_BRIEFS_KEY} from '../nova/briefs';
+import {NOVA_BRIEFS_KEY} from '../nova/briefs-record';
 import {NOVA_BRIDGE_KEY} from '../nova/bridge';
 import {NOVA_KEY} from '../nova/store';
 import {CALENDAR_IMPORT_KEY} from '../ics/calendar';

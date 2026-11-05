@@ -3,7 +3,8 @@
  * request that is still in flight — "<address> due to access control checks." A same-origin request cannot fail an
  * access-control check, so with that wording and at that moment (within 1.5 s of a main-frame navigation) it is the
  * cancel, not the app's own error. Two shapes:
- * - the router's prefetches: `/app…?_rsc=` (S64; Goals' nested routes two segments deep, Session Z-Local);
+ * - the router's prefetches: `/app…?_rsc=` (S64; Goals' nested routes two segments deep, Session Z-Local), or a link's
+ *   own one plain query before it (Session AL CI3: Wealth's `/app/wealth/calculator?from=wealth&_rsc=…`, CI 1561);
  * - the app's own `/api/…` fetches the page had in flight (`/api/music-config`, `/api/push`,
  *   `/api/private-account?action=status`, `/api/earn/chain`, `/api/earn/oroswap` in CI). Every one of those fetch sites
  *   handles its own rejection (components/music/music-config.ts, components/push/use-push.ts,
@@ -11,5 +12,5 @@
  * Anything else — another origin, another wording, another moment — is still an error.
  */
 export type TimedError = {at: number; message: string};
-const SHAPE = /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/(?:app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+|api\/[a-z-]+(?:\/[a-z-]+)?(?:\?[\w=&-]+)?) due to access control checks\.?$/;
+const SHAPE = /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/(?:app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?(?:[a-z]+=[\w-]+&)?_rsc=[\w-]+|api\/[a-z-]+(?:\/[a-z-]+)?(?:\?[\w=&-]+)?) due to access control checks\.?$/;
 export const webkitCancelled = (e: TimedError, navigations: readonly number[]) => SHAPE.test(e.message) && navigations.some(t => Math.abs(e.at - t) <= 1500);
