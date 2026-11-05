@@ -20,6 +20,8 @@ import './ai.css';
 import {useVisualViewportInsets} from '../phone/use-visual-viewport';
 import {useZigiState, zigiSignals} from '../zigi/bus';
 import {useZigiMachine} from '../zigi/events';
+import {holdGaze} from '../zigi/gaze';
+import {useGazeHold} from '../zigi/use-gaze-hold';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {ProposalList} from './proposal-list';
 import {SafeText} from './safe-text';
@@ -426,24 +428,30 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   const chips = isLast && reply ? reply.kind === 'choices' ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'refusal' && reply.choices ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'examples' ? reply.examples.map(e => ({label: e, run: () => void session.ask(e)})) : [] : [];
+  // Session AL Part 14 (D13): ZIGi asked which one is meant and waits for the choice: it holds its look at the person.
+  const turnBox = useRef<HTMLElement>(null);
+  // Session AL Part 14 (Berlin BN-069): a Quick add line that understood the words shows its own preview, so the examples
+  // list ("Until you give me a brain… For example:") above it is left out; it stays when Quick add did not understand.
+  const [cardShown, setCardShown] = useState(false), quiet = cardShown && reply?.kind === 'examples';
+  useGazeHold('question', isLast && reply?.kind === 'choices', turnBox);
   // Session V Part 15: an answer made with Chrome's on-device model says so; it stays on this device like a lookup.
   const label = turn.source === 'on-device' ? ON_DEVICE_LABEL : LOCAL_LABEL;
   // Session AF (L4): a card ZIGi made on this device names a habit by its exact title (a Checklist command, a timer), so
   // the person's habits are its handles; the device wrote the words itself from the records, no model was involved.
   const localHandles = useMemo(() => runner.stores.habits.habits.map((h, i) => ({handle: `h${i + 1}`, kind: 'habit' as const, id: h.id, label: h.title})), [runner.stores.habits.habits]);
   const copy = () => { copyText(`${shown}\n\n${label}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
-  return <article className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
+  return <article ref={turnBox} className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       <TurnKind cards={!!parsed && parsed.proposals.length > 0}/>
-      <SafeText className="ai-local-answer" text={shown}/>
+      {!quiet && <SafeText className="ai-local-answer" text={shown}/>}
       {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
       <DataViz results={info?.results}/>
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
-      {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
+      {chips.length > 0 && !quiet && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
-      {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood/></Suspense></ZigiPartBoundary></div>}
+      {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)}/></Suspense></ZigiPartBoundary></div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
         <summary>What your AI sees if you ask for more</summary>
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
@@ -627,6 +635,9 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onSpoken, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
   // Session AL (L7; D7): the words typed so far live in this page's memory too, so a remount (on-device → connected) keeps them.
   const [text, setText] = useState(() => readDraft(scope)), [disclosed, setDisclosed] = useState(false), listId = useId(), logNoteId = useId();
+  // Session AL Part 14 (D13): while the box has the focus ZIGi holds its look at it (components/zigi/gaze.ts).
+  const gazeId = useId();
+  useEffect(() => () => holdGaze(gazeId, null), [gazeId]);
   useEffect(() => { writeDraft(scope, text); }, [scope, text]);
   // Session V Part 10: an edit puts the last question back in the box; the "/" list helps with the commands.
   const editSeq = editing?.seq;
@@ -742,7 +753,7 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {/* Session AK (BUILD list 2 #1): a calm line while the words look like recovery words or a key (never sent). */}
     <SecretGuard text={text} onRemove={() => setText('')} chat/>
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { holdGaze(gazeId, 'composer'); if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => { holdGaze(gazeId, null); zigiSignals.emit('user_typing_stopped'); }} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}
         onKeyDown={e => {
           if (slash.onKeyDown(e)) return;

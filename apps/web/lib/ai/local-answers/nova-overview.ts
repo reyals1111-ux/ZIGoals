@@ -1,3 +1,5 @@
+import {healthGoalLine, healthGoalProgress} from '../../health-goals/progress';
+import type {HealthGoal} from '../../health-goals/schema';
 import {formatGoalAmount} from '../../goal-summary';
 import {dailyData} from '../../health-daily';
 import {formatClock} from '../../visual-format';
@@ -79,6 +81,10 @@ function goalsAnswer(env: ToolEnv, lang: Lang): LocalReply {
   const r = run('list_goals', {}, env);
   if (!r.result.ok) return env.areas.goals ? {kind: 'refusal', text: r.result.refusal, calls: [r.record]} : {kind: 'refusal', text: novaAreaClosed('Goals', lang), calls: []};
   const goals = (dataOf(r.result).goals ?? []) as Data[], active = goals.filter(g => g.status === 'active'), done = goals.filter(g => g.status === 'completed').length;
+  // Session AL Part 14 (Denver DV-027c): the Health goals are goals too; they live in their own section of Goals (they read
+  // the Health journal), so they are named after the others, with where to find them. Only with the Health gate (env).
+  const health = healthGoalLines(env, lang);
+  if (!active.length && health.length) return {kind: 'answer', text: [say(lang, `You have no active goals in Goals yet${done ? ` (${plural(done, 'goal')} completed)` : ''}.`, `Je hebt nog geen actieve doelen in Goals${done ? ` (${done} afgerond)` : ''}.`), ...health].join('\n'), calls: [r.record]};
   if (!active.length) return {kind: 'answer', text: say(lang, `You have no active goals yet${done ? ` (${plural(done, 'goal')} completed)` : ''}. Open Goals to create one, or tell me the goal and I will draft it as a card.`, `Je hebt nog geen actieve doelen${done ? ` (${done} afgerond)` : ''}. Open Goals om er een te maken, of vertel me het doel en ik maak er een kaart van.`), calls: [r.record]};
   // DV-078: up to twelve in the answer; any more are named as a count with where to see them all (a chat cannot unfold).
   const shown = active.slice(0, 12), year = env.habitDay.slice(0, 4);
@@ -91,7 +97,15 @@ function goalsAnswer(env: ToolEnv, lang: Lang): LocalReply {
   const head = say(lang, `${plural(active.length, 'active goal')}, from your own records:`, `${active.length} actieve ${active.length === 1 ? 'doel' : 'doelen'}, uit je eigen gegevens:`);
   const more = active.length > shown.length ? [say(lang, `…and ${plural(active.length - shown.length, 'more goal')}: Goals shows all ${active.length}.`, `…en nog ${active.length - shown.length}: Goals toont ze alle ${active.length}.`)] : [];
   const tail = [...(done ? [say(lang, `${plural(done, 'goal')} completed.`, `${done} ${done === 1 ? 'doel' : 'doelen'} afgerond.`)] : []), say(lang, 'Ask about one goal by its name for its plan and pace. Your own figures; not financial advice.', 'Vraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.')];
-  return {kind: 'answer', text: [head, ...shown.map(line), ...more, ...tail].join('\n'), calls: [r.record]};
+  return {kind: 'answer', text: [head, ...shown.map(line), ...more, ...health, ...tail].join('\n'), calls: [r.record]};
+}
+/** DV-027c: the active Health goals with their progress as Goals → Health goals shows it (a heading, then one line each, at most six). */
+function healthGoalLines(env: ToolEnv, lang: Lang): string[] {
+  const list = (env.healthGoals ?? []).filter(g => g.status === 'active');
+  if (!list.length || !env.health) return [];
+  const shown = list.slice(0, 6), line = (g: HealthGoal) => { let text = say(lang, 'progress unknown', 'voortgang onbekend'); try { text = healthGoalLine(g, healthGoalProgress(g, env.health!, env.healthDay)); } catch { /* unknown, never zero */ } return `• ${clean(g.name, 60)}: ${text === 'No data yet' ? say(lang, 'no data yet', 'nog geen gegevens') : text}`; };
+  return [say(lang, `${plural(list.length, 'health goal')} (Goals → Health goals, from your Health journal):`, `${list.length} ${list.length === 1 ? 'gezondheidsdoel' : 'gezondheidsdoelen'} (Goals → Health goals, uit je Health-dagboek):`), ...shown.map(line),
+    ...(list.length > shown.length ? [say(lang, `…and ${list.length - shown.length} more under Goals → Health goals.`, `…en nog ${list.length - shown.length} onder Goals → Health goals.`)] : [])];
 }
 
 const AGENDA_KIND_NL: Record<string, string> = {bill: 'rekening', 'goal contribution': 'inleg voor een doel', meal: 'maaltijd', workout: 'training', unbonding: 'unbonding', review: 'review'};

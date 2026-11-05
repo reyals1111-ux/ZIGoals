@@ -21,6 +21,7 @@ test('every move sits in one known group with a label, a one-line meaning and wh
     for (const words of [text.label, text.meaning, text.when]) { expect(words.trim().length, code).toBeGreaterThan(0); expect(words, code).not.toMatch(/\n/); expect(words, code).not.toMatch(/\b[FRTEX]0\d\d\b/); }
   }
   expect(Object.keys(MOVE_TEXT).filter(c => MOVE_TEXT[c]!.group === 'reactions')).toEqual(Array.from({length: 13}, (_, i) => `R${String(i + 1).padStart(3, '0')}`));
-  expect(Object.keys(MOVE_TEXT).filter(c => MOVE_TEXT[c]!.when === 'Not used yet.').sort()).toEqual(['X001', 'X020', 'X021', 'X022']);
+  // Session AL (D13, deliberate): the held-gaze clips X020-X022 now play while ZIGi waits on the person; only X001 is unused.
+  expect(Object.keys(MOVE_TEXT).filter(c => MOVE_TEXT[c]!.when === 'Not used yet.').sort()).toEqual(['X001']);
   for (const group of MOVE_GROUPS) expect(Object.values(MOVE_TEXT).some(t => t.group === group.id), group.id).toBe(true);
 });

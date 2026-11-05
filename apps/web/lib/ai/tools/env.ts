@@ -1,3 +1,4 @@
+import type {HealthGoal} from '../../health-goals/schema';
 import type {GoalMetadata} from '@zigoals/shared-types';
 import type {Fasting} from '../../fasting/schema';
 import type {HabitData} from '../../habits';
@@ -77,6 +78,8 @@ export type ToolSources = {
   ak?: AkToolSources | null;
   /** Owner follow-up 2 (N4): tasks, focus sessions, budgets and (only under NOVA's Notes scope) the notes, for nova-tools.ts. */
   nova?: NovaToolSources | null;
+  /** Session AL Part 14 (Denver DV-027c): the Health goals on this device (Goals → Health goals); Health data, so only with the Health gate. */
+  healthGoals?: readonly HealthGoal[] | null;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   health: HealthData | null; fasting: Fasting | null; notes: readonly MemoryNote[] | null;
@@ -99,5 +102,5 @@ export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' 
   // Session AI: the daily energy is about how a person feels, so it follows the Health gate like the mood.
   // Owner follow-up 2 (G8): your numbers and the cycle log describe health too, so they are not even in the environment with the gate closed.
   const nova = !health && sources.nova ? {...sources.nova, healthNumbers: undefined, cycle: undefined} : sources.nova;
-  return {...sources, nova, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits};
+  return {...sources, nova, healthGoals: health ? sources.healthGoals ?? null : null, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits};
 }

@@ -8,6 +8,7 @@ import {simpleCommand} from './ai-session';
 import {quickLogItems, quickLogReply} from '../../quick-log/multi';
 import {quickLogContext} from '../../quick-log/context';
 import {novaEnvInfo} from './nova-env';
+import {mealPhotoReply, streakBreakReply} from './p14b';
 
 /**
  * Session AB-Cloud Part 9 (ADR-023 C30): what ZIGi says when no model answers (no AI connected, no on-device model) and the
@@ -121,7 +122,8 @@ export function noModelReply(text: string, env: ToolEnv | null): LocalReply {
   // remaining facts (al-more.ts). A "Remember…", a medicine word, a fast, a target, a task or a workflow comes first, so
   // its numbers are never read as a log (al-more.ts `alFirst`).
   const fixed = fixTypos(text), again = env && lang === 'en' ? askAgain(fixed !== text ? fixed : null, rewriteQuestion(fixed), env) : null;
-  const reply = simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? examplesIn(env, lang);
+  // Session AL Part 14 (lane P14-B; HE17, G15): a meal photo asked of the device, and a broken streak, come first.
+  const reply = mealPhotoReply(text, lang) ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? examplesIn(env, lang);
   // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
   // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
   const other = otherLanguage(text);

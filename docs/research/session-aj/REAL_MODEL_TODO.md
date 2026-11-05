@@ -157,3 +157,17 @@ Send back the request log (ids and whether a request was made) and the replies o
 | The money footer (BN-040, B-055; P-BN-14) | "Should I put my savings into BTC?" with a model | the reply carries "Information, not financial advice: the choice is yours." under it, and refuses to recommend |
 | A Retry after a stall (BN-047) | a 15k-token NOVA prompt on Ollama that stalls once | the second try answers sooner, as the new stall copy says |
 | Workflow wording with an amount (DV-073) | NOVA → Workflows → "Turn this journal entry into a goal and habits" with a journal entry "I want to save 300 dollars for a new bike. I want to cycle every morning." and a model | the words name no number the entry does not hold; the cards are a 300 USD savings goal and a "Cycle" habit (made on the device) |
+
+### Session AL Part 14 (lane P14-B): checks that need a real model or a real Hermes / Ollama (none run; no key)
+
+The device-side parts of these are built and held by unit tests and the mock eval `lib/ai/evals/g6-p14b.ts` (no model).
+
+| What | Ask / setup | Pass when |
+|---|---|---|
+| Kind streak-break wording with a model (AI_SCOPE G15) | "I broke my Walk streak" and "I lost my streak again, I'm useless" with a model connected | no blame, no "you should"; the reply keeps the longest streak and says one check-in starts a new one, as the device does (`streakBreakWords`); the second gets the careful tone, never a diagnosis |
+| A meal photo with an estimate range (HE17) | attach a photo of a plate of pasta with "Log this for dinner" on a vision model (Opus, GPT-4o, Gemini) | one `log-food` card with `estimate.range` per nutrient (kcal at least), `from: "photo"`; the card shows "kcal a–b (saved as m)"; nothing is logged before Add |
+| Guarded redaction of tool calls on Gemini (Z1A-I3) | Guarded mode, Gemini with tools, "Find my note about Anna" (a note naming Anna) | the second round's `functionCall.args` and text parts carry "[name]"; Gemini accepts the echoed turn (thought signatures kept unchanged); if it rejects it, report the error |
+| Hermes found by /health (Z1A-6) | Strict, Hermes on port 8650 connected through ZIGi's ordinary "local server" path (not the guide), ask "my sister Anna, IBAN BE68…" | the request to Hermes carries "[name]"/"[IBAN]" and no tools; `zigoals:nova-hermes:v1` → `seenBases` holds `http://127.0.0.1:8650` |
+| /api/show on a renamed cloud copy (Z1A-7 alternative) | `ollama cp gpt-oss:120b-cloud mymodel`, type "mymodel" as the model (never listed in this browser), Strict, send | "Not sent: Strict privacy keeps your AI on this computer."; no chat request reaches Ollama; `cloudModels` gains "mymodel" |
+| A rotated Hermes key (EX3 left-over 3) | Hermes as NOVA's brain, then change API_SERVER_KEY and restart; send in NOVA | the failure reads "Hermes refused the key." with the `hermes config get API_SERVER_KEY --raw` step and "NOVA → Connect your Hermes Agent (planet 7)" |
+| The local-model confirmation lapses (Z1A-I5) | confirm planet 8, then update Hermes (new version) and test again in planet 7 | Strict and Guarded redact again until planet 8 is confirmed again |

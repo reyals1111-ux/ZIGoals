@@ -11,6 +11,7 @@ import {ProposalCard, type ProposalStatus} from './proposal-card';
 import type {ProposalRunner} from './use-proposals';
 import {NOT_AN_ENTRY} from '../../lib/ai/actions/parse';
 import {zigiSignals} from '../zigi/bus';
+import {useGazeHold} from '../zigi/use-gaze-hold';
 import {streakMilestone} from '../../lib/ai/actions/milestone';
 import {AUTO_ACCEPT_REASONS} from '../../lib/ai/actions/auto-accept';
 import type {AutoAccept} from './use-auto-accept';
@@ -125,6 +126,8 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   // focus to the page. While focus is in the cards and its control leaves, it moves to the next thing to do here: the Undo
   // while it is offered, else the next card's first button, else the cards themselves. Focus the person moved elsewhere stays there.
   const box = useRef<HTMLDivElement>(null), focusInside = useRef(false);
+  // Session AL Part 14 (D13): while a card here waits for Add or Dismiss, ZIGi holds its look at the cards (gaze.ts).
+  useGazeHold('cards', !earlier && !replaced && items.some(i => i.status === 'proposed' && i.result.ok), box);
   const onFocusIn = useCallback(() => { focusInside.current = true; }, []);
   const onFocusOut = useCallback((event: FocusEvent<HTMLDivElement>) => {
     const left = event.target, next = event.relatedTarget;

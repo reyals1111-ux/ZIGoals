@@ -20,6 +20,7 @@ import {g1LocalAnswer} from './g1';
 import {novaEnvInfo, novaWording} from './nova-env';
 import {novaOverviewAnswer} from './nova-overview';
 import {questionLanguage} from './no-model';
+import {isStreakBreak, streakBreakWords} from './p14b';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -441,6 +442,8 @@ function habitAnswer(env: ToolEnv, habit: Habit, q: string, found: DayRange[]): 
   if (W.streakBest.test(q) || W.streak.test(q)) {
     const s = call(env, 'habit_stats', {habit: title, metric: 'streak'}), refused = refusalOf([s]); if (refused) return refused;
     const st = dataOf(s.result).streak as {current: number; best: number; unit: string};
+    // Session AL Part 14 (G15): "my Read streak broke" gets the kind words (p14b.ts), from the same figures.
+    if (isStreakBreak(q)) return {kind: 'answer', text: streakBreakWords(title, st), calls: [s.record]};
     const head = W.streakBest.test(q) ? `Your longest ${title} streak is ${plural(st.best, st.unit.replace(/s$/, ''))}; the current one is ${plural(st.current, st.unit.replace(/s$/, ''))}.` : `Your current ${title} streak is ${plural(st.current, st.unit.replace(/s$/, ''))} (longest: ${plural(st.best, st.unit.replace(/s$/, ''))}).`;
     return {kind: 'answer', text: head, calls: [s.record]};
   }

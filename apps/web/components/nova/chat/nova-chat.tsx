@@ -394,6 +394,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
       {sensitive && <p className="ai-note nova-paused">Paused on this private screen: nothing is read from your records.</p>}
       <NovaComposer ref={composer} session={session} persona={persona.name} settings={data} sensitive={sensitive} editing={editing} onEditing={setEditing}
         onSend={sendText} onDelegate={(text, area, replace, pasted) => void runDelegation(text, area, replace, 'zigi', !!pasted)} onOpenZigi={openZigi} onHermes={hermes ? (text, area) => void runDelegation(text, area, undefined, 'hermes') : undefined}
+        hermesPack={hermes ? area => { try { return nova.pack(area)?.text ?? ''; } catch { return ''; } } : undefined}
         speechOn={speechOn} onSpeech={on => { try { setSpeechInput(getAppStorage(), on); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); } catch { setNote('This choice could not be saved on this device.'); } }}
         onListening={setListening} onSpoken={() => { spokenAsked.current = true; }}/>
       {connected && <details className="ai-context-preview nova-see" onToggle={event => { if (event.currentTarget.open) { const input = packInput(); setSeeing(input ? whatNovaCanSee(input) : ''); } }}>

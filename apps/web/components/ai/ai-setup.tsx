@@ -1,7 +1,8 @@
 'use client';
 import {useCallback, useEffect, useState} from 'react';
 import {AiError, errorSteps} from '../../lib/ai/errors';
-import {holdKey, rememberKey, SHOWCASE_SCOPE} from '../../lib/ai/keys';
+import {forgetKey, holdKey, rememberKey, SHOWCASE_SCOPE} from '../../lib/ai/keys';
+import {LIVE_PRIVACY_PROBES} from '../../lib/ai/privacy-probes';
 import {detectLocalServer, testConnection} from '../../lib/ai/models';
 import {beginOpenRouterSignIn} from '../../lib/ai/openrouter-auth';
 import {LOCAL_SERVER_DEFAULTS, normalizeLocalBaseUrl, PROVIDERS, SUBSCRIPTION_APPS, type ProviderId, type SubscriptionAppId} from '../../lib/ai/providers';
@@ -88,7 +89,12 @@ export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi
         if (!model || !localServer) throw Error('Test the connection and choose a model first.');
         const secret = token.trim();
         if (secret) { holdKey(scope, 'local', secret); if (remember && !showcase) await rememberKey(scope, 'local', secret); }
+        // Session AL Part 14 (security review Z1A-I4): a server connected without a token never gets the key an earlier
+        // local server had (such as the Hermes key "Use Hermes as NOVA's brain" put in this slot).
+        else await forgetKey(scope, 'local');
         settings.update(s => ({...s, enabled: true, mode: 'local', provider: 'local', model, localServer, baseUrl: normalizeLocalBaseUrl(baseUrl), subscriptionApp: null, rememberKey: remember && !showcase, connectedOn: today}));
+        // Z1A-6 (AL Part 14): a server whose /health says it is Hermes Agent is noted as the person's Hermes (treated as such by the privacy mode).
+        if (localServer === 'openai-compatible') void LIVE_PRIVACY_PROBES.hermes?.(normalizeLocalBaseUrl(baseUrl)).catch(() => undefined);
       }
       setKey(''); setToken(''); setDone(true); onDone?.();
     } catch (error) { setFailure({title: error instanceof Error ? error.message : 'The connection could not be saved.', steps: []}); }

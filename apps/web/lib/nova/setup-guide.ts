@@ -146,3 +146,13 @@ export const ORBITS: readonly {id: string; label: string; colour: PathColour; st
   {id: 'nova-knows', label: 'Remember and speak', colour: 'magenta', steps: ['memory', 'voice']},
   {id: 'nova-daily', label: 'Your daily NOVA', colour: 'gold', steps: ['briefs', 'workflows', 'yours']},
 ];
+
+/**
+ * Session AL Part 14 (lane P14-B; security review Z1A-I1): with no privacy mode chosen, NOVA's chat sends to a cloud key as
+ * ZIGi always did, while NOVA's briefs and workflows act as Strict. The two defaults disagree, so NOVA's composer says so
+ * before the first cloud send and points to the choice. Null when a mode is chosen or the brain is on this computer.
+ */
+export function noModeCloudNote(mode: string | null, provider: string | null | undefined, providerName: string): string | null {
+  if (mode !== null || !provider || provider === 'local') return null;
+  return `You have not chosen a privacy mode yet, so this chat sends to ${providerName} as ZIGi does, with what NOVA → Permissions allows. NOVA’s briefs and workflows act as Strict until you choose: Build NOVA’s brain → Privacy.`;
+}

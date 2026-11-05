@@ -68,6 +68,8 @@ export function closingLine(area: DelegatedTurn['area'], cards: number, agent: D
 export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common, onRetry}: {turn: ChatTurn; asked: string; mark?: DelegatedTurn; isLast: boolean; earlier: boolean; busy: boolean; common: TurnCommon; onRetry: () => void}) {
   const {session, runner, autoAccept, persona, providerName, reader, onNavigate, onAsk, connected} = common;
   const [copied, setCopied] = useState(false);
+  // Session AL Part 14 (BN-069): a Quick add preview that understood the words replaces the examples list above it.
+  const [cardShown, setCardShown] = useState(false);
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), local = turn.source === 'local' || turn.source === 'on-device';
   const hermes = mark?.role === 'reply' && mark.agent === 'hermes', zigi = mark?.role === 'reply' && !hermes;
   const info = local ? session.localFor(turn.id) : undefined, reply = info?.reply, question = info?.question ?? asked;
@@ -88,12 +90,12 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
       <div className="nova-turn-body">
         <p className="nova-turn-who" aria-hidden="true">{who}</p>
         {(parsed.text || parsed.proposals.length > 0) && <TurnKind cards={parsed.proposals.length > 0}/>}
-        {parsed.text && <SafeText className={local ? 'ai-local-answer' : undefined} text={parsed.text}/>}
+        {parsed.text && !(cardShown && reply?.kind === 'examples') && <SafeText className={local ? 'ai-local-answer' : undefined} text={parsed.text}/>}
         {!local && turn.tools && turn.tools.length > 0 && <p className="nova-looked"><span>{zigi ? 'ZIGi looked at:' : 'Looked at:'}</span> {turn.tools.map((t, i) => <span key={i} className="ai-source-chip">{t.label}</span>)}</p>}
         <DataViz results={local ? info?.results : session.lookupsFor(turn.id)?.map(l => l.result)}/>
         {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={local ? localHandles : session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
         {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions answered on this device">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
-        {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions answered on this device' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
+        {chips.length > 0 && !(cardShown && reply?.kind === 'examples') && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions answered on this device' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
         {local && (parsed.text.includes(NOVA_PERMISSIONS) || parsed.text.includes(NOVA_PERMISSIONS_NL)) && <p className="nova-turn-permissions">
           {/* Release review 2 (R2-2): one tap to the switch the answer names (NOVA's panels open on Permissions). */}
           <button type="button" className="secondary" onClick={() => { onNavigate(); window.location.hash = PERMISSIONS_HASH; }}>Open {persona.name} → Permissions</button>
@@ -101,7 +103,7 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
         {common.firstLocalReply === turn.id && turn.model && <p className="fine nova-first-local">{firstLocalReplyLine(turn.model)}</p>}
         {/* Session AL second pass (Moscow NP-06/07/08, Lisbon LA-037; P-MO-06, P-LA-23): with no model, NOVA's last on-device
             answer offers the same Quick add line as ZIGi's, under the same rule (never under a question, a careful topic or a guarded message). */}
-        {local && !connected && isLast && !busy && asked && quickAddOffered(asked, {guarded: !!guardMessage(asked), careful: !!detectRisk(asked)}) && <div className="ai-quick-add"><LoadBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={asked} onlyIfUnderstood/></Suspense></LoadBoundary></div>}
+        {local && !connected && isLast && !busy && asked && quickAddOffered(asked, {guarded: !!guardMessage(asked), careful: !!detectRisk(asked)}) && <div className="ai-quick-add"><LoadBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={asked} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)}/></Suspense></LoadBoundary></div>}
         {!local && <MoneyNote text={parsed.text}/>}
         <SourceLine short={short} full={full}/>
         {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}

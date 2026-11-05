@@ -138,7 +138,27 @@ export function continueInNova(chatId: string): string {
 /** The command bar's message: NOVA asks it as typed once its chat is open (the person pressed Enter; nothing else is sent). */
 export function sendToNova(text: string, options: {pasted?: boolean} = {}): boolean {
   const t = words(text); if (!t) return false;
+  // Session AL Part 14 (DV-070): the words were sent, so they never come back as a draft (an open box lets them go).
+  noteNovaDraft('');
   hand({kind: 'ask', text: t, ...(options.pasted ? {pasted: true as const} : {})}); return true;
+}
+/**
+ * Session AL Part 14 (Denver DV-070, N-057; P-DV-96): words typed in NOVA's command field but not sent yet. The chat opens
+ * on the first keystroke and its composer mounts while the person is still typing, so the field notes every change here
+ * and the composer starts from it (and follows it while it has nothing of its own): "How far am I on my goals?" arrives
+ * whole instead of losing its first characters. In this page's memory only, for HANDOFF_MS; nothing stored or sent.
+ */
+export const NOVA_DRAFT_EVENT = 'zigoals:nova-draft';
+let draft: {text: string; at: number; pasted: boolean} | null = null;
+export function noteNovaDraft(text: string, options: {pasted?: boolean} = {}): void {
+  const t = text.slice(0, MAX_INPUT_CHARS);
+  draft = t.trim() ? {text: t, at: Date.now(), pasted: !!options.pasted} : null;
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(NOVA_DRAFT_EVENT, {detail: draft ? {text: draft.text, pasted: draft.pasted} : null}));
+}
+/** The unsent words, once (null when none, or older than HANDOFF_MS). */
+export function takeNovaDraft(now = Date.now()): {text: string; pasted: boolean} | null {
+  const d = draft; draft = null;
+  return d && now - d.at <= HANDOFF_MS ? {text: d.text, pasted: d.pasted} : null;
 }
 /**
  * A page task asked from NOVA: ZIGi (or, with `agent: 'hermes'`, the person's own Hermes Agent) answers it in NOVA's chat
@@ -158,7 +178,7 @@ export function takeNovaHandoff(search = typeof window === 'undefined' ? '' : wi
   return chatId && CHAT_ID.test(chatId) ? {kind: 'open', chatId} : null;
 }
 /** Tests only: forget what waits. */
-export function clearNovaHandoff(): void { pending = null; }
+export function clearNovaHandoff(): void { pending = null; draft = null; }
 
 /**
  * "Ask ZIGi about this page" (from NOVA): ZIGi opens on that page with NOVA's question in its box, exactly like a page's

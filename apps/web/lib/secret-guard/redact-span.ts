@@ -40,7 +40,19 @@ export function hideRecoveryWords(text: string): {text: string; hidden: number} 
   return {text: out + text.slice(at), hidden: spans.length};
 }
 
-type Request = {system: string; systemBlocks?: readonly {text: string; cache?: boolean}[]; messages: readonly {role: string; content: string}[]};
+type Request = {system: string; systemBlocks?: readonly {text: string; cache?: boolean}[]; messages: readonly {role: string; content: string; toolCalls?: readonly {arguments: string}[]; raw?: unknown}[]};
+/**
+ * Session AL Part 14 (security review Z1A-I3): the strings inside a model's own earlier turn (a tool call's arguments, a
+ * provider's raw turn) are checked and hidden too; names, roles and signatures stay as they are.
+ */
+const KEEP = /^(?:role|name|id|type|call_?id|tool_?call_?id|thought_?signature|signature)$/i;
+function eachString(value: unknown, fn: (text: string) => string, key = ''): unknown {
+  if (typeof value === 'string') return KEEP.test(key) ? value : fn(value);
+  if (Array.isArray(value)) return value.map(v => eachString(v, fn, key));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, eachString(v, fn, k)]));
+  return value;
+}
+const turnStrings = (m: Request['messages'][number]): string[] => { const out: string[] = []; eachString({args: (m.toolCalls ?? []).map(c => c.arguments), raw: m.raw}, t => { out.push(t); return t; }); return out; };
 /**
  * For the engine's transport (every request ZIGi or NOVA sends): the system prompt (the page's records) and every message
  * that is not the person's own (tool results; ZIGi's earlier answers) with recovery-word runs hidden. The person's own
@@ -49,13 +61,14 @@ type Request = {system: string; systemBlocks?: readonly {text: string; cache?: b
  * comes back when nothing is hidden.
  */
 export async function hideRecoveryWordsInRequest<R extends Request>(request: R): Promise<R> {
-  const texts = [request.system, ...(request.systemBlocks ?? []).map(b => b.text), ...request.messages.filter(m => m.role !== 'user').map(m => m.content)];
+  const texts = [request.system, ...(request.systemBlocks ?? []).map(b => b.text), ...request.messages.filter(m => m.role !== 'user').flatMap(m => [m.content, ...turnStrings(m)])];
   const needs = new Set<WordScript>(texts.flatMap(t => typeof t === 'string' ? wordListNeeds(forReading(t)) : []));
   if (needs.size) await loadWordLists([...needs]);
   if (!texts.some(t => typeof t === 'string' && recoveryWordSpans(forReading(t), 'guard').length)) return request;
   let hidden = 0;
   const hide = (text: string) => { const out = hideRecoveryWords(text); hidden += out.hidden; return out.text; };
-  const next = {...request, messages: request.messages.map(m => m.role === 'user' || typeof m.content !== 'string' ? m : {...m, content: hide(m.content)})} as R;
+  const turn = (m: Request['messages'][number]) => ({...m, content: hide(m.content), ...(m.toolCalls ? {toolCalls: m.toolCalls.map(c => ({...c, arguments: hide(c.arguments)}))} : {}), ...(m.raw !== undefined ? {raw: eachString(m.raw, hide)} : {})});
+  const next = {...request, messages: request.messages.map(m => m.role === 'user' || typeof m.content !== 'string' ? m : turn(m))} as R;
   const blocks = request.systemBlocks;
   if (blocks?.length && blocks.map(b => b.text).join('') === request.system) {
     const clean = blocks.map(b => ({...b, text: hide(b.text)}));

@@ -125,6 +125,15 @@ async function answersOpaquely(server: LocalServer, fetcher: typeof fetch | unde
 export async function scanLocalServers(options: {fetcher?: typeof fetch; signal?: AbortSignal; ms?: number; servers?: readonly LocalServer[]; verify?: boolean} = {}): Promise<ScanResult[]> {
   return Promise.all((options.servers ?? LOCAL_SERVERS).map(server => probeServer(server, options)));
 }
+/**
+ * Session AL Part 14 (lane P14-B; EXPLORATORY_ROUND3 left-over 2): the short status beside a scan's line in NOVA's right
+ * panel. A server that answered but refused this site, asked for a key, or sent a list that could not be read is running:
+ * "Running", never "Offline"; only nothing answering is "Offline". `on`: the server answered at all.
+ */
+export function scanStatus(result: ScanResult): {word: 'Online' | 'Running' | 'Offline'; on: boolean} {
+  if (result.found) return {word: 'Online', on: true};
+  return result.reason === 'unreachable' ? {word: 'Offline', on: false} : {word: 'Running', on: true};
+}
 /** One plain line per scan: "Ollama: 3 models (1 runs on ollama.com)" or "LM Studio: not running". */
 export function scanLine(result: ScanResult): string {
   if (!result.found) return result.reason === 'unreachable' ? `${result.server.name}: nothing answered at ${result.server.baseUrl} (not running)` : result.reason === 'refused' || result.reason === 'unreadable' ? `${result.server.name}: ${result.message}` : result.message;

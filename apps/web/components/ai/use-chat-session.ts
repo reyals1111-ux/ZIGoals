@@ -40,6 +40,8 @@ import {runWithTools, toolsFor} from '../../lib/ai/tool-loop';
 import {ANSWER_CHARS, type ToolResult} from '../../lib/ai/tools/types';
 import {capNote, capState, monthKey, needsSpendConfirmation, readUsage, recordUsage} from '../../lib/ai/usage';
 import {getAppStorage} from '../../lib/showcase-storage';
+import {hermesKeyFailure, isHermesBase, readHermes} from '../../lib/nova/hermes-record';
+import {LIVE_PRIVACY_PROBES} from '../../lib/ai/privacy-probes';
 import {LOG_MODE_NOTE} from '../../lib/ai/context/specialists';
 import {PHOTO_NOTE} from '../../lib/ai/photo';
 import type {ChatImage, ChatRequest} from '../../lib/ai/types';
@@ -409,7 +411,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     // A request counts once the provider answers it (a refused one costs nothing and is not counted).
     // Session AK (owner follow-up 2, N3/N9, lane NC): the privacy mode decides here, for ZIGi and NOVA alike: no mode or
     // Relaxed sends this very request; Strict refuses a cloud model; Guarded sends a cloud model the redacted copy.
-    const counted = async function* (r: Parameters<typeof streamChat>[0]) { if (messagesHoldSecret(r.messages)) throw new AiError('blocked', ZIGI_SECRET_TITLE); r = await guardRequest(r, {hosted: !!(hosted && account)}); let seen = false; for await (const event of hosted && account ? streamHosted(r, account) : streamChat(r)) { if (!seen) { seen = true; requests++; } yield event; } };
+    const counted = async function* (r: Parameters<typeof streamChat>[0]) { if (messagesHoldSecret(r.messages)) throw new AiError('blocked', ZIGI_SECRET_TITLE); r = await guardRequest(r, {hosted: !!(hosted && account), probes: LIVE_PRIVACY_PROBES}); let seen = false; for await (const event of hosted && account ? streamHosted(r, account) : streamChat(r)) { if (!seen) { seen = true; requests++; } yield event; } };
     const record = () => {
       if (!requests) return;
       try { recordUsage(getAppStorage(), hosted ? 'hosted' : providerId, {...(usage ?? {input: null, output: null}), ...cache}, requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience; the reply stands */ }
@@ -483,8 +485,12 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
         const aiError = error instanceof AiError ? error : mapNetworkError(providerId, error, {local: !hosted && conf.provider === 'local', online: navigator.onLine});
         if (reply) done(`Interrupted: ${aiError.message}`.slice(0, 200));
         const hostedPage = !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+        // Session AL Part 14 (EX3 left-over 3): a key Hermes refused or wanted says so in the guide's words, wherever the
+        // message went to the person's Hermes (as NOVA's brain or through "Ask my Hermes").
+        const toHermes = !hosted && conf.provider === 'local' && (!!agent || (() => { try { return isHermesBase(conf.baseUrl, readHermes(getAppStorage()).data); } catch { return false; } })());
+        const hermesWords = toHermes ? hermesKeyFailure(aiError.kind, !!key) : null;
         // Session AL second pass (BN-047, P-BN-09): in NOVA's panel the words say NOVA and point to NOVA's own settings.
-        setFailure({kind: aiError.kind, title: nova ? assistantWords(aiError.message, 'NOVA') : aiError.message, steps: hosted ? [] : errorSteps(aiError, {providerName, local: conf.provider === 'local' ? {server: conf.localServer, baseUrl: conf.baseUrl ?? ''} : undefined, hostedPage, keysUrl: provider.keysUrl, ...(nova ? {assistant: 'NOVA' as const} : {})})});
+        setFailure(hermesWords ? {kind: aiError.kind, ...hermesWords} : {kind: aiError.kind, title: nova ? assistantWords(aiError.message, 'NOVA') : aiError.message, steps: hosted ? [] : errorSteps(aiError, {providerName, local: conf.provider === 'local' ? {server: conf.localServer, baseUrl: conf.baseUrl ?? ''} : undefined, hostedPage, keysUrl: provider.keysUrl, ...(nova ? {assistant: 'NOVA' as const} : {})})});
         zigiSignals.emit('recoverable_error');
       }
     } finally {

@@ -3,7 +3,7 @@ import {useMemo} from 'react';
 import {buildContextPack, type ContextPack} from '../../../lib/ai/context-pack/build';
 import {buildNovaPack, DEFAULT_NOVA_SCOPES, type NovaPack, type NovaScopes} from '../../../lib/ai/context-pack/nova';
 import type {AiSettings} from '../../../lib/ai/settings';
-import {hermesNeedsRedaction, isHermesBase, NOVA_HERMES} from '../../../lib/nova/hermes-record';
+import {hermesNeedsRedaction, isHermesBase, localModelStillConfirmed, NOVA_HERMES} from '../../../lib/nova/hermes-record';
 import {previewFor, type PrivacyMode} from '../../../lib/nova/privacy-mode';
 import {novaPackInput} from '../../../lib/nova/bridge-pack';
 import {scopesOf} from '../../../lib/nova/scopes';
@@ -36,7 +36,7 @@ export type NovaSees = {pack: NovaPack | null; scopes: NovaScopes; chainChosen: 
 export function useNovaSees(settings: AiSettings, mode: PrivacyMode | null): NovaSees {
   const context = useAiContext(settings, 'your AI', false), hermes = useDeviceRecord(NOVA_HERMES), chain = useChainChoice(), setup = useDeviceRecord(NOVA_SETUP);
   const provider = settings.enabled && settings.mode !== 'subscription' ? settings.provider : null;
-  const hermesUnconfirmed = provider === 'local' && isHermesBase(settings.baseUrl, hermes.data) && hermesNeedsRedaction(mode, hermes.data.localModelConfirmed === true);
+  const hermesUnconfirmed = provider === 'local' && isHermesBase(settings.baseUrl, hermes.data) && hermesNeedsRedaction(mode, localModelStillConfirmed(hermes.data));
   const input = useMemo(() => { try { return novaPackInput({sources: context.toolSources(), gates: context.gates, storage: getAppStorage(), target: {provider, model: settings.model, baseUrl: settings.baseUrl}, chainChosen: chain.chosen}); } catch { return null; } },
     // The record's scopes and mode, Hermes's confirmation and the chain choice are read again whenever one changes.
     [context, provider, settings.model, settings.baseUrl, chain.chosen, setup.data, hermes.data, mode]); // eslint-disable-line react-hooks/exhaustive-deps
