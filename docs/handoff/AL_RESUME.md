@@ -47,24 +47,28 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - One production build per integration point, shared; never one per helper.
 - Weekly reset: Sunday 12:00 Brussels; no extra usage. Before the limit: all committed and pushed, this file current, the task list true; never commit a half-finished fix.
 
-## Lanes in flight (6 Nov, late morning)
-- **Committed (head `54e32039`, tree clean):** fourth passes L1–L6 (each on its replay's STILL OPEN rows); sweeps 2 and 3;
-  P13 (one fact, one number: lib/consistency guards, the Showcase water habit in litres); PINS-AI; L8e and L8f (both HUD
-  reviews answered; perf fix by removing live blur); SHELL-4 (⌘K command menu, Q11; Goals header Q12); the grok53 spec
-  fix-ups (FX-G53a/b); ADR lessons 9–13 and readings Q11–Q13.
-- **Replay round 1:** L1 40/13, L2 29/32, L3 27/24, L4 45/43, L5 8/21, L6 24/27 (STILL OPEN / CHANGED) — all sent back and
-  answered by the fourth passes; L7 replay running; L8 is the HUD (two design reviews; round 2 due on the next build).
-- **Running:** SW4 (the last cross-lane asks, including the Settings/Earn fold); the L7 replay (on :3101 `c521574f`);
-  the build of `54e32039` on :3103.
-- **Next:** on :3103 run all of tests/grok53 and hud-perf; replay round 2 for L1–L7 on that build; L7 fourth pass.
-- **Servers:** :3101 `c521574f`; :3103 building `54e32039`; :3102 main.
+## Lanes in flight (6 Nov, afternoon)
+- **Committed since the last update (head `3b2c5462`):** sweep 4; the Settings fold (D-088); L8g (HUD still under Motion Off);
+  L7 fourth pass (safety L7-4a + answers L7-4b) and Q14; FX-G53c; the R4 capture-handler sweep; CI4's ZIGi spec updates
+  and the browser-agents fix; replay L1 round 2 (7 STILL OPEN, 7 CHANGED, no regressions); ADR-037 closing table.
+- **Running (4 helpers, the owner's cap until CI is green):** CI1 (themes/visual), CI2 (health/habits), CI3 (money/goals/
+  packaged runtime), CI5 (shell/onboarding/Help/Earn/PWA, Alpha gate manifest hash).
+- **CI4 paused at the cap (resume when a slot frees):** not started — nova-dashboard, p3-nova-polish, zigi-phone-rest,
+  zigi-plans-af, zigi-proactive, zigi-states and zigi-earn-coach-af (WebKit only). Edited but NOT yet run (uncommitted):
+  tests/zigi-alive.spec.ts (O3/Q8), tests/journeys/j12-nova.spec.ts (O4). App bugs found, for the resumed lane:
+  (1) zigi-face-z — the Premium badge in ZIGi's status line squeezes the model switcher to 4–15 px at 320–768 px
+  (components/ai/ai-chat.tsx:308, chat-polish.css:64, panel-z.css:34/183); (2) zigi-page-awareness-af desktop — the first
+  short question on Today hits the default 10,000-token budget prompt (page data ~2,098 tokens, ~7.9k fixed prompt;
+  lib/ai/settings.ts:22): find what grew the fixed prompt, never raise the budget silently.
+- **Theme sheets** must be regenerated (node scripts/themes/build-themes.mjs) once CI1–CI5 have landed their CSS.
+- **Servers:** :3103 serves `54e32039` (/home/user/zig-branch2) for every helper; :3101 `c521574f` (old); :3102 main.
 
 ## Exact next step
-1. Commit each lane as it reports; CI run 1522 on `c521574f` → dispatch fix lanes by area.
-2. Once :3101 serves `c521574f`, run tests/grok53 and start the pillar replays L2–L8.
-3. Pillar replays L2-L8 (A1).
-4. The HUD first-time-viewer review after L8d.
-5. Parts 13 and 16 and the A10 cycles.
+1. Commit CI1, CI2, CI3, CI5 as each reports (typecheck + their tests); resume CI4's remainder in the first free slot.
+2. Regenerate theme sheets; push; one build of the head on :3103; let CI run on the head; fix what is left; one re-run per known intermittent.
+3. Once CI is green: replay round 2 in the order L7, L3, L2, L5, L4, L6, L8 (at most 5 helpers; replays read only their lane's AL rows and per id that finding's steps).
+4. Regenerate ADR-037's closing table after each replay (docs/review/session-al/tools/closing_table.py).
+5. After the weekly reset: the L1 fifth pass (TK-199 GBP symbol, TK-191 bluetooth policy warning, TK-024, TK-149, TK-196, D-155, the 7 CHANGED), Parts 13–16, ONE A10 cycle, Part 17.
 
 ## Open readings
 Q1–Q5 are in ADR-037.
