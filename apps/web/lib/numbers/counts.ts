@@ -2,6 +2,7 @@ import {habitDay, type Habit} from '../habits';
 import {automaticMarketRef} from '../wealth';
 import type {Platform, Position} from '../positions';
 import {isFinished} from '../goals/finished';
+import {isOwnCountSource} from '../goals/goal-units';
 
 /**
  * Session AH Part 4 (TR6/B5; BUG-031, BUG-041, BUG-062, M-085, D-238): one count per thing, so two pages never disagree.
@@ -12,8 +13,9 @@ import {isFinished} from '../goals/finished';
  * - Habits today: due is scheduled and not skipped (a rest day is not due); done is completed.
  */
 export const isLivePriced = (p: Position) => automaticMarketRef(p) !== undefined;
-export function assetCounts(platform: Pick<Platform, 'positions'>) {
-  const owned = platform.positions.filter(p => !p.archivedAt), live = owned.filter(isLivePriced).length;
+/** Session AL sweep 3 (DV-147): a count goal's own tally is not an asset (lib/goals/goal-units.ts `isOwnCountSource`). */
+export function assetCounts(platform: Pick<Platform, 'positions'> & Partial<Pick<Platform, 'goals'>>) {
+  const owned = platform.positions.filter(p => !p.archivedAt && !isOwnCountSource(p, platform.goals ?? [])), live = owned.filter(isLivePriced).length;
   return {assets: owned.length, livePriced: live, manual: owned.length - live};
 }
 type WithStatus = {status: string; reached?: boolean};

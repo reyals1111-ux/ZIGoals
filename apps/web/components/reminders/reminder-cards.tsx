@@ -27,6 +27,8 @@ import {MEDITATION_RUN} from '../../lib/meditation/schema';
 import {sessionDay} from '../../lib/meditation/stats';
 import {localDate} from '../../lib/local-date';
 import {healthGroupIn} from '../../lib/vault/w-homes';
+import {HEALTH_EXTRAS} from '../../lib/health-extras';
+import {dismissMeal, mealsDue} from '../../lib/meal-reminders';
 import './reminders.css';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {LoadBoundary} from '../load-boundary';
@@ -52,7 +54,7 @@ function useHasZigiReminders(): boolean {
 }
 export function ReminderCards({habits, health}: {habits?: HabitData; health?: HealthData}) {
   const plan = useDeviceRecord(REMINDERS_PLAN), fasting = useFasting(), weekly = useWeeklyReview();
-  const platform = usePlatform(), reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders(), wReminders = useDeviceRecord(W_REMINDERS), meditationRun = useDeviceRecord(MEDITATION_RUN);
+  const platform = usePlatform(), reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders(), wReminders = useDeviceRecord(W_REMINDERS), meditationRun = useDeviceRecord(MEDITATION_RUN), extras = useDeviceRecord(HEALTH_EXTRAS);
   useEffect(() => {
     const tick = () => setNow(new Date());
     queueMicrotask(tick);
@@ -78,7 +80,10 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   // Session AA-Local S7: the reminders plan (bedtime, the weekly review, a fast's end, a goal check-in), quiet hours kept.
   let planned: ReturnType<typeof planDue> = [];
   try { const fast = fasting.loaded ? runningSession(fasting.data) : undefined; const fastDone = !!fast && (now.getTime() - Date.parse(fast.startedAt)) >= fast.targetHours * 3_600_000; planned = plan.loaded && !plan.unreadable ? planDue(plan.data, now, localDate(now), {weekday: now.getDay(), reviewWeekday: weekly.data.weekday, fastDone}) : []; } catch { planned = []; }
-  if (!due.length && !windDown && !meditation && !chained.length && !contributions.length && !planned.length && !zigi && !error) return null;
+  // Session AL sweep 3 (C-MO-10, C-MO-37): a meal's usual time, until something is logged for it today (lib/meal-reminders.ts).
+  let meals: ReturnType<typeof mealsDue> = [];
+  try { meals = extras.loaded && !extras.unreadable ? mealsDue({extras: extras.data, health, now}) : []; } catch { meals = []; }
+  if (!due.length && !windDown && !meditation && !chained.length && !contributions.length && !planned.length && !meals.length && !zigi && !error) return null;
   const dismiss = (reminder: DueReminder) => {
     try { reminders.update(reminder.day, current => dismissForToday(current, reminder.id, reminder.day)); setError(''); }
     catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); }
@@ -130,6 +135,15 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
       <div className="reminder-card-actions">
         <Link className="secondary" href={c.href}>Fund now</Link>
         <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissContribution(r, c.goalId, c.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
+      </div>
+    </article>)}
+    {meals.map(m => <article key={m.id} className="panel reminder-card" aria-label={`Reminder: ${m.label} time`}>
+      <p className="eyebrow">Reminder · {m.time} · on this device</p>
+      <h2>{m.label} time</h2>
+      <p>Nothing is logged for {m.label} yet today.</p>
+      <div className="reminder-card-actions">
+        <Link className="secondary" href={m.href}>Open the Diary</Link>
+        <button type="button" className="quiet" aria-label={`Not today: ${m.label}`} onClick={() => { try { extras.update(r => dismissMeal(r, m.meal, m.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
       </div>
     </article>)}
     {zigi && <LoadBoundary quiet><Suspense fallback={null}><ZigiReminderCards now={now} onError={setError}/></Suspense></LoadBoundary>}

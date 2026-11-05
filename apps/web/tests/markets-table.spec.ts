@@ -70,7 +70,7 @@ test('a favourite from the table is the same favourite on the cards', async ({pa
   await page.getByRole('group', {name: 'Show markets as'}).getByRole('button', {name: 'Table'}).click();
   await page.getByRole('table', {name: 'Markets'}).getByRole('button', {name: 'Add Bitcoin favourite'}).click();
   await expect(page.getByRole('table', {name: 'Markets'}).getByRole('button', {name: 'Remove Bitcoin favourite'})).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('.markets-intro-card strong')).toHaveText('1 of 8'); // Session AH (WE12): the count says "of"
+  await expect(page.locator('.markets-intro-card strong')).toHaveText('1 of 50'); // Session AH (WE12): the count says "of"; Session AL sweep 3 (C-TK-20): 8 synced + 42 on this device
   await page.getByRole('group', {name: 'Show markets as'}).getByRole('button', {name: 'Cards'}).click();
   await expect(page.locator('.markets-grid').getByRole('button', {name: 'Remove Bitcoin favourite'})).toHaveAttribute('aria-pressed', 'true');
 });

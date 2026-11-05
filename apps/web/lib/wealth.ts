@@ -1,6 +1,7 @@
 /** Read-only projections of existing Positions and canonical Goal accounting. */
 import {ASSET_CLASSES,allocate,allocationBalance,goalProgress,positionSync,snapshotIsStale,type AssetClass,type Platform,type Position,type PrivateGoal} from './positions';
 import {isNativeZig,marketQuoteSchema,quoteIsStale,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
+import {isOwnCountSource} from './goals/goal-units';
 import {marketRequestKey,nativeZigRequest,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from './market-assets';
 /**
  * Session AF Gate C (design critique, money pages 1): the one class map every Wealth view reads. The saved records keep their
@@ -151,7 +152,9 @@ export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQ
 }
 function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote[],stablecoinsAsCash:boolean){
  const validQuotes=quotes.filter(q=>marketQuoteSchema.safeParse(q).success);
- const rows=s.positions.filter(p=>!p.archivedAt).map(p=>{
+ // Session AL sweep 3 (DV-147): a count goal's own tally ("40 pages") is that goal's count, not wealth: left out of the
+ // Wealth list, its totals and every count read from these rows (Today's "N assets · M need attention").
+ const rows=s.positions.filter(p=>!p.archivedAt&&!isOwnCountSource(p,s.goals)).map(p=>{
   const balance=allocationBalance(s,p.id),observed=BigInt(p.quantity),allocated=BigInt(balance.allocated)>observed?observed:BigInt(balance.allocated);
   const requestedCurrency=p.quoteCurrency??'USD';
   const matching=validQuotes.filter(q=>quoteMatchesPosition(p,q)&&q.currency===requestedCurrency&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];

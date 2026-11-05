@@ -43,7 +43,7 @@ const LayoutContext = createContext<PageContext | null>(null);
 export const useLayoutPage = () => useContext(LayoutContext);
 
 /** Provides the lock state for one page. Today passes `unlocked`/`onUnlockedChange` to share its Customize state, and `onReset` to reset its synced placement too. */
-export function LayoutPage({page, children, unlocked: controlled, onUnlockedChange, onReset}: {page: string; children: ReactNode; unlocked?: boolean; onUnlockedChange?: (value: boolean) => void; onReset?: () => void}) {
+export function LayoutPage({page, children, unlocked: controlled, onUnlockedChange, onReset, exit = true}: {page: string; children: ReactNode; unlocked?: boolean; onUnlockedChange?: (value: boolean) => void; onReset?: () => void; /** Session AL sweep 3 (DV-024b): false leaves out the bar's "Done" for a page with its own exit (Today's "Finish customizing"). */ exit?: boolean}) {
   const [own, setOwn] = useState(false), [message, setMessage] = useState(''), [mounted, setMounted] = useState(false);
   const unlocked = controlled ?? own;
   const setUnlocked = useCallback((value: boolean) => { if (onUnlockedChange) onUnlockedChange(value); else setOwn(value); }, [onUnlockedChange]);
@@ -61,7 +61,7 @@ export function LayoutPage({page, children, unlocked: controlled, onUnlockedChan
     {mounted && createPortal(<div className="sr-only" aria-live="polite" role="status" data-layout-announcer="">{message}</div>, document.body)}
     {mounted && unlocked && createPortal(<div className="layout-bar" role="region" aria-label="Arrange this page">
       <p><strong>Arrange this page.</strong> <span>Drag a card by its handle, or use its arrow buttons. Saved on this device.</span></p>
-      <div className="layout-bar-actions"><button type="button" className="secondary" onClick={reset}>Reset this page</button><button type="button" className="primary" onClick={() => { setUnlocked(false); announce('Layout locked.'); }}>Done</button></div>
+      <div className="layout-bar-actions"><button type="button" className="secondary" onClick={reset}>Reset this page</button>{exit && <button type="button" className="primary" onClick={() => { setUnlocked(false); announce('Layout locked.'); }}>Done</button>}</div>
     </div>, document.body)}
   </LayoutContext.Provider>;
 }

@@ -46,6 +46,7 @@ import {FOOD_SCANS} from '../food-scans/schema';
 import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
 import {HEALTH_EXTRAS} from '../health-extras';
 import {PROFILE_NAME} from '../onboarding-setup';
+import {WATCHLIST_MORE} from '../markets-watchlist-more';
 import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {COMPARE_PAIR} from '../compare/schema';
@@ -221,6 +222,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('focusRounds', 'Focus bell and breaks', 'Today and Life', FOCUS_ROUNDS),
   // Session AL (NB-006): the name the person gave in setup, for Today's greeting.
   dev('profileName', 'Your name for the greeting', 'Today and Life', PROFILE_NAME),
+  // Session AL (C-TK-20): Markets favourites beyond the synced eight.
+  dev('watchlistMore', 'More Markets favourites', 'Goals and Wealth', WATCHLIST_MORE),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),
   dev('healthNumbers', 'Your numbers (blood pressure and lab values)', 'Health', HEALTH_NUMBERS, true),

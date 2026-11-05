@@ -359,6 +359,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
 .settings-overview .panel { padding: 23px; }.settings-overview h2 { font-size: 22px; }.settings-overview p { font-size: 14px; }
 .settings-module-links { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 24px 0 35px; }
 .settings-module-links section { padding-left: 22px; border-left: 2px solid var(--brand-violet); }
+/* Session AL sweep 3 (BUG-039): the module links (Manage habits, Open Health, Explore market references) are 44 px tall targets, not 19 px lines of text. */
+.settings-module-links .text-link, .settings-market-data .text-link { display: inline-flex; align-items: center; min-height: 44px; }
 .settings-module-links section:last-child { border-color: var(--brand-cyan); }.settings-module-links h2 { font-size: 25px; }.settings-module-links p { font-size: 14px; }
 .privacy-intro { margin: 20px 0; max-width: 750px; }.privacy-intro h2 { font-size: 30px; letter-spacing: -.8px; }.privacy-intro p { font-size: 14px; }
 .private-backup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }

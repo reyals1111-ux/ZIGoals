@@ -21,11 +21,12 @@ export type GoalStep =
   | {kind: 'milestone'; title: string}
   | {kind: 'contribution'; date: string; amount?: Amount}
   | {kind: 'target'; date: string; days: number}
-  | {kind: 'plan'}
+  /** `unit`: a count goal of the person's own unit ("books"), whose plan is a count, not money (Session AL sweep 3, DV-057b). */
+  | {kind: 'plan'; unit?: string}
   | {kind: 'open'};
 export type AttentionWhy = 'overdue' | 'review' | 'behind' | 'due-soon' | 'target-near' | 'no-plan' | 'next' | 'only';
 export type GoalRoles = {focus: {goal: GoalSummary; step: GoalStep} | null; attention: {id: string; why: AttentionWhy} | null; cards: readonly GoalSummary[]};
-type Goals = readonly Pick<PrivateGoal, 'id' | 'name' | 'type' | 'status' | 'pinned' | 'plan' | 'milestones' | 'targetDate'>[];
+type Goals = readonly (Pick<PrivateGoal, 'id' | 'name' | 'type' | 'status' | 'pinned' | 'plan' | 'milestones' | 'targetDate'> & Partial<Pick<PrivateGoal, 'asset' | 'denom'>>)[];
 
 const DAY = 86_400_000;
 /** Whole days from `today` to `date` (both YYYY-MM-DD; negative when past). */
@@ -42,7 +43,7 @@ export function nextStep(goal: GoalSummary, record: Goals[number] | undefined, t
   if (milestone) return {kind: 'milestone', title: milestone.title};
   if (goal.nextContributionDate) return {kind: 'contribution', date: goal.nextContributionDate, ...(amount ? {amount} : {})};
   if (goal.targetDate && daysUntil(goal.targetDate, today) >= 0 && daysUntil(goal.targetDate, today) <= 30) return {kind: 'target', date: goal.targetDate, days: daysUntil(goal.targetDate, today)};
-  if (record && record.type !== 'PROJECT' && !plan) return {kind: 'plan'};
+  if (record && record.type !== 'PROJECT' && !plan) return record.type === 'QUANTITY' && record.asset && record.denom?.startsWith('manual:') ? {kind: 'plan', unit: record.asset} : {kind: 'plan'};
   return {kind: 'open'};
 }
 

@@ -11,6 +11,7 @@ import {useSleep} from '../health/sleep/use-sleep';
 import {elapsedMs, formatFast} from '../../lib/fasting/engine';
 import type {GoalSummary} from '../../lib/goal-summary';
 import {formatGoalAmount} from '../../lib/goal-summary';
+import {unitWord} from '../../lib/goals/goal-units';
 import type {GoalStep} from '../../lib/today/goal-roles';
 import {formatUnits} from '@zigoals/chain-config';
 import {formatDate, formatProgressPercent} from '../../lib/visual-format';
@@ -37,7 +38,8 @@ export function stepText(step: GoalStep): string {
     case 'milestone': return `Next milestone: ${step.title}`;
     case 'contribution': return `Next contribution ${amount}on ${formatDate(step.date)}`;
     case 'target': return step.days === 0 ? `Its target date is today, ${formatDate(step.date)}` : `${step.days} ${step.days === 1 ? 'day' : 'days'} to its target date, ${formatDate(step.date)}`;
-    case 'plan': return 'Next: set a contribution plan';
+    // Session AL sweep 3 (DV-057b): a count goal of your own unit plans a count, not a money contribution.
+    case 'plan': return step.unit ? `Next: plan how many ${unitWord(step.unit)} to add, and when` : 'Next: set a contribution plan';
     case 'open': return 'Open it to plan the next step';
   }
 }

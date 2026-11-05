@@ -40,6 +40,7 @@ import { storageMessageOr } from "../lib/storage-error-copy";
 // Session AL third pass (DV-172, DV-206; GAP-124/122/125): sleep nights, habit state changes and the period report.
 import { getSleepActivities } from "../lib/health-sleep-activities";
 import { habitLifecycleRows } from "../lib/habit-lifecycle";
+import { getCounterActivities } from "../lib/health-counter-activities";
 import { ActivityReport } from "./activity/activity-report";
 import { localDate } from "../lib/local-date";
 import {REMOVAL_UNDO_MS} from '../lib/goals/goal-removal';
@@ -115,6 +116,8 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     // paused, restored or deleted for good.
     // Habit rows come from Habits' own lib/habit-lifecycle.ts (lane L3), deleted-for-good shells included (named nowhere).
     ...getSleepActivities(health.data), ...habitLifecycleRows(habits.data.habits, habits.deletedShells),
+    // Session AL sweep 3 (DV-047c): each quick-counter day ("Increase Push-ups") under Health.
+    ...getCounterActivities(health.data),
   ];
   // Session V Part 7, "Actions by ZIGi": the entries made from ZIGi's cards, plus a line for each confirmed card whose
   // record has no entry of its own here (water, a recipe, a reminder…).

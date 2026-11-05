@@ -9,7 +9,8 @@ import {STABLECOINS_AS_CASH_KEY} from './wealth';
 import {PUZZLE_LOG_KEY} from './chess/puzzle-log';
 import {TVL_HISTORY_KEY} from './zigchain-eco/tvl-history';
 import {PROFILE_NAME_KEY} from './onboarding-setup';
-import {CHESS_PUZZLE_KEY_LITERAL, HEALTH_EXTRAS_KEY_LITERAL, NOVA_HUD_KEY_LITERAL, PROFILE_NAME_KEY_LITERAL, PUZZLE_LOG_KEY_LITERAL, STABLECOINS_AS_CASH_KEY_LITERAL, TVL_HISTORY_KEY_LITERAL, WALLET_NAMES_KEY_LITERAL} from './al-device-keys';
+import {WATCHLIST_MORE_KEY} from './markets-watchlist-more';
+import {CHESS_PUZZLE_KEY_LITERAL, HEALTH_EXTRAS_KEY_LITERAL, NOVA_HUD_KEY_LITERAL, PROFILE_NAME_KEY_LITERAL, WATCHLIST_MORE_KEY_LITERAL, PUZZLE_LOG_KEY_LITERAL, STABLECOINS_AS_CASH_KEY_LITERAL, TVL_HISTORY_KEY_LITERAL, WALLET_NAMES_KEY_LITERAL} from './al-device-keys';
 import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from './onboarding';
 import {DEVICE_KEYS, EVERYTHING_KEYS, MODULE_KEYS} from './export/everything';
 import {DEVICE_ONLY, SYNCED} from './data-health/catalog';
@@ -37,6 +38,7 @@ describe('Session AL device keys', () => {
     expect(PUZZLE_LOG_KEY_LITERAL).toBe(PUZZLE_LOG_KEY);
     expect(TVL_HISTORY_KEY_LITERAL).toBe(TVL_HISTORY_KEY);
     expect(PROFILE_NAME_KEY_LITERAL).toBe(PROFILE_NAME_KEY);
+    expect(WATCHLIST_MORE_KEY_LITERAL).toBe(WATCHLIST_MORE_KEY);
   });
   test('versioned keys; personal ones make a device not new, display ones do not', () => {
     for (const key of all) expect(key).toMatch(/^zigoals:[a-z-]+:v\d+$/);

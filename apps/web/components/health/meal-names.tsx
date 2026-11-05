@@ -5,6 +5,7 @@ import {HEALTH_EXTRAS, MEAL_NAME_MAX, mealKcalTarget, mealLabel, mealTime, setMe
 import {useDeviceRecord} from '../ai/use-device-record';
 import {FieldError, useFormErrors} from '../primitives/field-error';
 import {showStatus, showUndo} from '../ui/undo-toast';
+import {mealRemindersOn, setMealReminders} from '../../lib/meal-reminders';
 
 /** Session AL third pass (GAP-045, C-MO-03): this device's meal names and times, read tolerantly (unreadable = the four plain meals). */
 export function useHealthExtras() {
@@ -22,6 +23,8 @@ export function MealNamesEditor() {
   return <details className="health-meal-names"><summary>Name your meals and set their times</summary>{/* Session AL fourth pass: and an optional calorie target each */}
     <p className="fine">Your words for the four diary meals, with a usual time and, if you like, a calorie target for each. Entries stay in their meal; only the names shown change, on this device.</p>
     {unreadable && <p className="notice">Your meal names on this device could not be read, so the usual names are shown.</p>}
+    {/* Session AL sweep 3 (C-MO-10, C-MO-37): an in-app reminder at each usual time, on Today, until that meal is logged */}
+    <label className="checkbox health-meal-reminders"><input type="checkbox" checked={mealRemindersOn(extras)} disabled={unreadable} onChange={event => { const on = event.target.checked; try { update(r => setMealReminders(r, on)); showStatus(on ? 'Meal reminders are on: Today shows one at each usual time until that meal is logged.' : 'Meal reminders are off.'); } catch { showStatus('This choice could not be saved on this device.', {tone: 'error'}); } }}/><span>Remind me on Today at each usual time while nothing is logged for that meal (on this device; no notification is sent)</span></label>
     {HEALTH_MEALS.map(meal => <MealNameRow key={`${meal}:${mealLabel(extras, meal)}:${mealTime(extras, meal) ?? ''}:${mealKcalTarget(extras, meal) ?? ''}`} meal={meal} extras={extras} update={update} />)}
   </details>;
 }

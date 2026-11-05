@@ -103,6 +103,7 @@ import {resolveVoiceLanguage} from '../../lib/zigi-voice-lang';
 import {voicePrefs, ZIGI_VOICE} from '../../lib/zigi-voice';
 import {ZIGI, zigiPersonality, zigiPrefs} from '../../lib/ai/store/records';
 import {greetingWords} from '../../lib/zigi-personality';
+import {PROFILE_NAME} from '../../lib/onboarding-setup';
 import {inQuietHours} from '../../lib/ai/knock/rules';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import {continueInNova, novaChatHref} from '../../lib/nova/bridge';
@@ -388,12 +389,13 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
 /** Session Z-Cloud Part 2: a new chat is one short greeting and the box; suggestions wait in their sheet by the composer. */
 function Greeting() {
   const personality = zigiPersonality(useDeviceRecord(ZIGI).data); // Session AI (mascot): the words follow the chosen personality
-  return <div className="ai-greeting ai-greeting-z"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, 'connected')}</p></div></div>;
+  const name = useDeviceRecord(PROFILE_NAME); // Session AL sweep 3 (NB-006): the name from setup, read on this device only
+  return <div className="ai-greeting ai-greeting-z"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, 'connected', name.loaded && !name.unreadable ? name.data.name : '')}</p></div></div>;
 }
 /** Before any AI is connected: the same short greeting; ZIGi answers lookups here, on this device, with no AI (Session V Part 3). */
 function LocalGreeting({sensitive}: {sensitive: boolean}) {
-  const personality = zigiPersonality(useDeviceRecord(ZIGI).data);
-  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, sensitive ? 'private' : 'local')}</p></div></div>;
+  const personality = zigiPersonality(useDeviceRecord(ZIGI).data), name = useDeviceRecord(PROFILE_NAME);
+  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, sensitive ? 'private' : 'local', name.loaded && !name.unreadable ? name.data.name : '')}</p></div></div>;
 }
 /** Not connected: one compact line above the box, never over the chat (Session Z-Cloud Part 2). */
 function SetupLine({onClose, onChooser}: {onClose: () => void; onChooser: () => void}) {

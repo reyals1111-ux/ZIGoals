@@ -154,6 +154,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["z-units", "Can I see my weight in pounds and water in fluid ounces?"],
   ["aa-order", "Why are my pages in a different order?"],
   ["aa-goals", "What are life areas, the balance wheel and the vision board?"],
+  ["al-reward-goals", "Where are Reward goals?"],
   ["aa-forecast", "How is “At this pace” worked out?"],
   ["aa-calculator", "How does the compound interest calculator work?"],
   ["aa-search", "How do I search ZIGoals?"],
