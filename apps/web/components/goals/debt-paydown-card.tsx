@@ -5,10 +5,10 @@ import {ACCOUNTS} from '../../lib/accounts/schema';
 import {DEBT_PLANNER} from '../../lib/debt-planner/store';
 import {centsText} from '../../lib/debt-planner/plan';
 import {paydownGoals} from '../../lib/goals/debt-paydown';
-import {formatMoney, formatProgressPercent} from '../../lib/visual-format';
+import {formatMoney, formatMonth, formatProgressPercent} from '../../lib/visual-format';
 import {localDate} from '../../lib/local-date';
 
-const month = (key: string) => { try { return new Intl.DateTimeFormat(undefined, {month: 'short', year: 'numeric', timeZone: 'UTC'}).format(new Date(`${key}-01T12:00:00Z`)); } catch { return key; } };
+const month = (key: string) => { try { return formatMonth(new Date(`${key}-01T12:00:00Z`), {timeZone: 'UTC'}); } catch { return key; } };
 
 /**
  * Session AL third pass (GAP-119, P-DVG-06): debts as goals to reach zero, from Wealth's own records (lib/goals/debt-paydown.ts).

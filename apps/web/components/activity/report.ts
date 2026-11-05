@@ -20,7 +20,7 @@ export function weekStart(day: string): string {
 }
 /** The first day a period covers ('' for all time). */
 export function periodStart(period: Period, today: string): string {
- return period === 'week' ? weekStart(today) : period === 'month' ? `${today.slice(0, 7)}-01` : period === 'year' ? `${today.slice(0, 4)}-01-01` : '';
+ return period === 'week' ? weekStart(today) : period === 'month' ? today.slice(0, 7) + '-01' : period === 'year' ? `${today.slice(0, 4)}-01-01` : '';
 }
 /** How many rows of each category fall in the period, up to today. */
 export function periodCounts(rows: readonly ReportRow[], period: Period, today: string): Record<string, number> {

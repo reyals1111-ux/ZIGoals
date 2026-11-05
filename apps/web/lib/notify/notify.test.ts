@@ -185,9 +185,14 @@ function fakeCaches() {
 const ok = () => ({status: 200, type: 'basic', headers: new Headers(), clone() { return this; }});
 const page = (path: string, rsc = false) => ({method: 'GET', url: 'https://app.test' + path, mode: rsc ? 'cors' : 'navigate', headers: new Headers(rsc ? {RSC: '1'} : {})});
 async function fetchThrough(sw: ReturnType<typeof swSandbox>, request: unknown) {
+  // Session AL (P-LS-38): a real FetchEvent has waitUntil, which the worker now uses to keep a page's plain copy after an
+  // in-app visit; the fake event carries it too, and the test waits for that work like the browser would.
   let answer: Promise<unknown> | undefined;
-  sw.handlers.fetch!({request, respondWith: (p: Promise<unknown>) => { answer = p; }});
-  return answer ? await answer.catch(e => e) : 'not handled';
+  const waits: Promise<unknown>[] = [];
+  sw.handlers.fetch!({request, respondWith: (p: Promise<unknown>) => { answer = p; }, waitUntil: (p: Promise<unknown>) => { waits.push(p); }});
+  const result = answer ? await answer.catch(e => e) : 'not handled';
+  await Promise.all(waits);
+  return result;
 }
 
 describe('the service worker’s offline cache and openings (security review)', () => {

@@ -202,15 +202,6 @@
   .health-water .water-ring-inline-line { font-size: 15px; }
   .health-water > :is(.health-form, .health-simple-list) { clear: both; }
 }
-/* Session AK (G3): richer cards, as the new surfaces (F6). Health: Depth from a soft violet shadow; the pillar's colour
-   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
-   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
-   keyboard focus. Theme tokens only; no motion of its own. */
-:root :where(.health-page) .panel:not(.health-aa-card) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-health) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
-:root :where(.health-page) .health-aa-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
-@media (hover: hover) and (pointer: fine) { :root :where(.health-page) .panel:not(.health-aa-card):hover, :root :where(.health-page) .health-aa-card:hover { border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent)); } }
-:root :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible), :root :where(.health-page) .health-aa-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
-@media (forced-colors: active) { :root :where(.health-page) .panel:not(.health-aa-card), :root :where(.health-page) .health-aa-card { box-shadow: none; } }
 
 /* Session AL (P-MO-25; MO-002, MO-033, MO-079): a macro headline is a number that fits its tile; "Partial · 5 of 6
    entries" is a small line under it, never the hero font. */
@@ -290,3 +281,14 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .health-meal-names > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
 .health-meal-name-row { margin-top: 12px; }
 .import-warnings ul { padding-left: 20px; }
+
+/* Session AL: the lanes' later rules sit above the AK G3 block, so that block stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
+/* Session AK (G3): richer cards, as the new surfaces (F6). Health: Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+:root :where(.health-page) .panel:not(.health-aa-card) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-health) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+:root :where(.health-page) .health-aa-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root :where(.health-page) .panel:not(.health-aa-card):hover, :root :where(.health-page) .health-aa-card:hover { border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent)); } }
+:root :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible), :root :where(.health-page) .health-aa-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
+@media (forced-colors: active) { :root :where(.health-page) .panel:not(.health-aa-card), :root :where(.health-page) .health-aa-card { box-shadow: none; } }
