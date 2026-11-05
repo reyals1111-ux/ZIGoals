@@ -230,6 +230,8 @@ export function saveManualPosition(raw:Platform,incoming:Position):Platform {
  if(p.sourceType!=='MANUAL'||p.verification!=='MANUAL'||(old&&(old.sourceType!=='MANUAL'||old.asset!==p.asset||old.denom!==p.denom||old.decimals!==p.decimals||old.network!==p.network||old.account!==p.account)))throw Error('Position asset identity cannot change. Add a new Position instead.');
  return platformSchema.parse({...s,positions:[...s.positions.filter(existing=>existing.id!==p.id),{...p,assetClass:p.assetClass??old?.assetClass}],snapshots:[...s.snapshots,{positionId:p.id,quantity:p.quantity,observedAt:p.observedAt}].slice(-2000)});
 }
+/** Non-negative a/b, half up (a, b ≥ 0; b > 0). */
+const divHalfUp=(a:bigint,b:bigint)=>(2n*a+b)/(2n*b);
 export function goalProgress(s:Platform,id:string,now=Date.now(),quotes:readonly MarketQuote[]=[]){
  const goal=s.goals.find(g=>g.id===id);if(!goal)throw Error('Goal unavailable.');
  let current=0n,manual=0n,verified=0n,intended=0n;let requiresReview=false,missingValuation=false,staleValuation=false;
@@ -251,8 +253,10 @@ export function goalProgress(s:Platform,id:string,now=Date.now(),quotes:readonly
    // snapshot that is not the person's own value; a MANUAL value stays.
    const quoteAt=matching?Date.parse(matching.observedAt??matching.fetchedAt??''):NaN;
    if(v&&v.currency===goal.asset&&(v.source==='MANUAL'||!matching||!(quoteAt>Date.parse(v.observedAt)))){
-    value=observed?BigInt(v.value)*effective*10n**BigInt(goal.decimals)/(observed*10n**BigInt(v.decimals)):0n;
-    intended+=observed?BigInt(v.value)*q*10n**BigInt(goal.decimals)/(observed*10n**BigInt(v.decimals)):0n;
+    // Session AL (TIER 3 positions, N-MO-23, P-MO-48): a share of a valued holding is money, rounded half up to the cent
+    // (6 of 11 items valued $1,250 is $681.82, as Wealth says), never cut down ($681.81). Derived only; nothing stored.
+    value=observed?divHalfUp(BigInt(v.value)*effective*10n**BigInt(goal.decimals),observed*10n**BigInt(v.decimals)):0n;
+    intended+=observed?divHalfUp(BigInt(v.value)*q*10n**BigInt(goal.decimals),observed*10n**BigInt(v.decimals)):0n;
     valuation={state:v.source==='MANUAL'?'manual':snapshotIsStale(v.observedAt,now)?'stale':'fresh',source:v.source==='MANUAL'?'Manual valuation':'Position valuation',observedAt:v.observedAt};
    }else if(matching){
     value=BigInt(quoteValue(effective.toString(),p.decimals,matching,goal.decimals));
