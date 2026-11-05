@@ -10,6 +10,7 @@ import {applyImport, readCsv, readIcsTodos, readTaskFile, readTickTickCsv, readT
 import {dueReminders, reminderInstants} from './reminders';
 import {salvageTasks, keepSalvaged, addTask as addOnDevice, completeTask, changeTask, readTasks} from './device';
 import {readDeviceRecord} from '../device-record';
+import {completedInWindow as l54Window, dropOrder as l54Drop, editOccurrence as l54EditOne, addTask as l54Add, finishTask as l54Finish} from './engine';
 
 /** Session AL (Part 8): Tasks at Todoist/TickTick level — the stored format, the engine, search, import/export, reminders. */
 const TODAY = '2026-11-04', at = new Date('2026-11-04T09:00:00.000Z');
@@ -295,5 +296,36 @@ describe('P-LS-42 and P-LS-05 (for lane L6): the goal card line and searchTasks 
     expect(await searchTasks('p1 & today', {storage, today: TODAY})).toHaveLength(1);
     expect(await searchTasks('p2', {storage, today: TODAY})).toEqual([]);
     expect(await searchTasks('x', {storage: memory({[TASKS_KEY]: '{bad'}), today: TODAY})).toEqual([]);
+  });
+});
+
+/* Session AL fourth pass (L5-4): drop order (LS-H22), this one / all future (C-LS-08), the Completed window (LS-037). */
+describe('Session AL L5-4 engine', () => {
+  const at = new Date('2026-11-04T09:00:00Z'), today = '2026-11-04';
+  it('LS-H22: dropping a row on the lower half of its neighbour moves it down; upper half keeps it above', () => {
+    expect(l54Drop(['a', 'b', 'c'], 'a', 'c', false)).toEqual(['b', 'a', 'c']);
+    expect(l54Drop(['a', 'b', 'c'], 'a', 'c', true)).toEqual(['b', 'c', 'a']);
+    expect(l54Drop(['a', 'b', 'c'], 'a', 'b', true)).toEqual(['b', 'a', 'c']);
+    expect(l54Drop(['a', 'b', 'c'], 'c', 'a', false)).toEqual(['c', 'a', 'b']);
+    expect(l54Drop(['a', 'b'], 'a', 'zz', true)).toEqual(['a', 'b']);
+  });
+  it('C-LS-08: "only this time" makes a one-off on that day and the series moves on unchanged', () => {
+    let r = l54Add({version: 1, tasks: []}, {title: 'Bin day', due: today, recur: {every: 'week', interval: 1}}, {id: 'bin', at, today});
+    r = l54EditOne(r, 'bin', {title: 'Bin day (garden waste)'}, today, {at, id: 'one'});
+    const series = r.tasks.find(t => t.id === 'bin')!, one = r.tasks.find(t => t.id === 'one')!;
+    expect(series.title).toBe('Bin day');
+    expect(series.due).toBe('2026-11-11');
+    expect(series.recur).toBeTruthy();
+    expect(one).toMatchObject({title: 'Bin day (garden waste)', due: today});
+    expect(one.recur).toBeUndefined();
+  });
+  it('LS-037: Completed lists the last 30 days only and counts the older ones', () => {
+    let r = l54Add({version: 1, tasks: []}, {title: 'Old finished task'}, {id: 'old', at: new Date('2026-10-03T09:00:00Z'), today: '2026-10-03'});
+    r = l54Add(r, {title: 'Recent finished task'}, {id: 'new', at: new Date('2026-10-10T09:00:00Z'), today: '2026-10-10'});
+    r = l54Finish(r, 'old', new Date('2026-10-03T10:00:00Z'));
+    r = l54Finish(r, 'new', new Date('2026-10-10T10:00:00Z'));
+    const {log, older} = l54Window(r, today, iso => iso.slice(0, 10));
+    expect(log.map(e => e.task.id)).toEqual(['new']);
+    expect(older).toBe(1);
   });
 });

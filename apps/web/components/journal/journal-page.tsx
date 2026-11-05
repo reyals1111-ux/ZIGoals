@@ -75,7 +75,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <span className="journal-week-day">{formatWeekday(`${d.date}T12:00:00Z`, {timeZone: 'UTC'})}</span>
         <span className="journal-week-dot" data-level={d.energy ?? undefined}>{d.energy ?? '·'}</span>
         {healthShown && <span className="journal-week-dot is-mood" data-level={d.mood ?? undefined}>{d.mood ?? '·'}</span>}
-        <span className="sr-only">{d.date}: {d.energy === null && d.mood === null ? 'no check-in' : [d.energy !== null ? `energy ${d.energy} of 5` : null, d.mood !== null ? `mood ${MOOD_WORDS[d.mood - 1]}` : null].filter(Boolean).join(', ')}</span>
+        <span className="sr-only">{/* Session AL fourth pass (DV-190c): a day a screen reader says as words, not "2026-11-02" */}{formatDate(d.date, {weekday: true, year: false})}: {d.energy === null && d.mood === null ? 'no check-in' : [d.energy !== null ? `energy ${d.energy} of 5` : null, d.mood !== null ? `mood ${MOOD_WORDS[d.mood - 1]}` : null].filter(Boolean).join(', ')}</span>
       </li>)}</ol>
       {week.shown ? <ul className="journal-week-lines">{weekLines(week).map(line => <li key={line}>{line}</li>)}</ul> : <p className="fine">The week&rsquo;s averages show once 4 of its days have a check-in ({week.rated} so far).</p>}
       <p className="fine">Counted from your own check-ins on this device; never a judgement and not advice.</p>

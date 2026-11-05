@@ -30,7 +30,7 @@ export const en: QuickAddLocale = {
     slept: 'sleep', sleep: 'sleep',
   },
   dayWords: {today: 'today', yesterday: 'yesterday'},
-  stems: {meditated: 'meditate', meditating: 'meditate', walked: 'walk', exercised: 'exercise', exercising: 'exercise', journaled: 'journal', journalled: 'journal', stretched: 'stretch', stretching: 'stretch', studied: 'study', studying: 'study', read: 'read', reading: 'read', practised: 'practise', practiced: 'practice', practising: 'practise', practicing: 'practice'},
+  stems: {meditated: 'meditate', meditating: 'meditate', meditation: 'meditate', walked: 'walk', exercised: 'exercise', exercising: 'exercise', journaled: 'journal', journalled: 'journal', stretched: 'stretch', stretching: 'stretch', studied: 'study', studying: 'study', read: 'read', reading: 'read', practised: 'practise', practiced: 'practice', practising: 'practise', practicing: 'practice'},
   fillers: ['of', 'for', 'in', 'the', 'did', 'do', 'some', 'my', 'a', 'an', 'fl'],
   conjunctions: ['and', '&', 'then', 'plus'],
   examples: ['drank 2 glasses of water', 'weight 78.4', 'ran 5k in 28 min'],

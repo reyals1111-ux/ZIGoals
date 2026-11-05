@@ -27,22 +27,6 @@ export function useDotPress(state: ChecklistState) {
   const [panel, setPanel] = useState<PanelState>(null), [busy, setBusy] = useState<string | null>(null);
   // Escape closes an open stepper or a dot's details before it closes the Checklist (L3b).
   useEscapeLayer(panel !== null, () => setPanel(null));
-  const press = useCallback(async (dot: DerivedDot, intent: StepIntent) => {
-    if (intent === 'open') return;
-    const again = dot.kind === 'health' && !!dot.input && AGAIN.has(dot.input);
-    if (dot.state === 'done' && !again && dot.kind !== 'custom') { setPanel(p => p?.id === dot.id ? null : {id: dot.id, mode: 'details'}); return; }
-    if (intent === 'value') { setPanel(p => p?.id === dot.id && p.mode === 'value' ? null : {id: dot.id, mode: 'value'}); return; }
-    setBusy(dot.id);
-    const out = await state.tick(dot, 'tick');
-    setBusy(null);
-    setPanel(out.ok ? null : {id: dot.id, mode: 'details', message: out.message});
-  }, [state]);
-  const log = useCallback(async (dot: DerivedDot, value: number) => {
-    setBusy(dot.id);
-    const out = await state.tick(dot, 'value', value);
-    setBusy(null);
-    setPanel(out.ok ? null : {id: dot.id, mode: 'value', message: out.message});
-  }, [state]);
   // Session AL (P-LS-27): a done habit can be opened again for today from its details, with Undo (Habits keeps the record).
   const untick = useCallback(async (dot: DerivedDot, habitId: string) => {
     const habits = state.stores.habits, before = habits.data.habits.find(h => h.id === habitId);
@@ -52,6 +36,26 @@ export function useDotPress(state: ChecklistState) {
       showUndo({message: `${dot.label}: not done today.`, undone: `${dot.label}: done again.`, restore: () => habits.update(h => before && h.habits.some(x => x.id === habitId) ? {...h, habits: h.habits.map(x => x.id === habitId ? before : x)} : h)});
     } catch (e) { setPanel({id: dot.id, mode: 'details', message: e instanceof Error && e.message.length < 200 ? e.message : 'Not changed. Open Habits to change it.'}); }
   }, [state.stores.habits]);
+  const press = useCallback(async (dot: DerivedDot, intent: StepIntent) => {
+    if (intent === 'open') return;
+    const again = dot.kind === 'health' && !!dot.input && AGAIN.has(dot.input);
+    // Session AL fourth pass (LS-H26): a second tap on a done habit takes the tick back, as the habit card's ✓ does, with
+    // Undo in the toast. Its details (time, Open Habits) stay one tap away under the row's ⋯.
+    const doneHabit = dot.state === 'done' && dot.kind === 'habit' && intent === 'tick' ? (dot.item.ref as {habitId?: string} | undefined)?.habitId : undefined;
+    if (doneHabit) { await untick(dot, doneHabit); return; }
+    if (dot.state === 'done' && !again && dot.kind !== 'custom') { setPanel(p => p?.id === dot.id ? null : {id: dot.id, mode: 'details'}); return; }
+    if (intent === 'value') { setPanel(p => p?.id === dot.id && p.mode === 'value' ? null : {id: dot.id, mode: 'value'}); return; }
+    setBusy(dot.id);
+    const out = await state.tick(dot, 'tick');
+    setBusy(null);
+    setPanel(out.ok ? null : {id: dot.id, mode: 'details', message: out.message});
+  }, [state, untick]);
+  const log = useCallback(async (dot: DerivedDot, value: number) => {
+    setBusy(dot.id);
+    const out = await state.tick(dot, 'value', value);
+    setBusy(null);
+    setPanel(out.ok ? null : {id: dot.id, mode: 'value', message: out.message});
+  }, [state]);
   const renderPanel = useCallback((dot: DerivedDot) => {
     if (!panel || panel.id !== dot.id) return null;
     if (panel.mode === 'value' && dot.value) return <>

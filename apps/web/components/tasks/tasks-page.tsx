@@ -13,7 +13,7 @@ import {TasksNav, viewKey, readView, viewTitle} from './tasks-nav';
 import {useTaskList} from './use-task-list';
 import {useGoalOptions} from './use-goal-options';
 import {
-  addProject, addSection, childrenOf, clearDone, completedLog, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
+  addProject, addSection, childrenOf, clearDone, completedInWindow, dropOrder, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
   removeProject, removeSection, renameSection, saveFilter, setOrder, skipOccurrence, taskCounts, taskState, viewTasks, type TaskInput, type TaskView,
 } from '../../lib/tasks/engine';
 import {matchTasks} from '../../lib/tasks/search';
@@ -42,6 +42,8 @@ const TasksIo = lazy(() => import('./tasks-io'));
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
 /** Session AL (P-LS-40, LS-030): a long group shows its first 50 rows; the rest one tap away. */
 const SHOWN_PER_GROUP = 50;
+/** The drag's own type, so a drop knows a task row is coming (as the Agenda's day drop does). */
+const TASK_DRAG = 'application/x-zigoals-task';
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
 const typing = (t: EventTarget | null) => t instanceof HTMLElement && isTypingTarget(t);
 
@@ -51,7 +53,6 @@ export function TasksPage() {
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set()), [focusId, setFocusId] = useState<string | null>(null), [editId, setEditId] = useState<string | null>(null);
   const [focus, setFocus] = useState<Task | null>(null), [showcase, setShowcase] = useState(false), [help, setHelp] = useState(false), [io, setIo] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set()), [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set()), [now, setNow] = useState(() => Date.now());
-  const [dragId, setDragId] = useState<string | null>(null);
   const focusBox = useRef<HTMLDivElement>(null), addField = useRef<HTMLInputElement>(null), filterField = useRef<HTMLInputElement>(null), asked = useRef(false), lastPick = useRef<string | null>(null), gPressed = useRef(0);
   const projects = useMemo(() => byOrderProjects(record), [record]);
   const projectOf = useCallback((id?: string) => id ? record.projects?.find(p => p.id === id) : undefined, [record.projects]);
@@ -191,26 +192,33 @@ export function TasksPage() {
     };
     window.addEventListener('pointerup', release, true); window.addEventListener('pointercancel', release, true);
   };
+  // LS-H22 / C-LS-16: the dragged id travels in the drag itself (and a ref), not only in React state, so the first
+  // dragover already accepts it; a press that becomes a drag never moves the focus (the focused row grows by its
+  // "Add a subtask" line, which moved the rows under the pointer and the drop landed back on the dragged row).
+  const dragging = useRef<string | null>(null);
+  const draggedId = (e: DragEvent<HTMLElement>) => dragging.current ?? (e.dataTransfer.types.includes(TASK_DRAG) ? e.dataTransfer.getData(TASK_DRAG) || null : null);
+  const accepts = (e: DragEvent<HTMLElement>) => !!dragging.current || e.dataTransfer.types.includes(TASK_DRAG);
+  const endDrag = () => { dragging.current = null; };
   const dragProps = (t: Task) => ({
-    draggable: !t.doneAt, tabIndex: -1, onPointerDown: pressRow, onFocus: () => { if (pressing.current) focusAfterPress.current = t.id; else setFocusId(t.id); },
-    onDragStart: (e: DragEvent<HTMLElement>) => { e.stopPropagation(); setDragId(t.id); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', t.id); },
-    onDragEnd: () => setDragId(null),
-    onDragOver: (e: DragEvent<HTMLElement>) => { if (dragId && dragId !== t.id) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } },
+    draggable: !t.doneAt, tabIndex: -1, onPointerDown: pressRow, onFocus: () => { if (pressing.current) focusAfterPress.current = t.id; else if (!dragging.current) setFocusId(t.id); },
+    onDragStart: (e: DragEvent<HTMLElement>) => { e.stopPropagation(); focusAfterPress.current = null; dragging.current = t.id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData(TASK_DRAG, t.id); e.dataTransfer.setData('text/plain', t.title); },
+    onDragEnd: endDrag,
+    onDragOver: (e: DragEvent<HTMLElement>) => { if (accepts(e) && dragging.current !== t.id) { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; } },
     onDrop: (e: DragEvent<HTMLElement>) => {
       e.preventDefault(); e.stopPropagation();
-      const from = dragId; setDragId(null);
+      const from = draggedId(e); endDrag();
       if (!from || from === t.id) return;
       const moving = record.tasks.find(x => x.id === from);
       if (!moving) return;
+      const box = e.currentTarget.getBoundingClientRect(), after = e.clientY > box.top + box.height / 2;
       const sameScope = (moving.projectId ?? '') === (t.projectId ?? '') && (moving.sectionId ?? '') === (t.sectionId ?? '') && (moving.parentId ?? '') === (t.parentId ?? '');
-      const order = siblingsOf(t.id).filter(x => x !== from), at = order.indexOf(t.id);
-      order.splice(at, 0, from);
-      list.change(r => setOrder(sameScope ? r : moveTasks(r, [from], {projectId: t.projectId ?? null, sectionId: t.sectionId ?? null}), order), sameScope ? `Moved “${moving.title}”.` : `Moved “${moving.title}” to ${t.projectId ? projectOf(t.projectId)?.name : 'the Inbox'}.`);
+      const order = dropOrder(siblingsOf(t.id), from, t.id, after);
+      list.change(r => setOrder(sameScope ? r : moveTasks(r, [from], {projectId: t.projectId ?? null, sectionId: t.sectionId ?? null}), order), sameScope ? `Moved “${moving.title}” ${after ? 'below' : 'above'} “${t.title}”.` : `Moved “${moving.title}” to ${t.projectId ? projectOf(t.projectId)?.name : 'the Inbox'}.`);
     },
   });
   const dropOnProject = (projectId: string | null, sectionId: string | null = null) => ({
-    onDragOver: (e: DragEvent<HTMLElement>) => { if (dragId) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } },
-    onDrop: (e: DragEvent<HTMLElement>) => { e.preventDefault(); const from = dragId; setDragId(null); if (from) moveSelected(projectId, sectionId, from); },
+    onDragOver: (e: DragEvent<HTMLElement>) => { if (accepts(e)) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } },
+    onDrop: (e: DragEvent<HTMLElement>) => { e.preventDefault(); const from = draggedId(e); endDrag(); if (from) moveSelected(projectId, sectionId, from); },
   });
 
   /* ---- rendering ---- */
@@ -220,7 +228,7 @@ export function TasksPage() {
     return <TaskRow key={t.id} task={t} today={today} nowClock={clock} record={record} depth={depth} goal={t.goal ? goals.byKey.get(t.goal) : undefined} goals={goals.open}
       links={project ? {projectName: project.name, projectColour: project.colour} : undefined}
       selected={selected.has(t.id)} onSelect={(on, shift) => pick(t.id, on, shift)} focused={focusId === t.id}
-      onToggle={d => list.toggle(t, d)} onRemove={() => list.remove(t)} onEdit={patch => { const ok = list.edit(t, patch); if (ok) setEditId(null); return ok; }} onFocus={() => setFocus(t)}
+      onToggle={d => list.toggle(t, d)} onRemove={() => list.remove(t)} onEdit={(patch, scope) => { const ok = list.edit(t, patch, scope); if (ok) setEditId(null); return ok; }} onFocus={() => setFocus(t)}
       onMove={canMove ? step => reorder(t.id, step, sib) : undefined} drag={dragProps(t)} editor="inline"
       onSkip={t.recur && t.due && !t.doneAt ? () => list.change(r => skipOccurrence(r, t.id, today), `Skipped this time: “${t.title}” moves to its next day.`, `“${t.title}” is back on its day.`) : undefined}>
       {editId === t.id && <EditorBridge onClose={() => setEditId(null)} />}
@@ -236,13 +244,15 @@ export function TasksPage() {
 
   let body: ReactNode;
   if (view.kind === 'completed') {
-    const log = completedLog(record), recent = recentlyDone(record, today, list.doneDay);
+    // LS-037: the view's window — finished in the last 30 days of this device's days; older ones are only counted.
+    const {log, older} = completedInWindow(record, today, list.doneDay), recent = recentlyDone(record, today, list.doneDay);
     body = <section className="tasks-completed" aria-labelledby="tasks-done-title">
       <h2 id="tasks-done-title">Completed <small>{plural(log.length, 'time')}</small></h2>
       {recent.length > 0 && <p className="tasks-bulk-inline"><button type="button" className="secondary" onClick={() => list.change(clearDone, `Cleared ${plural(record.tasks.filter(t => t.doneAt).length, 'finished task')}.`, 'Finished tasks put back.')}>Clear done ({formatNumber(record.tasks.filter(t => t.doneAt).length)})</button></p>}
       {log.length ? <ul className="tasks-list" aria-label="Completed">{log.slice(0, 200).map(e => e.occurrence
         ? <li key={`${e.task.id}@${e.at}`} className="task task-finished task-occurrence"><span className="task-done" aria-hidden="true">✓</span><span className="task-title" dir="auto">{e.task.title}</span><span className="task-meta"><span>Done {formatDate(e.at, {year: false})} · repeats, next {e.task.due ? formatDate(e.task.due, {weekday: true, year: false}) : '—'}</span></span></li>
         : row(e.task))}</ul> : <p className="fine">Nothing finished in the last 30 days.</p>}
+      {older > 0 && <p className="fine" role="note">{older === 1 ? '1 finish' : `${formatNumber(older)} finishes`} older than 30 days {older === 1 ? 'is' : 'are'} not listed; {older === 1 ? 'it leaves' : 'they leave'} this device’s list at the next change.</p>}
       <p className="fine">Finished tasks are kept 30 days, then they leave this device’s list (export them as CSV first to keep a copy). Tick one again to open it.</p>
     </section>;
   } else if (view.kind === 'project' && board) {
@@ -330,7 +340,8 @@ function EditorBridge({onClose}: {onClose: () => void}) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const li = ref.current?.closest('li'), edit = li?.querySelector<HTMLButtonElement>(':scope > .task-actions button[aria-expanded="false"][aria-label^="Edit"]');
-    if (edit) { edit.click(); requestAnimationFrame(() => li?.querySelector<HTMLInputElement>('.task-editor input')?.focus()); }
+    // The editor loads on first use (LS-067), so its title field is looked for until it is there (up to a second).
+    if (edit) { edit.click(); let tries = 0; const find = () => { const input = li?.querySelector<HTMLInputElement>('.task-editor input'); if (input) input.focus(); else if (tries++ < 60) requestAnimationFrame(find); }; requestAnimationFrame(find); }
     onClose();
   }, [onClose]);
   return <span ref={ref} hidden />;

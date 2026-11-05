@@ -1,0 +1,8 @@
+/* Session AL fourth pass (PR-103, C-LS-09): Tasks on Today — one line and the reminders gone off. Small on purpose: the
+   Tasks page's own stylesheet stays off Today. */
+.today-tasks-due { display: grid; gap: 6px; margin: 0 0 12px; min-width: 0; }
+.today-tasks-due-line { margin: 0; }
+.today-tasks-due-line .text-link { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 4px; min-height: 44px; overflow-wrap: anywhere; }
+.today-tasks-due .tasks-today-reminders { list-style: none; margin: 0; padding: 8px 10px; display: grid; gap: 2px; border-radius: 12px; border: 1px solid var(--warning, #e8a33d); }
+.today-tasks-due .tasks-today-reminders li { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; overflow-wrap: anywhere; }
+.today-tasks-due .tasks-today-reminders .text-link { min-height: 44px; }

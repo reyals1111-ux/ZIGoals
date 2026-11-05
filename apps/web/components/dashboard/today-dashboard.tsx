@@ -14,6 +14,7 @@ const ChessTodayRefresh=lazy(()=>import('../chess/chess-today'));
 // Session AA-Cloud Part 8: the cards kept on this device load after the page (weights).
 const TodayDeviceCards=lazy(()=>import('./today-device-cards'));
 const TodayWrapped=lazy(()=>import('./today-wrapped'));
+const TodayTasksDue=lazy(()=>import('../tasks/today-tasks-due'));
 // Phase 2 (weights): the widget library opens with the Add widget dialog, the welcome card only on a new device: both chunks.
 const WidgetLibrary=lazy(()=>import('./widget-library').then(m=>({default:m.WidgetLibrary})));
 const MakeToday=lazy(()=>import('./make-today')),PresetChooser=lazy(()=>import('./preset-chooser'));
@@ -363,7 +364,7 @@ export function TodayDashboard(){
    {/* Session AK RB (RELEASE_REVIEW_2 R2-11): "Make Today yours" waits until the welcome above is answered (they asked the same question one after the other). */}
    {!showcase&&!brandNew&&storesReady&&!hasRecords&&makeToday}
    {!brandNew&&storesReady&&<TodayLine habits={habits.data} health={health.data} platform={platform.data} quotes={market.quotes} now={now} today={today} healthDate={sources.healthDate} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} financial={financial}/>}
-   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
+   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{/* Session AL fourth pass (PR-103, C-LS-09): tasks due today and task reminders */}<LoadBoundary quiet><Suspense fallback={null}><TodayTasksDue/></Suspense></LoadBoundary>{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
    {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
    {!brandNew&&<TodayChecklistCard/>}
    {/* Session AK G2 (RELEASE_REVIEW R11, SESSION_AK_F8 proposal 2): on a phone the widget area (most of Today's elements)

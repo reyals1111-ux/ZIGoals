@@ -4,7 +4,8 @@ import {useEffect, useRef} from 'react';
 /**
  * Session AL (Part 8, P-LS-07, LS-014/LS-044/LS-H25): the Tasks page's keyboard shortcuts and their help sheet ("?").
  * Single keys work only while no text field has the focus and no dialog is open; none of them takes a key the app
- * already uses everywhere: "/" opens Search, Ctrl/⌘+K opens ZIGi, Ctrl/⌘+J opens NOVA, Ctrl/⌘+Shift+Space talks to ZIGi.
+ * already uses everywhere: "/" opens Search, Ctrl/⌘+K the command menu, Ctrl/⌘+Shift+Z ZIGi, Ctrl/⌘+J NOVA, Ctrl/⌘+Shift+Space
+ * talks to ZIGi.
  */
 export const TASK_SHORTCUTS: {keys: string; does: string}[] = [
   {keys: 'q, a or n', does: 'Add a task (puts the cursor in the add field)'},
@@ -24,7 +25,9 @@ export const TASK_SHORTCUTS: {keys: string; does: string}[] = [
 ];
 export const APP_SHORTCUTS: {keys: string; does: string}[] = [
   {keys: '/', does: 'Search the whole app'},
-  {keys: 'Ctrl/⌘+K', does: 'Open ZIGi'},
+  // Session AL fourth pass (LS-H36, C-LS-22): Ctrl/⌘+K is the command menu; ZIGi has its own keys.
+  {keys: 'Ctrl/⌘+K', does: 'Command menu: pages, Quick add, a new task, recent tasks, Search'},
+  {keys: 'Ctrl/⌘+Shift+Z', does: 'Open ZIGi'},
   {keys: 'Ctrl/⌘+J', does: 'Open NOVA'},
 ];
 export default function TasksShortcuts({onClose}: {onClose: () => void}) {

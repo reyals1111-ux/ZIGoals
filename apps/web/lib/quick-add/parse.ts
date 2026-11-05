@@ -213,6 +213,14 @@ export function parse(text: string, localeName: 'en' | 'nl', context: QuickAddCo
         else if (count && !extra.length) value = count.num!.value;
         else return needsMore(`${habit.title} is timed: write how long, like “${habit.title.toLowerCase()} 20 min”.`);
       }
+      else if (unitAt(['min']) >= 0 || unitAt(['h']) >= 0) {
+        // Session AL (L5-4, LS-038): a time in the line ("meditated 15 minutes") is never read as 15 check-ins. A habit
+        // kept in minutes takes the minutes; one that counts times says so instead of guessing.
+        if (!/^(?:min|mins|minutes?)$/i.test(habit.unit.trim())) { if (explicit.length) continue; return needsMore(`${habit.title} counts ${habit.kind === 'boolean' ? 'done or not' : habit.unit.trim() || 'times'}, not minutes. Write “${habit.title.toLowerCase()}” to add ${habit.kind === 'boolean' ? 'it as done' : `1 ${habit.unit.trim() === 'times' || !habit.unit.trim() ? 'time' : habit.unit.trim()}`}, or make it a timed habit on Habits to log minutes.`); }
+        const minutes = minutesOf(); if (minutes === 'unclear') return needsMore(UNCLEAR_NUMBER);
+        if (typeof minutes !== 'number') return needsMore(UNCLEAR_NUMBER);
+        value = minutes;
+      }
       else if (habit.kind === 'boolean') value = count ? count.num!.value : habit.target || 1;
       else value = count ? count.num!.value : 1;
       if (!(value > 0)) return needsMore(ABOVE_ZERO);

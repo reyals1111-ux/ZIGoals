@@ -1,6 +1,6 @@
 import type {Habit, HabitData} from '../habits';
-import {checklistSchema, type Checklist} from './schema';
-import {orderedItems} from './store';
+import {checklistDaysSchema, checklistSchema, type Checklist, type ChecklistDays} from './schema';
+import {ChecklistError, orderedItems} from './store';
 
 /**
  * Session AL (A7): the Undo of a habit day changed from the Checklist's List view ("Done yesterday", "Skip today"): the
@@ -58,4 +58,38 @@ export function restorePlaces(record: Checklist, back: readonly string[]): Check
   // Ids of kinds this version does not show stay at the end, as moveItem keeps them.
   const unknown = record.order.filter(x => !order.includes(x));
   return checklistSchema.parse({...record, order: [...order, ...unknown]});
+}
+
+/**
+ * Session AL fourth pass (LS-019 / LC-005): a habit renamed from the Checklist's List view. Habits keeps the name (its
+ * card, history and streak follow); the planet's label and the List row read it from there. 1–100 characters.
+ */
+export function renameHabit(latest: HabitData, id: string, title: string, now = new Date()): HabitData {
+  const clean = title.trim().replace(/\s+/g, ' ');
+  if (!clean) throw new Error('A habit needs a name.');
+  if (clean.length > 100) throw new Error(`A habit name can be at most 100 characters (this one has ${clean.length}).`);
+  if (!latest.habits.some(h => h.id === id)) throw new Error('This habit is no longer available. Refresh and try again.');
+  return {...latest, habits: latest.habits.map(h => h.id === id ? {...h, title: clean, updatedAt: now.toISOString()} : h)};
+}
+
+/**
+ * Session AL fourth pass (LS-032 / C-LS-35): one of your own items done yesterday, filled in the next day. Own items keep
+ * no record of their own, only the day's count, so the count goes up by one and the item's id is kept on that day
+ * (`filled`, additive) so the same item cannot be counted twice. A day with no count yet gets one: `total` is how many of
+ * your own items were on the path that day.
+ */
+export function fillOwnDay(days: ChecklistDays, date: string, id: string, total: number): ChecklistDays {
+  const day = days.days[date] as (ChecklistDays['days'][string] & {filled?: string[]}) | undefined;
+  const filled = Array.isArray(day?.filled) ? day!.filled.filter((x): x is string => typeof x === 'string') : [];
+  if (filled.includes(id)) throw new ChecklistError('Already filled in for yesterday.');
+  const base = day ?? {total: Math.max(1, total), done: 0};
+  if (base.done >= base.total) throw new ChecklistError('Yesterday already counts every item as done.');
+  const next = {...base, done: base.done + 1, filled: [...filled, id].slice(-200)};
+  return checklistDaysSchema.parse({...days, days: {...days.days, [date]: next}});
+}
+/** The Undo of `fillOwnDay`: the day's count back exactly as it was (or no count, when there was none). */
+export function restoreDay(latest: ChecklistDays, date: string, before: ChecklistDays['days'][string] | undefined): ChecklistDays {
+  const days = {...latest.days};
+  if (before) days[date] = before; else delete days[date];
+  return checklistDaysSchema.parse({...latest, days});
 }

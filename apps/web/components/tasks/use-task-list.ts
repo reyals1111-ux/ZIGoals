@@ -2,7 +2,7 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {TASKS, type Task, type Tasks} from '../../lib/tasks/schema';
-import {addTask, editTask, finishTask, removeTask, reopenTask, restoreTasks, type TaskInput, type TaskPatch as EnginePatch} from '../../lib/tasks/engine';
+import {addTask, editOccurrence, editTask, finishTask, removeTask, reopenTask, restoreTasks, type TaskInput, type TaskPatch as EnginePatch} from '../../lib/tasks/engine';
 import {deviceDay, tasksClock, tasksToday} from '../../lib/tasks/device';
 import {undoOfChange} from '../../lib/tasks/undo';
 import {showStatus, showUndo, shownToasts} from '../ui/undo-toast';
@@ -111,7 +111,10 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
     } catch (cause) { return fail(cause); }
   }, [guard, toast]);
   const remove = useCallback((t: Task) => removeIds([t.id], t.title), [removeIds]);
-  const edit = useCallback((t: Task, patch: TaskPatch) => change(r => editTask(r, t.id, patch, tasksToday(), {allowPast: true}), `Saved “${patch.title?.trim() || t.title}”.`, `“${t.title}” is as it was.`), [change]);
+  // C-LS-08: scope 'one' changes this occurrence of a repeating task only (a one-off on its day; the series moves on).
+  const edit = useCallback((t: Task, patch: TaskPatch, scope?: 'one' | 'all') => scope === 'one'
+    ? change(r => editOccurrence(r, t.id, patch, tasksToday(), {id: `task_${crypto.randomUUID()}`}), `Saved this time only: “${patch.title?.trim() || t.title}”. The repeat goes on as before.`, `“${t.title}” is as it was.`)
+    : change(r => editTask(r, t.id, patch, tasksToday(), {allowPast: true}), `Saved “${patch.title?.trim() || t.title}”${scope === 'all' ? ', this and every time after' : ''}.`, `“${t.title}” is as it was.`), [change]);
   // Kept for the callers that still render an Undo next to their status line (now the toast carries it).
   const runUndo = useCallback(() => { const undo = status?.undo; setStatus(null); undo?.(); }, [status]);
   return {tasks, today, clock, status, error, setError, add, toggle, remove, removeIds, edit, change, quiet, runUndo, doneDay: deviceDay};

@@ -30,7 +30,7 @@ export default function GoalNextActions({goalId, goalName, writable = true}: {go
       </div>
     </div>}
     {actions.length ? <ul className="tasks-list" aria-label={`Next actions for ${goalName}`}>{actions.map(t => <TaskRow key={t.id} task={t} today={today} nowClock={list.clock} record={tasks.data} showGoal={false}
-      onToggle={d => list.toggle(t, d)} onEdit={patch => list.edit(t, patch)} onFocus={() => setFocus(t)} onRemove={() => list.remove(t)} />)}</ul>
+      onToggle={d => list.toggle(t, d)} onEdit={(patch, scope) => list.edit(t, patch, scope)} onFocus={() => setFocus(t)} onRemove={() => list.remove(t)} />)}</ul>
       : <p className="fine">No next action yet. What is the one small step that moves “{goalName}” forward? Add it below; it shows on your Agenda on its day.</p>}
     {focus && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening Focus Sessions…</p>}><PomodoroPanel task={{id: focus.id, title: focus.title}} goalId={goalId} onClose={() => setFocus(null)} /></Suspense></LoadBoundary>}
     {writable && <TaskAddForm onAdd={list.add} goals={[]} today={today} fixedGoal={goalKeyOf(goalId)} label={`Add a next action for ${goalName}`} submit="Add next action" />}

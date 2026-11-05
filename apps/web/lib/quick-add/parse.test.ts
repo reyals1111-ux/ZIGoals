@@ -202,3 +202,25 @@ describe('Session AL quick-add: letters are not units', () => {
     expect(parse('1.5 l', 'en', base)).toMatchObject({kind: 'water', millilitres: 1500});
   });
 });
+
+/** Session AL fourth pass (L5-4, LS-038): the unit comes from the phrase — minutes are never read as check-ins. */
+describe('Session AL L5-4: meditation minutes', () => {
+  const base = {counters: [], waterUnit: 'ml' as const, weightUnit: 'kg' as const};
+  const counted = [{id: 'm', title: 'Meditate', unit: 'times', kind: 'count' as const, target: 1}];
+  test('LS-038: "meditated 15 minutes" on a habit that counts times is not "+15 times"', () => {
+    const r = parse('meditated 15 minutes', 'en', {...base, habits: counted});
+    expect(r.kind).toBe('needs-more');
+    expect((r as {hint: string}).hint).toBe('Meditate counts times, not minutes. Write “meditate” to add 1 time, or make it a timed habit on Habits to log minutes.');
+  });
+  test('LS-038: a habit kept in minutes takes the minutes; "15 min meditation" is matched too', () => {
+    const inMinutes = [{id: 'm', title: 'Meditate', unit: 'minutes', kind: 'quantity' as const, target: 10}];
+    expect(parse('meditated 15 minutes', 'en', {...base, habits: inMinutes})).toMatchObject({kind: 'habit', habitId: 'm', value: 15});
+    expect(parse('15 min meditation', 'en', {...base, habits: inMinutes})).toMatchObject({kind: 'habit', habitId: 'm', value: 15});
+    expect(parse('meditated', 'en', {...base, habits: counted})).toMatchObject({kind: 'habit', value: 1});
+    expect(parse('meditated 2 times', 'en', {...base, habits: counted})).toMatchObject({kind: 'habit', value: 2});
+  });
+  test('a run with a time and a "Run" habit that counts times keeps the activity reading', () => {
+    const runs = [{id: 'r', title: 'Run', unit: 'times', kind: 'count' as const, target: 1}];
+    expect(parse('ran 5k in 28 min', 'en', {...base, habits: runs}).kind).not.toBe('needs-more');
+  });
+});

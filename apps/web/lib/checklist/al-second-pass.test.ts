@@ -94,3 +94,26 @@ describe('C-DVG-75 / A7: Skip today and Done yesterday from the List view undo e
     expect(restoreHabit(latest, undefined)).toBe(latest);
   });
 });
+
+/** Session AL fourth pass (L5-4): LS-019/LC-005 rename a habit from the List; LS-032/C-LS-35 own item done yesterday. */
+import {fillOwnDay as l54Fill, renameHabit as l54Rename, restoreDay as l54Restore} from './habit-undo';
+import {emptyChecklistDays as l54Days} from './schema';
+describe('Session AL L5-4 List tools', () => {
+  test('LS-019: a habit is renamed on Habits; blank and too long say why', () => {
+    const data = {schemaVersion: 2 as const, kind: 'zigoals-habits' as const, habits: [{id: 'h1', title: 'QA Vitamins', updatedAt: '2026-11-01T00:00:00.000Z'}]} as never;
+    const next = l54Rename(data, 'h1', '  Vitamins  D ', new Date('2026-11-04T09:00:00Z')) as unknown as {habits: {title: string; updatedAt: string}[]};
+    expect(next.habits[0]).toMatchObject({title: 'Vitamins D', updatedAt: '2026-11-04T09:00:00.000Z'});
+    expect(() => l54Rename(data, 'h1', '   ')).toThrow('A habit needs a name.');
+    expect(() => l54Rename(data, 'h1', 'x'.repeat(101))).toThrow(/at most 100/);
+  });
+  test('LS-032: own item done yesterday counts once, with an exact Undo', () => {
+    const days = {...l54Days(), days: {'2026-11-03': {total: 3, done: 1}}};
+    const once = l54Fill(days, '2026-11-03', 'ck_floss', 2);
+    expect(once.days['2026-11-03']).toMatchObject({total: 3, done: 2, filled: ['ck_floss']});
+    expect(() => l54Fill(once, '2026-11-03', 'ck_floss', 2)).toThrow('Already filled in for yesterday.');
+    expect(l54Restore(once, '2026-11-03', days.days['2026-11-03']).days['2026-11-03']).toEqual({total: 3, done: 1});
+    const fresh = l54Fill(l54Days(), '2026-11-03', 'ck_floss', 2);
+    expect(fresh.days['2026-11-03']).toMatchObject({total: 2, done: 1});
+    expect(l54Restore(fresh, '2026-11-03', undefined).days['2026-11-03']).toBeUndefined();
+  });
+});

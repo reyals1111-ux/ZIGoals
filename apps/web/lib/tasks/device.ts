@@ -4,7 +4,7 @@ import {ZIGI_STORE_EVENT} from '../ai/store/keys';
 import {checklistZone, zonedDay} from '../checklist/day';
 import {wallClock} from '../zone-time';
 import {MAX_TASKS, TASKS, TASKS_KEY, taskSchema, tasksSchema, type Task, type Tasks} from './schema';
-import {addTask as addTo, editTask, finishTask, removeTask, reopenTask, restoreTask, restoreTasks, skipOccurrence, tasksOnDay, type TaskInput, type TaskPatch} from './engine';
+import {addProject, addTask as addTo, editTask, projectByName, removeProject, finishTask, removeTask, reopenTask, restoreTask, restoreTasks, skipOccurrence, tasksOnDay, type TaskInput, type TaskPatch} from './engine';
 
 /**
  * Session AK (T1): the tasks record on this device, for features outside the Tasks page — NOVA's widgets (lane NA) and
@@ -76,10 +76,23 @@ function write(change: (r: Tasks) => Tasks, storage?: Storage_): Tasks {
  * Throws with nothing written on a refusal (no title, the 500-task limit, a time without a day; a past day unless
  * `allowPast`). The `undo` removes it again.
  */
-export function addTask(input: TaskInput, {at = new Date(), today = tasksToday(at), storage, id = newTaskId(), allowPast = false}: {at?: Date; today?: string; storage?: Storage_; id?: string; allowPast?: boolean} = {}): {task: Task; undo: () => void} {
-  const next = write(r => addTo(r, input, {id, at, today, allowPast}), storage);
+export function addTask(input: TaskInput, {at = new Date(), today = tasksToday(at), storage, id = newTaskId(), allowPast = false, projectName}: {at?: Date; today?: string; storage?: Storage_; id?: string; allowPast?: boolean;
+  /** Session AL (AL_SCOPE C8): a typed "#Home": the project of that name, made in the same write when there is none yet. */
+  projectName?: string} = {}): {task: Task; undo: () => void; project?: {id: string; name: string; made: boolean}} {
+  let project: {id: string; name: string; made: boolean} | undefined;
+  const next = write(r => {
+    let rec = r;
+    const name = projectName?.trim();
+    if (name) {
+      const found = projectByName(rec, name);
+      if (found) project = {id: found.id, name: found.name, made: false};
+      else { const pid = `project_${crypto.randomUUID()}`; rec = addProject(rec, {name}, pid); project = {id: pid, name: name.replace(/\s+/g, ' '), made: true}; }
+    }
+    return addTo(rec, {...input, ...(project ? {projectId: project.id} : {})}, {id, at, today, allowPast});
+  }, storage);
   const task = next.tasks.find(t => t.id === id)!;
-  return {task, undo: () => { write(r => removeTask(r, id), storage); }};
+  // Undo takes the task away, and the project too when this add made it and nothing else is in it.
+  return {task, ...(project ? {project} : {}), undo: () => { const made = project?.made ? project.id : null; write(r => { const gone = removeTask(r, id); return made && !gone.tasks.some(t => t.projectId === made) ? removeProject(gone, made) : gone; }, storage); }};
 }
 /** Marks a task done (a repeating one moves to its next day); `undo` puts it back as it was (`changed` is false when it was done already). */
 export function completeTask(id: string, {at = new Date(), storage}: {at?: Date; storage?: Storage_} = {}): {task: Task; undo: () => void; changed: boolean} {

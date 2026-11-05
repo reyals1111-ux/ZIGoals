@@ -39,3 +39,39 @@ export function pathLabelOf(item: {pathLabel?: string}, name: string): string {
   const own = item.pathLabel ? cleanPathLabel(item.pathLabel) : '';
   return own || suggestPathLabel(name);
 }
+
+/**
+ * Session AL fourth pass (LS-053, PR-031, LS-017): the path's words, told apart. Two items that would show the same word
+ * ("QA Floss" and "Floss teeth" both "Floss"; "Read: 30 minutes" and "Read ten pages" both "Read") each add the first
+ * word of their own name the other does not have ("Floss teeth", "Read 30", "Read ten") when it fits the 12 letters;
+ * any still alike are numbered in path order ("Stretch", "Stretch 2"). A person's own word is never changed.
+ * NOT WIRED: the protected Checklist pin (tests/checklist-overlay-af.spec.ts, "its one word on the path (owner amendment
+ * 10)") holds every planet's word to suggestPathLabel(name), and O6 keeps the labels; checklistPath() in derive.ts would
+ * call this only in the integrator's O6 commit, with that pin updated.
+ */
+export function distinctPathLabels(items: readonly {id: string; name: string; own?: string}[]): Map<string, string> {
+  const out = new Map<string, string>(), key = (l: string) => l.toLocaleLowerCase();
+  const base = items.map(i => { const own = i.own ? cleanPathLabel(i.own) : ''; return {...i, own, label: own || suggestPathLabel(i.name)}; });
+  const tokens = (name: string) => name.replace(/<[^>]*>/g, ' ').split(/[\s,·/&+():;]+/).map(w => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}-]+$/gu, '')).filter(Boolean);
+  const groups = new Map<string, typeof base>();
+  for (const b of base) groups.set(key(b.label), [...(groups.get(key(b.label)) ?? []), b]);
+  for (const [, group] of groups) {
+    if (group.length < 2) { for (const b of group) out.set(b.id, b.label); continue; }
+    for (const b of group) {
+      if (b.own) { out.set(b.id, b.label); continue; }
+      // A name with no letters ("0", "-5") that collides shows itself rather than a second "Step".
+      if (!/\p{L}/u.test(b.name) && b.name.trim()) { out.set(b.id, b.name.trim().replace(/\s+/g, ' ').slice(0, PATH_LABEL_MAX)); continue; }
+      const mine = tokens(b.name), others = new Set(group.filter(o => o.id !== b.id).flatMap(o => tokens(o.name).map(key)));
+      const extra = mine.find(w => !others.has(key(w)) && key(w) !== key(b.label) && !/^\p{Lu}{1,3}$/u.test(w) && !FILLER.test(w));
+      const two = extra ? `${b.label} ${extra.toLocaleLowerCase()}` : '';
+      out.set(b.id, two && two.length <= PATH_LABEL_MAX ? two : b.label);
+    }
+  }
+  // Still alike (the same name twice): numbered in path order, the first keeps its word.
+  const seen = new Map<string, number>();
+  for (const b of base) {
+    const label = out.get(b.id)!, n = (seen.get(key(label)) ?? 0) + 1; seen.set(key(label), n);
+    if (n > 1 && !b.own) out.set(b.id, `${label.slice(0, PATH_LABEL_MAX - 1 - String(n).length)} ${n}`);
+  }
+  return out;
+}

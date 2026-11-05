@@ -357,3 +357,38 @@ export function nextActionsSummary(record: Tasks, goalId: string, today: string)
   const first = open[0]!, late = taskState(first, today) === 'overdue' ? ' (overdue)' : '';
   return `${open.length} open ${open.length === 1 ? 'task' : 'tasks'} · ${open.length === 1 ? '' : 'next: '}${first.title}${late}`;
 }
+
+/* ---- Session AL fourth pass (L5-4) ------------------------------------------------------------------------------ */
+
+/**
+ * C-LS-08 "this one / all future": changes only this occurrence of a repeating task. The change becomes a one-off task on
+ * this occurrence's day (no repeat), and the series moves on to its next day as a skip does, unchanged.
+ */
+export function editOccurrence(record: Tasks, id: string, patch: TaskPatch, today: string, {at = new Date(), id: oneId = newId('task')}: {at?: Date; id?: string} = {}): Tasks {
+  const task = record.tasks.find(t => t.id === id);
+  if (!task?.recur || !task.due) throw new Error('Only a repeating task has a single occurrence to change.');
+  const stamp = at.toISOString();
+  const one = taskSchema.parse({...omit(task, 'recur', 'completions', 'order'), id: oneId, createdAt: stamp, updatedAt: stamp});
+  const withOne = tasksSchema.parse({...record, tasks: [...record.tasks, one]});
+  const moved = skipOccurrence(withOne, id, today, at);
+  const rest: TaskPatch = {...patch}; delete rest.recur; // the one-off never repeats
+  return editTask(moved, oneId, rest, today, {allowPast: true, at});
+}
+
+/**
+ * LS-H22 / C-LS-16: the order after dropping `from` on the row `target`. `after` (the pointer is on the lower half of the
+ * target) puts it below the target, otherwise above. Dropping a row on its neighbour below therefore moves it down.
+ */
+export function dropOrder(siblings: readonly string[], from: string, target: string, after: boolean): string[] {
+  const order = siblings.filter(x => x !== from), at = order.indexOf(target);
+  if (at < 0) return [...siblings];
+  order.splice(after ? at + 1 : at, 0, from);
+  return order;
+}
+
+/** LS-037: the Completed list within its window (finished in the last 30 local days); older ones are counted apart. */
+export function completedInWindow(record: Tasks, today: string, doneDay: (iso: string) => string): {log: ReturnType<typeof completedLog>; older: number} {
+  const from = addLocalDays(today, -DONE_KEEP_DAYS), all = completedLog(record);
+  const log = all.filter(e => doneDay(e.at) >= from);
+  return {log, older: all.length - log.length};
+}
