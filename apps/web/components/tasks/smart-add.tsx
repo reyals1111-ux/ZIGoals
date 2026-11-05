@@ -1,6 +1,6 @@
 'use client';
-import {useId, useMemo, useRef, useState, type FormEvent} from 'react';
-import {parseTaskLine, type ParseSpan} from '../../lib/tasks/parse';
+import {useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
+import type {ParseSpan, ParsedTask} from '../../lib/tasks/parse';
 import {describeRecur} from '../../lib/tasks/recurrence';
 import {projectByName, type TaskInput} from '../../lib/tasks/engine';
 import {LEVEL_WORDS, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
@@ -14,6 +14,16 @@ import {TaskTitleInput} from './task-parts';
  * escape), and the preview says exactly what Add will save. A #project that does not exist yet is made on Add (said in
  * the preview). Nothing is saved before Add. `defaults` come from the view (a project's view adds into that project).
  */
+/**
+ * CI14 (page weights; budgets are never raised): the line reader (lib/tasks/parse.ts) is a chunk of its own, asked for as
+ * soon as this module loads (it is there long before a first word is typed). In the moment before it arrives, a line reads
+ * as its plain words, and Add waits for the reader, so what is saved is always the line as read.
+ */
+type Parse = typeof import('../../lib/tasks/parse').parseTaskLine;
+let parser: Parse | null = null;
+const loadParser = () => import('../../lib/tasks/parse').then(m => (parser = m.parseTaskLine));
+if (typeof window !== 'undefined') void loadParser().catch(() => undefined);
+const plainLine = (text: string): ParsedTask => ({title: text.replace(/\s+/g, ' ').trim(), labels: [], spans: []});
 const KIND_WORDS: Record<ParseSpan['kind'], string> = {date: 'Day', time: 'Time', recur: 'Repeat', priority: 'Priority', project: 'Project', label: 'Label'};
 /** "More options" (Session AK G2, R2-17, kept): priority, a day, a time and a goal for the line; what the line itself says wins. */
 const PRIORITY_CHOICES: [string, TaskLevel, string][] = [['high', 1, LEVEL_WORDS[1]], ['medium', 2, LEVEL_WORDS[2]], ['normal', 3, LEVEL_WORDS[3]], ['low', 4, LEVEL_WORDS[4]]];
@@ -22,7 +32,9 @@ export function SmartAdd({record, today, onAdd, defaults = {}, inputRef, makePro
   const chosenLevel = PRIORITY_CHOICES.find(c => c[0] === priority)?.[1];
   const id = useId(), [text, setText] = useState(''), [keep, setKeep] = useState<number[]>([]), [error, setError] = useState('');
   const own = useRef<HTMLInputElement>(null), field = inputRef ?? own;
-  const parsed = useMemo(() => parseTaskLine(text, today, {keep}), [text, today, keep]);
+  const [reader, setReader] = useState<Parse | null>(() => parser);
+  useEffect(() => { if (!reader) loadParser().then(fn => setReader(() => fn), () => undefined); }, [reader]);
+  const parsed = useMemo(() => reader ? reader(text, today, {keep}) : plainLine(text), [reader, text, today, keep]);
   const existing = parsed.project ? projectByName(record, parsed.project) : undefined;
   const pieces: string[] = [];
   if (parsed.due) pieces.push(parsed.due < today ? `${formatDate(parsed.due, {weekday: true})} (overdue)` : parsed.due === today ? 'Today' : formatDate(parsed.due, {weekday: true, year: parsed.due.slice(0, 4) !== today.slice(0, 4)}));
@@ -34,6 +46,11 @@ export function SmartAdd({record, today, onAdd, defaults = {}, inputRef, makePro
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!text.trim()) { setError('Type a task first.'); setText(''); field.current?.focus(); return; }
+    if (reader) add(parsed);
+    else void loadParser().then(fn => { setReader(() => fn); add(fn(text, today, {keep})); }, () => add(plainLine(text)));
+  };
+  const add = (parsed: ParsedTask) => {
+    const existing = parsed.project ? projectByName(record, parsed.project) : undefined;
     if (!parsed.title) { setError('Add a few words for the task itself, not only a day or a tag.'); return; }
     let projectId = defaults.projectId;
     if (parsed.project) { const made = existing?.id ?? makeProject(parsed.project); if (!made) return; projectId = made; }

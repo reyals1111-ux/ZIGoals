@@ -40,7 +40,7 @@ import {QuickAdd} from '../quick-add';
 const HowItWorks=lazy(()=>import('./how-it-works').then(m=>({default:m.HowItWorks})));
 import {formatUnits,TESTNET} from '@zigoals/chain-config';
 import {AppIcon} from '../app-icon';
-import {ActivityFeed} from '../activity-feed';
+import {ActivityFeed} from '../activity-feed-lazy'; // CI14: the list is its own chunk (weights)
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {GoalSummaryCard} from '../goal-card';
 import {SceneArt} from '../scene-art';
@@ -50,7 +50,21 @@ import {useGoals} from '../goal-provider';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useAutoCheckIns} from '../habits/use-auto-checkins';
-import {TodayForYou,type ForYouParts} from '../for-you/today-for-you';
+import type {ForYouParts} from '../for-you/today-for-you';
+// CI14 (page weights; budgets are never raised): For you renders only once Today's stores have been read (after mount;
+// never on the server or the first paint), into its three fixed places, so its code is a chunk of its own, asked for as
+// this page loads; its stylesheets stay here, in the order it brought them, so the cascade is unchanged.
+import '../insights/insights.css';
+import '../health-goals/health-goals.css';
+import '../coach/guide.css';
+import '../weekly-review/weekly-review.css';
+import '../for-you/for-you.css';
+import '../earn/today-earn-card.css';
+import '../stories/today-stories-card.css';
+import '../skeleton/zg-skeleton.css';
+const loadForYou=()=>import('../for-you/today-for-you');
+if(typeof window!=='undefined')void loadForYou().catch(()=>undefined);
+const TodayForYou=lazy(()=>loadForYou().then(m=>({default:m.TodayForYou})));
 import {TodayFocus} from './today-focus';
 import {TodayLine} from './today-line';
 import {TodayChecklistCard} from '../checklist/today-checklist-card';
@@ -395,6 +409,6 @@ export function TodayDashboard(){
  </div>;
  return <HealthLinkContext.Provider value={healthLinkContext}><LayoutPage page="today" exit={false} unlocked={customize} onUnlockedChange={setCustomize} onReset={()=>apply(s=>resetDashboardPlacement(s),'Today is back to its default layout.')}>
   {layout({focus:null,main:null,end:null})}
-  {forYouOn&&<TodayForYou reviewOnToday={deviceCards.includes('review')} habits={habits.data} health={health.data} platform={platform.data} localGoals={legacy.goals} metadata={legacy.metadata?.goals??{}} quotes={market.quotes} now={now} today={today} financial={financial} showcase={showcase} render={parts=><>{focusPlace&&createPortal(parts.focus,focusPlace)}{mainPlace&&createPortal(parts.main,mainPlace)}{endPlace&&createPortal(parts.end,endPlace)}</>}/>}
+  {forYouOn&&<LoadBoundary quiet><Suspense fallback={null}><TodayForYou reviewOnToday={deviceCards.includes('review')} habits={habits.data} health={health.data} platform={platform.data} localGoals={legacy.goals} metadata={legacy.metadata?.goals??{}} quotes={market.quotes} now={now} today={today} financial={financial} showcase={showcase} render={parts=><>{focusPlace&&createPortal(parts.focus,focusPlace)}{mainPlace&&createPortal(parts.main,mainPlace)}{endPlace&&createPortal(parts.end,endPlace)}</>}/></Suspense></LoadBoundary>}
  </LayoutPage></HealthLinkContext.Provider>;
 }

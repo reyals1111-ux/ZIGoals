@@ -6,17 +6,9 @@ import type {ChainData, DefillamaData, MeasuredData, OroswapData, ValdoraData, V
  * Session AF (L1): the Earn page's reads, all same-origin (the app's own /api routes; the browser never talks to an LCD
  * or DefiLlama, ADR-028 H16). An answer that is not the live envelope is treated as unavailable, never shown.
  */
-export const EARN_FAMILIES = Object.freeze({
-  chain: {path: '/api/earn/chain?network=mainnet', pollMs: 120_000},
-  valdora: {path: '/api/earn/valdora', pollMs: 120_000},
-  oroswap: {path: '/api/earn/oroswap', pollMs: 120_000},
-  defillama: {path: '/api/earn/defillama', pollMs: 600_000},
-  validators: {path: '/api/chain/validators?network=zigchain-1', pollMs: 120_000},
-  // Session AF chunk 2: the vault products, and the measured staking figure (a 10,000-block window: read every 10 minutes).
-  vaults: {path: '/api/earn/vaults', pollMs: 300_000},
-  measured: {path: '/api/earn/measured', pollMs: 600_000},
-} as const);
-export type EarnFamily = keyof typeof EARN_FAMILIES;
+// CI14 (weights): the families and their cadence live in families.ts (the Earn page reads them before this reader loads).
+import {EARN_FAMILIES, type EarnFamily} from './families';
+export {EARN_FAMILIES, type EarnFamily};
 export type FamilyData = {chain: ChainData; valdora: ValdoraData; oroswap: OroswapData; defillama: DefillamaData; validators: ValidatorsAnswer; vaults: VaultsData; measured: MeasuredData};
 /** A good answer as the page shows it: its source (a name; the host that answered when the route names it), block and times. */
 export type LiveAnswer<T> = {source: {name: string; origin?: string}; height?: string; observedAt?: string; fetchedAt: string; stale: boolean; reason?: UnavailableReason; data: T};

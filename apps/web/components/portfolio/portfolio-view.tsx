@@ -31,8 +31,8 @@ import {PhoneFormSheet} from '../phone/phone-form-sheet';
 import {useImportUndo} from '../import/use-import-undo';
 import {ImportBanner} from '../import/import-banner'; // CI13: not the CSV steps
 import {ProgressSlot} from '../progress/slot';
-import {TransactionImportPanel} from '../import/transaction-import';
-import {UndoRefused, undoImport} from '../../lib/import/holdings';
+// CI14 (weights): the CSV import steps load when "Import" opens them; the undo of an import loads its engine then too.
+const TransactionImportPanel = lazy(() => import('../import/transaction-import').then(m => ({default: m.TransactionImportPanel})));
 import type {ImportRecord} from '../../lib/import/undo-schema';
 import './portfolio.css';
 import {useDefaultCurrency} from '../../lib/default-currency';
@@ -79,10 +79,11 @@ export function PortfolioView() {
   };
   const undoRecord = async (record: ImportRecord) => {
     setError(''); setMessage('');
+    const {UndoRefused, undoImport} = await import('../../lib/import/holdings');
     try { store.update(data => undoImport(record, {portfolio: data}).portfolio!); } catch (cause) { throw Error(cause instanceof UndoRefused ? cause.message : failure(cause, 'The import was not undone.')); }
     imports.forget(record.id); setMessage('Import undone.');
   };
-  const importPanel = importing && <TransactionImportPanel data={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={() => setImporting(false)} />;
+  const importPanel = importing && <LoadBoundary label="The CSV import"><Suspense fallback={<p className="fine" role="status">Opening the import…</p>}><TransactionImportPanel data={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={() => setImporting(false)} /></Suspense></LoadBoundary>;
   const noPrices = live && selected!.coins.length > 0 && !market.loading && selected!.coins.every(c => !market.of(c).price);
   return <div className="dashboard portfolio-page">
     <section className="portfolio-hero header-art-host" aria-labelledby="portfolio-title">

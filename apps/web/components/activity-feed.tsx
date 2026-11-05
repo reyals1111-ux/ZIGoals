@@ -47,18 +47,8 @@ import { useLocalToday } from "./use-local-today";
 import {REMOVAL_UNDO_MS} from '../lib/goals/removal-undo'; // CI13: the constant alone
 import {SHOWCASE_ROW_SOURCE, isShowcaseRow, showcaseRowIds} from "./activity-showcase";
 import {showcaseDay} from "../lib/showcase-storage";
+import {emptyFor} from "./activity/empty-for";
 const deviceDay = (iso: string) => zonedDay(new Date(iso), checklistZone());
-/** Session AL (DV-117, P-DV-80): each filter's empty view says what belongs there and where to start it. */
-function emptyFor(category: string): {title: string; body: string; href?: string; link?: string} {
-  switch (category) {
-    case "GOAL": return {title: "No goal steps yet.", body: "Creating a goal, funding it and ticking its milestones show here.", href: "/app/goals", link: "Go to Goals →"};
-    case "WEALTH": return {title: "No wealth records yet.", body: "Assets you add, balances and payments you enter show here.", href: "/app/wealth", link: "Go to Wealth →"};
-    case "HABIT": return {title: "No habit check-ins yet.", body: "Each day you check in a habit shows here.", href: "/app/habits", link: "Log one on Habits →"};
-    case "HEALTH": return {title: "No health logs yet.", body: "Water, weight and workouts you log show here.", href: "/app/health", link: "Log one on Health →"};
-    case "ZIGI": return {title: "Nothing from ZIGi yet.", body: "What you confirm from a ZIGi card shows here."};
-    default: return {title: "Your next step belongs here.", body: "Goal actions, habit check-ins and health logs will build your story."};
-  }
-}
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts, report = false }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void; /** The Activity page's report card above the list (GAP-124). */ report?: boolean }) {
   const showcase = useShowcase();
   // CI1 (product-visual, React #418): the report's day is the server's in the hydrated HTML, the browser's right after mount.

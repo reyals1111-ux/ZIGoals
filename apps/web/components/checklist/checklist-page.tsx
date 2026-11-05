@@ -11,11 +11,20 @@ import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {pathBefore} from '../../lib/checklist/return-path';
 import {primeCelebrationVideo} from './celebration-clip';
 import {useChecklist} from './use-checklist';
-import {PathView} from './path-view';
+// CI14 (weights): the Path's stylesheets, in the order its code brought them, stay with the page (the cascade is unchanged);
+// its code (path-view.tsx, the path and ZIGi on it) is a chunk of its own, asked for as this page loads (below).
+import '../zigi/zigi.css';
+import '../orbit-path/orbit-node.css';
+import '../orbit-path/flow-line.css';
+import '../orbit-path/orbit-planet.css';
+import '../path/path.css';
+import '../path/path-orbit.css';
+import '../habits/habits-aa.css';
 import {ChecklistSky} from './checklist-sky';
 import {CHECKLIST_UNREADABLE_MESSAGE} from './use-checklist-record';
 import {FlameMark} from './checklist-marks';
 import {LoadBoundary} from '../load-boundary';
+import {ChunkFailed, chunk} from '../use-chunk';
 import {escapeTop, useEscapeLayer} from './escape-layers';
 import './checklist.css';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
@@ -44,6 +53,13 @@ const HistoryHeatmap = lazy(() => import('./history-heatmap').then(m => ({defaul
 const DayCelebration = lazy(() => import('./day-celebration'));
 // Session AG Polish 2 (owner Part 5): the quick-add form, its own chunk too.
 const OrbitQuickAdd = lazy(() => import('./orbit-quick-add').then(m => ({default: m.OrbitQuickAdd})));
+// CI14 (page weights; budgets are never raised): the Path renders only once the Checklist has been read, after mount
+// (the server and the first paint show the loading dots), so its code is a chunk of its own, asked for as this page loads
+// (components/use-chunk.ts). Until it is here the page counts as still loading: the same dots, no data-loaded. The first
+// paint is identical, and the path, ZIGi on it included, looks the same.
+const usePathView = chunk(() => import('./path-view'));
+/** The path's place while the Checklist is read (and while the Path's chunk arrives): six dots that wait. */
+const PathLoading = () => <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>;
 
 
 /** Round 3: below 1180 px the Checklist keeps a bar of its own at the foot (the timers' button, the toast, "Jump to next"),
@@ -81,7 +97,9 @@ function cameFromTheApp(): boolean {
  * Finishing the day plays a full-screen celebration once a day. The address stays /app/checklist.
  */
 export function ChecklistPage() {
-  const state = useChecklist({commands: true}), {summary, streak, prefs, loaded} = state;
+  const path = usePathView(), PathView = path.mod?.PathView;
+  // CI14: the page is loaded once its records are read and the Path's code is here (use-chunk.ts).
+  const state = useChecklist({commands: true}), {summary, streak, prefs} = state, loaded = state.loaded && !!PathView;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
   const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | 'quick' | null>(null), [arrive, setArrive] = useState<string | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
   const narrow = useMedia(NARROW), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
@@ -218,10 +236,10 @@ export function ChecklistPage() {
 
     <div className="checklist-shell">
       <section className="checklist-stage" aria-labelledby="checklist-title" aria-busy={!loaded || undefined}>
-        {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
+        {path.failed ? <LoadBoundary label="Your path"><ChunkFailed what="The path"/></LoadBoundary> : !loaded ? <PathLoading/>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <LoadBoundary><Suspense fallback={<p className="fine" role="status">Loading the list…</p>}><ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/></Suspense></LoadBoundary> : <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/>}
+          : prefs.view === 'list' ? <LoadBoundary><Suspense fallback={<p className="fine" role="status">Loading the list…</p>}><ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/></Suspense></LoadBoundary> : PathView ? <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/> : null}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">

@@ -39,6 +39,12 @@ import './tasks.css';
 const PomodoroPanel = lazy(() => import('../focus/pomodoro-panel'));
 const TasksShortcuts = lazy(() => import('./tasks-shortcuts'));
 const TasksIo = lazy(() => import('./tasks-io'));
+// CI14 (weights): saving a filter, the bulk bar and the salvage view load as one chunk, asked for as this page loads.
+const loadExtras = () => import('./tasks-page-extras');
+if (typeof window !== 'undefined') void loadExtras().catch(() => undefined);
+const FilterSave = lazy(() => loadExtras().then(m => ({default: m.FilterSave})));
+const BulkBar = lazy(() => loadExtras().then(m => ({default: m.BulkBar})));
+const Salvage = lazy(() => loadExtras().then(m => ({default: m.Salvage})));
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
 /** Session AL (P-LS-40, LS-030): a long group shows its first 50 rows; the rest one tap away. */
 const SHOWN_PER_GROUP = 50;
@@ -298,7 +304,7 @@ export function TasksPage() {
       art={<OrbitArt glyph={TasksGlyph} tone="goals" spin={-26} />} />
     {!tasks.loaded ? <ZgSkeleton label="Opening your tasks…" className="tasks-skeleton" block lines={3} /> : <>
       {showcase && <p className="fine tasks-showcase" role="note">Showcase · fictional. These example tasks are not yours.</p>}
-      {tasks.unreadable && <Salvage salvage={salvage} onKeep={() => { if (salvage) { keepSalvaged(salvage.readable); showStatus(`Kept ${plural(salvage.readable.tasks.length, 'task')} that could be read.`); } }} />}
+      {tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><Salvage salvage={salvage} onKeep={() => { if (salvage) { keepSalvaged(salvage.readable); showStatus(`Kept ${plural(salvage.readable.tasks.length, 'task')} that could be read.`); } }} /></Suspense></LoadBoundary>}
       {reminders.length > 0 && <section className="panel tasks-reminders" aria-label="Reminders">
         <h2>Reminders</h2>
         <ul>{reminders.map(r => <li key={r.key}><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}
@@ -316,11 +322,11 @@ export function TasksPage() {
             <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
             {project && <ProjectTools project={project} board={board} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
             <label className="field tasks-filter"><span>Filter</span><input ref={filterField} type="search" value={query} placeholder="#Home @calls p1 today" aria-describedby="tasks-filter-help" onChange={e => setQuery(e.target.value)} /></label>
-            {query.trim() && <FilterSave onSave={name => list.change(r => saveFilter(r, name, query), `Saved the filter “${name}”.`)} />}
+            {query.trim() && <LoadBoundary quiet><Suspense fallback={null}><FilterSave onSave={name => list.change(r => saveFilter(r, name, query), `Saved the filter “${name}”.`)} /></Suspense></LoadBoundary>}
             <p id="tasks-filter-help" className="sr-only">Words match titles and notes. Also #project, @label, p1 to p4, today, tomorrow, overdue, no date, due:2026-12-05, recurring; join with & or |; ! before a word leaves it out.</p>
           </header>
           {view.kind !== 'completed' && view.kind !== 'filter' && <SmartAdd record={record} today={today} onAdd={addFromLine} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
-          {selected.size > 0 && <BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : addLocalDays(today, 1))} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => setSelected(new Set())} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} />}
+          {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : addLocalDays(today, 1))} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => setSelected(new Set())} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
           <TaskStatusLine error={list.error} />
           {!tasks.unreadable && body}
           {empty && <EmptyState title={query ? 'Nothing matches' : !record.tasks.length ? 'Your list starts here' : view.kind === 'today' ? 'Nothing due today' : 'Nothing here'} level={2} art="orbit">
@@ -393,33 +399,4 @@ function ProjectTools({project, board, onBoard, onEdit, onRemove}: {project: Non
     <button type="button" className="text-link" onClick={() => onEdit({archived: !project.archived})}>{project.archived ? 'Bring back from the archive' : 'Archive'}</button>
     <button type="button" className="text-link" onClick={onRemove}>Remove project</button>
   </div>;
-}
-function FilterSave({onSave}: {onSave: (name: string) => boolean}) {
-  const [name, setName] = useState('');
-  return <form className="tasks-inline-form" noValidate onSubmit={e => { e.preventDefault(); if (name.trim() && onSave(name.trim())) setName(''); }}><label className="field"><span>Save this filter as</span><input value={name} maxLength={60} placeholder="Calls today" onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet" disabled={!name.trim()}>Save filter</button></form>;
-}
-function BulkBar({count, total, projects, onDone, onLevel, onDue, onMove, onRemove, onClear, onAll}: {count: number; total: number; projects: NonNullable<Tasks['projects']>; onDone: () => void; onLevel: (l: TaskLevel) => void; onDue: (d: 'today' | 'tomorrow') => void; onMove: (p: string | null) => void; onRemove: () => void; onClear: () => void; onAll: () => void}) {
-  return <div className="tasks-bulk" role="toolbar" aria-label={`${count} selected`}>
-    <strong>{formatNumber(count)} selected</strong>
-    {count < total && <button type="button" className="text-link" onClick={onAll}>Select all {formatNumber(total)}</button>}
-    <button type="button" className="secondary" onClick={onDone}>Done</button>
-    <label className="field"><span>Priority</span><select value="" onChange={e => { if (e.target.value) onLevel(Number(e.target.value) as TaskLevel); }}><option value="">Set…</option>{([1, 2, 3, 4] as const).map(l => <option key={l} value={l}>P{l}</option>)}</select></label>
-    <button type="button" className="quiet" onClick={() => onDue('today')}>Due today</button>
-    <button type="button" className="quiet" onClick={() => onDue('tomorrow')}>Due tomorrow</button>
-    <label className="field"><span>Move to</span><select value="" onChange={e => { if (e.target.value) onMove(e.target.value === 'inbox' ? null : e.target.value); }}><option value="">Choose…</option><option value="inbox">Inbox</option>{projects.filter(p => !p.archived).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-    <button type="button" className="quiet" onClick={onRemove}>Remove</button>
-    <button type="button" className="text-link" onClick={onClear}>Clear selection</button>
-  </div>;
-}
-function Salvage({salvage, onKeep}: {salvage: ReturnType<typeof salvageTasks>; onKeep: () => void}) {
-  const save = () => {
-    if (!salvage) return;
-    const url = URL.createObjectURL(new Blob([salvage.raw], {type: 'application/json'})), a = document.createElement('a');
-    a.href = url; a.download = 'zigoals-tasks-unreadable-copy.json'; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
-  };
-  return <section className="notice tasks-salvage" role="alert">
-    <h2>We couldn’t read your tasks on this device</h2>
-    <p>Nothing has been written over them. {salvage && salvage.total ? `${plural(salvage.readable.tasks.length, 'task')} of ${formatNumber(salvage.total)} can still be read${salvage.overCap ? ` (the list keeps ${MAX_TASKS}; open ones first)` : ''}${salvage.dropped ? `; ${plural(salvage.dropped, 'entry', 'entries')} cannot` : ''}.` : 'The saved data is damaged.'} Save a copy first, then keep what can be read to go on adding tasks.</p>
-    <p className="tasks-io-actions"><button type="button" className="secondary" onClick={save} disabled={!salvage}>Save a copy of the data</button>{salvage && <button type="button" className="quiet" onClick={onKeep}>{salvage.readable.tasks.length ? `Keep the ${formatNumber(salvage.readable.tasks.length)} readable tasks` : 'Start an empty list'}</button>}</p>
-  </section>;
 }
