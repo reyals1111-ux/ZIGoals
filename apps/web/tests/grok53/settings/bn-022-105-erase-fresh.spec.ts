@@ -17,7 +17,10 @@ test('BN-022/BN-023/BN-105: Erase says what it holds, arms as a warning, and ope
   await expect(button).toBeDisabled();
   await erase.getByLabel('Type ERASE to confirm').fill('ERASE');
   await expect(button).toBeEnabled();
-  expect(await button.evaluate(e => getComputedStyle(e).backgroundColor)).toBe('rgb(179, 38, 63)');
+  // P14-A (run 2): read on the first frame after arming, the colour was mid-way through the buttons' own background
+  // transition (rgba(150, 31, 52, .706)). The armed warning colour is the requirement (BN-023), so wait for it to settle.
+  await expect.poll(() => button.evaluate(e => getComputedStyle(e).backgroundColor), {timeout: 3_000}).toBe('rgb(179, 38, 63)');
+  expect(await button.evaluate(e => getComputedStyle(e).opacity)).toBe('1');
   await button.click();
   await expect(erase.getByRole('status')).toContainText(/^Erased \d+ records and \d+ stores from this browser\./, {timeout: 20_000});
   await erase.getByRole('button', {name: 'Open ZIGoals fresh'}).click();

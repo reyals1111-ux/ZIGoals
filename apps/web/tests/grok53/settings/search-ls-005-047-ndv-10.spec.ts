@@ -43,8 +43,20 @@ test('LS-047: operators — "p1 & today", "#Home", "@bills" — find tasks as on
 });
 
 test('PR-102/PR-112: an Ecosystem project is found by name', async ({page}) => {
+  // P14-A (run 2): consumer first (AK X1). On a fresh device the Ecosystem page is off, and Search offers no project of a
+  // page the person has not switched on (components/search/search-palette.tsx `pageShown`). So the person first switches
+  // Ecosystem on in Settings → Your pages & buttons, as a person does; before that, no Ecosystem group shows.
   await page.goto('/app'); await hydrated(page);
-  const box = await openSearch(page);
+  let box = await openSearch(page);
+  await box.fill('valdora');
+  await expect(palette(page).getByRole('group', {name: 'Ecosystem projects'})).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await page.goto('/app/settings'); await hydrated(page);
+  const ecosystem = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Ecosystem', exact: true});
+  await ecosystem.click(); // a controlled switch: it shows the saved choice once saved
+  await expect(ecosystem).toBeChecked();
+  await page.goto('/app'); await hydrated(page);
+  box = await openSearch(page);
   await box.fill('valdora');
   await expect(palette(page).getByRole('group', {name: 'Ecosystem projects'}).getByRole('option', {name: /Valdora/})).toBeVisible();
 });

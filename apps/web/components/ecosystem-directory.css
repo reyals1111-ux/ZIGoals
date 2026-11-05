@@ -26,6 +26,9 @@
    covers the whole header (logo and category too), the options menu stays above it. Several cards can be open. */
 .ecosystem-project header{position:relative}
 .ecosystem-project header .card-options{position:relative;z-index:1}
+/* Session AL (P14-A, BN-097 run 2): this rule's higher specificity kept an OPEN menu at z-index 1, under the earlier
+   "added to Today" note (z-index 6), which then covered the menu's own items: an open menu rises above it, as elsewhere. */
+.ecosystem-project header .card-options:has(> .card-options-panel){z-index:40}
 .ecosystem-project h2{margin:0}
 .ecosystem-project .ecosystem-toggle{display:inline-flex;align-items:center;flex-wrap:wrap;gap:.35rem .8rem;min-height:44px;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer}
 .ecosystem-toggle::after{content:'';position:absolute;inset:-.4rem;border-radius:16px}

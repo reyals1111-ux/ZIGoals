@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {lazy, Suspense, useMemo} from 'react';
+import {lazy, memo, Suspense, useMemo} from 'react';
 import {aprAtCommission} from '../../lib/earn/apr';
 import {fixed, rounded} from '../../lib/earn/decimal';
 import {pct, pctShort} from '../../lib/earn/format';
@@ -35,6 +35,17 @@ import './earn.css';
 // Session AK (F4): staking clarity (claimable rewards, the unbonding calendar, rewards claimed here, the CSV) loads only
 // when a wallet is linked or connected, from the reads this page already makes.
 const StakingClarity = lazy(() => import('../zigchain-eco/staking-clarity'));
+/**
+ * Session AL (D9: Earn's first load, ≈ 3.9 s TBT on the phone profile; the page's loading model is unchanged). Seven live
+ * answers and the wallet reads arrive one by one while the page loads, and each one re-rendered every section of this
+ * long page. The sections are pure functions of their own props (the live answers, the minute clock, the reads), so
+ * each is memoised: an arrival now re-renders only the sections that show that answer. Same elements, same order, same
+ * output; only the repeated work goes.
+ */
+const Summary = memo(LiveSummary), StartHere = memo(StartHereSection), Native = memo(NativeSection), Valdora = memo(ValdoraSection);
+const Vaults = memo(VaultsSection), Oroswap = memo(OroswapSection), Nawa = memo(NawaSection), Defa = memo(DefaSection), Permapod = memo(PermapodSection);
+const Zignaly = memo(ZignalySection), Governance = memo(GovernanceSection), GoalVaults = memo(GoalVaultsSection), Stablecoins = memo(StablecoinsSection);
+const Validators = memo(ValidatorsSection), Academy = memo(AcademySection), Safety = memo(SafetyBlock), AppsStrip = memo(EarnAppsStrip);
 
 /**
  * Session AF (L1, ADR-028 H5, H16, H17, H84): the Earn hub, /app/earn. Every way to earn on ZIGChain that is live today,
@@ -67,26 +78,26 @@ export function EarnView() {
         actions={<><a className="primary" href="#start-here">Start here</a> <a className="secondary" href="#safety">Safety first</a></>}
         art={<OrbitArt glyph={EarnGlyph} tone="wealth" spin={-24}/>}/>
       <p className="earn-hero-note fine">Options are listed in the order the network is built, not by how much they pay. Nothing here is advice or a promise of returns.</p>
-      <EarnAppsStrip/>
+      <AppsStrip/>
       <EarnChips chips={chips}/>
       <div className="earn-sections">
         <EarnJump/>
-        <SectionBoundary id="summary" title="Your Earn summary"><LiveSummary wallets={wallets} reads={reads}/></SectionBoundary>
+        <SectionBoundary id="summary" title="Your Earn summary"><Summary wallets={wallets} reads={reads}/></SectionBoundary>
         {wallets.length > 0 && <SectionBoundary id="staking-clarity" title="Rewards, unstaking and history"><Suspense fallback={null}><StakingClarity now={now} reads={reads.flatMap(r => r.state.phase === 'ok' ? [{address: r.address, label: r.label, positions: r.state.positions}] : [])}/></Suspense></SectionBoundary>}
-        <SectionBoundary id="start-here" title="Start here"><StartHereSection facts={facts} live={live}/></SectionBoundary>
-        <SectionBoundary id="native-staking" title="Stake ZIG with a validator"><NativeSection chain={chain} validators={validators} measured={measured} now={now} reads={reads}/></SectionBoundary>
-        <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><ValdoraSection valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary>
-        <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><VaultsSection vaults={vaults} valdora={valdora} now={now} shares={shares}/></SectionBoundary>
-        <SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><OroswapSection oroswap={oroswap} llama={llama} now={now} shares={shares}/></SectionBoundary>
-        <SectionBoundary id="nawa" title="Shariah-compliant vaults: Nawa"><NawaSection vaults={vaults} llama={llama} now={now}/></SectionBoundary>
-        <SectionBoundary id="defa" title="Invoice finance pools: DeFa"><DefaSection vaults={vaults} llama={llama} now={now}/></SectionBoundary>
-        <SectionBoundary id="permapod" title="Borrow and lend: Permapod"><PermapodSection llama={llama} now={now}/></SectionBoundary>
-        <SectionBoundary id="zignaly" title="Zignaly is closing: how to withdraw"><ZignalySection now={now}/></SectionBoundary>
-        <SectionBoundary id="governance" title="Have a say: governance"><GovernanceSection/></SectionBoundary>
-        <SectionBoundary id="goal-vaults" title="Link stake you already hold to a goal"><GoalVaultsSection now={now}/></SectionBoundary>
-        <SectionBoundary id="stablecoins" title="Stablecoins on ZIGChain: what exists"><StablecoinsSection oroswap={oroswap} vaults={vaults} now={now}/></SectionBoundary>
-        <SectionBoundary id="validators" title="Choose a validator from facts"><ValidatorsSection validators={validators} now={now}/></SectionBoundary>
-        <SectionBoundary id="academy" title="Earn Academy"><AcademySection/></SectionBoundary>
+        <SectionBoundary id="start-here" title="Start here"><StartHere facts={facts} live={live}/></SectionBoundary>
+        <SectionBoundary id="native-staking" title="Stake ZIG with a validator"><Native chain={chain} validators={validators} measured={measured} now={now} reads={reads}/></SectionBoundary>
+        <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><Valdora valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary>
+        <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><Vaults vaults={vaults} valdora={valdora} now={now} shares={shares}/></SectionBoundary>
+        <SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><Oroswap oroswap={oroswap} llama={llama} now={now} shares={shares}/></SectionBoundary>
+        <SectionBoundary id="nawa" title="Shariah-compliant vaults: Nawa"><Nawa vaults={vaults} llama={llama} now={now}/></SectionBoundary>
+        <SectionBoundary id="defa" title="Invoice finance pools: DeFa"><Defa vaults={vaults} llama={llama} now={now}/></SectionBoundary>
+        <SectionBoundary id="permapod" title="Borrow and lend: Permapod"><Permapod llama={llama} now={now}/></SectionBoundary>
+        <SectionBoundary id="zignaly" title="Zignaly is closing: how to withdraw"><Zignaly now={now}/></SectionBoundary>
+        <SectionBoundary id="governance" title="Have a say: governance"><Governance/></SectionBoundary>
+        <SectionBoundary id="goal-vaults" title="Link stake you already hold to a goal"><GoalVaults now={now}/></SectionBoundary>
+        <SectionBoundary id="stablecoins" title="Stablecoins on ZIGChain: what exists"><Stablecoins oroswap={oroswap} vaults={vaults} now={now}/></SectionBoundary>
+        <SectionBoundary id="validators" title="Choose a validator from facts"><Validators validators={validators} now={now}/></SectionBoundary>
+        <SectionBoundary id="academy" title="Earn Academy"><Academy/></SectionBoundary>
         <section id="calculator" className="earn-calculator panel" aria-labelledby="calculator-title">
           <SectionHeading id="calculator-title" eyebrow="Planning, not a promise" title="See what a rate could do over time"
             lede="Open the compound interest calculator with today’s native staking rate filled in, as an illustration. Rates move; nothing here is guaranteed."/>
@@ -98,7 +109,7 @@ export function EarnView() {
           </div>
             : <p className="earn-figure" data-live-figure="calculator" data-state={chain.phase === 'loading' ? 'loading' : 'unavailable'} data-reason={chain.phase === 'unavailable' ? chain.reason : undefined}>{chain.phase === 'loading' ? 'Reading today’s rate…' : <>Today’s rate is <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'}/>, so the calculator opens with your own numbers: <Link className="text-link" href="/app/wealth/calculator">Open the calculator</Link></>}</p>}
         </section>
-        <SafetyBlock/>
+        <Safety/>
       </div>
     </div>
   </GuideProvider>;

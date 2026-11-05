@@ -6,7 +6,9 @@ import {directoryStatusOf, type DirectoryStatusKind} from './directory-status';
  */
 export const STATUS_FILTERS = [['any', 'Any status'], ['live', 'Live'], ['ending', 'Closing or paused'], ['other', 'Not live yet or listed']] as const;
 export type StatusFilter = typeof STATUS_FILTERS[number][0];
-export const SORTS = [['directory', 'Directory order'], ['name', 'Name, A to Z'], ['status', 'Status: live first']] as const;
+// Session AL (P14-A, C-BN-18 run 2): no sort option starts with "Status", so the Sort list never reads as a second Status
+// control (a label that wraps its select carries the options' words too).
+export const SORTS = [['directory', 'Directory order'], ['name', 'Name, A to Z'], ['status', 'Live projects first']] as const;
 export type DirectorySort = typeof SORTS[number][0];
 const GROUP: Readonly<Record<DirectoryStatusKind, Exclude<StatusFilter, 'any'>>> = {live: 'live', tool: 'live', closing: 'ending', paused: 'ending', 'winding-down': 'ending', 'not-live': 'other', partner: 'other', private: 'other'};
 const RANK: Readonly<Record<DirectoryStatusKind, number>> = {live: 0, tool: 1, closing: 2, 'winding-down': 3, paused: 4, private: 5, 'not-live': 6, partner: 7};

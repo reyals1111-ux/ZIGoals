@@ -1,5 +1,5 @@
 'use client';
-import {Suspense, lazy, useCallback, useEffect, useState} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
 import {ACADEMY_LESSON_IDS} from '../../lib/earn/academy-ids';
 import {EARN_ACADEMY, type EarnAcademy} from '../../lib/earn/records';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
@@ -17,11 +17,21 @@ const TITLES: Record<string, string> = {staking: 'Staking', 'apr-apy': 'APR and 
 export function AcademySection() {
   const record = useDeviceRecord(EARN_ACADEMY);
   const [ready, setReady] = useState(false), [error, setError] = useState('');
-  useEffect(() => { queueMicrotask(() => setReady(true)); }, []);
+  const section = useRef<HTMLElement>(null);
+  // Session AL (D9): the mini path (its chunk and the path engine's measuring, which lays out this far section) loads when
+  // the Academy comes within about a screen of view (a scroll, a chip, a #academy link), not during the page's first load.
+  // Until then the same eight lessons show as the plain list below; a browser without IntersectionObserver loads it at once.
+  useEffect(() => {
+    const node = section.current;
+    if (!node || typeof IntersectionObserver !== 'function') { queueMicrotask(() => setReady(true)); return; }
+    const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) { setReady(true); observer.disconnect(); } }, {rootMargin: '900px 0px'});
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   const data: EarnAcademy = record.unreadable ? {version: 1} : record.data;
   const passed = ACADEMY_LESSON_IDS.filter(id => data.lessons?.[id]?.passedAt).length;
   const update = useCallback((change: (current: EarnAcademy) => EarnAcademy) => { try { record.update(change); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } }, [record]);
-  return <section id="academy" className="earn-academy panel" aria-labelledby="academy-title" data-passed={passed}>
+  return <section ref={section} id="academy" className="earn-academy panel" aria-labelledby="academy-title" data-passed={passed}>
     <SectionHeading id="academy-title" eyebrow="Earn Academy · five minutes a lesson" title="Learn it before you earn it"
       lede="Eight short lessons in plain words, each with three questions. Press a dot to open a lesson. Your answers stay on this device."/>
     <p className="earn-start-progress" aria-live="polite"><b>{passed} of 8 lessons passed</b></p>

@@ -166,7 +166,9 @@ test.describe('Earn', () => {
     // Session AF Gate C (design critique, copy; moved, as strict): the same official source, by its plain name.
     await expect(calc.locator('.earn-source').first()).toContainText('ZIGChain’s official mainnet server');
     await expect(calc.locator('.earn-source').first()).toContainText(/ · as of /);
-    // 15. The Academy's end chest is named like Start here's.
+    // 15. The Academy's end chest is named like Start here's. Session AL (D9, deliberate): the Academy path loads when it
+    // comes near the screen, so bring it into view first.
+    await page.locator('#academy').scrollIntoViewIfNeeded();
     await expect(page.locator('#start-here .path-chest[data-milestone="start-complete"]')).toContainText('Start here, complete');
     await expect(page.locator('#academy .path-chest[data-milestone="academy-done"]')).toContainText(/Academy, complete|Every lesson passed/);
     await expect(page.locator('#academy .path-chest[data-milestone="academy-done"]')).not.toContainText('Earn Academy');
