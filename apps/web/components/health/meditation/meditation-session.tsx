@@ -1,7 +1,7 @@
 'use client';
 import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {addSession, DEFAULT_BELLS, newSessionId} from '../../../lib/meditation/engine';
-import {tooShortText, tooShortToSave} from '../../../lib/health-timer-rules';
+import {timerRuleText, tooShortText, tooShortToSave} from '../../../lib/health-timer-rules';
 import {heartSnapshot, heartSummary, SERVER_HEART, subscribeHeart} from '../../../lib/bluetooth/heart-store';
 import {audioContext, audioReady, strike, type Strike} from '../../../lib/meditation/bells';
 import {bellTimes, clockText, elapsedMs, endedSession, isDone, isPaused, pauseRun, remainingMs, resumeRun, sessionFrom, type Run} from '../../../lib/meditation/timer';
@@ -108,6 +108,8 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
     <p className="meditation-left">{clockText(left)} left of {minutesText(run.plannedSec / 60)}</p>
     {!sound && bells.sound !== 'silent' && <p className="fine">The bells are quiet until you tap “Turn on the bells” (browsers allow sound only after a tap). <button type="button" className="text-link" onClick={() => void turnSoundOn()}>Turn on the bells</button></p>}
     {keepsScreenOn && !paused && <p className="fine">The screen stays on during the session.</p>}
+    {/* Session AL fourth pass (PR-018): the one timer rule, said where a session is stopped, as on the fasting card */}
+    <p className="fine">{timerRuleText}</p>
     {error && <p role="alert">{error}</p>}
     <div className="actions meditation-controls">
       {paused ? <button type="button" className="primary" onClick={() => write(r => resumeRun(r, new Date()))}>Resume</button> : <button type="button" className="secondary" onClick={() => write(r => pauseRun(r, new Date()))}>Pause</button>}

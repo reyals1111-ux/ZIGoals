@@ -25,6 +25,18 @@ import {OnDemandFold} from '../../insights/compare/on-demand-fold';
 import {sourceName} from '../../../lib/health-sources';
 import {formatClock, formatDate, formatTime} from '../../../lib/visual-format';
 import {plainErrorMessage} from '../../../lib/plain-error';
+import {energyCurve} from '../../../lib/energy-curve/curve';
+/** The energy fold's face: its name, then the focus window and tonight's bedtime it estimates (C-MO-23), or what it needs. */
+function energyFace(sleep: Parameters<typeof energyCurve>[0], today: string): string {
+  const curve = energyCurve(sleep, today), at = (m: number) => formatClock(clockFromMidnight(Math.round(m)));
+  return `Your energy today: an estimate from your sleep · ${curve ? `good focus ${at(curve.focus.from)}–${at(curve.focus.to)} · bedtime tonight ${at(curve.bedtime.from)}–${at(curve.bedtime.to)}` : 'log a night to see it'}`;
+}
+
+/** Session AL fourth pass (C-X3-13): the minutes under the goal on the short nights of the last 7 days, nothing netted. */
+function shortfall(sleep: Parameters<typeof energyCurve>[0], today: string): number {
+  const goal = sleep.goal?.minutes;
+  return goal ? dailySeries(sleep, today, 7).reduce((t, p) => t + (p.asleep !== null && p.asleep < goal ? goal - p.asleep : 0), 0) : 0;
+}
 
 const EnergyCurve = lazy(() => import('../../sleep/energy-curve'));
 
@@ -75,7 +87,7 @@ export default function SleepView() {
         <div><dt>In bed, on average</dt><dd>{formatMinutes(week.inBed)}</dd></div>
         <div><dt>Bedtime · wake time</dt><dd>{formatClock(clockFromNoon(week.bed))} · {formatClock(clockFromMidnight(week.wake))}</dd><dd className="dd-note"><small>averages</small></dd></div>
         <div><dt>Your quality rating</dt><dd>{week.quality !== null ? `${week.quality} of 5` : 'Not rated'}</dd></div>
-        <div className="sleep-stat-wide"><dt>Sleep debt</dt><dd>{debt ? debt.minutes > 0 ? formatMinutes(debt.minutes) : `${formatMinutes(-debt.minutes)} ahead` : 'Set a goal'}</dd><dd className="dd-note"><small>{debt ? `Your goal (${formatMinutes(debt.goal)}) minus time asleep, added up over the ${debt.nights} ${debt.nights === 1 ? 'night' : 'nights'} you logged in the last 7 days: a long night makes up for a short one. Naps count toward the day they end on.` : 'Needs your own sleep goal (below).'}</small></dd></div>
+        <div className="sleep-stat-wide"><dt>Sleep debt</dt><dd>{debt ? debt.minutes > 0 ? formatMinutes(debt.minutes) : `${formatMinutes(-debt.minutes)} ahead` : 'Set a goal'}</dd><dd className="dd-note"><small>{debt ? `Your goal (${formatMinutes(debt.goal)}) minus time asleep, added up over the ${debt.nights} ${debt.nights === 1 ? 'night' : 'nights'} you logged in the last 7 days: a long night makes up for a short one. Naps count toward the day they end on.` : 'Needs your own sleep goal (below).'}</small></dd>{/* Session AL fourth pass (C-X3-13): the same nights counted the other way, short nights only (a long night does not cancel one) */}{debt && <dd className="dd-note"><small>Short nights only: {formatMinutes(shortfall(sleep, today))} under your goal (long nights not netted against them).</small></dd>}</div>
         {/* Session AJ (item 26): the 14-night balance against the person's own goal, in kind words. */}
         <div className="sleep-stat-wide"><dt>Sleep balance, last 14 days</dt><dd>{balance ? balanceWords(balance, formatMinutes) : sleep.goal ? 'Not yet' : 'Set a goal'}</dd><dd className="dd-note"><small>{balance ? `Your time asleep against your goal (${formatMinutes(balance.goal)}), on average over the ${balance.nights} nights you logged. Every night is a fresh start.` : sleep.goal ? `Needs at least ${BALANCE_MIN_NIGHTS} logged nights in the last 14 days.` : 'Needs your own sleep goal (below).'}</small></dd></div>
         <div className="sleep-stat-wide"><dt>Bedtime consistency</dt><dd>{steady ? `± ${formatMinutes(steady.minutes)}` : 'Not yet'}</dd><dd className="dd-note"><small>{steady ? `How much your bedtimes vary: the standard deviation of ${steady.nights} bedtimes in the last 14 days.` : 'Needs at least 4 logged nights in 14 days.'}</small></dd></div>
@@ -84,7 +96,7 @@ export default function SleepView() {
       </dl> : <p>No night logged in the last 7 days yet.</p>}
     </section>
     <SleepScoreCard sleep={sleep} today={today}/>
-    <OnDemandFold className="energy-curve-fold" summary="Your energy today: an estimate from your sleep" label="The energy curve"><EnergyCurve sleep={sleep} today={today} now={store.now} zone={store.zone}/></OnDemandFold>
+    {/* Session AL fourth pass (MO-022): the fold says its answer on its face (the focus window), not only its name. */}<OnDemandFold className="energy-curve-fold" summary={energyFace(sleep, today)} label="The energy curve"><EnergyCurve sleep={sleep} today={today} now={store.now} zone={store.zone}/></OnDemandFold>
     <section className="panel sleep-charts" aria-labelledby="sleep-charts-title">
       <div className="sleep-charts-head"><h2 id="sleep-charts-title">Over time</h2>
         <div className="sleep-range" role="group" aria-label="Range">{([7, 30] as const).map(r => <button key={r} type="button" className="secondary" aria-pressed={range === r} onClick={() => setRange(r)}>{r} days</button>)}</div>

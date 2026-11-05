@@ -8,6 +8,9 @@ import {additionalNutrients, formatNutrient, type HealthData} from '../../lib/he
 import {readFormNumber} from '../../lib/decimal-input';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {VitaminRows} from './vitamin-rows';
+import {HEALTH_VITAMINS} from '../../lib/health-vitamins/schema';
+import {EXTRA_SCALE, NUTRIENT_EXTRAS_RECORD} from '../../lib/health-vitamins/extras';
+import {nutrientDay, type ReportContext} from '../../lib/health-aa/nutrient-report';
 import './health-aa.css';
 // Session AK (task 4.4): the full report (every nutrient, 7-day averages, top sources) loads only when opened.
 const NutrientReport = lazy(() => import('./nutrient-report').then(m => ({default: m.NutrientReport})));
@@ -37,9 +40,30 @@ export function MicroPanel({data, date}: {data: HealthData; date: string}) {
     {error && <p role="alert">{error}</p>}
     <p className="fine">{/* Session AL (P-MO-67, MO-135) */}These micronutrient lines start from general reference intakes (yours to edit); your calories and macros have no defaults and stay as you set them in Targets. An entry without a value stays unknown, never zero. Information, not medical advice.</p>
     <VitaminRows data={data} date={date} />
+    <ExtraRows data={data} date={date} />
     <div className="actions"><button type="button" className="secondary" aria-expanded={report} onClick={() => setReport(!report)}>{report ? 'Close the nutrient report' : 'Open the nutrient report'}</button></div>
     {report && <Suspense fallback={<p className="fine">Opening the report…</p>}><NutrientReport data={data} date={date} /></Suspense>}
     <div className="health-rich"><h3>Which of my foods are high in…</h3><div className="health-rich-row" role="group" aria-label="Nutrient">{additionalNutrients.map(([key, label]) => <button type="button" key={key} className="quiet" aria-pressed={pick === key} onClick={() => setPick(key)}>{label}</button>)}</div>
       {rich.length ? <ol>{rich.map(f => <li key={f.id}>{f.name} <small>· {formatNutrient(f.mgPerServing / scaleOf(pick))} {additionalNutrients.find(([k]) => k === pick)![2]} {f.serving === 'per serving' ? 'per serving' : `per ${f.serving}`}{f.kind === 'recipe' ? ' · recipe' : ''}</small></li>)}</ol> : <p className="health-empty-inline">None of your foods carries a value for this yet. Add it on the food’s label.</p>}</div>
+  </section>;
+}
+
+/**
+ * Session AL fourth pass (C-MO-13, MO-014): the extended micronutrients a source gave (magnesium, zinc, B1, B2, B3, B6,
+ * omega-3) as tiles beside the seven and the vitamins: today's total where entries carry a value, how many did, and the
+ * general reference intake it is read against (information, never a target or advice). Nothing logged with one: one line.
+ */
+function ExtraRows({data, date}: {data: HealthData; date: string}) {
+  const vitamins = useDeviceRecord(HEALTH_VITAMINS), extras = useDeviceRecord(NUTRIENT_EXTRAS_RECORD), micro = useDeviceRecord(MICRO_TARGETS);
+  const ctx: ReportContext = {data, vitamins: vitamins.loaded && !vitamins.unreadable ? vitamins.data : {version: 1}, extras: extras.loaded && !extras.unreadable ? extras.data : {version: 1}, micro: micro.loaded && !micro.unreadable ? micro.data : {version: 1}};
+  const rows = nutrientDay(ctx, date).filter(r => r.key.startsWith('extra:'));
+  const shown = rows.filter(r => r.total !== null);
+  return <section className="health-extra-micros" aria-label="More micronutrients">
+    <h3>More from your foods</h3>
+    {shown.length ? <ul className="health-micro-list">{shown.map(r => { const value = r.total! / EXTRA_SCALE, reference = r.reference === null ? null : r.reference / EXTRA_SCALE; return <li key={r.key}>
+      <div><strong>{r.label}</strong> <small>{reference !== null ? `general reference ${formatNutrient(reference)} ${r.unit} a day` : 'no reference'}{r.known < r.entries ? <span className="health-micro-coverage"><span className="sr-only">. </span>from {r.known} of {r.entries} {r.entries === 1 ? 'entry' : 'entries'}</span> : ''}</small></div>
+      <div><span>{formatNutrient(value)} {r.unit}</span></div>
+      {reference !== null && <GlassBar identity={`micro:${r.key}`} className="health-micro-bar" role="progressbar" aria-label={`${r.label}: ${formatNutrient(value)} of ${formatNutrient(reference)} ${r.unit}`} aria-valuenow={value} aria-valuemin={0} aria-valuemax={reference} value={Math.min(1, value / reference)} />}
+    </li>; })}</ul> : <p className="fine">Magnesium, zinc, B vitamins and omega-3 show here when a food you logged today carries them (a barcode or label that gives them). {rows[0]?.entries ? 'None of today’s entries does yet.' : 'Nothing logged today yet.'}</p>}
   </section>;
 }

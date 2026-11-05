@@ -169,7 +169,7 @@ export default function WorkoutsView() {
       <h2 id="workouts-summary-title">{summary.workout.name}, done</h2>
       <p>{minText(durationMinutes(summary.workout))} · {doneSets(summary.workout).length} {plural(doneSets(summary.workout).length, 'set')}{(() => { const v = summary.workout.exercises.reduce((t, e) => t + volumeKg(e), 0); return v ? ` · ${weightShown(v, unit)} lifted` : ''; })()}.</p>
       {summary.bests.length > 0 && <p className="workouts-celebrate" role="status"><span aria-hidden="true">★ </span>{celebration(summary.bests, unit)}</p>}
-      {summary.bests.length > 0 ? <><h3>New personal bests</h3><ul>{summary.bests.map(b => <li key={`${b.exerciseId}-${b.what}`}>{bestWords(b, unit)}</li>)}</ul></> : <p className="fine">No new personal best this time; consistency is what counts.</p>}
+      {summary.bests.length > 0 ? <><h3>New personal bests</h3><ul>{summary.bests.map(b => <li key={`${b.exerciseId}-${b.what}`}>{bestWords(b, unit)}</li>)}</ul></> : <p className="fine">{/* Session AL fourth pass (MO-026): the first workout has nothing to beat yet; it is the starting point */}{past.filter(x => x.id !== summary.workout.id).length === 0 ? 'Your first workout here: these sets are your starting point. The next one is compared with it.' : 'No new personal best this time; consistency is what counts.'}</p>}
       <SaveRoutine workout={summary.workout} onSave={name => change(x => saveTemplate(x, summary.workout, name, new Date()), `Routine ${name || summary.workout.name} saved. Start it from here next time.`)}/>
     </section>}
 
@@ -348,7 +348,7 @@ function ExerciseProgress({w, unit, library, value, onChange}: {w: Workouts; uni
     <label className="field"><span>Exercise</span><select value={chosen} onChange={e => onChange(e.target.value)}>{done.map(id => <option key={id} value={id}>{name(id)}</option>)}</select></label>
     {h && <><dl className="workouts-stats">
       {h.bestWeightKg !== null && <div><dt>Heaviest</dt><dd>{weightShown(h.bestWeightKg, unit)}</dd></div>}
-      {h.bestOneRepMaxKg !== null && <div><dt>Estimated one-rep max</dt><dd>{weightShown(h.bestOneRepMaxKg, unit)}</dd><dd className="dd-note"><small>an estimate (Epley)</small></dd></div>}
+      {h.bestOneRepMaxKg !== null && <div><dt>Estimated one-rep max</dt><dd>{/* Session AL fourth pass (N-MO-15): an estimate at the progress line's precision (79.2 kg, not 79.17 kg) */}{estimateShown(h.bestOneRepMaxKg, unit)}</dd><dd className="dd-note"><small>an estimate (Epley)</small></dd></div>}
       {h.mostReps !== null && <div><dt>Most reps</dt><dd>{h.mostReps}</dd></div>}
       {h.longestSeconds !== null && <div><dt>Longest</dt><dd>{clock(h.longestSeconds)}</dd></div>}
       {h.farthestKm !== null && <div><dt>Farthest</dt><dd>{formatNumber(h.farthestKm, {maximumFractionDigits: 2})} km</dd></div>}

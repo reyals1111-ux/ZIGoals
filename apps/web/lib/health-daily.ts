@@ -191,6 +191,13 @@ export function waterOn(data: HealthData, day: string): WaterDay {
   const s = waterSummary(data, day), unit = dailyData(data).preferences.waterUnit;
   return { day, millilitres: s.millilitres, entries: s.entries, targetMl: s.targetMl, unit, reached: s.targetMl ? s.millilitres >= s.targetMl : null };
 }
+/**
+ * Session AL fourth pass (X3-26, LS-016, LS-056, LC-002, PR-019): the one "water done" rule for every surface (the
+ * Checklist planet, Today, NOVA): done only when the day reaches the person's own target. With no target the day is
+ * never "done" after one glass; say WATER_NO_TARGET instead, with the amount logged.
+ */
+export const waterDayDone = (day: Pick<WaterDay, "reached">): boolean => day.reached === true;
+export const WATER_NO_TARGET = "No water target yet: set one in Health → Journal settings";
 export function waterToday(data: HealthData, now = new Date()): WaterDay {
   return waterOn(data, healthDay(dailyData(data).preferences.timezone, now));
 }

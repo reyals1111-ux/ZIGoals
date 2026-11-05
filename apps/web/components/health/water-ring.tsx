@@ -16,6 +16,6 @@ export function WaterRingFigure({data, date}: {data: HealthData; date: string}) 
   return <div className="water-ring-inline">
     <GlassRing identity="water-ring" className="water-ring" arcs={[{key: 'water', end: share * 100}]} role="img" aria-label={!s.entries ? `${NO_WATER_TODAY}${target ? `; goal ${waterText(target, unit)}` : ', no goal set'}` : target ? `${waterText(s.millilitres, unit)} of ${waterText(target, unit)} today` : `${waterText(s.millilitres, unit)} today, no goal set`}><strong>{waterText(s.millilitres, unit).replace(/\s.*$/, '')}</strong><small>{target ? `of ${waterText(target, unit)}` : unit === 'ml' ? 'mL' : 'fl oz'}</small></GlassRing>
     {/* Session AL sweep 2 (NOVA review M5): with nothing logged the ring's words say so (its 0 is not a measured zero). */}
-    <p className="water-ring-inline-line"><NebulaFlow identity="water-ring-title">{!s.entries ? `${NO_WATER_TODAY}.` : target ? (share >= 1 ? 'Goal reached today.' : 'A sip at a time.') : 'Set a daily goal in Targets.'}</NebulaFlow></p>
+    <p className="water-ring-inline-line"><NebulaFlow identity="water-ring-title">{!s.entries ? `${NO_WATER_TODAY}.` : target ? (share >= 1 ? 'Goal reached today.' : 'A sip at a time.') : 'Set a daily water target in Journal settings.' /* Session AL (COPY_AUDIT, deliberate): B-161, the water target lives in Journal settings, not Targets */}</NebulaFlow></p>
   </div>;
 }

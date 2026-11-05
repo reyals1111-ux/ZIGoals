@@ -1,3 +1,4 @@
+import {weightText} from '../health-units';
 import {addLocalDays, localWeekday} from '../local-date';
 import type {HealthData} from '../health';
 import {rateReadiness, weightTrend, type RateReadiness} from './trend';
@@ -23,8 +24,9 @@ export type CoachCheckIn = {weekStart: string; answered: 'keep' | 'adjust' | nul
 export function coachCheckIn(data: HealthData, coach: HealthCoach, today: string, unit: 'kg' | 'lb' = 'kg'): CoachCheckIn {
   const weekStart = weekStartOf(today), trend = weightTrend(data, today, 14), answered = coach.answers?.[weekStart]?.answer ?? null;
   const rate = trend.weeklyRate;
-  const shown = rate === null ? null : unit === 'lb' ? `${(rate / 453.59237).toFixed(1)} lb` : `${(rate / 1000).toFixed(1)} kg`;
-  const sign = rate === null ? '' : rate < 0 ? '−' : rate > 0 ? '+' : '';
+  // Session AL fourth pass (PR-074): the one weight formatter, so the coach and the trend card round the same rate alike.
+  const shown = rate === null ? null : weightText(Math.abs(rate), unit);
+  const sign = rate === null || /^0 /.test(shown ?? '') ? '' : rate < 0 ? '−' : rate > 0 ? '+' : '';
   const sentence = rate === null ? rateWaitSentence(rateReadiness(data.weights, today), today) : `This week: ${sign}${shown!.replace('-', '')}/week.`;
   const estimate = energyEstimate(data, today), goal = data.targets.weightGrams, latest = trend.latestTrend;
   const paceKg = goal !== null && latest !== null ? (goal < latest ? -0.4 : goal > latest ? 0.25 : 0) : 0;

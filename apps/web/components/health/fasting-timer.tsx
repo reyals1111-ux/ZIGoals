@@ -2,6 +2,7 @@
 import {removeWithUndo} from '../ui/remove-with-undo';
 import {showUndo} from '../ui/undo-toast';
 import {timerRuleText, tooShortText, tooShortToSave} from '../../lib/health-timer-rules';
+import {fastingRhythm, fastingRhythmText} from '../../lib/health-fasting-rhythm';
 import {useState} from 'react';
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_HOURS, elapsedMs, fastStartAt, fastingHistory, formatFast, logFastToHabit, logPastFast, removeFast, startFast, stopFast} from '../../lib/fasting/engine';
 import {instantAt} from '../../lib/zone-time';
@@ -100,6 +101,8 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
     <div className="habit-section-heading"><div><p className="eyebrow">A clock, nothing more</p><h2 id="fasting-title">Fasting timer</h2></div><StarToggle item={{kind: 'health', input: 'fast'}} label="Fast" defaultValue={16} unit="h"/></div>
     <p className="fasting-safety" role="note">{FASTING_SAFETY_NOTE}</p>
     <p className="fine">ZIGoals shows the clock only. It gives no medical or nutritional advice. {timerRuleText}</p>
+    {/* Session AL fourth pass (C-MO-35, C-DVG-41): a rhythm of fasts that reached their own target (no longest fast) */}
+    {(() => { const text = fasting.unreadable ? null : fastingRhythmText(fastingRhythm(fastingHistory(fasting.data, 400), day.today)); return text ? <p className="fine fasting-rhythm">{text}</p> : null; })()}
     <PastDayLine date={day.date} today={day.today}>{dayFasts.length ? dayFasts.map(row => `${formatFast(row.hours * 3_600_000)} fast`).join(', ') : 'no fast begun that day'}</PastDayLine>
     {fasting.unreadable ? fasting.error ? <div className="notice" role="alert"><p>{fasting.error}</p></div> : <div className="notice" role="alert"><p>Your saved fasts on this device could not be read. They were not changed.</p>
       {confirming ? <div className="actions"><p className="fine">Start over keeps the old bytes as a recovery copy and continues with no fasts.</p><button type="button" className="secondary" onClick={() => { setConfirming(false); fasting.startOver().catch(e => setError(saveFailureMessage(e))); }}>Start over</button><button type="button" className="quiet" onClick={() => setConfirming(false)}>Keep them</button></div> : <button type="button" className="quiet" onClick={() => setConfirming(true)}>Start over…</button>}</div>
@@ -115,7 +118,7 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
       <div className="fasting-presets" role="group" aria-label="Fasting target">{FASTING_PRESETS.map(p => <button key={p.hours} type="button" className={preset === p.hours ? 'secondary' : 'quiet'} aria-pressed={preset === p.hours} onClick={() => setPreset(p.hours)}>{p.label}</button>)}<button type="button" className={preset === 'custom' ? 'secondary' : 'quiet'} aria-pressed={preset === 'custom'} onClick={() => setPreset('custom')}>Custom</button></div>
       {preset === 'custom' && <label className="field">Target hours (1–{MAX_CUSTOM_HOURS}; every fast stops itself at {MAX_HOURS} h)<input type="text" inputMode="numeric" autoComplete="off" value={custom} onChange={event => setCustom(event.target.value)} /></label>}
       {/* Session AL (P-MO-30, MO-097): only when there is a duration habit to log the hours to. */}
-      {durationHabits.length > 0 && <label className="field">Log the hours to a habit (optional)<select value={habitId} onChange={event => setHabitId(event.target.value)}><option value="">Don’t log</option>{durationHabits.map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</select></label>}
+      {/* Session AL fourth pass (MO-097): folded, so the page-wide fasting card does not show a habit picker on every view */}{durationHabits.length > 0 && <details className="fasting-habit-fold"><summary>Log the hours to a habit (optional)</summary><label className="field">Habit for the hours<select value={habitId} onChange={event => setHabitId(event.target.value)}><option value="">Don’t log</option>{durationHabits.map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</select></label></details>}
       <label className="field">Started earlier? (optional)<input type="time" value={startedAt} onChange={event => setStartedAt(event.target.value)} aria-describedby="fast-started-hint"/></label>
       <p className="fine" id="fast-started-hint">Leave it empty to start now. A time later than now means yesterday.</p>
       <button type="button" className="primary" disabled={!fasting.loaded} onClick={() => void start()}>{startedAt ? `Start fast from ${startedAt}` : 'Start fast'}</button>

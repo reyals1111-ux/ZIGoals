@@ -19,7 +19,8 @@ export type DrinkType = (typeof DRINK_TYPES)[number];
 export type Meal = (typeof HEALTH_MEALS)[number];
 const clock = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 export const MEAL_NAME_MAX = 24, CAFFEINE_MAX_MG = 1000;
-const mealPrefSchema = z.looseObject({name: z.string().trim().min(1).max(MEAL_NAME_MAX).optional(), time: clock.optional()});
+// Session AL fourth pass (C-DVG-38): an optional calorie target per meal (additive, optional; older builds ignore it).
+const mealPrefSchema = z.looseObject({name: z.string().trim().min(1).max(MEAL_NAME_MAX).optional(), time: clock.optional(), kcal: z.number().int().min(1).max(10_000).optional()});
 const drinkSchema = z.looseObject({type: z.enum(DRINK_TYPES), caffeineMg: z.number().int().min(0).max(CAFFEINE_MAX_MG).optional()});
 export const healthExtrasSchema = z.looseObject({
   version: z.literal(1),
@@ -37,18 +38,23 @@ export const mealTime = (extras: HealthExtras | null | undefined, meal: Meal): s
 /** "Pre-workout · 07:30", "Lunch", for headings and menus. */
 export const mealHeading = (extras: HealthExtras | null | undefined, meal: Meal): string => { const time = mealTime(extras, meal); return time ? `${mealLabel(extras, meal)} · ${time}` : mealLabel(extras, meal); };
 
-export type MealPrefIssue = {field: 'name' | 'time'; message: string};
+export type MealPrefIssue = {field: 'name' | 'time' | 'kcal'; message: string};
+/** Session AL fourth pass (C-DVG-38): your calorie target for one meal, or null. */
+export const mealKcalTarget = (extras: HealthExtras | null | undefined, meal: Meal): number | null => extras?.meals?.[meal]?.kcal ?? null;
 /**
  * Saves a meal's own name and time. Blank clears it (the meal's own name, no time). Returns the issue to say under the
  * field instead of throwing, so the form can mark the right one.
  */
-export function setMealPref(r: HealthExtras, meal: Meal, input: {name: string; time: string}): {ok: true; value: HealthExtras} | {ok: false; issue: MealPrefIssue} {
-  const name = input.name.trim(), time = input.time.trim();
+export function setMealPref(r: HealthExtras, meal: Meal, input: {name: string; time: string; kcal?: string}): {ok: true; value: HealthExtras} | {ok: false; issue: MealPrefIssue} {
+  const name = input.name.trim(), time = input.time.trim(), kcalText = (input.kcal ?? '').trim();
   if (name && isInvisibleName(name)) return {ok: false, issue: {field: 'name', message: 'Type a name with letters or numbers, or leave it blank.'}};
   if (name.length > MEAL_NAME_MAX) return {ok: false, issue: {field: 'name', message: `Keep the name to ${MEAL_NAME_MAX} characters or fewer.`}};
   if (time && !clock.safeParse(time).success) return {ok: false, issue: {field: 'time', message: 'Enter a time like 07:30, or leave it blank.'}};
+  if (kcalText && (!/^\d+$/.test(kcalText) || Number(kcalText) < 1 || Number(kcalText) > 10_000)) return {ok: false, issue: {field: 'kcal', message: 'Enter a calorie target from 1 to 10,000 kcal for this meal, or leave it blank.'}};
+  // A target kept from before stays when the caller does not pass the field.
+  const kcal = input.kcal === undefined ? r.meals?.[meal]?.kcal : kcalText ? Number(kcalText) : undefined;
   const meals = {...(r.meals ?? {})};
-  const pref = {...(name && name !== meal ? {name} : {}), ...(time ? {time} : {})};
+  const pref = {...(name && name !== meal ? {name} : {}), ...(time ? {time} : {}), ...(kcal !== undefined ? {kcal} : {})};
   if (Object.keys(pref).length) meals[meal] = pref; else delete meals[meal];
   return {ok: true, value: healthExtrasSchema.parse({...r, meals: Object.keys(meals).length ? meals : undefined})};
 }

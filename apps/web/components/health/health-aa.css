@@ -292,3 +292,16 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 @media (hover: hover) and (pointer: fine) { :root :where(.health-page) .panel:not(.health-aa-card):hover, :root :where(.health-page) .health-aa-card:hover { border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent)); } }
 :root :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible), :root :where(.health-page) .health-aa-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.health-page) .panel:not(.health-aa-card), :root :where(.health-page) .health-aa-card { box-shadow: none; } }
+
+/* Session AL fourth pass (AL-FIELD-ERROR-003): a checked field and its sentence are one grid item; the sentence sits
+   directly under the field. */
+.health-page .health-checked { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.health-page .health-checked > .field-error { margin: 0; }
+/* DV-143: the reading being edited, with its way back. */
+.health-page .health-editing-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--line, rgba(255,255,255,.18)); border-radius: 12px; }
+.health-page .health-editing-banner p { margin: 0; font-weight: 600; }
+.health-page .health-editing-banner button { min-height: 44px; }
+/* Session AL fourth pass (N-MO-18): the marks at the ends of the track sit inside it (the "24 h" label hung half past the
+   track into the card's padding at 768 px); their dot stays on the end of the track. */
+.fasting-timeline-stops li[data-edge="end"] { transform: translateX(-100%); justify-items: end; }
+.fasting-timeline-stops li[data-edge="start"] { transform: none; justify-items: start; }

@@ -36,5 +36,8 @@ test('PR-021: the history card names the kind it shows; it never says "Add two o
   await openHealth(page);
   await healthView(page, 'Measurements').click();
   await expect(page.getByText('Add two actual observations to show a change.')).toHaveCount(0);
-  await expect(page.getByText('No weight readings here yet: add two to show a change.')).toBeVisible();
+  // Session AL (COPY_AUDIT, deliberate): fourth pass, PR-021/D-075 — the empty weight history names timed readings and
+  // says what to do, in plain words (the replay found "No weight readings here yet" beside a journal with readings).
+  await expect(page.getByText('No timed weight readings yet.')).toBeVisible();
+  await expect(page.getByText('Add a timed weight reading below; two show a change.')).toBeVisible();
 });
