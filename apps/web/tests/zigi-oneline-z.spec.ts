@@ -258,6 +258,11 @@ test('not connected: the status says so on one line; the chips row is one line; 
   await openChat(page);
   for (const q of ['One?', 'Two?', 'Three?']) await say(page, q);
   const log = panel(page).getByRole('log', {name: 'Conversation'}), before = (await log.boundingBox())!;
+  // Session AL (CI21, CI 1575, Chromium phone; the wait only): each reply starts ZIGi's own glide to the latest message (a
+  // smooth scrollTo). Chromium lets a glide that is still running override a scrollTop written meanwhile: the trace showed
+  // the pill appear, the log never leave its end, and the pill go again, so its box was never found (120 s). The log is
+  // scrolled up once the glide has ended: at its end and still there two frames later.
+  await expect.poll(() => log.evaluate(el => new Promise<boolean>(done => { const top = el.scrollTop; requestAnimationFrame(() => requestAnimationFrame(() => done(el.scrollTop === top && el.scrollHeight - el.scrollTop - el.clientHeight < 2))); })), 'the glide to the latest message has ended').toBe(true);
   await log.evaluate(el => { el.scrollTop = 0; el.dispatchEvent(new Event('scroll')); });
   const jump = panel(page).getByRole('button', {name: 'Jump to the latest message'});
   await expect(jump).toBeVisible();
