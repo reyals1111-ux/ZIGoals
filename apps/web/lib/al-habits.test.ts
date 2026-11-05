@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {createHabit, emptyHabitData, frequencyProgress, habitDay, habitRuleOn, logHabitValue, restoreHabitEntry, setHabitEntryStatus, type HabitInput} from './habits';
+import {createHabit, emptyHabitData, frequencyProgress, habitDay, habitEntryText, habitRuleOn, logHabitValue, restoreHabitEntry, setHabitEntryStatus, type HabitInput} from './habits';
 import {scheduleHabitState} from './habit-actions';
 import {deleteHabitForGoodNow, undoDeleteHabit} from './habit-delete-write';
 import {isDeletedHabit} from './habit-delete';
@@ -97,5 +97,49 @@ describe('NB-199/NB-200/NB-201 and MO-125: the water link reads the water alread
     expect(autoTickRevocations({record, date: TODAY, sources: {waterMl: 2000}, data})).toEqual([]);
     expect(autoTickRevocations({record, date: TODAY, sources: {}, data: logHabitValue(data, ID, TODAY, 1.5, {}, NOW)})).toEqual([]);
     expect(clearAutoTick(record, ID, TODAY).applied).toEqual([]);
+  });
+});
+
+/** Session AL second pass (L3): Activity habit rows in words with their unit (DV-047a, DV-171, DV-207; P-DV-75). */
+describe('DV-047a/DV-171/DV-207: an Activity habit row says the day with its unit', () => {
+  const ruleOf = (extra: Partial<HabitInput>) => habitRuleOn(createHabit(emptyHabitData(), input(extra), new Date('2026-11-01T08:00:00Z'), ID).habits[0]!, TODAY)!;
+  test('a measured build habit reads "500 of 2,000 mL", "2 of 2 L · done"', () => {
+    expect(habitEntryText(ruleOf({measurement: {kind: 'quantity', unit: 'mL'}, target: 2000}), 500)).toBe('500 of 2,000 mL');
+    expect(habitEntryText(ruleOf({measurement: {kind: 'quantity', unit: 'L'}, target: 2}), 2)).toBe('2 of 2 L · done');
+    expect(habitEntryText(ruleOf({measurement: {kind: 'count', unit: 'pages'}, target: 1}), 1)).toBe('1 of 1 page · done');
+  });
+  test('a yes/no day reads "Done"; a quit day "Stayed on track" or its slips, never "0 / 0 completed"', () => {
+    expect(habitEntryText(ruleOf({}), 1)).toBe('Done');
+    const quit = ruleOf({type: 'quit', measurement: {kind: 'count', unit: 'times'}, target: 0});
+    expect(habitEntryText(quit, 0)).toBe('Stayed on track');
+    expect(habitEntryText(quit, 2)).toBe('2 slips');
+    expect(habitEntryText(ruleOf({type: 'limit', measurement: {kind: 'count', unit: 'cups'}, target: 3}), 4)).toBe('4 of at most 3 cups · over the limit');
+  });
+});
+
+/** Session AL second pass (L3, 3f): Habits forms read numbers through the app's one reader, with their own bounds. */
+describe('readHabitNumber: parseNumberInput with the field\'s bounds and the old sentences', () => {
+  test('decimal commas and unambiguous grouping read; bounds and whole numbers keep their messages', async () => {
+    const {readHabitNumber} = await import('./habit-number');
+    expect(readHabitNumber('0,5', {max: 10})).toBe(0.5);
+    expect(readHabitNumber(',25', {max: 10})).toBe(0.25);
+    expect(readHabitNumber('1 234,5', {max: 1_000_000})).toBe(1234.5);
+    expect(() => readHabitNumber('1,234', {max: 1_000_000})).toThrow(/could mean/);
+    expect(() => readHabitNumber('2.5', {min: 1, max: 365, whole: true})).toThrow('Enter a whole number from 1 to 365.');
+    expect(() => readHabitNumber('0', {max: 10, positive: true})).toThrow('Enter a number greater than 0 and at most 10.');
+    expect(() => readHabitNumber('', {max: 10})).toThrow('Enter a number from 0 to 10.');
+    expect(() => readHabitNumber('-3', {max: 10})).toThrow('Enter a number from 0 to 10.');
+  });
+});
+
+describe('DV-028 (P-DV-65): a habit not due yet this week reads so, never "0%"', () => {
+  test('a Monday-only habit on a Wednesday with no Monday yet since it started; and a done day reads 100% this week', async () => {
+    const {weeklyConsistencyText} = await import('./habits');
+    // Created on Tuesday Nov 3, scheduled Mondays only: nothing has been due this week by Wednesday Nov 4.
+    const d = createHabit(emptyHabitData(), input({schedule: {kind: 'weekdays', days: [1]}}), new Date('2026-11-03T08:00:00Z'), ID);
+    expect(weeklyConsistencyText(d.habits[0]!, TODAY)).toBe('Not due yet this week');
+    let daily = createHabit(emptyHabitData(), input(), new Date('2026-11-04T01:00:00Z'), ID);
+    daily = logHabitValue(daily, ID, TODAY, 1, {}, NOW);
+    expect(weeklyConsistencyText(daily.habits[0]!, TODAY)).toBe('100% this week');
   });
 });

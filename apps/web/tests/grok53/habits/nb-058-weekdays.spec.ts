@@ -17,15 +17,18 @@ test('NB-058/NB-056: weekday ticks survive a refused submit and a Measurement ch
   await page.getByRole('button', {name: 'Create habit', exact: true}).click();
   await expect(page.locator('.habit-editor .field-error')).toHaveText('Habit title: Give the habit a name.');
   await page.getByLabel('Habit title', {exact: true}).fill('Swim');
-  await page.getByLabel('Schedule', {exact: true}).selectOption('weekdays');
+  // Fix-up FX-L3: by role, not getByLabel(exact). A <label> wrapping a <select> has the options' words in its text, and a
+  // weekday's label holds its short name too ("MonMonday"), so an exact label match never found either control.
+  await page.getByRole('combobox', {name: 'Schedule', exact: true}).selectOption('weekdays');
   const days = page.getByRole('group', {name: 'Scheduled weekdays'});
-  for (const d of ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']) await days.getByLabel(d, {exact: true}).uncheck();
+  for (const d of ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']) await days.getByRole('checkbox', {name: d, exact: true}).uncheck();
   await page.getByRole('button', {name: 'Create habit', exact: true}).click();
   await expect(days.locator('.field-error')).toHaveText('Scheduled weekdays: Choose at least one day.');
-  await days.getByLabel('Monday', {exact: true}).check();
-  await days.getByLabel('Wednesday', {exact: true}).check();
+  await days.getByRole('checkbox', {name: 'Monday', exact: true}).check();
+  await days.getByRole('checkbox', {name: 'Wednesday', exact: true}).check();
   await openHabitMoreOptions(page);
-  await page.getByLabel('Measurement').selectOption('count');
+  // A real Measurement change: a new habit already counts ("count" is the default), so choosing it again changed nothing.
+  await page.getByRole('combobox', {name: 'Measurement', exact: true}).selectOption('duration');
   await page.getByRole('button', {name: 'Create habit', exact: true}).click();
   await expect(page.getByRole('article', {name: 'Swim', exact: true})).toContainText('Mon · Wed');
 });

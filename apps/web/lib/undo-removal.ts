@@ -88,7 +88,9 @@ export function itemChanges(before: unknown, after: unknown): ItemChanges | null
           if (onlyLists) walk(item, now, [...path, key, `#${item.id}`]);
           else out.edited.push({path: [...path, key], before: item, after: now});
         }
-      } else walk(bv, av, [...path, key]);
+      // Session AL (NB-081, found on the production build): a plain object new on one side (Health's `daily` on a device's
+      // first water entry) is walked against an empty one, so its new or removed items are still seen and undone.
+      } else walk(bv === undefined && isPlain(av) ? {} : bv, av === undefined && isPlain(bv) ? {} : av, [...path, key]);
     }
   };
   walk(before, after, []);

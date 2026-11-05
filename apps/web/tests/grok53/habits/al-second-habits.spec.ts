@@ -18,6 +18,12 @@ test('DV-187/DV-186a: delete for good matches any letter case; the toast Undo re
   await card.getByRole('group', {name: 'T9 Weekly run options'}).getByRole('button', {name: 'Archive habit…'}).click();
   await expect(card.getByRole('alertdialog')).toContainText('you can restore it later, or delete it for good from Archived.');
   await card.getByRole('alertdialog').getByRole('button', {name: 'Archive habit', exact: true}).click();
+  // Fix-up FX-L3: with nothing recorded today the archive starts today, so the habit leaves the Today list at once (by
+  // design: "It leaves your lists today"); "Delete for good…" is then reached from Archived, as the confirmation says.
+  await expect(toast(page)).toContainText('T9 Weekly run is archived today.');
+  await page.getByRole('group', {name: 'Filter habits'}).getByRole('button', {name: 'Archived', exact: true}).click();
+  const details = card.locator('summary[aria-label="Details for T9 Weekly run"]');
+  if (!await card.locator('details.habit-more').evaluate(el => (el as HTMLDetailsElement).open)) await details.click();
   await card.getByRole('button', {name: 'Delete for good…', exact: true}).click();
   const confirm = card.getByRole('form', {name: 'Delete T9 Weekly run for good'});
   await expect(confirm).toContainText('Delete “T9 Weekly run” for good?');
@@ -51,8 +57,10 @@ test('DV-131: a quit habit reads its slips and "On track today", never "Complete
 test('DV-241: a three-a-week habit says its target in one plain sentence', async ({page}) => {
   await open(page, '/app/habits');
   await page.getByRole('button', {name: '+ New habit', exact: true}).click();
-  await page.getByLabel('Schedule', {exact: true}).selectOption('frequency');
-  await page.getByLabel('Times per period').fill('3');
+  // Fix-up FX-L3: by role; an exact label match on a <label> wrapping a <select> also reads the options' words.
+  await page.getByRole('combobox', {name: 'Schedule', exact: true}).selectOption('frequency');
+  // The Schedule <label> also holds its options' words ("X times per period"), so a label-text match found the <select> too.
+  await page.getByRole('textbox', {name: 'Times per period', exact: true}).fill('3');
   await page.locator('.habit-more-options > summary').click();
   await expect(page.getByText('Each check-in counts 1 time; you aim for 3 check-ins a week.')).toBeVisible();
   await expect(page.getByText(/1 times|each time, /)).toHaveCount(0);

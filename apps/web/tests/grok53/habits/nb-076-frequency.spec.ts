@@ -10,8 +10,10 @@ test('NB-076/NB-158: a 3× per week habit shows "0 of 3 this week", then "1 of 3
   await open(page, '/app/habits');
   await page.getByRole('button', {name: '+ New habit', exact: true}).click();
   await page.getByLabel('Habit title', {exact: true}).fill('Gym');
-  await page.getByLabel('Schedule', {exact: true}).selectOption('frequency');
-  await page.getByLabel('Times per period').fill('3');
+  // Fix-up FX-L3: by role; an exact label match on a <label> wrapping a <select> also reads the options' words.
+  await page.getByRole('combobox', {name: 'Schedule', exact: true}).selectOption('frequency');
+  // The Schedule <label> also holds its options' words ("X times per period"), so a label-text match found the <select> too.
+  await page.getByRole('textbox', {name: 'Times per period', exact: true}).fill('3');
   await openHabitMoreOptions(page);
   await page.getByRole('button', {name: 'Create habit', exact: true}).click();
   const card = page.getByRole('article', {name: 'Gym', exact: true});

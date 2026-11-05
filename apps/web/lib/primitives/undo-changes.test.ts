@@ -38,4 +38,13 @@ describe('itemChanges / revertItemChanges (Session AL 3e)', () => {
     expect(sameValue({a: 1}, {a: 2})).toBe(false);
     expect(sameValue([1], {0: 1})).toBe(false);
   });
+  it('NB-081: sees and undoes items inside an object that one side does not have yet (a first water entry on an empty device)', () => {
+    const before = {kind: 'health'}, after = {kind: 'health', daily: {water: [{id: 'w1', ml: 250}]}};
+    const changes = itemChanges(before, after)!;
+    expect(changes.added).toEqual([{path: ['daily', 'water'], item: {id: 'w1', ml: 250}}]);
+    const reverted = revertItemChanges(after, changes) as {daily?: {water?: unknown[]}};
+    expect(reverted.daily?.water ?? []).toEqual([]);
+    const removal = itemChanges(after, before)!;
+    expect(removal.removed.map(r => r.item)).toEqual([{id: 'w1', ml: 250}]);
+  });
 });

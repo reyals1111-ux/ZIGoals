@@ -7,7 +7,8 @@ test('PR-044/NB-068: Skip today offers Undo, which makes the habit due again; a 
   await page.clock.install({time: new Date('2026-11-04T09:00:00Z')});
   await emptyDevice(page);
   const card = await createHabit(page, 'Stretch');
-  await card.getByRole('button', {name: 'Details for Stretch'}).click();
+  // Fix-up FX-L3: the card's Details fold is a <summary> (no button role), found by its label as the other habit specs do.
+  await card.locator('summary[aria-label="Details for Stretch"]').click();
   await card.getByRole('button', {name: 'Skip today…'}).click();
   await card.getByRole('button', {name: 'Skip today', exact: true}).click(); // no reason picked (NB-188 refused it silently)
   await expect(card.locator('.habit-result')).toHaveText('Skipped');
