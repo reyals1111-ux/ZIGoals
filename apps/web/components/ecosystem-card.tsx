@@ -17,6 +17,7 @@ import {EcosystemLiveLine} from './ecosystem-live';
 import type {LiveState} from '../lib/earn/client';
 import type {DefillamaData} from '../lib/earn/live/types';
 import {directoryStatusOf} from '../lib/zigchain-eco/directory-status';
+import {useDayNow} from './use-local-today';
 import type {UsedByMe} from '../lib/zigchain-eco/used-by-me';
 
 /**
@@ -77,6 +78,8 @@ export function EcosystemTodayOptions({id, name}: {id: string; name: string}) {
 
 export function EcosystemCard({entry, open, onToggle, llama, used}: {entry: DirectoryEntry; open: boolean; onToggle: () => void; llama?: LiveState<DefillamaData>; used?: UsedByMe | null}) {
   const p = entry.provider, id = useId(), detailsId = `project-${entry.id}-details`, titleId = `${id}-title`;
+  // CI1 (product-visual, React #418): a dated status is worded from the server's day while hydrating, then from this device's clock.
+  const now = useDayNow();
   const documentation = p.documentation.filter(isSafeReferenceUrl).filter(url => !entry.actions.some(a => a.url === url));
   return <article className="ecosystem-project" data-category={entry.category} data-open={open || undefined} id={`project-${entry.id}`} aria-labelledby={titleId}>
     <header>
@@ -91,7 +94,7 @@ export function EcosystemCard({entry, open, onToggle, llama, used}: {entry: Dire
     {/* Session AL (C-BN-16, GAP-146): a project Wealth shows you use, from a holding that proves it. */}
     {used && <p className="ecosystem-used"><span className="zeco-status" data-kind="live">Used by you</span> Wealth shows you hold {used.what}{used.count > 1 ? ` (${used.count} holdings)` : ''}. <Link className="text-link" href="/app/wealth">Open Wealth →</Link></p>}
     {/* Session AK (F4): one dated status per project (live, closing, paused, not live yet…), with its source. */}
-    {(() => { const status = directoryStatusOf(entry.id); return status ? <p className="ecosystem-status"><span className="zeco-status" data-kind={status.kind}>{status.label}</span> {status.detail} <small>({status.source}, read <time dateTime={status.readOn}>{formatDate(status.readOn)}</time>)</small></p> : null; })()}
+    {(() => { const status = directoryStatusOf(entry.id, now); return status ? <p className="ecosystem-status"><span className="zeco-status" data-kind={status.kind}>{status.label}</span> {status.detail} <small>({status.source}, read <time dateTime={status.readOn}>{formatDate(status.readOn)}</time>)</small></p> : null; })()}
     <div className="ecosystem-labels"><span>{entry.inclusion}</span><span>{p.phase === 'READ_ONLY' ? 'Read-only links' : 'Research only'}</span></div>
     <div className="ecosystem-project-actions">{entry.actions.map(action => <a key={action.kind} href={action.url} {...external}>{ACTION_LABEL[action.kind]} ↗</a>)}{!entry.actions.length && <span className="fine">No checked website link yet</span>}</div>
     <div className="ecosystem-details" id={detailsId} role="region" aria-labelledby={titleId} hidden={!open}>

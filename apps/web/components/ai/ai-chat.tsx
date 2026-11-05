@@ -306,7 +306,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       status={(() => { const text = hosted ? (hosted.provider === 'Anthropic' ? `via ZIGoals AI · ${modelLabel(hosted.model)}` : `${hosted.provider} · ${hosted.model} via ZIGoals hosted`) : connected ? `via ${providerName} · ${modelLabel(data.model ?? "")}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'answers on this device';
         const full = hosted ? (hosted.provider === 'Anthropic' ? `${CLAUDE_HOSTED_NAME} · ${hosted.model}` : text) : connected ? `via ${providerName} · ${data.model}` : text;
         return connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} status={text} full={full}/> : <span className="ai-chat-via-text" title={full}>{text}</span>; })()}
-      premium={hosted ? entitlement('hosted').label.replace(/ · free during (the )?Alpha$/i, '') : <PremiumBadge className="ai-chat-premium-badge"/>}
+      premium={hosted ? entitlement('hosted').label.replace(/ · free during (the )?Alpha$/i, '') : <PremiumBadge className="ai-chat-premium-badge" short/>}
       onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => { keepReadingPlace(); setExpanded(e => !e); }} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
       more={[
         {key: 'history', label: 'History', name: 'Chat history', pressed: view === 'history', onSelect: () => setView(v => v === 'history' ? 'chat' : 'history')},

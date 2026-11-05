@@ -385,8 +385,11 @@ test('Meet ZIGi in Showcase: the same page, nothing personal on it', async ({pag
 test('ZIGi reacts to what happens: an answer on the device pleases it, a choice makes it curious, closing waves goodbye, then it rests', async ({page}) => {
   await seed(page);
   await page.goto('/app/habits');
-  const state = page.locator('.ai-launcher-button');
-  await expect(state).toHaveAttribute('data-state', 'idle');
+  // Session AL (O3, ADR-037 Q8, deliberate): below 901 px nothing floats, so ZIGi's closed-panel moods (at rest, the goodbye
+  // wave) are not shown there; its reactions still show in the open panel's own figure (one bus), which is read instead.
+  const floats = !compact(page);
+  const state = floats ? page.locator('.ai-launcher-button') : panel(page).locator('.ai-chat-head .zigi');
+  if (floats) await expect(state).toHaveAttribute('data-state', 'idle'); else await expect(launcher(page)).toHaveCount(0);
   await openChat(page);
   await panel(page).getByLabel('Ask ZIGi about your records').fill('How many minutes did I meditate this month?');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
@@ -399,6 +402,7 @@ test('ZIGi reacts to what happens: an answer on the device pleases it, a choice 
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
   await expect(state).toHaveAttribute('data-state', 'confused');
   await closeChat(page);
+  if (!floats) { await expect(launcher(page)).toHaveCount(0); return; }
   await expect(state).toHaveAttribute('data-state', 'wave-goodbye');
   await expect(state).toHaveAttribute('data-state', 'idle', {timeout: 5000});
 });

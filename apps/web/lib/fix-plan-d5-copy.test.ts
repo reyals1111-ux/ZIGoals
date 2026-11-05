@@ -16,7 +16,8 @@ test("Help and the sync offer qualify end-to-end encryption: served code, and re
 });
 test("Help: lost a device means revoke, then rotate; the recovery secret is not the only key on a remembered device", () => {
   const help = read("components/help/help-page.tsx");
-  expect(help).toContain("<strong>Lost a device?</strong> Revoke it under Settings → Devices and sessions, then rotate the vault key");
+  // Session AL (COPY_AUDIT, deliberate; BN-165, B-193, BN-024, D-091): the account-only steps say so; revoke, then rotate stays.
+  expect(help).toContain("<strong>Lost a device?</strong> With an account only: revoke it under Settings → Devices and sessions, then rotate the vault key");
   expect(help).toContain("It is the only key to your encrypted data you can write down (a device you chose to remember holds the vault key too)");
   expect(help).not.toContain("It is the only key to your encrypted data, and it is shown only then.");
 });

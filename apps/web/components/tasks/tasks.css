@@ -125,6 +125,8 @@
 .task-notes { grid-column: 1 / -1; margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
 .task-sub { grid-area: sub; grid-column: 1 / -1; display: grid; gap: 4px; padding-inline-start: 44px; }
 .task-sub-toggle { justify-self: start; min-height: 44px; }
+/* CI1 (p6-keyboard): a row's "Add a subtask" stays focusable but out of sight until the row (or the button) has the focus. */
+.task-sub[data-only-new]:not(:focus-within) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .task-children { margin: 0; }
 .task-sub-add { display: flex; flex-wrap: wrap; align-items: end; gap: 6px; }
 .task-sub-add input, .task-sub-add button { min-height: 44px; }

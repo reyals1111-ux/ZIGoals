@@ -2,6 +2,7 @@
    cards and panels, 0.75×, under :root[data-density=compact]. Do not edit: change the CSS or the generator, then run it again. */
 /*  app/globals.css  */
 :where(:root[data-density=compact]) body:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .skip:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .network-banner:not(#\-) { row-gap: 16px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) header:not(#\-) { row-gap: 36px; margin-top: auto; margin-bottom: auto; padding-top: 25px; padding-bottom: 25px; }
 :where(:root[data-density=compact]) .brand small:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
@@ -550,6 +551,7 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .goals-summary-item .goals-figures:not(#\-) { margin-top: 0; margin-bottom: 0; }
 @media (max-width: 700px) { :where(:root[data-density=compact]) .goals-toolbar .goals-toolbar-end .goals-view-switch:not(#\-) { margin-top: 0; margin-bottom: 0; } }
 @media (min-width: 1400px) { :root:where([data-density=compact]) .goals-page .pillar-hero.goals-heading > .pillar-hero-actions:not(#\-) { margin-top: 16px; } }
+:where(:root[data-density=compact]) .goals-collection-item:not(#\-) { row-gap: 0.98rem; }
 /*  components/account-devices.css  */
 :where(:root[data-density=compact]) .account-sessions .sign-out-others:not(#\-) { row-gap: 10px; margin-top: 12px; margin-bottom: 18px; padding-top: 14px; padding-bottom: 14px; }
 :where(:root[data-density=compact]) .account-sessions .sign-out-others h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -904,7 +906,7 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .ai-history-heading:not(#\-) { margin-top: 6px; margin-bottom: 2px; }
 :where(:root[data-density=compact]) .ai-continue:not(#\-) { row-gap: 10px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .ai-continue pre:not(#\-) { padding-top: 8px; padding-bottom: 8px; margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .ai-chat-via .ai-chat-premium-badge:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .ai-chat-via .ai-chat-premium-badge:not(#\-) { margin-top: -13px; margin-bottom: -13px; padding-top: 0; padding-bottom: 0; }
 /*  components/ai/knock-offer.css  */
 :where(:root[data-density=compact]) .ai-knock-offer:not(#\-) { row-gap: 10px; margin-top: 10px; margin-bottom: 10px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .ai-knock-offer-body p:not(#\-) { margin-top: 0; margin-bottom: 8px; }
@@ -2815,6 +2817,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .health-page .health-checked > .field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .health-page .health-editing-banner:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 12px; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .health-page .health-editing-banner p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .health-water .health-form .health-form-grid:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .health-water .health-simple-list:not(#\-) { margin-top: 6px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .health-water .health-simple-list li:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .health-water .actions:not(#\-) { margin-top: 12px; margin-bottom: 6px; }
+@media (min-width: 360px) { :where(:root[data-density=compact]) .health-water .reminder-form:not(#\-) { row-gap: 6px; } }
+@media (min-width: 360px) { :where(:root[data-density=compact]) .health-water .reminder-form > .actions:not(#\-) { margin-top: 0; margin-bottom: 0; } }
 /*  components/health/health-day.css  */
 :where(:root[data-density=compact]) .health-page .health-date-bar:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .health-page .health-date-step:not(#\-) { padding-top: 0; padding-bottom: 0; }
@@ -5555,6 +5563,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar .app-nav a:not(#\-):not(#\-) { row-gap: 4px; padding-top: 6px; padding-bottom: 6px; } }
 @media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar .app-nav a[data-group-start]:not(:first-child):not(#\-):not(#\-) { margin-top: 10px; } }
 @media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar .app-nav a[href="/app/settings"]:not(#\-):not(#\-) { margin-top: auto; } }
+@media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar .app-nav a:has(+ a[href="/app/settings"]):not(#\-):not(#\-) { margin-bottom: 10px; } }
 @media (min-width: 768px) and (max-width: 900px) and (min-height: 501px), (min-width: 768px) and (max-width: 900px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar .brand:not(#\-):not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; } }
 @media (min-width: 768px) and (max-width: 900px) and (min-height: 501px), (min-width: 768px) and (max-width: 900px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar .brand .brand-logo:not(#\-):not(#\-) { margin-top: 0; margin-bottom: 0; } }
 @media (min-width: 768px) and (max-width: 900px) and (min-height: 501px), (min-width: 768px) and (max-width: 900px) and (pointer: fine) { :root:where([data-density=compact]) .app-sidebar .sidebar-actions:not(#\-):not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; } }
@@ -5753,6 +5762,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .task-project:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .task-notes:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .task-sub:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .task-sub[data-only-new]:not(:focus-within):not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: -1px; margin-bottom: -1px; }
 :where(:root[data-density=compact]) .task-children:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .task-sub-add:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .task-editor-stale:not(#\-) { margin-top: 0; margin-bottom: 0; }

@@ -123,3 +123,11 @@ test('Session AI (A3-r1/A3-r2): someone else\'s records read nothing; a brief br
   expect(questionCalls('What was my weight last month?', sources, gates).map(c => c.tool)).toContain('weight');
   for (const ask of ['Read me my morning brief', 'Vertel me mijn ochtendbriefing']) expect(questionCalls(ask, sources, gates).map(c => c.tool), ask).toContain('checklist_today');
 });
+test('CI4: "explain this page" brings the page view only; "page" is a habit measure only when the screen is not named', () => {
+  const view = {route: '/app', area: 'today' as const, page: 'Today', cards: [{id: 'today:habits', label: 'Habits', inView: true, health: false}], healthHidden: 0, focused: null};
+  const sources = showcaseSources(undefined, {pageView: view}), gates = gatesFor(false, 'today', '/app');
+  expect(questionCalls('Explain this page', sources, gates).map(c => c.tool)).toEqual(['page_view']);
+  expect(questionCalls('What is on this page?', sources, gates).map(c => c.tool)).toEqual(['page_view']);
+  // Pages read are still a habit's measure when the question is not about the screen.
+  expect(questionCalls('How many pages did I read this week?', sources, gates).map(c => c.tool)).toContain('habit_stats');
+});

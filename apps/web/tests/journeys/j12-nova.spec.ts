@@ -93,7 +93,8 @@ test('@journey 12 NOVA: first planets, on-device answers, a MOCK local brain, a 
 
   // A fresh NOVA: the opening plays once (any key finishes it) and the page teaches where to start.
   await page.goto('/app'); await hydrated(page);
-  await page.getByRole('navigation', {name: 'Main navigation'}).getByRole('link', {name: 'NOVA', exact: true}).click();
+  // Session AL (owner decision O4, deliberate): on a computer NOVA sits in the sidebar's Apps group, its own navigation.
+  await page.getByRole('navigation', {name: 'Apps'}).getByRole('link', {name: 'NOVA', exact: true}).click();
   await expect(page).toHaveURL(/\/app\/nova$/);
   await page.keyboard.press('Shift');
   await expect(page.locator('.nova-frame')).toHaveAttribute('data-opening', 'done');

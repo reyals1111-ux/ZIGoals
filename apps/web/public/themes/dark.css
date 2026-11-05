@@ -3294,6 +3294,26 @@
         background-color: color-mix(in srgb,var(--bg,#010207) 80%,transparent);
         border-color: var(--line,#2a325a)
     }
+    .ai-chat-via .ai-chat-premium-badge:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: transparent
+    }
+    .ai-chat-via .ai-chat-premium-badge:not(#\-)::before {
+        border-color: #c664ff66;
+        background-image: linear-gradient(110deg, #0a011b99, #000c1caa);
+        background-color: transparent
+    }
+    .ai-chat-via .ai-chat-premium-badge:hover:not(#\-)::before {
+        border-color: #ff74beaa
+    }
+    @media (forced-colors: active) {
+        .ai-chat-via .ai-chat-premium-badge:not(#\-)::before {
+            border-color: LinkText;
+            background-image: none;
+            background-color: transparent
+        }
+    }
     .ai-stat:not(#\-) {
         box-shadow: inset 3px 0 0 color-mix(in srgb,var(--brand-cyan) 65%,transparent),0 14px 30px -26px color-mix(in srgb,var(--brand-violet) 70%,transparent)
     }
@@ -13098,7 +13118,7 @@
     .holo-meter[data-unknown] .holo-segs i:not(#\-) {
         background-image: none;
         background-color: transparent;
-        outline-color: #ffffff22
+        border-color: #ffffff22
     }
     .holo-meter-value small:not(#\-) {
         color: #c9d4ea
@@ -19619,6 +19639,9 @@
     }
     .task-label:not(#\-) {
         color: var(--text-secondary, var(--muted))
+    }
+    .task-sub[data-only-new]:not(:focus-within):not(#\-) {
+        border-color: currentcolor
     }
     .tasks-column:not(#\-) {
         border-color: var(--line, rgba(128, 128, 160, .25))

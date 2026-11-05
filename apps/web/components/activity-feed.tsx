@@ -42,7 +42,7 @@ import { getSleepActivities } from "../lib/health-sleep-activities";
 import { habitLifecycleRows } from "../lib/habit-lifecycle";
 import { getCounterActivities } from "../lib/health-counter-activities";
 import { ActivityReport } from "./activity/activity-report";
-import { localDate } from "../lib/local-date";
+import { useLocalToday } from "./use-local-today";
 import {REMOVAL_UNDO_MS} from '../lib/goals/goal-removal';
 import {SHOWCASE_ROW_SOURCE, isShowcaseRow, showcaseRowIds} from "./activity-showcase";
 import {showcaseDay} from "../lib/showcase-storage";
@@ -59,6 +59,8 @@ function emptyFor(category: string): {title: string; body: string; href?: string
 }
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts, report = false }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void; /** The Activity page's report card above the list (GAP-124). */ report?: boolean }) {
   const showcase = useShowcase();
+  // CI1 (product-visual, React #418): the report's day is the server's in the hydrated HTML, the browser's right after mount.
+  const today = useLocalToday();
   // Session AL fourth pass (PR-066, PR-099, N-170, D-227): which rows are the Showcase's own examples, from its records
   // (loaded only while the Showcase is on); a row the person added keeps its own source.
   const [seeded, setSeeded] = useState<ReadonlySet<string> | null>(null);
@@ -152,7 +154,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   const counts = JSON.stringify(Object.fromEntries(["ALL", "GOAL", "WEALTH", "HABIT", "HEALTH", ...(zigi.actions.length ? ["ZIGI"] : [])].map(c => [c, select(c).length])));
   useEffect(() => { onCounts?.(JSON.parse(counts) as Record<string, number>); }, [counts, onCounts]);
   return <div className="unified-activity">
-    {report && <ActivityReport rows={base.map(event => ({category: event.category, dayKey: activityDay(event)}))} habits={habits.data.habits} today={localDate()}/>}
+    {report && <ActivityReport rows={base.map(event => ({category: event.category, dayKey: activityDay(event)}))} habits={habits.data.habits} today={today}/>}
     {(habits.error || health.error) && <p className="fine">Some private history needs attention in Settings; stored data has been preserved.</p>}
     {showcase && <p className="activity-history-source">Showcase example history: rows marked “Showcase example” are fictional; what you add here is yours.</p>}
     {entries.length ? <ol>{entries.map((event, index) => {

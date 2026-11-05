@@ -25,3 +25,13 @@ export function useLocalToday() {
   }, []);
   return today;
 }
+/**
+ * CI1 (product-visual, React #418): "now" for text worded by whole days (a notice's date as passed or to come). The first
+ * render uses noon UTC of `initialDay()`, the same on the server and in the hydrating browser; the browser's own clock
+ * replaces it right after mount.
+ */
+export function useDayNow(): number {
+  const [now, setNow] = useState(() => Date.parse(`${initialDay()}T12:00:00Z`));
+  useEffect(() => { setNow(Date.now()); }, []);
+  return now;
+}

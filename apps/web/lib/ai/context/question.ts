@@ -126,7 +126,10 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   if (TIME_OF_DAY.test(tq)) { add('list_habits', {}); for (const habit of env.habits.habits.filter(hb => latestHabitRule(hb).state !== 'archived').slice(0, 3)) add('habit_checkins', {habit: clean(habit.title, 120), range: phrase('the last 14 days')}); }
   if (WEEKEND.test(tq)) add('steps', {range: phrase('the last 14 days')});
   const healthSubject = h.nutrient !== null || h.water || h.steps || h.active || h.weight || h.measurement || h.fasting || h.diary || h.counter !== null || h.sleep || h.meditation || h.vitals || h.devices;
-  if (!s.habits.length && !s.goals.length && !healthSubject && (HABIT_MEASURE.test(translateCues(q)) || WEEKEND.test(tq))) {
+  // CI4 (zigi-page-awareness-af): "explain this page" is about the screen, not pages read: with the screen named, "page" is
+  // no habit measure (it brought every habit's week, ~1,200 tokens, and pushed Today's first question past the budget).
+  const measured = PAGE_REF.test(q) ? translateCues(q).replace(/\b(?:pages?|pagina)\b/g, ' ') : translateCues(q);
+  if (!s.habits.length && !s.goals.length && !healthSubject && (HABIT_MEASURE.test(measured) || WEEKEND.test(tq))) {
     add('list_habits', {});
     for (const habit of env.habits.habits.filter(hb => latestHabitRule(hb).state !== 'archived').slice(0, 4)) { const rule = latestHabitRule(habit), timed = rule.measurement.kind === 'duration' || MIN_UNITS.test(measurementUnit(rule)); add('habit_stats', {habit: clean(habit.title, 120), range: phrase('this week'), metric: timed ? 'minutes' : rule.measurement.kind === 'boolean' ? 'count' : 'quantity'}); }
   }

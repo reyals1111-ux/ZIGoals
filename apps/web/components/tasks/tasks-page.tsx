@@ -236,11 +236,13 @@ export function TasksPage() {
       onMove={canMove ? step => reorder(t.id, step, sib) : undefined} drag={dragProps(t)} editor="inline"
       onSkip={t.recur && t.due && !t.doneAt ? () => list.change(r => skipOccurrence(r, t.id, today), `Skipped this time: “${t.title}” moves to its next day.`, `“${t.title}” is back on its day.`) : undefined}>
       {editId === t.id && <EditorBridge onClose={() => setEditId(null)} />}
-      {(kids.length > 0 || (depth < 3 && focusId === t.id && !t.doneAt)) && <div className="task-sub">
+      {/* CI1 (p6-keyboard, 2.4.3): "Add a subtask" is always in the page, so Shift+Tab finds it as Tab did; tasks.css keeps it out
+          of sight (still focusable) until its row has the focus, so a row still grows only with its focus. */}
+      {(kids.length > 0 || (depth < 3 && !t.doneAt)) && <div className="task-sub" data-only-new={!kids.length && !open && focusId !== t.id ? '' : undefined}>
         {kids.length > 0 && <button type="button" className="text-link task-sub-toggle" aria-expanded={open} onClick={() => setExpanded(s => { const n = new Set(s); if (n.has(t.id)) n.delete(t.id); else n.add(t.id); return n; })}>{open ? 'Hide subtasks' : `Subtasks (${kids.filter(k => k.doneAt).length}/${kids.length})`}</button>}
         {open && <ul className="tasks-list task-children" aria-label={`Subtasks of “${t.title}”`}>{kids.map(k => row(k, depth + 1))}</ul>}
         {open && !t.doneAt && depth < 3 && <SubtaskAdd parent={t} onAdd={title => list.add({title, parentId: t.id, ...(t.projectId ? {projectId: t.projectId} : {}), ...(t.sectionId ? {sectionId: t.sectionId} : {})})} />}
-        {!kids.length && !open && !t.doneAt && depth < 3 && focusId === t.id && <button type="button" className="text-link task-sub-toggle" onClick={() => setExpanded(s => new Set(s).add(t.id))}>Add a subtask</button>}
+        {!kids.length && !open && !t.doneAt && depth < 3 && <button type="button" className="text-link task-sub-toggle" onClick={() => setExpanded(s => new Set(s).add(t.id))}>Add a subtask</button>}
       </div>}
     </TaskRow>;
   };

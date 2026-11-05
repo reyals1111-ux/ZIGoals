@@ -56,10 +56,19 @@
 @media (prefers-reduced-motion:reduce){.ai-jump-latest{transition:none}}
 /* Gate C (persona round): the keyboard tip only where a keyboard is likely (a fine pointer or hover). */
 @media (hover:none) and (pointer:coarse){.ai-tips .ai-tip-keyboard{display:none}}
+
+/* Session AL (O2): the Premium badge in the panel's header. CI4 (zigi-face-z): the full words took ~230 px of a ~256 px status
+   line and squeezed the model switcher to a few pixels; here it reads "Premium" (the full words are its name and tip), its
+   box is the 44 px target and the pill is drawn inside it, and where the line is under 240 px it gives way to the status. */
+.ai-chat-via .ai-chat-premium-badge { flex: none; isolation: isolate; min-height: 44px; margin: -13px 0 -13px 2px; padding: 0 10px; border-color: transparent; background: none; font-size: 13px; }
+.ai-chat-via .ai-chat-premium-badge::before { content: ""; position: absolute; inset: 10px 0; z-index: -1; border: 1px solid #c664ff66; border-radius: 999px; background: linear-gradient(110deg, #22104099, #0d2a44aa); }
+.ai-chat-via .ai-chat-premium-badge:hover::before { border-color: #ff74beaa; }
+.ai-chat-via .ai-chat-premium-badge::after { inset: 0; }
+@container zigi-identity (max-width: 239.98px) { .ai-chat .ai-chat-premium-badge { display: none; } }
+@media (forced-colors: active) { .ai-chat-via .ai-chat-premium-badge::before { border-color: LinkText; background: none; } }
+
+/* Session AL: later rules sit above the AK G3 block, which stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
 /* Session AK (G3): the ZIGi panel's figure cards get the richer card (the panel's chrome only; ZIGi's own look is
    untouched): depth from a soft violet shadow and the nebula's cyan along the left edge. Theme tokens only, no motion. */
 .ai-stat{box-shadow:inset 3px 0 0 color-mix(in srgb,var(--brand-cyan) 65%,transparent),0 14px 30px -26px color-mix(in srgb,var(--brand-violet) 70%,transparent)}
 @media (forced-colors:active){.ai-stat{box-shadow:none}}
-/* Session AL (O2): the Premium badge in the panel's header, a little smaller than on Settings; its target stays 44 px tall. */
-.ai-chat-via .ai-chat-premium-badge { min-height: 28px; padding: 2px 10px; font-size: 13px; margin-inline-start: 6px; }
-.ai-chat-via .ai-chat-premium-badge::after { inset: -8px 0; }

@@ -39,12 +39,14 @@ describe('T4 export everything', () => {
     expect(checkIns.length).toBe(entries + 1); expect(entries).toBeGreaterThanOrEqual(180);
     expect(checkIns.some(l => l.includes('"skipped"'))).toBe(true);
     const links = homeRecordsIn(records).habitLinks, marked = links.applied.filter(a => !a.undone);
-    expect(marked.length).toBe(12);
+    // Session AL (Part 13, deliberate): the Showcase's Drink water habit is linked to the water journal, so its ticked
+    // days carry automatic check-in markers too (12 for Walk's steps, 26 for water).
+    expect(marked.length).toBe(38);
     const withAuto = checkIns.slice(1).filter(l => !l.endsWith(',""'));
-    expect(withAuto.length).toBe(12);
+    expect(withAuto.length).toBe(38);
     for (const a of marked) expect(checkIns.some(l => l.startsWith(`"${a.habitId}"`) && l.includes(`"${a.date}"`) && l.endsWith(`"${a.appliedAt}"`)), `${a.habitId} ${a.date}`).toBe(true);
     const health = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!));
-    expect(lines(collected.csv['water.csv']).length).toBe((health.daily?.water.length ?? 0) + 1); expect(health.daily?.water.filter(w => !w.id.includes('earlier')).length).toBe(24); expect(health.daily?.water.filter(w => w.id.includes('earlier')).length).toBe(20); // Part 8's earlier season, 60–89 days back
+    expect(lines(collected.csv['water.csv']).length).toBe((health.daily?.water.length ?? 0) + 1); /* Session AL (Part 13, deliberate): each ticked Drink water day now holds its 2 L in the journal */ expect(health.daily?.water.filter(w => !w.id.includes('earlier')).length).toBe(54); expect(health.daily?.water.filter(w => w.id.includes('earlier')).length).toBe(20); // Part 8's earlier season, 60–89 days back
     expect(collected.csv['health-diary.csv']).toBe(exportHealthCsv(health, '1900-01-01', '2199-12-31'));
     expect(lines(collected.csv['weights.csv']).length).toBe(health.weights.length + (health.measurements ?? []).filter(m => m.kind === 'weight').length + 1);
     expect(lines(collected.csv['habits.csv']).length).toBe(habits.habits.length + 1);

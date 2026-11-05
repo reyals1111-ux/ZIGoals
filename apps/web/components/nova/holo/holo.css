@@ -50,6 +50,8 @@
    wraps over the body — the title gives way with an ellipsis, and a small panel's link is an arrow-only 44 px target. */
 .nova-widget[data-holo] .holo-act + .nova-widget-open { margin-left: 0; }
 .nova-widget[data-holo] .nova-widget-head { flex-wrap: nowrap; gap: 0 4px; }
+/* CI4 (nova-dashboard): a long title ("Next bill and contribution") squeezed the bolt and the page link under 44 px; they keep their size and the title gives way. */
+.nova-widget[data-holo] .nova-widget-head > :is(.holo-act, .nova-widget-open) { flex: none; }
 .nova-widget[data-holo] .nova-widget-head h3 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nova-widget[data-holo] .nova-widget-open-arrow { justify-content: center; width: 44px; padding: 0; font-size: 18px; }
 .nova-widget[data-holo]:hover { border-color: var(--neon, #9273ff); }
@@ -271,6 +273,12 @@
   .nova-frame[data-look=holo]:not([data-phone]) .nova-focus-hero .nova-stage[data-holo-core] :is(.nova-greeting, .nova-dayline) { display: none; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-focus-hero .nova-stage[data-holo-core] { --orb: clamp(64px, calc((100cqb - 206px) / 1.48), 220px); }
 }
+/* CI4 (p3-nova-polish ND-1, 1440 × 900 with an empty device): the star's column had no definite height, so its spacer row grew
+   with the words under the star (the unknown rings' reasons) and pushed the day line under the command field. The column is
+   now its stage's height, the spacer takes what is left above the star, and the star is a little smaller on short stages
+   (22 % of the stage's height, was 24 %), so the star stays near the middle and every line stays above the field. */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre { grid-template-rows: minmax(0, 1fr); }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre > .nova-stage[data-holo-core] { --orb: clamp(112px, min(16cqi, 22cqb), 220px); grid-template-rows: minmax(0, 1fr) auto auto; }
 /* M4: a narrow stage (a tablet, ≤ 800 px) shows the star at its own height (it used to take the whole first screen) and the
    panels under it in one column of up to 560 px, each as tall as its content, so the first view holds the HUD and no value
    runs past its panel (two 245 px columns cut them). */
