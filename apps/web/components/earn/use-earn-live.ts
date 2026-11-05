@@ -2,6 +2,7 @@
 import {useEffect, useState} from 'react';
 import type {FamilyData, LiveState} from '../../lib/earn/client';
 import {EARN_FAMILIES, type EarnFamily} from '../../lib/earn/families';
+import {askRoute} from '../../lib/earn/ask-route';
 import {browserPollEnv, visiblePoll} from '../../lib/earn/visible-poll';
 import {useDayNow} from '../use-local-today';
 
@@ -9,6 +10,9 @@ import {useDayNow} from '../use-local-today';
  * CI14 (page weights; budgets are never raised): the readers (lib/earn/client.ts with its answer schemas) and the snapshot
  * ZIGi quotes are a chunk of their own, asked for as soon as this module loads; every read waits for them before it asks
  * its route, so the page shows "reading" exactly as long as before plus, at most, that chunk's arrival.
+ * CI20 (CI 1575, ecosystem-cards:33): the route is asked the moment the read starts, as before CI14 (lib/earn/ask-route.ts,
+ * a few lines); only the checking of its answer waits for that chunk. Waiting for the chunk before asking had moved
+ * Ecosystem's one DefiLlama read on mount past the page's ready mark, into the time a person opens a card.
  */
 const loadReaders = () => Promise.all([import('../../lib/earn/client'), import('../../lib/earn/snapshot')]);
 if (typeof window !== 'undefined') void loadReaders().catch(() => undefined);
@@ -24,10 +28,12 @@ export function useEarnLive<F extends EarnFamily>(family: F): LiveState<FamilyDa
     const {pollMs} = EARN_FAMILIES[family];
     // The visibility gate and the cadence live in lib/earn/visible-poll.ts (unit-tested); this is what one read does.
     const read = async () => {
+      const asked = askRoute(EARN_FAMILIES[family].path);
       let readers: Awaited<ReturnType<typeof loadReaders>>;
       try { readers = await loadReaders(); } catch { if (alive) setState(current => current.phase === 'loading' ? {phase: 'unavailable', reason: 'UPSTREAM_DOWN'} : current); return; }
-      const [{readEarn, readValidators}, {recordEarnSnapshot}] = readers;
-      const next = (family === 'validators' ? await readValidators() : await readEarn(family as Exclude<EarnFamily, 'validators'>)) as LiveState<FamilyData[F]>;
+      const [{earnAnswer, validatorsAnswer}, {recordEarnSnapshot}] = readers;
+      const got = await asked;
+      const next = (family === 'validators' ? validatorsAnswer(got) : earnAnswer(got)) as LiveState<FamilyData[F]>;
       // Session AF (L4, H69): what the page shows also goes into the device-side snapshot ZIGi quotes (memory only).
       if (alive) setState(current => recordEarnSnapshot(family, next.phase === 'unavailable' && current.phase === 'ok' && Date.now() - Date.parse(current.answer.fetchedAt) < 10 * 60_000 ? {phase: 'ok', answer: {...current.answer, stale: true, reason: next.reason === 'NOT_IN_THIS_BUILD' ? undefined : next.reason}} : next));
     };

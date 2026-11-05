@@ -8,6 +8,9 @@ import type {ChainData, DefillamaData, MeasuredData, OroswapData, ValdoraData, V
  */
 // CI14 (weights): the families and their cadence live in families.ts (the Earn page reads them before this reader loads).
 import {EARN_FAMILIES, type EarnFamily} from './families';
+// CI20: the ask itself (fetch, same-origin, never throws) lives in ask-route.ts, so the live hook asks on mount and only
+// the checking of the answer waits for this chunk; readEarn / readValidators ask and check in one call, as before.
+import {askRoute, type RouteAnswer} from './ask-route';
 export {EARN_FAMILIES, type EarnFamily};
 export type FamilyData = {chain: ChainData; valdora: ValdoraData; oroswap: OroswapData; defillama: DefillamaData; validators: ValidatorsAnswer; vaults: VaultsData; measured: MeasuredData};
 /** A good answer as the page shows it: its source (a name; the host that answered when the route names it), block and times. */
@@ -19,23 +22,19 @@ export type LiveState<T> =
   | {phase: 'unavailable'; reason: UnavailableReason | 'NOT_IN_THIS_BUILD'; source?: {name: string; origin?: string}};
 
 const plain = (reason: UnavailableReason | 'NOT_IN_THIS_BUILD') => ({phase: 'unavailable' as const, reason});
-async function get(url: string): Promise<{status: number; body: unknown}> {
-  if (!url.startsWith('/api/')) throw new Error('Earn reads only the app\'s own routes.');
-  const response = await fetch(url, {method: 'GET', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', redirect: 'error', signal: AbortSignal.timeout(40_000)});
-  const text = await response.text();
-  if (text.length > 3_000_000) return {status: 0, body: null};
-  try { return {status: response.status, body: JSON.parse(text)}; } catch { return {status: response.status, body: null}; }
-}
 const envelope = liveEnvelopeSchema(z.record(z.string(), z.unknown()));
 /** One of the /api/earn/* families, as a page state. */
 export async function readEarn<F extends Exclude<EarnFamily, 'validators'>>(family: F): Promise<LiveState<FamilyData[F]>> {
-  let got: {status: number; body: unknown};
-  try { got = await get(EARN_FAMILIES[family].path); } catch (error) { return plain(error instanceof Error && error.name === 'TimeoutError' ? 'TIMEOUT' : 'UPSTREAM_DOWN'); }
+  return earnAnswer<FamilyData[F]>(await askRoute(EARN_FAMILIES[family].path));
+}
+/** What one /api/earn/* answer means for the page (CI20: the check, apart from the ask). */
+export function earnAnswer<T>(got: RouteAnswer): LiveState<T> {
+  if ('failed' in got) return plain(got.timeout ? 'TIMEOUT' : 'UPSTREAM_DOWN');
   if (got.status === 404) return plain('NOT_IN_THIS_BUILD');
   const parsed = envelope.safeParse(got.body);
   if (!parsed.success) return plain(got.status === 429 ? 'RATE_LIMITED' : got.status >= 500 || got.status === 0 ? 'UPSTREAM_DOWN' : 'MALFORMED');
   if (parsed.data.status === 'unavailable') return {phase: 'unavailable', reason: parsed.data.reason, source: parsed.data.source};
-  return {phase: 'ok', answer: parsed.data as unknown as LiveAnswer<FamilyData[F]>};
+  return {phase: 'ok', answer: parsed.data as unknown as LiveAnswer<T>};
 }
 
 /**
@@ -63,8 +62,11 @@ export type Validator = z.infer<typeof validatorSchema>;
 export type ValidatorsAnswer = z.infer<typeof validatorsSchema> & {fetchedAt: string};
 const LCD_NAMES: Readonly<Record<string, string>> = {'https://api.zigchain.com': 'ZIGChain mainnet LCD (official)', 'https://testnet-api.zigchain.com': 'ZIGChain testnet LCD (official)'};
 export async function readValidators(): Promise<LiveState<ValidatorsAnswer>> {
-  let got: {status: number; body: unknown};
-  try { got = await get(EARN_FAMILIES.validators.path); } catch { return plain('UPSTREAM_DOWN'); }
+  return validatorsAnswer(await askRoute(EARN_FAMILIES.validators.path));
+}
+/** What one validators answer means for the page (CI20: the check, apart from the ask). */
+export function validatorsAnswer(got: RouteAnswer): LiveState<ValidatorsAnswer> {
+  if ('failed' in got) return plain('UPSTREAM_DOWN');
   if (got.status === 404) return plain('NOT_IN_THIS_BUILD');
   const parsed = validatorsSchema.safeParse(got.body);
   // crit1: a route that answers 5xx (or nothing) did not answer; only a readable answer in the wrong shape is MALFORMED (as readEarn).

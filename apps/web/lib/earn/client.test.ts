@@ -1,7 +1,8 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import live from './fixtures/live-2026-10-19.json';
 import validators from './fixtures/validators-2026-10-19.json';
-import {readEarn, readValidators} from './client';
+import {earnAnswer, readEarn, readValidators, validatorsAnswer} from './client';
+import {askRoute} from './ask-route';
 import {bps, duration, large, pct, pctShort, tokenAmount, updatedAgo, zig} from './format';
 
 /** Session AF (L1): the Earn page's reads and its number formats. */
@@ -48,6 +49,20 @@ describe('the page reads only its own routes and shows nothing it cannot check',
     expect(await readValidators()).toEqual({phase: 'unavailable', reason: 'UPSTREAM_DOWN'});
     respond(429, {error: 'slow down'});
     expect(await readValidators()).toEqual({phase: 'unavailable', reason: 'RATE_LIMITED'});
+  });
+  // CI20: the live hook asks first (askRoute, never throws) and checks once the readers' chunk is in; the same states.
+  it('the ask alone never throws, refuses another origin, and its answer is checked exactly as readEarn checks it', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => { throw Object.assign(new Error('late'), {name: 'TimeoutError'}); }));
+    const late = await askRoute('/api/earn/chain?network=mainnet');
+    expect(late).toEqual({failed: true, timeout: true});
+    expect(earnAnswer(late)).toEqual({phase: 'unavailable', reason: 'TIMEOUT'});
+    const fetch = vi.fn(async () => new Response('{}'));
+    vi.stubGlobal('fetch', fetch);
+    expect(await askRoute('https://api.llama.fi/protocols')).toEqual({failed: true, timeout: false});
+    expect(fetch).not.toHaveBeenCalled();
+    expect(validatorsAnswer({failed: true, timeout: true})).toEqual({phase: 'unavailable', reason: 'UPSTREAM_DOWN'});
+    respond(200, live.answers.valdora);
+    expect(earnAnswer(await askRoute('/api/earn/valdora'))).toEqual(await readEarn('valdora'));
   });
 });
 
