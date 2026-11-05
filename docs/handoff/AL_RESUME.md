@@ -47,28 +47,20 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - One production build per integration point, shared; never one per helper.
 - Weekly reset: Sunday 12:00 Brussels; no extra usage. Before the limit: all committed and pushed, this file current, the task list true; never commit a half-finished fix.
 
-## Lanes in flight (6 Nov, afternoon)
-- **Committed since the last update (head `3b2c5462`):** sweep 4; the Settings fold (D-088); L8g (HUD still under Motion Off);
-  L7 fourth pass (safety L7-4a + answers L7-4b) and Q14; FX-G53c; the R4 capture-handler sweep; CI4's ZIGi spec updates
-  and the browser-agents fix; replay L1 round 2 (7 STILL OPEN, 7 CHANGED, no regressions); ADR-037 closing table.
-- **Running (4 helpers, the owner's cap until CI is green):** CI1 (themes/visual), CI2 (health/habits), CI3 (money/goals/
-  packaged runtime), CI5 (shell/onboarding/Help/Earn/PWA, Alpha gate manifest hash).
-- **CI4 paused at the cap (resume when a slot frees):** not started — nova-dashboard, p3-nova-polish, zigi-phone-rest,
-  zigi-plans-af, zigi-proactive, zigi-states and zigi-earn-coach-af (WebKit only). Edited but NOT yet run (uncommitted):
-  tests/zigi-alive.spec.ts (O3/Q8), tests/journeys/j12-nova.spec.ts (O4). App bugs found, for the resumed lane:
-  (1) zigi-face-z — the Premium badge in ZIGi's status line squeezes the model switcher to 4–15 px at 320–768 px
-  (components/ai/ai-chat.tsx:308, chat-polish.css:64, panel-z.css:34/183); (2) zigi-page-awareness-af desktop — the first
-  short question on Today hits the default 10,000-token budget prompt (page data ~2,098 tokens, ~7.9k fixed prompt;
-  lib/ai/settings.ts:22): find what grew the fixed prompt, never raise the budget silently.
-- **Theme sheets** must be regenerated (node scripts/themes/build-themes.mjs) once CI1–CI5 have landed their CSS.
-- **Servers:** :3103 serves `54e32039` (/home/user/zig-branch2) for every helper; :3101 `c521574f` (old); :3102 main.
+## Lanes in flight (6 Nov, evening)
+- **All CI fix lanes are committed (head `18330e5e`, tree clean):** CI1 `305cb322`, CI2 `2decc91b`, CI3 `0bd34036`,
+  CI4 `db3d9bd2` + `18330e5e`, CI5 `f982d6a9` (TIER 3) + `9148262a`, CI6 `c8d78e0e`, CI7 in `18330e5e`; verifier pin
+  `f4079ea9` (TIER 3); theme sheets regenerated. Full unit suite: only the sandbox-only pre-run11-setup failure left.
+- **No helper running.** CI runs on `18330e5e`; :3103 is being rebuilt at `18330e5e` (one shared build).
+- **Open from the CI lanes (not CI failures):** PR-069 path label numbers closed by owner amendment 10 until O6's
+  distinctPathLabels is switched on; Earn/Settings deeper folds beyond D-088's; CI5's request to register
+  `markets-view` (no code uses it — check before adding).
+- **Servers:** :3103 → `18330e5e` (/home/user/zig-branch2); :3101 `c521574f` (old); :3102 main.
 
 ## Exact next step
-1. Commit CI1, CI2, CI3, CI5 as each reports (typecheck + their tests); resume CI4's remainder in the first free slot.
-2. Regenerate theme sheets; push; one build of the head on :3103; let CI run on the head; fix what is left; one re-run per known intermittent.
-3. Once CI is green: replay round 2 in the order L7, L3, L2, L5, L4, L6, L8 (at most 5 helpers; replays read only their lane's AL rows and per id that finding's steps).
-4. Regenerate ADR-037's closing table after each replay (docs/review/session-al/tools/closing_table.py).
-5. After the weekly reset: the L1 fifth pass (TK-199 GBP symbol, TK-191 bluetooth policy warning, TK-024, TK-149, TK-196, D-155, the 7 CHANGED), Parts 13–16, ONE A10 cycle, Part 17.
+1. Read CI on `18330e5e`; fix what is left at its cause (≤ 4 helpers until green; one re-run per known intermittent, docs/review/session-al/CI_INTERMITTENTS.md).
+2. Once CI is green: replay round 2 in the order L7, L3, L2, L5, L4, L6, L8 on :3103 (≤ 5 helpers; replays read only their lane's AL rows and per id that finding's steps); regenerate ADR-037's closing table after each (docs/review/session-al/tools/closing_table.py).
+3. After the weekly reset: the L1 fifth pass (TK-199 GBP symbol, TK-191 bluetooth policy warning, TK-024, TK-149, TK-196, D-155 and the 7 CHANGED), Parts 13–16, ONE A10 cycle, the final full replay round, Part 17.
 
 ## Open readings
 Q1–Q5 are in ADR-037.
