@@ -1,4 +1,4 @@
-import {expect, test, type Page} from '@playwright/test';
+import {expect, test, type Locator, type Page} from '@playwright/test';
 import {fixturePath, seedChecklist, settled, stored} from '../../checklist-fixtures';
 import {HEALTH_STORAGE_KEY} from '../../../lib/health';
 import {addFavourite} from '../../../lib/checklist/store';
@@ -20,7 +20,15 @@ async function open(page: Page) {
 async function editPath(page: Page) {
   await page.getByRole('button', {name: 'Checklist menu'}).click().catch(() => undefined);
   await page.getByRole('button', {name: 'Edit path', exact: true}).click();
-  return page.getByRole('region', {name: 'Edit path'});
+  const edit = page.getByRole('region', {name: 'Edit path'});
+  // Session AL (fix-up, spec): allTextContents() does not wait, so wait for the rows before reading their order.
+  await expect(edit.locator('.checklist-edit-label strong').first()).toBeVisible();
+  return edit;
+}
+/** A row's Remove sits in its "Change …" controls (components/checklist/edit-path.tsx), so open them first. */
+async function takeOff(edit: Locator, name: string) {
+  await edit.getByRole('button', {name: `Change ${name}: orbit, colour, place`, exact: true}).click();
+  await edit.getByRole('button', {name: `Take ${name} off your path`, exact: true}).click();
 }
 
 test('LS-058 / P-LS-08: three quick removals, one Undo puts all three back in their places', async ({page}) => {
@@ -31,7 +39,7 @@ test('LS-058 / P-LS-08: three quick removals, one Undo puts all three back in th
   expect(before.length).toBeGreaterThanOrEqual(3);
   const [a, , c] = before;
   const last = before.at(-1)!;
-  for (const name of [a!, c!, last]) await edit.getByRole('button', {name: `Take ${name} off your path`, exact: true}).click();
+  for (const name of [a!, c!, last]) await takeOff(edit, name);
   await expect.poll(order).toEqual(before.filter(n => ![a, c, last].includes(n)));
   const toast = page.locator('.aa-toast');
   await expect(toast).toHaveCount(1);
@@ -46,7 +54,7 @@ test('P-LS-08: one removal keeps its own words and Undo', async ({page}) => {
   const edit = await editPath(page);
   const order = () => edit.locator('.checklist-edit-label strong').allTextContents();
   const before = await order(), name = before[1]!;
-  await edit.getByRole('button', {name: `Take ${name} off your path`, exact: true}).click();
+  await takeOff(edit, name);
   const toast = page.locator('.aa-toast');
   await expect(toast).toContainText(`${name} is off your path. Its records stay on its page.`);
   await toast.getByRole('button', {name: 'Undo', exact: true}).click();

@@ -95,6 +95,10 @@ test('NB-240: with Health hidden, Quick add offers no Health shortcut; shown aga
   await expect(actions.getByText('Habit', {exact: true})).toBeVisible();
   await expect(actions.getByText(/^Health entry/)).toHaveCount(0);
   await page.keyboard.press('Escape');
+  // Session AL (fix-up, spec): closing Quick add takes its Back entry out with history.back() (components/use-back-closes.ts);
+  // a goto sent before that step lands is aborted (ERR_ABORTED), so wait for the sheet to close and the entry to go.
+  await expect(page.locator('dialog.quick-add-dialog[open]')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => !(history.state as Record<string, unknown> | null)?.__zigoalsLayer)).toBe(true);
   await ready(page, '/app/settings');
   await page.getByRole('region', {name: 'Your pages & buttons', exact: true}).getByRole('switch', {name: 'Health', exact: true}).click();
   await ready(page, '/app/habits');

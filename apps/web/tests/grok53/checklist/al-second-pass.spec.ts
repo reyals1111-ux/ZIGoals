@@ -51,6 +51,8 @@ test('PR-070: arrow presses move one place each; at the very top the status says
   await page.getByRole('button', {name: 'Edit path', exact: true}).click();
   const edit = page.getByRole('region', {name: 'Edit path'});
   const order = () => edit.locator('.checklist-edit-label strong').allTextContents();
+  // Session AL (fix-up, spec): allTextContents() does not wait, so wait for the rows before reading their order.
+  await expect(edit.locator('.checklist-edit-label strong').first()).toBeVisible();
   const first = (await order())[0]!;
   await edit.getByRole('button', {name: `Move ${first}: drag, or use the arrow keys`}).press('ArrowUp');
   await expect(edit.getByRole('status')).toContainText(`${first} is already first on your path.`);

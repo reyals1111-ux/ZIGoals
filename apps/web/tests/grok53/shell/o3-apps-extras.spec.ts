@@ -77,6 +77,9 @@ for (const width of WIDTHS) {
 }
 
 test('the sheet: every switched-on entry, focus kept inside, Escape and focus back, 44 px targets (375, Showcase)', async ({page}) => {
+  // Session AL (fix-up, spec): nine page loads (each with ready()'s 600 ms wait) take ~30 s alone and ran out of the default
+  // 45 s on the last step under a 2-worker run; the same budget as the width tests above.
+  test.setTimeout(120_000);
   await page.setViewportSize({width: 375, height: 812});
   await loadShowcase(page);
   await ready(page, '/app/settings');

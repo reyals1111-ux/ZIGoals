@@ -95,7 +95,9 @@ test('DV-193 / DV-194: the Agenda filter shows it opens; a month says what its d
 test('P-LS-08: Ctrl+Z on Tasks never fires inside a text field', async ({page}) => {
   await freshTasks(page, {tasks: record([task('task_a', 'Fictional A', {due: DAY})])});
   await page.goto('/app/tasks');
-  await page.getByRole('checkbox', {name: 'Mark “Fictional A” done'}).check();
+  // Session AL (fix-up, spec): click, not check(): once done the row leaves the open list (its box is renamed "… not done"),
+  // so check() waits for a box that is gone. The stored doneAt below is the proof.
+  await page.getByRole('checkbox', {name: 'Mark “Fictional A” done'}).click();
   await expect.poll(async () => !!(await storedTasks(page))!.tasks[0]!.doneAt).toBe(true);
   await page.getByRole('form', {name: 'Add a task'}).getByLabel('New task').focus();
   await page.keyboard.press('Control+z');
