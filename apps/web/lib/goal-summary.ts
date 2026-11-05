@@ -1,7 +1,7 @@
 /** One presentation contract; private and legacy financial records remain separate. */
 import {goalAssetMix,type AssetMix} from './wealth';
 import Decimal from 'decimal.js';
-import {displayLocale,formatExactNumber,formatMoney,formatPlainDecimal,isMoneyCurrency,moneyMagnitude} from './visual-format';
+import {displayLocale,formatPlainDecimal,moneyMagnitude} from './visual-format';
 import {formatUnits} from '@zigoals/chain-config';
 import {evaluateGoal} from '@zigoals/goal-engine';
 import type {GoalMetadata} from '@zigoals/shared-types';
@@ -13,18 +13,11 @@ import {effectiveContributionPlan,planDay,planZone} from './plan-revisions';
 import {fundingHealth} from './goal-intelligence';
 import {localDate} from './local-date';
 import { plural } from './plural';
-import {isOwnUnitGoal,isUnitWord,unitAmount,unitWord} from './goals/goal-units';
+import {isOwnUnitGoal} from './goals/goal-units';
+import {formatGoalAmount} from './goals/goal-amount-text';
 import {goalReached} from './goals/finished';
 import {goalValueReason} from './goals/value-reason';
 import {releasedByArchive} from './goals/released';
-const HUGE=new Decimal('1e18');
-/** A legacy amount of 10^18 or more (past every cap), written compactly ("$100,000,000T"); the exact digits stay in the record. */
-function hugeAmount(d:Decimal,currency:string,locale:string){
- const n=d.toNumber();
- if(isMoneyCurrency(currency))try{return new Intl.NumberFormat(locale,{style:'currency',currency,notation:'compact',maximumFractionDigits:1}).format(n);}catch{/* below */}
- const text=new Intl.NumberFormat(locale,{notation:'compact',maximumFractionDigits:1}).format(n);
- return `${text} ${isUnitWord(currency)?unitWord(currency):currency}`;
-}
 /**
  * How far the shown progress can be trusted (Session I, Part 10). 'at-least': some sources have no value yet, so the
  * figures are a lower bound (QA-38); 'unavailable': nothing has a value yet, or the Goal is a simulated-ZIG Goal in
@@ -32,19 +25,8 @@ function hugeAmount(d:Decimal,currency:string,locale:string){
  */
 export type ProgressBound='at-least'|'unavailable';
 export type GoalSummary={/** Session AL third pass (MO-160): why no source has a value, when one reason covers them all. */valueReason?:string;/** Session AL third pass (TK-196): archived assets that stopped counting, not yet reviewed. */released?:number;/** Session AL (P-DV-22): true on a closed Goal that reached its target first (lib/goals/finished.ts isFinished). */reached?:boolean;progressBound?:ProgressBound;unvaluedSources?:number;heldAsset?:string;assetMix?:AssetMix[];key:string;id:string;href:string;name:string;type:string;source:string;status:'active'|'completed'|'closed';scene:'horizon'|'mountains'|'home'|'garden'|'aurora';current:string;target?:string;currency:string;progressPct:string;remaining?:string;targetDate?:string;nextContributionDate?:string|null;fundingHealth:string;requiresReview:boolean;valuationLabel?:string;metadata:{label:string;value:string}[]};
-/** Money (an ISO currency) always shows its minor digits (Session I, Part 5); quantities (ZIG, BTC, milestones) are unchanged. */
-export function formatGoalAmount(value:string,currency:string,locale=displayLocale()){
- if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value))return 'Unavailable';
- const decimal=new Decimal(value);if(!decimal.isFinite())return 'Unavailable';
- // Session AL (DV-054/DV-057d/DV-084b/DV-125, D-195): a value saved before the trillion cap (1e20, 1e28) reads short, never
- // as 29 digits that break a card, Today or Activity. New values are refused above a trillion (lib/goals/goal-amount.ts).
- if(decimal.abs().gte(HUGE))return hugeAmount(decimal,currency,locale);
- // Session AL (DV-014): a count Goal's own word reads "20 books" / "1 book", never "20 BOOKS" or a coin symbol.
- if(!isMoneyCurrency(currency)&&isUnitWord(currency))return unitAmount(decimal.toDecimalPlaces(2,Decimal.ROUND_DOWN).toNumber(),currency);
- if(isMoneyCurrency(currency))return formatMoney(value,currency,locale,{display:currency==='USD'||currency==='EUR'?'symbol':'code'});
- const n=decimal.toDecimalPlaces(currency==='ZIG'?6:2,Decimal.ROUND_DOWN).toFixed();
- return `${formatExactNumber(n,locale)} ${currency}`;
-}
+// CI13 (weights): in lib/goals/goal-amount-text.ts (no Wealth or Goals engine), re-exported here unchanged.
+export {formatGoalAmount} from './goals/goal-amount-text';
 /**
  * A signed Goal or Wealth amount, written as "-" and its size (QA2-03). `exact` is the unsigned decimal: base units are
  * converted before the sign is added. A loss in money is cut away from zero, so it never reads smaller than it is.

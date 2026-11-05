@@ -9,9 +9,9 @@ import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings} f
 import {getAppStorage,isShowcase} from '../lib/showcase-storage';
 import {useShowcase} from './showcase-controls';
 import {encryptBackup,decryptBackup,backupFormatVersion} from '../lib/vault/backup';
-import {exportListSections,isListSection,restoreListSection,type ListSection} from '../lib/vault/backup-lists';
-import {RECORDS_SKIPPED,exportRecordSections,isRecordSection,restoreRecordSection,type RecordSection} from '../lib/vault/backup-records';
-import {summarizeBackupModules,type BackupModuleSummary} from '../lib/vault/backup-preview';
+import type {ListSection} from '../lib/vault/backup-lists';
+import type {RecordSection} from '../lib/vault/backup-records';
+import type {BackupModuleSummary} from '../lib/vault/backup-preview';
 import {LOCAL_LEDGER_KEY,LOCAL_PLANS_KEY,exportLocalSimulation,isOmittedLocalSimulation,restoreLocalSimulation} from '../lib/vault/local-simulation-backup';
 import {futureEntriesMessage} from './legacy-restore-clock';
 import {storageLockKey} from '../lib/showcase-storage';
@@ -19,6 +19,9 @@ import { formatDate, formatNumber } from '../lib/visual-format';
 import {plainErrorMessage} from '../lib/plain-error';
 type Domain='finance'|'habits'|'health'|'settings';
 type Section=Domain|'simulation'|ListSection|RecordSection;
+// CI13 (weights): the Tasks, Checklist and device-record sections pull Restore's whole record list (lib/restore/plan.ts),
+// so they load when a backup is made, previewed or restored, not with Settings.
+const sectionsLib=()=>Promise.all([import('../lib/vault/backup-lists'),import('../lib/vault/backup-records')]);
 export function PrivateVaultTools(){
  const finance=usePlatform(),habits=useHabits(),health=useHealth(),settings=usePrivateStore(DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings);
  const showcaseOn=useShowcase();
@@ -32,6 +35,7 @@ export function PrivateVaultTools(){
  async function run(work:()=>Promise<void>){if(busy)return;setBusy(true);setError('');setMessage('');try{await work();}catch(e){setError(plainErrorMessage(e, 'Operation failed. Existing records were preserved.'));}finally{setBusy(false);}}
  // Session AK G2 (RELEASE_REVIEW_2 R2-16): the per-module storage upgrade moved to Help & diagnostics (components/settings/storage-internals.tsx).
  async function makeBackup(){
+  const [{exportListSections},{exportRecordSections}]=await sectionsLib();
   if(isShowcase())throw Error('Return to your own data before backing up.');
   if(Object.values(stores).some(s=>!s.loaded||s.error))throw Error('Resolve unreadable data before creating a backup.');
   const selected=getAppStorage(),generation=getAccountGeneration();const fence=()=>{if(generation!==getAccountGeneration()||selected!==getAppStorage())throw Error('Account changed. Backup preparation was cancelled.');};
@@ -49,9 +53,10 @@ export function PrivateVaultTools(){
   const encrypted=await encryptBackup(sections);fence();setGenerated({...encrypted,warning});setSaved(false);
  }
  function download(){if(!generated||!saved)return;const url=URL.createObjectURL(new Blob([generated.file],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='zigoals-encrypted-backup-v1.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setGenerated(null);setSaved(false);setMessage(`Encrypted backup downloaded. Keep its recovery secret separately.${generated.warning?` ${generated.warning}`:''}`);}
- async function review(){const generation=getAccountGeneration();const parsed=await decryptBackup(file,secret);if(generation!==getAccountGeneration())throw Error('Account changed. Backup preview was cancelled.');const summary=summarizeBackupModules(parsed);setInventory(summary);setPreview(parsed);setRestored([]);setDomain(restorable(parsed)[0]!);setSecret('');setConfirm(false);}
+ async function review(){const {summarizeBackupModules}=await import('../lib/vault/backup-preview');const generation=getAccountGeneration();const parsed=await decryptBackup(file,secret);if(generation!==getAccountGeneration())throw Error('Account changed. Backup preview was cancelled.');const summary=summarizeBackupModules(parsed);setInventory(summary);setPreview(parsed);setRestored([]);setDomain(restorable(parsed)[0]!);setSecret('');setConfirm(false);}
  function restorable(sections:Partial<Record<Section,string>>){return (Object.keys(sections) as Section[]).filter(d=>d!=='simulation'||!isOmittedLocalSimulation(sections.simulation!));}
  async function restoreSelected(raw:string):Promise<string>{
+  const [{isListSection,restoreListSection},{RECORDS_SKIPPED,isRecordSection,restoreRecordSection}]=await sectionsLib();
   if(isRecordSection(domain)){const {skipped}=restoreRecordSection(getAppStorage(),domain,raw);return skipped?` ${RECORDS_SKIPPED(skipped)}`:'';}
   if(isListSection(domain)){restoreListSection(getAppStorage(),domain,raw);return '';}
   if(domain!=='simulation'){await stores[domain].importData(raw);return '';}

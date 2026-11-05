@@ -4,7 +4,7 @@ import {PriceAlertWatchGate} from '../price-alerts/watch-gate';
 import {showStatus,showUndo} from '../ui/undo-toast';
 import {reinsertFavourite} from '../../lib/wealth-undo';
 import {ProgressSlot} from '../progress/slot';
-import {ValueSources} from '../bottom-sections';
+import {ValueSources} from '../bottom-value-sources';
 import {LayoutLockButton,LayoutPage,LayoutRegion} from '../layout-edit';
 import Link from 'next/link';
 import {useEffect,useRef,useState} from 'react';

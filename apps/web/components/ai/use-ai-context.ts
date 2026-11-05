@@ -3,7 +3,7 @@ import {useCallback, useEffect, useMemo, useState, useSyncExternalStore} from 'r
 import {usePathname} from 'next/navigation';
 import {formatUnits} from '@zigoals/chain-config';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, visibleDomains} from '../../lib/dashboard-settings';
-import {reviewWindow} from '../../lib/weekly-review/engine';
+import {reviewWindow} from '../../lib/weekly-review/window'; // CI13: not the week summary
 import {emptyWeeklyReview, WEEKLY_REVIEW_KEY, type WeeklyReview} from '../../lib/weekly-review/schema';
 import {readWeeklyReview} from '../../lib/weekly-review/store';
 import {habitCalendarDay} from '../../lib/habits';

@@ -13,7 +13,7 @@ import { firstStepToday } from "../../lib/habits-extras/time-card";
 import "./habits.css";
 import "./habits-aa.css";
 import { SwipeRow } from "../swipe/swipe-row";
-import { habitsOnDay } from '../../lib/numbers/counts';
+import { habitsOnDay } from '../../lib/numbers/habit-counts'; // CI13: not Wealth's counts
 
 export function HabitsTodayBody() {
   const store = useHabits();

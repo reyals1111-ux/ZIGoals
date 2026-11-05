@@ -42,7 +42,7 @@ const WealthChanges=later(()=>import('./wealth-changes').then(m=>m.WealthChanges
 const FinancialEvidence=later(()=>import('./financial-evidence').then(m=>m.FinancialEvidence));
 const Watchlist=later(()=>import('./watchlist').then(m=>m.Watchlist),120);
 const CalculatorCard=later(()=>import('../calculator/calculator-card').then(m=>m.CalculatorCard));
-const WealthAllocationSection=later(()=>import('../bottom-sections').then(m=>m.WealthAllocationSection));
+const WealthAllocationSection=later(()=>import('../bottom-wealth-allocation').then(m=>m.WealthAllocationSection));
 // Session AF (L2b, Part 3, ADR-028 H16): the linked wallets' balances, read-only, in their own chunk (nothing renders until a wallet is linked).
 const WalletHoldings=lazy(()=>import('../wallet/wallet-holdings'));
 // Session AJ (item 36, D2b): a Bitcoin wallet watched by its public key (shown once one is watched or opened by #xpub).
@@ -94,7 +94,7 @@ import {SceneArt} from '../scene-art';
 import {AssetIcon,FreshnessBadge,Sheet} from './financial-ui';
 import {ManualSourceCards} from './manual-source-cards';
 import {useImportUndo} from '../import/use-import-undo';
-import {ImportBanner} from '../import/csv-import-steps';
+import {ImportBanner} from '../import/import-banner'; // CI13: not the CSV steps
 import {undoImport} from '../../lib/import/holdings';
 // Session Z-Cloud Part 5 (weights, ADR-019 C39): the holdings import loads when the person opens it.
 const HoldingsImportPanel=lazy(()=>import('../import/holdings-import').then(m=>({default:m.HoldingsImportPanel})));

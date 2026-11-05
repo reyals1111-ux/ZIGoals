@@ -1,6 +1,6 @@
 import {habitDay, habitRuleOn, type HabitData} from '../habits';
 import {goalXpEvents, type GameStores} from './xp';
-import {reviewState, reviewWindow} from '../weekly-review/engine';
+import {reviewState, reviewWindow} from '../weekly-review/window'; // CI13: not the week summary
 
 /**
  * Daily quests: three a day, picked deterministically from the day and the pages the person shows, each provable from

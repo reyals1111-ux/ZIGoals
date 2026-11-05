@@ -1,7 +1,7 @@
 "use client";
 import { readMonthWeekdays, setMonthWeekday } from "../../lib/habit-month-weekday/rule";
 import { refreshMonthWeekdays } from "../../lib/habit-month-weekday/install";
-import { HabitRhythmSection } from "../bottom-sections";
+import { HabitRhythmSection } from "../bottom-habit-rhythm";
 import { useJournalZone } from "../use-journal-zone";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";

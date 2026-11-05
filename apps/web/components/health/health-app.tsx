@@ -3,7 +3,7 @@ import { removedItems, reinsertItems } from "../../lib/undo-removal";
 import { announceHealthRemoval, measuresOfPaths } from "../../lib/health-events";
 import { showUndo } from "../ui/undo-toast";
 import { ProgressSlot } from "../progress/slot";
-import { HealthTrends } from "../bottom-sections";
+import { HealthTrends } from "../bottom-health-trends";
 import { useHealthToday } from "./use-health-today";
 import { INVISIBLE_NAME, visibleName } from "../../lib/visible-text";
 import { foodIssue, validateValue, within } from "../../lib/limits/plausibility";
@@ -72,7 +72,7 @@ import { useAutoCheckIns } from "../habits/use-auto-checkins";
 import { useFasting } from "./use-fasting";
 import { FastingTimer } from "./fasting-timer";
 import { useImportUndo } from "../import/use-import-undo";
-import { ImportBanner } from "../import/csv-import-steps";
+import { ImportBanner } from "../import/import-banner"; // CI13: not the CSV steps
 import { NutritionImportPanel } from "../import/nutrition-import";
 import { MealNamesEditor, useHealthExtras } from "./meal-names";
 import { MoodChip } from "./mood-chip";
@@ -84,14 +84,16 @@ import type { ImportRecord } from "../../lib/import/undo-schema";
 import {AdditionalNutrition} from "./additional-nutrition";
 import {additionalNutrients} from "../../lib/health";
 import {normalizeDecimalInput} from "../../lib/decimal-input";
-import {BodyMeasurements} from "./body-measurements";
+// CI13 (weights): the Measurements view's own card (and its chart) loads with that view, as MeasurementsAa does.
+const BodyMeasurements = lazy(() => import("./body-measurements").then((m) => ({ default: m.BodyMeasurements })));
 import { NutritionDashboard } from "./nutrition-dashboard";
 import { HealthQuickPicks, WaterJournal, MealsAndPlanning, HealthJournalSettings } from "./daily-tools";
 import { MealQuick, RepeatDay } from "./quick-log";
 import { dailyData, servingsFromMeasure, waterOn } from "../../lib/health-daily";
-import { EvidenceChart } from "../platform/evidence-chart";
+// CI13 (weights): the weight chart (Weight view only) loads with that view, as its cards do.
+const EvidenceChart = lazy(() => import("../platform/evidence-chart").then((m) => ({ default: m.EvidenceChart })));
 import { weightChangeText, weightChartValue, weightText, type WaterUnit, type WeightUnit } from "../../lib/health-units";
-import { healthWeek, loggedDaysOfWeek } from "../../lib/bottom-insights";
+import { healthWeek, loggedDaysOfWeek } from "../../lib/bottom-health-week"; // CI13: not Wealth's composition
 import {PinToToday} from "../pin-to-today";
 import { PHONE_QUERY, usePhoneActive } from "../phone/use-phone-layout";
 import { PhoneFormSheet } from "../phone/phone-form-sheet";
@@ -114,8 +116,9 @@ import { zigiSignals } from "../zigi/bus";
 import { LoadBoundary } from "../load-boundary";
 import {Skeleton} from "../ui/skeleton";
 import {SlowReload} from "./slow-reload";
-import {WeightCsvImport} from "./weight-csv-import";
-import {WeekDigestCard} from "./week-digest-card";
+// CI13 (weights): the Weight view's file import and the Insights view's week digest load with their views.
+const WeightCsvImport = lazy(() => import("./weight-csv-import").then((m) => ({ default: m.WeightCsvImport })));
+const WeekDigestCard = lazy(() => import("./week-digest-card").then((m) => ({ default: m.WeekDigestCard })));
 import {formatMacroGrams, servingsWarning, weightAsEntered, weightJumpWarning} from "../../lib/health-plausible";
 import {useScrollEdges} from '../ui/use-scroll-edges';
 import { StarToggle } from '../checklist/star-toggle';
@@ -380,11 +383,11 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Planner" && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the planner…" block/>}><PlannerView data={data} date={date} today={today} perform={perform} /></Suspense></LoadBoundary>}
       {/* Session AK RB (R2-8): the 30-day nutrition patterns open Insights (they sat on the page under the summary). */}
-      {view === "Insights" && <><WeekDigestCard data={data} today={today} /><NutritionDashboard data={data} date={date} /><LoadBoundary quiet><Suspense fallback={<Skeleton label="Reading your diary…" block/>}><InsightsView data={data} today={today} /></Suspense></LoadBoundary></>}
+      {view === "Insights" && <><LoadBoundary quiet><Suspense fallback={null}><WeekDigestCard data={data} today={today} /></Suspense></LoadBoundary><NutritionDashboard data={data} date={date} /><LoadBoundary quiet><Suspense fallback={<Skeleton label="Reading your diary…" block/>}><InsightsView data={data} today={today} /></Suspense></LoadBoundary></>}
       {view === "Import" && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the import…"/>}><RecipeImport data={data} perform={perform} /></Suspense></LoadBoundary>}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <><LibraryView data={data} perform={perform} invalid={invalid} /></>}
-      {view === "Measurements" && <><BodyMeasurements data={data} perform={perform}/><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={date} /></Suspense></LoadBoundary><LazyFold summary="Your numbers: blood pressure and lab values">{() => <YourNumbers today={today} />}</LazyFold></>}
+      {view === "Measurements" && <><LoadBoundary label="Your measurements"><Suspense fallback={<div aria-busy="true" style={{ minHeight: 220 }} />}><BodyMeasurements data={data} perform={perform}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={date} /></Suspense></LoadBoundary><LazyFold summary="Your numbers: blood pressure and lab values">{() => <YourNumbers today={today} />}</LazyFold></>}
       {/* Session AK RB (R2-8): the weight trend, energy estimate and coach open the Weight view (the tiles at the top link here). */}
       {view === "Weight" && <><LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightCards data={data} date={date} today={today} perform={perform} /></Suspense></div></LoadBoundary><WeightView data={data} update={update} today={today} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} /></>}
       {view === "Activity" && <ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} />}
@@ -619,7 +622,7 @@ function WeightView({ data, update, today, date, choice, perform, invalid, onDat
       // Session AH Part 3 (DS7, N-057): a second reading on a day that has one is kept beside it (a timed weight
       // measurement, the record's own kind for readings with a time), never written over the first.
       if (reading && (e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "second") void perform(latest => saveMeasurement(latest, { id: newHealthId(), kind: "weight", quantityMilli: grams, unit: "kg", observedAt: now.toISOString(), timezone: dailyData(latest).preferences.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone, sourceLabel: "Manual reading" }, now.toISOString()), "Second reading saved beside the first.", () => { zigiSignals.emitValidated('health_log_recorded'); setEditFrom(null); keepFocus(); });
-      else void perform(latest => saveWeight(latest, { id: reading?.id ?? newHealthId(), date, grams }, now.toISOString()), "Weight saved.", () => { zigiSignals.emitValidated('health_log_recorded'); setEditFrom(null); keepFocus(); }); } catch (cause) { invalid(cause); } }}><Checked of="health-weight-input"><label className="field"><span>Weight ({unit})</span><input id="health-weight-input" name="weight" type="text" inputMode="decimal" autoComplete="off" required data-check="weight" data-unit={unit} defaultValue={reading ? weightPrefill(reading.grams, unit) : ""} aria-describedby={warned ? "health-weight-check" : undefined} onInput={() => setWarned(null)} /></label></Checked>{warned && <p className="field-error health-soft-check" id="health-weight-check" role="alert">{warned.text}</p>}<button className="primary" type="submit">Save weight</button>{reading && <button className="secondary" type="submit" value="second">Keep both</button>}<p className="fine">Manual reading, converted to and stored as grams. History and the chart use your weight unit from Journal settings. Set or clear your own weight goal in Targets.</p></FormBox><WeightCsvImport data={data} update={update} unit={unit} today={today} /></section></div>;
+      else void perform(latest => saveWeight(latest, { id: reading?.id ?? newHealthId(), date, grams }, now.toISOString()), "Weight saved.", () => { zigiSignals.emitValidated('health_log_recorded'); setEditFrom(null); keepFocus(); }); } catch (cause) { invalid(cause); } }}><Checked of="health-weight-input"><label className="field"><span>Weight ({unit})</span><input id="health-weight-input" name="weight" type="text" inputMode="decimal" autoComplete="off" required data-check="weight" data-unit={unit} defaultValue={reading ? weightPrefill(reading.grams, unit) : ""} aria-describedby={warned ? "health-weight-check" : undefined} onInput={() => setWarned(null)} /></label></Checked>{warned && <p className="field-error health-soft-check" id="health-weight-check" role="alert">{warned.text}</p>}<button className="primary" type="submit">Save weight</button>{reading && <button className="secondary" type="submit" value="second">Keep both</button>}<p className="fine">Manual reading, converted to and stored as grams. History and the chart use your weight unit from Journal settings. Set or clear your own weight goal in Targets.</p></FormBox><LoadBoundary quiet><Suspense fallback={null}><WeightCsvImport data={data} update={update} unit={unit} today={today} /></Suspense></LoadBoundary></section></div>;
 }
 
 function WeightChart({ data, date, unit }: { data: HealthData; date: string; unit: WeightUnit }) {
@@ -629,7 +632,7 @@ function WeightChart({ data, date, unit }: { data: HealthData; date: string; uni
   // there is a reading; the line under it says how to start.
   if (!readings.length) return null;
   const dates = readings.map(w => w.date).sort(), goalSeries = goal !== null && dates.length ? [{ label: "Your goal", color: "#f3c57d", maxGapMs: Number.MAX_SAFE_INTEGER, points: [...new Set([dates[0]!, dates.at(-1)!])].map(at => ({ at, value: weightChartValue(goal, unit).value, dateOnly: true })) }] : [];
-  return <EvidenceChart label="Recorded body weight" decimals={shape.decimals} currency={shape.unit} series={[{ label: "Your readings", color: "#8ad7e6", points: readings.map(w => ({ at: w.date, value: weightChartValue(w.grams, unit).value, dateOnly: true })) }, ...goalSeries]} />;
+  return <Suspense fallback={<div className="health-weight-chart-pending" aria-busy="true" style={{ minHeight: 220 }} />}><EvidenceChart label="Recorded body weight" decimals={shape.decimals} currency={shape.unit} series={[{ label: "Your readings", color: "#8ad7e6", points: readings.map(w => ({ at: w.date, value: weightChartValue(w.grams, unit).value, dateOnly: true })) }, ...goalSeries]} /></Suspense>;
 }
 
 function ActivityView({ data, date, choice, perform, invalid }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void }) {

@@ -12,7 +12,7 @@ import {usePortfolioMarket, type CoinMarket} from './use-portfolio-market';
 import {AllTransactions, AllocationDonut, CoinSearch, HoldingsTable, KIND_LABEL, PortfolioSummary, SinceLastVisit, rowsFor} from './portfolio-sections';
 import {PortfolioValueChart} from './value-chart';
 import {TransactionForm, type Run} from './transaction-form';
-import {Watchlist} from '../platform/watchlist';
+import {LazyWatchlist as Watchlist} from '../platform/watchlist-lazy'; // CI13: its own chunk
 import {usePlatform} from '../platform/use-platform';
 import {marketRefKey} from '../../lib/market-assets';
 import {localDate} from '../../lib/local-date';
@@ -29,7 +29,7 @@ import {PortfolioUnreadable, createPortfolio, deletePortfolio, exportPortfolios,
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
 import {useImportUndo} from '../import/use-import-undo';
-import {ImportBanner} from '../import/csv-import-steps';
+import {ImportBanner} from '../import/import-banner'; // CI13: not the CSV steps
 import {ProgressSlot} from '../progress/slot';
 import {TransactionImportPanel} from '../import/transaction-import';
 import {UndoRefused, undoImport} from '../../lib/import/holdings';

@@ -2,7 +2,8 @@ import {activeCount} from './copy/terms'; // Session AK G2 (RELEASE_REVIEW R31)
 import {latestWeightObservation} from './body-measurements';
 /** Presentation only: every value resolves from the domain's canonical selector. */
 import {formatUnits} from '@zigoals/chain-config';
-import {allocationBalance,positionSync,type Position,type Platform} from './positions';
+import {allocationBalance,positionSync,type Platform} from './positions';
+import {stakingWidgetSource} from './staking-widget-source';
 import {wealthOverview} from './wealth';
 import {formatGoalAmount,progressText,type GoalSummary} from './goal-summary';
 import {habitCalendarDay,habitDay,habitRuleOn,habitStats,measurementUnit,type HabitData} from './habits';
@@ -31,7 +32,8 @@ const labels:Record<string,string>={'last-night':'Last night',kcal:'Meals today'
 // Session W Part 5: a metric id that means something else for one kind (Meditation's "today" and "week").
 const kindLabels:Record<string,Record<string,string>>={meditation:{today:'Mindful minutes today',week:'This week (Monday to Sunday)'}};
 export const widgetMetricLabel=(metric:string,kind?:string)=>(kind?kindLabels[kind]?.[metric]:undefined)??labels[metric]??metric;
-export function stakingWidgetSource(p:Position){return ['NATIVE_STAKING','NATIVE_REWARDS','NATIVE_UNBONDING'].includes(p.sourceType)&&p.verification==='VERIFIED_READ_ONLY';}
+// CI13 (weights): in its own module so the Staking page does not load all of Today's widget metrics for it.
+export {stakingWidgetSource} from './staking-widget-source';
 export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMetric{
  const habitToday=s.habits.timeZone?habitCalendarDay(s.habits,new Date(s.now)):s.today;
  const defaults={title:widget.title||WIDGET_CATALOG[widget.kind].label,value:'Unavailable',detail:'',href:'/app/settings'};

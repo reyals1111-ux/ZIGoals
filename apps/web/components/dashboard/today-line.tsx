@@ -1,5 +1,5 @@
 'use client';
-import {habitsOnDay} from '../../lib/numbers/counts';
+import {habitsOnDay} from '../../lib/numbers/habit-counts'; // CI13: not Wealth's counts
 import {dailyData, waterSummary} from '../../lib/health-daily';
 import {waterText} from '../../lib/health-units';
 import {wealthHistory, wealthOverview} from '../../lib/wealth';

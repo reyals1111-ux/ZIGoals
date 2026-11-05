@@ -1,4 +1,3 @@
-import {habitDay, type Habit} from '../habits';
 import {automaticMarketRef} from '../wealth';
 import type {Platform, Position} from '../positions';
 import {isFinished} from '../goals/finished';
@@ -24,23 +23,8 @@ export function goalCounts(goals: readonly WithStatus[], averages: readonly With
   const all = [...goals, ...averages];
   return {active: all.filter(g => g.status === 'active').length, finished: all.filter(isFinished).length};
 }
-/** Check-ins on one day: habits whose scheduled day is complete. */
-export function checkInsOn(habits: readonly Habit[], date: string, today: string) {
-  return habits.filter(h => { const d = habitDay(h, date, today); return d.scheduled && d.status === 'complete'; }).length;
-}
-/** Habits due and done on a day, as every "X of Y" shows them. */
-export function habitsOnDay(habits: readonly Habit[], date: string, today: string) {
-  let due = 0, done = 0;
-  for (const h of habits) { const d = habitDay(h, date, today); if (!d.scheduled || d.status === 'skipped') continue; due++; if (d.status === 'complete') done++; }
-  return {due, done};
-}
-/**
- * Session AL (Part 13): the habits still open on a day, as ZIGi's habits_due and NOVA's "habits left" list them: due or
- * partly done. A quit or limit habit that failed today is not "left" (nothing more to do), so left ≤ due − done.
- */
-export function habitsLeftOn(habits: readonly Habit[], date: string, today: string) {
-  return habits.filter(h => { const s = habitDay(h, date, today).status; return s === 'due' || s === 'partial'; }).length;
-}
+// CI13 (weights): the habit counts live in ./habit-counts.ts (no Wealth or Goals code), re-exported here unchanged.
+export {checkInsOn, habitsLeftOn, habitsOnDay} from './habit-counts';
 /**
  * Session AL (Part 13): active goals as Today, Goals and the goals widget count them, from the goal summaries (derived
  * status, never the stored flag) and the average goals. NOVA's left panel and ZIGi's goals answer must read this too.

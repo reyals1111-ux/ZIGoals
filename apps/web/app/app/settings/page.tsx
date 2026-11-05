@@ -1,5 +1,5 @@
 "use client";
-import { DataHome } from "../../../components/bottom-sections";
+import { DataHome } from "../../../components/bottom-data-home";
 import {WhatsThis} from "../../../components/earn/whats-this";
 import {DeviceLockSettings} from "../../../components/device-lock";
 import {PlanSettingsRow} from "../../../components/plans/plan-settings-row";

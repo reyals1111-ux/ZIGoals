@@ -12,7 +12,7 @@ import { PillarHero } from "../../../components/pillar-hero";
 import { OrbitArt } from "../../../components/header-art/orbit-art";
 import { GoalsGlyph } from "../../../components/header-art/glyphs/goals";
 import {EmptyState} from "../../../components/ui/empty-state";
-import { GoalMilestones } from "../../../components/bottom-sections";
+import { GoalMilestones } from "../../../components/bottom-goal-milestones";
 import { useLocalToday } from "../../../components/use-local-today";
 import { LayoutLockButton, LayoutPage, LayoutRegion, useLayoutPage } from "../../../components/layout-edit";
 import { entityLayoutId } from "../../../lib/page-layout";

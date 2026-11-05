@@ -1,6 +1,6 @@
 'use client';
 import {StakingTryScenario} from './staking-try-scenario';
-import {ValueSources} from '../bottom-sections';
+import {ValueSources} from '../bottom-value-sources';
 import {assetQuantity} from './asset-quantity';
 import {LayoutLockButton,LayoutPage,LayoutRegion} from '../layout-edit';
 import Link from 'next/link';
@@ -27,7 +27,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {STAKING_PREFS,networkChoiceOf} from '../../lib/staking/prefs';
 import {canonicalAddress} from '../../lib/staking/tracked-wallets';
 import {zigAddressProblem} from '../../lib/staking/address';
-import {stakingWidgetSource} from '../../lib/dashboard-metrics';
+import {stakingWidgetSource} from '../../lib/staking-widget-source'; // CI13: not all of Today's metrics
 import './run92-gap-fixes.css';
 import {NebulaFlow} from '../nebula-flow';
 import { formatDateTime } from '../../lib/visual-format';

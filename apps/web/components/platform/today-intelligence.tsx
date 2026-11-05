@@ -19,7 +19,7 @@ import {amount,shownAmount} from './common';
 import {ProgressRing} from './financial-ui';
 import {GlassBar} from '../progress/glass-progress';
 import {NeedsAttention} from './product-modules';
-import {Watchlist} from './watchlist';
+import {LazyWatchlist as Watchlist} from './watchlist-lazy'; // CI13: its own chunk
 import {habitCalendarDay} from '../../lib/habits';
 import {intelligenceGoal} from '../../lib/today/goal-roles';
 import {dailyHealthSummary} from '../../lib/health';

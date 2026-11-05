@@ -15,7 +15,7 @@ import { useShowcase } from "./showcase-controls";
 import {formatUnits} from "@zigoals/chain-config";
 import {formatExactNumber, formatMoney, formatQuantity, isMoneyCurrency} from "../lib/visual-format";
 import {amountWithUnit} from "../lib/asset-unit";
-import {formatGoalAmount} from "../lib/goal-summary";
+import {formatGoalAmount} from "../lib/goals/goal-amount-text"; // CI13: not the goal summaries and Wealth
 import {isUnitWord} from "../lib/goals/goal-units";
 import "./activity-product.css";
 import { activityTimeLabel } from "../lib/activity-time";
@@ -28,7 +28,8 @@ import { ACCOUNTS } from "../lib/accounts/schema";
 import { PRICE_ALERTS } from "../lib/price-alerts/schema";
 import { TASKS } from "../lib/tasks/schema";
 import { TASK_ACTIVITY_PRESENTATION, getTaskActivities } from "../lib/tasks/activity";
-import { deviceDay } from "../lib/tasks/device";
+// CI13 (weights): the tasks' day rule (lib/tasks/device.ts `deviceDay`) without loading the Tasks engine with it.
+import { checklistZone, zonedDay } from "../lib/checklist/day";
 import { isDeletedHabitRef } from "../lib/habit-delete";
 import { countText, plural } from "../lib/plural";
 import { removeHealthItem } from "../lib/health";
@@ -43,9 +44,10 @@ import { habitLifecycleRows } from "../lib/habit-lifecycle";
 import { getCounterActivities } from "../lib/health-counter-activities";
 import { ActivityReport } from "./activity/activity-report";
 import { useLocalToday } from "./use-local-today";
-import {REMOVAL_UNDO_MS} from '../lib/goals/goal-removal';
+import {REMOVAL_UNDO_MS} from '../lib/goals/removal-undo'; // CI13: the constant alone
 import {SHOWCASE_ROW_SOURCE, isShowcaseRow, showcaseRowIds} from "./activity-showcase";
 import {showcaseDay} from "../lib/showcase-storage";
+const deviceDay = (iso: string) => zonedDay(new Date(iso), checklistZone());
 /** Session AL (DV-117, P-DV-80): each filter's empty view says what belongs there and where to start it. */
 function emptyFor(category: string): {title: string; body: string; href?: string; link?: string} {
   switch (category) {

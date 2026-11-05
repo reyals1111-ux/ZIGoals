@@ -1,10 +1,10 @@
-import {addLocalDays, localDate, localWeekday} from '../local-date';
+import {addLocalDays, localDate} from '../local-date';
 import {habitDay, habitStats, type HabitData} from '../habits';
 import {dailyHealthSummary, type HealthData} from '../health';
 import {dailyData, waterSummary} from '../health-daily';
 import {weightText} from '../health-units';
 import {latestWeightObservation} from '../body-measurements';
-import {weekAcross} from '../bottom-insights';
+import {weekAcross} from '../bottom-week'; // CI13: not the whole of bottom-insights
 import type {Platform} from '../positions';
 import type {MarketQuote} from '../market-quotes';
 import {wealthOverview} from '../wealth';
@@ -14,20 +14,8 @@ import type {GoalMetadata} from '@zigoals/shared-types';
 import {formatDate, formatNumber, progressPresentation} from '../visual-format';
 import type {WeeklyReview} from './schema';
 
-/** The week a review looks back on: the most recent chosen weekday on or before today, and the six days before it. */
-export function reviewWindow(weekday: number, today: string): {reviewDay: string; weekStart: string; weekEnd: string} {
-  const back = (localWeekday(today) - weekday + 7) % 7, reviewDay = addLocalDays(today, -back);
-  return {reviewDay, weekStart: addLocalDays(reviewDay, -6), weekEnd: reviewDay};
-}
-export type ReviewState = 'due' | 'draft' | 'done' | 'skipped';
-/** Whether the current review is still open: due (untouched), a draft (words saved), done or skipped. */
-export function reviewState(data: WeeklyReview, weekStart: string): ReviewState {
-  const review = data.reviews.find(r => r.weekStart === weekStart);
-  if (!review) return 'due';
-  if (review.completedAt) return 'done';
-  if (review.skipped) return 'skipped';
-  return 'draft';
-}
+// CI13 (weights): the review's window and state are in ./window.ts (no Wealth or goal summaries); re-exported here.
+export {reviewWindow, reviewState, type ReviewState} from './window';
 export type WeekSummary = {
   wentWell: {habitCheckIns: number; healthEntries: number; goalContributions: number; bestDay: string | null};
   goals: {name: string; fundingHealth: string; nextContributionDate: string | null; progress: string}[];

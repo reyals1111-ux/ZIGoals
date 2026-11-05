@@ -5,7 +5,7 @@ import type {PageContext} from '../ai/context/types';
 import type {Gates} from '../ai/gates';
 import type {PageArea} from '../ai/settings';
 import type {ToolEnv, ToolSources} from '../ai/tools/env';
-import {reviewWindow} from '../weekly-review/engine';
+import {reviewWindow} from '../weekly-review/window'; // CI13: not the week summary
 import {ZIGI_PAGE_PATHS} from './bridge';
 import {novaToolEnv, scopeOpen, type NovaPackInput, type NovaPrivacy, type NovaScope, type NovaScopes} from '../ai/context-pack/nova';
 import type {Handles} from '../ai/handles';
