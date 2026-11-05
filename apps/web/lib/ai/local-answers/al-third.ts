@@ -89,7 +89,7 @@ const WEEK_EN = /^(?:how (?:was|is|did|has|went) (?:my|the|this) week(?: been| g
 const WEEK_NL = /^(?:hoe (?:was|is|ging|gaat|verliep) (?:mijn|m'n|deze|de) week(?: tot nu toe)?|(?:geef me |toon )?(?:mijn |een |de )?week ?(?:samenvatting|recap)|vat (?:mijn|deze|de) week samen|wat heb ik deze week gedaan)$/i;
 const isWeekAsk = (raw: string) => { const q = norm(raw).replace(LEAD, '').replace(/[?.!]+$/, '').replace(/\s+please$/i, '').trim(); return WEEK_EN.test(q) || WEEK_NL.test(q); };
 /** The weekly review's health lines in Dutch (the engine words them in English). */
-const nlHealth = (line: string) => line.replace(/^(\d+) days? with meals logged$/, (_, d: string) => `${d} ${d === '1' ? 'dag' : 'dagen'} met maaltijden gelogd`).replace(/ steps · /, ' stappen · ').replace(/ min movement$/, ' min beweging').replace(/^(\d+) days? with water$/, (_, d: string) => `${d} ${d === '1' ? 'dag' : 'dagen'} met water`);
+const nlHealth = (line: string) => line.replace(/^(\d+) days? with meals logged$/, (_, d: string) => `${d} ${d === '1' ? 'dag' : 'dagen'} met maaltijden gelogd`).replace(/ steps · /, ' stappen · ').replace(/ min movement$/, ' min beweging').replace(/^(\d+) days? with water$/, (_, d: string) => `${d} ${d === '1' ? 'dag' : 'dagen'} met water`).replace(/^latest weight (.+) on (.+)$/, 'laatste gewicht $1 op $2');
 /** P14-B: "How was my week?", "Weekly recap" with no model: the weekly review's figures, then the Life review to compare. */
 export function weeklyRecapReply(text: string, env: ToolEnv | null, lang: Lang): LocalReply | null {
   if (!isWeekAsk(text)) return null;
@@ -108,8 +108,8 @@ export function weeklyRecapReply(text: string, env: ToolEnv | null, lang: Lang):
     const more = habits.length > 4 ? say(lang, ` (and ${plural(habits.length - 4, 'more habit')})`, ` (en nog ${habits.length - 4})`) : '';
     lines.push(say(lang, `Habits: ${plural(Number(d.habitCheckIns ?? 0), 'check-in')}`, `Gewoontes: ${n(Number(d.habitCheckIns ?? 0), 0)} check-ins`) + (each.length ? `. ${each.join(', ')}${more}` : ''));
   } else lines.push(say(lang, 'Habits: not shared with ZIGi here (Settings → ZIGi)', 'Gewoontes: hier niet gedeeld met ZIGi (Settings → ZIGi)'));
-  // The weight line is left out: the review words it in kg, whatever unit the person chose.
-  const health = env.health ? ((d.health ?? []) as string[]).filter(l => !/^latest weight\b/.test(l)) : null;
+  // The weekly review words the weight in the person's chosen unit (lib/weekly-review/engine.ts), so it is kept.
+  const health = env.health ? (d.health ?? []) as string[] : null;
   if (health === null) lines.push(say(lang, 'Health: not shared with ZIGi here', 'Health: hier niet gedeeld met ZIGi'));
   else if (health.length) lines.push(`Health: ${health.map(l => clean(lang === 'nl' ? nlHealth(l) : l, 80)).join(' · ')}`);
   else lines.push(say(lang, 'Health: nothing recorded', 'Health: niets vastgelegd'));
