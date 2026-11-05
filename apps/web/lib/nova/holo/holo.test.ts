@@ -68,11 +68,13 @@ describe('health HUD reads the Health page\'s own figures', () => {
     d = saveHealthPreferences(d, {...dailyData(d).preferences, waterTargetMl: 2000});
     return d;
   };
-  it('a fresh day: calories and steps unknown (never 0), water a known zero, no hearts for unset targets', () => {
+  it('a fresh day: calories, steps and water unknown (never 0; review M5), no hearts for unset targets', () => {
     const hud = healthHud(base(), DAY);
     expect(hud.kcal).toMatchObject({value: null, text: '—', note: 'No meals logged today'});
     expect(hud.steps).toMatchObject({value: null, text: '—', note: 'No steps logged today'});
-    expect(hud.water).toMatchObject({value: 0, share: 0, text: waterText(0, 'ml'), targetText: waterText(2000, 'ml'), note: 'No water logged yet today'});
+    // Review M5 (lane L8d): nothing logged is "—" with its reason, as for every other measure in the panel (it read "0 mL").
+    expect(hud.water).toMatchObject({value: null, share: null, text: '—', targetText: waterText(2000, 'ml'), note: 'No water logged yet today'});
+    expect(hud.hearts.map(h => h.key)).not.toContain('water');
     expect(hud.macros[1]).toMatchObject({key: 'carbs', target: null});
     expect(hud.heart).toBeNull();
   });
@@ -182,6 +184,9 @@ describe('the core: four rings, one figure each, unknown with its reason', () =>
     const rings = coreRings({water: {share: 0.5, text: '1,000 mL', targetText: '2,000 mL'}, habits: {due: 0, done: 0}, goal: {name: 'Fictional bike', pct: 45.5, text: '45%'}, wealth: {allocated: 1n, total: 4n, shareText: '25.0 %'}});
     expect(rings.map(r => [r.pillar, r.share, r.text, r.reason])).toEqual([['health', 0.5, '1,000 mL of 2,000 mL', null], ['habits', null, '—', 'No habit is due today'], ['goals', 0.455, '45%', null], ['wealth', 0.25, '25.0 %', null]]);
     expect(coreRings({water: {share: null, text: '0 mL', targetText: null}, habits: null, goal: null, wealth: null}).map(r => r.reason)).toEqual(['No water target set', 'Your habits are not read yet', 'No active goal yet', 'No valued holding yet']);
+    // Review M5 (lane L8d): nothing logged today is unknown with its own reason; a logged amount without a target keeps its figure.
+    expect(coreRings({water: {share: null, text: '—', targetText: '2,000 mL', logged: false}, habits: null, goal: null, wealth: null})[0]).toMatchObject({share: null, text: '—', reason: 'No water logged yet today'});
+    expect(coreRings({water: {share: null, text: '750 mL', targetText: null, logged: true}, habits: null, goal: null, wealth: null})[0]).toMatchObject({share: null, text: '750 mL', reason: 'No water target set'});
   });
 });
 

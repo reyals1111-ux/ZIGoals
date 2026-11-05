@@ -15,9 +15,9 @@ import {durationWords, shareOf} from '../widgets/words';
  * person brought in from an export or a device. Nothing is recomputed another way.
  *
  * Unknown is not zero: a day with no meal logged has no calorie figure ("No meals logged today"), never "0 kcal"; a meal
- * without calories makes the total unknown and says how much is known; steps with no activity logged are unknown. Water is
- * the one measure that is logged as such, so "0 mL" today is a known zero, as on the Water card. A meter without a target
- * has no share (no bar is lit) and says so.
+ * without calories makes the total unknown and says how much is known; steps with no activity logged are unknown, and so
+ * is water with nothing logged today (review M5, lane L8d). A meter without a target has no share (no bar is lit) and
+ * says so.
  */
 export type Meter = {
   key: 'kcal' | 'protein' | 'carbs' | 'fat' | 'water' | 'sleep' | 'steps';
@@ -50,7 +50,9 @@ export function healthHud(data: HealthData, day: string): HealthHud {
       noMeals ?? (value === null ? nutritionSummaryText(summary, field, 'g', 1000) : null));
   });
   const w = waterOn(data, day); // L2's one water source (the same as waterToday, on the Health journal's day)
-  const water = meter('water', 'Water', w.millilitres, w.targetMl, waterText(w.millilitres, unit), w.targetMl ? waterText(w.targetMl, unit) : null, w.entries ? null : 'No water logged yet today');
+  // Review M5 (lane L8d): nothing logged today is unknown ("—"), as for every other measure in the panel; a day with an
+  // entry shows its amount (a known zero only once something was logged and taken back to nothing).
+  const water = meter('water', 'Water', w.entries ? w.millilitres : null, w.targetMl, waterText(w.millilitres, unit), w.targetMl ? waterText(w.targetMl, unit) : null, w.entries ? null : 'No water logged yet today');
   const sleep = data.sleep, slept = sleep ? dailySeries(sleep, day, 1)[0]?.asleep ?? null : null, goal = sleep?.goal?.minutes ?? null;
   const sleepMeter = meter('sleep', 'Sleep', slept, goal, durationWords(slept ?? 0), goal ? durationWords(goal) : null, slept === null ? 'No night logged for last night' : null);
   const activity = data.activity.filter(a => a.date === day);

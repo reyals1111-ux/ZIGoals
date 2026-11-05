@@ -17,6 +17,12 @@ import {useChangeCount} from './use-hud-motion';
  * paint while it turns (AL_SCOPE B, performance).
  */
 
+/**
+ * Review "what still feels flat" 5 (lane L8d): the bloom. Every data arc and line carries a thin white core over its neon
+ * (a glint, as a lit tube shows), with a wide soft halo in the CSS — crisp lines with real glow, still only decoration.
+ */
+export const Glint = ({d}: {d: string}) => <path className="holo-glint" d={d}/>;
+
 /** A turning ornament: its own layer over the instrument (aria-hidden; it only ever turns, never says anything). */
 export function Orn({children, reverse = false, view = '-60 -60 120 120', className = ''}: {children: ReactNode; reverse?: boolean; view?: string; className?: string}) {
   return <span className={`holo-orn ${className}`.trim()} data-motion-essential="" data-rev={reverse || undefined} aria-hidden="true">
@@ -53,7 +59,7 @@ export function TickRing({share, size = 120, ticks = 60, children, className = '
       <path className="holo-orn-ticks" d={tickPath(0, 0, 49, 52, ticks)}/>
       <path className="holo-orn-ticks holo-orn-major" d={tickPath(0, 0, 47, 53, 12)}/>
       <circle className="holo-track" r="40" data-unknown={share === null || undefined}/>
-      {s > 0 && <><path className="holo-arc" d={arcPath(0, 0, 40, 0, s * 360)}/><circle className="holo-arc-end" cx={end.x} cy={end.y} r="3.2"/></>}
+      {s > 0 && <><path className="holo-arc" d={arcPath(0, 0, 40, 0, s * 360)}/><Glint d={arcPath(0, 0, 40, 0, s * 360)}/><circle className="holo-arc-end" cx={end.x} cy={end.y} r="3.2"/></>}
     </svg>
     <Orn><circle className="holo-orn-dash" r="57"/></Orn>
     {lens && <LensRing/>}
@@ -64,16 +70,22 @@ export function TickRing({share, size = 120, ticks = 60, children, className = '
 /**
  * Concentric rings, one figure each (the habits' streaks, the core around the orb): outer first. Each track is segmented
  * like an orbit (an ornament, the same for every value); the arc over it is the figure. A tick ring turns outside them.
+ * Review M3, M4 (lane L8d): rings may leave a gap (`start`, `sweep`: the core leaves 40° open at the top, under NOVA's
+ * name), and an unknown figure is one faint hairline with a short dash at the gap — never segmented or dashed like data.
  */
-export function RingStack({rings, size = 120, gap = 9, segments = 0}: {rings: {key: string; share: number | null; pillar?: string}[]; size?: number; gap?: number; segments?: number}) {
+export function RingStack({rings, size = 120, gap = 9, segments = 0, start = 0, sweep = 360}: {rings: {key: string; share: number | null; pillar?: string}[]; size?: number; gap?: number; segments?: number; start?: number; sweep?: number}) {
+  const full = sweep >= 360;
   return <span className="holo-stack-box" style={{'--ring': `${size}px`} as CSSProperties} aria-hidden="true">
     <svg className="holo-stack" viewBox="-60 -60 120 120" focusable="false">
       {rings.map((r, i) => {
-        const rad = 50 - i * gap, s = r.share === null ? 0 : clamp01(r.share), end = polar(0, 0, rad, s * 360);
-        const seg = segments > 0 ? (2 * Math.PI * rad) / segments : 0;
+        const rad = 50 - i * gap, s = r.share === null ? 0 : clamp01(r.share), from = full ? 0 : start, end = polar(0, 0, rad, from + s * sweep);
+        const seg = segments > 0 ? (2 * Math.PI * rad) / segments : 0, arc = arcPath(0, 0, rad, from, from + s * sweep);
+        const trackStyle = seg && r.share !== null ? {strokeDasharray: `${(seg * 0.72).toFixed(2)} ${(seg * 0.28).toFixed(2)}`} : undefined;
         return <g key={r.key} data-pillar={r.pillar}>
-          <circle className="holo-track" r={rad} data-unknown={r.share === null || undefined} style={seg && r.share !== null ? {strokeDasharray: `${(seg * 0.72).toFixed(2)} ${(seg * 0.28).toFixed(2)}`} : undefined}/>
-          {s > 0 && <><path className="holo-arc" d={arcPath(0, 0, rad, 0, s * 360)}/><circle className="holo-arc-end" cx={end.x} cy={end.y} r="2.6"/></>}
+          {full ? <circle className="holo-track" r={rad} data-unknown={r.share === null || undefined} style={trackStyle}/>
+            : <path className="holo-track-path" d={arcPath(0, 0, rad, start, start + sweep)} data-unknown={r.share === null || undefined}/>}
+          {r.share === null && !full && <path className="holo-unknown-mark" d={`M${(-2.6).toFixed(1)} ${(-rad).toFixed(2)}H2.6`}/>}
+          {s > 0 && <><path className="holo-arc" d={arc}/><Glint d={arc}/><circle className="holo-arc-end" cx={end.x} cy={end.y} r="2.6"/></>}
         </g>;
       })}
     </svg>
@@ -88,7 +100,7 @@ export function Dial({share, size = 96, children}: {share: number | null; size?:
     <svg viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
       <path className="holo-orn-ticks" d={tickPath(0, 0, 49, 53, 25, -120, 240)}/>
       <path className="holo-track-path" d={arcPath(0, 0, 42, -120, 120)}/>
-      {s > 0 && <path className="holo-arc" d={arcPath(0, 0, 42, -120, -120 + 240 * s)}/>}
+      {s > 0 && <><path className="holo-arc" d={arcPath(0, 0, 42, -120, -120 + 240 * s)}/><Glint d={arcPath(0, 0, 42, -120, -120 + 240 * s)}/></>}
     </svg>
     {children && <div className="holo-ring-centre">{children}</div>}
   </div>;
@@ -104,6 +116,7 @@ export function Spark({values, width = 220, height = 56, className = '', domain}
     <path className="holo-grid-lines" d={[0.25, 0.5, 0.75].map(f => `M0 ${height * f}H${width}`).join('')}/>
     {pts.length > 1 && <path d={`${line}L${last.x} ${height}L${pts[0]!.x} ${height}Z`} fill={`url(#${id}f)`} className="holo-spark-fill"/>}
     <path className="holo-spark-line" d={pts.length > 1 ? line : `M${last.x - 2} ${last.y}h4`}/>
+    {pts.length > 1 && <Glint d={line}/>}
     <circle className="holo-arc-end" cx={last.x} cy={last.y} r="3"/>
   </svg>;
 }
@@ -111,52 +124,68 @@ export function Spark({values, width = 220, height = 56, className = '', domain}
 /**
  * The framed wave (the reference's flowing amber line): a recorded history placed by time, drawn as a smooth monotone curve
  * (never above or below the records it joins) with a soft glow, over fine grid lines and a row of thin tick bars (an
- * ornament ruler), in a HUD frame whose corner labels say the highest and lowest values and the first and last dates.
+ * ornament ruler), in a HUD frame. Review M6, p8 (lane L8d): the frame says what the line is (its `title`: "Recorded
+ * valuations"), its highest and lowest records ("max", "min") and the dates it spans; the last record's value sits at the
+ * line's end; and where today's figure differs from the last record (a total known only in part, say), `now` adds it as a
+ * hollow, dashed point at today's place, named in words — the headline and the line never disagree without a word.
+ * The dots are HTML over the stretched drawing, so they stay round.
  */
-export function WaveChart({points, width = 300, height = 84, labels, className = ''}: {
-  points: readonly {at: string; value: number}[]; width?: number; height?: number; className?: string;
-  labels: {top: string; bottom: string; from: string; to: string};
+export function WaveChart({points, width = 300, height = 64, title, labels, endLabel, now, className = ''}: {
+  points: readonly {at: string; value: number}[]; width?: number; height?: number; className?: string; title: string;
+  labels: {max: string; min: string; span: string}; endLabel?: string; now?: {at: string; value: number; label: string} | null;
 }) {
-  const id = useId().replace(/[^a-zA-Z0-9]/g, ''), pts = timePoints(points, width, height, 4);
+  const id = useId().replace(/[^a-zA-Z0-9]/g, ''), all = timePoints(now ? [...points, {at: now.at, value: now.value}] : points, width, height, 6);
+  const pts = now ? all.slice(0, -1) : all, here = now ? all.at(-1)! : null;
   if (pts.length < 2) return null;
-  const line = smoothPath(pts), last = pts.at(-1)!;
+  const line = smoothPath(pts), last = pts.at(-1)!, at = (p: {x: number; y: number}) => ({left: `${(p.x / width * 100).toFixed(2)}%`, top: `${(p.y / height * 100).toFixed(2)}%`});
   return <figure className={`holo-frame holo-wave ${className}`.trim()} aria-hidden="true">
-    <span className="holo-frame-label" data-at="top">{labels.top}</span>
-    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" focusable="false">
-      <defs>
-        <linearGradient id={`${id}f`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" className="holo-stop-a"/><stop offset="1" className="holo-stop-b"/></linearGradient>
-        <linearGradient id={`${id}l`} x1="0" y1="0" x2="1" y2="0"><stop offset="0" className="holo-wave-a"/><stop offset="1" className="holo-wave-b"/></linearGradient>
-      </defs>
-      <path className="holo-grid-lines holo-grid-fine" d={Array.from({length: 7}, (_, i) => `M0 ${(height * (i + 1) / 8).toFixed(1)}H${width}`).join('')}/>
-      <path className="holo-ruler-bars" d={Array.from({length: 48}, (_, i) => `M${(width * (i + 0.5) / 48).toFixed(1)} ${height}v${i % 6 === 0 ? -9 : -4}`).join('')}/>
-      <path d={`${line}L${last.x} ${height}L${pts[0]!.x} ${height}Z`} fill={`url(#${id}f)`} className="holo-spark-fill"/>
-      <path className="holo-wave-glow" d={line}/>
-      <path className="holo-wave-line" d={line} stroke={`url(#${id}l)`}/>
-      <circle className="holo-arc-end" cx={last.x} cy={last.y} r="3.2"/>
-    </svg>
-    <span className="holo-frame-label" data-at="bottom">{labels.bottom}</span>
-    <span className="holo-frame-label" data-at="from">{labels.from}</span>
-    <span className="holo-frame-label" data-at="to">{labels.to}</span>
+    <span className="holo-frame-label" data-at="title">{title}</span>
+    <span className="holo-frame-label" data-at="top"><span className="holo-frame-key">max</span> {labels.max}</span>
+    <div className="holo-wave-plot">
+      <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" focusable="false">
+        <defs>
+          <linearGradient id={`${id}f`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" className="holo-stop-a"/><stop offset="1" className="holo-stop-b"/></linearGradient>
+          <linearGradient id={`${id}l`} x1="0" y1="0" x2="1" y2="0"><stop offset="0" className="holo-wave-a"/><stop offset="1" className="holo-wave-b"/></linearGradient>
+        </defs>
+        <path className="holo-grid-lines holo-grid-fine" d={Array.from({length: 7}, (_, i) => `M0 ${(height * (i + 1) / 8).toFixed(1)}H${width}`).join('')}/>
+        <path className="holo-ruler-bars" d={Array.from({length: 48}, (_, i) => `M${(width * (i + 0.5) / 48).toFixed(1)} ${height}v${i % 6 === 0 ? -9 : -4}`).join('')}/>
+        <path d={`${line}L${last.x} ${height}L${pts[0]!.x} ${height}Z`} fill={`url(#${id}f)`} className="holo-spark-fill"/>
+        <path className="holo-wave-glow" d={line}/>
+        <path className="holo-wave-line" d={line} stroke={`url(#${id}l)`}/>
+        <Glint d={line}/>
+        {here && <path className="holo-now-link" d={`M${last.x} ${last.y}L${here.x} ${here.y}`}/>}
+      </svg>
+      <i className="holo-wave-dot" style={at(last)}/>
+      {endLabel && <span className="holo-wave-tag" data-at="end" style={at(last)}>{endLabel}</span>}
+      {here && now && <><i className="holo-wave-dot" data-now="" style={at(here)}/><span className="holo-wave-tag" data-at="now" data-low={here.y > height * 0.55 || undefined} style={at(here)}>{now.label}</span></>}
+    </div>
+    <span className="holo-frame-label" data-at="from">{labels.span}</span>
+    <span className="holo-frame-label" data-at="bottom"><span className="holo-frame-key">min</span> {labels.min}</span>
   </figure>;
 }
 
 /**
  * The histogram (the reference's pink/violet bars with cyan tips and a line through them): one bar per value, a gradient
  * body and a bright tip, an empty dashed slot where the value is unknown, and an optional reference line (a target)
- * through the bars, named in words beside the chart by the caller. Day letters sit under the slots.
+ * through the bars, named in words beside the chart by the caller. Day letters sit under the slots. Review m8, p7 (lane
+ * L8d): 12 % headroom above the tallest of the bars and the line, the line's value at its right end, crisper 2 px tips.
  */
-export function Histogram({values, line, labels, width = 280, height = 64}: {values: readonly (number | null)[]; line?: number | null; labels: readonly string[]; width?: number; height?: number}) {
-  const id = useId().replace(/[^a-zA-Z0-9]/g, ''), max = line ?? undefined, bars = histogramBars(values, width, height, {max}), slot = width / Math.max(1, values.length);
+export function Histogram({values, line, lineLabel, labels, width = 280, height = 64}: {values: readonly (number | null)[]; line?: number | null; lineLabel?: string | null; labels: readonly string[]; width?: number; height?: number}) {
+  const id = useId().replace(/[^a-zA-Z0-9]/g, ''), max = line ?? undefined, bars = histogramBars(values, width, height, {max, headroom: 1.12}), slot = width / Math.max(1, values.length);
+  const ly = line ? histogramY(line, values, height, max, 1.12) : null;
   return <div className="holo-histo" aria-hidden="true">
-    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" focusable="false">
-      <defs><linearGradient id={`${id}b`} x1="0" y1="1" x2="0" y2="0"><stop offset="0" className="holo-bar-a"/><stop offset="1" className="holo-bar-b"/></linearGradient></defs>
-      <path className="holo-grid-lines" d={[0.25, 0.5, 0.75].map(f => `M0 ${height * f}H${width}`).join('')}/>
-      {bars.map((b, i) => b ? <g key={i}>
-        <rect className="holo-bar" x={b.x} y={b.y} width={b.width} height={b.height} fill={`url(#${id}b)`} rx="1"/>
-        {b.height > 0 && <rect className="holo-bar-tip" x={b.x} y={b.y} width={b.width} height={Math.min(3, b.height)} rx="1"/>}
-      </g> : <rect key={i} className="holo-bar-empty" x={i * slot + slot * 0.17} y={height - 3} width={slot * 0.66} height="3"/>)}
-      {line ? <path className="holo-ref-line" d={`M0 ${histogramY(line, values, height, max)}H${width}`}/> : null}
-    </svg>
+    <div className="holo-histo-plot">
+      <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" focusable="false">
+        <defs><linearGradient id={`${id}b`} x1="0" y1="1" x2="0" y2="0"><stop offset="0" className="holo-bar-a"/><stop offset="1" className="holo-bar-b"/></linearGradient></defs>
+        <path className="holo-grid-lines" d={[0.25, 0.5, 0.75].map(f => `M0 ${height * f}H${width}`).join('')}/>
+        {bars.map((b, i) => b ? <g key={i}>
+          <rect className="holo-bar" x={b.x} y={b.y} width={b.width} height={b.height} fill={`url(#${id}b)`} rx="1"/>
+          {b.height > 0 && <rect className="holo-bar-tip" x={b.x} y={b.y} width={b.width} height={Math.min(2, b.height)} rx="1"/>}
+        </g> : <rect key={i} className="holo-bar-empty" x={i * slot + slot * 0.17} y={height - 3} width={slot * 0.66} height="3"/>)}
+        {ly !== null ? <path className="holo-ref-line" d={`M0 ${ly}H${width}`}/> : null}
+      </svg>
+      {ly !== null && lineLabel && <span className="holo-histo-line-tag" style={{top: `${(ly / height * 100).toFixed(2)}%`}}>{lineLabel}</span>}
+    </div>
     <span className="holo-histo-days">{labels.map((l, i) => <small key={`${i}-${l}`}>{l}</small>)}</span>
   </div>;
 }
@@ -185,21 +214,42 @@ export function FlowRibbons({shares, width = 260, height = 64}: {shares: readonl
   </svg>;
 }
 
-/** Hearts that fill by the share of a target, each named under it (never meaning by colour alone). */
+/**
+ * Hearts that fill by the share of a target, each named under it (never meaning by colour alone). Review m6 (lane L8d): each
+ * says its share in figures too ("90 %", "110 %": a heart is full at its target, the words say how far past), and the
+ * unfilled part of the shell is a faint pink, so 90 % and 100 % read apart.
+ */
 export function Hearts({hearts}: {hearts: readonly {key: string; label: string; share: number}[]}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   if (!hearts.length) return null;
   return <ul className="holo-hearts" aria-label="Targets as hearts: each fills by its share of your target">{hearts.map(h => {
-    const s = clamp01(h.share), pct = Math.round(s * 100);
+    const s = clamp01(h.share), pct = Math.round(Math.max(0, h.share) * 100);
     return <li key={h.key}>
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <defs><clipPath id={`${id}${h.key}`}><rect x="0" y={24 - 24 * s} width="24" height={24 * s}/></clipPath></defs>
         <path className="holo-heart-shell" d={HEART_PATH}/>
         <path className="holo-heart-fill" d={HEART_PATH} clipPath={`url(#${id}${h.key})`}/>
       </svg>
-      <small>{h.label}<span className="sr-only">: {pct} percent of your target</span></small>
+      <small>{h.label}</small>
+      <small className="holo-heart-pct">{pct} %<span className="sr-only"> of your target</span></small>
     </li>;
   })}</ul>;
+}
+
+/**
+ * Review M8 (lane L8d): an instrument with nothing to show yet is still an instrument — its shape drawn unlit (a hairline
+ * track, faint empty slots, "—"), never a zero, with the reason in words and where to start. `kind` picks the shape.
+ */
+export function HoloEmpty({kind, children, href, action}: {kind: 'ring' | 'arcs' | 'wave' | 'stack'; children: ReactNode; href?: string; action?: string}) {
+  return <div className="holo-empty" data-kind={kind}>
+    <span className="holo-empty-shape" aria-hidden="true">
+      {kind === 'arcs' ? [0, 1, 2].map(i => <span key={i} className="holo-empty-arc"><svg viewBox="-50 -50 100 100" focusable="false"><path className="holo-track-path" data-unknown="" d={arcPath(0, 0, 40, -135, 135)}/></svg><b>—</b></span>)
+        : kind === 'wave' ? <span className="holo-empty-frame"><svg viewBox="0 0 120 40" preserveAspectRatio="none" focusable="false"><path className="holo-grid-lines" d="M0 10H120M0 20H120M0 30H120"/><path className="holo-empty-line" d="M4 30H116"/></svg><b>—</b></span>
+        : <span className="holo-empty-ring"><svg viewBox="-60 -60 120 120" focusable="false">{(kind === 'stack' ? [50, 41, 32] : [42]).map(r => <circle key={r} className="holo-track" data-unknown="" r={r}/>)}<path className="holo-orn-ticks" d={tickPath(0, 0, 53, 56, 48)}/></svg><b>—</b></span>}
+    </span>
+    <p className="holo-empty-words">{children}</p>
+    {href && action && <Link className="nova-link holo-empty-action" href={href} prefetch={false}>{action} <span aria-hidden="true">→</span></Link>}
+  </div>;
 }
 
 /** A small table for assistive technology: the panel's figures, each with its target and why one is missing. */

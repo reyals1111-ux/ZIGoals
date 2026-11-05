@@ -39,6 +39,21 @@ describe('zigoals:nova:v1', () => {
     expect(novaRecordSchema.safeParse({version: 1, dock: {order: Array.from({length: 33}, (_, i) => `d-${i}`)}}).success).toBe(false);
     expect(novaRecordSchema.safeParse({version: 2}).success).toBe(false);
   });
+  it('review M8 (lane L8d): a brand-new NOVA starts on the Command preset; a record that exists keeps its widgets', async () => {
+    const {presetWidgets} = await import('./layout');
+    expect(markOpeningSeen(emptyNova())).toEqual({version: 1, openingSeen: true, widgets: presetWidgets('command')});
+    expect(widgetsFor(markOpeningSeen(emptyNova())).map(w => w.id)).toEqual(presetWidgets('command').map(w => w.id));
+    // Opened before (openingSeen) or arranged in any way: untouched, the earlier defaults still read as before.
+    expect(widgetsFor({version: 1, openingSeen: true})).toEqual([...DEFAULT_WIDGETS]);
+    expect(markOpeningSeen({version: 1, accent: 'gold'})).toEqual({version: 1, accent: 'gold', openingSeen: true});
+    expect(markOpeningSeen({version: 1, widgets: []})).toEqual({version: 1, widgets: [], openingSeen: true});
+  });
+  it('review m9 (lane L8d): two widgets trade places; an unknown id changes nothing', async () => {
+    const {swapWidgets} = await import('./store');
+    const r: NovaRecord = {version: 1, widgets: [{id: 'water', size: 'S', slot: 0}, {id: 'orbit', size: 'M', slot: 1}, {id: 'next', size: 'M', slot: 2}]};
+    expect(widgetsFor(swapWidgets(r, 'water', 'next')).map(w => w.id)).toEqual(['next', 'orbit', 'water']);
+    expect(swapWidgets(r, 'water', 'gone')).toBe(r);
+  });
   it('writes through the device record helpers and keeps every other field', () => {
     const store = memory({[NOVA_KEY]: JSON.stringify({version: 1, customInstructions: 'Short answers.', future: 1})});
     const next = updateDeviceRecord(store, NOVA_STORE, r => markOpeningSeen(r));
@@ -137,9 +152,14 @@ describe('the Showcase’s NOVA (proposed for the lead)', () => {
     expect(widgetsFor(r).map(w => w.id)).toContain('briefs');
     // Session AK WA (T1/T3): the tasks and the running-focus widgets read the Showcase's own labelled records.
     expect(widgetsFor(r).map(w => w.id)).toEqual(expect.arrayContaining(['tasks', 'focus']));
-    // Session AL Part 11, second pass (lane L8): the HUD's five instruments first, Health and Wealth large; nothing lost.
-    expect(widgetsFor(r).slice(0, 5).map(w => w.id)).toEqual(['health-hud', 'wealth-hud', 'habits-hud', 'goals-hud', 'agenda-clock']);
-    expect(widgetsFor(r).filter(w => w.size === 'L').map(w => w.id)).toEqual(['health-hud', 'wealth-hud']);
-    expect(widgetsFor(r).map(w => w.id)).toEqual(expect.arrayContaining(['orbit', 'next', 'glance', 'water', 'goal-pace', 'money', 'sleep', 'briefs', 'notes', 'now-playing']));
+    // Review fixes (lane L8d, NOVA_HUD_REVIEW m15, B2): the Showcase is the Command preset itself — the four pillar
+    // instruments first, then the agenda clock and the day's panels — with no duplicate panel, and "Behind the
+    // intelligence" closed so the HUD is the first view at 1440 px (it replaces the second pass's 17-widget arrangement).
+    const {presetShown, presetWidgets} = await import('./layout');
+    expect(widgetsFor(r)).toEqual(presetWidgets('command'));
+    expect(presetShown(layoutOf(r), widgetsFor(r))).toBe('command');
+    expect(widgetsFor(r).slice(0, 4).map(w => w.id)).toEqual(['health-hud', 'habits-hud', 'goals-hud', 'wealth-hud']);
+    for (const twin of ['goal-pace', 'next', 'glance']) expect(widgetsFor(r).map(w => w.id), `${twin} repeats an instrument`).not.toContain(twin);
+    expect(r.panels?.right).toBeUndefined();
   });
 });

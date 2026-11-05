@@ -23,11 +23,12 @@ export type WidgetSpec = {
 };
 export const WIDGETS: readonly WidgetSpec[] = [
   {id: 'orbit', title: 'Today’s orbit', about: 'How much of today’s orbit is lit: your Checklist, or today’s habits.', pillar: 'orbit', href: '/app/checklist', open: 'Open the Checklist', size: 'M'},
-  {id: 'next', title: 'Next three', about: 'The next three things in your day, across your pillars.', pillar: 'habits', href: '/app/agenda', open: 'Open your agenda', size: 'M'},
+  // Review M7 (lane L8d): the day's own panels (Next three, Focus) wear the day's ice, not a pillar's neon (Habits' cyan).
+  {id: 'next', title: 'Next three', about: 'The next three things in your day, across your pillars.', pillar: 'orbit', href: '/app/agenda', open: 'Open your agenda', size: 'M'},
   {id: 'tasks', title: 'Tasks', about: 'Today’s tasks and your goals’ next actions: tick one off, or add one for today.', pillar: 'goals', href: '/app/tasks', open: 'Open your tasks', size: 'M'},
   {id: 'glance', title: 'Day at a glance', about: 'Your day in a few lines, from your own records. No weather, nothing fetched.', pillar: 'orbit', href: '/app/today', open: 'Open Today', size: 'M'},
   {id: 'water', title: 'Water', about: 'What you have drunk today, against your own target.', pillar: 'health', href: '/app/health#water', open: 'Open Health', size: 'S'},
-  {id: 'focus', title: 'Focus', about: 'A Pomodoro you start here, its time left while it runs, and your focus this week.', pillar: 'habits', href: '/app/journey?focus=pomodoro#focus', open: 'Open Focus Sessions', size: 'S'},
+  {id: 'focus', title: 'Focus', about: 'A Pomodoro you start here, its time left while it runs, and your focus this week.', pillar: 'orbit', href: '/app/journey?focus=pomodoro#focus', open: 'Open Focus Sessions', size: 'S'},
   {id: 'now-playing', title: 'Now playing', about: 'Your focus sounds or music app, with play and stop.', pillar: 'orbit', href: '/app/music', open: 'Open Music', size: 'S'},
   {id: 'money', title: 'Next bill and contribution', about: 'Your next bill and your next planned contribution to a goal.', pillar: 'wealth', href: '/app/wealth?view=bills', open: 'Open Wealth', size: 'M'},
   {id: 'goal-pace', title: 'Goal pace', about: 'Your active goals: how far along, and whether the plan keeps pace.', pillar: 'goals', href: '/app/goals', open: 'Open Goals', size: 'M'},

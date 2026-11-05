@@ -102,10 +102,10 @@ export function timePoints(values: readonly {at: string; value: number}[], w: nu
  * against `max` (the highest of the values and any reference line, such as a target, so the line fits too).
  */
 export type Bar = {x: number; y: number; width: number; height: number; v: number};
-export function histogramBars(values: readonly (number | null)[], w: number, h: number, {max, gap = 0.34}: {max?: number; gap?: number} = {}): (Bar | null)[] {
+export function histogramBars(values: readonly (number | null)[], w: number, h: number, {max, gap = 0.34, headroom = 1}: {max?: number; gap?: number; headroom?: number} = {}): (Bar | null)[] {
   const n = values.length;
   if (!n) return [];
-  const top = Math.max(max ?? 0, ...values.filter((v): v is number => v !== null && Number.isFinite(v)), 0) || 1;
+  const top = histogramTop(values, max, headroom);
   const slot = w / n, width = slot * (1 - Math.max(0, Math.min(0.9, gap)));
   return values.map((v, i) => {
     if (v === null || !Number.isFinite(v)) return null;
@@ -113,9 +113,14 @@ export function histogramBars(values: readonly (number | null)[], w: number, h: 
     return {x: r2(i * slot + (slot - width) / 2), y: r2(h - height), width: r2(width), height: r2(height), v};
   });
 }
+/** A histogram's top: the highest of the values and `max`, with `headroom` above it (review m8: 1.12, so neither the
+ *  tallest bar nor the target line touches the frame). */
+export function histogramTop(values: readonly (number | null)[], max?: number, headroom = 1): number {
+  return (Math.max(max ?? 0, ...values.filter((v): v is number => v !== null && Number.isFinite(v)), 0) || 1) * Math.max(1, headroom);
+}
 /** Where a value sits on a histogram's height (for its reference line), with the same top as histogramBars. */
-export function histogramY(value: number, values: readonly (number | null)[], h: number, max?: number): number {
-  const top = Math.max(max ?? 0, ...values.filter((v): v is number => v !== null && Number.isFinite(v)), 0) || 1;
+export function histogramY(value: number, values: readonly (number | null)[], h: number, max?: number, headroom = 1): number {
+  const top = histogramTop(values, max, headroom);
   return r2(h - Math.max(0, Math.min(1, value / top)) * h);
 }
 

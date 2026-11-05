@@ -4,9 +4,8 @@ import type {WidgetSize} from '../../../lib/nova/store';
 import {arcPath} from '../../../lib/nova/holo/geometry';
 import {formatDate, formatPercent} from '../../../lib/visual-format';
 import {wealthMoney} from '../../platform/wealth-money';
-import {FlowRibbons, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, Orn, WaveChart} from '../holo/parts';
+import {FlowRibbons, HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, Orn, WaveChart} from '../holo/parts';
 import {usePillarShown, useWealthHud} from '../holo/use-hud-data';
-import {NovaEmpty} from './empty';
 import '../holo/holo-parts.css';
 
 /**
@@ -15,6 +14,11 @@ import '../holo/holo-parts.css';
  * last dates on the frame; second pass), the mix by asset class on a segmented dial (each segment named with its share
  * beside it), and a mini purpose flow: what is set aside for goals and what is still available. One currency at a time,
  * never converted (lib/nova/holo/wealth.ts). ZIGoals never moves money; this only reads.
+ * Review fixes (lane L8d): the frame says it holds recorded valuations, its "max" and "min", and the last record's value at
+ * the line's end; where today's total differs from that last record (known only in part, say), a hollow dashed point at
+ * today says "now, known so far" — one source, never two "latest" figures side by side (M6). The panel fits its height by
+ * whole rows: a medium panel shows the total, the line and the purpose flow (the mix dial where its height allows), a large
+ * one the dial and the flow's ribbons side by side (B1). An empty panel is the frame unlit (M8).
  */
 function MixDial({mix, size}: {mix: {assetClass: string; share: number}[]; size: number}) {
   const starts = mix.map((_, i) => mix.slice(0, i).reduce((n, m) => n + m.share, 0)), gap = mix.length > 1 ? 2 : 0;
@@ -34,9 +38,13 @@ export default function WealthHudWidget({size}: {size: WidgetSize}) {
   if (!shown) return <HoloHidden pillar="Wealth"/>;
   if (!loaded) return <HoloReading/>;
   if (error || !hud) return <HoloUnread what="Your wealth records"/>;
-  if (!hud.holdings) return <NovaEmpty pillar="wealth" href="/app/wealth?add=asset" action="Add an asset">Nothing tracked yet. Your wealth, its mix and what is set aside for goals light up here.</NovaEmpty>;
+  if (!hud.holdings) return <HoloEmpty kind="wave" href="/app/wealth?add=asset" action="Add an asset">Nothing tracked yet. Your wealth, its mix and what is set aside for goals light up here.</HoloEmpty>;
   const p = hud.primary, cur = p?.currency ?? '';
   const total = p ? wealthMoney(p.value, cur) : '—';
+  // M6: today's total as a hollow point beside the recorded line when it differs from the last record (or is known only in part).
+  const last = hud.line.at(-1), nowValue = p ? Number(p.value) / 100 : null;
+  const nowPoint = p && last && nowValue !== null && Number.isFinite(nowValue) && (hud.incomplete || Math.abs(nowValue - last.value) >= 0.005)
+    ? {at: hud.nowAt ?? last.at, value: nowValue, label: hud.incomplete ? 'now, known so far' : 'now'} : null;
   const mix = hud.mix.slice(0, size === 'L' ? 5 : 3), line = hud.line.slice(-90);
   const flow = hud.purpose && hud.purpose.total > 0n ? [...hud.purpose.goals.map((g, i) => ({key: `g${i}`, i: i % 3, share: Number(g.value * 10000n / hud.purpose!.total) / 10000})),
     ...(hud.purpose.available > 0n ? [{key: 'free', free: true, share: Number(hud.purpose.available * 10000n / hud.purpose.total) / 10000}] : [])] : [];
@@ -47,11 +55,13 @@ export default function WealthHudWidget({size}: {size: WidgetSize}) {
       {!p && <small className="holo-note">{hud.missingValue ? 'Your holdings have no known value yet.' : 'No value yet.'}</small>}
       {hud.otherCurrencies.length > 0 && <small className="holo-note">+ held in {hud.otherCurrencies.join(', ')} · never converted</small>}
     </div>
-    {size !== 'S' && line.length > 1 && <WaveChart points={line} height={size === 'L' ? 92 : 64} className="holo-wealth-line"
-      labels={{top: lineMoney(Math.max(...line.map(x => x.value)), cur), bottom: lineMoney(Math.min(...line.map(x => x.value)), cur), from: day(line[0]!.at), to: day(line.at(-1)!.at)}}/>}
-    {size !== 'S' && p && <div className="holo-split holo-wealth-mid">
-      {mix.length > 0 && <MixDial mix={mix} size={size === 'L' ? 104 : 84}/>}
-      <ul className="holo-legend">{mix.map((m, i) => <li key={m.assetClass} style={{'--i': i % 4} as CSSProperties}><span className="holo-key" data-i={i % 4} aria-hidden="true"/>{m.assetClass}<b className="holo-num">{formatPercent(m.share * 100)}</b></li>)}</ul>
+    {size !== 'S' && line.length > 1 && <WaveChart points={line} height={size === 'L' ? 80 : 48} className="holo-wealth-line" title="Recorded valuations"
+      labels={{max: lineMoney(Math.max(...line.map(x => x.value)), cur), min: lineMoney(Math.min(...line.map(x => x.value)), cur), span: `${day(line[0]!.at)} – ${day(line.at(-1)!.at)}`}}
+      endLabel={lineMoney(line.at(-1)!.value, cur)} now={nowPoint}/>}
+    <div className="holo-wealth-lower">
+    {size !== 'S' && p && mix.length > 0 && <div className="holo-split holo-wealth-mid">
+      <MixDial mix={mix} size={size === 'L' ? 100 : 76}/>
+      <ul className="holo-legend">{mix.map((m, i) => <li key={m.assetClass} style={{'--i': i % 4} as CSSProperties}><span className="holo-key" data-i={i % 4} aria-hidden="true"/><span className="holo-legend-name">{m.assetClass}</span><b className="holo-num">{formatPercent(m.share * 100)}</b></li>)}</ul>
     </div>}
     {size !== 'S' && hud.purpose && <div className="holo-purpose">
       {size === 'L' && flow.length > 0 ? <div className="holo-flow-box">
@@ -60,10 +70,11 @@ export default function WealthHudWidget({size}: {size: WidgetSize}) {
         <ul className="holo-flow-legend">{hud.purpose.goals.map((g, i) => <li key={`${i}-${g.label}`}><span className="holo-key" data-i={i % 3} aria-hidden="true"/>{g.label}</li>)}{hud.purpose.available > 0n && <li><span className="holo-key" data-free="" aria-hidden="true"/>Still available</li>}</ul>
       </div>
       : <span className="holo-flow" aria-hidden="true">{hud.purpose.goals.map((g, i) => <i key={`${i}-${g.label}`} data-i={i % 3} style={{flexGrow: Number(g.value)}}/>)}<i data-free="" style={{flexGrow: Number(hud.purpose.available)}}/></span>}
-      <p><b className="holo-num">{hud.purpose.shareText}</b> set aside for goals · {wealthMoney(hud.purpose.available, cur)} still available</p>
+      <p className="holo-purpose-words"><b className="holo-num">{hud.purpose.shareText}</b> set aside for goals<span className="holo-purpose-free"> · {wealthMoney(hud.purpose.available, cur)} still available</span></p>
     </div>}
+    </div>
     <HoloTable caption={`Wealth in ${cur || 'your currency'}`} rows={[['Tracked wealth', total],
-      ...(line.length > 1 ? [['Over time', `from ${lineMoney(line[0]!.value, cur)} on ${day(line[0]!.at)} to ${lineMoney(line.at(-1)!.value, cur)} on ${day(line.at(-1)!.at)}; lowest ${lineMoney(Math.min(...line.map(x => x.value)), cur)}, highest ${lineMoney(Math.max(...line.map(x => x.value)), cur)}`] as const] : []), ...hud.mix.map(m => [m.assetClass, formatPercent(m.share * 100)] as const),
+      ...(line.length > 1 ? [['Over time', `recorded valuations from ${lineMoney(line[0]!.value, cur)} on ${day(line[0]!.at)} to ${lineMoney(line.at(-1)!.value, cur)} on ${day(line.at(-1)!.at)}; lowest ${lineMoney(Math.min(...line.map(x => x.value)), cur)}, highest ${lineMoney(Math.max(...line.map(x => x.value)), cur)}${nowPoint ? `; now ${total}${hud.incomplete ? ', known so far' : ''}` : ''}`] as const] : []), ...hud.mix.map(m => [m.assetClass, formatPercent(m.share * 100)] as const),
       ...(hud.purpose ? [['Set aside for goals', `${hud.purpose.shareText} (${wealthMoney(hud.purpose.allocated, cur)})`] as const, ['Still available', wealthMoney(hud.purpose.available, cur)] as const, ...hud.purpose.goals.map(g => [`For ${g.label}`, wealthMoney(g.value, cur)] as const)] : []),
       ...(hud.otherCurrencies.length ? [['Other currencies', `${hud.otherCurrencies.join(', ')}, never converted`] as const] : [])]}/>
   </div>;

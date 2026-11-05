@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import {SKY_FPS, deviceHints, driftX, makeStars, nebulaClouds, skyMode, starCount, twinkleAt, type SkyMode, type Star} from '../../lib/nova/orb-starfield';
-import {MOTE_TINTS, makeMotes, moteAt, type Mote} from '../../lib/nova/holo/motes';
+import {MOTE_TINTS, makeMotes, moteAt, motesAllowed, type Mote} from '../../lib/nova/holo/motes';
 
 /**
  * Session AK (owner follow-up 2, N2 and M2; lane NA): NOVA's starfield and nebula band on a canvas behind everything. It
@@ -42,29 +42,41 @@ function drawStars(g: CanvasRenderingContext2D, stars: readonly Star[], w: numbe
   g.globalAlpha = 1;
 }
 
+/** Review m3 (lane L8d): one soft 12 px sprite per tint, painted once — a bright core in a glow — so a mote reads as light. */
+function moteSprites(): HTMLCanvasElement[] {
+  return MOTE_TINTS.map(tint => {
+    const c = document.createElement('canvas'), g = c.getContext('2d');
+    c.width = c.height = 12;
+    if (g) { const grad = g.createRadialGradient(6, 6, 0, 6, 6, 6); grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.28, tint); grad.addColorStop(1, alpha(tint, 0)); g.fillStyle = grad; g.fillRect(0, 0, 12, 12); }
+    return c;
+  });
+}
 /** Session AL Part 11 (lane L8): the HUD's floating motes ride on this one canvas (no second canvas), in its loop. */
-function drawMotes(g: CanvasRenderingContext2D, motes: readonly Mote[], w: number, h: number, seconds: number) {
+function drawMotes(g: CanvasRenderingContext2D, motes: readonly Mote[], sprites: readonly HTMLCanvasElement[], w: number, h: number, seconds: number) {
   for (const m of motes) {
     const p = moteAt(m, seconds);
     if (p.a <= 0) continue;
-    g.globalAlpha = p.a; g.fillStyle = MOTE_TINTS[m.tint];
-    g.beginPath(); g.arc(p.x * w, p.y * h, m.r, 0, Math.PI * 2); g.fill();
+    const d = m.r * 2.6;
+    g.globalAlpha = p.a; g.drawImage(sprites[m.tint]!, p.x * w - d / 2, p.y * h - d / 2, d, d);
   }
   g.globalAlpha = 1;
 }
 /** Frames the sky has drawn in this tab (a still or paused sky draws none): the HUD's motion specs read it. */
 const countFrame = () => { const w = window as Window & {__zgHudFrames?: number}; w.__zgHudFrames = (w.__zgHudFrames ?? 0) + 1; };
 export function Starfield({motion, accent, motes = false}: {motion: boolean; accent: string; motes?: boolean}) {
-  const canvas = useRef<HTMLCanvasElement>(null), [mode, setMode] = useState<SkyMode>('none');
+  const canvas = useRef<HTMLCanvasElement>(null), [mode, setMode] = useState<SkyMode>('none'), [dustOk, setDustOk] = useState(false);
   useEffect(() => {
     let cancelled = false;
     const hints = deviceHints();
     setMode(skyMode({motion, hints}));
-    // Battery saver where the browser tells: a low battery that is not charging stops the sky.
+    // Review m3 (lane L8d): the motes ask less of a device than the drifting sky (a 4-core laptop keeps them over its still sky).
+    setDustOk(motion && motesAllowed(hints));
+    // Battery saver where the browser tells: a low battery that is not charging stops the sky (and the motes).
     const nav = navigator as Navigator & {getBattery?: () => Promise<{level: number; charging: boolean}>};
-    nav.getBattery?.().then(b => { if (!cancelled && b.level <= 0.2 && !b.charging) setMode(skyMode({motion, hints: {...hints, lowBattery: true}})); }).catch(() => undefined);
+    nav.getBattery?.().then(b => { if (!cancelled && b.level <= 0.2 && !b.charging) { setMode(skyMode({motion, hints: {...hints, lowBattery: true}})); setDustOk(false); } }).catch(() => undefined);
     return () => { cancelled = true; };
   }, [motion]);
+  const dustOn = motes && dustOk && mode !== 'none';
   useEffect(() => {
     const el = canvas.current;
     if (!el || mode === 'none') return;
@@ -73,7 +85,9 @@ export function Starfield({motion, accent, motes = false}: {motion: boolean; acc
     const nebula = document.createElement('canvas'), ng = nebula.getContext('2d');
     const start = performance.now();
     let w = 0, h = 0, stars: Star[] = [], frame = 0, last = 0, stopped = false;
-    const dust = motes && mode === 'running' ? makeMotes() : [];
+    // A still sky with motes over it: the sky is painted once into a cache and each frame draws the cache, then the motes.
+    const dust = dustOn ? makeMotes() : [], sprites = dust.length ? moteSprites() : [], animated = mode === 'running' || dust.length > 0;
+    const still = mode === 'still' && dust.length ? document.createElement('canvas') : null, sg = still?.getContext('2d') ?? null;
     const size = () => {
       const rect = el.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 1.75);
       w = Math.max(1, Math.round(rect.width)); h = Math.max(1, Math.round(rect.height));
@@ -82,13 +96,20 @@ export function Starfield({motion, accent, motes = false}: {motion: boolean; acc
       // The nebula is painted once per size at half resolution, then drawn each frame with a slow sway.
       nebula.width = Math.max(1, Math.round(w / 2)); nebula.height = Math.max(1, Math.round(h / 2));
       if (ng) drawNebula(ng, nebula.width, nebula.height, palette(el));
+      if (still && sg) {
+        still.width = el.width; still.height = el.height; sg.setTransform(dpr, 0, 0, dpr, 0, 0);
+        sg.globalAlpha = 0.9; sg.drawImage(nebula, 0, 0, w, h); sg.globalAlpha = 1; drawStars(sg, stars, w, h, 0);
+      }
     };
     const paint = (seconds: number) => {
       g.clearRect(0, 0, w, h);
-      const sway = Math.sin(seconds / 90) * w * 0.015;
-      g.globalAlpha = 0.9; g.drawImage(nebula, sway, 0, w, h); g.globalAlpha = 1;
-      drawStars(g, stars, w, h, seconds);
-      if (dust.length) drawMotes(g, dust, w, h, seconds);
+      if (still) { g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(still, 0, 0); g.setTransform(el.width / w, 0, 0, el.height / h, 0, 0); }
+      else {
+        const sway = Math.sin(seconds / 90) * w * 0.015;
+        g.globalAlpha = 0.9; g.drawImage(nebula, sway, 0, w, h); g.globalAlpha = 1;
+        drawStars(g, stars, w, h, seconds);
+      }
+      if (dust.length) drawMotes(g, dust, sprites, w, h, seconds);
     };
     const loop = (now: number) => {
       if (stopped) return;
@@ -97,19 +118,22 @@ export function Starfield({motion, accent, motes = false}: {motion: boolean; acc
       last = now; paint((now - start) / 1000); countFrame();
     };
     size();
-    if (mode === 'still') paint(0);
-    else frame = requestAnimationFrame(loop);
-    const resize = new ResizeObserver(() => { size(); if (mode === 'still') paint(0); });
+    // Review m2 (lane L8d): a loop starts only in a tab that is in front (the effect re-runs as the tab hides, and the
+    // sky used to draw a few dozen frames into a hidden tab before the visibility handler stopped it).
+    if (!animated) paint(0);
+    else if (document.visibilityState !== 'hidden') frame = requestAnimationFrame(loop);
+    else { stopped = true; paint(0); }
+    const resize = new ResizeObserver(() => { size(); if (!animated) paint(0); });
     resize.observe(el);
     const visible = () => {
       cancelAnimationFrame(frame);
-      if (mode !== 'running') return;
+      if (!animated) return;
       if (document.visibilityState === 'hidden') { stopped = true; return; }
       stopped = false; frame = requestAnimationFrame(loop);
     };
     document.addEventListener('visibilitychange', visible);
     return () => { stopped = true; cancelAnimationFrame(frame); resize.disconnect(); document.removeEventListener('visibilitychange', visible); };
-  }, [mode, accent, motes]);
+  }, [mode, accent, dustOn]);
   return <canvas ref={canvas} className="nova-sky-canvas" data-sky={mode} aria-hidden="true"/>;
 }
 export default Starfield;

@@ -10,12 +10,15 @@
 .nova-widget[data-pillar=habits], .holo-action[data-pillar=habits], .holo-core-readout li[data-pillar=habits] { --neon: #2ef2ff; --neon-2: #8ff8ff; --neon-ink: #c2fbff; }
 .nova-widget[data-pillar=goals], .holo-action[data-pillar=goals], .holo-core-readout li[data-pillar=goals] { --neon: #a47bff; --neon-2: #c9b0ff; --neon-ink: #e0d4ff; }
 .nova-widget[data-pillar=wealth], .holo-action[data-pillar=wealth], .holo-core-readout li[data-pillar=wealth] { --neon: #ffbf3c; --neon-2: #ffd98a; --neon-ink: #ffe6b0; }
-.nova-widget[data-pillar=orbit], .holo-action[data-pillar=orbit] { --neon: var(--nova-b, #63e7ff); --neon-2: var(--nova-hi, #cbbfff); --neon-ink: #dcecff; }
+/* Review M7 (lane L8d): the day's own panels (Today's orbit, Next three, the Agenda clock, Notes, Focus, briefs) wear a fixed
+   "ice", whatever the accent: never Habits' cyan, never a pillar's hue. */
+.nova-widget[data-pillar=orbit], .holo-action[data-pillar=orbit] { --neon: #a9b8ff; --neon-2: #d6deff; --neon-ink: #e8edff; }
 
 /* ---- Figures and words ---- */
 .holo-num { color: var(--neon-ink, #eef3ff); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .01em; text-shadow: 0 0 14px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
 .holo-num-big { font-size: clamp(24px, 2.2vw, 30px); line-height: 1.1; }
-.holo-num-ring { font-size: 19px; line-height: 1.05; }
+.holo-num-ring { font-size: 22px; line-height: 1.05; }
+.nova-widget[data-size=S] .holo-num-ring { font-size: 16px; }
 .holo-num-arc { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; }
 .holo-label { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #cfdaf0; }
 .holo-label .holo-num { letter-spacing: .02em; }
@@ -37,12 +40,19 @@
 .holo-orn-ticks { fill: none; stroke: color-mix(in oklab, var(--neon-2, #cbbfff) 32%, transparent); stroke-width: .6; }
 .holo-orn-major { stroke: color-mix(in oklab, var(--neon-2, #cbbfff) 55%, transparent); stroke-width: 1; }
 .holo-track, .holo-track-path { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 16%, #ffffff10); stroke-width: 5; stroke-linecap: round; }
-.holo-track[data-unknown], .holo-track-path[data-unknown] { stroke-dasharray: 2 5; stroke-width: 2; }
-.holo-arc { fill: none; stroke: var(--neon, #9273ff); stroke-width: 5; stroke-linecap: round; filter: drop-shadow(0 0 3px var(--neon, #9273ff)); }
+.holo-arc { fill: none; stroke: var(--neon, #9273ff); stroke-width: 5; stroke-linecap: round; filter: drop-shadow(0 0 2px var(--neon, #9273ff)) drop-shadow(0 0 7px color-mix(in oklab, var(--neon, #9273ff) 65%, transparent)); }
+/* Review "flat" 5 (lane L8d): a thin white core over every data arc and line (a lit tube), the wide halo above. */
+.holo-glint { fill: none; stroke: #ffffffb3; stroke-width: .8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.holo-pace .holo-glint, .holo-wave .holo-glint, .holo-spark .holo-glint { vector-effect: non-scaling-stroke; stroke-width: .9; }
 .holo-arc-end { fill: #fff; filter: drop-shadow(0 0 4px var(--neon, #9273ff)); }
 .holo-stack g[data-pillar=health] { --neon: #ff4fb8; } .holo-stack g[data-pillar=habits] { --neon: #2ef2ff; }
 .holo-stack g[data-pillar=goals] { --neon: #a47bff; } .holo-stack g[data-pillar=wealth] { --neon: #ffbf3c; }
-.holo-stack .holo-track, .holo-stack .holo-arc { stroke-width: 2.6; }
+.holo-stack .holo-track, .holo-stack .holo-track-path, .holo-stack .holo-arc { stroke-width: 2.6; }
+.holo-stack .holo-glint { stroke-width: .6; }
+/* Review M4 (lane L8d): an unknown figure is one faint hairline — never dashed like an ornament nor segmented like data —
+   and the core marks it with a short dash in its opening. */
+:is(.holo-track, .holo-track-path)[data-unknown] { stroke: #c9d4ea; stroke-dasharray: none; stroke-width: .6; opacity: .45; }
+.holo-unknown-mark { fill: none; stroke: #dfe7f8; stroke-width: 1.2; stroke-linecap: round; opacity: .75; }
 .holo-dial-label { fill: #c9d4ea; font-size: 8px; text-anchor: middle; font-weight: 600; }
 .holo-hand { stroke: #ffffffcc; stroke-width: 1.2; stroke-linecap: round; }
 .holo-hub { fill: #fff; }
@@ -56,7 +66,7 @@
 .holo-key { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #ffbf3c; }
 .holo-key[data-i="1"] { background: #ff9a3c; border-radius: 50%; } .holo-key[data-i="2"] { background: #ffe08a; transform: rotate(45deg); } .holo-key[data-i="3"] { background: #d9a441; border-radius: 0; }
 .holo-spark, .holo-pace { display: block; width: 100%; height: auto; overflow: visible; }
-.holo-spark-line { fill: none; stroke: var(--neon, #9273ff); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--neon, #9273ff)); vector-effect: non-scaling-stroke; }
+.holo-spark-line { fill: none; stroke: var(--neon, #9273ff); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 2px var(--neon, #9273ff)) drop-shadow(0 0 6px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent)); vector-effect: non-scaling-stroke; }
 .holo-spark-fill { opacity: .9; }
 .holo-stop-a { stop-color: var(--neon, #9273ff); stop-opacity: .34; }
 .holo-stop-b { stop-color: var(--neon, #9273ff); stop-opacity: 0; }
@@ -67,7 +77,7 @@
 
 /* ---- Segmented meters ---- */
 .holo-meters { display: grid; gap: 6px; min-width: 0; flex: 1 1 0; }
-.holo-meter { display: grid; grid-template-columns: minmax(64px, auto) minmax(60px, 1fr) auto; align-items: center; column-gap: 10px; min-width: 0; }
+.holo-meter { display: grid; grid-template-columns: minmax(52px, auto) minmax(36px, 1fr) max-content; align-items: center; column-gap: 8px; min-width: 0; }
 .holo-meter-label { font-size: 13px; font-weight: 600; color: #d3ddf1; white-space: nowrap; }
 .holo-segs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; height: 10px; }
 .holo-segs i { --part: 0; border-radius: 1.5px; background: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0d); background-image: linear-gradient(90deg, var(--neon, #9273ff) calc(var(--part) * 100%), transparent 0); }
@@ -86,7 +96,8 @@
 .holo-hearts li { display: grid; justify-items: center; gap: 2px; }
 .holo-hearts svg { width: 26px; height: 26px; overflow: visible; }
 .holo-hearts small { font-size: 12px; color: #d3ddf1; }
-.holo-heart-shell { fill: none; stroke: #ff8fd6; stroke-width: 1.4; }
+.holo-heart-shell { fill: #ff4fb81f; stroke: #ff8fd6; stroke-width: 1.6; }
+.holo-hearts .holo-heart-pct { font-size: 12px; font-weight: 700; color: #ffc8e8; font-variant-numeric: tabular-nums; }
 .holo-heart-fill { fill: #ff4fb8; filter: drop-shadow(0 0 4px #ff4fb8); }
 .holo-heartline { display: grid; gap: 4px; }
 .holo-streaks { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; min-width: 0; }
@@ -136,14 +147,17 @@
 .holo-counters div { display: grid; justify-items: center; padding: 4px 0; border-radius: 10px; border: 1px solid color-mix(in oklab, var(--neon, #a47bff) 30%, transparent); background: #ffffff06; }
 .holo-counters dt { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #cfdaf0; }
 .holo-counters dd { margin: 0; font-size: 20px; }
-.holo-counters div[data-tone=attention] { border-color: #ffbf3c88; } .holo-counters div[data-tone=attention] .holo-num { color: #ffe6b0; }
+/* Review M7 (lane L8d): attention is coral with a "!", never Wealth's amber. */
+.holo-counters div[data-tone=attention] { border-color: #ff6b5a99; background: #ff6b5a12; } .holo-counters div[data-tone=attention] .holo-num { color: #ffd0ca; text-shadow: 0 0 12px #ff6b5a99; }
+.holo-attention-mark { margin-right: 3px; font-weight: 800; color: #ffb4aa; }
 .holo-captures { display: grid; margin: 0; padding: 0; list-style: none; }
 .holo-captures li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
 .holo-captures a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: #eef3ff; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .holo-captures small { font-size: 13px; color: #c9d4ea; font-variant-numeric: tabular-nums; }
 
 /* ---- The core around the orb, and its readout ---- */
-.holo-core { position: absolute; inset: -26%; pointer-events: none; z-index: -1; }
+/* Review M3 (lane L8d): always a circle around the orb (the button can be taller than the orb), 1.44 × the orb's size. */
+.holo-core { position: absolute; left: 50%; top: 50%; width: calc(var(--orb, 160px) * 1.44); height: calc(var(--orb, 160px) * 1.44); translate: -50% -50%; pointer-events: none; z-index: -1; }
 .holo-core .holo-stack-box { position: absolute; inset: 0; width: 100%; height: 100%; }
 .holo-core-readout { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; margin: 4px 0 0; padding: 0; list-style: none; max-width: 100%; }
 .holo-core-readout li { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #d3ddf1; }
@@ -204,10 +218,10 @@
   background: conic-gradient(from 20deg, #2ef2ff, #8f7bff 30%, #f06dff 55%, #ff9ad8 70%, #2ef2ff);
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px)); mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
   filter: drop-shadow(0 0 4px #f06dff88); }
-.holo-core-lens { inset: -4%; opacity: .6; }
+.holo-core-lens { inset: 0; opacity: .6; } /* review M3 (lane L8d): at the rings' edge, inside the room the stage keeps for them */
 
 /* The framed wave: a HUD frame with corner marks and its four labels (highest, lowest, first and last date). */
-.holo-frame { position: relative; margin: 0; padding: 18px 8px 20px; border: 1px solid color-mix(in oklab, var(--neon, #ffbf3c) 26%, transparent); border-radius: 6px; background: linear-gradient(180deg, #ffffff05, transparent); }
+.holo-frame { position: relative; margin: 0; padding: 19px 8px 19px; border: 1px solid color-mix(in oklab, var(--neon, #ffbf3c) 26%, transparent); border-radius: 6px; background: linear-gradient(180deg, #ffffff05, transparent); }
 .holo-frame::before { content: ''; position: absolute; inset: -1px; pointer-events: none; --c: color-mix(in oklab, var(--neon, #ffbf3c) 85%, #fff);
   background: linear-gradient(var(--c), var(--c)) top left / 10px 1.5px no-repeat, linear-gradient(var(--c), var(--c)) top left / 1.5px 10px no-repeat,
     linear-gradient(var(--c), var(--c)) top right / 10px 1.5px no-repeat, linear-gradient(var(--c), var(--c)) top right / 1.5px 10px no-repeat,
@@ -216,8 +230,17 @@
 .holo-frame > svg { display: block; width: 100%; height: auto; overflow: visible; }
 .holo-frame-label { position: absolute; font-size: 12px; line-height: 16px; color: #d3ddf1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .holo-frame-label[data-at=top] { top: 1px; right: 8px; } .holo-frame-label[data-at=bottom] { bottom: 2px; right: 8px; }
-.holo-frame-label[data-at=from] { bottom: 2px; left: 8px; } .holo-frame-label[data-at=to] { top: 1px; left: 8px; }
-.holo-frame-label[data-at=to]::before { content: 'Latest · '; }
+.holo-frame-label[data-at=from] { bottom: 2px; left: 8px; } .holo-frame-label[data-at=title] { top: 1px; left: 8px; font-weight: 700; letter-spacing: .04em; color: #ffe6b0; }
+/* Review p8 (lane L8d): "max" and "min" say what the corner figures are (12 px tabular figures). */
+.holo-frame-key { font-weight: 700; color: #ffe6b0; text-transform: uppercase; letter-spacing: .06em; font-size: 11.5px; }
+.holo-wave-plot { position: relative; }
+.holo-wave-plot > svg { display: block; width: 100%; height: 48px; overflow: visible; }
+.holo-wave[data-size=L] .holo-wave-plot > svg, .nova-widget[data-size=L] .holo-wave-plot > svg { height: 80px; }
+.holo-wave-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px #ffbf3c, 0 0 8px #ffbf3c; }
+.holo-wave-dot[data-now] { background: #070b1f; box-shadow: none; border: 1.5px dashed #ffe08a; width: 10px; height: 10px; margin: -5px 0 0 -5px; }
+.holo-wave-tag { position: absolute; transform: translate(calc(-100% - 8px), -50%); padding: 0 4px; border-radius: 3px; background: #070b1fd9; font-size: 12px; line-height: 15px; font-weight: 700; color: #ffe6b0; font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; }
+.holo-wave-tag[data-at=now] { color: #fff2c9; font-weight: 600; transform: translate(calc(-100% - 9px), 20%); }
+.holo-now-link { fill: none; stroke: #ffe08a; stroke-width: 1.2; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; opacity: .8; }
 .holo-grid-fine { stroke: #ffffff0e; }
 .holo-ruler-bars { fill: none; stroke: color-mix(in oklab, var(--neon, #ffbf3c) 38%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .holo-wave-a { stop-color: #ffd27a; } .holo-wave-b { stop-color: #ff8a3c; }
@@ -228,9 +251,11 @@
 .holo-week-kcal { display: grid; gap: 4px; }
 .holo-ref-key { letter-spacing: .02em; text-transform: none; font-weight: 600; color: #d3ddf1; }
 .holo-histo { display: grid; gap: 2px; }
-.holo-histo > svg { display: block; width: 100%; height: 64px; overflow: visible; }
+.holo-histo-plot { position: relative; }
+.holo-histo-plot > svg { display: block; width: 100%; height: 64px; overflow: visible; }
+.holo-histo-line-tag { position: absolute; right: 0; transform: translateY(-115%); padding: 0 4px; border-radius: 3px; background: #070b1fcc; font-size: 12px; line-height: 14px; font-weight: 700; color: #f4f7ff; font-variant-numeric: tabular-nums; }
 .holo-bar-a { stop-color: #8f6bff; stop-opacity: .75; } .holo-bar-b { stop-color: #ff4fb8; stop-opacity: .95; }
-.holo-bar-tip { fill: #5ff2ff; filter: drop-shadow(0 0 3px #5ff2ff); }
+.holo-bar-tip { fill: #5ff2ff; filter: drop-shadow(0 0 4px #5ff2ff); }
 .holo-bar-empty { fill: none; stroke: #ffffff40; stroke-width: 1; stroke-dasharray: 2 2; vector-effect: non-scaling-stroke; }
 .holo-ref-line { fill: none; stroke: #f4f7ff; stroke-width: 1.4; opacity: .9; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 3px #5ff2ff); }
 .holo-histo-days { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); text-align: center; }
@@ -276,3 +301,123 @@
 .holo-core-bar::before { content: ''; position: absolute; inset: 0 auto 0 0; width: calc(var(--share, 0) * 100%); background: var(--neon, #9273ff); box-shadow: 0 0 6px var(--neon, #9273ff); border-radius: inherit; }
 .holo-core-bar[data-unknown] { background: linear-gradient(90deg, #ffffff40 50%, transparent 0) 0 0 / 6px 100% repeat-x; }
 .holo-core-bar[data-unknown]::before { display: none; }
+
+/* ==== Review fixes (lane L8d, docs/review/session-al/NOVA_HUD_REVIEW.md) ==== */
+
+/* The core's readout (M4, p6, B2): the rings' legend right under the orb's state, two by two in the rings' order (outer to
+   inner), each with its mark, name and figure over a 6 px segmented bar in its neon; an unknown is a hairline and its reason. */
+.holo-core-readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; column-gap: 18px; row-gap: 6px; width: min(100%, 380px); margin: 2px 0; padding: 0; list-style: none; }
+.holo-core-readout li { position: static; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 6px; row-gap: 3px; padding: 0; font-size: 13px; color: #d3ddf1; text-align: left; }
+.holo-core-readout .holo-num { font-size: 14px; }
+.holo-core-readout .holo-core-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.holo-core-bar { position: static; grid-column: 1 / -1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; height: 6px; border-radius: 0; background: none; overflow: visible; }
+.holo-core-bar::before { content: none; }
+.holo-core-bar i { border-radius: 1px; background: color-mix(in oklab, var(--neon, #9273ff) 16%, #ffffff10); }
+.holo-core-bar i[data-lit] { background: var(--neon, #9273ff); box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.holo-core-bar[data-unknown] { height: 1px; background: #c9d4ea; opacity: .45; }
+.holo-core-why { grid-column: 1 / -1; min-width: 0; font-size: 12px; line-height: 1.25; color: #c3cfe6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Goals (B1, M1): each goal one link — its arc, its name on one centred line (ellipsis; the full name in its tooltip and the
+   table) and its pace words; the pace line whole under them, its names in place. */
+.holo-goals { gap: 8px; }
+.holo-arcs { gap: 6px; }
+.holo-arcs li { display: block; min-width: 0; }
+.holo-arc-link { display: grid; justify-items: center; min-width: 0; width: 100%; min-height: 44px; padding: 0 2px 2px; border-radius: 10px; color: #eef3ff; text-decoration: none; }
+.holo-arc-link:hover .holo-arc-name { text-decoration: underline; }
+.holo-goals .holo-arc-box { width: 64px; height: 64px; }
+.holo-goals[data-size=L] .holo-arc-box { width: 78px; height: 78px; }
+.holo-arc-name { display: block; justify-content: normal; min-height: 0; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: 14px; line-height: 18px; font-weight: 600; color: #eef3ff; }
+.holo-arcs .holo-pace-words { margin: 0; font-size: 13px; line-height: 16px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.holo-goals[data-size=S] .holo-arc-link { grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; column-gap: 10px; text-align: left; align-items: center; }
+.holo-goals[data-size=S] .holo-arc-box { grid-row: 1 / span 2; width: 52px; height: 52px; }
+.holo-goals[data-size=S] .holo-num-arc { font-size: 13px; }
+.holo-pace-box { gap: 3px; }
+.holo-pace-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.holo-pace-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.holo-more-link { display: inline-flex; align-items: center; flex: none; min-height: 44px; min-width: 44px; margin: -14px -6px; padding: 0 6px; border-radius: 8px; color: var(--nova-hi, #cbbfff); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.holo-pace-chart > .holo-pace { height: 52px; }
+.holo-goals[data-size=L] .holo-pace-chart > .holo-pace { height: 76px; }
+.holo-pace-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--neon, #a47bff), 0 0 8px var(--neon, #a47bff); pointer-events: none; }
+.holo-chart-tag[data-at=target] { transform: translateY(18%); }
+.holo-chart-tag[data-at=today] { bottom: 1px; transform: translateX(-50%); }
+.holo-estimate { display: flex; align-items: center; min-width: 0; white-space: nowrap; overflow: hidden; }
+.holo-estimate-words { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* The Agenda clock (m5, M1): its hours in readable words inside the dial, times that never wrap, one short count line. */
+.holo-clock { overflow: visible; }
+.holo-dial-hour { position: absolute; transform: translate(-50%, -50%); font-size: 12px; line-height: 1; font-weight: 600; color: #dfe7f8; font-variant-numeric: tabular-nums; pointer-events: none; }
+.holo-agenda-count { margin: 0; font-size: 13px; font-weight: 600; color: #d3ddf1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.holo-agenda-count .holo-num { font-size: 15px; }
+.holo-next li { grid-template-columns: 76px minmax(0, 1fr); }
+.holo-next-time { white-space: nowrap; }
+.holo-agenda[data-empty] .holo-agenda-side { gap: 2px; }
+
+/* Wealth (B1, M6): whole rows that fit — the total, the recorded line, then the mix and the purpose flow side by side on a
+   wide panel; a narrow one keeps the share set aside and leaves the amount to the table. */
+.holo-wealth { gap: 8px; }
+.holo-wealth-head { gap: 0; }
+.holo-wealth-lower { display: grid; gap: 8px; min-width: 0; }
+.holo-legend-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.holo-purpose { gap: 4px; }
+.holo-purpose-words { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.holo-wave-tag[data-at=now][data-low] { transform: translate(calc(-100% - 9px), -120%); }
+
+/* Health (M1, m6, M10): the large panel's hero figure, the hearts' figures. */
+.nova-widget[data-size=L] .holo-health .holo-num-ring { font-size: 30px; }
+.holo-hearts { gap: 4px 14px; }
+.holo-hearts li { gap: 0; }
+.holo-ring-note { margin: 0 0 2px; }
+
+/* Today's orbit (p5): a 140 px ring with the day's next step beside it. */
+.holo-orbit { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 16px; }
+.holo-orbit[data-size=S] { grid-template-columns: auto; justify-items: start; }
+.holo-orbit-line { margin: 0; font-size: 15px; line-height: 1.4; color: #dbe4f6; }
+.holo-orbit .holo-ring-centre small { max-width: 8em; }
+.holo-water, .holo-notes, .holo-sleep { gap: 6px; }
+
+/* M8: an empty instrument is the instrument unlit — its shape in hairlines with "—" — beside the reason and where to start. */
+.holo-empty { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 14px; row-gap: 2px; }
+.holo-empty-shape { grid-row: 1 / span 2; display: inline-flex; align-items: center; gap: 4px; }
+.holo-empty-shape b { position: relative; font-size: 18px; font-weight: 700; color: #dfe7f8; line-height: 1; }
+.holo-empty-ring { position: relative; display: grid; place-items: center; width: 84px; height: 84px; }
+.holo-empty-ring svg, .holo-empty-arc svg, .holo-empty-frame svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.holo-empty-arc { position: relative; display: grid; place-items: center; width: 44px; height: 44px; }
+.holo-empty-arc b { font-size: 14px; }
+.holo-empty-frame { position: relative; display: grid; place-items: center; width: 104px; height: 56px; border: 1px dashed color-mix(in oklab, var(--neon, #ffbf3c) 40%, transparent); border-radius: 6px; }
+.holo-empty-line { fill: none; stroke: #ffffff45; stroke-width: 1; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.holo-empty-words { grid-column: 2; margin: 0; font-size: 14px; line-height: 1.4; color: #dbe4f6; }
+.holo-empty-action { grid-column: 2; justify-self: start; display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.nova-widget[data-size=S] .holo-empty-ring { width: 52px; height: 52px; }
+.nova-widget[data-size=S] .holo-empty-arc:not(:first-child), .nova-widget[data-size=S] .holo-empty-frame { display: none; }
+
+/* m11: the quick actions are small HUD panels (brackets, the grid, the pillar's neon); a habit's row is one line. */
+.holo-action { position: relative; background: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px) 0 0 / 22px 22px, color-mix(in oklab, var(--neon, #9273ff) 7%, #070b1f); }
+.holo-action > .holo-brackets { inset: 4px; }
+.holo-habit-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.holo-habit-list li > :last-child { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 6px; }
+.holo-habit-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* p1: each preset's sketch. */
+.holo-preset-sketch { display: block; width: 64px; height: 40px; margin-bottom: 4px; overflow: visible; }
+.holo-preset-sketch rect { stroke-width: 1.2; }
+.holo-sketch-star { fill: #cbbfff; }
+.holo-sketch-band { fill: #c9d4ea; }
+
+/* B1: each instrument drops whole rows to fit its panel (its body is the `holo-body` size container in Holo's fixed-height
+   layouts); a phone's panels have no height to fit, so these never apply there. Width rules keep figures whole (M1). */
+@container holo-body (max-height: 229px) { .holo-health .holo-hearts { display: none; } }
+@container holo-body (max-height: 175px) { .holo-health .holo-tag { display: none; } }
+@container holo-body (max-height: 190px) { .holo-habits .holo-week-row { display: none; } }
+@container holo-body (max-height: 196px) { .holo-goals .holo-arcs .holo-pace-words { display: none; } }
+@container holo-body (max-height: 150px) { .holo-goals .holo-pace-box { display: none; } }
+@container holo-body (max-height: 289px) { .holo-wealth[data-size=M] .holo-wealth-mid { display: none; } }
+@container holo-body (max-height: 205px) { .holo-wealth .holo-wealth-head .holo-note { display: none; } }
+@container holo-body (max-height: 168px) { .holo-wealth .holo-purpose { display: none; } }
+@container holo-body (max-height: 118px) { .holo-wealth .holo-wave { display: none; } }
+@container holo-body (max-height: 168px) { .holo-agenda .holo-next li:nth-child(3) { display: none; } }
+@container holo-body (max-height: 64px) { .holo-wealth .holo-wealth-head .holo-label { display: none; } }
+@container holo-body (max-width: 440px) { .holo-estimate-note, .holo-purpose-free { display: none; } }
+@container holo-body (min-width: 440px) {
+  .holo-wealth[data-size=L] .holo-wealth-lower { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; column-gap: 16px; }
+}
+@container holo-body (max-width: 330px) { .holo-health .holo-split { gap: 10px; } .holo-meter { column-gap: 6px; } }

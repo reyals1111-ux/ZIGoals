@@ -15,7 +15,7 @@ import {DUO_IDLE, duoState, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, novaHandoffPend
 import {dockEntries, dockForKey, type DockEntry} from '../../lib/nova/dock';
 import {greetingFor, openingSkippedNote, type NovaOrbState} from '../../lib/nova/orb';
 import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full / Calm / Off
-import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
+import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, swapWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
 import {HUD_PRESET_LABEL, HUD_PRESET_PLAN, presetShown, presetWidgets, setHudLook, setHudPreset, type HudLook, type HudPreset} from '../../lib/nova/layout';
 import {BURST_MS, isTextEntry, shortcutKind, typedLetter} from '../../lib/nova/holo/keys';
@@ -234,6 +234,10 @@ export default function NovaDashboard() {
       if (save(rr => removeWidget(rr, id))) showUndo({message: `${title(id)} left the stage.`, undone: `${title(id)} is back.`, restore: () => { if (!save(rr => restoreWidgets(rr, before))) throw Error('This could not be put back on this device.'); }});
     },
     quick: id => setSheet({kind: 'actions', id}),
+    // Review m9 (lane L8d): Left/Right on a grip trade places with the panel level with it in the other column; the grid
+    // then says where the panel is now.
+    swap: (a, b) => { save(rr => swapWidgets(rr, a, b), `${title(a)} changed columns.`); requestAnimationFrame(() => root.current?.querySelector<HTMLElement>(`[data-widget="${a}"] .nova-grip`)?.focus()); },
+    announce: words => setStatus(words),
   };
   // Session AL Part 11 (lane L8): a preset replaces the layout and the widgets in one step, with Undo putting both back.
   const applyPreset = (preset: HudPreset) => {
@@ -267,10 +271,14 @@ export default function NovaDashboard() {
         handlers={{act, customize: () => setSheet({kind: 'yours'}), fullscreen: toggleFullscreen}} onExit={exit} onDay={() => setSheet({kind: 'day'})} onSearch={() => openSearch()}
         onWorkflows={() => setSheet({kind: 'panels', id: 'workflows'})} onMini={pipOk && !phone ? () => { if (pip) pip.close(); else void openMini(); } : undefined} miniOpen={!!pip} leftHidden={left === 'hidden'} onShowLeft={() => save(rr => setLeftPanel(rr, 'open'))}
         rightOpen={right === 'open'} onToggleRight={toggleRight} compact={phone} onQuick={() => setSheet({kind: 'quick'})}/>
-      {!phone && <StatusChips brain={brain} showcase={showcase}/>}
-      {/* Session AK P3 (ND-23): the setup invitation, one slim line under the chips (it left the star's stack). */}
-      {!chatOpen && <NovaSetupBanner persona={persona.name} brain={brain}/>}
-      <LoadBoundary quiet><Suspense fallback={null}><NovaLive/></Suspense></LoadBoundary>
+      {/* Review fix (lane L8d, NOVA_HUD_REVIEW B2): the status chips, what is running now and the setup invitation share one
+          deck that wraps (two slim rows at most on a computer, where they took three and pushed the HUD below the fold). */}
+      <div className="nova-deck">
+        {!phone && <StatusChips brain={brain} showcase={showcase}/>}
+        <LoadBoundary quiet><Suspense fallback={null}><NovaLive/></Suspense></LoadBoundary>
+        {/* Session AK P3 (ND-23): the setup invitation, one slim line under the chips (it left the star's stack). */}
+        {!chatOpen && <NovaSetupBanner persona={persona.name} brain={brain}/>}
+      </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
       <div className="nova-stage-area">{phone && !holo ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}

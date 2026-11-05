@@ -70,11 +70,12 @@ export function leanAt(offset: number, radius: number, extent: number): number {
   return Math.round(Math.max(0, Math.min(1, share)) * MAX_LEAN);
 }
 
-/** Orbit placement: each widget, in order, to the side with fewer rows used (left on a tie) while it fits; else the band. */
-export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS): Placed[] {
+/** Orbit placement: each widget, in order, to the side with fewer rows used (left on a tie) while it fits; else the band.
+ *  `rows` is the rows each size takes (AK's cards: ROWS; the Holo look: HOLO_ROWS). */
+export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS, rowsOf: Record<WidgetSize, number> = ROWS): Placed[] {
   const used = {left: 0, right: 0}, out: Placed[] = [];
   widgets.forEach((w, order) => {
-    const rows = ROWS[w.size];
+    const rows = rowsOf[w.size];
     const first: 'left' | 'right' = used.left <= used.right ? 'left' : 'right', second = first === 'left' ? 'right' : 'left';
     const side: Side = used[first] + rows <= sideRows ? first : used[second] + rows <= sideRows ? second : 'band';
     if (side === 'band') { out.push({...w, side, row: 0, rows, lean: 0, order}); return; }
@@ -89,6 +90,53 @@ export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS)
     for (const p of column) p.lean = leanAt(p.row - 1 + p.rows / 2 - middle, radius, middle);
   }
   return out;
+}
+
+/**
+ * Session AL review fixes (lane L8d; NOVA_HUD_REVIEW B1, B2, M2): the Holo look sizes its panels itself, so every
+ * instrument is drawn whole (AK's caps cut the Goals pace line, half the Wealth panel and the Health histogram). A Holo
+ * row ("unit") is as tall as the stage allows: the side columns hold as many units as fit at HOLO_UNIT_MIN, and the unit
+ * then grows to fill the stage's height (up to HOLO_UNIT_MAX). S is one unit, M two, L four — the large panel is the hero:
+ * a side column of its own beside the star, wider than the other (layout CSS). Each instrument drops whole rows to fit
+ * its panel (container queries in holo-parts.css), never fading through a chart.
+ */
+export const HOLO_ROWS: Record<WidgetSize, number> = {S: 1, M: 2, L: 4};
+export const HOLO_UNIT_MIN = 120, HOLO_UNIT_MAX = 168, HOLO_GAP = 12;
+/** The Holo units a side column holds in a stage of this height (px); 4 while the height is not known yet. */
+export function holoRowsFit(stageHeight: number | null | undefined): number {
+  if (typeof stageHeight !== 'number' || !Number.isFinite(stageHeight) || stageHeight <= 0) return 4;
+  return Math.max(MIN_SIDE_ROWS, Math.min(MAX_SIDE_ROWS, Math.floor((stageHeight + HOLO_GAP) / (HOLO_UNIT_MIN + HOLO_GAP))));
+}
+/** One Holo unit's height (px): the stage's height shared by the units that fit, within HOLO_UNIT_MIN…HOLO_UNIT_MAX. */
+export function holoUnit(stageHeight: number | null | undefined, fit = holoRowsFit(stageHeight)): number {
+  if (typeof stageHeight !== 'number' || !Number.isFinite(stageHeight) || stageHeight <= 0 || fit <= 0) return HOLO_UNIT_MIN;
+  return Math.round(Math.max(HOLO_UNIT_MIN, Math.min(HOLO_UNIT_MAX, (stageHeight - (fit - 1) * HOLO_GAP) / fit)) * 10) / 10;
+}
+/** A Holo panel's height (px) for its size and the unit. */
+export const holoHeight = (size: WidgetSize, unit: number): number => HOLO_ROWS[size] * unit + (HOLO_ROWS[size] - 1) * HOLO_GAP;
+/** Which orbit columns hold a large panel (they widen, review M2). */
+export function wideSides(placed: readonly Placed[]): 'left' | 'right' | 'both' | undefined {
+  const left = placed.some(p => p.side === 'left' && p.size === 'L'), right = placed.some(p => p.side === 'right' && p.size === 'L');
+  return left && right ? 'both' : left ? 'left' : right ? 'right' : undefined;
+}
+/**
+ * Review m9 (lane L8d): the arrow keys on a grip in the orbit are spatial. Up and Down move a panel one place earlier or
+ * later; Left and Right swap it with the panel level with it in the other column (the nearest by row), so it changes
+ * column and nothing else. Null when there is no such panel (the band, or an empty column): the keys then move it one place.
+ */
+export function swapPartner(placed: readonly Placed[], id: string): string | null {
+  const me = placed.find(p => p.id === id);
+  if (!me || me.side === 'band') return null;
+  const mid = me.row - 1 + me.rows / 2, other = placed.filter(p => p.side === (me.side === 'left' ? 'right' : 'left'));
+  if (!other.length) return null;
+  return other.reduce((best, p) => Math.abs(p.row - 1 + p.rows / 2 - mid) < Math.abs(best.row - 1 + best.rows / 2 - mid) ? p : best).id;
+}
+/** Where a panel sits, in words for the status line ("2 of 9, right column"). */
+export function placeWords(placed: readonly Placed[], id: string): string {
+  const at = placed.findIndex(p => p.id === id);
+  if (at < 0) return '';
+  const side = placed[at]!.side;
+  return `${at + 1} of ${placed.length}, ${side === 'band' ? 'on the outer band' : `${side} column`}`;
 }
 
 /** The rows each orbit column needs (the taller side sets the stage's height). */
@@ -134,9 +182,9 @@ export const HUD_PRESETS = ['command', 'health', 'wealth', 'minimal'] as const;
 export type HudPreset = (typeof HUD_PRESETS)[number];
 export const HUD_PRESET_LABEL: Record<HudPreset, string> = {command: 'Command', health: 'Health HUD', wealth: 'Wealth HUD', minimal: 'Minimal'};
 export const HUD_PRESET_ABOUT: Record<HudPreset, string> = {
-  command: 'Every pillar around the star: health, habits, goals, wealth, your agenda and tasks.',
+  command: 'Every pillar around the star: health, habits, goals, wealth, your agenda, tasks, focus and briefs.',
   health: 'Your body first: the health HUD, water, sleep, habits and focus.',
-  wealth: 'Your money first: the wealth HUD, bills, goals and their pace.',
+  wealth: 'Your money first: the wealth and goals HUDs side by side, your bills and markets.',
   minimal: 'The star and three quiet widgets.',
 };
 export const novaHudSchema = z.looseObject({
@@ -155,9 +203,13 @@ export const setHudPreset = (r: NovaHud, preset: HudPreset): NovaHud => novaHudS
 type PresetPlan = {layout: NovaLayout; widgets: {id: string; size: WidgetSize}[]};
 /** What each preset puts on NOVA: a layout and its widgets, in orbit order (the first ones sit beside the star). */
 export const HUD_PRESET_PLAN: Record<HudPreset, PresetPlan> = {
-  command: {layout: 'orbit', widgets: [{id: 'health-hud', size: 'M'}, {id: 'habits-hud', size: 'M'}, {id: 'goals-hud', size: 'M'}, {id: 'wealth-hud', size: 'M'}, {id: 'agenda-clock', size: 'M'}, {id: 'tasks', size: 'M'}, {id: 'orbit', size: 'M'}, {id: 'notes', size: 'S'}]},
+  // Review fixes (lane L8d, m15/M8): the Command preset is also the Showcase's and a brand-new NOVA's; Focus (a focus
+  // timer is one of the HUD's quick actions) and NOVA's briefs (the day's morning brief and recap) join it.
+  command: {layout: 'orbit', widgets: [{id: 'health-hud', size: 'M'}, {id: 'habits-hud', size: 'M'}, {id: 'goals-hud', size: 'M'}, {id: 'wealth-hud', size: 'M'}, {id: 'agenda-clock', size: 'M'}, {id: 'tasks', size: 'M'}, {id: 'orbit', size: 'M'}, {id: 'notes', size: 'S'}, {id: 'focus', size: 'S'}, {id: 'briefs', size: 'S'}]},
   health: {layout: 'orbit', widgets: [{id: 'health-hud', size: 'L'}, {id: 'habits-hud', size: 'M'}, {id: 'water', size: 'S'}, {id: 'sleep', size: 'S'}, {id: 'focus', size: 'S'}, {id: 'agenda-clock', size: 'M'}]},
-  wealth: {layout: 'orbit', widgets: [{id: 'wealth-hud', size: 'L'}, {id: 'goals-hud', size: 'M'}, {id: 'money', size: 'M'}, {id: 'goal-pace', size: 'M'}, {id: 'markets', size: 'M'}, {id: 'tasks', size: 'S'}]},
+  // Review fixes (lane L8d, m15, partial "dot sliders"): the money preset's two heroes — Wealth and Goals (its pace line and
+  // the next goals' dot sliders) — without Goal pace, which repeated the Goals HUD.
+  wealth: {layout: 'orbit', widgets: [{id: 'wealth-hud', size: 'L'}, {id: 'goals-hud', size: 'L'}, {id: 'money', size: 'M'}, {id: 'markets', size: 'M'}, {id: 'tasks', size: 'S'}]},
   minimal: {layout: 'focus', widgets: [{id: 'orbit', size: 'M'}, {id: 'agenda-clock', size: 'M'}, {id: 'water', size: 'S'}]},
 };
 /** A preset's widgets as NOVA stores them, keeping only those `available` here (a market watch needs Markets in use). */

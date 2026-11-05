@@ -1,5 +1,6 @@
 import * as z from 'zod';
 import type {DeviceRecordSpec} from '../device-record';
+import {presetWidgets} from './layout';
 
 /**
  * Session AK (owner follow-up 2, N2; lane NA): NOVA's own device record, `zigoals:nova:v1`. It holds how the person
@@ -157,6 +158,13 @@ export function placeWidget(r: NovaRecord, id: string, to: number): NovaRecord {
   const next = [...list]; const [moved] = next.splice(from, 1); next.splice(at, 0, moved!);
   return withWidgets(r, next);
 }
+/** Review m9 (lane L8d): two widgets trade places (the arrow keys' "other column"); unknown ids leave the record as it is. */
+export function swapWidgets(r: NovaRecord, a: string, b: string): NovaRecord {
+  const list = widgetsFor(r), i = list.findIndex(w => w.id === a), j = list.findIndex(w => w.id === b);
+  if (i < 0 || j < 0 || i === j) return r;
+  const next = [...list]; [next[i], next[j]] = [next[j]!, next[i]!];
+  return withWidgets(r, next);
+}
 /** One place earlier (-1) or later (+1): the keyboard and button alternative to dragging. */
 export const nudgeWidget = (r: NovaRecord, id: string, by: -1 | 1): NovaRecord => {
   const from = widgetsFor(r).findIndex(w => w.id === id);
@@ -168,7 +176,15 @@ export const restoreWidgets = (r: NovaRecord, widgets: readonly NovaWidget[]): N
 export const setLayout = (r: NovaRecord, layout: NovaLayout): NovaRecord => novaRecordSchema.parse({...r, layout});
 export const setAccent = (r: NovaRecord, accent: NovaAccent): NovaRecord => novaRecordSchema.parse({...r, accent});
 export const setShortcuts = (r: NovaRecord, on: boolean): NovaRecord => novaRecordSchema.parse({...r, shortcuts: on});
-export const markOpeningSeen = (r: NovaRecord): NovaRecord => r.openingSeen ? r : novaRecordSchema.parse({...r, openingSeen: true});
+/**
+ * Review fix (lane L8d, NOVA_HUD_REVIEW M8): a brand-new NOVA (no record on this device at all: nothing but its version)
+ * starts on the holographic HUD's Command preset, so a first visit meets the instruments. A record that exists — the
+ * person opened NOVA before, or arranged anything — keeps its widgets (or the earlier defaults) untouched.
+ */
+export const isBrandNew = (r: NovaRecord): boolean => Object.keys(r).every(k => k === 'version');
+export const FIRST_WIDGETS = (): NovaWidget[] => presetWidgets('command');
+export const markOpeningSeen = (r: NovaRecord): NovaRecord => r.openingSeen ? r
+  : novaRecordSchema.parse({...r, openingSeen: true, ...(isBrandNew(r) ? {widgets: FIRST_WIDGETS()} : {})});
 /** The persona; a name is trimmed and its inner spaces folded (a blank name means "NOVA" again). */
 export function setPersona(r: NovaRecord, change: Partial<Persona>): NovaRecord {
   const persona = {...r.persona};
@@ -223,17 +239,10 @@ export function showcaseNova(day: string): NovaRecord {
   void day;
   return novaRecordSchema.parse({
     version: 1, layout: 'orbit', accent: 'violet',
-    // Session AL Part 11, second pass (lane L8): the Showcase shows the holographic HUD whole — the five HUD instruments
-    // beside the star (Health and Wealth large, so the week's calories, the framed wealth wave and the purpose flow show),
-    // then the day's panels; the earlier widgets keep their places after them.
-    widgets: [
-      {id: 'health-hud', size: 'L', slot: 0}, {id: 'wealth-hud', size: 'L', slot: 1}, {id: 'habits-hud', size: 'M', slot: 2}, {id: 'goals-hud', size: 'M', slot: 3},
-      {id: 'agenda-clock', size: 'M', slot: 4}, {id: 'orbit', size: 'M', slot: 5},
-      // Session AK WA (T1/T3): the Showcase's labelled example tasks ("Example · …") and its fictional Pomodoro history.
-      {id: 'tasks', size: 'M', slot: 6}, {id: 'focus', size: 'S', slot: 7},
-      {id: 'next', size: 'M', slot: 8}, {id: 'water', size: 'S', slot: 9}, {id: 'notes', size: 'S', slot: 10}, {id: 'briefs', size: 'S', slot: 11},
-      {id: 'goal-pace', size: 'M', slot: 12}, {id: 'money', size: 'M', slot: 13}, {id: 'sleep', size: 'S', slot: 14}, {id: 'glance', size: 'M', slot: 15}, {id: 'now-playing', size: 'S', slot: 16},
-    ],
-    panels: {left: 'open', right: 'open'},
+    // Review fixes (lane L8d, NOVA_HUD_REVIEW m15, B2): the Showcase opens on the Command preset itself — every pillar's
+    // instrument beside the star, then the day's panels (its labelled example tasks and Pomodoro history among them), no
+    // duplicates — and with "Behind the intelligence" closed, so at 1440 px the HUD, not a lone orb, is the first view.
+    widgets: presetWidgets('command'),
+    panels: {left: 'open'},
   });
 }

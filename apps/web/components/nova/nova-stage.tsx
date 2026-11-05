@@ -47,7 +47,7 @@ function NovaGreeting({greeting, typingFrom}: {greeting: string; typingFrom: num
  */
 export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase, onTalk, talkOpen, core}: {
   persona: Persona; orb: NovaOrbState; greeting: string; typingFrom: number | null; counts: NovaCounts; showcase: boolean; onTalk: () => void; talkOpen: boolean;
-  /** Session AL Part 11 (lane L8): the Holo core — four pillar rings around the orb and their readout under the day line. */
+  /** Session AL Part 11 (lane L8): the Holo core — four pillar rings around the orb and their readout under its state. */
   core?: {rings: ReactNode; readout: ReactNode};
 }) {
   const letters = persona.name.toUpperCase().split('').join('·').replace(/·\s·/g, ' ');
@@ -65,11 +65,13 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
     </button>
     <div className="nova-stage-below">
       <p className="nova-orb-state" id="nova-orb-state" data-state={orb}><span className="nova-orb-state-word">{ORB_STATE_LABEL[orb]}</span><span className="nova-orb-state-hint">{orb === 'idle' ? 'Tap to talk' : orb === 'listening' ? 'Speak now' : orb === 'thinking' ? 'Working on it' : 'Answering'}</span></p>
+      {/* Review M4, B2 (lane L8d): the core's readout — its legend — sits right under the orb's state, ordered as the rings
+          are (outer to inner), above the greeting; it used to fall under the command field at 1440 px. */}
+      {core?.readout}
       {/* Release review 2 (R2-22): the greeting is in the page once; the part still to type waits invisible in place (read by
           assistive technology as one sentence, and the line keeps its width while it types). */}
       <NovaGreeting key={typingFrom ?? 'done'} greeting={greeting} typingFrom={typingFrom}/>
       <LoadBoundary quiet><Suspense fallback={<p className="nova-dayline"> </p>}><NovaDayLine counts={counts}/></Suspense></LoadBoundary>
-      {core?.readout}
       {showcase && <p className="nova-showcase"><span className="nova-chip-dot" aria-hidden="true"/>Showcase · fictional example data</p>}
     </div>
   </div>;

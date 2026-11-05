@@ -83,7 +83,7 @@ export function useWealthHud() {
     if (!store.loaded || store.error) return null;
     const overview = wealthOverview(store.data, now, market.quotes);
     const {views} = purposeFlows({assets: purposeAssets(overview.rows, r => r.position.providerId || r.position.asset), goals: store.data.goals, allocations: store.data.allocations});
-    return wealthHud(overview, views);
+    return {...wealthHud(overview, views), nowAt: new Date(now).toISOString()};
   }, [store.loaded, store.error, store.data, now, market.quotes]);
   return {hud, loaded: store.loaded, error: !!store.error};
 }

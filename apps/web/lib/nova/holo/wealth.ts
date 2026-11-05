@@ -28,6 +28,8 @@ export type WealthHud = {
   incomplete: boolean; missingValue: boolean;
   /** Holdings on this device (0: a fresh start teaches). */
   holdings: number;
+  /** Review M6 (lane L8d): when the headline total was counted (ISO), to place "now" beside the recorded line. */
+  nowAt?: string;
 };
 /** The purpose flow's share words (components/wealth/allocation/purpose-flow.tsx): one decimal, rounded down, or "—". */
 export const purposeShare = (part: bigint, total: bigint): string => total > 0n ? `${(Number(part * 1000n / total) / 10).toFixed(1)} %` : '—';

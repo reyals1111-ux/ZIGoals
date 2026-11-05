@@ -6,9 +6,8 @@ import {MILESTONES, type PaceChart} from '../../../lib/nova/holo/goals';
 import {arcPath, polar} from '../../../lib/nova/holo/geometry';
 import {forecastWords} from '../../../lib/goal-forecast';
 import {formatDay} from '../../goals/format';
-import {DotSlider, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
+import {DotSlider, Glint, HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {useGoalsHud, usePillarShown} from '../holo/use-hud-data';
-import {NovaEmpty} from './empty';
 import '../holo/holo-parts.css';
 
 /**
@@ -17,6 +16,9 @@ import '../holo/holo-parts.css';
  * target, with the projection band from today to the forecast's earliest and latest dates, labelled "Estimate" in the
  * forecast's own words (lib/goal-forecast.ts). Nothing here is a promise or advice. Second pass: the chart names its own
  * parts in place (Target, Today, Estimate), and a large panel lists the next goals as dot sliders with milestone ticks.
+ * Review fixes (lane L8d, B1, M1, M8): the panel fits its height with the pace line whole (a medium panel shows the arcs
+ * and the pace; rows drop only below that, never through the chart); each goal is one link (its arc, its name and its
+ * pace words), the name one centred line with an ellipsis and its full words in the table; an empty panel is unlit arcs.
  */
 const SWEEP = 270, START = -135;
 function GoalArc({pct}: {pct: number | null}) {
@@ -24,7 +26,7 @@ function GoalArc({pct}: {pct: number | null}) {
   return <svg viewBox="-50 -50 100 100" aria-hidden="true" focusable="false">
     <path className="holo-track-path" d={arcPath(0, 0, 40, START, START + SWEEP)} data-unknown={pct === null || undefined}/>
     {MILESTONES.map(m => { const a = polar(0, 0, 33, START + SWEEP * m / 100), b = polar(0, 0, 47, START + SWEEP * m / 100); return <path key={m} className="holo-orn-ticks holo-orn-major" d={`M${a.x} ${a.y}L${b.x} ${b.y}`}/>; })}
-    {s > 0 && <><path className="holo-arc" d={arcPath(0, 0, 40, START, START + SWEEP * s)}/><circle className="holo-arc-end" cx={end.x} cy={end.y} r="3.4"/></>}
+    {s > 0 && <><path className="holo-arc" d={arcPath(0, 0, 40, START, START + SWEEP * s)}/><Glint d={arcPath(0, 0, 40, START, START + SWEEP * s)}/><circle className="holo-arc-end" cx={end.x} cy={end.y} r="3.4"/></>}
   </svg>;
 }
 function PaceLine({chart, label}: {chart: PaceChart; label: string}) {
@@ -41,9 +43,11 @@ function PaceLine({chart, label}: {chart: PaceChart; label: string}) {
     {b && <path className="holo-band" fill={`url(#${id}b)`} d={`M${nx.toFixed(1)} ${ny.toFixed(1)}L${x(b.early).toFixed(1)} ${ty.toFixed(1)}L${(b.late === null ? W - P : x(b.late)).toFixed(1)} ${ty.toFixed(1)}Z`}/>}
     {b && <path className="holo-band-mid" d={`M${nx.toFixed(1)} ${ny.toFixed(1)}L${x(b.mid).toFixed(1)} ${ty.toFixed(1)}`}/>}
     <path className="holo-spark-line" d={line}/>
-    <circle className="holo-arc-end" cx={nx} cy={ny} r="3"/>
+    <Glint d={line}/>
     <title>{label}</title>
   </svg>
+  {/* Today's point stays round over the stretched drawing (HTML). */}
+  <i className="holo-pace-dot" style={{left: pct(nx, W), top: pct(ny, H)}} aria-hidden="true"/>
   {/* The chart's own names, in place (decoration over the words below, which say the same). */}
   <span className="holo-chart-tag" data-at="target" style={{top: pct(ty, H)}} aria-hidden="true">Target</span>
   <span className="holo-chart-tag" data-at="today" style={{left: pct(nx, W)}} aria-hidden="true">Today</span>
@@ -56,25 +60,27 @@ export default function GoalsHudWidget({size}: {size: WidgetSize}) {
   if (!data.loaded) return <HoloReading/>;
   if (data.error || !data.arcs) return <HoloUnread what="Your goals"/>;
   const {arcs, active} = data.arcs;
-  if (!arcs.length) return <NovaEmpty pillar="goals" href="/app/goals/new" action="Set a goal">No active goals yet. Their progress and pace light up here.</NovaEmpty>;
+  if (!arcs.length) return <HoloEmpty kind="arcs" href="/app/goals/new" action="Set a goal">No active goals yet. Their progress and pace light up here.</HoloEmpty>;
   const shownArcs = arcs.slice(0, size === 'S' ? 1 : 3), sliders = size === 'L' ? arcs.slice(3, 7) : [], more = Math.max(0, active - shownArcs.length - sliders.length), pace = size === 'S' ? null : data.pace, words = pace ? forecastWords(pace.forecast, formatDay) : null;
+  const moreLink = more > 0 ? <Link className="holo-more-link" href="/app/goals" prefetch={false}>+{more} more <span className="sr-only">{more === 1 ? 'goal' : 'goals'}</span></Link> : null;
   return <div className="holo-goals" data-size={size}>
     <ul className="holo-arcs" data-count={shownArcs.length}>{shownArcs.map(a => <li key={a.key} data-tone={a.pace.tone}>
-      <div className="holo-arc-box"><GoalArc pct={a.pct}/><HoloFigure text={a.text} className="holo-num-arc"/></div>
-      <Link href={a.href} prefetch={false} className="holo-arc-name">{a.name}</Link>
-      <small className="holo-pace-words">{a.pace.words}</small>
+      <Link href={a.href} prefetch={false} className="holo-arc-link" title={a.name}>
+        <span className="holo-arc-box"><GoalArc pct={a.pct}/><HoloFigure text={a.text} className="holo-num-arc"/></span>
+        <span className="holo-arc-name">{a.name}</span>
+        <small className="holo-pace-words">{a.pace.words}</small>
+      </Link>
     </li>)}</ul>
     {sliders.length > 0 && <ul className="holo-sliders" aria-label="More active goals">{sliders.map(a => <li key={a.key} data-tone={a.pace.tone}>
-      <Link href={a.href} prefetch={false} className="holo-slider-name">{a.name}</Link>
+      <Link href={a.href} prefetch={false} className="holo-slider-name" title={a.name}>{a.name}</Link>
       <DotSlider share={a.pct === null ? null : a.pct / 100}/>
       <b className="holo-num">{a.text}</b>
     </li>)}</ul>}
-    {more > 0 && <p className="holo-more"><Link href="/app/goals" prefetch={false}>+{more} more {more === 1 ? 'goal' : 'goals'}</Link></p>}
-    {pace && words && <div className="holo-pace-box" data-state={pace.chart.state}>
-      <p className="holo-label">Pace · {pace.name}</p>
+    {pace && words ? <div className="holo-pace-box" data-state={pace.chart.state}>
+      <p className="holo-label holo-pace-head"><span className="holo-pace-name">Pace · {pace.name}</span>{moreLink}</p>
       <PaceLine chart={pace.chart} label={`${words.headline}. ${words.detail}`}/>
-      <p className="holo-estimate">{pace.chart.band ? <span className="holo-tag holo-tag-estimate">Estimate</span> : null}{words.headline}{pace.chart.band ? ' · projection, not a promise' : ''}</p>
-    </div>}
-    <HoloTable caption="Goals" rows={[...arcs.map(a => [a.name, `${a.text} · ${a.pace.words}`] as const), ...(pace && words ? [[`Pace of ${pace.name}`, `${words.headline}. ${words.detail}`] as const] : [])]}/>
+      <p className="holo-estimate">{pace.chart.band ? <span className="holo-tag holo-tag-estimate" title="A projection from your recorded pace, not a promise">Estimate</span> : null}<span className="holo-estimate-words">{words.headline}{pace.chart.band ? <span className="holo-estimate-note"> · projection, not a promise</span> : null}</span></p>
+    </div> : moreLink && <p className="holo-more">{moreLink}</p>}
+    <HoloTable caption="Goals" rows={[...arcs.map(a => [a.name, `${a.text} · ${a.pace.words}`] as const), ...(pace && words ? [[`Pace of ${pace.name}`, `${words.headline}${pace.chart.band ? ' (an estimate: a projection, not a promise)' : ''}. ${words.detail}`] as const] : [])]}/>
   </div>;
 }

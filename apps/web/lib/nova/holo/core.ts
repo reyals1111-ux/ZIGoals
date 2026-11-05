@@ -5,12 +5,14 @@
  * - Habits: the habits done of those due today (Today's focus count);
  * - Goals: the lead active goal's progress (NOVA's goal format, whole and rounded down);
  * - Wealth: the share of the headline currency's known value set aside for goals (the purpose flow's words).
- * A ring whose figure is unknown is drawn as a faint dashed track only (an ornament), with "—" and the reason in words.
+ * A ring whose figure is unknown is drawn as one faint hairline only, with "—" and the reason in words.
+ * Review M5 (lane L8d): water with nothing logged today is unknown ("—", "No water logged yet today"), never a 0 ring; a
+ * logged amount without a target keeps its figure and says the target is missing.
  */
 export type CorePillar = 'health' | 'habits' | 'goals' | 'wealth';
 export type CoreRing = {pillar: CorePillar; label: string; measure: string; share: number | null; text: string; reason: string | null};
 export type CoreInput = {
-  water: {share: number | null; text: string; targetText: string | null} | null;
+  water: {share: number | null; text: string; targetText: string | null; logged?: boolean} | null;
   habits: {due: number; done: number} | null;
   goal: {name: string; pct: number | null; text: string} | null;
   wealth: {allocated: bigint; total: bigint; shareText: string} | null;
@@ -19,7 +21,8 @@ const LABEL: Record<CorePillar, string> = {health: 'Health', habits: 'Habits', g
 const unknown = (pillar: CorePillar, measure: string, reason: string): CoreRing => ({pillar, label: LABEL[pillar], measure, share: null, text: '—', reason});
 export function coreRings(i: CoreInput): CoreRing[] {
   const health = !i.water ? unknown('health', 'Water today', 'Your Health journal is not read yet')
-    : i.water.share === null ? unknown('health', 'Water today', 'No water target set')
+    : i.water.logged === false ? unknown('health', 'Water today', 'No water logged yet today')
+    : i.water.share === null ? {...unknown('health', 'Water today', 'No water target set'), text: i.water.text}
     : {pillar: 'health' as const, label: LABEL.health, measure: 'Water today', share: i.water.share, text: `${i.water.text} of ${i.water.targetText}`, reason: null};
   const habits = !i.habits ? unknown('habits', 'Habits done today', 'Your habits are not read yet')
     : i.habits.due === 0 ? unknown('habits', 'Habits done today', 'No habit is due today')
