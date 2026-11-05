@@ -129,6 +129,8 @@ The bots' run reopened **150 AL rows** (226 proposed rows) that earlier sessions
 12. **Measure performance after design changes, alone.** The HUD design pass made the motes redraw the window-sized sky under every glass panel (49.9 ms at CPU 4x, alone, against 16.7 ms before). Perf specs run after every HUD change, on a quiet machine, before the change is called done.
 13. **Spec measurements must model the browser.** The page-transition spec summed `<html>`'s whole document height for the root picture, which the browser captures at window size; 20 failures were the spec's, not the app's. Before changing an app to satisfy a measuring spec, check what the spec measures.
 
+14. **Run the whole existing suite, not only the new specs.** The integrator proved lanes with tests/grok53 on the production build and the unit suite, and CI run 1539 (ecb00e50) then failed 389 older browser tests: deliberate changes (the ⌘K move, the Health field check, the Showcase in litres, Earn's folds, regenerated theme sheets) that older specs still pinned, plus real regressions they caught (the Fund dialog's Cash button). From here a lane is not done until the older specs that touch its pages pass on the production build too.
+
 ## Closing table (R9)
 Outcomes: Fixed (commit, test, replay FIXED) · Already fixed (replay FIXED on main before any change, with the evidence) · Owner decision (named) · Not possible (evidence) · Waits on owner (the named step).
 
