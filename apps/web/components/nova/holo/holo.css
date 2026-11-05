@@ -250,3 +250,68 @@
   .holo-floor, .holo-motes, .nova-orbit-side::before, .nova-orbit-side::after { display: none; }
   .nova-orbit-side > .nova-widget[data-holo][data-size=L]::before { border-color: CanvasText; background: Canvas; }
 }
+
+/* ==== Second review fixes (lane L8f, docs/review/session-al/NOVA_HUD_REVIEW_2.md) ==== */
+
+/* M5: the outer band lies below the fold and scrolls with the stage, so its panels need no fitted height: each is as tall
+   as its content (at least its size's unit), and never cuts its own button (Tasks' "Add", Focus' "Start a 25-minute
+   Pomodoro", NOVA briefs' "Set up daily briefs →"). Its body is a width container only, so no row is dropped there. */
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] { height: auto; min-height: var(--h-s); }
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size=M] { min-height: var(--h-m); }
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] .nova-widget-body { flex: 1 1 auto; container: holo-body / inline-size; overflow: visible; margin-inline: 0; padding-inline: 0; }
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] .nova-widget-inner { min-height: 0; padding-block: 0; justify-content: flex-start; }
+/* p2: a hidden tab holds the idle orb's breath too (O5: everything pauses; a busy orb keeps its working cue). */
+.nova-frame[data-hud-motion=paused] :is(.nova-orb[data-state=idle], .nova-orb[data-state=idle] *) { animation-play-state: paused !important; }
+/* M7: in Focus (the Minimal preset) the star's stack fits its hero, the core's readout whole above the three panels: the
+   hero is a size container, the orb takes what its words leave (the stack's words are about 260 px), and a short hero lets
+   the greeting and the day line go (the readout is the data; the greeting is said again in the conversation). */
+.nova-frame[data-look=holo]:not([data-phone]) [data-holo-fit] > .nova-focus-hero { container: nova-hero / size; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-focus-hero .nova-stage[data-holo-core] { --orb: clamp(64px, calc((100cqb - 280px) / 1.48), 220px); align-self: stretch; height: 100%; min-height: 0; }
+@container nova-hero (max-height: 470px) {
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-focus-hero .nova-stage[data-holo-core] :is(.nova-greeting, .nova-dayline) { display: none; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-focus-hero .nova-stage[data-holo-core] { --orb: clamp(64px, calc((100cqb - 206px) / 1.48), 220px); }
+}
+/* M4: a narrow stage (a tablet, ≤ 800 px) shows the star at its own height (it used to take the whole first screen) and the
+   panels under it in one column of up to 560 px, each as tall as its content, so the first view holds the HUD and no value
+   runs past its panel (two 245 px columns cut them). */
+@container nova-stage (max-width: 800px) {
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main { grid-template-columns: minmax(0, 560px); justify-content: center; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre { min-height: 0; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-band-grid { grid-template-columns: minmax(0, 560px); justify-content: center; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit .nova-stage[data-holo-core] { --orb: clamp(112px, 22cqi, 150px); grid-template-rows: auto auto auto; }
+  .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size] { height: auto; min-height: var(--h-s); }
+  .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size] .nova-widget-body { flex: 1 1 auto; container: holo-body / inline-size; overflow: visible; margin-inline: 0; padding-inline: 0; }
+  .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size] .nova-widget-inner { min-height: 0; padding-block: 0; justify-content: flex-start; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side::before, .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side::after { content: none; }
+}
+/* m2: a panel narrower than 420 px keeps its title whole: its page link shows the arrow alone (a 44 px target; its words stay
+   its name and tooltip). */
+.nova-widget[data-holo] { container: holo-panel / inline-size; }
+@container holo-panel (max-width: 420px) {
+  .nova-widget[data-holo] .nova-widget-open .nova-widget-open-words { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .nova-widget[data-holo] .nova-widget-open { justify-content: center; width: 44px; padding: 0; font-size: 18px; }
+}
+/* m7: the morph reads — the tapped panel's picture stays bright while it travels to the window's middle and grows (half a
+   second), and fades only at the end, over the arriving page (it faded from the first frame and was gone by 150 ms). */
+@keyframes zg-hud-zoom-2 { 0% { transform: none; opacity: 1; } 65% { opacity: .92; } 100% { transform: translate(var(--zg-hud-dx, 0px), var(--zg-hud-dy, 0px)) scale(var(--zg-hud-scale, 2)); opacity: 0; } }
+::view-transition-group(zg-hud-morph) { animation-duration: 520ms; }
+:root[data-hud-morph=zoom]::view-transition-old(zg-hud-morph) { animation: 520ms cubic-bezier(.25, .8, .25, 1) both zg-hud-zoom-2; }
+:root[data-hud-morph=zoom]::view-transition-new(root) { animation-delay: 120ms; }
+/* m1: the motes keep to the star's core — a disc around the orb inside its four rings, where no word ever sits (NOVA's name
+   is above the rings, its state and readout below) — instead of the whole column, where specks landed on "Good morning",
+   "4 of 7" or "Habits". The orb button is their anchor; where anchor positioning is missing they stay in the column. */
+@supports (anchor-name: --a) {
+  .nova-stage[data-holo-core] .nova-orb-button { anchor-name: --zg-orb; }
+  .holo-motes { inset: auto; position-anchor: --zg-orb; left: anchor(center); top: anchor(center); width: calc(anchor-size(width) * 1.4); height: calc(anchor-size(width) * 1.4); translate: -50% -50%;
+    -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent); mask-image: radial-gradient(closest-side, #000 72%, transparent); }
+}
+/* M5 (side columns): a small Focus panel lays its week's figure and its start button side by side, so the button is whole
+   in one unit (at 1920 it was sliced in half). */
+.nova-widget[data-holo][data-size=S] .nova-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; }
+.nova-widget[data-holo][data-size=S] .nova-focus > p { margin: 0; }
+.nova-widget[data-holo][data-size=S] .nova-focus .nova-figure { font-size: 22px; }
+.nova-widget[data-holo][data-size=S] .nova-focus .nova-big { line-height: 1.15; }
+.nova-widget[data-holo][data-size=S] .nova-focus .nova-big small { font-size: 13px; }
+/* M3: on a short window (≤ 800 px high) the star's stack sits high in its column — NOVA's name, the orb, then its state and
+   readout — so the readout stays above the command field (at 1280 × 720 it slid under it). */
+@media (max-height: 800px) { .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre > .nova-stage[data-holo-core] { grid-template-rows: auto auto minmax(min-content, 1fr); } }

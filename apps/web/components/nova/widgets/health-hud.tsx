@@ -16,7 +16,8 @@ import '../holo/holo-parts.css';
  * Review fixes (lane L8d): every meter keeps its target in view at any width (M1); a reason shared by several meters is said
  * once, under the ring, and their rows show "—" only (m14); the hearts say their share in figures (m6); the week's
  * histogram has headroom and its target's value at the line's end (m8). A medium panel shows the ring and four meters, the
- * hearts where its height allows; a large one everything.
+ * hearts where its height allows; a large one everything. Second review M2, p6 (lane L8f): the ring's figure fits inside it,
+ * its "of 2,200 kcal" and its reason sit under it.
  */
 export default function HealthHudWidget({size}: {size: WidgetSize}) {
   const shown = usePillarShown('health'), shared = useHealthShared(), {hud, loaded, error, health, day} = useHealthHud();
@@ -30,12 +31,15 @@ export default function HealthHudWidget({size}: {size: WidgetSize}) {
   const noteOf = (m: typeof k) => m.value === null ? (m.note === k.note && k.value === null ? null : m.note) : m.target ? null : m.note;
   return <div className="holo-health" data-size={size}>
     <div className="holo-split">
-      <TickRing share={k.share} size={size === 'S' ? 64 : size === 'M' ? 104 : 140}>
-        <HoloFigure text={k.value === null ? '—' : k.text.replace(/ kcal$/, '')} className="holo-num-ring"/>
-        <small>{k.value === null ? 'kcal' : k.targetText ? `of ${k.targetText}` : 'kcal'}</small>
-      </TickRing>
+      {/* Second review p6 (lane L8f): the ring's reason ("No meals logged today") sits under the ring it explains. */}
+      <div className="holo-ring-col">
+        <TickRing share={k.share} size={size === 'S' ? 64 : size === 'M' ? 104 : 140}>
+          <HoloFigure text={k.value === null ? '—' : k.text.replace(/ kcal$/, '')} className="holo-num-ring"/>
+          <small>{k.value === null ? 'kcal' : k.targetText ? `of ${k.targetText}` : 'kcal'}</small>
+        </TickRing>
+        {size !== 'S' && k.value === null && <p className="holo-note holo-ring-note">{k.note}</p>}
+      </div>
       <div className="holo-meters">
-        {size !== 'S' && k.value === null && <p className="holo-note holo-note-line holo-ring-note">{k.note}</p>}
         {meters.map(m => <SegMeter key={m.key} label={m.label} share={m.share} text={m.text} targetText={m.targetText} note={noteOf(m)} compact={size !== 'L'}/>)}
       </div>
     </div>

@@ -575,3 +575,75 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-status-row strong { color: var(--nova-ink); }
 .nova-tech-body { display: grid; gap: 10px; padding-top: 6px; }
 .nova-greeting-rest { opacity: 0; }
+
+/* ==== Second review fixes (lane L8f, docs/review/session-al/NOVA_HUD_REVIEW_2.md) ==== */
+/* m4: View controls (and the routing menu) open above the whole foot, never over the command field: the menu's box spans
+   the foot row's height, its button at the bottom, so its panel's "100% + 8px" clears the field's top edge. */
+.nova-foot-row > .nova-menu { top: 0; display: flex; align-items: flex-end; }
+@container nova-centre (max-width: 1100px) { .nova-frame:not([data-phone]) .nova-foot-row > .nova-menu { align-self: stretch; align-items: center; } }
+/* m4, m10: NOVA's toasts are opaque (the command field's words showed through the one over it; raised above the foot it
+   would cover the panels instead) and, while a side sheet is open (the quick actions), sit left of it, not over its rows. */
+:root:has(.nova-frame) .aa-toast { background: linear-gradient(135deg, #0e2036, #1d1a3c); }
+@media (min-width: 900px) { :root .nova-sheet[data-place=right]:not([data-wide]) .aa-toast-region { left: auto; right: calc(480px + 16px); bottom: 24px; transform: none; width: min(560px, calc(100vw - 480px - 32px)); } }
+@media (min-width: 1180px) { :root .nova-sheet[data-place=right][data-wide] .aa-toast-region { left: auto; right: calc(760px + 16px); bottom: 24px; transform: none; width: min(560px, calc(100vw - 760px - 32px)); } }
+
+/* M10, M3: on the HUD the person's figures lead, not the clock: a quieter clock (32 px at most), and on a short window
+   (≤ 800 px high, a 1280 × 720 laptop) a smaller one and the planets in one row, so the instruments get the height. */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-clock-time { font-size: clamp(24px, 2.2vw, 32px); }
+@media (max-height: 800px) {
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-top { padding-top: 8px; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-top .nova-clock-label { display: none; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-top .nova-clock-time { font-size: 24px; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-top .nova-clock-date { font-size: 13px; }
+  /* The top bar's planets in one row where the centre has the width (a 1280 × 720 laptop: 48 px back for the HUD). */
+  @container nova-centre (min-width: 1150px) {
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-quick ul { grid-template-columns: repeat(var(--cells, 14), 44px); gap: 6px; }
+    /* …with the left controls as icons (their names kept for assistive technology), so the clock keeps its middle. */
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-top { grid-template-columns: auto minmax(0, 1fr) auto; }
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-top .nova-clock { justify-self: center; }
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-top-left .nova-top-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-top-left :is(.nova-exit, .nova-pill) { width: 44px; padding: 0; }
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-top-left .nova-exit .nova-kbd { display: none; }
+  }
+}
+/* p5: the top bar's planets are quiet until pointed at (they competed with the HUD's figures): a softer rim and planet;
+   the hovered, focused or pressed one lights as before. (One row would hide the dock's entries the shortcuts name.) */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-quick .nova-tile:not(:hover, :focus-visible, :focus-within, [aria-pressed=true]) { border-color: #ffffff0f; background: #080d22b3; color: #c9d4ea; }
+/* M3: on a short window the setup invitation folds into one slim chip-high line (its title and its two buttons; the
+   sentence under the title waits on the guide's first page), so the deck is one row where it fits. */
+@media (max-height: 800px) {
+  .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner .nova-setup-banner-text p { display: none; }
+  .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner h2 { font-size: 15px; }
+  .nova-frame:not([data-phone]) .nova-deck { row-gap: 6px; }
+}
+/* M4: a tablet (or a narrow centre): the chips are one row that scrolls sideways (they took four rows), so the HUD starts
+   on the first screen. */
+@container nova-centre (max-width: 900px) {
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-chips { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; max-width: 100%; padding-block: 2px; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-chips > li { flex: none; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-chips { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right: 24px; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-setup-banner .nova-setup-banner-text p { display: none; }
+}
+/* M8: a phone's HUD scrolls as one page — the top bar, the deck and the setup invitation scroll away with the star and its
+   panels (they were pinned, leaving the HUD a 465 px window); the command field stays at the foot. The star is smaller, so
+   the core's readout (its four bars) is on the first screen, under the orb. */
+.nova-frame[data-phone][data-look=holo] .nova-centre { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+.nova-frame[data-phone][data-look=holo] .nova-centre > .nova-stage-area { flex: none; overflow: visible; container: nova-stage / inline-size; padding-bottom: 0; }
+.nova-frame[data-phone][data-look=holo] .nova-centre > .nova-foot { position: sticky; bottom: 0; z-index: 3; margin-top: auto; background: linear-gradient(to bottom, transparent, var(--nova-deep, #020414) 26px); }
+.nova-frame[data-phone][data-look=holo] .nova-stage[data-holo-core] { --orb: min(132px, 36vw); padding-block: 0; grid-template-rows: auto auto auto; }
+.nova-frame[data-phone][data-look=holo] .nova-stage-above { padding-top: 4px; }
+.nova-frame[data-phone][data-look=holo] .nova-deck > .nova-setup-banner { padding: 8px 10px 8px 14px; }
+.nova-frame[data-phone][data-look=holo] .nova-deck > .nova-setup-banner .nova-setup-banner-text p { display: none; }
+.nova-frame[data-phone][data-look=holo] .nova-stage[data-holo-core] .nova-orb-button .nova-orb { width: var(--orb); }
+/* m8: "Skip to the HUD", the first stop on NOVA, shown only while it has the keyboard's focus. */
+.nova-skip { position: absolute; left: 12px; top: 12px; z-index: 40; padding: 10px 16px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; border-radius: 12px; background: #0a1028; border: 1px solid var(--nova-edge); color: var(--nova-ink); font-weight: 700; text-decoration: none; transform: translateY(-200%); }
+.nova-skip:focus, .nova-skip:focus-visible { transform: none; }
+.nova-stage-area:focus { outline: none; }
+.nova-stage-area:focus-visible { outline: 2px solid var(--nova-focus); outline-offset: -2px; }
+/* O5 performance (lane L8f; hud-perf at CPU 4×): on the HUD, NOVA's chrome — the left panel, the status chips, the setup
+   invitation and the command field — is tinted night glass without a live blur. They lie over the still sky, so a blur
+   showed almost nothing there, yet each one was blurred again on every frame the HUD's ornaments turned (on a 4-core
+   laptop: 35–70 % of frames over 20 ms with them, about 10 % without). The HUD's own panels keep their glass. */
+.nova-frame[data-look=holo]:not([data-phone]) :is(.nova-left, .nova-chip, .nova-setup-banner, .nova-command) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-left { background: color-mix(in oklab, #060b1d 90%, transparent); }
+.nova-frame[data-look=holo]:not([data-phone]) :is(.nova-chip, .nova-setup-banner) { background: color-mix(in oklab, #0a1028 88%, transparent); }

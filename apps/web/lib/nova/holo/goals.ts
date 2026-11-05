@@ -1,11 +1,13 @@
 import {daysBetween, type Forecast, type ForecastPoint} from '../../goal-forecast';
 import type {GoalSummary} from '../../goal-summary';
 import {paceWords, wholePercent} from '../widgets/words';
+import {isFinished} from '../../goals/finished';
+import {averageKey} from '../../average-goals/store';
 
 /**
  * Session AL Part 11 (lane L8): the goals HUD's figures.
  * - Progress arcs: the active goals as Today and NOVA's Goal pace summarise them (lib/goal-summary.ts), the percent in
- *   NOVA's one goal format (words.ts wholePercent: whole, rounded down, a bound kept, "Unavailable" never a number),
+ *   NOVA's one goal format (words.ts wholePercent: whole, the Goals page's rounding, a bound kept, "Unavailable" never a number),
  *   with milestone ticks at a quarter, a half and three quarters (ornaments: always drawn, never data).
  * - The pace line: the lead goal's recorded progress (lib/goal-forecast.ts privateGoalPoints, as the goal page's forecast
  *   panel and Today's pace forecasts read it) and, only when that forecast is an estimate, its projection band from today
@@ -13,13 +15,25 @@ import {paceWords, wholePercent} from '../widgets/words';
  */
 export type GoalArc = {key: string; name: string; href: string; pct: number | null; text: string; pace: ReturnType<typeof paceWords>};
 export const MILESTONES = [25, 50, 75] as const;
-export function goalArcs(goals: readonly GoalSummary[], count = 3): {arcs: GoalArc[]; more: number; active: number} {
-  const active = goals.filter(g => g.status === 'active');
-  const arcs = active.slice(0, count).map(g => {
+/**
+ * An average goal as the Goals page shows it (components/goals/average-goals.tsx): its ring is how close the rolling
+ * average is to the target (lib/average-goals/progress.ts averageProgress `share`), full when met.
+ */
+export type AverageArcInput = {id: string; name: string; status: string; share: number | null; met: boolean | null};
+/**
+ * The goals' arcs, the Goals page's active goals in its order: the goal summaries, then (lane L8f, Part 13) the average
+ * goals, which Today and Goals count among the active ones (lib/numbers/counts.ts activeGoalCount); `active` is that count.
+ */
+export function goalArcs(goals: readonly GoalSummary[], count = 3, averages: readonly AverageArcInput[] = []): {arcs: GoalArc[]; more: number; active: number} {
+  const active = goals.filter(g => g.status === 'active'), avg = averages.filter(a => a.status === 'active');
+  const all: GoalArc[] = [...active.map(g => {
     const known = g.progressBound !== 'unavailable' && /^\d+(\.\d+)?$/.test(g.progressPct);
-    return {key: g.key, name: g.name, href: g.href, pct: known ? Math.min(100, Number(g.progressPct)) : null, text: wholePercent(g.progressPct, g.progressBound), pace: paceWords(g.fundingHealth)};
-  });
-  return {arcs, more: Math.max(0, active.length - arcs.length), active: active.length};
+    return {key: g.key, name: g.name, href: g.href, pct: known ? Math.min(100, Number(g.progressPct)) : null, text: wholePercent(g.progressPct, g.progressBound, isFinished(g)), pace: paceWords(g.fundingHealth)};
+  }), ...avg.map(a => ({key: averageKey(a.id), name: a.name, href: `/app/goals/average/${encodeURIComponent(a.id)}`, pct: a.share === null ? null : Math.min(100, a.share * 100),
+    text: a.share === null ? 'Unavailable' : wholePercent((a.share * 100).toFixed(4), undefined, a.met === true),
+    pace: a.met === null ? {words: 'No days recorded yet', tone: 'unknown' as const} : a.met ? {words: 'On target', tone: 'good' as const} : {words: 'Not on target yet', tone: 'attention' as const}}))];
+  const arcs = all.slice(0, count);
+  return {arcs, more: Math.max(0, all.length - arcs.length), active: all.length};
 }
 
 export type PaceChart = {

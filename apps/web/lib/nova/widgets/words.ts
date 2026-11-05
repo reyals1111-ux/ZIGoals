@@ -1,4 +1,5 @@
-import {formatNumber} from '../../visual-format';
+import {formatProgressPercent} from '../../visual-format';
+import {waterText} from '../../health-units';
 
 /**
  * Session AK (owner follow-up 2, N2; lane NA): the words NOVA's widgets put on screen, pure so they are tested. An unknown
@@ -7,15 +8,16 @@ import {formatNumber} from '../../visual-format';
  */
 
 /**
- * Session AK lane EXF (EX-16): a goal's progress as NOVA's Goal pace shows it, in whole percents ("41.66" → "41%"), so one
- * list never mixes "45%" and "41.66%". Rounded down, so a goal never reads 100% before it is there. Today keeps its own
- * exact figure (lib/goal-summary.ts `progressText`). Unknown stays "Unavailable"; a lower bound says "At least".
+ * Session AK lane EXF (EX-16): a goal's progress as NOVA shows it, in whole percents, so one list never mixes "45%" and
+ * "41.66%". Second review M6 (lane L8f): with the Goals page's own rounding (lib/visual-format.ts formatProgressPercent, as
+ * its progress rings use: half up, and 100 only when the goal is finished — `complete`, or at least 100 when not said), so
+ * $2,500 of $6,000 reads 42% on NOVA and on Goals alike (it read 41% here, rounded down). Unknown stays "Unavailable"; a
+ * lower bound says "At least".
  */
-export function wholePercent(pct: string, bound?: 'at-least' | 'unavailable'): string {
-  if (bound === 'unavailable') return 'Unavailable';
-  const m = /^(\d+)(?:\.\d+)?$/.exec(pct.trim());
-  if (!m) return 'Unavailable';
-  const n = `${formatNumber(Number(m[1]))}%`;
+export function wholePercent(pct: string, bound?: 'at-least' | 'unavailable', complete?: boolean): string {
+  if (bound === 'unavailable' || !/^\d+(?:\.\d+)?$/.test(pct.trim())) return 'Unavailable';
+  const n = formatProgressPercent(pct.trim(), complete);
+  if (n === '—') return 'Unavailable';
   return bound === 'at-least' ? `At least ${n}` : n;
 }
 /** A goal's funding pace in calm words ("ON_TRACK", "ON TRACK" → "On track"); anything else is shown as it is. */
@@ -31,11 +33,13 @@ export function paceWords(health: string): {words: string; tone: 'good' | 'calm'
   return {words: health.charAt(0).toUpperCase() + health.slice(1).toLowerCase().replace(/_/g, ' '), tone: 'calm'};
 }
 
-/** A water amount in the person's unit: "450 mL", "1.2 L", or US fluid ounces. */
+/**
+ * A water amount in the person's unit, in Health's own words (lib/health-units.ts waterText: "450 mL", "1,250 mL", whole US
+ * fluid ounces). Session AL lane L8f (Part 13's request): NOVA wrote "1.3 L" where Health and Today wrote "1,250 mL".
+ */
 export function waterAmount(ml: number, unit: 'ml' | 'fl-oz-us'): string {
   if (!Number.isFinite(ml) || ml < 0) return '';
-  if (unit === 'fl-oz-us') return `${formatNumber(Math.round(ml / 29.5735295625 * 10) / 10, {maximumFractionDigits: 1})} fl oz`;
-  return ml >= 1000 ? `${formatNumber(Math.round(ml / 100) / 10, {maximumFractionDigits: 1})} L` : `${formatNumber(Math.round(ml))} mL`;
+  return waterText(ml, unit);
 }
 /** A share of a target, 0–1, or null when there is no target (no bar is drawn then). */
 export const shareOf = (value: number, target: number | null | undefined): number | null => target && target > 0 && Number.isFinite(value) ? Math.max(0, Math.min(1, value / target)) : null;

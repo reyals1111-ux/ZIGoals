@@ -23,6 +23,8 @@ import {healthHud} from '../../../lib/nova/holo/health';
 import {habitsHud} from '../../../lib/nova/holo/habits';
 import {goalArcs, paceChart} from '../../../lib/nova/holo/goals';
 import {wealthHud} from '../../../lib/nova/holo/wealth';
+import {AVERAGE_GOALS} from '../../../lib/average-goals/store';
+import {averageProgress} from '../../../lib/average-goals/progress';
 
 /**
  * Session AL Part 11 (lane L8): the HUD's data, each through the page's own store hook (so a change anywhere — this tab,
@@ -54,7 +56,7 @@ export function useHabitsHud() {
 
 /** The goals as Today summarises them (with the same prices), and the lead private goal's pace (its forecast panel's). */
 export function useGoalsHud() {
-  const platform = usePlatform(), legacy = useGoals();
+  const platform = usePlatform(), legacy = useGoals(), averageGoals = useDeviceRecord(AVERAGE_GOALS), health = useHealth();
   const requests = platform.loaded && !platform.error && platform.data.goals.length ? wealthMarketRequests(platform.data) : false;
   const market = useMarketQuotes(requests), now = useEvidenceNow(platform.data, market.now);
   return useMemo(() => {
@@ -70,8 +72,11 @@ export function useGoalsHud() {
       const chart = paceChart(points, current, target, today, forecast);
       if (chart) { pace = {name: goal.name, href: summary.href, chart, forecast, current, target}; break; }
     }
-    return {loaded: legacy.loaded, error: false, arcs: goalArcs(goals, 7), pace, goals};
-  }, [platform.loaded, platform.error, platform.data, legacy.loaded, legacy.goals, legacy.metadata, legacy.mode, legacy.chain, legacy.owner, market.quotes, now]);
+    // Lane L8f (Part 13): the average goals are active goals too, as Today and Goals count them, each at its ring's share.
+    const healthData = health.loaded && !health.error ? health.data : undefined;
+    const averages = averageGoals.loaded && !averageGoals.unreadable ? averageGoals.data.goals.map(a => { const p = averageProgress(a, healthData, today); return {id: a.id, name: a.name, status: a.status, share: p.share, met: p.met}; }) : [];
+    return {loaded: legacy.loaded, error: false, arcs: goalArcs(goals, 7, averages), pace, goals};
+  }, [platform.loaded, platform.error, platform.data, legacy.loaded, legacy.goals, legacy.metadata, legacy.mode, legacy.chain, legacy.owner, market.quotes, now, averageGoals.loaded, averageGoals.unreadable, averageGoals.data, health.loaded, health.error, health.data]);
 }
 
 /** Wealth's own overview (the same requests and quotes as the Wealth page) and its purpose flow. Reads only. */

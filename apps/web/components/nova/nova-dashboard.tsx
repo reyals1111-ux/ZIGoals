@@ -243,6 +243,8 @@ export default function NovaDashboard() {
   const applyPreset = (preset: HudPreset) => {
     const before = {layout, widgets: widgetsFor(r)}, plan = HUD_PRESET_PLAN[preset];
     if (!save(rr => restoreWidgets(setLayout(rr, plan.layout), presetWidgets(preset, canShow)))) return;
+    // Second review p1 (lane L8f): the preset's hero opens at the top of the stage, never half-scrolled under the deck.
+    root.current?.querySelector('.nova-stage-area')?.scrollTo({top: 0, behavior: 'instant'});
     try { hud.update(h => setHudPreset(h, preset)); } catch { /* the stage changed; remembering the preset's name is a nicety */ }
     showUndo({message: `${HUD_PRESET_LABEL[preset]} preset on the stage.`, undone: 'Your previous arrangement is back.', restore: () => { if (!save(rr => restoreWidgets(setLayout(rr, before.layout), before.widgets))) throw Error('This could not be put back on this device.'); }});
   };
@@ -261,6 +263,8 @@ export default function NovaDashboard() {
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
     data-left={left} data-right={right} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
+    {/* Second review m8 (lane L8f): the first stop, past the left panel and the top bar (43 stops) to the HUD itself. */}
+    <a className="nova-skip" href="#nova-hud" onClick={e => { e.preventDefault(); root.current?.querySelector<HTMLElement>('#nova-hud')?.focus({preventScroll: true}); }}>Skip to the HUD</a>
     <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent}/></Suspense></LoadBoundary></div>
     {/* Session AL Part 11 (lane L8): the HUD's depth layers — a far grid plane and a near glow at the edges (decoration). */}
     {holo && <div className="holo-depth" aria-hidden="true"><div className="holo-plane"/><div className="holo-glow"/></div>}
@@ -280,7 +284,7 @@ export default function NovaDashboard() {
         {!chatOpen && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area">{phone && !holo ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy}/>}</div>
+      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{phone && !holo ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">
@@ -309,7 +313,7 @@ export default function NovaDashboard() {
       {entries.filter(e => !e.hidden).map(e => <li key={e.id}><QuickTile entry={e} shortcuts={false} labelled act={entry => { closeSheet(); act(entry); }}/></li>)}
       <li><button type="button" className="nova-tile nova-tile-labelled" onClick={() => setSheet({kind: 'yours'})}><span className="nova-tile-planet" aria-hidden="true"><NovaIcon name="yours" size={20}/></span><span className="nova-tile-label">Customize</span></button></li>
     </ul></nav></NovaSheet>}
-    {sheet?.kind === 'actions' && <NovaSheet title={`Quick actions · ${title(sheet.id)}`} eyebrow="Each one saves to your records, with Undo" place={phone ? 'bottom' : 'right'} onClose={closeSheet}>
+    {sheet?.kind === 'actions' && <NovaSheet title={`Quick actions · ${title(sheet.id)}`} eyebrow="Saves to your records · Undo" place={phone ? 'bottom' : 'right'} onClose={closeSheet}>
       <LoadBoundary label="Quick actions"><Suspense fallback={<Reading label="Opening…"/>}><QuickActions widget={sheet.id}/></Suspense></LoadBoundary>
       {widgetSpec(sheet.id) && <p className="nova-row-actions"><a className="nova-btn" href={widgetSpec(sheet.id)!.href} onClick={e => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); const href = widgetSpec(sheet.id)!.href; closeSheet(); router.push(href); }}>{widgetSpec(sheet.id)!.open}</a></p>}
     </NovaSheet>}

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {useId, type CSSProperties, type ReactNode} from 'react';
 import {NumberTicker} from '../../motion/number-ticker';
 import {HEART_PATH, arcPath, clamp01, flowRibbons, histogramBars, histogramY, linePath, polar, segmentsLit, smoothPath, sparkPoints, tickPath, timePoints} from '../../../lib/nova/holo/geometry';
+import {formatPercent} from '../../../lib/visual-format';
 import {useChangeCount} from './use-hud-motion';
 
 /**
@@ -216,14 +217,14 @@ export function FlowRibbons({shares, width = 260, height = 64}: {shares: readonl
 
 /**
  * Hearts that fill by the share of a target, each named under it (never meaning by colour alone). Review m6 (lane L8d): each
- * says its share in figures too ("90 %", "110 %": a heart is full at its target, the words say how far past), and the
+ * says its share in figures too ("90%", "110%"; second review p7: NOVA's one percent style, the format layer's half-up rounding: a heart is full at its target, the words say how far past), and the
  * unfilled part of the shell is a faint pink, so 90 % and 100 % read apart.
  */
 export function Hearts({hearts}: {hearts: readonly {key: string; label: string; share: number}[]}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   if (!hearts.length) return null;
   return <ul className="holo-hearts" aria-label="Targets as hearts: each fills by its share of your target">{hearts.map(h => {
-    const s = clamp01(h.share), pct = Math.round(Math.max(0, h.share) * 100);
+    const s = clamp01(h.share), pct = Math.max(0, h.share) * 100;
     return <li key={h.key}>
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <defs><clipPath id={`${id}${h.key}`}><rect x="0" y={24 - 24 * s} width="24" height={24 * s}/></clipPath></defs>
@@ -231,7 +232,7 @@ export function Hearts({hearts}: {hearts: readonly {key: string; label: string; 
         <path className="holo-heart-fill" d={HEART_PATH} clipPath={`url(#${id}${h.key})`}/>
       </svg>
       <small>{h.label}</small>
-      <small className="holo-heart-pct">{pct} %<span className="sr-only"> of your target</span></small>
+      <small className="holo-heart-pct">{formatPercent(pct)}<span className="sr-only"> of your target</span></small>
     </li>;
   })}</ul>;
 }

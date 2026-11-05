@@ -154,6 +154,8 @@ function WidgetFrame({widget, index, count, style, side, editing, opening, dragg
   const fitKind = holo ? (SCROLL_PANELS.has(widget.id) ? 'scroll' : 'rows') : undefined;
   // Review M11 (lane L8d): a small Holo panel's page link is an arrow-only 44 px target (its name stays for assistive
   // technology and as its tooltip), so the header never wraps over the panel's body.
+  // Second review m2 (lane L8f): a medium or large Holo panel narrower than 420 px shows the arrow alone too (holo.css), so its
+  // title is never cut ("TODAY'S OR…"); the link keeps its words as its name and tooltip.
   const arrowOnly = holo && widget.size === 'S';
   const css = {...style, '--settle': `${opening ? settleDelay(index, count) : 0}ms`, ...(holo ? {'--sheen-delay': `${(index * 2.3) % 14}s`} : {}), ...(dragging ? {'--dx': `${dragging.dx}px`, '--dy': `${dragging.dy}px`} : {})} as CSSProperties;
   // Session AL Part 11 (lane L8): the widget → page morph. A plain click opens the page with the panel growing into it
@@ -173,6 +175,7 @@ function WidgetFrame({widget, index, count, style, side, editing, opening, dragg
       {editing ? <button type="button" className="nova-grip" aria-label={`Move ${spec.title}: drag, or use the arrow keys`} {...grip}><NovaIcon name="grip" size={18}/></button>
         : <>{holo && actions.quick && <button type="button" className="holo-act" aria-haspopup="dialog" aria-label={`Quick actions: ${spec.title}`} title="Quick actions" onClick={() => actions.quick!(widget.id)}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg></button>}
           {arrowOnly ? <Link className="nova-widget-open nova-widget-open-arrow" href={spec.href} prefetch={false} onClick={open} aria-label={spec.open} title={spec.open}><span aria-hidden="true">→</span></Link>
+            : holo ? <Link className="nova-widget-open" href={spec.href} prefetch={false} onClick={open} aria-label={spec.open} title={spec.open}><span className="nova-widget-open-words">{spec.open}</span><span aria-hidden="true"> →</span></Link>
             : <Link className="nova-widget-open" href={spec.href} prefetch={false} onClick={open}>{spec.open}<span aria-hidden="true"> →</span></Link>}</>}
     </header>
     <div ref={body} className={`nova-widget-body${tap ? ' holo-instrument' : ''}`} onClick={tap}><div ref={inner} className="nova-widget-inner"><LoadBoundary quiet><Suspense fallback={<p className="nova-reading">Reading…</p>}><Body size={widget.size}/></Suspense></LoadBoundary></div></div>

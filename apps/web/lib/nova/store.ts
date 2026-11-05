@@ -243,6 +243,8 @@ export function showcaseNova(day: string): NovaRecord {
     // instrument beside the star, then the day's panels (its labelled example tasks and Pomodoro history among them), no
     // duplicates — and with "Behind the intelligence" closed, so at 1440 px the HUD, not a lone orb, is the first view.
     widgets: presetWidgets('command'),
-    panels: {left: 'open'},
+    // Second review M3, M4 (lane L8f): no left-panel choice of its own — the window's width decides, as for everyone (open
+    // from 1440 px, the icon rail from 1100, folded below), so a 1280 laptop and a tablet give the HUD the room. It was
+    // pinned open, which left a tablet's HUD two 245 px columns beside a 275 px sidebar.
   });
 }

@@ -266,7 +266,8 @@
 .holo-chart-tag { position: absolute; font-size: 12px; line-height: 14px; font-weight: 700; letter-spacing: .06em; color: #e0d4ff; background: #070b1fcc; padding: 0 4px; border-radius: 3px; pointer-events: none; white-space: nowrap; }
 .holo-chart-tag[data-at=target] { left: 2px; transform: translateY(-110%); }
 .holo-chart-tag[data-at=today] { bottom: -2px; transform: translate(-50%, 100%); }
-.holo-chart-estimate { transform: translate(-50%, 4px); border: 1px dashed color-mix(in oklab, var(--neon, #a47bff) 70%, transparent); }
+/* Second review M1 (lane L8f): the chart keeps its names inside its own box (the band's tag left it; the chip says "Estimate"). */
+.holo-pace-chart { overflow-x: clip; overflow-clip-margin: 4px; }
 
 /* Dot sliders (the next goals on a large panel): a track with milestone ticks, a lit part and a bright dot. */
 .holo-sliders { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
@@ -393,9 +394,31 @@
 /* m11: the quick actions are small HUD panels (brackets, the grid, the pillar's neon); a habit's row is one line. */
 .holo-action { position: relative; background: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px) 0 0 / 22px 22px, color-mix(in oklab, var(--neon, #9273ff) 7%, #070b1f); }
 .holo-action > .holo-brackets { inset: 4px; }
-.holo-habit-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
-.holo-habit-list li > :last-child { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 6px; }
-.holo-habit-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Second review B1 (lane L8f): a habit's row is a small grid — its name with today's count and state under it, its buttons
+   to the right on one line (never one letter per line: the Habits card lets its buttons wrap, the sheet never does), and a
+   note such as "Done automatically · from your activity log" on its own line under both. A narrow sheet (a phone) puts the
+   buttons on their own line under the name. The card's own wrapper steps aside (display: contents) so its parts sit in
+   this grid. */
+.holo-action { container: holo-action / inline-size; }
+.holo-habit-list { gap: 0; }
+.holo-habit-list li { display: grid; grid-template-columns: minmax(9ch, 1fr) auto; align-items: center; column-gap: 12px; row-gap: 2px; padding: 8px 0; border-top: 1px solid color-mix(in oklab, var(--neon, #2ef2ff) 16%, transparent); }
+.holo-habit-list li:first-child { border-top: 0; padding-top: 2px; }
+.holo-habit-list li > .habit-completion { display: contents; }
+.holo-habit-title { grid-column: 1; grid-row: 1; align-self: end; min-width: 0; overflow-wrap: break-word; line-height: 1.3; }
+.holo-habit-list .habit-completion > div:not(.habit-check-actions) { grid-column: 1; grid-row: 2; align-self: start; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; min-width: 0; font-size: 13px; color: #c9d4ea; }
+.holo-habit-list .habit-completion .habit-count { white-space: nowrap; }
+.holo-habit-list .habit-completion .habit-count strong { font-size: 15px; color: #eef3ff; }
+.holo-habit-list .habit-completion :is(.habit-result, .habit-period-progress) { font-size: 13px; }
+.holo-habit-list .habit-check-actions { grid-column: 2; grid-row: 1 / span 2; display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 6px; }
+.holo-habit-list .habit-check-actions button { flex: none; max-width: none; white-space: nowrap; overflow-wrap: normal; }
+.holo-habit-list .habit-check-actions .quiet { font-size: 1.05rem; }
+.holo-habit-list .habit-completion > :is(p, span):not(.habit-status) { grid-column: 1 / -1; margin: 2px 0 0; font-size: 13px; line-height: 1.35; color: #c9d4ea; }
+@container holo-action (max-width: 360px) {
+  .holo-habit-list li { grid-template-columns: minmax(0, 1fr) auto; }
+  .holo-habit-title { grid-column: 1; grid-row: 1; }
+  .holo-habit-list .habit-completion > div:not(.habit-check-actions) { grid-column: 2; grid-row: 1; justify-content: flex-end; text-align: right; }
+  .holo-habit-list .habit-check-actions { grid-column: 1 / -1; grid-row: 2; justify-content: flex-end; margin-top: 4px; }
+}
 
 /* p1: each preset's sketch. */
 .holo-preset-sketch { display: block; width: 64px; height: 40px; margin-bottom: 4px; overflow: visible; }
@@ -421,3 +444,38 @@
   .holo-wealth[data-size=L] .holo-wealth-lower { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; column-gap: 16px; }
 }
 @container holo-body (max-width: 330px) { .holo-health .holo-split { gap: 10px; } .holo-meter { column-gap: 6px; } }
+
+/* ==== Second review fixes (lane L8f, docs/review/session-al/NOVA_HUD_REVIEW_2.md) ==== */
+
+/* M2: a dial's figure stays inside its ring — sized to the ring's inner diameter (the kcal ring's track leaves 62 % of its
+   width inside, the consistency dial's 66 %) — and the words under it ("of 2,200 kcal", "of 30 days") are a caption under
+   the ring, never on its stroke. */
+.holo-health .holo-ring { margin-bottom: 18px; } .holo-habits .holo-dial { margin-bottom: 15px; }
+.holo-health .holo-ring > .holo-ring-centre, .holo-habits .holo-dial > .holo-ring-centre { position: static; }
+.holo-health .holo-ring > .holo-ring-centre > small, .holo-habits .holo-dial > .holo-ring-centre > small { position: absolute; left: 50%; top: calc(100% + 3px); translate: -50% 0; white-space: nowrap; font-size: 12px; line-height: 14px; color: #d3ddf1; }
+.holo-habits .holo-dial > .holo-ring-centre > small { top: calc(100% + 1px); }
+.holo-health .holo-ring .holo-num-ring, .nova-widget[data-size] .holo-health .holo-ring .holo-num-ring { font-size: clamp(12px, calc(var(--ring, 104px) * .19), 30px); }
+.holo-habits .holo-dial .holo-num-ring, .nova-widget[data-size] .holo-habits .holo-dial .holo-num-ring { font-size: clamp(13px, calc(var(--ring, 80px) * .24), 26px); }
+/* m3: the clock's hand stops before the hour words; its tip on the track carries the time. */
+.holo-hand-tip { stroke-width: 2; stroke: #fff; }
+/* M3: on a narrow panel (a 1280 × 720 laptop, a tablet) a meter's target goes on its own line under the value ("131 g" over
+   "/ 120 g"), so no target is ever cut ("8,800 / 8,0"). */
+@container holo-body (max-width: 310px) {
+  .holo-health .holo-meter-value { display: grid; justify-items: end; line-height: 1.15; }
+  .holo-health .holo-meter-value small { font-size: 12px; }
+  .holo-health .holo-meter { grid-template-columns: minmax(44px, auto) minmax(28px, 1fr) max-content; }
+}
+/* m2: names get the room they need — a goal's name may take two lines (then an ellipsis), an agenda row's title ends in an
+   ellipsis (it was cut with none: a flex box ignores text-overflow), and the core's names and reasons wrap onto a second
+   line instead of "Emerge…" / "No water logged yet t…". */
+.holo-arc-name { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: break-word; line-height: 17px; }
+.holo-next li a, .holo-next li > span:nth-child(2) { display: block; line-height: 44px; min-width: 0; }
+.holo-core-readout { width: min(100%, 440px); column-gap: 16px; }
+.holo-core-readout .holo-core-name { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; line-height: 1.2; }
+.holo-core-why { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+/* p6: the ring's column — the ring, its caption, and its reason under it. */
+.holo-ring-col { display: grid; justify-items: center; align-content: center; gap: 0; flex: none; max-width: 150px; }
+.holo-ring-col > .holo-ring-note { max-width: 132px; margin: 0; text-align: center; font-size: 12px; line-height: 1.3; }
+/* m2, M1: a goal's name has two lines; in a fitted panel shorter than 230 px the arcs and the pace line give 12 px back so
+   both still fit whole (1440 × 900). */
+@container holo-body (max-height: 229px) { .holo-goals[data-size=M] .holo-arc-box { width: 56px; height: 56px; } .holo-goals[data-size=M] .holo-pace-chart > .holo-pace { height: 46px; } }

@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {readDeviceRecord, updateDeviceRecord} from '../device-record';
-import {DEFAULT_WIDGETS, MAX_INSTRUCTIONS, MAX_WIDGETS, NOVA_KEY, NOVA_STORE, WIDGET_LIMIT_MESSAGE, accentOf, addWidget, emptyNova, instructionsOf, layoutOf, markOpeningSeen, nudgeWidget, novaRecordSchema, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, setInstructions, setPersona, setShortcuts, shortcutsOn, widgetsFor, type NovaRecord} from './store';
+import {DEFAULT_WIDGETS, MAX_INSTRUCTIONS, MAX_WIDGETS, NOVA_KEY, NOVA_STORE, WIDGET_LIMIT_MESSAGE, accentOf, addWidget, emptyNova, instructionsOf, layoutOf, markOpeningSeen, nudgeWidget, panelsOf, novaRecordSchema, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, setInstructions, setPersona, setShortcuts, shortcutsOn, widgetsFor, type NovaRecord} from './store';
 
 const memory = (initial: Record<string, string> = {}) => { const map = new Map(Object.entries(initial)); return {getItem: (k: string) => map.get(k) ?? null, setItem: (k: string, v: string) => { map.set(k, v); }, map}; };
 
@@ -161,5 +161,8 @@ describe('the Showcase’s NOVA (proposed for the lead)', () => {
     expect(widgetsFor(r).slice(0, 4).map(w => w.id)).toEqual(['health-hud', 'habits-hud', 'goals-hud', 'wealth-hud']);
     for (const twin of ['goal-pace', 'next', 'glance']) expect(widgetsFor(r).map(w => w.id), `${twin} repeats an instrument`).not.toContain(twin);
     expect(r.panels?.right).toBeUndefined();
+    // Second review M3, M4 (lane L8f): the window decides the left panel (open at 1440, the rail at 1280, folded on a tablet).
+    expect(r.panels?.left).toBeUndefined();
+    expect([1440, 1280, 820].map(w => panelsOf(r, w).left)).toEqual(['open', 'rail', 'hidden']);
   });
 });

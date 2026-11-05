@@ -21,3 +21,14 @@ const BY_WIDGET: Readonly<Record<string, readonly QuickAction[]>> = {
 };
 /** A panel's quick actions, in order (every panel has at least one). */
 export const quickActionsFor = (widget: string): readonly QuickAction[] => BY_WIDGET[widget] ?? ['task'];
+/** Second review p4 (lane L8f): the panels whose sheet ticks only the habits Health counts (water, steps, sleep…). */
+export const HEALTH_SHEETS: ReadonlySet<string> = new Set(['health-hud', 'water', 'sleep']);
+/**
+ * The habits a sheet offers to tick: those due today, at most six; on a Health panel's sheet only the ones linked to Health
+ * (Walk, Drink water), so water and weight lead there, and the rest wait one link away ("More in Habits →"). `more` counts
+ * the due habits left out.
+ */
+export function sheetHabits<T extends {id: string}>(due: readonly T[], widget: string, linked: (id: string) => boolean, max = 6): {shown: T[]; more: number} {
+  const pool = HEALTH_SHEETS.has(widget) ? due.filter(h => linked(h.id)) : [...due], shown = pool.slice(0, max);
+  return {shown, more: due.length - shown.length};
+}

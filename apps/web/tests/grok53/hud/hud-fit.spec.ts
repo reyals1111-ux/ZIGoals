@@ -134,8 +134,10 @@ test('M8: a brand-new NOVA opens on the instruments; an empty instrument is draw
     await expect(empty.locator('.holo-empty-action'), name).toBeVisible();
   }
   await expect(panel(page, 'Health HUD').locator('.holo-num-ring')).toHaveText('—');
-  // m14: the shared reason is said once, under the ring.
-  await expect(panel(page, 'Health HUD').locator('.holo-meters').getByText('No meals logged today')).toHaveCount(1);
+  // m14: the shared reason is said once, under the ring. (Second review p6, lane L8f, deliberate: it moved from the meters'
+  // column to the ring's own column, under the ring it explains; still said once in the instrument, never on a meter.)
+  await expect(panel(page, 'Health HUD').locator('.holo-split').getByText('No meals logged today')).toHaveCount(1);
+  await expect(panel(page, 'Health HUD').locator('.holo-meters').getByText('No meals logged today')).toHaveCount(0);
 });
 
 test('m9: Left/Right on a grip move a panel to the other column, and the status line says where it is', async ({page}) => {

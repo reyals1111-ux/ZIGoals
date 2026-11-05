@@ -24,7 +24,8 @@ import {addTask} from '../../../lib/tasks/engine';
 import {NOTES} from '../../../lib/notes/schema';
 import {captureInto} from '../../../lib/notes/store';
 import {plainErrorMessage} from '../../../lib/plain-error';
-import {quickActionsFor, type QuickAction} from '../../../lib/nova/holo/actions';
+import {quickActionsFor, sheetHabits, type QuickAction} from '../../../lib/nova/holo/actions';
+import {useHabitHealthLinks} from '../../habits/use-habit-health-links';
 import {useHealthHud} from './use-hud-data';
 
 /**
@@ -35,15 +36,17 @@ import {useHealthHud} from './use-hud-data';
  * contribution form.
  * Review m11 (lane L8d): each action is a small HUD panel too (corner brackets, the grid, its pillar's neon), and a habit
  * row keeps its name and its controls on one line.
+ * Second review B1, p4 (lane L8f): a habit row is a small grid whose buttons never wrap (holo-parts.css), and a Health
+ * panel's sheet ticks only the habits linked to Health, the rest one link away.
  */
 export default function QuickActions({widget}: {widget: string}) {
-  return <div className="holo-actions">{quickActionsFor(widget).map(a => <Action key={a} kind={a}/>)}</div>;
+  return <div className="holo-actions">{quickActionsFor(widget).map(a => <Action key={a} kind={a} widget={widget}/>)}</div>;
 }
-function Action({kind}: {kind: QuickAction}) {
+function Action({kind, widget}: {kind: QuickAction; widget: string}) {
   switch (kind) {
     case 'water': return <WaterAction/>;
     case 'weight': return <WeightAction/>;
-    case 'habit': return <HabitAction/>;
+    case 'habit': return <HabitAction widget={widget}/>;
     case 'focus': return <FocusAction/>;
     case 'task': return <TaskAction/>;
     case 'goal': return <GoalAction/>;
@@ -86,13 +89,17 @@ function WeightAction() {
     {error && <p id={`${id}-e`} className="nova-fine" role="alert">{error}</p>}
   </section>;
 }
-function HabitAction() {
-  const habits = useHabits();
+function HabitAction({widget}: {widget: string}) {
+  const habits = useHabits(), links = useHabitHealthLinks();
   if (!habits.loaded || habits.error) return null;
-  const due = habits.data.habits.filter(h => { const d = habitDay(h, habits.today, habits.today); return d.scheduled && d.status !== 'skipped'; }).slice(0, 6);
+  const due = habits.data.habits.filter(h => { const d = habitDay(h, habits.today, habits.today); return d.scheduled && d.status !== 'skipped'; });
+  // Second review p4 (lane L8f): a Health panel's sheet ticks the habits Health counts; the others are one link away.
+  const {shown, more} = sheetHabits(due, widget, id => links.loaded && !!links.data.links[id]);
   return <section className="holo-action" data-pillar="habits"><span className="holo-brackets" aria-hidden="true"/><h3>Tick a habit</h3>
-    {due.length ? <ul className="holo-habit-list">{due.map(h => <li key={h.id}><span className="holo-habit-title">{h.title}</span><HabitCompletion habit={h} store={habits.card} part="controls" compact/></li>)}</ul>
+    {shown.length ? <ul className="holo-habit-list">{shown.map(h => <li key={h.id}><span className="holo-habit-title">{h.title}</span><HabitCompletion habit={h} store={habits.card} part="controls" compact/></li>)}</ul>
+      : due.length ? <p className="nova-fine">No habit due today is linked to Health.</p>
       : <p className="nova-fine">No habit is due today. <Link className="nova-link" href="/app/habits?add=habit" prefetch={false}>Add a habit</Link></p>}
+    {more > 0 && <p className="nova-fine holo-more"><Link className="nova-link" href="/app/habits" prefetch={false}>{shown.length ? `${more} more` : `Your ${more} ${more === 1 ? 'habit' : 'habits'} due today`} in Habits <span aria-hidden="true">→</span></Link></p>}
   </section>;
 }
 function FocusAction() {

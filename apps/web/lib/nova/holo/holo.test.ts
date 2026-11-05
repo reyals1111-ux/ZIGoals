@@ -133,7 +133,9 @@ describe('goals HUD', () => {
   const g = (key: string, progressPct: string, more: Partial<GoalSummary> = {}): GoalSummary => ({key, id: key, href: `/app/goals/${key}`, name: key, type: 'Savings', source: '', status: 'active', scene: 'garden', current: '1', currency: 'EUR', progressPct, fundingHealth: 'ON_TRACK', requiresReview: false, metadata: [], ...more});
   it('arcs in NOVA\'s one goal format; unknown is never a number; the rest counted', () => {
     const {arcs, more, active} = goalArcs([g('a', '41.66'), g('b', '12', {progressBound: 'unavailable'}), g('c', '100'), g('d', '5', {status: 'completed'}), g('e', '3')]);
-    expect(arcs.map(a => [a.text, a.pct])).toEqual([['41%', 41.66], ['Unavailable', null], ['100%', 100]]);
+    // Second review M6 (lane L8f, deliberate): the Goals page's rounding — half up (41.66 → 42%), and 100% only for a finished
+    // goal, as its progress ring reads an active one at 100 (99%).
+    expect(arcs.map(a => [a.text, a.pct])).toEqual([['42%', 41.66], ['Unavailable', null], ['99%', 100]]);
     expect([more, active]).toEqual([1, 4]);
   });
   it('the pace chart: a band only for an estimate, from today to the earliest and latest dates', () => {
@@ -161,8 +163,9 @@ describe('wealth HUD', () => {
     expect(hud.otherCurrencies).toEqual(['EUR']);
     expect(hud.line.map(p => p.value)).toEqual([900, 1000]);
     expect(hud.mix.map(m => [m.assetClass, m.share])).toEqual([['Cash', 0.75], ['Stocks', 0.25]]);
-    expect(hud.purpose).toMatchObject({allocated: 25_000n, available: 75_000n, shareText: '25.0 %', goals: [{label: 'Fictional bike', value: 25_000n}]});
-    expect(purposeShare(1n, 3n)).toBe('33.3 %');
+    expect(hud.purpose).toMatchObject({allocated: 25_000n, available: 75_000n, shareText: '25.0%', goals: [{label: 'Fictional bike', value: 25_000n}]});
+    // Second review p7 (lane L8f, deliberate): one percent style on NOVA, "33.3%" (the figure is the purpose flow's).
+    expect(purposeShare(1n, 3n)).toBe('33.3%');
     expect(purposeShare(1n, 0n)).toBe('—');
     expect(wealthHud({subtotals: [], incomplete: false, missingValue: false, categories: [], history: [], rows: []}).primary).toBeNull();
   });
@@ -181,8 +184,8 @@ describe('agenda (P-LA-14): next three by time across every source, with their t
 
 describe('the core: four rings, one figure each, unknown with its reason', () => {
   it('knowns and unknowns', () => {
-    const rings = coreRings({water: {share: 0.5, text: '1,000 mL', targetText: '2,000 mL'}, habits: {due: 0, done: 0}, goal: {name: 'Fictional bike', pct: 45.5, text: '45%'}, wealth: {allocated: 1n, total: 4n, shareText: '25.0 %'}});
-    expect(rings.map(r => [r.pillar, r.share, r.text, r.reason])).toEqual([['health', 0.5, '1,000 mL of 2,000 mL', null], ['habits', null, '—', 'No habit is due today'], ['goals', 0.455, '45%', null], ['wealth', 0.25, '25.0 %', null]]);
+    const rings = coreRings({water: {share: 0.5, text: '1,000 mL', targetText: '2,000 mL'}, habits: {due: 0, done: 0}, goal: {name: 'Fictional bike', pct: 45.5, text: '45%'}, wealth: {allocated: 1n, total: 4n, shareText: '25.0%'}});
+    expect(rings.map(r => [r.pillar, r.share, r.text, r.reason])).toEqual([['health', 0.5, '1,000 mL of 2,000 mL', null], ['habits', null, '—', 'No habit is due today'], ['goals', 0.455, '45%', null], ['wealth', 0.25, '25.0%', null]]);
     expect(coreRings({water: {share: null, text: '0 mL', targetText: null}, habits: null, goal: null, wealth: null}).map(r => r.reason)).toEqual(['No water target set', 'Your habits are not read yet', 'No active goal yet', 'No valued holding yet']);
     // Review M5 (lane L8d): nothing logged today is unknown with its own reason; a logged amount without a target keeps its figure.
     expect(coreRings({water: {share: null, text: '—', targetText: '2,000 mL', logged: false}, habits: null, goal: null, wealth: null})[0]).toMatchObject({share: null, text: '—', reason: 'No water logged yet today'});

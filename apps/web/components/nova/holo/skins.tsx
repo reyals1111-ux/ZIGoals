@@ -10,7 +10,7 @@ import {recentNotes, tasksHud} from '../../../lib/nova/holo/lists';
 import {NOTES} from '../../../lib/notes/schema';
 import {TASKS} from '../../../lib/tasks/schema';
 import {deviceDay} from '../../../lib/tasks/device';
-import {formatClock, formatTime} from '../../../lib/visual-format';
+import {formatClock, formatPercent, formatTime} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
 import {useOrbitDay} from '../widgets/use-orbit-day';
@@ -39,7 +39,7 @@ export function HoloWater({size}: {size: WidgetSize}) {
   const w = hud.water;
   return <div className="holo-water" data-size={size}>
     <p className="holo-big-line"><HoloFigure text={w.text} className="holo-num-big"/>{w.targetText ? <small> of {w.targetText}</small> : null}</p>
-    <SegMeter label="Today" share={w.share} text={w.share === null ? '—' : `${Math.round(w.share * 100)} %`} note={w.note} count={size === 'S' ? 10 : 16} compact={size === 'S'}/>
+    <SegMeter label="Today" share={w.share} text={w.share === null ? '—' : formatPercent(w.share * 100)} note={w.note} count={size === 'S' ? 10 : 16} compact={size === 'S'}/>
     {w.value === null && <p className="sr-only">No water logged yet today.</p>}
     {!shared && size !== 'S' && <NotShared/>}
     <HoloTable caption="Water today" rows={[['Logged', w.value === null ? '— (no water logged yet today)' : w.text], ['Your target', w.targetText ?? 'No target set']]}/>
@@ -97,7 +97,9 @@ export function HoloTasks({size}: {size: WidgetSize}) {
   return <div className="holo-tasks" data-size={size}>
     {hud && hud.total > 0 && <dl className="holo-counters">
       <div data-tone={hud.overdue ? 'attention' : undefined}><dt>Overdue</dt><dd>{hud.overdue > 0 && <span className="holo-attention-mark" aria-hidden="true">!</span>}<HoloFigure text={String(hud.overdue)}/></dd></div>
-      <div><dt>Today</dt><dd><HoloFigure text={String(hud.today)}/></dd></div>
+      {/* Second review m5 (lane L8f): due today only — the line under it and the Tasks page's Today tab also count what was
+          carried over (overdue), which has its own counter beside it. */}
+      <div><dt>Due today</dt><dd><HoloFigure text={String(hud.today)}/></dd></div>
       <div><dt>Open</dt><dd><HoloFigure text={String(hud.open)}/></dd></div>
     </dl>}
     <TasksWidget size={size}/>

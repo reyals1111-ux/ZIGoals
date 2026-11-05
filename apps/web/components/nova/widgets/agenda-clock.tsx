@@ -23,7 +23,9 @@ export default function AgendaClockWidget({size}: {size: WidgetSize}) {
   const {items, now} = useAgendaToday();
   if (!items) return <HoloReading/>;
   const marks = clockItems(items).filter(i => i.angle !== null), counts = dayCounts(items), next = nextItems(items, now, size === 'S' ? 1 : 3);
-  const hand = polar(0, 0, 46, clockAngle(now) ?? 0), dial = size === 'S' ? 64 : size === 'M' ? 120 : 156;
+  // Second review m3 (lane L8f): the hand stops short of the hour words (r 30) and a bright tip marks the time on the track,
+  // so the line never runs through "06" like a strike-through.
+  const angle = clockAngle(now) ?? 0, hand = polar(0, 0, 19, angle), tipIn = polar(0, 0, 38, angle), tipOut = polar(0, 0, 47, angle), dial = size === 'S' ? 64 : size === 'M' ? 120 : 156;
   return <div className="holo-agenda" data-size={size} data-empty={items.length ? undefined : ''}>
     <div className="holo-ring holo-clock" style={{'--ring': `${dial}px`} as CSSProperties}>
       <svg viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
@@ -31,6 +33,7 @@ export default function AgendaClockWidget({size}: {size: WidgetSize}) {
         <path className="holo-orn-ticks holo-orn-major" d={tickPath(0, 0, 47, 54, 24)}/>
         <circle className="holo-track" r="42" data-unknown={items.length ? undefined : ''}/>
         <path className="holo-hand" d={`M0 0L${hand.x} ${hand.y}`}/>
+        <path className="holo-hand holo-hand-tip" d={`M${tipIn.x} ${tipIn.y}L${tipOut.x} ${tipOut.y}`}/>
         {marks.map(m => { const p = polar(0, 0, 42, m.angle!); return <circle key={m.id} className="holo-mark" data-state={m.state} data-pillar={m.pillar} cx={p.x} cy={p.y} r="3.4"/>; })}
         <circle className="holo-hub" r="2.4"/>
       </svg>

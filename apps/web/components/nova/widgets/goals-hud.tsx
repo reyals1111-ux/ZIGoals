@@ -48,10 +48,10 @@ function PaceLine({chart, label}: {chart: PaceChart; label: string}) {
   </svg>
   {/* Today's point stays round over the stretched drawing (HTML). */}
   <i className="holo-pace-dot" style={{left: pct(nx, W), top: pct(ny, H)}} aria-hidden="true"/>
-  {/* The chart's own names, in place (decoration over the words below, which say the same). */}
+  {/* The chart's own names, in place (decoration over the words below, which say the same). Second review M1, p8 (lane
+      L8f): the band's "Estimate" is said once, by the chip under the chart; its tag on the band ran past the panel's edge. */}
   <span className="holo-chart-tag" data-at="target" style={{top: pct(ty, H)}} aria-hidden="true">Target</span>
   <span className="holo-chart-tag" data-at="today" style={{left: pct(nx, W)}} aria-hidden="true">Today</span>
-  {b && <span className="holo-chart-tag holo-chart-estimate" style={{left: pct(x(b.mid), W), top: pct(ty, H)}} aria-hidden="true">Estimate</span>}
   </div>;
 }
 export default function GoalsHudWidget({size}: {size: WidgetSize}) {

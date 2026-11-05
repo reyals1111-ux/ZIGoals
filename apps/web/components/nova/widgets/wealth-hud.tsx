@@ -2,6 +2,7 @@
 import type {CSSProperties} from 'react';
 import type {WidgetSize} from '../../../lib/nova/store';
 import {arcPath} from '../../../lib/nova/holo/geometry';
+import {frameWords} from '../../../lib/nova/holo/wealth';
 import {formatDate, formatPercent} from '../../../lib/visual-format';
 import {wealthMoney} from '../../platform/wealth-money';
 import {FlowRibbons, HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, Orn, WaveChart} from '../holo/parts';
@@ -18,7 +19,8 @@ import '../holo/holo-parts.css';
  * the line's end; where today's total differs from that last record (known only in part, say), a hollow dashed point at
  * today says "now, known so far" — one source, never two "latest" figures side by side (M6). The panel fits its height by
  * whole rows: a medium panel shows the total, the line and the purpose flow (the mix dial where its height allows), a large
- * one the dial and the flow's ribbons side by side (B1). An empty panel is the frame unlit (M8).
+ * one the dial and the flow's ribbons side by side (B1). An empty panel is the frame unlit (M8). Second review m9 (lane L8f):
+ * a figure is printed once on the frame, and the hollow point says "now" with today's figure.
  */
 function MixDial({mix, size}: {mix: {assetClass: string; share: number}[]; size: number}) {
   const starts = mix.map((_, i) => mix.slice(0, i).reduce((n, m) => n + m.share, 0)), gap = mix.length > 1 ? 2 : 0;
@@ -33,6 +35,7 @@ function MixDial({mix, size}: {mix: {assetClass: string; share: number}[]; size:
 /** Cents of a line value (the line keeps major units) for the frame's labels, in Wealth's own money words. */
 const lineMoney = (v: number, cur: string) => wealthMoney(BigInt(Math.round(v * 100)), cur);
 const day = (at: string) => { try { return formatDate(at, {year: false}); } catch { return '—'; } };
+const frameLabels = (line: readonly {at: string; value: number}[], cur: string) => frameWords(line, v => lineMoney(v, cur), day);
 export default function WealthHudWidget({size}: {size: WidgetSize}) {
   const shown = usePillarShown('wealth'), {hud, loaded, error} = useWealthHud();
   if (!shown) return <HoloHidden pillar="Wealth"/>;
@@ -44,7 +47,7 @@ export default function WealthHudWidget({size}: {size: WidgetSize}) {
   // M6: today's total as a hollow point beside the recorded line when it differs from the last record (or is known only in part).
   const last = hud.line.at(-1), nowValue = p ? Number(p.value) / 100 : null;
   const nowPoint = p && last && nowValue !== null && Number.isFinite(nowValue) && (hud.incomplete || Math.abs(nowValue - last.value) >= 0.005)
-    ? {at: hud.nowAt ?? last.at, value: nowValue, label: hud.incomplete ? 'now, known so far' : 'now'} : null;
+    ? {at: hud.nowAt ?? last.at, value: nowValue, label: `now ${total}`} : null;
   const mix = hud.mix.slice(0, size === 'L' ? 5 : 3), line = hud.line.slice(-90);
   const flow = hud.purpose && hud.purpose.total > 0n ? [...hud.purpose.goals.map((g, i) => ({key: `g${i}`, i: i % 3, share: Number(g.value * 10000n / hud.purpose!.total) / 10000})),
     ...(hud.purpose.available > 0n ? [{key: 'free', free: true, share: Number(hud.purpose.available * 10000n / hud.purpose.total) / 10000}] : [])] : [];
@@ -56,8 +59,7 @@ export default function WealthHudWidget({size}: {size: WidgetSize}) {
       {hud.otherCurrencies.length > 0 && <small className="holo-note">+ held in {hud.otherCurrencies.join(', ')} · never converted</small>}
     </div>
     {size !== 'S' && line.length > 1 && <WaveChart points={line} height={size === 'L' ? 80 : 48} className="holo-wealth-line" title="Recorded valuations"
-      labels={{max: lineMoney(Math.max(...line.map(x => x.value)), cur), min: lineMoney(Math.min(...line.map(x => x.value)), cur), span: `${day(line[0]!.at)} – ${day(line.at(-1)!.at)}`}}
-      endLabel={lineMoney(line.at(-1)!.value, cur)} now={nowPoint}/>}
+      labels={frameLabels(line, cur)} endLabel={frameLabels(line, cur).end ?? undefined} now={nowPoint}/>}
     <div className="holo-wealth-lower">
     {size !== 'S' && p && mix.length > 0 && <div className="holo-split holo-wealth-mid">
       <MixDial mix={mix} size={size === 'L' ? 100 : 76}/>
