@@ -98,6 +98,10 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 2 health day: bar
 
   // Water: two glasses.
   await page.getByRole('button', {name: 'Add 250 mL', exact: true}).click();
+  // Session AL (P-MO-97, MO-111, deliberate): a second tap within 350 ms (the event's own time, not the faked clock) is the
+  // same tap and is ignored, so the second glass is a tap of its own: after the first is saved and 350 ms have passed.
+  await expect.poll(async () => (await health(page))!.daily.water.filter(w => w.date === DAY).reduce((s, w) => s + w.amountMilli, 0)).toBe(250_000);
+  await page.waitForTimeout(400);
   await page.getByRole('button', {name: 'Add 250 mL', exact: true}).click();
   await expect.poll(async () => (await health(page))!.daily.water.filter(w => w.date === DAY).reduce((s, w) => s + w.amountMilli, 0)).toBe(500_000);
 

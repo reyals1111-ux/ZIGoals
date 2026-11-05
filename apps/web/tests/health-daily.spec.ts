@@ -39,6 +39,8 @@ test("saved meal, preview copy, water, planner and export work with fictional pr
   await page.getByLabel("Grocery end date").fill("2026-09-26");
   await expect(page.getByRole("region", { name: "Grocery list" })).toContainText("40 g");
   await page.reload();
+  // Session AL (P-MO-21, deliberate): a reload keeps the open view (Meals & planning), so the Diary is opened again.
+  await page.getByRole("button", { name: "Diary", exact: true }).click();
   await page.getByLabel("Journal date").fill("2026-09-24");
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("150 kcal");
   await page.getByRole("button", { name: "Meals & planning", exact: true }).click();
@@ -94,7 +96,8 @@ test("label basis, gram entry, water corrections and preferred weight units pres
   await page.getByRole("button", { name: "Edit activity Fictional walk" }).click();
   await activity.getByLabel("Steps", { exact: true }).fill("800");
   await activity.getByRole("button", { name: "Save correction" }).click();
-  await expect(page.getByText("800 steps · 0 minutes", { exact: true })).toBeVisible();
+  // Session AL (MO-040, deliberate): a part left blank is not shown as zero ("800 steps", not "800 steps · 0 minutes").
+  await expect(page.getByText("800 steps", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 

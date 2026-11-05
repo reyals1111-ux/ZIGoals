@@ -255,7 +255,7 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 /* Session AL third pass (P-MO-34; MO-035, N-MO-08, N-MO-21): Light's own rules for Health's graphics, written for the
    light surface (the theme generator keeps [data-theme=light] rules as written). Each line, dot, goal dash and ring
    track is at least 3:1 on the light panel; the hues stay Nebula's family, only deeper. Nebula and Dark are unchanged. */
-:root[data-theme=light] :is(.zg-chart, .zg-legend)[data-pillar=health] { --zgc-a0: #0a6f86; --zgc-a1: #5b3fc4; --zgc-a2: #b0287a; }
+:root[data-theme=light] :is(.zg-chart, .zg-legend)[data-pillar=health] { --zgc-a0: #05717f; --zgc-a1: #5b3fc4; --zgc-a2: #b0287a; }
 :root[data-theme=light] .health-page .chart-dot { fill: #2f5fc4; stroke: #ffffff; }
 :root[data-theme=light] .health-page .chart-guide { stroke: #8a5a00; }
 /* The weight journal (EvidenceChart): readings and the goal are drawn in the series' colour attribute. */
@@ -306,3 +306,25 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 @media (hover: hover) and (pointer: fine) { :root :where(.health-page) .panel:not(.health-aa-card):hover, :root :where(.health-page) .health-aa-card:hover { border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent)); } }
 :root :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible), :root :where(.health-page) .health-aa-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.health-page) .panel:not(.health-aa-card), :root :where(.health-page) .health-aa-card { box-shadow: none; } }
+
+/* Session AL (CI2): the Water card within a screen on a desktop (ui-design-pass) and Health within its phone ceiling
+   (pillar-phone-length), without removing anything. The one-tap row keeps "Change" beside the sizes (its form takes the
+   full row when open); the amount, unit, drink and caffeine sit two by two on a phone and in one row on a wide card;
+   each logged drink is one line, its Edit and Remove beside it. */
+.health-water .health-water-quick { flex-wrap: wrap; align-items: center; }
+.health-water .health-water-quick > .health-water-buttons { flex: 1 1 100%; }
+.health-water .health-form .health-form-grid { grid-template-columns: repeat(auto-fit, minmax(min(150px, 45%), 1fr)); gap: 12px 14px; }
+.health-water .health-simple-list { margin: 8px 0; }
+.health-water .health-simple-list li { flex-wrap: nowrap; padding: 6px 0; }
+.health-water .health-simple-list li small { display: inline; }
+.health-water .health-simple-list .health-row-actions { width: auto; }
+/* Rows of buttons in the Water card keep a smaller gap above and below, and the reminder time has its Save beside it. */
+.health-water .actions { margin: 12px 0 6px; }
+@media (min-width: 360px) {
+  .health-water .reminder-form { grid-template-columns: max-content minmax(0, 1fr); column-gap: 12px; row-gap: 6px; align-items: center; }
+  .health-water .reminder-form > .reminder-time-field { display: contents; }
+  .health-water .reminder-form > .reminder-time-field > * { grid-column: 1 / -1; }
+  .health-water .reminder-form > .reminder-time-field > input { grid-column: 1; grid-row: 2; width: 9.5rem; }
+  .health-water .reminder-form > .actions { grid-column: 2; grid-row: 2; margin: 0; }
+  .health-water .reminder-form > p { grid-column: 1 / -1; }
+}

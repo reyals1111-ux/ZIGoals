@@ -10,7 +10,11 @@ test("rejected food validation keeps the draft and existing private records reco
   const form = page.getByRole("form", { name: "Food details" });
   for (const [label, value] of [["Food name", "   "], ["Serving weight (g)", "80"], ["Calories (kcal)", "120"], ["Protein (g)", "4"], ["Carbs (g)", "20"], ["Fat (g)", "3"]]) await form.getByLabel(label!).fill(value!);
   await form.getByRole("button", { name: "Save food", exact: true }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "Could not save" })).toBeVisible();
+  // Session AL (AL-FIELD-ERROR-003, P-MO-44, deliberate): the one Health field check says it at the name field itself
+  // (an alert under it, the field marked and focused) before anything is saved, instead of a "Could not save" line.
+  await expect(form.getByRole("alert").filter({ hasText: "Enter a name with at least one visible character." })).toBeVisible();
+  await expect(form.getByLabel("Food name")).toHaveAttribute("aria-invalid", "true");
+  await expect(form.getByLabel("Food name")).toBeFocused();
   await expect(form).toBeVisible();
   await expect(form.getByLabel("Serving weight (g)")).toHaveValue("80");
   expect(await page.evaluate(() => localStorage.getItem("zigoals:health:v1"))).toBe(original);
@@ -118,7 +122,8 @@ test("explicit targets, weight correction and manual activity persist without a 
   await page.getByRole("button", { name: "Weight", exact: true }).click();
   // Assertion changed (Session AH TR10, one rounding rule: weight shows a tenth; stronger): the row reads 73.3 kg and the
   // record keeps the exact 73,250 g.
-  await expect(page.getByRole("table", { name: "Weight history" })).toContainText("73.3 kg");
+  // Session AL (N-MO-14, N-NB-10, deliberate): the history row shows the reading as entered, to two decimals.
+  await expect(page.getByRole("table", { name: "Weight history" })).toContainText("73.25 kg");
   expect(await page.evaluate(key => (JSON.parse(localStorage.getItem(key)!) as { weights: { grams: number }[] }).weights.map(w => w.grams), HEALTH_STORAGE_KEY)).toContain(73250);
   await expect(page.getByText("72 kg", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -154,7 +159,8 @@ test("historical diary dates and food edits remain usable at 320 pixels", async 
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("Nothing logged yet");
   await page.getByRole("button", { name: "Previous day" }).click();
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("160 kcal");
-  await expect(page).toHaveURL(/\/app\/health$/);
+  // Session AL (P-MO-21, deliberate): the open view is written to the address; the day still is not.
+  await expect(page).toHaveURL(/\/app\/health\?view=diary$/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: `/tmp/zigoals-run7-health/history-320-${testInfo.project.name}.png`, fullPage: true });
 });

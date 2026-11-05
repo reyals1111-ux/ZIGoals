@@ -266,10 +266,11 @@ test('F5 measurement trends and the photo-compare slider: two waist readings giv
   const photos = page.getByRole('region', {name: 'Progress photos'});
   const add = photos.getByRole('form', {name: 'Add a progress photo'});
   await add.getByLabel('Date').fill(addLocalDays(TODAY, -7));
-  await add.getByLabel('Photo').setInputFiles({name: 'before.png', mimeType: 'image/png', buffer: PNG});
+  // Session AL (P-MO-30, MO-097, deliberate): each field names what it is for ("Photo file", "Pose in the photo", "Date taken").
+  await add.getByLabel('Photo file', {exact: true}).setInputFiles({name: 'before.png', mimeType: 'image/png', buffer: PNG});
   await expect(photos.locator('.health-photo')).toHaveCount(1, {timeout: 15_000});
   await add.getByLabel('Date').fill(TODAY);
-  await add.getByLabel('Photo').setInputFiles({name: 'after.png', mimeType: 'image/png', buffer: PNG});
+  await add.getByLabel('Photo file', {exact: true}).setInputFiles({name: 'after.png', mimeType: 'image/png', buffer: PNG});
   await expect(photos.locator('.health-photo')).toHaveCount(2, {timeout: 15_000});
   for (const n of [0, 1]) await photos.locator('.health-photo').nth(n).getByRole('button', {name: 'Compare'}).click();
   await photos.getByRole('button', {name: 'Compare with a slider'}).click();

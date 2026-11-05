@@ -6,6 +6,7 @@ import type {HealthData} from '../../lib/health';
 import {formatDate} from '../../lib/visual-format';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import {useHealth} from './use-health';
+import {PhoneFold} from '../phone/phone-fold';
 
 /** Puts a day's mood back as it was (or removes it when there was none), in the latest Health record. */
 function restoreMood(health: HealthData, day: string, before: ReturnType<typeof moodOn>): HealthData {
@@ -27,9 +28,12 @@ export function MoodChip({date, today}: {date: string; today: string}) {
       showUndo({message: `${day === today ? 'Today' : formatDate(day)} feels ${MOOD_WORDS[mood - 1]!.toLowerCase()}.`, undone: 'Mood put back.', restore: () => store.update(latest => restoreMood(latest, day, before))});
     } catch { showStatus('Your mood was not saved. Nothing was changed.', {tone: 'error'}); }
   }
-  return <section className="panel health-mood" aria-labelledby="health-mood-title">
-    <h2 id="health-mood-title">{day === today ? 'How does today feel?' : `How did ${formatDate(day)} feel?`}</h2>
+  const title = day === today ? 'How does today feel?' : `How did ${formatDate(day)} feel?`;
+  // Session AL (CI2, pillar-phone-length): on a phone the card is one row, as Sleep and Workouts are, with the day's
+  // answer on the row; it opens in place. Desktop and tablet are unchanged.
+  return <PhoneFold label={title} detail={current ? MOOD_WORDS[current.mood - 1] : 'Not answered yet'}><section className="panel health-mood" aria-labelledby="health-mood-title">
+    <h2 id="health-mood-title">{title}</h2>
     <div className="health-mood-chips" role="group" aria-label="Mood">{MOOD_WORDS.map((word, i) => <button type="button" key={word} className="secondary" aria-pressed={current?.mood === i + 1} disabled={!store.loaded} onClick={() => void choose(i + 1)}>{word}</button>)}</div>
     <p className="fine">The same answer as the evening wrap-up and your Journal; it stays with your Health records. A word for the day, never a score.</p>
-  </section>;
+  </section></PhoneFold>;
 }

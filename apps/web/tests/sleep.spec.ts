@@ -105,16 +105,21 @@ test('refusals: an overlap, a night ending in the future, a missing time, a minu
   await form.getByLabel('Went to bed (date)').fill('2026-10-25');
   await form.getByLabel('Woke up (date)').fill('2026-10-26');
   await form.getByRole('button', {name: 'Save', exact: true}).click();
-  await expect(form.getByRole('alert')).toHaveText('A night cannot end in the future.');
+  // Session AL (P-NB-44/P-MO-45: MO-113, NB-196, deliberate): each wrong time is said under its own field, the future
+  // end on the wake time with the time now; a missing time names the one missing; a minutes field says its range.
+  await expect(form.getByRole('alert')).toHaveText('The night cannot end later than now (10:30 AM).');
+  await expect(form.getByLabel('Woke up (time)')).toHaveAttribute('aria-invalid', 'true');
   await form.getByLabel('Woke up (time)').fill('');
   await form.getByRole('button', {name: 'Save', exact: true}).click();
-  await expect(form.getByRole('alert')).toHaveText('Enter when you went to bed and when you woke up.');
+  await expect(form.getByRole('alert')).toHaveText('Enter the time you woke up.');
+  await expect(form.getByLabel('Woke up (time)')).toBeFocused();
   await form.getByLabel('Woke up (date)').fill('2026-10-23');
   await form.getByLabel('Went to bed (date)').fill('2026-10-22');
   await form.getByLabel('Woke up (time)').fill('07:00');
   await form.getByLabel('Time to fall asleep (minutes, optional)').fill('ten');
   await form.getByRole('button', {name: 'Save', exact: true}).click();
-  await expect(form.getByRole('alert')).toHaveText('Time to fall asleep: enter whole minutes from 0 to 720, or leave it empty.');
+  await expect(form.getByRole('alert')).toHaveText('Enter whole minutes from 0 to 720, or leave it empty.');
+  await expect(form.getByLabel('Time to fall asleep (minutes, optional)')).toHaveAttribute('aria-invalid', 'true');
   expect((await storedSleep(page))!.sleep!.nights).toHaveLength(1);
 });
 
@@ -141,7 +146,8 @@ test('“I’m going to bed”, then “I woke up”; the Health card follows th
   await expect(page).toHaveURL(/\/app\/health\?view=sleep$/);
   await expect(page.getByRole('heading', {level: 1, name: 'Your sleep, your rhythm.'})).toBeVisible();
   // A night without fall-asleep or awake minutes is an estimate, and its bar says so in the key.
-  await expect(page.getByRole('figure', {name: 'Time asleep · last 7 days'}).locator('.sleep-key')).toHaveText('Lighter bar: estimated from time in bed');
+  // Session AL (P-MO-77, MO-022, deliberate): a day with no night logged is a short dash, and the key names it too.
+  await expect(page.getByRole('figure', {name: 'Time asleep · last 7 days'}).locator('.sleep-key')).toHaveText('Lighter bar: estimated from time in bedShort dash: no night logged');
   await expect(page.locator('.sleep-bar.estimated')).toHaveCount(1);
   await page.getByRole('link', {name: '← Health'}).click();
   await expect(page).toHaveURL(/\/app\/health$/);
@@ -183,13 +189,16 @@ test('your goal: sleep debt and consistency with their formulas, the goal line, 
   await goal.getByRole('button', {name: 'Save goal', exact: true}).click();
   await expect(note(page)).toHaveText('Your sleep goal is saved.');
   const week = page.getByRole('region', {name: 'Your last 7 days'});
-  await expect(week).toContainText('Your goal (7 h 30 min) minus time asleep, added up over the 6 nights you logged in the last 7 days.');
+  // Session AL (P-MO-77, MO-022, deliberate): the debt note says a long night makes up for a short one; C-X3-13 (fourth
+  // pass, built) adds the short nights alone beside it.
+  await expect(week).toContainText('Your goal (7 h 30 min) minus time asleep, added up over the 6 nights you logged in the last 7 days: a long night makes up for a short one.');
   await expect(week).toContainText('How much your bedtimes vary: the standard deviation of 6 bedtimes in the last 14 days.');
   await expect(week).toContainText('± ');
   await expect(week).toContainText('6 nights logged');
   const charts = page.getByRole('region', {name: 'Over time'});
   // The reference marks are named in a key under each title, never on top of the data.
-  await expect(charts.getByRole('figure', {name: 'Time asleep · last 7 days'}).locator('.sleep-key')).toHaveText('Goal 7 h 30 min');
+  // Session AL (P-MO-77, MO-022, deliberate): the 22nd has no night, so the key also names the short dash.
+  await expect(charts.getByRole('figure', {name: 'Time asleep · last 7 days'}).locator('.sleep-key')).toHaveText('Goal 7 h 30 minShort dash: no night logged');
   await expect(charts.getByRole('figure', {name: 'Bed and wake times · last 7 days'}).locator('.sleep-key')).toHaveText('Bedtime window 10:30 PM–11:30 PM');
   await expect(charts.locator('.sleep-goal line')).toHaveCount(1);
   await expect(charts.getByRole('img').first()).toHaveAttribute('aria-label', /^Time asleep, 7 days: 6 nights logged, from .* to .*; goal 7 h 30 min\.$/);

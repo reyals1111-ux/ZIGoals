@@ -51,7 +51,8 @@ test('fixture A: three entries on two days with an unknown serving measure, blan
   await expect(page.getByText('Rice bowl', {exact: true}).first()).toBeVisible();
   await expect(page.getByText('Serving measure unknown').first()).toBeVisible();
   const banner = page.locator('.import-banner');
-  await expect(banner).toContainText('3 entries and 0 foods imported.');
+  // Session AL (N-TK-27, deliberate): the page banner names when the import was made (a recent one only).
+  await expect(banner).toContainText('3 entries and 0 foods imported (imported Sep 15, 2026, 12:00 PM).');
   const undo = banner.getByRole('button', {name: 'Undo import', exact: true}); // Session AH (HE9): the strip's own label
   expect((await undo.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await undo.click();

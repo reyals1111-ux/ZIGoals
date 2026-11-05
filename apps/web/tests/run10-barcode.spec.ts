@@ -14,7 +14,9 @@ for(const cameraError of ['OverconstrainedError','NotFoundError'] as const)test(
   Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:async()=>{throw new DOMException('Requested device not found',cameraError);}});
  },cameraError);
  await page.route('**/api/food-lookup?*',route=>route.fulfill({status:404,json:{error:'NOT_FOUND'}}));await page.goto('/app/health');await page.getByText('Scan or look up a food barcode',{exact:true}).click();const area=page.getByRole('region',{name:'Barcode food lookup'});
- await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area).toContainText('Rear camera unavailable');await area.getByLabel('Product barcode',{exact:true}).fill('00001234');await area.getByRole('button',{name:'Look up barcode',exact:true}).click();await expect(area).toContainText('Product not found');
+ await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area).toContainText('Rear camera unavailable');await area.getByLabel('Product barcode',{exact:true}).fill('00001234');await area.getByRole('button',{name:'Look up barcode',exact:true}).click();
+ // Session AL (P-MO-63; MO-007, MO-107, deliberate): the not-found line echoes the code and offers to add it yourself.
+ await expect(area).toContainText('Barcode 00001234 was not found in the food databases.');await expect(area.getByRole('heading',{name:'Add it yourself'})).toBeVisible();
  await page.route('**/api/food-lookup?*',route=>route.fulfill({status:429,json:{error:'TRY_LATER'}}));await area.getByRole('button',{name:'Look up barcode',exact:true}).click();await expect(area).toContainText('cooling down');await expect(page.getByRole('button',{name:'Foods & recipes',exact:true})).toBeEnabled();
 });
 test('unavailable camera API leaves typed barcode entry usable',async({page})=>{
