@@ -628,9 +628,9 @@ function TargetsView({ targets, weightUnit, perform, invalid }: { targets: Healt
  */
 function HealthWeekFold({ health, today, waterUnit, ...layout }: LayoutAttrs & { health: HealthData; today: string; waterUnit: WaterUnit }) {
   const phone = usePhoneActive(), days = loggedDaysOfWeek(healthWeek(health, today));
-  const trends = <HealthTrends health={health} today={today} waterUnit={waterUnit} />;
+  const trends = <HealthTrends health={health} today={today} waterUnit={waterUnit} weightUnit={dailyData(health).preferences.weightUnit} />;
   if (phone) return <PhoneFold label="Seven days of care" {...layout}>{trends}</PhoneFold>;
-  if (days >= 2) return <HealthTrends {...layout} health={health} today={today} waterUnit={waterUnit} />;
+  if (days >= 2) return <HealthTrends {...layout} health={health} today={today} waterUnit={waterUnit} weightUnit={dailyData(health).preferences.weightUnit} />;
   return <details {...layout} className="panel health-week-fold"><summary style={{ minHeight: 44, display: "flex", alignItems: "center", cursor: "pointer" }}>Seven days of care{days ? " · 1 day with entries" : " · nothing logged this week yet"}</summary>{trends}</details>;
 }
 /** Session AK: a fold whose content loads only when it is opened (the weekly calorie budget, the meal photo). */
