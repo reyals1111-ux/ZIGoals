@@ -36,14 +36,26 @@ export function askZigiWhenShown(text: string): Promise<boolean> {
  * within two seconds (a sign-in, unlock or recovery form stays on the page: ZIGi steps aside there, ADR-012 rule 8).
  */
 export const ZIGI_OPEN_EVENT = 'zigoals:zigi-open';
+/**
+ * CI17 (CI 1569, WebKit, ⌘/Ctrl+Shift+Z on Today): when nothing private or open shows at the call (the key on a page, a
+ * sheet that has already closed), the panel opens at once: the wait below was frames, and on a busy page (Today still
+ * loading its parts after hydration) the browser drew its third frame only after the two seconds, so the key did nothing.
+ * The launcher checks the screen again itself (and the panel shows once it has seen the screen calm). While something
+ * still shows, the wait gives up only after two seconds and at least WAIT_FRAMES frames, so a slow page is not mistaken
+ * for a private form that stays.
+ */
+const WAIT_FRAMES = 12;
 export function openZigiPanel(): Promise<boolean> {
+  const open = () => window.dispatchEvent(new Event(ZIGI_OPEN_EVENT));
+  if (!isSensitiveScreen()) { open(); return Promise.resolve(true); }
   return new Promise(resolve => {
     const start = performance.now();
-    let calm = 0;
+    let calm = 0, frames = 0;
     const tick = () => {
+      frames += 1;
       if (!isSensitiveScreen()) calm += 1; else calm = 0;
-      if (calm >= 3) { window.dispatchEvent(new Event(ZIGI_OPEN_EVENT)); resolve(true); return; }
-      if (performance.now() - start > 2000) { resolve(false); return; }
+      if (calm >= 3) { open(); resolve(true); return; }
+      if (frames >= WAIT_FRAMES && performance.now() - start > 2000) { resolve(false); return; }
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);

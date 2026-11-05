@@ -136,7 +136,9 @@ export function AiLauncher() {
     return () => window.removeEventListener('keydown', onKey);
   }, [sensitive, hidden, toggle, requestTalk, open, close]);
   // Session AL (Q6): a private step or dialog that shows closes the panel; a sensitive field that only has the focus pauses it.
-  useEffect(() => { if ((standing || switchedOff) && open) setOpen(false); }, [standing, switchedOff, open]);
+  // CI17: only while it still shows (the state is read on the next frame; a sheet that closed just before ZIGi opened at
+  // once must not close the panel again; the panel shows once the state has caught up).
+  useEffect(() => { if (((standing && standingSensitive()) || switchedOff) && open) setOpen(false); }, [standing, switchedOff, open]);
   // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
   useEffect(() => { const onAsk = () => { if (!hidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [hidden, sensitive]);
   // Session AL (O3): the "Apps & extras" sheet's ZIGi entry. The sheet has closed and the screen is checked again here, so a
