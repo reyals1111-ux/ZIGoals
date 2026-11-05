@@ -203,7 +203,8 @@ test.describe('on the Showcase', () => {
     await edit.getByRole('button', {name: 'Save targets'}).click();
     await expect(slot.getByRole('status')).toHaveText('Your targets are saved on this device.');
     const row = slot.locator('table.alloc-table tbody tr').filter({has: page.getByRole('rowheader', {name: pick.label, exact: true})});
-    await expect(row.getByRole('cell').nth(1)).toHaveText(`${target}.0 %`);
+    // Session AL (GAP-017 / P-DVG-63, deliberate): the amount at the target share stands beside the share ("85.0 % €6,800").
+    await expect(row.getByRole('cell').nth(1)).toHaveText(new RegExp(`^${target}\\.0 % €[\\d,]+$`));
     // The drift: now minus the target, in percentage points, above the default range.
     await expect(row.getByRole('cell').nth(2)).toHaveText(new RegExp(`^\\+${(pick.now - target).toFixed(1).replace('.', '\\.')} pp Above your target$`));
     expect(await showcaseRecord(page, 'zigoals:target-allocation:v1')).toMatchObject({basis: 'class', targets: expect.arrayContaining([expect.objectContaining({label: pick.label, percent: String(target)})])});

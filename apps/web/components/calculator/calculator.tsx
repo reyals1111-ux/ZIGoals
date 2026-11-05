@@ -99,8 +99,10 @@ export function Calculator() {
     if (restored || !record.loaded) return;
     queueMicrotask(() => {
       setRestored(true);
-      const rate = earnCalculatorPrefill(window.location.search), fromWealthStart = wealthPrefill(window.location.search);
+      const rate = earnCalculatorPrefill(window.location.search), fromWealthStart = wealthPrefill(`${window.location.search.slice(1)}&${window.location.hash.slice(1)}`);
       // Session AL (Part 15, C-TK-12): opened from Wealth ("See where your holdings could grow"), the start is that total.
+      // CI3 (holdings-import privacy): Wealth now passes it in the URL hash, which never reaches the server; an older link's
+      // query is still read too (the marker `from=wealth` stays in the query; the amount is in the hash).
       if (fromWealthStart) { setDraft(d => ({...(record.data.last ? toDraft(record.data.last) : d), ...fromWealthStart})); setIllustration(null); setFromWealth(true); return; }
       // Session AH (TR14, B-010): Earn's rate is a simple yearly rate, so it is added once a year here (as if the rewards
       // were restaked once a year), and the banner says so.

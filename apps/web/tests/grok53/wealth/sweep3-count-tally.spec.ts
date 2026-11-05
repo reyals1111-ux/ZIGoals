@@ -27,6 +27,9 @@ test('DV-057b/DV-147: a books goal is planned in books on Today, and its tally i
   await sheet.getByLabel('How many books did you add?').fill('3');
   await sheet.getByRole('button', {name: 'Preview contribution'}).click();
   await sheet.getByRole('button', {name: 'Confirm & fund Goal'}).click();
+  // Fix-up (CI 1539): the sheet closes once the funding is saved; leaving before that met its unsaved-changes guard and
+  // stayed on the goal page (the check below then read the goal page, not Wealth).
+  await expect(sheet).toHaveCount(0);
   await open(page, '/app/wealth');
   await expect(page.locator('main')).not.toContainText(/Read 12 books.*Needs valuation/);
   await open(page, '/app');

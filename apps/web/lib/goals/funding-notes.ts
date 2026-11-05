@@ -42,11 +42,13 @@ export function heldUnitsOffer(s: Platform, identity: Pick<PrivateGoal, 'type' |
 
 export {valueReason, goalValueReason} from './value-reason';
 
-export {releasedByArchive, reviewedReleaseLabel, markReleaseReviewed, type ReleasedSource} from './released';
+export {releasedByArchive, reviewedReleaseLabel, archivedReleaseLabel, markReleaseReviewed, type ReleasedSource} from './released';
 import type {ReleasedSource} from './released';
-/** "Savings Two was archived on Nov 4, 2026; it had counted €3,000.00 toward this goal." */
+/** "Savings Two was archived on Nov 4, 2026; it had counted €3,000.00 toward this goal." (no amount when none was recorded) */
 export function releasedWords(r: ReleasedSource): string {
- return `${r.name} was archived on ${formatDate(r.at.slice(0, 10))}; it had counted ${formatGoalAmount(formatUnits(r.counted, r.decimals), r.asset)} toward this goal, and no longer does.`;
+ const day = formatDate(r.at.slice(0, 10));
+ return r.counted === undefined ? `${r.name} was archived on ${day}; it had counted toward this goal, and no longer does.`
+  : `${r.name} was archived on ${day}; it had counted ${formatGoalAmount(formatUnits(r.counted, r.decimals), r.asset)} toward this goal, and no longer does.`;
 }
 /**
  * TK-181: saving `newQuantity` (base units) for this asset would leave less than its Goals count: the sentence to ask

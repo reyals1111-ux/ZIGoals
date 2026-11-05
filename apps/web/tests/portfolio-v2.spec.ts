@@ -179,7 +179,9 @@ test('Showcase: the whole page and a coin\'s page from labelled fixtures, and no
   await expect(page.getByRole('heading', {level: 1, name: 'Solana'})).toBeVisible();
   await expect(page.getByRole('region', {name: 'Market figures'})).toContainText('Showcase fixture figures, not market data.');
   await expect(page.getByRole('region', {name: 'Your SOL in Fictional long-term coins'})).toContainText('Unrealized resultUnknown');
-  expect(asked.slice(before).map(r => r.path).filter(path => path !== '/api/market-quotes')).toEqual([]);
+  // Session AL (PR-016 / P-PR-01, deliberate; use-portfolio-market.ts): the shared 24h insight snapshot is asked in the
+  // Showcase too (once, then frozen for the tab); no details or anything else.
+  expect(asked.slice(before).map(r => r.path).filter(path => path !== '/api/market-quotes' && path !== '/api/market-insights')).toEqual([]);
 });
 
 test('phone: the coin, its 24h change, value and result; allocation and transactions fold; no sideways scroll; 44 px targets', async ({page, isMobile}) => {

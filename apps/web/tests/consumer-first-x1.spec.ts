@@ -143,7 +143,8 @@ test('choosing a money tool in Settings brings the chain back: the money tools, 
   await expect(markets).not.toBeChecked();
   // A controlled switch: it shows the saved choice once the save is done, so a click, then the saved state.
   await markets.click();
-  await expect(pages.getByRole('status')).toHaveText('Markets shows again.');
+  // Session AL (P-BN-34 / BN-016, deliberate; bbd2738e): a switch that changes more than itself says so beside the switches.
+  await expect(pages.getByRole('status')).toHaveText('Markets shows again. The money pages that start off (Earn, Markets, Staking, Portfolio and Ecosystem) show now too; each keeps its own switch here.');
   await expect(markets).toBeChecked();
   // One money tool switched on is choosing the chain: the others show by default too, each with its own switch.
   for (const tool of ['Staking', 'Portfolio', 'Ecosystem', 'Earn']) await expect(pages.getByRole('switch', {name: tool, exact: true}), tool).toBeChecked();

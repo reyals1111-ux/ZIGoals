@@ -57,8 +57,8 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
   const market = usePortfolioMarket(coin ? [coin] : [], currency, store.showcase, !!coin && store.loaded);
   const [message, setMessage] = useState(''), [error, setError] = useState('');
   const run = (change: (data: PortfolioData) => PortfolioData, done: string, fallback: string, options?: {inline?: (message: string, cause: unknown) => void}) => {
-    setError(''); setMessage('');
-    try { store.update(change); setMessage(done); return true; } catch (cause) { const text = cause instanceof HoldingsBelowZero || cause instanceof PortfolioUnreadable ? cause.message : storageMessageOr(cause, fallback); if (options?.inline) options.inline(text, cause); else setError(text); return false; }
+    // Fix-up (CI 1539, TK-024): a refusal said at its own field leaves the lines above the form as they are (Save stays put).
+    try { store.update(change); setError(''); setMessage(done); return true; } catch (cause) { const text = cause instanceof HoldingsBelowZero || cause instanceof PortfolioUnreadable ? cause.message : storageMessageOr(cause, fallback); if (options?.inline) options.inline(text, cause); else { setMessage(''); setError(text); } return false; }
   };
   // Session AH Part 3 (A5/DS5, BUG-032): removing a transaction offers a labelled Undo that puts it back.
   const removeTx = (portfolioId: string, tid: string) => {

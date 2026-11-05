@@ -6,9 +6,17 @@
  */
 import type {Platform} from '../positions';
 
-export type ReleasedSource = {positionId: string; name: string; at: string; counted: string; asset: string; decimals: number};
+/** `counted` is absent when no value snapshot named the asset before it was archived (the Showcase's example history). */
+export type ReleasedSource = {positionId: string; name: string; at: string; counted?: string; asset: string; decimals: number};
 /** The goal-history line that says the person reviewed a release (kept as an ordinary history line). */
 export const reviewedReleaseLabel = (name: string) => `Reviewed: ${name.slice(0, 200)} was archived and no longer counts`;
+/**
+ * Fix-up (CI 1539, TK-196 in the Showcase): the goal-history line written when archiving an asset releases what it
+ * counted here (lib/goal-intelligence.ts recordGoalChanges; an existing record kind and a free-text label). It keeps the
+ * release known when no value snapshot named the asset first: the Showcase's example history carries no per-source
+ * evidence, and a goal valued earlier the same day takes no second snapshot.
+ */
+export const archivedReleaseLabel = (name: string) => `Released: ${name.slice(0, 200)} was archived and stopped counting here`;
 /**
  * TK-196: assets that counted toward this open Goal in its last value snapshot before they were archived (archiving
  * releases what they counted, lib/asset-management.ts). Each stays listed until the person marks it reviewed.
@@ -30,10 +38,11 @@ export function releasedByArchive(s: Platform, goalId: string): ReleasedSource[]
    if (e && BigInt(e.counted) > 0n) { counted = e.counted; asset = h.asset; decimals = h.decimals; }
    break;
   }
-  if (!counted) continue;
   const name = p.validator?.name ?? p.providerId;
+  // The release line is written in the same save as the archive (a minute's leeway for the two clocks of one save).
+  if (!counted && !history.some(h => h.kind === 'allocation' && h.label === archivedReleaseLabel(name) && Date.parse(h.capturedAt) >= archivedAt - 60_000)) continue;
   if (history.some(h => h.kind !== 'valuation' && Date.parse(h.capturedAt) >= archivedAt && h.label === reviewedReleaseLabel(name))) continue;
-  out.push({positionId: p.id, name, at: p.archivedAt, counted, asset, decimals});
+  out.push({positionId: p.id, name, at: p.archivedAt, ...(counted ? {counted} : {}), asset, decimals});
  }
  return out;
 }

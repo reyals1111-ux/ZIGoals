@@ -22,7 +22,8 @@ test('picked entries add up exactly; a second currency is named apart', async ({
   for (const name of [/^Select Groceries 50\.00 EUR/, /^Select Fun 44\.20 EUR/, /^Select Refund 10\.00 EUR/]) await spending(page).getByRole('checkbox', {name}).check();
   await expect(total(page)).toHaveText('3 selected · −€84.20 (2 expenses, 1 income)');
   await spending(page).getByRole('checkbox', {name: /^Select Fun 4\.20 USD/}).check();
-  await expect(total(page)).toContainText('4 selected · 2 currencies: −€84.20 and −US$4.20 (3 expenses, 1 income)');
+  // Session AL (PRIMITIVES 3f, deliberate): money goes through the one format layer, so US dollars read "$" in en-US.
+  await expect(total(page)).toContainText('4 selected · 2 currencies: −€84.20 and −$4.20 (3 expenses, 1 income)');
   await expect(total(page)).toContainText('never converted');
   // Keyboard: Space toggles a box.
   await spending(page).getByRole('checkbox', {name: /^Select Groceries/}).focus();

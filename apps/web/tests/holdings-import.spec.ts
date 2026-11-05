@@ -66,7 +66,8 @@ test('Portfolio: four rows, one unknown coin skipped, three transactions importe
   expect(ledger.imports[0]).toMatchObject({kind: 'portfolio', createdIds: [...ids, 'coin:coingecko:coin:bitcoin', 'coin:coingecko:coin:ethereum'], label: '3 transactions imported into Long-term'});
   await panel.getByRole('button', {name: 'Done', exact: true}).click();
   const banner = page.locator('.import-banner');
-  await expect(banner).toContainText('3 transactions imported into Long-term.');
+  // Session AL (L1 second pass, N-TK-27, deliberate): the banner says when the import was made (Brussels, the fixed clock).
+  await expect(banner).toContainText(/3 transactions imported into Long-term \(imported Sep 15, 2026, 12:0\d PM\)\./);
   const undo = banner.getByRole('button', {name: 'Undo import', exact: true}); // Session AH (HE9): the strip's own label
   expect((await undo.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await undo.click();
@@ -103,7 +104,8 @@ test('Wealth: two holdings become manual assets, one without a valuation; Undo r
   await expect(page.getByRole('region', {name: 'What you have', exact: true})).toContainText('Gold');
   await expect(page.getByRole('region', {name: 'What you have', exact: true})).toContainText('Needs valuation');
   const banner = page.locator('.import-banner');
-  await expect(banner).toContainText('2 assets added to Wealth.');
+  // Session AL (L1 second pass, N-TK-27, deliberate): the banner says when the import was made.
+  await expect(banner).toContainText(/2 assets added to Wealth \(imported Sep 15, 2026, 12:0\d PM\)\./);
   await banner.getByRole('button', {name: 'Undo import', exact: true}).click(); // Session AH (HE9)
   await expect(banner.getByRole('alert')).toHaveCount(0);
   await expect(banner).toHaveCount(0);

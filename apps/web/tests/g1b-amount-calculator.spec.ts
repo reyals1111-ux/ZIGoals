@@ -43,7 +43,9 @@ test('a monthly budget: "300+45,50" is saved as 345.50', async ({page}) => {
   await form.getByLabel('Each month').fill('300+45,50');
   await expect(form.locator('.money-calc-hint')).toContainText('= 345.50');
   await form.getByRole('button', {name: 'Save budget'}).click();
-  await expect(page.locator('#budgets')).toContainText('Budget for Groceries saved: €345.50 a month.');
+  // Session AL (P-DVR-22, deliberate): a new budget starts in the one default currency (stored, held, else the device's:
+  // en-US here), never a fixed EUR.
+  await expect(page.locator('#budgets')).toContainText('Budget for Groceries saved: $345.50 a month.');
 });
 test('the Showcase: the calculator works the same', async ({page}) => {
   await loadShowcase(page);

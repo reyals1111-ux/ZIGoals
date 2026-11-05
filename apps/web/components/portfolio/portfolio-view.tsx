@@ -68,8 +68,9 @@ export function PortfolioView() {
   const market = usePortfolioMarket(selected?.coins ?? NO_COINS, selected?.currency ?? 'USD', store.showcase, !!selected);
   // Session AL (TK-024, P6): a form that passes `inline` shows a refused save (an oversell) at its own field, not at the page's top.
   const run = (change: Parameters<typeof store.update>[0], done: string, fallback: string, options?: {replaceUnreadable?: boolean; inline?: (message: string, cause: unknown) => void}) => {
-    setError(''); setMessage('');
-    try { store.update(change, options?.replaceUnreadable === undefined ? undefined : {replaceUnreadable: options.replaceUnreadable}); setMessage(done); return true; } catch (cause) { const text = failure(cause, fallback); if (options?.inline) options.inline(text, cause); else setError(text); return false; }
+    // Fix-up (CI 1539, TK-024): a refusal said at its own field leaves the lines above the form as they are, so nothing
+    // over the form closes up and Save stays under the pointer; a save or a page-level refusal replaces them as before.
+    try { store.update(change, options?.replaceUnreadable === undefined ? undefined : {replaceUnreadable: options.replaceUnreadable}); setError(''); setMessage(done); return true; } catch (cause) { const text = failure(cause, fallback); if (options?.inline) options.inline(text, cause); else { setMessage(''); setError(text); } return false; }
   };
   // Session AH Part 3 (A5/DS5, BUG-032): removing a transaction offers a labelled Undo that puts it back.
   const removeTx = (portfolioId: string, tid: string) => {

@@ -22,8 +22,11 @@ import {FieldError, useFormErrors} from '../primitives/field-error';
 export function holdSaveInPlace(save: HTMLElement | null, before: number | null, field: HTMLElement | null, win: Window = window): void {
   if (save && before !== null) { const shift = save.getBoundingClientRect().top - before; if (Math.abs(shift) >= 1) win.scrollBy({top: shift, left: 0, behavior: 'instant'}); }
   if (!field) return;
-  const box = field.getBoundingClientRect();
-  if (box.top < 0 || box.bottom > win.innerHeight) { try { field.scrollIntoView({block: 'nearest', inline: 'nearest'}); } catch { /* an old engine without options */ } }
+  // Fix-up (CI 1539): scrolled only when neither the field nor its message shows at all. A field cut by half a pixel at
+  // the top, or one just above the window whose message (under it) shows, is left where it is, so Save does not move.
+  const seen = (el: Element) => { const box = el.getBoundingClientRect(); return box.bottom > 0 && box.top < win.innerHeight; };
+  const messages = (field.getAttribute?.('aria-describedby') ?? '').split(/\s+/).filter(Boolean).map(id => field.ownerDocument?.getElementById(id)).filter((el): el is HTMLElement => !!el);
+  if (!seen(field) && !messages.some(seen)) { try { field.scrollIntoView({block: 'nearest', inline: 'nearest'}); } catch { /* an old engine without options */ } }
   try { field.focus({preventScroll: true}); } catch { field.focus(); }
 }
 

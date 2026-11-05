@@ -33,9 +33,12 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   await expect(finished).toHaveText(finishedCount);
   // G5: the tree, three levels deep.
   await page.getByRole('group', {name: 'Show goals as'}).getByRole('button', {name: 'Tree'}).click();
-  const studio = page.locator('.goals-tree li[data-depth="0"]').filter({hasText: 'Launch my creative studio'});
-  await expect(studio.locator('li[data-depth="1"]').filter({hasText: 'Create 2 hours a day'})).toBeVisible();
-  await expect(studio.locator('li[data-depth="2"]').filter({hasText: 'Sleep 8 hours a night'})).toBeVisible();
+  // Session AL (third pass, deliberate; 30ad598b): each row's "Put under" menu lists every other goal by name, so a row
+  // is found by its own node's name, not by any text inside it.
+  const named = (name: string) => ({has: page.locator('.goal-tree-node > .goal-tree-text > strong').getByText(name, {exact: true})});
+  const studio = page.locator('.goals-tree li[data-depth="0"]').filter(named('Launch my creative studio'));
+  await expect(studio.locator('li[data-depth="1"]').filter(named('Create 2 hours a day'))).toBeVisible();
+  await expect(studio.locator('li[data-depth="2"]').filter(named('Sleep 8 hours a night'))).toBeVisible();
   await expect(studio.locator('> a')).toContainText('0 of 1 sub-goal done');
   await expect(finished).toHaveText(finishedCount);
   // A ring's number stays on one line (the row's text rule no longer reaches the ring).

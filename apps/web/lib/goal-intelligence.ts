@@ -1,6 +1,7 @@
 /** Private financial facts and zero-return forecasts. No network or execution dependencies. */
 import {contributionEventSchema,platformSchema,localGoalLocked,confirmedLocalObservation,goalProgress,planScenario,rescaleUnits,scenarioHorizon,type ContributionEvent,type Platform,type PrivateGoal,type GoalHistory,type ValuationSnapshot} from './positions';
 import {dateObservedCompletions} from './goals/observed-completion';
+import {archivedReleaseLabel} from './goals/released';
 import {marketQuoteSchema,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import type {z} from 'zod';
 import {capturePlanChanges,captureGoalLifecycle,revisionInstallments,effectiveContributionPlan,planDay,planZone,shiftPlanDay} from './plan-revisions';
@@ -149,7 +150,15 @@ export function recordGoalChanges(before:Platform,after:Platform,now=Date.now())
   // Session AL (DV-025b): a target lowered to what is already counted reads as reached, said as such (not "Goal completed").
   const byEdit=g.status==='completed'&&old?.target!==g.target&&!g.lifecycle?.some(e=>e.kind==='completed'&&e.cycle===(g.lifecycle?.at(-1)?.cycle??0));
   if(old&&old.status!==g.status)add('status',byEdit?'Target lowered to what is counted · reads as reached':g.status==='completed'?'Goal completed':g.status==='closed'?'Goal closed':'Goal reactivated');
-  if(JSON.stringify(before.allocations.filter(a=>a.goalId===g.id))!==JSON.stringify(after.allocations.filter(a=>a.goalId===g.id)))add('allocation','Goal allocation changed');
+  // Fix-up (CI 1539, TK-196): an allocation released because its asset was archived in this same save names that asset
+  // (lib/goals/released.ts reads it); any other change to this goal's allocations is the plain line, as before.
+  const was=before.allocations.filter(a=>a.goalId===g.id),kept=after.allocations.filter(a=>a.goalId===g.id);
+  if(JSON.stringify(was)!==JSON.stringify(kept)){
+   const archivedHere=(id:string)=>!!after.positions.find(p=>p.id===id)?.archivedAt&&!before.positions.find(p=>p.id===id)?.archivedAt;
+   const released=was.filter(a=>archivedHere(a.positionId)&&!kept.some(b=>b.positionId===a.positionId));
+   for(const a of released){const p=after.positions.find(x=>x.id===a.positionId)!;add('allocation',archivedReleaseLabel(p.validator?.name??p.providerId));}
+   if(JSON.stringify(was.filter(a=>!released.includes(a)))!==JSON.stringify(kept))add('allocation','Goal allocation changed');
+  }
  }
  return added.length?compactHistory({...after,goalHistory:[...after.goalHistory,...added]}):after;
 }

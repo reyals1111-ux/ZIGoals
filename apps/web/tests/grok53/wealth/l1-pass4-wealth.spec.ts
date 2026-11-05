@@ -47,7 +47,10 @@ test('TK-190: an archived debt offers "Unarchive", the word an archived asset us
   await add.getByLabel('Currency').fill('EUR');
   await add.getByLabel(/What you owe now|Balance now/).fill('1200');
   await add.getByRole('button', {name: 'Add', exact: true}).click();
-  await page.locator('.accounts-list li').filter({hasText: 'Visa'}).getByRole('button', {name: 'Archive', exact: true}).click();
+  // Fix-up (CI 1539): an account's Archive sits in its Edit form (accounts-section.tsx), not on the row.
+  const visa = page.locator('.accounts-list li').filter({hasText: 'Visa'});
+  await visa.getByRole('button', {name: 'Edit Visa', exact: true}).click();
+  await visa.getByRole('button', {name: 'Archive', exact: true}).click();
   const archived = page.locator('details.accounts-archived');
   await archived.locator('summary').click();
   await expect(archived.getByRole('button', {name: 'Unarchive', exact: true})).toBeVisible();
@@ -73,6 +76,8 @@ test('PR-053 (P-PR-28): an archived asset can be deleted for good from its page,
   await page.locator('.aa-toast').getByRole('button', {name: /Undo/}).click();
   await expect(page.locator('.aa-toast')).toContainText('Old camera is back, archived.');
   await page.goto('/app/wealth'); await hydrated(page);
+  // Fix-up (CI 1539): an archived asset is listed under the folded "Archived assets"; its name opens its page.
+  await page.locator('details').filter({has: page.locator('summary', {hasText: 'Archived assets'})}).locator('summary').click();
   await page.getByRole('link', {name: /Old camera/}).first().click();
   await expect(page.locator('.asset-archived-notice')).toContainText('Archived.');
 });

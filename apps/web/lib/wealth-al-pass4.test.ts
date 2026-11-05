@@ -152,4 +152,11 @@ it('TK-024 / P8: after a refused save the page scrolls by the shift, so Save sta
   holdSaveInPlace(save, 610, off, win);
   expect(scrolled).toEqual([87]);
   expect(intoView).toBe(1);
+  // Fix-up (CI 1539, on the build): a field cut by half a pixel, or one just above the window whose message shows, stays.
+  const cut = {...field, getBoundingClientRect: () => ({top: -0.45, bottom: 47.5})} as unknown as HTMLElement;
+  holdSaveInPlace(save, 610, cut, win);
+  const message = {getBoundingClientRect: () => ({top: -5, bottom: 82})};
+  const above = {...off, getAttribute: (name: string) => name === 'aria-describedby' ? 'quantity-error' : null, ownerDocument: {getElementById: (id: string) => id === 'quantity-error' ? message : null}} as unknown as HTMLElement;
+  holdSaveInPlace(save, 610, above, win);
+  expect(intoView).toBe(1);
 });

@@ -20,10 +20,12 @@ async function valueGoal(page: Page, name: string, target: string) {
   await page.getByLabel("Target amount", { exact: true }).fill(target);
 }
 
-for (const [typed, shown, units] of [["1200,50", "1200.50 USD", "120050"], [" 1000 ", "1000 USD", "100000"]] as const) {
+// Session AL (TK-142, deliberate; 7ea56655): the side preview formats what saving reads, as the review step does
+// ("$1,200.50", not the plain echo "1200.50 USD"); the saved units below are unchanged.
+for (const [typed, shown, units, formatted] of [["1200,50", "1200.50 USD", "120050", "$1,200.50"], [" 1000 ", "1000 USD", "100000", "$1,000.00"]] as const) {
   test(`a Goal target typed as "${typed}" is previewed and saved as ${shown}`, async ({ page }) => {
     await valueGoal(page, "Typed target", typed);
-    await expect(page.getByRole("region", { name: "Goal preview" }).locator("strong")).toHaveText(shown);
+    await expect(page.getByRole("region", { name: "Goal preview" }).locator("strong")).toHaveText(formatted);
     await page.getByRole("button", { name: "Create goal", exact: true }).click();
     await page.waitForURL("**/app/goals/tracked/**");
     expect((await goals(page)).map((goal) => [goal.name, goal.target, goal.decimals])).toEqual([["Typed target", units, 2]]);
@@ -33,7 +35,8 @@ for (const [typed, shown, units] of [["1200,50", "1200.50 USD", "120050"], [" 10
 test('an ambiguous "1,234" target is flagged in the preview and refused on save, with the same reason', async ({ page }) => {
   await valueGoal(page, "Ambiguous target", "1,234");
   const reason = "“1,234” could mean 1234 or 1.234. Type it without a thousands separator.";
-  await expect(page.getByRole("region", { name: "Goal preview" }).locator("strong")).toHaveText(`Unreadable amount · ${reason} USD`);
+  // Session AL (TK-142, deliberate): the formatted preview no longer appends the currency code to a refused amount.
+  await expect(page.getByRole("region", { name: "Goal preview" }).locator("strong")).toHaveText(`Unreadable amount · ${reason}`);
   await page.getByRole("button", { name: "Create goal", exact: true }).click();
   await expect(page.getByRole("alert").filter({ hasText: reason })).toBeVisible();
   expect(await goals(page)).toEqual([]);

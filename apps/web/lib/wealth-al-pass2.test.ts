@@ -134,6 +134,8 @@ it('BN-089: the calculator says why an amount is refused (negative, too large) i
 it('C-TK-12: Wealth hands its total to the calculator as the starting amount, USD or EUR only', async () => {
   const {wealthPrefill} = await import('../components/calculator/calculator');
   expect(wealthPrefill('?from=wealth&start=1500.50&currency=EUR')).toEqual({start: '1500.50', currency: 'EUR'});
+  // CI3 (privacy): Wealth's link keeps the amount in the hash, read together with the query's marker.
+  expect(wealthPrefill('from=wealth&start=1500.50&currency=EUR')).toEqual({start: '1500.50', currency: 'EUR'});
   expect(wealthPrefill('?from=wealth&start=1500.50&currency=GBP')).toBeNull();
   expect(wealthPrefill('?from=earn&start=10&currency=USD')).toBeNull();
   expect(wealthPrefill('?from=wealth&start=abc&currency=USD')).toBeNull();

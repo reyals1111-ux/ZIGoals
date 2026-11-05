@@ -37,7 +37,7 @@ async function createValueGoal(page,ui,name){
 }
 /** One 200 USD cash contribution, then its reversal: the steps of packaged-goal-journey.mjs. */
 async function fundAndReverse(page,note){
- await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();const dialog=page.getByRole('dialog',{name:'Fund your Goal',exact:true});
+ await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();/* Session AL (DV-007b, deliberate): the sheet's title reads "Fund your goal" */const dialog=page.getByRole('dialog',{name:'Fund your goal',exact:true});
  await dialog.getByRole('button',{name:'Cash',exact:true}).click();await dialog.getByLabel('Asset name',{exact:true}).fill('Stage 8 rehearsal cash');await dialog.getByLabel('Cash amount',{exact:true}).fill('200');
  await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();await dialog.getByLabel('Note (optional)',{exact:true}).fill(note);
  await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await dialog.waitFor({state:'hidden'});

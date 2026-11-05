@@ -70,6 +70,9 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   let sheet = await openImport(page);
   await sheet.getByRole('button', {name: 'CSV file', exact: true}).click();
   await sheet.getByLabel('CSV file', {exact: true}).setInputFiles(file('bank.csv', CSV, 'text/csv'));
+  // Session AL (P-DVR-22, deliberate): a file with no currency column starts in the one default currency (en-US here),
+  // never a fixed EUR; this euro bank's file is set to EUR, as the person would.
+  await sheet.getByLabel('Currency of this file', {exact: true}).selectOption('EUR');
   await sheet.getByRole('button', {name: 'Next', exact: true}).click();
   await expect(sheet.locator('.import-summary')).toContainText('7 rows read · 7 ticked · 0 rows refused');
   await sheet.getByRole('button', {name: 'Next', exact: true}).click();
