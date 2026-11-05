@@ -18,7 +18,9 @@ const SHORTCUTS = [
   shortcut('Check in a habit', 'Habits', 'Today\'s habits, ready to check in', '/app/habits', 'habit'),
   shortcut('Ask ZIGi', 'ZIGi', 'Open ZIGi with an empty question', '/app?shortcut=ask', 'ask'),
   // Session AF (L3; P7.20): the Checklist, today's path, a fifth shortcut with its own 96 px icon.
-  shortcut('Checklist', 'Checklist', 'Today\'s path of starred dots', '/app/checklist', 'checklist'),
+  // Session AL (DV-162, INT third pass 26e46d0b, deliberate): the shortcut uses the Checklist's own one-line note from
+  // lib/ui-prefs/apps.ts, as the More sheet does.
+  shortcut('Checklist', 'Checklist', 'Today\'s short list: the few things you starred', '/app/checklist', 'checklist'),
   // Session AK Part 3 ([TIER 3] (PWA), deliberate): Today and Log weight, each with its own 96 px icon (art-src/pwa-icons.mjs).
   shortcut('Today', 'Today', 'Your day: the hero, the orbit and what is next', '/app/today', 'today'),
   shortcut('Log weight', 'Weight', 'Today\'s weight, ready to type', '/app/health?shortcut=weight#weight', 'weight'),
@@ -61,7 +63,8 @@ test('the manifest describes the installed ZIGoals app', async ({request}) => {
     start_url: '/app', scope: '/', display: 'standalone', background_color: '#020918', theme_color: '#020918', icons: ICONS,
     shortcuts: SHORTCUTS,
     // Session AA-Cloud Part 7 ([TIER 3] (PWA/manifest), deliberate): a GET share target; files and images are not accepted.
-    share_target: {action: '/app/share', method: 'GET', params: {title: 'title', text: 'text', url: 'url'}},
+    // Session AL (P-BN-43/TK-191, 818805b8, deliberate): enctype spelled out as its default, so the browser logs no warning.
+    share_target: {action: '/app/share', method: 'GET', enctype: 'application/x-www-form-urlencoded', params: {title: 'title', text: 'text', url: 'url'}},
     screenshots: SCREENSHOTS,
   });
 });
@@ -87,7 +90,9 @@ test('the static manifest keeps 72ad872\'s bytes first, at the same address, and
   // Session AK Part 3: re-pinned after two shortcuts and the screenshots were appended (the prefix is unchanged).
   // Session AK X1: re-pinned after the description changed (R8).
   // Owner follow-up 2: re-pinned after the NOVA (first) and Capture a note (last) shortcuts were added (the prefix is unchanged).
-  expect(createHash('sha256').update(body).digest('hex')).toBe('9ab51f5e3c6ec9198ba8555cad07cb499124410c908d0caed0513d1c8ef5f38e');
+  // Session AL (deliberate): re-pinned after the share target's enctype (818805b8) and the Checklist shortcut's note (DV-162,
+  // 26e46d0b); both sit after the shortcuts, so the prefix is unchanged.
+  expect(createHash('sha256').update(body).digest('hex')).toBe('8c9346622ed33ecc4d81d44abfd45c42dfb5bf16641c0a0607ddb50b82799cd4');
   expect(response.headers()['content-type']).toContain('application/manifest+json');
   expect(response.headers()['content-security-policy']).toBeUndefined();
   expect(response.headers()['cache-control'] ?? '').not.toContain('no-store');

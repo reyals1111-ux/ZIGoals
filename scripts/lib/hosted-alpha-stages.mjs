@@ -145,7 +145,9 @@ async function fictionalGoal(page, {base, expect, report}) {
 /** Stage 4: opens Settings (in-app navigation to Settings stays checked in stage 5). */
 async function backupAndDiagnostics(page, {base, expect, report, expectedCommit, reviewedVersions, chainFetcher}) {
   await page.goto(base + '/app/settings'); await hydrated(page);
-  const exportData = page.getByRole('button', {name: 'Export Goal Data', exact: true});
+  // Session AL (D-236, 54e32039; deliberate): Settings' heading and button are sentence case now ("Export goal data"); either
+  // case is accepted, so the verifier reads an Alpha deployed before or after that change.
+  const exportData = page.getByRole('button', {name: /^Export goal data$/i});
   await expect(exportData).toBeVisible();
   const download = page.waitForEvent('download'); await exportData.click(); const file = await download;
   const backup = JSON.parse(await readFile(await file.path(), 'utf8')); assert.equal(backup.goals['1'].name, SENTINELS[0]);

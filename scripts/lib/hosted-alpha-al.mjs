@@ -13,7 +13,9 @@ export const AL_PATHS = Object.freeze({plans: '/app/plans', tasks: '/app/tasks'}
 export const PLANS_LINES = Object.freeze(['Placeholder prices', 'nothing is charged during the Alpha']);
 export const SIDEBAR_GROUP = '[data-testid="sidebar-apps-group"]';
 export const EXTRAS_BUTTON = '[data-testid="apps-extras-button"]';
-export const EXTRAS_DIALOG = '[role="dialog"][aria-label="Apps & extras"]';
+// The sheet is a native <dialog> (its role is implicit, with no role attribute), so the selector names the element; a
+// div with role="dialog" still matches. CI 1539: the attribute-only selector never found the open sheet.
+export const EXTRAS_DIALOG = ':is(dialog, [role="dialog"])[aria-label="Apps & extras"]';
 /** The widths: the sidebar from 901 px up (1280, the verifier's desktop), the button below it (900). */
 export const AL_WIDTHS = Object.freeze({desktop: 1280, narrow: 900});
 /** How long a part may take to appear after a load or a resize before it counts as absent. */
