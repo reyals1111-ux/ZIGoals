@@ -44,6 +44,7 @@ import {CSV_MAPPINGS} from '../csv/templates/saved';
 import {AUTO_RULES} from '../auto-rules/schema';
 import {FOOD_SCANS} from '../food-scans/schema';
 import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
+import {HEALTH_EXTRAS} from '../health-extras';
 import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {COMPARE_PAIR} from '../compare/schema';
@@ -208,6 +209,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AK Part 4: Health-describing, so restored only with the Health choice.
   dev('foodScans', 'Barcodes you scanned', 'Health', FOOD_SCANS, true),
   dev('nutrientExtras', 'Extra nutrients', 'Health', NUTRIENT_EXTRAS_RECORD, true),
+  // Session AL (GAP-045, GAP-079): meal names and times, drink types; Health-describing, so only with the Health choice.
+  dev('healthExtras', 'Meal names and drink types', 'Health', HEALTH_EXTRAS, true),
   dev('grocery', 'Grocery ticks and pantry', 'Health', GROCERY_RECORD, true),
   dev('calorieWeek', 'Weekly calorie budget', 'Health', CALORIE_WEEK, true),
   dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),

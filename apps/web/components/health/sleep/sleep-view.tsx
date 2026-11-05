@@ -15,6 +15,7 @@ import {SleepDurationChart, SleepQualityChart, SleepTimesChart} from './sleep-ch
 import {NightForm, SleepGoalForm} from './sleep-forms';
 import {SleepTonight} from './sleep-tonight';
 import {useSleep} from './use-sleep';
+import {SleepCsvImport} from './sleep-csv-import';
 import {WindDownSetting, WindDownSounds} from './wind-down';
 import {FocusWindowSetting} from './focus-window-card';
 import {SleepScoreCard} from '../sleep-score-card';
@@ -65,7 +66,7 @@ export default function SleepView() {
     {note && <p className="sleep-note">{note}</p>}
     <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
     {/* Session AH (HE3, D-199): the log form sits near the top, full width, not squeezed beside the goal at the bottom. */}
-    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/></section>
+    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}
     <section className="panel sleep-week" aria-labelledby="sleep-week-title">
       <h2 id="sleep-week-title">Your last 7 days</h2>

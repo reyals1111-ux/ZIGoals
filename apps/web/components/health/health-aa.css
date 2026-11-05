@@ -260,3 +260,33 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
    the view strip keep their own sideways scroll. */
 .health-page { overflow-x: clip; }
 .health-page :is(.health-two-columns, .health-macro-grid, .health-form-grid, .health-planning-grid, .health-diary-layout) > * { min-width: 0; }
+
+/* Session AL third pass (P-MO-34; MO-035, N-MO-08, N-MO-21): Light's own rules for Health's graphics, written for the
+   light surface (the theme generator keeps [data-theme=light] rules as written). Each line, dot, goal dash and ring
+   track is at least 3:1 on the light panel; the hues stay Nebula's family, only deeper. Nebula and Dark are unchanged. */
+:root[data-theme=light] :is(.zg-chart, .zg-legend)[data-pillar=health] { --zgc-a0: #0a6f86; --zgc-a1: #5b3fc4; --zgc-a2: #b0287a; }
+:root[data-theme=light] .health-page .chart-dot { fill: #2f5fc4; stroke: #ffffff; }
+:root[data-theme=light] .health-page .chart-guide { stroke: #8a5a00; }
+/* The weight journal (EvidenceChart): readings and the goal are drawn in the series' colour attribute. */
+:root[data-theme=light] .health-page .evidence-line[stroke="#8ad7e6"] { stroke: #0b7285; }
+:root[data-theme=light] .health-page .evidence-point[fill="#8ad7e6"] { fill: #0b7285; }
+:root[data-theme=light] .health-page .evidence-line[stroke="#f3c57d"] { stroke: #8a5a00; }
+:root[data-theme=light] .health-page .evidence-point[fill="#f3c57d"] { fill: #8a5a00; }
+:root[data-theme=light] .health-page .evidence-chart-legend i[style*="#8ad7e6"] { background: #0b7285 !important; }
+:root[data-theme=light] .health-page .evidence-chart-legend i[style*="#f3c57d"] { background: #8a5a00 !important; }
+/* The water ring's track was 1.3:1 on the lavender panel. */
+:root[data-theme=light] .water-ring .glass-ring-track { stroke: #6e7491; }
+/* "Save recipe" while it cannot save: a readable label on a plain surface, not the faded gradient (every theme). */
+.health-save-recipe:disabled { opacity: 1; background: var(--surface-2); color: var(--text-secondary); border: 1px dashed currentColor; box-shadow: none; }
+:root[data-theme=light] .health-save-recipe:disabled { background: #eef0f7; color: #3b4659; }
+:root[data-theme=dark] .health-save-recipe:disabled { background: #1c2030; color: #d5dbea; }
+/* Session AL third pass (P-DV-119): the mood chips, 44 px targets that wrap at 375 px. */
+.health-mood-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.health-mood-chips > button { min-height: 44px; min-width: 64px; }
+.health-mood-chips > button[aria-pressed=true] { outline: 2px solid currentColor; outline-offset: 2px; }
+.health-drink-day { margin: 8px 0 0; }
+.health-meal-time { font-size: .875rem; font-weight: 500; color: var(--text-secondary); }
+.health-meal-names { margin-top: 16px; }
+.health-meal-names > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
+.health-meal-name-row { margin-top: 12px; }
+.import-warnings ul { padding-left: 20px; }

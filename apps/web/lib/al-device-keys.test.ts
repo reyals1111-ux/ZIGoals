@@ -4,7 +4,8 @@ import {APPS_PREFS_KEY} from './ui-prefs/apps';
 import {WALLET_NAMES_KEY} from './staking/tracked-wallets';
 import {PUZZLE_PROGRESS_KEY} from './chess/puzzle';
 import {NOVA_HUD_KEY} from './nova/layout';
-import {CHESS_PUZZLE_KEY_LITERAL, NOVA_HUD_KEY_LITERAL, WALLET_NAMES_KEY_LITERAL} from './al-device-keys';
+import {HEALTH_EXTRAS_KEY} from './health-extras';
+import {CHESS_PUZZLE_KEY_LITERAL, HEALTH_EXTRAS_KEY_LITERAL, NOVA_HUD_KEY_LITERAL, WALLET_NAMES_KEY_LITERAL} from './al-device-keys';
 import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from './onboarding';
 import {DEVICE_KEYS, EVERYTHING_KEYS, MODULE_KEYS} from './export/everything';
 import {DEVICE_ONLY, SYNCED} from './data-health/catalog';
@@ -27,6 +28,7 @@ describe('Session AL device keys', () => {
     expect(WALLET_NAMES_KEY_LITERAL).toBe(WALLET_NAMES_KEY);
     expect(CHESS_PUZZLE_KEY_LITERAL).toBe(PUZZLE_PROGRESS_KEY);
     expect(NOVA_HUD_KEY_LITERAL).toBe(NOVA_HUD_KEY);
+    expect(HEALTH_EXTRAS_KEY_LITERAL).toBe(HEALTH_EXTRAS_KEY);
   });
   test('versioned keys; personal ones make a device not new, display ones do not', () => {
     for (const key of all) expect(key).toMatch(/^zigoals:[a-z-]+:v\d+$/);

@@ -1,4 +1,5 @@
-import {HEALTH_MEALS, foodSnapshot, healthSchema, parseHealthNumber, saveFood, type HealthData, type HealthFood} from '../health';
+import {HEALTH_MEALS, foodSnapshot, formatHealthGrams, formatNutrient, healthSchema, parseHealthNumber, saveFood, type HealthData, type HealthFood} from '../health';
+import {formatDate} from '../visual-format';
 import {servingsFromGrams} from '../health-daily';
 import {visibleName} from '../visible-text';
 import {parseNumberCell, type NumberStyle} from '../csv/numbers';
@@ -36,7 +37,19 @@ export const NUTRITION_FIELDS: readonly FieldSpec[] = [
   {id: 'iron', label: 'Iron', synonyms: ['iron (mg)']},
 ];
 export type Mapping = Partial<Record<string, number>>;
-export type NutritionPlan = {foods: HealthFood[]; entries: DiaryEntry[]; withoutMeasure: number; refused: {row: number; reason: string}[]; days: number};
+export type NutritionPlan = {foods: HealthFood[]; entries: DiaryEntry[]; withoutMeasure: number; refused: {row: number; reason: string}[]; days: number; /** Session AL (MO-050): rows kept, with something to check. */ warnings: {row: number; reason: string}[]};
+/** Session AL (MO-050): a cell a spreadsheet could run as a formula (=, +, -, @). Kept as plain text in the journal; exports guard it. */
+export const looksLikeFormula = (text: string) => /^[\s\u200b-\u200d\ufeff]*[=+\-@]/.test(text);
+/** Session AL (MO-049, MO-138): why a number cell was refused, with the text as it was written. */
+export function numberRefusal(label: string, text: string, cause: unknown): string {
+  const why = cause instanceof Error ? cause.message : '';
+  const shown = text.length > 24 ? `${text.slice(0, 24)}…` : text;
+  if (why === 'is negative') return `${label} “${shown}” is negative; amounts start at 0.`;
+  if (why === 'uses exponent notation') return `${label} “${shown}” uses exponent notation; write the number in full.`;
+  if (why.startsWith('Enter ')) return `${label} “${shown}” is too large.`;
+  if (why.startsWith('Not a number this field reads')) return `${label} “${shown}” has more than three decimals.`;
+  return `${label} “${shown}” is not a number.`;
+}
 const cell = (row: readonly string[], mapping: Mapping, field: string) => { const index = mapping[field]; return index === undefined ? '' : (row[index] ?? '').trim(); };
 /** The distinct meal names a file uses, in order of appearance, for the mapping step. */
 export const distinctMeals = (rows: readonly (readonly string[])[], mapping: Mapping) => [...new Set(rows.map(r => cell(r, mapping, 'meal')))];
@@ -68,7 +81,7 @@ const NUTRIENTS: {id: string; key: keyof HealthFood['nutrients']; scale: 1 | 100
   {id: 'sodium', key: 'sodiumMg', scale: 1, core: false}, {id: 'potassium', key: 'potassiumMg', scale: 1, core: false}, {id: 'calcium', key: 'calciumMg', scale: 1, core: false}, {id: 'iron', key: 'ironMg', scale: 1, core: false},
 ];
 export function planNutritionImport({rows, mapping, numberStyle, dateFormat, basis, mealMap = {}, today, importId, at}: {rows: readonly (readonly string[])[]; mapping: Mapping; numberStyle: NumberStyle; dateFormat: DateFormat; basis: NutritionBasis; mealMap?: Record<string, Meal>; today: string; importId: string; at: string}): NutritionPlan {
-  const plan: NutritionPlan = {foods: [], entries: [], withoutMeasure: 0, refused: [], days: 0}, foodIds = new Map<string, string>(), days = new Set<string>();
+  const plan: NutritionPlan = {foods: [], entries: [], withoutMeasure: 0, refused: [], days: 0, warnings: []}, foodIds = new Map<string, string>(), days = new Set<string>();
   rows.forEach((cells, index) => {
     const row = index + 1, refuse = (reason: string) => plan.refused.push({row, reason: `Row ${row}: ${reason}`});
     const date = parseDateCell(cell(cells, mapping, 'date'), dateFormat);
@@ -82,7 +95,7 @@ export function planNutritionImport({rows, mapping, numberStyle, dateFormat, bas
       const text = cell(cells, mapping, n.id);
       if (!text) { if (n.core) nutrients[n.key] = null; continue; }
       try { const decimal = parseNumberCell(text, numberStyle); if (decimal === null) { if (n.core) nutrients[n.key] = null; continue; } nutrients[n.key] = n.scale === 1 ? Math.round(parseHealthNumber(decimal, 1000, 0, 1_000_000_000) / 1000) : parseHealthNumber(decimal, 1000, 0, 1_000_000_000); }
-      catch { return refuse(`${NUTRITION_FIELDS.find(f => f.id === n.id)!.label} is not a number.`); }
+      catch (cause) { return refuse(numberRefusal(NUTRITION_FIELDS.find(f => f.id === n.id)!.label, text, cause)); }
     }
     const amountText = cell(cells, mapping, 'servingAmount'), unitText = cell(cells, mapping, 'servingUnit');
     let measure = amountText ? parseServingMeasure(amountText, unitText, numberStyle) : null;
@@ -99,7 +112,10 @@ export function planNutritionImport({rows, mapping, numberStyle, dateFormat, bas
     } catch { return refuse('the amount is not a number.'); }
     const mealText = cell(cells, mapping, 'meal'), meal: Meal = mealMap[mealText] ?? guessMeal(mealText) ?? 'Snacks';
     const brandText = cell(cells, mapping, 'brand'), brand = brandText ? `${brandText.slice(0, 69)} · imported` : 'Imported';
-    let name: string; try { name = visibleName(foodName.slice(0, 120)); } catch { return refuse('the food name has no visible characters.'); }
+    // Session AL (MO-049): a meal-totals file (MyFitnessPal's Nutrition-Summary) names each entry by its meal; say it is the total.
+    const mealTotal = mapping.food !== undefined && mapping.food === mapping.meal;
+    let name: string; try { name = visibleName(mealTotal ? `${foodName.slice(0, 106)} (meal total)` : foodName.slice(0, 120)); } catch { return refuse('the food name has no visible characters.'); }
+    if (looksLikeFormula(foodName)) plan.warnings.push({row, reason: `Row ${row}: the food name “${foodName.slice(0, 40)}” starts like a spreadsheet formula. It is kept as plain text; ZIGoals' CSV exports add an apostrophe so a spreadsheet never runs it.`});
     const nutrition = nutrients as HealthFood['nutrients'];
     days.add(date);
     const entryId = `health_imp-${importId}-e${row}`;
@@ -141,4 +157,17 @@ export function undoNutritionImport(data: HealthData, record: ImportRecord): {da
   if (used) throw new NutritionUndoRefused();
   const next = healthSchema.parse({...data, diary: data.diary.filter(e => !ids.has(e.id)), foods: data.foods.filter(f => !ids.has(f.id))});
   return {data: next, removed: entries.length + foods.length};
+}
+
+/**
+ * Session AL third pass (MO-049, MO-050): one preview line says what will be stored: the serving's own weight or volume
+ * ("1 serving of 50 g"), a meal total once (not "Breakfast · Breakfast"), and every nutrient the file gave beyond the
+ * four (sodium was matched but never shown).
+ */
+const EXTRA_LINES: [keyof DiaryEntry['snapshot']['nutrients'], string, 'g' | 'mg'][] = [['fiberMg', 'fibre', 'g'], ['sugarMg', 'sugars', 'g'], ['saturatedFatMg', 'sat. fat', 'g'], ['sodiumMg', 'sodium', 'mg'], ['potassiumMg', 'potassium', 'mg'], ['calciumMg', 'calcium', 'mg'], ['ironMg', 'iron', 'mg']];
+export function previewLine(e: DiaryEntry): string {
+  const n = e.snapshot.nutrients, measure = e.snapshot.servingGrams !== null ? ` of ${formatNutrient(e.snapshot.servingGrams)} g` : e.snapshot.servingMl !== undefined ? ` of ${formatNutrient(e.snapshot.servingMl)} mL` : '';
+  const mealPart = e.snapshot.name.startsWith(`${e.meal} (meal total)`) ? '' : `${e.meal} · `;
+  const extras = EXTRA_LINES.flatMap(([key, label, unit]) => { const v = n[key]; return v === undefined || v === null ? [] : [`${label} ${unit === 'g' ? formatHealthGrams(v) : formatNutrient(v)} ${unit}`]; });
+  return `${formatDate(e.date)} · ${mealPart}${e.snapshot.name} · ${formatNutrient(e.quantityMilli, 1000)} ${e.quantityMilli === 1000 ? 'serving' : 'servings'}${measure} · ${formatNutrient(n.kcal)} kcal · P ${formatHealthGrams(n.proteinMg)} g · C ${formatHealthGrams(n.carbsMg)} g · F ${formatHealthGrams(n.fatMg)} g${e.snapshot.servingGrams === null && e.snapshot.servingMl === undefined ? ' · serving measure unknown' : ''}${extras.length ? ` · ${extras.join(' · ')}` : ''}`;
 }

@@ -101,3 +101,7 @@
 /* Session AL (P-MO-102, N-MO-09): each chip is at least 44 px both ways at every width. */
 .sleep-form fieldset > label:not(.field) span { min-width: 44px; justify-content: center; box-sizing: border-box; }
 :root .sleep-form fieldset > label:not(.field) > span { min-height: 44px; }
+/* Session AL third pass (GAP-071, GAP-072): the sleep file import under the log form. */
+.sleep-csv-import { margin-top: 16px; }
+.sleep-csv-import > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
+.sleep-csv-import .health-preview ul { padding-left: 20px; line-height: 1.6; }

@@ -14,7 +14,7 @@ import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import {measureCharts} from '../../lib/health-aa/measure-charts';
 import {dailyData} from '../../lib/health-daily';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {MEASUREMENTS_CUSTOM, addCustomKind, addCustomReading, customHistory, removeCustomKind, removeCustomReading} from '../../lib/health-aa/measurements-custom';
+import {MEASUREMENTS_CUSTOM, addBodyFat, addCustomKind, addCustomReading, bodyFatHistory, customHistory, removeBodyFat, removeCustomKind, removeCustomReading, type MeasurementsCustom} from '../../lib/health-aa/measurements-custom';
 import {PROGRESS_PHOTOS, addPhotoEntry, compressImage, deletePhotoBlob, getPhotoBlob, putPhotoBlob, removePhotoEntry, type PhotoEntry} from '../../lib/health-aa/photos';
 import type {HealthData} from '../../lib/health';
 import {validateValue} from '../../lib/limits/plausibility';
@@ -62,8 +62,35 @@ export function MeasurementsAa({data, today}: {data: HealthData; today: string})
       {error && <p role="alert">{error}</p>}
       <p className="fine">Waist, hips, chest, arm and thigh travel with your Health records; your own kinds travel in your encrypted extras while Health sync is on.</p>
     </section>
+    <BodyFat custom={custom} today={today} />
     <ProgressPhotos photos={photos} today={today} />
   </div>;
+}
+/**
+ * Session AL third pass (GAP-053, C-MO-17): body-fat % beside the measurements: a reading per day (from your scale or a
+ * caliper, as you typed it), its chart and its last value. Nothing is estimated from weight or circumferences.
+ */
+function BodyFat({custom, today}: {custom: {data: MeasurementsCustom; loaded: boolean; unreadable: boolean; update: (fn: (r: MeasurementsCustom) => MeasurementsCustom) => MeasurementsCustom}; today: string}) {
+  const [value, setValue] = useState(''), [date, setDate] = useState(today), [issue, setIssue] = useState('');
+  const history = custom.loaded && !custom.unreadable ? bodyFatHistory(custom.data) : [];
+  const last = history.at(-1);
+  return <section className="panel health-aa-card health-body-fat" aria-labelledby="body-fat-title"><p className="eyebrow">Body composition</p><h2 id="body-fat-title"><NebulaFlow identity="body-fat-title">Body fat %</NebulaFlow></h2>
+    <MiniChart id="body-fat" title="Body fat" unit="%" points={history} />
+    <form className="health-custom-form" aria-label="Add a body-fat reading" noValidate onSubmit={e => {
+      e.preventDefault();
+      const checked = validateValue('percent', value);
+      if (!checked.ok) { setIssue(checked.error); document.getElementById('body-fat-value')?.focus(); return; }
+      if (!date || date > today) { setIssue('Choose a day up to today.'); return; }
+      try { custom.update(r => addBodyFat(r, date, checked.value, new Date().toISOString())); setValue(''); setIssue(''); }
+      catch (cause) { setIssue(cause instanceof Error && !/storage|quota/i.test(cause.message) ? cause.message : `Not saved on this device. ${deviceSettingFailureMessage(cause)}`); document.getElementById('body-fat-value')?.focus(); }
+    }}>
+      <div><label className="field"><span>Body fat (%)</span><input id="body-fat-value" type="text" inputMode="decimal" autoComplete="off" value={value} aria-invalid={issue ? true : undefined} aria-describedby={issue ? 'body-fat-issue' : undefined} onChange={e => { setValue(e.target.value); setIssue(''); }} /></label>{issue && <p className="field-error" id="body-fat-issue" role="alert">{issue}</p>}</div>
+      <label className="field"><span>Date of the body-fat reading</span><input type="date" max={today} value={date} onChange={e => setDate(e.target.value)} /></label>
+      <div className="actions"><button type="submit" className="secondary">Add body-fat reading</button></div>
+    </form>
+    {last && <p className="fine">Last reading {one0(last.value)} % on {formatDate(last.date)} · <button type="button" className="text-link" onClick={() => { removeWithUndo(custom.update, r => removeBodyFat(r, last.id), 'Body-fat reading removed.', 'The body-fat reading is back.').catch(e => setIssue(`Not removed. ${deviceSettingFailureMessage(e)}`)); }}>remove it</button></p>}
+    <p className="fine">As your scale or caliper shows it; one reading a day (a second replaces the first). Scales read body fat differently, so compare readings from the same device. Information, not medical advice.</p>
+  </section>;
 }
 function ProgressPhotos({photos, today}: {photos: ReturnType<typeof useDeviceRecord<ReturnType<typeof PROGRESS_PHOTOS.empty>>>; today: string}) {
   const scope = (() => { try { return isShowcase() ? 'showcase' : getAccountScope() ?? 'local'; } catch { return 'local'; } })();
