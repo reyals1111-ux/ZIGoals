@@ -39,13 +39,17 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - Builds need `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Load is high with many helpers, so unit timeouts under load are re-run alone.
 
-## Lanes in flight (6 Nov, morning)
-- **Committed since the last update (head `4c0f4dad`):** SW2; L1, L2, L3, L4 fourth passes (each on its replay's STILL OPEN rows); L8e (HUD back to 16.7 ms, needs a build to prove); the grok53 spec fixes (page transitions 22/22, O4 Journey out of the sidebar); replay files L2/L3/L4 round 1; ADR lessons 9–13.
-- **Replay round 1 results:** L1 40 STILL OPEN / 13 CHANGED; L2 29 / 32; L3 27 / 24; L4 45 / 43 (all sent back; fourth passes committed, round 2 due on the next build).
-- **Running:** replays L5 and L6 (on :3101 `c521574f`); FX-G53a (checklist, tasks, shell specs); FX-G53b (ai, wealth specs); SW3 (requests from the fourth passes); the HUD first-time-viewer review (on :3103 `60309361`); the grok53 loop (settings, first-run, journey, p14a left).
-- **grok53 on `c521574f`:** health, habits, today, data, markets, chain all green; failures in shell, hud, tasks, checklist, goals, wealth, ai are fixed or with a lane.
-- **Waiting:** Part 13 Showcase (the Showcase "Drink water" habit in litres with the water link, PR-002/PR-019); L7 and L8 replays; the CI run on `7912b142` (pushes held so it can finish).
-- **Servers:** :3101 `c521574f` (/home/user/zig-branch); :3103 `60309361` (/home/user/zig-branch2); :3102 main.
+## Lanes in flight (6 Nov, late morning)
+- **Committed (head `54e32039`, tree clean):** fourth passes L1–L6 (each on its replay's STILL OPEN rows); sweeps 2 and 3;
+  P13 (one fact, one number: lib/consistency guards, the Showcase water habit in litres); PINS-AI; L8e and L8f (both HUD
+  reviews answered; perf fix by removing live blur); SHELL-4 (⌘K command menu, Q11; Goals header Q12); the grok53 spec
+  fix-ups (FX-G53a/b); ADR lessons 9–13 and readings Q11–Q13.
+- **Replay round 1:** L1 40/13, L2 29/32, L3 27/24, L4 45/43, L5 8/21, L6 24/27 (STILL OPEN / CHANGED) — all sent back and
+  answered by the fourth passes; L7 replay running; L8 is the HUD (two design reviews; round 2 due on the next build).
+- **Running:** SW4 (the last cross-lane asks, including the Settings/Earn fold); the L7 replay (on :3101 `c521574f`);
+  the build of `54e32039` on :3103.
+- **Next:** on :3103 run all of tests/grok53 and hud-perf; replay round 2 for L1–L7 on that build; L7 fourth pass.
+- **Servers:** :3101 `c521574f`; :3103 building `54e32039`; :3102 main.
 
 ## Exact next step
 1. Commit each lane as it reports; CI run 1522 on `c521574f` → dispatch fix lanes by area.
