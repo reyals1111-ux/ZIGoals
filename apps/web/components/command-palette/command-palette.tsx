@@ -9,7 +9,7 @@ import {TASKS} from '../../lib/tasks/schema';
 import {formatDate} from '../../lib/visual-format';
 import {askZigiWhenShown, openZigiPanel} from '../zigi-door';
 import {openSearch} from '../search/search-trigger';
-import {APP_PAGES, filterRows, type PaletteGroup, type PaletteRow} from './palette-items';
+import {APP_PAGES, PALETTE_GROUPS, filterRows, orderRows, type PaletteRow} from './palette-items';
 import './command-palette.css';
 
 /**
@@ -18,7 +18,6 @@ import './command-palette.css';
  * tasks. ↑/↓ move, Enter opens, Escape closes at the first press and the focus goes back where it was. Nothing typed here
  * leaves this device; "Ask ZIGi" only fills ZIGi's composer.
  */
-const GROUPS: PaletteGroup[] = ['Actions', 'Pages', 'Recent tasks'];
 export default function CommandPalette({onClose}: {onClose: () => void}) {
   const dialog = useRef<HTMLDialogElement>(null), input = useRef<HTMLInputElement>(null), returnTo = useRef<HTMLElement | null>(null);
   const router = useRouter(), view = usePagesView(), tasks = useDeviceRecord(TASKS), base = useId();
@@ -47,8 +46,7 @@ export default function CommandPalette({onClose}: {onClose: () => void}) {
     const kept = (r: PaletteRow) => r.run === 'search' || r.run === 'zigi';
     const matched = filterRows([...actions.filter(r => !kept(r)), ...pages, ...taskRows], words);
     const shownTasks = matched.filter(r => r.group === 'Recent tasks').slice(0, words ? 8 : 5);
-    return [...actions.filter(r => r.run === 'zigi'), ...matched.filter(r => r.group === 'Actions'), ...actions.filter(r => r.run === 'search'), ...matched.filter(r => r.group === 'Pages'), ...shownTasks]
-      .sort((a, b) => GROUPS.indexOf(a.group) - GROUPS.indexOf(b.group));
+    return orderRows(actions.filter(kept), [...matched.filter(r => r.group !== 'Recent tasks'), ...shownTasks], words);
   }, [typed, view, tasks.loaded, tasks.unreadable, tasks.data]);
   const current = Math.min(active, Math.max(0, rows.length - 1));
   useEffect(() => { document.getElementById(`${base}-row-${current}`)?.scrollIntoView({block: 'nearest'}); }, [current, base]);
@@ -81,7 +79,7 @@ export default function CommandPalette({onClose}: {onClose: () => void}) {
         aria-activedescendant={rows.length ? `${base}-row-${current}` : undefined} aria-label="Go to a page, run an action or find a task" placeholder="Type a page, an action or a task…"
         value={typed} autoComplete="off" spellCheck={false} onChange={e => { setTyped(e.target.value); setActive(0); }} onKeyDown={keys} />
       <div id={listId} role="listbox" aria-label="Commands" className="command-palette-list">
-        {GROUPS.map(group => { const items = rows.filter(r => r.group === group); return items.length ? <div key={group} role="group" aria-labelledby={`${base}-${group.replace(/\s/g, '')}`}>
+        {PALETTE_GROUPS.map(group => { const items = rows.filter(r => r.group === group); return items.length ? <div key={group} role="group" aria-labelledby={`${base}-${group.replace(/\s/g, '')}`}>
           <p id={`${base}-${group.replace(/\s/g, '')}`} className="command-palette-group" role="presentation">{group}</p>
           {items.map(row => { const i = rows.indexOf(row); return <div key={row.id} id={`${base}-row-${i}`} role="option" aria-selected={i === current} className="command-palette-row" onPointerMove={() => setActive(i)} onClick={() => run(row)}>
             <span className="command-palette-label" dir="auto">{row.label}</span>{row.detail && <span className="command-palette-detail">{row.detail}</span>}

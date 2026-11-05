@@ -40,7 +40,10 @@ function setMarks(form: HTMLFormElement | null, errors: Record<string, string>) 
   }
 }
 
-/** The page side: run it in onSubmitCapture and onInputCapture of the page wrapper. */
+/**
+ * The page side: run it in onSubmitCapture and onInput (bubble) of the page wrapper. Never onInputCapture: its state change
+ * renders between the capture and bubble phases, before a controlled field's onChange, and React puts the old value back.
+ */
 export function useHealthFieldChecks() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [feedbackForm, setFeedbackForm] = useState<string | null>(null);

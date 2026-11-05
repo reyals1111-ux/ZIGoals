@@ -72,11 +72,12 @@ test.describe('fresh profile', () => {
     await page.getByRole('button', {name: 'Create habit', exact: true}).click();
     const water = card(page, 'Drink water');
     await expect(water.locator('.habit-auto-badge')).toContainText('from your water journal · 2,000 mL');
-    await expect(water.locator('.habit-count')).toHaveText('2 / 2 liters');
+    // The card's counter ends with the habit's period, as every daily card reads ("0.5 / 2 liters per day" below).
+    await expect(water.locator('.habit-count')).toHaveText('2 / 2 liters per day');
     await logWaterOnHealth(page, 250);
     await open(page, '/app/habits');
     await expect(water.locator('.habit-auto-badge')).toContainText('2,250 mL');
-    await expect(water.locator('.habit-count')).toHaveText('2.25 / 2 liters');
+    await expect(water.locator('.habit-count')).toHaveText('2.25 / 2 liters per day');
   });
 
   test('MO-123 (L2 request): a one-tap "Drink water" reads the water already logged and says where it comes from', async ({page}) => {
@@ -188,9 +189,23 @@ test.describe('Showcase at 01:26', () => {
   });
 
   test('N-171: a habit that supports a goal names it on its card, without opening Details', async ({page}) => {
-    const linked = page.locator('article.habit-card:has(.habit-goal-link a)').first();
+    // The bot's step: a goal's "Add weekly Goal review habit", then the habit's card. No Showcase habit carries a goal
+    // link of its own (lib/showcase-data.ts), so the spec adds the review habit as the bot did.
+    await open(page, '/app/goals');
+    await page.getByRole('link', {name: 'Open Goal →'}).first().click();
+    await page.waitForURL(/\/app\/goals\/tracked\/[^/?#]+$/, {waitUntil: 'commit'});
+    await expect(page.locator('main h1').first()).not.toHaveText('Your Goals');
+    const goalName = (await page.locator('main h1').first().textContent())!.trim();
+    const supporting = page.locator('#supporting-habits');
+    if (!await supporting.evaluate(el => el instanceof HTMLDetailsElement ? el.open : true)) await supporting.locator('summary').first().click();
+    await supporting.getByRole('button', {name: 'Add weekly Goal review habit', exact: true}).click();
+    await expect(supporting.getByRole('heading', {name: `Review ${goalName}`})).toBeVisible();
+    await open(page, '/app/habits');
+    // A Monday habit is not due on this Wednesday, so the Today filter leaves it out; "Goal linked" lists it.
+    await page.getByRole('group', {name: 'Filter habits'}).getByRole('button', {name: 'Goal linked', exact: true}).click();
+    const linked = card(page, `Review ${goalName}`);
     await expect(linked).toBeVisible();
     await expect(linked.locator('.habit-goal-link a')).toBeVisible();
-    await expect(linked.locator('.habit-goal-link a')).toHaveText(/^Supports .+ ↗$/);
+    await expect(linked.locator('.habit-goal-link a')).toHaveText(`Supports ${goalName} ↗`);
   });
 });

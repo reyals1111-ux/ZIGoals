@@ -32,6 +32,12 @@ async function type(page: Page, line: string) {
   await expect(field).toHaveValue('');
 }
 const titles = (page: Page) => page.locator('.tasks-main .task:not(.task-occurrence) > .task-title').allTextContents();
+/** Ticks a task off. Not locator.check(): the tick renames the box ("… not done") and the row leaves an open list at once, so
+ * check()'s own read-back waited out the test (tests/tasks-ai.spec.ts ticks the same way). The store says it is done. */
+async function tick(page: Page, title: string) {
+  await page.getByRole('checkbox', {name: `Mark “${title}” done`}).click();
+  await expect.poll(async () => !!(await stored(page))?.tasks.find(t => t.title === title)?.doneAt).toBe(true);
+}
 
 test('LS-H22 / C-LS-16: a task row dragged with the mouse onto the third row lands below it; Alt+↑ moves it back', async ({page, isMobile}) => {
   test.skip(isMobile, 'a mouse drag');
@@ -40,8 +46,15 @@ test('LS-H22 / C-LS-16: a task row dragged with the mouse onto the third row lan
   for (const t of ['Alpha', 'Beta', 'Gamma']) await type(page, t);
   await expect.poll(() => titles(page)).toEqual(['Alpha', 'Beta', 'Gamma']);
   const alpha = page.locator('.tasks-main .task', {hasText: 'Alpha'}), gamma = page.locator('.tasks-main .task', {hasText: 'Gamma'});
-  const box = (await gamma.boundingBox())!;
-  await alpha.locator('.task-title').dragTo(gamma, {targetPosition: {x: 40, y: box.height - 6}});
+  // All three rows in view first, then a plain press, move and release, as a person drags: at 1280 × 900 the third row sat
+  // under the fold, and dragTo scrolled the page between the press and the move, so the browser started dragging an image
+  // that was now under the old press point (the row never saw a dragstart).
+  await page.locator('.tasks-main .tasks-list').first().evaluate(el => el.scrollIntoView({block: 'center'}));
+  const from = (await alpha.locator('.task-title').boundingBox())!, box = (await gamma.boundingBox())!;
+  await page.mouse.move(from.x + 10, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 40, box.y + box.height - 6, {steps: 12});
+  await page.mouse.up();
   await expect.poll(() => titles(page)).toEqual(['Beta', 'Gamma', 'Alpha']);
   await expect(page.locator('.aa-toast')).toContainText('Moved “Alpha” below “Gamma”.');
   await page.locator('.tasks-main .task', {hasText: 'Alpha'}).focus();
@@ -79,14 +92,15 @@ test('LS-037: Completed lists the last 30 days only; a task finished 32 days ago
   await fresh(page, '2026-10-03T10:00:00');
   await openTasks(page);
   await type(page, 'Old finished task today');
-  await page.getByRole('checkbox', {name: 'Mark “Old finished task” done'}).check();
+  await tick(page, 'Old finished task');
   await page.clock.setSystemTime(BRUSSELS('2026-10-10T10:00:00'));
   await openTasks(page);
   await type(page, 'Recent finished task today');
-  await page.getByRole('checkbox', {name: 'Mark “Recent finished task” done'}).check();
+  await tick(page, 'Recent finished task');
   await page.clock.setSystemTime(BRUSSELS('2026-11-04T09:00:00'));
   await openTasks(page, 'completed');
-  const done = page.getByRole('region', {name: /^Completed/}).or(page.locator('section.tasks-completed'));
+  // The view's own panel, named "Completed" exactly (the list inside it is "Completed 1 time"; the regex matched both).
+  const done = page.getByRole('region', {name: 'Completed', exact: true});
   await expect(done).toContainText('Recent finished task');
   await expect(done).not.toContainText('Old finished task');
   await expect(done).toContainText('1 finish older than 30 days is not listed');
@@ -137,7 +151,7 @@ test('N-PR-08: the Life review has a Tasks chapter for its week and month', asyn
   await openTasks(page);
   await type(page, 'Post the letter today');
   await type(page, 'Book the dentist friday');
-  await page.getByRole('checkbox', {name: 'Mark “Post the letter” done'}).check();
+  await tick(page, 'Post the letter');
   await page.goto('/app/review'); await hydrated(page);
   const chapter = page.getByRole('region', {name: 'Things you got done'});
   await expect(chapter).toContainText('1 task finished');

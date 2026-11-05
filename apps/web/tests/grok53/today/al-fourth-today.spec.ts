@@ -36,7 +36,9 @@ test('D-184: "See how it works" tells what to tap in sentences, and the film say
   const howTo = page.getByRole('dialog', {name: 'Goals, Habits & Health = Wealth'});
   await expect(howTo).toBeVisible();
   await expect(howTo.locator('.how-it-works-how').first()).toHaveText('On Goals, tap “+ Create a goal”. Pick a life area, write why it matters, and link the wealth that funds it.');
-  await expect(howTo).not.toContainText('Goals →');
-  await expect(howTo).not.toContainText('Habits →');
+  // The finding is the arrow shorthand in the how-to sentences ("Goals → + Create a goal"). Each step's link keeps its
+  // trailing arrow ("Open Habits →"), as every text link in the app does, so the check reads the sentences themselves.
+  for (const how of await howTo.locator('.how-it-works-how').all()) await expect(how).not.toContainText('→');
+  await expect(howTo.locator('.how-it-works-how')).toHaveCount(3);
   await expect(howTo.getByRole('button', {name: 'Watch the 16-second film', exact: true})).toBeVisible();
 });

@@ -142,7 +142,11 @@ export function TasksPage() {
         return;
       }
       if (e.ctrlKey || e.metaKey || typing(e.target)) return;
-      const at = focusId ? visibleIds.indexOf(focusId) : -1, current = focusId ?? undefined;
+      // The row that holds the keyboard focus is the one the keys act on. After a mouse drag the dragged row keeps the
+      // focus its press gave it, but the page's focus id is not set during a press (LS-H22), so Alt+↑ did nothing.
+      const held = e.target instanceof HTMLElement && e.target.matches('li.task[id^="task-"]') ? e.target.id.slice(5) : null;
+      const focused = held && record.tasks.some(t => t.id === held) ? held : focusId;
+      const at = focused ? visibleIds.indexOf(focused) : -1, current = focused ?? undefined;
       const focusRow = (id: string | undefined) => { if (!id) return; setFocusId(id); requestAnimationFrame(() => document.getElementById(`task-${id}`)?.focus()); };
       if (Date.now() - gPressed.current < 1200) {
         gPressed.current = 0;
@@ -352,7 +356,8 @@ function GroupList({id, title, items, row, extra, drop}: {id: string; title: Rea
   const shown = all ? items : items.slice(0, SHOWN_PER_GROUP);
   return <div className="tasks-group" data-state={id} {...(drop ?? {})}>
     {title && <h3>{title} <small>{formatNumber(items.length)}</small>{extra}</h3>}
-    <ul className="tasks-list" aria-label={typeof title === 'string' ? `${title} tasks` : 'Tasks'}>{shown.map(row)}</ul>
+    {/* Not shown.map(row): map's index arrived as the row's depth, so the 2nd and 3rd top-level rows were indented as subtasks (LS-H22). */}
+    <ul className="tasks-list" aria-label={typeof title === 'string' ? `${title} tasks` : 'Tasks'}>{shown.map(t => row(t))}</ul>
     {items.length > SHOWN_PER_GROUP && <button type="button" className="text-link" onClick={() => setAll(!all)}>{all ? 'Show fewer' : `Show ${formatNumber(items.length - SHOWN_PER_GROUP)} more`}</button>}
   </div>;
 }

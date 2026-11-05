@@ -247,7 +247,8 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
 
   test('NB-182: the goal page\'s own ⋯ opens Edit goal details', async ({page}) => {
     await seedGoals(page, [project('74', ['Plan'])], '/app/goals/tracked/74');
-    await page.getByRole('button', {name: 'Goal actions'}).click().catch(() => page.locator('details.goal-actions > summary').click());
+    // The ⋯ is a <summary> (role "generic" in Chromium, not "button"); the role lookup waited out the whole test.
+    await page.getByLabel('Goal actions', {exact: true}).click();
     await page.getByRole('link', {name: 'Edit goal details'}).click();
     await expect(page.locator('#edit-goal')).toHaveAttribute('open', '');
   });

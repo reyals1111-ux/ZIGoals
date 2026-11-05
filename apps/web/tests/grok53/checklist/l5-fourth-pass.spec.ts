@@ -67,6 +67,8 @@ test('LS-H23 / C-LS-33: List rows reorder with Move up / Move down and Alt+↑/�
   await open(page);
   const morning = page.getByRole('list', {name: /Morning/}).first();
   const names = () => morning.locator('.checklist-row-name').allTextContents();
+  // The List view says "Loading the list…" first; read the order once its rows are there (it read 0 rows on arrival).
+  await expect(morning.locator('.checklist-row-name').nth(1)).toBeVisible();
   const before = await names();
   expect(before.length).toBeGreaterThanOrEqual(2);
   const tools = await more(page, before[0]!);
