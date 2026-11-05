@@ -87,7 +87,9 @@ test.describe('computer', () => {
     await page.getByRole('article', {name: 'Water'}).getByRole('group', {name: 'Size of Water'}).getByRole('button', {name: 'Medium'}).press('Enter');
     await expect(page.getByRole('article', {name: 'Water'})).toHaveAttribute('data-size', 'M');
     await page.keyboard.press('Escape');
-    await expect(frame(page)).not.toHaveAttribute('data-editing', '');
+    // Session AL L8e: arranging is over when the attribute is gone (React writes it as "true", so `''` never matched and
+    // this check could not fail).
+    await expect(frame(page)).not.toHaveAttribute('data-editing');
     // The look: Classic, remembered on this device; and back to Holo.
     await page.getByRole('button', {name: 'Customize the view'}).focus();
     await page.keyboard.press('Enter');

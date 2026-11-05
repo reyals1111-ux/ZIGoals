@@ -189,6 +189,11 @@
   background-image: linear-gradient(#63e7ff55 1px, transparent 1px), linear-gradient(90deg, #9273ff55 1px, transparent 1px); background-size: 46px 46px; background-position: 50% 100%;
   -webkit-mask-image: radial-gradient(70% 100% at 50% 100%, #000 30%, transparent 75%); mask-image: radial-gradient(70% 100% at 50% 100%, #000 30%, transparent 75%); }
 .nova-frame[data-phone] .holo-floor { display: none; }
+/* Lane L8e: the floating motes' own canvas fills the star's column, behind the star (no glass panel lies over it, so a
+   frame of motes never makes a panel's backdrop blur run again). Bento and Focus keep them in the star's tile. */
+.holo-motes { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+.nova-frame[data-look=holo] :is(.nova-bento-hero, .nova-focus-hero) { position: relative; isolation: isolate; }
+.nova-frame[data-look=holo] :is(.nova-bento-hero, .nova-focus-hero) > .nova-stage { z-index: 1; }
 
 /* M9: focus rings are never clipped (the bodies clip 8 px outside themselves) and never blend into a neon panel: a white
    ring, a night gap, then the panel's own neon. */
@@ -242,6 +247,6 @@
 
 :root[data-glow="soft"] .nova-orbit-side > .nova-widget[data-holo][data-size=L]::before { box-shadow: inset 0 0 0 1px #ffffff0a, 0 20px 40px -30px #000; }
 @media (forced-colors: active) {
-  .holo-floor, .nova-orbit-side::before, .nova-orbit-side::after { display: none; }
+  .holo-floor, .holo-motes, .nova-orbit-side::before, .nova-orbit-side::after { display: none; }
   .nova-orbit-side > .nova-widget[data-holo][data-size=L]::before { border-color: CanvasText; background: Canvas; }
 }

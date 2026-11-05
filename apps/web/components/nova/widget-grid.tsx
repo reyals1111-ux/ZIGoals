@@ -10,6 +10,7 @@ import {widgetSpec} from '../../lib/nova/widgets/catalog';
 import {NovaIcon} from './icons';
 import {openWithMorph} from './holo/morph';
 import {useOffscreenMark} from './holo/use-hud-motion';
+import {HoloMotes} from './holo/motes-canvas';
 import './widgets/widgets.css';
 
 /** Each widget's body is its own chunk, loaded only while that widget is on the stage. */
@@ -62,7 +63,9 @@ function useStageHeight(ref: RefObject<HTMLElement | null>): number | null {
  * alone. While arranging, each panel has Move earlier / Move later, its size and Remove as buttons, and a grip that
  * drags it (pointer) or moves it with the arrow keys (keyboard): the same change three ways.
  */
-export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean}) {
+export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false, motes = false}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean;
+  /** Lane L8e: the HUD's floating motes (Full motion, Holo, a computer), drawn in the star's column behind the star. */
+  motes?: boolean}) {
   const shown = phone ? phoneColumn(layout, widgets) : visibleFor(layout, widgets), order = shown.map(w => w.id), holo = look === 'holo';
   const [drag, setDrag] = useState<{id: string; target: string | null; dx: number; dy: number} | null>(null);
   const start = useRef<{x: number; y: number}>({x: 0, y: 0}), box = useRef<HTMLDivElement>(null), stageHeight = useStageHeight(box);
@@ -102,6 +105,8 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
   const frame = (w: NovaWidget, index: number, style: CSSProperties, place?: Placed) => <WidgetFrame key={w.id} widget={w} index={index} count={shown.length} style={style} side={place?.side}
     editing={editing} opening={opening} dragging={drag?.id === w.id ? drag : null} dropTarget={drag?.target === w.id} grip={grip(w)} actions={actions} holo={holo}/>;
   const unitStyle = holo ? {'--holo-u': `${unit}px`} as CSSProperties : undefined, fitMark = (kind: 'orbit' | 'bento' | 'focus') => holo ? kind : undefined;
+  // Lane L8e: the motes live with the star, in the open sky no glass panel lies over (never on the sky canvas under the glass).
+  const dust = holo && !phone ? <HoloMotes on={motes}/> : null;
   // Session AL Part 11 (lane L8): a phone in Holo shows the star, then the same panels in one column (the layout's own set).
   if (phone) return <div ref={box} className="holo-phone-column">{stage}{shown.map((w, i) => frame(w, i, {}))}</div>;
   if (layout === 'orbit') {
@@ -112,7 +117,7 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
     const side = (which: 'left' | 'right') => placed.filter(p => p.side === which).map(p => frame(p, p.order, {'--inset': `${MAX_LEAN - p.lean}px`} as CSSProperties, p));
     return <div ref={box} className="nova-orbit" style={unitStyle} data-holo-fit={fitMark('orbit')}>
       <div className="nova-orbit-main" data-wide={holo ? wideSides(placed) : undefined}>
-        <div className="nova-orbit-centre">{holo && <span className="holo-floor" aria-hidden="true"/>}{stage}</div>
+        <div className="nova-orbit-centre">{holo && <span className="holo-floor" aria-hidden="true"/>}{dust}{stage}</div>
         <div className="nova-orbit-side" data-side="left">{side('left')}</div>
         <div className="nova-orbit-side" data-side="right">{side('right')}</div>
       </div>
@@ -122,8 +127,8 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
       </div>}
     </div>;
   }
-  if (layout === 'bento') return <div ref={box} className="nova-bento" style={unitStyle} data-holo-fit={fitMark('bento')}><div className="nova-bento-hero">{stage}</div>{shown.map((w, i) => frame(w, i, {'--bc': BENTO_SPAN[w.size].cols, '--br': BENTO_SPAN[w.size].rows} as CSSProperties))}</div>;
-  if (layout === 'focus') return <div ref={box} className="nova-focus-layout" style={unitStyle} data-holo-fit={fitMark('focus')}><div className="nova-focus-hero">{stage}</div><div className="nova-focus-row">{shown.map((w, i) => frame(w, i, {}))}</div></div>;
+  if (layout === 'bento') return <div ref={box} className="nova-bento" style={unitStyle} data-holo-fit={fitMark('bento')}><div className="nova-bento-hero">{dust}{stage}</div>{shown.map((w, i) => frame(w, i, {'--bc': BENTO_SPAN[w.size].cols, '--br': BENTO_SPAN[w.size].rows} as CSSProperties))}</div>;
+  if (layout === 'focus') return <div ref={box} className="nova-focus-layout" style={unitStyle} data-holo-fit={fitMark('focus')}><div className="nova-focus-hero">{dust}{stage}</div><div className="nova-focus-row">{shown.map((w, i) => frame(w, i, {}))}</div></div>;
   return <div ref={box} className="nova-minimal">{stage}</div>;
 }
 

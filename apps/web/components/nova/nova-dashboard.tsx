@@ -261,7 +261,7 @@ export default function NovaDashboard() {
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
     data-left={left} data-right={right} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
-    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent} motes={holo && hudMove.motes && !modelBusy}/></Suspense></LoadBoundary></div>
+    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent}/></Suspense></LoadBoundary></div>
     {/* Session AL Part 11 (lane L8): the HUD's depth layers — a far grid plane and a near glow at the edges (decoration). */}
     {holo && <div className="holo-depth" aria-hidden="true"><div className="holo-plane"/><div className="holo-glow"/></div>}
     {left !== 'hidden' && <NovaLeft state={left} onCycle={cycleLeft} you={you} brain={brain} counts={counts} pages={p => isShown(pagesView, p)} earn={chain.earnShown} chess={isShown(pagesView, 'chess')}
@@ -280,7 +280,7 @@ export default function NovaDashboard() {
         {!chatOpen && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area">{phone && !holo ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone}/>}</div>
+      <div className="nova-stage-area">{phone && !holo ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">

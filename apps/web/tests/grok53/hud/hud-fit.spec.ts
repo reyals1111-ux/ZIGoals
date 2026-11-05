@@ -94,7 +94,11 @@ test('M11, M5: a small panel\'s header never covers its body; water with nothing
   await freshNova(page, {waterTarget: true});
   const small = await page.locator('.nova-widget[data-holo][data-size=S]').evaluateAll(els => els.map(el => {
     const head = el.querySelector('.nova-widget-head')!.getBoundingClientRect(), body = el.querySelector('.nova-widget-body')!.getBoundingClientRect();
-    const link = el.querySelector<HTMLElement>('.nova-widget-open'), r = link?.getBoundingClientRect();
+    // Session AL L8e (spec cause): a small panel may rest on the outer band below the fold (the stage area scrolls), where
+    // elementFromPoint finds the command bar or nothing; bring the link into its scroller's view before asking what is on top.
+    const link = el.querySelector<HTMLElement>('.nova-widget-open');
+    link?.scrollIntoView({block: 'nearest', inline: 'nearest'});
+    const r = link?.getBoundingClientRect();
     const hit = r && r.width ? document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) : null;
     return {id: (el as HTMLElement).dataset.widget, headBottom: head.bottom, bodyTop: body.top, oneLine: head.height <= 30, linkOnTop: !r || !r.width || (!!hit && (hit === link || link!.contains(hit))), name: link?.getAttribute('aria-label') ?? ''};
   }));
@@ -140,7 +144,9 @@ test('m9: Left/Right on a grip move a panel to the other column, and the status 
   await freshNova(page, {preset: 'command'});
   await page.getByRole('button', {name: /View controls/}).click();
   await page.getByRole('button', {name: 'Arrange on the orbits'}).click();
-  await expect(frame(page)).toHaveAttribute('data-editing', '');
+  // Session AL L8e (spec cause): React writes `data-editing={true}` as "true", never "" (so `''` could not match); the
+  // CSS keys on the attribute's presence, and so does this check.
+  await expect(frame(page)).toHaveAttribute('data-editing');
   const grip = page.getByRole('button', {name: /^Move Health HUD: drag/});
   await expect(grip).toBeVisible();
   await grip.focus();

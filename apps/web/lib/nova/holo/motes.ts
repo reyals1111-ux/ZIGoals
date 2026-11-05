@@ -1,15 +1,18 @@
 import {seeded} from '../orb-starfield';
 
 /**
- * Session AL Part 11 (lane L8): the HUD's floating motes, drawn on NOVA's one sky canvas (components/nova/starfield.tsx,
- * no second canvas): a few dozen faint points of light in the pillar colours rising very slowly and fading at the top and
- * bottom. Ornament only (never data), computers only, Full motion only; the sky's own loop pauses them with the tab.
+ * Session AL Part 11 (lane L8): the HUD's floating motes: a few dozen faint points of light in the pillar colours rising
+ * very slowly and fading at the top and bottom. Ornament only (never data), computers only, Full motion only; they pause
+ * with the tab.
  * Review m3: they no longer wait for a device with more than four cores (only memory ≤ 4 GB, Save-Data or a low battery
  * keep them off): a 4-core laptop draws them over its still sky (motesAllowed).
+ * Lane L8e: they float in the open sky around the star, on a small canvas of their own in the star's column
+ * (components/nova/holo/motes-canvas.tsx), never under a glass panel. Redrawn under the glass, every frame made each
+ * panel's backdrop blur run again: 20 fps at CPU 4× on a 4-core laptop (16.7 ms a frame with them in the star's column).
  */
 export type Mote = {x: number; y: number; r: number; speed: number; sway: number; phase: number; tint: 0 | 1 | 2 | 3};
 /** Review m3 (lane L8d): fewer, larger and brighter (24 motes of 1–2.4 px, up to .8), so they read as the reference's
- *  floating particles instead of disappearing; drawn as a soft pre-rendered sprite (components/nova/starfield.tsx). */
+ *  floating particles instead of disappearing; drawn as a soft pre-rendered sprite (components/nova/holo/motes-canvas.tsx). */
 export const MOTE_COUNT = 24;
 export const MOTE_TINTS = ['#ff7ac8', '#5ff2ff', '#b59bff', '#ffd27a'] as const;
 export function makeMotes(count = MOTE_COUNT, seed = 20261104): Mote[] {
@@ -30,4 +33,17 @@ export function moteAt(m: Mote, seconds: number): {x: number; y: number; a: numb
  *  charging; the processor count no longer matters (many ordinary laptops report 4 cores). */
 export function motesAllowed(h: {deviceMemory?: number; saveData?: boolean; lowBattery?: boolean}): boolean {
   return !(typeof h.deviceMemory === 'number' && h.deviceMemory > 0 && h.deviceMemory <= 4) && h.saveData !== true && h.lowBattery !== true;
+}
+
+/** What the motes' canvas does now (lane L8e): draw while the HUD is in Full motion on a device that allows them, and be
+ *  blank otherwise (Calm, Off, reduced motion, a hidden tab, a local model replying: no mote is left frozen on the sky). */
+export function motesPlan({on, allowed, hidden}: {on: boolean; allowed: boolean; hidden: boolean}): 'run' | 'blank' {
+  return on && allowed && !hidden ? 'run' : 'blank';
+}
+/** Counts a frame the HUD's canvases drew in this tab (the sky and the motes; a still or paused HUD draws none): the
+ *  HUD's motion and performance specs read `window.__zgHudFrames`. */
+export function countHudFrame(): void {
+  if (typeof window === 'undefined') return;
+  const w = window as Window & {__zgHudFrames?: number};
+  w.__zgHudFrames = (w.__zgHudFrames ?? 0) + 1;
 }
