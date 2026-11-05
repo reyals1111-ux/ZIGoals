@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {EVERYTHING_KEYS} from '../export/everything';
-import {DEVICE_ONLY, SYNCED, storedBytes} from './catalog';
+import {DEVICE_ONLY, SYNCED, recoveryCopies, recoveryCopyEntry, storedBytes} from './catalog';
 
 describe('Data health catalog (Session AA-Cloud Part 6)', () => {
   it('labels every key Export everything reads, each once, synced or this device only', () => {
@@ -17,6 +17,16 @@ describe('Data health catalog (Session AA-Cloud Part 6)', () => {
       expect(DEVICE_ONLY.some(e => e.key === r.spec.key)).toBe(false);
     }
     for (const key of ['zigoals:search-recent:v1', 'zigoals:onboarding-setup:v1', 'zigoals:progress-photos:v1', 'zigoals:ui-prefs:v1']) expect(DEVICE_ONLY.some(e => e.key === key), key).toBe(true);
+  });
+  it('Session AL: names the recovery copies a restore keeps (Tasks, the Checklist and its days included), and nothing else', () => {
+    const uuid = '0f8b3c1e-5d2a-4e7b-9c10-2a3b4c5d6e7f';
+    expect(recoveryCopyEntry(`zigoals:tasks:v1:recovery:${uuid}`)).toEqual({key: `zigoals:tasks:v1:recovery:${uuid}`, label: 'Recovery copy: Tasks', home: 'device', area: 'Today'});
+    expect(recoveryCopyEntry(`zigoals:checklist:v1:recovery:${uuid}`)?.label).toMatch(/^Recovery copy: /);
+    expect(recoveryCopyEntry(`zigoals:checklist-days:v1:recovery:${uuid}`)?.label).toMatch(/^Recovery copy: /);
+    expect(recoveryCopyEntry(`zigoals:checklist:v1:recovery:${uuid}`)?.area).toBe(SYNCED.find(e => e.key === 'zigoals:checklist:v1')!.area);
+    for (const key of ['zigoals:tasks:v1', 'zigoals:tasks:v1:recovery:not-a-uuid', `zigoals:unknown:v1:recovery:${uuid}`, `zigoals:tasks:v1:recovery:${uuid}:x`]) expect(recoveryCopyEntry(key), key).toBeNull();
+    const keys = [`zigoals:tasks:v1:recovery:${uuid}`, 'zigoals:tasks:v1', `zigoals:journal:v1:recovery:${uuid}`];
+    expect(recoveryCopies({length: keys.length, key: i => keys[i] ?? null}).map(e => e.label)).toEqual(['Recovery copy: Journal', 'Recovery copy: Tasks']);
   });
   it('counts what a stored value takes, and nothing for nothing stored', () => {
     expect(storedBytes(null)).toBeNull();

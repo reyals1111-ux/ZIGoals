@@ -21,3 +21,9 @@
 :root .rb-rows li { border: 1px solid #8ab9ff14; background: #8ab9ff0b; border-radius: 14px; }
 :root .rb-what strong { font-size: 16px; }
 :root .rb-file { padding: 14px 16px; border: 1px dashed #8ab9ff40; border-radius: 16px; background: #8ab9ff07; }
+
+/* Session AL (GAP-176): "Erase one area instead", a fold below the restore; its summary a 44 px target. */
+:root .rb-erase { display: grid; gap: 10px; min-width: 0; }
+:root .rb-erase > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 650; }
+:root .rb-erase[open] { gap: 12px; }
+:root .rb-erase .rb-mode { display: grid; gap: 6px; max-width: 320px; }

@@ -81,10 +81,10 @@ export function summarizeListSection(name: ListSection, raw: string): ListSummar
     ...range(Object.keys(c.days?.days ?? {}).map(day))};
 }
 
-type RW = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'>;
+export type RW = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'>;
 const announce = (key: string) => { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: key})); };
 /** Writes one record, keeping the bytes it replaces as `<key>:recovery:<uuid>` (lib/vault/recovery-copies.ts). */
-function write(storage: RW, key: string, next: unknown) {
+export function write(storage: RW, key: string, next: unknown) {
   const previous = storage.getItem(key), text = JSON.stringify(next);
   if (previous === null) storage.setItem(key, text);
   else if (previous !== text) {

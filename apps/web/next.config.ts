@@ -38,6 +38,11 @@ const config: NextConfig = {
     "@zigoals/strategy-types",
   ],
   poweredByHeader: false,
+  // Session AL (P-NB-08; NB-002, NB-033): the setup addresses people type at the top level open the welcome. Temporary
+  // (307), so nothing is cached for good; the same words under /app are aliases in app/app/[...missing].
+  async redirects() {
+    return ["welcome", "onboarding", "start", "setup"].map(word => ({ source: `/${word}`, destination: "/app/welcome", permanent: false }));
+  },
   async headers() {
     return [
       // Session U Part 6 (FIX_PLAN D2, FINDINGS Q-WEB-03): an SVG opened on its own runs no script and loads nothing from

@@ -4,13 +4,17 @@ import {platformSchema} from '../positions';
 import {dashboardSettingsSchema} from '../dashboard-settings';
 import {localSimulationSchema,summarizeLocalSimulation} from './local-simulation-backup';
 import {LIST_LABELS,isListSection,summarizeListSection,type ListSection} from './backup-lists';
+import {RECORD_LABELS,RECORDS_SKIPPED,isRecordSection,summarizeRecordSection,type RecordSection} from './backup-records';
 const domains={finance:{label:'Goals and Wealth',schema:platformSchema},habits:{label:'Habits',schema:habitDataSchema},health:{label:'Health',schema:healthSchema},settings:{label:'Today preferences',schema:dashboardSettingsSchema}};
 type Domain=keyof typeof domains;
 const labels:Record<string,string>={positions:'Positions',goals:'Goals',allocations:'Allocations',snapshots:'Snapshots',contributions:'Contribution records',valuationSnapshots:'Valuation observations',goalHistory:'Goal history records',assetEvents:'Asset lifecycle records',financialPortfolios:'Financial portfolios',financialEvents:'Financial evidence',manualFx:'Dated exchange rates',performanceReviews:'Performance reviews',habits:'Habits',foods:'Foods',recipes:'Recipes',diary:'Meals',weights:'Weight records',measurements:'Body measurements',activity:'Activity records',widgets:'Widgets',water:'Water records',savedMeals:'Saved meals',plans:'Planned meals'};
-export type BackupModuleSummary={domain:Domain|'simulation'|ListSection;label:string;version:number;restoredVersion:number;counts:{label:string;count:number}[];from:string|null;through:string|null;warning?:string};
+/** `choices`: records that hold settings rather than entries (named, not counted). */
+export type BackupModuleSummary={domain:Domain|'simulation'|ListSection|RecordSection;label:string;version:number;restoredVersion:number;counts:{label:string;count:number}[];choices?:string[];from:string|null;through:string|null;warning?:string};
 /** Inventory is computed only from validated decrypted records. It never enters the public transport. */
-export function summarizeBackupModules(data:Partial<Record<Domain|'simulation'|ListSection,string>>):BackupModuleSummary[]{
+export function summarizeBackupModules(data:Partial<Record<Domain|'simulation'|ListSection|RecordSection,string>>):BackupModuleSummary[]{
  return Object.entries(data).map(([key,raw])=>{
+  // Session AL (third pass, INT): the other device records (format 4), each counted from its validated record.
+  if(isRecordSection(key)){const {counts,choices,skipped,from,through}=summarizeRecordSection(key,raw!);return {domain:key,label:RECORD_LABELS[key],version:1,restoredVersion:1,counts,choices,from,through,...(skipped?{warning:RECORDS_SKIPPED(skipped)}:{})};}
   // Session AL (P-LS-36): Tasks and the Checklist (format 3), counted from their validated records.
   if(isListSection(key)){const summary=summarizeListSection(key,raw!);return {domain:key,label:LIST_LABELS[key],version:1,restoredVersion:1,...summary};}
   if(key==='simulation'){const section=localSimulationSchema.parse(JSON.parse(raw!)),summary=summarizeLocalSimulation(raw!),dates=('ledger' in section&&section.ledger?JSON.parse(section.ledger).activity as {timestamp:string}[]:[]).map(a=>a.timestamp.slice(0,10)).sort();return {domain:'simulation' as const,label:'Local simulation Goals',version:section.schemaVersion,restoredVersion:section.schemaVersion,counts:summary.warning?[]:[{label:'Goals',count:summary.goals},{label:'Simulation activity',count:summary.activity},{label:'Goal plans',count:summary.plans}],from:dates[0]??null,through:dates.at(-1)??null,...(summary.warning?{warning:summary.warning}:{})};}

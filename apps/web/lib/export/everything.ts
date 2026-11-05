@@ -420,6 +420,64 @@ export function exportReadme(collected: Collected, {now, showcase}: {now: Date; 
     ...(collected.warnings.length ? ['', ...collected.warnings] : []), ''].join('\r\n');
 }
 
+/**
+ * Session AL (GAP-175, C-BN-27): an export of one chosen date range, for a person who wants, say, last month's diary and
+ * spending in a spreadsheet. Only the CSV tables, never everything.json or photos, so the file holds no more than the
+ * range: each dated table keeps the rows whose date (the UTC day, for a timed row) is in the range, and the lists of
+ * things (goals, habits, positions and holdings, links, tasks, the Checklist path) come as they are today. A row with no
+ * date in a dated table (an account with no balance yet) is a list row and is kept. Restore from a backup cannot read
+ * this file; the full export without dates can.
+ */
+export const RANGE_DATE_COLUMNS: Partial<Record<CsvFileName, string>> = {
+  'contributions.csv': 'occurred_at_utc', 'check-ins.csv': 'date', 'health-diary.csv': 'date', 'weights.csv': 'date', 'water.csv': 'date', 'activity.csv': 'date',
+  'sleep.csv': 'start_utc', 'meditation.csv': 'started_at_utc', 'vitals.csv': 'date', 'moods.csv': 'date', 'accounts.csv': 'date', 'portfolio-transactions.csv': 'date',
+  'workout-sets.csv': 'date', 'money-log.csv': 'date', 'journal.csv': 'date', 'energy.csv': 'date', 'checklist-days.csv': 'date',
+};
+export type DateRange = {from: string; through: string};
+export const RANGE_INVALID = 'Choose a start date on or before the end date.';
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+/** A range of two calendar days, start on or before end; null when either is missing or not a day. */
+export function readDateRange(from: string, through: string): DateRange | null {
+  return DAY.test(from) && DAY.test(through) && Number.isFinite(Date.parse(from)) && Number.isFinite(Date.parse(through)) && from <= through ? {from, through} : null;
+}
+/** Splits this file's own CSV (every cell quoted) at line breaks outside quotes, and a row at commas outside quotes. */
+function splitOutside(text: string, separator: string): string[] {
+  const out: string[] = []; let start = 0, quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') quoted = !quoted;
+    else if (!quoted && text.startsWith(separator, i)) { out.push(text.slice(start, i)); start = i + separator.length; i += separator.length - 1; }
+  }
+  out.push(text.slice(start));
+  return out;
+}
+const unquote = (cell: string) => cell.startsWith('"') && cell.endsWith('"') ? cell.slice(1, -1).replaceAll('""', '"') : cell;
+/** The CSV tables of one date range (the rules above). */
+export function rangeCsv(collected: Pick<Collected, 'csv'>, range: DateRange): Record<CsvFileName, string> {
+  const out = {} as Record<CsvFileName, string>;
+  for (const name of CSV_FILES) {
+    const text = collected.csv[name], column = RANGE_DATE_COLUMNS[name];
+    if (!column) { out[name] = text; continue; }
+    const [header = '', ...rows] = splitOutside(text, '\r\n'), at = splitOutside(header, ',').map(unquote).indexOf(column);
+    if (at < 0) { out[name] = text; continue; }
+    const kept = rows.filter(row => { const day = unquote(splitOutside(row, ',')[at] ?? '').slice(0, 10); return day === '' || (day >= range.from && day <= range.through); });
+    out[name] = [header, ...kept].join('\r\n');
+  }
+  return out;
+}
+/** The range ZIP: README.txt, then the range's CSVs in their table order. */
+export function buildRangeZip(collected: Collected, range: DateRange, {showcase, now}: {showcase: boolean; now: Date}): {name: string; bytes: Uint8Array} {
+  const csvs = rangeCsv(collected, range), rows = (name: CsvFileName) => Math.max(0, splitOutside(csvs[name], '\r\n').length - 1);
+  const readme = [`ZIGoals export of ${range.from} to ${range.through}, made ${now.toISOString()}${showcase ? ' (Showcase: fictional example records)' : ''}`, '',
+    'Dated tables keep the rows whose date is in this range (the UTC day, for a timed row). Goals, habits, positions, holdings, links, tasks and the Checklist path are as they are today.',
+    'This file has no everything.json and no photos, so Restore from a backup cannot read it. Export everything without dates makes the full copy.', '',
+    ...CSV_FILES.map(name => `${name}: ${rows(name) ? `${rows(name)} ${rows(name) === 1 ? 'row' : 'rows'}` : 'no rows in this range'}`),
+    ...(collected.unreadable.length ? ['', `Could not be read (kept as they were): ${collected.unreadable.join(', ')}`] : []),
+    ...(collected.warnings.length ? ['', ...collected.warnings] : []), ''].join('\r\n');
+  const entries = [{name: 'README.txt', data: readme, modified: now}, ...CSV_FILES.map(name => ({name, data: csvs[name], modified: now}))];
+  return {name: exportFileName(`zigoals-export-${range.from}-to-${range.through}.zip`, showcase), bytes: buildStoredZip(entries)};
+}
+
 /** The ZIP: everything.json first, then the CSVs in their table order; every entry dated `now`. */
 /**
  * Session AA-Cloud: the goals' vision photos ride along as `vision/<id>.jpg` (the bytes this device keeps, already

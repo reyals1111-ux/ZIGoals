@@ -137,6 +137,25 @@ export const DEVICE_ONLY: readonly CatalogEntry[] = [
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */
 export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)', 'Notification snapshot, push identity and taps waiting to apply (IndexedDB, this device only)', 'Offline food library (public data, IndexedDB)', 'Your own Spotify client id (IndexedDB, this device only)', 'Barcode lookups and exchange refreshes asked for while offline (IndexedDB, this device only)', 'Meal photos you chose to keep (IndexedDB, this device only)', 'Your Lichess connection (IndexedDB, this device only, never exported)', 'Photos in notes (IndexedDB, this device only)', 'Receipt photos on money entries (IndexedDB, this device only)'] as const;
+/**
+ * Session AL (third pass, INT): the copies a restore keeps of what it replaced, `<key>:recovery:<uuid>` (lib/vault/
+ * recovery-copies.ts; Tasks, the Checklist and its day history since Session AL, the modules and device records before).
+ * They are not in the key list above (their names are made at restore time), never exported or synced, and erased with
+ * everything else. `recoveryCopyEntry` names one for the Data health page: "Recovery copy: <the record's label>", in the
+ * record's own area, this device only; any other key is null.
+ */
+const RECOVERY_COPY = /^(.+):recovery:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function recoveryCopyEntry(key: string): CatalogEntry | null {
+  const of = RECOVERY_COPY.exec(key)?.[1];
+  const record = of ? [...SYNCED, ...DEVICE_ONLY].find(e => e.key === of) : undefined;
+  return record ? {key, label: `Recovery copy: ${record.label}`, home: 'device', area: record.area} : null;
+}
+/** Every recovery copy in a storage view, named (the keys of records this catalog does not know are left out). */
+export function recoveryCopies(storage: Pick<Storage, 'length' | 'key'>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (let i = 0; i < storage.length; i++) { const k = storage.key(i); const entry = k ? recoveryCopyEntry(k) : null; if (entry) out.push(entry); }
+  return out.sort((a, b) => a.label.localeCompare(b.label));
+}
 /** Worked out each time from the records above, never stored. */
 export const NEVER_STORED = ['Calculator results', 'Life review figures', 'Insights and pairings', 'Search results', 'Pace forecasts', 'The life balance wheel'] as const;
 export const HOME_LABEL: Record<Home, string> = {sync: 'Encrypted sync with an account', 'sync-consent': 'Encrypted sync after this device\'s consent', device: 'This device only'};
