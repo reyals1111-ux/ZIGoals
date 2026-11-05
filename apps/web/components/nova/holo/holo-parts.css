@@ -82,7 +82,10 @@
 .holo-segs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; height: 10px; }
 .holo-segs i { --part: 0; border-radius: 1.5px; background: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0d); background-image: linear-gradient(90deg, var(--neon, #9273ff) calc(var(--part) * 100%), transparent 0); }
 .holo-segs i[data-lit] { background: var(--neon, #9273ff); box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 75%, transparent); }
-.holo-meter[data-unknown] .holo-segs i { background: transparent; outline: 1px dashed #ffffff22; outline-offset: -1px; }
+/* Lane L8g (O5): the unknown slots' dashes are a border (snapped to whole pixels), not an inset outline. An outline stroked
+   at a fractional offset (the content-fit panels put meters at y = 318.3 px) was rastered differently by the first capture,
+   so a still HUD seemed to change a pixel. Same look: 1 px dashed, inside the slot. */
+.holo-meter[data-unknown] .holo-segs i { background: transparent; border: 1px dashed #ffffff22; box-sizing: border-box; }
 .holo-meter-value { font-size: 14px; white-space: nowrap; text-align: right; }
 .holo-meter-value small { font-size: 13px; color: #c9d4ea; font-weight: 500; }
 .holo-meter .holo-note { grid-column: 1 / -1; }

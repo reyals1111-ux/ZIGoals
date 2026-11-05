@@ -71,7 +71,9 @@ test('quick actions add a task and tick it on the Tasks panel; the panel counts 
   await sheet.getByRole('button', {name: 'Add task'}).click();
   await expect(page.locator('.aa-toast')).toContainText('Added “Fictional call to the library” for today.');
   await sheet.getByRole('button', {name: 'Close Quick actions · Tasks'}).click();
-  await expect(tasks.locator('.holo-counters')).toContainText('Today1');
+  // L8f review 2, m5 (deliberate): the panel's "Today" counter is now "Due today" (overdue has its own counter); the count
+  // is still the Tasks page's: one task due today.
+  await expect(tasks.locator('.holo-counters')).toContainText('Due today1');
   await expect(tasks).toContainText('1 to do today.');
   await tasks.getByRole('checkbox', {name: 'Mark “Fictional call to the library” done'}).check();
   await expect(tasks).toContainText('Nothing left to do today.');
