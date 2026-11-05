@@ -8,7 +8,7 @@ import { useBackCloses } from "../use-back-closes";
  * action kept in reach. Render it only on a phone; elsewhere the form stays in the page as before. Focus starts in the
  * form and returns to where it was when the sheet closes.
  */
-export function PhoneFormSheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+export function PhoneFormSheet({ title, onClose, children, className }: { title: string; onClose: () => void; children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDialogElement>(null), close = useRef(onClose);
   useEffect(() => { close.current = onClose; });
   useBackCloses(true, () => close.current());
@@ -24,7 +24,7 @@ export function PhoneFormSheet({ title, onClose, children }: { title: string; on
     dialog?.addEventListener("click", backdrop);
     return () => { cancelAnimationFrame(focus); window.clearTimeout(timer); dialog?.removeEventListener("click", backdrop); dialog?.close(); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
   }, []);
-  return <dialog ref={ref} className="phone-form-sheet" aria-label={title} onCancel={event => { event.preventDefault(); close.current(); }}>
+  return <dialog ref={ref} className={className ? `phone-form-sheet ${className}` : "phone-form-sheet"} aria-label={title} onCancel={event => { event.preventDefault(); close.current(); }}>
     <header className="phone-form-sheet-head"><h2>{title}</h2><button type="button" className="secondary icon-button" aria-label={`Close ${title}`} onClick={() => close.current()}>×</button></header>
     <div className="phone-form-sheet-body">{children}</div>
   </dialog>;

@@ -582,6 +582,20 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 @media (max-width: 650px) { :root:where([data-density=compact]) .unified-activity .activity-event:not(#\-) { padding-top: 12px; padding-bottom: 12px; row-gap: 10px; } }
 @media (max-width: 650px) { :root:where([data-density=compact]) .unified-activity ol:not(#\-) { row-gap: 6px; } }
 :where(:root[data-density=compact]) .activity-context .activity-source-link:not(#\-) { padding-top: 0; padding-bottom: 0; }
+/*  components/activity/activity-report.css  */
+:where(:root[data-density=compact]) .activity-report:not(#\-) { row-gap: 12px; margin-top: 0; margin-bottom: 18px; padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .activity-report h3:not(#\-), :where(:root[data-density=compact]) .activity-report h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .activity-report-head:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .activity-report-periods:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .activity-report-periods button:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .activity-report-summary:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .activity-report-grid:not(#\-) { row-gap: 10.5px; }
+:where(:root[data-density=compact]) .activity-report-grid > div:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .activity-report-figure:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .activity-report-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .activity-report-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .activity-report-list li:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .activity-report-bars:not(#\-) { row-gap: 2px; }
 /*  components/add-money/add-money.css  */
 :where(:root[data-density=compact]) .add-money:not(#\-) { row-gap: 16px; }
 :where(:root[data-density=compact]) .add-money-honest:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -643,7 +657,7 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .agenda-export-actions:not(#\-) { row-gap: 8px; }
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .agenda-item:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
 :where(:root[data-density=compact]) .agenda-task-main:not(#\-) { row-gap: 0; }
-:where(:root[data-density=compact]) .agenda-task-tick input:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:root:where([data-density=compact]) .agenda-task-tick input[type="checkbox"]:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-calendars:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-calendars li:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .agenda-import:not(#\-) { row-gap: 10px; }
@@ -772,6 +786,7 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .ai-connection-copy:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .ai-switch-list:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .ai-switch-row:not(#\-) { row-gap: 9px; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .ai-switch-row [role=switch]:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .ai-switch-copy:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .ai-key-replace:not(#\-) { margin-top: 8px; }
 :where(:root[data-density=compact]) .ai-turn-local .ai-turn-body>.ai-local-answer:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
@@ -1358,6 +1373,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .chess-promotion .actions:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .chess-actions-row:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .chess-play-message:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .chess-puzzle-days:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .chess-puzzle-days h4:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .chess-puzzle-days p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .chess-puzzle-days-list:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 3px; }
 /*  components/chess/chess.css  */
 :where(:root[data-density=compact]) .chess-page:not(#\-) { row-gap: 22px; }
 :where(:root[data-density=compact]) .chess-head:not(#\-) { row-gap: 10px; }
@@ -1474,6 +1493,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .personalized-today .today-layout>.today-after:not(#\-) { row-gap: 1.5rem; }
 @media (max-width:767.98px),(pointer:coarse) and (max-height:500px) { :root:where([data-density=compact]) .today-page .today-layout>.today-after:not(#\-) { row-gap: 16px; } }
 :where(:root[data-density=compact]) .today-line:not(#\-) { margin-top: 0; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .today-wealth-trend:not(#\-) { row-gap: 6px; margin-top: 6px; }
 /*  components/dashboard/hero-fold.css  */
 :where(:root[data-density=compact]) .hero-fold:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .today-hero-folded:not(#\-) { padding-top: 0; padding-bottom: 0; margin-bottom: 14px; }
@@ -1639,9 +1659,6 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .earn-illustration-screens li:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .earn-illustration-screens p:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .earn-illustration-note:not(#\-) { margin-top: 0; margin-bottom: 14px; }
-@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :where(:root[data-density=compact]) .earn-apps-strip:not(#\-) { margin: 0 calc(-1 * var(--phone-gutter, 16px)) 12px; } }
-@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :where(:root[data-density=compact]) .earn-apps-strip ul:not(#\-) { row-gap: 9px; margin-top: 0; margin-bottom: 0; padding: 4px var(--phone-gutter, 16px); } }
-@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :where(:root[data-density=compact]) .earn-apps-strip-app:not(#\-) { row-gap: 6px; } }
 :where(:root[data-density=compact]) .earn-chips:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) :is(.earn-formula, .earn-illustration-slot) > summary:not(#\-) { row-gap: 3px; }
 :root:where([data-density=compact]) .earn-page :is(p, li, dd, span, small) > a.text-link:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
@@ -1710,12 +1727,18 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .ecosystem-details h4:not(#\-) { margin-top: .6rem; margin-bottom: .2rem; }
 :where(:root[data-density=compact]) .ecosystem-details p:not(#\-) { margin-top: .25rem; margin-bottom: .25rem; }
 :where(:root[data-density=compact]) .ecosystem-details ul:not(#\-) { margin-top: 0.19rem; margin-bottom: 0.19rem; row-gap: 0.34rem; }
+:where(:root[data-density=compact]) .ecosystem-controls .ecosystem-audited:not(#\-) { row-gap: .7rem; }
+:where(:root[data-density=compact]) .ecosystem-controls .ecosystem-audited input:not(#\-) { margin-top: .1rem; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .ecosystem-controls .ecosystem-audited span:not(#\-) { row-gap: .25rem; }
 /*  components/export-everything.css  */
 :where(:root[data-density=compact]) .export-everything:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .export-everything p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .export-everything-agree:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .export-everything-agree input:not(#\-) { margin-top: 2px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .export-everything .actions:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .export-everything-range:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .export-everything-range legend:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .export-everything-range label:not(#\-) { row-gap: 4px; }
 /*  components/first-week/first-week.css  */
 :root:where([data-density=compact]) .first-week-card:not(#\-) { row-gap: 7.5px; }
 :root:where([data-density=compact]) .first-week-card h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -2006,6 +2029,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .goal-tree-root:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 6px; padding-top: 8px; padding-bottom: 8px; }
 :root:where([data-density=compact]) .goal-tree.is-page:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 0; row-gap: 10px; }
 :root:where([data-density=compact]) .goal-tree.is-page ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 7.5px; padding-bottom: 0; row-gap: 7.5px; }
+:root:where([data-density=compact]) .goal-tree-edit:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:root:where([data-density=compact]) .goal-tree-edit > div:not(#\-) { row-gap: 8px; padding-top: 8px; padding-bottom: 8px; }
+:root:where([data-density=compact]) .goal-tree-edit label:not(#\-) { row-gap: 4px; }
 /*  components/goals/goals.css  */
 :root:where([data-density=compact]) .goals-figures:not(#\-) { row-gap: 12px; margin-top: 0; margin-bottom: 20px; }
 :root:where([data-density=compact]) .goals-figures > div:not(#\-) { padding-top: 14px; padding-bottom: 14px; }
@@ -2099,6 +2125,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .average-goal-card .average-goal-target:not(#\-) { margin-top: -2px; margin-bottom: 0; }
 :root:where([data-density=compact]) .template-card > :last-child:not(#\-) { margin-top: auto; }
 :where(:root[data-density=compact]) .hall-actions:not(#\-) { margin-top: auto; }
+:where(:root[data-density=compact]) .debt-paydown-list:not(#\-) { margin-top: 0; margin-bottom: 7.5px; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }
+:where(:root[data-density=compact]) .debt-paydown-list li:not(#\-) { row-gap: 1.5px; }
 /*  components/goals/milestone-planner.css  */
 :where(:root[data-density=compact]) .milestone-planner:not(#\-) { row-gap: 16px; margin-top: 12px; }
 :where(:root[data-density=compact]) .milestone-planner h3:not(#\-) { margin-top: 0; margin-bottom: 4px; }
@@ -2491,6 +2519,17 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-empty-ideas:not(#\-) { row-gap: 10px; margin-top: 14px; }
 :where(:root[data-density=compact]) .habit-empty-ideas > button:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .habit-quit-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-same-name:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .habit-same-name p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-timezone:not(#\-) { margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .habit-timezone[open] > form:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .habit-page-bar:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .habit-page-bar .habit-page-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-reflections:not(#\-) { row-gap: 10px; padding-top: 8px; }
+:where(:root[data-density=compact]) .habit-reflection-list:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .habit-reflection-list li:not(#\-) { padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .habit-reflection-head:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-reflection-note:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 /*  components/habits/intention.css  */
 :where(:root[data-density=compact]) .habit-intention:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .habit-intention-line:not(#\-), :where(:root[data-density=compact]) .habit-intention-empty:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
@@ -2731,6 +2770,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .health-quick-picks li:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .health-page .health-summary.health-summary-compact:not(#\-) { row-gap: 6px; padding-top: 14px; padding-bottom: 14px; }
 :where(:root[data-density=compact]) .health-summary-compact p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .health-mood-chips:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .health-drink-day:not(#\-) { margin-top: 8px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .health-meal-names:not(#\-) { margin-top: 16px; }
+:where(:root[data-density=compact]) .health-meal-name-row:not(#\-) { margin-top: 9px; }
 /*  components/health/health-day.css  */
 :where(:root[data-density=compact]) .health-page .health-date-bar:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .health-page .health-date-step:not(#\-) { padding-top: 0; padding-bottom: 0; }
@@ -2804,7 +2847,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .health-weight-history:not(#\-) { margin-top: 20px; }
 :where(:root[data-density=compact]) .health-table-wrap :is(td,th):not(#\-) { padding-top: 14px; padding-bottom: 14px; }
 :where(:root[data-density=compact]) .health-targets .health-form:not(#\-) { row-gap: 24px; }
-:where(:root[data-density=compact]) .health-private-note:not(#\-) { margin-top: 28px; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .health-private-note:not(#\-) { margin-top: 28px; margin-bottom: 48px; }
 :where(:root[data-density=compact]) .health-sr-only:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .health-today-value:not(#\-) { row-gap: 10px; margin-top: 22px; margin-bottom: 3px; }
 @media (max-width: 1190px) { :where(:root[data-density=compact]) .health-summary:not(#\-) { row-gap: 20px; } }
@@ -2959,6 +3002,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .sleep-card > a.text-link:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
 :where(:root[data-density=compact]) .sleep-wind-down-sounds:not(#\-) { row-gap: 8px; margin-top: 10px; padding-top: 12px; }
 :where(:root[data-density=compact]) .sleep-wind-down-sounds p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .sleep-csv-import:not(#\-) { margin-top: 16px; }
 /*  components/health/supplements.css  */
 :where(:root[data-density=compact]) .supplements:not(#\-) { row-gap: 12px; padding-top: 6px; }
 :where(:root[data-density=compact]) .supplements h3:not(#\-), :where(:root[data-density=compact]) .supplements h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3056,6 +3100,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .help-earlier > .eyebrow:not(#\-) { margin-bottom: 6px; }
 :where(:root[data-density=compact]) .help-earlier > .help-earlier-lede:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .help-to-top:not(#\-) { margin-top: 14px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .help-whats-new-now:not(#\-) { margin-top: 8px; margin-bottom: 16px; row-gap: 0; }
+:where(:root[data-density=compact]) .help-updated:not(#\-) { margin-top: -4px; margin-bottom: 12px; }
 /*  components/help/send-feedback.css  */
 :where(:root[data-density=compact]) .send-feedback:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .send-feedback p:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3131,6 +3177,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .switch-formats li:not(#\-) { row-gap: 1.5px; padding-top: 6px; }
 :where(:root[data-density=compact]) .switch-formats li p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .import-preset:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .import-next-why:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/insights/compare/compare.css  */
 :where(:root[data-density=compact]) .ondemand-fold > .ondemand-fold-summary:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .ondemand-fold[open] > .ondemand-fold-summary:not(#\-) { margin-bottom: 10px; }
@@ -3674,9 +3721,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .holo-habit-list li:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .holo-preset-row:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .holo-preset:not(#\-) { row-gap: 2px; padding-top: 10px; padding-bottom: 10px; }
-:where(:root[data-density=compact]) .holo-frame:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 18px; padding-bottom: 20px; }
+:where(:root[data-density=compact]) .holo-frame:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 19px; padding-bottom: 19px; }
+:where(:root[data-density=compact]) .holo-wave-dot:not(#\-) { margin-top: -4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-wave-dot[data-now]:not(#\-) { margin-top: -5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-wave-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-week-kcal:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .holo-histo:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .holo-histo-line-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-chart-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-sliders:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-flow-box:not(#\-) { row-gap: 8px; }
@@ -3684,12 +3735,49 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .holo-flow-legend li:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .holo-core-readout:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .holo-core-readout li:not(#\-) { padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .holo-core-readout:not(#\-) { row-gap: 6px; margin-top: 2px; margin-bottom: 2px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-core-readout li:not(#\-) { row-gap: 2.25px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-core-bar:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .holo-goals:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .holo-arcs:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-arc-link:not(#\-) { padding-top: 0; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .holo-arcs .holo-pace-words:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-pace-box:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .holo-pace-head:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .holo-more-link:not(#\-) { margin-top: -14px; margin-bottom: -14px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-pace-dot:not(#\-) { margin-top: -4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-agenda-count:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-agenda[data-empty] .holo-agenda-side:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .holo-wealth:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .holo-wealth-head:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .holo-wealth-lower:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .holo-purpose:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .holo-hearts:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .holo-hearts li:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .holo-ring-note:not(#\-) { margin-top: 0; margin-bottom: 2px; }
+:where(:root[data-density=compact]) .holo-orbit-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-water:not(#\-), :where(:root[data-density=compact]) .holo-notes:not(#\-), :where(:root[data-density=compact]) .holo-sleep:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-empty:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .holo-empty-shape:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .holo-empty-words:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-habit-list li:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-habit-list li > :last-child:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-preset-sketch:not(#\-) { margin-bottom: 4px; }
+@container holo-body (max-width: 330px) { :where(:root[data-density=compact]) .holo-health .holo-split:not(#\-) { row-gap: 10px; } }
 /*  components/nova/holo/holo.css  */
 :where(:root[data-density=compact]) .nova-widget[data-holo]:not(#\-)::after { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .nova-widget-head:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .nova-widget-open-arrow:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-act:not(#\-) { margin-top: -10px; margin-bottom: -10px; }
 :where(:root[data-density=compact]) .holo-phone-column:not(#\-) { row-gap: 12px; padding-top: 8px; padding-bottom: 24px; }
 :where(:root[data-density=compact]) .holo-keys:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .holo-keys-table th:not(#\-), :where(:root[data-density=compact]) .holo-keys-table td:not(#\-) { padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]) [data-holo-fit]:not([data-holo-fit=bento]) .nova-widget[data-holo]:not(#\-) { padding-top: 12px; padding-bottom: 10px; row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-bento > .nova-widget[data-holo]:not(#\-) { padding-top: 12px; padding-bottom: 10px; row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-fit=scroll] .nova-widget-inner:not(#\-) { padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-greeting:not(#\-) { margin-top: 2px; }
+:where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-orb-button:not(#\-) { margin-block: calc(var(--orb) * .24); }
+:where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-stage-below:not(#\-) { row-gap: 3px; }
 /*  components/nova/live/live-chips.css  */
 :where(:root[data-density=compact]) .nova-live:not(#\-) { margin-top: 6px; }
 /*  components/nova/nova-chrome.css  */
@@ -3726,6 +3814,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-chips:not(#\-) { row-gap: 8px; margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-chip:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .nova-wake:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-deck:not(#\-) { row-gap: 8px; margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-deck > .nova-chips:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-deck > .nova-live:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-deck > .nova-setup-banner:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 2px; padding-bottom: 2px; }
 :where(:root[data-density=compact]) .nova-stage-area:not(#\-) { padding-top: 10px; padding-bottom: 16px; }
 :where(:root[data-density=compact]) .nova-stage:not(#\-) { row-gap: 6px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-stage-below:not(#\-) { row-gap: 4px; }
@@ -4004,6 +4096,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 767.98px) { :root:where([data-density=compact]) .welcome-phone-close:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .onboarding-count:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .onboarding-skip-note:not(#\-) { margin-top: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .onboarding-game-preview:not(#\-) { row-gap: 8px; margin-top: 12px; margin-bottom: 4px; padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .onboarding-game-preview h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .onboarding-game-preview p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .onboarding-game-level:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .onboarding-game-level span:last-child:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .onboarding-game-pill:not(#\-) { padding-top: 0; padding-bottom: 0; }
 /*  components/orbit-card/orbit-card.css  */
 :root:where([data-density=compact]) .orbit-card:not(#\-) { row-gap: 12px; }
 :root:where([data-density=compact]) .orbit-card h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -4238,9 +4336,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .quick-add-mic-how summary:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .quick-add-mic-how p:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 /*  components/phone/phone-shell.css  */
-:where(:root[data-density=compact]) dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet):not(#\-) { padding-top: 0; padding-bottom: 16px; }
-:where(:root[data-density=compact]) dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet) .phone-form-sheet-head:not(#\-) { row-gap: 12px; }
-:where(:root[data-density=compact]) dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet) .phone-form-sheet-head h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:root:where([data-density=compact]) dialog.phone-form-sheet.phone-status-dialog:not(#\-) { padding-top: 0; padding-bottom: 16px; }
+:root:where([data-density=compact]) dialog.phone-form-sheet.phone-status-dialog .phone-form-sheet-head:not(#\-) { row-gap: 12px; }
+:root:where([data-density=compact]) dialog.phone-form-sheet.phone-status-dialog .phone-form-sheet-head h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .phone-status-sheet:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .phone-status-sheet p:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .app-content:not(#\-) { padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 8px); } }
@@ -4252,6 +4350,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-actions:not(#\-) { row-gap: 2px; } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-more-top:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-more .theme-switch-compact:not(#\-) { margin-top: 14px; margin-bottom: 0; } }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-more .phone-more-theme-head:not(#\-) { margin-top: 16px; margin-bottom: 0; } }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-more .phone-more-theme-head + .theme-switch-compact:not(#\-) { margin-top: 8px; } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-topbar .phone-quick-add:not(#\-) { padding-top: 1px; padding-bottom: 1px; } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-tabbar:not(#\-) { padding-top: 6px; padding-bottom: calc(var(--safe-bottom) + 6px); } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-tabs:not(#\-) { margin-top: 0; margin-bottom: 0; } }
@@ -4816,6 +4916,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 768px) { :root:where([data-density=compact]) .pillar-hero.wealth-heading > .pillar-hero-actions:not(#\-) { row-gap: 8px; margin-top: 18px; } }
 :root:where([data-density=compact]) .wealth-more-group:not(#\-) { row-gap: 9px; }
 @media (max-width: 767.98px) { :root:where([data-density=compact]) .wealth-product.wealth-workspace > .wealth-hero.wealth-summary:not(#\-) { margin-top: -12px; } }
+:where(:root[data-density=compact]) .wealth-stables-cash:not(#\-) { row-gap: 8px; }
 /*  components/platform/wealth-product.css  */
 :where(:root[data-density=compact]) .wealth-product:not(#\-) { row-gap: 32px; }
 :where(:root[data-density=compact]) .wealth-product .wealth-hero:not(#\-) { padding-top: clamp(28px,4vw,56px); padding-bottom: clamp(28px,4vw,56px); row-gap: 28px; }
@@ -5090,6 +5191,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .portfolio-ranges button:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .portfolio-chart-quote:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .portfolio-chart-empty:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 28px; padding-bottom: 28px; }
+:where(:root[data-density=compact]) .portfolio-returns:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .portfolio-returns div:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .portfolio-returns dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/price-alerts/price-alerts.css  */
 :where(:root[data-density=compact]) .price-alerts-card h3:not(#\-) { margin-top: 4px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .price-alerts-list:not(#\-) { row-gap: 6px; margin-top: 6px; margin-bottom: 6px; padding-top: 0; padding-bottom: 0; }
@@ -5127,6 +5231,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .reminders-switch span:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .reminders-when:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .reminders-when .field:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .reminders-when > .reminders-quiet-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/reminders/reminders.css  */
 :where(:root[data-density=compact]) .reminder-cards:not(#\-) { row-gap: 14px; margin-top: 0; margin-bottom: 18px; }
 :where(:root[data-density=compact]) .reminder-card:not(#\-) { row-gap: 6px; padding-top: 13.5px; padding-bottom: 13.5px; }
@@ -5165,6 +5270,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .rb-failed:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :root:where([data-density=compact]) .rb-group:not(#\-) { padding-top: 10.5px; padding-bottom: 12px; }
 :root:where([data-density=compact]) .rb-file:not(#\-) { padding-top: 14px; padding-bottom: 14px; }
+:root:where([data-density=compact]) .rb-erase:not(#\-) { row-gap: 10px; }
+:root:where([data-density=compact]) .rb-erase[open]:not(#\-) { row-gap: 12px; }
+:root:where([data-density=compact]) .rb-erase .rb-mode:not(#\-) { row-gap: 6px; }
 /*  components/review-cards/review-cards.css  */
 :where(:root[data-density=compact]) .review-cards:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .review-card:not(#\-) { row-gap: 7.5px; padding-top: 13.5px; padding-bottom: 13.5px; }
@@ -5242,6 +5350,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/secret-guard/secret-guard.css  */
 :where(:root[data-density=compact]) .secret-guard:not(#\-) { row-gap: 8px; margin-top: 6px; margin-bottom: 10px; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .secret-guard p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/settings/af-extras-confirm.css  */
+:where(:root[data-density=compact]) .af-extras-confirm:not(#\-) { row-gap: 8px; }
 /*  components/settings/af-signing-section.css  */
 :where(:root[data-density=compact]) .af-signing-setting:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .af-signing-setting-row:not(#\-) { row-gap: 7.5px; }
@@ -5700,6 +5810,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .focus-controls label:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .focus-garden-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .focus-lengths:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .universe-planet-off:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 /*  components/wallet/wallet-card.css  */
 :where(:root[data-density=compact]) .account-panel .wallet-card-controls:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 9px; }
 :where(:root[data-density=compact]) .account-panel .wallet-card-choice select:not(#\-) { padding-top: 0; padding-bottom: 0; }
@@ -5973,6 +6084,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .zeco-status:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
 :where(:root[data-density=compact]) .zeco-steps:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .ecosystem-project .ecosystem-status:not(#\-) { margin-top: .1rem; margin-bottom: .1rem; }
+:where(:root[data-density=compact]) .ecosystem-used:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
 /*  components/zigi/knock.css  */
 :where(:root[data-density=compact]) .zigi-knock:not(#\-) { padding-top: 12px; padding-bottom: 12px; row-gap: 10px; }
 :where(:root[data-density=compact]) .zigi-knock-head:not(#\-) { row-gap: 10px; }

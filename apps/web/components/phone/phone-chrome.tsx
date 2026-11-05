@@ -52,8 +52,9 @@ const MORE_NOTES: Record<string, string> = {
   "/app/ecosystem": "ZIGChain projects · research only",
   "/app/chess": "Your chess ratings and games · public data",
   "/app/activity": "Your recent steps, in order",
-  "/app/settings": "Backups, privacy, motion and Showcase",
-  "/app/help": "Answers, feedback and the Alpha's facts",
+  // Session AL third pass (DV-256, P-DV-112): plain words; the Alpha's facts are Status & wallet's row, said once.
+  "/app/settings": "Backups, privacy, display and the demo tour",
+  "/app/help": "Answers and feedback",
   "/app/journey": "Your level, quests and badges",
   // Session AL (DV-162, DV-255): plain words that tell the Checklist, Tasks and Notes apart.
   "/app/checklist": "Today's short list: the few things you starred",
@@ -153,7 +154,9 @@ export function PhoneTopBar() {
   const wealthShortcut = isShown(view, "wealth") && isShown(view, "wealth-shortcut");
   // Session AB-Design (owner request 10, ADR-024 D2): More opens from the top bar; Settings and Help are its last rows.
   const moreCurrent = phoneTabs(items, isNavPage).more.some(([href]) => isNavActive(path, href));
-  return <div ref={bar} className="phone-topbar">
+  // Session AL third pass (P-LA-29, LA-024/N-LS-05): the bar is the page's banner landmark, so the logo, Back and its
+  // buttons sit inside a landmark (axe "region"); a role only: the element and its CSS are unchanged.
+  return <div ref={bar} className="phone-topbar" role="banner">
     <div className="phone-topbar-row">
       {route.back
         ? <Link className="phone-back" href={route.back.href} aria-label={`Back to ${route.back.label}`}><AppIcon name="back" size={22} /><span aria-hidden="true">{route.back.label}</span></Link>
@@ -206,7 +209,7 @@ export function PhoneTabBar() {
   useFocusRescue(tabs, TABS.map(([href]) => href).join(" "));
   useSheetDrag(show);
   // Arriving on a page closes More, whatever started the navigation; the top bar's More button opens it (the shared store).
-  useEffect(() => { setOpen(false); }, [path]);
+  useEffect(() => { setMoreOpen(false); }, [path]);
   useEffect(() => {
     const dialog = sheet.current;
     if (!dialog) return;
@@ -263,6 +266,8 @@ export function PhoneTabBar() {
             </Link></li>;
           })}
         </ul>
+        {/* Session AL third pass (DV-256): the switch is named on screen too, as in Apps & extras. */}
+        <h3 className="phone-more-theme-head">Theme</h3>
         <ThemeSwitch compact />
         <div className="phone-more-signature">
           <p className="phone-more-descriptor">Your Financial Orbit</p>

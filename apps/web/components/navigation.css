@@ -131,3 +131,6 @@
 .workspace-status [data-sync-tone=synced]::before{background:var(--cyan)}
 .workspace-status :is([data-sync-tone=syncing],[data-sync-tone=waiting])::before{background:var(--violet)}
 .workspace-status [data-sync-tone=attention]::before{background:var(--pink)}
+/* Session AL third pass (P-LA-29): the shell's landmark around the floating buttons and their panels draws no box, so
+   every launcher keeps its fixed place, its stacking and its tab order. */
+.app-extras-landmark { display: contents; }

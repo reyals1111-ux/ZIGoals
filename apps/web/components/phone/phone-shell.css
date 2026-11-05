@@ -10,10 +10,10 @@
 /* Session AL (MO-139, P-MO-35): the Status & wallet sheet keeps its own look at any width and in every theme. It opens from
    the phone's More, but stays open if the window then widens past the phone query, where it had shown as a bare dialog
    (white box, words run together). The phone rules below still win on phones. */
-dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet) { box-sizing: border-box; width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0 16px 16px; border: 1px solid #7fc8ff2e; border-radius: 22px; background: linear-gradient(180deg, #0b1a33fa, #050c1efa); color: var(--text); box-shadow: 0 30px 70px -20px #000c; }
-dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet)::backdrop { background: #01050dc7; }
-dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet) .phone-form-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; }
-dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet) .phone-form-sheet-head h2 { margin: 0; font-size: 22px; line-height: 1.2; }
+:root dialog.phone-form-sheet.phone-status-dialog { box-sizing: border-box; width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0 16px 16px; border: 1px solid #7fc8ff2e; border-radius: 22px; background: linear-gradient(180deg, #0b1a33fa, #050c1efa); color: var(--text); box-shadow: 0 30px 70px -20px #000c; }
+:root dialog.phone-form-sheet.phone-status-dialog::backdrop { background: #01050dc7; }
+:root dialog.phone-form-sheet.phone-status-dialog .phone-form-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; }
+:root dialog.phone-form-sheet.phone-status-dialog .phone-form-sheet-head h2 { margin: 0; font-size: 22px; line-height: 1.2; }
 .phone-status-sheet { display: grid; gap: 14px; }
 .phone-status-sheet p { display: grid; gap: 4px; margin: 0; font-size: 15px; line-height: 1.45; color: var(--text-secondary, #dde7f7); }
 .phone-status-sheet strong { font-size: 13px; letter-spacing: .03em; color: var(--text-strong, #f4f8ff); }
@@ -64,6 +64,9 @@ dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet) .pho
   :root .phone-more-top { padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; }
   :root .phone-more-status { width: 100%; font: inherit; cursor: pointer; }
   :root .phone-more .theme-switch-compact { margin: 14px 0 0; }
+  /* Session AL third pass (DV-256): the theme switch's visible name, the Apps & extras sheet's subhead. */
+  :root .phone-more .phone-more-theme-head { margin: 16px 0 0; font-size: 15px; font-weight: 700; line-height: 1.3; color: var(--text); }
+  :root .phone-more .phone-more-theme-head + .theme-switch-compact { margin-top: 8px; }
   /* Quick add: the same component and name ("+ Quick add"), shown as a round "+". */
   /* (Session AG Polish, the owner's request of 22 Oct: the circle as drawn is 36 px — the logo's height and the Checklist pill's —
      inside the same 44 px touch target; a 1 px nebula ring, the glow following the circle.) */

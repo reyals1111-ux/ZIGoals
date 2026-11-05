@@ -84,7 +84,9 @@ test('the sheet: every switched-on entry, focus kept inside, Escape and focus ba
   await expect(sheet(page)).toBeVisible();
   await expect(button(page)).toHaveAttribute('aria-expanded', 'true');
   const entries = sheet(page).locator('.apps-extras-item strong');
-  await expect(entries).toHaveText(['ZIGi', 'NOVA', 'Checklist', 'Tasks', 'Notes', 'Journal', 'Agenda', 'Earn', 'Music']);
+  // Session AL third pass (L3's request, deliberate): the Showcase has the game layer on, and phones (no rocket in their
+  // top rows) list it last; the order and every other entry are unchanged.
+  await expect(entries).toHaveText(['ZIGi', 'NOVA', 'Checklist', 'Tasks', 'Notes', 'Journal', 'Agenda', 'Earn', 'Music', 'Game layer']);
   for (const box of await sheet(page).locator('.apps-extras-item, .apps-extras-close').evaluateAll(els => els.map(e => e.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
   // The keyboard stays in the sheet.
   for (let i = 0; i < 16; i++) {

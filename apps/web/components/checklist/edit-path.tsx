@@ -1,5 +1,6 @@
 'use client';
 import {removeWithUndo} from '../ui/remove-with-undo';
+import {PATH_REMOVAL_STACK} from '../../lib/checklist/habit-undo';
 import {showToast} from '../ui/undo-toast';
 import {Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent} from 'react';
 import {PATH_COLOURS, pathColour} from '../../lib/path/colours';
@@ -43,7 +44,7 @@ export function EditPath({state, onClose, addTo}: {state: ChecklistState; onClos
   // Session AH Part 3 (DS5): taking an item off the path gives a labelled Undo that puts it back where it was (its
   // records stay on its own page either way). Removing an orbit moves its items, so it is undone as one step while
   // nothing else changed since; otherwise the Undo says so.
-  const removeItemWithUndo = (id: string, words: string) => { removeWithUndo(record.update, r => removeItem(r, id), words, 'Back on your path.').then(() => setStatus(words), e => setStatus(message(e))); };
+  const removeItemWithUndo = (id: string, words: string) => { removeWithUndo(record.update, r => removeItem(r, id), words, 'Back on your path.', {stack: PATH_REMOVAL_STACK}).then(() => setStatus(words), e => setStatus(message(e))); };
   const removeSectionWithUndo = (id: string, words: string, to?: string) => {
     let before: Parameters<Parameters<typeof record.update>[0]>[0] | undefined, after: typeof before;
     try { record.update(r => { const next = removeSection(r, id, to); before = r; after = next; return next; }); setStatus(words); }

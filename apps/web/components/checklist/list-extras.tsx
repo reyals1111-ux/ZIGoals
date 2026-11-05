@@ -7,7 +7,7 @@ import {dueText} from '../tasks/task-parts';
 import {sectionsOf, sectionOfItem, removeItem, updateItem} from '../../lib/checklist/store';
 import {ChecklistError} from '../../lib/checklist/store';
 import {habitCalendarDay, logHabitValue, setHabitEntryStatus} from '../../lib/habits';
-import {restoreHabit} from '../../lib/checklist/habit-undo';
+import {PATH_REMOVAL_STACK, restoreHabit} from '../../lib/checklist/habit-undo';
 import {addLocalDays} from '../../lib/local-date';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import type {DerivedDot} from '../../lib/checklist/derive';
@@ -74,7 +74,7 @@ export function ListRowTools({state, dot}: {state: ChecklistState; dot: DerivedD
       <label className="field">Name<input dir="auto" value={name} maxLength={60} onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet">Rename</button></form>}
     {habitId && <button type="button" className="quiet" onClick={() => void yesterday()}>Done yesterday</button>}
     {habitId && dot.state !== 'done' && dot.counted && <button type="button" className="quiet" onClick={() => void skipToday()}>Skip today</button>}
-    <button type="button" className="quiet" onClick={() => { removeWithUndo(record.update, r => removeItem(r, dot.id), `${dot.label} is off your path. Its records stay on its page.`, 'Back on your path.').catch(e => setStatus(said(e, 'Not saved on this device. Try again.'))); }}>Take off the path</button>
+    <button type="button" className="quiet" onClick={() => { removeWithUndo(record.update, r => removeItem(r, dot.id), `${dot.label} is off your path. Its records stay on its page.`, 'Back on your path.', {stack: PATH_REMOVAL_STACK}).catch(e => setStatus(said(e, 'Not saved on this device. Try again.'))); }}>Take off the path</button>
     <p className="fine" role="status">{status}</p>
   </div>;
 }

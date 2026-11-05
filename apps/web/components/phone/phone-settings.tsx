@@ -14,7 +14,7 @@ import { usePhoneChrome } from "./use-phone-layout";
 // are the page's six labelled groups, Data & privacy first so backups stay on the first screen (Session E).
 const GROUPS: { title: string; rows: [label: string, note: string, target: string][] }[] = [
   { title: "Data & privacy", rows: [
-    ["Backups & restore", "Encrypted download and module copies", "private-vault"],
+    ["Backups & restore", "Encrypted backup and copies of each area", "private-vault"], // Session AL third pass (DV-261)
     ["Privacy & storage", "What stays in this browser", "privacy"],
     ["Export everything", "Optional: one readable ZIP of all your records", "export-everything"],
     ["Import from other apps", "Apple Health, Samsung, Oura, Loop", "switch-import"],

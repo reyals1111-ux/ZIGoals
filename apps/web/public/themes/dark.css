@@ -2300,6 +2300,40 @@
         color: inherit
     }
 }
+/*  components/activity/activity-report.css  */
+@scope (:root[data-theme=dark]) {
+    .activity-report:not(#\-) {
+        border-color: var(--line, rgba(127, 127, 160, .35))
+    }
+    .activity-report h3:not(#\-), .activity-report h4:not(#\-) {
+        color: var(--text-strong, inherit)
+    }
+    .activity-report-summary:not(#\-) {
+        color: var(--text-primary, inherit)
+    }
+    .activity-report-figure:not(#\-) {
+        color: var(--text-strong, inherit)
+    }
+    .activity-report-note:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .activity-report-list span:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .activity-report-bars:not(#\-) {
+        border-bottom-color: var(--line, rgba(127, 127, 160, .35))
+    }
+    .activity-report-bars i:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-goals, #9273ff)
+    }
+    @media (forced-colors: active) {
+        .activity-report-bars i:not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+}
 /*  components/add-money/add-money.css  */
 @scope (:root[data-theme=dark]) {
     .add-money-n:not(#\-) {
@@ -2992,6 +3026,13 @@
     }
     .ai-connection-copy small:not(#\-) {
         color: var(--muted,#aab2d9)
+    }
+    .ai-switch-track:not(#\-) {
+        border-color: currentColor
+    }
+    .ai-switch-knob:not(#\-) {
+        background-image: none;
+        background-color: currentColor
     }
     .ai-switch-copy small:not(#\-) {
         color: var(--muted,#aab2d9)
@@ -5766,6 +5807,20 @@
     .today-line-label:not(#\-) {
         color: var(--text-primary, inherit)
     }
+    .today-wealth-trend:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .today-wealth-trend svg:not(#\-) {
+        color: var(--pillar-wealth-ink, var(--pillar-wealth, #f2c76b))
+    }
+    .today-wealth-trend small:not(#\-) {
+        color: var(--text-secondary)
+    }
+    @media (forced-colors: active) {
+        .today-wealth-trend svg:not(#\-) {
+            color: CanvasText
+        }
+    }
     :scope :where(.today-page) .today-earn-card:not(#\-), :scope :where(.today-page) .for-you-card:not(#\-), :scope :where(.today-page) .wrap-up-card:not(#\-), :scope :where(.today-page) .today-game-card:not(#\-), :scope :where(.today-page) .today-journal-card:not(#\-), :scope :where(.today-page) .today-tasks-card:not(#\-) {
         box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
     }
@@ -6486,18 +6541,6 @@
     .earn-illustration-svg .il-lines rect:not(#\-) {
         fill: #7fc8ff30
     }
-    @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-        .earn-apps-strip-app:not(#\-) {
-            color: var(--text-secondary)
-        }
-    }
-    @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-        .earn-apps-strip .earn-dock-app-face:not(#\-) {
-            border-color: #ffd27a66;
-            background-image: radial-gradient(120% 120% at 30% 20%, #071229, #01040f 72%);
-            background-color: transparent
-        }
-    }
     .earn-chips-more:not(#\-) {
         border-color: #7fc8ff55;
         background-image: none;
@@ -6748,6 +6791,15 @@
     }
     .ecosystem-details .fine:not(#\-) {
         color: #b3c3d8
+    }
+    .ecosystem-controls .ecosystem-audited small:not(#\-) {
+        color: var(--text-secondary,#c4d2ea)
+    }
+}
+/*  components/export-everything.css  */
+@scope (:root[data-theme=dark]) {
+    .export-everything-range:not(#\-) {
+        border-color: var(--line, rgba(127, 127, 127, .35))
     }
 }
 /*  components/first-week/first-week.css  */
@@ -7629,6 +7681,9 @@
             background-color: transparent
         }
     }
+    :scope .goal-tree-node[data-drop]:not(#\-), :scope .goal-tree-root[data-drop]:not(#\-) {
+        outline-color: var(--pillar-goals, #9273ff)
+    }
 }
 /*  components/goals/goals.css  */
 @scope (:root[data-theme=dark]) {
@@ -7930,6 +7985,9 @@
     .hall-area:not(#\-) {
         color: color-mix(in srgb, var(--area, #8fa6ff) 72%, #ffffff);
         border-color: color-mix(in srgb, var(--area, #8fa6ff) 45%, transparent)
+    }
+    .debt-paydown-list li span:not(#\-) {
+        color: var(--text-secondary, inherit)
     }
 }
 /*  components/goals/milestone-planner.css  */
@@ -9036,6 +9094,20 @@
     .habit-delete-confirm:not(#\-) {
         border-color: color-mix(in srgb,#ff8a8a 45%,var(--line,#2a325a))
     }
+    .habit-same-name:not(#\-) {
+        border-color: var(--border-subtle, #ffffff2e);
+        background-image: none;
+        background-color: var(--surface-raised, #ffffff0a)
+    }
+    .habit-timezone > summary:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .habit-reflection-list li:not(#\-) {
+        border-color: var(--border-subtle, #ffffff1f)
+    }
+    .habit-reflection-head:not(#\-) {
+        color: var(--text-secondary)
+    }
 }
 /*  components/habits/recurrence-phrase.css  */
 @scope (:root[data-theme=dark]) {
@@ -9707,25 +9779,6 @@
     :scope .health-grocery-aisle h3 small:not(#\-) {
         color: var(--text-strong, #f4f8ff)
     }
-    :scope :where(.health-page) .panel:not(.health-aa-card):not(#\-) {
-        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-health) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
-    }
-    :scope :where(.health-page) .health-aa-card:not(#\-) {
-        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
-    }
-    @media (hover: hover) and (pointer: fine) {
-        :scope :where(.health-page) .panel:not(.health-aa-card):hover:not(#\-), :scope :where(.health-page) .health-aa-card:hover:not(#\-) {
-            border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent))
-        }
-    }
-    :scope :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible):not(#\-), :scope :where(.health-page) .health-aa-card:has(:focus-visible):not(#\-) {
-        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
-    }
-    @media (forced-colors: active) {
-        :scope :where(.health-page) .panel:not(.health-aa-card):not(#\-), :scope :where(.health-page) .health-aa-card:not(#\-) {
-            box-shadow: none
-        }
-    }
     .health-page .health-macro .health-macro-partial:not(#\-) {
         color: var(--health-muted, #ced6e5)
     }
@@ -9765,6 +9818,42 @@
     }
     .health-micro-coverage:not(#\-) {
         color: inherit
+    }
+    .health-save-recipe:disabled:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2);
+        color: var(--text-secondary);
+        border-color: currentColor;
+        box-shadow: none
+    }
+    :scope[data-theme=dark] .health-save-recipe:disabled:not(#\-) {
+        background: #1c2030;
+        color: #d5dbea
+    }
+    .health-mood-chips > button[aria-pressed=true]:not(#\-) {
+        outline-color: currentColor
+    }
+    .health-meal-time:not(#\-) {
+        color: var(--text-secondary)
+    }
+    :scope :where(.health-page) .panel:not(.health-aa-card):not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-health) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    :scope :where(.health-page) .health-aa-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.health-page) .panel:not(.health-aa-card):hover:not(#\-), :scope :where(.health-page) .health-aa-card:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible):not(#\-), :scope :where(.health-page) .health-aa-card:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.health-page) .panel:not(.health-aa-card):not(#\-), :scope :where(.health-page) .health-aa-card:not(#\-) {
+            box-shadow: none
+        }
     }
 }
 /*  components/health/health-day.css  */
@@ -10744,6 +10833,9 @@
             box-shadow: none
         }
     }
+    .help-updated:not(#\-) {
+        color: var(--text-secondary)
+    }
 }
 /*  components/hide-amounts.css  */
 @scope (:root[data-theme=dark]) {
@@ -10885,6 +10977,9 @@
         border-color: #6fdcff55;
         background-image: none;
         background-color: #03090ecc
+    }
+    .import-banner .actions button.quiet:not(#\-) {
+        border-color: currentColor
     }
     .import-recent li:not(#\-) {
         border-top-color: rgba(171, 144, 211, .15)
@@ -12681,9 +12776,9 @@
         --neon-ink: #ffe6b0
     }
     .nova-widget[data-pillar=orbit]:not(#\-), .holo-action[data-pillar=orbit]:not(#\-) {
-        --neon: var(--nova-b, #63e7ff);
-        --neon-2: var(--nova-hi, #cbbfff);
-        --neon-ink: #dcecff
+        --neon: #a9b8ff;
+        --neon-2: #d6deff;
+        --neon-ink: #e8edff
     }
     .holo-num:not(#\-) {
         color: var(--neon-ink, #eef3ff);
@@ -12731,7 +12826,11 @@
     .holo-arc:not(#\-) {
         fill: none;
         stroke: var(--neon, #9273ff);
-        filter: drop-shadow(0 0 3px var(--neon, #9273ff))
+        filter: drop-shadow(0 0 2px var(--neon, #9273ff)) drop-shadow(0 0 7px color-mix(in oklab, var(--neon, #9273ff) 65%, transparent))
+    }
+    .holo-glint:not(#\-) {
+        fill: none;
+        stroke: #ffffffb3
     }
     .holo-arc-end:not(#\-) {
         fill: #fff;
@@ -12748,6 +12847,13 @@
     }
     .holo-stack g[data-pillar=wealth]:not(#\-) {
         --neon: #ffbf3c
+    }
+    :is(.holo-track, .holo-track-path)[data-unknown]:not(#\-) {
+        stroke: #c9d4ea
+    }
+    .holo-unknown-mark:not(#\-) {
+        fill: none;
+        stroke: #dfe7f8
     }
     .holo-dial-label:not(#\-) {
         fill: #c9d4ea
@@ -12823,7 +12929,7 @@
     .holo-spark-line:not(#\-) {
         fill: none;
         stroke: var(--neon, #9273ff);
-        filter: drop-shadow(0 0 4px var(--neon, #9273ff))
+        filter: drop-shadow(0 0 2px var(--neon, #9273ff)) drop-shadow(0 0 6px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent))
     }
     .holo-stop-a:not(#\-) {
         stop-color: var(--neon, #9273ff)
@@ -12852,7 +12958,8 @@
         background-image: linear-gradient(90deg, var(--neon, #9273ff) calc(var(--part) * 100%), transparent 0)
     }
     .holo-segs i[data-lit]:not(#\-) {
-        background: var(--neon, #9273ff);
+        background-image: none;
+        background-color: var(--neon, #9273ff);
         box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 75%, transparent)
     }
     .holo-meter[data-unknown] .holo-segs i:not(#\-) {
@@ -12867,8 +12974,11 @@
         color: #d3ddf1
     }
     .holo-heart-shell:not(#\-) {
-        fill: none;
+        fill: #ff4fb81f;
         stroke: #ff8fd6
+    }
+    .holo-hearts .holo-heart-pct:not(#\-) {
+        color: #ffc8e8
     }
     .holo-heart-fill:not(#\-) {
         fill: #ff4fb8;
@@ -12878,7 +12988,8 @@
         color: #dbe4f6
     }
     .holo-dot:not(#\-) {
-        background: var(--neon, #2ef2ff);
+        background-image: none;
+        background-color: var(--neon, #2ef2ff);
         box-shadow: 0 0 6px var(--neon, #2ef2ff)
     }
     .holo-week-day small:not(#\-) {
@@ -12889,7 +13000,8 @@
         background-color: color-mix(in oklab, var(--neon, #2ef2ff) 14%, #ffffff0d)
     }
     .holo-col i[data-lit]:not(#\-) {
-        background: var(--neon, #2ef2ff);
+        background-image: none;
+        background-color: var(--neon, #2ef2ff);
         box-shadow: 0 0 5px color-mix(in oklab, var(--neon, #2ef2ff) 70%, transparent)
     }
     .holo-arc-name:not(#\-) {
@@ -12952,10 +13064,16 @@
         color: #cfdaf0
     }
     .holo-counters div[data-tone=attention]:not(#\-) {
-        border-color: #ffbf3c88
+        border-color: #ff6b5a99;
+        background-image: none;
+        background-color: #ff6b5a12
     }
     .holo-counters div[data-tone=attention] .holo-num:not(#\-) {
-        color: #ffe6b0
+        color: #ffd0ca;
+        text-shadow: 0 0 12px #ff6b5a99
+    }
+    .holo-attention-mark:not(#\-) {
+        color: #ffb4aa
     }
     .holo-captures a:not(#\-) {
         color: #eef3ff
@@ -13039,6 +13157,35 @@
     .holo-frame-label:not(#\-) {
         color: #d3ddf1
     }
+    .holo-frame-label[data-at=title]:not(#\-) {
+        color: #ffe6b0
+    }
+    .holo-frame-key:not(#\-) {
+        color: #ffe6b0
+    }
+    .holo-wave-dot:not(#\-) {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 2px #ffbf3c, 0 0 8px #ffbf3c
+    }
+    .holo-wave-dot[data-now]:not(#\-) {
+        background-image: none;
+        background-color: #01020a;
+        box-shadow: none;
+        border-color: #ffe08a
+    }
+    .holo-wave-tag:not(#\-) {
+        background-image: none;
+        background-color: #01020ad9;
+        color: #ffe6b0
+    }
+    .holo-wave-tag[data-at=now]:not(#\-) {
+        color: #fff2c9
+    }
+    .holo-now-link:not(#\-) {
+        fill: none;
+        stroke: #ffe08a
+    }
     .holo-grid-fine:not(#\-) {
         stroke: #ffffff0e
     }
@@ -13064,6 +13211,11 @@
     .holo-ref-key:not(#\-) {
         color: #d3ddf1
     }
+    .holo-histo-line-tag:not(#\-) {
+        background-image: none;
+        background-color: #01020acc;
+        color: #f4f7ff
+    }
     .holo-bar-a:not(#\-) {
         stop-color: #8f6bff
     }
@@ -13072,7 +13224,7 @@
     }
     .holo-bar-tip:not(#\-) {
         fill: #5ff2ff;
-        filter: drop-shadow(0 0 3px #5ff2ff)
+        filter: drop-shadow(0 0 4px #5ff2ff)
     }
     .holo-bar-empty:not(#\-) {
         fill: none;
@@ -13102,7 +13254,8 @@
         background-color: transparent
     }
     .holo-slider-fill:not(#\-) {
-        background: var(--neon, #a47bff);
+        background-image: none;
+        background-color: var(--neon, #a47bff);
         box-shadow: 0 0 6px var(--neon, #a47bff)
     }
     .holo-slider-dot:not(#\-) {
@@ -13151,12 +13304,82 @@
         background-color: color-mix(in oklab, var(--neon, #9273ff) 18%, #ffffff10)
     }
     .holo-core-bar:not(#\-)::before {
-        background: var(--neon, #9273ff);
+        background-image: none;
+        background-color: var(--neon, #9273ff);
         box-shadow: 0 0 6px var(--neon, #9273ff)
     }
     .holo-core-bar[data-unknown]:not(#\-) {
         background-image: linear-gradient(90deg, #ffffff40 50%, transparent 0);
         background-color: transparent
+    }
+    .holo-core-readout li:not(#\-) {
+        color: #d3ddf1
+    }
+    .holo-core-bar:not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .holo-core-bar i:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 16%, #ffffff10)
+    }
+    .holo-core-bar i[data-lit]:not(#\-) {
+        background-image: none;
+        background-color: var(--neon, #9273ff);
+        box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .holo-core-bar[data-unknown]:not(#\-) {
+        background-image: none;
+        background-color: #c9d4ea
+    }
+    .holo-core-why:not(#\-) {
+        color: #c3cfe6
+    }
+    .holo-arc-link:not(#\-) {
+        color: #eef3ff
+    }
+    .holo-arc-name:not(#\-) {
+        color: #eef3ff
+    }
+    .holo-more-link:not(#\-) {
+        color: var(--nova-hi, #cbbfff)
+    }
+    .holo-pace-dot:not(#\-) {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 2px var(--neon, #a47bff), 0 0 8px var(--neon, #a47bff)
+    }
+    .holo-dial-hour:not(#\-) {
+        color: #dfe7f8
+    }
+    .holo-agenda-count:not(#\-) {
+        color: #d3ddf1
+    }
+    .holo-orbit-line:not(#\-) {
+        color: #dbe4f6
+    }
+    .holo-empty-shape b:not(#\-) {
+        color: #dfe7f8
+    }
+    .holo-empty-frame:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #ffbf3c) 40%, transparent)
+    }
+    .holo-empty-line:not(#\-) {
+        fill: none;
+        stroke: #ffffff45
+    }
+    .holo-empty-words:not(#\-) {
+        color: #dbe4f6
+    }
+    .holo-action:not(#\-) {
+        background-image: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px), none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 7%, #01020a)
+    }
+    .holo-sketch-star:not(#\-) {
+        fill: #cbbfff
+    }
+    .holo-sketch-band:not(#\-) {
+        fill: #c9d4ea
     }
 }
 /*  components/nova/holo/holo.css  */
@@ -13170,9 +13393,17 @@
     }
     .nova-widget[data-holo]:not(#\-) {
         border-color: color-mix(in oklab, var(--neon, #9273ff) 58%, transparent);
-        background-image: repeating-linear-gradient(0deg, #ffffff05 0 1px, transparent 1px 3px), linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 7%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 7%, transparent) 1px, transparent 1px), linear-gradient(162deg, color-mix(in oklab, var(--neon, #9273ff) 14%, #010213e8) 0%, #010108e6 46%, #01010499 100%);
-        background-color: transparent;
+        --holo-tint: linear-gradient(162deg, color-mix(in oklab, var(--neon, #9273ff) 14%, #0a1030e8) 0%, #060a1ce6 46%, #04061299 100%);
+        --holo-grid: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 7%, transparent) 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 7%, transparent) 1px, transparent 1px) 0 0 / 22px 22px;
+        --holo-glass: var(--holo-grid), var(--holo-tint);
+        background: var(--holo-glass);
         box-shadow: inset 0 0 0 1px #ffffff0a, inset 0 1px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 26px 50px -30px #000
+    }
+    .nova-widget[data-holo][data-size=S]:not(#\-) {
+        --holo-glass: var(--holo-tint)
+    }
+    .nova-widget[data-holo][data-size=L]:not(#\-) {
+        --holo-glass: repeating-linear-gradient(0deg, #ffffff05 0 1px, transparent 1px 3px), var(--holo-grid), var(--holo-tint)
     }
     .nova-widget[data-holo]:not(#\-)::after {
         background-image: linear-gradient(162deg, #ffffffd0 0%, var(--neon, #9273ff) 16%, transparent 42%, transparent 72%, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 100%);
@@ -13207,7 +13438,8 @@
         background-color: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0d)
     }
     .nova-widget[data-holo] .glass-fill:not(#\-) {
-        background: var(--neon, #9273ff);
+        background-image: none;
+        background-color: var(--neon, #9273ff);
         box-shadow: 0 0 8px var(--neon, #9273ff)
     }
     .holo-brackets:not(#\-) {
@@ -13234,6 +13466,17 @@
     }
     .holo-act svg:not(#\-) {
         filter: drop-shadow(0 0 4px var(--neon, #9273ff))
+    }
+    .nova-orbit-side > .nova-widget[data-holo][data-size=L]:not([data-dragging]):not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: transparent;
+        box-shadow: none
+    }
+    .nova-orbit-side > .nova-widget[data-holo][data-size=L]:not([data-dragging]):not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 58%, transparent);
+        background: var(--holo-glass);
+        box-shadow: inset 0 0 0 1px #ffffff0a, inset 0 1px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 0 70px -18px #f06dff8c, 0 26px 50px -30px #000
     }
     .nova-frame[data-phone] .nova-widget[data-holo]:not(#\-) {
         background-color: #010108
@@ -13271,6 +13514,75 @@
     }
     .holo-keys-off:not(#\-) {
         color: #c3cfe6
+    }
+    .nova-frame:not([data-phone]) [data-holo-fit]:not([data-holo-fit=bento]) .nova-widget[data-holo]:not(#\-) {
+        --h-s: var(--holo-u, 124px);
+        --h-m: calc(var(--holo-u, 124px) * 2 + 12px);
+        --h-l: calc(var(--holo-u, 124px) * 4 + 36px)
+    }
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side:not(:empty):not(#\-)::before {
+        border-color: #a9b8ff1c;
+        background-image: linear-gradient(180deg, #8f7bff0d, #2ef2ff06 50%, #f06dff0b);
+        background-color: transparent;
+        box-shadow: inset 0 0 50px #8f7bff12
+    }
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side:not(:empty):not(#\-)::after {
+        background-image: repeating-linear-gradient(to bottom, #c9d2ff66 0 1px, transparent 1px 12px), linear-gradient(#a9b8ff40, #a9b8ff40);
+        background-color: transparent
+    }
+    .holo-floor:not(#\-) {
+        background-image: linear-gradient(#63e7ff55 1px, transparent 1px), linear-gradient(90deg, #9273ff55 1px, transparent 1px)
+    }
+    .nova-frame .nova-widget[data-holo] :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible:not(#\-) {
+        outline-color: #fff;
+        box-shadow: 0 0 0 5px #050818, 0 0 0 7px var(--neon, #9273ff)
+    }
+    .nova-stage[data-holo-core] :is(.nova-name, .nova-orb-state):not(#\-) {
+        text-shadow: 0 0 2px #050818, 0 0 6px #050818, 0 0 18px color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent)
+    }
+    .nova-frame[data-look=classic] .nova-widget[data-pillar=health]:not(#\-) {
+        --neon: color-mix(in oklab, #ff4fb8 55%, #cfd8ef)
+    }
+    .nova-frame[data-look=classic] .nova-widget[data-pillar=habits]:not(#\-) {
+        --neon: color-mix(in oklab, #2ef2ff 55%, #cfd8ef)
+    }
+    .nova-frame[data-look=classic] .nova-widget[data-pillar=goals]:not(#\-) {
+        --neon: color-mix(in oklab, #a47bff 55%, #cfd8ef)
+    }
+    .nova-frame[data-look=classic] .nova-widget[data-pillar=wealth]:not(#\-) {
+        --neon: color-mix(in oklab, #ffbf3c 55%, #cfd8ef)
+    }
+    .nova-frame[data-look=classic] .nova-widget[data-pillar=orbit]:not(#\-) {
+        --neon: color-mix(in oklab, #a9b8ff 55%, #cfd8ef)
+    }
+    .nova-frame[data-look=classic] .nova-widget .holo-arc:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-arc-end:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-spark-line:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-mark:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-planet:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-heart-fill:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-mix-seg:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-wave-line:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-bar-tip:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-ref-line:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-flow-source:not(#\-) {
+        filter: none
+    }
+    .nova-frame[data-look=classic] .nova-widget .holo-num:not(#\-), .nova-frame[data-look=classic] .nova-widget .nova-figure:not(#\-) {
+        text-shadow: none
+    }
+    .nova-frame[data-look=classic] .nova-widget .holo-segs i[data-lit]:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-col i[data-lit]:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-flow i:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-slider-fill:not(#\-) {
+        box-shadow: none
+    }
+    .nova-root .nova-widget .task-chip.task-chip-p1:not(#\-) {
+        color: #ffb4b0;
+        background-image: none;
+        background-color: #260103;
+        border-color: #ff8f88
+    }
+    .nova-root .nova-widget .task-chip.task-chip-p2:not(#\-) {
+        color: #ffd4a8;
+        border-color: #ffb469
+    }
+    :scope[data-glow="soft"] .nova-orbit-side > .nova-widget[data-holo][data-size=L]:not(#\-)::before {
+        box-shadow: inset 0 0 0 1px #ffffff0a, 0 20px 40px -30px #000
+    }
+    @media (forced-colors: active) {
+        .nova-orbit-side > .nova-widget[data-holo][data-size=L]:not(#\-)::before {
+            border-color: CanvasText;
+            background-image: none;
+            background-color: transparent
+        }
     }
 }
 /*  components/nova/live/live-chips.css  */
@@ -14673,6 +14985,28 @@
     .onboarding-count:not(#\-) {
         color: var(--text-secondary)
     }
+    .onboarding-game-preview:not(#\-) {
+        border-color: #7fc8ff1f;
+        background-image: none;
+        background-color: #01030ba6;
+        color: #d6e2f3
+    }
+    .onboarding-game-level small:not(#\-) {
+        color: #c2d0e5
+    }
+    .onboarding-game-pill:not(#\-) {
+        color: #0b1020;
+        background-image: linear-gradient(90deg, #6fe6f6, #c790f6);
+        background-color: transparent
+    }
+    @media (forced-colors: active) {
+        .onboarding-game-pill:not(#\-) {
+            color: CanvasText;
+            background-image: none;
+            background-color: transparent;
+            border-color: currentcolor
+        }
+    }
 }
 /*  components/orbit-card/orbit-card.css  */
 @scope (:root[data-theme=dark]) {
@@ -15362,14 +15696,14 @@
 }
 /*  components/phone/phone-shell.css  */
 @scope (:root[data-theme=dark]) {
-    dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet):not(#\-) {
+    :scope dialog.phone-form-sheet.phone-status-dialog:not(#\-) {
         border-color: #7fc8ff2e;
         background-image: linear-gradient(180deg, #010514fa, #010209fa);
         background-color: transparent;
         color: var(--text);
         box-shadow: 0 30px 70px -20px #000c
     }
-    dialog.phone-form-sheet:has(> .phone-form-sheet-body > .phone-status-sheet):not(#\-)::backdrop {
+    :scope dialog.phone-form-sheet.phone-status-dialog:not(#\-)::backdrop {
         background-image: none;
         background-color: #000103c7
     }
@@ -15429,6 +15763,11 @@
             border-color: currentcolor;
             background-image: none;
             background-color: transparent
+        }
+    }
+    @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+        :scope .phone-more .phone-more-theme-head:not(#\-) {
+            color: var(--text)
         }
     }
     @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
@@ -18053,6 +18392,16 @@
         color: inherit
     }
 }
+/*  components/settings/af-extras-confirm.css  */
+@scope (:root[data-theme=dark]) {
+    .af-extras-confirm > span:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .af-extras-row .af-extras-confirm .quiet:not(:disabled):not(#\-) {
+        color: inherit;
+        border-color: transparent
+    }
+}
 /*  components/settings/af-signing-section.css  */
 @scope (:root[data-theme=dark]) {
     .af-signing-setting-row small:not(#\-) {
@@ -19289,6 +19638,16 @@
     .af-extras-row small:not(#\-) {
         color: var(--text-secondary)
     }
+    .af-extras-row button:not(:disabled):not(#\-) {
+        color: var(--danger-ink, #f5a7af);
+        border-color: color-mix(in srgb, var(--danger-ink, #f5a7af) 60%, transparent)
+    }
+    @media (forced-colors: active) {
+        .af-extras-row button:not(:disabled):not(#\-) {
+            color: ButtonText;
+            border-color: ButtonText
+        }
+    }
 }
 /*  components/universe/universe.css  */
 @scope (:root[data-theme=dark]) {
@@ -19381,6 +19740,9 @@
     }
     .focus-lengths button[aria-pressed="true"]:not(#\-) {
         outline-color: currentColor
+    }
+    .universe-planet-off:not(#\-) {
+        color: var(--text-secondary)
     }
 }
 /*  components/wallet/wallet-card.css  */

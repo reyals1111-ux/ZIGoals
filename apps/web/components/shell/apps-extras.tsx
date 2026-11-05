@@ -19,6 +19,7 @@ import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
 import {APPS_EXTRAS, APPS_PREFS, appsExtrasShown, type AppsExtraId} from '../../lib/ui-prefs/apps';
 import {SHELL_FRAME} from '../../lib/ai/zigi-look';
+import {GAME} from '../../lib/game/schema';
 
 /**
  * Session AL (owner decision O3): below 901 px (phones, the tablet rail and a phone turned sideways) nothing floats over
@@ -67,7 +68,7 @@ function Medallion({id}: {id: AppsExtraId}) {
 export function AppsExtrasSheet() {
   const compact = useCompactShell(), phone = usePhoneActive(), open = useAppsExtrasOpen(), path = usePathname() ?? '';
   const dialog = useRef<HTMLDialogElement>(null), handoff = useRef(false), titleId = useId(), noteId = useId();
-  const view = usePagesView(), chain = useChainChoice(), ui = useUiPrefs(), apps = useDeviceRecord(APPS_PREFS);
+  const view = usePagesView(), chain = useChainChoice(), ui = useUiPrefs(), apps = useDeviceRecord(APPS_PREFS), game = useDeviceRecord(GAME);
   // ZIGi steps aside while a sign-in, unlock or recovery form shows on the page behind (ADR-012 rule 8): read as the
   // sheet opens, before the sheet itself counts as an open dialog.
   const [zigiBlocked, setZigiBlocked] = useState(false);
@@ -82,6 +83,9 @@ export function AppsExtrasSheet() {
     if (!open && el.open) el.close();
   }, [open, compact]);
   if (!compact) return null;
+  // Session AL third pass (L3's request; AL-LAYOUT-375-011): phones have no Game layer rocket in their top rows, so while
+  // the game layer is on its row is here, opening the Journey (its level, quests, badges and the switch).
+  const gameRow = phone && game.loaded && !game.unreadable && game.data.enabled;
   const done = () => { setAppsExtrasOpen(false); };
   // Closed by Escape, the backdrop, ×, or a choice: the focus goes back to the button, unless a panel takes it over.
   const onClose = () => { setAppsExtrasOpen(false); if (!handoff.current) requestAnimationFrame(() => document.querySelector<HTMLElement>(BUTTON)?.focus({preventScroll: true})); handoff.current = false; };
@@ -95,7 +99,7 @@ export function AppsExtrasSheet() {
         <button type="button" className="apps-extras-close" aria-label="Close Apps & extras" onClick={done}>×</button>
       </div>
       <p className="apps-extras-note" id={noteId}>Your companion, tools and extras. Choose what shows here in Settings.</p>
-      {ids.length ? <ul className="apps-extras-list">
+      {ids.length || gameRow ? <ul className="apps-extras-list">
         {ids.map(id => {
           const app = APPS_EXTRAS[id], current = !!app.href && (path === app.href || path.startsWith(`${app.href}/`));
           const copy = <span className="apps-extras-copy"><strong>{app.label}</strong><span>{id === 'zigi' && zigiBlocked ? 'Steps aside while a sign-in or recovery form shows on this page' : app.note}</span></span>;
@@ -105,6 +109,10 @@ export function AppsExtrasSheet() {
               : <button type="button" className="apps-extras-item" aria-disabled={id === 'zigi' && zigiBlocked ? true : undefined} aria-haspopup="dialog" onClick={id === 'zigi' ? openZigi : openMusic}><Medallion id={id}/>{copy}</button>}
           </li>;
         })}
+        {gameRow && <li><Link href="/app/journey" prefetch={false} className="apps-extras-item" data-testid="apps-extras-game" aria-current={path === '/app/journey' ? 'page' : undefined} onClick={done}>
+          <span className="icon-medallion"><AppIcon name="future" size={22} luminous/></span>
+          <span className="apps-extras-copy"><strong>Game layer</strong><span>On: your level, quests and badges. Switch it off on Journey.</span></span>
+        </Link></li>}
       </ul> : <p className="apps-extras-empty">Every app and extra is switched off. Turn the ones you want back on in Settings.</p>}
       <Link className="apps-extras-settings text-link" href="/app/settings#your-pages" prefetch={false} onClick={done}>Choose what shows here →</Link>
       {/* Session AL (MO-157, DV-244, AL-NAV-012): beside the tablet rail (768–900 px) the theme had no control outside

@@ -158,7 +158,7 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
       const lb = prefs?.weightUnit === 'lb', show = (g: number) => Math.round((lb ? g / LB : g / 1000) * 10) / 10;
       const last = item.lastValue ?? latest?.grams ?? null;
       return {...here, label: item.label ?? 'Weigh in', state: today ? 'done' : 'undone', counted: true, ...(today ? {note: weightText(today.grams, lb ? 'lb' : 'kg') /* Session AL (PRIMITIVES format layer) */, doneAt: today.updatedAt} : {}), intent: 'value',
-        value: {current: last === null ? null : show(last), unit: lb ? 'lb' : 'kg', suggested: last === null ? (lb ? 150 : 70) : show(last), min: lb ? 44 : 20, max: lb ? 880 : 400, step: 0.1}};
+        value: {current: last === null ? null : show(last), unit: lb ? 'lb' : 'kg', suggested: last === null ? (lb ? 150 : 70) : show(last), min: lb ? 45 : 20, max: lb ? 880 : 400, step: 0.1}}; // Session AL third pass: 44 lb is under the store's 20 kg (45 to 881 lb, lib/limits)
     }
     case 'sleep': {
       const nights = s.sleep?.nights ?? [], ended = nights.filter(n => n.end !== null && nightDay(n) === day).sort((a, b) => (b.end ?? '').localeCompare(a.end ?? ''))[0], running = s.sleep ? runningNights(s.sleep)[0] : undefined;
