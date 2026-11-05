@@ -169,9 +169,12 @@ test('the hero star rises once per visit, never on re-render, and leaves only th
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();await page.waitForTimeout(600);
  await expect(star).toHaveCount(0);
  await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
+ // CI16 (CI 1569, desktop): the star lives about 1.8 s; on a loaded runner one poll's evaluate took 2 s, so the star the
+ // poll saw had already left when the separate aria-hidden check began. The same three facts (inside the Today hero,
+ // animating, aria-hidden="true") are now read together the moment the star is added, so its short life is never missed.
+ await page.evaluate(()=>{const w=window as unknown as {__heroStar:string[]};w.__heroStar=[];new MutationObserver(()=>{const s=document.querySelector('.hero-star');if(s&&!w.__heroStar.length)w.__heroStar.push(`${!!s.closest('.today-hero')}:${s.getAttribute('aria-hidden')}:${s.getAnimations({subtree:true}).length>0}`);}).observe(document.body,{childList:true,subtree:true});});
  await nav.getByRole('link',{name:'Today',exact:true}).click();
- await expect.poll(()=>page.evaluate(()=>document.querySelector('.hero-star')?.getAnimations({subtree:true}).length??0)).toBeGreaterThan(0);
- await expect(star).toHaveAttribute('aria-hidden','true');
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as {__heroStar?:string[]}).__heroStar?.[0]??'not yet')).toBe('true:true:true');
  await expect(star).toHaveCount(0,{timeout:6000});
  await expect(page.locator('.slogan-entrance')).toHaveText("Today's Goals, Habits & Health = Tomorrow's Wealth");
 });
