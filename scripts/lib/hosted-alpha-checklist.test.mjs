@@ -34,7 +34,10 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(code.split('\n').filter(line => /^\s*await /.test(line) && !/^\s{2,}/.test(line))).toEqual([]);
   });
   test('its words and selectors are the app’s own', () => {
-    const star = read('../../apps/web/components/checklist/star-toggle.tsx'), page = read('../../apps/web/components/checklist/checklist-page.tsx');
+    // Session AL (CI14, page weights, deliberate): the star's button moved to star-toggle-button.tsx (its own chunk);
+    // star-toggle.tsx keeps the stand-in with the same "Star …" name. Both words are asserted where they now live.
+    const star = read('../../apps/web/components/checklist/star-toggle-button.tsx'), standIn = read('../../apps/web/components/checklist/star-toggle.tsx'), page = read('../../apps/web/components/checklist/checklist-page.tsx');
+    expect(standIn).toContain('`Star ${label} for your Checklist path`');
     const adapters = read('../../apps/web/lib/checklist/adapters.ts'), toast = read('../../apps/web/components/ui/undo-toast.tsx'), completion = read('../../apps/web/components/habits/habit-completion.tsx');
     expect(star).toContain('`Star ${label} for your Checklist path`');
     expect(star).toContain('`${label} is on your Checklist path. Take it off`');
