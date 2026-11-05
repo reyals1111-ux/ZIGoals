@@ -27,7 +27,7 @@ const CycleSwitch = lazy(() => import('../cycle/cycle-switch'));
 const NOTES: Partial<Record<VisibilityId, string>> = {
   'quick-add': 'In the sidebar, the phone top bar and on Today.',
   'wealth-shortcut': 'The wallet button next to Settings in the phone top bar, while Wealth shows.',
-  zigi: 'The ZIGi button on a computer, ZIGi in Apps & extras below 901 px, and ⌘K / Ctrl+K, on every device you sync.',
+  zigi: 'The ZIGi button on a computer, ZIGi in Apps & extras below 901 px, ⌘/Ctrl+Shift+Z and Ask ZIGi in the command menu, on every device you sync.',
   music: 'A round button opposite ZIGi’s on a computer, a row in Apps & extras and the phone’s More sheet, and a Today widget.',
 };
 /**

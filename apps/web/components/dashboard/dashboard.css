@@ -143,6 +143,11 @@
 .today-wealth-trend small { font-size: 14px; line-height: 1.45; color: var(--text-secondary); }
 @media (forced-colors: active) { .today-wealth-trend svg { color: CanvasText; } }
 
+/* Session AL (NB-093): a widget's ⋯ panel was cut at the card's edge (the card clips its art). While the panel is open
+   (card-options.tsx marks the card) the card lets it out, sits above its neighbours, and its art hides so nothing else spills. */
+.dashboard-widget[data-options-open] { overflow: visible; z-index: 40; }
+.dashboard-widget[data-options-open] > .dashboard-widget-art { visibility: hidden; }
+
 /* Session AL: the lanes' later rules sit above the AK G3 block, so that block stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
 /* Session AK (G3): richer cards, as the new surfaces (F6). Today's own cards (not the hero, the slogan or the Checklist): Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a

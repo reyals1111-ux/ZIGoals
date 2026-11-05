@@ -348,7 +348,7 @@ test('Today\'s data carries the review week from the weekly review on this devic
   expect(await preview.textContent()).not.toMatch(/health entries|meals logged|latest weight|min movement/);
 });
 
-test('hide with Undo, the Settings switch, ⌘K / Ctrl+K and focus back on the launcher', async ({page, isMobile}) => {
+test('hide with Undo, the Settings switch, ⌘K / Ctrl+K (Ask ZIGi), ⌘/Ctrl+Shift+Z and focus back on the launcher', async ({page, isMobile}) => {
   test.skip(isMobile, 'keyboard shortcut and hide pill are desktop behaviours');
   await seed(page, connectedLocal());
   await page.goto('/app');
@@ -364,9 +364,24 @@ test('hide with Undo, the Settings switch, ⌘K / Ctrl+K and focus back on the l
   await page.locator('#your-ai').getByRole('switch', {name: 'Show the ZIGi button'}).click();
   await page.goto('/app');
   await expect(launcher(page)).toBeVisible();
+  // Session AL (Q11, deliberate): ⌘/Ctrl+K opens the command menu (Ask ZIGi is its first row); ZIGi's own key is ⌘/Ctrl+Shift+Z.
   await page.keyboard.press('Control+k');
+  const menu = page.getByRole('dialog', {name: 'Command menu'});
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('option').first()).toHaveText(/^Ask ZIGi/);
+  await expect(panel(page)).toHaveCount(0);
+  await page.keyboard.press('Enter');
+  await expect(menu).toHaveCount(0);
   await expect(panel(page)).toBeVisible();
   await expect(page.getByLabel('Message to your AI')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(panel(page)).toHaveCount(0);
+  await expect(openButton(page)).toBeFocused();
+  // ⌘/Ctrl+Shift+Z from the page opens ZIGi with its message box focused; the menu stays shut.
+  await page.keyboard.press('Control+Shift+z');
+  await expect(panel(page)).toBeVisible();
+  await expect(page.getByLabel('Message to your AI')).toBeFocused();
+  await expect(menu).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(panel(page)).toHaveCount(0);
   await expect(openButton(page)).toBeFocused();

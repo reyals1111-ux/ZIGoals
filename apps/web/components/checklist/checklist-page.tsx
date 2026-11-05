@@ -285,7 +285,7 @@ function About({onClose}: {onClose: () => void}) {
       {/* Session AL (P-LS-54, DV-162, LS-H13/LS-074): the naming, plainly. */}
       <li><strong>Checklist or Tasks?</strong> The Checklist is your daily routine: the same planets every day. One-off to-dos with a day, a repeat or a project live in <Link href="/app/tasks">Tasks</Link>; the List view shows the ones due today.</li>
       {/* Session AL (P-LA-31 page-side, LA-001/LZ-029): why ZIGi does not open here. */}
-      <li><strong>ZIGi is paused here</strong>: the Checklist is a private screen, so ZIGi’s keys (⌘ or Ctrl+Shift+Z) and the command menu (⌘K or Ctrl+K) do nothing until you close it.</li>
+      <li><strong>ZIGi is paused here</strong>: the Checklist is a private screen, so ZIGi’s key (⌘/Ctrl+Shift+Z) and the command menu (⌘/Ctrl+K) do nothing until you close it.</li>
     </ul>
     <p className="fine checklist-limits">Your Checklist stays on this device: favourites, your own items and the day history are not synced yet, so another device starts with an empty path.</p>
   </section>;

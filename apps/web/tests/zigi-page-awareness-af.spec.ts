@@ -55,12 +55,18 @@ test('"explain this page" goes to the person\'s AI with the "This page" chip: ti
   await panel(page).locator('.ai-composer button[type=submit]').click();
   await expect.poll(() => bodies.length).toBe(2);
   expect(JSON.stringify(bodies[1]!.messages)).not.toContain('page_view');
-  // On Settings (its sign-in form is a sensitive screen) ZIGi is away altogether: no button, no ⌘K, nothing of it read or
-  // sent (the page view itself is null there: lib/ai/context/page-view.test.ts).
+  // On Settings (its sign-in form is a sensitive screen) ZIGi is away altogether: no button, no key opens it, nothing of it
+  // read or sent (the page view itself is null there: lib/ai/context/page-view.test.ts).
+  // Session AL (Q11, deliberate): ⌘/Ctrl+K opens the command menu (Ask ZIGi is its first row); ZIGi's own key is
+  // ⌘/Ctrl+Shift+Z. Neither opens ZIGi's panel here.
   await page.goto('/app/settings');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.getByRole('button', {name: /Open ZIGi/})).toHaveCount(0);
   await page.keyboard.press('ControlOrMeta+k');
+  await expect(panel(page)).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await page.locator('body').press('ControlOrMeta+Shift+z');
+  await page.waitForTimeout(300);
   await expect(panel(page)).toHaveCount(0);
   expect(bodies).toHaveLength(2);
 });

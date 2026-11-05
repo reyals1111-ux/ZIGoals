@@ -22,7 +22,8 @@ import {hideToast, showUndo} from '../ui/undo-toast';
  * The ZIGi launcher (ADR-012, Part 6): a floating ZIGi button that opens the chat, an "Open <app>" pill without logos
  * where the person's AI has its own app, and a Hide control (undo for ten seconds, then "Show ZIGi" in Settings).
  * Client-only after mount. Hidden on sensitive screens, when the launcher is switched off, and on phones while a sheet
- * or the keyboard is open. ⌘K / Ctrl+K toggles the chat. The chat bundle loads on the first open and stays mounted
+ * or the keyboard is open. ⌘/Ctrl+Shift+Z opens or closes the chat (Session AL, Q11: ⌘/Ctrl+K is the command menu now,
+ * components/command-palette/, whose first row is "Ask ZIGi"). The chat bundle loads on the first open and stays mounted
  * afterwards so the conversation survives closing the panel. Focus returns here when the chat closes.
  * Follow-up part A: this file is the launcher shell that every app page ships; it reads the device record with the tiny
  * tolerant reader (launcher-record.ts) and the app table (apps.ts) only. The Zod schema, the key store, the chat store,
@@ -32,7 +33,8 @@ import {hideToast, showUndo} from '../ui/undo-toast';
  * default, livelier with Full, still with Off, reduced motion or Motion Off). While hidden, a small "Show ZIGi" tab at
  * the screen's edge brings it back (on by default; outside the launcher's own test id).
  * Session AL (owner decision O3): below 901 px (phones and the tablet rail) nothing floats: no button and no edge tab.
- * ZIGi opens from the "Apps & extras" sheet (ZIGI_OPEN_EVENT, components/zigi-door.ts), ⌘K and the pages' "Ask ZIGi";
+ * ZIGi opens from the "Apps & extras" sheet (ZIGI_OPEN_EVENT, components/zigi-door.ts), ⌘/Ctrl+Shift+Z, the
+ * command menu (⌘/Ctrl+K) and the pages' "Ask ZIGi";
  * the chevron's device hide is a computer's choice about the floating button and does not apply there. The panel, its
  * conversation and every rule about sensitive screens and the synced switch are the same at every width.
  */
@@ -84,7 +86,7 @@ function greetOnce(): void {
 export function AiLauncher() {
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false);
   const launcher = useLauncherRecord(), {look, loaded: lookLoaded} = useZigiLook(), sensitive = useSensitiveScreen(), standing = useStandingSensitive(sensitive), phone = usePhoneActive(), compact = useCompactShell(), pathname = usePathname() ?? '', zigi = useZigiState();
-  // Session W Part 2: the synced "ZIGi button" switch (Your pages & buttons) hides it on every device, edge tab and ⌘K
+  // Session W Part 2: the synced "ZIGi button" switch (Your pages & buttons) hides it on every device, edge tab and keys
   // included; the chevron below the button stays this device's own hide.
   const switchedOff = !isShown(usePagesView(), 'zigi'), hidden = (launcher.record.launcherHidden && !compact) || switchedOff;
   const button = useRef<HTMLButtonElement>(null), hideToastId = useRef<number | null>(null), warmed = useRef(false);
@@ -115,13 +117,24 @@ export function AiLauncher() {
     const onKey = (event: KeyboardEvent) => {
       // Session Z-Cloud Part 3: ⌘/Ctrl+Shift+Space talks to ZIGi (or stops listening) from any page.
       if (event.code === 'Space' && event.shiftKey && (event.metaKey || event.ctrlKey) && !event.altKey && !event.defaultPrevented) { if (hidden || sensitive) return; event.preventDefault(); requestTalk('shortcut'); return; }
-      if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.defaultPrevented) return;
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.defaultPrevented) return;
+      const key = event.key.toLowerCase();
+      // Session AL (Q11): ⌘/Ctrl+Shift+Z outside a text field closes the open panel (the command menu's host opens it and
+      // leaves the key here while the panel shows; Redo in a text field stays Redo).
+      if (key === 'z' && event.shiftKey) {
+        const t = event.target;
+        if (!open || (t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))) return;
+        event.preventDefault(); close(); return;
+      }
+      // ⌘/Ctrl+K: the command menu's host takes it first (capture phase, preventDefault), so it reaches here only while a
+      // dialog is open (ZIGi's own panel: it closes) or on NOVA when NOVA's field did not take it (the earlier toggle stays).
+      if (key !== 'k' || event.shiftKey) return;
       if (hidden || sensitive) return;
       event.preventDefault(); toggle();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [sensitive, hidden, toggle, requestTalk]);
+  }, [sensitive, hidden, toggle, requestTalk, open, close]);
   // Session AL (Q6): a private step or dialog that shows closes the panel; a sensitive field that only has the focus pauses it.
   useEffect(() => { if ((standing || switchedOff) && open) setOpen(false); }, [standing, switchedOff, open]);
   // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
@@ -217,7 +230,7 @@ export function AiLauncher() {
       <div className="ai-launcher-stack">
         <span className="ai-launcher-ring">
         <span ref={waves} className="zigi-waves" data-on="false" aria-hidden="true"><i/><i/><i/><b className="zigi-level-bar"/></span>
-        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your personal AI companion' : 'Open ZIGi, your personal AI companion (⌘K or Ctrl+K; hold to talk)'} aria-haspopup="dialog" aria-expanded={open}
+        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your personal AI companion' : 'Open ZIGi, your personal AI companion (⌘/Ctrl+Shift+Z; hold to talk)'} aria-haspopup="dialog" aria-expanded={open}
           onClick={() => { if (heldClick.current) { heldClick.current = false; return; } if (!open && talkChoices().tapToTalk) requestTalk('launcher'); else toggle(); }}
           onPointerDown={event => { heldClick.current = false; if (event.button !== 0) return; warm(); try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* an old browser keeps the plain events */ } const h = {timer: 0, held: false, down: performance.now()}; h.timer = window.setTimeout(() => { h.held = true; heldClick.current = true; requestTalk('launcher'); }, LAUNCHER_HOLD_MS); hold.current = h; }}
           // Session AL (CI_INTERMITTENTS Fix 2): a busy main thread can deliver the release before the hold timer (WebKit,

@@ -8,6 +8,9 @@ export function CardOptions({label,children}:{label:string;children:ReactNode}){
  // Session AL (BN-084): the panel opens leftwards from its button; when that would run past the left edge of the page's
  // content (under the desktop sidebar) or the window, it opens rightwards instead, so every item stays readable and clickable.
  useLayoutEffect(()=>{if(!open){setStart(false);return;}const box=panel.current?.getBoundingClientRect(),button=root.current?.getBoundingClientRect();if(!box||!button)return;const main=root.current?.closest('main')?.getBoundingClientRect();const edge=Math.max(8,main?main.left:0);if(box.left<edge&&button.left+box.width<=window.innerWidth-8)setStart(true);},[open]);
+ // Session AL (NB-093): while the panel is open its card carries `data-options-open`, so a card that clips its contents (Today's
+ // widgets) can let the panel out without a wide :has() rule (lib/perf/has-invalidation.test.ts).
+ useEffect(()=>{const card=root.current?.parentElement;if(!open||!card)return;card.setAttribute('data-options-open','');return()=>card.removeAttribute('data-options-open');},[open]);
  useEffect(()=>{if(!open)return;const close=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))setOpen(false);};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close);},[open]);
  return <div ref={root} className="card-options" onKeyDown={event=>{if(event.key==='Escape'&&open){event.preventDefault();setOpen(false);trigger.current?.focus();}}}>
   <button ref={trigger} type="button" className="card-options-trigger secondary" aria-label={`Options for ${label}`} aria-expanded={open} onClick={()=>setOpen(value=>!value)}>⋯</button>

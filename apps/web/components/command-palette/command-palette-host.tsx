@@ -2,13 +2,16 @@
 import {Suspense, lazy, useEffect, useState} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {openZigiPanel} from '../zigi-door';
+import {isSensitiveScreen} from '../ai/use-sensitive-screen';
 
 /**
  * Session AL fourth pass (LS-H36, C-LS-22): the command palette's keys, mounted once by the shell beside the Search host.
  * - Ctrl/⌘+K opens (or closes) the command palette: pages, Quick add, a new task, recent tasks, Search and ZIGi — on
  *   every page and from inside a text field, as Todoist's and TickTick's do. Not on NOVA, whose command field keeps ⌘K,
  *   and not over another dialog (ZIGi's own panel keeps Ctrl/⌘+K to close itself).
- * - Ctrl/⌘+Shift+Z is ZIGi's own shortcut now (Z for ZIGi); the palette's "Ask ZIGi" row does the same.
+ * - Ctrl/⌘+Shift+Z is ZIGi's own shortcut now (Z for ZIGi); the palette's "Ask ZIGi" row does the same. While ZIGi's panel
+ *   is open the key is left to the launcher, which closes it (Session AL, Q11).
+ * - Not on a private screen either (a sign-in, unlock or recovery form, a sensitive field with the focus): the keys do nothing.
  * The keys are read in the capture phase and taken (preventDefault), so ZIGi's older Ctrl/⌘+K listener leaves them.
  * The palette itself loads at its first open.
  */
@@ -27,11 +30,13 @@ export function CommandPaletteHost() {
       const key = e.key.toLowerCase();
       if (key === 'z' && e.shiftKey) {
         if (typing(e.target)) return; // Redo in a text field stays Redo
+        if (document.querySelector('dialog.ai-chat[open]')) return; // the launcher closes the open panel
         e.preventDefault(); setOpen(false); void openZigiPanel(); return;
       }
       if (key !== 'k' || e.shiftKey) return;
       if (window.location.pathname.startsWith('/app/nova')) return;
-      if (document.querySelector('dialog[open]:not(.command-palette)')) return;
+      const palette = document.querySelector('dialog.command-palette[open]');
+      if (document.querySelector('dialog[open]:not(.command-palette)') || (!palette && isSensitiveScreen())) return;
       e.preventDefault(); setOpen(o => !o);
     };
     const onOpen = () => setOpen(true);

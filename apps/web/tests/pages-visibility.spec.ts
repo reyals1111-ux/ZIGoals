@@ -210,7 +210,17 @@ test('buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide eve
   await expect(page.getByRole('button', {name: '+ Quick add', exact: true})).toHaveCount(0);
   await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
   await expect(page.getByRole('button', {name: 'Show ZIGi', exact: true})).toHaveCount(0);
+  // Session AL (Q11, deliberate): ⌘/Ctrl+K opens the command menu (Ask ZIGi is its first row); ZIGi's own key is ⌘/Ctrl+Shift+Z.
+  // Switched off, ZIGi opens from neither: the menu shows without its Ask ZIGi row, and ⌘/Ctrl+Shift+Z opens nothing.
   await page.keyboard.press('ControlOrMeta+k');
+  const menu = page.getByRole('dialog', {name: 'Command menu'});
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('option', {name: /Ask ZIGi/})).toHaveCount(0);
+  await expect(page.getByRole('dialog', {name: /ZIGi/})).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveCount(0);
+  await page.locator('body').press('ControlOrMeta+Shift+z');
+  await page.waitForTimeout(300);
   await expect(page.getByRole('dialog', {name: /ZIGi/})).toHaveCount(0);
   if (await isPhone(page)) { await expect(page.locator('.phone-wealth')).toHaveCount(0); await expect(page.locator('.phone-quick-add')).toHaveCount(0); }
   await page.goto('/app/settings');

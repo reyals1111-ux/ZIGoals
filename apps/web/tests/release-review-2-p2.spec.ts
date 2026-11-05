@@ -111,8 +111,10 @@ test('R2-24: at 1440 the Health and Wealth header actions sit with the title and
     else { expect(Math.abs(actions.x - lede.x), path).toBeLessThanOrEqual(2); expect(actions.y - (lede.y + lede.height), path).toBeGreaterThanOrEqual(-1); expect(actions.y - (lede.y + lede.height), path).toBeLessThanOrEqual(32); }
     modes[path] = beside ? 'beside' : 'below';
   }
-  expect(modes['/app/health']).toBe(modes['/app/goals']);
-  expect(modes['/app/habits']).toBe(modes['/app/goals']);
+  // Session AL (DV-204, integrator's reading in lane L10a, deliberate): from 1400 px Goals' actions sit under its lede, flush
+  // left (they had drifted far right of the intro); Habits and Health keep one shared mode. Was: all three equal to Goals'.
+  expect(modes['/app/goals']).toBe('below');
+  expect(modes['/app/health']).toBe(modes['/app/habits']);
 });
 
 test('R2-14: the Showcase energy tile names the input still missing, never a met count such as "28 of 14 days"', async ({page}) => {

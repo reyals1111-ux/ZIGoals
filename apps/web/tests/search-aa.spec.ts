@@ -13,7 +13,7 @@ async function showcase(page: Page) {
 const palette = (page: Page) => page.getByRole('dialog', {name: 'Search'});
 const field = (page: Page) => palette(page).getByRole('combobox');
 
-test('the header button and "/" open search on every page; ⌘K is not taken; Escape returns focus', async ({page, isMobile}) => {
+test('the header button and "/" open search on every page; ⌘K never opens search; Escape returns focus', async ({page, isMobile}) => {
   for (const path of ['/app', '/app/goals', '/app/wealth', '/app/settings', '/app/help']) {
     await page.goto(path);
     await expect(page.getByRole('heading', {level: 1}).first()).toBeVisible();
@@ -28,8 +28,22 @@ test('the header button and "/" open search on every page; ⌘K is not taken; Es
   await expect(field(page)).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(palette(page)).toHaveCount(0);
-  // ⌘K / Ctrl+K stays ZIGi's: it opens ZIGi's panel, never search (Gate C audit: the title's claim is now checked).
+  // Session AL (Q11, deliberate): ⌘/Ctrl+K opens the command menu (Ask ZIGi is its first row); ZIGi's own key is ⌘/Ctrl+Shift+Z.
+  // ⌘K never opens search; Enter on the menu's first row opens ZIGi's panel with its message box focused (was: ⌘K opened
+  // ZIGi's panel directly; Gate C audit: the title's claim is checked).
   await page.locator('body').press('ControlOrMeta+k');
+  const menu = page.getByRole('dialog', {name: 'Command menu'});
+  await expect(menu).toBeVisible();
+  await expect(palette(page)).toHaveCount(0);
+  await page.keyboard.press('Enter');
+  await expect(menu).toHaveCount(0);
+  await expect(page.locator('dialog.ai-chat[open]')).toHaveCount(1);
+  await expect(page.locator('dialog.ai-chat[open] textarea').first()).toBeFocused();
+  await expect(palette(page)).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('dialog.ai-chat[open]')).toHaveCount(0);
+  // ⌘/Ctrl+Shift+Z opens ZIGi directly, and still never search.
+  await page.locator('body').press('ControlOrMeta+Shift+z');
   await expect(page.locator('dialog.ai-chat[open]')).toHaveCount(1);
   await expect(palette(page)).toHaveCount(0);
   await page.keyboard.press('Escape');

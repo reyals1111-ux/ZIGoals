@@ -179,7 +179,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
         if (prefs.readAloud && !vprefs.muted) reader.speak(text.replace(BRIEF_LABEL, ''));
         return true;
       }
-      default: say(typed, `${name} opens a view in ZIGi’s panel: press ⌘/Ctrl + K there. Everything else works here.`); return true;
+      default: say(typed, `${name} opens a view in ZIGi’s panel: open ZIGi with ⌘/Ctrl + Shift + Z. Everything else works here.`); return true;
     }
   }, [ask, connected, context, localEnvNow, reader, say, sensitive, vprefs.muted]);
   const runDelegation = useCallback(async (text: string, area: PageArea, replace?: string, agent: NovaAgentId = 'zigi', pasted = false) => {

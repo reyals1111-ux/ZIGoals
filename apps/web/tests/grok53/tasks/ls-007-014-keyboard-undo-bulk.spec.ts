@@ -3,7 +3,7 @@ import {DAY, freshTasks, record, storedTasks, task, toast} from './helpers';
 
 /**
  * Session AL (lane L5): LS-014 / LS-044 / LS-H25 / LS-H09 / P-LS-07 (shortcuts and their "?" sheet, no clash with "/",
- * Ctrl+K, Ctrl+J), LS-051 / LS-072 / P-LS-08 (removals made while the toast shows join one Undo; Ctrl+Z runs it),
+ * Ctrl+K (the command menu since Q11), Ctrl+J), LS-051 / LS-072 / P-LS-08 (removals made while the toast shows join one Undo; Ctrl+Z runs it),
  * LS-061 / P-LS-09 (bulk select, Done, Clear done with Undo), LS-H07 / LS-H31 / P-LS-52 (Undo in the app's toast, no
  * blank line), LS-H22 / P-LS-10 (Move up / Move down, Alt+↑/↓). Fresh profile, 1280 px, UTC.
  */

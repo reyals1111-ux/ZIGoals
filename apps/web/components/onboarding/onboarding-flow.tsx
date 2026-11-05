@@ -469,7 +469,7 @@ export function OnboardingFlow() {
       </>}
 
       {step === "zigi" && <>
-        <div className="onboarding-zigi"><ZigiFigure state="idle" /><p><strong>I’m here when you want me.</strong> Tap my button, or press ⌘K or Ctrl+K, to ask about your own records.</p></div>
+        <div className="onboarding-zigi"><ZigiFigure state="idle" /><p><strong>I’m here when you want me.</strong> Tap my button, or press ⌘/Ctrl+Shift+Z, to ask about your own records.</p></div>
         {/* Session AL fourth pass (NB-006): an optional name, kept on this device only; empty is fine. */}
         <label className="field onboarding-name">What should ZIGi call you? (optional)<input value={name} maxLength={40} autoComplete="given-name" aria-describedby={`${id}-name-hint`} onChange={e => setName(e.target.value)} placeholder="Your first name, or nothing" /><small id={`${id}-name-hint`}>Kept on this device only, never synced or sent. Leave it empty and ZIGi simply says hello.</small></label>
         <ul className="onboarding-points">

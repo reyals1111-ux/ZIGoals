@@ -33,3 +33,12 @@
 @media (hover: hover) and (pointer: fine) { :root :where(.goals-page) .panel:hover, :root :where(.goals-page) .goal-card.unified-goal-card:hover { border-color: color-mix(in srgb, var(--pillar-goals) 45%, var(--line, transparent)); } }
 :root :where(.goals-page) .panel:has(:focus-visible), :root :where(.goals-page) .goal-card.unified-goal-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.goals-page) .panel, :root :where(.goals-page) .goal-card.unified-goal-card { box-shadow: none; } }
+/* Session AL (DV-204, lane L10a reading): from 1400 px the Goals header's actions sat far right, away from the intro. On the
+   Goals page only, they sit under the lede, left-aligned with it (as the Habits header does at narrower widths); the art
+   keeps its column. Every other pillar's header is unchanged. */
+@media (min-width: 1400px) {
+  :root .goals-page .pillar-hero.goals-heading { grid-template-columns: minmax(0, 1fr); grid-template-areas: "eyebrow" "title" "lede" "actions"; }
+  :root .goals-page .pillar-hero.goals-heading.has-art { grid-template-columns: minmax(0, 1fr) 220px; grid-template-areas: "eyebrow art" "title art" "lede art" "actions art"; }
+  :root .goals-page .pillar-hero.goals-heading > .pillar-hero-actions { justify-self: start; align-items: flex-start; margin-top: 16px; }
+  :root .goals-page .pillar-hero.goals-heading .pillar-hero-buttons, :root .goals-page .pillar-hero.goals-heading .page-minor-actions { justify-content: flex-start; }
+}

@@ -51,6 +51,8 @@ import { OfflineNotice, OfflinePill } from "./offline-notice";
 import { UndoToastHost } from "./ui/undo-toast";
 import { LengthCounterHost } from "./ui/length-counter";
 import { SearchButton, SearchHost } from "./search/search-trigger";
+// Session AL (LS-H36, Q11): ⌘/Ctrl+K opens the command menu ("Ask ZIGi" first), ⌘/Ctrl+Shift+Z opens ZIGi; the menu loads on first use.
+import { CommandPaletteHost } from "./command-palette/command-palette-host";
 import { ShortcutHost } from "./shortcut-host";
 import { AiLauncher } from "./ai/ai-launcher";
 import { AppsExtrasButton, AppsExtrasSheet } from "./shell/apps-extras"; // Session AL (O3): no floating launchers below 901 px
@@ -305,7 +307,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
           </section>
         )}
         <OfflineNotice />
-        <SearchHost/><ShortcutHost/><UndoToastHost /><ShowcaseUndoOffer /><LengthCounterHost /><GameRegistrar /><NavPages />
+        <SearchHost/><CommandPaletteHost/><ShortcutHost/><UndoToastHost /><ShowcaseUndoOffer /><LengthCounterHost /><GameRegistrar /><NavPages />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
         <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass />{/* Session AL third pass (P-LA-29, LA-024/N-LS-05): the floating buttons and their panels sit in one labelled landmark (axe "region": the Checklist button was outside every landmark). `display: contents` (navigation.css): no box, so nothing moves. */}<aside className="app-extras-landmark" aria-label="Companion and extras"><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AppsExtrasSheet /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><EarnDock /></LoadBoundary></aside><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>

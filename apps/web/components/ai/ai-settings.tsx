@@ -259,7 +259,7 @@ export default function AiSettings() {
     {settings.unreadable && <p role="alert">This device&rsquo;s ZIGi settings could not be read; they count as off until you save a choice here.</p>}
     {callback.error && <p role="alert">{callback.error}</p>}
     <Group id="zigi-connection" title="Connection">
-      {!data.enabled && settings.loaded && <AiSetup settings={settings} scope={scope} seed={callback.seed} onDone={() => setMessage({text: 'Connected. ZIGi now answers with your own AI on every page where sharing is on; open it from the button at the bottom right or with ⌘K / Ctrl+K. Health stays off until you turn on “Include Health”.'})}/>}
+      {!data.enabled && settings.loaded && <AiSetup settings={settings} scope={scope} seed={callback.seed} onDone={() => setMessage({text: 'Connected. ZIGi now answers with your own AI on every page where sharing is on; open it from the button at the bottom right, with ⌘/Ctrl+Shift+Z, or from the command menu (⌘/Ctrl+K). Health stays off until you turn on “Include Health”.'})}/>}
       {data.enabled && <div className="ai-connection">
         <ZigiAvatar state="idle" size={44} decorative/>
         <div className="ai-connection-copy">
@@ -301,7 +301,7 @@ export default function AiSettings() {
     </Group>
     <Group id="zigi-look-group" title="ZIGi’s look and feel">
       {data.enabled && <>
-        <Switch checked={!data.launcherHidden} onChange={next => save(s => ({...s, launcherHidden: !next}))} label="Show the ZIGi button" note="Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K opens the chat as well."/>
+        <Switch checked={!data.launcherHidden} onChange={next => save(s => ({...s, launcherHidden: !next}))} label="Show the ZIGi button" note="Bottom right on a computer, above the tabs on a phone. ⌘/Ctrl+Shift+Z opens the chat as well, and so does Ask ZIGi in the command menu (⌘/Ctrl+K)."/>
       </>}
       {settings.loaded && <LookCard/>}
       {/* Session Z-Cloud Part 3: voice works with or without an AI connected, so its card is always here. */}

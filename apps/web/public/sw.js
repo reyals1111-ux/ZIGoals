@@ -110,7 +110,9 @@ const ICON = PUSH_ART.icon, BADGE = PUSH_ART.badge;
 // Session AL (P-LS-38, LS-013): Tasks and the Agenda too; the Agenda has no navigation entry, so it was only ever reached
 // inside the app and never kept as a page.
 const INSTALL_PAGES = ['/app', '/app/today', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/checklist', '/app/settings', '/app/nova', '/app/notes', '/app/tasks', '/app/agenda'];
-const MAX_INSTALL_FILES = 160;
+// Session AL (LS-013): the twelve pages load more than 160 hashed files together, so the Agenda's own were cut (the pages
+// finish in any order); the install now keeps up to the static cache's own cap, which trim() holds the cache to anyway.
+const MAX_INSTALL_FILES = MAX_STATIC;
 async function precache() {
   const pages = await caches.open(PAGES), files = new Set();
   await Promise.all(INSTALL_PAGES.map(async path => {
