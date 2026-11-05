@@ -9,7 +9,7 @@ import {getAppStorage} from '../../../lib/showcase-storage';
 const AboutToSend = lazy(() => import('../setup/about-to-send').then(m => ({default: m.AboutToSend})));
 // Session AL Part 14 (Z1A-4): what "Ask my Hermes" would send, before it is pressed (loaded on use).
 const HermesPreview = lazy(() => import('./hermes-preview'));
-import {INPUT_COUNTER_FROM, MAX_INPUT_CHARS} from '../../../lib/ai/chats';
+import {inputCounter, MAX_INPUT_CHARS} from '../../../lib/ai/chats';
 import {AREA_LABELS} from '../../../lib/ai/context/pages';
 import {lastQuestion} from '../../../lib/ai/session';
 import type {AiSettings} from '../../../lib/ai/settings';
@@ -86,7 +86,8 @@ export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function Nova
   const browser = typeof navigator === 'undefined' ? 'other' : detectBrowser(navigator.userAgent);
   return <form className="nova-composer-wrap" onSubmit={event => { event.preventDefault(); submit(); }}>
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the message and its answer. <button type="button" className="text-link" onClick={clear}>Cancel editing</button></p>}
-    {text.length >= INPUT_COUNTER_FROM && <p className="ai-note" role="status" aria-live="polite">{text.length >= MAX_INPUT_CHARS ? `That is the limit: ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters.` : `${text.length.toLocaleString('en-US')} of ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters`}</p>}
+    {/* Session AL third pass (BN-070): the same counter as ZIGi's box, from 2,000 characters. */}
+    {(() => { const c = inputCounter(text.length); return c && <p className="ai-note" role={c.atLimit ? 'status' : undefined} aria-live={c.atLimit ? 'polite' : undefined}>{c.text}</p>; })()}
     <SecretGuard text={text} onRemove={() => setText('')} chat/>
     {speechNote && !speechOn && <div className="nova-speech-note" role="group" aria-label="Speech input">
       <p>Speech input is off. {browserSpeechDisclosure(browser, false)} ZIGoals never stores the audio, and the microphone is released the moment you stop.</p>

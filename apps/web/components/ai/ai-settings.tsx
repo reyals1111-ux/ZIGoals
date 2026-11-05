@@ -285,10 +285,11 @@ export default function AiSettings() {
     <Group id="zigi-privacy" title="Privacy & data">
       {/* Session AI (ZI5; Grok's N-019, M-089): these switches show before a connection too, where Help points to them. */}
       {settings.loaded && <>
-        <h4>What each page may share</h4>
+        {/* Session AL third pass (BN-017, P-BN-38): the six page switches are one group named by this heading. */}
+        <h4 id="zigi-page-share-title">What each page may share</h4>
         {!data.enabled && <p className="ai-note">With no AI connected, nothing leaves this device: ZIGi answers from your records here, and these switches decide which pages those answers may read. Once you connect your own AI, they also decide what may be sent to it.</p>}
         <p className="ai-note">On by default except Health. Off means ZIGi answers without that page&rsquo;s data. Identifiers, wallet addresses, chain details, account and sync metadata are never sent.</p>
-        <div className="ai-switch-list">{PAGE_AREAS.map(area => <Switch key={area} checked={data.pageShare[area]} onChange={next => save(s => ({...s, pageShare: {...s.pageShare, [area]: next}}))} label={`${AREA_LABELS[area]} page data`} note={PAGE_NOTES[area]}/>)}</div>
+        <div className="ai-switch-list" role="group" aria-labelledby="zigi-page-share-title">{PAGE_AREAS.map(area => <Switch key={area} checked={data.pageShare[area]} onChange={next => save(s => ({...s, pageShare: {...s.pageShare, [area]: next}}))} label={`${AREA_LABELS[area]} page data`} note={PAGE_NOTES[area]}/>)}</div>
         <Switch checked={data.includeHealth} onChange={next => save(s => ({...s, includeHealth: next}))} label="Include Health" disabled={!layoutHasHealth} note={!layoutHasHealth ? 'Health is not part of your Today layout on this device, so nothing from Health can be shared. Add Health to Today first.' : healthConsent.accountActive && !healthConsent.accountHealthPermitted ? 'With your account open, Health is shared only when the account\'s Health permission is on for this device (Settings → Account & sync). It is not, so Health stays out.' : 'Health goes to your AI only with this switch, the Health page switch above and, with an account, its Health permission. Off by default.'}/>
         <h4>What your AI sees</h4>
         <p className="ai-note">Only this page&rsquo;s data, as plain text between data marks, after the instruction that it is records and not commands. Open ZIGi on any page and expand &ldquo;What your AI sees&rdquo; for the exact text that would go with your next message. Chats are kept on this device per account and are part of &ldquo;Export everything&rdquo;; keys never are.</p>

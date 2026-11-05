@@ -171,3 +171,13 @@ The device-side parts of these are built and held by unit tests and the mock eva
 | /api/show on a renamed cloud copy (Z1A-7 alternative) | `ollama cp gpt-oss:120b-cloud mymodel`, type "mymodel" as the model (never listed in this browser), Strict, send | "Not sent: Strict privacy keeps your AI on this computer."; no chat request reaches Ollama; `cloudModels` gains "mymodel" |
 | A rotated Hermes key (EX3 left-over 3) | Hermes as NOVA's brain, then change API_SERVER_KEY and restart; send in NOVA | the failure reads "Hermes refused the key." with the `hermes config get API_SERVER_KEY --raw` step and "NOVA → Connect your Hermes Agent (planet 7)" |
 | The local-model confirmation lapses (Z1A-I5) | confirm planet 8, then update Hermes (new version) and test again in planet 7 | Strict and Guarded redact again until planet 8 is confirmed again |
+
+### Session AL third pass (lane L7): checks that need a real model (none run; no key)
+
+The no-model parts are built and held by `lib/ai/evals/g6-p14b.ts` (third-pass cases) and `lib/ai/al-third-pass.test.ts`.
+
+| What | Ask / setup | Pass when |
+|---|---|---|
+| A food's calories with a model (P14-B) | "How many calories in my plate of pasta?" and "Hoeveel calorieën zitten er in een bord pasta?" with a model connected (the device now leaves these to it: `isFoodEstimateAsk`) | an estimate labelled as one (a range, or "about"), per a stated portion; never today's diary total; a card only if offered as a `log-food` with `estimate` the person adds |
+| The week with a model (P14-B) | "How was my week?" with a model and tools | the figures equal the `weekly_review` tool's (check-ins, contributions, busiest day); no judgement words; Health lines only with Health shared |
+| A Health card while Health is not shared (LA-032, P-LA-06) | Health page data off, a model connected, "I'm going to bed" / "drank 500 ml water" | if the model proposes a Health card, the card shows "Health isn’t shared with ZIGi, but adding this card still saves it to Health on this device." |

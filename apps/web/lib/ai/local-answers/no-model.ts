@@ -9,6 +9,7 @@ import {quickLogItems, quickLogReply} from '../../quick-log/multi';
 import {quickLogContext} from '../../quick-log/context';
 import {novaEnvInfo} from './nova-env';
 import {mealPhotoReply, streakBreakReply} from './p14b';
+import {checklistEditReply, foodEstimateReply, unknownTickReply, weeklyRecapReply} from './al-third';
 
 /**
  * Session AB-Cloud Part 9 (ADR-023 C30): what ZIGi says when no model answers (no AI connected, no on-device model) and the
@@ -123,7 +124,10 @@ export function noModelReply(text: string, env: ToolEnv | null): LocalReply {
   // its numbers are never read as a log (al-more.ts `alFirst`).
   const fixed = fixTypos(text), again = env && lang === 'en' ? askAgain(fixed !== text ? fixed : null, rewriteQuestion(fixed), env) : null;
   // Session AL Part 14 (lane P14-B; HE17, G15): a meal photo asked of the device, and a broken streak, come first.
-  const reply = mealPhotoReply(text, lang) ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? examplesIn(env, lang);
+  // Session AL third pass (L7; P14-B's findings, LA-008): a food's calories, the week's recap and a Checklist edit, before
+  // the commands and the quick-log reading can take their words for a task or a log.
+  const third = foodEstimateReply(fixTypos(text), env, lang) ?? weeklyRecapReply(fixTypos(text), env, lang) ?? checklistEditReply(text, env);
+  const reply = mealPhotoReply(text, lang) ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? examplesIn(env, lang);
   // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
   // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
   const other = otherLanguage(text);
@@ -149,6 +153,8 @@ function askAgain(fixed: string | null, rewritten: string | null, env: ToolEnv):
  */
 function quickLog(text: string, env: ToolEnv | null, lang: ReplyLanguage): LocalReply | null {
   if (!env) return null;
+  // Session AL third pass (L7): "calories in my lunch" is a question, never a food called "calories in my".
+  if (/^\s*(?:how (?:many|much) )?(?:calories|kcal|protein|carbs|fat|sugars?|calorie[eë]n)\b/i.test(text)) return null;
   const ctx = quickLogContext(env), items = quickLogItems(text, ctx, lang), known = items.filter(i => i.action);
   if (!known.length || !(items.length >= 2 || ['log-food', 'log-mood', 'prefill-contribution', 'log-expense'].includes(String(known[0]!.action!.kind)))) return null;
   const reply = quickLogReply(text, ctx, lang);

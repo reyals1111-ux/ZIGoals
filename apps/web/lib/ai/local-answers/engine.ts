@@ -21,6 +21,7 @@ import {novaEnvInfo, novaWording} from './nova-env';
 import {novaOverviewAnswer} from './nova-overview';
 import {questionLanguage} from './no-model';
 import {isStreakBreak, streakBreakWords} from './p14b';
+import {isFoodEstimateAsk} from './al-third';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -179,6 +180,9 @@ const TWO_QUESTIONS = /\b(?:what|how|which|who|where|when|why|is|are|does|do)\b[
 export function strongMatchOnly(question: string): boolean { return GOVERNANCE_ASK.test(question) || TWO_QUESTIONS.test(question); }
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   if (!subject && strongMatchOnly(question)) return NONE;
+  // Session AL third pass (L7; P14-B): "how many calories in my plate of pasta" asks about a food, not today's diary. The
+  // lookups stay out: the person's AI answers it, or with none, no-model.ts says what the food library holds.
+  if (!subject && isFoodEstimateAsk(normalizeSpoken(question))) return NONE;
   // Release review 2 (R2-2): on NOVA's environment only (lib/nova/local-env.ts), the natural overview questions after
   // Session AF's commands, and every reply in NOVA's words (NOVA → Permissions). Any other environment: exactly as before.
   const nova = novaEnvInfo(env);
@@ -408,8 +412,8 @@ const lines = (head: string, items: (string | false | null | undefined)[]) => [h
 function habitListAnswer(env: ToolEnv, q: string): LocalReply | null {
   if (HABITS_OPEN.test(q)) {
     const r = call(env, 'habits_due', {}), refused = refusalOf([r]); if (refused) return refused;
-    const open = (dataOf(r.result).open ?? []) as {title: string; status: string; logged: unknown; target: string}[];
-    const text = open.length ? `${plural(open.length, 'habit')} still open today:\n${open.map(h => `- ${h.title}: ${typeof h.logged === 'number' ? `${h.logged} of ${h.target}` : h.status === 'partial' ? `partly done, target ${h.target}` : `not yet, target ${h.target}`}`).join('\n')}` : 'Nothing is open today: every habit scheduled for today is done.';
+    const open = (dataOf(r.result).open ?? []) as {title: string; status: string; logged: unknown; loggedText?: string; target: string}[];
+    const text = open.length ? `${plural(open.length, 'habit')} still open today:\n${open.map(h => `- ${h.title}: ${typeof h.logged === 'number' ? `${h.loggedText ?? h.logged} of ${h.target}` : h.status === 'partial' ? `partly done, target ${h.target}` : `not yet, target ${h.target}`}`).join('\n')}` : 'Nothing is open today: every habit scheduled for today is done.';
     return {kind: 'answer', text, calls: [r.record]};
   }
   if (HABITS_COUNT.test(q) || HABITS_LIST.test(q) || HABITS_ARCHIVED.test(q)) {

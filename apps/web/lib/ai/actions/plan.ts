@@ -34,6 +34,7 @@ import {addMemory, addNote, CATEGORY_LABELS, consentOnRemember, deleteNote, isHe
 import {memoryConsent} from '../store/records';
 import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
+import {durationCountText} from '../../habit-number';
 import type {Handle} from '../context/types';
 import {STALE_HANDLE} from '../handles';
 import {LIFE_REVIEW_KEY} from '../../life-review/store';
@@ -89,6 +90,8 @@ import {MEAL_ESTIMATES_KEY, NUTRIENT_RANGES, middleOf, rangeText} from '../../me
 import {diaryDayIssue} from '../../health-day';
 import {goalQty} from '../tools/format';
 
+/** Session AL third pass (NB-114): a part-minute of a timed habit in seconds ("was 49 s", never "was 0.81"); whole amounts and hours stay as they were. */
+const partMinute = (count: number, unit: string | null | undefined) => /^(?:minutes?|min)$/i.test(unit ?? '') ? durationCountText(count, unit) : null;
 /**
  * From a validated proposal to a card and two writes (ADR-012, Part 5). `write` runs at confirm time on the latest
  * stores through the same save path the forms use (usePrivateStore.update, the fasting store's update, the platform
@@ -357,7 +360,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       const amount = amountFor(rule, action); if (!amount.ok) return refuse(amount.message);
       const value = amount.value ?? smartDoneValue(rule);
       const partial = rule.type === 'build' && rule.measurement.kind !== 'boolean' && value < rule.target && value > 0;
-      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: partial ? `Partial check-in: ${habit.title}` : `Check in: ${habit.title}`, lines: [rule.measurement.kind === 'boolean' ? (value >= 1 ? 'Mark as done' : 'Mark as not done') : `Set the day's count to ${num(value, 2)}${unit ? ' ' + unit : ''} (target ${rule.target}${unit ? ' ' + unit : ''})${previous ? `, was ${previous.count}` : ''}`, ...(amount.said ? [amount.said] : []), ...(action.note ? [`Note: ${action.note}`] : [])], where: `Habits · ${habit.title}`, day: dayLabel(day.day, env.habitDay), estimate: false},
+      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: partial ? `Partial check-in: ${habit.title}` : `Check in: ${habit.title}`, lines: [rule.measurement.kind === 'boolean' ? (value >= 1 ? 'Mark as done' : 'Mark as not done') : `Set the day's count to ${partMinute(value, unit) ?? `${num(value, 2)}${unit ? ' ' + unit : ''}`} (target ${rule.target}${unit ? ' ' + unit : ''})${previous ? `, was ${partMinute(previous.count, unit) ?? previous.count}` : ''}`, ...(amount.said ? [amount.said] : []), ...(action.note ? [`Note: ${action.note}`] : [])], where: `Habits · ${habit.title}`, day: dayLabel(day.day, env.habitDay), estimate: false},
         write: s => ({habits: logHabitValue(s.habits, habit.id, day.day, value, {mode: 'set', note: action.note ?? previous?.note ?? '', mood: action.mood ?? previous?.mood}, env.now)}),
         undo: {label: previous ? 'Put the previous check-in back' : 'Remove this check-in', write: s => ({habits: restoreEntry(s.habits, habit.id, day.day, previous, env.now)}), unchanged: (after, current) => same(entryOn(after.habits, habit.id, day.day), entryOn(current.habits, habit.id, day.day))},
         activity: {id: `habit:${habit.id}:${day.day}`, title: `Check-in: ${habit.title}`}}};

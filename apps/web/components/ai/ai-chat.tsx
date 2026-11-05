@@ -6,7 +6,7 @@ import {createPortal} from 'react-dom';
 import {hasOpenFence, parseReply} from '../../lib/ai/actions/parse';
 import {bridgePrompt, subscriptionApp} from '../../lib/ai/bridge';
 import {chatMode} from './chat-mode';
-import {INPUT_COUNTER_FROM, MAX_INPUT_CHARS, type ChatTurn} from '../../lib/ai/chats';
+import {inputCounter, MAX_INPUT_CHARS, type ChatTurn} from '../../lib/ai/chats';
 import {usageLine} from '../../lib/ai/context/budget';
 import {AREA_LABELS} from '../../lib/ai/context/pages';
 import {ANSWER_LABEL, SPECIALISTS} from '../../lib/ai/context/specialists';
@@ -749,7 +749,8 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {photoNote && <p className="ai-note" role="status">{photoNote}</p>}
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the question and its answer. <button type="button" className="text-link" onClick={() => { setText(''); onEditing(null); }}>Cancel editing</button></p>}
     {slash.open && <SlashMenu id={listId} suggestions={slash.suggestions} active={slash.active} onPick={command => { slash.pick(command); (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus(); }}/>}
-    {text.length >= INPUT_COUNTER_FROM && <p className="ai-note ai-length" role="status" aria-live="polite">{text.length >= MAX_INPUT_CHARS ? `That is the limit: ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters. A shorter message gets a better answer.` : `${text.length.toLocaleString('en-US')} of ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters`}</p>}
+    {/* Session AL third pass (BN-070): seen from 2,000 characters; a screen reader hears it at the limit, not on every key. */}
+    {(() => { const c = inputCounter(text.length); return c && <p className="ai-note ai-length" role={c.atLimit ? 'status' : undefined} aria-live={c.atLimit ? 'polite' : undefined}>{c.text}</p>; })()}
     {/* Session AK (BUILD list 2 #1): a calm line while the words look like recovery words or a key (never sent). */}
     <SecretGuard text={text} onRemove={() => setText('')} chat/>
     <div className="ai-composer">

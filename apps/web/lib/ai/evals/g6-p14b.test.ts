@@ -13,12 +13,14 @@ const answer = (q: string) => { const local = localAnswer(q, env), r = local.kin
 describe('P14-B mock eval', () => {
   for (const c of G6_P14B) test(`${c.id} (${c.row}): ${c.ask}`, () => {
     const r = answer(c.ask), parsed = parseReply(r.text), e = c.expect;
+    if ('notCard' in e) { expect(parsed.proposals.some(a => a.kind === e.notCard)).toBe(false); return; }
     if ('notMealPhoto' in e) { expect(parsed.proposals.some(a => a.kind === 'scan-food' && (a as {mode?: string}).mode === 'meal-photo')).toBe(false); return; }
     if ('card' in e) {
       expect(parsed.rejected).toEqual([]);
       expect(parsed.proposals[0]?.kind).toBe(e.card);
       expect(parsed.proposals[0]).toMatchObject(e.fields ?? {});
       for (const w of e.mustContain ?? []) expect(r.text).toContain(w);
+      for (const w of e.mustNot ?? []) expect(r.text).not.toContain(w);
       return;
     }
     expect(r.kind).not.toBe('examples');

@@ -15,9 +15,17 @@ const STORE = 'chats', LIMIT_MS = 3000, WRITE_LIMIT_MS = 10_000;
 export const MAX_CHATS = 200, MAX_TURNS = 200, MAX_TURN_CHARS = 20_000, MAX_SHOWCASE_CHATS = 50;
 /**
  * Session AI (G5, ZI15; Grok's BUG-038/060, L-003): the longest message the box takes. 15,000 characters (about 3,500
- * words); the stored limit stays 20,000 so every chat saved before still reads. A counter shows from 12,000.
+ * words); the stored limit stays 20,000 so every chat saved before still reads.
+ * Session AL third pass (lane L7; Berlin BN-070, P-BN-24): the counter showed only from 12,000, so a 5,000-character paste
+ * saw no limit at all. It now shows from 2,000 ("5,000 of 15,000 characters"); it is announced only at the limit.
  */
-export const MAX_INPUT_CHARS = 15_000, INPUT_COUNTER_FROM = 12_000;
+export const MAX_INPUT_CHARS = 15_000, INPUT_COUNTER_FROM = 2_000;
+/** The composer's counter for a message of `length` characters, or null while it is short. */
+export function inputCounter(length: number): {text: string; atLimit: boolean} | null {
+  if (length < INPUT_COUNTER_FROM) return null;
+  const max = MAX_INPUT_CHARS.toLocaleString('en-US');
+  return length >= MAX_INPUT_CHARS ? {text: `That is the limit: ${max} characters. A shorter message gets a better answer.`, atLimit: true} : {text: `${length.toLocaleString('en-US')} of ${max} characters`, atLimit: false};
+}
 const stamp = z.iso.datetime();
 export const chatTurnSchema = z.strictObject({
   id: z.string().min(1).max(80),

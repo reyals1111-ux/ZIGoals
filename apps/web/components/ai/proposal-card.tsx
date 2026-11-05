@@ -5,6 +5,7 @@ import type {Plan} from '../../lib/ai/actions/plan';
 import type {Action} from '../../lib/ai/actions/schema';
 import {formatDate} from '../../lib/visual-format';
 import {MEMORY_FIRST} from '../../lib/ai/memory';
+import {useAiSettings} from './use-ai-settings';
 // The card's day as people read it ("Sep 18, 2026", "week of Sep 14, 2026"); the card keeps the ISO day.
 const dayText = (day: string) => day.replace(/\d{4}-\d{2}-\d{2}/g, key => formatDate(key));
 
@@ -35,6 +36,9 @@ const statusText = (status: Exclude<ProposalStatus, 'proposed'>, kind: string, o
 export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false, receipt = true, opened, receiptDetail, firstNote = false}: ProposalCardProps) {
   const titleId = useId();
   const [editing, setEditing] = useState(false), [editError, setEditError] = useState('');
+  // Session AL third pass (Lisbon LA-032, P-LA-06): a Health card offered while Health is not shared says that adding it
+  // still saves to Health (the bot's own second fix: "Health is off; this will still save to Health").
+  const sharing = useAiSettings(), healthOff = sharing.loaded && !(sharing.data.pageShare.health && sharing.data.includeHealth);
   if (!plan) return <article className="ai-card ai-card-refused" aria-labelledby={titleId}>
     <h4 id={titleId}>Nothing proposed</h4>
     <p>{refusal ?? 'This proposal could not be turned into a card.'}</p>
@@ -64,6 +68,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     <h4 id={titleId}>{card.title}</h4>
     <ul className="ai-card-lines">{card.lines.map((line, i) => <li key={i}>{line}</li>)}</ul>
     {card.safety && <p className="ai-card-safety">{card.safety}</p>}
+    {plan.target === 'health' && healthOff && status === 'proposed' && <p className="ai-card-note ai-card-health-off">Health isn’t shared with ZIGi, but adding this card still saves it to Health on this device.</p>}
     {firstNote && status === 'proposed' && <p className="ai-card-note ai-card-first-note">{MEMORY_FIRST}</p>}
     {editing ? <form className="ai-card-edit" onSubmit={save} aria-label={`Edit: ${card.title}`}>
       {fields.map(field => <EditField key={field.key} field={field} value={fieldText(action, field)}/>)}
