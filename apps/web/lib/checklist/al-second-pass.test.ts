@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {addWater, dailyData} from '../health-daily';
 import type {HealthData} from '../health';
 import {deriveDots, pathLine, summarise} from './derive';
-import {suggestPathLabel} from './path-label';
+import {distinctPathLabels, suggestPathLabel} from './path-label';
 import {orderedItems, sectionOfItem, sectionsOf, stepItem} from './store';
 import {NOW, TODAY, fullPath, sources} from './test-fixtures';
 import {tooShortText} from '../health-timer-rules';
@@ -64,8 +64,14 @@ describe('PR-070 (P-PR-19): each arrow press moves one place, across orbits at a
 });
 
 describe('PR-069 (P-PR-17): same-named items stay apart on the path', () => {
-  test('a closing number is kept when it fits the 12 letters', () => {
-    expect(['QA Task 1', 'QA Task 2', 'QA Task 3'].map(suggestPathLabel)).toEqual(['Task 1', 'Task 2', 'Task 3']);
+  // Session AL (CI 1539, deliberate): the path shows ONE word (owner amendment 10, the PROTECTED Checklist pin); a closing
+  // number made it two and widened the names under ZIGi's cheer on a phone. The tag is still skipped ("Task", not "QA"), and
+  // the numbers that tell "QA Task 1–3" apart are held, at the same strength, by distinctPathLabels — the helper O6 wires.
+  test('one word on the path; the closing number tells them apart in distinctPathLabels', () => {
+    expect(['QA Task 1', 'QA Task 2', 'QA Task 3'].map(suggestPathLabel)).toEqual(['Task', 'Task', 'Task']);
+    const told = distinctPathLabels(['QA Task 1', 'QA Task 2', 'QA Task 3'].map((name, i) => ({id: `t${i}`, name})));
+    expect(['t0', 't1', 't2'].map(id => told.get(id))).toEqual(['Task 1', 'Task 2', 'Task 3']);
+    expect(suggestPathLabel('Fictional star 3')).toBe('Fictional');
     expect(suggestPathLabel('Play piano 15 minutes')).toBe('Piano');
     expect(suggestPathLabel('QA Floss')).toBe('Floss');
     expect(suggestPathLabel('Photosynthesis 4')).toBe('Photosynthes');

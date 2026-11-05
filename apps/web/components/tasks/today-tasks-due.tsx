@@ -27,8 +27,10 @@ export function TodayTasksDue() {
       <span><span aria-hidden="true">⏰ </span>Reminder · <span dir="auto">{r.task.title}</span>{r.task.time ? ` at ${formatClock(r.task.time)}` : ''}</span>
       <button type="button" className="text-link" onClick={() => list.toggle(r.task, true)}>Done</button>
       <button type="button" className="text-link" onClick={() => setDismissed(s => new Set(s).add(r.key))}>Dismiss</button></li>)}</ul>}
-    {first && <p className="today-tasks-due-line"><Link className="text-link" href="/app/tasks?view=today">
-      <strong>Tasks due today: {formatNumber(due.length)}</strong>{overdue ? ` · ${formatNumber(overdue)} overdue` : ''} · <span dir="auto">{first.title}</span>{first.time ? ` ${formatClock(first.time)}` : ''}{due.length > 1 ? ` and ${formatNumber(due.length - 1)} more` : ''} →</Link></p>}
+    {/* Session AL (CI 1539, Today's phone height): the words sit in one span, so they flow as one sentence inside the 44 px
+        link (two lines at 390 px) instead of each piece taking its own flex row (three). */}
+    {first && <p className="today-tasks-due-line"><Link className="text-link" href="/app/tasks?view=today"><span>
+      <strong>Tasks due today: {formatNumber(due.length)}</strong>{overdue ? ` · ${formatNumber(overdue)} overdue` : ''} · <span dir="auto">{first.title}</span>{first.time ? ` ${formatClock(first.time)}` : ''}{due.length > 1 ? ` and ${formatNumber(due.length - 1)} more` : ''} →</span></Link></p>}
     {list.error && <p role="alert">{list.error}</p>}
   </section>;
 }
