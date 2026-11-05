@@ -6,7 +6,7 @@ import { usePrivateStore } from "../use-private-store";
 import { habitCalendarDay,createHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, planSkip as planHabitSkip, unplanSkip as unplanHabitSkip, setVacation as setHabitVacation, clearVacation as clearHabitVacation, type HabitData, type HabitInput, type HabitState, type VacationRange } from "../../lib/habits";
 import { shareHabitData } from "../../lib/habit-sharing";
 import {scheduleHabitEdit,scheduleHabitState,earliestHabitChange} from "../../lib/habit-actions";
-import { deletedHabitIds, withoutDeletedHabits, type DeletedHabit } from "../../lib/habit-delete";
+import { deletedHabitIds, isDeletedHabit, withoutDeletedHabits, type DeletedHabit } from "../../lib/habit-delete";
 import { localDate } from "../../lib/local-date";
 import { installMonthWeekdayOverlay } from "../../lib/habit-month-weekday/install";
 
@@ -52,6 +52,8 @@ export function useHabits() {
   const visible = useMemo(() => withoutDeletedHabits(store.data), [store.data]);
   // Gate B: the shells' ids, for a Goal's supporting habit (never reuse one) and Activity (never name one).
   const deletedIds = useMemo(() => deletedHabitIds(store.data), [store.data]);
+  // Session AL (DV-206): the shells themselves, for Activity's "Habit deleted for good" rows (lib/habit-lifecycle.ts).
+  const deletedShells = useMemo(() => store.data.habits.filter(isDeletedHabit), [store.data]);
   const data = useSharedHabitData(visible);
   const [today, setToday] = useState(localDate);
   const timeZone=data.timeZone;
@@ -99,7 +101,7 @@ export function useHabits() {
   const latest = useRef(data); latest.current = data;
   const journalData = useCallback(() => latest.current, []);
   const card = useMemo(() => ({ today, update, data: { timeZone, schemaVersion }, journalData, ...actions }), [today, update, timeZone, schemaVersion, journalData, actions]);
-  return { ...store, data, today, deletedIds, ...actions, card };
+  return { ...store, data, today, deletedIds, deletedShells, ...actions, card };
 }
 export type HabitsStore = ReturnType<typeof useHabits>;
 /** The part of the Habits store a card and its children use. A full HabitsStore also satisfies it. */

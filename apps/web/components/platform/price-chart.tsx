@@ -20,13 +20,16 @@ export function decimalUnits(value:string,decimals:number):bigint|null{if(!/^\d+
 export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='Price history',offline=false,costLine}:PriceChartProps){
  const id=useId(),look=useChartLook();
  // One historical window per opened asset. Range controls filter real observations locally.
- const requestText=JSON.stringify({marketRef,currency,range:'90d'});
- const request=useMemo(()=>historyRequestSchema.parse(JSON.parse(requestText)),[requestText]);
  const activeRequest=useRef<string|null>(null);
  const [state,setState]=useState<{key:string;result:MarketHistoryResult}|null>(null);
  const [loadingKey,setLoadingKey]=useState<string|null>(null);
  const [now,setNow]=useState(()=>Date.now());
  const [range,setRange]=useRememberedChoice<ChartHistoryRange>('price-chart-range','all',['all',...Object.keys(HISTORY_DAYS)] as ChartHistoryRange[]);
+ // Session AL (P-TK-04 1Y; TK-033/156/215, C-TK-22): 90 days of hourly prices by default; 1Y asks once for the year
+ // (daily prices; the history route serves it) only when the person chooses it, so the provider budget is unchanged otherwise.
+ // It is offered once the 90 days are fully covered (an older coin), so a young coin never shows a range it cannot fill.
+ const requestText=JSON.stringify({marketRef,currency,range:range==='1y'?'1y':'90d'});
+ const request=useMemo(()=>historyRequestSchema.parse(JSON.parse(requestText)),[requestText]);
  const [inspectedAt,setInspectedAt]=useState<string|null>(null);
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),30000);return ()=>clearInterval(timer);},[]);
  useEffect(()=>{
@@ -40,7 +43,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
  const history=result?.history??null;
  const local=useMemo(()=>validLocalHistory(localPoints,now),[localPoints,now]);
  const observed=history?.points.length?history.points:local;
- const ranges=availableHistoryRanges(observed),selectedRange=ranges.includes(range)?range:'all';
+ const found=availableHistoryRanges(observed),ranges=marketRef.kind==='coin'&&!offline&&(found.includes('90d')||range==='1y')&&!found.includes('1y')?[...found.filter(r=>r!=='all'),'1y' as ChartHistoryRange,'all' as ChartHistoryRange]:found,selectedRange=found.includes(range)?range:'all';
  const points=historyPointsForRange(observed,selectedRange);
  const entrance=useEntrance<HTMLElement>(`price:${JSON.stringify(marketRef)}:${currency}`,points.length>1);
  const current=points.find(p=>p.at===inspectedAt)??points[points.length-1];
@@ -74,7 +77,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
   <div className="price-chart-heading"><div><span className="price-chart-eyebrow">Market perspective</span><h3>{title}</h3></div>{marketRef.kind==='coin'&&!offline&&<button type="button" className="price-chart-refresh" disabled={!refreshAllowed} onClick={()=>void refresh()}>{loading?'Loading…':!refreshAllowed?'Refresh available soon':'Refresh chart'}</button>}</div>
   <div className="price-chart-source"><span className={`price-chart-dot ${isStale?'is-stale':''}`} aria-hidden="true"/>{source}{history&&<span className={isStale?'price-chart-stale':''}>{isStale?'Saved market history':'Recently fetched history'}</span>}</div>
   {current&&<div className="price-chart-quote"><div><strong>{formatHistoryPrice(current,currency)}</strong><span><time dateTime={current.at}>{formatDateTime(current.at)}</time> · {inspectedAt?'chart observation':'last chart observation'}</span></div>{changeText&&<div className={`price-chart-change ${change!<0n?'is-negative':''}`}><strong>{changeText}</strong><span>{/* Session AL (TK-033): never read as the 24h change shown above */}Change over this chart ({labels[selectedRange]}), not the 24h change</span></div>}</div>}
-  {ranges.length>0&&<div className="price-chart-ranges" role="group" aria-label="Chart range">{ranges.map(value=><button type="button" key={value} aria-pressed={selectedRange===value} onClick={()=>{setRange(value);setInspectedAt(null);}}>{labels[value]}</button>)}</div>}
+  {ranges.length>0&&<div className="price-chart-ranges" role="group" aria-label="Chart range">{ranges.map(value=><button type="button" key={value} aria-pressed={range==='1y'&&!found.includes('1y')?value==='1y':selectedRange===value} onClick={()=>{setRange(value);setInspectedAt(null);}}>{labels[value]}</button>)}</div>}{range==='1y'&&!found.includes('1y')&&<p className="fine" role="status">{history?.range==='1y'?'Less than a year of prices is available: all of them are shown.':'Loading a year of prices…'}</p>}
   {points.length?<>
    {points.length>1&&<svg className="price-chart-plot zg-chart" data-pillar="wealth" viewBox="0 0 760 256" role="img" tabIndex={points.length>1?0:undefined} aria-labelledby={`${id}-title`} onPointerMove={event=>{const rect=event.currentTarget.getBoundingClientRect();inspect(event.clientX,rect.left,rect.width);}} onPointerLeave={()=>setInspectedAt(null)} onKeyDown={event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const at=Math.max(0,points.findIndex(p=>p.at===current?.at)),next=event.key==='Home'?0:event.key==='End'?points.length-1:Math.max(0,Math.min(points.length-1,at+(event.key==='ArrowLeft'?-1:1)));setInspectedAt(points[next]!.at);}}>
     <title id={`${id}-title`}>{title}. {points.length} dated price observations in {currency}. Exact history table below. Arrow keys inspect observations.</title>

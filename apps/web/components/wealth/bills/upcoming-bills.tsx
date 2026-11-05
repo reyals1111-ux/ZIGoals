@@ -11,6 +11,7 @@ import {addManualBill, billOccurrences, cancelReminders, confirmCandidate, dismi
 import {BILLS, BILL_CADENCES, type Bill, type BillCadence, type BillsRecord} from '../../../lib/bills/schema';
 import './bills.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
+import {useMoneyCurrency} from '../use-money-currency';
 
 /**
  * Session AK (7.3, COMPETITORS M7): Upcoming bills. Bills come from the person: confirmed from a repeat the money log
@@ -96,7 +97,8 @@ function BillRow({occurrence: o, bill, onRemove, onNote}: {occurrence: BillOccur
 }
 
 function ManualBillForm({today, onSave, onCancel}: {today: string; onSave: (input: {title: string; amount: string; currency: string; cadence: BillCadence; nextDue: string}) => void; onCancel: () => void}) {
-  const [title, setTitle] = useState(''), [amount, setAmount] = useState(''), [currency, setCurrency] = useState('EUR'), [cadence, setCadence] = useState<BillCadence>('monthly'), [nextDue, setNextDue] = useState(today), [problem, setProblem] = useState('');
+  const startCurrency = useMoneyCurrency(); // Session AL (P-DVR-22): the one default currency, never a fixed EUR
+  const [title, setTitle] = useState(''), [amount, setAmount] = useState(''), [picked, setCurrency] = useState<string | null>(null), currency = picked ?? startCurrency, [cadence, setCadence] = useState<BillCadence>('monthly'), [nextDue, setNextDue] = useState(today), [problem, setProblem] = useState('');
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const input = {title, amount: readAmount(amount), currency, cadence, nextDue}, issue = manualBillIssue(input);

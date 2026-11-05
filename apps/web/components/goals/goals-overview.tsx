@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {useState} from 'react';
-import {BUILT_IN_AREAS} from '../../lib/goal-extras/store';
+import {BUILT_IN_AREAS, ancestorsOf} from '../../lib/goal-extras/store';
 import './goal-tree.css';
 import type {GoalSummary} from '../../lib/goal-summary';
 import type {AverageGoal} from '../../lib/average-goals/store';
@@ -34,21 +34,35 @@ export function GoalsFigures({goals, averages, extras, healthActive = 0}: {goals
  * connectors, each node with its progress ring, its roll-up and its life area's colour; phones get Fit / − / + so a wide
  * tree stays readable (a scale on the canvas, never a second layout).
  */
-export function GoalTreeView({goals, extras}: {goals: readonly GoalSummary[]; extras: GoalExtras}) {
+/**
+ * Session AL third pass (GAP-115, P-DV-64, P-DVG-03): the Tree edits itself. Each node can be dragged onto another goal
+ * (or onto "Your goals" to be a top goal again), and the same move has a keyboard path in its ⋯ menu ("Put under…"),
+ * with "Add a sub-goal" opening the wizard for a goal under this one. Moves go through setGoalParent (three levels,
+ * never under itself) with the app's one Undo.
+ */
+export function GoalTreeView({goals, extras, onMove}: {goals: readonly GoalSummary[]; extras: GoalExtras; onMove?: (goalKey: string, parentKey: string | null, message: string) => void}) {
   const byKey = new Map(goals.map(g => [g.key, g]));
   const tree = goalTree(goals.map(g => g.key), extras);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(1), [dragging, setDragging] = useState<string | null>(null);
+  const nameOf = (key: string) => byKey.get(key)?.name ?? 'that goal';
+  const move = (goalKey: string, parentKey: string | null) => { if (!onMove || goalKey === parentKey || (extras.goals[goalKey]?.parentKey ?? null) === parentKey) return; onMove(goalKey, parentKey, parentKey ? `${nameOf(goalKey)} is now under ${nameOf(parentKey)}.` : `${nameOf(goalKey)} is a top goal again.`); };
+  // Where a goal may go: not under itself or any goal below it.
+  const targetsFor = (key: string) => goals.filter(g => g.key !== key && !ancestorsOf(extras, g.key).includes(key));
   const areaOf = (key: string) => { const id = extras.goals[key]?.area; if (!id) return null; return extras.areas.find(a => a.id === id) ?? BUILT_IN_AREAS.find(a => a.id === id) ?? null; };
   const row = (node: TreeNode, depth: number): React.ReactNode => {
     const g = byKey.get(node.key)!, kids = node.children.map(c => byKey.get(c.key)!).filter(Boolean), area = areaOf(node.key);
     const r = kids.length ? rollUp(g, kids) : null;
     return <li key={node.key} data-depth={depth} style={area ? {'--area-color': area.color} as React.CSSProperties : undefined}>
-      <Link href={g.href} className="goal-tree-node" data-done={isFinished(g) || undefined}>
+      <Link href={g.href} className="goal-tree-node" data-done={isFinished(g) || undefined} data-drop={dragging && dragging !== node.key ? true : undefined} draggable={!!onMove} onDragStart={e => { e.dataTransfer.setData('text/plain', node.key); e.dataTransfer.effectAllowed = 'move'; setDragging(node.key); }} onDragEnd={() => setDragging(null)} onDragOver={e => { if (dragging && dragging !== node.key) e.preventDefault(); }} onDrop={e => { e.preventDefault(); const key = e.dataTransfer.getData('text/plain'); setDragging(null); if (key) move(key, node.key); }}>
         <ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={depth ? 44 : 56} label={`${g.name} progress`} complete={isFinished(g)} identity={`tree-${g.key}`} bound={g.progressBound} />
         <span className="goal-tree-text"><strong>{g.name}</strong><small>{/* Session AL (L-055, G-012, P-DVR-12): the ring is the goal's own progress; the roll-up says it is the sub-goals' */}{r ? `${isFinished(g) ? 'Finished' : g.progressBound === 'unavailable' ? 'Own progress unknown' : `${progressPresentation(g.progressPct, false)?.label ?? Math.floor(Number(g.progressPct))}% on its own`} · ${rollUpWords(r, (v, c) => formatGoalAmount(v, c))}` : isFinished(g) ? (g.status === 'closed' ? 'Finished · closed' : 'Finished') : g.progressBound === 'unavailable' ? 'Progress unknown' : g.status === 'closed' ? 'Closed' : `${progressPresentation(g.progressPct, false)?.label ?? Math.floor(Number(g.progressPct))}% of the way`}</small></span>
         {area && <span className="goal-tree-area"><i aria-hidden="true"/>{area.label}</span>}
         {kids.length > 0 && <span className="goal-tree-count" aria-label={`${kids.length} sub-goals`}>{kids.length}</span>}
       </Link>
+      {onMove && <details className="goal-tree-edit"><summary aria-label={`Change where ${g.name} sits`}>⋯</summary><div>
+        <label>Put under<select value={extras.goals[node.key]?.parentKey ?? ''} onChange={e => move(node.key, e.target.value || null)}><option value="">Your goals (a top goal)</option>{targetsFor(node.key).map(t => <option key={t.key} value={t.key}>{t.name}</option>)}</select></label>
+        {g.key.startsWith('private:') && depth < 2 && <Link className="text-link" href={`/app/goals/new?parent=${encodeURIComponent(node.key)}`}>Add a sub-goal</Link>}
+      </div></details>}
       {node.children.length > 0 && <ul>{node.children.map(c => row(c, depth + 1))}</ul>}
     </li>;
   };
@@ -61,9 +75,9 @@ export function GoalTreeView({goals, extras}: {goals: readonly GoalSummary[]; ex
     {/* Phase 2, Part 7 (owner request 16): the tree grows from one root — "Your goals" — down a trunk, each goal on a
         curved branch, sub-goals on their own branches below; the rows keep their links, rings and area colours. */}
     <div className="goal-tree-canvas" style={{'--tree-zoom': zoom} as React.CSSProperties}>
-      <p className="goal-tree-root"><span className="goal-tree-root-mark" aria-hidden="true">✦</span><strong>Your goals</strong><small>{tree.length} {tree.length === 1 ? 'destination' : 'destinations'}{goals.length > tree.length ? ` · ${goals.length - tree.length} sub-goals` : ''}</small></p>
+      <p className="goal-tree-root" data-drop={dragging ? true : undefined} onDragOver={e => { if (dragging) e.preventDefault(); }} onDrop={e => { e.preventDefault(); const key = e.dataTransfer.getData('text/plain'); setDragging(null); if (key) move(key, null); }}><span className="goal-tree-root-mark" aria-hidden="true">✦</span><strong>Your goals</strong><small>{tree.length} {tree.length === 1 ? 'destination' : 'destinations'}{goals.length > tree.length ? ` · ${goals.length - tree.length} sub-goals` : ''}</small></p>
       <ul className="goal-tree is-page">{tree.map(n => row(n, 0))}</ul>
     </div>
-    {tree.every(n => !n.children.length) && <p className="fine">No sub-goals yet. On a goal’s page, choose a bigger goal under “Part of a bigger goal” (three levels at most: year, quarter, month).</p>}
+    {tree.every(n => !n.children.length) && <p className="fine">No sub-goals yet. Drag a goal onto another, or use its ⋯ menu here or “Part of a bigger goal” on its page (three levels at most: year, quarter, month).</p>}
   </section>;
 }

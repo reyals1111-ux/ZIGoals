@@ -24,6 +24,7 @@ import {plainErrorMessage} from '../../lib/plain-error';
 import {formatDate, formatMoney, formatNumber} from '../../lib/visual-format';
 import {amountIssue, moneyUnitsIssue, validateValue, within} from '../../lib/limits/plausibility';
 import {parseNumberInput} from '../../lib/numbers/parse';
+import {useMoneyCurrency} from './use-money-currency';
 // Session AK (F5a, items 1 and 3): the debt payoff planner (on its button) and the net-worth milestones, each its own chunk.
 const DebtPlanner = lazy(() => import('./debt-planner'));
 const NetWorthMilestones = lazy(() => import('./networth-milestones'));
@@ -78,7 +79,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title">
     <header className="wealth-section-heading"><div><p className="eyebrow">EVERYTHING YOU OWN AND OWE</p><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p>Balances you enter, per account in its own currency. Accounts are kept on this device; with an account they also travel in your encrypted sync.</p></div>
       <button type="button" className="secondary" aria-expanded={adding} onClick={() => { setAdding(o => !o); setMessage(''); setError(''); }}>{adding ? 'Close' : 'Add an account or debt'}</button></header>
-    {adding && <AddAccount onAdd={(input, words) => { if (change(g => addAccount(g, input, new Date().toISOString()), words)) setAdding(false); }} today={today} />}
+    {adding && <AddAccount onAdd={(input, words) => { if (change(g => addAccount(g, input, new Date().toISOString()), words)) setAdding(false); }} today={today} held={worth.rows.map(r => ({currency: r.currency, value: BigInt(Math.round(Number(moneyText(add(r.assets, r.holdings))) || 0))}))} />}
     {worth.rows.length > 0 && <div className="accounts-worth" role="group" aria-label="Net worth by currency">
       {worth.rows.map(r => <article key={r.currency} className="accounts-worth-card" aria-label={`Net worth in ${r.currency}`}>
         <h3>Net worth · {r.currency}</h3>
@@ -111,9 +112,11 @@ function AssetsVsDebts({assets, holdings, debts, currency}: {assets: Money; hold
     <span><b>Own</b><i style={{width: `${(own / max) * 100}%`}} /></span><span><b>Owe</b><i className="owe" style={{width: `${(owe / max) * 100}%`}} /></span>
   </div>;
 }
-function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount>[1], words: string) => void; today: string}) {
+function AddAccount({onAdd, today, held}: {onAdd: (input: Parameters<typeof addAccount>[1], words: string) => void; today: string; held: readonly {currency: string; value: bigint}[]}) {
   // Session Y Part 9: a refused currency or balance marks its own field (aria-invalid, described by the message) and takes the focus.
   const [kind, setKind] = useState<AccountKind>('savings'), fe = useFieldErrors(), check = usePlausibleCheck();
+  // Session AL (P-DVR-22, PR-068): a new account or debt starts in the person's net-worth currency (was always EUR).
+  const startCurrency = useMoneyCurrency(held);
   return <form className="platform-form accounts-add" aria-label="Add an account or debt" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let field = ''; try {
     const name = String(f.get('name')).trim(), currency = String(f.get('currency')).trim().toUpperCase(), balance = String(f.get('balance') ?? '').trim(), rate = rateText(String(f.get('rate') ?? ''));
     field = 'currency'; if (!isMoneyCurrency(currency)) throw Error(`“${currency}” is not a three-letter currency code ZIGoals knows. Use one such as EUR, USD or GBP.`);
@@ -124,7 +127,7 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
   } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the account.'), ...(field ? [field] : [])); } }}>
     <label className="field">Kind<select value={kind} onChange={e => setKind(e.target.value as AccountKind)}><optgroup label="What you own">{ASSET_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup><optgroup label="What you owe">{DEBT_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup></select></label>
     <label className="field">Name<input name="name" required maxLength={80} placeholder={isDebtKind(kind) ? 'For example, car loan' : 'For example, savings account'} /></label>
-    <label className="field">Currency<input name="currency" required maxLength={3} defaultValue="EUR" autoCapitalize="characters" {...fe.field('currency')} /></label>
+    <label className="field">Currency<input name="currency" required maxLength={3} key={startCurrency} defaultValue={startCurrency} autoCapitalize="characters" {...fe.field('currency')} /></label>
     <label className="field">Bank or provider (optional)<input name="institution" maxLength={80} /></label>
     <label className="field">{isDebtKind(kind) ? 'What you owe now (optional)' : 'Balance now (optional)'}<input name="balance" inputMode="decimal" autoComplete="off" {...fe.field('balance', check.describedBy ? {describedBy: check.describedBy} : {})} onInput={check.clear} /></label>
     <PlausibleCheck id={check.id} warning={check.warning} />

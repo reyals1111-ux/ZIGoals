@@ -16,7 +16,7 @@ export const MONEY_FIELDS: readonly FieldSpec[] = [
   {id: 'amount', label: 'Amount', synonyms: ['bedrag', 'betrag', 'value', 'transaction amount', 'trnamt']},
   {id: 'debit', label: 'Money out', synonyms: ['withdrawal', 'withdrawals', 'paid out', 'out', 'af', 'debit amount']},
   {id: 'credit', label: 'Money in', synonyms: ['deposit', 'deposits', 'paid in', 'in', 'bij', 'credit amount']},
-  {id: 'direction', label: 'In or out', synonyms: ['debit/credit', 'credit/debit', 'af bij', 'af/bij', 'dc', 'type', 'credit debit indicator', 'cdtdbtind', 'trntype']},
+  {id: 'direction', label: 'In or out', synonyms: ['debit/credit', 'credit/debit', 'af bij', 'af/bij', 'dc', 'type', 'credit debit indicator', 'cdtdbtind', 'trntype', /* Session AL (P-DVG-51, GAP-008): Mint's export, "Transaction Type" debit/credit */ 'transaction type']},
   {id: 'currency', label: 'Currency', synonyms: ['ccy', 'valuta', 'munt', 'currency code', 'cursym']},
   {id: 'payee', label: 'Payee', synonyms: ['name', 'counterparty', 'counterparty name', 'description', 'naam', 'naam omschrijving', 'merchant', 'beneficiary']},
   {id: 'note', label: 'Note', synonyms: ['memo', 'details', 'remittance information', 'mededelingen', 'omschrijving', 'reference text', 'notes']},

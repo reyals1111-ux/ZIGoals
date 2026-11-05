@@ -5,7 +5,9 @@ import {habitDay} from '../../lib/habits';
 import {dailyData, waterOn} from '../../lib/health-daily';
 import {logWaterWithUndo} from '../health/water-log';
 import {waterButtons} from '../../lib/health-quick/quick';
-import {asleep, nightsIn} from '../../lib/sleep/engine';
+import {asleep, deleteNight, nightsIn, saveNight} from '../../lib/sleep/engine';
+import {quickLastNight} from '../../lib/health-sleep-form';
+import {useSleep} from '../health/sleep/use-sleep';
 import {elapsedMs, formatFast} from '../../lib/fasting/engine';
 import type {GoalSummary} from '../../lib/goal-summary';
 import {formatGoalAmount} from '../../lib/goal-summary';
@@ -19,7 +21,7 @@ import {useFasting} from '../health/use-fasting';
 import {AppIcon} from '../app-icon';
 import {Slot} from '../progress/slot';
 import {SectionHeading} from '../ui/section-heading';
-import {showStatus} from '../ui/undo-toast';
+import {showStatus, showUndo} from '../ui/undo-toast';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {newHealthId} from '../../lib/health';
 
@@ -61,6 +63,19 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
   const lastNight = healthReady && health.data.sleep ? nightsIn(health.data.sleep, healthDate, 1).at(-1) : undefined;
   const slept = lastNight ? asleep(lastNight) : null;
   const lastTap = useRef(-Infinity);
+  // Session AL (NB-138, P-NB-43): last night in one tap, as water is: Health's own sleep write (quickLastNight + saveNight,
+  // so an overlap is still refused), with Undo that removes exactly that night from the latest record.
+  const sleepStore = useSleep();
+  async function logNight(h: number) {
+    try {
+      const before = new Set(sleepStore.sleep.nights.map(n => n.id));
+      let added: string | undefined;
+      await sleepStore.update(s => { const next = saveNight(s, quickLastNight(h, healthDate, Date.now(), sleepStore.zone), new Date()); added = next.nights.find(n => !before.has(n.id))?.id; return next; });
+      showUndo({message: `Last night saved: ${h} h of sleep.`, undone: 'Night removed.', restore: () => sleepStore.update(s => added && s.nights.some(n => n.id === added) ? deleteNight(s, added) : s)});
+    } catch (e) {
+      showStatus(plainErrorMessage(e, 'Could not log last night on this device.'), {tone: 'error'});
+    }
+  }
   async function logWater(tapAt: number) {
     if (!firstWater) return;
     // Session AL (MO-111, P-MO-97): a second tap within 350 ms (the event's own time) is one tap, as on Health.
@@ -120,7 +135,7 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
           <div className="focus-actions"><Link prefetch={false} className="text-link" href="/app/health?view=sleep">Open sleep →</Link></div>
         </> : <>
           <strong>No night logged</strong>
-          <div className="focus-actions"><Link prefetch={false} className="text-link" href="/app/health?view=sleep">Log last night →</Link></div>
+          <div className="focus-actions">{sleepStore.loaded && !sleepStore.error && [7, 8].map(h => <button key={h} type="button" className="secondary" aria-label={`Log ${h} hours of sleep last night`} onClick={() => void logNight(h)}>{h} h</button>)}<Link prefetch={false} className="text-link" href="/app/health?view=sleep">Enter the times →</Link></div>
         </>}
       </article>}
     </div>

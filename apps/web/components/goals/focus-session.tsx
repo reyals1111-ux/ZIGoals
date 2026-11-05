@@ -4,6 +4,7 @@ import {startSoundscape} from '../music/soundscape-start';
 import {FOCUS_LENGTHS, focusNote, withFocusNote} from '../../lib/focus-session';
 import {localDate} from '../../lib/local-date';
 import {usePlatform} from '../platform/use-platform';
+import {hoursMinutes, loggedMinutes, timeLine} from '../../lib/goals/congrats';
 
 /**
  * Session AI (B3: a focus session tied to a goal): a timer of 15, 25 or 50 minutes on the goal's page; when it ends, or is
@@ -27,6 +28,15 @@ export function FocusSession({goalId, writable}: {goalId: string; writable: bool
     if (!line) return;
     platform.update(s => ({...s, goals: s.goals.map(g => g.id === goalId ? {...g, notes: withFocusNote(g.notes, line)} : g)})).then(() => { setNote(`Added to the goal's notes: ${line}.`); setDone(null); }, cause => setNote(cause instanceof Error ? cause.message : 'The note could not be saved.'));
   };
+  // Session AL third pass (GAP-121): the time logged on this goal in hours and minutes, and time added by hand.
+  const logged = loggedMinutes(platform.data.goals.find(g => g.id === goalId)?.notes);
+  const [hours, setHours] = useState(''), [mins, setMins] = useState(''), [timeError, setTimeError] = useState('');
+  const logTime = () => {
+    const read = timeLine(hours, mins, localDate());
+    if ('error' in read) { setTimeError(read.error); return; }
+    setTimeError('');
+    platform.update(s => ({...s, goals: s.goals.map(g => g.id === goalId ? {...g, notes: withFocusNote(g.notes, read.line)} : g)})).then(() => { setNote(`Added to the goal's notes: ${read.line}.`); setHours(''); setMins(''); }, cause => setNote(cause instanceof Error ? cause.message : 'The time could not be saved.'));
+  };
   const mmss = `${Math.floor(left)}:${String(Math.floor((left % 1) * 60)).padStart(2, '0')}`;
   return <div className="goal-focus">
     {startedAt === null ? <>
@@ -39,6 +49,8 @@ export function FocusSession({goalId, writable}: {goalId: string; writable: bool
     </>}
     {done !== null && (focusNote(done, localDate()) ? <p>Focused {Math.floor(done)} min. {writable ? <button type="button" className="text-link" onClick={add}>Add it to the goal&rsquo;s notes</button> : <span className="fine">Unlock or reopen the goal to note it.</span>}</p> : <p className="fine">Under a minute: nothing to note.</p>)}
     {note && <p role="status" className="fine">{note}</p>}
+    <p className="goal-focus-total"><strong>Time on this goal: {hoursMinutes(logged)}</strong> <span className="fine">from focus sessions and time you logged, in its notes</span></p>
+    {writable && <fieldset className="goal-focus-log"><legend>Log time spent</legend><label>Hours<input inputMode="numeric" value={hours} onChange={e => setHours(e.target.value)} aria-invalid={timeError ? true : undefined} aria-describedby={timeError ? `${goalId}-time-error` : undefined}/></label><label>Minutes<input inputMode="numeric" value={mins} onChange={e => setMins(e.target.value)} aria-invalid={timeError ? true : undefined}/></label><button type="button" className="secondary" onClick={logTime}>Add time</button>{timeError && <p role="alert" className="field-error" id={`${goalId}-time-error`}>{timeError}</p>}</fieldset>}
     <p className="fine">The timer runs while this page is open; nothing is written until you add the note.</p>
   </div>;
 }

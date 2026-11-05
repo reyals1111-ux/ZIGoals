@@ -13,6 +13,7 @@ import {TODAY_CARDS,shownCards,toggleCard} from '../../lib/today-cards/store';
 const ChessTodayRefresh=lazy(()=>import('../chess/chess-today'));
 // Session AA-Cloud Part 8: the cards kept on this device load after the page (weights).
 const TodayDeviceCards=lazy(()=>import('./today-device-cards'));
+const TodayWrapped=lazy(()=>import('./today-wrapped'));
 // Phase 2 (weights): the widget library opens with the Add widget dialog, the welcome card only on a new device: both chunks.
 const WidgetLibrary=lazy(()=>import('./widget-library').then(m=>({default:m.WidgetLibrary})));
 const MakeToday=lazy(()=>import('./make-today')),PresetChooser=lazy(()=>import('./preset-chooser'));
@@ -235,7 +236,7 @@ export function TodayDashboard(){
    <CardOptions label={metric.title}><AskZigiItem kind={w.kind} metric={w.metric} name={habit?.title??(w.entity?goals.find(g=>g.key===w.entity)?.name:undefined)}/><button type="button" disabled={busy} onClick={()=>setEditor(w)}>Edit widget</button><button type="button" disabled={busy} onClick={()=>apply(s=>saveWidget(s,{...w,hidden:!w.hidden},w.revision))}>{w.hidden?'Show widget':'Hide widget'}</button><button type="button" aria-label={`Move ${metric.title} up`} disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,metric.title)}>Move earlier</button><button type="button" aria-label={`Move ${metric.title} down`} disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,metric.title)}>Move later</button><button type="button" onClick={()=>moveLane(ref,region,metric.title)} disabled={busy}>Move to {region==='main'?'rail':'main'}</button><button type="button" disabled={busy||w.size==='compact'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'compact'},w.revision),'Compact size saved.')}>Compact size</button><button type="button" disabled={busy||w.size==='wide'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'wide'},w.revision),'Wide size saved.')}>Wide size</button><button type="button" disabled={busy} onClick={()=>apply(s=>removeWidget(s,w.id),'Widget removed. Your underlying record was kept.')}>Remove widget</button></CardOptions>
   </article>;
  }
- const intelligence=(module:'life'|'attention'|'funding'|'needs-attention'|'watchlist')=><TodayIntelligence sources={sources} goalId={module==='attention'?roles.attention?.id:undefined} shownGoals={shownGoals} habitsReady={habits.loaded&&!habits.error} healthReady={health.loaded&&!health.error} module={module}/>;
+ const intelligence=(module:'life'|'attention'|'funding'|'needs-attention'|'watchlist')=><TodayIntelligence sources={sources} goalId={module==='attention'?roles.attention?.id:undefined} shownGoals={shownGoals} habitsReady={habits.loaded&&!habits.error} healthReady={health.loaded&&!health.error} module={module} pricesLoading={!market.quotes.length&&(market.loading||!market.error)}/>;
  function renderBuiltin(id:DashboardBuiltinId){
   if(['whole-life','attention','funding','needs-attention','watchlist'].includes(id)){
    if(!financial||!platform.loaded||!!platform.error||id==='attention'&&!hasFundingGoal)return null;
@@ -314,7 +315,9 @@ export function TodayDashboard(){
  // Session AL (P-NB-08; NB-002, NB-033): a device with nothing recorded and no setup made keeps one way into the setup on
  // Today after "Not now" (the welcome itself shows once); while it shows, it is the page's one first action.
  const emptyDevice=storesReady&&!showcase&&!brandNew&&!setupMade&&!habits.data.habits.length&&!platform.data.goals.length&&!platform.data.positions.length&&!legacy.goals.length;
- const makeToday=emptyDevice?<FirstRunEntry demoAvailable={legacy.mode==='local'}/>:settings.loaded&&!settings.error&&!settings.data.onboarded?<Suspense fallback={<TodayReserve part="make"/>}><MakeToday chosen={settings.data.preset} onChoose={setPreset} onContinue={()=>apply(s=>({...s,onboarded:true}))}/></Suspense>:null;
+ // Session AL (TK-148, N-TK-21): with records already kept, the chooser moves after the data and can be put away.
+ const hasRecords=storesReady&&!showcase&&(habits.data.habits.length>0||platform.data.goals.length>0||platform.data.positions.length>0||legacy.goals.length>0);
+ const makeToday=emptyDevice?<FirstRunEntry demoAvailable={legacy.mode==='local'}/>:settings.loaded&&!settings.error&&!settings.data.onboarded?<Suspense fallback={<TodayReserve part="make"/>}><MakeToday hasRecords={hasRecords} chosen={settings.data.preset} onChoose={setPreset} onContinue={()=>apply(s=>({...s,onboarded:true}))}/></Suspense>:null;
  // The For you cards render into three fixed places (portals), so the page's own tree never changes shape when they
  // arrive: the hero and its slogan mount once per visit.
  const layout=(parts:ForYouParts)=><div className="today-page personalized-today" data-interests={settings.data.preset} data-single={single?'':undefined}>
@@ -328,7 +331,7 @@ export function TodayDashboard(){
    {financial&&platform.error&&legacy.loaded&&!legacy.error&&goals.some(g=>g.key.startsWith('legacy:'))&&<section className="panel" aria-label="Available local simulation Goals"><h2>Your local simulation Goals are still available.</h2><p>Private tracked records need recovery. These separate local simulation records remain readable.</p><ul>{goals.filter(g=>g.key.startsWith('legacy:')).map(g=><li key={g.key} data-goal-key={g.key}><Link href={g.href}>{g.name}</Link></li>)}</ul></section>}
    {integrityWarning&&<p role="alert" className="notice">{integrityWarning} <Link href="/app/wealth">Review saved sources →</Link></p>}
    {/* Session AK RB (RELEASE_REVIEW_2 R2-11): "Make Today yours" waits until the welcome above is answered (they asked the same question one after the other). */}
-   {!showcase&&!brandNew&&makeToday}
+   {!showcase&&!brandNew&&storesReady&&!hasRecords&&makeToday}
    {!brandNew&&storesReady&&<TodayLine habits={habits.data} health={health.data} platform={platform.data} quotes={market.quotes} now={now} today={today} healthDate={sources.healthDate} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} financial={financial}/>}
    {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
    {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
@@ -350,7 +353,8 @@ export function TodayDashboard(){
       page's order, exactly where they were. */}
   <div className="today-after">
    {parts.main}<div className="for-you-place" ref={setMainPlace}/>
-   {showcase&&makeToday&&<PhoneFold label="Make Today yours">{makeToday}</PhoneFold>}
+   {!showcase&&!brandNew&&storesReady&&<LoadBoundary quiet><Suspense fallback={null}><TodayWrapped habits={habits.data} health={health.data} platform={platform.data} today={today}/></Suspense></LoadBoundary>}
+   {showcase&&makeToday&&<PhoneFold label="Make Today yours">{makeToday}</PhoneFold>}{!showcase&&!brandNew&&hasRecords&&makeToday}
   </div>{!single&&<aside className="today-rail" aria-label="Your next chapter"><LayoutRegion region="rail" items={railItems} onMove={(id,to,order)=>placeAt('rail',id,to,order)}/></aside>}</div>
   {parts.end}<div className="for-you-place" ref={setEndPlace}/>
   {/* Session AB-Design (owner requests 9 and 11): Your week, then the game card while Gamify is on, then My links as the last card before the footer. Saved orders are kept (resolveOrder); "Reset this page" offers this order. */}

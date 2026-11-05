@@ -1,5 +1,7 @@
 'use client';
 import {useMemo, useState, type CSSProperties} from 'react';
+import {usePagesView} from '../pages/use-pages-view';
+import {isShown} from '../../lib/pages/visibility';
 import {NebulaFlow} from '../nebula-flow';
 import {showStatus} from '../ui/undo-toast';
 import {drawShareCard, shareOrSave} from '../../lib/share-image';
@@ -30,6 +32,9 @@ export function UniverseSection() {
   const state = useUniverse(), {universe, loaded, failed} = state;
   const [selected, setSelected] = useState<UniversePillar | null>(null), [busy, setBusy] = useState(false);
   const layout: SceneLayout = usePhoneActive() ? 'grid' : 'orbit', scene = sceneOf(layout);
+  // Session AL (NB-052, P-NB-06): a pillar whose page the person took off their pages keeps its planet (the four planets are
+  // the four parts of ZIGoals, ADR-028 H77), and says so, so a dim planet is not mistaken for a missed day.
+  const pages = usePagesView(), offPages = (pillar: UniversePillar) => !isShown(pages, pillar);
   const discovery = useMemo(() => loaded && !failed ? crossPillarInsights({habits: state.habits, health: state.health, today: state.today, max: 1}) : null, [loaded, failed, state.habits, state.health, state.today]);
   const share = async () => {
     if (!universe) return;
@@ -46,7 +51,7 @@ export function UniverseSection() {
     <div className="universe-head">
       <p className="eyebrow">My universe</p>
       <h2 id="universe-title"><NebulaFlow identity="universe-title">{title}</NebulaFlow></h2>
-      <p className="universe-lede">{universe?.empty ? 'Check in a habit, log a day or set a goal: each planet grows from what you already do.' : 'One planet for each part of your life. Rings, moons and light grow from your own records, and nothing is ever taken away: a missed day leaves a faint ring.'}</p>
+      <p className="universe-lede">{universe?.empty ? 'Check in a habit, log a day or set a goal: each planet grows from what you already do.' : 'One planet for each of the four parts of ZIGoals: Goals, Habits, Health and Wealth (other pages, such as Chess, have none). Rings, moons and light grow from your own records, and nothing is ever taken away: a missed day leaves a faint ring.'}</p>
     </div>
     {!loaded ? <div className="universe-skeleton aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /></div> : failed ? <p role="status" className="universe-note">Some of your records could not be read on this device, so your universe waits until they can.</p> : universe && <>
       <UniverseCelebration milestones={state.pending} onCelebrate={state.celebrate} />
@@ -58,6 +63,7 @@ export function UniverseSection() {
         <p className="universe-planet-title"><strong>{p.label}</strong>{p.lit && <span className="universe-lit">Lit today</span>}</p>
         <p className="universe-planet-counts">{planetSummary(p)}</p>
         <p className="universe-planet-light">{p.lightLine}</p>
+        {offPages(p.pillar) && <p className="universe-planet-off">{p.label} is not on your pages. Its planet stays, quietly, and lights again when you log here; add the page back in Settings → Your pages &amp; buttons.</p>}
         <ul className="universe-facts">{p.facts.map(f => <li key={f}>{keepWords(f)}</li>)}</ul>
       </li>)}</ul>
       {discovery && (discovery.ready[0] ? <div className="universe-discovery" role="note" aria-label="Discovery"><p className="eyebrow">Discovery · {discovery.ready[0].title}</p><p>{discovery.ready[0].sentence}</p><p className="fine">Seen together in your own records over the last 90 days, never a cause.</p></div>

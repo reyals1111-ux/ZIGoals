@@ -37,6 +37,11 @@ import { removeWithUndo } from "./ui/remove-with-undo";
 import { showStatus, showUndo } from "./ui/undo-toast";
 import { entryOn, restoreHabitEntry, type HabitEntry } from "../lib/timeline/actions";
 import { storageMessageOr } from "../lib/storage-error-copy";
+// Session AL third pass (DV-172, DV-206; GAP-124/122/125): sleep nights, habit state changes and the period report.
+import { getSleepActivities } from "../lib/health-sleep-activities";
+import { habitLifecycleRows } from "../lib/habit-lifecycle";
+import { ActivityReport } from "./activity/activity-report";
+import { localDate } from "../lib/local-date";
 /** Session AL (DV-117, P-DV-80): each filter's empty view says what belongs there and where to start it. */
 function emptyFor(category: string): {title: string; body: string; href?: string; link?: string} {
   switch (category) {
@@ -48,7 +53,7 @@ function emptyFor(category: string): {title: string; body: string; href?: string
     default: return {title: "Your next step belongs here.", body: "Goal actions, habit check-ins and health logs will build your story."};
   }
 }
-export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void }) {
+export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts, report = false }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void; /** The Activity page's report card above the list (GAP-124). */ report?: boolean }) {
   const showcase = useShowcase();
   const platform=usePlatform();
   const averages = useAverageGoals();
@@ -85,6 +90,10 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     ...getHabitActivities(habits.data), ...getHealthActivities(health.data, (() => { try { return dailyData(health.data).preferences.weightUnit; } catch { return "kg" as const; } })()), ...getWaterActivities(health.data),
     // Session AL (DV-172, for L4 by lane L5): a task added and each time one was finished, under its day in the app's zone.
     ...(tasks.loaded && !tasks.unreadable ? getTaskActivities(tasks.data, deviceDay) : []),
+    // Session AL third pass (DV-172, DV-206, P-DV-73): finished nights and naps (Health's own getter, lane L2); a habit archived,
+    // paused, restored or deleted for good.
+    // Habit rows come from Habits' own lib/habit-lifecycle.ts (lane L3), deleted-for-good shells included (named nowhere).
+    ...getSleepActivities(health.data), ...habitLifecycleRows(habits.data.habits, habits.deletedShells),
   ];
   // Session V Part 7, "Actions by ZIGi": the entries made from ZIGi's cards, plus a line for each confirmed card whose
   // record has no entry of its own here (water, a recipe, a reminder…).
@@ -119,6 +128,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   const counts = JSON.stringify(Object.fromEntries(["ALL", "GOAL", "WEALTH", "HABIT", "HEALTH", ...(zigi.actions.length ? ["ZIGI"] : [])].map(c => [c, select(c).length])));
   useEffect(() => { onCounts?.(JSON.parse(counts) as Record<string, number>); }, [counts, onCounts]);
   return <div className="unified-activity">
+    {report && <ActivityReport rows={base.map(event => ({category: event.category, dayKey: activityDay(event)}))} habits={habits.data.habits} today={localDate()}/>}
     {(habits.error || health.error) && <p className="fine">Some private history needs attention in Settings; stored data has been preserved.</p>}
     {showcase && <p className="activity-history-source">Showcase example history · fictional records</p>}
     {entries.length ? <ol>{entries.map((event, index) => {

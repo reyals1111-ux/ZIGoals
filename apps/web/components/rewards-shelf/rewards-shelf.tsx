@@ -19,16 +19,19 @@ const newId = () => { try { return crypto.randomUUID(); } catch { return `r-${Da
  * ever taken away. Kept on this device (`zigoals:rewards-shelf:v1`).
  */
 export default function RewardsShelf({xpTotal}: {xpTotal: number}) {
-  const shelf = useDeviceRecord(REWARDS_SHELF), [name, setName] = useState(''), [price, setPrice] = useState(''), [note, setNote] = useState(''), [removing, setRemoving] = useState<string | null>(null);
+  const shelf = useDeviceRecord(REWARDS_SHELF), [name, setName] = useState(''), [price, setPrice] = useState(''), [note, setNote] = useState(''), [removing, setRemoving] = useState<string | null>(null), [priceError, setPriceError] = useState('');
   if (!shelf.loaded) return null;
   const s = shelf.data, on = !shelf.unreadable && !!s.on, rewards = s.rewards ?? [], left = pointsAvailable(s, xpTotal);
   const save = (change: Parameters<typeof shelf.update>[0], ok: string) => { try { shelf.update(change); setNote(ok); return true; } catch (e) { setNote(why(e)); return false; } };
-  const add = () => { if (save(c => addReward(c, {id: newId(), name, price: Number(price), at: new Date().toISOString()}), `${name.trim()} is on your shelf.`)) { setName(''); setPrice(''); } };
+  // Session AL (MO-161): a price of 0 or below (or a fraction) used to be stopped by the browser with no visible word; the
+  // form now says why, under the field.
+  const priceIssue = (raw: string) => { const n = Number(raw.trim().replace(',', '.')); return !raw.trim() || !Number.isFinite(n) || n < 1 ? 'Enter a price of 1 point or more.' : !Number.isInteger(n) ? 'Enter whole points (for example 200).' : n > MAX_PRICE ? `Enter at most ${formatNumber(MAX_PRICE)} points.` : ''; };
+  const add = () => { const issue = priceIssue(price); setPriceError(issue); if (issue) { document.getElementById('rewards-price-input')?.focus(); return; } if (save(c => addReward(c, {id: newId(), name, price: Number(price.trim().replace(',', '.')), at: new Date().toISOString()}), `${name.trim()} is on your shelf.`)) { setName(''); setPrice(''); } };
   const claim = (rewardId: string, title: string) => {
     const id = newId();
     if (save(c => claimReward(c, rewardId, xpTotal, {id, at: new Date().toISOString()}), `Enjoy it: ${title}.`)) showUndo({message: `Claimed: ${title}. Enjoy it.`, restore: () => shelf.update(c => undoClaim(c, id)), undone: 'Claim taken back; the points are yours again.'});
   };
-  return <section className="panel rewards-shelf" aria-labelledby="rewards-shelf-title">
+  return <section id="rewards-shelf" className="panel rewards-shelf" aria-labelledby="rewards-shelf-title">
     <p className="eyebrow">Optional · your own treats</p>
     <h2 id="rewards-shelf-title">Rewards shelf</h2>
     <label className="game-setting-row"><input type="checkbox" role="switch" aria-label="Rewards shelf" aria-checked={on} checked={on} disabled={shelf.unreadable} onChange={e => save(c => setShelfOn(c, e.target.checked), e.target.checked ? 'The shelf is on.' : 'The shelf is off; your treats stay saved.')} /><span><strong>Rewards shelf</strong><small>List treats with a point price. Your points are the XP you already earn; claiming a treat marks it enjoyed. No penalties, no negative points.</small></span></label>
@@ -45,9 +48,9 @@ export default function RewardsShelf({xpTotal}: {xpTotal: number}) {
           {removing === r.id && <ConfirmInline tone="neutral" title={`Take ${r.name} off the shelf?`} confirmLabel="Remove" onConfirm={() => { save(c => removeReward(c, r.id), `${r.name} is off the shelf.`); setRemoving(null); }} onCancel={() => setRemoving(null)}><p>What you already enjoyed stays counted.</p></ConfirmInline>}
         </li>;
       })}</ul> : <p className="fine">No treats yet. For example: a film night for 200 points, or a new book for 500.</p>}
-      <form className="rewards-add" onSubmit={e => { e.preventDefault(); add(); }}>
+      <form className="rewards-add" noValidate onSubmit={e => { e.preventDefault(); add(); }}>
         <label className="field">A treat<input value={name} maxLength={MAX_NAME} placeholder="For example: a film night" onChange={e => setName(e.target.value)} /></label>
-        <label className="field rewards-price">Points<input value={price} inputMode="numeric" type="number" min={1} max={MAX_PRICE} step={1} onChange={e => setPrice(e.target.value)} /></label>
+        <label className="field rewards-price">Points<input id="rewards-price-input" value={price} inputMode="numeric" type="number" min={1} max={MAX_PRICE} step={1} aria-invalid={priceError ? true : undefined} aria-describedby={priceError ? 'rewards-price-error' : undefined} onChange={e => { setPrice(e.target.value); setPriceError(''); }} />{priceError && <small id="rewards-price-error" className="field-error" role="alert">{priceError}</small>}</label>
         <button type="submit" className="secondary" disabled={!name.trim() || !price}>Add to the shelf</button>
       </form>
     </>}

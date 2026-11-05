@@ -129,16 +129,21 @@ function computeWealthHistory(s:Platform,sourceOf?:(snapshotId:string)=>string):
  });
 }
 
-type OverviewInputs={s:Platform;positions:Platform['positions'];allocations:Platform['allocations'];snapshots:Platform['valuationSnapshots'];events:Platform['assetEvents'];now:number;quotes:readonly MarketQuote[]};
+type OverviewInputs={s:Platform;positions:Platform['positions'];allocations:Platform['allocations'];snapshots:Platform['valuationSnapshots'];events:Platform['assetEvents'];now:number;quotes:readonly MarketQuote[];stablecoinsAsCash:boolean};
 let lastOverview:{inputs:OverviewInputs;result:ReturnType<typeof computeWealthOverview>}|undefined;
 /** Today shows several summaries of the same records in one render; the latest result is reused for the same inputs. */
-export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQuote[]=[]){
- const inputs:OverviewInputs={s,positions:s.positions,allocations:s.allocations,snapshots:s.valuationSnapshots,events:s.assetEvents,now,quotes};
+/** Session AL (GAP-028, P-TK-83, C-TK-14): the person may count stablecoins with cash in the class view (a display choice
+ * on this device; the holdings, their values and every total stay exactly as they are). */
+export const STABLECOINS_AS_CASH_KEY='zigoals:stablecoins-as-cash:v1';
+/** The class a row is shown under: Stablecoins join Cash when the person chose it. */
+export const shownWealthClass=(c:WealthClass,stablecoinsAsCash=false):WealthClass=>stablecoinsAsCash&&c==='Stablecoins'?'Cash':c;
+export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQuote[]=[],{stablecoinsAsCash=false}:{stablecoinsAsCash?:boolean}={}){
+ const inputs:OverviewInputs={s,positions:s.positions,allocations:s.allocations,snapshots:s.valuationSnapshots,events:s.assetEvents,now,quotes,stablecoinsAsCash};
  const last=lastOverview?.inputs;
  if(last&&(Object.keys(inputs) as (keyof OverviewInputs)[]).every(key=>last[key]===inputs[key]))return lastOverview!.result;
- const result=computeWealthOverview(s,now,quotes);lastOverview={inputs,result};return result;
+ const result=computeWealthOverview(s,now,quotes,stablecoinsAsCash);lastOverview={inputs,result};return result;
 }
-function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote[]){
+function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote[],stablecoinsAsCash:boolean){
  const validQuotes=quotes.filter(q=>marketQuoteSchema.safeParse(q).success);
  const rows=s.positions.filter(p=>!p.archivedAt).map(p=>{
   const balance=allocationBalance(s,p.id),observed=BigInt(p.quantity),allocated=BigInt(balance.allocated)>observed?observed:BigInt(balance.allocated);
@@ -162,5 +167,5 @@ function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote
   // Session AH (WE5, B-032): why a total is incomplete, kept apart: a value missing, or more than one currency.
   return {subtotals,incomplete:items.some(r=>r.value===undefined)||currencies.length>1,missingValue:items.some(r=>r.value===undefined),mixedCurrencies:currencies.length>1};
  };
- return {rows,...summarize(rows),history:wealthHistory(s),categories:WEALTH_CLASSES.map(assetClass=>{const items=rows.filter(r=>r.wealthClass===assetClass);return {assetClass,items,...summarize(items)};})};
+ return {rows,...summarize(rows),history:wealthHistory(s),categories:WEALTH_CLASSES.filter(c=>!(stablecoinsAsCash&&c==='Stablecoins')).map(assetClass=>{const items=rows.filter(r=>shownWealthClass(r.wealthClass,stablecoinsAsCash)===assetClass);return {assetClass,items,...summarize(items)};})};
 }

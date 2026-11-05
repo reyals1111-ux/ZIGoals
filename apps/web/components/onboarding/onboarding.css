@@ -125,3 +125,12 @@
 legend .onboarding-count { display: inline; margin-left: 8px; }
 .onboarding-tour-card { min-height: 168px; }
 .onboarding-skip-note { margin: 0 0 4px; }
+/* Session AL (GAP-103): the game layer's preview in setup (read-only). */
+.onboarding-game-preview { display: grid; gap: 8px; margin: 12px 0 4px; padding: 14px 16px; border-radius: 16px; border: 1px solid #7fc8ff1f; background: #0a1123a6; color: #d6e2f3; } /* the points' own look (theme sheets map it) */
+.onboarding-game-preview h3 { margin: 0; font-size: 17px; }
+.onboarding-game-preview p { margin: 0; font-size: 15px; line-height: 1.5; }
+.onboarding-game-level { display: flex; align-items: center; gap: 10px; }
+.onboarding-game-level span:last-child { display: grid; gap: 2px; }
+.onboarding-game-level small { font-size: 15px; color: #c2d0e5; }
+.onboarding-game-pill { display: inline-grid; place-items: center; min-width: 44px; height: 28px; padding: 0 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #0b1020; background: linear-gradient(90deg, #6fe6f6, #c790f6); }
+@media (forced-colors: active) { .onboarding-game-pill { color: CanvasText; background: Canvas; border: 1px solid CanvasText; } }

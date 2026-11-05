@@ -16,12 +16,18 @@ export const CHESS_PUZZLE_KEY_LITERAL = 'zigoals:chess-puzzle:v1';
 export const NOVA_HUD_KEY_LITERAL = 'zigoals:nova-hud:v1';
 /** GAP-045/GAP-079 (personal, Health-describing): meal names and times, drink types (lib/health-extras.ts). Restored only with the Health choice. */
 export const HEALTH_EXTRAS_KEY_LITERAL = 'zigoals:health-extras:v1';
+/** GAP-028 (display): "Count stablecoins as cash" in Wealth's class view (lib/wealth.ts); "1" or absent. */
+export const STABLECOINS_AS_CASH_KEY_LITERAL = 'zigoals:stablecoins-as-cash:v1';
+/** C-BN-22 (display): the daily puzzles played on this device (lib/chess/puzzle-log.ts); public puzzles, no personal text. */
+export const PUZZLE_LOG_KEY_LITERAL = 'zigoals:chess-puzzle-log:v1';
+/** C-BN-14 (display): Ecosystem value-locked figures this device read (lib/zigchain-eco/tvl-history.ts); public numbers. */
+export const TVL_HISTORY_KEY_LITERAL = 'zigoals:eco-tvl-history:v1';
 /** Personal device records: a device holding one is not new (onboarding `DEVICE_RECORD_KEYS`). */
 export const AL_PERSONAL_KEYS: readonly string[] = [WALLET_NAMES_KEY_LITERAL, HEALTH_EXTRAS_KEY_LITERAL];
 /** Display records (onboarding `NON_PERSONAL_KEYS`): a device holding only these is still new. */
-export const AL_DISPLAY_KEYS: readonly string[] = [APPS_PREFS_KEY_LITERAL, CHESS_PUZZLE_KEY_LITERAL, NOVA_HUD_KEY_LITERAL];
+export const AL_DISPLAY_KEYS: readonly string[] = [APPS_PREFS_KEY_LITERAL, CHESS_PUZZLE_KEY_LITERAL, NOVA_HUD_KEY_LITERAL, STABLECOINS_AS_CASH_KEY_LITERAL, PUZZLE_LOG_KEY_LITERAL, TVL_HISTORY_KEY_LITERAL];
 /** Export everything (`DEVICE_KEYS`): the names in everything.json. */
-export const AL_EXPORT_KEYS = {appsPrefs: APPS_PREFS_KEY_LITERAL, walletNames: WALLET_NAMES_KEY_LITERAL, chessPuzzle: CHESS_PUZZLE_KEY_LITERAL, novaHud: NOVA_HUD_KEY_LITERAL, healthExtras: HEALTH_EXTRAS_KEY_LITERAL} as const;
+export const AL_EXPORT_KEYS = {appsPrefs: APPS_PREFS_KEY_LITERAL, walletNames: WALLET_NAMES_KEY_LITERAL, chessPuzzle: CHESS_PUZZLE_KEY_LITERAL, novaHud: NOVA_HUD_KEY_LITERAL, healthExtras: HEALTH_EXTRAS_KEY_LITERAL, stablecoinsAsCash: STABLECOINS_AS_CASH_KEY_LITERAL, chessPuzzleLog: PUZZLE_LOG_KEY_LITERAL, ecoTvlHistory: TVL_HISTORY_KEY_LITERAL} as const;
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AL_CATALOG_LABELS = {
   appsPrefs: ['Apps & extras: which apps show and the sidebar Apps group folded or open', 'Settings'],
@@ -29,6 +35,9 @@ export const AL_CATALOG_LABELS = {
   chessPuzzle: ['Today\'s chess puzzle: your moves so far', 'Chess'],
   novaHud: ['NOVA: Holo or Classic look and the HUD preset', 'NOVA'],
   healthExtras: ['Meal names and times, drink types', 'Health'],
+  stablecoinsAsCash: ['Wealth: count stablecoins as cash', 'Wealth'],
+  chessPuzzleLog: ['Chess: daily puzzles you played', 'Chess'],
+  ecoTvlHistory: ['Ecosystem: value-locked figures this device read', 'Ecosystem'],
 } as const;
 /** The account erase (`lib/aa-device-forget.ts`): every key above. */
 export const AL_ERASE_KEYS: readonly string[] = [...AL_PERSONAL_KEYS, ...AL_DISPLAY_KEYS];

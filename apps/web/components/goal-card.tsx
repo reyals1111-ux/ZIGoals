@@ -32,8 +32,10 @@ export function GoalProgressRing({name,progressPct,goalId,assetMix=[],complete,b
  return <div className="goal-progress-ring"><ProgressRing percent={progressPct} complete={complete} assetMix={assetMix} identity={goalId??name} size={94} label={`${name} progress`} bound={bound}/></div>;
 }
 /** QA-38 (Session I, Part 10): why a Goal's progress is a lower bound, or unavailable. */
-export function unvaluedNote(g:Pick<GoalSummary,'progressBound'|'unvaluedSources'|'heldAsset'>){
+export function unvaluedNote(g:Pick<GoalSummary,'progressBound'|'unvaluedSources'|'heldAsset'|'valueReason'>){
  if(!g.unvaluedSources||g.heldAsset)return undefined;
+ // Session AL third pass (MO-160, MO-145): the reason in words when one covers every unvalued source (another currency).
+ if(g.valueReason)return g.valueReason;
  return g.progressBound==='unavailable'?'No source has a value yet, so progress is unavailable.':`${g.unvaluedSources} ${g.unvaluedSources===1?'source has':'sources have'} no value yet, so progress may be higher.`;
 }
 export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&{summary:GoalSummary;compact?:boolean}){
@@ -57,6 +59,7 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
   <p className="goal-value nebula-number">{g.progressBound==='unavailable'&&!g.heldAsset?'Value unavailable':`${g.progressBound==='at-least'?'At least ':''}${formatGoalAmount(g.current,g.heldAsset??g.currency)}`}<span> / {g.target?formatGoalAmount(g.target,g.currency):'No target saved'}</span></p>
   <div className="goal-progress"><GoalProgressRing goalId={g.id} name={g.name} progressPct={g.progressPct} assetMix={g.assetMix} complete={g.status==='closed'?undefined:g.status==='completed'} bound={g.progressBound}/><div className="goal-progress-caption"><strong>{/* Session AL (DV-022c-2, P-DV-19): "funded" only for money; a count goal is "done" */g.currency==='milestones'?'Of your journey complete':g.progressBound==='unavailable'?'Progress unavailable':g.progressBound==='at-least'?`${progressText(g.progressPct,'at-least')} ${isMoneyCurrency(g.currency)?'of your goal funded':'of the way there'}`:isMoneyCurrency(g.currency)?'Of your goal funded':'Of the way there'}</strong><span className={g.remaining!==undefined?'goal-remaining':undefined}>{g.heldAsset||g.progressBound==='unavailable'?'Remaining unknown':g.remaining!==undefined?`${g.progressBound==='at-least'?'At most ':''}${formatGoalAmount(g.remaining,g.currency)} remaining`:'Recover your plan'}</span>{g.targetDate&&<span className="goal-target">Target <time dateTime={g.targetDate}>{formatDate(g.targetDate)}</time></span>}</div></div>
   {unvaluedNote(g)&&<p className="fine valuation-state">{unvaluedNote(g)}</p>}
+  {/* Session AL third pass (TK-196): an archived asset stopped counting here; the goal page says which and asks for a review */}{!!g.released&&<p className="fine valuation-state">{g.released===1?'An archived asset no longer counts toward this goal.':`${g.released} archived assets no longer count toward this goal.`} Open it to review.</p>}
   {/* Session AB-Design (owner request 18): the sources, the plan, the next contribution, the valuation note and the state line wait behind one small nebula arrow; Open Goal stays. */}
   {compact?<>
    <div className="card-bottom">{g.metadata.map(m=><div key={m.label}><small>{m.label}</small><strong>{m.value}</strong></div>)}</div>

@@ -12,7 +12,10 @@ import './goals.css';
 
 const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: 'Milestones goal', count: 'Count goal', average: 'Keep an average', 'health-weight': 'Health goal'};
 /** Where a template opens: the goal wizard, the average form, or Health goals for a weight. */
-export const templateHref = (t: LibraryTemplate) => t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : t.kind === 'health-weight' ? '/app/goals#goals-health' : `/app/goals/new?template=${t.id}`;
+// Session AL third pass (DV-181, P-DV-39): a weight template opens the Health goal creator with Weight chosen
+// (?health-goal=weight, read by components/health-goals/health-goals-section.tsx); it only jumped to the section.
+export const WEIGHT_GOAL_HREF = '/app/goals?health-goal=weight#goals-health';
+export const templateHref = (t: LibraryTemplate) => t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : t.kind === 'health-weight' ? WEIGHT_GOAL_HREF : `/app/goals/new?template=${t.id}`;
 
 /**
  * G6, the template library: ready goals (Session AK F5a: the count is the library's own, savings challenges included) across every life area, searchable and filtered by area. A template fills

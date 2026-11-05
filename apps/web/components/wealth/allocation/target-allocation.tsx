@@ -59,7 +59,7 @@ export function TargetAllocationView({record, rows, snapshots, now, onChange}: T
         <tbody>{v.rows.map(r => <tr key={r.key} data-status={r.status}>
           <th scope="row">{r.label}</th>
           <td>{pct(r.current)}<small className="fine"> {money(r.value, v.currency)}</small></td>
-          <td>{r.target !== undefined ? pct(r.target) : '—'}</td>
+          <td>{r.target !== undefined ? <>{pct(r.target)}{/* Session AL (GAP-017, P-DVG-63): the amount at the target share, beside the share (information, never an order) */r.targetValue !== undefined && <small className="fine"> {money(r.targetValue, v.currency)}</small>}</> : '—'}</td>
           <td>{r.drift !== undefined ? <>{signed(r.drift)}<small className="fine"> {STATUS[r.status]}</small></> : <small className="fine">{STATUS[r.status]}</small>}</td>
           <td aria-hidden="true" className="alloc-bar-cell"><span className="alloc-bar"><span className="alloc-bar-now" style={{width: `${Math.min(100, r.current)}%`}}/>{r.target !== undefined && <span className="alloc-bar-target" style={{left: `${Math.min(100, r.target)}%`}}/>}</span></td>
         </tr>)}</tbody>

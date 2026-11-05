@@ -235,3 +235,7 @@
   :root .average-goal-page { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
   :root .average-goal-page > :not(.average-goal-entry, .average-goal-settings) { grid-column: 1 / -1; }
 }
+/* Session AL third pass (GAP-119): debts as goals to reach zero. */
+.debt-paydown-list { margin: 0 0 10px; padding: 0; list-style: none; display: grid; gap: 10px; }
+.debt-paydown-list li { display: grid; gap: 2px; font-size: 15px; overflow-wrap: anywhere; }
+.debt-paydown-list li span { color: var(--text-secondary, inherit); }

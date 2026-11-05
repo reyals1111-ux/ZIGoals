@@ -171,3 +171,7 @@
 .journey-xp-history li { display: flex; justify-content: space-between; gap: 12px; }
 /* Session AL (NB-227, NB-229): an unmet quest links to the place it is done; a full touch target. */
 .journey-quest-go { display: inline-flex; align-items: center; min-height: 44px; }
+/* Session AL (DV-275, P-DV-111): the switch stays on its label's line wherever it is mounted (a Settings form's own label
+   rules stacked it above the words). */
+label.game-setting-row { display: flex; flex-direction: row; align-items: flex-start; }
+label.game-setting-row > input { display: inline-block; }

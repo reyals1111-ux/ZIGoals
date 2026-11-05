@@ -16,7 +16,9 @@ import {LoadBoundary} from '../load-boundary';
 import {PriceAlertWatchGate} from '../price-alerts/watch-gate';
 const PriceAlertForm = lazy(() => import('../price-alerts/price-alerts').then(m => ({default: m.PriceAlertForm})));
 import {marketAssetRefSchema, marketRefKey} from '../../lib/market-assets';
-import {addFavourite, removeFavourite} from '../../lib/asset-management';
+import {addFavourite, removeFavourite, saveAsset} from '../../lib/asset-management';
+import {automaticSourcePosition} from '../platform/asset-source';
+import {showStatus} from '../ui/undo-toast';
 import {formatDateTime, formatExactNumber, formatMoney, formatPrice, formatSignedMoney} from '../../lib/visual-format';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import {coinKey, type PortfolioCoin, type PortfolioData} from '../../lib/portfolio/schema';
@@ -103,10 +105,28 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
     {coin.ref.kind === 'coin' && (currency === 'USD' || currency === 'EUR') && <section className="panel" aria-label={`Price alert for ${coin.name}`}><LoadBoundary quiet><Suspense fallback={null}><PriceAlertForm coin={coin.ref.id} coinName={coin.name} currency={currency}/></Suspense></LoadBoundary><PriceAlertWatchGate/></section>}
     <MarketFacts coin={coin} market={info} currency={currency} />
     <FavouriteToggle coin={coin} />
+    {held && Number(held.quantity) > 0 && !store.showcase && portfolio?.kind === 'real' && <CopyToWealth coin={coin} quantity={held.quantity} currency={currency} portfolioName={portfolio.name} />}
   </div>;
 }
 
 function BackLink() { return <p className="portfolio-back"><Link href="/app/portfolio">← Portfolio</Link></p>; }
+
+/** Session AL (P-TK-76, C-TK-07): the coin is common to both trackers, so Portfolio can copy what it holds into Wealth once
+ * (Wealth then counts it, with the market price, in its totals and Goals). A copy, never a link: Portfolio and Wealth stay
+ * two records, and later trades here do not change Wealth. When Wealth already tracks this coin, it says so instead. */
+const STABLE_IDS: ReadonlySet<string> = new Set(['tether', 'usd-coin', 'dai', 'first-digital-usd', 'paypal-usd', 'ethena-usde', 'true-usd']);
+function CopyToWealth({coin, quantity, currency, portfolioName}: {coin: PortfolioCoin; quantity: string; currency: 'USD' | 'EUR'; portfolioName: string}) {
+  const platform = usePlatform(), [problem, setProblem] = useState(''), [busy, setBusy] = useState(false);
+  if (!platform.loaded || platform.error) return null;
+  const key = marketRefKey(coin.ref), tracked = platform.data.positions.find(p => !p.archivedAt && p.marketRef && marketRefKey(p.marketRef) === key);
+  return <section className="panel portfolio-copy-wealth" aria-label="Copy to Wealth">
+    {tracked ? <p>Wealth already tracks {coin.symbol} as “{tracked.providerId}”. Change its quantity there; Portfolio and Wealth are kept apart. <Link href={`/app/wealth/asset/${encodeURIComponent(tracked.id)}`}>Open it in Wealth →</Link></p> : <>
+      <p>Count these {formatExactNumber(quantity)} {coin.symbol} in Wealth too, so your totals and Goals can include them. A copy: later trades here do not change Wealth.</p>
+      <button type="button" className="secondary" disabled={busy} onClick={() => { setBusy(true); setProblem(''); let position; try { position = automaticSourcePosition({asset: {ref: coin.ref, name: coin.name, symbol: coin.symbol}, assetClass: STABLE_IDS.has(coin.ref.id) ? 'Stablecoins' : 'Crypto', quantity, currency, notes: `Copied from Portfolio “${portfolioName}”.`}); } catch (e) { setProblem(plainErrorMessage(e, 'Could not copy to Wealth.')); setBusy(false); return; } const made = position; void platform.update(s => saveAsset(s, made)).then(() => showStatus(`${formatExactNumber(quantity)} ${coin.symbol} copied to Wealth.`, {link: {href: `/app/wealth/asset/${encodeURIComponent(made.id)}`, label: 'Open in Wealth'}})).catch(e => setProblem(plainErrorMessage(e, 'Could not copy to Wealth.'))).finally(() => setBusy(false)); }}>Copy {formatExactNumber(quantity)} {coin.symbol} to Wealth</button>
+    </>}
+    {problem && <p role="alert">{problem}</p>}
+  </section>;
+}
 
 /** The shared Markets favourites (at most 8): follow or stop following this coin. */
 function FavouriteToggle({coin}: {coin: PortfolioCoin}) {
@@ -124,13 +144,14 @@ function FavouriteToggle({coin}: {coin: PortfolioCoin}) {
  * Session AI (WE21): the same sales by lots — first in, first out or last in, first out — beside the average cost the
  * Portfolio uses everywhere else. A view only: the choice changes nothing stored, and the totals keep average cost.
  */
+const LOT_LABEL: Record<LotMethod, string> = {fifo: 'First in, first out (FIFO)', lifo: 'Last in, first out (LIFO)', hifo: 'Highest cost first (HIFO)'};
 function LotMethods({portfolio, coinKey, currency}: {portfolio: Parameters<typeof lotResults>[0]; coinKey: string; currency: string}) {
   const [method, setMethod] = useState<LotMethod>('fifo');
   const result = useMemo(() => { try { return lotResults(portfolio, method).get(coinKey) ?? null; } catch { return null; } }, [portfolio, method, coinKey]);
   return <section className="portfolio-lots" aria-labelledby="portfolio-lots-title">
     <h3 id="portfolio-lots-title">The same sales by lots</h3>
-    <div role="radiogroup" aria-label="Lot method" className="portfolio-lots-methods">{(['fifo', 'lifo'] as const).map(m => <label key={m}><input type="radio" name="lot-method" checked={method === m} onChange={() => setMethod(m)} /> {m === 'fifo' ? 'First in, first out (FIFO)' : 'Last in, first out (LIFO)'}</label>)}</div>
-    {result && <dl className="portfolio-totals" aria-label={`By lots, ${method === 'fifo' ? 'first in, first out' : 'last in, first out'}`}>
+    <div role="radiogroup" aria-label="Lot method" className="portfolio-lots-methods">{(['fifo', 'lifo', 'hifo'] as const).map(m => <label key={m}><input type="radio" name="lot-method" checked={method === m} onChange={() => setMethod(m)} /> {LOT_LABEL[m]}</label>)}</div>
+    {result && <dl className="portfolio-totals" aria-label={`By lots, ${LOT_LABEL[method].replace(/ \(.*\)$/, '').toLowerCase()}`}>
       <div><dt>Realized result</dt><dd>{result.realized === undefined ? 'Unknown' : formatSignedMoney(result.realized, currency)}</dd></div>
       <div><dt>Cost of what you hold</dt><dd>{Number(result.heldQuantity) === 0 ? '—' : result.heldCost === undefined ? 'Unknown' : formatMoney(result.heldCost, currency)}</dd></div>
     </dl>}

@@ -9,7 +9,7 @@ import type {MoneyLog} from '../../lib/money-log/schema';
 import {FORECAST_DAYS, MIN_HISTORY, cashForecast, plannedContributions, type CurrencyForecast, type KnownForecast} from '../../lib/cash-forecast/model';
 import {localDate} from '../../lib/local-date';
 import {formatDate} from '../../lib/visual-format';
-import {moneyCents} from '../wealth/money-tools/format';
+import {centsText, moneyCents, moneyWhole} from '../wealth/money-tools/format';
 import './cash-forecast.css';
 
 /**
@@ -18,7 +18,8 @@ import './cash-forecast.css';
  * the everyday pace. "A model from your own records, not a promise" stays in view. A currency without a cash balance
  * gets no line (unknown is not zero) and a teaching sentence instead. Hand-made SVG; the same figures as text and tables.
  */
-const about = (cents: bigint, currency: string) => { try { return new Intl.NumberFormat('en-GB', {style: 'currency', currency, maximumFractionDigits: 0, minimumFractionDigits: 0}).format(Math.round(Number(cents) / 100)); } catch { return `${Math.round(Number(cents) / 100)} ${currency}`; } };
+/** Session AL (PRIMITIVES 3f): a rounded figure through the one format layer (was a fixed en-GB formatter). */
+const about = (cents: bigint, currency: string) => moneyWhole(centsText(cents), currency);
 export const FORECAST_PROMISE = 'A model from your own records, not a promise.';
 export default function CashForecast({log, showcase = false}: {log: DeviceRecordState<MoneyLog>; showcase?: boolean}) {
   const accounts = useDeviceRecord(ACCOUNTS), bills = useDeviceRecord(BILLS), budgets = useDeviceRecord(BUDGETS), platform = usePlatform(), today = localDate(), id = useId();

@@ -4,6 +4,7 @@ import { journalTimeZone } from "./journal-zone";
 import { formatDate, formatNumber } from "./visual-format";
 import { unitAmountText } from "./plural";
 import { minutesIssue, within } from "./limits/plausibility";
+import { durationCountText } from "./habit-number";
 
 export const HABITS_KEY = "zigoals:habits:v1";
 const dateSchema = z.string().regex(/^20\d{2}-\d{2}-\d{2}$|^21\d{2}-\d{2}-\d{2}$/).refine((value) => {
@@ -544,7 +545,8 @@ export function smartDoneValue(rule: HabitRule): number { return rule.type === "
  * "Done", "500 of 2,000 mL · done", "1 of 3 times", a quit day "Stayed on track" or "2 slips", a limit "2 of at most 3 cups".
  */
 export function habitEntryText(rule: HabitRule, count: number): string {
-  const unit = measurementUnit(rule), ok = individualSuccess(rule, count), n = formatNumber(count, { maximumFractionDigits: 2 });
+  // Session AL (NB-063, P-NB-29): a part-minute of a timed habit reads in seconds ("49 s of 5 minutes").
+  const unit = measurementUnit(rule), ok = individualSuccess(rule, count), n = durationCountText(count, unit) ?? formatNumber(count, { maximumFractionDigits: 2 });
   if (rule.type === "quit") return count <= rule.target ? "Stayed on track" : unit && unit !== "times" ? `${unitAmountText(count, unit)} · a slip` : `${n} ${count === 1 ? "slip" : "slips"}`;
   if (rule.type === "limit") return `${n} of at most ${unit ? unitAmountText(rule.target, unit) : formatNumber(rule.target)}${ok ? " · within limit" : " · over the limit"}`;
   if (rule.measurement.kind === "boolean" || (unit === "times" && rule.target === 1 && count <= 1)) return ok ? "Done" : "Logged";

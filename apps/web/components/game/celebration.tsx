@@ -47,17 +47,27 @@ export function CelebrationHost({game, fasting}: {game: GameState; fasting?: Par
     });
   }, [enabled, seenReady, celebrations.data.seen, today]);
   const ids = queue.map(c => c.id).join('|');
+  // Session AL (P-DVR-84; G-031, T-039): a celebration waits while the person is typing in a field (a log form, a note),
+  // so it never takes the focus mid-entry; it opens a moment after they leave the field. A button tap opens it at once.
+  const [calm, setCalm] = useState(false);
   useEffect(() => {
-    if (!queue.length) return;
+    if (!queue.length) { setCalm(false); return; }
+    const typing = () => !!(document.activeElement as HTMLElement | null)?.closest?.('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]),textarea,select,[contenteditable="true"]');
+    if (!typing()) { setCalm(true); return; }
+    const timer = window.setInterval(() => { if (!typing()) { window.clearInterval(timer); setCalm(true); } }, 600);
+    return () => window.clearInterval(timer);
+  }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!queue.length || !calm) return;
     try { celebrations.update(n => { const seen = {...n.seen}; for (const c of queue) seen[c.id] ??= today; return {...n, seen}; }); } catch { /* shown once in this session anyway */ }
     try { for (const c of queue) { if (c.kind === 'level') game.game.update(g => markLevelSeen(g, Math.max(g.levelSeen ?? 0, Number(c.id.split(':')[1])))); if (c.kind === 'badge') game.game.update(g => markBadgeSeen(g, c.id.split(':')[1]!, today)); } } catch { /* the seen map above holds it */ }
     // ZIGi joins once for the card. A badge's semantic is `achievement_unlocked`; the listener above no longer reads it as a goal.
     const lead = queue[0]!;
     if (lead.semantic) { try { zigiSignals.emitValidated(lead.semantic); } catch { /* decoration */ } }
     else { try { zigiSignals.emitValidated('journey_step'); } catch { /* decoration */ } } // Session AK Part 12: a Journey step (streak, fast, Checklist orbit), a Studio-4 reaction once its art lands
-  }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ids, calm]); // eslint-disable-line react-hooks/exhaustive-deps
   const current = queue[0];
-  if (!current) return null;
+  if (!current || !calm) return null;
   const still = !motionAllowed(), rest = queue.slice(1), close = () => setQueue([]);
   return <div className="celebration-backdrop" role="dialog" aria-modal="true" aria-labelledby="celebration-title" data-still={still || undefined} onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } }}>
     <section className="celebration-card">

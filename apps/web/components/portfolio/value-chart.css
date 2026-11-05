@@ -14,3 +14,8 @@
 .portfolio-chart-axis{display:flex;justify-content:space-between;color:var(--muted,#aab3cf);font-size:.8rem;}
 .portfolio-chart-empty{margin:0;padding:28px 12px;text-align:center;color:var(--muted,#aab3cf);border:1px dashed rgba(160,180,255,.2);border-radius:12px;}
 @media (pointer:coarse){.portfolio-ranges button{min-height:44px;min-width:44px;}}
+/* Session AL (GAP-016): returns over the chart range, as a small definition list that wraps on phones. */
+.portfolio-returns { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 8px 0 0; }
+.portfolio-returns div { display: grid; gap: 2px; min-width: 9rem; }
+.portfolio-returns dt { font-size: 14px; }
+.portfolio-returns dd { margin: 0; font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }

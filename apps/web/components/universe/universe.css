@@ -113,3 +113,5 @@
 .focus-lengths { display: flex; gap: 8px; flex-wrap: wrap; }
 .focus-lengths button { min-height: 44px; }
 .focus-lengths button[aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: 2px; }
+/* Session AL (NB-052): a planet whose page is off the person's pages says so. */
+.universe-planet-off { margin: 4px 0 0; font-size: 15px; line-height: 1.45; color: var(--text-secondary); }

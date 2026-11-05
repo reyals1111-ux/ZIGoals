@@ -140,3 +140,11 @@
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   :root .today-focus-tiles > .focus-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
+/* Session AL (T-070, P-DVR-81): Today's recent-activity rows wrap a long name or an unbroken word inside the card. */
+.recent-panel .activity-event { min-width: 0; }
+.recent-panel .activity-event :is(strong, p, small, span, a) { overflow-wrap: anywhere; }
+/* Session AL (GAP-040): the small recorded-wealth line under Today's headline; the sentence carries the fact. */
+.today-wealth-trend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; color: var(--text-secondary); }
+.today-wealth-trend svg { flex: none; color: var(--pillar-wealth-ink, var(--pillar-wealth, #f2c76b)); }
+.today-wealth-trend small { font-size: 14px; line-height: 1.45; color: var(--text-secondary); }
+@media (forced-colors: active) { .today-wealth-trend svg { color: CanvasText; } }

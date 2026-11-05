@@ -1,4 +1,5 @@
 "use client";
+import {LEVEL_NAMES, levelProgress} from "../../lib/game/levels";
 /* Opening Showcase reloads the page on purpose, as in Settings: every store hook must switch data profiles. */
 /* eslint-disable @next/next/no-location-assign-relative-destination */
 import { exitShowcase } from "../../lib/showcase-storage";
@@ -113,6 +114,8 @@ function Choice({name, checked, onChange, label, note, disabled, type = "checkbo
   return <label className="onboarding-choice"><input type={type} name={name} checked={checked} disabled={disabled} onChange={onChange} /><span><strong>{label}</strong>{note && <small>{note}</small>}</span></label>;
 }
 
+/** Session AL (GAP-103): the first level as the game layer would show it (a preview; nothing is stored). */
+const GAME_PREVIEW = levelProgress(0);
 export function OnboardingFlow() {
   const router = useRouter(), showcase = useShowcase(), legacy = useGoals(), platform = usePlatform(), habits = useHabits(), health = useHealth();
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
@@ -430,6 +433,14 @@ export function OnboardingFlow() {
           <li><strong>NOVA is my full-page view.</strong> NOVA in the sidebar shows your whole day on one screen and answers the same way I do: from your own records, and asking before it changes anything.</li>
           <li><strong>Out of the way when you like.</strong> Hide my button with the chevron below it, or in Settings → Your pages & buttons.</li>
         </ul>
+        {/* Session AL (GAP-103, P-NB-C05): a look at the optional game layer before it is chosen. A preview only: setup writes
+            nothing until Finish, and the layer stays off until it is switched on (Settings or the Journey page). */}
+        <aside className="onboarding-game-preview" aria-labelledby={`${id}-game`}>
+          <p className="eyebrow">Optional · off until you turn it on</p>
+          <h3 id={`${id}-game`}>A game layer, if you like one</h3>
+          <div className="onboarding-game-level" aria-hidden="true"><span className="onboarding-game-pill">Lv {GAME_PREVIEW.level}</span><span><strong>{GAME_PREVIEW.name}</strong><small>{GAME_PREVIEW.into} of {GAME_PREVIEW.span} XP to level {GAME_PREVIEW.level + 1}</small></span></div>
+          <p>Every check-in and log you make earns XP, from your own records. Levels ({LEVEL_NAMES.slice(0, 4).join(', ')} and on), three small quests a day and badges. Switch it on later in Settings → Your pages &amp; buttons, or on the Journey page; streaks stay a plain habit feature either way.</p>
+        </aside>
         <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("data")}>Continue</button>{back("install")}</div>
       </>}
 

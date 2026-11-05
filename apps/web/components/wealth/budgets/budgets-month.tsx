@@ -14,6 +14,7 @@ import {amountProblem, resolveAmountText} from '../../../lib/money-calc/expressi
 import {CalcHint} from '../../money-calc/calc-hint';
 import '../../money-select/money-select.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
+import {useMoneyCurrency} from '../use-money-currency';
 
 /**
  * Session AK (7.7): category budgets, one month at a time, against the money log. Each row is the month's amount, plus
@@ -28,7 +29,8 @@ export type BudgetsViewProps = {record: BudgetsRecord; entries: readonly MoneyEn
 export function BudgetsView({record, entries, today, showcase = false, unreadable = false, onChange}: BudgetsViewProps) {
   const id = useId(), thisMonth = monthKey(today);
   const [month, setMonth] = useState(thisMonth), [status, setStatus] = useState(''), [problem, setProblem] = useState('');
-  const [category, setCategory] = useState<string>('Groceries'), [currency, setCurrency] = useState('EUR'), [amount, setAmount] = useState(''), [rollover, setRollover] = useState(false);
+  const startCurrency = useMoneyCurrency(); // Session AL (P-DVR-22): the one default currency, never a fixed EUR
+  const [category, setCategory] = useState<string>('Groceries'), [picked, setCurrency] = useState<string | null>(null), currency = picked ?? startCurrency, [amount, setAmount] = useState(''), [rollover, setRollover] = useState(false);
   // Session AK RB (RELEASE_REVIEW_2 R2-8): the form opens from its button (an empty Wealth showed every form in full).
   const [adding, setAdding] = useState(false);
   const view = useMemo(() => monthView(entries, record, month, today), [entries, record, month, today]);

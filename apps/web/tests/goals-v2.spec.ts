@@ -79,5 +79,6 @@ test('goal ideas fill the creator with a name, the kind of progress and steps; a
   // Session AK X1 (RELEASE_REVIEW R5): a project's choice reads "Finish a project" until the chain is chosen (it read "Project").
   await expect(page.getByRole('radio', {name: 'Finish a project', exact: true})).toBeChecked();
   await expect(page.getByLabel('Milestones, one per line')).toHaveValue('Run 3 km without stopping\nRun 5 km\nRun 8 km\nRun 10 km');
-  await expect(page.getByRole('link', {name: /A weight goal/})).toHaveAttribute('href', '/app/goals#goals-health');
+  // Session AL (DV-181, deliberate): the weight template opens the Health goal creator with Weight chosen.
+  await expect(page.getByRole('link', {name: /A weight goal/})).toHaveAttribute('href', '/app/goals?health-goal=weight#goals-health');
 });
