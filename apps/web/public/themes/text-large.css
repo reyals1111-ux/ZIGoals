@@ -3110,7 +3110,8 @@
 :where(:root[data-text=large]) .zeco-form :is(input,select):not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .zeco-toggle:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .zeco-status:not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .ecosystem-project .ecosystem-status:not(#\-) { font-size: calc(.95rem * 1.125); }
+:where(:root[data-text=large]) .ecosystem-project .ecosystem-status:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .ecosystem-project .ecosystem-status-detail:not(#\-) { font-size: calc(.95rem * 1.125); }
 :where(:root[data-text=large]) .ecosystem-status small:not(#\-) { font-size: calc(.85rem * 1.125); }
 :where(:root[data-text=large]) .zeco-bar-label:not(#\-), :where(:root[data-text=large]) .zeco-bar-value:not(#\-) { font-size: calc(13px * 1.125); }
 /*  components/zigi/knock.css  */

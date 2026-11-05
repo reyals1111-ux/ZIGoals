@@ -26,8 +26,16 @@
 .zeco-steps{margin:0;padding-left:1.4em;display:grid;gap:8px}
 .zeco-step-title{font-weight:650}
 @media (forced-colors: active){.zeco-status,.zeco-practice-tag,.zeco-warning{border-color:CanvasText}}
-/* The Ecosystem card's status line sits in the card's first column, with its words. */
-.ecosystem-project .ecosystem-status{grid-column:1;margin:.1rem 0;max-width:72ch;font-size:.95rem;line-height:1.55}
+/* The Ecosystem card's status line sits in the card's first column, with its words.
+   Session AL (CI18): its words are drawn at .95rem (15.2 px) as before, inside .ecosystem-status-detail; the line itself (its
+   strut, which places the baseline) is 15 px, the page's own text size, with the same 23.56 px line-height and 72ch width
+   as at 15.2 px. In Chrome on a phone (CI's mobile project, Liberation Sans), a 15.2 px font made while a page loads is now
+   and then rounded without subpixel positioning: 1 px of its descent moves to its ascent, the baseline drops 1 px and each
+   line holding the bracketed source grew from 24 to 25 px, from load to load — a theme-parity difference that was neither
+   theme's (Nebula 99.3 px, Light 101.3 px on Valdora's line). The 15 px font every paragraph here uses never moves, the
+   words' own box (line-height 1) stays inside the line, so the line no longer depends on how 15.2 px was rounded. */
+.ecosystem-project .ecosystem-status{grid-column:1;margin:.1rem 0;max-width:calc(72ch * 15.2 / 15);font-size:15px;line-height:calc(1.55 * 15.2 / 15)}
+.ecosystem-project .ecosystem-status-detail{font-size:.95rem;line-height:1}
 .ecosystem-status small{font-size:.85rem}
 /* Session AK (F6): richer cards — depth, Wealth's gold along each card's left edge, a liquid-glass rim on hover (nothing
    follows the pointer, nothing moves), a ring on keyboard focus; the empty heading's illustration smaller on phones. */
