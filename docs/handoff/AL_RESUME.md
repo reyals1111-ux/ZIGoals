@@ -48,25 +48,24 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - Weekly reset: Sunday 12:00 Brussels; no extra usage. Before the limit: all committed and pushed, this file current, the task list true; never commit a half-finished fix.
 
 ## Lanes in flight (5 Nov, night)
-- **Committed through `9d563c8f`:** CI1–CI12 (see the commits), CI11's turnout item `14958e1a`, CI13 page weights `9d563c8f`
-  (Settings, Staking, Goals, Portfolio, Journey estimated under budget; measured after the next build).
-- **CI run 1569 (head `14958e1a`):** 6 browser failures (from ~77 in run 1561) plus page weights in the integration job
-  (all its tests passed): `grok53/hud/hud-perf:23` (median 33.4 ms at CPU 4x, guard 20), `grok53/chain/bn-018-023:15`
-  (rate field not aria-invalid), `brand-nav-polish:165` (no `.today-hero .hero-star`), `theme-parity-af:15` mobile
-  /app/ecosystem (light boxes 1–3 px taller), WebKit `grok53/tasks/ls-006-043:11` on /app (Ctrl+Shift+Z does nothing),
-  WebKit `zigi-accept-correct:271` add-link (same run had a WebKit compositor segfault: class B?).
-- **Running (4, the cap):** CI14 page weights second pass (Today, Health, Activity, Checklist, Habits, Earn, Agenda,
-  Tasks), CI15 HUD frame time, CI16 the three Chromium specs, CI17 the WebKit shortcut.
-- **Unit suite on `9d563c8f`:** 4 failing files reported (one is `lib/vault/zod-jitless.test.ts`, a 120 s timeout under
-  load); a full re-run is identifying the other three before a follow-up commit (CI13's message said exit 0: the pipe hid it).
+- **Committed through `062637d2` (tree clean, no lanes running):** CI13 `9d563c8f` and CI14 `f37e2667` page weights, CI17
+  `277b3a39` (ZIGi's key on a busy Today), CI16 `0d9796d5` (staking rate vs typing; hero-star check), CI15 `6269f866` (HUD
+  motions update less often; the 20 ms guard unchanged), CI18 `062637d2` (Ecosystem status line vs Chrome's per-load
+  rounding of 15.2 px at DPR 3).
+- **CI run 1569 (head `14958e1a`):** 6 browser failures + page weights; each has a fix above, and WebKit
+  `zigi-accept-correct:271` is the recorded WebKit class B (compositor segfault during the test; one re-run).
+- **Measured on :3103 at `062637d2`:** every page under its route budget (budgets unchanged): Today 545.5/567, Goals
+  469.1/478, Habits 497.5/504, Health 521.0/531, Settings 523.0/531, Earn 488.7/496, Agenda 479.1/485, Tasks 463.3/468
+  (tightest), shell 430.0/447.
+- **Unit suite:** under four lanes' load, 6 files timed out (5 s / 120 s limits, one 3 s bound read 3.4 s); all six pass
+  alone (35/35); CI's unit job is green.
 - **Open from the CI lanes (not CI failures):** PR-069 path label numbers closed by owner amendment 10 until O6's
-  distinctPathLabels is switched on; CI5's request to register `markets-view` (no code uses it, not added).
-- **Servers:** :3103 → `14958e1a` (/home/user/zig-branch2); :3101 `c521574f` (old); :3102 main. Next: one build at the
-  head once CI14–CI17 are committed, then the weights and the six specs re-measured.
+  distinctPathLabels is switched on; CI5's request to register `markets-view` (no code uses it, not added); if hud-perf
+  still fails on CI, the next lever (shimmer frequency or the panel blur) changes the look and needs the owner.
+- **Servers:** :3103 → `062637d2` (/home/user/zig-branch2); :3101 `c521574f` (old); :3102 main.
 
 ## Exact next step
-1. Commit CI14–CI17 (typecheck, unit tests, lint first), rebuild :3103 once, measure weights and run the six specs; push;
-   read CI on that head (one re-run per known intermittent, docs/review/session-al/CI_INTERMITTENTS.md).
+1. Read CI on `062637d2` (or the latest head) (one re-run per known intermittent, docs/review/session-al/CI_INTERMITTENTS.md).
 2. Once CI is green: replay round 2 in the order L7, L3, L2, L5, L4, L6, L8 on :3103 (≤ 5 helpers; replays read only their lane's AL rows and per id that finding's steps); regenerate ADR-037's closing table after each (docs/review/session-al/tools/closing_table.py).
 3. After the weekly reset: the L1 fifth pass (TK-199 GBP symbol, TK-191 bluetooth policy warning, TK-024, TK-149, TK-196, D-155 and the 7 CHANGED), Parts 13–16, ONE A10 cycle, the final full replay round, Part 17.
 
