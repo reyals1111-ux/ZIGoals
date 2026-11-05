@@ -22,7 +22,18 @@ async function handle(request:Request){
   if(origin===config?.pushOrigin&&bindings.PUSH_REMINDERS)return bindings.PUSH_REMINDERS.fetch(new Request(input,init));
   return fetch(input,init);
  };
- return pushRequest(request,config,fetcher);
+ const answer=await pushRequest(request,config,fetcher);
+ // TIER 3 (API), Session AL (BN-019, P-BN-36): with push not configured the availability read is an ordinary answer, not
+ // a 503 that every Settings load printed as a red console error. Same body plus configured:false, same headers; POST,
+ // and a configuration that is set but unreadable, still answer 503.
+ return request.method==='GET'&&!config?notConfigured(answer):answer;
+}
+async function notConfigured(answer:Response):Promise<Response>{
+ if(answer.status!==503)return answer;
+ const body=await answer.clone().json().catch(()=>null) as Record<string,unknown>|null;
+ if(body?.error!=='PUSH_UNAVAILABLE')return answer;
+ const headers=new Headers(answer.headers);headers.delete('content-length');
+ return Response.json({...body,configured:false},{status:200,headers});
 }
 export const GET=handle;
 export const POST=handle;
