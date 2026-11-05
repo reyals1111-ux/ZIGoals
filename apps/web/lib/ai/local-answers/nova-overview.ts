@@ -3,7 +3,7 @@ import type {HealthGoal} from '../../health-goals/schema';
 import {formatGoalAmount} from '../../goal-summary';
 import {dailyData} from '../../health-daily';
 import {formatClock} from '../../visual-format';
-import {waterAmount} from '../../nova/widgets/words';
+import {NO_WATER_TODAY, waterText} from '../../health-units';
 import {briefChatText} from '../proactive/brief';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
@@ -180,10 +180,14 @@ function waterAnswer(env: ToolEnv, info: NovaEnvInfo): LocalReply {
   if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
   const d = dataOf(r.result), total = Number(d.totalMl), target = typeof d.yourDailyTargetMl === 'number' ? d.yourDailyTargetMl : null;
   let unit: 'ml' | 'fl-oz-us' = 'ml'; try { unit = dailyData(env.health).preferences.waterUnit; } catch { unit = 'ml'; }
-  const had = Number.isFinite(total) ? waterAmount(total, unit) : 'unknown';
-  if (!target) return {kind: 'answer', text: `No daily water target is set, so there is no amount to go (it is unknown, not zero). Today you logged ${had}.`, calls: [r.record]};
-  if (total >= target) return {kind: 'answer', text: `Your water target is reached today: ${had} of ${waterAmount(target, unit)}.`, calls: [r.record]};
-  return {kind: 'answer', text: `${waterAmount(target - total, unit)} to go today: ${had} of ${waterAmount(target, unit)} logged.`, calls: [r.record]};
+  // Session AL (Part 13; NOVA review 2 M5): amounts in the words Today and Health use (lib/health-units.ts waterText: "1,000 mL",
+  // never "1 L" beside Today's "1,000 mL"), and a day with nothing logged is said so, never "you logged 0 mL".
+  const amount = (ml: number) => waterText(ml, unit), none = Number(d.daysWithWater) === 0;
+  const had = Number.isFinite(total) ? amount(total) : 'unknown';
+  if (!target) return {kind: 'answer', text: `No daily water target is set, so there is no amount to go (it is unknown, not zero). ${none ? `${NO_WATER_TODAY}.` : `Today you logged ${had}.`}`, calls: [r.record]};
+  if (none) return {kind: 'answer', text: `${amount(target)} to go today: no water logged yet.`, calls: [r.record]};
+  if (total >= target) return {kind: 'answer', text: `Your water target is reached today: ${had} of ${amount(target)}.`, calls: [r.record]};
+  return {kind: 'answer', text: `${amount(target - total)} to go today: ${had} of ${amount(target)} logged.`, calls: [r.record]};
 }
 
 /** The questions NOVA's welcome offers, each answered by this layer or the engine on NOVA's environment (tested). */

@@ -31,15 +31,18 @@ function journal(steps: number[], water: boolean[], extra: Partial<HealthData> =
 function memoryStorage() { const m = new Map<string, string>(); return {get length() { return m.size; }, key: (i: number) => [...m.keys()][i] ?? null, getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, String(v)); }, removeItem: (k: string) => { m.delete(k); }, clear: () => m.clear()} as Storage; }
 
 describe('insightCards', () => {
-  test('Showcase on its day: two cards, push-ups and water first, then steps and water, with exact sentences', () => {
+  test('Showcase on its day: two cards, push-ups and water first, then weight and steps, with exact sentences', () => {
     process.env.TZ = 'UTC';
     const {habits, health, links} = showcase();
     const cards = insightCards({habits, health, today: DAY, links});
-    expect(cards.map(c => c.id)).toEqual(['exercise-water:health_counter-pushups', 'steps-water']);
-    expect(cards[0]!.sentence).toBe('On 5 of 9 days you counted Push-ups, you also logged water; on other days 7 of 21.');
-    expect(cards[0]!.detail).toMatchObject({sampleDays: 30, withA: {yes: 5, total: 9}, withoutA: {yes: 7, total: 21}, window: {start: '2026-08-03', end: DAY}});
-    expect(cards[1]!.sentence).toBe('On 6 of 12 days you walked at least 8,000 steps, you also logged water; on other days 6 of 18.');
-    expect(cards[1]!.detail).toMatchObject({sampleDays: 30, withA: {yes: 6, total: 12}, withoutA: {yes: 6, total: 18}, threshold: {source: 'target', value: 8000, unit: 'steps'}, window: {start: '2026-08-03', end: DAY}});
+    // Session AL (Part 13, deliberate): the Showcase's water habit is 2 liters linked to the water journal, so water is logged
+    // on more days: push-ups and water reads 9 of 9 against 18 of 21, and weight and steps (4 of 8 against 8 of 22) now
+    // shows a larger difference than steps and water.
+    expect(cards.map(c => c.id)).toEqual(['exercise-water:health_counter-pushups', 'weight-steps']);
+    expect(cards[0]!.sentence).toBe('On 9 of 9 days you counted Push-ups, you also logged water; on other days 18 of 21.');
+    expect(cards[0]!.detail).toMatchObject({sampleDays: 30, withA: {yes: 9, total: 9}, withoutA: {yes: 18, total: 21}, window: {start: '2026-08-03', end: DAY}});
+    expect(cards[1]!.sentence).toBe('On 4 of 8 days you recorded your weight, you also walked at least 8,000 steps; on other days 8 of 22.');
+    expect(cards[1]!.detail).toMatchObject({sampleDays: 30, withA: {yes: 4, total: 8}, withoutA: {yes: 8, total: 22}, threshold: {source: 'target', value: 8000, unit: 'steps'}, window: {start: '2026-08-03', end: DAY}});
     for (const card of cards) expect(forbidden(card.sentence)).toEqual([]);
   });
   test('below the minimum sample or side there is no card', () => {
@@ -88,7 +91,9 @@ describe('insightCards', () => {
     process.env.TZ = 'UTC';
     const {habits, health, links} = showcase();
     setDisplayLocale('de-DE');
-    expect(insightCards({habits, health, today: DAY, links}).find(c => c.id === 'steps-water')!.sentence).toContain('8.000 steps');
+    // Session AL (Part 13, deliberate): the Showcase's water habit is 2 liters linked to the water journal, so the steps
+    // threshold now shows in the weight-and-steps card (steps and water is no longer among the two shown).
+    expect(insightCards({habits, health, today: DAY, links}).find(c => c.id === 'weight-steps')!.sentence).toContain('8.000 steps');
   });
   test('ordering by contrast, then pair order; dismissed cards are left out', () => {
     process.env.TZ = 'UTC';

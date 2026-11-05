@@ -121,8 +121,9 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
       {showHealth && <article className="focus-tile" data-tone="health" aria-label="Focus: water today">
         <span className="focus-label"><AppIcon name="health" size={20} />Water</span>
         {!healthReady || !water || !daily ? <p role="status">{health.error ? 'Health needs attention.' : 'Loading Health…'}</p> : <>
-          <strong>{waterText(water.millilitres, daily.preferences.waterUnit)}</strong>
-          {/* Session AL sweep 2 (NOVA review M5): nothing logged yet says so, as NOVA does; the 0 above stays the tile's figure. */}
+          {/* Session AL (Part 13; NOVA review 2 M5): nothing logged is unknown, never a measured 0: "—" and the reason, as NOVA's water card and core say. */}
+          <strong>{water.entries ? waterText(water.millilitres, daily.preferences.waterUnit) : '—'}</strong>
+          {/* Session AL sweep 2 (NOVA review M5): nothing logged yet says so, as NOVA does. */}
           <p>{!water.entries ? `${NO_WATER_TODAY}${water.targetMl ? ` · target ${waterText(water.targetMl, daily.preferences.waterUnit)}` : ''}` : water.targetMl ? `of ${waterText(water.targetMl, daily.preferences.waterUnit)} today` : `${water.entries} ${water.entries === 1 ? 'entry' : 'entries'} today`}</p>
           <div className="focus-actions">{firstWater && <button type="button" className="secondary" aria-label={`${firstWater.label} of water`} onClick={e => void logWater(e.timeStamp)}>{firstWater.label}</button>}<Link prefetch={false} className="text-link" href="/app/health?add=entry">Log food →</Link></div>
         </>}

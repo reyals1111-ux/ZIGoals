@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {bridgePrompt} from '../bridge';
-import {SENTINEL, gatesFor, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
+import {SENTINEL, gatesFor, hasSentinel, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {HEALTH_CLOSED} from '../tools/format';
 import {buildPageContext} from './builders';
 import {consent} from './consent';
@@ -61,7 +61,7 @@ test('Health stays out when its gate is closed: listed as not included, no senti
   expect(water.sources[0]!.label).toBe('About me · 1 note'); expect(water.sources[0]!.text).toContain('Prefers short answers in the morning');
   expect(water.withheld).toEqual([HEALTH_CLOSED]);
   // The control: with the gate open the same question carries the values.
-  expect(questionContext('How much water did I drink today?', s, healthPage(true))!.text).toContain(String(SENTINEL.waterMl));
+  expect(hasSentinel(questionContext('How much water did I drink today?', s, healthPage(true))!.text, SENTINEL.waterMl)).toBe(true);
 });
 test('a removed chip leaves the payload; Settings, sensitive screens and a disconnected ZIGi add nothing', () => {
   const s = showcaseSources(), gates = gatesFor(false, 'today', '/app');

@@ -248,6 +248,8 @@ function usesFood(health: HealthData, id: string, except?: string): boolean {
 
 /** A unit's singular, for comparing "glass" with "glasses" or "page" with "pages". */
 const plainUnit = (unit: string) => unit.trim().toLowerCase().replace(/(ss|ch|sh|x)es$/, '$1').replace(/s$/, '');
+/** Session AL (Part 13, L7): millilitres in one of a volume unit (by its singular), so "1500 ml" fits a habit kept in liters. */
+const VOLUME_ML: Record<string, number> = {ml: 1, milliliter: 1, millilitre: 1, cl: 10, centiliter: 10, centilitre: 10, dl: 100, deciliter: 100, decilitre: 100, l: 1000, liter: 1000, litre: 1000};
 /**
  * Session V Part 7: a check-in's amount in the habit's own measure. Minutes go to a habit measured in time (minutes or
  * hours, by its unit), a quantity to a habit with the same unit; a habit that is done or not is marked done. Anything
@@ -266,6 +268,9 @@ function amountFor(rule: ReturnType<typeof latestHabitRule>, action: Extract<Act
     if (action.unit && plainUnit(action.unit) !== plainUnit(unit)) {
       const perUnit = minutesOf(rule, 1), minutes = /^(min|mins|minute|minutes)$/i.test(action.unit) ? action.quantity : /^(h|hr|hrs|hour|hours)$/i.test(action.unit) ? action.quantity * 60 : null;
       if (perUnit !== null && minutes !== null) return {ok: true, value: Math.round((minutes / perUnit) * 1000) / 1000, said: `${num(action.quantity, 2)} ${action.unit} = ${num(minutes / perUnit, 2)} ${unit}`};
+      // A volume habit takes any volume unit: liters and millilitres convert both ways.
+      const saidMl = VOLUME_ML[plainUnit(action.unit)], habitMl = VOLUME_ML[plainUnit(unit)];
+      if (saidMl !== undefined && habitMl !== undefined) { const value = Math.round((action.quantity * saidMl / habitMl) * 1000) / 1000; return {ok: true, value, said: saidMl === habitMl ? undefined : `${num(action.quantity, 2)} ${action.unit} = ${num(value, 3)} ${unit}`}; }
       return {ok: false, message: `This habit is measured in ${unit}, not ${action.unit}, so nothing was proposed.`};
     }
     return {ok: true, value: action.quantity};

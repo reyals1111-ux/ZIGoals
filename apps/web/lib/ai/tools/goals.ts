@@ -6,6 +6,9 @@ import {progressText, unifiedGoalSummaries, type GoalSummary} from '../../goal-s
 import {planDay, planZone} from '../../plan-revisions';
 import {reviewState, reviewWindow, weekSummary} from '../../weekly-review/engine';
 import {addLocalDays} from '../../local-date';
+import {AVERAGE_METRICS, averageKey, type AverageGoal} from '../../average-goals/store';
+import {averageProgress} from '../../average-goals/progress';
+import {formatExactNumber} from '../../visual-format';
 import type {ToolEnv} from './env';
 import {capRows, goalUnits, ok, plural, provenance, refuse, text} from './format';
 import {parseRange, type DayRange} from './range';
@@ -38,16 +41,38 @@ export function findGoal(env: ToolEnv, ref: string, tool: string): {ok: true; go
   if (match.kind === 'many') return refuse(tool, label, 'ambiguous', `Two or more goals match "${label}". Which one?`, match.choices.map(c => ({label: text(c.label, 60), handle: env.handles.add('goal', c.id, c.label)})));
   return {ok: true, goal: match.item, handle: env.handles.add('goal', match.item.key, match.item.name)};
 }
+/**
+ * Session AL (Part 13, L7): average goals ("Keep an average") are goals too: Today, Goals and the goals widget count them
+ * (lib/numbers/counts.ts `goalCounts`), so list_goals lists them after the others and goal_progress answers for one. A
+ * measure Health records reads as unknown while Health is not shared here (never zero); the person's own entries count.
+ */
+const averages = (env: ToolEnv): readonly AverageGoal[] => env.averageGoals ?? [];
+const averageValue = (goal: AverageGoal, v: number) => { const d = AVERAGE_METRICS[goal.metric].decimals; return formatExactNumber(String(Math.round(v * 10 ** d) / 10 ** d), 'en-US'); };
+const withUnit = (goal: AverageGoal, v: string) => goal.unit ? `${v} ${text(goal.unit, 30)}` : v;
+function averageRow(env: ToolEnv, goal: AverageGoal) {
+  const base = {handle: env.handles.add('goal', averageKey(goal.id), goal.name), name: text(goal.name), status: goal.status, type: 'Keep an average', source: 'Kept on this device', window: `the last ${goal.windowDays} days`, target: withUnit(goal, `${goal.direction === 'at-least' ? 'at least' : 'at most'} ${averageValue(goal, goal.target)}`)};
+  const fromHealth = AVERAGE_METRICS[goal.metric].source === 'health';
+  if (fromHealth && !env.health) return {...base, progress: 'unknown', now: 'unknown', note: 'Its days come from Health, which is not shared here.'};
+  const p = averageProgress(goal, env.health ?? undefined, env.habitDay);
+  if (p.average === null) return {...base, progress: 'unknown', now: 'unknown', daysRecorded: `0 of ${p.windowDays} days`};
+  return {...base, progress: progressText(String(Math.round(p.share! * 10_000) / 100)), now: withUnit(goal, averageValue(goal, p.average)), daysRecorded: `${p.days} of ${p.windowDays} days`, met: p.met};
+}
+/** An average goal from a handle or the person's words (after the Goals-page goals). */
+function findAverage(env: ToolEnv, ref: string): AverageGoal | null {
+  if (/^g\d{1,3}$/i.test(ref.trim())) { const handle = env.handles.find(ref, 'goal'); return handle ? averages(env).find(g => averageKey(g.id) === handle.id) ?? null : null; }
+  const match = matchByName(averages(env), ref, g => g.name, g => g.id);
+  return match.kind === 'one' ? match.item : null;
+}
 const GOAL_PROP = {type: 'string', description: 'The goal: a handle from this conversation (g1) or its name as the person said it.'} as const;
 
 export const listGoals: ToolDefinition<{include_closed?: boolean}> = {
   name: 'list_goals', title: 'Goals', area: 'goals',
-  description: 'Lists the person\'s goals with a handle each: status, progress, what is held now, target, what remains (each in the goal\'s own currency), target date, next planned date and funding status.',
+  description: 'Lists the person\'s goals with a handle each: status, progress, what is held now, target, what remains (each in the goal\'s own currency), target date, next planned date and funding status; then the goals that keep an average (their average over the window against the target).',
   parameters: {type: 'object', properties: {include_closed: {type: 'boolean', description: 'Also list closed goals (default false).'}}},
   args: z.object({include_closed: z.boolean().optional()}),
   label: () => 'Your goals',
   run(args, env, label) {
-    const rows = summaries(env).filter(g => args.include_closed || g.status !== 'closed').map(g => goalRow(env, g, true));
+    const rows = [...summaries(env).filter(g => args.include_closed || g.status !== 'closed').map(g => goalRow(env, g, true)), ...averages(env).filter(g => args.include_closed || g.status !== 'closed').map(g => averageRow(env, g))];
     const capped = capRows(rows, env, false);
     return ok('list_goals', label, where(env, null, null), {goals: capped.rows, count: rows.length, ...(rows.length ? {} : {note: 'No goals yet.'})}, capped.truncated);
   },
@@ -60,7 +85,8 @@ export const goalProgress: ToolDefinition<{goal: string}> = {
   args: z.object({goal: z.string().trim().min(1).max(120)}),
   label: args => `Goal · ${text(args.goal, 40)}`,
   run(args, env) {
-    const found = findGoal(env, args.goal, 'goal_progress'); if (!found.ok) return found;
+    const found = findGoal(env, args.goal, 'goal_progress');
+    if (!found.ok) { const average = found.reason === 'not-found' ? findAverage(env, args.goal) : null; if (!average) return found; return ok('goal_progress', `Goal · ${text(average.name, 40)}`, where(env, text(average.name, 60), null), averageRow(env, average)); }
     const goal = found.goal, label = `Goal · ${text(goal.name, 40)}`, data: Record<string, unknown> = {...goalRow(env, goal, true), planFigures: goal.metadata.map(m => `${text(m.label, 40)}: ${text(m.value, 60)}`)};
     const privateGoal = goal.key.startsWith('private:') ? env.platform.goals.find(g => `private:${g.id}` === goal.key) : undefined;
     if (privateGoal && privateGoal.type !== 'PROJECT') {

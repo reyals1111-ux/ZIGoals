@@ -60,7 +60,8 @@ test('before setup: a lookup is answered on the device with its records, nothing
   await expect(panel(page).locator('.ai-turn-local').last()).toContainText('Health isn’t shared with ZIGi — turn it on in Settings');
   await expect(panel(page).locator('.ai-turn-local').last().getByRole('button', {name: 'Drink water (habit)'})).toBeVisible();
   await panel(page).locator('.ai-turn-local').last().getByRole('button', {name: 'Drink water (habit)'}).click();
-  await expect(panel(page).locator('.ai-turn-local').last()).toContainText(/Drink water: \d+ glasses yesterday \(Sat, Sep 19\)/);
+  // Session AL (Part 13, deliberate): the Showcase's Drink water habit is 2 liters a day, linked to the water journal (was 8 glasses).
+  await expect(panel(page).locator('.ai-turn-local').last()).toContainText(/Drink water: [\d.]+ liters? yesterday \(Sat, Sep 19\)/);
   // Not a lookup, no AI: examples to tap, each answered here.
   await panel(page).getByLabel('Ask ZIGi about your records').fill('Help me plan a calmer week');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();

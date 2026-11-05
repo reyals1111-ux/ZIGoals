@@ -1,4 +1,5 @@
 import type {HealthGoal} from '../../health-goals/schema';
+import type {AverageGoal} from '../../average-goals/store';
 import type {GoalMetadata} from '@zigoals/shared-types';
 import type {Fasting} from '../../fasting/schema';
 import type {HabitData} from '../../habits';
@@ -80,6 +81,11 @@ export type ToolSources = {
   nova?: NovaToolSources | null;
   /** Session AL Part 14 (Denver DV-027c): the Health goals on this device (Goals → Health goals); Health data, so only with the Health gate. */
   healthGoals?: readonly HealthGoal[] | null;
+  /**
+   * Session AL (Part 13, L7): the average goals on this device (Goals → Keep an average), counted with the others as
+   * Today and Goals count them (lib/numbers/counts.ts). A measure Health records reads its days only with the Health gate.
+   */
+  averageGoals?: readonly AverageGoal[] | null;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   health: HealthData | null; fasting: Fasting | null; notes: readonly MemoryNote[] | null;

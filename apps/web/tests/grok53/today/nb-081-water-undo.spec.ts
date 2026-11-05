@@ -17,14 +17,14 @@ test('NB-081/NB-089: Today water toast Undo removes the entry from the store and
   await expect(tile.locator('strong')).toHaveText('250 mL');
   await toast(page).getByRole('button', {name: /^Undo/}).click();
   await expect(toast(page)).toContainText('Water entry removed.');
-  await expect(tile.locator('strong')).toHaveText('0 mL');
-  // Session AL (deliberate, NOVA review M5): the 0 is no longer bare: the tile says nothing is logged, in NOVA's words.
+  // Session AL (Part 13, deliberate; NOVA review 2 M5): nothing logged is "—", never a measured "0 mL", with NOVA's words.
+  await expect(tile.locator('strong')).toHaveText('—');
   await expect(tile).toContainText('No water logged yet today');
   // The store itself: no water entry left.
   const water = await page.evaluate(k => (JSON.parse(localStorage.getItem(k) ?? '{}').daily?.water ?? []).length, HEALTH_STORAGE_KEY);
   expect(water).toBe(0);
   await page.reload(); await open(page, '/app');
-  await expect(page.getByRole('article', {name: 'Focus: water today'}).locator('strong')).toHaveText('0 mL');
+  await expect(page.getByRole('article', {name: 'Focus: water today'}).locator('strong')).toHaveText('—');
   await expect(page.getByRole('article', {name: 'Focus: water today'})).toContainText('No water logged yet today');
   await open(page, '/app/health');
   await expect(page.getByRole('region', {name: 'Water journal'})).toContainText('No water entries yet');

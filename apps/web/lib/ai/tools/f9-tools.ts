@@ -6,9 +6,9 @@ import type {SavingsChallenges} from '../../savings-challenges/challenges';
 import {challengeWeek} from '../../savings-challenges/challenges';
 import type {Workouts} from '../../workouts/schema';
 import type {RemindersPlan} from '../../reminders-plan/schema';
-import {buildAgenda, type AgendaDay, type AgendaInput, type AgendaSource} from '../../agenda/build';
+import {buildAgenda, type AgendaInput} from '../../agenda/build';
 import {showcaseAgendaExtras} from '../../agenda/showcase';
-import {taskAgendaItems} from '../../agenda/time-items';
+import {taskAgendaItems, withExtras, type DayWithExtras} from '../../agenda/time-items';
 import {unbondingEvents} from '../../zigchain-eco/staking-clarity';
 import {STATUS_WORDS, TOP_N, nakamotoCount, powerRanks, spreadLine, statusOf, type ChooserValidator} from '../../zigchain-eco/validators';
 import type {EarnSnapshot} from '../../earn/snapshot';
@@ -71,8 +71,18 @@ export function agendaInputOf(env: ToolEnv): AgendaInput {
     workouts: env.health ? env.ak?.workouts ?? null : null, plannedWorkouts: env.health ? extras.plannedWorkouts : [], health: env.health, unbonding: env.areas.wealth ? extras.unbonding : [],
     plan: env.ak?.remindersPlan ?? null, weeklyReview: env.weekly};
 }
-export const agendaDays = (env: ToolEnv, from: string, days: number): AgendaDay[] => buildAgenda(agendaInputOf(env), from, addLocalDays(from, Math.max(1, Math.min(31, days)) - 1));
-const SOURCE: Record<AgendaSource, string> = {habit: 'habit', contribution: 'goal contribution', bill: 'bill', workout: 'workout', meal: 'meal', unbonding: 'unbonding', review: 'review'};
+/** The local day a task was finished on, in the person's zone (the habits' zone; UTC when it cannot be read). */
+const doneDayIn = (zone: string) => (iso: string) => { try { return new Date(iso).toLocaleDateString('en-CA', {timeZone: zone}); } catch { return iso.slice(0, 10); } };
+/**
+ * The agenda's days for ZIGi and NOVA. Session AL second pass (Lisbon LA-022, P-LA-14; L5 LS:st2-h): the person's tasks are
+ * on the Agenda page, so they are in every agenda answer too (lib/agenda/time-items.ts, the page's own reading), in the
+ * page's order; a task list that was not read stays out (unknown, never "no tasks").
+ */
+export function agendaDays(env: ToolEnv, from: string, days: number): DayWithExtras[] {
+  const to = addLocalDays(from, Math.max(1, Math.min(31, days)) - 1);
+  return withExtras(buildAgenda(agendaInputOf(env), from, to), env.nova?.tasks ? taskAgendaItems(env.nova.tasks, from, to, env.habitDay, doneDayIn(env.habitZone)) : []);
+}
+const SOURCE: Record<DayWithExtras['items'][number]['source'], string> = {habit: 'habit', contribution: 'goal contribution', bill: 'bill', workout: 'workout', meal: 'meal', unbonding: 'unbonding', review: 'review', task: 'task', event: 'calendar event'};
 export const agendaTool: ToolDefinition<{from?: string; days?: number}> = {
   name: 'agenda', title: 'Agenda', area: 'today',
   description: 'The agenda: the person\'s plans from every page in one calendar for some days (habits on their days, tasks with their time and priority, planned contributions, bills, meals, workouts, unbonding dates, reviews), with titles, times and whether each is done. No amounts.',
@@ -80,15 +90,9 @@ export const agendaTool: ToolDefinition<{from?: string; days?: number}> = {
   args: z.object({from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), days: z.number().int().min(1).max(31).optional()}),
   label: args => `Agenda · ${args.days ?? 7} days`,
   run(args, env, label) {
+    // Tasks come with their time and priority (agendaDays adds them, in the Agenda page's order).
     const days = agendaDays(env, args.from ?? env.habitDay, args.days ?? 7);
-    // Session AL second pass (Lisbon LA-022, P-LA-14): the person's tasks are on the Agenda page, so they are in its answer too
-    // (lib/agenda/time-items.ts, the page's own reading), with their time and priority; a list not read stays out (unknown).
-    const from = days[0]?.date ?? env.habitDay, to = days.at(-1)?.date ?? from;
-    const tasks = env.nova?.tasks ? taskAgendaItems(env.nova.tasks, from, to, env.habitDay, iso => { try { return new Date(iso).toLocaleDateString('en-CA', {timeZone: env.habitZone}); } catch { return iso.slice(0, 10); } }) : [];
-    const items = [...days.flatMap(d => d.items.map(i => ({day: d.date, time: i.time, what: text(i.title, 80), kind: SOURCE[i.source], state: i.state}))),
-      ...tasks.map(t => ({day: t.date, time: t.time, what: text(t.title, 80), kind: t.priority === 'normal' ? 'task' : `task, ${t.priority} priority`, state: t.state}))]
-      .sort((a, b) => a.day.localeCompare(b.day) || (a.time === null ? -1 : 0) - (b.time === null ? -1 : 0) || (a.time ?? '').localeCompare(b.time ?? ''));
-    const rows = items.map(({day, time, ...rest}) => ({day, ...(time ? {time} : {}), ...rest}));
+    const rows = days.flatMap(d => d.items.map(i => ({day: d.date, ...(i.time ? {time: i.time} : {}), what: text(i.title, 80), kind: i.source === 'task' && i.priority !== 'normal' ? `task, ${i.priority} priority` : SOURCE[i.source], state: i.state})));
     const capped = capRows(rows, env, false);
     return ok('agenda', label, where(env, 'agenda (read from each page\'s records)'), {from: days[0]?.date, to: days.at(-1)?.date, items: capped.rows, ...(rows.length ? {} : {note: 'Nothing planned on these days.'}), rule: 'titles and days only, no amounts; each item lives on its own page'}, capped.truncated);
   },

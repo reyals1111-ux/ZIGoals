@@ -24,7 +24,8 @@ test('Health unknown days never become confirmed zero and measurement timestamps
  const s=source();
  expect(widgetMetric(widget('health','kcal'),s).value).toBe('No meals recorded');
  expect(widgetMetric(widget('health','steps'),s).value).toBe('No activity recorded');
- expect(widgetMetric(widget('health','water'),s).value).toBe('No water recorded');
+ // Session AL (Part 13, deliberate): the water widget says nothing is logged in the words Today's tile and NOVA use.
+ expect(widgetMetric(widget('health','water'),s).value).toBe('No water logged yet today');
  s.health.weights=[{id:'health_1',date:'2026-09-21',grams:72000,createdAt:'2026-09-21T12:00:00Z',updatedAt:'2026-09-21T12:00:00Z'}];
  expect(widgetMetric(widget('health','weight'),s)).toMatchObject({value:'72 kg',detail:expect.stringContaining('2026-09-21')});
 });
