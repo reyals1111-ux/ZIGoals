@@ -30,6 +30,8 @@ const NOT_RECORDS: Record<string, string> = {
   'zigoals:zigi-open-chat:v1': 'sessionStorage: which ZIGi chat is open in this tab and when (id and time only, no text), so a reload reopens it within 30 minutes (Session AL, PR-025/PR-041); gone when the tab closes',
   'zigoals:habit-draft:v1': 'sessionStorage: an unsaved new-habit form kept across a reload in this tab only (Session AL, NB-077); gone when the tab closes',
   'zigoals:integrity-dismissed:v1': 'sessionStorage: a dismissed integrity notice in this tab',
+  // Session AL (D-088): lib/settings-folds.ts.
+  'zigoals:settings-folds:v1': 'sessionStorage: which Settings groups are folded in this tab (group ids only), a display convenience; gone when the tab closes',
   'zigoals:welcome-draft:v1': 'sessionStorage: the welcome wizard\'s step and picks kept across a reload in this tab only (Session AL, NB-011); gone when the tab closes',
   'zigoals:extras-sync-choice:v1': 'this device\'s consent for the encrypted extras sync; consent is asked again on a new device',
   'zigoals:portfolio-sync-choice:v1': 'this device\'s consent for Portfolio sync; asked again on a new device',

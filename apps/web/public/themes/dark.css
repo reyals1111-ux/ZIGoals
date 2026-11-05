@@ -1067,6 +1067,13 @@
             background-color: transparent
         }
     }
+    @media (min-width: 768px) {
+        :scope .settings-page .settings-sections .settings-fold-all:not(#\-) {
+            border-color: var(--edge-soft);
+            background-image: inherit;
+            background-color: inherit
+        }
+    }
 }
 /*  app/visual-v21.css  */
 @scope (:root[data-theme=dark]) {
@@ -2299,6 +2306,12 @@
     .activity-context .activity-source-link:not(#\-) {
         color: inherit
     }
+    .unified-activity .activity-event .activity-remove:not(#\-) {
+        color: var(--muted)
+    }
+    .unified-activity .activity-event .activity-remove:hover:not(#\-), .unified-activity .activity-event .activity-remove:focus-visible:not(#\-) {
+        color: var(--text, inherit)
+    }
 }
 /*  components/activity/activity-report.css  */
 @scope (:root[data-theme=dark]) {
@@ -2693,6 +2706,16 @@
         background-image: radial-gradient(circle at 35% 35%,#c9b4ff 0%,#9e78ff 38%,#6fe6f6 62%,#06030f 100%);
         background-color: transparent;
         box-shadow: 0 0 14px #9e78ff66
+    }
+}
+/*  components/ai/ai-switch.css  */
+@scope (:root[data-theme=dark]) {
+    .ai-switch-track:not(#\-) {
+        border-color: currentColor
+    }
+    .ai-switch-knob:not(#\-) {
+        background-image: none;
+        background-color: currentColor
     }
 }
 /*  components/ai/ai.css  */
@@ -5488,6 +5511,9 @@
         background-image: none;
         background-color: #00010699
     }
+    .chess-computer-setup fieldset:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/chess/chess.css  */
 @scope (:root[data-theme=dark]) {
@@ -5574,6 +5600,50 @@
     .weekly-review-guide:not(#\-) {
         background-image: none;
         background-color: rgba(255, 255, 255, 0.05)
+    }
+}
+/*  components/command-palette/command-palette.css  */
+@scope (:root[data-theme=dark]) {
+    .command-palette:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 45%, transparent);
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #02040e));
+        color: var(--text, #eef3ff);
+        box-shadow: 0 24px 60px -24px #000c
+    }
+    .command-palette:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #0001058c
+    }
+    .command-palette-field:not(#\-) {
+        border-color: currentcolor;
+        border-bottom-color: var(--line, rgba(140, 160, 220, .3));
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .command-palette-field:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .command-palette-group:not(#\-) {
+        color: var(--text-secondary, #b9c6e0)
+    }
+    .command-palette-row[aria-selected="true"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 22%, transparent);
+        box-shadow: inset 3px 0 0 var(--brand-cyan, #63e7ff)
+    }
+    .command-palette-detail:not(#\-) {
+        color: var(--text-secondary, #b9c6e0)
+    }
+    .command-palette-keys:not(#\-) {
+        border-top-color: var(--line, rgba(140, 160, 220, .3));
+        color: var(--text-secondary, #b9c6e0)
+    }
+    @media (forced-colors: active) {
+        .command-palette-row[aria-selected="true"]:not(#\-) {
+            outline-color: currentcolor
+        }
     }
 }
 /*  components/cycle/cycle.css  */
@@ -5806,6 +5876,9 @@
     }
     .today-line-label:not(#\-) {
         color: var(--text-primary, inherit)
+    }
+    .today-line-sep:not(#\-) {
+        color: var(--text-secondary, inherit)
     }
     .today-wealth-trend:not(#\-) {
         color: var(--text-secondary)
@@ -6571,6 +6644,11 @@
         background-color: transparent;
         color: var(--text-secondary)
     }
+    .earn-preview > .positions-network-note:not(#\-) {
+        border-left-color: var(--pillar-wealth, #ffd27a);
+        background-image: none;
+        background-color: color-mix(in srgb, currentColor 6%, transparent)
+    }
     :scope :where(.earn-page) .panel:not(#\-) {
         box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
     }
@@ -7297,6 +7375,16 @@
     .journey-xp-table th:not(#\-), .journey-xp-table td:not(#\-) {
         border-bottom-color: var(--border-subtle, rgba(255, 255, 255, .12))
     }
+    .celebration-quiet[data-still] .celebration-symbol:not(#\-) {
+        box-shadow: none
+    }
+    .journey-jump a:not(#\-) {
+        border-color: #a184e244;
+        color: inherit
+    }
+    .journey-jump a:focus-visible:not(#\-) {
+        outline-color: #d8bdff
+    }
 }
 /*  components/game/gamify-button.css  */
 @scope (:root[data-theme=dark]) {
@@ -7385,6 +7473,9 @@
         background-image: none;
         background-color: #1c0f0170;
         border-color: #d4a65147
+    }
+    :scope .goal-card-art > .goal-card-art-skeleton:not(#\-) {
+        border-color: currentcolor
     }
 }
 /*  components/goal-creator.css  */
@@ -7989,6 +8080,13 @@
     .debt-paydown-list li span:not(#\-) {
         color: var(--text-secondary, inherit)
     }
+    .chess-rating-goal:not(#\-) {
+        border-color: var(--line, currentColor);
+        color: inherit
+    }
+    .chess-rating-goal span:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
 }
 /*  components/goals/milestone-planner.css  */
 @scope (:root[data-theme=dark]) {
@@ -8198,6 +8296,23 @@
         background-color: var(--brand-cyan, #74d5e9);
         border-color: transparent;
         color: #07111f
+    }
+    .governance-turnout-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-1,#020613);
+        border-color: var(--line,#6b91c846)
+    }
+    .governance-turnout-bar span:not(#\-) {
+        background-image: none;
+        background-color: #8f9bb8
+    }
+    .governance-turnout-bar span.is-met:not(#\-) {
+        background-image: none;
+        background-color: #3ec58a
+    }
+    .governance-turnout-bar i:not(#\-) {
+        background-image: none;
+        background-color: currentColor
     }
 }
 /*  components/guided/guided.css  */
@@ -9074,6 +9189,12 @@
     .habit-vacation-habits legend:not(#\-) {
         color: #aaa0bb
     }
+    .habit-ideas-head h2:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .habit-ideas-head h2:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
     .habit-ideas-list li:not(#\-) {
         border-top-color: #a6c1fa20
     }
@@ -9106,6 +9227,12 @@
         border-color: var(--border-subtle, #ffffff1f)
     }
     .habit-reflection-head:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .habit-metrics .habit-streak-open:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .habit-health-so-far:not(#\-) {
         color: var(--text-secondary)
     }
 }
@@ -9835,6 +9962,9 @@
     }
     .health-meal-time:not(#\-) {
         color: var(--text-secondary)
+    }
+    .health-page .health-editing-banner:not(#\-) {
+        border-color: var(--line, rgba(255,255,255,.18))
     }
     :scope :where(.health-page) .panel:not(.health-aa-card):not(#\-) {
         box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-health) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
@@ -11658,6 +11788,9 @@
     .data-table th .data-sort:focus-visible:not(#\-) {
         outline-color: currentColor
     }
+    .data-table-more:not(#\-) {
+        color: var(--text-secondary, #c4d3e6)
+    }
 }
 /*  components/money-photos/money-photos.css  */
 @scope (:root[data-theme=dark]) {
@@ -13243,9 +13376,6 @@
         background-image: none;
         background-color: #01020acc
     }
-    .holo-chart-estimate:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #a47bff) 70%, transparent)
-    }
     .holo-slider-name:not(#\-) {
         color: #eef3ff
     }
@@ -13375,11 +13505,32 @@
         background-image: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px), none;
         background-color: color-mix(in oklab, var(--neon, #9273ff) 7%, #01020a)
     }
+    .holo-habit-list li:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #2ef2ff) 16%, transparent)
+    }
+    .holo-habit-list li:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .holo-habit-list .habit-completion > div:not(.habit-check-actions):not(#\-) {
+        color: #c9d4ea
+    }
+    .holo-habit-list .habit-completion .habit-count strong:not(#\-) {
+        color: #eef3ff
+    }
+    .holo-habit-list .habit-completion > :is(p, span):not(.habit-status):not(#\-) {
+        color: #c9d4ea
+    }
     .holo-sketch-star:not(#\-) {
         fill: #cbbfff
     }
     .holo-sketch-band:not(#\-) {
         fill: #c9d4ea
+    }
+    .holo-health .holo-ring > .holo-ring-centre > small:not(#\-), .holo-habits .holo-dial > .holo-ring-centre > small:not(#\-) {
+        color: #d3ddf1
+    }
+    .holo-hand-tip:not(#\-) {
+        stroke: #fff
     }
 }
 /*  components/nova/holo/holo.css  */
@@ -14416,6 +14567,40 @@
     .nova-status-row strong:not(#\-) {
         color: var(--nova-ink)
     }
+    :scope:has(.nova-frame) .aa-toast:not(#\-) {
+        background-image: linear-gradient(135deg, #010815, #070519);
+        background-color: transparent
+    }
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-quick .nova-tile:not(:hover, :focus-visible, :focus-within, [aria-pressed=true]):not(#\-) {
+        border-color: #ffffff0f;
+        background-image: none;
+        background-color: #01020bb3;
+        color: #c9d4ea
+    }
+    .nova-frame[data-phone][data-look=holo] .nova-centre > .nova-foot:not(#\-) {
+        background-image: linear-gradient(to bottom, transparent, var(--nova-deep, #000105) 26px);
+        background-color: transparent
+    }
+    .nova-skip:not(#\-) {
+        background-image: none;
+        background-color: #01030e;
+        border-color: var(--nova-edge);
+        color: var(--nova-ink)
+    }
+    .nova-stage-area:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .nova-stage-area:focus-visible:not(#\-) {
+        outline-color: var(--nova-focus)
+    }
+    .nova-frame[data-look=holo]:not([data-phone]) .nova-left:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, #010208 90%, transparent)
+    }
+    .nova-frame[data-look=holo]:not([data-phone]) :is(.nova-chip, .nova-setup-banner):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, #01030e 88%, transparent)
+    }
 }
 /*  components/nova/orb.css  */
 @scope (:root[data-theme=dark]) {
@@ -15006,6 +15191,18 @@
             background-color: transparent;
             border-color: currentcolor
         }
+    }
+    @media (min-width: 768px) {
+        :scope .onboarding[data-step="data"] .onboarding-actions:not(#\-) {
+            border-color: #7fc8ff2e;
+            background-image: none;
+            background-color: var(--panel);
+            box-shadow: 0 10px 30px #0004
+        }
+    }
+    .quick-add-trigger[data-tour-spot]:not(#\-) {
+        outline-color: #a9e8ed;
+        box-shadow: 0 0 0 8px #a9e8ed33
     }
 }
 /*  components/orbit-card/orbit-card.css  */
@@ -15881,17 +16078,6 @@
         }
     }
     @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-        :scope .phone-more-signature:not(#\-) {
-            background-image: linear-gradient(180deg, #00010600, #000106cc), var(--cosmic-destination);
-            background-color: transparent
-        }
-    }
-    @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-        :scope .phone-more-descriptor:not(#\-) {
-            color: #b3cff2
-        }
-    }
-    @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
         :scope .app-topbar:not(#\-) {
             border-color: var(--phone-glass-edge);
             background-image: var(--phone-glass);
@@ -16640,6 +16826,9 @@
     }
     .goal-intelligence .pace-fill.planned:not(#\-) {
         --glass-ink: #789bb8
+    }
+    .life-wealth-orbit .wealth-total-prices:not(#\-) {
+        color: var(--text-secondary, #c4d3e6)
     }
 }
 /*  components/platform/markets-pagination.css  */
@@ -17737,7 +17926,7 @@
     .portfolio-transactions li:not(#\-) {
         border-top-color: #7fc8ff1f
     }
-    .portfolio-transactions li small:not(#\-) {
+    .portfolio-transactions li > small:not(#\-) {
         color: #c4d3e6
     }
     .portfolio-coin-picker:not(#\-) {
@@ -18511,6 +18700,26 @@
         border-color: #e886ff59;
         background-image: none;
         background-color: #04020fd9
+    }
+}
+/*  components/settings/settings-fold.css  */
+@scope (:root[data-theme=dark]) {
+    .settings-page .settings-fold-toggle:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .settings-page .settings-fold-chevron:not(#\-) {
+        color: #8fe6f4
+    }
+    .settings-page .settings-fold-summary:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    @media (forced-colors: active) {
+        .settings-page .settings-fold-chevron:not(#\-) {
+            color: CanvasText
+        }
     }
 }
 /*  components/share-cards/share-cards.css  */
@@ -19440,6 +19649,12 @@
     }
     .goal-close-tasks:not(#\-) {
         border-color: color-mix(in srgb, var(--cyan, #5fd4ff) 35%, transparent)
+    }
+}
+/*  components/tasks/today-tasks-due.css  */
+@scope (:root[data-theme=dark]) {
+    .today-tasks-due .tasks-today-reminders:not(#\-) {
+        border-color: var(--warning, #e8a33d)
     }
 }
 /*  components/timeline/timeline.css  */
@@ -20381,6 +20596,13 @@
     }
     .zeco-card :is(a,button):focus-visible:not(#\-) {
         outline-color: var(--cyan)
+    }
+    .zeco-bar:not(#\-) {
+        border-bottom-color: var(--line,#6b91c846)
+    }
+    .zeco-bar i:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-wealth,#ffd27a)
     }
 }
 /*  components/zigi/knock.css  */

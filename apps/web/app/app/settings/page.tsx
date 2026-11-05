@@ -54,6 +54,8 @@ import { AfEarnSection } from "../../../components/settings/af-earn-section";
 import { AfSigningSection } from "../../../components/settings/af-signing-section";
 import { AfExtrasSection } from "../../../components/settings/af-extras-section";
 import { useChainChoice } from "../../../components/chain/use-chain-choice";
+import { SettingsFoldAll, SettingsFoldGroup, SettingsFolds } from "../../../components/settings/settings-fold";
+import type { SettingsGroupId } from "../../../lib/settings-folds";
 // Session AL (BN-112): its own chunk, loaded only once the chain is chosen and the wallet group shows.
 const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wallets"));
 /**
@@ -62,7 +64,7 @@ const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wa
  * Session AK G2 (RELEASE_REVIEW_2 R2-4): the ZIGi group is "Your assistant", ZIGi's settings and NOVA's together, one name
  * for one engine; its id (#settings-zigi) and every anchor in it (#your-ai and ZIGi's own) stay as they were.
  */
-const SETTINGS_GROUPS: [id: string, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "Your assistant"], ["settings-help", "Help & diagnostics"]];
+const SETTINGS_GROUPS: [id: SettingsGroupId, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "Your assistant"], ["settings-help", "Help & diagnostics"]];
 /** Session AB-Design (owner request 36): one small line icon per Settings group, before its title. */
 const GROUP_ICON: Record<string, ReactNode> = {
   'settings-data': <path d="M4 7h16M4 12h16M4 17h10"/>,
@@ -72,9 +74,10 @@ const GROUP_ICON: Record<string, ReactNode> = {
   'settings-zigi': <><circle cx="12" cy="12" r="8"/><circle cx="9" cy="11" r="1"/><circle cx="15" cy="11" r="1"/><path d="M9 15.5c1.5 1.5 4.5 1.5 6 0"/></>,
   'settings-help': <><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></>,
 };
-function SettingsGroup({id, title, children}: {id: string; title: string; children: ReactNode}) {
+/** Session AL (D-088): each group folds from its heading (components/settings/settings-fold.tsx); every group starts open. */
+function SettingsGroup({id, title, children}: {id: SettingsGroupId; title: string; children: ReactNode}) {
   const icon = GROUP_ICON[id];
-  return <div className="settings-group" id={id} role="group" aria-labelledby={`${id}-title`}><p className="settings-group-title" id={`${id}-title`}>{icon && <svg className="settings-group-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icon}</svg>}{title}</p>{children}</div>;
+  return <SettingsFoldGroup id={id} title={title} icon={icon && <svg className="settings-group-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icon}</svg>}>{children}</SettingsFoldGroup>;
 }
 /** Session AH (SE3, D-088): the section tabs say which group is on screen (they had no state). */
 function SettingsSectionsNav() {
@@ -90,7 +93,7 @@ function SettingsSectionsNav() {
     for (const group of groups) observer.observe(group);
     return () => observer.disconnect();
   }, []);
-  return <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id} aria-current={current === id ? 'location' : undefined}>{title}</a>)}</nav>;
+  return <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id} aria-current={current === id ? 'location' : undefined}>{title}</a>)}<SettingsFoldAll/></nav>;
 }
 export default function Settings() {
   const s = useGoals();
@@ -133,6 +136,8 @@ export default function Settings() {
       <KeepSettingsJump/>
       {/* Session AK G2 (RELEASE_REVIEW R11): the lower groups lay out when near; a jump renders them all first. */}
       <SettingsRenderAll/>
+      {/* Session AL (D-088): the groups fold; a jump opens the group that holds its target. */}
+      <SettingsFolds chain={chain}>
       <SettingsSectionsNav/>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">
@@ -322,6 +327,7 @@ export default function Settings() {
           <AboutThisAlpha />
         </section>
       </SettingsGroup>
+      </SettingsFolds>
       <DataHome />
     </div>
   );

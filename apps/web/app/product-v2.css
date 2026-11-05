@@ -449,4 +449,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
      covered the page); the row scrolls sideways inside itself, never the page. */
   :root .settings-page .settings-sections { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
   :root .settings-page .settings-sections a { flex: none; white-space: nowrap; }
+  /* Session AL (D-088): "Fold all / Open all" ends the row and stays in reach while the links scroll under it. */
+  :root .settings-page .settings-sections .settings-fold-all { flex: none; position: sticky; right: 0; margin-left: auto; border-color: var(--edge-soft); background: inherit; transition: none; }
 }
