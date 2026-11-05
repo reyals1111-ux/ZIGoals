@@ -38,7 +38,9 @@ test('DV-054c/DV-047c (P-DV-73), DV-169 (P-DV-74): an average goal shows in Acti
   await nav.getByRole('button', {name: 'Goal', exact: true}).click();
   const shown = await timeline.locator('.activity-event').count();
   await expect(nav.getByRole('button', {name: 'Goal', exact: true}).locator('.activity-filter-count')).toHaveText(` · ${shown}`);
-  await expect(timeline).toContainText('Not listed here: sleep nights, tasks');
+  // Session AL (deliberate): sleep nights, tasks and habit archive/delete rows are listed now (DV-172, DV-206, Tasks in
+  // Activity), so the footer names only what still isn't.
+  await expect(timeline).toContainText('Not listed here: journal entries and notes');
 });
 
 test('DV-036d (P-DV-76): the source cards show their part of the list', async ({page}) => {

@@ -3,7 +3,7 @@ import {useUnsavedChanges} from './use-unsaved-changes';
 import {createAllocatedGoal} from '../lib/wealth';
 import {AssetPicker} from './platform/asset-picker';
 import {saveAsset} from '../lib/asset-management';
-import {useEffect,useId,useRef,useState} from 'react';
+import {useEffect,useId,useMemo,useRef,useState} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {amountInputPreview,parseAmountInput} from '../lib/amount-input';
@@ -16,7 +16,7 @@ import {defaultPlanTimeZone,planDay} from '../lib/plan-revisions';
 import {useJournalZone} from './use-journal-zone';
 import {SceneArt} from './scene-art';
 import {useGoals} from './goal-provider';
-import {wealthMarketRequests} from '../lib/wealth';
+import {wealthMarketRequests,wealthOverview} from '../lib/wealth';
 import {useMarketQuotes} from './platform/use-market-quotes';
 import {usePlatform} from './platform/use-platform';
 import {useHabits} from './habits/use-habits';
@@ -46,7 +46,7 @@ const TEMPLATE_CATEGORY: Record<string, GoalMetadata['category']> = {'emergency-
 import {localDate} from '../lib/local-date';
 import {formatDate,isMoneyCurrency} from '../lib/visual-format';
 import {formatGoalAmount} from '../lib/goal-summary';
-import {useDefaultCurrency} from '../lib/default-currency';
+import {useMoneyCurrency} from './wealth/use-money-currency';
 import {plainErrorMessage} from '../lib/plain-error';
 import { plural } from '../lib/plural';
 import {useChainChoice} from './chain/use-chain-choice';
@@ -150,7 +150,10 @@ export function UnifiedGoalWizard({positionId,templateId,calculator,sharedName,p
  const [touched,setTouched]=useState(false);
  const releaseDraft=useUnsavedChanges(wizardGuardOn({saved:!!savedId,restored:draftBack,touched,typed:!!(name||target||notes||date||milestones||assetInput||withPlan||planAmount||Object.keys(included).length||typeChoice!==null||category!=='Custom')}));
  // Session AB-Cloud Part 8 (ADR-023 C25): a value Goal starts in the device's currency (euro in the euro area) until one is chosen.
- const preferredCurrency=useDefaultCurrency();
+ // Session AL (P-DVR-22): the one default — the stored base currency, else the currency most of the tracked wealth is in
+ // (recorded values only here, no live prices), else the device's.
+ const heldTotals=useMemo(()=>wealthOverview(store.data).subtotals.map(t=>({currency:t.currency,value:t.value})),[store.data]);
+ const preferredCurrency=useMoneyCurrency(heldTotals);
  // Session AK (CI fix, R5 follow-up): a project counts milestones, yet its record still names an asset (privateGoalSchema:
  // at least one character). Before the chain is chosen it takes the person's currency, as a money goal does, so it saves
  // and never shows the chain's coin; once chosen it is ZIG, as every project was before R5.
@@ -270,7 +273,7 @@ export function UnifiedGoalWizard({positionId,templateId,calculator,sharedName,p
  {!isLocal&&chain&&<fieldset className="goal-choice-tiles"><legend>Wealth scope</legend>{([['zigchain-1','Mainnet + manual'],['zig-test-2','Testnet + manual']] as const).map(([value,label])=><label key={value}><input type="radio" name="goal-wealth-scope" value={value} checked={network===value} onChange={()=>{setNetwork(value);setAllocation('none');setSelected('');}}/><span>{label}</span></label>)}</fieldset>}
  {funding==='wealth'&&<div className="setup-next"><h3>Existing wealth</h3>{source&&<p>From {source.validator?.name??source.providerId} · {source.asset}. Choose an allocation below; nothing is reserved yet.</p>}{scope&&<p className="fine">Snapshot account: {scope.account}</p>}{chain&&<p>Available stake: <strong className="nebula-number">{shownAmount(availableStake)} ZIG</strong></p>}{type!=='VALUE'&&stake.length>0&&<label className="checkbox"><input type="checkbox" checked={allocation==='stake'} onChange={e=>setAllocation(e.target.checked?'stake':'none')}/>Allocate available stake up to Goal target</label>}
  {type!=='VALUE'&&<label className="checkbox"><input type="checkbox" checked={allocation==='position'} onChange={e=>setAllocation(e.target.checked?'position':'none')}/>Allocate a specific Position</label>}
- <fieldset disabled={sourceBusy} style={{border:0,padding:0,minWidth:0}}><AssetPicker key={pickerVersion} crypto={chain||tracksCrypto} positions={eligible} emptyText={(n=>n>0?`None of your ${n} ${n===1?'asset':'assets'} can fund this Goal: ${type==='VALUE'?'they are on another network':`none holds ${asset||'this asset'}`}. Add the asset here, or change the Goal's asset.`:undefined)(store.data.positions.filter(p=>!p.archivedAt).length)} initialCategory="Existing assets" onExisting={p=>{setSelected(p.id);setQuantity(amount(allocationBalance(store.data,p.id).unallocated,p.decimals));setAllocation('position');}} onDraft={p=>{if(sourceBusy)return;setSourceBusy(true);void store.update(s=>saveAsset(s,p)).then(()=>{setPickerVersion(v=>v+1);if(type==='VALUE')setIncluded(old=>({...old,[p.id]:amount(p.quantity,p.decimals)}));setSelected(p.id);setQuantity(amount(p.quantity,p.decimals));setAllocation(type==='VALUE'||assetMatches(identity,p)?'position':'none');}).catch(e=>setError(plainErrorMessage(e, 'Asset could not be saved.'))).finally(()=>setSourceBusy(false));}} submitLabel="Save asset for this Goal"/></fieldset>
+ <fieldset disabled={sourceBusy} style={{border:0,padding:0,minWidth:0}}><AssetPicker key={pickerVersion} crypto={chain||tracksCrypto} positions={eligible} platform={store.data} emptyText={(n=>n>0?`None of your ${n} ${n===1?'asset':'assets'} can fund this Goal: ${type==='VALUE'?'they are on another network':`none holds ${asset||'this asset'}`}. Add the asset here, or change the Goal's asset.`:undefined)(store.data.positions.filter(p=>!p.archivedAt).length)} initialCategory="Existing assets" onExisting={p=>{setSelected(p.id);setQuantity(amount(allocationBalance(store.data,p.id).unallocated,p.decimals));setAllocation('position');}} onDraft={p=>{if(sourceBusy)return;setSourceBusy(true);void store.update(s=>saveAsset(s,p)).then(()=>{setPickerVersion(v=>v+1);if(type==='VALUE')setIncluded(old=>({...old,[p.id]:amount(p.quantity,p.decimals)}));setSelected(p.id);setQuantity(amount(p.quantity,p.decimals));setAllocation(type==='VALUE'||assetMatches(identity,p)?'position':'none');}).catch(e=>setError(plainErrorMessage(e, 'Asset could not be saved.'))).finally(()=>setSourceBusy(false));}} submitLabel="Save asset for this Goal"/></fieldset>
  {selected&&<p className="picker-mode-note">Selected: {eligible.find(p=>p.id===selected)?.providerId}{/* TK-194 */(p=>p?(w=>w?` · ${w}`:'')(availableWords(store.data,p)):'')(eligible.find(p=>p.id===selected))}. Set how much to include below.</p>}{/* MO-145, BN-156: said when chosen, not only after allocating */type==='VALUE'&&selected&&(p=>p?(r=>r?<p className="fine" role="status">{r}</p>:null)(valueReason(p,asset,quotedIn(p))):null)(eligible.find(p=>p.id===selected))}
  {type==='VALUE'&&<><button type="button" className="secondary" disabled={!selected||included[selected]!==undefined||selectedFullyAllocated} onClick={()=>{const p=eligible.find(p=>p.id===selected);if(p)setIncluded(old=>({...old,[p.id]:amount(allocationBalance(store.data,p.id).unallocated,p.decimals)}));}}>Include selected source</button>{selectedFullyAllocated&&<p className="fine">{BigInt(selectedPosition!.quantity)===0n?'This source has no units to include.':'This source is fully allocated to other Goals. Free some of its units there to include it here.'}</p>}<section className="included-wealth" aria-label="Wealth included in this Goal"><h3>Wealth included in this Goal</h3>{!Object.keys(included).length&&<p>No sources selected yet.</p>}{Object.entries(included).map(([id,q])=>{const p=store.data.positions.find(p=>p.id===id);return <div className="included-source" key={id}><strong>{p?.providerId??'Unavailable source'} · {p?.asset}</strong>{p&&(w=>w?<small>{w}</small>:null)(availableWords(store.data,p))}{p&&(r=>r?<small className="fine">{r}</small>:null)(valueReason(p,asset,quotedIn(p)))}<label>Units to allocate<input aria-label={`Units to allocate: ${p?.providerId??id}`} inputMode="decimal" value={q} onChange={e=>setIncluded(old=>({...old,[id]:e.target.value}))}/></label><button type="button" className="secondary" aria-label={`Remove ${p?.providerId??id}`} onClick={()=>setIncluded(old=>Object.fromEntries(Object.entries(old).filter(([key])=>key!==id)))}>Remove</button></div>;})}</section></>}
  {type!=='VALUE'&&allocation==='position'&&<label className="field">Units to allocate<input inputMode="decimal" value={quantity} onChange={e=>setQuantity(e.target.value)}/></label>}

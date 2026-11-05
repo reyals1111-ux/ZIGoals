@@ -86,6 +86,7 @@ import { formatPlainDecimal } from "../../lib/visual-format";
 import {ReminderCards} from '../reminders/reminder-cards';
 import {PhoneFold} from '../phone/phone-fold';
 import {getAppStorage} from '../../lib/showcase-storage';
+import {deficitSignature,dismissIntegrity,integrityDismissed} from '../../lib/today/integrity-dismiss';
 import {ONBOARDING_SETUP_KEY} from '../../lib/aa-device-keys';
 import {usePagesView} from '../pages/use-pages-view';
 import {isShown,todayItemShown} from '../../lib/pages/visibility';
@@ -180,6 +181,11 @@ export function TodayDashboard(){
  // Session AK G2 (RELEASE_REVIEW R29): the Showcase's "What matters today" leads with a currency goal; its ZIG goal follows further down.
  const roles=todayGoalRoles(activeCards,platform.data.goals,today,showcase?{lead:'currency'}:{}),nextGoal=roles.focus?.goal;
  const integrityWarning=platform.loaded&&!platform.error?dashboardIntegrityWarning(platform.data):undefined;
+ // Session AL (TK-226): Dismiss hides the notice in this tab until the deficits change (lib/today/integrity-dismiss.ts).
+ const integritySignature=integrityWarning?deficitSignature(platform.data):'';
+ const [integrityHidden,setIntegrityHidden]=useState<string|null>(null);
+ const tabStore=()=>{try{return window.sessionStorage;}catch{return null;}};
+ const integrityShown=!!integrityWarning&&integrityHidden!==integritySignature&&!integrityDismissed(typeof window==='undefined'?null:tabStore(),integritySignature);
  const hasFundingGoal=platform.data.goals.some(g=>g.status!=='closed'&&g.type!=='PROJECT');
  const meta=(id:DashboardBuiltinId)=>DASHBOARD_BUILTINS.find(b=>b.id===id)!;
  // Session AK RB (RELEASE_REVIEW_2 R2-9): a goal shows once below the hero — in "What matters today" when that panel
@@ -329,7 +335,7 @@ export function TodayDashboard(){
    {!brandNew&&setupMade&&<Suspense fallback={null}><SetupLanding/></Suspense>}
    {[settings.error,platform.error,habits.error,health.error].filter(Boolean).map((message,i)=><p role="alert" className="notice" key={i}>{message}</p>)}
    {financial&&platform.error&&legacy.loaded&&!legacy.error&&goals.some(g=>g.key.startsWith('legacy:'))&&<section className="panel" aria-label="Available local simulation Goals"><h2>Your local simulation Goals are still available.</h2><p>Private tracked records need recovery. These separate local simulation records remain readable.</p><ul>{goals.filter(g=>g.key.startsWith('legacy:')).map(g=><li key={g.key} data-goal-key={g.key}><Link href={g.href}>{g.name}</Link></li>)}</ul></section>}
-   {integrityWarning&&<p role="alert" className="notice">{integrityWarning} <Link href="/app/wealth">Review saved sources →</Link></p>}
+   {integrityShown&&<p role="alert" className="notice">{integrityWarning} <Link href="/app/wealth">Review saved sources →</Link> <button type="button" className="text-link" aria-label="Dismiss this notice in this tab" onClick={()=>{dismissIntegrity(tabStore(),integritySignature);setIntegrityHidden(integritySignature);}}>Dismiss</button></p>}
    {/* Session AK RB (RELEASE_REVIEW_2 R2-11): "Make Today yours" waits until the welcome above is answered (they asked the same question one after the other). */}
    {!showcase&&!brandNew&&storesReady&&!hasRecords&&makeToday}
    {!brandNew&&storesReady&&<TodayLine habits={habits.data} health={health.data} platform={platform.data} quotes={market.quotes} now={now} today={today} healthDate={sources.healthDate} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} financial={financial}/>}

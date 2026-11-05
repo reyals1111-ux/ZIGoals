@@ -17,6 +17,9 @@ import {plainErrorMessage} from '../../lib/plain-error';
 import '../skeleton/zg-skeleton.css';
 import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 import {isFinished} from '../../lib/goals/finished';
+import {useGameEnabled} from '../game/use-game-enabled';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {REWARDS_SHELF} from '../../lib/rewards-shelf/store';
 
 /**
  * G7, the Hall of achievements: finished goals as a wall of cards (the day, how long it took, the area, the story), each
@@ -33,7 +36,15 @@ export function AchievementsHall(layout: LayoutAttrs) {
     {!list ? <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : list.length ? <ul className="hall-wall">
       {list.map(a => <AchievementCard key={a.key} a={a} color={a.area ? areasOf(extras.data).find(x => x.id === a.area)?.color : undefined} vision={extras.data.goals[a.key]?.vision} />)}
     </ul> : <div className="aa-empty" data-art=""><h3>Your first finished goal will shine here.</h3><p>A goal lands here on its own when it reaches its target or its last milestone is done. Closing it later keeps it here.</p><Link className="secondary" href="/app/goals">See your goals</Link><LazyPillarArt pillar="goals" /></div>}
+    <RewardsShelfLink />
   </section>;
+}
+
+/** Session AL (MO-161, P-MO-49): while the game layer and the rewards shelf are both on, Goals points to the shelf on Journey. */
+function RewardsShelfLink() {
+  const game = useGameEnabled(), shelf = useDeviceRecord(REWARDS_SHELF);
+  if (!game || !shelf.loaded || shelf.unreadable || !shelf.data.on) return null;
+  return <p className="hall-shelf-link"><Link className="text-link" href="/app/journey#rewards-shelf">Your rewards shelf →</Link></p>;
 }
 
 function AchievementCard({a, color, vision}: {a: Achievement; color?: string; vision?: Parameters<typeof VisionArt>[0]['vision']}) {
