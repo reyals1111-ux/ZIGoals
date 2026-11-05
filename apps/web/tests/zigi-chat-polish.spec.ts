@@ -276,6 +276,11 @@ test('History: Pin puts a chat under "Pinned"; the page filter uses where each c
   expect((await stored(page, ZIGI_KEY))!.chatAreas).toEqual({[chatId!]: 'health'});
   await page.goto('/app/habits');
   await openChat(page);
+  // Session AL (PR-025/PR-041, deliberate): the panel reopens the conversation that was open (lib/ai/composer-draft.ts), so the
+  // second chat is started here with "New chat" (was: every open on another page began a new chat).
+  await expect(panel(page).locator('.ai-turn-user')).toHaveCount(1);
+  await panel(page).getByRole('button', {name: 'New chat', exact: true}).click();
+  await expect(panel(page).locator('.ai-turn-user')).toHaveCount(0);
   await say(page, 'Habits question');
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: noted.');
   await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();

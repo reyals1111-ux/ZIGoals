@@ -126,6 +126,9 @@ test('a new chat is one short greeting and the box; Ideas, Your day and Yours wa
   await page.route(`${BASE}/**`, async (route: Route) => {
     const url = route.request().url();
     if (url.endsWith('/v1/models')) return route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({object: 'list', data: [{id: 'mock-chat'}]})});
+    // Session AL (Part 14 P14-B, Z1A-6, deliberate): before a chat request under a privacy mode the app asks this computer's
+    // server `/health` (is it Hermes Agent?). That check carries nothing of the message; only chat requests are counted.
+    if (!url.endsWith('/v1/chat/completions')) return route.fulfill({status: 404, body: ''});
     bodies.push(route.request().postData() ?? '');
     return route.fulfill({status: 200, contentType: 'text/event-stream', body: stream('MOCK: here is your day.')});
   });

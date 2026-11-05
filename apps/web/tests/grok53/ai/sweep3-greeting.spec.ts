@@ -15,7 +15,9 @@ test('NB-006: connected, ZIGi says "Hi Quillon"; the name is in no request to th
   await page.goto('/app');
   await openChat(page);
   await expect(panel(page).locator('.ai-greeting-text')).toHaveText(`Hi ${NAME}, I’m ZIGi. Ask about your records or tell me what to log. Nothing is written until you add a card.`);
-  await say(page, 'How did I sleep this week?');
+  // A question only the AI answers: the device answers plain lookups ("How did I sleep this week?") itself, with no request
+  // (Session AL L7, facts without a model), so that one could not show what reaches the AI.
+  await say(page, 'Give me tips to sleep better this week');
   await expect.poll(() => bodies.length).toBeGreaterThan(0);
   expect(JSON.stringify(bodies)).not.toContain(NAME);
 });

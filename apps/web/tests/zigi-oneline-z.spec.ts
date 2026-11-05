@@ -121,6 +121,13 @@ test('connected, two replies: title, status, source lines, action rows, share ro
   for (const width of widths) {
     await page.setViewportSize({width, height: 860});
     await openChat(page);
+    // Session AL (PR-025/PR-041, deliberate): the panel reopens the conversation that was open (lib/ai/composer-draft.ts);
+    // each width measures its own two replies, so from the second width on a new chat is started first.
+    if (width !== widths[0]) {
+      await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(2);
+      await panel(page).getByRole('button', {name: 'New chat', exact: true}).click();
+      await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(0);
+    }
     await say(page, 'How did my habits go this week?');
     // Session AI (ZI1): a pure question keeps no write card, so the second ask is a command that brings the card measured below.
     await say(page, 'And log a glass of water');

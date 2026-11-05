@@ -387,16 +387,36 @@ test('hide with Undo, the Settings switch, ⌘K / Ctrl+K (Ask ZIGi), ⌘/Ctrl+Sh
   await expect(openButton(page)).toBeFocused();
 });
 
-test('sensitive screens: the launcher is away while Settings shows the sign-in form and while a sheet is open', async ({page}) => {
+// Session AL (ADR-037 Q6, deliberate): ZIGi opens on Settings too; the sign-in email field makes the screen sensitive only
+// while it has the focus (was: the launcher away for as long as Settings showed the form). An open sheet still keeps it away.
+// Session AL (O3, deliberate): below 901 px nothing floats, so there the launcher is absent throughout.
+test('sensitive screens: the launcher shows beside Settings\' sign-in form, away while its field has the focus and while a sheet is open', async ({page}) => {
   await seed(page, connectedLocal());
+  const floats = page.viewportSize()!.width >= 901;
   await page.goto('/app/settings');
-  await expect(page.locator('#encrypted-sync input[type="email"]')).toBeVisible();
+  const email = page.locator('#encrypted-sync input[type="email"]');
+  await expect(email).toBeVisible();
+  if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
+  // Where email access is not set up on the installation (this build, CI) the field is disabled and takes no focus; where
+  // it is, a focused field sends ZIGi away until the focus leaves.
+  if (await email.isEnabled()) {
+    await email.focus();
+    await expect(launcher(page)).toHaveCount(0);
+    await email.blur();
+    if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
+  }
+  // The same focus rule for any field marked sensitive (use-sensitive-screen.ts), shown with a test field on this page.
+  await page.locator('main').evaluate(main => { const input = document.createElement('input'); input.setAttribute('data-sensitive', ''); input.setAttribute('aria-label', 'TEST secret field'); main.prepend(input); });
+  await page.getByLabel('TEST secret field').focus();
   await expect(launcher(page)).toHaveCount(0);
+  await page.getByLabel('TEST secret field').blur();
+  if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
   await page.goto('/app/wealth?add=asset');
   await expect(page.locator('dialog.wealth-sheet[open]')).toBeVisible();
   await expect(launcher(page)).toHaveCount(0);
   await page.keyboard.press('Escape');
-  await expect(launcher(page)).toBeVisible();
+  await expect(page.locator('dialog.wealth-sheet[open]')).toHaveCount(0);
+  if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
 });
 
 test('motion: the pending indicator and ZIGi hold still under reduced motion and Motion Off; the reply still streams', async ({page}) => {

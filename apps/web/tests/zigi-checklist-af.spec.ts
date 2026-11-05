@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../lib/af-checklist-keys';
 import {createHabit, habitDataSchema, HABITS_KEY} from '../lib/habits';
 import {LOCAL_LABEL} from '../lib/ai/local-answers/words';
+import {defaultAiSettings} from '../lib/ai/settings';
 import {buildShowcase} from '../lib/showcase-data';
 import {checklistRecords, DAY, lastLocal, MORNING, openChat, panel, say, seed, server, showcaseHabits, speak, SEEN_VOICE, stored, voiceFakes} from './zigi-af';
 
@@ -56,7 +57,9 @@ test('typed, English and Dutch: tick the person\'s own item, add one in their wo
 
 test('a habit dot is the habit\'s own check-in, with Undo; the sleep timer starts the night; an unknown item is left to the AI', async ({page}) => {
   const bodies = await server(page);
-  await seed(page, {extra: {...checklistRecords(), ...withStretch()}, time: MORNING});
+  // Session AL (L7, ff274875, deliberate): ZIGi makes no Health card (the night is Health's) while Health isn't shared, so
+  // the person here shares Health with ZIGi (was: the default settings, Health not shared).
+  await seed(page, {ai: {includeHealth: true, pageShare: {...defaultAiSettings().pageShare, health: true}}, extra: {...checklistRecords(), ...withStretch()}, time: MORNING});
   await page.goto('/app');
   await openChat(page);
   // A done-or-not habit with nothing recorded today, named by its title.

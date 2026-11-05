@@ -205,7 +205,10 @@ test('the Health gate closed mid-chat: the next request carries nothing of Healt
   else await expect(panel(page)).toContainText(/Health/);
   // Assertion changed (Session AH TR10): the Health page's own weight-trend card now shows the latest reading beside the
   // trend (the person's own record on their own page). Everything else on the page, ZIGi's panel included, is checked.
-  expect(await page.evaluate(() => { const own = [...document.querySelectorAll<HTMLElement>('.health-trend-card')]; own.forEach(e => { e.dataset.ahHidden = e.style.display; e.style.display = 'none'; }); const text = document.body.innerText; own.forEach(e => { e.style.display = e.dataset.ahHidden ?? ''; }); return text; })).not.toContain('123.4');
+  // Session AL (MO-150, deliberate): the Health page's "Seven days of care" now has a weight row, the person's own reading on
+  // their own page too; it is set aside like the trend card. ZIGi's panel is checked on its own as well.
+  await expect(panel(page)).not.toContainText('123.4');
+  expect(await page.evaluate(() => { const own = [...document.querySelectorAll<HTMLElement>('.health-trend-card, .bottom-row[aria-label^="Weight"]')]; own.forEach(e => { e.dataset.ahHidden = e.style.display; e.style.display = 'none'; }); const text = document.body.innerText; own.forEach(e => { e.style.display = e.dataset.ahHidden ?? ''; }); return text; })).not.toContain('123.4');
 });
 
 test('auto-accept under fast repeated asks: the daily cap holds, every auto-added card has Undo, and Undo removes the entry', async ({page}) => {

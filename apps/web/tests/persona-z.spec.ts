@@ -234,9 +234,10 @@ test('7. lb and fl oz: weight history, the chart and Today read the chosen unit;
   await page.goto('/app/health');
   await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Weight', exact: true}).click();
   const history = page.getByRole('table', {name: 'Weight history'});
-  await expect(history).toContainText('159.6 lb');
+  // Session AL (N-MO-14, N-NB-10, deliberate): the history and "Latest" show a reading as entered, to two decimals (72.4 kg = 159.61 lb).
+  await expect(history).toContainText('159.61 lb');
   await expect(history).not.toContainText('kg');
-  await expect(page.locator('.health-weight-stats')).toContainText('159.6 lb');
+  await expect(page.locator('.health-weight-stats')).toContainText('159.61 lb'); // "Latest" too, as entered (N-MO-14)
   await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Diary', exact: true}).click();
   await expect(page.getByRole('region', {name: 'Water journal'}).locator('.health-water-total')).toHaveText('42 fl oz recorded');
   const stored = await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), HEALTH_STORAGE_KEY);
