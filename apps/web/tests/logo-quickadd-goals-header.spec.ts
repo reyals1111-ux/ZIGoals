@@ -7,7 +7,8 @@ async function showcase(page:Page){
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
 // Session AK G2 (RELEASE_REVIEW_2 R2-13, deliberate): the most frequent first, and Note is one of the sheet's own rows.
-const OPTIONS=['Health entry','Habit','Note','Contribution','Goal','Asset'];
+// Session AL (P-LS-04, DV-163b, deliberate): a Task row after Note, the sheet's way into Tasks.
+const OPTIONS=['Health entry','Habit','Note','Task','Contribution','Goal','Asset'];
 
 test('the Today hero Quick add is the primary action and opens the same Quick add options',async({page,isMobile})=>{
  await showcase(page);
@@ -59,7 +60,14 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  const subtitle=(await page.getByText('Small steps. A bigger future. Every plan starts with you.',{exact:true}).boundingBox())!,bar=(await toolbar.boundingBox())!,grid=(await page.getByRole('region',{name:'Your goals',exact:true}).boundingBox())!;
  // Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): the shared header ends with its actions (under the lede on
  // phones), so the controls row is measured from the header's end, not the lede's. As strict: ≤ 32 px.
- expect(subtitle.y).toBeLessThan(bar.y);expect(bar.y-(header.y+header.height)).toBeLessThanOrEqual(32);expect(grid.y-(bar.y+bar.height)).toBeLessThanOrEqual(32);
+ // Session AL third pass (BUG-064, P-DVR-35, 30ad598b; deliberate): from four goals the "Browse Goals" row (search and
+ // sort) follows the controls row, so the cards follow it: each of the two rows comes right after the one before, one page
+ // gap apart (41 px measured at 390 and 1280) with nothing between them.
+ const browseRow=page.getByRole('region',{name:'Browse Goals',exact:true}),browse=(await browseRow.boundingBox())!;
+ expect(subtitle.y).toBeLessThan(bar.y);expect(bar.y-(header.y+header.height)).toBeLessThanOrEqual(32);
+ expect(browse.y-(bar.y+bar.height)).toBeGreaterThanOrEqual(0);expect(browse.y-(bar.y+bar.height)).toBeLessThanOrEqual(44);
+ expect(grid.y-(browse.y+browse.height)).toBeGreaterThanOrEqual(0);expect(grid.y-(browse.y+browse.height)).toBeLessThanOrEqual(44);
+ expect(await toolbar.evaluate(el=>{const next=el.nextElementSibling,after=next?.nextElementSibling;return next?.id==='goal-collection-controls'&&!!after&&(after.matches('.goal-grid')||!!after.querySelector(':scope > .goal-grid'));}),'filters, then Browse Goals, then the cards').toBe(true);
  // The filters still filter.
  await toolbar.getByRole('button',{name:'All',exact:true}).click();await expect(toolbar.getByRole('button',{name:'All',exact:true})).toHaveAttribute('aria-pressed','true');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);

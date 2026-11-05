@@ -214,3 +214,14 @@
    tab's title); the actions keep their place at the right. */
 :root .phone-topbar .phone-title.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 :root .phone-topbar-row > .phone-actions { grid-column: 3; }
+/* Session AL (CI 1539, qa-decisions): offline, the "Offline" pill joins the top bar's six 44 px buttons (O3 added Apps &
+   extras), and below 430 px the row ran past the screen: the page scrolled sideways and taps on the tab bar landed on the
+   page. While it shows on a narrow phone, the wallet shortcut steps aside (Wealth stays in the tab bar), and below 390 px
+   the pill keeps its dot alone, its word still read out (the page's own notice says it in full). */
+@media (max-width: 429.98px) {
+  :root .phone-actions > .offline-pill ~ .phone-wealth { display: none; }
+}
+@media (max-width: 389.98px) {
+  :root .phone-actions > .offline-pill { justify-content: center; width: 32px; min-width: 32px; padding-inline: 0; column-gap: 0; font-size: 0; }
+  :root .phone-actions > .offline-pill::before { width: 10px; height: 10px; }
+}

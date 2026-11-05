@@ -12,8 +12,14 @@ test('TK-184: at 768 px the Settings index is one row and the page does not scro
   const index = page.locator('.settings-sections');
   await expect(index).toBeVisible();
   const box = (await index.boundingBox())!;
-  expect(box.height).toBeLessThanOrEqual(72); // one 44 px row plus its padding
   const links = index.locator('a');
+  // CI 1539 (the bound corrected, as strict): a link is 49.25 px tall (14 px words, 12 px padding above and below, never
+  // under 44 px), so one row is that plus the bar's 12 px padding above and below and its 1 px rule: 74.25 px measured. Two
+  // rows would be over 120 px. The 72 had been written from the 44 px minimum before the spec first ran. The tallest item
+  // in the row counts ("Fold all" included).
+  const tallest = Math.max(...await index.locator(':scope > *').evaluateAll(els => els.map(el => el.getBoundingClientRect().height)));
+  expect(box.height).toBeLessThanOrEqual(tallest + 24 + 1 + .5);
+  expect(box.height).toBeLessThanOrEqual(80);
   const tops = await links.evaluateAll(els => [...new Set(els.map(el => Math.round(el.getBoundingClientRect().top)))]);
   expect(tops).toHaveLength(1);
   for (const height of await links.evaluateAll(els => els.map(el => el.getBoundingClientRect().height))) expect(height).toBeGreaterThanOrEqual(44);

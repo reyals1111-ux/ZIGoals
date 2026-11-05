@@ -90,7 +90,7 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
     </>;
     case 'add-money': return <>
       {/* Session AL (BN-030, D-060, D-099; COPY_AUDIT, deliberate): an optional step, said first; no primary "buy" button. */}
-      <p><b>Optional.</b> Only if you decide to use real ZIG; practising is enough to learn staking, and nothing here says you should buy. Real ZIG starts as crypto in your own wallet: a regulated provider sells it for a card payment or a bank transfer and sends it straight to your address. ZIGoals never holds it.</p>
+      <p><b>Optional.</b> Only if you decide to use real ZIG; practising is enough to learn staking, and nothing here tells you to buy. Real ZIG starts as crypto in your own wallet: a regulated provider sells it for a card payment or a bank transfer and sends it straight to your address. ZIGoals never holds it.</p>
       <Steps items={[
         {text: <>Open <Link className="text-link" href="/app/wealth/add-money">Add money</Link> and choose what to buy and on which network.</>},
         {text: 'The provider checks who you are (the rules say so) and shows its own fees before you pay.'},

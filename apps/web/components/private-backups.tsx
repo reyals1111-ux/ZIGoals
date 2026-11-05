@@ -6,7 +6,7 @@ import { usePlatform } from "./platform/use-platform";
 import { platformSchema } from "../lib/positions";
 import { healthSchema } from "../lib/health";
 import { isShowcase } from "../lib/showcase-storage";
-import { localDate } from "../lib/local-date";
+import { useLocalToday } from "./use-local-today";
 import { plural } from "../lib/plural";
 const count = (n: number, one: string, many?: string) => `${n} ${plural(n, one, many)}`;
 import { exportFileName, isShowcaseBackup, type ShowcaseModule } from "../lib/showcase-detect";
@@ -39,7 +39,9 @@ function ModuleBackup<T>({ name, module, schema, store, describe, coverage, spea
   const [error, setError] = useState("");
   const [where, setWhere] = useState<"export" | "restore">("export");
   const selection = useRef(0);
-  const fileName = `zigoals-${slug}-backup-${localDate()}.json`;
+  // CI1 (product-visual, React #418): the server's day in the hydrated HTML, the browser's own right after mount.
+  const today = useLocalToday();
+  const fileName = `zigoals-${slug}-backup-${today}.json`;
   async function download() {
     onSpeak(); setWhere("export");
     try {

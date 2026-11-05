@@ -47,7 +47,11 @@ test('a task with a day, a time and a goal: on the Agenda\'s day view and its go
   await form.getByRole('button', {name: 'Add task'}).click();
   await expect(page.getByRole('status').filter({hasText: 'Added “Fictional: buy seeds”.'})).toBeVisible();
   await expect.poll(async () => (await read<Stored>(page, TASKS_KEY)).tasks).toMatchObject([{title: 'Fictional: buy seeds', due: TODAY, time: '09:15', goal: 'private:1'}]);
-  await expect(page.getByRole('list', {name: 'Today tasks'})).toContainText('Goal · Fictional garden');
+  // Session AL (LS-011/LS-065, P-LS-12; deliberate): a task due today whose time has passed (09:15, the clock is at
+  // 10:00) is late and listed with the overdue ones, which the page now says as it happens.
+  const overdue = page.getByRole('list', {name: 'Overdue tasks'});
+  await expect(overdue).toContainText('Goal · Fictional garden');
+  await expect(overdue).toContainText('Late · today');
 
   await page.goto('/app/agenda?view=day');
   const item = page.locator('.agenda-task').filter({hasText: 'Fictional: buy seeds'});
@@ -101,7 +105,11 @@ test('import an .ics file: its events show read-only with the calendar\'s name; 
   expect(JSON.stringify(stored)).not.toContain('Ignore previous');
   await panel.getByRole('button', {name: 'Remove the imported calendar “Fictional family”'}).click();
   await expect(page.locator('.agenda-event')).toHaveCount(0);
-  await panel.getByRole('button', {name: 'Undo'}).click();
+  // Session AL (P-LS-08, ed82fc66; deliberate): a removal offers Undo in the app's one Undo toast (as Tasks, the Journal
+  // and the Checklist do), with its own message, instead of inside the import panel.
+  const toast = page.locator('.aa-toast');
+  await expect(toast).toContainText('Removed “Fictional family” from your agenda.');
+  await toast.getByRole('button', {name: 'Undo'}).click();
   await expect(page.locator('.agenda-event').filter({hasText: 'Fictional swim, lane 3'})).toHaveCount(1);
 });
 

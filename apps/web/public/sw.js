@@ -186,10 +186,23 @@ function raced(request) {
 }
 const race = request => raced(request).first;
 async function trim(name, max) { const cache = await caches.open(name), keys = await cache.keys(); for (let i = 0; i < keys.length - max; i++) await cache.delete(keys[i]); }
+// Session AL (CI 1539, journey 4): router page data (?_rsc=, one copy per page and router state) filled the pages cache and
+// pushed out the documents kept at install and on visits, so a page opened offline found no copy. Page data goes first,
+// oldest first; a document goes only when no page data is left to remove.
+async function trimPages() {
+  const cache = await caches.open(PAGES), keys = await cache.keys();
+  let over = keys.length - MAX_PAGES;
+  if (over <= 0) return;
+  const data = keys.filter(r => new URL(r.url).searchParams.has('_rsc')), documents = keys.filter(r => !new URL(r.url).searchParams.has('_rsc'));
+  for (const r of [...data, ...documents]) { if (over-- <= 0) break; await cache.delete(r); }
+}
 function cacheable(response) { return response && response.status === 200 && response.type === 'basic' && !response.headers.get('content-disposition'); }
 async function networkFirst(request, url) {
   const cache = await caches.open(PAGES), keep = storable(url), {inFlight, first} = raced(request);
-  const kept = async response => { if (keep && !forgotten && cacheable(response)) { await cache.put(request, response.clone()); trim(PAGES, MAX_PAGES); } return response; };
+  // A link's prefetch is not kept (Session AL, CI 1539): the router asks for it again for the real visit, and the copies
+  // had filled the cache (see trimPages). A prefetch offline still reads a kept copy below.
+  const prefetch = request.headers.get('Next-Router-Prefetch') === '1';
+  const kept = async response => { if (keep && !prefetch && !forgotten && cacheable(response)) { await cache.put(request, response.clone()); trimPages(); } return response; };
   try {
     return await kept(await first);
   } catch (error) {
@@ -214,7 +227,7 @@ async function keepDocument(url) {
   if (await cache.match(address)) return;
   const response = await fetch(address);
   if (forgotten || !cacheable(response) || response.redirected) return; // a redirected answer cannot be served to a navigation
-  await cache.put(address, response); trim(PAGES, MAX_PAGES);
+  await cache.put(address, response); trimPages();
 }
 async function cacheFirst(request) {
   const cache = await caches.open(STATIC), cached = await cache.match(request);

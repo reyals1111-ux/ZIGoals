@@ -119,7 +119,9 @@ test('Help: Known limitations in plain words, with working links', async ({page}
     ['Grocery ticks stay on this device', 'The grocery list', '#help-ak-nutrition'],
     ['staking with Keplr Mobile over WalletConnect hasn’t been tried on a real phone yet', 'Can I link a wallet on my phone?', '#help-ak-wallets'],
     ['Garmin workouts come in only as FIT files', 'Bring your data', '#help-ak-switch'],
-    ['Lichess games found from ZIGoals are rapid or classical only', 'Can I play Lichess inside ZIGoals?', '#help-ak-chess'],
+    // Session AL (L6 third pass d920143b, deliberate; lib/search/help-whats-new.test.ts): the limit is about starting a game,
+    // and blitz and bullet ratings still show.
+    ['A new Lichess game started from ZIGoals is rapid or classical only', 'Can I play Lichess inside ZIGoals?', '#help-ak-chess'],
   ] as const) { await expect(section).toContainText(words); await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href); }
   await expect(section).toContainText('the Finnish Fineli table isn’t in it yet');
   await expect(section).toContainText('It can travel as an optional, encrypted part of your sync once the sync service is updated.');

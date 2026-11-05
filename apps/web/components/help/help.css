@@ -16,7 +16,8 @@
    than its neighbours. Now it is plain inline text in the sentence's own size: it wraps with its line, "(" stays with
    it, and the line keeps its height (WCAG 2.5.8 exempts links inside a sentence, and the layout audit and the touch
    target specs count them so). A link on a line of its own ("← Back to Settings") keeps its 44 px box. */
-:root .help-page :is(p:not(.help-back), li, dd) > a.text-link { display: inline; min-height: 0; font-size: inherit; }
+/* Session AL (CI 1539): "↑ Back to the topics" (.help-to-top) is a link on a line of its own too, so it keeps its 44 px box. */
+:root .help-page :is(p:not(.help-back, .help-to-top), li, dd) > a.text-link { display: inline; min-height: 0; font-size: inherit; }
 .help-page :is(a, button, summary):focus-visible, .help-page [tabindex="-1"]:focus-visible { outline: 2px solid #accffa; outline-offset: 4px; border-radius: 6px; }
 .help-back { margin: -8px 0 0; }
 /* The phone shell orders every nav last (nav { order: 3 }); the topic list stays where it is in the page. */

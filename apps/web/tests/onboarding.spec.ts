@@ -1,5 +1,6 @@
 import {expect,test,type Page} from '@playwright/test';
 import {typeGoalName} from './goal-name';
+import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 
 // Session E, Part 5: the first-run welcome. Fresh browsers here are brand-new users on purpose.
 const KEY='zigoals:onboarding:v1';
@@ -19,7 +20,11 @@ test('a brand-new device sees the welcome on Today; Not now writes only the seen
  await welcome.getByRole('button',{name:'Not now',exact:true}).click();await expect(welcome).toHaveCount(0);
  expect(await zigoalsKeys(page)).toEqual([...new Set([...before,KEY])].sort());
  expect(await page.evaluate(k=>localStorage.getItem(k),KEY)).toBe('{"version":1,"seen":true}');
- await today(page);await expect(page.locator('.dashboard-welcome')).toBeVisible();await expect(card(page)).toHaveCount(0);
+ // Session AL (P-NB-08; NB-002, NB-033; deliberate): with nothing recorded and no setup made, Today keeps one way into
+ // the setup after "Not now" (the welcome itself shows once); "Make Today yours" waits until something is recorded.
+ await today(page);await expect(page.getByRole('region',{name:'Set up ZIGoals in about a minute.'})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Set up ZIGoals in about a minute.'}).getByRole('link',{name:'Start setup',exact:true})).toHaveAttribute('href','/app/welcome');
+ await expect(page.locator('.dashboard-welcome')).toHaveCount(0);await expect(card(page)).toHaveCount(0);
 });
 
 test('never for someone with records or a chosen Today, and never in Showcase',async({page})=>{
@@ -27,8 +32,11 @@ test('never for someone with records or a chosen Today, and never in Showcase',a
  // Session AK RB (RELEASE_REVIEW_2 R2-11, deliberate): "Make Today yours" waits until the welcome is answered (the two asked
  // the same question one after the other), so Not now comes first; the seen flag it writes is then removed, so the welcome
  // staying away below still rests on the saved Today choice alone, as before.
+ // Session AL (P-NB-08, deliberate): after "Not now" an empty device shows the setup entry, not the chooser, so the Today
+ // choice is saved as "Keep Balanced and continue" saved it (the Balanced layout, onboarded) before the flag is removed.
  await today(page);await expect(page.locator('.dashboard-welcome')).toHaveCount(0);await card(page).getByRole('button',{name:'Not now',exact:true}).click();
- await page.getByRole('button',{name:'Keep Balanced and continue',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Set up ZIGoals in about a minute.'})).toBeVisible();
+ await page.evaluate(([k,v])=>localStorage.setItem(k!,v!),[DASHBOARD_SETTINGS_KEY,JSON.stringify({...presetSettings('balanced'),onboarded:true})]);
  await page.evaluate(k=>localStorage.removeItem(k),KEY);
  await expect(page.locator('.dashboard-welcome')).toHaveCount(0);await today(page);await expect(card(page)).toHaveCount(0);
  // Any private record counts too, even with Today untouched.
@@ -188,7 +196,9 @@ test('reduced motion and Motion Off: steps change without animation',async({page
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/app/welcome');
  await page.getByRole('button',{name:'Let’s begin',exact:true}).click();
  expect(await page.locator('.onboarding-step').evaluate(e=>e.getAnimations().length)).toBe(0);
- await page.emulateMedia({reducedMotion:'no-preference'});await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));
+ // Session AL (P-NB-09, deliberate): the wizard keeps its draft in this tab over a reload, so the step reached above is
+ // cleared first (as a new tab would start) and the flow begins again with Motion Off.
+ await page.emulateMedia({reducedMotion:'no-preference'});await page.evaluate(()=>{localStorage.setItem('zigoals:motion:v1','off');sessionStorage.removeItem('zigoals:welcome-draft:v1');});
  await page.goto('/app/welcome');await expect(page.locator('html')).toHaveAttribute('data-app-motion','off');
  await page.getByRole('button',{name:'Let’s begin',exact:true}).click();
  expect(await page.locator('.onboarding-step').evaluate(e=>e.getAnimations().length)).toBe(0);

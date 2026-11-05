@@ -28,7 +28,7 @@ export function StartHereSection({facts, live}: {facts: StartFacts; live: StartL
   const showToday = () => { try { record.update(setTodayCard('auto')); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } };
   return <section id="start-here" className="earn-start panel" aria-labelledby="start-here-title" data-done={done}>
     <SectionHeading id="start-here-title" eyebrow="New here? Start here" title="How staking works, step by step"
-      lede="Two steps to learn it safely (a wallet and a practice round with test ZIG of no value), then four optional ones, only if you choose real ZIG. Press a dot for its guide. ZIGoals ticks what it can see and never signs for you. Practising is enough, and nothing here says you should buy or stake."/>
+      lede="Two steps to learn it safely (a wallet and a practice round with test ZIG of no value), then four optional ones, only if you choose real ZIG. Press a dot for its guide. ZIGoals ticks what it can see and never signs for you. Practising is enough, and nothing here tells you to buy or stake."/>
     <p className="earn-start-progress" aria-live="polite"><b>{progress.count}</b> · {progress.next}</p>
     {ready
       ? <LoadBoundary label="The Start-here path"><Suspense fallback={<StartList states={states}/>}><StartHerePath states={states} open={open} onOpen={setOpen} onMark={mark} live={live} markError={error}/></Suspense></LoadBoundary>

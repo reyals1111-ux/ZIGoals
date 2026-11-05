@@ -78,10 +78,14 @@ test('Help has one title and twelve topics, listed before them, each linking to 
   // The topic list stays above the first section at every size.
   const firstSection = page.getByRole('region', {name: 'Three small first steps', exact: true});
   expect((await nav.boundingBox())!.y).toBeLessThan((await firstSection.boundingBox())!.y);
-  // Owner follow-up 2 (deliberate): "NOVA, notes and tasks" is the seventh topic, so Questions is the eighth.
+  // Owner follow-up 2 (deliberate): "NOVA, notes and tasks" is the seventh topic.
+  // Session AL (L6 P-BN rows, deliberate): "Earn, Staking, Ecosystem and Chess" is the eighth (TOPIC_IDS above), so
+  // Questions is the ninth; both are clicked.
   await topics.nth(6).click();
   await expect(page).toHaveURL(/#nova$/);
   await topics.nth(7).click();
+  await expect(page).toHaveURL(/#more-pages$/);
+  await topics.nth(8).click();
   await expect(page).toHaveURL(/#questions$/);
 });
 
@@ -224,7 +228,10 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // Session AK (ADR-036): Known limitations links its seven new lines to their answers (43 → 50).
   // Owner follow-up 2: the NOVA, notes and tasks answers link NOVA, its two guides, Hermes Agent's docs, Notes and Tasks
   // inside their sentences (50 → 57).
-  expect(inline).toBe(57);
+  // Session AL (L6 Help passes, deliberate): the new answers link inside their sentences too, among them "Where are Earn,
+  // Staking, Governance and Ecosystem?" to the Earn, staking and voting answers (57 → 62). "↑ Back to the topics" is a
+  // link on its own line, so it is held to 44 px above, not counted here.
+  expect(inline).toBe(62);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });
@@ -435,7 +442,8 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
     ['af-practice-badges', 'ZIGoals never does this on the real network'],
     ['af-start-here', "Practice never ticks a real step"],
     ['af-academy', "a lesson you pass earns XP once"],
-    ['af-earn-dock', "Phones have no extra floating button"],
+    // Session AL (P-BN-48, O3, deliberate): below 901 px nothing floats, so the answer names phones and tablets.
+    ['af-earn-dock', "Phones and tablets have no floating button"],
     ['af-validator-alerts', "ZIGoals sends no notifications"],
     ['af-wallets', "Keplr stays the wallet that signs"],
     ['af-add-money', "ZIGoals never sees either and never holds the money"],

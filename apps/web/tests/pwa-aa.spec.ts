@@ -29,7 +29,8 @@ test('the shortcuts: Quick add opens; water is ready to tap, never logged by its
 
 test('the share target: what another app shared waits on its own page, nothing saved until a choice', async ({page}) => {
   await page.goto('/app');
-  expect((await (await page.request.get('/manifest.webmanifest')).json()).share_target).toEqual({action: '/app/share', method: 'GET', params: {title: 'title', text: 'text', url: 'url'}});
+  // Session AL (P-BN-43/TK-191, 818805b8, deliberate): the manifest spells out the default enctype (no console warning).
+  expect((await (await page.request.get('/manifest.webmanifest')).json()).share_target).toEqual({action: '/app/share', method: 'GET', enctype: 'application/x-www-form-urlencoded', params: {title: 'title', text: 'text', url: 'url'}});
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
   await page.goto(`/app/share?${new URLSearchParams({title: 'Weekend in Lisbon', text: 'Flights from 89 EUR', url: 'https://example.com/lisbon'})}`);
   await expect(page).toHaveTitle(/Shared with ZIGoals/);

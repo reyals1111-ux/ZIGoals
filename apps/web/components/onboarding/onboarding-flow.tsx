@@ -339,7 +339,8 @@ export function OnboardingFlow() {
     showHealth && steps !== null && `A daily step target of ${steps.toLocaleString("en")}.`,
     showHealth && water !== null && `A daily water target of ${litres(water)}.`,
     showSleep && sleepGoal !== null && `A sleep goal of ${formatMinutes(sleepGoal)}.`,
-  ].filter((line): line is string => typeof line === "string");
+    // An empty answer ("" from a blank name) is no line: the summary then says nothing new is added (CI 1539).
+  ].filter((line): line is string => typeof line === "string" && line.length > 0);
 
   const undoable = setupDone && setupUndoable(setupDone, new Date());
   return <section className="onboarding panel" aria-labelledby={`${id}-title`} data-step={step}>

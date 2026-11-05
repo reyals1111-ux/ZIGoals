@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {presetSettings} from '../lib/dashboard-settings';
 import {AVAILABLE_BUTTONS, AVAILABLE_PAGES} from '../lib/pages/visibility';
+import {SIDEBAR_APP_IDS} from '../lib/ui-prefs/apps';
 import {isPhone, mainNav, openMore} from './phone-nav';
 import {chooseChain} from './chain-choice';
 import {pressZigi} from './zigi-open';
@@ -97,7 +98,12 @@ test('every switch sits on its name\'s row, before the name, at its full size', 
   await page.goto('/app/settings');
   const rows = section(page).locator('label.pages-switch');
   // (Session AG Polish 3: and Governance's switch on this device, after Chess. Session AH (ST9): and Earn's, after Wealth.)
-  await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length + 2);
+  // Session AL (O4 and L10a, 57fb1e5e; deliberate): and the Checklist button under Buttons, and the Apps group's own
+  // switches (NOVA, Tasks, Notes, the Journal, the Agenda). The Cycle log's switch under Health (Session AK) is counted
+  // too: it loads a moment later, so the old count could pass before it showed. Every row is still checked below.
+  await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length + 2 + 1 + 1 + SIDEBAR_APP_IDS.length);
+  await expect(section(page).getByRole('switch', {name: 'Cycle log'})).toHaveCount(1);
+  await expect(section(page).getByRole('switch', {name: 'Checklist button'})).toHaveCount(1);
   // Assertion changed (Session AK X1, RELEASE_REVIEW R3; deliberate): Earn's switch is its own now, on this device
   // (`pageShown` in zigoals:earn-prefs:v1), so it is on and usable while Wealth shows (it was locked to Wealth's state).
   await expect(section(page).getByRole('switch', {name: 'Earn'})).toBeEnabled();
