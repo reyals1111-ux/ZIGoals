@@ -36,6 +36,17 @@ export async function seed(page: Page, {settings = null, showcase = false, extra
 export const nova = (page: Page) => page.locator('section.nova-chat');
 /** ⌘/Ctrl + J (the command bar) sends the words to NOVA, whose page opens with its chat (as tests/nova-chat.spec.ts does). */
 export async function sendInNova(page: Page, text: string) {
+  // Fix-up FX-G53b: on NOVA itself ⌘/Ctrl + J opens no bar by design (components/nova/nova-entry.tsx: "except on NOVA
+  // itself, which has its own command field"), so there the words go where a person types them: the open chat's composer,
+  // or else the dashboard's "Ask NOVA" field, whose Enter sends them and opens the chat. The dashboard mounts after
+  // hydration, so the field is ready once it is visible.
+  if (/^\/app\/nova\/?$/.test(new URL(page.url()).pathname)) {
+    const field = await nova(page).isVisible() ? nova(page).getByRole('textbox', {name: /^Message /}) : page.getByRole('form', {name: /^Ask /}).getByRole('textbox', {name: /^Message /});
+    await field.fill(text);
+    await field.press('Enter');
+    await expect(nova(page)).toBeVisible();
+    return;
+  }
   await page.keyboard.press(process.platform === 'darwin' ? 'Meta+j' : 'Control+j');
   const bar = page.locator('dialog.nova-bar[open]');
   await expect(bar).toBeVisible();

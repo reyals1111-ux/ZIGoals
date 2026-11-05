@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {openZigi, sendToZigi, zigiBox, zigiPanel} from '../../zigi-open';
 import {UI_PREFS_KEY} from '../../../lib/ab-design-keys';
 import {AI_USAGE_KEY} from '../../../lib/ai/store/keys';
+import {AI_SETTINGS_KEY, defaultAiSettings} from '../../../lib/ai/settings';
 import {seed} from './helpers';
 
 /**
@@ -84,6 +85,12 @@ test.describe('desktop (Berlin, Professor: 1920)', () => {
     await expect(turn).toContainText('not about today', {timeout: 15_000});
     await expect(turn).not.toContainText('Energy today');
     await expect(zigiPanel(page).locator('.ai-card').last()).toContainText('Search: pasta');
+    // Fix-up FX-G53b: today's total reads the person's own Health records, which a fresh setting never shares (Health page
+    // data and Include Health are off by default; lib/ai/gates.ts), so the app rightly answered "Health isn't shared".
+    // The food question above needs no Health (it reads no record); for the today contrast Health is shared, as a person would.
+    await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [AI_SETTINGS_KEY, JSON.stringify({...defaultAiSettings(), includeHealth: true, pageShare: {...defaultAiSettings().pageShare, health: true}})]);
+    await page.reload();
+    await openZigi(page);
     await sendToZigi(page, 'How many calories did I eat today?');
     await expect(lastTurn(page)).toContainText('kcal', {timeout: 15_000});
   });

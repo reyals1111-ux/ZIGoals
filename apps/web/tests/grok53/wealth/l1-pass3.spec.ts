@@ -43,12 +43,18 @@ test.describe('desktop 1280, Dark, en-US device', () => {
     await sheet.getByRole('button', {name: 'Add 2 assets to Wealth'}).click();
     await page.keyboard.press('Escape');
     const mix = page.getByRole('region', {name: 'Asset mix'});
-    const total = await page.locator('.wealth-hero-total .wealth-total-headline').innerText();
+    // Fix-up FX-G53b: the total counts up once when it comes into view (components/motion/number-ticker.tsx, Full motion),
+    // and when that happens depends on the sheet closing and the page's timing: a read mid-count gave "$150.00\n$99.09".
+    // The ticker keeps the final figure for assistive technology at every moment (the counting digits are aria-hidden), so
+    // the total is read and compared as a screen reader reads it: settled, 100 + 50 USD.
+    const headline = page.locator('.wealth-hero-total .wealth-total-headline');
+    await expect.poll(() => headline.ariaSnapshot()).toContain('$150.00');
+    const total = await headline.ariaSnapshot();
     await expect(mix.locator('.class-summary').filter({hasText: 'Stablecoins'})).toContainText('1 asset');
     await mix.getByRole('checkbox', {name: /Count stablecoins as cash/}).check();
     await expect(mix.locator('.class-summary').filter({hasText: 'Stablecoins'})).toHaveCount(0);
     await expect(mix.locator('.class-summary').filter({hasText: 'Cash'})).toContainText('2 assets');
-    await expect(page.locator('.wealth-hero-total .wealth-total-headline')).toHaveText(total);
+    await expect(headline).toMatchAriaSnapshot(total);
     await page.reload(); await hydrated(page);
     await expect(page.getByRole('region', {name: 'Asset mix'}).getByRole('checkbox', {name: /Count stablecoins as cash/})).toBeChecked(); // remembered on this device
   });

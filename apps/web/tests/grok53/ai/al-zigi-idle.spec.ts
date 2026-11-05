@@ -17,7 +17,10 @@ test('PR-041: 15 minutes idle with ZIGi open — the panel and its chat stay', a
   await sendToZigi(page, 'How many habits are left today?');
   const reply = zigiPanel(page).locator('.ai-turn-assistant, [data-role="assistant"]').last();
   await expect(reply).toBeVisible({timeout: 15_000});
-  const said = (await reply.innerText()).slice(0, 40);
+  // Fix-up FX-G53b: the reply's own textContent, not innerText — innerText puts line breaks between the answer's lines
+  // ("today:\n\nExercise"), which the panel's textContent that toContainText reads never has, so the same words never matched.
+  const said = ((await reply.textContent()) ?? '').replace(/\s+/g, ' ').trim().slice(0, 40);
+  expect(said.length).toBeGreaterThan(10);
   for (let minute = 1; minute <= 15; minute++) await page.clock.runFor(60_000);
   await expect(zigiPanel(page)).toBeVisible();
   await expect(zigiPanel(page)).toContainText(said);
