@@ -29,7 +29,7 @@ export function MarketTable({rows, currency, label, onToggle, disabled, loading 
     const active = sort === key, order = key === 'name' ? 'ascending' : 'descending';
     return <th scope="col" className={className} aria-sort={active ? order : undefined}><button type="button" className="data-sort" onClick={() => onSort(active ? 'listed' : key)} title={active ? `Sorted by ${text}; press again to show as listed` : `Sort by ${text}`}>{text}</button></th>;
   };
-  return <div ref={edges} className="data-table-wrap" role="region" aria-label={`${label}, scrolls sideways`} tabIndex={0}>
+  return <><div ref={edges} className="data-table-wrap market-table-wrap" role="region" aria-label={`${label}, scrolls sideways`} tabIndex={0}>
     <table className="data-table market-table" aria-label={label}>
       <thead><tr>{head('name', 'Market')}{head('price', 'Price')}<th scope="col" className="data-col-optional">1h</th>{head('change24h', '24h')}<th scope="col" className="data-col-optional">7d</th><th scope="col" className="data-col-optional">Last 7 days</th>{head('marketCap', 'Market cap', 'data-col-wide')}<th scope="col"><span className="sr-only">Favourite</span></th></tr></thead>
       <tbody>{rows.map(row => <tr key={row.key}>
@@ -43,5 +43,5 @@ export function MarketTable({rows, currency, label, onToggle, disabled, loading 
         <td><button type="button" className="market-favourite" aria-label={`${row.favourite ? 'Remove' : 'Add'} ${row.name} favourite`} aria-pressed={row.favourite} aria-disabled={!row.favourite && fullText ? true : undefined} title={!row.favourite && fullText ? fullText : undefined} disabled={disabled} onClick={() => onToggle(row)}>{row.favourite ? '★' : '☆'}</button></td>
       </tr>)}</tbody>
     </table>
-  </div>;
+  </div>{/* Session AL (TK-162): said in words while columns sit off to the right (CSS shows it only then) */}<p className="data-table-more" aria-hidden="true">More columns to the right: swipe the table sideways.</p></>;
 }

@@ -14,3 +14,5 @@
 :root .intelligence-metrics > div { container-type: inline-size; min-width: 0; }
 :root .intelligence-metrics dd { white-space: nowrap; font-size: min(1.35rem, 13.5cqi); }
 :root .funding-wealth-progress strong { white-space: nowrap; }
+/* Session AL (N-TK-19): Today's Life overview says when its market prices were read, as Wealth does. */
+.life-wealth-orbit .wealth-total-prices { display: block; margin-top: 4px; font-size: 14px; color: var(--text-secondary, #c4d3e6); }

@@ -17,8 +17,11 @@ const typeLabel=(asset:MarketCatalogAsset)=>asset.ref.kind==='rwa'?asset.ref.ass
 /** Session AL (N-TK-16): the picker tab an asset lives under, so a search in the wrong tab can point to the right one. */
 export const tabOf=(asset:MarketCatalogAsset)=>asset.ref.kind==='coin'?'Crypto':asset.ref.assetType==='etf'?'ETFs':asset.ref.assetType==='stock'?'Stocks':'Precious metals';
 /** An exact symbol or name match for `query` in another tab than `category`, as "VOO is listed under ETFs"; null when none. */
-export function elsewhereHint(query:string,catalog:readonly MarketCatalogAsset[],category:string|undefined):string|null{
+export function elsewhereHint(query:string,catalog:readonly MarketCatalogAsset[],category:string|undefined,shown:readonly MarketCatalogAsset[]=[]):string|null{
  const q=query.trim().toLowerCase();if(!q||!category)return null;
+ const exact=(a:MarketCatalogAsset)=>a.symbol.toLowerCase()===q||a.name.toLowerCase()===q;
+ // Session AL (N-TK-16): an exact match in this tab (AAPL under Stocks) is the answer; a namesake elsewhere is not pointed at.
+ if(catalog.some(a=>exact(a)&&(tabOf(a)===category||(category==='Stablecoins'&&tabOf(a)==='Crypto')))||shown.some(a=>exact(a)||a.symbol.toLowerCase().startsWith(q)))return null;
  const hit=catalog.find(a=>(a.symbol.toLowerCase()===q||a.name.toLowerCase()===q)&&tabOf(a)!==category&&!(category==='Stablecoins'&&tabOf(a)==='Crypto'));
  return hit?`${hit.symbol.toUpperCase()} (${hit.name}) is listed under ${tabOf(hit)}. Choose the ${tabOf(hit)} tab above to add it.`:null;
 }
@@ -33,7 +36,7 @@ export function AssetSearch({selected,onSelect,onManual,disabled=false,category}
  const [query,setQuery]=useState(''),[catalog,setCatalog]=useState<MarketCatalogAsset[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);
  useEffect(()=>{let active=true;setLoading(true);setError('');void loadCatalog().then(assets=>{if(active)setCatalog(assets);}).catch(()=>{if(active)setError('Automatic market catalog is unavailable right now.');}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[attempt]);
  const results=useMemo(()=>searchMarketAssets(query,catalog.filter(a=>!category||(['Crypto','Stablecoins'].includes(category)?a.ref.kind==='coin':category==='Stocks'?a.ref.kind==='rwa'&&a.ref.assetType==='stock':category==='ETFs'?a.ref.kind==='rwa'&&a.ref.assetType==='etf':category==='Precious metals'?a.ref.kind==='rwa'&&a.ref.assetType==='commodity':true))),[query,catalog,category]);
- const elsewhere=useMemo(()=>elsewhereHint(query,catalog,category),[query,catalog,category]);
+ const elsewhere=useMemo(()=>elsewhereHint(query,catalog,category,results),[query,catalog,category,results]);
  return <section className="asset-search" aria-labelledby="asset-search-title">
   <div className="asset-search-heading"><div><p className="eyebrow">Public market catalog</p><h4 id="asset-search-title">Find your asset</h4></div><span className="asset-search-provider">CoinGecko</span></div>
   <p className="fine">Explore crypto, stocks, ETFs and metals. Prices by CoinGecko. Your holdings stay private.</p>

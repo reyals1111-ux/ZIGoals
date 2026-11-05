@@ -109,3 +109,8 @@
 .holding-unit-why { display: block; margin-top: 4px; color: var(--text-secondary); line-height: 1.4; }
 .asset-archived-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
 .asset-archived-notice p { margin: 0; flex: 1 1 280px; }
+/* Session AL (PR-053): the archived asset's "Delete for good" step, said and confirmed in place. */
+.asset-archived-notice .asset-delete-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 10px; }
+.asset-archived-notice .asset-delete-confirm p { flex-basis: 100%; margin: 0; }
+.asset-archived-notice .asset-delete-blocked { margin: 10px 0 0; }
+.asset-archived-notice > button.quiet { margin-left: 8px; min-height: 44px; }

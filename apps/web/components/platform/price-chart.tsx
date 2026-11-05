@@ -3,7 +3,7 @@ import {useRememberedChoice} from '../ui/use-remembered-choice';
 import {HISTORY_DAYS} from '../../lib/market-history';
 import {useEffect,useId,useMemo,useRef,useState,type CSSProperties} from 'react';
 import type {MarketAssetRef} from '../../lib/market-assets';
-import {availableHistoryRanges,createMarketHistoryCache,fetchPublicMarketHistory,formatHistoryValue,historyIsStale,historyPointsForRange,historyRequestSchema,formatHistoryPrice,RWA_HISTORY_UNAVAILABLE,validLocalHistory,type ChartHistoryRange,type HistoryPoint,type MarketHistoryResult} from '../../lib/market-history';
+import {availableHistoryRanges,createMarketHistoryCache,fetchPublicMarketHistory,formatHistoryValue,historyIsStale,historyPointsForRange,historyRequestSchema,formatHistoryPrice,formatHistoryUnits,RWA_HISTORY_UNAVAILABLE,validLocalHistory,type ChartHistoryRange,type HistoryPoint,type MarketHistoryResult} from '../../lib/market-history';
 import './price-chart.css';
 import {ChartLookDefs,useChartLook} from '../charts/chart-defs';
 import {useEntrance} from '../use-entrance';
@@ -94,7 +94,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
    {points.length===1&&<div className="price-chart-single"><strong>Tracking starts here</strong><p>One observed price is saved. Earlier performance is not assumed.</p></div>}
   </>:<div className="price-chart-empty"><LazyPillarArt pillar="wealth" size={72}/><h4>{loading?'Loading observed prices':'Your price history starts here'}</h4><p>{loading?'Checking available market history.':'Prices will appear as verified observations become available. Earlier performance is not assumed.'}</p></div>}
   <figcaption>
-   {cost!==null&&costLine&&<span className="price-chart-cost-key"><svg width="26" height="10" aria-hidden="true"><line x1="1" x2="25" y1="5" y2="5" strokeDasharray="7 6"/></svg>Dashed line: {costLine.label}, {formatHistoryPrice({at:'',value:cost.toString(),decimals},currency)}.</span>}
+   {cost!==null&&costLine&&<span className="price-chart-cost-key"><svg width="26" height="10" aria-hidden="true"><line x1="1" x2="25" y1="5" y2="5" strokeDasharray="7 6"/></svg>Dashed line: {costLine.label}, {formatHistoryUnits(cost,decimals,currency)}.</span>}
    {points.length>1&&<span>Connecting lines are illustrative; gaps longer than seven days remain open. The vertical scale fits observed prices, not a zero baseline. This is market context, not your portfolio return.</span>}
    {offline?'Showcase fixture prices, not market data.':marketRef.kind==='rwa'?RWA_HISTORY_UNAVAILABLE:history?'Dated market observations. Lines connect observed prices; values between them are not recorded prices.':result?.error&&marketRef.kind==='coin'?null:'Saved local price observations. Market history is currently unavailable.'}
    {history&&<span>Fetched <time dateTime={history.fetchedAt}>{formatDateTime(history.fetchedAt)}</time> · {currency} per asset unit. The chart’s last observation can differ from the current price at the top of the page, which has its own time.</span>}

@@ -98,7 +98,8 @@ it('TK-010: the file’s class word is kept in the note when Wealth files it und
   const plan = planHoldingsImport({rows: [['Vanguard S&P 500 ETF', 'VOO', '4', 'ETF', '2100', 'USD'], ['Old Skoda', '', '1', 'Vehicle', '3000', 'EUR']], mapping: {name: 0, asset: 1, quantity: 2, class: 3, value: 4, currency: 5}, numberStyle: 'point'});
   expect(plan.refused).toEqual([]);
   expect(plan.ready.map(r => [r.input.category, r.fileClass, r.input.notes])).toEqual([
-    ['Stocks', 'ETF', 'Class in your file: ETF (kept as Stocks).'],
+    // Session AL (COPY_AUDIT, deliberate): TK-010 fourth pass — an ETF row is now shown under Wealth's ETFs class.
+    ['Stocks', 'ETF', 'Class in your file: ETF (shown under ETFs).'],
     ['Custom asset', 'Vehicle', 'Class in your file: Vehicle (kept as a custom asset).'],
   ]);
 });

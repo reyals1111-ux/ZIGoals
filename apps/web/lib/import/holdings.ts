@@ -5,6 +5,7 @@ import {coinKey, type PortfolioCoin, type PortfolioData, type PortfolioTransacti
 import {HoldingsBelowZero, PortfolioDecimal} from '../portfolio/math';
 import {MANUAL_SOURCES, manualSourcePosition, type ManualSource} from '../manual-source';
 import {platformSchema, saveManualPosition, type Platform} from '../positions';
+import {tagManualEtf} from '../wealth';
 import type {MarketCatalogAsset} from '../market-assets';
 import {parseNumberCell, type NumberStyle} from '../csv/numbers';
 import {parseDateCell, DATE_FORMAT_LABELS, type DateFormat} from '../csv/dates';
@@ -23,6 +24,13 @@ export type TransactionPlan = {ready: ReadyTransaction[]; unknownCoins: {row: nu
 const KINDS: Record<string, TransactionKind> = {buy: 'buy', bought: 'buy', purchase: 'buy', purchased: 'buy', sell: 'sell', sold: 'sell', sale: 'sell', deposit: 'transfer-in', receive: 'transfer-in', received: 'transfer-in', 'transfer in': 'transfer-in', transferin: 'transfer-in', in: 'transfer-in', withdraw: 'transfer-out', withdrawal: 'transfer-out', send: 'transfer-out', sent: 'transfer-out', 'transfer out': 'transfer-out', transferout: 'transfer-out', out: 'transfer-out'};
 const cell = (row: readonly string[], mapping: Mapping, field: string) => { const index = mapping[field]; return index === undefined ? '' : (row[index] ?? '').trim(); };
 /** Exact symbol (any case) in the catalog, then exact name; several matches are the list; none is unknown. The featured coins stand in when the catalog is unavailable. */
+/** Session AL (TK-009): why a number cell was refused, in the words of its cause (lib/csv/numbers.ts). */
+export function cellRefusal(what: 'quantity' | 'value', cause: unknown): string {
+  const why = cause instanceof Error ? cause.message : '';
+  if (why === 'is negative') return what === 'quantity' ? 'the quantity is negative; enter what you hold, above zero.' : 'the value is negative; enter 0 or more.';
+  if (why === 'uses exponent notation') return `the ${what} uses exponent notation; write the number in full.`;
+  return `the ${what} is not a number.`;
+}
 export function resolveCoinWith(catalog: readonly MarketCatalogAsset[] | null, featured: readonly PortfolioCoin[]): (text: string) => PortfolioCoin | PortfolioCoin[] | null {
   const coins: PortfolioCoin[] = catalog ? catalog.flatMap(a => a.ref.kind === 'coin' ? [{ref: a.ref, name: a.name, symbol: a.symbol}] : []) : [...featured];
   return text => {
@@ -43,7 +51,7 @@ export function planTransactionImport({rows, mapping, numberStyle, dateFormat, t
     const coinText = cell(cells, mapping, 'coin');
     if (!coinText) return refuse('the coin is blank.');
     let quantity: string | null, price: string | null, fee: string | null;
-    try { quantity = parseNumberCell(cell(cells, mapping, 'quantity'), numberStyle); } catch { return refuse('the quantity is not a number above zero.'); }
+    try { quantity = parseNumberCell(cell(cells, mapping, 'quantity'), numberStyle); } catch (e) { return refuse(e instanceof Error && e.message === 'is negative' ? 'the quantity is negative; enter a number above zero (the Type column says whether it went out).' : 'the quantity is not a number above zero.'); }
     if (quantity === null || !/[1-9]/.test(quantity)) return refuse('the quantity is not a number above zero.');
     try { price = parseNumberCell(cell(cells, mapping, 'price'), numberStyle); } catch { return refuse('the price is not a number.'); }
     try { fee = parseNumberCell(cell(cells, mapping, 'fee'), numberStyle); } catch { return refuse('the fee is not a number.'); }
@@ -99,7 +107,7 @@ export function manualCategory(text: string): typeof MANUAL_SOURCES[number] {
   return MANUAL_SOURCES.find(s => s.toLowerCase() === t) ?? 'Custom asset';
 }
 /** `fileClass`: the file's own class word when Wealth files it under a broader kind ("ETF" under Stocks, "Vehicle" as a custom asset). */
-export type ReadyHolding = {row: number; input: ManualSource; fileClass?: string};
+export type ReadyHolding = {row: number; input: ManualSource; fileClass?: string; /** Session AL (TK-010): shown under ETFs */ etf?: true};
 /**
  * Session AL (TK-010): the class word a file used, when it says more than the kind it is filed under: "ETF" is kept as
  * Stocks and "Vehicle" as a custom asset (Wealth has no such kinds for a hand-added holding), so the word is not lost.
@@ -141,27 +149,29 @@ export function planHoldingsImport({rows, mapping, numberStyle}: {rows: readonly
     if (!name) return refuse('the name is blank.');
     if (!isMoneyCurrency(currency)) return refuse(`“${currency}” is not a currency code; use one such as EUR, USD or GBP.`);
     let quantity: string | null, value: string | null;
-    try { quantity = parseNumberCell(cell(cells, mapping, 'quantity'), numberStyle); } catch { return refuse('the quantity is not a number.'); }
-    try { value = parseNumberCell(cell(cells, mapping, 'value'), numberStyle); } catch { return refuse('the value is not a number.'); }
+    // Session AL (TK-009, fourth pass): the reason the cell was refused ("−5" is negative), never "not a number" for a number.
+    try { quantity = parseNumberCell(cell(cells, mapping, 'quantity'), numberStyle); } catch (e) { return refuse(cellRefusal('quantity', e)); }
+    try { value = parseNumberCell(cell(cells, mapping, 'value'), numberStyle); } catch (e) { return refuse(cellRefusal('value', e)); }
     const symbol = cell(cells, mapping, 'asset').toUpperCase(), metalFound = metalOf(symbol, name), category = metalFound && !cell(cells, mapping, 'class') ? 'Precious metals' : manualCategory(cell(cells, mapping, 'class'));
     // Session AL (TK-013): a metal row keeps its own metal (XAG is silver, never "Gold") and a bar's weight from its name
     // ("Gold bar 100g", quantity 2 → 200 grams), said in the note so the person can check it.
     const weighed = category === 'Precious metals' && quantity ? barWeight(name, quantity) : null;
-    const classWord = cell(cells, mapping, 'class'), classNote = classWord ? fileClassNote(classWord, category) : null;
+    // Session AL (TK-010, fourth pass): an ETF row is filed under ETFs, as Add asset → ETFs files one (lib/wealth MANUAL_ETF_TAG).
+    const classWord = cell(cells, mapping, 'class'), etf = category === 'Stocks' && /^etfs?$/i.test(classWord.trim()), classNote = etf ? `Class in your file: ${classWord.trim()} (shown under ETFs).` : classWord ? fileClassNote(classWord, category) : null;
     const notes = [cell(cells, mapping, 'notes'), weighed?.note ?? '', classNote ?? ''].filter(Boolean).join(' ').slice(0, 500);
     const input: ManualSource = {category, name, quantity: weighed?.quantity ?? quantity ?? '', currency, ...(symbol && category !== 'Precious metals' ? {symbol} : {}), ...(category === 'Precious metals' ? {metal: metalFound ?? 'Gold', unit: weighed?.unit ?? unitOfAsset(symbol) ?? 'grams'} : {}), ...(value !== null ? {value} : {}), ...(notes ? {notes} : {})};
     // Session AL (TK-011, C-TK-05): the same holding twice in one file (name, quantity, value and currency) is left out once.
     const same = plan.ready.find(r => r.input.name.toLowerCase() === input.name.toLowerCase() && r.input.quantity === input.quantity && r.input.value === input.value && r.input.currency === input.currency);
     if (same) return refuse(`the same as row ${same.row} (name, quantity, value and currency), so it was left out to avoid counting it twice. If both are real, change one row and import again.`);
     try { manualSourcePosition(input, 'imp_check', '2000-01-01T00:00:00.000Z'); } catch (error) { return refuse(error instanceof Error ? error.message.replace(/\.$/, '').toLowerCase() + '.' : 'this holding cannot be added.'); }
-    plan.ready.push({row, input, ...(classNote ? {fileClass: classWord.trim().slice(0, 40)} : {})});
+    plan.ready.push({row, input, ...(classNote ? {fileClass: classWord.trim().slice(0, 40)} : {}), ...(etf ? {etf: true as const} : {})});
   });
   return plan;
 }
 export const holdingImportId = (importId: string, row: number) => `imp_${importId}_${row}`;
 /** Every ready holding becomes an ordinary manual position, in order; the store writes once, so a refusal anywhere leaves the record unchanged. */
 export function applyHoldingsImport(platform: Platform, ready: readonly ReadyHolding[], {importId, at}: {importId: string; at: string}): Platform {
-  return ready.reduce((current, item) => saveManualPosition(current, manualSourcePosition(item.input, holdingImportId(importId, item.row), at)), platform);
+  return ready.reduce((current, item) => { const p = manualSourcePosition(item.input, holdingImportId(importId, item.row), at); return saveManualPosition(current, item.etf ? tagManualEtf(p) : p); }, platform);
 }
 export class UndoRefused extends Error { constructor(message: string) { super(message); this.name = 'UndoRefused'; } }
 export const WEALTH_UNDO_REFUSED = 'Some imported assets were already changed or used for a Goal. Remove them in Wealth instead.';

@@ -113,3 +113,10 @@ export async function fetchPublicMarketHistory(raw:MarketHistoryRequest,refresh=
 /** Session AL (TK-028, TK-120, TK-155, TK-202, TK-213; W8, M13, M14): an observed price as every other price in the app
  * reads ("$76,841.77", "$0.0412"), never the provider's 14-digit decimal. The exact table keeps the exact value. */
 export function formatHistoryPrice(point:HistoryPoint,currency:'USD'|'EUR'):string{return formatPrice(formatHistoryValue(point),currency);}
+/** Session AL (TK-026, C-TK-19): a computed level (the average cost line) at the chart's precision. It is not an
+ * observation, so it has no time and never goes through historyPointSchema (an empty `at` made that throw). */
+export function formatHistoryUnits(units:bigint,decimals:number,currency:'USD'|'EUR'):string{
+ const places=Math.max(0,Math.min(30,Math.trunc(decimals))),negative=units<0n,digits=(negative?-units:units).toString();
+ const padded=digits.padStart(places+1,'0'),text=places?`${padded.slice(0,-places)}.${padded.slice(-places)}`:padded;
+ return formatPrice(`${negative?'-':''}${text}`,currency);
+}

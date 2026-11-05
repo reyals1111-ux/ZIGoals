@@ -47,8 +47,11 @@
 .portfolio-holding > .text-link { justify-self: start; }
 .portfolio-transactions { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .portfolio-transactions li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 8px 0; border-top: 1px solid #7fc8ff1f; font-size: 15px; }
-.portfolio-transactions li small { grid-column: 1; font-size: 14px; color: #c4d3e6; }
-.portfolio-transactions li button { grid-row: 1 / span 2; grid-column: 2; }
+.portfolio-transactions li > small { grid-column: 1; font-size: 14px; color: #c4d3e6; }
+/* Session AL (TK-027, fourth pass): only the row's own Edit/Remove buttons (direct children). The old descendant rule
+   also caught the edit form's Save and placed it as a 2-row block in the form's grid beside Type. */
+.portfolio-transactions li > button { grid-row: 1 / span 2; grid-column: 2; }
+.portfolio-transactions li > .portfolio-add { grid-column: 1 / -1; margin-top: 8px; }
 .portfolio-add > summary { min-height: 44px; display: flex; align-items: center; font-weight: 650; cursor: pointer; }
 .portfolio-add[open] > summary { margin-bottom: 12px; }
 .portfolio-coin-picker { display: grid; gap: 10px; margin: 0; padding: 0; border: 0; }
@@ -240,4 +243,5 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
    label stays on one line beside its own radio. */
 .portfolio-form > button.primary { justify-self: start; min-width: 180px; min-height: 44px; }
 .portfolio-lots-methods { display: flex; flex-wrap: wrap; gap: 8px 20px; }
-.portfolio-lots-methods label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; white-space: nowrap; }
+/* Fourth pass: the global `label` rule is a column flexbox; without a row direction the text sat under its radio. */
+.portfolio-lots-methods label { display: inline-flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; white-space: nowrap; }

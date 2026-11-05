@@ -1,5 +1,5 @@
 'use client';
-import {useState, type FormEvent} from 'react';
+import {useLayoutEffect, useRef, useState, type FormEvent} from 'react';
 import {CoinPicker} from './coin-picker';
 import {TX_LABEL} from './portfolio-sections';
 import {localDate} from '../../lib/local-date';
@@ -13,6 +13,19 @@ import {CHECKIN_REASONS, checkinNote, type TradeCheckin} from '../../lib/portfol
 import {RECEIPTS, RECEIPT_KINDS, RECEIPT_LABEL, receiptOf, setReceipt, type ReceiptKind} from '../../lib/portfolio/receipts';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {FieldError, useFormErrors} from '../primitives/field-error';
+
+/**
+ * Session AL (TK-024, P8; fourth pass): after a refused save the message opens under its field, which pushes Save down.
+ * The page scrolls by exactly that much, so Save stays under the pointer, and the field takes the focus without a jump
+ * (it is scrolled only when it would sit outside the window).
+ */
+export function holdSaveInPlace(save: HTMLElement | null, before: number | null, field: HTMLElement | null, win: Window = window): void {
+  if (save && before !== null) { const shift = save.getBoundingClientRect().top - before; if (Math.abs(shift) >= 1) win.scrollBy({top: shift, left: 0, behavior: 'instant'}); }
+  if (!field) return;
+  const box = field.getBoundingClientRect();
+  if (box.top < 0 || box.bottom > win.innerHeight) { try { field.scrollIntoView({block: 'nearest', inline: 'nearest'}); } catch { /* an old engine without options */ } }
+  try { field.focus({preventScroll: true}); } catch { field.focus(); }
+}
 
 export type Run = (change: (data: PortfolioData) => PortfolioData, done: string, fallback: string, options?: {inline?: (message: string, cause: unknown) => void}) => boolean;
 /** Record a buy, sell or transfer (Session I; Session W Part 15: a coin's page presets its coin and skips the picker). */
@@ -31,9 +44,19 @@ export function TransactionForm({portfolio, run, coin: preset, edit}: {portfolio
   const receipts = useDeviceRecord(RECEIPTS), [received, setReceived] = useState<ReceiptKind | ''>(t0 ? receiptOf(receipts.data, t0.id) ?? '' : '');
   // Session AL (TK-024, TK-041; P6, P8): every refusal is said under the field it is about (an oversell under Quantity),
   // the field is marked and focused, and Save never moves; a message about no single field sits beside Save.
+  const saveRef = useRef<HTMLButtonElement>(null), held = useRef<{field: string; top: number | null} | null>(null);
+  const failAt = (field: 'quantity' | 'price' | 'fee' | 'date', message: string) => {
+    held.current = {field, top: saveRef.current?.getBoundingClientRect().top ?? null};
+    form.clear(); form.set(field, message);
+  };
+  const {errors, field: fieldProps} = form;
+  useLayoutEffect(() => {
+    const hold = held.current; if (!hold || !errors[hold.field]) return; held.current = null;
+    holdSaveInPlace(saveRef.current, hold.top, document.getElementById(fieldProps(hold.field).id));
+  }, [errors, fieldProps]);
   function submit(event: FormEvent) {
     event.preventDefault(); form.clear();
-    const at = (field: 'coin' | 'quantity' | 'price' | 'fee' | 'date', message: string) => { form.fail({[field]: message}); };
+    const at = failAt;
     let q: string | null, p: string | null, f: string | null;
     try { q = readDecimal(quantity); } catch (error) { return at('quantity', plainErrorMessage(error, 'Check the quantity.')); }
     try { p = price.trim() ? readDecimal(price) : null; } catch (error) { return at('price', plainErrorMessage(error, 'Check the price.')); }
@@ -54,7 +77,7 @@ export function TransactionForm({portfolio, run, coin: preset, edit}: {portfolio
     const feeNote = q && p && f ? feeWarning(Number(f), Number(q) * Number(p)) : null;
     if (feeNote && feeChecked !== f) { setFeeChecked(f); return at('fee', `${feeNote} Save again to keep it.`); }
     const txId = edit ? edit.transaction.id : crypto.randomUUID();
-    if (run(data => addTransaction(edit ? removeTransaction(data, portfolio.id, edit.transaction.id) : data, portfolio.id, coin, {id: txId, kind, quantity: q!, ...(p === null ? {} : {price: p}), ...(f === null ? {} : {fee: f}), date, note: !edit && !transfer ? checkinNote(note, checkin) : note.trim(), createdAt: edit?.transaction.createdAt ?? new Date().toISOString()}), edit ? `${TX_LABEL[kind]} of ${coin.symbol} updated.` : `${TX_LABEL[kind]} of ${coin.symbol} recorded.`, 'The transaction was not saved.', {inline: (message, cause) => { if (cause instanceof HoldingsBelowZero) form.fail({quantity: message}); else form.failForm(message); }})) { try { const k = kind === 'transfer-in' && received ? received : null; if (k || receiptOf(receipts.data, txId)) receipts.update(r => setReceipt(r, txId, k)); } catch { /* the transaction stands; what it was can be named again */ } if (edit) { edit.onDone(); return; } setReceived(''); setQuantity(''); setPrice(''); setFee(''); setNote(''); setCheckin({}); }
+    if (run(data => addTransaction(edit ? removeTransaction(data, portfolio.id, edit.transaction.id) : data, portfolio.id, coin, {id: txId, kind, quantity: q!, ...(p === null ? {} : {price: p}), ...(f === null ? {} : {fee: f}), date, note: !edit && !transfer ? checkinNote(note, checkin) : note.trim(), createdAt: edit?.transaction.createdAt ?? new Date().toISOString()}), edit ? `${TX_LABEL[kind]} of ${coin.symbol} updated.` : `${TX_LABEL[kind]} of ${coin.symbol} recorded.`, 'The transaction was not saved.', {inline: (message, cause) => { if (cause instanceof HoldingsBelowZero) failAt('quantity', message); else form.failForm(message); }})) { try { const k = kind === 'transfer-in' && received ? received : null; if (k || receiptOf(receipts.data, txId)) receipts.update(r => setReceipt(r, txId, k)); } catch { /* the transaction stands; what it was can be named again */ } if (edit) { edit.onDone(); return; } setReceived(''); setQuantity(''); setPrice(''); setFee(''); setNote(''); setCheckin({}); }
   }
   return <details className="portfolio-add" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary>{edit ? 'Edit this transaction' : preset ? `Record a ${preset.symbol} transaction` : 'Record a transaction'}</summary>
@@ -77,7 +100,7 @@ export function TransactionForm({portfolio, run, coin: preset, edit}: {portfolio
       </details>}
       {kind === 'transfer-in' && <label className="field"><span>Received as</span><select value={received} onChange={event => setReceived(event.target.value as ReceiptKind | '')}><option value="">A transfer</option>{RECEIPT_KINDS.map(k => <option key={k} value={k}>{RECEIPT_LABEL[k]}</option>)}</select></label>}
       {transfer && <p className="fine">A transfer without a price leaves the cost of what it brings unknown, so results stay unknown until it is sold or sent on.</p>}
-      <button className="primary" type="submit">Save transaction</button>
+      <button ref={saveRef} className="primary" type="submit">Save transaction</button>
       {form.formError && <p role="alert" className="field-error">{form.formError}</p>}
     </form>}
   </details>;

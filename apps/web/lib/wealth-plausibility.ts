@@ -18,6 +18,8 @@ const NOUN: Record<PlausibleWhat, string> = {balance: 'a balance', debt: 'a debt
  */
 export function plausibilityWarning(amount: number, currency: string, what: PlausibleWhat): string | null {
   if (!Number.isFinite(amount) || Math.abs(amount) < PLAUSIBLE_MONEY_MAX) return null;
+  // Session AL (TK-041, W7): past the cap is a refusal (the field's own message), never a rounded "check this?" figure.
+  if (Math.abs(amount) > VALUE_LIMITS.money.max) return null;
   return `${formatCurrencyAmount(String(Math.abs(amount)), currency)} is more than a billion — unusually large for ${NOUN[what]}. Check the digits; if it is right, save again to keep it.`;
 }
 

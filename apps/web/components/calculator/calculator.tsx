@@ -288,7 +288,7 @@ function Slider({label, unit, value, error, min, max, step, onChange, hint}: {la
   const n = Number(value), id = label.toLowerCase().replace(/\W+/g, '-');
   return <div className="calc-field calc-slider" data-invalid={error ? true : undefined}>
     <label htmlFor={`calc-${id}`}>{label}</label>
-    <span className="calc-input"><input id={`calc-${id}`} inputMode="decimal" value={value} onChange={e => onChange(e.target.value)} aria-describedby={`calc-${id}-note`} /><b aria-hidden="true">{unit}</b></span>
+    <span className="calc-input">{/* Session AL (TK-036, fourth pass): a whole-number field takes no more digits than its limit has ("10100" years cannot be typed by a slip) */}<input id={`calc-${id}`} inputMode={step === 1 ? 'numeric' : 'decimal'} autoComplete="off" maxLength={step === 1 ? String(max).length : undefined} value={value} onChange={e => onChange(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby={`calc-${id}-note`} /><b aria-hidden="true">{unit}</b></span>
     <input type="range" min={min} max={max} step={step} value={Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : min} onChange={e => onChange(e.target.value)} aria-label={`${label}, slider`} aria-valuetext={`${value} ${unit}`} />
     <small id={`calc-${id}-note`} className={error ? 'calc-error' : undefined} role={error ? 'alert' : undefined}>{error ?? hint}</small>
   </div>;

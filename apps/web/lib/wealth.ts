@@ -10,7 +10,13 @@ import {marketRequestKey,nativeZigRequest,uniqueMarketRequests,type MarketAssetR
  */
 export const WEALTH_CLASSES=['Crypto','Stablecoins','Stocks','ETFs','Precious Metals','Property','Cash','Custom'] as const;
 export type WealthClass=typeof WEALTH_CLASSES[number];
-export const isEtf=(p:Pick<Position,'marketRef'>)=>p.marketRef?.kind==='rwa'&&p.marketRef.assetType==='etf';
+/** Session AL (TK-010, fourth pass): a hand-added ETF (Add asset → ETFs, or an import row of class ETF) is stored as Stocks,
+ * as before, with this tag at the start of its provenance, so Wealth shows it under ETFs. Additive: older builds read the
+ * same record as a stock. */
+export const MANUAL_ETF_TAG='Manual Stocks; ETF; ';
+export const isEtf=(p:Pick<Position,'marketRef'>&{provenance?:string})=>p.marketRef?p.marketRef.kind==='rwa'&&p.marketRef.assetType==='etf':!!p.provenance?.startsWith(MANUAL_ETF_TAG);
+/** Marks a hand-added Stocks position as an ETF (see MANUAL_ETF_TAG); any other position is returned unchanged. */
+export function tagManualEtf<T extends {provenance:string;marketRef?:unknown;assetClass?:string}>(p:T):T{return !p.marketRef&&p.assetClass==='Stocks'&&p.provenance.startsWith('Manual Stocks; ')&&!p.provenance.startsWith(MANUAL_ETF_TAG)?{...p,provenance:(MANUAL_ETF_TAG+p.provenance.slice('Manual Stocks; '.length)).slice(0,500)}:p;}
 /**
  * Session AF Gate C (design critique, money pages 3): each class a clearly different hue, one value in every theme (inline
  * paint, never remapped). Lilac Property beside violet ETFs, and periwinkle Stocks beside sky-blue Cash, had read as one
