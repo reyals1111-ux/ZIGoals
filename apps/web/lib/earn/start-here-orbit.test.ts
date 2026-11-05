@@ -31,15 +31,20 @@ describe('Start here in the orbit look', () => {
     expect(dots.map(d => d.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'true', 'false', 'false', 'false']);
     expect(dots.every(d => d.classList.contains('orbit-node'))).toBe(true);
     // The next step wears its NEXT tag (a step is done, so not START); every node has its name tab.
-    expect(doc.querySelector('[data-next] .path-next-tag')?.textContent).toBe('Next');
+    // Session AL (BN-030, D-060, D-099; deliberate): Add money is an optional real-ZIG step, not counted, so with only it
+    // done no counted step is done yet and the first practice step still wears START.
+    expect(doc.querySelector('[data-next] .path-next-tag')?.textContent).toBe('Start');
     expect(doc.querySelector('[data-next] [data-step]')?.getAttribute('data-step')).toBe('get-wallet');
     expect([...doc.querySelectorAll('.path-label.orbit-tab .path-label-text')].map(t => t.textContent)).toEqual(STEPS);
   });
   test('the orbits keep their own names; only the path’s end stands on it', () => {
     const doc = render(null);
-    expect([...doc.querySelectorAll('.orbit-banner h2')].map(h => h.textContent)).toEqual(['Get ready', 'Bring money in', 'Start earning']);
+    // Session AL (BN-030, D-060, D-099, D-149; COPY_AUDIT, deliberate): the later orbits say they are optional; the end is
+    // "End of the guide" until reached (it read "Start here, complete" at 0 of 6).
+    expect([...doc.querySelectorAll('.orbit-banner h2')].map(h => h.textContent)).toEqual(['Get ready', 'Only if you choose real ZIG', 'The real network, if you choose']);
     expect([...doc.querySelectorAll('.path-chest')].map(c => c.getAttribute('data-milestone'))).toEqual(['start-complete']);
-    expect(doc.querySelector('.path-chest.path-finale')?.textContent).toContain('Start here, complete');
+    expect(doc.querySelector('.path-chest.path-finale')?.textContent).toContain('End of the guide');
+    expect(doc.querySelector('.path-chest.path-finale')?.textContent).not.toContain('complete');
   });
   test('a step’s guide opens under its node, and its node says so', () => {
     const doc = render('practice');
@@ -53,6 +58,6 @@ describe('Start here in the orbit look', () => {
   });
   test('the orbit look without a title of its own keeps the Checklist’s "<name> Orbit"', () => {
     const doc = new JSDOM(renderToStaticMarkup(createElement(Path, {model: startHereModel(startStates(FACTS, {version: 1})), ariaLabel: 'Path', variant: 'orbit'}))).window.document;
-    expect([...doc.querySelectorAll('.orbit-banner h2')].map(h => h.textContent)).toEqual(['Get ready Orbit', 'Bring money in Orbit', 'Start earning Orbit']);
+    expect([...doc.querySelectorAll('.orbit-banner h2')].map(h => h.textContent)).toEqual(['Get ready Orbit', 'Only if you choose real ZIG Orbit', 'The real network, if you choose Orbit']); // Session AL (COPY_AUDIT, deliberate)
   });
 });

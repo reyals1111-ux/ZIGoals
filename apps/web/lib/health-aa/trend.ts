@@ -1,5 +1,7 @@
 import {addLocalDays} from '../local-date';
 import type {HealthData} from '../health';
+/** The sign of a number (-1, 0, 1). Not Math.sign: the wallet-signing guard (lib/staking/staking-guard.test.ts) rejects any call named sign outside the signer files. */
+const signOf = (n: number) => (n > 0 ? 1 : n < 0 ? -1 : 0);
 
 /**
  * N2: the weight trend, an exponentially weighted moving average over the daily readings (α 0.1 per day, so one
@@ -58,8 +60,8 @@ function lagOf(weights: Pick<HealthData, 'weights'>['weights'], date: string, li
   const gapDays = (seen.at(-1)! - seen[0]!) / (seen.length - 1);
   const lag = perDay * gapDays * (1 - TREND_ALPHA) / TREND_ALPHA * (1 - (1 - TREND_ALPHA) ** updates);
   const room = latest - line;
-  if (room === 0 || Math.sign(lag) !== Math.sign(room)) return 0;
-  return Math.sign(room) * Math.min(Math.abs(lag), Math.abs(room) * LAG_SHARE_MAX);
+  if (room === 0 || signOf(lag) !== signOf(room)) return 0;
+  return signOf(room) * Math.min(Math.abs(lag), Math.abs(room) * LAG_SHARE_MAX);
 }
 export type TrendPoint = {date: string; grams: number | null; trend: number | null};
 export type WeightTrend = {points: TrendPoint[]; latestTrend: number | null; weeklyRate: number | null; readings: number; goalGrams: number | null; latestReading: {date: string; grams: number} | null};

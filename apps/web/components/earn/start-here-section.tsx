@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {Suspense, lazy, useEffect, useMemo, useState} from 'react';
 import {EARN_PATH, markStep, setTodayCard} from '../../lib/earn/records';
-import {STEP_WORDS, startStates, type StartFacts, type StartStepId} from '../../lib/earn/start-here';
+import {STEP_WORDS, startProgress, startStates, type StartFacts, type StartStepId} from '../../lib/earn/start-here';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {LoadBoundary} from '../load-boundary';
@@ -21,21 +21,21 @@ export function StartHereSection({facts, live}: {facts: StartFacts; live: StartL
   const [open, setOpen] = useState<string | null>(null), [ready, setReady] = useState(false), [error, setError] = useState('');
   useEffect(() => { queueMicrotask(() => setReady(true)); }, []);
   const states = useMemo(() => startStates(facts, record.unreadable ? {version: 1} : record.data), [facts, record.data, record.unreadable]);
-  const done = states.filter(s => s.done).length, next = states.find(s => !s.done);
+  const done = states.filter(s => s.done).length, progress = startProgress(states);
   const mark = (id: StartStepId, value: boolean) => {
     try { record.update(r => markStep(r, id, value)); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); }
   };
   const showToday = () => { try { record.update(setTodayCard('auto')); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } };
   return <section id="start-here" className="earn-start panel" aria-labelledby="start-here-title" data-done={done}>
     <SectionHeading id="start-here-title" eyebrow="New here? Start here" title="How staking works, step by step"
-      lede="Six steps, about 30 minutes in all, on the apps’ own pages and in your own wallet. Press a dot for its guide. ZIGoals ticks what it can see and never signs for you. You can stop at any step: practising is enough, and nothing here says you should buy or stake."/>
-    <p className="earn-start-progress" aria-live="polite"><b>{done ? `${done} of 6 steps done` : 'Six steps · none done yet'}</b>{next ? <> · next: {STEP_WORDS[next.id].label}</> : ' · all done'}</p>
+      lede="Two steps to learn it safely (a wallet and a practice round with test ZIG of no value), then four optional ones, only if you choose real ZIG. Press a dot for its guide. ZIGoals ticks what it can see and never signs for you. Practising is enough, and nothing here says you should buy or stake."/>
+    <p className="earn-start-progress" aria-live="polite"><b>{progress.count}</b> · {progress.next}</p>
     {ready
       ? <LoadBoundary label="The Start-here path"><Suspense fallback={<StartList states={states}/>}><StartHerePath states={states} open={open} onOpen={setOpen} onMark={mark} live={live} markError={error}/></Suspense></LoadBoundary>
       : <StartList states={states}/>}
     {record.loaded && record.data.todayCard === 'dismissed' && <p className="fine earn-start-today">The Earn card is off on Today. <button type="button" className="text-link" onClick={showToday}>Show it on Today again</button></p>}
     {/* Session AF Gate C (design critique, copy): each link follows its own sentence (the Staking link had followed the Academy's). */}
-    <p className="fine">Stuck on a word? The <a className="text-link" href="#academy">Academy</a> explains staking, fees and safety in five-minute lessons. Ready to stake? <Link className="text-link" href="/app/staking">Go to Staking</Link></p>
+    <p className="fine">Stuck on a word? The <a className="text-link" href="#academy">Academy</a> explains staking, fees and safety in five-minute lessons. {/* Session AL (BN-030, D-099; COPY_AUDIT, deliberate): a door to the page, not "Ready to stake?". */}Staking is where you practise and where a stake shows: <Link className="text-link" href="/app/staking">Open Staking</Link></p>
   </section>;
 }
 /** Before the path's chunk arrives (or if it cannot load): the six steps as a plain list with their state. */

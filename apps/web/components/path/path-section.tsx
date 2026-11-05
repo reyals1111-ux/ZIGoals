@@ -21,7 +21,7 @@ export function PathBanner({section, index, done, total, headingId, meter = fals
       <span className="path-banner-eyebrow">{section.eyebrow ?? `Orbit ${index + 1}`}</span>
       <h2 className="path-banner-title" id={headingId}>{section.label}</h2>
     </span>
-    <span className="path-banner-count">{total ? `${done} of ${total}` : 'Nothing here yet'}</span>
+    <span className="path-banner-count">{total ? `${done} of ${total}` : section.steps.length ? 'Optional' : 'Nothing here yet'}</span>
     {meter && <>
       <span className="path-banner-meter" aria-hidden="true"><i/></span>
       {justComplete && <span className="path-banner-shine" aria-hidden="true"/>}

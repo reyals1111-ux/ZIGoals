@@ -362,6 +362,15 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
    Session AK CI fix: a jump lays out its target's section and every section before it first (`data-laid-out`,
    earn-jump.tsx), so it lands on real sizes and stays there. */
 .earn-sections > .panel:not(#summary):not(#start-here):not(#staking-clarity):not(#academy):not([data-laid-out]) { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
+
+/* Session AL (BN-004): the same mainnet note inside the no-wallet preview card. */
+.earn-preview > .positions-network-note { margin: 0 0 12px; padding: 10px 14px; border-left: 4px solid var(--pillar-wealth, #ffd27a); border-radius: 10px; background: color-mix(in srgb, currentColor 6%, transparent); }
+/* Session AL fourth pass (C-BN-05): the compare box under a validator's name (44 px), and the side-by-side table. */
+.earn-validators .earn-compare{display:flex;flex-direction:row;align-items:center;gap:8px;min-height:44px;font-weight:500;font-size:14px}
+.earn-validators .earn-compare input{flex:none;margin:0;width:20px;height:20px}
+.earn-compare-panel{margin:16px 0 0}
+
+/* Session AL: later rules sit above the AK G3 block, which stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
 /* Session AK (G3): richer cards, as the new surfaces (F6). Earn: Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
    fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has

@@ -85,8 +85,10 @@
 .staking-raw summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
 .staking-sheet-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:12px}
 .staking-sheet-actions button{min-height:48px;min-width:120px}
-.staking-check{display:flex;gap:10px;align-items:center;min-height:44px;font-size:16px}
-.staking-check input{width:22px;height:22px}
+.staking-check{display:flex;flex-direction:row;justify-content:flex-start;gap:10px;align-items:center;min-height:44px;font-size:16px}
+/* Session AL (BN-003): the global label is a column, so the box sat centred on a line of its own above "I understand";
+   the row above keeps box and words on one line, box first. */
+.staking-check input{width:22px;height:22px;flex:none;margin:0}
 /* The shared phone-sheet rule bleeds a sheet's header 16 px past each edge, for dialogs padded 16 px; this sheet has no
    side padding, so its header stays inside (nothing scrolls sideways in the review). */
 @media (max-width:767.98px){:root dialog.wealth-sheet.staking-sheet>header{margin-inline:0}}
@@ -137,4 +139,13 @@
 @media (max-width: 480px) {
   .staking-real-confirm .staking-sheet-actions { flex-direction: column-reverse; align-items: stretch; }
   .staking-real-confirm .staking-sheet-actions button { width: 100%; white-space: normal; min-height: 44px; }
+  /* Session AL (BN-003): stacked, the sheets' "flex: 1 1 140px" became each button's height (about 140 px); a stacked
+     button is as tall as its words. */
+  .staking-real-confirm .staking-sheet-actions button { flex: 0 0 auto; }
 }
+/* Session AL fourth pass (C-BN-01, C-DVG-67): the dialog's order and commission choices side by side, wrapping on a phone. */
+.staking-picker-controls{display:flex;flex-wrap:wrap;gap:8px 16px;margin:4px 0 8px}
+.staking-picker-controls .field{flex:1 1 200px;min-width:0}
+.staking-picker-controls select{min-height:44px;width:100%}
+.staking-validators-read{margin-top:24px}
+.staking-validators-read>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:700}

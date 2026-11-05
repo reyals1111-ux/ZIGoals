@@ -89,9 +89,12 @@ describe('the Start-here path: seen, marked, or not yet', () => {
     expect(model.sections.map(s => s.steps.map(x => x.id))).toEqual([['get-wallet', 'practice'], ['add-money', 'get-zig'], ['first-stake', 'explore']]);
     expect(model.sections.flatMap(s => s.steps).every(x => x.state === 'undone' && x.intent === 'value')).toBe(true);
     expect(model.milestones.map(m => m.id)).toEqual(['start-practised', 'start-complete']);
-    expect(pathProgress(model)).toEqual({done: 0, total: 6, fraction: 0});
+    // Session AL (BN-030, D-060, D-099; deliberate): the guide counts its two practice steps; the four real-ZIG steps are
+    // drawn and can be opened and marked, but are optional and not counted.
+    expect(pathProgress(model)).toEqual({done: 0, total: 2, fraction: 0});
     const done = startHereModel(startStates({...none, linked: 1, reads: [read('zigchain-1', REAL, [position('zigchain-1', REAL, 'stake', ONE_ZIG)])]}, {version: 1}));
-    expect(pathProgress(done).done).toBe(4);
+    expect(pathProgress(done).done).toBe(1); // Session AL (deliberate): of the four seen, only Get a wallet is a counted step
+    expect(startStates({...none, linked: 1, reads: [read('zigchain-1', REAL, [position('zigchain-1', REAL, 'stake', ONE_ZIG)])]}, {version: 1}).filter(s => s.done)).toHaveLength(4);
     expect(done.sections[0]!.steps[0]!.note).toBe('Seen done');
   });
   it('minHeight: the highest confirmed block of that wallet on that network, for the relay right after signing', () => {

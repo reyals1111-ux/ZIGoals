@@ -31,10 +31,11 @@ describe('continueSentence', () => {
 });
 
 describe('the Academy’s end chest', () => {
-  it('is named like Start here’s: "Academy, complete" beside "Start here, complete"', () => {
+  // Session AL (D-149, N-BN-06; COPY_AUDIT, deliberate): Start here's end reads "End of the guide" until it is reached.
+  it('is named "Academy, complete"; Start here’s end says where it is, not "complete"', () => {
     const academyEnd = academyModel({version: 1}).milestones.find(m => m.at === 'end')!;
     const startEnd = startHereModel(START_STEPS.map(id => ({id, done: false, why: ''}) as unknown as StartStepState)).milestones.find(m => m.at === 'end')!;
-    expect(startEnd.label).toBe('Start here, complete');
+    expect(startEnd.label).toBe('End of the guide');
     expect(academyEnd.label).toBe('Academy, complete');
     expect(academyEnd.label).not.toMatch(/Earn Academy/);
   });

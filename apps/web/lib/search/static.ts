@@ -141,6 +141,8 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   // Session AL (BN-025): Help's own topic for the opt-in money and chain pages and Chess.
   ["al-more-pages", "Where are Earn, Staking, Governance and Ecosystem?"],
   ["al-wallets", "Can I rename or remove a wallet I track?"],
+  // Session AL fourth pass (C-DVG-71).
+  ["al-ledger", "Can I stake with a Ledger, or from a multisig account?"],
   ["al-ecosystem", "What is the Ecosystem page?"],
   ["al-chess", "What does the Chess page do?"],
   ["y-vacation", "Can I end a vacation early?"],

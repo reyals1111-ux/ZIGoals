@@ -1,7 +1,7 @@
 import {expect, test} from 'vitest';
 import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
 import {directoryStatusOf} from './directory-status';
-import {viewDirectory} from './directory-view';
+import {VALUE_SORT, sourcesReadDay, viewDirectory} from './directory-view';
 
 // Session AL (Part 15, P-BN-82/P-BN-83; BN-096): status filter and sort on the Ecosystem directory.
 test('C-BN-18: Live keeps live projects only; Closing or paused keeps Zignaly and PermaPod', () => {
@@ -26,4 +26,26 @@ test('C-BN-15: "audit report listed" keeps exactly the projects whose record lis
   expect(kept.map(e => e.id)).toEqual(directoryEntries.filter(e => e.provider.audits.length > 0).map(e => e.id));
   expect(kept.map(e => e.id)).toEqual(expect.arrayContaining(['valdora', 'oroswap', 'nawa', 'permapod']));
   expect(withAuditReports(directoryEntries, false)).toEqual(directoryEntries);
+});
+
+// Session AL fourth pass (C-BN-17): value locked, largest first; projects without a read follow in directory order.
+test('C-BN-17: "Value locked, largest first" sorts the projects with a read and keeps the rest in directory order', () => {
+  const tvl: Record<string, number | null> = {valdora: 75_100_000, oroswap: 12_000_000, nawa: 900_000, permapod: null};
+  const sorted = viewDirectory(directoryEntries, 'any', VALUE_SORT[0], id => tvl[id] ?? null);
+  expect(sorted.slice(0, 3).map(e => e.id)).toEqual(['valdora', 'oroswap', 'nawa']);
+  const rest = directoryEntries.filter(e => !['valdora', 'oroswap', 'nawa'].includes(e.id)).map(e => e.id);
+  expect(sorted.slice(3).map(e => e.id)).toEqual(rest);
+  expect(sorted).toHaveLength(directoryEntries.length);
+  // Without any read the order is the directory's own (unknown is never ranked as zero).
+  expect(viewDirectory(directoryEntries, 'any', 'value').map(e => e.id)).toEqual(directoryEntries.map(e => e.id));
+  expect(VALUE_SORT[1]).toContain('projects with a read');
+});
+
+// Session AL fourth pass (BN-027, B-122): the header date is the newest read on the page.
+test('BN-027/B-122: "Sources last read" takes the live value-locked read when it is newer', () => {
+  const day = (iso: string) => iso.slice(0, 10);
+  expect(sourcesReadDay('2026-11-04', '2026-11-05T06:07:00.000Z', day)).toBe('2026-11-05');
+  expect(sourcesReadDay('2026-11-04', '2026-11-03T06:07:00.000Z', day)).toBe('2026-11-04');
+  expect(sourcesReadDay('2026-11-04', null, day)).toBe('2026-11-04');
+  expect(sourcesReadDay('2026-11-04', 'not a time', day)).toBe('2026-11-04');
 });

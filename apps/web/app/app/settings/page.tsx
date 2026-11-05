@@ -4,6 +4,7 @@ import {WhatsThis} from "../../../components/earn/whats-this";
 import {DeviceLockSettings} from "../../../components/device-lock";
 import {PlanSettingsRow} from "../../../components/plans/plan-settings-row";
 import { SendFeedback } from "../../../components/help/send-feedback";
+import { markHelpFromSettings } from "../../../components/help/help-back";
 import { AboutThisAlpha } from "../../../components/alpha/about-this-alpha";
 import { PointTellSetting } from "../../../components/point-tell/point-tell-setting";
 import { exportFileName } from "../../../lib/showcase-detect";
@@ -124,7 +125,7 @@ export default function Settings() {
             {/* Session AL (COPY_AUDIT P-DV-112, DV-261, deliberate): true even where sync exists (it is off until turned on). */}
             {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Your records live on this device unless you turn on sync."}
           </p>
-          <p><Link className="text-link" href="/app/help" style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help &amp; feedback →</Link></p>
+          <p><Link className="text-link" href="/app/help" onClick={markHelpFromSettings} style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help &amp; feedback →</Link></p>
         </div>
         <HeaderArtCorner><OrbitArt glyph={SettingsGlyph} spin={12}/></HeaderArtCorner>
       </div>
@@ -154,7 +155,8 @@ export default function Settings() {
               none on this device it exported {"goals":{}}. It shows only when there is something in it; "Export
               everything" above is the one export for everything else. */}
           {legacyPlans && <section className="panel">
-            <h2>Export Goal Data</h2>
+            {/* Session AL (D-236, D-062; COPY_AUDIT, deliberate): sentence case, as every other Settings heading. */}
+            <h2>Export goal data</h2>
             <p>
               Save a private backup of your goal names, targets, dates and
               preferences. Clearing browser storage removes these plans.
@@ -172,11 +174,11 @@ export default function Settings() {
               onClick={exportData}
               disabled={!s.loaded || !s.owner}
             >
-              Export Goal Data
+              Export goal data
             </button>
           </section>}
           {(chain || legacyPlans) && <section className="panel">
-            <h2>Import Goal Data</h2>
+            <h2>Import goal data</h2>
             <p>
               Imports must match the current network and wallet. Matching goal IDs
               replace their saved plans; other plans are kept.

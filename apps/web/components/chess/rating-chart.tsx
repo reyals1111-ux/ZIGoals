@@ -16,22 +16,24 @@ export function RatingChart({title, points}: {title: string; points: {day: strin
   const min = Math.min(...points.map(p => p.rating)), max = Math.max(...points.map(p => p.rating)), lo = Math.floor((min - 10) / 10) * 10, hi = Math.ceil((max + 10) / 10) * 10;
   const x = (i: number) => PAD.left + (points.length === 1 ? plotW / 2 : i / (points.length - 1) * plotW), y = (r: number) => PAD.top + plotH - (r - lo) / (hi - lo) * plotH;
   const d = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.rating).toFixed(1)}`).join('');
-  const tip = hover === null ? null : `${points[hover]!.day} · ${formatNumber(points[hover]!.rating)}`;
+  // Session AL (D-085): every rating here is grouped as on the cards ("1,503"), the summary, the axis and the table alike.
+  const n = (v: number) => formatNumber(v);
+  const tip = hover === null ? null : `${formatDate(points[hover]!.day)} · ${n(points[hover]!.rating)}`;
   return <figure className="chess-chart">
     <figcaption>{title}</figcaption>
-    <p className="sr-only">{`${title}: ${points.length} days, from ${formatDate(points[0]!.day)} (${points[0]!.rating}) to ${formatDate(points.at(-1)!.day)} (${points.at(-1)!.rating}); lowest ${min}, highest ${max}.`}</p>
+    <p className="sr-only">{`${title}: ${points.length} days, from ${formatDate(points[0]!.day)} (${n(points[0]!.rating)}) to ${formatDate(points.at(-1)!.day)} (${n(points.at(-1)!.rating)}); lowest ${n(min)}, highest ${n(max)}.`}</p>
     <div className="chess-chart-plot" ref={plot}>
       {tip && <p className="chess-chart-tip" aria-hidden="true">{tip}</p>}
       <svg className="zg-chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
         {/* Session AK (G3): the one chart look — the rating line in its gradient with one soft glow (none by day). */}
         <ChartLookDefs id={look.id} width={W} height={H} />
-        {[lo, hi].map(v => <g key={v} className="chess-grid"><line x1={PAD.left} x2={W - PAD.right} y1={y(v)} y2={y(v)} /><text x={PAD.left - 6} y={y(v) + 5} textAnchor="end">{v}</text></g>)}
+        {[lo, hi].map(v => <g key={v} className="chess-grid"><line x1={PAD.left} x2={W - PAD.right} y1={y(v)} y2={y(v)} /><text x={PAD.left - 6} y={y(v) + 5} textAnchor="end">{n(v)}</text></g>)}
         <path className="chess-line zgc-line" d={d} style={{stroke: look.stroke('a')}} filter={look.glow} />
         {points.map((p, i) => <circle key={p.day} className="chess-dot" cx={x(i)} cy={y(p.rating)} r={hover === i || i === points.length - 1 ? 4 : 0} />)}
         <text className="chess-axis" x={PAD.left} y={H - 6}>{formatDate(points[0]!.day, {year: false})}</text><text className="chess-axis" x={W - PAD.right} y={H - 6} textAnchor="end">{formatDate(points.at(-1)!.day, {year: false})}</text>
         {points.map((p, i) => { const w = plotW / points.length; return <rect key={`hit-${p.day}`} className="chess-hit" x={x(i) - w / 2} y={PAD.top} width={w} height={plotH} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(null)} />; })}
       </svg>
     </div>
-    <details className="chess-chart-table"><summary>Show the numbers</summary><table><thead><tr><th scope="col">Day</th><th scope="col">Rating</th></tr></thead><tbody>{points.map(p => <tr key={p.day}><th scope="row">{formatDate(p.day)}</th><td>{p.rating}</td></tr>)}</tbody></table></details>
+    <details className="chess-chart-table"><summary>Show the numbers</summary><table><thead><tr><th scope="col">Day</th><th scope="col">Rating</th></tr></thead><tbody>{points.map(p => <tr key={p.day}><th scope="row">{formatDate(p.day)}</th><td>{n(p.rating)}</td></tr>)}</tbody></table></details>
   </figure>;
 }

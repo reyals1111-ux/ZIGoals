@@ -91,7 +91,8 @@ function PlayHere({state, habits}: {state: ReturnType<typeof useChess>; habits: 
   useEffect(() => { const q = new URLSearchParams(window.location.search); if (q.get('lichess') === 'callback' || window.location.hash === '#play') setOpen(true); }, []);
   return <section className="panel chess-play-here" id="play" aria-labelledby="chess-play-here-title">
     <div className="chess-head"><h2 id="chess-play-here-title">Play here</h2><button type="button" className="secondary" aria-expanded={open} aria-controls="chess-play-body" onClick={() => setOpen(o => !o)}>{open ? 'Close Play' : 'Open Play'}</button></div>
-    <p>Your Lichess games on a board in ZIGoals, and Lichess&apos;s daily puzzle. Nothing loads until you open it.</p>
+    {/* Session AL fourth pass (BN-182, D-228; COPY_AUDIT, deliberate): Play now starts with a game against the computer. */}
+    <p>A practice game against a small computer on this device (no account), your Lichess games on a board in ZIGoals, and Lichess&apos;s daily puzzle. Nothing loads until you open it.</p>
     <div id="chess-play-body">{open && <Suspense fallback={<Skeleton label="Loading the board…" block lines={2}/>}><PlayPanel state={state} habits={habits} /></Suspense>}</div>
   </section>;
 }

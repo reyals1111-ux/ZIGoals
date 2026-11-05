@@ -41,27 +41,29 @@ export function PagesSettings() {
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
   const showcase = useShowcase(), launcher = useLauncherRecord(), prefs = useDeviceRecord(EARN_PREFS);
   const governance = earnPrefsOf(prefs.data).governanceShown, prefsUsable = prefs.loaded && !prefs.unreadable, chain = useChainChoice();
-  const [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null), [confirming, setConfirming] = useState(false);
+  const [message, setMessage] = useState<{text: string; failed?: boolean; undo?: () => void} | null>(null), [confirming, setConfirming] = useState(false);
   const resetButton = useRef<HTMLButtonElement>(null);
   // Session AL (owner decisions O3, O4): the app pages' switches and the Checklist button, on this device.
   const apps = useDeviceRecord(APPS_PREFS), ui = useUiPrefs(), appsUsable = apps.loaded && !apps.unreadable, uiUsable = ui.loaded && !ui.unreadable;
-  const showApp = (id: SidebarAppId, on: boolean) => {
+  // Session AL fourth pass (C-BN-25): each switch's line under the switches offers Undo, which puts the switch back as it
+  // was (and offers no Undo of its own). In place, beside the switches, so nothing floats over them.
+  const showApp = (id: SidebarAppId, on: boolean, offerUndo = true): void => {
     setMessage(null);
-    try { apps.update(p => withAppShown(p, id, on)); setMessage({text: on ? `${APPS_EXTRAS[id].label} shows on this device.` : `${APPS_EXTRAS[id].label} is hidden on this device. The page still opens from a link or search.`}); }
+    try { apps.update(p => withAppShown(p, id, on)); setMessage({text: on ? `${APPS_EXTRAS[id].label} shows on this device.` : `${APPS_EXTRAS[id].label} is hidden on this device. The page still opens from a link or search.`, ...(offerUndo ? {undo: () => showApp(id, !on, false)} : {})}); }
     catch (cause) { setMessage({text: deviceSettingFailureMessage(cause), failed: true}); }
   };
-  const showChecklistButton = (on: boolean) => {
+  const showChecklistButton = (on: boolean, offerUndo = true): void => {
     setMessage(null);
-    try { ui.update(p => ({...p, checklist: {...(p.checklist ?? {}), launcher: on}})); setMessage({text: on ? 'The Checklist button shows on this device.' : 'The Checklist button is hidden on this device. The Checklist still opens from Today and the navigation.'}); }
+    try { ui.update(p => ({...p, checklist: {...(p.checklist ?? {}), launcher: on}})); setMessage({text: on ? 'The Checklist button shows on this device.' : 'The Checklist button is hidden on this device. The Checklist still opens from Today and the navigation.', ...(offerUndo ? {undo: () => showChecklistButton(!on, false)} : {})}); }
     catch (cause) { setMessage({text: deviceSettingFailureMessage(cause), failed: true}); }
   };
   const ready = settings.loaded && !settings.error;
   // Session AK X1 (RELEASE_REVIEW R3): the crypto pages start off until the chain is chosen (lib/chain-choice.ts).
   const pagesChoice = ready ? settingsGroupIn(settings.data, 'pages') : undefined;
   const view = viewOf(pagesChoice, showcase, chainChosenFrom({linked: chain.linked, pages: pagesChoice, earn: chain.earn}));
-  const save = (change: (pages: Pages) => Pages, done: string) => {
+  const save = (change: (pages: Pages) => Pages, done: string, undo?: () => void) => {
     setMessage(null);
-    return updateSettingsGroup('pages', change).then(() => { setMessage({text: done}); return true; }, (error: unknown) => { setMessage({text: plainErrorMessage(error, 'Could not save.'), failed: true}); return false; });
+    return updateSettingsGroup('pages', change).then(() => { setMessage({text: done, ...(undo ? {undo} : {})}); return true; }, (error: unknown) => { setMessage({text: plainErrorMessage(error, 'Could not save.'), failed: true}); return false; });
   };
   // Session AL (P-BN-34; BN-016, BN-186, T-132): a switch that changes more than itself says so, next to the switches.
   const sideEffect = (id: VisibilityId | 'governance' | 'earn', on: boolean): string => {
@@ -77,20 +79,20 @@ export function PagesSettings() {
   // read again (whatever they then say wins) or the save fails.
   const [pending, setPending] = useState<Partial<Record<VisibilityId, {on: boolean; base: unknown}>>>({});
   const shown = (id: VisibilityId) => { const choice = pending[id]; return choice && choice.base === settings.data ? choice.on : isShown(view, id); };
-  const toggle = (id: VisibilityId, label: string, on: boolean) => {
+  const toggle = (id: VisibilityId, label: string, on: boolean, offerUndo = true): void => {
     setPending(current => ({...current, [id]: {on, base: settings.data}}));
-    void save(pages => withChoice(pages, id, on, new Date().toISOString()), (on ? `${label} shows again.` : `${label} is hidden. You can show it again here at any time.`) + sideEffect(id, on))
+    void save(pages => withChoice(pages, id, on, new Date().toISOString()), (on ? `${label} shows again.` : `${label} is hidden. You can show it again here at any time.`) + sideEffect(id, on), offerUndo ? () => toggle(id, label, !on, false) : undefined)
       .then(saved => { if (!saved) setPending(current => { const next = {...current}; delete next[id]; return next; }); });
   };
-  const showGovernance = (on: boolean) => {
+  const showGovernance = (on: boolean, offerUndo = true): void => {
     setMessage(null);
-    try { prefs.update(r => setEarnPref(r, {governanceShown: on})); setMessage({text: (on ? 'Governance shows on this device.' : 'Governance is hidden. You can show it again here at any time.') + sideEffect('governance', on)}); }
+    try { prefs.update(r => setEarnPref(r, {governanceShown: on})); setMessage({text: (on ? 'Governance shows on this device.' : 'Governance is hidden. You can show it again here at any time.') + sideEffect('governance', on), ...(offerUndo ? {undo: () => showGovernance(!on, false)} : {})}); }
     catch (cause) { setMessage({text: deviceSettingFailureMessage(cause), failed: true}); }
   };
   // Session AK X1: Earn's own switch on this device (`pageShown` in `zigoals:earn-prefs:v1`; absent follows the chain choice).
-  const showEarn = (on: boolean) => {
+  const showEarn = (on: boolean, offerUndo = true): void => {
     setMessage(null);
-    try { prefs.update(r => setEarnPref(r, {pageShown: on})); setMessage({text: (on ? 'Earn shows on this device.' : 'Earn is hidden. You can show it again here at any time.') + sideEffect('earn', on)}); }
+    try { prefs.update(r => setEarnPref(r, {pageShown: on})); setMessage({text: (on ? 'Earn shows on this device.' : 'Earn is hidden. You can show it again here at any time.') + sideEffect('earn', on), ...(offerUndo ? {undo: () => showEarn(!on, false)} : {})}); }
     catch (cause) { setMessage({text: deviceSettingFailureMessage(cause), failed: true}); }
   };
   const visible = visiblePages(view), start = startPage(view);
@@ -187,5 +189,6 @@ export function PagesSettings() {
       {showcase ? <p className="fine">In Showcase these choices last for this tab only.</p> : <p className="fine"><Link className="text-link" href="/app/welcome">Run the welcome again</Link> to pick what you want to improve and a few starters; nothing you have is added twice.</p>}
     </>}
     {message && <p role={message.failed ? 'alert' : 'status'}>{message.text}</p>}
+    {message?.undo && <p className="settings-switch-undo"><button type="button" className="secondary" onClick={() => message.undo?.()}>Undo</button></p>}
   </section>;
 }

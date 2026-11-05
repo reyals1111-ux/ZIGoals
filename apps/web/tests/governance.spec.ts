@@ -55,7 +55,8 @@ test('without a wallet: practice proposals in plain words, the open one first, i
   const ended = view.locator('article[data-proposal="119"]');
   await expect(ended).toContainText('Rejected · Proposal #119');
   await expect(ended).toContainText('A text proposal: it asks a question or signals an intent. Nothing on the chain changes by itself if it passes.');
-  await expect(ended).toContainText('The chain’s own reasonproposal did not get enough votes to pass');
+  // Session AL (COPY_AUDIT, deliberate, L-043): the chain's reason is a sentence under a plain heading.
+  await expect(ended).toContainText('Why it ended this wayIt did not get enough votes to pass');
   // Session AH (ST7, L-043): Rejected with 100 % Yes is explained in words before the chain's own reason.
   await expect(ended).toContainText('Why Rejected with mostly YesA proposal also needs enough of all staked ZIG to vote (the quorum, above).');
   await expect(view.locator('article[data-proposal="121"]')).toContainText('Repairs an expired connection to another chain (IBC).');

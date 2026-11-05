@@ -23,6 +23,10 @@ test('BN-008/BN-180/BN-177/BN-178/BN-179: template flagged, rules once, turnout 
   await expect(card).toContainText('ZIGoals cannot show this proposal’s turnout');
   await expect(card).toContainText('Voting started');
   await expect(card).toContainText('the deposit period, not voting');
+  // Session AL fourth pass (BN-008, D-014; deliberate): ended test/template proposals now fold into one closed group under
+  // the real ones, so the person opens the group before the proposer's words.
+  await expect(view.locator('details.governance-tests')).not.toHaveAttribute('open', '');
+  await view.locator('details.governance-tests > summary').click();
   await card.locator('details.governance-summary summary').click();
   await expect(card.locator('.governance-summary-text')).toHaveText('Summary What: a template body. • one point');
 });

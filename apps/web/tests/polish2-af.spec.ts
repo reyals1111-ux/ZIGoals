@@ -169,7 +169,8 @@ test.describe('Earn', () => {
     // 15. The Academy's end chest is named like Start here's. Session AL (D9, deliberate): the Academy path loads when it
     // comes near the screen, so bring it into view first.
     await page.locator('#academy').scrollIntoViewIfNeeded();
-    await expect(page.locator('#start-here .path-chest[data-milestone="start-complete"]')).toContainText('Start here, complete');
+    // Session AL (COPY_AUDIT, deliberate, D-149): the Earn guide ends with practice; its end reads "End of the guide".
+    await expect(page.locator('#start-here .path-chest[data-milestone="start-complete"]')).toContainText('End of the guide');
     await expect(page.locator('#academy .path-chest[data-milestone="academy-done"]')).toContainText(/Academy, complete|Every lesson passed/);
     await expect(page.locator('#academy .path-chest[data-milestone="academy-done"]')).not.toContainText('Earn Academy');
   });

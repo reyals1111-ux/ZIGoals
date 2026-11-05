@@ -23,7 +23,7 @@ import type {StakingQuote} from '../../lib/staking/quote';
 import type {StakingReceipt} from '../../lib/staking/execute';
 import {connectStaking, dropStakingSession, keplrMobileLink, onKeystoreChange, readStakingSession, saveStakingSession, type StakingSession} from '../../lib/wallets/keplr-session';
 import {readProposals, readVote, type Read} from '../../lib/governance/client';
-import {WHY_VOTING_MATTERS, durationWords} from '../../lib/governance/plain-words';
+import {WHY_VOTING_MATTERS, durationWords, looksLikeTest} from '../../lib/governance/plain-words';
 import {confirmedVote, eligibilityOf, votesOf, type Eligibility} from '../../lib/governance/votes';
 import type {ProposalWire, ProposalsWire, VoteChoiceWire} from '../../lib/governance/wire';
 import {formatDateTime} from '../../lib/visual-format';
@@ -175,6 +175,11 @@ export function GovernanceView() {
   const wire = proposals?.phase === 'ok' ? proposals.wire : null;
   const ordered = wire ? [...wire.proposals.filter(p => p.state === 'voting'), ...wire.proposals.filter(p => p.state === 'deposit'), ...wire.proposals.filter(p => p.state !== 'voting' && p.state !== 'deposit')] : [];
   const shown = filterProposals(ordered, filter, query);
+  const ended = (p: ProposalWire) => p.state !== 'voting' && p.state !== 'deposit';
+  const main = shown.filter(p => !(ended(p) && looksLikeTest(p.title))), tests = shown.filter(p => ended(p) && looksLikeTest(p.title));
+  const firstTally = [...main, ...tests].find(o => o.tallyKind !== 'none');
+  const card = (p: ProposalWire) => <ProposalCard key={p.id} explainQuorum={p === firstTally} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
+    voting={wallet && !showcase ? {eligible, reviewing: reviewing === p.id, myVote: votes[p.id] ?? {phase: 'idle'}, journal: confirmedVote(myVotes, p.id), onReview: review, error: voteErrors[p.id]} : undefined}/>;
   const eligible = stake.phase === 'ok' && stake.eligibility.eligible;
   return <div className="dashboard governance-page">
     <PageHeader className="page-heading" titleId="governance-title" eyebrow="Staking · Governance" title="Governance"
@@ -231,8 +236,14 @@ export function GovernanceView() {
             <label className="field governance-search">Search proposals<input type="search" value={query} maxLength={80} placeholder="A word, or a number like 43" onChange={e => setQuery(e.target.value)} autoComplete="off"/></label>
           </div>}
           {ordered.length > 0 && shown.length === 0 && <p role="status">No proposal here fits{query.trim() ? ` “${query.trim()}”` : ''}{filter !== 'all' ? ` among ${PROPOSAL_FILTERS.find(([id]) => id === filter)![1].toLowerCase()}` : ''}. <button type="button" className="text-link" onClick={() => { setFilter('all'); setQuery(''); }}>Show them all</button></p>}
-          {shown.map(p => <ProposalCard key={p.id} explainQuorum={p === shown.find(o => o.tallyKind !== 'none')} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
-            voting={wallet && !showcase ? {eligible, reviewing: reviewing === p.id, myVote: votes[p.id] ?? {phase: 'idle'}, journal: confirmedVote(myVotes, p.id), onReview: review, error: voteErrors[p.id]} : undefined}/>)}
+          {main.map(card)}
+          {/* Session AL (BN-008, D-014): ended proposals whose title reads like a test or template fold into one closed group
+              after the real ones (still searchable; a search or a list of only such proposals opens it). */}
+          {tests.length > 0 && <details className="governance-tests" key={`${filter}:${query.trim()}`} open={query.trim() !== '' || main.length === 0}>
+            <summary>{tests.length === 1 ? '1 ended proposal that looks like a test or template' : `${tests.length} ended proposals that look like tests or templates`}</summary>
+            <p className="fine">Their titles read like tests or unfilled templates, so they may not be real decisions. They are listed as the chain holds them.</p>
+            {tests.map(card)}
+          </details>}
         </>}
     </section>
     {wallet && myVotes.length > 0 && <section className="panel governance-journal-list" aria-labelledby="governance-journal-title">

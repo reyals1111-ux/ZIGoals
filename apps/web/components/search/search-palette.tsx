@@ -128,6 +128,9 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
     else if (e.key === 'Home' && e.ctrlKey) { e.preventDefault(); setActive(0); }
     else if (e.key === 'End' && e.ctrlKey) { e.preventDefault(); setActive(Math.max(0, rows.length - 1)); }
     else if (e.key === 'Enter') { e.preventDefault(); if (stale) { pendingEnter.current = true; return; } const row = rows[current]; if (row) choose(row); }
+    // Session AL (LS-H47, LS-014): a type="search" field spends the first Escape on clearing itself, so the dialog never
+    // hears it and a second Escape was needed. One Escape closes the palette, words typed or not.
+    else if (e.key === 'Escape') { e.preventDefault(); close(); }
   }
   useEffect(() => { document.getElementById(`${base}-row-${current}`)?.scrollIntoView({block: 'nearest'}); }, [current, base]);
   // Enter pressed before the results caught up with the last key opens the first result of the words as typed.
