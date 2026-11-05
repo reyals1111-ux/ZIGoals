@@ -18,8 +18,15 @@ export const zigiBox = (page: Page) => zigiPanel(page).getByRole('textbox', {nam
  */
 export async function pressZigi(page: Page) {
   if ((page.viewportSize()?.width ?? 1440) >= 901) { await page.getByRole('button', {name: /Open ZIGi/}).click(); return; }
-  await page.getByTestId('apps-extras-button').click();
-  await page.getByRole('dialog', {name: 'Apps & extras'}).getByRole('button', {name: /^ZIGi\b/}).click();
+  // Session AL (CI12, CI 1561: zigi-face-z:124 and zigi-personality:10 on the phone project): a press that lands before the top
+  // bar has hydrated only focuses the button and opens nothing; the press is repeated until the sheet shows (never while it is
+  // open). The sheet's own ZIGi button is then pressed once, as before.
+  const sheet = page.getByRole('dialog', {name: 'Apps & extras'});
+  await expect(async () => {
+    if (!await sheet.isVisible()) await page.getByTestId('apps-extras-button').click();
+    await expect(sheet).toBeVisible({timeout: 2_000});
+  }).toPass(COLD);
+  await sheet.getByRole('button', {name: /^ZIGi\b/}).click();
 }
 /**
  * Session AL (O3): for the specs that pressed the first button named "Open ZIGi…" (on a computer a page's own "Open ZIGi",

@@ -241,6 +241,9 @@ test('a font that draws the name wider: still one line, before the buttons, at e
 
 test('not connected: the status says so on one line; the chips row is one line; "Jump to the latest message" floats', async ({page}, info) => {
   test.skip(!!CAPTURES, 'pictures only');
+  // Session AL (CI12, CI 1561, WebKit phone): four widths, each a page load and the panel opened from the Apps & extras sheet
+  // (O3), then a three-reply chat: WebKit's phone run reached the last step at 60 s. The budget, not a check, changes.
+  test.setTimeout(120_000);
   await server(page, () => LONG);
   await seed(page, null);
   for (const width of WIDTHS[info.project.name as keyof typeof WIDTHS]) {

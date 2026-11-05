@@ -81,7 +81,10 @@ test.describe('NOVA, no model (1440)', () => {
     await seed(page, {showcase: true, extra: {[AI_SETTINGS_KEY]: healthShared}});
     await page.goto('/app/habits');
     await sendInNova(page, row.ask);
-    await expectSafe(nova(page).locator('.nova-turn-assistant').last(), nova(page), row.words);
+    // Session AL (CI12, CI 1561; L7-4b BN-047, deliberate): NOVA speaks as NOVA on every on-device path, the guard's reply
+    // included ("NOVA never shows, prints or sends an API key"; lib/ai/local-answers/nova-env.ts `novaWording`), so the
+    // expected first line is the guard's own with NOVA's name (was: ZIGi's name in NOVA's chat). Every other check is unchanged.
+    await expectSafe(nova(page).locator('.nova-turn-assistant').last(), nova(page), row.words.replace(/\bZIGi\b/g, 'NOVA'));
   });
 });
 

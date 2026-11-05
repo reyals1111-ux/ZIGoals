@@ -6,7 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {SECRET_REFUSAL} from '../lib/ai/memory';
 import {readStoredZip} from '../lib/export/zip-reader';
-import {pressZigi} from './zigi-open';
+import {pressZigi, typeInZigi} from './zigi-open';
 
 /**
  * Session V Part 8, "What ZIGi knows about me": the person's notes in Settings (add, edit, delete with Undo, delete
@@ -113,7 +113,9 @@ test('the notes go with each message only while "Use my notes" is on: a removabl
   await page.goto('/app');
   await openChat(page);
   const box = page.getByLabel('Message to your AI');
-  await box.fill('Hi there');
+  // Session AL (CI12, CI 1561, WebKit): the "ZIGi's box empty after a fill" class (Session AJ item 13): the words are typed
+  // until the box holds them and Send is enabled (tests/zigi-open.ts), then sent as before.
+  await typeInZigi(page, 'Hi there', {field: box});
   const chips = panel(page).getByRole('group', {name: 'Records ZIGi chose for this question'});
   await expect(chips).toContainText('About me · 1 note');
   await panel(page).getByRole('button', {name: 'Send'}).click();
@@ -130,7 +132,7 @@ test('the notes go with each message only while "Use my notes" is on: a removabl
   await page.evaluate(([key]) => localStorage.setItem(key!, JSON.stringify({version: 1, toolMode: 'attach', useNotes: false})), [AI_OPTIONS_KEY]);
   await page.reload();
   await openChat(page);
-  await page.getByLabel('Message to your AI').fill('Hi once more');
+  await typeInZigi(page, 'Hi once more', {field: page.getByLabel('Message to your AI')});
   await expect(panel(page).getByRole('group', {name: 'Records ZIGi chose for this question'})).toHaveCount(0);
   await panel(page).getByRole('button', {name: 'Send'}).click();
   await expect.poll(() => bodies.length).toBe(3);

@@ -8,7 +8,7 @@ import {KNOCK_OFFER} from '../lib/ai/knock/offer';
 import {createHabit, habitDataSchema, HABITS_KEY, type HabitData} from '../lib/habits';
 import {PLATFORM_KEY} from '../lib/positions';
 import {REMINDERS_KEY} from '../lib/reminders/schema';
-import {pressZigi} from './zigi-open';
+import {pressZigi, typeInZigi} from './zigi-open';
 
 /**
  * Session V Part 13, ZIGi's knock end to end, with a fixed clock (Sunday 2026-09-20, the Showcase day): off by default
@@ -211,7 +211,9 @@ test('offered once after the first chat: "Not now" keeps knocking off and the qu
   await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await expect(panel(page)).toBeVisible();
   await expect(panel(page).getByText(KNOCK_OFFER)).toHaveCount(0);
-  await page.getByLabel('Message to your AI').fill('Hello');
+  // Session AL (CI12, CI 1561, WebKit): the "ZIGi's box empty after a fill" class (Session AJ item 13): the words are typed
+  // until the box holds them and Send is enabled (tests/zigi-open.ts), then sent as before.
+  await typeInZigi(page, 'Hello', {field: page.getByLabel('Message to your AI')});
   await panel(page).locator('.ai-composer button[type=submit]').click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: hello there.');
   const offer = panel(page).getByRole('group', {name: 'A question from ZIGi'});
@@ -221,7 +223,7 @@ test('offered once after the first chat: "Not now" keeps knocking off and the qu
   expect((await stored(page, ZIGI_KEY)).knock).toEqual({offer: 'declined', offeredOn: DAY}); // Session Z-Local (ADR-020 L43): the day the offer showed is kept
   await page.reload();
   await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
-  await page.getByLabel('Message to your AI').fill('Hello again');
+  await typeInZigi(page, 'Hello again', {field: page.getByLabel('Message to your AI')});
   await panel(page).locator('.ai-composer button[type=submit]').click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: hello there.');
   await expect(panel(page).getByText(KNOCK_OFFER)).toHaveCount(0);

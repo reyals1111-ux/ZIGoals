@@ -125,7 +125,11 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   /** R2-2: NOVA's on-device environment from this render's records (the welcome's questions, /brief and /log). */
   const setupRec = useDeviceRecord(NOVA_SETUP), scopesNow = useMemo(() => setupRec.unreadable ? {...DEFAULT_NOVA_SCOPES} : scopesOf(setupRec.data), [setupRec.unreadable, setupRec.data]);
   const localEnvNow = useCallback(() => novaLocalEnv({sources: context.toolSources(), gates: context.gates, scopes: scopesNow, chainChosen}), [context, scopesNow, chainChosen]);
-  const session = useChatSession({settings: data, scope, context, nova}), runner = useProposals({surface: 'nova', healthShared: context.gates.health}), autoAccept = useAutoAccept(context.gates.health);
+  // Session AL (CI12, NP-30): a note card is kept on this device, so "Health is shared" is the Health gate itself
+  // (`localHealth`: the switch, "Include Health", the layout, the account), not `health`, which is also false whenever no
+  // model is connected; before, a diet note was refused with "while Health is not shared" although it was. Each path still
+  // sends a Health-tagged note only through its own gate.
+  const session = useChatSession({settings: data, scope, context, nova}), runner = useProposals({surface: 'nova', healthShared: context.gates.localHealth}), autoAccept = useAutoAccept(context.gates.health);
   // G1 #20: a task handed over in a chat that is not kept is marked in memory only (`unkeptMarks`), never in the bridge record.
   const [unkeptMarks, setUnkeptMarks] = useState<Record<string, DelegatedTurn>>({});
   const bridge = useDeviceRecord(NOVA_BRIDGE), marks = useMemo(() => ({...(bridge.data.delegated ?? {}), ...unkeptMarks}), [bridge.data.delegated, unkeptMarks]), speechOn = speechInputOn(bridge.data);

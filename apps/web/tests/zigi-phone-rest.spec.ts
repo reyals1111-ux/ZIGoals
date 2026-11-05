@@ -119,6 +119,11 @@ test('390x844: a press on a control under the corner keeps that control under th
   }
   await page.goto('/app/goals');
   await expect(appsButton(page)).toBeVisible();
+  // Session AL (CI12, CI 1561, every project): read 80 ms after the load, before the shell hydrated, every control's centre
+  // hit `.app-content` (a local run at 6x CPU throttling showed it), and the page then moved 44 px. A person presses once the
+  // page is ready: the control is chosen after the shell's hydration mark and the same settle as the loop above.
+  await expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '');
+  await page.waitForTimeout(1600);
   const target = await page.evaluate(selector => {
     for (const c of document.querySelectorAll<HTMLElement>(`main :is(${selector})`)) {
       const r = c.getBoundingClientRect();

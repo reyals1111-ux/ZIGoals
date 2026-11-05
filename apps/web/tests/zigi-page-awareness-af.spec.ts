@@ -62,8 +62,14 @@ test('"explain this page" goes to the person\'s AI with the "This page" chip: ti
   await page.goto('/app/settings');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await page.keyboard.press('ControlOrMeta+k');
+  // Session AL (CI12, CI 1561): the command menu loads at its first open; an Escape sent before it showed reached nothing, the
+  // menu then opened and kept the focus in its field, where ⌘/Ctrl+Shift+Z stays Redo. As a person does, the menu is seen,
+  // then closed, before ZIGi's key.
+  const menu = page.getByRole('dialog', {name: 'Command menu'});
+  await expect(menu).toBeVisible();
   await expect(panel(page)).toHaveCount(0);
   await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
   await page.locator('body').press('ControlOrMeta+Shift+z');
   await expect(panel(page)).toBeVisible();
   // The chat open on Today comes back (PR-025); this question starts its own.

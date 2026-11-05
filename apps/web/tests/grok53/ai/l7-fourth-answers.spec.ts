@@ -19,7 +19,7 @@ import {nova, sendInNova} from './helpers';
 const NIGHT = '2026-11-04T01:30:00.000Z';
 const offline = (page: Page) => page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 const lastTurn = (page: Page) => zigiPanel(page).locator('.ai-turn-local').last();
-async function seedProfile(page: Page, set: 'L2' | 'DV', {habitsShared = true}: {habitsShared?: boolean} = {}) {
+async function seedProfile(page: Page, set: 'L2' | 'DV', {habitsShared = true, healthShared = false}: {habitsShared?: boolean; healthShared?: boolean} = {}) {
   const s = set === 'L2' ? lisbon('L2') : denver();
   const records: Record<string, string> = {
     [HABITS_KEY]: JSON.stringify(s.habits), [PLATFORM_KEY]: JSON.stringify(s.platform),
@@ -28,6 +28,7 @@ async function seedProfile(page: Page, set: 'L2' | 'DV', {habitsShared = true}: 
     [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'}),
     ...(habitsShared ? {} : {[AI_SETTINGS_KEY]: JSON.stringify({...defaultAiSettings(), pageShare: {...defaultAiSettings().pageShare, habits: false}})}),
+    ...(healthShared ? {[AI_SETTINGS_KEY]: JSON.stringify({...defaultAiSettings(), includeHealth: true, pageShare: {...defaultAiSettings().pageShare, health: true}})} : {}),
   };
   await page.clock.install({time: NIGHT});
   await page.goto('/app/settings');
@@ -121,16 +122,25 @@ test.describe('desktop (Lisbon, Denver: 1280)', () => {
 
   test('LA-003/DV-062/MO-058: before a model is connected, "What NOVA can see" and its check say nothing is sent yet, never blame switches that are on', async ({page}) => {
     await offline(page); await seedProfile(page, 'L2'); await page.goto('/app/nova/setup');
+    // Session AL (CI12, CI 1561): the setup page is the ten-step path; "What NOVA can see" and its check live in that step's
+    // guide, which opens from its planet (as tests/nova-setup.spec.ts opens it). The spec never opened it (written, not run).
+    await page.getByRole('button', {name: /^What NOVA can see:/}).first().click();
+    await expect(page.locator('[data-setup-panel="scopes"]')).toBeVisible();
     const check = page.getByRole('button', {name: 'Check what NOVA sees'});
     await check.scrollIntoViewIfNeeded();
     await expect(page.getByText(/No model is connected yet, so nothing is sent and this stays empty/)).toBeVisible();
     await check.click();
-    await expect(page.getByText(/^No model is connected yet, so nothing is sent and the preview is empty\. Once one is, NOVA reads .*Habits/)).toBeVisible();
+    // CI12: the check's result line starts with the check row's verdict ("Checked: it works.", components/nova/setup/check-row.tsx),
+    // so the note is matched right after it (was: anchored at the line's start, which no result line ever is).
+    await expect(page.getByText(/^Checked: it works\. No model is connected yet, so nothing is sent and the preview is empty\. Once one is, NOVA reads .*Habits/)).toBeVisible();
     await expect(page.getByText(/page switch under Settings .* is off/)).toHaveCount(0);
   });
 
   test('NP-30: /remember in NOVA is a note card with its category, not a trip to ZIGi', async ({page}) => {
-    await offline(page); await seedProfile(page, 'L2'); await page.goto('/app/nova');
+    // Session AL (CI12, CI 1561): the bot's condition was the Showcase with Health shared ("Sc+H N", GROK53_REPLAY_L7_1). A
+    // note about an allergy or a diet is health-like, and while Health is not shared NOVA keeps nothing about it (lib/ai/memory.ts
+    // HEALTH_HELD, a privacy rule this spec must not bend), so Health is shared here as it was for the bot.
+    await offline(page); await seedProfile(page, 'L2', {healthShared: true}); await page.goto('/app/nova');
     await sendInNova(page, '/remember I am vegetarian and allergic to peanuts');
     const turn = nova(page).locator('.nova-turn-local').last();
     await expect(turn).not.toContainText('opens a view in ZIGi’s panel');
