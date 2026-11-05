@@ -1,5 +1,5 @@
 'use client';
-import {Suspense, lazy, useEffect, useState} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {openZigiPanel} from '../zigi-door';
 import {isSensitiveScreen} from '../ai/use-sensitive-screen';
@@ -22,14 +22,18 @@ const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isConte
 let hosts = 0;
 
 export function CommandPaletteHost() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false), openRef = useRef(false);
+  useEffect(() => { openRef.current = open; }, [open]);
   useEffect(() => {
     if (++hosts > 1) return () => { hosts--; }; // one host per page, wherever it is mounted
     const onKey = (e: KeyboardEvent) => {
+      // CI12: an Escape pressed while the menu is still loading closes it too (the loaded menu handles its own Escape).
+      if (e.key === 'Escape' && openRef.current && !document.querySelector('dialog.command-palette[open]')) { setOpen(false); return; }
       if (!(e.metaKey || e.ctrlKey) || e.altKey || e.defaultPrevented) return;
       const key = e.key.toLowerCase();
       if (key === 'z' && e.shiftKey) {
-        if (typing(e.target)) return; // Redo in a text field stays Redo
+        // Redo in a text field stays Redo, except in the menu's own search field, whose footer offers this key for ZIGi (CI12).
+        if (typing(e.target) && !(e.target as HTMLElement).closest('dialog.command-palette')) return;
         if (document.querySelector('dialog.ai-chat[open]')) return; // the launcher closes the open panel
         e.preventDefault(); setOpen(false); void openZigiPanel(); return;
       }

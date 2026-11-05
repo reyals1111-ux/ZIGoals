@@ -32,7 +32,7 @@ export function checkNovaScopes(scopes: NovaScopes, pack: Pick<NovaPack, 'includ
   const leaked = pack.included.filter(p => !scopeOpen(scopes, PILLAR_SCOPE[p], chainChosen) || (PILLAR_SCOPE[p] === 'health' && !healthGate));
   if (!connected && !pack.included.length) {
     const will = (Object.keys(scopes) as (keyof NovaScopes)[]).filter(s => scopeOpen(scopes, s, chainChosen) && (s !== 'health' || healthGate)).map(s => NOVA_SCOPE_LABELS[s].split(':')[0]);
-    return {ok: true, note: `No model is connected yet, so nothing is sent and the preview is empty. Once one is, NOVA reads ${will.length ? will.join('; ') : 'nothing (every area is off)'}, as NOVA → Permissions and the page switches say. Health: ${scopes.health && healthGate ? 'on' : 'off'}.`};
+    return {ok: true, note: `No model is connected yet, so nothing is sent and the preview is empty. Once one is, NOVA reads ${will.length ? will.join('; ') : 'nothing (every area is off)'}. Health: ${scopes.health && healthGate ? 'on' : 'off'}.`};
   }
   if (leaked.length) return {ok: false, note: `The preview holds something you did not share (${leaked.join(', ')}). Reload and check again.`};
   const open = (Object.keys(scopes) as (keyof NovaScopes)[]).filter(s => scopeOpen(scopes, s, chainChosen) && (s !== 'health' || healthGate));
