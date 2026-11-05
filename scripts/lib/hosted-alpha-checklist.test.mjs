@@ -44,7 +44,8 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(adapters).toContain('message: `${dot.label} logged for ${forDay(day, ctx.date)}.`');
     expect(adapters).toContain("undone: `${dot.label}: back as it was.`");
     expect(toast).toContain('className="aa-toast-undo"');
-    expect(completion).toContain('`${day.status === "complete" ? "Undo completion for" : "Complete"} ${habit.title}`');
+    // Session AL (L3 fourth pass, deliberate): the same words; the done state now also counts water Health holds (doneNow).
+    expect(completion).toContain('`${doneNow ? "Undo completion for" : "Complete"} ${habit.title}`');
     expect(CHECKLIST_PATH).toBe('/app/checklist');
   });
   // Session AG Polish 2 (ADR-031 K13): the tick completes the day, whose celebration holds the toast until it closes.
