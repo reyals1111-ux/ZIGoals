@@ -14,6 +14,10 @@ export type Mote = {x: number; y: number; r: number; speed: number; sway: number
 /** Review m3 (lane L8d): fewer, larger and brighter (24 motes of 1–2.4 px, up to .8), so they read as the reference's
  *  floating particles instead of disappearing; drawn as a soft pre-rendered sprite (components/nova/holo/motes-canvas.tsx). */
 export const MOTE_COUNT = 24;
+/** CI15 (hud-perf, CPU 4×): how often the motes' canvas is redrawn. A mote rises 0.7–2 px a second and sways about as
+ *  slowly, so 12 redraws a second move it under a fifth of a pixel each (the same drift as 30); each redraw costs a canvas
+ *  upload on the page's main thread and a composite, and between redraws the page asks for no frame at all. */
+export const MOTES_FPS = 12;
 export const MOTE_TINTS = ['#ff7ac8', '#5ff2ff', '#b59bff', '#ffd27a'] as const;
 export function makeMotes(count = MOTE_COUNT, seed = 20261104): Mote[] {
   const rnd = seeded(seed);

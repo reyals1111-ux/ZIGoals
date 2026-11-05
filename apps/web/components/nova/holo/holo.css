@@ -70,7 +70,11 @@
 .holo-sheen { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .holo-sheen::before { content: ''; position: absolute; top: -20%; bottom: -20%; left: 0; width: 38%; transform: translateX(-140%) skewX(-18deg); opacity: 0;
   background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--neon, #9273ff) 18%, #ffffff10), transparent); }
-@keyframes holo-sheen { 0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; } 2% { opacity: 1; } 12% { transform: translateX(380%) skewX(-18deg); opacity: 0; } 100% { transform: translateX(380%) skewX(-18deg); opacity: 0; } }
+/* CI15 (hud-perf, CPU 4×): each frame the band moves, its glass panel's backdrop blur runs again (about 12 ms a frame in
+   software compositing, while a band crosses). The same 1.68 s pass now moves 30 times a second (a soft band, steps of
+   about 14 px), half the blur work; between passes nothing changes and nothing is drawn. The 2% keyframe carries the
+   transform the linear pass had there (-140% + 520% × 2/12), so the path, timing and fade are as before. */
+@keyframes holo-sheen { 0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; animation-timing-function: steps(8); } 2% { transform: translateX(-53.333%) skewX(-18deg); opacity: 1; animation-timing-function: steps(42); } 12% { transform: translateX(380%) skewX(-18deg); opacity: 0; } 100% { transform: translateX(380%) skewX(-18deg); opacity: 0; } }
 .nova-frame[data-hud-motion=full]:not([data-phone]) .holo-sheen::before { animation: holo-sheen 14s linear var(--sheen-delay, 0s) infinite; }
 .nova-frame[data-hud-motion=paused] .holo-sheen::before, .nova-widget[data-off] .holo-sheen::before { animation-play-state: paused; }
 /* Review m1 (lane L8d): the Full rule above re-set the shimmer running over an off-screen panel's pause; this one wins. */

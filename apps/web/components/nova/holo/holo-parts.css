@@ -198,6 +198,17 @@
 .holo-orn > svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .nova-frame[data-hud-motion=full] :is(.holo-orn, .holo-lens) { animation: holo-spin 90s linear infinite; will-change: transform; }
 .nova-frame[data-hud-motion=calm] :is(.holo-orn, .holo-lens) { animation: holo-spin 270s linear infinite; will-change: transform; }
+/* CI15 (hud-perf, CPU 4×): the turn moves an ornament's rim by under a tenth of a pixel a frame, yet each frame it moved
+   the compositor redrew the ornament's box, and inside a glass panel (Health's tick ring, the agenda clock) that re-ran
+   the panel's backdrop blur 60 times a second: 10 ms a frame in software compositing, the HUD's largest cost (as built
+   2.6 s of 3 s on the display compositor; panel ornaments alone 1.9 s, 0.17 s without their panel's blur). The same turn
+   now advances in steps of under half a pixel at the rim (panel ornaments 0.5°, 8 a second; the larger core ring and lens
+   0.25°, 16 a second), which reads as the same slow, smooth turn, and the frames between steps draw nothing. Same
+   durations (90 s Full, 270 s Calm), direction and stillness rules. */
+.nova-frame[data-hud-motion=full] .nova-widget :is(.holo-orn, .holo-lens) { animation-timing-function: steps(720); }
+.nova-frame[data-hud-motion=calm] .nova-widget :is(.holo-orn, .holo-lens) { animation-timing-function: steps(2160); }
+.nova-frame[data-hud-motion=full] .holo-core :is(.holo-orn, .holo-lens) { animation-timing-function: steps(1440); }
+.nova-frame[data-hud-motion=calm] .holo-core :is(.holo-orn, .holo-lens) { animation-timing-function: steps(4320); }
 .nova-frame[data-hud-motion] .holo-orn[data-rev] { animation-direction: reverse; }
 .nova-frame[data-hud-motion=full] .holo-num[data-pulse] { animation: holo-pulse-glow .9s ease-out both; }
 .nova-frame[data-hud-motion=calm] .holo-num[data-pulse] { animation: holo-pulse-fade .4s ease-out both; }
