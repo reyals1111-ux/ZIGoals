@@ -184,7 +184,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         <Link href={homeHref(pagesView)} className="brand" aria-label="ZIGoals home">
           <LogoMark />
           <LogoIntro host="sidebar" />
-          <Wordmark />
+          <Wordmark decorative />
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>
         <AppNav />

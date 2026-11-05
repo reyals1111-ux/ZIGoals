@@ -1,0 +1,11 @@
+/*
+ * Session AL sweep 2: the switch's own look travels with the component, so a page that shows a switch without ZIGi's
+ * stylesheet (Settings → Notifications and the reminder names, before ZIGi's settings load) still draws the track, the
+ * knob and the word side by side. The same rules as ai.css (kept there too); colours come from the button (currentColor).
+ */
+.ai-switch-row [role=switch]{min-width:84px;min-height:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.ai-switch-track{position:relative;display:inline-block;width:26px;height:14px;border-radius:999px;border:1.5px solid currentColor;flex:none}
+.ai-switch-knob{position:absolute;top:1.5px;left:2px;width:8px;height:8px;border-radius:50%;background:currentColor;transition:left .15s ease}
+[role=switch][aria-checked=true] .ai-switch-knob{left:13px}
+@media (prefers-reduced-motion:reduce){.ai-switch-knob{transition:none}}
+:root[data-app-motion=off] .ai-switch-knob{transition:none}

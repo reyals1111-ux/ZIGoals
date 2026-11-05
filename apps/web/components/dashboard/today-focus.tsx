@@ -14,7 +14,7 @@ import {formatGoalAmount} from '../../lib/goal-summary';
 import type {GoalStep} from '../../lib/today/goal-roles';
 import {formatUnits} from '@zigoals/chain-config';
 import {formatDate, formatProgressPercent} from '../../lib/visual-format';
-import {waterText} from '../../lib/health-units';
+import {NO_WATER_TODAY, waterText} from '../../lib/health-units';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useFasting} from '../health/use-fasting';
@@ -120,7 +120,8 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
         <span className="focus-label"><AppIcon name="health" size={20} />Water</span>
         {!healthReady || !water || !daily ? <p role="status">{health.error ? 'Health needs attention.' : 'Loading Health…'}</p> : <>
           <strong>{waterText(water.millilitres, daily.preferences.waterUnit)}</strong>
-          <p>{water.targetMl ? `of ${waterText(water.targetMl, daily.preferences.waterUnit)} today` : `${water.entries} ${water.entries === 1 ? 'entry' : 'entries'} today`}</p>
+          {/* Session AL sweep 2 (NOVA review M5): nothing logged yet says so, as NOVA does; the 0 above stays the tile's figure. */}
+          <p>{!water.entries ? `${NO_WATER_TODAY}${water.targetMl ? ` · target ${waterText(water.targetMl, daily.preferences.waterUnit)}` : ''}` : water.targetMl ? `of ${waterText(water.targetMl, daily.preferences.waterUnit)} today` : `${water.entries} ${water.entries === 1 ? 'entry' : 'entries'} today`}</p>
           <div className="focus-actions">{firstWater && <button type="button" className="secondary" aria-label={`${firstWater.label} of water`} onClick={e => void logWater(e.timeStamp)}>{firstWater.label}</button>}<Link prefetch={false} className="text-link" href="/app/health?add=entry">Log food →</Link></div>
         </>}
       </article>}

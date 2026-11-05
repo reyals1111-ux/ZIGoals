@@ -63,7 +63,9 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
   };
   // Session AK P3 (ND-14): a fixed head, the pages and agents scrolling in between, and a fixed foot, so NOVA's line and
   // the brain's status always show (at 900 px tall they had fallen below the panel's fold).
-  return <aside className="nova-left zg-glass" data-state={state} aria-label={`${persona} navigation`}>
+  // Session AL sweep 2 (LA-024 / N-LS-05): a named region, not a complementary landmark: this panel sits inside the shell's
+  // <main>, where a complementary landmark is not top level (axe landmark-complementary-is-top-level). Still an <aside>.
+  return <aside role="region" className="nova-left zg-glass" data-state={state} aria-label={`${persona} navigation`}>
     <div className="nova-left-head">
     <div className="nova-left-top">
       <p className="nova-left-brand"><NovaIcon name="star" size={20}/>{!rail && <span><strong>{persona}</strong><small>Private intelligence</small></span>}</p>

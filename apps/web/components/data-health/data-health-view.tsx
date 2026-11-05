@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {Suspense, lazy, useEffect, useState} from 'react';
-import {DEVICE_ONLY, DEVICE_STORES, HOME_LABEL, NEVER_STORED, SYNCED, storedBytes, type CatalogEntry} from '../../lib/data-health/catalog';
+import {DEVICE_ONLY, DEVICE_STORES, HOME_LABEL, NEVER_STORED, SYNCED, recoveryCopies, storedBytes, type CatalogEntry} from '../../lib/data-health/catalog';
 import {getAccountScope} from '../../lib/account-session';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import {readAiSettings, PAGE_AREAS, type AiSettings} from '../../lib/ai/settings';
@@ -25,7 +25,7 @@ const BackupReminder = lazy(() => import('../restore/backup-reminder'));
  * changes only what the person chose, after their confirmation. Export everything writes nothing on the device by design, so the
  * age of a copy is not recorded here; the browser's own downloads list shows it.
  */
-type Read = {sizes: Record<string, number | null>; account: boolean; showcase: boolean; photos: {count: number; bytes: number} | null; ai: AiSettings | null};
+type Read = {sizes: Record<string, number | null>; account: boolean; showcase: boolean; photos: {count: number; bytes: number} | null; ai: AiSettings | null; copies: CatalogEntry[] | null};
 const kb = (bytes: number) => bytes < 1024 ? `${formatNumber(bytes)} B` : bytes < 1048576 ? `${formatNumber(bytes / 1024, {maximumFractionDigits: 1})} kB` : `${formatNumber(bytes / 1048576, {maximumFractionDigits: 1})} MB`;
 const AREA_LABEL: Record<(typeof PAGE_AREAS)[number], string> = {today: 'Today', goals: 'Goals', habits: 'Habits', health: 'Health', wealth: 'Wealth', help: 'Help'};
 
@@ -36,11 +36,15 @@ export function DataHealthView() {
     queueMicrotask(async () => {
       const storage = getAppStorage(), sizes: Record<string, number | null> = {};
       for (const e of [...SYNCED, ...DEVICE_ONLY]) { try { sizes[e.key] = storedBytes(storage.getItem(e.key)); } catch { sizes[e.key] = null; } }
+      // Session AL sweep 2 (INT third pass): the recovery copies a restore keeps (lib/data-health/catalog.ts), with their
+      // sizes; null when this storage cannot be listed (said so, never "none").
+      let copies: CatalogEntry[] | null = null;
+      try { copies = recoveryCopies(storage); for (const c of copies) { try { sizes[c.key] = storedBytes(storage.getItem(c.key)); } catch { sizes[c.key] = null; } } } catch { copies = null; }
       let ai: AiSettings | null = null;
       try { ai = readAiSettings(storage).data; } catch { ai = null; }
       let photos: Read['photos'] = null;
       try { const images = isShowcase() ? [] : await listImages(visionScope()); photos = {count: images.length, bytes: images.reduce((n, i) => n + i.bytes, 0)}; } catch { photos = null; }
-      if (active) setRead({sizes, account: getAccountScope() !== null, showcase: isShowcase(), photos, ai});
+      if (active) setRead({sizes, account: getAccountScope() !== null, showcase: isShowcase(), photos, ai, copies});
     });
     return () => { active = false; };
   }, []);
@@ -65,6 +69,11 @@ export function DataHealthView() {
         <li><span><strong>{DEVICE_STORES[0]}</strong><small>Goals</small></span><span className="dh-size">{read.photos === null ? 'Unknown' : read.photos.count ? `${read.photos.count} · ${kb(read.photos.bytes)}` : 'None'}</span></li>
         <li><span><strong>{DEVICE_STORES[1]}</strong><small>ZIGi</small></span><span className="dh-size">In ZIGi</span></li>
       </ul>
+      <h4 className="dh-subhead" id="dh-recovery">Recovery copies</h4>
+      <p className="fine">A restore keeps a copy of what it replaced, so you can go back. Recovery copies stay on this device: they are never exported or synced, and Erase removes them.</p>
+      {read.copies === null ? <p>The recovery copies on this device could not be listed, so none are assumed.</p>
+        : read.copies.length ? <ul className="dh-list" aria-labelledby="dh-recovery">{read.copies.map(row)}</ul>
+        : <p>None on this device.</p>}
     </section>
     <section className="panel" aria-labelledby="dh-never">
       <SectionHeading id="dh-never" eyebrow="Never stored" title="Worked out each time" lede="These are read again from your records each time you open them, so they never go stale and are never kept." level={3} />

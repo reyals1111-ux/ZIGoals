@@ -295,7 +295,7 @@ export default function NovaDashboard() {
         </div>}
       </div>
     </div>
-    {right === 'open' && <LoadBoundary label="Behind the intelligence"><Suspense fallback={<aside className="nova-right" aria-label="Behind the intelligence" aria-busy="true"><Reading label="Reading…"/></aside>}>
+    {right === 'open' && <LoadBoundary label="Behind the intelligence"><Suspense fallback={<aside role="region" className="nova-right" aria-label="Behind the intelligence" aria-busy="true"><Reading label="Reading…"/></aside>}>
       <NovaRight folded={panels.folded} onFold={(id, f) => save(rr => foldSection(rr, id, f))} onHide={() => save(rr => setRightPanel(rr, 'hidden'))} persona={persona.name} brain={brain} counts={counts} hermes={hermes}
         onTalk={openChat} wake={wakeOn(r)} onWake={on => save(rr => setWake(rr, on), on ? `${persona.name} listens for its name on this device.` : 'Wake phrase off.')} openPanel={id => setSheet({kind: 'panels', id})}/>
     </Suspense></LoadBoundary>}

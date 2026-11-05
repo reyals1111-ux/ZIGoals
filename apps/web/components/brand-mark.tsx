@@ -3,8 +3,13 @@ import Image from "next/image";
 export function BrandMark({ size = 36 }: { size?: number }) {
   return <Image className="brand-mark" src="/icon.svg" alt="" aria-hidden="true" width={size} height={size} unoptimized />;
 }
-export function Wordmark() {
-  return <span className="brand-wordmark">ZI<span>Goals</span></span>;
+/**
+ * `decorative`: beside the Z logo inside a link that already has a name (the sidebar's "ZIGoals home"), the word is hidden
+ * from assistive technology, so "ZIGoals" is not read twice and the logo's alt is not redundant with the text next to it
+ * (axe image-redundant-alt; Session AL sweep 2, LA-024 / N-LS-05). Alone (the phone's More sheet) it stays readable.
+ */
+export function Wordmark({ decorative = false }: { decorative?: boolean } = {}) {
+  return <span className="brand-wordmark" aria-hidden={decorative ? "true" : undefined}>ZI<span>Goals</span></span>;
 }
 /** Nebula Z logo: transparent WebP at 1x/2x/3x of the 141px desktop size; the mobile header shows it at 40px. */
 export function LogoMark() {

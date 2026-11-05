@@ -1,7 +1,8 @@
 import {addLocalDays, localDate, localWeekday} from '../local-date';
 import {habitDay, habitStats, type HabitData} from '../habits';
 import {dailyHealthSummary, type HealthData} from '../health';
-import {waterSummary} from '../health-daily';
+import {dailyData, waterSummary} from '../health-daily';
+import {weightText} from '../health-units';
 import {latestWeightObservation} from '../body-measurements';
 import {weekAcross} from '../bottom-insights';
 import type {Platform} from '../positions';
@@ -67,7 +68,9 @@ export function weekSummary({weekStart, weekEnd, habits, health, platform, local
   const water = days.filter(date => waterSummary(health, date).entries > 0).length;
   if (water) healthLines.push(`${water} ${water === 1 ? 'day' : 'days'} with water`);
   const weight = latestWeightObservation(health, weekEnd);
-  if (weight && weight.date >= weekStart) healthLines.push(`latest weight ${formatNumber(weight.grams / 1000, {maximumFractionDigits: 2})} kg on ${formatDate(weight.date)}`);
+  // Session AL sweep 2 (L7 third pass): the weight in the person's chosen unit (Journal settings → Weight unit), with the
+  // app's one weight rounding (lib/health-units.ts), never always kg. The record keeps its grams.
+  if (weight && weight.date >= weekStart) healthLines.push(`latest weight ${weightText(weight.grams, dailyData(health).preferences.weightUnit)} on ${formatDate(weight.date)}`);
   let wealth: WeekSummary['wealth'] = null;
   if (financial) {
     const overview = wealthOverview(platform, now, quotes);

@@ -9,6 +9,8 @@
  * Review M5 (lane L8d): water with nothing logged today is unknown ("—", "No water logged yet today"), never a 0 ring; a
  * logged amount without a target keeps its figure and says the target is missing.
  */
+import {NO_WATER_TODAY} from '../../health-units';
+
 export type CorePillar = 'health' | 'habits' | 'goals' | 'wealth';
 export type CoreRing = {pillar: CorePillar; label: string; measure: string; share: number | null; text: string; reason: string | null};
 export type CoreInput = {
@@ -21,7 +23,7 @@ const LABEL: Record<CorePillar, string> = {health: 'Health', habits: 'Habits', g
 const unknown = (pillar: CorePillar, measure: string, reason: string): CoreRing => ({pillar, label: LABEL[pillar], measure, share: null, text: '—', reason});
 export function coreRings(i: CoreInput): CoreRing[] {
   const health = !i.water ? unknown('health', 'Water today', 'Your Health journal is not read yet')
-    : i.water.logged === false ? unknown('health', 'Water today', 'No water logged yet today')
+    : i.water.logged === false ? unknown('health', 'Water today', NO_WATER_TODAY)
     : i.water.share === null ? {...unknown('health', 'Water today', 'No water target set'), text: i.water.text}
     : {pillar: 'health' as const, label: LABEL.health, measure: 'Water today', share: i.water.share, text: `${i.water.text} of ${i.water.targetText}`, reason: null};
   const habits = !i.habits ? unknown('habits', 'Habits done today', 'Your habits are not read yet')

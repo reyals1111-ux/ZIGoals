@@ -140,7 +140,8 @@ test.describe('NOVA polish on a computer', () => {
     await page.setViewportSize({width: 1440, height: 900});
     await fresh(page, seen({panels: {right: 'open'}}));
     await openNova(page);
-    const right = page.getByRole('complementary', {name: 'Behind the intelligence'});
+    // Session AL (deliberate, sweep 2; LA-024 / N-LS-05): NOVA's side panels are named regions inside <main>, no longer complementary landmarks; same element, same name.
+    const right = page.getByRole('region', {name: 'Behind the intelligence'});
     await right.getByText('Technical details: local servers, Hermes Agent, this device').click();
     await expect(right.locator('.nova-guide-card').first()).toBeVisible(); // the Hermes card: setup.css is loaded now
     await page.getByRole('button', {name: /View controls/}).click();
@@ -201,7 +202,7 @@ test.describe('NOVA polish on a computer', () => {
     await expect(chip).toContainText('Brain · Local');
     const [dot, teal] = await chip.evaluate(el => { const probe = document.createElement('span'); probe.style.background = 'var(--accent-teal, #86f0d6)'; el.append(probe); const t = getComputedStyle(probe).backgroundColor; probe.remove(); return [getComputedStyle(el.querySelector('.nova-chip-dot')!).backgroundColor, t]; });
     expect(dot).toBe(teal);
-    const right = page.getByRole('complementary', {name: 'Behind the intelligence'});
+    const right = page.getByRole('region', {name: 'Behind the intelligence'});
     const tiles = right.locator('dl.nova-fact-tiles');
     await expect(tiles.locator('dt')).toHaveText(['Cores', 'Memory', 'Battery', 'Network']);
     await expect(tiles.locator('dt', {hasText: 'Memory'}).locator('xpath=following-sibling::dd')).toHaveText('unknown');

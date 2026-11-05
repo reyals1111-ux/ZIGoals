@@ -45,7 +45,8 @@ for (const [width, height, least] of [[1440, 900, 3], [1920, 1080, 4]] as const)
     await page.setViewportSize({width, height});
     await page.clock.install({time: NOON});
     await showcaseNova(page);
-    await expect(page.getByRole('complementary', {name: 'Behind the intelligence'})).toHaveCount(0);
+    // Session AL (deliberate, sweep 2; LA-024 / N-LS-05): NOVA's side panels are named regions inside <main>, no longer complementary landmarks; same element, same name.
+    await expect(page.getByRole('region', {name: 'Behind the intelligence'})).toHaveCount(0);
     const panels = await besideTheStar(page);
     expect(panels.filter(p => p.inWindow).length, JSON.stringify(panels)).toBeGreaterThanOrEqual(least);
     for (const p of panels) {

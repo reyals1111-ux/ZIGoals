@@ -7,7 +7,8 @@
 .notify-types{border:0;margin:8px 0 4px;padding:0;display:grid;gap:2px}
 .notify-types legend{font-weight:600;font-size:15px;margin-bottom:6px;padding:0}
 .notify-types .ai-switch-row{display:flex;gap:12px;align-items:flex-start;padding:6px 0}
-.notify-types .ai-switch-row [role=switch]{min-width:64px;min-height:44px;flex:none}
+/* Session AL sweep 2 (DV-072b): the switch now holds a track and the word; the same 84 px as everywhere else (ai.css), not 64. */
+.notify-types .ai-switch-row [role=switch]{min-width:84px;min-height:44px;flex:none}
 .notify-types .ai-switch-copy{display:grid;gap:2px;font-size:15px;line-height:1.4}
 .notify-types .ai-switch-copy small{color:var(--muted,#aab2d9);font-size:14px}
 .notify-times{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}

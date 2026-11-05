@@ -90,7 +90,8 @@ test.describe('NOVA on a computer', () => {
   test('the side panels hide, fold and come back, and stay as chosen on this device', async ({page}) => {
     await fresh(page, seen());
     await page.goto('/app/nova');
-    const left = page.locator('aside.nova-left'), right = page.getByRole('complementary', {name: 'Behind the intelligence'});
+    // Session AL (deliberate, sweep 2; LA-024 / N-LS-05): NOVA's side panels are named regions inside <main>, no longer complementary landmarks; same element, same name.
+    const left = page.locator('aside.nova-left'), right = page.getByRole('region', {name: 'Behind the intelligence'});
     await expect(left).toHaveAttribute('data-state', 'open');
     // Release review 2 (R2-3), a deliberate change: "Behind the intelligence" starts hidden until the person opens it;
     // from then on it hides, folds and is remembered exactly as before.
@@ -103,16 +104,16 @@ test.describe('NOVA on a computer', () => {
     await expect(left).toHaveAttribute('data-state', 'rail');
     await page.reload();
     await expect(page.locator('aside.nova-left')).toHaveAttribute('data-state', 'rail');
-    await expect(page.getByRole('complementary', {name: 'Behind the intelligence'})).toHaveCount(0);
+    await expect(page.getByRole('region', {name: 'Behind the intelligence'})).toHaveCount(0);
     expect((await stored(page)).panels).toMatchObject({left: 'rail', right: 'hidden'});
     await page.locator('aside.nova-left').getByRole('button', {name: 'Hide the left panel'}).click();
     await expect(page.locator('aside.nova-left')).toHaveCount(0);
     await page.getByRole('button', {name: 'Show the left panel'}).click();
     await expect(page.locator('aside.nova-left')).toHaveAttribute('data-state', 'open');
     await page.locator('body').press(']');
-    await expect(page.getByRole('complementary', {name: 'Behind the intelligence'})).toBeVisible();
+    await expect(page.getByRole('region', {name: 'Behind the intelligence'})).toBeVisible();
     // Each numbered section folds on its own, by keyboard too.
-    const voice = page.getByRole('complementary', {name: 'Behind the intelligence'}).getByRole('button', {name: 'Voice', exact: true});
+    const voice = page.getByRole('region', {name: 'Behind the intelligence'}).getByRole('button', {name: 'Voice', exact: true});
     await voice.focus(); await page.keyboard.press('Enter');
     await expect(voice).toHaveAttribute('aria-expanded', 'false');
   });
@@ -192,7 +193,7 @@ test.describe('NOVA on a computer', () => {
       return route.fulfill({json: {models: [{name: 'llama3.2:3b', model: 'llama3.2:3b', details: {family: 'llama'}}]}, headers: {'access-control-allow-origin': '*'}});
     });
     await page.goto('/app/nova');
-    const right = page.getByRole('complementary', {name: 'Behind the intelligence'});
+    const right = page.getByRole('region', {name: 'Behind the intelligence'});
     await expect(right.getByText('Online').first()).toBeVisible();
     await expect(right).toContainText('llama3.2:3b: 3.4 GB in memory, 100 % on the GPU');
     await expect(right).toContainText('Memory');
@@ -239,7 +240,7 @@ test.describe('NOVA on a computer', () => {
       const box = await page.getByRole('article', {name}).boundingBox();
       expect(box, name).not.toBeNull(); expect(box!.y, name).toBeLessThan(900 - 80);
     }
-    await expect(page.getByRole('complementary', {name: 'Behind the intelligence'})).toHaveCount(0);
+    await expect(page.getByRole('region', {name: 'Behind the intelligence'})).toHaveCount(0);
     for (const word of ['Look for local servers', 'Processor', 'localhost', 'Cost meter', 'Automatic · best fit', 'Test my setup']) await expect(page.getByText(word).first(), word).toBeHidden();
     // Every icon-only control has a name, and a tooltip on hover (and on keyboard focus, the same rule).
     const unnamed = await page.locator('.nova-frame :is(button.nova-icon-btn, button.nova-tile, a.nova-tile):visible').evaluateAll(els => els.filter(el => !(el.getAttribute('aria-label') || el.textContent?.trim()) ).length);
@@ -288,7 +289,7 @@ test.describe('NOVA on a phone and a tablet', () => {
     await fresh(page, seen());
     await page.goto('/app/nova');
     await expect(page.locator('aside.nova-left')).toHaveCount(0);
-    await expect(page.getByRole('complementary', {name: 'Behind the intelligence'})).toHaveCount(0);
+    await expect(page.getByRole('region', {name: 'Behind the intelligence'})).toHaveCount(0);
     await expect(page.locator('.nova-orb-button')).toBeVisible();
     await noSideScroll(page);
     await page.getByRole('button', {name: 'Quick access'}).click();

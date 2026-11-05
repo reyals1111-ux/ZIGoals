@@ -27,6 +27,11 @@ import {StarToggle} from './checklist/star-toggle';
 import {GoalTitleMorph} from './motion/goal-title-morph';
 import {noteGoalOpen} from '../lib/motion/goal-morph';
 const GoalArtPicker = lazy(() => import('./goals/goal-art-picker'));
+/**
+ * Session AL sweep 2 (D-211, P-DVR-29): while the card's scene loads, its art box shows the shared calm skeleton (no shimmer
+ * under reduced motion or Motion Off), not an empty block. A <div>: the box hides its direct <span> children.
+ */
+export function GoalArtSkeleton(){return <div className="aa-skeleton goal-card-art-skeleton" aria-hidden="true"><b/></div>;}
 export const displayAmount= formatGoalAmount;
 export function GoalProgressRing({name,progressPct,goalId,assetMix=[],complete,bound}:{assetMix?:AssetMix[];name:string;progressPct:string;goalId?:string;complete?:boolean;bound?:ProgressBound}){
  return <div className="goal-progress-ring"><ProgressRing percent={progressPct} complete={complete} assetMix={assetMix} identity={goalId??name} size={94} label={`${name} progress`} bound={bound}/></div>;
@@ -51,7 +56,7 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
  // to edit, and its status to close or reopen (a private goal's page opens that section from the address).
  const manage=g.key.startsWith('private:')?<><Link href={g.href}>Open goal</Link><Link href={`${g.href}#edit-goal`}>Edit details</Link><Link href={`${g.href}#goal-status`}>{g.status==='closed'?'Reopen…':'Close…'}</Link></>:null;
  return <article {...layout} className={`goal-card destination-card unified-goal-card${compact?' compact-goal':''}`} data-tone={visualTone(g.id)} data-goal-key={g.key}>
-  <div className="goal-card-art"><Suspense fallback={null}><SceneArt scene={scene}/></Suspense><span>{kind}</span></div>
+  <div className="goal-card-art"><Suspense fallback={<GoalArtSkeleton/>}><SceneArt scene={scene}/></Suspense><span>{kind}</span></div>
   <div className="card-top"><span className="eyebrow">{kind}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span>{/* Session AF (the lead): the Checklist star and the card's options stay together at the row's end, so the options menu never opens past the card when the row wraps (it opened under the sidebar at 1280 × 720). */}{!compact&&g.status!=='closed'&&<span className="card-top-tools">{g.key.startsWith('private:')&&<StarToggle item={{kind:'goal',goalId:g.id}} label={g.name}/>}<PinToToday label={g.name} askName={g.name} choices={[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`,menu:'progress'},{kind:'goal',metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`,menu:'next contribution'}]} extra={<>{manage}<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button></>}/></span>}{/* Session AL (DV-043e, P-DV-61): a closed card keeps its ⋯, with Reopen and the artwork */}{!compact&&g.status==='closed'&&<span className="card-top-tools"><CardOptions label={g.name}>{manage}<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button></CardOptions></span>}</div>
   {picker&&<Suspense fallback={null}><GoalArtPicker goalKey={g.key} name={g.name} current={scene} onClose={()=>setPicker(false)} onPreview={setPreview}/></Suspense>}
   {/* Session AK M1: a private goal's full card (one per goal on its page) shares its title with the goal page's heading. */}

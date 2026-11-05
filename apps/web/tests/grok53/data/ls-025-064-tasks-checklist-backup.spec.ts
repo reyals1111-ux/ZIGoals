@@ -6,6 +6,7 @@ import {addProject, addTask} from '../../../lib/tasks/engine';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../../../lib/af-checklist-keys';
 import {checklistDaysSchema, checklistSchema, emptyChecklist} from '../../../lib/checklist/schema';
 import {addCustom} from '../../../lib/checklist/store';
+import {RECORD_LABELS} from '../../../lib/vault/backup-records';
 
 /**
  * Session AL (P-LS-36; LS-025, LS-064): Tasks and the Checklist come back from both backups. Fresh profile, fictional
@@ -60,14 +61,21 @@ test('LS-025: the encrypted backup holds Tasks and the Checklist, previews them 
   const download = page.waitForEvent('download');
   await vault.getByRole('button', {name: 'Download encrypted backup'}).click();
   const file = readFileSync((await (await download).path())!);
-  expect(JSON.parse(file.toString('utf8')).version).toBe(3);
+  // Session AL (deliberate, sweep 2): a file with Tasks or the Checklist is format 3, and format 4 once it also carries the
+  // device's other records (lib/vault/backup.ts backupFormatVersion). This profile may hold such records the app wrote on
+  // its own, so the format is checked against the sections the unlocked inventory lists below, never assumed.
+  const version = JSON.parse(file.toString('utf8')).version as number;
+  expect([3, 4]).toContain(version);
   await page.evaluate(keys => { for (const k of keys) localStorage.removeItem(k); }, [TASKS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY]);
   await vault.getByText('Restore an encrypted backup', {exact: true}).click();
   await vault.getByLabel('Encrypted backup file').setInputFiles({name: 'zigoals-encrypted-backup-v1.json', mimeType: 'application/json', buffer: file});
   await vault.getByLabel('Backup recovery secret').fill(secret);
   await vault.getByRole('button', {name: 'Unlock and preview'}).click();
   const inventory = vault.getByLabel('Protected backup inventory');
-  await expect(inventory).toContainText('Format version 3');
+  await expect(inventory).toContainText('Format version');
+  const listed = (await inventory.textContent()) ?? '';
+  expect(version).toBe(Object.values(RECORD_LABELS).some(label => listed.includes(label)) ? 4 : 3);
+  await expect(inventory).toContainText(`Format version ${version}`);
   await expect(inventory).toContainText('Open tasks: 1');
   await expect(inventory).toContainText('Path items: 1 · Health quick inputs: 1 · Days recorded: 1');
   for (const part of ['Tasks', 'Checklist']) {

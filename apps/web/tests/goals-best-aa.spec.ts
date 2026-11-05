@@ -21,7 +21,8 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   expect(finishedCount).toMatch(/^[1-9]/);
   // G8: the two active average goals sit among the cards.
   await expect(page.getByRole('article', {name: 'Create 2 hours a day'})).toBeVisible();
-  await expect(page.getByRole('article', {name: 'Sleep 7 hours a night'})).toContainText(/h a night on average · \d+ of 14 days recorded/);
+  // Session AL (deliberate, sweep 2; P-PR-25): the Showcase's sleep goal is 8 hours, as its Sleep page's goal (480 min).
+  await expect(page.getByRole('article', {name: 'Sleep 8 hours a night'})).toContainText(/h a night on average · \d+ of 14 days recorded/);
   // G3: the board, every goal a picture with its ring.
   await page.getByRole('group', {name: 'Show goals as'}).getByRole('button', {name: 'Vision board'}).click();
   await expect(page).toHaveURL(/view=board/);
@@ -34,7 +35,7 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   await page.getByRole('group', {name: 'Show goals as'}).getByRole('button', {name: 'Tree'}).click();
   const studio = page.locator('.goals-tree li[data-depth="0"]').filter({hasText: 'Launch my creative studio'});
   await expect(studio.locator('li[data-depth="1"]').filter({hasText: 'Create 2 hours a day'})).toBeVisible();
-  await expect(studio.locator('li[data-depth="2"]').filter({hasText: 'Sleep 7 hours a night'})).toBeVisible();
+  await expect(studio.locator('li[data-depth="2"]').filter({hasText: 'Sleep 8 hours a night'})).toBeVisible();
   await expect(studio.locator('> a')).toContainText('0 of 1 sub-goal done');
   await expect(finished).toHaveText(finishedCount);
   // A ring's number stays on one line (the row's text rule no longer reaches the ring).

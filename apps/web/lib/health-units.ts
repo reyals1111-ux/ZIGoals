@@ -20,6 +20,11 @@ export function weightText(grams: number, unit: WeightUnit): string {
 export function weightChangeText(grams: number, unit: WeightUnit): string {
   return `${grams > 0 ? "+" : grams < 0 ? "-" : ""}${weightText(Math.abs(grams), unit)}`;
 }
+/**
+ * Session AL sweep 2 (NOVA review M5): with no water entry today every surface says so in the same words NOVA uses
+ * (lib/nova/holo/health.ts, core.ts), so a 0 is never read as a measured zero.
+ */
+export const NO_WATER_TODAY = "No water logged yet today";
 /** "1,250 mL" or "42 fl oz", from millilitres. */
 export function waterText(millilitres: number, unit: WaterUnit): string {
   return unit === "fl-oz-us" ? `${formatNumber(Math.round(millilitres / ML_PER_US_FL_OZ))} fl oz` : `${formatNumber(millilitres, { maximumFractionDigits: 1 })} mL`;

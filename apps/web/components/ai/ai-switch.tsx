@@ -1,5 +1,6 @@
 'use client';
 import {useId, type ReactNode} from 'react';
+import './ai-switch.css';
 
 /**
  * One on/off row of ZIGi's settings (moved out of ai-settings.tsx in Session V Part 8 so the notes panel shares it).
