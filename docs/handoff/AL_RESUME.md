@@ -39,6 +39,14 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - Builds need `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Load is high with many helpers, so unit timeouts under load are re-run alone.
 
+## Owner cost rules (5 Nov) — in force for the rest of the session
+- At most 4 helpers until the full CI on the head is green, then at most 5 (never 10).
+- Order: CI1–CI5 → CI green → ADR-037 closing table kept filled → replay round 2 for L2–L8 in the order L7, L3, L2, L5, L4, L6, L8 → after the reset: the L1 fifth pass (TK-199, TK-191 + 12 open rows), Parts 13–16, ONE A10 cycle, Part 17.
+- Replays and audits read only their lane's AL rows in GROK53_LEDGER.md and, per id, only that finding's steps in the bot file (search by id); never a whole bot file or FINAL-REPORT.md.
+- Replays: round 2 for L2–L8, then ONE final full round on the final head; an extra per-pillar round only if a lane's round 2 shows more than 10 STILL OPEN.
+- One production build per integration point, shared; never one per helper.
+- Weekly reset: Sunday 12:00 Brussels; no extra usage. Before the limit: all committed and pushed, this file current, the task list true; never commit a half-finished fix.
+
 ## Lanes in flight (6 Nov, late morning)
 - **Committed (head `54e32039`, tree clean):** fourth passes L1–L6 (each on its replay's STILL OPEN rows); sweeps 2 and 3;
   P13 (one fact, one number: lib/consistency guards, the Showcase water habit in litres); PINS-AI; L8e and L8f (both HUD
