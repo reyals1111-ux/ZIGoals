@@ -11,6 +11,9 @@ test('MO-104: a name of only spaces is refused at the field, never as storage', 
   await page.getByRole('button', {name: 'New food', exact: true}).click();
   const form = page.getByRole('form', {name: 'Food details'});
   await form.getByLabel('Food name').fill('   ');
+  // The serving weight is a required field: left empty, the browser's own bubble stops the submit before the app sees
+  // the name. Moscow filled it (the save reached storage), so the name is the only thing wrong here.
+  await form.getByLabel('Serving weight (g)').fill('100');
   await form.getByLabel('Calories (kcal)').fill('100');
   await form.getByRole('button', {name: 'Save food'}).click();
   await expect(form.getByRole('alert')).toHaveText('Enter a name with at least one visible character.');

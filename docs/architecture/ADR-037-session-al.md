@@ -78,6 +78,7 @@ Bots re-tested #53 after Sessions AH–AK. In their conditions, many rows those 
 - **Q7, old ids without new evidence.** 238 old ids that the bots marked NOT RETESTED or out of their area have no 4 Nov evidence. They are not AL defect rows. They are replay-checked with the AH/AI scope rows in Part 14, and whatever fails there becomes a row.
 - **Q8, ZIGi's knock and moods below 901 px.** Nothing floats below 901 px (O3), so ZIGi's reminder knock and its closed-panel moods don't show there and nothing is counted for them. Its states still show in the open panel's own figure.
 - **Q9, "Hide ZIGi" below 901 px.** The launcher's device hide only applies where a launcher floats. Below 901 px, ZIGi is switched off through Settings → Your pages & buttons. "Ask ZIGi" stays offered until that switch is off.
+- **Q10, the goal wizard's "Create goal" before step 4 (P-LS-64).** It stays enabled. Session AK FR-1 made step 1's Create goal deliberate, and a grey button with no reason was itself a finding (MO-108). Missing information now gets a field error at its field instead: an empty Quantity unit says "Name what you count, for example books or BTC.".
 
 ## The ledger (R1), in numbers
 - **In:** 4,033 item lines from the eight bot files:

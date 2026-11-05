@@ -1,11 +1,15 @@
 import {expect, test} from '@playwright/test';
 import {freshHealth, openHealth} from './al-health-helpers';
 import {FASTING_KEY} from '../../../lib/fasting/schema';
+import {HEALTH_STORAGE_KEY} from '../../../lib/health';
+import {SYNC_WRITES} from '../../../lib/vault/sync-writes';
 
 // Session AL lane L2 (P-MO-55): Moscow MO-025/MO-115 (no backdate, no past fast). A fast can start from an earlier time,
 // and a past fast is logged with its times; a wrong one says why under the form. Desktop, fresh profile, 10:00 Brussels.
 test.use({timezoneId: 'Europe/Brussels', locale: 'en-GB', viewport: {width: 1280, height: 900}});
-const fasts = (page: import('@playwright/test').Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? '{"sessions":[]}').sessions, FASTING_KEY) as Promise<{startedAt: string; endedAt: string | null}[]>;
+// With the sync writes on (lib/vault/sync-writes.ts) fasts live in Health (`fasting`) and the device key is never
+// written; the first production run read the device key and found nothing (as tests/fasting.spec.ts reads them).
+const fasts = (page: import('@playwright/test').Page) => page.evaluate(([key, inHealth]) => { const raw = JSON.parse(localStorage.getItem(key as string) ?? 'null'); return (inHealth ? raw?.fasting : raw)?.sessions ?? []; }, [SYNC_WRITES ? HEALTH_STORAGE_KEY : FASTING_KEY, SYNC_WRITES] as const) as Promise<{startedAt: string; endedAt: string | null}[]>;
 
 test('MO-025: "Started earlier?" starts the fast at that time; a past fast is kept with its own times', async ({page}) => {
   await page.clock.install({time: new Date('2026-11-04T09:00:00.000Z')});

@@ -2,6 +2,7 @@
 import * as z from 'zod';
 import {contributionSchema,financeVersion,goalProgress,planScenario,platformSchema,rescaleUnits,type ContributionPlan,type ContributionEvent,type PlanRevision,type PrivateGoal,type Platform,type GoalLifecycle} from './positions';
 import type {MarketQuote} from './market-quotes';
+import {reachedByTargetEdit} from './goals/finished';
 import {epochDay,fromEpochDay,isCalendarDate,zonedDate} from '@zigoals/goal-engine/time';
 // Plan days come from the time helpers (timezone phase 2) in the plan's own zone (phase 3, R1: `plan.timeZone`, absent
 // means UTC, which every plan is until R2 writes a zone, so funding and plan days stay UTC in practice; QA-04). The
@@ -105,7 +106,10 @@ export function captureGoalLifecycle(before:Platform,after:Platform,now:number,q
   // changed in the save and the Goal not reached under its old target, no "Target reached" is recorded (no celebration,
   // no XP); a Goal already reached keeps its retained completion in the new cycle, as before.
   const editOnly=()=>{if(!old||old.target===g.target||evidence(before,{...old,target:g.target,targetDate:g.targetDate})!==evidence(after,g))return false;try{const b=goalProgress(before,old.id,now,quotes);return b.requiresReview||BigInt(b.current)<BigInt(b.target);}catch{return false;}};
-  if(observed&&g.status!=='closed'&&!events.some(e=>e.kind==='completed'&&e.cycle===cycle)&&!wasReached()&&!editOnly()){
+  // A capture tick (before===after, useValuationHistory right after that save) must not turn the edit into a win either:
+  // the Goal already reads as reached by its edit (lib/goals/finished.ts), so no "Target reached" (DV-025b, run 2).
+  const tickAfterEdit=before===after&&reachedByTargetEdit(g);
+  if(observed&&g.status!=='closed'&&!events.some(e=>e.kind==='completed'&&e.cycle===cycle)&&!wasReached()&&!editOnly()&&!tickAfterEdit){
    const p=goalProgress(after,g.id,now,quotes);
    if(!p.requiresReview&&BigInt(p.current)>=BigInt(p.target))add('completed',{current:p.current,evidence:p.breakdown.map(b=>{const position=after.positions.find(x=>x.id===b.positionId)!;return {positionId:b.positionId,quantity:b.quantity,positionQuantity:position.quantity,quantityDecimals:position.decimals,counted:b.counted,observedAt:position.observedAt,provenance:position.provenance,valuation:position.valuation,quote:b.valuation?.quote};})});
   }

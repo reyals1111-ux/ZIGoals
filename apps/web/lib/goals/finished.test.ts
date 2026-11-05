@@ -40,7 +40,7 @@ describe('finished', () => {
 
 // Session AL (DV-025b, P-DV-31): lowering the target below what is already counted is an edit, not a win.
 import {platformSchema, positionSchema} from '../positions';
-import {recordGoalChanges} from '../goal-intelligence';
+import {captureValuations, recordGoalChanges} from '../goal-intelligence';
 import {reachedByTargetEdit} from './finished';
 describe('a target lowered to what is counted', () => {
   const now = Date.parse('2026-11-04T10:00:00Z'), stamp = new Date(now).toISOString();
@@ -56,6 +56,16 @@ describe('a target lowered to what is counted', () => {
     expect(g.lifecycle?.map(e => e.kind)).toEqual(['target_changed']);
     expect(reachedByTargetEdit(g)).toBe(true);
     expect(edited.goalHistory.some(h => h.kind === 'status' && h.label === 'Goal completed')).toBe(false);
+  });
+  it('the goal page\'s capture right after the save (useValuationHistory) records no "Target reached" either (run 2)', () => {
+    const s = funded();
+    const edited = platformSchema.parse(recordGoalChanges(s, {...s, goals: [{...s.goals[0]!, target: '5000'}]}, now + 60_000));
+    const ticked = platformSchema.parse(captureValuations(edited, [], now + 120_000));
+    expect(ticked.goals[0]!.lifecycle?.map(e => e.kind)).toEqual(['target_changed']);
+    expect(reachedByTargetEdit(ticked.goals[0]!)).toBe(true);
+    // A goal the capture finds over its target with no edit behind it still records the win, as before.
+    const legacy = platformSchema.parse({...s, goals: [{...s.goals[0]!, target: '5000'}]});
+    expect(captureValuations(legacy, [], now + 120_000).goals[0]!.lifecycle?.map(e => e.kind)).toEqual(['completed']);
   });
   it('real progress that crosses the target still records the win and celebrates', () => {
     const s = funded();
