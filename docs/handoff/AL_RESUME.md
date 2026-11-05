@@ -39,21 +39,24 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - Builds need `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Load is high with many helpers, so unit timeouts under load are re-run alone.
 
-## Lanes in flight
-- **Committed:** second passes of L1, L2, L3, L4, L6, L10a and INT. Every lane reports 0 Open rows in docs/review/session-al/lanes/<lane>.md.
+## Lanes in flight (after the container restart of 5 Nov)
+- **Committed:** every pillar lane's second pass; INT; Part 14 lanes P14-B and P14-D; the HUD second pass; themes regenerated (`32e0bebd`).
 - **Running:**
-  - L7 (ZIGi/NOVA) second pass;
-  - L5 (Tasks) second pass;
-  - L8 (HUD) second pass;
-  - the Part 14 earlier-scope map, which writes EARLIER_SCOPE.md.
-- **Running in the background:** the full tests/grok53 run (run 2) on the branch build 48ff38eb (:3101).
+  - P14-A (chain/settings/INT/CI earlier rows plus L6's failing specs; resumed);
+  - FX-L3 (habits/today specs);
+  - FX-L2L4 (health/goals specs plus small requests);
+  - FX-MIX (tasks/checklist/data/shell/ai specs);
+  - L8c (NOVA panels, the HUD specs and perf numbers);
+  - the replay of L1, round 1 (GROK53_REPLAY_L1_1.md).
+- **Servers:** :3101 serves the branch build 5848c55c (/home/user/zig-branch); :3102 serves main 17069c7d (/home/user/zig-base). Both restart after a container restart, with `next start` in each `apps/web`.
+- **Browser runs** go through `flock -o /tmp/claude-0/zig-browser.lock`. `/tmp/claude-0/run2.done` marks the integrator's run as done.
 
 ## Exact next step
-1. Read run 2 and send each failure to its lane, or fix it directly when the lane has finished.
-2. Commit L7, L5 and L8 when each reports, with the full typecheck before every commit.
-3. Rebuild, then start the pillar replays (A1) with fresh agents, at most two browser runs at once. Each lane's replay file is GROK53_REPLAY_<lane>_1.md.
-4. Run the HUD design critic, then the first-time viewer.
-5. Then Parts 13-16 and the A10 cycles.
+1. Commit each fix-up as it reports, with the full tsc before each commit.
+2. Rebuild, then run run 3 of tests/grok53.
+3. Pillar replays for L2-L8 once their fix-ups land.
+4. The HUD design critic, then the first-time viewer.
+5. Then Parts 13, 15 and 16, and the A10 cycles.
 
 ## Open readings
 Q1–Q5 are in ADR-037.
