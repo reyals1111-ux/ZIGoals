@@ -18865,7 +18865,7 @@
         outline-color: var(--cyan)
     }
     .task-chip-p1:not(#\-) {
-        color: #b81329;
+        color: #ab2c39;
         border-color: currentColor
     }
     .task-chip-p2:not(#\-) {
@@ -18878,7 +18878,7 @@
         color: #b4232a
     }
     :scope[data-theme=light] .task-chip-p2:not(#\-) {
-        color: #a24d06
+        color: #8f4305
     }
     .task-project[data-colour] > span:first-child:not(#\-) {
         color: color-mix(in srgb, var(--task-colour) 42%, #000)

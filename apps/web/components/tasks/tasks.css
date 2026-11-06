@@ -117,10 +117,14 @@
 .task-title-button { all: unset; cursor: pointer; overflow-wrap: anywhere; }
 .task-title-button:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
 .task-meta { font-size: 14px; opacity: .9; }
-.task-chip-p1 { color: #e5484d; border-color: currentColor; font-weight: 650; }
+/* Session AL (CI22, CI 1579): the chips sit in the meta line at its 90 % opacity, so each colour is chosen for 4.5:1 there
+   (over the panel and over a selected row's tint). Nebula's P1 was #e5484d: 4.00:1 at 90 % on the Tasks panel (4.39 in
+   Dark), hidden whenever the row was overdue (its meta line is at full opacity, 4.72), so a P1 task due later today failed
+   1.4.3 and one past its time passed. Light's P2 was #a24d06: 4.38:1 at 90 %. Same hues, a step lighter / deeper. */
+.task-chip-p1 { color: #f47075; border-color: currentColor; font-weight: 650; }
 .task-chip-p2 { color: #f08c38; }
 .task-chip-p4 { color: var(--text-secondary, var(--muted)); }
-:root[data-theme=light] .task-chip-p1 { color: #b4232a; } :root[data-theme=light] .task-chip-p2 { color: #a24d06; }
+:root[data-theme=light] .task-chip-p1 { color: #b4232a; } :root[data-theme=light] .task-chip-p2 { color: #8f4305; }
 .task-project { display: inline-flex; align-items: center; gap: 2px; }
 .task-project[data-colour] > span:first-child { color: var(--task-colour); }
 .task-label { color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }

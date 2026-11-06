@@ -19625,7 +19625,7 @@
         outline-color: var(--cyan)
     }
     .task-chip-p1:not(#\-) {
-        color: #e5484d;
+        color: #f47075;
         border-color: currentColor
     }
     .task-chip-p2:not(#\-) {
