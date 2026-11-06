@@ -23,6 +23,9 @@ import {questionLanguage} from './no-model';
 import {isStreakBreak, streakBreakWords} from './p14b';
 import {isFoodEstimateAsk} from './al-third';
 import {safetyFirst} from '../safety-guard';
+import {unitFor} from '../../plural';
+import {averageKey} from '../../average-goals/store';
+import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -190,6 +193,25 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
   // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.
   if (safetyFirst(question)) return NONE;
+  // Session AL fifth pass (L7-5b; Lisbon #216, LA-028, LZ-019): a phrase typed again and again is asked once; a message of
+  // several lines is answered line by line when every line has its own answer here (one line without one: the no-model
+  // path or the person's AI takes the whole message, so no line is dropped).
+  if (!subject) {
+    const once = onePhrase(question); if (once) return localAnswer(once, env);
+    const parts = messageLines(question);
+    if (parts) {
+      const replies = parts.map(p => { try { return localAnswer(p, env); } catch { return NONE; } });
+      if (replies.every(r => r.kind === 'answer' || r.kind === 'refusal')) return joinReplies(replies);
+      if (replies.some(r => r.kind !== 'none')) return NONE;
+    }
+  }
+  // Session AL fifth pass (L7-5b; Denver DVR:Z-052, Z-021, N-040; Nairobi H7): two goals named in one question get both
+  // answers; a goal that keeps an average is a goal (its own figures, Health's days only with Health shared); a habit's
+  // name with a past period is that question, never today's check-in.
+  if (!subject) {
+    const own = fifthLookup(normalizeSpoken(question), env);
+    if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, 'en') : own; }
+  }
   if (!subject && strongMatchOnly(question)) return NONE;
   // Session AL third pass (L7; P14-B): "how many calories in my plate of pasta" asks about a food, not today's diary. The
   // lookups stay out: the person's AI answers it, or with none, no-model.ts says what the food library holds.
@@ -201,6 +223,50 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   const lang = questionLanguage(question) === 'nl' ? 'nl' : 'en', words = (reply: LocalReply) => novaWording(reply, nova, lang);
   if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return words(af); const own = novaOverviewAnswer(normalizeSpoken(question), env, nova); if (own) return words('text' in own ? {...own, text: groupUnits(own.text)} : own); }
   return words(engineAnswer(question, env, subject));
+}
+/**
+ * Session AL fifth pass (lane L7-5b): the goal and habit lookups the replay of 37d2370c found answered with something else.
+ * - Two or more goals named by their whole names in one question ("How far am I on my Emergency fund goal and my First
+ *   home deposit goal?") get each goal's own answer, never this month's contributions (Denver DVR:Z-052). A goal whose
+ *   name holds a contribution word ("First home deposit") is still that goal.
+ * - A goal that keeps an average ("Sleep 7 hours a night") is a Goals record: its name, target and window are answered under
+ *   Goals; the days it averages come from Health and are read only with Health shared, else said to be unknown here
+ *   (Denver Z-021, N-040). Nothing of Health is read while the gate is closed.
+ * - "Exercise last week" (a habit's whole name and a past period) is the question for that period (Nairobi H7).
+ */
+/** One environment is one snapshot of the records, so its goals are summed up once for the lookups above. */
+const GOALS_ONCE = new WeakMap<ToolEnv, ReturnType<typeof summaries>>();
+const goalsOnce = (env: ToolEnv) => { let hit = GOALS_ONCE.get(env); if (!hit) { hit = summaries(env); GOALS_ONCE.set(env, hit); } return hit; };
+function fifthLookup(question: string, env: ToolEnv): LocalReply | null {
+  if (questionLanguage(question) === 'nl') return null;
+  const q = question.toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
+  if (!q || q.length > 300 || MIXED.test(q)) return null;
+  const period = pastPeriodAsk(q, env.areas.habits === false ? [] : env.habits.habits.filter(h => latestHabitRule(h).state === 'active').map(h => h.title));
+  if (period) { let r: LocalReply = NONE; try { r = engineAnswer(period, env); } catch { r = NONE; } return r.kind === 'none' || r.kind === 'examples' ? null : r; }
+  if (env.areas.goals === false || ACTION.test(q) || STATEMENT.test(q)) return null;
+  if (!GOAL_PROGRESS.test(q) && !/^(?:show|list|what about|how about)\b/.test(q) && !/\bgoals?\b/.test(q)) return null;
+  const whole = goalsOnce(env).filter(g => g.status !== 'closed' && namesGoal(g.name, q));
+  const averages = (env.averageGoals ?? []).filter(g => g.status !== 'closed' && namesGoal(g.name, q) && !whole.some(w => normalise(w.name) === normalise(g.name)));
+  const rest = whole.reduce((t, g) => t.replace(normalise(g.name), ' '), ` ${normalise(q)} `);
+  if (whole.length + averages.length >= 2) {
+    const replies = [...whole.slice(0, 4).map(g => goalProgress(env, g.key, rest)), ...averages.slice(0, 4).map(g => averageAnswer(env, g))];
+    return joinReplies(replies);
+  }
+  if (averages.length === 1 && !whole.length) return averageAnswer(env, averages[0]!);
+  // "How far am I on my First home deposit goal?": the goal, not the contributions of the month.
+  if (whole.length === 1 && CONTRIBUTION.test(q) && !CONTRIBUTION.test(rest) && GOAL_PROGRESS.test(rest)) return goalProgress(env, whole[0]!.key, rest);
+  return null;
+}
+/** One goal that keeps an average, from the Goals tool's own row (the Health gate decides whether its days are read). */
+function averageAnswer(env: ToolEnv, goal: {id: string; name: string}): LocalReply {
+  // By its handle, so a Goals-page goal with a like name ("DV Count books" for "DV Sleep avg") is never read instead.
+  const handle = env.handles.add('goal', averageKey(goal.id), goal.name);
+  const r = call(env, 'goal_progress', {goal: handle}), refused = refusalOf([r]); if (refused) return refused;
+  const d = dataOf(r.result), title = clean(String(d.name ?? goal.name), 60), head = `${title} (a goal that keeps an average): ${d.target} over ${d.window}.`;
+  if (d.type !== 'Keep an average') return {kind: 'answer', text: `${title}: ${d.progress ?? 'unknown'} of the target.`, calls: [r.record]};
+  if (d.note) return {kind: 'answer', text: lines(head, ['Its days come from Health, which isn’t shared here, so its average is not read (unknown here, never zero). The goal itself stays on Goals.']), calls: [r.record]};
+  if (d.now === 'unknown') return {kind: 'answer', text: lines(head, [`No day with a value in the window yet${d.daysRecorded ? ` (${d.daysRecorded} recorded)` : ''}.`]), calls: [r.record]};
+  return {kind: 'answer', text: lines(head, [`Average now: ${d.now} (${d.progress} of the target), ${d.daysRecorded} recorded${d.met ? '; the target is met' : ''}.`]), calls: [r.record]};
 }
 /**
  * Session AL (lane L7; DV-074, LA-005, LZ-009, P-DV-83, P-LA-15): NOVA's overview answers (goals overview, due today, sleep,
@@ -468,7 +534,8 @@ function habitAnswer(env: ToolEnv, habit: Habit, q: string, found: DayRange[]): 
   const title = clean(habit.title, 60), rule = latestHabitRule(habit), unit = measurementUnit(rule) || (rule.measurement.kind === 'boolean' ? 'check-ins' : '');
   const timed = rule.measurement.kind === 'duration' || MIN_UNITS.has(unit.toLowerCase()) || /^(h|hr|hrs|hour|hours)$/i.test(unit);
   const stats = (r: DayRange, metric: string) => call(env, 'habit_stats', {habit: title, range: rangeArg(r), metric});
-  const valueOf = (d: Record<string, any>) => typeof d.value === 'number' ? `${n(d.value, 2)} ${d.unit}` : d.valueText as string; // eslint-disable-line @typescript-eslint/no-explicit-any
+  // Session AL fifth pass (L7-5b; Lisbon LA-034): "Drink water: 1 time today", the unit singular after exactly 1 (lib/plural.ts).
+  const valueOf = (d: Record<string, any>) => typeof d.value === 'number' ? `${n(d.value, 2)} ${unitFor(d.value, String(d.unit))}` : d.valueText as string; // eslint-disable-line @typescript-eslint/no-explicit-any
   if (W.streakBest.test(q) || W.streak.test(q)) {
     const s = call(env, 'habit_stats', {habit: title, metric: 'streak'}), refused = refusalOf([s]); if (refused) return refused;
     const st = dataOf(s.result).streak as {current: number; best: number; unit: string};

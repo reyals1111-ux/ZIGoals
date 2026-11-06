@@ -15,6 +15,7 @@ import {novaEnvInfo} from './nova-env';
 import {amount, plural} from './words';
 import {actionSchema} from '../actions/schema';
 import {memoryCategory} from './al-more';
+import {ADVICE_REPLIES, DO_WITH_LINE, doWithAsk, isMoneyThing} from '../safety-guard';
 
 /**
  * Session AL fourth pass (lane L7-4b; GROK53_REPLAY_L7_1, the rows still open on c521574f): what ZIGi's and NOVA's no-model
@@ -40,6 +41,8 @@ const norm = (raw: string) => raw.trim().replace(/[’`]/g, '\'').replace(/\s+/g
 const fold = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, ' ').replace(/\s+/g, ' ').trim();
 const money = (value: unknown) => { const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(String(value ?? '')); return m ? amount(m[1]!, m[2]!) : String(value ?? ''); };
 const who = (env: ToolEnv | null) => env && novaEnvInfo(env) ? 'NOVA' : 'ZIGi';
+/** A routine asked for (written for the person), never "show/open my routines" (navigation) or a routine's own name. */
+const ROUTINE_ASK = /\b(?:give|get|make|build|design|write|plan|suggest|recommend|create|need|want)\s+(?:me\s+|myself\s+)?(?:a|an|my|some)\b[^.?!]{0,30}\broutines?\b|\b\d+[- ]?(?:minutes?|mins?|min)\s+(?:\w+\s+)?routines?\b|^\s*(?:a\s+)?(?:quick\s+|short\s+|simple\s+|good\s+)?(?:morning|evening|night|bedtime|nighttime|wind[- ]down|sleep)\s+routines?(?:\s+for\s+(?:me|tonight|tomorrow|today))?\s*[.!?]*\s*$|\broutines?\s+for\s+(?:tonight|tomorrow|my (?:mornings?|evenings?|nights?))\b/i;
 const brainPlace = (env: ToolEnv | null, lang: Lang) => env && novaEnvInfo(env) ? say(lang, 'NOVA → setup (“Build NOVA’s brain”)', 'NOVA → setup (“Build NOVA’s brain”)') : say(lang, 'Settings → ZIGi · Your Personal AI Companion', 'Settings → ZIGi · Your Personal AI Companion');
 
 /** The device's own answer to a question in its words (the lookups, then the overview ZIGi shares with NOVA), or null. */
@@ -447,7 +450,9 @@ export function fourthAnswer(question: string, env: ToolEnv | null, lang: Lang, 
   if (did && !env.areas.habits) return noHabit(env, did[1]!, lang);
   if (did) { const habit = habitNamed(env, did[1]!); if (habit) return habitToday(env, habit, lang); }
   // A suggestion, a routine or a habit stack is the person's own AI's to write (Nairobi H6, N16, N17, N22, NB-111, NB-121).
-  if (/^(?:please\s+)?(?:suggest|recommend)\b|\bhabit stack\b|\b(?:build|make|design) (?:me )?a (?:morning|evening|night) routine\b|\bcoach me\b/i.test(q))
+  // Session AL fifth pass (L7-5b; Nairobi N16/N17, T6/T7): "10-minute morning routine", "give me a 10-minute routine for
+  // tonight", "a routine for my mornings" are the same ask; Habits → Routines holds the person's own routines.
+  if (/^(?:please\s+)?(?:suggest|recommend)\b|\bhabit stack\b|\b(?:build|make|design) (?:me )?a (?:morning|evening|night) routine\b|\bcoach me\b/i.test(q) || ROUTINE_ASK.test(q))
     return {kind: 'answer', text: say(lang, `Suggestions and routines written for you need your own AI (${brainPlace(env, lang)}). Without one: Habits → Routines strings your own habits into a routine, and a habit’s page sets “after another habit” to stack it.`, 'Suggesties en routines op maat vragen je eigen AI. Zonder AI: Habits → Routines zet je eigen gewoontes in een routine.') + open('habits', 'routines'), calls: []};
   if (DONE_FOR_TODAY.test(q)) {
     const base = deviceAnswer('What is due today?', env);
@@ -461,8 +466,14 @@ export function fourthAnswer(question: string, env: ToolEnv | null, lang: Lang, 
   // Goals (Denver Z-006, Z-023/24, N-023, N-038, N-042, N-060, LZ-010, DVR:Z-049/051/053/054).
   if (FOCUS_GOAL.test(q)) return focusGoal(env, lang);
   // "What should I do with my Emergency fund?": no advice, the goal's own figures (Denver DVR:D-061, handed over by L7-4a).
-  const doWith = /\bwhat should i do with (?:my |the )?(.{2,60}?)(?:\s+goal)?\s*\??$/i.exec(q);
-  if (doWith && goalNamed(env, doWith[1]!)) { const facts = goalAsk(env, doWith[1]!, q, lang); return {kind: 'answer', text: say(lang, 'What to do with it is your choice: I don’t advise on money. The goal’s own figures: ', 'Wat je ermee doet is jouw keuze: ik geef geen geldadvies. De cijfers van het doel: ') + (facts && 'text' in facts ? facts.text : ''), calls: facts && 'calls' in facts ? facts.calls : []}; }
+  // Session AL fifth pass (L7-5b, from L7-5a; DVR:D-061): the Dutch "Wat moet ik met mijn noodfonds doen?" too, read by the
+  // guard's own `doWithAsk`; a money thing that is no goal ("mijn spaargeld", "my savings") gets the no-advice line.
+  const doWith = doWithAsk(q);
+  if (doWith) {
+    const said = doWith.said, l: Lang = doWith.lang === 'nl' ? 'nl' : lang;
+    if (goalNamed(env, said)) { const facts = goalAsk(env, said, q, l); return {kind: 'answer', text: DO_WITH_LINE[l] + (facts && 'text' in facts ? facts.text : ''), calls: facts && 'calls' in facts ? facts.calls : []}; }
+    if (isMoneyThing(said)) return {kind: 'answer', text: ADVICE_REPLIES.money[l], calls: []};
+  }
   if (BIGGEST_GOAL.test(q)) return biggestGoal(env, lang, /\b(?:smallest|lowest)\b/i.test(q));
   if (NEXT_CONTRIBUTION.test(q)) return nextContribution(env, lang);
   const named = GOAL_NEED.exec(q) ?? GOAL_DATE.exec(q) ?? GOAL_HAVE.exec(q) ?? GOAL_PROGRESS_LOOSE.exec(q);

@@ -4,6 +4,7 @@ import {gatesFor, showcaseSources} from '../tools/fixtures';
 import {parseReply} from '../actions/parse';
 import {localAnswer} from './engine';
 import {EXAMPLES_INTRO} from './examples';
+import {UNMATCHED_EN} from './al-fifth';
 import {EXAMPLES_INTRO_NL, howToReply, noModelReply, questionLanguage} from './no-model';
 
 // Session AB-Cloud Part 9 (ADR-023 C30): what ZIGi says with no model after the device's own answers had none.
@@ -19,7 +20,10 @@ test('a Dutch question gets its introduction in Dutch; the examples stay the Eng
     expect('examples' in r ? r.examples.length : 0, q).toBeGreaterThan(0);
     for (const example of 'examples' in r ? r.examples : []) expect(localAnswer(example, env()).kind, example).not.toBe('none');
   }
-  for (const q of ['Tell me a joke', 'What should I do today?', 'Is de app klaar?']) expect(noModelReply(q, env())).toMatchObject({kind: 'examples', text: EXAMPLES_INTRO});
+  // Session AL fifth pass (L7-5b; Lisbon N-LA-01, deliberate): an ask nothing matched that is not read as Dutch ("Is de app
+  // klaar?" has one Dutch word) leads with what the device does (UNMATCHED_EN), then the same introduction; a whole Dutch
+  // question keeps the Dutch introduction alone (pinned above).
+  for (const q of ['Tell me a joke', 'What should I do today?', 'Is de app klaar?']) expect(noModelReply(q, env())).toMatchObject({kind: 'examples', text: `${UNMATCHED_EN}\n${EXAMPLES_INTRO}`});
 });
 
 test('create a food, log a meal plan and plan a goal get their steps and a button to the right page, in English or Dutch', () => {

@@ -69,7 +69,13 @@ describe('advice is answered on the device first, but is not the pre-model guard
   test('the no-advice copy is the device advice answer\'s own words (lib/ai/local-answers/ai-session.ts)', async () => {
     const {readFileSync} = await import('node:fs');
     const src = readFileSync(new URL('../local-answers/ai-session.ts', import.meta.url), 'utf8');
-    for (const lang of ['en', 'nl'] as const) for (const t of ['money', 'health'] as const) expect(src, `${t}/${lang}`).toContain(ADVICE_REPLIES[t][lang]);
+    // Session AL fifth pass (L7-5b, deliberate): ai-session.ts no longer keeps its own copy of the words; it imports the
+    // guard's ADVICE_REPLIES, and its advice answer returns exactly those words for each topic, in EN and NL.
+    expect(src).toMatch(/import \{ADVICE_REPLIES\} from '\.\.\/safety-guard';/);
+    expect(src).not.toContain('I can’t advise on buying, selling, staking or investing'); // one copy only: the guard's
+    const {simpleCommand} = await import('../local-answers/ai-session');
+    const asks = {money: {en: 'Should I buy BTC now?', nl: 'Moet ik nu ETH kopen?'}, health: {en: 'Should I stop my diet?', nl: 'Moet ik stoppen met mijn dieet?'}} as const;
+    for (const lang of ['en', 'nl'] as const) for (const t of ['money', 'health'] as const) expect(simpleCommand(asks[t][lang]), `${t}/${lang}`).toEqual({kind: 'answer', text: ADVICE_REPLIES[t][lang], calls: []});
   });
   test('adviceTopic reads EN and NL alike', () => {
     expect(adviceTopic('Should I sell my ETH now?')).toBe('money');

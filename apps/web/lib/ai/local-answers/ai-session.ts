@@ -7,6 +7,8 @@ import type {ToolOk, ToolResult} from '../tools/types';
 import {questionLanguage} from './no-model';
 import {patternLine, patterns} from '../../journal/reflect';
 import type {LocalReply, ToolCallRecord} from './engine';
+import {isNativeZig, quoteIsStale, type MarketQuote} from '../../market-quotes';
+import {ADVICE_REPLIES} from '../safety-guard';
 
 /**
  * Session AI (ZI2, ZI11, ZI12, ZI13, G11): natural questions the device answers itself, in English and Dutch, from the
@@ -86,7 +88,7 @@ function worstHabitAnswer(lang: Lang, env: ToolEnv): LocalReply {
   return {kind: 'answer', text: say(lang, `Over the last 30 days, ${low!.title} has the lowest completion: ${pct(low!.rate)} of its scheduled days (${low!.complete} of ${low!.scheduled}).${tail} Every check-in still counts.`,
     `De afgelopen 30 dagen heeft ${low!.title} de laagste voltooiing: ${pct(low!.rate)} van de geplande dagen (${low!.complete} van ${low!.scheduled}).${tail} Elke check-in telt.`), calls};
 }
-function priceAnswer(lang: Lang, asset: string, env: ToolEnv): LocalReply {
+function priceAnswer(lang: Lang, asset: string, env: ToolEnv, q = ''): LocalReply {
   const symbol = /^bitcoin$/i.test(asset) ? 'BTC' : /^ether/i.test(asset) ? 'ETH' : asset.toUpperCase();
   const h = call('holdings', {asset: symbol}, env), calls = [h.record], lines: string[] = [];
   if (h.result.ok) {
@@ -97,13 +99,32 @@ function priceAnswer(lang: Lang, asset: string, env: ToolEnv): LocalReply {
       lines.push(say(lang, `Wealth: ${price} ${m[2]} per ${symbol} (${row.priceSource ?? 'source unknown'}${row.valuedAt && row.valuedAt !== 'unknown' ? `, ${row.valuedAt.slice(0, 16).replace('T', ' ')} UTC` : ''}).`, `Vermogen: ${price} ${m[2]} per ${symbol} (${row.priceSource ?? 'bron onbekend'}${row.valuedAt && row.valuedAt !== 'unknown' ? `, ${row.valuedAt.slice(0, 16).replace('T', ' ')} UTC` : ''}).`));
     }
   }
+  // Session AL fifth pass (L7-5b; Tokyo TK #10, TK-050): where each figure comes from. A value the person typed in Wealth is
+  // theirs, not a market price; the market's own price (the feed Markets reads) is named beside it, or said to be missing.
+  const manual = lines.length > 0 && (dataOf(h.result)?.holdings as {priceSource?: string}[] | undefined ?? []).some(r => /manual/i.test(r.priceSource ?? ''));
+  const quote = marketQuote(env.quotes ?? [], symbol, env.now.getTime());
+  if (quote) lines.push(say(lang, `Markets: ${quote.text} per ${symbol} (${quote.source}${quote.at ? `, ${quote.at} UTC` : ''}${quote.stale ? ', older than 15 minutes' : ''}).`, `Markten: ${quote.text} per ${symbol} (${quote.source}${quote.at ? `, ${quote.at} UTC` : ''}${quote.stale ? ', ouder dan 15 minuten' : ''}).`));
+  else if (manual) lines.push(say(lang, `The Wealth figure is the value you entered yourself (Manual value), not a market price. Markets has no live ${symbol} price on this device right now (the Markets page shows the same).`, `Het Vermogen-bedrag is de waarde die je zelf invulde (Manual value), geen marktprijs. Markten heeft nu geen actuele ${symbol}-prijs op dit apparaat.`));
   const p = call('portfolios', {}, env); calls.push(p.record);
+  // Session AL fifth pass (L7-5b; Tokyo TK #14): "… in EUR?" when the figures are in another currency says so; nothing is converted.
+  const wanted = /\b(?:in|naar)\s+(usd|eur|dollars?|euros?)\b/i.exec(q)?.[1], code = wanted ? (/^(?:usd|dollars?)$/i.test(wanted) ? 'USD' : 'EUR') : null;
   if (p.result.ok) for (const pf of (dataOf(p.result).portfolios as {portfolio: string; coins: {coin: string; price: string}[]}[] | undefined) ?? []) {
     const coin = pf.coins.find(c => c.coin.toUpperCase() === symbol);
     if (coin && coin.price !== 'no price') lines.push(say(lang, `Portfolio “${pf.portfolio}”: ${coin.price}.`, `Portfolio “${pf.portfolio}”: ${coin.price}.`));
   }
   if (!lines.length) return {kind: 'answer', text: say(lang, `${symbol} is not tracked in Wealth or Portfolio, so this device has no price for it. Prices appear once you track it.`, `${symbol} staat niet in Vermogen of Portfolio, dus dit apparaat heeft er geen prijs voor. Prijzen verschijnen zodra je het bijhoudt.`), calls};
+  if (code && !lines.some(l => new RegExp(`\\b${code}\\b`).test(l))) lines.push(say(lang, `No ${code} price for ${symbol} on this device: each figure stays in the currency its page holds, never converted.`, `Geen ${code}-prijs voor ${symbol} op dit apparaat: elk bedrag blijft in de munt van zijn pagina, nooit omgerekend.`));
   return {kind: 'answer', text: `${lines.join('\n')}\n${say(lang, 'Prices as these pages show them; facts only, not advice.', 'Prijzen zoals deze pagina’s ze tonen; alleen feiten, geen advies.')}`, calls};
+}
+const MARKET_IDS: Record<string, string> = {BTC: 'bitcoin', ETH: 'ethereum', SOL: 'solana', ZIG: 'zignaly'};
+/** The market feed's price for a symbol, as Markets reads it (native ZIG by its chain identity), or null when none reached this device. */
+function marketQuote(quotes: readonly MarketQuote[], symbol: string, now: number): {text: string; source: string; at: string | null; stale: boolean} | null {
+  const q = quotes.find(x => symbol === 'ZIG' ? isNativeZig(x.base) : x.providerAssetId.toLowerCase() === (MARKET_IDS[symbol] ?? symbol.toLowerCase()));
+  if (!q) return null;
+  let value: string;
+  try { value = new Decimal(q.price).div(new Decimal(10).pow(q.priceDecimals)).toSignificantDigits(6).toFixed(); } catch { return null; }
+  const at = q.observedAt ?? q.fetchedAt ?? null;
+  return {text: `${value} ${q.currency}`, source: q.source, at: at ? at.slice(0, 16).replace('T', ' ') : null, stale: quoteIsStale(q, now)};
 }
 function whyAnswer(lang: Lang, q: string, env: ToolEnv): LocalReply {
   const period = /\b(?:month|maand)\b/i.test(q) ? 'month' : /\b(?:year|jaar)\b/i.test(q) ? 'year' : 'week';
@@ -148,7 +169,11 @@ export function habitDraft(raw: string): {title: string; schedule?: 'daily' | {t
     if (h > 23 || min > 59) return false;
     at = `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`; timeOfDay = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
   });
-  take(/\s(?:in the\s+)?(morning|afternoon|evening)s?(?=\s)/i, m => { timeOfDay = m[1]!.toLowerCase() as 'morning' | 'afternoon' | 'evening'; });
+  // Session AL fifth pass (L7-5b; Berlin ZIGi #19): a time-of-day word that starts the name the person gave is part of the
+  // name ("Add a habit called Evening walk" is "Evening walk", in the evening); "Walk in the evening" stays "Walk".
+  const lead = /^\s(morning|afternoon|evening)\s+(?!(?:every|each|daily|at|on|for|in)\b)\S/i.exec(t);
+  if (lead) timeOfDay = lead[1]!.toLowerCase() as 'morning' | 'afternoon' | 'evening';
+  else take(/\s(?:in the\s+)?(morning|afternoon|evening)s?(?=\s)/i, m => { timeOfDay = m[1]!.toLowerCase() as 'morning' | 'afternoon' | 'evening'; });
   take(/\s(?:for\s+)?(\d{1,3})\s*(minutes?|mins?|min|hours?|hrs?|h)(?=\s)/i, m => { const n = Number(m[1]); if (!(n > 0)) return false; measurement = /^h/i.test(m[2]!) ? 'hours' : 'minutes'; target = n; });
   const title = t.replace(/\s+/g, ' ').trim().replace(/[,;:]+$/, '');
   return {title: title || raw.trim(), ...(schedule ? {schedule} : {}), ...(timeOfDay ? {timeOfDay} : {}), ...(at ? {at} : {}), ...(measurement ? {measurement, target} : {})};
@@ -172,8 +197,9 @@ const HEALTH_ADVICE = /\b(?:should i|can i|is it (?:safe|ok|okay|healthy) (?:for
 /** Session AL (L7; Nairobi P10/N8, P-NB-70): "is BTC a buy?", "is ZIG a good investment?", "is het een goede belegging?". */
 const IS_A_BUY = /\bis\s+(?:\S+\s+){1,3}(?:a\s+)?(?:good\s+|smart\s+)?(?:buy|sell|investment|bargain)\b|\b(?:worth|time to)\s+(?:buying|selling|investing)\b|\bis\s+(?:\S+\s+){1,3}(?:een\s+)?(?:goede\s+)?(?:koop|belegging|investering)\b/i;
 function adviceReply(q: string, lang: Lang): LocalReply | null {
-  if (MONEY_ADVICE.test(q) || IS_A_BUY.test(q)) return {kind: 'answer', text: say(lang, 'I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.', 'Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”.'), calls: []};
-  if (HEALTH_ADVICE.test(q)) return {kind: 'answer', text: say(lang, 'This is not medical advice, and I can’t give it: a doctor or pharmacist can help with that. I can show what your own records hold, for example “Did I sleep enough?”.', 'Dit is geen medisch advies, en dat kan ik niet geven: een arts of apotheker kan je daarbij helpen. Ik kan laten zien wat je eigen gegevens tonen, bijvoorbeeld “Heb ik genoeg geslapen?”.'), calls: []};
+  // Session AL fifth pass (L7-5b): the words live once, in the guard's ADVICE_REPLIES (lib/ai/safety-guard.ts).
+  if (MONEY_ADVICE.test(q) || IS_A_BUY.test(q)) return {kind: 'answer', text: ADVICE_REPLIES.money[lang], calls: []};
+  if (HEALTH_ADVICE.test(q)) return {kind: 'answer', text: ADVICE_REPLIES.health[lang], calls: []};
   return null;
 }
 export function simpleCommand(question: string): LocalReply | null {
@@ -246,6 +272,6 @@ export function aiLocalAnswer(question: string, env: ToolEnv): LocalReply | null
   if (SPEND_Q.test(q)) return spendAnswer(lang, q, env);
   if (WHAT_SEE.test(q)) return whatSeeAnswer(lang, env);
   const asset = ASSET.exec(q);
-  if (asset && PRICE.test(q)) return priceAnswer(lang, asset[1]!, env);
+  if (asset && PRICE.test(q)) return priceAnswer(lang, asset[1]!, env, q);
   return null;
 }

@@ -78,5 +78,7 @@ test('"What can you do?" says what works now and what a brain adds, with one tap
 
 test('the examples\' introduction never contradicts "Private intelligence"', () => {
   for (const intro of [EXAMPLES_INTRO, EXAMPLES_INTRO_NL]) expect(intro).not.toMatch(/without any AI|zonder AI/i);
-  expect(noModelReply('Tell me a joke', env())).toMatchObject({kind: 'examples', text: 'Until you give me a brain, I answer from your own records on this device. For example:'});
+  // Session AL fifth pass (L7-5b; Lisbon N-LA-01, deliberate): an unmatched English ask now says first what the device
+  // answers and prepares, then the same introduction; the whole text is still pinned, word for word.
+  expect(noModelReply('Tell me a joke', env())).toMatchObject({kind: 'examples', text: 'That isn’t something I can answer from your records here. Without a brain I answer about your habits, Checklist, tasks, goals, Health (once you share it) and money, and I prepare cards you confirm for check-offs, tasks and new habits.\nUntil you give me a brain, I answer from your own records on this device. For example:'});
 });

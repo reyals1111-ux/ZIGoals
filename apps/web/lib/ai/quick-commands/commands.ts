@@ -39,7 +39,7 @@ const names = (list: readonly string[], lang: CommandLang, shown = 3) => { const
 /** A day other than today is the other routes' (the day cue, the person's AI): a command is for now. */
 const OTHER_DAY = /\b(?:yesterday|tomorrow|last|next|ago|monday|tuesday|wednesday|thursday|friday|saturday|sunday|week|gisteren|eergisteren|morgen|vorige|volgende|geleden|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag)\b|\d{4}-\d{2}-\d{2}/;
 type Template = {lang: CommandLang; re: RegExp; make: (m: RegExpExecArray) => Parsed | null};
-type Parsed = {verb: 'check' | 'uncheck' | 'add' | 'favourite' | 'sleep-start' | 'sleep-end' | 'timer-start' | 'timer-stop' | 'fast-start' | 'fast-stop' | 'list'; item?: string; hours?: number};
+type Parsed = {verb: 'check' | 'uncheck' | 'add' | 'favourite' | 'sleep-start' | 'sleep-end' | 'timer-start' | 'timer-stop' | 'fast-start' | 'fast-stop' | 'list'; item?: string; hours?: number; past?: boolean};
 const item = (s: string | undefined) => s?.replace(/^(?:my|the|mijn|de|het|m'n)\s+/, '').trim() || undefined;
 const T = (lang: CommandLang, re: RegExp, make: Template['make']): Template => ({lang, re, make});
 const TEMPLATES: readonly Template[] = [
@@ -66,6 +66,9 @@ const TEMPLATES: readonly Template[] = [
   // Session AL (LA-006/LA-033): "I did my stretching", "Done: stretch", "I've done Read 10 pages".
   T('en', /^(?:i did|i've done|i have done|i just did|i finished|i've finished|done:) (.{2,60})$/, m => ({verb: 'check', item: item(m[1])})),
   T('en', /^done with (.{2,60})$|^(.{2,60}?) (?:is |are )?(?:done|finished|complete)(?: for today| today)?$/, m => ({verb: 'check', item: item(m[1] ?? m[2])})),
+  // Session AL fifth pass (L7-5b; Lisbon own-b, N-LA-01): "I flossed my teeth" for the person's own item "Floss teeth": a past
+  // verb and its object, matched word for word against the names on the path (`resolvePast`). A miss, a skip or a plan is no check-off.
+  T('en', /^i (?:just |already )?(?!(?:missed|skipped|forgot|failed|broke|hated|wanted|needed|tried|planned|stopped|quit|started|logged|checked|ticked|added|deleted|removed|changed|moved|paused|booked|ordered|called|cancel+ed)\b)([a-z]{3,20}ed) (?:my |the |some |a |an |our )?([a-z][a-z' -]{1,40})$/, m => ({verb: 'check', item: `${m[1]} ${m[2]}`, past: true})),
   // ---- Dutch ----
   T('nl', /^(?:start|begin) (?:mijn |de |m'n )?(?:slaaptimer|slaap ?timer|slaap|nacht)$/, () => ({verb: 'sleep-start'})),
   T('nl', /^ik ga (?:nu )?(?:slapen|naar bed)$/, () => ({verb: 'sleep-start'})),
@@ -115,6 +118,22 @@ function resolve(list: readonly Named[], name: string): {one: Named} | {ambiguou
   const words = key.split(/[^a-z0-9]+/).filter(w => w.length > 2 && !/^(?:the|my|and|for|today|all|done|with)$/.test(w)), some = list.filter(n => { const own = n.label.toLowerCase().split(/[^a-z0-9]+/); return words.some(w => own.includes(w) || (stem(w).length >= 4 && own.some(o => o.startsWith(stem(w)) || stem(o) === stem(w)))); });
   if (some.length === 1) return {one: some[0]!};
   return some.length > 1 ? {ambiguous: some.slice(0, 4)} : null;
+}
+/**
+ * A past check-off ("flossed my teeth") names exactly one item when every meaningful word of the item's name is said (as
+ * itself, or its verb in the past: "flossed" for "Floss") and the verb is one of those words; otherwise nothing is guessed.
+ */
+function resolvePast(list: readonly Named[], said: string): {one: Named} | {ambiguous: Named[]} | null {
+  const stem = (w: string) => w.replace(/(?:ied)$/, 'y').replace(/(?:ing|ed|es|s)$/, '');
+  const near = (a: string, b: string) => a === b || (a.length >= 3 && b.length >= 3 && (a.startsWith(b) || b.startsWith(a)));
+  const words = said.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(stem), verb = words[0]!;
+  const skip = /^(?:the|my|a|an|and|for|of|to|in|on|min|mins)$/;
+  const hits = list.filter(n => {
+    const own = n.label.toLowerCase().split(/[^a-z0-9]+/).filter(w => w && !skip.test(w) && !/^\d+$/.test(w)).map(stem);
+    return own.length > 0 && own.some(o => near(o, verb)) && own.every(o => words.some(w => near(w, o)));
+  });
+  if (hits.length === 1) return {one: hits[0]!};
+  return hits.length > 1 ? {ambiguous: hits.slice(0, 4)} : null;
 }
 type Words = Record<'check' | 'uncheck' | 'add' | 'favourite' | 'sleep-start' | 'sleep-end' | 'timer-start' | 'timer-stop' | 'fast-start' | 'fast-stop' | 'today' | 'confirm' | 'which' | 'say', string>;
 const SAY: Record<CommandLang, Words> = {
@@ -189,7 +208,7 @@ export function quickCommand(text: string, env: ToolEnv): QuickReply | null {
         return card(`${say[parsed.verb]} · ${shortName(found.one.label)}`, {kind: parsed.verb === 'timer-start' ? 'start-timer' : 'stop-timer', habit: found.one.label}, parsed.verb);
       }
       case 'check': case 'uncheck': {
-        const found = resolve(candidates(env), parsed.item!);
+        const found = parsed.past ? resolvePast(candidates(env), parsed.item!) : resolve(candidates(env), parsed.item!);
         if (!found) return null;
         if ('ambiguous' in found) return {kind: 'refusal', command: parsed.verb, text: `${say.which}: ${names(found.ambiguous.map(n => shortName(n.label)), lang)}. ${say.say}`};
         if (numbers.length && !namedWithNumbers(found.one.label)) return null;

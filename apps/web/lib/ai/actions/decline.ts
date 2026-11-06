@@ -173,6 +173,9 @@ const NOT_A_LOG = new RegExp([
   String.raw`^\s*(?:please\s+)?(?:suggest|recommend|plan|help me|how (?:do|can|should) i|what should|give me|tell me|brief|organi[sz]e|make|change|skip|pause|resume|snooze|move|create|add (?:a )?habit)\b`,
   String.raw`^\s*(?:coche|cocher|marque|hak|hake|markiere|erledige|marca|marcar)\b`,
   String.raw`\b(?:walked|ran|biked|cycled|swam)\s+(?:the\s+|my\s+)?(?:\d+|a|one|two|three|four|five)\s+(?!steps?\b|km\b|kms\b|k\b|miles?\b|mi\b|minutes?\b|mins?\b|min\b|hours?\b|hrs?\b|h\b|m\b|meters?\b|metres?\b|laps?\b|kilomet)[a-z]+`,
+  // Session AL fifth pass (L7-5b; Nairobi H7): a period is no one day's log ("Exercise last week" was "Exercise · +1 time ·
+  // today"); the device answers it as a question instead.
+  String.raw`\b(?:last|past|previous|this)\s+(?:week|weekend|month|year)\b|\b(?:the\s+)?last\s+\d+\s+(?:days|weeks|months)\b|\b\d+\s+(?:days|weeks|months)\s+ago\b|\b(?:vorige|afgelopen|deze)\s+(?:week|maand)\b|\bvorig\s+jaar\b`,
 ].join('|'), 'i');
 /**
  * Session AL fourth pass (lane L7-4b; Lisbon #006, #008, #021, LA-018 family): the Quick add preview sits only under the

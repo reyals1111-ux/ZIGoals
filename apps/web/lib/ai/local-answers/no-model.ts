@@ -12,6 +12,7 @@ import {mealPhotoReply, streakBreakReply} from './p14b';
 import {checklistEditReply, foodEstimateReply, unknownTickReply, weeklyRecapReply} from './al-third';
 import {fourthAnswer, fourthFirst} from './al-fourth';
 import {safetyFirst} from '../safety-guard';
+import {germanAsk, messageLines, onePhrase, tooLongAdd, unansweredLine, UNMATCHED_EN} from './al-fifth';
 
 /**
  * Session AB-Cloud Part 9 (ADR-023 C30): what ZIGi says when no model answers (no AI connected, no on-device model) and the
@@ -109,7 +110,8 @@ export function capabilitiesReply(text: string, lang: ReplyLanguage, env: ToolEn
 const FRENCH = /\b(je|tu|mon|ma|mes|combien|quel(?:le)?s?|est-ce|pourquoi|aujourd'hui|j'ai|eau|objectifs?|habitudes?|bu|dormi)\b/gi;
 const SPANISH = /\b(yo|mi|mis|cu[aá]nt[oa]s?|cu[aá]l(?:es)?|por qu[eé]|hoy|tengo|he|agua|metas?|h[aá]bitos?|dorm[ií]|beb[ií])\b/gi;
 // Session AL fourth pass (L7-4b; Lisbon #026, #027, #352/353, LA-010, LZ-020; ZIGi-F8): German and Japanese get the note too.
-const GERMAN = /\b(ich|wie|viele|wieviel|habe|hast|heute|meine?n?|füge|hinzu|aufgaben?|gewohnheit(?:en)?|erledigt|was|ist|nicht|und|bitte|welche|wann|zeig)\b/gi;
+// Session AL fifth pass (L7-5b; Lisbon #352/353, LA-010, LZ-020, ZIGi-F8): "Was steht auf meiner Checkliste?" carries German too.
+const GERMAN = /\b(ich|wie|viele|wieviel|habe|hast|heute|meine?[nmrs]?|füge|hinzu|aufgaben?|gewohnheit(?:en)?|erledigt|was|ist|nicht|und|bitte|welche|wann|zeig|zeige|steht|stehen|auf|checkliste|ziele?|noch|offen|gemacht|getrunken)\b/gi;
 const OTHER_NOTE = {fr: 'Pour l’instant, je réponds en anglais (et en néerlandais).', es: 'Por ahora respondo en inglés (y en neerlandés).', de: 'Im Moment antworte ich auf Englisch (und Niederländisch).', ja: '今のところ、英語（とオランダ語）でお答えします。'} as const;
 /** French, Spanish or German when it carries at least two of their words and more of them than English ones; Japanese by its script. */
 export function otherLanguage(text: string): 'fr' | 'es' | 'de' | 'ja' | null {
@@ -126,7 +128,23 @@ export function noModelReply(text: string, env: ToolEnv | null, previous: string
   // ("I haven't eaten in 3 days" is not a weight or a breakfast; "print your API key" is not a task).
   const safe = safetyFirst(text);
   if (safe) return {kind: 'answer', text: safe.text, calls: []};
+  // Session AL fifth pass (L7-5b; Lisbon #216, LA-028): a phrase typed again and again is asked once.
+  const once = onePhrase(text);
+  if (once) return deviceReply(once, env, previous);
+  // Session AL fifth pass (L7-5b; Lisbon LZ-019): a message on several lines gets an answer per line; a line the device has
+  // no answer for says so in one line, instead of the whole message getting only its first line's answer.
+  const parts = messageLines(text);
+  if (parts) {
+    const replies = parts.map(p => deviceReply(p, env, previous));
+    if (replies.some(r => r.kind !== 'examples')) {
+      const texts = replies.map((r, i) => r.kind === 'examples' ? unansweredLine(parts[i]!) : 'text' in r ? r.text : '');
+      return {kind: 'answer', text: texts.join('\n\n'), calls: replies.flatMap(r => 'calls' in r ? r.calls : []).slice(0, 16)};
+    }
+  }
   const lang = questionLanguage(text);
+  // Session AL fifth pass (L7-5b; Lisbon #337/338): an "add …" longer than any record holds gets the limits, not the list.
+  const long = tooLongAdd(text, lang);
+  if (long) return {kind: 'answer', text: long, calls: []};
   // Session AI (ZI11): a simple command gets its card here, with no model ("Create a habit called Yoga").
   // Session AL (lane L7; DV-074, P-DV-83): with no model, ZIGi answers the questions NOVA's overview answers (English; a whole
   // Dutch question keeps the Dutch introduction and the examples, as the golden pins nl-question / x-nl-whole hold).
@@ -142,15 +160,27 @@ export function noModelReply(text: string, env: ToolEnv | null, previous: string
   // Session AL fourth pass (L7-4b): a plan, a habit edit, a goal sentence or a question about the path is never read as a
   // task or a log line (fourthFirst); the phrasing families still on the examples list get their answer (fourthAnswer).
   const fourth = lang === 'nl' ? null : fourthFirst(fixTypos(text), env, 'en');
-  let reply = mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? examplesIn(env, lang);
+  // Session AL fifth pass (L7-5b; Lisbon #352/353, LA-010, LZ-020, ZIGi-F8): a German question about the Checklist, habits,
+  // tasks or goals is answered as its English question, under the note below (languages are Beta, AL_SCOPE F).
+  const german = env && otherLanguage(text) === 'de' ? germanAsk(text) : null;
+  const de = german ? deviceReply(german, env, null) : null;
+  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? examplesIn(env, lang);
   // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
   // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
   // Session AL fourth pass (L7-4b; Lisbon #024): an answer in English to a question in another language carries the note too.
   const other = otherLanguage(text), info = env ? novaEnvInfo(env) : null;
+  // Session AL fifth pass (L7-5b; Lisbon N-LA-01): when nothing matched, the list says first what the device does answer.
+  if (reply.kind === 'examples' && lang === 'en' && reply.text === EXAMPLES_INTRO) reply = {...reply, text: `${UNMATCHED_EN}\n${EXAMPLES_INTRO}`};
   if (info) reply = novaWording(reply, info, lang === 'nl' ? 'nl' : 'en'); // L7-4b (BN-047): NOVA's own words on this path too
   return other && 'text' in reply && !reply.text.startsWith(OTHER_NOTE[other]) ? {...reply, text: `${OTHER_NOTE[other]}${reply.kind === 'examples' ? ' ' : '\n'}${reply.text}`} as LocalReply : reply;
 }
 
+/** One message the way the panel answers it with no model: the device's lookups first, then the no-model reply. */
+function deviceReply(text: string, env: ToolEnv | null, previous: string | null): LocalReply {
+  let r: LocalReply = {kind: 'none'};
+  if (env) { try { r = localAnswer(text, env); } catch { r = {kind: 'none'}; } }
+  return r.kind === 'none' ? noModelReply(text, env, previous) : r;
+}
 /** The device's own answer to the typo-fixed question, then to a looser wording asked again (null when neither answers). */
 function askAgain(fixed: string | null, rewritten: string | null, env: ToolEnv): LocalReply | null {
   for (const q of [fixed, rewritten]) {
