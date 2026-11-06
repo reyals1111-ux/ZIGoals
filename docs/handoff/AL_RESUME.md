@@ -61,6 +61,12 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
   (`e16ef722`) CI19/CI20 items only; 1579 (`37d2370c`) 5 failures (Tasks chip, NOVA orb, TK-226, TK-162); 1583
   (`96c1c4f7`) Chromium green but zigi-oneline-z:242 (fixed in 76c6cde5); WebKit shard 1: zigi-face-z:313 and
   zigi-memory-af:15 (recorded family); shards 2–3 cancelled by the job limit after a 36 min WebKit install (runner).
+- **CI 1585 (`56b77f19`):** every test job green (checks, browser, integration, Alpha gate, WebKit shards 2–3 incl.
+  zigi-states:75's re-run); only WebKit shard 1 cancelled while installing WebKit from a slow mirror after a cache miss
+  (runner image change). Next push confirms a full green run.
+- **Replays:** L7 round 2 committed (`56b77f19`): 344 FIXED, 53 STILL OPEN → L7 fifth pass in three lanes (L7-5a safety,
+  L7-5b answers, L7-5c copy/actions) running; L3 round 2 replay running. Then L2, L5, L4, L6, L8 round 2, then an L7 round 3
+  (owner cost rule 3: more than 10 STILL OPEN), then ONE final full round.
 - **Lessons:** the time of day is a test condition (Showcase items due at fixed hours change styles); a lane that moves
   code runs `vitest run scripts` too; `lazy()` + Suspense delays content ~300 ms in React 19 (use use-chunk's chunk()).
 - **Open (dev-only, no CI failure):** under React StrictMode in next dev, components/use-back-closes.ts's doubled effect
