@@ -261,8 +261,10 @@ test('not connected: the status says so on one line; the chips row is one line; 
   // Session AL (CI21, CI 1575, Chromium phone; the wait only): each reply starts ZIGi's own glide to the latest message (a
   // smooth scrollTo). Chromium lets a glide that is still running override a scrollTop written meanwhile: the trace showed
   // the pill appear, the log never leave its end, and the pill go again, so its box was never found (120 s). The log is
-  // scrolled up once the glide has ended: at its end and still there two frames later.
-  await expect.poll(() => log.evaluate(el => new Promise<boolean>(done => { const top = el.scrollTop; requestAnimationFrame(() => requestAnimationFrame(() => done(el.scrollTop === top && el.scrollHeight - el.scrollTop - el.clientHeight < 2))); })), 'the glide to the latest message has ended').toBe(true);
+  // scrolled up once no glide is running: the log has not moved for 150 ms and two frames. (CI 1583, desktop: "at its end"
+  // was wrong as a condition — ai-chat.tsx glides only when the reader was at or near the end, so a long reply can leave the
+  // log mid-way with no glide at all, and the wait never came true.)
+  await expect.poll(() => log.evaluate(el => new Promise<boolean>(done => { const top = el.scrollTop; setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(() => done(el.scrollTop === top))), 150); })), 'no glide is running in the log').toBe(true);
   await log.evaluate(el => { el.scrollTop = 0; el.dispatchEvent(new Event('scroll')); });
   const jump = panel(page).getByRole('button', {name: 'Jump to the latest message'});
   await expect(jump).toBeVisible();
