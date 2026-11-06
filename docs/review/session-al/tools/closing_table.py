@@ -26,9 +26,12 @@ for l in open(D+'GROK53_LEDGER.md'):
     if l.startswith('| AL-'):
         c=cells(l); rows.append({'row':c[0],'lane':c[2],'fix':c[4],'ids':ids_of(c[6])})
 # replays: latest round per lane
-latest={}
+# Every round of every lane is read; each id keeps its verdict from the highest round that replayed it (a round 2 that
+# re-checks only the open ids and a sample of the fixed ones does not erase round 1's verdicts on the others).
+latest={}; files=[]
 for f in glob.glob(D+'GROK53_REPLAY_*_*.md'):
     m=re.search(r'REPLAY_(\w+?)_(\d+)\.md',f); lane,n=m.group(1),int(m.group(2))
+    files.append((lane,n,f))
     if lane not in latest or n>latest[lane][0]: latest[lane]=(n,f)
 NORM=[('STILL OPEN','STILL OPEN'),('CHANGED','CHANGED'),('NOT REPRODUCIBLE','NOT REPRODUCIBLE'),('NOT REPLAYED','NOT REPLAYED'),('OWNER DECISION','OWNER DECISION'),('WAITS ON OWNER','WAITS ON OWNER'),('NOT POSSIBLE','NOT POSSIBLE'),('REASON CITED','REASON CITED'),('OUT OF SCOPE','OUT OF SCOPE'),('HOLDS','HOLDS'),('FIXED','FIXED'),('NOT A DEFECT','NOT A DEFECT')]
 def norm(v):
@@ -37,19 +40,22 @@ def norm(v):
         if k in u: return n
     return 'OTHER'
 verdict={}  # id -> (verdict, lane, round)
-for lane,(n,f) in latest.items():
+for lane,n,f in files:
     hdr=None
     for l in open(f):
         if not l.startswith('|'): hdr=None if not l.strip() else hdr; continue
         c=cells(l)
-        if c and c[0].lower().startswith('finding id'):
-            hdr=[x.lower() for x in c]; continue
+        low=[x.lower() for x in c]
+        # Two layouts: "finding id | … | verdict | …" and "AL row | id | … | round 1 | round 2 | …" (the round-N column of
+        # this file's own round is its verdict).
+        if low and (low[0].startswith('finding id') or 'id' in low[:2]):
+            hdr=low; continue
         if not hdr or set(c[0])<=set('-: '): continue
-        try: vi=hdr.index('verdict')
-        except ValueError: continue
-        if vi>=len(c): continue
+        ii=0 if hdr[0].startswith('finding id') else hdr.index('id')
+        vi=hdr.index('verdict') if 'verdict' in hdr else (hdr.index(f'round {n}') if f'round {n}' in hdr else None)
+        if vi is None or vi>=len(c) or ii>=len(c): continue
         v=norm(c[vi])
-        for i in ids_of(c[0]):
+        for i in ids_of(c[ii]):
             if i not in verdict or verdict[i][2]<n: verdict[i]=(v,lane,n)
 OPEN={'STILL OPEN','CHANGED'}
 CLOSED={'FIXED':'Fixed','HOLDS':'Fixed'}
@@ -73,4 +79,4 @@ hdr="| Row | Lane | Ids | Outcome | Replay | Verdicts of its ids | Commits and t
 summary='\n'.join(f"- {k}: {v}" for k,v in stat.most_common())
 open(OUT+'/table.md','w').write(hdr+'\n'+'\n'.join(out)+'\n')
 open(OUT+'/summary.md','w').write(summary+'\n')
-print(summary); print('replays used:', {k:os.path.basename(v[1]) for k,v in latest.items()}); print('ids with verdicts', len(verdict))
+print(summary); print('replays used:', sorted(os.path.basename(f) for _,_,f in files)); print('ids with verdicts', len(verdict))

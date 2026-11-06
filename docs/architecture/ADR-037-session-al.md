@@ -149,13 +149,13 @@ Outcomes: Fixed (commit, test, replay FIXED) · Already fixed (replay FIXED on m
 
 Each AL row's outcome comes from the latest replay of its lane (the replay files' verdict per finding id, rows matched through the ledger's "finding ids" column): **Fixed** when every id replayed FIXED or HOLDS; an owner decision, Not possible or Waits on owner only where the replay agreed with the named reason; **Open** while any id is STILL OPEN or CHANGED (after round 1 those were answered by the lanes' fourth passes and wait for round 2); **Partly replayed** where some ids are not in a replay yet (other lane, not replayed, out of area). Commits and tests per row are in the lane's status file (docs/review/session-al/lanes/<lane>.md, the "Fourth pass" sections). The table is regenerated after every replay round.
 
-State on 5 Nov (replays: L1 round 2 on 54e32039; L2–L7 round 1 on c521574f; L8 by the two HUD reviews and grok53/hud):
-- Fixed: 272
-- Open — fix committed, awaiting replay round 2: 165
-- Partly replayed: 128
+State on 6 Nov (replays: L1 round 2 on 54e32039; L7 round 2 on 37d2370c; L2–L6 round 1 on c521574f; L8 by the two HUD reviews and grok53/hud; each id keeps its verdict from the highest round that replayed it):
+- Fixed: 277
+- Partly replayed: 135
+- Open — fix committed, awaiting replay round 2: 122
+- Open: 41
 - Not replayed yet: 28
-- Owner decision: 20
-- Open: 11
+- Owner decision: 21
 - Not possible: 11
 - Fixed + Owner decision: 5
 - Waits on owner: 2
@@ -269,7 +269,7 @@ State on 5 Nov (replays: L1 round 2 on 54e32039; L2–L7 round 1 on c521574f; L8
 | AL-A11Y-006 | L2 | 1 | Fixed | L2 r1 | Fixed 1 | lanes/L2.md |
 | AL-COMPETITOR-GAP-042 | L2 | 1 | Open — fix committed, awaiting replay round 2 | L2 r1 | Changed 1 | lanes/L2.md |
 | AL-COPY-013 | L2 | 4 | Open — fix committed, awaiting replay round 2 | L2 r1 | Fixed 3 Still Open 1 | lanes/L2.md |
-| AL-COPY-014 | L2 | 8 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r1 | Fixed 4 Out Of Scope 2 Still Open 2 | lanes/L2.md |
+| AL-COPY-014 | L2 | 8 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r2 | Fixed 4 Out Of Scope 2 Still Open 2 | lanes/L2.md |
 | AL-COPY-015 | L2 | 1 | Fixed | L2 r1 | Fixed 1 | lanes/L2.md |
 | AL-COPY-016 | L2 | 1 | Fixed | L2 r1 | Fixed 1 | lanes/L2.md |
 | AL-COPY-017 | L2 | 1 | Fixed | L2 r1 | Fixed 1 | lanes/L2.md |
@@ -358,7 +358,7 @@ State on 5 Nov (replays: L1 round 2 on 54e32039; L2–L7 round 1 on c521574f; L8
 | AL-STREAKS-001 | L3 | 3 | Fixed | L3 r1 | Fixed 3 | lanes/L3.md |
 | AL-STREAKS-002 | L3 | 1 | Partly replayed | L2 r1 | Other 1 | lanes/L3.md |
 | AL-STREAKS-003 | L3 | 8 | Open — fix committed, awaiting replay round 2 | L3 r1 | Changed 3 Fixed 1 Not Replayed 1 Still Open 3 | lanes/L3.md |
-| AL-UNDO-002 | L3 | 6 | Open — fix committed, awaiting replay round 2 | L3 r1, L7 r1 | Changed 1 Fixed 3 Not Replayed 2 | lanes/L3.md |
+| AL-UNDO-002 | L3 | 6 | Partly replayed | L3 r1, L7 r2 | Fixed 4 Not Replayed 2 | lanes/L3.md |
 | AL-XP-BADGES-001 | L3 | 8 | Partly replayed | L3 r1 | Fixed 6 Not Replayed 2 | lanes/L3.md |
 | AL-XP-BADGES-002 | L3 | 14 | Open — fix committed, awaiting replay round 2 | L3 r1 | Changed 1 Fixed 9 Holds 1 Not Replayed 1 Still Open 2 | lanes/L3.md |
 | AL-LAYOUT-375-007 | L3 | 3 | Fixed | L1 r2 | Fixed 3 | lanes/L3.md |
@@ -381,7 +381,7 @@ State on 5 Nov (replays: L1 round 2 on 54e32039; L2–L7 round 1 on c521574f; L8
 | AL-FIELD-ERROR-008 | L3 | 1 | Fixed | L3 r1 | Fixed 1 | lanes/L3.md |
 | AL-FIELD-ERROR-009 | L3 | 8 | Open — fix committed, awaiting replay round 2 | L2 r1, L3 r1 | Changed 1 Fixed 6 Other 1 | lanes/L3.md |
 | AL-FIRST-RUN-003 | L3 | 3 | Open — fix committed, awaiting replay round 2 | L3 r1 | Fixed 2 Still Open 1 | lanes/L3.md |
-| AL-FIRST-RUN-004 | L3 | 2 | Open — fix committed, awaiting replay round 2 | L3 r1, L7 r1 | Not Replayed 1 Still Open 1 | lanes/L3.md |
+| AL-FIRST-RUN-004 | L3 | 2 | Open — fix committed, awaiting replay round 2 | L3 r1, L7 r2 | Still Open 2 | lanes/L3.md |
 | AL-FIRST-RUN-005 | L3 | 7 | Fixed + Owner decision | L3 r1, L7 r1 | Fixed 5 Owner Decision 2 | lanes/L3.md |
 | AL-FIRST-RUN-006 | L3 | 3 | Fixed | L3 r1 | Fixed 3 | lanes/L3.md |
 | AL-LAYOUT-DESKTOP-007 | L3 | 3 | Open — fix committed, awaiting replay round 2 | L3 r1 | Changed 1 Owner Decision 2 | lanes/L3.md |
@@ -441,7 +441,7 @@ State on 5 Nov (replays: L1 round 2 on 54e32039; L2–L7 round 1 on c521574f; L8
 | AL-COMPETITOR-GAP-112 | L3 | 1 | Not possible | L3 r1 | Not Possible 1 | lanes/L3.md |
 | AL-TIMEZONE-002 | L3 | 3 | Partly replayed | L3 r1 | Reason Cited 3 | lanes/L3.md |
 | AL-ACTIVITY-001 | L4 | 10 | Open — fix committed, awaiting replay round 2 | L4 r1 | Fixed 7 Not Replayed 1 Still Open 2 | lanes/L4.md |
-| AL-CONFIRM-DELETE-005 | L4 | 21 | Open — fix committed, awaiting replay round 2 | L4 r1 | Changed 2 Fixed 16 Holds 1 Not Replayed 2 | lanes/L4.md |
+| AL-CONFIRM-DELETE-005 | L4 | 21 | Open — fix committed, awaiting replay round 2 | L4 r1, L7 r2 | Changed 2 Fixed 15 Holds 1 Not Replayed 2 Still Open 1 | lanes/L4.md |
 | AL-CONFIRM-DELETE-006 | L4 | 19 | Open — fix committed, awaiting replay round 2 | L4 r1 | Changed 7 Fixed 11 Not Replayed 1 | lanes/L4.md |
 | AL-COUNTS-007 | L4 | 19 | Open — fix committed, awaiting replay round 2 | L4 r1 | Fixed 14 Not Replayed 2 Still Open 3 | lanes/L4.md |
 | AL-CRASH-002 | L4 | 2 | Fixed | L4 r1 | Fixed 1 Holds 1 | lanes/L4.md |
@@ -453,12 +453,12 @@ State on 5 Nov (replays: L1 round 2 on 54e32039; L2–L7 round 1 on c521574f; L8
 | AL-NUMBERS-SOURCE-010 | L4 | 2 | Partly replayed | L4 r1 | Fixed 1 Not Replayed 1 | lanes/L4.md |
 | AL-NUMBERS-SOURCE-011 | L4 | 8 | Open — fix committed, awaiting replay round 2 | L4 r1 | Changed 3 Fixed 1 Not Replayed 3 Still Open 1 | lanes/L4.md |
 | AL-UNITS-004 | L4 | 8 | Open — fix committed, awaiting replay round 2 | L4 r1 | Fixed 6 Not Replayed 1 Still Open 1 | lanes/L4.md |
-| AL-XP-BADGES-009 | L4 | 6 | Open — fix committed, awaiting replay round 2 | L4 r1 | Fixed 1 Not Replayed 2 Still Open 3 | lanes/L4.md |
+| AL-XP-BADGES-009 | L4 | 6 | Open — fix committed, awaiting replay round 2 | L4 r1, L7 r2 | Fixed 2 Not Replayed 2 Still Open 2 | lanes/L4.md |
 | AL-A11Y-014 | L4 | 4 | Open — fix committed, awaiting replay round 2 | L4 r1 | Changed 2 Fixed 2 | lanes/L4.md |
 | AL-A11Y-015 | L4 | 2 | Open — fix committed, awaiting replay round 2 | L4 r1 | Fixed 1 Still Open 1 | lanes/L4.md |
 | AL-A11Y-016 | L4 | 13 | Open — fix committed, awaiting replay round 2 | L4 r1 | Fixed 4 Not Replayed 2 Still Open 7 | lanes/L4.md |
 | AL-ACTIVITY-002 | L4 | 6 | Open — fix committed, awaiting replay round 2 | L4 r1 | Changed 2 Fixed 3 Still Open 1 | lanes/L4.md |
-| AL-ACTIVITY-003 | L4 | 8 | Open — fix committed, awaiting replay round 2 | L4 r1 | Changed 3 Holds 5 | lanes/L4.md |
+| AL-ACTIVITY-003 | L4 | 8 | Open — fix committed, awaiting replay round 2 | L4 r1, L7 r2 | Changed 3 Fixed 1 Holds 4 | lanes/L4.md |
 | AL-COMPETITOR-GAP-113 | L4 | 4 | Fixed + Owner decision | L4 r1 | Fixed 3 Owner Decision 1 | lanes/L4.md |
 | AL-COMPETITOR-GAP-114 | L4 | 4 | Partly replayed | L4 r1 | Fixed 2 · not in replay 2 | lanes/L4.md |
 | AL-COMPETITOR-GAP-115 | L4 | 4 | Open — fix committed, awaiting replay round 2 | L4 r1 | Changed 1 Fixed 2 Reason Cited 1 | lanes/L4.md |
@@ -663,86 +663,86 @@ State on 5 Nov (replays: L1 round 2 on 54e32039; L2–L7 round 1 on c521574f; L8
 | AL-COMPETITOR-GAP-165 | L6 | 1 | Fixed | L6 r1 | Fixed 1 | lanes/L6.md |
 | AL-COMPETITOR-GAP-166 | L6 | 1 | Owner decision | L6 r1 | Owner Decision 1 | lanes/L6.md |
 | AL-COMPETITOR-GAP-167 | L6 | 1 | Fixed | L6 r1 | Fixed 1 | lanes/L6.md |
-| AL-AI-CONNECTION-001 | L7 | 9 | Open — fix committed, awaiting replay round 2 | L1 r2, L7 r1 | Holds 1 Not Replayed 2 Owner Decision 3 Still Open 1 · not in replay 2 | lanes/L7.md |
-| AL-AI-SAFETY-002 | L7 | 4 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r1 | Changed 1 Other 2 Still Open 1 | lanes/L7.md |
-| AL-AI-ACTIONS-001 | L7 | 3 | Partly replayed | L7 r1 | Fixed 2 Not Replayed 1 | lanes/L7.md |
-| AL-AI-ACTIONS-002 | L7 | 3 | Partly replayed | L7 r1 | Fixed 2 · not in replay 1 | lanes/L7.md |
-| AL-AI-ACTIONS-003 | L7 | 18 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 2 Fixed 5 Still Open 1 · not in replay 10 | lanes/L7.md |
-| AL-AI-ACTIONS-004 | L7 | 21 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 3 Fixed 1 Still Open 1 · not in replay 16 | lanes/L7.md |
-| AL-AI-ACTIONS-005 | L7 | 9 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 3 Fixed 2 · not in replay 4 | lanes/L7.md |
-| AL-AI-ACTIONS-006 | L7 | 10 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r1 | Fixed 2 Other 2 Still Open 2 · not in replay 4 | lanes/L7.md |
-| AL-AI-CONNECTION-002 | L7 | 6 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 1 Fixed 2 Not Replayed 2 · not in replay 1 | lanes/L7.md |
-| AL-AI-FACTS-001 | L7 | 14 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 4 Holds 1 Still Open 2 · not in replay 7 | lanes/L7.md |
-| AL-AI-FACTS-002 | L7 | 42 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r1 | Changed 4 Other 9 Owner Decision 1 Still Open 1 · not in replay 27 | lanes/L7.md |
-| AL-AI-FACTS-003 | L7 | 48 | Open — fix committed, awaiting replay round 2 | L3 r1, L7 r1 | Changed 4 Fixed 4 Holds 5 Other 1 Still Open 3 · not in replay 31 | lanes/L7.md |
-| AL-AI-FACTS-004 | L7 | 43 | Open — fix committed, awaiting replay round 2 | L3 r1, L7 r1 | Changed 4 Fixed 3 Other 2 Owner Decision 1 Still Open 8 · not in replay 25 | lanes/L7.md |
-| AL-AI-FACTS-005 | L7 | 47 | Open — fix committed, awaiting replay round 2 | L2 r1, L3 r1, L7 r1 | Changed 4 Fixed 12 Holds 2 Other 7 Still Open 5 · not in replay 17 | lanes/L7.md |
+| AL-AI-CONNECTION-001 | L7 | 9 | Open | L1 r2, L7 r2 | Changed 1 Fixed 1 Holds 1 Not Replayed 1 Owner Decision 3 · not in replay 2 | lanes/L7.md |
+| AL-AI-SAFETY-002 | L7 | 4 | Partly replayed | L2 r1, L7 r2 | Fixed 2 Other 2 | lanes/L7.md |
+| AL-AI-ACTIONS-001 | L7 | 3 | Partly replayed | L7 r2 | Fixed 2 Not Replayed 1 | lanes/L7.md |
+| AL-AI-ACTIONS-002 | L7 | 3 | Partly replayed | L7 r1, L7 r2 | Fixed 2 · not in replay 1 | lanes/L7.md |
+| AL-AI-ACTIONS-003 | L7 | 18 | Open | L7 r1, L7 r2 | Changed 1 Fixed 7 · not in replay 10 | lanes/L7.md |
+| AL-AI-ACTIONS-004 | L7 | 21 | Partly replayed | L7 r1, L7 r2 | Fixed 5 · not in replay 16 | lanes/L7.md |
+| AL-AI-ACTIONS-005 | L7 | 9 | Partly replayed | L7 r1, L7 r2 | Fixed 5 · not in replay 4 | lanes/L7.md |
+| AL-AI-ACTIONS-006 | L7 | 10 | Partly replayed | L2 r1, L7 r1, L7 r2 | Fixed 4 Other 2 · not in replay 4 | lanes/L7.md |
+| AL-AI-CONNECTION-002 | L7 | 6 | Open | L7 r1, L7 r2 | Changed 1 Fixed 3 Holds 1 · not in replay 1 | lanes/L7.md |
+| AL-AI-FACTS-001 | L7 | 14 | Open | L7 r2 | Changed 2 Fixed 5 · not in replay 7 | lanes/L7.md |
+| AL-AI-FACTS-002 | L7 | 42 | Open | L2 r1, L7 r1, L7 r2 | Fixed 3 Other 9 Owner Decision 1 Still Open 2 · not in replay 27 | lanes/L7.md |
+| AL-AI-FACTS-003 | L7 | 48 | Partly replayed | L3 r1, L7 r1, L7 r2 | Fixed 11 Holds 5 Other 1 · not in replay 31 | lanes/L7.md |
+| AL-AI-FACTS-004 | L7 | 43 | Open | L3 r1, L7 r1, L7 r2 | Changed 1 Fixed 11 Other 2 Owner Decision 1 Still Open 3 · not in replay 25 | lanes/L7.md |
+| AL-AI-FACTS-005 | L7 | 47 | Partly replayed | L2 r1, L3 r1, L7 r1, L7 r2 | Fixed 21 Holds 2 Other 7 · not in replay 17 | lanes/L7.md |
 | AL-AI-FACTS-006 | L7 | 11 | Partly replayed | L7 r1 | Fixed 2 · not in replay 9 | lanes/L7.md |
-| AL-AI-FACTS-007 | L7 | 6 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 1 Fixed 3 · not in replay 2 | lanes/L7.md |
-| AL-AI-FACTS-008 | L7 | 7 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 1 · not in replay 6 | lanes/L7.md |
-| AL-AI-FACTS-009 | L7 | 23 | Open — fix committed, awaiting replay round 2 | L3 r1, L7 r1 | Changed 2 Fixed 1 Holds 1 Other 3 Still Open 2 · not in replay 14 | lanes/L7.md |
-| AL-AI-FACTS-010 | L7 | 32 | Open — fix committed, awaiting replay round 2 | L1 r2, L7 r1 | Changed 3 Not Replayed 1 Still Open 5 · not in replay 23 | lanes/L7.md |
+| AL-AI-FACTS-007 | L7 | 6 | Partly replayed | L7 r1, L7 r2 | Fixed 4 · not in replay 2 | lanes/L7.md |
+| AL-AI-FACTS-008 | L7 | 7 | Partly replayed | L7 r2 | Fixed 1 · not in replay 6 | lanes/L7.md |
+| AL-AI-FACTS-009 | L7 | 23 | Open | L3 r1, L7 r1, L7 r2 | Changed 2 Fixed 3 Holds 1 Other 3 · not in replay 14 | lanes/L7.md |
+| AL-AI-FACTS-010 | L7 | 32 | Open | L1 r2, L7 r2 | Changed 1 Fixed 7 Not Replayed 1 · not in replay 23 | lanes/L7.md |
 | AL-AI-SAFETY-003 | L7 | 10 | Partly replayed | L7 r1 | Fixed 7 · not in replay 3 | lanes/L7.md |
-| AL-AI-SAFETY-004 | L7 | 58 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r1 | Changed 4 Fixed 14 Holds 2 Not Replayed 1 Other 4 Owner Decision 1 Still Open 5 · not in replay 27 | lanes/L7.md |
-| AL-AI-STABILITY-001 | L7 | 5 | Partly replayed | L7 r1 | Not Replayed 4 · not in replay 1 | lanes/L7.md |
-| AL-AI-STABILITY-002 | L7 | 1 | Partly replayed | L7 r1 | Not Replayed 1 | lanes/L7.md |
-| AL-COPY-059 | L7 | 8 | Partly replayed | L7 r1 | Fixed 2 · not in replay 6 | lanes/L7.md |
-| AL-CRASH-004 | L7 | 2 | Fixed | L7 r1 | Fixed 2 | lanes/L7.md |
+| AL-AI-SAFETY-004 | L7 | 58 | Open | L2 r1, L7 r1, L7 r2 | Fixed 19 Holds 2 Not Replayed 1 Other 4 Owner Decision 1 Still Open 4 · not in replay 27 | lanes/L7.md |
+| AL-AI-STABILITY-001 | L7 | 5 | Open | L7 r2 | Changed 4 · not in replay 1 | lanes/L7.md |
+| AL-AI-STABILITY-002 | L7 | 1 | Partly replayed | L7 r2 | Not Replayed 1 | lanes/L7.md |
+| AL-COPY-059 | L7 | 8 | Partly replayed | L7 r1, L7 r2 | Fixed 2 · not in replay 6 | lanes/L7.md |
+| AL-CRASH-004 | L7 | 2 | Fixed | L7 r2 | Fixed 2 | lanes/L7.md |
 | AL-LAYOUT-768-003 | L7 | 2 | Not replayed yet | — |  · not in replay 2 | lanes/L7.md |
-| AL-NUMBERS-SOURCE-014 | L7 | 24 | Open — fix committed, awaiting replay round 2 | L1 r2, L7 r1 | Changed 3 Fixed 3 Not Replayed 1 Still Open 2 · not in replay 15 | lanes/L7.md |
-| AL-PRIVACY-001 | L7 | 3 | Partly replayed | L7 r1 | Holds 1 Not Replayed 2 | lanes/L7.md |
-| AL-PRIVACY-002 | L7 | 3 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 1 · not in replay 2 | lanes/L7.md |
-| AL-PRIVACY-003 | L7 | 3 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 3 | lanes/L7.md |
-| AL-PRIVACY-004 | L7 | 17 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 10 Fixed 1 Still Open 1 · not in replay 5 | lanes/L7.md |
-| AL-A11Y-022 | L7 | 1 | Fixed | L7 r1 | Fixed 1 | lanes/L7.md |
-| AL-A11Y-023 | L7 | 3 | Open — fix committed, awaiting replay round 2 | L1 r2, L7 r1 | Changed 2 Not Replayed 1 | lanes/L7.md |
-| AL-AI-ACTIONS-007 | L7 | 29 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r1 | Not Replayed 1 Other 4 Still Open 3 · not in replay 21 | lanes/L7.md |
-| AL-AI-ACTIONS-008 | L7 | 5 | Partly replayed | L7 r1 | Not Replayed 3 · not in replay 2 | lanes/L7.md |
-| AL-AI-ACTIONS-009 | L7 | 1 | Partly replayed | L7 r1 | Not Replayed 1 | lanes/L7.md |
-| AL-AI-ACTIONS-010 | L7 | 16 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r1 | Fixed 5 Other 3 Still Open 1 · not in replay 7 | lanes/L7.md |
-| AL-AI-ACTIONS-011 | L7 | 1 | Partly replayed | L7 r1 | Not Replayed 1 | lanes/L7.md |
-| AL-AI-CONNECTION-003 | L7 | 9 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 4 · not in replay 5 | lanes/L7.md |
-| AL-AI-CONNECTION-004 | L7 | 2 | Partly replayed | L7 r1 | Fixed 1 · not in replay 1 | lanes/L7.md |
-| AL-AI-CONNECTION-005 | L7 | 1 | Partly replayed | L7 r1 | Not Replayed 1 | lanes/L7.md |
-| AL-AI-CONNECTION-006 | L7 | 1 | Fixed | L7 r1 | Fixed 1 | lanes/L7.md |
-| AL-AI-CONNECTION-007 | L7 | 2 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 2 | lanes/L7.md |
-| AL-AI-FACTS-011 | L7 | 2 | Partly replayed | L7 r1 | Not Replayed 1 · not in replay 1 | lanes/L7.md |
-| AL-AI-FACTS-012 | L7 | 25 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r1 | Changed 2 Fixed 2 Other 2 Owner Decision 2 Still Open 3 · not in replay 14 | lanes/L7.md |
-| AL-AI-FACTS-013 | L7 | 6 | Open — fix committed, awaiting replay round 2 | L7 r1 | Not Replayed 4 Still Open 2 | lanes/L7.md |
-| AL-AI-FACTS-014 | L7 | 2 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 1 · not in replay 1 | lanes/L7.md |
-| AL-AI-FACTS-015 | L7 | 16 | Open — fix committed, awaiting replay round 2 | L3 r1, L7 r1 | Changed 2 Fixed 6 Holds 1 Other 5 Still Open 2 | lanes/L7.md |
-| AL-AI-STABILITY-003 | L7 | 4 | Partly replayed | L7 r1 | Fixed 1 Not Replayed 1 · not in replay 2 | lanes/L7.md |
-| AL-AI-STABILITY-004 | L7 | 6 | Partly replayed | L7 r1 | Fixed 3 Not Replayed 1 · not in replay 2 | lanes/L7.md |
-| AL-COPY-060 | L7 | 6 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 1 Fixed 2 Not Replayed 1 · not in replay 2 | lanes/L7.md |
+| AL-NUMBERS-SOURCE-014 | L7 | 24 | Open | L1 r2, L7 r1, L7 r2 | Changed 5 Fixed 3 Not Replayed 1 · not in replay 15 | lanes/L7.md |
+| AL-PRIVACY-001 | L7 | 3 | Fixed | L7 r2 | Fixed 3 | lanes/L7.md |
+| AL-PRIVACY-002 | L7 | 3 | Open | L7 r2 | Still Open 1 · not in replay 2 | lanes/L7.md |
+| AL-PRIVACY-003 | L7 | 3 | Open | L7 r2 | Changed 3 | lanes/L7.md |
+| AL-PRIVACY-004 | L7 | 17 | Open | L7 r1, L7 r2 | Changed 3 Fixed 9 · not in replay 5 | lanes/L7.md |
+| AL-A11Y-022 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
+| AL-A11Y-023 | L7 | 3 | Open | L1 r2, L7 r2 | Changed 2 Not Replayed 1 | lanes/L7.md |
+| AL-AI-ACTIONS-007 | L7 | 29 | Open | L2 r1, L7 r2 | Fixed 3 Other 4 Still Open 1 · not in replay 21 | lanes/L7.md |
+| AL-AI-ACTIONS-008 | L7 | 5 | Partly replayed | L7 r2 | Fixed 3 · not in replay 2 | lanes/L7.md |
+| AL-AI-ACTIONS-009 | L7 | 1 | Open | L7 r2 | Still Open 1 | lanes/L7.md |
+| AL-AI-ACTIONS-010 | L7 | 16 | Partly replayed | L2 r1, L7 r1, L7 r2 | Fixed 6 Other 3 · not in replay 7 | lanes/L7.md |
+| AL-AI-ACTIONS-011 | L7 | 1 | Open | L7 r2 | Still Open 1 | lanes/L7.md |
+| AL-AI-CONNECTION-003 | L7 | 9 | Open | L7 r2 | Changed 4 · not in replay 5 | lanes/L7.md |
+| AL-AI-CONNECTION-004 | L7 | 2 | Partly replayed | L7 r2 | Fixed 1 · not in replay 1 | lanes/L7.md |
+| AL-AI-CONNECTION-005 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
+| AL-AI-CONNECTION-006 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
+| AL-AI-CONNECTION-007 | L7 | 2 | Open | L7 r2 | Changed 2 | lanes/L7.md |
+| AL-AI-FACTS-011 | L7 | 2 | Open | L7 r2 | Still Open 1 · not in replay 1 | lanes/L7.md |
+| AL-AI-FACTS-012 | L7 | 25 | Open | L2 r1, L7 r1, L7 r2 | Fixed 4 Other 2 Owner Decision 3 Still Open 2 · not in replay 14 | lanes/L7.md |
+| AL-AI-FACTS-013 | L7 | 6 | Open | L7 r2 | Fixed 3 Not Replayed 1 Still Open 2 | lanes/L7.md |
+| AL-AI-FACTS-014 | L7 | 2 | Partly replayed | L7 r2 | Fixed 1 · not in replay 1 | lanes/L7.md |
+| AL-AI-FACTS-015 | L7 | 16 | Partly replayed | L3 r1, L7 r1, L7 r2 | Fixed 10 Holds 1 Other 5 | lanes/L7.md |
+| AL-AI-STABILITY-003 | L7 | 4 | Open | L7 r1, L7 r2 | Changed 1 Fixed 1 · not in replay 2 | lanes/L7.md |
+| AL-AI-STABILITY-004 | L7 | 6 | Partly replayed | L7 r1, L7 r2 | Fixed 4 · not in replay 2 | lanes/L7.md |
+| AL-COPY-060 | L7 | 6 | Open | L7 r1, L7 r2 | Fixed 3 Still Open 1 · not in replay 2 | lanes/L7.md |
 | AL-COPY-061 | L7 | 2 | Partly replayed | L7 r1 | Fixed 1 · not in replay 1 | lanes/L7.md |
-| AL-COPY-062 | L7 | 2 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 2 | lanes/L7.md |
-| AL-COPY-063 | L7 | 3 | Fixed | L7 r1 | Fixed 3 | lanes/L7.md |
+| AL-COPY-062 | L7 | 2 | Open | L7 r2 | Changed 2 | lanes/L7.md |
+| AL-COPY-063 | L7 | 3 | Fixed | L7 r1, L7 r2 | Fixed 3 | lanes/L7.md |
 | AL-HELP-005 | L7 | 3 | Partly replayed | L1 r2, L7 r1 | Fixed 1 Not Replayed 1 · not in replay 1 | lanes/L7.md |
-| AL-PRIVACY-005 | L7 | 4 | Fixed | L7 r1 | Fixed 4 | lanes/L7.md |
-| AL-A11Y-024 | L7 | 2 | Partly replayed | L7 r1 | Not Replayed 2 | lanes/L7.md |
-| AL-AI-CONNECTION-008 | L7 | 1 | Open — fix committed, awaiting replay round 2 | L7 r1 | Still Open 1 | lanes/L7.md |
+| AL-PRIVACY-005 | L7 | 4 | Fixed | L7 r1, L7 r2 | Fixed 4 | lanes/L7.md |
+| AL-A11Y-024 | L7 | 2 | Fixed | L7 r2 | Fixed 2 | lanes/L7.md |
+| AL-AI-CONNECTION-008 | L7 | 1 | Open | L7 r2 | Still Open 1 | lanes/L7.md |
 | AL-AI-SAFETY-005 | L7 | 2 | Partly replayed | L7 r1 | Fixed 1 · not in replay 1 | lanes/L7.md |
-| AL-AI-STABILITY-005 | L7 | 4 | Open — fix committed, awaiting replay round 2 | L2 r1, L7 r1 | Changed 3 Other 1 | lanes/L7.md |
-| AL-COPY-064 | L7 | 1 | Fixed | L7 r1 | Fixed 1 | lanes/L7.md |
+| AL-AI-STABILITY-005 | L7 | 4 | Open | L2 r1, L7 r2 | Changed 3 Other 1 | lanes/L7.md |
+| AL-COPY-064 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
 | AL-COPY-065 | L7 | 7 | Partly replayed | L7 r1 | Fixed 2 · not in replay 5 | lanes/L7.md |
-| AL-ENV-ONLY-001 | L7 | 1 | Partly replayed | L7 r1 | Not Replayed 1 | lanes/L7.md |
-| AL-FIELD-ERROR-017 | L7 | 1 | Fixed | L7 r1 | Fixed 1 | lanes/L7.md |
-| AL-LAYOUT-375-010 | L7 | 1 | Fixed | L7 r1 | Fixed 1 | lanes/L7.md |
-| AL-PLURALS-002 | L7 | 4 | Open — fix committed, awaiting replay round 2 | L7 r1 | Still Open 2 · not in replay 2 | lanes/L7.md |
-| AL-PRIVACY-006 | L7 | 2 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 1 Fixed 1 | lanes/L7.md |
+| AL-ENV-ONLY-001 | L7 | 1 | Partly replayed | L7 r2 | Not Replayed 1 | lanes/L7.md |
+| AL-FIELD-ERROR-017 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
+| AL-LAYOUT-375-010 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
+| AL-PLURALS-002 | L7 | 4 | Open | L7 r2 | Still Open 2 · not in replay 2 | lanes/L7.md |
+| AL-PRIVACY-006 | L7 | 2 | Open | L7 r2 | Changed 1 Fixed 1 | lanes/L7.md |
 | AL-AI-FACTS-016 | L7 | 2 | Fixed | L7 r1 | Fixed 2 | lanes/L7.md |
 | AL-AI-FACTS-017 | L7 | 7 | Partly replayed | L2 r1, L7 r1 | Holds 1 Other 6 | lanes/L7.md |
 | AL-AI-SAFETY-006 | L7 | 5 | Partly replayed | L1 r2, L2 r1 | Not Replayed 1 Other 2 · not in replay 2 | lanes/L7.md |
 | AL-AI-STABILITY-006 | L7 | 6 | Partly replayed | L3 r1, L7 r1 | Fixed 1 Out Of Scope 1 · not in replay 4 | lanes/L7.md |
-| AL-AI-FACTS-018 | L7 | 2 | Open — fix committed, awaiting replay round 2 | L7 r1 | Fixed 1 Still Open 1 | lanes/L7.md |
-| AL-AI-FACTS-019 | L7 | 7 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 1 · not in replay 6 | lanes/L7.md |
-| AL-COMPETITOR-GAP-168 | L7 | 1 | Fixed | L7 r1 | Fixed 1 | lanes/L7.md |
-| AL-COMPETITOR-GAP-169 | L7 | 1 | Fixed | L7 r1 | Fixed 1 | lanes/L7.md |
-| AL-COMPETITOR-GAP-170 | L7 | 1 | Partly replayed | L7 r1 | Not Replayed 1 | lanes/L7.md |
-| AL-COMPETITOR-GAP-171 | L7 | 2 | Open — fix committed, awaiting replay round 2 | L7 r1 | Changed 2 | lanes/L7.md |
-| AL-COMPETITOR-GAP-172 | L7 | 1 | Fixed | L7 r1 | Holds 1 | lanes/L7.md |
-| AL-COMPETITOR-GAP-173 | L7 | 1 | Fixed | L7 r1 | Holds 1 | lanes/L7.md |
-| AL-COMPETITOR-GAP-174 | L7 | 3 | Partly replayed | L7 r1 | Not Replayed 3 | lanes/L7.md |
+| AL-AI-FACTS-018 | L7 | 2 | Fixed | L7 r2 | Fixed 2 | lanes/L7.md |
+| AL-AI-FACTS-019 | L7 | 7 | Partly replayed | L7 r2 | Fixed 1 · not in replay 6 | lanes/L7.md |
+| AL-COMPETITOR-GAP-168 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
+| AL-COMPETITOR-GAP-169 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
+| AL-COMPETITOR-GAP-170 | L7 | 1 | Partly replayed | L7 r2 | Not Replayed 1 | lanes/L7.md |
+| AL-COMPETITOR-GAP-171 | L7 | 2 | Fixed | L7 r2 | Fixed 2 | lanes/L7.md |
+| AL-COMPETITOR-GAP-172 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
+| AL-COMPETITOR-GAP-173 | L7 | 1 | Fixed | L7 r2 | Fixed 1 | lanes/L7.md |
+| AL-COMPETITOR-GAP-174 | L7 | 3 | Owner decision | L7 r2 | Owner Decision 3 | lanes/L7.md |
 | AL-HUD-001 | L8 | 2 | Not replayed yet | — |  · not in replay 2 | lanes/L8.md |
 | AL-HUD-002 | L8 | 2 | Not replayed yet | — |  · not in replay 2 | lanes/L8.md |
 | AL-ENV-ONLY-002 | L9 | 36 | Partly replayed | L3 r1 | Other 13 · not in replay 23 | lanes/L9.md |
@@ -751,8 +751,8 @@ State on 5 Nov (replays: L1 round 2 on 54e32039; L2–L7 round 1 on c521574f; L8
 | AL-ENV-ONLY-004 | L9 | 2 | Not replayed yet | — |  · not in replay 2 | lanes/L9.md |
 | AL-ENV-ONLY-005 | L9 | 1 | Not replayed yet | — |  · not in replay 1 | lanes/L9.md |
 | AL-COPY-066 | L10a | 3 | Not replayed yet | — |  · not in replay 3 | lanes/L10a.md |
-| AL-LAUNCHER-OVERLAP-001 | L10a | 101 | Open — fix committed, awaiting replay round 2 | L1 r2, L2 r1, L3 r1, L6 r1, L7 r1 | Fixed 9 Not Replayed 1 Other 26 Still Open 1 · not in replay 64 | lanes/L10a.md |
-| AL-LAYOUT-375-011 | L10a | 11 | Open — fix committed, awaiting replay round 2 | L1 r2, L7 r1 | Changed 1 Fixed 1 · not in replay 9 | lanes/L10a.md |
+| AL-LAUNCHER-OVERLAP-001 | L10a | 101 | Partly replayed | L1 r2, L2 r1, L3 r1, L6 r1, L7 r2 | Fixed 10 Not Replayed 1 Other 26 · not in replay 64 | lanes/L10a.md |
+| AL-LAYOUT-375-011 | L10a | 11 | Partly replayed | L1 r2, L7 r2 | Fixed 2 · not in replay 9 | lanes/L10a.md |
 | AL-LAYOUT-375-012 | L10a | 7 | Partly replayed | L2 r1 | Other 2 · not in replay 5 | lanes/L10a.md |
 | AL-LAYOUT-768-004 | L10a | 18 | Partly replayed | L3 r1 | Other 1 Out Of Scope 1 · not in replay 16 | lanes/L10a.md |
 | AL-NAV-009 | L10a | 2 | Not replayed yet | — |  · not in replay 2 | lanes/L10a.md |
@@ -767,7 +767,7 @@ State on 5 Nov (replays: L1 round 2 on 54e32039; L2–L7 round 1 on c521574f; L8
 | AL-NAV-012 | L10a | 7 | Partly replayed | L2 r1 | Other 2 · not in replay 5 | lanes/L10a.md |
 | AL-NAV-013 | L10a | 11 | Partly replayed | L1 r2 | Fixed 9 Not Possible 1 · not in replay 1 | lanes/L10a.md |
 | AL-PERF-010 | L10a | 1 | Partly replayed | L3 r1 | Other 1 | lanes/L10a.md |
-| AL-THEME-006 | L10a | 7 | Open — fix committed, awaiting replay round 2 | L3 r1, L7 r1 | Other 3 Still Open 1 · not in replay 3 | lanes/L10a.md |
+| AL-THEME-006 | L10a | 7 | Partly replayed | L3 r1, L7 r2 | Fixed 1 Other 3 · not in replay 3 | lanes/L10a.md |
 | AL-THEME-007 | L10a | 7 | Partly replayed | L1 r2, L2 r1 | Fixed 2 Other 5 | lanes/L10a.md |
 | AL-COPY-067 | L10a | 1 | Partly replayed | L1 r2 | Not Replayed 1 | lanes/L10a.md |
 | AL-LAYOUT-375-013 | L10a | 2 | Partly replayed | L2 r1 | Other 2 | lanes/L10a.md |
