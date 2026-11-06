@@ -4,7 +4,7 @@ import {logHabitValue, type Habit, type HabitData} from '../../lib/habits';
 import {compactRows} from '../../lib/habits-order/compact';
 import {compactToggle, compactToggleWords} from '../../lib/habits-order/compact-toggle';
 import {CompactHabitList} from './reorder-compact-list';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
 import type {HabitsStore} from './use-habits';
 
@@ -21,7 +21,7 @@ export function HabitCompactView({habits, store, onOpen}: {habits: readonly Habi
     if (!change) return;
     await store.update(data => logValue(data, habitId, date, change.value));
     const words = compactToggleWords(change, date === store.today ? 'today' : formatDate(date, {weekday: true}));
-    showToast({message: words.message, undone: words.undone, undo: () => store.update(data => logValue(data, habitId, date, change.before))});
+    showUndo({message: words.message, undone: words.undone, restore: () => store.update(data => logValue(data, habitId, date, change.before))});
   }
   return <CompactHabitList rows={rows} onToggle={toggle} onOpen={onOpen}/>;
 }

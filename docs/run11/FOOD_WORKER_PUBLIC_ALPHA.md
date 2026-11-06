@@ -14,7 +14,7 @@ says "Barcode lookup is being switched on" and the person's own food library and
 ## What the chain does
 1. **On the device, before any request:** the person's own food library (a barcode saved before is found at once).
 2. **Open Food Facts** (`world.openfoodfacts.org`), as since Run 11: one request per 12 s for the deployment, per-client
-   shares, 24 h cache, the `FOOD_USER_AGENT` header.
+   shares, 24 h cache, the `FOOD_USER_AGENT` header (a config var, not a secret).
 3. **Swiss food database (FSVO)** for searches by name (Session AJ).
 4. **USDA FoodData Central Branded Foods** by GTIN (`api.nal.usda.gov`), only when Open Food Facts says "not found" and
    only with the `FDC_API_KEY` secret; without it the step is skipped and nothing is sent. One request per 4 s, its own
@@ -23,16 +23,22 @@ says "Barcode lookup is being switched on" and the person's own food library and
 Every answer names its source; FDC answers carry FDC's citation (public domain, CC0 1.0).
 
 ## Steps
-1. **Secrets on the food Worker** (the acceptance stack's private config, `workers/food-lookup/wrangler.acctest.owner.jsonc`):
+1. **The key and the user agent on the food Worker** (the acceptance stack's private config,
+   `workers/food-lookup/wrangler.acctest.owner.jsonc`). `FDC_API_KEY` is the one **secret**:
    ```sh
    pnpm --filter @zigoals/web exec wrangler secret put FDC_API_KEY --config "$PWD/workers/food-lookup/wrangler.acctest.owner.jsonc"
    ```
-   Paste the key from Bitwarden at the prompt (never in a file, a config's `vars`, a report or a chat). `FOOD_USER_AGENT`
-   stays as set in Run 11; check it with `wrangler secret list` (names only). If it is missing:
+   Paste the key from Bitwarden at the prompt (never in a file, a config's `vars`, a report or a chat).
+   `FOOD_USER_AGENT` is **not a secret**: it is a **var** in that private config's `vars`, written by the config script
+   (Run 11 Stage 6, [ACTIVATION.md](ACTIVATION.md); it refuses anything but the template's form and never prints the value):
    ```sh
-   pnpm --filter @zigoals/web exec wrangler secret put FOOD_USER_AGENT --config "$PWD/workers/food-lookup/wrangler.acctest.owner.jsonc"
+   node scripts/run11/make-private-configs.mjs --set-food-user-agent "ZIGoals/<version> (<contact email>)"
    ```
-   with a value of the form `ZIGoals/<version> (contact: hello@zigoals.app)` (`docs/run11/FOOD_READINESS.md`).
+   with a value of the form `ZIGoals/<version> (contact: hello@zigoals.app)` (`docs/run11/FOOD_READINESS.md`). It is
+   deployed with the Worker in step 2. If it was set in Run 11, it is already in the private config: nothing to do. Never
+   `wrangler secret put FOOD_USER_AGENT`: a secret and a var with the same name clash on deploy; if
+   `wrangler secret list` (names only) shows a `FOOD_USER_AGENT` secret from an earlier attempt, remove it with
+   `wrangler secret delete FOOD_USER_AGENT --config …` and keep the var.
 2. **Deploy the food Worker** from the merged `main`:
    ```sh
    pnpm --filter @zigoals/web exec wrangler deploy --config "$PWD/workers/food-lookup/wrangler.acctest.owner.jsonc"

@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, test} from 'vitest';
 import {fetchDailyPuzzle, parseDailyPuzzle, PuzzleError, puzzleMove, puzzlePosition, revealNext, startProgress} from './puzzle';
 import {DAILY_PUZZLE_FIXTURE} from './fixtures';
 import {toFen} from './rules';
@@ -59,4 +59,17 @@ describe('the daily puzzle', () => {
     expect(JSON.stringify(init!.headers)).not.toContain('Authorization');
     await expect(fetchDailyPuzzle((async () => new Response('', {status: 429})) as unknown as typeof fetch)).rejects.toThrow(/wait/);
   });
+});
+
+// Session AL (BN-183): the daily puzzle's progress comes back after a reload, for the same puzzle only.
+test('BN-183: puzzle progress is kept for the same puzzle; another puzzle or a damaged record starts fresh', async () => {
+  const {readPuzzleProgress, savePuzzleProgress, PUZZLE_PROGRESS_KEY} = await import('./puzzle');
+  const m = new Map<string, string>(), s = {getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }};
+  savePuzzleProgress(s, {id: 'abc12'}, {played: ['e2e4', 'e7e5'], mistakes: 1, revealed: false, solved: false});
+  expect(readPuzzleProgress(s, {id: 'abc12'})).toEqual({played: ['e2e4', 'e7e5'], mistakes: 1, revealed: false, solved: false});
+  expect(readPuzzleProgress(s, {id: 'other'})).toBeNull();
+  m.set(PUZZLE_PROGRESS_KEY, JSON.stringify({version: 1, id: 'abc12', progress: {played: ['<script>'], mistakes: 0}}));
+  expect(readPuzzleProgress(s, {id: 'abc12'})).toBeNull();
+  m.set(PUZZLE_PROGRESS_KEY, 'not json');
+  expect(readPuzzleProgress(s, {id: 'abc12'})).toBeNull();
 });

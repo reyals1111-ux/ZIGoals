@@ -62,3 +62,6 @@
 .nova-widget .tasks-widget .task-meta, .nova-widget .tasks-widget .tasks-status { color: var(--nova-ink-2); }
 .nova-widget .tasks-widget .task-goal { color: var(--nova-hi); }
 .nova-widget .tasks-widget .nova-eyebrow { margin-top: 6px; font-size: 12px; }
+/* Session AL Part 11 (lane L8; N-049, P-DV-102): Goal pace in Bento held 2 of 9 goals with no way to the rest — a cut list
+   now scrolls inside its card (its links take the keyboard there), and its "N more" link stays at the end. */
+.nova-widget[data-widget=goal-pace][data-cut] .nova-widget-body { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }

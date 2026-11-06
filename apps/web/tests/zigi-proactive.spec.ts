@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {AI_OPTIONS_KEY, ZIGI_KEY} from '../lib/ai/store/keys';
 import {SAY_IT_NICER} from '../lib/ai/proactive/brief';
 import {REFLECT_ASK} from '../lib/ai/proactive/review';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 9: ZIGi's proactive side through the real panel, against a MOCK local OpenAI-compatible server. The
@@ -37,7 +38,7 @@ async function seed(page: Page, settings: Partial<AiSettings> | null, extra: Rec
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 const stored = (page: Page, key: string) => page.evaluate(k => { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v) as Record<string, any>; }, key); // eslint-disable-line @typescript-eslint/no-explicit-any
 const systemOf = (body: Body) => String(body.messages[0]!.content);
 /** Session Z-Cloud Part 2: the brief, Your week and Patterns wait in the Suggestions sheet's "Your day" tab, the chips in "Ideas". */
@@ -129,9 +130,13 @@ test('"Ask ZIGi about this" from a number\'s menu: the question and a removable 
   await page.evaluate(([key]) => { const s = JSON.parse(localStorage.getItem(key!)!); localStorage.setItem(key!, JSON.stringify({...s, launcherHidden: true})); }, [AI_SETTINGS_KEY]);
   await page.reload();
   await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
-  expect(await page.evaluate(() => document.documentElement.dataset.zigiLauncher ?? null)).toBeNull();
+  // Session AL (owner decision O3, deliberate): below 901 px the device hide is a computer's choice about the floating button
+  // and does not apply (ZIGi opens from "Apps & extras"), so the mark stays and the menu keeps "Ask ZIGi"; on a computer, as before.
+  const compact = page.viewportSize()!.width < 901;
+  if (compact) await expect.poll(() => page.evaluate(() => document.documentElement.dataset.zigiLauncher ?? '')).toBe('shown');
+  else expect(await page.evaluate(() => document.documentElement.dataset.zigiLauncher ?? null)).toBeNull();
   await page.locator('.wealth-hero-total').getByRole('button', {name: /^Options for/}).click();
-  await expect(page.locator('.wealth-hero-total').getByRole('button', {name: 'Ask ZIGi about this'})).toHaveCount(0);
+  await expect(page.locator('.wealth-hero-total').getByRole('button', {name: 'Ask ZIGi about this'})).toHaveCount(compact ? 1 : 0);
 });
 
 test('Today: the brief card only with ZIGi on, at the lowest priority; "Not today" hides it for the day; nothing written on view', async ({page}) => {

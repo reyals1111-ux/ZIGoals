@@ -4,7 +4,7 @@ import { addLocalDays, localDate } from "./local-date";
 import { formatDate, formatRelativeDay } from "./visual-format";
 import { journalTimeZone } from "./journal-zone";
 import { wallClock } from "./zone-time";
-import { checkInsOn } from "./numbers/counts";
+import { checkInsOn } from "./numbers/habit-counts"; // CI13: the habit counts alone, not Wealth's
 
 /** Saved diary snapshots, never current library values or assumed missing meals. */
 export function nutritionDashboard(data: HealthData, date: string) {

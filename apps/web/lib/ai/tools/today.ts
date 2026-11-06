@@ -1,6 +1,6 @@
 import {habitDay, latestHabitRule} from '../../habits';
 import {dailyHealthSummary, scaleNutrition} from '../../health';
-import {waterSummary} from '../../health-daily';
+import {waterOn} from '../../health-daily';
 import {runningSession} from '../../fasting/engine';
 import {nutrientText, nutrientTotal} from './health';
 import {summaries} from './goals';
@@ -30,7 +30,7 @@ export const todaySummary: ToolDefinition<Record<string, never>> = {
       data.goals = {active: goals.length, plannedSoon: goals.filter(g => g.nextContributionDate && g.nextContributionDate <= soon).map(g => ({handle: env.handles.add('goal', g.key, g.name), goal: text(g.name, 60), nextPlannedDate: g.nextContributionDate})).slice(0, env.limits.rows)};
     }
     if (env.health && env.areas.health) {
-      const day = dailyHealthSummary(env.health, env.healthDay), water = waterSummary(env.health, env.healthDay);
+      const day = dailyHealthSummary(env.health, env.healthDay), water = waterOn(env.health, env.healthDay);
       const values = env.health.diary.filter(e => e.date === env.healthDay).map(e => scaleNutrition(e.snapshot.nutrients, e.quantityMilli));
       data.health = {healthDay: env.healthDay, diaryEntries: day.entries, energy: nutrientText(nutrientTotal(values, 'kcal'), 'kcal'), waterMl: Math.round(water.millilitres), steps: day.steps, activeMinutes: day.minutes, fast: env.fasting && runningSession(env.fasting) ? 'a fast is running' : 'no fast running'};
     } else data.health = 'not shared with ZIGi';

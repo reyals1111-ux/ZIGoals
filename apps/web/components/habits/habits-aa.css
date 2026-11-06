@@ -231,3 +231,9 @@
 @media (hover: hover) and (pointer: fine) { :root :where(.habits-workspace) .panel:hover, :root :where(.habits-workspace) .habit-card:hover { border-color: color-mix(in srgb, var(--item-start, var(--pillar-habits)) 45%, var(--line, transparent)); } }
 :root :where(.habits-workspace) .panel:has(:focus-visible), :root :where(.habits-workspace) .habit-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.habits-workspace) .panel, :root :where(.habits-workspace) .habit-card { box-shadow: none; } }
+/* Session AL (P-NB-23): "1 of 3 this week" under a few-times-a-week habit's count, readable in every theme. */
+.habit-period-progress { display: block; font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+/* Session AL (P-NB-66; N-NB-20): each kind of time away is one row, the radio beside its label. */
+.habit-vacation-kind .habit-vacation-kind-option { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-right: 16px; }
+/* Session AL (P-NB-74; N-NB-13): the card's "−" and "+" are real 44 px targets with a visible edge, not bare glyphs. */
+.habit-check-actions > button.quiet { min-width: 44px; min-height: 44px; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); border-radius: 12px; }

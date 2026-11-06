@@ -7,6 +7,7 @@ import {ZIGI_KEY, ZIGI_KNOCK_KEY} from '../lib/ai/store/keys';
 import {createHabit, emptyHabitData, HABITS_KEY, type HabitData} from '../lib/habits';
 import {REMINDERS_KEY} from '../lib/reminders/schema';
 import {CELEBRATIONS_KEY} from '../lib/w-device-keys';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Phase 2 (P2.5): one simulated day with the knock on, on a fixed clock (Sunday 2026-09-20, UTC):
@@ -50,6 +51,27 @@ test('a day with the knock on: the greeting, a success, one knock of two due rem
   // 07:30 — the first open of the day greets; closing waves goodbye; at rest, idle.
   await seed(page, '2026-09-20T07:30:00.000Z');
   await page.goto('/app/habits');
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating figure and its knock (the floating bubble)
+  // never shows (was: the whole day read on the phone's launcher and knock too). There the day keeps what is not the
+  // floating figure's: ZIGi opens from "Apps & extras", nothing knocks or is counted, and the celebration is recorded once.
+  if (page.viewportSize()!.width < 901) {
+    await expect(page.getByTestId('apps-extras-button')).toBeVisible(); await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
+    await pressZigi(page);
+    await page.locator('dialog.ai-chat[open]').getByRole('button', {name: /^Close/}).first().click();
+    await page.clock.runFor(30 * 60_000);
+    await complete(page, 'Stretch evening');
+    expect(await stored(page, CELEBRATIONS_KEY)).toBeNull();
+    await page.clock.runFor(90 * 60_000); await page.waitForTimeout(1500);
+    await expect(knock(page)).toHaveCount(0);
+    expect(await stored(page, ZIGI_KNOCK_KEY)).toBeNull();
+    await page.clock.runFor(140 * 60_000);
+    await complete(page, 'Read ten pages');
+    await page.clock.runFor(9_000);
+    await complete(page, 'Water the plants');
+    await expect.poll(async () => (await stored(page, CELEBRATIONS_KEY))?.seen).toMatchObject({[`all-done:${DAY}`]: DAY});
+    await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
+    return;
+  }
   await alive(page);
   await expect(launcher(page)).toHaveAttribute('data-state', 'idle');
   await page.getByRole('button', {name: /Open ZIGi/}).click();

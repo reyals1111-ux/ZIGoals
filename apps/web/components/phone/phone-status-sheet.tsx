@@ -16,7 +16,7 @@ import {LoadBoundary} from '../load-boundary';
 export default function PhoneStatusSheet({onClose, label, sentence, mode, showcase, wallet = true, children}: {onClose: () => void; label: string; sentence: string; mode: string; showcase: boolean; /** Session AK X1 (RELEASE_REVIEW R2): the wallet buttons and choices only once the chain is chosen. */ wallet?: boolean; children: ReactNode}) {
   // Gate C (persona round): the storage line ("This device only · account sync is off") is shortened on the page; here in full.
   const storage = useWorkspaceStatusText();
-  return <PhoneFormSheet title="Status" onClose={onClose}>
+  return <PhoneFormSheet className="phone-status-dialog" title="Status" onClose={onClose}>
     <div className="phone-status-sheet">
       <p className="phone-status-network"><strong>{label}</strong><span>{sentence}</span></p>
       {wallet && <div className="wallet phone-status-wallet">{children}</div>}

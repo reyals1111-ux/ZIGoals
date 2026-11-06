@@ -25,7 +25,10 @@ export function foodInsights(data: HealthData, today: string, zone?: string | nu
   const sameDay = (e: typeof entries[number]) => Math.abs(Date.parse(e.createdAt) - Date.parse(`${e.date}T12:00:00Z`)) <= 16 * 3_600_000;
   const late = entries.filter(e => { if ((e.meal !== 'Snacks' && e.meal !== 'Dinner') || !sameDay(e)) return false; const h = hourIn(e.createdAt, zone); return h !== null && (h >= 21 || h < 4); });
   const lateDays = new Set(late.map(e => e.date)).size;
-  cards.push({id: 'late-evening', title: 'Late-evening eating', line: lateDays ? `A dinner or snack logged after 21:00 on ${lateDays} of ${days.size} days (when it was logged; meals carry no time of their own).` : `No dinner or snack logged after 21:00 in ${days.size} days (when it was logged; meals carry no time of their own).`, detail: lateDays ? [...new Set(late.map(e => e.snapshot.name))].slice(0, 4) : []});
+  // Session AL (P-MO-78, MO-150): with no dinner or snack logged on its own day, the card could only ever say "none":
+  // it is left out until the log can speak about the evening.
+  const timed = entries.some(e => (e.meal === 'Snacks' || e.meal === 'Dinner') && sameDay(e));
+  if (timed) cards.push({id: 'late-evening', title: 'Late-evening eating', line: lateDays ? `A dinner or snack logged after 21:00 on ${lateDays} of ${days.size} days (when it was logged; meals carry no time of their own).` : `No dinner or snack logged after 21:00 in ${days.size} days (when it was logged; meals carry no time of their own).`, detail: lateDays ? [...new Set(late.map(e => e.snapshot.name))].slice(0, 4) : []});
   const counts = new Map<string, number>();
   for (const e of entries) counts.set(e.snapshot.name, (counts.get(e.snapshot.name) ?? 0) + 1);
   const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);

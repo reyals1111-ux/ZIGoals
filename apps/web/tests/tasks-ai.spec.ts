@@ -31,7 +31,8 @@ test('To do: add with a priority and a day, in order; done and remove each with 
   await c.getByRole('button', {name: 'Add task'}).click();
   await expect(c.getByRole('status')).toContainText('Added “Buy stamps”.');
   await c.getByLabel('New task').fill('Call the bank');
-  await c.getByLabel('Priority').selectOption('high');
+  // Session AL (P-LS-01, deliberate): priority is p1–p4 now; "P1 · High" is the old high (it still stores priority "high").
+  await c.getByLabel('Priority').selectOption({label: 'P1 · High'});
   await c.getByLabel('Due (optional)').fill(TODAY);
   await c.getByRole('button', {name: 'Add task'}).click();
   await expect(c.getByRole('list', {name: 'Open tasks'}).locator('.task-title')).toHaveText(['Call the bank', 'Buy stamps']);
@@ -58,7 +59,9 @@ test('SE5: a Health entry is removed from the Activity log itself, with Undo', a
   await dialog.getByRole('textbox', {name: 'Type a line'}).fill('2 glasses of water');
   await dialog.getByRole('textbox', {name: 'Type a line'}).press('Enter');
   await dialog.getByRole('button', {name: 'Save', exact: true}).click();
-  await expect(dialog.getByRole('status')).toBeVisible();
+  // Session AL (deliberate): the toast region now sits inside an open modal dialog (so its Undo shows above the dialog), a
+  // second status there; the saved line is the dialog's own.
+  await expect(dialog.locator('.quick-add-line-saved[role="status"]')).toBeVisible();
   await page.keyboard.press('Escape');
   // Session AJ (CI on df6c8c64: the next goto was aborted, net::ERR_ABORTED): the dialog closes and the page settles
   // before leaving it, as before other gotos (Session AE); every check after it is unchanged.

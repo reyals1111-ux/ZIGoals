@@ -1,8 +1,9 @@
 'use client';
 import Link from 'next/link';
-import {hermesCheckLine, hermesProgress, hermesStatus, NOVA_HERMES} from '../../../lib/nova/hermes-record';
+import {confirmationLapsedLine, hermesCheckLine, hermesProgress, hermesStatus, NOVA_HERMES} from '../../../lib/nova/hermes-record';
 import {HERMES_PLANETS} from '../../../lib/nova/hermes-model';
 import {useDeviceRecord} from '../../ai/use-device-record';
+import {ForgetHermesKey} from './forget-key';
 import '../setup/setup.css';
 
 /**
@@ -16,11 +17,12 @@ export function NovaHermesCard() {
   const progress = hermesProgress(record.data), status = hermesStatus(record.data);
   if (record.data.cardHidden && !status.connected) return null;
   const line = status.connected ? hermesCheckLine(status) : null; // EX3-5: a refused key is not "not reachable"
+  const lapsed = confirmationLapsedLine(record.data); // Z1A-I5: confirmed for another address or Hermes version
   return <section className="nova-guide-card nova-hermes-card" aria-labelledby="nova-hermes-card-title">
     <p className="eyebrow">Your own agent</p>
     <h2 id="nova-hermes-card-title">{status.connected ? 'Hermes Agent' : 'Connect your Hermes Agent'}</h2>
     <p>{line ?? (progress.done ? `${progress.done} of 10 planets lit. Next: ${HERMES_PLANETS[progress.next!].label}.` : 'Already run Nous Research’s Hermes Agent? Connect it as NOVA’s brain, or as a second agent NOVA can ask.')}</p>
-    {status.connected && <p className="fine">{status.localModelConfirmed ? 'You confirmed it runs a local model.' : 'Treated as a cloud until you confirm it runs a local model: what NOVA sends it is redacted in Strict and Guarded.'}</p>}
-    <div className="ai-card-actions"><Link className={status.connected ? 'secondary' : 'primary'} href="/app/nova/hermes">{status.connected ? 'Hermes guide' : progress.done ? 'Continue the guide' : 'Start the guide'}</Link></div>
+    {status.connected && <p className="fine">{lapsed ?? (status.localModelConfirmed ? 'You confirmed it runs a local model.' : 'Treated as a cloud until you confirm it runs a local model: what NOVA sends it is redacted in Strict and Guarded.')}</p>}
+    <div className="ai-card-actions"><Link className={status.connected ? 'secondary' : 'primary'} href="/app/nova/hermes">{status.connected ? 'Hermes guide' : progress.done ? 'Continue the guide' : 'Start the guide'}</Link><ForgetHermesKey record={record.data}/></div>
   </section>;
 }

@@ -20,7 +20,9 @@ export const HERMES_DEFAULT_PORT = 8642;
 export const HERMES_KEY_SLOT = 'hermes' satisfies KeySlot;
 const iso = z.iso.datetime();
 const stepShape = Object.fromEntries(HERMES_STEPS.map(id => [id, setupStepSchema.optional()])) as Record<HermesStepId, z.ZodOptional<typeof setupStepSchema>>;
-export const hermesCheckSchema = z.looseObject({at: iso, reachable: z.boolean(), model: z.string().max(200).optional(), ms: z.number().int().min(0).max(600_000).optional(), problem: z.string().max(40).optional()});
+export const hermesCheckSchema = z.looseObject({at: iso, reachable: z.boolean(), model: z.string().max(200).optional(), ms: z.number().int().min(0).max(600_000).optional(), problem: z.string().max(40).optional(),
+  /** Session AL Part 14 (Z1A-I5): the version /health reported at this check, when it said one. */
+  version: z.string().max(40).optional()});
 export const novaHermesSchema = z.looseObject({
   version: z.literal(1),
   steps: z.looseObject(stepShape).optional(),
@@ -31,6 +33,19 @@ export const novaHermesSchema = z.looseObject({
   /** The person confirmed in the guide that their Hermes runs a local model (only then is it Strict-safe). */
   localModelConfirmed: z.boolean().optional(),
   confirmedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  /**
+   * Session AL Part 14 (security review Z1A-I5): the gateway (one spelling, `canonicalLocalBase`) and the Hermes version
+   * the confirmation was given for. A Hermes at another address or on another version is asked about again
+   * (`localModelStillConfirmed`). Absent on a confirmation from before: that one stands as it was.
+   */
+  confirmedBase: z.string().max(200).optional(),
+  confirmedVersion: z.string().max(40).optional(),
+  /**
+   * Session AL Part 14 (security review Z1A-6, its last line): other addresses on this computer whose /health said
+   * `platform: hermes-agent` when a local server was connected (one spelling each, at most 8): a Hermes reached that way is
+   * treated as Hermes too.
+   */
+  seenBases: z.array(z.string().max(200)).max(8).optional(),
   /** The last live check, for NOVA's panels. */
   lastCheck: hermesCheckSchema.optional(),
   finishedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -61,11 +76,36 @@ export function canonicalLocalBase(input: string | null | undefined): string | n
   } catch { return null; }
 }
 /** A request goes to the person's Hermes: its saved gateway address (in any spelling of this computer), or the default port 8642 on this computer. */
-export function isHermesBase(baseUrl: string | null | undefined, record: Pick<NovaHermes, 'baseUrl'> | null): boolean {
+export function isHermesBase(baseUrl: string | null | undefined, record: Pick<NovaHermes, 'baseUrl' | 'seenBases'> | null): boolean {
   if (!baseUrl) return false;
   const clean = baseUrl.replace(/\/+$/, '').replace(/\/v1$/, '');
   const asked = canonicalLocalBase(baseUrl), saved = canonicalLocalBase(record?.baseUrl);
-  return (!!record?.baseUrl && (clean === record.baseUrl || (!!asked && asked === saved))) || portOf(clean) === HERMES_DEFAULT_PORT;
+  // Z1A-6 (AL Part 14): or an address whose /health said it is Hermes when it was connected.
+  const seen = !!asked && Array.isArray(record?.seenBases) && record.seenBases.includes(asked);
+  return (!!record?.baseUrl && (clean === record.baseUrl || (!!asked && asked === saved))) || seen || portOf(clean) === HERMES_DEFAULT_PORT;
+}
+/** Z1A-6: the record with this address noted as a Hermes (its /health said so); the same object when already noted or not an address. */
+export function withSeenHermes(record: NovaHermes, baseUrl: string): NovaHermes {
+  const at = canonicalLocalBase(baseUrl);
+  if (!at || (record.seenBases ?? []).includes(at)) return record;
+  return {...record, version: 1, seenBases: [at, ...(record.seenBases ?? [])].slice(0, 8)};
+}
+/** Z1A-6: whether a /health answer is Hermes Agent's own ({"status":"ok","platform":"hermes-agent",…}). */
+export const isHermesHealth = (body: unknown): boolean => !!body && typeof body === 'object' && (body as {platform?: unknown}).platform === 'hermes-agent';
+/**
+ * Z1A-I5: the person's "my Hermes runs a local model" still holds: given, and for this gateway and this Hermes version
+ * (when both were known at the confirmation). A new address or a new version since asks again; until then Strict and
+ * Guarded redact what goes to it. A confirmation from before AL (no address or version kept) stands.
+ */
+export function localModelStillConfirmed(record: Pick<NovaHermes, 'localModelConfirmed' | 'confirmedBase' | 'confirmedVersion' | 'baseUrl' | 'lastCheck'>): boolean {
+  if (record.localModelConfirmed !== true) return false;
+  if (record.confirmedBase && canonicalLocalBase(record.baseUrl) !== record.confirmedBase) return false;
+  const now = record.lastCheck?.version;
+  return !(record.confirmedVersion && typeof now === 'string' && now !== record.confirmedVersion);
+}
+/** Z1A-I5: confirmed once, but Hermes moved or was updated since: the line that asks again. Null when nothing lapsed. */
+export function confirmationLapsedLine(record: Pick<NovaHermes, 'localModelConfirmed' | 'confirmedBase' | 'confirmedVersion' | 'baseUrl' | 'lastCheck'>): string | null {
+  return record.localModelConfirmed === true && !localModelStillConfirmed(record) ? 'Your Hermes changed since you confirmed it runs a local model (a new address or version). Confirm it again in NOVA → Connect your Hermes Agent, planet 8; until then NOVA treats it as Guarded.' : null;
 }
 /** The engine's rule (lib/ai/privacy-mode.ts): a Hermes brain whose local model is not confirmed is redacted in Strict and Guarded. */
 export function hermesNeedsRedaction(mode: PrivacyMode | null, confirmedLocal: boolean): boolean {
@@ -79,7 +119,40 @@ export type HermesStatus = {connected: boolean; reachable: boolean; model?: stri
 export function hermesStatus(record: NovaHermes = {version: 1}): HermesStatus {
   const last = record.lastCheck;
   const model = last?.model ?? record.model;
-  return {connected: !!record.baseUrl, reachable: !!last?.reachable, ...(model ? {model} : {}), ...(last?.ms !== undefined ? {lastMs: last.ms} : {}), ...(last?.at ? {checkedAt: last.at} : {}), localModelConfirmed: record.localModelConfirmed === true, ...(!last?.reachable && last?.problem ? {problem: last.problem} : {})};
+  return {connected: !!record.baseUrl, reachable: !!last?.reachable, ...(model ? {model} : {}), ...(last?.ms !== undefined ? {lastMs: last.ms} : {}), ...(last?.at ? {checkedAt: last.at} : {}), localModelConfirmed: localModelStillConfirmed(record), ...(!last?.reachable && last?.problem ? {problem: last.problem} : {})};
+}
+/**
+ * Session AL Part 14 (lane P14-B; EXPLORATORY_ROUND3 left-overs 1 and 3): the words for a Hermes that answered but refused
+ * or wanted its key, shared by the guide's test (hermes.ts HERMES_FIXES), NOVA's panels and the chat's failure.
+ */
+export const HERMES_KEY_WORDS = {
+  'needs-key': {title: 'Hermes is running and asks for its key: none is on this device yet.', steps: ['Paste the key you put in API_SERVER_KEY (show it with “hermes config get API_SERVER_KEY --raw”), then test again.']},
+  'wrong-key': {title: 'Hermes refused the key.', steps: ['Show it with “hermes config get API_SERVER_KEY --raw” and paste it here again.', 'Restart the gateway after changing the key.']},
+} as const;
+/**
+ * EX3 left-over 3: a chat message to the person's Hermes (as NOVA's brain or through "Ask my Hermes") that came back 401 or
+ * 403 says what Hermes needs, in the guide's words and where to paste the key, never ZIGi's generic "key not accepted".
+ * Null for any other failure.
+ */
+export function hermesKeyFailure(kind: string, hadKey: boolean): {title: string; steps: string[]} | null {
+  if (kind !== 'bad-key') return null;
+  const show = 'Show it with “hermes config get API_SERVER_KEY --raw”', where = 'NOVA → Connect your Hermes Agent (planet 7)';
+  return hadKey
+    ? {title: HERMES_KEY_WORDS['wrong-key'].title, steps: [`${show} and paste it again in ${where}.`, 'Restart the gateway after changing the key.']}
+    : {title: HERMES_KEY_WORDS['needs-key'].title, steps: [`In ${where}, paste the key you put in API_SERVER_KEY (${show.charAt(0).toLowerCase()}${show.slice(1)}), then test again.`]};
+}
+/**
+ * EX3 left-over 1: NOVA's left and right panels say what the last check found, as the guide does (`hermesCheckLine`): a
+ * gateway that answered but refused or wanted the key, or that does not allow this site yet, was reached, so it is never
+ * "not reachable". `pill` is the short status, `line` the sentence, `on` whether the gateway answered at all.
+ */
+export function hermesPanel(status: HermesStatus): {pill: string; line: string; on: boolean} {
+  if (status.reachable) return {pill: 'Reachable', line: 'Hermes gateway reachable at the last check', on: true};
+  if (status.problem === 'wrong-key') return {pill: 'Key refused', line: 'Hermes gateway answered at the last check, but refused the key', on: true};
+  if (status.problem === 'needs-key') return {pill: 'Key needed', line: 'Hermes gateway answered at the last check and asks for its key', on: true};
+  if (status.problem === 'cors') return {pill: 'Site not allowed', line: 'Hermes gateway running at the last check, but this site is not allowed yet', on: true};
+  if (status.problem === 'busy') return {pill: 'Busy', line: 'Hermes gateway answered at the last check, but was busy or restarting', on: true};
+  return {pill: 'Not reachable', line: 'Hermes gateway not reachable at the last check', on: false};
 }
 /**
  * Session AK lane P7 (EX3-5): the gateway's last check in one line, for the guide and NOVA's card. A gateway that answered
@@ -114,7 +187,12 @@ export function hermesProgress(record: NovaHermes): {done: number; total: number
   const done = HERMES_STEPS.filter(id => hermesStepDone(record, id)).length;
   return {done, total: HERMES_STEPS.length, next: HERMES_STEPS.find(id => !hermesStepDone(record, id)) ?? null, finished: done === HERMES_STEPS.length};
 }
-export const confirmLocalModel = (record: NovaHermes, confirmed: boolean, today: string): NovaHermes => ({...record, version: 1, localModelConfirmed: confirmed, ...(confirmed ? {confirmedOn: today} : {})});
+// Z1A-I5 (AL Part 14): a confirmation keeps the gateway and the Hermes version it was given for.
+export const confirmLocalModel = (record: NovaHermes, confirmed: boolean, today: string): NovaHermes => {
+  const base = canonicalLocalBase(record.baseUrl), version = record.lastCheck?.version;
+  const {confirmedBase: _b, confirmedVersion: _v, ...rest} = record; void _b; void _v;
+  return {...rest, version: 1, localModelConfirmed: confirmed, ...(confirmed ? {confirmedOn: today, ...(base ? {confirmedBase: base} : {}), ...(version ? {confirmedVersion: version} : {})} : {})};
+};
 /** `hermes --version` as pasted by the person ("Hermes Agent v0.22.5 (…)"): the version, or null when it is not that output. */
 export function hermesVersionIn(text: string): string | null {
   const m = /hermes[^\n\d]{0,40}?v?(\d+\.\d+(?:\.\d+)?(?:[-+.][0-9A-Za-z.-]+)?)/i.exec(text.slice(0, 2000));
@@ -123,5 +201,5 @@ export function hermesVersionIn(text: string): string | null {
 /** The last answer's time (a first run, a delegation), for NOVA's panels: reachable, with the time it took. */
 export function withCheckTime(record: NovaHermes, ms: number, at: Date): NovaHermes {
   const model = record.lastCheck?.model ?? record.model;
-  return novaHermesSchema.parse({...record, version: 1, lastCheck: {at: at.toISOString(), reachable: true, ms: Math.max(0, Math.min(600_000, Math.round(ms))), ...(model ? {model} : {})}});
+  return novaHermesSchema.parse({...record, version: 1, lastCheck: {at: at.toISOString(), reachable: true, ms: Math.max(0, Math.min(600_000, Math.round(ms))), ...(model ? {model} : {}), ...(record.lastCheck?.version ? {version: record.lastCheck.version} : {})}});
 }

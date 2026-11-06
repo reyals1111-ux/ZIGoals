@@ -93,7 +93,9 @@ test('Showcase shows a fictional portfolio with labelled fixture prices and requ
   // Session AH Part 4 (TR3/B1, M16, deliberate): the Showcase's prices come from the one price service too — Portfolio
   // asks for prices only (the same request Wealth makes, kept for the tab), never insights or details. With no price
   // loaded (this offline fixture) its fixture answers, labelled as before.
-  expect(requests.slice(before).filter(path => path.startsWith('/api/market') && path !== '/api/market-quotes')).toEqual([]);
+  // Session AL (PR-016 / P-PR-01, deliberate; use-portfolio-market.ts): the 24h change comes from the one shared insight
+  // snapshot Today and Markets read, in the Showcase too (asked once, then frozen for the tab); never details.
+  expect(requests.slice(before).filter(path => path.startsWith('/api/market') && path !== '/api/market-quotes' && path !== '/api/market-insights')).toEqual([]);
   // Viewing never writes: the fictional portfolio is not stored until something is changed.
   expect(await page.evaluate(key => Object.keys(sessionStorage).filter(k => k.endsWith(key)), KEY)).toEqual([]);
 });

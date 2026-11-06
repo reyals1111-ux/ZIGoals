@@ -6,6 +6,7 @@ import {FASTING_PRESETS, MAX_CUSTOM_HOURS, fastingSchema, type Fasting} from '..
 import {earliestHabitChange} from '../../habit-actions';
 import {clearVacation, createHabit, editHabit, habitDataSchema, habitInputSchema, latestHabitRule, logHabitValue, measurementUnit, planSkip, setHabitEntryStatus, setHabitState, setVacation, smartDoneValue, unplanSkip, type Habit, type HabitData, type HabitInput} from '../../habits';
 import {recipeRef} from './refs';
+import {looksLikeInjection} from '../safety-guard';
 import {editDiaryEntry, foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, setHealthTargets, type HealthData, type HealthFood} from '../../health';
 import {addWater, dailyData, logMealPlan, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, saveMealPlan, setFavorite} from '../../health-daily';
 import {addCounter, changeCount, countOn, deleteCounter, editCounter, exerciseData} from '../../health-counters';
@@ -33,6 +34,7 @@ import {addMemory, addNote, CATEGORY_LABELS, consentOnRemember, deleteNote, isHe
 import {memoryConsent} from '../store/records';
 import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
+import {durationCountText} from '../../habit-number';
 import type {Handle} from '../context/types';
 import {STALE_HANDLE} from '../handles';
 import {LIFE_REVIEW_KEY} from '../../life-review/store';
@@ -85,7 +87,11 @@ import {PRICE_ALERTS_KEY} from '../../price-alerts/schema';
 import {alertLine, newAlertId} from '../../price-alerts/engine';
 import './meal-estimate-writes';
 import {MEAL_ESTIMATES_KEY, NUTRIENT_RANGES, middleOf, rangeText} from '../../meal-estimates/schema';
+import {diaryDayIssue} from '../../health-day';
+import {goalQty} from '../tools/format';
 
+/** Session AL third pass (NB-114): a part-minute of a timed habit in seconds ("was 49 s", never "was 0.81"); whole amounts and hours stay as they were. */
+const partMinute = (count: number, unit: string | null | undefined) => /^(?:minutes?|min)$/i.test(unit ?? '') ? durationCountText(count, unit) : null;
 /**
  * From a validated proposal to a card and two writes (ADR-012, Part 5). `write` runs at confirm time on the latest
  * stores through the same save path the forms use (usePrivateStore.update, the fasting store's update, the platform
@@ -242,6 +248,8 @@ function usesFood(health: HealthData, id: string, except?: string): boolean {
 
 /** A unit's singular, for comparing "glass" with "glasses" or "page" with "pages". */
 const plainUnit = (unit: string) => unit.trim().toLowerCase().replace(/(ss|ch|sh|x)es$/, '$1').replace(/s$/, '');
+/** Session AL (Part 13, L7): millilitres in one of a volume unit (by its singular), so "1500 ml" fits a habit kept in liters. */
+const VOLUME_ML: Record<string, number> = {ml: 1, milliliter: 1, millilitre: 1, cl: 10, centiliter: 10, centilitre: 10, dl: 100, deciliter: 100, decilitre: 100, l: 1000, liter: 1000, litre: 1000};
 /**
  * Session V Part 7: a check-in's amount in the habit's own measure. Minutes go to a habit measured in time (minutes or
  * hours, by its unit), a quantity to a habit with the same unit; a habit that is done or not is marked done. Anything
@@ -260,6 +268,9 @@ function amountFor(rule: ReturnType<typeof latestHabitRule>, action: Extract<Act
     if (action.unit && plainUnit(action.unit) !== plainUnit(unit)) {
       const perUnit = minutesOf(rule, 1), minutes = /^(min|mins|minute|minutes)$/i.test(action.unit) ? action.quantity : /^(h|hr|hrs|hour|hours)$/i.test(action.unit) ? action.quantity * 60 : null;
       if (perUnit !== null && minutes !== null) return {ok: true, value: Math.round((minutes / perUnit) * 1000) / 1000, said: `${num(action.quantity, 2)} ${action.unit} = ${num(minutes / perUnit, 2)} ${unit}`};
+      // A volume habit takes any volume unit: liters and millilitres convert both ways.
+      const saidMl = VOLUME_ML[plainUnit(action.unit)], habitMl = VOLUME_ML[plainUnit(unit)];
+      if (saidMl !== undefined && habitMl !== undefined) { const value = Math.round((action.quantity * saidMl / habitMl) * 1000) / 1000; return {ok: true, value, said: saidMl === habitMl ? undefined : `${num(action.quantity, 2)} ${action.unit} = ${num(value, 3)} ${unit}`}; }
       return {ok: false, message: `This habit is measured in ${unit}, not ${action.unit}, so nothing was proposed.`};
     }
     return {ok: true, value: action.quantity};
@@ -310,6 +321,8 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'log-food': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
+      // Session AL (L2's request, MO-010): the diary takes the days Health's own forms take (diaryDayIssue), never later.
+      const diaryIssue = diaryDayIssue(day.day, env.healthDay); if (diaryIssue) return refuse(diaryIssue);
       const entryId = healthId(), quantityMilli = Math.round(action.quantity * 1000);
       if (action.food) {
         const found = env.handles.find(h => h.handle === action.food && (h.kind === 'food' || h.kind === 'recipe'));
@@ -345,12 +358,14 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'check-in': {
       const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
+      // Session AL (L7; LA-014/LA-041): a habit whose name reads like an instruction never gets a card from a chat.
+      if (looksLikeInjection(found.habit.title)) return refuse('This habit’s name reads like an instruction, so ZIGi makes no card for it. Check it in on Habits yourself.');
       const day = resolveDay(action.day, env.habitDay, env.habitDay); if (!day.ok) return refuse(day.message);
       const {habit} = found, rule = latestHabitRule(habit), unit = measurementUnit(rule), previous = entryOn(stores.habits, habit.id, day.day);
       const amount = amountFor(rule, action); if (!amount.ok) return refuse(amount.message);
       const value = amount.value ?? smartDoneValue(rule);
       const partial = rule.type === 'build' && rule.measurement.kind !== 'boolean' && value < rule.target && value > 0;
-      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: partial ? `Partial check-in: ${habit.title}` : `Check in: ${habit.title}`, lines: [rule.measurement.kind === 'boolean' ? (value >= 1 ? 'Mark as done' : 'Mark as not done') : `Set the day's count to ${num(value, 2)}${unit ? ' ' + unit : ''} (target ${rule.target}${unit ? ' ' + unit : ''})${previous ? `, was ${previous.count}` : ''}`, ...(amount.said ? [amount.said] : []), ...(action.note ? [`Note: ${action.note}`] : [])], where: `Habits · ${habit.title}`, day: dayLabel(day.day, env.habitDay), estimate: false},
+      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: partial ? `Partial check-in: ${habit.title}` : `Check in: ${habit.title}`, lines: [rule.measurement.kind === 'boolean' ? (value >= 1 ? 'Mark as done' : 'Mark as not done') : `Set the day's count to ${partMinute(value, unit) ?? `${num(value, 2)}${unit ? ' ' + unit : ''}`} (target ${rule.target}${unit ? ' ' + unit : ''})${previous ? `, was ${partMinute(previous.count, unit) ?? previous.count}` : ''}`, ...(amount.said ? [amount.said] : []), ...(action.note ? [`Note: ${action.note}`] : [])], where: `Habits · ${habit.title}`, day: dayLabel(day.day, env.habitDay), estimate: false},
         write: s => ({habits: logHabitValue(s.habits, habit.id, day.day, value, {mode: 'set', note: action.note ?? previous?.note ?? '', mood: action.mood ?? previous?.mood}, env.now)}),
         undo: {label: previous ? 'Put the previous check-in back' : 'Remove this check-in', write: s => ({habits: restoreEntry(s.habits, habit.id, day.day, previous, env.now)}), unchanged: (after, current) => same(entryOn(after.habits, habit.id, day.day), entryOn(current.habits, habit.id, day.day))},
         activity: {id: `habit:${habit.id}:${day.day}`, title: `Check-in: ${habit.title}`}}};
@@ -404,10 +419,12 @@ export function planAction(action: Action, env: Env): PlanResult {
       const draft = privateGoalSchema.safeParse({id, name: action.name, category: action.category, network: 'zigchain-1', type: action.type, status: 'active', asset: currency, denom, decimals, target, notes: action.notes, createdAt: at, targetDate: action.targetDate, milestones: (action.milestones ?? []).map((title, i) => ({id: `zigi-milestone-${i + 1}`, title, done: false}))});
       if (!draft.success) return refuse(`This goal cannot be created as proposed: ${draft.error.issues[0]?.message ?? 'check its fields'}.`);
       const goal = draft.data, milestones = action.milestones ?? [];
+      // Session AL (DV-072): an open goal of the same name is named on the card, so a second Add is a choice, not a surprise.
+      const twinGoal = stores.platform.goals.find(g => g.status !== 'closed' && g.name.trim().toLowerCase() === action.name.trim().toLowerCase());
       const headline = project ? `${GOAL_TYPE_LABEL.PROJECT} · ${milestones.length} milestone${milestones.length === 1 ? '' : 's'}` : `${GOAL_TYPE_LABEL[action.type]} · target ${action.target!.toLocaleString('en-US')} ${currency}`;
-      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Create the goal "${action.name}"`, lines: [`${headline}${action.targetDate ? ` by ${action.targetDate}` : ''}${action.category ? ` · ${action.category}` : ''}`, ...(action.notes ? [`Notes: ${action.notes}`] : []), ...(milestones.length ? [`Milestones: ${milestones.join(' · ')}`] : []), project ? 'A draft: only milestones you tick off in Goals count toward it; nothing moves' : 'A draft without a plan or funding: nothing moves; you shape it in Goals'], where: 'Goals', day: null, estimate: false},
+      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Create the goal "${action.name}"`, lines: [...(twinGoal ? [`A goal called "${twinGoal.name}" is already in Goals: this adds a second one`] : []), `${headline}${action.targetDate ? ` by ${action.targetDate}` : ''}${action.category ? ` · ${action.category}` : ''}`, ...(action.notes ? [`Notes: ${action.notes}`] : []), ...(milestones.length ? [`Milestones: ${milestones.join(' · ')}`] : []), project ? 'A draft: only milestones you tick off in Goals count toward it; nothing moves' : 'A draft without a plan or funding: nothing moves; you shape it in Goals'], where: 'Goals', day: null, estimate: false},
         write: s => { if (s.platform.goals.some(g => g.id === id)) throw Error('Another goal took this place meanwhile. Ask ZIGi again.'); return {platform: platformSchema.parse({...s.platform, goals: [...s.platform.goals, goal]})}; },
-        undo: {label: 'Remove this goal draft', write: s => ({platform: deletePrivateGoal(s.platform, id)}), unchanged: (after, current) => same(after.platform.goals.find(g => g.id === id), current.platform.goals.find(g => g.id === id))}, activity: {id: `created:${id}`, title: `Goal created: ${action.name}`}}};
+        undo: {label: 'Remove this goal draft', write: s => ({platform: deletePrivateGoal(s.platform, id)}), unchanged: (after, current) => same(after.platform.goals.find(g => g.id === id), current.platform.goals.find(g => g.id === id))}, activity: {id: `created:${id}`, title: `Goal created: ${action.name}`}, ...(twinGoal ? {duplicate: true} : {})}};
     }
     case 'add-goal-note': {
       const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message);
@@ -671,7 +688,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       }
       const id = (env.newHabitId ?? (() => crypto.randomUUID()))(), milestone = {id, title: action.title, done: false, ...(target ? {target} : {})};
       const mine = (s: Stores) => s.platform.goals.find(g => g.id === goal.id)?.milestones.find(m => m.id === id);
-      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Add a milestone to "${goal.name}"`, lines: [action.title, ...(action.value !== undefined ? [`At ${action.value.toLocaleString('en-US')} ${goal.asset}`] : []), 'Give it a date in Goals if you like; nothing moves money'], where: 'Goals · Milestones', day: null, estimate: false},
+      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Add a milestone to "${goal.name}"`, lines: [action.title, ...(action.value !== undefined ? [`At ${goalQty(action.value.toLocaleString('en-US'), goal.asset)}`] : []), 'Give it a date in Goals if you like; nothing moves money'], where: 'Goals · Milestones', day: null, estimate: false},
         write: s => { const current = s.platform.goals.find(g => g.id === goal.id); writableGoal(current); if (current.milestones.length >= 100) throw Error('This goal already has 100 milestones.'); if (target && BigInt(target) > BigInt(current.target)) throw Error('This milestone is now above the goal\'s target. Ask ZIGi again.'); return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, milestones: [...g.milestones, milestone]} : g)})}; },
         undo: {label: 'Remove this milestone', write: s => ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, milestones: g.milestones.filter(m => m.id !== id)} : g)})}), unchanged: (after, current) => same(mine(after), mine(current))},
         activity: {id: `milestone:${goal.id}:${id}`, title: `Milestone added to ${goal.name}: ${action.title}`}}};
@@ -751,7 +768,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (action.target !== undefined && goal.type === 'PROJECT') return refuse('A project counts its milestones, not an amount: change its milestones in Goals.');
       const changes: string[] = [];
       let target = goal.target;
-      if (action.target !== undefined) { try { target = parseAmountInput(String(action.target), goal.decimals).toString(); } catch { return refuse('The target amount could not be read.'); } if (target !== goal.target) changes.push(`Target: ${num(Number(goal.target) / 10 ** goal.decimals, 2)} → ${action.target.toLocaleString('en-US')} ${goal.asset}`); }
+      if (action.target !== undefined) { try { target = parseAmountInput(String(action.target), goal.decimals).toString(); } catch { return refuse('The target amount could not be read.'); } if (target !== goal.target) changes.push(`Target: ${num(Number(goal.target) / 10 ** goal.decimals, 2)} → ${goalQty(action.target.toLocaleString('en-US'), goal.asset)}`); }
       if (action.name !== undefined && action.name !== goal.name) changes.push(`Name: ${goal.name} → ${action.name}`);
       if (action.targetDate !== undefined && (action.targetDate ?? undefined) !== goal.targetDate) changes.push(action.targetDate ? `Target date: ${goal.targetDate ?? 'none'} → ${action.targetDate}` : 'Target date removed');
       if (action.category !== undefined && action.category !== goal.category) changes.push(`Category: ${goal.category ?? 'none'} → ${action.category}`);
@@ -959,6 +976,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (hits.length !== 1) return refuse(hits.length ? `${hits.length} entries named "${action.name}" on ${day.day}: change the one you mean in the diary.` : `No "${action.name}" in the diary on ${day.day}.`);
       const entry = hits[0]!, next = {date: action.move_to ?? entry.date, meal: action.meal ?? entry.meal, quantityMilli: action.quantity !== undefined ? Math.round(action.quantity * 1000) : entry.quantityMilli};
       if (next.date > env.healthDay) return refuse('A diary entry cannot move to a day that has not come yet.');
+      { const diaryIssue = diaryDayIssue(next.date, env.healthDay); if (diaryIssue) return refuse(diaryIssue); }
       if (next.date === entry.date && next.meal === entry.meal && next.quantityMilli === entry.quantityMilli) return refuse('Nothing changes on that entry.');
       const was = {date: entry.date, meal: entry.meal, quantityMilli: entry.quantityMilli}, changes = [...(next.meal !== entry.meal ? [`Meal: ${entry.meal} → ${next.meal}`] : []), ...(next.quantityMilli !== entry.quantityMilli ? [`Servings: ${num(entry.quantityMilli / 1000, 2)} → ${num(next.quantityMilli / 1000, 2)}`] : []), ...(next.date !== entry.date ? [`Day: ${entry.date} → ${next.date}`] : [])];
       const mine = (s: Stores) => s.health.diary.find(e => e.id === entry.id);
@@ -968,6 +986,7 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'log-meal-plan': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
+      const diaryIssue = diaryDayIssue(day.day, env.healthDay); if (diaryIssue) return refuse(diaryIssue);
       const plans = dailyData(stores.health).plans.filter(p => p.date === day.day && !p.loggedAt && (!action.meal || p.meal === action.meal));
       if (plans.length !== 1) return refuse(plans.length ? `${plans.length} planned meals on ${day.day}: say which meal.` : `No planned meal left to log on ${day.day}.`);
       const plan = plans[0]!;
@@ -1215,7 +1234,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       const day = resolveDay(action.day, env.habitDay, env.habitDay); if (!day.ok) return refuse(day.message);
       const amount = typeof action.amount === 'number' ? num(action.amount, 8) : action.amount, asset = action.asset ?? goal.asset;
       const contribution: ContributionPrefill = {goalId: goal.id, goal: goal.name, amount, asset, date: day.day, ...(action.note ? {note: action.note} : {})};
-      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Pre-fill a contribution to "${goal.name}"`, lines: [`${amount} ${asset} on ${day.day}`, ...(action.note ? [action.note] : []), 'Opens the goal\'s Fund form filled in; nothing is recorded and no money moves until you save it there'], where: 'Goals', day: day.day, estimate: false},
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Pre-fill a contribution to "${goal.name}"`, lines: [`${goalQty(String(amount), asset)} on ${day.day}`, ...(action.note ? [action.note] : []), 'Opens the goal\'s Fund form filled in; nothing is recorded and no money moves until you save it there'], where: 'Goals', day: day.day, estimate: false},
         write: () => ({}), undo: null, contribution}};
     }
     case 'prefill-account': {

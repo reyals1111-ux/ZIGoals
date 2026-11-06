@@ -58,3 +58,6 @@
    attention (no plan, needs review, value unknown) amber, never the green of a good state. */
 .badge[data-health] { text-transform: uppercase; letter-spacing: .08em; }
 .badge[data-health="No_plan"], .badge[data-health="NEEDS_REVIEW"], .badge[data-health="Value_unknown"] { color: #ffd384; background: #46311470; border-color: #d4a65147; }
+/* Session AL sweep 2 (D-211): the scene's loading skeleton fills the art box edge to edge (the box keeps its height). */
+:root .goal-card-art > .goal-card-art-skeleton { position: absolute; inset: 0; padding: 0; border: 0; border-radius: 0; gap: 0; }
+:root .goal-card-art > .goal-card-art-skeleton > b { height: 100%; margin: 0; border-radius: 0; }

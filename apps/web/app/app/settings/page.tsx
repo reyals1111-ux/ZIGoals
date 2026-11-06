@@ -1,8 +1,10 @@
 "use client";
-import { DataHome } from "../../../components/bottom-sections";
+import { DataHome } from "../../../components/bottom-data-home";
 import {WhatsThis} from "../../../components/earn/whats-this";
 import {DeviceLockSettings} from "../../../components/device-lock";
+import {PlanSettingsRow} from "../../../components/plans/plan-settings-row";
 import { SendFeedback } from "../../../components/help/send-feedback";
+import { markHelpFromSettings } from "../../../components/help/help-back";
 import { AboutThisAlpha } from "../../../components/alpha/about-this-alpha";
 import { PointTellSetting } from "../../../components/point-tell/point-tell-setting";
 import { exportFileName } from "../../../lib/showcase-detect";
@@ -15,7 +17,7 @@ import {StorageInternals} from "../../../components/settings/storage-internals";
 import {MotionPreference} from "../../../components/motion-preference";
 import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
 import {LazyCustomizeSettings} from "../../../components/settings/customize-settings-lazy";
-import {ShowcaseControls} from "../../../components/showcase-controls";
+import {ShowcaseSlot} from "../../../components/settings/showcase-slot";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";
 import { EraseEverything } from "../../../components/settings/erase-everything";
@@ -30,7 +32,7 @@ import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import { NovaSettingsLinks } from "../../../components/settings/nova-settings-links";
 import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { useGoals } from "../../../components/goal-provider";
 import { ConnectionDiagnostics } from "../../../components/connection-diagnostics";
 import { shortAccount } from "../../../lib/diagnostics";
@@ -52,13 +54,17 @@ import { AfEarnSection } from "../../../components/settings/af-earn-section";
 import { AfSigningSection } from "../../../components/settings/af-signing-section";
 import { AfExtrasSection } from "../../../components/settings/af-extras-section";
 import { useChainChoice } from "../../../components/chain/use-chain-choice";
+import { SettingsFoldAll, SettingsFoldGroup, SettingsFolds } from "../../../components/settings/settings-fold";
+import type { SettingsGroupId } from "../../../lib/settings-folds";
+// Session AL (BN-112): its own chunk, loaded only once the chain is chosen and the wallet group shows.
+const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wallets"));
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
  * Session AK G2 (RELEASE_REVIEW_2 R2-4): the ZIGi group is "Your assistant", ZIGi's settings and NOVA's together, one name
  * for one engine; its id (#settings-zigi) and every anchor in it (#your-ai and ZIGi's own) stay as they were.
  */
-const SETTINGS_GROUPS: [id: string, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "Your assistant"], ["settings-help", "Help & diagnostics"]];
+const SETTINGS_GROUPS: [id: SettingsGroupId, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "Your assistant"], ["settings-help", "Help & diagnostics"]];
 /** Session AB-Design (owner request 36): one small line icon per Settings group, before its title. */
 const GROUP_ICON: Record<string, ReactNode> = {
   'settings-data': <path d="M4 7h16M4 12h16M4 17h10"/>,
@@ -68,9 +74,10 @@ const GROUP_ICON: Record<string, ReactNode> = {
   'settings-zigi': <><circle cx="12" cy="12" r="8"/><circle cx="9" cy="11" r="1"/><circle cx="15" cy="11" r="1"/><path d="M9 15.5c1.5 1.5 4.5 1.5 6 0"/></>,
   'settings-help': <><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></>,
 };
-function SettingsGroup({id, title, children}: {id: string; title: string; children: ReactNode}) {
+/** Session AL (D-088): each group folds from its heading (components/settings/settings-fold.tsx); every group starts open. */
+function SettingsGroup({id, title, children}: {id: SettingsGroupId; title: string; children: ReactNode}) {
   const icon = GROUP_ICON[id];
-  return <div className="settings-group" id={id} role="group" aria-labelledby={`${id}-title`}><p className="settings-group-title" id={`${id}-title`}>{icon && <svg className="settings-group-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icon}</svg>}{title}</p>{children}</div>;
+  return <SettingsFoldGroup id={id} title={title} icon={icon && <svg className="settings-group-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icon}</svg>}>{children}</SettingsFoldGroup>;
 }
 /** Session AH (SE3, D-088): the section tabs say which group is on screen (they had no state). */
 function SettingsSectionsNav() {
@@ -86,7 +93,7 @@ function SettingsSectionsNav() {
     for (const group of groups) observer.observe(group);
     return () => observer.disconnect();
   }, []);
-  return <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id} aria-current={current === id ? 'location' : undefined}>{title}</a>)}</nav>;
+  return <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id} aria-current={current === id ? 'location' : undefined}>{title}</a>)}<SettingsFoldAll/></nav>;
 }
 export default function Settings() {
   const s = useGoals();
@@ -118,9 +125,10 @@ export default function Settings() {
           <p className="eyebrow page-eyebrow"><NebulaFlow identity="settings-eyebrow">Keep your plans with you</NebulaFlow></p>
           <h1><NebulaFlow identity="settings-title">Your data. Your control.</NebulaFlow></h1>
           <p className="page-lede">
-            {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Everything you add stays on this device."}
+            {/* Session AL (COPY_AUDIT P-DV-112, DV-261, deliberate): true even where sync exists (it is off until turned on). */}
+            {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Your records live on this device unless you turn on sync."}
           </p>
-          <p><Link className="text-link" href="/app/help" style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help: install on iPhone, keep your data safe, send feedback →</Link></p>
+          <p><Link className="text-link" href="/app/help" onClick={markHelpFromSettings} style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help &amp; feedback →</Link></p>
         </div>
         <HeaderArtCorner><OrbitArt glyph={SettingsGlyph} spin={12}/></HeaderArtCorner>
       </div>
@@ -128,6 +136,8 @@ export default function Settings() {
       <KeepSettingsJump/>
       {/* Session AK G2 (RELEASE_REVIEW R11): the lower groups lay out when near; a jump renders them all first. */}
       <SettingsRenderAll/>
+      {/* Session AL (D-088): the groups fold; a jump opens the group that holds its target. */}
+      <SettingsFolds chain={chain}>
       <SettingsSectionsNav/>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">
@@ -136,8 +146,8 @@ export default function Settings() {
         <Link className="panel data-health-door" href="/app/settings/data"><span><strong>Your data</strong><small>Where each part lives, what this device holds and what ZIGi can see.</small></span><span aria-hidden="true">→</span></Link>
         {/* Session AI (SE3): one "Backup & restore" card; its four parts keep their own anchors and headings (the specs pin them). */}
         <section className="panel backup-restore" id="backup-restore" aria-labelledby="backup-restore-title">
-          <p className="eyebrow">BACKUP &amp; RESTORE</p><h2 id="backup-restore-title">Backup &amp; restore</h2>
-          {/* Session AK P2 (RELEASE_REVIEW_2 R2-16): one recommended path leads; the other ways follow it, named once. */}<p className="fine"><strong>Recommended:</strong> a protected copy, the first card below, encrypted with a recovery secret only you keep. More ways to back up follow it: backups per module, one readable file with everything, and your history from another app.</p>
+          {/* Session AL (DV-267, deliberate): no eyebrow repeating the heading; one plain sentence. */}<h2 id="backup-restore-title">Backup &amp; restore</h2>
+          {/* Session AK P2 (RELEASE_REVIEW_2 R2-16): one recommended path leads; the other ways follow it, named once. */}<p className="fine"><strong>Recommended:</strong> an encrypted backup (the first card), locked with a recovery secret only you keep. Other options below: a backup of each area, one readable file of everything, and importing from another app.</p>
           <PrivateVaultTools/>
           <PrivateBackups/>
           <ExportEverything/>
@@ -150,7 +160,8 @@ export default function Settings() {
               none on this device it exported {"goals":{}}. It shows only when there is something in it; "Export
               everything" above is the one export for everything else. */}
           {legacyPlans && <section className="panel">
-            <h2>Export Goal Data</h2>
+            {/* Session AL (D-236, D-062; COPY_AUDIT, deliberate): sentence case, as every other Settings heading. */}
+            <h2>Export goal data</h2>
             <p>
               Save a private backup of your goal names, targets, dates and
               preferences. Clearing browser storage removes these plans.
@@ -168,11 +179,11 @@ export default function Settings() {
               onClick={exportData}
               disabled={!s.loaded || !s.owner}
             >
-              Export Goal Data
+              Export goal data
             </button>
           </section>}
           {(chain || legacyPlans) && <section className="panel">
-            <h2>Import Goal Data</h2>
+            <h2>Import goal data</h2>
             <p>
               Imports must match the current network and wallet. Matching goal IDs
               replace their saved plans; other plans are kept.
@@ -213,7 +224,9 @@ export default function Settings() {
         </div>
       </SettingsGroup>
       <SettingsGroup id="settings-app" title="Your app">
-        <ShowcaseControls/>
+        <ShowcaseSlot at="top"/>
+        {/* Session AL (O2, shell lane request): the Plan row beside Your pages & buttons; nothing is bought here. */}
+        <PlanSettingsRow/>
         <PagesSettings/>
         <AfChecklistSection/>
         {/* Session AK X1 (RELEASE_REVIEW R4): Earn's, Staking's and Governance's own choices once the chain is chosen. */}
@@ -227,6 +240,7 @@ export default function Settings() {
         <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">How ZIGoals looks on this device. Your choice stays here and is never synced.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/>{/* Session AJ (item 32, D5): font, text size, density and glow, on this device only. */}<LazyCustomizeSettings/></section>
         <MusicSettings/>
         <LinksSettings/>
+        <ShowcaseSlot at="bottom"/>
       </SettingsGroup>
       <SettingsGroup id="settings-areas" title="Your areas">
         <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><WeeklyReviewDay /></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health →</Link></section></div>
@@ -250,6 +264,8 @@ export default function Settings() {
           <section className="panel" id="network"><p className="eyebrow">NETWORK</p><h2>ZIGChain networks.</h2>{/* Session AH (DE1, ST1, AF4; the owner's 18 Oct decision): practice on zig-test-2, real on zigchain-1 after a one-time confirm, signed in Keplr. */}<p>Goals and the wallet control above: the practice network, zig-test-2 · ZIG (18 decimals), no real value. <WhatsThis term="practice-network"/></p><p>Staking: the practice network, or the real network (zigchain-1, real ZIG) after a one-time confirmation. You sign every step in Keplr.</p><p>Wealth, Earn and Staking read the real network&rsquo;s public figures, read-only.</p><span className="badge">Practice network · real staking opt-in</span><p className="fine">Connect or reconnect explicitly with the wallet control above. Reload returns to Local Demo.</p></section>
           <section className="panel" id="contract"><p className="eyebrow">GOALS / CONTRACT</p><h2>The financial layer.</h2><p>Goal Manager: {deployment.success && deployment.data.status === "DEPLOYED" ? "See deployment diagnostics" : "NOT DEPLOYED"}</p><p>Code ID: {deployment.success ? deployment.data.codeId ?? "NOT DEPLOYED" : "Configuration invalid"}</p><p className="fine">Idle strategy. Contract execution is disabled in the public Alpha.</p></section>
         </div>
+        {/* Session AL (BN-112): the tracked public wallets, each with Rename and Remove (the Staking page has the same list). */}
+        <section className="panel" id="tracked-wallets"><LoadBoundary label="Tracked wallets"><Suspense fallback={null}><TrackedWallets/></Suspense></LoadBoundary></section>
         </section>}
       </SettingsGroup>
       <SettingsGroup id="settings-zigi" title="Your assistant">
@@ -311,6 +327,7 @@ export default function Settings() {
           <AboutThisAlpha />
         </section>
       </SettingsGroup>
+      </SettingsFolds>
       <DataHome />
     </div>
   );

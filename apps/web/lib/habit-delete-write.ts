@@ -1,4 +1,4 @@
-import {habitCalendarDay, habitDataSchema, habitRuleOn, latestHabitRule, type Habit, type HabitData} from './habits';
+import {habitCalendarDay, habitDataSchema, habitRuleOn, latestHabitRule, ruleSchema, type Habit, type HabitData} from './habits';
 import {DELETED_HABIT_NOTE, DELETED_HABIT_TITLE, isDeletedHabit, type DeletedHabit} from './habit-delete';
 import {formatDate} from './visual-format';
 /**
@@ -22,6 +22,23 @@ export function deleteHabitForGood(data: HabitData, id: string, now = new Date()
   const unstacked = data.habits.filter(habit => habit.stackAfterId === id).map(habit => habit.id);
   const habits = data.habits.map(habit => habit.id === id ? shell : habit.stackAfterId === id ? withoutStack(habit) : habit);
   return {data: habitDataSchema.parse({...data, habits}), deleted: {original, unstacked, shellUpdatedAt: updatedAt}};
+}
+/**
+ * Session AL (P-NB-24; NB-135, NB-160, NB-181): "Delete for good" the same day, from any state. A habit whose archive is
+ * not yet in effect (scheduled for tomorrow because today holds a check-in, or not archived at all) is archived from
+ * today first: today's rule is replaced, which is safe here because the deletion removes today's check-ins anyway. The
+ * shell is the same as deleteHabitForGood's, so every build reads it as before; Undo puts the original back.
+ */
+export function deleteHabitForGoodNow(data: HabitData, id: string, now = new Date()): {data: HabitData; deleted: DeletedHabit} {
+  const original = data.habits.find(habit => habit.id === id);
+  if (!original || isDeletedHabit(original)) throw Error('This habit is no longer available. Refresh and try again.');
+  const today = habitCalendarDay(data, now);
+  if (habitRuleOn(original, today)?.state === 'archived') return deleteHabitForGood(data, id, now);
+  const base = habitRuleOn(original, today) ?? latestHabitRule(original), from = today < original.startDate ? original.startDate : today;
+  const rule = ruleSchema.parse({...base, state: 'archived', from});
+  const archived: Habit = {...original, rules: [...original.rules.filter(r => r.from < from), rule], endCondition: rule.endCondition, updatedAt: now.toISOString() > original.updatedAt ? now.toISOString() : original.updatedAt};
+  const result = deleteHabitForGood(habitDataSchema.parse({...data, habits: data.habits.map(h => h.id === id ? archived : h)}), id, now);
+  return {data: result.data, deleted: {...result.deleted, original}};
 }
 /** Undo: the habit and its stacks back, only while the shell and those habits are as the deletion left them. */
 export function undoDeleteHabit(data: HabitData, deleted: DeletedHabit): HabitData {

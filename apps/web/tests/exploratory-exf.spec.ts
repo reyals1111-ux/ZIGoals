@@ -90,7 +90,8 @@ test.describe('NOVA on a computer', () => {
     });
     await fresh(page, seen({panels: {right: 'open'}}));
     await openNova(page);
-    const right = page.getByRole('complementary', {name: 'Behind the intelligence'});
+    // Session AL (deliberate, sweep 2; LA-024 / N-LS-05): NOVA's side panels are named regions inside <main>, no longer complementary landmarks; same element, same name.
+    const right = page.getByRole('region', {name: 'Behind the intelligence'});
     await expect(right.getByRole('button', {name: 'Talk to NOVA'})).toBeVisible();
     await page.waitForTimeout(500);
     expect(await page.evaluate(() => (window as unknown as {__asked?: number}).__asked ?? 0)).toBe(0);

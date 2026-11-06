@@ -50,3 +50,7 @@
 /* Session AC (layout audit, 320 px): a phone's two-column tile is too narrow for ⋯ and "Open Goal →" side by side, so the
    link sits under the ⋯ row there. */
 @media (max-width: 599px) { :root .vision-tile-link-out { top: 60px; right: 8px; } }
+
+/* Session AL (P-DV-63, BUG-019): a tile without its own vision shows the goal's card artwork, filling the tile. */
+.vision-tile-scene { overflow: hidden; }
+.vision-tile-scene .scene-art { display: block; width: 100%; height: 100%; }

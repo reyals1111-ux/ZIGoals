@@ -36,3 +36,11 @@ export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type Journal = z.infer<typeof journalSchema>;
 export const emptyJournal = (): Journal => ({version: 1, entries: [], shareWithAi: false, followUps: true});
 export const JOURNAL: DeviceRecordSpec<Journal> = {key: JOURNAL_KEY, schema: journalSchema, empty: emptyJournal};
+
+/**
+ * Session AL (A7, PRIMITIVES 3e): removing an entry and its Undo, on the LATEST record. The Undo puts the entry back in
+ * its place by time (once: an entry already back is not doubled) and keeps every entry written since.
+ */
+export const removeJournalEntry = (journal: Journal, id: string): Journal => ({...journal, entries: journal.entries.filter(e => e.id !== id)});
+export const restoreJournalEntry = (journal: Journal, entry: JournalEntry): Journal => journal.entries.some(e => e.id === entry.id) ? journal
+  : {...journal, entries: [...journal.entries, entry].sort((a, b) => a.createdAt.localeCompare(b.createdAt))};

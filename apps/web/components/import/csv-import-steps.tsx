@@ -1,5 +1,5 @@
 'use client';
-import {Suspense, lazy, useEffect, useRef, useState, type ReactNode} from 'react';
+import {Suspense, lazy, useEffect, useId, useRef, useState, type ReactNode} from 'react';
 import {CSV_TOO_LARGE, MAX_CSV_BYTES, parseCsv, type CsvDelimiter, type ParsedCsv} from '../../lib/csv/parse';
 import {HOLDINGS_FIELDS, TRANSACTION_FIELDS, guessMapping, type FieldSpec} from '../../lib/csv/mapping';
 import type {ImportTarget} from '../../lib/csv/templates/presets';
@@ -49,7 +49,7 @@ export function withGuesses(setup: CsvSetup, options: SetupOptions, what: {numbe
 }
 
 /** Step 1: the file, read with File.text() on this device. */
-export function FileStep({onFile, target}: {onFile: (file: CsvFile) => string | null; target?: ImportTarget}) {
+export function FileStep({onFile, target, fields}: {onFile: (file: CsvFile) => string | null; target?: ImportTarget; fields?: readonly FieldSpec[]}) {
   const [problem, setProblem] = useState('');
   return <div className="import-step">
     <label className="field import-file"><span>CSV file</span><input type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain" data-sheet-focus onChange={async event => {
@@ -58,7 +58,7 @@ export function FileStep({onFile, target}: {onFile: (file: CsvFile) => string | 
       let text: string; try { text = await file.text(); } catch { setProblem('This file could not be read. Nothing was changed.'); return; }
       const refusal = onFile({name: file.name, text}); if (refusal) setProblem(refusal);
     }} /></label>
-    <p className="fine">Read on this device only. Nothing is uploaded. The first row must name the columns.</p>
+    <p className="fine">Read on this device only. Nothing is uploaded. The first row must name the columns{/* Session AL (P-DVR-07, D-237): the columns are named, required ones first */fields?.length ? <>: {columnsText(fields)}</> : null}.</p>
     {problem && <p role="alert">{problem}</p>}
     {target && <details className="import-templates"><summary>No file yet? Download a template to fill in</summary><Suspense fallback={null}><CsvTemplateDownloads target={target}/></Suspense></details>}
   </div>;
@@ -85,6 +85,7 @@ export function MappingStep({setup, options, text, onChange, children}: {setup: 
       <select value={mapping[field.id] ?? ''} aria-required={field.required || undefined} onChange={event => { const value = event.target.value, next = {...mapping}; if (value === '') delete next[field.id]; else next[field.id] = Number(value); onChange(withGuesses({...setup, mapping: next}, options, {numbers: options.numberFields.includes(field.id), dates: field.id === options.dateField})); }}>
         <option value="">Not in this file</option>{parsed.header.map((name, index) => <option key={index} value={index}>{name || `Column ${index + 1}`}{example(index) ? ` · e.g. ${example(index)!.slice(0, 24)}` : ''}</option>)}
       </select></label>)}</div>
+    {(() => { /* Session AL (N-TK-01, TK-019): a column with no field is named, never dropped silently */ const used = new Set(Object.values(mapping)), unused = parsed.header.map((name, index) => ({name: name || `Column ${index + 1}`, index})).filter(c => !used.has(c.index)); return unused.length > 0 && <p className="fine import-unused">Not imported (no field for {unused.length === 1 ? 'it' : 'them'}): {unused.map(c => c.name).join(', ')}.</p>; })()}
     {options.numberFields.length > 0 && <label className="field"><span>Numbers use</span><select value={setup.numberStyle} onChange={event => onChange({...setup, numberStyle: event.target.value as NumberStyle})}><option value="point">Point for decimals · 1,234.56</option><option value="comma">Comma for decimals · 1.234,56</option></select>{numberSamples.length > 0 && <small>In this file: {numberSamples.join(' · ')}</small>}</label>}
     {options.dateField && <label className="field"><span>Dates are</span><select value={setup.dateFormat} onChange={event => onChange({...setup, dateFormat: event.target.value as DateFormat, ambiguousDates: false})}>{(Object.keys(DATE_FORMAT_LABELS) as DateFormat[]).map(f => <option key={f} value={f}>{DATE_FORMAT_LABELS[f]}</option>)}</select>{dateSamples.length > 0 && <small>In this file: {dateSamples.join(' · ')}</small>}</label>}
     {setup.ambiguousDates && <p role="status" className="import-ambiguous">These dates could be read both ways. Choose the order.</p>}
@@ -98,28 +99,35 @@ export function MappingStep({setup, options, text, onChange, children}: {setup: 
 /** Rows the plan refused, with their reasons; they are skipped, never a blocker unless nothing is ready. */
 export function RefusedRows({refused}: {refused: readonly {row: number; reason: string}[]}) {
   if (!refused.length) return null;
-  return <details className="import-refused"><summary>{refused.length} {refused.length === 1 ? 'row' : 'rows'} refused (skipped)</summary><ul>{refused.slice(0, 200).map(r => <li key={r.row}>{r.reason}</li>)}{refused.length > 200 && <li>… and {refused.length - 200} more.</li>}</ul></details>;
+  // Session AL (TK-009, W13): open by default, so each refused row's number and reason are seen without a click (a long list stays folded).
+  return <details className="import-refused" open={refused.length <= 20}><summary>{refused.length} {refused.length === 1 ? 'row' : 'rows'} refused (skipped)</summary><ul>{refused.slice(0, 200).map(r => <li key={r.row}>{r.reason}</li>)}{refused.length > 200 && <li>… and {refused.length - 200} more.</li>}</ul></details>;
 }
 
-/** The Back/Next row of a step. */
-export function StepActions({onBack, onNext, nextLabel = 'Next', nextDisabled, busy, primary}: {onBack?: () => void; onNext?: () => void; nextLabel?: string; nextDisabled?: boolean; busy?: boolean; primary?: boolean}) {
+/** Session AL (P-DVR-07, D-237): the columns a file can have, required ones named as such ("Name and Currency (required); also Asset, …"). */
+export function columnsText(fields: readonly FieldSpec[]): string {
+  const join = (list: string[]) => list.length < 2 ? list.join('') : `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`;
+  const required = fields.filter(f => f.required).map(f => f.label), other = fields.filter(f => !f.required).map(f => f.label);
+  return [required.length ? `${join(required)} (required)` : '', other.length ? `${required.length ? 'also ' : ''}${join(other)}` : ''].filter(Boolean).join('; ');
+}
+/** Session AL (P-DVR-07, D-078): the required fields not matched yet, as a sentence for a disabled Next; null when none is missing. */
+export function missingFieldsText(setup: CsvSetup | null, fields: readonly FieldSpec[], required: readonly string[]): string | null {
+  if (!setup) return null;
+  const missing = required.filter(id => setup.mapping[id] === undefined).map(id => fields.find(f => f.id === id)?.label ?? id);
+  return missing.length ? `Match ${missing.length === 1 ? 'the required field' : 'the required fields'} ${missing.join(', ')} to a column to continue.` : null;
+}
+
+/** The Back/Next row of a step. Session AL (P-DVR-07, D-078): a disabled Next says why, in a line the button points at. */
+export function StepActions({onBack, onNext, nextLabel = 'Next', nextDisabled, busy, primary, disabledReason}: {onBack?: () => void; onNext?: () => void; nextLabel?: string; nextDisabled?: boolean; busy?: boolean; primary?: boolean; disabledReason?: string | null}) {
+  const reasonId = useId(), why = nextDisabled && !busy && disabledReason ? disabledReason : null;
   return <div className="actions import-actions">
-    {onNext && <button type="button" className={primary ? 'primary' : 'secondary'} disabled={nextDisabled || busy} onClick={onNext}>{busy ? 'Working…' : nextLabel}</button>}
+    {why && <p className="fine import-next-why" id={reasonId}>{why}</p>}
+    {onNext && <button type="button" className={primary ? 'primary' : 'secondary'} disabled={nextDisabled || busy} aria-describedby={why ? reasonId : undefined} onClick={onNext}>{busy ? 'Working…' : nextLabel}</button>}
     {onBack && <button type="button" className="quiet" disabled={busy} onClick={onBack}>Back</button>}
   </div>;
 }
 
-/** The newest live import of this page's kind, as a status banner with Undo, until undone, dismissed or expired. */
-export function ImportBanner({imports, kind, onUndo}: {imports: ImportUndoStore; kind: ImportRecord['kind']; onUndo: (record: ImportRecord) => Promise<void>}) {
-  const [busy, setBusy] = useState(false), [error, setError] = useState('');
-  const record = imports.live.find(r => r.kind === kind && !r.dismissed);
-  if (!record) return null;
-  return <div role="status" className="import-banner">
-    <p>{record.label}.</p>
-    <div className="actions"><button type="button" className="quiet" disabled={busy} onClick={() => { setBusy(true); setError(''); onUndo(record).catch(e => setError(plainErrorMessage(e, 'The import was not undone.'))).finally(() => setBusy(false)); }}>Undo import</button><button type="button" className="quiet" aria-label="Dismiss this notice" disabled={busy} onClick={() => { try { imports.dismiss(record.id); } catch (e) { setError(plainErrorMessage(e, 'Could not dismiss.')); } }}>Dismiss</button></div>
-    {error && <p role="alert">{error}</p>}
-  </div>;
-}
+// CI13 (weights): the banner is in ./import-banner.tsx, so a page shows it without loading the CSV steps; re-exported here.
+export {ImportBanner, recentImport} from './import-banner';
 
 /** The ledger rows of this page's kind, each with Undo; an unreadable ledger offers the explicit Start over. */
 export function RecentImports({imports, kind, onUndo}: {imports: ImportUndoStore; kind: ImportRecord['kind']; onUndo: (record: ImportRecord) => Promise<void>}) {

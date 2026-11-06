@@ -156,3 +156,26 @@
    own length (--chars) inside its box, so a ten-digit result stays on one line within the card. */
 :root .calc-figures .calc-final { container-type: inline-size; min-width: 0; }
 :root .calc-figures .calc-final dd { font-size: clamp(22px, min(calc(2.4vw + 18px), calc((100cqi - 8px) / (var(--chars, 12) * .62))), 46px); }
+
+/* Session AL (TK-057, TK-111): by day the milestone pill, its line and the balance line keep strong ink (≥ 4.5:1 for the
+   pill's words, ≥ 3:1 for the lines) instead of night colours on a pale card. CI fix (theme parity, H130/day-ink): the
+   amber is Nebula's own hue made deeper (#9a6d00, 80° against Nebula's 85°; #9a6100 turned 15°), 4.6:1 on white. */
+:root[data-theme=light] .calc-milestone rect { fill: #fff3d1; stroke: #9a6d00; }
+:root[data-theme=light] .calc-milestone text { fill: #5a3800; }
+:root[data-theme=light] .calc-milestone-line { stroke: #9a6d00; }
+:root[data-theme=light] .calc-balance { stroke: #1f3b73; }
+:root[data-theme=light] .calc-cursor line { stroke: #1f3b73aa; }
+/* Session AL (TK-036): while a field is wrong the results card keeps its place and size (TR14: no figure is shown), so the page doesn't jump. */
+@media (min-width: 901px) { :root .calc-results-invalid { min-height: 420px; align-content: center; } }
+
+/* Session AL (TK-057, TK-111): the what-if line tones as theme tokens; Light gets darker ink that reads on white (≥ 3:1). */
+:root { --calc-tone-higher: #6fe6f6; --calc-tone-lower: #ffc27a; --calc-tone-earlier: #f08bd6; --calc-tone-custom: #9ff0b5; }
+:root[data-theme=light] { --calc-tone-higher: #00788a; --calc-tone-lower: #9a5400; --calc-tone-earlier: #a3277f; --calc-tone-custom: #1d7a3c; }
+/* Session AL (BN-091): a long unbroken scenario name wraps inside its card. */
+:root .calc-scenarios strong { overflow-wrap: anywhere; }
+/* Session AL (Part 15): the CSV button beside "Show all", and the "What would it take?" answer. */
+:root .calc-table-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+:root .calc-table-actions button { min-height: 44px; }
+:root .calc-solver .calc-field { max-width: 420px; }
+:root .calc-solved { margin: 12px 0 0; font-size: 16px; line-height: 1.5; }
+:root .calc-solved strong { font-variant-numeric: tabular-nums; }

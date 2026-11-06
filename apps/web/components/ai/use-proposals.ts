@@ -31,6 +31,7 @@ import {checklistDay} from '../../lib/checklist/day';
 import type {ChecklistEnv} from '../../lib/ai/actions/plan';
 import {AK_SOUNDSCAPE_STATUS, akEffect} from '../../lib/ai/actions/ak-effects';
 import {startSoundscape} from '../music/soundscape-start';
+import {UNDO_REFUSED, undoRefused} from './card-undo';
 
 /** Session AF (L4): the Checklist as this device holds it now, for a Checklist card; null when the storage cannot be read at all. */
 function checklistEnv(now: Date): ChecklistEnv | null {
@@ -52,7 +53,8 @@ function checklistEnv(now: Date): ChecklistEnv | null {
  * Session X-Local Part 5a: Today's settings (`zigoals:settings:v1`, a link or a widget) are written through the same
  * private store Today and Settings use.
  */
-export const UNDO_REFUSED = 'Something changed since, so this undo was not applied. Your records are as they are now.';
+// Session AL (DV-071): the check and the sentence live in card-undo.ts, shared with NOVA's toast Undo.
+export {UNDO_REFUSED} from './card-undo';
 export class UndoRefused extends Error { constructor() { super(UNDO_REFUSED); this.name = 'UndoRefused'; } }
 type Written = keyof Stores;
 type Updater<K extends Written> = (change: (latest: Stores[K]) => Stores[K]) => unknown;
@@ -143,7 +145,7 @@ export function useProposals(planSurface?: PlanSurface): ProposalRunner {
   const undo = useCallback(async (plans: readonly Plan[], after: readonly Stores[]): Promise<string | null> => {
     const pairs = plans.map((p, i) => ({p, undo: p.undo, baseline: after[i]})).filter((x): x is {p: Plan; undo: NonNullable<Plan['undo']>; baseline: Stores} => !!x.undo && !!x.baseline);
     // Every record must still be as the writes left it, checked on the latest stores before anything is undone.
-    if (pairs.some(({undo: u, baseline}) => !u.unchanged(baseline, stores))) return UNDO_REFUSED;
+    const refusedNow = undoRefused(pairs.map(x => x.p), pairs.map(x => x.baseline), stores); if (refusedNow) return refusedNow;
     for (const {p, undo: u, baseline} of [...pairs].reverse()) {
       try { await run(p, base => { if (!u.unchanged(baseline, base)) throw new UndoRefused(); return {...base, ...u.write(base)}; }); note(p, false); }
       catch (error) { return error instanceof Error ? error.message : 'This undo could not be applied.'; }

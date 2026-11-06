@@ -32,6 +32,11 @@ test('with an en-US browser, "72,5" kg is saved as 72.5 kg and "1,5" mL of water
  await amount.pressSequentially('1,5');
  await expect(amount).toHaveValue('1,5');
  await water.getByRole('button',{name:'Log water'}).click();
+ // Session AL (P-MO-43, MO-111, deliberate): less than 5 mL asks once (the comma was read: 1.5 mL, not 15 mL); nothing is
+ // saved until Log water is pressed again with the same amount.
+ await expect(water.getByText('1.5 mL is less than a sip. If it is right, press Log water again to keep it.')).toBeVisible();
+ expect(await millilitres(page)).toEqual([]);
+ await water.getByRole('button',{name:'Log water'}).click();
  await expect(page.getByRole('status').filter({hasText:'Water recorded.'})).toBeVisible();
  await expect.poll(()=>millilitres(page)).toEqual([1_500]);
  await expect(page.getByRole('region',{name:'Water journal'})).not.toContainText('15 mL');

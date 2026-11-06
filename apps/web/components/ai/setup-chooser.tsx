@@ -21,7 +21,9 @@ export default function SetupChooser({hosted = false}: {hosted?: boolean}) {
   const result = complete ? recommend(answers as Answers, {onDevice, hosted}) : null;
   // Session AI (ZI8; Grok's D-242): the result is brought into view when it appears (it was below the fold).
   const resultRef = useRef<HTMLElement>(null), route = result?.route ?? null;
-  useEffect(() => { if (!route) return; const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches; resultRef.current?.scrollIntoView({block: 'nearest', behavior: reduce || document.documentElement.dataset.appMotion === 'off' ? 'auto' : 'smooth'}); }, [route]);
+  // Session AL second pass (DV-068, D-242, P-DV-100): the result's heading also takes the focus, so the panel follows it
+  // and a screen reader hears the recommendation.
+  useEffect(() => { if (!route) return; const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches; const el = resultRef.current; if (!el) return; el.scrollIntoView({block: 'nearest', behavior: reduce || document.documentElement.dataset.appMotion === 'off' ? 'auto' : 'smooth'}); el.querySelector<HTMLElement>('h4')?.focus({preventScroll: true}); }, [route]);
   const choose = (key: Key, value: string) => setAnswers(current => {
     const next = {...current, [key]: value} as Partial<Answers>;
     // A changed answer can make the memory question moot: it is dropped, not kept hidden.
@@ -40,7 +42,7 @@ export default function SetupChooser({hosted = false}: {hosted?: boolean}) {
     {result && <article ref={resultRef} className="ai-chooser-result" aria-live="polite" aria-label="Recommendation">
       {/* Session AI (ZI8, ST5; Grok's D-092): informational wording, never "our suggestion" for a paid product. */}
       <p className="eyebrow">Fits your answers</p>
-      <h4>{result.title}</h4>
+      <h4 tabIndex={-1}>{result.title}</h4>
       <p>{result.why}</p>
       <div className="ai-chooser-columns">
         <div><p className="ai-chooser-head">Good</p><ul>{result.pros.map(p => <li key={p}>{p}</li>)}</ul></div>

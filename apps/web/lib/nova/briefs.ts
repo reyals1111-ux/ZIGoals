@@ -1,10 +1,14 @@
-import * as z from 'zod';
-import type {DeviceRecordSpec} from '../device-record';
 import {addLocalDays} from '../local-date';
 import {fromCents, totals, weekOf} from '../money-log/engine';
 import {briefLines, eveningRecap, morningBrief, type BriefExtras} from '../ai/proactive/brief';
 import type {ToolEnv} from '../ai/tools/env';
 import type {NovaScopes} from '../ai/context-pack/nova';
+import {runTool} from '../ai/tools/registry';
+import {formatDate} from '../visual-format';
+// Session AL (CI11): the stored record (key, schema, spec) lives in ./briefs-record, so the restore plan and Export read it
+// without pulling ZIGi's tool registry into Settings; this module re-exports it unchanged.
+import {MAX_BRIEFS, MAX_LINES, MAX_POLISH_CHARS, MAX_SECTIONS, novaBriefsSchema, type BriefKind, type NovaBrief, type NovaBriefs} from './briefs-record';
+export * from './briefs-record';
 
 /**
  * NOVA's morning brief and evening recap (Session AK, owner follow-up 2 N6 and N3 step 8), composed ON THE DEVICE from the
@@ -18,32 +22,6 @@ import type {NovaScopes} from '../ai/context-pack/nova';
  * notifications are already on). Device-only, never synced; the lead wires Export, restore, erase
  * and the catalog.
  */
-export const NOVA_BRIEFS_KEY = 'zigoals:nova-briefs:v1';
-export const MAX_BRIEFS = 30, MAX_LINES = 12, MAX_SECTIONS = 16, MAX_POLISH_CHARS = 1500;
-export const BRIEF_KINDS = ['morning', 'evening'] as const;
-export type BriefKind = (typeof BRIEF_KINDS)[number];
-const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const stamp = z.iso.datetime();
-export const novaBriefSchema = z.looseObject({
-  id: z.string().regex(/^(?:morning|evening):\d{4}-\d{2}-\d{2}$/),
-  kind: z.enum(BRIEF_KINDS),
-  day,
-  at: stamp,
-  lines: z.array(z.string().min(1).max(400)).max(MAX_LINES),
-  sections: z.array(z.looseObject({id: z.string().min(1).max(40), label: z.string().min(1).max(60), text: z.string().min(1).max(600)})).max(MAX_SECTIONS).optional(),
-  /** The person's model's rewording, on their request: which kind of model and its name. Dropped when the brief changes. */
-  polished: z.looseObject({text: z.string().min(1).max(MAX_POLISH_CHARS), by: z.enum(['local', 'cloud']), model: z.string().min(1).max(200), at: stamp}).optional().catch(undefined),
-  readAt: stamp.optional(),
-});
-export type NovaBrief = z.infer<typeof novaBriefSchema>;
-export const novaBriefsSchema = z.looseObject({
-  version: z.literal(1),
-  briefs: z.array(novaBriefSchema).max(MAX_BRIEFS).optional().catch(undefined),
-  prefs: z.looseObject({notify: z.boolean().optional()}).optional().catch(undefined),
-});
-export type NovaBriefs = z.infer<typeof novaBriefsSchema>;
-export const emptyNovaBriefs = (): NovaBriefs => ({version: 1});
-export const NOVA_BRIEFS: DeviceRecordSpec<NovaBriefs> = {key: NOVA_BRIEFS_KEY, schema: novaBriefsSchema, empty: emptyNovaBriefs};
 
 /**
  * The pillars NOVA may read: lane NE's eight scopes (`NovaScopes`, lib/ai/context-pack/nova.ts; stored by lib/nova/scopes.ts),
@@ -84,6 +62,19 @@ function moneySection(env: ToolEnv, kind: BriefKind): {id: string; label: string
   return text ? {id: 'money', label: 'Spent today', text: `${text}.`} : null;
 }
 /**
+ * Session AL second pass (Denver DV-077, N-045; P-DV-101): one goal line in the morning brief, from the Goals page's own
+ * figures: a goal behind its plan first, else the goal with the nearest planned step. No amount, no advice.
+ */
+function goalSection(env: ToolEnv): {id: string; label: string; text: string} | null {
+  const r = runTool('list_goals', {}, env);
+  if (!r.ok) return null;
+  const goals = ((r.data.goals ?? []) as Record<string, unknown>[]).filter(g => g.status === 'active');
+  const behind = goals.find(g => /behind|off track/i.test(String(g.funding ?? '')));
+  if (behind) return {id: 'goal', label: 'Goal', text: `${String(behind.name).slice(0, 80)} can catch up with its plan${behind.progress && behind.progress !== 'unknown' ? ` (${behind.progress} of the target so far)` : ''}; Goals shows the next step.`};
+  const next = goals.filter(g => /^\d{4}-\d{2}-\d{2}$/.test(String(g.nextPlannedDate ?? ''))).sort((a, b) => String(a.nextPlannedDate).localeCompare(String(b.nextPlannedDate)))[0];
+  return next ? {id: 'goal', label: 'Goal', text: `Next planned step: ${String(next.name).slice(0, 80)} on ${formatDate(String(next.nextPlannedDate))}.`} : null;
+}
+/**
  * The brief for one day, made on this device: ZIGi's morning brief or evening recap (with their v2 sections) inside the
  * scopes, plus the money line. `day` must be the records' own today (`env.habitDay`): a brief is never made for another
  * day. Null when there is nothing to say (an empty start then shows the teaching card, never an empty brief).
@@ -94,6 +85,7 @@ export function composeBrief(kind: BriefKind, briefDay: string, env: ToolEnv, op
   const base = kind === 'morning' ? morningBrief(scoped, extras) : eveningRecap(scoped, extras);
   const sections: {id: string; label: string; text: string}[] = (base?.sections ?? []).map(s => ({id: s.id, label: s.label, text: s.text}));
   const money = moneySection(scoped, kind); if (money) sections.push(money);
+  const goal = kind === 'morning' && scopes.goals ? goalSection(scoped) : null; if (goal) sections.push(goal);
   const lines = base?.lines ?? [];
   if (!lines.length && !sections.length) return null;
   return {id: `${kind}:${briefDay}`, kind, day: briefDay, at: (options.now ?? env.now).toISOString(), lines: lines.slice(0, MAX_LINES).map(l => l.slice(0, 400)), sections: sections.slice(0, MAX_SECTIONS).map(s => ({id: s.id.slice(0, 40), label: s.label.slice(0, 60), text: s.text.slice(0, 600)}))};

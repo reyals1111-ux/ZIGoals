@@ -4,7 +4,7 @@ import {averageGoalsSchema, type AverageGoals} from '../average-goals/store';
 /**
  * Session AA-Cloud Part 2/8: the Showcase's goal extras and average goals (fictional, for the tab only). Every goal gets
  * a life area and a generated gradient (never a photo); three have why, obstacle and an if-then plan; a three-level tree
- * runs from "Launch my creative studio" to "Create 2 hours a day" to "Sleep 7 hours a night"; the habits carry areas; two
+ * runs from "Launch my creative studio" to "Create 2 hours a day" to "Sleep 8 hours a night"; the habits carry areas; two
  * finished average goals stand on the Hall of achievements; and 30 days of fictional entries feed the averages.
  */
 const H = (n: number) => `92000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -25,7 +25,8 @@ export function showcaseGoalExtras(day: string): {extras: GoalExtras; averages: 
       'private:9205': {area: 'custom-creative', template: 'side-project', why: 'Work I am proud to sign.', obstacle: 'Doubting the first version.', ifThen: 'If I start to polish forever, then I ship it to one person first.', vision: {kind: 'gradient', gradient: 'nebula', emoji: '🎨'}, updatedAt},
       'private:9206': {area: 'wealth', vision: {kind: 'gradient', gradient: 'glacier', emoji: '✨'}, updatedAt},
       'average:showcase-create': {area: 'custom-creative', parentKey: 'private:9205', vision: {kind: 'gradient', gradient: 'dusk', emoji: '✍️'}, updatedAt},
-      'average:showcase-sleep': {area: 'health', parentKey: 'average:showcase-create', template: 'sleep-7h', why: 'Rested mornings are my best creative hours.', vision: {kind: 'gradient', gradient: 'aurora', emoji: '🌙'}, updatedAt},
+      // Session AL fourth pass (PR-022, N-PR-04): no 'sleep-7h' template on the 8 h goal (it said 7 h beside the goal's 8 h).
+      'average:showcase-sleep': {area: 'health', parentKey: 'average:showcase-create', why: 'Rested mornings are my best creative hours.', vision: {kind: 'gradient', gradient: 'aurora', emoji: '🌙'}, updatedAt},
       'average:showcase-water': {area: 'health', template: 'water-2l', story: 'Two litres a day for a whole month, with a glass at every meal.', vision: {kind: 'gradient', gradient: 'ocean', emoji: '💧'}, updatedAt},
       'average:showcase-steps': {area: 'health', template: 'steps-8000', story: 'A walk after dinner, every day of the summer.', vision: {kind: 'gradient', gradient: 'forest', emoji: '👟'}, updatedAt},
     },
@@ -35,7 +36,9 @@ export function showcaseGoalExtras(day: string): {extras: GoalExtras; averages: 
   const createEntries = Array.from({length: 30}, (_, i) => ({day: date(-29 + i), value: [2.5, 2, 1.5, 2, 3, 0.5, 2, 2.5, 1, 2][i % 10]!}));
   const averages = averageGoalsSchema.parse({version: 1, goals: [
     {id: 'showcase-create', name: 'Create 2 hours a day', metric: 'custom', unit: 'h a day', target: 2, direction: 'at-least', windowDays: 14, status: 'active', createdAt: created(-45), entries: createEntries},
-    {id: 'showcase-sleep', name: 'Sleep 7 hours a night', metric: 'sleep-hours', unit: 'h a night', target: 7, direction: 'at-least', windowDays: 14, status: 'active', createdAt: created(-40), entries: []},
+    // Session AL sweep 2 (P-PR-25; PR-022, N-PR-04): 8 hours, as the Showcase's sleep goal (lib/sleep/showcase.ts, 480 min),
+    // so Goals and Sleep state one target, in hours here and 480 minutes there.
+    {id: 'showcase-sleep', name: 'Sleep 8 hours a night', metric: 'sleep-hours', unit: 'h a night', target: 8, direction: 'at-least', windowDays: 14, status: 'active', createdAt: created(-40), entries: []},
     {id: 'showcase-water', name: 'Drink 2 litres a day', metric: 'water-ml', unit: 'mL a day', target: 2000, direction: 'at-least', windowDays: 30, status: 'completed', createdAt: created(-75), completedAt: at(-14), entries: []},
     {id: 'showcase-steps', name: '8,000 steps a day, all summer', metric: 'steps', unit: 'steps a day', target: 8000, direction: 'at-least', windowDays: 30, status: 'completed', createdAt: created(-120), completedAt: at(-38), entries: []},
   ]});

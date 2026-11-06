@@ -47,6 +47,38 @@ describe('what may differ between themes', () => {
     expect(classify('outline-color', n, item({'outline-color': 'rgb(200, 0, 0)'}, {focus: true}), 'light')).toBe('DISALLOWED');
     expect(classify('border-top-color', item({'border-top-color': 'rgb(105, 217, 233)'}, {focus: true}), item({'border-top-color': 'rgb(75, 63, 209)'}, {focus: true}), 'light')).toBe('DISALLOWED');
   });
+  // Session AL (TK-6B-09 / P-TK-40, deliberate): Light's secondary-button edge (#717d94, light.al-buttons.css) on an
+  // enabled secondary button, by day only; another colour, another element, another property and Dark stay disallowed.
+  it('by day an enabled secondary button’s edge may take Light’s own button edge; nothing else about it may change', () => {
+    const cyan = 'rgba(111, 220, 255, 0.22)', slate = 'rgb(113, 125, 148)';
+    expect(classify('border-top-color', item({'border-top-color': cyan}, {edge: true}), item({'border-top-color': slate}, {edge: true}), 'light')).toBe('button-edge');
+    expect(classify('border-left-color', item({'border-left-color': cyan}, {edge: true}), item({'border-left-color': slate}, {edge: true}), 'light')).toBe('button-edge');
+    expect(classify('border-top-color', item({'border-top-color': cyan}, {edge: true}), item({'border-top-color': slate}, {edge: true}), 'dark')).toBe('DISALLOWED');
+    expect(classify('border-top-color', item({'border-top-color': cyan}), item({'border-top-color': slate}), 'light')).toBe('DISALLOWED');
+    expect(classify('border-top-color', item({'border-top-color': cyan}, {edge: true}), item({'border-top-color': 'rgb(200, 0, 0)'}, {edge: true}), 'light')).toBe('DISALLOWED');
+    expect(classify('background-color', item({'background-color': cyan}, {edge: true}), item({'background-color': slate}, {edge: true}), 'light')).toBe('DISALLOWED');
+    expect(classify('outline-color', item({'outline-color': cyan}, {edge: true}), item({'outline-color': slate}, {edge: true}), 'light')).toBe('DISALLOWED');
+  });
+  // Session AL (deliberate, TK-164 / TK-057 / P-MO-34): by day a gradient word may be one solid ink of its own at 4.5:1,
+  // and a chart's paint a deeper shade of the same hue at 3:1; nothing else of H130 loosens.
+  it('by day a gradient word may become one solid ink, and a chart paint a deeper shade of its hue; nothing more', () => {
+    const grad = 'linear-gradient(100deg, rgb(246, 245, 255) 0%, rgb(184, 236, 251) 55%, rgb(220, 184, 251) 100%)';
+    const word = (props, over = {}) => item(props, {clip: true, ...over});
+    const ink = {color: 'rgb(27, 31, 74)', '-webkit-text-fill-color': 'rgb(27, 31, 74)'};
+    expect(classify('background-image', word({'background-image': grad}), word({'background-image': 'none', ...ink}), 'light')).toBe('day-ink');
+    expect(classify('background-image', word({'background-image': grad}), word({'background-image': 'none', ...ink}), 'dark')).toBe('DISALLOWED');
+    expect(classify('background-image', word({'background-image': grad}), word({'background-image': 'none', color: 'rgb(150, 160, 190)', '-webkit-text-fill-color': 'rgb(150, 160, 190)'}), 'light')).toBe('DISALLOWED'); // too faint
+    expect(classify('background-image', word({'background-image': grad}), word({'background-image': 'none', color: 'rgb(27, 31, 74)', '-webkit-text-fill-color': 'rgba(0, 0, 0, 0)'}), 'light')).toBe('DISALLOWED'); // no paint
+    expect(classify('background-image', item({'background-image': grad}), item({'background-image': 'none', ...ink}), 'light')).toBe('DISALLOWED'); // not a word
+    const chart = (props) => item(props, {chart: true});
+    expect(classify('stroke', chart({stroke: 'rgb(111, 230, 246)'}), chart({stroke: 'rgb(0, 120, 138)'}), 'light')).toBe('day-ink');
+    expect(classify('stroke', item({stroke: 'rgb(111, 230, 246)'}), item({stroke: 'rgb(0, 120, 138)'}), 'light')).toBe('DISALLOWED'); // not a chart
+    expect(classify('stop-color', chart({'stop-color': 'rgb(146, 115, 255)'}), chart({'stop-color': 'rgb(91, 63, 196)'}), 'light')).toBe('day-ink');
+    expect(classify('stroke', chart({stroke: 'rgb(111, 230, 246)'}), chart({stroke: 'rgb(0, 120, 138)'}), 'dark')).toBe('DISALLOWED');
+    expect(classify('stop-color', chart({'stop-color': 'rgb(35, 234, 255)'}), chart({'stop-color': 'rgb(10, 111, 134)'}), 'light')).toBe('DISALLOWED'); // 12.7° off its hue
+    expect(classify('stroke', chart({stroke: 'rgb(111, 230, 246)'}), chart({stroke: 'rgb(170, 225, 235)'}), 'light')).toBe('DISALLOWED'); // under 3:1
+    expect(classify('background-color', chart({'background-color': 'rgb(111, 230, 246)'}), chart({'background-color': 'rgb(0, 120, 138)'}), 'light')).toBe('DISALLOWED'); // a fill of a box
+  });
   it('a line or paint drawn in the element’s own word colour follows the word', () => {
     const n = item({color: 'rgb(35, 234, 255)', 'border-top-color': 'rgb(35, 234, 255)'}), l = item({color: 'rgb(16, 108, 118)', 'border-top-color': 'rgb(16, 108, 118)'});
     expect(classify('border-top-color', n, l)).toBe('text');
@@ -100,7 +132,8 @@ describe('the parity report', () => {
     const folded = fold(files), md = render(folded, 'test');
     expect(folded.rows).toHaveLength(2);
     expect(folded.disallowed).toHaveLength(1);
-    expect(md).toContain('| /app | showcase | desktop | dark | 900 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |');
+    // Session AL (TK-6B-09, deliberate): two more class columns, button-edge and day-ink (0 here), before DISALLOWED.
+    expect(md).toContain('| /app | showcase | desktop | dark | 900 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |');
     expect(md).toContain('/app · showcase · desktop · `a.chip` [0.4] · background-color');
     expect(render(fold([{...files[0], results: [files[0].results[0]]}]))).toContain('## Disallowed differences\n\nNone.');
   });

@@ -48,6 +48,8 @@ export function HealthPreview({plan, health, limit, zone, onConfirm, onCancel}: 
     {plan.warnings.length > 0 && <details className="import-warnings"><summary>{n(plan.warnings.length)} {plan.warnings.length === 1 ? 'note' : 'notes'} about this export</summary><ul>{plan.warnings.map(w => <li key={w}>{w}</li>)}</ul></details>}
     <div className="switch-size">
       <p>Your Health journal after this import: {bytesText(size.bytes)} of {bytesText(size.limit)} ({formatNumber(Math.min(999, size.bytes / size.limit * 100), {maximumFractionDigits: 0})} %).</p>
+      {/* Session AL (MO-039, P-MO-59): the limit was a bare number; say what it is and what happens at it. */}
+      <p className="fine">Why a limit: Health keeps your journal as one record in {limit > 2_000_000 ? 'your account’s storage' : 'this browser’s storage'}, which holds up to {bytesText(size.limit)} of it. An import that would not fit is refused before anything changes, and you can bring in a shorter window instead.</p>
       {!fullSize.comfortable && <>
         <p className="notice">The whole export would fill more than three quarters of what {limit > 2_000_000 ? 'your account' : 'this browser'} keeps for Health.{fitFrom ? ' You can bring in a shorter window instead.' : ' Even its last day would not fit comfortably here.'}{limit <= 2_000_000 ? ' With an account open, Health can hold up to 32 MB.' : ''}</p>
         {fitFrom && <fieldset className="switch-window"><legend>What to bring in</legend>

@@ -50,7 +50,8 @@ test('@journey 11 keyboard only, with names: setup, a habit, the Checklist, Heal
   await press(page, flow.getByRole('checkbox', {name: /^Goals & money/}), 'Space');
   await expect(flow.getByRole('checkbox', {name: /^Goals & money/})).toBeChecked();
   await press(page, flow.getByRole('button', {name: 'Continue', exact: true}));
-  await press(page, flow.getByRole('button', {name: 'Continue without choosing', exact: true}));
+  // Session AL (COPY_AUDIT, deliberate; N-NB-01): a step with nothing picked says "Skip this step", as the tour says "Skip the tour" (was "Continue without choosing").
+  await press(page, flow.getByRole('button', {name: 'Skip this step', exact: true}));
   await expect(flow.getByRole('heading', {level: 1, name: 'A few things to start with.'})).toBeFocused();
   await named(page, '/app/welcome (starters)');
   await chooseRadio(page, flow.getByRole('radio', {name: 'A trip', exact: true}));

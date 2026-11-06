@@ -2,13 +2,14 @@ import {activeCount} from './copy/terms'; // Session AK G2 (RELEASE_REVIEW R31)
 import {latestWeightObservation} from './body-measurements';
 /** Presentation only: every value resolves from the domain's canonical selector. */
 import {formatUnits} from '@zigoals/chain-config';
-import {allocationBalance,positionSync,type Position,type Platform} from './positions';
+import {allocationBalance,positionSync,type Platform} from './positions';
+import {stakingWidgetSource} from './staking-widget-source';
 import {wealthOverview} from './wealth';
 import {formatGoalAmount,progressText,type GoalSummary} from './goal-summary';
 import {habitCalendarDay,habitDay,habitRuleOn,habitStats,measurementUnit,type HabitData} from './habits';
 import {HEALTH_MEALS,scaleNutrition,summarizeNutrition,nutritionSummaryText,dailyHealthSummary,type HealthData} from './health';
 import {dailyData,waterSummary} from './health-daily';
-import {waterText} from './health-units';
+import {NO_WATER_TODAY,waterText} from './health-units';
 import type {MarketQuote} from './market-quotes';
 import {formatDate,formatDateTime,formatExactNumber,formatNumber} from './visual-format';
 import {plural,unitFor} from './plural';
@@ -31,7 +32,8 @@ const labels:Record<string,string>={'last-night':'Last night',kcal:'Meals today'
 // Session W Part 5: a metric id that means something else for one kind (Meditation's "today" and "week").
 const kindLabels:Record<string,Record<string,string>>={meditation:{today:'Mindful minutes today',week:'This week (Monday to Sunday)'}};
 export const widgetMetricLabel=(metric:string,kind?:string)=>(kind?kindLabels[kind]?.[metric]:undefined)??labels[metric]??metric;
-export function stakingWidgetSource(p:Position){return ['NATIVE_STAKING','NATIVE_REWARDS','NATIVE_UNBONDING'].includes(p.sourceType)&&p.verification==='VERIFIED_READ_ONLY';}
+// CI13 (weights): in its own module so the Staking page does not load all of Today's widget metrics for it.
+export {stakingWidgetSource} from './staking-widget-source';
 export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMetric{
  const habitToday=s.habits.timeZone?habitCalendarDay(s.habits,new Date(s.now)):s.today;
  const defaults={title:widget.title||WIDGET_CATALOG[widget.kind].label,value:'Unavailable',detail:'',href:'/app/settings'};
@@ -101,9 +103,9 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
  }
  if(widget.kind==='exercise'){
   const counters=exerciseData(s.health).counters,counts=counters.map(c=>({c,n:countOn(s.health,c.id,s.healthDate)})),logged=counts.filter(x=>x.n!==null).length;
-  return {...defaults,title:widget.title||'Exercise counters today',value:counters.length?`${logged} of ${counters.length} counted`:'No counters',detail:`${formatDate(s.healthDate)} · each exercise counted on its own`,href:'/app/health',facts:counts.map(({c,n})=>({label:c.name,value:n===null?'No entry':formatNumber(n)}))};
+  return {...defaults,title:widget.title||'Exercise counters today',value:!counters.length?'No counters':logged?`${logged} of ${counters.length} counted`:'Nothing counted yet today',detail:`${formatDate(s.healthDate)} · each exercise counted on its own`,href:'/app/health',facts:counts.map(({c,n})=>({label:c.name,value:n===null?'No entry':formatNumber(n)}))};
  }
- if(widget.kind==='goals'){const c=goalCounts(s.goals,s.averages);return {...defaults,title:widget.title||'Your destinations',value:activeCount('goal',c.active),detail:`${c.finished} completed · recorded progress`,href:'/app/goals'};}
+ if(widget.kind==='goals'){const c=goalCounts(s.goals,s.averages);return {...defaults,title:widget.title||'Your destinations',value:c.active?activeCount('goal',c.active):'No active goal yet',/* Session AL (Part 13): an empty count in words, as Today's destination card and NOVA say it */detail:c.active||c.finished?`${c.finished} completed · recorded progress`:'Plan a goal to see it here.',href:'/app/goals'};}
  if(widget.kind==='goal'){
   const goal=s.goals.find(g=>g.key===widget.entity);if(!goal)return unavailable('/app/goals','This Goal may be archived or outside the current account. Choose another or remove this widget.');
   return {...defaults,title:widget.title||goal.name,value:widget.metric==='next-contribution'?goal.nextContributionDate??'Not scheduled':goal.progressBound==='unavailable'&&!goal.heldAsset?'Value unavailable':`${goal.progressBound==='at-least'?'At least ':''}${formatGoalAmount(goal.current,goal.heldAsset??goal.currency)}`,detail:widget.metric==='next-contribution'?goal.metadata.find(m=>m.label==='Contribution plan')?.value??'Open the Goal to set a plan.':`of ${goal.target?formatGoalAmount(goal.target,goal.currency):'no target'} · ${goal.source}`,href:goal.href,percent:widget.metric==='progress'&&!goal.requiresReview&&!goal.progressBound?goal.progressPct:undefined,complete:goal.status==='completed',warning:goal.status==='closed'?'Closed Goal · retained for your history':goal.requiresReview||goal.heldAsset?goal.valuationLabel??'Progress needs review':undefined};
@@ -132,7 +134,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   if(widget.metric==='macros-ring'){const target=s.health.targets.kcal,kcal=summary.nutrients.kcal;if(!summary.entries)return {...common,value:'No meals recorded',detail:'Log a meal to start your day.'};return {...common,value:nutritionSummaryText(summary,'kcal','kcal'),detail:target?`Personal target ${formatNumber(target)} kcal · ${formatDate(s.healthDate)}`:`${formatDate(s.healthDate)} · no calorie target set`,...(target&&kcal!==null?{percent:String(Math.min(100,kcal/target*100)),complete:false}:{}),facts:[{label:'Protein',value:nutritionSummaryText(summary,'proteinMg','g',1000)},{label:'Carbs',value:nutritionSummaryText(summary,'carbsMg','g',1000)},{label:'Fat',value:nutritionSummaryText(summary,'fatMg','g',1000)}]};}
   if(widget.metric==='kcal')return {...common,value:summary.entries?nutritionSummaryText(summary,"kcal","kcal"):'No meals recorded',detail:`${summary.entries} ${plural(summary.entries,'meal or snack','meals & snacks')} · ${formatDate(s.healthDate)}`};
   if(widget.metric==='macros')return {...common,value:summary.entries?nutritionSummaryText(summary,"proteinMg","g protein",1000):'No meals recorded',detail:summary.entries?`${nutritionSummaryText(summary,"carbsMg","g carbs",1000)} · ${nutritionSummaryText(summary,"fatMg","g fat",1000)}`:'Log a meal to start your day.'};
-  if(widget.metric==='water'){const water=waterSummary(s.health,s.healthDate),unit=dailyData(s.health).preferences.waterUnit,text=(ml:number)=>unit==='ml'?`${formatNumber(ml)} mL`:waterText(ml,unit);return {...common,value:water.entries?text(water.millilitres):'No water recorded',detail:water.targetMl?`Personal target ${text(water.targetMl)} · ${formatDate(s.healthDate)}`:`${formatDate(s.healthDate)} · no target set`};}
+  if(widget.metric==='water'){const water=waterSummary(s.health,s.healthDate),unit=dailyData(s.health).preferences.waterUnit,text=(ml:number)=>waterText(ml,unit);/* Session AL (Part 13): one water text and one "nothing yet" phrase, as Today's tile and NOVA say them */return {...common,value:water.entries?text(water.millilitres):NO_WATER_TODAY,detail:water.targetMl?`Personal target ${text(water.targetMl)} · ${formatDate(s.healthDate)}`:`${formatDate(s.healthDate)} · no target set`};}
   if(widget.metric==='weight'){const latest=latestWeightObservation(s.health,s.healthDate),unit=dailyData(s.health).preferences.weightUnit;return {...common,value:latest?`${formatNumber((latest.grams/(unit==='lb'?453.59237:1000)), {maximumFractionDigits:3})} ${unit}`:'No measurements yet',detail:latest?latest.detail:'Record a measurement when you choose.'};}
   if(widget.metric==='history'){const rhythm=nutritionDashboard(s.health,s.healthDate);return {...common,title:widget.title||'Your nutrition rhythm',value:rhythm.averageKcal===null?'No logged days':`${formatNumber(rhythm.averageKcal)} kcal`,detail:`${rhythm.loggedDays} of 30 days with entries · average per complete calorie day`,href:'/app/health#nutrition-history'};}
   const recorded=s.health.activity.some(a=>a.date===s.healthDate);return {...common,value:recorded?widget.metric==='steps'?`${formatNumber(summary.steps)} steps`:`${formatNumber(summary.minutes)} minutes`:'No activity recorded'};

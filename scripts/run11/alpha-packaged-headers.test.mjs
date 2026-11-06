@@ -149,6 +149,9 @@ test.runIf(enabled)('the packaged Alpha serves the web app manifest from the ass
   // screenshots (install-manifest.spec.ts moved to the same hash in 02ec25f2); the packaged asset is still pinned as a whole.
   // Session AK X1 (RELEASE_REVIEW R8; deliberate, as strict): the description became consumer words (install-manifest.spec.ts
   // moved to the same hash and still checks 72ad872's other bytes); the packaged asset is still pinned as a whole.
-  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('9ab51f5e3c6ec9198ba8555cad07cb499124410c908d0caed0513d1c8ef5f38e');
+  // Session AL (deliberate, as strict): re-pinned after the share target's enctype was spelled out as its default (P-BN-43,
+  // 818805b8) and the Checklist shortcut took the app's own note (DV-162, 26e46d0b); install-manifest.spec.ts moved to the
+  // same hash and still checks 72ad872's bytes.
+  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('8c9346622ed33ecc4d81d44abfd45c42dfb5bf16641c0a0607ddb50b82799cd4');
  }finally{await mf.dispose();}
 },60000);

@@ -1,4 +1,5 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
+import {pressZigiFirst} from './zigi-open';
 import {applyTheme, axe, mockModel, fence, note, seedDevice as seed, settle, THEMES, type Findings} from './p6-helpers';
 // CI runs this sweep as its own suite of shards (ADR-036 C3); each test stands alone, so they may split across shards.
 test.describe.configure({mode: 'parallel'});
@@ -135,7 +136,7 @@ for (const theme of THEMES) {
     await seed(page);
     const findings: Findings = {};
     await page.goto('/app/habits'); await settle(page);
-    await page.getByRole('button', {name: /Open ZIGi/}).first().click();
+    await pressZigiFirst(page); // Session AL (O3): the Apps & extras sheet below 901 px
     const panel = page.locator('dialog.ai-chat[open]');
     await expect(panel.locator('.ai-greeting-text')).toBeVisible();
     const send = async (words: string) => { await panel.getByLabel('Message to your AI').fill(words); await panel.getByRole('button', {name: 'Send', exact: true}).click(); };

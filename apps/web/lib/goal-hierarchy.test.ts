@@ -31,4 +31,8 @@ describe('G5 goal hierarchy (Session AA-Cloud Part 2)', () => {
       {key: 'private:lost', children: []},
     ]);
   });
+  // Session AL (L-055, G-012, P-DVR-12): a sub-goal that reached its target and was closed afterwards is done.
+  it('counts a sub-goal finished then closed as done', () => {
+    expect(rollUp({currency: 'books', target: undefined}, [g('a', '0', 'books', 'closed', {reached: true}), g('b', '0', 'books', 'closed')])).toEqual({kind: 'count', done: 1, total: 2});
+  });
 });

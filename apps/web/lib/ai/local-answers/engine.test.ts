@@ -2,7 +2,7 @@ import {expect, test} from 'vitest';
 import {createHabit} from '../../habits';
 import {dailyData} from '../../health-daily';
 import {toolEnv, type ToolSources} from '../tools/env';
-import {DAY, gatesFor, SENTINEL, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
+import {DAY, gatesFor, SENTINEL, hasSentinel, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {HEALTH_CLOSED} from '../tools/format';
 import {runTool} from '../tools/registry';
 import {examplesReply, localAnswer, navigationIntent, type LocalReply} from './engine';
@@ -51,7 +51,9 @@ test('forty more phrasings across habits, Health, goals and wealth', () => {
     ['Compare my reading this month vs last month', /^Read: \d+ minutes this month .*, and \d+ minutes last month/],
     ['Average minutes of reading per check-in this month?', /^On average [\d.]+ minutes per check-in for Read this month/],
     ['What was my best meditation day this month?', /^Your best Meditate day this month .* was \w{3}, \w{3} \d+ with \d+ minutes\.$/],
-    ['How many glasses of water did I drink yesterday?', /^Drink water: \d+ glasses yesterday \(Sun, Oct 4\)\.$/],
+    // Session AL (Part 13, deliberate): the Showcase's Drink water habit is 2 liters linked to the water journal, so a
+    // question in glasses is answered from that journal (it was the habit's own 8 glasses beside 0 mL in Health).
+    ['How many glasses of water did I drink yesterday?', /^You logged [\d,]+ mL of water yesterday \(Sun, Oct 4\)/],
     ['How many minutes did I walk this month?', /^Walk isn't measured in time, so there are no minutes to add up\. It's measured in steps: [\d,]+ steps this month/],
     ['How much water did I drink today?', /^You logged [\d,]+ mL of water today \(Mon, Oct 5\)/],
     ['How much water did I drink this week?', /^You logged [\d,]+ mL of water this week/],
@@ -123,7 +125,7 @@ test('Health questions with the gate closed: the plain refusal, nothing read, an
   // Habits, goals and wealth still answer; a Health-filled check-in stays out of the habit's figures.
   expect(ask('How many minutes did I meditate this month?', env).kind).toBe('answer');
   expect(textOf(ask('How many steps did I walk today?', env))).toContain('filled in from Health is not counted');
-  expect(textOf(ask('How many steps did I walk today?', env))).not.toContain(String(SENTINEL.habitValue));
+  expect(hasSentinel(textOf(ask('How many steps did I walk today?', env)), SENTINEL.habitValue)).toBe(false);
 });
 test('Showcase records say they are fictional, a sensitive screen reads nothing, and every answer keeps a calm tone', () => {
   const reply = ask('How many minutes did I meditate this month?');

@@ -5,7 +5,7 @@ import {emptyPlatform, PLATFORM_KEY, privateGoalSchema} from '../../lib/position
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../../lib/ai/store/keys';
 import {AK_ACTION_KINDS} from '../../lib/ai/actions/schema-ak';
-import {sendToZigi, zigiPanel} from '../zigi-open';
+import {pressZigiFirst, sendToZigi, zigiPanel} from '../zigi-open';
 
 /**
  * Session AK F2, journey 8: ZIGi and every card kind Session AK added (set-auto-rule, set-bill-reminder, grocery-list,
@@ -62,7 +62,7 @@ test('@journey 8 ZIGi: every new AK card is proposed and confirmed by the person
 
   // First answer: water (auto-accepted, the control), a rule, a bill and a grocery list (each waits for the person).
   await page.goto('/app'); await hydrated(page);
-  await page.getByRole('button', {name: /Open ZIGi/}).first().click();
+  await pressZigiFirst(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await expect(zigiPanel(page)).toBeVisible({timeout: 15_000});
   await sendToZigi(page, 'Water, a rule for my runs, my gym bill and two groceries');
   await expect(cards(page)).toHaveCount(4, {timeout: 15_000});
@@ -95,7 +95,7 @@ test('@journey 8 ZIGi: every new AK card is proposed and confirmed by the person
   // Third answer, on Goals (where the goal form card is offered): the goal form, filled in.
   await page.keyboard.press('Escape');
   await page.goto('/app/goals'); await hydrated(page);
-  await page.getByRole('button', {name: /Open ZIGi/}).first().click();
+  await pressZigiFirst(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await expect(zigiPanel(page)).toBeVisible({timeout: 15_000});
   await sendToZigi(page, 'Fill in a goal for a new bike, 900 euros');
   const draft = card(page, /Goal form, filled in: Fictional new bike/);
@@ -124,7 +124,7 @@ test('@journey 8b bug J8-1: the goal form card with a date is proposed, not refu
   const base = defaultAiSettings();
   await seedRecords(page, {[AI_SETTINGS_KEY]: {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: AI}, [AI_OPTIONS_KEY]: {version: 1, toolMode: 'attach'}});
   await page.goto('/app/goals'); await hydrated(page);
-  await page.getByRole('button', {name: /Open ZIGi/}).first().click();
+  await pressZigiFirst(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await sendToZigi(page, 'Fill in a goal for a new bike, 900 euros by May');
   await expect(card(page, /Goal form, filled in: Fictional new bike/)).toContainText('By May 1, 2027');
 });

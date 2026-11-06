@@ -3,11 +3,13 @@ import {useEffect, useRef, useSyncExternalStore} from 'react';
 import type {useHealth} from '../health/use-health';
 import type {HabitsStore} from './use-habits';
 import {useHabitHealthLinks} from './use-habit-health-links';
-import {applyAutoCompletion, autoCheckInMarker, autoCompletions} from '../../lib/habit-health-links/engine';
-import {recordAutoCheckIn} from '../../lib/habit-health-links/store';
+import {applyAutoCompletion, autoCheckInMarker, autoCompletions, autoRevocations, revokeAutoCompletion} from '../../lib/habit-health-links/engine';
+import {showStatus} from '../ui/undo-toast';
+import {clearAutoCheckIn, recordAutoCheckIn} from '../../lib/habit-health-links/store';
 import {useJournalZone} from '../use-journal-zone';
 import {everyHalfMinute} from '../half-minute';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {HEALTH_ENTRY_REMOVED} from '../../lib/health-events';
 
 // A refused automatic check-in is said once on its habit's card and retried on the next run (H7, "Hook").
 const notices = new Map<string, string>();
@@ -40,7 +42,9 @@ export function useAutoCheckIns({habits, health}: {habits: Pick<HabitsStore, 'da
     const again = () => check.current();
     const stop = everyHalfMinute(again);
     window.addEventListener('focus', again);
-    return () => { stop(); window.removeEventListener('focus', again); };
+    // Session AL (MO-125; L2 request): Health says when an entry is removed; the next run takes back a tick it no longer backs.
+    window.addEventListener(HEALTH_ENTRY_REMOVED, again);
+    return () => { stop(); window.removeEventListener('focus', again); window.removeEventListener(HEALTH_ENTRY_REMOVED, again); };
   }, []);
   const {data: linkData, loaded: linksLoaded, unreadable, update: updateLinks} = links;
   const {data: habitData, loaded: habitsLoaded, error: habitsError, update: updateHabits} = habits;
@@ -51,9 +55,22 @@ export function useAutoCheckIns({habits, health}: {habits: Pick<HabitsStore, 'da
     const run = () => {
       if (!journalReady || !habitsLoaded || habitsError || !healthLoaded || healthError || !linksLoaded || unreadable || running.current) return;
       const items = autoCompletions({links: linkData, habits: habitData, health: healthData, now: new Date()});
-      if (!items.length) return;
+      const revoked = autoRevocations({links: linkData, habits: habitData, health: healthData, now: new Date()});
+      if (!items.length && !revoked.length) return;
       running.current = true;
       void (async () => {
+        // Session AL (MO-125): a check-in whose Health entry was removed is taken back, and the person is told why.
+        for (const item of revoked) {
+          const marker = linkData.applied.find(a => a.habitId === item.habitId && a.date === item.date);
+          if (!marker) continue;
+          let changed = false;
+          try {
+            await updateHabits(data => { const next = revokeAutoCompletion(data, item, marker.appliedAt, new Date()); changed = next !== data; return next; });
+            await updateLinks(current => clearAutoCheckIn(current, item.habitId, item.date));
+            const title = habitData.habits.find(h => h.id === item.habitId)?.title;
+            if (changed && title) showStatus(`${title} is open again: the Health entry that ticked it off was removed.`);
+          } catch { /* tried again on the next run */ }
+        }
         for (const item of items) {
           let changed = false;
           try {

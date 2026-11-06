@@ -36,7 +36,9 @@ export function parseSlash(text: string): {command: SlashCommand; rest: string} 
 export function suggestCommands(text: string): SlashCommand[] {
   if (!/^\/[a-z]*$/i.test(text)) return [];
   const typed = text.toLowerCase();
-  return [...SLASH_COMMANDS.filter(c => c.name.startsWith(typed)), ...(typed.length >= 4 ? EXTRA_COMMANDS.filter(c => c.name.startsWith(typed)) : [])];
+  // Session AL second pass (X3-07, TK:28, P-PR-78, P-TK-36): "/" alone lists every command /help names, /recap last, so
+  // the list and /help are one list; "/r" still offers /review and /remember only.
+  return [...SLASH_COMMANDS.filter(c => c.name.startsWith(typed)), ...(typed === '/' || typed.length >= 4 ? EXTRA_COMMANDS.filter(c => c.name.startsWith(typed)) : [])];
 }
 /** What /plan adds to the system prompt for that one message: proposal cards only, never a write. */
 export const PLAN_NOTE = 'The person wants to plan a goal or a habit. Ask at most one short question if something essential is missing; otherwise propose it as a plan-goal or build-habit card (several small cards are fine). Nothing is written until they confirm.';

@@ -1,7 +1,8 @@
 import {expect, test} from '@playwright/test';
 
 // The one link to Help in Settings (Session L): there exactly once, under the page title, 44 px tall, and it opens Help.
-const NAME = 'Help: install on iPhone, keep your data safe, send feedback →';
+// Session AL (COPY_AUDIT, deliberate): DV-261, the three-part link text is shortened.
+const NAME = 'Help & feedback →';
 
 test('Settings links to Help exactly once, near the top, and back', async ({page}) => {
   await page.goto('/app/settings');

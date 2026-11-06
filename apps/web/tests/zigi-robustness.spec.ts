@@ -7,6 +7,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {REPAIR_NOTE, REPAIR_PROMPT} from '../lib/ai/actions/repair';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Part 5c, robustness on the wire, through the real panel: a reply whose only block is almost-JSON
@@ -40,7 +41,7 @@ async function seed(page: Page, baseUrl = BASE) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 const systemOf = (body: Body) => String(body.messages[0]!.content);
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
@@ -166,6 +167,9 @@ test('Stop during the automatic retry keeps the first answer, without its marker
     const cors = {'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'};
     if (req.method === 'OPTIONS') { res.writeHead(204, cors); res.end(); return; }
     if (req.url?.endsWith('/v1/models')) { res.writeHead(200, {...cors, 'Content-Type': 'application/json'}); res.end(JSON.stringify({object: 'list', data: [{id: 'mock-chat'}]})); return; }
+    // Session AL (Part 14 P14-B, Z1A-6, deliberate): the app asks this computer's server `GET /health` (is it Hermes Agent?)
+    // before a chat request under a privacy mode; it has no body. Only chat requests are recorded, as before.
+    if (!req.url?.endsWith('/v1/chat/completions')) { res.writeHead(404, cors); res.end(); return; }
     let raw = ''; req.on('data', part => { raw += String(part); }); req.on('end', () => {
       bodies.push(JSON.parse(raw) as Body);
       res.writeHead(200, {...cors, 'Content-Type': 'text/event-stream'});

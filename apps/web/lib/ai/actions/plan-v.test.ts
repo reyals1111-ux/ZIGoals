@@ -72,8 +72,14 @@ test('the brief\'s breakfast: one message, five cards, "Add all" through the mut
 test('check-ins in minutes or a quantity follow the habit\'s own measure, or are refused', () => {
   expect(plan({kind: 'check-in', habit: hOf('Read'), minutes: 45}).card.lines[0]).toBe('Set the day\'s count to 45 minutes (target 30 minutes), was 30');
   expect(refusal({kind: 'check-in', habit: hOf('Contribute'), minutes: 20})).toBe('This habit is counted in times, not in minutes, so nothing was proposed. Say how many times.');
-  expect(plan({kind: 'check-in', habit: hOf('Drink water'), quantity: 3, unit: 'glasses'}).card.lines[0]).toMatch(/^Set the day's count to 3 glasses \(target 8 glasses\)/);
-  expect(plan({kind: 'check-in', habit: hOf('Drink water'), quantity: 3, unit: 'glass'}).card.lines[0]).toMatch(/^Set the day's count to 3 glasses/);
+  // Session AL (Part 13, deliberate): the Showcase's water habit is 2 liters linked to the water journal, so glasses are
+  // refused, liters plan as said, and millilitres (any volume unit) convert to liters.
+  expect(refusal({kind: 'check-in', habit: hOf('Drink water'), quantity: 3, unit: 'glasses'})).toBe('This habit is measured in liters, not glasses, so nothing was proposed.');
+  expect(plan({kind: 'check-in', habit: hOf('Drink water'), quantity: 1.5, unit: 'liters'}).card.lines).toEqual(['Set the day\'s count to 1.5 liters (target 2 liters), was 1']);
+  expect(plan({kind: 'check-in', habit: hOf('Drink water'), quantity: 1500, unit: 'ml'}).card.lines).toEqual(['Set the day\'s count to 1.5 liters (target 2 liters), was 1', '1500 ml = 1.5 liters']);
+  expect(plan({kind: 'check-in', habit: hOf('Drink water'), quantity: 1.5, unit: 'L'}).card.lines).toEqual(['Set the day\'s count to 1.5 liters (target 2 liters), was 1']);
+  expect(plan({kind: 'check-in', habit: hOf('Drink water'), quantity: 750, unit: 'mL'}).card.lines[0]).toBe('Set the day\'s count to 0.75 liters (target 2 liters), was 1');
+  expect(refusal({kind: 'check-in', habit: hOf('Read'), quantity: 500, unit: 'ml'})).toBe('This habit is measured in minutes, not ml, so nothing was proposed.');
   expect(refusal({kind: 'check-in', habit: hOf('Walk'), quantity: 2, unit: 'km'})).toBe('This habit is measured in steps, not km, so nothing was proposed.');
   expect(plan({kind: 'check-in', habit: hOf('Read'), quantity: 1, unit: 'hour'}).card.lines).toEqual(['Set the day\'s count to 60 minutes (target 30 minutes), was 30', '1 hour = 60 minutes']);
   // A habit kept in hours takes minutes as hours; one that is done or not is marked done.

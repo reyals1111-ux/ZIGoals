@@ -1,6 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {earnRoutes, seedShowcase} from './earn-fixtures';
 import {chooseChain} from './chain-choice';
+import {webkitCancelled} from './webkit-cancelled';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -17,8 +18,11 @@ test.beforeEach(async ({browserName}, info) => {
 });
 
 test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px targets, the guide as a bottom sheet', async ({page, context, baseURL}) => {
-  const errors: string[] = [];
-  page.on('pageerror', e => errors.push(e.message));
+  // Session AL (CI_INTERMITTENTS Fix 3): the same shared filter as webkit-smoke/webkit-phone — only the cancelled
+  // same-origin prefetches and /api fetches WebKit reports within 1.5 s of a navigation (tests/webkit-cancelled.ts).
+  const timed: {at: number; message: string}[] = [], navigations: number[] = [];
+  page.on('pageerror', e => timed.push({at: Date.now(), message: e.message}));
+  page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame()) navigations.push(Date.now()); });
   // Session AF (diagnostic only; WebKit runs only in CI, ADR-028 H114): CI's WebKit reported "This assignment requires a
   // TrustedHTML" while Earn loads; the browser's own violation reports (the sink, the first characters of the value and the
   // script position) are kept so a failure names what assigned the HTML. The assertion below is unchanged.
@@ -93,5 +97,6 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
   await sheet.getByRole('button', {name: 'Close the guide'}).click();
   await expect(sheet).toHaveCount(0);
   const {violations, probes} = await page.evaluate(() => { const w = window as unknown as {afViolations?: string[]; afProbes?: string}; let kept: string[] = []; try { kept = JSON.parse(sessionStorage.getItem('afViolations') ?? '[]') as string[]; } catch { /* storage refused */ } return {violations: [...kept, ...(w.afViolations ?? [])], probes: w.afProbes ?? 'missing'}; }).catch(e => ({violations: [] as string[], probes: `unreadable (${String(e).slice(0, 80)})`}));
+  const errors = timed.filter(e => !webkitCancelled(e, navigations)).map(e => e.message);
   expect(errors, `probes ${probes}; Trusted Types reports, HTML assignments and reported errors: ${violations.length ? violations.join(' ;; ') : 'none'}`).toEqual([]);
 });

@@ -46,6 +46,9 @@
     if (bills.length) lines.push(named && bills.every(function (b) { return b.label; }) ? bills.slice(0, 2).map(function (b) { return b.label + (b.detail ? ' · ' + b.detail : ''); }).join(' · ') : plural(bills.length, 'bill due tomorrow', 'bills due tomorrow'));
     if (kinds.supplement) lines.push('A reminder you set in Health');
     if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
+    // Session AL sweep 4 (C-DVG-68, C-BN-06): from the positions last read on the device; never a name or an amount.
+    if (kinds.unbonding) lines.push('Unstaked ZIG is back in your wallet today');
+    if (kinds.validator) lines.push('A validator you stake with is not earning: see Staking');
     if (kinds.windDown) lines.push('Time to wind down');
     if (kinds.review) lines.push('Your weekly Life review is ready');
     var summary = summaryLine(snapshot);
@@ -107,8 +110,12 @@ const ICON = PUSH_ART.icon, BADGE = PUSH_ART.badge;
 // Release review R12: the pages the manifest's shortcuts and the bottom bar open are kept at install, with the hashed
 // files each one loads, so an installed app's shortcuts work offline before each page was visited. They hold no
 // personal data (the records live in this browser's storage); a page or file that fails is simply left for later.
-const INSTALL_PAGES = ['/app', '/app/today', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/checklist', '/app/settings', '/app/nova', '/app/notes'];
-const MAX_INSTALL_FILES = 160;
+// Session AL (P-LS-38, LS-013): Tasks and the Agenda too; the Agenda has no navigation entry, so it was only ever reached
+// inside the app and never kept as a page.
+const INSTALL_PAGES = ['/app', '/app/today', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/checklist', '/app/settings', '/app/nova', '/app/notes', '/app/tasks', '/app/agenda'];
+// Session AL (LS-013): the twelve pages load more than 160 hashed files together, so the Agenda's own were cut (the pages
+// finish in any order); the install now keeps up to the static cache's own cap, which trim() holds the cache to anyway.
+const MAX_INSTALL_FILES = MAX_STATIC;
 async function precache() {
   const pages = await caches.open(PAGES), files = new Set();
   await Promise.all(INSTALL_PAGES.map(async path => {
@@ -135,6 +142,9 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     for (const key of await caches.keys()) if (key.startsWith('zigoals-') && !KEEP.includes(key)) await caches.delete(key);
     await self.clients.claim();
+    // Session AL (P-LS-38, LS-013): the page a first visit opened loaded before this worker existed, so it was never
+    // kept; it is kept now, so a reload offline in the first session opens it.
+    if (OFFLINE) for (const client of await self.clients.matchAll({type: 'window'})) { try { await keepDocument(new URL(client.url)); } catch { /* kept on the next visit */ } }
   })());
 });
 // Session AK (journey bug J6-1): after Erase everything this worker keeps nothing more: "zigoals:sw-forget" stops every
@@ -166,22 +176,58 @@ function storable(url) {
   for (const key of url.searchParams.keys()) if (key !== '_rsc') return false;
   return true;
 }
-const race = request => Promise.race([fetch(request), new Promise((_, reject) => setTimeout(() => reject(Error('slow')), NETWORK_MS))]);
+// Session AL sweep 4 (PR-054): the timeout's own reason, told apart from a real network error. The request in flight is
+// kept, so a slow first visit (no copy yet) still gets its page instead of the offline line.
+const SLOW = Object.freeze({slow: true});
+function raced(request) {
+  const inFlight = fetch(request);
+  inFlight.catch(() => {}); // a late failure after the timeout is not an unhandled rejection
+  return {inFlight, first: Promise.race([inFlight, new Promise((_, reject) => setTimeout(() => reject(SLOW), NETWORK_MS))])};
+}
+const race = request => raced(request).first;
 async function trim(name, max) { const cache = await caches.open(name), keys = await cache.keys(); for (let i = 0; i < keys.length - max; i++) await cache.delete(keys[i]); }
+// Session AL (CI 1539, journey 4): router page data (?_rsc=, one copy per page and router state) filled the pages cache and
+// pushed out the documents kept at install and on visits, so a page opened offline found no copy. Page data goes first,
+// oldest first; a document goes only when no page data is left to remove.
+async function trimPages() {
+  const cache = await caches.open(PAGES), keys = await cache.keys();
+  let over = keys.length - MAX_PAGES;
+  if (over <= 0) return;
+  const data = keys.filter(r => new URL(r.url).searchParams.has('_rsc')), documents = keys.filter(r => !new URL(r.url).searchParams.has('_rsc'));
+  for (const r of [...data, ...documents]) { if (over-- <= 0) break; await cache.delete(r); }
+}
 function cacheable(response) { return response && response.status === 200 && response.type === 'basic' && !response.headers.get('content-disposition'); }
 async function networkFirst(request, url) {
-  const cache = await caches.open(PAGES), keep = storable(url);
+  const cache = await caches.open(PAGES), keep = storable(url), {inFlight, first} = raced(request);
+  // A link's prefetch is not kept (Session AL, CI 1539): the router asks for it again for the real visit, and the copies
+  // had filled the cache (see trimPages). A prefetch offline still reads a kept copy below.
+  const prefetch = request.headers.get('Next-Router-Prefetch') === '1';
+  const kept = async response => { if (keep && !prefetch && !forgotten && cacheable(response)) { await cache.put(request, response.clone()); trimPages(); } return response; };
   try {
-    const response = await race(request);
-    if (keep && !forgotten && cacheable(response)) { await cache.put(request, response.clone()); trim(PAGES, MAX_PAGES); }
-    return response;
-  } catch {
+    return await kept(await first);
+  } catch (error) {
     // Only this page's own copy: another page's would open at the wrong address. An address with a query opens its page's
     // plain copy (the address, query and all, stays in the browser). A page never visited gets the plain line below.
     const cached = keep ? await cache.match(request, {ignoreVary: false}) : request.mode === 'navigate' && !neverStored(url) ? await cache.match(new Request(url.origin + url.pathname), {ignoreVary: false}) : null;
     if (cached) return cached;
+    // Session AL sweep 4 (PR-054): only slow, with no copy to show: wait for the answer already on its way. Only a real
+    // network error (now or later) gets the offline line.
+    if (error === SLOW) { try { return await kept(await inFlight); } catch { /* the network failed after all */ } }
     return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline · ZIGoals</title><body style="font:16px system-ui;background:#020918;color:#eef;padding:24px"><h1>You are offline</h1><p>This page was not saved on this device yet. Open ZIGoals once while online and it will work offline next time.</p><p><a style="color:#9cf" href="/app">Open Today</a></p>', {status: 503, headers: {'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store'}});
   }
+}
+/**
+ * Session AL (P-LS-38, LS-013): a page reached inside the app arrives as page data (an RSC request), never as a document,
+ * so a reload offline found no copy. Once per build, its plain document is fetched and kept too (same origin, no query,
+ * the same rules as every kept page; never for a prefetch, so links merely shown fetch nothing extra).
+ */
+async function keepDocument(url) {
+  if (forgotten || url.origin !== self.location.origin || !url.pathname.startsWith('/app') || neverStored(url)) return;
+  const address = new Request(url.origin + url.pathname, {credentials: 'same-origin'}), cache = await caches.open(PAGES);
+  if (await cache.match(address)) return;
+  const response = await fetch(address);
+  if (forgotten || !cacheable(response) || response.redirected) return; // a redirected answer cannot be served to a navigation
+  await cache.put(address, response); trimPages();
 }
 async function cacheFirst(request) {
   const cache = await caches.open(STATIC), cached = await cache.match(request);
@@ -211,7 +257,10 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
   if (isHashed(url)) { event.respondWith(cacheFirst(request)); return; }
   if (isAsset(url)) { event.respondWith(assetNetworkFirst(request)); return; }
-  if (isPage(request, url) && url.pathname.startsWith('/app')) event.respondWith(networkFirst(request, url));
+  if (isPage(request, url) && url.pathname.startsWith('/app')) {
+    event.respondWith(networkFirst(request, url));
+    if (request.mode !== 'navigate' && request.headers.get('Next-Router-Prefetch') !== '1') event.waitUntil(keepDocument(url).catch(() => {}));
+  }
 });
 
 // ---- IndexedDB (read the snapshot; queue actions) ----------------------------------------------------------------

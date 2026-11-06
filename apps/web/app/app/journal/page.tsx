@@ -5,7 +5,7 @@ import {JournalPageClient} from '../../../components/journal/journal-page-client
 export const metadata: Metadata = {title: 'Journal'};
 export default function Page() {
   return <div className="dashboard journal-route">
-    <PageHeader className="page-heading" eyebrow="Your days, in your words" title="Journal" lede="A few lines a day, your energy, and one question from ZIGi. Private, on this device." />
+    <PageHeader className="page-heading" eyebrow="Your days, in your words" title="Journal" lede="A few lines a day, your energy, and an optional question to come back to. Private, on this device." />
     <JournalPageClient />
   </div>;
 }

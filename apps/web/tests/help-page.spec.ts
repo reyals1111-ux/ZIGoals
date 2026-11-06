@@ -7,7 +7,7 @@ const SECTIONS: [id: string, title: string][] = [
   ['getting-started', 'Three small first steps'], ['data-and-sync', 'Where your data lives'], ['recovery-secret', 'The one thing to keep safe'],
   ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['your-ai', 'Your own AI, page by page'],
   // Session AK follow-up 2 (deliberate): NOVA, notes and tasks have their own topic after ZIGi.
-  ['nova', 'Your command center, your notes and your day'], ['questions', 'Good to know about the Alpha'],
+  ['nova', 'Your command center, your notes and your day'], ['more-pages', 'Earn, Staking, Governance, Ecosystem and Chess'], ['questions', 'Good to know about the Alpha'],
   // Session W Part 24 (deliberate): the release's own topic, before the earlier "What's new".
   ['whole-life', 'Sleep, mind, music, chess, links and more'],
   // Session AA-Local (deliberate): the release's own topic, before the earlier ones.
@@ -37,11 +37,12 @@ const SECTIONS: [id: string, title: string][] = [
 ];
 // Session AK G2 (RELEASE_REVIEW R24, deliberate): Help's topic index is task-shaped: the ten "New: …" release topics are one
 // "Earlier updates" topic after What's new (their sections keep their ids, so every link and Search result still lands).
-const TOPIC_IDS = ['getting-started', 'data-and-sync', 'recovery-secret', 'install', 'backups', 'your-ai', 'nova', 'questions', 'whats-new-alpha', 'earlier-updates', 'known-limitations', 'feedback'];
+// Session AL (deliberate, L6 P-BN rows): an eighth task topic, "Earn, Staking, Ecosystem and Chess", after NOVA.
+const TOPIC_IDS = ['getting-started', 'data-and-sync', 'recovery-secret', 'install', 'backups', 'your-ai', 'nova', 'more-pages', 'questions', 'whats-new-alpha', 'earlier-updates', 'known-limitations', 'feedback'];
 // Session AF Gate C (design critique; deliberate, as strict): the five release names that read like codenames are topic
 // names now ("New: one 4-in-1 look", "New: polish", "New: the final look", "New: stunning, finished", "New: wealth,
 // unlocked"); every label is still checked exactly, in order, with its link.
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'NOVA, notes and tasks', 'Questions', 'What\'s new', 'Earlier updates', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'NOVA, notes and tasks', 'Earn, Staking, Ecosystem and Chess', 'Questions', 'What\'s new', 'Earlier updates', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
 // Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.
@@ -77,10 +78,14 @@ test('Help has one title and twelve topics, listed before them, each linking to 
   // The topic list stays above the first section at every size.
   const firstSection = page.getByRole('region', {name: 'Three small first steps', exact: true});
   expect((await nav.boundingBox())!.y).toBeLessThan((await firstSection.boundingBox())!.y);
-  // Owner follow-up 2 (deliberate): "NOVA, notes and tasks" is the seventh topic, so Questions is the eighth.
+  // Owner follow-up 2 (deliberate): "NOVA, notes and tasks" is the seventh topic.
+  // Session AL (L6 P-BN rows, deliberate): "Earn, Staking, Ecosystem and Chess" is the eighth (TOPIC_IDS above), so
+  // Questions is the ninth; both are clicked.
   await topics.nth(6).click();
   await expect(page).toHaveURL(/#nova$/);
   await topics.nth(7).click();
+  await expect(page).toHaveURL(/#more-pages$/);
+  await topics.nth(8).click();
   await expect(page).toHaveURL(/#questions$/);
 });
 
@@ -223,7 +228,10 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // Session AK (ADR-036): Known limitations links its seven new lines to their answers (43 → 50).
   // Owner follow-up 2: the NOVA, notes and tasks answers link NOVA, its two guides, Hermes Agent's docs, Notes and Tasks
   // inside their sentences (50 → 57).
-  expect(inline).toBe(57);
+  // Session AL (L6 Help passes, deliberate): the new answers link inside their sentences too, among them "Where are Earn,
+  // Staking, Governance and Ecosystem?" to the Earn, staking and voting answers (57 → 62). "↑ Back to the topics" is a
+  // link on its own line, so it is held to 44 px above, not counted here.
+  expect(inline).toBe(62);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });
@@ -231,9 +239,14 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
 test('at phone width the top bar names Help and steps back to Settings', async ({page}) => {
   // Any window narrower than 768 px gets the phone layout, so both projects run this.
   await page.setViewportSize({width: 390, height: 844});
+  // Session AL (D-159, deliberate): the bar steps back to Settings only when Settings' Help link opened Help; opened
+  // directly it offers no way back to a page the person never came from (components/help/help-back.tsx).
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.locator('.phone-title')).toHaveText('Help');
-  const back = page.getByRole('link', {name: 'Back to Settings', exact: true});
+  await expect(page.locator('.phone-topbar').getByRole('link', {name: 'Back to Settings', exact: true})).toHaveCount(0);
+  await page.goto('/app/settings');await page.getByRole('link', {name: 'Help & feedback →', exact: true}).click();
+  await expect(page).toHaveURL(/\/app\/help$/);await expect(page.locator('.phone-title')).toHaveText('Help');
+  const back = page.locator('.phone-topbar').getByRole('link', {name: 'Back to Settings', exact: true});
   await expect(back).toBeVisible();
   await back.click();
   await expect(page).toHaveURL(/\/app\/settings$/);
@@ -429,7 +442,8 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
     ['af-practice-badges', 'ZIGoals never does this on the real network'],
     ['af-start-here', "Practice never ticks a real step"],
     ['af-academy', "a lesson you pass earns XP once"],
-    ['af-earn-dock', "Phones have no extra floating button"],
+    // Session AL (P-BN-48, O3, deliberate): below 901 px nothing floats, so the answer names phones and tablets.
+    ['af-earn-dock', "Phones and tablets have no floating button"],
     ['af-validator-alerts', "ZIGoals sends no notifications"],
     ['af-wallets', "Keplr stays the wallet that signs"],
     ['af-add-money', "ZIGoals never sees either and never holds the money"],

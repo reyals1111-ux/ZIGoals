@@ -2,6 +2,7 @@ import {closeSync, mkdirSync, openSync, renameSync, statSync, unlinkSync, writeF
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {expect, type Page, type TestInfo} from '@playwright/test';
+import {pressZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {HEALTH_STORAGE_KEY} from '../lib/health';
 import {nightDay} from '../lib/sleep/engine';
@@ -107,7 +108,11 @@ export async function offlineAppApi(page: Page) {
   await page.route(url => url.pathname.startsWith('/api/') && url.origin !== model, route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 }
 /** Opens the panel; a page without the launcher fails in 20 s, never at the test's timeout. */
-export async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click({timeout: 20_000}); await expect(panel(page)).toBeVisible(); }
+export async function openChat(page: Page) {
+  // Session AL (O3): below 901 px ZIGi opens from the "Apps & extras" sheet (tests/zigi-open.ts).
+  if ((page.viewportSize()?.width ?? 1440) < 901) await pressZigi(page); else await page.getByRole('button', {name: /Open ZIGi/}).click({timeout: 20_000});
+  await expect(panel(page)).toBeVisible();
+}
 /** Sends a message and waits until the reply is final: a new assistant turn (or a failure block) has appeared, no turn is
  * live and the Stop button is gone, within the reply timeout. The clock runs from the click to that final state; a reply
  * that is over before the Stop button could be seen is measured as it was, never padded by a wait for the button. */

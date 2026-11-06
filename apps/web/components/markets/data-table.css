@@ -25,3 +25,23 @@
 @media (max-width: 639.98px) { .data-col-optional { display: none; } .data-table :is(th, td) { padding: 8px 10px; } }
 /* A phone keeps the name, the 24h change and the main figure; each row's own page has the rest. */
 @media (max-width: 479.98px) { .data-col-wide { display: none; } }
+/* Session AL (TK-204, M2): sortable headers are buttons that look like the header text, with a 44 px target. */
+.data-table th .data-sort { all: unset; display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; font: inherit; color: inherit; white-space: nowrap; }
+.data-table th .data-sort:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 4px; }
+/* The sort mark is drawn by CSS, so a header's text stays its name ("Market"). */
+.data-table th .data-sort::after { content: '↕' / ''; margin-left: 4px; opacity: .7; }
+.data-table th[aria-sort=ascending] .data-sort::after { content: '▲' / ''; opacity: 1; }
+.data-table th[aria-sort=descending] .data-sort::after { content: '▼' / ''; opacity: 1; }
+/* Session AL (TK-162, fourth pass): at 375 px the Markets table kept the name, price, 24h and star but was still ~160 px
+   wider than the window, so price, 24h and the star sat off-screen with only a faint edge shadow. On narrow phones the
+   name may wrap and the cells tighten, so the four columns fit; whenever the table still runs past its edge, a line says so. */
+@media (max-width: 479.98px) {
+  .market-table :is(th, td) { padding: 6px 6px; }
+  .market-table th[scope=row] { white-space: normal; min-width: 0; }
+  .market-table .data-coin-link { gap: 6px; }
+  .market-table .data-coin-link .asset-orb { width: 24px; height: 24px; font-size: 11px; }
+  .market-table .data-coin-link > span { min-width: 0; max-width: 34vw; overflow-wrap: anywhere; }
+  .market-table td small { white-space: normal; }
+}
+.data-table-more { display: none; margin: 6px 4px 0; font-size: 14px; color: var(--text-secondary, #c4d3e6); text-align: end; }
+.data-table-wrap[data-more-right] + .data-table-more { display: block; }

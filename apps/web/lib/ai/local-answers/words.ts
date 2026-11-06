@@ -1,3 +1,4 @@
+import {isUnitWord, unitAmount} from '../../goals/goal-units';
 import type {DayRange} from '../tools/range';
 import {formatDate, formatTime} from '../../visual-format';
 
@@ -49,8 +50,16 @@ const MONEY = new Set(['USD', 'EUR', 'GBP', 'CHF', 'JPY', 'CAD', 'AUD', 'NZD', '
 /** "2,100.00 USD" for money, "0.25 BTC" for anything else; "unknown" stays unknown. */
 export function amount(value: string, unit: string): string {
   if (!/^-?\d+(?:\.\d+)?$/.test(value.trim())) return value;
+  // Session AL (L4's request, DV-014, DV-078): a count goal's own word reads "20 books", never "20 BOOKS".
+  if (!MONEY.has(unit) && isUnitWord(unit)) return unitAmount(value, unit);
   return MONEY.has(unit) ? `${grouped(value, 2, 2)} ${unit}` : `${grouped(value)} ${unit}`;
 }
+/**
+ * Session AL third pass (NB-114: "van 30 minutes"): a habit target's English unit in a Dutch answer ("30 minuten", "1 keer").
+ * Only the units the app offers; a word the person typed stays as typed.
+ */
+const NL_UNITS: Record<string, string> = {minutes: 'minuten', minute: 'minuut', hours: 'uur', hour: 'uur', times: 'keer', time: 'keer', glasses: 'glazen', glass: 'glas', pages: 'pagina’s', page: 'pagina', steps: 'stappen', step: 'stap', sessions: 'sessies', session: 'sessie'};
+export const nlUnits = (text: string): string => text.replace(/^(\S+) (minutes?|hours?|times?|glass(?:es)?|pages?|steps?|sessions?)$/, (_m, num: string, unit: string) => `${num} ${NL_UNITS[unit] ?? unit}`);
 export const plural = (count: number, one: string, many = `${one}s`) => `${n(count, 0)} ${count === 1 ? one : many}`;
 /** The words a local answer may never use (no shame, guilt, urgency or persuasion; ADR-011's tone rules). */
 export const TONE_FORBIDDEN = /\b(only|failed|failure|missed|lazy|should|must|need to|have to|hurry|don't break|shame|guilt|disappoint|bad|terrible|behind|streak is at risk|you broke|again\?)\b/i;

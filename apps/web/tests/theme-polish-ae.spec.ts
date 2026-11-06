@@ -12,16 +12,20 @@ type Theme = keyof typeof NAMES;
 const appearance = (page: Page) => page.locator('#appearance').getByRole('radiogroup', {name: 'Theme'});
 const hydrated = (page: Page) => expect(page.locator('html[data-app-hydrated]')).toBeAttached();
 
+// Session AL (NB-075 / NB-086, AL-MOTION-002, deliberate): resting on a theme's button adds a <link rel="preload" as="style">
+// for its sheet (components/shell/theme-switch.tsx warmSheet), which fetches it early and applies nothing. A theme sheet
+// is a stylesheet link, so the count reads stylesheet links only; the limits stay (one at most, none in Nebula).
+const SHEET = 'link[rel="stylesheet"][href^="/themes/"]';
 /** Counts the view transitions the page starts and the most theme sheets it ever holds at once (before any app script). */
-const watchSwitches = (page: Page) => page.addInitScript(() => {
+const watchSwitches = (page: Page) => page.addInitScript((sheet: string) => {
   const calls: string[] = [], original: unknown = Reflect.get(Document.prototype, 'startViewTransition');
   Reflect.set(window, '__viewTransitions', calls);
   Reflect.set(window, '__viewTransitionsSupported', typeof original === 'function');
   if (typeof original === 'function') Reflect.set(Document.prototype, 'startViewTransition', function (this: Document, ...args: unknown[]) { calls.push(document.documentElement.dataset.theme ?? 'nebula'); return original.apply(this, args); });
   let most = 0;
   Reflect.set(window, '__mostThemeSheets', () => most);
-  new MutationObserver(() => { most = Math.max(most, document.querySelectorAll('link[href^="/themes/"]').length); }).observe(document, {childList: true, subtree: true, attributes: true, attributeFilter: ['href']});
-});
+  new MutationObserver(() => { most = Math.max(most, document.querySelectorAll(sheet).length); }).observe(document, {childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'rel']});
+}, SHEET);
 const switches = (page: Page) => page.evaluate(() => ({calls: Reflect.get(window, '__viewTransitions') as string[], supported: Reflect.get(window, '__viewTransitionsSupported') as boolean, most: (Reflect.get(window, '__mostThemeSheets') as () => number)()}));
 
 /** Chooses a theme in Settings and waits until the page shows it in full (its own sheet loaded, or none for Nebula). */
@@ -30,7 +34,7 @@ async function choose(page: Page, theme: Theme) {
   await expect(appearance(page).getByRole('radio', {name: NAMES[theme]})).toHaveAttribute('aria-checked', 'true');
   if (theme === 'nebula') {
     await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
-    await expect(page.locator('link[href^="/themes/"]')).toHaveCount(0);
+    await expect(page.locator(SHEET)).toHaveCount(0);
   } else {
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     await expect.poll(() => page.evaluate(t => (document.getElementById('zigoals-theme-sheet') as HTMLLinkElement | null)?.sheet?.href?.includes(`/themes/${t}.css`) ?? false, theme)).toBe(true);

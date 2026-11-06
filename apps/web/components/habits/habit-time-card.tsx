@@ -45,7 +45,7 @@ export function HabitTimeCard() {
     <div className="habit-section-heading"><div><p className="eyebrow">{SECTION_SYMBOLS[pick.id]} {allDone ? 'All done for now' : pick.id === now ? 'This part of the day' : 'Up next'}</p><h2 id="habit-time-card-title"><NebulaFlow identity="habit-time-card">{SECTION_LABELS[pick.id]}</NebulaFlow></h2></div><span className="habit-section-count">{pick.done} / {pick.due}</span></div>
     <ul className="habit-today-list">{pick.habits.slice(0, 4).map(h => <li key={h.id}><div><strong>{h.title}</strong>{h.timer && <TimerChip habit={h} store={store} />}</div><HabitCompletion habit={h} store={store} compact /></li>)}</ul>
     {/* Session AK P4 (FR-3): the very first check-in on this device is named, once (read from the habits; nothing stored). */}
-    {first && <p className="fine habit-first-step" role="status">Your first step is logged. Day 1 of your streak.</p>}
+    {first && <p className="fine habit-first-step">{/* Session AL (DV-156): a static line, not a live region, so saving a widget does not re-announce it */}Your first step is logged. Day 1 of your streak.</p>}
     <Link className="text-link" href="/app/habits">All habits →</Link>
   </section>;
 }

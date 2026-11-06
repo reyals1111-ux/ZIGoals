@@ -5,7 +5,7 @@ import type {PageContext} from '../ai/context/types';
 import type {Gates} from '../ai/gates';
 import type {PageArea} from '../ai/settings';
 import type {ToolEnv, ToolSources} from '../ai/tools/env';
-import {reviewWindow} from '../weekly-review/engine';
+import {reviewWindow} from '../weekly-review/window'; // CI13: not the week summary
 import {ZIGI_PAGE_PATHS} from './bridge';
 import {novaToolEnv, scopeOpen, type NovaPackInput, type NovaPrivacy, type NovaScope, type NovaScopes} from '../ai/context-pack/nova';
 import type {Handles} from '../ai/handles';
@@ -14,7 +14,7 @@ import {sendDecision} from '../ai/privacy-mode';
 import {readKey} from '../ai/keys';
 import type {ProviderId} from '../ai/providers';
 import type {NovaAgent} from '../../components/ai/use-chat-session';
-import {HERMES_KEY_SLOT, hermesStatus, isHermesBase, readHermes, type NovaHermes} from './hermes-record';
+import {HERMES_KEY_SLOT, hermesStatus, isHermesBase, localModelStillConfirmed, readHermes, type NovaHermes} from './hermes-record';
 import {redactForSend} from './privacy-mode';
 import {NOVA_SETUP, readPrivacyMode} from './setup';
 import {isKnownCloudModel} from './cloud-models';
@@ -79,7 +79,7 @@ export type NovaTarget = {provider: ProviderId | null; model: string | null; bas
 export function novaPrivacy(storage: Pick<Storage, 'getItem'>, target: NovaTarget): NovaPrivacy {
   const mode = readPrivacyMode(storage);
   const hermes = target.provider === 'local' && target.baseUrl && mode && mode !== 'relaxed' ? readHermes(storage) : null;
-  const hermesUnconfirmed = !!hermes && isHermesBase(target.baseUrl, hermes.data) && (hermes.unreadable || hermes.data.localModelConfirmed !== true);
+  const hermesUnconfirmed = !!hermes && isHermesBase(target.baseUrl, hermes.data) && (hermes.unreadable || !localModelStillConfirmed(hermes.data));
   const knownCloud = target.provider === 'local' && !!mode && mode !== 'relaxed' && (() => { try { return isKnownCloudModel(readDeviceRecord(storage, NOVA_SETUP).data, target.model); } catch { return false; } })(); // Z1A-7
   const applies = sendDecision(mode, {provider: target.provider, model: target.model, hermesUnconfirmed, knownCloud}) === 'redact' ? 'guarded' as const : null;
   return {mode: applies, redactForSend: (text, as) => redactForSend(text, as === 'guarded' ? 'guarded' : null).text};

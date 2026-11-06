@@ -1,4 +1,5 @@
 import {cents, fromCents} from '../money-log/engine';
+import {formatCurrencyAmount} from '../visual-format';
 import {amountText, currencyCode} from '../money-log/schema';
 import {PER_MONTH, dueDatesBetween, dueOnOrAfter} from './cadence';
 import type {BillCandidate} from './detect';
@@ -70,7 +71,8 @@ export function monthlyEstimate(record: BillsRecord): {currency: string; cents: 
   return [...by].map(([currency, total]) => ({currency, cents: Math.round(total)})).sort((a, b) => a.currency.localeCompare(b.currency));
 }
 const format = (amountCents: number, currency: string) => {
-  try { return new Intl.NumberFormat('en-GB', {style: 'currency', currency}).format(amountCents / 100); } catch { return `${fromCents(amountCents)} ${currency}`; }
+  // Session AL (PRIMITIVES 3f): the one format layer (display locale; USD/EUR as money, other codes as typed).
+  return formatCurrencyAmount(fromCents(amountCents), currency);
 };
 /**
  * For the notification plan (Session AK Part 2, lib/notify/plan.ts `PlanInput.bills`): each bill's due dates in the next

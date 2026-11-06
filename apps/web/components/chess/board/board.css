@@ -83,3 +83,15 @@
 .chess-promotion-glyph { font-size: 1.5rem; margin-right: 6px; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", "Apple Symbols", serif; }
 .chess-actions-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .chess-play-message { margin: 0; }
+/* Session AL (C-BN-22): the dated puzzle log under the daily puzzle. */
+.chess-puzzle-days { display: grid; gap: 6px; }
+.chess-puzzle-days h4 { margin: 4px 0 0; font-size: 16px; }
+.chess-puzzle-days p { margin: 0; }
+.chess-puzzle-days-list { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+/* Session AL fourth pass (BN-182, C-BN-24): the computer game's choices, one row per option, each 44 px. */
+.chess-computer-setup { display: grid; gap: 12px; }
+.chess-computer-setup fieldset { display: grid; gap: 4px; margin: 0; padding: 0; border: 0; }
+.chess-computer-setup legend { font-weight: 700; margin-bottom: 4px; }
+.chess-computer-setup label.checkbox { display: flex; flex-direction: row; align-items: center; gap: 10px; min-height: 44px; }
+.chess-computer-setup label.checkbox input { flex: none; margin: 0; }
+.chess-computer-setup > button { justify-self: start; min-height: 44px; }

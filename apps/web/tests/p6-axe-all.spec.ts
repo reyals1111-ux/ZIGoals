@@ -17,7 +17,7 @@ const ROUTES = [
   '/app/portfolio', '/app/markets', '/app/staking', '/app/earn', '/app/governance', '/app/ecosystem', '/app/activity', '/app/agenda',
   '/app/checklist', '/app/chess', '/app/guided', '/app/stories', '/app/timeline', '/app/review', '/app/notes', '/app/tasks', '/app/music',
   '/app/music/spotify', '/app/nova', '/app/nova/setup', '/app/nova/hermes', '/app/zigi', '/app/zigi/memory', '/app/settings',
-  '/app/settings/data', '/app/settings/reminders', '/app/help', '/app/welcome', '/app/share?text=A%20shared%20note', '/app/no-such-page',
+  '/app/settings/data', '/app/settings/reminders', '/app/help', '/app/welcome', '/app/plans', '/app/share?text=A%20shared%20note', '/app/no-such-page',
   // The views a page opens in place: Health's full views and its hash views, Habits' year and routines.
   '/app/health?view=sleep', '/app/health?view=meditation', '/app/health?view=workouts', '/app/health?view=devices', '/app/health#weight',
   '/app/health#planner', '/app/health#insights', '/app/health#targets', '/app/health#measurements', '/app/health#import', '/app/habits#year',

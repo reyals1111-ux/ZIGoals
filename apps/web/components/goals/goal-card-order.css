@@ -1,0 +1,4 @@
+/* Session AL fourth pass (D-029): a goal card's title comes before its star and ⋯ in the page (the first tab stop is the
+   goal itself); the picture and the top row still show above the title. */
+.unified-goal-card > .goal-card-art { order: -2; }
+.unified-goal-card > .card-top, .unified-goal-card.compact-goal > .card-top { order: -1; }

@@ -30,3 +30,7 @@
 @media (max-width: 767.98px) { .pages-preview-row { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .pages-switch input, .pages-switch input::before { transition: none; } }
 :root[data-app-motion="off"] :is(.pages-switch input, .pages-switch input::before) { transition: none; }
+.pages-preview-apps { margin-top: 10px; }
+/* Session AL fourth pass (C-BN-25): Undo for the switch just changed, under its line, 44 px. */
+.settings-switch-undo { margin: 4px 0 0; }
+.settings-switch-undo button { min-height: 44px; }

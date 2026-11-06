@@ -1,12 +1,14 @@
 'use client';
 import {ZigiPartBoundary} from '../zigi/part-boundary';
+import {rememberCardText} from '../../lib/ai/local-answers/al-fourth';
+import {localReplyHandles} from '../../lib/ai/actions/local-handles';
 import Link from 'next/link';
 import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {hasOpenFence, parseReply} from '../../lib/ai/actions/parse';
 import {bridgePrompt, subscriptionApp} from '../../lib/ai/bridge';
 import {chatMode} from './chat-mode';
-import {INPUT_COUNTER_FROM, MAX_INPUT_CHARS, type ChatTurn} from '../../lib/ai/chats';
+import {inputCounter, MAX_INPUT_CHARS, type ChatTurn} from '../../lib/ai/chats';
 import {usageLine} from '../../lib/ai/context/budget';
 import {AREA_LABELS} from '../../lib/ai/context/pages';
 import {ANSWER_LABEL, SPECIALISTS} from '../../lib/ai/context/specialists';
@@ -20,6 +22,8 @@ import './ai.css';
 import {useVisualViewportInsets} from '../phone/use-visual-viewport';
 import {useZigiState, zigiSignals} from '../zigi/bus';
 import {useZigiMachine} from '../zigi/events';
+import {holdGaze} from '../zigi/gaze';
+import {useGazeHold} from '../zigi/use-gaze-hold';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {ProposalList} from './proposal-list';
 import {SafeText} from './safe-text';
@@ -55,7 +59,6 @@ import type {ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {photoAllowance, preparePhoto, type Photo, type PhotoAllowance} from '../../lib/ai/photo';
 import type {ChatImage} from '../../lib/ai/types';
 import {useRouter} from 'next/navigation';
-import {actionSchema} from '../../lib/ai/actions/schema';
 import {turnMarkdown} from '../../lib/ai/continue';
 import {stripHint} from '../../lib/ai/emotion-hint';
 import {lastQuestion} from '../../lib/ai/session';
@@ -69,7 +72,7 @@ import {HistoryView} from './history-view';
 import {ShortcutsSheet} from './shortcuts-sheet';
 import {openSideBySide} from './side-by-side';
 import {SlashMenu, useSlashMenu} from './slash-menu';
-import {FeedbackButtons, FollowupChips, SourceLine, TurnTime, TurnKind, LongText} from './turn-extras';
+import {FeedbackButtons, FollowupChips, MoneyNote, SourceLine, TurnTime, TurnKind, LongText} from './turn-extras';
 import {CareNote} from './care-note';
 import {KnockOffer} from './knock-offer';
 import {AgentProposals} from './agent-proposals';
@@ -79,6 +82,11 @@ import {ReplyIcon, ReplyMore} from './reply-actions';
 import {useAgentBatches} from './agent-inbox';
 import {localDate} from '../../lib/local-date';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
+// Session AL (lane L7; ZI1 family): no Quick add preview under a question, a negation, a careful topic or a guarded message.
+import {guardMessage} from '../../lib/ai/safety-guard';
+import {quickAddUnder, quickAddOffered} from '../../lib/ai/actions/decline';
+import {readDraft, writeDraft} from '../../lib/ai/composer-draft';
+import {PremiumBadge} from '../plans/premium-badge';
 import {copyText, nextFrame} from '../../lib/ai/chat-window';
 import {useMiniWindow} from './use-mini-window';
 import './pip.css';
@@ -96,6 +104,7 @@ import {resolveVoiceLanguage} from '../../lib/zigi-voice-lang';
 import {voicePrefs, ZIGI_VOICE} from '../../lib/zigi-voice';
 import {ZIGI, zigiPersonality, zigiPrefs} from '../../lib/ai/store/records';
 import {greetingWords} from '../../lib/zigi-personality';
+import {PROFILE_NAME} from '../../lib/onboarding-setup';
 import {inQuietHours} from '../../lib/ai/knock/rules';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import {continueInNova, novaChatHref} from '../../lib/nova/bridge';
@@ -238,7 +247,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   // "Jump to the latest message" button then appeared under the finger before the release, which took the click (an
   // Undo that never happened). While a press is down the jump button keeps its state; it is decided again on release.
   const pressing = useRef(false);
-  const markAway = (el: HTMLElement) => { const far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; if (!pressing.current) setAway(far && !jumping.current); };
+  const markAway = (el: HTMLElement) => { const far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; wasAtEnd.current = !far; if (!far) jumping.current = false; if (!pressing.current) setAway(far && !jumping.current); };
   const keepReadingPlace = () => { const el = log.current; if (!el) return; const fromEnd = el.scrollHeight - el.scrollTop; requestAnimationFrame(() => requestAnimationFrame(() => { const now = log.current; if (now) now.scrollTop = Math.max(0, now.scrollHeight - fromEnd); })); };
   const popOut = async () => { keepReadingPlace(); if (await mini.popOut()) onClose(); else setNote('The mini window could not open here.'); };
   // Announced once per reply: when the wait starts, and when the reply has arrived.
@@ -268,7 +277,12 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   useEffect(() => { if (!open) reader.stop(); }, [open, reader]);
   // Session AK (G1 #20): a chat that is not kept is gone once the panel closes (the mini window keeps it while it is open).
   useEffect(() => { if (!open && !mini.win && !session.kept) { session.startNew(); setView('chat'); } }, [open, mini.win]); // eslint-disable-line react-hooks/exhaustive-deps -- only closing ends it
-  useEffect(() => { const el = log.current; if (!el) return; if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) toLatest(el); }, [session.chat.turns.length, session.draft]);
+  // Session AL second pass (Lisbon LA-013, Nairobi NB-108; P-LA-25, P-NB-62): whether the person was at the end is read
+  // BEFORE the new message grew the log (a long answer made the distance after it larger than the threshold, so the newest
+  // answer stayed below); the person's own new question always goes to the end.
+  const wasAtEnd = useRef(true), lastTurns = useRef(session.chat.turns.length);
+  useEffect(() => { const el = log.current; if (!el) return; const grew = session.chat.turns.length > lastTurns.current, mine = grew && session.chat.turns.at(-1)?.role === 'user'; lastTurns.current = session.chat.turns.length;
+    if (mine || wasAtEnd.current || el.scrollHeight - el.scrollTop - el.clientHeight < 160) { toLatest(el); wasAtEnd.current = true; } }, [session.chat.turns.length, session.draft]); // eslint-disable-line react-hooks/exhaustive-deps -- the turns' count and the draft
   const trapTab = useCallback((event: ReactKeyboardEvent<HTMLElement>) => {
     if ((event.target as Element).closest?.('.ai-shortcuts')) return;
     if (event.key === '?' && !(event.target as Element).closest?.('textarea, input, select, [contenteditable="true"]')) { event.preventDefault(); setShortcuts(true); return; }
@@ -292,7 +306,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       status={(() => { const text = hosted ? (hosted.provider === 'Anthropic' ? `via ZIGoals AI · ${modelLabel(hosted.model)}` : `${hosted.provider} · ${hosted.model} via ZIGoals hosted`) : connected ? `via ${providerName} · ${modelLabel(data.model ?? "")}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'answers on this device';
         const full = hosted ? (hosted.provider === 'Anthropic' ? `${CLAUDE_HOSTED_NAME} · ${hosted.model}` : text) : connected ? `via ${providerName} · ${data.model}` : text;
         return connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} status={text} full={full}/> : <span className="ai-chat-via-text" title={full}>{text}</span>; })()}
-      premium={entitlement(hosted ? 'hosted' : 'your-ai').label.replace(/ · free during (the )?Alpha$/i, '')}
+      premium={hosted ? entitlement('hosted').label.replace(/ · free during (the )?Alpha$/i, '') : <PremiumBadge className="ai-chat-premium-badge" short/>}
       onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => { keepReadingPlace(); setExpanded(e => !e); }} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
       more={[
         {key: 'history', label: 'History', name: 'Chat history', pressed: view === 'history', onSelect: () => setView(v => v === 'history' ? 'chat' : 'history')},
@@ -376,12 +390,13 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
 /** Session Z-Cloud Part 2: a new chat is one short greeting and the box; suggestions wait in their sheet by the composer. */
 function Greeting() {
   const personality = zigiPersonality(useDeviceRecord(ZIGI).data); // Session AI (mascot): the words follow the chosen personality
-  return <div className="ai-greeting ai-greeting-z"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, 'connected')}</p></div></div>;
+  const name = useDeviceRecord(PROFILE_NAME); // Session AL sweep 3 (NB-006): the name from setup, read on this device only
+  return <div className="ai-greeting ai-greeting-z"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, 'connected', name.loaded && !name.unreadable ? name.data.name : '')}</p></div></div>;
 }
 /** Before any AI is connected: the same short greeting; ZIGi answers lookups here, on this device, with no AI (Session V Part 3). */
 function LocalGreeting({sensitive}: {sensitive: boolean}) {
-  const personality = zigiPersonality(useDeviceRecord(ZIGI).data);
-  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, sensitive ? 'private' : 'local')}</p></div></div>;
+  const personality = zigiPersonality(useDeviceRecord(ZIGI).data), name = useDeviceRecord(PROFILE_NAME);
+  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, sensitive ? 'private' : 'local', name.loaded && !name.unreadable ? name.data.name : '')}</p></div></div>;
 }
 /** Not connected: one compact line above the box, never over the chat (Session Z-Cloud Part 2). */
 function SetupLine({onClose, onChooser}: {onClose: () => void; onChooser: () => void}) {
@@ -416,24 +431,31 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   const chips = isLast && reply ? reply.kind === 'choices' ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'refusal' && reply.choices ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'examples' ? reply.examples.map(e => ({label: e, run: () => void session.ask(e)})) : [] : [];
+  // Session AL Part 14 (D13): ZIGi asked which one is meant and waits for the choice: it holds its look at the person.
+  const turnBox = useRef<HTMLElement>(null);
+  // Session AL Part 14 (Berlin BN-069): a Quick add line that understood the words shows its own preview, so the examples
+  // list ("Until you give me a brain… For example:") above it is left out; it stays when Quick add did not understand.
+  const [cardShown, setCardShown] = useState(false), quiet = cardShown && reply?.kind === 'examples';
+  useGazeHold('question', isLast && reply?.kind === 'choices', turnBox);
   // Session V Part 15: an answer made with Chrome's on-device model says so; it stays on this device like a lookup.
   const label = turn.source === 'on-device' ? ON_DEVICE_LABEL : LOCAL_LABEL;
   // Session AF (L4): a card ZIGi made on this device names a habit by its exact title (a Checklist command, a timer), so
   // the person's habits are its handles; the device wrote the words itself from the records, no model was involved.
-  const localHandles = useMemo(() => runner.stores.habits.habits.map((h, i) => ({handle: `h${i + 1}`, kind: 'habit' as const, id: h.id, label: h.title})), [runner.stores.habits.habits]);
+  // Session AL fourth pass (L7-4b; DV-079): habits and open goals by their titles, so a goal card made here resolves on Goals.
+  const localHandles = useMemo(() => localReplyHandles(runner.stores), [runner.stores]);
   const copy = () => { copyText(`${shown}\n\n${label}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
-  return <article className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
+  return <article ref={turnBox} className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       <TurnKind cards={!!parsed && parsed.proposals.length > 0}/>
-      <SafeText className="ai-local-answer" text={shown}/>
-      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
+      {!quiet && <SafeText className="ai-local-answer" text={shown}/>}
+      {parsed && parsed.proposals.length > 0 && <ProposalList onDevice proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
       <DataViz results={info?.results}/>
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
-      {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
+      {chips.length > 0 && !quiet && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
-      {!connected && isLast && question && quickAdd && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood/></Suspense></ZigiPartBoundary></div>}
+      {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && quickAddUnder(reply) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)}/></Suspense></ZigiPartBoundary>{cardShown && !context.gates.localHealth && HEALTH_LINE.test(question) && <p className="ai-note">Health isn’t shared with ZIGi, but saving this line still saves it to Health.</p>}</div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
         <summary>What your AI sees if you ask for more</summary>
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
@@ -495,7 +517,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
   // An earlier reply shows its buttons on hover or focus, or after a tap on it (a phone has no hover).
   const [shown, setShown] = useState(false);
   // "Edit" sits just after the message, not inside it: the message stays only the person's own words.
-  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><LongText text={turn.text}/><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
+  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><LongText text={turn.text}/><CareNote text={turn.text} inChat/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
     {onEdit && <p className="ai-turn-edit"><ReplyIcon glyph="edit" label="Edit your last message" tip="Edit" onClick={onEdit}/></p>}</>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
   // Session AJ (item 9): when a follow-up reply re-sends cards an earlier reply of this chat proposed, every card still shows
@@ -517,6 +539,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {repeated > 0 && <p className="ai-note">{`${repeated} of these cards were also in an earlier reply. Add only what you still want.`}</p>}
       {(cards.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={cards} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
+      <MoneyNote text={parsed.text}/>
       {/* Panel polish round 2: the source as one short line; the full sentence for screen readers and in its tooltip. */}
       <SourceLine short={shortLabel} full={label} extra={turn.mode === 'deep' ? <span className="ai-turn-deep ai-sr-only">Thought deeper with {turn.model}</span> : null} deeper={turn.mode === 'deep'} time={<TurnTime at={turn.at}/>}/>
       {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
@@ -602,26 +625,30 @@ function MicGlyph({on}: {on: boolean}) {
 export type ComposerExtra = {images?: readonly ChatImage[]; log?: boolean; direct?: boolean; plan?: boolean; replace?: string};
 /** The last question put back in the composer to be edited (Session V Part 10); `seq` tells two edits of one turn apart. */
 type Editing = {id: string; text: string; seq: number};
+/** Session AL fourth pass (L7-4b; Lisbon #280–289d, LA-032): a line Quick add saves to Health (water, a run, sleep, weight, food). */
+const HEALTH_LINE = /\b(?:water|glass(?:es)?|ml|litres?|liters?|ran|run|walked|walk|km|steps?|slept|sleep|weigh\w*|kg|lbs?|ate|eat|breakfast|lunch|dinner|snack|kcal|calories|workout|push-?ups?)\b/i;
 const NEEDS_AI = 'This command needs your own AI connected (Settings → ZIGi · Your Personal AI Companion). Here, ZIGi answers questions about your records on this device, with no AI.';
 /** /remember: the person's words as a "Remember this?" card, in the same action block an AI reply would use (Session V Part 10). */
-function rememberReply(rest: string): string {
-  if (!rest) return 'Type what ZIGi should remember after /remember, for example: /remember I train before work.';
-  const parsed = actionSchema.safeParse({kind: 'remember', text: rest});
-  if (!parsed.success) return 'That is too long to keep as one note: 500 characters at most.';
-  // Backticks are escaped inside the block (JSON's \u0060), so the words can never close it early.
-  const json = JSON.stringify(parsed.data).replace(/`/g, '\\u0060');
-  return `Here is your note as a card: nothing is kept until you add it.\n\n\`\`\`zigoals-action\n${json}\n\`\`\``;
-}
+// Session AL fourth pass (L7-4b; N-MO-04): the note's category is read from its words (lib/ai/local-answers/al-fourth.ts).
+const rememberReply = (rest: string): string => rememberCardText(rest, 'ZIGi');
 const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; title?: string; local: boolean; chips?: ReactNode; onAsked?: (text: string) => void; onSpoken?: () => void; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; onAbout?: (about: AskAbout | undefined) => void; photo?: PhotoAllowance; providerName?: string;
   onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onSpoken, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
-  const [text, setText] = useState(''), [disclosed, setDisclosed] = useState(false), listId = useId(), logNoteId = useId();
+  // Session AL (L7; D7): the words typed so far live in this page's memory too, so a remount (on-device → connected) keeps them.
+  const [text, setText] = useState(() => readDraft(scope)), [disclosed, setDisclosed] = useState(false), listId = useId(), logNoteId = useId();
+  // Session AL Part 14 (D13): while the box has the focus ZIGi holds its look at it (components/zigi/gaze.ts).
+  const gazeId = useId();
+  useEffect(() => () => holdGaze(gazeId, null), [gazeId]);
+  useEffect(() => { writeDraft(scope, text); }, [scope, text]);
   // Session V Part 10: an edit puts the last question back in the box; the "/" list helps with the commands.
   const editSeq = editing?.seq;
   useEffect(() => { if (editing) setText(editing.text); }, [editSeq]); // eslint-disable-line react-hooks/exhaustive-deps -- a new edit, not every render
   const slash = useSlashMenu(text, (command: SlashCommand) => setText(command.takesText ? `${command.name} ` : command.name));
   // A page's ask fills the composer; the records behind a number (Part 9) go to the panel as a removable chip.
   const aboutRef = useRef(onAbout); useEffect(() => { aboutRef.current = onAbout; });
-  useEffect(() => { const pending = takePendingAsk(); if (pending) { setText(pending.text); aboutRef.current?.(pending.about); } const onAsk = (event: Event) => { const detail = (event as CustomEvent<{text: string; about?: AskAbout}>).detail; if (detail?.text) { takePendingAsk(); setText(detail.text); aboutRef.current?.(detail.about); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
+  // Session AL second pass (Nairobi NB-120, P-NB-64): after the prefill the box holds the focus with the caret at the end, so
+  // the person can add to the question or press Enter straight away.
+  const caretAtEnd = useCallback(() => requestAnimationFrame(() => requestAnimationFrame(() => { const box = (ref as {current: HTMLTextAreaElement | null} | null)?.current; if (!box || !box.isConnected) return; box.focus({preventScroll: true}); const end = box.value.length; try { box.setSelectionRange(end, end); } catch { /* not a text field */ } })), [ref]);
+  useEffect(() => { const pending = takePendingAsk(); if (pending) { setText(pending.text); aboutRef.current?.(pending.about); caretAtEnd(); } const onAsk = (event: Event) => { const detail = (event as CustomEvent<{text: string; about?: AskAbout}>).detail; if (detail?.text) { takePendingAsk(); setText(detail.text); aboutRef.current?.(detail.about); caretAtEnd(); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- once per composer
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
   // Session Z-Cloud Part 3: talk to ZIGi through the browser's own speech recognition, connected or not; provider
@@ -722,11 +749,12 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {photoNote && <p className="ai-note" role="status">{photoNote}</p>}
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the question and its answer. <button type="button" className="text-link" onClick={() => { setText(''); onEditing(null); }}>Cancel editing</button></p>}
     {slash.open && <SlashMenu id={listId} suggestions={slash.suggestions} active={slash.active} onPick={command => { slash.pick(command); (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus(); }}/>}
-    {text.length >= INPUT_COUNTER_FROM && <p className="ai-note ai-length" role="status" aria-live="polite">{text.length >= MAX_INPUT_CHARS ? `That is the limit: ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters. A shorter message gets a better answer.` : `${text.length.toLocaleString('en-US')} of ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters`}</p>}
+    {/* Session AL third pass (BN-070): seen from 2,000 characters; a screen reader hears it at the limit, not on every key. */}
+    {(() => { const c = inputCounter(text.length); return c && <p className="ai-note ai-length" role={c.atLimit ? 'status' : undefined} aria-live={c.atLimit ? 'polite' : undefined}>{c.text}</p>; })()}
     {/* Session AK (BUILD list 2 #1): a calm line while the words look like recovery words or a key (never sent). */}
     <SecretGuard text={text} onRemove={() => setText('')} chat/>
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { holdGaze(gazeId, 'composer'); if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => { holdGaze(gazeId, null); zigiSignals.emit('user_typing_stopped'); }} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}
         onKeyDown={e => {
           if (slash.onKeyDown(e)) return;

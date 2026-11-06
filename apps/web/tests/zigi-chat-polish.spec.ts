@@ -1,11 +1,11 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
-import {typeInZigi} from './zigi-open';
+import {pressZigi, typeInZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {AI_MEMORY_KEY, AI_OPTIONS_KEY, ZIGI_KEY} from '../lib/ai/store/keys';
-import {PLAN_NOTE, SLASH_COMMANDS} from '../lib/ai/slash';
+import {EXTRA_COMMANDS, PLAN_NOTE, SLASH_COMMANDS} from '../lib/ai/slash';
 import {LOCAL_LABEL} from '../lib/ai/local-answers/words';
 
 /**
@@ -41,7 +41,7 @@ async function seed(page: Page, settings: Partial<AiSettings> | null, extra: Rec
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) {
-  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await pressZigi(page); await expect(panel(page)).toBeVisible();
   // Session AF Gate C: the panel puts the focus in its box as it opens (ai-chat.tsx, the open effect). CI's WebKit run on c9d97eef
   // typed 120 ms after the panel opened, while that focus was still moving: the trace shows the fill's text never reached
   // the box and Send stayed disabled. A person types once the cursor is there; the test waits for it too.
@@ -85,7 +85,8 @@ test('the "/" list: every command by keyboard; /help and /remember answer on the
   // Session AJ (item 13): each typed command is confirmed in the box before the list is read (tests/zigi-open.ts).
   await typeInZigi(page, '/', {submitEnabled: false});
   const list = panel(page).getByRole('listbox', {name: 'Commands'});
-  await expect(list.getByRole('option')).toHaveCount(SLASH_COMMANDS.length);
+  // Session AL (COPY_AUDIT, deliberate): "/" lists every command /help names, /recap included (X3-07, P-PR-78).
+  await expect(list.getByRole('option')).toHaveCount(SLASH_COMMANDS.length + EXTRA_COMMANDS.length);
   await expect(box(page)).toHaveAttribute('aria-controls', (await list.getAttribute('id'))!);
   await typeInZigi(page, '/r', {submitEnabled: false});
   await expect(list.getByRole('option')).toHaveText([/^\/review/, /^\/remember/]);
@@ -275,6 +276,11 @@ test('History: Pin puts a chat under "Pinned"; the page filter uses where each c
   expect((await stored(page, ZIGI_KEY))!.chatAreas).toEqual({[chatId!]: 'health'});
   await page.goto('/app/habits');
   await openChat(page);
+  // Session AL (PR-025/PR-041, deliberate): the panel reopens the conversation that was open (lib/ai/composer-draft.ts), so the
+  // second chat is started here with "New chat" (was: every open on another page began a new chat).
+  await expect(panel(page).locator('.ai-turn-user')).toHaveCount(1);
+  await panel(page).getByRole('button', {name: 'New chat', exact: true}).click();
+  await expect(panel(page).locator('.ai-turn-user')).toHaveCount(0);
   await say(page, 'Habits question');
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: noted.');
   await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
@@ -326,7 +332,9 @@ test('Session AI, ZI6: Enter sends on phones as on desktops (the key reads "Send
   // M-073: closing the panel puts the focus back on the launcher (the close button, then Escape on a desktop).
   await panel(page).getByRole('button', {name: 'Close ZIGi'}).click();
   await expect(panel(page)).toHaveCount(0);
-  await expect(page.getByRole('button', {name: /^Open ZIGi/})).toBeFocused();
+  // Session AL (owner decision O3, deliberate): below 901 px the focus goes back to "Apps & extras", which opened ZIGi (was: the launcher).
+  if (page.viewportSize()!.width < 901) await expect(page.getByTestId('apps-extras-button')).toBeFocused();
+  else await expect(page.getByRole('button', {name: /^Open ZIGi/})).toBeFocused();
   if (testInfo.project.name !== 'desktop') return;
   await openChat(page);
   await page.keyboard.press('Escape');

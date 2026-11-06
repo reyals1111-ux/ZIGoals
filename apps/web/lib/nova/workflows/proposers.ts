@@ -10,6 +10,7 @@ import {goalsNeedingStep} from '../../ai/proactive/brief-sources';
 import {shortName} from '../../ai/proactive/calm';
 import {summaries} from '../../ai/tools/goals';
 import {formatMinutes} from '../../zone-time';
+import {parseNumberInput} from '../../numbers/parse';
 import {habitWeek, lastWeek, latestEntry, nightsBetween, type WorkflowSources} from './readers';
 
 /**
@@ -63,6 +64,42 @@ export function goalNameFrom(text: string): string {
   const cut = first.slice(0, 60), space = cut.lastIndexOf(' ');
   return `${(space > 30 ? cut.slice(0, space) : cut).trim()}…`;
 }
+/**
+ * Session AL (DV-073, P-DV-97): what a journal entry says it wants. An amount of money ("300 dollars", "$300", "€250",
+ * "300 EUR") makes a savings goal with that target in that currency (USD or EUR only; nothing is converted); "save … for
+ * a new bike" names it "New bike". Without an amount it stays a project with first steps, as before.
+ */
+const AMOUNT = /(?:(?<sym>[$€])\s?(?<a1>\d[\d,.]*)|(?<a2>\d[\d,.]*)\s?(?<word>dollars?|usd|euros?|eur|\$|€))(?![\p{L}\d])/iu;
+const toCurrency = (raw: string) => /^(?:\$|dollars?|usd)$/i.test(raw) ? 'USD' : 'EUR';
+export function journalGoalDraft(text: string): {name: string; type: 'VALUE' | 'PROJECT'; target?: number; currency?: 'USD' | 'EUR'} {
+  const first = text.replace(/\s+/g, ' ').trim().split(/(?<=[.!?])\s/)[0]!.replace(/[.!?]+$/, '');
+  const amount = first.match(AMOUNT), raw = amount?.groups?.a1 ?? amount?.groups?.a2, parsed = raw ? parseNumberInput(raw.replace(/[.,]$/, '')) : null;
+  const target = parsed?.ok && parsed.value > 0 && parsed.value <= 1e12 ? parsed.value : undefined;
+  const thing = first.match(/\bsav(?:e|ing)\b[^.]*?\b(?:for|towards?)\s+(?:(?:a|an|the|my|our)\s+)?(.{2,60}?)\s*$/i)?.[1]?.replace(/[,;:]+$/, '').trim();
+  const name = thing ? `${thing[0]!.toUpperCase()}${thing.slice(1)}` : goalNameFrom(text);
+  if (target === undefined) return {name, type: 'PROJECT'};
+  return {name, type: 'VALUE', target, currency: toCurrency(amount!.groups!.sym ?? amount!.groups!.word ?? '')};
+}
+/**
+ * Session AL (DV-073): a cadence the entry states ("run every morning", "read 3 times a week", "meditate daily") becomes
+ * a habit card with that schedule; the words before the cadence name it ("I want to" left out). Null when no cadence.
+ */
+const CADENCE = /\b(?:(?<each>every|each)\s+(?<unit>day|morning|evening|night|week)|(?<daily>daily)|(?<n>\d|once|twice|three|four|five|six)\s*(?:times?\s+)?(?:a|per|each)\s+week)\b/i;
+const TIMES: Record<string, number> = {once: 1, twice: 2, three: 3, four: 4, five: 5, six: 6};
+export function journalHabitDraft(text: string): Record<string, unknown> | null {
+  for (const sentence of text.replace(/\s+/g, ' ').split(/(?<=[.!?])\s/)) {
+    const m = sentence.match(CADENCE); if (!m || m.index === undefined) continue;
+    const before = sentence.slice(0, m.index).replace(/^.*?\b(?:i\s+(?:want|would like|'d like|need|plan|hope|am going|'m going)\s+to|i(?:'ll|\s+will|\s+should|\s+must))\s+/i, '').replace(/[,;:]+\s*$/, '').trim();
+    if (before.length < 2 || before.split(' ').length > 8) continue;
+    const title = `${before[0]!.toUpperCase()}${before.slice(1)}`.slice(0, 60), g = m.groups ?? {};
+    const n = g.n ? (TIMES[g.n.toLowerCase()] ?? Number(g.n)) : null;
+    const schedule = n && n >= 1 && n <= 6 ? {timesPerWeek: n} : g.unit?.toLowerCase() === 'week' ? {timesPerWeek: 1} : 'daily';
+    const unit = g.unit?.toLowerCase(), timeOfDay = unit === 'morning' ? 'morning' : unit === 'evening' || unit === 'night' ? 'evening' : 'anytime';
+    return {title, schedule, timeOfDay};
+  }
+  return null;
+}
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 export function propose(id: ProposerId, sources: WorkflowSources, options: {intention?: string | null} = {}): Proposal {
   const env = sources.env;
   switch (id) {
@@ -74,13 +111,19 @@ export function propose(id: ProposerId, sources: WorkflowSources, options: {inte
     case 'journal-goal': {
       if (sources.scopes?.journal === false) return {actions: [], note: 'Your journal is not shared with NOVA (Permissions).'};
       const entry = latestEntry(env); if (!entry) return {actions: [], note: 'Write a journal entry first; this workflow starts from it.'};
-      const name = goalNameFrom(entry.text);
-      const habits = themesOf(entry.text).map(t => THEME_HABITS[t]).filter((h): h is Record<string, unknown> => !!h).slice(0, 2);
+      const draft = journalGoalDraft(entry.text), stated = journalHabitDraft(entry.text);
+      const habits = [...(stated ? [stated] : []), ...themesOf(entry.text).map(t => THEME_HABITS[t]).filter((h): h is Record<string, unknown> => !!h)]
+        .filter((h, i, all) => all.findIndex(x => sameName(String(x.title), String(h.title))) === i)
+        .filter(h => !env.habits.habits.some(x => latestHabitRule(x).state === 'active' && sameName(x.title, String(h.title)))).slice(0, 2);
       if (!env.areas.goals && !env.areas.habits) return {actions: [], note: 'Goals and Habits are not shared with NOVA (Permissions).'};
+      // DV-072: a run again after the goal was added offers no second copy; it says where the goal already is.
+      const existing = env.areas.goals ? summaries(env).find(g => g.status !== 'closed' && sameName(g.name, draft.name)) : undefined;
+      const goal = draft.type === 'VALUE' ? {kind: 'create-goal', name: draft.name, type: 'VALUE', target: draft.target, currency: draft.currency, notes: `From your journal entry of ${entry.date}.`}
+        : {kind: 'create-goal', name: draft.name, type: 'PROJECT', milestones: ['Decide the first step', 'Take the first step'], notes: `From your journal entry of ${entry.date}.`};
       return {actions: [
-        ...(env.areas.goals ? [{kind: 'create-goal', name, type: 'PROJECT', milestones: ['Decide the first step', 'Take the first step'], notes: `From your journal entry of ${entry.date}.`}] : []),
+        ...(env.areas.goals && !existing ? [goal] : []),
         ...(env.areas.habits ? habits.map(h => ({kind: 'create-habit', ...h})) : []),
-      ]};
+      ], ...(existing ? {note: `Already in Goals: "${existing.name}". Open Goals to work on it; no second copy is proposed.`} : {})};
     }
     case 'meals-plan': {
       if (!env.health) return {actions: [], note: 'Meals and the grocery list need Health shared with NOVA.'};

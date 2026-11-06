@@ -15,3 +15,5 @@
 :root .dh-facts dd { margin: 4px 0 0; font-size: 20px; font-weight: 700; }
 :root .dh-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 :root .dh-actions .primary { min-height: 44px; max-width: 100%; white-space: normal; text-align: center; overflow-wrap: anywhere; }
+/* Session AL sweep 2: the recovery copies' small heading inside "Kept on this device". */
+:root .dh-subhead { margin: 14px 0 4px; font-size: 16px; }

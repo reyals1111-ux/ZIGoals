@@ -56,6 +56,10 @@ export function recordAutoCheckIn(current: HabitHealthLinksV4, marker: AppliedCh
   if (current.applied.length >= MAX_APPLIED_CHECK_INS) throw Error(`This device holds ${MAX_APPLIED_CHECK_INS} automatic check-ins, the most it keeps. Export everything, then start the links over to make room.`);
   return {...current, applied: [...current.applied, marker]};
 }
+/** Session AL (MO-125): the Health entry behind an automatic check-in is gone, so its marker goes too (Health may tick it again later that day). */
+export function clearAutoCheckIn(current: HabitHealthLinksV4, habitId: string, date: string): HabitHealthLinksV4 {
+  return appliedCheckIn(current, habitId, date) ? {...current, applied: current.applied.filter(a => a.habitId !== habitId || a.date !== date)} : current;
+}
 /** The person undid an automatic check-in: it stays off for that day, and the card says so. */
 export function markAutoCheckInUndone(current: HabitHealthLinksV4, habitId: string, date: string): HabitHealthLinksV4 {
   if (!appliedCheckIn(current, habitId, date)) return current;

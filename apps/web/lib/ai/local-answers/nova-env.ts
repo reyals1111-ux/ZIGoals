@@ -56,6 +56,9 @@ export function novaWording(reply: LocalReply, info: NovaEnvInfo, lang: Lang = '
     if (area) return {...reply, text: novaAreaClosed(area[1]!, lang), calls: []};
     if (/^Paused on this private screen: ZIGi reads nothing here\.$/.test(reply.text)) return {...reply, text: 'Paused on this private screen: NOVA reads nothing here.'};
   }
-  const text = reply.text.replace(/(is(?:n[’']t| not)|are not|aren[’']t) shared with ZIGi\b/g, '$1 shared with NOVA');
+  // Session AL fourth pass (L7-4b; Berlin BN-047, AL-COPY-060): NOVA speaks as NOVA ("ZIGi checks off one item at a time",
+  // "so ZIGi makes no Health card"); the places that carry ZIGi's name stay as the app names them.
+  const text = reply.text.replace(/(is(?:n[’']t| not)|are not|aren[’']t) shared with ZIGi\b/g, '$1 shared with NOVA')
+    .replace(/(?<!Actions by |Settings → |What |what |→ )\bZIGi\b(?! knows about me| · Your Personal AI Companion|’s (?:panel|page))/g, 'NOVA');
   return text === reply.text ? reply : {...reply, text};
 }

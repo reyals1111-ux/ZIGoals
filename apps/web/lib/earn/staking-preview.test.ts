@@ -19,4 +19,8 @@ describe('the Staking empty preview', () => {
     expect(html).toContain('href="/app/earn#start-here"'); // ledger P1.2: the CTA opens Earn's Start-here path
     expect(html).not.toMatch(/https?:\/\//);
   });
+  it('BN-004/B-005/B-022: the native rate says it is the real network (mainnet only), whichever network staking is set to', () => {
+    const html = renderToStaticMarkup(createElement(StakingEmptyPreview));
+    expect(html).toContain('Native staking on the real network (mainnet only)');
+  });
 });

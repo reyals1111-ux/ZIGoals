@@ -100,3 +100,15 @@ it('transports 1000 public assets as bounded app requests of 32 and retains all 
 it('limits concurrent provider requests while allowing queued public identities',async()=>{
  let active=0,peak=0;const fetcher:typeof fetch=async()=>{active++;peak=Math.max(peak,active);await Promise.resolve();active--;return new Response('{}', {headers:{"Content-Type":"application/json"}});};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});await Promise.all(Array.from({length:8},(_,i)=>provider.quotes([coin(`asset-${i}`)]).catch(()=>undefined)));expect(peak).toBe(2);
 });
+it('TK-208/PR-016: newer quotes another tab saved are taken in; older ones and quotes only this tab holds stay',async()=>{
+ const time=now+60000;const at=(s:number)=>parseCoinQuotes(`{"bitcoin":{"usd":${76250+s},"last_updated_at":${(now+s*1000)/1000}},"ethereum":{"usd":2300,"last_updated_at":${now/1000}}}`,[coin('bitcoin'),coin('ethereum')],now+60000);
+ const cache=createMarketQuoteCache(async()=>at(0),()=>time);await cache.refresh([coin('bitcoin'),coin('ethereum')]);
+ expect(cache.getSnapshot().quotes.find(q=>q.marketRef?.id==='bitcoin')!.price).toBe('76250');
+ // Another tab saved only a newer BTC quote: BTC moves to it, ETH is kept.
+ cache.adopt(JSON.stringify([at(30)[0]]));
+ expect(cache.getSnapshot().quotes.find(q=>q.marketRef?.id==='bitcoin')!.price).toBe('76280');
+ expect(cache.getSnapshot().quotes.some(q=>q.marketRef?.id==='ethereum')).toBe(true);
+ // An older quote never replaces a newer one; junk is ignored.
+ cache.adopt(JSON.stringify([at(10)[0]]));cache.adopt('not json');cache.adopt(null);
+ expect(cache.getSnapshot().quotes.find(q=>q.marketRef?.id==='bitcoin')!.price).toBe('76280');
+});

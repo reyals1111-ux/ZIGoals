@@ -26,7 +26,7 @@ export const FOCUSES: readonly Focus[] = [
   {id: 'save', pillar: 'goals', title: 'Save for something', blurb: 'An emergency fund or a trip.', habits: [SAVING_HABIT], goal: {name: 'Emergency fund', category: 'Emergency Fund'}, widgets: ['goals', 'wealth']},
   {id: 'debt', pillar: 'wealth', title: 'Pay off a debt', blurb: 'Track it going down.', habits: [], widgets: ['wealth']},
 ];
-export const onboardingSetupSchema = z.looseObject({version: z.literal(1), at: z.iso.datetime(), habitIds: z.array(z.string().min(1).max(100)).max(50), goalId: z.string().min(1).max(100).optional(), widgetIds: z.array(z.string().min(1).max(100)).max(50), focuses: z.array(z.enum(FOCUS_IDS)).max(12), /** Session AK P4 (FR-4): Today's "You're set" card was closed (optional; absent: not yet). */ landingClosed: z.boolean().optional(), undone: z.boolean().optional()});
+export const onboardingSetupSchema = z.looseObject({version: z.literal(1), at: z.iso.datetime(), habitIds: z.array(z.string().min(1).max(100)).max(50), goalId: z.string().min(1).max(100).optional(), widgetIds: z.array(z.string().min(1).max(100)).max(50), focuses: z.array(z.enum(FOCUS_IDS)).max(12), /** Session AK P4 (FR-4): Today's "You're set" card was closed (optional; absent: not yet). */ landingClosed: z.boolean().optional(), undone: z.boolean().optional(), /** Session AL fourth pass (NB-241): each page or button the setup switched, with how it was before (optional; absent: none recorded), so Undo setup can put it back. */ pages: z.array(z.object({id: z.string().min(1).max(40), was: z.boolean()})).max(40).optional().catch(undefined)});
 export type OnboardingSetup = z.infer<typeof onboardingSetupSchema>;
 export const emptyOnboardingSetup = (): OnboardingSetup => ({version: 1, at: '1970-01-01T00:00:00.000Z', habitIds: [], widgetIds: [], focuses: []});
 export const ONBOARDING_SETUP: DeviceRecordSpec<OnboardingSetup> = {key: ONBOARDING_SETUP_KEY, schema: onboardingSetupSchema, empty: emptyOnboardingSetup};
@@ -68,3 +68,16 @@ export function focusHabitInput(title: string, goalId?: string) {
 }
 /** How often a focus's habit repeats, as its tick box says it ("From your focus · weekly"). */
 export const focusHabitRhythm = (title: string): string => title === SAVING_HABIT ? 'weekly' : 'daily';
+
+/**
+ * Session AL fourth pass (NB-006): the name ZIGi may call the person, if they give one in the welcome (optional, at most
+ * 40 characters, kept on this device only and never synced). Absent or empty: no name, and nothing greets by one.
+ */
+export const PROFILE_NAME_KEY = 'zigoals:profile-name:v1';
+export const profileNameSchema = z.looseObject({version: z.literal(1), name: z.string().max(40).catch(''), at: z.iso.datetime().optional().catch(undefined)});
+export type ProfileName = z.infer<typeof profileNameSchema>;
+export const PROFILE_NAME: DeviceRecordSpec<ProfileName> = {key: PROFILE_NAME_KEY, schema: profileNameSchema, empty: () => ({version: 1, name: ''})};
+/** A typed name as it is kept: control characters out, spaces folded, at most 40 characters; empty when nothing is left. */
+export function cleanProfileName(raw: string): string {
+  return raw.replace(/[\u0000-\u001f\u007f\u200b-\u200f\u2028-\u202e\u2066-\u2069]/g, '').replace(/\s+/g, ' ').trim().slice(0, 40).trim();
+}

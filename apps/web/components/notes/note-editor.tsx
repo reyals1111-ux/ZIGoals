@@ -5,7 +5,7 @@ import {NoteRender} from './note-render';
 import {LoadBoundary} from '../load-boundary';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import {ConfirmInline} from '../ui/confirm-inline';
-import {MAX_BODY, MAX_TITLE, noteName, type Note, type Notes} from '../../lib/notes/schema';
+import {MAX_BODY, MAX_TITLE, noteName, shortNoteName, type Note, type Notes} from '../../lib/notes/schema';
 import {ensureDaily, removeNote, updateNote, type NotesUndo} from '../../lib/notes/store';
 import type {LinkIndex} from '../../lib/notes/links';
 import {deleteNotePhoto, getNotePhoto} from '../../lib/notes/photos';
@@ -89,7 +89,7 @@ function NoteExtras({note, change, onDeleted}: {note: Note; change: Change; onDe
       <button type="button" className="quiet" disabled={busy} onClick={() => input.current?.click()}>{note.photoId ? 'Replace photo' : 'Add a photo'}</button>
       {note.photoId && <button type="button" className="quiet" onClick={() => setConfirmPhoto(true)}>Delete photo…</button>}
       {note.kind === 'topic' && <button type="button" className="quiet" aria-pressed={!!note.pinned} onClick={() => change(r => updateNote(r, note.id, {pinned: !note.pinned}, new Date().toISOString()), note.pinned ? 'Unpinned.' : 'Pinned to the top of your notes.')}>{note.pinned ? 'Unpin' : 'Pin'}</button>}
-      <button type="button" className="quiet" onClick={() => { if (change(r => removeNote(r, note.id), `“${noteName(note)}” deleted.`)) onDeleted?.(); }}>Delete note</button>
+      <button type="button" className="quiet" onClick={() => { if (change(r => removeNote(r, note.id), `“${shortNoteName(note)}” deleted.`)) onDeleted?.(); }}>Delete note</button>
     </div>
     {confirmPhoto && <ConfirmInline title="Delete this photo from this device?" confirmLabel="Delete photo" onConfirm={() => void removePhoto()} onCancel={() => setConfirmPhoto(false)}><p>The note&rsquo;s words stay. This cannot be undone.</p></ConfirmInline>}
     {said && <p className="fine" role="status">{said}</p>}

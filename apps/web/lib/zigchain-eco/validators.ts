@@ -76,3 +76,21 @@ export function chooserOrder<T extends ChooserValidator>(validators: readonly T[
   const name = (v: T) => (v.moniker || v.operator).toLocaleLowerCase('en');
   return [...validators].sort((a, b) => group(a) - group(b) || name(a).localeCompare(name(b), 'en') || a.operator.localeCompare(b.operator));
 }
+
+/**
+ * Session AL fourth pass (C-BN-01, C-DVG-67): the stake dialog's own sorts and commission cap, as Earn's list has them —
+ * facts only, never an expected return. "suggested" is the chooser's order (outside the 10 largest first, by name).
+ */
+export const PICKER_SORTS = [['suggested', 'Suggested: outside the 10 largest first'], ['commission', 'Lowest commission'], ['uptime', 'Best uptime'], ['power', 'Most stake'], ['name', 'Name, A to Z']] as const;
+export type PickerSort = typeof PICKER_SORTS[number][0];
+export const PICKER_CAPS = [[null, 'Any commission'], [0.05, 'At most 5 %'], [0.075, 'At most 7.5 %'], [0.1, 'At most 10 %']] as const;
+type Num = number | string;
+type PickerValidator = ChooserValidator & {commission: {rate: Num}; votingPowerShare: Num; uptime?: {window: number; missed: number; signedShare?: Num} | null};
+export function pickerOrder<T extends PickerValidator>(validators: readonly T[], sort: PickerSort, maxCommission: number | null = null): T[] {
+  const rate = (v: T) => Number(v.commission.rate);
+  const base = chooserOrder(validators, sort === 'suggested').filter(v => maxCommission === null || rate(v) <= maxCommission + 1e-12);
+  if (sort === 'suggested' || sort === 'name') return base;
+  const signed = (v: T) => v.uptime ? v.uptime.signedShare !== undefined ? Number(v.uptime.signedShare) : v.uptime.window ? 1 - v.uptime.missed / v.uptime.window : -1 : -1;
+  const key: Record<'commission' | 'uptime' | 'power', (v: T) => number> = {commission: rate, uptime: v => -signed(v), power: v => -Number(v.votingPowerShare)};
+  return base.map((v, i) => [v, i] as const).sort((a, b) => key[sort](a[0]) - key[sort](b[0]) || a[1] - b[1]).map(([v]) => v);
+}

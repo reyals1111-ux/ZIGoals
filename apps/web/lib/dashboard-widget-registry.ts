@@ -3,7 +3,8 @@ import type {Position} from './positions';
 import {HEALTH_MEALS} from './health';
 import {habitRuleOn} from './habits';
 import {DIRECTORY_NAMES} from '@zigoals/ecosystem-registry/directory-names';
-import {stakingWidgetSource,type DashboardSources} from './dashboard-metrics';
+import type {DashboardSources} from './dashboard-metrics';
+import {stakingWidgetSource} from './staking-widget-source';
 import {plural} from './plural';
 
 /** Only canonical, safe selectors can become Today widgets. */

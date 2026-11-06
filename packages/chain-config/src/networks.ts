@@ -3,8 +3,8 @@ import {
   REVIEWED_TESTNET_VERSIONS,
   TESTNET,
   type NetworkConfig,
-} from "./index";
-import { GAS_PRICE_FLOOR, checkVersion, requireReviewedVersion, type FeeModel } from "./reviewed-versions";
+} from "./index.ts";
+import { GAS_PRICE_FLOOR, checkVersion, requireReviewedVersion, type FeeModel } from "./reviewed-versions.ts";
 
 /**
  * Session AF (ADR-028 H46, H61, H74; `TIER 3 (wallet/signing)`): the two networks native staking may sign on. `TESTNET`,

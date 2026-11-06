@@ -305,7 +305,7 @@ test("a different live version cannot be reported as this run's deployment", asy
 // Permissions-Policy the reviewed value for the route (egress-policy.json): the smoke is checked against the source,
 // never against a copy of it that could drift (Session T).
 function htmlResponse(nonce = "A".repeat(43) + "=",path="/app") {
-  return new Response(`<html>YOUR FINANCIAL ORBIT Local Demo PUBLIC_ALPHA_UNDEPLOYED ${sha}<script nonce="${nonce}">x()</script></html>`, { headers: {
+  return new Response(`<html>YOUR FINANCIAL ORBIT <aside class="alpha-notice" aria-label="Alpha notice"><p><strong>PUBLIC ALPHA</strong> <span>Your records stay in this browser and are not a backup.</span></p></aside> PUBLIC_ALPHA_UNDEPLOYED ${sha}<script nonce="${nonce}">x()</script></html>`, { headers: {
     "content-type": "text/html", "cache-control": "private, no-store, max-age=0",
     "content-security-policy": securityPolicy(false, true).csp.replace(/'nonce-[^']+'/, `'nonce-${nonce}'`),
     "strict-transport-security": "max-age=31536000, max-age=31536000",

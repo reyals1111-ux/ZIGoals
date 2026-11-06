@@ -72,10 +72,13 @@ test('"Review my week" with a MOCK local model: steps show live, the words are t
   const cards = run.getByLabel('Cards from Review my week and suggest three adjustments');
   await expect(cards.getByRole('button', {name: /^(Add|Apply)$/})).toBeVisible();
   await cards.getByRole('button', {name: /^(Add|Apply)$/}).click();
-  await expect(cards.getByRole('button', {name: /^Undo/})).toBeVisible();
+  // Session AL (DV-071, P-DV-11; deliberate): the workflow cards' Undo is the app's one toast (showUndo), which
+  // restores the stored record; it was an in-panel Undo button that did not undo.
+  const undo = page.locator('.aa-toast').getByRole('button', {name: /^Undo/});
+  await expect(undo).toBeVisible();
   expect(await page.evaluate(k => localStorage.getItem(k), 'zigoals:ai-actions:v1')).toContain('review-intention');
-  await cards.getByRole('button', {name: /^Undo/}).click();
-  await expect(cards.getByRole('button', {name: /^Undo/})).toBeHidden();
+  await undo.click();
+  await expect(undo).toBeHidden();
   // Session AK CI-3: Undo hides the moment it is pressed (no second tap), and the undo's write lands after; the stored log is the end state.
   await expect.poll(() => page.evaluate(k => localStorage.getItem(k) ?? '', 'zigoals:ai-actions:v1')).not.toContain('review-intention');
   // The run is noted for the setup guide's check.

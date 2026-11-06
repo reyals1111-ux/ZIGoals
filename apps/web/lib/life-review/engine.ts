@@ -11,6 +11,7 @@ import {averageProgress} from '../average-goals/progress';
 import type {GoalExtras} from '../goal-extras/store';
 import {formatGoalAmount} from '../goal-summary';
 import {formatNumber} from '../visual-format';
+import {countText, unitFor} from '../plural';
 import {hoursMinutes} from '../insights/cross-pillar';
 
 /**
@@ -118,7 +119,10 @@ export function lifeReview(input: {
       const asset = events[0]!.asset, same = events.every(e => e.asset === asset);
       goalsMoved.push({name: goal.name, href: summary.href, line: !same ? `${events.length} contributions, in more than one asset` : net.isZero() ? `${events.length} contributions that balance out` : `${net.isNegative() ? '' : '+'}${formatGoalAmount(net.toFixed(), asset)} put in (${events.length} ${events.length === 1 ? 'contribution' : 'contributions'})`});
     }
-    for (const h of platform.goalHistory) if (h.goalId === goal.id && h.kind === 'milestone' && inNow(dayOf(h.capturedAt))) goalsMoved.push({name: goal.name, href: summary.href, line: h.label});
+    // Session AL (NB-227): one line per goal for its milestone changes, however often a milestone was ticked and unticked.
+    const changes = platform.goalHistory.filter(h => h.goalId === goal.id && h.kind === 'milestone' && inNow(dayOf(h.capturedAt)));
+    if (changes.length === 1) goalsMoved.push({name: goal.name, href: summary.href, line: 'label' in changes[0]! ? changes[0]!.label : 'Milestone changed'});
+    else if (changes.length > 1) goalsMoved.push({name: goal.name, href: summary.href, line: `Milestones changed ${countText(changes.length, 'time')}${goal.milestones.length ? ` · ${formatNumber(goal.milestones.filter(m => m.done).length)} of ${countText(goal.milestones.length, 'milestone')} done now` : ''}`});
   }
   // Finished in the period: a tracked goal's last "completed" step (as the Hall reads it), an average goal's own day.
   for (const goal of platform.goals) {
@@ -149,7 +153,7 @@ export function lifeReview(input: {
 
   const highlights: string[] = [];
   if (checkIns) highlights.push(`${formatNumber(checkIns)} habit ${checkIns === 1 ? 'check-in' : 'check-ins'}`);
-  if (streaks[0]) highlights.push(`Longest streak: ${streaks[0].title}, ${formatNumber(streaks[0].streak)} ${streaks[0].unit}`);
+  if (streaks[0]) highlights.push(`Longest streak: ${streaks[0].title}, ${formatNumber(streaks[0].streak)} ${unitFor(streaks[0].streak, streaks[0].unit)}`); // Session AL: "1 day", never "1 days"
   if (goalsMoved[0]) highlights.push(`${goalsMoved[0].name}: ${goalsMoved[0].line}`);
   if (healthTrends[0]!.now) highlights.push(`Sleep: ${healthTrends[0]!.now} a night on average`);
   return {window, highlights: highlights.slice(0, 4), wins, streaks, goalsMoved, plans, health: healthTrends, money, counts: {habitCheckIns: checkIns, healthDays, contributions: contributionCount}};

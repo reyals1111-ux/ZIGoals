@@ -15,7 +15,7 @@ describe('one capitalisation rule for goal and habit (R31)', () => {
   });
   it('the shared copy on Today and in the widgets says goal and habit in lowercase mid-sentence', () => {
     const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
-    for (const file of ['../../components/platform/today-intelligence.tsx', '../dashboard-metrics.ts', '../../components/bottom-sections.tsx', '../dashboard-widget-registry.ts']) {
+    for (const file of ['../../components/platform/today-intelligence.tsx', '../dashboard-metrics.ts', '../../components/bottom-sections.tsx', '../../components/bottom-goal-milestones.tsx', '../../components/bottom-habit-rhythm.tsx', '../dashboard-widget-registry.ts']) {
       const text = read(file);
       expect(text, file).not.toMatch(/No active Goal|active Goals\b|\d+ Habits complete\b|} Habits complete\b|No Habits scheduled|across Habits|in a Goal’s plan|Add one in a Goal/);
     }

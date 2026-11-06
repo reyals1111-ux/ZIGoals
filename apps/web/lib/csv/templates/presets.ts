@@ -16,7 +16,7 @@ export const MONEY_FIELDS: readonly FieldSpec[] = [
   {id: 'amount', label: 'Amount', synonyms: ['bedrag', 'betrag', 'value', 'transaction amount', 'trnamt']},
   {id: 'debit', label: 'Money out', synonyms: ['withdrawal', 'withdrawals', 'paid out', 'out', 'af', 'debit amount']},
   {id: 'credit', label: 'Money in', synonyms: ['deposit', 'deposits', 'paid in', 'in', 'bij', 'credit amount']},
-  {id: 'direction', label: 'In or out', synonyms: ['debit/credit', 'credit/debit', 'af bij', 'af/bij', 'dc', 'type', 'credit debit indicator', 'cdtdbtind', 'trntype']},
+  {id: 'direction', label: 'In or out', synonyms: ['debit/credit', 'credit/debit', 'af bij', 'af/bij', 'dc', 'type', 'credit debit indicator', 'cdtdbtind', 'trntype', /* Session AL (P-DVG-51, GAP-008): Mint's export, "Transaction Type" debit/credit */ 'transaction type']},
   {id: 'currency', label: 'Currency', synonyms: ['ccy', 'valuta', 'munt', 'currency code', 'cursym']},
   {id: 'payee', label: 'Payee', synonyms: ['name', 'counterparty', 'counterparty name', 'description', 'naam', 'naam omschrijving', 'merchant', 'beneficiary']},
   {id: 'note', label: 'Note', synonyms: ['memo', 'details', 'remittance information', 'mededelingen', 'omschrijving', 'reference text', 'notes']},
@@ -46,7 +46,10 @@ export const CSV_TEMPLATES: readonly CsvTemplate[] = [
     columns: {date: ['DTPOSTED', 'Date posted'], amount: ['TRNAMT', 'Amount'], direction: ['TRNTYPE', 'Type'], payee: ['NAME', 'Name'], note: ['MEMO', 'Memo'], reference: ['FITID'], currency: ['CURRENCY', 'Currency']},
     example: [['2026-10-03', '42.10', 'DEBIT', 'Corner Grocery', 'Card purchase', 'F0001', 'USD'], ['2026-10-15', '1500.00', 'CREDIT', 'Example Payroll', '', 'F0002', 'USD']]},
   {id: 'brokerage', name: 'Brokerage statement (holdings)', description: 'One row per holding: name, symbol, quantity, asset class, market value and its currency.', target: 'holdings', delimiter: ',', numberStyle: 'point', dateFormat: 'iso',
-    columns: {name: ['Description', 'Security', 'Name'], asset: ['Symbol', 'Ticker'], quantity: ['Quantity', 'Shares', 'Units'], class: ['Asset class', 'Asset Type'], value: ['Market Value', 'Current Value', 'Value'], currency: ['Currency', 'Ccy'], notes: ['Account', 'Notes']},
+    // Session AL (TK-019, P14-D): the template file is written with the importer's own words (the first name of each list:
+    // Name, Symbol, Quantity, Kind of asset, Value, Currency, Notes), so the file and Step 2 read the same; a brokerage's own
+    // names (Description, Market Value, Account…) still map.
+    columns: {name: ['Name', 'Description', 'Security'], asset: ['Symbol', 'Ticker'], quantity: ['Quantity', 'Shares', 'Units'], class: ['Kind of asset', 'Asset class', 'Asset Type'], value: ['Value', 'Market Value', 'Current Value'], currency: ['Currency', 'Ccy'], notes: ['Notes', 'Account']},
     example: [['Example World Index Fund', 'EXWI', '12.5', 'Stocks', '1250.00', 'EUR', 'Fictional example'], ['Cash', '', '', 'Cash', '300.00', 'EUR', '']]},
   {id: 'exchange-trades', name: 'Exchange trade history', description: 'One row per trade: date, asset, side (buy/sell), quantity, price, fee.', target: 'transactions', delimiter: ',', numberStyle: 'point', dateFormat: 'iso',
     columns: {date: ['Date', 'Time', 'Timestamp', 'Date(UTC)'], coin: ['Asset', 'Coin', 'Base Asset', 'Symbol'], kind: ['Side', 'Type', 'Operation'], quantity: ['Quantity', 'Amount', 'Executed', 'Size'], price: ['Price', 'Unit Price'], fee: ['Fee', 'Fees', 'Commission'], note: ['Notes', 'Note']},

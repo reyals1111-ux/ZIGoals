@@ -2,7 +2,7 @@
 import type {LayoutAttrs} from '../layout-edit';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {Suspense, lazy, useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useState} from 'react';
 import {AVERAGE_METRICS, WINDOWS, addAverageGoal, averageKey, editAverageGoal, logAverageValue, removeAverageGoal, removeAverageValue, setAverageStatus, type AverageGoal, type AverageMetric} from '../../lib/average-goals/store';
 import {averageProgress} from '../../lib/average-goals/progress';
 import {setGoalArea, setGoalTemplate} from '../../lib/goal-extras/store';
@@ -11,7 +11,8 @@ import {formatExactNumber} from '../../lib/visual-format';
 import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
 import {ProgressRing} from '../platform/financial-ui';
-import {showToast} from '../ui/undo-toast';
+import {showStatus, showUndo} from '../ui/undo-toast';
+import {averageValueCheck, readAverageValue} from '../../lib/goals/average-limits';
 import {SectionHeading} from '../ui/section-heading';
 import {useAverageGoals, useGoalExtras} from './use-goal-extras';
 import {zigiSignals} from '../zigi/bus';
@@ -21,6 +22,7 @@ import {useUnifiedGoals} from '../use-unified-goals';
 import './goals.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 import '../skeleton/zg-skeleton.css';
+import {useDefaultCurrency} from '../../lib/default-currency';
 // Session AK (B3, lane B): the notes that link to this goal ([[name]]), their own chunk.
 const NoteBacklinks = lazy(() => import('../notes/note-backlinks'));
 
@@ -41,7 +43,7 @@ export function AverageGoalCard({goal, ...layout}: LayoutAttrs & {goal: AverageG
       <ProgressRing percent={p.share === null ? null : String(p.share * 100)} size={94} label={`${goal.name}: how close the average is`} complete={p.met === true} identity={`average-${goal.id}`} valueText={p.average === null ? 'No data' : undefined} />
       <div><strong>{p.average === null ? 'No data yet' : `${value(goal, p.average)}`}</strong><span>{p.average === null ? '' : goal.unit}</span><small>{verdict(goal, p)}</small></div>
     </div>
-    <p className={`average-goal-state${p.met ? ' is-met' : ''}`}>{p.met === null ? 'Waiting for your first day.' : p.met ? 'On target over the last ' + goal.windowDays + ' days.' : 'Not on target yet over the last ' + goal.windowDays + ' days.'}</p>
+    <p className={`average-goal-state${p.met ? ' is-met' : ''}`}>{/* Session AL (G-014, P-DVR-13): a finished goal never reads "Not on target yet"; a near miss says it is close */goal.status === 'completed' ? 'Finished. It is on the Hall of achievements.' : p.met === null ? 'Waiting for your first day.' : p.met ? 'On target over the last ' + goal.windowDays + ' days.' : p.share !== null && p.share >= 0.9 ? 'Close: within a tenth of your target over the last ' + goal.windowDays + ' days.' : 'Not on target yet over the last ' + goal.windowDays + ' days.'}</p>
     <Link className="text-link" href={`/app/goals/average/${goal.id}`}>Open Goal →</Link>
   </article>;
 }
@@ -52,22 +54,31 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
   const store = useAverageGoals(), extras = useGoalExtras(), router = useRouter(), id = useId();
   const [name, setName] = useState(t?.title ?? ''), [metric, setMetric] = useState<AverageMetric>(preset?.metric ?? 'sleep-hours');
   const [target, setTarget] = useState(preset && !preset.askTarget ? String(preset.target) : ''), [direction, setDirection] = useState<'at-least' | 'at-most'>(preset?.direction ?? 'at-least');
-  const [windowDays, setWindow] = useState<7 | 14 | 30>(preset?.windowDays ?? 7), [unit, setUnit] = useState(preset?.unit ?? AVERAGE_METRICS['sleep-hours'].unit), [error, setError] = useState('');
+  const [windowDays, setWindow] = useState<7 | 14 | 30>(preset?.windowDays ?? 7), [unit, setUnit] = useState(preset?.unit ?? AVERAGE_METRICS['sleep-hours'].unit), [error, setError] = useState(''), [targetCheck, setTargetCheck] = useState(''), [targetAsked, setTargetAsked] = useState('');
+  // Session AL (DV-184, P-DV-40): a spending cap names the person's currency ("EUR spent a day"), never a bare "spent a day".
+  const currency = useDefaultCurrency();
+  useEffect(() => { if (preset?.askTarget) queueMicrotask(() => setUnit(u => u === preset.unit ? `${currency} ${preset.unit}` : u)); }, [currency, preset]);
   function save(e: React.FormEvent) {
     e.preventDefault(); setError('');
-    const n = Number(target.replace(',', '.'));
+    // Session AL (DV-052a, P-DV-02): the target through the limits table for its measure (25 h of sleep a night was saved).
+    const read = readAverageValue(metric, target, true);
     if (!name.trim()) return setError('Name the goal.');
-    if (!(n > 0)) return setError('Choose a target above zero.');
+    if (!read.ok) return setError(read.error);
+    const n = read.value;
+    // Fourth pass (DV-012a, DV-052a, G-044): 20 to 24 hours of sleep is asked once, in Health's words; Save again keeps it.
+    const check = averageValueCheck(metric, n);
+    if (check && targetAsked !== `${metric}:${target}`) { setTargetAsked(`${metric}:${target}`); setTargetCheck(check); return; }
+    setTargetCheck('');
     const goalId = crypto.randomUUID().slice(0, 18), at = new Date().toISOString();
     try {
       store.update(s => addAverageGoal(s, {id: goalId, name: name.trim(), metric, unit: unit.trim() || AVERAGE_METRICS[metric].unit, target: n, direction, windowDays, createdAt: at}));
       if (t && extras.writable) extras.update(x => setGoalTemplate(setGoalArea(x, averageKey(goalId), t.area, at), averageKey(goalId), t.id, at));
-      showToast({message: `${name.trim()} is saved on this device.`, undo: () => store.update(s => removeAverageGoal(s, goalId)), undone: 'The new goal was removed.'});
+      showUndo({message: `${name.trim()} is saved on this device.`, restore: () => store.update(s => removeAverageGoal(s, goalId)), undone: 'The new goal was removed.'});
       router.push(`/app/goals/average/${goalId}`);
     } catch (err) { setError(plainErrorMessage(err, 'The goal could not be saved.')); }
   }
   return <form className="panel average-goal-form" onSubmit={save} aria-labelledby={`${id}-title`}>
-    <SectionHeading id={`${id}-title`} pillar="goals" eyebrow="A fifth kind of goal" title="Keep an average" lede="A rolling average over 7, 14 or 30 days, from Health where it already records the measure, or from your own entries." />
+    <SectionHeading id={`${id}-title`} pillar="goals" eyebrow="Keep it steady" title="Keep an average" lede="A rolling average over 7, 14 or 30 days, from Health where it already records the measure, or from your own entries." />
     <label className="field"><span>Name</span><input value={name} maxLength={100} onChange={e => setName(e.target.value)} placeholder="Sleep 7 hours a night" /></label>
     <label className="field"><span>Measure</span><select value={metric} onChange={e => { const m = e.target.value as AverageMetric; setMetric(m); setUnit(AVERAGE_METRICS[m].unit); }}>{(Object.keys(AVERAGE_METRICS) as AverageMetric[]).map(m => <option key={m} value={m}>{AVERAGE_METRICS[m].label}{AVERAGE_METRICS[m].source === 'health' ? ' (from Health)' : ''}</option>)}</select></label>
     <div className="average-goal-row">
@@ -77,7 +88,7 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
     </div>
     {preset?.askTarget && <p className="fine" id={`${id}-own-target`}>Write your own cap per day, in your currency. Log what you spend on the goal’s page each day; a day with no spending is a 0.</p>}
     <fieldset className="average-windows"><legend>Over the last</legend>{WINDOWS.map(w => <label key={w}><input type="radio" name={`${id}-window`} checked={windowDays === w} onChange={() => setWindow(w)} /><span>{w} days</span></label>)}</fieldset>
-    {error && <p role="alert">{error}</p>}
+    {error && <p role="alert">{error}</p>}{targetCheck && <p className="plausible-check" role="status">{targetCheck}</p>}
     <p className="fine">Kept on this device and, with an account, in your encrypted sync. A day without a value is left out of the average, never counted as zero.</p>
     <div className="dashboard-actions"><Link className="secondary" href="/app/goals">Cancel</Link><button className="primary" disabled={!store.loaded || store.unreadable}>Save goal</button></div>
   </form>;
@@ -87,11 +98,12 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
 export function AverageGoalDetail({id}: {id: string}) {
   const store = useAverageGoals(), health = useHealth(), today = useLocalToday(), unified = useUnifiedGoals(), router = useRouter();
   const goal = store.data.goals.find(g => g.id === id);
-  const [day, setDay] = useState(today), [entry, setEntry] = useState('');
+  const [day, setDay] = useState(today), [entry, setEntry] = useState(''), [entryError, setEntryError] = useState(''), [confirmRemove, setConfirmRemove] = useState(false), [entryCheck, setEntryCheck] = useState(''), [entryAsked, setEntryAsked] = useState('');
   const p = useMemo(() => goal ? averageProgress(goal, health.loaded && !health.error ? health.data : undefined, today) : null, [goal, health.loaded, health.error, health.data, today]);
   if (!store.loaded) return <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div>;
   if (!goal || !p) return <section className="panel"><h1>Goal unavailable</h1><p>This average goal is not kept on this device.</p><Link className="text-link" href="/app/goals">Back to Goals →</Link></section>;
-  const run = (change: Parameters<typeof store.update>[0], message: string, undo?: Parameters<typeof store.update>[0]) => { try { store.update(change); showToast({message, ...(undo ? {undo: () => store.update(undo), undone: 'Change undone.'} : {})}); } catch (e) { showToast({message: plainErrorMessage(e, 'That change could not be saved.')}); } };
+  // Session AL (3e): the one Undo; `undo` reads the latest record through the store's own update.
+  const run = (change: Parameters<typeof store.update>[0], message: string, undo?: Parameters<typeof store.update>[0], undone = 'Change undone.') => { try { store.update(change); if (undo) showUndo({message, restore: () => store.update(undo), undone}); else showStatus(message); } catch (e) { showStatus(plainErrorMessage(e, 'That change could not be saved.'), {tone: 'error'}); } };
   const before = goal.entries.find(e => e.day === day);
   return <div className="average-goal-page">
     <section className="panel goal-detail-overview average-goal-overview" aria-labelledby="average-title">
@@ -102,26 +114,32 @@ export function AverageGoalDetail({id}: {id: string}) {
         <div><strong>{p.average === null ? 'No data yet' : value(goal, p.average)}</strong><span>{p.average === null ? '' : goal.unit}</span><small>Target: {goal.direction === 'at-least' ? 'at least' : 'at most'} {value(goal, goal.target)} {goal.unit}. {verdict(goal, p)}.</small></div>
       </div>
       <ol className="average-days" aria-label={`The last ${goal.windowDays} days`}>{p.series.map(d => <li key={d.day} data-empty={d.value === null || undefined} data-met={d.value !== null && (goal.direction === 'at-least' ? d.value >= goal.target : d.value <= goal.target) || undefined}><span className="average-day-bar" style={{height: d.value === null ? undefined : `${Math.max(8, Math.min(100, d.value / (goal.target * 1.5) * 100))}%`}} /><span className="sr-only">{formatDay(d.day)}: {d.value === null ? 'nothing recorded' : `${value(goal, d.value)} ${goal.unit}`}</span></li>)}</ol>
-      <p className="fine">{p.source === 'manual' ? 'From your own entries.' : p.source === 'health' ? 'From your Health journal.' : 'From your Health journal and your own entries (yours win on the same day).'} Days with nothing recorded are left out, never counted as zero.</p>
+      <p className="fine">{/* Session AL fourth pass (DV-012d): a Health measure says where its days come from, even before Health has any */p.source === 'manual' ? (goal.metric in AVERAGE_METRICS && AVERAGE_METRICS[goal.metric as AverageMetric].source === 'health' ? `From your own entries so far. Days you record in Health (${AVERAGE_METRICS[goal.metric as AverageMetric].label.toLowerCase()}) count here too; yours win on the same day.` : 'From your own entries.') : p.source === 'health' ? 'From your Health journal.' : 'From your Health journal and your own entries (yours win on the same day).'} Days with nothing recorded are left out, never counted as zero.</p>
     </section>
     <section className="panel average-goal-entry" aria-labelledby="average-entry-title">
       <h2 id="average-entry-title">Add or correct a day</h2>
-      <form onSubmit={e => { e.preventDefault(); const v = Number(entry.replace(',', '.')); if (!(v >= 0) || !entry.trim()) { showToast({message: 'Write a number, zero or more.'}); return; } run(s => logAverageValue(s, goal.id, {day, value: v}), `${formatDay(day)} saved.`, s => before ? logAverageValue(s, goal.id, before) : removeAverageValue(s, goal.id, day)); setEntry(''); }}>
+      <form onSubmit={e => { e.preventDefault(); /* Session AL (DV-052a): a day's value within its measure (30 h of sleep was saved), said under the field */ const read = readAverageValue(goal.metric, entry); if (!read.ok) { setEntryError(read.error); return; } setEntryError(''); const v = read.value; /* fourth pass (DV-012a, G-044): asked once */ const check = averageValueCheck(goal.metric, v); if (check && entryAsked !== `${day}:${entry}`) { setEntryAsked(`${day}:${entry}`); setEntryCheck(check); return; } setEntryCheck(''); run(s => logAverageValue(s, goal.id, {day, value: v}), `${formatDay(day)} saved.`, s => before ? logAverageValue(s, goal.id, before) : removeAverageValue(s, goal.id, day)); setEntry(''); }}>
         <div className="average-goal-row">
           <label className="field"><span>Day</span><input type="date" value={day} max={today} onChange={e => setDay(e.target.value)} /></label>
-          <label className="field"><span>{goal.unit || 'Value'}</span><input inputMode="decimal" value={entry} onChange={e => setEntry(e.target.value)} /></label>
+          {/* Session AL fourth pass (G-043): the field is named by what it records, with its unit (it read only "mL a day") */}<label className="field"><span>{goal.unit ? `Value (${goal.unit})` : 'Value'}</span><input inputMode="decimal" aria-label={`${goal.name}: value for ${formatDay(day)}${goal.unit ? `, in ${goal.unit}` : ''}`} value={entry} aria-invalid={entryError ? true : undefined} aria-describedby={entryError ? 'average-entry-error' : undefined} onChange={e => { setEntry(e.target.value); setEntryError(''); }} /></label>
           <button className="secondary">Save the day</button>
         </div>
+        {entryError && <p role="alert" className="field-error" id="average-entry-error">{entryError}</p>}{entryCheck && <p className="plausible-check" role="status">{entryCheck}</p>}
       </form>
       {goal.entries.length > 0 && <ul className="average-entries">{[...goal.entries].reverse().slice(0, 10).map(e => <li key={e.day}><span>{formatDay(e.day)}</span><strong>{value(goal, e.value)} {goal.unit}</strong><button type="button" className="text-link" onClick={() => run(s => removeAverageValue(s, goal.id, e.day), `${formatDay(e.day)} removed.`, s => logAverageValue(s, goal.id, e))}>Remove</button></li>)}</ul>}
     </section>
     <section className="panel average-goal-settings" aria-labelledby="average-settings-title">
       <h2 id="average-settings-title">Goal status</h2>
       <div className="dashboard-actions">
-        {goal.status !== 'completed' ? <button type="button" className="secondary" onClick={() => { run(s => setAverageStatus(s, goal.id, 'completed', new Date().toISOString()), 'Marked as finished. It is on the Hall of achievements.', s => setAverageStatus(s, goal.id, goal.status, new Date().toISOString())); zigiSignals.emitValidated('goal_funded'); zigiSignals.emitValidated('achievement_unlocked'); /* Session AA-Local, merged second (ADR-022 B52): a finished average goal is an achievement; one celebration a day */ }}>Mark as finished</button> : <button type="button" className="secondary" onClick={() => run(s => setAverageStatus(s, goal.id, 'active', new Date().toISOString()), 'Active again.')}>Make active again</button>}
+        {goal.status !== 'completed' ? <button type="button" className="secondary" onClick={() => { run(s => setAverageStatus(s, goal.id, 'completed', new Date().toISOString()), 'Marked as finished. It is on the Hall of achievements.', s => setAverageStatus(s, goal.id, goal.status, new Date().toISOString())); /* Session AL (for L3, NB-049): finishing is "A goal finished", not "Goal funded" */ zigiSignals.emitValidated('goal_finished'); zigiSignals.emitValidated('achievement_unlocked'); /* Session AA-Local, merged second (ADR-022 B52): a finished average goal is an achievement; one celebration a day */ }}>Mark as finished</button> : <button type="button" className="secondary" onClick={() => run(s => setAverageStatus(s, goal.id, 'active', new Date().toISOString()), 'Active again.')}>Make active again</button>}
         <label className="field average-window-edit"><span>Window</span><select value={goal.windowDays} onChange={e => run(s => editAverageGoal(s, goal.id, {windowDays: Number(e.target.value) as 7 | 14 | 30}), 'Window changed.', s => editAverageGoal(s, goal.id, {windowDays: goal.windowDays}))}>{WINDOWS.map(w => <option key={w} value={w}>{w} days</option>)}</select></label>
-        <button type="button" className="quiet" onClick={() => { const kept = goal; run(s => removeAverageGoal(s, goal.id), `${goal.name} removed.`, s => ({...s, goals: [...s.goals, kept]})); router.push('/app/goals'); }}>Remove this goal</button>
+        {/* Session AL (DV-052b, P-DV-10, P-DVR-09): Remove asks first, right here, and then offers the one Undo (the goal and every day). */}
+        <button type="button" className="quiet danger" aria-expanded={confirmRemove} aria-controls="average-remove-confirm" onClick={() => setConfirmRemove(v => !v)}>Remove this goal</button>
       </div>
+      {confirmRemove && <div id="average-remove-confirm" className="notice average-remove-confirm" role="alertdialog" aria-label="Remove this goal?">
+        <p><strong>Remove “{goal.name}”?</strong> {goal.entries.length ? `Its ${goal.entries.length === 1 ? 'one entered day goes' : `${goal.entries.length} entered days go`} with it.` : 'It has no entered days yet.'} Health records stay. You can undo this right after.</p>
+        <div className="dashboard-actions"><button type="button" className="primary" onClick={() => { const kept = goal; setConfirmRemove(false); run(s => removeAverageGoal(s, goal.id), `${goal.name} removed.`, s => s.goals.some(g => g.id === kept.id) ? s : ({...s, goals: [...s.goals, kept]}), `${goal.name} is back.`); router.push('/app/goals'); }}>Remove</button><button type="button" className="secondary" onClick={() => setConfirmRemove(false)}>Keep it</button></div>
+      </div>}
     </section>
     <GoalPlan goalKey={averageKey(goal.id)} name={goal.name} goals={unified.goals} finished={goal.status === 'completed'} />
     <Suspense fallback={null}><NoteBacklinks kind="goal" id={`average:${goal.id}`} name={goal.name} panel/></Suspense>

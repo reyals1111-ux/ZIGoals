@@ -135,3 +135,57 @@ export function deadlineWords(proposal: Pick<ProposalWire, 'state' | 'votingEndT
   }
   return proposal.votingEndTime ? 'Voting ended' : 'No voting took place';
 }
+
+/**
+ * Session AL (BN-179; P-BN-29): a proposer's summary is often Markdown. ZIGoals never renders it as markup; it shows the
+ * words without the Markdown marks ("## Summary" → "Summary", "**bold**" → "bold", "[text](url)" → "text (url)"), so
+ * the expanded text reads like the collapsed preview. Everything else, angle brackets included, stays exactly as written.
+ */
+export function plainMarkdown(text: string): string {
+  return text.split('\n').map(line => line
+    .replace(/^\s{0,3}#{1,6}\s+/, '')
+    .replace(/^\s{0,3}>\s?/, '')
+    .replace(/^(\s*)[-*+]\s+/, '$1• ')
+    .replace(/\[([^\]\n]{1,300})\]\(([^)\s]{1,500})\)/g, '$1 ($2)')
+    .replace(/(\*\*|__)(?=\S)([^\n]*?\S)\1/g, '$2')
+    .replace(/`([^`\n]+)`/g, '$1')
+    .replace(/^\s*([-*_])(\s*\1){2,}\s*$/, '')).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+/**
+ * Session AL (BN-008, BN-180; P-BN-28): a title that reads like a test or an unfilled template ("[COMPANY_NAME] …",
+ * "Test proposal", "…_Test"). Only a label beside the title: the proposal stays in the list, as the chain holds it.
+ */
+export const looksLikeTest = (title: string) => /\[[A-Z][A-Z0-9_ ]{2,}\]/.test(title) || /(^|[\s_\-:])test(s|ing)?($|[\s_\-:.!])/i.test(title);
+
+/**
+ * Session AL (L-043, D-154): the chain's own `failed_reason` is a raw lowercase string ("proposal did not get enough votes
+ * to pass"). The card says it as a sentence; a reason ZIGoals has no words for is quoted as the chain's record, with a
+ * capital and a full stop, never shown bare.
+ */
+export function failedReasonWords(reason: string): string {
+  const text = reason.trim().replace(/\s+/g, ' ');
+  if (!text) return '';
+  if (/did not get enough votes to pass/i.test(text)) return 'It did not get enough votes to pass: too few of all staked ZIG voted (the quorum), or Yes did not reach the share it needed.';
+  if (/did not (reach|meet) (the )?quorum/i.test(text)) return 'Too few of all staked ZIG voted: it did not reach the quorum.';
+  if (/veto/i.test(text)) return 'It was vetoed: too many votes said No with veto.';
+  if (/failed to execute|execution|message index/i.test(text)) return 'It passed, but the chain could not carry out its change.';
+  const sentence = text[0]!.toUpperCase() + text.slice(1);
+  return `The chain’s record says: “${/[.!?]$/.test(sentence) ? sentence : `${sentence}.`}”`;
+}
+
+/**
+ * Session AL (C-BN-13, L-043, D-154): turnout as a share of all staked ZIG, for the turnout bar. A live tally is measured
+ * against the staked total read with it; an ended one only against today's staked total (the chain keeps a proposal's
+ * final votes but not the staked total when voting ended), so it is an estimate and says so. Null when nothing is known.
+ */
+export function turnoutOf(tally: Tally, bonded: string | undefined, params: Pick<GovParams, 'quorum'>): {share: string; fraction: number; quorum: string; quorumFraction: number; met: boolean} | null {
+  if (bonded === undefined || !/^\d+$/.test(bonded) || BigInt(bonded) <= 0n) return null;
+  const total = BigInt(tally.yes) + BigInt(tally.no) + BigInt(tally.abstain) + BigInt(tally.noWithVeto);
+  // Session AL (CI11): more votes than today's staked total means the total read does not fit this proposal (an older
+  // one, a smaller stake today): an estimate over 100 % is not shown at all (unknown is not a number).
+  if (total > BigInt(bonded)) return null;
+  const share = ratio(total, BigInt(bonded)), quorum = scaled(params.quorum);
+  const asNumber = (f: bigint) => Math.min(1, Number((f * 10000n) / SCALE) / 10000);
+  return {share: percentOf(share), fraction: asNumber(share), quorum: percentOf(quorum), quorumFraction: asNumber(quorum), met: share >= quorum};
+}
+

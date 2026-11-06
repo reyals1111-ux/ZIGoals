@@ -7,7 +7,7 @@ import { useDeviceRecord } from "../ai/use-device-record";
 import { useHabits } from "../habits/use-habits";
 import { usePlatform } from "../platform/use-platform";
 import { habitDay } from "../../lib/habits";
-import { LANDING_NOTE, ONBOARDING_SETUP, setupLanding, setupLandingLine } from "../../lib/onboarding-setup";
+import { LANDING_NOTE, ONBOARDING_SETUP, PROFILE_NAME, cleanProfileName, setupLanding, setupLandingLine } from "../../lib/onboarding-setup";
 
 /**
  * Session AK P4 (docs/review/session-ak/FIRST_RUN_REVIEW.md, FR-4): after "Finish setup", Today says "You're set" in the
@@ -17,7 +17,9 @@ import { LANDING_NOTE, ONBOARDING_SETUP, setupLanding, setupLandingLine } from "
  */
 export function SetupLanding() {
   const id = useId(), heading = useRef<HTMLHeadingElement>(null), router = useRouter();
-  const setup = useDeviceRecord(ONBOARDING_SETUP), habits = useHabits(), platform = usePlatform();
+  const setup = useDeviceRecord(ONBOARDING_SETUP), habits = useHabits(), platform = usePlatform(), profile = useDeviceRecord(PROFILE_NAME);
+  // Session AL fourth pass (NB-006): the name given in the welcome, if any ("You’re set, Sam.").
+  const name = profile.loaded && !profile.unreadable ? cleanProfileName(profile.data.name) : "";
   const ready = setup.loaded && !setup.unreadable && habits.loaded && !habits.error && platform.loaded;
   const mine = ready ? habits.data.habits.filter(h => setup.data.habitIds.includes(h.id)) : [];
   const due = mine.filter(h => habitDay(h, habits.today, habits.today).scheduled);
@@ -42,7 +44,7 @@ export function SetupLanding() {
   };
   return <section className="onboarding-welcome setup-landing panel" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">Setup finished</p>
-    <h2 id={`${id}-title`} ref={heading} tabIndex={-1}>You’re set.</h2>
+    <h2 id={`${id}-title`} ref={heading} tabIndex={-1}>{name ? `You’re set, ${name}.` : "You’re set."}</h2>
     <p>{setupLandingLine(landing)}</p>
     <div className="onboarding-actions">
       {landing.habits > 0 ? <button type="button" className="primary" onClick={toHabits}>Tick your first habit ↓</button>

@@ -43,7 +43,7 @@ const LayoutContext = createContext<PageContext | null>(null);
 export const useLayoutPage = () => useContext(LayoutContext);
 
 /** Provides the lock state for one page. Today passes `unlocked`/`onUnlockedChange` to share its Customize state, and `onReset` to reset its synced placement too. */
-export function LayoutPage({page, children, unlocked: controlled, onUnlockedChange, onReset}: {page: string; children: ReactNode; unlocked?: boolean; onUnlockedChange?: (value: boolean) => void; onReset?: () => void}) {
+export function LayoutPage({page, children, unlocked: controlled, onUnlockedChange, onReset, exit = true}: {page: string; children: ReactNode; unlocked?: boolean; onUnlockedChange?: (value: boolean) => void; onReset?: () => void; /** Session AL sweep 3 (DV-024b): false leaves out the bar's "Done" for a page with its own exit (Today's "Finish customizing"). */ exit?: boolean}) {
   const [own, setOwn] = useState(false), [message, setMessage] = useState(''), [mounted, setMounted] = useState(false);
   const unlocked = controlled ?? own;
   const setUnlocked = useCallback((value: boolean) => { if (onUnlockedChange) onUnlockedChange(value); else setOwn(value); }, [onUnlockedChange]);
@@ -61,7 +61,7 @@ export function LayoutPage({page, children, unlocked: controlled, onUnlockedChan
     {mounted && createPortal(<div className="sr-only" aria-live="polite" role="status" data-layout-announcer="">{message}</div>, document.body)}
     {mounted && unlocked && createPortal(<div className="layout-bar" role="region" aria-label="Arrange this page">
       <p><strong>Arrange this page.</strong> <span>Drag a card by its handle, or use its arrow buttons. Saved on this device.</span></p>
-      <div className="layout-bar-actions"><button type="button" className="secondary" onClick={reset}>Reset this page</button><button type="button" className="primary" onClick={() => { setUnlocked(false); announce('Layout locked.'); }}>Done</button></div>
+      <div className="layout-bar-actions"><button type="button" className="secondary" onClick={reset}>Reset this page</button>{exit && <button type="button" className="primary" onClick={() => { setUnlocked(false); announce('Layout locked.'); }}>Done</button>}</div>
     </div>, document.body)}
   </LayoutContext.Provider>;
 }
@@ -120,6 +120,15 @@ export function LayoutRegion({region, items, allIds, grid = false, page: pagePro
   const [preview, setPreview] = useState<string[] | null>(null);
   const order = preview && preview.length === committed.length && preview.every(id => committed.includes(id)) ? preview : committed;
   const byId = new Map(entries.map(e => [e.id, e]));
+  // Session AL (NB-220a, P-NB-39): two cards with one generic label ("Health metric" for Water, Meals and Activity) are told
+  // apart by their own heading, so "Move Water up" and its announcement name the card that moves.
+  const shared = new Set(entries.map(e => e.label).filter((l, i, all) => all.indexOf(l) !== i));
+  const nameOf = (id: string, fallback: string): string => {
+    const label = byId.get(id)?.label ?? fallback;
+    if (!shared.has(label)) return label;
+    const heading = findItem(key, id)?.querySelector('h2, h3, h4')?.textContent?.replace(/\s+/g, ' ').trim();
+    return heading && heading.length <= 60 && heading !== label ? heading : label;
+  };
   const unlocked = !!context?.unlocked && (pageProp === undefined || pageProp === context.page);
   const flip = useRef<Map<string, DOMRect> | null>(null), drag = useRef<Drag | null>(null), focusAfter = useRef<string | null>(null);
   const stable = useRef({move: (e: PointerEvent) => impl.current.move(e), end: (e: PointerEvent) => impl.current.end(e), cancel: (e: PointerEvent) => impl.current.cancel(e), key: (e: KeyboardEvent) => impl.current.key(e), tick: () => impl.current.tick()}).current;
@@ -163,7 +172,7 @@ export function LayoutRegion({region, items, allIds, grid = false, page: pagePro
     if (from < 0 || clamped === from) return;
     capture(); focusAfter.current = control;
     const next = moveInList(order, id, clamped);
-    const label = byId.get(id)?.label ?? 'Card';
+    const label = nameOf(id, 'Card');
     void Promise.resolve(commit(id, clamped, next)).then(() => context?.announce(`Moved ${label} to position ${clamped + 1} of ${order.length}.`)).catch(() => context?.announce(`${label} could not be moved. Your layout was not changed.`));
   }
   function columns() {
@@ -205,7 +214,7 @@ export function LayoutRegion({region, items, allIds, grid = false, page: pagePro
     setPreview(order);
     window.addEventListener('pointermove', stable.move); window.addEventListener('pointerup', stable.end); window.addEventListener('pointercancel', stable.cancel); window.addEventListener('keydown', stable.key, true);
     state.frame = requestAnimationFrame(stable.tick);
-    context?.announce(`Picked up ${byId.get(id)?.label ?? 'card'}. Move the pointer and release to drop, or press Escape to cancel.`);
+    context?.announce(`Picked up ${nameOf(id, 'card')}. Move the pointer and release to drop, or press Escape to cancel.`);
   }
   // Latest render's order for the window listeners.
   const live = useRef({order, grid, key}); live.current = {order, grid, key};
@@ -243,7 +252,7 @@ export function LayoutRegion({region, items, allIds, grid = false, page: pagePro
     drag.current = null; cancelAnimationFrame(state.frame);
     window.removeEventListener('pointermove', stable.move); window.removeEventListener('pointerup', stable.end); window.removeEventListener('pointercancel', stable.cancel); window.removeEventListener('keydown', stable.key, true);
     state.ghost.remove(); delete state.el.dataset.layoutPlaceholder; delete document.documentElement.dataset.layoutDragging;
-    const final = live.current.order, from = committed.indexOf(state.id), to = final.indexOf(state.id), label = byId.get(state.id)?.label ?? 'Card';
+    const final = live.current.order, from = committed.indexOf(state.id), to = final.indexOf(state.id), label = nameOf(state.id, 'Card');
     if (save && to >= 0 && to !== from) {
       void Promise.resolve(commit(state.id, to, final)).then(() => { setPreview(null); context?.announce(`Moved ${label} to position ${to + 1} of ${final.length}.`); }).catch(() => { capture(); setPreview(null); context?.announce(`${label} could not be moved. Your layout was not changed.`); });
     } else { capture(); setPreview(null); context?.announce(save ? `${label} stays at position ${from + 1}.` : `Move cancelled. ${label} is back at position ${from + 1}.`); }
@@ -261,7 +270,7 @@ export function LayoutRegion({region, items, allIds, grid = false, page: pagePro
   });
   const cols = unlocked && grid ? columns() : 1;
   const controls = unlocked ? [...targets].map(([id, el]) => {
-    const index = order.indexOf(id), label = byId.get(id)?.label ?? 'card', last = order.length - 1;
+    const index = order.indexOf(id), label = nameOf(id, 'card'), last = order.length - 1;
     if (index < 0) return null;
     const button = (action: string, text: string, to: number, disabled: boolean, glyph: string) => <button type="button" className="layout-move" data-layout-control={`${key}:${id}:${action}`} aria-label={`Move ${label} ${text}`} title={`Move ${text}`} disabled={disabled} onClick={() => move(id, to, `${key}:${id}:${action}`)}><span aria-hidden="true">{glyph}</span></button>;
     return createPortal(<div className="layout-controls" data-layout-controls="" role="group" aria-label={`Arrange ${label}`}>

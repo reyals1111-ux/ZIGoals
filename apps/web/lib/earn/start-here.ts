@@ -94,33 +94,53 @@ export function startStates(facts: StartFacts, record: EarnPath): StartStepState
   });
 }
 
+/** Session AL (BN-030, D-060, D-099): the steps that use real ZIG. The guide's own path ends with practice; these are
+ * offered, never pointed at as "next", and the progress line says they are optional. */
+export const REAL_ZIG_STEPS: readonly StartStepId[] = Object.freeze(['add-money', 'get-zig', 'first-stake', 'explore']);
+/** The progress line under the heading: the practice steps lead; the real-ZIG steps are only named as optional. */
+export function startProgress(states: readonly StartStepState[]): {count: string; next: string} {
+  const done = states.filter(s => s.done).length, learn = states.filter(s => !REAL_ZIG_STEPS.includes(s.id));
+  const nextLearn = learn.find(s => !s.done);
+  const count = done ? `${done} of 6 steps done` : 'Six steps · none done yet';
+  if (nextLearn) return {count, next: `next: ${STEP_WORDS[nextLearn.id].label}`};
+  if (done === states.length) return {count, next: 'all done'};
+  return {count, next: 'practice done: that is enough to know staking; the real-ZIG steps are optional, only if you choose'};
+}
+
 /** The words of each step on the path (the panel adds the steps of doing it). */
 export const STEP_WORDS: Readonly<Record<StartStepId, {label: string; short: string; glyph: string}>> = Object.freeze({
   'get-wallet': {label: 'Get a wallet', short: 'Your own keys', glyph: 'sparkle'},
   practice: {label: 'Practice first', short: 'Free test ZIG', glyph: 'leaf'},
   // Session AF Gate C (design critique, money pages 8): marks that fit their step (a plus to add money, the ecosystem's
   // network to explore more), never a heart or a clock borrowed from elsewhere.
-  'add-money': {label: 'Add money', short: 'Card or bank', glyph: 'plus'},
+  // Session AL (BN-030; COPY_AUDIT, deliberate): the short line says the step is optional (it read "Card or bank").
+  'add-money': {label: 'Add money', short: 'Optional · real money', glyph: 'plus'},
   'get-zig': {label: 'Get ZIG', short: 'Onto ZIGChain', glyph: 'drop'},
-  'first-stake': {label: 'Your first real stake', short: 'Real network', glyph: 'flag'},
+  // Session AL (COPY_AUDIT P-BN-54/P-DVR-59, deliberate): a description, not a directive (it read "Your first real stake").
+  'first-stake': {label: 'Staking on the real network', short: 'Real network', glyph: 'flag'},
   explore: {label: 'Explore more', short: 'Liquid staking, pools, votes', glyph: 'ecosystem'},
 });
 /** The path model the shared renderer draws: three orbits of two dots, a chest after practice and one at the end. */
 export function startHereModel(states: readonly StartStepState[]): PathModel {
   const step = (id: StartStepId, colour: PathStep['colour']): PathStep => {
     const s = states.find(x => x.id === id)!;
-    return {id, label: STEP_WORDS[id].label, note: s.done ? s.how === 'seen' ? 'Seen done' : 'Marked done' : STEP_WORDS[id].short, colour, state: s.done ? 'done' : 'undone', glyph: STEP_WORDS[id].glyph, intent: 'value', ...(s.markedAt ? {doneAt: s.markedAt} : {})};
+    // Session AL (BN-030, D-060, D-099): a real-ZIG step is drawn and can be opened and marked, but it is not counted: the
+    // path's NEXT, ZIGi and its end never point the person on to buying or staking.
+    return {id, label: STEP_WORDS[id].label, note: s.done ? s.how === 'seen' ? 'Seen done' : 'Marked done' : STEP_WORDS[id].short, colour, state: s.done ? 'done' : 'undone', glyph: STEP_WORDS[id].glyph, intent: 'value', ...(REAL_ZIG_STEPS.includes(id) ? {counted: false} : {}), ...(s.markedAt ? {doneAt: s.markedAt} : {})};
   };
   return {
     id: 'earn-start-here', label: 'Start here',
     sections: [
       {id: 'start-ready', label: 'Get ready', eyebrow: 'Orbit 1', colour: 'gold', steps: [step('get-wallet', 'gold'), step('practice', 'gold')]},
-      {id: 'start-money', label: 'Bring money in', eyebrow: 'Orbit 2', colour: 'cyan', steps: [step('add-money', 'cyan'), step('get-zig', 'cyan')]},
-      {id: 'start-earn', label: 'Start earning', eyebrow: 'Orbit 3', colour: 'magenta', steps: [step('first-stake', 'magenta'), step('explore', 'magenta')]},
+      // Session AL (BN-030, D-060, D-099; COPY_AUDIT, deliberate): the path is a guide that may stop after practice, not a
+      // funnel to buying and staking. The two later orbits say they are only for real ZIG and only if the person chooses it.
+      {id: 'start-money', label: 'Only if you choose real ZIG', eyebrow: 'Orbit 2 · optional', colour: 'cyan', steps: [step('add-money', 'cyan'), step('get-zig', 'cyan')]},
+      {id: 'start-earn', label: 'The real network, if you choose', eyebrow: 'Orbit 3 · optional', colour: 'magenta', steps: [step('first-stake', 'magenta'), step('explore', 'magenta')]},
     ],
     milestones: [
       {id: 'start-practised', at: {afterStep: 'practice'}, label: 'Practice round', reachedLabel: 'Practice round done'},
-      {id: 'start-complete', at: 'end', label: 'Start here, complete', reachedLabel: 'You know your way around'},
+      // Session AL (D-149, N-BN-06; COPY_AUDIT, deliberate): before it is reached the end says where it is, not "complete".
+      {id: 'start-complete', at: 'end', label: 'End of the guide', reachedLabel: 'You know your way around'},
     ],
   };
 }

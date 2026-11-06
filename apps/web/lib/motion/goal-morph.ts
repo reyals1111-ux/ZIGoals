@@ -34,3 +34,21 @@ export function goalMorphName(id: string): string { return `zg-goal-${id.replace
 export function goalMorphClass(level = typeof window === 'undefined' ? 'off' : currentMotionLevel()): 'zg-morph' | 'none' {
   return level === 'full' ? 'zg-morph' : 'none';
 }
+
+/**
+ * Session AL Part 11 (lane L8): NOVA's widget → page morph (the one AK recorded as unbuilt). The panel that was tapped is
+ * named `zg-hud-morph` for the navigation's view transition; the page it opens has no element of that name, so the
+ * panel's picture grows from where it was to fill the window as it fades and the page arrives under it (components/nova/
+ * holo/holo.css). Full: it grows and fades (`zoom`); Calm: it only fades where it is (`fade`); Off and reduced motion: no
+ * name and no transition at all (the view-transition gate), a plain navigation. Pure: the caller measures the panel.
+ */
+export const WIDGET_MORPH_NAME = 'zg-hud-morph';
+export type WidgetMorphPlan = {mode: 'zoom' | 'fade'; dx: number; dy: number; scale: number};
+export function widgetMorphPlan(box: {x: number; y: number; width: number; height: number}, viewport: {width: number; height: number}, level: 'full' | 'calm' | 'off'): WidgetMorphPlan | null {
+  if (level === 'off' || !(box.width > 0) || !(box.height > 0) || !(viewport.width > 0) || !(viewport.height > 0)) return null;
+  if (level === 'calm') return {mode: 'fade', dx: 0, dy: 0, scale: 1};
+  const r = (n: number) => Math.round(n * 100) / 100;
+  // Move the panel's centre to the window's centre and grow it until it covers the window's larger side.
+  const scale = Math.min(8, Math.max(1, Math.max(viewport.width / box.width, viewport.height / box.height)));
+  return {mode: 'zoom', dx: r(viewport.width / 2 - (box.x + box.width / 2)), dy: r(viewport.height / 2 - (box.y + box.height / 2)), scale: r(scale)};
+}

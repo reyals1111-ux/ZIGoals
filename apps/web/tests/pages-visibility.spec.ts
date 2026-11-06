@@ -1,8 +1,10 @@
 import {expect, test, type Page} from '@playwright/test';
 import {presetSettings} from '../lib/dashboard-settings';
 import {AVAILABLE_BUTTONS, AVAILABLE_PAGES} from '../lib/pages/visibility';
+import {SIDEBAR_APP_IDS} from '../lib/ui-prefs/apps';
 import {isPhone, mainNav, openMore} from './phone-nav';
 import {chooseChain} from './chain-choice';
+import {pressZigi} from './zigi-open';
 
 // Session W Part 2 (owner decision W4): Settings → "Your pages & buttons". Offline fixture; every network call answers 503.
 // Session AK X1 (RELEASE_REVIEW R3): the money tools (Earn, Markets, Staking, Portfolio, Ecosystem) are in the navigation
@@ -26,7 +28,9 @@ const PREFS = 'zigoals:earn-prefs:v1';
  * and the Journal follow as 'compact' entries — the phone's More sheet (and the tablet rail), not the desktop sidebar;
  * components/nav-extras.ts keeps this order whatever registers first.
  */
-const SIDEBAR_EXTRAS = ['NOVA', 'Checklist'], MORE_EXTRAS = [...SIDEBAR_EXTRAS, 'Tasks', 'Notes', 'Journal'];
+// Session AL (owner decision O4, deliberate): on a computer NOVA is in the sidebar's Apps group, not the main list (it was
+// ['NOVA', 'Checklist']); the phone's More sheet keeps it.
+const SIDEBAR_EXTRAS = ['Checklist'], MORE_EXTRAS = ['NOVA', 'Checklist', 'Tasks', 'Notes', 'Journal'];
 const withExtras = (labels: string[]) => { const at = labels.indexOf('Settings'); return at < 0 ? [...labels, ...SIDEBAR_EXTRAS] : [...labels.slice(0, at), ...SIDEBAR_EXTRAS, ...labels.slice(at)]; };
 const pages = (hidden: string[], start?: string | null) => ({version: 1, items: Object.fromEntries(hidden.map(id => [id, {v: 'hidden', at: AT}])), ...(start !== undefined ? {start: {id: start, at: AT}} : {})});
 const settingsWith = (p?: object) => ({...presetSettings('balanced'), onboarded: true, ...(p ? {schemaVersion: 3, pages: p} : {})});
@@ -52,7 +56,10 @@ async function expectNav(page: Page, visible: string[], {journey = false}: {jour
   await openMore(page);
   // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): while Gamify is on (the Showcase), the
   // Journey is a row of More after the pages, since it is no longer a tab.
-  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), ...MORE_EXTRAS, ...(journey ? ['Journey'] : []), 'Settings', 'Help']);
+  // Session AL (BN-001, L6 sweep 4, deliberate): while Staking, Ecosystem or Chess is off, More ends its pages with a
+  // "More pages" row to Settings → Your pages & buttons, after the Journey.
+  const morePages = ['Staking', 'Ecosystem', 'Chess'].some(label => !visible.includes(label));
+  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), ...MORE_EXTRAS, ...(journey ? ['Journey'] : []), ...(morePages ? ['More pages'] : []), 'Settings', 'Help']);
   await page.keyboard.press('Escape');
 }
 const section = (page: Page) => page.getByRole('region', {name: 'Your pages & buttons', exact: true});
@@ -94,7 +101,12 @@ test('every switch sits on its name\'s row, before the name, at its full size', 
   await page.goto('/app/settings');
   const rows = section(page).locator('label.pages-switch');
   // (Session AG Polish 3: and Governance's switch on this device, after Chess. Session AH (ST9): and Earn's, after Wealth.)
-  await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length + 2);
+  // Session AL (O4 and L10a, 57fb1e5e; deliberate): and the Checklist button under Buttons, and the Apps group's own
+  // switches (NOVA, Tasks, Notes, the Journal, the Agenda). The Cycle log's switch under Health (Session AK) is counted
+  // too: it loads a moment later, so the old count could pass before it showed. Every row is still checked below.
+  await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length + 2 + 1 + 1 + SIDEBAR_APP_IDS.length);
+  await expect(section(page).getByRole('switch', {name: 'Cycle log'})).toHaveCount(1);
+  await expect(section(page).getByRole('switch', {name: 'Checklist button'})).toHaveCount(1);
   // Assertion changed (Session AK X1, RELEASE_REVIEW R3; deliberate): Earn's switch is its own now, on this device
   // (`pageShown` in zigoals:earn-prefs:v1), so it is on and usable while Wealth shows (it was locked to Wealth's state).
   await expect(section(page).getByRole('switch', {name: 'Earn'})).toBeEnabled();
@@ -207,7 +219,17 @@ test('buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide eve
   await expect(page.getByRole('button', {name: '+ Quick add', exact: true})).toHaveCount(0);
   await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
   await expect(page.getByRole('button', {name: 'Show ZIGi', exact: true})).toHaveCount(0);
+  // Session AL (Q11, deliberate): ⌘/Ctrl+K opens the command menu (Ask ZIGi is its first row); ZIGi's own key is ⌘/Ctrl+Shift+Z.
+  // Switched off, ZIGi opens from neither: the menu shows without its Ask ZIGi row, and ⌘/Ctrl+Shift+Z opens nothing.
   await page.keyboard.press('ControlOrMeta+k');
+  const menu = page.getByRole('dialog', {name: 'Command menu'});
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('option', {name: /Ask ZIGi/})).toHaveCount(0);
+  await expect(page.getByRole('dialog', {name: /ZIGi/})).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveCount(0);
+  await page.locator('body').press('ControlOrMeta+Shift+z');
+  await page.waitForTimeout(300);
   await expect(page.getByRole('dialog', {name: /ZIGi/})).toHaveCount(0);
   if (await isPhone(page)) { await expect(page.locator('.phone-wealth')).toHaveCount(0); await expect(page.locator('.phone-quick-add')).toHaveCount(0); }
   await page.goto('/app/settings');
@@ -218,7 +240,12 @@ test('buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide eve
   await expect(page.locator('.quick-add-trigger').first()).toBeAttached();
   // Settings is one of ZIGi's sensitive screens (no button there by design); the next page shows it again.
   await page.goto('/app/goals');
-  await expect(page.getByTestId('ai-launcher')).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; switched on, it is back in "Apps &
+  // extras" and opens from there. Was: the floating launcher visible at every width. On a computer, as before.
+  if (page.viewportSize()!.width < 901) {
+    await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
+    await pressZigi(page); await expect(page.locator('dialog.ai-chat[open]')).toBeVisible();
+  } else await expect(page.getByTestId('ai-launcher')).toBeVisible();
 });
 
 test('Showcase shows every page but Governance and keeps a choice in the tab, never in this device\'s storage', async ({page}) => {
@@ -272,7 +299,8 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   // It follows Staking: hidden with it, back with it.
   const staking = section(page).getByRole('switch', {name: 'Staking', exact: true});
   await staking.click();
-  await expect(section(page).getByRole('status')).toHaveText('Staking is hidden. You can show it again here at any time.');
+  // Session AL (COPY_AUDIT, deliberate; P-BN-34, BN-186): a switch that changes more than itself says so beside it.
+  await expect(section(page).getByRole('status')).toHaveText('Staking is hidden. You can show it again here at any time. Governance hides with it, since it shows only while Staking shows.');
   await expectNav(page, ALL.filter(label => label !== 'Staking'));
   await staking.click();
   await expect(section(page).getByRole('status')).toHaveText('Staking shows again.');
@@ -283,6 +311,8 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   await expectNav(page, ALL);
   // Hidden, its page still opens from Earn.
   await page.goto('/app/earn');
+  // Session AL (sweep 4, deliberate): on a phone Earn's wide sections are folded rows; the person opens "Have a say".
+  if (await isPhone(page)) await page.getByRole('button', {name: 'Have a say: governance', exact: true}).click();
   const open = page.locator('main a[href="/app/governance"]:visible').first();
   await expect(open).toBeVisible();
   await open.click();
@@ -337,7 +367,9 @@ test('while the settings are still opening, the device mirror already shapes the
   }, VAULT);
   await page.goto('/app/habits');
   // Hydrated (the ZIGi button mounts on the client, inside the still hidden workspace), the settings still unopened.
-  await expect(page.getByTestId('ai-launcher')).toBeAttached();
+  // Session AL (owner decision O3): below 901 px there is no floating ZIGi button to wait for; the shell's own hydration mark is.
+  if (page.viewportSize()!.width < 901) await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
+  else await expect(page.getByTestId('ai-launcher')).toBeAttached();
   await expect(page.locator('.workspace')).toHaveAttribute('aria-busy', 'true');
   const expected = [...ALL.filter(label => label !== 'Goals'), 'Help'];
   if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withExtras(expected));

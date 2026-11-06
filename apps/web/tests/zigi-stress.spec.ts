@@ -6,6 +6,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Phase 2 (P2.4), stress and edge through the real panel against MOCK servers: a 50-turn chat; Stop
@@ -55,8 +56,10 @@ async function seed(page: Page, {baseUrl = BASE, options = {} as Record<string, 
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-const launcher = (page: Page) => page.locator('.ai-launcher-button');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+// Session AL (owner decision O3, deliberate): below 901 px there is no floating figure; while the panel is open its own figure
+// carries the same state (one bus), so that is what is read there. On a computer, the launcher as before.
+const launcher = (page: Page) => page.locator(page.viewportSize()!.width < 901 ? 'dialog.ai-chat[open] .ai-chat-head .zigi' : '.ai-launcher-button');
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); }
 async function settled(page: Page) { await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toHaveCount(0, {timeout: 30_000}); await expect(panel(page).locator('.ai-turn-live')).toHaveCount(0); }
 const systemOf = (body: Body) => String(body.messages[0]!.content);
@@ -202,7 +205,10 @@ test('the Health gate closed mid-chat: the next request carries nothing of Healt
   else await expect(panel(page)).toContainText(/Health/);
   // Assertion changed (Session AH TR10): the Health page's own weight-trend card now shows the latest reading beside the
   // trend (the person's own record on their own page). Everything else on the page, ZIGi's panel included, is checked.
-  expect(await page.evaluate(() => { const own = [...document.querySelectorAll<HTMLElement>('.health-trend-card')]; own.forEach(e => { e.dataset.ahHidden = e.style.display; e.style.display = 'none'; }); const text = document.body.innerText; own.forEach(e => { e.style.display = e.dataset.ahHidden ?? ''; }); return text; })).not.toContain('123.4');
+  // Session AL (MO-150, deliberate): the Health page's "Seven days of care" now has a weight row, the person's own reading on
+  // their own page too; it is set aside like the trend card. ZIGi's panel is checked on its own as well.
+  await expect(panel(page)).not.toContainText('123.4');
+  expect(await page.evaluate(() => { const own = [...document.querySelectorAll<HTMLElement>('.health-trend-card, .bottom-row[aria-label^="Weight"]')]; own.forEach(e => { e.dataset.ahHidden = e.style.display; e.style.display = 'none'; }); const text = document.body.innerText; own.forEach(e => { e.style.display = e.dataset.ahHidden ?? ''; }); return text; })).not.toContain('123.4');
 });
 
 test('auto-accept under fast repeated asks: the daily cap holds, every auto-added card has Undo, and Undo removes the entry', async ({page}) => {

@@ -65,8 +65,13 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
   for (const path of PAGES) {
     await page.goto(path);
     await expect(page.locator('main'), path).toBeVisible();
-    // Settings is a sensitive screen (account, sync, recovery): the launcher stays away there by the app's own rule.
-    if (path === '/app/settings') { await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toHaveCount(0); await settled(page); await readLoops(); continue; }
+    // Session AL (owner reading Q6, ADR-037, deliberate; components/ai/use-sensitive-screen.ts): ZIGi opens on Settings too;
+    // only an open private step or a focused secret field there is sensitive. So Settings is checked like every other page
+    // (the launcher and its poster on a computer). Was: no launcher on Settings at all.
+    // Session AL (owner decision O3, deliberate): below 901 px (the phone project) ZIGi has no floating button; "Apps & extras"
+    // is there instead, and its sheet shows ZIGi's still (the reduced-motion test below). Was: the launcher and its poster on
+    // every page at every width. On a computer, as before.
+    if (page.viewportSize()!.width < 901) { await expect(page.getByTestId('ai-launcher'), path).toHaveCount(0); await expect(page.getByTestId('apps-extras-button'), path).toBeVisible(); await settled(page); await readLoops(); continue; }
     await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toBeVisible();
     // The idle art: the poster first, and where the browser plays animated WebP and motion is allowed (Chrome), the
     // animated idle file swapped in once decoded. Either is F001; the reduced-motion test below pins the poster.
@@ -99,7 +104,10 @@ test('reduced motion in WebKit: ZIGi keeps its still, never a clip', async ({pag
   await page.emulateMedia({reducedMotion: 'reduce'});
   await seed(page, {[ZIGI_KEY]: JSON.stringify({version: 1, animation: 'full'})});
   await page.goto('/app');
-  const img = page.locator('.ai-launcher-button img').first();
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi's figure is the "Apps & extras" sheet's (was: the launcher's).
+  const compact = page.viewportSize()!.width < 901;
+  if (compact) await page.getByTestId('apps-extras-button').click();
+  const img = compact ? page.getByRole('dialog', {name: 'Apps & extras'}).locator('.apps-extras-zigi img') : page.locator('.ai-launcher-button img').first();
   await expect(img).toBeVisible();
   await page.waitForTimeout(4000);
   await expect(img).toHaveAttribute('src', /F001-idle(-2x)?\.webp$/);

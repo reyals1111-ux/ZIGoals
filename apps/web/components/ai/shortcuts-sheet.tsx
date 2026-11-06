@@ -7,7 +7,9 @@ import './chat-polish.css';
  * field. A small modal dialog that closes with Escape or its button and gives the focus back.
  */
 export const SHORTCUTS: readonly [string, string][] = [
-  ['⌘K / Ctrl+K', 'Open or close ZIGi'],
+  // Session AL (Q11): ⌘/Ctrl+K is the command menu now; ZIGi's own key is ⌘/Ctrl+Shift+Z.
+  ['⌘K / Ctrl+K', 'Open the command menu (Ask ZIGi is its first row)'],
+  ['⌘ / Ctrl + Shift + Z', 'Open or close ZIGi (outside a text field)'],
   // Gate C (persona round): Part 3's talk shortcut was missing here.
   ['⌘ / Ctrl + Shift + Space', 'Talk to ZIGi from any page (Escape stops listening)'],
   ['Enter', 'Send the message'],

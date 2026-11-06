@@ -1,6 +1,7 @@
 /* Session AB-Design Part 1 (ADR-024 D7): the compact Alpha notice, the Showcase chip and the status row's utilities. */
 .alpha-notice { position: relative; display: flex; align-items: flex-start; gap: 10px; margin: 14px 26px 0; padding: 9px 44px 9px 14px; border: 1px solid #70cfff2e; border-radius: 14px; background: linear-gradient(100deg, #061a2ccc, #0a0f2ac9 50%, #1a1340c4); box-shadow: inset 0 1px 0 #67bbff1a; font-size: 14px; line-height: 1.5; }
 .alpha-notice p { margin: 0; min-width: 0; color: var(--text-secondary, #dde7f7); }
+.alpha-notice-short { display: none; }
 /* Session AC (owner item 8): the essentials line, only without scripts or while a private read stalls; under the notice's
    first line, on phones too (where the first line keeps only the label). */
 .alpha-notice:has(.alpha-notice-essentials) { flex-wrap: wrap; }
@@ -24,6 +25,13 @@
 /* The status row: one thin utility row (the Showcase chip left; wallet, the page's tools, Gamify and the lock right).
    Session AE (Part 1, ADR-027; owner): the demo balance is no longer in this row; Today's wallet card shows it. */
 .status-row { position: relative; z-index: 31; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 0 2px; }
+/* Session AL (N-LS-01): Quick add on computers, in the status row; only one Quick add is ever shown (shell.tsx). */
+.status-quick-add { display: none; }
+@media (min-width: 901px) {
+  .status-row > .status-quick-add { display: inline-flex; flex: none; }
+  .status-row > .status-quick-add .quick-add-trigger { min-height: 44px; white-space: nowrap; }
+  :root:has(main .quick-add-trigger) .status-row > .status-quick-add { display: none; }
+}
 .status-row .status-wallet { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .status-row .status-wallet button { font-size: 14px; min-height: 40px; }
 .status-row .status-wallet .wallet-connect { gap: 10px; min-width: 0; padding-inline: 12px; }
@@ -49,7 +57,11 @@
   .alpha-notice { margin: 8px var(--phone-gutter, 16px) 0; min-height: 44px; padding: 5px 46px 5px 12px; align-items: center; }
   .alpha-notice p { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .alpha-notice p > span { display: none; }
-  .alpha-notice strong { margin: 0; font-size: 12px; line-height: 1.35; }
+  /* Session AL (TK-6B-05): the one fact a phone keeps in view, shown and read there; the full line stays in More. */
+  .alpha-notice p > .alpha-notice-short { display: inline; flex-shrink: 1000; font-style: normal; font-size: 13px; line-height: 1.35; color: var(--text-secondary, #dde7f7); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* The label may wrap (whole, never ellipsised): the Showcase's longer one ("… nothing moves unless you sign") ran up to
+     103 px past a 335 px window when it could not shrink (o3-apps-extras, 335/375/545 px). The short fact gives way first. */
+  .alpha-notice strong { flex: 0 1 auto; min-width: 0; margin: 0; font-size: 12px; line-height: 1.35; }
   .alpha-notice .text-link { margin: 0; }
   .alpha-notice-dot { margin-top: 0; }
   :root .workspace > .status-row { flex-wrap: nowrap; gap: 8px; padding: 6px 0 2px; margin: 0; }
@@ -58,10 +70,13 @@
   /* Session AE (Part 1): with the balance gone (it filled the row's middle), Gamify and the lock still hug the right edge;
      the wallet buttons are hidden here but present, so the computer's "no auto margin after the wallet" rule is undone. */
   .status-row:has(.status-wallet):not(:has(.page-tools-slot:not(:empty))) > .gamify { margin-left: auto; }
+  /* CI fix (ui-design-pass Part 18.4): Session AL hides Gamify on phones (gamify-button.tsx, AL-LAYOUT-375-011), so the
+     lock is the one that hugs the right edge there, as Gamify did. */
+  .status-row:has(.status-wallet):not(:has(.gamify)):not(:has(.page-tools-slot:not(:empty))) > .layout-lock-slot { margin-left: auto; }
   .status-row .showcase-chip, .status-row .gamify, .status-row .layout-lock-slot { flex: none; }
   .status-row .showcase-chip-button { padding: 0 9px 0 8px; font-size: 12px; }
 }
-@media (max-width: 359.98px) { .alpha-notice strong { font-size: 11px; } }
+@media (max-width: 359.98px) { .alpha-notice strong { font-size: 12px; letter-spacing: .04em; } } /* Session AL (R30): never below 12 px; the short line ellipses first */
 @media (forced-colors: active) { .alpha-notice, .showcase-chip-button, .showcase-chip-panel { border-color: CanvasText; } }
 
 /* Session AB-Design (owner request 9): a page's game card place, at the very bottom; nothing is reserved while it is empty. */

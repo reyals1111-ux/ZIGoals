@@ -34,7 +34,8 @@ test('the verifier\'s fictional goal steps work on this build: create, fund, bac
   // The backup round trip, as the live script does it.
   await (await navLink(page, 'Settings')).click(); // Session AB-Design (D2): on a phone Settings is More's row
   const download = page.waitForEvent('download');
-  await page.getByRole('button', {name: 'Export Goal Data', exact: true}).click();
+  // Session AL (COPY_AUDIT, deliberate, D-236): goal-data headings and buttons are in sentence case.
+  await page.getByRole('button', {name: 'Export goal data', exact: true}).click();
   const backup = JSON.parse(await readFile((await (await download).path())!, 'utf8')) as {goals: Record<string, {name: string; notes?: string; targetDate?: string}>};
   expect(backup.goals['1']?.name).toBe(GOAL_SENTINELS.name);
   backup.goals['1']!.notes = GOAL_SENTINELS.note; backup.goals['1']!.targetDate = GOAL_SENTINELS.date;

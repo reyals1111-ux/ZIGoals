@@ -12,6 +12,27 @@ import { fileURLToPath } from 'node:url';
 import { reviewedVersionPattern } from '../packages/chain-config/src/index.ts';
 import { hostedStatus } from './lib/hosted-alpha-review.mjs';
 import { LIVE_ORIGINS, SENTINELS, VERIFIER_STAGES, classifyFailedRequests, isRscRequest, liveOnlySkips, setAsideNotConfigured, setAsideUnboundApi, verifyBase } from './lib/hosted-alpha-stages.mjs';
+// Session AL (TIER 3 (verifier)): --help prints the usage and the stages and exits 0, with no browser and no network. CI
+// runs it under plain Node 24 (.github/workflows/ci.yml), so the import graph above stays loadable without Vitest.
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  console.log([
+    'Usage: node scripts/verify-hosted-alpha.mjs <new-evidence-directory>',
+    '',
+    'The owner\'s manual check of the hosted Alpha (never part of CI; never connects a wallet). Writes HOSTED_SMOKE.json',
+    '(and screenshots) into the directory, which must not exist yet.',
+    '',
+    'Environment:',
+    '  EXPECTED_COMMIT=<40-hex SHA>     every /app answer must name this build (x-zigoals-build)',
+    '  ZIGOALS_VERIFY_BASE=<origin>     check a local production build instead (http:// loopback or https://);',
+    '                                   the live-only checks are listed under "skipped"',
+    '',
+    'Exit codes: 0 PASS, 1 FAIL, 2 COMPLETED_WITH_FINDINGS, 3 NEEDS_OWNER_REVIEW.',
+    '',
+    'Stages:',
+    ...VERIFIER_STAGES.map(stage => `  ${String(stage.number).padStart(2)}. ${stage.name}${stage.liveOnly ? ' (live only)' : ''}`),
+  ].join('\n'));
+  process.exit(0);
+}
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const output = process.argv[2];

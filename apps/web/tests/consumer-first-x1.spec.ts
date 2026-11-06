@@ -65,7 +65,8 @@ test('a new device: no money tools in the navigation, no wallet buttons, the neu
 
 test('a new device: Settings groups no wallet, network or contract rows; its notices sit behind Licences', async ({page, isMobile}) => {
   await ready(page, '/app/settings');
-  await expect(page.locator('.page-heading .page-lede')).toHaveText('Everything you add stays on this device.');
+  // Session AL (COPY_AUDIT, deliberate): DV-261, the line is true once sync exists (it said "Everything … stays on this device").
+  await expect(page.locator('.page-heading .page-lede')).toHaveText('Your records live on this device unless you turn on sync.');
   await expect(page.locator('#wallet-network, #account, #network, #contract')).toHaveCount(0);
   await expect(page.getByText('Wallet & network (advanced)')).toHaveCount(0);
   await expect(page.getByText('Earn dock — on this device')).toHaveCount(0);
@@ -142,7 +143,8 @@ test('choosing a money tool in Settings brings the chain back: the money tools, 
   await expect(markets).not.toBeChecked();
   // A controlled switch: it shows the saved choice once the save is done, so a click, then the saved state.
   await markets.click();
-  await expect(pages.getByRole('status')).toHaveText('Markets shows again.');
+  // Session AL (P-BN-34 / BN-016, deliberate; bbd2738e): a switch that changes more than itself says so beside the switches.
+  await expect(pages.getByRole('status')).toHaveText('Markets shows again. The money pages that start off (Earn, Markets, Staking, Portfolio and Ecosystem) show now too; each keeps its own switch here.');
   await expect(markets).toBeChecked();
   // One money tool switched on is choosing the chain: the others show by default too, each with its own switch.
   for (const tool of ['Staking', 'Portfolio', 'Ecosystem', 'Earn']) await expect(pages.getByRole('switch', {name: tool, exact: true}), tool).toBeChecked();
@@ -218,7 +220,8 @@ test('the welcome\'s "Crypto & ZIGChain" extra is the explicit chain choice: the
   const step = (title: string) => expect(flow.getByRole('heading', {level: 1, name: title})).toBeVisible();
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
   await step('Two or three things to focus on.');
-  await flow.getByRole('button', {name: 'Continue without choosing', exact: true}).click();
+  // Session AL (COPY_AUDIT, deliberate; N-NB-01): a step with nothing picked says "Skip this step", as the tour says "Skip the tour" (was "Continue without choosing").
+  await flow.getByRole('button', {name: 'Skip this step', exact: true}).click();
   await step('A few things to start with.');
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
   await step('A quick look around.');

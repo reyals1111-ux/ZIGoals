@@ -169,7 +169,8 @@ test.describe('Make NOVA yours on a computer', () => {
     await page.goto('/app/nova');
     // Before any card: the right panel says nothing was done yet.
     await page.getByRole('button', {name: 'Show Behind the intelligence'}).click();
-    const right = page.getByRole('complementary', {name: 'Behind the intelligence'});
+    // Session AL (deliberate, sweep 2; LA-024 / N-LS-05): NOVA's side panels are named regions inside <main>, no longer complementary landmarks; same element, same name.
+    const right = page.getByRole('region', {name: 'Behind the intelligence'});
     await expect(right).toContainText('No action yet.');
     await page.getByRole('textbox', {name: 'Message NOVA'}).first().fill('Log 300 ml of water');
     await page.getByRole('textbox', {name: 'Message NOVA'}).first().press('Enter');
@@ -245,7 +246,7 @@ test.describe('Make NOVA yours on a computer', () => {
     await fresh(page);
     await page.goto('/app/nova');
     await page.getByRole('button', {name: 'Show Behind the intelligence'}).click();
-    const right = page.getByRole('complementary', {name: 'Behind the intelligence'});
+    const right = page.getByRole('region', {name: 'Behind the intelligence'});
     await right.getByText('Cost meter and models per task').click();
     await right.getByRole('button', {name: 'Models per task'}).click();
     const panels = page.getByRole('dialog', {name: 'NOVA’s panels'});

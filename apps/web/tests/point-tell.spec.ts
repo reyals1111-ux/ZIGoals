@@ -70,7 +70,8 @@ test('pick a part by pointer and by keyboard, note it, see its marker, edit, rem
   await list.getByRole('button', {name: 'Remove note 1'}).click();
   await expect(page.getByText('Note 1 removed.')).toBeVisible();
   expect((await stored(page)).pins).toEqual([]);
-  await page.locator('[data-point-tell]').getByRole('button', {name: 'Undo'}).click();
+  // Session AL (3e, deliberate): Point & tell's Undo is the app's one toast now (showUndo), outside the mode's own element.
+  await page.locator('.aa-toast').getByRole('button', {name: 'Undo'}).click();
   await expect(page.getByText('Note 1 is back.')).toBeVisible();
   expect((await stored(page)).pins).toMatchObject([{n: 1, note: 'Bigger and higher on the page'}]);
 
@@ -116,7 +117,11 @@ test('nothing in Point & tell moves (reduced motion and Motion Off alike); every
 test('a button with its own action is picked, not pressed, by pointer and by keyboard (Gate C test audit)', async ({page}) => {
   await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, enabled: true})), POINT_TELL_KEY);
   await page.goto('/app/habits');
-  const zigi = page.getByRole('button', {name: /Open ZIGi/}).first(), chat = page.locator('dialog.ai-chat[open]');
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; the button with its own action is
+  // "Apps & extras" there (its action: the sheet). Was: ZIGi's launcher and its panel at every width. On a computer, as before.
+  const compact = page.viewportSize()!.width < 901;
+  const zigi = compact ? page.getByTestId('apps-extras-button') : page.getByRole('button', {name: /Open ZIGi/}).first();
+  const chat = compact ? page.getByRole('dialog', {name: 'Apps & extras'}) : page.locator('dialog.ai-chat[open]');
   await expect(zigi).toBeVisible();
   await launcher(page).click();
   await zigi.click();

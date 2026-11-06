@@ -17,3 +17,5 @@
    filled the 54 px badge edge to edge and lost its outer strokes to the clip); the badge is a size container. */
 .asset-orb{container-type:size}
 .asset-orb:not(:has(img)){font-size:clamp(11px,34cqi,21px);letter-spacing:-.02em}
+/* Session AL (PR-084): a 4-letter symbol (DOGE) fits its orb whole. */
+.asset-orb[data-letters="4"]:not(:has(img)){font-size:clamp(9px,26cqi,17px)}

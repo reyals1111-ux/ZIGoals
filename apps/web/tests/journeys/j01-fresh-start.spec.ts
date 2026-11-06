@@ -36,7 +36,8 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 1 fresh start: we
   await flow.getByRole('checkbox', {name: /^Goals & money/}).check();
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
   await step('Two or three things to focus on.');
-  await flow.getByRole('button', {name: 'Continue without choosing', exact: true}).click();
+  // Session AL (COPY_AUDIT, deliberate; N-NB-01): a step with nothing picked says "Skip this step", as the tour says "Skip the tour" (was "Continue without choosing").
+  await flow.getByRole('button', {name: 'Skip this step', exact: true}).click();
   await step('A few things to start with.');
   await flow.getByRole('radio', {name: 'A trip', exact: true}).check();
   await typeGoalName(flow, GOAL);

@@ -1,5 +1,6 @@
 'use client';
-import {Suspense, lazy, useId, useState} from 'react';
+import {Suspense, lazy, useEffect, useId, useRef, useState} from 'react';
+import {showUndo} from '../ui/undo-toast';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {startSoundscape} from '../music/soundscape-start';
 import {FOCUS_SESSIONS} from '../../lib/focus-sessions/schema';
@@ -19,10 +20,12 @@ const FocusRounds = lazy(() => import('../focus-rounds/focus-rounds'));
  * Session in the garden. The ring fills by the second; it has no animation of its own beyond a smooth step, and none
  * with reduced motion or Motion Off. Loaded on use (Journey's Focus Sessions, the Tasks page).
  */
-const CHOICES = {work: [15, 20, 25, 30, 45, 50, 60], shortBreak: [3, 5, 10, 15], longBreak: [10, 15, 20, 30], cycles: [1, 2, 3, 4, 5, 6]} as const;
+// Session AL (LS-H20): shorter blocks (5 and 10 minutes) to try it out; the stored limits allow 5 at the least.
+const CHOICES = {work: [5, 10, 15, 20, 25, 30, 45, 50, 60], shortBreak: [1, 3, 5, 10, 15], longBreak: [10, 15, 20, 30], cycles: [1, 2, 3, 4, 5, 6]} as const;
 const LABELS = {work: 'Focus block', shortBreak: 'Short break', longBreak: 'Long break', cycles: 'Blocks'} as const;
 const R = 52, C = 2 * Math.PI * R;
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
+
 
 export function PomodoroPanel({task, goalId, onClose, heading = 'h3'}: {task?: {id: string; title: string}; goalId?: string; onClose?: () => void; heading?: 'h2' | 'h3'}) {
   const id = useId(), record = useDeviceRecord(FOCUS_SESSIONS), snap = usePomodoro(), {run, last} = snap;
@@ -35,6 +38,17 @@ export function PomodoroPanel({task, goalId, onClose, heading = 'h3'}: {task?: {
   const start = () => startPomodoro({settings, ...(task ? {task} : {}), ...(goalId ? {goalId} : {}), tickTask, ...(withSound ? {startSound: () => { void startSoundscape('focus'); }} : {})});
   const phase = run ? run.phases[run.index]! : null, left = run ? secondsLeft(run, snap.now || run.phaseStartedAt) : 0, share = run ? phaseShare(run, snap.now || run.phaseStartedAt) : 0;
   const otherTask = run && task && run.taskId !== task.id;
+  // Session AL (P-LS-53, LS-H20; PRIMITIVES 3e): the task ticked at the end of a run says so in the one toast, whose Undo
+  // opens it again (completeTask's own undo, which puts the stored task back); once per run.
+  const toasted = useRef('');
+  useEffect(() => {
+    if (!last?.ticked || !last.taskTitle || toasted.current === last.runId) return;
+    toasted.current = last.runId;
+    showUndo({message: `Pomodoro finished. Marked “${last.taskTitle}” done.`, undone: `“${last.taskTitle}” is open again.`, restore: undoPomodoroTick});
+  }, [last]);
+  // The choice to tick is remembered with the lengths when the run starts (lib/focus-sessions/pomodoro-run.ts).
+  const tickOnEnd = (r: {taskId?: string}) => !!r.taskId && !!saved?.tickTask;
+  const finalBreak = !!run && !!phase && phase.kind === 'long-break' && phase.block === run.settings.cycles;
   return <section className="pomodoro" aria-labelledby={`${id}-t`} data-phase={phase?.kind ?? (last ? 'finished' : 'idle')}>
     <H id={`${id}-t`} className="pomodoro-title">Pomodoro{run?.taskTitle ? <small> · {run.taskTitle}</small> : !run && task ? <small> · {task.title}</small> : null}</H>
     {run && phase ? <>
@@ -51,14 +65,18 @@ export function PomodoroPanel({task, goalId, onClose, heading = 'h3'}: {task?: {
         </div>
       </div>
       <p role="status" className="sr-only">{`${PHASE_WORDS[phase.kind]}, block ${phase.block} of ${run.settings.cycles}`}</p>
+      {/* Session AL (LS-H20): after the last block the run is in its long break; it says so, and finishing now ticks the task. */}
+      {finalBreak && <p className="pomodoro-final" role="status">Every block is done{run.grown ? ` (${plural(run.grown, 'block')} grown)` : ''}. This is your long break{run.taskTitle && tickOnEnd(run) ? `; “${run.taskTitle}” is marked done when it ends` : ''}.</p>}
       <div className="pomodoro-actions">
-        {phase.kind !== 'work' && <button type="button" className="secondary" onClick={skipPomodoroBreak}>Skip the break</button>}
+        {finalBreak ? <button type="button" className="primary" onClick={skipPomodoroBreak}>{run.taskTitle && tickOnEnd(run) ? `Finish now and mark “${run.taskTitle}” done` : 'Finish now'}</button>
+          : phase.kind !== 'work' && <button type="button" className="secondary" onClick={skipPomodoroBreak}>Skip the break</button>}
         <button type="button" className="secondary" onClick={stopPomodoro}>End the run</button>
       </div>
       {(run.grown + run.withered > 0) && <p className="fine">So far: {plural(run.grown, 'block')} grown{run.withered ? `, ${formatNumber(run.withered)} withered (kept)` : ''}.</p>}
     </> : last ? <div className="pomodoro-result" role="status">
-      <p>{last.endedEarly ? 'Run ended.' : 'Run finished.'} {plural(last.grown, 'block')} grown{last.withered ? `, ${formatNumber(last.withered)} withered and kept` : ''}, in your garden.</p>
-      {last.ticked && last.taskTitle && <p>Marked “{last.taskTitle}” done. <button type="button" className="text-link" onClick={undoPomodoroTick}>Undo</button></p>}
+      <p>{last.endedEarly ? 'Run ended.' : 'Run finished.'} {last.grown + last.withered === 0 ? (last.endedEarly ? 'No block reached a minute, so no focus time was kept.' : 'No block was kept.') : <>{plural(last.grown, 'block')} grown{last.withered ? `, ${formatNumber(last.withered)} withered and kept (the time you did focus counts)` : ''}, in your garden.</>}</p>
+      {last.ticked && last.taskTitle && <p>Marked “{last.taskTitle}” done. Undo is in the message at the bottom of the screen.</p>}
+      {!last.ticked && last.taskTitle && last.endedEarly && <p className="fine">“{last.taskTitle}” stays open: a run ended early does not mark it done.</p>}
       <div className="pomodoro-actions"><button type="button" className="secondary" onClick={dismissPomodoroResult}>Start another</button>{onClose && <button type="button" className="quiet" onClick={() => { dismissPomodoroResult(); onClose(); }}>Close</button>}</div>
     </div> : <>
       <div className="pomodoro-settings" role="group" aria-label="Pomodoro lengths">
@@ -68,7 +86,7 @@ export function PomodoroPanel({task, goalId, onClose, heading = 'h3'}: {task?: {
       </div>
       <p className="fine">{plural(settings.cycles, 'block')} of {formatNumber(settings.work)} minutes, about {formatMinutes(runMinutes(settings))} with the breaks.</p>
       <label className="pomodoro-check"><input type="checkbox" checked={withSound} onChange={e => setSound(e.target.checked)} /><span>Play a focus sound with it (made on this device; it stops when the run ends)</span></label>
-      {task && <label className="pomodoro-check"><input type="checkbox" checked={tickTask} onChange={e => setTick(e.target.checked)} /><span>Mark “{task.title}” done when the run finishes (you can undo it)</span></label>}
+      {task && <label className="pomodoro-check"><input type="checkbox" checked={tickTask} onChange={e => setTick(e.target.checked)} /><span>Mark “{task.title}” done when the run finishes, after its last break (you can finish the break early; you can undo it)</span></label>}
       <div className="pomodoro-actions">
         <button type="button" className="primary" onClick={start}>Start the Pomodoro</button>
         {onClose && <button type="button" className="quiet" onClick={onClose}>Close</button>}

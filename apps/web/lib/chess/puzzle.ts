@@ -76,3 +76,25 @@ export async function fetchDailyPuzzle(fetcher: typeof fetch = fetch): Promise<D
   let data: unknown; try { data = JSON.parse(text); } catch { throw new PuzzleError('Lichess sent a puzzle this page cannot read.'); }
   return parseDailyPuzzle(data);
 }
+
+/**
+ * Session AL (BN-183; P-BN-56): the daily puzzle's progress survives a reload in this browser. One record, for the
+ * puzzle last played (`zigoals:chess-puzzle:v1`, this device only, never synced): its id and the moves so far. A record
+ * for another puzzle, or one that does not read, is ignored (the puzzle starts fresh); every move is checked again
+ * against the puzzle on replay, so a damaged record can never put an illegal move on the board.
+ */
+export const PUZZLE_PROGRESS_KEY = 'zigoals:chess-puzzle:v1';
+type Store = Pick<Storage, 'getItem' | 'setItem'>;
+export function readPuzzleProgress(storage: Store | null, puzzle: Pick<DailyPuzzle, 'id'>): PuzzleProgress | null {
+  try {
+    const raw = storage?.getItem(PUZZLE_PROGRESS_KEY); if (!raw) return null;
+    const r = JSON.parse(raw) as {version?: unknown; id?: unknown; progress?: Partial<PuzzleProgress>};
+    if (r?.version !== 1 || r.id !== puzzle.id || !r.progress) return null;
+    const p = r.progress;
+    if (!Array.isArray(p.played) || p.played.length > 64 || !p.played.every(m => typeof m === 'string' && /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(m))) return null;
+    return {played: p.played, mistakes: typeof p.mistakes === 'number' && p.mistakes >= 0 ? Math.floor(p.mistakes) : 0, revealed: p.revealed === true, solved: p.solved === true};
+  } catch { return null; }
+}
+export function savePuzzleProgress(storage: Store | null, puzzle: Pick<DailyPuzzle, 'id'>, progress: PuzzleProgress): void {
+  try { storage?.setItem(PUZZLE_PROGRESS_KEY, JSON.stringify({version: 1, id: puzzle.id, progress})); } catch { /* storage refused: progress lives for this visit */ }
+}

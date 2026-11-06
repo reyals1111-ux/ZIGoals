@@ -3,18 +3,25 @@ import Link from 'next/link';
 import {useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent} from 'react';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
-import {sectionsOf} from '../../lib/checklist/store';
+import {moveWithinSection, sectionsOf} from '../../lib/checklist/store';
 import {orbitGlyph} from '../../lib/checklist/glyphs';
-import {formatTime} from '../../lib/visual-format';
+import {formatClock, formatDate, formatTime} from '../../lib/visual-format';
+import {readReminders} from '../../lib/reminders/store';
+import {getAppStorage} from '../../lib/showcase-storage';
+import {nextHabitDay} from '../../lib/checklist/next-day';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {HABIT_EXTRAS} from '../../lib/habits-extras/schema';
 import {OrbitBanner, orbitTitle} from '../orbit-path/orbit-banner';
 import {OrbitNodeFace} from '../orbit-path/orbit-node';
 import {SwipeRow} from '../swipe/swipe-row';
+import {showStatus} from '../ui/undo-toast';
 import {useDotPress} from './path-view';
 import type {DerivedDot} from '../../lib/checklist/derive';
 import type {PathSection} from '../../lib/path/model';
 // Session AG Polish 2 (owner Part 6a): the List's sections wear the path's own Habits banners, from the Habits page's sheet.
 import '../habits/habits-aa.css';
 import type {ChecklistState} from './use-checklist';
+import {ChecklistTasksToday, ListRowTools} from './list-extras';
 
 /**
  * The List view (P7.17). Session AG Polish (ADR-030 J14; owner Part 7): Todoist's calm, in our design. One section per
@@ -33,6 +40,13 @@ const KEEP_MS = 900;
 export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; onAdd?: (section?: string) => void; arrive?: string | null}) {
   const {panel, setPanel, press, renderPanel, busy} = useDotPress(state);
   const colours = checklistDisplayColours(state.record.data, state.dots);
+  // Session AL (C-DVG-76): a habit's own clock time (set on Habits) on its row while it is still to do: "at 07:30".
+  const extras = useDeviceRecord(HABIT_EXTRAS), habitTimes = extras.loaded && !extras.unreadable ? extras.data.times ?? {} : {};
+  // Session AL fourth pass (C-DVG-76): a reminder time set on Habits shows too ("reminder 07:30"), and a habit not due
+  // today says its next day ("next Fri 6 Nov").
+  const [reminderTimes, setReminderTimes] = useState<Record<string, {time: string}>>({});
+  useEffect(() => { try { setReminderTimes(readReminders(getAppStorage()).data.habits); } catch { /* no reminders shown */ } }, []);
+  const habitsData = state.stores.habits.data, habitsToday = state.stores.habits.today;
   const sections = useMemo(() => sectionsOf(state.record.data), [state.record.data]);
   const groups = sections.map(s => ({id: s.id, label: s.label, dots: state.dots.filter(d => d.section === s.id)})).filter(g => g.dots.length);
   const [folded, setFolded] = useState<Record<string, boolean>>({});
@@ -59,6 +73,17 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const checks = [...(list.current?.querySelectorAll<HTMLElement>('.checklist-row-check') ?? [])].filter(el => el.offsetParent !== null), at = checks.indexOf(e.target as HTMLElement);
     if (at < 0) return;
+    // Session AL fourth pass (LS-H23, C-LS-33): Alt+↑/↓ moves the row within its orbit (the row's More has Move up / down).
+    if (e.altKey && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      e.preventDefault();
+      const id = (e.target as HTMLElement).dataset.step, dot = state.dots.find(d => d.id === id); if (!id || !dot) return;
+      const delta = e.key === 'ArrowUp' ? -1 : 1;
+      let moved = false;
+      try { state.record.update(r => { const next = moveWithinSection(r, id, delta); moved = next !== r; return next; }); } catch { return; }
+      if (moved) showStatus(`${dot.label} moved ${delta < 0 ? 'up' : 'down'}.`);
+      requestAnimationFrame(() => list.current?.querySelector<HTMLElement>(`.checklist-row-check[data-step="${CSS.escape(id)}"]`)?.focus());
+      return;
+    }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); checks[Math.max(0, Math.min(checks.length - 1, at + (e.key === 'ArrowDown' ? 1 : -1)))]?.focus(); return; }
     if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); checks[e.key === 'Home' ? 0 : checks.length - 1]?.focus(); return; }
     if (e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey)) { e.preventDefault(); const id = (e.target as HTMLElement).dataset.step; if (id) setPanel(p => p?.id === id ? null : {id, mode: 'details'}); }
@@ -67,24 +92,29 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     const done = dot.state === 'done', colour = PATH_COLOURS[colours.get(dot.id) ?? dot.colour].token, just = recent.has(dot.id);
     const label = `${dot.label}${dot.note ? `: ${dot.note}` : ''}: ${done ? 'done' : dot.state === 'running' ? 'running' : dot.counted ? 'not done yet' : 'not counted today'}`;
     const kind = KIND_WORD[dot.kind] ?? '', time = done && dot.doneAt ? formatTime(dot.doneAt) : '';
-    const sub = [dot.note, kind, time].filter(Boolean).join(' · ');
+    const habitId = dot.kind === 'habit' ? (dot.item.ref as {habitId?: string} | undefined)?.habitId : undefined, clock = !done && habitId ? habitTimes[habitId] : undefined;
+    const remind = !done && !clock && habitId ? reminderTimes[habitId]?.time : undefined;
+    const habit = habitId && !dot.counted ? habitsData.habits.find(h => h.id === habitId) : undefined, next = habit && habitsToday ? nextHabitDay(habit, habitsToday) : null;
+    const sub = [dot.note, kind, time, clock ? `at ${formatClock(clock)}` : '', remind ? `reminder ${formatClock(remind)}` : '', next ? `next ${formatDate(next, {weekday: true, year: false})}` : ''].filter(Boolean).join(' · ');
     // Session AG Polish 2 (owner Part 6b): the node is the path's own at the path's own size (80, 72 or 62 px), and the
     // button is the node.
     const face = <OrbitNodeFace glyph={orbitGlyph(dot)} just={just}/>, style = {'--node': colour} as CSSProperties;
     const check = dot.intent === 'open' && dot.href
       ? <Link className="checklist-row-check" data-lit={done ? '' : undefined} href={dot.href} aria-label={label} data-step={dot.id} style={style}><span className="checklist-row-node orbit-node" data-lit={done ? '' : undefined} data-just={just ? '' : undefined}>{face}</span></Link>
       : <button type="button" className="checklist-row-check" data-lit={done ? '' : undefined} aria-label={label} aria-pressed={done} aria-expanded={dot.intent === 'value' ? panel?.id === dot.id : undefined} aria-busy={busy === dot.id || undefined} data-state={dot.state} data-step={dot.id} style={style} onClick={() => void press(dot, dot.intent ?? 'tick')}><span className="checklist-row-node orbit-node" data-lit={done ? '' : undefined} data-just={just ? '' : undefined}>{face}</span></button>;
-    const again = dot.intent === 'value' && dot.value && !done;
+    // Session AL (P-LS-18, LS-007): the "+" logs the usual amount, so a weigh-in shows it only after a real weigh-in (with no
+    // history it was "+70 kg", a weight nobody typed); otherwise ⋯ opens the stepper.
+    const again = dot.intent === 'value' && dot.value && !done && !(dot.input === 'weight' && dot.value.current === null);
     const content = <>
       <div className="checklist-row-line">
         {check}
         {/* (The path's name tab, from the node's right-centre to the right, longer, like a step: dark with a coloured edge,
             filled in the node's colour with dark words once done.) */}
-        <span className="checklist-row-text checklist-row-tab" data-lit={done ? '' : undefined} style={{'--node': colour} as CSSProperties}><span className="checklist-row-name" title={dot.label}>{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
+        <span className="checklist-row-text checklist-row-tab" data-lit={done ? '' : undefined} style={{'--node': colour} as CSSProperties}><span className="checklist-row-name" dir="auto" title={dot.label}>{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
         {again && <button type="button" className="checklist-row-plus" aria-label={`Log ${dot.value!.suggested} ${dot.value!.unit} for ${dot.label}`} disabled={busy === dot.id} onClick={() => void state.tick(dot, 'value', dot.value!.suggested)}>+{dot.value!.suggested}<span className="checklist-row-unit"> {dot.value!.unit}</span></button>}
         <button type="button" className="checklist-row-more" aria-label={`More for ${dot.label}`} aria-expanded={panel?.id === dot.id} onClick={() => setPanel(p => p?.id === dot.id ? null : {id: dot.id, mode: dot.intent === 'value' && !done ? 'value' : 'details'})}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg></button>
       </div>
-      {panel?.id === dot.id && <div className="checklist-row-panel">{renderPanel(dot)}</div>}
+      {panel?.id === dot.id && <div className="checklist-row-panel">{renderPanel(dot)}{panel.mode === 'details' && !dot.missing && <ListRowTools state={state} dot={dot}/>}</div>}
     </>;
     return done || dot.intent === 'open'
       ? <li key={dot.id} className="checklist-row" data-state={dot.state} data-counted={dot.counted ? undefined : 'no'}>{content}</li>
@@ -107,5 +137,6 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
         </>}
       </section>;
     })}
+    <ChecklistTasksToday/>
   </div>;
 }

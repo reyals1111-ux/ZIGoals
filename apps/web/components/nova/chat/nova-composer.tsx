@@ -1,15 +1,20 @@
 'use client';
+import Link from 'next/link';
 import {Suspense, forwardRef, lazy, useCallback, useEffect, useId, useRef, useState} from 'react';
 import {readPrivacyMode} from '../../../lib/nova/setup';
+import {noModeCloudNote} from '../../../lib/nova/setup-guide';
+import {PROVIDERS} from '../../../lib/ai/providers';
 import {getAppStorage} from '../../../lib/showcase-storage';
 // Owner follow-up 2 (N9): in Guarded mode, exactly what will be sent shows before it is sent (lane NC's preview, loaded on use).
 const AboutToSend = lazy(() => import('../setup/about-to-send').then(m => ({default: m.AboutToSend})));
-import {INPUT_COUNTER_FROM, MAX_INPUT_CHARS} from '../../../lib/ai/chats';
+// Session AL Part 14 (Z1A-4): what "Ask my Hermes" would send, before it is pressed (loaded on use).
+const HermesPreview = lazy(() => import('./hermes-preview'));
+import {inputCounter, MAX_INPUT_CHARS} from '../../../lib/ai/chats';
 import {AREA_LABELS} from '../../../lib/ai/context/pages';
 import {lastQuestion} from '../../../lib/ai/session';
 import type {AiSettings} from '../../../lib/ai/settings';
 import {browserSpeechDisclosure, detectBrowser} from '../../../lib/ai/voice';
-import {ZIGI_PAGES, type ZigiPage} from '../../../lib/nova/bridge';
+import {NOVA_DRAFT_EVENT, takeNovaDraft, ZIGI_PAGES, type ZigiPage} from '../../../lib/nova/bridge';
 import type {ChatSession} from '../../ai/use-chat-session';
 import {useTalk} from '../../ai/use-talk';
 import {VoiceWaves} from '../../ai/voice-waves';
@@ -29,10 +34,30 @@ type Props = {session: ChatSession; persona: string; settings: AiSettings; sensi
   onSend: (text: string, replace?: string, pasted?: boolean) => void; onDelegate: (text: string, area: ZigiPage, replace?: string, pasted?: boolean) => void; onOpenZigi: (text: string, area: ZigiPage) => void;
   /** Session AK (owner follow-up 3 N11): "Ask my Hermes", shown only once the person's Hermes Agent is connected. */
   onHermes?: (text: string, area: ZigiPage) => void;
+  /** Session AL Part 14 (Z1A-4): the chosen page's records as they would go with "Ask my Hermes" now ('' when none go). */
+  hermesPack?: (area: ZigiPage) => string;
   speechOn: boolean; onSpeech: (on: boolean) => void; onListening: (listening: boolean) => void; onSpoken: () => void};
-export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function NovaComposer({session, persona, settings, sensitive, editing, onEditing, onSend, onDelegate, onOpenZigi, onHermes, speechOn, onSpeech, onListening, onSpoken}, ref) {
+export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function NovaComposer({session, persona, settings, sensitive, editing, onEditing, onSend, onDelegate, onOpenZigi, onHermes, hermesPack, speechOn, onSpeech, onListening, onSpoken}, ref) {
   const [text, setText] = useState(''), [page, setPage] = useState<ZigiPage>('today'), [zigiOpen, setZigiOpen] = useState(false), [speechNote, setSpeechNote] = useState(false);
   const hintId = useId(), zigiId = useId(), pasted = useRef(false);
+  // Session AL Part 14 (DV-070): words typed in NOVA's command field before this box mounted start it, and while the box
+  // holds only those words it follows the field (the person is still typing there); the first key here makes them its own.
+  const fromField = useRef<string | null>(null);
+  useEffect(() => {
+    const take = (next: {text: string; pasted: boolean} | null) => {
+      if (!next) return;
+      setText(current => { if (current && current !== fromField.current) return current; fromField.current = next.text; if (next.pasted) pasted.current = true; return next.text; });
+    };
+    take(takeNovaDraft());
+    const onDraft = (event: Event) => {
+      const detail = (event as CustomEvent<{text: string; pasted: boolean} | null>).detail;
+      if (detail) { takeNovaDraft(); take(detail); return; }
+      // The field emptied or sent its words: the copy here goes too, unless the person typed on in this box.
+      setText(current => current && current === fromField.current ? '' : current); fromField.current = null;
+    };
+    window.addEventListener(NOVA_DRAFT_EVENT, onDraft);
+    return () => window.removeEventListener(NOVA_DRAFT_EVENT, onDraft);
+  }, []);
   const busy = session.status !== 'idle';
   const box = useCallback(() => (ref as {current: HTMLTextAreaElement | null} | null)?.current ?? null, [ref]);
   const editSeq = editing?.seq;
@@ -61,7 +86,8 @@ export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function Nova
   const browser = typeof navigator === 'undefined' ? 'other' : detectBrowser(navigator.userAgent);
   return <form className="nova-composer-wrap" onSubmit={event => { event.preventDefault(); submit(); }}>
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the message and its answer. <button type="button" className="text-link" onClick={clear}>Cancel editing</button></p>}
-    {text.length >= INPUT_COUNTER_FROM && <p className="ai-note" role="status" aria-live="polite">{text.length >= MAX_INPUT_CHARS ? `That is the limit: ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters.` : `${text.length.toLocaleString('en-US')} of ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters`}</p>}
+    {/* Session AL third pass (BN-070): the same counter as ZIGi's box, from 2,000 characters. */}
+    {(() => { const c = inputCounter(text.length); return c && <p className="ai-note" role={c.atLimit ? 'status' : undefined} aria-live={c.atLimit ? 'polite' : undefined}>{c.text}</p>; })()}
     <SecretGuard text={text} onRemove={() => setText('')} chat/>
     {speechNote && !speechOn && <div className="nova-speech-note" role="group" aria-label="Speech input">
       <p>Speech input is off. {browserSpeechDisclosure(browser, false)} ZIGoals never stores the audio, and the microphone is released the moment you stop.</p>
@@ -70,6 +96,8 @@ export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function Nova
     {/* Lane NC: shown whenever the send path changes the message (redacted: a cloud in Guarded, an unconfirmed Hermes in
         Strict or Guarded; refused: a cloud in Strict), with the same names and Hermes rule as the engine's hook. */}
     {(() => { let mode = null as ReturnType<typeof readPrivacyMode>; try { mode = readPrivacyMode(getAppStorage()); } catch { mode = 'strict'; } return mode && mode !== 'relaxed' && text.trim() && settings.enabled && settings.mode !== 'subscription' && settings.provider ? <Suspense fallback={null}><AboutToSend message={text} mode={mode} provider={settings.provider} model={settings.model} baseUrl={settings.baseUrl} assistant={persona} hideWhenSent/></Suspense> : null; })()}
+    {/* Session AL Part 14 (Z1A-I1): no mode chosen with a cloud brain: the chat and the briefs disagree, so it is said here. */}
+    {(() => { if (!text.trim() || !settings.enabled || settings.mode === 'subscription') return null; let mode = null as ReturnType<typeof readPrivacyMode>; try { mode = readPrivacyMode(getAppStorage()); } catch { return null; } const note = noModeCloudNote(mode, settings.provider, settings.provider && settings.provider !== 'local' ? PROVIDERS[settings.provider].name : 'your AI'); return note ? <p className="ai-note nova-no-mode" role="note">{note} <Link className="text-link" href="/app/nova/setup" prefetch={false}>Choose a mode</Link></p> : null; })()}
     <div className="nova-composer">
       <textarea ref={ref} value={text} rows={1} maxLength={MAX_INPUT_CHARS} enterKeyHint="send" autoComplete="off" aria-label={`Message ${persona}`} aria-describedby={hintId} placeholder={`Message ${persona}…`}
         onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }}
@@ -95,6 +123,7 @@ export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function Nova
         {onHermes && <button type="button" className="secondary" disabled={!text.trim() || busy} onClick={() => { const value = text.trim(); if (!value) return; onHermes(value, page); clear(); }} title="Your own Hermes Agent answers here, with that page's records under your privacy mode; any change comes back as a card">Ask my Hermes</button>}
         <button type="button" className="secondary" disabled={!text.trim()} onClick={() => handTo(true)} title="Opens ZIGi on that page with your words in its box; nothing is sent until you press Send there">Open ZIGi on {AREA_LABELS[page]}</button>
         {!text.trim() && <p className="ai-note">Type the question first, then choose where ZIGi looks.</p>}
+        {onHermes && hermesPack && zigiOpen && text.trim() && <Suspense fallback={null}><HermesPreview message={text.trim()} context={hermesPack(page)} mode={(() => { try { return readPrivacyMode(getAppStorage()); } catch { return 'strict' as const; } })()} area={AREA_LABELS[page]}/></Suspense>}
       </div>
     </div>
   </form>;

@@ -1,12 +1,14 @@
 import {habitDay, habitRuleOn, type HabitData} from '../habits';
-import type {GameStores} from './xp';
+import {goalXpEvents, type GameStores} from './xp';
+import {reviewState, reviewWindow} from '../weekly-review/window'; // CI13: not the week summary
 
 /**
  * Daily quests: three a day, picked deterministically from the day and the pages the person shows, each provable from
  * the person's own records (a quest whose proof the app does not keep is never offered). Never a punishment: an unmet
  * quest simply rests at its count. Pages are AA-Cloud's "Your pages & buttons" ids ('habits', 'health', 'goals', …).
  */
-export type QuestDef = {id: string; page: 'habits' | 'health' | 'goals' | 'wealth' | 'today'; title: string; target: number; unit: string; progress: (s: GameStores, today: string) => number};
+export type QuestDef = {id: string; page: 'habits' | 'health' | 'goals' | 'wealth' | 'today'; title: string; target: number; unit: string; progress: (s: GameStores, today: string) => number;
+  /** Session AL (NB-227, NB-229): where the quest is done, so an unmet quest is never a dead end. */ href?: string};
 const dueHabits = (h: HabitData, today: string) => h.habits.filter(x => habitRuleOn(x, today)?.state === 'active' && habitDay(x, today, today).scheduled);
 const doneHabits = (h: HabitData, today: string) => dueHabits(h, today).filter(x => habitDay(x, today, today).status === 'complete');
 export const QUESTS: readonly QuestDef[] = [
@@ -20,16 +22,28 @@ export const QUESTS: readonly QuestDef[] = [
   {id: 'sleep-log', page: 'health', title: 'Log last night', target: 1, unit: 'night', progress: (s, t) => (s.health.sleep?.nights ?? []).some(n => n.end?.slice(0, 10) === t) ? 1 : 0},
   {id: 'meditate', page: 'health', title: 'Take a mindful minute', target: 1, unit: 'session', progress: (s, t) => (s.health.meditation?.sessions ?? []).some(x => x.startedAt.slice(0, 10) === t) ? 1 : 0},
   {id: 'move', page: 'health', title: 'Log some movement', target: 1, unit: 'entry', progress: (s, t) => s.health.activity.some(a => a.date === t) ? 1 : 0},
-  {id: 'goal-step', page: 'goals', title: 'Take a step on a goal', target: 1, unit: 'step', progress: (s, t) => (s.platform?.goalHistory ?? []).some(g => g.capturedAt.slice(0, 10) === t && (g.kind === 'milestone' || g.kind === 'status')) || (s.platform?.contributions ?? []).some(c => c.occurredAt.slice(0, 10) === t && c.direction === 'IN') ? 1 : 0},
-  {id: 'review', page: 'today', title: 'Complete your weekly review', target: 1, unit: 'review', progress: (s, t) => (s.weekly?.reviews ?? []).some(r => r.completedAt?.slice(0, 10) === t) ? 1 : 0},
+  // Session AL (P-NB-01): a step is what earns goal XP today (a milestone ticked, a target reached, a contribution kept), not a close or a reopen.
+  {id: 'goal-step', page: 'goals', title: 'Take a step on a goal', target: 1, unit: 'step', progress: (s, t) => s.platform && goalXpEvents(s.platform, t).some(e => e.day === t) ? 1 : 0},
+  {id: 'review', page: 'today', title: 'Complete your weekly review', target: 1, unit: 'review', href: '/app/review#weekly-reflection', progress: (s, t) => (s.weekly?.reviews ?? []).some(r => r.completedAt?.slice(0, 10) === t) ? 1 : 0},
 ];
 /** A small deterministic hash so the same day always picks the same quests on every device. */
 export function dayHash(day: string, salt = 0): number { let h = 2166136261 ^ salt; for (const ch of day) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; }
 export type Quest = QuestDef & {done: number; complete: boolean};
+/** Session AL (NB-227): the weekly review quest is offered only while this week's review can still be done (or was done today). */
+function reviewQuestOpen(stores: GameStores, today: string): boolean {
+  const weekly = stores.weekly;
+  if (!weekly) return true;
+  if (weekly.reviews.some(r => r.completedAt?.slice(0, 10) === today)) return true;
+  const state = reviewState(weekly, reviewWindow(weekly.weekday, today).weekStart);
+  return state === 'due' || state === 'draft';
+}
 /** The day's three quests from the pages shown (every page when nothing is hidden), rotating by the day; a quest with nothing to prove today is skipped. */
 export function dailyQuests(stores: GameStores, today: string, pages: readonly string[] = ['habits', 'health', 'goals', 'wealth', 'today'], count = 3): Quest[] {
-  const pool = QUESTS.filter(q => pages.includes(q.page) && (q.page !== 'habits' || dueHabits(stores.habits, today).length > 0) && (q.id !== 'habits-morning' || dueHabits(stores.habits, today).some(x => x.timeOfDay === 'morning')));
+  const pool = QUESTS.filter(q => pages.includes(q.page) && (q.page !== 'habits' || dueHabits(stores.habits, today).length > 0) && (q.id !== 'habits-morning' || dueHabits(stores.habits, today).some(x => x.timeOfDay === 'morning')) && (q.id !== 'review' || reviewQuestOpen(stores, today)));
   const picked: QuestDef[] = [], seen = new Set<string>();
+  // Session AL (P-NB-05; NB-248): while a habit is due today, "Complete every habit due today" is always one of the three.
+  const all = pool.find(q => q.id === 'habits-all');
+  if (all && count > 0) { picked.push(all); seen.add(all.id); }
   let i = 0;
   while (picked.length < Math.min(count, pool.length) && i < 50) { const q = pool[dayHash(today, i) % pool.length]!; i++; if (seen.has(q.id)) continue; seen.add(q.id); picked.push(q); }
   return picked.map(q => { const done = q.progress(stores, today); return {...q, done, complete: done >= q.target}; });

@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {bridgePrompt} from '../bridge';
-import {SENTINEL, gatesFor, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
+import {SENTINEL, gatesFor, hasSentinel, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {HEALTH_CLOSED} from '../tools/format';
 import {buildPageContext} from './builders';
 import {consent} from './consent';
@@ -61,7 +61,7 @@ test('Health stays out when its gate is closed: listed as not included, no senti
   expect(water.sources[0]!.label).toBe('About me · 1 note'); expect(water.sources[0]!.text).toContain('Prefers short answers in the morning');
   expect(water.withheld).toEqual([HEALTH_CLOSED]);
   // The control: with the gate open the same question carries the values.
-  expect(questionContext('How much water did I drink today?', s, healthPage(true))!.text).toContain(String(SENTINEL.waterMl));
+  expect(hasSentinel(questionContext('How much water did I drink today?', s, healthPage(true))!.text, SENTINEL.waterMl)).toBe(true);
 });
 test('a removed chip leaves the payload; Settings, sensitive screens and a disconnected ZIGi add nothing', () => {
   const s = showcaseSources(), gates = gatesFor(false, 'today', '/app');
@@ -122,4 +122,12 @@ test('Session AI (A3-r1/A3-r2): someone else\'s records read nothing; a brief br
   expect(questionCalls('Hoeveel weegt mijn vrouw haar laatste meting?', sources, gates)).toEqual([]);
   expect(questionCalls('What was my weight last month?', sources, gates).map(c => c.tool)).toContain('weight');
   for (const ask of ['Read me my morning brief', 'Vertel me mijn ochtendbriefing']) expect(questionCalls(ask, sources, gates).map(c => c.tool), ask).toContain('checklist_today');
+});
+test('CI4: "explain this page" brings the page view only; "page" is a habit measure only when the screen is not named', () => {
+  const view = {route: '/app', area: 'today' as const, page: 'Today', cards: [{id: 'today:habits', label: 'Habits', inView: true, health: false}], healthHidden: 0, focused: null};
+  const sources = showcaseSources(undefined, {pageView: view}), gates = gatesFor(false, 'today', '/app');
+  expect(questionCalls('Explain this page', sources, gates).map(c => c.tool)).toEqual(['page_view']);
+  expect(questionCalls('What is on this page?', sources, gates).map(c => c.tool)).toEqual(['page_view']);
+  // Pages read are still a habit's measure when the question is not about the screen.
+  expect(questionCalls('How many pages did I read this week?', sources, gates).map(c => c.tool)).toContain('habit_stats');
 });

@@ -14,12 +14,15 @@ type Named = {id: string; title: string};
  * below writes a new one (or edits one) and shows its sentence before it is saved. Storage is the caller's
  * (`onSave`/`onRemove` write `zigoals:auto-rules:v1` through lib/auto-rules/engine.ts's mutators); a refusal is shown here.
  */
-export function AutoRulesEditor({rules, habits, goals = [], onSave, onRemove, onPause}: {
+export function AutoRulesEditor({rules, habits, goals = [], onSave, onRemove, onPause, sources = AUTO_SOURCES}: {
   rules: readonly AutoRule[]; habits: readonly Named[]; goals?: readonly {id: string; name: string}[];
+  /** Session AL fourth pass (NB-201): the sources a NEW rule may use (a rule being edited keeps its own). */
+  sources?: readonly AutoSource[];
   onSave: (rule: AutoRule) => void | Promise<void>; onRemove: (ruleId: string) => void | Promise<void>; onPause?: (rule: AutoRule, paused: boolean) => void | Promise<void>;
 }) {
   const id = useId();
-  const [draft, setDraft] = useState<AutoRuleDraft>(() => emptyAutoRuleDraft(habits[0]?.id ?? ''));
+  const fresh = (habitId: string) => { const d = emptyAutoRuleDraft(habitId); return sources.includes(d.source) || !sources.length ? d : draftForSource(d, sources[0]!); };
+  const [draft, setDraft] = useState<AutoRuleDraft>(() => fresh(habits[0]?.id ?? ''));
   const [editing, setEditing] = useState<AutoRule | null>(null);
   const [error, setError] = useState(''), [status, setStatus] = useState(''), [busy, setBusy] = useState(false);
   const habitTitle = (habitId: string) => habits.find(h => h.id === habitId)?.title ?? 'This habit';
@@ -34,7 +37,7 @@ export function AutoRulesEditor({rules, habits, goals = [], onSave, onRemove, on
     event.preventDefault();
     let rule: AutoRule;
     try { rule = ruleFromDraft(draft, new Date(), editing ?? undefined); } catch (cause) { setError(plainErrorMessage(cause, 'Check the rule.')); return; }
-    void act(async () => { await onSave(editing?.paused ? {...rule, paused: true} : rule); setEditing(null); setDraft(emptyAutoRuleDraft(draft.habitId)); }, editing ? 'Rule updated.' : 'Rule added.');
+    void act(async () => { await onSave(editing?.paused ? {...rule, paused: true} : rule); setEditing(null); setDraft(fresh(draft.habitId)); }, editing ? 'Rule updated.' : 'Rule added.');
   }
   const set = (patch: Partial<AutoRuleDraft>) => { setDraft(d => ({...d, ...patch})); setError(''); };
   if (!habits.length) return <section className="auto-rules" aria-labelledby={`${id}-title`}><h3 id={`${id}-title`}>Done automatically</h3><p className="auto-rules-empty">Add a habit first; then a rule can tick it off for you, for example “When steps ≥ 8,000 → Walk is done”.</p></section>;
@@ -51,7 +54,7 @@ export function AutoRulesEditor({rules, habits, goals = [], onSave, onRemove, on
     </li>)}</ul> : <p className="auto-rules-empty">No rules yet. Try “When steps ≥ 8,000 → Walk is done”.</p>}
     <form className="auto-rules-form" onSubmit={save} aria-describedby={`${id}-preview`} noValidate>
       <fieldset><legend>{editing ? 'Edit the rule' : 'Add a rule'}</legend>
-        <label>When<select value={draft.source} onChange={e => set(draftForSource(draft, e.target.value as AutoSource))}>{AUTO_SOURCES.map(s => <option key={s} value={s}>{SOURCE_OPTIONS[s]}</option>)}</select></label>
+        <label>When<select value={draft.source} onChange={e => set(draftForSource(draft, e.target.value as AutoSource))}>{AUTO_SOURCES.filter(s => sources.includes(s) || s === draft.source).map(s => <option key={s} value={s}>{SOURCE_OPTIONS[s]}</option>)}</select></label>
         <label>Rule<select value={draft.comparator} onChange={e => set({comparator: e.target.value as AutoRuleDraft['comparator']})}>
           <option value="at-least">reaches at least</option>
           <option value="recorded">is recorded</option>

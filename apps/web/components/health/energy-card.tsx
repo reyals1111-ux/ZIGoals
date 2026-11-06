@@ -2,7 +2,8 @@
 import {useState} from 'react';
 import {formatNumber} from '../../lib/visual-format';
 import {NebulaFlow} from '../nebula-flow';
-import {energyEstimate, scaledTargets, suggestedTarget, ENERGY_MIN_LOGGED_DAYS, ENERGY_MIN_WEIGHTS} from '../../lib/health-aa/energy';
+import {energyEstimate, scaledTargets, suggestedTarget} from '../../lib/health-aa/energy';
+import {energyProgress} from '../../lib/health-aa/energy-progress';
 import {setHealthTargets, type HealthData} from '../../lib/health';
 import {weightChangeText, type WeightUnit} from '../../lib/health-units';
 import type {HealthPerform} from './aa-types';
@@ -16,10 +17,10 @@ import {ArtNote} from '../illustrations/art-note';
  */
 export function EnergyCard({data, today, unit, perform}: {data: HealthData; today: string; unit: WeightUnit; perform: HealthPerform}) {
   const e = energyEstimate(data, today), [pace, setPace] = useState<'-0.5' | '-0.25' | '0' | '0.25'>('0'), [confirm, setConfirm] = useState(false);
-  const kcal = suggestedTarget(e, Number(pace));
+  const kcal = suggestedTarget(e, Number(pace)), waiting = energyProgress(e);
   return <section id="health-energy" className="panel health-aa-card" aria-labelledby="energy-title">
-    <p className="eyebrow">Adaptive</p><h2 id="energy-title"><NebulaFlow identity="energy-title">Energy estimate</NebulaFlow></h2>
-    {e.implausible ? <><p className="health-empty-inline">Your logs for the last {e.windowDays} days look incomplete (an average intake under 800 or over 6,000 kcal, or a weight trend faster than 1.5 kg a week), so no estimate is shown. Check the diary and weights.</p><span className="health-estimate-tag">an estimate, not medical advice</span></> : !e.ready ? <><ArtNote pillar="health"><p className="health-empty-inline">Needs about two weeks of logs: {e.loggedDays} of {ENERGY_MIN_LOGGED_DAYS} logged days and {e.weights} of {ENERGY_MIN_WEIGHTS} weight readings in the last {e.windowDays} days so far.</p></ArtNote><span className="health-estimate-tag">an estimate, not medical advice</span></> : <>
+    <p className="eyebrow">Adaptive</p><h2 id="energy-title"><NebulaFlow identity="energy-title">Maintenance estimate</NebulaFlow>{/* Session AL (P-DV-120, DV-280): not "Energy", which the Journal uses for how you feel */}</h2>
+    {e.implausible ? <><p className="health-empty-inline">Your logs for the last {e.windowDays} days look incomplete (an average intake under 800 or over 6,000 kcal, or a weight trend faster than 1.5 kg a week), so no estimate is shown. Check the diary and weights.</p><span className="health-estimate-tag">an estimate, not medical advice</span></> : !e.ready ? <><ArtNote pillar="health"><p className="health-empty-inline">{/* Session AL (P-PR-23, PR-020/PR-097): the same count as the coach and the highlight tile ("27 of 14 logged days" read as missing days) */}Needs about two weeks of logs: {waiting.figure} so far, {waiting.note}.</p></ArtNote><span className="health-estimate-tag">an estimate, not medical advice</span></> : <>
       <p className="health-big">{e.expenditure}<small>kcal a day, about {e.low}–{e.high}</small></p>
       <dl className="health-aa-facts"><div><dt>Logged intake</dt><dd>{e.meanIntake === null ? null : formatNumber(e.meanIntake)} kcal/day</dd></div><div><dt>Trend change</dt><dd>{weightChangeText(Math.round((e.weeklyChangeGrams ?? 0) / 100) * 100, unit)}/week</dd></div><div><dt>Read</dt><dd>{e.loggedDays} days · {e.weights} weights</dd></div></dl>
       <span className="health-estimate-tag">an estimate, not medical advice</span>

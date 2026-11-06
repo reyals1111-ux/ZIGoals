@@ -1,5 +1,6 @@
 'use client';
 import {useEffect, useId, useMemo, useState} from 'react';
+import {parseNumberInput} from '../../../lib/numbers/parse';
 import type {HealthData} from '../../../lib/health';
 import {COMPARE_PAIR} from '../../../lib/compare/schema';
 import {compare, factorOptions, isScaleOutcome, outcomeOptions, outcomeText, spendBasis, type CompareResult, type CompareSources, type Lag, type OutcomeId} from '../../../lib/compare/engine';
@@ -40,6 +41,8 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
   const outcomeId = (outcomes.find(o => o.id === saved.outcome)?.id ?? outcomes[0]?.id ?? null) as OutcomeId | null;
   const lag: Lag = saved.lag ?? 'same';
   const [amountText, setAmountText] = useState<string | null>(null);
+  // Session AL (PRIMITIVES 3f): the amount is read like every other number field (decimal comma, grouping), and a refusal is said.
+  const [amountError, setAmountError] = useState('');
   const amount = saved.amount ?? basis?.usual;
   const result = useMemo(() => factorId && outcomeId ? compare(src, factorId, outcomeId, lag, today, amount) : null, [src, factorId, outcomeId, lag, today, amount]);
   const choose = (change: Partial<{factor: string; outcome: string; lag: Lag; amount: number}>) => {
@@ -60,8 +63,8 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
         </select>
       </label>
       {factorId === 'spend' && basis && <label className="field"><span>Spending above ({basis.currency})</span>
-        <input inputMode="decimal" value={amountText ?? String(amount ?? '')} onChange={e => setAmountText(e.target.value)} onBlur={() => { const v = Number((amountText ?? '').replace(',', '.')); if (amountText !== null && Number.isFinite(v) && v >= 0) choose({amount: Math.round(v * 100) / 100}); setAmountText(null); }}/>
-        <small className="fine">Your usual day: {basis.usual} {basis.currency}. Days with nothing in your money log are left out.</small>
+        <input inputMode="decimal" value={amountText ?? String(amount ?? '')} aria-invalid={amountError ? true : undefined} onChange={e => { setAmountText(e.target.value); setAmountError(''); }} onBlur={() => { if (amountText === null) return; const v = parseNumberInput(amountText); if (v.ok) { choose({amount: Math.round(v.value * 100) / 100}); setAmountText(null); } else setAmountError(v.error); }}/>
+        {amountError && <small role="alert">{amountError}</small>}<small className="fine">Your usual day: {basis.usual} {basis.currency}. Days with nothing in your money log are left out.</small>
       </label>}
       <label className="field"><span>…what was</span>
         <select value={outcomeId ?? ''} onChange={e => { const v = e.target.value; if (outcomes.some(o => o.id === v)) choose({outcome: v}); }}>

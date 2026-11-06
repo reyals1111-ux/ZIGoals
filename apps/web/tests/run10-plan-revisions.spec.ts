@@ -12,15 +12,16 @@ test('plan edits retain earlier terms, show explicit installments and survive re
  await expect(planModule.getByLabel('New terms effective from')).toHaveValue(tomorrow);
  await planModule.getByLabel('Planned amount',{exact:true}).fill('200');
  await planModule.getByRole('button',{name:'Save contribution plan',exact:true}).click();
- const history=page.getByRole('region',{name:'Retained plan terms'});
+// Session AL (COPY_AUDIT §4, deliberate; DV-033e): the plan copy is "Earlier plan terms", "Planned payments", "Price of one <unit> in <currency>".
+ const history=page.getByRole('region',{name:'Earlier plan terms'});
  await expect(history).toContainText('100 USD');await expect(history).toContainText('200 USD');
- await expect(page.getByRole('region',{name:'Plan installments'})).toContainText('100 USD');
+ await expect(page.getByRole('region',{name:'Planned payments'})).toContainText('100 USD');
  await page.reload();await expect(history).toContainText('200 USD');
  await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();
  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Cash',exact:true}).click();await dialog.getByLabel('Cash amount',{exact:true}).fill('40');await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();
  await dialog.getByLabel('Match a retained installment (optional)').selectOption({label:`${formatDate(today)} · 100 USD remaining`}); /* Session AD item 8 (deliberate): the medium date */
  await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await expect(dialog).toHaveCount(0);
- await expect(page.getByRole('region',{name:'Plan installments'})).toContainText('60 USD remaining');
+ await expect(page.getByRole('region',{name:'Planned payments'})).toContainText('60 USD remaining');
  await page.setViewportSize({width:320,height:900});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await planModule.screenshot({path:info.outputPath(`financial-plan-320-${info.project.name}.png`)});
 });

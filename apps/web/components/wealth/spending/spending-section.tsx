@@ -3,6 +3,7 @@ import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type FormEv
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatDate} from '../../../lib/visual-format';
+import {moneyCents} from '../money-tools/format';
 import {amountIssue, dateIssue} from '../../../lib/limits/plausibility';
 import {addEntry, byCategory, fromCents, monthOf, removeEntry, roomToSpend, totals, weekOf} from '../../../lib/money-log/engine';
 import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, MONEY_LOG, amountText, type MoneyEntry} from '../../../lib/money-log/schema';
@@ -23,6 +24,8 @@ import {amountProblem, resolveAmountText} from '../../../lib/money-calc/expressi
 import {CalcHint} from '../../money-calc/calc-hint';
 import {MONEY_DRAFT_EVENT, type MoneyDraft} from '../../money-photos/draft-event';
 import '../../money-select/money-select.css';
+import {parseNumberInput} from '../../../lib/numbers/parse';
+import {removeWithUndo} from '../../ui/remove-with-undo';
 const SpendingMap = lazy(() => import('../../spending-map/spending-map'));
 
 /**
@@ -31,8 +34,8 @@ const SpendingMap = lazy(() => import('../../spending-map/spending-map'));
  * figure is the person's own entries in their own currency, never converted; no advice and no projection.
  */
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF'] as const;
-const money = (cents: number, currency: string) => new Intl.NumberFormat('en-GB', {style: 'currency', currency}).format(cents / 100);
-const readAmount = (raw: string): string | null => { const resolved = resolveAmountText(raw); if (resolved === null) return null; const v = resolved.trim().replace(/\s/g, '').replace(',', '.'); return amountText.safeParse(v).success ? Number(v).toFixed(2) : null; };
+const money = (cents: number, currency: string) => moneyCents(cents, currency); // Session AL (PRIMITIVES 3f): the one format layer
+const readAmount = (raw: string): string | null => { const resolved = resolveAmountText(raw); if (resolved === null) return null; const r = parseNumberInput(resolved), v = r.ok ? r.text : resolved.trim(); /* Session AL (PRIMITIVES 3f) */ return amountText.safeParse(v).success ? Number(v).toFixed(2) : null; };
 /** Session AK (#19): why a typed sum cannot be saved, in its own words; lane EXF (EX-9): also a plain amount that is too large. */
 const sumProblem = amountProblem;
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
@@ -40,7 +43,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
   const [kind, setKind] = useState<'expense' | 'income'>('expense'), [amount, setAmount] = useState(''), [category, setCategory] = useState<string>('Food & drink');
   const [note, setNote] = useState(''), [date, setDate] = useState(today), [problem, setProblem] = useState(''), [status, setStatus] = useState('');
-  const [undo, setUndo] = useState<MoneyEntry | null>(null), [budgetDraft, setBudgetDraft] = useState<string | null>(null);
+  const [budgetDraft, setBudgetDraft] = useState<string | null>(null);
   // Session AK RB (RELEASE_REVIEW_2 R2-8): the entry form and the weekly budget open from their buttons (an empty Wealth
   // showed both forms in full). Once open the entry form stays open for the next entry; a receipt draft opens it.
   const [logging, setLogging] = useState(false), [budgeting, setBudgeting] = useState(false), logButton = useRef<HTMLButtonElement>(null);
@@ -66,8 +69,8 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     try { log.update(current => addEntry(current, entry)); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
     setAmount(''); setNote(''); setStatus(`${kind === 'expense' ? 'Spent' : 'Received'} ${money(Math.round(Number(value) * 100), chosen)} · ${entry.category} · saved${byRule ? ' (set by one of your rules)' : ''}.`);
   };
-  const remove = (entry: MoneyEntry) => { try { log.update(current => removeEntry(current, entry.id)); setUndo(entry); setStatus('Removed.'); } catch { setStatus('This could not be removed on this device.'); } };
-  const undoRemove = () => { if (!undo) return; try { log.update(current => addEntry(current, undo)); setStatus('Put back.'); } catch { setStatus('This could not be put back.'); } setUndo(null); };
+  // Session AL (3e): the one Undo toast; its restore puts the entry back in the LATEST money log (removeWithUndo).
+  const remove = (entry: MoneyEntry) => { setStatus(''); void removeWithUndo(log.update, current => removeEntry(current, entry.id), `Removed: ${entry.category} ${money(Math.round(Number(entry.amount) * 100), entry.currency)}.`, 'Put back.').catch(() => setStatus('This could not be removed on this device.')); };
   const saveBudget = (event: FormEvent) => {
     event.preventDefault();
     const raw = budgetDraft ?? '';
@@ -139,7 +142,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         <div className="spending-form-actions"><button type="submit" className="primary">Save</button><button type="button" className="quiet" onClick={() => { setLogging(false); setProblem(''); requestAnimationFrame(() => logButton.current?.focus()); }}>Done</button></div>
       </form>}
     </div>
-    <p className="spending-status" role="status" aria-live="polite">{status}{undo && <> <button type="button" className="text-link" onClick={undoRemove}>Undo</button></>}</p>
+    <p className="spending-status" role="status" aria-live="polite">{status}</p>
     <div className="spending-lists">
       <section aria-labelledby={`${id}-week`}>
         <div className="money-select-head"><h3 id={`${id}-week`}>This week</h3>

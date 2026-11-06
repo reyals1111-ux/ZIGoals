@@ -32,7 +32,9 @@ export function automaticSourcePosition(input:AutomaticSourceInput,id=crypto.ran
  });
 }
 
+/** Session AL (DV-145): the field says what a person holds — shares, or units of a metal's tokenized reference — never "RWA". */
 export function automaticUnitLabel(asset:MarketCatalogAsset):string{
- return asset.ref.kind==='rwa'?'CoinGecko tokenized RWA reference units':'Asset quantity';
+ if(asset.ref.kind!=='rwa')return 'Asset quantity';
+ return asset.ref.assetType==='commodity'?'Reference units you hold':'Shares you hold';
 }
 

@@ -11,9 +11,10 @@ describe('the day line', () => {
     expect(dayFacts(full)).toEqual(['Meditate next', '3 habits left', '800 mL of water to go']);
     expect(dayFacts(full)).toHaveLength(DAY_LINE_MAX);
     expect(dayLine(full)).toBe('Meditate next · 3 habits left · 800 mL of water to go');
-    expect(dayLine(day({habitsLeft: 1, waterToGoMl: 1200, bill: {title: 'Rent', due: '2026-11-01'}}))).toBe('1 habit left · 1.2 L of water to go · Rent due today');
+    // Lane L8f (Part 13, deliberate): water in Health's own words (waterText): "1,200 mL", whole US fluid ounces.
+    expect(dayLine(day({habitsLeft: 1, waterToGoMl: 1200, bill: {title: 'Rent', due: '2026-11-01'}}))).toBe('1 habit left · 1,200 mL of water to go · Rent due today');
     expect(dayLine(day({bill: {title: 'Energy', due: '2026-11-04'}}))).toBe('Energy due in 3 days');
-    expect(dayLine(day({waterToGoMl: 500, waterUnit: 'fl-oz-us'}))).toBe('16.9 fl oz of water to go');
+    expect(dayLine(day({waterToGoMl: 500, waterUnit: 'fl-oz-us'}))).toBe('17 fl oz of water to go');
   });
   it('unknown is not zero: a value that could not be read is left out, and nothing is guessed', () => {
     expect(dayLine(base)).toBeNull();

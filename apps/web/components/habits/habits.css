@@ -115,6 +115,10 @@
  * shine (tests/motion-arrival.spec.ts). Desktop keeps the button in the hero. */
 .habit-overview-actions { margin: 0; }.habit-overview-actions .habit-vacation-button { min-height: 44px; }
 /* Session W Part 10: habit ideas, stacks shown together, challenges and patterns. */
+/* Session AL fourth pass (NB-072): the ideas panel scrolls to its top with room above it (the phone top bar is fixed). */
+.habit-ideas { scroll-margin-top: 88px; }
+.habit-ideas-head h2:focus { outline: none; }
+.habit-ideas-head h2:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .habit-ideas-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .habit-ideas-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 0; }
 .habit-ideas-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 0; border-top: 1px solid #a6c1fa20; }
@@ -157,3 +161,36 @@
 .habit-empty-ideas { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 14px; width: 100%; }
 .habit-empty-ideas > button { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 44px; text-align: start; }
 .habit-empty-ideas > button small { font-size: 13px; font-weight: 500; opacity: .85; }
+/* Session AL (DV-188b, P-DV-123): the Health rule reads as one line per choice at any width, never stacked and centred
+   by the form's own label styles. */
+.habit-editor .habit-health-link-rule label { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-items: center; text-align: start; }
+.habit-editor .habit-health-link-rule label > input[type="radio"] { flex: 0 0 auto; width: 22px; }
+.habit-editor .habit-health-link-rule label > input[type="text"] { flex: 0 0 auto; width: 7.5rem; }
+.habit-quit-note { margin: 0; align-self: center; }
+/* Session AL (LS-054, P-LS-67): the one-time question before a second habit with the same name. */
+.habit-same-name { display: grid; gap: 8px; margin: 8px 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border-subtle, #ffffff2e); background: var(--surface-raised, #ffffff0a); }
+.habit-same-name p { margin: 0; font-size: 15px; line-height: 1.5; }
+.habit-same-name .actions button { min-height: 44px; }
+/* Session AL (R16): the Habit journal timezone is a quiet fold under the page's footnote (Settings → Your time zone holds
+   the same choice), not a panel of its own. */
+.habit-timezone { margin: 4px 0 0; padding: 0; }
+.habit-timezone > summary { display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; font-size: 15px; color: var(--text-secondary); }
+.habit-timezone[open] > form { display: grid; gap: 8px; max-width: 520px; padding: 12px 0; }
+/* Session AL (GAP-085): the bar above one habit's own page. */
+.habit-page-bar { display: grid; gap: 4px; margin: 0 0 12px; }
+.habit-page-bar .habit-page-title { margin: 0; font-size: 22px; }
+.habit-page-bar .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+/* Session AL (GAP-086): notes and moods from check-ins, searchable. */
+.habit-reflections-fold > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-weight: 650; }
+.habit-reflections { display: grid; gap: 10px; padding-top: 8px; }
+.habit-reflection-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.habit-reflection-list li { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border-subtle, #ffffff1f); }
+.habit-reflection-head { margin: 0; font-size: 15px; color: var(--text-secondary); }
+.habit-reflection-note { margin: 4px 0 0; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-line; }
+/* Session AL fourth pass (PR-010): the streak's "today is still open" line under its label. */
+.habit-metrics .habit-streak-open { display: block; margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--text-secondary); }
+/* Session AL fourth pass (NB-071): on a wide card the square cells grew to 119 px (a 781 px calendar); the month keeps a
+   reading width instead, every cell still at least 44 px. */
+.habit-calendar, .habit-calendar-heading { max-width: 460px; }
+/* Session AL fourth pass (MO-123): a linked habit's "counting from Health" line, as the automatic-tick note reads. */
+.habit-health-so-far { flex-basis: 100%; margin: 0; font-size: 15px; line-height: 1.4; color: var(--text-secondary); }

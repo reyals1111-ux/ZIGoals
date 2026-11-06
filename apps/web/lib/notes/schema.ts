@@ -57,6 +57,8 @@ export const NOTES: DeviceRecordSpec<Notes> = {key: NOTES_KEY, schema: notesSche
 /** The characters a record holds (titles and bodies), for the total cap. */
 export const totalChars = (notes: readonly Pick<Note, 'title' | 'body'>[]) => notes.reduce((n, x) => n + x.title.length + x.body.length, 0);
 /** A note's name on screen and in links: its title, else its first line, else "Untitled note". */
+/** Session AL (DV-192, P-DV-16): a note's name cut to 40 characters, for a toast or a status line that echoes it. */
+export const shortNoteName = (note: Pick<Note, 'title' | 'body' | 'kind' | 'day'>): string => { const n = noteName(note); return n.length > 40 ? `${n.slice(0, 39).trimEnd()}…` : n; };
 export function noteName(note: Pick<Note, 'title' | 'body' | 'kind' | 'day'>): string {
   if (note.title.trim()) return note.title.trim();
   const first = note.body.split('\n').map(l => l.replace(/^#+\s*|^[-*]\s+(\[[ xX]\]\s+)?/, '').trim()).find(Boolean);

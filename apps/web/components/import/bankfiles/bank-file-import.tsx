@@ -1,7 +1,7 @@
 'use client';
 import {useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
-import {formatDate} from '../../../lib/visual-format';
+import {formatCurrencyAmount, formatDate} from '../../../lib/visual-format';
 import {MONEY_LOG, type MoneyLog} from '../../../lib/money-log/schema';
 import {BANK_FILE_TOO_LARGE, FORMAT_LABELS, MAX_BANK_FILE_BYTES, addEntries, alreadyLogged, decodeBankFile, parseBankFile, removeEntries, toMoneyEntries, type BankStatement, type BankTransaction, type RefusedRow} from '../../../lib/bankfiles';
 import './bankfiles.css';
@@ -17,7 +17,8 @@ import {MONEY_REVIEW, markForReview} from '../../../lib/money-review/review';
  * possible repeats and rows already in the log (both left out unless the person ticks them back in). Nothing is added
  * until the person confirms, and the last import can be undone. Lazy-loaded by the import sheet.
  */
-const money = (amount: string, currency: string) => { try { return new Intl.NumberFormat('en-GB', {style: 'currency', currency}).format(Number(amount)); } catch { return `${amount} ${currency}`; } };
+/** Session AL (PRIMITIVES 3f): the one format layer (display locale; USD/EUR as money, other codes as the file wrote them). */
+const money = (amount: string, currency: string) => formatCurrencyAmount(amount, currency);
 const PREVIEW_ROWS = 200;
 
 export type BankImportViewProps = {log: Pick<MoneyLog, 'entries'>; onAdd: (rows: BankTransaction[]) => {added: number; refused: RefusedRow[]}; onUndo?: () => void; rules?: readonly MoneyRule[]};

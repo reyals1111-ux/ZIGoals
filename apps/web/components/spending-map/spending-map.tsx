@@ -3,7 +3,8 @@ import {useEffect, useId, useMemo, useRef, useState, type KeyboardEvent} from 'r
 import type {MoneyEntry} from '../../lib/money-log/schema';
 import {entryParts} from '../../lib/money-split/parts';
 import {labelled, spendingMaps, squarify} from '../../lib/spending-map/layout';
-import {formatDate, formatNumber} from '../../lib/visual-format';
+import {formatDate, formatPercent} from '../../lib/visual-format';
+import {moneyCents} from '../wealth/money-tools/format';
 import './spending-map.css';
 
 /**
@@ -12,7 +13,8 @@ import './spending-map.css';
  * that shows that category's entries below; the table beside it always lists every category (a label too small for its
  * rectangle is only in the table), so the map is never the only way to read it. No motion. Loaded on "Map" only.
  */
-const money = (cents: number, currency: string) => { try { return new Intl.NumberFormat('en-GB', {style: 'currency', currency}).format(cents / 100); } catch { return `${(cents / 100).toFixed(2)} ${currency}`; } };
+/** Session AL (PRIMITIVES 3f): money and shares through the one format layer (was a fixed en-GB formatter). */
+const money = (cents: number, currency: string) => moneyCents(cents, currency);
 const TONES = ['violet', 'cyan', 'pink'] as const;
 export default function SpendingMap({entries, from, to}: {entries: readonly MoneyEntry[]; from: string; to: string}) {
   const id = useId(), box = useRef<HTMLDivElement>(null), [width, setWidth] = useState(600);
@@ -37,10 +39,10 @@ export default function SpendingMap({entries, from, to}: {entries: readonly Mone
           {rects.map((r, i) => {
             const row = m.rows.find(x => x.category === r.id)!, active = chosen?.currency === m.currency && chosen.category === r.id;
             return <g key={r.id} className={`spending-map-cell tone-${TONES[i % TONES.length]}${active ? ' is-chosen' : ''}`} role="button" tabIndex={0} aria-pressed={active}
-              aria-label={`${r.id}: ${money(row.total, m.currency)}, ${formatNumber(Math.round(row.share * 100))}% of this month's ${m.currency} spending. Show its entries`}
+              aria-label={`${r.id}: ${money(row.total, m.currency)}, ${formatPercent(row.share * 100)} of this month's ${m.currency} spending. Show its entries`}
               onClick={() => choose(m.currency, r.id)} onKeyDown={e => keys(e, m.currency, r.id)}>
               <rect x={r.x + 1} y={r.y + 1} width={Math.max(0, r.w - 2)} height={Math.max(0, r.h - 2)} rx={8}/>
-              {labelled(r) && <text x={r.x + 10} y={r.y + 22} aria-hidden="true"><tspan className="spending-map-name">{r.id.length > Math.floor(r.w / 9) ? `${r.id.slice(0, Math.max(3, Math.floor(r.w / 9) - 1))}…` : r.id}</tspan><tspan x={r.x + 10} dy={20}>{formatNumber(Math.round(row.share * 100))}%</tspan></text>}
+              {labelled(r) && <text x={r.x + 10} y={r.y + 22} aria-hidden="true"><tspan className="spending-map-name">{r.id.length > Math.floor(r.w / 9) ? `${r.id.slice(0, Math.max(3, Math.floor(r.w / 9) - 1))}…` : r.id}</tspan><tspan x={r.x + 10} dy={20}>{formatPercent(row.share * 100)}</tspan></text>}
             </g>;
           })}
         </svg>
@@ -49,7 +51,7 @@ export default function SpendingMap({entries, from, to}: {entries: readonly Mone
           <thead><tr><th scope="col">Category</th><th scope="col">Spent</th><th scope="col">Share</th><th scope="col">Entries</th></tr></thead>
           <tbody>{m.rows.map(r => <tr key={r.category}>
             <th scope="row"><button type="button" className="text-link" aria-pressed={chosen?.currency === m.currency && chosen.category === r.category} onClick={() => choose(m.currency, r.category)}>{r.category}</button></th>
-            <td>{money(r.total, m.currency)}</td><td>{formatNumber(Math.round(r.share * 100))}%</td><td>{r.count}</td>
+            <td>{money(r.total, m.currency)}</td><td>{formatPercent(r.share * 100)}</td><td>{r.count}</td>
           </tr>)}</tbody>
         </table>
       </section>;

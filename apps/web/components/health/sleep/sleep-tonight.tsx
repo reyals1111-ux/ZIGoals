@@ -1,9 +1,11 @@
 'use client';
 import {useState, type FormEvent} from 'react';
-import {SHORTEST_SLEEP_MS, deleteNight, endNight, inBedMinutes, runningNights, startNight, wakeGreeting} from '../../../lib/sleep/engine';
+import {deleteNight, endNight, inBedMinutes, runningNights, startNight, wakeGreeting} from '../../../lib/sleep/engine';
 import {MAX_NIGHT_MINUTES, type SleepNight} from '../../../lib/sleep/schema';
 import {formatMinutes, instantAt, wallClock} from '../../../lib/zone-time';
 import type {SleepStore} from './use-sleep';
+import {tooShortText, tooShortToSave} from '../../../lib/health-timer-rules';
+import {defaultWakeFor} from '../../../lib/health-sleep-form';
 import {formatDate, formatTime} from '../../../lib/visual-format';
 
 const message = (error: unknown) => error instanceof Error && error.message ? error.message : 'Could not save. Try again.';
@@ -11,6 +13,8 @@ const message = (error: unknown) => error instanceof Error && error.message ? er
 function EndAt({store, night, onDone}: {store: SleepStore; night: SleepNight; onDone: (text: string) => void}) {
   const [error, setError] = useState('');
   const started = wallClock(Date.parse(night.start), night.timeZone);
+  // Session AL (NB-139, for L3): 07:00 the morning after, never later than now (it was 07:00 on the start's own date).
+  const [wake] = useState(() => defaultWakeFor(Date.parse(night.start), Date.now(), night.timeZone));
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); setError('');
     const form = new FormData(e.currentTarget), date = String(form.get('date') ?? ''), time = String(form.get('time') ?? '');
@@ -21,8 +25,8 @@ function EndAt({store, night, onDone}: {store: SleepStore; night: SleepNight; on
   return <form className="sleep-end-at" onSubmit={submit} aria-label={`When did the night from ${formatDate(started.date)} ${formatTime(night.start, {timeZone: night.timeZone})} end?`}>
     <p>A night started on {formatDate(started.date)} at {formatTime(night.start, {timeZone: night.timeZone})} is still open. When did you wake up?</p>
     <div className="sleep-form-row">
-      <label className="field">Woke up (date)<input type="date" name="date" required defaultValue={started.date}/></label>
-      <label className="field">Woke up (time)<input type="time" name="time" required defaultValue="07:00"/></label>
+      <label className="field">Woke up (date)<input type="date" name="date" required defaultValue={wake.date}/></label>
+      <label className="field">Woke up (time)<input type="time" name="time" required defaultValue={wake.time}/></label>
     </div>
     {error && <p role="alert">{error}</p>}
     <button type="submit" className="secondary">Save the wake time</button>
@@ -43,7 +47,8 @@ export function SleepTonight({store, onDone}: {store: SleepStore; onDone: (text:
   }
   function wakeUp(night: SleepNight) {
     const now = new Date();
-    if (now.getTime() - Date.parse(night.start) < SHORTEST_SLEEP_MS) void act(s => s.nights.some(n => n.id === night.id) ? deleteNight(s, night.id) : s, 'Stopped after less than ten minutes, so nothing was saved.');
+    // Session AL (PR-018): the one timer rule (lib/health-timer-rules.ts), the same words as the Checklist and the fast.
+    if (tooShortToSave('sleep', now.getTime() - Date.parse(night.start))) void act(s => s.nights.some(n => n.id === night.id) ? deleteNight(s, night.id) : s, tooShortText('sleep'));
     else void act(s => endNight(s, night.id, now), `${wakeGreeting(now.getTime(), night.timeZone)} Your night is saved.`);
   }
   return <div className="sleep-tonight">

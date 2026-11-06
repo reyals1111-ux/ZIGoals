@@ -1,4 +1,4 @@
-import {habitCalendarDay,habitDataSchema,habitInputSchema,latestHabitRule,ruleSchema,type Habit,type HabitData,type HabitInput,type HabitRule,type HabitState} from './habits';
+import {habitCalendarDay,habitDataSchema,habitDay,habitInputSchema,habitRuleOn,latestHabitRule,ruleSchema,type Habit,type HabitData,type HabitInput,type HabitRule,type HabitState} from './habits';
 import {localDate,addLocalDays} from './local-date';
 export function habitById(data:HabitData,id:string){const h=data.habits.find(h=>h.id===id);if(!h)throw Error('Habit unavailable.');return h;}
 export function replace(data:HabitData,h:Habit):HabitData{return habitDataSchema.parse({...data,habits:data.habits.map(x=>x.id===h.id?h:x)});}
@@ -9,17 +9,40 @@ export function habitEditFingerprint(h:Habit){const {entries,timer,timerReceipts
  * check-in, no timer), so a habit made by mistake can be archived and deleted at once, and an edit can start today.
  */
 export function earliestHabitChange(h:Habit,today=localDate(),{allowToday=false}:{allowToday?:boolean}={}){const free=allowToday&&!h.entries.some(e=>e.date===today)&&h.timer?.date!==today;return [free?today:addLocalDays(today,1),latestHabitRule(h).from].sort().at(-1)!;}
-function checkChange(h:Habit,from:string,today:string,expected?:string){if(expected!==undefined&&expected!==habitEditFingerprint(h))throw Error('This Habit changed while you were editing. Reopen it and review the latest rule.');if(from<earliestHabitChange(h,today,{allowToday:true}))throw Error('Choose today (when nothing is recorded yet) or a later day, on or after the latest scheduled rule.');}
+/**
+ * Session AL sweep 3 (D-044): a rule change may begin today although today holds a record, when the new rule reads that
+ * record exactly as the current one does: the same type, measurement and unit, target and target period (a weekly or
+ * monthly count keeps its schedule too), and today stays on the schedule. Today's check-in then means what it meant.
+ */
+export function keepsToday(h:Habit,next:HabitRule,today:string):boolean{
+ const current=habitRuleOn(h,today);if(!current||current.state!=='active'||next.state!=='active'||latestHabitRule(h).from>today)return false;
+ const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
+ if(current.type!==next.type||!same(current.measurement,next.measurement)||current.target!==next.target||current.targetPeriod!==next.targetPeriod)return false;
+ if((current.schedule.kind==='frequency'||next.schedule.kind==='frequency')&&!same(current.schedule,next.schedule))return false;
+ return habitDay({...h,rules:[...h.rules.filter(r=>r.from<today),{...next,from:today}]},today,today).scheduled;
+}
+function checkFingerprint(h:Habit,expected?:string){if(expected!==undefined&&expected!==habitEditFingerprint(h))throw Error('This Habit changed while you were editing. Reopen it and review the latest rule.');}
+function checkChange(h:Habit,from:string,today:string,expected?:string,next?:HabitRule){checkFingerprint(h,expected);if(from<earliestHabitChange(h,today,{allowToday:true})&&!(from===today&&next&&keepsToday(h,next,today)))throw Error('Choose today (when nothing is recorded yet, or when the change keeps today’s type, unit and target and today stays scheduled) or a later day, on or after the latest scheduled rule.');}
+/** The first day an edit to `input` may begin: today when nothing is recorded for it yet or the edit keeps today (D-044). */
+export function earliestHabitEdit(h:Habit,input:HabitInput,today:string):string{
+ const free=earliestHabitChange(h,today,{allowToday:true});if(free<=today)return free;
+ const parsed=habitInputSchema.safeParse(input);if(!parsed.success)return free;
+ const current=latestHabitRule(h),{schedule:incoming,target,type,measurement,targetPeriod,endCondition}=parsed.data;
+ const schedule=incoming.kind==='interval'?{...incoming,anchor:current.schedule.kind==='interval'?current.schedule.anchor:today}:incoming;
+ const next=ruleSchema.safeParse({...current,schedule,target,type,measurement,targetPeriod,endCondition,from:today});
+ return next.success&&keepsToday(h,next.data,today)?today:free;
+}
 function revised(h:Habit,rule:HabitRule,now:Date):Habit{
  const revisions=[...(h.ruleRevisions??h.rules.map(rule=>({id:`rule:${h.id}:${crypto.randomUUID()}`,recordedAt:now.toISOString(),source:'retained' as const,rule})))];
  revisions.push({id:`rule:${h.id}:${crypto.randomUUID()}`,recordedAt:now.toISOString(),source:'scheduled',rule});
  return {...h,rules:[...h.rules.filter(r=>r.from<rule.from),rule],endCondition:rule.endCondition,ruleRevisions:revisions,updatedAt:now.toISOString()};
 }
 export function scheduleHabitEdit(data:HabitData,id:string,input:HabitInput,from:string,now=new Date(),expected?:string):HabitData{
- const h=habitById(data,id);checkChange(h,from,habitCalendarDay(data,now),expected);const parsed=habitInputSchema.parse(input),{schedule:incoming,target,type,measurement,targetPeriod,endCondition,...details}=parsed,current=latestHabitRule(h);
+ const h=habitById(data,id);checkFingerprint(h,expected);const parsed=habitInputSchema.parse(input),{schedule:incoming,target,type,measurement,targetPeriod,endCondition,...details}=parsed,current=latestHabitRule(h);
  const schedule=incoming.kind==='interval'?{...incoming,anchor:current.schedule.kind==='interval'?current.schedule.anchor:from}:incoming;
  if(endCondition.kind==='date'&&endCondition.date<from&&JSON.stringify(endCondition)!==JSON.stringify(current.endCondition))throw Error('Choose an end date on or after the new rule begins.');
  const rule=ruleSchema.parse({...current,schedule,target,type,measurement,targetPeriod,endCondition,from});
+ checkChange(h,from,habitCalendarDay(data,now),expected,rule);
  const comparable=(r:HabitRule)=>{const {from,...rest}=r;void from;return JSON.stringify(rest);};
  const next=comparable(rule)===comparable(current)?h:revised(h,rule,now);
  return replace(data,{...next,...details,goalLink:details.goalLink,updatedAt:now.toISOString()});

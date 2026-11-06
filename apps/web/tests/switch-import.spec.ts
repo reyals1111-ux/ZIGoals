@@ -52,7 +52,9 @@ test('Apple Health: read in the worker, checked in the preview, imported with th
   await page.goto('/app/health');
   // Session AK (ADR-036 G2 R2-8, 15c1e159, deliberate): "Seven days of care" is folded until two days have entries (a
   // phone row on a phone); it is opened as a reader would, then read as before.
-  if (await isPhone(page)) await openFold(page, 'Seven days of care'); else await page.locator('summary').filter({hasText: /^Seven days of care/}).click();
+  // Session AL (MO-150, c6101a30; deliberate): nights and weights count as days with entries now, so this import's week
+  // (two days with entries) is open on a computer, with no fold; a phone keeps its row.
+  if (await isPhone(page)) await openFold(page, 'Seven days of care'); else await expect(page.locator('summary').filter({hasText: /^Seven days of care/})).toHaveCount(0);
   await expect(page.getByRole('group', {name: 'Resting heart rate · bpm, last 7 days'})).toContainText('58');
   await page.goto('/app/settings');
   const recent = card(page).getByRole('region', {name: 'Your imports'});

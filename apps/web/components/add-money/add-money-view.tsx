@@ -12,8 +12,10 @@ import {destinationsFor} from '../../lib/onramps/guard';
 import {handOffUrl, returnUrl} from '../../lib/onramps/urls';
 import {UNAVAILABLE_WORDS} from '../../lib/onramps/ramp-assets';
 import {shortAddress} from '../../lib/wallet-address';
-import {displayLocale, formatTime} from '../../lib/visual-format';
+import {formatCurrencyAmount, formatTime} from '../../lib/visual-format';
 import {HONEST_LINE} from '../../lib/onramps/copy';
+import {WalletMoreButton} from '../wallet/wallet-more-button';
+import {stillScroll} from '../../lib/primitives/field-focus';
 
 /**
  * Session AF (L2b, Part 4, ADR-028 H18, H32–H36, H52, H83; A2.1–A2.9, P4.1–P4.5): Add money, five steps on one page.
@@ -27,7 +29,7 @@ const PROVIDERS: {id: ProviderId; name: string; entity: string; site: 'ramp-site
   {id: 'ramp', name: 'Ramp Network', entity: 'Ramp Swaps (Ireland) Ltd, authorised by the Central Bank of Ireland on 2 Dec 2025 (ESMA’s interim MiCA register, file of 16 Oct 2026).', site: 'ramp-site'},
   {id: 'banxa', name: 'Banxa', entity: 'EU Internet Ventures B.V., authorised by the AFM (Netherlands) on 8 Oct 2025 (ESMA’s interim MiCA register, file of 16 Oct 2026).', site: 'banxa-site'},
 ];
-const money = (n: number, currency: string) => new Intl.NumberFormat(displayLocale(), {style: 'currency', currency, maximumFractionDigits: 2}).format(n);
+const money = (n: number, currency: string) => formatCurrencyAmount(Number.isFinite(n) ? n.toFixed(2) : '', currency); // Session AL (PRIMITIVES 3f)
 function rampAsset(ramp: RampState, code: string | undefined) {
   return ramp.phase === 'ready' && ramp.data.status === 'ok' && code ? ramp.data.assets.find(a => a.code === code) : undefined;
 }
@@ -38,7 +40,11 @@ export default function AddMoneyView() {
   const asset = assetId ? buyAsset(assetId) : undefined, offer = asset && network ? offerFor(asset, network) : undefined;
   const destinations = useMemo(() => network ? destinationsFor(network, linked.wallets) : [], [network, linked.wallets]);
   const destination = destinations.find(d => d.walletId === walletId) ?? (destinations.length === 1 ? destinations[0] : undefined);
-  const choose = (a: BuyAsset) => { setAssetId(a.id); setNetwork(a.recommended); setWalletId(null); };
+  // Session AL (TK-034, W25): the step that a choice opens is brought into view and its heading takes the focus, so steps 2
+  // and 3 never appear unseen below the fold (a jump under reduced motion or Motion Off).
+  const [reveal, setReveal] = useState<string | null>(null);
+  useEffect(() => { if (!reveal) return; const el = document.getElementById(reveal); if (!el) return; el.scrollIntoView({block: 'start', behavior: stillScroll() ? 'auto' : 'smooth'}); el.focus({preventScroll: true}); setReveal(null); }, [reveal]);
+  const choose = (a: BuyAsset) => { setAssetId(a.id); setNetwork(a.recommended); setWalletId(null); setReveal(`${id}-s2`); };
   const handOff = asset && network && destination && origin ? (() => { try { return handOffUrl({provider, asset: asset.id, network, address: destination.address, walletId: destination.walletId, origin, currency}); } catch { return null; } })() : null;
   const live = (code?: string) => rampAsset(ramp, code);
   const asOf = ramp.phase === 'ready' && ramp.data.status === 'ok' ? formatTime(ramp.data.asOf) : null;
@@ -57,11 +63,13 @@ export default function AddMoneyView() {
     </section>
 
     {asset && <section className="add-money-step panel" aria-labelledby={`${id}-s2`}>
-      <h2 id={`${id}-s2`}><span className="add-money-n">2</span> Which network?</h2>
+      <h2 id={`${id}-s2`} tabIndex={-1}><span className="add-money-n">2</span> Which network?</h2>
       <p>{asset.recommendation}</p>
+      {/* Session AL (N-TK-25): the three-step route says what it costs and how long, before anything is chosen (an estimate, not a quote). */}
+      {asset.id === 'zig-via-atom' && <p className="add-money-route" data-route-estimate><strong>What the route costs and how long it takes (an estimate):</strong> the provider’s fee for the ATOM (step 4 shows it); then a small Cosmos Hub network fee to move it to ZIGChain, which usually arrives within a few minutes; then OroSwap’s swap fee and the price at that moment, both shown in Keplr before you sign. Plan on roughly 15 to 30 minutes in all once the ATOM arrives.</p>}
       <div className="add-money-options" role="group" aria-label="Network">{asset.offers.map(o => {
         const n = NETWORKS[o.network], fee = live(o.ramp?.value)?.networkFee;
-        return <button key={o.network} type="button" aria-pressed={o.network === network} data-network={o.network} onClick={() => { setNetwork(o.network); setWalletId(null); }}>
+        return <button key={o.network} type="button" aria-pressed={o.network === network} data-network={o.network} onClick={() => { setNetwork(o.network); setWalletId(null); setReveal(`${id}-s3`); }}>
           <strong>{n.name}{o.network === asset.recommended && <span className="add-money-badge">Recommended</span>}</strong><span>{n.plain}</span>
           {asset.offers.length > 1 && typeof fee === 'number' && fee > 0 && asOf && <small>Ramp’s network fee here: {money(fee, currency)} (Ramp’s figure, as of {asOf})</small>}
         </button>;
@@ -70,16 +78,16 @@ export default function AddMoneyView() {
     </section>}
 
     {asset && network && <section className="add-money-step panel" aria-labelledby={`${id}-s3`}>
-      <h2 id={`${id}-s3`}><span className="add-money-n">3</span> Where should it arrive?</h2>
+      <h2 id={`${id}-s3`} tabIndex={-1}><span className="add-money-n">3</span> Where should it arrive?</h2>
       {!linked.loaded ? <p>Reading your linked wallets…</p> : linked.showcase ? <p>The Showcase keeps its simulated wallet. Exit the Showcase to link a wallet and add money.</p>
         : destinations.length ? <div className="add-money-options" role="group" aria-label="Your wallet on this network">{destinations.map(d => <button key={d.walletId} type="button" aria-pressed={destination?.walletId === d.walletId} onClick={() => setWalletId(d.walletId)}>
             <strong>{d.label}</strong><span title={d.address}>{shortAddress(d.address)}{network === 'cosmos-hub' ? ' · the same key’s Cosmos Hub address' : ''}</span>
           </button>)}</div>
-        : <div className="add-money-link-first" data-link-first><p><strong>Link a wallet for {NETWORKS[network].name} first.</strong> {NETWORKS[network].walletKind === 'evm' ? 'An Ethereum-style wallet (MetaMask, Rabby, Coinbase Wallet, Trust, OKX or Phantom)' : NETWORKS[network].walletKind === 'solana' ? 'A Solana wallet (Phantom, for example)' : NETWORKS[network].walletKind === 'btc' ? 'A Bitcoin address you watch' : 'Keplr (its ZIGChain address gives the same key’s Cosmos Hub address)'} links from <b>More wallets</b> beside Connect Keplr, or on a phone from the Status &amp; wallet sheet. ZIGoals only offers an address you linked, so the money cannot go to the wrong network.</p></div>}
+        : <div className="add-money-link-first" data-link-first><p><strong>Link a wallet for {NETWORKS[network].name} first.</strong> {NETWORKS[network].walletKind === 'evm' ? 'An Ethereum-style wallet (MetaMask, Rabby, Coinbase Wallet, Trust, OKX or Phantom)' : NETWORKS[network].walletKind === 'solana' ? 'A Solana wallet (Phantom, for example)' : NETWORKS[network].walletKind === 'btc' ? 'A Bitcoin address you watch' : 'Keplr (its ZIGChain address gives the same key’s Cosmos Hub address)'} links from <b>More wallets</b> beside Connect Keplr, or on a phone from the Status &amp; wallet sheet. ZIGoals only offers an address you linked, so the money cannot go to the wrong network.</p><div className="add-money-link-here"><span>Link one here:</span><WalletMoreButton disabled={false}/><span className="fine">opens the same wallet choices (read-only links; nothing moves).</span></div><p className="fine">No wallet yet? You can still record what you own by hand on <Link className="text-link" href="/app/wealth?add=asset">Wealth</Link>.</p></div>}
     </section>}
 
     {asset && network && destination && <section className="add-money-step panel" aria-labelledby={`${id}-s4`}>
-      <h2 id={`${id}-s4`}><span className="add-money-n">4</span> Which provider?</h2>
+      <h2 id={`${id}-s4`} tabIndex={-1}><span className="add-money-n">4</span> Which provider?</h2>
       <div className="add-money-options add-money-providers" role="group" aria-label="Provider">{PROVIDERS.filter(p => p.id === 'ramp' ? offer?.ramp : offer?.banxa).map(p => {
         const r = p.id === 'ramp' ? live(offer?.ramp?.value) : undefined;
         return <button key={p.id} type="button" aria-pressed={provider === p.id} data-provider={p.id} onClick={() => setProvider(p.id)}>
@@ -93,7 +101,7 @@ export default function AddMoneyView() {
     </section>}
 
     {asset && network && destination && handOff && <section className="add-money-step panel" aria-labelledby={`${id}-s5`}>
-      <h2 id={`${id}-s5`}><span className="add-money-n">5</span> Continue on {provider === 'ramp' ? 'Ramp' : 'Banxa'}’s page</h2>
+      <h2 id={`${id}-s5`} tabIndex={-1}><span className="add-money-n">5</span> Continue on {provider === 'ramp' ? 'Ramp' : 'Banxa'}’s page</h2>
       <p>{handOff.prefilled ? `It opens in a new tab with ${asset.symbol} on ${NETWORKS[network].name} and your address ${shortAddress(destination.address)} filled in. Check both there before you pay.` : `It opens ${provider === 'ramp' ? 'Ramp' : 'Banxa'}’s own site with nothing filled in (ZIGoals’ own identifier with that provider is not set up yet): choose ${asset.symbol} on ${NETWORKS[network].name} there and paste your address.`}</p>
       {!handOff.prefilled && <p className="add-money-address"><span>Your {NETWORKS[network].name} address</span> <code>{destination.address}</code></p>}
       <p className="add-money-warning"><strong>{NETWORKS[network].name} only.</strong> On the provider’s page, the network must say {NETWORKS[network].name}.</p>

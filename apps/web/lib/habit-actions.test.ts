@@ -26,7 +26,8 @@ describe('future Habit rules and saved timers',()=>{
   // Session AH (HA10): a past day is refused; today is refused once something is recorded for it, and accepted before.
   expect(()=>scheduleHabitEdit(s,id,input,'2026-09-19',at('2026-09-20'),fp)).toThrow(/on or after/i);
   const logged=logHabitValue(s,id,'2026-09-20',5,{},at('2026-09-20'));
-  expect(()=>scheduleHabitEdit(logged,id,{...input,target:40},'2026-09-20',at('2026-09-20'),habitEditFingerprint(logged.habits[0]!))).toThrow(/Choose today \(when nothing is recorded yet\) or a later day/);
+  // Session AL (sweep 3, deliberate, D-044): the rule now also allows a change from today that keeps today's type, unit and target.
+  expect(()=>scheduleHabitEdit(logged,id,{...input,target:40},'2026-09-20',at('2026-09-20'),habitEditFingerprint(logged.habits[0]!))).toThrow(/Choose today \(when nothing is recorded yet, or when the change keeps today’s type, unit and target and today stays scheduled\) or a later day/);
   expect(habitRuleOn(scheduleHabitEdit(s,id,{...input,target:45},'2026-09-20',at('2026-09-20'),fp).habits[0]!,'2026-09-20')?.target).toBe(45);
   const next=scheduleHabitEdit(s,id,{...input,target:40},'2026-09-21',at('2026-09-20'),fp);
   expect(()=>scheduleHabitEdit(next,id,{...input,target:50},'2026-09-21',at('2026-09-20'),fp)).toThrow(/changed/i);

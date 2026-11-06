@@ -44,6 +44,8 @@ const EVERY_ROUTE: [path: string, title: string][] = [
   // Session AK (ADR-036, deliberate): the new pages (music, agenda, notes, tasks and NOVA), each with its own title.
   ['/app/music', 'Music'], ['/app/agenda', 'Agenda'], ['/app/notes', 'Notes'], ['/app/tasks', 'Tasks'],
   ['/app/nova', 'NOVA'], ['/app/nova/setup', 'Build your own NOVA'], ['/app/nova/hermes', 'Connect your Hermes Agent'],
+  // Session AL (owner decision O2): the placeholder Plans page.
+  ['/app/plans', 'Plans'],
 ];
 test('every route under /app carries the " · ZIGoals Alpha" title', async ({page}) => {
   test.setTimeout(180_000);

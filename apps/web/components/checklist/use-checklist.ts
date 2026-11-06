@@ -42,7 +42,10 @@ type Adapters = typeof import('../../lib/checklist/adapters');
 let adapters: Adapters | undefined;
 const loadAdapters = async () => adapters ??= await import('../../lib/checklist/adapters');
 // A TickRefused can only exist once the plans have loaded.
-const errorText = (e: unknown, fallback: string) => adapters && e instanceof adapters.TickRefused ? e.message : storageMessageOr(e, fallback);
+// Session AL (PR-017): a page's own refusal ("Timers need an active, scheduled duration Habit.") is said as it is, never as
+// "Not saved. Try again."; storage refusals keep their coded words; anything unreadable keeps the fallback.
+const plainReason = (e: unknown): string | null => e instanceof Error && e.name === 'Error' && e.message.length > 0 && e.message.length < 200 && !/^[[{]/.test(e.message.trim()) ? e.message : null;
+const errorText = (e: unknown, fallback: string) => adapters && e instanceof adapters.TickRefused ? e.message : storageMessageOr(e, plainReason(e) ?? fallback);
 
 export function useChecklist({commands = false}: {commands?: boolean} = {}) {
   const record = useChecklistRecord(), days = useChecklistDays(), {date, zone: dayZone} = useChecklistDay();
@@ -127,7 +130,8 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
   const canUndo = useCallback((dotId: string) => (lastPlans.current.get(dotId)?.undo.length ?? 0) > 0, []);
 
   /** The corner timers (P7.16): each starts or ends the page's own timer; a dot on the path for it gets its receipt. */
-  const focusHabit = useMemo(() => dots.filter(d => d.kind === 'habit' && !d.missing).map(d => habits.data.habits.find(h => h.id === (d.item.ref as {habitId?: string} | undefined)?.habitId)).find(h => h && latestHabitRule(h).measurement.kind === 'duration' && latestHabitRule(h).state === 'active'), [dots, habits.data.habits]);
+  // Session AL (PR-017): Focus times a habit scheduled today (a rest day's habit cannot take a timer).
+  const focusHabit = useMemo(() => dots.filter(d => d.kind === 'habit' && !d.missing && !d.refusal).map(d => habits.data.habits.find(h => h.id === (d.item.ref as {habitId?: string} | undefined)?.habitId)).find(h => h && latestHabitRule(h).measurement.kind === 'duration' && latestHabitRule(h).state === 'active'), [dots, habits.data.habits]);
   const timer = useCallback(async (kind: TimerKind): Promise<TickOutcome> => {
     const ctx = ctxFor(); if (!ctx) return {ok: false, message: 'Still loading.'};
     const dotFor = (input: string) => dots.find(d => d.kind === 'health' && d.input === input) ?? null;

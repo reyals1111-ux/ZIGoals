@@ -34,3 +34,11 @@ it('Session AH (WE1): "bitcoin" is Bitcoin, never a token that took BITCOIN as i
   expect(searchMarketAssets('gold', catalog).map(a => a.ref.id).slice(0, 2).sort()).toEqual(['pax-gold', 'tether-gold']);
   expect(isVerifiedAsset(catalog[0]!.ref)).toBe(false); expect(isVerifiedAsset(catalog[1]!.ref)).toBe(true);
 });
+it('TK-002/W15: a symbol match ranks above "eth" in the middle of "Tether"',async()=>{
+ const {searchMarketAssets}=await import('./market-assets');
+ const c=(id:string,name:string,symbol:string)=>({ref:{provider:'coingecko' as const,kind:'coin' as const,id},name,symbol});
+ const list=searchMarketAssets('eth',[c('tether','Tether','USDT'),c('tether-gold','Tether Gold','XAUT'),c('bridged-weth','Bridged Wrapped Ether','WETH'),c('ethereum','Ethereum','ETH')]).map(a=>a.ref.id);
+ expect(list[0]).toBe('ethereum');
+ expect(list.indexOf('bridged-weth')).toBeLessThan(list.indexOf('tether'));
+ expect(list.slice(-2).sort()).toEqual(['tether','tether-gold']);
+});

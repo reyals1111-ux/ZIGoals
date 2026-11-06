@@ -19,3 +19,5 @@
 .health-summary .eyebrow, .health-water .eyebrow, .health-weight-overview .eyebrow, .health-activity-overview .eyebrow, .nutrition-trend .eyebrow, .owned-asset-card .eyebrow { padding-right: 3.2rem; }
 /* Session AF (the lead): a card's top-row tools (the Checklist star, the options) stay one group at the row's end. */
 .card-top-tools{display:inline-flex;align-items:start;gap:4px;margin-left:auto;flex:none}
+/* Session AL (BN-084): a panel that would open under the sidebar or past the window opens rightwards from its button. */
+.card-options-panel.is-start{right:auto;left:0}

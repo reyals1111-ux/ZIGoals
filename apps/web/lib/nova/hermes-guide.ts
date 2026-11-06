@@ -103,7 +103,15 @@ export const LOCAL_CHECKLIST = [
   'I know Hermes’s own tools, such as web search, can still go online whatever the model is.',
 ] as const;
 export const HERMES_STORES = 'Whatever NOVA sends Hermes is kept by your Hermes on your computer (its session database and logs) and may reach its memory; Hermes’s own settings decide what happens next. ZIGoals never sees, stores or relays it.';
-export const HERMES_POWER = 'Each request runs a full Hermes turn with its own tools, including terminal commands on your computer. NOVA asks only when you press a button, never asks Hermes to sign, send or move money, and anything Hermes suggests for your ZIGoals records comes back as a card you confirm, with Undo.';
+/**
+ * Session AL Part 14 (lane P14-B; security review Z1A-5, its last line): what NOVA sends (your words, and your records,
+ * notes or journal when you share them) reaches an agent that can run commands, so the guide recommends limiting what a
+ * command can do before connecting. Hermes documents a Docker terminal backend and memory write approval; whether it asks
+ * before a risky tool on this kind of request is not documented (docs/research/session-ak/HERMES_AGENT.md §2.5), so the
+ * guide says so instead of promising it.
+ */
+export const HERMES_SANDBOX = 'What NOVA sends, including records, notes or journal entries you share, reaches an agent that can run commands. Before you connect it, choose Hermes’s Docker terminal backend so its commands run in a sandbox, and turn on memory.write_approval so nothing from NOVA enters its memory without your review. Hermes does not document asking before a risky command on this kind of request, so do not count on it.';
+export const HERMES_POWER = 'Each request runs a full Hermes turn with its own tools, including terminal commands on your computer. NOVA asks only when you press a button, never asks Hermes to sign, send or move money, and anything Hermes suggests for your ZIGoals records comes back as a card you confirm, with Undo.' + ' ' + HERMES_SANDBOX;
 
 /** Planet 10: the summary as a Hermes skill (§5.1): a folder with SKILL.md, placed by the person. */
 export const skillFolder = (os: Os) => os === 'windows' ? '%LOCALAPPDATA%\\hermes\\skills\\personal\\zigoals-summary\\' : '~/.hermes/skills/personal/zigoals-summary/';

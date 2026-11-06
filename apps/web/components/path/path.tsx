@@ -390,14 +390,15 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
       const b = bubble.current, s = stage.current; if (!b || !s) return;
       const r = b.getBoundingClientRect(), box = s.getBoundingClientRect();
       const whole = r.height > 0 && r.top >= 0 && r.bottom <= window.innerHeight && r.top >= box.top && r.bottom <= box.bottom;
-      const covers = [...s.querySelectorAll('.path-banner, .orbit-planet, .path-chest, .path-end, .path-panel')].some(el => { const o = el.getBoundingClientRect(); return o.left < r.right && o.right > r.left && o.top < r.bottom && o.bottom > r.top; });
+      // (AF15 p3: on the other looks it never sits over a step's name either — Earn's Academy. The orbit look keeps its list.)
+      const covers = [...s.querySelectorAll(orbit ? '.path-banner, .orbit-planet, .path-chest, .path-end, .path-panel' : '.path-banner, .orbit-planet, .path-chest, .path-end, .path-panel, .path-label')].some(el => { const o = el.getBoundingClientRect(); return o.left < r.right && o.right > r.left && o.top < r.bottom && o.bottom > r.top; });
       setJumpClear(whole && !covers);
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
     schedule();
     document.addEventListener('scroll', schedule, {passive: true, capture: true}); window.addEventListener('resize', schedule);
     return () => { cancelAnimationFrame(frame); document.removeEventListener('scroll', schedule, {capture: true}); window.removeEventListener('resize', schedule); setJumpClear(false); };
-  }, [wantJump, geometryKey, docked]);
+  }, [wantJump, geometryKey, docked, orbit]);
   const jump = useCallback(() => {
     const el = next ? stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`) : null; if (!el) return;
     // (The orbit look brings it to the same place as its landing: about 40 % of the part of the screen its bars leave.)

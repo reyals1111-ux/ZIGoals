@@ -1,5 +1,6 @@
 'use client';
 import {countZigi} from '../../lib/ai/store/metrics';
+import {onDeviceCard} from '../../lib/ai/actions/local-handles';
 import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FocusEvent} from 'react';
 import {batchable, UNDO_WINDOW_MS} from '../../lib/ai/actions/batch';
 import type {Rejected} from '../../lib/ai/actions/parse';
@@ -11,6 +12,7 @@ import {ProposalCard, type ProposalStatus} from './proposal-card';
 import type {ProposalRunner} from './use-proposals';
 import {NOT_AN_ENTRY} from '../../lib/ai/actions/parse';
 import {zigiSignals} from '../zigi/bus';
+import {useGazeHold} from '../zigi/use-gaze-hold';
 import {streakMilestone} from '../../lib/ai/actions/milestone';
 import {AUTO_ACCEPT_REASONS} from '../../lib/ai/actions/auto-accept';
 import type {AutoAccept} from './use-auto-accept';
@@ -20,7 +22,9 @@ import {CARD_OUTCOMES, cardSig, keepCards, keptCards, ZIGI_CARDS, type CardOutco
 import type {BundleMeta} from '../../lib/ai/actions/parse';
 import {markPlanItem, PLAN_OUTCOMES, ZIGI_PLANS, type PlanOutcome} from '../../lib/ai/store/plans';
 import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
-import {deviceUndoOf, undoDeviceWrite} from '../../lib/ai/actions/device-undo';
+import {deviceUndoOf} from '../../lib/ai/actions/device-undo';
+import {undoCards, undoneText} from './card-undo';
+import {showUndo} from '../ui/undo-toast';
 import {BundleHeader} from './bundle-header';
 import {memoryConsent} from '../../lib/ai/store/records';
 import './ai.css';
@@ -75,9 +79,14 @@ const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a 
  * offered (it would keep words from the chat in What ZIGi knows about me); it says why instead. Every other card works as usual.
  */
 export const UNKEPT_MEMORY = 'Not offered: this chat is not kept, so nothing from it goes into what ZIGi remembers. To keep a note, add it yourself in What ZIGi knows about me.';
-export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId: keptReplyId, bundle, unkept = false}: {replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean; bundle?: BundleMeta; unkept?: boolean}) {
+/**
+ * `undoToast` (Session AL, DV-071): the Undo of what was added is the app's one toast (showUndo) instead of the inline
+ * countdown. NOVA's workflow cards use it: the toast shows inside NOVA's sheet and keeps working whatever the cards' own
+ * view does meanwhile, and its restore always reads the latest records (a ref, never the render that added the card).
+ */
+export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId: keptReplyId, bundle, unkept = false, undoToast = false, onDevice = false}: {/** Session AL fourth pass (L7-4b): cards made on this device with no AI (never badged "AI estimate"). */ onDevice?: boolean; replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean; bundle?: BundleMeta; unkept?: boolean; undoToast?: boolean}) {
   const replyId = unkept ? undefined : keptReplyId;
-  const planFor = useCallback((action: Action, refs_: ReturnType<typeof replyRefs>): PlanResult => { const result = runner.plan(action, handles, refs_); return unkept && result.ok && result.plan.target === 'memory' ? {ok: false, message: UNKEPT_MEMORY} : result; }, [handles, runner, unkept]);
+  const planFor = useCallback((action: Action, refs_: ReturnType<typeof replyRefs>): PlanResult => { const planned = runner.plan(action, handles, refs_), result = onDevice ? onDeviceCard(planned) : planned; return unkept && result.ok && result.plan.target === 'memory' ? {ok: false, message: UNKEPT_MEMORY} : result; }, [handles, runner, unkept, onDevice]);
   const [refs] = useState(() => replyRefs(proposals));
   const [kept] = useState<ReadonlyMap<string, KeptCard>>(() => { if (!replyId) return new Map(); try { return keptCards(readDeviceRecord(getAppStorage(), ZIGI_CARDS).data, replyId); } catch { return new Map(); } });
   // A kept outcome applies only to the card it was kept for (its fingerprint, the action as the reply first gave it).
@@ -118,6 +127,8 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   // focus to the page. While focus is in the cards and its control leaves, it moves to the next thing to do here: the Undo
   // while it is offered, else the next card's first button, else the cards themselves. Focus the person moved elsewhere stays there.
   const box = useRef<HTMLDivElement>(null), focusInside = useRef(false);
+  // Session AL Part 14 (D13): while a card here waits for Add or Dismiss, ZIGi holds its look at the cards (gaze.ts).
+  useGazeHold('cards', !earlier && !replaced && items.some(i => i.status === 'proposed' && i.result.ok), box);
   const onFocusIn = useCallback(() => { focusInside.current = true; }, []);
   const onFocusOut = useCallback((event: FocusEvent<HTMLDivElement>) => {
     const left = event.target, next = event.relatedTarget;
@@ -141,6 +152,23 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   const patch = useCallback((id: string, change: Partial<ProposalItem>) => setItems(current => current.map(item => item.id === id ? {...item, ...change} : item)), []);
   useEffect(() => { if (replaced) setItems(current => current.some(item => item.status === 'proposed') ? current.map(item => item.status === 'proposed' ? {...item, status: 'replaced'} : item) : current); }, [replaced]);
   const announce = useCallback((text: string) => { setNote(text); onChange?.(text); }, [onChange]);
+  const latest = useRef({items, runner}); latest.current = {items, runner};
+  /** Takes back the cards with these ids (DV-071): the shared undo on the latest records; the refusal, or null when done. */
+  const restore = useCallback(async (ids: readonly string[]): Promise<string | null> => {
+    const group = latest.current.items.filter(item => ids.includes(item.id) && (item.status === 'added' || item.status === 'auto') && item.after && planOf(item));
+    if (!group.length) return null;
+    const refused = await undoCards(group.map(item => ({plan: planOf(item)!, after: item.after!})), (plans, after) => latest.current.runner.undo(plans, after), getAppStorage());
+    if (refused) { announce(refused); return refused; }
+    setItems(current => current.map(item => group.some(g => g.id === item.id) ? {...item, status: 'undone'} : item));
+    announce(group.length === 1 ? 'Undone.' : `Undone: ${group.length} additions.`);
+    return null;
+  }, [announce]);
+  /** Offers the Undo of what was just added: the inline countdown, or (undoToast) the app's toast for the same ten seconds. */
+  const offer = useCallback((ids: string[], message: string, plans: readonly Plan[]) => {
+    if (!undoToast) { setUndoGroup({ids, until: Date.now() + UNDO_WINDOW_MS}); announce(`${message} Undo is available for ten seconds.`); return; }
+    announce(message);
+    showUndo({message, timeoutMs: UNDO_WINDOW_MS, undone: undoneText(plans), restore: async () => { const refused = await restore(ids); if (refused) throw new Error(refused); }});
+  }, [announce, restore, undoToast]);
   const add = useCallback(async (item: ProposalItem) => {
     const plan = planOf(item); if (!plan) return;
     if (plan.target === 'form') {
@@ -152,16 +180,16 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
       catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be changed.'}); return; }
       if (opened !== null) {
         // Owner follow-up 2 (N5, lane NE): a card that wrote a device record and carries its inverse shows Undo like a journal card.
-        if (!opened.navigated && deviceUndoOf(plan)) { patch(item.id, {status: 'added', error: null, after: runner.stores}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); countZigi('card-added'); return; }
+        if (!opened.navigated && deviceUndoOf(plan)) { const added = {...item, status: 'added' as const, error: null, after: runner.stores}; latest.current.items = latest.current.items.map(i => i.id === item.id ? added : i); patch(item.id, {status: 'added', error: null, after: runner.stores}); offer([item.id], `Added: ${plan.card.title}.`, [plan]); countZigi('card-added'); return; }
         patch(item.id, {status: 'opened', error: null, opened: opened.text}); announce(opened.text); return; }
       onNavigate?.(); const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); return; }
     patch(item.id, {status: 'busy', error: null});
     const before = runner.stores.habits;
-    try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after});
+    try { const after = await runner.apply(plan); latest.current.items = latest.current.items.map(i => i.id === item.id ? {...i, status: 'added', after} : i); patch(item.id, {status: 'added', after});
       // Session AA-Local Part 5: a journal card may also carry a device-record change (the coach's weekly answer beside its target); it follows the write.
-      if (plan.device) { try { runner.effect?.(plan); } catch { /* the journal write stands; the record can be changed on its page */ } } setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); countZigi('card-added'); }
+      if (plan.device) { try { runner.effect?.(plan); } catch { /* the journal write stands; the record can be changed on its page */ } } zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); offer([item.id], `Added: ${plan.card.title}.`, [plan]); countZigi('card-added'); }
     catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be written.'}); }
-  }, [announce, onNavigate, patch, runner]);
+  }, [announce, offer, onNavigate, patch, runner]);
   const addAll = useCallback(async () => {
     const pending = items.filter(item => item.status === 'proposed' && planOf(item) && planOf(item)!.target !== 'form');
     const plans = batchable(pending.map(item => planOf(item)!));
@@ -169,10 +197,11 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     const before = runner.stores.habits;
     const {after, error} = await runner.applyAll(plans);
     const done = pending.slice(0, after.length), failed = pending[after.length];
-    setItems(current => current.map(item => { const i = done.findIndex(d => d.id === item.id); if (i >= 0) return {...item, status: 'added', after: after[i]!}; if (failed && item.id === failed.id) return {...item, status: 'proposed', error}; if (pending.some(p => p.id === item.id)) return {...item, status: 'proposed'}; return item; }));
-    if (done.length) { done.forEach(() => countZigi('card-added')); setUndoGroup({ids: done.map(d => d.id), until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(after.some((stores, i) => proud(plans[i]!, i ? after[i - 1]!.habits : before, stores.habits)) ? 'streak_milestone' : 'card_accepted'); }
-    announce(done.length ? `Added ${done.length} of ${pending.length}. Undo is available for ten seconds.` : error ?? 'Nothing was added.');
-  }, [announce, items, patch, runner]);
+    const settle = (list: ProposalItem[]) => list.map(item => { const i = done.findIndex(d => d.id === item.id); if (i >= 0) return {...item, status: 'added' as const, after: after[i]!}; if (failed && item.id === failed.id) return {...item, status: 'proposed' as const, error}; if (pending.some(p => p.id === item.id)) return {...item, status: 'proposed' as const}; return item; });
+    latest.current.items = settle(latest.current.items); setItems(settle);
+    if (done.length) { done.forEach(() => countZigi('card-added')); zigiSignals.emitValidated(after.some((stores, i) => proud(plans[i]!, i ? after[i - 1]!.habits : before, stores.habits)) ? 'streak_milestone' : 'card_accepted'); offer(done.map(d => d.id), `Added ${done.length} of ${pending.length}.`, plans.slice(0, done.length)); }
+    else announce(error ?? 'Nothing was added.');
+  }, [announce, items, offer, patch, runner]);
   /** Auto-accept: the chosen cards in order on the latest stores, each counted toward the day's cap, one Undo for all. */
   const autoAdd = useCallback(async (chosen: ProposalItem[]) => {
     const plans = batchable(chosen.map(item => planOf(item)!));
@@ -210,21 +239,10 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   }, [autoAccept, autoAdd, claimAuto, items, replaced, runner.ready]);
   const undo = useCallback(async () => {
     if (!undoGroup) return;
-    const group = items.filter(item => undoGroup.ids.includes(item.id) && (item.status === 'added' || item.status === 'auto') && item.after && planOf(item));
+    const ids = undoGroup.ids;
     setUndoGroup(null); setAutoTitles(null);
-    // Owner follow-up 2 (N5, lane NE): the device-record cards (task, workout, note) are undone on the device, newest first.
-    const device = group.filter(item => deviceUndoOf(planOf(item)));
-    for (const item of [...device].reverse()) {
-      const refusedHere = undoDeviceWrite(getAppStorage(), planOf(item));
-      if (refusedHere) { announce(refusedHere); return; }
-      try { window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: planOf(item)!.device!.key})); } catch { /* no window */ }
-    }
-    const rest = group.filter(item => !device.includes(item));
-    const refused = rest.length ? await runner.undo(rest.map(item => planOf(item)!), rest.map(item => item.after!)) : null;
-    if (refused) { announce(refused); return; }
-    setItems(current => current.map(item => group.some(g => g.id === item.id) ? {...item, status: 'undone'} : item));
-    announce(group.length === 1 ? 'Undone.' : `Undone: ${group.length} additions.`);
-  }, [announce, items, runner, undoGroup]);
+    await restore(ids);
+  }, [restore, undoGroup]);
   const edit = useCallback((item: ProposalItem, action: Action) => patch(item.id, {action, result: planFor(action, refs), error: null, edited: true}), [patch, planFor, refs]);
   // G1 #20: the switch pressed after these cards arrived: a waiting "Remember this?" card stops being offered (and comes back if the chat is kept again).
   useEffect(() => {

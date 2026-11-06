@@ -7,6 +7,7 @@ import {entranceAllowed} from '../use-entrance';
  * formatted amount; only its digits move, so grouping and the currency sign stay where the locale put them. Static
  * (the final text at once) under reduced motion, Motion Off, and on every later change of the figure.
  */
+const SR_ONLY = {position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', clipPath: 'inset(50%)', whiteSpace: 'nowrap', border: 0} as const;
 export function CountUp({text, duration = 900}: {text: string; duration?: number}) {
   const [shown, setShown] = useState(text);
   const first = useRef(true), frame = useRef(0);
@@ -28,5 +29,6 @@ export function CountUp({text, duration = 900}: {text: string; duration?: number
   // While the digits move they are decoration and the final text is read from a visually hidden span; once still, the
   // text alone is in the DOM (a span may not carry aria-label; tests read the figure as plain text).
   if (shown === text) return <span className="count-up">{text}</span>;
-  return <span className="count-up"><span aria-hidden="true">{shown}</span><span className="sr-only">{text}</span></span>;
+  // Session AL (DV-259): the hidden copy is clipped inline too, so a late style sheet never draws both figures on top of each other.
+  return <span className="count-up"><span aria-hidden="true">{shown}</span><span className="sr-only" style={SR_ONLY}>{text}</span></span>;
 }

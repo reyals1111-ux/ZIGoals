@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {VERIFIED_URLS, verifiedLink} from '../../../packages/ecosystem-registry/src/verified-links';
-import {earnRoutes, live, outgoing, seedShowcase} from './earn-fixtures';
+import {earnRoutes, live, openEarnFolds, outgoing, seedShowcase} from './earn-fixtures';
 import {chooseChain} from './chain-choice';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
@@ -70,6 +70,9 @@ test('every way to earn has the full anatomy; vault, pool and app figures are li
 test('the facts first, neutrally, with source and date: USDC on Noble, Nawa’s dependence on Zignaly, Permapod’s incident, Zignaly’s dates', async ({page}) => {
   await earnRoutes(page);
   await page.goto('/app/earn');
+  // Session AL sweep 4 (N-BN-05, D-005; deliberate): on a phone the wider sections are folded rows; opened first, as a
+  // person would (their links are read by role below).
+  await openEarnFolds(page);
   const vaults = page.locator('[data-notice="valdora-vaults"]');
   await expect(vaults).toContainText('Every USDC vault on ZIGChain holds USDC on Noble (USDC.n).');
   await expect(vaults).toContainText('13 October 2026');
@@ -123,6 +126,8 @@ test('the pictures of the apps’ own pages load only when opened: numbered, lab
   await expect(screens.first()).toContainText('press Connect Wallet');
   await expect(slot).toContainText('Redrawn by ZIGoals from Valdora’s own page');
   expect(requests.length).toBeGreaterThan(before); // its own chunk
+  // Session AL sweep 4 (N-BN-05, D-005; deliberate): Nawa's pictures sit in a folded row on a phone; the rows open first.
+  await openEarnFolds(page);
   for (const set of ['oroswap-swap', 'oroswap-pools', 'keplr-staking', 'valdora-vault', 'nawa-vaults', 'skip-go']) {
     const s = page.locator(`[data-illustration-slot="${set}"]`);
     await s.locator('summary').click();

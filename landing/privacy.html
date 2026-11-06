@@ -16,7 +16,7 @@
 <main id="main" class="legal-page">
 <a class="legal-back" href="https://zigoals.app/">← ZIGoals</a>
 <h1>Privacy, in plain words</h1>
-<p class="legal-meta">For the ZIGoals public Alpha at alpha.zigoals.app. Last updated 1 November 2026. This is a plain-language summary of how the app works today; it promises nothing the app does not do.</p>
+<p class="legal-meta">For the ZIGoals public Alpha at alpha.zigoals.app. Last updated 5 November 2026. This is a plain-language summary of how the app works today; it promises nothing the app does not do.</p>
 
 <h2>The short version</h2>
 <ul>
@@ -28,7 +28,7 @@
 
 <h2>What leaves your device, and when</h2>
 <ul>
-<li><strong>Loading the app:</strong> the web host (Cloudflare) receives ordinary page requests, with your IP address and browser details, like any website. A goal's page address carries its identifier, never its name, amount or notes.</li>
+<li><strong>Loading the app:</strong> the web host (Cloudflare) receives ordinary page requests, with your IP address and browser details, like any website. A goal's page address carries its identifier, never its name, amount or notes. When a page fails to load, your browser may also send Cloudflare a short network error report (NEL: the page address, the kind of error and its timing). That is Cloudflare&rsquo;s own reporting on its network, not ZIGoals app analytics; ZIGoals adds no tracker of its own.</li>
 <li><strong>Prices and market figures:</strong> the public identity of an asset (for example "bitcoin, in euros") goes to ZIGoals' market service and from there to CoinGecko. Never your amounts, addresses or names.</li>
 <li><strong>Wallets you connect or link:</strong> public addresses go to the chain services that answer for them (ZIGChain's own services, PublicNode and others for other chains), which can see your IP address. ZIGoals never holds your keys and never signs for you: your wallet does that, on your device, only when you approve.</li>
 <li><strong>A Bitcoin wallet watched by its public key (xpub):</strong> the key stays on your device. To read the balance, your browser works out the wallet's addresses and asks mempool.space about each one, so mempool.space sees those addresses (and that they belong together) and your IP address. A private key is refused.</li>

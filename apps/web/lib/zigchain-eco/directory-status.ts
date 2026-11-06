@@ -6,6 +6,8 @@
  * Zignaly-dependent items keep the closure notice (components/earn/apps-sections.tsx). A status is information, never a
  * recommendation, and the live figure on a card stays Earn's own DefiLlama read.
  */
+import {zignalyStatusLine} from '../earn/dated';
+
 export type DirectoryStatusKind = 'live' | 'tool' | 'closing' | 'paused' | 'winding-down' | 'not-live' | 'partner' | 'private';
 export type DirectoryStatus = {kind: DirectoryStatusKind; label: string; detail: string; source: string; readOn: string};
 export const STATUS_LABELS: Readonly<Record<DirectoryStatusKind, string>> = Object.freeze({
@@ -34,11 +36,25 @@ export const DIRECTORY_STATUS: Readonly<Record<string, DirectoryStatus>> = Objec
   zigscan: s('tool', 'An explorer listed by ZIGChain, mainnet and testnet.', 'docs.zigchain.com, block explorers'),
   'zigchain-hub': s('tool', 'Staking, proposals, the bridge and the transparency dashboard.', 'docs.zigchain.com'),
 });
-/** The status of a directory entry, or null for an id this table does not cover (no label is invented). */
-export const directoryStatusOf = (id: string): DirectoryStatus | null => Object.hasOwn(DIRECTORY_STATUS, id) ? DIRECTORY_STATUS[id]! : null;
-/** Things announced for ZIGChain that are not live on 31 October 2026, said plainly on the Ecosystem page. */
-export const NOT_LIVE_YET: readonly {what: string; detail: string; source: string}[] = Object.freeze([
-  {what: 'ZIGChain v6 on the main network', detail: 'On-chain proposal #45 is being voted on until 2 November 2026; if it passes, the upgrade is planned for about 3 November. The practice network runs v6 already.', source: 'ZIGChain’s proposal #45 and its networks repository'},
-  {what: 'EVM apps and Ethereum-style addresses on the main network', detail: 'Come with v6. No main-network EVM endpoint is published yet, so ZIGoals reads no EVM balances.', source: 'ZIGChain’s v6 upgrade notes'},
-  {what: 'The Wealth Management Engine', detail: 'Described by ZIGChain; its implementation is not published.', source: 'docs.zigchain.com'},
+/**
+ * The status of a directory entry, or null for an id this table does not cover (no label is invented).
+ * Session AL (BN-027, BN-161, PR-036): a dated deadline is worded from `now` (lib/earn/dated.ts), so Zignaly's passed
+ * 1 November date reads as passed, never as still to come.
+ */
+export const directoryStatusOf = (id: string, now: number = Date.now()): DirectoryStatus | null => {
+  if (!Object.hasOwn(DIRECTORY_STATUS, id)) return null;
+  const status = DIRECTORY_STATUS[id]!;
+  return id === 'zignaly' ? {...status, detail: zignalyStatusLine(now)} : status;
+};
+/**
+ * Things announced for ZIGChain that are not live, said plainly on the Ecosystem page, each with the day it was read.
+ * Session AL (BN-027): v6 is live on the main network since proposal #45 passed (2 Nov) and its upgrade height
+ * 13,466,800 (read 4 Nov 2026, docs/review/session-al/A13_MAINNET_V6.md), so it left this list; the EVM line says what
+ * v6 does and does not bring here yet.
+ */
+export const NOT_LIVE_YET: readonly {what: string; detail: string; source: string; readOn: string}[] = Object.freeze([
+  {what: 'EVM apps and Ethereum-style addresses on the main network', detail: 'v6 runs on the main network since about 3 November 2026 (proposal #45 passed), and it brings them; no main-network EVM endpoint was published when ZIGoals last checked, so ZIGoals reads no EVM balances.', source: 'ZIGChain’s proposal #45, its v6 upgrade notes and the main network’s own version answer', readOn: '2026-11-04'},
+  {what: 'The Wealth Management Engine', detail: 'Described by ZIGChain; its implementation is not published.', source: 'docs.zigchain.com', readOn: TODAY},
 ]);
+/** The newest day any source on the Ecosystem page was read (its header says this, not a fixed date). */
+export const DIRECTORY_SOURCES_READ: readonly string[] = Object.freeze([...Object.values(DIRECTORY_STATUS).map(x => x.readOn), ...NOT_LIVE_YET.map(n => n.readOn)]);

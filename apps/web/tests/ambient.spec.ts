@@ -39,7 +39,7 @@ test('a rain-like sound plays here, follows you around ZIGoals with a Stop butto
   page.on('request', request => { if (!request.url().startsWith(baseURL!) && !request.url().startsWith('data:')) outside.push(request.url()); });
   await page.goto('/app/health?view=meditation');
   const p = player(page);
-  await expect(p.getByRole('status')).toHaveText('Off');
+  await expect(p.getByRole('status')).toHaveText('Focus sounds: off'); // Session AL sweep 3 (N-MO-28): the status names what is off
   await p.getByRole('button', {name: 'Rain-like', exact: true}).click();
   await expect(p.getByRole('button', {name: 'Rain-like', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await p.getByRole('button', {name: 'Play', exact: true}).click();
@@ -94,7 +94,7 @@ test('the timer says when it stops, and the volume is kept on this device', asyn
   const ramps = (await audio(page)).filter(e => e.what === 'gain ramp' && e.value === 0);
   expect(ramps.length).toBeGreaterThan(0);
   await page.clock.fastForward(15 * 60_000 + 1_000);
-  await expect(p.getByRole('status')).toHaveText('Off');
+  await expect(p.getByRole('status')).toHaveText('Focus sounds: off'); // Session AL sweep 3 (N-MO-28): the status names what is off
 });
 
 test('"Stop when I leave ZIGoals": switching away stops the sound', async ({page}) => {
@@ -107,5 +107,5 @@ test('"Stop when I leave ZIGoals": switching away stops the sound', async ({page
   await p.getByRole('button', {name: 'Play', exact: true}).click();
   await expect(p.getByRole('status')).toHaveText('Playing Soft drone');
   await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', {configurable: true, get: () => 'hidden'}); document.dispatchEvent(new Event('visibilitychange')); });
-  await expect(p.getByRole('status')).toHaveText('Off');
+  await expect(p.getByRole('status')).toHaveText('Focus sounds: off'); // Session AL sweep 3 (N-MO-28): the status names what is off
 });

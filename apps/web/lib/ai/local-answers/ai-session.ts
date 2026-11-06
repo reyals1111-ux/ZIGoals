@@ -1,3 +1,4 @@
+import {novaEnvInfo} from './nova-env';
 import Decimal from 'decimal.js';
 import {briefChatText} from '../proactive/brief';
 import type {ToolEnv} from '../tools/env';
@@ -115,17 +116,51 @@ function whyAnswer(lang: Lang, q: string, env: ToolEnv): LocalReply {
     `${r.currency}: ${r.change}${r.changePercent ? ` (${r.changePercent})` : ''}, van ${r.from!.total} op ${r.from!.at} naar ${r.to!.total} op ${r.to!.at}.${r.movedMost?.length ? ` Grootste bewegingen: ${r.movedMost.map(m => `${m.assetClass} ${m.change}`).join(', ')}.` : ''}`));
   return {kind: 'answer', text: `${lines.join('\n')}\n${say(lang, 'From your recorded wealth totals (tracked holdings; accounts and debts are not in this history), the same rule as the Wealth chart.', 'Uit je vastgelegde vermogenstotalen (bijgehouden bezittingen; rekeningen en schulden zitten niet in deze geschiedenis), dezelfde regel als de Vermogen-grafiek.')}`, calls: [w.record]};
 }
+/**
+ * Session AL second pass (Denver DV-075, DV-082, N-007, N-064; P-DV-92): in NOVA it speaks as NOVA and points to NOVA →
+ * Permissions; auto-accept is named only as what it is (a choice under Auto-accept once an AI is connected, each with Undo
+ * for ten seconds), never as something already on.
+ */
 function whatSeeAnswer(lang: Lang, env: ToolEnv): LocalReply {
-  const health = env.areas.health;
+  const health = env.areas.health, nova = !!novaEnvInfo(env), who = nova ? 'NOVA' : 'ZIGi', where = nova ? 'NOVA → Permissions' : 'Settings → ZIGi → What your AI sees', whereNl = nova ? 'NOVA → Permissions' : 'Instellingen → ZIGi → Wat je AI ziet';
   return {kind: 'answer', text: say(lang,
-    `This answer was made on this device: nothing was sent anywhere. When your own AI is connected, ZIGi sends it your question and the records of the areas you share with it (Settings → ZIGi → What your AI sees), and only what the question needs. Health is ${health ? 'shared now' : 'not shared now'} ("Include Health"). Nothing is changed without your OK: every change is a card you add, or a kind you chose yourself to have added automatically (Settings → ZIGi, always with Undo).`,
-    `Dit antwoord is op dit apparaat gemaakt: er is niets verstuurd. Als je eigen AI gekoppeld is, stuurt ZIGi je vraag en de gegevens van de gebieden die je deelt (Instellingen → ZIGi → Wat je AI ziet), en alleen wat de vraag nodig heeft. Gezondheid wordt ${health ? 'nu gedeeld' : 'nu niet gedeeld'} („Include Health”). Er verandert niets zonder jouw OK: elke wijziging is een kaart die je toevoegt, of een soort die je zelf automatisch liet toevoegen (Instellingen → ZIGi, altijd met Ongedaan maken).`), calls: []};
+    `This answer was made on this device: nothing was sent anywhere. When your own AI is connected, ${who} sends it your question and the records of the areas you share with it (${where}), and only what the question needs. Health is ${health ? 'shared now' : 'not shared now'}${nova ? '' : ' ("Include Health")'}. Nothing is changed without your OK: every change is a card you add, and an added card has Undo. Once an AI is connected you may also choose kinds it adds by itself (Settings → ZIGi → Auto-accept), each with Undo for ten seconds.`,
+    `Dit antwoord is op dit apparaat gemaakt: er is niets verstuurd. Als je eigen AI gekoppeld is, stuurt ${who} je vraag en de gegevens van de gebieden die je deelt (${whereNl}), en alleen wat de vraag nodig heeft. Gezondheid wordt ${health ? 'nu gedeeld' : 'nu niet gedeeld'}${nova ? '' : ' („Include Health”)'}. Er verandert niets zonder jouw OK: elke wijziging is een kaart die je toevoegt, en een toegevoegde kaart heeft Ongedaan maken. Met een gekoppelde AI kun je ook soorten kiezen die hij zelf toevoegt (Instellingen → ZIGi → Auto-accept), elk tien seconden ongedaan te maken.`), calls: []};
+}
+/**
+ * Session AL fourth pass (lane L7-4b; Nairobi P17, N5, NB-106; Berlin NOVA #16; Lisbon #256a): the cadence, the time and a
+ * duration said with a new habit are its schedule, time of day and target, never part of its name ("Test Stretch every
+ * day" was the title; "Read 20 pages daily 21:00" fell to the examples list).
+ */
+const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const COUNT: Record<string, number> = {one: 1, once: 1, two: 2, twice: 2, three: 3, four: 4, five: 5, six: 6, seven: 7};
+export function habitDraft(raw: string): {title: string; schedule?: 'daily' | {timesPerWeek: number} | {weekdays: number[]}; timeOfDay?: 'morning' | 'afternoon' | 'evening'; at?: string; measurement?: 'minutes' | 'hours'; target?: number} {
+  let t = ` ${raw.trim().replace(/\s+/g, ' ')} `, schedule: ReturnType<typeof habitDraft>['schedule'], timeOfDay: ReturnType<typeof habitDraft>['timeOfDay'], at: string | undefined, measurement: 'minutes' | 'hours' | undefined, target: number | undefined;
+  const take = (re: RegExp, then: (m: RegExpExecArray) => boolean | void) => { const m = re.exec(t); if (m && then(m) !== false) t = t.replace(m[0], ' '); };
+  take(/\s(?:every ?day|daily|each day)(?=\s)/i, () => { schedule = 'daily'; });
+  take(/\s(\d|one|once|two|twice|three|four|five|six|seven)\s*(?:x|times)?\s*(?:a|per|each)\s+week(?=\s)/i, m => { const n = COUNT[m[1]!.toLowerCase()] ?? Number(m[1]); if (n >= 1 && n <= 7) schedule = {timesPerWeek: n}; });
+  take(/\s(?:on\s+)?weekdays(?=\s)/i, () => { schedule = {weekdays: [1, 2, 3, 4, 5]}; });
+  take(/\s(?:every|on)\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)s?(?=\s)/i, m => { schedule = {weekdays: [WEEKDAYS.indexOf(m[1]!.toLowerCase())]}; });
+  // A clock time: "21:00", "at 7", "9pm" (a bare number stays part of the name: "Read 20 pages").
+  take(/\s(?:at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?|(\d{1,2}):(\d{2})\s*(am|pm)?|(\d{1,2})\s*(am|pm))(?=\s)/i, m => {
+    let h = Number(m[1] ?? m[4] ?? m[7]); const min = Number(m[2] ?? m[5] ?? 0), half = (m[3] ?? m[6] ?? m[8])?.toLowerCase();
+    if (half === 'pm' && h < 12) h += 12; if (half === 'am' && h === 12) h = 0;
+    if (h > 23 || min > 59) return false;
+    at = `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`; timeOfDay = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+  });
+  take(/\s(?:in the\s+)?(morning|afternoon|evening)s?(?=\s)/i, m => { timeOfDay = m[1]!.toLowerCase() as 'morning' | 'afternoon' | 'evening'; });
+  take(/\s(?:for\s+)?(\d{1,3})\s*(minutes?|mins?|min|hours?|hrs?|h)(?=\s)/i, m => { const n = Number(m[1]); if (!(n > 0)) return false; measurement = /^h/i.test(m[2]!) ? 'hours' : 'minutes'; target = n; });
+  const title = t.replace(/\s+/g, ' ').trim().replace(/[,;:]+$/, '');
+  return {title: title || raw.trim(), ...(schedule ? {schedule} : {}), ...(timeOfDay ? {timeOfDay} : {}), ...(at ? {at} : {}), ...(measurement ? {measurement, target} : {})};
 }
 function newHabitAnswer(lang: Lang, title: string): LocalReply {
-  const name = title.trim().replace(/\s+/g, ' ');
-  const card = `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'create-habit', title: name})}\n\`\`\``;
-  return {kind: 'answer', text: say(lang, `A new habit, ${name}. Add it below when it looks right; nothing is written before.`, `Een nieuwe gewoonte, ${name}. Voeg hem hieronder toe als het klopt; er wordt niets opgeslagen voordat je dat doet.`) + card, calls: []};
+  const d = habitDraft(title), name = d.title;
+  const card = `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'create-habit', title: name, ...(d.schedule ? {schedule: d.schedule} : {}), ...(d.timeOfDay ? {timeOfDay: d.timeOfDay} : {}), ...(d.measurement ? {measurement: d.measurement, target: d.target} : {})})}\n\`\`\``;
+  const when = d.at ? say(lang, ` A reminder at ${d.at} is set in Settings → Reminders once it exists.`, ` Een herinnering om ${d.at} zet je in Settings → Reminders zodra hij bestaat.`) : '';
+  return {kind: 'answer', text: say(lang, `A new habit, ${name}. Add it below when it looks right; nothing is written before.${when}`, `Een nieuwe gewoonte, ${name}. Voeg hem hieronder toe als het klopt; er wordt niets opgeslagen voordat je dat doet.${when}`) + card, calls: []};
 }
+const NEW_HABIT_EN2 = /^(?:(?:please|ok|okay|hey|hi|zigi|nova),?\s+)*(?:(?:can|could) you\s+)?(?:create|add|make|start|set up)\s+(?:a\s+)?(?:new\s+)?habit\s*[:,-]?\s+(?!called\b|named\b|for\b|to\b)["“']?([^"”'?!]{2,60}?)["”']?\s*[.!]?$/i;
+const NEW_HABIT_EN3 = /^(?:(?:please|ok|okay),?\s+)*(?:add|create|make|start)\s+["“']?([^"”'?!]{2,40}?)["”']?\s+as\s+a\s+(?:new\s+)?habit\s*[.!]?$/i;
 /**
  * Session AI (ZI11): a simple command answered with its card when no AI is connected ("Create a habit called Yoga",
  * "Maak een gewoonte Yoga aan"). With an AI connected the AI keeps these (it can ask about the schedule), so this runs only
@@ -134,8 +169,10 @@ function newHabitAnswer(lang: Lang, title: string): LocalReply {
 const MONEY_ADVICE = /\b(?:should i|shall i|do i|would you|is (?:it|now) (?:a )?good (?:time|idea|moment) to|what should i|which (?:coin|asset|stock|validator) should i|moet ik|zal ik|is het (?:een )?goed (?:moment|idee) om|welke (?:munt|coin|validator) moet ik)\b.*\b(?:buy|sell|invest|stake|unstake|hold|put|koop|kopen|verkoop|verkopen|investeren|beleggen|staken|aanhouden)\b/i;
 const HEALTH_ADVICE = /\b(?:should i|can i|is it (?:safe|ok|okay|healthy) (?:for me )?to|moet ik|mag ik|is het (?:veilig|gezond|goed) om)\b.*\b(?:take|stop|start|fast|pills?|medication|medicine|tablets?|diet|supplements?|dose|vast(?:en)?|medicijn(?:en)?|pil(?:len)?|tabletten|dieet|supplement(?:en)?|dosis|slaappillen)\b/i;
 /** Session AI (ZI10, G8): with no AI, an advice ask gets the guardrail in plain words, never the example list. */
+/** Session AL (L7; Nairobi P10/N8, P-NB-70): "is BTC a buy?", "is ZIG a good investment?", "is het een goede belegging?". */
+const IS_A_BUY = /\bis\s+(?:\S+\s+){1,3}(?:a\s+)?(?:good\s+|smart\s+)?(?:buy|sell|investment|bargain)\b|\b(?:worth|time to)\s+(?:buying|selling|investing)\b|\bis\s+(?:\S+\s+){1,3}(?:een\s+)?(?:goede\s+)?(?:koop|belegging|investering)\b/i;
 function adviceReply(q: string, lang: Lang): LocalReply | null {
-  if (MONEY_ADVICE.test(q)) return {kind: 'answer', text: say(lang, 'I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.', 'Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”.'), calls: []};
+  if (MONEY_ADVICE.test(q) || IS_A_BUY.test(q)) return {kind: 'answer', text: say(lang, 'I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.', 'Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”.'), calls: []};
   if (HEALTH_ADVICE.test(q)) return {kind: 'answer', text: say(lang, 'This is not medical advice, and I can’t give it: a doctor or pharmacist can help with that. I can show what your own records hold, for example “Did I sleep enough?”.', 'Dit is geen medisch advies, en dat kan ik niet geven: een arts of apotheker kan je daarbij helpen. Ik kan laten zien wat je eigen gegevens tonen, bijvoorbeeld “Heb ik genoeg geslapen?”.'), calls: []};
   return null;
 }
@@ -143,7 +180,7 @@ export function simpleCommand(question: string): LocalReply | null {
   const q = question.trim(), lang: Lang = questionLanguage(q) === 'nl' || NEW_HABIT_NL.test(q) ? 'nl' : 'en';
   const advice = adviceReply(q, lang);
   if (advice) return advice;
-  const habit = NEW_HABIT_EN.exec(q) ?? NEW_HABIT_NL.exec(q);
+  const habit = NEW_HABIT_EN.exec(q) ?? NEW_HABIT_NL.exec(q) ?? NEW_HABIT_EN2.exec(q) ?? NEW_HABIT_EN3.exec(q);
   const title = habit?.[1]?.trim();
   if (title && !/^(?:a|an|een|it|het|to .*|for .*|om .*)$/i.test(title)) return newHabitAnswer(lang, title);
   return null;

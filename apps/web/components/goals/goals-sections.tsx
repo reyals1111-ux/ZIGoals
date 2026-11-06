@@ -10,7 +10,7 @@ import {GoalTreeView, GoalsFigures} from './goals-overview';
 // Gate C weights: the Vision board is its own chunk, fetched only in its view (Goals sat 1.6 kB over its budget; budgets are never raised).
 const VisionBoard = lazy(() => import('./vision-board').then(m => ({default: m.VisionBoard})));
 import {useGoalExtras} from './use-goal-extras';
-import {setGoalVision} from '../../lib/goal-extras/store';
+import {setGoalParent, setGoalVision} from '../../lib/goal-extras/store';
 import {Skeleton} from '../ui/skeleton';
 
 /**
@@ -18,15 +18,15 @@ import {Skeleton} from '../ui/skeleton';
  * after the page (weights): the page itself never reads the goal extras.
  */
 type Props = {goals: readonly GoalSummary[]; averages: readonly AverageGoal[]};
-export function FiguresSection({goals, averages}: Props) {
+export function FiguresSection({goals, averages, healthActive}: Props & {healthActive?: number}) {
   const extras = useGoalExtras();
-  return <GoalsFigures goals={goals} averages={averages} extras={extras.data} />;
+  return <GoalsFigures goals={goals} averages={averages} extras={extras.data} healthActive={healthActive} />;
 }
 /** The board and the tree show the filtered `goals` (Session AB-Design: the figures are their own block and the switch sits in the toolbar). */
 export function GoalsAltView({view, goals, averages, ...layout}: Props & LayoutAttrs & {view: 'board' | 'tree'}) {
   const extras = useGoalExtras(), health = useHealth(), today = useLocalToday();
   const all = [...goals, ...averages.map(g => averageSummary(g, health.loaded && !health.error ? health.data : undefined, today))];
   return <div className="goals-alt-view" {...layout}>
-    {view === 'board' ? <Suspense fallback={<Skeleton label="Opening your vision board…" block lines={2}/>}><VisionBoard goals={all} extras={extras.data} onVision={(goalKey, vision, message) => extras.change(goalKey, x => setGoalVision(x, goalKey, vision, new Date().toISOString()), message)} /></Suspense> : <GoalTreeView goals={all} extras={extras.data} />}
+    {view === 'board' ? <Suspense fallback={<Skeleton label="Opening your vision board…" block lines={2}/>}><VisionBoard goals={all} extras={extras.data} onVision={(goalKey, vision, message) => extras.change(goalKey, x => setGoalVision(x, goalKey, vision, new Date().toISOString()), message)} /></Suspense> : <GoalTreeView goals={all} extras={extras.data} onMove={extras.writable ? (goalKey, parentKey, message) => extras.change(goalKey, x => setGoalParent(x, goalKey, parentKey, new Date().toISOString()), message) : undefined} />}
   </div>;
 }

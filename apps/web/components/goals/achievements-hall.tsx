@@ -16,6 +16,10 @@ import {useUnifiedGoals} from '../use-unified-goals';
 import {plainErrorMessage} from '../../lib/plain-error';
 import '../skeleton/zg-skeleton.css';
 import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
+import {isFinished} from '../../lib/goals/finished';
+import {useGameEnabled} from '../game/use-game-enabled';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {REWARDS_SHELF} from '../../lib/rewards-shelf/store';
 
 /**
  * G7, the Hall of achievements: finished goals as a wall of cards (the day, how long it took, the area, the story), each
@@ -24,14 +28,23 @@ import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 export function AchievementsHall(layout: LayoutAttrs) {
   const platform = usePlatform(), averages = useAverageGoals(), extras = useGoalExtras(), unified = useUnifiedGoals();
   // Session AH (TR6): finished as the Goals page's "Finished" figure counts it (each Goal's derived status, live prices included).
-  const finished = new Set(unified.goals.filter(g => g.status === 'completed' && g.key.startsWith('private:')).map(g => g.id));
+  // Session AL (DV-058a, P-DV-22): closed after reaching counts too (lib/goals/finished.ts).
+  const finished = new Set(unified.goals.filter(g => isFinished(g) && g.key.startsWith('private:')).map(g => g.id));
   const list = platform.loaded && averages.loaded && extras.loaded && unified.loaded ? achievementsOf(platform.data.goals, averages.unreadable ? [] : averages.data.goals, extras.data, g => finished.has(g.id)) : null;
   return <section className="achievements-hall" aria-labelledby="hall-title" {...layout}>
     <SectionHeading id="hall-title" pillar="goals" eyebrow="Finished, with a story" title="Hall of achievements" lede="Every goal you finish keeps its place here." />
     {!list ? <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : list.length ? <ul className="hall-wall">
       {list.map(a => <AchievementCard key={a.key} a={a} color={a.area ? areasOf(extras.data).find(x => x.id === a.area)?.color : undefined} vision={extras.data.goals[a.key]?.vision} />)}
-    </ul> : <div className="aa-empty" data-art=""><h3>Your first finished goal will shine here.</h3><p>When a goal is done, mark it complete on its page and write a line about how it went.</p><Link className="secondary" href="/app/goals">See your goals</Link><LazyPillarArt pillar="goals" /></div>}
+    </ul> : <div className="aa-empty" data-art=""><h3>Your first finished goal will shine here.</h3><p>A goal lands here on its own when it reaches its target or its last milestone is done. Closing it later keeps it here.</p><Link className="secondary" href="/app/goals">See your goals</Link><LazyPillarArt pillar="goals" /></div>}
+    <RewardsShelfLink />
   </section>;
+}
+
+/** Session AL (MO-161, P-MO-49): while the game layer and the rewards shelf are both on, Goals points to the shelf on Journey. */
+function RewardsShelfLink() {
+  const game = useGameEnabled(), shelf = useDeviceRecord(REWARDS_SHELF);
+  if (!game || !shelf.loaded || shelf.unreadable || !shelf.data.on) return null;
+  return <p className="hall-shelf-link"><Link className="text-link" href="/app/journey#rewards-shelf">Your rewards shelf →</Link></p>;
 }
 
 function AchievementCard({a, color, vision}: {a: Achievement; color?: string; vision?: Parameters<typeof VisionArt>[0]['vision']}) {

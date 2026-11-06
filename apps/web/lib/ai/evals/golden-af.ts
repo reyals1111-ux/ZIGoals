@@ -172,7 +172,7 @@ export const GOLDEN_AF: readonly GoldenCase[] = [
   local('brief-nl', 'brief', 'wat is mijn plan voor vandaag', {reply: 'answer', includes: ['Your morning brief:']}),
   local('brief-closed', 'brief', 'what\'s my plan today', {reply: 'answer', includes: ['• Checklist: 2 of 3 dots done; next: Push-ups. Health dots are not shared with ZIGi.'], excludes: ['Water.']}, {health: 'closed'}),
   local('brief-bare', 'brief', 'brief me', {reply: 'answer', includes: ['Native staking APR: not read yet in this visit; it is on the Earn page with its source.'], excludes: ['5.06']}, {env: 'af-bare'}),
-  local('recap', 'brief', 'how did today go', {reply: 'answer', includes: ['Your evening recap:', '• Health: 8,800 steps · 4 foods logged.', '• Checklist: 2 of 4 dots done.', '• One for tomorrow: Push-ups.']}),
+  local('recap', 'brief', 'how did today go', {reply: 'answer', includes: ['Your evening recap:', /* Session AL (Part 13, deliberate): the Showcase logs 1 L of water today */ '• Health: Water 1 L · 8,800 steps · 4 foods logged.', '• Checklist: 2 of 4 dots done.', '• One for tomorrow: Push-ups.']}),
   local('recap-day', 'brief', 'recap my day', {reply: 'answer', includes: ['Your evening recap:']}),
   local('recap-words', 'brief', 'evening recap', {reply: 'answer', includes: ['Your evening recap:']}),
   local('recap-nl', 'brief', 'hoe ging vandaag', {reply: 'answer', includes: ['Your evening recap:']}),

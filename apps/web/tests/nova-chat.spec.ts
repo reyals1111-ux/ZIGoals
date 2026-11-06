@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {pressZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -109,7 +110,7 @@ test('Continue in NOVA: ZIGi\'s conversation opens in NOVA with every turn (one 
   const asked = 'Write me one kind sentence about my week.';
   await seed(page);
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   const panel = page.locator('dialog.ai-chat[open]');
   await panel.getByLabel('Message to your AI').fill(asked);
   await panel.getByRole('button', {name: 'Send', exact: true}).click();

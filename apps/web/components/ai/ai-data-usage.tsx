@@ -10,6 +10,7 @@ import type {ModelInfo} from '../../lib/ai/types';
 import {capNote, capState, estimate, money, monthKey} from '../../lib/ai/usage';
 import {ModelPicker} from './model-picker';
 import {useDeviceRecord} from './use-device-record';
+import {useMoneyCurrency} from '../wealth/use-money-currency';
 
 /**
  * Settings → ZIGi · your AI, Session V Part 6: how the person's AI gets their data (tools or attached records), the
@@ -28,6 +29,8 @@ const routeName = (route: string) => route in PROVIDERS ? PROVIDERS[route as Pro
 export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: string}) {
   const options = useDeviceRecord(AI_OPTIONS), usage = useDeviceRecord(AI_USAGE), provider = settings.provider;
   const [models, setModels] = useState<ModelInfo[] | null>(null), [busy, setBusy] = useState(false), [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null);
+  // Session AL third pass (P-DVR-22, PR-035): a new monthly cap starts in the person's money currency, chosen before the amount too.
+  const moneyCurrency = useMoneyCurrency(), [draftCurrency, setDraftCurrency] = useState<string | null>(null);
   const save = <T,>(store: {update: (change: (current: T) => T) => T}, change: (current: T) => T, text?: string) => { try { store.update(change); if (text) setMessage({text}); } catch (error) { setMessage({text: `Not saved on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); } };
   const mode = options.data.toolMode ?? 'auto', deep = provider ? options.data.deepModel?.[provider] ?? null : null;
   const loadModels = async () => {
@@ -63,7 +66,8 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
       </div>
       {models && <ModelPicker label="Deep model" models={models} value={deep} onChange={id => { save(options, current => ({...current, deepModel: {...(current.deepModel ?? {}), [provider]: id}}), `Think deeper uses ${id}.`); setModels(null); }}/>}
     </div>}
-    <h4>Usage on this device</h4>
+    {/* Session AL third pass (PR-035): NOVA's Cost tab links here. */}
+    <h4 id="zigi-usage">Usage on this device</h4>
     <p className="ai-note">Tokens as your provider reported them, counted on this device this month ({month}). Your provider&rsquo;s own usage page is the record that counts.</p>
     {routes.length === 0 ? <p className="ai-note">No replies from your AI this month yet.</p> : <div className="ai-usage-scroll"><table className="ai-usage-table">
       <thead><tr><th scope="col">Route</th><th scope="col">Requests</th><th scope="col">Tokens in</th><th scope="col">Tokens out</th></tr></thead>
@@ -81,8 +85,8 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
     </fieldset>}
     <fieldset className="ai-usage-cap"><legend>Monthly cap (optional)</legend>
       <div className="ai-fields">
-        <label className="field">Amount<input inputMode="decimal" defaultValue={usage.data.softCap?.amount ?? ''} key={`cap-${usage.data.softCap?.amount ?? ''}`} placeholder="e.g. 10" autoComplete="off" onBlur={e => { const v = e.target.value.trim(); if (v && !DECIMAL.test(v)) { setMessage({text: 'The cap is a plain number such as 10.', failed: true}); return; } save<AiUsage>(usage, current => ({...current, softCap: v ? {amount: v, currency: current.softCap?.currency ?? price?.currency ?? 'USD'} : null}), v ? 'Monthly cap saved.' : 'No monthly cap.'); }}/></label>
-        <label className="field">Currency<select value={usage.data.softCap?.currency ?? price?.currency ?? 'USD'} disabled={!usage.data.softCap} onChange={e => save<AiUsage>(usage, current => current.softCap ? {...current, softCap: {...current.softCap, currency: e.target.value}} : current)}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        <label className="field">Amount<input inputMode="decimal" defaultValue={usage.data.softCap?.amount ?? ''} key={`cap-${usage.data.softCap?.amount ?? ''}`} placeholder="e.g. 10" autoComplete="off" onBlur={e => { const v = e.target.value.trim(); if (v && !DECIMAL.test(v)) { setMessage({text: 'The cap is a plain number such as 10.', failed: true}); return; } save<AiUsage>(usage, current => ({...current, softCap: v ? {amount: v, currency: current.softCap?.currency ?? draftCurrency ?? price?.currency ?? moneyCurrency} : null}), v ? 'Monthly cap saved.' : 'No monthly cap.'); }}/></label>
+        <label className="field">Currency<select value={usage.data.softCap?.currency ?? draftCurrency ?? price?.currency ?? moneyCurrency} onChange={e => { const next = e.target.value; if (usage.data.softCap) save<AiUsage>(usage, current => current.softCap ? {...current, softCap: {...current.softCap, currency: next}} : current); else { setDraftCurrency(next); setMessage({text: `The monthly cap will be in ${next} once you enter an amount.`}); } }}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       </div>
       <label className="ai-check"><input type="checkbox" checked={!!usage.data.askFirst} disabled={!usage.data.softCap} onChange={e => save<AiUsage>(usage, current => ({...current, askFirst: e.target.checked}))}/> Ask first past the cap</label>
       <small>ZIGi notes 80 % and 100 % of the cap, estimated from your prices in the cap&rsquo;s currency. It asks before sending only if you tick the box; it never stops you.</small>

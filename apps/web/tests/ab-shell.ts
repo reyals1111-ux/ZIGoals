@@ -100,7 +100,8 @@ export async function openFilm(page:Page){
  await page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true}).click();
  const howTo=page.getByRole('dialog',{name:'Goals, Habits & Health = Wealth',exact:true});
  await expect(howTo).toBeVisible();
- await howTo.getByRole('button',{name:'Watch the film (16 s)',exact:true}).click();
+ // Session AL (COPY_AUDIT, deliberate; D-184): the film's button says its length in words.
+ await howTo.getByRole('button',{name:'Watch the 16-second film',exact:true}).click();
  await expect(page.getByRole('dialog',{name:'ZIGoals brand film',exact:true})).toBeVisible();
  return howTo;
 }

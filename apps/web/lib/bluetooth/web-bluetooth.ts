@@ -1,4 +1,4 @@
-import {documentAllowsFeature} from '../health-navigation';
+import {documentFeatureState} from '../health-navigation';
 import {parseBodyComposition, parseHeartRate, parseWeight, type BodyCompositionReading, type HeartRateReading, type WeightReading} from './gatt';
 
 /**
@@ -17,7 +17,10 @@ export type Support = 'ok' | 'no-api' | 'policy';
 export function bluetoothSupport(doc: Document = document, nav: Navigator = navigator): Support {
   const api = (nav as Navigator & {bluetooth?: BluetoothApi}).bluetooth;
   if (!api || typeof api.requestDevice !== 'function') return 'no-api';
-  return documentAllowsFeature(doc, 'bluetooth') ? 'ok' : 'policy';
+  // Session AL third pass (INT): only a policy that knows Bluetooth and refuses it is "blocked". A browser whose policy
+  // does not list the feature (or has no policy API) cannot block it that way: the browser's own chooser decides, and a
+  // refusal there is said in plain words (bluetoothProblem). A browser without the API says "not supported" above.
+  return documentFeatureState(doc, 'bluetooth') === 'blocked' ? 'policy' : 'ok';
 }
 const api = () => (navigator as Navigator & {bluetooth?: BluetoothApi}).bluetooth!;
 /** Plain words for what went wrong (the person closing the chooser is not an error). */

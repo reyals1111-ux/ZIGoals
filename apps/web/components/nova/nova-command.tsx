@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect, useId, useRef, useState, type FormEvent, type ReactNode} from 'react';
 import {MAX_INPUT_CHARS} from '../../lib/ai/chats';
-import {sendToNova} from '../../lib/nova/bridge';
+import {noteNovaDraft, sendToNova} from '../../lib/nova/bridge';
 import {probeServer, type ScanModel} from '../../lib/nova/local-servers';
 import {NOVA_LAYOUTS, WIDGET_SIZES, type NovaLayout, type NovaWidget, type WidgetSize} from '../../lib/nova/store';
 import {LAYOUT_LABEL} from '../../lib/nova/share-setup';
@@ -22,14 +22,19 @@ import type {Brain} from './status-chips';
  */
 function Menu({label, current, icon, align, children}: {label: string; current: string; icon: string; align: 'start' | 'end'; children: (close: () => void) => ReactNode}) {
   const [open, setOpen] = useState(false), id = useId(), button = useRef<HTMLButtonElement>(null), box = useRef<HTMLDivElement>(null);
-  const close = () => { setOpen(false); requestAnimationFrame(() => button.current?.focus()); };
+  // The focus goes back to the menu's button only if it was lost with the closing panel (Session AL L8c: a frame later it
+  // must not pull the focus back from wherever the person, or a test, already moved it, e.g. a panel's grip after Arrange).
+  const close = () => { setOpen(false); requestAnimationFrame(() => { const at = document.activeElement; if (!at || at === document.body || box.current?.contains(at)) button.current?.focus(); }); };
   useEffect(() => {
     if (!open) return;
     const away = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node) && !button.current?.contains(e.target as Node)) setOpen(false); };
     document.addEventListener('pointerdown', away);
     return () => document.removeEventListener('pointerdown', away);
   }, [open]);
-  return <div className="nova-menu" data-align={align}>
+  // Session AL Part 11, second pass (lane L8): the panel also closes when the keyboard's focus leaves the menu (Tab, a toast's
+  // Undo), as it already did for a tap outside, so an open panel never stays over what the focus moved to (WCAG 2.4.11).
+  const leave = (e: React.FocusEvent<HTMLDivElement>) => { const next = e.relatedTarget as Node | null; if (open && next && !e.currentTarget.contains(next)) setOpen(false); };
+  return <div className="nova-menu" data-align={align} onBlur={leave}>
     <button ref={button} type="button" className="nova-menu-button" aria-expanded={open} aria-controls={id} onClick={() => setOpen(o => !o)}>
       <NovaIcon name={icon} size={18}/><span className="nova-menu-label"><span className="sr-only">{label}: </span>{current}</span><span className="nova-menu-caret" aria-hidden="true"><NovaIcon name={open ? 'up' : 'down'} size={16}/></span>
     </button>
@@ -38,15 +43,18 @@ function Menu({label, current, icon, align, children}: {label: string; current: 
   </div>;
 }
 
-export function ViewControls({layout, widgets, available, editing, onLayout, onToggle, onSize, onArrange}: {
+export function ViewControls({layout, widgets, available, editing, onLayout, onToggle, onSize, onArrange, extra}: {
   layout: NovaLayout; widgets: NovaWidget[]; available: WidgetSpec[]; editing: boolean;
   onLayout: (l: NovaLayout) => void; onToggle: (id: string, on: boolean) => void; onSize: (id: string, size: WidgetSize) => void; onArrange: () => void;
+  /** Session AL Part 11 (lane L8): the HUD presets, under the layout. */
+  extra?: ReactNode;
 }) {
   const id = useId();
   return <Menu label="View controls" current={`View · ${LAYOUT_LABEL[layout]}`} icon="widgets" align="start">{close => <>
     <fieldset className="nova-fieldset"><legend>Layout</legend>
       <div className="nova-segment">{NOVA_LAYOUTS.map(l => <label key={l} className="nova-seg"><input type="radio" name={`${id}-layout`} checked={layout === l} onChange={() => onLayout(l)}/><span>{LAYOUT_LABEL[l]}</span></label>)}</div>
     </fieldset>
+    {extra}
     <fieldset className="nova-fieldset"><legend>On the stage</legend>
       {/* Session AK P3 (ND-15): each row is the widget's name and its size as one S/M/L segment (the arrange bar's own). */}
       <ul className="nova-widget-toggles">{available.map(spec => { const on = widgets.find(w => w.id === spec.id); return <li key={spec.id}>
@@ -88,17 +96,26 @@ export function RoutingMenu({brain, routing, onRouting, openModels}: {brain: Bra
   </>}</Menu>;
 }
 
-export function CommandField({you, persona, inputRef, onOpen}: {you: string; persona: string; inputRef: React.RefObject<HTMLInputElement | null>; onOpen: () => void}) {
-  const [text, setText] = useState(''), hint = useId(), pasted = useRef(false); // Z1A-2: a paste is marked, so no card from the reply is auto-accepted
+export function CommandField({you, persona, inputRef, onOpen, value, onValue, onKeys, keysOn = true}: {you: string; persona: string; inputRef: React.RefObject<HTMLInputElement | null>; onOpen: () => void;
+  /** Session AL second pass (lane L8; DV-070, TK-074): the words can live with the dashboard, so they outlast the field (the
+   *  conversation opening hides it) and letters typed while no field had the focus land here. */
+  value?: string; onValue?: (text: string) => void;
+  /** Session AL second pass (P-TK-41): opens the list of keyboard shortcuts (computers). */
+  onKeys?: () => void; keysOn?: boolean}) {
+  const [own, setOwn] = useState(''), hint = useId(), pasted = useRef(false); // Z1A-2: a paste is marked, so no card from the reply is auto-accepted
+  const text = value ?? own, setText = (t: string) => { if (onValue) onValue(t); else setOwn(t); };
   const apple = useApplePlatform(); // Session AK P3 (ND-21): ⌘K on Apple devices, Ctrl K elsewhere
+  // Session AL Part 14 (DV-070): every change is noted as NOVA's draft, so the chat that opens while the person types starts
+  // from these words; a successful sendToNova clears it.
   const submit = (e: FormEvent) => { e.preventDefault(); const t = text.trim(); if (t && sendToNova(t, {pasted: pasted.current})) { setText(''); pasted.current = false; } onOpen(); };
   // Session AK P3 (ND-5): one calm glass field (the input draws no box of its own) and a one-line hint.
   return <form className="nova-command zg-glass" onSubmit={submit} aria-label={`Ask ${persona}`}>
     <NovaIcon name="star" size={22}/>
     <div className="nova-command-text">
-      <input ref={inputRef} value={text} onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} aria-keyshortcuts={commandKeyShortcut(apple, 'k')} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
+      <input ref={inputRef} value={text} onChange={e => { const t = e.target.value.slice(0, MAX_INPUT_CHARS); setText(t); if (!t) pasted.current = false; noteNovaDraft(t, {pasted: pasted.current}); }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} aria-keyshortcuts={commandKeyShortcut(apple, 'k')} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
       <small id={hint}>Enter to ask {persona} · nothing is sent before you press it.</small>
     </div>
+    {onKeys && <button type="button" className="holo-keys-btn" onClick={onKeys} aria-label="Keyboard shortcuts" aria-haspopup="dialog" aria-keyshortcuts={keysOn ? '?' : undefined} data-tip="Keyboard shortcuts · ?"><span aria-hidden="true">?</span></button>}
     <kbd className="nova-kbd" aria-hidden="true">{commandKeyLabel(apple, 'k')}</kbd>
     <button type="submit" className="nova-send" aria-label={text.trim() ? `Send to ${persona}` : `Open the conversation with ${persona}`}><NovaIcon name="right" size={22}/></button>
   </form>;

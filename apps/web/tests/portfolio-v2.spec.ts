@@ -179,7 +179,9 @@ test('Showcase: the whole page and a coin\'s page from labelled fixtures, and no
   await expect(page.getByRole('heading', {level: 1, name: 'Solana'})).toBeVisible();
   await expect(page.getByRole('region', {name: 'Market figures'})).toContainText('Showcase fixture figures, not market data.');
   await expect(page.getByRole('region', {name: 'Your SOL in Fictional long-term coins'})).toContainText('Unrealized resultUnknown');
-  expect(asked.slice(before).map(r => r.path).filter(path => path !== '/api/market-quotes')).toEqual([]);
+  // Session AL (PR-016 / P-PR-01, deliberate; use-portfolio-market.ts): the shared 24h insight snapshot is asked in the
+  // Showcase too (once, then frozen for the tab); no details or anything else.
+  expect(asked.slice(before).map(r => r.path).filter(path => path !== '/api/market-quotes' && path !== '/api/market-insights')).toEqual([]);
 });
 
 test('phone: the coin, its 24h change, value and result; allocation and transactions fold; no sideways scroll; 44 px targets', async ({page, isMobile}) => {
@@ -210,7 +212,8 @@ test('phone: the coin, its 24h change, value and result; allocation and transact
   await expect(table.getByRole('row').filter({hasText: 'Bitcoin'}).getByRole('cell').filter({visible: true}).nth(1)).toHaveText('$35,000.00');
   // Session AB-Design (owner request 27): allocation and transactions sit under the Analysis and Insights tabs, not folds.
   await expect(page.getByRole('tab', {name: 'Analysis', exact: true})).toHaveAttribute('aria-selected', 'false');
-  await expect(page.getByRole('tab', {name: 'Insights', exact: true})).toHaveAttribute('aria-selected', 'false');
+  // Session AL (COPY_AUDIT, deliberate): TK-030 — the tab holding transactions, Edit/Remove and the trader tools is named "Transactions" (was "Insights").
+  await expect(page.getByRole('tab', {name: 'Transactions', exact: true})).toHaveAttribute('aria-selected', 'false');
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
   for (const control of await page.locator('main :is(button, select, a.portfolio-coin-link)').all()) if (await control.isVisible()) expect((await control.boundingBox())!.height, await control.innerText()).toBeGreaterThanOrEqual(44);
 });

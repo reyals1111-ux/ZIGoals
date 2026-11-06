@@ -19,7 +19,8 @@ test('the shortcuts: Quick add opens; water is ready to tap, never logged by its
   const water = page.getByRole('button', {name: /of water$/});
   await expect(water).toBeFocused();
   await expect(page).toHaveURL(/\/app$/);
-  await expect(page.getByRole('article', {name: 'Focus: water today'})).toContainText('0 entries today');
+  // Session AL (deliberate, NOVA review M5): with no entry the tile says so in NOVA's words, not "0 entries today".
+  await expect(page.getByRole('article', {name: 'Focus: water today'})).toContainText('No water logged yet today');
   const manifest = await (await page.request.get('/manifest.webmanifest')).json();
   // Session AK (ADR-036, deliberate): NOVA (N8, "a PWA shortcut NOVA") leads, and B1's capture-a-note shortcut closes the list.
   expect(manifest.shortcuts.map((s: {url: string}) => s.url)).toEqual(['/app/nova', '/app?shortcut=quick-add', '/app?shortcut=water', '/app/habits', '/app?shortcut=ask', '/app/checklist', '/app/today', '/app/health?shortcut=weight#weight', '/app/notes?capture=1']);
@@ -28,7 +29,8 @@ test('the shortcuts: Quick add opens; water is ready to tap, never logged by its
 
 test('the share target: what another app shared waits on its own page, nothing saved until a choice', async ({page}) => {
   await page.goto('/app');
-  expect((await (await page.request.get('/manifest.webmanifest')).json()).share_target).toEqual({action: '/app/share', method: 'GET', params: {title: 'title', text: 'text', url: 'url'}});
+  // Session AL (P-BN-43/TK-191, 818805b8, deliberate): the manifest spells out the default enctype (no console warning).
+  expect((await (await page.request.get('/manifest.webmanifest')).json()).share_target).toEqual({action: '/app/share', method: 'GET', enctype: 'application/x-www-form-urlencoded', params: {title: 'title', text: 'text', url: 'url'}});
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
   await page.goto(`/app/share?${new URLSearchParams({title: 'Weekend in Lisbon', text: 'Flights from 89 EUR', url: 'https://example.com/lisbon'})}`);
   await expect(page).toHaveTitle(/Shared with ZIGoals/);
@@ -37,7 +39,10 @@ test('the share target: what another app shared waits on its own page, nothing s
   await expect(card.getByRole('link', {name: 'https://example.com/lisbon'})).toHaveAttribute('rel', /noopener/);
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()))).toBe(before);
   // Gate C: the share arrives as a fresh page, before ZIGi's launcher; the button follows it once it shows.
-  await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px there is no floating ZIGi button to wait for; ZIGi is ready once
+  // the root says so (the mark the page's "Ask ZIGi" reads), and it opens from "Apps & extras". Desktop: the launcher, as before.
+  if (page.viewportSize()!.width < 901) { await expect(page.getByTestId('ai-launcher')).toHaveCount(0); await expect(page.locator('html[data-zigi-launcher="shown"]')).toBeAttached(); }
+  else await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
   await expect(card.getByRole('button', {name: 'Ask ZIGi about it'})).toBeEnabled();
   await card.getByRole('link', {name: 'Make it a goal'}).click();
   await expect(page).toHaveURL(/\/app\/goals\/new\?from=share/);

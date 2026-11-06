@@ -24,9 +24,10 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   await expect(page.locator('.app-sidebar')).toBeHidden();
   const bar=(await page.locator('.phone-topbar').boundingBox())!;expect(mark.x).toBeLessThanOrEqual(24);expect(mark.y+mark.height).toBeLessThanOrEqual(bar.y+bar.height);
   await expect(page.locator('.sidebar-signature')).toBeHidden();await expect(page.locator('.phone-topbar .quick-add-trigger')).toBeVisible();
-  const sheet=await openMore(page),descriptor=sheet.locator('.phone-more-descriptor'),word=sheet.locator('.brand-wordmark');
-  await expect(descriptor).toHaveText('Your Financial Orbit');await expect(word).toBeVisible();
-  expect((await descriptor.boundingBox())!.y+(await descriptor.boundingBox())!.height).toBeLessThanOrEqual((await word.boundingBox())!.y+1);
+  // Session AL (COPY_AUDIT, deliberate): DV-256 — the decorative "Your Financial Orbit" banner at the sheet's foot is gone;
+  // the wordmark still signs the sheet off, readable (tests/grok53/shell/sweep2-shell.spec.ts).
+  const sheet=await openMore(page),word=sheet.locator('.brand-wordmark');
+  await expect(sheet.locator('.phone-more-descriptor')).toHaveCount(0);await expect(sheet).not.toContainText(/Your Financial Orbit/i);await expect(word).toBeVisible();
   // Session I: the "Shape & Fold / Your Own Future" tagline is gone everywhere (the Today swan mark carries those words).
   await expect(sheet.locator('.phone-more-tagline')).toHaveCount(0);await expect(sheet).not.toContainText(/Shape & Fold|Your Own Future/i);
   await page.keyboard.press('Escape');
@@ -58,7 +59,8 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   await page.setViewportSize({width:1440,height:900});
   // (Governance hidden until shown since Session AG Polish 3, ADR-032 L19; it had been 16, then 15.) Session AK: NOVA (owner
   // follow-up 2, N2): 16. Session AK G2 (R2-10): Tasks, Notes and the Journal are 'compact', not in the desktop sidebar.
-  await expect.poll(()=>main.getByRole('link').count()).toBe(16);
+  // Session AL (owner decision O4, deliberate): NOVA moved to the sidebar's Apps group (tests/grok53/shell/o4-sidebar-apps.spec.ts): 15.
+  await expect.poll(()=>main.getByRole('link').count()).toBe(15);
   await page.locator('.app-sidebar').evaluate(s=>{s.scrollTop=0;});
   await expect.poll(async()=>{const b=(await help.boundingBox())!;return b.y+b.height;}).toBeLessThanOrEqual(900-24);
   const compact=(await logo.boundingBox())!;expect(compact.width).toBeGreaterThanOrEqual(84);expect(compact.height).toBeGreaterThanOrEqual(95);
@@ -104,7 +106,8 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
  // Session AF (ADR-028): Earn opens the money group; the Checklist sits before Settings.
  // Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until shown, in the Showcase too.
  // Session AK: NOVA (N2). Session AK G2 (R2-10): Tasks, Notes and the Journal are 'compact', not in the desktop sidebar.
- await expect.poll(()=>nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','NOVA','Checklist','Settings','Help']);
+ // Session AL (owner decision O4, deliberate): NOVA is in the sidebar's Apps group, not the main list.
+ await expect.poll(()=>nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
  const glide=page.locator('.nav-glide'),markets=nav.getByRole('link',{name:'Markets',exact:true});
  // Session U Part 4: the glide's moving state and the nav's data-gliding are recorded from before the click (a
  // MutationObserver), so a glide that ends before the first check on a loaded runner is still seen.
@@ -166,9 +169,12 @@ test('the hero star rises once per visit, never on re-render, and leaves only th
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();await page.waitForTimeout(600);
  await expect(star).toHaveCount(0);
  await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
+ // CI16 (CI 1569, desktop): the star lives about 1.8 s; on a loaded runner one poll's evaluate took 2 s, so the star the
+ // poll saw had already left when the separate aria-hidden check began. The same three facts (inside the Today hero,
+ // animating, aria-hidden="true") are now read together the moment the star is added, so its short life is never missed.
+ await page.evaluate(()=>{const w=window as unknown as {__heroStar:string[]};w.__heroStar=[];new MutationObserver(()=>{const s=document.querySelector('.hero-star');if(s&&!w.__heroStar.length)w.__heroStar.push(`${!!s.closest('.today-hero')}:${s.getAttribute('aria-hidden')}:${s.getAnimations({subtree:true}).length>0}`);}).observe(document.body,{childList:true,subtree:true});});
  await nav.getByRole('link',{name:'Today',exact:true}).click();
- await expect.poll(()=>page.evaluate(()=>document.querySelector('.hero-star')?.getAnimations({subtree:true}).length??0)).toBeGreaterThan(0);
- await expect(star).toHaveAttribute('aria-hidden','true');
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as {__heroStar?:string[]}).__heroStar?.[0]??'not yet')).toBe('true:true:true');
  await expect(star).toHaveCount(0,{timeout:6000});
  await expect(page.locator('.slogan-entrance')).toHaveText("Today's Goals, Habits & Health = Tomorrow's Wealth");
 });

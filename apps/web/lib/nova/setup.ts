@@ -64,6 +64,15 @@ export function recordCheck(record: NovaSetup, id: SetupStepId, check: {ok: bool
   const next: SetupStep = {...step, check: {ok: check.ok, at: now.toISOString(), ...(note ? {note} : {})}, ...(check.ok && !step.doneOn ? {doneOn: today} : {})};
   return finish(withStep(record, id, next), today);
 }
+/**
+ * Session AL second pass (Professor PR-028, P-PR-13): a check made in the Showcase read the Showcase's fictional records,
+ * so its note says so ("Showcase example: …"); the planet is lit for the demo only, and the person's own guide, outside
+ * the Showcase, starts from its own checks.
+ */
+export function showcaseCheck(check: {ok: boolean; note?: string}): {ok: boolean; note?: string} {
+  const note = check.note?.trim();
+  return {...check, note: note?.startsWith('Showcase example') ? note : `Showcase example (fictional records): ${note ?? (check.ok ? 'passed' : 'not passed')}`};
+}
 /** "Mark as not done" (once "Not done yet"): the step's done day goes; its last check stays as a record of what was seen. */
 export function unmarkStep(record: NovaSetup, id: SetupStepId): NovaSetup {
   const {doneOn: _gone, ...rest} = stepOf(record, id); void _gone;

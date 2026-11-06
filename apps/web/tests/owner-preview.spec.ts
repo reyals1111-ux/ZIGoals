@@ -18,7 +18,8 @@ test('owner setup: stake allocation, contribution plan and supporting Habit stay
  if(process.env.RUN81_CAPTURE==='1')await page.screenshot({path:info.outputPath('goal-detail-allocation.png'),fullPage:true,animations:'disabled',scale:'css'});
  await page.getByRole('link',{name:'Next: set your contribution plan →'}).click();
  await page.getByLabel('Planned amount',{exact:true}).fill('500');await page.getByLabel('Contribution asset',{exact:true}).fill('USD');
- await page.getByLabel('Price per Goal unit in contribution currency (if different)').fill('0.05');
+// Session AL (COPY_AUDIT §4, deliberate; DV-033e): the plan copy is "Earlier plan terms", "Planned payments", "Price of one <unit> in <currency>".
+ await page.getByLabel(/^Price of one .+ in the plan’s currency \(if different\)$/).fill('0.05');
  await page.getByRole('button',{name:'Save contribution plan',exact:true}).click();
  if(process.env.RUN81_CAPTURE==='1')await page.locator('#contribution-plan').screenshot({path:info.outputPath('contribution-plan-habit-cta.png'),animations:'disabled',scale:'css'});
  await page.getByRole('link',{name:'Create supporting Habit →'}).click();await page.getByRole('button',{name:'Create supporting Habit →',exact:true}).click();

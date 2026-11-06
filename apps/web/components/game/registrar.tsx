@@ -2,6 +2,7 @@
 import {useEffect, useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {registerNavExtra} from '../nav-extras';
+import {getAppStorage} from '../../lib/showcase-storage';
 // Two literals instead of their modules (the shell's weight): `zigoals:game:v1` is GAME_KEY in lib/aa-device-keys.ts, `zigoals:zigi-store` is ZIGI_STORE_EVENT in lib/ai/store/keys.ts; lib/game/game.test.ts keeps them equal.
 const GAME_KEY = 'zigoals:game:v1', ZIGI_STORE_EVENT = 'zigoals:zigi-store';
 /**
@@ -11,7 +12,9 @@ const GAME_KEY = 'zigoals:game:v1', ZIGI_STORE_EVENT = 'zigoals:zigi-store';
  * page's first load, and the on/off flag is read from the record's bytes without its schema: the shell carries none of
  * the game layer, so the weight budgets never rise.
  */
-function gameOn(): boolean { try { const raw = window.localStorage.getItem(GAME_KEY); if (!raw) return false; const v = JSON.parse(raw) as {enabled?: unknown}; return v?.enabled === true; } catch { return false; } }
+// Session AL: read through getAppStorage (already in the shell), so a Showcase tab or an account scope sees its own
+// record; reading window.localStorage left the Showcase's sidebar and rail without Journey.
+function gameOn(): boolean { try { const raw = getAppStorage().getItem(GAME_KEY); if (!raw) return false; const v = JSON.parse(raw) as {enabled?: unknown}; return v?.enabled === true; } catch { return false; } }
 /** The pages with a named place (AA-Cloud's progress slots, Today's and Settings' places, the Life review's); Help, the welcome, Share and ZIGi's own page have none, so they never fetch the game module (send-feedback.spec.ts watches Help for requests). */
 const SLOT_PAGES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/markets', '/app/portfolio', '/app/activity', '/app/settings', '/app/review', '/app/journey'];
 const hasSlots = (path: string | null) => !!path && SLOT_PAGES.some(p => path === p || path.startsWith(p + '/') || path.startsWith(p + '?'));
@@ -27,6 +30,8 @@ export function GameRegistrar() {
     window.addEventListener('storage', read); window.addEventListener(ZIGI_STORE_EVENT, onStore);
     return () => { window.removeEventListener('storage', read); window.removeEventListener(ZIGI_STORE_EVENT, onStore); };
   }, []);
-  useEffect(() => { if (!enabled) return; return registerNavExtra(['/app/journey', 'Journey', 'journey']); }, [enabled]);
+  // Session AL (O4: "Journey, Life review, Stories and ZIGi states stay out of the sidebar"): a compact entry, so the
+  // tablet rail, the phone's More and search list it, never the desktop sidebar (components/nav-extras.ts).
+  useEffect(() => { if (!enabled) return; return registerNavExtra(['/app/journey', 'Journey', 'journey', 'compact']); }, [enabled]);
   return null;
 }

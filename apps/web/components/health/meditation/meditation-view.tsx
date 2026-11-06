@@ -53,7 +53,9 @@ export default function MeditationView() {
       <h1><NebulaFlow identity="meditation-title">Breathe. Be here.</NebulaFlow></h1>
       <p className="page-lede">A quiet timer, a breathing guide and your mindful minutes. Private to your Health journal; it syncs only with Health, under the same consent.</p>
     </div><HeaderArtCorner><OrbitArt glyph={MeditationGlyph} tone="health" spin={28}/></HeaderArtCorner></div>
-    {note && <p className="sleep-note" role="status">{note}</p>}
+    {/* Session AL fourth pass (N-MO-28): the live region is always on the page, so "Mindful minutes saved." is announced
+        when it appears (it was inserted with its text, which screen readers often skip). */}
+    <p className={note ? 'sleep-note' : 'sr-only'} role="status" aria-live="polite">{note}</p>
     {store.runUnreadable && <p className="notice" role="alert">This device’s running session could not be read. It was not changed; a new session replaces it.</p>}
     <section className="panel" aria-labelledby="meditation-begin-title"><h2 id="meditation-begin-title">Begin</h2><BeginForm key={`begin-${saves}`} store={store} onStarted={() => setNote('')}/></section>
     <section className="panel" aria-labelledby="meditation-week-title">

@@ -183,3 +183,65 @@ export function coinsInWindow(portfolio: Pick<Portfolio, 'transactions'>, start:
   for (const [coin, quantity] of before) if (quantity.greaterThan(0)) coins.add(coin);
   return [...coins].sort();
 }
+
+export type RangeReturns = {
+  /** Time-weighted return over the range, in percent: each stretch between your transactions chained, so money you add or take out does not move it. */
+  twr?: string;
+  /** Money-weighted return over the range, in percent (Modified Dietz): what your money earned, weighted by how long each amount was in. */
+  mwr?: string;
+  /** Why a figure is unknown: a coin held at a moment had no observed price, or nothing was held long enough to measure. */
+  reason?: 'price' | 'empty';
+};
+/**
+ * Session AL (GAP-016, P-DVG-62, C-DVG-62): time- and money-weighted returns for a range, from the same observed prices
+ * and transactions as the value chart. A transaction counts from the start of its date (UTC), as valueSeries. Coins are
+ * valued at the observed market price at each moment (a trade's own price and fee are what Realized/All-time count);
+ * a moment where a held coin has no observed price makes the figures unknown, never a guess. Over a range, not per year.
+ */
+export function rangeReturns(portfolio: Pick<Portfolio, 'transactions'>, prices: ReadonlyMap<string, readonly PricePoint[]>, {start, end}: {start: number; end: number}): RangeReturns {
+  const txs = ordered(portfolio.transactions);
+  // The range's first moment may fall just before a history's first point (it is asked for the same range): the first
+  // point within a day stands in for it there, and only there.
+  const priceAt = (coin: string, at: number) => { let price: string | undefined; const list = prices.get(coin) ?? []; for (const p of list) { if (p.at <= at) price = p.price; else break; } if (price === undefined && at === start && list[0] && list[0].at - at <= DAY_MS) price = list[0].price; return price; };
+  const heldAt = (at: number, inclusive: boolean) => {
+    const held = new Map<string, Dec>();
+    for (const t of txs) { const day = dayStart(t.date); if (inclusive ? day > at : day >= at) break; held.set(t.coin, (held.get(t.coin) ?? new D(0)).plus(t.kind === 'buy' || t.kind === 'transfer-in' ? t.quantity : new D(t.quantity).negated())); }
+    return held;
+  };
+  /** The value of what is held at `at` (after that moment's transactions when `after`), or null when a held coin has no price. */
+  const valueAt = (at: number, after: boolean): Dec | null => {
+    let value = new D(0);
+    for (const [coin, quantity] of heldAt(at, after)) { if (quantity.lessThanOrEqualTo(0)) continue; const price = priceAt(coin, at); if (price === undefined) return null; value = value.plus(quantity.times(price)); }
+    return value;
+  };
+  const flowDays = [...new Set(txs.map(t => dayStart(t.date)).filter(d => d > start && d <= end))].sort((a, b) => a - b);
+  const startValue = valueAt(start, true), endValue = valueAt(end, true);
+  if (startValue === null || endValue === null) return {reason: 'price'};
+  // Time-weighted: chain each stretch's growth; a stretch that starts with nothing held adds nothing.
+  let growth = new D(1), measured = false, base = startValue;
+  for (const day of flowDays) {
+    const before = valueAt(day, false), after = valueAt(day, true);
+    if (before === null || after === null) return {reason: 'price'};
+    if (base.greaterThan(0)) { growth = growth.times(before.dividedBy(base)); measured = true; }
+    base = after;
+  }
+  if (base.greaterThan(0)) { growth = growth.times(endValue.dividedBy(base)); measured = true; }
+  // Money-weighted (Modified Dietz): each day's net flow is what moved in or out at that day's observed prices.
+  const span = Math.max(1, end - start);
+  let flows = new D(0), weighted = new D(0);
+  for (const day of flowDays) {
+    const before = valueAt(day, false)!, after = valueAt(day, true)!, flow = after.minus(before);
+    flows = flows.plus(flow); weighted = weighted.plus(flow.times((end - day) / span));
+  }
+  const capital = startValue.plus(weighted);
+  if (!measured) return {reason: 'empty'};
+  return {twr: growth.minus(1).times(100).toFixed(), ...(capital.greaterThan(0) ? {mwr: endValue.minus(startValue).minus(flows).dividedBy(capital).times(100).toFixed()} : {})};
+}
+/** Session AL (GAP-016): a reference coin's own price change over the same range, in percent, or undefined without both ends. */
+export function priceChange(points: readonly PricePoint[] | undefined, {start, end}: {start: number; end: number}): string | undefined {
+  let first: string | undefined, last: string | undefined;
+  for (const p of points ?? []) { if (p.at <= start) first = p.price; if (p.at <= end) last = p.price; }
+  first ??= points?.find(p => p.at > start && p.at <= end)?.price;
+  if (first === undefined || last === undefined || !new D(first).greaterThan(0)) return undefined;
+  return new D(last).dividedBy(first).minus(1).times(100).toFixed();
+}

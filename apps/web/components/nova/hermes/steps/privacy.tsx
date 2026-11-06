@@ -1,7 +1,7 @@
 'use client';
 import {guardRequest} from '../../../../lib/ai/privacy-mode';
 import {hermesRequest} from '../../../../lib/nova/hermes';
-import {confirmLocalModel, HERMES_DEFAULT_BASE, hermesNeedsRedaction} from '../../../../lib/nova/hermes-record';
+import {confirmationLapsedLine, confirmLocalModel, HERMES_DEFAULT_BASE, hermesNeedsRedaction, localModelStillConfirmed} from '../../../../lib/nova/hermes-record';
 import {PRIVACY_WORDS, privacyMode} from '../../../../lib/nova/privacy-mode';
 import {NOVA_SETUP} from '../../../../lib/nova/setup';
 import {localDate} from '../../../../lib/local-date';
@@ -24,7 +24,7 @@ const SAMPLE = 'Plan my week around my sister Annaâ€™s birthday dinner; budget â
  */
 export default function PrivacyStep({hermes}: {hermes: HermesState}) {
   const setup = useDeviceRecord(NOVA_SETUP), mode = setup.unreadable ? 'strict' : setup.data.privacyMode ?? null;
-  const confirmed = hermes.record.data.localModelConfirmed === true, [error, setError] = useState(''), [ticks, setTicks] = useState<boolean[]>(() => LOCAL_CHECKLIST.map(() => confirmed));
+  const confirmed = localModelStillConfirmed(hermes.record.data), lapsed = confirmationLapsedLine(hermes.record.data), [error, setError] = useState(''), [ticks, setTicks] = useState<boolean[]>(() => LOCAL_CHECKLIST.map(() => confirmed));
   const set = (value: boolean) => { try { hermes.record.update(r => confirmLocalModel(r, value, localDate())); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } };
   const run = async () => {
     const base = hermes.record.data.baseUrl ?? HERMES_DEFAULT_BASE, probe = hermesRequest({base, key: null, model: 'hermes-agent', system: 'Probe.', question: SAMPLE});
@@ -45,6 +45,7 @@ export default function PrivacyStep({hermes}: {hermes: HermesState}) {
       {confirmed ? <button type="button" className="secondary" onClick={() => { set(false); setTicks(LOCAL_CHECKLIST.map(() => false)); }}>Treat my Hermes as a cloud again</button>
         : <button type="button" className="primary" disabled={!ticks.every(Boolean)} onClick={() => set(true)}>My Hermes runs a local model</button>}
     </div>
+    {lapsed && <p className="ai-note" role="status">{lapsed}</p>}
     <p className="fine">{confirmed ? 'Confirmed: in Strict, NOVA sends your Hermes your words as they are. The model is local; its tools may still go online.' : 'Until you confirm, NOVA treats Hermes like a cloud: in Strict and Guarded it sends the redacted copy.'}</p>
     {error && <p role="alert" className="fine">{error}</p>}
     <AboutToSend message={SAMPLE} mode={mode} provider="local" hermesUnconfirmed={!confirmed}/>

@@ -1,4 +1,5 @@
 'use client';
+import {showUndo} from '../ui/undo-toast';
 import {useCallback, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {usePlatform} from '../platform/use-platform';
@@ -12,19 +13,23 @@ type WithUndo = {record: Notes; undo: NotesUndo};
 const withUndo = (out: Notes | WithUndo): out is WithUndo => !('version' in out) && 'record' in out && 'undo' in out;
 /**
  * Session AK (B): the notes record in a component, with one place for what a change says and its Undo. `change` applies
- * a pure change (lib/notes/store.ts) and shows the sentence; with an Undo it offers it until the next change.
+ * a pure change (lib/notes/store.ts) and shows the sentence; a change with an Undo offers it in the app's toast.
  */
 export function useNotes() {
   const notes = useDeviceRecord(NOTES);
-  const [status, setStatus] = useState(''), [undo, setUndo] = useState<NotesUndo | null>(null);
+  const [status, setStatus] = useState('');
   /** Applies a pure change; a change that returns `{record, undo}` offers that Undo. */
   const change = useCallback((fn: (r: Notes) => Notes | WithUndo, said: string, offer?: NotesUndo | null): boolean => {
     let made: NotesUndo | null = offer ?? null;
-    try { notes.update(r => { const out = fn(r); if (withUndo(out)) { made = out.undo; return out.record; } return out; }); setStatus(said); setUndo(made); return true; }
-    catch (e) { setStatus(e instanceof Error ? e.message : 'This could not be saved on this device. Nothing was changed.'); setUndo(null); return false; }
+    // Session AL (PRIMITIVES 3e): Undo is the app's toast; its restore puts the notes record back.
+    try { notes.update(r => { const out = fn(r); if (withUndo(out)) { made = out.undo; return out.record; } return out; }); setStatus(made ? '' : said);
+      const offered = made as NotesUndo | null;
+      if (offered) showUndo({message: said, undone: offered.said, restore: () => { notes.update(r => applyUndo(r, offered)); }});
+      return true; }
+    catch (e) { setStatus(e instanceof Error ? e.message : 'This could not be saved on this device. Nothing was changed.'); return false; }
   }, [notes]);
-  const runUndo = useCallback(() => { if (!undo) return; try { notes.update(r => applyUndo(r, undo)); setStatus(undo.said); } catch (e) { setStatus(e instanceof Error ? e.message : 'Undo could not be applied.'); } setUndo(null); }, [notes, undo]);
-  return {notes, status, setStatus, undo, runUndo, change};
+  // Session AL second pass (PRIMITIVES 3e): the local Undo link is gone; every Undo is the app's toast (above).
+  return {notes, status, setStatus, change};
 }
 
 /**

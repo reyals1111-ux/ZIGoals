@@ -10,7 +10,7 @@ import {CalculatorTools} from '../../../../components/wealth/money-tools/calcula
 export const metadata: Metadata = {title: 'Compound interest calculator'};
 export default function Page() {
   return <div className="dashboard calc-page">
-    <PageHeader className="page-heading" eyebrow="Wealth · a planning tool" title="Compound interest calculator" lede="See how a starting amount and regular saving could grow over time, from the numbers you choose. Every result is an estimate; returns are not guaranteed." actions={<Link className="secondary" href="/app/wealth">← Wealth</Link>} art={<OrbitArt glyph={CalculatorGlyph} tone="wealth" spin={30}/>} />
+    <PageHeader className="page-heading" eyebrow="Wealth · a planning tool" title="Compound interest calculator" lede="See how a starting amount and regular saving could grow over time, from the numbers you choose." actions={<Link className="secondary" href="/app/wealth">← Wealth</Link>} art={<OrbitArt glyph={CalculatorGlyph} tone="wealth" spin={30}/>} />
     <Calculator />
     <CalculatorTools />
   </div>;

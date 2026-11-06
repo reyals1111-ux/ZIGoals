@@ -9,9 +9,10 @@ import {zigiEvents, zigiFrames, zigiIdleVariant, zigiSignals, zigiState, type Zi
 import {startZigiMachine} from './events';
 import {FOLLOW_UPS, HOST_FACT_REACTIONS, isSemanticEvent, REACTION_EVENTS, ZigiController, type Decision, type SemanticEventType} from './semantic';
 import {idlePool, nextGapMs, pickIdle, variantFrame, type IdleHistory, type IdleVariant} from './idle';
-import {filesFor, reactionArtOf, skinOf, ZIGI_STATES, type Skin, type StateFiles} from './manifest';
+import {filesFor, gazeOf, reactionArtOf, skinOf, ZIGI_STATES, type Skin, type StateFiles} from './manifest';
 import {BASE, pickVariant, poolForState, variantPools, type VariantPool} from './variants';
 import {motionAllowed, supportsAnimatedWebp, watchMotion, zigiAnimation} from './motion';
+import {gazeFor, heldGazes, watchGaze} from './gaze';
 
 /**
  * ZIGi alive (Session X-Local Parts 1, 3 and 4; ADR-017 S7): the small chunk the launcher loads lazily on every app page
@@ -41,12 +42,12 @@ export const zigiAliveRunning = () => started !== null;
  * or a reaction (semantic.ts). It ends when the state changes or, for a reaction, when its clip has played. With no
  * Studio-4 art there is never one, so the frames published are exactly today's.
  */
-let override: {state: string; frame: ZigiFrame; timer: number | null} | null = null;
+let override: {state: string; frame: ZigiFrame; timer: number | null; reaction: boolean} | null = null;
 let republish: () => void = () => undefined;
-function setOverride(next: {state: string; frame: ZigiFrame; ms: number} | null): void {
+function setOverride(next: {state: string; frame: ZigiFrame; ms: number; reaction?: boolean} | null): void {
   if (override?.timer) window.clearTimeout(override.timer);
   if (!next && !override) return;
-  override = next ? {state: next.state, frame: next.frame, timer: next.ms > 0 ? window.setTimeout(() => { override = null; republish(); }, next.ms) : null} : null;
+  override = next ? {state: next.state, frame: next.frame, timer: next.ms > 0 ? window.setTimeout(() => { override = null; republish(); }, next.ms) : null, reaction: next.reaction === true} : null;
   republish();
 }
 const overrideFrame = (files: StateFiles, apng: boolean, skin: Skin): ZigiFrame => ({...variantFrame({id: '', files, accent: false, durationMs: 0, weight: 0}, apng, {x1: skin.sizes['1x'].file, x2: skin.sizes['2x'].file}), override: true});
@@ -62,7 +63,7 @@ function connectController(skin: () => Skin = () => skinOf(null), apng: () => bo
     // A reaction the controller allowed plays its clip over the current state (only once its art has landed).
     if (decision.reaction && decision.mode === 'animated') {
       const found = reactionArtOf(skin()).find(r => r.event === decision.reaction);
-      if (found) setOverride({state: zigiState.get(), frame: overrideFrame(found.clip.files, apng(), skin()), ms: found.clip.durationMs > 0 ? found.clip.durationMs : 2000});
+      if (found) setOverride({state: zigiState.get(), frame: overrideFrame(found.clip.files, apng(), skin()), ms: found.clip.durationMs > 0 ? found.clip.durationMs : 2000, reaction: true});
     }
   };
   const handle = (signal: ZigiSignal) => {
@@ -77,9 +78,18 @@ function connectController(skin: () => Skin = () => skinOf(null), apng: () => bo
   return () => { off(); offState(); };
 }
 const isTextField = (target: EventTarget | null) => target instanceof HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable);
+/**
+ * Session AL Part 14 (D13, gaze.ts): while ZIGi waits on the person, the held gaze replaces resting's or listening's clip.
+ * A reaction playing over that state still shows first (it is short); a variant gives way to the gaze.
+ */
+const gazeOn = (skin: Skin, state: 'idle' | 'listening') => gazeOf(skin, gazeFor(state, heldGazes(), motionAllowed()));
 function framesFor(skin: Skin, apng: boolean): ZigiFrames {
   const table = baseFrames(skin, apng);
   if (override && table[override.state]) table[override.state] = override.frame;
+  for (const state of ['idle', 'listening'] as const) {
+    const clip = gazeOn(skin, state);
+    if (clip && !(override?.reaction && override.state === state)) table[state] = overrideFrame(clip.files, apng, skin);
+  }
   return table;
 }
 function baseFrames(skin: Skin, apng: boolean): ZigiFrames {
@@ -100,7 +110,8 @@ function startRotation(skinOf_: () => Skin, apngOf: () => boolean, random: () =>
   let gap: number | null = null, play: number | null = null, typingUntil = 0, typingTimer: number | null = null;
   const history: IdleHistory = {lastId: null, lastAccentAt: -Infinity};
   const clear = () => { if (gap) window.clearTimeout(gap); if (play) window.clearTimeout(play); gap = play = null; if (zigiIdleVariant.get()) zigiIdleVariant.set(null); };
-  const allowed = () => zigiState.get() === 'idle' && zigiAnimation() === 'full' && motionAllowed() && document.visibilityState === 'visible' && Date.now() >= typingUntil;
+  // Session AL Part 14 (D13): no variation while a held gaze shows (ZIGi is waiting on the person).
+  const allowed = () => zigiState.get() === 'idle' && zigiAnimation() === 'full' && motionAllowed() && document.visibilityState === 'visible' && Date.now() >= typingUntil && !gazeOn(skinOf_(), 'idle');
   const schedule = () => {
     clear();
     if (!allowed()) return;
@@ -127,10 +138,10 @@ function startRotation(skinOf_: () => Skin, apngOf: () => boolean, random: () =>
     typingTimer = window.setTimeout(() => { typingTimer = null; zigiSignals.emit('user_typing_stopped'); schedule(); }, TYPING_GUARD_MS);
   };
   const onVisibility = () => schedule();
-  const offState = zigiState.subscribe(schedule), offMotion = watchMotion(schedule);
+  const offState = zigiState.subscribe(schedule), offMotion = watchMotion(schedule), offGaze = watchGaze(schedule);
   document.addEventListener('keydown', onKey, true); document.addEventListener('visibilitychange', onVisibility);
   schedule();
-  return () => { clear(); if (typingTimer) window.clearTimeout(typingTimer); offState(); offMotion(); document.removeEventListener('keydown', onKey, true); document.removeEventListener('visibilitychange', onVisibility); };
+  return () => { clear(); if (typingTimer) window.clearTimeout(typingTimer); offState(); offMotion(); offGaze(); document.removeEventListener('keydown', onKey, true); document.removeEventListener('visibilitychange', onVisibility); };
 }
 /**
  * Session AK Part 12: the variant rotation (variants.ts) as each play of a pooled state starts: speaking, listening,
@@ -166,7 +177,7 @@ export function startZigiAlive(options: {random?: () => number} = {}): () => voi
   const publish = () => { const now = skin(); zigiController.setReactionArt(reactionArt(now)); zigiFrames.set(framesFor(now, apng)); };
   republish = publish;
   const stopMachine = startZigiMachine(), stopController = connectController(skin, () => apng);
-  const stopMotion = watchMotion(publish);
+  const stopMotion = watchMotion(publish), stopGaze = watchGaze(publish);
   const onStore = (event: Event) => { if (!(event instanceof CustomEvent) || !event.detail || event.detail === ZIGI_KEY) publish(); };
   const onStorage = (event: StorageEvent) => { if (event.key === null || event.key === ZIGI_KEY) publish(); };
   window.addEventListener(ZIGI_STORE_EVENT, onStore); window.addEventListener('storage', onStorage);
@@ -183,6 +194,6 @@ export function startZigiAlive(options: {random?: () => number} = {}): () => voi
   publish();
   void supportsAnimatedWebp().then(ok => { apng = !ok; publish(); });
   const stopRotation = startRotation(skin, () => apng, options.random), stopVariants = startVariants(skin, () => apng, options.random);
-  started = () => { stopVariants(); republish = () => undefined; stopRotation(); stopController(); stopMachine(); stopMotion(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); window.removeEventListener(AI_SETTINGS_EVENT, watchSetup); window.removeEventListener('storage', watchSetup); zigiFrames.set(null); started = null; };
+  started = () => { stopVariants(); republish = () => undefined; stopRotation(); stopController(); stopMachine(); stopMotion(); stopGaze(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); window.removeEventListener(AI_SETTINGS_EVENT, watchSetup); window.removeEventListener('storage', watchSetup); zigiFrames.set(null); started = null; };
   return started;
 }

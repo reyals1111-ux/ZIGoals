@@ -2,6 +2,7 @@
 import {useCallback, useMemo, useState} from 'react';
 import {collectReply, streamChat} from '../../../lib/ai/chat';
 import {guardRequest} from '../../../lib/ai/privacy-mode';
+import {LIVE_PRIVACY_PROBES} from '../../../lib/ai/privacy-probes';
 import {readKey} from '../../../lib/ai/keys';
 import {looksSecret} from '../../../lib/ai/memory';
 import {PROVIDERS, type ProviderId} from '../../../lib/ai/providers';
@@ -48,7 +49,7 @@ export function useNovaModel(task: 'briefs' | 'workflows'): NovaModel {
     if (provider !== 'local' && !key) throw new Error('Your key is not on this device.');
     setSent({text: out.text, redactions: totalRedactions(out.found)});
     let requests = 0;
-    const counted = async function* (): AsyncGenerator<ChatEvent> { for await (const event of streamChat(await guardRequest({provider, localServer: data.localServer ?? undefined, model, system, messages: [{role: 'user', content: out.text}], maxOutputTokens: Math.min(data.maxOutputTokens, 900), key, baseUrl: data.baseUrl ?? undefined, appOrigin: window.location.origin, ...(signal ? {signal} : {})}))) { requests = 1; yield event; } }; // the engine's privacy guard too (Ollama cloud models, an unconfirmed Hermes)
+    const counted = async function* (): AsyncGenerator<ChatEvent> { for await (const event of streamChat(await guardRequest({provider, localServer: data.localServer ?? undefined, model, system, messages: [{role: 'user', content: out.text}], maxOutputTokens: Math.min(data.maxOutputTokens, 900), key, baseUrl: data.baseUrl ?? undefined, appOrigin: window.location.origin, ...(signal ? {signal} : {})}, {probes: LIVE_PRIVACY_PROBES}))) { requests = 1; yield event; } }; // the engine's privacy guard too (Ollama cloud models, an unconfirmed Hermes)
     let reply: Awaited<ReturnType<typeof collectReply>> | null = null;
     try { reply = await collectReply(counted()); return reply.text; }
     finally {

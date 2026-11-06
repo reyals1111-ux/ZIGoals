@@ -1,3 +1,4 @@
+import {closedAfterReaching, goalReached} from './goals/finished';
 import type {PrivateGoal} from './positions';
 import type {AverageGoal} from './average-goals/store';
 import {averageKey} from './average-goals/store';
@@ -14,10 +15,11 @@ const span = (from: string, to: string) => Math.max(0, Math.round((Date.parse(`$
 
 /** Session AH (TR6): `finished` says whether a tracked goal is finished now (the Goals page passes its derived status, so
  * the Hall and "Finished" agree); without it, the stored status. */
-export function achievementsOf(goals: readonly PrivateGoal[], averages: readonly AverageGoal[], extras: GoalExtras, isFinished: (g: PrivateGoal) => boolean = g => g.status === 'completed'): Achievement[] {
+export function achievementsOf(goals: readonly PrivateGoal[], averages: readonly AverageGoal[], extras: GoalExtras, isFinished: (g: PrivateGoal) => boolean = goalReached): Achievement[] {
   const out: Achievement[] = [];
   for (const g of goals) {
-    if (g.status === 'closed' || !isFinished(g)) continue;
+    // Session AL (DV-058a, P-DV-22): a goal closed after it reached its target keeps its place (lib/goals/finished.ts).
+    if (!isFinished(g) || (g.status === 'closed' && !closedAfterReaching(g))) continue;
     const done = [...(g.lifecycle ?? [])].reverse().find(l => l.kind === 'completed');
     const key = `private:${g.id}`, e = extras.goals[key], finished = done ? dayOf(done.at) : null, started = dayOf(g.createdAt);
     out.push({key, name: g.name, finished, days: finished ? span(started, finished) : null, area: e?.area, areaLabel: areaLabel(extras, e?.area), story: e?.story, started});

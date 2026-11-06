@@ -38,6 +38,19 @@ export const MODEL_RULE = 'A rule of thumb: the download must fit in your graphi
 /** Session AK P4 (FR-11): the largest model (billions of parameters) each memory size runs well, for the suggested model. */
 export const MAX_PARAMS: Readonly<Record<MemoryBudget, number>> = {ram8: 4, ram16: 12, ram32: 24, vram24: 32, vram32: 36, mac64: 72};
 export const pickFor = (budget: MemoryBudget): ModelPick => MODEL_PICKS.find(p => p.budget === budget) ?? MODEL_PICKS[1]!;
+/**
+ * Session AL (lane L7; Berlin BN-034, N-BN-12, P-PR-84): the memory choice starts from what the browser says about this
+ * computer (navigator.deviceMemory is rounded and capped at 8 by the browser; hardwareConcurrency counts threads). Few
+ * cores or 8 GB or less starts at the light pick; anything unknown keeps the usual default. The person can always change it.
+ */
+export function defaultBudget(nav: {deviceMemory?: number; hardwareConcurrency?: number} | null | undefined): MemoryBudget {
+  const memory = typeof nav?.deviceMemory === 'number' && nav.deviceMemory > 0 ? nav.deviceMemory : null, cores = typeof nav?.hardwareConcurrency === 'number' && nav.hardwareConcurrency > 0 ? nav.hardwareConcurrency : null;
+  return (memory !== null && memory < 8) || (cores !== null && cores <= 4) ? 'ram8' : 'ram16';
+}
+/** A computer with no graphics card (Berlin's CPU-only box): what to expect, and the small models that answer in time. */
+export const CPU_NOTE = 'No graphics card? A model still runs on the processor, only slower: the first answer can take a minute or more while it reads your data. For a quick start, use a small model such as qwen2.5:0.5b, qwen3.5:0.8b or llama3.2:1b (ollama pull qwen2.5:0.5b); NOVA keeps its messages short for small models and tells you if one is too slow.';
+/** BN-034: the context window. NOVA names it with every message, so there is nothing to set by hand. */
+export const CONTEXT_NOTE = 'Ollama answers with a short memory (a 4,096-token context) unless asked for more. NOVA asks for the size each message needs (up to 32,768 tokens), so there is nothing to set; a bigger window uses more of your computer’s memory.';
 
 /** Ollama, per OS (NOVA.md §2.2; Ollama FAQ and download pages). */
 export function ollamaSteps(os: Os, origin: string, model: string): GuideStep[] {
@@ -53,12 +66,14 @@ export function ollamaSteps(os: Os, origin: string, model: string): GuideStep[] 
     {text: 'Allow ZIGoals. This opens an editor: under [Service] add the line Environment="OLLAMA_ORIGINS=' + origin + '", then save.', command: 'sudo systemctl edit ollama.service', shell: 'Terminal'},
     {text: 'Load the change:', command: 'sudo systemctl daemon-reload', shell: 'Terminal'},
     {text: 'Restart Ollama:', command: 'sudo systemctl restart ollama', shell: 'Terminal'},
+    // Session AL (BN-033, N-SL-01…05): a minimal Linux or a container has no systemd service; Ollama is started by hand.
+    {text: 'No systemd (a minimal Linux or a container)? Skip the three steps above and start Ollama by hand, allowing only this site:', command: `OLLAMA_ORIGINS="${origin}" ollama serve`, shell: 'Terminal'},
   ];
   const shell = os === 'windows' ? 'PowerShell' as const : 'Terminal' as const;
   return [
     os === 'mac' ? {text: 'Install Ollama: download it for macOS from ollama.com/download, open it and drag Ollama to Applications, then open it once.'}
-      : os === 'windows' ? {text: 'Install Ollama (or download OllamaSetup.exe from ollama.com/download):', command: 'irm https://ollama.com/install.ps1 | iex', shell}
-      : {text: 'Install Ollama:', command: 'curl -fsSL https://ollama.com/install.sh | sh', shell},
+      : os === 'windows' ? {text: 'Install Ollama (or download OllamaSetup.exe from ollama.com/download). This command downloads Ollama’s own install script from ollama.com and runs it:', command: 'irm https://ollama.com/install.ps1 | iex', shell}
+      : {text: 'Install Ollama. This downloads Ollama’s own install script from ollama.com and runs it; it asks for your password (sudo) and needs curl and zstd (on Debian or Ubuntu: sudo apt install curl zstd). To read the script first: curl -fsSL https://ollama.com/install.sh -o install.sh, open install.sh, then run sh install.sh.', command: 'curl -fsSL https://ollama.com/install.sh | sh', shell},
     {text: 'Download a model that fits your computer (see “Which model?” below):', command: `ollama pull ${model}`, shell},
     ...allow,
     {text: 'Check that ZIGoals is allowed: an answer with “HTTP/1.1 200” and an Access-Control-Allow-Origin line means yes; “403” means the setting is not active yet.', command: `${os === 'windows' ? 'curl.exe' : 'curl'} -i -H "Origin: ${origin}" http://127.0.0.1:11434/api/version`, shell},
@@ -131,3 +146,13 @@ export const ORBITS: readonly {id: string; label: string; colour: PathColour; st
   {id: 'nova-knows', label: 'Remember and speak', colour: 'magenta', steps: ['memory', 'voice']},
   {id: 'nova-daily', label: 'Your daily NOVA', colour: 'gold', steps: ['briefs', 'workflows', 'yours']},
 ];
+
+/**
+ * Session AL Part 14 (lane P14-B; security review Z1A-I1): with no privacy mode chosen, NOVA's chat sends to a cloud key as
+ * ZIGi always did, while NOVA's briefs and workflows act as Strict. The two defaults disagree, so NOVA's composer says so
+ * before the first cloud send and points to the choice. Null when a mode is chosen or the brain is on this computer.
+ */
+export function noModeCloudNote(mode: string | null, provider: string | null | undefined, providerName: string): string | null {
+  if (mode !== null || !provider || provider === 'local') return null;
+  return `You have not chosen a privacy mode yet, so this chat sends to ${providerName} as ZIGi does, with what NOVA → Permissions allows. NOVA’s briefs and workflows act as Strict until you choose: Build NOVA’s brain → Privacy.`;
+}

@@ -38,19 +38,24 @@ export function shiftCalories(r: CalorieWeek, baseKcal: number, from: number, to
 export const resetShifts = (r: CalorieWeek): CalorieWeek => { const rest: Record<string, unknown> = {...r}; delete rest.shifts; return calorieWeekSchema.parse(rest); };
 export const setRollover = (r: CalorieWeek, on: boolean, maxKcal: number): CalorieWeek => calorieWeekSchema.parse({...r, rollover: {on, maxKcal: Math.max(0, Math.min(MAX_ROLLOVER, Math.round(maxKcal)))}});
 
-export type BudgetDay = {date: string; base: number; shift: number; carried: number; budget: number; eaten: number | null; remaining: number | null; past: boolean};
+/** `partial` (Session AL, MO-013): some of the day's entries carry no calories, so `eaten` is the known part, a lower bound. */
+export type BudgetDay = {date: string; base: number; shift: number; carried: number; budget: number; eaten: number | null; remaining: number | null; past: boolean; partial?: boolean};
 /** The week of `anchor` against `today`: each day's budget (base + shift + what rolled over), what was logged and what is left. */
 export function weekBudget(data: HealthData, r: CalorieWeek, anchor: string, today: string): {days: BudgetDay[]; weeklyBudget: number; eaten: number; base: number} | null {
   const base = data.targets.kcal;
   if (!base) return null;
   const shifts = shiftsOf(r), roll = r.rollover?.on ? r.rollover.maxKcal : 0, days: BudgetDay[] = [];
   for (const [i, date] of weekDays(anchor).entries()) {
-    const s = dailyHealthSummary(data, date), eaten = s.entries > 0 ? s.nutrients.kcal : null;
+    // Session AL (P-MO-68, MO-013): a day with some entries lacking calories shows what is known ("1,655+ logged"); it
+    // used to read "nothing logged".
+    const s = dailyHealthSummary(data, date), partial = s.entries > 0 && s.nutrients.kcal === null, eaten = s.entries > 0 ? s.nutrients.kcal ?? s.knownNutrients.kcal : null;
     const prev = days[i - 1];
-    // Only a past day with a log can leave anything unused; an unlogged day is unknown, never "all unused".
-    const carried = roll && prev && prev.past && prev.eaten !== null ? Math.min(roll, Math.max(0, prev.budget - prev.eaten)) : 0;
+    // Only a past day with a full log can leave anything unused; an unlogged or partial day is unknown, never "all unused".
+    const carried = roll && prev && prev.past && prev.eaten !== null && !prev.partial ? Math.min(roll, Math.max(0, prev.budget - prev.eaten)) : 0;
     const budget = Math.max(KCAL_FLOOR, base + shifts[i]!) + carried;
-    days.push({date, base, shift: shifts[i]!, carried, budget, eaten, remaining: eaten === null ? null : budget - eaten, past: date < today});
+    days.push({date, base, shift: shifts[i]!, carried, budget, eaten, remaining: eaten === null ? null : budget - eaten, past: date < today, ...(partial ? {partial: true} : {})});
   }
-  return {days, weeklyBudget: base * 7, eaten: days.reduce((a, d) => a + (d.eaten ?? 0), 0), base};
+  // Session AL (P-MO-68, MO-151): the week's total is the sum of the days as shown, so a target under the floor reads
+  // "8,400" beside seven days of 1,200 (it said "7,000 (1,000 × 7)").
+  return {days, weeklyBudget: days.reduce((a, d) => a + d.budget - d.carried, 0), eaten: days.reduce((a, d) => a + (d.eaten ?? 0), 0), base};
 }

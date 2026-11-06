@@ -1,7 +1,7 @@
 import {expect, test} from 'vitest';
 import {createHabit} from '../../habits';
 import {DATA_CLOSE, DATA_OPEN} from '../context/specialists';
-import {DAY, gatesFor, SENTINEL, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
+import {DAY, gatesFor, SENTINEL, hasSentinel, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {buildContextPack, cell, DEFAULT_SCOPE, PACK_WARNING, RECORDS_NOT_INSTRUCTIONS, type PackScope} from './build';
 
 // Session V Part 5 ([TIER 3], a new export format): the context pack. Content follows the chosen areas and range;
@@ -54,7 +54,7 @@ test('Health only with its gate open AND its own box: the box alone or the gate 
   }
   expect(pack({}, false).omitted).toContain('Health (its gate is closed: Settings → ZIGi · Your Personal AI Companion → Include Health, with Health on Today)');
   // A check-in a Health link filled in stays held back when Health is out of the pack.
-  expect(pack({health: false}).markdown).not.toContain(String(SENTINEL.habitValue));
+  expect(hasSentinel(pack({health: false}).markdown, SENTINEL.habitValue)).toBe(false);
   expect(pack({health: false}).markdown).toContain('from Health, not shared');
   // Notes: Health-tagged ones only with Health; none unless chosen.
   const notes = [{text: 'Saving for Japan next spring', category: 'goals'}, {text: SENTINEL.note, category: 'health'}, {text: 'Vegetarian since 2020', category: 'diet'}];

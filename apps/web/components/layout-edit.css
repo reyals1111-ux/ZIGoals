@@ -57,3 +57,9 @@
 :root[data-layout-dragging] .layout-bar { opacity:0;pointer-events:none; }
 :root[data-layout-dragging] { cursor:grabbing; }
 :root[data-layout-dragging] body { user-select:none;-webkit-user-select:none; }
+/* Session AL (NB-193, NB-228, NB-093, NB-220b; P-NB-38): the bar never covers the app's toast or an open card menu. While
+   arranging, the toast (its Undo above all) shows above the bar; while a card's ⋯ menu is open the bar steps aside, as it
+   does while a card is carried. The page keeps its 120 px of room below, so the last card's menu can be scrolled clear. */
+:root[data-layout-editing] .aa-toast-region { bottom: 112px; }
+@media (max-width:600px) { :root[data-layout-editing] .aa-toast-region { bottom: 172px; } }
+:root[data-layout-editing]:has(.card-options-panel) .layout-bar { opacity:0;pointer-events:none; }

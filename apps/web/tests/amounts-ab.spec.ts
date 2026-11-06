@@ -21,7 +21,8 @@ test.describe('a device in the United States', () => {
   test.use({locale: 'en-US'});
   test('"3,250.50" is previewed as 3250.50 USD and saved exactly', async ({page}) => {
     await valueGoal(page, '3,250.50');
-    await expect(preview(page)).toHaveText('3250.50 USD');
+    // Session AL (TK-142, deliberate; 7ea56655): the preview formats what saving reads, in the device's convention.
+    await expect(preview(page)).toHaveText('$3,250.50');
     await page.getByRole('button', {name: 'Create goal', exact: true}).click();
     await page.waitForURL('**/app/goals/tracked/**');
     expect((await goals(page)).map(g => [g.target, g.asset])).toEqual([['325050', 'USD']]);
@@ -31,13 +32,15 @@ test.describe('a device in the Netherlands', () => {
   test.use({locale: 'nl-NL'});
   test('"1.234" is refused with its reason instead of read as 1.234; "3.250,50" is previewed as 3250.50 EUR and saved exactly', async ({page}) => {
     await valueGoal(page, '1.234');
-    await expect(preview(page)).toHaveText('Unreadable amount · “1.234” could mean 1234 or 1.234. Type it without a thousands separator. EUR');
+    // Session AL (TK-142, deliberate): a refused amount is said without a currency code after it.
+    await expect(preview(page)).toHaveText('Unreadable amount · “1.234” could mean 1234 or 1.234. Type it without a thousands separator.');
     await page.getByRole('button', {name: 'Create goal', exact: true}).click();
     await expect(page.getByRole('alert').filter({hasText: '“1.234” could mean 1234 or 1.234'})).toBeVisible();
     expect(await goals(page)).toEqual([]);
     // Gate C test audit: the Dutch reading is also what is saved.
     await page.getByLabel('Target amount', {exact: true}).fill('3.250,50');
-    await expect(preview(page)).toHaveText('3250.50 EUR');
+    // Session AL (TK-142, deliberate): formatted in the Dutch convention; the saved units below prove the reading.
+    await expect(preview(page)).toHaveText('€ 3.250,50');
     await page.getByRole('button', {name: 'Create goal', exact: true}).click();
     await page.waitForURL('**/app/goals/tracked/**');
     expect((await goals(page)).map(g => [g.target, g.asset])).toEqual([['325050', 'EUR']]);

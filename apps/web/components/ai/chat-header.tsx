@@ -69,7 +69,7 @@ export function MoreMenu({items, gradient, extra}: {items: readonly MoreItem[]; 
   </div>;
 }
 export type ChatHeaderProps = {
-  titleId: string; figure: ReactNode; status: ReactNode; premium: string | null;
+  titleId: string; figure: ReactNode; status: ReactNode; premium: ReactNode;
   phone: boolean; miniWindow: boolean; miniSupported: boolean; expanded: boolean;
   onNew: () => void; onExpand: () => void; onPopOut: () => void; onBackToTab: () => void; onClose: () => void; more: readonly MoreItem[];
   /** An entry of its own at the top of "⋯" (the model list when an AI is connected). */
@@ -110,7 +110,7 @@ export function ChatHeader({titleId, figure, status, premium, phone, miniWindow,
     {figure}
     <div className="ai-chat-identity" ref={identity}>
       <ZigiTitle id={titleId}/>
-      <div className="ai-chat-via">{status}{premium && <span className="ai-chat-premium">{premium}</span>}</div>
+      <div className="ai-chat-via">{status}{typeof premium === 'string' ? premium && <span className="ai-chat-premium">{premium}</span> : premium}</div>
     </div>
     <div className="ai-chat-tools" role="toolbar" aria-label="Chat tools">
       <IconButton glyph="plus" label="New chat" tip="New chat" gradient={gradient} onClick={onNew}/>

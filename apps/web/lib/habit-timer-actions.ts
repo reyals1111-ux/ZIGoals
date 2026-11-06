@@ -2,6 +2,7 @@
 // habits store (in the shell through the knock) no longer carries them; the timer UI and ZIGi's timer cards import this module.
 import {habitRuleOn,habitDay,logHabitValue,type Habit,type HabitData,type HabitRule} from './habits';
 import {habitById,replace} from './habit-actions';
+import {durationCountText} from './habit-number';
 const MAX_TIMER_MS=7*86400000;
 function zonedDay(now:Date,timeZone:string){const parts=new Intl.DateTimeFormat('en',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),get=(type:string)=>parts.find(p=>p.type===type)!.value;return `${get('year')}-${get('month')}-${get('day')}`;}
 function ruleFingerprint(rule:HabitRule){return JSON.stringify(rule);}
@@ -43,4 +44,11 @@ export function finishHabitTimer(data:HabitData,id:string,timerId:string,now=new
 }
 export function discardHabitTimer(data:HabitData,id:string,timerId:string,now=new Date(),expected?:string):HabitData{
  const h=habitById(data,id);if(h.timerReceipts?.some(r=>(r.timerId??r.id)===timerId))return data;assertTimerReview(h,expected);timerFor(h,timerId);return replace(data,{...h,timer:undefined,timerReceipts:[...(h.timerReceipts??[]),receipt(h,now,'discarded')],updatedAt:now.toISOString()});
+}
+/**
+ * Session AL (CI7, P-NB-29): a timer's amount in the same words as the habit's card ("1 min 30 s", never "1.5 minutes");
+ * a whole amount keeps its number (shown through `plain`, the display locale's digits) and its unit.
+ */
+export function timerAmountText(value:number,unit:string,plain:(text:string)=>string=text=>text):string{
+ return durationCountText(value,unit)??`${plain(String(Number(value.toFixed(4))))} ${unit}`;
 }

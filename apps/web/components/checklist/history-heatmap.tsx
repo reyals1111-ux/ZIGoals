@@ -40,12 +40,14 @@ export function HistoryHeatmap({days, today, todaySummary}: {days: ChecklistDays
     {/* Session AK P6 (axe scrollable-region-focusable, 2.1.1): it scrolls sideways on a narrow screen, so it is a named stop the keyboard can scroll. */}
     <div className="checklist-heat" role="region" aria-label={`Checklist history, the last ${WEEKS} weeks`} tabIndex={0}>
       <ol className="checklist-heat-days" aria-hidden="true">{Array.from({length: 7}, (_, i) => <li key={i}>{formatWeekday(addDays(start, i))}</li>)}</ol>
-      <div className="checklist-heat-grid" role="img" aria-label={`The last ${WEEKS} weeks: ${results.length} days with some or all orbits`}>
+      <div className="checklist-heat-grid" role="img" aria-label={`The last ${WEEKS} weeks: ${results.length} ${results.length === 1 ? "day" : "days"} with some or all orbits`}>
         {cells.map(c => <span key={c.date} className="checklist-heat-cell" data-level={c.level} data-today={c.date === today || undefined} title={c.label}/>)}
       </div>
       <ol className="checklist-heat-weeks" aria-hidden="true">{Array.from({length: WEEKS}, (_, i) => <li key={i}>{i === 0 ? `${WEEKS}w` : i === WEEKS - 1 ? 'Now' : i === WEEKS / 2 ? `${WEEKS / 2}w` : ''}</li>)}</ol>
     </div>
     <ul className="checklist-heat-legend">{(['none', 'some', 'all'] as const).map(level => [level, HEAT_WORDS[level]] as const).map(([level, words]) => <li key={level} data-level={level}><span className="checklist-heat-cell checklist-heat-swatch" data-level={level} aria-hidden="true"/>{words}</li>)}</ul>
+    {/* Session AL fourth pass (D-086): one meaning for the three words the Checklist uses. */}
+    <p className="fine checklist-heat-note">A planet is one item on your path: the counts above and here are your planets, and an orbit is complete when all its planets are lit.</p>
     <ul className="sr-only">{results.map(c => <li key={c.date}>{c.label}</li>)}</ul>
   </div>;
 }

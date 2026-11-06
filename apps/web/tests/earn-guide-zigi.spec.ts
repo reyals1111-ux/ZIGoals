@@ -88,5 +88,8 @@ test('every guide asks about its own way to earn; with the ZIGi launcher hidden 
   await tab.close();
   const guide = page.getByRole('region', {name: 'Guide: Stake ZIG on Valdora for stZIG'});
   await expect(guide).toBeVisible();
-  await expect(guide.getByRole('button', {name: 'Ask ZIGi about this'})).toHaveCount(0);
+  // Session AL (owner decision O3, deliberate): below 901 px the device hide is a computer's choice about the floating
+  // button and does not apply (ZIGi opens from "Apps & extras"), so the guide keeps its "Ask ZIGi"; on a computer, as before.
+  const compact = page.viewportSize()!.width < 901;
+  await expect(guide.getByRole('button', {name: 'Ask ZIGi about this'})).toHaveCount(compact ? 1 : 0);
 });

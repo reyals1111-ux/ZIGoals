@@ -56,10 +56,11 @@ test('one tap: what you usually have at a meal, and an item you pinned, on every
   await page.goto('/app/health');
   const breakfast = page.getByRole('region', {name: 'Breakfast diary'});
   const chips = breakfast.getByRole('group', {name: 'One tap for breakfast'});
-  await expect(chips.getByRole('button')).toHaveText(['+ Fictional oats · 1.5', '+ Fictional coffee · 1']);
+  // Session AL (COPY_AUDIT, deliberate): P-MO-73 (MO-009) writes the servings as "×1.5".
+  await expect(chips.getByRole('button')).toHaveText(['+ Fictional oats ×1.5', '+ Fictional coffee ×1']);
   await chips.getByRole('button', {name: 'Log Fictional oats, 1.5 servings, to breakfast'}).click();
   await expect(page.getByRole('status').filter({hasText: 'Fictional oats logged to breakfast: 1.5 servings.'})).toBeVisible();
-  await expect(chips.getByRole('button')).toHaveText(['+ Fictional coffee · 1']);
+  await expect(chips.getByRole('button')).toHaveText(['+ Fictional coffee ×1']); // Session AL (COPY_AUDIT, deliberate): P-MO-73
   // Pin the apple from the quick picks: it is then one tap on every meal.
   await openMealLog(page);
   await page.getByRole('button', {name: 'All', exact: true}).click();

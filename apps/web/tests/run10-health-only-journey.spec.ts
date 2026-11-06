@@ -12,12 +12,19 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   // Session AK (ADR-036 G2, RELEASE_REVIEW_2 R2-11, 15c1e159, deliberate): on a brand-new device "Make Today yours" waits
   // until the welcome is answered, so the welcome is answered first ("Not now"), as a person choosing a layout would.
   await activate(page.getByRole('region', { name: 'Set up your first goal and habit in about a minute.' }).getByRole('button', { name: 'Not now', exact: true }));
-  await activate(page.getByRole('button', { name: /^Health-only/ }));
+  // Session AL (P-NB-08; NB-002, NB-033; deliberate): after "Not now" an empty device shows one setup entry, and "Make
+  // Today yours" waits until something is recorded, so the Health-only layout is chosen from Customize Today's own preset
+  // chooser (the same dialog and the same Apply), as tests/run10-widgets.spec.ts does.
+  await expect(page.getByRole('region', { name: 'Set up ZIGoals in about a minute.' })).toBeVisible();
+  await activate(page.getByRole('button', { name: 'Customize Today', exact: true }));
+  await activate(page.getByRole('button', { name: 'Choose preset', exact: true }));
   const preset = page.getByRole('dialog', { name: 'Choose your Today layout' });
   await expect(preset).toBeVisible();
+  await preset.getByRole('radio', { name: /^Health-only/ }).check();
   await preset.getByRole('button', { name: 'Apply layout' }).focus();
   await page.keyboard.press('Enter');
   await expect(preset).not.toBeVisible();
+  await activate(page.getByRole('button', { name: 'Finish customizing' }));
   await expect(page.locator('.personalized-today')).toHaveAttribute('data-interests', 'health');
   await expect(page.getByRole('region', { name: 'Today financial intelligence' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Connect Keplr/ })).toHaveCount(0);

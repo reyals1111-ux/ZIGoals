@@ -19,21 +19,29 @@ export type MarketTableRow = {
  * 1h / 24h / 7d change, the 7-day line, market cap (as CoinGecko observed it; "Not provided" otherwise) and the shared
  * favourite star. Phones keep the market, its 24h change, price and star.
  */
-export function MarketTable({rows, currency, label, onToggle, disabled}: {rows: readonly MarketTableRow[]; currency: 'USD' | 'EUR'; label: string; onToggle: (row: MarketTableRow) => void; disabled: boolean}) {
+/** The columns a header can sort by (Session AL, TK-204, M2), with the Sort list's own keys. */
+export type MarketSortKey = 'listed' | 'name' | 'price' | 'change24h' | 'marketCap';
+export function MarketTable({rows, currency, label, onToggle, disabled, loading = false, sort, onSort, fullText}: {rows: readonly MarketTableRow[]; currency: 'USD' | 'EUR'; label: string; onToggle: (row: MarketTableRow) => void; disabled: boolean; /** figures still loading: a missing one reads "Loading…" (TK-044) */ loading?: boolean; sort?: MarketSortKey; onSort?: (key: MarketSortKey) => void; /** the favourites are full: an empty star says so where it was tapped (TK-118) */ fullText?: string}) {
   const edges = useScrollEdges<HTMLDivElement>();
-  return <div ref={edges} className="data-table-wrap" role="region" aria-label={`${label}, scrolls sideways`} tabIndex={0}>
+  // Session AL (TK-204, M2): Market, Price, 24h and Market cap headers sort the table (the Sort list stays), with aria-sort.
+  const head = (key: MarketSortKey, text: string, className?: string) => {
+    if (!onSort) return <th scope="col" className={className}>{text}</th>;
+    const active = sort === key, order = key === 'name' ? 'ascending' : 'descending';
+    return <th scope="col" className={className} aria-sort={active ? order : undefined}><button type="button" className="data-sort" onClick={() => onSort(active ? 'listed' : key)} title={active ? `Sorted by ${text}; press again to show as listed` : `Sort by ${text}`}>{text}</button></th>;
+  };
+  return <><div ref={edges} className="data-table-wrap market-table-wrap" role="region" aria-label={`${label}, scrolls sideways`} tabIndex={0}>
     <table className="data-table market-table" aria-label={label}>
-      <thead><tr><th scope="col">Market</th><th scope="col">Price</th><th scope="col" className="data-col-optional">1h</th><th scope="col">24h</th><th scope="col" className="data-col-optional">7d</th><th scope="col" className="data-col-optional">Last 7 days</th><th scope="col" className="data-col-wide">Market cap</th><th scope="col"><span className="sr-only">Favourite</span></th></tr></thead>
+      <thead><tr>{head('name', 'Market')}{head('price', 'Price')}<th scope="col" className="data-col-optional">1h</th>{head('change24h', '24h')}<th scope="col" className="data-col-optional">7d</th><th scope="col" className="data-col-optional">Last 7 days</th>{head('marketCap', 'Market cap', 'data-col-wide')}<th scope="col"><span className="sr-only">Favourite</span></th></tr></thead>
       <tbody>{rows.map(row => <tr key={row.key}>
         <th scope="row"><Link className="data-coin-link" href={row.href}><AssetIcon symbol={row.symbol} kind={row.category} logoUrl={row.logoUrl} /><span><strong>{row.name}</strong><small>{row.symbol.toUpperCase()} · {row.category}</small></span></Link></th>
         <td>{row.price === null ? <span className="data-unknown">{row.priceNote}</span> : <>{formatPrice(row.price, currency)}<small><FreshnessBadge state={row.freshness} /></small></>}</td>
-        <td className="data-col-optional"><Change value={row.change1h} label="in 1 hour" /></td>
-        <td><Change value={row.change24h} label="in 24 hours" /></td>
-        <td className="data-col-optional"><Change value={row.change7d} label="in 7 days" /></td>
-        <td className="data-col-optional">{row.sparkline ? <Sparkline prices={row.sparkline} label={sparklineWords(row.name, row.sparkline, text => formatPrice(text, currency))} /> : <span className="data-unknown">Not provided</span>}</td>
-        <td className="data-col-wide">{row.marketCap === null ? <span className="data-unknown">Not provided</span> : <span title={formatMoney(row.marketCap, currency)}>{compactMoney(row.marketCap, currency)}</span>}</td>
-        <td><button type="button" className="market-favourite" aria-label={`${row.favourite ? 'Remove' : 'Add'} ${row.name} favourite`} aria-pressed={row.favourite} disabled={disabled} onClick={() => onToggle(row)}>{row.favourite ? '★' : '☆'}</button></td>
+        <td className="data-col-optional"><Change value={row.change1h} label="in 1 hour" loading={loading} /></td>
+        <td><Change value={row.change24h} label="in 24 hours" loading={loading} /></td>
+        <td className="data-col-optional"><Change value={row.change7d} label="in 7 days" loading={loading} /></td>
+        <td className="data-col-optional">{row.sparkline ? <Sparkline prices={row.sparkline} label={sparklineWords(row.name, row.sparkline, text => formatPrice(text, currency))} /> : <span className="data-unknown">{loading ? 'Loading…' : 'Not provided'}</span>}</td>
+        <td className="data-col-wide">{row.marketCap === null ? <span className="data-unknown">{loading ? 'Loading…' : 'Not provided'}</span> : <span title={formatMoney(row.marketCap, currency)}>{compactMoney(row.marketCap, currency)}</span>}</td>
+        <td><button type="button" className="market-favourite" aria-label={`${row.favourite ? 'Remove' : 'Add'} ${row.name} favourite`} aria-pressed={row.favourite} aria-disabled={!row.favourite && fullText ? true : undefined} title={!row.favourite && fullText ? fullText : undefined} disabled={disabled} onClick={() => onToggle(row)}>{row.favourite ? '★' : '☆'}</button></td>
       </tr>)}</tbody>
     </table>
-  </div>;
+  </div>{/* Session AL (TK-162): said in words while columns sit off to the right (CSS shows it only then) */}<p className="data-table-more" aria-hidden="true">More columns to the right: swipe the table sideways.</p></>;
 }

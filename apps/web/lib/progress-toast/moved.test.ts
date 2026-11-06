@@ -4,11 +4,11 @@ import {movedMessage} from './moved';
 // Session AK F0 (6.5): the cross-pillar progress line.
 describe('movedMessage', () => {
   it('says the new whole percent when it went up', () => {
-    expect(movedMessage('Japan trip', {progressPct: '41.20'}, {progressPct: '46.90'})).toBe('That moved Japan trip to 46%.');
+    expect(movedMessage('Japan trip', {progressPct: '41.20'}, {progressPct: '46.40'})).toBe('That moved Japan trip to 46%.');
     expect(movedMessage('Japan trip', {progressPct: '0.00'}, {progressPct: '3.00'})).toBe('That moved Japan trip to 3%.');
   });
   it('says nothing when the whole percent did not change or went down', () => {
-    expect(movedMessage('Japan trip', {progressPct: '46.10'}, {progressPct: '46.90'})).toBeNull();
+    expect(movedMessage('Japan trip', {progressPct: '46.10'}, {progressPct: '46.40'})).toBeNull();
     expect(movedMessage('Japan trip', {progressPct: '50.00'}, {progressPct: '40.00'})).toBeNull();
   });
   it('unknown is not zero: nothing when the progress after is unknown; "at least" for a lower bound', () => {
@@ -22,5 +22,11 @@ describe('movedMessage', () => {
     expect(movedMessage('x'.repeat(80), {progressPct: '1.00'}, {progressPct: '2.00'})).toBe(`That moved ${'x'.repeat(60)} to 2%.`);
     expect(movedMessage('   ', {progressPct: '1.00'}, {progressPct: '2.00'})).toBe('That moved your Goal to 2%.');
     expect(movedMessage('Japan trip', {progressPct: 'NaN'}, {progressPct: 'x'})).toBeNull();
+  });
+  // Session AL (NB-252, P-NB-31): 50 of 300 is 16.66 %: the card and ring say 17 %, so the toast says 17 % too.
+  it('rounds the whole percent half up, as the card and ring do (NB-252)', () => {
+    expect(movedMessage('Trip fund', {progressPct: '0.00'}, {progressPct: '16.66'})).toBe('That moved Trip fund to 17%.');
+    expect(movedMessage('Trip fund', {progressPct: '16.40'}, {progressPct: '16.60'})).toBe('That moved Trip fund to 17%.');
+    expect(movedMessage('Trip fund', {progressPct: '98.00'}, {progressPct: '99.70'})).toBe('That moved Trip fund to 99%.');
   });
 });

@@ -1,5 +1,5 @@
 import testnet from "./testnet.json" with { type: "json" };
-import { NetworkUpgradedError, checkVersion } from "./reviewed-versions";
+import { NetworkUpgradedError, checkVersion } from "./reviewed-versions.ts";
 export interface NativeAssetConfig {
   symbol: "ZIG";
   displayDenom: "ZIG";
@@ -120,7 +120,7 @@ export {
   type FeeModel,
   type ReviewedChainId,
   type VersionCheck,
-} from "./reviewed-versions";
+} from "./reviewed-versions.ts";
 /**
  * Session AJ (ADR-035 D1, P5): pass REVIEWED as `expectedVersion` to accept any patch of a reviewed minor line of the
  * config's chain (reviewed-versions.ts); a newer line throws NetworkUpgradedError. A string or list still means exactly

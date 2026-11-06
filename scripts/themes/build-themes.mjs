@@ -410,6 +410,11 @@ export function buildTheme(theme, files = sourceFiles()) {
   for (const [file, ast] of parsed) ast.walkRules(rule => {
     if (rule.parent?.type === 'atrule' && /keyframes$/i.test(rule.parent.name)) return;
     if (theme === 'light' && touchesIsland(rule.selector)) return;
+    // Session AL (NB-055 and others; L10a): a source rule already written for one theme is that theme's own colour: it
+    // is carried as written into its own sheet (never mapped a second time) and left out of the other theme's sheet.
+    const own = /\[data-theme=["']?(light|dark)["']?\]/.exec(rule.selector ?? '');
+    if (own && own[1] !== theme) return;
+    if (own) { const decls = (rule.nodes ?? []).filter(n => n.type === 'decl' && roleOf(n.prop, rule) && carriesColour(n.prop, n.value)).map(n => postcss.decl({prop: n.prop, value: n.value, important: n.important})); if (decls.length) rules.push({file, rule, decls, mapped: false}); return; }
     const {decls, mapped} = colourDecls(rule); if (decls.length) rules.push({file, rule, decls, mapped});
   });
   const out = postcss.root();

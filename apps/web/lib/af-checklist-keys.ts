@@ -16,8 +16,9 @@ export const AF_CHECKLIST_PERSONAL_KEYS: readonly string[] = [CHECKLIST_KEY, CHE
 export const AF_CHECKLIST_EXPORT_KEYS = {checklist: CHECKLIST_KEY, checklistDays: CHECKLIST_DAYS_KEY} as const;
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AF_CHECKLIST_CATALOG_LABELS = {checklist: ['Checklist favourites and custom items', 'Checklist'], checklistDays: ['Checklist day history', 'Checklist']} as const;
-/** What the restore never brings back, in the restore plan's words. */
-export const AF_CHECKLIST_NEVER_RESTORED = 'Checklist favourites and day history';
+/** What the restore never brings back, in the restore plan's words. Session AL (P-LS-36, LS-064): the path, its Health
+ * inputs (with the Health choice) and the day history now restore from Export everything; only today's ticks stay. */
+export const AF_CHECKLIST_NEVER_RESTORED = 'today’s Checklist ticks';
 /** The page, its layout item on Today and the extras-sync section name reserved for later (H10, H29). */
 export const CHECKLIST_ROUTE = '/app/checklist';
 export const TODAY_CHECKLIST_LAYOUT_ID = 'today:checklist';

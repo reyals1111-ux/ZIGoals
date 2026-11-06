@@ -31,7 +31,11 @@ test('phones 320–640: the header pill sits between the logo and "+", one line,
     expect(m.pill.right, `${width}: before "+"`).toBeLessThanOrEqual(first.left + .5);
     for (const icon of m.icons) { expect(icon.b.right, `${width}: ${icon.c} on screen`).toBeLessThanOrEqual(m.vw + .5); expect(icon.b.width, `${width}: ${icon.c} keeps its size`).toBeGreaterThanOrEqual(43.5); }
     expect(m.scroll, `${width}: no sideways scroll`).toBeLessThanOrEqual(m.vw);
-    if (width >= 375) expect(m.wordShown, `${width}: the word shows`).toBe(true);
+    // Session AL (owner decision O3, 57fb1e5e; deliberate): the bar gained the "Apps & extras" button (ZIGi, Music, Earn
+    // and the apps live there below 901 px), so with the Wealth shortcut shown the word fits from 430 px; narrower, the
+    // pill is its 44 px check alone (measured, data-compact), still named "Open the Checklist" and still before "+".
+    if (width >= 430) expect(m.wordShown, `${width}: the word shows`).toBe(true);
+    else if (!m.wordShown) expect(m.pill.width, `${width}: the compact pill keeps 44 px`).toBeLessThanOrEqual(48);
     if (m.wordShown) expect(m.wordLines, `${width}: one line`).toBeLessThanOrEqual(1);
   }
   await pill(page).click();

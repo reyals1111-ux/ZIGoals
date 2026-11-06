@@ -10,7 +10,7 @@ import {type Portfolio, type PortfolioCoin, type PortfolioCurrency, type Portfol
 import type {ImportRecord} from '../../lib/import/undo-schema';
 import {localDate} from '../../lib/local-date';
 import {saveFailureMessage, storageUiCode} from '../../lib/storage-error-copy';
-import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, setupFromText, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
+import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, missingFieldsText, setupFromText, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
 import type {ImportUndoStore} from './use-import-undo';
 import {formatDate} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
@@ -66,7 +66,7 @@ export function TransactionImportPanel({data, update, imports, onUndo, onClose}:
   </section>;
   return <section className="panel import-panel" aria-label="Import transactions">
     <h2>Import transactions</h2>
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep target="transactions" onFile={f => { try { const next = setupFromText(f.text, OPTIONS); setFile(f); setSetup(next); setChoices({}); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep target="transactions" fields={TRANSACTION_FIELDS} onFile={f => { try { const next = setupFromText(f.text, OPTIONS); setFile(f); setSetup(next); setChoices({}); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
       <RecentImports imports={imports} kind="portfolio" onUndo={onUndo} /><StepActions onBack={onClose} /></>}
     {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" /><MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
       <fieldset className="import-target"><legend>Into portfolio</legend>
@@ -76,7 +76,7 @@ export function TransactionImportPanel({data, update, imports, onUndo, onClose}:
           <label className="field"><span>Currency</span><select value={target.currency} onChange={event => setTarget({...target, currency: event.target.value as PortfolioCurrency})}><option value="USD">USD</option><option value="EUR">EUR</option></select></label></div>}
         <p className="fine">Prices and fees are read in the portfolio’s currency. Leave “Fee” unmatched if the file gives fees in coins.</p>
       </fieldset>
-    </MappingStep><StepActions onBack={() => setStep(1)} onNext={() => setStep(3)} nextDisabled={!mappingReady} /></>}
+    </MappingStep><StepActions onBack={() => setStep(1)} onNext={() => setStep(3)} nextDisabled={!mappingReady} disabledReason={missingFieldsText(setup, TRANSACTION_FIELDS, REQUIRED) ?? (setup?.ambiguousDates ? 'Choose how the dates are written to continue.' : 'Name the portfolio these go into to continue.')} /></>}
     {step === 3 && plan && <><StepHeading step={3} title="Preview" />
       <p className="import-summary" aria-live="polite">{plan.ready.length} rows ready · {plan.unknownCoins.length} unknown {plan.unknownCoins.length === 1 ? 'coin' : 'coins'} · {plan.refused.length} rows refused</p>
       {catalog === undefined && <p className="fine" role="status">Loading the coin list…</p>}
@@ -95,7 +95,7 @@ export function TransactionImportPanel({data, update, imports, onUndo, onClose}:
       <RefusedRows refused={plan.refused} />
       {plan.ready.length === 0 && unknown.length === 0 && <p role="alert">Nothing to import: every row was refused.</p>}
       {plan.ready.length > 0 && ready.length === 0 && <p role="alert">Nothing new to import: every row is already in {targetName}.</p>}
-      <StepActions onBack={() => setStep(2)} onNext={() => setStep(4)} nextDisabled={ready.length === 0 || unknown.length > 0} />
+      <StepActions onBack={() => setStep(2)} onNext={() => setStep(4)} nextDisabled={ready.length === 0 || unknown.length > 0} disabledReason={unknown.length > 0 ? 'Choose a coin for each unknown name above to continue.' : null} />
       {unknown.length > 0 && <p className="fine">Choose a coin or skip the rows for each unrecognised coin to continue.</p>}
     </>}
     {step === 4 && plan && <><StepHeading step={4} title="Confirm" />

@@ -8,7 +8,7 @@ import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {notePath} from '../../lib/checklist/return-path';
 import {registerNavExtra} from '../nav-extras';
 import {registerTimelineSource} from '../../lib/timeline/sources';
-import {usePhoneActive} from '../phone/use-phone-layout';
+import {useCompactShell} from '../phone/use-phone-layout';
 import {entranceAllowed} from '../use-entrance';
 import {ChecklistMark} from './checklist-marks';
 import './checklist-launcher.css';
@@ -22,12 +22,13 @@ const SEEN = 'zigoals-checklist-mark-seen';
  * switched off. The arrow under it tucks it into the screen's edge; the edge tab brings it back. Phones get no third
  * floating button: the Checklist is in More (the navigation entry this registers), on Today's card and on the Home Screen
  * shortcut. Off in Settings (this device), the button goes; the page stays reachable. Light: one display record read.
+ * Session AL (owner decision O3): computers only (901 px and up); below that the "Apps & extras" sheet lists it.
  */
 export function ChecklistLauncher() {
-  const pathname = usePathname() ?? '', phone = usePhoneActive(), prefsRecord = useUiPrefs();
+  const pathname = usePathname() ?? '', compact = useCompactShell(), prefsRecord = useUiPrefs();
   const [mounted, setMounted] = useState(false), [draw, setDraw] = useState(false);
   const prefs = checklistPrefsOf(prefsRecord.data), ready = mounted && prefsRecord.loaded && !prefsRecord.unreadable;
-  const shown = ready && prefs.launcher && !phone && pathname.startsWith('/app');
+  const shown = ready && prefs.launcher && !compact && pathname.startsWith('/app');
   useEffect(() => { queueMicrotask(() => setMounted(true)); }, []);
   // Session AF (L3b): every route the shell shows, so the full-screen Checklist's close returns to where the person was.
   useEffect(() => { notePath(pathname); }, [pathname]);

@@ -11,6 +11,8 @@ import './point-tell.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 // Session AK (BUILD list 2 #1): a calm line while a note looks like recovery words or a key.
 import {SecretGuard} from '../secret-guard/secret-guard';
+// Session AL (3e, PRIMITIVES.md): the app's one toast says what happened and offers Undo (it was this mode's own toast).
+import {showStatus, showUndo} from '../ui/undo-toast';
 
 /**
  * Session AB-Cloud Part 6 (ADR-023 C23): Point & tell. A small button (above the music button; above the tab bar on
@@ -28,20 +30,20 @@ export function PointTell() {
   const pathname = usePathname() ?? '/', id = useId();
   const [record, setRecord] = useState<Record>(read), [picking, setPicking] = useState(false), [draft, setDraft] = useState<Draft | null>(null);
   const [note, setNote] = useState(''), [list, setList] = useState(false), [editing, setEditing] = useState<string | null>(null), [editText, setEditText] = useState('');
-  const [message, setMessage] = useState(''), [removed, setRemoved] = useState<Pin | null>(null), [confirmClear, setConfirmClear] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
   const [hover, setHover] = useState<DOMRect | null>(null), [markers, setMarkers] = useState<{pin: Pin; top: number; left: number}[]>([]);
-  const launcher = useRef<HTMLButtonElement>(null), noteField = useRef<HTMLTextAreaElement>(null), listHeading = useRef<HTMLHeadingElement>(null), undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const launcher = useRef<HTMLButtonElement>(null), noteField = useRef<HTMLTextAreaElement>(null), listHeading = useRef<HTMLHeadingElement>(null);
   const pins = record.pins ?? [];
 
   useEffect(() => {
     const refresh = () => setRecord(read());
     const onStore = (event: Event) => { if ((event as CustomEvent<string>).detail === POINT_TELL_KEY) refresh(); };
     window.addEventListener(ZIGI_STORE_EVENT, onStore); window.addEventListener('storage', refresh); window.addEventListener(ACCOUNT_CHANGE, refresh);
-    return () => { window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', refresh); window.removeEventListener(ACCOUNT_CHANGE, refresh); if (undoTimer.current) clearTimeout(undoTimer.current); };
+    return () => { window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', refresh); window.removeEventListener(ACCOUNT_CHANGE, refresh); };
   }, []);
   const write = useCallback((change: (r: Record) => Record): boolean => {
     try { const next = updateDeviceRecord(getAppStorage(), POINT_TELL, change); setRecord(next); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: POINT_TELL_KEY})); return true; }
-    catch (error) { setMessage(plainErrorMessage(error, 'The note was not saved.')); return false; }
+    catch (error) { showStatus(plainErrorMessage(error, 'The note was not saved.'), {tone: 'error'}); return false; }
   }, []);
 
   // Picking: the page does not receive the tap; the part under it is described instead. Our own controls stay usable.
@@ -62,7 +64,6 @@ export function PointTell() {
     document.addEventListener('keydown', key, true); document.addEventListener('pointermove', move, true); document.addEventListener('focusin', focus, true);
     return () => { document.removeEventListener('click', click, true); document.removeEventListener('pointerdown', block, true); document.removeEventListener('mousedown', block, true); document.removeEventListener('keydown', key, true); document.removeEventListener('pointermove', move, true); document.removeEventListener('focusin', focus, true); };
   }, [picking]);
-  useEffect(() => { if (!message) return; const t = setTimeout(() => setMessage(''), 8000); return () => clearTimeout(t); }, [message]);
   useEffect(() => { if (draft) noteField.current?.focus(); }, [draft]);
   useEffect(() => { if (list) listHeading.current?.focus(); }, [list]);
 
@@ -81,12 +82,12 @@ export function PointTell() {
     return () => { cancelAnimationFrame(frame); window.removeEventListener('scroll', place, true); window.removeEventListener('resize', place); observer.disconnect(); };
   }, [record.pins, pathname]);
 
-  const save = () => { if (!draft) return; if (write(r => addPin(r, {id: newId(), ...draft, note, at: new Date().toISOString()}))) { setDraft(null); setMessage(`Note saved on ${draft.target}.`); launcher.current?.focus(); } };
-  const remove = (pin: Pin) => { if (!write(r => removePin(r, pin.id))) return; setRemoved(pin); setMessage(`Note ${pin.n} removed.`); if (undoTimer.current) clearTimeout(undoTimer.current); undoTimer.current = setTimeout(() => setRemoved(null), 8000); };
-  const undo = () => { if (removed && write(r => restorePin(r, removed))) { setMessage(`Note ${removed.n} is back.`); setRemoved(null); } };
+  const save = () => { if (!draft) return; if (write(r => addPin(r, {id: newId(), ...draft, note, at: new Date().toISOString()}))) { setDraft(null); showStatus(`Note saved on ${draft.target}.`); launcher.current?.focus(); } };
+  // Undo puts the pin back in the device record itself (restorePin reads the latest record), with its number.
+  const remove = (pin: Pin) => { if (!write(r => removePin(r, pin.id))) return; showUndo({message: `Note ${pin.n} removed.`, undone: `Note ${pin.n} is back.`, restore: () => { if (!write(r => restorePin(r, pin))) throw Error('the note could not be put back'); }}); };
   const text = () => pinsText(pins, {version: APP_VERSION_LABEL, at: new Date().toISOString()});
-  const copy = async () => { try { await navigator.clipboard.writeText(text()); setMessage('Your notes are copied.'); } catch { setMessage('Copying is not allowed here; use Download instead.'); } };
-  const download = () => { const url = URL.createObjectURL(new Blob([text()], {type: 'text/plain;charset=utf-8'})); const a = document.createElement('a'); a.href = url; a.download = `zigoals-point-tell-${new Date().toISOString().slice(0, 10)}.txt`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setMessage('Your notes are downloading.'); };
+  const copy = async () => { try { await navigator.clipboard.writeText(text()); showStatus('Your notes are copied.'); } catch { showStatus('Copying is not allowed here; use Download instead.'); } };
+  const download = () => { const url = URL.createObjectURL(new Blob([text()], {type: 'text/plain;charset=utf-8'})); const a = document.createElement('a'); a.href = url; a.download = `zigoals-point-tell-${new Date().toISOString().slice(0, 10)}.txt`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); showStatus('Your notes are downloading.'); };
   const closeList = () => { setList(false); setEditing(null); setConfirmClear(false); launcher.current?.focus(); };
 
   return <div className="point-tell" data-point-tell="">
@@ -112,18 +113,17 @@ export function PointTell() {
       <h2 id={`${id}-list`} ref={listHeading} tabIndex={-1}>Your Point &amp; tell notes</h2>
       {pins.length === 0 ? <p>No notes yet. Use the pin button, then tap the part you want to comment on.</p> : <ol className="pt-items">{[...pins].sort((a, b) => a.n - b.n).map(p => <li key={p.id}>
         <p><strong>{p.n}.</strong> {p.target} <small>{p.path}</small></p>
-        {editing === p.id ? <><label htmlFor={`${id}-edit-${p.n}`} className="sr-only">Note {p.n}</label><textarea id={`${id}-edit-${p.n}`} value={editText} maxLength={MAX_NOTE} rows={3} onChange={e => setEditText(e.target.value)} /><SecretGuard text={editText} onRemove={() => setEditText('')}/><div className="pt-actions"><button type="button" className="primary" onClick={() => { if (write(r => editPin(r, p.id, editText))) { setEditing(null); setMessage(`Note ${p.n} saved.`); } }}>Save note {p.n}</button><button type="button" className="secondary" onClick={() => setEditing(null)}>Cancel</button></div></>
+        {editing === p.id ? <><label htmlFor={`${id}-edit-${p.n}`} className="sr-only">Note {p.n}</label><textarea id={`${id}-edit-${p.n}`} value={editText} maxLength={MAX_NOTE} rows={3} onChange={e => setEditText(e.target.value)} /><SecretGuard text={editText} onRemove={() => setEditText('')}/><div className="pt-actions"><button type="button" className="primary" onClick={() => { if (write(r => editPin(r, p.id, editText))) { setEditing(null); showStatus(`Note ${p.n} saved.`); } }}>Save note {p.n}</button><button type="button" className="secondary" onClick={() => setEditing(null)}>Cancel</button></div></>
           : <><p className="pt-note">{p.note || <em>No note written.</em>}</p><div className="pt-actions"><button type="button" className="secondary" onClick={() => { setEditing(p.id); setEditText(p.note); }}>Edit note {p.n}</button><button type="button" className="secondary" onClick={() => remove(p)}>Remove note {p.n}</button></div></>}
       </li>)}</ol>}
       {pins.length > 0 && <div className="pt-actions pt-export">
         <button type="button" className="secondary" onClick={() => void copy()}>Copy all</button>
         <button type="button" className="secondary" onClick={download}>Download</button>
         <a className="secondary" href={pinsMailto(FEEDBACK_ADDRESS, text())}>Email them</a>
-        {!confirmClear ? <button type="button" className="secondary" onClick={() => setConfirmClear(true)}>Clear all…</button> : <button type="button" className="secondary" onClick={() => { if (write(clearPins)) { setConfirmClear(false); setMessage('Every note is cleared.'); } }}>Yes, clear {pins.length} notes</button>}
+        {!confirmClear ? <button type="button" className="secondary" onClick={() => setConfirmClear(true)}>Clear all…</button> : <button type="button" className="secondary" onClick={() => { if (write(clearPins)) { setConfirmClear(false); showStatus('Every note is cleared.'); } }}>Yes, clear {pins.length} notes</button>}
       </div>}
       <p className="fine">Email them opens your mail app with the notes; nothing is sent until you send it there. Long lists are shortened in the email: use Download or Copy for all of them.</p>
       <div className="pt-actions"><button type="button" className="secondary" onClick={closeList}>Close</button></div>
     </div>}
-    <div className="pt-toast" aria-live="polite">{message && <p>{message}{removed && <button type="button" className="text-link" onClick={undo}>Undo</button>}</p>}</div>
   </div>;
 }

@@ -98,13 +98,18 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 2 health day: bar
 
   // Water: two glasses.
   await page.getByRole('button', {name: 'Add 250 mL', exact: true}).click();
+  // Session AL (P-MO-97, MO-111, deliberate): a second tap within 350 ms (the event's own time, not the faked clock) is the
+  // same tap and is ignored, so the second glass is a tap of its own: after the first is saved and 350 ms have passed.
+  await expect.poll(async () => (await health(page))!.daily.water.filter(w => w.date === DAY).reduce((s, w) => s + w.amountMilli, 0)).toBe(250_000);
+  await page.waitForTimeout(400);
   await page.getByRole('button', {name: 'Add 250 mL', exact: true}).click();
   await expect.poll(async () => (await health(page))!.daily.water.filter(w => w.date === DAY).reduce((s, w) => s + w.amountMilli, 0)).toBe(500_000);
 
   // Dinner, estimated from a photo by the person's own AI: a card with ranges; nothing logged until Add.
   await page.clock.setSystemTime(at(DAY, '19:30'));
-  await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Foods & recipes', exact: true}).click();
-  await page.locator('summary', {hasText: 'A photo of a meal'}).click();
+  // Session AL (COPY_AUDIT, deliberate): P-MO-40 (MO-012, MO-156) moved the meal photo into the Diary, under a named header.
+  await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Diary', exact: true}).click();
+  await page.locator('summary', {hasText: 'Estimate a meal from a photo'}).click();
   const photo = page.getByRole('region', {name: 'Estimate a meal from a photo'});
   await expect(photo).toContainText('Nothing is logged until you accept a card.');
   await photo.getByRole('button', {name: 'Open ZIGi', exact: true}).click();

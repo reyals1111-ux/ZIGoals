@@ -28,7 +28,7 @@ export function ReadAloudButton({brief, intro}: {brief: Brief; intro: string}) {
   const reader = useReadAloud('en-GB'), zigi = useDeviceRecord(ZIGI), voice = useDeviceRecord(ZIGI_VOICE), now = useBriefClock();
   if (!reader.supported) return null;
   const prefs = zigiPrefs(zigi.data), muted = voicePrefs(voice.data).muted, quiet = now ? inQuiet(localClock(now), prefs.knock.quietFrom, prefs.knock.quietTo) : false;
-  if (muted || quiet) return <span className="ai-note ai-brief-quiet">{muted ? 'Read aloud: ZIGi is muted.' : 'Read aloud rests in quiet hours.'}</span>;
+  if (muted || quiet) return <span className="ai-note ai-brief-quiet">{muted ? 'Read aloud: ZIGi is muted.' : `Read aloud rests in your quiet hours (${prefs.knock.quietFrom}–${prefs.knock.quietTo}, set in ZIGi → Customize); it works again after ${prefs.knock.quietTo}.`}</span>; // Session AL (DV-077, P-DV-101): say what quiet hours are
   return reader.speaking ? <button type="button" className="text-link" onClick={reader.stop}>Stop reading</button>
     : <><button type="button" className="text-link" onClick={() => reader.speak([intro, ...briefLines(brief)].join('\n'))}>Read aloud</button>{reader.notice && <span className="ai-note" role="status">{reader.notice}</span>}</>; // Z1A-3: Strict's reason
 }

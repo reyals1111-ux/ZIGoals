@@ -46,8 +46,9 @@ for (const [width, height] of [[1440, 900], [390, 844]] as const)
     await expect(list.locator('.habit-year')).toHaveCount(1);
     await expect(list.locator('.habit-routines, .habit-stacks')).toHaveCount(0);
     await expect(routines.getByRole('heading', {name: 'Routines', exact: true})).toHaveCount(1);
-    // The Showcase has no stack yet (lib/habits-extras/showcase.ts), so Routines offers its four templates.
-    await expect(routines.getByRole('group', {name: 'Routine templates'}).getByRole('button', {name: 'Add routine', exact: true})).toHaveCount(4);
+    // The Showcase has no stack yet (lib/habits-extras/showcase.ts), so Routines offers its templates.
+    // Session AL (GAP-095, P-DVG-31, P-NB-C17, deliberate): six templates now (study and a weekly reset were added).
+    await expect(routines.getByRole('group', {name: 'Routine templates'}).getByRole('button', {name: 'Add routine', exact: true})).toHaveCount(6);
     const p = await place(page); expect(p.routines).toBeGreaterThan(p.groupsBottom);
   });
 

@@ -33,6 +33,6 @@ export default function ScopesStep({setup}: {setup: SetupState}) {
     {error && <p role="alert" className="fine">{error}</p>}
     <h3 className="nova-sub">What NOVA can see</h3>
     <WhatNovaSees sees={sees}/>
-    <CheckRow id="scopes" setup={setup} disabled={!sees.pack} run={() => sees.pack ? checkNovaScopes(sees.scopes, sees.pack, sees.chainChosen, sees.healthGate) : {ok: false, note: 'Your records are still loading.'}} label="Check what NOVA sees"/>
+    <CheckRow id="scopes" setup={setup} disabled={!sees.pack} run={() => sees.pack ? checkNovaScopes(sees.scopes, sees.pack, sees.chainChosen, sees.healthGate, sees.connected) : {ok: false, note: 'Your records are still loading.'}} label="Check what NOVA sees"/>
   </>;
 }

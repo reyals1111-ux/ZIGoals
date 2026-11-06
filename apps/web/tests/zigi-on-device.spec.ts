@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {CHAT_SYSTEM, REWRITE_SYSTEM, SAY_NICER_SYSTEM} from '../lib/ai/on-device-chat';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 15 end to end: "Which setup fits me?" in Settings and in the panel, and Chrome's on-device model.
@@ -88,7 +89,7 @@ test('"Which setup fits me?": a few answers, one honest suggestion with its step
 test('the panel before setup offers the same questions', async ({page}) => {
   await seed(page);
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   await panel(page).getByRole('button', {name: 'Which setup fits me?'}).click();
   const view = panel(page).getByRole('region', {name: 'Which setup fits me?'});
   await view.getByRole('radio', {name: 'A ChatGPT, Claude, Gemini or Grok subscription'}).check();
@@ -125,7 +126,7 @@ test('with the model on and no AI: it puts a question in plain words for ZIGi\'s
   await fakeModel(page, 'available', {rewrites: {[asked]: 'How many minutes did I meditate this month?'}, chat: 'A short stretch after a walk is a good start.'});
   await seed(page, {[AI_OPTIONS_KEY]: {version: 1, onDevice: true}});
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   const box = panel(page).getByLabel('Ask ZIGi about your records');
   await box.fill(asked);
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
@@ -153,7 +154,7 @@ test('a question never starts Chrome\'s download: with the model gone from this 
   await fakeModel(page, 'downloadable');
   await seed(page, {[AI_OPTIONS_KEY]: {version: 1, onDevice: true}});
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   await panel(page).getByLabel('Ask ZIGi about your records').fill('what is a gentle way to start stretching');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
   await expect(panel(page).locator('.ai-turn-local').last()).toContainText('Chrome’s on-device model is not ready on this computer');
@@ -165,7 +166,7 @@ test('"Say it nicer · on this computer" on the brief, from the click only', asy
   await fakeModel(page, 'available', {nicer: 'Today is calm: two habits are still open, and yesterday went well.'});
   await seed(page, {[AI_OPTIONS_KEY]: {version: 1, onDevice: true}});
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   // Session Z-Cloud Part 2: the brief waits in the Suggestions sheet's "Your day" tab.
   await panel(page).getByRole('button', {name: 'Suggestions', exact: true}).click();
   await panel(page).getByRole('region', {name: 'Suggestions for you'}).getByRole('tab', {name: 'Your day'}).click();

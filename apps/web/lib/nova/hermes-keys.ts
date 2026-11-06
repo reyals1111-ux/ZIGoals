@@ -26,3 +26,12 @@ export async function hermesKeyToBrain(scope: string): Promise<boolean> {
   holdKey(scope, 'local', secret);
   return false;
 }
+/**
+ * Session AL Part 14 (security review Z1A-I4): "Forget the Hermes key" without disconnecting ZIGi. The guide's slot goes,
+ * and the brain's `local` slot too while the brain is that Hermes (`brainIsHermes`: the brain's address is the Hermes's);
+ * a key for another local server is left alone. Nothing else of ZIGi's connection changes.
+ */
+export async function forgetHermesKey(scope: string, brainIsHermes: boolean): Promise<void> {
+  await forgetKey(scope, HERMES_KEY_SLOT);
+  if (brainIsHermes) await forgetKey(scope, 'local');
+}

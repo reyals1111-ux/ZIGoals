@@ -152,7 +152,7 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     if (checks.length === 0) {
       firstNonce = nonce;
       assert.match(html, /YOUR FINANCIAL ORBIT/, "Run 9.2 Today hero missing");
-      assert.match(html, /Local [Dd]emo/, "Local Demo default missing");
+      assertFirstRunNotice(html);
     }
     if (!baseline) assertOpenerPolicy(response.headers.get("cross-origin-opener-policy"));
     if (route === "/app/settings") {
@@ -179,4 +179,15 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
  */
 export function assertOpenerPolicy(header) {
   assert.equal(header, "same-origin", "Cross-Origin-Opener-Policy must be same-origin");
+}
+/**
+ * Session AL (TIER 3, deploy smoke): the first route's first-run wording. Session AK's R2 (ADR-036) renamed the default
+ * mode from "Local demo" to "On this device" and hid the header's wallet buttons until the chain is chosen, so the old
+ * /Local [Dd]emo/ check failed Alpha #53 (run 56). A fresh visit is server-rendered in the local mode, so the Alpha
+ * notice (components/shell/alpha-notice.tsx, rendered on the server too) carries this sentence; the live #52 sends it as
+ * well, so the rollback capture keeps passing. The owner's hosted check pins the same sentence (stage 2).
+ */
+export const FIRST_RUN_NOTICE = "Your records stay in this browser and are not a backup.";
+export function assertFirstRunNotice(html) {
+  assert.match(html, /<aside\b[^>]*\baria-label="Alpha notice"[^>]*>(?:(?!<\/aside>)[\s\S])*?Your records stay in this browser and are not a backup\./, "First-run Alpha notice missing");
 }

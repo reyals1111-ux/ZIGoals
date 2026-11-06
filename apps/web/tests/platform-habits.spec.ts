@@ -58,11 +58,12 @@ test('a fractional-cent ZIG price assumption saves exactly without changing obse
  await page.goto('/app/goals/tracked');await page.evaluate(goal=>localStorage.setItem('zigoals:platform:v1',JSON.stringify({schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[goal],allocations:[],snapshots:[]})),simpleGoal());
  await page.goto('/app/goals/tracked/88#supporting-habits');
  await page.locator('#contribution-plan > summary').click();await page.getByLabel('Planned amount',{exact:true}).fill('100');await page.getByLabel('Contribution asset',{exact:true}).fill('USD');
- await page.getByLabel('Price per Goal unit in contribution currency (if different)',{exact:true}).fill('0.012345');
+// Session AL (COPY_AUDIT §4, deliberate; DV-033e): the plan copy is "Earlier plan terms", "Planned payments", "Price of one <unit> in <currency>".
+ await page.getByLabel(/^Price of one .+ in the plan’s currency \(if different\)$/).fill('0.012345');
  await page.getByRole('button',{name:'Save contribution plan',exact:true}).click();
  await expect(page.getByRole('status').filter({hasText:'Private Goal saved'})).toBeVisible();
  const plan=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!).goals[0].plan);
  expect(plan).toMatchObject({amount:'10000',asset:'USD',decimals:2,price:{value:'12345000000000000',decimals:18,currency:'USD'}});
  await expect(page.getByTestId('tracked-progress')).toContainText('0%');
- await page.reload();await page.locator('#contribution-plan > summary').click();await expect(page.getByLabel('Price per Goal unit in contribution currency (if different)',{exact:true})).toHaveValue('0.012345');
+ await page.reload();await page.locator('#contribution-plan > summary').click();await expect(page.getByLabel(/^Price of one .+ in the plan’s currency \(if different\)$/)).toHaveValue('0.012345');
 });

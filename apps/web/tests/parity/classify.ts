@@ -17,13 +17,23 @@
  *   focus-ring     — by day only, the keyboard focus ring of the element that shows it (:focus-visible) in Light's own ring
  *                    colour, #4b3fd1 (apps/web/themes/light.extra.css, Session AF: Nebula's cyan ring is too faint on white).
  *                    Session AK (CI-D): WebKit shows it on the More sheet's Close button, which the sheet focuses on open.
+ *   button-edge    — by day only, the edge (border colour) of an enabled secondary button in Light's own button edge, #717d94
+ *                    (apps/web/themes/light.al-buttons.css). Session AL (TK-6B-09 / P-TK-40, AL-A11Y-027; WCAG 1.4.11,
+ *                    deliberate): Nebula's edge, cyan at 22 %, is under 1.5:1 on the day's white, so the button read as a loose
+ *                    word; by day it takes a 3:1 neutral slate. Any other edge colour, another element and Dark stay disallowed.
+ *   day-ink        — by day only, two more cases of H130's rule, each a Session AL contrast fix (deliberate):
+ *                    · a gradient word painted as one solid word colour instead (its background none, its fill its own
+ *                      colour) reaching 4.5:1 on white (TK-164 / TK-6B-07: the Wealth total, whose pale stops faded ".00");
+ *                    · a chart's paint (stroke, fill, stop-color inside .zg-chart or a chart legend) in a deeper shade of the same hue (within 12°, lower
+ *                      lightness) reaching 3:1 on white (WCAG 1.4.11; TK-057 / TK-111 the calculator's lines, P-MO-34
+ *                      Health's charts).  Another hue, a paler shade, a fainter one, a paint outside a chart, a box's fill and Dark stay disallowed.
  * Everything else — any coloured fill, chart paint, ring, glow, gradient, pillar colour, image — must be equal, and every
  * box must be equal within half a pixel.
  */
 export const NEUTRAL_CHROMA = 0.07, NIGHT_L = 0.4, NIGHT_CHROMA = 0.14;
 export const BOX_TOLERANCE = 0.5;
-export type Klass = 'text' | 'neutral' | 'art-calm' | 'theme-bar' | 'gradient-word' | 'focus-ring' | 'DISALLOWED';
-export type Item = {path: string; desc: string; text: boolean; clip: boolean; art: boolean; ground: boolean; bar: boolean; svgText: boolean; focus?: boolean; props: Record<string, string>; box: [number, number, number, number]};
+export type Klass = 'text' | 'neutral' | 'art-calm' | 'theme-bar' | 'gradient-word' | 'focus-ring' | 'button-edge' | 'day-ink' | 'DISALLOWED';
+export type Item = {path: string; desc: string; text: boolean; clip: boolean; art: boolean; ground: boolean; bar: boolean; svgText: boolean; focus?: boolean; edge?: boolean; chart?: boolean; props: Record<string, string>; box: [number, number, number, number]};
 export type Diff = {path: string; desc: string; prop: string; nebula: string; other: string; klass: Klass};
 
 const lin = (c: number) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
@@ -100,13 +110,21 @@ export const sameValue = (a: string, b: string) => { if (skeleton(a) !== skeleto
 /** H130: a gradient word's coloured stop by day: the same hue (within 12°), deeper, and at least 4.5:1 on white. */
 export const GRADIENT_WORD_HUE = 12, GRADIENT_WORD_CONTRAST = 4.5;
 const onWhite = (c: string) => { const [r, g, b] = rgbOf(c).split(',').map(Number); return 1.05 / (0.2126 * lin(r!) + 0.7152 * lin(g!) + 0.0722 * lin(b!) + 0.05); };
-export function deeperSameHue(nebula: string, day: string) {
+export function deeperSameHue(nebula: string, day: string, contrast = GRADIENT_WORD_CONTRAST) {
   const x = lca(nebula), y = lca(day), turn = Math.abs(x.h - y.h) % 360;
-  return x.C >= NEUTRAL_CHROMA && y.C >= NEUTRAL_CHROMA && Math.min(turn, 360 - turn) <= GRADIENT_WORD_HUE && y.L < x.L && onWhite(day) >= GRADIENT_WORD_CONTRAST;
+  return x.C >= NEUTRAL_CHROMA && y.C >= NEUTRAL_CHROMA && Math.min(turn, 360 - turn) <= GRADIENT_WORD_HUE && y.L < x.L && onWhite(day) >= contrast;
 }
+/** WCAG 1.4.11: a graphic's paint needs 3:1 (a word's needs 4.5:1). */
+export const GRAPHIC_CONTRAST = 3;
+const PAINT_PROPS = new Set(['stroke', 'fill', 'stop-color']);
+/** A gradient word drawn by day as one solid colour of its own (fill = its colour, opaque), 4.5:1 on white. */
+const solidWord = (o: Item) => { const fill = o.props['-webkit-text-fill-color'] ?? '', col = o.props.color ?? ''; return !!col && sameColour(fill, col) && lca(col).a === 1 && onWhite(col) >= GRADIENT_WORD_CONTRAST; };
 const TEXT_PROPS = new Set(['color', '-webkit-text-fill-color', 'caret-color']);
 /** Light's keyboard focus ring (apps/web/themes/light.extra.css), the one ring colour Light may use instead of Nebula's. */
 export const LIGHT_FOCUS_RING = 'rgb(75, 63, 209)';
+/** Light's secondary-button edge (apps/web/themes/light.al-buttons.css, Session AL TK-6B-09). */
+export const LIGHT_BUTTON_EDGE = 'rgb(113, 125, 148)';
+const EDGE_PROPS = new Set(['border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color']);
 const CALM_PROPS = new Set(['opacity', 'filter']);
 /** A filter whose only change is the colour of its drop shadows is a shade, not a calm. */
 const shadeOnly = (a: string, b: string) => skeleton(a) === skeleton(b) && /drop-shadow/.test(a);
@@ -118,6 +136,8 @@ export function classify(prop: string, nebula: Item, other: Item, theme: 'light'
   if (nebula.bar) return 'theme-bar';
   if (TEXT_PROPS.has(prop)) return 'text';
   if (prop === 'outline-color' && theme === 'light' && nebula.focus && other.focus && sameColour(b, LIGHT_FOCUS_RING)) return 'focus-ring';
+  if (EDGE_PROPS.has(prop) && theme === 'light' && nebula.edge && other.edge && sameColour(b, LIGHT_BUTTON_EDGE)) return 'button-edge';
+  if (theme === 'light' && prop === 'background-image' && nebula.clip && b === 'none' && colours(a).length > 0 && solidWord(other)) return 'day-ink';
   // The page's own ground (the body, the content's sky, the ground under the footer banner): by day white with a light
   // mist that deepens into the banner's night, by night black with a dark mist (H13, D9: "only the background").
   if (nebula.ground && (prop === 'background-color' || prop === 'background-image')) return 'neutral';
@@ -137,6 +157,7 @@ export function classify(prop: string, nebula: Item, other: Item, theme: 'light'
     const fromText = (prop !== 'background-image' || nebula.clip) && (ca[i] === ownA && cb[i] === ownB || sameRgb(ca[i]!, ownA) && sameRgb(cb[i]!, ownB));
     if (fromText || (nebula.svgText && prop === 'fill')) { klass = klass === 'neutral' ? 'text' : klass; continue; }
     if (theme === 'light' && prop === 'background-image' && nebula.clip && deeperSameHue(ca[i]!, cb[i]!)) { klass = 'gradient-word'; continue; }
+    if (theme === 'light' && nebula.chart && other.chart && PAINT_PROPS.has(prop) && !flips(ca[i]!) && deeperSameHue(ca[i]!, cb[i]!, GRAPHIC_CONTRAST)) { if (klass === 'neutral') klass = 'day-ink'; continue; }
     if (!flips(ca[i]!)) return 'DISALLOWED';
   }
   return klass;

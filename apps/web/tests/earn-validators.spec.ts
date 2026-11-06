@@ -63,5 +63,10 @@ test('an unavailable validator list says so with the reason; the native rate fal
   await page.reload();
   await expect(page.locator('#validators [data-live-figure="validators"]')).toHaveAttribute('data-reason', 'TIMEOUT');
   await expect(page.locator('#validators')).toContainText('unavailable (the source took too long to answer)');
-  await expect(page.locator('[data-live-figure="native-commission"]')).toHaveAttribute('data-state', 'unavailable');
+  // Session AL (PR-040, 1b1712aa; deliberate): with the list unavailable, the commission line shows the measured
+  // validator's own commission, named as that one validator's and saying the full list is unavailable, so it never
+  // disagrees with the measured line.
+  const commission = page.locator('[data-live-figure="native-commission"]');
+  await expect(commission).toHaveAttribute('data-state', 'ok');
+  await expect(commission).toContainText(/% at .+, the validator measured above \(the full list is unavailable right now\)/);
 });

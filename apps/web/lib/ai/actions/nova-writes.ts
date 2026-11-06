@@ -1,6 +1,6 @@
 import {NOTES, NOTES_KEY, noteSchema, type Note, type Notes} from '../../notes/schema';
 import {applyUndo, captureInto, checked, fileNote, type FileTarget} from '../../notes/store';
-import {TASK_PRIORITIES, TASKS, TASKS_KEY, taskSchema, type Task, type Tasks} from '../../tasks/schema';
+import {recurSchema, TASK_PRIORITIES, TASKS, TASKS_KEY, taskSchema, type Task, type Tasks} from '../../tasks/schema';
 import {letTaskGo, moveTaskDue, putTaskBack} from '../../wrap-up-tasks/move';
 import {addTask, removeTask} from '../../tasks/engine';
 import {WORKOUT_TYPES, WORKOUTS, WORKOUTS_KEY, workoutsSchema, type Workouts} from '../../workouts/schema';
@@ -42,11 +42,14 @@ export const tasksEntry: Entry<Tasks> = {spec: TASKS, apply: (record, patch) => 
     return removeTask(record, id);
   }
   const a = patch.add;
-  if (!object(a) || !only(a, ['id', 'title', 'priority', 'due', 'time', 'goal', 'at', 'today']) || !str(a.id, 80) || !ID.test(a.id) || !str(a.title, 140) || !stamp(a.at) || typeof a.today !== 'string' || !DAY.test(a.today)
+  if (!object(a) || !only(a, ['id', 'title', 'priority', 'due', 'time', 'goal', 'recur', 'at', 'today']) || !str(a.id, 80) || !ID.test(a.id) || !str(a.title, 140) || !stamp(a.at) || typeof a.today !== 'string' || !DAY.test(a.today)
     || !(TASK_PRIORITIES as readonly unknown[]).includes(a.priority) || (a.due !== undefined && (typeof a.due !== 'string' || !DAY.test(a.due))) || (a.time !== undefined && (typeof a.time !== 'string' || !CLOCK.test(a.time)))
     || (a.goal !== undefined && !str(a.goal, 120))) throw new Error(NOT_A_CARD);
+  // Session AL fourth pass (L7-4b): a repeat is Tasks' own `recur` (lib/tasks/schema.ts), checked by its schema.
+  const recur = a.recur === undefined ? undefined : recurSchema.safeParse(a.recur);
+  if (recur && !recur.success) throw new Error(NOT_A_CARD);
   if (record.tasks.some(t => t.id === a.id)) throw new Error('This task is already on your list.');
-  return addTask(record, {title: a.title, priority: a.priority as (typeof TASK_PRIORITIES)[number], ...(a.due ? {due: a.due as string} : {}), ...(a.time ? {time: a.time as string} : {}), ...(a.goal ? {goal: a.goal as string} : {})}, {id: a.id, at: new Date(a.at), today: a.today});
+  return addTask(record, {title: a.title, priority: a.priority as (typeof TASK_PRIORITIES)[number], ...(a.due ? {due: a.due as string} : {}), ...(a.time ? {time: a.time as string} : {}), ...(a.goal ? {goal: a.goal as string} : {}), ...(recur?.success ? {recur: recur.data} : {})}, {id: a.id, at: new Date(a.at), today: a.today});
 }};
 
 /**

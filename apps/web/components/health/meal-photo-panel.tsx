@@ -50,7 +50,7 @@ export function MealPhotoPanel({data}: {data: HealthData}) {
   return <section className="health-aa-card" aria-labelledby="meal-photo-title" style={{marginTop: 12}}>
     <h3 id="meal-photo-title">Estimate a meal from a photo</h3>
     {connected ? <><p>Open ZIGi and add the photo with 📷. It goes only to your own AI, which proposes each food with a range (an estimate). Nothing is logged until you accept a card.</p><div className="actions"><button type="button" className="secondary" onClick={() => askZigi('Log this meal from the photo.')}>Open ZIGi</button></div></>
-      : <><p>{NO_AI_PHOTO}</p><div className="actions"><Link className="secondary" href="/app/settings">Open Settings</Link></div></>}
+      : <><p>{NO_AI_PHOTO}</p><div className="actions">{/* Session AL (P-MO-40): says what the button is for */}<button type="button" className="secondary" disabled aria-describedby="meal-photo-title">Estimate from a photo</button><Link className="secondary" href="/app/settings">Connect your AI in Settings</Link></div></>}
     <div className="actions"><button type="button" className="quiet" aria-pressed={keep} onClick={toggleKeep}>Keep the photo on this device</button></div>
     <p className="fine">Off by default. A kept photo is shrunk to at most 200 kB, stays in this browser only (at most 200 photos), is never uploaded or synced, and you can delete it any time.</p>
     {estimated.length > 0 && <ul className="health-micro-list" aria-label="Meals estimated by your AI">{estimated.map(({id, estimate, food}) => <MealPhotoRow key={id} id={id} name={food!.name} line={estimateLine(estimate)} has={kept.includes(id)} canAdd={keep && !busy} onAdd={file => void add(id, file)} onRemove={() => void remove(id)} />)}</ul>}

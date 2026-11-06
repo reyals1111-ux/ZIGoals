@@ -34,7 +34,8 @@ describe('planNutritionImport', () => {
     const csv = 'Date,Meal,Food,Weight (g),Calories,Fat (g)\n2026-09-28,Tea,Rice,150,130,0\n2026-09-28,Tea,Rice,,130,0\n2026-09-28,Tea,Rice,100,abc,0\n';
     const p = plan(csv, {basis: 'per-100g', mealMap: {Tea: 'Lunch'}});
     expect(p.entries).toHaveLength(1); expect(p.entries[0]).toMatchObject({quantityMilli: 1500, meal: 'Lunch', snapshot: {servingGrams: 100, nutrients: {kcal: 130, proteinMg: null, fatMg: 0}}});
-    expect(p.refused.map(r => r.reason)).toEqual(['Row 2: give the amount eaten or a serving count.', 'Row 3: Calories is not a number.']);
+    // Session AL third pass (MO-049, MO-138; COPY_AUDIT, deliberate): the refusal quotes the cell it could not read.
+    expect(p.refused.map(r => r.reason)).toEqual(['Row 2: give the amount eaten or a serving count.', 'Row 3: Calories “abc” is not a number.']);
     expect(distinctMeals(parseCsv(csv).rows, guessMapping(parseCsv(csv).header, NUTRITION_FIELDS))).toEqual(['Tea']);
   });
   test('dates: formats, the future and the Health zone being irrelevant', () => {

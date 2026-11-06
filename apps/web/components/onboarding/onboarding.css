@@ -120,3 +120,27 @@
   :root:has(.welcome-phone-bar) { --launcher-clearance: 60px; }
   :root[data-keyboard] .welcome-phone-bar { display: none; }
 }
+/* Session AL (P-NB-11, P-NB-14): the "N of 3 chosen" and "N selected" counts; the tour card keeps one height so Next does not jump. */
+.onboarding-count { margin: 4px 0 0; font-size: 15px; font-weight: 600; color: var(--text-secondary); }
+legend .onboarding-count { display: inline; margin-left: 8px; }
+.onboarding-tour-card { min-height: 168px; }
+.onboarding-skip-note { margin: 0 0 4px; }
+/* Session AL (GAP-103): the game layer's preview in setup (read-only). */
+.onboarding-game-preview { display: grid; gap: 8px; margin: 12px 0 4px; padding: 14px 16px; border-radius: 16px; border: 1px solid #7fc8ff1f; background: #0a1123a6; color: #d6e2f3; } /* the points' own look (theme sheets map it) */
+.onboarding-game-preview h3 { margin: 0; font-size: 17px; }
+.onboarding-game-preview p { margin: 0; font-size: 15px; line-height: 1.5; }
+.onboarding-game-level { display: flex; align-items: center; gap: 10px; }
+.onboarding-game-level span:last-child { display: grid; gap: 2px; }
+.onboarding-game-level small { font-size: 15px; color: #c2d0e5; }
+.onboarding-game-pill { display: inline-grid; place-items: center; min-width: 44px; height: 28px; padding: 0 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #0b1020; background: linear-gradient(90deg, #6fe6f6, #c790f6); }
+@media (forced-colors: active) { .onboarding-game-pill { color: CanvasText; background: Canvas; border: 1px solid CanvasText; } }
+/* Session AL fourth pass (NB-234): the last step is long on a computer too (Finish setup sat at y 1006 in an 800 px
+   window), so its buttons stay in reach at the bottom of the window, on the theme's own panel colour. */
+@media (min-width: 768px) {
+  :root .onboarding[data-step="data"] .onboarding-actions { position: sticky; bottom: 12px; z-index: 5; margin-top: 12px; padding: 10px 12px; border: 1px solid #7fc8ff2e; border-radius: 18px; background: var(--panel); box-shadow: 0 10px 30px #0004; }
+}
+.onboarding-progress .onboarding-step-kind { text-transform: none; letter-spacing: 0; font-weight: 500; }
+/* Session AL fourth pass (NB-019): the tour's Quick add card rings the real "+ Quick add" button while it shows. */
+.quick-add-trigger[data-tour-spot] { outline: 3px solid #a9e8ed; outline-offset: 4px; box-shadow: 0 0 0 8px #a9e8ed33; }
+@media (prefers-reduced-motion: no-preference) { :root:not([data-app-motion=off]) .quick-add-trigger[data-tour-spot] { animation: onboarding-spot 1.6s ease-in-out 2; } }
+@keyframes onboarding-spot { 50% { box-shadow: 0 0 0 14px #a9e8ed1f; } }

@@ -16,3 +16,5 @@
 @media (prefers-reduced-motion: reduce) { .gamify-trigger, .gamify-word { transition: none; } }
 :root[data-app-motion=off] .gamify-trigger, :root[data-app-motion=off] .gamify-word { transition: none; }
 @media (forced-colors: active) { .gamify-trigger, .gamify-menu, .gamify-switch { border-color: CanvasText; } }
+/* Session AL (AL-LAYOUT-375-011): phones show no rocket (gamify-button.tsx); hidden before hydration too, so it never flashes. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { .gamify { display: none; } }

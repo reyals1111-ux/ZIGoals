@@ -9,6 +9,7 @@
 .reminder-offer { display: block; margin-top: 6px; font-size: 14px; }.reminder-offer a { min-height: 44px; display: inline-flex; align-items: center; }
 /* Session V Part 13: the opt-in reminder names switch (the switch row's own look, without the chat's styles). */
 .push-names .ai-switch-row{display:flex;gap:12px;align-items:flex-start;padding:6px 0}
-.push-names .ai-switch-row [role=switch]{min-width:64px;min-height:44px;flex:none}
+/* Session AL sweep 2 (DV-072b): the track and the word need the switch's own 84 px (ai.css), as in notifications.css. */
+.push-names .ai-switch-row [role=switch]{min-width:84px;min-height:44px;flex:none}
 .push-names .ai-switch-copy{display:grid;gap:2px;font-size:15px;line-height:1.4}
 .push-names .ai-switch-copy small{color:var(--muted,#aab2d9);font-size:14px}

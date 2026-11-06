@@ -2,7 +2,7 @@
 import {useId, useState} from 'react';
 import {contributionPlanFor, type BundleGoal, type BundleHabit, type ContributionPlan, type GoalBundle} from './nl-bundle';
 import {ruleSentence} from '../auto-rules/engine';
-import {readFormNumber} from '../decimal-input';
+import {readGoalAmount} from './goal-amount';
 import {formatDate, formatMoney, formatNumber, isMoneyCurrency} from '../visual-format';
 import {plainErrorMessage} from '../plain-error';
 import './nl-bundle-review.css';
@@ -24,7 +24,8 @@ export function GoalBundleReview({bundle, today, onConfirm, onDismiss}: {bundle:
   const [error, setError] = useState(''), [busy, setBusy] = useState(false);
   const goal = bundle.goal;
   let typed: number | undefined, targetIssue = '';
-  if (goal?.kind === 'value' && target.trim()) { try { typed = readFormNumber(target, {max: 1_000_000_000, positive: true}); } catch (cause) { targetIssue = plainErrorMessage(cause, 'Check the amount.'); } }
+  // Session AL (PRIMITIVES, A4): the one reading of a goal amount (decimal commas, above 0, the trillion cap, plain reasons).
+  if (goal?.kind === 'value' && target.trim()) { const read = readGoalAmount(target, goal.currency ?? 'USD', 'target'); if (read.ok) typed = Number(read.text); else targetIssue = read.error; }
   const confirmedGoal: BundleGoal | undefined = goal && goalOn ? {...goal, ...(goal.kind === 'value' ? {target: typed} : {})} : undefined;
   if (confirmedGoal && confirmedGoal.target === undefined) delete confirmedGoal.target;
   const plan = confirmedGoal ? contributionPlanFor(confirmedGoal, today) : undefined;

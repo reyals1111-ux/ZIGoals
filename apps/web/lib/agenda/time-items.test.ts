@@ -82,3 +82,11 @@ describe('the agenda record keeps the newer kinds in a field of their own (TIER 
     expect(agendaSchema.safeParse({version: 1, hidden: ['task']}).success).toBe(false);
   });
 });
+
+it('Session AL (P-LA-14): nextUp puts timed habits and tasks from now in time order, then the ones with no time', async () => {
+  const {nextUp} = await import('./time-items');
+  const item = (id: string, source: 'habit' | 'task', time: string | null, state: 'open' | 'done' = 'open') => ({id, source, pillar: 'habits', date: '2026-11-04', time, minutes: 0, title: id, href: '/', state}) as never;
+  const day = {date: '2026-11-04', items: [item('read', 'habit', null), item('stretch', 'habit', '14:00'), item('call', 'task', '18:00'), item('walk', 'habit', '19:00'), item('early', 'habit', '08:00'), item('done', 'task', '15:00', 'done')]};
+  expect(nextUp(day, '12:00').map(i => i.id)).toEqual(['stretch', 'call', 'walk']);
+  expect(nextUp(day, '18:30').map(i => i.id)).toEqual(['walk', 'read']);
+});

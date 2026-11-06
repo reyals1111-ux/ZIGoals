@@ -7,7 +7,7 @@ import {NotesPageClient} from '../../../components/notes/notes-page-client';
 export const metadata: Metadata = {title: 'Notes'};
 export default function Page() {
   return <div className="dashboard notes-route">
-    <PageHeader className="page-heading" eyebrow="Your thoughts, linked to your life" title="Notes" lede="Capture now, file later; a daily note sits beside what you did that day. Journal is how the day felt; a note is anything you want to keep. Private, on this device." />
+    <PageHeader className="page-heading" eyebrow="Your thoughts, linked to your life" title="Notes" lede="Capture now, file later. Journal is how the day felt; a note is anything you want to keep. Private, on this device." />
     <NotesPageClient />
   </div>;
 }

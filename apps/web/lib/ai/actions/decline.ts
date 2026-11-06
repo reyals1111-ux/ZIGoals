@@ -13,6 +13,7 @@
  */
 import {detectIntent, REFUSAL_REPLY} from '../intent';
 import {FENCE} from './parse';
+import {safetyFirst} from '../safety-guard';
 import {normalizeSpoken} from '../spoken/normalize';
 
 const LEAD = '^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |now |then |dan |nu |zigi,? |nova,? )*';
@@ -135,4 +136,50 @@ export function answerOnly(reply: string, message: string): string {
   if (reply.search(FENCE) < 0 || !isPureQuestion(message)) return reply;
   const kept = reply.replace(FENCE, block => READ_ONLY_BLOCK.test(block) ? block : '');
   return kept === reply ? reply : tidy(kept);
+}
+/** Every block that would write is dropped (read-only blocks stay); used in careful mode, where no card sets or logs a restriction. */
+export function stripWriteBlocks(reply: string): string {
+  if (reply.search(FENCE) < 0) return reply;
+  const kept = reply.replace(FENCE, block => READ_ONLY_BLOCK.test(block) ? block : '');
+  return kept === reply ? reply : tidy(kept);
+}
+/**
+ * Session AL (lane L7; ZI1 family: BN-068, NB-103/118/121, MO-056, LA-018, TK-053, P-LA-09): whether ZIGi's no-AI panel may
+ * put a Quick add preview ("Will save: Water 250 mL") under its answer. Never under a question ("How much water did I
+ * drink?", "Hoeveel water heb ik gedronken?", "Explain my P&L", "average water this week"), a negation ("I didn't drink
+ * any water"), a goal statement ("lose 10 kg in 1 week"), a careful-mode message or anything the safety guard answered.
+ * A log line ("drank 2 glasses of water") still gets it.
+ */
+const NEGATION = /\b(?:didn'?t|did not|don'?t|do not|haven'?t|have not|hasn'?t|never|no longer|not yet|niet|geen|nooit|nog niet)\b/i;
+const CREATE_RECORD = /\b(?:create|make|set ?up|start|plan|new|add|maak|nieuwe?|begin)\b[^.?!]{0,25}\b(?:goals?|habits?|doel(?:en)?|gewoontes?)\b/i; // DV-060: "create a goal … by next Friday" is not a workout line
+const GOAL_STATEMENT = /\b(?:want to|wanna|going to|gonna|plan to|trying to|try to|need to|goal (?:is|of)|wil|ga|moet|doel)\b[^.?!]{0,30}\b(?:lose|gain|reach|drink|walk|run|sleep|eat|afvallen|aankomen|halen|drinken|lopen|slapen|eten)\b/i;
+export function quickAddOffered(message: string, flags: {guarded?: boolean; careful?: boolean} = {}): boolean {
+  const text = message.trim();
+  // Session AL fourth pass (L7-4a): the guard is read here as well, so no caller's flags can let a guarded text through.
+  if (!text || flags.guarded || flags.careful || safetyFirst(text)) return false;
+  if (isPureQuestion(text) || /\?\s*$/.test(text)) return false;
+  if (NEGATION.test(text) || GOAL_STATEMENT.test(text) || CREATE_RECORD.test(text)) return false;
+  if (/\bp\s*&\s*l\b|\bpnl\b|\bprofit and loss\b/i.test(text)) return false; // TK-053: the "L" in P&L is not litres
+  if (NOT_A_LOG.test(text)) return false;
+  return true;
+}
+/**
+ * Session AL fourth pass (lane L7-4b; Lisbon #280–289a, #330–333, ZIGi-F9; Nairobi H6, NB-121, P18/P20/P27): words that are
+ * no log line for Quick add: an ask for a suggestion, a plan or a habit change ("suggest a habit stack to sleep better" was
+ * "Sleep · 1 h"), a check-off in another language ("hak Drink water ab" was "Water · 1 glass"), and a walk or run counted
+ * in something that is no distance ("I walked 2 dogs" was "2 steps").
+ */
+const NOT_A_LOG = new RegExp([
+  String.raw`^\s*(?:please\s+)?(?:suggest|recommend|plan|help me|how (?:do|can|should) i|what should|give me|tell me|brief|organi[sz]e|make|change|skip|pause|resume|snooze|move|create|add (?:a )?habit)\b`,
+  String.raw`^\s*(?:coche|cocher|marque|hak|hake|markiere|erledige|marca|marcar)\b`,
+  String.raw`\b(?:walked|ran|biked|cycled|swam)\s+(?:the\s+|my\s+)?(?:\d+|a|one|two|three|four|five)\s+(?!steps?\b|km\b|kms\b|k\b|miles?\b|mi\b|minutes?\b|mins?\b|min\b|hours?\b|hrs?\b|h\b|m\b|meters?\b|metres?\b|laps?\b|kilomet)[a-z]+`,
+].join('|'), 'i');
+/**
+ * Session AL fourth pass (lane L7-4b; Lisbon #006, #008, #021, LA-018 family): the Quick add preview sits only under the
+ * device's "I don't have an answer" reply (the examples list). When the device answered, or made its own card (a check-off,
+ * a task, a goal card), a second write offer under it ("Will save: Water · 1 glass" under a check-off card, "Use a number
+ * above zero" under a task) is a stray: one message, one proposal.
+ */
+export function quickAddUnder(reply: {kind: string} | null | undefined): boolean {
+  return !reply || reply.kind === 'examples';
 }

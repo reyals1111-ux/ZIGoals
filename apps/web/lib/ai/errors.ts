@@ -70,7 +70,21 @@ export function mapNetworkError(provider: ProviderId, error: unknown, context: {
   return new AiError('cors', 'Your provider could not be reached from this browser. Check your connection; if you are online, the provider refused the browser\'s request.', {provider, cause: error});
 }
 /** Fix steps for the interface, as data: provider-specific where the documentation gives a switch to flip. */
-export function errorSteps(error: AiError, context: {providerName: string; local?: {server: 'ollama' | 'openai-compatible' | null; baseUrl: string}; hostedPage: boolean; keysUrl: string | null}): string[] {
+/**
+ * Session AL second pass (Berlin BN-047, P-BN-09, P-DV-92): the shared error words speak as the assistant in use. In NOVA's
+ * panel "ZIGi" becomes "NOVA" and ZIGi's settings path becomes NOVA's own (NOVA → Models, or its setup guide).
+ */
+export function assistantWords(text: string, assistant: 'ZIGi' | 'NOVA'): string {
+  if (assistant === 'ZIGi') return text;
+  return text.replace(/Choose another model in the header\./g, 'Choose another model in NOVA → Models.').replace(/Settings → Your assistant → ZIGi · Your Personal AI Companion(?: → Model)?/g, 'NOVA → Models (or NOVA → Build NOVA’s brain)')
+    .replace(/Settings → ZIGi · Your Personal AI Companion(?: → Model)?/g, 'NOVA → Models').replace(/Settings → ZIGi\b/g, 'NOVA → Models')
+    .replace(/\bZIGi settings\b/g, 'NOVA settings').replace(/\bZIGi\b/g, 'NOVA');
+}
+export function errorSteps(error: AiError, context: {providerName: string; local?: {server: 'ollama' | 'openai-compatible' | null; baseUrl: string}; hostedPage: boolean; keysUrl: string | null; assistant?: 'ZIGi' | 'NOVA'}): string[] {
+  const steps = stepsFor(error, context);
+  return context.assistant ? steps.map(step => assistantWords(step, context.assistant!)) : steps;
+}
+function stepsFor(error: AiError, context: {providerName: string; local?: {server: 'ollama' | 'openai-compatible' | null; baseUrl: string}; hostedPage: boolean; keysUrl: string | null}): string[] {
   switch (error.kind) {
     case 'bad-key': return [`Open Settings → Your assistant → ZIGi · Your Personal AI Companion and paste the key again.`, context.keysUrl ? `Or create a new key at ${context.keysUrl}.` : 'Or check the server\'s token setting.'];
     case 'no-credit': return [`Add credit or raise the limit at ${context.providerName}.`, 'ZIGoals bills nothing; costs are between you and your provider.'];
@@ -91,7 +105,8 @@ export function errorSteps(error: AiError, context: {providerName: string; local
     case 'request': return ['Try a shorter message, or choose another model.'];
     case 'server': return ['Try again in a moment.'];
     case 'unreadable': return ['Try again; if it keeps happening, choose another model or provider.'];
-    case 'stalled': return ['What arrived is kept above; ask ZIGi to continue, or send again.', context.local ? 'A local model that stops mid-reply is often out of memory or swapping: a smaller model or a shorter context budget helps.' : 'If it keeps happening, choose another model.'];
+    // BN-047: a local model has the records loaded after the first try, so a Retry usually answers sooner; said so.
+    case 'stalled': return ['What arrived is kept above; ask ZIGi to continue, or send again. A Retry is usually quicker: a local model keeps what it already read loaded for a while.', context.local ? 'A local model that stops mid-reply is often out of memory or swapping: a smaller model or a shorter context budget helps. On a computer without a graphics card, try a small model such as qwen2.5:0.5b or llama3.2:1b (Settings → ZIGi · Your Personal AI Companion → Model).' : 'If it keeps happening, choose another model.'];
     case 'aborted': return [];
   }
 }

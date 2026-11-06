@@ -26,6 +26,16 @@ export function FeedbackButtons({value, onChange}: {value: 'up' | 'down' | undef
  * Who answered, as one short line (panel polish round 2: "From your AI · local server"). The full sentence is the
  * line's tooltip and what a screen reader reads (`.ai-turn-label`); `extra` adds hidden detail (the deep model).
  */
+/**
+ * Session AL second pass (Berlin BN-040, B-055; P-BN-14, P-PR-05 part): a reply from the person's own model that speaks about
+ * money carries one standing line under it, "Information, not financial advice" (the device's own answers already say so
+ * in their words). A plain test on the reply's words; nothing is sent or kept.
+ */
+const MONEY_WORDS = /[$€£]\s?\d|\b\d[\d,.]*\s?(?:usd|eur|gbp|zig|btc|eth|sol|dollars?|euros?)\b|\b(?:invest\w*|stocks?|shares|etfs?|crypto\w*|bitcoin|staking|stake|portfolio|savings?|interest rate|loan|mortgage|debt|budget|net worth|returns?|yield|apr|apy)\b/i;
+export function moneyNoteFor(text: string): boolean { return MONEY_WORDS.test(text); }
+export function MoneyNote({text}: {text: string}) {
+  return moneyNoteFor(text) ? <p className="ai-note ai-money-note">Information, not financial advice: the choice is yours.</p> : null;
+}
 export function SourceLine({short, full, extra, deeper = false, time}: {short: string; full: string; extra?: ReactNode; deeper?: boolean; time?: ReactNode}) {
   // `time`: a narrow reply (panel-z.css, `zigi-reply`) shows its time here, first, instead of in the row of buttons.
   return <p className="ai-turn-source" title={full}>{time && <span className="ai-turn-source-time">{time}<span aria-hidden="true"> · </span></span>}<span aria-hidden="true">{short}{deeper ? ' · deeper' : ''}</span><span className="ai-turn-label ai-sr-only">{full}</span>{extra}</p>;

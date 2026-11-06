@@ -1,6 +1,8 @@
+import {weightText} from '../health-units';
 import {addLocalDays, localWeekday} from '../local-date';
 import type {HealthData} from '../health';
-import {weightTrend} from './trend';
+import {rateReadiness, weightTrend, type RateReadiness} from './trend';
+import {formatDate} from '../visual-format';
 import {energyEstimate, suggestedTarget, ENERGY_MIN_LOGGED_DAYS, ENERGY_MIN_WEIGHTS, KCAL_FLOOR, MAX_STEP} from './energy';
 import type {HealthCoach} from './coach-schema';
 
@@ -22,9 +24,10 @@ export type CoachCheckIn = {weekStart: string; answered: 'keep' | 'adjust' | nul
 export function coachCheckIn(data: HealthData, coach: HealthCoach, today: string, unit: 'kg' | 'lb' = 'kg'): CoachCheckIn {
   const weekStart = weekStartOf(today), trend = weightTrend(data, today, 14), answered = coach.answers?.[weekStart]?.answer ?? null;
   const rate = trend.weeklyRate;
-  const shown = rate === null ? null : unit === 'lb' ? `${(rate / 453.59237).toFixed(1)} lb` : `${(rate / 1000).toFixed(1)} kg`;
-  const sign = rate === null ? '' : rate < 0 ? '−' : rate > 0 ? '+' : '';
-  const sentence = rate === null ? (trend.readings ? 'Not enough readings yet for a weekly rate; two in the last week will do.' : 'Log a weight or two and the coach can read your week.') : `This week: ${sign}${shown!.replace('-', '')}/week.`;
+  // Session AL fourth pass (PR-074): the one weight formatter, so the coach and the trend card round the same rate alike.
+  const shown = rate === null ? null : weightText(Math.abs(rate), unit);
+  const sign = rate === null || /^0 /.test(shown ?? '') ? '' : rate < 0 ? '−' : rate > 0 ? '+' : '';
+  const sentence = rate === null ? rateWaitSentence(rateReadiness(data.weights, today), today) : `This week: ${sign}${shown!.replace('-', '')}/week.`;
   const estimate = energyEstimate(data, today), goal = data.targets.weightGrams, latest = trend.latestTrend;
   const paceKg = goal !== null && latest !== null ? (goal < latest ? -0.4 : goal > latest ? 0.25 : 0) : 0;
   const kcal = suggestedTarget(estimate, paceKg, data.targets.kcal);
@@ -32,4 +35,13 @@ export function coachCheckIn(data: HealthData, coach: HealthCoach, today: string
   return {weekStart, answered, rateGrams: rate, readings: trend.readings, sentence, suggestion: kcal !== null ? {kcal, paceKg} : null, currentKcal: data.targets.kcal,
     maintenance, progress: {loggedDays: estimate.loggedDays, minDays: ENERGY_MIN_LOGGED_DAYS, weights: estimate.weights, minWeights: ENERGY_MIN_WEIGHTS, implausible: !!estimate.implausible},
     changeKcal: kcal !== null && data.targets.kcal !== null ? kcal - data.targets.kcal : null, rails: {floorKcal: KCAL_FLOOR, maxStepPercent: Math.round(MAX_STEP * 100)}};
+}
+/**
+ * Session AL (P-MO-70, MO-149): why there is no weekly rate yet, true to the rule (readings at least seven days apart in
+ * the last 28 days): with readings, which day the rate can first show; with none in the window, ask for one.
+ */
+export function rateWaitSentence(r: RateReadiness, today: string): string {
+  if (!r.readings) return 'Log a weight or two and the coach can read your week.';
+  const when = r.readyOn && r.readyOn > today ? ` A reading on ${formatDate(r.readyOn, {year: false})} or later gives the rate.` : ' Your next reading gives the rate.';
+  return `${r.readings} ${r.readings === 1 ? 'day' : 'days'} with a weight since ${formatDate(r.first!, {year: false})}. A weekly rate needs readings at least seven days apart.${when}`;
 }

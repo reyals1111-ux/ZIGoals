@@ -1,3 +1,5 @@
+import {goalQty} from '../tools/format';
+import {isUnitWord, unitWord} from '../../goals/goal-units';
 import {ACCOUNTS, isDebtKind, type Accounts} from '../../accounts/schema';
 import {DEBT_PLANNER, DEBT_PLANNER_KEY, type DebtPlannerRecord} from '../../debt-planner/store';
 import {centsText, parseCents, rateE4} from '../../debt-planner/plan';
@@ -120,10 +122,10 @@ export function planAkF9Action(action: Action, env: Env, h: AaHelpers): PlanResu
       let challenge: Challenge, lines: string[];
       if (action.challenge === '52-week') {
         const units = BigInt(Math.round(action.step! * 10 ** Math.min(goal.decimals, 6))) * 10n ** BigInt(Math.max(0, goal.decimals - 6));
-        if (units <= 0n) return h.refuse(`The step is an amount in ${goal.asset} above zero.`);
+        if (units <= 0n) return h.refuse(`The step is an amount in ${isUnitWord(goal.asset) ? unitWord(goal.asset) : goal.asset} above zero.`);
         const step = decimalText(units, goal.decimals), order = action.order ?? 'up';
         challenge = {kind: '52-week', startedOn: start, step, order};
-        lines = [`Week 1 puts aside ${step} ${goal.asset}, week 52 ${decimalText(units * BigInt(WEEKS), goal.decimals)} ${goal.asset}${order === 'down' ? ' (counting down: the biggest week first)' : ''}`, `The year adds up to ${decimalText(yearTotal(units), goal.decimals)} ${goal.asset}`];
+        lines = [`Week 1 puts aside ${goalQty(step, goal.asset)}, week 52 ${goalQty(decimalText(units * BigInt(WEEKS), goal.decimals), goal.asset)}${order === 'down' ? ' (counting down: the biggest week first)' : ''}`, `The year adds up to ${goalQty(decimalText(yearTotal(units), goal.decimals), goal.asset)}`];
       } else if (action.challenge === 'no-spend') {
         const target = action.target_days ?? 30; challenge = {kind: 'no-spend', startedOn: start, targetDays: target, noSpendDays: []};
         lines = [`Aiming for ${formatNumber(target)} no-spend days; you mark each day yourself (a day with nothing logged is not counted)`];

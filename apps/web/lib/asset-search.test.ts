@@ -24,7 +24,9 @@ it('stores the exact selected market identity and user classification without as
 });
 
 it('keeps tokenized RWA units distinct from physical metal weight and refuses unsupported EUR quotes',()=>{
- expect(automaticUnitLabel(gold)).toBe('CoinGecko tokenized RWA reference units');
+ // Session AL (COPY_AUDIT, deliberate, DV-145): the field says what a person holds and never "RWA"; it still names reference units, never a metal weight.
+ expect(automaticUnitLabel(gold)).toBe('Reference units you hold');
+ expect(automaticUnitLabel(gold)).not.toMatch(/gram|ounce|\boz\b|kg/i);
  expect(()=>automaticSourcePosition({asset:gold,assetClass:'Precious Metals',quantity:'100',currency:'EUR'},'gold-eur')).toThrow('USD');
  expect(()=>automaticSourcePosition({asset:gold,assetClass:'Property',quantity:'1',currency:'USD'},'gold-property')).toThrow('Property');
 });

@@ -23,12 +23,15 @@ describe('Session AF Checklist keys (TIER 3 storage, ADR-028 H10): versioned, lo
     expect(TODAY_CHECKLIST_LAYOUT_ID).toBe('today:checklist');
     expect(CHECKLIST.key).toBe(CHECKLIST_KEY); expect(CHECKLIST_DAYS.key).toBe(CHECKLIST_DAYS_KEY);
   });
-  test('never a module record or a restore part; synced only as the extras Checklist section (AK 8.10, AFL8), listed so in the catalog', () => {
+  // Session AL (P-LS-36, LS-064; deliberate, answers owner question J6-2): the Checklist is now a restore part of
+  // Export everything (its path, Health quick inputs with the Health choice, its day history); it is still never a
+  // module record and still syncs only as the extras Checklist section.
+  test('never a module record; a restore part of Export everything; synced only as the extras Checklist section (AK 8.10, AFL8), listed so in the catalog', () => {
     for (const key of AF_CHECKLIST_PERSONAL_KEYS) {
       expect(Object.values(MODULE_KEYS)).not.toContain(key);
       expect(EXTRAS_DEVICE_KEYS).toContain(key);
       expect(SYNCED.find(e => e.key === key)?.home).toBe('sync');
-      expect(DEVICE_PARTS.some(p => p.key === key)).toBe(false);
+      expect(DEVICE_PARTS.some(p => p.key === key)).toBe(true);
     }
   });
   test('only the extras Checklist section names the keys (AK 8.10, AFL8), and it keeps Health quick inputs and today\'s ticks on the device', () => {
@@ -40,7 +43,11 @@ describe('Session AF Checklist keys (TIER 3 storage, ADR-028 H10): versioned, lo
     // vault/extras-sections.ts, the section's name in vault/extras-sync.ts and in the private-sync Worker's extras store).
     // Tests may name them too. Nothing else that ships may: no module home, no sync offer, no other Worker.
     const naming = sync.filter(file => !/\.test\.(ts|mjs)$/.test(file) && /checklist|CHECKLIST/.test(readFileSync(file, 'utf8'))).map(file => relative(lib, file)).sort();
-    expect(naming).toEqual([join('..', '..', '..', 'workers', 'private-sync', 'extras.mjs'), join('vault', 'extras-keys.ts'), join('vault', 'extras-sections.ts'), join('vault', 'extras-sync.ts')].sort());
+    // Session AL (P-LS-36; deliberate): the encrypted backup carries the Checklist as its own optional section
+    // (vault/backup-lists.ts, named in vault/backup.ts's format rule); no other sync code names it.
+    // Session AL (third pass, INT; deliberate): vault/backup-records.ts names the Checklist keys only to leave them out of
+    // its record sections (OWN_SECTIONS), so the Checklist still travels in its own section and nowhere else.
+    expect(naming).toEqual([join('..', '..', '..', 'workers', 'private-sync', 'extras.mjs'), join('vault', 'backup-lists.ts'), join('vault', 'backup-records.ts'), join('vault', 'backup.ts'), join('vault', 'extras-keys.ts'), join('vault', 'extras-sections.ts'), join('vault', 'extras-sync.ts')].sort());
     const section = EXTRAS_SECTIONS.find(s => s.name === 'checklist')!;
     expect(section.consent).toBe('account');
     expect(section.records.map(r => [r.spec.key, r.deviceFields])).toEqual([[CHECKLIST_KEY, ['healthItems']], [CHECKLIST_DAYS_KEY, ['today']]]);

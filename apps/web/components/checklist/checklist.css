@@ -561,3 +561,19 @@
   .checklist-view-switch { padding: 1px; }
   .checklist-streak { padding: 0 4px 0 2px; }
 }
+/* Session AL (P-LS-21, LS-018/LS-059): while a sheet (Edit path, Options, Quick add) is open, the toast sits above its scrim,
+   so an Undo offered there can be pressed. */
+.checklist-overlay:has(.checklist-sheet) .checklist-toast-slot .aa-toast-region { z-index: 41; }
+/* Session AL (P-LS-54, P-LS-32): the List view's "Tasks due today" and a row's More tools (List view only). */
+.checklist-list-tasks { display: grid; gap: 6px; margin-top: 18px; }
+.checklist-list-tasks-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.checklist-list-tasks-head h3 { margin: 0; }
+.checklist-list-tasks-head .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+.checklist-list-task-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.checklist-list-task-rows li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.checklist-list-task-rows label { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; overflow-wrap: anywhere; }
+.checklist-list-task-rows input { width: 24px; height: 24px; }
+.checklist-row-tools { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin-top: 8px; }
+.checklist-row-tools select, .checklist-row-tools input, .checklist-row-tools button { min-height: 44px; }
+.checklist-row-rename { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 6px; }
+.checklist-row-tools .fine { flex: 1 0 100%; margin: 0; }

@@ -1,6 +1,7 @@
 import {habitDay, habitRuleOn, type HabitData} from '../habits';
 import type {HealthData} from '../health';
-import type {Platform} from '../positions';
+import {goalProgress, type Platform} from '../positions';
+import {closedAfterReaching} from '../goals/finished';
 import type {WeeklyReview} from '../weekly-review/schema';
 import {addLocalDays, localWeekday} from '../local-date';
 import {levelProgress, type LevelProgress} from './levels';
@@ -11,7 +12,8 @@ import type {EarnAcademy} from '../earn/records';
 /**
  * XP is derived from the person's own records, never stored: a check-in, a log, a goal step or a review earns points the
  * moment its record exists and loses them the moment Undo removes it, so nothing is lost or counted twice. The rules are
- * this table; a cap per day keeps a busy diary from outweighing a habit. No rule ever subtracts.
+ * this table; a cap per day keeps a busy diary from outweighing a habit. No rule ever subtracts. Goal XP follows the goal
+ * as it stands now (goalXpEvents), so no change can be repeated for more XP.
  */
 export const XP_RULES = {
   habitComplete: 10, habitPartial: 3, diaryEntry: 5, diaryCapPerDay: 20, water: 2, waterCapPerDay: 10, weight: 5, sleep: 5, meditation: 5, activity: 3,
@@ -61,14 +63,42 @@ export function xpEvents(stores: GameStores, today: string): XpEvent[] {
   for (const a of stores.health.activity) if (a.date <= today) out.push({id: `activity:${a.id}`, day: a.date, xp: XP_RULES.activity, kind: 'health', title: a.name});
   for (const n of stores.health.sleep?.nights ?? []) { if (!n.end) continue; const day = isoDay(n.end); if (day <= today && n.kind === 'night') out.push({id: `sleep:${n.id}`, day, xp: XP_RULES.sleep, kind: 'health', title: 'A night logged'}); }
   for (const s of stores.health.meditation?.sessions ?? []) { const day = isoDay(s.startedAt); if (day <= today) out.push({id: `meditation:${s.id}`, day, xp: XP_RULES.meditation, kind: 'health', title: 'Meditation'}); }
-  if (stores.platform) {
-    for (const g of stores.platform.goalHistory) { if (g.kind !== 'milestone' && g.kind !== 'status') continue; const day = isoDay(g.capturedAt); if (day <= today) out.push({id: `goal:${g.id}`, day, xp: g.kind === 'milestone' ? XP_RULES.goalMilestone : XP_RULES.goalStatus, kind: 'goal', title: g.label}); }
-    for (const c of stores.platform.contributions) { if (c.direction !== 'IN' || c.reversesId) continue; const day = isoDay(c.occurredAt); if (day <= today) out.push({id: `contribution:${c.id}`, day, xp: XP_RULES.contribution, kind: 'goal', title: 'A contribution'}); }
-  }
+  if (stores.platform) out.push(...goalXpEvents(stores.platform, today));
   for (const r of stores.weekly?.reviews ?? []) if (r.completedAt && isoDay(r.completedAt) <= today) out.push({id: `review:${r.weekStart}`, day: isoDay(r.completedAt), xp: XP_RULES.review, kind: 'review', title: 'Weekly review'});
   // (Session AG: no Checklist events — the kind stays in the summary's breakdown at 0, so older readers of it still read.)
   for (const l of earnLessonsPassed(stores, today)) out.push({id: `earn-lesson:${l.id}`, day: l.day, xp: XP_RULES.earnLesson, kind: 'earn', title: 'An Earn Academy lesson passed'});
   return out;
+}
+/**
+ * Session AL (P-NB-01; NB-185, NB-203, NB-212, NB-213, NB-218): goal XP follows the goal as it stands, never the change
+ * log. Each history row used to earn 25, so closing and reopening a goal, or ticking and unticking a milestone, earned
+ * again every time. Now: 25 once per milestone that is ticked now (dated by the goal's latest milestone change), 25 once
+ * per goal whose target is reached now (closing a finished goal keeps it; reopening adds nothing), and 10 per
+ * contribution that no correction has reversed. Untick, a reversal or a target no longer reached takes the XP back.
+ */
+export function goalXpEvents(platform: Platform, today: string): XpEvent[] {
+  const out: XpEvent[] = [];
+  const latest = (goalId: string, test: (h: {kind: string; label?: string}) => boolean) => platform.goalHistory.filter(h => h.goalId === goalId && test(h)).map(h => isoDay(h.capturedAt)).filter(d => d <= today).sort().at(-1);
+  for (const g of platform.goals) {
+    const milestoneDay = latest(g.id, h => h.kind === 'milestone');
+    if (milestoneDay) for (const m of g.milestones) if (m.done) out.push({id: `goal-milestone:${g.id}:${m.id}`, day: milestoneDay, xp: XP_RULES.goalMilestone, kind: 'goal', title: m.title});
+    if (!goalReached(platform, g.id, g.status)) continue;
+    const doneDay = latest(g.id, h => h.kind === 'status' && h.label === 'Goal completed') ?? (g.lifecycle ?? []).filter(e => e.kind === 'completed').map(e => isoDay(e.at)).filter(d => d <= today).sort().at(-1) ?? milestoneDay;
+    if (doneDay) out.push({id: `goal-done:${g.id}`, day: doneDay, xp: XP_RULES.goalStatus, kind: 'goal', title: `Goal reached: ${g.name}`});
+  }
+  const reversed = new Set(platform.contributions.flatMap(c => c.reversesId ? [c.reversesId] : []));
+  // Session AL (DV-023c, P-DV-32): a history-only record never moves the goal, so it earns no XP either.
+  for (const c of platform.contributions) { if (c.direction !== 'IN' || c.reversesId || reversed.has(c.id) || c.fundingMode === 'HISTORY_ONLY') continue; const day = isoDay(c.occurredAt); if (day <= today) out.push({id: `contribution:${c.id}`, day, xp: XP_RULES.contribution, kind: 'goal', title: 'A contribution'}); }
+  return out;
+}
+/** Whether a goal's target is reached now: its status says so, or (closed) its counted progress still meets the target. */
+function goalReached(platform: Platform, id: string, status: string): boolean {
+  if (status === 'completed') return true;
+  if (status !== 'closed') return false;
+  // Session AL (P-DV-22): the one "finished" rule first (reached in the cycle it was closed in), then the progress check.
+  const goal = platform.goals.find(g => g.id === id);
+  if (goal && closedAfterReaching(goal)) return true;
+  try { const p = goalProgress(platform, id); return !p.requiresReview && BigInt(p.current) >= BigInt(p.target); } catch { return false; }
 }
 export const weekStart = (day: string) => addLocalDays(day, -((localWeekday(day) + 6) % 7));
 export type XpSummary = {total: number; level: LevelProgress; thisWeek: number; lastWeek: number; today: number; byKind: Record<XpEvent['kind'], number>; events: XpEvent[]};

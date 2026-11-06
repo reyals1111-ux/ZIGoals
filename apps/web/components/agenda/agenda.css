@@ -102,7 +102,9 @@
 .agenda-check[data-pillar=task], .agenda-check[data-pillar=event] { font-size: 16px; }
 .agenda-task-main { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0 6px; }
 .agenda-task-tick { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
-.agenda-task-tick input { width: 22px; height: 22px; margin: 0; }
+/* Session AL (P-LS-44, LS-023): a 24 px box (WCAG 2.5.8) inside the 44 px target. Specific enough to beat the phones'
+   22 px rule for every checkbox in main (phone-base.css), which made it 22 px at 375 px. */
+:root .agenda-task-tick input[type="checkbox"] { width: 24px; height: 24px; margin: 0; }
 .agenda-task-text { display: grid; min-width: 0; }
 .agenda-task-focus { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
 .agenda-task[data-state=done] .agenda-item-title { text-decoration: line-through; text-decoration-thickness: 1px; }
@@ -123,3 +125,17 @@
   .agenda-task-main { grid-template-columns: auto minmax(0, 1fr); }
   .agenda-task-focus { grid-column: 2; justify-self: start; }
 }
+/* Session AL (P-LS-10): a task can be dragged onto another day (the day shows where it lands), or moved with its Move form. */
+.agenda-day[data-drop] { outline: 2px dashed var(--cyan); outline-offset: 2px; border-radius: 12px; }
+.agenda-task[draggable=true] { cursor: grab; }
+.agenda-task-move { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 6px 0; }
+.agenda-task-move input, .agenda-task-move button { min-height: 44px; }
+/* Session AL (DV-193, DV-194, P-DV-125): folded habits, the month legend, the filter's visible control, a wider month. */
+.agenda-habit-group details summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 6px; }
+.agenda-habit-group details summary small { font-weight: 500; color: var(--text-secondary); }
+.agenda-habit-group details .agenda-items { margin-top: 6px; }
+.agenda-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 0; }
+.agenda-legend .agenda-cell-dots i[data-pillar=life], .agenda-cell-dots i[data-pillar=life] { background: var(--brand-cyan, var(--cyan)); }
+.agenda-filter-change { margin-left: 10px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; color: var(--brand-cyan, var(--cyan)); }
+.agenda-filter[open] .agenda-filter-change { display: none; }
+@media (min-width: 900px) { .agenda-month { max-width: none; width: 100%; } .agenda-cell { min-height: 72px; } }

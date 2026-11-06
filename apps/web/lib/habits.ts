@@ -1,8 +1,10 @@
 import * as z from "zod";
 import { addLocalDays, localDate, localWeekday } from "./local-date";
 import { journalTimeZone } from "./journal-zone";
-import { formatDate } from "./visual-format";
+import { formatDate, formatNumber } from "./visual-format";
+import { unitAmountText } from "./plural";
 import { minutesIssue, within } from "./limits/plausibility";
+import { durationCountText } from "./habit-number";
 
 export const HABITS_KEY = "zigoals:habits:v1";
 const dateSchema = z.string().regex(/^20\d{2}-\d{2}-\d{2}$|^21\d{2}-\d{2}-\d{2}$/).refine((value) => {
@@ -295,6 +297,18 @@ function periodResult(habit: Habit, rule: HabitRule, date: string, today: string
   return rawAggregateOutcomes(habit, today).find((outcome) => outcome.period === period && outcome.start === bounds.start)
     ?? { complete: false, partial: false, failed: false, status: "open" as const, start: bounds.start, end: bounds.end, period, unit: `${period}s` as const, scheduledDates: [] };
 }
+/**
+ * Session AL (P-NB-23; NB-076, NB-158, H-008): an "X times per week/month/year" habit's progress in its current period,
+ * as its card says it ("1 of 3 this week"): the days in the period, up to today, whose check-in met the day's target.
+ * Null for any other schedule.
+ */
+export function frequencyProgress(habit: Habit, today: string): { done: number; times: number; period: "week" | "month" | "year" } | null {
+  const rule = habitRuleOn(habit, today);
+  if (!rule || rule.schedule.kind !== "frequency") return null;
+  const bounds = periodBounds(today, rule.schedule.period);
+  const done = habit.entries.filter((entry) => entry.date >= bounds.start && entry.date <= today && entry.date <= bounds.end && entry.disposition === "logged" && individualSuccess(rule, entry.count)).length;
+  return { done, times: rule.schedule.times, period: rule.schedule.period };
+}
 export function habitDay(habit: Habit, date: string, today = localDate()) { return memoized(habit, `day:${date}:${today}`, () => computeHabitDay(habit, date, today)); }
 function computeHabitDay(habit: Habit, date: string, today: string) {
   const rule = habitRuleOn(habit, date); const entry = entryOn(habit, date); const count = entry?.count ?? 0; const target = rule?.target ?? 1;
@@ -338,6 +352,18 @@ export function logHabitValue(data: HabitData, id: string, rawDate: string, rawV
   });
 }
 export function logHabitCount(data: HabitData, id: string, date: string, count: number, note = "", now = new Date()): HabitData { return logHabitValue(data, id, date, count, { note }, now); }
+/**
+ * Session AL (P-NB-26; PR-044, NB-068, NB-131): Undo a skip (or a "failed" mark): the day goes back to the entry it held
+ * before, stamped now so it wins over the skip everywhere; a day that held nothing goes back to nothing logged (a 0, as
+ * an undone check-in leaves it). The previous entry is what the caller read before the change.
+ */
+export function restoreHabitEntry(data: HabitData, id: string, rawDate: string, previous: Habit["entries"][number] | undefined, now = new Date()): HabitData {
+  const date = dateSchema.parse(rawDate);
+  return replaceHabit(data, id, (habit) => {
+    const entry = entrySchema.parse(previous ? { ...previous, date, updatedAt: now.toISOString() } : { date, count: 0, disposition: "logged", note: "", updatedAt: now.toISOString() });
+    return { ...habit, updatedAt: now.toISOString(), entries: [...habit.entries.filter((item) => item.date !== date), entry].sort((a, b) => a.date.localeCompare(b.date)) };
+  });
+}
 export function setHabitEntryStatus(data: HabitData, id: string, rawDate: string, disposition: "skipped" | "failed", note = "", now = new Date()): HabitData {
   const date = dateSchema.parse(rawDate); const today = habitCalendarDay(data,now);
   return replaceHabit(data, id, (habit) => {
@@ -483,6 +509,16 @@ function computeHabitStats(habit: Habit, today: string) {
   const currentPeriod = aggregatePeriod(habitRuleOn(habit,today)??habit.rules[0]!); const streakUnit: StreakUnit = currentPeriod ? `${currentPeriod}s` as StreakUnit : "days";
   return { currentStreak: streakBoard[streakUnit].current, bestStreak: streakBoard[streakUnit].best, streakUnit, streakBoard, weeklyCompleted, weeklyScheduled, weeklyConsistency: weeklyScheduled ? Math.round(weeklyCompleted / weeklyScheduled * 100) : 0, successCount, failCount, skipCount, completionPercentage, consistency: completionPercentage };
 }
+/**
+ * Session AL (DV-028, P-DV-65): this week's consistency in words: "Not due yet this week" while no scheduled day has
+ * come (never "0%", which reads as failure), else "N% this week" (the one percent rule: half up, 100 only when complete).
+ */
+export function weeklyConsistencyText(habit: Habit, today = localDate()): string {
+  const s = habitStats(habit, today);
+  if (!s.weeklyScheduled) return "Not due yet this week";
+  const pct = s.weeklyCompleted >= s.weeklyScheduled ? 100 : Math.min(99, Math.floor(s.weeklyCompleted / s.weeklyScheduled * 100 + 0.5));
+  return `${pct}% this week`;
+}
 export function habitTrends(habit: Habit, today = localDate()) { return memoized(habit, `trends:${today}`, () => computeHabitTrends(habit, today)); }
 function computeHabitTrends(habit: Habit, today: string) {
   const windows = [{ key: "day", days: 1 }, { key: "week", days: 7 }, { key: "month", days: 30 }, { key: "year", days: 365 }] as const;
@@ -504,13 +540,25 @@ export function scheduleLabel(schedule: HabitRule["schedule"], habitId?: string)
 }
 export function measurementUnit(rule: HabitRule): string { return rule.measurement.kind === "boolean" ? "" : rule.measurement.unit; }
 export function smartDoneValue(rule: HabitRule): number { return rule.type === "build" ? rule.target : 0; }
+/**
+ * Session AL (DV-047a, DV-171, DV-207; P-DV-75 habit rows): one logged day in words, with the habit's own unit:
+ * "Done", "500 of 2,000 mL · done", "1 of 3 times", a quit day "Stayed on track" or "2 slips", a limit "2 of at most 3 cups".
+ */
+export function habitEntryText(rule: HabitRule, count: number): string {
+  // Session AL (NB-063, P-NB-29): a part-minute of a timed habit reads in seconds ("49 s of 5 minutes").
+  const unit = measurementUnit(rule), ok = individualSuccess(rule, count), n = durationCountText(count, unit) ?? formatNumber(count, { maximumFractionDigits: 2 });
+  if (rule.type === "quit") return count <= rule.target ? "Stayed on track" : unit && unit !== "times" ? `${unitAmountText(count, unit)} · a slip` : `${n} ${count === 1 ? "slip" : "slips"}`;
+  if (rule.type === "limit") return `${n} of at most ${unit ? unitAmountText(rule.target, unit) : formatNumber(rule.target)}${ok ? " · within limit" : " · over the limit"}`;
+  if (rule.measurement.kind === "boolean" || (unit === "times" && rule.target === 1 && count <= 1)) return ok ? "Done" : "Logged";
+  return `${n} of ${unit ? unitAmountText(rule.target, unit) : formatNumber(rule.target)}${ok ? " · done" : ""}`;
+}
 export function getHabitActivities(data: HabitData): { id: string; category: "HABIT"; title: string; detail: string; at: string; day: string; href: string }[] {
   return data.habits.flatMap((habit) => habit.entries.filter((entry) => {
     if (entry.disposition !== "logged") return false;
     const rule = habitRuleOn(habit, entry.date);
     return !!rule && (rule.type !== "build" || entry.count > 0);
   }).map((entry) => {
-    const rule = habitRuleOn(habit, entry.date)!; const outcome = individualSuccess(rule, entry.count) ? "completed" : "logged";
-    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${formatDate(entry.date)} · ${entry.count} / ${rule.target} ${outcome}`, at: entry.updatedAt, day: entry.date, href: "/app/habits" };
+    const rule = habitRuleOn(habit, entry.date)!;
+    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${formatDate(entry.date)} · ${habitEntryText(rule, entry.count)}`, at: entry.updatedAt, day: entry.date, href: "/app/habits" };
   })).sort((a, b) => b.at.localeCompare(a.at));
 }

@@ -65,7 +65,9 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
       <div className="journal-actions"><button type="submit" className="primary">Save entry</button>{compact && <Link className="text-link" href="/app/journal">Open your journal</Link>}</div>
     </form>}
     {pending?.followUp && <form className="journal-followup" onSubmit={saveAnswer} aria-label="ZIGi's question">
-      <p className="journal-question"><span className="eyebrow">ZIGi asks</span> {pending.followUp.question}</p>
+      {/* Session AL fourth pass (DV-190b): the same words as the saved entry ("Question for later"); it is made on this device, not by an AI chat. */}
+      <p className="journal-question"><span className="eyebrow">Question for later</span> {pending.followUp.question}</p>
+      <p className="fine journal-question-source">ZIGi asks this one on your device, from your entry; no AI reads it. Answer now or leave it.</p>
       <label className="field"><span>Your answer — optional</span><textarea rows={2} maxLength={2000} value={answer} onChange={e => setAnswer(e.target.value)}/></label>
       <SecretGuard text={answer} onRemove={() => setAnswer('')}/>
       <div className="journal-actions"><button type="submit" className="primary" disabled={!answer.trim()}>Save answer</button><button type="button" className="text-link" onClick={() => setAsked(null)}>Not now</button></div>

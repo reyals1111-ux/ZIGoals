@@ -15,7 +15,16 @@ async function handle(request:Request){
  const fetcher:typeof fetch=async(input,init)=>{const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;if(new URL(url).origin===config?.syncOrigin){if(bindings.PRIVATE_SYNC)return bindings.PRIVATE_SYNC.fetch(new Request(input,init));if(values!==process.env)return Response.json({error:'SYNC_BINDING_REQUIRED'},{status:503});}return fetch(input,init);};
  const admit=async(action:'send'|'verify'|'verify-failed'|'send-refund',email:string)=>bindings.AUTH_ABUSE?bindings.AUTH_ABUSE.fetch(new Request('https://auth-admission.internal/admit',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,email,ip:request.headers.get('cf-connecting-ip')??''})})):Response.json({error:'AUTH_ADMISSION_REQUIRED'},{status:503});
  // Session U Part 5 (FIX_PLAN A2): a code request's provider call runs after the answer (after(), see private-account.ts).
- return privateAccountRequest(request,config,fetcher,admit,work=>after(work));
+ const answer=await privateAccountRequest(request,config,fetcher,admit,work=>after(work));
+ // TIER 3 (API), Session AL (BN-019, P-BN-36, P-PR-67, P-LS-35, P-MO-85): on an installation without accounts, the status
+ // read Settings makes on every load answers 200 {configured:false, signedIn:false} (the 503's own words kept) instead of
+ // a 503 the console printed as an error. Fail closed for every reader: signedIn is false, so nothing reads as signed in;
+ // the revocation check acts only on a 401. Sign-in, refresh and every POST keep their 503.
+ if(request.method!=='GET'||config||new URL(request.url).searchParams.get('action')!=='status'||answer.status!==503)return answer;
+ const body=await answer.clone().json().catch(()=>null) as Record<string,unknown>|null;
+ if(body?.error!=='HOSTED_CONFIGURATION_REQUIRED')return answer;
+ const headers=new Headers(answer.headers);headers.delete('content-length');
+ return Response.json({...body,configured:false,signedIn:false},{status:200,headers});
 }
 export const GET=handle;
 export const POST=handle;

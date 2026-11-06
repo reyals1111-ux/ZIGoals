@@ -12,7 +12,7 @@ import {usePortfolioMarket, type CoinMarket} from './use-portfolio-market';
 import {AllTransactions, AllocationDonut, CoinSearch, HoldingsTable, KIND_LABEL, PortfolioSummary, SinceLastVisit, rowsFor} from './portfolio-sections';
 import {PortfolioValueChart} from './value-chart';
 import {TransactionForm, type Run} from './transaction-form';
-import {Watchlist} from '../platform/watchlist';
+import {LazyWatchlist as Watchlist} from '../platform/watchlist-lazy'; // CI13: its own chunk
 import {usePlatform} from '../platform/use-platform';
 import {marketRefKey} from '../../lib/market-assets';
 import {localDate} from '../../lib/local-date';
@@ -29,10 +29,10 @@ import {PortfolioUnreadable, createPortfolio, deletePortfolio, exportPortfolios,
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
 import {useImportUndo} from '../import/use-import-undo';
-import {ImportBanner} from '../import/csv-import-steps';
+import {ImportBanner} from '../import/import-banner'; // CI13: not the CSV steps
 import {ProgressSlot} from '../progress/slot';
-import {TransactionImportPanel} from '../import/transaction-import';
-import {UndoRefused, undoImport} from '../../lib/import/holdings';
+// CI14 (weights): the CSV import steps load when "Import" opens them; the undo of an import loads its engine then too.
+const TransactionImportPanel = lazy(() => import('../import/transaction-import').then(m => ({default: m.TransactionImportPanel})));
 import type {ImportRecord} from '../../lib/import/undo-schema';
 import './portfolio.css';
 import {useDefaultCurrency} from '../../lib/default-currency';
@@ -66,9 +66,11 @@ export function PortfolioView() {
   const selected = store.data.portfolios.find(p => p.id === selectedId) ?? store.data.portfolios[0];
   const live = !store.showcase && !!selected;
   const market = usePortfolioMarket(selected?.coins ?? NO_COINS, selected?.currency ?? 'USD', store.showcase, !!selected);
-  const run = (change: Parameters<typeof store.update>[0], done: string, fallback: string, options?: {replaceUnreadable?: boolean}) => {
-    setError(''); setMessage('');
-    try { store.update(change, options); setMessage(done); return true; } catch (cause) { setError(failure(cause, fallback)); return false; }
+  // Session AL (TK-024, P6): a form that passes `inline` shows a refused save (an oversell) at its own field, not at the page's top.
+  const run = (change: Parameters<typeof store.update>[0], done: string, fallback: string, options?: {replaceUnreadable?: boolean; inline?: (message: string, cause: unknown) => void}) => {
+    // Fix-up (CI 1539, TK-024): a refusal said at its own field leaves the lines above the form as they are, so nothing
+    // over the form closes up and Save stays under the pointer; a save or a page-level refusal replaces them as before.
+    try { store.update(change, options?.replaceUnreadable === undefined ? undefined : {replaceUnreadable: options.replaceUnreadable}); setError(''); setMessage(done); return true; } catch (cause) { const text = failure(cause, fallback); if (options?.inline) options.inline(text, cause); else { setMessage(''); setError(text); } return false; }
   };
   // Session AH Part 3 (A5/DS5, BUG-032): removing a transaction offers a labelled Undo that puts it back.
   const removeTx = (portfolioId: string, tid: string) => {
@@ -77,10 +79,11 @@ export function PortfolioView() {
   };
   const undoRecord = async (record: ImportRecord) => {
     setError(''); setMessage('');
+    const {UndoRefused, undoImport} = await import('../../lib/import/holdings');
     try { store.update(data => undoImport(record, {portfolio: data}).portfolio!); } catch (cause) { throw Error(cause instanceof UndoRefused ? cause.message : failure(cause, 'The import was not undone.')); }
     imports.forget(record.id); setMessage('Import undone.');
   };
-  const importPanel = importing && <TransactionImportPanel data={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={() => setImporting(false)} />;
+  const importPanel = importing && <LoadBoundary label="The CSV import"><Suspense fallback={<p className="fine" role="status">Opening the import…</p>}><TransactionImportPanel data={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={() => setImporting(false)} /></Suspense></LoadBoundary>;
   const noPrices = live && selected!.coins.length > 0 && !market.loading && selected!.coins.every(c => !market.of(c).price);
   return <div className="dashboard portfolio-page">
     <section className="portfolio-hero header-art-host" aria-labelledby="portfolio-title">
@@ -170,10 +173,10 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
     <div className="portfolio-summary-big"><PortfolioSummary portfolio={portfolio} totals={totals} day={day} allTime={allTime} stale={stale} /></div>
     {!showcase && <SinceLastVisit portfolio={portfolio} value={totals.knownValue} ready={totals.held > 0 && totals.unpriced === 0 && !stale} />}
     {rows.length > 0 && <>
-      {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}<div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`} onKeyDown={event => tabKeys(PORTFOLIO_TABS, tab, setTab)(event)}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Insights']] as const).map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)}>{label}</button>)}</div>
+      {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}<div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`} onKeyDown={event => tabKeys(PORTFOLIO_TABS, tab, setTab)(event)}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Transactions']] as const) /* Session AL (TK-030, COPY_AUDIT): named for what it holds */.map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)}>{label}</button>)}</div>
       <div id={`${portfolio.id}-panel-coins`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-coins`} hidden={tab !== 'coins'}>
         {/* Session AA-Cloud Part 1: the holdings (the portfolio's items) come right after its figures. */}
-        <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => removeTx(portfolio.id, id)} />
+        <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => removeTx(portfolio.id, id)} run={run} />
         {attribution && <p className="fine portfolio-attribution">Prices by CoinGecko, when available. A price that needs a refresh says so with its time.</p>}
         {showcase && <p className="fine portfolio-attribution">{marketOfPriced(portfolio, marketOf) ? 'Showcase prices as loaded when the Showcase opened; the 24h and 7-day lines are examples.' : 'Showcase fixture prices, not market data.'}</p>}
       </div>
@@ -182,7 +185,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
       </div>
       <div id={`${portfolio.id}-panel-insights`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-insights`} hidden={tab !== 'insights'}>
         <AllTransactions portfolio={portfolio} onRemove={id => removeTx(portfolio.id, id)} run={run} />
-        <p className="fine">Insights are your own recorded trades and transfers; nothing here predicts anything.</p>
+        <p className="fine">Your own recorded trades and transfers, with Edit and Remove on each, and the trader tools once you have sold; nothing here predicts anything.</p>
         {/* Session AJ (item 30, D11): trader tools, offered only when this portfolio has sells; loaded on use. */}
         {portfolio.transactions.some(t => t.kind === 'sell') && <LoadBoundary quiet><Suspense fallback={null}><TraderTools portfolio={portfolio} /></Suspense></LoadBoundary>}
       </div>

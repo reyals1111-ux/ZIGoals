@@ -51,8 +51,13 @@ import { OfflineNotice, OfflinePill } from "./offline-notice";
 import { UndoToastHost } from "./ui/undo-toast";
 import { LengthCounterHost } from "./ui/length-counter";
 import { SearchButton, SearchHost } from "./search/search-trigger";
+// Session AL (LS-H36, Q11): ⌘/Ctrl+K opens the command menu ("Ask ZIGi" first), ⌘/Ctrl+Shift+Z opens ZIGi; the menu loads on first use.
+import { CommandPaletteHost } from "./command-palette/command-palette-host";
 import { ShortcutHost } from "./shortcut-host";
 import { AiLauncher } from "./ai/ai-launcher";
+import { AppsExtrasButton, AppsExtrasSheet } from "./shell/apps-extras"; // Session AL (O3): no floating launchers below 901 px
+import { SidebarApps } from "./shell/sidebar-apps"; // Session AL (O4): the desktop sidebar's foldable Apps group
+import { useCompactShell, usePhoneActive } from "./phone/use-phone-layout";
 import { NavPages } from "./nav-pages"; // Session AK G2 (RELEASE_REVIEW_2 R2-10): Tasks, Notes, Journal and Music as navigation entries
 import { GameRegistrar } from "./game/registrar"; // Session AA-Local, merged second (ADR-022 B52): the game cards and Journey's nav entry, once for every page
 import { LoadBoundary } from "./load-boundary";
@@ -117,6 +122,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   const pagesView=usePagesView(),startHold=useStartPage(pagesState,pagesView),pathname=usePathname();
   const hiddenPage=pagesState==="ready"?pageIdForPath(pathname):null,showQuickAdd=isShown(pagesView,"quick-add");
   const dialog = useRef<HTMLDialogElement>(null);
+  const compact = useCompactShell(), phoneChrome = usePhoneActive(), railApps = compact && !phoneChrome;
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
   }, [s.pending]);
@@ -180,10 +186,13 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         <Link href={homeHref(pagesView)} className="brand" aria-label="ZIGoals home">
           <LogoMark />
           <LogoIntro host="sidebar" />
-          <Wordmark />
+          <Wordmark decorative />
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>
         <AppNav />
+        <SidebarApps />
+        {/* Session AL (O3): the tablet rail's "Apps & extras" (phones carry it in their top bar; one button at a time). */}
+        {railApps && <div className="apps-extras-rail"><AppsExtrasButton /></div>}
         {/* Session AA-Cloud Part 4: search, on computers right under the navigation (tablets carry it beside Quick add). */}
         <div className="sidebar-search"><SearchButton className="search-trigger is-wide" label/><OfflinePill/></div>
         {/* The tablet header shows Quick add below the navigation, so it follows it in tab order too (hidden on desktop). */}
@@ -215,6 +224,11 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
             Session AE (Part 1, ADR-027; owner): the demo balance is no longer repeated here or in the phone's Status sheet; Today's wallet card shows the simulated balance. */}
         <div className="status-row">
         <ShowcaseChip/>
+        {/* Session AL (N-LS-01, P-LS-69): computers had Quick add only in Today's hero (the sidebar's copy is hidden there, the
+            sidebar's layout PROTECTED), so on every other page it could not be reached. It sits here, in the status row Gamify
+            already holds at 44 px (no shift); hidden below 901 px (the phone bar and tablet rail carry theirs) and wherever the
+            page shows its own (Today's hero, NOVA), shell/shell-ab.css. */}
+        {showQuickAdd&&<div className="status-quick-add"><QuickAdd/></div>}
         {/* Session AE (Part 6, ADR-027): the ▾ opens the other wallet choices (read-only links, Disconnect); its menu is a lazy chunk. */}
         {/* Session AK X1 (RELEASE_REVIEW R2): the wallet buttons wait until the chain is chosen (lib/chain-choice.ts). */}
         {banners&&chain.chosen&&<div className="wallet status-wallet">{walletButtons}<WalletMoreButton disabled={showcase}/></div>}
@@ -293,9 +307,9 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
           </section>
         )}
         <OfflineNotice />
-        <SearchHost/><ShortcutHost/><UndoToastHost /><ShowcaseUndoOffer /><LengthCounterHost /><GameRegistrar /><NavPages />
+        <SearchHost/><CommandPaletteHost/><ShortcutHost/><UndoToastHost /><ShowcaseUndoOffer /><LengthCounterHost /><GameRegistrar /><NavPages />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><EarnDock /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
+        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass />{/* Session AL third pass (P-LA-29, LA-024/N-LS-05): the floating buttons and their panels sit in one labelled landmark (axe "region": the Checklist button was outside every landmark). `display: contents` (navigation.css): no box, so nothing moves. */}<aside className="app-extras-landmark" aria-label="Companion and extras"><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AppsExtrasSheet /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><EarnDock /></LoadBoundary></aside><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>
       {/* Session AB-Design (owner request 2): one full-width footer banner, outside the workspace's 1600 px column. */}
       {/* Phase 2 (weights; no-JavaScript honesty): the footer banner is a server component from the app layout. Session AC:

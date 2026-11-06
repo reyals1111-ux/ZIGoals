@@ -113,9 +113,10 @@ test('the form validates inline and works by keyboard; focus returns to "+"', as
   await expect(sheet(page).getByText('Give it a name.')).toBeVisible();
   await expect(name).toHaveAttribute('aria-invalid', 'true');
   await expect(name).toBeFocused();
-  // 80 characters at most.
-  await name.fill('x'.repeat(95));
-  expect((await name.inputValue()).length).toBe(80);
+  // Session AL (P-LS-15, LS-H14/LS-H29; deliberate): 100 characters at most, the habit form's own title limit
+  // (lib/checklist/quick-add.ts QUICK_NAME_MAX), so quick add and the full form agree (it was 80).
+  await name.fill('x'.repeat(115));
+  expect((await name.inputValue()).length).toBe(100);
   // A number out of the Habits page's limits.
   await name.fill('Fictional count');
   await sheet(page).getByRole('radio', {name: 'A number'}).check();

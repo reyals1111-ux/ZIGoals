@@ -4,6 +4,10 @@ import {latestHabitRule, habitRuleOn, type Habit} from '../../habits';
 import type {ToolEnv} from '../tools/env';
 import {checklistToday} from '../proactive/brief-sources';
 import {listNames, shortName} from '../proactive/calm';
+// Session AL (lane L7; LA-014/LA-025/LA-041, P-LA-03/P-LA-10): a record whose name reads like an instruction never gets a one-tap card.
+import {looksLikeInjection} from '../safety-guard';
+import {runTool} from '../tools/registry';
+import type {ToolOk} from '../tools/types';
 
 /**
  * Session AF (L4, P8.6): the Checklist by voice and text, decided on the device in English and Dutch. A command makes a
@@ -59,6 +63,8 @@ const TEMPLATES: readonly Template[] = [
   T('en', /^mark (.{2,60}?) (?:as )?not done$|^(.{2,60}?) (?:is )?not done$/, m => ({verb: 'uncheck', item: item(m[1] ?? m[2])})),
   T('en', /^mark (.{2,60}?) (?:as )?(?:done|complete|completed|finished)(?: for today| today)?$/, m => ({verb: 'check', item: item(m[1])})),
   T('en', /^(?:tick|check|cross)(?: off)? (.{2,60}?)(?: (?:as )?(?:done|complete|completed))?(?: for today| today)?$/, m => /^(?:tick|cross)\b/.test(m[0]) || /\boff\b|\b(?:done|complete|completed)\b/.test(m[0]) ? {verb: 'check', item: item(m[1])} : null),
+  // Session AL (LA-006/LA-033): "I did my stretching", "Done: stretch", "I've done Read 10 pages".
+  T('en', /^(?:i did|i've done|i have done|i just did|i finished|i've finished|done:) (.{2,60})$/, m => ({verb: 'check', item: item(m[1])})),
   T('en', /^done with (.{2,60})$|^(.{2,60}?) (?:is |are )?(?:done|finished|complete)(?: for today| today)?$/, m => ({verb: 'check', item: item(m[1] ?? m[2])})),
   // ---- Dutch ----
   T('nl', /^(?:start|begin) (?:mijn |de |m'n )?(?:slaaptimer|slaap ?timer|slaap|nacht)$/, () => ({verb: 'sleep-start'})),
@@ -94,7 +100,7 @@ function candidates(env: ToolEnv): Named[] {
     else if (i.label) out.push({kind: 'goal', label: i.label});
   }
   for (const h of habits) if (!seen.has(h.id)) out.push({kind: 'habit', label: h.title, habit: h});
-  return out;
+  return out.filter(n => !looksLikeInjection(n.label));
 }
 /** The one thing a name means: an exact title first, then the best word match; two alike are "ambiguous". */
 function resolve(list: readonly Named[], name: string): {one: Named} | {ambiguous: Named[]} | null {
@@ -104,7 +110,10 @@ function resolve(list: readonly Named[], name: string): {one: Named} | {ambiguou
   const indexed = list.map((n, i) => ({id: String(i), label: n.label}));
   const hit = findItemByName(indexed, name);
   if (hit) return {one: list[Number(hit.id)]!};
-  const words = key.split(/[^a-z0-9]+/).filter(w => w.length > 2), some = list.filter(n => words.some(w => n.label.toLowerCase().includes(w)));
+  // Session AL (LA-033): a word's stem matches too ("stretching" → "Stretch 5 min"); a short word must match a whole word.
+  const stem = (w: string) => w.replace(/(?:ing|ed|es|s)$/, '');
+  const words = key.split(/[^a-z0-9]+/).filter(w => w.length > 2 && !/^(?:the|my|and|for|today|all|done|with)$/.test(w)), some = list.filter(n => { const own = n.label.toLowerCase().split(/[^a-z0-9]+/); return words.some(w => own.includes(w) || (stem(w).length >= 4 && own.some(o => o.startsWith(stem(w)) || stem(o) === stem(w)))); });
+  if (some.length === 1) return {one: some[0]!};
   return some.length > 1 ? {ambiguous: some.slice(0, 4)} : null;
 }
 type Words = Record<'check' | 'uncheck' | 'add' | 'favourite' | 'sleep-start' | 'sleep-end' | 'timer-start' | 'timer-stop' | 'fast-start' | 'fast-stop' | 'today' | 'confirm' | 'which' | 'say', string>;
@@ -115,9 +124,18 @@ const SAY: Record<CommandLang, Words> = {
 /** Today's Checklist as words: "On your Checklist today: 2 of 5 done; still open: …". */
 function listAnswer(env: ToolEnv, lang: CommandLang): QuickReply {
   const list = checklistToday(env);
-  if (!list || !list.total) return {kind: 'answer', command: 'list', text: lang === 'nl' ? 'Je Checklist heeft vandaag nog geen stippen. Zet er iets op met “zet … op mijn lijst”, of open de Checklist.' : 'Your Checklist has no dots today yet. Add one with “add … to my checklist”, or open the Checklist.'};
+  const habitsNote = list?.habitsHidden ? (lang === 'nl' ? ' Gewoonte-stippen worden niet gedeeld (Habits staat uit).' : ' Habit dots are not shared (Habits is off).') : '';
+  if (!list || !list.total) return {kind: 'answer', command: 'list', text: (lang === 'nl' ? 'Je Checklist heeft vandaag nog geen stippen. Zet er iets op met “zet … op mijn lijst”, of open de Checklist.' : 'Your Checklist has no dots today yet. Add one with “add … to my checklist”, or open the Checklist.') + habitsNote};
   const open = list.open.length ? (lang === 'nl' ? ` Nog open: ${names(list.open, lang, 5)}.` : ` Still open: ${names(list.open, lang, 5)}.`) : (lang === 'nl' ? ' Alles is af.' : ' Everything is done.');
-  return {kind: 'answer', command: 'list', text: `${lang === 'nl' ? `Op je Checklist vandaag: ${list.done} van ${list.total} af.` : `On your Checklist today: ${list.done} of ${list.total} done.`}${open}${list.healthHidden ? (lang === 'nl' ? ' Health-stippen worden niet met ZIGi gedeeld.' : ' Health dots are not shared with ZIGi.') : ''}`};
+  return {kind: 'answer', command: 'list', text: `${lang === 'nl' ? `Op je Checklist vandaag: ${list.done} van ${list.total} af.` : `On your Checklist today: ${list.done} of ${list.total} done.`}${open}${list.healthHidden ? (lang === 'nl' ? ' Health-stippen worden niet met ZIGi gedeeld.' : ' Health dots are not shared with ZIGi.') : ''}${habitsNote}`};
+}
+/** Whether a named item is already done today: its dot on the path, or the habit's own day (Habits' reading). */
+function doneToday(env: ToolEnv, named: Named): boolean {
+  const dot = checklistToday(env)?.dots?.find(d => d.name === shortName(named.label));
+  if (dot) return dot.done;
+  if (!named.habit) return false;
+  const r = runTool('list_habits', {}, env);
+  return r.ok && (((r as ToolOk).data.habits ?? []) as {title: string; today?: string}[]).some(h => h.title.startsWith(named.habit!.title.slice(0, 40)) && h.today === 'complete');
 }
 /** The device's card for a command, or null when the message is not one (the stop rule). */
 export function quickCommand(text: string, env: ToolEnv): QuickReply | null {
@@ -131,8 +149,19 @@ export function quickCommand(text: string, env: ToolEnv): QuickReply | null {
     // No second clause; an item of a check or a timer names no amount (an amount is a log for the other routes); a question
     // word is a question ("wat heb ik vandaag gedaan" is the recap's, not an item called "wat heb ik vandaag").
     if (parsed.item && (SECOND_CLAUSE.test(parsed.item) || QUESTION_WORD.test(parsed.item))) return null;
-    if ((parsed.verb === 'check' || parsed.verb === 'uncheck' || parsed.verb === 'timer-start' || parsed.verb === 'timer-stop' || parsed.verb === 'favourite') && parsed.item && /\d/.test(parsed.item)) return null;
+    // Session AL (LA-006/LZ-013): a number is fine when it is part of the item's own name ("Read 10 pages", "Stretch 5 min");
+    // otherwise it is an amount, a log for the other routes.
+    const numbers = parsed.item?.match(/\d+(?:[.,]\d+)?/g) ?? [];
+    // Session AL fourth pass (L7-4b; Denver Z-039, BUG-058): speech turns "five" into "5" first, so a name that spells its
+    // number ("Solve five puzzles") still owns it.
+    const SPELLED = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+    const namedWithNumbers = (label: string) => numbers.every(n => label.includes(n) || new RegExp(`\\b${SPELLED[Number(n)] ?? '\\u0000'}\\b`, 'i').test(label));
+    if ((parsed.verb === 'timer-start' || parsed.verb === 'timer-stop' || parsed.verb === 'favourite') && numbers.length) return null;
+    // Session AL (LA-025/LA-041): "tick everything" is not one item; ZIGi says so instead of guessing one.
+    if ((parsed.verb === 'check' || parsed.verb === 'uncheck') && parsed.item && /^(?:everything|every ?thing|all (?:my|the|of|items|habits|dots|things)|alles|allemaal)\b/.test(parsed.item)) return {kind: 'answer', command: parsed.verb, text: lang === 'nl' ? 'ZIGi vinkt één stip tegelijk af: noem er één, of vink ze af op de Checklist.' : 'ZIGi checks off one item at a time: name one, or tick them on the Checklist itself.'};
     const card = (title: string, action: Record<string, unknown>, verb: string): QuickReply => ({kind: 'answer', command: verb, text: `${title}. ${say.confirm}\n\n${fence(action)}`});
+    // Session AL (L7; Lisbon LA-032, P-LA-06): a night or a fast is Health data; with Health not shared, no Health card is made.
+    if (!env.health && (parsed.verb === 'sleep-start' || parsed.verb === 'sleep-end' || parsed.verb === 'fast-start' || parsed.verb === 'fast-stop')) return {kind: 'refusal', command: parsed.verb, text: lang === 'nl' ? 'Health wordt niet gedeeld, dus ZIGi maakt hier geen Health-kaart. Start het op de Health-pagina, of zet het delen van Health aan.' : 'Health isn’t shared here, so ZIGi makes no Health card. Start it on the Health page, or turn Health sharing on.'};
     switch (parsed.verb) {
       case 'list': return listAnswer(env, lang);
       case 'sleep-start': return card(say['sleep-start'], {kind: 'start-night'}, 'sleep-start');
@@ -163,6 +192,13 @@ export function quickCommand(text: string, env: ToolEnv): QuickReply | null {
         const found = resolve(candidates(env), parsed.item!);
         if (!found) return null;
         if ('ambiguous' in found) return {kind: 'refusal', command: parsed.verb, text: `${say.which}: ${names(found.ambiguous.map(n => shortName(n.label)), lang)}. ${say.say}`};
+        if (numbers.length && !namedWithNumbers(found.one.label)) return null;
+        // Session AL fourth pass (L7-4b; Lisbon #324/325, LA-040): an item already done today says so first; the card stays
+        // (adding it again changes nothing), so the person sees why and how to take it back.
+        if (parsed.verb === 'check' && doneToday(env, found.one)) {
+          const c = card(`${say.check} · ${shortName(found.one.label)} · ${say.today}`, {kind: 'checklist-tick', item: found.one.label}, 'check');
+          return {...c, text: `${lang === 'nl' ? `${shortName(found.one.label)} is vandaag al gedaan; nog eens toevoegen verandert niets. Vink het uit op de Checklist om het terug te nemen.` : `${shortName(found.one.label)} is already done today; adding it again changes nothing. Untick it on the Checklist to take it back.`}\n${c.text}`};
+        }
         return card(`${say[parsed.verb]} · ${shortName(found.one.label)} · ${say.today}`, {kind: 'checklist-tick', item: found.one.label, ...(parsed.verb === 'uncheck' ? {done: false} : {})}, parsed.verb);
       }
     }

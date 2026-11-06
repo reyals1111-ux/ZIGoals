@@ -163,3 +163,14 @@
    put a colour edge inside "$9,0|00.00"). Same contrast family: every stop is a pale tint on the dark cards. */
 :root .nebula-flow.is-figure, :root .nebula-number { background-image: var(--nebula-figure); }
 :root .nebula-flow.is-figure[data-entrance=once] { background-image: linear-gradient(100deg, transparent 40%, #ffffffb0 50%, transparent 60%), var(--nebula-figure); }
+/* Session AL (3c, Nairobi NB-245; 3g, one page header pattern): beside the tablet rail and the 190 px sidebar of a narrow
+   computer window (768–1099 px) the page header's actions shared a row with the lede and squeezed it to one or two words
+   a line (Habits: nine lines next to "+ New habit"). There, as Wealth already does at every width, the lede takes the
+   words' full width and the actions follow under it, flush left; phones keep their one-column header, wider windows
+   their row (pillar-hero.css). */
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  :root .pillar-hero:not(.has-art):not(#\-) { grid-template-areas: "eyebrow eyebrow" "title title" "lede lede" "actions actions"; }
+  :root .pillar-hero.has-art:not(#\-) { grid-template-areas: "eyebrow eyebrow art" "title title art" "lede lede art" "actions actions art"; }
+  :root .pillar-hero > .pillar-hero-actions:not(#\-) { justify-self: start; align-items: flex-start; margin-top: 14px; }
+  :root .pillar-hero-actions :is(.pillar-hero-buttons, .page-minor-actions):not(#\-) { justify-content: flex-start; }
+}

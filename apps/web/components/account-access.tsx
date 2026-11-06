@@ -39,6 +39,8 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying,onDenied}:P
    if(controller.signal.aborted||generation!==getAccountGeneration())return;
    if(res.status===503){if(getAccountScope())lockAccount();setStatus('unavailable');setMessage('Email access and encrypted sync are not configured on this installation. Your separate local records remain available.');return;}
    if(text.length>32768)throw Error('Account response was not confirmed.');const data=JSON.parse(text);
+   // Session AL (BN-019, TIER 3 API): an installation without accounts now answers the status read 200 {configured:false}.
+   if(res.ok&&data?.configured===false){if(getAccountScope())lockAccount();setStatus('unavailable');setMessage('Email access and encrypted sync are not configured on this installation. Your separate local records remain available.');return;}
    if(res.status===401||data.signedIn===false){if(getAccountScope())lockAccount();setStatus('signed-out');setMessage('Sign in with an email code. Your separate local records are not copied into an account.');return;}
    if(!res.ok)throw Error('Account status could not be confirmed.');
    const verified=identity.parse(data);if(getAccountScope()!==verified.accountId)activateAccount(verified.accountId);setStatus('signed-in');setMessage('Account verified. Unlock your encrypted vault below to access account records.');

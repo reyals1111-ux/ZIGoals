@@ -3,7 +3,7 @@ import {useCallback, useEffect, useMemo, useState, useSyncExternalStore} from 'r
 import {usePathname} from 'next/navigation';
 import {formatUnits} from '@zigoals/chain-config';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, visibleDomains} from '../../lib/dashboard-settings';
-import {reviewWindow} from '../../lib/weekly-review/engine';
+import {reviewWindow} from '../../lib/weekly-review/window'; // CI13: not the week summary
 import {emptyWeeklyReview, WEEKLY_REVIEW_KEY, type WeeklyReview} from '../../lib/weekly-review/schema';
 import {readWeeklyReview} from '../../lib/weekly-review/store';
 import {habitCalendarDay} from '../../lib/habits';
@@ -41,6 +41,7 @@ import {ENERGY} from '../../lib/energy/schema';
 import {HEALTH_COACH} from '../../lib/health-aa/coach-schema';
 import {readAkToolSources} from '../../lib/ai/tools/ak-sources';
 import {readNovaToolSources} from '../../lib/ai/tools/nova-sources';
+import {readHealthGoals} from '../../lib/health-goals/store';
 import {MILESTONE_DATES} from '../../lib/goals/milestone-dates';
 import {CHESS_CACHE} from '../../lib/skills/chess/schema';
 import {chessOf} from '../../lib/skills/chess/engine';
@@ -51,6 +52,8 @@ import {checklistDay} from '../../lib/checklist/day';
 import {ZIGI_PLANS} from '../../lib/ai/store/plans';
 import {earnSnapshot, subscribeEarnSnapshot} from '../../lib/earn/snapshot';
 import {readPageView, trackCardFocus} from '../../lib/ai/context/page-view';
+import {AVERAGE_GOALS} from '../../lib/average-goals/store';
+import {readDeviceRecord} from '../../lib/device-record';
 
 /**
  * What ZIGi may see on this page (ADR-012, Part 4 wiring): the specialist's area from the pathname, the consent gates
@@ -164,6 +167,10 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
       // Owner follow-up 2 (N4, lane NE): the tasks, focus sessions, budgets, music and imported calendar, read at the moment of
       // the question so ZIGi's new tools read real records (the notes only on NOVA's surface, with its Notes scope).
       nova: (() => { try { return readNovaToolSources(getAppStorage()); } catch { return null; } })(),
+      // Session AL Part 14 (DV-027c): the Health goals, read at the moment of the question (toolEnv keeps them only with the Health gate).
+      healthGoals: (() => { try { const r = readHealthGoals(getAppStorage()); return r.unreadable ? null : r.data.goals; } catch { return null; } })(),
+      // Session AL (Part 13, PR-082): average goals too, so ZIGi and NOVA count goals as Today and Goals do.
+      averageGoals: (() => { try { const r = readDeviceRecord(getAppStorage(), AVERAGE_GOALS); return r.unreadable ? null : r.data.goals; } catch { return null; } })(),
       pageView: (() => { try { return readPageView(document, pathname, {healthOpen: toolGates.localHealth, sensitive}); } catch { return null; } })()};
   }, [journal.loaded, journal.unreadable, journal.data, energy.loaded, energy.unreadable, energy.data, coach.loaded, coach.unreadable, coach.data, moneyLog.loaded, moneyLog.unreadable, moneyLog.data, ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded, accounts.loaded, accounts.unreadable, accounts.data, milestoneDates.loaded, milestoneDates.unreadable, milestoneDates.data, chessCache.loaded, chessCache.unreadable, chessCache.data, dashboard.loaded, dashboard.error, dashboard.data, checklist.loaded, checklist.data, checklist.unreadable, checklistDays.loaded, checklistDays.data, checklistDays.unreadable, earn, plans.loaded, plans.unreadable, plans.data, pathname, toolGates.localHealth]);
   return {area, pathname, attaches, consent: gates, context, preview, ready, gates: toolGates, toolSources};

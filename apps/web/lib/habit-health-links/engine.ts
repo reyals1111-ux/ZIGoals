@@ -70,6 +70,33 @@ export function applyAutoCompletion(data: HabitData, item: AutoCompletion, now =
   if (!rule || rule.type !== 'build' || !OPEN.has(habitDay(habit, item.date, item.date).status)) return data;
   return logHabitValue(data, habit.id, item.date, smartDoneValue(rule), {}, now);
 }
+/**
+ * Session AL (MO-125): an automatic check-in whose Health entry was removed (or no longer meets the rule) is taken back
+ * the same day, so a streak never counts a day with nothing behind it. Only while the day is still exactly as the
+ * automatic tick left it (the entry not changed since the marker): a tap the person made afterwards always wins. An
+ * undone marker (the person said "keep it off") is left alone.
+ */
+export type AutoRevocation = {habitId: string; date: string; measure: HealthMeasureV4};
+export function autoRevocations({links, habits, health, now = new Date()}: {links: HabitHealthLinksV4; habits: HabitData; health: HealthData; now?: Date}): AutoRevocation[] {
+  const date = habitCalendarDay(habits, now), out: AutoRevocation[] = [];
+  for (const marker of links.applied) {
+    if (marker.date !== date || marker.undone) continue;
+    const link = links.links[marker.habitId], habit = habits.habits.find(h => h.id === marker.habitId);
+    if (!link || !habit) continue;
+    const entry = habit.entries.find(e => e.date === date);
+    if (!entry || entry.disposition !== 'logged' || entry.count === 0 || Date.parse(entry.updatedAt) > Date.parse(marker.appliedAt)) continue;
+    if (ruleMet(link, measureValue(health, marker.healthDate, link))) continue;
+    out.push({habitId: marker.habitId, date, measure: marker.measure});
+  }
+  return out;
+}
+/** The updater that takes an automatic check-in back: the day returns to nothing logged, if it is still as the tick left it. */
+export function revokeAutoCompletion(data: HabitData, item: AutoRevocation, appliedAt: string, now = new Date()): HabitData {
+  const habit = data.habits.find(h => h.id === item.habitId);
+  const entry = habit?.entries.find(e => e.date === item.date);
+  if (!habit || !entry || entry.disposition !== 'logged' || entry.count === 0 || Date.parse(entry.updatedAt) > Date.parse(appliedAt)) return data;
+  return logHabitValue(data, habit.id, item.date, 0, {mode: 'set'}, now);
+}
 export const autoCheckInMarker = (item: AutoCompletion, now = new Date()): AppliedCheckInV4 => ({habitId: item.habitId, date: item.date, healthDate: item.healthDate, measure: item.measure, value: item.value, appliedAt: now.toISOString()});
 /** Where the value came from, in the person's words: "your water journal", "your Push-ups counter". */
 export function measureSource(link: Pick<HabitHealthLinkV4, 'measure' | 'exerciseId'>, counters: readonly {id: string; name: string}[] = []): string {

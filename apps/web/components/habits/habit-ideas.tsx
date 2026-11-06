@@ -1,6 +1,6 @@
 'use client';
 import {GuidedJourneysLink} from '../guided/guided-link';
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {scheduleLabel, type HabitData, type HabitInput} from '../../lib/habits';
 import {addLocalDays} from '../../lib/local-date';
 import {HABIT_GROUP_LABEL, HABIT_TEMPLATE_GROUPS, HABIT_TEMPLATES, habitTemplateInputOf, hasHabitLike, type HabitTemplateGroup} from '../../lib/templates/habits';
@@ -16,8 +16,12 @@ export function HabitIdeas({data, today, onAdd, onClose}: {data: HabitData; toda
   const [group, setGroup] = useState<HabitTemplateGroup>('health'), [busy, setBusy] = useState(false);
   const titles = data.habits.map(h => h.title);
   async function add(input: HabitInput, words: string) { setBusy(true); try { await onAdd(input, words); } finally { setBusy(false); } }
-  return <section className="panel habit-ideas" aria-labelledby="habit-ideas-title">
-    <div className="habit-ideas-head"><h2 id="habit-ideas-title">Habit ideas</h2><button type="button" className="quiet" onClick={onClose}>Close</button></div>
+  // Session AL fourth pass (NB-072, NB-074): the panel opens under a long form, below the window; it comes into view and
+  // takes the focus on its heading, so the person sees what "Start from an idea" opened.
+  const panel = useRef<HTMLElement>(null), heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { panel.current?.scrollIntoView({block: 'start'}); heading.current?.focus({preventScroll: true}); }, []);
+  return <section ref={panel} className="panel habit-ideas" aria-labelledby="habit-ideas-title">
+    <div className="habit-ideas-head"><h2 id="habit-ideas-title" ref={heading} tabIndex={-1}>Habit ideas</h2><button type="button" className="quiet" onClick={onClose}>Close</button></div>
     <p className="fine">Small, common starting points. Add one, then change anything about it. Nothing here compares you with anyone.</p>
     {/* Session AJ (item 34, A7): Guided journeys are reached from Habits, Goals, My Universe and search (no sidebar entry). */}
     <GuidedJourneysLink />

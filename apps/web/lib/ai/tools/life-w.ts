@@ -1,5 +1,4 @@
 import * as z from 'zod';
-import {formatUnits} from '@zigoals/chain-config';
 import {balanceOn, holdingsOf, moneyText, netWorthTotal} from '../../accounts/net-worth';
 import {wealthOverview} from '../../wealth';
 import {emptyAccounts, isDebtKind, type AccountKind} from '../../accounts/schema';
@@ -8,7 +7,7 @@ import {challengeOf} from '../../habits-v2/challenge';
 import {goalProgress as platformGoalProgress} from '../../positions';
 import {CONTROL_NAME, currentRatings, goalProgress as chessGoalProgress, results, SITE_NAME} from '../../skills/chess/engine';
 import type {ToolEnv} from './env';
-import {capRows, ok, plural, provenance, refuse, text} from './format';
+import {capRows, goalUnits, ok, plural, provenance, refuse, text} from './format';
 import {findGoal} from './goals';
 import {parseRange} from './range';
 import {NO_ARGS, type ToolDefinition} from './types';
@@ -68,7 +67,7 @@ function milestoneRows(env: ToolEnv, goalId: string) {
   try { current = BigInt(platformGoalProgress(env.platform, goal.id, env.now.getTime(), env.quotes).current); } catch { current = null; }
   const rows = goal.milestones.map(m => {
     const date = env.milestoneDates ? milestoneDateOf(env.milestoneDates, goal.id, m.id) : undefined;
-    return {title: text(m.title, 100), ...(m.target !== undefined && goal.type !== 'PROJECT' ? {value: `${formatUnits(m.target, goal.decimals)} ${goal.asset}`} : {}), ...(date ? {targetDate: date} : {}),
+    return {title: text(m.title, 100), ...(m.target !== undefined && goal.type !== 'PROJECT' ? {value: goalUnits(m.target, goal.decimals, goal.asset)} : {}), ...(date ? {targetDate: date} : {}),
       state: m.done ? 'done (your tick)' : current === null ? 'open' : milestoneState(m, current) === 'reached' ? 'reached (recorded progress passed it)' : 'open'};
   });
   return {goal, rows};

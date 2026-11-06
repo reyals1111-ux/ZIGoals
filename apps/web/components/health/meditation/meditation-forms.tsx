@@ -1,13 +1,13 @@
 'use client';
 import {useLinkedDay} from '../health-day';
-import {showToast} from '../../ui/undo-toast';
+import {showUndo} from '../../ui/undo-toast';
 import {useState, type FormEvent} from 'react';
 import {BELL_SOUNDS, BREATHING_PATTERNS, type MeditationSession} from '../../../lib/meditation/schema';
 import {DEFAULT_BELLS, saveManual, setBells, setMeditationGoal} from '../../../lib/meditation/engine';
 import {BELLS, ring, wakeAudio, type BellSound} from '../../../lib/meditation/bells';
 import {PATTERNS, type BreathingPattern} from '../../../lib/meditation/breathing';
 import {MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, startRun} from '../../../lib/meditation/timer';
-import {wallClock} from '../../../lib/zone-time';
+import {instantAt, wallClock} from '../../../lib/zone-time';
 import type {MeditationStore} from './use-meditation';
 import {zigiSignals} from '../../zigi/bus';
 
@@ -77,10 +77,12 @@ export function ManualForm({store, session, onDone, onCancel}: {store: Meditatio
   const now = wallClock(store.now, zone);
   // Session AH Part 17: a new session defaults to the Health journal's linked day (`?date=`), never a future one.
   const linkedDay = useLinkedDay(now.date);
+  // Session AL (P-PR-10, as Sleep's form): before 07:10 today, a new entry starts ten minutes ago, never in the future.
+  const early = !session && linkedDay === now.date && instantAt(linkedDay, '07:00', zone) + 10 * 60_000 > store.now ? wallClock(store.now - 10 * 60_000, zone) : null;
   return <form className="meditation-form" onSubmit={submit} aria-label={session ? 'Edit this session' : 'Log mindful minutes'} noValidate>
     <div className="meditation-form-row">
-      <label className="field">Began (date)<input type="date" name="date" required defaultValue={start?.date ?? linkedDay}/></label>
-      <label className="field">Began (time)<input type="time" name="time" required defaultValue={start?.clock ?? '07:00'}/></label>
+      <label className="field">Began (date)<input type="date" name="date" required defaultValue={start?.date ?? early?.date ?? linkedDay}/></label>
+      <label className="field">Began (time)<input type="time" name="time" required defaultValue={start?.clock ?? early?.clock ?? '07:00'}/></label>
       <label className="field">Minutes<input type="text" inputMode="numeric" name="minutes" autoComplete="off" required defaultValue={session ? String(Math.round(session.seconds / 60)) : '10'}/></label>
     </div>
     <p className="fine">Times in {zone}.</p>
@@ -104,7 +106,7 @@ export function MeditationGoalForm({store, onDone}: {store: MeditationStore; onD
     setBusy(true); setError('');
     // Session AH Part 3 (DS5): removing the goal gives a labelled Undo that sets the same goal again.
     const previous = store.meditation.goal;
-    try { await store.update(m => setMeditationGoal(m, null, new Date())); onDone('Your weekly goal is removed.'); if (previous) showToast({message: 'Your weekly meditation goal is removed.', undone: 'Your weekly goal is back.', undo: () => store.update(m => m.goal ? m : setMeditationGoal(m, previous.minutesPerWeek, new Date()))}); } catch (err) { setError(message(err)); } finally { setBusy(false); }
+    try { await store.update(m => setMeditationGoal(m, null, new Date())); onDone('Your weekly goal is removed.'); if (previous) showUndo({message: 'Your weekly meditation goal is removed.', undone: 'Your weekly goal is back.', restore: () => store.update(m => m.goal ? m : setMeditationGoal(m, previous.minutesPerWeek, new Date()))}); } catch (err) { setError(message(err)); } finally { setBusy(false); }
   }
   const choices = goal && !(GOAL_CHOICES as readonly number[]).includes(goal.minutesPerWeek) ? [...GOAL_CHOICES, goal.minutesPerWeek].sort((a, b) => a - b) : GOAL_CHOICES;
   return <form className="meditation-form" onSubmit={submit} aria-label="Your weekly goal">

@@ -11,6 +11,7 @@ import {useAiSettings} from '../../ai/use-ai-settings';
 import {useHealthConsent} from '../../ai/use-health-consent';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {usePrivateStore} from '../../use-private-store';
+import {useChainChoice} from '../../chain/use-chain-choice';
 import '../../ai/ai.css';
 import './panels.css';
 
@@ -29,7 +30,7 @@ const NOTES: Record<NovaScope, string> = {
 export default function PermissionsPanel() {
   const settings = useAiSettings(), setup = useDeviceRecord(NOVA_SETUP), options = useDeviceRecord(AI_OPTIONS), journal = useDeviceRecord(JOURNAL);
   const dashboard = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), consent = useHealthConsent();
-  const [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null);
+  const [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null), chain = useChainChoice();
   const data = settings.data, scopes = scopesOf(setup.unreadable ? {version: 1} : setup.data);
   const layoutHasHealth = dashboard.loaded && !dashboard.error && visibleDomains(dashboard.data).includes('health');
   const gateOpen = data.pageShare.health && data.includeHealth && layoutHasHealth && (!consent.accountActive || consent.accountHealthPermitted === true);
@@ -42,7 +43,10 @@ export default function PermissionsPanel() {
     <p className="ai-note">What NOVA may read, pillar by pillar. {data.enabled ? 'With your model connected, this is also what may go with a message (in Guarded mode after redaction on this device); ZIGi\'s page switches in Settings still apply.' : 'No model is connected, so nothing leaves this device: NOVA reads these here only.'}</p>
     {setup.unreadable && <p role="alert">Your NOVA choices could not be read on this device, so the defaults apply (Health, Notes and the Journal off).</p>}
     <div className="ai-switch-list">
-      {NOVA_SCOPES.map(s => <Switch key={s} checked={scopes[s]} onChange={next => scope(r => setScope(r, s, next), `${NOVA_SCOPE_LABELS[s]}: ${next ? 'NOVA may read it' : 'NOVA does not read it'}.`)} label={NOVA_SCOPE_LABELS[s]} note={NOTES[s]}/>)}
+      {/* Session AL (DV-065, P-DV-99): Earn is read only once a chain is chosen (context-pack scopeOpen); until then its switch
+          says so instead of a plain "On" that NOVA does not act on. */}
+      {NOVA_SCOPES.map(s => <Switch key={s} checked={scopes[s]} onChange={next => scope(r => setScope(r, s, next), `${NOVA_SCOPE_LABELS[s]}: ${next ? (s === 'earn' && !chain.chosen ? 'on once a chain is chosen' : 'NOVA may read it') : 'NOVA does not read it'}.`)} label={NOVA_SCOPE_LABELS[s]}
+        note={s === 'earn' && scopes.earn && !chain.chosen ? 'On once a chain is chosen. No chain is chosen on this device yet, so NOVA reads nothing from Earn.' : NOTES[s]}/>)}
     </div>
     {changed && <div className="ai-card-actions"><button type="button" className="text-link" onClick={() => scope(resetScopes, 'Back to the defaults: Health, Notes and the Journal off.')}>Back to the defaults</button></div>}
     <h4>ZIGi&rsquo;s Health gate</h4>

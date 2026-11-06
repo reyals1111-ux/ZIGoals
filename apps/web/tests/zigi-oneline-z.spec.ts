@@ -5,6 +5,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session Z-Cloud, ZIGi panel polish round 2 (the owner's rule, ADR-019): in ZIGi's panel no chrome wraps onto a second
@@ -42,7 +43,7 @@ async function seed(page: Page, ai: Partial<AiSettings> | null) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page, path = '/app/habits') { await page.goto(path); await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page, path = '/app/habits') { await page.goto(path); await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function say(page: Page, text: string) {
   const before = await panel(page).locator('.ai-turn-assistant').count();
   // Session AK CI (WebKit phone, the wait only): the panel opens on the records-only box and becomes the connected chat
@@ -120,6 +121,13 @@ test('connected, two replies: title, status, source lines, action rows, share ro
   for (const width of widths) {
     await page.setViewportSize({width, height: 860});
     await openChat(page);
+    // Session AL (PR-025/PR-041, deliberate): the panel reopens the conversation that was open (lib/ai/composer-draft.ts);
+    // each width measures its own two replies, so from the second width on a new chat is started first.
+    if (width !== widths[0]) {
+      await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(2);
+      await panel(page).getByRole('button', {name: 'New chat', exact: true}).click();
+      await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(0);
+    }
     await say(page, 'How did my habits go this week?');
     // Session AI (ZI1): a pure question keeps no write card, so the second ask is a command that brings the card measured below.
     await say(page, 'And log a glass of water');
@@ -233,6 +241,9 @@ test('a font that draws the name wider: still one line, before the buttons, at e
 
 test('not connected: the status says so on one line; the chips row is one line; "Jump to the latest message" floats', async ({page}, info) => {
   test.skip(!!CAPTURES, 'pictures only');
+  // Session AL (CI12, CI 1561, WebKit phone): four widths, each a page load and the panel opened from the Apps & extras sheet
+  // (O3), then a three-reply chat: WebKit's phone run reached the last step at 60 s. The budget, not a check, changes.
+  test.setTimeout(120_000);
   await server(page, () => LONG);
   await seed(page, null);
   for (const width of WIDTHS[info.project.name as keyof typeof WIDTHS]) {
@@ -247,6 +258,13 @@ test('not connected: the status says so on one line; the chips row is one line; 
   await openChat(page);
   for (const q of ['One?', 'Two?', 'Three?']) await say(page, q);
   const log = panel(page).getByRole('log', {name: 'Conversation'}), before = (await log.boundingBox())!;
+  // Session AL (CI21, CI 1575, Chromium phone; the wait only): each reply starts ZIGi's own glide to the latest message (a
+  // smooth scrollTo). Chromium lets a glide that is still running override a scrollTop written meanwhile: the trace showed
+  // the pill appear, the log never leave its end, and the pill go again, so its box was never found (120 s). The log is
+  // scrolled up once no glide is running: the log has not moved for 150 ms and two frames. (CI 1583, desktop: "at its end"
+  // was wrong as a condition — ai-chat.tsx glides only when the reader was at or near the end, so a long reply can leave the
+  // log mid-way with no glide at all, and the wait never came true.)
+  await expect.poll(() => log.evaluate(el => new Promise<boolean>(done => { const top = el.scrollTop; setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(() => done(el.scrollTop === top))), 150); })), 'no glide is running in the log').toBe(true);
   await log.evaluate(el => { el.scrollTop = 0; el.dispatchEvent(new Event('scroll')); });
   const jump = panel(page).getByRole('button', {name: 'Jump to the latest message'});
   await expect(jump).toBeVisible();

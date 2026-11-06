@@ -17,10 +17,12 @@ export const CAP = 2600;
 export const ART = '.today-scene, .wealth-hero-scene, .header-art-slot, .pillar-hero-art, .site-footer-art, .app-content, .app-sidebar';
 /** The page's own ground. */
 export const GROUND = 'body, .app-content, .site-footer';
+/** Session AL (day-ink): a chart and its legend, whose paints may deepen by day (tests/parity/classify.ts). */
+export const CHART = '.zg-chart, .zg-legend, .chart-legend';
 export const PROPS = ['color', '-webkit-text-fill-color', 'background-color', 'background-image', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color', 'fill', 'stroke', 'stop-color', 'box-shadow', 'text-shadow', 'outline-color', 'opacity', 'filter'];
 
 /** Runs in the page (self-contained). */
-export function collectInPage({selectors, cap, art, ground, props}: {selectors: string; cap: number; art: string; ground: string; props: string[]}): Item[] {
+export function collectInPage({selectors, cap, art, ground, props, chart: CHART}: {selectors: string; cap: number; art: string; ground: string; props: string[]; chart: string}): Item[] {
   const pathOf = (el: Element) => { const parts: number[] = []; for (let e: Element | null = el; e && e !== document.body; e = e.parentElement) parts.unshift(e.parentElement ? [...e.parentElement.children].indexOf(e) : 0); return parts.join('.'); };
   const descOf = (el: Element) => { const cls = (el.getAttribute('class') ?? '').trim().split(/\s+/).filter(Boolean).slice(0, 3).map(c => `.${c}`).join(''); const host = el.closest('[id]'); return `${host && host !== el ? `#${host.id} ` : ''}${el.tagName.toLowerCase()}${cls}`; };
   const els = [...document.querySelectorAll(selectors)].slice(0, cap);
@@ -28,9 +30,9 @@ export function collectInPage({selectors, cap, art, ground, props}: {selectors: 
     const cs = getComputedStyle(el), r = el.getBoundingClientRect();
     const out: Record<string, string> = {}; for (const p of props) out[p] = cs.getPropertyValue(p);
     const own = [...el.childNodes].some(n => n.nodeType === 3 && (n.textContent ?? '').trim());
-    return {path: pathOf(el), desc: descOf(el), text: own, clip: /text/.test(cs.getPropertyValue('background-clip') + cs.getPropertyValue('-webkit-background-clip')), art: el.matches(art), ground: el.matches(ground), bar: !!el.closest('.theme-switch-wrap'), svgText: el.tagName.toLowerCase() === 'text' || el.tagName.toLowerCase() === 'tspan', focus: el.matches(':focus-visible'), props: out,
+    return {path: pathOf(el), desc: descOf(el), text: own, clip: /text/.test(cs.getPropertyValue('background-clip') + cs.getPropertyValue('-webkit-background-clip')), art: el.matches(art), ground: el.matches(ground), bar: !!el.closest('.theme-switch-wrap'), svgText: el.tagName.toLowerCase() === 'text' || el.tagName.toLowerCase() === 'tspan', focus: el.matches(':focus-visible'), edge: el.matches('.secondary:not(:disabled)'), chart: !!el.closest(CHART), props: out,
       box: [Math.round((r.x + scrollX) * 10) / 10, Math.round((r.y + scrollY) * 10) / 10, Math.round(r.width * 10) / 10, Math.round(r.height * 10) / 10]};
   });
 }
 
-export const collect = (page: Page) => page.evaluate(collectInPage, {selectors: SELECTORS, cap: CAP, art: ART, ground: GROUND, props: PROPS});
+export const collect = (page: Page) => page.evaluate(collectInPage, {selectors: SELECTORS, cap: CAP, art: ART, ground: GROUND, props: PROPS, chart: CHART});

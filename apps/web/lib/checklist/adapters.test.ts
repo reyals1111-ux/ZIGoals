@@ -145,7 +145,8 @@ describe('a tick writes the real record through its page’s own function, and U
     expect(s2.meditationRun.run).toBeNull();
     const back = run(s2, end.undo);
     expect(back.meditation.sessions).toEqual([]); expect(back.meditationRun).toEqual(s1.meditationRun);
-    expect(meditationTimerPlan(ctx({snapshot: {meditationRun: startRun({now: NOW, minutes: 5})}})).message).toBe('Less than a second: nothing to save.');
+    // Session AL (COPY, deliberate; L2's one timer rule, lib/health-timer-rules.ts): the same words as every other timer stop.
+    expect(meditationTimerPlan(ctx({snapshot: {meditationRun: startRun({now: NOW, minutes: 5})}})).message).toBe('Stopped after less than a second, so nothing was saved.');
   });
   test('a custom item lives on the path only: ticked, unticked, Undo', () => {
     const s0 = stores(), plan = planTick(dot(s0, 'Play piano 15 minutes'), ctx()), s1 = run(s0, plan.writes);

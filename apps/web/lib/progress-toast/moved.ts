@@ -6,8 +6,11 @@
  * funded share in ZIGoals (funding is allocated wealth), so habit ticks keep their own toast and its "Add to its Goal".
  * Pure: two progress readings in, words or null out.
  */
+import {wholePercent} from '../numbers/round';
 export type ProgressReading = {progressPct: string; bound?: 'at-least' | 'unavailable'};
-const whole = (pct: string) => { const n = Number(pct); return Number.isFinite(n) && n >= 0 ? Math.floor(Math.min(n, 100)) : null; };
+// Session AL (NB-252, P-NB-31): the same whole percent as the ring and the card (half up, 100 only at the target): the
+// toast said 16 % where the card said 17 % for 16.66 %.
+const whole = (pct: string) => { const n = Number(pct); return Number.isFinite(n) && n >= 0 ? wholePercent(n) : null; };
 export function movedMessage(goalName: string, before: ProgressReading, after: ProgressReading): string | null {
   if (after.bound === 'unavailable') return null;
   const was = before.bound === 'unavailable' ? null : whole(before.progressPct), now = whole(after.progressPct);

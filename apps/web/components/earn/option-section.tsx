@@ -1,6 +1,5 @@
 'use client';
 import type {ReactNode} from 'react';
-import Image from 'next/image';
 import {NebulaFlow} from '../nebula-flow';
 import {HowRead} from './how-read';
 
@@ -29,7 +28,9 @@ export function OptionSection({id, eyebrow, title, lede, logo, tags, facts, figu
 }) {
   return <section id={id} className="earn-option panel" aria-labelledby={`${id}-title`} data-option={id}>
     <header className="earn-option-head">
-      <span className="earn-medallion" aria-hidden={logo.src ? undefined : true}>{logo.src ? <Image src={logo.src} alt={logo.alt} width={56} height={56} loading="lazy" unoptimized/> : logo.glyph}</span>
+      <span className="earn-medallion" aria-hidden={logo.src ? undefined : true}>{logo.src ? <>{/* CI14 (weights): the same element next/image wrote for an unoptimized 56 px icon (its attributes, in its order), without the image component's code on the Earn page. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img alt={logo.alt} loading="lazy" width={56} height={56} decoding="async" data-nimg="1" style={{color: 'transparent'}} src={logo.src}/></> : logo.glyph}</span>
       <div className="earn-option-title">
         <p className="eyebrow">{eyebrow}</p>
         <h2 id={`${id}-title`}><NebulaFlow identity={`earn-${id}-title`}>{title}</NebulaFlow></h2>
