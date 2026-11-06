@@ -17,6 +17,17 @@ const SELF_HARM = [
   // Session AL fourth pass (L7-4a; LA-002): the -ing and past forms ("I feel like ending it all").
   /\b(ending|ended) (it all|my life)\b/, /\b(take|taking) my (own )?life\b/,
   /\bmezelf (iets aan(doen| te doen)|van kant maken|ombrengen)\b/, /\ber een eind(e)? aan (maken|willen maken)\b/, /\buit het leven stappen\b/,
+  // Session AL fifth pass (L7-5a; LA-002, #270/271, N102/Z102, C-DV-20): the Dutch forms the replay found uncaught, as
+  // robust as the English ones above. "Ik wil mezelf pijn doen", "…om er een eind aan te maken", "…en wil er niet meer
+  // zijn". "Ik heb mezelf pijn gedaan bij het sporten" (an accident, told afterwards) and "ik wil er niet meer over praten"
+  // stay ordinary.
+  /\b(mezelf|mijzelf) (expres |opzettelijk |weer |echt )?(pijn (doen|te doen|doe)|snijden|te snijden|verwonden|te verwonden|beschadigen|te beschadigen|krassen|iets aan(doen| te doen| doen))\b/,
+  /\bik (doe|deed) (mezelf|mijzelf) ([a-z]+ ){0,2}pijn\b(?! (bij|met|tijdens) )/, /\bik (snij|snijd|sneed|kras|beschadig|verwond) (mezelf|mijzelf)\b/, /\bzelfbeschadiging\b|\bautomutilatie\b/,
+  /\ber (maar |gewoon |liever |zelf )?een eind(e)? aan (te )?(maken|willen maken)\b/, /\been eind(e)? (te )?(maken )?aan mijn (eigen )?leven\b/, /\bmijn (eigen )?leven (te )?be[eë]indigen\b/,
+  /\b(wil|wilde|zou) (er |hier )?(gewoon |echt |liever |eigenlijk )?niet meer (willen )?(zijn|leven|bestaan)\b(?! (zoals|als|wie|die|dan|zo|met|bij|in|op)\b)/, /\bhet hoeft (voor mij|van mij) niet meer\b/, /\b(ik ben|was ik|ik was|ik zou) liever dood\b/,
+  /\bbeter af zonder mij\b|\bbeter zonder mij af\b/, /\bnooit meer wakker (te )?worden\b/, /\bsu[iï]ci(de|daal|dale)\b/, /\bmezelf (ophangen|op te hangen|doodmaken|dood maken|te doden|doden|verdrinken)\b/, /\bvoor (de|een) trein (springen|te springen|spring)\b/,
+  // The English forms the same review found missing.
+  /\b(hang|hanging|drown|drowning) myself\b/, /\b(shoot|shooting) myself (in the head|dead)\b/, /\bjump(ing)? (off|in front of) (a|the) (bridge|train|building|roof|car)\b/, /\bdon'?t want to (exist|wake up) (anymore|any more|again)\b/,
   /\bzelfmoord\b/, /\bdood willen\b/, /\bme suicider\b/, /\benvie de mourir\b/, /\bselbstmord\b/, /\bmich umbringen\b/, /\bsterben wollen\b/, /\bnicht mehr leben\b/, /\bniet meer leven\b/, /\bplus envie de vivre\b/,
 ];
 const EATING_DISORDER = [

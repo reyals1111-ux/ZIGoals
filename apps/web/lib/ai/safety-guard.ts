@@ -23,6 +23,14 @@
  * hurt; credential: an API key or token asked for), and `safetyFirst` is the one check every device path runs before any
  * lookup, parser or card (local-answers/engine.ts `localAnswer`, no-model.ts `noModelReply`, actions/decline.ts
  * `quickAddOffered`). Careful mode's topics still go to the person's own AI, in careful mode, when one is connected.
+ *
+ * Session AL fifth pass (lane L7-5a; the replay round 2 on 37d2370c, GROK53_REPLAY_L7_2.md): the Dutch wordings that still
+ * fell to the examples list are read by meaning as the English ones are (giving up in either word order, "er een eind aan
+ * te maken", "wil er niet meer zijn", "mezelf pijn doen", "mijn broer pijn doen / iets aandoen", the long bank-password
+ * question), with near misses kept ordinary ("ik geef het op met dat recept", "ik wil er niet meer over praten", "eind van
+ * de dag"). Money and health advice ("Moet ik al mijn spaargeld in ZIG steken?", "Should I stop my diet?") is a fourth
+ * `safetyFirst` kind, `advice`: the app's no-advice line before any lookup, in ZIGi and NOVA; it is not a guard topic, so a
+ * connected AI still answers it under its own no-advice prompt. Tests: lib/ai/evals/g6-al-fifth.test.ts.
  */
 import {detectRisk, type RiskTopic} from './safety';
 
@@ -59,7 +67,13 @@ const DISTRESS: RegExp[] = [
   /\bwish i (?:could )?(?:disappear|vanish|wasn'?t here|didn'?t exist|had never been born|wouldn'?t wake up|would not wake up)\b/,
   /\b(?:everything|life|it all|my life|living|nothing)\b[^.?!]{0,15}\b(?:is|feels|seems|'s)\s+(?:so\s+|totally\s+|completely\s+)?(?:pointless|meaningless|hopeless|worthless)\b/,
   /\bnothing matters (?:anymore|any more)\b/, /\b(?:tired|sick) of (?:living|life|being alive)\b/, /\bno reason to (?:go on|keep going|carry on)\b/, /\bcan'?t (?:keep going|carry on) (?:like this|anymore|any more)\b/,
-  /\bik geef (?:het|alles) op\b/, /\bik wil (?:gewoon |liever )?verdwijnen\b/, /\b(?:alles|het leven|mijn leven)\b[^.?!]{0,15}\b(?:is|voelt|lijkt)\s+(?:zo\s+)?(?:zinloos|hopeloos|betekenisloos)\b/,
+  // Session AL fifth pass (L7-5a; LA-002, #190): "ik geef het op" alone or before a comma (as "I give up." in English),
+  // never "ik geef het op met dat recept" or "…voor vandaag"; giving up on everything, on life or on oneself in any order
+  // ("Ik heb het gevoel dat ik het overal mee opgeef", "Ik wil alles opgeven", "Ik heb mezelf opgegeven").
+  /\bik geef (?:het|alles) (?:gewoon |maar |echt )?op\s*(?:[.!?,;]|$)/, /\bik geef alles op\b(?!\s+(?:voor|om)\b)/,
+  /\b(?:overal|met alles|alles|het leven|mezelf|mijzelf)\s+(?:mee\s+)?(?:maar\s+|gewoon\s+|helemaal\s+)?op(?:geef|geeft|geven|gegeven|gaf)\b(?!\s+(?:voor|om)\b)/,
+  /\b(?:geef|gaf)\s+(?:het leven|mezelf|mijzelf)\s+op\b/, /\bik wil (?:het )?(?:gewoon |echt |maar )?opgeven\s*(?:[.!?,;]|$)/,
+  /\bik wil (?:gewoon |liever )?verdwijnen\b/, /\b(?:alles|het leven|mijn leven)\b[^.?!]{0,15}\b(?:is|voelt|lijkt)\s+(?:zo\s+)?(?:zinloos|hopeloos|betekenisloos)\b/,
   /\bhet heeft (?:allemaal )?geen zin meer\b/, /\bik wil er niet meer zijn\b/, /\bik wil niet meer wakker worden\b/, /\b(?:het leven moe|moe van het leven)\b/, /\ber een einde? aan maken\b/,
   // pills asked about in order to die
   /\b(?:pills?|tablets?|meds|medicines?|painkillers|pillen|slaappillen|tabletten)\b[^.?!]{0,30}\b(?:to die|to not wake up|to never wake up|to end it|om dood te gaan|om niet meer wakker te worden)\b/,
@@ -77,6 +91,7 @@ const MEDICINE: RegExp[] = [
   new RegExp(String.raw`\b${MEDS_NL}\b[^.?!]{0,25}\b(?:te veel|dodelijk|een overdosis)\b`), /\b(?:dodelijke|maximale|veilige|giftige) dosis\b/,
   new RegExp(String.raw`\b${MEDS_NL}\b[^.?!]{0,20}\b(?:met|en)\s+(?:alcohol|wijn|bier|drank)\b`),
 ];
+const NL_PEOPLE = String.raw`(?:broer(?:tje)?|zus(?:je)?|zuster|moeder|vader|mama|papa|ma|pa|man|vrouw|vriend(?:in)?|partner|ex|baas|chef|collega|buurman|buurvrouw|buren|buurjongen|kind(?:eren)?|zoon|dochter|leraar|lerares|juf|meester|schoonmoeder|schoonvader|huisgenoot|kamergenoot|klasgenoot|neef|nicht|oom|tante|opa|oma)`;
 // ---- harm: Session AL second pass (LA-002/P-LA-01 "threats/violence, hacking"): hurting someone, or getting into another
 // person's accounts or devices (EN + NL). Fixed words, never a model, never a card. ----
 const HARM: RegExp[] = [
@@ -84,6 +99,9 @@ const HARM: RegExp[] = [
   /\b(?:how (?:do|can|could) i|help me|teach me to)\b[^.?!]{0,20}\b(?:hack|break into|crack|get into|spy on|track)\b[^.?!]{0,30}\b(?:someone(?:'s| else's)?|my (?:neighbou?r|ex|partner|wife|husband|boss|friend)(?:'s)?|his|her|their|an? (?:account|phone|wi-?fi|email|instagram|facebook|computer))\b/,
   /\b(?:ik wil|hoe kan ik)\b[^.?!]{0,15}\b(?:iemand|hem|haar|mijn (?:buurman|buurvrouw|ex|baas))\b[^.?!]{0,15}\b(?:pijn doen|vermoorden|neersteken|aanvallen|slaan)\b/,
   /\bhoe (?:kan ik|hack ik)\b[^.?!]{0,30}\b(?:hacken|inbreken)\b/,
+  // Session AL fifth pass (L7-5a; C-DVG-100): hurting someone else in Dutch as widely as the English line above ("Ik wil
+  // mijn broer pijn doen", "Ik wil mijn broer iets aandoen", "Ik ga hem vermoorden"); a ball or a door is never a person.
+  new RegExp(String.raw`\b(?:ik wil|ik ga|ik zal|ik heb zin om|hoe kan ik|hoe moet ik|help me)\b[^.?!]{0,20}\b(?:iemand|hem|haar|hen|mensen|die (?:man|vrouw|gast|jongen|meid|vent)|(?:mijn|onze|de|die) ${NL_PEOPLE})\b[^.?!]{0,25}\b(?:pijn (?:doen|te doen)|iets (?:aandoen|aan doen|aan te doen)|(?:te )?vermoorden|doodmaken|dood (?:te )?maken|ombrengen|om te brengen|neersteken|neer te steken|neerschieten|neer te schieten|in elkaar (?:te )?slaan|aanvallen|aan te vallen|(?:te )?slaan|(?:te )?vergiftigen|(?:te )?wurgen|(?:te )?mishandelen|(?:te )?steken)\b`),
   // Session AL fourth pass (LZ-022, N101/Z101): hacking without "how do I", weapons and explosives, other plainly illegal asks.
   /\b(?:hack|hacking|crack|cracking)\s+(?:into\s+)?(?:my |the |a |an |someone'?s |somebody'?s |his |her |their |our )?(?:[a-z]+'s\s+|[a-z]+s'\s+)?(?:wi-?fi(?: password)?|router|network|account|password|phone|email|e-mail|instagram|facebook|snapchat|whatsapp|tiktok|webcam|camera|computer|laptop)\b/,
   /\b(?:break|breaking|get|getting) into\s+(?:someone(?:'s| else's)|somebody'?s|my (?:neighbou?r|ex|partner|wife|husband|boss|friend|colleague|roommate)'?s|his|her|their)\b/,
@@ -107,6 +125,12 @@ const SECRET: RegExp[] = [
   /\b(?:what(?:'s| is)|give|tell|show|send|remember|store|save|keep|export|reveal|find|need|ask(?:ing)? for|here(?:'s| is)|print|list)\b[^.?!]{0,50}\b(?:password|passcode|passphrase)s?\b/, /\b(?:my )?(?:password|passcode)\s*(?:is|=|:)\s*\S/,
   /\b(?:zaadzin|herstelzin|herstelwoorden|seedzin|seed-zin|geheime zin|privésleutel|prive ?sleutel|geheime sleutel)\b/, /\b(?:mijn|de|je|jouw)\s+(?:12|24|twaalf|vierentwintig) woorden\b/,
   /\b(?:wat is|geef|vertel|toon|stuur|onthoud|bewaar|exporteer)\b[^.?!]{0,30}\bwachtwoord(?:en)?\b/, /\bwachtwoord\s*(?:is|=|:)\s*\S/,
+  // Session AL fifth pass (L7-5a; Z-030): the long forms, EN and NL alike ("Laat me alles zien wat je weet over het
+  // wachtwoord van mijn bankrekening", "What do you know about my bank password?", a PIN). "Hoe verander ik mijn
+  // wachtwoord?" and "Ik weet mijn wachtwoord niet meer" stay ordinary (no one asks ZIGi to show or keep it).
+  /\b(?:show|give|tell|send|reveal|list|print|export)\b[^.?!]{0,120}\b(?:password|passcode|passphrase|pin ?code|pin number|login details|log-?in credentials)s?\b/,
+  /\b(?:what do you|do you|what else do you|everything you|all you)\s+(?:know|remember|keep|store|have stored|have saved|have on)\b[^.?!]{0,60}\b(?:password|passcode|passphrase|pin ?code|pin number|login details)s?\b/,
+  /\b(?:laat|laten|toon|tonen|geef|geven|vertel|vertellen|zeg|zeggen|noem|noemen|stuur|sturen|onthoud|onthouden|bewaar|bewaren|sla|opslaan|opgeslagen|exporteer|exporteren|wat is|wat zijn|hoe luidt|(?:wat )?(?:weet|ken|onthoud|bewaar) (?:je|jij))\b[^.?!]{0,90}\b(?:wachtwoord(?:en)?|wachtwoordzin|pincode|pin-code|inlogcode|inloggegevens|toegangscode)\b/,
 ];
 // ---- credential (fourth pass, TK #25): an API key, an access token or "your credentials" asked to be shown (EN + NL).
 // "How do I add my API key?" and "What is an API key?" stay ordinary questions. ----
@@ -131,6 +155,75 @@ const INJECTION: RegExp[] = [
   /\bdo anything now\b/, /\byou (?:have|has) no (?:rules|limits|restrictions|filters|guidelines)\b/, /\b(?:from now on|now) you (?:will|must|can|are)\b[^.?!\n]{0,40}\b(?:anything|no rules|no limits|unrestricted)\b/,
   /\b(?:doe alsof|speel|stel je voor dat)\b[^.?!\n]{0,30}\b(?:je|jij)\b[^.?!\n]{0,40}\b(?:dan|zonder regels|zonder grenzen|geen regels|onbeperkt|ongefilterd)\b/, /\bje hebt geen regels\b/,
 ];
+
+// ---- advice (fifth pass, L7-5a; #031, DVR:D-061, N-030, C-DVG-100): "should I put my savings into ZIG?", "Moet ik al mijn
+// spaargeld in ZIG steken?", "Should I stop my diet?". Not a guard topic: with an AI connected the question still goes to it
+// (its own prompt says it can't advise, lib/ai/context/specialists.ts); on the device it is answered FIRST with the app's
+// no-advice line, before any lookup could read "checklist", "diet" or "savings" as a record question. A money object or a
+// health object is always named, so "Should I buy groceries?" or "Moet ik mijn taak op de checklist zetten?" stay ordinary.
+const MONEY_THINGS = String.raw`(?:savings|money|cash|emergency fund|pension|retirement(?: fund| savings)?|salary|bonus|inheritance|crypto(?:currency|currencies)?|bitcoin|btc|eth|ether(?:eum)?|zig(?: tokens?| coins?)?|tokens?|coins?|altcoins?|stocks?|shares|etfs?|index funds?|funds?|portfolio|nest egg|spaargeld|spaarcentjes|geld|noodfonds|noodbuffer|buffer|pensioen|salaris|erfenis|munten?|aandelen|etf'?s|fondsen|fonds|portefeuille|beleggingen|vermogen|spaarrekening)`;
+const HEALTH_THINGS = String.raw`(?:diet|medication|medicine|meds|pills?|tablets?|supplements?|insulin|antidepressants?|dose|dosage|treatment|prescription|vitamins?(?: [a-z0-9]{1,3})?|statins?|birth control|the pill|dieet|medicijnen|medicijn|medicatie|pillen|pil|tabletten|supplementen|insuline|antidepressiva|dosis|behandeling|vitamines?(?: [a-z0-9]{1,3})?|de pil|paracetamol|ibuprofen|melatonine)`;
+// "put", "move" and "spend" are not here: "Should I move my savings goal's date?" is a goal question and "Do I spend too much?" a
+// facts one; money moved INTO an asset is the second pattern.
+const MONEY_VERBS = String.raw`(?:buy|sell|invest|stake|unstake|cash out|withdraw|dump|convert|swap|go all in|kopen|verkopen|beleggen|investeren|staken|unstaken|steken|stoppen|inleggen|opnemen|omzetten|wisselen|aanhouden|vasthouden)`;
+const MONEY_ADVICE: RegExp[] = [
+  new RegExp(String.raw`\b(?:should|shall|must) i\b[^.?!]{0,40}\b${MONEY_VERBS}\b[^.?!]{0,50}\b${MONEY_THINGS}\b`),
+  new RegExp(String.raw`\b(?:should|shall|must) i\b[^.?!]{0,40}\b(?:put|move|transfer|invest|stake|spend|use)\b[^.?!]{0,40}\b${MONEY_THINGS}\b[^.?!]{0,40}\b(?:into|in|on)\s+(?:zig|crypto|bitcoin|btc|eth|stocks?|shares|etfs?|staking|a coin|a token)\b`),
+  /\b(?:should|shall) i (?:\w+ )?(?:invest|stake|unstake|hodl)\b/, /\b(?:would|do) you (?:recommend|advise|suggest) (?:i |me to |that i )?(?:buy|sell|invest|stake|unstake|hold)\b/,
+  /\bis (?:it|now|this|today) (?:a |the )?(?:good|bad|right|smart|great) (?:time|idea|moment)\b[^.?!]{0,10}\bto (?:buy|sell|invest|stake|unstake|get into|cash out)\b/,
+  /\bwhich (?:coins?|crypto|tokens?|stocks?|shares?|etfs?|assets?|validators?|funds?) should i\b/, /\bwhat should i (?:invest|stake) in\b/,
+  new RegExp(String.raw`\b(?:moet|zal) ik\b[^.?!]{0,40}\b${MONEY_THINGS}\b[^.?!]{0,40}\b${MONEY_VERBS}\b`),
+  new RegExp(String.raw`\b(?:moet|zal) ik\b[^.?!]{0,30}\b${MONEY_VERBS}\b[^.?!]{0,40}\b${MONEY_THINGS}\b`),
+  /\b(?:moet|zal) ik (?:\w+ )?(?:beleggen|investeren|staken|unstaken)\b/, /\b(?:raad|adviseer) je (?:me |mij )?(?:aan )?(?:om )?(?:te )?(?:kopen|verkopen|beleggen|investeren|staken)\b/,
+  /\bis (?:het|nu) (?:een )?(?:goed|slim|juist|het juiste|goede|slimme)e? (?:moment|tijd|idee)\b[^.?!]{0,15}\bom\b[^.?!]{0,30}\b(?:te )?(?:kopen|verkopen|beleggen|investeren|staken|in te stappen|uit te stappen)\b/,
+  /\bwelke (?:munt|munten|coin|coins|crypto|token|tokens|aandeel|aandelen|etf|validator|fonds)\b[^.?!]{0,15}\b(?:moet|zal) ik\b/, /\bwaar(?:in)? (?:moet|zal) ik (?:mijn (?:geld|spaargeld) )?(?:in )?(?:beleggen|investeren)\b/,
+];
+const HEALTH_ADVICE: RegExp[] = [
+  new RegExp(String.raw`\b(?:should|shall|must) i (?:\w+ )?(?:stop|start|quit|skip|take|keep taking|come off|go off|change|double|halve|increase|reduce|lower|cut)\b[^.?!]{0,30}\b${HEALTH_THINGS}\b`),
+  new RegExp(String.raw`\bis it (?:safe|ok|okay|healthy|bad|dangerous|wise) (?:for me )?to (?:stop|start|quit|skip|take|combine|mix|double)\b[^.?!]{0,30}\b${HEALTH_THINGS}\b`),
+  new RegExp(String.raw`\b(?:moet|zal|mag) ik (?:\w+ )?(?:stoppen|beginnen|starten|ophouden|minderen) met\b[^.?!]{0,30}\b${HEALTH_THINGS}\b`),
+  new RegExp(String.raw`\b(?:moet|zal|mag) ik\b[^.?!]{0,30}\b${HEALTH_THINGS}\b[^.?!]{0,20}\b(?:stoppen|innemen|nemen|slikken|beginnen|starten|afbouwen|verhogen|verlagen|minderen|overslaan|verdubbelen)\b`),
+  new RegExp(String.raw`\bis het (?:veilig|gezond|goed|slim|verstandig|gevaarlijk) om\b[^.?!]{0,30}\b${HEALTH_THINGS}\b`),
+];
+export type AdviceTopic = 'money' | 'health';
+/** The app's own no-advice lines (the same words as the device's advice answer in lib/ai/local-answers/ai-session.ts). */
+export const ADVICE_REPLIES: Record<AdviceTopic, Record<GuardLanguage, string>> = {
+  money: {
+    en: 'I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.',
+    nl: 'Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”.',
+  },
+  health: {
+    en: 'This is not medical advice, and I can’t give it: a doctor or pharmacist can help with that. I can show what your own records hold, for example “Did I sleep enough?”.',
+    nl: 'Dit is geen medisch advies, en dat kan ik niet geven: een arts of apotheker kan je daarbij helpen. Ik kan laten zien wat je eigen gegevens tonen, bijvoorbeeld “Heb ik genoeg geslapen?”.',
+  },
+};
+/** A money or health advice question (EN + NL), or null. */
+export function adviceTopic(raw: string): AdviceTopic | null {
+  const text = norm(raw);
+  if (!text) return null;
+  if (MONEY_ADVICE.some(p => p.test(text))) return 'money';
+  if (HEALTH_ADVICE.some(p => p.test(text))) return 'health';
+  return null;
+}
+/**
+ * "What should I do with my Emergency fund?" / "Wat moet ik met mijn noodfonds doen?" (DVR:D-061): the thing named, EN or
+ * NL, for the goal answer in lib/ai/local-answers/al-fourth.ts (the goal's own figures under the no-advice line). Not a
+ * `safetyFirst` hit: the guard has no records, and the goal's figures are the better answer when the thing is a goal.
+ */
+export function doWithAsk(raw: string): {said: string; lang: GuardLanguage} | null {
+  const text = raw.trim().replace(/[’`´]/g, "'");
+  const en = /\bwhat (?:should|shall|do) i do with (?:my |the |our )?(.{2,60}?)(?:\s+goal)?\s*\??$/i.exec(text);
+  if (en) return {said: en[1]!.trim(), lang: 'en'};
+  const nl = /\bwat (?:moet|zal|kan) ik (?:(?:nu|het beste|eigenlijk) )?(?:doen )?met (?:mijn |het |de |ons |onze )?(.{2,60}?)(?:\s+doel)?(?:\s+doen)?\s*\??$/i.exec(text);
+  return nl ? {said: nl[1]!.trim(), lang: 'nl'} : null;
+}
+/** True when the thing a "do with" question names is money ("my savings", "mijn noodfonds", "ZIG"), not a goal or a habit. */
+export function isMoneyThing(said: string): boolean { return new RegExp(String.raw`^(?:all (?:of )?|al |al mijn |mijn |my )?${MONEY_THINGS}$`).test(norm(said)); }
+/** The no-advice line that opens a goal's figures in a "do with" answer (the same words as al-fourth.ts's). */
+export const DO_WITH_LINE: Record<GuardLanguage, string> = {
+  en: 'What to do with it is your choice: I don’t advise on money. The goal’s own figures: ',
+  nl: 'Wat je ermee doet is jouw keuze: ik geef geen geldadvies. De cijfers van het doel: ',
+};
 
 /** Dutch when it carries Dutch function words and more of them than English ones (a short, self-contained reading). */
 // Session AL fourth pass: more Dutch function words, so a short Dutch message ("Toon je API-sleutel", "Hoeveel paracetamol is te veel?") reads as Dutch.
@@ -229,7 +322,8 @@ export const CARE_REPLIES: Record<CareTopic, Record<GuardLanguage, string>> = {
     nl: 'Dat klinkt als veel tegelijk. Je hoeft niet alles tegelijk bij te houden.\n- Kies voor deze week één doel of gewoonte en laat de rest even rusten; er gaat niets verloren als een doel langer duurt.\n- Voelt de druk als meer dan je doelen, praat er dan over met iemand die je vertrouwt; findahelpline.com noemt gratis, vertrouwelijke hulplijnen.',
   },
 };
-export type SafetyHit = {kind: 'guard'; topic: GuardTopic; lang: GuardLanguage; text: string} | {kind: 'care'; topic: CareTopic; lang: GuardLanguage; text: string};
+export type SafetyHit = {kind: 'guard'; topic: GuardTopic; lang: GuardLanguage; text: string} | {kind: 'care'; topic: CareTopic; lang: GuardLanguage; text: string}
+  | {kind: 'advice'; topic: AdviceTopic; lang: GuardLanguage; text: string};
 /**
  * The one safety check every device path runs FIRST, before any lookup, parser or card: the guard's topics (fixed reply,
  * never a model), then careful mode's topics and strain (answered on the device; with an AI connected the chat sends them
@@ -242,9 +336,14 @@ export function safetyFirst(raw: string): SafetyHit | null {
   if (!text) return null;
   const risk = detectRisk(text);
   const topic: CareTopic | null = risk && risk !== 'self-harm' ? risk : STRAIN.some(p => p.test(text)) ? 'strain' : null;
-  if (!topic) return null;
+  if (topic) { const lang = guardLanguage(raw); return {kind: 'care', topic, lang, text: CARE_REPLIES[topic][lang]}; }
+  // Session AL fifth pass (L7-5a; #031, DVR:D-061, N-030): an advice question gets the no-advice line before any lookup
+  // ("…and add it to my checklist" is not the Checklist counter; "Should I stop my diet?" is not a memory question), in
+  // ZIGi and NOVA alike. Not in `guardMessage`: with an AI connected the chat still sends it there (localAnswer reads none).
+  const advice = adviceTopic(raw);
+  if (!advice) return null;
   const lang = guardLanguage(raw);
-  return {kind: 'care', topic, lang, text: CARE_REPLIES[topic][lang]};
+  return {kind: 'advice', topic: advice, lang, text: ADVICE_REPLIES[advice][lang]};
 }
 /** Words that read as an instruction or a fake system voice inside a record's name, a note or a file (never obeyed). */
 export function looksLikeInjection(raw: string | null | undefined): boolean {
