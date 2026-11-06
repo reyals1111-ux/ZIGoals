@@ -62,10 +62,14 @@ import '../for-you/for-you.css';
 import '../earn/today-earn-card.css';
 import '../stories/today-stories-card.css';
 import '../skeleton/zg-skeleton.css';
-const loadForYou=()=>import('../for-you/today-for-you');
-if(typeof window!=='undefined')void loadForYou().catch(()=>undefined);
-const TodayForYou=lazy(()=>loadForYou().then(m=>({default:m.TodayForYou})));
+// CI19 (CI 1575: guide:46, whats-new:36/57): read through use-chunk, not lazy()+Suspense. A lazy part that suspends after
+// mount is revealed by React no sooner than 300 ms after its (empty) fallback was committed, so For you arrived about
+// 300 ms after the rest of Today even with its chunk long since here. With the chunk in hand (it is asked for as this
+// module runs, well before the stores are read) For you now mounts in the same render as the rest, as before CI14; if
+// it is still on its way it mounts the moment it arrives. A chunk that cannot be fetched shows nothing, as before.
+const useForYou=chunk(()=>import('../for-you/today-for-you'));
 import {TodayFocus} from './today-focus';
+import {chunk} from '../use-chunk';
 import {TodayLine} from './today-line';
 import {TodayChecklistCard} from '../checklist/today-checklist-card';
 import {ProgressSlot,Slot} from '../progress/slot';
@@ -285,7 +289,10 @@ export function TodayDashboard(){
    // Session AK RB (R2-9): the funding agenda is part of "Next money steps" (the needs-attention card) while that card shows.
    if(id==='funding'&&builtinOnToday('needs-attention'))return null;
    // Session AH (TO12, M-122): the attention count waits for the first price read, so it never changes after load.
-   if(id==='needs-attention'&&market.loading&&!market.quotes.length)return <section className="needs-attention panel" aria-busy="true" aria-label="Needs attention"><p className="loading-line" role="status">Checking what needs attention…</p></section>;
+   // CI19 (CI 1575, phone-refinements:65): "first" — a later read while no price is held (the watchlist's own, once its
+   // chunk is here) no longer swaps the card back to this line after the first read has ended in an error: that remounted
+   // the list mid-view (its rows gone for a moment, "View all" undone).
+   if(id==='needs-attention'&&market.loading&&!market.quotes.length&&!market.error)return <section className="needs-attention panel" aria-busy="true" aria-label="Needs attention"><p className="loading-line" role="status">Checking what needs attention…</p></section>;
    return intelligence(({ 'whole-life':'life',attention:'attention',funding:'funding','needs-attention':'needs-attention',watchlist:'watchlist'} as const)[id as 'whole-life'|'attention'|'funding'|'needs-attention'|'watchlist']);
   }
   switch(id){
@@ -355,6 +362,7 @@ export function TodayDashboard(){
  const uiPrefs=useUiPrefs(),heroCollapsed=uiPrefs.loaded&&!uiPrefs.unreadable&&!!uiPrefs.data.heroCollapsed,gameOn=useGameEnabled();
  const setHeroCollapsed=(value:boolean)=>{try{uiPrefs.update(p=>({...p,heroCollapsed:value}));}catch{setError('This device refused to save that choice.');}};
  const [focusPlace,setFocusPlace]=useState<HTMLDivElement|null>(null),[mainPlace,setMainPlace]=useState<HTMLDivElement|null>(null),[endPlace,setEndPlace]=useState<HTMLDivElement|null>(null);
+ const TodayForYou=useForYou().mod?.TodayForYou;
  const forYouOn=settings.loaded&&!settings.error&&(settings.data.onboarded||showcase)&&!brandNew&&storesReady;
  // Session AK G2 (R11): arranging Today and a brand-new device's short Today mount the widget area at once.
  const widgetArea=useMountOnView({hashPrefixes:WIDGET_AREA_HASHES,force:customize||brandNew});
@@ -409,6 +417,6 @@ export function TodayDashboard(){
  </div>;
  return <HealthLinkContext.Provider value={healthLinkContext}><LayoutPage page="today" exit={false} unlocked={customize} onUnlockedChange={setCustomize} onReset={()=>apply(s=>resetDashboardPlacement(s),'Today is back to its default layout.')}>
   {layout({focus:null,main:null,end:null})}
-  {forYouOn&&<LoadBoundary quiet><Suspense fallback={null}><TodayForYou reviewOnToday={deviceCards.includes('review')} habits={habits.data} health={health.data} platform={platform.data} localGoals={legacy.goals} metadata={legacy.metadata?.goals??{}} quotes={market.quotes} now={now} today={today} financial={financial} showcase={showcase} render={parts=><>{focusPlace&&createPortal(parts.focus,focusPlace)}{mainPlace&&createPortal(parts.main,mainPlace)}{endPlace&&createPortal(parts.end,endPlace)}</>}/></Suspense></LoadBoundary>}
+  {forYouOn&&TodayForYou&&<LoadBoundary quiet><TodayForYou reviewOnToday={deviceCards.includes('review')} habits={habits.data} health={health.data} platform={platform.data} localGoals={legacy.goals} metadata={legacy.metadata?.goals??{}} quotes={market.quotes} now={now} today={today} financial={financial} showcase={showcase} render={parts=><>{focusPlace&&createPortal(parts.focus,focusPlace)}{mainPlace&&createPortal(parts.main,mainPlace)}{endPlace&&createPortal(parts.end,endPlace)}</>}/></LoadBoundary>}
  </LayoutPage></HealthLinkContext.Provider>;
 }
