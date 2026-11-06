@@ -282,7 +282,11 @@
    now its stage's height, the spacer takes what is left above the star, and the star is a little smaller on short stages
    (22 % of the stage's height, was 24 %), so the star stays near the middle and every line stays above the field. */
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre { grid-template-rows: minmax(0, 1fr); }
-.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre > .nova-stage[data-holo-core] { --orb: clamp(112px, min(16cqi, 22cqb), 220px); grid-template-rows: minmax(0, 1fr) auto auto; }
+/* CI23 (p3-nova-polish ND-1, 1920 × 1080 Showcase, CI 1579): with the words' row only as tall as its words, the orb sat at
+   the middle only when those words filled the lower half; the Showcase's shorter readout (84 px, 110 px on an empty device)
+   left the star 61 px under the stage's middle (the limit is 60). The words' row now takes half of what is left, or its words'
+   height when they need more, so the star is at the middle whatever the readout says and CI4's tall stack still pushes it up. */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre > .nova-stage[data-holo-core] { --orb: clamp(112px, min(16cqi, 22cqb), 220px); grid-template-rows: minmax(0, 1fr) auto minmax(min-content, 1fr); }
 /* M4: a narrow stage (a tablet, ≤ 800 px) shows the star at its own height (it used to take the whole first screen) and the
    panels under it in one column of up to 560 px, each as tall as its content, so the first view holds the HUD and no value
    runs past its panel (two 245 px columns cut them). */
