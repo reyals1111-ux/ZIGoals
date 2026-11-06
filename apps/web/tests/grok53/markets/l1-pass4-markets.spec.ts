@@ -30,6 +30,13 @@ test.describe('375 px', () => {
     const wrap = page.locator('.market-table-wrap').first();
     await expect(wrap).toBeVisible();
     const row = wrap.locator('tbody tr').first();
+    // Session AL (CI24, CI 1579 mobile): this is a check of the table's width at 375 (TK-162), not of where the page
+    // happens to be scrolled. The table starts just under the Cards/Table switch, near the foot of the first screen, and
+    // the click leaves the page wherever Playwright scrolled the switch to (CI: the switch at the screen's foot, so the
+    // first row began below the screen, "viewport ratio 0"; locally: the switch mid-screen, the row on it). Bring the row
+    // up as a person scrolls: the page only, never the table sideways, so a table that opens scrolled sideways or wider
+    // than the screen still fails the cells' check below.
+    await row.evaluate(el => window.scrollBy({top: el.getBoundingClientRect().top - 200, behavior: 'instant'}));
     const fits = await wrap.evaluate(el => el.scrollWidth <= el.clientWidth + 1);
     if (fits) {
       for (const cell of [row.locator('td').first(), row.locator('.market-favourite')]) await expect(cell).toBeInViewport({ratio: 0.9});

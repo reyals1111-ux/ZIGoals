@@ -135,7 +135,15 @@ test('TK-226: Showcase Today — the over-allocation notice can be dismissed', a
   await sheet.getByLabel('Asset quantity').fill('2');
   await sheet.getByRole('button', {name: 'Save changes'}).click();
   await sheet.getByRole('button', {name: 'Keep this amount'}).click();
+  // Session AL (CI24, CI 1579, spec race): the save closes the sheet, and closing takes the sheet's Back entry out with
+  // history.back() (components/use-back-closes.ts). A goto sent while the save was still running was undone by that
+  // traversal (trace: the /app document request, then the asset page's document again; the run ended on the asset page,
+  // never on Today). Leave only once the save has closed the sheet and its history entry is gone, as the TK-196 test
+  // waits for its archive above.
+  await expect(sheet).toBeHidden();
+  await expect.poll(() => page.evaluate(() => (window.history.state as Record<string, unknown> | null)?.__zigoalsLayer ?? null)).toBeNull();
   await page.goto('/app'); await hydrated(page);
+  await expect(page).toHaveURL(/\/app$/);
   const notice = page.getByRole('alert').filter({hasText: 'A saved allocation exceeds its current source balance'});
   await expect(notice).toBeVisible();
   await notice.getByRole('button', {name: 'Dismiss this notice in this tab'}).click();
