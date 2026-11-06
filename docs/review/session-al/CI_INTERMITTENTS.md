@@ -19,6 +19,9 @@ Engine crashes are recorded with their diagnosis and not chased.
 | `ui-evidence:108`, `theme-parity-af:15` | Chromium renderer stall in headless Chromium without a GPU | Record only |
 | `hosted-verifier-order:18` (local) | Browser-aborted core chunk (`net::ERR_ABORTED` in 0.03 ms) | Record only; **spec line 39 must add stage 12** (see end) |
 | `zigi-emotions:114` | WebKit "ZIGi box empty after a fill" (a Known limitation by owner decision 7) | Record only |
+| WebKit job step "Install Playwright's WebKit and the Chrome shards' font" (CI 1583, shards 2–3) | Runner/apt slowness: the step took 36 min on two runners (3 min elsewhere), so the 45 min job limit cancelled the suites a few minutes in | Record only; one re-run (new head) |
+| `zigi-face-z:313`, `zigi-memory-af:15` (WebKit desktop, CI 1583) | `zigi-memory-af:15` is a recorded WebKit family (STATUS, c5014b60); `zigi-face-z:313` (Apps & extras sheet not visible in 2 s at 768 px) passed in 1577/1579; no segfault line | Record; one re-run; investigate on a second failure |
+| `a11y-wcag-x:268` /app/tasks (CI 1579) | **Not an intermittent:** time of day — the Showcase P1 task is due 10:30, its chip read 4.00:1 before then | Fixed at the cause (`bf70befa`) |
 | Sandbox-only (`ui-design-pass:105`, `ui-evidence:115`, `wealth-chips-af:13`, `ui-evidence:50`, `zigi-browser-agents:102`) | This 4-vCPU software-GPU sandbox, fonts mapped to Inter | Record only (pass in CI) |
 
 ## Fix 1 — `scripts/ci/install-chrome.test.mjs:100` (3 attempts counted instead of 2)

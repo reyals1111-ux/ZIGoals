@@ -54,9 +54,17 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
   `60316a3d` TIER 3 (release verifier: the star's words where CI14 moved them); CI20 `880cfb2e` (Earn asks its route at
   mount again; the Academy path loads once reached); CI21 `be492bf8` (two ZIGi spec waits; class B); CI19 `37d2370c`
   (For you / Activity list mount with the page; Next money steps keeps its list during a later price read).
-- **CI history tonight:** 1569 (`14958e1a`) 6 browser + weights; 1575 (`6269f866`) hud-perf and weights green, 13
-  failures from CI14's lazy parts + the release test; 1577 (`e16ef722`) only CI19/CI20 items + the release test, every
-  WebKit job green, the Ecosystem parity fixed; 1579 (`37d2370c`) running.
+- **After `37d2370c`:** CI22 `bf70befa` (Tasks P1 chip contrast before its 10:30 due time), CI23 `94964671` (NOVA orb
+  rows; carries CI22's theme hashes), CI24 `96c1c4f7` (TK-226 / TK-162 spec waits), `76c6cde5` (CI21's wait asks that no
+  glide is running).
+- **CI history:** 1569 (`14958e1a`) 6 browser + weights; 1575 (`6269f866`) 13 failures from CI14's lazy parts; 1577
+  (`e16ef722`) CI19/CI20 items only; 1579 (`37d2370c`) 5 failures (Tasks chip, NOVA orb, TK-226, TK-162); 1583
+  (`96c1c4f7`) Chromium green but zigi-oneline-z:242 (fixed in 76c6cde5); WebKit shard 1: zigi-face-z:313 and
+  zigi-memory-af:15 (recorded family); shards 2–3 cancelled by the job limit after a 36 min WebKit install (runner).
+- **Lessons:** the time of day is a test condition (Showcase items due at fixed hours change styles); a lane that moves
+  code runs `vitest run scripts` too; `lazy()` + Suspense delays content ~300 ms in React 19 (use use-chunk's chunk()).
+- **Open (dev-only, no CI failure):** under React StrictMode in next dev, components/use-back-closes.ts's doubled effect
+  closes wealth sheets as they open (sheet specs fail on a dev server only).
 - **Measured on :3103 at `37d2370c`:** every page under budget (Today 545.7/567, Activity 440.6/457, Tasks 463.3/468,
   shell 430.0/447); the CI 1575/1577 specs + for-you + earn-academy: 59 passed, 1 skipped.
 - **Lesson (ADR-037 at the next docs commit):** a lane that moves code must run `vitest run scripts` too (release tests
@@ -67,7 +75,7 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - **Servers:** :3103 → `37d2370c` (/home/user/zig-branch2, started with setsid so it outlives the shell); :3102 main.
 
 ## Exact next step
-1. Read CI run 1579 on `37d2370c` (or the latest head) (one re-run per known intermittent, docs/review/session-al/CI_INTERMITTENTS.md).
+1. Read CI on `76c6cde5`+ (WebKit: zigi-face-z:313 gets its one re-run; a second failure means investigate) (one re-run per known intermittent, docs/review/session-al/CI_INTERMITTENTS.md).
 2. Once CI is green: replay round 2 in the order L7, L3, L2, L5, L4, L6, L8 on :3103 (≤ 5 helpers; replays read only their lane's AL rows and per id that finding's steps); regenerate ADR-037's closing table after each (docs/review/session-al/tools/closing_table.py).
 3. After the weekly reset: the L1 fifth pass (TK-199 GBP symbol, TK-191 bluetooth policy warning, TK-024, TK-149, TK-196, D-155 and the 7 CHANGED), Parts 13–16, ONE A10 cycle, the final full replay round, Part 17.
 
