@@ -125,8 +125,9 @@ and Part 15 builder A (`2f4f3d9e`). The last integration build was `a81b18dd` on
 1. Done: Part 15 builder B `0e8aaffb` (theme sheets regenerated with the DV-029d CSS), the CI 1602 fixes `558bd54f`
    (lint, scripts/ locators, the a11y spec), and docs/review/session-al/NEXT_SESSION_BACKLOG.md (18 ranked items).
 2. The Part 16 release review (RELEASE_REVIEW_AL.md) is running; fix its Blocker/Major/Minor findings.
-3. One integration build: prove DV-029d, the P15 specs and L8's 4 round-2 ids (BN-044, N-BN-11, DV:N-049, N-DV-10);
-   measure the weights.
+3. Done: integration build `78be2446` (/home/user/zig-branch, :3101): 97 passed, 1 skipped (tests/grok53/p15, goals
+   fifth-pass incl. DV-029d attempt 2, hud/bn044-memory-chip for BN-044 + N-BN-11, N-049, N-DV-10, zigi-a11y-pass);
+   every route under budget (Today 547.6/567, Health 524.9/531, Tasks 464.5/468, shell 431.1/447).
 4. ONE A10 cycle, then the final replay (rows not FIXED plus FIXED rows whose files changed), the closing table, Part 17.
 
 ## Open readings
