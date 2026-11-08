@@ -118,15 +118,19 @@ at most 2 attempts), WebKit zigi-oneline-z:282 and settings-switches-sweep:45 (f
   ~300 ms longer than before CI14). PR-069 closed by owner amendment 10 until O6; CI5's `markets-view` key not added.
 - **Servers:** :3103 → `37d2370c` (/home/user/zig-branch2, started with setsid so it outlives the shell); :3102 main.
 
-## Exact next step
-1. Read CI on `76c6cde5`+ (WebKit: zigi-face-z:313 gets its one re-run; a second failure means investigate) (one re-run per known intermittent, docs/review/session-al/CI_INTERMITTENTS.md).
-2. Once CI is green: replay round 2 in the order L7, L3, L2, L5, L4, L6, L8 on :3103 (≤ 5 helpers; replays read only their lane's AL rows and per id that finding's steps); regenerate ADR-037's closing table after each (docs/review/session-al/tools/closing_table.py).
-3. After the weekly reset: the L1 fifth pass (TK-199 GBP symbol, TK-191 bluetooth policy warning, TK-024, TK-149, TK-196, D-155 and the 7 CHANGED), Parts 13–16, ONE A10 cycle, the final full replay round, Part 17.
+## Exact next step (8 Nov, late; head `2f4f3d9e`)
+Done since the owner finish rules: recovery (case 1, the L7 commits existed), round 2 for every lane, a fifth pass per lane,
+the L1 fifth pass, Part 13, Part 14 (P14-C `a81b18dd`), the security delta A and B with their fixes (`044ac17b`, `ab580b9d`),
+and Part 15 builder A (`2f4f3d9e`). The last integration build was `a81b18dd` on :3103.
+1. Done: Part 15 builder B `0e8aaffb` (theme sheets regenerated with the DV-029d CSS), the CI 1602 fixes `558bd54f`
+   (lint, scripts/ locators, the a11y spec), and docs/review/session-al/NEXT_SESSION_BACKLOG.md (18 ranked items).
+2. The Part 16 release review (RELEASE_REVIEW_AL.md) is running; fix its Blocker/Major/Minor findings.
+3. One integration build: prove DV-029d, the P15 specs and L8's 4 round-2 ids (BN-044, N-BN-11, DV:N-049, N-DV-10);
+   measure the weights.
+4. ONE A10 cycle, then the final replay (rows not FIXED plus FIXED rows whose files changed), the closing table, Part 17.
 
 ## Open readings
 Q1–Q5 are in ADR-037.
 
-## Live counts
-| Ledger findings in | AL rows out | Reproduced | Already fixed | Reopened | Fixed | STILL OPEN |
-|---|---|---|---|---|---|---|
-| 4,033 item lines (3,654 ids) | 642 AL rows | first specs red on main | per lane files | 150 | first passes: ~340 rows Fixed-pending-proof | lanes report Open rows in their second pass |
+## Live counts (closing table, 8 Nov)
+Fixed 357 · Partly replayed 130 · Open 86 · Not replayed yet 27 · Owner decision 21 (ADR-037 "State on 8 Nov" has the rest).
