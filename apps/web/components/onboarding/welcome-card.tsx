@@ -9,7 +9,7 @@ import { markOnboardingSeen } from "../../lib/onboarding";
 
 /**
  * Today's welcome for a brand-new device (Session E). Shown only when TodayDashboard finds no records, no account and
- * no Showcase; "Not now" and "Explore the demo" write only the device-only seen flag.
+ * no Showcase; "Skip setup" and "Explore the demo" write only the device-only seen flag.
  */
 export function WelcomeCard({ demoAvailable, onDismiss }: { demoAvailable: boolean; onDismiss: () => void }) {
   const id = useId(), card = useRef<HTMLElement>(null);
@@ -29,7 +29,7 @@ export function WelcomeCard({ demoAvailable, onDismiss }: { demoAvailable: boole
     <div className="onboarding-actions">
       <Link className="primary" href="/app/welcome">Start setup</Link>
       <button type="button" className="secondary" disabled={!demoAvailable} onClick={() => { markOnboardingSeen(window.localStorage); void loadShowcase().then(() => window.location.assign("/app"), () => undefined); }}>Explore the demo</button>
-      <button type="button" className="text-link" onClick={() => { markOnboardingSeen(window.localStorage); onDismiss(); }}>Not now</button>
+      <button type="button" className="text-link" onClick={() => { markOnboardingSeen(window.localStorage); onDismiss(); }}>{/* Session AL fifth pass (N-NB-01): "Skip …" as every setup step says it (was "Not now") */}Skip setup</button>
     </div>
   </section>
   {!inView && !barClosed && <div className="welcome-phone-bar" role="region" aria-label="Set up ZIGoals">
@@ -39,7 +39,7 @@ export function WelcomeCard({ demoAvailable, onDismiss }: { demoAvailable: boole
 }
 
 /**
- * Session AL (P-NB-08; NB-002, NB-033): after "Not now", an empty device (nothing recorded, no setup made) still has one
+ * Session AL (P-NB-08; NB-002, NB-033): after "Skip setup" (was "Not now"), an empty device (nothing recorded, no setup made) still has one
  * clear way into the setup on Today. It goes once the first record or the setup exists; the welcome card shows only once.
  */
 export function FirstRunEntry({ demoAvailable }: { demoAvailable: boolean }) {

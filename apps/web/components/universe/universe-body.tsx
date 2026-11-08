@@ -52,6 +52,9 @@ export function UniverseBody({state, universe}: {state: UniverseState; universe:
         {offPages(p.pillar) && <p className="universe-planet-off">{p.label} is not on your pages. Its planet stays, quietly, and lights again when you log here; add the page back in Settings → Your pages &amp; buttons.</p>}
         <ul className="universe-facts">{p.facts.map(f => <li key={f}>{keepWords(f)}</li>)}</ul>
       </li>)}</ul>
+      {/* Session AL fifth pass (NB-052): a person who picked Chess reads why it has no planet of its own (ADR-028 H77: the
+          planets are the four parts of ZIGoals) and where its days show, so a missing Chess planet is not a lost choice. */}
+      {isShown(pages, 'chess') && <p className="fine universe-extras-note">Chess has no planet of its own: the four planets are the four parts of ZIGoals. A game or the daily puzzle that ticks off the habit chosen in Chess lights Habits.</p>}
       {discovery && (discovery.ready[0] ? <div className="universe-discovery" role="note" aria-label="Discovery"><p className="eyebrow">Discovery · {discovery.ready[0].title}</p><p>{discovery.ready[0].sentence}</p><p className="fine">Seen together in your own records over the last 90 days, never a cause.</p></div>
         : discovery.pending[0] && <div className="universe-discovery is-pending" role="note" aria-label="Discovery"><p className="eyebrow">A discovery is forming</p><p>{/* Session AL (DV-023e, P-DV-33): what it is waiting for, in plain words */}{discovery.pending[0].title}: it compares days with and without, and needs {CROSS_MIN_PER_SIDE} of each. So far {Math.min(discovery.pending[0].withA, CROSS_MIN_PER_SIDE)} with and {Math.min(discovery.pending[0].withoutA, CROSS_MIN_PER_SIDE)} without.</p></div>)}
       {/* Session AJ (item 29, D10): the Life Score, opt-in. */}

@@ -343,6 +343,8 @@
    "+ Add to … Orbit". The node, its colour and glyph are the theme island's (the same in every theme); the words follow the
    theme. */
 .checklist-list-view { display: grid; gap: 22px; max-width: 680px; margin: 0 auto; padding-bottom: 12px; }
+/* Session AL fifth pass (LS-033, LS-070): the flame's rule over the List's rows. */
+.checklist-list-view > .checklist-streak-rule { margin: 0 0 -12px; color: var(--muted, #a9b6cc); }
 .checklist-list-section { --orbit: #9273ff; display: grid; gap: 6px; }
 /* Session AG Polish 2 (ADR-031 K12; owner Part 6a, D-list 1–4): each section opens with the path's own Habits banner (its
    symbol, the nebula title, the count, the short fade; components/orbit-path/orbit-banner.tsx) and its fold. */

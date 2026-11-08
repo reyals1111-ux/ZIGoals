@@ -61,8 +61,10 @@ test.describe('fresh profile', () => {
     await page.getByRole('textbox', {name: 'Target value', exact: true}).fill('2');
     await page.getByRole('button', {name: 'Create habit', exact: true}).click();
     const snacks = card(page, 'Snacks');
-    await expect(snacks.locator('.habit-count')).toHaveText('0 of at most 2 times today');
-    await expect(snacks.locator('.habit-period-progress')).toHaveText('0 of 3 days within the limit this week');
+    // Assertion changed (Session AL fifth pass, PR-093; as strict): the limit counts its whole week, as its subtitle
+    // "Limit 2 times per week" says, so the count names the week and the per-day line is gone (al-fifth-habits pins taps).
+    await expect(snacks.locator('.habit-count')).toHaveText('0 of at most 2 times this week');
+    await expect(snacks.locator('.habit-period-progress')).toHaveCount(0);
   });
 
   test('N-056/NB-082/NB-142/NB-200: an automatic water tick counts what Health holds, on the card and in its note', async ({page}) => {

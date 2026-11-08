@@ -455,7 +455,7 @@ export function OnboardingFlow() {
           {/* Session AL (P-NB-14; NB-019): Back inside the tour, and the buttons stay put (the card keeps one height, onboarding.css). */}
           {tour > 0 && <button type="button" className="secondary" onClick={() => setTour(tour - 1)}>Back</button>}
           {tour < TOUR.length - 1 ? <button type="button" className="primary" onClick={() => setTour(tour + 1)}>Next</button> : <button type="button" className="primary" onClick={() => { setTour(null); go("install"); }}>Done</button>}
-          <button type="button" className="secondary" onClick={() => { setTour(null); go("install"); }}>End the tour</button>
+          {/* Session AL fifth pass (N-NB-01): one wording for leaving a step, "Skip …", inside the tour too (was "End the tour"). */}<button type="button" className="secondary" onClick={() => { setTour(null); go("install"); }}>Skip the tour</button>
         </div>
       </>)}
 

@@ -5,10 +5,11 @@ import {PATH_COLOURS} from '../../lib/path/colours';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {moveWithinSection, sectionsOf} from '../../lib/checklist/store';
 import {orbitGlyph} from '../../lib/checklist/glyphs';
-import {formatClock, formatDate, formatTime} from '../../lib/visual-format';
+import {formatClock, formatDate, formatNumber, formatTime} from '../../lib/visual-format';
 import {readReminders} from '../../lib/reminders/store';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {nextHabitDay} from '../../lib/checklist/next-day';
+import {habitStats} from '../../lib/habits';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {HABIT_EXTRAS} from '../../lib/habits-extras/schema';
 import {OrbitBanner, orbitTitle} from '../orbit-path/orbit-banner';
@@ -95,7 +96,11 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     const habitId = dot.kind === 'habit' ? (dot.item.ref as {habitId?: string} | undefined)?.habitId : undefined, clock = !done && habitId ? habitTimes[habitId] : undefined;
     const remind = !done && !clock && habitId ? reminderTimes[habitId]?.time : undefined;
     const habit = habitId && !dot.counted ? habitsData.habits.find(h => h.id === habitId) : undefined, next = habit && habitsToday ? nextHabitDay(habit, habitsToday) : null;
-    const sub = [dot.note, kind, time, clock ? `at ${formatClock(clock)}` : '', remind ? `reminder ${formatClock(remind)}` : '', next ? `next ${formatDate(next, {weekday: true, year: false})}` : ''].filter(Boolean).join(' · ');
+    // Session AL fifth pass (LS-070, C-LS-34): a habit row carries the habit's own streak, as Habits counts it (its rest
+    // and skip days kept), so ticking one planet every day shows, though the flame counts only days with every planet lit.
+    const own = habitId && habitsToday ? habitsData.habits.find(h => h.id === habitId) : undefined, stats = own ? habitStats(own, habitsToday!) : null;
+    const streakWords = stats && stats.currentStreak > 0 ? `${formatNumber(stats.currentStreak)} ${stats.streakUnit.slice(0, -1)} streak` : '';
+    const sub = [dot.note, kind, streakWords, time, clock ? `at ${formatClock(clock)}` : '', remind ? `reminder ${formatClock(remind)}` : '', next ? `next ${formatDate(next, {weekday: true, year: false})}` : ''].filter(Boolean).join(' · ');
     // Session AG Polish 2 (owner Part 6b): the node is the path's own at the path's own size (80, 72 or 62 px), and the
     // button is the node.
     const face = <OrbitNodeFace glyph={orbitGlyph(dot)} just={just}/>, style = {'--node': colour} as CSSProperties;
@@ -121,6 +126,8 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
       : <SwipeRow key={dot.id} as="li" className="checklist-row" nameRow={false} label={dot.label} completeLabel="Done" onComplete={() => void press(dot, dot.intent === 'value' ? 'value' : 'tick')} attrs={{'data-state': dot.state, 'data-counted': dot.counted ? undefined : 'no'}}>{content}</SwipeRow>;
   };
   return <div ref={list} className="checklist-list-view" onKeyDown={onKeyDown}>
+    {/* Session AL fifth pass (LS-033, LS-070): the flame's rule, said where the rows are; each habit row has its own streak. */}
+    <p className="fine checklist-streak-rule">The flame counts the days every planet was lit; a day with nothing on the path rests. Each habit row shows that habit’s own streak.</p>
     {groups.map(g => {
       const counted = g.dots.filter(d => d.counted), doneN = counted.filter(d => d.state === 'done').length, first = g.dots[0]!, tone = PATH_COLOURS[colours.get(first.id) ?? first.colour].token;
       const banner: PathSection = {id: g.id, label: g.label, colour: colours.get(first.id) ?? first.colour, steps: []};

@@ -261,7 +261,9 @@ function computeAggregateOutcomes(habit: Habit, today: string): AggregateOutcome
     const explicitFailure = entries.some((entry) => entry.disposition === "failed");
     const mixedRules = group.signatures.size > 1; const rule = group.latestRule;
     const amount = logged.reduce((sum, entry) => sum + entry.count, 0);
-    const complete = !mixedRules && (rule.schedule.kind === "frequency"
+    // Session AL fifth pass (PR-093): a limit counts its whole period, as its card says ("Limit 2 times per week"), also on
+    // an "X times per period" schedule; a build habit there still counts the days whose check-in met the day's target.
+    const complete = !mixedRules && (rule.schedule.kind === "frequency" && rule.type !== "limit"
       ? logged.filter((entry) => individualSuccess(rule, entry.count)).length >= rule.schedule.times
       : rule.type === "build" ? amount >= rule.target : logged.length > 0 && amount <= rule.target);
     let fullCoverage = group.start >= habit.startDate;
@@ -269,7 +271,9 @@ function computeAggregateOutcomes(habit: Habit, today: string): AggregateOutcome
       const historical = habitRuleOn(habit, date);
       fullCoverage = !!historical && historical.state === "active" && baseEndAllows(historical, date) && aggregatePeriod(historical) === group.period && ruleOutcomeKey(historical) === ruleOutcomeKey(rule);
     }
-    const failed = explicitFailure || (group.end < today && fullCoverage && !complete);
+    // PR-093: over a quit or limit habit's period amount is final for that period (more check-ins only add), never "Partial".
+    const over = !mixedRules && rule.type !== "build" && (rule.schedule.kind !== "frequency" || rule.type === "limit") && amount > rule.target;
+    const failed = explicitFailure || over || (group.end < today && fullCoverage && !complete);
     // A logged 0 (a check-in undone) is no progress (Session X P2.1).
     const partial = !complete && !failed && entries.some((entry) => (entry.disposition === "logged" && entry.count > 0) || entry.disposition === "skipped");
     return { start: group.start, end: group.end, period: group.period, unit: `${group.period}s` as AggregateOutcome["unit"], status: complete ? "complete" as const : failed ? "failed" as const : "open" as const, complete, failed, partial, scheduledDates: group.scheduledDates };
@@ -309,6 +313,17 @@ export function frequencyProgress(habit: Habit, today: string): { done: number; 
   const done = habit.entries.filter((entry) => entry.date >= bounds.start && entry.date <= today && entry.date <= bounds.end && entry.disposition === "logged" && individualSuccess(rule, entry.count)).length;
   return { done, times: rule.schedule.times, period: rule.schedule.period };
 }
+/**
+ * Session AL fifth pass (PR-093): a limit habit counted over a week, month or year, as its card reads it ("3 of at
+ * most 2 times this week"): the amount logged in the period up to today. Null for a daily rule and for any other habit type.
+ */
+export function limitPeriodProgress(habit: Habit, today: string): { amount: number; target: number; period: "week" | "month" | "year"; over: boolean } | null {
+  const rule = habitRuleOn(habit, today); const period = rule ? aggregatePeriod(rule) : undefined;
+  if (!rule || !period || rule.type !== "limit") return null;
+  const bounds = periodBounds(today, period);
+  const amount = Number(habit.entries.filter((entry) => entry.date >= bounds.start && entry.date <= today && entry.disposition === "logged").reduce((sum, entry) => sum + entry.count, 0).toFixed(9));
+  return { amount, target: rule.target, period, over: amount > rule.target };
+}
 export function habitDay(habit: Habit, date: string, today = localDate()) { return memoized(habit, `day:${date}:${today}`, () => computeHabitDay(habit, date, today)); }
 function computeHabitDay(habit: Habit, date: string, today: string) {
   const rule = habitRuleOn(habit, date); const entry = entryOn(habit, date); const count = entry?.count ?? 0; const target = rule?.target ?? 1;
@@ -326,7 +341,10 @@ function computeHabitDay(habit: Habit, date: string, today: string) {
     // Session X P2.1: today with nothing done (a check-in undone leaves a 0) is still open, not a result.
     const openToday = date === today && !!entry && count === 0 && rule.type === "build" && !result.complete;
     if (entry && !openToday) return { status: result.complete ? "complete" as const : result.failed ? "failed" as const : "partial" as const, count, target, note: entry.note, mood: entry.mood, scheduled };
-    if (date !== today || result.complete) return { status: "not-scheduled" as const, count, target, note: "", mood: undefined, scheduled: false };
+    // PR-093: a quit or limit habit stays open today while its period is within: more can still be logged (a weekly limit
+    // met on Monday was "Not scheduled" on Tuesday, with no way to log Tuesday's).
+    if (date !== today || (result.complete && rule.type === "build")) return { status: "not-scheduled" as const, count, target, note: "", mood: undefined, scheduled: false };
+    if (rule.type !== "build") return { status: result.failed ? "failed" as const : "due" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled };
     return { status: result.partial ? "partial" as const : "due" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled };
   }
   if (!entry) return { status: date === today ? "due" as const : "failed" as const, count, target, note: "", mood: undefined, scheduled };

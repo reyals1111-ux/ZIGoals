@@ -4930,6 +4930,9 @@
     .checklist-stepper-error:not(#\-) {
         color: var(--danger, #ffb3c4)
     }
+    .checklist-list-view > .checklist-streak-rule:not(#\-) {
+        color: var(--muted, #a9b6cc)
+    }
     .checklist-list-section:not(#\-) {
         --orbit: #9273ff
     }

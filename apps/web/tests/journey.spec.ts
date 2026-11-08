@@ -54,6 +54,9 @@ test('on: the level is derived from the records, three quests, badges and the pa
   await expect(page.getByRole('heading', {name: 'Quests', exact: true}).locator('..').getByRole('listitem')).toHaveCount(3);
   await expect(page.getByLabel('First step: earned')).toBeVisible();
   await expect(page.getByLabel('Seven in a row: earned')).toBeVisible();
+  // Session AL fifth pass (DV-045e, deliberate; as strict): the badges still to earn wait in a fold with their count.
+  await expect(page.getByLabel('Thirty in a row: not yet')).toBeHidden();
+  await page.locator('.journey-badges-ahead > summary').click();
   await expect(page.getByLabel('Thirty in a row: not yet')).toBeVisible();
   await expect(page.getByText('You are here')).toBeVisible();
   // A check-in on Habits: 190 → 200 XP, level 2, celebrated once; Undo takes the XP back.

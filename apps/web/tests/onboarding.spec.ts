@@ -13,11 +13,12 @@ async function today(page:Page){await page.goto('/app');await expect(page.locato
 test('a brand-new device sees the welcome on Today; Not now writes only the seen flag and it stays away',async({page})=>{
  await today(page);
  const welcome=card(page);await expect(welcome).toBeVisible();
- for(const name of ['Explore the demo','Not now'])await expect(welcome.getByRole('button',{name,exact:true})).toBeVisible();
+ // Session AL fifth pass (N-NB-01, deliberate): "Not now" reads "Skip setup", as every setup step says it.
+ for(const name of ['Explore the demo','Skip setup'])await expect(welcome.getByRole('button',{name,exact:true})).toBeVisible();
  await expect(welcome.getByRole('link',{name:'Start setup',exact:true})).toHaveAttribute('href','/app/welcome');
  await expect(welcome).toContainText('No wallet or account needed.');
  const before=await zigoalsKeys(page);
- await welcome.getByRole('button',{name:'Not now',exact:true}).click();await expect(welcome).toHaveCount(0);
+ await welcome.getByRole('button',{name:'Skip setup',exact:true}).click();await expect(welcome).toHaveCount(0);
  expect(await zigoalsKeys(page)).toEqual([...new Set([...before,KEY])].sort());
  expect(await page.evaluate(k=>localStorage.getItem(k),KEY)).toBe('{"version":1,"seen":true}');
  // Session AL (P-NB-08; NB-002, NB-033; deliberate): with nothing recorded and no setup made, Today keeps one way into
@@ -34,7 +35,7 @@ test('never for someone with records or a chosen Today, and never in Showcase',a
  // staying away below still rests on the saved Today choice alone, as before.
  // Session AL (P-NB-08, deliberate): after "Not now" an empty device shows the setup entry, not the chooser, so the Today
  // choice is saved as "Keep Balanced and continue" saved it (the Balanced layout, onboarded) before the flag is removed.
- await today(page);await expect(page.locator('.dashboard-welcome')).toHaveCount(0);await card(page).getByRole('button',{name:'Not now',exact:true}).click();
+ await today(page);await expect(page.locator('.dashboard-welcome')).toHaveCount(0);await card(page).getByRole('button',{name:'Skip setup',exact:true}).click();
  await expect(page.getByRole('region',{name:'Set up ZIGoals in about a minute.'})).toBeVisible();
  await page.evaluate(([k,v])=>localStorage.setItem(k!,v!),[DASHBOARD_SETTINGS_KEY,JSON.stringify({...presetSettings('balanced'),onboarded:true})]);
  await page.evaluate(k=>localStorage.removeItem(k),KEY);

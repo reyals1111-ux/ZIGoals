@@ -11,7 +11,7 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   await page.goto('/app');
   // Session AK (ADR-036 G2, RELEASE_REVIEW_2 R2-11, 15c1e159, deliberate): on a brand-new device "Make Today yours" waits
   // until the welcome is answered, so the welcome is answered first ("Not now"), as a person choosing a layout would.
-  await activate(page.getByRole('region', { name: 'Set up your first goal and habit in about a minute.' }).getByRole('button', { name: 'Not now', exact: true }));
+  await activate(page.getByRole('region', { name: 'Set up your first goal and habit in about a minute.' }).getByRole('button', { name: 'Skip setup', exact: true })); // N-NB-01 (deliberate): was "Not now"
   // Session AL (P-NB-08; NB-002, NB-033; deliberate): after "Not now" an empty device shows one setup entry, and "Make
   // Today yours" waits until something is recorded, so the Health-only layout is chosen from Customize Today's own preset
   // chooser (the same dialog and the same Apply), as tests/run10-widgets.spec.ts does.

@@ -10,7 +10,8 @@ test('NB-002: an empty device that said "Not now" still lands on a setup entry, 
   await emptyDevice(page, {welcomeSeen: false});
   await open(page, '/app');
   await expect(page.getByRole('heading', {name: 'Set up your first goal and habit in about a minute.'})).toBeVisible();
-  await page.getByRole('button', {name: 'Not now', exact: true}).click();
+  // Session AL fifth pass (N-NB-01, deliberate): the welcome's "Not now" reads "Skip setup", as every setup step says it.
+  await page.getByRole('button', {name: 'Skip setup', exact: true}).click();
   await page.reload(); await hydrated(page);
   const entry = page.getByRole('region', {name: 'Set up ZIGoals in about a minute.'});
   await expect(entry).toBeVisible();

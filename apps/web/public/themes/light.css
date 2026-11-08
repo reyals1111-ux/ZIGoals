@@ -4755,6 +4755,9 @@
     .checklist-stepper-error:not(#\-) {
         color: var(--danger-ink)
     }
+    .checklist-list-view > .checklist-streak-rule:not(#\-) {
+        color: var(--muted, #1b2332)
+    }
     .checklist-list-section:not(#\-) {
         --orbit: #9273ff
     }

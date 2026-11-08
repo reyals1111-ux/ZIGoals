@@ -41,7 +41,9 @@ export const habitCheckIn = {
     if (!habit) throw new Error("Habit unavailable.");
     const rule = habitRuleOn(habit, date);
     if (!rule) throw new Error("Habit is not active on this date.");
-    return logHabitValue(data, id, date, smartDoneValue(rule));
+    // Session AL fifth pass (PR-093): "Within limit" confirms the day as logged; it never wipes what was counted (it wrote 0).
+    const kept = rule.type === "limit" ? habit.entries.find((entry) => entry.date === date && entry.disposition === "logged")?.count ?? 0 : smartDoneValue(rule);
+    return logHabitValue(data, id, date, kept);
   },
 };
 

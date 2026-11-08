@@ -1,6 +1,6 @@
 import {test,expect,type Page} from '@playwright/test';
 import {openTodayWidgets} from './phone-nav';
-const welcomeNotNow=(page:Page)=>page.getByRole('region',{name:'Set up your first goal and habit in about a minute.'}).getByRole('button',{name:'Not now',exact:true}).click();
+const welcomeNotNow=(page:Page)=>page.getByRole('region',{name:'Set up your first goal and habit in about a minute.'}).getByRole('button',{name:'Skip setup',exact:true}).click(); // Session AL fifth pass (N-NB-01, deliberate): was "Not now"
 test.beforeEach(async({page})=>{await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));});
 test('Health-only setup persists and customization saves, hides, reorders and removes configuration',async({page},info)=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/app');
