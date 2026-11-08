@@ -39,6 +39,44 @@ The main baseline on :3102 is red on the specs tried (wealth 6/6 failed as expec
 - Builds need `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Load is high with many helpers, so unit timeouts under load are re-run alone.
 
+## Owner finish rules (8 Nov) — in force to the end (full text also in ADR-037)
+Override anything earlier that conflicts; the 5 Nov cost rules stay, tightened here.
+1. Recover first (the unpushed L7 commits and L7-5c's files, or a fresh checkout of 8a4d0252); record the case.
+2. At most 4 helpers at once; no helper for anything doable in under ~30 minutes.
+3. Never read FINAL-REPORT.md, a whole bot file, AL_SCOPE.md or a scope branch again; work only from ADR-037,
+   AL_RESUME.md, GROK53_LEDGER.md, the lane files and the replay files; one finding's steps by grepping its id.
+4. Replays cover only rows not yet FIXED/HOLDS in the closing table (a FIXED row only if its files changed since);
+   replay agents get a list of ids.
+5. One production build per integration point, shared by all runs.
+6. Each open row: at most 2 fix attempts after its round-2 verdict; then a targeted re-check, and if still open it closes
+   as "Carried to next session" with its cause in one line (listed in STATUS).
+7. CI: one re-run per known intermittent; WebKit engine crashes and slow-mirror cancellations are recorded, never chased;
+   a failing test gets at most 2 fix attempts, then it is recorded with its diagnosis in CI_INTERMITTENTS.md.
+8. No idle waiting on CI (check at most every 10 minutes); never hold a finished commit locally longer than 45 minutes.
+9. Order: recover → replay round 2 of the not-yet-FIXED rows for L3, L2, L5, L4, L6, L8 (closing table after each) → one
+   fix pass per lane → the L1 fifth pass (TK-199, TK-191 as its own TIER 3 headers commit, TK-024, TK-149, TK-196, D-155,
+   the 7 CHANGED).
+10. Part 13: finish the cross-module consistency rows. Part 14: browser-verify only EARLIER_SCOPE.md's not-working rows; fix.
+11. Part 15: build the TOP 40 web-possible roadmap/competitor items by value (tests and a closing row each); the rest as a
+    ranked list in docs/review/session-al/NEXT_SESSION_BACKLOG.md (owner decision 8 Nov).
+12. Part 16, scoped: one release review "as if 1.0" of Today, Quick add, Habits, Health logging, Goals, Wealth, Tasks, the
+    NOVA HUD and ZIGi at 390 and 1440 px; 8 journeys; a security delta review by 2 fresh reviewers limited to files changed
+    since 17069c7d in AI/NOVA, stored formats/backup/parsers and the shell/CSP. Fix Highs, Mediums, Majors, Minors.
+13. ONE A10 cycle; then the final replay: every row not FIXED plus every FIXED row whose files changed after its verdict.
+14. Part 17: full CI green on the final head, the STATUS final entry (closing-table summary and the "Carried to next
+    session" list), AL_DEMO_TOUR.md, the PR out of Draft, the short report.
+15. HUD: if hud-perf still fails on CI, lower the shimmer's frequency (approved); keep the panel glass blur.
+
+**Owner decision (8 Nov, rule 15) applied:** hud-perf read 33.3 ms again on CI 1586, so the HUD's shimmer pass moves 12
+times a second instead of 30 (components/nova/holo/holo.css; guard lib/nova/holo/ci15-perf.test.ts); the glass blur stays.
+
+## Recovery (8 Nov, rule 1)
+Case: the workspace survived the pause. The unpushed L7-5a (`2af57cbe`) and L7-5b (`0d10fdf2`) commits were there; typecheck
+and vitest lib/ai + lib/limits (1614 passed) ran clean; both pushed. L7-5c's working-tree files were intact and its agent was
+resumed; the L3 replay round 2 agent was resumed with its scope cut to the not-yet-FIXED ids (rule 4).
+CI 1586 (`8a4d0252`): hud-perf 33.3 ms (→ rule 15 shimmer change), WebKit zigi-states:75 (second failure → investigate,
+at most 2 attempts), WebKit zigi-oneline-z:282 and settings-switches-sweep:45 (first sightings → one re-run).
+
 ## Owner cost rules (5 Nov) — in force for the rest of the session
 - At most 4 helpers until the full CI on the head is green, then at most 5 (never 10).
 - Order: CI1–CI5 → CI green → ADR-037 closing table kept filled → replay round 2 for L2–L8 in the order L7, L3, L2, L5, L4, L6, L8 → after the reset: the L1 fifth pass (TK-199, TK-191 + 12 open rows), Parts 13–16, ONE A10 cycle, Part 17.

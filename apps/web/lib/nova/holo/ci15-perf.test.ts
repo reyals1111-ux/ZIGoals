@@ -23,12 +23,12 @@ describe('the HUD redraws only as often as its slow motions need (CI15)', () => 
     expect(parts).toMatch(/\.nova-frame\[data-hud-motion=full\] :is\(\.holo-orn, \.holo-lens\) \{ animation: holo-spin 90s linear infinite;/);
     expect(parts).toMatch(/\.nova-frame\[data-hud-motion=calm\] :is\(\.holo-orn, \.holo-lens\) \{ animation: holo-spin 270s linear infinite;/);
   });
-  it('the shimmer crosses in 30 steps a second on the same path (the 2% keyframe is where the linear pass was)', () => {
+  it('the shimmer crosses in about 12 steps a second on the same path (owner decision 8 Nov; the 2% keyframe is where the linear pass was)', () => {
     const kf = holo.match(/@keyframes holo-sheen \{[^\n]*\}/)?.[0] ?? '';
-    expect(kf).toContain('0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; animation-timing-function: steps(8); }');
-    expect(kf).toContain('2% { transform: translateX(-53.333%) skewX(-18deg); opacity: 1; animation-timing-function: steps(42); }');
+    expect(kf).toContain('0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; animation-timing-function: steps(3); }');
+    expect(kf).toContain('2% { transform: translateX(-53.333%) skewX(-18deg); opacity: 1; animation-timing-function: steps(17); }');
     expect(kf).toContain('12% { transform: translateX(380%) skewX(-18deg); opacity: 0; }');
-    expect((14 * 0.02) / 8).toBeCloseTo(1 / 30, 2); expect((14 * 0.1) / 42).toBeCloseTo(1 / 30, 2);
+    expect(3 / (14 * 0.02)).toBeLessThanOrEqual(12); expect(17 / (14 * 0.1)).toBeLessThanOrEqual(12.2);
     expect(-140 + 520 * (2 / 12)).toBeCloseTo(-53.333, 3);
   });
   it('the orb breathes the same eased curve in steps of 1/15 s', () => {
