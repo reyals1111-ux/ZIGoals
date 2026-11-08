@@ -1,4 +1,5 @@
 'use client';
+import {nativeZigMarketRef} from '../../lib/market-assets';
 import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
 import {explorerLinksFor} from '@zigoals/ecosystem-registry/links';
@@ -37,7 +38,7 @@ export function StakingClarity({reads, now}: {reads: readonly ClarityRead[]; now
   useEffect(() => {
     if (!realRows || prices.phase !== 'idle') return;
     setPrices({phase: 'reading'});
-    fetchPublicMarketHistory({marketRef: {provider: 'coingecko', kind: 'coin', id: 'zigchain'}, currency: 'USD', range: '1y'})
+    fetchPublicMarketHistory({marketRef: nativeZigMarketRef, currency: 'USD', range: '1y'}) // Session AL (C-DVG-69): ZIG is CoinGecko's "zignaly" ("zigchain" is not a coin there), the app's one ZIG ref
       .then(r => setPrices(r.history ? {phase: 'ok', points: r.history.points} : {phase: 'unavailable'}), () => setPrices({phase: 'unavailable'}));
   }, [realRows, prices.phase]);
   const priceAt = (at: string) => prices.phase === 'ok' ? priceOnDay(prices.points, at) : null;

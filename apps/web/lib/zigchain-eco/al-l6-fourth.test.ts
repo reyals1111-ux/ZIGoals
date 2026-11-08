@@ -72,3 +72,12 @@ describe('C-BN-01 / C-DVG-67: the stake dialog sorts and caps commission on fact
     expect(pickerOrder(list, 'commission', 0.075).map(x => x.moniker)).toEqual(['Beta', 'Gamma']);
   });
 });
+
+// Session AL (C-DVG-69, replay L6 round 2): the claim-day ZIG price is asked for CoinGecko's "zignaly" (the app's one ZIG
+// market ref); "zigchain" is no CoinGecko coin, so the price always read "unknown".
+import {readFileSync as readFileSyncDvg69} from 'node:fs';
+test('C-DVG-69: staking clarity reads ZIG history through nativeZigMarketRef, never the id "zigchain"', () => {
+  const source = readFileSyncDvg69(new URL('../../components/zigchain-eco/staking-clarity.tsx', import.meta.url), 'utf8');
+  expect(source).toContain('marketRef: nativeZigMarketRef');
+  expect(source).not.toMatch(/id: 'zigchain'/);
+});
