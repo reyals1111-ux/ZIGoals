@@ -13,7 +13,17 @@ export const MAX_ACTIONS = 500, ACTION_DAYS = 180;
 const stamp = z.iso.datetime();
 export const aiActionSchema = z.looseObject({activityId: z.string().min(1).max(200), kind: z.string().min(1).max(40), title: z.string().min(1).max(160), at: stamp,
   /** Session X-Local Part 5b: added by ZIGi under auto-accept, not by a tap. */
-  auto: z.boolean().optional()});
+  auto: z.boolean().optional(),
+  /**
+   * Session AL fifth pass (LA-029; additive, optional): 'nova' when the card was confirmed in NOVA's chat (Activity then says
+   * "by NOVA"); absent for ZIGi's, as every line before it. A plain bounded string, so a later value never fails an older build.
+   */
+  by: z.string().min(1).max(20).optional(),
+  /**
+   * Session AL fifth pass (MO-065; additive, optional): 'quick-add' for a line saved with Quick add under ZIGi's or NOVA's
+   * answer (no card); its `activityId` is the saved record's own id, and Activity lists it only while that record has its row.
+   */
+  via: z.string().min(1).max(20).optional()});
 export type AiAction = z.infer<typeof aiActionSchema>;
 export const aiActionsSchema = z.looseObject({version: z.literal(1), actions: z.array(aiActionSchema).max(MAX_ACTIONS).optional()});
 export type AiActions = z.infer<typeof aiActionsSchema>;

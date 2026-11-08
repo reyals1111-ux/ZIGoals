@@ -8,6 +8,7 @@ import {latestHabitRule} from '../lib/habits';
 import {parse, type QuickAddContext, type QuickAddKnown, type QuickAddResult} from '../lib/quick-add/parse';
 import {describeChoice, describeQuickAdd, savedLine} from '../lib/quick-add/describe';
 import {applyQuickAdd, type QuickAddStores, type QuickAddWrite} from '../lib/quick-add/save';
+import {newHealthId} from '../lib/health';
 import {storageMessageOr} from '../lib/storage-error-copy';
 import {formatClock} from '../lib/visual-format';
 import {plainErrorMessage} from '../lib/plain-error';
@@ -36,9 +37,23 @@ const QuickAddBundle = lazy(() => import('./quick-add-bundle').catch(() => ({def
  * `initialText`: they are previewed at once, and with `onlyIfUnderstood` nothing shows unless the parser understood them.
  * Nothing is written before Save, exactly as in Quick add.
  */
-export function QuickAddLine({initialText, onlyIfUnderstood = false, close, onUnderstood}: {initialText?: string; onlyIfUnderstood?: boolean; /** Closes Quick add when a confirmed goal opens the goal form. */ close?: () => void;
+/**
+ * Session AL fifth pass (MO-065, for L7): what one Save wrote, for ZIGi's and NOVA's actions log. `recordId` is the saved
+ * record's own Activity id (a water, weight or movement entry's id; `habit:<id>:<day>` for a habit day), so Activity marks
+ * that row and drops the line once the row is gone (Undo, Remove). A night or a counter has no such row here: null.
+ */
+export type QuickAddSaved = {kind: QuickAddKnown['kind']; title: string; recordId: string | null};
+export function savedRecordId(item: QuickAddKnown, write: QuickAddWrite, at: string, id: string): string | null {
+  if (item.kind === 'water' || item.kind === 'steps' || item.kind === 'activity') return id;
+  if (item.kind === 'weight') return write.health?.weights.find(w => w.updatedAt === at)?.id ?? null;
+  if (item.kind === 'habit') { const habit = write.habits?.habits.find(h => h.id === item.habitId), entry = habit?.entries.find(e => e.updatedAt === at); return habit && entry ? `habit:${habit.id}:${entry.date}` : null; }
+  return null;
+}
+export function QuickAddLine({initialText, onlyIfUnderstood = false, close, onUnderstood, onSaved}: {initialText?: string; onlyIfUnderstood?: boolean; /** Closes Quick add when a confirmed goal opens the goal form. */ close?: () => void;
   /** Session AL (BN-069, for L7): told once whether `initialText` was understood (a preview shows), so ZIGi can leave out its examples list above a real preview. */
-  onUnderstood?: (understood: boolean) => void} = {}) {
+  onUnderstood?: (understood: boolean) => void;
+  /** Session AL fifth pass (MO-065): told after a line is saved (ZIGi's and NOVA's answers note it in their actions log). */
+  onSaved?: (saved: QuickAddSaved) => void} = {}) {
   const health = useHealth(), habits = useHabits();
   const [text, setText] = useState(''), [result, setResult] = useState<QuickAddResult | null>(null), [chosen, setChosen] = useState<QuickAddKnown | null>(null);
   const [saved, setSaved] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false), [wake, setWake] = useState('');
@@ -85,15 +100,17 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false, close, onUn
   async function save(item: QuickAddKnown) {
     setBusy(true); setError('');
     try {
-      const now = new Date();
-      // A night's code (Sleep) loads only when a sleep line is saved (Session W Part 9).
-      const apply = item.kind === 'sleep' ? (await import('../lib/quick-add/sleep')).applyQuickAddSleep as (item: QuickAddKnown, stores: QuickAddStores, now: Date) => QuickAddWrite : applyQuickAdd;
+      const now = new Date(), id = newHealthId();
+      // A night's code (Sleep) loads only when a sleep line is saved (Session W Part 9). Session AL fifth pass (MO-065): one id
+      // for the preview and the write, so the record saved is the one named afterwards.
+      const apply = item.kind === 'sleep' ? (await import('../lib/quick-add/sleep')).applyQuickAddSleep as (item: QuickAddKnown, stores: QuickAddStores, now: Date) => QuickAddWrite : (i: QuickAddKnown, stores: QuickAddStores, at: Date) => applyQuickAdd(i, stores, at, id);
       const write = apply(item, {health: health.data, habits: habits.data}, now);
       // Session AL (P-LS-48, LS-041): every save offers Undo in the app's toast; it puts the store record back.
-      const line = savedLine(item, write.habitTotal);
-      if (write.health) await changeWithUndo(health.update, current => apply(item, {health: current, habits: habits.data}, now).health!, line, {undone: 'Removed again.'});
-      if (write.habits) await changeWithUndo(habits.update, current => apply(item, {health: health.data, habits: current}, now).habits!, line, {undone: 'Taken back.'});
+      const line = savedLine(item, write.habitTotal), written: QuickAddWrite = {};
+      if (write.health) await changeWithUndo(health.update, current => (written.health = apply(item, {health: current, habits: habits.data}, now).health!), line, {undone: 'Removed again.'});
+      if (write.habits) await changeWithUndo(habits.update, current => (written.habits = apply(item, {health: health.data, habits: current}, now).habits!), line, {undone: 'Taken back.'});
       setSaved(line); setResult(null); setChosen(null); setText(''); setWake('');
+      try { onSaved?.({kind: item.kind, title: line, recordId: savedRecordId(item, written, now.toISOString(), id)}); } catch { /* the record is saved; only the note is missing */ }
     } catch (cause) {
       const message = plainErrorMessage(cause, '');
       setError(/scheduled/.test(message) && item.kind === 'habit' && item.day === 'yesterday' ? 'That habit wasn’t scheduled yesterday.' : message ? storageMessageOr(cause, message) : 'This line was not saved. Nothing was changed.');

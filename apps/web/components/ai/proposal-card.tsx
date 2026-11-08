@@ -29,16 +29,24 @@ export type ProposalCardProps = {
   receiptDetail?: string;
   /** Session AF (L4, H30): the first Remember card says, once, how ZIGi keeps notes (the person's press is their agreement). */
   firstNote?: boolean;
+  /** Session AL fifth pass (BN-047): the card shows in NOVA's chat, so its notes name NOVA. */
+  assistant?: 'NOVA';
+  /** Session AL fifth pass (BN-047): NOVA's own "Health is not read here" (its Permissions switch or this device's gate). */
+  healthOff?: boolean;
 };
+/** The first Remember card's line, naming the assistant it shows in (NOVA's chat keeps notes in the same place). */
+export const firstNoteLine = (assistant?: 'NOVA') => assistant ? MEMORY_FIRST.replace(/^Your first note for ZIGi:/, `Your first note for ${assistant}:`) : MEMORY_FIRST;
+/** A Health card offered while Health is not shared still saves to Health on this device: said in the assistant's own name. */
+export const healthOffCardLine = (assistant?: 'NOVA') => `Health isn’t shared with ${assistant ?? 'ZIGi'}, but adding this card still saves it to Health on this device.`;
 const STATUS_TEXT: Record<Exclude<ProposalStatus, 'proposed'>, string> = {busy: 'Adding…', added: 'Added', undone: 'Undone', dismissed: 'Dismissed', opened: 'Opened in Wealth: review it and save it yourself', replaced: 'Replaced by the next reply', auto: 'Added by ZIGi (auto-accept)'};
 /** A kept note says where it went, on the full card (while its Undo window is open) and on its receipt alike. */
 const statusText = (status: Exclude<ProposalStatus, 'proposed'>, kind: string, opened?: string) => status === 'added' && kind === 'remember' ? 'Remembered: in What ZIGi knows about me' : status === 'opened' && opened ? opened : STATUS_TEXT[status];
-export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false, receipt = true, opened, receiptDetail, firstNote = false}: ProposalCardProps) {
+export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false, receipt = true, opened, receiptDetail, firstNote = false, assistant, healthOff: novaHealthOff}: ProposalCardProps) {
   const titleId = useId();
   const [editing, setEditing] = useState(false), [editError, setEditError] = useState('');
   // Session AL third pass (Lisbon LA-032, P-LA-06): a Health card offered while Health is not shared says that adding it
   // still saves to Health (the bot's own second fix: "Health is off; this will still save to Health").
-  const sharing = useAiSettings(), healthOff = sharing.loaded && !(sharing.data.pageShare.health && sharing.data.includeHealth);
+  const sharing = useAiSettings(), healthOff = novaHealthOff ?? (sharing.loaded && !(sharing.data.pageShare.health && sharing.data.includeHealth));
   if (!plan) return <article className="ai-card ai-card-refused" aria-labelledby={titleId}>
     <h4 id={titleId}>Nothing proposed</h4>
     <p>{refusal ?? 'This proposal could not be turned into a card.'}</p>
@@ -68,8 +76,8 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     <h4 id={titleId}>{card.title}</h4>
     <ul className="ai-card-lines">{card.lines.map((line, i) => <li key={i}>{line}</li>)}</ul>
     {card.safety && <p className="ai-card-safety">{card.safety}</p>}
-    {plan.target === 'health' && healthOff && status === 'proposed' && <p className="ai-card-note ai-card-health-off">Health isn’t shared with ZIGi, but adding this card still saves it to Health on this device.</p>}
-    {firstNote && status === 'proposed' && <p className="ai-card-note ai-card-first-note">{MEMORY_FIRST}</p>}
+    {plan.target === 'health' && healthOff && status === 'proposed' && <p className="ai-card-note ai-card-health-off">{healthOffCardLine(assistant)}</p>}
+    {firstNote && status === 'proposed' && <p className="ai-card-note ai-card-first-note">{firstNoteLine(assistant)}</p>}
     {editing ? <form className="ai-card-edit" onSubmit={save} aria-label={`Edit: ${card.title}`}>
       {fields.map(field => <EditField key={field.key} field={field} value={fieldText(action, field)}/>)}
       {editError && <p role="alert" className="ai-card-error">{editError}</p>}
@@ -77,7 +85,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     </form> : <div className="ai-card-actions">
       {status === 'proposed' ? <>
         {/* Session V Part 16: each button keeps its short name and is described by the card's title, so a list of buttons still says which card. */}
-        <button type="button" className="primary" onClick={onAdd} aria-describedby={titleId}>{/* Session AK (Part 12): a card that opens, plays or projects names its own button. */plan.ak?.button ?? (applies ? (card.kind === 'log-expense' || card.kind === 'log-income' ? 'Add' : card.kind === 'create-price-alert' ? 'Set alert' : card.kind === 'set-bill-reminder' ? 'Add reminder' : 'Apply') : plan.staking ? 'Open the review' : form && card.kind === 'open-page' && /^Open \S/.test(card.title) && card.title.length <= 40 ? card.title /* Session AL (DV-063b, P-DV-94): a page opens, not a form */ : form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add')}</button>
+        <button type="button" className="primary" onClick={onAdd} aria-describedby={titleId}>{/* Session AK (Part 12): a card that opens, plays or projects names its own button. */plan.ak?.button ?? (applies ? (card.kind === 'log-expense' || card.kind === 'log-income' ? 'Add' : card.kind === 'create-price-alert' ? 'Set alert' : card.kind === 'set-bill-reminder' ? 'Add reminder' : /^Add /.test(card.title) ? 'Add' /* Session AL fifth pass (N-LA-02): "Add to your Checklist: …" adds, as every other adding card says */ : 'Apply') : plan.staking ? 'Open the review' : form && card.kind === 'open-page' && /^Open \S/.test(card.title) && card.title.length <= 40 ? card.title /* Session AL (DV-063b, P-DV-94): a page opens, not a form */ : form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add')}</button>
         {fields.length > 0 && <button type="button" className="secondary" onClick={() => setEditing(true)} aria-describedby={titleId}>Edit</button>}
         <button type="button" className="text-link" onClick={onDismiss} aria-describedby={titleId}>Dismiss</button>
       </> : <span className="ai-card-status">{statusText(status, card.kind, opened)}</span>}

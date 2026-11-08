@@ -20,6 +20,7 @@ import {parseBlocks, plainText} from '../../../lib/ai/safe-render';
 import type {DelegatedTurn} from '../../../lib/nova/bridge';
 import {DataViz} from '../../ai/data-viz';
 import {ProposalList} from '../../ai/proposal-list';
+import {HEALTH_LINE, healthOffQuickAdd, noteQuickAdd} from '../../ai/quick-add-note';
 import {ReplyIcon, ReplyMore} from '../../ai/reply-actions';
 import {SafeText} from '../../ai/safe-text';
 // Session AL (lane L7; MO-060/P-MO-03): NOVA shows careful mode's note under the person's message, as ZIGi does.
@@ -43,7 +44,8 @@ const QuickAddLine = lazy(() => import('../../quick-add-line').then(m => ({defau
 const PERMISSIONS_HASH = 'nova-permissions';
 export type TurnCommon = {session: ChatSession; runner: ReturnType<typeof useProposals>; autoAccept: AutoAccept; persona: NovaPersona; providerName: string;
   reader: ReturnType<typeof useReadAloud>; onNavigate: () => void; onAsk: (question: string) => void; connected: boolean;
-  /** Session AK P4 (FR-22): the turn that was the first answer from the person's own local model (once per device). */ firstLocalReply?: string | null};
+  /** Session AK P4 (FR-22): the turn that was the first answer from the person's own local model (once per device). */ firstLocalReply?: string | null;
+  /** Session AL fifth pass (LA-032): Health is not read by NOVA (NOVA → Permissions or this device's gate). */ healthOff?: boolean};
 export function NovaUserTurn({turn, mark, persona, onEdit}: {turn: ChatTurn; mark?: DelegatedTurn; persona: NovaPersona; onEdit?: () => void}) {
   return <>
     <article className="nova-turn nova-turn-user" aria-label="You">
@@ -105,7 +107,9 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
         {common.firstLocalReply === turn.id && turn.model && <p className="fine nova-first-local">{firstLocalReplyLine(turn.model)}</p>}
         {/* Session AL second pass (Moscow NP-06/07/08, Lisbon LA-037; P-MO-06, P-LA-23): with no model, NOVA's last on-device
             answer offers the same Quick add line as ZIGi's, under the same rule (never under a question, a careful topic or a guarded message). */}
-        {local && !connected && isLast && !busy && asked && quickAddOffered(asked, {guarded: !!guardMessage(asked), careful: !!detectRisk(asked)}) && quickAddUnder(reply) && <div className="ai-quick-add"><LoadBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={asked} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)}/></Suspense></LoadBoundary></div>}
+        {local && !connected && isLast && !busy && asked && quickAddOffered(asked, {guarded: !!guardMessage(asked), careful: !!detectRisk(asked)}) && quickAddUnder(reply) && <div className="ai-quick-add"><LoadBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={asked} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)} onSaved={saved => { try { noteQuickAdd(saved, 'NOVA'); } catch { /* the line is saved; only the note is missing */ } }}/></Suspense></LoadBoundary>
+          {/* Session AL fifth pass (LA-032, #280–289d): with Health not read by NOVA, the preview says first that Save still saves to Health. */}
+          {cardShown && common.healthOff && HEALTH_LINE.test(asked) && <p className="ai-note">{healthOffQuickAdd('NOVA')}</p>}</div>}
         {!local && <MoneyNote text={parsed.text}/>}
         <SourceLine short={short} full={full}/>
         {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}

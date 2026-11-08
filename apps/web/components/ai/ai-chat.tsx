@@ -84,6 +84,7 @@ import {localDate} from '../../lib/local-date';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
 // Session AL (lane L7; ZI1 family): no Quick add preview under a question, a negation, a careful topic or a guarded message.
 import {guardMessage} from '../../lib/ai/safety-guard';
+import {keepsAsAsk} from './ask-record';
 import {quickAddUnder, quickAddOffered} from '../../lib/ai/actions/decline';
 import {readDraft, writeDraft} from '../../lib/ai/composer-draft';
 import {PremiumBadge} from '../plans/premium-badge';
@@ -173,6 +174,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   const healthShared = !!context.gates.health;
   const asked = useCallback((text: string) => {
     if (sensitive || !session.kept) return; // G1 #20: a chat that is not kept leaves no frequent question behind
+    if (!keepsAsAsk(text)) return; // Session AL fifth pass: guarded words (distress, harm, a secret) are never kept as an ask
     try {
       // Nothing is written when nothing is kept (a Health question while Health is not shared, a command, a very short text).
       const storage = getAppStorage(), current = readDeviceRecord(storage, ZIGI_SUGGESTIONS).data, next = recordAsk(current, text, Date.now(), {healthShared});
@@ -455,7 +457,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
       {chips.length > 0 && !quiet && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
-      {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && quickAddUnder(reply) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)}/></Suspense></ZigiPartBoundary>{cardShown && !context.gates.localHealth && HEALTH_LINE.test(question) && <p className="ai-note">Health isn’t shared with ZIGi, but saving this line still saves it to Health.</p>}</div>}
+      {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && quickAddUnder(reply) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)} onSaved={saved => { try { noteQuickAdd(saved, 'ZIGi'); } catch { /* the line is saved; only the note is missing */ } }}/></Suspense></ZigiPartBoundary>{cardShown && !context.gates.localHealth && HEALTH_LINE.test(question) && <p className="ai-note">{healthOffQuickAdd('ZIGi')}</p>}</div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
         <summary>What your AI sees if you ask for more</summary>
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
@@ -610,6 +612,7 @@ function InfoGlyph() {
 import {forwardRef} from 'react';
 import {formatClock} from '../../lib/visual-format';
 import {quickLogReply} from '../../lib/quick-log/multi';
+import {HEALTH_LINE, healthOffQuickAdd, noteQuickAdd} from './quick-add-note';
 import {questionLanguage} from '../../lib/ai/local-answers/no-model';
 import {quickLogContext} from '../../lib/quick-log/context';
 /** The microphone, drawn in the nebula stroke; a square while listening (tap to stop). */
@@ -625,8 +628,8 @@ function MicGlyph({on}: {on: boolean}) {
 export type ComposerExtra = {images?: readonly ChatImage[]; log?: boolean; direct?: boolean; plan?: boolean; replace?: string};
 /** The last question put back in the composer to be edited (Session V Part 10); `seq` tells two edits of one turn apart. */
 type Editing = {id: string; text: string; seq: number};
-/** Session AL fourth pass (L7-4b; Lisbon #280–289d, LA-032): a line Quick add saves to Health (water, a run, sleep, weight, food). */
-const HEALTH_LINE = /\b(?:water|glass(?:es)?|ml|litres?|liters?|ran|run|walked|walk|km|steps?|slept|sleep|weigh\w*|kg|lbs?|ate|eat|breakfast|lunch|dinner|snack|kcal|calories|workout|push-?ups?)\b/i;
+// Session AL fourth pass (L7-4b; Lisbon #280–289d, LA-032): a line Quick add saves to Health; the words and the note now live
+// in quick-add-note.ts, shared with NOVA's chat (fifth pass).
 const NEEDS_AI = 'This command needs your own AI connected (Settings → ZIGi · Your Personal AI Companion). Here, ZIGi answers questions about your records on this device, with no AI.';
 /** /remember: the person's words as a "Remember this?" card, in the same action block an AI reply would use (Session V Part 10). */
 // Session AL fourth pass (L7-4b; N-MO-04): the note's category is read from its words (lib/ai/local-answers/al-fourth.ts).
@@ -775,7 +778,8 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
       {mic && <button type="button" className={`secondary ai-mic${talking ? ' ai-mic-on' : ''}`} aria-label={micLabel} title={micLabel} aria-pressed={talking} disabled={!voice.available || voice.state === 'transcribing'} onClick={!phone ? toggleMic : undefined}
         onPointerDown={phone ? onMicDown : undefined} onPointerUp={phone ? onMicUp : undefined} onPointerCancel={phone ? () => { pressStart.current = null; voice.cancel(); } : undefined} onKeyDown={phone ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMic(); } } : undefined}>
         <span aria-hidden="true">{talking ? '■' : '🎙'}</span></button>}
-      {busy ? <button type="button" className="secondary" onClick={session.stop}>Stop</button> : <button type="submit" className="primary" disabled={!text.trim() && !attached}>{logMode ? 'Log' : 'Send'}</button>}
+      {/* Session AL fifth pass (BN-045): two elements, and Stop never submits (words typed during a reply stay unsent). */}
+      {busy ? <button key="stop" type="button" className="secondary" onClick={event => { event.preventDefault(); session.stop(); }}>Stop</button> : <button key="send" type="submit" className="primary" disabled={!text.trim() && !attached}>{logMode ? 'Log' : 'Send'}</button>}
     </div>
     {phone && mic && voice.available && <p className="ai-note ai-one-line" title="Hold the microphone to talk and release to stop, or tap once to start and once to stop."><span aria-hidden="true">Hold the mic to talk, or tap to start and stop.</span><span className="ai-sr-only">Hold the microphone to talk and release to stop, or tap once to start and once to stop.</span></p>}
   </form>;

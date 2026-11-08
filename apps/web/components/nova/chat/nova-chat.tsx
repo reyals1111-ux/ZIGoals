@@ -129,7 +129,10 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   // (`localHealth`: the switch, "Include Health", the layout, the account), not `health`, which is also false whenever no
   // model is connected; before, a diet note was refused with "while Health is not shared" although it was. Each path still
   // sends a Health-tagged note only through its own gate.
-  const session = useChatSession({settings: data, scope, context, nova}), runner = useProposals({surface: 'nova', healthShared: context.gates.localHealth}), autoAccept = useAutoAccept(context.gates.health);
+  // Session AL fifth pass (BN-047, LA-032): Health is read by NOVA only with NOVA → Permissions → Health AND this device's
+  // Health gate; otherwise a Health card or a Quick add line says, in NOVA's name, that saving still saves to Health.
+  const novaHealthOff = !(scopesNow.health && context.gates.localHealth);
+  const session = useChatSession({settings: data, scope, context, nova}), runner = useProposals({surface: 'nova', healthShared: context.gates.localHealth, healthOff: novaHealthOff}), autoAccept = useAutoAccept(context.gates.health);
   // G1 #20: a task handed over in a chat that is not kept is marked in memory only (`unkeptMarks`), never in the bridge record.
   const [unkeptMarks, setUnkeptMarks] = useState<Record<string, DelegatedTurn>>({});
   const bridge = useDeviceRecord(NOVA_BRIDGE), marks = useMemo(() => ({...(bridge.data.delegated ?? {}), ...unkeptMarks}), [bridge.data.delegated, unkeptMarks]), speechOn = speechInputOn(bridge.data);
@@ -330,7 +333,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     const model = t.model;
     try { setupRec.update(r => noteFirstLocalReply(r, t.id, model, new Date(), todayLocal())); } catch { /* the mark waits for the next reply */ }
   }, [lastAssistant, busy, setupRec, marks, novaBrain.kind]);
-  const common: TurnCommon = {session, runner, autoAccept, persona, providerName, reader, connected, onNavigate: () => onClose?.(), onAsk: question => ask(question), firstLocalReply};
+  const common: TurnCommon = {session, runner, autoAccept, persona, providerName, reader, connected, onNavigate: () => onClose?.(), onAsk: question => ask(question), firstLocalReply, healthOff: novaHealthOff};
   const startNew = () => { session.startNew(); setView('chat'); setEditing(null); setDuo(DUO_IDLE); composer.current?.focus(); };
   const status = connected ? `via ${providerName} · ${data.model ?? ''}` : 'On-device answers';
   const failureRetry = session.failure && !['blocked', 'full', 'not-connected', 'missing-key'].includes(session.failure.kind) && session.chat.turns.at(-1)?.role === 'user';

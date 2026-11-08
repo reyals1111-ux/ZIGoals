@@ -78,6 +78,15 @@ const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a 
  * no card outcome under its reply (`replyId` is ignored, so no ZIGi plan note either), and a "Remember this?" card is not
  * offered (it would keep words from the chat in What ZIGi knows about me); it says why instead. Every other card works as usual.
  */
+/**
+ * Session AL fifth pass (DVR:Z-065): what the toast says once a card is added. A note says what was kept ("Remembered: I am
+ * vegetarian, allergic to peanuts."), never the card's question ("Added: Remember this?."); every other card names its title.
+ */
+export function addedLine(plan: Pick<Plan, 'card'>): string {
+  if (plan.card.kind !== 'remember') return `Added: ${plan.card.title}.`;
+  const note = (plan.card.lines[0] ?? '').replace(/\s+/g, ' ').trim();
+  return note ? `Remembered: ${note.length > 80 ? `${note.slice(0, 79).trimEnd()}…` : note.replace(/[.!?…]$/, '')}.` : 'Remembered.';
+}
 export const UNKEPT_MEMORY = 'Not offered: this chat is not kept, so nothing from it goes into what ZIGi remembers. To keep a note, add it yourself in What ZIGi knows about me.';
 /**
  * `undoToast` (Session AL, DV-071): the Undo of what was added is the app's one toast (showUndo) instead of the inline
@@ -180,14 +189,14 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
       catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be changed.'}); return; }
       if (opened !== null) {
         // Owner follow-up 2 (N5, lane NE): a card that wrote a device record and carries its inverse shows Undo like a journal card.
-        if (!opened.navigated && deviceUndoOf(plan)) { const added = {...item, status: 'added' as const, error: null, after: runner.stores}; latest.current.items = latest.current.items.map(i => i.id === item.id ? added : i); patch(item.id, {status: 'added', error: null, after: runner.stores}); offer([item.id], `Added: ${plan.card.title}.`, [plan]); countZigi('card-added'); return; }
+        if (!opened.navigated && deviceUndoOf(plan)) { const added = {...item, status: 'added' as const, error: null, after: runner.stores}; latest.current.items = latest.current.items.map(i => i.id === item.id ? added : i); patch(item.id, {status: 'added', error: null, after: runner.stores}); offer([item.id], addedLine(plan), [plan]); countZigi('card-added'); return; }
         patch(item.id, {status: 'opened', error: null, opened: opened.text}); announce(opened.text); return; }
       onNavigate?.(); const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); return; }
     patch(item.id, {status: 'busy', error: null});
     const before = runner.stores.habits;
     try { const after = await runner.apply(plan); latest.current.items = latest.current.items.map(i => i.id === item.id ? {...i, status: 'added', after} : i); patch(item.id, {status: 'added', after});
       // Session AA-Local Part 5: a journal card may also carry a device-record change (the coach's weekly answer beside its target); it follows the write.
-      if (plan.device) { try { runner.effect?.(plan); } catch { /* the journal write stands; the record can be changed on its page */ } } zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); offer([item.id], `Added: ${plan.card.title}.`, [plan]); countZigi('card-added'); }
+      if (plan.device) { try { runner.effect?.(plan); } catch { /* the journal write stands; the record can be changed on its page */ } } zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); offer([item.id], addedLine(plan), [plan]); countZigi('card-added'); }
     catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be written.'}); }
   }, [announce, offer, onNavigate, patch, runner]);
   const addAll = useCallback(async () => {
@@ -260,7 +269,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
       onSkipRest={() => { setItems(current => current.map(i => bundleIds.has(i.id) && i.status === 'proposed' ? {...i, status: 'dismissed'} : i)); announce('The rest of this plan was skipped; nothing was written.'); }}/>}
     {(() => {
       const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} opened={item.opened} fromPhoto={fromPhoto} receipt={!(live && undoGroup!.ids.includes(item.id))} receiptDetail={item.edited && !item.after ? 'edited' : undefined}
-        onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => { patch(item.id, {status: 'dismissed'}); countZigi('card-dismissed'); }} onEdit={action => edit(item, action)} firstNote={item.action.kind === 'remember' && memoryConsent(runner.stores.memory) === 'unasked'}/>;
+        onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => { patch(item.id, {status: 'dismissed'}); countZigi('card-dismissed'); }} onEdit={action => edit(item, action)} firstNote={item.action.kind === 'remember' && memoryConsent(runner.stores.memory) === 'unasked'} assistant={runner.assistant} healthOff={runner.healthOff}/>;
       const waiting = earlier ? items.filter(item => item.status === 'proposed') : [];
       if (!waiting.length) return items.map(card);
       // Folded, the cap note leads: it says why the earlier cards wait, and stays in view above the fold.

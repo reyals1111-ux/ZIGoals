@@ -128,11 +128,18 @@ test.describe('desktop (Lisbon, Denver: 1280)', () => {
     await expect(page.locator('[data-setup-panel="scopes"]')).toBeVisible();
     const check = page.getByRole('button', {name: 'Check what NOVA sees'});
     await check.scrollIntoViewIfNeeded();
-    await expect(page.getByText(/No model is connected yet, so nothing is sent and this stays empty/)).toBeVisible();
+    // Session AL fifth pass (L7-5c; LA-003 CHANGED in GROK53_REPLAY_L7_2, deliberate): the preview no longer shows the empty
+    // pack's "Not shared with NOVA: Today…; Goals…" for areas that are on; it says nothing is sent and what NOVA reads once a
+    // model is connected, from the same state as the check. Equally strict: the note, the lines, and no "Not shared" for on areas.
+    const sees = page.locator('[data-setup-panel="scopes"] .nova-sees');
+    await expect(sees.getByText(/^No model is connected yet, so nothing is sent\. Once one is, this shows exactly/)).toBeVisible();
+    await expect(sees.locator('.nova-guide-send-text')).toContainText('- Once one is, NOVA reads: Today, agenda, tasks, focus, music and chess; Goals and their pace; Habits and streaks; Wealth');
+    await expect(sees.locator('.nova-guide-send-text')).toContainText('- Not shared with NOVA (NOVA → Permissions): Health');
+    await expect(sees.locator('.nova-guide-send-text')).not.toContainText(/Not shared with NOVA[^\n]*(Today|Goals|Habits|Wealth)/);
     await check.click();
     // CI12: the check's result line starts with the check row's verdict ("Checked: it works.", components/nova/setup/check-row.tsx),
     // so the note is matched right after it (was: anchored at the line's start, which no result line ever is).
-    await expect(page.getByText(/^Checked: it works\. No model is connected yet, so nothing is sent and the preview is empty\. Once one is, NOVA reads .*Habits/)).toBeVisible();
+    await expect(page.getByText(/^Checked: it works\. No model is connected yet, so nothing is sent and the preview is empty\. Once one is, NOVA reads .*Habits.*Health: off\./)).toBeVisible(); // fifth pass: the note is whole (was cut at "Health:")
     await expect(page.getByText(/page switch under Settings .* is off/)).toHaveCount(0);
   });
 

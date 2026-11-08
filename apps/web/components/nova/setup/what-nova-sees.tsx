@@ -8,6 +8,7 @@ import {previewFor, type PrivacyMode} from '../../../lib/nova/privacy-mode';
 import {novaPackInput} from '../../../lib/nova/bridge-pack';
 import {scopesOf} from '../../../lib/nova/scopes';
 import {NOVA_SETUP} from '../../../lib/nova/setup';
+import {beforeModelText} from '../../../lib/nova/setup-scopes';
 import {getAppStorage} from '../../../lib/showcase-storage';
 import {useChainChoice} from '../../chain/use-chain-choice';
 import {useAiContext} from '../../ai/use-ai-context';
@@ -52,7 +53,12 @@ export function WhatNovaSees({sees}: {sees: NovaSees}) {
   return <div className="nova-sees nova-guide-send" data-decision={sees.refused ? 'refuse' : undefined}>
     <p className="ai-note">About {pack.estimatedTokens.toLocaleString('en-US')} tokens (an estimate) · {pack.included.length ? `${pack.included.length} part${pack.included.length === 1 ? '' : 's'} of your life` : 'nothing attached'}{pack.overBudget.length ? ' · some read only when asked, to keep it short' : ''}.</p>
     <p className="nova-guide-send-line"><b>{sees.line}</b></p>
-    {!sees.connected && !pack.included.length && <p className="ai-note">No model is connected yet, so nothing is sent and this stays empty. Once one is, it shows exactly what NOVA’s prompt carries from the areas switched on.</p>}
-    {!sees.refused && <pre className="nova-guide-send-text" tabIndex={0} aria-label="Exactly what NOVA's prompt carries">{pack.text}</pre>}
+    {/* Session AL fifth pass (LA-003, DV-062, MO-058, X3-11, X3-23): before a model is connected nothing is sent (the pack,
+        the send's own input, is empty), so the preview no longer shows that empty pack's "Not shared with NOVA: Today…;
+        Goals…" list for areas that are on; it shows what the check below says, from the same sharing state. */}
+    {!sees.connected && !pack.included.length ? <>
+      <p className="ai-note">No model is connected yet, so nothing is sent. Once one is, this shows exactly what NOVA’s prompt carries from the areas switched on.</p>
+      <pre className="nova-guide-send-text" tabIndex={0} aria-label="What NOVA reads once a model is connected">{beforeModelText(sees.scopes, sees.chainChosen, sees.healthGate)}</pre>
+    </> : !sees.refused && <pre className="nova-guide-send-text" tabIndex={0} aria-label="Exactly what NOVA's prompt carries">{pack.text}</pre>}
   </div>;
 }

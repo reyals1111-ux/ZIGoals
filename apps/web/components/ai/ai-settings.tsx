@@ -50,10 +50,13 @@ const ENTITLEMENT_LABEL = entitlementOf('hosted').label;
  */
 /** Panel polish round 2: a switch's name is one short line; a part in brackets becomes its description ("Food entries", "Typed or from a photo."). */
 const switchLabel = (text: string): [string, string | undefined] => { const m = /^(.+?) \((.+)\)$/.exec(text); return m ? [m[1]!, `${m[2]![0]!.toUpperCase()}${m[2]!.slice(1)}.`] : [text, undefined]; };
-const PAGE_NOTES: Record<PageArea, string> = {
-  today: 'what is due today and what you did: open habits, today\'s water, steps and meals as counts, goals with their next dates',
+export const PAGE_NOTES: Record<PageArea, string> = {
+  // Session AL fifth pass (LA-038): Tasks, the Agenda, the Checklist and Focus are Today's pages (lib/ai/context/pages.ts
+  // `pageArea`); their tasks, agenda and focus sessions are read under this switch (tools `tasks`, `agenda`,
+  // `focus_sessions` have area 'today'); the Checklist's dots are habits, read under Habits (`checklist_today`, area 'habits').
+  today: 'what is due today and what you did: open habits, today\'s water, steps and meals as counts, goals with their next dates. Tasks, the Agenda, the Checklist and Focus come under Today: their tasks, agenda and focus sessions are read with this switch',
   goals: 'each goal\'s name, target, progress and next planned date; never account, wallet or chain details',
-  habits: 'each habit\'s title, schedule, target, today\'s state and streak',
+  habits: 'each habit\'s title, schedule, target, today\'s state and streak; also the Checklist\'s dots, done and open (Health dots only with Include Health)',
   health: 'today\'s diary as names and counts, water, weight, steps, measurements, fasting; only with Include Health',
   wealth: 'tracked holdings by name and class with your recorded values, one total per currency; Portfolio as Real or Hypothetical; prices only as the page shows them',
   help: 'the Help notes about how ZIGoals works; no records',

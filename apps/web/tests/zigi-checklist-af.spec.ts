@@ -42,7 +42,8 @@ test('typed, English and Dutch: tick the person\'s own item, add one in their wo
   expect((await stored(page, CHECKLIST_DAYS_KEY))!.today).toMatchObject({date: DAY, custom: ['ck_push']});
   await say(page, 'zet 5 bladzijden lezen op mijn lijst');
   await expect(lastLocal(page)).toContainText('Op je Checklist zetten · 5 bladzijden lezen.');
-  await card(page).getByRole('button', {name: 'Apply'}).click();
+  // Session AL fifth pass (N-LA-02, deliberate): a card titled "Add to your Checklist: …" says Add, as other adding cards do.
+  await card(page).getByRole('button', {name: 'Add', exact: true}).click();
   await expect(card(page)).toContainText('On your Checklist: 5 bladzijden lezen');
   expect((await stored(page, CHECKLIST_KEY))!.items.filter((i: {kind: string}) => i.kind === 'custom').map((i: {label: string}) => i.label)).toEqual(['Push-ups', 'Buy running shoes', '5 bladzijden lezen']);
   await say(page, 'favourite walk');

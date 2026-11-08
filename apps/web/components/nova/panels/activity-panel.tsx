@@ -11,7 +11,7 @@ import './panels.css';
 export default function ActivityPanel() {
   const [limit, setLimit] = useState(20);
   return <div className="nova-activity">
-    <p className="ai-note">Each line is a card you confirmed in NOVA or ZIGi. Remove a log here (with Undo), open the record to change it, or use Undo on the card while it shows.</p>
+    <p className="ai-note">Each line is a card you confirmed, or a line you saved with Quick add, in NOVA or ZIGi. Remove a log here (with Undo), open the record to change it, or use Undo on the card while it shows.</p>
     <ActivityFeed category="ZIGI" limit={limit} onMore={() => setLimit(n => n + 20)}/>
   </div>;
 }
