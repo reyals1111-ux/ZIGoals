@@ -28,6 +28,9 @@ const SELF_HARM = [
   /\bbeter af zonder mij\b|\bbeter zonder mij af\b/, /\bnooit meer wakker (te )?worden\b/, /\bsu[iï]ci(de|daal|dale)\b/, /\bmezelf (ophangen|op te hangen|doodmaken|dood maken|te doden|doden|verdrinken)\b/, /\bvoor (de|een) trein (springen|te springen|spring)\b/,
   // The English forms the same review found missing.
   /\b(hang|hanging|drown|drowning) myself\b/, /\b(shoot|shooting) myself (in the head|dead)\b/, /\bjump(ing)? (off|in front of) (a|the) (bridge|train|building|roof|car)\b/, /\bdon'?t want to (exist|wake up) (anymore|any more|again)\b/,
+  // Security delta A (SA-5, 8 Nov): "i wanna die", and "kms" only after a verb that wants it ("I'm gonna kms"); "I ran 5 kms"
+  // and "I'm gonna die laughing" stay ordinary.
+  /\bi (just |really |kinda |honestly |seriously )?(wanna|want ta) die\b/, /\b(wanna|want to|gonna|going to|about to|might|will|should) kms\b/,
   /\bzelfmoord\b/, /\bdood willen\b/, /\bme suicider\b/, /\benvie de mourir\b/, /\bselbstmord\b/, /\bmich umbringen\b/, /\bsterben wollen\b/, /\bnicht mehr leben\b/, /\bniet meer leven\b/, /\bplus envie de vivre\b/,
 ];
 const EATING_DISORDER = [
@@ -94,7 +97,7 @@ function extremeFasting(text: string): boolean {
 }
 /** The first topic the words touch, most serious first; null for anything else. */
 export function detectRisk(raw: string): RiskTopic | null {
-  const text = raw.toLowerCase().replace(/[’`]/g, "'").replace(/\s+/g, ' ');
+  const text = raw.toLowerCase().replace(/[’‘ʼ`´]/g, "'").replace(/\s+/g, ' ');
   if (SELF_HARM.some(p => p.test(text))) return 'self-harm';
   if (EATING_DISORDER.some(p => p.test(text))) return 'eating-disorder';
   if (veryLowIntake(text)) return 'very-low-intake';

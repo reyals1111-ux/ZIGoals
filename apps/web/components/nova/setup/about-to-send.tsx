@@ -18,7 +18,7 @@ import {useDeviceRecord} from '../../ai/use-device-record';
 export function AboutToSend({message, context = '', mode, provider, model = null, baseUrl = null, hosted = false, hermesUnconfirmed, knownNames, assistant = 'NOVA', contextLabel = 'With it, the context', hideWhenSent = false}: {message: string; context?: string; mode: PrivacyMode | null; provider: ProviderId | null | undefined; model?: string | null; baseUrl?: string | null; hosted?: boolean; hermesUnconfirmed?: boolean; knownNames?: readonly string[]; assistant?: string; contextLabel?: string; hideWhenSent?: boolean}) {
   const hermes = useDeviceRecord(NOVA_HERMES);
   const names = useMemo(() => knownNames ?? knownNamesFrom(noteTexts()), [knownNames]);
-  const unconfirmed = hermesUnconfirmed ?? (provider === 'local' && !hosted && !!baseUrl && isHermesBase(baseUrl, hermes.data) && (hermes.unreadable || !localModelStillConfirmed(hermes.data)));
+  const unconfirmed = hermesUnconfirmed ?? (provider === 'local' && !hosted && !!baseUrl && isHermesBase(baseUrl, hermes.data) && (hermes.unreadable || !localModelStillConfirmed(hermes.data, baseUrl))); // SA-1: as the engine, for this address
   const preview = useMemo(() => previewFor({message, context, mode, provider, model, hosted, hermesUnconfirmed: unconfirmed, knownNames: names, assistant}), [message, context, mode, provider, model, hosted, unconfirmed, names, assistant]);
   if (hideWhenSent && preview.decision === 'send') return null;
   return <div className="nova-guide-send" data-decision={preview.decision} aria-live="polite">

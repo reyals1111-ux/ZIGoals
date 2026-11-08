@@ -46,10 +46,12 @@ type Request = {system: string; systemBlocks?: readonly {text: string; cache?: b
  * provider's raw turn) are checked and hidden too; names, roles and signatures stay as they are.
  */
 const KEEP = /^(?:role|name|id|type|call_?id|tool_?call_?id|thought_?signature|signature)$/i;
-function eachString(value: unknown, fn: (text: string) => string, key = ''): unknown {
-  if (typeof value === 'string') return KEEP.test(key) ? value : fn(value);
-  if (Array.isArray(value)) return value.map(v => eachString(v, fn, key));
-  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, eachString(v, fn, k)]));
+/** Security delta A (SA-6, 8 Nov): inside a call's own arguments (Gemini's `functionCall.args`) every string is read, whatever its key. */
+const ARGUMENTS = /^(?:args|arguments)$/i;
+function eachString(value: unknown, fn: (text: string) => string, key = '', inArguments = false): unknown {
+  if (typeof value === 'string') return !inArguments && KEEP.test(key) ? value : fn(value);
+  if (Array.isArray(value)) return value.map(v => eachString(v, fn, key, inArguments));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, eachString(v, fn, k, inArguments || ARGUMENTS.test(k))]));
   return value;
 }
 const turnStrings = (m: Request['messages'][number]): string[] => { const out: string[] = []; eachString({args: (m.toolCalls ?? []).map(c => c.arguments), raw: m.raw}, t => { out.push(t); return t; }); return out; };

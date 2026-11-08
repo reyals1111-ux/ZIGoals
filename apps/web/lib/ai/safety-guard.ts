@@ -38,21 +38,24 @@ export type GuardTopic = 'emergency' | 'distress' | 'medicine' | 'harm' | 'threa
 export type GuardLanguage = 'en' | 'nl';
 export type GuardReply = {topic: GuardTopic; lang: GuardLanguage; text: string};
 
-const norm = (raw: string) => raw.toLowerCase().normalize('NFKC').replace(/[’`´]/g, "'").replace(/\s+/g, ' ').trim();
+const norm = (raw: string) => raw.toLowerCase().normalize('NFKC').replace(/[’‘ʼ`´]/g, "'").replace(/\s+/g, ' ').trim();
 
 // ---- emergency: red-flag symptoms (EN + NL); a match is not a diagnosis, it leans to "call" ----
 const EMERGENCY: RegExp[] = [
   /\bchest (?:pain|pains|tightness|pressure|is (?:tight|hurting|crushing))\b/, /\bpain in (?:my|the) chest\b/, /\b(?:crushing|tight|heavy) chest\b/,
   /\b(?:left )?(?:arm|jaw|face)\b[^.?!]{0,20}\b(?:is |went |goes |feels? )?(?:numb|tingling|drooping|weak)\b/, /\bnumb(?:ness)? in (?:my|the) (?:left )?(?:arm|jaw|face)\b/,
   /\b(?:can'?t|cannot|can not|unable to|struggling to|hard to) breathe?\b/, /\bnot breathing\b/, /\bshortness of breath\b/, /\b(?:choking|throat (?:is )?(?:closing|swelling))\b/,
-  /\bheart attack\b/, /\b(?:having|had|signs of|symptoms of) a stroke\b/, /\bi think (?:i'm|i am|he's|she's|they're) having a stroke\b/, /\bslurred speech\b/, /\bface (?:is )?drooping\b/, /\b(?:seizure|convulsing|unconscious|passed out and|won'?t wake up)\b/,
+  /\bheart attack\b/, /\b(?:having|had|signs of|symptoms of) a stroke\b/, /\bi think (?:i'?m|i am|he'?s|she'?s|they'?re) having a stroke\b/, /\bslurred speech\b/, /\bface (?:is )?drooping\b/, /\b(?:seizure|convulsing|unconscious|passed out and|won'?t wake up)\b/,
   /\boverdos(?:e|ed|ing)\b/, /\btook (?:too many|a lot of|way too many|all (?:my|the)) (?:pills|tablets|meds|medicines?|sleeping pills|painkillers)\b/, /\bswallowed (?:a bottle|all (?:my|the)) (?:of )?(?:pills|tablets)\b/,
+  // Security delta A (SA-5, 8 Nov): a number of pills taken ("I took 20 pills"), ten or more; one taken "this week" or a
+  // usual dose ("I took 2 pills") stays ordinary.
+  /\b(?:took|have taken|i'?ve taken|just took|swallowed)\s+(?:like |about |around |over |more than |almost )?(?:[1-9]\d{1,2}|ten|twelve|fifteen|twenty|thirty|forty|fifty|a hundred)\s+(?:of (?:my |the |his |her )?)?(?:sleeping )?(?:pills|tablets|meds|capsules|painkillers|paracetamol|ibuprofen|aspirins?)\b(?![^.?!]{0,25}\b(?:this|a|per|each|every|last|over the|in the last)\s+(?:week|month|year|days|weeks|months)\b)/,
   /\b(?:bleeding|blood) (?:a lot|heavily|won'?t stop|everywhere)\b/, /\banaphyla(?:xis|ctic)\b/, /\b(?:i was|i've been|i have been|he was|she was|been) poisoned\b/,
   // Dutch
   /\bpijn op (?:de|mijn) borst\b/, /\bborstpijn\b/, /\bdrukkend gevoel op (?:de|mijn) borst\b/, /\b(?:arm|kaak|gezicht)\b[^.?!]{0,20}\b(?:gevoelloos|verdoofd|tintelt|hangt)\b/,
   /\b(?:kan|kun) (?:niet|nauwelijks|bijna niet) (?:meer )?(?:ademen|ademhalen)\b/, /\bademnood\b/, /\bhartaanval\b/, /\bberoerte\b/, /\boverdosis\b/,
   // A "too many" taken; "hoeveel slaappillen is te veel?" asks, and is a medicine question (below).
-  /\bte veel (?:pillen|tabletten|medicijnen|slaappillen)\b[^.?!]{0,20}\b(?:genomen|ingenomen|geslikt|op)\b/, /\b(?:genomen|ingenomen|geslikt)\b[^.?!]{0,20}\bte veel\b/, /\bbewusteloos\b/, /\bepileptische aanval\b/, /\bvergiftig(?:d|ing)\b/,
+  /\b(?:[1-9]\d{1,2}|tien|twaalf|vijftien|twintig|dertig|veertig|vijftig|honderd)\s+(?:pillen|tabletten|slaappillen|pijnstillers|paracetamols?)\s+(?:genomen|ingenomen|geslikt)\b/, /\bte veel (?:pillen|tabletten|medicijnen|slaappillen)\b[^.?!]{0,20}\b(?:genomen|ingenomen|geslikt|op)\b/, /\b(?:genomen|ingenomen|geslikt)\b[^.?!]{0,20}\bte veel\b/, /\bbewusteloos\b/, /\bepileptische aanval\b/, /\bvergiftig(?:d|ing)\b/,
 ];
 // ---- distress: low mood words on top of careful mode's self-harm list (EN + NL) ----
 const DISTRESS: RegExp[] = [
@@ -75,6 +78,12 @@ const DISTRESS: RegExp[] = [
   /\b(?:geef|gaf)\s+(?:het leven|mezelf|mijzelf)\s+op\b/, /\bik wil (?:het )?(?:gewoon |echt |maar )?opgeven\s*(?:[.!?,;]|$)/,
   /\bik wil (?:gewoon |liever )?verdwijnen\b/, /\b(?:alles|het leven|mijn leven)\b[^.?!]{0,15}\b(?:is|voelt|lijkt)\s+(?:zo\s+)?(?:zinloos|hopeloos|betekenisloos)\b/,
   /\bhet heeft (?:allemaal )?geen zin meer\b/, /\bik wil er niet meer zijn\b/, /\bik wil niet meer wakker worden\b/, /\b(?:het leven moe|moe van het leven)\b/, /\ber een einde? aan maken\b/,
+  // Security delta A (SA-5, 8 Nov): life not worth living, EN and NL ("Life is worth living for my kids" and "this flat is
+  // not worth living in" stay ordinary), and being tired of life in Dutch ("Ik ben het leven zat"; "het leven zat vol
+  // verrassingen" stays ordinary).
+  /\b(?:life|my life)\s+(?:is|'s|feels|seems)\s+(?:not|no longer|never)\s+(?:really\s+)?worth (?:living|it)\b/, /\b(?:life|my life)\s+(?:isn'?t|ain'?t)\s+(?:really\s+)?worth (?:living|it)\b/, /\bnot worth living\b(?! in\b)/,
+  /\b(?:het|mijn) leven is (?:niet|niets|geen moeite) (?:meer )?(?:de moeite )?waard\b/, /\bhet leven niet (?:meer )?de moeite waard\b/,
+  /\b(?:ik ben|ben ik|ik word|word ik|ik was|was ik)\s+(?:het|dit) leven (?:zo |echt |helemaal |gewoon )?(?:zat|beu|moe)\b/,
   // pills asked about in order to die
   /\b(?:pills?|tablets?|meds|medicines?|painkillers|pillen|slaappillen|tabletten)\b[^.?!]{0,30}\b(?:to die|to not wake up|to never wake up|to end it|om dood te gaan|om niet meer wakker te worden)\b/,
 ];
@@ -95,13 +104,15 @@ const NL_PEOPLE = String.raw`(?:broer(?:tje)?|zus(?:je)?|zuster|moeder|vader|mam
 // ---- harm: Session AL second pass (LA-002/P-LA-01 "threats/violence, hacking"): hurting someone, or getting into another
 // person's accounts or devices (EN + NL). Fixed words, never a model, never a card. ----
 const HARM: RegExp[] = [
-  /\b(?:i (?:want|am going|'m going|will|'ll|feel like i (?:could|might)) (?:to )?|how (?:do|can|could) i |help me )(?:hurt|kill|stab|shoot|beat up|attack|poison|strangle|harm)\s+(?:someone|somebody|anyone|people|a person|him|her|them|my (?:wife|husband|partner|boyfriend|girlfriend|boss|neighbou?r|ex|friend|brother|sister|mother|father|mom|mum|dad|kid|child|son|daughter|colleague|roommate)|the (?:neighbou?r|boss|kid|guy|man|woman))\b/,
+  // Security delta A (SA-4, 8 Nov): this line reads "I'm going to", "Im gonna", "I'll" and "Ill" (any apostrophe:
+  // `norm` folds ’ ‘ ʼ to '), which needed "i 'm" before; "I'll kill it at the gym" stays ordinary (no person named).
+  /\b(?:i(?: want| wanna| am going| am gonna|'?m going|'?m gonna| will|'?ll| feel like i (?:could|might)) (?:to )?|how (?:do|can|could) i |help me )(?:hurt|kill|stab|shoot|beat up|attack|poison|strangle|harm)\s+(?:someone|somebody|anyone|people|a person|him|her|them|my (?:wife|husband|partner|boyfriend|girlfriend|boss|neighbou?r|ex|friend|brother|sister|mother|father|mom|mum|dad|kid|child|son|daughter|colleague|roommate)|the (?:neighbou?r|boss|kid|guy|man|woman))\b/,
   /\b(?:how (?:do|can|could) i|help me|teach me to)\b[^.?!]{0,20}\b(?:hack|break into|crack|get into|spy on|track)\b[^.?!]{0,30}\b(?:someone(?:'s| else's)?|my (?:neighbou?r|ex|partner|wife|husband|boss|friend)(?:'s)?|his|her|their|an? (?:account|phone|wi-?fi|email|instagram|facebook|computer))\b/,
   /\b(?:ik wil|hoe kan ik)\b[^.?!]{0,15}\b(?:iemand|hem|haar|mijn (?:buurman|buurvrouw|ex|baas))\b[^.?!]{0,15}\b(?:pijn doen|vermoorden|neersteken|aanvallen|slaan)\b/,
   /\bhoe (?:kan ik|hack ik)\b[^.?!]{0,30}\b(?:hacken|inbreken)\b/,
-  // Session AL fifth pass (L7-5a; C-DVG-100): hurting someone else in Dutch as widely as the English line above ("Ik wil
+  // Session AL fifth pass (L7-5a; C-DVG-100): hurting someone else in Dutch as widely as the English line above (SA-4: "'k ga" too) ("Ik wil
   // mijn broer pijn doen", "Ik wil mijn broer iets aandoen", "Ik ga hem vermoorden"); a ball or a door is never a person.
-  new RegExp(String.raw`\b(?:ik wil|ik ga|ik zal|ik heb zin om|hoe kan ik|hoe moet ik|help me)\b[^.?!]{0,20}\b(?:iemand|hem|haar|hen|mensen|die (?:man|vrouw|gast|jongen|meid|vent)|(?:mijn|onze|de|die) ${NL_PEOPLE})\b[^.?!]{0,25}\b(?:pijn (?:doen|te doen)|iets (?:aandoen|aan doen|aan te doen)|(?:te )?vermoorden|doodmaken|dood (?:te )?maken|ombrengen|om te brengen|neersteken|neer te steken|neerschieten|neer te schieten|in elkaar (?:te )?slaan|aanvallen|aan te vallen|(?:te )?slaan|(?:te )?vergiftigen|(?:te )?wurgen|(?:te )?mishandelen|(?:te )?steken)\b`),
+  new RegExp(String.raw`(?:\b(?:ik wil|ik ga|ik zal|ik heb zin om|hoe kan ik|hoe moet ik|help me)|(?<![\w'])'k (?:wil|ga|zal))\b[^.?!]{0,20}\b(?:iemand|hem|haar|hen|mensen|die (?:man|vrouw|gast|jongen|meid|vent)|(?:mijn|onze|de|die) ${NL_PEOPLE})\b[^.?!]{0,25}\b(?:pijn (?:doen|te doen)|iets (?:aandoen|aan doen|aan te doen)|(?:te )?vermoorden|doodmaken|dood (?:te )?maken|ombrengen|om te brengen|neersteken|neer te steken|neerschieten|neer te schieten|in elkaar (?:te )?slaan|aanvallen|aan te vallen|(?:te )?slaan|(?:te )?vergiftigen|(?:te )?wurgen|(?:te )?mishandelen|(?:te )?steken)\b`),
   // Session AL fourth pass (LZ-022, N101/Z101): hacking without "how do I", weapons and explosives, other plainly illegal asks.
   /\b(?:hack|hacking|crack|cracking)\s+(?:into\s+)?(?:my |the |a |an |someone'?s |somebody'?s |his |her |their |our )?(?:[a-z]+'s\s+|[a-z]+s'\s+)?(?:wi-?fi(?: password)?|router|network|account|password|phone|email|e-mail|instagram|facebook|snapchat|whatsapp|tiktok|webcam|camera|computer|laptop)\b/,
   /\b(?:break|breaking|get|getting) into\s+(?:someone(?:'s| else's)|somebody'?s|my (?:neighbou?r|ex|partner|wife|husband|boss|friend|colleague|roommate)'?s|his|her|their)\b/,
@@ -120,6 +131,10 @@ const THREAT: RegExp[] = [
 // ---- secrets: asked for, offered, or claimed exported (EN + NL); typing one is refused by lib/secret-guard first ----
 const SECRET: RegExp[] = [
   /\bseed ?(?:phrase|words?)\b/, /\brecovery (?:phrase|words?|seed|sentence)\b/, /\bsecret (?:recovery )?phrase\b/, /\bmnemonic\b/, /\bprivate ?keys?\b/, /\bsecret keys?\b/, /\bwallet (?:key|keys|passphrase)\b/,
+  // Security delta A (SA-5, 8 Nov): "what's my wallet seed", "my bank pin is 4321", "store my pincode 1234" (a PIN with its
+  // digits). "seed funding", "tomato seeds", "How do I change my PIN?" and "pin the goal" stay ordinary.
+  /\b(?:wallet|crypto|bitcoin|btc|eth|metamask|ledger|trezor|phantom)\s+seed\b/, /\bseed (?:of|for|from) (?:my |the )?(?:wallet|metamask|ledger|trezor|phantom)\b/,
+  /\bpin(?: ?code| number)?\s*(?:is|=|:)\s*\d/, /\b(?:remember|store|save|keep|note|write down)\b[^.?!]{0,30}\bpin(?: ?code| number)?\s+\d{3,}\b/,
   /\b(?:my|the|your|his|her)\s+(?:12|24|twelve|twenty[- ]four)[- ]words?\b/, /\b(?:12|24|twelve|twenty[- ]four)[- ]word (?:phrase|seed|backup|recovery|secret)\b/,
   // Z-030 (fourth pass): "Show me everything you know about my bank account password" (the window was 30 characters).
   /\b(?:what(?:'s| is)|give|tell|show|send|remember|store|save|keep|export|reveal|find|need|ask(?:ing)? for|here(?:'s| is)|print|list)\b[^.?!]{0,50}\b(?:password|passcode|passphrase)s?\b/, /\b(?:my )?(?:password|passcode)\s*(?:is|=|:)\s*\S/,

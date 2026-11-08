@@ -64,6 +64,13 @@ export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi
       } else if (path === 'local') {
         const normalised = normalizeLocalBaseUrl(baseUrl), auth = token.trim() || null;
         const server = await detectLocalServer({baseUrl: normalised, key: auth});
+        // Security delta A (SA-7, 8 Nov): the same "is it really Ollama" check NOVA's scan runs (BN-035): a server that only
+        // looks like Ollama never gets "Found Ollama", a model list or Connect. Loaded with the test, not with the page.
+        if (server === 'ollama') {
+          const {verifyOllama} = await import('../../lib/nova/local-servers');
+          const real = await verifyOllama(normalised);
+          if (!real.ok) { setBaseUrl(normalised); setFailure({title: real.message, steps: []}); return; }
+        }
         setLocalServer(server); setBaseUrl(normalised);
         const list = await testConnection({provider: 'local', key: auth, baseUrl: normalised, localServer: server});
         const chat = list.filter(m => m.kind === 'chat'), pick = suggestModel(chat, suggest ?? {});

@@ -79,7 +79,7 @@ export type NovaTarget = {provider: ProviderId | null; model: string | null; bas
 export function novaPrivacy(storage: Pick<Storage, 'getItem'>, target: NovaTarget): NovaPrivacy {
   const mode = readPrivacyMode(storage);
   const hermes = target.provider === 'local' && target.baseUrl && mode && mode !== 'relaxed' ? readHermes(storage) : null;
-  const hermesUnconfirmed = !!hermes && isHermesBase(target.baseUrl, hermes.data) && (hermes.unreadable || !localModelStillConfirmed(hermes.data));
+  const hermesUnconfirmed = !!hermes && isHermesBase(target.baseUrl, hermes.data) && (hermes.unreadable || !localModelStillConfirmed(hermes.data, target.baseUrl)); // SA-1: for this send's own address
   const knownCloud = target.provider === 'local' && !!mode && mode !== 'relaxed' && (() => { try { return isKnownCloudModel(readDeviceRecord(storage, NOVA_SETUP).data, target.model); } catch { return false; } })(); // Z1A-7
   const applies = sendDecision(mode, {provider: target.provider, model: target.model, hermesUnconfirmed, knownCloud}) === 'redact' ? 'guarded' as const : null;
   return {mode: applies, redactForSend: (text, as) => redactForSend(text, as === 'guarded' ? 'guarded' : null).text};

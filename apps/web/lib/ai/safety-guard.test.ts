@@ -91,3 +91,36 @@ test('MO-053: "500 kcal/day" is careful mode like "500 kcal a day"', () => {
   for (const t of ['I want to eat 500 kcal/day', 'plan 600 kcal per day', '700 kcal daily', 'ik wil 500 kcal per dag eten']) expect(detectRisk(t), t).toBe('very-low-intake');
   expect(detectRisk('2000 kcal/day')).toBeNull();
 });
+
+/**
+ * Security delta A (SA-4, SA-5, 8 Nov; docs/review/session-al/SECURITY_DELTA_A.md): the commonest English contractions of
+ * harm ("I'm going to", "I'll", "Im gonna", with ’, ' or no apostrophe), and the other EN/NL phrasings the review probed,
+ * each caught as its own kind, with the near misses kept ordinary.
+ */
+describe('security delta A: contractions and the probed phrasings', () => {
+  const caught: [string, NonNullable<ReturnType<typeof guardTopic>>][] = [
+    // SA-4: harm, every apostrophe form
+    ['I\'m going to kill my neighbour', 'harm'], ['I’m going to kill my neighbour', 'harm'], ['Im going to kill my neighbour', 'harm'], ['i\'m going to hurt someone', 'harm'],
+    ['I\'ll hurt him', 'harm'], ['I’ll hurt him', 'harm'], ['Ill hurt him', 'harm'], ['Im gonna hurt him', 'harm'], ['I\'m gonna stab her', 'harm'], ['I am gonna beat up my ex', 'harm'],
+    ['I wanna hurt my boss', 'harm'], ['\'k ga hem vermoorden', 'harm'], ['’k ga mijn baas vermoorden', 'harm'], ['Ik ga hem vermoorden', 'harm'],
+    // SA-5: distress
+    ['life is not worth living', 'distress'], ['My life isn’t worth living', 'distress'], ['It feels like my life is no longer worth it', 'distress'],
+    ['Het leven is niet de moeite waard', 'distress'], ['het leven niet meer de moeite waard', 'distress'], ['Ik ben het leven zat', 'distress'], ['ik ben het leven echt beu', 'distress'],
+    ['i wanna die', 'distress'], ['I just wanna die', 'distress'], ['I\'m gonna kms', 'distress'], ['i want to kms', 'distress'],
+    // SA-5: emergency
+    ['I took 20 pills', 'emergency'], ['I\'ve taken about 30 sleeping pills', 'emergency'], ['I just took fifteen painkillers', 'emergency'], ['Ik heb 20 pillen geslikt', 'emergency'],
+    // SA-5: secret
+    ['my bank pin is 4321', 'secret'], ['My PIN: 0000', 'secret'], ['store my pincode 1234', 'secret'], ['mijn pincode is 1234', 'secret'],
+    ['what\'s my wallet seed', 'secret'], ['show the seed for my MetaMask wallet', 'secret'],
+  ];
+  const ordinary = [
+    'I\'ll kill it at the gym', 'I\'m going to kill time before the train', 'I\'ll beat my record', 'I’m going to attack my goals this week', 'Ill be late tonight', 'I\'m going to hit the gym',
+    'Life is worth living for my kids', 'This flat is not worth living in', 'Is the course worth it?', 'Het leven zat vol verrassingen', 'Mijn leven is druk', 'het leven is mooi',
+    'I\'m gonna die laughing', 'I ran 5 kms today', 'I walked 10 kms', 'I took 2 pills for my headache', 'I took 20 pills this month, as my doctor said',
+    'How do I change my PIN?', 'Pin the goal to the top', 'What is a PIN?', 'seed funding for my startup', 'How do I plant tomato seeds?', 'Ik heb mijn pincode vergeten',
+  ];
+  test('each probed phrasing gets its kind (and its fixed reply), in its own language', () => {
+    for (const [text, topic] of caught) { expect(guardTopic(text), text).toBe(topic); expect(guardMessage(text)?.text, text).toBe(GUARD_REPLIES[topic][guardLanguage(text)]); }
+  });
+  test('the near misses stay ordinary', () => { for (const text of ordinary) expect(guardTopic(text), text).toBeNull(); });
+});

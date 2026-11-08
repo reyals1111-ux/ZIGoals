@@ -38,7 +38,7 @@ export type NovaSees = {pack: NovaPack | null; scopes: NovaScopes; chainChosen: 
 export function useNovaSees(settings: AiSettings, mode: PrivacyMode | null): NovaSees {
   const context = useAiContext(settings, 'your AI', false), hermes = useDeviceRecord(NOVA_HERMES), chain = useChainChoice(), setup = useDeviceRecord(NOVA_SETUP);
   const provider = settings.enabled && settings.mode !== 'subscription' ? settings.provider : null;
-  const hermesUnconfirmed = provider === 'local' && isHermesBase(settings.baseUrl, hermes.data) && hermesNeedsRedaction(mode, localModelStillConfirmed(hermes.data));
+  const hermesUnconfirmed = provider === 'local' && isHermesBase(settings.baseUrl, hermes.data) && hermesNeedsRedaction(mode, localModelStillConfirmed(hermes.data, settings.baseUrl)); // SA-1: as the engine, for this address
   const input = useMemo(() => { try { return novaPackInput({sources: context.toolSources(), gates: context.gates, storage: getAppStorage(), target: {provider, model: settings.model, baseUrl: settings.baseUrl}, chainChosen: chain.chosen}); } catch { return null; } },
     // The record's scopes and mode, Hermes's confirmation and the chain choice are read again whenever one changes.
     [context, provider, settings.model, settings.baseUrl, chain.chosen, setup.data, hermes.data, mode]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -95,11 +95,16 @@ export const isHermesHealth = (body: unknown): boolean => !!body && typeof body 
 /**
  * Z1A-I5: the person's "my Hermes runs a local model" still holds: given, and for this gateway and this Hermes version
  * (when both were known at the confirmation). A new address or a new version since asks again; until then Strict and
- * Guarded redact what goes to it. A confirmation from before AL (no address or version kept) stands.
+ * Guarded redact what goes to it.
+ * Security delta A (SA-1, 8 Nov): for the address a request actually goes to (`requestBase`; the saved gateway when it is
+ * left out, as for NOVA's panels and "Ask my Hermes"), so a second Hermes (one noted in `seenBases`, or any server on the
+ * default port 8642) never inherits the saved one's confirmation. A confirmation from before AL (no `confirmedBase`)
+ * holds only for the saved gateway's own address.
  */
-export function localModelStillConfirmed(record: Pick<NovaHermes, 'localModelConfirmed' | 'confirmedBase' | 'confirmedVersion' | 'baseUrl' | 'lastCheck'>): boolean {
+export function localModelStillConfirmed(record: Pick<NovaHermes, 'localModelConfirmed' | 'confirmedBase' | 'confirmedVersion' | 'baseUrl' | 'lastCheck'>, requestBase?: string | null): boolean {
   if (record.localModelConfirmed !== true) return false;
-  if (record.confirmedBase && canonicalLocalBase(record.baseUrl) !== record.confirmedBase) return false;
+  const asked = canonicalLocalBase(requestBase === undefined ? record.baseUrl : requestBase), confirmedAt = record.confirmedBase ?? canonicalLocalBase(record.baseUrl);
+  if (!asked || !confirmedAt || asked !== confirmedAt) return false;
   const now = record.lastCheck?.version;
   return !(record.confirmedVersion && typeof now === 'string' && now !== record.confirmedVersion);
 }

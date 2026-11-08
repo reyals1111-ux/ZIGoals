@@ -119,3 +119,59 @@ describe('Z1A rest', () => {
     void NOVA_HERMES_KEY;
   });
 });
+/**
+ * Security delta A (8 Nov; docs/review/session-al/SECURITY_DELTA_A.md): SA-1, a second Hermes never inherits the saved
+ * Hermes's local-model confirmation; SA-6, a tool call's own `name`, `id` or `type` argument is redacted like any other.
+ */
+describe('security delta A', () => {
+  const mode = (privacyMode: string, hermes: NovaHermes) => ({getItem: (k: string) => k === NOVA_SETUP_KEY ? JSON.stringify({version: 1, privacyMode}) : k === NOVA_HERMES_KEY ? JSON.stringify(hermes) : null});
+  const ask = (baseUrl: string): ChatRequest => ({provider: 'local', localServer: 'openai-compatible', baseUrl, model: 'hermes-agent', system: 'S', messages: [{role: 'user', content: 'My IBAN is NL91ABNA0417164300'}], maxOutputTokens: 64, key: null});
+  const A = 'http://127.0.0.1:8642', B = 'http://127.0.0.1:8643';
+  const confirmedA: NovaHermes = {version: 1, baseUrl: A, localModelConfirmed: true, confirmedBase: A, seenBases: [B]};
+  test('SA-1: Hermes A confirmed, Hermes B seen: a request to B is redacted in Strict and Guarded; one to A is sent as it is', async () => {
+    for (const privacyMode of ['strict', 'guarded']) {
+      const r = ask(`${B}/v1`), out = await guardRequest(r, {storage: mode(privacyMode, confirmedA), knownNames: []});
+      expect(out, privacyMode).not.toBe(r);
+      expect(out.messages[0]!.content, privacyMode).not.toContain('NL91ABNA0417164300');
+      const toA = ask(`${A}/v1`);
+      expect(await guardRequest(toA, {storage: mode(privacyMode, confirmedA), knownNames: []}), privacyMode).toBe(toA);
+    }
+    expect(localModelStillConfirmed(confirmedA, B)).toBe(false);
+    expect(localModelStillConfirmed(confirmedA, 'http://localhost:8642/v1/')).toBe(true); // any spelling of A
+    expect(localModelStillConfirmed(confirmedA)).toBe(true); // the saved gateway (NOVA's panels, "Ask my Hermes")
+  });
+  test('SA-1: the default port: a request to :8642 while the saved and confirmed Hermes is :9000 is redacted', async () => {
+    const at9000: NovaHermes = {version: 1, baseUrl: 'http://127.0.0.1:9000', localModelConfirmed: true, confirmedBase: 'http://127.0.0.1:9000'};
+    for (const privacyMode of ['strict', 'guarded']) {
+      const r = ask(`${A}/v1`), out = await guardRequest(r, {storage: mode(privacyMode, at9000), knownNames: []});
+      expect(out, privacyMode).not.toBe(r);
+      expect(out.messages[0]!.content).not.toContain('NL91ABNA0417164300');
+    }
+    // A confirmation from before AL (no address kept) holds only for the saved gateway's own address.
+    const legacy: NovaHermes = {version: 1, baseUrl: 'http://127.0.0.1:9000', localModelConfirmed: true};
+    expect(localModelStillConfirmed(legacy, 'http://localhost:9000')).toBe(true);
+    expect(localModelStillConfirmed(legacy, A)).toBe(false);
+    expect(localModelStillConfirmed({localModelConfirmed: true}, A)).toBe(false);
+  });
+  test('SA-6: an argument named name, id or type is cleaned; only the structure (the call’s name, role, signatures) is kept', () => {
+    const clean = (t: string) => t.replace(/NL91ABNA0417164300/g, '[account number]').replace(/Anna/g, '[name]');
+    expect(JSON.parse(mapArguments('{"name":"Anna Jansen IBAN NL91ABNA0417164300","id":"Anna","type":"Anna","note":"for Anna"}', clean))).toEqual({name: '[name] Jansen IBAN [account number]', id: '[name]', type: '[name]', note: 'for [name]'});
+    expect(JSON.parse(mapArguments('{"goal":{"name":"Anna’s surgery fund","items":[{"name":"Anna"}]}}', clean))).toEqual({goal: {name: '[name]’s surgery fund', items: [{name: '[name]'}]}});
+    const redactor = {redactText: (t: string) => ({text: clean(t), found: {}}), totalRedactions: () => 0, knownNamesFrom: () => []} as unknown as Parameters<typeof redactRequest>[1];
+    const raw = {role: 'model', parts: [{functionCall: {name: 'create_goal', id: 'call-1', args: {name: 'NL91ABNA0417164300', id: 'Anna'}}, thoughtSignature: 'Anna-sig'}]};
+    const r = {provider: 'gemini', model: 'm', system: 'S', maxOutputTokens: 64, key: 'k', messages: [{role: 'assistant', content: '', toolCalls: [{id: 'c1', name: 'create_goal', arguments: '{"name":"Anna’s surgery fund"}'}], raw}]} as unknown as ChatRequest;
+    const out = redactRequest(r, redactor, []).request.messages[0] as {toolCalls: {arguments: string; name: string; id: string}[]; raw: typeof raw};
+    expect(JSON.parse(out.toolCalls[0]!.arguments)).toEqual({name: '[name]’s surgery fund'});
+    expect(out.toolCalls[0]).toMatchObject({id: 'c1', name: 'create_goal'});
+    expect(out.raw).toEqual({role: 'model', parts: [{functionCall: {name: 'create_goal', id: 'call-1', args: {name: '[account number]', id: '[name]'}}, thoughtSignature: 'Anna-sig'}]});
+  });
+  test('SA-6: recovery words in a Gemini functionCall.args.name are hidden; the call’s own name is kept', async () => {
+    // Built at runtime so the repository secret scan doesn't read a twelve-word fixture as a seed phrase.
+    const words = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident'].join(' ');
+    const r = {provider: 'gemini', model: 'm', system: 'S', maxOutputTokens: 64, key: 'k', messages: [{role: 'assistant', content: 'ok', toolCalls: [{id: 'c1', name: 'create_goal', arguments: '{}'}], raw: {role: 'model', parts: [{functionCall: {name: 'create_goal', args: {name: words}}}]}}]} as unknown as ChatRequest;
+    const out = await hideRecoveryWordsInRequest(r);
+    const part = (out.messages[0] as {raw: {parts: {functionCall: {name: string; args: {name: string}}}[]}}).raw.parts[0]!;
+    expect(part.functionCall.name).toBe('create_goal');
+    expect(part.functionCall.args.name).not.toContain('abandon ability able');
+  });
+});

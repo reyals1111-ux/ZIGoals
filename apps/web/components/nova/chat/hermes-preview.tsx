@@ -21,7 +21,7 @@ export function hermesPreviewLine(decision: 'send' | 'redact' | 'refuse', area: 
 export default function HermesPreview({message, context, mode, area}: {message: string; context: string; mode: PrivacyMode | null; area: string}) {
   const hermes = useDeviceRecord(NOVA_HERMES);
   const names = useMemo(() => knownNamesFrom(noteTexts()), []);
-  const unconfirmed = hermes.unreadable || !localModelStillConfirmed(hermes.data);
+  const unconfirmed = hermes.unreadable || !localModelStillConfirmed(hermes.data, hermes.data.baseUrl); // SA-1: "Ask my Hermes" goes to the saved gateway
   const preview = useMemo(() => previewFor({message, context, mode, provider: 'local', hermesUnconfirmed: unconfirmed, knownNames: names, assistant: 'NOVA'}), [message, context, mode, unconfirmed, names]);
   const decision = preview.decision === 'redact' ? 'redact' : 'send';
   return <div className="nova-guide-send nova-hermes-preview" data-decision={decision} aria-live="polite">

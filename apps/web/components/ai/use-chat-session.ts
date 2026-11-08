@@ -49,7 +49,7 @@ import {forgetChatAreas, rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
 // Session AL (lane L7): the deterministic guard before any model and before the device's own answers (ZIGi and NOVA alike).
-import {CARD_STEPS, CARD_TITLE, cardNumberIn, guardLanguage, guardMessage, SECRET_REPLY_NOTE, withHonestClaims} from '../../lib/ai/safety-guard';
+import {CARD_STEPS, CARD_TITLE, cardNumberIn, guardLanguage, guardMessage, SECRET_REPLY_NOTE, withHonestClaims, type GuardLanguage} from '../../lib/ai/safety-guard';
 import {stripWriteBlocks} from '../../lib/ai/actions/decline';
 import {noteOpenChat, openChatFor} from '../../lib/ai/composer-draft';
 import {localDate} from '../../lib/local-date';
@@ -91,6 +91,15 @@ export type Confirmation = {text: string; fit: Fit; budget: number; reuse: boole
  * `deep` (Session V Part 6, "Think deeper"): the provider's deep model and twice the data cap. `spendConfirmed`: the
  * person chose to send although their monthly cap is reached ("ask first").
  */
+/**
+ * Security delta A (SA-3): what the chat keeps in place of a message the guard answered as a secret or a credential (in the
+ * message's own language). Plain words, never the message.
+ */
+export const WITHHELD_TURN: Record<GuardLanguage, string> = {
+  en: '[Message not kept: it was about a password, a key or recovery words.]',
+  nl: '[Bericht niet bewaard: het ging over een wachtwoord, een sleutel of herstelwoorden.]',
+};
+export const isWithheldTurn = (text: string): boolean => text === WITHHELD_TURN.en || text === WITHHELD_TURN.nl;
 export type SendOptions = {withContext?: boolean; confirmed?: boolean; reuse?: boolean; extra?: ExtraData; deep?: boolean; spendConfirmed?: boolean;
   /** Session V Part 7: a meal photo for this message only (never stored), and "talk to log" (proposals, no advice). */
   images?: readonly ChatImage[]; log?: boolean;
@@ -301,10 +310,14 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
    */
   const guarded = useCallback((text: string, options: SendOptions = {}): boolean => {
     const hit = guardMessage(text); if (!hit) return false;
+    // Security delta A (SA-3, 8 Nov): a message about a password, a key or recovery words ("my password is hunter2, keep it
+    // for me") is answered but never kept: the chat (History, NOVA's Conversations, Export everything) holds a placeholder
+    // in its place, and the chat's title is that placeholder too.
+    const kept = hit.topic === 'secret' || hit.topic === 'credential' ? WITHHELD_TURN[hit.lang] : text;
     // Session AL fourth pass (L7-4b; Berlin BN-047, AL-COPY-060): in NOVA the guard's fixed reply speaks as NOVA ("NOVA is an
     // app, not a counsellor"); its numbers and steps are the guard's own, unchanged.
     const said = nova ? novaWording({kind: 'answer', text: hit.text, calls: []}, {healthScope: false, healthGate: false}) : {kind: 'answer' as const, text: hit.text, calls: []};
-    if (!options.reuse) answerLocally(text, text, said, {replace: options.replace, untrusted: true});
+    if (!options.reuse) answerLocally(kept, kept, said, {replace: options.replace, untrusted: true});
     zigiSignals.emit('careful_topic');
     return true;
   }, [answerLocally, nova]);
@@ -506,7 +519,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   const stop = useCallback(() => abort.current?.abort(), []);
   const again = useCallback(async (deep: boolean) => {
     if (abort.current) return;
-    const target = regenerateTarget(chatRef.current); if (!target) return;
+    const target = regenerateTarget(chatRef.current); if (!target || isWithheldTurn(target.question)) return; // SA-3: the words were not kept, so there is nothing to ask again
     const asked = target.chat.turns.at(-1), extra = asked ? extras.current.get(asked.id) : undefined, images = asked ? photos.current.get(asked.id) : undefined, surface = asked ? surfaces.current.get(asked.id) : undefined;
     setChat(target.chat); persist(target.chat);
     await send(target.question, {reuse: true, ...(extra ? {extra} : {}), ...(images ? {images} : {}), ...(deep ? {deep: true} : {}), ...surface});

@@ -26,7 +26,7 @@ import {beforeModel, beforeModelText, checkNovaScopes} from '../nova/setup-scope
 import {CHECK_NOTE_MAX} from '../nova/setup';
 import {keepsAsAsk} from '../../components/ai/ask-record';
 import {glanceLines} from '../../components/nova/widgets/briefs';
-import {recordAsk, type SuggestionsRecord} from '../zigi-suggestions';
+import {recordAsk, shownSuggestions, type SuggestionsRecord} from '../zigi-suggestions';
 
 /**
  * Session AL fifth pass (lane L7-5c; replay GROK53_REPLAY_L7_2.md on 37d2370c): copy, actions, privacy and the composer,
@@ -199,6 +199,25 @@ describe('Guarded words are never kept as a frequent ask (zigoals:zigi-suggestio
     for (let i = 0; i < 3; i++) for (const text of [...guarded, 'Which habits are still open today?']) if (keepsAsAsk(text)) record = recordAsk(record, text, 1_800_000_000_000 + i * 1000, {healthShared: false});
     expect(Object.values(record.questions ?? {}).map(q => q.text)).toEqual(['Which habits are still open today?']);
     expect(src('components/ai/ai-chat.tsx')).toMatch(/if \(sensitive \|\| !session\.kept\) return;[^\n]*\n\s*if \(!keepsAsAsk\(text\)\) return;[^\n]*\n\s*try \{[\s\S]{0,300}?recordAsk\(/);
+  });
+  // Security delta A (SA-2, 8 Nov): what the chat refuses before it is stored or sent is never kept as an ask either.
+  // Built at runtime so the repository secret scan doesn't read a twelve-word fixture as a seed phrase.
+  const PHRASE = [...Array<string>(11).fill('abandon'), 'about'].join(' ');
+  const refused = [PHRASE, `my wallet: ${PHRASE}`, `0x${'4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'}`, 'Take my credit card 4111 1111 1111 1111 and pay for it', 'card 4111-1111-1111-1111'];
+  test('SA-2: recovery words, a private key and a card number are not kept, through keepsAsAsk or recordAsk itself, nor shown from an older record', () => {
+    for (const text of refused) expect(keepsAsAsk(text), text).toBe(false);
+    const at = 1_800_000_000_000;
+    let record: SuggestionsRecord = {version: 1};
+    for (let i = 0; i < 3; i++) for (const text of refused) { const next = recordAsk(record, text, at + i, {healthShared: true}); expect(next, text).toBe(record); record = next; }
+    expect(record).toEqual({version: 1});
+    // One kept by an earlier build (before this check): never shown as a card, and dropped on the next write.
+    const old: SuggestionsRecord = {version: 1, questions: {[PHRASE]: {text: PHRASE, asks: [at, at + 1, at + 2], promotedAt: at + 2}}};
+    expect(shownSuggestions(old, {healthShared: true})).toEqual([]);
+    const after = recordAsk(old, 'Which habits are still open today?', at + 3, {healthShared: true});
+    expect(Object.values(after.questions ?? {}).map(q => q.text)).toEqual(['Which habits are still open today?']);
+    expect(JSON.stringify(after)).not.toContain('abandon');
+    // An ordinary card-free number stays an ordinary ask.
+    expect(keepsAsAsk('How many steps did I walk on 2026-11-08?')).toBe(true);
   });
 });
 

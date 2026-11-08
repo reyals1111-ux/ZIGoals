@@ -69,15 +69,21 @@ function appStorageOrRefusal(): Pick<Storage, 'getItem'> {
  * name, the role and anything named a signature (Gemini's thought signatures must come back unchanged) are left as they are.
  */
 const KEEP = /^(?:role|name|id|type|call_?id|tool_?call_?id|thought_?signature|signature)$/i;
-export function mapStrings(value: unknown, clean: (text: string) => string, key = ''): unknown {
-  if (typeof value === 'string') return KEEP.test(key) ? value : clean(value);
-  if (Array.isArray(value)) return value.map(v => mapStrings(v, clean, key));
-  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, mapStrings(v, clean, k)]));
+/**
+ * Security delta A (SA-6, 8 Nov): the keep-list names the turn's structure only (the call's name and id, the role, a
+ * signature). Inside a tool call's own arguments (`args`, `arguments`) every string is cleaned, whatever its key, so an
+ * argument named `name`, `id` or `type` ("create_goal {name: "Anna's surgery fund"}") is redacted like any other.
+ */
+const ARGUMENTS = /^(?:args|arguments)$/i;
+export function mapStrings(value: unknown, clean: (text: string) => string, key = '', inArguments = false): unknown {
+  if (typeof value === 'string') return !inArguments && KEEP.test(key) ? value : clean(value);
+  if (Array.isArray(value)) return value.map(v => mapStrings(v, clean, key, inArguments));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, mapStrings(v, clean, k, inArguments || ARGUMENTS.test(k))]));
   return value;
 }
-/** A tool call's arguments: its JSON with each string value cleaned, or the whole text when it is not JSON. */
+/** A tool call's arguments: its JSON with every string value cleaned (SA-6: whatever its key), or the whole text when it is not JSON. */
 export function mapArguments(text: string, clean: (text: string) => string): string {
-  try { return JSON.stringify(mapStrings(JSON.parse(text), clean)); } catch { return clean(text); }
+  try { return JSON.stringify(mapStrings(JSON.parse(text), clean, '', true)); } catch { return clean(text); }
 }
 /** The request a cloud model may receive in Guarded mode, and what was taken out. Pure, given the redaction module. */
 export function redactRequest<R extends ChatRequest>(request: R, redactor: Redactor, knownNames: readonly string[]): {request: R; redacted: number} {
@@ -119,7 +125,7 @@ export async function guardRequest<R extends ChatRequest>(request: R, options: {
   const savedHermes = !!hermes && isHermesBase(request.baseUrl, hermes.data);
   // Z1A-6 (AL Part 14): an OpenAI-compatible server on this computer whose /health says it is Hermes counts as an unconfirmed Hermes.
   const probedHermes = !!hermes && !savedHermes && request.localServer !== 'ollama' && !!options.probes?.hermes && await options.probes.hermes(request.baseUrl!).catch(() => false);
-  const hermesUnconfirmed = probedHermes || (savedHermes && (hermes!.unreadable || !localModelStillConfirmed(hermes!.data)));
+  const hermesUnconfirmed = probedHermes || (savedHermes && (hermes!.unreadable || !localModelStillConfirmed(hermes!.data, request.baseUrl))); // SA-1: for this request's own address
   // Z1A-7: a local model Ollama's list marked as running in its cloud (read only when a mode would refuse or redact it).
   let knownCloud = request.provider === 'local' && !hosted && !!mode && mode !== 'relaxed' && (() => { try { return isKnownCloudModel(readDeviceRecord(store(), NOVA_SETUP).data, request.model); } catch { return false; } })();
   // Z1A-7 alternative (AL Part 14): a model the listing never showed, asked once of Ollama itself (/api/show).
