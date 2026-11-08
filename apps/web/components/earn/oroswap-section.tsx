@@ -1,4 +1,5 @@
 'use client';
+import {OROSWAP_TAGS} from '../../lib/earn/glance';
 import {YourPoolShares, type ShareRead} from './your-shares';
 import type {LiveState} from '../../lib/earn/client';
 import {bps, decimal, tokenAmount, usd} from '../../lib/earn/format';
@@ -27,7 +28,7 @@ export function OroswapSection({oroswap, llama, now, shares = []}: {oroswap: Liv
   return <OptionSection id="oroswap" eyebrow="OroSwap · exchange and pools" title="Swap, or earn swap fees in a pool"
     lede={<>Swap tokens on ZIGChain’s exchange, or put two tokens into a pool and earn a share of the fee on every swap through it. <WhatsThis term="swap"/> <WhatsThis term="pool"/></>}
     logo={{src: '/ecosystem-logos/oroswap.png', alt: 'OroSwap site icon'}}
-    tags={[{tone: 'live', text: 'Live on mainnet'}, {tone: 'contract', text: 'Pools hold the tokens'}]}
+    tags={[...OROSWAP_TAGS]}
     facts={[
       {label: 'Best for', value: <>Swapping; and, for pools, people who already hold both tokens and understand impermanent loss. <WhatsThis term="impermanent-loss"/></>},
       {label: 'Who runs it', value: 'OroSwap, through contracts on ZIGChain.'},

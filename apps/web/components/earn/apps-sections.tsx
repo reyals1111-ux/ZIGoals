@@ -1,4 +1,5 @@
 'use client';
+import {DEFA_TAGS, NAWA_TAGS, PERMAPOD_TAGS, ZIGNALY_TAGS} from '../../lib/earn/glance';
 import type {LiveState} from '../../lib/earn/client';
 import {tokenAmount, usd} from '../../lib/earn/format';
 import type {DefillamaData, VaultRow, VaultsData} from '../../lib/earn/live/types';
@@ -30,7 +31,7 @@ export function NawaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
   return <OptionSection id="nawa" eyebrow="Nawa Finance · information" title="Shariah-compliant vaults: Nawa"
     lede="Nawa runs vaults built to follow Islamic finance rules: a USDC vault and a stZIG vault on ZIGChain, sharing in the results of real-economy financing."
     logo={{src: '/ecosystem-logos/nawa.png', alt: 'Nawa site icon'}}
-    tags={[{tone: 'live', text: 'Live on ZIGChain'}, {tone: 'paused', text: 'USDC vault depends on Zignaly'}, {tone: 'third', text: 'Off-chain custody'}]}
+    tags={[...NAWA_TAGS]}
     notice={<>
       <p><b>Its USDC vault depends on Zignaly, which is closing.</b> {NAWA_METHOD.text} <span className="fine">({NAWA_METHOD.source}, read {day(NAWA_METHOD.readOn)})</span> <VerifiedLink provider="nawa" kind="defillama" className="text-link" mark="compact">Nawa on DefiLlama</VerifiedLink></p>
       <p>Zignaly’s own notice: {zignalyStatusLine(now)} <span className="fine">(read {day(ZIGNALY_CLOSURE.readOn)}) · a dated notice, its dates worded from today; not a live figure</span> What this means for the vault’s money is not stated anywhere ZIGoals read. <VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink></p>
@@ -87,7 +88,7 @@ export function DefaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
   return <OptionSection id="defa" eyebrow="DeFa by InvoiceMate · information only" title="Invoice finance pools: DeFa"
     lede="DeFa pools money that businesses borrow against their unpaid invoices. On ZIGChain it reports its value through an on-chain counter; there is no app for the public."
     logo={{src: '/ecosystem-logos/defa-invoicemate.png', alt: 'DeFa by InvoiceMate site icon'}}
-    tags={[{tone: 'paused', text: 'Private: no public sign-up'}, {tone: 'third', text: 'Information only'}]}
+    tags={[...DEFA_TAGS]}
     facts={[
       {label: 'Best for', value: 'Understanding where Valdora’s Private Credit vault lends: it is deployed with DeFa. There is no way to join DeFa directly today.'},
       {label: 'Who runs it', value: 'InvoiceMate, which runs DeFa’s pools.'},
@@ -133,7 +134,7 @@ export function PermapodSection({llama, now}: {llama: LiveState<DefillamaData>; 
   return <OptionSection id="permapod" eyebrow="Permapod · paused after an exploit" title="Borrow and lend: Permapod"
     lede="Permapod is a lending app on ZIGChain: deposit tokens as collateral and borrow against them. After an exploit its contracts were halted, so it is not an option today."
     logo={{src: '/ecosystem-logos/permapod.png', alt: 'Permapod site icon'}}
-    tags={[{tone: 'paused', text: 'Paused after an exploit'}, {tone: 'third', text: 'Not an option today'}]}
+    tags={[...PERMAPOD_TAGS]}
     notice={<>
       <p><b>Not an option today.</b> {incident ? <>DefiLlama lists an incident for Permapod on {day(incident.date)}{incident.classification ? <>, classified “{incident.classification}”</> : null} (read live).</> : p?.status === 'ok' ? <>DefiLlama lists no incident for Permapod right now (read live).</> : <>DefiLlama’s incident list is <Unavailable reason={llama.phase === 'unavailable' ? llama.reason : p?.status === 'unavailable' ? p.reason : 'UPSTREAM_DOWN'} short/> right now.</>}</p>
       <p>{PERMAPOD_STATUS.text} <span className="fine">({PERMAPOD_STATUS.source}, read {day(PERMAPOD_STATUS.readOn)})</span> <VerifiedLink provider="permapod" kind="tracker-note" className="text-link" mark="compact">DefiLlama’s tracker note</VerifiedLink></p>
@@ -183,7 +184,7 @@ export function ZignalySection({now}: {now: number}) {
   return <OptionSection id="zignaly" eyebrow="Zignaly · closing" title="Zignaly is closing: how to withdraw"
     lede={<>Zignaly is a copy-trading platform: traders invest your money for you and share the profit. It is closing, so nothing can be joined; if you still have money there, this is how to take it out before 1 December 2026. <WhatsThis term="copy-trading"/></>}
     logo={{src: '/ecosystem-logos/zignaly.png', alt: 'Zignaly site icon'}}
-    tags={[{tone: 'paused', text: 'Closing'}, {tone: 'third', text: 'Zignaly holds the funds'}]}
+    tags={[...ZIGNALY_TAGS]}
     notice={<>
       <p><b>The closing dates, as Zignaly’s notice states them</b> <span className="fine">({ZIGNALY_CLOSURE.source}, read {day(ZIGNALY_CLOSURE.readOn)}) · a dated notice, its dates worded from today; not a live figure</span>:</p>
       <ol className="earn-dates">{ZIGNALY_CLOSURE.dates.map(d => <li key={d.date} data-date={d.date} data-passed={dayHasPassed(d.date, now) ? '' : undefined}><time dateTime={d.date}>{day(d.date)}</time> — {d.text}{dayHasPassed(d.date, now) ? <strong> (passed)</strong> : null}</li>)}</ol>
@@ -210,7 +211,7 @@ export function ZignalySection({now}: {now: number}) {
         <Risk link={<VerifiedLink provider="zignaly" kind="closure-collection" className="text-link" mark="compact">Zignaly’s closure articles</VerifiedLink>}>Delays: a withdrawal of 10,000 USDT or more needs an identity check, and changing a password or two-factor setting pauses withdrawals for 24 hours, so leave time before the deadline.</Risk>
       </ul>},
     ]}
-    stepsTitle="How to withdraw"
+    stepsTitle="How to withdraw" stepsOpen
     steps={[
       {text: 'Read Zignaly’s closure notice (a new tab) and check the dates above.'},
       // Session AL (PR-036): a passed deadline is never offered as a step to take.

@@ -1,4 +1,5 @@
 'use client';
+import {NATIVE_TAGS} from '../../lib/earn/glance';
 import Link from 'next/link';
 import {useMemo, useState} from 'react';
 import {aprAtCommission} from '../../lib/earn/apr';
@@ -47,7 +48,7 @@ export function NativeSection({chain, validators, measured, now, reads = []}: {c
   return <OptionSection id="native-staking" eyebrow="ZIGChain · the network’s own staking" title="Stake ZIG with a validator"
     lede={<>Lend your ZIG’s weight to a validator that helps run ZIGChain, and share in the new ZIG the network pays out every block. <WhatsThis term="validator"/></>}
     logo={{alt: '', glyph: <EarnGlyphMark/>}}
-    tags={[{tone: 'live', text: 'Live on mainnet'}, {tone: 'keys', text: 'You keep the keys'}]}
+    tags={[...NATIVE_TAGS]}
     facts={[
       {label: 'Best for', value: <>Holding ZIG for the long run and earning the network’s own rewards, with no app in between. <WhatsThis term="rewards"/></>},
       {label: 'Who runs it', value: <>The ZIGChain network itself, and the validator you choose to delegate to. <WhatsThis term="staking"/></>},

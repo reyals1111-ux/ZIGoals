@@ -147,6 +147,21 @@ export function moveItem(record: Checklist, id: string, toIndex: number): Checkl
   const unknown = record.order.filter(x => !ids.includes(x));
   return save({...record, order: [...ids, ...unknown]});
 }
+/**
+ * Session AL fifth pass (LS-H23): one drop of a pointer drag, shared by Edit path's handle and the List view's rows. The
+ * item goes just before `anchorId` (or just after it, `after`), into the anchor's orbit; `moved` says whether its place
+ * or orbit really changed, so the words never claim a move that did not happen.
+ */
+export function dropBeside(record: Checklist, id: string, anchorId: string, after: boolean): {record: Checklist; section: string; moved: boolean} {
+  const all = orderedItems(record), item = all.find(i => i.id === id), anchor = all.find(i => i.id === anchorId);
+  if (!item || !anchor) throw new ChecklistError(ITEM_MISSING_MESSAGE);
+  const section = sectionOrDefault(record, anchor.section);
+  if (anchorId === id) return {record, section, moved: false};
+  const index = all.filter(i => i.id !== id).findIndex(i => i.id === anchorId) + (after ? 1 : 0);
+  const next = moveItem(sectionOrDefault(record, item.section) === section ? record : updateItem(record, id, {section}), id, index);
+  const moved = next !== record && (orderedItems(next).map(i => i.id).join('|') !== all.map(i => i.id).join('|') || sectionOfItem(next, findItem(next, id)!) !== sectionOrDefault(record, item.section));
+  return {record: moved ? next : record, section, moved};
+}
 export function moveWithinSection(record: Checklist, id: string, delta: -1 | 1): Checklist {
   const all = orderedItems(record), item = all.find(i => i.id === id); if (!item) throw new ChecklistError(ITEM_MISSING_MESSAGE);
   const section = sectionOrDefault(record, item.section), mates = all.filter(i => sectionOrDefault(record, i.section) === section), at = mates.findIndex(i => i.id === id), swap = mates[at + delta];

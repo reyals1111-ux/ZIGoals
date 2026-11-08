@@ -2,18 +2,19 @@
 import {removeWithUndo} from '../ui/remove-with-undo';
 import {PATH_REMOVAL_STACK, keepPathPlaces} from '../../lib/checklist/habit-undo';
 import {showToast} from '../ui/undo-toast';
-import {Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent} from 'react';
+import {Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent} from 'react';
 import {PATH_COLOURS, pathColour} from '../../lib/path/colours';
 import {CHECKLIST_COLOUR_IDS, nebulaColour} from '../../lib/path/orbit-colours';
 import {HEALTH_MEALS} from '../../lib/health';
 import {habitCalendarDay, latestHabitRule, logHabitValue} from '../../lib/habits';
-import {ChecklistError, MAX_PATH_ITEMS, addCustom, addFavourite, addSection, customToHabit, isFavourite, moveItem, moveWithinSection, newChecklistId, stepItem, orderedItems, removeItem, removeSection, sectionOfItem, sectionsOf, updateItem, updateSection, type FavouriteRef} from '../../lib/checklist/store';
+import {ChecklistError, MAX_PATH_ITEMS, addCustom, addFavourite, addSection, customToHabit, dropBeside, isFavourite, moveWithinSection, newChecklistId, stepItem, orderedItems, removeItem, removeSection, sectionOfItem, sectionsOf, updateItem, updateSection, type FavouriteRef} from '../../lib/checklist/store';
 import type {DerivedDot} from '../../lib/checklist/derive';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import {PathGlyph} from '../path/path-glyphs';
 import {itemGlyph} from '../../lib/checklist/glyphs';
 import {PATH_LABEL_MAX, cleanPathLabel, suggestPathLabel} from '../../lib/checklist/path-label';
 import type {ChecklistState} from './use-checklist';
+import {dropSlot, useRowDrag} from './use-row-drag';
 
 /**
  * Edit path (P7.3, P7.5): what is on the path, in its order — drag a row by its handle, or use Move up / Move down (and
@@ -53,28 +54,21 @@ export function EditPath({state, onClose, addTo}: {state: ChecklistState; onClos
   };
   const add = (ref: FavouriteRef, label: string, extra: {section?: string; defaultValue?: number; unit?: string} = {}) => write(r => addFavourite(r, ref, {id: newChecklistId(), at: new Date(), label, ...extra}), `${label} added to your path.`);
 
-  // Drag by the handle (pointer), with the keyboard and tap alternative beside it.
-  const list = useRef<HTMLOListElement>(null), [drag, setDrag] = useState<{id: string; dy: number; startY: number} | null>(null);
-  function onPointerDown(e: PointerEvent<HTMLButtonElement>, id: string) { e.currentTarget.setPointerCapture(e.pointerId); setDrag({id, dy: 0, startY: e.clientY}); }
-  function onPointerMove(e: PointerEvent<HTMLButtonElement>) { if (drag) setDrag({...drag, dy: e.clientY - drag.startY}); }
-  function onPointerUp(e: PointerEvent<HTMLButtonElement>) {
-    if (!drag) return;
+  // Drag by the handle (pointer), with the keyboard and tap alternative beside it. Session AL fifth pass (LS-H23): the
+  // drag itself (useRowDrag) and the drop (dropBeside) are shared with the List view's rows.
+  const list = useRef<HTMLOListElement>(null);
+  const {drag, bind} = useRowDrag((id, y) => {
     // Session AL (P-LS-58, LS-H23): the dragged row itself moves with the pointer, so it is left out when finding the slot
     // (it was sometimes "found" under the pointer, and the item landed one place short). Dropped over a row: it goes
     // before that row, in its orbit; below the last row: after it.
-    const id = drag.id, y = e.clientY, dy = drag.dy;
-    setDrag(null);
-    if (Math.abs(dy) <= 8) return;
     const rows = [...(list.current?.querySelectorAll<HTMLElement>('[data-edit-row]') ?? [])].filter(r => !r.querySelector(`[data-edit-handle="${CSS.escape(id)}"]`));
-    const others = pathOrder.filter(i => i.id !== id), at = rows.findIndex(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2; });
-    const anchor = at >= 0 ? others[at] : others.at(-1);
-    if (!anchor) return;
-    const ordered = orderedItems(record.data).filter(i => i.id !== id), index = ordered.findIndex(i => i.id === anchor.id) + (at >= 0 ? 0 : 1);
-    const was = pathOrder.findIndex(i => i.id === id), place = at >= 0 ? at : others.length;
+    const others = pathOrder.filter(i => i.id !== id), slot = dropSlot(rows, y), anchor = slot ? others[slot.index] : undefined;
+    if (!slot || !anchor) return;
+    const was = pathOrder.findIndex(i => i.id === id), place = slot.after ? others.length : slot.index;
     if (place === was) return;
     const label = dotById.get(id)?.label ?? 'Item', section = sectionOfItem(record.data, anchor), orbit = sections.find(x => x.id === section)?.label ?? 'that orbit';
-    write(r => moveItem(updateItem(r, id, {section}), id, index), `${label} moved to place ${place + 1}, in ${orbit}.`);
-  }
+    write(r => dropBeside(r, id, anchor.id, slot.after).record, `${label} moved to place ${place + 1}, in ${orbit}.`);
+  });
   function onHandleKey(e: KeyboardEvent<HTMLButtonElement>, id: string, label: string) {
     if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
     e.preventDefault();
@@ -126,7 +120,7 @@ export function EditPath({state, onClose, addTo}: {state: ChecklistState; onClos
       return <Fragment key={item.id}>
       {orbitHead && <li className="checklist-edit-orbit-head" aria-hidden="true"><span>{orbitLabel}</span><span>{mates.length}</span></li>}
       <li data-edit-row data-dragging={dragging || undefined} style={{'--dot': PATH_COLOURS[colour].token, ...(dragging ? {transform: `translateY(${drag!.dy}px)`} : {})} as CSSProperties}>
-        <button type="button" className="checklist-edit-handle" data-edit-handle={item.id} aria-label={`Move ${label}: drag, or use the arrow keys`} onPointerDown={e => onPointerDown(e, item.id)} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => setDrag(null)} onKeyDown={e => onHandleKey(e, item.id, label)}><span className="checklist-edit-dot" aria-hidden="true"><PathGlyph name={dot ? itemGlyph(dot) : 'sparkle'} size={18}/></span></button>
+        <button type="button" className="checklist-edit-handle" data-edit-handle={item.id} aria-label={`Move ${label}: drag, or use the arrow keys`} {...bind(item.id)} onKeyDown={e => onHandleKey(e, item.id, label)}><span className="checklist-edit-dot" aria-hidden="true"><PathGlyph name={dot ? itemGlyph(dot) : 'sparkle'} size={18}/></span></button>
         <span className="checklist-edit-label"><strong>{label}</strong>{dot?.missing && <small>{dot.note}</small>}</span>
         <button type="button" className="checklist-edit-more" aria-expanded={openRow === item.id} aria-label={`Change ${label}: orbit, colour, place`} onClick={() => setOpenRow(o => o === item.id ? null : item.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
         {openRow === item.id && <div className="checklist-edit-controls">

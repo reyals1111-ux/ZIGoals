@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent} from 'react';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
-import {moveWithinSection, sectionsOf} from '../../lib/checklist/store';
+import {dropBeside, moveWithinSection, orderedItems, sectionOfItem, sectionsOf} from '../../lib/checklist/store';
 import {orbitGlyph} from '../../lib/checklist/glyphs';
 import {formatClock, formatDate, formatNumber, formatTime} from '../../lib/visual-format';
 import {readReminders} from '../../lib/reminders/store';
@@ -23,6 +23,7 @@ import type {PathSection} from '../../lib/path/model';
 import '../habits/habits-aa.css';
 import type {ChecklistState} from './use-checklist';
 import {ChecklistTasksToday, ListRowTools} from './list-extras';
+import {dropSlot, useRowDrag} from './use-row-drag';
 
 /**
  * The List view (P7.17). Session AG Polish (ADR-030 J14; owner Part 7): Todoist's calm, in our design. One section per
@@ -71,6 +72,24 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     shown.current = arrive;
     el.scrollIntoView({block: 'center', behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.appMotion === 'off' ? 'auto' : 'smooth'});
   });
+  // Session AL fifth pass (LS-H23): a mouse (or pen) drags a row by its name, with Edit path's own drag; it lands before the
+  // row it is dropped on, in that row's orbit (below the last row: after it). Touch keeps the swipe; Move up / Move down
+  // and Alt+↑/↓ stay.
+  const {drag, bind} = useRowDrag((id, y) => {
+    const rows = [...(list.current?.querySelectorAll<HTMLElement>('li.checklist-row[data-row]') ?? [])].filter(r => r.dataset.row !== id);
+    const slot = dropSlot(rows, y), anchor = slot ? rows[slot.index]!.dataset.row : undefined, dot = state.dots.find(d => d.id === id);
+    if (!slot || !anchor || !dot) return;
+    let words = '';
+    try {
+      state.record.update(r => {
+        const out = dropBeside(r, id, anchor, slot.after); if (!out.moved) return r;
+        const mates = orderedItems(out.record).filter(i => sectionOfItem(out.record, i) === out.section), orbit = sectionsOf(out.record).find(x => x.id === out.section)?.label ?? 'its orbit';
+        words = `${dot.label} moved to place ${mates.findIndex(i => i.id === id) + 1} in ${orbit}.`;
+        return out.record;
+      });
+    } catch { showStatus(`${dot.label} was not moved on this device. Try again.`); return; }
+    if (words) showStatus(words);
+  }, {mouseOnly: true});
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const checks = [...(list.current?.querySelectorAll<HTMLElement>('.checklist-row-check') ?? [])].filter(el => el.offsetParent !== null), at = checks.indexOf(e.target as HTMLElement);
     if (at < 0) return;
@@ -92,6 +111,7 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
   const row = (dot: DerivedDot) => {
     const done = dot.state === 'done', colour = PATH_COLOURS[colours.get(dot.id) ?? dot.colour].token, just = recent.has(dot.id);
     const label = `${dot.label}${dot.note ? `: ${dot.note}` : ''}: ${done ? 'done' : dot.state === 'running' ? 'running' : dot.counted ? 'not done yet' : 'not counted today'}`;
+    const dragging = drag?.id === dot.id;
     const kind = KIND_WORD[dot.kind] ?? '', time = done && dot.doneAt ? formatTime(dot.doneAt) : '';
     const habitId = dot.kind === 'habit' ? (dot.item.ref as {habitId?: string} | undefined)?.habitId : undefined, clock = !done && habitId ? habitTimes[habitId] : undefined;
     const remind = !done && !clock && habitId ? reminderTimes[habitId]?.time : undefined;
@@ -111,19 +131,19 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     // history it was "+70 kg", a weight nobody typed); otherwise ⋯ opens the stepper.
     const again = dot.intent === 'value' && dot.value && !done && !(dot.input === 'weight' && dot.value.current === null);
     const content = <>
-      <div className="checklist-row-line">
+      <div className="checklist-row-line" style={dragging ? {translate: `0 ${drag!.dy}px`} : undefined}>
         {check}
         {/* (The path's name tab, from the node's right-centre to the right, longer, like a step: dark with a coloured edge,
             filled in the node's colour with dark words once done.) */}
-        <span className="checklist-row-text checklist-row-tab" data-lit={done ? '' : undefined} style={{'--node': colour} as CSSProperties}><span className="checklist-row-name" dir="auto" title={dot.label}>{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
+        <span className="checklist-row-text checklist-row-tab" data-lit={done ? '' : undefined} data-drag-name="" style={{'--node': colour} as CSSProperties} {...bind(dot.id)}><span className="checklist-row-name" dir="auto" title={dot.label}>{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
         {again && <button type="button" className="checklist-row-plus" aria-label={`Log ${dot.value!.suggested} ${dot.value!.unit} for ${dot.label}`} disabled={busy === dot.id} onClick={() => void state.tick(dot, 'value', dot.value!.suggested)}>+{dot.value!.suggested}<span className="checklist-row-unit"> {dot.value!.unit}</span></button>}
         <button type="button" className="checklist-row-more" aria-label={`More for ${dot.label}`} aria-expanded={panel?.id === dot.id} onClick={() => setPanel(p => p?.id === dot.id ? null : {id: dot.id, mode: dot.intent === 'value' && !done ? 'value' : 'details'})}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg></button>
       </div>
       {panel?.id === dot.id && <div className="checklist-row-panel">{renderPanel(dot)}{panel.mode === 'details' && !dot.missing && <ListRowTools state={state} dot={dot}/>}</div>}
     </>;
     return done || dot.intent === 'open'
-      ? <li key={dot.id} className="checklist-row" data-state={dot.state} data-counted={dot.counted ? undefined : 'no'}>{content}</li>
-      : <SwipeRow key={dot.id} as="li" className="checklist-row" nameRow={false} label={dot.label} completeLabel="Done" onComplete={() => void press(dot, dot.intent === 'value' ? 'value' : 'tick')} attrs={{'data-state': dot.state, 'data-counted': dot.counted ? undefined : 'no'}}>{content}</SwipeRow>;
+      ? <li key={dot.id} className="checklist-row" data-row={dot.id} data-dragging={dragging || undefined} data-state={dot.state} data-counted={dot.counted ? undefined : 'no'}>{content}</li>
+      : <SwipeRow key={dot.id} as="li" className="checklist-row" nameRow={false} label={dot.label} completeLabel="Done" onComplete={() => void press(dot, dot.intent === 'value' ? 'value' : 'tick')} attrs={{'data-row': dot.id, 'data-dragging': dragging || undefined, 'data-state': dot.state, 'data-counted': dot.counted ? undefined : 'no'}}>{content}</SwipeRow>;
   };
   return <div ref={list} className="checklist-list-view" onKeyDown={onKeyDown}>
     {/* Session AL fifth pass (LS-033, LS-070): the flame's rule, said where the rows are; each habit row has its own streak. */}

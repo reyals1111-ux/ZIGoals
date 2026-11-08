@@ -370,6 +370,16 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-validators .earn-compare input{flex:none;margin:0;width:20px;height:20px}
 .earn-compare-panel{margin:16px 0 0}
 
+/* Session AL fifth pass (C-BN-07): the ways to earn side by side, in the validators table's own look. */
+.earn-compare-table tbody th small { display: block; margin-top: 2px; font-weight: 400; }
+.earn-compare-table .earn-tags { gap: 6px; }
+@media (min-width: 768px) { .earn-compare-table th:first-child { min-width: 180px; } .earn-compare-table td:nth-child(2) { min-width: 220px; } }
+/* Session AL fifth pass (N-BN-05): on a phone an option's fees, lockups and minimums, and its steps, fold to one row each. */
+.earn-more { margin: 8px 0; border-radius: 14px; border: 1px solid #7fc8ff26; background: #0a1226; }
+.earn-more > summary { min-height: 44px; display: flex; align-items: center; padding: 8px 14px; cursor: pointer; font-weight: 650; color: var(--text-strong); }
+.earn-more[open] > summary { border-bottom: 1px solid #7fc8ff1a; }
+.earn-more > :not(summary) { margin-inline: 14px; }
+.earn-more > ol { padding: 0; }
 /* Session AL: later rules sit above the AK G3 block, which stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
 /* Session AK (G3): richer cards, as the new surfaces (F6). Earn: Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a

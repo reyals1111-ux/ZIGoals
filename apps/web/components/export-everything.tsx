@@ -75,7 +75,9 @@ export function ExportEverything() {
   return <section className="panel export-everything" id="export-everything" aria-labelledby="export-everything-title">
     <p className="eyebrow">OPTIONAL</p>
     <h2 id="export-everything-title">Everything you’ve saved, in one file.</h2>
-    <p>This is optional: the encrypted backup, and account sync where it is on, keep your records. If you’d like a readable copy for yourself, this makes one ZIP with a JSON file of everything and a CSV per area (goals, contributions, habits, check-ins, Health diary, weights, water, activity, wealth).</p>
+    <p>This is optional: the encrypted backup, and account sync where it is on, keep your records.</p>
+    {/* Session AL fifth pass (D-005): what the file holds folds, so the open Data & privacy group is short (nothing removed). */}
+    <details className="backup-more"><summary>More about this file</summary><p>If you’d like a readable copy for yourself, this makes one ZIP with a JSON file of everything and a CSV per area (goals, contributions, habits, check-ins, Health diary, weights, water, activity, wealth).</p></details>
     <label className="export-everything-agree"><input type="checkbox" checked={agreed} onChange={event => setAgreed(event.target.checked)} /><span>I understand this file is readable and holds my personal records, including Health.</span></label>
     <fieldset className="export-everything-range"><legend>Only some dates (optional)</legend><p className="fine">Leave empty for everything. With both dates, the file holds only those dates’ tables (CSV), without the full copy or photos.</p>
       <label>From<input type="date" value={from} onChange={event => setFrom(event.target.value)} aria-invalid={rangeError ? true : undefined} aria-describedby={rangeError ? 'export-range-error' : undefined}/></label>

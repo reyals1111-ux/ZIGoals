@@ -10,6 +10,7 @@ import {OrbitArt} from '../header-art/orbit-art';
 import {PageHeader} from '../page-header';
 import {SectionHeading} from '../ui/section-heading';
 import {AcademySection} from './academy-section';
+import {CompareTable} from './compare-table';
 import {DefaSection, NawaSection, PermapodSection, ZignalySection} from './apps-sections';
 import {EarnChips} from './earn-chips';
 import {EarnGlyph} from './earn-glyph';
@@ -45,7 +46,7 @@ const StakingClarity = lazy(() => import('../zigchain-eco/staking-clarity'));
 const Summary = memo(LiveSummary), StartHere = memo(StartHereSection), Native = memo(NativeSection), Valdora = memo(ValdoraSection);
 const Vaults = memo(VaultsSection), Oroswap = memo(OroswapSection), Nawa = memo(NawaSection), Defa = memo(DefaSection), Permapod = memo(PermapodSection);
 const Zignaly = memo(ZignalySection), Governance = memo(GovernanceSection), GoalVaults = memo(GoalVaultsSection), Stablecoins = memo(StablecoinsSection);
-const Validators = memo(ValidatorsSection), Academy = memo(AcademySection), Safety = memo(SafetyBlock);
+const Validators = memo(ValidatorsSection), Academy = memo(AcademySection), Safety = memo(SafetyBlock), Compare = memo(CompareTable);
 
 /**
  * Session AF (L1, ADR-028 H5, H16, H17, H84): the Earn hub, /app/earn. Every way to earn on ZIGChain that is live today,
@@ -87,6 +88,10 @@ export function EarnView() {
         <SectionBoundary id="summary" title="Your Earn summary"><Summary wallets={wallets} reads={reads}/></SectionBoundary>
         {wallets.length > 0 && <SectionBoundary id="staking-clarity" title="Rewards, unstaking and history"><Suspense fallback={null}><StakingClarity now={now} reads={reads.flatMap(r => r.state.phase === 'ok' ? [{address: r.address, label: r.label, positions: r.state.positions}] : [])}/></Suspense></SectionBoundary>}
         <SectionBoundary id="start-here" title="Start here"><StartHere facts={facts} live={live}/></SectionBoundary>
+        {/* Session AL fifth pass (C-BN-07, N-BN-05): the ways to earn side by side, with their labels and sources (no chip:
+            the one topic strip keeps its list); on a phone it folds to one row, as the wider sections do (open, its eight
+            cards are about 3,000 px at 375). */}
+        <PhoneFold label="The ways to earn, compared"><SectionBoundary id="compare" title="The ways to earn, compared"><Compare valdora={valdora} vaults={vaults}/></SectionBoundary></PhoneFold>
         <SectionBoundary id="native-staking" title="Stake ZIG with a validator"><Native chain={chain} validators={validators} measured={measured} now={now} reads={reads}/></SectionBoundary>
         <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><Valdora valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary>
         <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><Vaults vaults={vaults} valdora={valdora} now={now} shares={shares}/></SectionBoundary>

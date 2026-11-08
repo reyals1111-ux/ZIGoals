@@ -48,7 +48,8 @@ test('N-BN-05/D-005: on a phone Earn\'s wider sections are folded rows; the inde
   await earnRoutes(page);
   await page.goto('/app/earn');
   const rows = page.locator('.earn-sections .phone-fold-toggle');
-  await expect(rows).toHaveText([/^Shariah-compliant vaults: Nawa/, /^Invoice finance pools: DeFa/, /^Borrow and lend: Permapod/, /^Zignaly is closing: how to withdraw/, /^Have a say: governance/, /^Link stake you already hold to a goal/, /^Stablecoins on ZIGChain: what exists/]);
+  // Session AL fifth pass (C-BN-07 / N-BN-05, deliberate): the new side-by-side table is the first folded row on a phone.
+  await expect(rows).toHaveText([/^The ways to earn, compared/, /^Shariah-compliant vaults: Nawa/, /^Invoice finance pools: DeFa/, /^Borrow and lend: Permapod/, /^Zignaly is closing: how to withdraw/, /^Have a say: governance/, /^Link stake you already hold to a goal/, /^Stablecoins on ZIGChain: what exists/]);
   for (const row of await rows.all()) { await expect(row).toHaveAttribute('aria-expanded', 'false'); expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44); }
   await expect(page.locator('#governance')).toBeHidden();
   // The page is shorter than the 24,092 px the replay measured at 375 with every section open.

@@ -90,8 +90,13 @@ function ModuleBackup<T>({ name, module, schema, store, describe, coverage, spea
   // Session AJ (item 19, SE3): each module's backup has its own anchor (#backup-health, #backup-habits, #backup-finance…).
   return <section className="panel module-backup" id={`backup-${module}`} aria-label={`${name} backup`}>
     <p className="eyebrow">{name.toUpperCase()} · PRIVATE BROWSER DATA</p><h3>{name} backup</h3>
-    <p>Export all {name.toLowerCase()} records, including history. These files contain personal information and no wallet credentials.</p>
-    <p className="fine backup-coverage"><strong>In this file:</strong> {coverage.holds} <strong>Not in it:</strong> {coverage.notHeld} Saved as <code>{fileName}</code>.</p>
+    {/* Session AL fifth pass (D-005): what the file holds (the same words on each card) folds under "More about this
+        file", so the open Data & privacy group is short; nothing is removed, and the file's name stays in view. */}
+    <p className="fine backup-file">Saved as <code>{fileName}</code>.</p>
+    <details className="backup-more"><summary>More about this file</summary>
+      <p>Export all {name.toLowerCase()} records, including history. These files contain personal information and no wallet credentials.</p>
+      <p className="fine backup-coverage"><strong>In this file:</strong> {coverage.holds} <strong>Not in it:</strong> {coverage.notHeld}</p>
+    </details>
     {store.error && <p className="notice">Stored data needs attention. Export its available stored data before restoring. If the database cannot be read, keep it intact and use a separate protected backup. <button className="text-link" onClick={store.refresh}>Retry reading</button></p>}
     <button className="secondary" disabled={!store.loaded || busy} onClick={download}>Export {name}</button>
     {speaking && where === "export" && (message ? <p role="status">{message}</p> : error ? <p role="alert">{error}</p> : null)}

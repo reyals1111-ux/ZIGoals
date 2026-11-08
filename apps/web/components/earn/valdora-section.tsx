@@ -1,4 +1,5 @@
 'use client';
+import {valdoraTags} from '../../lib/earn/glance';
 import type {LiveState} from '../../lib/earn/client';
 import {decimal, pctShort, tokenAmount, usd, zig} from '../../lib/earn/format';
 import type {DefillamaData, ValdoraData} from '../../lib/earn/live/types';
@@ -28,7 +29,7 @@ const readDay = () => formatDate(`${READ_ON}T12:00:00Z`, {timeZone: 'UTC'});
 export function ValdoraSection({valdora, llama, now, reads = []}: {valdora: LiveState<ValdoraData>; llama: LiveState<DefillamaData>; now: number; reads?: readonly PositionRead[]}) {
   const day = readDay();
   const data = valdora.phase === 'ok' ? valdora.answer.data : null;
-  const tags: Tag[] = [data?.paused || data?.emergencyMode ? {tone: 'paused', text: data.emergencyMode ? 'Emergency mode on' : 'Paused right now'} : {tone: 'live', text: 'Live on mainnet'}, {tone: 'contract', text: 'A contract holds the ZIG'}];
+  const tags: Tag[] = valdoraTags(data);
   const stzigPool = llama.phase === 'ok' && llama.answer.data.pools.status === 'ok' ? llama.answer.data.pools.rows.find(r => r.project === 'valdora-finance' && r.symbol.toUpperCase() === 'STZIG') : undefined;
   const unavailable = valdora.phase === 'unavailable' ? valdora.reason : 'UPSTREAM_DOWN';
   // Session AL (PR-037): the ZIG behind stZIG by the contract's own figures (supply × rate), for the TVL line's comparison.

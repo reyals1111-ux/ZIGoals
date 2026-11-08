@@ -65,4 +65,12 @@ export async function openEarnFolds(page: Page) {
     }).toPass({timeout: 15_000});
   }
   for (let i = 0, n = await toggles.count(); i < n; i++) await expect(toggles.nth(i)).toHaveAttribute('aria-expanded', 'true');
+  // Session AL fifth pass (N-BN-05, deliberate): on a phone each option's fees, lockups and minimums, and its steps, fold
+  // to one row (components/earn/option-section.tsx); a spec working inside them opens each, as a person would.
+  const more = page.locator('.earn-sections details.earn-more');
+  for (let i = 0, n = await more.count(); i < n; i++) {
+    const row = more.nth(i);
+    if (!await row.evaluate(d => (d as HTMLDetailsElement).open)) await row.locator(':scope > summary').click();
+    await expect(row).toHaveAttribute('open', '');
+  }
 }

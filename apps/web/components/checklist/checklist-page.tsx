@@ -247,11 +247,11 @@ export function ChecklistPage() {
         {/* Round 4: on a computer the twelve weeks stand open under the timers (the column's room); below that, a fold. */}
         {loaded && !empty && !state.unreadable && !narrow && state.date && <section className="checklist-history-open" aria-labelledby="checklist-history-title">
           <h2 id="checklist-history-title" className="checklist-history-title">Orbit consistency · last 12 weeks</h2>
-          <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>
+          <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null} state={state}/></Suspense>
         </section>}
         {loaded && !empty && !state.unreadable && (narrow || !state.date) && <details className="checklist-history-fold" onToggle={e => setHistory((e.currentTarget as HTMLDetailsElement).open)}>
           <summary>Orbit consistency<span className="checklist-history-span"> · last 12 weeks</span></summary>
-          {history && state.date && <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>}
+          {history && state.date && <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null} state={state}/></Suspense>}
         </details>}
       </aside>
     </div>
