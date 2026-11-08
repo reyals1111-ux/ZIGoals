@@ -15,7 +15,8 @@ export type StepperReading = {ok: true; value: number; error: null} | {ok: false
 
 const KIND_BY_UNIT: Readonly<Record<string, {kind: NumberKind; unit?: string}>> = {
   kg: {kind: 'weight', unit: 'kg'}, lb: {kind: 'weight', unit: 'lb'},
-  ml: {kind: 'water', unit: 'ml'}, mL: {kind: 'water', unit: 'ml'}, 'fl oz': {kind: 'water', unit: 'fl-oz-us'},
+  // Session AL fifth pass (LS-056): a glass in whole mL ("Log 2.5 ml" was kept), through the shared table's waterStep row.
+  ml: {kind: 'waterStep', unit: 'ml'}, mL: {kind: 'waterStep', unit: 'ml'}, 'fl oz': {kind: 'waterStep', unit: 'fl-oz-us'},
   min: {kind: 'minutes'},
 };
 

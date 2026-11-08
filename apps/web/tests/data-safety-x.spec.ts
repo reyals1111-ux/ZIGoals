@@ -61,7 +61,7 @@ for (const [label, domain, key, record] of OLD) {
     if (domain === 'settings') expect((parsed as {widgets: {id: string}[]}).widgets.map(w => w.id)).toEqual((record as {widgets: {id: string}[]}).widgets.map(w => w.id));
     if (domain === 'finance') expect(parsed).toMatchObject({goals: [], positions: []});
     // And the page that shows it reads it.
-    if (domain === 'health') { await page.goto('/app/health'); await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Weight', exact: true}).click(); await expect(page.getByRole('table', {name: 'Weight history'})).toContainText('70 kg'); }
+    if (domain === 'health') { await page.goto('/app/health'); await page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name: 'Weight', exact: true}).click(); await expect(page.getByRole('table', {name: 'Weight history'})).toContainText('70 kg'); }
   });
 }
 

@@ -32,8 +32,10 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
   await openTimers(page);
   await expect(timer(page, 'Sleep')).toBeVisible();
   await expect(timer(page, 'Focus')).toHaveCount(0);
-  // Sleep.
+  // Sleep. Session AL fifth pass (PR-018): starting asks once, in place, as Fast and Focus do; nothing runs before Start.
   await timer(page, 'Sleep').click();
+  await expect(timer(page, 'Sleep')).toHaveAttribute('aria-pressed', 'false');
+  await page.getByRole('alertdialog', {name: 'Start sleep?'}).getByRole('button', {name: 'Start', exact: true}).click();
   await expect(timer(page, 'Sleep')).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(async () => (await stored<Health>(page, HEALTH_STORAGE_KEY))?.sleep?.nights.map(n => n.end)).toEqual([null]);
   await page.clock.fastForward('11:00');
@@ -45,7 +47,8 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
   await timer(page, 'Meditate').click();
   await expect.poll(async () => (await stored<{run: unknown}>(page, MEDITATION_RUN_KEY))?.run).not.toBeNull();
   await expect(timer(page, 'Meditate')).toHaveAttribute('aria-pressed', 'true');
-  await page.waitForTimeout(1600);
+  // Session AL fifth pass (PR-018): the one timer minimum is a minute for every timer, so the session runs past it.
+  await page.clock.fastForward('01:05');
   await timer(page, 'Meditate').click();
   await expect.poll(async () => (await stored<Health>(page, HEALTH_STORAGE_KEY))?.meditation?.sessions.length).toBe(1);
   await expect.poll(async () => (await stored<{run: unknown}>(page, MEDITATION_RUN_KEY))?.run).toBeNull();

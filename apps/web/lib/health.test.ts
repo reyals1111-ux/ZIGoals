@@ -119,7 +119,8 @@ test("manual activity adds steps and minutes without changing food nutrition", (
 test("a recorded weight reads in pounds in Activity when lb is preferred", () => {
   const data = saveWeight(createEmptyHealth(), { id: id(4), date: "2026-09-15", grams: 72_400 }, at);
   expect(getHealthActivities(data)[0]!.detail).toBe("72.4 kg · Sep 15, 2026");
-  expect(getHealthActivities(data, "lb")[0]!.detail).toBe("159.6 lb · Sep 15, 2026");
+  // Session AL fifth pass (N-MO-14, deliberate): a reading at two decimals, as the Weight history shows it (72.4 kg = 159.61 lb).
+  expect(getHealthActivities(data, "lb")[0]!.detail).toBe("159.61 lb · Sep 15, 2026");
 });
 
 describe("strict import boundary", () => {

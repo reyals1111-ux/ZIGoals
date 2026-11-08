@@ -1,6 +1,7 @@
 import {habitCalendarDay, habitDataSchema, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, type Habit, type HabitData} from '../habits';
 import {logHealthItem, newHealthId, removeHealthItem, saveWeight, type HealthData} from '../health';
 import {addWater, removeWater} from '../health-daily';
+import {validateValue} from '../limits/plausibility';
 import type {Platform} from '../positions';
 import {deleteNight, endNight, napOrNight, runningNights, startNight, wakeGreeting} from '../sleep/engine';
 import type {Sleep} from '../sleep/schema';
@@ -95,6 +96,9 @@ function healthPlan(dot: DerivedDot, ctx: TickContext, intent: 'tick' | 'value')
   switch (dot.input) {
     case 'water': {
       const v = valueOf(dot, ctx), unit = dot.value?.unit === 'fl oz' ? 'fl-oz-us' as const : 'ml' as const, id = newHealthId(), r = receiptWrites(dot, ctx, {kind: 'water', id});
+      // Session AL fifth pass (LS-056): the shared water-step row (whole mL) for every way in (the stepper, ZIGi's tick).
+      const checked = validateValue('waterStep', String(v), unit);
+      if (!checked.ok) throw new TickRefused(checked.error);
       return {writes: [w('health', h => addWater(h, {id, date: day, amountMilli: Math.round(v * 1000), unit}, at)), r.apply], undo: [w('health', h => removeWater(h, id)), r.undo], message: `${v} ${unit === 'ml' ? 'ml' : 'fl oz'} of water logged.`, undone: 'Water entry removed.', done: true, signal: 'checklist_tick'};
     }
     case 'diary': {
@@ -133,7 +137,7 @@ export function sleepPlan(dot: DerivedDot | null, ctx: TickContext): TickPlan {
   if (running) {
     const original = {start: running.start, timeZone: running.timeZone}, resume = w('sleep', s => { const held = s.nights.find(n => n.id === running.id); const without = held ? deleteNight(s, running.id) : s; return startNight(without, new Date(original.start), original.timeZone); });
     // Session AH Part 3 (DS2, T-110, T-116, M-134): a second tap moments after the first never saves a near-empty night
-    // (it used to stand in for last night's 7 h 17 min); under ten minutes the sleep is simply stopped, with an Undo.
+    // (it used to stand in for last night's 7 h 17 min); within the one timer minimum the sleep is simply stopped, with an Undo.
     const startMs = Date.parse(running.start), endMs = ctx.now.getTime();
     if (tooShortToSave('sleep', endMs - startMs)) return {writes: [w('sleep', s => s.nights.some(n => n.id === running.id) ? deleteNight(s, running.id) : s)], undo: [resume], message: tooShortText('sleep'), undone: 'The sleep is running again.', done: false, signal: 'checklist_tick'};
     // A short daytime sleep is a nap (lib/sleep/engine.ts napOrNight), and the words follow the local time of day.
@@ -150,7 +154,7 @@ export function fastPlan(dot: DerivedDot | null, ctx: TickContext, targetHours =
   const running = ctx.snapshot?.fasting ? runningSession(ctx.snapshot.fasting) : undefined;
   if (running) {
     const r = dot ? receiptWrites(dot, ctx, {kind: 'fast', id: running.id}) : null;
-    // Session AH (HE7, M-136): a fast stopped within ten minutes saves nothing (no "0.0 h" fast), as Sleep does; Undo resumes it.
+    // Session AH (HE7, M-136): a fast stopped within the one timer minimum saves nothing (no "0.0 h" fast); Undo resumes it.
     if (tooShortToSave('fast', ctx.now.getTime() - Date.parse(running.startedAt))) {
       const resume = (f: Fasting) => f.sessions.some(s => s.id === running.id) ? f : startFast(f, {id: running.id, now: new Date(running.startedAt), targetHours: running.targetHours, timeZone: running.timeZone, ...(running.habitId ? {habitId: running.habitId} : {})});
       return {writes: [w('fasting', f => removeFast(f, running.id))], undo: [w('fasting', resume)], message: tooShortText('fast'), undone: 'The fast is running again.', done: false, signal: 'checklist_tick'};
@@ -173,7 +177,8 @@ export function meditationTimerPlan(ctx: TickContext, minutes = 10): TickPlan {
   const run = ctx.snapshot?.meditationRun?.run;
   if (run) {
     const ended = endedSession(run, ctx.now.getTime()), held: MeditationRun = {version: 1, run};
-    if (!ended) return {writes: [w('meditationRun', () => emptyMeditationRun())], undo: [w('meditationRun', () => held)], message: tooShortText('meditation'), undone: 'The session is running again.', done: false, signal: 'checklist_tick'};
+    // Session AL fifth pass (PR-018): the one timer minimum (a minute), as Sleep, Fast and Focus (21 seconds was kept).
+    if (!ended || tooShortToSave('meditation', ended.seconds * 1000)) return {writes: [w('meditationRun', () => emptyMeditationRun())], undo: [w('meditationRun', () => held)], message: tooShortText('meditation'), undone: 'The session is running again.', done: false, signal: 'checklist_tick'};
     const session = sessionFrom(ended, {id: newSessionId(), timeZone: ctx.zone, now: ctx.now});
     return {writes: [w('meditation', m => addSession(m, session)), w('meditationRun', () => emptyMeditationRun())], undo: [w('meditation', m => m.sessions.some(s => s.id === session.id) ? deleteSession(m, session.id) : m), w('meditationRun', () => held)],
       // Session AH (HE13, M-135): the toast says what the record holds (6 s, not "1 min").
@@ -193,10 +198,10 @@ export function focusPlan(habit: Habit | undefined, ctx: TickContext): TickPlan 
   if (timer?.state === 'paused') return {writes: [w('habits', d => resumeHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [w('habits', d => d.habits.find(h => h.id === habit.id)?.timer?.state === 'running' ? pauseHabitTimer(d, habit.id, timer.id, new Date()) : d)], message: `Focus resumed: ${habit.title}.`, undone: 'Focus paused again.', done: false, signal: 'checklist_tick'};
   if (timer) {
     // Session AL (P-LS-31, LS-034/LC-010): Focus logs whole minutes (12 seconds was "0.19 of 30 minutes"); under a minute
-    // saves nothing, as Sleep and Fast say under ten minutes; the end toast offers Undo (the habit as it was, timer running).
+    // saves nothing (the one timer minimum, lib/health-timer-rules); the end toast offers Undo (the habit as it was, timer running).
     const before = habit, elapsed = timer.elapsedMs + Math.max(0, ctx.now.getTime() - Date.parse(timer.segmentStartedAt));
     const minutes = Math.floor(elapsed / 60_000), back = w('habits', d => d.habits.some(h => h.id === before.id) ? {...d, habits: d.habits.map(h => h.id === before.id ? before : h)} : d);
-    if (minutes < 1) return {writes: [w('habits', d => discardHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [back], message: 'Focus stopped after less than a minute, so nothing was saved.', undone: 'Focus is running again.', done: false, signal: 'checklist_tick'};
+    if (tooShortToSave('focus', elapsed)) return {writes: [w('habits', d => discardHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [back], message: tooShortText('focus', true), undone: 'Focus is running again.', done: false, signal: 'checklist_tick'};
     const unit = habitRuleOn(habit, timer.date)?.measurement, value = unit && 'unit' in unit && unit.unit === 'hours' ? minutes / 60 : minutes;
     return {writes: [w('habits', d => logHabitValue(discardHabitTimer(d, habit.id, timer.id, ctx.now), habit.id, timer.date, value, {mode: 'add'}, ctx.now))], undo: [back],
       message: `${habit.title}: ${minutes} ${minutes === 1 ? 'minute' : 'minutes'} of focus logged on Habits.`, undone: 'Focus is running again; nothing was logged.', done: true, signal: 'checklist_tick'};

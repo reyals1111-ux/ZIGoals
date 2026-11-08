@@ -37,6 +37,28 @@ export function weightIssue(grams: number): string | null {
 export function minutesIssue(minutes: number, what = 'minutes'): string | null {
   return Number.isFinite(minutes) && minutes >= 0 && minutes <= LIMITS.minutesPerDay ? null : `A day has ${fmt(LIMITS.minutesPerDay)} minutes: enter at most that many ${what}.`;
 }
+/**
+ * Session AL fifth pass (G-044): a value a person keeps per day in their own unit ("hours", "min") is a share of one day:
+ * at most 24 hours (1,440 minutes). The unit word is read loosely ("h", "hrs", "hours a day", "minutes of screen time");
+ * any other unit ("pages", "EUR") has no day limit here and returns null.
+ */
+const HOUR_WORD = /^(h|hr|hrs|hour|hours|uur|uren|stunden?)\b/i, MINUTE_WORD = /^(m|min|mins|minute|minutes|minuten)\b/i;
+export function dayTimeUnit(unit: string): {perDay: number; word: string} | null {
+  const u = unit.trim();
+  return HOUR_WORD.test(u) ? {perDay: 24, word: 'hours'} : MINUTE_WORD.test(u) ? {perDay: LIMITS.minutesPerDay, word: 'minutes'} : null;
+}
+/** More than one day holds, in the unit's own words, or null. */
+export function perDayUnitIssue(value: number, unit: string): string | null {
+  const t = dayTimeUnit(unit);
+  if (!t || !Number.isFinite(value) || value <= t.perDay) return null;
+  return `A day holds at most ${fmt(t.perDay)} ${t.word}. Enter from 0 to ${fmt(t.perDay)} ${t.word}.`;
+}
+/** Possible but unlikely: 20 hours (1,200 minutes) or more of one day. The question to ask once before keeping it, or null. */
+export function perDayUnitWarning(value: number, unit: string): string | null {
+  const t = dayTimeUnit(unit);
+  if (!t || !Number.isFinite(value) || value > t.perDay || value < t.perDay * 20 / 24) return null;
+  return `${value.toLocaleString('en-GB', {maximumFractionDigits: 2})} ${t.word} is most of a day. If it is right, press Save again to keep it.`;
+}
 export function stepsIssue(steps: number): string | null {
   return Number.isFinite(steps) && steps >= 0 && steps <= LIMITS.stepsPerDay ? null : `Enter up to ${fmt(LIMITS.stepsPerDay)} steps for one day.`;
 }
@@ -115,6 +137,8 @@ type NumberRow = {
   /** Zero is refused (a target, a quantity, a water entry). */
   aboveZero?: boolean;
   whole?: boolean; maxDecimals?: number;
+  /** Units typed in whole numbers only (a glass of water in mL), while the row's other units keep `maxDecimals`. */
+  wholeUnits?: readonly MeasureUnit[];
 };
 type TextRow = {noun: string; max: number; required: boolean; multiline: boolean};
 export const VALUE_LIMITS = {
@@ -124,6 +148,9 @@ export const VALUE_LIMITS = {
   waist: {noun: 'a measurement', base: 'cm', units: ['cm', 'in'], min: 10, max: 250, maxDecimals: 1},
   /** One water entry (a day's total is waterDayIssue). */
   water: {noun: 'an amount of water', base: 'ml', units: ['ml', 'fl-oz-us', 'l'], min: 0, max: LIMITS.waterEntryMl, aboveZero: true, maxDecimals: 2},
+  /** Session AL fifth pass (LS-056): one water entry logged with a tap or a stepper (the Checklist, ZIGi's card): whole
+   *  millilitres ("Log 2.5 ml" was kept), fl oz to two decimals. The Health form keeps `water` (a sub-sip amount is asked). */
+  waterStep: {noun: 'an amount of water', base: 'ml', units: ['ml', 'fl-oz-us'], min: 0, max: LIMITS.waterEntryMl, aboveZero: true, maxDecimals: 2, wholeUnits: ['ml']},
   /** One food, one meal or a daily target. */
   kcal: {noun: 'calories', base: 'kcal', units: ['kcal', 'kj'], min: 0, max: LIMITS.kcalTarget, maxDecimals: 1},
   /** Protein, carbs or fat in one food or one day, in grams. */
@@ -203,9 +230,10 @@ function numberValue(kind: NumberKind, raw: unknown, unitIn?: string): Validated
   const hi = unit && row.base ? Math.floor(conv(row.max) * step + 1e-9) / step : row.max;
   const label = unit ? ` ${unitLabel(unit)}` : row.word === '%' ? '%' : row.word ? ` ${row.word}` : '';
   const range = row.aboveZero ? `more than 0 and at most ${say(hi)}${label}` : `from ${say(lo)} to ${say(hi)}${label}`;
-  const sentence = `Enter ${row.whole ? 'a whole number' : row.noun} ${range}.`;
+  const wholeUnit = !row.whole && !!unit && !!row.wholeUnits?.includes(unit);
+  const sentence = wholeUnit ? `Enter ${row.noun} in whole${label}, ${range}.` : `Enter ${row.whole ? 'a whole number' : row.noun} ${range}.`;
   const decimals = parsed.text.split('.')[1]?.length ?? 0;
-  if (row.whole && decimals > 0 && !/^0+$/.test(parsed.text.split('.')[1]!)) return bad(sentence, shownUnit);
+  if ((row.whole || wholeUnit) && decimals > 0 && !/^0+$/.test(parsed.text.split('.')[1]!)) return bad(sentence, shownUnit);
   if (!row.whole && decimals > maxDecimals) return bad(maxDecimals === 0 ? sentence : `Use at most ${maxDecimals} decimal ${maxDecimals === 1 ? 'place' : 'places'}.`, shownUnit);
   const input = parsed.value;
   if (input < lo || input > hi || (row.aboveZero && input <= 0)) return bad(sentence, shownUnit);

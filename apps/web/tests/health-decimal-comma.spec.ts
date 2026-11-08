@@ -10,7 +10,7 @@ const VIEWS=['Diary','Foods & recipes','Meals & planning','Weight','Measurements
 const health=(page:Page)=>page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:health:v1')??'null') as {weights?:{grams:number}[];daily?:{water:{amountMilli:number}[]}}|null);
 const grams=async(page:Page)=>(await health(page))?.weights?.map(w=>w.grams)??[];
 const millilitres=async(page:Page)=>(await health(page))?.daily?.water.map(w=>w.amountMilli)??[];
-const view=async(page:Page,name:string)=>{await page.getByRole('button',{name,exact:true}).click();};
+const view=async(page:Page,name:string)=>{await page.getByRole('tab',{name,exact:true}).click(); /* Session AL fifth pass (PR-014): the Health views are tabs */};
 
 test('with an en-US browser, "72,5" kg is saved as 72.5 kg and "1,5" mL of water as 1.5 mL, never 725 kg or 15 mL',async({page})=>{
  await page.goto('/app/health');

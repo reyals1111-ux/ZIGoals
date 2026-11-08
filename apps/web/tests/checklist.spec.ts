@@ -69,13 +69,14 @@ test('any order; a value dot opens the stepper with the default, logs to Health 
   await expect(stepper.getByRole('textbox')).toHaveValue('250');
   await stepper.getByRole('button', {name: 'More, by 50 ml'}).click();
   await stepper.getByRole('button', {name: 'Log 300 ml'}).click();
-  // Session AL (P-LS-19, LS-016/LC-002, deliberate): Water is done at the daily target when one is set (Health › Water);
-  // this seed sets none, so one entry is the day's water and this line holds (tests/grok53/checklist covers the target).
-  await expect(page.getByRole('button', {name: /^Water: 300 ml today: done$/})).toBeVisible();
+  // Session AL (P-LS-19, LS-016/LC-002, deliberate): Water is done at the daily target when one is set (Health › Water).
+  // Fifth pass (replay L2 round 2, deliberate): this seed sets none, so the glass is logged but Water stays unlit and says
+  // why (it lit every planet after one glass); tests/grok53/health/fifth-pass-checklist-water covers the target ask.
+  await expect(page.getByRole('button', {name: /^Water: 300 ml today, no daily target yet: not done yet$/})).toBeVisible();
   const health = await stored<{daily?: {water: {amountMilli: number; unit: string; date: string}[]}}>(page, HEALTH_STORAGE_KEY);
   expect(health?.daily?.water.map(w => [w.amountMilli, w.unit, w.date])).toEqual([[300000, 'ml', await browserToday(page)]]);
   // … and remembers 300 next time.
-  await page.getByRole('button', {name: /^Water: 300 ml today: done$/}).click();
+  await page.getByRole('button', {name: /^Water: 300 ml today, no daily target yet: not done yet$/}).click();
   await expect(page.getByRole('form', {name: 'Log Water'}).getByRole('textbox')).toHaveValue('300');
   await page.getByRole('form', {name: 'Log Water'}).getByRole('button', {name: 'Cancel'}).click();
   // A count habit takes the stepper too, and its record reads the value.
@@ -84,7 +85,8 @@ test('any order; a value dot opens the stepper with the default, logs to Health 
   await push.getByRole('textbox').fill('20');
   await push.getByRole('button', {name: 'Log 20 times'}).click();
   await expect.poll(() => entryToday(page, ID.push)).toMatchObject({count: 20});
-  await expect(page.locator('.checklist-progress-line')).toContainText('3 of 4 planets today');
+  // Fifth pass (deliberate): Water is unlit without a target (above), so two of the four are lit here, the sketch and push-ups.
+  await expect(page.locator('.checklist-progress-line')).toContainText('2 of 4 planets today');
   // The line between two lit dots is lit. (Session AG, owner Part 6: no chests on the path — the half-way chest is gone; the
   // half-way moment is ZIGi's and the game layer's, which read the records.)
   await expect(page.locator('.path-chest[data-milestone="half"]')).toHaveCount(0);

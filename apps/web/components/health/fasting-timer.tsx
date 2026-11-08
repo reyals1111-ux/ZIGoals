@@ -19,10 +19,26 @@ import type {FastingStore} from './use-fasting';
 import './fasting.css';
 import type {LayoutAttrs} from '../layout-edit';
 import {StarToggle} from '../checklist/star-toggle';
+import Link from 'next/link';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {REMINDERS_PLAN, setPlanItem} from '../../lib/reminders-plan/schema';
 import {PastDayLine, useHealthDay} from './health-day';
 
 export const FASTING_SAFETY_NOTE = 'Fasting isn’t for everyone. If you’re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first. Stop if you feel unwell.';
 const clock = (iso: string, zone: string) => { try { return formatTime(iso, {timeZone: zone}); } catch { return formatTime(iso); } };
+/**
+ * Session AL fifth pass (C-DVG-41): the fasting reminder, on the card where fasts are run. It is the reminders plan's
+ * "Fasting end" (Settings → Reminders, lib/reminders-plan): a card on Today as soon as a running fast reaches its target,
+ * outside the quiet hours. In-app on this device; a closed-app notification waits for push, as every reminder does.
+ */
+function FastReminderSwitch() {
+  const plan = useDeviceRecord(REMINDERS_PLAN), [said, setSaid] = useState(''), on = plan.data.items?.['fasting-end']?.on === true;
+  return <div className="fasting-reminder">
+    <label className="checkbox"><input type="checkbox" checked={on} disabled={!plan.loaded || plan.unreadable} onChange={e => { const next = e.target.checked; try { plan.update(r => setPlanItem(r, 'fasting-end', {on: next})); setSaid(next ? 'Fasting reminder on: Today shows a card when your fast reaches its target.' : 'Fasting reminder off.'); } catch { setSaid('This choice could not be saved on this device.'); } }}/>Remind me on Today when a fast reaches its target</label>
+    {/* aria-live, not role=status: the card's own status line (the stop's result) stays the one status here */}
+    <p className="fine" aria-live="polite">{said || <>Quiet hours apply. <Link className="text-link" href="/app/settings/reminders">All reminders</Link></>}</p>
+  </div>;
+}
 /** The Health page module "Fasting timer" (HE6): a clock against a chosen target, a short history, no praise. */
 /** Session AL (P-MO-55; MO-025, C-MO-36): a fast that already happened, with its start and end, checked by logPastFast. */
 function PastFastForm({fasting, zone, onDone}: {fasting: FastingStore; zone: string; onDone: (line: string) => void}) {
@@ -101,6 +117,7 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
     <div className="habit-section-heading"><div><p className="eyebrow">A clock, nothing more</p><h2 id="fasting-title">Fasting timer</h2></div><StarToggle item={{kind: 'health', input: 'fast'}} label="Fast" defaultValue={16} unit="h"/></div>
     <p className="fasting-safety" role="note">{FASTING_SAFETY_NOTE}</p>
     <p className="fine">ZIGoals shows the clock only. It gives no medical or nutritional advice. {timerRuleText}</p>
+    <FastReminderSwitch/>
     {/* Session AL fourth pass (C-MO-35, C-DVG-41): a rhythm of fasts that reached their own target (no longest fast) */}
     {(() => { const text = fasting.unreadable ? null : fastingRhythmText(fastingRhythm(fastingHistory(fasting.data, 400), day.today)); return text ? <p className="fine fasting-rhythm">{text}</p> : null; })()}
     <PastDayLine date={day.date} today={day.today}>{dayFasts.length ? dayFasts.map(row => `${formatFast(row.hours * 3_600_000)} fast`).join(', ') : 'no fast begun that day'}</PastDayLine>

@@ -1,8 +1,8 @@
 import {frequencyProgress, habitDay, habitRuleOn, latestHabitRule, measurementUnit, type HabitData} from '../habits';
 import {pathLabelOf} from './path-label';
 import {HEALTH_MEALS, type HealthData} from '../health';
-import {dailyData, waterOn} from '../health-daily';
-import {weightText} from '../health-units';
+import {dailyData, waterDayDone, waterOn} from '../health-daily';
+import {weightReadingText} from '../health-units';
 import type {Platform} from '../positions';
 import type {Sleep} from '../sleep/schema';
 import {nightDay, runningNights} from '../sleep/engine';
@@ -45,6 +45,8 @@ export type DerivedDot = {
   refusal?: string;
   /** A goal favourite: the milestone a tick completes (its next open step). */
   milestoneId?: string;
+  /** A Water favourite while Health has no daily water target: its stepper asks for one (it is never done without one). */
+  askWaterTarget?: boolean;
   item: ChecklistItem | ChecklistHealthItem;
 };
 
@@ -134,13 +136,14 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
   switch (item.input) {
     case 'water': {
       const unit = prefs?.waterUnit === 'fl-oz-us' ? 'fl oz' : 'ml', sum = h ? waterOn(h, day) : {entries: 0, millilitres: 0, targetMl: null, reached: null};
-      // Session AL (P-LS-19, LS-016/LS-056/LC-002; the one water rule, lib/health-daily waterOn): with a daily target the
-      // planet lights when the target is reached; with no target, one entry is the day's water.
-      const done = sum.entries > 0 && sum.reached !== false;
+      // Session AL (P-LS-19, LS-016/LS-056/LC-002; the one water rule, lib/health-daily waterDayDone): the planet lights
+      // only when the day reaches the person's own Health water target. Fifth pass (replay L2 round 2): with no target it
+      // stays unlit ("250 ml today: done" lit every planet after one glass); its stepper asks for a target (2,000 ml offered).
+      const done = waterDayDone(sum), noTarget = !sum.targetMl;
       const suggested = item.defaultValue ?? (unit === 'ml' ? 250 : 8);
-      // Session AL (LS-056): the amount as logged (2.5 mL was shown as "3 ml"), with its target when one is set.
-      const note = sum.entries ? `${formatNumber(sum.millilitres, {maximumFractionDigits: 1})} ml today${sum.targetMl ? ` of ${formatNumber(sum.targetMl)} ml` : ''}` : undefined;
-      return {...here, label: item.label ?? 'Water', state: done ? 'done' : 'undone', counted: true, ...(note ? {note} : {}), intent: 'value', value: unit === 'ml' ? {current: item.lastValue ?? null, unit, suggested, min: 1, max: LIMITS.waterEntryMl, step: 50} : {current: item.lastValue ?? null, unit, suggested, min: 1, max: Math.floor(LIMITS.waterEntryMl / ML_PER_US_FL_OZ), step: 1}}; // Session AH (VA3): the one water limit
+      // Session AL (LS-056): the amount as logged, with its target when one is set, or that none is set yet.
+      const note = sum.entries ? `${formatNumber(sum.millilitres, {maximumFractionDigits: 1})} ml today${sum.targetMl ? ` of ${formatNumber(sum.targetMl)} ml` : ', no daily target yet'}` : undefined;
+      return {...here, label: item.label ?? 'Water', state: done ? 'done' : 'undone', counted: true, ...(note ? {note} : {}), ...(noTarget ? {askWaterTarget: true} : {}), intent: 'value', value: unit === 'ml' ? {current: item.lastValue ?? null, unit, suggested, min: 1, max: LIMITS.waterEntryMl, step: 50} : {current: item.lastValue ?? null, unit, suggested, min: 1, max: Math.floor(LIMITS.waterEntryMl / ML_PER_US_FL_OZ), step: 1}}; // Session AH (VA3): the one water limit
     }
     case 'diary': {
       const sourceId = item.ref?.sourceId, kind = item.ref?.sourceKind;
@@ -157,7 +160,7 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
       const today = h?.weights.find(w => w.date === day), latest = h ? [...h.weights].sort((a, b) => b.date.localeCompare(a.date))[0] : undefined;
       const lb = prefs?.weightUnit === 'lb', show = (g: number) => Math.round((lb ? g / LB : g / 1000) * 10) / 10;
       const last = item.lastValue ?? latest?.grams ?? null;
-      return {...here, label: item.label ?? 'Weigh in', state: today ? 'done' : 'undone', counted: true, ...(today ? {note: weightText(today.grams, lb ? 'lb' : 'kg') /* Session AL (PRIMITIVES format layer) */, doneAt: today.updatedAt} : {}), intent: 'value',
+      return {...here, label: item.label ?? 'Weigh in', state: today ? 'done' : 'undone', counted: true, ...(today ? {note: weightReadingText(today.grams, lb ? 'lb' : 'kg') /* Session AL (PRIMITIVES format layer); fifth pass (N-MO-14): as entered */, doneAt: today.updatedAt} : {}), intent: 'value',
         value: {current: last === null ? null : show(last), unit: lb ? 'lb' : 'kg', suggested: last === null ? (lb ? 150 : 70) : show(last), min: lb ? 45 : 20, max: lb ? 880 : 400, step: 0.1}}; // Session AL third pass: 44 lb is under the store's 20 kg (45 to 881 lb, lib/limits)
     }
     case 'sleep': {

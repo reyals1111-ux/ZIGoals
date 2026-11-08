@@ -1361,7 +1361,7 @@
     .health-page .health-macro-fatMg .health-meter:not(#\-) {
         --glass-ink: linear-gradient(90deg, var(--brand-violet), var(--brand-magenta))
     }
-    .health-page .health-views button[aria-pressed=true]:not(#\-) {
+    .health-page .health-views button:is([aria-pressed=true], [aria-selected=true]):not(#\-) {
         color: var(--text);
         background-image: linear-gradient(110deg, #e5eff3, #e8eef7, #f0ecf6);
         background-color: transparent;
@@ -5040,6 +5040,19 @@
         background-color: transparent;
         box-shadow: inset 0 0 0 1px #9273ff99
     }
+    .checklist-heat-cell[data-picked]:not(#\-) {
+        outline-color: #ffd36b
+    }
+    .checklist-heat-fill button[aria-expanded=true]:not(#\-) {
+        box-shadow: inset 0 0 0 2px #ffd36b
+    }
+    .checklist-past-day:not(#\-) {
+        background-image: none;
+        background-color: #2424240d
+    }
+    .checklist-past-day-name small:not(#\-) {
+        color: #080f1c
+    }
 }
 /*  components/checklist/day-celebration.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -6250,6 +6263,17 @@
         border-left-color: var(--pillar-wealth, #ffd27a);
         background-image: none;
         background-color: color-mix(in srgb, currentColor 6%, transparent)
+    }
+    .earn-more:not(#\-) {
+        border-color: #7fc8ff26;
+        background-image: none;
+        background-color: #f0f3f9
+    }
+    .earn-more > summary:not(#\-) {
+        color: var(--text-strong)
+    }
+    .earn-more[open] > summary:not(#\-) {
+        border-bottom-color: #7fc8ff1a
     }
     :scope :where(.earn-page) .panel:not(#\-) {
         box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
@@ -9756,7 +9780,7 @@
         background-image: none;
         background-color: #9bffd009
     }
-    .health-views button[aria-pressed=true]:not(#\-) {
+    .health-views button:is([aria-pressed=true], [aria-selected=true]):not(#\-) {
         background-image: none;
         background-color: #82eacb12;
         color: #136955;
@@ -16742,6 +16766,21 @@
     }
     .asset-goal-row p:not(#\-) {
         color: #0d1825
+    }
+    @media (hover: hover) {
+        :scope .wealth-summary-tools .secondary:hover:not(:disabled):not(#\-):not(#\-) {
+            border-color: #6fdcffd9;
+            background-image: none;
+            background-color: #6fdcff33;
+            color: #0f0f0f
+        }
+    }
+    @media (hover: hover) {
+        :scope[data-theme=light] .wealth-summary-tools .secondary:hover:not(:disabled):not(#\-):not(#\-) {
+            border-color: #0b5f86;
+            background: #d6ecf8;
+            color: #06283a
+        }
     }
     .wealth-summary-side > .fine:not(#\-) {
         color: var(--text-secondary, #070f1c)

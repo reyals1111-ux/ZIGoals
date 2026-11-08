@@ -16,6 +16,6 @@ export function showcaseRecord<T = any>(page: Page, key: string): Promise<T | nu
   return page.evaluate(k => { const marker = JSON.parse(sessionStorage.getItem('zigoals:showcase:active:v1') ?? 'null') as {generation: string} | null; if (!marker) return null; const raw = sessionStorage.getItem(`zigoals:showcase:v1:${marker.generation}:${k}`); return raw === null ? null : JSON.parse(raw); }, key);
 }
 /** Opens one of Health's views from its own navigation. */
-export const healthView = (page: Page, name: string) => page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true}).click();
+export const healthView = (page: Page, name: string) => page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name, exact: true}).click();
 /** A small real PNG (16 × 16, two colours), so the photo is decoded and shrunk on the device like a camera photo. */
 export const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAGklEQVR4nGM4EaCBFWkEnMCKGEY1jGoYvhoAH8ZAEBWzD74AAAAASUVORK5CYII=', 'base64');

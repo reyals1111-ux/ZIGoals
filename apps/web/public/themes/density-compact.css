@@ -358,6 +358,8 @@
 @media (max-width: 540px) { :where(:root[data-density=compact]) .wizard-v2 .wizard-content:not(#\-) { padding-top: 20px; padding-bottom: 20px; } }
 @media (max-width: 540px) { :where(:root[data-density=compact]) .today-page .habit-today-list li:not(#\-) { padding-top: 9px; padding-bottom: 9px; } }
 @media (min-width: 768px) { :root:where([data-density=compact]) .settings-page .settings-sections:not(#\-) { padding-top: 12px; padding-bottom: 12px; } }
+@media (min-width: 768px) { :root:where([data-density=compact]) .settings-page .settings-sections:not(#\-) { padding-top: 6px; padding-bottom: 6px; } }
+@media (min-width: 768px) { :root:where([data-density=compact]) .settings-page .settings-sections > :is(a, .settings-fold-all):not(#\-) { padding-top: 0; padding-bottom: 0; } }
 /*  app/visual-v21.css  */
 :where(:root[data-density=compact]) .product-descriptor:not(#\-) { padding-top: 12px; }
 :where(:root[data-density=compact]) .app-nav:not(#\-) { margin-top: 28px; row-gap: 9px; }
@@ -1231,6 +1233,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .checklist-stepper-field:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .checklist-stepper-actions:not(#\-), :where(:root[data-density=compact]) .checklist-dot-panel-actions:not(#\-) { row-gap: 7.5px; }
 :where(:root[data-density=compact]) .checklist-stepper-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .checklist-water-target:not(#\-) { row-gap: 6px; margin-top: 7.5px; }
+:where(:root[data-density=compact]) .checklist-water-target p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .checklist-dot-panel p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .checklist-list-view:not(#\-) { row-gap: 16.5px; margin-top: 0; margin-bottom: 0; padding-bottom: 9px; }
 :where(:root[data-density=compact]) .checklist-list-view > .checklist-streak-rule:not(#\-) { margin-top: 0; margin-bottom: -12px; }
@@ -1320,6 +1324,15 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .checklist-row-tools:not(#\-) { row-gap: 6px; margin-top: 6px; }
 :where(:root[data-density=compact]) .checklist-row-rename:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .checklist-row-tools .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .checklist-heat-fill:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .checklist-heat-fill .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .checklist-heat-fill button:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .checklist-past-day:not(#\-) { row-gap: 6px; padding-top: 9px; padding-bottom: 9px; }
+:where(:root[data-density=compact]) .checklist-past-day-head:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .checklist-past-day-head h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .checklist-past-day .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .checklist-past-day-rows:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .checklist-past-day-rows li:not(#\-) { row-gap: 6px; }
 /*  components/checklist/day-celebration.css  */
 :where(:root[data-density=compact]) .checklist-celebration:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .checklist-celebration .checklist-celebration-words:not(#\-) { row-gap: 12px; padding-top: 96px; padding-bottom: max(30px, calc(env(safe-area-inset-bottom, 0px) + 22px), 7%); }
@@ -1694,6 +1707,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .earn-validators .earn-compare:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .earn-validators .earn-compare input:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .earn-compare-panel:not(#\-) { margin-top: 12px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .earn-compare-table tbody th small:not(#\-) { margin-top: 2px; }
+:where(:root[data-density=compact]) .earn-compare-table .earn-tags:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .earn-more:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .earn-more > summary:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .earn-more > ol:not(#\-) { padding-top: 0; padding-bottom: 0; }
 /*  components/earn/today-earn-card.css  */
 :where(:root[data-density=compact]) .today-earn-card:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .today-earn-body h2:not(#\-) { margin-top: 2px; margin-bottom: 8px; }
@@ -2158,6 +2176,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .average-goal-card .average-goal-target:not(#\-) { margin-top: -2px; margin-bottom: 0; }
 :root:where([data-density=compact]) .template-card > :last-child:not(#\-) { margin-top: auto; }
 :where(:root[data-density=compact]) .hall-actions:not(#\-) { margin-top: auto; }
+:where(:root[data-density=compact]) .goal-grid > .average-goal-card:not(#\-), :where(:root[data-density=compact]) .goal-grid .average-goal-card:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .goal-grid .average-goal-card > .average-goal-state:not(#\-) { margin-top: auto; }
 :where(:root[data-density=compact]) .debt-paydown-list:not(#\-) { margin-top: 0; margin-bottom: 7.5px; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }
 :where(:root[data-density=compact]) .debt-paydown-list li:not(#\-) { row-gap: 1.5px; }
 :where(:root[data-density=compact]) .chess-rating-goal-list:not(#\-) { margin-top: 0; margin-bottom: 7.5px; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }

@@ -5,7 +5,7 @@ import {energyEstimate} from '../../lib/health-aa/energy';
 import {energyProgress} from '../../lib/health-aa/energy-progress';
 import {coachCheckIn} from '../../lib/health-aa/coach';
 import {HEALTH_COACH} from '../../lib/health-aa/coach-schema';
-import {weightChangeText, weightText, type WeightUnit} from '../../lib/health-units';
+import {weightChangeText, weightReadingsText, type WeightUnit} from '../../lib/health-units';
 import {formatNumber} from '../../lib/visual-format';
 import type {HealthData} from '../../lib/health';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
@@ -41,7 +41,7 @@ export default function HealthHighlights({data, today, unit}: {data: HealthData;
       <li><a className="health-hl-tile" data-tone="trend" href="#health-weight-trend">
         <span className="health-hl-label">Weight trend</span>
         {trend.latestTrend === null ? <><strong className="health-hl-figure is-quiet">No trend yet</strong><span className="health-hl-note">Two or three readings a week draw the line.</span></>
-          : <><strong className="health-hl-figure">{weightText(trend.latestTrend, unit)}</strong><span className="health-hl-note">{rate ? `${rate} a week` : 'smoothed, six weeks'} · an estimate</span><TrendInk values={ink}/></>}
+          : <><strong className="health-hl-figure">{weightReadingsText(trend.latestTrend, trend.points.flatMap(p => p.grams === null ? [] : [p.grams]), unit) /* fifth pass (N-MO-14): at the readings' precision */}</strong><span className="health-hl-note">{rate ? `${rate} a week` : 'smoothed, six weeks'} · an estimate</span><TrendInk values={ink}/></>}
       </a></li>
       <li><a className="health-hl-tile" data-tone="energy" href="#health-energy">
         <span className="health-hl-label">Maintenance estimate</span>

@@ -56,6 +56,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, lazy, useState, useEffect, useId, useRef, type FormEvent, type ReactNode } from "react";
+import { tabKeys } from "../ui/tab-keys";
 import { Checked, FeedbackSlot, HealthFieldProvider, useHealthFieldChecks } from "./health-field";
 import type { HealthCheck } from "../../lib/health-field-rules";
 import {
@@ -92,7 +93,7 @@ import { MealQuick, RepeatDay } from "./quick-log";
 import { dailyData, servingsFromMeasure, waterOn } from "../../lib/health-daily";
 // CI13 (weights): the weight chart (Weight view only) loads with that view, as its cards do.
 const EvidenceChart = lazy(() => import("../platform/evidence-chart").then((m) => ({ default: m.EvidenceChart })));
-import { weightChangeText, weightChartValue, weightText, type WaterUnit, type WeightUnit } from "../../lib/health-units";
+import { weightChangeText, weightChartValue, weightReadingDecimals, weightReadingsText, weightText, type WaterUnit, type WeightUnit } from "../../lib/health-units";
 import { healthWeek, loggedDaysOfWeek } from "../../lib/bottom-health-week"; // CI13: not Wealth's composition
 import {PinToToday} from "../pin-to-today";
 import { PHONE_QUERY, usePhoneActive } from "../phone/use-phone-layout";
@@ -153,6 +154,8 @@ function revealWhenShown(id: string, focusField = false, tries = 120) {
   if (tries > 0) requestAnimationFrame(() => revealWhenShown(id, focusField, tries - 1));
 }
 const FULL_VIEWS = new Set(["sleep", "meditation", "workouts", "devices"]);
+/** Session AL fifth pass (PR-014): each view's tab id (the panel names the chosen one; the keys are components/ui/tab-keys). */
+const viewTabId = (view: View) => `health-tab-${VIEW_KEYS[view]}`;
 /** The address name of each view (?view=<name>), read back through HASH_VIEWS. */
 const VIEW_KEYS: Record<View, string> = {"Diary": "diary", "Foods & recipes": "foods", "Meals & planning": "planning", "Planner": "planner", "Weight": "weight", "Measurements": "measurements", "Activity": "activity", "Targets": "targets", "Insights": "insights", "Import": "import", "Journal settings": "settings"};
 type View = typeof views[number];
@@ -234,7 +237,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   useEffect(() => { const follow = () => { const hash = window.location.hash.slice(1).toLowerCase(), v = HASH_VIEWS[hash]; if (!v) return; setViewState(v); if (hash.includes("-")) revealWhenShown(hash); }; follow(); window.addEventListener("hashchange", follow); return () => window.removeEventListener("hashchange", follow); }, []);
   const router = useRouter(), phone = usePhoneActive();
   // Session AL (P-MO-27, MO-080): the view strip scrolls sideways on a phone; its edges say there is more ("Imp…").
-  const viewEdges = useScrollEdges<HTMLElement>();
+  const viewEdges = useScrollEdges<HTMLDivElement>();
   // HE6: the fasting timer, this device's own record.
   const fasting = useFasting();
   // Session W Part 4: on a phone the Sleep card folds like the fasting timer, and stays open while a night runs.
@@ -368,7 +371,9 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} compact={view !== "Diary"} onDiary={() => setView("Diary")} onTargets={() => setView("Targets")} />},
     // Session AK RB (R2-8): "Nutrition patterns" moved into the Insights view ("Your day, meal by meal" repeated the Diary's meals).
     {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
-    <div className="health-toolbar"><nav className="health-views" id="health-views" tabIndex={-1} aria-label="Health views" ref={viewEdges}>{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
+    {/* Session AL fifth pass (PR-014): the views are an ARIA tablist (a tab per view, its panel below, arrow keys, Home and
+        End; the chosen view is the one tab stop), and ?view=<name> deep links still choose the tab. */}
+    <div className="health-toolbar"><div className="health-views" id="health-views" role="tablist" aria-orientation="horizontal" tabIndex={-1} aria-label="Health views" ref={viewEdges} onKeyDown={tabKeys(views, view, tab => { setView(tab); setError(""); setMessage(""); })}>{views.map(tab => <button type="button" role="tab" key={tab} id={viewTabId(tab)} aria-selected={view === tab} aria-controls="health-view-panel" tabIndex={view === tab ? 0 : -1} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</div>
       {!phone && dateControl}
     </div>
     {!fields.atForm && feedbackLine}{error && !(phone && logging) && (errorForm?.isConnected ? createPortal(<p className="health-error field-error" role="alert" id={errorId}>{error}</p>, errorForm) : <p className="health-error" role="alert" id={errorId}>{error}</p>)}
@@ -378,7 +383,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
 
     {/* Session AL (P-MO-22, P-MO-33; MO-041, MO-154): a save no longer disables the whole view (the focus fell to the page
         and every field greyed out for seconds); a second submit while one saves is still ignored (perform's guard). */}
-    <fieldset className="health-content" aria-busy={busy || undefined}>
+    <div role="tabpanel" id="health-view-panel" aria-labelledby={viewTabId(view)}><fieldset className="health-content" aria-busy={busy || undefined}>
       {view === "Diary" && <><DiaryView data={data} date={date} today={today} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} />{/* Session AL (P-MO-40; MO-012, MO-156): the meal photo is a way to log a meal, so it sits in the Diary under "Log a meal", with a named header (it was a bare "A photo of a meal" row above the food library). */}<LazyFold summary="Estimate a meal from a photo">{() => <MealPhotoPanel data={data} />}</LazyFold><details open={barcodeOpen || undefined} onToggle={(e) => setBarcodeOpen(e.currentTarget.open)}><summary>Scan or look up a food barcode</summary>{barcodeOpen && <LoadBoundary quiet><Suspense fallback={null}><BarcodeFoodLookup date={date} update={update} data={data}/></Suspense></LoadBoundary>}</details>{/* Session AK (F5b): the supplements and medication log, loaded when its fold opens. */}<LazyFold summary="Supplements and medication (optional)">{() => <SupplementsCard date={date} today={today} />}</LazyFold><LoadBoundary quiet><Suspense fallback={null}><CycleEntry today={today} /></Suspense></LoadBoundary><details className="import-entry" id="import-meals" open={importingCsv || importFold || undefined} onToggle={e => setImportFold(e.currentTarget.open)}>{/* Session AL third pass (MO-051): Done no longer folds the section away; it stays open with its "Choose a file". */}<summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <LoadBoundary label="The CSV import"><Suspense fallback={<Skeleton label="Opening the import…" lines={3}/>}><NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} /></Suspense></LoadBoundary>; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Planner" && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the planner…" block/>}><PlannerView data={data} date={date} today={today} perform={perform} /></Suspense></LoadBoundary>}
@@ -392,7 +397,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Weight" && <><LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightCards data={data} date={date} today={today} perform={perform} /></Suspense></div></LoadBoundary><WeightView data={data} update={update} today={today} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} /></>}
       {view === "Activity" && <ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} />}
       {view === "Targets" && <><TargetsView key={`${JSON.stringify(data.targets)}:${dailyData(data).preferences.weightUnit}`} targets={data.targets} weightUnit={dailyData(data).preferences.weightUnit} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><TargetPanels data={data} date={date} /></Suspense></LoadBoundary><LazyFold summary="Weekly calorie budget (optional)">{() => <CalorieWeekCard data={data} date={date} today={today} />}</LazyFold>{/* Session AL fourth pass (C-MO-04, C-DVG-42) */}<LazyFold summary="Estimate my maintenance calories (optional)">{() => <MaintenanceEstimator latestGrams={weightTrend(data, date).latestGrams} weightUnit={dailyData(data).preferences.weightUnit} onUse={kcal => void perform(latest => setHealthTargets(latest, { ...latest.targets, kcal }), `Calorie target set to ${formatNumber(kcal)} kcal a day, from the estimate. Change it any time.`)} />}</LazyFold></>}
-    </fieldset>
+    </fieldset></div>
     {/* Session AK RB (RELEASE_REVIEW_2 R2-8): the weight trend, energy and coach cards moved into the Weight view; the
         highlight tiles at the top link to them (they showed twice on the page). */}
     </div>},
@@ -613,7 +618,7 @@ function WeightView({ data, update, today, date, choice, perform, invalid, onDat
   // focus fell to the page; it goes back to the form's Save button.
   const keepFocus = () => { let tries = 60; const step = () => { const b = document.querySelector<HTMLButtonElement>("#health-weight-entry button.primary"); if (b && (document.activeElement === document.body || document.activeElement === null || !document.activeElement.isConnected)) { b.focus({ preventScroll: true }); return; } if (tries-- > 0) requestAnimationFrame(step); }; requestAnimationFrame(step); };
   return <div className="health-two-columns"><div><section className="panel health-weight-overview"><StarToggle item={{kind:"health",input:"weight"}} label="Weigh in"/><PinToToday label="Weight journal" choices={[{kind:'health',metric:'weight',label:'Latest weight'}]}/><p className="eyebrow">A LONGER VIEW</p><h2>Your weight journal.</h2><p>Individual readings can vary. See what you recorded over time.</p><div className="health-weight-stats"><div><span>Latest in 30 days</span><strong>{trend.latestGrams === null ? "—" : weightAsEntered(trend.latestGrams, unit)}</strong></div><div><span>Your weight goal</span><strong>{data.targets.weightGrams === null ? "Not set" : weightText(data.targets.weightGrams, unit)}</strong>{/* Session AL (P-MO-71, MO-034): how far the latest reading is from it */}{data.targets.weightGrams !== null && trend.latestGrams !== null && <small className="health-goal-gap">{Math.abs(trend.latestGrams - data.targets.weightGrams) < 50 ? "at your goal" : `${weightText(Math.abs(trend.latestGrams - data.targets.weightGrams), unit)} to go`}</small>}</div><div><span>30-day change</span><strong>{trend.changeGrams === null ? "—" : weightChangeText(trend.changeGrams, unit)}</strong></div></div>
-    <WeightChart data={data} date={date} unit={unit} /><p className="fine">{trend.count ? `${trend.count} ${trend.count === 1 ? 'reading' : 'readings'} in the 30 days ending ${formatDate(date)}. Average ${weightText(trend.averageGrams!, unit)}.` : "Add your first reading to start a trend."}</p></section>
+    <WeightChart data={data} date={date} unit={unit} /><p className="fine">{trend.count ? `${trend.count} ${trend.count === 1 ? 'reading' : 'readings'} in the 30 days ending ${formatDate(date)}. Average ${weightReadingsText(trend.averageGrams!, trend.readings.map(w => w.grams), unit)}.` /* fifth pass (N-MO-14): at the readings' own precision */ : "Add your first reading to start a trend."}</p></section>
     <section className="panel health-weight-history"><h2>Weight history</h2>{history.length ? <div ref={edges} className="health-table-wrap"><table aria-label="Weight history"><thead><tr><th>Date</th><th>Weight</th><th><span className="health-sr-only">Actions</span></th></tr></thead><tbody>{seconds.map(m => <tr key={m.id}><td>{formatDate(m.observedAt, { timeZone: m.timezone })}, {formatTime(m.observedAt, { timeZone: m.timezone })}</td><td>{weightText(Math.round(m.canonical / 1000), unit)}</td><td><div className="health-row-actions"><button className="quiet" aria-label={`Remove the reading of ${formatDate(m.observedAt, { timeZone: m.timezone })} at ${formatTime(m.observedAt, { timeZone: m.timezone })}`} onClick={() => void perform(latest => healthSchema.parse({ ...latest, measurements: (latest.measurements ?? []).filter(x => x.id !== m.id) }), "Reading removed.")}>Remove</button></div></td></tr>)}{history.slice(0, 100).map(w => <tr key={w.id}><td>{formatDate(w.date)}</td><td>{weightAsEntered(w.grams, unit)}</td><td><div className="health-row-actions"><button className="quiet" aria-label={`Edit weight for ${formatDate(w.date)}`} onClick={() => { setEditFrom({ from: date, day: w.date }); onDate(w.date); revealWhenShown("health-weight-entry", true); }}>Edit</button><button className="quiet" aria-label={`Remove weight for ${formatDate(w.date)}`} onClick={() => void perform(latest => removeHealthItem(latest, "weights", w.id), "Weight entry removed.")}>Remove</button></div></td></tr>)}</tbody></table>{history.length > 100 && <p className="fine">Showing the latest 100 readings. All readings remain in your private backup.</p>}</div> : <ArtNote pillar="health"><p className="health-empty-inline">No weight readings yet.</p></ArtNote>}</section></div>
     <section className="panel health-fit-panel" id="health-weight-entry"><h2>{reading ? "Correct a reading, or keep both." : "Add a reading."}</h2>{editingDay && reading && <div className="health-editing-banner"><p role="status">Editing the reading of {formatDate(date)}: {weightAsEntered(reading.grams, unit)}.</p><button type="button" className="quiet" onClick={cancelEdit}>Cancel edit</button></div>}<p>{formatDate(date)} · {reading ? "“Save weight” corrects this day’s reading; “Keep both” adds a second reading at this time." : "One reading a day; a second one can be kept beside it."}</p><FormBox key={`${choice}:${reading?.updatedAt ?? "new"}`} title="Weight entry" onSubmit={e => { e.preventDefault(); try { const typed = formString(new FormData(e.currentTarget), "weight").trim(), grams = reading && typed === weightPrefill(reading.grams, unit) ? reading.grams : checkedWeightGrams(typed, unit), now = new Date();
       const jump = grams === reading?.grams ? null : weightJumpWarning(grams, date, data.weights, unit);
@@ -626,13 +631,14 @@ function WeightView({ data, update, today, date, choice, perform, invalid, onDat
 }
 
 function WeightChart({ data, date, unit }: { data: HealthData; date: string; unit: WeightUnit }) {
-  const { readings } = weightTrend(data, date), shape = weightChartValue(0, unit), goal = data.targets.weightGrams;
+  // Session AL fifth pass (N-MO-14, N-NB-10): the chart (and its "First observation") at the readings' own decimals.
+  const { readings } = weightTrend(data, date), places = weightReadingDecimals(readings.map(w => w.grams), unit), shape = weightChartValue(0, unit, places), goal = data.targets.weightGrams;
   // Session AL (P-MO-71, MO-034): your own weight goal as a dashed reference across the readings, in the journal's unit.
   // Session AL fourth pass (D-075): no chart (and none of its "Real observations and recorded contributions" words) until
   // there is a reading; the line under it says how to start.
   if (!readings.length) return null;
-  const dates = readings.map(w => w.date).sort(), goalSeries = goal !== null && dates.length ? [{ label: "Your goal", color: "#f3c57d", maxGapMs: Number.MAX_SAFE_INTEGER, points: [...new Set([dates[0]!, dates.at(-1)!])].map(at => ({ at, value: weightChartValue(goal, unit).value, dateOnly: true })) }] : [];
-  return <Suspense fallback={<div className="health-weight-chart-pending" aria-busy="true" style={{ minHeight: 220 }} />}><EvidenceChart label="Recorded body weight" decimals={shape.decimals} currency={shape.unit} series={[{ label: "Your readings", color: "#8ad7e6", points: readings.map(w => ({ at: w.date, value: weightChartValue(w.grams, unit).value, dateOnly: true })) }, ...goalSeries]} /></Suspense>;
+  const dates = readings.map(w => w.date).sort(), goalSeries = goal !== null && dates.length ? [{ label: "Your goal", color: "#f3c57d", maxGapMs: Number.MAX_SAFE_INTEGER, points: [...new Set([dates[0]!, dates.at(-1)!])].map(at => ({ at, value: weightChartValue(goal, unit, places).value, dateOnly: true })) }] : [];
+  return <Suspense fallback={<div className="health-weight-chart-pending" aria-busy="true" style={{ minHeight: 220 }} />}><EvidenceChart label="Recorded body weight" decimals={shape.decimals} currency={shape.unit} series={[{ label: "Your readings", color: "#8ad7e6", points: readings.map(w => ({ at: w.date, value: weightChartValue(w.grams, unit, places).value, dateOnly: true })) }, ...goalSeries]} /></Suspense>;
 }
 
 function ActivityView({ data, date, choice, perform, invalid }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void }) {

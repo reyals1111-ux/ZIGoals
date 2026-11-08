@@ -333,6 +333,10 @@
 .checklist-stepper-actions, .checklist-dot-panel-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .checklist-stepper-actions > *, .checklist-dot-panel-actions > * { min-height: 44px; }
 .checklist-stepper-error { margin: 0; font-size: 15px; color: var(--danger, #ffb3c4); }
+/* Session AL fifth pass (LS-016): the stepper's question for a daily water target while Health has none. */
+.checklist-water-target { display: grid; gap: 8px; margin-top: 10px; }
+.checklist-water-target p { margin: 0; font-size: 15px; }
+.checklist-water-target a { display: inline-flex; align-items: center; }
 .checklist-dot-panel p { margin: 0; font-size: 15px; }
 .checklist-dot-panel-actions a { display: inline-flex; align-items: center; }
 
@@ -579,3 +583,23 @@
 .checklist-row-tools select, .checklist-row-tools input, .checklist-row-tools button { min-height: 44px; }
 .checklist-row-rename { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 6px; }
 .checklist-row-tools .fine { flex: 1 0 100%; margin: 0; }
+/* Session AL fifth pass (LS-H23): a List row drags by its name with a mouse or a pen (Edit path's drag); touch swipes. */
+@media (pointer: fine) { .checklist-row-tab[data-drag-name] { cursor: grab; } }
+.checklist-row[data-dragging] .checklist-row-line { position: relative; z-index: 3; opacity: .92; }
+.checklist-row[data-dragging] .checklist-row-tab { cursor: grabbing; }
+/* Session AL fifth pass (LS-032 / C-LS-35): a square of the last 7 days opens that day to fill in; the same days are buttons. */
+.checklist-heat-cell[data-fill] { cursor: pointer; }
+.checklist-heat-cell[data-picked] { outline: 2px solid #ffd36b; outline-offset: 1px; }
+.checklist-heat-fill { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.checklist-heat-fill .fine { margin: 0; }
+.checklist-heat-fill button { min-height: 32px; min-width: 44px; padding: 4px 8px; font-size: 14px; }
+.checklist-heat-fill button[aria-expanded=true] { box-shadow: inset 0 0 0 2px #ffd36b; }
+.checklist-past-day { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: #ffffff0d; }
+.checklist-past-day-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.checklist-past-day-head h3 { margin: 0; font-size: 16px; }
+.checklist-past-day .fine { margin: 0; }
+.checklist-past-day-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.checklist-past-day-rows li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+.checklist-past-day-name { display: grid; min-width: 0; overflow-wrap: anywhere; }
+.checklist-past-day-name small { color: #c5d3ea; }
+.checklist-past-day-rows button { min-height: 44px; flex: none; }

@@ -25,5 +25,5 @@ test('MO-149/X3-16: six daily readings: the coach says when the weekly rate can 
   // PR-020/PR-097: one count for the estimate's progress, never "27 of 14".
   await expect(page.getByRole('region', {name: 'Maintenance estimate'})).toContainText('6 of 10 weigh-ins');
   await expect(page.locator('main')).not.toContainText(/\b(1[5-9]|[2-9]\d) of 14\b/);
-  await expect(healthView(page, 'Weight')).toHaveAttribute('aria-pressed', 'true');
+  await expect(healthView(page, 'Weight')).toHaveAttribute('aria-selected', 'true'); // Session AL fifth pass (PR-014): a tab
 });

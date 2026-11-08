@@ -31,7 +31,7 @@ async function seed(page: Page) {
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HEALTH_STORAGE_KEY]: JSON.stringify(health()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
 }
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);
-const view = (page: Page, name: string) => page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true}).click();
+const view = (page: Page, name: string) => page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name, exact: true}).click();
 
 test('N1–N3: the trend, the energy estimate and the coach show from six weeks of logs; Keep records, Adjust writes the target', async ({page}) => {
   // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the three cards live in Health's Weight view (the tiles at the top

@@ -134,7 +134,7 @@ describe('P-MO-79 (MO-042, C-MO-58): the week in one place', () => {
     d = saveActivity(saveActivity(d, {id: id(62), date: '2026-11-03', name: 'Walk', steps: 9000, minutes: 0}, AT), {id: id(63), date: '2026-11-04', name: 'Walk', steps: 5000, minutes: 0}, AT);
     const fast = logPastFast(emptyFasting(), {id: 'fast_d', start: new Date('2026-11-02T19:00:00.000Z'), end: new Date('2026-11-03T11:00:00.000Z'), targetHours: 16, timeZone: BXL, now: new Date(AT)});
     expect(weekDigest(d, fast, '2026-11-04', 'kg').map(l => [l.key, l.text])).toEqual([
-      ['weight', '-0.6 kg over 2 readings'], ['sleep', 'No night logged this week'], ['steps', '7,000 a day over 2 logged days; your target 8,000, reached on 1'], ['fasts', '1 fast, 16 h on average']]);
+      ['weight', '\u22120.6 kg over 2 readings' /* fifth pass (deliberate): the minus sign of lib/health-units weightChangeText */], ['sleep', 'No night logged this week'], ['steps', '7,000 a day over 2 logged days; your target 8,000, reached on 1'], ['fasts', '1 fast, 16 h on average']]);
   });
 });
 

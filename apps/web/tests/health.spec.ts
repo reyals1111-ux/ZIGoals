@@ -26,7 +26,7 @@ test("rejected food validation keeps the draft and existing private records reco
 });
 
 async function food(page: Page, name = "Test oats") {
-  await page.getByRole("button", { name: "Foods & recipes", exact: true }).click();
+  await page.getByRole("tab", { name: "Foods & recipes", exact: true }).click();
   await page.getByRole("button", { name: "New food", exact: true }).click();
   const form = page.getByRole("form", { name: "Food details" });
   await form.getByLabel("Food name").fill(name);
@@ -43,7 +43,7 @@ test("food diary create, correct, reload and remove keeps snapshot nutrition", a
   await page.goto("/app/health");
   await expect(page.getByText("No calorie target set")).toBeVisible();
   await food(page);
-  await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await page.getByRole("tab", { name: "Diary", exact: true }).click();
   await openMealLog(page);
   const form = page.getByRole("form", { name: "Log a meal" });
   await form.getByLabel("Food or recipe").selectOption({ label: "Test oats · food" });
@@ -58,10 +58,10 @@ test("food diary create, correct, reload and remove keeps snapshot nutrition", a
   await expect(breakfast).toContainText("300 kcal");
   await page.reload();
   await expect(breakfast).toContainText("300 kcal");
-  await page.getByRole("button", { name: "Foods & recipes", exact: true }).click();
+  await page.getByRole("tab", { name: "Foods & recipes", exact: true }).click();
   await page.getByRole("button", { name: "Remove food Test oats" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Food removed" })).toContainText("Food removed");
-  await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await page.getByRole("tab", { name: "Diary", exact: true }).click();
   await expect(breakfast).toContainText("300 kcal");
   await breakfast.getByRole("button", { name: "Remove Test oats", exact: true }).click();
   await expect(breakfast).toContainText("Nothing logged yet");
@@ -81,7 +81,7 @@ test("recipe portions calculate from foods and preserve the logged result", asyn
   await expect(recipe).toContainText("225 kcal per serving");
   await recipe.getByRole("button", { name: "Save recipe" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Recipe saved" })).toContainText("Recipe saved");
-  await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await page.getByRole("tab", { name: "Diary", exact: true }).click();
   await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal" });
   await log.getByLabel("Food or recipe").selectOption({ label: "Oat bowls · recipe" });
@@ -95,14 +95,14 @@ test("recipe portions calculate from foods and preserve the logged result", asyn
 
 test("explicit targets, weight correction and manual activity persist without a wallet", async ({ page }) => {
   await page.goto("/app/health");
-  await page.getByRole("button", { name: "Targets", exact: true }).click();
+  await page.getByRole("tab", { name: "Targets", exact: true }).click();
   const targets = page.getByRole("form", { name: "Personal targets" });
   await targets.getByLabel("Calorie target (kcal)").fill("2300");
   await targets.getByLabel("Protein target (g)").fill("100");
   await targets.getByLabel("Weight goal (kg)").fill("72");
   await targets.getByRole("button", { name: "Save targets" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Targets saved" })).toContainText("Targets saved");
-  await page.getByRole("button", { name: "Weight", exact: true }).click();
+  await page.getByRole("tab", { name: "Weight", exact: true }).click();
   const weight = page.getByRole("form", { name: "Weight entry" });
   await weight.getByLabel("Weight (kg)").fill("73.5");
   await weight.getByRole("button", { name: "Save weight" }).click();
@@ -110,7 +110,7 @@ test("explicit targets, weight correction and manual activity persist without a 
   await weight.getByLabel("Weight (kg)").fill("73.25");
   await weight.getByRole("button", { name: "Save weight" }).click();
   await expect(page.getByRole("table", { name: "Weight history" }).getByRole("row")).toHaveCount(2);
-  await page.getByRole("button", { name: "Activity", exact: true }).click();
+  await page.getByRole("tab", { name: "Activity", exact: true }).click();
   const activity = page.getByRole("form", { name: "Manual activity" });
   await activity.getByLabel("Activity name").fill("Afternoon walk");
   await activity.getByLabel("Steps").fill("2500");
@@ -119,7 +119,7 @@ test("explicit targets, weight correction and manual activity persist without a 
   await expect(page.getByRole("status").filter({ hasText: "Activity saved" })).toContainText("Activity saved");
   await page.reload();
   await expect(page.getByText("2,300 kcal target")).toBeVisible();
-  await page.getByRole("button", { name: "Weight", exact: true }).click();
+  await page.getByRole("tab", { name: "Weight", exact: true }).click();
   // Assertion changed (Session AH TR10, one rounding rule: weight shows a tenth; stronger): the row reads 73.3 kg and the
   // record keeps the exact 73,250 g.
   // Session AL (N-MO-14, N-NB-10, deliberate): the history row shows the reading as entered, to two decimals.
@@ -147,7 +147,7 @@ test("historical diary dates and food edits remain usable at 320 pixels", async 
   await editor.getByLabel("Calories (kcal)").fill("160");
   await editor.getByRole("button", { name: "Save food", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Food saved" })).toContainText("Food saved");
-  await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await page.getByRole("tab", { name: "Diary", exact: true }).click();
   await page.getByLabel("Journal date").fill("2024-02-29");
   await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal" });

@@ -84,5 +84,6 @@ describe('4.1/4.4 what a source gives beyond the four fields', () => {
 });
 
 test('4.1 not found: a draft that carries the barcode, every nutrient unknown', () => {
-  expect(missingFoodDraft('034000470693')).toEqual({name: 'Product 0034000470693', brand: '', notes: 'Barcode 0034000470693', servingGrams: 100, nutrients: {kcal: null, proteinMg: null, carbsMg: null, fatMg: null}});
+  // Session AL fifth pass (MO-107, deliberate): the code as typed (a UPC stays 12 digits; 0000000000000 read "00000000").
+  expect(missingFoodDraft('034000470693')).toEqual({name: 'Product 034000470693', brand: '', notes: 'Barcode 034000470693', servingGrams: 100, nutrients: {kcal: null, proteinMg: null, carbsMg: null, fatMg: null}});
 });

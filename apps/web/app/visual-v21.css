@@ -176,7 +176,7 @@ body { background: var(--cosmic-dark); }
 .health-page .health-macro .health-meter { --glass-ink: linear-gradient(90deg, var(--brand-cyan), var(--brand-blue)); }
 .health-page .health-macro-carbsMg .health-meter { --glass-ink: linear-gradient(90deg, var(--brand-blue), var(--brand-violet)); }
 .health-page .health-macro-fatMg .health-meter { --glass-ink: linear-gradient(90deg, var(--brand-violet), var(--brand-magenta)); }
-.health-page .health-views button[aria-pressed=true] { color: var(--text); background: linear-gradient(110deg, #08384b, #182e52, #352147); border-color: #62cefc69; }
+.health-page .health-views button:is([aria-pressed=true], [aria-selected=true]) { color: var(--text); background: linear-gradient(110deg, #08384b, #182e52, #352147); border-color: #62cefc69; }
 .health-page .health-meal, .health-page .health-library-grid > .panel { background: linear-gradient(130deg, #061c30f0, #091224f2); border-color: #729ed72e; }
 .health-page .health-meal:nth-child(2n) { border-top-color: #967bff52; }
 .health-page .health-meal:nth-child(3n) { border-top-color: #e577ef4d; }

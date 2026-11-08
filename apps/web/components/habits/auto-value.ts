@@ -36,16 +36,19 @@ function inHabitUnit(measure: AppliedCheckInV4['measure'], value: number, rule: 
 }
 /**
  * Session AL fourth pass (MO-123; L2 request PR-019): a linked habit Health has not ticked off yet counts what Health holds
- * so far, in the habit's unit (500 mL logged → "0.5 / 2 liters"), while the person has logged nothing on the habit itself
- * that day. Null otherwise (a tick, an undone tick, a manual entry, another unit, nothing in Health).
+ * so far, in the habit's unit (500 mL logged → "0.5 / 2 liters"). Fifth pass (PR-019): also over a smaller amount logged
+ * on the habit itself that day (the larger figure). Null otherwise (a tick, an undone tick, a skip, a larger manual entry,
+ * another unit, nothing in Health).
  */
 export function healthSoFar(habit: Habit, rule: HabitRule, date: string, marker: AppliedCheckInV4 | undefined, link: HabitHealthLinkV4 | undefined, health: HealthData | undefined): number | null {
   if (marker || !link || !health || rule.type !== 'build') return null;
   const entry = habit.entries.find(e => e.date === date);
-  if (entry && (entry.disposition !== 'logged' || entry.count > 0)) return null;
+  if (entry && entry.disposition !== 'logged') return null;
   let live: number | null;
   try { live = measureValue(health, date, link); } catch { return null; }
   if (live === null || live <= 0) return null;
   const converted = inHabitUnit(link.measure, live, rule);
-  return converted !== null && converted > 0 ? converted : null;
+  // Fifth pass (PR-019, N-086): a day already logged on the habit (the Showcase's 1 liter) counts the journal too once it
+  // holds more (1,250 mL → 1.25 liters, as Health and Today say); the larger figure, never the two added.
+  return converted !== null && converted > (entry?.count ?? 0) ? converted : null;
 }

@@ -1,6 +1,6 @@
 import {formatNumber} from './visual-format';
 import {roundHalfUp} from './numbers/round';
-import {weightChangeText, weightText, type WeightUnit} from './health-units';
+import {weightChangeText, weightReadingText, weightText, type WeightUnit} from './health-units';
 import {addLocalDays} from './local-date';
 
 /**
@@ -32,8 +32,7 @@ export function weightJumpWarning(grams: number, date: string, readings: readonl
 
 /** Session AL fourth pass (N-MO-14, N-NB-10): a reading as it was typed, to two decimals ("70.55 kg", not "70.6 kg"). */
 export function weightAsEntered(grams: number, unit: WeightUnit): string {
-  const value = unit === 'lb' ? grams / 453.59237 : grams / 1000;
-  return `${formatNumber(roundHalfUp(value, 2), {maximumFractionDigits: 2})} ${unit}`;
+  return weightReadingText(grams, unit); // fifth pass (N-MO-14): the one reading format, lib/health-units
 }
 
 /**

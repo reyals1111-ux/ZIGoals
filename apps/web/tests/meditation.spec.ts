@@ -143,7 +143,7 @@ test('breathing: the circle moves only while motion is allowed; reduced motion a
   const form = begin(page);
   await form.getByRole('radio', {name: 'Breathe with a guide', exact: true}).check();
   await form.getByRole('radio', {name: /^Box breathing/}).check();
-  await form.getByRole('radio', {name: '1 min', exact: true}).check();
+  await form.getByRole('radio', {name: '3 min', exact: true}).check(); // fifth pass (PR-018): runs past the one-minute minimum below
   await expect(form).toContainText('If you feel dizzy or unwell, stop and breathe normally.');
   await form.getByRole('button', {name: 'Begin', exact: true}).click();
   const guide = page.locator('.breathing');
@@ -170,6 +170,9 @@ test('breathing: the circle moves only while motion is allowed; reduced motion a
   await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off'));
   await page.reload();
   await expect(page.locator('.breathing')).toHaveAttribute('data-motion', 'off');
+  // Session AL fifth pass (PR-018, deliberate): one timer minimum for every timer, a minute, so the session (3 min here)
+  // runs past it before it is paused and ended (it was ended after about 8 seconds, which is no longer kept).
+  await page.clock.fastForward(60_000);
   await page.getByRole('button', {name: 'Pause', exact: true}).click();
   await expect(page.locator('.breathing-words')).toHaveText('Paused');
   await page.getByRole('button', {name: 'End now', exact: true}).click();

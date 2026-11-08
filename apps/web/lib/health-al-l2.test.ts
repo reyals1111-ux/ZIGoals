@@ -61,14 +61,18 @@ describe('MO-110 / P-MO-54 and MO-010 / P-MO-53: journal and diary days', () => 
 });
 
 describe('PR-018 / P-PR-22: one timer rule, stated once', () => {
-  it('sleep and fasts under ten minutes are not saved; meditation from a second', () => {
-    expect(TIMER_MINIMUM_MS).toEqual({sleep: 600_000, fast: 600_000, meditation: 1000});
-    expect(tooShortToSave('fast', 9 * 60_000)).toBe(true);
-    expect(tooShortToSave('fast', 10 * 60_000)).toBe(false);
+  // Session AL fifth pass (PR-018, deliberate: the owner's one minimum for every timer replaces ten minutes / one second).
+  it('every timer (sleep, fast, meditation, focus) saves from one minute', () => {
+    expect(TIMER_MINIMUM_MS).toEqual({sleep: 60_000, fast: 60_000, meditation: 60_000, focus: 60_000});
+    for (const kind of ['sleep', 'fast', 'meditation', 'focus'] as const) {
+      expect(tooShortToSave(kind, 59_999)).toBe(true);
+      expect(tooShortToSave(kind, 60_000)).toBe(false);
+    }
     expect(tooShortToSave('sleep', 0)).toBe(true);
-    expect(tooShortToSave('meditation', 8_000)).toBe(false);
-    expect(tooShortText('fast')).toBe('Stopped after less than ten minutes, so nothing was saved.');
-    expect(timerRuleText).toMatch(/ten minutes/);
+    expect(tooShortToSave('meditation', 21_000)).toBe(true);
+    expect(tooShortText('fast')).toBe('Stopped after less than a minute, so nothing was saved.');
+    expect(tooShortText('focus', true)).toBe('Focus stopped after less than a minute, so nothing was saved.');
+    expect(timerRuleText).toBe('A timer stopped within its first minute saves nothing: sleep, fasts, meditation and focus alike.');
   });
 });
 

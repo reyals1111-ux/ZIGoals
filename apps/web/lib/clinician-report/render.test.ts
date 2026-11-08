@@ -17,7 +17,7 @@ describe('the report page (Session AK lane S, item 14)', () => {
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;quotes&quot;');
     expect(html).toContain('From the person&rsquo;s own log'.replace('&rsquo;', '’'));
     expect(html).toContain('Oct 2, 2026 – Oct 31, 2026');
-    expect(html).toContain('Change over the dates: -0.5 kg');
+    expect(html).toContain('Change over the dates: \u22120.5 kg'); // Session AL fifth pass (deliberate): the minus sign of lib/health-units weightChangeText
     expect(html).toContain('Nothing logged in these dates.');
     expect(html).toContain('<svg');
     expect(html).not.toContain('Showcase: fictional');

@@ -108,7 +108,7 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 2 health day: bar
   // Dinner, estimated from a photo by the person's own AI: a card with ranges; nothing logged until Add.
   await page.clock.setSystemTime(at(DAY, '19:30'));
   // Session AL (COPY_AUDIT, deliberate): P-MO-40 (MO-012, MO-156) moved the meal photo into the Diary, under a named header.
-  await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Diary', exact: true}).click();
+  await page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name: 'Diary', exact: true}).click();
   await page.locator('summary', {hasText: 'Estimate a meal from a photo'}).click();
   const photo = page.getByRole('region', {name: 'Estimate a meal from a photo'});
   await expect(photo).toContainText('Nothing is logged until you accept a card.');

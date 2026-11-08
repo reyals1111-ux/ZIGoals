@@ -43,7 +43,8 @@ test('J108: the barcode lookup offline says so in plain words, never the browser
   await page.goto('/app/health');
   await page.getByText('Scan or look up a food barcode', {exact: true}).click();
   const area = page.getByRole('region', {name: 'Barcode food lookup'});
-  await area.getByLabel('Product barcode', {exact: true}).fill('00001234');
+  // Session AL fifth pass (MO-107): a code with a valid EAN-8 check digit (00001234's last digit is wrong; it is now refused before lookup).
+  await area.getByLabel('Product barcode', {exact: true}).fill('00001236');
   await area.getByRole('button', {name: 'Look up barcode', exact: true}).click();
   await expect(area).toContainText('Food lookup is unavailable: this device looks offline. Your private food library still works.');
   await expect(area).not.toContainText('Failed to fetch');

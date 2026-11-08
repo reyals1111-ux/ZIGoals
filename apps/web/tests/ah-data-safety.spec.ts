@@ -8,7 +8,7 @@ test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(pa
 
 test('DS7: a second weight on the same day is kept beside the first, by choice', async ({page}) => {
   await page.goto('/app/health'); await hydrated(page);
-  await page.getByRole('button', {name: 'Weight', exact: true}).click();
+  await page.getByRole('tab', {name: 'Weight', exact: true}).click();
   const weight = page.getByRole('form', {name: 'Weight entry'});
   await weight.getByLabel('Weight (kg)').fill('73');
   await weight.getByRole('button', {name: 'Save weight'}).click();

@@ -789,6 +789,7 @@
 :where(:root[data-text=large]) .checklist-stepper-field input:not(#\-) { font-size: calc(24px * 1.125); }
 :where(:root[data-text=large]) .checklist-stepper-unit:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .checklist-stepper-error:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .checklist-water-target p:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .checklist-dot-panel p:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .checklist-list-fold:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .checklist-row-name:not(#\-) { font-size: calc(16px * 1.125); }
@@ -820,6 +821,8 @@
 :where(:root[data-text=large]) .checklist-heat-days:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .checklist-heat-weeks:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .checklist-heat-legend:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .checklist-heat-fill button:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .checklist-past-day-head h3:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/checklist/day-celebration.css  */
 :where(:root[data-text=large]) .checklist-celebration .checklist-celebration-title:not(#\-) { font-size: calc(clamp(28px, 7vw, 38px) * 1.125); }
 :where(:root[data-text=large]) .checklist-celebration .checklist-celebration-line:not(#\-) { font-size: calc(16px * 1.125); }

@@ -19,4 +19,4 @@ export async function openHealth(page: Page, query = '') {
   await page.goto(`/app/health${query}`); await hydrated(page);
   await expect(page.locator('main h1').first()).toBeVisible();
 }
-export const healthView = (page: Page, name: string) => page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true});
+export const healthView = (page: Page, name: string) => page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name, exact: true});

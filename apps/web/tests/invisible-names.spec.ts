@@ -48,7 +48,7 @@ test("an asset named only with zero-width characters is refused, and nothing is 
 
 test("a food named only with zero-width characters is refused with the name message, and nothing is saved", async ({ page }) => {
   await page.goto("/app/health");
-  await page.getByRole("button", { name: "Foods & recipes", exact: true }).click();
+  await page.getByRole("tab", { name: "Foods & recipes", exact: true }).click();
   await page.getByRole("button", { name: "New food", exact: true }).click();
   const food = page.getByRole("form", { name: "Food details" });
   for (const [label, value] of [["Food name", INVISIBLE], ["Serving weight (g)", "40"], ["Calories (kcal)", "150"]]) await food.getByLabel(label!).fill(value!);

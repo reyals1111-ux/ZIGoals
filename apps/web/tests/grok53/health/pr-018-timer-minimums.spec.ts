@@ -11,11 +11,12 @@ test('PR-018/MO-025: a fast stopped at once is not stored as 0.0 h; Undo resumes
   await freshHealth(page);
   await openHealth(page);
   const timer = page.getByRole('region', {name: 'Fasting timer', exact: true});
-  await expect(timer).toContainText('Sleep and fasts stopped within ten minutes are not saved');
+  // Session AL fifth pass (PR-018, deliberate): one minimum for every timer, a minute; the 30-second stop is still dropped.
+  await expect(timer).toContainText('A timer stopped within its first minute saves nothing: sleep, fasts, meditation and focus alike.');
   await timer.getByRole('button', {name: 'Start fast', exact: true}).click();
   await page.clock.fastForward(30_000);
   await timer.getByRole('button', {name: 'Stop fast', exact: true}).click();
-  await expect(timer.getByRole('status')).toContainText('Stopped after less than ten minutes, so nothing was saved.');
+  await expect(timer.getByRole('status')).toContainText('Stopped after less than a minute, so nothing was saved.');
   await expect(timer).not.toContainText('0.0 h');
   await expect(timer.getByRole('heading', {name: 'Recent fasts'})).toHaveCount(0);
   await page.locator('.aa-toast').getByRole('button', {name: /^Undo/}).click();

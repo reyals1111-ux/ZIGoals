@@ -61,11 +61,13 @@ export function CornerTimers({state}: {state: ChecklistState}) {
       spoken: focus.title}] : []),
   ];
   const line = (t: Timer) => t.sub.before ? `${t.sub.label} ${t.sub.value}`.trim() : `${t.sub.value} ${t.sub.label}`.trim();
-  // Session AH (TO5, N-095): starting a fast or a focus session asks once, in place; ending one does not.
+  // Session AH (TO5, N-095): starting a fast or a focus session asks once, in place; ending one does not. Session AL fifth
+  // pass (PR-018): Sleep asks too (a tap started "in bed since 01:26" at once), so every timer that runs for hours asks.
+  // Meditate keeps its one tap: it starts the minutes chosen, as Health's own timer's Begin does.
   const [asking, setAsking] = useState<TimerKind | null>(null);
   async function press(kind: TimerKind, confirmed = false) {
     const t = timers.find(x => x.kind === kind);
-    if (!confirmed && t && !t.running && (kind === 'fast' || kind === 'focus') && !(kind === 'focus' && focusTimer)) { setAsking(kind); setMessage(''); return; }
+    if (!confirmed && t && !t.running && (kind === 'fast' || kind === 'focus' || kind === 'sleep') && !(kind === 'focus' && focusTimer)) { setAsking(kind); setMessage(''); return; }
     setAsking(null); setBusy(kind); setMessage('');
     const out = await state.timer(kind);
     setBusy(null);
@@ -79,8 +81,8 @@ export function CornerTimers({state}: {state: ChecklistState}) {
       <span className="checklist-timer-ring" aria-hidden="true"><PathGlyph name={t.glyph} size={30}/></span>
       <span className="checklist-timer-text"><strong>{t.label}</strong><small title={line(t)}>{t.sub.before ? <><span className="checklist-timer-label">{t.sub.label}</span>{t.sub.value && <> <b>{t.sub.value}</b></>}</> : <><b>{t.sub.value}</b> <span className="checklist-timer-label">{t.sub.label}</span></>}</small></span>
     </button>)}
-    {asking && <div className="checklist-timers-message checklist-timers-confirm" role="alertdialog" aria-label={asking === 'fast' ? 'Start a fast?' : 'Start focus?'}>
-      <p>{asking === 'fast' ? `Start a fast now${lastFast ? ` (${hours(lastFast.targetHours)} target)` : ' (16h target)'}?` : `Start a focus session on ${focus?.title ?? 'your habit'} now?`}</p>
+    {asking && <div className="checklist-timers-message checklist-timers-confirm" role="alertdialog" aria-label={asking === 'fast' ? 'Start a fast?' : asking === 'sleep' ? 'Start sleep?' : 'Start focus?'}>
+      <p>{asking === 'fast' ? `Start a fast now${lastFast ? ` (${hours(lastFast.targetHours)} target)` : ' (16h target)'}?` : asking === 'sleep' ? 'Start sleep now? Tap Sleep again when you wake.' : `Start a focus session on ${focus?.title ?? 'your habit'} now?`}</p>
       <button type="button" className="primary" onClick={() => void press(asking, true)}>Start</button> <button type="button" className="quiet" onClick={() => setAsking(null)}>Cancel</button>
     </div>}
     {message && <p className="checklist-timers-message" role="alert">{message}</p>}

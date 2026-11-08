@@ -25,7 +25,8 @@ export const PLAN_LABELS: Record<PlanKind, {title: string; blurb: string; defaul
   // Session AH (HA16, M-061): before the default quiet hours (22:00), never inside them.
   bedtime: {title: 'Bedtime', blurb: 'A wind-down nudge before your bedtime window.', defaultTime: '21:30'},
   review: {title: 'Weekly review', blurb: 'On your review day, once the day is under way.', defaultTime: '18:00'},
-  'fasting-end': {title: 'Fasting end', blurb: 'When a running fast reaches its target hours.', defaultTime: '12:00'},
+  // Session AL fifth pass (C-DVG-41): due when the fast reaches its target, whatever the time (defaultTime is unused for it).
+  'fasting-end': {title: 'Fasting end', blurb: 'As soon as a running fast reaches its target hours.', defaultTime: '00:00'},
   'goal-checkin': {title: 'Goal check-in', blurb: 'A weekly look at your goals.', defaultTime: '19:00'},
 };
 export const setPlanItem = (p: RemindersPlan, kind: PlanKind, item: {on: boolean; time?: string; weekday?: number}): RemindersPlan => remindersPlanSchema.parse({...p, items: {...(p.items ?? {}), [kind]: {...(p.items?.[kind] ?? {}), ...item}}});

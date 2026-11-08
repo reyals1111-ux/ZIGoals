@@ -20,8 +20,10 @@ type Ctx = {
   errors: Readonly<Record<string, string>>; first: string | null;
   feedbackForm: string | null; feedback: ReactNode;
   registerForm: (title: string) => () => void;
+  /** Session AL fifth pass (replay L2 round 2): drops the named fields' sentences (a change elsewhere made them stale). */
+  forget: (ids: readonly string[]) => void;
 };
-const HealthFieldContext = createContext<Ctx>({errors: {}, first: null, feedbackForm: null, feedback: null, registerForm: () => () => {}});
+const HealthFieldContext = createContext<Ctx>({errors: {}, first: null, feedbackForm: null, feedback: null, registerForm: () => () => {}, forget: () => {}});
 export const messageIdOf = (id: string) => `${id}-error`;
 
 function setMarks(form: HTMLFormElement | null, errors: Record<string, string>) {
@@ -77,13 +79,17 @@ export function useHealthFieldChecks() {
     if (b && b.type !== 'submit') setFeedbackForm(null);
   }, []);
   const clear = useCallback(() => { setErrors({}); setMarks(form.current, {}); setFeedbackForm(null); }, []);
+  const forget = useCallback((ids: readonly string[]) => setErrors(old => {
+    if (!ids.some(id => id in old)) return old;
+    const next = {...old}; for (const id of ids) delete next[id]; setMarks(form.current, next); return next;
+  }), []);
   const registerForm = useCallback((title: string) => {
     setShown(s => ({...s, [title]: (s[title] ?? 0) + 1}));
     return () => setShown(s => ({...s, [title]: Math.max(0, (s[title] ?? 1) - 1)}));
   }, []);
   /** Whether the line shows inside the submitted form (true) or at its usual place under the views. */
   const atForm = !!feedbackForm && (shown[feedbackForm] ?? 0) > 0;
-  return {errors, feedbackForm, atForm, onSubmit, onInput, onClick, clear, registerForm};
+  return {errors, feedbackForm, atForm, onSubmit, onInput, onClick, clear, forget, registerForm};
 }
 
 export function HealthFieldProvider({value, feedback, children}: {value: ReturnType<typeof useHealthFieldChecks>; feedback: ReactNode; children: ReactNode}) {
@@ -91,10 +97,12 @@ export function HealthFieldProvider({value, feedback, children}: {value: ReturnT
     const x = typeof document !== 'undefined' ? document.getElementById(a) : null, y = typeof document !== 'undefined' ? document.getElementById(b) : null;
     return x && y && x !== y ? (x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1) : 0;
   })[0] ?? null;
-  const ctx = useMemo<Ctx>(() => ({errors: value.errors, first, feedbackForm: value.atForm ? value.feedbackForm : null, feedback, registerForm: value.registerForm}), [value.errors, first, value.atForm, value.feedbackForm, feedback, value.registerForm]);
+  const ctx = useMemo<Ctx>(() => ({errors: value.errors, first, feedbackForm: value.atForm ? value.feedbackForm : null, feedback, registerForm: value.registerForm, forget: value.forget}), [value.errors, first, value.atForm, value.feedbackForm, feedback, value.registerForm, value.forget]);
   return <HealthFieldContext.Provider value={ctx}>{children}</HealthFieldContext.Provider>;
 }
 
+/** Drops stale sentences: a field whose rule changed (Measurements' type: a weight range under a waist value). */
+export const useForgetFieldChecks = () => useContext(HealthFieldContext).forget;
 /** The sentence under a checked field (nothing when it reads). */
 export function FieldNote({of}: {of: string}) {
   const {errors, first} = useContext(HealthFieldContext);

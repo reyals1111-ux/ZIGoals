@@ -73,7 +73,7 @@ test('fixture B: a serving size makes library foods, one per distinct food', asy
   const data = (await health(page))!;
   expect(data.foods.map(f => [f.name, f.brand, f.servingGrams])).toEqual([['Oats', 'Imported', 100], ['Rice', 'Imported', 100]]);
   await panel.getByRole('button', {name: 'Done', exact: true}).click();
-  await page.getByRole('button', {name: 'Foods & recipes', exact: true}).click();
+  await page.getByRole('tab', {name: 'Foods & recipes', exact: true}).click();
   await expect(page.getByText('Imported').first()).toBeVisible();
 });
 

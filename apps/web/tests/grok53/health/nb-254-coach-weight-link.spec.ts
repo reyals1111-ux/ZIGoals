@@ -21,6 +21,6 @@ test('NB-254: with Health in use but no weight, "Log a weight →" opens the Wei
   const coach = page.getByRole('region', {name: 'Your coach'});
   await coach.getByRole('link', {name: 'Log a weight →'}).click();
   await expect(page).toHaveURL(/\/app\/health\?(.*&)?view=weight\b/);
-  await expect(page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Weight', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name: 'Weight', exact: true})).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('form', {name: 'Weight entry'}).getByLabel(/^Weight \((kg|lb)\)$/)).toBeFocused();
 });

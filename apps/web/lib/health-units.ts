@@ -16,9 +16,28 @@ export const GRAMS_PER_LB = 453.59237, ML_PER_US_FL_OZ = 29.5735295625;
 export function weightText(grams: number, unit: WeightUnit): string {
   return unit === "lb" ? `${formatNumber(grams / GRAMS_PER_LB, { maximumFractionDigits: 1 })} lb` : `${formatNumber(grams / 1000, { maximumFractionDigits: 1 })} kg`;
 }
-/** A change in weight, signed ("+0.4 kg", "-1.2 lb"); zero has no sign. */
+/**
+ * Session AL fifth pass (N-MO-14, N-NB-10): ONE format for a weight READING (what was typed or imported), everywhere it is
+ * shown: its own decimals, at most two ("70.55 kg", "72.4 kg", "178.2 lb"); the history kept 70.55 while the trend card,
+ * the chart's first observation and the 30-day average said 70.6 on the same screen. A derived figure (a trend, a rate)
+ * keeps weightText's one decimal; an average of readings uses `weightReadingsText` (the readings' own precision).
+ */
+const readingValue = (grams: number, unit: WeightUnit) => roundHalfUp(unit === "lb" ? grams / GRAMS_PER_LB : grams / 1000, 2);
+export function weightReadingText(grams: number, unit: WeightUnit): string {
+  return `${formatNumber(readingValue(grams, unit), { maximumFractionDigits: 2 })} ${unit}`;
+}
+/** Decimals the readings carry in `unit` (1 or 2): two when any reading has a hundredth. */
+export function weightReadingDecimals(grams: readonly number[], unit: WeightUnit): 1 | 2 {
+  return grams.some(g => Math.round(readingValue(g, unit) * 100) % 10 !== 0) ? 2 : 1;
+}
+/** A figure made of readings (their average) at the readings' own precision: "70.55 kg" when one reading was 70.55. */
+export function weightReadingsText(grams: number, readings: readonly number[], unit: WeightUnit): string {
+  return weightReadingDecimals(readings, unit) === 2 ? weightReadingText(grams, unit) : weightText(grams, unit);
+}
+/** A change in weight, signed ("+0.4 kg", "−1.2 lb"); zero has no sign. Fifth pass (replay L2 round 2): the minus sign
+ *  (U+2212), as the coach and every other signed figure write it ("-0.6" with a hyphen on the trend card). */
 export function weightChangeText(grams: number, unit: WeightUnit): string {
-  return `${grams > 0 ? "+" : grams < 0 ? "-" : ""}${weightText(Math.abs(grams), unit)}`;
+  return `${grams > 0 ? "+" : grams < 0 ? "\u2212" : ""}${weightText(Math.abs(grams), unit)}`;
 }
 /**
  * Session AL sweep 2 (NOVA review M5): with no water entry today every surface says so in the same words NOVA uses
@@ -30,8 +49,9 @@ export function waterText(millilitres: number, unit: WaterUnit): string {
   return unit === "fl-oz-us" ? `${formatNumber(Math.round(millilitres / ML_PER_US_FL_OZ))} fl oz` : `${formatNumber(millilitres, { maximumFractionDigits: 1 })} mL`;
 }
 /** A weight chart's point in the chosen unit: an integer text with its decimals (a tenth in either unit, as weightText). */
-export function weightChartValue(grams: number, unit: WeightUnit): { value: string; decimals: number; unit: string } {
-  return unit === "lb" ? { value: String(Math.round(grams / GRAMS_PER_LB * 10)), decimals: 1, unit: "lb" } : { value: String(Math.round(grams / 100)), decimals: 1, unit: "kg" };
+export function weightChartValue(grams: number, unit: WeightUnit, decimals: 1 | 2 = 1): { value: string; decimals: number; unit: string } {
+  const scale = decimals === 2 ? 100 : 10;
+  return unit === "lb" ? { value: String(Math.round(grams / GRAMS_PER_LB * scale)), decimals, unit: "lb" } : { value: String(Math.round(grams / (1000 / scale))), decimals, unit: "kg" };
 }
 
 /**

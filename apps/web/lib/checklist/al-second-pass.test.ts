@@ -20,9 +20,11 @@ describe('P-LS-19 (LS-016, LS-056, LC-002): Water is done at the target when one
     const all = addWater(some, {id: 'health_water-0002', date: TODAY, amountMilli: 1700000, unit: 'ml'}, NOW.toISOString());
     expect(water(all)).toMatchObject({state: 'done', note: '2,000 ml today of 2,000 ml'});
   });
-  test('with no target, one entry is the day’s water (the pinned Checklist spec’s case); the amount is shown unrounded', () => {
+  // Session AL fifth pass (replay L2 round 2, LS-016/X3-26/LC-002, deliberate): with no target one entry no longer lights
+  // Water ("250 ml today: done" lit every planet). Equally strict: the state, the note and the ask are pinned.
+  test('with no target, an entry is shown unrounded but Water stays unlit and asks for a target', () => {
     const one = addWater(withTarget(sources().health!, null), {id: 'health_water-0001', date: TODAY, amountMilli: 2500, unit: 'ml'}, NOW.toISOString());
-    expect(water(one)).toMatchObject({state: 'done', note: '2.5 ml today'});
+    expect(water(one)).toMatchObject({state: 'undone', note: '2.5 ml today, no daily target yet', askWaterTarget: true});
   });
 });
 
@@ -79,9 +81,10 @@ describe('PR-069 (P-PR-17): same-named items stay apart on the path', () => {
 });
 
 describe('PR-018 (L2’s one timer rule): the Checklist’s timer stops use the shared words', () => {
-  test('the words the Checklist already said for sleep and fasts are the shared ones (adapters.test pins each stop)', () => {
-    expect(tooShortText('fast')).toBe('Stopped after less than ten minutes, so nothing was saved.');
-    expect(tooShortText('sleep')).toBe('Stopped after less than ten minutes, so nothing was saved.');
+  // Session AL fifth pass (PR-018, deliberate): one minimum for every timer, a minute.
+  test('the words the Checklist says for sleep and fasts are the shared ones (adapters.test pins each stop)', () => {
+    expect(tooShortText('fast')).toBe('Stopped after less than a minute, so nothing was saved.');
+    expect(tooShortText('sleep')).toBe('Stopped after less than a minute, so nothing was saved.');
   });
 });
 

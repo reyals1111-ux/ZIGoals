@@ -11,10 +11,10 @@ for (const width of [1280, 375]) test(`MO-018/MO-096 @${width}: every Health vie
   await freshHealth(page);
   for (const [key, name] of [['weight', 'Weight'], ['targets', 'Targets'], ['planner', 'Planner'], ['measurements', 'Measurements'], ['activity', 'Activity'], ['insights', 'Insights'], ['import', 'Import'], ['diary', 'Diary']] as const) {
     await openHealth(page, `?view=${key}`);
-    await expect(healthView(page, name)).toHaveAttribute('aria-pressed', 'true');
+    await expect(healthView(page, name)).toHaveAttribute('aria-selected', 'true');
   }
   await healthView(page, 'Targets').click();
   await expect(page).toHaveURL(/[?&]view=targets\b/);
   await page.reload(); await hydrated(page);
-  await expect(healthView(page, 'Targets')).toHaveAttribute('aria-pressed', 'true');
+  await expect(healthView(page, 'Targets')).toHaveAttribute('aria-selected', 'true');
 });

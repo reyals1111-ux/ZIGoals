@@ -88,7 +88,8 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
     return <section ref={panel} className="panel meditation-session meditation-finished" aria-labelledby="meditation-finished-title">
       <p className="eyebrow">{label.toUpperCase()} · DONE</p>
       <h2 id="meditation-finished-title" tabIndex={-1} ref={finishedHeading}>{ended ? `${ended.seconds >= 60 ? minutesText(Math.round(ended.seconds / 60)) : `${ended.seconds} s`} of ${run.kind === 'breathing' ? 'breathing' : 'stillness'}` : 'Less than a second'}</h2>
-      <p>Save it to your Health journal, or let it go. How you feel is optional.</p>
+      {/* Session AL fifth pass (PR-018): the one timer minimum said before Save, not only after it */}
+      {!ended || tooShortToSave('meditation', ended.seconds * 1000) ? <p>{timerRuleText}</p> : <p>Save it to your Health journal, or let it go. How you feel is optional.</p>}
       <MoodPicker legend="How do you feel now? (optional)" value={moodAfter} onChange={setMoodAfter}/>
       <label className="field">Note (optional)<textarea maxLength={500} rows={2} value={note} onChange={e => setNote(e.target.value)}/></label>
       {(() => { const pulse = ended ? heartSummary(Date.parse(ended.startedAt), Date.parse(ended.startedAt) + ended.seconds * 1000) : null; return pulse && <label className="checkbox"><input type="checkbox" checked={keepHeart} onChange={e => setKeepHeart(e.target.checked)}/>Keep my heart rate from this session: lowest {pulse.min}, average {pulse.avg}, highest {pulse.max} bpm (only these three numbers)</label>; })()}
