@@ -224,3 +224,14 @@ describe('Session AL L5-4: meditation minutes', () => {
     expect(parse('ran 5k in 28 min', 'en', {...base, habits: runs}).kind).not.toBe('needs-more');
   });
 });
+
+test('Session AL release review (RR-1): a habit linked to the measure a line logs is not offered beside it', () => {
+  const walk = {id: 'h-walk', title: 'Walk', unit: 'steps', kind: 'quantity' as const, target: 8000};
+  const unlinked = parse('walked 4000 steps', 'en', {...context, habits: [walk]});
+  expect(unlinked.kind).toBe('ambiguous'); // an unlinked Walk habit is still a second reading
+  expect(parse('walked 4000 steps', 'en', {...context, habits: [{...walk, healthMeasure: 'steps'}]})).toMatchObject(steps(4000));
+  const water = context.habits.map(h => h.id === 'h-water' ? {...h, healthMeasure: 'water'} : h);
+  expect(parse('drink water 2 glasses', 'en', {...context, habits: water})).toMatchObject({kind: 'water', millilitres: 500});
+  // Linked to another measure, the habit is still offered.
+  expect(parse('walked 4000 steps', 'en', {...context, habits: [{...walk, healthMeasure: 'water'}]}).kind).toBe('ambiguous');
+});

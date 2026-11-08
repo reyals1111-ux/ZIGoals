@@ -2,6 +2,7 @@
 import {lazy, Suspense, useEffect, useMemo, useRef, useState} from 'react';
 import {useHealth} from './health/use-health';
 import {useHabits} from './habits/use-habits';
+import {useHabitHealthLinks} from './habits/use-habit-health-links';
 import {exerciseData} from '../lib/health-counters';
 import {dailyData} from '../lib/health-daily';
 import {latestHabitRule} from '../lib/habits';
@@ -54,18 +55,18 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false, close, onUn
   onUnderstood?: (understood: boolean) => void;
   /** Session AL fifth pass (MO-065): told after a line is saved (ZIGi's and NOVA's answers note it in their actions log). */
   onSaved?: (saved: QuickAddSaved) => void} = {}) {
-  const health = useHealth(), habits = useHabits();
+  const health = useHealth(), habits = useHabits(), links = useHabitHealthLinks();
   const [text, setText] = useState(''), [result, setResult] = useState<QuickAddResult | null>(null), [chosen, setChosen] = useState<QuickAddKnown | null>(null);
   const [saved, setSaved] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false), [wake, setWake] = useState('');
   const field = useRef<HTMLInputElement>(null);
   const context = useMemo<QuickAddContext>(() => {
     const preferences = dailyData(health.data).preferences;
     return {
-      habits: habits.data.habits.filter(h => latestHabitRule(h).state === 'active').map(h => { const rule = latestHabitRule(h); return {id: h.id, title: h.title, unit: 'unit' in rule.measurement ? rule.measurement.unit : 'done', kind: rule.measurement.kind, target: rule.target}; }),
+      habits: habits.data.habits.filter(h => latestHabitRule(h).state === 'active').map(h => { const rule = latestHabitRule(h); const measure = links.loaded ? links.data.links[h.id]?.measure : undefined; return {id: h.id, title: h.title, unit: 'unit' in rule.measurement ? rule.measurement.unit : 'done', kind: rule.measurement.kind, target: rule.target, ...(measure ? {healthMeasure: measure} : {})}; }),
       counters: exerciseData(health.data).counters.map(c => ({id: c.id, name: c.name})),
       waterUnit: preferences.waterUnit, weightUnit: preferences.weightUnit, today: habits.today,
     };
-  }, [health.data, habits.data, habits.today]);
+  }, [health.data, habits.data, habits.today, links.loaded, links.data.links]);
   const ready = health.loaded && habits.loaded && !health.error && !habits.error;
   const primed = useRef(false);
   // Session AL fifth pass (M-091): opened before Health and Habits were read, the sheet's Close held the focus; the field

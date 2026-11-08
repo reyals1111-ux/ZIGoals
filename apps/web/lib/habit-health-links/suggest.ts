@@ -1,5 +1,5 @@
 import {formNumberText} from '../decimal-input';
-import type {HabitHealthLinkV4} from './schema';
+import {HEALTH_MEASURES, type HabitHealthLinkV4, type HabitHealthLinksV4} from './schema';
 
 /**
  * Session AL (P-NB-28; NB-199, NB-200, NB-201): the water link a habit counted in litres starts with. A "Drink water,
@@ -25,4 +25,21 @@ export function ideaHealthLink(input: {title: string; type?: string; measurement
   if (waterUnit === 'ml' ? unit === 'ml' : unit === 'fl oz') return {version: 1, measure: 'water', rule: 'at-least', target: waterUnit === 'ml' ? input.target : Math.round(input.target * FL_OZ * 1000) / 1000, updatedAt};
   if (input.measurement.kind === 'duration' && unit === 'minutes' && /meditat|mindful/i.test(input.title) && Number.isInteger(input.target)) return {version: 1, measure: 'meditationMinutes', rule: 'at-least', target: input.target, updatedAt};
   return null;
+}
+/**
+ * Session AL release review (RR-1): the habits a one-tap setup made (the welcome's starters and focus habits) start linked
+ * to Health as Habits' own ideas do (`ideaHealthLink`): "Drink water, 2 liters" counts the water journal, "Walk, 8,000
+ * steps" the activity log. Only habits with no link yet; `v1Only` keeps the measures the device key holds (water, steps)
+ * for the device store, whose schema refuses a meditation link.
+ */
+export function withIdeaLinks(current: HabitHealthLinksV4, created: readonly {id: string; input: Parameters<typeof ideaHealthLink>[0]}[], waterUnit: 'ml' | 'fl-oz-us', now = new Date(), v1Only = false): HabitHealthLinksV4 {
+  const v1: ReadonlySet<string> = new Set(HEALTH_MEASURES);
+  let links = current.links;
+  for (const {id, input} of created) {
+    if (links[id]) continue;
+    const link = ideaHealthLink(input, waterUnit, now);
+    if (!link || (v1Only && !v1.has(link.measure))) continue;
+    links = {...links, [id]: link};
+  }
+  return links === current.links ? current : {...current, links};
 }

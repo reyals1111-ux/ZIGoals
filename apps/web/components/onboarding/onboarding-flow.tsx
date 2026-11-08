@@ -14,6 +14,9 @@ import { useGoals } from "../goal-provider";
 import { usePlatform } from "../platform/use-platform";
 import { useHabits } from "../habits/use-habits";
 import { useHealth } from "../health/use-health";
+import { useHabitHealthLinks } from "../habits/use-habit-health-links";
+import { withIdeaLinks } from "../../lib/habit-health-links/suggest";
+import type { HabitInput } from "../../lib/habits";
 import { usePrivateStore } from "../use-private-store";
 import { useShowcase } from "../showcase-controls";
 import { ZigiFigure } from "../zigi/zigi-figure";
@@ -25,7 +28,7 @@ import { createAllocatedGoal } from "../../lib/wealth";
 import { localDate } from "../../lib/local-date";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
-import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, PROFILE_NAME, SAVING_HABIT, cleanProfileName, focusHabitInput, focusHabitRhythm, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
+import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, PROFILE_NAME, SAVING_HABIT, cleanProfileName, focusHabitInput, focusHabitRhythm, focusHabitTemplate, focusStarter, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
 import { setHabitState } from "../../lib/habits";
 import { readDeviceRecord, updateDeviceRecord } from "../../lib/device-record";
 import { WIDGET_CATALOG, removeWidget, saveWidget, type WidgetKind } from "../../lib/dashboard-settings";
@@ -121,7 +124,7 @@ function Choice({name, checked, onChange, label, note, disabled, type = "checkbo
 /** Session AL (GAP-103): the first level as the game layer would show it (a preview; nothing is stored). */
 const GAME_PREVIEW = levelProgress(0);
 export function OnboardingFlow() {
-  const router = useRouter(), showcase = useShowcase(), legacy = useGoals(), platform = usePlatform(), habits = useHabits(), health = useHealth();
+  const router = useRouter(), showcase = useShowcase(), legacy = useGoals(), platform = usePlatform(), habits = useHabits(), health = useHealth(), healthLinks = useHabitHealthLinks();
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
   const install = useInstallPrompt();
   const [step, setStep] = useState<Step>("welcome"), [busy, setBusy] = useState(false), [error, setError] = useState("");
@@ -165,7 +168,7 @@ export function OnboardingFlow() {
   // (focusHabitInput). The Money starter of the same name (no goal link) hid it whenever "Goals & money" was picked; the
   // focus's habit now takes that starter's place.
   const savingFromFocus = suggested.habits.includes(SAVING_HABIT);
-  const starters = starterHabits(pillars).filter(t => !(savingFromFocus && t.title.toLowerCase() === SAVING_HABIT.toLowerCase())), preset = presetForPillars(pillars);
+  const starters = starterHabits(pillars).map(t => focusStarter(t, focuses) /* RR-15: the focus card's amount */).filter(t => !(savingFromFocus && t.title.toLowerCase() === SAVING_HABIT.toLowerCase())), preset = presetForPillars(pillars);
   const focusPillars = new Set(pillars.flatMap(p => p === "goals-money" ? ["goals", "wealth"] : p === "habits" ? ["habits"] : p === "health-food" ? ["health"] : p === "sleep-mind" ? ["health", "habits"] : []));
   const focusChoices = FOCUSES.filter(f => focusPillars.size === 0 || focusPillars.has(f.pillar));
   /** Starters the focuses ask for that no template carries: created as plain daily habits. */
@@ -283,7 +286,15 @@ export function OnboardingFlow() {
         announceModuleChange([DASHBOARD_SETTINGS_KEY]);
       }
       const createdHabitIds: string[] = [], createdWidgetIds: string[] = [];
-      if (pickedHabits.length || extraHabits.length) await habits.update(data => { let acc = data; for (const t of pickedHabits) { if (hasHabitLike(acc.habits.map(h => h.title), t)) continue; const id = crypto.randomUUID(); acc = createHabit(acc, habitTemplateInputOf(t), new Date(), id); createdHabitIds.push(id); } for (const title of extraHabits) { if (acc.habits.some(h => h.title.toLowerCase() === title.toLowerCase())) continue; const id = crypto.randomUUID(); acc = createHabit(acc, focusHabitInput(title, goal?.id) /* Session AK P4 (FR-8) */, new Date(), id); createdHabitIds.push(id); } return acc; });
+      const createdInputs = new Map<string, HabitInput>();
+      if (pickedHabits.length || extraHabits.length) await habits.update(data => { let acc = data; createdHabitIds.length = 0; createdInputs.clear(); for (const t of pickedHabits) { if (hasHabitLike(acc.habits.map(h => h.title), t)) continue; const id = crypto.randomUUID(), input = habitTemplateInputOf(t); acc = createHabit(acc, input, new Date(), id); createdHabitIds.push(id); createdInputs.set(id, input); } for (const title of extraHabits) { if (acc.habits.some(h => h.title.toLowerCase() === title.toLowerCase())) continue; const id = crypto.randomUUID(), template = title === SAVING_HABIT ? null : focusHabitTemplate(title) /* RR-15: the habit the focus card describes */, input = template ? habitTemplateInputOf(template) : focusHabitInput(title, goal?.id) /* Session AK P4 (FR-8) */; acc = createHabit(acc, input, new Date(), id); createdHabitIds.push(id); createdInputs.set(id, input); } return acc; });
+      // Session AL release review (RR-1): the welcome's water and walk habits count the water journal and the activity log,
+      // as Habits' one-tap ideas do (the same link the editor's "Done automatically when" saves). A link that cannot be
+      // written leaves the habit as it is; it can be linked from its editor.
+      if (createdInputs.size) {
+        const made = createdHabitIds.flatMap(id => { const input = createdInputs.get(id); return input ? [{id, input}] : []; }), unit = dailyData(health.data).preferences.waterUnit, now = new Date();
+        try { await healthLinks.update(current => withIdeaLinks(current, made, unit, now)); } catch { try { await healthLinks.update(current => withIdeaLinks(current, made, unit, now, true)); } catch { /* the habits are saved */ } }
+      }
       if (suggested.widgets.length) { await updateSettings(getAppStorage(), latest => { let acc = latest; for (const kind of suggested.widgets) { if (acc.widgets.some(w => w.kind === kind && !w.hidden)) continue; const id = crypto.randomUUID(); const metric = (WIDGET_CATALOG[kind as WidgetKind].metrics as readonly string[])[0]!; try { acc = saveWidget(acc, {id, kind: kind as WidgetKind, metric, title: "", size: "compact", hidden: false, revision: 1}); createdWidgetIds.push(id); } catch { /* a widget that needs a record waits for Today */ } } return acc; }); announceModuleChange([DASHBOARD_SETTINGS_KEY]); }
       if (goal) { const saved = goal; await platform.update(data => data.goals.some(g => g.id === saved.id) ? data : createAllocatedGoal(data, saved, [])); }
       if (showHealth && (steps !== null || water !== null)) await health.update(data => {
@@ -401,7 +412,7 @@ export function OnboardingFlow() {
       {step === "starters" && <>
         <p className="onboarding-lede">Tick what you’d like to begin with. You can change targets and schedules later, or skip this.</p>
         <fieldset className="onboarding-choices"><legend>Habits <small className="onboarding-count" aria-live="polite">{pickedHabits.length + extraHabits.length} selected</small></legend>
-          {focusHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked={!skippedFocusHabits.includes(title.toLowerCase())} onChange={() => setSkippedFocusHabits(list => toggle(list, title.toLowerCase()))} label={title} note={`From your focus · ${focusHabitRhythm(title)}`} />)}
+          {focusHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked={!skippedFocusHabits.includes(title.toLowerCase())} onChange={() => setSkippedFocusHabits(list => toggle(list, title.toLowerCase()))} label={title} note={`From your focus · ${focusHabitTemplate(title)?.note ?? focusHabitRhythm(title)}`} />)}
           {starters.map(t => { const exists = hasHabitLike(existingTitles, t); return <Choice key={t.id} name="onboarding-habit" checked={exists || habitIds.includes(t.id)} disabled={exists} onChange={() => setHabitIds(list => toggle(list, t.id))} label={t.title} note={exists ? "Already in your Habits" : `${t.note} · ${HABIT_GROUP_LABEL[t.group]}`} />; })}
         </fieldset>
         {showGoal && <fieldset className="onboarding-goal"><legend>A first goal (optional)</legend>

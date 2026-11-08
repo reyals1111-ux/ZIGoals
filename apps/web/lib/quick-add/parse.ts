@@ -196,7 +196,10 @@ export function parse(text: string, localeName: 'en' | 'nl', context: QuickAddCo
         own.push({kind: 'exercise', counterId: counter.id, name: counter.name, count: n, day});
       }
     }
+    // RR-1: a habit linked to a measure this line already logs counts it from Health; offering it too would log it twice.
+    const logged = new Set<string | null>(explicit.map(e => e.kind === 'steps' ? 'steps' : e.kind === 'water' ? 'water' : e.kind === 'weight' ? 'weight' : null));
     for (const habit of context.habits) {
+      if (habit.healthMeasure && logged.has(habit.healthMeasure)) continue;
       const title = normalizeName(habit.title), first = normalizeName(habit.title.split(/\s+/)[0] ?? '');
       const firstWord = normalizeName(stemmed[0] ?? ''), firstRaw = normalizeName(words[0] ?? '');
       if (!title || !(joined === title || joinedRaw === title || (first && (firstWord === first || firstRaw === first)))) continue;

@@ -5,6 +5,7 @@ import { dailyHealthSummary, formatHealthGrams,formatNutrient,nutritionSummaryTe
 import { dailyData } from "../../lib/health-daily";
 import { weightReadingText } from "../../lib/health-units";
 import { formatMacroGrams } from "../../lib/health-plausible";
+import { mealsLoggedLine, noNutritionKnown } from "../../lib/health-today-meals";
 import { useHealthToday } from "./use-health-today";
 import { useHealth } from "./use-health";
 import { useJournalZone } from "../use-journal-zone";
@@ -24,7 +25,13 @@ export function HealthToday() {
   return <section className="panel health-today" aria-label="Today's health">
     <div className="health-section-heading"><div><p className="eyebrow">HEALTH · PRIVATE</p><h2>Your daily balance.</h2></div><span className="health-symbol" aria-hidden="true">↗</span></div>
     {loaded && !error && zone && device && zone !== device && <p className="fine health-today-zone">Today in {zone}</p>}
-    {!loaded ? <p>Loading your private health entries…</p> : error ? <p>Health data needs attention. Open Health to review it.</p> : summary && summary.entries > 0 ? <>
+    {!loaded ? <p>Loading your private health entries…</p> : error ? <p>Health data needs attention. Open Health to review it.</p> : summary && summary.entries > 0 && noNutritionKnown(summary) ? <>
+      {/* Session AL release review (RR-5): entries that give no nutrition at all show by name, with one plain line, never
+          "Unknown" four times; unknown stays unknown (no 0 kcal). */}
+      <p className="health-today-meals"><strong>{mealsLoggedLine(data, today)}</strong></p>
+      <p className="fine">Nutrition not given {summary.entries === 1 ? "for this entry" : "for these entries"}. Add it in Health → Foods &amp; recipes; nothing is counted as 0.</p>
+    </> : summary && summary.entries > 0 ? <>
+      <p className="fine health-today-meals">{mealsLoggedLine(data, today)}</p>
       {/* Session AL fourth pass (PR-088): Today's card reads as Health's own summary: a partial day shows what is known with a
           "+" ("200+ kcal known so far"), never "Unknown kcal logged"; each macro is the number with a small partial line. */}
       <div className="health-today-value">{summary.nutrients.kcal !== null ? <><strong>{formatNutrient(summary.nutrients.kcal)}</strong><span>kcal logged{data.targets.kcal ? ` / ${formatNumber(data.targets.kcal)} target` : ""}</span></> : summary.knownNutrients.kcal !== null ? <><strong>{formatNutrient(summary.knownNutrients.kcal)}+</strong><span>kcal known so far{data.targets.kcal ? ` / ${formatNumber(data.targets.kcal)} target` : ""}</span></> : <><strong><span aria-hidden="true">—</span><span className="sr-only">Unknown</span></strong><span>calories not given by these entries</span></>}</div>

@@ -82,3 +82,12 @@ export function weightTrend(data: Pick<HealthData, 'weights' | 'targets'>, today
   const last = [...data.weights].filter(w => w.date <= today).sort((a, b) => b.date.localeCompare(a.date))[0];
   return {points, latestTrend, weeklyRate: latestTrend !== null ? weeklyRateOf(data.weights, today) : null, readings, goalGrams: data.targets.weightGrams, latestReading: last ? {date: last.date, grams: last.grams} : null};
 }
+/**
+ * Session AL release review (RR-6): the weight tile's note says what is true for the readings there are. One reading is a
+ * start, not a "smoothed, six weeks" trend; a few readings without a weekly rate yet are said as that many readings.
+ */
+export function trendNote(readings: number, rate: string | null): string {
+  if (rate) return `${rate} a week · an estimate`;
+  if (readings <= 1) return 'First reading. Two or three a week draw the line.';
+  return `smoothed over ${readings} readings · an estimate`;
+}

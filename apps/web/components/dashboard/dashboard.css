@@ -148,6 +148,15 @@
 .dashboard-widget[data-options-open] { overflow: visible; z-index: 40; }
 .dashboard-widget[data-options-open] > .dashboard-widget-art { visibility: hidden; }
 
+/* Session AL release review (RR-12): in Today's narrow side rail (a fresh profile's Recent activity at 1440 px) ZIGi beside
+   the words left them about 50 px, so "belongs" broke as "belo/ngs". A narrow card puts ZIGi above the words, and a heading
+   word breaks only when it cannot fit a line on its own. */
+@container (max-width: 420px) {
+  .recent-panel .timeline-empty :is(.empty-state-figure, .empty-state-copy) { grid-column: 1 / -1; }
+  .recent-panel .timeline-empty .empty-state-figure { width: 56px; height: 56px; }
+}
+.recent-panel .timeline-empty .empty-state-copy > :is(h2, h3, p) { overflow-wrap: break-word; }
+
 /* Session AL: the lanes' later rules sit above the AK G3 block, so that block stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
 /* Session AK (G3): richer cards, as the new surfaces (F6). Today's own cards (not the hero, the slogan or the Checklist): Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a

@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import {ONBOARDING_SETUP_KEY} from './aa-device-keys';
 import type {DeviceRecordSpec} from './device-record';
+import {habitTemplate, type HabitTemplate} from './templates/habits';
 
 /**
  * S4: what the personalised welcome set up (habit ids, a goal id, widget ids, the pages shown), kept on this device for
@@ -19,7 +20,7 @@ export const FOCUSES: readonly Focus[] = [
   {id: 'eat-well', pillar: 'health', title: 'Eat well', blurb: 'Log meals and see your week.', habits: [], widgets: ['health']},
   {id: 'read', pillar: 'habits', title: 'Read more', blurb: 'Twenty minutes with a book.', habits: ['Read'], widgets: ['habits']},
   {id: 'meditate', pillar: 'habits', title: 'Meditate', blurb: 'Ten quiet minutes.', habits: ['Meditate'], widgets: ['meditation', 'habits']},
-  {id: 'learn', pillar: 'habits', title: 'Learn something', blurb: 'A little study each day.', habits: ['Study'], widgets: ['habits']},
+  {id: 'learn', pillar: 'habits', title: 'Learn something', blurb: 'An hour of study on weekdays.', habits: ['Study'], widgets: ['habits']},
   {id: 'focus-work', pillar: 'habits', title: 'Deep work', blurb: 'One focused block a day.', habits: ['Deep work'], widgets: ['habits']},
   {id: 'connect', pillar: 'habits', title: 'Stay in touch', blurb: 'Reach out to someone.', habits: ['Call a friend'], widgets: ['habits']},
   {id: 'tidy', pillar: 'habits', title: 'Keep things tidy', blurb: 'Ten minutes a day.', habits: ['Tidy up'], widgets: ['habits']},
@@ -65,6 +66,31 @@ export function focusHabitInput(title: string, goalId?: string) {
     ...(saving && goalId ? {goalLink: {chainId: 'private', owner: 'local', goalId}} : {}),
     type: 'build' as const, measurement: {kind: 'boolean' as const}, schedule: saving ? {kind: 'frequency' as const, times: 1, period: 'week' as const} : {kind: 'daily' as const},
     target: 1, targetPeriod: 'day' as const, timeOfDay: 'anytime' as const, endCondition: {kind: 'none' as const}};
+}
+/**
+ * Session AL release review (RR-15): the habit a focus's card describes is the habit the welcome makes. A focus habit that a
+ * starter template carries is made from that template, with the card's own amount where it differs from the template's
+ * ("Read more · Twenty minutes with a book" makes Read, 20 minutes a day, not the library's 30; "Meditate · Ten quiet
+ * minutes" makes Meditate, 10 minutes a day, never a yes/no "1 / 1 per day"). Keyed by template id. The Habits page's own
+ * ideas keep the library's amounts.
+ */
+const FOCUS_TEMPLATES: Readonly<Record<string, {template: string; focus: FocusId; target?: number; note?: string}>> = {
+  'Walk': {template: 'walk', focus: 'move'},
+  'Drink water': {template: 'water', focus: 'water'},
+  'Read': {template: 'read', focus: 'read', target: 20, note: '20 minutes a day'},
+  'Meditate': {template: 'meditate', focus: 'meditate'},
+  'Study': {template: 'study', focus: 'learn'},
+  'Tidy up': {template: 'tidy', focus: 'tidy'},
+};
+/** A starter as the welcome makes it: a picked focus that names this template sets its amount (RR-15); otherwise unchanged. */
+export function focusStarter(t: HabitTemplate, focuses: readonly FocusId[]): HabitTemplate {
+  const shape = Object.values(FOCUS_TEMPLATES).find(f => f.template === t.id && focuses.includes(f.focus));
+  return shape ? {...t, ...(shape.target !== undefined ? {target: shape.target} : {}), ...(shape.note ? {note: shape.note} : {})} : t;
+}
+/** The template a focus habit is made from (with the focus's amount), or null when no template carries it (RR-15). */
+export function focusHabitTemplate(title: string): HabitTemplate | null {
+  const shape = FOCUS_TEMPLATES[title], t = shape ? habitTemplate(shape.template) : undefined;
+  return t ? focusStarter(t, [shape!.focus]) : null;
 }
 /** How often a focus's habit repeats, as its tick box says it ("From your focus · weekly"). */
 export const focusHabitRhythm = (title: string): string => title === SAVING_HABIT ? 'weekly' : 'daily';

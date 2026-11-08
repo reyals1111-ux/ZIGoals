@@ -12,7 +12,12 @@ export type QuickAddLocale = {
   examples: [string, string, string];
 };
 export type QuickAddDay = 'today' | 'yesterday';
-export type QuickAddHabit = {id: string; title: string; unit: string; kind: 'boolean' | 'count' | 'duration' | 'quantity' | 'custom'; target: number};
+/**
+ * `healthMeasure` (Session AL release review, RR-1; optional): the Health measure the habit is linked to ("Done
+ * automatically when"). A line that logs that measure ("walked 4000 steps" for a Walk linked to steps) is the Health entry
+ * alone: the habit counts it from there, so it is not offered as a second reading.
+ */
+export type QuickAddHabit = {id: string; title: string; unit: string; kind: 'boolean' | 'count' | 'duration' | 'quantity' | 'custom'; target: number; healthMeasure?: string};
 /** Session AL (LS-040): `today` (the habits day) lets a weekday word name today or yesterday. Optional. */
 export type QuickAddContext = {habits: QuickAddHabit[]; counters: {id: string; name: string}[]; waterUnit: 'ml' | 'fl-oz-us'; weightUnit: 'kg' | 'lb'; today?: string};
 export type ActivityName = 'Run' | 'Walk' | 'Cycle' | 'Swim';

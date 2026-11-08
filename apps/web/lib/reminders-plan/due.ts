@@ -21,7 +21,7 @@ export function planDue(plan: RemindersPlan, now: Date, today: string, context: 
     if (kind === 'goal-checkin' && (item.weekday ?? 0) !== context.weekday) continue;
     if (kind === 'fasting-end' && !context.fastDone) continue;
     const line = kind === 'bedtime' ? 'Time to wind down.' : kind === 'review' ? 'Your weekly review is open.' : kind === 'fasting-end' ? 'Your fast has reached its target hours.' : 'A moment for your goals.';
-    out.push({id: kind, kind, title: PLAN_LABELS[kind].title, line, href: kind === 'bedtime' ? '/app/health?view=sleep' : kind === 'review' ? '/app' : kind === 'fasting-end' ? '/app/health' : '/app/goals'});
+    out.push({id: kind, kind, title: PLAN_LABELS[kind].title, line, href: kind === 'bedtime' ? '/app/health?view=sleep' : kind === 'review' ? '/app/review' : kind === 'fasting-end' ? '/app/health' : '/app/goals'});
   }
   return out;
 }

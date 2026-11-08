@@ -1,6 +1,6 @@
 'use client';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {weightTrend} from '../../lib/health-aa/trend';
+import {trendNote, weightTrend} from '../../lib/health-aa/trend';
 import {energyEstimate} from '../../lib/health-aa/energy';
 import {energyProgress} from '../../lib/health-aa/energy-progress';
 import {coachCheckIn} from '../../lib/health-aa/coach';
@@ -41,7 +41,7 @@ export default function HealthHighlights({data, today, unit}: {data: HealthData;
       <li><a className="health-hl-tile" data-tone="trend" href="#health-weight-trend">
         <span className="health-hl-label">Weight trend</span>
         {trend.latestTrend === null ? <><strong className="health-hl-figure is-quiet">No trend yet</strong><span className="health-hl-note">Two or three readings a week draw the line.</span></>
-          : <><strong className="health-hl-figure">{weightReadingsText(trend.latestTrend, trend.points.flatMap(p => p.grams === null ? [] : [p.grams]), unit) /* fifth pass (N-MO-14): at the readings' precision */}</strong><span className="health-hl-note">{rate ? `${rate} a week` : 'smoothed, six weeks'} · an estimate</span><TrendInk values={ink}/></>}
+          : <><strong className="health-hl-figure">{weightReadingsText(trend.latestTrend, trend.points.flatMap(p => p.grams === null ? [] : [p.grams]), unit) /* fifth pass (N-MO-14): at the readings' precision */}</strong><span className="health-hl-note">{trendNote(data.weights.filter(w => w.date <= today).length, rate) /* RR-6 */}</span><TrendInk values={ink}/></>}
       </a></li>
       <li><a className="health-hl-tile" data-tone="energy" href="#health-energy">
         <span className="health-hl-label">Maintenance estimate</span>

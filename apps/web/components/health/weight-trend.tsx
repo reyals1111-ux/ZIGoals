@@ -29,7 +29,7 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
   // Session AL fifth pass (N-MO-14, N-NB-10): the trend at the readings' own precision (one 70.55 kg reading read "70.6 kg
   // trend today" beside "Latest reading 70.55 kg"); readings as entered.
   const readingGrams = t.points.flatMap(p => p.grams === null ? [] : [p.grams]), shown = (g: number) => weightReadingsText(g, readingGrams, unit);
-  const summary = t.latestTrend === null ? 'No readings in the last six weeks.' : `Trend ${shown(t.latestTrend)}${rate ? `, ${rate} a week` : ''}${goal !== null ? `, goal ${weightText(goal, unit)}` : ''}; ${t.readings} readings in 42 days.`;
+  const summary = t.latestTrend === null ? 'No readings in the last six weeks.' : `Trend ${shown(t.latestTrend)}${rate ? `, ${rate} a week` : ''}${goal !== null ? `, goal ${weightText(goal, unit)}` : ''}; ${t.readings} ${t.readings === 1 ? "reading" : "readings"} in 42 days.`;
   return <section id="health-weight-trend" className="panel health-aa-card health-trend-card" aria-labelledby="weight-trend-title">
     <p className="eyebrow">Six weeks</p><h2 id="weight-trend-title"><NebulaFlow identity="weight-trend-title">Weight trend</NebulaFlow></h2>
     {t.latestTrend === null ? <ArtNote pillar="health"><p className="health-empty-inline">Two or three readings a week draw the line; the first one starts it. <span className="health-estimate-tag">an estimate</span></p></ArtNote> : <>
