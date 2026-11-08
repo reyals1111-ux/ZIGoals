@@ -9,6 +9,9 @@ import {patternLine, patterns} from '../../journal/reflect';
 import type {LocalReply, ToolCallRecord} from './engine';
 import {isNativeZig, quoteIsStale, type MarketQuote} from '../../market-quotes';
 import {ADVICE_REPLIES} from '../safety-guard';
+import {formatDate} from '../../visual-format';
+import {addLocalDays} from '../../local-date';
+import {habitDay, latestHabitRule, type Habit} from '../../habits';
 
 /**
  * Session AI (ZI2, ZI11, ZI12, ZI13, G11): natural questions the device answers itself, in English and Dutch, from the
@@ -62,11 +65,17 @@ function onTrackAnswer(lang: Lang, named: string | undefined, env: ToolEnv): Loc
   }
   const g = call('goal_progress', {goal: match.name}, env);
   if (!g.result.ok) return refusalOf(g.result, [goals.record, g.record]);
-  const d = dataOf(g.result) as {name: string; progress?: string; now?: string; target?: string; targetDate?: string; funding?: string; plan?: {aheadOrBehind?: string; projectedCompletion?: string}};
+  const d = dataOf(g.result) as {name: string; progress?: string; now?: string; target?: string; targetDate?: string; funding?: string; plan?: {aheadOrBehind?: string; projectedCompletion?: string}; paceForecast?: {headline: string; state: string; date?: string}};
   const status = d.plan?.aheadOrBehind ?? d.funding ?? null;
-  const en = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} of ${d.target})` : ''}.${status ? ` Against your plan: ${status}.` : ''}${d.plan?.projectedCompletion ? ` At this pace it completes around ${d.plan.projectedCompletion}` : ''}${d.targetDate ? `${d.plan?.projectedCompletion ? '; ' : ' '}target ${d.targetDate}.` : d.plan?.projectedCompletion ? '.' : ''}`;
+  // Release review AL (RR-4): "At this pace" is the goal page's pace forecast (goal_progress paceForecast, the page's own
+  // function and day format); the plan's completion date is said as the plan's ("With your plan", as the page labels it).
+  const day = (v?: string) => v && /^\d{4}-\d{2}-\d{2}/.test(v) ? formatDate(v.slice(0, 10)) : null;
+  const pace = d.paceForecast, planDate = day(d.plan?.projectedCompletion), target = day(d.targetDate);
+  const paceEn = pace ? pace.state === 'estimate' ? ` ${pace.headline} (the pace forecast from your recorded progress; an estimate, not a promise).` : ` Pace forecast: ${pace.headline}.` : '';
+  const paceNl = pace?.state === 'estimate' && pace.date ? ` In dit tempo: rond ${formatDate(pace.date)} (de tempovoorspelling uit je vastgelegde voortgang; een schatting, geen belofte).` : '';
+  const en = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} of ${d.target})` : ''}.${status ? ` Against your plan: ${status}.` : ''}${paceEn}${planDate ? ` With your plan: about ${planDate}.` : ''}${target ? ` Target date: ${target}.` : ''}`;
   const nlStatus = status?.replace(/^ahead by/, 'voor met').replace(/^behind by/, 'achter met').replace(/^on track$/, 'op schema').replace(/^ahead$/, 'voor').replace(/^behind$/, 'achter');
-  const nl = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} van ${d.target})` : ''}.${nlStatus ? ` Ten opzichte van je plan: ${nlStatus}.` : ''}${d.plan?.projectedCompletion ? ` In dit tempo is het rond ${d.plan.projectedCompletion} af` : ''}${d.targetDate ? `${d.plan?.projectedCompletion ? '; ' : ' '}doeldatum ${d.targetDate}.` : d.plan?.projectedCompletion ? '.' : ''}`;
+  const nl = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} van ${d.target})` : ''}.${nlStatus ? ` Ten opzichte van je plan: ${nlStatus}.` : ''}${paceNl}${planDate ? ` Met je plan: rond ${planDate}.` : ''}${target ? ` Doeldatum: ${target}.` : ''}`;
   return {kind: 'answer', text: say(lang, en, nl), calls: [goals.record, g.record]};
 }
 function worstHabitAnswer(lang: Lang, env: ToolEnv): LocalReply {
@@ -257,6 +266,30 @@ function energyAnswer(lang: Lang, env: ToolEnv, q = ''): LocalReply {
   if (!d.rated) return {kind: 'answer', text: say(lang, `No energy rated in the last ${n} days. Tap 1 to 5 on Today’s journal card.`, `Geen energie gemeten de afgelopen ${n} dagen. Tik 1 tot 5 op de dagboekkaart van Vandaag.`), calls: [e.record]};
   return {kind: 'answer', text: say(lang, `Your energy, the last ${n} days: ${d.average} of 5 on average, rated on ${d.rated} days (1 drained · 5 full of energy).`, `Je energie, de afgelopen ${n} dagen: gemiddeld ${d.average} van 5, op ${d.rated} dagen gemeten (1 leeg · 5 vol energie).`), calls: [e.record]};
 }
+/**
+ * Release review AL (RR-13): "Which habits did I miss yesterday?" from the habit records on this device, with the
+ * engine's own day results (lib/habits.ts habitDay, as Habits shows them). list_habits is called first, so the Habits
+ * page switch decides as for every habit answer. Facts only, in neutral words; nothing is judged.
+ */
+const MISSED_DAY = /\b(?:which|what) habits? (?:did|have) i (?:miss|missed|skip|skipped|not (?:do|complete|finish))\b.*\b(yesterday|today)\b|\b(?:missed|skipped) habits?\b.*\b(yesterday|today)\b|\bwelke gewoontes? (?:heb ik|miste ik|sloeg ik)\b.*\b(gisteren|vandaag)\b/i;
+function missedDayAnswer(lang: Lang, word: string, env: ToolEnv): LocalReply {
+  const listed = call('list_habits', {}, env);
+  if (!listed.result.ok) return refusalOf(listed.result, [listed.record]);
+  const yesterday = /^(?:yesterday|gisteren)$/i.test(word), date = yesterday ? addLocalDays(env.habitDay, -1) : env.habitDay;
+  const when = say(lang, `${yesterday ? 'Yesterday' : 'Today'} (${formatDate(date, {weekday: true, year: false})})`, `${yesterday ? 'Gisteren' : 'Vandaag'} (${formatDate(date, {weekday: true, year: false})})`);
+  const rows = env.habits.habits.filter(h => latestHabitRule(h).state !== 'archived').map(h => ({h, day: habitDay(h, date, env.habitDay)})).filter(r => r.day.scheduled);
+  if (!rows.length) return {kind: 'answer', text: say(lang, `${when} no habit was scheduled.`, `${when} stond er geen gewoonte gepland.`), calls: [listed.record]};
+  const open = yesterday ? rows.filter(r => r.day.status === 'failed') : rows.filter(r => r.day.status === 'due' || r.day.status === 'partial' || r.day.status === 'failed');
+  const done = rows.filter(r => r.day.status === 'complete'), skipped = rows.filter(r => r.day.status === 'skipped');
+  const health = (h: Habit) => h.entries.some(e => e.date === date && e.source === 'health') && !env.health;
+  const line = (r: {h: Habit; day: ReturnType<typeof habitDay>}) => `• ${r.h.title}${health(r.h) ? say(lang, ' (from Health, not shared)', ' (uit Health, niet gedeeld)') : r.day.count > 0 ? ` (${r.day.count} of ${r.day.target})` : say(lang, ' (no check-in)', ' (geen check-in)')}`;
+  const head = open.length
+    ? say(lang, `${when} ${open.length} of ${rows.length} scheduled habits ${yesterday ? 'were not completed' : 'are not completed yet'}:`, `${when} ${open.length} van ${rows.length} geplande gewoontes ${yesterday ? 'zijn niet voltooid' : 'zijn nog niet voltooid'}:`)
+    : say(lang, `${when} every scheduled habit was completed (${done.length} of ${rows.length}).`, `${when} is elke geplande gewoonte voltooid (${done.length} van ${rows.length}).`);
+  const tail = [done.length && open.length ? say(lang, `Completed: ${done.map(r => r.h.title).join(', ')}.`, `Voltooid: ${done.map(r => r.h.title).join(', ')}.`) : '', skipped.length ? say(lang, `Skipped on purpose: ${skipped.map(r => r.h.title).join(', ')}.`, `Bewust overgeslagen: ${skipped.map(r => r.h.title).join(', ')}.`) : '',
+    say(lang, 'From your habit records on this device.', 'Uit je gewoontegegevens op dit apparaat.')].filter(Boolean);
+  return {kind: 'answer', text: [head, ...open.map(line), ...tail].join('\n'), calls: [listed.record]};
+}
 /** The device's answer to one of these questions, or null (the engine's own fallback stands). */
 export function aiLocalAnswer(question: string, env: ToolEnv): LocalReply | null {
   const q = question.trim(), lang: Lang = questionLanguage(q) === 'nl' ? 'nl' : 'en';
@@ -265,6 +298,8 @@ export function aiLocalAnswer(question: string, env: ToolEnv): LocalReply | null
   const track = ON_TRACK.exec(q);
   if (track) return onTrackAnswer(lang, track[1], env);
   if (WORST_HABIT.test(q)) return worstHabitAnswer(lang, env);
+  const missed = MISSED_DAY.exec(q);
+  if (missed) return missedDayAnswer(lang, missed[1] ?? missed[2] ?? missed[3] ?? 'yesterday', env);
   if (WHY_CHANGE.test(q)) return whyAnswer(lang, q, env);
   if (ROOM_Q.test(q)) return roomAnswer(lang, env);
   if (JOURNAL_Q.test(q)) return journalAnswer(lang, env);

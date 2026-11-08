@@ -175,10 +175,14 @@ export function shownDoneOn(task: Task, doneDay: (iso: string) => string): strin
   const finished = doneDay(task.doneAt);
   return finished > task.due ? finished : task.due;
 }
-/** Counts for a header line: open, overdue and due today. */
-export function taskCounts(record: Tasks, today: string): {open: number; overdue: number; today: number} {
+/**
+ * Counts for a header line: open, overdue and due today. Release review AL (RR-8): overdue is taskState's one rule, the day
+ * and, today, the time (`nowClock`, the app's zone: lib/tasks/device.ts tasksClock), so the side list, the header, the
+ * list's groups, Today's line and NOVA count the same tasks; the clock is asked for, so no caller counts by day alone.
+ */
+export function taskCounts(record: Tasks, today: string, nowClock: string | undefined): {open: number; overdue: number; today: number} {
   const open = record.tasks.filter(t => !t.doneAt);
-  return {open: open.length, overdue: open.filter(t => taskState(t, today) === 'overdue').length, today: open.filter(t => taskState(t, today) === 'today').length};
+  return {open: open.length, overdue: open.filter(t => taskState(t, today, nowClock) === 'overdue').length, today: open.filter(t => taskState(t, today, nowClock) === 'today').length};
 }
 /** Recently finished tasks (kept 30 days), newest first. */
 export const doneTasks = (record: Tasks): Task[] => record.tasks.filter(t => t.doneAt).sort((a, b) => b.doneAt!.localeCompare(a.doneAt!));

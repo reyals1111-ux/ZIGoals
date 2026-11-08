@@ -424,8 +424,16 @@ function RecordsUsed({calls, context}: {calls: readonly {tool: string; args?: Re
     {results && results.length > 0 && <p className="ai-note">Recomputed now from the records on this device.</p>}
   </details>;
 }
+/** Release review AL (RR-13): ZIGi's own words for where Health is shared (lib/ai/tools/format.ts HEALTH_CLOSED and its kin). */
+const HEALTH_SWITCH_NAMED = /Settings → ZIGi\b[^.]*\bInclude Health\b/;
+/** Settings → ZIGi → Privacy & data → "What each page may share": "Health page data" and, under it, "Include Health" (components/ai/ai-settings.tsx). */
+const HEALTH_SWITCHES_HASH = 'zigi-page-share-title';
+function openHealthSwitches(close: () => void, push: (href: string) => void) {
+  close();
+  if (/^\/app\/settings\/?$/.test(window.location.pathname)) window.location.hash = HEALTH_SWITCHES_HASH; else push(`/app/settings#${HEALTH_SWITCHES_HASH}`);
+}
 function LocalTurn({turn, asked, session, context, connected, attach, isLast, runner, onNavigate, onAsk, autoAccept, earlier = false, quickAdd = true}: {earlier?: boolean; quickAdd?: boolean; turn: ChatTurn; asked: string; session: ChatSession; context: ReturnType<typeof useAiContext>; connected: boolean; attach: boolean; isLast: boolean; runner: ReturnType<typeof useProposals>; onNavigate: () => void; onAsk: (question: string) => void; autoAccept?: AutoAccept}) {
-  const [copied, setCopied] = useState(false), [preview, setPreview] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false), [preview, setPreview] = useState<string | null>(null), router = useRouter();
   // Session V Part 10: a /remember card rides in the turn's own text, read by the same whitelist parser as a reply.
   const parsed = session.parsed.get(turn.id), shown = parsed?.text ?? turn.text;
   const info = session.localFor(turn.id), calls = useMemo(() => (turn.tools ?? []).map(c => ({tool: c.tool, args: c.args ?? {}, label: c.label})), [turn.tools]), question = info?.question ?? asked;
@@ -456,6 +464,8 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
       {chips.length > 0 && !quiet && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
+      {/* Release review AL (RR-13): an answer that names ZIGi's Health switches gets one tap to them, as NOVA's names its Permissions. */}
+      {HEALTH_SWITCH_NAMED.test(shown) && <p className="ai-card-actions ai-turn-switch"><button type="button" className="secondary" onClick={() => openHealthSwitches(onNavigate, router.push)}>Open Settings → ZIGi → Privacy &amp; data</button></p>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
       {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && quickAddUnder(reply) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)} onSaved={saved => { try { noteQuickAdd(saved, 'ZIGi'); } catch { /* the line is saved; only the note is missing */ } }}/></Suspense></ZigiPartBoundary>{cardShown && !context.gates.localHealth && HEALTH_LINE.test(question) && <p className="ai-note">{healthOffQuickAdd('ZIGi')}</p>}</div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>

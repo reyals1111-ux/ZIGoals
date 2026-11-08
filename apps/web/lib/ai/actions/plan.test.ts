@@ -111,6 +111,19 @@ test('food from the library keeps the person\'s nutrients; an AI estimate is lab
   expect(afterEstimate.health.diary.find(e => e.sourceId === food!.id)?.meal).toBe('Breakfast');
   expect(plan({kind: 'log-food', name: 'Soup', meal: 'Dinner', estimate: {serving_g: 350}}).card.lines[2]).toBe('Serving 350 g');
 });
+test('Release review AL (RR-5, lib/ai part): a food typed with no figures is saved with no brand and never called an AI estimate', () => {
+  const typed = plan({kind: 'log-food', name: 'oatmeal with blueberries', meal: 'Breakfast'});
+  expect(typed.card).toMatchObject({title: 'Log a food', estimate: false});
+  expect(typed.card.lines.filter(l => /\bAI\b/.test(l))).toEqual([]);
+  expect(typed.card.lines).toContain('Its values are unknown (never 0) until you fill them in under Foods & recipes');
+  const after = roundTrip(typed), food = after.health.foods.find(f => f.name === 'oatmeal with blueberries')!;
+  expect(food.brand).toBe('');
+  expect(food.nutrients).toEqual({kcal: null, proteinMg: null, carbsMg: null, fatMg: null});
+  expect(after.health.diary.find(e => e.sourceId === food.id)?.meal).toBe('Breakfast');
+  // An AI's figure keeps its label.
+  const one = roundTrip(plan({kind: 'log-food', name: 'Toast', meal: 'Breakfast', estimate: {kcal: 90}})).health.foods.find(f => f.name === 'Toast')!;
+  expect(one.brand).toBe('AI estimate');
+});
 test('Session AI (HE17): a meal estimate as ranges shows each range, saves the middle, and keeps the ranges beside the food', () => {
   const ranged = plan({kind: 'log-food', name: 'Pasta plate', meal: 'Dinner', estimate: {range: {kcal: [450, 650], protein_g: [20, 30]}, serving_g: 350, from: 'photo'}});
   expect(ranged.card.lines[1]).toBe('AI estimate per serving: kcal 450–650 (saved as 550), protein 20–30 g (saved as 25 g), carbs unknown, fat unknown; unknown stays unknown, never 0');

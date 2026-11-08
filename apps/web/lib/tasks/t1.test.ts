@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {addTask, editTask, finishTask, goalKeyOf, goalNextActions, servesGoal, shownDoneOn, taskCounts, tasksOnDay, doneTasks} from './engine';
+import {addTask, editTask, finishTask, goalKeyOf, goalNextActions, servesGoal, shownDoneOn, taskCounts, taskState, tasksOnDay, doneTasks} from './engine';
 import {TASKS, TASKS_KEY, emptyTasks, tasksSchema} from './schema';
 import {addTask as addOnDevice, completeTask, deleteTask, dueTasks, readTasks} from './device';
 import {showcaseTasks} from './showcase';
@@ -77,7 +77,11 @@ describe('the tasks of a day (Agenda and NOVA)', () => {
     expect(tasksOnDay(record(), '2026-11-02', TODAY, day).map(t => t.title)).toEqual(['On time']);
     expect(tasksOnDay(record(), '2026-11-01', TODAY, day)).toEqual([]);
     expect(shownDoneOn(record().tasks.find(t => t.id === 'lateDone')!, day)).toBe('2026-11-03');
-    expect(taskCounts(record(), TODAY)).toEqual({open: 4, overdue: 1, today: 1});
+    expect(taskCounts(record(), TODAY, undefined)).toEqual({open: 4, overdue: 1, today: 1});
+    // Release review AL (RR-8): with the clock, a task due today at 10:00 is overdue from 10:01, as the list's groups say.
+    expect(taskCounts(record(), TODAY, '09:59')).toEqual({open: 4, overdue: 1, today: 1});
+    expect(taskCounts(record(), TODAY, '21:45')).toEqual({open: 4, overdue: 2, today: 0});
+    expect(taskCounts(record(), TODAY, '21:45').overdue).toBe(record().tasks.filter(t => !t.doneAt && taskState(t, TODAY, '21:45') === 'overdue').length);
     expect(doneTasks(record()).map(t => t.id)).toEqual(['lateDone', 'onTime']);
   });
   it('the device writer: add, complete and remove, each with an Undo; nothing written over unreadable bytes', () => {

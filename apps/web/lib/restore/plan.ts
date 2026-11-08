@@ -363,7 +363,12 @@ export function planParts(json: {modules?: Record<string, unknown>; device?: Rec
     if (typeof version === 'number' && version > CURRENT_VERSIONS[part.name]) { out.push({...part, problem: NEWER_PART_MESSAGE, summary: null}); continue; }
     if (typeof version === 'number' && version < 1) { out.push({...part, problem: OLDER_PART_MESSAGE, summary: null}); continue; }
     const parsed = part.schema.safeParse(value);
-    const note = typeof version === 'number' && version < CURRENT_VERSIONS[part.name] ? {note: OLDER_READABLE_NOTE} : {};
+    // Release review AL (RR-7): a part is "saved by an earlier version" only when this build reads it through a migration
+    // (its schema lifts the stored version). Each store writes the lowest version its content needs (Habits 2 until a Health
+    // link, Health 1 until fasting…), so a lower number than CURRENT_VERSIONS (the newest it reads) is often today's format:
+    // a backup made seconds earlier said every part was older.
+    const read = parsed.success && isObject(parsed.data) ? parsed.data.schemaVersion : undefined;
+    const note = typeof version === 'number' && typeof read === 'number' && read > version ? {note: OLDER_READABLE_NOTE} : {};
     out.push(parsed.success ? {...part, ...note, value: parsed.data, summary: moduleSummary(part, parsed.data)} : {...part, problem: INVALID_PART_MESSAGE, summary: null});
   }
   for (const part of DEVICE_PARTS) {

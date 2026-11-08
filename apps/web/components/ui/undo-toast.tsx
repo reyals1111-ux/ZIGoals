@@ -106,13 +106,73 @@ export function pushToastLayer(el: HTMLElement): () => void {
 }
 const subscribeLayer = (l: () => void) => { layerListeners.add(l); return () => { layerListeners.delete(l); }; };
 
+/**
+ * Release review AL (RR-10): on a phone a toast never covers the field the person is typing in, and it leaves once they
+ * move on. While a text field outside the toast has the focus and the toast's place would cover it (NOVA's message box,
+ * Quick add's line), the toast sits just above that field (below it when there is no room above); typing in a field after
+ * the toast's first moments ("moved on": the next Quick add line, the next question) closes it. The Checklist keeps its
+ * own reserved dock (its toast slot never covers its fields), so it is left as it is.
+ */
+const PHONE = '(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)';
+const KEEPS_PLACE = '.checklist-toast-slot';
+/** Typing this soon after a toast shows is still the action that showed it (a field refocused after Save). */
+export const MOVED_ON_AFTER_MS = 1500;
+const NOT_TEXT = new Set(['button', 'checkbox', 'color', 'file', 'hidden', 'image', 'radio', 'range', 'reset', 'submit']);
+const isTextField = (el: EventTarget | Element | null): el is HTMLElement => el instanceof HTMLElement && (el.isContentEditable || el instanceof HTMLTextAreaElement || (el instanceof HTMLInputElement && !NOT_TEXT.has(el.type)));
+/**
+ * Where the region's top goes (viewport px) so it clears `field`: just above it, or just below it when there is no room
+ * above; null when it already clears it. Pure, for tests.
+ */
+export function clearOfField(region: {top: number; bottom: number; left: number; right: number; height: number}, field: {top: number; bottom: number; left: number; right: number}, viewportHeight: number, gap = 8): number | null {
+  if (!region.height || region.bottom <= field.top || region.top >= field.bottom || region.right <= field.left || region.left >= field.right) return null;
+  return field.top - region.height - gap >= gap ? Math.round(field.top - gap - region.height) : Math.round(Math.min(field.bottom + gap, viewportHeight - region.height - gap));
+}
+function useClearOfFields(regionRef: {readonly current: HTMLDivElement | null}, showing: boolean, newest: number, place_: unknown) {
+  useEffect(() => {
+    const region = regionRef.current;
+    if (!region || !showing || region.closest(KEEPS_PLACE) || typeof window.matchMedia !== 'function') return;
+    const phone = window.matchMedia(PHONE), shownAt = performance.now();
+    let frame = 0;
+    const reset = () => { region.style.removeProperty('bottom'); delete region.dataset.clearOf; };
+    const place = () => {
+      reset();
+      const field = document.activeElement;
+      if (!phone.matches || !isTextField(field) || region.contains(field)) return;
+      const box = region.getBoundingClientRect(), top = clearOfField(box, field.getBoundingClientRect(), window.innerHeight);
+      if (top === null) return;
+      // Moved by its own `bottom`, measured from where it sits now, so a sheet that holds the region keeps holding it.
+      const bottom = parseFloat(getComputedStyle(region).bottom);
+      if (!Number.isFinite(bottom)) return;
+      region.style.bottom = `${Math.round(bottom + box.top - top)}px`;
+      region.dataset.clearOf = 'field';
+    };
+    const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(place); };
+    const typed = (event: Event) => {
+      if (!phone.matches || !isTextField(event.target) || region.contains(event.target as Node)) return;
+      if (performance.now() - shownAt < MOVED_ON_AFTER_MS) { later(); return; }
+      for (const toast of shownToasts()) hideToast(toast.id);
+    };
+    place();
+    document.addEventListener('focusin', later, true); document.addEventListener('focusout', later, true); document.addEventListener('input', typed, true);
+    window.addEventListener('resize', later); window.visualViewport?.addEventListener('resize', later);
+    return () => {
+      cancelAnimationFrame(frame); reset();
+      document.removeEventListener('focusin', later, true); document.removeEventListener('focusout', later, true); document.removeEventListener('input', typed, true);
+      window.removeEventListener('resize', later); window.visualViewport?.removeEventListener('resize', later);
+    };
+  }, [regionRef, showing, newest, place_]);
+}
+
 const NONE: readonly Shown[] = [];
 /** Mounted once by the shell. */
 export function UndoToastHost() {
   const toasts = useSyncExternalStore(subscribe, () => shown, () => NONE);
   const target = useSyncExternalStore(subscribeLayer, () => layer, () => null);
   const hidden = useSyncExternalStore(subscribeHold, () => holds > 0, () => false);
-  const region = <div className="aa-toast-region" role="status" aria-live="polite">
+  const regionRef = useRef<HTMLDivElement>(null);
+  // `target`: the region moves into a lent layer (a new element), so its place is measured again there.
+  useClearOfFields(regionRef, !hidden && toasts.length > 0, toasts.at(-1)?.id ?? 0, target);
+  const region = <div ref={regionRef} className="aa-toast-region" role="status" aria-live="polite">
     {!hidden && toasts.map(toast => <ToastItem key={toast.id} toast={toast}/>)}
   </div>;
   return target ? createPortal(region, target) : region;

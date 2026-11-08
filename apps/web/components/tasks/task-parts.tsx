@@ -97,7 +97,7 @@ export type RowLinks = {projectName?: string; projectColour?: string; habitTitle
 export type EditScope = 'one' | 'all';
 /**
  * One task: tick it (the toast carries Undo), and when given, Focus, Edit and Remove. Session AL: with `record` it shows
- * subtask progress; `selected`/`onSelect` for bulk actions; `onMove` gives Move up / Move down (the keyboard alternative
+ * subtask progress; `selected`/`onSelect` for bulk actions (given only while the list is selecting: the row's one box then selects); `onMove` gives Move up / Move down (the keyboard alternative
  * to dragging); `drag` adds the drag handle's props; `children` render under it (its subtasks).
  */
 export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus, goals = [], showGoal = true, record, nowClock, links, selected, onSelect, onMove, drag, depth = 0, editor, habits, children, focused, onOpen, onSkip}: {task: Task; today: string; goal?: GoalOption; onToggle: (done: boolean) => void; onRemove?: () => void; onEdit?: (patch: TaskPatch, scope?: EditScope) => boolean; onFocus?: () => void; goals?: readonly GoalOption[]; showGoal?: boolean;
@@ -105,8 +105,10 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
   const [editing, setEditing] = useState(false), done = !!task.doneAt, state = taskState(task, today, nowClock), level = taskLevel(task);
   const progress = useMemo(() => record ? subtaskProgress(record, task.id) : null, [record, task.id]);
   return <li id={`task-${task.id}`} className={`task task-${done ? 'finished' : state} task-priority-${task.priority} task-level-${level}${selected ? ' is-selected' : ''}`} data-done={done || undefined} data-depth={depth || undefined} data-focused={focused || undefined} style={depth ? {['--task-depth' as string]: depth} : undefined} {...(drag ?? {})}>
+    {/* Release review AL (RR-18): one box per row. Selecting (bulk actions) is a mode the list turns on: then the box selects,
+        and Done is the bulk bar's; otherwise the box marks the task done. Never two look-alike boxes side by side. */}
     {onSelect && <label className="task-select"><input type="checkbox" checked={!!selected} onClick={e => onSelect(!selected, e.shiftKey)} onChange={() => undefined} /><span className="sr-only">Select “{task.title}”</span></label>}
-    <label className="task-done"><input type="checkbox" checked={done} onChange={e => { if (e.target.checked) celebrateCompletion(e.currentTarget.parentElement); /* Session AK M1: the completion moment */ onToggle(e.target.checked); }} /><span className="sr-only">{done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}</span></label>
+    {!onSelect && <label className="task-done"><input type="checkbox" checked={done} onChange={e => { if (e.target.checked) celebrateCompletion(e.currentTarget.parentElement); /* Session AK M1: the completion moment */ onToggle(e.target.checked); }} /><span className="sr-only">{done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}</span></label>}
     <span className="task-title" dir="auto">{onOpen ? <button type="button" className="task-title-button" dir="auto" onClick={onOpen}>{task.title}</button> : task.title}</span>
     <span className="task-meta">
       {level !== 3 && <span className={`task-chip task-chip-p${level}`} title={LEVEL_WORDS[level]}>P{level} · {LEVEL_SHORT[level]}</span>}

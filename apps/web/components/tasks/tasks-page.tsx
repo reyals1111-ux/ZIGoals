@@ -57,6 +57,10 @@ export function TasksPage() {
   const list = useTaskList({toast: true}), goals = useGoalOptions(), {tasks, today, clock} = list, record = tasks.data;
   const [view, setView] = useState<TaskView>({kind: 'today'}), [query, setQuery] = useState(''), [board, setBoard] = useState(false);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set()), [focusId, setFocusId] = useState<string | null>(null), [editId, setEditId] = useState<string | null>(null);
+  // Release review AL (RR-18): a row has one checkbox, the one that marks it done. Selecting for bulk actions is a mode
+  // ("Select" in the list's head, or x on a row): while it is on, each row's box selects it ("Select “…”") and Done is
+  // the bar's; Escape, Clear or "Select" again ends it.
+  const [selecting, setSelecting] = useState(false);
   const [focus, setFocus] = useState<Task | null>(null), [showcase, setShowcase] = useState(false), [help, setHelp] = useState(false), [io, setIo] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set()), [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set()), [now, setNow] = useState(() => Date.now());
   const focusBox = useRef<HTMLDivElement>(null), addField = useRef<HTMLInputElement>(null), filterField = useRef<HTMLInputElement>(null), asked = useRef(false), lastPick = useRef<string | null>(null), gPressed = useRef(0);
@@ -86,7 +90,7 @@ export function TasksPage() {
   useEffect(() => { if (focus) focusBox.current?.scrollIntoView({block: 'nearest'}); }, [focus]);
   // The view is kept in the address so Back and a reload come back to it.
   const go = useCallback((next: TaskView, asBoard = false) => {
-    setView(next); setBoard(asBoard); setSelected(new Set()); setFocusId(null); setEditId(null);
+    setView(next); setBoard(asBoard); setSelected(new Set()); setSelecting(false); setFocusId(null); setEditId(null);
     try { const url = new URL(window.location.href); url.searchParams.set('view', viewKey(next, asBoard)); url.searchParams.delete('task'); window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* no address */ }
   }, []);
 
@@ -97,10 +101,11 @@ export function TasksPage() {
     if (query.trim()) return matchTasks({...record, tasks: view.kind === 'project' ? record.tasks.filter(t => t.projectId === view.id) : record.tasks}, query, {today, nowClock: clock});
     return view.kind === 'completed' ? [] : viewTasks(record, view, today, clock);
   }, [record, view, today, clock, query]);
-  const counts = useMemo(() => taskCounts(record, today), [record, today]);
+  const counts = useMemo(() => taskCounts(record, today, clock), [record, today, clock]); // RR-8: the list's own clock
   const reminders = useMemo(() => tasks.loaded ? dueReminders(record, now, checklistZone(), {dismissed}) : [], [tasks.loaded, record, now, dismissed]);
   const salvage = useMemo(() => tasks.unreadable ? salvageTasks() : null, [tasks.unreadable]);
   const visibleIds = useMemo(() => shown.map(t => t.id), [shown]);
+  const selectMode = selecting || selected.size > 0;
 
   /* ---- actions ---- */
   const ids = (one?: string) => selected.size ? [...selected] : one ? [one] : [];
@@ -112,9 +117,9 @@ export function TasksPage() {
   const addFromLine = useCallback((input: TaskInput) => list.add({...input, ...(input.due === undefined && defaults.due ? {due: defaults.due} : {}), ...(input.level === undefined && defaults.level ? {level: defaults.level} : {})}), [list, defaults]);
   const setLevel = (level: TaskLevel, one?: string) => { const list_ = ids(one); if (list_.length) list.change(r => editMany(r, list_, () => ({level}), today, {allowPast: true}), `${list_.length > 1 ? plural(list_.length, 'task') : 'Task'} set to P${level}.`); };
   const setDue = (due: string, one?: string) => { const list_ = ids(one); if (list_.length) list.change(r => editMany(r, list_, () => ({due}), today, {allowPast: true}), `${list_.length > 1 ? plural(list_.length, 'task') : 'Task'} due ${due === today ? 'today' : formatDate(due, {weekday: true})}.`); };
-  const finishSelected = (one?: string) => { const list_ = ids(one).filter(id => record.tasks.some(t => t.id === id && !t.doneAt)); if (list_.length) { list.change(r => finishMany(r, list_, new Date(), {today, doneDay: today}), list_.length > 1 ? `Done: ${plural(list_.length, 'task')}.` : `Done: “${record.tasks.find(t => t.id === list_[0])?.title}”.`); setSelected(new Set()); } };
-  const removeSelected = (one?: string) => { const list_ = ids(one); if (list_.length) { list.removeIds(list_, record.tasks.find(t => t.id === list_[0])?.title ?? 'task'); setSelected(new Set()); } };
-  const moveSelected = (projectId: string | null, sectionId: string | null = null, one?: string) => { const list_ = ids(one); if (!list_.length) return; list.change(r => moveTasks(r, list_, {projectId, sectionId}), `Moved ${list_.length > 1 ? plural(list_.length, 'task') : `“${record.tasks.find(t => t.id === list_[0])?.title}”`} to ${projectId ? projectOf(projectId)?.name ?? 'the project' : 'the Inbox'}.`); setSelected(new Set()); };
+  const finishSelected = (one?: string) => { const list_ = ids(one).filter(id => record.tasks.some(t => t.id === id && !t.doneAt)); if (list_.length) { list.change(r => finishMany(r, list_, new Date(), {today, doneDay: today}), list_.length > 1 ? `Done: ${plural(list_.length, 'task')}.` : `Done: “${record.tasks.find(t => t.id === list_[0])?.title}”.`); setSelected(new Set()); setSelecting(false); } };
+  const removeSelected = (one?: string) => { const list_ = ids(one); if (list_.length) { list.removeIds(list_, record.tasks.find(t => t.id === list_[0])?.title ?? 'task'); setSelected(new Set()); setSelecting(false); } };
+  const moveSelected = (projectId: string | null, sectionId: string | null = null, one?: string) => { const list_ = ids(one); if (!list_.length) return; list.change(r => moveTasks(r, list_, {projectId, sectionId}), `Moved ${list_.length > 1 ? plural(list_.length, 'task') : `“${record.tasks.find(t => t.id === list_[0])?.title}”`} to ${projectId ? projectOf(projectId)?.name ?? 'the project' : 'the Inbox'}.`); setSelected(new Set()); setSelecting(false); };
   /* ---- the siblings a task moves among (Move up / down, drag) ---- */
   const siblingsOf = (id: string): string[] => {
     const t = record.tasks.find(x => x.id === id);
@@ -123,13 +128,15 @@ export function TasksPage() {
     return shown.filter(x => !x.parentId && (x.sectionId ?? '') === (t.sectionId ?? '')).map(x => x.id);
   };
   const reorder = (id: string, step: -1 | 1, siblings: string[]) => { if (siblings.indexOf(id) + step < 0 || siblings.indexOf(id) + step >= siblings.length) return; list.change(r => moveStep(r, siblings, id, step), `Moved “${record.tasks.find(t => t.id === id)?.title}” ${step < 0 ? 'up' : 'down'}.`); requestAnimationFrame(() => document.getElementById(`task-${id}`)?.focus()); };
-  const pick = (id: string, on: boolean, shift: boolean) => setSelected(prev => {
-    const next = new Set(prev);
-    if (shift && lastPick.current) { const a = visibleIds.indexOf(lastPick.current), b = visibleIds.indexOf(id); if (a >= 0 && b >= 0) for (const x of visibleIds.slice(Math.min(a, b), Math.max(a, b) + 1)) next.add(x); }
+  // Computed outside the state updater: an updater that moves lastPick ran twice under React's development checks, so a
+  // shift-click there took the range from the row it had just picked (one row instead of the range).
+  const pick = (id: string, on: boolean, shift: boolean) => {
+    const next = new Set(selected), from = lastPick.current;
+    if (shift && from) { const a = visibleIds.indexOf(from), b = visibleIds.indexOf(id); if (a >= 0 && b >= 0) for (const x of visibleIds.slice(Math.min(a, b), Math.max(a, b) + 1)) next.add(x); }
     else if (on) next.add(id); else next.delete(id);
     lastPick.current = id;
-    return next;
-  });
+    setSelected(next);
+  };
 
   /* ---- keyboard (P-LS-07) ---- */
   useEffect(() => {
@@ -143,7 +150,7 @@ export function TasksPage() {
       }
       if (e.key === 'Escape') {
         if (editId) { setEditId(null); return; }
-        if (selected.size) { e.preventDefault(); setSelected(new Set()); return; }
+        if (selected.size || selecting) { e.preventDefault(); setSelected(new Set()); setSelecting(false); return; }
         if (query && (typing(e.target) ? e.target === filterField.current : true)) { e.preventDefault(); setQuery(''); return; }
         return;
       }
@@ -237,7 +244,7 @@ export function TasksPage() {
     const sib = siblingsOf(t.id), canMove = !t.doneAt && sib.length > 1 && (view.kind === 'project' || view.kind === 'inbox' || !!t.parentId);
     return <TaskRow key={t.id} task={t} today={today} nowClock={clock} record={record} depth={depth} goal={t.goal ? goals.byKey.get(t.goal) : undefined} goals={goals.open}
       links={project ? {projectName: project.name, projectColour: project.colour} : undefined}
-      selected={selected.has(t.id)} onSelect={(on, shift) => pick(t.id, on, shift)} focused={focusId === t.id}
+      selected={selected.has(t.id)} onSelect={selectMode ? (on, shift) => pick(t.id, on, shift) : undefined} focused={focusId === t.id}
       onToggle={d => list.toggle(t, d)} onRemove={() => list.remove(t)} onEdit={(patch, scope) => { const ok = list.edit(t, patch, scope); if (ok) setEditId(null); return ok; }} onFocus={() => setFocus(t)}
       onMove={canMove ? step => reorder(t.id, step, sib) : undefined} drag={dragProps(t)} editor="inline"
       onSkip={t.recur && t.due && !t.doneAt ? () => list.change(r => skipOccurrence(r, t.id, today), `Skipped this time: “${t.title}” moves to its next day.`, `“${t.title}” is back on its day.`) : undefined}>
@@ -321,12 +328,14 @@ export function TasksPage() {
           <header className="tasks-view-head">
             <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
             {project && <ProjectTools project={project} board={board} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
+            {view.kind !== 'completed' && visibleIds.length > 0 && <button type="button" className="secondary tasks-select-mode" aria-pressed={selectMode} onClick={() => { if (selectMode) { setSelected(new Set()); setSelecting(false); } else setSelecting(true); }}>Select</button>}
             <label className="field tasks-filter"><span>Filter</span><input ref={filterField} type="search" value={query} placeholder="#Home @calls p1 today" aria-describedby="tasks-filter-help" onChange={e => setQuery(e.target.value)} /></label>
             {query.trim() && <LoadBoundary quiet><Suspense fallback={null}><FilterSave onSave={name => list.change(r => saveFilter(r, name, query), `Saved the filter “${name}”.`)} /></Suspense></LoadBoundary>}
             <p id="tasks-filter-help" className="sr-only">Words match titles and notes. Also #project, @label, p1 to p4, today, tomorrow, overdue, no date, due:2026-12-05, recurring; join with & or |; ! before a word leaves it out.</p>
           </header>
           {view.kind !== 'completed' && view.kind !== 'filter' && <SmartAdd record={record} today={today} onAdd={addFromLine} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
-          {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : addLocalDays(today, 1))} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => setSelected(new Set())} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
+          {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : addLocalDays(today, 1))} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => { setSelected(new Set()); setSelecting(false); }} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
+          {selectMode && !selected.size && <p className="fine tasks-select-hint" role="status">Tick the tasks to act on together; Escape ends selecting.</p>}
           <TaskStatusLine error={list.error} />
           {!tasks.unreadable && body}
           {empty && <EmptyState title={query ? 'Nothing matches' : !record.tasks.length ? 'Your list starts here' : view.kind === 'today' ? 'Nothing due today' : 'Nothing here'} level={2} art="orbit">

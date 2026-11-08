@@ -25,7 +25,9 @@ test('tasks: the open ones with their day, time and priority; unknown when the l
   let tasks = addTask(emptyTasks(), {title: 'Book the dentist', due: DAY, time: '10:30', priority: 'high'}, {id: 'task_1', at, today: DAY});
   tasks = addTask(tasks, {title: 'Water the plants'}, {id: 'task_2', at, today: DAY});
   const t = text('Which tasks are due today?', env(sources({nova: {tasks}})))!;
-  expect(t.split('\n')[0]).toBe('2 open tasks: 1 due today, 0 overdue.'); expect(t).toMatch(/^• Book the dentist — due .+ at .+ \(high\)$/m); expect(t).toContain('• Water the plants');
+  // Release review AL (RR-8, deliberate): this env's clock is past the dentist's 10:30, and overdue is now the Tasks page's
+  // one rule (day and time), so the counts move from "1 due today, 0 overdue" to the page's own; the line says it is late.
+  expect(t.split('\n')[0]).toBe('2 open tasks: 0 due today, 1 overdue.'); expect(t).toMatch(/^• Book the dentist — due .+ at .+, late \(high\)$/m); expect(t).toMatch(/^• Book the dentist — due .+ at .+ \(high\)$/m); expect(t).toContain('• Water the plants');
   expect(text('What\'s on my to-do list?', env(sources({nova: undefined})))).toBe(NOT_READ_HERE);
 });
 test('focus, workouts and budgets from the Showcase\'s own records; workouts only with the Health gate', () => {

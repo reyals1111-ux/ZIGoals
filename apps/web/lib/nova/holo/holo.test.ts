@@ -200,7 +200,7 @@ describe('tasks and notes panels', () => {
     r = addTask(r, {title: 'Fictional later', due: '2026-11-09'}, {id: 'task_b', at: new Date(AT), today: DAY});
     r = addTask(r, {title: 'Fictional someday'}, {id: 'task_c', at: new Date(AT), today: DAY});
     const hud = tasksHud(r, DAY, iso => iso.slice(0, 10));
-    expect({overdue: hud.overdue, today: hud.today, open: hud.open}).toEqual(taskCounts(r, DAY));
+    expect({overdue: hud.overdue, today: hud.today, open: hud.open}).toEqual(taskCounts(r, DAY, undefined));
     expect(hud.queue.map(t => t.id)).toEqual([...tasksOnDay(r, DAY, DAY, iso => iso.slice(0, 10)).map(t => t.id), 'task_c']);
   });
   it('recent captures, newest first', () => {

@@ -12,7 +12,7 @@ import {TASKS} from '../../../lib/tasks/schema';
 import {deviceDay} from '../../../lib/tasks/device';
 import {formatClock, formatPercent, formatTime} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
-import {useLocalToday} from '../../use-local-today';
+import {useTaskClock} from '../../tasks/use-task-list';
 import {useOrbitDay} from '../widgets/use-orbit-day';
 import {NovaEmpty} from '../widgets/empty';
 import TasksWidget from '../widgets/tasks';
@@ -92,8 +92,9 @@ export function HoloNext({size}: {size: WidgetSize}) {
 }
 /** Tasks: the due, overdue and open counters (taskCounts) over the Tasks page's own rows and quick add. */
 export function HoloTasks({size}: {size: WidgetSize}) {
-  const record = useDeviceRecord(TASKS), today = useLocalToday();
-  const hud = useMemo(() => record.loaded && !record.unreadable ? tasksHud(record.data, today, deviceDay) : null, [record.loaded, record.unreadable, record.data, today]);
+  // Release review AL (RR-8): the Tasks page's own day and clock (the app's zone), so a task late today counts as overdue here too.
+  const record = useDeviceRecord(TASKS), {today, clock} = useTaskClock();
+  const hud = useMemo(() => record.loaded && !record.unreadable ? tasksHud(record.data, today, deviceDay, 4, clock) : null, [record.loaded, record.unreadable, record.data, today, clock]);
   return <div className="holo-tasks" data-size={size}>
     {hud && hud.total > 0 && <dl className="holo-counters">
       <div data-tone={hud.overdue ? 'attention' : undefined}><dt>Overdue</dt><dd>{hud.overdue > 0 && <span className="holo-attention-mark" aria-hidden="true">!</span>}<HoloFigure text={String(hud.overdue)}/></dd></div>

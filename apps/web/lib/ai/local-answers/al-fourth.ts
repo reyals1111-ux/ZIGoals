@@ -5,6 +5,7 @@ import type {ToolOk} from '../tools/types';
 import {summaries} from '../tools/goals';
 import {latestHabitRule, type Habit} from '../../habits';
 import {addLocalDays} from '../../local-date';
+import {formatDate} from '../../visual-format';
 import {checklistToday} from '../proactive/brief-sources';
 import {shortName, listNames} from '../proactive/calm';
 import {quickCommand} from '../quick-commands/commands';
@@ -563,9 +564,12 @@ function goalAsk(env: ToolEnv, said: string, q: string, lang: Lang): LocalReply 
   const r = run('goal_progress', {goal: clean(goal.name, 120)}, env); if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
   const d = dataOf(r.result), date = d.targetDate && d.targetDate !== 'none' ? d.targetDate : null, projected = typeof d.plan === 'object' && d.plan.projectedCompletion && d.plan.projectedCompletion !== 'unknown' ? d.plan.projectedCompletion : null;
   const head = say(lang, `${clean(goal.name, 60)}: ${money(d.now)} of ${money(d.target)} (${d.progress}); ${money(d.remaining)} to go.`, `${clean(goal.name, 60)}: ${money(d.now)} van ${money(d.target)} (${d.progress}); nog ${money(d.remaining)}.`);
-  const when = date ? say(lang, ` Target date: ${date}.`, ` Streefdatum: ${date}.`) : say(lang, ' No target date is set.', ' Er is geen streefdatum.');
-  const proj = projected ? say(lang, ` At its plan it is reached around ${projected}.`, ` Volgens het plan rond ${projected}.`) : /\bwhen\b/i.test(q) ? say(lang, ' With no plan, there is no projected date (unknown).', ' Zonder plan is er geen verwachte datum.') : '';
-  return {kind: 'answer', text: head + when + proj, calls: [r.record]};
+  // Release review AL (RR-4): dates in the goal page's format; the pace forecast is the page's own, said as such.
+  const day = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? formatDate(v.slice(0, 10)) : String(v);
+  const when = date ? say(lang, ` Target date: ${day(date)}.`, ` Streefdatum: ${day(date)}.`) : say(lang, ' No target date is set.', ' Er is geen streefdatum.');
+  const proj = projected ? say(lang, ` With your plan: about ${day(projected)}.`, ` Met je plan: rond ${day(projected)}.`) : /\bwhen\b/i.test(q) ? say(lang, ' With no plan, there is no projected date (unknown).', ' Zonder plan is er geen verwachte datum.') : '';
+  const pace = typeof d.paceForecast === 'object' && d.paceForecast?.state === 'estimate' ? say(lang, ` ${d.paceForecast.headline} (the pace forecast from your recorded progress; an estimate).`, ` In dit tempo: rond ${day(d.paceForecast.date)} (een schatting).`) : '';
+  return {kind: 'answer', text: head + when + pace + proj, calls: [r.record]};
 }
 function focusGoal(env: ToolEnv, lang: Lang): LocalReply {
   const r = run('list_goals', {}, env); if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};

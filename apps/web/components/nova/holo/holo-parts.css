@@ -493,3 +493,8 @@
 /* m2, M1: a goal's name has two lines; in a fitted panel shorter than 230 px the arcs and the pace line give 12 px back so
    both still fit whole (1440 × 900). */
 @container holo-body (max-height: 229px) { .holo-goals[data-size=M] .holo-arc-box { width: 56px; height: 56px; } .holo-goals[data-size=M] .holo-pace-chart > .holo-pace { height: 46px; } }
+/* Release review AL (RR-9): a meter's value never runs past its panel ("1,000 mL / 2,000 n" at 1440 × 900). The value's
+   column takes what the label and the shortest bar leave, and when "value / target" does not fit on one line the target
+   goes under the value, whole. */
+.holo-health .holo-meter { grid-template-columns: minmax(44px, auto) minmax(28px, 1fr) minmax(min-content, max-content); }
+.holo-health .holo-meter-value { display: flex; flex-wrap: wrap; justify-content: flex-end; column-gap: .3em; line-height: 1.15; min-width: 0; }

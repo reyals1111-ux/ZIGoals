@@ -76,13 +76,32 @@ describe('too new and too old parts', () => {
     expect(Object.fromEntries(parts.map(p => [p.id, p.problem]))).toEqual({'module:finance': NEWER_PART_MESSAGE, 'module:habits': OLDER_PART_MESSAGE, 'device:accounts': NEWER_PART_MESSAGE, 'device:fasting': OLDER_PART_MESSAGE});
     for (const p of parts) expect(nextValue(p, 'merge', undefined)).toEqual({error: p.problem});
   });
+  // Release review AL (RR-7, deliberate): this test held createEmptyHealth() (v1), emptyHabitData() (v2) and emptyPlatform()
+  // (v3) to be "saved by an earlier version", because they are below CURRENT_VERSIONS (the newest each store reads). They are
+  // what this build writes today (each store writes the lowest version its content needs), so a backup made seconds earlier
+  // said every part was older. Equally strict replacement: a truly earlier format (one this build lifts while reading:
+  // Habits v1, Goals and Wealth v1 and v2) restores with the note; today's own records, the Showcase's included, never get it.
   test('every earlier version ZIGoals wrote is still read: it restores, with a note that says so', () => {
+    const habitsV1 = {schemaVersion: 1, kind: 'zigoals-habits', habits: []};
+    const v3 = emptyPlatform(), financeV2 = {schemaVersion: 2, kind: v3.kind, positions: [], goals: [], allocations: [], snapshots: [], contributions: [], valuationSnapshots: [], goalHistory: []};
+    const parts = planParts({modules: {habits: habitsV1, finance: financeV2}});
+    expect(parts.map(p => p.id)).toEqual(['module:finance', 'module:habits']);
+    for (const p of parts) { expect(p.problem, p.id).toBeUndefined(); expect(p.note, p.id).toBe(OLDER_READABLE_NOTE); expect(nextValue(p, 'replace', undefined)).toEqual({value: p.value}); }
+    const financeV1 = {schemaVersion: 1, kind: v3.kind, positions: [], goals: [], allocations: [], snapshots: []};
+    expect(planParts({modules: {finance: financeV1}})[0]!.note).toBe(OLDER_READABLE_NOTE);
+  });
+  test('a part in the format this build writes today has no "earlier version" note (RR-7)', () => {
     const health = createEmptyHealth(), habits = emptyHabitData();
     expect(health.schemaVersion).toBeLessThan(CURRENT_VERSIONS.health); expect(habits.schemaVersion).toBeLessThan(CURRENT_VERSIONS.habits);
-    const parts = planParts({modules: {health, habits, finance: emptyPlatform()}});
-    for (const p of parts) { expect(p.problem, p.id).toBeUndefined(); expect(p.note, p.id).toBe(OLDER_READABLE_NOTE); expect(nextValue(p, 'replace', undefined)).toEqual({value: p.value}); }
+    const today = planParts({modules: {health, habits, finance: emptyPlatform()}});
+    expect(today).toHaveLength(3);
+    for (const p of today) { expect(p.problem, p.id).toBeUndefined(); expect(p.note, p.id).toBeUndefined(); }
     const current = planParts({modules: {habits: {...habits, schemaVersion: CURRENT_VERSIONS.habits}}})[0]!;
     expect(current.note).toBeUndefined();
+    // A full export of the Showcase, read back at once: no part says it is older.
+    const parts = planParts(collectEverything(records, APP).json as never);
+    expect(parts.filter(p => p.kind === 'module').length).toBeGreaterThanOrEqual(3);
+    expect(parts.filter(p => p.note === OLDER_READABLE_NOTE).map(p => p.id)).toEqual([]);
   });
   test('an older part never replaces a newer copy this device holds; Merge stays possible and keeps this device\'s version', () => {
     const device = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!));

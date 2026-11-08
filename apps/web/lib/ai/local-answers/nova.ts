@@ -59,7 +59,8 @@ export function novaLocalAnswer(question: string, env: ToolEnv): LocalReply | nu
   if (TASKS_ASK.test(q)) return answer('tasks', {}, env, d => {
     if (!d.open?.length) return d.note ?? 'No task is open.';
     const c = d.counts as {open: number; overdue: number; today: number};
-    const lines = (d.open as Data[]).slice(0, 6).map(t => `• ${t.task}${t.due ? ` — ${t.state === 'overdue' ? 'overdue since' : 'due'} ${formatDate(t.due)}${t.time ? ` at ${formatClock(t.time)}` : ''}` : ''}${t.priority === 'high' ? ' (high)' : ''}${t.goal ? `, for ${t.goal}` : ''}`);
+    // Release review AL (RR-8): late today (its time has passed) counts as overdue, as on Tasks, and reads "due … at …, late".
+    const lines = (d.open as Data[]).slice(0, 6).map(t => `• ${t.task}${t.due ? ` — ${t.state === 'overdue' && t.due !== d.today ? 'overdue since' : 'due'} ${formatDate(t.due)}${t.time ? ` at ${formatClock(t.time)}` : ''}${t.state === 'overdue' && t.due === d.today ? ', late' : ''}` : ''}${t.priority === 'high' ? ' (high)' : ''}${t.goal ? `, for ${t.goal}` : ''}`);
     return [`${plural(c.open, 'open task')}: ${formatNumber(c.today)} due today, ${formatNumber(c.overdue)} overdue.`, ...lines, ...(c.open > 6 ? [`…and ${plural(c.open - 6, 'more')}.`] : [])].join('\n');
   });
   if (FOCUS_ASK.test(q)) return answer('focus_sessions', {}, env, d => {

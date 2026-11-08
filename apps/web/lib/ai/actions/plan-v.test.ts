@@ -56,7 +56,10 @@ test('the brief\'s breakfast: one message, five cards, "Add all" through the mut
   const plans = parsed.proposals.map(p => { const r = planAction(p, env()); if (!r.ok) throw Error(r.message); return r.plan; });
   const meditated = habitNamed('Meditate').entries.find(e => e.date === DAY)!.count;
   expect(plans[3]!.card).toMatchObject({title: 'Check in: Meditate', lines: [`Set the day's count to 30 minutes (target 10 minutes), was ${meditated}`]});
-  expect(plans[2]!.card.lines[1]).toBe('AI estimate per serving: kcal unknown, protein unknown, carbs unknown, fat unknown; unknown stays unknown, never 0');
+  // Release review AL (RR-5, deliberate): "Coffee" comes with no figure, so nothing estimated it: its card no longer says
+  // "AI estimate per serving: … unknown"; it says the values are unknown (never 0), as strictly.
+  expect(plans[2]!.card).toMatchObject({title: 'Log a food', estimate: false});
+  expect(plans[2]!.card.lines[1]).toBe('Its values are unknown (never 0) until you fill them in under Foods & recipes');
   const {stores: after, applied, error} = applyBatch(plans, stores);
   expect(error).toBeNull(); expect(applied).toBe(5);
   expect(after.health.diary.length).toBe(stores.health.diary.length + 3);

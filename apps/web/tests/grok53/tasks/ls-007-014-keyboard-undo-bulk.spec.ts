@@ -68,6 +68,10 @@ test('LS-061/P-LS-09 and LS-H22/P-LS-10: select three, Done; Clear done with Und
   await page.locator('#task-task_b').focus();
   await page.keyboard.press('Alt+ArrowUp');
   await expect(page.locator('.tasks-main .task-title')).toHaveText(['Fictional A', 'Fictional B', 'Fictional C']);
+  // Release review AL (RR-18, deliberate): selecting is a mode the list's "Select" turns on (a row shows one box: done, or
+  // in this mode, select), so the step presses it first; the selection and the bar below are asserted as before.
+  await page.locator('.tasks-main').getByRole('button', {name: 'Select', exact: true}).click();
+  await expect(page.getByRole('checkbox', {name: /^Mark “Fictional/})).toHaveCount(0);
   await page.getByRole('checkbox', {name: 'Select “Fictional A”'}).check();
   await page.getByRole('checkbox', {name: 'Select “Fictional C”'}).click({modifiers: ['Shift']});
   const bar = page.getByRole('toolbar', {name: '3 selected'});

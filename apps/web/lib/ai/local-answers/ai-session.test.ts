@@ -1,10 +1,14 @@
 import {describe, expect, test} from 'vitest';
 import {parseReply} from '../actions/parse';
 import {toolEnv} from '../tools/env';
-import {gatesFor, showcaseSources, withHandHealth, withPortfolios} from '../tools/fixtures';
+import {gatesFor, settingsWith, showcaseSources, withHandHealth, withPortfolios} from '../tools/fixtures';
 import {goldenSources} from '../evals/run';
 import {localAnswer} from './engine';
 import {noModelReply} from './no-model';
+import {summaries} from '../tools/goals';
+import {forecastWords, paceForecast, privateGoalPoints} from '../../goal-forecast';
+import {formatDay} from '../../../components/goals/format';
+import {addLocalDays} from '../../local-date';
 
 /** Session AI (ZI2, ZI11, ZI12, ZI13, G11): natural questions answered on the device, never the canned list. */
 const env = toolEnv(goldenSources(withPortfolios(withHandHealth(showcaseSources()))), gatesFor(true, 'today'), 'local');
@@ -90,4 +94,41 @@ describe('the journal and the energy (feature 6)', () => {
   test('energy, the last 7 days', () => expect(textOf(ask('How was my energy this week?'))).toMatch(/Your energy, the last 7 days: [\d.]+ of 5/));
   test('energy with Health not shared is not read', () => expect(ask('How was my energy this week?', closed).kind).toBe('refusal'));
   test('"energy ratings" is the daily rating, never food kcal (found by the feature cases)', () => { for (const q of ['What is the average of my energy ratings?', 'How have my energy ratings averaged this week?', 'Wat is mijn energiescore deze week?']) expect(textOf(ask(q)), q).not.toMatch(/kcal/); expect(textOf(ask('What is the average of my energy ratings?'))).toMatch(/of 5/); });
+});
+describe('release review AL: one pace, the page\'s dates (RR-4), missed habits (RR-13)', () => {
+  test('"At this pace" is the goal page\'s pace forecast; the plan\'s date is said as the plan\'s, in the page\'s format', () => {
+    const goal = env.platform.goals.find(g => g.name === 'Emergency fund')!, summary = summaries(env).find(s => s.key === `private:${goal.id}`)!;
+    const current = Number(summary.current), target = Number(summary.target);
+    const page = forecastWords(paceForecast(privateGoalPoints(goal, env.platform.contributions ?? [], current, env.habitDay), current, target, env.habitDay), formatDay);
+    expect(page.headline).toMatch(/^At this pace: about [A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+    const t = textOf(ask('Am I on track for my emergency fund?'));
+    expect(t).toContain(page.headline);
+    expect(t).toMatch(/With your plan: about [A-Z][a-z]{2} \d{1,2}, \d{4}\./);
+    expect(t).toMatch(/Target date: [A-Z][a-z]{2} \d{1,2}, \d{4}\./);
+    expect(t).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+    expect(t).not.toMatch(/completes around/);
+    // The plan's date never wears the pace's words.
+    const plan = /With your plan: about ([^.]+)\./.exec(t)![1]!;
+    expect(page.headline).not.toContain(plan);
+  });
+  test('the Dutch answer keeps the two dates apart too', () => {
+    const t = textOf(ask('Lig ik op schema voor mijn Emergency fund?'));
+    expect(t).toMatch(/In dit tempo: rond .+ Met je plan: rond /);
+    expect(t).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+  });
+  test('"Which habits did I miss yesterday?" is answered from the habit records', () => {
+    expect(textOf(ask('Which habits did I miss yesterday?'))).toMatch(/^Yesterday \(\w{3}, \w{3} \d{1,2}\) every scheduled habit was completed \(\d+ of \d+\)\./);
+    const sources = goldenSources(withPortfolios(withHandHealth(showcaseSources())));
+    const yesterday = addLocalDays(env.habitDay, -1), first = sources.habits.habits.find(h => h.entries.some(e => e.date === yesterday))!;
+    const missedEnv = toolEnv({...sources, habits: {...sources.habits, habits: sources.habits.habits.map(h => h.id === first.id ? {...h, entries: h.entries.filter(e => e.date !== yesterday)} : h)}}, gatesFor(true, 'today'), 'local');
+    const t = textOf(ask('Which habits did I miss yesterday?', missedEnv));
+    expect(t).toMatch(/^Yesterday \(.+\) 1 of \d+ scheduled habits were not completed:/);
+    expect(t).toContain(`• ${first.title} (no check-in)`);
+    expect(t).toMatch(/Completed: /);
+    expect(t).not.toMatch(/\b(?:fail|lazy|bad)\b/i);
+  });
+  test('with Habits not shared, no habit is read', () => {
+    const base = settingsWith(true), shut = toolEnv(goldenSources(withPortfolios(withHandHealth(showcaseSources()))), gatesFor(true, 'today', '/app', {settings: {...base, pageShare: {...base.pageShare, habits: false}}}), 'local');
+    expect(ask('Which habits did I miss yesterday?', shut).kind).toBe('refusal');
+  });
 });

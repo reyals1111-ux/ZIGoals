@@ -127,8 +127,11 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
     const d = dataOf(t.result), rows = (d.open ?? []) as Data[];
     if (d.note === NOT_READ_HERE || d.note === UNREADABLE_HERE) lines.push(say(lang, 'Tasks: unknown here (the task list was not read).', 'Taken: onbekend hier (de takenlijst is niet gelezen).'));
     else {
-      const dueNow = rows.filter(r => r.state === 'today'), late = rows.filter(r => r.state === 'overdue');
-      const name = (r: Data) => `${clean(String(r.task), 80)}${r.time ? say(lang, ` at ${formatClock(r.time)}`, ` om ${formatClock(r.time)}`) : ''}${r.priority === 'high' ? say(lang, ' (high)', ' (hoog)') : ''}`;
+      // Release review AL (RR-8): a task due today whose time has passed is overdue (the Tasks page's rule): it stays with
+      // today's tasks, said to be late; "from earlier" is for days before today.
+      const dueNow = rows.filter(r => r.state === 'today' || (r.state === 'overdue' && r.due === today)), late = rows.filter(r => r.state === 'overdue' && r.due !== today);
+      const tags = (r: Data) => [...(r.priority === 'high' ? [say(lang, 'high', 'hoog')] : []), ...(r.state === 'overdue' ? [say(lang, 'late', 'te laat')] : [])];
+      const name = (r: Data) => `${clean(String(r.task), 80)}${r.time ? say(lang, ` at ${formatClock(r.time)}`, ` om ${formatClock(r.time)}`) : ''}${tags(r).length ? ` (${tags(r).join(', ')})` : ''}`;
       if (dueNow.length) { anything = true; lines.push(say(lang, `Tasks due today: ${dueNow.map(name).join(', ')}`, `Taken voor vandaag: ${dueNow.map(name).join(', ')}`)); }
       if (late.length) { anything = true; lines.push(say(lang, `Still open from earlier: ${late.map(r => `${clean(String(r.task), 80)} (since ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`, `Nog open van eerder: ${late.map(r => `${clean(String(r.task), 80)} (sinds ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`)); }
       if (!dueNow.length && !late.length) lines.push(say(lang, 'Tasks: none due today.', 'Taken: niets voor vandaag.'));

@@ -157,7 +157,8 @@ function sectionLine(pillar: NovaPillar, env: ToolEnv, run: (tool: string, args?
     }
     case 'tasks': {
       const d = run('tasks'); if (!d?.open?.length) return null;
-      return `${d.counts.open} open (${d.counts.overdue} overdue, ${d.counts.today} today): ${list(d.open.map((t: Data) => `${t.task}${t.due ? ` ${t.state === 'overdue' ? 'overdue since' : 'due'} ${t.due}${t.time ? ` ${t.time}` : ''}` : ''}${t.priority === 'high' ? ', high' : ''}`), 3)}`;
+      // Release review AL (RR-8): a task late today is counted overdue (the counts) and still reads "due <today> <time>".
+      return `${d.counts.open} open (${d.counts.overdue} overdue, ${d.counts.today} today): ${list(d.open.map((t: Data) => `${t.task}${t.due ? ` ${t.state === 'overdue' && t.due < d.today ? 'overdue since' : 'due'} ${t.due}${t.time ? ` ${t.time}` : ''}` : ''}${t.priority === 'high' ? ', high' : ''}`), 3)}`;
     }
     case 'notes': {
       const d = run('search_notes'); if (!d?.notes?.length) return null;

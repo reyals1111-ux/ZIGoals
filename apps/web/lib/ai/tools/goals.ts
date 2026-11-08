@@ -8,7 +8,9 @@ import {reviewState, reviewWindow, weekSummary} from '../../weekly-review/engine
 import {addLocalDays} from '../../local-date';
 import {AVERAGE_METRICS, averageKey, type AverageGoal} from '../../average-goals/store';
 import {averageProgress} from '../../average-goals/progress';
-import {formatExactNumber} from '../../visual-format';
+import {formatDate, formatExactNumber} from '../../visual-format';
+import {forecastWords, paceForecast, privateGoalPoints} from '../../goal-forecast';
+import type {PrivateGoal} from '../../positions';
 import type {ToolEnv} from './env';
 import {capRows, goalUnits, ok, plural, provenance, refuse, text} from './format';
 import {parseRange, type DayRange} from './range';
@@ -78,6 +80,19 @@ export const listGoals: ToolDefinition<{include_closed?: boolean}> = {
   },
 };
 
+/**
+ * Release review AL (RR-4): a tracked goal's pace forecast as its goal page and NOVA's Goals HUD say it: lib/goal-forecast.ts
+ * paceForecast over privateGoalPoints, worded by forecastWords with the page's day format (formatDay is formatDate).
+ * The plan's own date stays plan.projectedCompletion ("With your plan" on the page). Null when no amount counts.
+ */
+export function goalPaceForecast(env: ToolEnv, privateGoal: PrivateGoal, summary: GoalSummary): {headline: string; detail: string; state: string; date?: string; basis: string} | null {
+  const current = Number(summary.current), target = Number(summary.target);
+  if (summary.progressBound === 'unavailable' || !Number.isFinite(current) || !Number.isFinite(target) || !(target > 0)) return null;
+  const today = env.habitDay, forecast = paceForecast(privateGoalPoints(privateGoal, env.platform.contributions ?? [], current, today), current, target, today);
+  const words = forecastWords(forecast, day => formatDate(day));
+  return {headline: words.headline, detail: words.detail, state: forecast.state, ...(forecast.state === 'estimate' && forecast.date ? {date: forecast.date} : {}), basis: 'the goal\'s own recorded progress (the goal page\'s pace forecast); an estimate, not a promise'};
+}
+
 export const goalProgress: ToolDefinition<{goal: string}> = {
   name: 'goal_progress', title: 'Goal progress', area: 'goals',
   description: 'One goal in detail: progress, held now, target, remaining, dates, the plan\'s own figures as the app shows them, funding status and any notes that need review.',
@@ -94,6 +109,10 @@ export const goalProgress: ToolDefinition<{goal: string}> = {
         const pulse = fundingHealth(env.platform, privateGoal.id, env.now.getTime(), env.quotes);
         data.plan = {contributedNet: goalUnits(pulse.actual, privateGoal.decimals, privateGoal.asset), plannedThroughToday: goalUnits(pulse.plannedThroughToday, privateGoal.decimals, privateGoal.asset), aheadOrBehind: BigInt(pulse.variance) === 0n ? 'on plan' : `${BigInt(pulse.variance) > 0n ? 'ahead by' : 'behind by'} ${goalUnits((BigInt(pulse.variance) < 0n ? -BigInt(pulse.variance) : BigInt(pulse.variance)).toString(), privateGoal.decimals, privateGoal.asset)}`, nextDate: pulse.nextDate ?? 'none', projectedCompletion: pulse.completionDate ?? 'unknown', status: pulse.status.replaceAll('_', ' ').toLowerCase(), notes: pulse.warnings.map(w => text(w, 200))};
       } catch { data.plan = 'needs review in Goals'; }
+      // Release review AL (RR-4): the goal page's own pace forecast ("At this pace: about Jan 22, 2028"), from the same
+      // function, the same points and the same day format, so an answer never gives the plan's date as "at this pace".
+      const pace = goalPaceForecast(env, privateGoal, goal);
+      if (pace) data.paceForecast = pace;
     }
     return ok('goal_progress', label, where(env, text(goal.name, 60), null), data);
   },
