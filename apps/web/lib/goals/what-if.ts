@@ -1,4 +1,5 @@
 import {addDays, daysBetween, privateGoalPoints, type ForecastPoint} from '../goal-forecast';
+export {paceFromForecast} from '../goal-forecast';
 import type {ContributionEvent, PrivateGoal} from '../positions';
 
 /**
@@ -14,7 +15,7 @@ import type {ContributionEvent, PrivateGoal} from '../positions';
 export const PROJECTION_LABEL = 'A projection from your own data, never a guarantee.';
 export const PACE_WINDOW_DAYS = 30, MIN_PACE_SPAN_DAYS = 14, MAX_PROJECTION_DAYS = 100 * 366;
 export type PaceState = 'reached' | 'not-enough' | 'no-pace' | 'estimate';
-export type Pace30 = {state: PaceState; perDay: number | null; perMonth: number | null; date: string | null; spanDays: number; points: number};
+export type Pace30 = {state: PaceState; perDay: number | null; perMonth: number | null; date: string | null; spanDays: number; points: number; /** Fifth pass (PR-024): the goal's own pace forecast */ source?: 'forecast'};
 const finite = (n: number) => Number.isFinite(n);
 /** The day a pace (units a day) reaches what is left; null when it never does or only after 100 years. */
 export function reachDate(today: string, remaining: number, perDay: number): string | null {
@@ -94,6 +95,12 @@ export function whatIf({current, target, today, pace}: {current: number; target:
 
 /** The pace in words. `format` writes a day the person's way. */
 export function paceSentence(p: Pace30, format: (day: string) => string): string {
+  if (p.source === 'forecast') switch (p.state) {
+    case 'reached': return 'Target reached.';
+    case 'not-enough': return 'Not enough history yet for a pace forecast (the pace card on this page says how much it needs).';
+    case 'no-pace': return 'Not at this pace: your recorded progress has not moved forward.';
+    case 'estimate': return `At your recorded pace (the pace forecast) you reach the target about ${format(p.date!)}.`;
+  }
   switch (p.state) {
     case 'reached': return 'Target reached.';
     case 'not-enough': return `Not enough history yet: a 30-day pace needs records over at least ${MIN_PACE_SPAN_DAYS} days.`;

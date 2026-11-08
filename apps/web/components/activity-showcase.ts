@@ -9,7 +9,10 @@ import {AVERAGE_GOALS_KEY} from '../lib/average-goals/store';
 
 export const SHOWCASE_ROW_SOURCE = 'Showcase example';
 /** Prefixes the Activity feed puts before a record's own id. */
-const PREFIXES = ['contribution:', 'created:', 'account-payment:', 'account-balance:', 'average-created:', 'average-finished:'];
+// Fifth pass (D-227): Health counters, nights and naps and tasks were "Counted by you" / "Private · this browser" /
+// "Added by you" in the Showcase; their rows carry these prefixes (a repeating task's done row adds `:<when>`, a habit's
+// paused or archived row `:<from>`).
+const PREFIXES = ['contribution:', 'created:', 'account-payment:', 'account-balance:', 'average-created:', 'average-finished:', 'counter:', 'sleep:', 'task-added:', 'task-done:', 'habit-state:'];
 
 /** Every record id in the Showcase's records, plus the composite ids Activity gives a habit day and an average day. */
 export function showcaseRowIds(records: Readonly<Record<string, string>>): Set<string> {
@@ -32,5 +35,28 @@ export function showcaseRowIds(records: Readonly<Record<string, string>>): Set<s
 export function isShowcaseRow(eventId: string, ids: ReadonlySet<string>): boolean {
   if (ids.has(eventId)) return true;
   const prefix = PREFIXES.find(p => eventId.startsWith(p));
-  return !!prefix && ids.has(eventId.slice(prefix.length));
+  if (!prefix) return false;
+  const rest = eventId.slice(prefix.length);
+  return ids.has(rest) || ((prefix === 'task-done:' || prefix === 'habit-state:') && ids.has(rest.split(':')[0] ?? ''));
+}
+
+type GoalRecords = {
+  contributions: readonly {id: string; goalId: string; goalScope?: string}[];
+  goalHistory: readonly {id: string; goalId: string; kind: string}[];
+  goals: readonly {id: string; lifecycle?: readonly {id: string; kind: string}[]}[];
+};
+/**
+ * Fifth pass (D-227): "Target reached · My first 0.1 BTC" read "Your goal’s history" in the Showcase. A seeded goal that is
+ * already at its target gets its completion row from the first valuation tick after loading (a new id), so the row is the
+ * example's own when the goal is seeded and the person has changed nothing on it (no contribution, history or lifecycle
+ * row of their own besides that completion).
+ */
+export function isShowcaseGoalCompletion(eventId: string, goalId: string, s: GoalRecords, ids: ReadonlySet<string>): boolean {
+  if (!ids.has(goalId) || !eventId.startsWith('lifecycle:')) return false;
+  const goal = s.goals.find(g => g.id === goalId);
+  if (goal?.lifecycle?.find(l => l.id === eventId)?.kind !== 'completed') return false;
+  const own = s.contributions.some(c => c.goalId === goalId && c.goalScope !== 'local' && !ids.has(c.id))
+    || s.goalHistory.some(h => h.goalId === goalId && h.kind !== 'valuation' && !ids.has(h.id))
+    || (goal.lifecycle ?? []).some(l => l.kind !== 'completed' && !ids.has(l.id));
+  return !own;
 }

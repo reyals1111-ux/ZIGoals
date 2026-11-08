@@ -121,6 +121,8 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await page.goto("/app/goals/new");
   await page.getByText("Personalize artwork and notes (optional)").click();
   await page.getByRole("radio", {name:"Travel",exact:true}).check();
+  /* Session AL fifth pass (DV-120, deliberate): with the chain chosen no kind is preselected, so the spec chooses the count it always made */
+  await page.getByRole("radio", {name: "Quantity", exact: true}).check();
   await typeGoalName(page, "Blocked demo creation");
   await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button", {name:"Continue"}).click();
@@ -246,6 +248,8 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await page.getByRole("link", { name: "Plan my first goal" }).click();
   await page.getByText("Personalize artwork and notes (optional)").click();
   await page.getByRole("radio", {name:"Travel",exact:true}).check();
+  /* Session AL fifth pass (DV-120, deliberate): with the chain chosen no kind is preselected, so the spec chooses the count it always made */
+  await page.getByRole("radio", {name: "Quantity", exact: true}).check();
   await typeGoalName(page, "Kyoto in spring");
   await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button", { name: "Continue" }).click();

@@ -11,7 +11,8 @@ export type PinChoice={kind:WidgetKind;metric:string;entity?:string;label:string
  *  `extra` (Session Z-Cloud Part 4.10): the card's own further items, such as a habit's "Ask ZIGi about this habit". */
 /** `menuName` (Session AL, MO-153): the ⋯ menu's own name when the card is not "today" (a past journal day's meal), while
  *  `label` and the choices keep naming the Today widget, which always shows today. */
-export function PinToToday({label,menuName,choices,askName,extra}:{label:string;menuName?:string;choices:readonly PinChoice[];askName?:string;extra?:ReactNode}){
+/** `askAs` (Session AL fifth pass, NB-175): what "Ask ZIGi" asks about when no Today card is offered (a completed goal). */
+export function PinToToday({label,menuName,choices,askName,extra,askAs}:{label:string;menuName?:string;choices:readonly PinChoice[];askName?:string;extra?:ReactNode;askAs?:PinChoice}){
  const settings=usePrivateStore(DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings);
  const [message,setMessage]=useState(''),[busy,setBusy]=useState(false);
  async function add(choice:PinChoice){setBusy(true);setMessage('');try{
@@ -19,5 +20,5 @@ export function PinToToday({label,menuName,choices,askName,extra}:{label:string;
   await settings.update(latest=>saveWidget(latest,{id:crypto.randomUUID(),kind:choice.kind,metric:choice.metric,...(choice.entity?{entity:choice.entity}:{}),title:'',size:'compact',hidden:false,revision:1}));
   setMessage(`${choice.label} added to Today.`);
  }catch(e){setMessage(plainErrorMessage(e, 'Could not add this card to Today.'));}finally{setBusy(false);}}
- return <div className="pin-to-today"><CardOptions label={menuName??label}>{choices.map(choice=><button key={`${choice.kind}:${choice.entity??''}:${choice.metric}`} type="button" disabled={busy||!settings.loaded||!!settings.error} onClick={()=>void add(choice)} aria-label={`Add ${choice.label} to Today`}>Add {choice.menu??choice.label} to Today</button>)}{choices[0]&&<AskZigiItem kind={choices[0].kind} metric={choices[0].metric} name={askName}/>}{extra}</CardOptions>{message&&<p role="status" className="pin-to-today-status">{message}</p>}</div>;
+ return <div className="pin-to-today"><CardOptions label={menuName??label}>{choices.map(choice=><button key={`${choice.kind}:${choice.entity??''}:${choice.metric}`} type="button" disabled={busy||!settings.loaded||!!settings.error} onClick={()=>void add(choice)} aria-label={`Add ${choice.label} to Today`}>Add {choice.menu??choice.label} to Today</button>)}{(ask=>ask&&<AskZigiItem kind={ask.kind} metric={ask.metric} name={askName}/>)(choices[0]??askAs)}{extra}</CardOptions>{message&&<p role="status" className="pin-to-today-status">{message}</p>}</div>;
 }

@@ -224,7 +224,11 @@
 .hall-card { grid-template-rows: auto 1fr; } .hall-body { display: flex; flex-direction: column; } .hall-body > .hall-area { align-self: flex-start; } .hall-actions { margin-top: auto; } /* every card's actions on one line */
 /* Gate C re-check: the average card keeps its own height in the goal grid (it had stretched to its row, ~250 px empty),
    and its line wraps as balanced lines ("14 of / 14 days" split the count). */
-.goal-grid > .average-goal-card, .goal-grid .average-goal-card { align-self: start; }
+/* Session AL fifth pass (DV-029d): cards in one row share its height (a 355 px average card sat beside 591 px goal cards);
+   the average card fills its row with its figure in the middle and its state line and link at the foot, so no empty band. */
+.goal-grid > .average-goal-card, .goal-grid .average-goal-card { align-self: stretch; display: flex; flex-direction: column; gap: 10px; }
+.goal-grid .average-goal-card > .average-goal-figure { flex: 1 0 auto; }
+.goal-grid .average-goal-card > .average-goal-state { margin-top: auto; }
 .average-goal-figure > div > small { text-wrap: balance; }
 
 /* Session AL (DV-012e, P-DV-56): an average goal's page uses the goal pages' width. It sat in a 920 px column with the

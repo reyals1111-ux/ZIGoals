@@ -53,7 +53,9 @@ test.describe('Showcase 1280 Dark', () => {
     const main = page.locator('main');
     const pace = (await main.innerText()).match(/At this pace: about ([0-9]{1,2} [A-Z][a-z]{2} [0-9]{4})/);
     const onTrack = await openModule(page, 'on-track');
-    if (pace) await expect(onTrack).toContainText(`Your pace forecast, with no growth: about ${pace[1]}`);
+    // Session AL fifth pass (PR-024, deliberate): "On track?" says the pace forecast's own figure and its date, once.
+    if (pace) await expect(onTrack).toContainText(new RegExp(`Your pace forecast, with no growth: about \\S+ every 30 days, reaching it about ${pace[1]}`));
+    await expect(onTrack).not.toContainText('Recorded here over the last');
     await expect(onTrack).not.toContainText('At that pace, with no growth');
     await expect(main).not.toContainText('Projected completion');
   });
@@ -82,6 +84,8 @@ test.describe('Showcase 1280 Dark', () => {
   test('PR-066/PR-099/N-170/D-227: seeded rows say "Showcase example"; a goal the person adds does not', async ({page}) => {
     await showcase(page);
     await open(page, '/app/goals/new');
+    // Session AL fifth pass (DV-120, deliberate): the Showcase has the chain chosen, so no kind is preselected.
+    await page.getByRole('radio', {name: 'Quantity', exact: true}).check();
     await page.getByLabel('Goal name', {exact: true}).click();
     await page.keyboard.type('My own fictional goal', {delay: 20});
     await page.getByLabel('Target amount', {exact: true}).fill('300');

@@ -1,3 +1,4 @@
+import type {Pace30} from './goals/what-if';
 import type {ContributionEvent, PrivateGoal} from './positions';
 import {eventValueForGoal} from './goal-intelligence';
 
@@ -103,4 +104,14 @@ export function forecastWords(f: Forecast, format: (day: string) => string): {he
       detail: f.latest === null ? `From ${format(f.earliest!)} at the earliest. An estimate from your pace so far, not a promise.` : f.earliest === f.latest ? 'Your pace has been steady. An estimate from your pace so far, not a promise.' : `Between ${format(f.earliest!)} and ${format(f.latest!)}. An estimate from your pace so far, not a promise.`,
     };
   }
+}
+
+/**
+ * Session AL fifth pass (PR-024): a tracked goal's page said three paces (the pace card's "US$771.17 every 30 days", On
+ * track's 90-day "US$250.00 in every 30 days", What if's 30-day "US$750.00 a month" and another date). What if starts from
+ * the goal's one pace forecast (lib/goal-forecast.ts paceForecast), the figure and date the pace card and Today say.
+ */
+export function paceFromForecast(f: Forecast): Pace30 {
+  const perDay = f.perDay ?? null;
+  return {state: f.state, perDay, perMonth: perDay === null ? null : perDay * 30, date: f.state === 'estimate' ? f.date ?? null : null, spanDays: f.spanDays, points: f.points, source: 'forecast'};
 }

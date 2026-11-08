@@ -200,7 +200,7 @@ test.describe('Showcase at 01:26', () => {
     const goalName = (await page.locator('main h1').first().textContent())!.trim();
     const supporting = page.locator('#supporting-habits');
     if (!await supporting.evaluate(el => el instanceof HTMLDetailsElement ? el.open : true)) await supporting.locator('summary').first().click();
-    await supporting.getByRole('button', {name: 'Add weekly Goal review habit', exact: true}).click();
+    await supporting.getByRole('button', {name: 'Add weekly goal review habit', exact: true}).click();
     await expect(supporting.getByRole('heading', {name: `Review ${goalName}`})).toBeVisible();
     await open(page, '/app/habits');
     // A Monday habit is not due on this Wednesday, so the Today filter leaves it out; "Goal linked" lists it.

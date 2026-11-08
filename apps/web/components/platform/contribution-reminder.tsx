@@ -24,7 +24,7 @@ export function ContributionReminder({goalId, disabled = false}: {goalId: string
     <h3>Reminder</h3>
     <label className="field">Remind me on this device at<input name="time" type="time" required key={time ?? 'off'} defaultValue={time ?? '09:00'} disabled={disabled} /></label>
     <div className="actions"><button className="secondary" disabled={disabled}>{time ? 'Change reminder' : 'Set reminder'}</button>{time && <button type="button" className="quiet" disabled={disabled} onClick={() => save(null)}>Turn reminder off</button>}</div>
-    <p className="fine">On a day your plan has an amount due, a card shows on Today after this time, and ZIGi may knock while ZIGoals is open. “Fund now” opens this Goal&apos;s contribution form filled in for you to check; nothing moves money.</p>
+    <p className="fine">On a day your plan has an amount due, a card shows on Today after this time, and ZIGi may knock while ZIGoals is open. “Fund now” opens this goal&apos;s contribution form filled in for you to check; nothing moves money.</p>
     {message && <p role="status" className="fine">{message}</p>}
     {error && <p role="alert">{error}</p>}
   </form>;

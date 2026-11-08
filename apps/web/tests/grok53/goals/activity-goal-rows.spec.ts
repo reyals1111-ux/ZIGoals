@@ -12,7 +12,7 @@ test('DV-046a/b: one row per Close, and a tick names its milestone', async ({pag
   await milestones.getByRole('checkbox', {name: 'Build'}).check();
   await expect(page.getByRole('status').filter({hasText: 'Milestone done: “Build”.'})).toBeVisible();
   const status = await openModule(page, 'goal-status');
-  await status.getByRole('button', {name: 'Close Goal and release allocations', exact: true}).click();
+  await status.getByRole('button', {name: 'Close goal and release allocations', exact: true}).click();
   await page.getByRole('button', {name: 'Confirm close', exact: true}).click();
   await page.goto('/app/activity');
   const feed = page.locator('.unified-activity');

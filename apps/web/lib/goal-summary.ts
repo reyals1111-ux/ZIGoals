@@ -74,9 +74,11 @@ export function unifiedGoalSummaries(goals:readonly LocalGoal[],metadata:Record<
  * "Project", and "No saving plan yet" in place of "Funding Wealth · No plan". Once chosen, the summary's own words stand.
  */
 export function goalEyebrow(goal:Pick<PrivateGoal,'type'>,summary:Pick<GoalSummary,'type'|'source'>,chain:boolean):string{
- if(chain)return `${summary.type} · ${summary.source}`;
  const kind=goal.type==='VALUE'?'Savings goal':goal.type==='PROJECT'?'Project':goal.type==='REWARD'?'Rewards goal':'Count goal';
+ // Session AL fifth pass (DV-018, DV-120, MO-130): one name per kind in both modes, the card's own ("REWARDS GOAL" on the
+ // card read "REWARD GOAL" on its page; a project read "PROJECT GOAL · PROJECT"). With the chain chosen its source words stay.
  if(goal.type==='PROJECT')return kind;
+ if(chain)return `${kind} · ${summary.source}`;
  // Session AL fourth pass (DV-034a, DV-104, NB-243): a count goal counts units, so no money words ("Money you have").
  if(goal.type==='QUANTITY')return `${kind} · ${summary.source==='Your own count'?'Your own count':summary.source==='Existing wealth'?'What you hold':summary.source==='Future contributions'?'Adding by plan':'Your own plan'}`;
  const source=summary.source==='Existing wealth'?'Money you have':summary.source==='Future contributions'?'Saving plan':'Your own plan';

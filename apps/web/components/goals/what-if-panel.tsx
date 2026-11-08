@@ -1,7 +1,7 @@
 'use client';
 import {useId, useMemo, useState} from 'react';
 import type {ForecastPoint} from '../../lib/goal-forecast';
-import {PROJECTION_LABEL, pace30, paceSentence, whatIf, whatIfSentence, type ContributionEvery} from '../../lib/goals/what-if';
+import {PROJECTION_LABEL, pace30, paceSentence, whatIf, whatIfSentence, type ContributionEvery, type Pace30} from '../../lib/goals/what-if';
 import {formatDate, formatMoney, formatNumber, isMoneyCurrency} from '../../lib/visual-format';
 import './what-if.css';
 
@@ -28,8 +28,10 @@ export function sliderMax(target: number): {max: number; step: number} {
  * Session AK (6.2 / Q14): the goal's 30-day pace and the person's own what-ifs, worked out on the page and never stored.
  * Every result is labelled a projection. Lazy-loaded by the lead (components/goals/lazy.tsx).
  */
-export function WhatIfPanel({goalName, current, target, points, today, currency, unit = '', targetDate}: {
+export function WhatIfPanel({goalName, current, target, points, today, currency, unit = '', targetDate, basePace}: {
   goalName: string; current: number; target: number; points: readonly ForecastPoint[]; today: string;
+  /** Session AL fifth pass (PR-024): the goal's one pace forecast, when the page shows it (lib/goals/what-if.ts paceFromForecast). */
+  basePace?: Pace30;
   /** A money goal's currency (amounts then read "€50"); otherwise `unit` follows the number. */
   currency?: string; unit?: string; targetDate?: string;
 }) {
@@ -38,7 +40,7 @@ export function WhatIfPanel({goalName, current, target, points, today, currency,
   const [habitOn, setHabitOn] = useState(false), [perTime, setPerTime] = useState(0), [times, setTimes] = useState(3), [date, setDate] = useState(targetDate ?? '');
   const amount = (n: number) => currency && isMoneyCurrency(currency) ? formatMoney(String(Math.round(n * 100) / 100), currency) : `${formatNumber(n, {maximumFractionDigits: 2})}${unit ? ` ${unit}` : ''}`;
   const unitWord = currency ?? unit;
-  const pace = useMemo(() => pace30(points, current, target, today), [points, current, target, today]);
+  const pace = useMemo(() => basePace ?? pace30(points, current, target, today), [basePace, points, current, target, today]);
   const result = whatIf({current, target, today, pace}, {extraPerMonth: extra, regular: regularOn ? {amount: regular, every} : null, habit: habitOn ? {perTime, timesPerWeek: times} : null, targetDate: date && date > today ? date : null});
   const {max, step} = sliderMax(target);
   const format = (day: string) => formatDate(day);
@@ -46,7 +48,7 @@ export function WhatIfPanel({goalName, current, target, points, today, currency,
   return <section className="what-if" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">What if</p>
     <h3 id={`${id}-title`}>{goalName}</h3>
-    <p className="what-if-pace">{paceSentence(pace, format)}{pace.state === 'estimate' || pace.state === 'no-pace' ? ` About ${amount(pace.perMonth ?? 0)} a month lately.` : ''}</p>
+    <p className="what-if-pace">{paceSentence(pace, format)}{pace.state === 'estimate' || pace.state === 'no-pace' ? (pace.source === 'forecast' ? ` About ${amount(pace.perMonth ?? 0)} every 30 days.` : ` About ${amount(pace.perMonth ?? 0)} a month lately.`) : ''}</p>
     <form className="what-if-form" onSubmit={e => e.preventDefault()}>
       <RangeField label="Extra every month" value={extra} max={max} step={step} unit={unitWord} onChange={setExtra}/>
       <fieldset><legend>A regular amount instead of your recent pace</legend>

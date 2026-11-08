@@ -95,7 +95,8 @@ test('a new device: Create a goal starts with money in its currency, in plain wo
   expect(await kinds.evaluateAll(els => els.map(el => el.getAttribute('aria-label')))).toEqual(['Save an amount', 'Reach a number of something', 'Finish a project']);
   await expect(page.getByRole('radio', {name: 'Save an amount', exact: true})).toBeChecked();
   await expect(page.getByRole('radio', {name: 'USD · US dollar'})).toBeChecked();
-  await expect(page.getByRole('region', {name: 'Goal preview'})).toContainText('Save an amount · USD · Custom · At your own pace');
+  await expect(page.getByRole('region', {name: 'Goal preview'})).toContainText('Save an amount · USD · At your own pace'); // Session AL fifth pass (N-071): no "Custom" when no category was chosen
+  await expect(page.getByRole('region', {name: 'Goal preview'})).not.toContainText('Custom');
   // Counting something: the asset field's example is not the chain's coin.
   await page.getByRole('radio', {name: 'Reach a number of something', exact: true}).check();
   await expect(page.getByLabel('Goal asset', {exact: true})).toHaveAccessibleDescription(/^Use a symbol such as BTC or GOLD\./);
@@ -128,9 +129,15 @@ test('a new device: a project goal is created through every step, and its page n
   expect(await page.locator('main').textContent()).not.toMatch(/\bZIG\b/);
 });
 
-test('once the chain is chosen, Create a goal is as it was: Quantity first, and Reward offered', async ({page}) => {
+test('once the chain is chosen, Create a goal lists Quantity first and offers Reward, with none preselected', async ({page}) => {
   await chooseChain(page);
   await ready(page, '/app/goals/new');
+  // Session AL fifth pass (DV-120, deliberate): no kind is preselected once the chain is chosen (name + Create made an
+  // asset-quantity goal); Quantity is still the first choice, and choosing it is as it was.
+  const kinds = page.getByRole('group', {name: 'What kind of progress matters?'}).getByRole('radio');
+  expect(await kinds.evaluateAll(els => els.map(el => el.getAttribute('aria-label')))).toEqual(['Quantity', 'Value', 'Reward', 'Project']);
+  for (const kind of await kinds.all()) await expect(kind).not.toBeChecked();
+  await page.getByRole('radio', {name: 'Quantity', exact: true}).check();
   await expect(page.getByRole('radio', {name: 'Quantity', exact: true})).toBeChecked();
   await expect(page.getByRole('radio', {name: 'Reward', exact: true})).toHaveCount(1);
   await expect(page.getByLabel('Goal asset', {exact: true})).toHaveAccessibleDescription(/^Use a symbol such as BTC or ZIG\./);

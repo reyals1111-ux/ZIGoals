@@ -68,6 +68,9 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false, close, onUn
   }, [health.data, habits.data, habits.today]);
   const ready = health.loaded && habits.loaded && !health.error && !habits.error;
   const primed = useRef(false);
+  // Session AL fifth pass (M-091): opened before Health and Habits were read, the sheet's Close held the focus; the field
+  // takes it once it can be typed in, while its sheet is open and nothing else in it was chosen.
+  useEffect(() => { const input = field.current, dialog = input?.closest('dialog'); if (!ready || !input || !dialog?.open) return; const at = document.activeElement; if (!at || at === document.body || at === dialog || (at instanceof HTMLElement && at.getAttribute('aria-label') === 'Close Quick add')) input.focus(); }, [ready]);
   const told = useRef(onUnderstood); told.current = onUnderstood;
   useEffect(() => { if (!initialText || primed.current || !ready) return; primed.current = true; setText(initialText); const read = parse(initialText, 'en', context); setResult(read); told.current?.(read.kind !== 'unknown'); }, [initialText, ready, context]);
   const [multi, setMulti] = useState<string | null>(null), [task, setTask] = useState<TaskIntent | null>(null);

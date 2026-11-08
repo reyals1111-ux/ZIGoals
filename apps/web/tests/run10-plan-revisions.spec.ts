@@ -31,6 +31,6 @@ test('completion milestone remains visible after closing and reopening without r
  const s=recordGoalChanges(emptyPlatform(),{...emptyPlatform(),goals:[g],positions:[p],allocations:[{goalId:'82',positionId:'cash',quantity:'100000'}]});
  await page.addInitScript(data=>{if(!sessionStorage.getItem('lifecycle-fixture')){localStorage.setItem('zigoals:platform:v1',JSON.stringify(data));sessionStorage.setItem('lifecycle-fixture','1');}},s);
  await page.goto('/app/goals/tracked/82#goal-status');await expect(page.getByRole('region',{name:'Retained Goal milestones'})).toContainText('Target reached');
- await page.getByRole('button',{name:'Close Goal and release allocations',exact:true}).click();await page.getByRole('button',{name:'Confirm close',exact:true}).click();await page.getByRole('button',{name:'Reopen Goal',exact:true}).click();
+ await page.getByRole('button',{name:'Close goal and release allocations',exact:true}).click();await page.getByRole('button',{name:'Confirm close',exact:true}).click();await page.getByRole('button',{name:'Reopen goal',exact:true}).click();
  await expect(page.getByRole('region',{name:'Retained Goal milestones'})).toContainText('Reopened');await expect(page.getByTestId('tracked-progress')).toContainText('$0');await page.reload();await expect(page.getByRole('region',{name:'Retained Goal milestones'})).toContainText('Target reached');
 });

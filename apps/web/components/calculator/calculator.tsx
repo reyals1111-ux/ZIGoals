@@ -194,7 +194,7 @@ export function Calculator() {
         <fieldset className="calc-compare">
           <legend>Compare with</legend>
           {whatIfs(input).map(w => <label key={w.id} className="calc-chip"><input type="checkbox" checked={compare[w.id as 'higher' | 'lower' | 'earlier']} onChange={e => setCompare(c => ({...c, [w.id]: e.target.checked}))} /><span><i style={{background: TONES[w.id as 'higher' | 'lower' | 'earlier'].tone}} />{w.label}</span></label>)}
-          <label className="calc-chip calc-chip-input"><span><i style={{background: TONES.custom.tone}} />Another return</span><input inputMode="decimal" aria-label="Another yearly return to compare, in percent" placeholder="%" value={compare.custom} onChange={e => setCompare(c => ({...c, custom: e.target.value}))} /></label>
+          <label className="calc-chip calc-chip-input"><span><i style={{background: TONES.custom.tone}} />Another return</span><input inputMode="decimal" aria-label="Another yearly return to compare, in percent" placeholder="%" maxLength={8} value={compare.custom} onChange={e => setCompare(c => ({...c, custom: e.target.value}))} /></label>
         </fieldset>
         {lines.length > 0 && <ul className="calc-whatifs">
           {lines.map(l => { const diff = new Decimal(l.result.final).minus(result.final).toFixed(2); return <li key={l.id}><i style={{background: l.tone}} /><span>{l.label}</span><strong>{money(l.result.final)}</strong><small>{Number(diff) === 0 ? 'the same' : `${formatSignedMoney(diff, input.currency)} compared with your plan`}</small></li>; })}
@@ -227,8 +227,8 @@ export function Calculator() {
       <details className="calc-more" open={Number(draft.increasePercent) > 0 || Number(draft.inflationPercent) > 0 || undefined}>
         <summary>Rising contributions and inflation (optional)</summary>
         <div className="calc-fields">
-          <Field label="Raise contributions each year by" error={parsed.errors.increasePercent} unit="%"><input inputMode="decimal" value={draft.increasePercent} onChange={e => set('increasePercent', e.target.value)} /></Field>
-          <Field label="Inflation each year" error={parsed.errors.inflationPercent} unit="%" hint="Shows what the result would buy in today’s money."><input inputMode="decimal" value={draft.inflationPercent} onChange={e => set('inflationPercent', e.target.value)} /></Field>
+          <Field label="Raise contributions each year by" error={parsed.errors.increasePercent} unit="%"><input inputMode="decimal" maxLength={8} value={draft.increasePercent} onChange={e => set('increasePercent', e.target.value)} /></Field>
+          <Field label="Inflation each year" error={parsed.errors.inflationPercent} unit="%" hint="Shows what the result would buy in today’s money."><input inputMode="decimal" maxLength={8} value={draft.inflationPercent} onChange={e => set('inflationPercent', e.target.value)} /></Field>
         </div>
       </details>
     </section>
@@ -290,7 +290,7 @@ function Slider({label, unit, value, error, min, max, step, onChange, hint}: {la
   const n = Number(value), id = label.toLowerCase().replace(/\W+/g, '-');
   return <div className="calc-field calc-slider" data-invalid={error ? true : undefined}>
     <label htmlFor={`calc-${id}`}>{label}</label>
-    <span className="calc-input">{/* Session AL (TK-036, fourth pass): a whole-number field takes no more digits than its limit has ("10100" years cannot be typed by a slip) */}<input id={`calc-${id}`} inputMode={step === 1 ? 'numeric' : 'decimal'} autoComplete="off" maxLength={step === 1 ? String(max).length : undefined} value={value} onChange={e => onChange(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby={`calc-${id}-note`} /><b aria-hidden="true">{unit}</b></span>
+    <span className="calc-input">{/* Session AL (TK-036, fourth pass): a whole-number field takes no more digits than its limit has ("10100" years cannot be typed by a slip) */}<input id={`calc-${id}`} inputMode={step === 1 ? 'numeric' : 'decimal'} autoComplete="off" maxLength={/* Session AL fifth pass (BN-135): a decimal field (the yearly return) is capped too; 500 pasted characters were kept */step === 1 ? String(max).length : String(max).length + 5} value={value} onChange={e => onChange(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby={`calc-${id}-note`} /><b aria-hidden="true">{unit}</b></span>
     <input type="range" min={min} max={max} step={step} value={Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : min} onChange={e => onChange(e.target.value)} aria-label={`${label}, slider`} aria-valuetext={`${value} ${unit}`} />
     <small id={`calc-${id}-note`} className={error ? 'calc-error' : undefined} role={error ? 'alert' : undefined}>{error ?? hint}</small>
   </div>;
