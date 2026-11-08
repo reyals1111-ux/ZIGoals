@@ -136,7 +136,10 @@ describe('PRIMITIVES 3f in the Wealth files (P14-D list): one reader, one format
   });
   it('bank files, spending map and cash forecast write money as the rest of the app does', () => {
     expect(formatCurrencyAmount('42.10', 'EUR')).toBe('€42.10');
-    expect(formatCurrencyAmount('42.10', 'GBP')).toBe('42.1 GBP'); // another code is the amount and the code, never money
+    // Session AL (TK-199, deliberate): a real ISO code written as one is money in its own currency, with its symbol, never
+    // converted; a made-up or lowercase code stays the person's words (round-format.test.ts: "40 XYZ", "12.5 gbp").
+    expect(formatCurrencyAmount('42.10', 'GBP')).toBe('£42.10'); expect(formatCurrencyAmount('500', 'GBP')).toBe('£500.00');
+    expect(formatCurrencyAmount('40', 'XYZ')).toBe('40 XYZ'); expect(formatCurrencyAmount('7', 'XAU')).toBe('7 XAU');
     expect(moneyCents(6000, 'EUR')).toBe('€60.00');
     expect(moneyWhole(centsText(-40_000n), 'EUR')).toBe('-€400');
     expect(formatPercent(60)).toBe('60%');

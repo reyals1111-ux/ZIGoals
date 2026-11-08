@@ -29,7 +29,9 @@ it('P-TK-49: the "check this?" tier starts at a thousandth of the money limit an
   expect(plausibilityWarning(999_999_999.99, 'EUR', 'balance')).toBeNull();
   expect(plausibilityWarning(999_999_999_999, 'EUR', 'debt')).toMatch(/^€999,999,999,999\.00 is more than a billion — unusually large for a debt\./);
   // Not USD or EUR: the amount and the code as typed, never converted or made into money.
-  expect(plausibilityWarning(2e9, 'GBP', 'value')).toMatch(/^2,000,000,000 GBP is more than a billion/);
+  // Session AL (TK-199, deliberate): GBP is a real ISO code, so it reads as money with its own symbol (never converted).
+  expect(plausibilityWarning(2e9, 'GBP', 'value')).toMatch(/^£2,000,000,000\.00 is more than a billion/);
+  expect(plausibilityWarning(2e9, 'XYZ', 'value')).toMatch(/^2,000,000,000 XYZ is more than a billion/);
   expect(plausibilityWarning(NaN, 'USD', 'value')).toBeNull();
   const confirm = plausibleConfirm(), warning = plausibilityWarning(5e9, 'USD', 'value');
   expect(confirm.check('a:5e9', warning)).toBe(false); // asks

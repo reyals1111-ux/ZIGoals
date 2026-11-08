@@ -240,9 +240,10 @@ export function formatRounded(value:number|null|undefined,decimals=1){
 
 /**
  * Currency (TK-014: a made-up code was accepted and shown as money). Alpha keeps two currencies, US dollars and euros.
- * formatCurrencyAmount writes a USD or EUR amount as money; any other code is never shown as a currency: the amount and
- * the code text the person typed ("12.50 GBP" stays their words, "40 XYZ" is not made into money); no code, or a value
- * that is not a decimal: "—". The code is never invented or guessed.
+ * formatCurrencyAmount writes a USD or EUR amount as money, and (Session AL, TK-199) any other real ISO 4217 code written
+ * exactly as one ("GBP") as money in that currency with its own symbol ("£500.00"), never converted; anything else is
+ * never shown as a currency: the amount and the text the person typed ("40 XYZ", "12.5 gbp" stay their words); no code,
+ * or a value that is not a decimal: "—". The code is never invented or guessed.
  */
 export const ALPHA_CURRENCIES=['USD','EUR'] as const;
 export type AlphaCurrency=typeof ALPHA_CURRENCIES[number];
@@ -251,7 +252,7 @@ export function formatCurrencyAmount(value:string|number|null|undefined,code:str
  const text=typeof value==='number'?(Number.isFinite(value)?new Decimal(value).toFixed():''):String(value??'').trim();
  if(!DECIMAL.test(text))return '—';
  const typed=String(code??'').replace(/\s+/g,' ').trim().slice(0,12);
- if(isAlphaCurrency(typed))return formatMoney(text,typed,locale);
+ if(isAlphaCurrency(typed)||(/^[A-Z]{3}$/.test(typed)&&isMoneyCurrency(typed)))return formatMoney(text,typed,locale);
  if(!typed)return '—';
  const plain=new Decimal(text).toFixed();
  return `${formatExactNumber(plain==='-0'?'0':plain,locale)} ${typed}`;
