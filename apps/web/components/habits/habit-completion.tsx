@@ -12,7 +12,7 @@ import {allDoneNoteId, comebackNoteId, comebackSeenRecently, checkInFacts, strea
 import {appliedCheckIn, markAutoCheckInUndone} from "../../lib/habit-health-links/store";
 import {checkInFailureMessage} from "../../lib/storage-error-copy";
 import {formNumberText} from "../../lib/decimal-input";
-import {durationCountText, readHabitNumber} from "../../lib/habit-number";
+import {durationCountText, readDurationText, readHabitNumber} from "../../lib/habit-number";
 import {formatNumber} from "../../lib/visual-format";
 import {unitFor} from "../../lib/plural";
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -105,7 +105,8 @@ export function HabitCompletion({part='both',  habit, store, compact = false }: 
   }
   function settled() { const queue = checkIns.current; queue.saving = false; queue.shown = null; setPending(null); setBusy(false); }
   // Typed values follow Health's decimal-comma rule ("0,5" is 0.5; "1,234" is refused with a reason).
-  function typed() { try { return readHabitNumber(manual, { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setError(plainErrorMessage(e, "Enter a number.")); return null; } }
+  // Session AL Part 15 (AL-COMPETITOR-GAP-121): a time habit also takes "1:30", "1 h 30 min" or "45 min", read into its unit.
+  function typed() { try { const time = rule.measurement.kind === "duration" ? readDurationText(manual, rule.measurement.unit) : null; return time ?? readHabitNumber(manual, { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setError(plainErrorMessage(e, "Enter a number.")); return null; } }
   // Session AL fourth pass (N-085): an exercise habit's value may name its activity (Health's list), kept in the day's note.
   const activityNote = () => withActivityNote(day.note, activity);
   async function saveManual(event: FormEvent) { event.preventDefault(); const value = typed(); if (value !== null) await run(() => withActivity ? store.setValue(habit.id, store.today, value, activityNote()) : store.setValue(habit.id, store.today, value)); }
@@ -143,7 +144,7 @@ export function HabitCompletion({part='both',  habit, store, compact = false }: 
           // chooses the amount on the Goal's own form, nothing is added by the tick itself.
           ...(habit.goalLink?.chainId === "private" ? {link: {href: `/app/goals/tracked/${encodeURIComponent(habit.goalLink.goalId)}?contribute=1`, label: "Add to its Goal"}} : {})}); }}>{busy && !pending ? "Saving…" : rule.type === "quit" ? "Stayed on track" : rule.type === "limit" ? "Within limit" : doneNow ? "✓ Done" : "Complete"}</button>}
     </div>}
-    {!compact && part !== 'controls' && rule.measurement.kind !== "boolean" && <details className="habit-quick-log"><summary aria-label={`${habit.title}: set or add a value`}>Set or add a value</summary><form onSubmit={saveManual}><label className="field">Value for {habit.title}<input type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : "decimal"} autoComplete="off" value={manual} onChange={(event) => setManual(event.target.value)} /></label>{withActivity && <><label className="field">Activity (optional)<input list={activityList} maxLength={60} autoComplete="off" value={activity} onChange={(event) => setActivity(event.target.value)} placeholder="Run, Yoga, Cycling…" /><small>Kept in today’s note, as “Activity: …”.</small></label><datalist id={activityList}>{ACTIVITY_CHOICES.map(a => <option key={a} value={a} />)}</datalist></>}<div className="actions"><button className="secondary" type="submit">Set value</button><button className="quiet" type="button" onClick={() => void addManual()}>Add value</button></div><p className="fine">Set value replaces today’s total; Add value adds to it.</p></form></details>}
+    {!compact && part !== 'controls' && rule.measurement.kind !== "boolean" && <details className="habit-quick-log"><summary aria-label={`${habit.title}: set or add a value`}>Set or add a value</summary><form onSubmit={saveManual}><label className="field">Value for {habit.title}<input type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : rule.measurement.kind === "duration" ? "text" : "decimal"} autoComplete="off" value={manual} onChange={(event) => setManual(event.target.value)} /></label>{rule.measurement.kind === "duration" && <small className="fine">{rule.measurement.unit === "hours" ? "Hours" : "Minutes"}, or a time like 1:30 or 1 h 30 min.</small>}{withActivity && <><label className="field">Activity (optional)<input list={activityList} maxLength={60} autoComplete="off" value={activity} onChange={(event) => setActivity(event.target.value)} placeholder="Run, Yoga, Cycling…" /><small>Kept in today’s note, as “Activity: …”.</small></label><datalist id={activityList}>{ACTIVITY_CHOICES.map(a => <option key={a} value={a} />)}</datalist></>}<div className="actions"><button className="secondary" type="submit">Set value</button><button className="quiet" type="button" onClick={() => void addManual()}>Add value</button></div><p className="fine">Set value replaces today’s total; Add value adds to it.</p></form></details>}
     {part !== 'quick-log' && <AutoCheckInBadge habitId={habit.id} marker={marker} link={links.data.links[habit.id]} />}
     {part !== 'quick-log' && soFar && <p className="habit-health-so-far" role="status">{soFar}</p>}
     {part !== 'quick-log' && autoRules?.badge(habit.id, habit.title)}

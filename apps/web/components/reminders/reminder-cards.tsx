@@ -28,7 +28,10 @@ import {sessionDay} from '../../lib/meditation/stats';
 import {localDate} from '../../lib/local-date';
 import {healthGroupIn} from '../../lib/vault/w-homes';
 import {HEALTH_EXTRAS} from '../../lib/health-extras';
-import {dismissMeal, mealsDue} from '../../lib/meal-reminders';
+import {dismissFastStart, dismissMeal, fastStartDue, mealsDue} from '../../lib/meal-reminders';
+import {startFast} from '../../lib/fasting/engine';
+import {formatTime} from '../../lib/visual-format';
+import {saveFailureMessage} from '../../lib/storage-error-copy';
 import './reminders.css';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {LoadBoundary} from '../load-boundary';
@@ -83,7 +86,10 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   // Session AL sweep 3 (C-MO-10, C-MO-37): a meal's usual time, until something is logged for it today (lib/meal-reminders.ts).
   let meals: ReturnType<typeof mealsDue> = [];
   try { meals = extras.loaded && !extras.unreadable ? mealsDue({extras: extras.data, health, now}) : []; } catch { meals = []; }
-  if (!due.length && !windDown && !meditation && !chained.length && !contributions.length && !planned.length && !meals.length && !zigi && !error) return null;
+  // Session AL Part 15 (AL-COMPETITOR-GAP-049/067/081): the chosen meal is in the Diary today, so a fast may start.
+  let fastStart: ReturnType<typeof fastStartDue> = null;
+  try { fastStart = extras.loaded && !extras.unreadable && fasting.loaded && !fasting.unreadable ? fastStartDue({extras: extras.data, health, sessions: fasting.data.sessions, now}) : null; } catch { fastStart = null; }
+  if (!due.length && !windDown && !meditation && !chained.length && !contributions.length && !planned.length && !meals.length && !fastStart && !zigi && !error) return null;
   const dismiss = (reminder: DueReminder) => {
     try { reminders.update(reminder.day, current => dismissForToday(current, reminder.id, reminder.day)); setError(''); }
     catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); }
@@ -146,6 +152,16 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
         <button type="button" className="quiet" aria-label={`Not today: ${m.label}`} onClick={() => { try { extras.update(r => dismissMeal(r, m.meal, m.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
       </div>
     </article>)}
+    {fastStart && <article className="panel reminder-card" aria-label={`Reminder: start a fast after ${fastStart.label}`}>
+      <p className="eyebrow">Reminder · after {fastStart.label} · on this device</p>
+      <h2>Start your fast?</h2>
+      <p>{fastStart.label} is in your Diary today (logged {(() => { try { return formatTime(fastStart.loggedAt, {timeZone: fastStart.zone}); } catch { return formatTime(fastStart.loggedAt); } })()}). A {fastStart.hours} h fast, your own target, starts when you tap.</p>
+      <div className="reminder-card-actions">
+        <button type="button" className="secondary" onClick={() => { const at = new Date(), hours = fastStart.hours, zone = fastStart.zone; fasting.update(current => runningSession(current) ? current : startFast(current, {id: `fast_${crypto.randomUUID()}`, now: at, targetHours: hours, timeZone: zone})).then(() => setError(''), e => setError(`The fast did not start on this device. ${saveFailureMessage(e)}`)); }}>Start a {fastStart.hours} h fast</button>
+        <Link className="quiet" href="/app/health#fasting">Open fasting</Link>
+        <button type="button" className="quiet" onClick={() => { try { extras.update(r => dismissFastStart(r, fastStart.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
+      </div>
+    </article>}
     {zigi && <LoadBoundary quiet><Suspense fallback={null}><ZigiReminderCards now={now} onError={setError}/></Suspense></LoadBoundary>}
     {error && <p role="alert" className="notice">{error}</p>}
   </section>;

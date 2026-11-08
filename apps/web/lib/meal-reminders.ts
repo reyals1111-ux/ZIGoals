@@ -33,3 +33,35 @@ export function setMealReminders(extras: HealthExtras, on: boolean): HealthExtra
 export function dismissMeal(extras: HealthExtras, meal: Meal, day: string): HealthExtras {
   return healthExtrasSchema.parse({...extras, mealReminders: {on: true, ...extras.mealReminders, dismissed: {...extras.mealReminders?.dismissed, [meal]: day}}});
 }
+
+/**
+ * Session AL Part 15 (AL-COMPETITOR-GAP-049, -067, -081; C-MO-10, C-MO-37, C-DVG-41): a fast's start, tied to the Diary.
+ * Switched on by the person on the fasting card ("After I log Dinner…"); once that meal has an entry in the Diary for the
+ * Health journal's day, Today asks whether to start a fast, until one starts after that entry, one is running, or "Not
+ * today" is chosen. It suggests nothing about how long: the hours are the person's own choice (their last fast's target,
+ * else 16 h, the preset the fasting card starts on). In-app on this device only; nothing is sent.
+ */
+export type FastStartDue = {id: 'fast-start'; meal: Meal; label: string; loggedAt: string; hours: number; day: string; zone: string};
+type FastLike = {startedAt: string; endedAt: string | null; targetHours: number};
+export const fastAfterMealOn = (extras: HealthExtras | null | undefined): Meal | null => extras?.fastAfterMeal?.meal ?? null;
+export function fastStartDue({extras, health, sessions, now}: {extras: HealthExtras | null | undefined; health: HealthData | null | undefined; sessions: readonly FastLike[]; now: Date}): FastStartDue | null {
+  const meal = fastAfterMealOn(extras);
+  if (!health || !meal) return null;
+  let tz: string | null;
+  try { tz = dailyData(health).preferences.timezone; } catch { return null; }
+  const day = healthDay(tz, now);
+  if (extras?.fastAfterMeal?.dismissed === day || sessions.some(s => s.endedAt === null)) return null;
+  const logged = health.diary.filter(e => e.meal === meal && e.date === day).map(e => e.createdAt).sort().at(-1);
+  if (!logged || sessions.some(s => s.startedAt >= logged)) return null;
+  const last = [...sessions].sort((a, b) => a.startedAt.localeCompare(b.startedAt)).at(-1);
+  return {id: 'fast-start', meal, label: mealLabel(extras, meal), loggedAt: logged, hours: extras?.fastAfterMeal?.hours ?? last?.targetHours ?? 16, day, zone: healthZone(tz)};
+}
+/** Switches the ask on for one meal (null switches it off). */
+export function setFastAfterMeal(extras: HealthExtras, meal: Meal | null): HealthExtras {
+  if (!meal) { const {fastAfterMeal: _old, ...rest} = extras; void _old; return healthExtrasSchema.parse(rest); }
+  // A new choice of meal asks again today (an earlier "Not today" is dropped); the hours, if any, stay.
+  const kept: Record<string, unknown> = {...(extras.fastAfterMeal ?? {})}; delete kept.dismissed;
+  return healthExtrasSchema.parse({...extras, fastAfterMeal: {...kept, meal}});
+}
+/** "Not today": the card stays away for the rest of the Health journal's day. */
+export const dismissFastStart = (extras: HealthExtras, day: string): HealthExtras => extras.fastAfterMeal ? healthExtrasSchema.parse({...extras, fastAfterMeal: {...extras.fastAfterMeal, dismissed: day}}) : extras;

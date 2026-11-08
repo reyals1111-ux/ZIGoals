@@ -23,6 +23,9 @@ import Link from 'next/link';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {REMINDERS_PLAN, setPlanItem} from '../../lib/reminders-plan/schema';
 import {PastDayLine, useHealthDay} from './health-day';
+import {HEALTH_EXTRAS, mealLabel, type Meal} from '../../lib/health-extras';
+import {HEALTH_MEALS} from '../../lib/health';
+import {fastAfterMealOn, setFastAfterMeal} from '../../lib/meal-reminders';
 
 export const FASTING_SAFETY_NOTE = 'Fasting isn’t for everyone. If you’re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first. Stop if you feel unwell.';
 const clock = (iso: string, zone: string) => { try { return formatTime(iso, {timeZone: zone}); } catch { return formatTime(iso); } };
@@ -33,8 +36,11 @@ const clock = (iso: string, zone: string) => { try { return formatTime(iso, {tim
  */
 function FastReminderSwitch() {
   const plan = useDeviceRecord(REMINDERS_PLAN), [said, setSaid] = useState(''), on = plan.data.items?.['fasting-end']?.on === true;
+  // Session AL Part 15 (AL-COMPETITOR-GAP-049/067/081): the start, tied to the Diary (lib/meal-reminders.ts fastStartDue).
+  const extras = useDeviceRecord(HEALTH_EXTRAS), after = extras.loaded && !extras.unreadable ? fastAfterMealOn(extras.data) : null;
   return <div className="fasting-reminder">
     <label className="checkbox"><input type="checkbox" checked={on} disabled={!plan.loaded || plan.unreadable} onChange={e => { const next = e.target.checked; try { plan.update(r => setPlanItem(r, 'fasting-end', {on: next})); setSaid(next ? 'Fasting reminder on: Today shows a card when your fast reaches its target.' : 'Fasting reminder off.'); } catch { setSaid('This choice could not be saved on this device.'); } }}/>Remind me on Today when a fast reaches its target</label>
+    <label className="field fasting-after-meal"><span>Ask on Today to start a fast after I log</span><select value={after ?? ''} disabled={!extras.loaded || extras.unreadable} onChange={e => { const meal = (e.target.value || null) as Meal | null; try { extras.update(r => setFastAfterMeal(r, meal)); setSaid(meal ? `Today asks whether to start a fast once ${mealLabel(extras.data, meal)} is in your Diary.` : 'Today no longer asks to start a fast.'); } catch { setSaid('This choice could not be saved on this device.'); } }}><option value="">Don’t ask</option>{HEALTH_MEALS.map(m => <option key={m} value={m}>{mealLabel(extras.data, m)}</option>)}</select></label>
     {/* aria-live, not role=status: the card's own status line (the stop's result) stays the one status here */}
     <p className="fine" aria-live="polite">{said || <>Quiet hours apply. <Link className="text-link" href="/app/settings/reminders">All reminders</Link></>}</p>
   </div>;

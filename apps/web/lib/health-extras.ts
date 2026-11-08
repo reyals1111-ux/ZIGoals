@@ -29,6 +29,10 @@ export const healthExtrasSchema = z.looseObject({
   // Session AL sweep 3 (C-MO-10, C-MO-37): a reminder on Today at each meal's usual time (lib/meal-reminders.ts). Optional
   // and loose; a value this build cannot read is dropped on its own, never the whole record.
   mealReminders: z.looseObject({on: z.boolean(), dismissed: z.partialRecord(z.enum(HEALTH_MEALS), z.iso.date()).optional().catch(undefined)}).optional().catch(undefined),
+  // Session AL Part 15 (AL-COMPETITOR-GAP-049/067/081; TIER 3 (stored format)): "after I log Dinner, ask whether to start a
+  // fast" (lib/meal-reminders.ts fastStartDue). Present means on. Optional and loose; a value this build cannot read is
+  // dropped on its own, never the whole record.
+  fastAfterMeal: z.looseObject({meal: z.enum(HEALTH_MEALS), hours: z.number().int().min(1).max(18).optional().catch(undefined), dismissed: z.iso.date().optional().catch(undefined)}).optional().catch(undefined),
 });
 export type HealthExtras = z.infer<typeof healthExtrasSchema>;
 export const emptyHealthExtras = (): HealthExtras => ({version: 1});

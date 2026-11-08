@@ -8454,6 +8454,12 @@
         color: var(--text-secondary, var(--muted))
     }
 }
+/*  components/habits/habit-checklist.css  */
+@scope (:root[data-theme=dark]) {
+    .habit-checklist:not(#\-) {
+        border-color: currentcolor
+    }
+}
 /*  components/habits/habits-aa.css  */
 @scope (:root[data-theme=dark]) {
     .habit-section:not(#\-) {

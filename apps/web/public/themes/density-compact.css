@@ -2176,7 +2176,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .average-goal-card .average-goal-target:not(#\-) { margin-top: -2px; margin-bottom: 0; }
 :root:where([data-density=compact]) .template-card > :last-child:not(#\-) { margin-top: auto; }
 :where(:root[data-density=compact]) .hall-actions:not(#\-) { margin-top: auto; }
-:where(:root[data-density=compact]) .goal-grid > .average-goal-card:not(#\-), :where(:root[data-density=compact]) .goal-grid .average-goal-card:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .goal-grid > .average-goal-card:not(#\-), :where(:root[data-density=compact]) .goal-grid .average-goal-card:not(#\-) { row-gap: 7.5px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .goal-grid .average-goal-card > .average-goal-state:not(#\-) { margin-top: auto; }
 :where(:root[data-density=compact]) .debt-paydown-list:not(#\-) { margin-top: 0; margin-bottom: 7.5px; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }
 :where(:root[data-density=compact]) .debt-paydown-list li:not(#\-) { row-gap: 1.5px; }
@@ -2317,6 +2317,14 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .auto-rules-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .auto-rules-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .auto-rules-badge:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
+/*  components/habits/habit-checklist.css  */
+:where(:root[data-density=compact]) .habit-checklist:not(#\-) { margin-top: 6px; margin-bottom: 3px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .habit-checklist ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 1.5px; }
+:where(:root[data-density=compact]) .habit-checklist .checkbox:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .habit-checklist .fine:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-checklist-editor:not(#\-) { row-gap: 4.5px; margin-top: 6px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .habit-checklist-editor > .fine:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .habit-checklist-editor .actions:not(#\-) { row-gap: 6px; margin-top: 6px; margin-bottom: 0; }
 /*  components/habits/habits-aa.css  */
 :where(:root[data-density=compact]) .habit-sections:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .habit-section-summary:not(#\-) { row-gap: 9px; padding-top: 7.5px; padding-bottom: 7.5px; }
@@ -2601,6 +2609,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-time-suggest:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .habit-time-suggest .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .habit-time-suggest .actions:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-intention-why:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
 /*  components/habits/recurrence-phrase.css  */
 :where(:root[data-density=compact]) .recurrence-phrase:not(#\-) { row-gap: 6px; margin-top: 4px; margin-bottom: 10px; }
 :where(:root[data-density=compact]) .recurrence-phrase-echo:not(#\-) { margin-top: 0; margin-bottom: 0; }

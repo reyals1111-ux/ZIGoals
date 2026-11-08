@@ -37,3 +37,36 @@ export function durationCountText(count: number, unit: string | null | undefined
   }
   return null;
 }
+/**
+ * Session AL Part 15 (AL-COMPETITOR-GAP-121; Strides' most-voted request, "time logged in h/min"): a time habit's value
+ * typed as time — "1:30", "1h 30m", "1 h 30 min", "90 min", "45m", "2 h", "1,5 h" (also the Dutch "1 u 30") — read into
+ * the habit's own unit (minutes or hours). A plain number stays a number in that unit and is left to `readHabitNumber`
+ * (this returns null). Throws with a sentence for a time that does not read ("1:75").
+ */
+const TIME_PART = /(\d+(?:[.,]\d+)?)\s*(hours?|hrs?|h|uur|u|minutes?|mins?|m|minuten)(?![a-z])/gi;
+export function readDurationText(raw: string, unit: 'minutes' | 'hours'): number | null {
+  const text = raw.trim().toLowerCase();
+  if (!text || /^[\d.,\s]+$/.test(text)) return null;
+  let minutes: number | null = null;
+  const clock = /^(\d{1,3}):(\d{1,2})$/.exec(text);
+  if (clock) {
+    if (Number(clock[2]) > 59) throw new Error('Minutes after the colon go from 00 to 59, like 1:30.');
+    minutes = Number(clock[1]) * 60 + Number(clock[2]);
+  } else {
+    let rest = text, total = 0, found = false, hours = false, mins = false;
+    for (const match of text.matchAll(TIME_PART)) {
+      const value = Number(match[1]!.replace(',', '.')), isHours = /^(h|hr|hrs|hour|hours|u|uur)$/.test(match[2]!);
+      if (isHours ? hours : mins) throw new Error('Name the hours and the minutes once each, like 1 h 30 min.');
+      if (isHours) hours = true; else mins = true;
+      total += isHours ? value * 60 : value; found = true; rest = rest.replace(match[0], ' ');
+    }
+    rest = rest.replace(/\band\b|\ben\b/g, '').trim();
+    // "1 h 30" and "1u30": a bare number after the hours is the minutes.
+    if (found && hours && !mins && /^\d{1,2}$/.test(rest) && Number(rest) <= 59) { total += Number(rest); rest = ''; }
+    if (!found) return null;
+    if (rest) throw new Error('Enter a time like 1:30, 1 h 30 min or 45 min.');
+    minutes = total;
+  }
+  const value = unit === 'hours' ? minutes / 60 : minutes;
+  return Math.round(value * 10_000) / 10_000;
+}
