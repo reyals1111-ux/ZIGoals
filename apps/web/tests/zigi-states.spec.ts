@@ -88,6 +88,10 @@ test('at rest: idle; the first open of the day: greeting; typing: listening; clo
     await page.keyboard.press('Escape');
     await expect(panel(page)).toHaveCount(0);
     await openChat(page);
+    // Session AL (CI 1584/1586, WebKit phone; the wait only): the panel moves the focus into its box one frame after it opens,
+    // and that focus starts "typing" (ai-chat.tsx onFocus → user_typing_started). On a slow WebKit page the frame came after
+    // the 91 s jump, so "listening" began after the quiet time instead of before it. The clock moves once the box holds it.
+    await expect(page.getByLabel('Message to your AI')).toBeFocused({timeout: 15_000});
     await page.clock.runFor(91_000);
     await expect(launcher(page)).toHaveAttribute('data-state', 'sleepy');
     return;
@@ -103,6 +107,7 @@ test('at rest: idle; the first open of the day: greeting; typing: listening; clo
   await expect.poll(() => seen(page)).toContain('wave-goodbye');
   await expect(launcher(page)).toHaveAttribute('data-state', 'idle', {timeout: 10_000});
   await openChat(page);
+  await expect(page.getByLabel('Message to your AI')).toBeFocused({timeout: 15_000}); // the same wait as on the phone (above)
   await page.clock.runFor(91_000);
   await expect(launcher(page)).toHaveAttribute('data-state', 'sleepy');
 });
