@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js';
 import {compound, type CompoundInput, type CompoundResult} from '../../lib/compound/engine';
+import {CSV_FORMULA_START} from '../../lib/export/csv-safe';
 
 /**
  * Session AL (Part 15, C-TK-29 / P-TK-95): what regular contribution would reach a target in the same plan, keeping
@@ -25,7 +26,9 @@ export function contributionFor(input: CompoundInput, target: string): Solved {
   return {contribution: high.toFixed(2)};
 }
 
-const csvCell = (v: string | number) => { const t = String(v); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+// Session AL (security delta review B, SB-7): the shared formula guard (lib/export/csv-safe.ts) for any text cell; a plain
+// number (a negative one too) stays a number, so the format a spreadsheet reads is unchanged.
+const csvCell = (v: string | number) => { const raw = String(v), t = CSV_FORMULA_START.test(raw) && !/^-?\d+(?:\.\d+)?$/.test(raw) ? `'${raw}` : raw; return /[",\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
 /**
  * Session AL (Part 15, C-TK-31 / P-TK-97): the year-by-year table as a CSV the person can keep or print, with the
  * assumptions on top so the numbers never travel without them. Plain decimals (no symbols) so a spreadsheet reads them.

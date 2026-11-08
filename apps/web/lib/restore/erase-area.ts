@@ -8,11 +8,17 @@ import type {OpenedBackup} from './read-backup';
 /**
  * Session AL (GAP-176, C-BN-28): "Erase one area" — Goals and Wealth, Habits, Today and Life, or Health — on this device.
  * It is a Replace with the empty record, through the same path a restore takes (lib/restore/apply.ts), so it inherits
- * everything a restore guarantees: each record goes through its own page's write path (a module keeps its recovery copy
- * and is announced like a page's save, so sync, where it is on, carries it as an edit), it is fenced against an account
+ * everything a restore guarantees: each record goes through its own page's write path (announced like a page's save, so
+ * sync, where it is on, carries it as an edit), it is fenced against an account
  * or Showcase change, and the whole erase can be undone for RESTORE_UNDO_DAYS (also after a reload). The rules of a
  * restore's Replace stay: deleted habits stay deleted, a deleted goal's extras stay dormant, the other share of a shared
  * record (the Checklist path vs its Health quick inputs, ZIGi's other notes) stays as it is.
+ *
+ * Session AL (security delta review B, SB-1; TIER 3 (stored format)): what the erase replaced is kept on this device only
+ * for its Undo — a module's bytes as its recovery copy, a device record's in the undo record — and goes when that Undo
+ * ends: Undo, "Keep the erase", its 7 days over (seen the next time the restore page opens), or a later restore or erase.
+ * Every recovery copy of the erased records goes then too (apply.ts forgetErasedCopies). When the Undo cannot outlive the
+ * tab, no copy is kept at all (this tab's memory holds the bytes).
  *
  * Left out on purpose: Today's preferences (the layout and the welcome's "done" mark; erasing them would restart the
  * welcome, not erase data), photos (deleted on their own pages), keys and secrets, and everything a restore never writes.
@@ -37,7 +43,7 @@ export function eraseParts(area: EraseArea): PlannedPart[] {
 export type EraseRow = {part: PlannedPart; held: PartSummary | null; unreadable: boolean; problem?: string};
 /**
  * What this device holds of each part of an area (parts that hold nothing are left out), each with the empty value the
- * erase writes. A copy that does not read is listed too: the erase replaces it and keeps its bytes as a recovery copy.
+ * erase writes. A copy that does not read is listed too: the erase replaces it, and Undo can put its bytes back.
  */
 export async function eraseInventory(storage: Storage, area: EraseArea): Promise<EraseRow[]> {
   const out: EraseRow[] = [];
@@ -58,5 +64,5 @@ export async function eraseInventory(storage: Storage, area: EraseArea): Promise
 const NO_FILE: OpenedBackup = {file: new Blob(), json: {format: 'zigoals-everything', version: 1, exportedAt: new Date(0).toISOString(), modules: {}, device: {}}, vision: [], photos: [], oversized: 0, demo: false};
 /** Erases the listed rows (from eraseInventory, those without a problem) on this device; the outcome is a restore's, with its Undo. */
 export async function eraseArea(rows: readonly EraseRow[], options: {signal?: AbortSignal} = {}): Promise<RestoreOutcome> {
-  return applyRestore(NO_FILE, rows.filter(r => !r.problem).map(r => ({part: r.part, mode: 'replace' as const})), {vision: false, progress: false}, options);
+  return applyRestore(NO_FILE, rows.filter(r => !r.problem).map(r => ({part: r.part, mode: 'replace' as const})), {vision: false, progress: false}, {...options, erase: true});
 }

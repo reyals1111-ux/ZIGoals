@@ -24,6 +24,8 @@ export const TASK_PRIORITIES = ['high', 'normal', 'low'] as const;
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 export const TASK_TITLE_MAX = 140, TASK_NOTES_MAX = 5000, TASK_LABELS_MAX = 20, LABEL_MAX = 40, PROJECT_NAME_MAX = 60;
 export const MAX_PROJECTS = 100, MAX_SECTIONS = 300, MAX_FILTERS = 50, MAX_REMINDERS = 5, MAX_COMPLETIONS = 60;
+/** How deep the Tasks page draws subtasks (SB-3: a guard, so no chain of parents can recurse without end). */
+export const MAX_SUBTASK_DEPTH = 8;
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
 /** Session AK (T1; TIER 3 (stored format), additive): an optional wall-clock time on the due day ("HH:MM"). */
@@ -99,6 +101,30 @@ export const projectSchema = z.looseObject({
 });
 export const sectionSchema = z.looseObject({id, projectId: id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0)});
 export const filterSchema = z.looseObject({id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), query: z.string().trim().min(1).max(200)});
+/**
+ * Session AL (security delta review B, SB-3; TIER 3 (stored format), no shape change): a task whose parent is itself,
+ * one of its own subtasks (a loop of parents) or a task this list does not hold reads as a top-level task, so it shows in
+ * the list views and no subtask walk can loop. An import, a restore or another tab's write could bring such a parent.
+ * Each loop loses one link only (the first task of the loop in list order, which then heads it); the rest keep their
+ * parents. Returns the same record when nothing needed it.
+ */
+export function breakParentLoops<T extends {tasks: {id: string; parentId?: string}[]}>(record: T): T {
+  if (!record.tasks.some(t => t.parentId)) return record;
+  const parentOf = new Map<string, string | undefined>(record.tasks.map(t => [t.id, t.parentId]));
+  const drop = new Set<string>();
+  for (const t of record.tasks) {
+    // A parent this list does not hold; else up from this task: back at itself is a loop through it (a loop higher up
+    // is broken at its own first task). Bounded by the list's length.
+    let p = parentOf.get(t.id), steps = 0;
+    if (p !== undefined && !parentOf.has(p)) { drop.add(t.id); parentOf.set(t.id, undefined); continue; }
+    while (p !== undefined && steps++ <= record.tasks.length) {
+      if (p === t.id) { drop.add(t.id); parentOf.set(t.id, undefined); break; }
+      p = parentOf.get(p);
+    }
+  }
+  if (!drop.size) return record;
+  return {...record, tasks: record.tasks.map(t => { if (!drop.has(t.id)) return t; const {parentId: _p, ...rest} = t; void _p; return rest; })};
+}
 export const tasksSchema = z.looseObject({
   version: z.literal(1),
   tasks: z.array(taskSchema).max(MAX_TASKS),
@@ -106,7 +132,7 @@ export const tasksSchema = z.looseObject({
   sections: tolerantArray(sectionSchema, MAX_SECTIONS),
   labelColors: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, c]) => LABEL_PATTERN.test(k) && (TASK_COLOURS as readonly unknown[]).includes(c)).slice(0, 200)) : undefined, z.record(z.string(), z.enum(TASK_COLOURS)).optional()),
   filters: tolerantArray(filterSchema, MAX_FILTERS),
-});
+}).transform(breakParentLoops);
 export type Task = z.infer<typeof taskSchema>;
 export type Tasks = z.infer<typeof tasksSchema>;
 export type Project = z.infer<typeof projectSchema>;

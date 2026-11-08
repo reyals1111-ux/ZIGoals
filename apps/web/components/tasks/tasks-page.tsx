@@ -21,7 +21,7 @@ import {dueReminders} from '../../lib/tasks/reminders';
 import {salvageTasks, keepSalvaged} from '../../lib/tasks/device';
 import {checklistZone} from '../../lib/checklist/day';
 import {addLocalDays} from '../../lib/local-date';
-import {MAX_TASKS, TASK_COLOURS, type Task, type TaskColour, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
+import {MAX_SUBTASK_DEPTH, MAX_TASKS, TASK_COLOURS, type Task, type TaskColour, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import {isShowcase} from '../../lib/showcase';
 import {formatClock, formatDate, formatNumber} from '../../lib/visual-format';
 import {showStatus} from '../ui/undo-toast';
@@ -233,7 +233,7 @@ export function TasksPage() {
 
   /* ---- rendering ---- */
   const row = (t: Task, depth = 0): ReactNode => {
-    const kids = childrenOf(record, t.id).filter(k => view.kind === 'completed' || !k.doneAt), open = expanded.has(t.id), project = view.kind === 'project' ? undefined : projectOf(t.projectId);
+    const kids = depth >= MAX_SUBTASK_DEPTH ? [] : childrenOf(record, t.id).filter(k => k.id !== t.id && (view.kind === 'completed' || !k.doneAt)), /* SB-3: a depth guard, so no chain of parents recurses without end */ open = expanded.has(t.id), project = view.kind === 'project' ? undefined : projectOf(t.projectId);
     const sib = siblingsOf(t.id), canMove = !t.doneAt && sib.length > 1 && (view.kind === 'project' || view.kind === 'inbox' || !!t.parentId);
     return <TaskRow key={t.id} task={t} today={today} nowClock={clock} record={record} depth={depth} goal={t.goal ? goals.byKey.get(t.goal) : undefined} goals={goals.open}
       links={project ? {projectName: project.name, projectColour: project.colour} : undefined}

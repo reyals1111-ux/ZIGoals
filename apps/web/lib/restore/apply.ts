@@ -3,7 +3,7 @@ import {getAppStorage, isShowcase} from '../showcase-storage';
 import {getAccountGeneration, getAccountScope} from '../account-session';
 import {importPrivateStore, parsePrivateData} from '../private-storage';
 import {durableSpace, exportDurableStore, isDurableMarker, localDatabase, readDurableStore, restoreDurableStore} from '../vault/local';
-import {recoveryCopyKeys} from '../vault/recovery-copies';
+import {pruneRecoveryCopies, recoveryCopyKeys} from '../vault/recovery-copies';
 import {restoreFailureMessage} from '../storage-error-copy';
 import {ZIGI_STORE_EVENT} from '../ai/store/keys';
 import {PORTFOLIO_KEY} from '../portfolio/schema';
@@ -45,7 +45,8 @@ type UndoStep =
   | {kind: 'photos'; scope: string; ids: string[]; before: string | null; after: string};
 /** `undoAfterReload`: the undo record was kept, so Undo also works after a reload. `stopped`: the person stopped it midway. `health`: a Health part was restored. */
 export type RestoreOutcome = {restored: string[]; failed: {label: string; error: string}[]; photos: {added: number; skipped: number}; undoable: boolean; undoAfterReload: boolean; stopped: boolean; health: boolean};
-type Session = {generation: number; storage: Storage; steps: UndoStep[]; at: string; persisted: boolean};
+/** `erase`: the session is an "Erase one area" (erase-area.ts), whose copies of what it erased go when its Undo ends. */
+type Session = {generation: number; storage: Storage; steps: UndoStep[]; at: string; persisted: boolean; erase?: boolean};
 let last: Session | null = null;
 
 export const RESTORE_UNDO_KEY = 'zigoals:restore-undo:v1';
@@ -57,8 +58,13 @@ const stepSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('vision'), scope: name, ids}),
   z.strictObject({kind: z.literal('photos'), scope: name, ids, before: z.string().max(RESTORE_UNDO_MAX_CHARS).nullable(), after: hex}),
 ]);
-/** The undo record (version 1, strict): when the restore ran, until when it can be undone, and its steps in order. */
-export const restoreUndoSchema = z.strictObject({version: z.literal(1), at: z.iso.datetime(), expiresAt: z.iso.datetime(), steps: z.array(stepSchema).min(1).max(200)});
+/**
+ * The undo record (version 1, strict): when the restore ran, until when it can be undone, and its steps in order.
+ * Session AL (security delta review B, SB-1; TIER 3 (stored format), additive and optional): `erase` marks the Undo of
+ * an "Erase one area", so the copies it kept of what it erased are removed when that Undo ends, also after a reload. An
+ * older build does not read a record with it (strict), so there it offers no Undo and removes the record; nothing else.
+ */
+export const restoreUndoSchema = z.strictObject({version: z.literal(1), at: z.iso.datetime(), expiresAt: z.iso.datetime(), steps: z.array(stepSchema).min(1).max(200), erase: z.literal(true).optional()});
 export type RestoreUndoRecord = z.infer<typeof restoreUndoSchema>;
 export const RESTORE_STOPPED_MESSAGE = 'You stopped the restore. What was restored before you stopped is listed here and can be undone; nothing else was changed.';
 class Stopped extends Error { constructor() { super(RESTORE_STOPPED_MESSAGE); } }
@@ -82,7 +88,7 @@ async function sha256(text: string): Promise<string> { return [...new Uint8Array
 const sha256OrNull = (text: string | null) => text === null ? Promise.resolve(null) : sha256(text);
 /** The undo record as stored: module bytes never go in it (they are the module's recovery copy). */
 function stored(session: Session): RestoreUndoRecord {
-  return {version: 1, at: session.at, expiresAt: new Date(Date.parse(session.at) + RESTORE_UNDO_DAYS * 86_400_000).toISOString(), steps: session.steps.map(step => step.kind === 'module' ? {kind: 'module', key: step.key, label: step.label, before: step.before, after: step.after} : step)};
+  return {version: 1, at: session.at, expiresAt: new Date(Date.parse(session.at) + RESTORE_UNDO_DAYS * 86_400_000).toISOString(), steps: session.steps.map(step => step.kind === 'module' ? {kind: 'module', key: step.key, label: step.label, before: step.before, after: step.after} : step), ...(session.erase ? {erase: true as const} : {})};
 }
 /** Keeps the undo record after each write. If it cannot be kept, none is left behind and the Undo stays in this tab's memory. */
 function persist(session: Session) {
@@ -93,19 +99,43 @@ function persist(session: Session) {
     session.storage.setItem(RESTORE_UNDO_KEY, text);
   } catch { session.persisted = false; removeRecord(session.storage); }
 }
-/** This storage view's undo record, or null (none, unreadable, expired, or naming a key or photo scope a restore never writes). */
-function readRecord(storage: Storage, now = Date.now()): RestoreUndoRecord | null {
+/** This storage view's undo record as stored, expired or not, or null (none, unreadable, or naming a key or photo scope a restore never writes). */
+function readStoredRecord(storage: Storage): RestoreUndoRecord | null {
   let raw: string | null;
   try { raw = storage.getItem(RESTORE_UNDO_KEY); } catch { return null; }
   if (raw === null) return null;
   try {
     const record = restoreUndoSchema.parse(JSON.parse(raw)), scope = getAccountScope() ?? 'local';
-    if (Date.parse(record.expiresAt) <= now) return null;
     const allowed = record.steps.every(step => step.kind === 'module' ? MODULE_KEYS.has(step.key) : step.kind === 'device' ? DEVICE_KEYS.has(step.key) : step.scope === scope);
     return allowed ? record : null;
   } catch { return null; }
 }
+/** This storage view's undo record, or null (none, unreadable, expired, or naming a key or photo scope a restore never writes). */
+function readRecord(storage: Storage, now = Date.now()): RestoreUndoRecord | null {
+  const record = readStoredRecord(storage);
+  return record && Date.parse(record.expiresAt) > now ? record : null;
+}
 function removeRecord(storage: Storage) { try { storage.removeItem(RESTORE_UNDO_KEY); } catch { /* left for its expiry */ } }
+/**
+ * Session AL (security delta review B, SB-1): the end of an erase's Undo (Undo, "Keep the erase", its 7 days over, a later
+ * restore or erase, or nothing left as erased). Every recovery copy of each record the erase wrote is removed, in this
+ * browser storage and in the private database, so nothing of what was erased stays on this device. Best effort: a copy
+ * the browser refuses to remove stays, and is listed on the Data health page. A restore's Undo keeps its copies as before.
+ */
+async function forgetErasedCopies(storage: Storage, steps: readonly UndoStep[] | RestoreUndoRecord['steps']): Promise<void> {
+  for (const step of steps) {
+    if (step.kind !== 'module' && step.kind !== 'device') continue;
+    try { pruneRecoveryCopies(storage, step.key, ''); } catch { /* kept; listed on Data health */ }
+    if (step.kind === 'module') try { if (isDurableMarker(storage.getItem(step.key))) await localDatabase.pruneRecovery(durableSpace(storage, step.key), step.key, ''); } catch { /* kept */ }
+  }
+}
+/** Ends the Undo held in this storage view (in memory or stored): an erase's copies go (above), then the stored record. */
+async function endUndo(storage: Storage, session: Session | null): Promise<void> {
+  const record = readStoredRecord(storage);
+  if (session?.erase && session.storage === storage) await forgetErasedCopies(storage, session.steps);
+  if (record?.erase) await forgetErasedCopies(storage, record.steps);
+  removeRecord(storage);
+}
 /** This session's restore, if it still belongs to this account and storage; else the stored record of an earlier tab or visit. */
 function currentSession(): Session | null {
   if (isShowcase()) return null;
@@ -113,7 +143,7 @@ function currentSession(): Session | null {
   if (last && last.steps.length > 0 && last.generation === getAccountGeneration() && last.storage === storage) return last;
   const record = readRecord(storage);
   if (!record) return null;
-  return {generation: getAccountGeneration(), storage, steps: record.steps, at: record.at, persisted: true};
+  return {generation: getAccountGeneration(), storage, steps: record.steps, at: record.at, persisted: true, ...(record.erase ? {erase: true} : {})};
 }
 
 /** This device's current value of a part: parsed, undefined when it holds none; throws when it does not read. */
@@ -136,13 +166,16 @@ const interrupted = (error: unknown) => error instanceof Stopped || (error insta
  * or between two writes when `signal` is aborted (the person pressed Stop: the outcome says `stopped`). Either way what
  * was already restored can be undone, and nothing else was changed.
  */
-export async function applyRestore(opened: OpenedBackup, choices: readonly RestoreChoice[], photos: PhotoChoice, {signal}: {signal?: AbortSignal} = {}): Promise<RestoreOutcome> {
+export async function applyRestore(opened: OpenedBackup, choices: readonly RestoreChoice[], photos: PhotoChoice, {signal, erase = false}: {signal?: AbortSignal; erase?: boolean} = {}): Promise<RestoreOutcome> {
   if (isShowcase()) throw Error(RESTORE_SHOWCASE_MESSAGE);
   const storage = getAppStorage(), generation = getAccountGeneration(), scope = getAccountScope();
   const fence = () => { if (isShowcase() || getAccountGeneration() !== generation || getAppStorage() !== storage || getAccountScope() !== scope) throw Error(RESTORE_CHANGED_MESSAGE); if (signal?.aborted) throw new Stopped(); };
-  const session: Session = {generation, storage, steps: [], at: new Date().toISOString(), persisted: true};
-  // A new restore replaces the previous one's Undo, in memory and stored (its recovery copies stay as they are).
-  last = session; removeRecord(storage);
+  const session: Session = {generation, storage, steps: [], at: new Date().toISOString(), persisted: true, ...(erase ? {erase: true} : {})};
+  // A new restore replaces the previous one's Undo, in memory and stored. A restore's recovery copies stay as they are;
+  // an erase's go now (SB-1), before this one writes copies of its own.
+  const previous = last; last = null;
+  await endUndo(storage, previous);
+  last = session; // every write below is fenced first
   const outcome: RestoreOutcome = {restored: [], failed: [], photos: {added: 0, skipped: 0}, undoable: false, undoAfterReload: false, stopped: false, health: false};
   const ordered = [...choices].sort((a, b) => Number(b.part.kind === 'module') - Number(a.part.kind === 'module'));
   try {
@@ -153,6 +186,11 @@ export async function applyRestore(opened: OpenedBackup, choices: readonly Resto
     if (photos.vision) await restoreVision(opened, session, outcome, fence);
     if (photos.progress) await restoreProgress(opened, session, outcome, fence);
   } catch (error) { if (!(error instanceof Stopped)) throw error; outcome.stopped = true; }
+  finally {
+    // SB-1: an erase whose Undo cannot outlive this tab (its record was not kept) keeps no copy at all: Undo here uses the
+    // replaced bytes this tab holds in memory, and after a reload nothing of what was erased is left.
+    if (erase && !session.persisted) await forgetErasedCopies(storage, session.steps);
+  }
   outcome.undoable = session.steps.length > 0;
   outcome.undoAfterReload = outcome.undoable && session.persisted;
   return outcome;
@@ -178,7 +216,8 @@ async function restorePart(part: PlannedPart, mode: Exclude<RestoreMode, 'leave'
       const before = storage.getItem(part.key);
       // Session AD item 11: a device copy that does not read is kept as a recovery copy before Replace writes over it
       // (the preview promises this; the modules' own path already does it), so its bytes outlive the Undo.
-      const copy = unreadable && before !== null ? `${part.key}:recovery:${crypto.randomUUID()}` : null;
+      // An erase keeps none (SB-1): its Undo record holds these bytes, for its 7 days only.
+      const copy = unreadable && before !== null && !session.erase ? `${part.key}:recovery:${crypto.randomUUID()}` : null;
       try { if (copy) storage.setItem(copy, before!); storage.setItem(part.key, JSON.stringify(next.value)); }
       catch { if (copy && storage.getItem(part.key) === before) try { storage.removeItem(copy); } catch { /* an extra copy is harmless */ } throw Error('This browser’s storage is full, so this part was not restored.'); }
       session.steps.push({kind: 'device', key: part.key, label: part.label, before, after: await sha256(storage.getItem(part.key)!)});
@@ -274,11 +313,11 @@ export async function restoreUndoStatus(now = Date.now()): Promise<{available: b
     if (isShowcase()) return NONE;
     const storage = getAppStorage(), raw = (() => { try { return storage.getItem(RESTORE_UNDO_KEY); } catch { return null; } })();
     session = currentSession();
-    if (!session) { if (raw !== null && !readRecord(storage, now)) removeRecord(storage); return NONE; }
+    if (!session) { if (raw !== null && !readRecord(storage, now)) await endUndo(storage, null); return NONE; }
     if (session === last) return {available: true, afterReload: session.persisted, at: session.at};
-    if (!readRecord(storage, now)) { removeRecord(storage); return NONE; }
+    if (!readRecord(storage, now)) { await endUndo(storage, null); return NONE; }
   } catch { return NONE; }
-  if (!(await anyStillRestored(session))) { removeRecord(session.storage); return NONE; }
+  if (!(await anyStillRestored(session))) { await endUndo(session.storage, null); return NONE; }
   return {available: true, afterReload: true, at: session.at};
 }
 /** A module's replaced bytes: from this tab's memory, or found again by digest among the module's recovery copies; undefined when no copy is left. */
@@ -300,7 +339,7 @@ export async function undoRestore(): Promise<{failed: string[]; kept: string[]; 
   let found: Session | null = null;
   try { found = currentSession(); } catch { /* none */ }
   if (!found) throw Error('There is no restore to undo.');
-  const session = found, failed: string[] = [], kept: string[] = [], missing: string[] = [], storage = session.storage;
+  const session = found, failed: string[] = [], kept: string[] = [], missing: string[] = [], storage = session.storage, notUndone = new Set<string>();
   for (const step of [...session.steps].reverse()) {
     if (session.generation !== getAccountGeneration() || storage !== getAppStorage()) throw Error(RESTORE_CHANGED_MESSAGE);
     try {
@@ -326,15 +365,21 @@ export async function undoRestore(): Promise<{failed: string[]; kept: string[]; 
         if (step.before === null) storage.removeItem(PROGRESS_PHOTOS_KEY); else storage.setItem(PROGRESS_PHOTOS_KEY, step.before);
         announceDevice(PROGRESS_PHOTOS_KEY);
       }
-    } catch { failed.push(step.kind === 'module' || step.kind === 'device' ? step.label : 'Photos'); }
+    } catch { failed.push(step.kind === 'module' || step.kind === 'device' ? step.label : 'Photos'); if (step.kind === 'module' || step.kind === 'device') notUndone.add(step.key); }
   }
-  last = null; removeRecord(storage);
+  // SB-1: after an erase's Undo, what was put back is live again and the rest was changed since, so the erase's copies go;
+  // a part whose Undo failed keeps its copy (the page says so), listed on the Data health page.
+  last = null;
+  if (session.erase) await forgetErasedCopies(storage, session.steps.filter(step => !('key' in step) || !notUndone.has(step.key)));
+  removeRecord(storage);
   return {failed, kept, missing};
 }
-/** "Keep the restore": the person is done with it; the Undo goes, here and stored. Recovery copies stay, as after any restore. */
-export function dismissRestoreUndo() {
-  last = null;
-  try { if (!isShowcase()) removeRecord(getAppStorage()); } catch { /* the account is locked: nothing to remove in this view */ }
+/** "Keep the restore": the person is done with it; the Undo goes, here and stored. Recovery copies stay, as after any restore; an erase's go (SB-1). */
+export async function dismissRestoreUndo(): Promise<void> {
+  const session = last; last = null;
+  let storage: Storage | null = null;
+  try { if (!isShowcase()) storage = getAppStorage(); } catch { /* the account is locked: nothing to remove in this view */ }
+  if (storage) { const view = storage; await endUndo(view, session).catch(() => removeRecord(view)); }
 }
 /** Forgets this tab's in-memory undo (an account change). The stored record stays with the account it belongs to. */
 export function forgetRestoreUndo() { last = null; }

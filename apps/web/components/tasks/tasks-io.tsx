@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useId, useRef, useState, type ChangeEvent} from 'react';
-import {MAX_IMPORT_BYTES, applyImport, readTaskFile, tasksCsv, type ImportPlan} from '../../lib/tasks/import';
-import {MAX_TASKS, type Tasks} from '../../lib/tasks/schema';
+import {MAX_IMPORT_BYTES, applyImport, listsOverCap, readTaskFile, tasksCsv, type ImportPlan} from '../../lib/tasks/import';
+import {MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, type Tasks} from '../../lib/tasks/schema';
 import {exportFileName} from '../../lib/showcase-detect';
 import {formatNumber} from '../../lib/visual-format';
 
@@ -27,9 +27,11 @@ export default function TasksIo({record, today, showcase, onClose, apply}: {reco
   const room = MAX_TASKS - record.tasks.length;
   const add = () => {
     if (!plan) return;
-    let overCap = 0, added = 0;
-    const ok = apply(r => { const out = applyImport(r, plan, {at: new Date(), newId: kind => `${kind}_${crypto.randomUUID()}`}); overCap = out.overCap; added = out.added.length; return out.record; }, `Imported ${plural(plan.tasks.length - Math.max(0, plan.tasks.length - room), 'task')}.`);
-    if (ok) { setStatus(`Added ${plural(added, 'task')}${overCap ? `; ${plural(overCap, 'task')} left out: the list keeps ${MAX_TASKS}` : ''}.`); setPlan(null); }
+    let overCap = 0, added = 0, merged = {lists: 0, sections: 0, tasks: 0};
+    const ok = apply(r => { const out = applyImport(r, plan, {at: new Date(), newId: kind => `${kind}_${crypto.randomUUID()}`}); overCap = out.overCap; added = out.added.length; merged = out.merged; return out.record; }, `Imported ${plural(plan.tasks.length - Math.max(0, plan.tasks.length - room), 'task')}.`);
+    // Session AL (SB-4): lists and sections past what Tasks keeps are merged, never dropped with their tasks.
+    const mergedNote = [merged.lists && `${plural(merged.lists, 'list')} over the ${MAX_PROJECTS} Tasks keeps merged into the Inbox`, merged.sections && `${plural(merged.sections, 'section')} over the ${formatNumber(MAX_SECTIONS)} kept merged into their list`].filter(Boolean).join('; ');
+    if (ok) { setStatus(`Added ${plural(added, 'task')}${overCap ? `; ${plural(overCap, 'task')} left out: the list keeps ${MAX_TASKS}` : ''}${mergedNote ? `; ${mergedNote} (${plural(merged.tasks, 'task')})` : ''}.`); setPlan(null); }
   };
   const download = () => {
     try {
@@ -40,7 +42,8 @@ export default function TasksIo({record, today, showcase, onClose, apply}: {reco
       setStatus(`Saved ${name} with ${plural(record.tasks.length, 'task')}.`);
     } catch { setError('The file could not be made on this device.'); }
   };
-  const left = plan ? [plan.skipped.done && `${plural(plan.skipped.done, 'finished task')}`, plan.skipped.unreadable && `${plural(plan.skipped.unreadable, 'row')} with no title`, plan.skipped.notes && `${plural(plan.skipped.notes, 'comment')} with no task`, plan.tasks.length > room && `${plural(plan.tasks.length - room, 'task')} over the ${MAX_TASKS} kept`].filter(Boolean) as string[] : [];
+  const overLists = plan ? listsOverCap(record, plan) : 0;
+  const left = plan ? [plan.skipped.done && `${plural(plan.skipped.done, 'finished task')}`, plan.skipped.unreadable && `${plural(plan.skipped.unreadable, 'row')} with no title`, plan.skipped.notes && `${plural(plan.skipped.notes, 'comment')} with no task`, plan.tasks.length > room && `${plural(plan.tasks.length - room, 'task')} over the ${MAX_TASKS} kept`, overLists && `${plural(overLists, 'list')} over the ${MAX_PROJECTS} Tasks keeps (their tasks go to the Inbox)`].filter(Boolean) as string[] : [];
   return <div className="panel tasks-io" role="group" aria-labelledby={`${id}-t`}>
     <h2 id={`${id}-t`}>Import and export</h2>
     <label className="field"><span>Import a Todoist CSV, a TickTick CSV backup or a calendar (.ics) file</span><input ref={input} type="file" accept=".csv,.ics,.ical,text/csv,text/calendar" disabled={busy} onChange={e => void choose(e)} /></label>

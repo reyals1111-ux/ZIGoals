@@ -83,3 +83,40 @@ Range: `17069c7d..a81b18dd` (HEAD moved from d86a85bd during the review; the thr
 | SB-7 | Info | Calculator CSV without `csvSafeCell` | Not exploitable today |
 | SB-8 | Info | Vault section restore not fenced after await | Narrow window |
 | SB-9 | Info | Back marker can swallow a real Back within 1 s | Usability, not security |
+
+## Fixes (8 Nov)
+
+All fixes are labelled **TIER 3 (stored format)**. No stored shape changed except one additive, optional field (SB-1, below).
+
+- **SB-1 · Fixed.** An erase's Undo record now carries `erase: true` (optional field on `zigoals:restore-undo:v1`; an older build does not read such a record, so it offers no Undo there and removes the record). When that Undo ends, every `<key>:recovery:*` copy of each record the erase wrote is removed, in browser storage and in the private database. "Ends" means Undo, "Keep the erase", the 7 days being over (seen the next time the restore page opens), a later restore or erase, or nothing being left as erased. A part whose Undo fails keeps its copy. An erase no longer makes a copy of an unreadable device record, because the Undo record holds those bytes. An erase whose Undo cannot outlive the tab keeps no copy at all. The page now says what is kept and for how long. A restore's copies are unchanged.
+  - Files: `lib/restore/apply.ts`, `lib/restore/erase-area.ts`, `components/restore/restore-backup.tsx`.
+  - Tests: `lib/restore/erase-area.test.ts` (6 new); the existing `undo-reload.test.ts` "Keep the restore keeps copies" still passes.
+- **SB-2 · Fixed.** `forgetAaDeviceRecords` (the account erase) now also removes the recovery copies of every key it erases. Erase everything already removed them (they start with `zigoals`).
+  - Files: `lib/aa-device-forget.ts`.
+  - Tests: `lib/aa-device-forget-recovery.test.ts` (Tasks, the Checklist and its days, the journal, the money log and notes; every restore device part; a storage view that cannot list its keys).
+- **SB-3 · Fixed.** `applyImport` looks up the parent before it records the task's own id, and ignores a parent that names the task itself. `tasksSchema` now breaks loops on read (`breakParentLoops`): a self-parent, a loop of parents (one link per loop) or a missing parent reads as top-level. The Tasks page stops drawing subtasks at `MAX_SUBTASK_DEPTH` (8).
+  - Files: `lib/tasks/import.ts`, `lib/tasks/schema.ts`, `components/tasks/tasks-page.tsx`.
+  - Tests: `lib/tasks/import-safety.test.ts` (ICS UID == RELATED-TO, TickTick self-parent, ICS 2-cycle, schema self/2-/3-cycle and missing parent, depth guard).
+- **SB-4 · Fixed.** `applyImport` stops making lists at `MAX_PROJECTS` and sections at `MAX_SECTIONS`. Tasks of a list past the cap go to the Inbox; tasks of a section past the cap stay in their list. The result counts these in `merged`. The preview names the lists over the cap (`listsOverCap`), and the status line says how many lists and sections were merged.
+  - Files: `lib/tasks/import.ts`, `components/tasks/tasks-io.tsx`.
+  - Tests: `lib/tasks/import-safety.test.ts` (120 lists, a record near the cap, 310 sections).
+- **SB-5 · Fixed.** PRIVACY.md has a Session AL block covering:
+  - the 10 keys;
+  - the protected copy's new contents;
+  - recovery copies and their erase;
+  - what Erase one area keeps;
+  - the 30-day photo grace for a deleted note;
+  - tab drafts.
+  - Files: `docs/PRIVACY.md`.
+  - Tests: `lib/security-delta-b.test.ts` (every `AL_ERASE_KEYS` literal is named in PRIVACY.md).
+- **SB-6 · Fixed.** A new `forgetTabDrafts()` clears the welcome, habit and Goal-wizard drafts from sessionStorage. The account erase (`forgetAaDeviceRecords`) and Sign out (`components/account-access.tsx`, TIER 3 auth: one added call) both run it. A switch of account without a Sign out is not covered (see SB-6 left open).
+  - Files: `lib/tab-drafts.ts` (new), `lib/aa-device-forget.ts`, `components/account-access.tsx`.
+  - Tests: `lib/aa-device-forget-recovery.test.ts`.
+- **SB-7 · Fixed (one line, fail-closed).** The calculator's `csvCell` applies the shared `CSV_FORMULA_START` guard to text cells. A plain number, a negative one included, stays a number, so the format is unchanged.
+  - Files: `components/calculator/calculator-extras.ts`.
+  - Tests: `lib/security-delta-b.test.ts`; the existing C-TK-31 test still passes.
+- **SB-8 · Recorded.** Info, and the window is narrow: `ACCOUNT_CHANGE` already clears the preview. The fix (capture storage and generation before the await, re-check them, and write under `withStorageLock`) is not one line. It also belongs to `components/private-vault-tools.tsx`, which is sync/vault code.
+- **SB-9 · Recorded.** Info, usability only: no navigation goes anywhere unexpected.
+- **Left open:**
+  - SB-6 on a plain `ACCOUNT_CHANGE` with no Sign out: the drafts are not tied to an account. Fixing that would mean touching `lib/account-session.ts` or scoping the drafts.
+  - An erase whose 7 days end while the restore page never opens keeps its copy until that page next opens, or until the account erase or Erase everything. The page and PRIVACY.md say so.

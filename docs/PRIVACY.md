@@ -233,3 +233,34 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
   Permissions and your own model.
 - **Running now:** NOVA's live chips read the timers already on this device (Pomodoro, meditation, habit timers, fasting,
   sleep); nothing is stored or sent.
+
+**Session AL (November 2026): new device records, the protected copy, erasing one area.** Everything here stays on this
+device, is never synced, is in "Export everything" and is removed by the account's erase and by "Erase everything on this
+device".
+- **Names you gave tracked wallets** (`zigoals:wallet-names:v1`): the labels you typed for wallets you track. Personal.
+- **Meal names and times, drink types** (`zigoals:health-extras:v1`): Health-describing, so it is restored only with the
+  Health choice and is in the protected copy only when you include Health.
+- **Your first name for Today's greeting** (`zigoals:profile-name:v1`): only if you gave one in setup.
+- **Markets favourites beyond the first eight** (`zigoals:markets-watchlist-more:v1`): the coins you starred after the
+  eight that sync.
+- **Display choices, nothing about you:** which apps show and whether the sidebar's Apps group is folded
+  (`zigoals:apps:v1`), NOVA's look and HUD preset (`zigoals:nova-hud:v1`), "Count stablecoins as cash"
+  (`zigoals:stablecoins-as-cash:v1`), today's chess puzzle moves and the daily puzzles played (`zigoals:chess-puzzle:v1`,
+  `zigoals:chess-puzzle-log:v1`; public puzzles) and the Ecosystem value-locked figures this device read
+  (`zigoals:eco-tvl-history:v1`; public numbers). Display choices are never restored from a backup.
+- **The protected copy** ("Keep a protected copy", encrypted with your recovery secret) now also carries Tasks, the
+  Checklist and its day history, and the other device records "Restore from a backup" brings back: accounts and debts,
+  spending, bills, the journal, notes, NOVA's records, workouts and the rest. The Health ones (and the Checklist's Health
+  quick inputs) are in it only when you tick "Include my Health records". Keys, secrets and display choices never are.
+  Restoring it keeps what it replaced as a recovery copy in this browser, like any restore.
+- **Recovery copies** (`<record>:recovery:<id>`, listed on the Data health page): never exported or synced. The account's
+  erase now removes them with their records, and "Erase everything" removes them all.
+- **Erase one area** (Settings → Your data → Restore from a backup): until its 7-day Undo ends, this device keeps a copy of what was erased, only
+  so Undo can put it back. The copy is removed when you choose Undo or "Keep the erase", when a later restore or erase
+  replaces the Undo, or once the 7 days are over (the next time that page opens). If the Undo cannot outlast the tab, no
+  copy is kept at all.
+- **A deleted note's photo** stays on this device for 30 days after Notes first finds no note using it, so undoing a
+  restore can bring the note back with its photo; it is removed the next time Notes opens after that. While it waits it is
+  not shown and not exported; "Erase everything" and the account's erase remove it at once.
+- **Unsaved forms in this tab** (the welcome's first name and goal, a new habit's title, the Goal wizard): kept in this
+  tab's session storage across a reload only, gone when the tab closes, and cleared by Sign out and the account's erase.

@@ -9,7 +9,9 @@ import {CHECKLIST_KEY} from '../af-checklist-keys';
 import {AI_MEMORY_KEY} from '../ai/store/keys';
 import {JOURNAL_KEY} from '../journal/schema';
 import {ERASE_AREAS, eraseArea, eraseInventory} from './erase-area';
-import {forgetRestoreUndo, undoRestore} from './apply';
+import {vi} from 'vitest';
+import {RESTORE_UNDO_KEY, dismissRestoreUndo, forgetRestoreUndo, restoreUndoStatus, undoRestore} from './apply';
+import {TASKS_KEY} from '../tasks/schema';
 
 // Session AL (GAP-176, C-BN-28): "Erase one area" on this device, with the restore's Undo. Fictional (Showcase) data only.
 const {records} = buildShowcase('2026-09-20', 'UTC', {aa: true});
@@ -66,3 +68,66 @@ describe('Erase one area', () => {
     for (const area of ERASE_AREAS) expect(await eraseInventory(localStorage, area), area).toEqual([]);
   });
 });
+
+// Session AL (security delta review B, SB-1): an erase keeps a copy of what it erased only for its Undo; the copy goes when
+// the Undo ends (Undo, "Keep the erase", its 7 days over, a later restore or erase). A restore's copies stay, as before.
+const copies = (key?: string) => Object.keys(localStorage).filter(k => k.includes(':recovery:') && (!key || k.startsWith(`${key}:recovery:`)));
+describe('SB-1: Erase one area keeps no recovery copy beyond its Undo', () => {
+  test('Health: the copy exists for the Undo, and “Keep the erase” removes it', async () => {
+    load();
+    await eraseArea(await eraseInventory(localStorage, 'Health'));
+    expect(copies(HEALTH_STORAGE_KEY)).toHaveLength(1);
+    expect(localStorage.getItem(RESTORE_UNDO_KEY)).toContain('"erase":true');
+    await dismissRestoreUndo();
+    expect(copies(HEALTH_STORAGE_KEY)).toEqual([]);
+    expect(localStorage.getItem(RESTORE_UNDO_KEY)).toBeNull();
+  });
+  test('Health: once the 7 days are over (after a reload), the page’s next look removes the copy and the record', async () => {
+    load();
+    await eraseArea(await eraseInventory(localStorage, 'Health'));
+    forgetRestoreUndo(); // a reload: only the stored record is left
+    expect((await restoreUndoStatus(Date.now() + 3 * 86_400_000)).available).toBe(true);
+    expect(copies(HEALTH_STORAGE_KEY)).toHaveLength(1);
+    expect((await restoreUndoStatus(Date.now() + 8 * 86_400_000)).available).toBe(false);
+    expect(copies(HEALTH_STORAGE_KEY)).toEqual([]);
+    expect(localStorage.getItem(RESTORE_UNDO_KEY)).toBeNull();
+  });
+  test('Undo puts Health back and then leaves no copy of it', async () => {
+    load();
+    const before = localStorage.getItem(HEALTH_STORAGE_KEY);
+    await eraseArea(await eraseInventory(localStorage, 'Health'));
+    forgetRestoreUndo();
+    expect(await undoRestore()).toEqual({failed: [], kept: [], missing: []});
+    expect(localStorage.getItem(HEALTH_STORAGE_KEY)).toBe(before);
+    expect(copies()).toEqual([]);
+  });
+  test('a later erase replaces the Undo, and the first erase’s copies go with it', async () => {
+    load();
+    await eraseArea(await eraseInventory(localStorage, 'Health'));
+    await eraseArea(await eraseInventory(localStorage, 'Habits'));
+    expect(copies(HEALTH_STORAGE_KEY)).toEqual([]);
+    expect(copies(HABITS_KEY)).toHaveLength(1);
+  });
+  test('a device record that does not read is erased with no recovery copy; Undo still puts its bytes back', async () => {
+    load({[TASKS_KEY]: '{"version":1,"tasks":"not a list"}'});
+    const rows = await eraseInventory(localStorage, 'Today and Life'), row = rows.find(r => r.part.key === TASKS_KEY);
+    expect(row?.unreadable).toBe(true);
+    await eraseArea(rows);
+    expect(copies(TASKS_KEY)).toEqual([]);
+    await undoRestore();
+    expect(localStorage.getItem(TASKS_KEY)).toBe('{"version":1,"tasks":"not a list"}');
+  });
+  test('when the Undo cannot outlive the tab (its record is refused), no copy is kept at all; Undo here still works', async () => {
+    load();
+    const before = localStorage.getItem(HEALTH_STORAGE_KEY), real = Storage.prototype.setItem;
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, k: string, v: string) { if (k === RESTORE_UNDO_KEY) throw new DOMException('full', 'QuotaExceededError'); real.call(this, k, v); });
+    try {
+      const outcome = await eraseArea(await eraseInventory(localStorage, 'Health'));
+      expect(outcome).toMatchObject({undoable: true, undoAfterReload: false});
+      expect(copies(HEALTH_STORAGE_KEY)).toEqual([]);
+    } finally { spy.mockRestore(); }
+    await undoRestore();
+    expect(localStorage.getItem(HEALTH_STORAGE_KEY)).toBe(before);
+  });
+});
+

@@ -5,6 +5,7 @@ import * as z from 'zod';
 import {ACCOUNT_CHANGE,activateAccount,clearAccountSession,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount} from '../lib/account-session';
 import {isShowcase} from '../lib/showcase-storage';
 import {plainErrorMessage} from '../lib/plain-error';
+import {forgetTabDrafts} from '../lib/tab-drafts';
 type Props={onAuthenticated?:(accountId:string)=>void|Promise<void>;onSignout?:()=>void|Promise<void>;onVerifying?:(active:boolean)=>void;onDenied?:(code:'SESSION_REVOKED'|'ACCOUNT_DELETED')=>void|Promise<void>};
 const identity=z.object({signedIn:z.literal(true),accountId:z.uuid()});
 const denial=z.object({signedIn:z.literal(false),error:z.enum(['SESSION_REVOKED','ACCOUNT_DELETED'])});
@@ -67,6 +68,7 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying,onDenied}:P
   // Push reminders (ADR-010): this device's subscription leaves the server while the session is still valid; no request without a record.
   await forgetPushOnThisDevice({deleteAll:false});
   try{clearAccountSession();}catch{setMessage('Account selection could not be cleared. Close this tab to keep it locked.');}
+  forgetTabDrafts();// Session AL (SB-6): this tab's unsaved drafts (a first name, a goal, a habit title) never prefill the next account's forms.
   try{await callbacks.current.onSignout?.();}catch{/* Session access is already locked; key cleanup must not prevent server logout. */}
   setStatus('signed-out');
   try{const res=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json'},cache:'no-store',body:'{"action":"signout"}'});const data=await response(res);setMessage(data.remoteRevocationConfirmed?'Signed out. Local records remain separate.':'Signed out on this browser. Server session revocation could not be confirmed.');}

@@ -1,7 +1,7 @@
 import {csvSafeCell} from '../export/csv-safe';
 import {parseTaskLine} from './parse';
 import {describeRecur} from './recurrence';
-import {MAX_TASKS, TASK_CLOCK, TASK_NOTES_MAX, TASK_TITLE_MAX, LABEL_PATTERN, levelFields, taskLevel, tasksSchema, type Recur, type Task, type TaskLevel, type Tasks} from './schema';
+import {MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, TASK_CLOCK, TASK_NOTES_MAX, TASK_TITLE_MAX, LABEL_PATTERN, levelFields, taskLevel, tasksSchema, type Recur, type Task, type TaskLevel, type Tasks} from './schema';
 
 /**
  * Session AL (Part 8, P-LS-37, C-LS-23/24): bringing tasks in from Todoist (CSV), TickTick (CSV) and a calendar file's
@@ -154,34 +154,56 @@ export function readTaskFile(text: string, {fileName, today}: {fileName: string;
   throw new Error('This file is not one ZIGoals reads: a Todoist CSV, a TickTick CSV backup or a calendar (.ics) file.');
 }
 
-/** Adds a plan to the record: projects and sections made as needed, subtasks under their parents. Over the cap is left out. */
-export function applyImport(record: Tasks, plan: ImportPlan, {at, newId}: {at: Date; newId: (kind: 'task' | 'project' | 'section') => string}): {record: Tasks; added: string[]; overCap: number} {
+/**
+ * Adds a plan to the record: projects and sections made as needed, subtasks under their parents. Over the cap is left out.
+ *
+ * Session AL (security delta review B; TIER 3 (stored format), no shape change):
+ * - SB-3: a parent is looked up before the task's own reference is known, and a task that names itself as its parent (an
+ *   .ics UID equal to its RELATED-TO, a TickTick row whose parentId is its own taskId) is added as a top-level task.
+ * - SB-4: projects and sections stop at the caps the record keeps (MAX_PROJECTS, MAX_SECTIONS), so none is dropped later
+ *   with its tasks pointing at it. The tasks of a list past the cap go to the Inbox; those of a section past the cap stay
+ *   in their project without a section. `merged` counts both, for the page to say so.
+ */
+export function applyImport(record: Tasks, plan: ImportPlan, {at, newId}: {at: Date; newId: (kind: 'task' | 'project' | 'section') => string}): {record: Tasks; added: string[]; overCap: number; merged: {lists: number; sections: number; tasks: number}} {
   const stamp = at.toISOString(), projects = [...(record.projects ?? [])], sections = [...(record.sections ?? [])], tasks = [...record.tasks];
+  const mergedLists = new Set<string>(), mergedSections = new Set<string>();
   const projectId = (name?: string) => {
     if (!name) return undefined;
     let p = projects.find(x => x.name.toLowerCase() === name.toLowerCase());
-    if (!p) { p = {id: newId('project'), name: name.slice(0, 60), colour: 'grey', order: projects.length}; projects.push(p); }
+    if (!p) {
+      if (projects.length >= MAX_PROJECTS) { mergedLists.add(name.toLowerCase()); return undefined; }
+      p = {id: newId('project'), name: name.slice(0, 60), colour: 'grey', order: projects.length}; projects.push(p);
+    }
     return p.id;
   };
   const sectionId = (pid: string | undefined, name?: string) => {
     if (!pid || !name) return undefined;
     let s = sections.find(x => x.projectId === pid && x.name.toLowerCase() === name.toLowerCase());
-    if (!s) { s = {id: newId('section'), projectId: pid, name: name.slice(0, 60), order: sections.filter(x => x.projectId === pid).length}; sections.push(s); }
+    if (!s) {
+      if (sections.length >= MAX_SECTIONS) { mergedSections.add(`${pid}\n${name.toLowerCase()}`); return undefined; }
+      s = {id: newId('section'), projectId: pid, name: name.slice(0, 60), order: sections.filter(x => x.projectId === pid).length}; sections.push(s);
+    }
     return s.id;
   };
   const ids = new Map<string, string>(), added: string[] = [];
-  let overCap = 0, order = 0;
+  let overCap = 0, order = 0, mergedTasks = 0;
   for (const item of plan.tasks) {
     if (tasks.length >= MAX_TASKS) { overCap++; continue; }
     const id = newId('task'), pid = projectId(item.project), sid = sectionId(pid, item.section);
+    if ((item.project && !pid) || (item.section && pid && !sid)) mergedTasks++;
+    const parent = item.parentRef && item.parentRef !== item.ref ? ids.get(item.parentRef) : undefined;
     ids.set(item.ref, id);
-    const parent = item.parentRef ? ids.get(item.parentRef) : undefined;
     tasks.push({id, title: item.title, ...(item.level ? levelFields(item.level) : {priority: 'normal' as const}), ...(item.due ? {due: item.due} : {}), ...(item.due && item.time ? {time: item.time} : {}),
       ...(item.due && item.recur ? {recur: item.recur} : {}), ...(item.labels?.length ? {labels: item.labels} : {}), ...(item.notes ? {notes: item.notes} : {}),
       ...(pid ? {projectId: pid} : {}), ...(sid ? {sectionId: sid} : {}), ...(parent ? {parentId: parent} : {}), order: (order += 10), createdAt: stamp, updatedAt: stamp, ...(item.done ? {doneAt: stamp} : {})} as Task);
     added.push(id);
   }
-  return {record: tasksSchema.parse({...record, tasks, projects, sections}), added, overCap};
+  return {record: tasksSchema.parse({...record, tasks, projects, sections}), added, overCap, merged: {lists: mergedLists.size, sections: mergedSections.size, tasks: mergedTasks}};
+}
+/** Session AL (SB-4): how many of a plan's lists this record has no room for (it keeps MAX_PROJECTS); their tasks would go to the Inbox. */
+export function listsOverCap(record: Tasks, plan: ImportPlan): number {
+  const held = new Set((record.projects ?? []).map(p => p.name.toLowerCase())), fresh = [...new Set(plan.projects.map(p => p.toLowerCase()))].filter(p => !held.has(p));
+  return Math.max(0, fresh.length - Math.max(0, MAX_PROJECTS - (record.projects ?? []).length));
 }
 
 /** Every task as CSV (spreadsheet-safe cells: a title starting with = + - @ cannot run as a formula). */
