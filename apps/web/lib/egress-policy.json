@@ -37,8 +37,8 @@
     "site": { "connect": [], "img": [], "frame": [] }
   },
   "permissionsPolicy": {
-    "global": "camera=(), microphone=(), geolocation=(), bluetooth=()",
-    "app": "camera=(), microphone=(self), geolocation=(), bluetooth=()",
-    "health": "camera=(self), microphone=(self), geolocation=(), bluetooth=(self)"
+    "global": "camera=(), microphone=(), geolocation=()",
+    "app": "camera=(), microphone=(self), geolocation=()",
+    "health": "camera=(self), microphone=(self), geolocation=()"
   }
 }

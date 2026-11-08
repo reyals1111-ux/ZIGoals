@@ -21,7 +21,8 @@ export function healthNavigation({href,origin,cameraAllowed,accountOpen,button,m
 export function documentAllowsCamera(doc:Document):boolean{return documentAllowsFeature(doc,'camera');}
 /**
  * Whether this document may use a policy-controlled feature, where the browser can tell; otherwise false. Session W
- * Part 8: Web Bluetooth follows the camera's rule (`bluetooth=(self)` only on a document loaded as /app/health).
+ * Part 8: Web Bluetooth followed the camera's rule; since Session AL (TK-191) the header carries no "bluetooth" token
+ * (Chromium does not recognise one), and only Health's components reach the API.
  */
 /**
  * Session AL third pass (INT, Bluetooth): what this document's policy says about a feature. A browser that does not

@@ -3,8 +3,9 @@ import {parseBodyComposition, parseHeartRate, parseWeight, type BodyCompositionR
 
 /**
  * Web Bluetooth for a heart-rate monitor and a scale (Session W Part 8). Feature-detected: the API exists in Chrome and
- * Edge on desktop and in Chrome on Android, not in Safari, Firefox or on iOS; the document must also allow it, which only
- * a page loaded as /app/health does (`bluetooth=(self)`). The browser shows its own chooser; only the standard services
+ * Edge on desktop and in Chrome on Android, not in Safari, Firefox or on iOS. Only Health's own components use it (Session
+ * AL TK-191: Chromium has no "bluetooth" Permissions-Policy feature, so that token was removed; lib/public-safety.test.ts
+ * keeps the module to components/health). The browser shows its own chooser; only the standard services
  * named here can be used (heart_rate, weight_scale, body_composition). Readings stay in this page.
  */
 type Characteristic = EventTarget & {value: DataView | null; startNotifications(): Promise<unknown>; stopNotifications(): Promise<unknown>};

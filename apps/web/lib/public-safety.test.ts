@@ -1,5 +1,7 @@
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { NextRequest } from "next/server";
 import { config, middleware } from "../middleware";
@@ -40,8 +42,12 @@ test("production policy has per-request unpredictable nonces and exact connectio
   expect(a.csp).toContain("worker-src 'self'");
 });
 test("Permissions-Policy: denied everywhere, the microphone on the app's own pages, the camera only on Health; the entries are ordered so the last match wins", async () => {
-  // Session W Part 8: Web Bluetooth (heart-rate monitors, scales) only on Health; denied on every other document.
-  expect(egress.permissionsPolicy).toEqual({ global: "camera=(), microphone=(), geolocation=(), bluetooth=()", app: "camera=(), microphone=(self), geolocation=(), bluetooth=()", health: "camera=(self), microphone=(self), geolocation=(), bluetooth=(self)" });
+  // Session W Part 8: Web Bluetooth (heart-rate monitors, scales) only on Health. Session AL (TK-191, TIER 3 headers): Chromium
+  // does not recognise a "bluetooth" Permissions-Policy feature ("Unrecognized feature: 'bluetooth'" on every load) and no
+  // other engine ships Web Bluetooth, so the token enforced nothing; it is gone, and "only on Health" is held in the code:
+  // nothing outside components/health may import the Bluetooth module (the next test).
+  expect(egress.permissionsPolicy).toEqual({ global: "camera=(), microphone=(), geolocation=()", app: "camera=(), microphone=(self), geolocation=()", health: "camera=(self), microphone=(self), geolocation=()" });
+  for (const value of Object.values(egress.permissionsPolicy)) expect(value).not.toMatch(/bluetooth/);
   const entries = await nextConfig.headers!();
   const permission = (source: string) => entries.find(e => e.source === source)?.headers.find(h => h.key === "Permissions-Policy")?.value;
   expect(permission("/(.*)")).toBe(egress.permissionsPolicy.global);
@@ -173,4 +179,13 @@ test("icon and crawler policy are actual public files, with no competing metadat
   // Session X Part 5a: the web app manifest is a public file; no metadata route competes with it.
   expect(JSON.parse(readFileSync(new URL("../public/manifest.webmanifest",import.meta.url),"utf8")).start_url).toBe("/app");
   expect(existsSync(new URL("../app/manifest.ts",import.meta.url))).toBe(false);
+});
+
+test("Web Bluetooth is reachable only from Health's own components (TK-191: the policy token Chromium ignored is gone)", () => {
+  const root = fileURLToPath(new URL("..", import.meta.url));
+  const users: string[] = [];
+  const walk = (dir: string) => { for (const name of readdirSync(dir)) { if (name === "node_modules" || name.startsWith(".")) continue; const at = join(dir, name); if (statSync(at).isDirectory()) walk(at); else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name)) { const text = readFileSync(at, "utf8"); if (/lib\/bluetooth|navigator\.bluetooth|requestDevice\(/.test(text)) users.push(relative(root, at)); } } };
+  for (const dir of ["app", "components", "lib"]) walk(join(root, dir));
+  expect(users.filter(f => !f.startsWith("components/health/") && !f.startsWith("lib/bluetooth/")), "Bluetooth outside Health").toEqual([]);
+  expect(users.some(f => f.startsWith("components/health/"))).toBe(true);
 });

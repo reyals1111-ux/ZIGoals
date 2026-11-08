@@ -70,8 +70,9 @@ test("the effective Permissions-Policy: the microphone on the app pages, the cam
   }
   expect(egress.permissionsPolicy.app).toContain("microphone=(self)"); expect(egress.permissionsPolicy.app).toContain("camera=()");
   expect(egress.permissionsPolicy.health).toContain("camera=(self)"); expect(egress.permissionsPolicy.health).toContain("microphone=(self)");
-  // Session W Part 8: Web Bluetooth only on Health.
-  expect(egress.permissionsPolicy.health).toContain("bluetooth=(self)"); expect(egress.permissionsPolicy.app).toContain("bluetooth=()"); expect(egress.permissionsPolicy.global).toContain("bluetooth=()");
+  // Session W Part 8: Web Bluetooth only on Health — Session AL (TK-191, TIER 3 headers): held in the code, not the header
+  // (Chromium does not recognise a "bluetooth" policy feature and logged an error on every load; lib/public-safety.test.ts).
+  for (const value of Object.values(egress.permissionsPolicy)) expect(value).not.toContain("bluetooth");
   // The root redirects to /app (307); the global policy is asserted on that response itself, not on the page it leads to.
   const root = await request.get("/", {maxRedirects: 0});
   expect([200, 307, 308]).toContain(root.status());
