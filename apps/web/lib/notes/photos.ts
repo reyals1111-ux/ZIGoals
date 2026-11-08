@@ -8,7 +8,8 @@ import * as z from 'zod';
  */
 export const NOTE_PHOTO_DB = 'zigoals-notes-photos-v1', NOTE_PHOTO_STORE = 'photos';
 export const MAX_NOTE_PHOTOS = 300, NOTE_PHOTO_MAX_BYTES = 200_000;
-export const notePhotoValueSchema = z.object({blob: z.instanceof(Blob), type: z.enum(['image/webp', 'image/jpeg']), bytes: z.number().int().min(1).max(NOTE_PHOTO_MAX_BYTES), at: z.iso.datetime()});
+/** `orphanSince` (Session AL Part 14, security review Z1B-7; optional, additive): when the sweep first found no note naming the photo. */
+export const notePhotoValueSchema = z.object({blob: z.instanceof(Blob), type: z.enum(['image/webp', 'image/jpeg']), bytes: z.number().int().min(1).max(NOTE_PHOTO_MAX_BYTES), at: z.iso.datetime(), orphanSince: z.iso.datetime().optional()});
 export type NotePhoto = z.infer<typeof notePhotoValueSchema>;
 export const notePhotoKey = (scope: string, photoId: string) => `${scope}:${photoId}`;
 
@@ -53,8 +54,32 @@ export async function deleteAllNotePhotos(scope: string): Promise<number> {
   if (ids.length) await run('readwrite', s => { for (const id of ids) s.delete(notePhotoKey(scope, id)); });
   return ids.length;
 }
-/** Photo ids no note names any more (a deleted note's photo is removed once its Undo has passed). */
-export const orphanPhotoIds = (kept: readonly string[], named: readonly (string | undefined)[]) => { const used = new Set(named.filter(Boolean)); return kept.filter(id => !used.has(id)); };
+/** How long a photo no note names is kept before the sweep deletes it (Z1B-7). */
+export const NOTE_PHOTO_ORPHAN_GRACE_DAYS = 30;
+const DAY_MS = 86_400_000;
+/**
+ * Session AL Part 14 (security review Z1B-7): the arrival sweep. A Restore that replaces the notes with an older copy
+ * leaves today's photos unnamed, and Undo of that restore brings the notes back: so a photo no note names is first marked
+ * (`orphanSince`, now) and deleted only once it has stayed unnamed for {@link NOTE_PHOTO_ORPHAN_GRACE_DAYS} days. A photo
+ * a note names again loses its mark. A photo that does not read is left as it is.
+ */
+export async function sweepNotePhotos(scope: string, named: readonly (string | undefined)[], now = Date.now()): Promise<{deleted: string[]; marked: string[]; kept: string[]}> {
+  const used = new Set(named.filter(Boolean)), out = {deleted: [] as string[], marked: [] as string[], kept: [] as string[]};
+  for (const id of await notePhotoIds(scope)) {
+    const photo = await getNotePhoto(scope, id);
+    if (!photo) continue;
+    const key = notePhotoKey(scope, id);
+    if (used.has(id)) {
+      if (photo.orphanSince) { const {orphanSince: _o, ...rest} = photo; void _o; await run('readwrite', s => s.put(rest, key)); }
+      continue;
+    }
+    const since = photo.orphanSince ? Date.parse(photo.orphanSince) : NaN;
+    if (!Number.isFinite(since)) { await run('readwrite', s => s.put({...photo, orphanSince: new Date(now).toISOString()}, key)); out.marked.push(id); }
+    else if (now - since >= NOTE_PHOTO_ORPHAN_GRACE_DAYS * DAY_MS) { await deleteNotePhoto(scope, id); out.deleted.push(id); }
+    else out.kept.push(id);
+  }
+  return out;
+}
 /** Every kept photo of this scope, for the Markdown export (a photo that does not read is left out). */
 export async function notePhotosForExport(scope: string, ids: readonly string[]): Promise<Map<string, {data: Uint8Array; type: string}>> {
   const out = new Map<string, {data: Uint8Array; type: string}>();

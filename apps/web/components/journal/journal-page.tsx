@@ -34,13 +34,19 @@ const YourScales = lazy(() => import('../scales/your-scales'));
  * patterns over the last 14 entries, the last 14 days of energy, and the two privacy switches: ZIGi's questions on or
  * off, and whether ZIGi may send the journal to the person's own AI (off by default). Everything stays on this device.
  */
+/** Session AL Part 14 (R18): a day as words ("Mon, Nov 2"), for the energy bars' tooltip and screen-reader text. */
+const dayWords = (day: string) => formatDate(day, {weekday: true, year: false});
+
 export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate();
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
   const [query, setQuery] = useState('');
   const entries = useMemo(() => [...journal.data.entries].reverse().filter(e => !query.trim() || e.text.toLowerCase().includes(query.trim().toLowerCase())), [journal.data.entries, query]);
+  // Session AL Part 14 (RELEASE_REVIEW R18): an entry's day in words ("Mon, Nov 2, 2026"), never "2026-11-02".
+  const entryDays = useMemo(() => new Map(journal.data.entries.map(e => [e.date, {long: formatDate(e.date, {weekday: true}), short: formatDate(e.date)}])), [journal.data.entries]);
   const found = useMemo(() => patterns(journal.data, energy.data), [journal.data, energy.data]);
-  const days = Array.from({length: 14}, (_, i) => addLocalDays(today, i - 13));
+  // Session AL Part 14 (R18): each day with its words ("Mon, Nov 2") for the bars' tooltip and screen-reader text.
+  const days = useMemo(() => Array.from({length: 14}, (_, i) => { const d = addLocalDays(today, i - 13); return {d, words: dayWords(d)}; }), [today]);
   // Session AJ (item 10; COMPANIONS.md P2): this week's check-ins, energy and (while Health shows) the day's mood.
   const health = useHealth(), healthShown = isShown(usePagesView(), 'health');
   const moodDays = useMemo(() => healthShown && health.loaded && !health.error ? Object.fromEntries(Object.entries(healthGroupIn(health.data, 'moods')?.days ?? {}).map(([d, m]) => [d, m.mood])) : {}, [healthShown, health.loaded, health.error, health.data]);
@@ -62,9 +68,9 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <section className="panel" aria-labelledby="journal-entries"><h2 id="journal-entries">Entries</h2>
       <label className="field"><span>Search your journal</span><input type="search" value={query} onChange={e => setQuery(e.target.value)}/></label>
       {entries.length ? <ol className="journal-entries">{entries.map(e => <li key={e.id}>
-        <p className="journal-entry-date">{e.date}</p><p className="journal-entry-text">{e.text}</p>
+        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time></p><p className="journal-entry-text">{e.text}</p>
         {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
-        <button type="button" className="text-link" aria-label={`Remove the entry of ${e.date}`} onClick={() => remove(e)}>Remove</button>
+        <button type="button" className="text-link" aria-label={`Remove the entry of ${entryDays.get(e.date)?.short ?? e.date}`} onClick={() => remove(e)}>Remove</button>
       </li>)}</ol> : query ? <p className="fine">No entry has those words.</p> : <ArtNote pillar="orbit"><p className="fine">No entries yet. Write a few lines above.</p></ArtNote>}
     </section>
     <section className="panel" id="your-scales" aria-labelledby="journal-scales-title"><h2 id="journal-scales-title">Your own scales</h2><LoadBoundary quiet><Suspense fallback={null}><YourScales day={today}/></Suspense></LoadBoundary></section>
@@ -81,7 +87,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       <p className="fine">Counted from your own check-ins on this device; never a judgement and not advice.</p>
     </section>
     <section className="panel" aria-labelledby="journal-energy-title"><h2 id="journal-energy-title">Energy, the last 14 days</h2>
-      <ol className="journal-energy-bars" aria-label="Energy per day">{days.map(d => { const v = energy.data.days[d]?.energy; return <li key={d} title={`${d}: ${v ? `${v} of 5, ${ENERGY_WORDS.en[v - 1]}` : 'not rated'}`}><span className="journal-energy-bar" style={{height: `${v ? v * 20 : 4}%`}} data-empty={v ? undefined : ''}/><span className="sr-only">{d}: {v ? `${v} of 5` : 'not rated'}</span></li>; })}</ol>
+      <ol className="journal-energy-bars" aria-label="Energy per day">{days.map(({d, words}) => { const v = energy.data.days[d]?.energy; return <li key={d} title={`${words}: ${v ? `${v} of 5, ${ENERGY_WORDS.en[v - 1]}` : 'not rated'}`}><span className="journal-energy-bar" style={{height: `${v ? v * 20 : 4}%`}} data-empty={v ? undefined : ''}/><span className="sr-only">{words}: {v ? `${v} of 5` : 'not rated'}</span></li>; })}</ol>
     </section>
     <OnDemandFold className="year-pixels-fold" summary="Year: one square a day" label="Your year"><YearPixels today={today}/></OnDemandFold>
     {found.length > 0 && <section className="panel" aria-labelledby="journal-patterns"><h2 id="journal-patterns">Patterns</h2><ul>{found.slice(0, 4).map(p => <li key={p.theme}>{patternLine(p, 'en')}</li>)}</ul><p className="fine">Counts from your own entries, never a diagnosis.</p></section>}

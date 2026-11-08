@@ -14,7 +14,7 @@ import {formatDate} from '../../lib/visual-format';
 import {noteName} from '../../lib/notes/schema';
 import {addTopic, dailiesOf, dailyNoteOf, inboxOf, topicsOf} from '../../lib/notes/store';
 import {linkKey, noteHref} from '../../lib/notes/links';
-import {notePhotoIds, deleteNotePhoto, orphanPhotoIds} from '../../lib/notes/photos';
+import {sweepNotePhotos} from '../../lib/notes/photos';
 import {photoScope} from '../../lib/health-aa/photos';
 import './notes.css';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
@@ -47,11 +47,12 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
   const go = (q: Record<string, string>) => { const query = new URLSearchParams(q).toString(); router.replace(query ? `${path}?${query}` : path, {scroll: false}); };
   const inbox = inboxOf(record), open = noteId ? record.notes.find(n => n.id === noteId) ?? null : null;
   const [newTitle, setNewTitle] = useState('');
-  // Photos whose note is gone (deleted on an earlier visit, past its Undo) are removed from this browser.
+  // Photos whose note is gone are removed from this browser once no note has named them for 30 days (security review
+  // Z1B-7, AL Part 14: a Restore of an older copy, then its Undo, must find today's photos still here).
   useEffect(() => {
     if (!notes.loaded || notes.unreadable) return;
     const named = record.notes.map(n => n.photoId);
-    void notePhotoIds(photoScope()).then(ids => Promise.all(orphanPhotoIds(ids, named).map(id => deleteNotePhoto(photoScope(), id))), () => undefined);
+    void sweepNotePhotos(photoScope(), named).catch(() => undefined);
     // Only on arrival: a photo deleted with its note during this visit can still come back with Undo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes.loaded]);

@@ -1,7 +1,6 @@
 import {expect, test} from '@playwright/test';
-import {openZigi, zigiBox, zigiPanel} from '../../zigi-open';
-import {AI_SETTINGS_KEY} from '../../../lib/ai/settings';
-import {connected, mockModel, seed} from './helpers';
+import {zigiPanel} from '../../zigi-open';
+import {seed} from './helpers';
 import {hydrated} from '../../ah-helpers';
 
 /**
@@ -10,16 +9,7 @@ import {hydrated} from '../../ah-helpers';
  * focused). WebKit was where D7 showed; the spec runs in every project.
  */
 test.use({timezoneId: 'UTC'});
-test('D7: words typed before the AI connects are still in the box after it connects', async ({page}) => {
-  await mockModel(page);
-  await seed(page);
-  await page.goto('/app');
-  await openZigi(page);
-  await zigiBox(page).fill('How was my week');
-  // Connect in another tab's way: the settings record changes and this page hears it (the on-device composer is replaced).
-  await page.evaluate(([key, value]) => { localStorage.setItem(key, value); window.dispatchEvent(new StorageEvent('storage', {key, newValue: value})); }, [AI_SETTINGS_KEY, JSON.stringify(connected())] as const);
-  await expect(zigiPanel(page).getByRole('textbox', {name: 'Message to your AI'})).toHaveValue('How was my week', {timeout: 10_000});
-});
+// D7 moved to tests/zigi-composer-switch.spec.ts (Session AL Part 14), so CI's WebKit job runs it too; unchanged there.
 test.describe('Settings at 390 px (Q6, BN-064/BN-075/PR-042)', () => {
   test.use({viewport: {width: 390, height: 844}});
   test('ZIGi opens from Apps & extras on Settings; focusing the sign-in email pauses it and says so', async ({page}) => {

@@ -682,3 +682,116 @@ Not yet an AL row and *Unknown-needs-browser* (the AL rows in that state are rep
 
 Also replay on the production build: every *Working* row above whose evidence lists "Not retested" ids (the bots never looked), and the night case of AF6 (00:00–02:00 Brussels).
 
+
+## Part 14 results (8 Nov)
+
+Owner rule 10 (8 Nov): browser-verify only the rows above that were not Working, and fix them. The 73 rows of the Part 14
+list (states Unknown-needs-browser, Partly, Not built; none owned by an AL row), read on `feature/session-al-fix-everything`
+at `1de82b24` plus the working tree. Most were already worked by the Part 14 lanes P14-A, P14-B and P14-D
+(`5848c55c`, `be9c97a0`, `d5cd0c8e`, `3f4fb8b9`; lanes/P14-A.md, P14-B.md, P14-D.md), and every cross-lane request those
+lanes left is now in the code (nova-left.tsx:92 and nova-right.tsx:89/97 `hermesPanel`/`scanStatus`; nova-command.tsx:115
+`noteNovaDraft`; meet-moves.test.ts:25 `['X001']`; hermes/forget-key.tsx; path.tsx:394 `.path-label`; health.css:116;
+showcase-photos.test.ts). So this pass is mostly proof.
+
+Browser runs (Chromium, the shared lock, desktop + mobile projects): **B1** = :3103, the production build of `37d2370c`
+(it holds all four P14 commits), the P14 lanes' own specs (p14a/*, ai/p14b-*, shell/p14d-*, wealth/p14d-wealth-375):
+58 passed, 10 skipped by design (one-project tests), 2 timed out (`page.goto` of /app/health over 45 s while other lanes'
+runs loaded the machine; both passed in B4). **B2** = :3103, the new `tests/grok53/p14/part14-earlier.spec.ts` plus
+goal-morph-ak, hud/sweep4-morph, release-review-2-p2, journey and the moved D7 spec: 36 passed, 5 skipped, 3 failed (J3
+mobile on the spec's own URL check; KL-checklist-offline, the open row below). **B3** = `next dev` of this working tree on
+:3111 for the changes not in that build (R18, Z1B-7, D7): the R18 test, journal-ai, tasks/al-second-pass, notes, the D7
+spec and al-stability, 26 passed. **B4** = :3103 re-runs: J3, H3, LA6 D-196 and LA10 passed; KL-checklist-offline still
+fails (then reproduced step by step with a plain script). Unit: 118 files / 892 tests in the P14 and touched folders
+(lib/nova, lib/ai privacy and evals, wallets, staking, zigi-studio4, motion, notes, journal, wrapped, secret-guard, the
+p14d tests); `vitest run scripts` passes except pre-run11-setup (known, sandbox-only) once the timing tests run without
+other lanes' load (6 failed under load, all passed when re-run alone).
+
+Verdicts: **Working** (works on this branch, evidence) · **Fixed** (fixed on this branch: by a P14 lane, or here — files
+named) · **Part 15** (competitor/roadmap) · **Waits on owner** (the exact step) · **Owner decision** (a recorded decision
+stands) · **Carried** (cause in one line).
+
+| id | verdict | evidence / files |
+|---|---|---|
+| WE10 | Fixed (P14-D, proof) | B1 wealth/p14d-wealth-375 "WE10" passed desktop + mobile: at 375 the total on the first screen, one h1, Add-asset sheet ≥ 12 px padding, no sideways scroll |
+| WE16 | Owner decision | ADR-034 N36 (offline search reads the full catalogue); splitting it changes the API route and offline search (P14-D) |
+| HA7 | Working | B2 tests/journey.spec.ts:76 passed desktop + mobile: "You have 2 freezes" (earned by seven-day streaks), the confirm dialog, "Freeze used: Oct 6 now counts as a rest day", stored `disposition: skipped` |
+| SE2 | Working | B1 p14a/se2-one-review-day passed: the review day chosen in Settings is the one Reminders names |
+| SE7 | Working | push-reminders-panel.tsx:39 "Not available here", music-settings.tsx:34 "Not set up"; the real permission line is AL-SETTINGS-008 (L6's AL row, not counted here) |
+| SE10 | Working | B2 p14/part14-earlier "SE10" passed desktop + mobile: Help's mailto addresses; Settings → Help & diagnostics "App version / build commit" filled |
+| CO4 | Part 15 (competitor/roadmap) | P&L row and logging from the week grid's cells (ADR-033 M42 "later"; J16 owner note) |
+| CO6 | Part 15 (competitor/roadmap) | net worth history by source; back-filling would invent data (F: unknown is not zero) |
+| MO3 | Waits on owner | ZIGi free-form and the weekly review are built; push: the owner switches push on (ADR-033 M48) |
+| E2 | Working | B1 shell/p14d-earlier-scope "E2" passed: Wealth and Portfolio (Showcase) have no nested-interactive, dlitem, definition-list, list or listitem findings |
+| F1 | Owner decision | the idle clip is fetched under Calm and Full; `F001-idle.anim.webp` is 2,356,876 bytes (the 358 KB on record is the APNG); a re-encode changes the locked ZIGi look (AL_SCOPE D13; P14-B) |
+| H3 | Working | B4 p14/part14-earlier "H3" on a first visit (welcome not answered) at 1280: one swan figure (the sidebar mark; its words image is the same mark), none on the phone, and Today's six widget headings each once ("Set up your first goal…", "Your day", "Your daily balance.", "Goals", "Your goals", "Your widgets"); the swan intro itself is PROTECTED |
+| J3 | Working | B4 p14/part14-earlier "J3" passed desktop + mobile (in B2 the mobile run failed on the spec's own URL check, now path-only): completing a habit linked to a private Goal shows "Add to its Goal" in the toast, nothing is added by the tick, the link opens that Goal with its funding form ("Contribution mode"); the page then drops `?contribute=1` from the address (ActionIntent) |
+| L1 | Part 15 (competitor/roadmap) | Multi competitor UX; the AL-COMPETITOR-GAP rows |
+| L2 | Part 15 (competitor/roadmap) | personalEverything, HALO, Lifemova…; the AL-COMPETITOR-GAP rows |
+| AF3 | Waits on owner | components/earn/your-shares.tsx reads /api/earn/shares per real-network wallet; step: open Earn with a real ZIGChain address that holds an OroSwap LP and a USDC vault share, after the next deploy |
+| AF7 | Waits on owner | the verifier runs under plain Node again (`scripts/lib/hosted-alpha-stages.test.mjs` 11/11; CI step ci.yml:56); step: the owner's next hosted verifier run after a deploy shows whether the late `/api/push` abort still reads "completed with findings" |
+| AF14 | Waits on owner | Dependabot: glob GHSA-3g3m-2fjr-6pw4 and minimatch GHSA-g3hv-75wg-m249 (build tooling only); step: approve one of the options in docs/dependencies/AL_REVIEW.md (no dependency change without approval) |
+| AF15 | Fixed (parts 2, 3) / Owner decision (the rest) | Health import's last note ends 48 px above the footer art (health.css:116, `39f9cf53`); the Academy jump bubble never covers a lesson name (path.tsx:394, B1 p14a/af15-p3-academy-bubble passed); the Habits time headings and the Checklist name on the protected orbit stay as the audits judged them (ADR-033 M47) |
+| RM8 | Waits on owner | everything else in RM8 was done before AH; Face ID / passkey needs a real iPhone and a server-side check |
+| SEC | Waits on owner | = AF14 (two moderate alerts on `main`, build tooling only) |
+| CI5 | Working | tests/webkit-earn.spec.ts:4,21 uses the shared `webkitCancelled` filter (CI_INTERMITTENTS Fix 3) |
+| CI7 | Owner decision | theme-parity-af:15 is the recorded Chromium renderer stall without a GPU (AL_SCOPE D8: record only; CI_INTERMITTENTS.md) |
+| HE17 | Fixed (device part) / Owner decision (model part) | lib/ai/local-answers/p14b.ts `mealPhotoReply` (eval g6-p14b photo cases pass, unit run here); the ranged estimate from a real model needs a key the cloud session does not have (F); REAL_MODEL_TODO "Session AL Part 14" |
+| G15 | Fixed (device part) / Owner decision (model part) | p14b.ts `streakBreakReply` (kind, the habit engine's figures; EN + NL; g6-p14b passes); the model's own wording: REAL_MODEL_TODO |
+| L6 | Part 15 (competitor/roadmap) | ZIGi at competitor level: the remaining AL-COMPETITOR-GAP rows |
+| F0 | Owner decision (AFL4) | AFL3 re-checked 4 Nov at zigchain-1 height 13,509,652: `code_upload_access` AnyOfAddresses (15), so class c stands (P14-A); AFL4 below |
+| N2 | Working | B2 p14/part14-earlier "N2" passed desktop + mobile: NOVA's goals widget → /app/goals runs the zoom morph in Full, the fade in Calm, and no morph (a plain navigation) in Off; sweep4-morph m7 passed |
+| N10 | Carried to next session | test-only: j12 still ends at Permissions; the five steps pass in their own specs (nova-workflows:53 workflow, :150 briefs, nova-wa:41 delegation, nova-setup:174 setup sharing, journey 6 erase); folding them into one journey is a 240 s spec of its own (L8) |
+| M1 | Working | B2 tests/goal-morph-ak.spec.ts passed desktop + mobile: Full morphs the goal card title into the page heading; Calm, Off and reduced motion start no transition; NOVA's morph = N2 |
+| M2 | Part 15 (competitor/roadmap) | Bento for Today's non-protected area and the pillar overviews; Today's hero is PROTECTED (needs an owner call) |
+| Part 11 | Fixed | LA6 D-196 (L10a BN-127, components/ui/ui.css): B4 shell/p14d-earlier-scope "LA6 D-196" passed on :3103 (in B1 it had timed out on a slow /app/health load); LA10 likewise; AF15 p2 and p3 as above |
+| Part 14 | Working (L9 part) / Owner decision (L6 part) | the hosted verifier loads under plain Node (`node scripts/verify-hosted-alpha.mjs --help`; CI step); AFL4 below |
+| A12 | Working | ADR-036:158 "M4 (QA2-04)" carries the knock-reminder text again (AK C1); its other parts are AF15, AFL3, AFL4 |
+| Q24 | Fixed | components/dashboard/today-wrapped.tsx (mounted, lazy) shows the card in its season; B2 p14/part14-earlier "Q24" passed desktop + mobile: 5 Dec 2026, three logged days → "Your 2026, wrapped" on Today, Open Wrapped opens the story; al-third-today "Q24" keeps it away in November |
+| AFL4 | Owner decision | the prefix-free practice-badge memo is a new signed memo; "no change to wallet signing" rules it out without the owner |
+| AF15 p2 | Fixed | health.css:116 (`39f9cf53`): the Import view's last note ends 48 px above the footer art (it read 2.31:1 on it) |
+| AF15 p3 | Fixed | path.tsx:394 `.path-label` in the jump bubble's cover list (not the Checklist orbit); B1 p14a/af15-p3-academy-bubble passed |
+| Page transitions | Fixed (P14-D) | B1 shell/p14d-page-transitions passed: leaving Today, Wealth, Earn, Settings and Help in Full motion fades within the capture budget at 1280×720 and 390×844 at 3×; Motion Off starts none |
+| KL-help-chain | Owner decision | owner list 8, unanswered: gating 13+ Help topics on the chain choice rewrites ~40 Help specs (P14-A's plan) |
+| KL-studio4-unused | Fixed (X020–X022) / Owner decision (X001) | B1 ai/p14b-held-gaze passed: X020 while the chat box is focused, X022 while cards wait, none with Motion Off; X001 has no moment named anywhere and the ZIGi look is locked |
+| KL-earn-tbt | Carried to next session | Lighthouse is not installed (no new dependencies); a proxy on :3103 (37d2370c, which has P14-A's memoised sections): phone 412 px, CPU 4× through CDP, long tasks after FCP, median of 3 = **4.07 s** (3.99 / 4.07 / 4.21; the machine was shared with other lanes' runs). No measured gain over the 3.9 s on record; Earn is being changed by L5+L6 now, so the next step (measure with the AK Lighthouse method, then split Earn's first render) belongs to them |
+| KL-safari-zigi-box | Fixed (CI WebKit coverage) | = D7 |
+| KL-checklist-offline | Carried to next session | Reproduced (not working) on :3103: only Today visited online, the worker active and `/app/checklist` in its page cache, then offline → the Checklist hydrates but stays on "Loading your path…"; five `/_next/static/chunks` fail (the lazy path view, checklist-page.tsx:60 `usePathView`, and four siblings, ≈ 120 KB), because public/sw.js `precache()` keeps only the files each page names in its HTML. Keeping every lazy chunk one level down would add 396 files / 9.1 MB to the install (158 / 5.5 MB for the Checklist alone), so not done blind; the fix (warm the Checklist's path-view chunk once the worker is installed, checked on a production build) is in Checklist files L5 is editing. Repro: tests/grok53/p14/part14-earlier.spec.ts "KL-checklist-offline" (P14_PRODUCTION=1, production build only); 2 attempts used (spec, diagnostic) |
+| EX3 left 1 | Fixed | nova-left.tsx:92 and nova-right.tsx:97 use `hermesPanel` (a refused key reads as refused, not "not reachable"); lib/nova/p14b-hermes.test.ts passes |
+| EX3 left 2 | Fixed | nova-right.tsx:89 `scanStatus`: "Running" for a server that answered but refused or wanted a key, "Offline" only when nothing answered; p14b-hermes.test.ts |
+| EX3 left 3 | Fixed | lib/nova/hermes-record.ts `hermesKeyFailure`: a 401/403 from the person's Hermes reads "Hermes refused the key." with the `hermes config get API_SERVER_KEY --raw` step (unit); the live rotated-key check: REAL_MODEL_TODO |
+| OD-2 | Working | the Alpha with NOVA went live 4 Nov 00:15, the landing 20:42; landing/index.html's NOVA chapter (06) has no availability caveat (its one "coming" is the example dashboard's "coming online" caption). What's new has no NOVA card because NOVA has its own chapter; adding one changes the pinned card list and bento (landing-ak-claims, LR-11): a landing design call |
+| R16 | Working | the footnote is one sentence (habits-workspace.tsx:358); the time zone is a quiet fold that points to Settings → Your time zone, where the same choice lives (:359, AL R16) |
+| R18 | Fixed (here) | components/journal/journal-page.tsx: an entry's day, its Remove label and the energy bars' tooltip and screen-reader text say the day in words (`<time dateTime>` keeps the ISO day); tests/journal-ai.spec.ts:35 and tests/grok53/tasks/al-second-pass.spec.ts:43 name the button by the same words (deliberate, equally exact). B3 p14/part14-earlier "R18" (no ISO date in any text, title or aria-label of the Journal) and both specs passed desktop + mobile on :3111 |
+| R30 | Fixed (P14-D) | B1 shell/p14d-earlier-scope "R30" passed: no Wealth chart or market-card text under 12 px (Showcase, 1440) |
+| R2-10 | Working | B1 p14d-earlier-scope "R2-10" (1440 × 900 and × 1380) and B2 release-review-2-p2 "R2-10" passed |
+| R2-24 | Working | B2 tests/release-review-2-p2.spec.ts:96 passed: at 1440 the Health and Wealth header actions sit with the title and subtitle |
+| Z1A-4 rest | Fixed (P14-B) | components/nova/chat/hermes-preview.tsx; B1 ai/p14b-nova "Z1A-4" passed: "Ask my Hermes" shows what goes first, redacted in Strict while Hermes is not confirmed local |
+| Z1A-5 rest | Fixed (P14-B) | lib/nova/hermes-guide.ts `HERMES_SANDBOX` (Docker terminal backend, `memory.write_approval`); p14b-hermes.test.ts |
+| Z1A-6 rest | Fixed (P14-B) | lib/ai/privacy-probes.ts + privacy-mode.ts `probes.hermes`: a local server whose /health says `platform: hermes-agent` counts as an unconfirmed Hermes (redacted, no tools); p14b-hermes.test.ts; live: REAL_MODEL_TODO |
+| Z1A-7 alt | Fixed (P14-B) | privacy-probes.ts `ollamaShowsCloud`: an Ollama model never listed is asked once with /api/show in Strict/Guarded; p14b-hermes.test.ts |
+| Z1A-I1 | Fixed (honest part) / Owner decision (the default) | NOVA's composer says what a cloud send with no mode chosen does, with a link to choose (B1 ai/p14b-nova "Z1A-I1" passed); ZIGi's no-mode default is a privacy-default change for the owner |
+| Z1A-I3 | Fixed (P14-B) | lib/ai/privacy-mode.ts `mapStrings`/`mapArguments` and lib/secret-guard/redact-span.ts: `toolCalls[].arguments` and Gemini's `raw` turn are redacted too; names, ids and thought signatures unchanged; p14b-hermes.test.ts |
+| Z1A-I4 | Fixed | ai-setup.tsx: a local server without a token no longer inherits the copied Hermes key; components/nova/hermes/forget-key.tsx "Forget the Hermes key" (`forgetHermesKey`) |
+| Z1A-I5 | Fixed | hermes-record.ts `localModelStillConfirmed`/`confirmationLapsedLine`: the confirmation holds for its gateway and Hermes version only; read by first-run.tsx:30, further.tsx:37, privacy.tsx:27, hermes-card.tsx:20 |
+| Z1B-7 | Fixed (here) | lib/notes/photos.ts `sweepNotePhotos` (+ optional `orphanSince` on the photo value, additive): a photo no note names is marked and deleted only after 30 days unnamed, so Undo of a Restore finds today's photos; components/notes/notes-workspace.tsx calls it on arrival (the unused `orphanPhotoIds` removed). Unit lib/notes/photos-orphan-z1b7.test.ts (3); notes specs passed on :3111 (B3) |
+| Z1B-9 | Fixed | lib/showcase-storage.ts `clearShowcasePhotos` on Showcase start and end (`30ad598b`); lib/showcase-photos.test.ts passes |
+| Z1C-I2 | Fixed (P14-A, TIER 3 wallet) | lib/wallets/walletconnect.ts `session_delete`/`session_expire` (unit walletconnect-session-end, passes); a live wallet ending the session: needs the owner's phone wallet |
+| Z1C-I3 | Fixed (P14-A, TIER 3 wallet) | lib/staking/execute.ts: the account must be one of the session's CAIP-10 accounts; the wallet is named by its session (unit walletconnect-account-bound, passes) |
+| Z1C-I5 | Fixed (P14-A, TIER 3 wallet) | staking-actions.tsx drops a connection whose network changed during connect (reasoned; the race needs a live wallet) |
+| D7 | Fixed (CI WebKit coverage, here) | the D7 test moved from tests/grok53/ai/al-stability.spec.ts to tests/zigi-composer-switch.spec.ts (assertion unchanged), whose `zigi-*` name puts it in CI's WebKit job (playwright.webkit.config.ts:12); the old file never ran there. Passed in Chromium desktop + mobile on :3103 and :3111; WebKit is not installed in this sandbox, so its first WebKit run is the next CI |
+| D9 | Carried to next session | = KL-earn-tbt |
+| D11 | Waits on owner | `git ls-remote origin refs/heads/review/ak-food-data` is still empty (8 Nov); step: push the raw Fineli files to that branch |
+| D12 | Waits on owner | facts re-checked by P14-A (4 Nov): AFL1 cosmjs authz amino "IMPLEMENT ME"; AFL3 class c; no official public ZIGChain EVM RPC; Bearable documents no export format; AFL2/AFL4 owner classes |
+| D13a | Owner decision | R013's landing frames are Studio-4 art; the ZIGi look is locked (AL_SCOPE D13) |
+| D13b | Owner decision | the four idle loops are 2.0–2.1 MB each; a 24 fps q70 re-encode is an art change to the locked look |
+| D13c | Fixed (P14-B) | components/zigi/gaze.ts, use-gaze-hold.ts; B1 ai/p14b-held-gaze passed desktop + mobile (X020, X022, none with Motion Off) |
+
+Counts (73 rows, by each row's first verdict): **Fixed 31** (by the P14 lanes, proven here; fixed in this pass: R18, Z1B-7,
+D7 and KL-safari-zigi-box) · **Working 16** · **Owner decision 8** · **Waits on owner 8** · **Part 15 6** · **Carried 4**
+(N10, KL-earn-tbt, D9, KL-checklist-offline).
+
+Asks for files other lanes are editing now: **L5 (Checklist) with the integrator (public/sw.js)**, KL-checklist-offline:
+once the worker is installed, warm the Checklist's path-view chunk (checklist-page.tsx:60 `usePathView`) and the four
+small chunks it waits on, so they land in `zigoals-static-v1`; check it on a production build with the reproduction above
+(a shell-side `import()` may get its own chunk name under Turbopack, so only a production run proves it). **L5+L6 (Earn)**,
+KL-earn-tbt / D9: measure with the AK Lighthouse method; the proxy above found no gain yet.

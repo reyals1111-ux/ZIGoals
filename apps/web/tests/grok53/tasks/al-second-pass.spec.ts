@@ -40,7 +40,7 @@ test('P-LS-08: Ctrl+Z on the Journal runs the toast\'s Undo and puts the entry b
   // DV-190c: the week's legend comes before the strip it explains.
   const legendFirst = await page.locator('.journal-week').evaluate(el => { const l = el.querySelector('.journal-week-legend'), s = el.querySelector('.journal-week-days'); return !!l && !!s && !!(l.compareDocumentPosition(s) & Node.DOCUMENT_POSITION_FOLLOWING); });
   expect(legendFirst).toBe(true);
-  await page.getByRole('button', {name: `Remove the entry of ${DAY}`}).click();
+  await page.getByRole('button', {name: 'Remove the entry of Nov 4, 2026'} /* AL Part 14 (R18, deliberate): the day in words (DAY), same exact name */).click();
   await expect(toast(page)).toContainText('removed');
   await expect(page.locator('.journal-entries li')).toHaveCount(0);
   // In a text field Ctrl+Z is the field's own undo: the entry stays removed.
