@@ -186,3 +186,23 @@ describe('Session AL fifth pass (L7-5b): the replay of 37d2370c, answers', () =>
     for (const t of both(lisbon('L2'), 'Did I drink water today?')) expect(t.text, t.surface).toBe('Drink water: 1 time today (Wed, Nov 4).');
   });
 });
+
+// Session AL L7 fix pass 2 (integrator): Z-003 / N-004, N-DV-08, BN-047's "sleep better" pointer.
+import {howToReply as howToReplyP2} from './local-answers/no-model';
+import {novaWording as novaWordingP2} from './local-answers/nova-env';
+describe('L7 fix pass 2', () => {
+  test('N-DV-08: a goal named in "Create a goal …" is the Goal wizard filled in, not an empty form', () => {
+    const r = howToReplyP2('Create a goal: save 5k EUR for a bike by December', 'en');
+    expect(r && 'text' in r ? r.text : '').toMatch(/"kind":"goal-draft","name":"[^"]*[Bb]ike[^"]*"/);
+    expect(r && 'text' in r ? r.text : '').toMatch(/"target":5000/);
+    expect(r && 'text' in r ? r.text : '').toMatch(/"currency":"EUR"/);
+    const plain = howToReplyP2('How do I create a goal?', 'en');
+    expect(plain && 'text' in plain ? plain.text : '').toContain('"kind":"open-page"');
+  });
+  test('BN-047: in NOVA the "connect a model" pointer names NOVA → Setup', () => {
+    const info = {} as Parameters<typeof novaWordingP2>[1];
+    const r = novaWordingP2({kind: 'answer', text: 'This one needs your own AI. Settings → ZIGi connects a model of yours.', calls: []}, info);
+    expect('text' in r ? r.text : '').toContain('NOVA → Setup (Your brain) connects');
+    expect('text' in r ? r.text : '').not.toContain('Settings → ZIGi');
+  });
+});

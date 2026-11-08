@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js';
+import {formatGoalAmount} from '../../goals/goal-amount-text';
 import {latestHabitRule, measurementUnit, type Habit} from '../../habits';
 import {exerciseData} from '../../health-counters';
 import {summaries} from '../tools/goals';
@@ -738,7 +739,9 @@ function goalProgress(env: ToolEnv, key: string, q: string): LocalReply {
   const r = call(env, 'goal_progress', {goal: clean(goal.name, 120)}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), name = clean(goal.name, 60);
   if (goal.progressBound === 'unavailable') return {kind: 'answer', text: lines(`${name}: its value is unknown, so progress can't be worked out.`, [d.valuation, d.now && `Held now: ${d.now}`]), calls: [r.record]};
-  const money = (s: string) => s.replace(/^(-?\d+(?:\.\d+)?) ([A-Za-z]+)$/, (_m, v: string, c: string) => amount(v, c));
+  // Session AL (Z-003 / N-004, ADR-037 Q14): USD and EUR goal amounts read as the goals list writes them ("$0 of $500",
+  // formatGoalAmount, ".00" dropped as NOVA's list does); a count goal's own word keeps words.ts amount ("20 books").
+  const money = (s: string) => s.replace(/^(-?\d+(?:\.\d+)?) ([A-Za-z]+)$/, (_m, v: string, c: string) => c === 'USD' || c === 'EUR' ? formatGoalAmount(v, c).replace(/\.00(?!\d)/, '') : amount(v, c));
   const remaining = /\b(left|remaining|to go|how much more|still need)\b/.test(q);
   const head = remaining ? `${name}: ${money(d.remaining)} to go (${d.progress} of the target reached).` : `${name}: ${d.progress} of the target — ${money(d.now)} of ${money(d.target)}.`;
   const plan = typeof d.plan === 'object' ? d.plan as {contributedNet: string; plannedThroughToday: string; nextDate: string} : null;

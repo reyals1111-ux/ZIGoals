@@ -58,7 +58,10 @@ export function novaWording(reply: LocalReply, info: NovaEnvInfo, lang: Lang = '
   }
   // Session AL fourth pass (L7-4b; Berlin BN-047, AL-COPY-060): NOVA speaks as NOVA ("ZIGi checks off one item at a time",
   // "so ZIGi makes no Health card"); the places that carry ZIGi's name stay as the app names them.
-  const text = reply.text.replace(/(is(?:n[’']t| not)|are not|aren[’']t) shared with ZIGi\b/g, '$1 shared with NOVA')
+  // Session AL (BN-047, the "sleep better" pointer): in NOVA, a model is connected in NOVA → Setup (Your brain), not ZIGi's
+  // Settings — the pointer names NOVA's own place.
+  const text = reply.text.replace(/Settings → ZIGi connects\b/g, 'NOVA → Setup (Your brain) connects').replace(/in Settings → ZIGi; it then answers/g, 'in NOVA → Setup (Your brain); it then answers')
+    .replace(/(is(?:n[’']t| not)|are not|aren[’']t) shared with ZIGi\b/g, '$1 shared with NOVA')
     .replace(/(?<!Actions by |Settings → |What |what |→ )\bZIGi\b(?! knows about me| · Your Personal AI Companion|’s (?:panel|page))/g, 'NOVA');
   return text === reply.text ? reply : {...reply, text};
 }

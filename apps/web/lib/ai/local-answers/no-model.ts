@@ -9,6 +9,8 @@ import {quickLogItems, quickLogReply} from '../../quick-log/multi';
 import {quickLogContext} from '../../quick-log/context';
 import {novaEnvInfo, novaWording} from './nova-env';
 import {mealPhotoReply, streakBreakReply} from './p14b';
+import {localDate} from '../../local-date';
+import {parseGoalBundle} from '../../goals/nl-bundle';
 import {checklistEditReply, foodEstimateReply, unknownTickReply, weeklyRecapReply} from './al-third';
 import {fourthAnswer, fourthFirst} from './al-fourth';
 import {safetyFirst} from '../safety-guard';
@@ -57,7 +59,17 @@ const action = (page: string, view?: string) => `\n\n\`\`\`zigoals-action\n${JSO
 /** The steps for a "how do I…" that only a model could have done for the person, or null. */
 export function howToReply(text: string, lang: ReplyLanguage): LocalReply | null {
   const hit = HOW_TO.find(h => h.en.test(text) || h.nl.test(text));
-  return hit ? {kind: 'answer', text: hit.text[lang] + action(hit.page, hit.view), calls: []} : null;
+  if (!hit) return null;
+  // Session AL (N-DV-08): "Create a goal: save 5k EUR for a bike by December" named its goal; the card is the Goal wizard
+  // filled in from the person's words (Quick add's own parser, Session AK), never an empty form. Nothing is saved here.
+  if (hit.id === 'plan-goal') { const draft = goalDraftCard(text); if (draft) return {kind: 'answer', text: hit.text[lang] + draft, calls: []}; }
+  return {kind: 'answer', text: hit.text[lang] + action(hit.page, hit.view), calls: []};
+}
+function goalDraftCard(text: string): string | null {
+  const today = localDate(), g = parseGoalBundle(text, today)?.goal;
+  if (!g?.name) return null;
+  const card = {kind: 'goal-draft', name: g.name, type: g.kind === 'value' ? 'VALUE' : 'PROJECT', ...(g.target !== undefined ? {target: g.target} : {}), ...(g.currency ? {currency: g.currency} : {}), ...(g.date && g.date > today ? {date: g.date} : {})};
+  return `\n\n\`\`\`zigoals-action\n${JSON.stringify(card)}\n\`\`\``;
 }
 /**
  * Session AK P4 (FIRST_RUN_REVIEW FR-2): a first question about saving ("Help me save for a holiday", "I want to put money

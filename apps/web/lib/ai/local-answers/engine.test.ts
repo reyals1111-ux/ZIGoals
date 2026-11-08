@@ -25,7 +25,9 @@ test('the brief\'s eight examples, answered with the figures the records hold', 
   expect(textOf(ask('How much water did I drink yesterday?'))).toMatch(new RegExp(`^You logged ${water.toLocaleString('en-US')} mL of water yesterday \\(Sun, Oct 4\\)`));
   const week = sources().health.activity.filter(a => a.date >= '2026-09-28' && a.date <= '2026-10-04'), days = new Set(week.map(a => a.date)).size;
   expect(textOf(ask('Average steps last week?'))).toContain(`You averaged ${Math.round(week.reduce((s, a) => s + a.steps, 0) / days).toLocaleString('en-US')} steps a day last week (Mon, Sep 28 to Sun, Oct 4), over the ${days} days with steps recorded.`);
-  expect(textOf(ask('How far am I on my Japan goal?'))).toMatch(/^Japan adventure: [\d.]+% of the target — [\d,]+\.\d{2} USD of [\d,]+\.\d{2} USD\./);
+  // Session AL (Z-003 / N-004, deliberate): the goals list's own money format (formatGoalAmount, no ".00"), never "0.00 USD".
+  expect(textOf(ask('How far am I on my Japan goal?'))).toMatch(/^Japan adventure: [\d.]+% of the target — (?:US)?\$[\d,]+(?:\.\d{2})? of (?:US)?\$[\d,]+(?:\.\d{2})?\./);
+  expect(textOf(ask('How far am I on my Japan goal?'))).not.toMatch(/\d USD\b/);
   const monday = ask('What did I eat on Monday?');
   expect(textOf(monday)).toMatch(new RegExp(`^You logged ${sources().health.diary.filter(e => e.date === DAY).length} items on Mon, Oct 5:\\n- Breakfast: `));
   const btc = sources().platform.positions.filter(p => p.asset === 'BTC' && !p.archivedAt);
@@ -74,7 +76,8 @@ test('forty more phrasings across habits, Health, goals and wealth', () => {
     ['When was my last fast?', /^Your last fast: 16 h on Sun, Oct 4 \(target 16 h\)\./],
     ['How many push-ups this week?', /^Push-ups: \d+ on \d+ days? this week/],
     ['How many squats did I do this month?', /^Squats: \d+/],
-    ['How much is left for my emergency fund?', /^Emergency fund: [\d,]+\.\d{2} USD to go \([\d.]+% of the target reached\)\.$/m],
+    // Session AL (Z-003 / N-004, deliberate): the goals list's money format (formatGoalAmount), never "0.00 USD".
+    ['How much is left for my emergency fund?', /^Emergency fund: (?:US)?\$[\d,]+(?:\.\d{2})? to go \([\d.]+% of the target reached\)\.$/m],
     ['What is the progress of my first home deposit?', /^First home deposit: [\d.]+% of the target/],
     ['How much did I contribute this month?', /^Contributions this month \(Thu, Oct 1 to Mon, Oct 5\), per currency \(never converted\):\n- [\d,]+\.\d{2} USD in/],
     ['How much did I put into my Japan goal last month?', /^Contributions to Japan adventure last month \(Tue, Sep 1 to Wed, Sep 30\)/],
