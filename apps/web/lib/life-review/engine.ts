@@ -6,6 +6,7 @@ import {waterSummary} from '../health-daily';
 import {dailySeries} from '../sleep/engine';
 import type {Platform} from '../positions';
 import type {WealthHistory} from '../wealth';
+import {wealthChange} from '../wealth-week';
 import type {AverageGoal} from '../average-goals/store';
 import {averageProgress} from '../average-goals/progress';
 import type {GoalExtras} from '../goal-extras/store';
@@ -75,6 +76,8 @@ export function lifeReview(input: {
   /** Session AH Part 4 (TR13): today's holdings per currency in minor units, as Wealth and Today show them (live quotes
    *  included); a period that ends today ends at these, so the review never shows another figure for the same day. */
   current?: readonly {currency: string; value: bigint}[];
+  /** Session AL (RR-14): false while a holding has no value now (`current` is then only part of the total). */
+  currentComplete?: boolean;
 }): LifeReview {
   const {window, habits, health, platform, goals, averages, extras, history, today} = input;
   const now = days(window.start, window.end), before = days(window.prevStart, window.prevEnd), inNow = (d: string) => d >= window.start && d <= window.end;
@@ -140,15 +143,15 @@ export function lifeReview(input: {
   // The plans behind the active goals (G4), shown so the review can come back to them.
   const plans = goals.filter(g => g.status === 'active').flatMap(g => { const x = extras.goals[g.key]; return x && (x.why || x.ifThen) ? [{name: g.name, ...(x.why ? {why: x.why} : {}), ...(x.ifThen ? {ifThen: x.ifThen} : {})}] : []; }).slice(0, 4);
 
-  // Money: each currency's recorded total at the start and the end, never converted.
+  // Money: each currency's recorded total at the start and the end, never converted. Session AL (RR-14): worked out by
+  // lib/wealth-week.ts, the same reckoning as Today's "this week"; a period that ends today ends at today's live total,
+  // and while a holding has no value now the change is unknown (never a fall).
   const money: MoneyChange[] = history.map(h => {
-    // History values are in the currency's minor units (cents), as Wealth records them.
-    const units = (v: string | undefined) => v === undefined ? null : new Decimal(v).div(new Decimal(10).pow(h.decimals)).toFixed(h.decimals);
-    const at = (day: string) => units([...h.points].filter(p => dayOf(p.at) <= day).at(-1)?.value);
+    const units = (v: bigint | null) => v === null ? null : new Decimal(v.toString()).div(new Decimal(10).pow(h.decimals)).toFixed(h.decimals);
     const live = window.end >= today ? input.current?.find(c => c.currency === h.currency) : undefined;
-    const start = at(addLocalDays(window.start, -1)) ?? units(h.points.find(p => inNow(dayOf(p.at)))?.value), end = live ? new Decimal(live.value.toString()).div(100).toFixed(2) : at(window.end);
-    const change = start !== null && end !== null ? new Decimal(end).minus(start).toFixed(2) : null;
-    return {currency: h.currency, start, end, change, note: start === null || end === null ? 'Not enough recorded values in this period' : 'Recorded values, this currency only'};
+    const c = wealthChange({history: [h], currency: h.currency, before: addLocalDays(window.start, -1), end: window.end, firstInside: true, ...(live ? {now: {value: live.value, complete: input.currentComplete !== false}} : {})});
+    const start = units(c.start), end = units(c.end), change = units(c.change);
+    return {currency: h.currency, start, end, change, note: c.unknown === 'incomplete' ? 'Change not known: a holding has no value right now' : change === null ? 'Not enough recorded values in this period' : 'Recorded values, this currency only'};
   });
 
   const highlights: string[] = [];

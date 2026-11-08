@@ -3,7 +3,7 @@ import {habitsOnDay} from '../../lib/numbers/habit-counts'; // CI13: not Wealth'
 import {dailyData, waterSummary} from '../../lib/health-daily';
 import {waterText} from '../../lib/health-units';
 import {wealthHistory, wealthOverview} from '../../lib/wealth';
-import {weekWealthNet} from '../../lib/today/week-wealth';
+import {weekWealthChange} from '../../lib/wealth-week';
 import {splitWealthTotals} from '../../lib/wealth-total';
 import {formatGoalAmount} from '../../lib/goal-summary';
 import {amount} from '../platform/common';
@@ -23,11 +23,13 @@ export function TodayLine({habits, health, platform, quotes, now, today, healthD
   if (showHabits && habits) { const {due, done} = habitsOnDay(habits.habits, today, today); if (due) parts.push(`${done} of ${due} habits`); }
   if (showHealth && health) { try { const ml = waterSummary(health, healthDate).millilitres; if (ml > 0) parts.push(`${waterText(ml, dailyData(health).preferences.waterUnit)} water`); /* Session AL (P-NB-71; N-NB-06): the unit the water card and Health show, not "0.3 L" beside "250 mL" */ } catch { /* an unreadable day leaves the part out */ } }
   if (financial && platform) {
-    const primary = splitWealthTotals(wealthOverview(platform, now, quotes).subtotals).primary;
+    const overview = wealthOverview(platform, now, quotes), primary = splitWealthTotals(overview.subtotals).primary;
     if (primary && primary.value > 0n) {
       // Session AK F0 (M42): "this week" from Wealth's own recorded history in the same currency; unknown leaves it out.
-      const week = weekWealthNet(wealthHistory(platform), primary.currency, today), size = week ? (week.change < 0n ? -week.change : week.change) : 0n;
-      const weekly = !week ? '' : week.change === 0n ? ' (unchanged this week)' : ` (${week.change < 0n ? '−' : '+'}${formatGoalAmount(amount(size.toString(), 2), primary.currency)} this week)`;
+      // Session AL (RR-14): the same reckoning as the Life review (lib/wealth-week.ts): from a week ago's recorded value to
+      // the total shown here; while a holding has no value now, the change is unknown, never a fall.
+      const week = weekWealthChange(wealthHistory(platform), primary.currency, today, {value: primary.value, complete: !overview.missingValue}).change, size = week === null ? 0n : week < 0n ? -week : week;
+      const weekly = week === null ? '' : week === 0n ? ' (unchanged this week)' : ` (${week < 0n ? '−' : '+'}${formatGoalAmount(amount(size.toString(), 2), primary.currency)} this week)`;
       parts.push(`tracked wealth ${formatGoalAmount(amount(primary.value.toString(), 2), primary.currency)}${weekly}`);
     }
   }

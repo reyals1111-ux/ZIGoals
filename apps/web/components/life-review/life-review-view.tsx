@@ -64,7 +64,7 @@ export function LifeReviewView() {
     goals: goals.goals.map(g => ({key: g.key, id: g.id, name: g.name, href: g.href, status: g.status})),
     averages: averages.unreadable ? [] : averages.data.goals, extras: extras.data,
     history: platform.error ? [] : wealthOverview(platform.data, now).history, today,
-    current: platform.error ? [] : wealthOverview(platform.data, market.now || now, market.quotes).subtotals,
+    ...(platform.error ? {current: []} : (o => ({current: o.subtotals, currentComplete: !o.missingValue}))(wealthOverview(platform.data, market.now || now, market.quotes))),
   }), [ready, window, habits.data, habits.error, health.data, platform.data, platform.error, goals.goals, averages.data, averages.unreadable, extras.data, today, now, market.now, market.quotes]);
   const [focusDraft, setFocusDraft] = useState<{key: string; text: string} | null>(null);
   const saved = record.loaded ? record.data.focus[window.key]?.text ?? '' : '';
