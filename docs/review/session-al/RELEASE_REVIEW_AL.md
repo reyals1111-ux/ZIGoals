@@ -288,3 +288,29 @@ Count: Blocker 0 · Major 5 · Minor 10 · Polish 3.
 - a weekly prompt that goes nowhere (RR-3);
 - an assistant that contradicts the page (RR-4);
 - an "AI" label with no AI (RR-5).
+
+## Outcomes (integrator, 8 Nov; proven on the production build of 596e675a)
+Specs: tests/grok53/release/rr-life.spec.ts, rr-money.spec.ts, rr-ai-tasks.spec.ts — each fails on 78be2446 and passes on
+596e675a (with the Checklist, Tasks, NOVA dashboard, Life review and first-run specs: 201 passed, 43 skipped for the other
+width; route weights all under budget).
+
+| Id | Severity | Outcome | Commit |
+|---|---|---|---|
+| RR-1 | Major | Fixed: the welcome links its water and walk habits as the Habits ideas do; NOVA reads the shared Health snapshot; Quick add saves a linked measure directly | 07357b31 |
+| RR-2 | Major | Fixed (designed): the wizard names the accounts and offers "Record <account> as cash" through the pre-filled Cash form; "What you have" says where accounts are | 1f80da56 |
+| RR-3 | Major | Fixed: the review reminder opens /app/review | 07357b31 |
+| RR-4 | Major | Fixed: ZIGi uses the page's pace forecast and date format, and names "With your plan" | 596e675a |
+| RR-5 | Major | Fixed: no "AI" badge or brand without a model; Today names the meals | 07357b31, 596e675a |
+| RR-6 | Minor | Fixed: one weigh-in says it is the first reading | 07357b31 |
+| RR-7 | Minor | Fixed: "earlier version" only when a part is migrated on read | 596e675a |
+| RR-8 | Minor | Fixed: one overdue rule (day + time in the app's zone) everywhere | 596e675a |
+| RR-9 | Minor | Fixed: the Health HUD water row fits | 596e675a |
+| RR-10 | Minor | Fixed: on a phone the Undo toast keeps clear of a focused field | 596e675a |
+| RR-11 | Minor | Fixed: a goal's word facts wrap at 600 px and below | 1f80da56 |
+| RR-12 | Minor | Fixed: no mid-word break in Today's Recent activity empty state | 07357b31 |
+| RR-13 | Minor | Fixed: ZIGi's Health-settings answers open the switch; "missed yesterday" answered on the device | 596e675a |
+| RR-14 | Minor | Fixed: one reckoning of the week's wealth change; unknown while a holding has no value | 1f80da56 |
+| RR-15 | Minor | Fixed: the welcome makes the habits its cards describe | 07357b31 |
+| RR-16 | Polish | Owner decision: Wealth at 1440 is 20,720 px; shortening it folds desktop sections (protected baseline) | — |
+| RR-17 | Polish | Owner decision: the goal's name is in four Today modules; removing one changes the protected Today layout | — |
+| RR-18 | Polish | Fixed: one done checkbox per task; a Select mode for bulk actions | 596e675a |
