@@ -58,7 +58,7 @@ async function fund(page,goal){
     picker; its preview says one record is added and no money moves. */
  else await dialog.getByLabel('How many BTC did you add?',{exact:true}).fill('2');
  if(goal.type==='Value')await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();await dialog.getByLabel('Note (optional)',{exact:true}).fill(`Fictional original ${goal.type} receipt`);await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();expect(await dialog.textContent()).toContain(goal.type==='Value'?'One contribution record will be added.':'One record is added; no money moves.');await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await dialog.waitFor({state:'hidden'});
- const allocation=await openModule(page,'allocate');await allocation.getByText(`Allocated to this Goal: ${goal.type==='Value'?'200 USD':'2 BTC'}`,{exact:true}).waitFor();
+ const allocation=await openModule(page,'allocate');await allocation.getByText(`Allocated to this goal: ${goal.type==='Value'?'200 USD':'2 BTC'}`,{exact:true}).waitFor();
  const original=await timeline(page,'contribution');expect(original).toHaveLength(1);expect(original[0].detail).toContain(`Fictional original ${goal.type} receipt`);
  const overview=await page.getByTestId('tracked-progress').textContent();const allocationText=await allocation.locator('.platform-position-row').first().textContent();
  await page.getByRole('button',{name:'Reverse history entry',exact:true}).click();const correction=page.getByRole('dialog',{name:'Review history correction',exact:true});await correction.getByRole('button',{name:'Cancel history correction',exact:true}).click();expect(await timeline(page,'contribution')).toEqual(original);

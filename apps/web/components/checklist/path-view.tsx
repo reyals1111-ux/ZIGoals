@@ -1,5 +1,6 @@
 'use client';
 import {useCallback, useMemo, useState} from 'react';
+import Link from 'next/link';
 import {Path} from '../path/path';
 import {checklistMilestones, checklistPath, pathLine, type DerivedDot} from '../../lib/checklist/derive';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
@@ -91,7 +92,7 @@ function WaterTargetAsk({health, said, onSaid: setSaid}: {health: ChecklistState
   return <div className="checklist-water-target" role="group" aria-label="Daily water target">
     {said ? <p role="status">{said}</p> : <>
       <p>No daily water target yet. Water lights up when the day reaches your target.</p>
-      <div className="checklist-stepper-actions"><button type="button" className="secondary" disabled={!health.loaded || !!health.error} onClick={() => void keep()}>Use 2,000 ml a day</button><a className="quiet" href="/app/health?view=settings">Set my own in Health</a></div>
+      <div className="checklist-stepper-actions"><button type="button" className="secondary" disabled={!health.loaded || !!health.error} onClick={() => void keep()}>Use 2,000 ml a day</button><Link className="quiet" href="/app/health?view=settings">Set my own in Health</Link></div>
     </>}
   </div>;
 }

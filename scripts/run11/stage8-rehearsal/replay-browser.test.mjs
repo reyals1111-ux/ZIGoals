@@ -41,7 +41,7 @@ async function fundAndReverse(page,note){
  await dialog.getByRole('button',{name:'Cash',exact:true}).click();await dialog.getByLabel('Asset name',{exact:true}).fill('Stage 8 rehearsal cash');await dialog.getByLabel('Cash amount',{exact:true}).fill('200');
  await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();await dialog.getByLabel('Note (optional)',{exact:true}).fill(note);
  await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await dialog.waitFor({state:'hidden'});
- await (await openModule(page,'allocate')).getByText('Allocated to this Goal: 200 USD',{exact:true}).waitFor();
+ await (await openModule(page,'allocate')).getByText('Allocated to this goal: 200 USD',{exact:true}).waitFor();
  await page.getByRole('button',{name:'Reverse history entry',exact:true}).click();const correction=page.getByRole('dialog',{name:'Review history correction',exact:true});
  await correction.getByRole('button',{name:'Confirm history reversal',exact:true}).click();await correction.waitFor({state:'hidden'});
 }

@@ -81,6 +81,8 @@ test('goal creation, a contribution and the add-asset form', async ({page}) => {
   await seed(page);
   await page.goto('/app/goals/new');
   await clean(page.locator('main'), 'New goal');
+  /* Session AL fifth pass (DV-120, deliberate): no kind is preselected, so the spec chooses the count that shows the asset field */
+  await page.getByRole('radio', {name: 'Quantity', exact: true}).check();
   await expect(page.getByLabel('Goal asset', {exact: true})).toHaveAccessibleDescription(/^Use a symbol such as BTC or ZIG/);
   await page.goto('/app/goals');
   await page.getByRole('link', {name: 'Japan adventure'}).first().click();
