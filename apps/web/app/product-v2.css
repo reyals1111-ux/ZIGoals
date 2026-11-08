@@ -449,6 +449,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
      covered the page); the row scrolls sideways inside itself, never the page. */
   :root .settings-page .settings-sections { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
   :root .settings-page .settings-sections a { flex: none; white-space: nowrap; }
+  /* Session AL fifth pass (TK-184): the one row was still a 74 px band (12 px above and below the bar, 12 px inside each
+     49 px link). Each link and "Fold all" is now exactly the 44 px target with 6 px of bar around it: about 57 px. */
+  :root .settings-page .settings-sections { padding-block: 6px; }
+  :root .settings-page .settings-sections > :is(a, .settings-fold-all) { min-height: 44px; padding-block: 0; box-sizing: border-box; }
   /* Session AL (D-088): "Fold all / Open all" ends the row and stays in reach while the links scroll under it. */
   :root .settings-page .settings-sections .settings-fold-all { flex: none; position: sticky; right: 0; margin-left: auto; border-color: var(--edge-soft); background: inherit; transition: none; }
 }

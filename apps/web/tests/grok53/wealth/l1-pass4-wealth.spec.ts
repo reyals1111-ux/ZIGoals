@@ -38,6 +38,30 @@ test('TK-041 / W7: cash past the trillion cap is refused under the amount field 
   await expect(field).toBeFocused();
 });
 
+test('TK-149 / D-054: a real paste (clipboard, Ctrl+V) of 229 characters into Asset name keeps 100 and says so under the field', async ({page, context}) => {
+  // Session AL fifth pass: a bare synthetic paste event showed the note, a real paste did not (its input event, right
+  // after the paste, cleared the field's message). This pastes through the clipboard as a person does.
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/app/wealth'); await hydrated(page);
+  await page.getByRole('button', {name: '+ Add asset'}).first().click();
+  const sheet = page.getByRole('dialog', {name: 'Add to your wealth'});
+  await sheet.getByRole('group', {name: 'Asset categories'}).getByRole('button', {name: 'Custom', exact: true}).click();
+  const text = 'Family heirloom pocket watch from the eighteen-nineties, kept in a cedar box with its original key and its receipt '.repeat(3).slice(0, 229);
+  expect(text).toHaveLength(229);
+  await page.evaluate(t => navigator.clipboard.writeText(t), text);
+  const name = sheet.getByLabel('Asset name');
+  await name.click();
+  await page.keyboard.press('ControlOrMeta+V');
+  await expect(name).toHaveValue(text.slice(0, 100));
+  const note = sheet.getByText('Names keep 100 characters, so the end of what you pasted was left out (129 characters). Check the name before saving.');
+  await expect(note).toBeVisible();
+  await expect(name).toHaveAttribute('aria-invalid', 'true');
+  // It stays once the paste's own input has run (the replay looked at 50 ms, 300 ms and 1.2 s).
+  await page.waitForTimeout(1200);
+  await expect(note).toBeVisible();
+  await expect(name).toHaveValue(text.slice(0, 100));
+});
+
 test('TK-190: an archived debt offers "Unarchive", the word an archived asset uses', async ({page}) => {
   await page.goto('/app/wealth'); await hydrated(page);
   await page.getByRole('button', {name: 'Add an account or debt'}).click();

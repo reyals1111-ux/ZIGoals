@@ -5,6 +5,7 @@ import {Sparkline, sparklineWords} from './sparkline';
 import {Change, compactMoney} from './market-format';
 import {formatMoney, formatPrice} from '../../lib/visual-format';
 import './data-table.css';
+import {DataTableMore} from './data-table-more';
 import {useScrollEdges} from '../ui/use-scroll-edges';
 
 export type MarketTableRow = {
@@ -43,5 +44,5 @@ export function MarketTable({rows, currency, label, onToggle, disabled, loading 
         <td><button type="button" className="market-favourite" aria-label={`${row.favourite ? 'Remove' : 'Add'} ${row.name} favourite`} aria-pressed={row.favourite} aria-disabled={!row.favourite && fullText ? true : undefined} title={!row.favourite && fullText ? fullText : undefined} disabled={disabled} onClick={() => onToggle(row)}>{row.favourite ? '★' : '☆'}</button></td>
       </tr>)}</tbody>
     </table>
-  </div>{/* Session AL (TK-162): said in words while columns sit off to the right (CSS shows it only then) */}<p className="data-table-more" aria-hidden="true">More columns to the right: swipe the table sideways.</p></>;
+  </div>{/* Session AL (TK-162): said in words while columns sit off to the right (CSS shows it only then) */}<DataTableMore /></>;
 }

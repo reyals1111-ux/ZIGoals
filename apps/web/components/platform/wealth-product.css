@@ -14,6 +14,14 @@
 .wealth-product .wealth-summary .wealth-split { grid-area: auto; margin: 0; }
 .wealth-summary-tools { display: flex; flex-wrap: wrap; gap: 10px; }
 .wealth-summary-tools > * { min-height: 44px; }
+/* Session AL fifth pass (D-221): on hover "Manage assets" and "Refresh prices" swapped their gradient for a flat colour of
+   nearly the same shade (Nebula rgb(16,33,57), Dark rgb(2,8,23), Light rgb(236,241,247)), so a pointer saw no change. The
+   edge brightens and the face takes a tint, in every theme. Pointer devices only; no movement (reduced motion unaffected).
+   The id-weight :not(#\-) outranks the theme sheets' own .secondary:hover. */
+@media (hover: hover) {
+  :root .wealth-summary-tools .secondary:hover:not(:disabled):not(#\-) { border-color: #6fdcffd9; background: #6fdcff33; color: #fff; }
+  :root[data-theme=light] .wealth-summary-tools .secondary:hover:not(:disabled):not(#\-) { border-color: #0b5f86; background: #d6ecf8; color: #06283a; }
+}
 .wealth-summary-side > .fine { margin: 0; color: var(--text-secondary, #c9d6ea); font-size: 14px; }
 @media (max-width: 1199.98px) { .wealth-product.wealth-workspace .wealth-hero.wealth-summary { grid-template-columns: minmax(0, 1fr); grid-template-areas: "total" "side"; } }
 @media (max-width: 767.98px) { .wealth-product.wealth-workspace .wealth-hero.wealth-summary { padding: 16px; gap: 16px; } .wealth-summary-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .wealth-summary-tools > * { min-width: 0; padding-inline: 10px; font-size: 15px; } }

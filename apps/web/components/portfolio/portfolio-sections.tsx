@@ -14,6 +14,7 @@ import {allocation, type AllTimeResult, type DayChange} from '../../lib/portfoli
 import {FEATURED_COINS} from './coin-picker';
 import {Change, compactAmount, compactMoney, direction, percent} from '../markets/market-format';
 import '../markets/data-table.css';
+import {DataTableMore} from '../markets/data-table-more';
 export {Change, percent};
 import type {CoinMarket, Price, Sizes} from './use-portfolio-market';
 import {useScrollEdges} from '../ui/use-scroll-edges';
@@ -119,6 +120,9 @@ export function HoldingsTable({portfolio, rows, sort, onSort, onRemove, run}: {p
         })}</tbody>
       </table>
     </div>
+    {/* Session AL (D-155, fifth pass): at 175 % zoom (731 px) Value and Result sat off to the right with no word that they
+        were there; the same line as Markets' table says so while the table runs past its edge. */}
+    <DataTableMore />
   </section>;
 }
 

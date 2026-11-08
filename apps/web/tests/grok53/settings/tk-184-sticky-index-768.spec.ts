@@ -20,6 +20,10 @@ test('TK-184: at 768 px the Settings index is one row and the page does not scro
   const tallest = Math.max(...await index.locator(':scope > *').evaluateAll(els => els.map(el => el.getBoundingClientRect().height)));
   expect(box.height).toBeLessThanOrEqual(tallest + 24 + 1 + .5);
   expect(box.height).toBeLessThanOrEqual(80);
+  // Session AL fifth pass (TK-184, replay round 2: "74 px, still a two-line-high band"): each item is the 44 px target
+  // with 6 px of bar around it, 57 px measured; one row of 44 px targets plus at most 20 px.
+  expect(box.height).toBeLessThanOrEqual(64);
+  expect(tallest).toBeLessThanOrEqual(46);
   const tops = await links.evaluateAll(els => [...new Set(els.map(el => Math.round(el.getBoundingClientRect().top)))]);
   expect(tops).toHaveLength(1);
   for (const height of await links.evaluateAll(els => els.map(el => el.getBoundingClientRect().height))) expect(height).toBeGreaterThanOrEqual(44);
