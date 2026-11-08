@@ -14,6 +14,7 @@ import {TourOffer} from '../tour/tour-offer';
 import './help.css';
 import {SYNC_WRITES} from '../../lib/vault/sync-writes';
 import {XP_RULES} from '../../lib/game/xp';
+import {RELEASES, releaseHref} from '../../lib/help/release-history';
 
 
 const TOPICS: [id: string, label: string][] = [
@@ -242,6 +243,11 @@ export function HelpPage() {
       <p className="eyebrow">EARLIER UPDATES</p>
       <h2 id="help-earlier-updates">Earlier updates</h2>
       <p className="help-earlier-lede">What changed, release by release, kept for reference. Each entry says how that release worked; some controls have moved since, and a few need an account or the money and chain pages switched on. For how to do something today, start with the topics above.</p>
+      {/* Session AL Part 15 (GAP-178, C-DVG-90): the public release history, newest first (lib/help/release-history.ts). */}
+      <Section id="release-history" updated="Nov 8, 2026" eyebrow="RELEASE HISTORY" title="Every published version, newest first">
+        <p>Help opens for anyone, with no account, so this list is public. The version you are using is under <a className="text-link" href="#whats-new-alpha">What&rsquo;s new</a>.</p>
+        <ol className="help-releases">{RELEASES.map(r => <li key={r.alpha}><strong>Alpha {r.alpha}</strong> <span className="fine">· {r.date}</span><br/>{r.title}{r.help && <> · <a className="text-link" href={releaseHref(r)}>Read more</a></>}</li>)}</ol>
+      </Section>
       <Section id="earlier-changes" updated="Nov 1, 2026 or earlier" eyebrow="SMALLER CHANGES" title="Smaller changes, and where things moved">
         <HelpQuestion id="z-panel" question="What changed in ZIGi&rsquo;s panel?"><p>One row at the top: ZIGi, its name and a small line saying which AI answers (with your own AI connected, tap it to change the model), then New chat, Expand, Pop out on a computer, &ldquo;&#8943;&rdquo; and Close. &ldquo;&#8943;&rdquo; holds History, Customize, Settings, Meet ZIGi, Help and, when the music player shows, Music. A new chat is one greeting and the message box; the <strong>Suggestions</strong> chip by the box opens Ideas, Your day and Yours, your own suggestions. A card you added, declined or undid folds to one line, with Undo while it lasts, and an earlier reply&rsquo;s cards you left fold away once a newer reply brings cards. Under each reply, one row of buttons (copy, read aloud, try again, useful, not useful) and &ldquo;&#8943;&rdquo; for the rest: Copy as Markdown, Think deeper, Continue in my AI and the token count. Nothing in the panel wraps onto a second line, on a phone or a wide screen.</p></HelpQuestion>
         <HelpQuestion id="z-status" question="Where are the Alpha notices and the wallet buttons now?"><p>Every page starts with its own header. The Alpha&rsquo;s facts are one compact notice at the top the first time (close it with &times;; it stays closed on this device), and always in Settings (its &ldquo;About this alpha&rdquo; panel and Settings &rarr; Your data) and in &ldquo;About this Alpha&rdquo; below: nothing moves unless you sign it, staking and votes signed only in your own wallet after a review screen (nothing else moves, and ZIGoals never holds keys), contract execution disabled, records in this browser that are not a backup. On a phone, More &rarr; <strong>Status &amp; wallet</strong> opens the Status sheet: the network and what it means, On this device and Connect Keplr (once you choose a wallet or a money tool), the mode, storage and sync, in the Showcase its own line, and More wallets. On a computer the wallet buttons sit in the row under the notice.</p></HelpQuestion>

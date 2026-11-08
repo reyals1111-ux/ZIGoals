@@ -3,6 +3,7 @@ import {Suspense, lazy, useMemo, useState} from 'react';
 import {HOLDINGS_FIELDS} from '../../lib/csv/mapping';
 import {MONEY_FIELDS} from '../../lib/csv/templates/presets';
 import {planMoneyRows} from '../../lib/csv/templates/money-rows';
+import {detectMoneyAppExport, type MoneyAppExport} from '../../lib/csv/templates/app-exports';
 import {addEntries, alreadyLogged, removeEntries, toMoneyEntries, type RefusedRow} from '../../lib/bankfiles';
 import {MONEY_LOG} from '../../lib/money-log/schema';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -12,7 +13,7 @@ import './bankfiles/bankfiles.css';
 import {applyHoldingsImport, holdingImportId, planHoldingsImport} from '../../lib/import/holdings';
 import type {Platform} from '../../lib/positions';
 import type {ImportRecord} from '../../lib/import/undo-schema';
-import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, missingFieldsText, StepHeading, setupFromText, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
+import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, missingFieldsText, StepHeading, setupFromText, withGuesses, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
 import type {ImportUndoStore} from './use-import-undo';
 import {plainErrorMessage} from '../../lib/plain-error';
 // Session AK (lane M, items 1 and 10): the person's rules in the money preview, and imported entries marked for review.
@@ -101,6 +102,15 @@ export function MoneyImportPanel({onClose}: {onClose: () => void}) {
  * or a preset is used), every row is previewed with possible repeats and rows already in the log unticked, refused rows
  * say why, and nothing is added until the person confirms. Undo removes exactly what this import added.
  */
+/** Session AL Part 15 (GAP-008): a Mint or Monarch export is pre-matched by its own column names (a YNAB register is named
+ * and pointed to its own reader); the dates are guessed from the file, the app's own order only when they could be either. */
+function moneySetup(text: string, found: (app: MoneyAppExport | null) => void): CsvSetup {
+  const guessed = setupFromText(text, MONEY_OPTIONS), app = detectMoneyAppExport(guessed.parsed.header);
+  found(app);
+  if (!app || !Object.keys(app.mapping).length) return guessed;
+  const next = withGuesses({...guessed, mapping: app.mapping}, MONEY_OPTIONS, {numbers: true, dates: true});
+  return next.ambiguousDates && app.dateFormat ? {...next, dateFormat: app.dateFormat, ambiguousDates: false} : next;
+}
 export function MoneyCsvImport({onClose}: {onClose: () => void}) {
   const log = useDeviceRecord(MONEY_LOG), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   // Session AL (P-DVR-22): a file with no currency column starts in the log's own currency (the one it already holds most
@@ -108,7 +118,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
   const logTotals = useMemo(() => { const by = new Map<string, bigint>(); for (const e of log.data.entries) { const cents = BigInt(Math.round(Number(e.amount) * 100) || 0); by.set(e.currency, (by.get(e.currency) ?? 0n) + (cents < 0n ? -cents : cents)); } if (log.data.currency) by.set(log.data.currency, (by.get(log.data.currency) ?? 0n) + 1n); return [...by].map(([currency, value]) => ({currency, value})); }, [log.data.entries, log.data.currency]);
   const startCurrency = useMoneyCurrency(logTotals);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1), [file, setFile] = useState<CsvFile | null>(null), [setup, setSetup] = useState<CsvSetup | null>(null), [pickedCurrency, setCurrency] = useState<string | null>(null), currency = pickedCurrency ?? startCurrency;
-  const [picked, setPicked] = useState<ReadonlySet<number> | null>(null), [error, setError] = useState('');
+  const [picked, setPicked] = useState<ReadonlySet<number> | null>(null), [error, setError] = useState(''), [app, setApp] = useState<MoneyAppExport | null>(null);
   const [done, setDone] = useState<{added: number; refused: RefusedRow[]; ids: ReadonlySet<string>; undone?: boolean} | null>(null);
   const plan = useMemo(() => setup ? planMoneyRows({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, currency}) : null, [setup, currency]);
   const logged = useMemo(() => new Set(plan && log.loaded ? plan.transactions.filter(t => alreadyLogged(t, log.data) || loggedWithRules(t, log.data, rules.data.rules)).map(t => t.index) : []), [plan, log.loaded, log.data, rules.data.rules]);
@@ -141,8 +151,8 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
     <div className="actions">{!done.undone && done.added > 0 && <button type="button" className="secondary" onClick={undo}>Undo this import</button>}<button type="button" className="secondary" onClick={onClose}>Done</button></div>
   </div>;
   return <div className="import-step">
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep target="money" fields={MONEY_FIELDS} onFile={f => { try { setSetup(setupFromText(f.text, MONEY_OPTIONS)); setFile(f); setPicked(null); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} /><StepActions onBack={onClose} /></>}
-    {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" /><MappingStep setup={setup} options={MONEY_OPTIONS} text={file.text} onChange={next => { setSetup(next); setPicked(null); }}>
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep target="money" fields={MONEY_FIELDS} onFile={f => { try { setSetup(moneySetup(f.text, setApp)); setFile(f); setPicked(null); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} /><StepActions onBack={onClose} /></>}
+    {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" />{app && <p className="notice import-preset" role="status">{app.note}</p>}<MappingStep setup={setup} options={MONEY_OPTIONS} text={file.text} onChange={next => { setSetup(next); setPicked(null); }}>
       {setup.mapping.currency === undefined && <label className="field"><span>Currency of this file</span><select value={currency} onChange={e => { setCurrency(e.target.value); setPicked(null); }}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>}
       <p className="fine">Choose the Date and either an Amount column (a minus sign is money out) or Money out and Money in. An &ldquo;In or out&rdquo; column, when the file has one, decides the direction.</p>
     </MappingStep><StepActions onBack={() => setStep(1)} onNext={() => setStep(3)} nextDisabled={!mappingReady} disabledReason={setup ? (setup.mapping.date === undefined ? 'Match the Date column to continue.' : 'Match an Amount column, or Money out and Money in, to continue.') : null} /></>}
