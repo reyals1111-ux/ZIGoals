@@ -105,7 +105,10 @@ test('RR-6: after one weigh-in Health says it is the first reading, not a six-we
   await page.keyboard.press('Escape');
   // The sheet closes through a history Back (use-back-closes); navigating before it is done aborts the next page load.
   await expect(dialog).toBeHidden();
-  await open(page, '/app/health');
+  // As a person goes on: the Health link (a page load right after the close can be aborted by the sheet's late history Back).
+  await page.getByRole('link', {name: 'Health', exact: true}).first().click();
+  await page.waitForURL('**/app/health**');
+  await expect(page.locator('main h1').first()).toBeAttached();
   const tile = page.locator('.health-hl-tile[data-tone="trend"]');
   await expect(tile).toContainText('78.4 kg');
   await expect(tile).toContainText('First reading. Two or three a week draw the line.');
