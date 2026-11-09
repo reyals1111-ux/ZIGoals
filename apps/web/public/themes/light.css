@@ -417,9 +417,19 @@
         color: inherit;
         box-shadow: inset 0 -2px 0 currentColor
     }
+    @media (hover: hover) {
+        .settings-page .settings-sections a[aria-current]:hover:not(#\-) {
+            color: var(--brand-cyan-ink)
+        }
+    }
     .hidden-page-chip > p:not(#\-) {
         border-color: var(--line, #c3cae3);
         color: var(--text)
+    }
+    :scope .nebula-flow .nebula-flow-emoji:not(#\-) {
+        -webkit-text-fill-color: currentColor;
+        background-image: none;
+        background-color: transparent
     }
 }
 /*  app/visual-theme.css  */
@@ -20215,6 +20225,22 @@
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
   .secondary:not(:disabled):not(#\-) { border-color: #717d94; }
 }
+/* apps/web/themes/light.al-contrast.css */
+/* Session AL (BN-137, NB-031; WCAG 1.4.11, by day only): two controls whose marks Light had left near the page's own white.
+   - The Game layer button (the rocket, top right): its rocket is drawn in the nebula's pale cyan, violet and pink, which
+     Light keeps exactly (H75), and Light had paled its night tile, so the rocket stood at 2.1:1 on its tile. By day the
+     tile keeps its night glass, like ZIGi's, the Checklist's and the music buttons beside the page (night islands): the
+     rocket is 6:1 or more on it, its word white. The tile is a night colour, so only a night colour changes (H75).
+   - A switch that is off (Settings → Your pages & buttons): its night track had turned to the card's own near-white, so
+     the switch read as a loose knob. Off, the track is a neutral slate (3:1 or more on white and on the day's cards) with a
+     white knob (4.5:1 on it); on, it keeps Nebula's gradient. Both colours are neutral or night ones (H75). */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+  .gamify-trigger:not(#\-) { background-image: linear-gradient(150deg, #162642, #1b1734); color: #d7e5fb; }
+  .gamify-trigger:is(:hover, :focus-visible, [aria-expanded="true"]):not(#\-) { color: #ffffff; }
+  .gamify[data-on] .gamify-trigger:not(#\-) { background-image: linear-gradient(150deg, #2a1f4a, #141a3a); color: #ffffff; }
+  .pages-switch input:not(:checked):not(#\-) { background-color: #6b7690; }
+  .pages-switch input:not(:checked):not(#\-)::before { background-color: #ffffff; }
+}
 /* apps/web/themes/light.gatec.css */
 /* Session AF Gate C (design review 2, ADR-028 H137): Light's last half-flipped pieces, by hand. Every rule carries the
    sheet's one id of weight (:not(#\-)) and the theme root, so it wins over the generated rule it replaces. */
@@ -20224,8 +20250,9 @@
 :root[data-theme=light] .glass-track[data-axis=y] .glass-fill:not(#\-)::before { background: linear-gradient(90deg, #ffffff38, #ffffff0a 45%, #0000000f), var(--glass-ink, linear-gradient(0deg, #18d9ef, #4299f6 40%, #9574ff 75%, #e26bee)); }
 :root[data-theme=light] .glass-track .glass-segment:not(#\-) { background: linear-gradient(180deg, #ffffff40, #ffffff08 50%, #00000012), var(--glass-ink, #7fa7f5); }
 /* A ring's empty track is the day's neutral line, not Nebula's near-black navy (Goals' rings read as heavy dark arcs);
-   inside the night islands it keeps its night colour. */
-:root[data-theme=light] .glass-ring-track:not(#\-):not(:where(.today-hero, .stake-hero, .destination-panel, .account-panel, .site-footer, .checklist-celebration, .checklist-timer-ring) *) { stroke: #1c2c4826; }
+   inside the night islands it keeps its night colour. Session AL (N-MO-08; WCAG 1.4.11): at 15 % the line was 1.3:1 on the
+   day's cards, so Health's water ring showed no track; at 55 % the same ink is 3.4:1 or more on white and the pale cards. */
+:root[data-theme=light] .glass-ring-track:not(#\-):not(:where(.today-hero, .stake-hero, .destination-panel, .account-panel, .site-footer, .checklist-celebration, .checklist-timer-ring) *) { stroke: #1c2c488c; }
 /* A favourite's star stays gold by day: a deep gold that still reads as gold (3:1 against white, WCAG 1.4.11), not the
    olive the generic deepening gave. */
 :root[data-theme=light] .market-favourite[aria-pressed="true"]:not(#\-) { color: #a86f00; }

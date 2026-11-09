@@ -5617,6 +5617,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 901px) { :where(:root[data-density=compact]) .app-sidebar .sidebar-destination:not(#\-) { margin-bottom: 0; } }
 @media (min-width: 901px) { :where(:root[data-density=compact]) .app-sidebar:not(#\-) { padding-bottom: max(20px, env(safe-area-inset-bottom, 0px)); } }
 :where(:root[data-density=compact]) .theme-switch-note:not(#\-) { margin-top: 8px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .app-sidebar .theme-switch:not(.theme-switch-compact) .theme-option:not(#\-) { row-gap: 2px; }
 /*  components/sleep/energy-curve.css  */
 :where(:root[data-density=compact]) .energy-curve:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .energy-curve-empty:not(#\-) { margin-top: 0; margin-bottom: 0; }

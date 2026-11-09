@@ -2860,6 +2860,7 @@
 /*  components/shell/theme-switch.css  */
 :where(:root[data-text=large]) .theme-switch-compact .theme-option:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .theme-switch-note:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .app-sidebar .theme-switch:not(.theme-switch-compact) .theme-option > span:not(#\-) { font-size: calc(12px * 1.125); }
 /*  components/sleep/energy-curve.css  */
 :where(:root[data-text=large]) .energy-curve-lead strong:not(#\-) { font-size: calc(28px * 1.125); }
 :where(:root[data-text=large]) .energy-curve-meaning:not(#\-) { font-size: calc(15px * 1.125); }
