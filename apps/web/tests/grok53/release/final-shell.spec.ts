@@ -229,7 +229,7 @@ test('NB-028 (AL-NAV-010): Settings and Help keep their place from the first pai
   expect(Math.abs(now! - first!)).toBeLessThanOrEqual(1);
 });
 
-// ---- Copy: N-MO-02, N-MO-01, T-069 ----
+// ---- Copy: N-MO-02, N-MO-01 ----
 test('N-MO-02, N-MO-01 (AL-PRICING-001): Plans says what is known about Alpha users later; Help names Spotify Premium as Spotify’s', async ({page}) => {
   await ready(page, '/app/plans');
   await expect(page.locator('main')).toContainText('Whether people who used the Alpha keep any features once paid plans begin is not decided yet either.');
@@ -237,17 +237,5 @@ test('N-MO-02, N-MO-01 (AL-PRICING-001): Plans says what is known about Alpha us
   await expect(page.locator('main')).toContainText('Spotify needs a Spotify Premium account (Spotify’s own plan, not ZIGoals Premium)');
   await expect(page.locator('main')).not.toContainText('Spotify needs Premium');
 });
-for (const width of [375, 394] as const)
-  test(`T-069 (AL-LAUNCHER-OVERLAP-001): at ${width} px the notice’s “Saved in this browser only” wraps whole, never cut`, async ({page}) => {
-    await page.setViewportSize({width, height: 800});
-    await freshDevice(page);
-    await ready(page, '/app');
-    const short = page.locator('.alpha-notice .alpha-notice-short');
-    await expect(short).toBeVisible();
-    await expect(short).toHaveText('Saved in this browser only');
-    const s = await short.evaluate(el => ({over: el.scrollWidth - el.clientWidth, overflow: getComputedStyle(el).textOverflow, right: el.getBoundingClientRect().right, notice: el.closest('.alpha-notice')!.getBoundingClientRect().right}));
-    expect(s.over).toBeLessThanOrEqual(0);
-    expect(s.overflow).not.toBe('ellipsis');
-    expect(s.right).toBeLessThanOrEqual(s.notice);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
-  });
+// T-069's wrap was reverted (CI 1629: with the Showcase label it wrapped one letter per line); T-069 is carried, so its test
+// went with its fix.

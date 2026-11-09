@@ -14,7 +14,8 @@
 ## Totals
 | verdict | ids |
 |---|---|
-| FIXED | 115 |
+| FIXED | 114 |
+| STILL OPEN | 1 (T-069, reverted) |
 
 ## Re-checked ids
 | finding id | AL row | previous verdict | verdict | conditions replayed | evidence (what I did and saw) |
@@ -98,7 +99,7 @@
 | NB-028 | AL-NAV-010 | CHANGED | FIXED | the final replay's conditions for this id, in tests/grok53/release/final-shell.spec.ts | fixed in 53df729f (final fix pass, one attempt); the spec fails on 1a7b0163 and passes on the 6e3a6263 production build |
 | N-MO-02 | AL-PRICING-001 | STILL OPEN | FIXED | the final replay's conditions for this id, in tests/grok53/release/final-shell.spec.ts | fixed in 53df729f (final fix pass, one attempt); the spec fails on 1a7b0163 and passes on the 6e3a6263 production build |
 | N-MO-01 | AL-PRICING-001 | CHANGED | FIXED | the final replay's conditions for this id, in tests/grok53/release/final-shell.spec.ts | fixed in 53df729f (final fix pass, one attempt); the spec fails on 1a7b0163 and passes on the 6e3a6263 production build |
-| T-069 | AL-LAUNCHER-OVERLAP-001 | CHANGED | FIXED | the final replay's conditions for this id, in tests/grok53/release/final-shell.spec.ts | fixed in 53df729f (final fix pass, one attempt); the spec fails on 1a7b0163 and passes on the 6e3a6263 production build |
+| T-069 | AL-LAUNCHER-OVERLAP-001 | CHANGED | STILL OPEN | the final replay's conditions for this id, in tests/grok53/release/final-shell.spec.ts | the fix in 53df729f was reverted after CI 1629: with the Showcase label the fact shrank to 0 px and wrapped one letter per line on every phone page; carried as an owner call |
 | TK:14 | AL-AI-FACTS-004 | STILL OPEN | FIXED | the final replay's conditions for this id, in tests/grok53/release/final-zigi.spec.ts | fixed in 13a7c83b (final fix pass, one attempt); the spec fails on 1a7b0163 and passes on the 6e3a6263 production build |
 | TK:15 | AL-AI-FACTS-004 | STILL OPEN | FIXED | the final replay's conditions for this id, in tests/grok53/release/final-zigi.spec.ts | fixed in 13a7c83b (final fix pass, one attempt); the spec fails on 1a7b0163 and passes on the 6e3a6263 production build |
 | TK:16 | AL-AI-FACTS-004 | STILL OPEN | FIXED | the final replay's conditions for this id, in tests/grok53/release/final-zigi.spec.ts | fixed in 13a7c83b (final fix pass, one attempt); the spec fails on 1a7b0163 and passes on the 6e3a6263 production build |
