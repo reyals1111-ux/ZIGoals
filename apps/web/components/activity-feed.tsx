@@ -31,6 +31,7 @@ import { TASK_ACTIVITY_PRESENTATION, getTaskActivities } from "../lib/tasks/acti
 // CI13 (weights): the tasks' day rule (lib/tasks/device.ts `deviceDay`) without loading the Tasks engine with it.
 import { checklistZone, zonedDay } from "../lib/checklist/day";
 import { isDeletedHabitRef } from "../lib/habit-delete";
+import { standsAlone } from "../lib/activity-zigi";
 import { countText, plural } from "../lib/plural";
 import { removeHealthItem } from "../lib/health";
 import { removeWater } from "../lib/health-daily";
@@ -122,7 +123,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   // Session AL fifth pass (LA-029, MO-065): a card confirmed in NOVA says NOVA (`by: 'nova'`); a line saved with Quick add
   // under ZIGi's or NOVA's answer (`via: 'quick-add'`) is noted under its record's own id, so it shows as that record's row
   // and never on its own (no row: it was undone or removed).
-  const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId) && !isDeletedHabitRef(a.activityId, habits.deletedIds) && !/^(check-in|skip)$/.test(a.kind) && a.via !== "quick-add").map(a => { const how = a.auto ? "Added by ZIGi (auto-accept)" : a.by === "nova" ? "Confirmed from a NOVA card" : "Confirmed from a ZIGi card"; return {id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: "", at: a.at, href: a.href, source: how}; });
+  const zigiOnly = zigi.actions.filter(a => standsAlone(a, shownIds) && !isDeletedHabitRef(a.activityId, habits.deletedIds) /* Session AL final pass (DV-115): a Today card's tick of a habit too (lib/activity-zigi.ts) */).map(a => { const how = a.auto ? "Added by ZIGi (auto-accept)" : a.by === "nova" ? "Confirmed from a NOVA card" : "Confirmed from a ZIGi card"; return {id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: "", at: a.at, href: a.href, source: how}; });
   // Session X-Local Part 5b after the merge: a record ZIGi added under auto-accept says so on its own event too (before the merge
   // the feed listed such records only as ZIGi's entries; X-Cloud's feed now shows the record itself, marked by ZIGi).
   const autoById = new Map(zigi.actions.filter(a => a.auto).map(a => [a.activityId, true] as const));

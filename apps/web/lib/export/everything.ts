@@ -104,6 +104,9 @@ import {exportDurableStore, isDurableMarker} from '../vault/local';
 import {exportFileName} from '../showcase-detect';
 import {parseBackup} from '@zigoals/shared-types';
 import {buildStoredZip} from './zip';
+import {formatUnits} from '@zigoals/chain-config';
+/** Base units as a decimal without trailing zeros ("45000000", 8 → "0.45"); unreadable units stay empty. */
+const shownUnits = (units: string, decimals: number): string => { try { const text = formatUnits(units, decimals); return text.includes('.') ? text.replace(/0+$/, '').replace(/\.$/, '') : text; } catch { return ''; } };
 
 /**
  * "Export everything" (Session P, PR 3, T4; docs/product/features/T4-export-everything.md): one readable ZIP with a
@@ -251,7 +254,10 @@ const CSV_HEADERS: Record<CsvFileName, string[]> = {
   'weights.csv': ['id', 'date', 'grams', 'source', 'observed_at_utc', 'timezone', 'created_at_utc', 'updated_at_utc', 'kg', 'lb_converted'],
   'water.csv': ['id', 'date', 'amount', 'unit', 'millilitres', 'created_at_utc', 'updated_at_utc'],
   'activity.csv': ['id', 'date', 'kind', 'name', 'steps', 'minutes', 'count', 'created_at_utc', 'updated_at_utc'],
-  'wealth-positions.csv': ['id', 'name', 'asset', 'asset_class', 'source_type', 'network', 'quantity', 'decimals', 'valuation_value', 'valuation_currency', 'valuation_decimals', 'valuation_source', 'observed_at_utc', 'archived_at_utc', 'provenance', 'notes'],
+  'wealth-positions.csv': ['id', 'name', 'asset', 'asset_class', 'source_type', 'network', 'quantity', 'decimals', 'valuation_value', 'valuation_currency', 'valuation_decimals', 'valuation_source', 'observed_at_utc', 'archived_at_utc', 'provenance', 'notes',
+    // Session AL final pass (BN-020; TIER 3 (export format), additive): the quantity and value as Wealth shows them ("0.45"
+    // for 45000000 with 8 decimals); `quantity` and `valuation_value` keep the exact base units.
+    'quantity_shown', 'valuation_value_shown'],
   'sleep.csv': ['id', 'kind', 'start_utc', 'end_utc', 'timezone', 'latency_minutes', 'awake_minutes', 'awakenings', 'deep_minutes', 'rem_minutes', 'core_minutes', 'quality', 'tags', 'source', 'note', 'created_at_utc', 'updated_at_utc'],
   'meditation.csv': ['id', 'started_at_utc', 'seconds', 'kind', 'pattern', 'mood_before', 'mood_after', 'heart_rate_avg', 'heart_rate_min', 'heart_rate_max', 'timezone', 'source', 'note', 'created_at_utc', 'updated_at_utc'],
   'vitals.csv': ['id', 'date', 'source', 'resting_heart_rate', 'heart_rate_min', 'heart_rate_avg', 'heart_rate_max', 'active_kcal', 'resting_kcal', 'updated_at_utc'],
@@ -369,7 +375,7 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   out['weights.csv'] = csv(CSV_HEADERS['weights.csv'], [...(health?.weights ?? []).map(w => [w.id, w.date, w.grams, 'manual-date-only', '', '', w.createdAt, w.updatedAt, ...weightUnits(w.grams * 1000)] as Cell[]), ...(health?.measurements ?? []).filter(m => m.kind === 'weight').map(m => [m.id, dayIn(m.observedAt, m.timezone), gramsText(m.canonical), 'measurement', new Date(m.observedAt).toISOString(), m.timezone, m.createdAt, m.recordedAt, ...weightUnits(m.canonical)] as Cell[])]);
   out['water.csv'] = csv(CSV_HEADERS['water.csv'], (health?.daily?.water ?? []).map(w => [w.id, w.date, milliText(w.amountMilli), w.unit === 'ml' ? 'mL' : 'US fl oz', w.unit === 'ml' ? milliText(w.amountMilli) : String(Math.round(w.amountMilli / 1000 * 29.5735295625 * 1000) / 1000), w.createdAt, w.updatedAt]));
   out['activity.csv'] = csv(CSV_HEADERS['activity.csv'], [...(health?.activity ?? []).map(a => [a.id, a.date, 'activity', a.name, a.steps, a.minutes, '', a.createdAt, a.updatedAt] as Cell[]), ...(health ? exerciseData(health).days.map(d => { const counter = exerciseData(health).counters.find(c => c.id === d.counterId); return [d.id, d.date, 'counter', counter?.name ?? d.counterId, '', '', d.count, '', ''] as Cell[]; }) : [])]);
-  out['wealth-positions.csv'] = csv(CSV_HEADERS['wealth-positions.csv'], (platform?.positions ?? []).map(p => [p.id, p.providerId, p.asset, p.assetClass ?? '', p.sourceType, p.network, p.quantity, p.decimals, p.valuation?.value ?? '', p.valuation?.currency ?? '', p.valuation?.decimals ?? '', p.valuation?.source ?? '', p.observedAt, p.archivedAt ?? '', p.provenance, p.notes]));
+  out['wealth-positions.csv'] = csv(CSV_HEADERS['wealth-positions.csv'], (platform?.positions ?? []).map(p => [p.id, p.providerId, p.asset, p.assetClass ?? '', p.sourceType, p.network, p.quantity, p.decimals, p.valuation?.value ?? '', p.valuation?.currency ?? '', p.valuation?.decimals ?? '', p.valuation?.source ?? '', p.observedAt, p.archivedAt ?? '', p.provenance, p.notes, shownUnits(p.quantity, p.decimals), p.valuation ? shownUnits(p.valuation.value, p.valuation.decimals) : '']));
   // Session W's areas. Accounts live in their device key in this release; a later build keeps them in finance v5, so
   // both homes are copied, each row saying which one it came from.
   out['sleep.csv'] = csv(CSV_HEADERS['sleep.csv'], (health?.sleep?.nights ?? []).map(n => [n.id, n.kind, n.start, n.end ?? '', n.timeZone, n.latencyMin, n.awakeMin, n.awakenings, n.stages?.deepMin, n.stages?.remMin, n.stages?.coreMin, n.quality, (n.tags ?? []).join('; '), n.source, n.note ?? '', n.createdAt, n.updatedAt]));

@@ -1,6 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import {createEmptyHealth, logHealthItem, saveFood, saveWeight, setHealthTargets, type HealthData} from './health';
 import {exportHealthCsv, previewDayCopy} from './health-daily';
+import {changeCount} from './health-counters';
+import {workoutsSchema} from './workouts/schema';
 import {fastStartAt, logPastFast, startFast} from './fasting/engine';
 import {emptyFasting} from './fasting/schema';
 import {formatMacroGrams, servingsWarning, tinyWaterWarning, weightJumpWarning} from './health-plausible';
@@ -110,10 +112,33 @@ describe('P-MO-60 (MO-016, MO-031): the Health CSV covers the journal', () => {
     d = saveMeasurement(d, {id: id(31), kind: 'waist', unit: 'cm', quantityMilli: 89_900, observedAt: '2026-11-04T08:00:00.000Z', timezone: BXL, sourceLabel: 'Manual measurement'}, AT);
     d = withHealthGroup(d, 'sleep', saveNight(emptySleep(), {kind: 'night', start: Date.parse('2026-11-03T22:00:00.000Z'), end: Date.parse('2026-11-04T06:00:00.000Z'), timeZone: BXL}, new Date(AT)), false);
     const [header, ...rows] = exportHealthCsv(d, '2026-11-04', '2026-11-04').split('\r\n');
-    expect(header).toMatch(/"weight_kg","weight_lb"$/);
-    expect(rows.find(r => r.includes('"weight"'))).toMatch(/"72\.5","159\.84"$/);
+    // Session AL (MO-016, deliberate): four columns follow weight_kg and weight_lb (TIER 3, additive); the weight row keeps
+    // its kg and lb in the same two places, with the new columns empty after them.
+    expect(header).toMatch(/"weight_kg","weight_lb","kcal_entry","protein_g_per_serving","carbs_g_per_serving","fat_g_per_serving"$/);
+    expect(rows.find(r => r.includes('"weight"'))).toMatch(/"72\.5","159\.84","","","",""$/);
     expect(rows.some(r => r.includes('"sleep","Night"') && r.includes('"480","minutes in bed"'))).toBe(true);
     expect(rows.some(r => r.includes('"measurement","waist"') && r.includes('"89.9","cm"'))).toBe(true);
+  });
+});
+
+describe('Session AL final pass (MO-016, MO-031): the Health CSV adds grams, each entry\'s kcal, counters, fasts and workout sets', () => {
+  it('adds columns and rows only; every existing column keeps its place', () => {
+    let d: HealthData = saveFood(createEmptyHealth(), oats);
+    d = logHealthItem(d, {id: id(50), sourceId: oats.id, sourceKind: 'food', date: '2026-11-04', meal: 'Breakfast', quantityMilli: 1500}, AT);
+    d = changeCount(d, 'health_counter-pushups', '2026-11-04', 12);
+    const fasting = logPastFast(emptyFasting(), {id: 'fast_b', start: new Date('2026-11-03T16:00:00.000Z'), end: new Date('2026-11-04T08:00:00.000Z'), targetHours: 16, timeZone: BXL, now: new Date(AT)});
+    const workouts = workoutsSchema.parse({version: 1, workouts: [{id: 'w1', name: 'Push day', date: '2026-11-04', startedAt: '2026-11-04T07:00:00.000Z', endedAt: '2026-11-04T07:40:00.000Z', exercises: [{id: 'e1', exerciseId: 'bench-press', name: 'Bench press', sets: [{id: 's1', reps: 8, weightKg: 60, done: true}]}]}], templates: [], exercises: [], restSeconds: 90});
+    const [header, ...rows] = exportHealthCsv(d, '2026-11-04', '2026-11-04', {fasting, workouts}).split('\r\n');
+    expect(header).toMatch(/^"record_id","date","kind","name","meal","quantity","unit","serving_weight_g","kcal_per_serving","protein_mg_per_serving","carbs_mg_per_serving","fat_mg_per_serving",/);
+    expect(header).toMatch(/"kcal_entry","protein_g_per_serving","carbs_g_per_serving","fat_g_per_serving"$/);
+    const diary = rows.find(r => r.includes('"diary"'))!;
+    expect(diary).toContain('"1.5","servings","40","150","5333","27000","3000"');
+    expect(diary).toMatch(/"225","5\.3","27","3"$/);
+    expect(rows.some(r => r.includes('"counter","Push-ups"') && r.includes('"12","repetitions"'))).toBe(true);
+    expect(rows.some(r => r.includes('"fast","16 h fast"') && r.includes('"16","hours fasted"'))).toBe(true);
+    expect(rows.some(r => r.includes('"workout set","Push day · Bench press · set 1 · 60 kg"') && r.includes('"8","reps"'))).toBe(true);
+    // Without the device records, the journal's own rows only (Export everything keeps its own fasting and workout files).
+    expect(exportHealthCsv(d, '2026-11-04', '2026-11-04')).not.toContain('"fast"');
   });
 });
 

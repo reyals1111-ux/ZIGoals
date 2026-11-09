@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js';
-import {compound, type CompoundInput, type CompoundResult} from '../../lib/compound/engine';
+import {compound, LIMITS, type CompoundInput, type CompoundResult} from '../../lib/compound/engine';
+import {parseNumberInput} from '../../lib/numbers/parse';
 import {CSV_FORMULA_START} from '../../lib/export/csv-safe';
 
 /**
@@ -43,4 +44,17 @@ export function calculatorCsv(input: CompoundInput, result: CompoundResult, assu
     ...result.rows.map(r => [r.year, r.months ?? '', r.contributedThisYear, r.contributed, r.growth, r.balance, ...(real ? [r.real ?? ''] : [])]),
   ];
   return lines.map(l => l.map(csvCell).join(',')).join('\n') + '\n';
+}
+
+/**
+ * Session AL final pass (N-TK-18, AL-DECIMAL-INPUT-001): what is wrong with the "Another return" box, in words, or null
+ * (empty is fine: no extra line). "-abc5" had stayed in the box with no word and no line drawn.
+ */
+export function customReturnIssue(raw: string): string | null {
+  const text = raw.trim();
+  if (!text) return null;
+  const read = parseNumberInput(text, {allowNegative: true});
+  if (!read.ok || !Number.isFinite(read.value)) return 'Enter a yearly return in percent, like 7 or -2.5.';
+  if (read.value < -50 || read.value > LIMITS.ratePercent) return `Enter a yearly return from -50 to ${LIMITS.ratePercent} %.`;
+  return null;
 }

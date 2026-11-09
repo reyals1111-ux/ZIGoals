@@ -168,3 +168,22 @@ test('portfolio-transactions.csv: one row per trade or transfer, with its portfo
   const first = data.portfolios[0]!, tx = first.transactions[0]!;
   expect(lines.some(l => l.includes(`"${tx.id}"`) && l.includes(`"${first.name}"`))).toBe(true);
 });
+
+// Session AL final pass (BN-020; TIER 3 (export format), additive): wealth-positions.csv keeps its columns, exact base units
+// included, and adds the quantity and value as Wealth shows them at the end.
+describe('BN-020: wealth-positions.csv reads as Wealth shows it', () => {
+  test('two columns at the end; quantity and valuation_value keep the exact base units', () => {
+    const {records} = buildShowcase('2026-09-20');
+    const [header, ...rows] = lines(collectEverything(records, APP).csv['wealth-positions.csv']);
+    expect(header).toBe('"id","name","asset","asset_class","source_type","network","quantity","decimals","valuation_value","valuation_currency","valuation_decimals","valuation_source","observed_at_utc","archived_at_utc","provenance","notes","quantity_shown","valuation_value_shown"');
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      const cells = [...row.matchAll(/"((?:[^"]|"")*)"/g)].map(m => m[1]!);
+      const [quantity, decimals, shown] = [cells[6]!, Number(cells[7]), cells[16]!];
+      expect(quantity).toMatch(/^\d+$/);
+      // The shown quantity is the base units moved `decimals` places, without trailing zeros.
+      const whole = quantity.padStart(decimals + 1, '0'), expected = decimals ? `${whole.slice(0, -decimals)}.${whole.slice(-decimals)}`.replace(/\.?0+$/, '') : quantity;
+      expect(shown, row).toBe(expected);
+    }
+  });
+});

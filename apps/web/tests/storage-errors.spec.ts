@@ -57,13 +57,15 @@ test('QA-22: each refused backup file says why, and nothing changes', async ({pa
   const section = page.getByRole('region', {name: 'Habits backup', exact: true});
   await section.getByText('Restore Habits from a file', {exact: true}).click();
   const before = await page.evaluate(key => localStorage.getItem(key), HABITS);
+  // Session AL (BN-021, deliberate): a refused file's message is plain words that end "Existing data was not changed."; the
+  // internal code ("(NOT_A_BACKUP)") is no longer shown. Each row still names its own refusal sentence, anchored at the end.
   const files: [string, string, RegExp][] = [
-    ['not-json.json', '{"kind":', /not a ZIGoals module backup.*\(NOT_A_BACKUP\)$/],
-    ['health.json', JSON.stringify({schemaVersion: 1, kind: 'zigoals-health'}), /This is a Health backup\. Restore it under Health\..*\(WRONG_MODULE\)$/],
-    ['newer.json', JSON.stringify({schemaVersion: 4, kind: 'zigoals-habits', habits: []}), /made by a newer version of ZIGoals.*\(NEWER_BACKUP\)$/], // habits v3 is read since Session P; 4 is the next unknown version
+    ['not-json.json', '{"kind":', /not a ZIGoals module backup\. Existing data was not changed\.$/],
+    ['health.json', JSON.stringify({schemaVersion: 1, kind: 'zigoals-health'}), /This is a Health backup\. Restore it under Health\. Existing data was not changed\.$/],
+    ['newer.json', JSON.stringify({schemaVersion: 4, kind: 'zigoals-habits', habits: []}), /made by a newer version of ZIGoals.* Existing data was not changed\.$/], // habits v3 is read since Session P; 4 is the next unknown version
     // This browser's own Habits, with the one habit twice: a repeated ID.
-    ['damaged.json', (() => { const data = JSON.parse(before!); data.habits.push(data.habits[0]); return JSON.stringify(data); })(), /incomplete or damaged.*\(DAMAGED\)$/],
-    ['large.json', `{"kind":"zigoals-habits","pad":"${'x'.repeat(2_000_100)}"}`, /larger than the 2 MB this module can restore.*\(TOO_LARGE\)$/],
+    ['damaged.json', (() => { const data = JSON.parse(before!); data.habits.push(data.habits[0]); return JSON.stringify(data); })(), /incomplete or damaged.* Existing data was not changed\.$/],
+    ['large.json', `{"kind":"zigoals-habits","pad":"${'x'.repeat(2_000_100)}"}`, /larger than the 2 MB this module can restore\. Existing data was not changed\.$/],
   ];
   for (const [name, text, message] of files) {
     await section.getByLabel('Choose Habits backup').setInputFiles({name, mimeType: 'application/json', buffer: Buffer.from(text)});

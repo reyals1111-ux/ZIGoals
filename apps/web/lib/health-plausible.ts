@@ -57,5 +57,13 @@ export function tinyWaterWarning(ml: number): string | null {
   return ml > 0 && ml < 5 ? `${formatNumber(roundHalfUp(ml, 1))} mL is less than a sip. If it is right, press Log water again to keep it.` : null;
 }
 
+/**
+ * Session AL final pass (D-076, AL-TIMEZONE-004): a personal water target under a glass (250 mL) a day reads as a slip
+ * ("1" meant as a litre): the question to ask once before keeping it, or null.
+ */
+export function waterTargetWarning(ml: number): string | null {
+  return ml > 0 && ml < 250 ? `${formatNumber(roundHalfUp(ml, 1))} mL a day is less than one glass of water. If it is right, press Save journal preferences again to keep it.` : null;
+}
+
 /** Session AL (P-MO-48; MO-108, MO-133): protein, carbs and fat read in tenths of a gram everywhere ("10.3 g", not "10.313 g"). */
 export const formatMacroGrams = (mg: number | null) => mg === null ? 'Unknown' : formatNumber(roundHalfUp(mg / 1000, 1), {maximumFractionDigits: 1});

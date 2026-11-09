@@ -45,3 +45,13 @@
 }
 .data-table-more { display: none; margin: 6px 4px 0; font-size: 14px; color: var(--text-secondary, #c4d3e6); text-align: end; }
 .data-table-wrap[data-more-right] + .data-table-more { display: block; }
+/* Session AL final pass (D-223, AL-A11Y-025): Markets' view chips and the favourite star answer the pointer. An unpressed
+   chip brightens its words and edge, the pressed one adds a soft ring; an empty star turns gold-tinted and gets a faint
+   disc. Colour only, no movement, so Reduced motion and Motion Off need nothing more. A star that cannot be added (the
+   list is full, aria-disabled) does not change. */
+@media (hover: hover) {
+  .markets-page .picker-tabs button:hover:not([aria-pressed="true"]):not(:disabled) { color: #eaf9ff; border-color: #7fe3f399; background: #17284a; }
+  :root main .markets-page .picker-tabs > button[aria-pressed="true"]:hover:not(:disabled) { box-shadow: inset 0 0 0 1px #33cce4, 0 0 14px -4px #33cce4aa; }
+  .markets-page .market-favourite:hover:not([aria-disabled="true"]):not([aria-pressed="true"]) { color: #f2d38f; background: #f2d38f1f; border-radius: 12px; }
+  .markets-page .market-favourite[aria-pressed="true"]:hover { color: #ffe3a8; background: #f2d38f14; border-radius: 12px; }
+}

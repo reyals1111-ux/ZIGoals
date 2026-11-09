@@ -3,6 +3,9 @@ import {recordDayIssue, waterDayIssue, waterEntryIssue, within, ML_PER_US_FL_OZ}
 import {journalTimeZone} from './journal-zone';
 import {formatDate, formatNumber} from './visual-format';
 import {additionalNutrients,groceryEditSchema} from './health';
+import {exerciseData} from './health-counters';
+import type {Fasting} from './fasting/schema';
+import type {Workouts} from './workouts/schema';
 import {
   healthSchema, healthDateSchema, healthTimezoneSchema, savedMealSchema, mealItemSchema,
   diarySchema, waterSchema, recipeSnapshot, recipeServingGrams, recipeServingMl, parseHealthNumber,
@@ -238,7 +241,14 @@ export function servingsFromMeasure(raw:string,snapshot:{servingGrams:number|nul
 }
 function validateRange(from: string, to: string) { healthDateSchema.parse(from); healthDateSchema.parse(to); if (from > to) throw Error("End date precedes start date."); }
 const csvCell = (value: string | number) => csvSafeCell(value);
-export function exportHealthCsv(data: HealthData, from: string, to: string): string {
+/**
+ * The Health CSV. Session AL final pass (MO-016, MO-031; TIER 3 (export format), additive): four columns at the end, each
+ * row's calories (kcal_entry: kcal per serving times the servings) and protein, carbs and fat in grams per serving beside
+ * the milligram columns; and rows for the quick counters (kind "counter"), and, when the caller passes them (they are
+ * device records outside the Health journal), finished fasts ("fast", hours) and finished workouts' sets ("workout set").
+ * Every existing column keeps its name, place and meaning.
+ */
+export function exportHealthCsv(data: HealthData, from: string, to: string, more: {fasting?: Fasting | null; workouts?: Workouts | null} = {}): string {
   validateRange(from, to); healthSchema.parse(data);
   const rows: (string | number)[][] = [["record_id", "date", "kind", "name", "meal", "quantity", "unit", "serving_weight_g", "kcal_per_serving", "protein_mg_per_serving", "carbs_mg_per_serving", "fat_mg_per_serving", "source", "created_at_utc", "updated_at_utc"]];
   const inRange = (item: { date: string }) => item.date >= from && item.date <= to;
@@ -251,9 +261,16 @@ export function exportHealthCsv(data: HealthData, from: string, to: string): str
   for (const m of data.measurements ?? []) { const day = healthDay(m.timezone, new Date(m.observedAt)); if (day >= from && day <= to) rows.push([m.id, day, "measurement", m.kind, "", m.quantityMilli / 1000, m.unit, "", "", "", "", "", m.sourceLabel, m.recordedAt, m.recordedAt]); }
   for (const n of data.sleep?.nights ?? []) { if (n.end === null) continue; const day = healthDay(n.timeZone, new Date(n.end)); if (day >= from && day <= to) rows.push([n.id, day, n.kind === "nap" ? "nap" : "sleep", n.kind === "nap" ? "Nap" : "Night", "", Math.round((Date.parse(n.end) - Date.parse(n.start)) / 60_000), "minutes in bed", "", "", "", "", "", n.source, n.createdAt, n.updatedAt]); }
   for (const m of data.meditation?.sessions ?? []) { const day = healthDay(dailyData(data).preferences.timezone, new Date(m.startedAt)); if (day >= from && day <= to) rows.push([m.id, day, "meditation", m.kind === "breathing" ? "Breathing" : "Meditation", "", Math.round(m.seconds / 6) / 10, "minutes", "", "", "", "", "", m.kind, m.startedAt, m.startedAt]); }
-  rows[0]!.push("serving_volume_ml","recipe_version","recipe_yield_quantity","recipe_yield_unit",...additionalNutrients.map(([key])=>key.replace(/Mg$/, "_mg_per_serving")),"weight_kg","weight_lb");
+  // Session AL final pass (MO-031): each day of a quick counter, each finished fast (on the day it ended, in its zone) and each
+  // set of a finished workout, in the same columns.
+  for (const d of exerciseData(data).days) { if (d.date < from || d.date > to) continue; const counter = exerciseData(data).counters.find(c => c.id === d.counterId); rows.push([d.id, d.date, "counter", counter?.name ?? d.counterId, "", d.count, "repetitions", "", "", "", "", "", "quick counter", "", ""]); }
+  for (const f of more.fasting?.sessions ?? []) { if (f.endedAt === null) continue; const day = healthDay(f.timeZone, new Date(f.endedAt)); if (day >= from && day <= to) rows.push([f.id, day, "fast", `${f.targetHours} h fast`, "", Math.round((Date.parse(f.endedAt) - Date.parse(f.startedAt)) / 360_000) / 10, "hours fasted", "", "", "", "", "", f.stoppedBy === "limit" ? "ended at the limit" : "manual", f.startedAt, f.endedAt]); }
+  for (const w of more.workouts?.workouts ?? []) { if (!w.endedAt || w.date < from || w.date > to) continue; for (const e of w.exercises) e.sets.forEach((st, i) => { const amount: [number | string, string] = st.reps !== undefined ? [st.reps, "reps"] : st.seconds !== undefined ? [st.seconds, "seconds"] : st.distanceKm !== undefined ? [st.distanceKm, "km"] : ["", ""]; rows.push([st.id, w.date, "workout set", `${w.name} · ${e.name} · set ${i + 1}${st.weightKg !== undefined ? ` · ${st.weightKg} kg` : ""}`, "", amount[0], amount[1], "", "", "", "", "", "workout", w.startedAt, w.endedAt ?? ""]); }); }
+  rows[0]!.push("serving_volume_ml","recipe_version","recipe_yield_quantity","recipe_yield_unit",...additionalNutrients.map(([key])=>key.replace(/Mg$/, "_mg_per_serving")),"weight_kg","weight_lb","kcal_entry","protein_g_per_serving","carbs_g_per_serving","fat_g_per_serving");
   const diaryById=new Map(data.diary.map(e=>[e.id,e]));for(const row of rows.slice(1)){const entry=row[2]==='diary'?diaryById.get(String(row[0])):undefined;row.push(entry?.snapshot.servingMl??"",entry?.snapshot.recipeVersion??"",entry?.snapshot.recipeYield?entry.snapshot.recipeYield.quantityMilli/1000:"",entry?.snapshot.recipeYield?.unit??"",...additionalNutrients.map(([key])=>entry?.snapshot.nutrients[key]??""));
     // Session AL (P-MO-60): a weight row also reads in kilograms and pounds (two decimals), beside its exact grams.
-    const grams=row[2]==='weight'?Number(row[5]):NaN;row.push(Number.isFinite(grams)?Math.round(grams/10)/100:"",Number.isFinite(grams)?Math.round(grams/453.59237*100)/100:"");}
+    const grams=row[2]==='weight'?Number(row[5]):NaN;row.push(Number.isFinite(grams)?Math.round(grams/10)/100:"",Number.isFinite(grams)?Math.round(grams/453.59237*100)/100:"");
+    // Session AL final pass (MO-016): the entry's calories, and grams per serving to one decimal (the mg columns stay).
+    const n=entry?.snapshot.nutrients,g=(mg:number|null|undefined)=>typeof mg==="number"?Math.round(mg/100)/10:"";row.push(entry&&typeof n?.kcal==="number"?Math.round(n.kcal*entry.quantityMilli/100)/10:"",g(n?.proteinMg),g(n?.carbsMg),g(n?.fatMg));}
   return rows.map(row => row.map(csvCell).join(",")).join("\r\n");
 }

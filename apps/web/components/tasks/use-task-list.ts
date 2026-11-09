@@ -1,6 +1,7 @@
 'use client';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
+import {useJournalZone} from '../use-journal-zone';
 import {TASKS, type Task, type Tasks} from '../../lib/tasks/schema';
 import {addTask, editOccurrence, editTask, finishTask, removeTask, reopenTask, restoreTasks, type TaskInput, type TaskPatch as EnginePatch} from '../../lib/tasks/engine';
 import {deviceDay, tasksClock, tasksToday} from '../../lib/tasks/device';
@@ -32,6 +33,11 @@ let removal: {toast: number; before: Task[]; count: number} | null = null;
 export function useTaskClock(): {today: string; clock: string} {
   const read = () => ({today: tasksToday(), clock: tasksClock()});
   const [now, setNow] = useState(read);
+  // Session AL final pass (LS-031, LS-066): the day is read again when the app's zone arrives or changes. The shell sets
+  // the saved zone after the settings load, so a Tasks page opened directly had read the device's day once and kept it
+  // (a task due yesterday in Auckland stayed "Due today"); Today, the Checklist and the overdue count follow the same zone.
+  const zone = useJournalZone().zone, [seenZone, setSeenZone] = useState(zone);
+  if (seenZone !== zone) { setSeenZone(zone); setNow(read()); }
   useEffect(() => {
     const tick = () => setNow(prev => { const next = read(); return next.today === prev.today && next.clock === prev.clock ? prev : next; });
     const timer = window.setInterval(tick, 30_000);

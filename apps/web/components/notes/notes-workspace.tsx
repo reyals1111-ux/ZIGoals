@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
-import {Suspense, lazy, useEffect, useState} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
+import {hideToast, lastToastId} from '../ui/undo-toast';
 import {LoadBoundary} from '../load-boundary';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import {CaptureBox} from './capture-box';
@@ -37,7 +38,7 @@ type View = (typeof VIEWS)[number][0];
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 export default function NotesWorkspace({showcase = false}: {showcase?: boolean}) {
   const params = useSearchParams(), router = useRouter(), path = usePathname();
-  const {notes, status, change} = useNotes(), targets = useLinkTargets();
+  const {notes, status, change: changeNotes} = useNotes(), targets = useLinkTargets();
   const record = notes.data, index = useLinkIndex(record, targets), today = localDate();
   const [searching, setSearching] = useState(false);
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
@@ -46,6 +47,15 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
   const view: View = noteId ? 'notes' : dayParam ? 'today' : (VIEWS.find(([v]) => v === params.get('view'))?.[0] ?? 'today');
   const go = (q: Record<string, string>) => { const query = new URLSearchParams(q).toString(); router.replace(query ? `${path}?${query}` : path, {scroll: false}); };
   const inbox = inboxOf(record), open = noteId ? record.notes.find(n => n.id === noteId) ?? null : null;
+  // Session AL final pass (PR-106, AL-TOAST-011): a "deleted · Undo" toast belongs to the view it was made in (or the one a
+  // delete moves to) and ends when the person opens another Notes view; it had stayed over Days and the Graph.
+  const toastOf = useRef<{id: number; view: View} | null>(null);
+  const change = useCallback<typeof changeNotes>((fn, said, offer) => {
+    const before = lastToastId(), ok = changeNotes(fn, said, offer), id = lastToastId();
+    if (id !== before) toastOf.current = {id, view};
+    return ok;
+  }, [changeNotes, view]);
+  useEffect(() => { const t = toastOf.current; if (t && t.view !== view) { hideToast(t.id); toastOf.current = null; } }, [view]);
   const [newTitle, setNewTitle] = useState('');
   // Photos whose note is gone are removed from this browser once no note has named them for 30 days (security review
   // Z1B-7, AL Part 14: a Restore of an older copy, then its Undo, must find today's photos still here).
@@ -84,7 +94,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       {open ? <>
         <h2 className="note-title">{/* Session AL (PR-107, P-PR-45): a note with no title of its own is not headed by its first line, which the note shows just below (it read twice) */open.kind === 'daily' && open.day ? formatDate(open.day, {weekday: true}) : open.title.trim() ? open.title.trim() : open.kind === 'inbox' ? `Inbox capture · ${formatDate(open.day ?? open.createdAt.slice(0, 10))}` : noteName(open)}{open.example && <span className="fine"> · Showcase example</span>}</h2>
         {open.kind === 'daily' && open.day && <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={open.day}/></Suspense></LoadBoundary>}
-        <NoteEditor key={open.id} note={open} index={index} change={change} onCreateLink={createNote} onDeleted={() => go({view: open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'})}/>
+        <NoteEditor key={open.id} note={open} index={index} change={change} onCreateLink={createNote} onDeleted={() => { const to: View = open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'; if (toastOf.current) toastOf.current.view = to; go({view: to}); }}/>
       </> : <p className="fine">This note is not on this device. It may have been deleted. <Link className="text-link" href="/app/notes?view=notes">All notes</Link></p>}
     </section>}
 

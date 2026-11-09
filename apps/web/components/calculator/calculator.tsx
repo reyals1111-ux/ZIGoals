@@ -12,7 +12,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {useLocalToday} from '../use-local-today';
 import {SectionHeading} from '../ui/section-heading';
 import {showStatus, showUndo} from '../ui/undo-toast';
-import {calculatorCsv, contributionFor} from './calculator-extras';
+import {calculatorCsv, contributionFor, customReturnIssue} from './calculator-extras';
 import {CalculatorChart, type ChartLine} from './calculator-chart';
 import {earnCalculatorPrefill} from '../../lib/earn/calculator-link';
 import './calculator.css';
@@ -90,6 +90,7 @@ export function Calculator() {
   const record = useDeviceRecord(CALCULATOR), today = useLocalToday();
   const [draft, setDraft] = useState<Draft>(() => toDraft(DEFAULT_INPUT)), [restored, setRestored] = useState(false), [touched, setTouched] = useState(false);
   const [compare, setCompare] = useState<Compare>({higher: true, lower: true, earlier: false, custom: ''});
+  const customIssue = customReturnIssue(compare.custom);
   const [name, setName] = useState(''), [allRows, setAllRows] = useState(false), [targetText, setTargetText] = useState('');
   // Session AF (L1, ADR-028 H17): opened from the Earn page (?from=earn&rate=…&label=illustration), the yearly return starts
   // at that live rate under an "illustration" banner; the first field the person touches clears it. Never remembered by itself.
@@ -194,7 +195,9 @@ export function Calculator() {
         <fieldset className="calc-compare">
           <legend>Compare with</legend>
           {whatIfs(input).map(w => <label key={w.id} className="calc-chip"><input type="checkbox" checked={compare[w.id as 'higher' | 'lower' | 'earlier']} onChange={e => setCompare(c => ({...c, [w.id]: e.target.checked}))} /><span><i style={{background: TONES[w.id as 'higher' | 'lower' | 'earlier'].tone}} />{w.label}</span></label>)}
-          <label className="calc-chip calc-chip-input"><span><i style={{background: TONES.custom.tone}} />Another return</span><input inputMode="decimal" aria-label="Another yearly return to compare, in percent" placeholder="%" maxLength={8} value={compare.custom} onChange={e => setCompare(c => ({...c, custom: e.target.value}))} /></label>
+          <label className="calc-chip calc-chip-input"><span><i style={{background: TONES.custom.tone}} />Another return</span><input inputMode="decimal" aria-label="Another yearly return to compare, in percent" placeholder="%" maxLength={8} value={compare.custom} aria-invalid={customIssue ? true : undefined} aria-describedby={customIssue ? 'calc-custom-return-error' : undefined} onChange={e => setCompare(c => ({...c, custom: e.target.value}))} /></label>
+          {/* Session AL final pass (N-TK-18): a return that does not read says so under the box (the app's field error). */}
+          {customIssue && <p id="calc-custom-return-error" className="field-error calc-custom-error">{customIssue}</p>}
         </fieldset>
         {lines.length > 0 && <ul className="calc-whatifs">
           {lines.map(l => { const diff = new Decimal(l.result.final).minus(result.final).toFixed(2); return <li key={l.id}><i style={{background: l.tone}} /><span>{l.label}</span><strong>{money(l.result.final)}</strong><small>{Number(diff) === 0 ? 'the same' : `${formatSignedMoney(diff, input.currency)} compared with your plan`}</small></li>; })}

@@ -24,6 +24,11 @@
 .exercise-step { display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:14px;border:1px solid #a9c9ff4d;background:#ffffff0d;color:#eef5ff;font-size:24px;font-weight:600;line-height:1; }
 .exercise-step:hover:not(:disabled) { background:#ffffff1c;border-color:#9fe6ff99; }
 .exercise-step:last-child { background:linear-gradient(135deg,#5fe0f0,#a3a0ff);color:#0a1428;border-color:transparent; }
+/* Session AL final pass (D-222, AL-A11Y-025): the "+" keeps its gradient on hover and brightens (the general hover above
+   had replaced it with a faint 11 % white, so it looked switched off). A colour change only, so it needs no motion guard. */
+.exercise-step:last-child:hover:not(:disabled) { background:linear-gradient(135deg,#86eef8,#bdbaff);color:#0a1428;border-color:transparent;box-shadow:0 0 16px -4px #8f7dffcc; }
+/* No entry yet: the words "none yet", smaller, in the number's slot. */
+.exercise-count-none { display:block;font-size:14px;font-weight:600;letter-spacing:0;line-height:1.15;color:#b4c3dc; }
 .exercise-count { text-align:center;min-width:2ch;padding-inline:6px;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--text-strong,#f4f8ff);font-variant-numeric:tabular-nums; }
 .exercise-count[data-empty] { color:#9fb2cf; }
 .exercise-counter-caption { margin:0;font-size:14px;color:var(--text-meta,#c2d0e5);font-weight:500; }
@@ -58,6 +63,8 @@
   .exercise-counters,.exercise-counter,.exercise-step,.exercise-icon-choice span { border:1px solid CanvasText; }
   .exercise-icon { stroke:CanvasText; }
   .exercise-step:last-child { background:ButtonFace;color:ButtonText; }
+  .exercise-step:last-child:hover:not(:disabled) { background:ButtonFace;color:ButtonText;box-shadow:none;outline:2px solid Highlight; }
+  .exercise-count-none { color:CanvasText; }
   .exercise-icon-choice input:checked+span { outline:2px solid Highlight; }
 }
 /* Session AB-Design (owner request 22): one thin row per exercise on every width — icon, name, − value + — managed from the card's ⋯. */

@@ -1,4 +1,5 @@
 import {parseNumberInput} from './numbers/parse';
+import {LIMITS, VALUE_LIMITS, dayTimeUnit} from './limits/plausibility';
 
 const limit = (value: number) => value.toLocaleString('en-US', {maximumFractionDigits: 6});
 
@@ -69,4 +70,31 @@ export function readDurationText(raw: string, unit: 'minutes' | 'hours'): number
   }
   const value = unit === 'hours' ? minutes / 60 : minutes;
   return Math.round(value * 10_000) / 10_000;
+}
+
+/**
+ * Session AL final pass (B-197, AL-LIMITS-002): the most a habit's target may ask for, from the shared limits table
+ * (lib/limits/plausibility.ts): a count up to the table's count row (1,000,000), a time habit up to the hours in its
+ * period (1,440 minutes or 24 hours a day), a value kept in a time or steps unit the same; any other unit keeps the
+ * form's own 1,000,000,000. A week is 7 days, a month 31 and a year 366.
+ */
+const PERIOD_DAYS: Record<string, number> = {day: 1, week: 7, month: 31, year: 366};
+export function habitTargetMax(measurement: string, unit: string, period: string): number {
+  const days = PERIOD_DAYS[period] ?? 1;
+  if (measurement === 'count') return VALUE_LIMITS.count.max;
+  if (measurement === 'duration') return (unit === 'hours' ? 24 : LIMITS.minutesPerDay) * days;
+  const time = dayTimeUnit(unit);
+  if (time) return time.perDay * days;
+  if (/^steps?$/i.test(unit.trim())) return LIMITS.stepsPerDay * days;
+  return 1_000_000_000;
+}
+/**
+ * Session AL final pass (B-197, C-DVG-10): a habit's target as typed in the habit form. A time habit takes its target
+ * as time too ("1:30", "1 h 30 min"), as its logged values do (Part 15); the result is held to habitTargetMax with
+ * readHabitNumber's own sentences.
+ */
+export function readHabitTarget(raw: string, {measurement, unit, period, min = 0, whole = false, positive = false}: {measurement: string; unit: string; period: string; min?: number; whole?: boolean; positive?: boolean}): number {
+  const max = habitTargetMax(measurement, unit, period);
+  const time = measurement === 'duration' ? readDurationText(raw, unit === 'hours' ? 'hours' : 'minutes') : null;
+  return readHabitNumber(time === null ? raw : String(time), {min, max, whole, positive});
 }

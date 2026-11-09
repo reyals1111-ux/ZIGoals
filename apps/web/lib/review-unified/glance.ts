@@ -1,5 +1,6 @@
 import type {LifeReview} from '../life-review/engine';
 import {formatNumber} from '../visual-format';
+import {unitFor} from '../plural';
 
 /**
  * Session AK Part 8.1: the unified review. `/app/review` is the one review: Week or Month (the Life review's period
@@ -16,7 +17,7 @@ export function pillarGlance(review: Pick<LifeReview, 'counts' | 'goalsMoved' | 
   const days = Math.round((Date.parse(`${review.window.end}T12:00:00Z`) - Date.parse(`${review.window.start}T12:00:00Z`)) / 86_400_000) + 1;
   const moved = new Set(review.goalsMoved.map(g => g.name)).size, {contributions, habitCheckIns, healthDays} = review.counts;
   const goals = [contributions ? n(contributions, 'contribution') : '', moved ? `${n(moved, 'goal')} moved` : ''].filter(Boolean);
-  const habits = [habitCheckIns ? n(habitCheckIns, 'check-in') : '', review.streaks[0] ? `longest streak ${formatNumber(review.streaks[0].streak)} ${review.streaks[0].unit}` : ''].filter(Boolean);
+  const habits = [habitCheckIns ? n(habitCheckIns, 'check-in') : '', review.streaks[0] ? `longest streak ${formatNumber(review.streaks[0].streak)} ${unitFor(review.streaks[0].streak, review.streaks[0].unit)}` /* Session AL final pass (N-NB-04): "1 day", never "1 days" */ : ''].filter(Boolean);
   const changed = review.money.filter(m => m.change !== null).length;
   const out: Glance[] = [
     {pillar: 'goals', title: 'Goals', line: goals.join(' · ') || 'Nothing recorded yet', anchor: '#life-review-goals', quiet: !goals.length},

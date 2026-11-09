@@ -58,6 +58,8 @@
 :root .calc .calc-chip-input { flex-wrap: nowrap; align-items: center; gap: 0; border-radius: 999px; border: 1px solid #6c9cc555; background: #0d1a2ecc; padding-right: 6px; }
 :root .calc-chip-input > span { border: 0; background: none; }
 :root .calc-chip-input input { width: 72px; min-height: 36px; padding: 4px 8px; border-radius: 10px; font-size: 16px; }
+/* Session AL final pass (N-TK-18): the box's message takes its own line under the chips. */
+:root .calc-compare .calc-custom-error { flex-basis: 100%; margin: 0; }
 :root .calc-whatifs { display: grid; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; }
 :root .calc-whatifs li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 10px; padding: 10px 14px; border-radius: 14px; background: #0b172b99; border: 1px solid #6c9cc526; }
 :root .calc-whatifs li strong { font-variant-numeric: tabular-nums; }

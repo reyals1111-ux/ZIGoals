@@ -87,7 +87,9 @@ export function backupRefusalMessage(refusal: BackupRefusal, {module, kind, limi
     NEWER_BACKUP: 'This backup was made by a newer version of ZIGoals. Reload to get the latest app, then try again.',
     DAMAGED: 'This backup is incomplete or damaged (for example a missing field or a repeated ID), so it cannot be restored safely.',
   }[refusal];
-  return coded(`${text} Existing data was not changed.`, refusal);
+  // Session AL final pass (BN-021, AL-TOAST-011): a refused file is said in plain words only; the internal code
+  // ("(NOT_A_BACKUP)") is no longer shown (the refusal itself stays `backupRefusal`'s value for the code).
+  return `${text} Existing data was not changed.`;
 }
 /** A refused restore after the file was accepted: the storage reason, or a plain failure. */
 export function restoreFailureMessage(error: unknown, options?: {durable?: boolean}): string {
