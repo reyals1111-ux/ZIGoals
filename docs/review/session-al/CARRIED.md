@@ -4,7 +4,7 @@ Every finding id that is not Fixed, Holds, an owner decision, not possible or wa
 (round 3) and the final fix pass (round 4, one attempt per row). Owner finish rule 6: each got its attempts; the cause is the
 latest replay's evidence, cut to one line. docs/STATUS.md groups them (owner calls, new features, carried by their lanes).
 
-**67 AL rows, 111 ids.** Changed 55, Not Replayed 32, Still Open 24.
+**67 AL rows, 112 ids.** Changed 55, Not Replayed 32, Still Open 25.
 
 | AL row | lane | id | verdict | cause (latest replay, one line) |
 |---|---|---|---|---|
@@ -81,6 +81,7 @@ latest replay's evidence, cut to one line. docs/STATUS.md groups them (owner cal
 | AL-AI-STABILITY-005 | L7 | N-DV-03 | Changed | NOVA now offers "Continue your last conversation “Which habits are open today?”" and Conversations lists "Which habits are open today? · 2 turns · Started with ZIGi on Habits" (res… |
 | AL-PRIVACY-006 | L7 | MO-052 | Changed | Refusal now names both switches and the Today condition ("Health page data" and "Include Health" (Health has to be one of Today’s sections)); the button still reads "Ask ZIGi about… |
 | AL-COPY-066 | L10a | D-003 | Changed | Top of Today, Wealth, Goals: one alpha notice (dismissible once for every page) and the Showcase chip; no "Demo records" toggle above the page. Section-level Showcase lines remain … |
+| AL-LAUNCHER-OVERLAP-001 | L10a | T-069 | Still Open | the fix in 53df729f was reverted after CI 1629: with the Showcase label the fact shrank to 0 px and wrapped one letter per line on every phone page; carried as an owner call |
 | AL-LAUNCHER-OVERLAP-001 | L10a | D-070 | Changed | Mascot part fixed (S1 at 388). The header icons are still icons without visible words at 388 (wallet "Wealth", lock "Unlock layout to rearrange"); they have accessible names and th… |
 | AL-LAYOUT-375-011 | L10a | DV-223 | Changed | Heading now at ~230 px (was ~370) and the rocket moved off phones (Game layer is a row in Apps & extras), the notice is dismissible once for every page. Still three stacked rows be… |
 | AL-LAYOUT-375-011 | L10a | DV-247 | Changed | Dismissing the notice once hides it on every page (checked on Habits and Wealth after closing on Goals). The rocket and lock are still icon-only at 768 (names "Game layer: on", "Un… |

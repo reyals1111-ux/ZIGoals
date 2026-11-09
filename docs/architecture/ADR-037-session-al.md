@@ -782,7 +782,7 @@ Final state, 9 Nov (the final replay on the 1a7b0163 production build: GROK53_RE
 | AL-ENV-ONLY-004 | L9 | 2 | Fixed | PILLARS r3 | Holds 2 | lanes/L9.md |
 | AL-ENV-ONLY-005 | L9 | 1 | Fixed | PILLARS r3 | Holds 1 | lanes/L9.md |
 | AL-COPY-066 | L10a | 3 | Open | SHELL r3 | Changed 1 Fixed 1 Owner Decision 1 | lanes/L10a.md |
-| AL-LAUNCHER-OVERLAP-001 | L10a | 101 | Open | FINALPASS r4, L1 r2, L6 r1, L7 r2, PILLARS r3, SHELL r3 | Changed 1 Fixed 98 Holds 1 Owner Decision 1 | lanes/L10a.md |
+| AL-LAUNCHER-OVERLAP-001 | L10a | 101 | Open | FINALPASS r4, L1 r2, L6 r1, L7 r2, PILLARS r3, SHELL r3 | Changed 1 Fixed 97 Holds 1 Owner Decision 1 Still Open 1 | lanes/L10a.md |
 | AL-LAYOUT-375-011 | L10a | 11 | Open | L1 r2, L7 r2, SHELL r3 | Changed 2 Fixed 7 Still Open 2 | lanes/L10a.md |
 | AL-LAYOUT-375-012 | L10a | 7 | Fixed | FINALPASS r4, SHELL r3 | Fixed 7 | lanes/L10a.md |
 | AL-LAYOUT-768-004 | L10a | 18 | Open | FINALPASS r4, SHELL r3 | Changed 2 Fixed 14 Not Replayed 2 | lanes/L10a.md |

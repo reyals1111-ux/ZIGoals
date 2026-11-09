@@ -120,7 +120,7 @@ at most 2 attempts), WebKit zigi-oneline-z:282 and settings-switches-sweep:45 (f
 
 ## Exact next step (9 Nov: session complete)
 Every part is closed: the final replay (round 3, 1,211 ids) and the final fix pass (round 4, re-checked by
-tests/grok53/release/final-*.spec.ts) are in ADR-037's final closing table; CARRIED.md lists the 111 ids left. The STATUS
+tests/grok53/release/final-*.spec.ts) are in ADR-037's final closing table; CARRIED.md lists the 112 ids left. The STATUS
 final entry is the last commit. Next: the owner reviews PR #100 (out of Draft), merges, and deploys Alpha #54 from main.
 A next session starts from NEXT_SESSION_BACKLOG.md and CARRIED.md.
 
@@ -129,4 +129,4 @@ Q1–Q5 are in ADR-037.
 
 ## Live counts (final closing table, 9 Nov)
 642 AL rows: Fixed 503 · Fixed + owner decision 21 · Fixed + not possible 5 · Fixed + not reproducible 1 · Owner decision 30
-· Not possible 13 · Waits on owner 2 · Open 50 · Partly replayed 17 (the last two carried: 67 rows, 111 ids).
+· Not possible 13 · Waits on owner 2 · Open 50 · Partly replayed 17 (the last two carried: 67 rows, 112 ids).
