@@ -162,7 +162,10 @@ describe('MO-065, LA-029: Quick add saves and NOVA\'s cards are in the actions l
     expect(src('components/ai/use-proposals.ts')).toMatch(/const byNova = planSurface\?\.surface === 'nova';[\s\S]*\.\.\.\(byNova \? \{by: 'nova' as const\} : \{\}\)/);
     const feed = src('components/activity-feed.tsx');
     expect(feed).toMatch(/novaById\.has\(event\.id\.replace\(\/\^zigi:\/, ""\)\) \? " · by NOVA" : " · by ZIGi"/);
-    expect(feed).toMatch(/a\.via !== "quick-add"/);
+    // Session AL final pass (DV-115, deliberate): the Quick add guard moved into lib/activity-zigi.ts standsAlone(); the feed
+    // filters through it, and it still refuses a Quick add line without its record.
+    expect(feed).toMatch(/zigi\.actions\.filter\(a => standsAlone\(a, shownIds\)/);
+    expect(src('lib/activity-zigi.ts')).toMatch(/action\.via !== 'quick-add'/);
     expect(feed).toMatch(/a\.by === "nova" \? "Confirmed from a NOVA card"/);
   });
 });
