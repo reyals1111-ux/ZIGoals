@@ -85,6 +85,7 @@ test('RR-5: with no model, a meal typed in Quick add is never labelled AI, and T
   await card.locator('.primary').click();
   await expect(dialog.locator('.quick-log-cards')).toContainText(/Added|Applied|Saved/);
   await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden(); // the sheet's own history Back finishes before the next page load
   await open(page, '/app');
   const health = page.getByRole('region', {name: 'Today\'s health'});
   await expect(health).toContainText('Breakfast: oatmeal with blueberries');
@@ -102,6 +103,8 @@ test('RR-6: after one weigh-in Health says it is the first reading, not a six-we
   await dialog.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(dialog).toContainText('Saved: Weight · 78.4 kg');
   await page.keyboard.press('Escape');
+  // The sheet closes through a history Back (use-back-closes); navigating before it is done aborts the next page load.
+  await expect(dialog).toBeHidden();
   await open(page, '/app/health');
   const tile = page.locator('.health-hl-tile[data-tone="trend"]');
   await expect(tile).toContainText('78.4 kg');
