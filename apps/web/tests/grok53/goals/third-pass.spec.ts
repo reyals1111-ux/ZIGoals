@@ -56,7 +56,8 @@ test('BN-155, N-BN-20 (P-BN-60): a reload brings back the step and the weekly-re
   page.once('dialog', d => void d.accept());
   await page.reload();
   await expect(page.getByText('Step 3 of 4')).toBeVisible();
-  await expect(page.getByText('Your unfinished Goal is back, as you left it.')).toBeVisible();
+  // Session AL (BN-155, deliberate): the restored line reads "Draft restored · Discard".
+  await expect(page.locator('.wizard-draft-back')).toHaveText('Draft restored · Discard');
   await expect(page.getByLabel('Add a weekly review habit for this Goal (Mondays)')).toBeChecked();
 });
 

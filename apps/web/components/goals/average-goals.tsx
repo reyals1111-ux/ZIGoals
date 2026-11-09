@@ -45,7 +45,7 @@ export function AverageGoalCard({goal, ...layout}: LayoutAttrs & {goal: AverageG
       <div><strong>{p.average === null ? 'No data yet' : `${value(goal, p.average)}`}</strong><span>{p.average === null ? '' : goal.unit}</span><small>{verdict(goal, p)}</small></div>
     </div>
     <p className={`average-goal-state${p.met ? ' is-met' : ''}`}>{/* Session AL (G-014, P-DVR-13): a finished goal never reads "Not on target yet"; a near miss says it is close */goal.status === 'completed' ? 'Finished. It is on the Hall of achievements.' : goal.status === 'closed' ? 'Closed as not reached. Its days stay.' : p.met === null ? 'Waiting for your first day.' : p.met ? 'On target over the last ' + goal.windowDays + ' days.' : p.share !== null && p.share >= 0.9 ? 'Close: within a tenth of your target over the last ' + goal.windowDays + ' days.' : 'Not on target yet over the last ' + goal.windowDays + ' days.'}</p>
-    <Link className="text-link" href={`/app/goals/average/${goal.id}`}>Open Goal →</Link>
+    <Link className="text-link" href={`/app/goals/average/${goal.id}`}>Open goal →</Link>
   </article>;
 }
 

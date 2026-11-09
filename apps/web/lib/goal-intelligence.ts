@@ -4,6 +4,7 @@ import {dateObservedCompletions} from './goals/observed-completion';
 import {archivedReleaseLabel} from './goals/released';
 import {marketQuoteSchema,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import type {z} from 'zod';
+import {calendarDay,formatDate} from './visual-format';
 import {capturePlanChanges,captureGoalLifecycle,revisionInstallments,effectiveContributionPlan,planDay,planZone,shiftPlanDay} from './plan-revisions';
 export const MAX_VALUATION_SNAPSHOTS=50000;
 export const MAX_GOAL_HISTORY=50000;
@@ -114,7 +115,7 @@ export function goalTimeline(s:Platform,goalId:string,scope:'private'|'local'='p
  const result:GoalTimelineEvent[]=s.contributions.filter(e=>e.goalId===goalId&&e.goalScope===scope).map(e=>({id:`contribution:${e.id}`,goalId,at:e.occurredAt,kind:e.reversesId?'reversal':e.provenance==='REWARD_INCOME'?'income':e.direction==='IN'?'contribution':'withdrawal',label:e.reversesId?'Contribution correction':e.provenance==='REWARD_INCOME'?'Recorded reward / income':e.direction==='IN'?'Contribution':'Withdrawal',provenance:e.provenance,quantity:e.quantity,asset:e.asset,decimals:e.decimals}));
  if(scope==='private'){
   const goal=s.goals.find(g=>g.id===goalId);
-  for(const r of goal?.planRevisions??[])result.push({id:r.id,goalId,at:r.recordedAt,kind:'plan_revision',label:`Plan terms effective ${r.effectiveFrom}${r.priorHistory==='unknown'?' · earlier terms unknown':''}`,provenance:'RETAINED_PLAN_REVISION'});
+  for(const r of goal?.planRevisions??[])result.push({id:r.id,goalId,at:r.recordedAt,kind:'plan_revision',label:/* Session AL final pass (B-185, M-060, DV-033d): the shared date format, never ISO */`Plan terms effective ${formatDate(r.effectiveFrom)}${r.priorHistory==='unknown'?' · earlier terms unknown':''}`,provenance:'RETAINED_PLAN_REVISION'});
   for(const e of goal?.lifecycle??[])result.push({id:e.id,goalId,at:e.at,kind:'lifecycle',label:/* Session AL (P-DV-75): plain words */e.kind==='completed'?'Target reached · goal completed':e.kind==='closed'?'Goal closed':e.kind==='reopened'?'Goal reopened':'Target changed',provenance:'RETAINED_MILESTONE',quantity:e.current,asset:e.asset,decimals:e.decimals});
   // Session AL (DV-046a, DV-088, DV-113, P-DV-71; G-033, BUG-040): one close writes a lifecycle row and a status row; the
   // timeline (and so Activity) shows the lifecycle row once and skips the status row that repeats it.
@@ -206,11 +207,20 @@ export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=D
  return compactHistory({...s,historyCaptureDays:Object.fromEntries(Object.entries(captureDays).filter(([key])=>activeKeys.has(key))),valuationSnapshots:[...s.valuationSnapshots,...valuations],goalHistory:[...s.goalHistory,...goals]});
 }
 
-/** All retained facts remain reachable; date filters use UTC, display may use local time. */
-export function pageGoalTimeline(events:readonly GoalTimelineEvent[],query:{page:number;kind?:string;from?:string;to?:string}){
+/** All retained facts remain reachable; date filters use the person's zone when given (else UTC), as the times are shown. */
+/**
+ * `from`/`to` are calendar days. Session AL final pass (DV-038d): with `timeZone` (the person's app zone) an event counts on
+ * its day in that zone, as its time is shown; without it, the day in UTC (the earlier reading, kept for callers that pass none).
+ */
+export function pageGoalTimeline(events:readonly GoalTimelineEvent[],query:{page:number;kind?:string;from?:string;to?:string;timeZone?:string}){
+ const day=/^\d{4}-\d{2}-\d{2}$/;
+ if(query.timeZone){
+  if(query.from&&!day.test(query.from)||query.to&&!day.test(query.to)||query.from&&query.to&&query.from>query.to)throw Error('Choose a valid date range.');
+ }
  const start=query.from?Date.parse(query.from+'T00:00:00Z'):-Infinity,end=query.to?Date.parse(query.to+'T23:59:59.999Z'):Infinity;
  if(Number.isNaN(start)||Number.isNaN(end)||start>end)throw Error('Choose a valid UTC date range.');
- const filtered=events.filter(e=>(!query.kind||e.kind===query.kind)&&Date.parse(e.at)>=start&&Date.parse(e.at)<=end).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||a.id.localeCompare(b.id));
+ const inRange=(at:string)=>{if(!query.timeZone)return Date.parse(at)>=start&&Date.parse(at)<=end;const d=calendarDay(at,query.timeZone);return (!query.from||d>=query.from)&&(!query.to||d<=query.to);};
+ const filtered=events.filter(e=>(!query.kind||e.kind===query.kind)&&inRange(e.at)).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||a.id.localeCompare(b.id));
  const pages=Math.max(1,Math.ceil(filtered.length/12)),page=Math.max(0,Math.min(pages-1,Number.isSafeInteger(query.page)?query.page:0));
  return {events:filtered.slice(page*12,page*12+12),page,pages,total:filtered.length};
 }

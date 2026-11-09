@@ -17,3 +17,23 @@ export function wizardGuardOn({saved, restored, touched, typed}: {saved: boolean
 export function touchOnInput(touched: boolean, setTouched: (value: true) => void): {onInput: () => void} {
  return {onInput: () => { if (!touched) setTouched(true); }};
 }
+
+/**
+ * Session AL final pass (BN-155, BUG-076, G-026, DV-056b; the cause): whether text already in the creator's fields keeps
+ * this tab's draft from coming back. Chrome puts the last typed values back into the fields itself on a reload or
+ * Back/Forward (form restoration) before the creator reads its draft; those are the draft's own words and never block it.
+ * Only text that is not in the draft (typed while the page was still loading) does: the person's latest word wins.
+ */
+export function draftBlockedBy(fieldValues: readonly string[], draft: Readonly<Record<string, unknown>>): boolean {
+ const own = new Set(Object.values(draft).filter((v): v is string => typeof v === 'string').map(v => v.trim()));
+ return fieldValues.some(v => { const t = v.trim(); return !!t && !own.has(t); });
+}
+
+/**
+ * Session AL final pass (N-DV-02, D-205): whether leaving the creator asks at all. Its draft is kept in this tab and
+ * brought back ("Draft restored · Discard"), so leaving it (a sidebar link, Back, a reload) asks nothing: no native
+ * confirm(), no "Leave site?". Only unsaved text whose draft could not be kept (storage refused) is still guarded.
+ */
+export function leaveAsks({dirty, kept}: {dirty: boolean; kept: boolean}): boolean {
+ return dirty && !kept;
+}

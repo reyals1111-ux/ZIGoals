@@ -20,6 +20,7 @@ import {shownAmount} from './common';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {isMoneyCurrency} from '../../lib/visual-format';
 import {parseAmountInput} from '../../lib/amount-input';
+import {typedNegative} from '../../lib/limits/amount-words';
 import {parseNumberInput} from '../../lib/numbers/parse';
 import {moneyUnitsIssue,quantityUnitsIssue,within} from '../../lib/limits/plausibility';
 import {FieldError,useFormErrors} from '../primitives/field-error';
@@ -61,7 +62,7 @@ export function AssetPicker({positions=[],onExisting,onDraft,onFavourite,initial
   field='name';if(!automatic&&category!=='Cash'&&!get('name').trim())throw Error('Name the asset.');
   field='symbol';if(!automatic&&['Crypto','Stablecoins','Stocks','ETFs'].includes(category)&&!get('symbol').trim())throw Error('Enter its symbol or ticker, such as BTC or AAPL.');
   field='quantity';const noun=category==='Cash'?'an amount':category==='Precious metals'?'a weight':'a quantity';if(!get('quantity').trim()&&!['Custom','Property'].includes(category))throw Error(`Enter ${noun}.`);
-  if(get('quantity')){const units=parseAmountInput(get('quantity'),18);if(units<=0n)throw Error(`Enter ${noun} above 0.`);within(quantityUnitsIssue(units,18));/* Session AL (TK-041, W7): cash past the trillion cap is refused under its own field, before any "check this?" step */if(category==='Cash'&&!automatic)within(moneyUnitsIssue(units,18));}
+  if(get('quantity')){/* Session AL final pass (DV-144): "-50" says what "0" says */if(typedNegative(get('quantity')))throw Error(`Enter ${noun} above 0.`);const units=parseAmountInput(get('quantity'),18);if(units<=0n)throw Error(`Enter ${noun} above 0.`);within(quantityUnitsIssue(units,18));/* Session AL (TK-041, W7): cash past the trillion cap is refused under its own field, before any "check this?" step */if(category==='Cash'&&!automatic)within(moneyUnitsIssue(units,18));}
   field='value';if(['Custom','Property'].includes(category)&&!automatic&&!get('value').trim())throw Error(category==='Property'?'Enter the current property value.':'Enter the total holding value.');
   let shownValue=NaN;if(get('value')){const units=parseAmountInput(get('value'),2);within(moneyUnitsIssue(units,2));shownValue=Number(units)/100;}else if(category==='Cash'&&!automatic){const r=parseNumberInput(get('quantity'));shownValue=r.ok?r.value:NaN;}
   field='';

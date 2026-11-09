@@ -11,7 +11,9 @@ test('all retained Goal events are reachable, filterable and readable at 320px',
  // row's, with its note, exact amount and source, and no id is printed anywhere in the timeline.
  const oldest=panel.locator('li[id="goal-event-contribution:retained-0"]');await expect(oldest.locator('details')).toHaveAttribute('open','');
  await expect(oldest.locator('dl')).toContainText('NoteFictional receipt 0');await expect(oldest.locator('dl')).toContainText('Exact amount1 USD');await expect(oldest.locator('dl')).toContainText('Where it comes fromAdded by you');await expect(panel).not.toContainText('retained-');
- await panel.getByLabel('From date (UTC)',{exact:true}).fill('2026-01-01');await panel.getByLabel('Through date (UTC)',{exact:true}).fill('2026-01-02');await expect(panel.getByRole('status')).toHaveText('Page 1 of 1 · 2 retained events');
+ // Session AL (DV-038d, deliberate): the date filters are in the person's app zone, so their labels no longer say "(UTC)"; the
+ // same two days still give exactly the same two records (each sits on its own day in any zone within ±12 h).
+ await panel.getByLabel('From date',{exact:true}).fill('2026-01-01');await panel.getByLabel('Through date',{exact:true}).fill('2026-01-02');await expect(panel.getByRole('status')).toHaveText('Page 1 of 1 · 2 retained events');
  await page.setViewportSize({width:320,height:900});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await panel.getByLabel('Event type',{exact:true}).focus();await expect(panel.getByLabel('Event type',{exact:true})).toBeFocused();
  await page.reload();await panel.getByLabel('Event type',{exact:true}).selectOption('contribution');await expect(panel.getByRole('status')).toHaveText('Page 1 of 3 · 35 retained events');
 });

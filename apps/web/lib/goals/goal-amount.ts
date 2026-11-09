@@ -8,14 +8,13 @@
 import {validateValue, LIMITS} from '../limits/plausibility';
 import {parseNumberInput} from '../numbers/parse';
 import {parseAmountInput} from '../amount-input';
+import {ABOVE_ZERO, OVER_CAP, UNREADABLE} from '../limits/amount-words';
 
 export type GoalAmountRead = {ok: true; text: string; error: null} | {ok: false; text: null; error: string};
 export type GoalAmountWhat = 'target' | 'amount' | 'plan';
 
 const MISSING: Record<GoalAmountWhat, string> = {target: 'Enter your target.', amount: 'Enter an amount.', plan: 'Enter the planned amount.'};
-export const ABOVE_ZERO = 'Enter an amount above 0.';
-export const UNREADABLE = 'Enter a number, like 1500 or 12.50.';
-export const OVER_CAP = 'Enter an amount up to a trillion (1,000,000,000,000).';
+export {ABOVE_ZERO, OVER_CAP, UNREADABLE};
 
 /**
  * Reads `raw` for a Goal counted in `unit` (USD/EUR for money, else a coin or the person's own word). On success `text`

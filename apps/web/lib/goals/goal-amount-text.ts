@@ -23,7 +23,7 @@ export function formatGoalAmount(value:string,currency:string,locale=displayLoca
  if(decimal.abs().gte(HUGE))return hugeAmount(decimal,currency,locale);
  // Session AL (DV-014): a count Goal's own word reads "20 books" / "1 book", never "20 BOOKS" or a coin symbol.
  if(!isMoneyCurrency(currency)&&isUnitWord(currency))return unitAmount(decimal.toDecimalPlaces(2,Decimal.ROUND_DOWN).toNumber(),currency);
- if(isMoneyCurrency(currency))return formatMoney(value,currency,locale,{display:currency==='USD'||currency==='EUR'?'symbol':'code'});
+ if(isMoneyCurrency(currency))return formatMoney(value,currency,locale,{display:'symbol'});
  const n=decimal.toDecimalPlaces(currency==='ZIG'?6:2,Decimal.ROUND_DOWN).toFixed();
  return `${formatExactNumber(n,locale)} ${currency}`;
 }

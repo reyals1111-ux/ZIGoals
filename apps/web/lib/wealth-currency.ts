@@ -17,3 +17,20 @@ export function defaultMoneyCurrency({stored, held = [], device}: {stored?: Mone
   for (const h of held) if (isMoney(h.currency) && h.value > 0n && (!lead || h.value > lead.value)) lead = h;
   return lead ? lead.currency as MoneyCurrency : device;
 }
+
+type HeldPosition = {asset: string; quantity: string; decimals: number; archivedAt?: string; valuation?: {value: string; currency: string; decimals: number}};
+const wholeUnits = (units: string, decimals: number): bigint => { try { return BigInt(units) / 10n ** BigInt(Math.max(0, Math.min(36, decimals))); } catch { return 0n; } };
+/**
+ * Session AL final pass (N-MO-03): what is tracked, per USD/EUR currency, from the positions alone (no live prices, no
+ * conversion; whole units are enough to compare magnitudes), for a form that has no Wealth overview at hand (Settings →
+ * ZIGi's monthly cap). A position counts in its recorded value's currency, or, with no value, as cash in its own currency.
+ */
+export function heldTotals(positions: readonly HeldPosition[]): HeldTotal[] {
+  const sums = new Map<string, bigint>();
+  for (const p of positions) {
+    if (p.archivedAt) continue;
+    const currency = p.valuation ? p.valuation.currency : p.asset, value = p.valuation ? wholeUnits(p.valuation.value, p.valuation.decimals) : isMoney(p.asset) ? wholeUnits(p.quantity, p.decimals) : 0n;
+    if (isMoney(currency) && value > 0n) sums.set(currency, (sums.get(currency) ?? 0n) + value);
+  }
+  return [...sums].map(([currency, value]) => ({currency, value}));
+}

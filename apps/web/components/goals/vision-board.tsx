@@ -93,7 +93,7 @@ export function VisionBoard({goals, extras, onVision}: {goals: readonly GoalSumm
               <span className="vision-tile-text"><strong>{g.name}</strong><small>{progressWords(g)}</small>{why && <em>“{why}”</em>}</span>
             </span>
           </button>
-          <Link className="vision-tile-link-out text-link" href={g.href}>Open Goal →</Link>
+          <Link className="vision-tile-link-out text-link" href={g.href}>Open goal →</Link>
           {(onVision || showcase) && <>
             <input ref={el => { files.current[g.key] = el; }} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ''; void changeImage(g, file); }} aria-label={`Choose an image for ${g.name}`}/>
             <div className="vision-tile-options"><CardOptions label={g.name}>
@@ -120,7 +120,7 @@ function VisionFullScreen({goal: g, extras, picture, fallbackGradient, onClose}:
       <p className="vision-full-progress"><ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={64} label={`${g.name} progress`} complete={isFinished(g)} identity={`full-${g.key}`} bound={g.progressBound} /><span>{progressWords(g)}{g.target ? ` · target ${formatGoalAmount(g.target, g.currency)}` : ''}</span></p>
       {extra?.why && <p className="vision-full-why">“{extra.why}”</p>}
       {extra?.ifThen && <p className="fine">{extra.ifThen}</p>}
-      <div className="vision-full-actions"><Link className="primary" href={g.href} onClick={() => dialog.current?.close()}>Open Goal →</Link><button type="button" className="secondary" onClick={() => dialog.current?.close()}>Close</button></div>
+      <div className="vision-full-actions"><Link className="primary" href={g.href} onClick={() => dialog.current?.close()}>Open goal →</Link><button type="button" className="secondary" onClick={() => dialog.current?.close()}>Close</button></div>
     </div>
     <button type="button" className="vision-full-close quiet" aria-label="Close full screen" onClick={() => dialog.current?.close()}>×</button>
   </dialog>, document.body);

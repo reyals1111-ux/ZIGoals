@@ -13,7 +13,7 @@ export function milestoneNameIssue(title: string, others: readonly string[] = []
  const text = title.replace(/\s+/g, ' ').trim();
  if (!text) return 'Give the milestone a name.';
  if (text.length > MILESTONE_MAX) return `A milestone can be at most ${MILESTONE_MAX} characters (this one has ${text.length}).`;
- if (others.some(o => key(o) === key(text))) return `This Goal already has a milestone called “${text.slice(0, 60)}”. Give this one another name.`;
+ if (others.some(o => key(o) === key(text))) return `This goal already has a milestone called “${text.slice(0, 60)}”. Give this one another name.`;
  return null;
 }
 

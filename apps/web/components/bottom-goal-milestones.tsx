@@ -16,6 +16,6 @@ export function GoalMilestones({goals,today,...layout}:LayoutAttrs&{goals:readon
  return <Shell layout={layout} id="bottom-goal-milestones" eyebrow="YOUR TIMELINE" title={<>Milestones ahead.</>} lede="Target dates saved in your active goals, soonest first.">
   {t.dated.length?<ol className="bottom-timeline">{t.dated.map(g=><li key={g.key} data-past={g.past||undefined}><time dateTime={g.targetDate}>{formatDate(g.targetDate)}</time><span className="bottom-timeline-dot" aria-hidden="true"/><Link href={g.href} className="bottom-timeline-name">{g.name}</Link><span className="bottom-pill">{fundedPill(g.progressPct,goals.find(x=>x.key===g.key)?.progressBound)}</span>{g.past&&<span className="bottom-pill bottom-pill-muted">Target date passed</span>}</li>)}</ol>
   :<ArtNote pillar="goals"><p className="bottom-empty">No active goal has a target date yet. Add one in a goal’s plan to see it here.</p></ArtNote>}
-  {t.undated>0&&<p className="bottom-note">{t.undated} active Goal{t.undated===1?' has':'s have'} no target date.</p>}
+  {t.undated>0&&<p className="bottom-note">{t.undated} active goal{t.undated===1?' has':'s have'} no target date.</p>}
  </Shell>;
 }

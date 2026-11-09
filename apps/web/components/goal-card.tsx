@@ -71,7 +71,7 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
   {compact?<>
    <div className="card-bottom">{g.metadata.map(m=><div key={m.label}><small>{m.label}</small><strong>{m.value}</strong></div>)}</div>
    {g.nextContributionDate&&<p className="goal-next-contribution"><span>Next contribution</span><time dateTime={g.nextContributionDate}>{formatDate(g.nextContributionDate)}</time></p>}
-   <div className="card-footer"><small>{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</small><Link href={g.href} className="text-link">Open Goal →</Link></div>
+   <div className="card-footer"><small>{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</small><Link href={g.href} className="text-link">Open goal →</Link></div>
   </>:<>
    <details className="goal-card-more">
     <summary aria-label={`Details for ${g.name}`}><span className="goal-card-more-chevron" aria-hidden="true"><svg viewBox="0 0 22 12" width="18" height="10" focusable="false"><defs><linearGradient id={`${gid}-chev`} x1="0" x2="1"><stop offset="0" stopColor="var(--brand-cyan, #63e7ff)"/><stop offset=".5" stopColor="var(--brand-violet, #826cff)"/><stop offset="1" stopColor="var(--brand-magenta, #c664ff)"/></linearGradient></defs><path d="M3 3l8 6 8-6" fill="none" stroke={`url(#${gid}-chev)`} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg></span><span className="goal-card-more-word">Details</span><small>{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</small></summary>
@@ -81,7 +81,7 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
     {g.nextContributionDate&&<p className="goal-next-contribution"><span>Next contribution</span><time dateTime={g.nextContributionDate}>{formatDate(g.nextContributionDate)}</time></p>}
     <p className="fine goal-card-state">{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</p>
    </details>
-   <div className="card-footer">{/* D-029: the same place as the title link, so one tab stop is enough */}<Link href={g.href} className="text-link" tabIndex={-1} onClick={morph?open:undefined}>Open Goal →</Link></div>
+   <div className="card-footer">{/* D-029: the same place as the title link, so one tab stop is enough */}<Link href={g.href} className="text-link" tabIndex={-1} onClick={morph?open:undefined}>Open goal →</Link></div>
   </>}
  </article>;
 }

@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {dataModeLine} from '../../lib/ai/capabilities';
 import {readKey} from '../../lib/ai/keys';
 import {listModels} from '../../lib/ai/models';
@@ -11,6 +11,9 @@ import {capNote, capState, estimate, money, monthKey} from '../../lib/ai/usage';
 import {ModelPicker} from './model-picker';
 import {useDeviceRecord} from './use-device-record';
 import {useMoneyCurrency} from '../wealth/use-money-currency';
+import {usePrivateStore} from '../use-private-store';
+import {emptyPlatform, PLATFORM_KEY, platformSchema} from '../../lib/positions';
+import {heldTotals} from '../../lib/wealth-currency';
 
 /**
  * Settings → ZIGi · your AI, Session V Part 6: how the person's AI gets their data (tools or attached records), the
@@ -30,7 +33,9 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
   const options = useDeviceRecord(AI_OPTIONS), usage = useDeviceRecord(AI_USAGE), provider = settings.provider;
   const [models, setModels] = useState<ModelInfo[] | null>(null), [busy, setBusy] = useState(false), [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null);
   // Session AL third pass (P-DVR-22, PR-035): a new monthly cap starts in the person's money currency, chosen before the amount too.
-  const moneyCurrency = useMoneyCurrency(), [draftCurrency, setDraftCurrency] = useState<string | null>(null);
+  // Session AL final pass (N-MO-03): with what is tracked in Wealth too (an EUR-only person got USD: the hook was given no holdings).
+  const platform = usePrivateStore(PLATFORM_KEY, platformSchema, emptyPlatform), held = useMemo(() => heldTotals(platform.data.positions), [platform.data.positions]);
+  const moneyCurrency = useMoneyCurrency(held), [draftCurrency, setDraftCurrency] = useState<string | null>(null);
   const save = <T,>(store: {update: (change: (current: T) => T) => T}, change: (current: T) => T, text?: string) => { try { store.update(change); if (text) setMessage({text}); } catch (error) { setMessage({text: `Not saved on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); } };
   const mode = options.data.toolMode ?? 'auto', deep = provider ? options.data.deepModel?.[provider] ?? null : null;
   const loadModels = async () => {
@@ -46,7 +51,7 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
     const clean = value.trim();
     if (clean && !DECIMAL.test(clean)) { setMessage({text: 'A price is a plain number such as 2.5 (per million tokens).', failed: true}); return; }
     save<AiUsage>(usage, current => {
-      const prices = {...(current.prices ?? {})}, was = prices[provider] ?? {currency: 'USD'}, next = {...was, [field]: clean || undefined};
+      const prices = {...(current.prices ?? {})}, was = prices[provider] ?? {currency: moneyCurrency}, next = {...was, [field]: clean || undefined};
       if (next.input === undefined && next.output === undefined) delete prices[provider]; else prices[provider] = next;
       return {...current, prices};
     });
@@ -79,7 +84,7 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
       <div className="ai-fields">
         <label className="field">Per million tokens in<input inputMode="decimal" defaultValue={price?.input ?? ''} key={`in-${provider}-${price?.input ?? ''}`} onBlur={e => setPrice('input', e.target.value)} placeholder="e.g. 2.5" autoComplete="off"/></label>
         <label className="field">Per million tokens out<input inputMode="decimal" defaultValue={price?.output ?? ''} key={`out-${provider}-${price?.output ?? ''}`} onBlur={e => setPrice('output', e.target.value)} placeholder="e.g. 10" autoComplete="off"/></label>
-        <label className="field">Currency<select value={price?.currency ?? 'USD'} onChange={e => save<AiUsage>(usage, current => ({...current, prices: {...(current.prices ?? {}), [provider]: {...(current.prices?.[provider] ?? {}), currency: e.target.value}}}))}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        <label className="field">Currency<select value={price?.currency ?? moneyCurrency} onChange={e => save<AiUsage>(usage, current => ({...current, prices: {...(current.prices ?? {}), [provider]: {...(current.prices?.[provider] ?? {}), currency: e.target.value}}}))}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       </div>
       <small>For {provider === 'local' ? 'your local model' : PROVIDERS[provider].name}. Copy them from your provider&rsquo;s pricing page; ZIGoals never looks prices up. They stay on this device.</small>
     </fieldset>}

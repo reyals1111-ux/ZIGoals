@@ -9,7 +9,8 @@
 .goal-optional{border:1px solid #536b89;border-radius:16px;background:linear-gradient(135deg,#162b42,#242039);padding:1rem;min-width:0}
 .goal-optional>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;color:#b9e8fb}
 .goal-optional[open]{display:grid;gap:1rem}
-.goal-optional .goal-choice-tiles{max-height:260px;overflow:auto;padding:.2rem}
+/* Session AL final pass (D-257): the category tiles are part of the page, not a 260 px inner scroller */
+.goal-optional .goal-choice-tiles{padding:.2rem}
 .goal-optional>label{display:grid;gap:.5rem}
 .unified-wizard .wizard-actions{flex-wrap:wrap}
 /* Session W Part 11: goal ideas in the creator. */
@@ -17,9 +18,22 @@
 .goal-ideas legend { margin-bottom: 8px; }
 .goal-ideas-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
 .goal-idea { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid #a6c1fa26; border-radius: 14px; text-decoration: none; }
+/* Session AL final pass (D-139): .quiet centres its content, so a short title started ~40 px right of a long one; every
+   card's title and note start at its left edge, and wrap instead of running past it. */
+.goal-idea { justify-content: stretch; justify-items: start; align-content: start; white-space: normal; }
 .goal-idea small { opacity: .85; }
 .unified-wizard .wizard-cancel-row{display:flex;justify-content:flex-end;margin:16px 0 0}.unified-wizard .wizard-cancel-row .wizard-cancel{min-height:44px}
 /* Session AK (M7, layout audit): the wizard's skip link sat inside a positioned card, so the global .skip's "top: -80px"
    left it on the page at 390 px (a 25 px target over the card). Off the page until focused, then a full 44 px target. */
 .wizard-skip:not(:focus) { left: -10000px; }
 .wizard-skip:focus { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; }
+/* Session AL final pass (D-132, G-023, D-139): from 761 to 1023 px (768 with the sidebar leaves a ~640 px column) the story
+   art took a 200 px column with nothing to show, ~31 % of the width; the form takes the whole width and the art becomes the
+   short banner above it, as on a phone. */
+@media (min-width: 761px) and (max-width: 1023px) {
+  .unified-wizard.wizard-v2 { display: block; }
+  .unified-wizard .wizard-story { min-height: 135px; margin-bottom: 28px; }
+  .unified-wizard .wizard-story > div { bottom: 0; padding: 22px; gap: 8px; }
+  .unified-wizard .wizard-story span { display: none; }
+  .unified-wizard .wizard-story strong { font-size: 24px; }
+}
