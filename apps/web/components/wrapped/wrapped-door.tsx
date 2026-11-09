@@ -27,19 +27,19 @@ import './wrapped.css';
  */
 const WrappedStory = lazy(() => import('./wrapped-story'));
 export const WRAPPED_INTENT = {param: 'wrapped', value: 'open'} as const;
-function useOpener() {
+function useOpener({onOpen, onClose}: {onOpen?: () => void; onClose?: () => void} = {}) {
   const [open, setOpen] = useState(false), opener = useRef<HTMLButtonElement>(null);
-  const close = useCallback(() => { setOpen(false); queueMicrotask(() => opener.current?.focus()); }, []);
+  const close = useCallback(() => { setOpen(false); onClose?.(); queueMicrotask(() => opener.current?.focus()); }, [onClose]);
   const story = open ? <LoadBoundary quiet><Suspense fallback={null}><WrappedStory onClose={close} /></Suspense></LoadBoundary> : null;
-  return {opener, story, show: () => setOpen(true), prefetch: () => void import('./wrapped-story').catch(() => undefined)};
+  return {opener, story, show: () => { setOpen(true); onOpen?.(); }, prefetch: () => void import('./wrapped-story').catch(() => undefined)};
 }
 
 export function useTodayWrappedCard({habits, health, platform, today}: {habits: HabitData | null; health: HealthData | null; platform: Platform | null; today: string}): WrappedDoor {
   const record = useDeviceRecord(WRAPPED);
   return useMemo(() => wrappedDoor({today, records: habits && health && platform && record.loaded ? {habits, health, platform, today} : null, record: record.loaded ? (record.unreadable ? {version: 1} : record.data) : null, showcase: record.loaded && isShowcase()}), [habits, health, platform, today, record.loaded, record.unreadable, record.data]);
 }
-export function TodayWrappedCard({door, ...layout}: Partial<LayoutAttrs> & {door: WrappedDoor}) {
-  const {opener, story, show, prefetch} = useOpener(), example = isShowcase();
+export function TodayWrappedCard({door, onOpen, onClose, ...layout}: Partial<LayoutAttrs> & {door: WrappedDoor; onOpen?: () => void; onClose?: () => void}) {
+  const {opener, story, show, prefetch} = useOpener({onOpen, onClose}), example = isShowcase();
   return <section {...layout} className="panel today-wrapped-card" aria-labelledby="today-wrapped-title">
     <ActionIntent param={WRAPPED_INTENT.param} value={WRAPPED_INTENT.value} onAction={show} />
     <p className="eyebrow">{example ? 'Example · ' : ''}ZIGoals Wrapped {door.year}</p>

@@ -9,7 +9,13 @@ test.use({viewport: {width: 1280, height: 800}, timezoneId: 'Europe/Brussels'});
 test('DV-046a/b: one row per Close, and a tick names its milestone', async ({page}) => {
   await seedGoals(page, [project('91', ['Plan', 'Build'], 0)], '/app/goals/tracked/91');
   const milestones = await openModule(page, 'milestones');
-  await milestones.getByRole('checkbox', {name: 'Build'}).check();
+  // Session AL (CI 1632, deliberate; a race recorded at fifth-pass:51 in CI 1629, second sighting here): the box is
+  // controlled and follows the goal's store write a moment after the click (components/platform/goal-milestones.tsx:84),
+  // so `check()`, which reads `checked` right after its click, can see it still open. The same tick, then the same
+  // "checked" expectation, waited for as for any other state.
+  const build = milestones.getByRole('checkbox', {name: 'Build'});
+  await build.click();
+  await expect(build).toBeChecked();
   await expect(page.getByRole('status').filter({hasText: 'Milestone done: “Build”.'})).toBeVisible();
   const status = await openModule(page, 'goal-status');
   await status.getByRole('button', {name: 'Close goal and release allocations', exact: true}).click();

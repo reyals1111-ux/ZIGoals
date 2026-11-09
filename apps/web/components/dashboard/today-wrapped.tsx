@@ -1,4 +1,5 @@
 'use client';
+import {useState} from 'react';
 import {TodayWrappedCard, useTodayWrappedCard} from '../wrapped/wrapped-door';
 import type {HabitData} from '../../lib/habits';
 import type {HealthData} from '../../lib/health';
@@ -15,5 +16,8 @@ import type {Platform} from '../../lib/positions';
  */
 export default function TodayWrapped({habits, health, platform, today}: {habits: HabitData; health: HealthData; platform: Platform; today: string}) {
   const door = useTodayWrappedCard({habits, health, platform, today});
-  return door.state === 'shown' && door.todayCard && door.season ? <TodayWrappedCard door={door}/> : null;
+  // Session AL (CI 1632, Q24): opening the story records this year's Wrapped as opened, which ends the card; the story lives
+  // inside the card, so the card stays while its story is open and goes once it is closed.
+  const [held, setHeld] = useState(false), hold = () => setHeld(true), release = () => setHeld(false);
+  return held || (door.state === 'shown' && door.todayCard && door.season) ? <TodayWrappedCard door={door} onOpen={hold} onClose={release}/> : null;
 }

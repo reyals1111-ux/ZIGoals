@@ -52,7 +52,12 @@ test.describe('Fresh profile', () => {
     await page.setViewportSize({width: 1920, height: 1113});
     await seedGoals(page, [project('72', ['Plan', 'Build'], 1)], '/app/goals/tracked/72');
     const milestones = await openModule(page, 'milestones');
-    await milestones.getByRole('checkbox', {name: 'Build'}).check();
+    // Session AL (CI 1629 and CI 1632, deliberate; the race recorded in CI_INTERMITTENTS.md): the box is controlled and
+    // follows the store write a moment after the click (goal-milestones.tsx:84; this last milestone also completes the
+    // goal), so `check()` can read it before it turns. The same tick, then the same "checked" expectation, waited for.
+    const build = milestones.getByRole('checkbox', {name: 'Build'});
+    await build.click();
+    await expect(build).toBeChecked();
     const timeline = page.getByRole('region', {name: 'Goal timeline'});
     await expect(timeline).toContainText('Target reached · goal completed');
     await expect(timeline).toContainText('2 milestones');
