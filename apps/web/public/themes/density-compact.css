@@ -3006,7 +3006,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .health-progress-slot:not(#\-) { margin-top: 0; margin-bottom: 16px; }
 :where(:root[data-density=compact]) .health-page .page-header.health-heading:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 10px; margin-bottom: 24px; }
 @media (max-width: 374.98px) { :root:where([data-density=compact]) .health-page .health-summary .health-gauge:not(#\-) { margin-top: 0; margin-bottom: 0; } }
-@media (max-width: 640px) { :where(:root[data-density=compact]) .health-today p.health-today-meals:not(#\-) { margin-top: 0; } }
+@media (max-width: 640px) { :where(:root[data-density=compact]) .health-today p.health-today-meals:not(#\-) { margin-top: 0; margin-bottom: 0; } }
 /*  components/health/label-scan.css  */
 :where(:root[data-density=compact]) .label-scan:not(#\-) { row-gap: 6px; padding-top: 12px; padding-bottom: 12px; margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .label-scan-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
