@@ -127,24 +127,104 @@ export function clearOfField(region: {top: number; bottom: number; left: number;
   if (!region.height || region.bottom <= field.top || region.top >= field.bottom || region.right <= field.left || region.left >= field.right) return null;
   return field.top - region.height - gap >= gap ? Math.round(field.top - gap - region.height) : Math.round(Math.min(field.bottom + gap, viewportHeight - region.height - gap));
 }
-function useClearOfFields(regionRef: {readonly current: HTMLDivElement | null}, showing: boolean, newest: number, place_: unknown) {
+/**
+ * Release review A10 (A10-7): RR-10 kept the toast off a focused field only; at 390 it still sat on the next card in Quick
+ * add and on NOVA's Drink water row. On a phone the toast now has room of its own while it shows:
+ * - over a sheet that scrolls (Quick add, NOVA's sheets: the layer the toast is lent, or any scroll container whose
+ *   bottom edge is on screen under it), that container's scroll area ends just above the toast: a transparent strip at
+ *   its bottom (its bottom border, so its box and background stay as they were) is the toast's place, and nothing in
+ *   the sheet is ever under it. The content does not move under the finger; what no longer fits scrolls.
+ * - over the page, the page gets the same room at its end (the last row can always scroll clear), and when the control
+ *   that showed the toast (the one just pressed) is under it, the toast sits just above that control instead.
+ * A focused text field keeps RR-10's rule first. The Checklist's own toast slot is left as it is; a computer is unchanged.
+ */
+const gapPx = 8;
+/** The bottom border (px) that ends `container`'s scroll area above the toast; null when the toast is not over its lower edge. Pure, for tests. */
+export function stripHeight(container: {top: number; bottom: number}, toast: {top: number; bottom: number; height: number}, viewportHeight: number, borderBottom = 0, gap = gapPx): number | null {
+  if (!toast.height || container.top > toast.top - gap || container.bottom < toast.bottom || container.bottom > viewportHeight + 1) return null;
+  const need = Math.ceil(container.bottom - (toast.top - gap));
+  return need > borderBottom ? need : null;
+}
+const CONTROL = 'button, a[href], input, select, textarea, summary, [role="button"], [role="switch"], [role="checkbox"], [tabindex]:not([tabindex="-1"])';
+/** The scroll container (not the page) whose content is under the toast. */
+function scrollerUnder(region: HTMLElement, box: DOMRect): HTMLElement | null {
+  if (typeof document.elementsFromPoint !== 'function') return null;
+  const x = box.left + box.width / 2;
+  for (const y of [box.top + 1, box.top + box.height / 2, box.bottom - 1]) {
+    const hit = document.elementsFromPoint(x, y).find(e => !region.contains(e));
+    for (let el = hit instanceof HTMLElement ? hit : null; el && el !== document.body && el !== document.documentElement; el = el.parentElement) {
+      const oy = getComputedStyle(el).overflowY;
+      if (oy === 'auto' || oy === 'scroll') return el;
+    }
+  }
+  return null;
+}
+/** The last control pressed, so the page can keep the toast off the one that showed it. */
+let lastPress: {el: Element; at: number} | null = null;
+const PRESSED_WITHIN_MS = 3000;
+function useKeepClear(regionRef: {readonly current: HTMLDivElement | null}, showing: boolean, newest: number, place_: unknown) {
+  useEffect(() => {
+    const press = (event: Event) => { if (event.target instanceof Element) lastPress = {el: event.target, at: performance.now()}; };
+    document.addEventListener('pointerdown', press, true);
+    return () => document.removeEventListener('pointerdown', press, true);
+  }, []);
   useEffect(() => {
     const region = regionRef.current;
     if (!region || !showing || region.closest(KEEPS_PLACE) || typeof window.matchMedia !== 'function') return;
     const phone = window.matchMedia(PHONE), shownAt = performance.now();
-    let frame = 0;
-    const reset = () => { region.style.removeProperty('bottom'); delete region.dataset.clearOf; };
-    const place = () => {
-      reset();
-      const field = document.activeElement;
-      if (!phone.matches || !isTextField(field) || region.contains(field)) return;
-      const box = region.getBoundingClientRect(), top = clearOfField(box, field.getBoundingClientRect(), window.innerHeight);
-      if (top === null) return;
+    const pressed = lastPress && shownAt - lastPress.at <= PRESSED_WITHIN_MS ? lastPress.el.closest(CONTROL) : null;
+    let frame = 0, strip: {el: HTMLElement; width: string; style: string; color: string} | null = null, page: string | null = null;
+    const reset = () => {
+      region.style.removeProperty('bottom'); delete region.dataset.clearOf;
+      if (strip) {
+        const {el, width, style, color} = strip, top = el.scrollTop;
+        el.style.borderBottomWidth = width; el.style.borderBottomStyle = style; el.style.borderBottomColor = color; delete el.dataset.toastRoom;
+        el.scrollTop = top; strip = null;
+      }
+      if (page !== null) { document.body.style.paddingBottom = page; delete document.body.dataset.toastRoom; page = null; }
+    };
+    const moveTo = (top: number, why: string) => {
       // Moved by its own `bottom`, measured from where it sits now, so a sheet that holds the region keeps holding it.
-      const bottom = parseFloat(getComputedStyle(region).bottom);
-      if (!Number.isFinite(bottom)) return;
+      const box = region.getBoundingClientRect(), bottom = parseFloat(getComputedStyle(region).bottom);
+      if (!Number.isFinite(bottom)) return false;
       region.style.bottom = `${Math.round(bottom + box.top - top)}px`;
-      region.dataset.clearOf = 'field';
+      region.dataset.clearOf = why;
+      return true;
+    };
+    const place = () => {
+      // Placed again (a focus change, a resize): the sheet keeps the scroll position it had with the strip.
+      const kept = strip ? {el: strip.el, top: strip.el.scrollTop} : null;
+      reset();
+      if (!phone.matches) return;
+      const field = document.activeElement;
+      // RR-10: a focused text field outside the toast comes first.
+      if (isTextField(field) && !region.contains(field)) {
+        const top = clearOfField(region.getBoundingClientRect(), field.getBoundingClientRect(), window.innerHeight);
+        if (top !== null && moveTo(top, 'field')) return;
+      }
+      const box = region.getBoundingClientRect();
+      if (!box.height) return;
+      const scroller = scrollerUnder(region, box);
+      if (scroller) {
+        const before = scroller.getBoundingClientRect(), cs = getComputedStyle(scroller), own = parseFloat(cs.borderBottomWidth) || 0;
+        const height = stripHeight(before, box, window.innerHeight, own);
+        if (height === null) return;
+        const top = kept?.el === scroller ? kept.top : scroller.scrollTop;
+        strip = {el: scroller, width: scroller.style.borderBottomWidth, style: scroller.style.borderBottomStyle, color: scroller.style.borderBottomColor};
+        scroller.style.borderBottomWidth = `${height}px`; scroller.style.borderBottomStyle = 'solid'; scroller.style.borderBottomColor = 'transparent';
+        scroller.dataset.toastRoom = 'strip'; scroller.scrollTop = top;
+        // A sheet that grew off the screen, or a toast placed by the sheet's own box, keeps things as they were.
+        const after = scroller.getBoundingClientRect(), moved = region.getBoundingClientRect();
+        if (after.top < 0 || after.bottom > window.innerHeight + 1 || Math.abs(moved.top - box.top) > 1) reset();
+        return;
+      }
+      // The page: room at its end, and the toast off the control just pressed.
+      const room = Math.ceil(window.innerHeight - (box.top - gapPx)), pad = parseFloat(getComputedStyle(document.body).paddingBottom);
+      if (room > 0 && Number.isFinite(pad)) { page = document.body.style.paddingBottom; document.body.style.paddingBottom = `${pad + room}px`; document.body.dataset.toastRoom = 'page'; }
+      if (pressed instanceof HTMLElement && pressed.isConnected && !region.contains(pressed)) {
+        const top = clearOfField(box, pressed.getBoundingClientRect(), window.innerHeight);
+        if (top !== null) moveTo(top, 'control');
+      }
     };
     const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(place); };
     const typed = (event: Event) => {
@@ -153,10 +233,13 @@ function useClearOfFields(regionRef: {readonly current: HTMLDivElement | null}, 
       for (const toast of shownToasts()) hideToast(toast.id);
     };
     place();
+    // The toast's own size (a longer message, the Undo turning busy) changes the room it needs.
+    const sized = typeof ResizeObserver === 'function' ? new ResizeObserver(later) : null;
+    sized?.observe(region);
     document.addEventListener('focusin', later, true); document.addEventListener('focusout', later, true); document.addEventListener('input', typed, true);
     window.addEventListener('resize', later); window.visualViewport?.addEventListener('resize', later);
     return () => {
-      cancelAnimationFrame(frame); reset();
+      cancelAnimationFrame(frame); sized?.disconnect(); reset();
       document.removeEventListener('focusin', later, true); document.removeEventListener('focusout', later, true); document.removeEventListener('input', typed, true);
       window.removeEventListener('resize', later); window.visualViewport?.removeEventListener('resize', later);
     };
@@ -171,7 +254,7 @@ export function UndoToastHost() {
   const hidden = useSyncExternalStore(subscribeHold, () => holds > 0, () => false);
   const regionRef = useRef<HTMLDivElement>(null);
   // `target`: the region moves into a lent layer (a new element), so its place is measured again there.
-  useClearOfFields(regionRef, !hidden && toasts.length > 0, toasts.at(-1)?.id ?? 0, target);
+  useKeepClear(regionRef, !hidden && toasts.length > 0, toasts.at(-1)?.id ?? 0, target);
   const region = <div ref={regionRef} className="aa-toast-region" role="status" aria-live="polite">
     {!hidden && toasts.map(toast => <ToastItem key={toast.id} toast={toast}/>)}
   </div>;

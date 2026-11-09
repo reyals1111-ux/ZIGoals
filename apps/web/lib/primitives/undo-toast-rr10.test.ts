@@ -73,3 +73,35 @@ test('the Checklist\'s own toast slot keeps its place', async () => {
   await act(async () => { hideToast(); root.unmount(); }); slot.remove();
   root = createRoot(host);
 });
+
+/** Release review A10 (A10-7): over a sheet that scrolls, the toast has a strip of its own at the sheet's bottom. */
+test('stripHeight: the sheet\'s scroll area ends 8 px above the toast; nothing when the toast is not over its lower edge', async () => {
+  const {stripHeight} = await import('../../components/ui/undo-toast');
+  // NOVA's Health sheet at 390 × 664: the sheet from 66 to 664, the toast from 526 to 592.
+  expect(stripHeight({top: 66, bottom: 664}, rect(526, 66), 664)).toBe(664 - (526 - 8));
+  expect(stripHeight({top: 66, bottom: 664}, rect(526, 66), 664, 200)).toBeNull(); // its own border is already that wide
+  expect(stripHeight({top: 66, bottom: 560}, rect(526, 66), 664)).toBeNull(); // the toast hangs below the sheet
+  expect(stripHeight({top: 540, bottom: 664}, rect(526, 66), 664)).toBeNull(); // the sheet starts under the toast
+  expect(stripHeight({top: 66, bottom: 900}, rect(526, 66), 664)).toBeNull(); // its bottom is off the screen
+  expect(stripHeight({top: 66, bottom: 664}, rect(526, 0), 664)).toBeNull(); // an empty region needs no room
+});
+test('on a phone, a toast over a sheet that scrolls reserves a strip at its bottom while it shows; on a computer nothing', async () => {
+  const sheet = document.createElement('dialog'); sheet.style.borderBottomWidth = '2px'; document.body.append(sheet);
+  sheet.getBoundingClientRect = () => rect(66, 598) as DOMRect;
+  const under = document.createElement('p'); sheet.append(under);
+  (document as {elementsFromPoint?: unknown}).elementsFromPoint = () => [region().firstElementChild ?? region(), under, sheet, document.body];
+  await act(async () => { showUndo({message: 'Water logged: 250 mL.', restore: () => undefined}); });
+  region().getBoundingClientRect = () => rect(526, 66) as DOMRect;
+  vi.spyOn(window, 'getComputedStyle').mockImplementation(el => ({bottom: '76px', overflowY: el === sheet ? 'auto' : 'visible', borderBottomWidth: el === sheet ? '2px' : '0px', paddingBottom: '0px'}) as CSSStyleDeclaration);
+  await act(async () => { window.dispatchEvent(new Event('resize')); await new Promise(r => requestAnimationFrame(() => r(null))); });
+  expect(sheet.dataset.toastRoom).toBe('strip');
+  expect([sheet.style.borderBottomWidth, sheet.style.borderBottomStyle, sheet.style.borderBottomColor]).toEqual(['146px', 'solid', 'transparent']);
+  expect(region().style.bottom, 'the toast itself stays where it is').toBe('');
+  await act(async () => { hideToast(); });
+  expect(sheet.dataset.toastRoom).toBeUndefined();
+  expect(sheet.style.borderBottomWidth, 'its own border back').toBe('2px');
+  phone = false;
+  await act(async () => { showUndo({message: 'Water logged: 250 mL.', restore: () => undefined}); await new Promise(r => requestAnimationFrame(() => r(null))); });
+  expect(sheet.dataset.toastRoom).toBeUndefined();
+  delete (document as {elementsFromPoint?: unknown}).elementsFromPoint; sheet.remove();
+});

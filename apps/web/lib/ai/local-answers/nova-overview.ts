@@ -112,6 +112,9 @@ const AGENDA_KIND_NL: Record<string, string> = {bill: 'rekening', 'goal contribu
 function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalReply {
   const today = env.habitDay, calls: ToolCallRecord[] = [], lines: string[] = [];
   let anything = false;
+  // Release review A10 (A10-5): the tasks already said above (due today or still open from earlier); the agenda carries an
+  // overdue task into today, so it is left out of "Also planned today" and each task is said once, in its own group.
+  const said = new Set<string>(), taskKey = (title: unknown) => clean(String(title), 60);
   // Habits still open today.
   const h = run('habits_due', {}, env);
   if (h.result.ok) {
@@ -134,6 +137,7 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
       const name = (r: Data) => `${clean(String(r.task), 80)}${r.time ? say(lang, ` at ${formatClock(r.time)}`, ` om ${formatClock(r.time)}`) : ''}${tags(r).length ? ` (${tags(r).join(', ')})` : ''}`;
       if (dueNow.length) { anything = true; lines.push(say(lang, `Tasks due today: ${dueNow.map(name).join(', ')}`, `Taken voor vandaag: ${dueNow.map(name).join(', ')}`)); }
       if (late.length) { anything = true; lines.push(say(lang, `Still open from earlier: ${late.map(r => `${clean(String(r.task), 80)} (since ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`, `Nog open van eerder: ${late.map(r => `${clean(String(r.task), 80)} (sinds ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`)); }
+      for (const r of [...dueNow, ...late]) said.add(taskKey(r.task));
       if (!dueNow.length && !late.length) lines.push(say(lang, 'Tasks: none due today.', 'Taken: niets voor vandaag.'));
     }
   } else lines.push(say(lang, 'Tasks and the agenda: Today is off for NOVA, so not read (NOVA → Permissions).', 'Taken en agenda: Today staat uit voor NOVA, dus niet gelezen (NOVA → Permissions).'));
@@ -141,7 +145,7 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
   const a = run('agenda', {from: today, days: 1}, env);
   if (a.result.ok && todayOpen) {
     calls.push(a.record);
-    const items = ((dataOf(a.result).items ?? []) as Data[]).filter(i => i.kind !== 'habit' && i.state !== 'done' && i.state !== 'skipped');
+    const items = ((dataOf(a.result).items ?? []) as Data[]).filter(i => i.kind !== 'habit' && i.state !== 'done' && i.state !== 'skipped' && !(String(i.kind).startsWith('task') && said.has(taskKey(i.what))));
     if (items.length) { anything = true; lines.push(say(lang, `Also planned today: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${i.kind})`).join(', ')}`, `Ook gepland vandaag: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${AGENDA_KIND_NL[i.kind] ?? i.kind})`).join(', ')}`)); }
   }
   const head = say(lang, `Today (${dayText(today)}), from your own records:`, `Vandaag (${dayText(today)}), uit je eigen gegevens:`);

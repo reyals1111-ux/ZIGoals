@@ -144,6 +144,21 @@ let lastOverview:{inputs:OverviewInputs;result:ReturnType<typeof computeWealthOv
 export const STABLECOINS_AS_CASH_KEY='zigoals:stablecoins-as-cash:v1';
 /** The class a row is shown under: Stablecoins join Cash when the person chose it. */
 export const shownWealthClass=(c:WealthClass,stablecoinsAsCash=false):WealthClass=>stablecoinsAsCash&&c==='Stablecoins'?'Cash':c;
+/**
+ * Session AL (A10-3): the line under a wealth total about market prices. Its time comes only from holdings valued by a
+ * market quote; a manual or recorded value's time is never shown as a market time. With holdings linked to a market but
+ * none valued by a quote, it says no market price is current ('own' when every such value is the person's own).
+ */
+export type MarketPricesLine={kind:'market';at:string}|{kind:'own'|'none'};
+type PricesRow={position:Pick<Position,'marketRef'|'archivedAt'>;pricedFromMarket?:boolean;valuedAt?:string;value?:bigint;valuationState?:string};
+export function marketPricesLine(rows:readonly PricesRow[]):MarketPricesLine|undefined{
+ const linked=rows.filter(r=>r.position.marketRef&&!r.position.archivedAt);
+ const at=linked.flatMap(r=>r.pricedFromMarket&&r.valuedAt?[r.valuedAt]:[]).sort((a,b)=>Date.parse(a)-Date.parse(b)).at(-1);
+ if(at)return {kind:'market',at};
+ const counted=linked.filter(r=>r.value!==undefined);
+ if(!counted.length)return undefined;
+ return {kind:counted.every(r=>r.valuationState==='manual')?'own':'none'};
+}
 export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQuote[]=[],{stablecoinsAsCash=false}:{stablecoinsAsCash?:boolean}={}){
  const inputs:OverviewInputs={s,positions:s.positions,allocations:s.allocations,snapshots:s.valuationSnapshots,events:s.assetEvents,now,quotes,stablecoinsAsCash};
  const last=lastOverview?.inputs;
@@ -168,7 +183,7 @@ function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote
   const marketValue=matching&&own?.source==='MANUAL'&&matching.currency===own.currency?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
   const allocatedValue=value===undefined?undefined:observed?value*allocated/observed:0n;
   const valuationState=own?.source==='MANUAL'?'manual':own?snapshotIsStale(own.observedAt,now)?'stale':'fresh':matching?quoteIsStale(matching,now)?'stale':'fresh':'missing';
-  return {position:p,assetClass:assetClassOf(p),wealthClass:wealthClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,marketValue,source:own?.source==='MANUAL'?'Manual value':own?'Verified Position value':matching?.source,valuedAt:own?.observedAt??matching?.observedAt??matching?.fetchedAt,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
+  return {position:p,assetClass:assetClassOf(p),wealthClass:wealthClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,marketValue,source:own?.source==='MANUAL'?'Manual value':own?'Verified Position value':matching?.source,valuedAt:own?.observedAt??matching?.observedAt??matching?.fetchedAt,/* Session AL (A10-3): the value is a market quote's, so its time is a market price's time */pricedFromMarket:!own&&!!matching,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
  });
  const summarize=(items:typeof rows)=>{
   const currencies=[...new Set(items.flatMap(r=>r.currency&&r.value!==undefined?[r.currency]:[]))];
