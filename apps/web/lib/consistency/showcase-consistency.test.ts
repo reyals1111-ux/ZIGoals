@@ -105,7 +105,11 @@ describe('Showcase: today\'s habits', () => {
       expect(widget('habit', 'streak', h.id).value, h.title).toMatch(new RegExp(`^${s.currentStreak} `));
     }
     const exercise = habits.habits.find(h => h.title === 'Exercise')!, s = habitStats(exercise, DAY);
-    expect(textOf(localAnswer('What is my current Exercise streak?', env()))).toBe(`Your current Exercise streak is ${s.currentStreak} days (longest: ${s.bestStreak} days).`);
+    // Session AL final pass (Z-021, 13a7c83b, deliberate): the answer adds why a streak can outrun a month's check-ins; the
+    // figures are still the habit's own (same exact first line).
+    const answer = textOf(localAnswer('What is my current Exercise streak?', env()));
+    expect(answer.split('\n')[0]).toBe(`Your current Exercise streak is ${s.currentStreak} days (longest: ${s.bestStreak} days).`);
+    expect(answer).toMatch(/a streak counts scheduled days in a row across months, and a skipped day keeps it going/);
   });
 });
 
