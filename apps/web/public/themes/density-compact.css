@@ -1104,6 +1104,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .calc-chip > span:not(#\-) { row-gap: 8px; padding-top: 8px; padding-bottom: 8px; }
 :root:where([data-density=compact]) .calc .calc-chip-input:not(#\-) { row-gap: 0; }
 :root:where([data-density=compact]) .calc-chip-input input:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:root:where([data-density=compact]) .calc-compare .calc-custom-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :root:where([data-density=compact]) .calc-whatifs:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 16px; padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact]) .calc-whatifs li:not(#\-) { row-gap: 3px; padding-top: 7.5px; padding-bottom: 7.5px; }
 :root:where([data-density=compact]) .calc-actions:not(#\-) { row-gap: 6px; }

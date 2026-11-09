@@ -1385,6 +1385,7 @@
 :where(:root[data-text=large]) .exercise-counters-day:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .exercise-counter-name h3:not(#\-) { font-size: calc(17px * 1.125); }
 :where(:root[data-text=large]) .exercise-step:not(#\-) { font-size: calc(24px * 1.125); }
+:where(:root[data-text=large]) .exercise-count-none:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .exercise-count:not(#\-) { font-size: calc(26px * 1.125); }
 :where(:root[data-text=large]) .exercise-counter-caption:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .exercise-counters-status:not(#\-) { font-size: calc(15px * 1.125); }

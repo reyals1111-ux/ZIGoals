@@ -8150,6 +8150,21 @@
     .chess-rating-goal span:not(#\-) {
         color: var(--text-secondary, inherit)
     }
+    @media (hover: hover) {
+        .goals-page .goal-view-filters button:hover:not([aria-pressed="true"]):not(:disabled):not(#\-) {
+            color: var(--text-strong, #f4f8ff);
+            border-color: #7fe3f399;
+            background-image: none;
+            background-color: #040c20
+        }
+    }
+    @media (hover: hover) {
+        :scope main[data-pillar] .goals-page .goal-view-filters > button[aria-pressed="true"]:hover:not(:disabled):not(#\-) {
+            background-image: none;
+            background-color: #011128;
+            box-shadow: inset 0 0 0 1px var(--cyan, #45d8ef), 0 0 16px -4px #45d8efaa
+        }
+    }
 }
 /*  components/goals/milestone-planner.css  */
 @scope (:root[data-theme=dark]) {
@@ -9664,6 +9679,16 @@
         color: #0a1428;
         border-color: transparent
     }
+    .exercise-step:last-child:hover:not(:disabled):not(#\-) {
+        background-image: linear-gradient(135deg,#86eef8,#bdbaff);
+        background-color: transparent;
+        color: #0a1428;
+        border-color: transparent;
+        box-shadow: 0 0 16px -4px #8f7dffcc
+    }
+    .exercise-count-none:not(#\-) {
+        color: #b4c3dc
+    }
     .exercise-count:not(#\-) {
         color: var(--text-strong,#f4f8ff)
     }
@@ -9731,6 +9756,20 @@
             background-image: none;
             background-color: transparent;
             color: ButtonText
+        }
+    }
+    @media (forced-colors:active) {
+        .exercise-step:last-child:hover:not(:disabled):not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: ButtonText;
+            box-shadow: none;
+            outline-color: currentcolor
+        }
+    }
+    @media (forced-colors:active) {
+        .exercise-count-none:not(#\-) {
+            color: CanvasText
         }
     }
     @media (forced-colors:active) {
@@ -11859,6 +11898,33 @@
     }
     .data-table-more:not(#\-) {
         color: var(--text-secondary, #c4d3e6)
+    }
+    @media (hover: hover) {
+        .markets-page .picker-tabs button:hover:not([aria-pressed="true"]):not(:disabled):not(#\-) {
+            color: #eaf9ff;
+            border-color: #7fe3f399;
+            background-image: none;
+            background-color: #030b20
+        }
+    }
+    @media (hover: hover) {
+        :scope main .markets-page .picker-tabs > button[aria-pressed="true"]:hover:not(:disabled):not(#\-) {
+            box-shadow: inset 0 0 0 1px #33cce4, 0 0 14px -4px #33cce4aa
+        }
+    }
+    @media (hover: hover) {
+        .markets-page .market-favourite:hover:not([aria-disabled="true"]):not([aria-pressed="true"]):not(#\-) {
+            color: #f2d38f;
+            background-image: none;
+            background-color: #f2d38f1f
+        }
+    }
+    @media (hover: hover) {
+        .markets-page .market-favourite[aria-pressed="true"]:hover:not(#\-) {
+            color: #ffe3a8;
+            background-image: none;
+            background-color: #f2d38f14
+        }
     }
 }
 /*  components/money-photos/money-photos.css  */
