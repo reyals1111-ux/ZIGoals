@@ -31,7 +31,7 @@
 .game-strip-toggle:focus-visible { outline: 2px solid #c9b4ff; outline-offset: -3px; }
 
 /* Journey */
-.journey-page { display: grid; gap: 22px; }
+.journey-page { display: grid; gap: 22px; grid-template-columns: minmax(0, 1fr); } /* Session AL (CI 1611, journey:79): one track that never grows to the sideways-scrolling "On this page" row (DV-045e) */
 .journey-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 16px; padding: 18px 0 4px; }
 .journey-hero h1 { font-size: clamp(2.2rem, 4vw, 3.8rem); letter-spacing: -.05em; line-height: 1.08; margin: 10px 0 16px; max-width: 760px; }
 .journey-off { display: grid; gap: 12px; }

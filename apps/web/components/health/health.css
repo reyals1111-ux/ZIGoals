@@ -296,3 +296,6 @@ nav[aria-label="Measurement history pages"] button { min-height: 44px; }
   :root .health-page .health-summary.panel { grid-template-columns: minmax(0, 1fr); }
   :root .health-page .health-summary .health-gauge { margin: 0 auto; }
 }
+/* Session AL (CI 1611, today-screens:30; RR-5): on a phone the meals line on Today's Health card is one line (the full
+   names stay in the text and the title), so the new line costs Today one line, not three. */
+@media (max-width: 640px) { .health-today p.health-today-meals { margin-top: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
