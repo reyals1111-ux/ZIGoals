@@ -87,7 +87,12 @@ export async function verifyPackagedGoalJourneys(a,b,evidenceDir){
    expect(await b.getByRole('button',{name:'Fund Goal',exact:true}).count()).toBe(0);expect(await b.locator('#contribution-plan,#allocate').count()).toBe(0);const milestones=await openModule(b,'milestones');expect(await milestones.getByLabel('Fictional research review',{exact:true}).isChecked()).toBe(false);expect(await milestones.getByLabel('Fictional delivery review',{exact:true}).isChecked()).toBe(true);expect(await timeline(b,'milestone')).toEqual(evidence.changes);
   }else{
    const plan=await openModule(b,'contribution-plan');expect(await plan.getByLabel('Planned amount',{exact:true}).inputValue()).toBe(type==='Value'?'50':'1');/* Session AL (DV-034a, 99cc79e6, deliberate): a count goal's plan field reads "What you count" on its page */expect(await plan.getByLabel(type==='Value'?'Contribution asset':'What you count',{exact:true}).inputValue()).toBe(type==='Value'?'USD':'BTC');
-   const allocation=await openModule(b,'allocate');expect(await allocation.locator('.platform-position-row').first().textContent()).toBe(evidence.allocationText);expect(await timeline(b,'contribution')).toEqual(evidence.original);expect(await timeline(b,'reversal')).toEqual(evidence.reversed);
+   /* Session AL (CI 1629, deliberate; L4 fifth pass DV-034a/DV-104, 4a8543f9): a Quantity goal counts its own unit and has no
+      Wealth allocation module, on device A (fund) and so on device B: B must show none, and the 2 BTC counted instead, as A
+      does. A Value goal keeps the allocation row check, equal to A's. */
+   if(type==='Value'){const allocation=await openModule(b,'allocate');expect(await allocation.locator('.platform-position-row').first().textContent()).toBe(evidence.allocationText);}
+   else{expect(evidence.allocationText).toBeNull();expect(await b.locator('#allocate').count()).toBe(0);await b.getByTestId('tracked-progress').filter({hasText:/Counted so far\s*2 BTC/}).waitFor();}
+   expect(await timeline(b,'contribution')).toEqual(evidence.original);expect(await timeline(b,'reversal')).toEqual(evidence.reversed);
   }
   await b.screenshot({path:`${evidenceDir}/goal-${type.toLowerCase()}-mobile-history.png`,mask:[b.getByLabel(/recovery secret/i)],maskColor:'#FF00FF'});await navigate(b,'Today');await (await todayCard(b,goal.name)).waitFor();await (await todayCard(b,goal.habit)).waitFor();expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   results.push({...goal,...evidence,secondProfileHistoryEqual:true,todayGoalAndHabitReceived:true,financialContribution:type!=='Project'});

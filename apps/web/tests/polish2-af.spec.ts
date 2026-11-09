@@ -399,7 +399,8 @@ test.describe('Gate C design review', () => {
     expect(area.left).toBeCloseTo(primary.left, 0);
     // Session AK (ADR-036, deliberate): from 1280 px the full-width parts under Today's columns keep the launchers' lane free (G2, RELEASE_REVIEW R20, components/ui/ui.css --launcher-gutter); 0 below 1280 px.
     const gutter = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--launcher-gutter')) || 0);
-    expect(gutter, 'the launcher lane').toBe(width >= 1280 ? 58 : 0);
+    // Session AL (CI 1629, deliberate; D-064/AL-LAUNCHER-OVERLAP-001, 53df729f): the same gutter applies from 901 px (app/globals.css), so 58 at 1024 px too.
+    expect(gutter, 'the launcher lane').toBe(width >= 901 ? 58 : 0);
     expect(area.right, 'under the rail too').toBeCloseTo(rail.right - gutter, 0);
     expect(area.top, 'below both columns').toBeGreaterThanOrEqual(Math.max(primary.bottom, rail.bottom));
   });

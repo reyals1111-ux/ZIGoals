@@ -121,7 +121,10 @@ test('BN-127 (P-BN-49, decided under O3): Governance keeps its launcher lane onl
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:earn-prefs:v1', JSON.stringify({version: 1, pageShown: true, governanceShown: true})); } catch { /* none */ } });
   const lane = async (width: number) => { await page.setViewportSize({width, height: 900}); await ready(page, '/app/governance'); return page.locator('.governance-page').evaluate(el => getComputedStyle(el).paddingInlineEnd); };
   expect(await lane(1440)).toBe('0px'); // the main column's 58 px gutter already keeps the lane
-  expect(await lane(1024)).toBe('64px'); // launchers float, no gutter: the page's own lane
+  // Session AL (CI 1629, deliberate; D-064/AL-LAUNCHER-OVERLAP-001, 53df729f): from 901 px the main column keeps the same 58 px
+  // gutter as from 1280 px (app/globals.css), so Governance needs no lane of its own at 1024 either; the gutter is asserted.
+  expect(await lane(1024)).toBe('0px');
+  expect(await page.locator('main#main').evaluate(el => getComputedStyle(el).paddingInlineEnd)).toBe('58px');
   expect(await lane(800)).toBe('0px'); // nothing floats below 901 px (O3)
 });
 
