@@ -36,6 +36,7 @@ Engine crashes are recorded with their diagnosis and not chased.
 | `for-you.spec.ts:8` (mobile, CI 1631, shard 7) | Showcase: "at most two cards are open and the rest fold behind Show more" failed once. | Passes 2/2 on the same build (:3101) at the same hour; first sighting: one re-run (the next head's run). |
 | `grok53/goals/fifth-pass:146` DV-029d (desktop; local integration of the CI 1632 fix, then CI 1633 shard 2) | The average goal's card height compared with its row failed under load, twice. | Second sighting, investigated: the row was read once, before the average card (its own chunk) had drawn. Fixed in the spec: the same two checks are polled until the row settles (8/8 at 2 workers). |
 | `journeys/j04-offline.spec.ts:23` (desktop, CI 1633 shard 3, the shard's 47.8-min run) | "@journey 4 offline: install, every pillar offline, back online, the update waits for Reload" failed once. | 6/6 on the same app build (:3101); first sighting: one re-run. |
+| WebKit shard 1/3 (CI 1634, attempt 1) | Class B: `ThreadedCompositor` segfault in libWPEWebKit-2.0 (dmesg), the shard's tests did not fail on their own. | Recorded, not chased (owner rule 7); its one re-run (attempt 2) passed. |
 
 ## Fix 1 — `scripts/ci/install-chrome.test.mjs:100` (3 attempts counted instead of 2)
 **Cause.** `FAST` sets `ZIGOALS_CHROME_ATTEMPT_SECONDS: '5'`, but the fake's `orphan:<s>` action waits **up to 10 s**

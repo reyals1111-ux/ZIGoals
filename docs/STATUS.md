@@ -86,7 +86,8 @@ Every changed assertion carries a `Session AL (<id>, deliberate)` comment with a
 4. The Dependabot alerts (docs/dependencies/AL_REVIEW.md) wait on you.
 
 ## CI on the final head
-"Milestone quality" runs on this commit (the PR's checks); its result is reported in [PR #100](https://github.com/reyals1111-ux/ZIGoals/pull/100)'s description. A red job after this commit is fixed in a follow-up commit that also updates this line.
+**Green:** "Milestone quality" [run 1634](https://github.com/reyals1111-ux/ZIGoals/actions/runs/42635525980) on `01d06a7b`, the last code head (all 22 jobs; attempt 2 re-ran WebKit shard 1/3 after a class-B libWPEWebKit engine segfault, recorded in CI_INTERMITTENTS.md). This entry's own commit changes only docs.
+The runs before it (1611, 1627–1633) found the scripts/ journeys and older specs that still encoded this session's deliberate changes, two app regressions (Journey's width, Today's meals line), the phone notice's T-069 wrap (reverted, carried), Wrapped on Today closing itself (fixed), the Tasks page 0.2 kB over its budget (fixed without raising it), and spec races at fixed hours (the time of day is a test condition); each is in a commit after 2b57cb8e.
 
 # Session AK — "NUMBER ONE" (ADR-036) (2026-10-31/11-03, `feature/session-ak-number-one`, [PR #99](https://github.com/reyals1111-ux/ZIGoals/pull/99); complete, not merged, not deployed)
 **Base:** `main` `7000807` (Merge #98, Session AJ; live as Alpha #52). **Rules (owner):** the brief (Parts 0–16, D1–D12, MUSIC, RAMP/BANXA), the approved plan, the owner amendments A1–A22, owner follow-ups 1–5, owner decisions 6 and 7 and "Part 13 restored" (all verbatim in ADR-036). One plan, one approval; no owner step during the session.
