@@ -149,11 +149,11 @@ test.describe('Fresh profile', () => {
     await page.evaluate(() => localStorage.setItem('zigoals:average-goals:v1', JSON.stringify({version: 1, goals: [{id: 'sleep-1', name: 'Sleep', metric: 'sleep-hours', unit: 'h a night', target: 7, direction: 'at-least', windowDays: 7, createdAt: '2026-11-04T09:00:00.000Z', status: 'active', entries: []}]})));
     await open(page, '/app/goals');
     const heights = async () => page.locator('.goal-grid > *').evaluateAll(els => els.map(e => { const b = e.getBoundingClientRect(); return {top: Math.round(b.top), h: Math.round(b.height)}; }));
-    const rows = new Map<number, number[]>();
-    for (const c of await heights()) rows.set(c.top, [...rows.get(c.top) ?? [], c.h]);
-    const first = [...rows.values()][0]!;
-    expect(first.length).toBe(3);
-    expect(Math.max(...first) - Math.min(...first)).toBeLessThanOrEqual(2);
+    // Session AL (CI 1633, second sighting; deliberate): the row is read once it has settled — the average card is its own
+    // chunk and, under load, was measured before it had drawn. The same two checks hold on the settled row.
+    const firstRow = async () => { const rows = new Map<number, number[]>(); for (const c of await heights()) rows.set(c.top, [...rows.get(c.top) ?? [], c.h]); const first = [...rows.values()][0] ?? []; return {cards: first.length, spread: first.length ? Math.max(...first) - Math.min(...first) : Infinity}; };
+    await expect.poll(firstRow, {timeout: 10_000}).toEqual(expect.objectContaining({cards: 3}));
+    await expect.poll(async () => (await firstRow()).spread, {timeout: 10_000}).toBeLessThanOrEqual(2);
   });
 
   test('G-014: a 93 % average says it is close, on its card', async ({page}) => {
