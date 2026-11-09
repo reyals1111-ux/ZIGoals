@@ -22,7 +22,7 @@ async function timeline(page,kind){
  const panel=page.getByRole('region',{name:'Goal timeline',exact:true});await panel.getByLabel('Event type',{exact:true}).selectOption(kind);
  await panel.getByRole('status').filter({hasText:'retained events'}).waitFor();
  for(const details of await panel.locator('li details').all())if(await details.getAttribute('open')===null)await details.locator('summary').click();
- return panel.locator('li').evaluateAll(rows=>rows.map(row=>({id:row.id,label:row.querySelector('strong')?.textContent,detail:[...row.querySelectorAll('dd')].map(value=>value.textContent)})));
+ return panel.locator('li').evaluateAll(rows=>rows.map(row=>({id:row.id,label:row.querySelector('strong')?.textContent,detail:[...row.querySelectorAll('dd')].map(value=>value.textContent),/* Session AL (L4 fifth pass removed the raw Record ID row): fields read by their label, not their position */fields:Object.fromEntries([...row.querySelectorAll('dt')].map(term=>[term.textContent,term.nextElementSibling?.textContent]))})));
 }
 async function openGoal(page,name,path){await navigate(page,'Goals');await page.getByRole('button',{name:'Active',exact:true}).click();const card=page.locator('.goal-card').filter({has:page.getByRole('heading',{name,exact:true})});const link=card.getByRole('link',{name,exact:true});expect(await link.getAttribute('href')).toBe(path);await link.click();await page.getByTestId('tracked-progress').waitFor();}
 async function pinGoalAndHabit(page,name,path,habit){
@@ -63,7 +63,7 @@ async function fund(page,goal){
  const overview=await page.getByTestId('tracked-progress').textContent();const allocationText=await allocation.locator('.platform-position-row').first().textContent();
  await page.getByRole('button',{name:'Reverse history entry',exact:true}).click();const correction=page.getByRole('dialog',{name:'Review history correction',exact:true});await correction.getByRole('button',{name:'Cancel history correction',exact:true}).click();expect(await timeline(page,'contribution')).toEqual(original);
  await page.getByRole('button',{name:'Reverse history entry',exact:true}).click();await correction.getByRole('button',{name:'Confirm history reversal',exact:true}).click();await correction.waitFor({state:'hidden'});
- const reversed=await timeline(page,'reversal');expect(reversed).toHaveLength(1);/* Session AL (DV-038b, deliberate): the reversal names the record it corrects in words, by that contribution's time ("Recorded at" without its seconds), not by its id */expect(reversed[0].detail.at(-1)).toBe(`The contribution of ${original[0].detail[1].replace(/(\d{1,2}:\d{2}):\d{2}/,'$1')}`);expect(reversed[0].detail).toContain(goal.type==='Value'?'200 USD':'2 BTC');
+ const reversed=await timeline(page,'reversal');expect(reversed).toHaveLength(1);/* Session AL (DV-038b, deliberate): the reversal names the record it corrects in words, by that contribution's time ("Recorded at" without its seconds), not by its id */expect(reversed[0].detail.at(-1)).toBe(`The contribution of ${original[0].fields['Recorded at'].replace(/(\d{1,2}:\d{2}):\d{2}/,'$1')}`);expect(reversed[0].detail).toContain(goal.type==='Value'?'200 USD':'2 BTC');
  expect(await timeline(page,'contribution')).toEqual(original);expect(await page.getByTestId('tracked-progress').textContent()).toBe(overview);expect(await allocation.locator('.platform-position-row').first().textContent()).toBe(allocationText);
  return {original,reversed,allocationText};
 }
