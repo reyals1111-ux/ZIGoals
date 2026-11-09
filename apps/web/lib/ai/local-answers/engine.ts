@@ -1,5 +1,4 @@
 import Decimal from 'decimal.js';
-import {formatGoalAmount} from '../../goals/goal-amount-text';
 import {latestHabitRule, measurementUnit, type Habit} from '../../habits';
 import {exerciseData} from '../../health-counters';
 import {summaries} from '../tools/goals';
@@ -10,7 +9,7 @@ import {findRanges, previousRange, type DayRange} from '../tools/range';
 import {runTool} from '../tools/registry';
 import {normalise, stem, tokens} from '../tools/subjects';
 import type {ToolOk, ToolResult} from '../tools/types';
-import {amount, dayText, groupUnits, grouped, instantText, n, plural, span} from './words';
+import {amount, dayText, goalMoney, groupUnits, grouped, instantText, n, plural, span} from './words';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {normalizeSpoken} from '../spoken/normalize';
 import {afLocalAnswer} from './af';
@@ -27,6 +26,7 @@ import {safetyFirst} from '../safety-guard';
 import {unitFor} from '../../plural';
 import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
+import {healthGoalAsk} from './al-final';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -194,6 +194,8 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
   // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.
   if (safetyFirst(question)) return NONE;
+  // Session AL final pass (Z-025): a Health goal named in a goal question, with the habit of that name beside it (al-final.ts).
+  if (!subject) { const healthGoal = healthGoalAsk(question, env); if (healthGoal) return healthGoal; }
   // Session AL fifth pass (L7-5b; Lisbon #216, LA-028, LZ-019): a phrase typed again and again is asked once; a message of
   // several lines is answered line by line when every line has its own answer here (one line without one: the no-model
   // path or the person's AI takes the whole message, so no line is dropped).
@@ -438,7 +440,10 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   if (WEALTH_TOTAL.test(q) && !/\b(?:chang\w*|moved?|crypto\w*|share|percent\w*|export\w*|download|backup)\b|%/.test(q)) return wealthTotal(env);
   if (PORTFOLIO_WORTH.test(q) && env.portfolio) return portfolioAnswer(env);
   // Session AL fourth pass (Tokyo TK #7, TK:Z3): "how much ZIG have I staked?" asks about staking, never the holding.
-  if (asset && HOLD.test(q) && !CONTRIBUTION.test(q) && !/\bstak(?:e|ed|ing)\b|\brewards?\b/.test(q)) return holding(env, asset);
+  // Session AL final pass (NB:P6, BUG-056, NB-107): a coin the person tracks nothing of is answered too ("You have no ETH
+  // recorded in Wealth", with where to add it), never the examples list and never 0 as if it were a holding.
+  const held = asset ?? (HOLD.test(q) && !mentionedGoals(env, q).length ? untrackedCoin(q) : null);
+  if (held && HOLD.test(q) && !CONTRIBUTION.test(q) && !/\bstak(?:e|ed|ing)\b|\brewards?\b/.test(q)) return holding(env, held, q);
   // Session W Part 21: accounts and debts, chess, My links, challenges and milestones (each behind its own area's switch),
   // and mindful minutes (Health). A habit the question names keeps its answer: "how often did I play chess" with a habit
   // called Chess, and "meditation" with a habit called Meditate, stay habit answers.
@@ -543,7 +548,10 @@ function habitAnswer(env: ToolEnv, habit: Habit, q: string, found: DayRange[]): 
     // Session AL Part 14 (G15): "my Read streak broke" gets the kind words (p14b.ts), from the same figures.
     if (isStreakBreak(q)) return {kind: 'answer', text: streakBreakWords(title, st), calls: [s.record]};
     const head = W.streakBest.test(q) ? `Your longest ${title} streak is ${plural(st.best, st.unit.replace(/s$/, ''))}; the current one is ${plural(st.current, st.unit.replace(/s$/, ''))}.` : `Your current ${title} streak is ${plural(st.current, st.unit.replace(/s$/, ''))} (longest: ${plural(st.best, st.unit.replace(/s$/, ''))}).`;
-    return {kind: 'answer', text: head, calls: [s.record]};
+    // Session AL final pass (Z-021): why a streak can be longer than a month's check-ins beside it ("26 days" next to "3
+    // check-ins over 4 days"): it runs across months, and a skipped day keeps it going.
+    const since = typeof dataOf(s.result).streak?.since === 'string' ? dataOf(s.result).streak.since as string : null, long = Math.max(st.best, st.current) > 1 && /^days?$/.test(st.unit);
+    return {kind: 'answer', text: long ? lines(head, [`${since && st.current > 1 ? `The current one runs since ${dayText(since, env.habitDay.slice(0, 4))}: a` : 'A'} streak counts scheduled days in a row across months, and a skipped day keeps it going (skipped days never count against you), so it can be longer than one month’s check-ins`]) : head, calls: [s.record]};
   }
   if (W.last.test(q)) {
     const range = {from: habit.startDate < env.habitDay ? habit.startDate : env.habitDay, to: env.habitDay, label: 'since it began'};
@@ -741,7 +749,7 @@ function goalProgress(env: ToolEnv, key: string, q: string): LocalReply {
   if (goal.progressBound === 'unavailable') return {kind: 'answer', text: lines(`${name}: its value is unknown, so progress can't be worked out.`, [d.valuation, d.now && `Held now: ${d.now}`]), calls: [r.record]};
   // Session AL (Z-003 / N-004, ADR-037 Q14): USD and EUR goal amounts read as the goals list writes them ("$0 of $500",
   // formatGoalAmount, ".00" dropped as NOVA's list does); a count goal's own word keeps words.ts amount ("20 books").
-  const money = (s: string) => s.replace(/^(-?\d+(?:\.\d+)?) ([A-Za-z]+)$/, (_m, v: string, c: string) => c === 'USD' || c === 'EUR' ? formatGoalAmount(v, c).replace(/\.00(?!\d)/, '') : amount(v, c));
+  const money = (s: string) => /^-?\d+(?:\.\d+)? [A-Za-z]+$/.test(s) ? goalMoney(s) : s; // words.ts goalMoney (final pass: one format)
   const remaining = /\b(left|remaining|to go|how much more|still need)\b/.test(q);
   const head = remaining ? `${name}: ${money(d.remaining)} to go (${d.progress} of the target reached).` : `${name}: ${d.progress} of the target — ${money(d.now)} of ${money(d.target)}.`;
   const plan = typeof d.plan === 'object' ? d.plan as {contributedNet: string; plannedThroughToday: string; nextDate: string} : null;
@@ -761,10 +769,16 @@ function mentionedAsset(env: ToolEnv, q: string): string | null {
   for (const [name, symbol] of Object.entries(ASSET_NAMES)) if (new RegExp(`\\b${name}\\b`).test(q) && symbols.includes(symbol)) return symbol;
   return symbols.find(s => s.length >= 2 && new RegExp(`\\b${s.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(q)) ?? null;
 }
-function holding(env: ToolEnv, asset: string): LocalReply {
+/** A coin or metal named in a holding question, held or not ("how much eth do i have" with nothing in Wealth). */
+const COIN_WORD = /\b(btc|eth|sol|zig|usdc|usdt|atom|osmo|dot|ada|xrp|bnb|doge|avax|link|tia|inj)\b/;
+function untrackedCoin(q: string): string | null {
+  for (const [name, symbol] of Object.entries(ASSET_NAMES)) if (new RegExp(`\\b${name}\\b`).test(q)) return symbol;
+  return COIN_WORD.exec(q)?.[1]?.toUpperCase() ?? null;
+}
+function holding(env: ToolEnv, asset: string, q = ''): LocalReply {
   const r = call(env, 'holdings', {asset}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), rows = d.holdings as {quantity: string; value: string; priceSource: string; valuedAt: string}[];
-  if (!rows.length) return {kind: 'answer', text: `You don't track any ${asset} in Wealth.`, calls: [r.record]};
+  if (!rows.length) return {kind: 'answer', text: lines(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, [`To track it: Wealth → + Add asset → ${/^(?:GOLD|SILVER)$/.test(asset) ? 'Precious metals' : 'Crypto'}, then ${asset} and the amount you hold`]), calls: [r.record]};
   const quantity = rows.reduce((s, row) => s.plus(/^\d+(\.\d+)?$/.test(row.quantity) ? row.quantity : 0), new Decimal(0)).toFixed();
   const values = new Map<string, Decimal>();
   for (const row of rows) { const m = /^(-?\d+\.\d{2}) ([A-Z]{3,10})$/.exec(row.value); if (m) values.set(m[2]!, (values.get(m[2]!) ?? new Decimal(0)).plus(m[1]!)); }
@@ -777,7 +791,9 @@ function holding(env: ToolEnv, asset: string): LocalReply {
     // Portfolio is named apart from Wealth; a hypothetical portfolio holds nothing, so it is never counted as holding.
     if (p.result.ok) for (const pf of dataOf(p.result).portfolios as {portfolio: string; kind: string; coins?: {coin: string; quantity: string}[]}[]) { const coin = pf.coins?.find(c => c.coin.toUpperCase() === asset); if (coin && pf.kind === 'Real') extra.push(`Portfolio (separate from Wealth): ${grouped(coin.quantity)} ${asset} in your Real portfolio ${pf.portfolio}`); }
   }
-  return {kind: 'answer', text: lines(`You hold ${grouped(quantity)} ${asset} in Wealth (${plural(rows.length, 'holding')}), ${worth}.`, [sources.length > 0 && `Prices: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && `${plural(unpriced, 'holding')} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, values.size > 1 && 'One total per currency, never converted', ...extra]), calls};
+  // Session AL final pass (TK:14, C-TK-35): "… in EUR?" says when no value is in that currency (values are never converted).
+  const wanted = /\bin (usd|eur)\b/i.exec(q)?.[1]?.toUpperCase(), noneIn = wanted && !values.has(wanted) ? `No value in ${wanted}: each value stays in its price's own currency and is never converted` : null;
+  return {kind: 'answer', text: lines(`You hold ${grouped(quantity)} ${asset} in Wealth (${plural(rows.length, 'holding')}), ${worth}.`, [noneIn, sources.length > 0 && `Prices: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && `${plural(unpriced, 'holding')} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, values.size > 1 && 'One total per currency, never converted', ...extra]), calls};
 }
 /** "2430.00 USD" as a local answer writes money: "2,430.00 USD". */
 const money = (text: string) => { const i = text.lastIndexOf(' '); return i > 0 ? amount(text.slice(0, i), text.slice(i + 1)) : text; };

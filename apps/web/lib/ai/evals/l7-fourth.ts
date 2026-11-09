@@ -37,7 +37,9 @@ export const L7_FOURTH: FourthCase[] = [
   c('ck-howlong', 'checklist', '375-run e', 'L2', 'How long have I been using the checklist?', {mustContain: ['Your path began on 2026-10-20']}),
   c('ck-hide', 'checklist', '#335/336', 'L2', 'How do I hide the Checklist button?', {mustContain: ['Your pages & buttons'], mustNot: ['of 4 done'], card: 'open-page'}),
   c('ck-add-empty', 'checklist', '#337/338', 'L2', 'add to my checklist', {mustContain: ['What should go on your Checklist?'], noCard: true}),
-  c('ck-add-orbit', 'checklist', '#382m LA-047', 'L2', 'add stretch to my evening checklist', {card: 'checklist-add-favourite', fields: {item: 'Stretch 5 min'}, mustContain: ['Evening orbit']}),
+  // Session AL (LS:#382m, deliberate): Stretch 5 min is already on Lisbon's path (Afternoon), so no favourite card is offered
+  // (its planner refuses it: the header offered what the card said no to); the orbit it is in and how to move it are said.
+  c('ck-add-orbit', 'checklist', '#382m LA-047', 'L2', 'add stretch to my evening checklist', {card: 'open-page', fields: {page: 'checklist'}, mustContain: ['Stretch 5 min is already on your Checklist, in the Afternoon orbit', 'To have it in the Evening orbit, drag it there on the Checklist'], mustNot: ['Star Stretch 5 min']}),
   c('ck-add-custom', 'checklist', '#317/318 C-LA-01', 'L2', 'Add Floss teeth to my morning orbit', {card: 'checklist-add-custom', fields: {text: 'Floss teeth'}}),
   nl('ck-nl', 'checklist', '#025 #187 #352/353', 'L2', 'Wat staat er nog op mijn checklist vandaag?', {mustContain: ['1 van 4'], mustNot: ['0 van 0']}),
   // ---- habits: the words of the question never name a habit ----
@@ -66,7 +68,8 @@ export const L7_FOURTH: FourthCase[] = [
   c('hb-create-minutes', 'habit-create', '#256a', 'L2', 'Add Meditate 10 minutes as a habit', {card: 'create-habit', fields: {title: 'Meditate', measurement: 'minutes', target: 10}, quickAdd: false}),
   c('hb-meditate', 'habits', '#314/315', 'L2', 'Start meditating', {mustContain: ['Health → Meditation'], quickAdd: false}),
   c('hb-snooze', 'habits', '375-run d LA-008', 'L2', 'Snooze Read 10 pages to 9pm', {card: 'create-reminder', fields: {habit: 'Read 10 pages', time: '21:00'}}),
-  c('hb-ordinal', 'habits', 'T3 H2 NB-119', 'L2', 'tick the first one', {mustContain: ['Which one?'], noCard: true}),
+  // Session AL (NB:T3, NB:H2, deliberate): "the first one" is the first of the list just shown (the path's open dots here), as its card.
+  c('hb-ordinal', 'habits', 'T3 H2 NB-119', 'L2', 'tick the first one', {card: 'checklist-tick', fields: {item: 'Stretch 5 min'}, mustContain: ['The first one on your path is Stretch 5 min'], mustNot: ['Which one?']}),
   c('hb-took', 'stray-write', '#280–289a', 'L2', 'Read 10 pages took 30 minutes', {card: 'checklist-tick', fields: {item: 'Read 10 pages'}, mustContain: ['not minutes'], quickAdd: false}),
   // ---- no stray write offer under text that is no log ----
   c('sw-plan-evening', 'stray-write', '#015 #301–309 LZ-009', 'L2', 'Plan my evening using my checklist', {noCard: true, mustContain: ['needs your own AI', 'Stretch 5 min'], quickAdd: false}),

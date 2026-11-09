@@ -75,8 +75,12 @@ export function ollamaSteps(os: Os, origin: string, model: string): GuideStep[] 
       : os === 'windows' ? {text: 'Install Ollama (or download OllamaSetup.exe from ollama.com/download). This command downloads Ollama’s own install script from ollama.com and runs it:', command: 'irm https://ollama.com/install.ps1 | iex', shell}
       : {text: 'Install Ollama. This downloads Ollama’s own install script from ollama.com and runs it; it asks for your password (sudo) and needs curl and zstd (on Debian or Ubuntu: sudo apt install curl zstd). To read the script first: curl -fsSL https://ollama.com/install.sh -o install.sh, open install.sh, then run sh install.sh.', command: 'curl -fsSL https://ollama.com/install.sh | sh', shell},
     {text: 'Download a model that fits your computer (see “Which model?” below):', command: `ollama pull ${model}`, shell},
+    // Session AL final pass (N-SL-04, BN-033): what to do when the download fails.
+    {text: `If the download fails: check there is free disk space (a model takes a few GB), then run the same command again (it picks up where it stopped). If it says it cannot connect, Ollama is not running: start it${os === 'linux' ? ' with ollama serve in another terminal' : ''}, then pull again. A network that blocks ollama.com stops the download; another network is the only way round that.`},
     ...allow,
     {text: 'Check that ZIGoals is allowed: an answer with “HTTP/1.1 200” and an Access-Control-Allow-Origin line means yes; “403” means the setting is not active yet.', command: `${os === 'windows' ? 'curl.exe' : 'curl'} -i -H "Origin: ${origin}" http://127.0.0.1:11434/api/version`, shell},
+    // Session AL final pass (N-SL-02, N-BN-15): another program can hold port 11434; ZIGoals checks it (verifyOllama), and says so.
+    {text: 'Check that port 11434 really is Ollama: the answer’s last line should read {"version":"…"} with Ollama’s version number. Anything else means another program holds the port; stop it, then start Ollama again. ZIGoals checks this as well: Find models and the connection test ask the port for Ollama’s version and model list, and say “not Ollama” when the answers don’t fit.'},
   ];
 }
 /**

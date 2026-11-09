@@ -29,7 +29,8 @@ const fail = (note: string): CheckResult => ({ok: false, note});
 export function checkMeet(values: readonly string[]): CheckResult {
   const leaks = values.filter(v => scrubSecrets(v) !== v).length;
   return leaks ? fail(`${leaks} stored value${leaks === 1 ? '' : 's'} in this browser look${leaks === 1 ? 's' : ''} like an API key in plain text. Keys belong in the sealed key store: disconnect and connect again in Settings.`)
-    : pass('Checked on this device: no API key sits in readable storage. Keys are sealed in this browser’s own key store, never synced, never sent to ZIGoals.');
+    // Session AL final pass (N-BN-14): what was read, said as it is: it passed trivially when no key was stored at all.
+    : pass(`Checked on this device: the ${values.length} value${values.length === 1 ? '' : 's'} in this browser’s readable storage (local and session storage), and none looks like an API key in plain text. This check reads only that storage; a key you add is sealed in this browser’s own key store, never synced, never sent to ZIGoals.`);
 }
 
 const PROBE_TEXT = 'Lunch with my sister Anna at 12 Abbey Road; I owe her €1,234.56.';

@@ -7,6 +7,7 @@
 const TIME = String.raw`(?:the day before(?: yesterday)?|yesterday|today|this morning|tonight|last night|last week|this week|last month|this month|last year|this year|eergisteren|gisteren|vandaag|vanochtend|vanavond|vannacht|vorige week|deze week|vorige maand|deze maand|vorig jaar|dit jaar)`;
 const FOLLOW = new RegExp(String.raw`^(?:and|what about|how about|and what about|en|en wat (?:met|van)|hoe zit het met|wat met)?\s*(?:for\s+|voor\s+)?(${TIME})\s*[?.!]*$`, 'i');
 const TIME_IN = new RegExp(String.raw`\b${TIME}\b`, 'i');
+import {fixTypos} from './al-more';
 const SAME: Record<string, string> = {'the day before': 'the day before yesterday'};
 /**
  * Session AL second pass (TK-078, P-TK-33, P-LA-18): "and in USD?", "and BTC?", "what about ETH?" after a question about a
@@ -22,8 +23,13 @@ function assetFollowUp(question: string, prev: string): string | null {
   if (money) return MONEY_IN.test(prev) ? prev.replace(MONEY_IN, code) : COIN_IN.test(prev) ? `${prev.replace(/[?.!]+$/, '')} in ${code}?` : null;
   return COIN_IN.test(prev) ? prev.replace(COIN_IN, code) : null;
 }
+/**
+ * Session AL final pass (TK:14–16, Z12, C-TK-35, BUG-055, TK-051): the money question a follow-up refers to is read with its
+ * typos fixed first, as the device read it ("how mch eth do i hav", then "and in EUR?", was "how mch eth do i hav in EUR?",
+ * which no lookup reads; now "how much eth do i have in EUR?"), so money follow-ups keep their question as goal ones do.
+ */
 export function followUpQuestion(question: string, previous: string | null): string | null {
-  if (previous && !FOLLOW_ASSET.test(previous.trim())) { const asset = assetFollowUp(question, previous.trim()); if (asset) return asset; }
+  if (previous && !FOLLOW_ASSET.test(previous.trim())) { const asset = assetFollowUp(question, fixTypos(previous.trim())); if (asset) return asset; }
   const m = FOLLOW.exec(question.trim());
   if (!m || !previous) return null;
   const when = SAME[m[1]!.toLowerCase()] ?? m[1]!;

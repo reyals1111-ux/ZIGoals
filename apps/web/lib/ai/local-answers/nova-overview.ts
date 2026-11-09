@@ -1,6 +1,5 @@
 import {healthGoalLine, healthGoalProgress} from '../../health-goals/progress';
 import type {HealthGoal} from '../../health-goals/schema';
-import {formatGoalAmount} from '../../goal-summary';
 import {dailyData} from '../../health-daily';
 import {formatClock} from '../../visual-format';
 import {NO_WATER_TODAY, waterText} from '../../health-units';
@@ -15,7 +14,7 @@ import type {LocalReply, ToolCallRecord} from './engine';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
 import {novaAreaClosed, novaHealthClosed, type NovaEnvInfo} from './nova-env';
-import {amount, dayText, nlUnits, plural} from './words';
+import {dayText, goalMoney, nlUnits, plural} from './words';
 
 /**
  * Release review 2 (R2-2): the natural questions people ask NOVA first, answered on this device from the person's own
@@ -58,7 +57,7 @@ const run = (tool: string, args: Record<string, unknown>, env: ToolEnv): {result
 const dataOf = (r: ToolResult): Data => (r as ToolOk).data as Data;
 /** "9000 USD" → "9,000.00 USD"; anything else as it is. */
 // Session AL (DV-078, P-DV-95): money with the app's formatter ("$0 of $500"), a count goal's word as typed ("20 books").
-const money = (value: unknown) => { const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(String(value ?? '')); return !m ? String(value ?? '') : m[2] === 'USD' || m[2] === 'EUR' ? formatGoalAmount(m[1]!, m[2]).replace(/\.00(?!\d)/, '') : amount(m[1]!, m[2]!); };
+const money = goalMoney; // words.ts: one goal money format for ZIGi and NOVA (Session AL final pass, DV:Z-003)
 
 export function novaOverviewAnswer(question: string, env: ToolEnv, info: NovaEnvInfo): LocalReply | null {
   const q = question.trim().replace(/[’`]/g, '\'').replace(/\s+/g, ' ');

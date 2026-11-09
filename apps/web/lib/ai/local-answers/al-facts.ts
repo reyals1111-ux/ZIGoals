@@ -3,7 +3,7 @@ import {text as clean} from '../tools/format';
 import {runTool} from '../tools/registry';
 import type {ToolOk} from '../tools/types';
 import type {LocalReply} from './engine';
-import {amount} from './words';
+import {amount, goalMoney} from './words';
 import type {OPEN_PAGES, PAGE_VIEWS} from '../actions/schema';
 
 /**
@@ -52,7 +52,8 @@ export function alFactsAnswer(question: string, env: ToolEnv | null, lang: Lang)
     const goals = ((dataOf(r.result).goals ?? []) as Data[]).filter(g => g.status !== 'closed');
     if (!goals.length) return {kind: 'answer', text: say(lang, 'You have no goals yet. Open Goals to create one.', 'Je hebt nog geen doelen. Open Goals om er een te maken.') + open('goals'), calls: [r.record]};
     const behind = GOALS_BEHIND.test(q), rows = behind ? goals.filter(g => /behind|off track|late/i.test(String(g.funding ?? ''))) : goals;
-    const line = (g: Data) => `• ${clean(String(g.name), 60)}: ${g.progress && g.progress !== 'unknown' ? g.progress : say(lang, 'progress unknown', 'voortgang onbekend')}${g.now && g.target && g.now !== 'unknown' ? ` (${money(g.now)} ${say(lang, 'of', 'van')} ${money(g.target)})` : ''}${g.funding ? ` · ${g.funding}` : ''}`;
+    // Session AL final pass (DV:Z-003, DV:N-004): the goals list writes money as the one-goal answer does (words.ts goalMoney).
+    const line = (g: Data) => `• ${clean(String(g.name), 60)}: ${g.progress && g.progress !== 'unknown' ? g.progress : say(lang, 'progress unknown', 'voortgang onbekend')}${g.now && g.target && g.now !== 'unknown' ? ` (${goalMoney(g.now)} ${say(lang, 'of', 'van')} ${goalMoney(g.target)})` : ''}${g.funding ? ` · ${g.funding}` : ''}`;
     if (behind && !rows.length) return {kind: 'answer', text: say(lang, `None of your ${goals.length} goals is marked behind on its plan right now.`, `Geen van je ${goals.length} doelen loopt nu achter op het plan.`), calls: [r.record]};
     const head = behind ? say(lang, `${rows.length} of your ${goals.length} goals ${rows.length === 1 ? 'is' : 'are'} behind on its plan:`, `${rows.length} van je ${goals.length} doelen ${rows.length === 1 ? 'loopt' : 'lopen'} achter op het plan:`) : say(lang, `You have ${goals.length} ${goals.length === 1 ? 'goal' : 'goals'}:`, `Je hebt ${goals.length} ${goals.length === 1 ? 'doel' : 'doelen'}:`);
     return {kind: 'answer', text: [head, ...rows.slice(0, 10).map(line), ...(rows.length > 10 ? [say(lang, `…and ${rows.length - 10} more on Goals.`, `…en nog ${rows.length - 10} op Goals.`)] : []), say(lang, 'Figures as the Goals page shows them; not financial advice.', 'Cijfers zoals de Goals-pagina ze toont; geen financieel advies.')].join('\n'), calls: [r.record]};

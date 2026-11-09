@@ -105,6 +105,13 @@ export function checklistAnswer(question: string, env: ToolEnv, lang: Lang): Loc
     const what = (add[1] ?? '').replace(/^["“']|["”']$/g, '').trim(), orbit = (add[2] ?? /\b(morning|afternoon|evening)\b/i.exec(q)?.[1] ?? '').toLowerCase();
     if (!what) return {kind: 'answer', text: say(lang, 'What should go on your Checklist? Name it, for example “add Read 10 pages to my checklist” or “add Floss teeth to my morning orbit”.', 'Wat moet er op je Checklist? Noem het, bijvoorbeeld “zet 10 bladzijden lezen op mijn lijst”.'), calls: []};
     const habit = habitNamed(env, what), where = orbit ? say(lang, ` It lands in Anytime; drag it into the ${orbit[0]!.toUpperCase()}${orbit.slice(1)} orbit on the Checklist (the card holds no orbit).`, ` Hij komt in Anytime; sleep hem op de Checklist naar de ${orbit}-baan (de kaart kent geen baan).`) : '';
+    // Session AL final pass (LS:#382m): an item already on the path is said so, with the orbit it is in, and no card (the
+    // card's planner refuses it, so the line above it offered what the card then said no to).
+    const onPath = (env.checklist && !env.checklist.unreadable ? env.checklist.record.items : []).find(i => habit ? i.kind === 'habit' && i.ref?.habitId === habit.id : i.kind === 'custom' && (i.label ?? '').trim().toLowerCase() === what.toLowerCase());
+    if (onPath) {
+      const name = habit ? shortName(habit.title) : `“${what}”`, now = String(onPath.section ?? 'anytime'), nowName = `${now[0]!.toUpperCase()}${now.slice(1)}`, want = orbit && orbit !== now ? `${orbit[0]!.toUpperCase()}${orbit.slice(1)}` : '';
+      return {kind: 'answer', text: say(lang, `${name} is already on your Checklist, in the ${nowName} orbit, so there is nothing to add.${want ? ` To have it in the ${want} orbit, drag it there on the Checklist (Edit path); a card can’t move it.` : ''}`, `${name} staat al op je Checklist, in de ${now}-baan, dus er is niets toe te voegen.${want ? ` Sleep hem op de Checklist (Edit path) naar de ${orbit}-baan; een kaart kan hem niet verplaatsen.` : ''}`) + fence({kind: 'open-page', page: 'checklist'}), calls: []};
+    }
     if (habit) return {kind: 'answer', text: say(lang, `Star ${shortName(habit.title)} on your Checklist, added only when you add it.${where}`, `${shortName(habit.title)} met een ster op je Checklist, pas toegevoegd als je hem toevoegt.${where}`) + fence({kind: 'checklist-add-favourite', item: habit.title}), calls: []};
     if (what.length > 60) return {kind: 'answer', text: say(lang, 'That is too long for one item on the path: 60 characters at most. Say it shorter.', 'Dat is te lang voor één stip: hoogstens 60 tekens. Zeg het korter.'), calls: []};
     return {kind: 'answer', text: say(lang, `Your own item on the Checklist, “${what}”, added only when you add it.${where}`, `Je eigen stip op de Checklist, “${what}”, pas toegevoegd als je hem toevoegt.${where}`) + fence({kind: 'checklist-add-custom', text: what[0]!.toUpperCase() + what.slice(1)}), calls: []};
@@ -164,7 +171,7 @@ const FOREIGN_TICK: readonly {lang: 'fr' | 'de' | 'es'; re: RegExp; note: string
 ];
 const NUMBER_WORDS: Record<string, number> = {one: 1, once: 1, two: 2, twice: 2, three: 3, four: 4, five: 5, six: 6, seven: 7};
 
-export function fourthFirst(question: string, env: ToolEnv | null, lang: Lang): LocalReply | null {
+export function fourthFirst(question: string, env: ToolEnv | null, lang: Lang, previous: string | null = null): LocalReply | null {
   const q = norm(question);
   if (!q || q.length > 300 || !env) return null;
   // "What do you know about me?" is the notes kept, not the capability blurb (Denver DVR:Z-069, Z-020; Moscow ZP-39, NP-31).
@@ -212,6 +219,17 @@ export function fourthFirst(question: string, env: ToolEnv | null, lang: Lang): 
   // "tick the first one" names nothing: ask which, with the open dots (Nairobi T3, H2, NB-119).
   if (ORDINAL.test(q)) {
     const list = checklistToday(env), openNames = list?.open ?? [];
+    // Session AL final pass (NB:T3, NB:H2): "the first one" is the first of the list just shown: today's open habits after a
+    // question about habits (or with no path on this device), else the path's open dots. Its own card; ask only when unclear.
+    const which = ORDINAL.exec(q)![1]!.toLowerCase(), due = run('habits_due', {}, env);
+    const habitsOpen = due.result.ok ? ((dataOf(due.result).open ?? []) as Data[]).map(r => String(r.title)) : [];
+    const habitsFirst = !openNames.length || (!!previous && /\bhabits?\b/i.test(previous) && !/\b(?:checklist|path|orbits?|dots?)\b/i.test(previous));
+    const names = habitsFirst ? habitsOpen : openNames, at = ({first: 0, next: 0, second: 1, third: 2, last: names.length - 1} as Record<string, number>)[which] ?? -1, name = names[at];
+    const card = name && !/…$/.test(name) ? quickCommand(`mark ${name} done`, env) : null;
+    if (name && card && card.kind === 'answer' && card.text.includes('```zigoals-action')) {
+      const where = habitsFirst ? say(lang, 'among today’s open habits', 'van de open gewoontes van vandaag') : say(lang, 'on your path', 'op je pad');
+      return {kind: 'answer', text: say(lang, `The ${which} one ${where} is ${name}; the card below checks it off, only when you add it.`, `De ${({first: 'eerste', next: 'volgende', second: 'tweede', third: 'derde', last: 'laatste'} as Record<string, string>)[which]} ${where} is ${name}; de kaart hieronder vinkt hem af, pas als je hem toevoegt.`) + card.text.slice(card.text.indexOf('\n\n')), calls: due.result.ok ? [due.record] : []};
+    }
     return {kind: 'answer', text: openNames.length ? say(lang, `Which one? Name it, for example “mark ${openNames[0]} done”. Still open on your path: ${listNames(openNames, 6)}.`, `Welke? Noem hem, bijvoorbeeld “vink ${openNames[0]} af”. Nog open op je pad: ${listNames(openNames, 6)}.`) : say(lang, 'Which one? Name the habit or item, for example “mark Read done”.', 'Welke? Noem de gewoonte of stip, bijvoorbeeld “vink Lezen af”.'), calls: []};
   }
   // Another language's check-off: the card for the habit it names, with a note in that language (Lisbon #330–333).
@@ -405,7 +423,7 @@ const GOAL_DATE = /\bwhat(?:'s| is) (?:my |the )?(.{2,60}?)(?:\s+goal)?(?:'s)? (
 const GOAL_NEED = /\bhow much (?:do i )?(?:still )?need (?:for|to reach) (?:my |the )?(.{2,60}?)(?:\s+goal)?(?:\s+and when)?\s*[?.!]*$/i;
 const GOAL_PROGRESS_LOOSE = /^(?:what(?:'s| is)\s+)?(?:my\s+|the\s+)?(.{2,60}?)(?:\s+goal)?\s+(?:progress|status)\s*[?.!]*$|^(?:how far am i on|how is)\s+(?:my\s+|the\s+)?(.{2,60}?)(?:\s+goal)?(?:\s+doing|\s+going)?\s*[?.!]*$/i;
 const DID_HABIT = /^(?:did|have)\s+i\s+(?:do\s+(?:my\s+)?|done\s+(?:my\s+)?)?([a-z][a-z ]{1,40}?)(?:\s+(today|yet))?\s*\??$/i;
-const DONE_FOR_TODAY = /\bam i done (?:for|with) today\b|\bwhat should i do next\b|\bwhat(?:'s| is) next\b|\bam i on track today\b|\bwhich (?:of (?:these|my) )?habits am i behind on\b|\bwhat(?:'s| is) left (?:today|for today)\b/i;
+const DONE_FOR_TODAY = /\bam i done (?:for|with) today\b|\bwhat should i do next\b|\bwhat(?:'s| is) next\b|\bam i on track today\b|\bwhat(?:'s| is) left (?:today|for today)\b/i;
 const WHICH_DONE = /^(?:and\s+)?(?:which|what)\s+(?:ones?\s+)?(?:is|are|were)\s+(?:done|finished|complete)(?:\s+today)?\s*\??$|^(?:and\s+)?(?:which|what) habits? (?:are|is|did i) (?:done|finish(?:ed)?|complete(?:d)?) today\b/i;
 const CONSISTENCY = /\b(\d{1,2})[- ]weeks?\b[^.?!]{0,10}\bconsisten\w*\b|\bconsisten\w*\b[^.?!]{0,20}\b(\d{1,2})[- ]weeks?\b/i;
 const WEEK_TRACK = /\bam i on track (?:this|for the) week\b|\bhow (?:am i|is my) (?:doing|going) this week\b/i;
@@ -455,6 +473,7 @@ export function fourthAnswer(question: string, env: ToolEnv | null, lang: Lang, 
   // tonight", "a routine for my mornings" are the same ask; Habits → Routines holds the person's own routines.
   if (/^(?:please\s+)?(?:suggest|recommend)\b|\bhabit stack\b|\b(?:build|make|design) (?:me )?a (?:morning|evening|night) routine\b|\bcoach me\b/i.test(q) || ROUTINE_ASK.test(q))
     return {kind: 'answer', text: say(lang, `Suggestions and routines written for you need your own AI (${brainPlace(env, lang)}). Without one: Habits → Routines strings your own habits into a routine, and a habit’s page sets “after another habit” to stack it.`, 'Suggesties en routines op maat vragen je eigen AI. Zonder AI: Habits → Routines zet je eigen gewoontes in een routine.') + open('habits', 'routines'), calls: []};
+  if (BEHIND.test(q)) return behindHabits(env, lang);
   if (DONE_FOR_TODAY.test(q)) {
     const base = deviceAnswer('What is due today?', env);
     if (base && 'text' in base) return {...base, text: `${/\bam i done\b/i.test(q) ? say(lang, 'Not everything yet. ', 'Nog niet alles. ') : ''}${base.text}`} as LocalReply;
@@ -534,6 +553,25 @@ function habitToday(env: ToolEnv, habit: Habit, lang: Lang): LocalReply {
   const text = state === 'complete' ? say(lang, `Yes: ${name} is done today.`, `Ja: ${name} is vandaag gedaan.`) : state === 'partial' ? say(lang, `Partly: ${name} has a check-in today, short of its target.`, `Deels: ${name} heeft vandaag een check-in, onder het doel.`)
     : state === 'not scheduled' || state === 'not due' ? say(lang, `${name} isn’t planned today.`, `${name} staat vandaag niet gepland.`) : state === 'skipped' ? say(lang, `${name} is skipped today.`, `${name} is vandaag overgeslagen.`) : say(lang, `Not yet: ${name} has no check-in today. Say “mark ${name} done” for the card.`, `Nog niet: ${name} heeft vandaag geen check-in.`);
   return {kind: 'answer', text, calls: [r.record]};
+}
+/**
+ * Session AL final pass (NB:H1): "which habits am I behind on" means behind on schedule, not open today: the scheduled days of
+ * the last 7 days (today not counted, it is still open) that have no check-in. A skipped day is part of a plan, never behind.
+ */
+const BEHIND = /\b(?:which|what|any)\b[^.?!]{0,30}\bhabits?\b[^.?!]{0,20}\b(?:am i|i am|i'm|are)\s+(?:falling\s+)?behind(?: on)?\b|\bhabits?\b[^.?!]{0,10}\b(?:i'm|i am)\s+behind\b|\bwelke gewoontes? loop ik achter\b/i;
+function behindHabits(env: ToolEnv, lang: Lang): LocalReply {
+  if (!env.areas.habits) { const r = run('list_habits', {}, env); return {kind: 'refusal', text: r.result.ok ? 'Habits isn’t shared here.' : r.result.refusal, calls: [r.record]}; }
+  const habits = activeHabits(env).slice(0, 12), from = addLocalDays(env.habitDay, -7), to = addLocalDays(env.habitDay, -1), calls: {tool: string; args: Record<string, unknown>; label: string}[] = [];
+  if (!habits.length) return {kind: 'answer', text: say(lang, 'No habit is kept yet, so none can be behind.', 'Er is nog geen gewoonte, dus er loopt er geen achter.'), calls: []};
+  const rows = habits.flatMap(h => {
+    const s = run('habit_stats', {habit: clean(h.title, 60), range: `${from}..${to}`, metric: 'rate'}, env); calls.push(s.record);
+    const d = s.result.ok ? dataOf(s.result) : null, missed = Number(d?.days?.withoutCheckIn ?? 0), planned = Number(d?.days?.scheduled ?? 0) - Number(d?.days?.skipped ?? 0);
+    return missed > 0 ? [{name: shortName(h.title), missed, planned}] : [];
+  }).sort((a, b) => b.missed - a.missed);
+  const span = say(lang, `the last 7 days (${from} to ${to}; today is still open, so it is not counted)`, `de laatste 7 dagen (${from} tot ${to}; vandaag loopt nog en telt niet mee)`);
+  if (!rows.length) return {kind: 'answer', text: say(lang, `None of your ${plural(habits.length, 'habit')} is behind: every scheduled day of ${span} has a check-in or a planned skip.`, `Geen van je ${habits.length} gewoontes loopt achter: elke geplande dag van ${span} heeft een check-in of een geplande overslag.`), calls};
+  return {kind: 'answer', text: [say(lang, `Behind on schedule over ${span}, from your Habits journal (a skipped day is part of a plan and never counts as behind):`, `Achter op schema over ${span}, uit je Habits-dagboek (een overgeslagen dag hoort bij het plan en telt nooit als achter):`),
+    ...rows.map(r => say(lang, `• ${r.name}: ${r.missed} of ${plural(r.planned, 'planned day')} without a check-in`, `• ${r.name}: ${r.missed} van ${r.planned} geplande dagen zonder check-in`))].join('\n'), calls};
 }
 function consistency(env: ToolEnv, weeks: number, lang: Lang): LocalReply {
   const span = Math.max(1, Math.min(52, weeks || 12)), from = addLocalDays(env.habitDay, -(span * 7 - 1)), habits = activeHabits(env).slice(0, 12), calls: {tool: string; args: Record<string, unknown>; label: string}[] = [];

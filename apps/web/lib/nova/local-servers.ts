@@ -79,10 +79,28 @@ export async function verifyOllama(baseUrl: string, {fetcher, signal}: {fetcher?
 }
 /** One server: its chat models through ZIGi's own listing, each marked cloud when Ollama runs it on ollama.com. */
 /** `verify` (Session AL, BN-035): the setup's scan checks that Ollama's port really runs Ollama before it is offered. */
-export async function probeServer(server: LocalServer, {fetcher, signal, ms = PROBE_MS, key = null, verify = false}: {fetcher?: typeof fetch; signal?: AbortSignal; ms?: number; key?: string | null; verify?: boolean} = {}): Promise<ScanResult> {
-  const t = timed(signal, ms);
+/**
+ * Session AL final pass (LA-012): one probe sends each request once. A plain GET asked again in the same probe (Ollama's
+ * /api/tags: the model list, the Ollama check and the cloud names) is answered from the first response, cloned.
+ */
+function onceEach(fetcher: typeof fetch | undefined): typeof fetch {
+  const base = fetcher ?? ((i: RequestInfo | URL, init?: RequestInit) => fetch(i, init)), seen = new Map<string, Promise<Response>>();
+  return ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, key = `${init?.mode ?? 'cors'} ${url}`;
+    if ((init?.method ?? 'GET').toUpperCase() !== 'GET' || init?.headers) return base(input, init);
+    const first = seen.get(key);
+    if (first) return first.then(r => typeof r.clone === 'function' ? r.clone() : base(input, init));
+    const made = base(input, init); seen.set(key, made); made.catch(() => seen.delete(key));
+    return made.then(r => typeof r.clone === 'function' ? r.clone() : r);
+  }) as typeof fetch;
+}
+export async function probeServer(server: LocalServer, {fetcher: given, signal, ms = PROBE_MS, key = null, verify = false}: {fetcher?: typeof fetch; signal?: AbortSignal; ms?: number; key?: string | null; verify?: boolean} = {}): Promise<ScanResult> {
+  const t = timed(signal, ms), fetcher = onceEach(given);
   try {
-    const list = await listModels({provider: 'local', baseUrl: server.baseUrl, localServer: server.wire, key, signal: t.signal, fetcher});
+    // Session AL final pass (LA-012): one opaque knock first (nothing is read from it). Nothing answering is said at once,
+    // so a scan with no server running sends one request per server (it sent two: the list, then this knock).
+    if (!(await answersOpaquely(server, fetcher, t.signal))) return {server, found: false, reason: 'unreachable', message: signal?.aborted ? 'Stopped.' : 'Nothing answered at that address.'};
+    const list = await listModels({provider: 'local', baseUrl: server.baseUrl, localServer: server.wire, key, signal: t.signal, fetcher: given}); // its own fetcher (models.ts keeps the cloud names only for the real one)
     let cloud = new Set<string>(), version: string | undefined;
     if (server.wire === 'ollama' && verify) {
       // Session AL (BN-035): only a server that answers like Ollama is offered as Ollama.
@@ -91,7 +109,7 @@ export async function probeServer(server: LocalServer, {fetcher, signal, ms = PR
       version = real.version;
     }
     if (server.wire === 'ollama') {
-      try { const f = fetcher ?? ((i: RequestInfo | URL, init?: RequestInit) => fetch(i, init)); const r = await f(`${server.baseUrl}/api/tags`, {signal: t.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}); if (r.ok) cloud = ollamaCloudNames(await r.json()); } catch { /* the names alone then */ }
+      try { const f = fetcher; const r = await f(`${server.baseUrl}/api/tags`, {signal: t.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}); if (r.ok) cloud = ollamaCloudNames(await r.json()); } catch { /* the names alone then */ }
     }
     return {server, found: true, ...(version ? {version} : {}), models: list.filter(m => m.kind === 'chat').map(m => ({id: m.id, cloud: m.cloud === true || cloud.has(m.id) || isOllamaCloudModel(m.id)}))};
   } catch (error) {
@@ -104,8 +122,8 @@ export async function probeServer(server: LocalServer, {fetcher, signal, ms = PR
     if (kind === 'aborted' && signal?.aborted) return {server, found: false, reason: 'unreachable', message: 'Stopped.'};
     // EX3-3: a server that refuses this site's origin and no server at all look the same to a normal request (the browser
     // hides the answer); one no-cors request (an opaque answer, nothing read from it) tells them apart, as the Hermes test does.
-    if (await answersOpaquely(server, fetcher, t.signal)) return {server, found: false, reason: 'origin', message: ORIGIN_FIX[server.id]};
-    return {server, found: false, reason: 'unreachable', message: 'Nothing answered at that address.'};
+    // LA-012: the opaque knock above already answered, so the server is there and refuses this site.
+    return {server, found: false, reason: 'origin', message: ORIGIN_FIX[server.id]};
   } finally { t.done(); }
 }
 /** What to change when a server is running but does not allow this site yet (each program's own setting). */

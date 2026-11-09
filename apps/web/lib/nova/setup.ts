@@ -124,7 +124,7 @@ export function readPrivacyMode(storage: Pick<Storage, 'getItem'>): PrivacyMode 
  */
 export function showcaseNovaSetup(day: string, at: string): NovaSetup {
   const step = (note: string) => ({doneOn: day, check: {ok: true, at, note: `Showcase example: ${note}`}});
-  return {version: 1, privacyMode: 'strict', privacyChosenOn: day, steps: {meet: step('no API key sits in readable storage.'), privacy: step('Strict refused a test message to a cloud model.'), brain: step('a local model answered on this computer.')}};
+  return {version: 1, privacyMode: 'strict', privacyChosenOn: day, steps: {meet: step('no stored value looks like an API key in plain text.'), privacy: step('Strict refused a test message to a cloud model.'), brain: step('a local model answered on this computer.')}};
 }
 
 /**

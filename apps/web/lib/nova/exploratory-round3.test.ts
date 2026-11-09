@@ -63,7 +63,8 @@ describe('EX3-3: "Find models on this computer" names what really happened', () 
     const result = await probeServer(OLLAMA, {fetcher, ms: 500});
     expect(result).toMatchObject({found: false, reason: 'origin'});
     expect(scanLine(result)).toMatch(/^Ollama is running, but does not allow this site yet: set OLLAMA_ORIGINS/);
-    expect(modes).toEqual(['cors', 'no-cors']);
+    // Session AL (LA-012, deliberate): the opaque knock comes first, so a scan with nothing running sends one request per server.
+    expect(modes).toEqual(['no-cors', 'cors']);
     const lm = await probeServer(LMSTUDIO, {fetcher, ms: 500});
     expect(scanLine(lm)).toMatch(/Enable CORS/);
   });

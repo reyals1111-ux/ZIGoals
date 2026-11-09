@@ -20,7 +20,8 @@ const sum = (title: string, from: string, to: string) => habit(title).entries.fi
 
 test('the brief\'s eight examples, answered with the figures the records hold', () => {
   expect(textOf(ask('How many minutes did I meditate this month?'))).toMatch(new RegExp(`^You logged ${sum('Meditate', '2026-10-01', DAY)} minutes of Meditate this month \\(Thu, Oct 1 to Mon, Oct 5\\)\\.`));
-  expect(textOf(ask('What\'s my longest reading streak?'))).toMatch(/^Your longest Read streak is \d+ days; the current one is \d+ days\.$/);
+  // Session AL (Z-021, deliberate): the streak line is followed by one line on why it can be longer than a month's check-ins.
+  expect(textOf(ask('What\'s my longest reading streak?'))).toMatch(/^Your longest Read streak is \d+ days; the current one is \d+ days\.\n- (?:The current one runs since \w{3}, \w{3} \d{1,2}: a|A) streak counts scheduled days in a row across months, and a skipped day keeps it going \(skipped days never count against you\), so it can be longer than one month’s check-ins$/);
   const water = dailyData(sources().health).water.filter(w => w.date === '2026-10-04').reduce((s, w) => s + w.amountMilli / 1000, 0);
   expect(textOf(ask('How much water did I drink yesterday?'))).toMatch(new RegExp(`^You logged ${water.toLocaleString('en-US')} mL of water yesterday \\(Sun, Oct 4\\)`));
   const week = sources().health.activity.filter(a => a.date >= '2026-09-28' && a.date <= '2026-10-04'), days = new Set(week.map(a => a.date)).size;
@@ -46,7 +47,8 @@ test('forty more phrasings across habits, Health, goals and wealth', () => {
     ['How many times did I exercise last week?', /^You checked in Exercise \d+ times last week/],
     ['How often did I meditate this month?', /^You checked in Meditate \d+ times this month/],
     ['What is my completion rate for reading this month?', /^Read this month \(Thu, Oct 1 to Mon, Oct 5\): \d+%/],
-    ['What\'s my current meditation streak?', /^Your current Meditate streak is \d+ days? \(longest: \d+ days?\)\.$/],
+    // Session AL (Z-021, deliberate): plus the one line on why a streak can be longer than a month's check-ins.
+    ['What\'s my current meditation streak?', /^Your current Meditate streak is \d+ days? \(longest: \d+ days?\)\.\n- (?:The current one runs since \w{3}, \w{3} \d{1,2}: a|A) streak counts scheduled days in a row across months, and a skipped day keeps it going \(skipped days never count against you\), so it can be longer than one month’s check-ins$/],
     ['best streak for exercise', /^Your longest Exercise streak is \d+ days?/],
     ['When did I last meditate?', /^You last checked in Meditate on Mon, Oct 5/],
     ['Did I meditate more this week than last week?', /^Meditate: \d+ minutes this week \(Mon, Oct 5\), and \d+ minutes last week/],

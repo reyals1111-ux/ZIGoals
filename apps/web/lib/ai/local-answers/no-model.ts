@@ -14,6 +14,8 @@ import {parseGoalBundle} from '../../goals/nl-bundle';
 import {checklistEditReply, foodEstimateReply, unknownTickReply, weeklyRecapReply} from './al-third';
 import {fourthAnswer, fourthFirst} from './al-fourth';
 import {safetyFirst} from '../safety-guard';
+// Session AL final pass (N-LA-01, BN-053): Help's words or the closest answer the device has, before the examples list.
+import {closestReply, helpReply} from './al-final';
 import {germanAsk, messageLines, onePhrase, tooLongAdd, unansweredLine, UNMATCHED_EN} from './al-fifth';
 
 /**
@@ -119,7 +121,9 @@ export function capabilitiesReply(text: string, lang: ReplyLanguage, env: ToolEn
   const nl = `Nu beantwoord ik vragen uit je eigen gegevens, op dit apparaat: wat er vandaag open staat, hoe je gewoontes en doelen gaan, ${healthNl}, en wat je geld bij elkaar is. Noem een nieuwe gewoonte (“Maak een gewoonte Wandelen”) of een spaardoel (“Ik wil sparen voor een vakantie”) en ik zet het klaar; jij bevestigt.\nMet een eigen brein (een model op je computer, of je eigen sleutel) kan ik ook met je plannen en meedenken.`;
   return {kind: 'answer', text: (lang === 'nl' || nlAsk ? nl : en) + `\n\n\`\`\`zigoals-action\n${where}\n\`\`\``, calls: []};
 }
-const FRENCH = /\b(je|tu|mon|ma|mes|combien|quel(?:le)?s?|est-ce|pourquoi|aujourd'hui|j'ai|eau|objectifs?|habitudes?|bu|dormi)\b/gi;
+// Session AL final pass (BN:ZIGi #9, ZIGi-F8): the words of a French question about the app ("Combien de temps dure la
+// période de vote ?" read as English: one French word), so its answer carries the French note as every other French ask.
+const FRENCH = /\b(je|tu|mon|ma|mes|combien|quel(?:le)?s?|est-ce|pourquoi|comment|quand|aujourd'hui|j'ai|eau|objectifs?|habitudes?|bu|dormi|temps|dure|durée|période|les|une|du|des|avec|dans|sont|faut|peux|puis)\b/gi;
 const SPANISH = /\b(yo|mi|mis|cu[aá]nt[oa]s?|cu[aá]l(?:es)?|por qu[eé]|hoy|tengo|he|agua|metas?|h[aá]bitos?|dorm[ií]|beb[ií])\b/gi;
 // Session AL fourth pass (L7-4b; Lisbon #026, #027, #352/353, LA-010, LZ-020; ZIGi-F8): German and Japanese get the note too.
 // Session AL fifth pass (L7-5b; Lisbon #352/353, LA-010, LZ-020, ZIGi-F8): "Was steht auf meiner Checkliste?" carries German too.
@@ -171,12 +175,12 @@ export function noModelReply(text: string, env: ToolEnv | null, previous: string
   const third = foodEstimateReply(fixTypos(text), env, lang) ?? weeklyRecapReply(fixTypos(text), env, lang) ?? checklistEditReply(text, env);
   // Session AL fourth pass (L7-4b): a plan, a habit edit, a goal sentence or a question about the path is never read as a
   // task or a log line (fourthFirst); the phrasing families still on the examples list get their answer (fourthAnswer).
-  const fourth = lang === 'nl' ? null : fourthFirst(fixTypos(text), env, 'en');
+  const fourth = lang === 'nl' ? null : fourthFirst(fixTypos(text), env, 'en', previous);
   // Session AL fifth pass (L7-5b; Lisbon #352/353, LA-010, LZ-020, ZIGi-F8): a German question about the Checklist, habits,
   // tasks or goals is answered as its English question, under the note below (languages are Beta, AL_SCOPE F).
   const german = env && otherLanguage(text) === 'de' ? germanAsk(text) : null;
   const de = german ? deviceReply(german, env, null) : null;
-  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? examplesIn(env, lang);
+  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
   // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
   // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
   // Session AL fourth pass (L7-4b; Lisbon #024): an answer in English to a question in another language carries the note too.

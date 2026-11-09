@@ -648,6 +648,8 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onSpoken, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
   // Session AL (L7; D7): the words typed so far live in this page's memory too, so a remount (on-device → connected) keeps them.
   const [text, setText] = useState(() => readDraft(scope)), [disclosed, setDisclosed] = useState(false), listId = useId(), logNoteId = useId();
+  // Session AL final pass (DV:Z-032): why Send is off, next to it (aria-describedby); said out loud after an empty Enter.
+  const sendHintId = useId(), [emptyTry, setEmptyTry] = useState(false);
   // Session AL Part 14 (D13): while the box has the focus ZIGi holds its look at it (components/zigi/gaze.ts).
   const gazeId = useId();
   useEffect(() => () => holdGaze(gazeId, null), [gazeId]);
@@ -708,7 +710,7 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     if (command?.command.name === '/log') { log = true; value = command.rest; }
     else if (command?.command.name === '/ask') { direct = true; value = command.rest; }
     else if (command?.command.name === '/plan') { plan = true; value = command.rest; }
-    if (!value && !attached) return;
+    if (!value && !attached) { if (!command) setEmptyTry(true); return; }
     if (!value) value = 'Log this meal from the photo.';
     const extra: ComposerExtra = {...(attached ? {images: [{mime: attached.mime, data: attached.data}]} : {}), ...(log ? {log: true} : {}), ...(direct ? {direct: true} : {}), ...(plan ? {plan: true} : {}), ...(editing ? {replace: editing.id} : {})};
     if (spoken === undefined) { setText(''); setAttached(null); setPhotoNote(''); onEditing(null); }
@@ -767,7 +769,7 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {/* Session AK (BUILD list 2 #1): a calm line while the words look like recovery words or a key (never sent). */}
     <SecretGuard text={text} onRemove={() => setText('')} chat/>
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { holdGaze(gazeId, 'composer'); if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => { holdGaze(gazeId, null); zigiSignals.emit('user_typing_stopped'); }} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
+      <textarea ref={ref} value={text} onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (e.target.value.trim()) setEmptyTry(false); }} title={title} onFocus={() => { holdGaze(gazeId, 'composer'); if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => { holdGaze(gazeId, null); zigiSignals.emit('user_typing_stopped'); }} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}
         onKeyDown={e => {
           if (slash.onKeyDown(e)) return;
@@ -789,11 +791,14 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
         onPointerDown={phone ? onMicDown : undefined} onPointerUp={phone ? onMicUp : undefined} onPointerCancel={phone ? () => { pressStart.current = null; voice.cancel(); } : undefined} onKeyDown={phone ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMic(); } } : undefined}>
         <span aria-hidden="true">{talking ? '■' : '🎙'}</span></button>}
       {/* Session AL fifth pass (BN-045): two elements, and Stop never submits (words typed during a reply stay unsent). */}
-      {busy ? <button key="stop" type="button" className="secondary" onClick={event => { event.preventDefault(); session.stop(); }}>Stop</button> : <button key="send" type="submit" className="primary" disabled={!text.trim() && !attached}>{logMode ? 'Log' : 'Send'}</button>}
+      {busy ? <button key="stop" type="button" className="secondary" onClick={event => { event.preventDefault(); session.stop(); }}>Stop</button> : <button key="send" type="submit" className="primary" disabled={!text.trim() && !attached} aria-describedby={!text.trim() && !attached ? sendHintId : undefined} title={!text.trim() && !attached ? SEND_OFF : undefined}>{logMode ? 'Log' : 'Send'}</button>}
     </div>
+    {!busy && !text.trim() && !attached && <p id={sendHintId} className={emptyTry ? 'ai-note ai-send-hint' : 'ai-sr-only'} role={emptyTry ? 'status' : undefined}>{SEND_OFF}</p>}
     {phone && mic && voice.available && <p className="ai-note ai-one-line" title="Hold the microphone to talk and release to stop, or tap once to start and once to stop."><span aria-hidden="true">Hold the mic to talk, or tap to start and stop.</span><span className="ai-sr-only">Hold the microphone to talk and release to stop, or tap once to start and once to stop.</span></p>}
   </form>;
 });
+/** DV:Z-032 (Session AL final pass): why Send is off, in the words the button's hint and the note under the box use. */
+const SEND_OFF = 'Send is off until there is something to send: type a question first (spaces alone are not sent).';
 /** Session V Part 11: careful mode travels in the copied prompt too, as its own paragraph. */
 const careFor = (question: string) => { const risk = detectRisk(question); return risk ? carefulNote(risk) : ''; };
 function BridgeView({settings, context, attach, sensitive, phone}: {settings: AiSettingsStore; context: ReturnType<typeof useAiContext>; attach: boolean; sensitive: boolean; phone: boolean}) {

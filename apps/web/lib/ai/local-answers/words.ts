@@ -1,4 +1,5 @@
 import {isUnitWord, unitAmount} from '../../goals/goal-units';
+import {formatGoalAmount} from '../../goals/goal-amount-text';
 import type {DayRange} from '../tools/range';
 import {formatDate, formatTime} from '../../visual-format';
 
@@ -53,6 +54,16 @@ export function amount(value: string, unit: string): string {
   // Session AL (L4's request, DV-014, DV-078): a count goal's own word reads "20 books", never "20 BOOKS".
   if (!MONEY.has(unit) && isUnitWord(unit)) return unitAmount(value, unit);
   return MONEY.has(unit) ? `${grouped(value, 2, 2)} ${unit}` : `${grouped(value)} ${unit}`;
+}
+/**
+ * Session AL final pass (DV:Z-003, DV:N-004): a goal's amount in every ZIGi and NOVA answer, in the app's shared goal format
+ * (formatGoalAmount, as the Goals page; ".00" dropped): "$0 of $500" in the one-goal answer and in "list my goals" alike.
+ * A count goal's own word keeps `amount` ("20 books"). `text` is "500.00 USD" as the goal tools write it.
+ */
+export function goalMoney(text: unknown): string {
+  const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(String(text ?? '').trim());
+  if (!m) return String(text ?? '');
+  return m[2] === 'USD' || m[2] === 'EUR' ? formatGoalAmount(m[1]!, m[2]).replace(/\.00(?!\d)/, '') : amount(m[1]!, m[2]!);
 }
 /**
  * Session AL third pass (NB-114: "van 30 minutes"): a habit target's English unit in a Dutch answer ("30 minuten", "1 keer").
