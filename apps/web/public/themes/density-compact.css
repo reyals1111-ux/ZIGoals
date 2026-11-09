@@ -2002,6 +2002,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .goal-idea:not(#\-) { row-gap: 2px; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .unified-wizard .wizard-cancel-row:not(#\-) { margin-top: 12px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .wizard-skip:focus:not(#\-) { padding-top: 0; padding-bottom: 0; }
+@media (min-width: 761px) and (max-width: 1023px) { :where(:root[data-density=compact]) .unified-wizard .wizard-story:not(#\-) { margin-bottom: 28px; } }
+@media (min-width: 761px) and (max-width: 1023px) { :where(:root[data-density=compact]) .unified-wizard .wizard-story > div:not(#\-) { padding-top: 22px; padding-bottom: 22px; row-gap: 8px; } }
 /*  components/goal-summary.css  */
 :where(:root[data-density=compact]) .unified-goal-card .card-footer:not(#\-) { margin-top: auto; row-gap: 12px; padding-top: 20px; }
 :where(:root[data-density=compact]) .unified-goal-card .card-bottom:not(#\-) { margin-bottom: 15px; }

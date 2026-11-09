@@ -1091,6 +1091,7 @@
 :where(:root[data-text=large]) .goal-type-cards small:not(#\-) { font-size: calc(.88rem * 1.125); }
 :where(:root[data-text=large]) .goal-live-preview>strong:not(#\-) { font-size: calc(1.55rem * 1.125); }
 :where(:root[data-text=large]) .unified-wizard .form-grid small:not(#\-) { font-size: calc(.82rem * 1.125); }
+@media (min-width: 761px) and (max-width: 1023px) { :where(:root[data-text=large]) .unified-wizard .wizard-story strong:not(#\-) { font-size: calc(24px * 1.125); } }
 /*  components/goal-summary.css  */
 :where(:root[data-text=large]) .unified-goal-card .goal-progress-ring strong:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .unified-goal-card.compact-goal .goal-progress-ring strong:not(#\-) { font-size: calc(14px * 1.125); }
