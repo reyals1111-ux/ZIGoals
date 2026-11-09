@@ -6,6 +6,8 @@ D=str(pathlib.Path(__file__).resolve().parent.parent)+'/'
 OUT=sys.argv[1] if len(sys.argv)>1 else '/tmp'
 def cells(l): return [c.strip() for c in l.strip().strip('|').split('|')]
 def ids_of(s):
+    # A ledger cell "A (+ also closes: B)" names two ids, A and B.
+    s=re.sub(r'\(\+\s*also closes:\s*', ', ', s).replace(')', ' ')
     out=[]
     for part in re.split(r'[;,]\s*|\s+(?=[A-Z])',s):
         part=part.strip().strip('`').strip()
