@@ -231,7 +231,10 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // Session AL (L6 Help passes, deliberate): the new answers link inside their sentences too, among them "Where are Earn,
   // Staking, Governance and Ecosystem?" to the Earn, staking and voting answers (57 → 62). "↑ Back to the topics" is a
   // link on its own line, so it is held to 44 px above, not counted here.
-  expect(inline).toBe(62);
+  // Session AL Part 15 (GAP-178, C-DVG-90, deliberate; 2f4f3d9e): the new "Every published version, newest first" section
+  // links "What’s new" inside its sentence, and each listed release's "Read more" follows its title and " · " in the same
+  // line of text (nine of the ten releases have a Help section): ten more in-sentence links (62 → 72).
+  expect(inline).toBe(72);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });

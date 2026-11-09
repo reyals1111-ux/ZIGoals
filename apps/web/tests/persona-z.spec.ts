@@ -267,7 +267,9 @@ test('7b. persona round: the water target is typed in US fl oz; the week reads f
   await form.getByLabel('Preferred water unit').selectOption('ml');
   await expect(form.getByLabel('Personal water target (mL, optional)')).toHaveValue('1893');
   await page.goto('/app/activity');
-  await expect(page.locator('main')).toContainText('159.6 lb');
+  // Session AL (N-MO-14, N-NB-10, deliberate; 1e543c5e): Activity shows a reading as entered, to two decimals, as the
+  // weight history and "Latest" do in test 7 (72.4 kg = 159.61 lb; it read 159.6 lb).
+  await expect(page.locator('main')).toContainText('Weight recorded159.61 lb');
   await expect(page.locator('main')).not.toContainText('72.4 kg');
 });
 

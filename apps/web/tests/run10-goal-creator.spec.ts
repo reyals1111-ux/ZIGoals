@@ -6,7 +6,11 @@ import {chooseChain} from './chain-choice';
 test.beforeEach(async ({page}) => { await chooseChain(page); });
 test('Goal type cards keep shared details and confirm incompatible fields before clearing them',async({page},info)=>{
  await page.goto('/app/goals/new');
- await expect(page.getByRole('radio',{name:'Quantity',exact:true})).toBeChecked();
+ // Session AL (DV-120, deliberate; 4a8543f9): with the chain chosen no kind is preselected (it was Quantity), so the spec
+ // checks that none of the four is checked and then chooses the count it always started from, as a person does.
+ await expect(page.getByRole('group',{name:'What kind of progress matters?'}).getByRole('radio')).toHaveCount(4);
+ await expect(page.getByRole('group',{name:'What kind of progress matters?'}).getByRole('radio',{checked:true})).toHaveCount(0);
+ await page.getByRole('radio',{name:'Quantity',exact:true}).check();await expect(page.getByRole('radio',{name:'Quantity',exact:true})).toBeChecked();
  await typeGoalName(page, 'My next chapter');await page.getByLabel('Target amount',{exact:true}).fill('250');
  await page.getByRole('radio',{name:'Project',exact:true}).check();
  const confirmation=page.getByRole('region',{name:'Confirm Goal type change'});await expect(confirmation).toContainText('target');await confirmation.getByRole('button',{name:'Keep current type'}).click();await expect(page.getByLabel('Target amount',{exact:true})).toHaveValue('250');
@@ -21,7 +25,8 @@ test('short Goal flow creates all four types with an honest live preview',async(
   const preview=page.getByRole('region',{name:'Goal preview'});
   await expect(preview).not.toContainText('Choose a target ZIG');
   await typeGoalName(page, name);
-  if(type!=='Quantity')await page.getByRole('radio',{name:type,exact:true}).check();
+  // Session AL (DV-120, deliberate; 4a8543f9): with the chain chosen no kind is preselected, so Quantity is chosen too (it was the default).
+  await page.getByRole('radio',{name:type,exact:true}).check();await expect(page.getByRole('radio',{name:type,exact:true})).toBeChecked();
   if(type==='Project')await page.getByLabel('Milestones, one per line').fill(target);
   else{await page.getByLabel('Target amount',{exact:true}).fill(target);if(type==='Value')await page.getByRole('radio',{name:/EUR · Euro/}).check();else await page.getByLabel('Goal asset',{exact:true}).fill(asset);}
   // Session AL (TK-142, deliberate; 7ea56655): money is formatted ("€2,500.00"); quantities read as typed ("1.5 BTC").

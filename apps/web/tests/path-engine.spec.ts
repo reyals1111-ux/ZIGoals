@@ -1,6 +1,6 @@
 import {PHONE} from '../lib/path/phone-scale';
 import {expect, test} from '@playwright/test';
-import {TITLE, seedChecklist, settled} from './checklist-fixtures';
+import {TITLE, seedChecklist, settled, waterTarget} from './checklist-fixtures';
 
 /**
  * Session AF (L3; P7.4–P7.8): the shared path engine on a real page (the Checklist draws with it; the Earn lane's
@@ -11,7 +11,9 @@ import {TITLE, seedChecklist, settled} from './checklist-fixtures';
  * The locked and link steps the Earn lane uses are covered on first paint by lib/path/render.test.ts.
  */
 test('dots, the line tangent to every ring, orbit labels, the finale, ZIGi by the next dot, and the keyboard', async ({page}) => {
-  await seedChecklist(page);
+  // Session AL (LS-016, X3-26, LC-002, deliberate; 1e543c5e): Water is done only at the person's own daily target, so the
+  // seed sets one glass (250 ml) as the target; the glass logged below still completes the morning, and every count holds.
+  await seedChecklist(page, {extra: waterTarget()});
   await page.goto('/app/checklist'); await settled(page);
   const stage = page.getByRole('group', {name: "Today's path"});
   await expect(stage).toBeVisible();

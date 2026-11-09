@@ -219,6 +219,9 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.goto("/app/goals/new");
   await page.getByText("Personalize artwork and notes (optional)").click();
   await page.getByRole("group",{name:"Category / artwork"}).getByRole("radio",{name:"Travel"}).check();
+  // Session AL (DV-120, deliberate; 4a8543f9): with the chain chosen no kind is preselected (it was Quantity), so the test
+  // chooses the count it always made, as a person does; every check below is unchanged.
+  await page.getByRole("radio",{name:"Quantity",exact:true}).check(); await expect(page.getByRole("radio",{name:"Quantity",exact:true})).toBeChecked();
   await typeGoalName(page, sentinel); await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button",{name:"Continue"}).click(); await page.getByLabel("ZIGoals funding / Local simulation",{exact:true}).check(); await page.getByRole("button",{name:"Continue"}).click(); await page.getByRole("button",{name:"Continue"}).click();
   await page.getByRole("button",{name:"Create goal",exact:true}).click();
