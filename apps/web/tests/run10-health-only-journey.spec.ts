@@ -43,6 +43,8 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   const meal = page.getByRole('form', { name: 'Log a meal', exact: true });
   await meal.getByLabel('Food or recipe').selectOption({ label: 'Fictional journey oats · food' });
   await meal.getByLabel('Servings', { exact: true }).fill('1.5');
+  // Session AL (A10-2, deliberate): the meal now defaults to the time of day, so the Breakfast this test reads is chosen.
+  await meal.getByLabel('Meal', { exact: true }).selectOption('Breakfast');
   await activate(meal.getByRole('button', { name: 'Log to diary' }));
   await expect(page.getByRole('region', { name: 'Breakfast diary' })).toContainText('225 kcal');
   await activate(page.getByRole('button', { name: 'Add 250 mL', exact: true }));

@@ -13,6 +13,8 @@ test("saved meal, preview copy, water, planner and export work with fictional pr
   await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal", exact: true });
   await log.getByLabel("Food or recipe").selectOption({ label: "Fictional breakfast oats · food" });
+  // Session AL (A10-2, deliberate): the meal now defaults to the time of day, so the Breakfast this test reads is chosen.
+  await log.getByLabel("Meal", { exact: true }).selectOption("Breakfast");
   await log.getByRole("button", { name: "Log to diary" }).click();
   // On a phone the quick picks sit with the form in the Log a meal sheet (Session I, Part 9).
   await openMealLog(page);
@@ -71,6 +73,8 @@ test("label basis, gram entry, water corrections and preferred weight units pres
   await log.getByLabel("Food or recipe").selectOption({ label: "Fictional hundred-gram label · food" });
   await log.getByLabel("Quantity unit", { exact: true }).selectOption("grams");
   await log.getByLabel("Food weight (g)").fill("60");
+  // Session AL (A10-2, deliberate): the meal now defaults to the time of day, so the Breakfast this test reads is chosen.
+  await log.getByLabel("Meal", { exact: true }).selectOption("Breakfast");
   await log.getByRole("button", { name: "Log to diary" }).click();
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("225 kcal");
   await page.getByRole("button", { name: "Add 250 mL", exact: true }).click();

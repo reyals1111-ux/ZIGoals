@@ -29,7 +29,7 @@ describe('"This day" strip (B2): links to that day’s records, never copies; un
       ['habits', 'Read', 'Done', `/app/habits#habit-${READ}`],
       ['health', 'Food diary', '2 items logged', `/app/health?date=${DAY}`],
       // Session AL (COPY_AUDIT, deliberate; DV-191c): water in millilitres, the one water vocabulary.
-      ['health', 'Water', '250 ml logged', `/app/health?date=${DAY}`],
+      ['health', 'Water', '250 mL logged', `/app/health?date=${DAY}`],
       ['health', 'Weight', 'Logged', `/app/health?date=${DAY}`],
       ['health', 'Leg day', 'Workout', '/app/health?view=workouts'],
       ['wealth', 'Money log', '1 spending entry · 1 income entry', '/app/wealth#spending'],

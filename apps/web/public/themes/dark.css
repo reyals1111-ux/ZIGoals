@@ -5252,6 +5252,22 @@
     .checklist-past-day-name small:not(#\-) {
         color: #c5d3ea
     }
+    .checklist-topbar .checklist-showcase:not(#\-) {
+        border-color: #f0a7ff55;
+        background-image: linear-gradient(120deg, #0e021ee6, #040112e6);
+        background-color: transparent;
+        color: #f3c9ff
+    }
+    .checklist-showcase-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-magenta, #f06dff);
+        box-shadow: 0 0 8px #f06dffaa
+    }
+    @media (forced-colors: active) {
+        .checklist-topbar .checklist-showcase:not(#\-) {
+            border-color: CanvasText
+        }
+    }
 }
 /*  components/checklist/day-celebration.css  */
 @scope (:root[data-theme=dark]) {

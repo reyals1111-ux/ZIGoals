@@ -47,7 +47,7 @@ export function thisDay(src: DaySources): {items: DayItem[]; unread: DayPillar[]
     // never "1 drink"; an entry whose amount cannot be read is counted as an entry.
     const waters = (h.daily?.water ?? []).filter(w => w.date === day);
     const millilitres = waters.reduce((n, w) => n + (Number.isFinite(w.amountMilli) ? w.amountMilli / 1000 * (w.unit === 'ml' ? 1 : 29.5735295625) : NaN), 0);
-    if (waters.length) items.push({id: 'health:water', pillar: 'health', title: 'Water', detail: Number.isFinite(millilitres) ? `${Math.round(millilitres).toLocaleString('en-US')} ml logged` : `${plural(waters.length, 'entry', 'entries')} logged`, href});
+    if (waters.length) items.push({id: 'health:water', pillar: 'health', title: 'Water', detail: Number.isFinite(millilitres) ? `${Math.round(millilitres).toLocaleString('en-US')} mL logged` : `${plural(waters.length, 'entry', 'entries')} logged`, href});
     if (h.weights.some(w => w.date === day)) items.push({id: 'health:weight', pillar: 'health', title: 'Weight', detail: 'Logged', href});
     const activity = h.activity.filter(a => a.date === day).length;
     if (activity) items.push({id: 'health:activity', pillar: 'health', title: 'Activity', detail: `${plural(activity, 'entry', 'entries')}`, href});

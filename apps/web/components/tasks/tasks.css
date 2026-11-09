@@ -64,6 +64,10 @@
 .tasks-nav { display: grid; gap: 4px; min-width: 0; position: sticky; top: 84px; }
 @media (max-width: 900px) { .tasks-nav { position: static; } .tasks-nav ul { display: flex; flex-wrap: wrap; gap: 6px; } .tasks-nav-item { width: auto; } }
 .tasks-nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+/* Session AL (A10-11): in one column (768 px) the 545 px of views (Inbox … Priority) stood above the list, so the first
+   task began at about y 1,500 of 1,024. The list comes first and its views follow it, as on a phone (globals.css orders
+   the phone's navs last); nothing is removed, and the page's source (and Tab) order is unchanged. */
+@media (max-width: 900px) { .tasks-layout > .tasks-nav { order: 1; } }
 .tasks-nav h3 { margin: 12px 0 2px; font-size: 14px; font-weight: 650; color: var(--text-secondary, var(--muted)); }
 .tasks-nav-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
 .tasks-nav-item small { font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }

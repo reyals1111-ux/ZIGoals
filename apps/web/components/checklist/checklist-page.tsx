@@ -28,6 +28,8 @@ import {ChunkFailed, chunk} from '../use-chunk';
 import {escapeTop, useEscapeLayer} from './escape-layers';
 import './checklist.css';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
+import {isShowcase} from '../../lib/showcase-storage';
+import {SHOWCASE_CHIP} from '../../lib/showcase-copy';
 
 /**
  * Session AK P8c (owner decision 6): while the Checklist is open, the shell's other parts are not drawn. These two rules
@@ -65,6 +67,7 @@ const PathLoading = () => <div className="checklist-loading" aria-hidden="true">
 /** Round 3: below 1180 px the Checklist keeps a bar of its own at the foot (the timers' button, the toast, "Jump to next"),
  *  which the path never runs under; the jump button moves into it there. */
 const NARROW = '(max-width: 1179.98px)';
+const noChange = () => () => {};
 const useMedia = (query: string) => useSyncExternalStore(useCallback((l: () => void) => { const m = window.matchMedia?.(query); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); }, [query]), () => !!window.matchMedia?.(query).matches, () => false);
 
 /**
@@ -101,6 +104,7 @@ export function ChecklistPage() {
   // CI14: the page is loaded once its records are read and the Path's code is here (use-chunk.ts).
   const state = useChecklist({commands: true}), {summary, streak, prefs} = state, loaded = state.loaded && !!PathView;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
+  const showcase = useSyncExternalStore(noChange, isShowcase, () => false); // as components/showcase-controls useShowcase
   const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | 'quick' | null>(null), [arrive, setArrive] = useState<string | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
   const narrow = useMedia(NARROW), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
   // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo here too (never in a text field; the page's own dialog does not count).
@@ -111,11 +115,16 @@ export function ChecklistPage() {
   const ownCloses = useRef(0), leaving = useRef(false), escaped = useRef(false);
   useLayoutEffect(() => {
     const d = dialog.current; if (!d) return;
+    // Session AL (A10 cycle, checklist-overlay-af:53): the cleanup below marks the page as leaving; when the layer is set up
+    // again without leaving (React's development double run, a Suspense boundary showing it again), X and Escape work again.
+    leaving.current = false;
     try { if (!d.matches(':modal')) { if (d.open) { ownCloses.current++; d.close(); } d.showModal(); } } catch { /* stays an open dialog in the page */ }
     // Focus starts on the Checklist itself (its name is read), not on the close button; Tab then walks its controls.
     d.focus({preventScroll: true});
     const releaseToast = toastSlot.current ? pushToastLayer(toastSlot.current) : () => undefined;
-    return () => { releaseToast(); leaving.current = true; try { if (d.open) d.close(); } catch { /* gone */ } };
+    // Its own close here counts as ours (ownCloses), so when the layer is set up again its late close event is not a leave.
+    const closes = ownCloses;
+    return () => { releaseToast(); leaving.current = true; try { if (d.open) { closes.current++; d.close(); } } catch { /* gone */ } };
   }, []);
   const leave = useCallback(() => {
     if (leaving.current) return; leaving.current = true;
@@ -187,7 +196,9 @@ export function ChecklistPage() {
   return <><dialog ref={dialog} open tabIndex={-1} className="checklist-overlay checklist-page" aria-labelledby="checklist-title" data-view={prefs.view} data-loaded={loaded || undefined} data-sheet={sheet ?? undefined}
     onKeyDown={e => { if (e.key !== 'Escape' || e.defaultPrevented) return; e.preventDefault(); escaped.current = true; window.setTimeout(() => { escaped.current = false; }, 0); onEscape(); }}
     onCancel={e => { e.preventDefault(); if (!escaped.current) onEscape(); }}
-    onClose={() => {
+    onClose={e => {
+      // Only this dialog's own close: React passes a nested dialog's close (the day's celebration) up the tree too.
+      if (e.target !== e.currentTarget) return;
       if (ownCloses.current > 0) { ownCloses.current--; return; }
       if (leaving.current) return;
       // The browser closed it anyway (Escape twice without a tap between): stay if an inner layer took the Escape.
@@ -213,6 +224,9 @@ export function ChecklistPage() {
           <button type="button" aria-expanded={sheet === 'options'} onClick={() => open('options')}><ToolMark name="options"/>Options</button>
         </div>
         <div className="checklist-title"><h1 id="checklist-title"><NebulaFlow identity="checklist-title">Your orbit</NebulaFlow></h1></div>
+        {/* Session AL (A10-4): the Showcase's label, as on every other page (the status row's chip is under the overlay). It
+            hangs under the bar's start and takes no room in it, so the bar and the path keep their places. */}
+        {showcase && <p className="checklist-showcase" role="note"><span className="checklist-showcase-dot" aria-hidden="true"/>{SHOWCASE_CHIP}</p>}
         {/* Session AG Polish 3 (owner Part 3): no progress bar — reaching the orbits is the tracker; the words stay. */}
         {/* Part 18: the count is said, not shown (it updates as before). */}
         <div className="checklist-progress sr-only">

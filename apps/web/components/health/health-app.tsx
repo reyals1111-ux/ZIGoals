@@ -90,7 +90,8 @@ const BodyMeasurements = lazy(() => import("./body-measurements").then((m) => ({
 import { NutritionDashboard } from "./nutrition-dashboard";
 import { HealthQuickPicks, WaterJournal, MealsAndPlanning, HealthJournalSettings } from "./daily-tools";
 import { MealQuick, RepeatDay } from "./quick-log";
-import { dailyData, servingsFromMeasure, waterOn } from "../../lib/health-daily";
+import { dailyData, healthZone, servingsFromMeasure, waterOn } from "../../lib/health-daily";
+import { defaultMeal } from "../../lib/default-meal";
 // CI13 (weights): the weight chart (Weight view only) loads with that view, as its cards do.
 const EvidenceChart = lazy(() => import("../platform/evidence-chart").then((m) => ({ default: m.EvidenceChart })));
 import { weightChangeText, weightChartValue, weightReadingDecimals, weightReadingsText, weightText, type WaterUnit, type WeightUnit } from "../../lib/health-units";
@@ -148,9 +149,15 @@ const views = ["Diary", "Foods & recipes", "Meals & planning", "Planner", "Weigh
 // nutrition patterns in Insights (one place each); the highlight tiles' anchors and #nutrition-history open those views.
 const HASH_VIEWS: Record<string, View> = {diary: "Diary", foods: "Foods & recipes", recipes: "Foods & recipes", planning: "Meals & planning", meals: "Meals & planning", planner: "Planner", weight: "Weight", measurements: "Measurements", activity: "Activity", targets: "Targets", insights: "Insights", import: "Import", settings: "Journal settings", "health-weight-trend": "Weight", "health-energy": "Weight", "health-coach": "Weight", "nutrition-history": "Insights", "diary-breakfast": "Diary", "diary-lunch": "Diary", "diary-dinner": "Diary", "diary-snacks": "Diary"};
 /** Scrolls to an element once its view has rendered it (the cards load as their own chunks), for about two seconds. */
-function revealWhenShown(id: string, focusField = false, tries = 120) {
+// Session AL (A10-1): `focusField` true focuses the first field; a list of selectors focuses the first that matches, so
+// the keyboard follows the scroll (Log water to the water amount, Log food to the meal form's first control).
+function revealWhenShown(id: string, focusField: boolean | readonly string[] = false, tries = 120) {
   const el = document.getElementById(id);
-  if (el) { el.scrollIntoView({ block: "start", behavior: "instant" }); if (focusField) el.querySelector<HTMLElement>("input, select")?.focus({ preventScroll: true }); return; }
+  if (el) {
+    el.scrollIntoView({ block: "start", behavior: "instant" });
+    if (focusField) { const found = (focusField === true ? ["input, select"] : focusField).map(s => el.querySelector<HTMLElement>(s)).find(Boolean); found?.focus({ preventScroll: true }); }
+    return;
+  }
   if (tries > 0) requestAnimationFrame(() => revealWhenShown(id, focusField, tries - 1));
 }
 const FULL_VIEWS = new Set(["sleep", "meditation", "workouts", "devices"]);
@@ -359,7 +366,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     {/* Session AL (P-MO-29, MO-154): a keyboard way past the hero, the counters and the summary to the views. */}
     <a className="skip" href="#health-views">Skip to Health views</a>
     {/* Session AB-Design (owner request 21): the shared header pattern — eyebrow, title, slogan, then the page's actions in the same style as Goals, Habits and Wealth; the old care card is this header. */}
-    <PillarHero pillar="health" className="health-heading" titleId="health-title" art={<OrbitArt glyph={HealthGlyph} tone="health" spin={14}/>} eyebrow="Your everyday wellbeing" title="A little care, every day." lede="Your food, water, movement and progress. Your private journal." about="health" buttons={<>{/* Session AK RB (RELEASE_REVIEW_2 R2-19): "Log weight" takes the settings link's place among the logging buttons; privacy and backups stay in the text row beside Ask ZIGi ("Back up private data ↗"). */}<button type="button" className={heroNext === "weight" ? "primary" : "secondary"} onClick={() => { setView("Weight"); revealWhenShown("health-weight-entry", true); }}>Log weight</button><button type="button" className={heroNext === "water" ? "primary" : "secondary"} onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("water")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log water</button><button type="button" className={heroNext === "food" ? "primary" : "secondary"} onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food</button></>}/><LayoutLockButton/>
+    <PillarHero pillar="health" className="health-heading" titleId="health-title" art={<OrbitArt glyph={HealthGlyph} tone="health" spin={14}/>} eyebrow="Your everyday wellbeing" title="A little care, every day." lede="Your food, water, movement and progress. Your private journal." about="health" buttons={<>{/* Session AK RB (RELEASE_REVIEW_2 R2-19): "Log weight" takes the settings link's place among the logging buttons; privacy and backups stay in the text row beside Ask ZIGi ("Back up private data ↗"). */}<button type="button" className={heroNext === "weight" ? "primary" : "secondary"} onClick={() => { setView("Weight"); revealWhenShown("health-weight-entry", true); }}>Log weight</button><button type="button" className={heroNext === "water" ? "primary" : "secondary"} onClick={() => { setView("Diary"); revealWhenShown("water", ["#health-water-amount", "input, select"]); }}>Log water</button><button type="button" className={heroNext === "food" ? "primary" : "secondary"} onClick={() => { setView("Diary"); revealWhenShown("health-entry-action", ['form[aria-label="Log a meal"] select', "select, input, button"]); }}>Log food</button></>}/><LayoutLockButton/>
     {!phone && <ExerciseCounters data={data} update={update} date={date} />}
     {/* On a phone the title comes first, then the journal date it drives, then the quick counters (desktop keeps
         the counters at the top, Part 18.6, and the date beside the views). */}
@@ -453,11 +460,13 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
   const [editing, setEditing] = useState<string | null>(null);
   const [source, setSource] = useState("");
   const [servings, setServings] = useState("1");
-  const [meal, setMeal] = useState<HealthDiaryEntry["meal"]>("Breakfast");
+  // Session AL (A10-2): until a meal is chosen, the form follows the time of day (and your usual meal times).
+  const [chosenMeal, setMeal] = useState<HealthDiaryEntry["meal"] | null>(null);
   const [entryUnit, setEntryUnit] = useState("servings");
   const [mealCheck, setMealCheck] = useState<{ key: string; text: string } | null>(null);
   const logOperation = useRef<string | null>(null);
   const mealExtras = useHealthExtras();
+  const meal = chosenMeal ?? (() => { try { return defaultMeal(new Date(), healthZone(dailyData(data).preferences.timezone), mealExtras.extras); } catch { return "Breakfast" as const; } })();
   const sourceItems = [...data.foods.map(f => ({ ...f, kind: "food" as const })), ...data.recipes.map(r => ({ ...r, kind: "recipe" as const }))];
   const selected = data.foods.find(s=>s.id===source)??data.recipes.find(s=>s.id===source);
   let preview: Nutrition | null = null;
@@ -503,7 +512,8 @@ function QuickAddFood({ date, meal: initialMeal, perform, invalid }: { date: str
   const [kcal, setKcal] = useState("");
   const [size, setSize] = useState("");
   const [unit, setUnit] = useState<"g" | "ml">("g");
-  const [meal, setMeal] = useState(initialMeal);
+  const [chosenMeal, setMeal] = useState<HealthDiaryEntry["meal"] | null>(null);
+  const meal = chosenMeal ?? initialMeal;
   const [macros, setMacros] = useState({ proteinMg: "", carbsMg: "", fatMg: "" });
   const ids = useRef<{ foodId: string; logId: string } | null>(null);
   const reset = () => { setName(""); setKcal(""); setSize(""); setMacros({ proteinMg: "", carbsMg: "", fatMg: "" }); ids.current = null; };

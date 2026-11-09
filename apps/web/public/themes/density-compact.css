@@ -1333,6 +1333,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .checklist-past-day .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .checklist-past-day-rows:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
 :where(:root[data-density=compact]) .checklist-past-day-rows li:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .checklist-topbar .checklist-showcase:not(#\-) { row-gap: 4.5px; margin-top: 0; margin-bottom: 0; padding-top: 2.25px; padding-bottom: 2.25px; }
 /*  components/checklist/day-celebration.css  */
 :where(:root[data-density=compact]) .checklist-celebration:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .checklist-celebration .checklist-celebration-words:not(#\-) { row-gap: 12px; padding-top: 96px; padding-bottom: max(30px, calc(env(safe-area-inset-bottom, 0px) + 22px), 7%); }
@@ -5517,6 +5518,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/settings/settings-fold.css  */
 :where(:root[data-density=compact]) .settings-page .settings-fold-toggle:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .settings-page .settings-fold-summary:not(#\-) { margin-top: -10px; margin-bottom: 0; }
+@media (min-width: 768px) { :root:where([data-density=compact]) .settings-page .settings-sections > .settings-sections-links:not(#\-) { row-gap: inherit; } }
+@media (min-width: 768px) { :root:where([data-density=compact]) .settings-page .settings-sections > .settings-sections-links > a:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 /*  components/settings/settings-forms.css  */
 :where(:root[data-density=compact]) .settings-page .platform-form label.checkbox input[type="checkbox"]:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .settings-page .settings-try-it:not(#\-) { margin-top: 8px; }

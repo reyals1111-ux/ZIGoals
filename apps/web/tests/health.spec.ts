@@ -48,6 +48,8 @@ test("food diary create, correct, reload and remove keeps snapshot nutrition", a
   const form = page.getByRole("form", { name: "Log a meal" });
   await form.getByLabel("Food or recipe").selectOption({ label: "Test oats · food" });
   await form.getByLabel("Servings").fill("1.5");
+  // Session AL (A10-2, deliberate): the meal now defaults to the time of day, so the Breakfast this test reads is chosen.
+  await form.getByLabel("Meal", { exact: true }).selectOption("Breakfast");
   await form.getByRole("button", { name: "Log to diary" }).click();
   const breakfast = page.getByRole("region", { name: "Breakfast diary" });
   await expect(breakfast).toContainText("225 kcal");
@@ -152,6 +154,8 @@ test("historical diary dates and food edits remain usable at 320 pixels", async 
   await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal" });
   await log.getByLabel("Food or recipe").selectOption({ label: "History oats · food" });
+  // Session AL (A10-2, deliberate): the meal now defaults to the time of day, so the Breakfast this test reads is chosen.
+  await log.getByLabel("Meal", { exact: true }).selectOption("Breakfast");
   await log.getByRole("button", { name: "Log to diary" }).click();
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("160 kcal");
   await page.getByRole("button", { name: "Next day" }).click();

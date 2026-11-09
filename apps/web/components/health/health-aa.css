@@ -323,6 +323,10 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
   .health-water .reminder-form > p { grid-column: 1 / -1; }
 }
 
+/* Session AL (A10-8): the views' skip link sits inside the page, so the global .skip's "top: -80px" left its 44 px target
+   half on screen over the logo at 375 px. Out of sight until focused, as the wizard's skip link (goal-creator.css). */
+.health-page > .skip:not(:focus) { left: -10000px; }
+
 /* Session AK (G3): richer cards, as the new surfaces (F6). Health: Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
    fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has

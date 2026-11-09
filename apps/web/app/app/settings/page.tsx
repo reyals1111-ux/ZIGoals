@@ -93,7 +93,9 @@ function SettingsSectionsNav() {
     for (const group of groups) observer.observe(group);
     return () => observer.disconnect();
   }, []);
-  return <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id} aria-current={current === id ? 'location' : undefined}>{title}</a>)}<SettingsFoldAll/></nav>;
+  // Session AL (A10-10): the links scroll sideways in a row of their own, so "Fold all" sits beside them, not over them
+  // (components/settings/settings-fold.css; below 768 px the row is `display: contents` and wraps as before).
+  return <nav className="settings-sections" aria-label="Settings sections"><div className="settings-sections-links">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id} aria-current={current === id ? 'location' : undefined}>{title}</a>)}</div><SettingsFoldAll/></nav>;
 }
 export default function Settings() {
   const s = useGoals();

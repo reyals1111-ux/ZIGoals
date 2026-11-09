@@ -170,3 +170,11 @@
 .note-ask-form input, .note-ask-form button { min-height: 44px; }
 .note-ask-form .note-ask-privacy { flex: 1 0 100%; }
 .note-ask-example { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1px dashed var(--line, rgba(128, 128, 160, .35)); min-width: 0; }
+/* Session AL (A10-9): at 375 px a chip's status broke mid-word ("Don / e") under the chip's overflow-wrap: anywhere, and
+   the day header's → wrapped onto a line of its own. The status keeps whole words (the title wraps first); the date
+   wraps inside its own space between the two arrows. */
+.note-day-chip-title { min-width: 0; overflow-wrap: break-word; }
+.note-day-chip-detail { flex: none; max-width: 60%; overflow-wrap: normal; }
+.note-day-head { flex-wrap: nowrap; }
+.note-day-head > .note-title { flex: 0 1 auto; min-width: 0; }
+.note-day-head > button { flex: none; }
