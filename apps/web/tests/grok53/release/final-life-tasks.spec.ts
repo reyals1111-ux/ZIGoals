@@ -110,7 +110,8 @@ test('Health (D-222, D-076): "+" keeps its fill on hover, an empty counter says 
   await expect(page.getByText('Journal preferences saved.', {exact: false}).first()).toBeVisible();
 });
 
-test('Hover (D-212, D-223): the Goals filter chip and Markets\' chip and star answer the pointer', async ({page}) => {
+test('Hover (D-212, D-223): the Goals filter chip and Markets\' chip and star answer the pointer', async ({page, isMobile}) => {
+  test.skip(isMobile, 'hover is a pointer state; the phone project emulates a touch screen (hover: none)');
   await page.setViewportSize(desktop);
   await emptyDevice(page, {theme: 'nebula'});
   await loadShowcase(page);

@@ -28,6 +28,8 @@ test('DS9: Back closes Quick add and stays on the page; closing it with × leave
   const trigger = page.locator(isMobile ? '.phone-topbar .quick-add-trigger' : '.today-hero .quick-add-trigger');
   await trigger.click();
   await expect(page.getByRole('dialog')).toBeVisible();
+  // Session AL (integration 6e3a6263, 1 in 4 under load): Back is pressed once the dialog's own history entry is there, as on × below.
+  await expect.poll(() => page.evaluate(() => (history.state as {__zigoalsLayer?: unknown} | null)?.__zigoalsLayer ?? null)).not.toBeNull();
   await page.goBack();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page).toHaveURL(/\/app$/);
