@@ -32,6 +32,13 @@
 /* The lazy bar's slot keeps the bar's measured height while its chunk loads (Session AD weights). */
 .theme-switch-slot { min-height: 70px; } /* the sidebar's bar: 14 px above it, 56 px of bar (Session AF: no line under it) */
 .app-sidebar .theme-switch-slot { flex: none; }
+/* Session AL (DV-029b, DV-051b; AL-NAV-012): the sidebar's three buttons show their words under their marks (they were
+   icons with names only for screen readers), in the bar's own 44 px buttons, so the bar keeps its height. */
+.app-sidebar .theme-switch:not(.theme-switch-compact) .theme-option { grid-auto-flow: row; align-content: center; gap: 2px; }
+.app-sidebar .theme-switch:not(.theme-switch-compact) .theme-option > span { display: block; font-size: 12px; font-weight: 600; line-height: 14px; letter-spacing: .01em; }
+.app-sidebar .theme-switch:not(.theme-switch-compact) .theme-option svg { width: 18px; height: 18px; }
+/* Session AL (D-063, LS-H34, D-179, NB-075): the bar stays the sidebar's last item (a sticky bar would sit over the O4 Apps
+   group); its labelled buttons and Settings → Appearance are the ways to it. Carried: reaching it without scrolling at 800 px. */
 .theme-switch-slot-compact { min-height: 94px; }
 @media (max-width: 1023.98px) { .theme-switch-slot-compact { min-height: 119px; } }
 @media (max-width: 767.98px) { .theme-switch-slot-compact { min-height: 148px; } }

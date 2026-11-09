@@ -1,0 +1,15 @@
+/* Session AL (BN-137, NB-031; WCAG 1.4.11, by day only): two controls whose marks Light had left near the page's own white.
+   - The Game layer button (the rocket, top right): its rocket is drawn in the nebula's pale cyan, violet and pink, which
+     Light keeps exactly (H75), and Light had paled its night tile, so the rocket stood at 2.1:1 on its tile. By day the
+     tile keeps its night glass, like ZIGi's, the Checklist's and the music buttons beside the page (night islands): the
+     rocket is 6:1 or more on it, its word white. The tile is a night colour, so only a night colour changes (H75).
+   - A switch that is off (Settings → Your pages & buttons): its night track had turned to the card's own near-white, so
+     the switch read as a loose knob. Off, the track is a neutral slate (3:1 or more on white and on the day's cards) with a
+     white knob (4.5:1 on it); on, it keeps Nebula's gradient. Both colours are neutral or night ones (H75). */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+  .gamify-trigger:not(#\-) { background-image: linear-gradient(150deg, #162642, #1b1734); color: #d7e5fb; }
+  .gamify-trigger:is(:hover, :focus-visible, [aria-expanded="true"]):not(#\-) { color: #ffffff; }
+  .gamify[data-on] .gamify-trigger:not(#\-) { background-image: linear-gradient(150deg, #2a1f4a, #141a3a); color: #ffffff; }
+  .pages-switch input:not(:checked):not(#\-) { background-color: #6b7690; }
+  .pages-switch input:not(:checked):not(#\-)::before { background-color: #ffffff; }
+}

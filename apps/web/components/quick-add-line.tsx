@@ -129,7 +129,8 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false, close, onUn
   if (onlyIfUnderstood && !saved && (!result || result.kind === 'unknown')) return null;
   return <form className="quick-add-line" aria-label="Type a line" onSubmit={event => { event.preventDefault(); preview(); }}>
     <label className="field"><span>Type a line</span><input ref={field} data-sheet-focus type="text" value={text} maxLength={200} autoComplete="off" enterKeyHint="go" placeholder="drank 2 glasses of water" disabled={!ready || busy} onChange={event => { setText(event.target.value); if (result) setResult(null); if (chosen) setChosen(null); if (task) setTask(null); }} /></label>
-    <div className="actions"><button type="submit" className="quiet" disabled={!ready || busy || !text.trim()} aria-describedby={!ready || !text.trim() ? 'quick-add-preview-why' : undefined}>Preview</button>
+    {/* Session AL (N-NB-24): Preview is the line's action, drawn as the app's secondary button (it was quiet grey text and looked disabled). */}
+    <div className="actions"><button type="submit" className="secondary" disabled={!ready || busy || !text.trim()} aria-describedby={!ready || !text.trim() ? 'quick-add-preview-why' : undefined}>Preview</button>
       {/* Session AL (D-072, P-DVR-69): a disabled Preview says why */}
       <span id="quick-add-preview-why" className={ready ? 'sr-only' : 'fine quick-add-line-why'}>{health.error || habits.error ? 'Quick add needs your Health and Habits, which could not be read on this device.' : !ready ? 'Reading your habits and Health on this device…' : !text.trim() ? 'Type a line to preview it.' : ''}</span></div>
     {!onlyIfUnderstood && <QuickAddMic disabled={!ready || busy} onText={words => { setText(words); preview(words); }}/>}

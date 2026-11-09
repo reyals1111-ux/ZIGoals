@@ -1430,6 +1430,8 @@ body .metric-note, body .wallet-subtitle {
 @media (hover: hover) { a.text-link:hover, button.text-link:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 3px; } }
 /* Session AH (SE3, D-088): the Settings tab of the group on screen is marked. */
 .settings-page .settings-sections a[aria-current] { color: inherit; box-shadow: inset 0 -2px 0 currentColor; }
+/* Session AL (D-224): the selected section chip answers a hover too, as its neighbours do (its `inherit` beat their hover colour). Colour only. */
+@media (hover: hover) { .settings-page .settings-sections a[aria-current]:hover { color: var(--brand-cyan); } }
 
 /* Session AI (ZI9; Grok's D-059, D-030, B-125, N-203): every "Ask ZIGi" door shows only while ZIGi's launcher does (the
    root carries data-zigi-launcher="shown"); ZIGi switched off, hidden or on a private screen leaves no dead link. */
@@ -1449,3 +1451,21 @@ html:not([data-zigi-launcher="shown"]) .page-ask-zigi { display: none !important
 .app-not-found-places > p { margin: 0 0 6px; }
 .app-not-found-places ul { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0 0 10px; padding: 0; list-style: none; }
 .app-not-found-places .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+/* Session AL (D-064, D-161, D-157, D-158, D-138, D-137, D-162; AL-LAUNCHER-OVERLAP-001, owner decision O3): between 901
+   and 1279 px the floating ZIGi and Checklist buttons (and Music and the Earn dock when on) keep their places on the right
+   edge, but the content ran under them (Health's "+" and Log food inputs, Markets' favourites, Ecosystem's links, Chess's
+   ratings buttons). The main column keeps the same end gutter as from 1280 px (components/ui/ui.css, R20), so nothing
+   interactive scrolls under them; the launchers keep their look and place. Today's two columns keep their width (the
+   PROTECTED hero; the rail keeps its own lane, components/platform/platform.css), as from 1280 px; with that gutter,
+   Governance, Add money and Earn's paths need no lane of their own (as from 1280 px). */
+@media (min-width: 901px) and (max-width: 1279.98px) {
+  :root:not([data-zigi-side=left]) { --launcher-gutter: 58px; }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) { --launcher-gutter: 66px; }
+  :root .app-content main#main:not(:has(.today-page, .checklist-page)) { padding-inline-end: var(--launcher-gutter, 0px); }
+  :root .today-page > :not(.today-layout, .for-you-place), :root .today-page > .for-you-place > *, :root .today-layout > .today-after { padding-inline-end: var(--launcher-gutter, 0px); }
+  :root:not([data-zigi-side=left]):not(#\#) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 0; }
+  :root:not([data-zigi-side=left]):not(#\#) :is(.governance-page, .add-money-page) { padding-inline-end: 0; }
+}
+/* Session AL (DV-031b): an emoji inside a nebula-flow title (components/nebula-flow.tsx) keeps its own colours instead
+   of the flow's clipped gradient, which painted it as a solid disc (black by day). */
+:root .nebula-flow .nebula-flow-emoji { -webkit-text-fill-color: currentColor; background: none; }

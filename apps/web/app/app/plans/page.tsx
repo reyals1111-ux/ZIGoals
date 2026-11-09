@@ -50,6 +50,8 @@ export default function Page() {
       <ul>
         <li>Everything is free during the Alpha, Premium included. ZIGoals bills nothing: there is no checkout, no card to enter and no account to make.</li>
         <li>When paid plans begin is not decided yet. The prices above are placeholders and may change.</li>
+        {/* Session AL (N-MO-02): nothing in docs/ decides what Alpha users keep later, so the page says so, and promises nothing. */}
+        <li>Whether people who used the Alpha keep any features once paid plans begin is not decided yet either.</li>
         <li>Prices are shown in euros only; ZIGoals never invents a conversion.</li>
         <li>“Spotify Premium” in Music is Spotify’s own plan, not ZIGoals Premium.</li>
       </ul>
