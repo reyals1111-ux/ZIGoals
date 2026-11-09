@@ -5,7 +5,12 @@ import {newLock, readLock, tryPin, waitAfter, writeLock, DEVICE_LOCK_KEY} from '
 const memory = () => { const m = new Map<string, string>(); return {m, getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }, removeItem: (k: string) => { m.delete(k); }}; };
 test('the PIN is kept only as a salted hash; the right PIN opens, a wrong one counts', async () => {
   const lock = await newLock('2468');
-  expect(JSON.stringify(lock)).not.toContain('2468');
+  // Session AL (CI 1630, deliberate): the random salted hash can contain any 4 digits by chance (it did: "…bb2468d"), so the
+  // PIN is checked where it could leak — every field but the salt and the hash — and those two must be fixed-length hex.
+  const {salt, hash, ...rest} = lock as typeof lock & {salt: string; hash: string};
+  expect(JSON.stringify(rest)).not.toContain('2468');
+  expect(salt).toMatch(/^[0-9a-f]{32}$/);
+  expect(hash).toMatch(/^[0-9a-f]{64}$/);
   expect((await tryPin(lock, '2468', 0)).ok).toBe(true);
   const wrong = await tryPin(lock, '1111', 0);
   expect(wrong).toMatchObject({ok: false, waitMs: 0, lock: {failures: 1}});

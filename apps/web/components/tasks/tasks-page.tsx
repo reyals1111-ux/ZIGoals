@@ -16,7 +16,6 @@ import {
   addProject, addSection, childrenOf, clearDone, completedInWindow, dropOrder, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
   removeProject, removeSection, renameSection, saveFilter, setOrder, skipOccurrence, taskCounts, taskState, viewTasks, type TaskInput, type TaskView,
 } from '../../lib/tasks/engine';
-import {matchTasks} from '../../lib/tasks/search';
 import {dueReminders} from '../../lib/tasks/reminders';
 import {salvageTasks, keepSalvaged} from '../../lib/tasks/device';
 import {checklistZone} from '../../lib/checklist/day';
@@ -25,6 +24,7 @@ import {MAX_SUBTASK_DEPTH, MAX_TASKS, TASK_COLOURS, type Task, type TaskColour, 
 import {isShowcase} from '../../lib/showcase';
 import {formatClock, formatDate, formatNumber} from '../../lib/visual-format';
 import {showStatus} from '../ui/undo-toast';
+import {chunk} from '../use-chunk';
 import {isTypingTarget, isUndoShortcut} from '../../lib/tasks/undo-shortcut';
 import './tasks.css';
 
@@ -36,6 +36,10 @@ import './tasks.css';
  * shortcuts ("?"); import from Todoist, TickTick or a calendar file and export as CSV. The Checklist is the daily
  * routine and stays as it is. Everything stays on this device (`zigoals:tasks:v1`).
  */
+/* Session AL (CI 1630, page weights; budgets are never raised): the search engine is needed only for a typed filter or a
+   saved filter view, so it is a chunk of its own (asked for as soon as the page's code runs); until it is here such a view
+   keeps the page's loading state, never an empty list. */
+const useSearch = chunk(() => import('../../lib/tasks/search'));
 const PomodoroPanel = lazy(() => import('../focus/pomodoro-panel'));
 const TasksShortcuts = lazy(() => import('./tasks-shortcuts'));
 const TasksIo = lazy(() => import('./tasks-io'));
@@ -95,12 +99,15 @@ export function TasksPage() {
   }, []);
 
   // What the view lists: a filter typed in the field narrows any view (and "Search" is the filter on every task).
+  const search = useSearch(), matchTasks = search.mod?.matchTasks;
   const shown = useMemo<Task[]>(() => {
-    if (view.kind === 'filter') { const saved = record.filters?.find(f => f.id === view.id); return saved ? matchTasks(record, saved.query, {today, nowClock: clock}) : []; }
+    if (view.kind === 'filter') { const saved = record.filters?.find(f => f.id === view.id); return saved && matchTasks ? matchTasks(record, saved.query, {today, nowClock: clock}) : []; }
     // A typed filter searches every task (a project's view: that project's), whatever the view lists.
-    if (query.trim()) return matchTasks({...record, tasks: view.kind === 'project' ? record.tasks.filter(t => t.projectId === view.id) : record.tasks}, query, {today, nowClock: clock});
+    if (query.trim() && matchTasks) return matchTasks({...record, tasks: view.kind === 'project' ? record.tasks.filter(t => t.projectId === view.id) : record.tasks}, query, {today, nowClock: clock});
     return view.kind === 'completed' ? [] : viewTasks(record, view, today, clock);
-  }, [record, view, today, clock, query]);
+  }, [record, view, today, clock, query, matchTasks]);
+  // A saved filter view waits for the search chunk (it would read as empty); a typed query keeps the view's list meanwhile.
+  const ready = tasks.loaded && (view.kind !== 'filter' || !!matchTasks);
   const counts = useMemo(() => taskCounts(record, today, clock), [record, today, clock]); // RR-8: the list's own clock
   const reminders = useMemo(() => tasks.loaded ? dueReminders(record, now, checklistZone(), {dismissed}) : [], [tasks.loaded, record, now, dismissed]);
   const salvage = useMemo(() => tasks.unreadable ? salvageTasks() : null, [tasks.unreadable]);
@@ -303,13 +310,13 @@ export function TasksPage() {
   const empty = view.kind !== 'completed' && shown.length === 0 && !tasks.unreadable;
   const project = view.kind === 'project' ? projectOf(view.id) : undefined;
 
-  return <div className="tasks-page" data-tasks={tasks.loaded ? 'ready' : 'loading'}>
+  return <div className="tasks-page" data-tasks={ready ? 'ready' : 'loading'}>
     {/* Session AL (DV-162, LS-H13): the naming, said plainly — Tasks is the to-do list, the Checklist is the daily routine. */}
     <PageHeader className="page-heading tasks-hero" titleId="tasks-title" eyebrow="Tasks" title="One list for the things to do"
       lede="Your to-do list: one-off things to do, with days, repeats, projects and labels. Your daily routine is the Checklist. On this device only."
       actions={<p className="tasks-links"><Link className="text-link" href="/app/agenda">Your agenda →</Link><Link className="text-link" href="/app/checklist">Daily Checklist →</Link><button type="button" className="text-link" onClick={() => setHelp(true)} aria-keyshortcuts="?">Shortcuts</button><button type="button" className="text-link" aria-expanded={io} onClick={() => setIo(v => !v)}>Import / export</button></p>}
       art={<OrbitArt glyph={TasksGlyph} tone="goals" spin={-26} />} />
-    {!tasks.loaded ? <ZgSkeleton label="Opening your tasks…" className="tasks-skeleton" block lines={3} /> : <>
+    {!ready ? <ZgSkeleton label="Opening your tasks…" className="tasks-skeleton" block lines={3} /> : <>
       {showcase && <p className="fine tasks-showcase" role="note">Showcase · fictional. These example tasks are not yours.</p>}
       {tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><Salvage salvage={salvage} onKeep={() => { if (salvage) { keepSalvaged(salvage.readable); showStatus(`Kept ${plural(salvage.readable.tasks.length, 'task')} that could be read.`); } }} /></Suspense></LoadBoundary>}
       {reminders.length > 0 && <section className="panel tasks-reminders" aria-label="Reminders">
