@@ -35,17 +35,17 @@ wrong" moments. Each step says where to click, what you should see, and what is 
 **Where:** "NOVA" (star) in the sidebar, or `/app/nova`.
 - **See:** the Holo look: instruments drawn in light (rings, meters, a slow shimmer) over your real numbers — every figure
   is the one its page shows. Click a widget: it opens its page with a short morph.
-- **Do:** "Make it yours" → "Widget look" → Classic, then Holo again (kept on this device). Log a glass of water from the
+- **Do:** "Customize the view" (Make it yours) → "Widget look" → Classic, then Holo again (kept on this device). Log a glass of water from the
   Health widget's quick action: the Health page's water total moves, and Undo puts it back.
 - **Say:** Motion "Calm" or "Off" (or the system's Reduce motion) makes the HUD fully still. In Light theme the HUD stays a
   dark island on purpose.
 
 ## 2. Tasks at Todoist level (2 min)
 **Where:** `/app/tasks`.
-- **Do:** type `Call the dentist every first Monday 10:30 #Home p1` in the quick line: a repeating task in the Home
-  project, priority 1, due 10:30. Open it: "only this time / all future" when you change a repeat.
-- **Do:** ⌘+K (Ctrl+K) for the command menu; `?` for the shortcuts. "Select" (or `x`) turns on selection: pick several,
-  then Done or Move in the bar.
+- **Do:** type `Call the dentist every first Monday 10:30 #Home p1` in the quick line and press "Add task": a
+  repeating task in the Home project, priority 1, due 10:30 (the line shows what it read before you add it). Open it: "only this time / all future" when you change a repeat.
+- **Do:** ⌘+K (Ctrl+K) for the command menu; `?` for the shortcuts. Once there are tasks, "Select" (or `x`) turns on
+  selection: pick several, then Done or Move in the bar.
 - **Say:** one checkbox per row marks it done; overdue means the day and, today, the time in your zone — the same count on
   Tasks, Today and NOVA. Tasks and the Checklist are in the encrypted backup, the export and the restore.
 
@@ -84,6 +84,7 @@ wrong" moments. Each step says where to click, what you should see, and what is 
   through a pre-filled form you check and save. With prices offline the week's change is "not known", never a fall made of
   missing prices; "Market prices as of" is only said for market prices.
 - **New:** "Look up an address" on Wealth (any public address on the chains ZIGoals reads; nothing signs or moves).
+  It shows only once a chain is chosen in Settings and never in the Showcase: crypto stays out of sight until chosen.
 
 ## 9. ZIGi: safety first, and the same facts as the pages (1.5 min)
 **Where:** ZIGi (its launcher, or "Apps & extras" on a phone).

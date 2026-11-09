@@ -118,20 +118,15 @@ at most 2 attempts), WebKit zigi-oneline-z:282 and settings-switches-sweep:45 (f
   ~300 ms longer than before CI14). PR-069 closed by owner amendment 10 until O6; CI5's `markets-view` key not added.
 - **Servers:** :3103 → `37d2370c` (/home/user/zig-branch2, started with setsid so it outlives the shell); :3102 main.
 
-## Exact next step (8 Nov, late; head `2f4f3d9e`)
-Done since the owner finish rules: recovery (case 1, the L7 commits existed), round 2 for every lane, a fifth pass per lane,
-the L1 fifth pass, Part 13, Part 14 (P14-C `a81b18dd`), the security delta A and B with their fixes (`044ac17b`, `ab580b9d`),
-and Part 15 builder A (`2f4f3d9e`). The last integration build was `a81b18dd` on :3103.
-1. Done: Part 15 builder B `0e8aaffb` (theme sheets regenerated with the DV-029d CSS), the CI 1602 fixes `558bd54f`
-   (lint, scripts/ locators, the a11y spec), and docs/review/session-al/NEXT_SESSION_BACKLOG.md (18 ranked items).
-2. The Part 16 release review (RELEASE_REVIEW_AL.md) is running; fix its Blocker/Major/Minor findings.
-3. Done: integration build `78be2446` (/home/user/zig-branch, :3101): 97 passed, 1 skipped (tests/grok53/p15, goals
-   fifth-pass incl. DV-029d attempt 2, hud/bn044-memory-chip for BN-044 + N-BN-11, N-049, N-DV-10, zigi-a11y-pass);
-   every route under budget (Today 547.6/567, Health 524.9/531, Tasks 464.5/468, shell 431.1/447).
-4. ONE A10 cycle, then the final replay (rows not FIXED plus FIXED rows whose files changed), the closing table, Part 17.
+## Exact next step (9 Nov: session complete)
+Every part is closed: the final replay (round 3, 1,211 ids) and the final fix pass (round 4, re-checked by
+tests/grok53/release/final-*.spec.ts) are in ADR-037's final closing table; CARRIED.md lists the 111 ids left. The STATUS
+final entry is the last commit. Next: the owner reviews PR #100 (out of Draft), merges, and deploys Alpha #54 from main.
+A next session starts from NEXT_SESSION_BACKLOG.md and CARRIED.md.
 
 ## Open readings
 Q1–Q5 are in ADR-037.
 
-## Live counts (closing table, 8 Nov)
-Fixed 357 · Partly replayed 130 · Open 86 · Not replayed yet 27 · Owner decision 21 (ADR-037 "State on 8 Nov" has the rest).
+## Live counts (final closing table, 9 Nov)
+642 AL rows: Fixed 503 · Fixed + owner decision 21 · Fixed + not possible 5 · Fixed + not reproducible 1 · Owner decision 30
+· Not possible 13 · Waits on owner 2 · Open 50 · Partly replayed 17 (the last two carried: 67 rows, 111 ids).
