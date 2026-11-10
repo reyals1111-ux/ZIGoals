@@ -20,6 +20,7 @@ import {chooserOrder, powerRanks, spreadLine, TOP_N} from '../../lib/zigchain-ec
 // Session AK (F4): one more fact-only order, outside the 10 largest by stake first (each group by name), and each
 // validator's rank by stake with the 10 largest marked; the spread line says how many together hold a third.
 type Sort = 'name' | 'outside' | 'power' | 'commission' | 'uptime';
+const MAX_COMPARE = 3;
 const byName = (a: Validator, b: Validator) => (a.moniker || '').localeCompare(b.moniker || '', 'en') || a.operator.localeCompare(b.operator, 'en');
 const share = (n: number, digits = 1) => `${formatNumber(n * 100, {maximumFractionDigits: digits})} %`;
 export function foundationShare(validators: readonly Validator[]): number | null {
@@ -39,6 +40,11 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
   const rows = useMemo(() => filterValidators(list, {active, hideJailed, maxCommission, sort}), [list, active, hideJailed, maxCommission, sort]);
   const foundation = foundationShare(list), jailed = list.filter(v => v.jailed).length;
   const ranks = useMemo(() => powerRanks(list), [list]), spread = useMemo(() => spreadLine(list), [list]);
+  // Session AL fourth pass (C-BN-05): up to three validators side by side, on the same facts as the table (never a return).
+  const [compare, setCompare] = useState<string[]>([]);
+  const toggleCompare = (op: string) => setCompare(c => c.includes(op) ? c.filter(x => x !== op) : c.length >= MAX_COMPARE ? c : [...c, op]);
+  const compared = compare.map(op => list.find(v => v.operator === op)).filter((v): v is Validator => !!v);
+  const status = (v: Validator) => v.tombstoned ? 'Removed for good' : v.jailed ? 'Jailed' : v.status === 'bonded' ? 'Active' : v.status === 'unbonding' ? 'Leaving' : 'Inactive';
   return <section id="validators" className="earn-validators panel" aria-labelledby="validators-title">
     <SectionHeading id="validators-title" eyebrow="Native staking · who you delegate to" title="Choose a validator from facts"
       lede={<>A validator runs part of ZIGChain and keeps a commission from the rewards of the ZIG delegated to it. Your ZIG never leaves your account. <WhatsThis term="validator"/></>}/>
@@ -67,7 +73,8 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
           <table className="earn-table">
             <thead><tr><th scope="col">Validator</th><th scope="col">Commission</th><th scope="col">Voting power</th><th scope="col">Uptime</th><th scope="col">Self-bond</th><th scope="col">Status</th></tr></thead>
             <tbody>{rows.map(v => <tr key={v.operator} data-validator={v.operator}>
-              <th scope="row" data-label="Validator"><span className="earn-moniker">{v.moniker || 'Unnamed validator'}</span>{v.website ? <span className="earn-website" title="The validator’s own website, as it wrote it on the chain. Not checked by ZIGoals.">{v.website.slice(0, 80)}</span> : null}</th>
+              <th scope="row" data-label="Validator"><span className="earn-moniker">{v.moniker || 'Unnamed validator'}</span>{v.website ? <span className="earn-website" title="The validator’s own website, as it wrote it on the chain. Not checked by ZIGoals.">{v.website.slice(0, 80)}</span> : null}
+                <label className="earn-compare"><input type="checkbox" checked={compare.includes(v.operator)} disabled={!compare.includes(v.operator) && compare.length >= MAX_COMPARE} onChange={() => toggleCompare(v.operator)}/><span>Compare<span className="sr-only"> {v.moniker || 'this validator'}</span></span></label></th>
               <td data-label="Commission">{share(v.commission.rate, 2)}<small> · max {share(v.commission.maxRate, 0)}</small></td>
               <td data-label="Voting power">{share(v.votingPowerShare)}{ranks.get(v.operator) ? <small> · number {ranks.get(v.operator)}{ranks.size > TOP_N && ranks.get(v.operator)! <= TOP_N ? `, one of the ${TOP_N} largest` : ''}</small> : null}</td>
               <td data-label="Uptime">{v.uptime ? <>{share(v.uptime.signedShare, 2)}<small> · {formatNumber(v.uptime.missed)} missed of {formatNumber(v.uptime.window)}</small></> : <Unavailable reason="NOT_PUBLISHED" short/>}</td>
@@ -76,6 +83,23 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
             </tr>)}</tbody>
           </table>
         </div>
+        {compared.length > 0 && <section className="earn-compare-panel" aria-labelledby="validators-compare-title">
+          <h3 id="validators-compare-title" className="earn-subhead">Side by side{compared.length < 2 ? ': choose one or two more' : ''}</h3>
+          <div className="earn-table-wrap" role="region" aria-label="Validators side by side" tabIndex={0}>
+            <table className="earn-table earn-compare-table">
+              <thead><tr><th scope="col">Fact</th>{compared.map(v => <th key={v.operator} scope="col">{v.moniker || 'Unnamed validator'}</th>)}</tr></thead>
+              <tbody>
+                <tr><th scope="row">Commission now</th>{compared.map(v => <td key={v.operator}>{share(v.commission.rate, 2)}</td>)}</tr>
+                <tr><th scope="row">Highest it may set</th>{compared.map(v => <td key={v.operator}>{share(v.commission.maxRate, 0)}</td>)}</tr>
+                <tr><th scope="row">Voting power</th>{compared.map(v => <td key={v.operator}>{share(v.votingPowerShare)}{ranks.get(v.operator) ? ` · number ${ranks.get(v.operator)}` : ''}</td>)}</tr>
+                <tr><th scope="row">Uptime</th>{compared.map(v => <td key={v.operator}>{v.uptime ? `${share(v.uptime.signedShare, 2)} · ${formatNumber(v.uptime.missed)} missed of ${formatNumber(v.uptime.window)}` : <Unavailable reason="NOT_PUBLISHED" short/>}</td>)}</tr>
+                <tr><th scope="row">Self-bond</th>{compared.map(v => <td key={v.operator}>{v.selfBond !== null ? zig(v.selfBond.split('.')[0]!, {compact: true}) : <Unavailable reason="NOT_PUBLISHED" short/>}</td>)}</tr>
+                <tr><th scope="row">Status</th>{compared.map(v => <td key={v.operator}>{status(v)}</td>)}</tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="fine">Facts only, from the same read as the list; nothing here ranks them by what you might earn. <button type="button" className="text-link" onClick={() => setCompare([])}>Clear the comparison</button></p>
+        </section>}
         <SourceLine answer={validators.answer} now={now}/>
         </div>
       </>}

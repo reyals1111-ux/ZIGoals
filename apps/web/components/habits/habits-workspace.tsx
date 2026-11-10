@@ -1,9 +1,11 @@
 "use client";
 import { readMonthWeekdays, setMonthWeekday } from "../../lib/habit-month-weekday/rule";
 import { refreshMonthWeekdays } from "../../lib/habit-month-weekday/install";
-import { HabitRhythmSection } from "../bottom-sections";
+import { HabitRhythmSection } from "../bottom-habit-rhythm";
 import { useJournalZone } from "../use-journal-zone";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { openHabitPage } from "./habit-card-full";
 import { readConfirmDelete } from "../../lib/confirm-delete";
 import { useRouter, useSearchParams } from "next/navigation";
 import { hashId } from "../../lib/hash-id";
@@ -33,12 +35,12 @@ function withPage<P extends object>(load: () => Promise<React.ComponentType<P>>)
     return View ? <View {...props} /> : null;
   };
 }
+const HabitReflections = lazy(() => import("./habit-reflections"));
 const HabitConsistency = withPage(() => import("./habit-consistency").then((m) => m.HabitConsistency));
 import { HabitEditor } from "./habit-editor"; // static on purpose: creating or editing a habit must work offline on a device that never opened the editor (CI's L78 offline step hit a chunk load, ADR-022 B48)
 import { HabitCard, type HabitStackNext } from "./habit-card";
 import { habitStackSuggestions } from "../../lib/habit-linked-policy";
-import type { Habit, HabitData } from "../../lib/habits";
-import type { DeletedHabit } from "../../lib/habit-delete";
+import type { Habit, HabitData, HabitInput } from "../../lib/habits";
 import { GlassBar } from "../progress/glass-progress";
 import { LayoutLockButton, LayoutPage, LayoutRegion, PageTools} from "../layout-edit";
 import { entityLayoutId } from "../../lib/page-layout";
@@ -58,6 +60,7 @@ import { deviceSettingFailureMessage } from "../../lib/storage-error-copy";
 import { useHealth } from "../health/use-health";
 import { useAutoCheckIns } from "./use-auto-checkins";
 import { HealthLinkContext } from "./health-link-context";
+import { ideaHealthLink } from "./health-link-field";
 import { setHabitHealthLink } from "../../lib/habit-health-links/store";
 import { exerciseData } from "../../lib/health-counters";
 import { dailyData } from "../../lib/health-daily";
@@ -72,7 +75,8 @@ import { AutoRulesContext, type AutoRulesApi } from "./auto-rules-context";
 import "./habits-aa.css";
 import { ProgressSlot } from "../game/slot-local";
 import {Skeleton} from '../ui/skeleton';
-import {plainErrorMessage} from "../../lib/plain-error";
+import { showStatus, showUndo } from "../ui/undo-toast";
+import { duplicateHabitInput } from "../../lib/habits-duplicate";
 // Session AA-Local Part 1: the routine player and the year view load when they are opened.
 const RoutinePlayer = lazy(() => import("./routine-player").then((m) => ({ default: m.RoutinePlayer })));
 const YearView = lazy(() => import("./year-view").then((m) => ({ default: m.YearView })));
@@ -102,6 +106,8 @@ const EmptyHabitIdeas = lazy(() => import("./empty-ideas"));
 // here from the habit extras (lib/habits-order/extras.ts, small).
 const AutoRulesKeeper = lazy(() => import("./auto-rules-keeper"));
 const AutoRulesEditor = lazy(() => import("./auto-rules-editor"));
+/** Session AL fourth pass (NB-201): what a habit's own Health setting cannot watch; the rest is "Done automatically when". */
+const PAGE_RULE_SOURCES = ["workout", "contribution"] as const;
 const HabitReorderList = lazy(() => import("./reorder-list"));
 const HabitCompactView = lazy(() => import("./habit-compact-view"));
 // The Cards / Compact switch: fetched with the page (withPage, above), beside the Reorder button that holds the row's height.
@@ -143,7 +149,7 @@ export function HabitsWorkspace() {
   // H7: the Health journal for the link choices, and the automatic check-ins applied on this page (the hook returns this device's links).
   const health = useHealth();
   const links = useAutoCheckIns({ habits: store, health });
-  const healthLinkContext = useMemo(() => ({ counters: exerciseData(health.data).counters, waterUnit: dailyData(health.data).preferences.waterUnit }), [health.data]);
+  const healthLinkContext = useMemo(() => ({ counters: exerciseData(health.data).counters, waterUnit: dailyData(health.data).preferences.waterUnit, ...(health.loaded && !health.error ? { health: health.data } : {}) }), [health.data, health.loaded, health.error]);
   const phone = usePhoneActive();
   const goals = useGoals();
   const platform = usePlatform();
@@ -163,6 +169,13 @@ export function HabitsWorkspace() {
   const [autoRules, setAutoRules] = useState<AutoRulesApi | null>(null), [rulesOpen, setRulesOpen] = useState(false), [reordering, setReordering] = useState(false);
   const healthApplied = useMemo(() => links.data.applied, [links.data.applied]);
   const healthLinkedIds = useMemo(() => Object.keys(links.data.links), [links.data.links]);
+  // Session AL (P-NB-28; NB-199, NB-200): a water idea ("Drink water", 2 liters) is linked to the water journal at once, so
+  // the water already logged today ticks it off; the link is the same one the editor's "Done automatically when" saves.
+  const linkWaterIdea = async (id: string, input: HabitInput) => {
+    const link = links.unreadable ? null : ideaHealthLink(input, healthLinkContext.waterUnit);
+    if (!link) return;
+    try { await links.update(current => setHabitHealthLink(current, id, link, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch { /* the habit is saved; the link can be set from its editor */ }
+  };
   useEffect(() => {
     const follow = () => { const match = /#routine=([^&]+)/.exec(window.location.hash); if (match) { setRoutine(decodeURIComponent(match[1]!)); history.replaceState(null, "", window.location.pathname + window.location.search); } if (window.location.hash === "#year") { setYearOpen(true); requestAnimationFrame(() => document.getElementById("habit-year-title")?.scrollIntoView({block: "start"})); } if (window.location.hash === "#routines") requestAnimationFrame(() => document.getElementById("habit-routines-title")?.scrollIntoView({block: "start"})); };
     follow(); window.addEventListener("hashchange", follow); return () => window.removeEventListener("hashchange", follow);
@@ -220,7 +233,15 @@ export function HabitsWorkspace() {
   const listMode = extras.loaded && !extras.unreadable ? habitListModeOf(extras.data) : "cards";
   const saveExtras = (change: Parameters<typeof extras.update>[0]) => { if (!extras.loaded || extras.unreadable) throw Error("Your habit settings on this device could not be read, so nothing was changed."); extras.update(change); };
   const reorderable = yours.filter((habit) => habitRuleOn(habit, store.today)?.state !== "archived");
-  const visible = yours.filter((habit) => {
+  // Session AL (GAP-085, P-PR-48): one habit's own page, /app/habits?habit=<id> (Today, Activity, Search and Agenda can
+  // link it): only that card, its details, History and Consistency open, and a way back to every habit. A query on the
+  // Habits route, so no new page weight; an unknown id shows the whole list as before.
+  const pageId = useSearchParams().get("habit");
+  const [reflectionsOpen, setReflectionsOpen] = useState(false);
+  const hasReflections = useMemo(() => store.data.habits.some((habit) => habit.entries.some((entry) => entry.disposition === "logged" && (!!entry.note.trim() || !!entry.mood))), [store.data.habits]);
+  const pageHabit = pageId && store.loaded ? store.data.habits.find((habit) => habit.id === pageId) : undefined;
+  if (pageHabit) openHabitPage(pageHabit.id);
+  const visible = pageHabit ? [pageHabit] : yours.filter((habit) => {
     const day = habitDay(habit, store.today, store.today); const archived = habitRuleOn(habit,store.today)?.state === "archived";
     if (filter === "Archived") return archived;
     if (archived) return false;
@@ -240,20 +261,30 @@ export function HabitsWorkspace() {
   // On a phone the editor opens as a sheet over the page, so the page keeps its place.
   const editHabit = useCallback((id: string) => { setEditor(id); setMessage(""); if (!phone) window.scrollTo({ top: 0, behavior: "instant" }); }, [phone]);
   // Session Z-Cloud Part 4.6: "Delete for good" from an archived habit, with Undo for ten seconds.
-  const [deletedHabit, setDeletedHabit] = useState<{ deleted: DeletedHabit; title: string; until: number } | null>(null), [clock, setClock] = useState(() => Date.now());
-  useEffect(() => { if (!deletedHabit) return; const timer = window.setInterval(() => { const now = Date.now(); setClock(now); if (now >= deletedHabit.until) setDeletedHabit(null); }, 500); return () => window.clearInterval(timer); }, [deletedHabit]);
-  const deleteForGoodAction = store.deleteForGood;
-  const deleteForGood = useCallback(async (habit: Habit) => { const deleted = await deleteForGoodAction(habit.id); setMessage(""); setClock(Date.now()); setDeletedHabit({ deleted, title: habit.title, until: Date.now() + 10_000 }); }, [deleteForGoodAction]);
-  async function undoDeleteForGood() {
-    if (!deletedHabit) return;
-    const { deleted, title } = deletedHabit; setDeletedHabit(null);
-    try { await store.undoDelete(deleted); setMessage(`“${title}” is back in Archived.`); } catch (error) { setMessage(plainErrorMessage(error, "Undo was not applied.")); }
-  }
+  // Session AL (3e, A7): the app's one Undo toast. Restore puts the habit record back in the store (the latest record,
+  // through the store's own update); a habit changed since says so instead.
+  const deleteForGoodAction = store.deleteForGood, undoDeleteAction = store.undoDelete;
+  // Session AL fourth pass (NB-133): Duplicate in a card's ⋯ menu adds a copy with the same rule and no history; its Undo
+  // takes the copy away again (the same-day delete, as a habit with nothing recorded has). The copy's card takes the focus.
+  const createAction = store.create, latestTitles = useRef<string[]>([]), todayRef = useRef(store.today);
+  latestTitles.current = store.data.habits.map((h) => h.title); todayRef.current = store.today;
+  const duplicateHabit = useCallback(async (habit: Habit) => {
+    const input = duplicateHabitInput(habit, latestTitles.current, todayRef.current), id = crypto.randomUUID();
+    try { await createAction(input, id); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The copy was not added."); return; }
+    setMessage(""); setFilter("All"); setFocusTarget(`habit-${id}`);
+    showUndo({message: `“${input.title}” added: the same rule, no history yet.`, undoLabel: `Undo the copy of ${habit.title}`,
+      restore: async () => { await deleteForGoodAction(id); return {undone: `The copy of “${habit.title}” is gone.`}; }});
+  }, [createAction, deleteForGoodAction]);
+  const deleteForGood = useCallback(async (habit: Habit) => {
+    const deleted = await deleteForGoodAction(habit.id); setMessage("");
+    showUndo({message: `“${habit.title}” was deleted for good.`, undoLabel: `Undo deleting ${habit.title}`, timeoutMs: 10_000,
+      restore: async () => { await undoDeleteAction(deleted); return {undone: `“${habit.title}” is back in Archived.`}; }});
+  }, [deleteForGoodAction, undoDeleteAction]);
   const cardEntry = (habit: Habit) => {
         const privateGoal = habit.goalLink?.chainId === "private" && habit.goalLink.owner === "local" ? platform.data.goals.find((goal) => goal.id === habit.goalLink!.goalId) : undefined;
         const contractGoalName = habit.goalLink && !privateGoal && goals.goals.some((goal) => goal.id === habit.goalLink!.goalId) ? goals.metadata?.goals[habit.goalLink.goalId]?.name ?? `Goal #${habit.goalLink.goalId}` : undefined;
         const scope = privateGoal ? PRIVATE_SCOPE : contractScope;
-        return {id: entityLayoutId(habit.id), label: habit.title, node: <HabitCard key={habit.id} habit={habit} store={store.card} scope={scope} privateGoal={privateGoal} stackNext={stacks.get(habit.id)} onViewStack={viewStack} goalName={privateGoal?.name ?? contractGoalName} goalHref={privateGoal ? `/app/goals/tracked/${encodeURIComponent(privateGoal.id)}` : habit.goalLink ? `/app/goals/${encodeURIComponent(habit.goalLink.goalId)}` : undefined} stackName={store.data.habits.find((candidate) => candidate.id === habit.stackAfterId)?.title} onEdit={editHabit} onDeleteForGood={deleteForGood} reminderAt={reminders.loaded ? reminders.data.habits[habit.id]?.time ?? null : null} />};
+        return {id: entityLayoutId(habit.id), label: habit.title, node: <HabitCard key={habit.id} habit={habit} store={store.card} scope={scope} privateGoal={privateGoal} stackNext={stacks.get(habit.id)} onViewStack={viewStack} goalName={privateGoal?.name ?? contractGoalName} goalHref={privateGoal ? `/app/goals/tracked/${encodeURIComponent(privateGoal.id)}` : habit.goalLink ? `/app/goals/${encodeURIComponent(habit.goalLink.goalId)}` : undefined} stackName={store.data.habits.find((candidate) => candidate.id === habit.stackAfterId)?.title} onEdit={editHabit} onDeleteForGood={deleteForGood} onDuplicate={duplicateHabit} reminderAt={reminders.loaded ? reminders.data.habits[habit.id]?.time ?? null : null} />};
   };
   const usedAreas = extras.loaded ? extras.areas.filter((a) => store.data.habits.some((h) => habitArea(extras.data, h.id) === a.id)) : [];
   const sectioned = SECTIONED.includes(filter);
@@ -267,7 +298,8 @@ export function HabitsWorkspace() {
             // Session AK F0 (5.1): "the first … of the month" is kept in the habit extras (lib/habit-month-weekday), written only when it changed.
             const ownMonth = readMonthWeekdays(extras.data)[id] ?? null;
             if (monthWeekday !== undefined && (ownMonth?.weekday !== monthWeekday?.weekday || ownMonth?.nth !== monthWeekday?.nth)) { try { saveExtras(current => setMonthWeekday(current, id, monthWeekday ? { ...monthWeekday, from: from ?? store.today } : null, new Set([...store.data.habits.map(habit => habit.id), id]))); refreshMonthWeekdays(); } catch (error) { saved += ` The monthly day was not saved on this device, so every week shows. ${deviceSettingFailureMessage(error)}`; } }
-            setMessage(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
+            // Session AL (DV-128, P-DV-13): a save is said in the app's one toast, which goes away; the page's own line is for problems only.
+            setMessage(""); showStatus(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
   return <HealthLinkContext.Provider value={healthLinkContext}><HabitExtrasContext.Provider value={extras}><AutoRulesContext.Provider value={autoRules}><LayoutPage page="habits"><div className="habits-workspace">
     {store.loaded && !store.error && <LoadBoundary quiet><Suspense fallback={null}><AutoRulesKeeper store={store} health={health} healthApplied={healthApplied} healthLinkedIds={healthLinkedIds} goals={platform.data.goals} events={platform.data.contributions} goalsReady={platform.loaded && !platform.error} onApi={setAutoRules}/></Suspense></LoadBoundary>}
     {routine && <RoutineSheet onClose={() => setRoutine(null)}><Suspense fallback={null}><RoutinePlayer headId={routine} store={store} extras={extras} onClose={() => setRoutine(null)} /></Suspense></RoutineSheet>}
@@ -279,7 +311,6 @@ export function HabitsWorkspace() {
     </PillarHero>
     {store.error && <div className="panel"><p role="alert">{store.error}</p><button className="secondary" onClick={store.refresh}>Retry loading habits</button></div>}
     {message && <p role="status">{message}</p>}
-    {deletedHabit && <p role="status" className="habit-deleted">“{deletedHabit.title}” was deleted for good. <button type="button" className="secondary" onClick={() => void undoDeleteForGood()}>Undo · {Math.max(0, Math.ceil((deletedHabit.until - clock) / 1000))} s</button></p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>
       <LayoutRegion region="body" items={phoneOrder(phone, [
         {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><GlassBar identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)} value={due.length ? completed.length / due.length : 0} /><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p>{phone && <div className="actions habit-overview-actions"><button className="quiet habit-vacation-button" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button></div>}</section>},
@@ -290,21 +321,23 @@ export function HabitsWorkspace() {
             ? <PhoneFormSheet title={editingHabit ? "Edit habit" : "Create a habit"} onClose={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }}>{habitEditor}</PhoneFormSheet>
             : habitEditor)}
           {vacation && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><VacationPanel data={store.data} today={store.today} onMark={(range) => store.setVacation(range)} onClear={(range) => store.clearVacation(range)} onClose={() => setVacation(false)} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Vacation days" onClose={() => setVacation(false)}>{panel}</PhoneFormSheet> : panel; })()}
-          {ideas && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><HabitIdeas data={store.data} today={store.today} onClose={() => setIdeas(false)} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); setMessage(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
+          {ideas && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><HabitIdeas data={store.data} today={store.today} onClose={() => { setIdeas(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('.habit-ideas-button')?.focus()); }} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); await linkWaterIdea(id, input); setMessage(""); showStatus(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
           {phone && <div className="habit-phone-ideas"><button className="quiet habit-ideas-button" disabled={!store.loaded || !!store.error} aria-expanded={ideas} onClick={() => { setIdeas((open) => !open); setMessage(""); }}>Habit ideas</button></div>}
-          <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => { setFilter(item); setShown(PAGE); }}>{item}</button>)}<label className="habit-sort"><span>Sort</span><select aria-label="Sort habits" value={sort} onChange={(event) => { setSort(event.target.value as HabitSort); setShown(PAGE); }}>{HABIT_SORTS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
+          {pageHabit ? <div className="habit-page-bar" role="group" aria-label="One habit"><p className="eyebrow">One habit</p><h2 className="habit-page-title">{pageHabit.title}</h2><p className="fine">Its check-ins, history, consistency and actions, on one page.</p><Link className="text-link" href="/app/habits">← All habits</Link></div> : <>          <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => { setFilter(item); setShown(PAGE); }}>{item}</button>)}<label className="habit-sort"><span>Sort</span><select aria-label="Sort habits" value={sort} onChange={(event) => { setSort(event.target.value as HabitSort); setShown(PAGE); }}>{HABIT_SORTS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
           {usedAreas.length > 0 && <div className="habit-area-bar" role="group" aria-label="Filter by area"><span className="eyebrow">Area</span><button className="quiet" aria-pressed={area === "all"} onClick={() => setArea("all")}>All areas</button>{usedAreas.map((a) => <button className="quiet" key={a.id} aria-pressed={area === a.id} onClick={() => setArea(a.id)}>{a.label}</button>)}</div>}
           {/* Session AK (5.7): cards or the compact list (a display choice on this device), and Reorder for "Your order". */}
           {store.data.habits.length > 0 && <div className="habit-list-tools"><button type="button" className="quiet" aria-expanded={reordering} disabled={!extras.loaded || extras.unreadable || reorderable.length < 2} onClick={() => { setReordering((open) => !open); setSort("yours"); setMessage(""); }}>Reorder</button><HabitListModeSwitch mode={listMode} onChange={(mode) => { try { saveExtras((r) => withHabitListMode(r, mode)); } catch (error) { setMessage(`The list view was not changed. ${deviceSettingFailureMessage(error)}`); } }} /></div>}
-          {reordering && <LoadBoundary quiet><Suspense fallback={null}><HabitReorderList habits={reorderable} onReorder={(ids) => { const live = new Set(store.data.habits.map((habit) => habit.id)); saveExtras((r) => withHabitOrder(r, [...ids, ...yours.filter((habit) => !ids.includes(habit.id)).map((habit) => habit.id)], live)); }} onDone={() => setReordering(false)} /></Suspense></LoadBoundary>}
-          {visible.length && listMode === "compact" ? <section className="habit-compact-section" aria-label={`${filter} habits`}><LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the compact list…" block/>}><HabitCompactView habits={page} store={store} onOpen={editHabit} /></Suspense></LoadBoundary></section>
+          {reordering && <LoadBoundary quiet><Suspense fallback={null}><HabitReorderList habits={reorderable} onReorder={(ids) => { const live = new Set(store.data.habits.map((habit) => habit.id)); saveExtras((r) => withHabitOrder(r, [...ids, ...yours.filter((habit) => !ids.includes(habit.id)).map((habit) => habit.id)], live)); }} onDone={() => setReordering(false)} /></Suspense></LoadBoundary>}</>}
+          {visible.length && listMode === "compact" && !pageHabit ? <section className="habit-compact-section" aria-label={`${filter} habits`}><LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the compact list…" block/>}><HabitCompactView habits={page} store={store} onOpen={editHabit} /></Suspense></LoadBoundary></section>
           : visible.length && sectioned ? <section className="habit-grid-sections" aria-label={`${filter} habits`}><HabitSections sections={groupByTimeOfDay(page, store.today)} extras={extras} hour={new Date().getHours()} onNew={() => { setEditor("new"); setMessage(""); }} render={(section) => <section className="habit-grid" aria-label={`${section.label} habits`}><LayoutRegion region={regionOf(`cards:${section.id}`)} grid allIds={section.habits.map((h) => entityLayoutId(h.id))} items={section.habits.map(cardEntry)} /></section>} /></section>
-          : visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region={regionOf("cards")} grid allIds={(sort === "yours" ? yours : ordered).map(h => entityLayoutId(h.id))} items={page.map(cardEntry)}/></section> : <EmptyState as="section" level={2} className="panel habit-empty" zigi="encouraging" title={store.data.habits.length === 0 ? "Every rhythm begins with one step." : filter === "Completed" ? "Your next check-in is waiting." : filter === "Archived" ? "No archived habits." : "A little breathing room."} action={filter === "Today" && store.data.habits.length > 0 ? <button className="secondary" onClick={() => setFilter("All")}>View all habits</button> : <><button className="primary" disabled={!!store.error} onClick={() => setEditor("new")}>Create a habit</button>{store.data.habits.length === 0 && !store.error && <LoadBoundary quiet><Suspense fallback={null}><EmptyHabitIdeas onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); setMessage(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense></LoadBoundary>}</>}>{store.data.habits.length === 0 ? "Choose a small action you want to return to. Keep it simple, make it yours." : filter === "Today" ? "Nothing is scheduled today. View all habits to review your routine or resume a paused habit." : filter === "Completed" ? "Completed habits for today will appear here." : "Your habits stay available for history and future returns."}</EmptyState>}
+          : visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region={regionOf("cards")} grid allIds={(sort === "yours" ? yours : ordered).map(h => entityLayoutId(h.id))} items={page.map(cardEntry)}/></section> : <EmptyState as="section" level={2} className="panel habit-empty" zigi="encouraging" title={store.data.habits.length === 0 ? "Every rhythm begins with one step." : filter === "Completed" ? "Your next check-in is waiting." : filter === "Archived" ? "No archived habits." : "A little breathing room."} action={filter === "Today" && store.data.habits.length > 0 ? <button className="secondary" onClick={() => setFilter("All")}>View all habits</button> : <><button className="primary" disabled={!!store.error} onClick={() => setEditor("new")}>Create a habit</button>{/* Session AL (C-NB-15, C-NB-30; P-NB-C12): the Loop reader, findable from Habits */}<p className="fine habit-import-link">Coming from Loop Habit Tracker? <Link prefetch={false} className="text-link" href="/app/settings#switch-import">Bring your habits and their history →</Link></p>{store.data.habits.length === 0 && !store.error && <LoadBoundary quiet><Suspense fallback={null}><EmptyHabitIdeas onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); await linkWaterIdea(id, input); setMessage(""); showStatus(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense></LoadBoundary>}</>}>{store.data.habits.length === 0 ? "Choose a small action you want to return to. Keep it simple, make it yours." : filter === "Today" ? "Nothing is scheduled today. View all habits to review your routine or resume a paused habit." : filter === "Completed" ? "Completed habits for today will appear here." : "Your habits stay available for history and future returns."}</EmptyState>}
           {ordered.length > shown && <p className="habit-show-more"><button type="button" className="secondary" onClick={() => setShown(n => n + PAGE)}>Show {Math.min(PAGE, ordered.length - shown)} more of {ordered.length}</button></p>}
           {store.data.habits.length > 0 && <LoadBoundary quiet>{yearOpen ? <Suspense fallback={<section className="panel habit-year"><Skeleton label="Opening the year view…" block/></section>}><YearView habits={store.data.habits} today={store.today} /></Suspense> : <section className="panel habit-year habit-year-closed" aria-labelledby="habit-year-title"><div className="habit-section-heading"><div><p className="eyebrow">The long view</p><h2 id="habit-year-title"><NebulaFlow identity="habit-year-title">Year view</NebulaFlow></h2><p className="fine">A full year per habit, and every habit at once.</p></div><button type="button" className="secondary" onClick={() => setYearOpen(true)}>Open the year view</button></div></section>}</LoadBoundary>}
+          {/* Session AL (GAP-086): every note and mood from check-ins, searchable; its chunk loads when the fold opens. */}
+          {hasReflections && !pageHabit && <details className="panel habit-reflections-fold" onToggle={e => setReflectionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary className="habit-reflections-summary">Your notes and moods</summary>{reflectionsOpen && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening your notes and moods…" block/>}><HabitReflections data={store.data} /></Suspense></LoadBoundary>}</details>}
           {/* Session AK (5.6): "When steps ≥ 8,000 → Walk is done", each rule a plain sentence; the editor loads when opened. */}
-          {store.data.habits.length > 0 && <section className="panel habit-auto-rules" aria-labelledby="habit-auto-rules-title"><div className="habit-section-heading"><div><p className="eyebrow">Done for you</p><h2 id="habit-auto-rules-title">Auto-complete rules</h2><p className="fine">{autoRules?.rules.length ? `${autoRules.rules.length} ${autoRules.rules.length === 1 ? "rule" : "rules"}: ` : ""}Tick a habit off from what this device already records, such as “When steps ≥ 8,000 → Walk is done”.</p></div><button type="button" className="secondary" aria-expanded={rulesOpen} onClick={() => setRulesOpen((open) => !open)}>{rulesOpen ? "Close rules" : "Set up rules"}</button></div>
-            {rulesOpen && (autoRules ? autoRules.unreadable ? <p role="alert">Your rules on this device could not be read, so they are not shown or changed.</p> : <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening your rules…" block/>}><AutoRulesEditor rules={autoRules.rules} habits={reorderable.filter((habit) => habitRuleOn(habit, store.today)?.type === "build").map((habit) => ({ id: habit.id, title: habit.title }))} goals={platform.data.goals.filter((goal) => goal.status === "active").map((goal) => ({ id: goal.id, name: goal.name }))} onSave={autoRules.save} onRemove={autoRules.remove} onPause={autoRules.pause} /></Suspense></LoadBoundary> : <Skeleton label="Opening your rules…" block/>)}
+          {store.data.habits.length > 0 && <section className="panel habit-auto-rules" aria-labelledby="habit-auto-rules-title"><div className="habit-section-heading"><div><p className="eyebrow">Done for you</p><h2 id="habit-auto-rules-title">Workout and contribution rules</h2><p className="fine">{autoRules?.rules.length ? `${autoRules.rules.length} ${autoRules.rules.length === 1 ? "rule" : "rules"}: ` : ""}{/* Session AL fourth pass (NB-201): one automatic setting per kind of record. Water, steps, sleep and active minutes are the habit's own "Done automatically when" (Edit the habit); rules here add what that cannot watch. */}Tick a habit off when a workout is logged or a goal gets a contribution. For water, steps, sleep or active minutes, edit the habit and choose “Done automatically when”.</p></div><button type="button" className="secondary" aria-expanded={rulesOpen} onClick={() => setRulesOpen((open) => !open)}>{rulesOpen ? "Close rules" : "Set up rules"}</button></div>
+            {rulesOpen && (autoRules ? autoRules.unreadable ? <p role="alert">Your rules on this device could not be read, so they are not shown or changed.</p> : <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening your rules…" block/>}><AutoRulesEditor rules={autoRules.rules} habits={reorderable.filter((habit) => habitRuleOn(habit, store.today)?.type === "build").map((habit) => ({ id: habit.id, title: habit.title }))} goals={platform.data.goals.filter((goal) => goal.status === "active").map((goal) => ({ id: goal.id, name: goal.name }))} onSave={autoRules.save} onRemove={autoRules.remove} onPause={autoRules.pause} sources={PAGE_RULE_SOURCES} /></Suspense></LoadBoundary> : <Skeleton label="Opening your rules…" block/>)}
           </section>}
         </div>},
         // Session AE (Part 4, ADR-027): the owner's S4. Routines and your stacks (the same chains, played or listed) are their own
@@ -323,7 +356,7 @@ export function HabitsWorkspace() {
     </>}
     <section className="habit-journal-settings" aria-label="Habit journal settings">
       <p className="fine habit-privacy">Private Habit records · No wallet required · Days use {store.data.timeZone??(journalZone?`${journalZone}, your time zone`:"this device’s timezone until you save your time zone in Settings")}.</p>
-      {store.loaded&&!store.error&&<details className="panel habit-timezone"><summary>Habit journal timezone</summary><form onSubmit={async e=>{e.preventDefault();const zone=String(new FormData(e.currentTarget).get('timezone'));try{await store.update(data=>saveHabitTimezone(data,zone));setZoneMessage('Habit timezone saved. Existing date-only entries and saved timer timestamps remain unchanged.');}catch{setZoneMessage('Choose a valid IANA timezone, such as Europe/Brussels.');}}}><label className="field">Habit timezone<input name="timezone" required maxLength={100} defaultValue={store.data.timeZone??Intl.DateTimeFormat().resolvedOptions().timeZone}/></label><button className="secondary" type="submit">Save Habit timezone</button><p className="fine">This journal setting travels with your private data. Old dates stay as recorded. A timer started under another timezone requires explicit review.</p>{zoneMessage&&<p role="status">{zoneMessage}</p>}</form></details>}
+      {store.loaded&&!store.error&&<details className="habit-timezone">{/* Session AL (R16): a quiet fold under the footnote, not a page panel; Settings → Your time zone holds the same choice */}<summary>Habit journal timezone</summary><form onSubmit={async e=>{e.preventDefault();const zone=String(new FormData(e.currentTarget).get('timezone'));try{await store.update(data=>saveHabitTimezone(data,zone));setZoneMessage('Habit timezone saved. Existing date-only entries and saved timer timestamps remain unchanged.');}catch{setZoneMessage('Choose a valid IANA timezone, such as Europe/Brussels.');}}}><label className="field">Habit timezone<input name="timezone" required maxLength={100} defaultValue={store.data.timeZone??Intl.DateTimeFormat().resolvedOptions().timeZone}/></label><button className="secondary" type="submit">Save Habit timezone</button><p className="fine">This journal setting travels with your private data. Old dates stay as recorded. A timer started under another timezone requires explicit review. The same choice is in <Link className="text-link" href="/app/settings#time-zone">Settings → Your time zone</Link>.</p>{zoneMessage&&<p role="status">{zoneMessage}</p>}</form></details>}
     </section>
   </div></LayoutPage></AutoRulesContext.Provider></HabitExtrasContext.Provider></HealthLinkContext.Provider>;
 }

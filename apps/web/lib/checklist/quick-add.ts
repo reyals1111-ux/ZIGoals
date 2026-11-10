@@ -5,7 +5,8 @@ import {visualTone} from '../../components/visual-tone';
  * - A chosen colour is the habit card's own tone, drawn from the habit's id (`visualTone`), so no field is added anywhere.
  * - Undo removes the habit only while it is exactly as quick add created it: never edited, never checked in, nothing added.
  */
-export const QUICK_NAME_MAX = 80;
+/** Session AL (P-LS-15, LS-H14/LS-H29): the habit form's own title limit (100), so quick add and the full form agree. */
+export const QUICK_NAME_MAX = 100;
 /** A habit id whose card tone is `tone` (0–4), or any id for automatic (null). Bounded: never loops for long. */
 export function habitIdForTone(tone: number | null, make: () => string = () => crypto.randomUUID()): string {
   for (let i = 0; i < 400; i++) { const id = make(); if (tone === null || visualTone(id) === tone) return id; }

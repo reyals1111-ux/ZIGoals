@@ -1,5 +1,5 @@
 import {readDeviceRecord} from '../device-record';
-import {hermesNeedsRedaction, isHermesBase, readHermes} from '../nova/hermes-record';
+import {hermesNeedsRedaction, isHermesBase, localModelStillConfirmed, readHermes} from '../nova/hermes-record';
 import {NOVA_SETUP, readPrivacyMode, type PrivacyMode} from '../nova/setup';
 import {isKnownCloudModel} from '../nova/cloud-models';
 import {getAppStorage} from '../showcase-storage';
@@ -63,6 +63,28 @@ type Redactor = typeof import('../nova/redact');
 function appStorageOrRefusal(): Pick<Storage, 'getItem'> {
   try { return getAppStorage(); } catch { return {getItem: () => { throw Error('Storage is unavailable.'); }}; }
 }
+/**
+ * Session AL Part 14 (lane P14-B; security review Z1A-I3): every string value inside a model's own earlier turn — a tool
+ * call's arguments (JSON text) and a provider's raw turn echoed back (Gemini's parts) — through `clean`; keys, the call's
+ * name, the role and anything named a signature (Gemini's thought signatures must come back unchanged) are left as they are.
+ */
+const KEEP = /^(?:role|name|id|type|call_?id|tool_?call_?id|thought_?signature|signature)$/i;
+/**
+ * Security delta A (SA-6, 8 Nov): the keep-list names the turn's structure only (the call's name and id, the role, a
+ * signature). Inside a tool call's own arguments (`args`, `arguments`) every string is cleaned, whatever its key, so an
+ * argument named `name`, `id` or `type` ("create_goal {name: "Anna's surgery fund"}") is redacted like any other.
+ */
+const ARGUMENTS = /^(?:args|arguments)$/i;
+export function mapStrings(value: unknown, clean: (text: string) => string, key = '', inArguments = false): unknown {
+  if (typeof value === 'string') return !inArguments && KEEP.test(key) ? value : clean(value);
+  if (Array.isArray(value)) return value.map(v => mapStrings(v, clean, key, inArguments));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, mapStrings(v, clean, k, inArguments || ARGUMENTS.test(k))]));
+  return value;
+}
+/** A tool call's arguments: its JSON with every string value cleaned (SA-6: whatever its key), or the whole text when it is not JSON. */
+export function mapArguments(text: string, clean: (text: string) => string): string {
+  try { return JSON.stringify(mapStrings(JSON.parse(text), clean, '', true)); } catch { return clean(text); }
+}
 /** The request a cloud model may receive in Guarded mode, and what was taken out. Pure, given the redaction module. */
 export function redactRequest<R extends ChatRequest>(request: R, redactor: Redactor, knownNames: readonly string[]): {request: R; redacted: number} {
   let redacted = 0;
@@ -70,7 +92,7 @@ export function redactRequest<R extends ChatRequest>(request: R, redactor: Redac
   const blocksValid = !!request.systemBlocks?.length && request.systemBlocks.map(b => b.text).join('') === request.system;
   const blocks = blocksValid ? request.systemBlocks!.map(b => ({...b, text: clean(b.text)})) : undefined;
   let system = blocks ? blocks.map(b => b.text).join('') : clean(request.system);
-  const messages = request.messages.map(m => ({...m, content: clean(m.content)}) as ChatMessage);
+  const messages = request.messages.map(m => (m.role === 'assistant' && m.toolCalls ? {...m, content: clean(m.content), toolCalls: m.toolCalls.map(c => ({...c, arguments: mapArguments(c.arguments, clean)})), ...(m.raw !== undefined ? {raw: mapStrings(m.raw, clean)} : {})} : {...m, content: clean(m.content)}) as ChatMessage);
   let systemBlocks = blocks;
   if (redacted > 0) { system += REDACTION_NOTE; systemBlocks = blocks ? [...blocks, {text: REDACTION_NOTE}] : undefined; }
   const next = {...request, system, messages} as R;
@@ -81,7 +103,16 @@ export function redactRequest<R extends ChatRequest>(request: R, redactor: Redac
  * The engine hook: the request as the privacy mode allows it, or an AiError('blocked') with nothing sent. With no mode,
  * Relaxed, or a model on this computer, the very same request object comes back.
  */
-export async function guardRequest<R extends ChatRequest>(request: R, options: {hosted?: boolean; mode?: PrivacyMode | null; knownNames?: readonly string[]; storage?: Pick<Storage, 'getItem'>} = {}): Promise<R> {
+/**
+ * Session AL Part 14 (lane P14-B; security review Z1A-6 last line, Z1A-7 alternative): optional live checks the chat passes
+ * (lib/ai/privacy-probes.ts), asked only when a mode would redact or refuse and only for a model on this computer:
+ * - `hermes`: the server's /health says `platform: hermes-agent`, so an address the person never connected through the
+ *   guide is still treated as their (unconfirmed) Hermes;
+ * - `ollamaCloud`: Ollama's /api/show marks a model it never listed as one of its cloud models (`remote_host`).
+ * A check that cannot answer changes nothing (the name and saved rules still apply).
+ */
+export type PrivacyProbes = {hermes?: (baseUrl: string) => Promise<boolean>; ollamaCloud?: (baseUrl: string, model: string) => Promise<boolean | null>};
+export async function guardRequest<R extends ChatRequest>(request: R, options: {hosted?: boolean; mode?: PrivacyMode | null; knownNames?: readonly string[]; storage?: Pick<Storage, 'getItem'>; probes?: PrivacyProbes} = {}): Promise<R> {
   // Security review F10 R1-F7 (G7): recovery words saved in a note never leave inside tool results, ZIGi's earlier answers
   // or the system text, in every mode and for every brain; only the matching run is replaced.
   request = await hideRecoveryWordsInRequest(request);
@@ -91,15 +122,22 @@ export async function guardRequest<R extends ChatRequest>(request: R, options: {
   const store = () => storage ??= appStorageOrRefusal();
   const mode = options.mode !== undefined ? options.mode : readPrivacyMode(store());
   const hermes = request.provider === 'local' && !hosted && !!request.baseUrl && !!mode && mode !== 'relaxed' ? readHermes(store()) : null;
-  const hermesUnconfirmed = !!hermes && isHermesBase(request.baseUrl, hermes.data) && (hermes.unreadable || hermes.data.localModelConfirmed !== true);
+  const savedHermes = !!hermes && isHermesBase(request.baseUrl, hermes.data);
+  // Z1A-6 (AL Part 14): an OpenAI-compatible server on this computer whose /health says it is Hermes counts as an unconfirmed Hermes.
+  const probedHermes = !!hermes && !savedHermes && request.localServer !== 'ollama' && !!options.probes?.hermes && await options.probes.hermes(request.baseUrl!).catch(() => false);
+  const hermesUnconfirmed = probedHermes || (savedHermes && (hermes!.unreadable || !localModelStillConfirmed(hermes!.data, request.baseUrl))); // SA-1: for this request's own address
   // Z1A-7: a local model Ollama's list marked as running in its cloud (read only when a mode would refuse or redact it).
-  const knownCloud = request.provider === 'local' && !hosted && !!mode && mode !== 'relaxed' && (() => { try { return isKnownCloudModel(readDeviceRecord(store(), NOVA_SETUP).data, request.model); } catch { return false; } })();
+  let knownCloud = request.provider === 'local' && !hosted && !!mode && mode !== 'relaxed' && (() => { try { return isKnownCloudModel(readDeviceRecord(store(), NOVA_SETUP).data, request.model); } catch { return false; } })();
+  // Z1A-7 alternative (AL Part 14): a model the listing never showed, asked once of Ollama itself (/api/show).
+  if (!knownCloud && request.provider === 'local' && !hosted && !!mode && mode !== 'relaxed' && request.localServer === 'ollama' && request.baseUrl && request.model && !isOllamaCloudModel(request.model) && options.probes?.ollamaCloud) {
+    knownCloud = (await options.probes.ollamaCloud(request.baseUrl, request.model).catch(() => null)) === true;
+  }
   const decision = sendDecision(mode, {provider: request.provider, hosted, model: request.model, hermesUnconfirmed, knownCloud});
   // Hermes Agent runs its own tools and ignores a client's (docs/research/session-ak/HERMES_AGENT.md §2.5): ZIGi's tool
   // definitions never go to it. Only for a Hermes the person connected through the guide (its saved address).
   if (request.tools?.length && request.provider === 'local' && !hosted && request.baseUrl) {
     const saved = readHermes(store()).data;
-    if (saved.baseUrl && isHermesBase(request.baseUrl, saved)) { const {tools: _tools, ...rest} = request; void _tools; return guardRequest(rest as R, {...options, mode, storage: store()}); }
+    if (probedHermes || (saved.baseUrl && isHermesBase(request.baseUrl, saved))) { const {tools: _tools, ...rest} = request; void _tools; return guardRequest(rest as R, {...options, mode, storage: store()}); }
   }
   if (decision === 'send') return request;
   if (decision === 'refuse') throw new AiError('blocked', STRICT_REFUSAL, {provider: request.provider});

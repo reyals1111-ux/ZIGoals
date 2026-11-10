@@ -70,7 +70,7 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
 // ---- the states ----
 const click = async (p, loc) => { await loc.first().click({timeout: 5000}); await p.waitForTimeout(700); };
 const btn = (p, name) => p.getByRole('button', {name, exact: true});
-const healthView = name => async p => { await click(p, p.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true})); await p.waitForTimeout(800); };
+const healthView = name => async p => { await click(p, p.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name, exact: true})); await p.waitForTimeout(800); };
 const firstHref = (prefix) => async p => { const href = await p.locator(`a[href^="${prefix}"]`).first().getAttribute('href'); if (href) { await p.goto(base + href); await p.waitForTimeout(1500); } };
 // Session AF: Earn's recorded live answers (the fixtures the Earn specs use), served in place of the offline /api.
 const EARN_FIXTURES = new URL('../../lib/earn/fixtures/', import.meta.url);
@@ -161,6 +161,7 @@ const STATES = [
   {name: 'settings-data', path: '/app/settings/data'},
   {name: 'settings-reminders', path: '/app/settings/reminders'},
   {name: 'help', path: '/app/help'},
+  {name: 'plans', path: '/app/plans'}, // Session AL (owner decision O2)
   {name: 'zigi-page', path: '/app/zigi'},
   {name: 'share', path: '/app/share'},
   {name: 'not-found', path: '/app/no-such-page'},

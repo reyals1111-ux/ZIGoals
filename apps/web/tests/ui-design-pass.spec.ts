@@ -199,7 +199,8 @@ test.describe('Part 2: personal layouts',()=>{
     const el=page.locator(selector).first();await expect(el).toBeVisible();
     expect(await el.evaluate(e=>!!e.closest('[data-layout-item]')||!!e.querySelector('[data-layout-item],.layout-controls')),`${path} ${selector}`).toBe(false);
    }
-   await page.getByRole('button',{name:'Done',exact:true}).click();
+   // Session AL sweep 3 (DV-024b): Today's one exit is its own "Finish customizing"; the bar's Done is left out there.
+   await page.getByRole('button',{name:path==='/app'?'Finish customizing':'Done',exact:true}).click();
   }
   // Session AC: Settings' facts block (the footer's spans until then) is never inside a movable item either.
   await page.goto('/app/settings');
@@ -327,7 +328,9 @@ test.describe('Part 3: liquid glass',()=>{
  test('keyboard focus gives the same lift with the focus ring',async({page,isMobile})=>{
   test.skip(isMobile,'Keyboard check on desktop');
   await showcase(page);await page.goto('/app/goals');
-  const link=page.locator('.goal-grid .unified-goal-card').first().getByRole('link',{name:'Open Goal →'});
+  // Session AL (D-029, deliberate; components/goal-card.tsx): the card's one tab stop is its title link ("Open Goal →"
+  // is the same place and left the tab order). Keyboard focus on that stop gives the lift and the ring, as before.
+  const link=page.locator('.goal-grid .unified-goal-card').first().locator('h2 a');
   await link.focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');
   await expect(link).toBeFocused();
   const card=page.locator('.goal-grid .unified-goal-card').first();

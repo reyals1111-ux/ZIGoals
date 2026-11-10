@@ -22,7 +22,7 @@ async function timeline(page,kind){
  const panel=page.getByRole('region',{name:'Goal timeline',exact:true});await panel.getByLabel('Event type',{exact:true}).selectOption(kind);
  await panel.getByRole('status').filter({hasText:'retained events'}).waitFor();
  for(const details of await panel.locator('li details').all())if(await details.getAttribute('open')===null)await details.locator('summary').click();
- return panel.locator('li').evaluateAll(rows=>rows.map(row=>({id:row.id,label:row.querySelector('strong')?.textContent,detail:[...row.querySelectorAll('dd')].map(value=>value.textContent)})));
+ return panel.locator('li').evaluateAll(rows=>rows.map(row=>({id:row.id,label:row.querySelector('strong')?.textContent,detail:[...row.querySelectorAll('dd')].map(value=>value.textContent),/* Session AL (L4 fifth pass removed the raw Record ID row): fields read by their label, not their position */fields:Object.fromEntries([...row.querySelectorAll('dt')].map(term=>[term.textContent,term.nextElementSibling?.textContent]))})));
 }
 async function openGoal(page,name,path){await navigate(page,'Goals');await page.getByRole('button',{name:'Active',exact:true}).click();const card=page.locator('.goal-card').filter({has:page.getByRole('heading',{name,exact:true})});const link=card.getByRole('link',{name,exact:true});expect(await link.getAttribute('href')).toBe(path);await link.click();await page.getByTestId('tracked-progress').waitFor();}
 async function pinGoalAndHabit(page,name,path,habit){
@@ -47,28 +47,34 @@ async function create(page,type){
  await page.getByRole('button',{name:'Continue →',exact:true}).click();if(type!=='Project')await page.getByLabel('Create supporting Habit',{exact:true}).check();await page.getByRole('button',{name:'Continue →',exact:true}).click();await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();
  const path=new URL(page.url()).pathname;expect(path).toMatch(/^\/app\/goals\/tracked\/\d+$/);
  const habit=type==='Project'?`Review ${name}`:type==='Value'?'Contribute 50 USD monthly':'Contribute 1 BTC monthly';const supporting=await openModule(page,'supporting-habits');
- if(type==='Project')await supporting.getByRole('button',{name:'Add weekly Goal review habit',exact:true}).click();await supporting.getByRole('heading',{name:habit,exact:true}).waitFor();
+ if(type==='Project')await supporting.getByRole('button',{name:'Add weekly goal review habit',exact:true}).click();await supporting.getByRole('heading',{name:habit,exact:true}).waitFor();
  return {name,path,habit,type};
 }
 async function fund(page,goal){
- await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();const dialog=page.getByRole('dialog',{name:'Fund your Goal',exact:true});
+ await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();/* Session AL (DV-007b, deliberate): the sheet's title reads "Fund your goal" */const dialog=page.getByRole('dialog',{name:'Fund your goal',exact:true});
  if(goal.type==='Value'){await dialog.getByRole('button',{name:'Cash',exact:true}).click();await dialog.getByLabel('Asset name',{exact:true}).fill('Fictional Value continuity cash');await dialog.getByLabel('Cash amount',{exact:true}).fill('200');}
- else{await dialog.getByRole('button',{name:'Crypto',exact:true}).click();await dialog.getByLabel('Search assets',{exact:true}).fill('fictional-unlisted-manual-position');await dialog.getByRole('button',{name:/^(Add it manually|Use manual entry)$/}).click();await dialog.getByLabel('Asset name',{exact:true}).fill('Fictional Quantity continuity BTC');await dialog.getByLabel('Symbol / ticker',{exact:true}).fill('BTC');await dialog.getByLabel('Quantity',{exact:true}).fill('2');await dialog.getByLabel('Total holding value',{exact:true}).fill('200');}
- await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();await dialog.getByLabel('Note (optional)',{exact:true}).fill(`Fictional original ${goal.type} receipt`);await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();expect(await dialog.textContent()).toContain('One contribution record will be added.');await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await dialog.waitFor({state:'hidden'});
- const allocation=await openModule(page,'allocate');await allocation.getByText(`Allocated to this Goal: ${goal.type==='Value'?'200 USD':'2 BTC'}`,{exact:true}).waitFor();
+ /* Session AL (L4 fourth pass, DV-034a/DV-104, deliberate): a Quantity goal made before the chain is chosen counts its own
+    unit (denom manual:BTC, lib/goals/goal-units.ts): Fund adds to that tally with "How many BTC did you add?", with no asset
+    picker; its preview says one record is added and no money moves. */
+ else await dialog.getByLabel('How many BTC did you add?',{exact:true}).fill('2');
+ if(goal.type==='Value')await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();await dialog.getByLabel('Note (optional)',{exact:true}).fill(`Fictional original ${goal.type} receipt`);await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();expect(await dialog.textContent()).toContain(goal.type==='Value'?'One contribution record will be added.':'One record is added; no money moves.');await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await dialog.waitFor({state:'hidden'});
+ /* Session AL (L4 fifth pass DV-034a/DV-104, 4a8543f9, deliberate): a Quantity goal made before the chain is chosen counts its
+    own unit, so it has no Wealth allocation module; its progress itself shows the 2 BTC added. A Value goal keeps the check. */
+ const own=goal.type==='Quantity';const allocation=own?null:await openModule(page,'allocate');
+ if(allocation)await allocation.getByText('Allocated to this goal: 200 USD',{exact:true}).waitFor();else await page.getByTestId('tracked-progress').filter({hasText:/Counted so far\s*2 BTC/}).waitFor();
  const original=await timeline(page,'contribution');expect(original).toHaveLength(1);expect(original[0].detail).toContain(`Fictional original ${goal.type} receipt`);
- const overview=await page.getByTestId('tracked-progress').textContent();const allocationText=await allocation.locator('.platform-position-row').first().textContent();
+ const overview=await page.getByTestId('tracked-progress').textContent();const allocationText=allocation?await allocation.locator('.platform-position-row').first().textContent():null;
  await page.getByRole('button',{name:'Reverse history entry',exact:true}).click();const correction=page.getByRole('dialog',{name:'Review history correction',exact:true});await correction.getByRole('button',{name:'Cancel history correction',exact:true}).click();expect(await timeline(page,'contribution')).toEqual(original);
  await page.getByRole('button',{name:'Reverse history entry',exact:true}).click();await correction.getByRole('button',{name:'Confirm history reversal',exact:true}).click();await correction.waitFor({state:'hidden'});
- const reversed=await timeline(page,'reversal');expect(reversed).toHaveLength(1);expect(reversed[0].detail.at(-1)).toBe(original[0].id.replace('goal-event-contribution:',''));expect(reversed[0].detail).toContain(goal.type==='Value'?'200 USD':'2 BTC');
- expect(await timeline(page,'contribution')).toEqual(original);expect(await page.getByTestId('tracked-progress').textContent()).toBe(overview);expect(await allocation.locator('.platform-position-row').first().textContent()).toBe(allocationText);
+ const reversed=await timeline(page,'reversal');expect(reversed).toHaveLength(1);/* Session AL (DV-038b, deliberate): the reversal names the record it corrects in words, by that contribution's time ("Recorded at" without its seconds), not by its id */expect(reversed[0].detail.at(-1)).toBe(`The contribution of ${original[0].fields['Recorded at'].replace(/(\d{1,2}:\d{2}):\d{2}/,'$1')}`);expect(reversed[0].detail).toContain(goal.type==='Value'?'200 USD':'2 BTC');
+ expect(await timeline(page,'contribution')).toEqual(original);expect(await page.getByTestId('tracked-progress').textContent()).toBe(overview);if(allocation)expect(await allocation.locator('.platform-position-row').first().textContent()).toBe(allocationText);
  return {original,reversed,allocationText};
 }
 async function projectProgress(page){
  expect(await page.getByRole('button',{name:'Fund Goal',exact:true}).count()).toBe(0);expect(await page.locator('#contribution-plan,#allocate').count()).toBe(0);
- const milestones=await openModule(page,'milestones'),first=milestones.getByLabel('Fictional research review',{exact:true}),second=milestones.getByLabel('Fictional delivery review',{exact:true});
- await first.click();await page.getByTestId('tracked-progress').locator('.goal-detail-current').filter({hasText:/^1 milestones$/}).waitFor();const initial=await timeline(page,'milestone');expect(initial).toHaveLength(1);
- await first.click();await page.getByTestId('tracked-progress').locator('.goal-detail-current').filter({hasText:/^0 milestones$/}).waitFor();await second.click();await page.getByTestId('tracked-progress').locator('.goal-detail-current').filter({hasText:/^1 milestones$/}).waitFor();
+ /* Session AL (DV-019f/DV-040b, deliberate): one milestone reads "1 milestone" (lib/goals/goal-units.ts unitAmount) */const milestones=await openModule(page,'milestones'),first=milestones.getByLabel('Fictional research review',{exact:true}),second=milestones.getByLabel('Fictional delivery review',{exact:true});
+ await first.click();await page.getByTestId('tracked-progress').locator('.goal-detail-current').filter({hasText:/^1 milestone$/}).waitFor();const initial=await timeline(page,'milestone');expect(initial).toHaveLength(1);
+ await first.click();await page.getByTestId('tracked-progress').locator('.goal-detail-current').filter({hasText:/^0 milestones$/}).waitFor();await second.click();await page.getByTestId('tracked-progress').locator('.goal-detail-current').filter({hasText:/^1 milestone$/}).waitFor();
  const changes=await timeline(page,'milestone');expect(changes).toHaveLength(3);expect(changes).toContainEqual(initial[0]);expect(await first.isChecked()).toBe(false);expect(await second.isChecked()).toBe(true);return {changes};
 }
 export async function verifyPackagedGoalJourneys(a,b,evidenceDir){
@@ -80,8 +86,13 @@ export async function verifyPackagedGoalJourneys(a,b,evidenceDir){
   if(type==='Project'){
    expect(await b.getByRole('button',{name:'Fund Goal',exact:true}).count()).toBe(0);expect(await b.locator('#contribution-plan,#allocate').count()).toBe(0);const milestones=await openModule(b,'milestones');expect(await milestones.getByLabel('Fictional research review',{exact:true}).isChecked()).toBe(false);expect(await milestones.getByLabel('Fictional delivery review',{exact:true}).isChecked()).toBe(true);expect(await timeline(b,'milestone')).toEqual(evidence.changes);
   }else{
-   const plan=await openModule(b,'contribution-plan');expect(await plan.getByLabel('Planned amount',{exact:true}).inputValue()).toBe(type==='Value'?'50':'1');expect(await plan.getByLabel('Contribution asset',{exact:true}).inputValue()).toBe(type==='Value'?'USD':'BTC');
-   const allocation=await openModule(b,'allocate');expect(await allocation.locator('.platform-position-row').first().textContent()).toBe(evidence.allocationText);expect(await timeline(b,'contribution')).toEqual(evidence.original);expect(await timeline(b,'reversal')).toEqual(evidence.reversed);
+   const plan=await openModule(b,'contribution-plan');expect(await plan.getByLabel('Planned amount',{exact:true}).inputValue()).toBe(type==='Value'?'50':'1');/* Session AL (DV-034a, 99cc79e6, deliberate): a count goal's plan field reads "What you count" on its page */expect(await plan.getByLabel(type==='Value'?'Contribution asset':'What you count',{exact:true}).inputValue()).toBe(type==='Value'?'USD':'BTC');
+   /* Session AL (CI 1629, deliberate; L4 fifth pass DV-034a/DV-104, 4a8543f9): a Quantity goal counts its own unit and has no
+      Wealth allocation module, on device A (fund) and so on device B: B must show none, and the 2 BTC counted instead, as A
+      does. A Value goal keeps the allocation row check, equal to A's. */
+   if(type==='Value'){const allocation=await openModule(b,'allocate');expect(await allocation.locator('.platform-position-row').first().textContent()).toBe(evidence.allocationText);}
+   else{expect(evidence.allocationText).toBeNull();expect(await b.locator('#allocate').count()).toBe(0);await b.getByTestId('tracked-progress').filter({hasText:/Counted so far\s*2 BTC/}).waitFor();}
+   expect(await timeline(b,'contribution')).toEqual(evidence.original);expect(await timeline(b,'reversal')).toEqual(evidence.reversed);
   }
   await b.screenshot({path:`${evidenceDir}/goal-${type.toLowerCase()}-mobile-history.png`,mask:[b.getByLabel(/recovery secret/i)],maskColor:'#FF00FF'});await navigate(b,'Today');await (await todayCard(b,goal.name)).waitFor();await (await todayCard(b,goal.habit)).waitFor();expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   results.push({...goal,...evidence,secondProfileHistoryEqual:true,todayGoalAndHabitReceived:true,financialContribution:type!=='Project'});

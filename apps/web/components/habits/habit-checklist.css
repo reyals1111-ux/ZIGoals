@@ -1,0 +1,10 @@
+/* Session AL Part 15 (AL-COMPETITOR-GAP-105): a checklist inside a habit, on the card (ticks) and in its Details (editor). */
+.habit-checklist { border: 0; margin: 8px 0 4px; padding: 0; min-width: 0; }
+.habit-checklist ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.habit-checklist .checkbox { min-height: 44px; display: flex; align-items: center; gap: 10px; overflow-wrap: anywhere; }
+.habit-checklist .fine { margin: 4px 0 0; }
+.habit-checklist-editor { display: grid; gap: 6px; margin: 8px 0; }
+.habit-checklist-editor > .fine { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.habit-checklist-editor .quiet, .habit-checklist-editor .actions > button { min-height: 44px; }
+.habit-checklist-editor textarea { width: 100%; min-width: 0; }
+.habit-checklist-editor .actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0; }

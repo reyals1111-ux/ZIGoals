@@ -11,7 +11,7 @@ describe('weight and water in the chosen unit (Session Z-Cloud Part 4.7, display
   });
   it('a change carries its sign, zero none', () => {
     expect(weightChangeText(400, 'kg')).toBe('+0.4 kg');
-    expect(weightChangeText(-1_200, 'lb')).toBe('-2.6 lb');
+    expect(weightChangeText(-1_200, 'lb')).toBe('\u22122.6 lb'); // Session AL fifth pass (deliberate): the minus sign, as the coach writes it
     expect(weightChangeText(0, 'lb')).toBe('0 lb');
   });
   it('millilitres keep one decimal at most; US fluid ounces are whole', () => {

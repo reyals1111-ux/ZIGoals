@@ -190,9 +190,10 @@ test('@journey 7b Keplr Mobile signs one reviewed testnet delegation through the
   expect(asked(), 'paired: nothing asked of the wallet yet').toEqual([]);
 
   // Connect: the account read only.
-  await panel.getByRole('button', {name: 'Connect Keplr Mobile for PRACTICE', exact: true}).click();
+  // Session AL (Z1C-I3, deliberate): a phone wallet is named by the name its session reports, not always "Keplr Mobile".
+  await panel.getByRole('button', {name: 'Connect Fictional Keplr for PRACTICE', exact: true}).click();
   await expect(panel.getByText(`${ME.slice(0, 10)}…${ME.slice(-6)}`, {exact: true})).toBeVisible({timeout: 20_000});
-  await expect(panel.locator('.staking-wallet-row')).toContainText('Keplr Mobile');
+  await expect(panel.locator('.staking-wallet-row')).toContainText('Fictional Keplr');
   expect(asked()).toEqual(['cosmos_getAccounts']);
 
   // A delegation of 25 ZIG to Fictional Alpha, typed by the person, reviewed.

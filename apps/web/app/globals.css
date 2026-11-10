@@ -80,6 +80,14 @@ button:disabled {
   color: #000;
   z-index: 100;
 }
+/* CI fix (touch targets, 44 px): a skip link is a target too once it shows (Health's "Skip to Health views" sits in the
+   page, 25 px tall); it stays out of sight above the page until focused. */
+.skip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+}
 .skip:focus {
   top: 10px;
 }
@@ -1399,7 +1407,10 @@ body .metric-note, body .wallet-subtitle {
    there while more of it lies to the right (components/scroll-cues.tsx marks it); a row that fits, or one scrolled to its
    end, never fades. A static mask: nothing moves. */
 @media (max-width: 767.98px) {
-  :root [data-scroll-more] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+  /* Session AL (DV-087a, DV-222, DV-252a, DV-267b; P-DV-51): most rows bleed to the screen's edge with a 16 px gutter of
+     padding, so a 28 px fade fell mostly on that empty gutter and could not be seen. The fade now covers the last chip
+     itself (72 px, ending 4 px from the edge). */
+  :root [data-scroll-more] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 76px), #0000 calc(100% - 4px)); mask-image: linear-gradient(to right, #000 calc(100% - 76px), #0000 calc(100% - 4px)); }
 }
 /* Session AH (LA8, D-213/D-006): while a hard reload opens the private data (the workspace stays hidden until then),
    the page shows a quiet outline of a page instead of an empty void. It is decoration only and never takes a tap. */
@@ -1419,6 +1430,8 @@ body .metric-note, body .wallet-subtitle {
 @media (hover: hover) { a.text-link:hover, button.text-link:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 3px; } }
 /* Session AH (SE3, D-088): the Settings tab of the group on screen is marked. */
 .settings-page .settings-sections a[aria-current] { color: inherit; box-shadow: inset 0 -2px 0 currentColor; }
+/* Session AL (D-224): the selected section chip answers a hover too, as its neighbours do (its `inherit` beat their hover colour). Colour only. */
+@media (hover: hover) { .settings-page .settings-sections a[aria-current]:hover { color: var(--brand-cyan); } }
 
 /* Session AI (ZI9; Grok's D-059, D-030, B-125, N-203): every "Ask ZIGi" door shows only while ZIGi's launcher does (the
    root carries data-zigi-launcher="shown"); ZIGi switched off, hidden or on a private screen leaves no dead link. */
@@ -1427,3 +1440,32 @@ html:not([data-zigi-launcher="shown"]) .page-ask-zigi { display: none !important
 /* Session AK (M7, layout audit): the hidden-page note's one button ("show it in the sidebar") sits in its sentence but is a
    button, so it is a full 44 px target (33 px at 390 px on Portfolio since X1 keeps the crypto pages off until chosen). */
 .hidden-page-banner button.text-link { min-height: 44px; }
+/* Session AL (AL-NAV-013): a page that is not in the menu yet gets one quiet line, not a notice box (TK-6B-03: ~80 px). */
+.hidden-page-chip { margin: 0 0 8px; }
+.hidden-page-chip > p { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 10px; margin: 0; padding: 0 4px 0 14px; border: 1px solid var(--line, #2a325a); border-radius: 999px; color: var(--text); font-size: 14px; }
+.hidden-page-chip button.text-link { font-weight: 700; }
+/* Session AL (3g): the app's 404 (app/app/not-found.tsx): the header pattern's eyebrow and a short list of the main pages. */
+.app-not-found { max-width: 720px; }
+.app-not-found > .eyebrow { margin: 0 0 6px; }
+.app-not-found-places { margin-top: 20px; }
+.app-not-found-places > p { margin: 0 0 6px; }
+.app-not-found-places ul { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0 0 10px; padding: 0; list-style: none; }
+.app-not-found-places .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+/* Session AL (D-064, D-161, D-157, D-158, D-138, D-137, D-162; AL-LAUNCHER-OVERLAP-001, owner decision O3): between 901
+   and 1279 px the floating ZIGi and Checklist buttons (and Music and the Earn dock when on) keep their places on the right
+   edge, but the content ran under them (Health's "+" and Log food inputs, Markets' favourites, Ecosystem's links, Chess's
+   ratings buttons). The main column keeps the same end gutter as from 1280 px (components/ui/ui.css, R20), so nothing
+   interactive scrolls under them; the launchers keep their look and place. Today's two columns keep their width (the
+   PROTECTED hero; the rail keeps its own lane, components/platform/platform.css), as from 1280 px; with that gutter,
+   Governance, Add money and Earn's paths need no lane of their own (as from 1280 px). */
+@media (min-width: 901px) and (max-width: 1279.98px) {
+  :root:not([data-zigi-side=left]) { --launcher-gutter: 58px; }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) { --launcher-gutter: 66px; }
+  :root .app-content main#main:not(:has(.today-page, .checklist-page)) { padding-inline-end: var(--launcher-gutter, 0px); }
+  :root .today-page > :not(.today-layout, .for-you-place), :root .today-page > .for-you-place > *, :root .today-layout > .today-after { padding-inline-end: var(--launcher-gutter, 0px); }
+  :root:not([data-zigi-side=left]):not(#\#) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 0; }
+  :root:not([data-zigi-side=left]):not(#\#) :is(.governance-page, .add-money-page) { padding-inline-end: 0; }
+}
+/* Session AL (DV-031b): an emoji inside a nebula-flow title (components/nebula-flow.tsx) keeps its own colours instead
+   of the flow's clipped gradient, which painted it as a solid disc (black by day). */
+:root .nebula-flow .nebula-flow-emoji { -webkit-text-fill-color: currentColor; background: none; }

@@ -1,0 +1,6 @@
+/* Session AL (P-TK-49): a calm "check this?" note; ink follows the theme, the amber edge marks it (not an error). */
+.plausible-check { display: grid; gap: 8px; justify-items: start; margin: 6px 0 0; padding: 10px 12px; border-left: 4px solid var(--warning, #c98a00); border-radius: 8px; background: color-mix(in srgb, var(--warning, #c98a00) 10%, transparent); color: inherit; font-size: 15px; line-height: 1.45; }
+.plausible-check p { margin: 0; }
+.plausible-check button { min-height: 44px; }
+.plausible-check.wide { grid-column: 1 / -1; }
+@media (forced-colors: active) { .plausible-check { border-left-color: CanvasText; background: Canvas; } }

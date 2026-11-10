@@ -2,6 +2,7 @@ import {expect, test, type Locator, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 14, ZIGi's mini window (Document Picture-in-Picture), end to end. The test browser's own Document
@@ -59,7 +60,7 @@ test('"Pop out" only where the browser offers the mini window, and never on a ph
   if (isMobile) await pictureInPicture(page, 'real'); else await bestPictureInPicture(page);
   await seed(page);
   await page.goto('/app/habits');
-  await openButton(page).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await expect(panel(page)).toBeVisible();
   // A phone layout never offers it, whatever the browser has.
   await expect(panel(page).getByRole('button', {name: 'Pop out ZIGi into a mini window'})).toHaveCount(isMobile ? 0 : 1);

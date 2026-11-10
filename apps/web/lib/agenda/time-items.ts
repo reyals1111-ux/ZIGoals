@@ -74,3 +74,14 @@ export function countExtras(items: readonly DayItem[]): Record<ExtraSource, numb
   for (const i of items) if (i.source === 'task' || i.source === 'event') out[i.source]++;
   return out;
 }
+
+/**
+ * Session AL (P-LA-14 page side, LA-022/LA-023): what is next today across habits, tasks and the rest, in time order —
+ * the timed open items from now on first (a 6 PM task among the habits), then the open ones with no time. For NOVA's
+ * "Next three" and ZIGi's agenda answer (lane L7/L8 call it with the Agenda's own day, so the three agree with the page).
+ */
+export function nextUp(day: DayWithExtras, nowClock: string, count = 3): DayItem[] {
+  const open = day.items.filter(i => i.state === 'open');
+  const timed = open.filter(i => i.time !== null && i.time >= nowClock).sort(compareDayItems), anytime = open.filter(i => i.time === null).sort(compareDayItems);
+  return [...timed, ...anytime].slice(0, count);
+}

@@ -25,3 +25,7 @@
 /* Session AC (AB-Design critique leftover): the Water and habit rows have no switch of their own (their time sets them), so
    their titles start where the switch rows' titles do: past the 22 px switch and its 12 px gap. */
 :root .reminders-item > div.reminders-switch { padding-inline-start: 34px; }
+/* Session AL (MO-038, P-MO-80): a time that waits for the quiet hours says so on its own line; the links to Sleep and
+   Meditation are 44 px targets. */
+.reminders-when > .reminders-quiet-note { flex-basis: 100%; margin: 0; }
+.reminders-when > .text-link { display: inline-flex; align-items: center; min-height: 44px; }

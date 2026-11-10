@@ -32,6 +32,8 @@ export default function QuickLogCards({line, lang = 'en', fallback = null}: {lin
   if (!parsed || !parsed.proposals.length) return <>{fallback}</>;
   return <div className="quick-log-cards" aria-live="polite">
     {parsed.text && <SafeText className="fine" text={parsed.text}/>}
-    <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner}/>
+    {/* Session AL release review (RR-5; LA-044 had fixed ZIGi's and NOVA's no-model cards only): these cards are made on this
+        device with no AI, so a meal's card is never badged "AI estimate"; its values read as unknown until filled in. */}
+    <ProposalList onDevice proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner}/>
   </div>;
 }

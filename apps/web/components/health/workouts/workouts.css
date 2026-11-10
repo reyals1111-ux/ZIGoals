@@ -102,3 +102,6 @@
 :root[data-theme=light] .workouts-freshness-fill { background: #16865c; }
 :root[data-theme=light] .workouts-superset-tag { color: #08394a; background: #d6f3f8; }
 @media (forced-colors: active) { .workouts-bar, .workouts-freshness-fill { background: CanvasText; } .workouts-freshness-track { outline: 1px solid CanvasText; } .workouts-exercise[data-superset] { border-inline-start-color: CanvasText; } }
+/* Session AL (P-MO-41, MO-095): on a phone the exercise picker is part of the page's own scroll, not a box that scrolls
+   inside it (a double scrollbar). */
+@media (max-width: 767.98px) { .workouts-picker-list { max-height: none; overflow: visible; } }

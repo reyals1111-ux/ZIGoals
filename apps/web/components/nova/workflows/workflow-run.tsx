@@ -49,7 +49,7 @@ export function WorkflowRun({def, onClose}: {def: WorkflowDef; onClose: () => vo
       {def.steps.map(s => {
         const seen = steps.find(x => x.id === s.id), state = seen?.state ?? null;
         return <li key={s.id} className="nova-wf-step" data-state={state ?? 'waiting'}>
-          <p className="nova-wf-step-head"><span className="nova-wf-step-mark" aria-hidden="true">{state === 'done' ? '✓' : state === 'running' ? '…' : state === 'failed' ? '!' : state === 'skipped' ? '–' : '○'}</span><strong>{s.label}</strong><span className="nova-wf-step-state">{state ? STATE_WORDS[state] : 'Waiting'}</span></p>
+          <p className="nova-wf-step-head"><span className="nova-wf-step-mark" aria-hidden="true">{state === 'done' ? '✓' : state === 'running' ? '…' : state === 'failed' ? '!' : state === 'skipped' ? '–' : '○'}</span><strong>{s.label}</strong><span className="nova-wf-step-state">{state === 'skipped' && seen?.note && /not shared/i.test(seen.note) ? 'Not shared' : state ? STATE_WORDS[state] : 'Waiting'}</span></p>
           {seen?.facts && <ul className="nova-wf-facts">{seen.facts.map((f, i) => <li key={i}>{f}</li>)}</ul>}
           {seen?.note && <p className="ai-note">{seen.note}</p>}
         </li>;

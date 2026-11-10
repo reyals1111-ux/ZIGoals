@@ -3,16 +3,18 @@ import {closeFormSheet,openMealLog} from "./phone-nav";
 
 test("saved meal, preview copy, water, planner and export work with fictional private records", async ({ page }) => {
   await page.goto("/app/health");
-  await page.getByRole("button", { name: "Foods & recipes", exact: true }).click();
+  await page.getByRole("tab", { name: "Foods & recipes", exact: true }).click();
   await page.getByRole("button", { name: "New food", exact: true }).click();
   const food = page.getByRole("form", { name: "Food details" });
   for (const [label, value] of [["Food name", "Fictional breakfast oats"], ["Serving weight (g)", "40"], ["Calories (kcal)", "150"], ["Protein (g)", "5"], ["Carbs (g)", "27"], ["Fat (g)", "3"]]) await food.getByLabel(label!).fill(value!);
   await food.getByRole("button", { name: "Save food", exact: true }).click();
-  await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await page.getByRole("tab", { name: "Diary", exact: true }).click();
   await page.getByLabel("Journal date").fill("2026-09-23");
   await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal", exact: true });
   await log.getByLabel("Food or recipe").selectOption({ label: "Fictional breakfast oats · food" });
+  // Session AL (A10-2, deliberate): the meal now defaults to the time of day, so the Breakfast this test reads is chosen.
+  await log.getByLabel("Meal", { exact: true }).selectOption("Breakfast");
   await log.getByRole("button", { name: "Log to diary" }).click();
   // On a phone the quick picks sit with the form in the Log a meal sheet (Session I, Part 9).
   await openMealLog(page);
@@ -22,7 +24,7 @@ test("saved meal, preview copy, water, planner and export work with fictional pr
   await closeFormSheet(page);
   await page.getByRole("button", { name: "Add 250 mL", exact: true }).click();
   await expect(page.getByRole("region", { name: "Water journal" })).toContainText("250 mL recorded");
-  await page.getByRole("button", { name: "Meals & planning", exact: true }).click();
+  await page.getByRole("tab", { name: "Meals & planning", exact: true }).click();
   const save = page.getByRole("form", { name: "Save a reusable meal" });
   await save.getByLabel("Saved meal name").fill("Morning bowl");
   await save.getByRole("button", { name: "Save meal", exact: true }).click();
@@ -39,14 +41,16 @@ test("saved meal, preview copy, water, planner and export work with fictional pr
   await page.getByLabel("Grocery end date").fill("2026-09-26");
   await expect(page.getByRole("region", { name: "Grocery list" })).toContainText("40 g");
   await page.reload();
+  // Session AL (P-MO-21, deliberate): a reload keeps the open view (Meals & planning), so the Diary is opened again.
+  await page.getByRole("tab", { name: "Diary", exact: true }).click();
   await page.getByLabel("Journal date").fill("2026-09-24");
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("150 kcal");
-  await page.getByRole("button", { name: "Meals & planning", exact: true }).click();
+  await page.getByRole("tab", { name: "Meals & planning", exact: true }).click();
   await page.getByRole("button", { name: "Log planned Morning bowl" }).click();
-  await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await page.getByRole("tab", { name: "Diary", exact: true }).click();
   await page.getByLabel("Journal date").fill("2026-09-25");
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("150 kcal");
-  await page.getByRole("button", { name: "Journal settings", exact: true }).click();
+  await page.getByRole("tab", { name: "Journal settings", exact: true }).click();
   await page.getByLabel("I understand this CSV contains readable private Health data").check();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export Health CSV" }).click();
@@ -57,18 +61,20 @@ test("saved meal, preview copy, water, planner and export work with fictional pr
 test("label basis, gram entry, water corrections and preferred weight units preserve recorded values", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/app/health");
-  await page.getByRole("button", { name: "Foods & recipes", exact: true }).click();
+  await page.getByRole("tab", { name: "Foods & recipes", exact: true }).click();
   await page.getByRole("button", { name: "New food", exact: true }).click();
   const food = page.getByRole("form", { name: "Food details" });
   for (const [label, value] of [["Food name", "Fictional hundred-gram label"], ["Serving weight (g)", "40"], ["Calories (kcal)", "375"], ["Protein (g)", "12.5"], ["Carbs (g)", "67.5"], ["Fat (g)", "7.5"]]) await food.getByLabel(label!).fill(value!);
   await food.getByLabel("Nutrition label basis").selectOption("100g");
   await food.getByRole("button", { name: "Save food", exact: true }).click();
-  await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await page.getByRole("tab", { name: "Diary", exact: true }).click();
   await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal", exact: true });
   await log.getByLabel("Food or recipe").selectOption({ label: "Fictional hundred-gram label · food" });
   await log.getByLabel("Quantity unit", { exact: true }).selectOption("grams");
   await log.getByLabel("Food weight (g)").fill("60");
+  // Session AL (A10-2, deliberate): the meal now defaults to the time of day, so the Breakfast this test reads is chosen.
+  await log.getByLabel("Meal", { exact: true }).selectOption("Breakfast");
   await log.getByRole("button", { name: "Log to diary" }).click();
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("225 kcal");
   await page.getByRole("button", { name: "Add 250 mL", exact: true }).click();
@@ -76,17 +82,17 @@ test("label basis, gram entry, water corrections and preferred weight units pres
   await page.getByLabel("Water amount", { exact: true }).fill("300");
   await page.getByRole("button", { name: "Save water correction" }).click();
   await expect(page.getByRole("region", { name: "Water journal" })).toContainText("300 mL recorded");
-  await page.getByRole("button", { name: "Journal settings", exact: true }).click();
+  await page.getByRole("tab", { name: "Journal settings", exact: true }).click();
   await page.getByLabel("Journal timezone", { exact: true }).fill("Europe/Brussels");
   await page.getByLabel("Preferred weight unit").selectOption("lb");
   await page.getByRole("button", { name: "Save journal preferences" }).click();
-  await page.getByRole("button", { name: "Weight", exact: true }).click();
+  await page.getByRole("tab", { name: "Weight", exact: true }).click();
   await page.getByLabel("Weight (lb)", { exact: true }).fill("150");
   await page.getByRole("button", { name: "Save weight", exact: true }).click();
   // Session Z-Cloud Part 4.7: the history reads in the chosen unit; the record keeps the grams the pounds convert to.
   await expect(page.getByRole("table", { name: "Weight history", exact: true })).toContainText("150 lb");
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("zigoals:health:v1")!).weights.map((w: {grams: number}) => w.grams))).toContain(68_039);
-  await page.getByRole("button", { name: "Activity", exact: true }).click();
+  await page.getByRole("tab", { name: "Activity", exact: true }).click();
   const activity = page.getByRole("form", { name: "Manual activity", exact: true });
   await activity.getByLabel("Activity name").fill("Fictional walk");
   await activity.getByLabel("Steps", { exact: true }).fill("500");
@@ -94,7 +100,8 @@ test("label basis, gram entry, water corrections and preferred weight units pres
   await page.getByRole("button", { name: "Edit activity Fictional walk" }).click();
   await activity.getByLabel("Steps", { exact: true }).fill("800");
   await activity.getByRole("button", { name: "Save correction" }).click();
-  await expect(page.getByText("800 steps · 0 minutes", { exact: true })).toBeVisible();
+  // Session AL (MO-040, deliberate): a part left blank is not shown as zero ("800 steps", not "800 steps · 0 minutes").
+  await expect(page.getByText("800 steps", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -110,7 +117,7 @@ test("Health daily panels reflow at phone tablet and desktop widths", async ({ p
     expect(controls.every(r => r.width >= 30 && r.height >= 36 && r.left >= 0 && r.right <= width)).toBe(true);
     if ([320, 390, 1440].includes(width)) await page.screenshot({ path: testInfo.outputPath(`health-diary-${width}-${testInfo.project.name}.png`), fullPage: true });
   }
-  await page.getByRole("button", { name: "Meals & planning", exact: true }).click();
+  await page.getByRole("tab", { name: "Meals & planning", exact: true }).click();
   await page.setViewportSize({ width: 320, height: 1000 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath(`health-planning-320-${testInfo.project.name}.png`), fullPage: true });

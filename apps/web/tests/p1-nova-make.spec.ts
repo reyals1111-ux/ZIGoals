@@ -12,7 +12,7 @@ import {NOVA_WORKFLOWS_KEY} from '../lib/nova/workflows/schema';
  * Session AK lane P1 (owner message 4, P1; WIRING_AUDIT_2 row N2 gap 3): NOVA's "Make it yours" and its panels, driven on
  * the UI path — the four layouts (Customize the view and View controls; remembered on this device), the five accents (each
  * a different nebula pair on NOVA's frame), the persona (name, avatar: the orb or ZIGi, what NOVA calls the person), the
- * Activity panel (a card confirmed in NOVA appears there, by ZIGi, and is removed and put back with Undo) and the model per
+ * Activity panel (a card confirmed in NOVA appears there, by NOVA, and is removed and put back with Undo) and the model per
  * task (chat, briefs, workflows) on a MOCK local server. The MOCK answers on 127.0.0.1:1234 come from page.route; every
  * other outside host is refused and counted (nothing leaves the browser). Fictional data only.
  */
@@ -155,7 +155,7 @@ test.describe('Make NOVA yours on a computer', () => {
     await expect(page.locator('.nova-greeting')).toContainText('NOVA is here for simple questions.');
   });
 
-  test('Activity: a card confirmed in NOVA is listed there by ZIGi; Remove takes it out and Undo puts it back', async ({page}) => {
+  test('Activity: a card confirmed in NOVA is listed there by NOVA; Remove takes it out and Undo puts it back', async ({page}) => {
     await mockLocal(page, block({kind: 'log-water', millilitres: 300}));
     await page.clock.install({time: EVENING});
     await page.goto('/app/settings');
@@ -169,7 +169,8 @@ test.describe('Make NOVA yours on a computer', () => {
     await page.goto('/app/nova');
     // Before any card: the right panel says nothing was done yet.
     await page.getByRole('button', {name: 'Show Behind the intelligence'}).click();
-    const right = page.getByRole('complementary', {name: 'Behind the intelligence'});
+    // Session AL (deliberate, sweep 2; LA-024 / N-LS-05): NOVA's side panels are named regions inside <main>, no longer complementary landmarks; same element, same name.
+    const right = page.getByRole('region', {name: 'Behind the intelligence'});
     await expect(right).toContainText('No action yet.');
     await page.getByRole('textbox', {name: 'Message NOVA'}).first().fill('Log 300 ml of water');
     await page.getByRole('textbox', {name: 'Message NOVA'}).first().press('Enter');
@@ -185,7 +186,9 @@ test.describe('Make NOVA yours on a computer', () => {
     await expect(panels.getByRole('navigation', {name: 'NOVA panels'}).getByRole('button', {name: 'Activity'})).toHaveAttribute('aria-pressed', 'true');
     const water = panels.locator('.activity-event').filter({hasText: 'Water: 300 mL'});
     await expect(water).toHaveCount(1);
-    await expect(water.locator('.activity-by-zigi')).toHaveText(' · by ZIGi');
+    // Session AL fifth pass (LA-029, deliberate): a card confirmed in NOVA's chat names NOVA as its source, as exactly as ZIGi's
+    // name was pinned before (the actions log line carries `by: 'nova'`).
+    await expect(water.locator('.activity-by-zigi')).toHaveText(' · by NOVA');
     await water.getByRole('button', {name: /^Remove Water: 300 mL/}).click();
     await expect(panels.getByRole('button', {name: /^Remove Water: 300 mL/})).toHaveCount(0);
     await page.getByRole('button', {name: 'Undo'}).click();
@@ -245,7 +248,7 @@ test.describe('Make NOVA yours on a computer', () => {
     await fresh(page);
     await page.goto('/app/nova');
     await page.getByRole('button', {name: 'Show Behind the intelligence'}).click();
-    const right = page.getByRole('complementary', {name: 'Behind the intelligence'});
+    const right = page.getByRole('region', {name: 'Behind the intelligence'});
     await right.getByText('Cost meter and models per task').click();
     await right.getByRole('button', {name: 'Models per task'}).click();
     const panels = page.getByRole('dialog', {name: 'NOVA’s panels'});

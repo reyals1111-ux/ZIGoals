@@ -5,7 +5,7 @@ import {createMarketHistoryCache, fetchPublicMarketHistory, formatHistoryValue, 
 import {formatDate, formatDateTime, formatMoney, formatSignedMoney} from '../../lib/visual-format';
 import {coinKey, type Portfolio} from '../../lib/portfolio/schema';
 import {PortfolioDecimal} from '../../lib/portfolio/math';
-import {VALUE_RANGES, coinsInWindow, rangeWindow, valueSeries, type PricePoint, type ValueRange} from '../../lib/portfolio/performance';
+import {VALUE_RANGES, coinsInWindow, priceChange, rangeReturns, rangeWindow, valueSeries, type PricePoint, type ValueRange} from '../../lib/portfolio/performance';
 import {showcasePrices} from '../../lib/portfolio/showcase';
 import {percent} from '../markets/market-format';
 import {FilterChips} from '../markets/filter-chips';
@@ -16,6 +16,8 @@ const cache = createMarketHistoryCache((request, refresh) => fetchPublicMarketHi
 const LABEL: Record<ValueRange, string> = {'24h': '24H', '7d': '7D', '30d': '30D', '90d': '90D', '1y': '1Y', all: 'All'};
 /** At most this many coins are charted, so one view never asks the market service for more than ten histories. */
 export const MAX_CHART_COINS = 10;
+/** Session AL (GAP-016): the comparison line uses Bitcoin's own observed price (a coin, not an index: stock indexes need a paid feed, F). */
+const BENCHMARK_REF = {provider: 'coingecko', kind: 'coin', id: 'bitcoin'} as const, BENCHMARK_KEY = coinKey(BENCHMARK_REF);
 const W = 760, H = 220, TOP = 16, BOTTOM = 196, LEFT = 8, RIGHT = 752;
 
 /**
@@ -29,14 +31,15 @@ export function PortfolioValueChart({portfolio, showcase}: {portfolio: Portfolio
   const coins = useMemo(() => coinsInWindow(portfolio, span.start), [portfolio, span.start]);
   const refs = useMemo(() => new Map(portfolio.coins.map(c => [coinKey(c.ref), c.ref])), [portfolio.coins]);
   const [histories, setHistories] = useState<{key: string; results: Map<string, MarketHistoryResult>} | null>(null);
-  const requestKey = `${portfolio.currency}:${span.history}:${coins.join(',')}`, tooMany = coins.length > MAX_CHART_COINS;
+  const tooMany = coins.length > MAX_CHART_COINS, withBenchmark = !coins.includes(BENCHMARK_KEY) && coins.length < MAX_CHART_COINS;
+  const requestKey = `${portfolio.currency}:${span.history}:${coins.join(',')}${withBenchmark ? '+btc' : ''}`;
   useEffect(() => {
     if (showcase || tooMany || !coins.length) return;
     let active = true;
     void (async () => {
       const results = new Map<string, MarketHistoryResult>();
-      for (const coin of coins) {
-        const ref = refs.get(coin);
+      for (const coin of withBenchmark ? [...coins, BENCHMARK_KEY] : coins) {
+        const ref = coin === BENCHMARK_KEY ? BENCHMARK_REF : refs.get(coin);
         if (!ref || ref.kind !== 'coin') continue;
         results.set(coin, await cache.load({marketRef: ref, currency: portfolio.currency, range: span.history}));
         if (!active) return;
@@ -56,6 +59,9 @@ export function PortfolioValueChart({portfolio, showcase}: {portfolio: Portfolio
     return map;
   }, [coins, showcase, loaded, portfolio.currency, span.start, now]);
   const series = useMemo(() => valueSeries(portfolio, prices, {start: span.start, end: span.end, steps: 96}), [portfolio, prices, span.start, span.end]);
+  // Session AL (GAP-016, P-DVG-62): time- and money-weighted returns over the shown range, from the same prices.
+  const returns = useMemo(() => rangeReturns(portfolio, prices, {start: span.start, end: span.end}), [portfolio, prices, span.start, span.end]);
+  const benchmark = useMemo(() => { if (showcase) return undefined; const own = prices.get(BENCHMARK_KEY), history = loaded?.get(BENCHMARK_KEY)?.history; return priceChange(own ?? history?.points.map(p => ({at: Date.parse(p.at), price: formatHistoryValue(p)})), {start: span.start, end: span.end}); }, [showcase, prices, loaded, span.start, span.end]);
   const known = series.points.filter(p => p.value !== null), loading = !showcase && !tooMany && coins.length > 0 && (!loaded || loaded.size < coins.length);
   const failed = !showcase && loaded ? coins.filter(coin => !loaded.get(coin)?.history).length : 0;
   const values = known.map(p => Number(p.value)), min = Math.min(...values), max = Math.max(...values);
@@ -75,7 +81,7 @@ export function PortfolioValueChart({portfolio, showcase}: {portfolio: Portfolio
       <FilterChips className="portfolio-ranges" label="Chart range" options={VALUE_RANGES.map(r => ({value: r, label: LABEL[r]}))} value={range} onChange={r => { setRange(r); setInspect(null); setNow(Date.now()); }} />
     </header>
     {tooMany ? <p className="fine" role="note">The chart covers portfolios of up to {MAX_CHART_COINS} coins in a range; this one has {coins.length}. Each coin&rsquo;s own chart is on its page.</p> : <>
-      {shown && shown.value !== null && <p className="portfolio-chart-quote"><strong>{formatMoney(shown.value, currency)}</strong> <span><time dateTime={new Date(shown.at).toISOString()}>{formatDateTime(shown.at)}</time>{change !== null && inspect === null ? <> · <span data-direction={Number(change) > 0 ? 'up' : Number(change) < 0 ? 'down' : 'flat'}>{formatSignedMoney(change, currency)}{changePct !== null ? ` (${percent(changePct)})` : ''}</span> in this range, buys and sells included</> : null}</span></p>}
+      {shown && shown.value !== null && <p className="portfolio-chart-quote"><strong>{formatMoney(shown.value, currency)}</strong> <span>{inspect === null ? 'as of ' : ''}<time dateTime={new Date(shown.at).toISOString()}>{formatDateTime(shown.at)}</time>{change !== null && inspect === null ? <> · <span data-direction={Number(change) > 0 ? 'up' : Number(change) < 0 ? 'down' : 'flat'}>{formatSignedMoney(change, currency)}{changePct !== null ? ` (${percent(changePct)})` : ''}</span> in this range, buys and sells included</> : null}</span>{/* Session AL (TK-029, X3-03): why this figure can differ from the Value card above */}{inspect === null && !showcase && <span className="portfolio-chart-asof"> The chart reads dated prices, so it can differ a little from Value above, which uses the latest quote.</span>}</p>}
       {segments.length ? <svg className="portfolio-chart-plot zg-chart" data-pillar="wealth" viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={`${id}-desc`} tabIndex={0}
         onPointerMove={event => { const rect = event.currentTarget.getBoundingClientRect(), at = span.start + Math.max(0, Math.min(1, ((event.clientX - rect.left) / rect.width * W - LEFT) / (RIGHT - LEFT))) * (span.end - span.start); let best = 0; series.points.forEach((p, i) => { if (p.value !== null && Math.abs(p.at - at) < Math.abs(series.points[best]!.at - at)) best = i; }); setInspect(series.points[best]!.value === null ? null : best); }}
         onPointerLeave={() => setInspect(null)}
@@ -87,6 +93,12 @@ export function PortfolioValueChart({portfolio, showcase}: {portfolio: Portfolio
         {segments.map((points, i) => <polyline key={i} points={points} className="portfolio-chart-line zgc-line" style={{stroke: look.stroke('a')}} filter={look.glow} fill="none" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />)}
         {shown && shown.value !== null && <circle cx={x(shown.at)} cy={y(Number(shown.value))} r="4" className="portfolio-chart-dot" />}
       </svg> : <p className="portfolio-chart-empty" role={loading ? 'status' : undefined}>{loading ? 'Loading observed prices…' : 'No observed prices for this range yet. Earlier values are not assumed.'}</p>}
+      {!loading && <dl className="portfolio-returns" aria-label="Returns over this range">
+        <div><dt>Time-weighted</dt><dd>{returns.twr !== undefined ? percent(returns.twr) : '—'}</dd></div>
+        <div><dt>Money-weighted</dt><dd>{returns.mwr !== undefined ? percent(returns.mwr) : '—'}</dd></div>
+        {benchmark !== undefined && <div><dt>Bitcoin&rsquo;s price, same range</dt><dd>{percent(benchmark)}</dd></div>}
+      </dl>}
+      {!loading && <p className="fine">{returns.reason === 'price' ? 'Returns unknown: a coin you held had no observed price at a moment they need. ' : returns.reason === 'empty' ? 'Returns unknown: nothing was held in this range. ' : ''}Time-weighted leaves out when you added or took out money; money-weighted counts it. Over this range, not per year, at observed market prices (fees are in your All-time result). Bitcoin is a comparison, not an index. Information, not advice.</p>}
       <div className="portfolio-chart-axis"><time dateTime={new Date(span.start).toISOString()}>{formatDate(span.start)}</time><time dateTime={new Date(span.end).toISOString()}>{formatDate(span.end)}</time></div>
       <p className="fine">{showcase ? 'The Showcase\u2019s fixture prices, not market data.' : 'From CoinGecko’s dated prices and your transactions; a transaction counts from the start of its date (UTC).'} The scale fits these values; it does not start at zero.{!series.complete && known.length ? ' Gaps are moments where a coin you held had no observed price.' : ''}{span.clipped ? ' Market history goes back one year, so "All" starts there.' : ''}{failed ? ` History is unavailable for ${failed} ${failed === 1 ? 'coin' : 'coins'} right now.` : ''}</p>
       {known.length > 0 && <details className="portfolio-exact"><summary>View exact values <span>{known.length} moments</span></summary><div className="portfolio-exact-wrap" role="region" aria-label="Exact values" tabIndex={0}><table><caption>{portfolio.name} · {currency}</caption><thead><tr><th scope="col">Moment (UTC)</th><th scope="col">Value ({currency})</th></tr></thead><tbody>{series.points.map(p => <tr key={p.at}><td><time dateTime={new Date(p.at).toISOString()}>{formatDateTime(p.at)}</time></td><td>{p.value === null ? 'No observed price' : formatMoney(p.value, currency)}</td></tr>)}</tbody></table></div></details>}

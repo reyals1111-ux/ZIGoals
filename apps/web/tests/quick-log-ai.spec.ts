@@ -4,6 +4,7 @@ import {HEALTH_STORAGE_KEY, type HealthData} from '../lib/health';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {isPhone} from './phone-nav';
 import {speak, voiceFakes} from './zigi-af';
+import {pressZigi} from './zigi-open';
 
 // Session AI (J10, ZI11): ONE line for several things: each understood item becomes its own card (ZIGi's cards, made on this
 // device with no AI), each added on its own; nothing is written before Add. The same line works as /log in ZIGi with no AI.
@@ -56,7 +57,7 @@ test('Dutch: "2 glazen water en een banaan" is two cards', async ({page}) => {
 
 test('ZIGi with no AI: /log takes the same line and answers with the cards, made on this device', async ({page}) => {
   await page.goto('/app/health');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   const panel = page.locator('dialog.ai-chat[open]');
   await expect(panel).toBeVisible();
   const box = panel.getByRole('textbox').last();

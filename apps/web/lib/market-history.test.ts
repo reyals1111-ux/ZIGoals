@@ -64,3 +64,10 @@ it('uses Workers-compatible manual redirects and never follows a provider redire
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher:redirectFetch,clock:()=>now}).history(request)).rejects.toThrow('CoinGecko market data unavailable.');
  expect(redirects).toBe(1);
 });
+it('TK-028/TK-213/W8: an observed price reads as money, and a 90-day window that starts a little late still offers 90D',async()=>{
+ const {formatHistoryPrice}=await import('./market-history');
+ expect(formatHistoryPrice({at:'2026-09-20T12:00:00Z',value:'7684177423078995',decimals:11},'USD')).toBe('$76,841.77');
+ expect(formatHistoryPrice({at:'2026-09-20T12:00:00Z',value:'9176606137716966',decimals:14},'USD')).toBe('$91.76');
+ const end=Date.parse('2026-09-20T12:00:00Z'),points=[0,1,2].map(i=>({at:new Date(end-(89.9-i*44.95)*86400000).toISOString(),value:String(10+i),decimals:0}));
+ expect(availableHistoryRanges(points)).toContain('90d');
+});

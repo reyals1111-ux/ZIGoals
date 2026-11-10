@@ -3,3 +3,6 @@
 /* Session AK Part 11 (layout audit, 320 px): "Import from your bank" wraps under the heading instead of covering it. */
 .spending>.wealth-section-heading{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px 24px}
 .spending>.wealth-section-heading>div{min-width:0;flex:1 1 220px}
+#wealth-change-review > summary + p { margin-top: 12px; }
+/* Session AL (TK-6B-08): no orphan last word ("view.") in the Wealth title at tablet widths. */
+.wealth-heading h1 { text-wrap: balance; }

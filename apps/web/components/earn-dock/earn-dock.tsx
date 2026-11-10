@@ -4,7 +4,7 @@ import {Suspense, lazy, useEffect, useRef, useState} from 'react';
 import {EARN_PREFS, earnPrefsOf, setEarnPref} from '../../lib/earn/records';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {LoadBoundary} from '../load-boundary';
-import {usePhoneActive} from '../phone/use-phone-layout';
+import {useCompactShell} from '../phone/use-phone-layout';
 import {EarnDockMark} from './earn-dock-mark';
 import './earn-dock.css';
 
@@ -17,13 +17,14 @@ const EarnDockFan = lazy(() => import('./earn-dock-fan'));
  * the Earn page; the fan moves once per opening and stands still under reduced motion and Motion Off. The arrow under it
  * tucks it into the screen's edge; the edge tab brings it back. Off in Settings on this device (`zigoals:earn-prefs:v1`
  * dockShown, dockFolded). Phones get no floating button (H68): the Earn page's app strip and a row in More instead.
+ * Session AL (owner decision O3): computers only (901 px and up); below that the "Apps & extras" sheet lists Earn.
  */
 export function EarnDock() {
-  const pathname = usePathname() ?? '', phone = usePhoneActive(), prefs = useDeviceRecord(EARN_PREFS);
+  const pathname = usePathname() ?? '', compact = useCompactShell(), prefs = useDeviceRecord(EARN_PREFS);
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false);
   const root = useRef<HTMLDivElement>(null), button = useRef<HTMLButtonElement>(null);
   useEffect(() => { queueMicrotask(() => setMounted(true)); }, []);
-  const p = earnPrefsOf(prefs.data), shown = mounted && prefs.loaded && !prefs.unreadable && p.dockShown && !phone && pathname.startsWith('/app');
+  const p = earnPrefsOf(prefs.data), shown = mounted && prefs.loaded && !prefs.unreadable && p.dockShown && !compact && pathname.startsWith('/app');
   // Escape closes the fan and gives focus back; a press outside closes it too.
   useEffect(() => {
     if (!open) return;

@@ -34,6 +34,8 @@ import { usePhoneActive, usePhoneChrome } from "./use-phone-layout";
 import { useVisualViewportInsets } from "./use-visual-viewport";
 import { useSheetDrag } from "./use-sheet-drag";
 import { PhoneChecklistButton } from "../checklist/phone-checklist-button";
+import { AppsExtrasButton } from "../shell/apps-extras";
+import { helpOpenedFromSettings } from "../help/help-back";
 
 /**
  * The phone shell (Session E): a top bar with the page's identity, Quick add and Settings, and a glass tab bar whose More
@@ -51,19 +53,23 @@ const MORE_NOTES: Record<string, string> = {
   "/app/ecosystem": "ZIGChain projects · research only",
   "/app/chess": "Your chess ratings and games · public data",
   "/app/activity": "Your recent steps, in order",
-  "/app/settings": "Backups, privacy, motion and Showcase",
-  "/app/help": "Answers, feedback and the Alpha's facts",
-  "/app/journey": "Your XP, quests and badges",
-  "/app/checklist": "Today's path of starred dots",
+  // Session AL third pass (DV-256, P-DV-112): plain words; the Alpha's facts are Status & wallet's row, said once.
+  "/app/settings": "Backups, privacy, display and the demo tour",
+  "/app/help": "Answers and feedback",
+  "/app/journey": "Your level, quests and badges",
+  // Session AL (DV-162, DV-255): plain words that tell the Checklist, Tasks and Notes apart.
+  "/app/checklist": "Today's short list: the few things you starred",
   "/app/governance": "Proposals in plain words, and your vote",
   // Session AK G2 (RELEASE_REVIEW_2 R2-10): the navigation extras of More, each with its one line too.
-  "/app/nova": "ZIGi's full-screen command center",
-  "/app/tasks": "Things to do, with a day or a goal",
-  "/app/notes": "Capture now, file later",
+  "/app/nova": "Your whole day on one screen, with your own AI",
+  "/app/tasks": "Everything to do, by day, project or goal",
+  "/app/notes": "Quick thoughts to keep and sort later",
   "/app/journal": "How your days felt, in your words",
 };
 
 export type PhoneRoute = { title: string; back?: { href: string; label: string } };
+/** The pages that start off (Chess always, the chain's pages until chosen) and that More's "More pages" row points to. */
+const MORE_PAGES_OFF = ["staking", "ecosystem", "chess"] as const;
 /** The top bar's title and back link for a path. Detail and creation pages step back to their list. */
 /** Session AF (ADR-028 H68): a phone tab is always one of the navigation's pages, never an extra another lane registers. */
 const isNavPage = (href: string) => NAV_ITEMS.some(([h]) => h === href);
@@ -147,11 +153,14 @@ export function PhoneTopBar() {
   useTitleOnScroll(active, bar, path);
   const { view, items } = useVisibleNav(), moreOpen = useMoreOpen(); // every hook before the early return
   if (!show) return null;
-  const route = phoneRoute(path), onWealth = isNavActive(path, "/app/wealth");
+  // Session AL sweep 4 (D-159): Help steps back to Settings only when Settings' Help link opened it; otherwise the logo.
+  const routed = phoneRoute(path), route = path === "/app/help" && !helpOpenedFromSettings() ? { title: routed.title } : routed, onWealth = isNavActive(path, "/app/wealth");
   const wealthShortcut = isShown(view, "wealth") && isShown(view, "wealth-shortcut");
   // Session AB-Design (owner request 10, ADR-024 D2): More opens from the top bar; Settings and Help are its last rows.
   const moreCurrent = phoneTabs(items, isNavPage).more.some(([href]) => isNavActive(path, href));
-  return <div ref={bar} className="phone-topbar">
+  // Session AL third pass (P-LA-29, LA-024/N-LS-05): the bar is the page's banner landmark, so the logo, Back and its
+  // buttons sit inside a landmark (axe "region"); a role only: the element and its CSS are unchanged.
+  return <div ref={bar} className="phone-topbar" role="banner">
     <div className="phone-topbar-row">
       {route.back
         ? <Link className="phone-back" href={route.back.href} aria-label={`Back to ${route.back.label}`}><AppIcon name="back" size={22} /><span aria-hidden="true">{route.back.label}</span></Link>
@@ -166,6 +175,9 @@ export function PhoneTopBar() {
         <OfflinePill />
         {/* The wallet shortcut keeps its icon while that button is shown; Settings moved into More (Session AB-Design). */}
         {wealthShortcut && <Link className="phone-wealth" href="/app/wealth" prefetch={navPrefetch("/app/wealth")} aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /></Link>}
+        {/* Session AL (owner decision O3): ZIGi, Music, Earn and the apps live here below 901 px; nothing floats over the page.
+            Served with the bar, like the Checklist pill, so it never pushes the bar's icons aside after load (layout shift). */}
+        <AppsExtrasButton className="phone-apps-extras" />
         {/* Owner decision D2 (kept, owner follow-up): + / Search / More; Settings and Help are More's last rows. */}
         <button type="button" className="phone-more-top" aria-haspopup="dialog" aria-expanded={moreOpen} aria-label="More" data-current={moreCurrent || undefined} onClick={() => setMoreOpen(true)}><AppIcon name="more" size={22} luminous={moreCurrent} /></button>
       </div>
@@ -190,15 +202,20 @@ function useTabArrival(tabs: RefObject<HTMLDivElement | null>, path: string) {
 
 export function PhoneTabBar() {
   const show = usePhoneChrome(), path = usePathname(), sheet = useRef<HTMLDialogElement>(null), tabs = useRef<HTMLDivElement>(null), titleId = useId(), open = useMoreOpen(), setOpen = setMoreOpen;
-  const { items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items, isNavPage), moreStarts = groupStarts(MORE, navGroupOf), gameOn = useGameEnabled();
+  const { view, items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items, isNavPage), moreStarts = groupStarts(MORE, navGroupOf), gameOn = useGameEnabled();
+  // Session AL sweep 4 (BN-001): while a page that starts off is still off, More says where to switch it on.
+  const pagesOff = MORE_PAGES_OFF.some(id => !isShown(view, id));
   // Phase 2, Part 10 (owner request 10): the pages first, then the Journey (while Gamify is on), ZIGi and the soundtrack
   // when they are tucked away, Status & wallet — and Settings and Help always last.
-  const LAST = ["/app/settings", "/app/help"], morePages = MORE.filter(([href]) => !LAST.includes(href)), moreLast = MORE.filter(([href]) => LAST.includes(href));
+  // Session AL (DV-095, NB-028, BN-072): one Journey row. The game layer also registers Journey as a navigation entry
+  // (components/game/registrar.tsx, read from this browser's storage), so More leaves that entry out and keeps its own row,
+  // which follows the game switch the person sees (useGameEnabled), Showcase included.
+  const LAST = ["/app/settings", "/app/help"], morePages = MORE.filter(([href]) => !LAST.includes(href) && (href as string) !== "/app/journey"), moreLast = MORE.filter(([href]) => LAST.includes(href));
   useTabArrival(tabs, path);
   useFocusRescue(tabs, TABS.map(([href]) => href).join(" "));
   useSheetDrag(show);
   // Arriving on a page closes More, whatever started the navigation; the top bar's More button opens it (the shared store).
-  useEffect(() => { setOpen(false); }, [path]);
+  useEffect(() => { setMoreOpen(false); }, [path]);
   useEffect(() => {
     const dialog = sheet.current;
     if (!dialog) return;
@@ -233,7 +250,12 @@ export function PhoneTabBar() {
           })}
           {gameOn && <li data-group-start="journey"><Link href="/app/journey" prefetch={false} className="phone-more-row" aria-label="Journey" aria-current={isNavActive(path, "/app/journey") ? "page" : undefined} onClick={() => setOpen(false)}>
             <span className="icon-medallion"><AppIcon name="star" size={22} luminous /></span>
-            <span className="phone-more-copy" data-note="Your level, quests and badges"><strong>Journey</strong></span>
+            <span className="phone-more-copy" data-note={MORE_NOTES["/app/journey"]}><strong>Journey</strong></span>
+            <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
+          </Link></li>}
+          {pagesOff && <li data-group-start="more-pages"><Link href="/app/settings#your-pages" prefetch={false} className="phone-more-row" aria-label="More pages" onClick={() => setOpen(false)}>
+            <span className="icon-medallion"><AppIcon name="more" size={22} luminous /></span>
+            <span className="phone-more-copy" data-note="Earn, Staking, Ecosystem, Chess: switch them on"><strong>More pages</strong></span>
             <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
           </Link></li>}
           <AiMoreRow onNavigate={() => setOpen(false)} />
@@ -241,7 +263,7 @@ export function PhoneTabBar() {
           {/* Session AB-Design: the notices in full and the wallet buttons (the Status & wallet sheet), then the theme switch. */}
           <li><button type="button" className="phone-more-row phone-more-status" aria-label="Status & wallet" onClick={() => { setOpen(false); window.dispatchEvent(new Event(PHONE_STATUS_EVENT)); }}>
             <span className="icon-medallion"><AppIcon name="wallet" size={22} luminous /></span>
-            <span className="phone-more-copy" data-note="The Alpha's facts, the mode and your wallet"><strong>Status &amp; wallet</strong></span>
+            <span className="phone-more-copy" data-note="The Alpha's status and your wallet"><strong>Status &amp; wallet</strong></span>
             <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
           </button></li>
           {moreLast.map(([href, label, icon]) => {
@@ -255,9 +277,11 @@ export function PhoneTabBar() {
             </Link></li>;
           })}
         </ul>
+        {/* Session AL third pass (DV-256): the switch is named on screen too, as in Apps & extras. */}
+        <h3 className="phone-more-theme-head">Theme</h3>
         <ThemeSwitch compact />
+        {/* Session AL sweep 4 (DV-256): the decorative "Your Financial Orbit" picture banner is gone; the wordmark signs off plainly. */}
         <div className="phone-more-signature">
-          <p className="phone-more-descriptor">Your Financial Orbit</p>
           <Wordmark />
         </div>
       </div>

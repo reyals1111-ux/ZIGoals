@@ -24,7 +24,7 @@ async function seed(page: Page) {
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HEALTH_STORAGE_KEY]: JSON.stringify(health()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarding: undefined}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
 }
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);
-const view = (page: Page, name: string) => page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true}).click();
+const view = (page: Page, name: string) => page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name, exact: true}).click();
 
 test('vitamins on a food\'s label reach today\'s micronutrient view and the recipe; targets edit like the seven; Health\'s record is untouched', async ({page}) => {
   await seed(page); await page.goto('/app/health');

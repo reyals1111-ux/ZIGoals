@@ -63,7 +63,9 @@ describe('the lane W views', () => {
     expect(out).toContain('House');
     expect(out).toContain('Still available');
     expect(out).toContain('aria-pressed="false"');
-    expect(out).toContain('40.0 %');
+    // Session AL sweep 4 (L8f note 2, deliberate): the share is written as NOVA writes it, no space before the sign.
+    expect(out).toContain('<strong>40.0%</strong>');
+    expect(out).not.toContain('40.0 %');
   });
   test('Autopilot: the sentence, the pre-fill link and no money moved', () => {
     const out = html(createElement(ContributionAutopilotView, {reminders: {}, onRemind: noop, suggestions: [{goalId: '7', goalName: 'Trip', rhythm: 'monthly', day: 3, amount: '10000', asset: 'EUR', decimals: 2, occurrences: 4, nextDate: '2026-11-03', doneThisPeriod: false, confidence: 'high', hasPlan: true, prefillHref: '/app/goals/tracked/7?contribute=1&amount=10000#funding-wealth'}]}));

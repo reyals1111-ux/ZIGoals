@@ -187,7 +187,13 @@
 .ai-connection-copy small{color:var(--muted,#aab2d9);font-size:14px}
 .ai-switch-list{display:grid;gap:8px}
 .ai-switch-row{display:flex;gap:12px;align-items:flex-start;padding:6px 0}
-.ai-switch-row [role=switch]{min-width:64px;min-height:40px;flex:none}
+.ai-switch-row [role=switch]{min-width:84px;min-height:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+/* Session AL third pass (DV-072b): the switch's own track; the knob sits right when on. Motion only as a colour/position change, none under reduced motion. */
+.ai-switch-track{position:relative;display:inline-block;width:26px;height:14px;border-radius:999px;border:1.5px solid currentColor;flex:none}
+.ai-switch-knob{position:absolute;top:1.5px;left:2px;width:8px;height:8px;border-radius:50%;background:currentColor;transition:left .15s ease}
+[role=switch][aria-checked=true] .ai-switch-knob{left:13px}
+@media (prefers-reduced-motion:reduce){.ai-switch-knob{transition:none}}
+:root[data-app-motion=off] .ai-switch-knob{transition:none}
 .ai-switch-copy{display:grid;gap:2px;font-size:15px;line-height:1.4}
 .ai-switch-copy small{color:var(--muted,#aab2d9);font-size:14px}
 .ai-key-replace{margin-top:8px}

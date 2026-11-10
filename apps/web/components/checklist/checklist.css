@@ -333,6 +333,10 @@
 .checklist-stepper-actions, .checklist-dot-panel-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .checklist-stepper-actions > *, .checklist-dot-panel-actions > * { min-height: 44px; }
 .checklist-stepper-error { margin: 0; font-size: 15px; color: var(--danger, #ffb3c4); }
+/* Session AL fifth pass (LS-016): the stepper's question for a daily water target while Health has none. */
+.checklist-water-target { display: grid; gap: 8px; margin-top: 10px; }
+.checklist-water-target p { margin: 0; font-size: 15px; }
+.checklist-water-target a { display: inline-flex; align-items: center; }
 .checklist-dot-panel p { margin: 0; font-size: 15px; }
 .checklist-dot-panel-actions a { display: inline-flex; align-items: center; }
 
@@ -343,6 +347,8 @@
    "+ Add to … Orbit". The node, its colour and glyph are the theme island's (the same in every theme); the words follow the
    theme. */
 .checklist-list-view { display: grid; gap: 22px; max-width: 680px; margin: 0 auto; padding-bottom: 12px; }
+/* Session AL fifth pass (LS-033, LS-070): the flame's rule over the List's rows. */
+.checklist-list-view > .checklist-streak-rule { margin: 0 0 -12px; color: var(--muted, #a9b6cc); }
 .checklist-list-section { --orbit: #9273ff; display: grid; gap: 6px; }
 /* Session AG Polish 2 (ADR-031 K12; owner Part 6a, D-list 1–4): each section opens with the path's own Habits banner (its
    symbol, the nebula title, the count, the short fade; components/orbit-path/orbit-banner.tsx) and its fold. */
@@ -561,3 +567,45 @@
   .checklist-view-switch { padding: 1px; }
   .checklist-streak { padding: 0 4px 0 2px; }
 }
+/* Session AL (P-LS-21, LS-018/LS-059): while a sheet (Edit path, Options, Quick add) is open, the toast sits above its scrim,
+   so an Undo offered there can be pressed. */
+.checklist-overlay:has(.checklist-sheet) .checklist-toast-slot .aa-toast-region { z-index: 41; }
+/* Session AL (P-LS-54, P-LS-32): the List view's "Tasks due today" and a row's More tools (List view only). */
+.checklist-list-tasks { display: grid; gap: 6px; margin-top: 18px; }
+.checklist-list-tasks-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.checklist-list-tasks-head h3 { margin: 0; }
+.checklist-list-tasks-head .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+.checklist-list-task-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.checklist-list-task-rows li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.checklist-list-task-rows label { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; overflow-wrap: anywhere; }
+.checklist-list-task-rows input { width: 24px; height: 24px; }
+.checklist-row-tools { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin-top: 8px; }
+.checklist-row-tools select, .checklist-row-tools input, .checklist-row-tools button { min-height: 44px; }
+.checklist-row-rename { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 6px; }
+.checklist-row-tools .fine { flex: 1 0 100%; margin: 0; }
+/* Session AL fifth pass (LS-H23): a List row drags by its name with a mouse or a pen (Edit path's drag); touch swipes. */
+@media (pointer: fine) { .checklist-row-tab[data-drag-name] { cursor: grab; } }
+.checklist-row[data-dragging] .checklist-row-line { position: relative; z-index: 3; opacity: .92; }
+.checklist-row[data-dragging] .checklist-row-tab { cursor: grabbing; }
+/* Session AL fifth pass (LS-032 / C-LS-35): a square of the last 7 days opens that day to fill in; the same days are buttons. */
+.checklist-heat-cell[data-fill] { cursor: pointer; }
+.checklist-heat-cell[data-picked] { outline: 2px solid #ffd36b; outline-offset: 1px; }
+.checklist-heat-fill { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.checklist-heat-fill .fine { margin: 0; }
+.checklist-heat-fill button { min-height: 32px; min-width: 44px; padding: 4px 8px; font-size: 14px; }
+.checklist-heat-fill button[aria-expanded=true] { box-shadow: inset 0 0 0 2px #ffd36b; }
+.checklist-past-day { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: #ffffff0d; }
+.checklist-past-day-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.checklist-past-day-head h3 { margin: 0; font-size: 16px; }
+.checklist-past-day .fine { margin: 0; }
+.checklist-past-day-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.checklist-past-day-rows li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+.checklist-past-day-name { display: grid; min-width: 0; overflow-wrap: anywhere; }
+.checklist-past-day-name small { color: #c5d3ea; }
+.checklist-past-day-rows button { min-height: 44px; flex: none; }
+/* Session AL (A10-4): the Showcase's label, the status row chip's words and look (components/shell/shell-ab.css), which
+   the overlay covers. It hangs just under the bar's start, over the sky, and takes no room in the bar or the path. */
+.checklist-topbar .checklist-showcase { position: absolute; top: calc(100% + 6px); left: max(16px, env(safe-area-inset-left, 0px)); z-index: 1; display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 3px 10px 3px 8px; border-radius: 999px; border: 1px solid #f0a7ff55; background: linear-gradient(120deg, #2a1545e6, #140d2ee6); color: #f3c9ff; font-size: 12px; font-weight: 650; line-height: 1.3; letter-spacing: .04em; white-space: nowrap; pointer-events: none; }
+.checklist-showcase-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--brand-magenta, #f06dff); box-shadow: 0 0 8px #f06dffaa; }
+@media (min-width: 1180px) { .checklist-topbar .checklist-showcase { left: 24px; } }
+@media (forced-colors: active) { .checklist-topbar .checklist-showcase { border-color: CanvasText; } }

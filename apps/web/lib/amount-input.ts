@@ -1,5 +1,6 @@
 import { parseUnits } from "@zigoals/chain-config";
 import { normalizeDecimalInput } from "./decimal-input";
+import { amountRefusal } from "./limits/amount-words";
 
 /**
  * A money or quantity amount typed into a private form (Goal targets and plans, manual valuations, prices, quantities,
@@ -8,7 +9,10 @@ import { normalizeDecimalInput } from "./decimal-input";
  * precision, limits and messages are unchanged. Chain transaction amounts keep calling `parseUnits` directly.
  */
 export function parseAmountInput(raw: string, decimals: number, locale?: string): bigint {
-  return parseUnits(normalizeDecimalInput(parseLocaleAmount(raw, locale)), decimals);
+  // Session AL final pass (BUG-012, DV-144, NB-189): the parser's "non-negative decimal" jargon becomes the shared sentence
+  // (lib/limits/amount-words.ts): "-5" → "Enter an amount above 0.", "abc" or "1e3" → "Enter a number, like 1500 or 12.50.".
+  try { return parseUnits(normalizeDecimalInput(parseLocaleAmount(raw, locale)), decimals); }
+  catch (error) { throw new Error(amountRefusal(raw, error instanceof Error ? error.message : "")); }
 }
 
 /** The device's number separators ("," and "." for en-US; "." and "," for nl-NL; a narrow space for fr-FR). */
@@ -48,6 +52,6 @@ export function amountInputPreview(raw: string, decimals: number, locale?: strin
     parseUnits(text, decimals);
     return { text };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Enter a non-negative decimal amount." };
+    return { error: amountRefusal(raw, error instanceof Error ? error.message : "") };
   }
 }

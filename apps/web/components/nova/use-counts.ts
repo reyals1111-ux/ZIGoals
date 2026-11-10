@@ -1,13 +1,15 @@
 'use client';
 import {useMemo} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {usePlatform} from '../platform/use-platform';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
+import {useTaskClock} from '../tasks/use-task-list';
 import {useNovaBriefsUnread} from './panels/use-briefs-unread';
-import {habitDay} from '../../lib/habits';
-import {dailyData, healthDay, waterSummary} from '../../lib/health-daily';
+import {activeGoalCount, habitsLeftOn} from '../../lib/numbers/counts';
+import {AVERAGE_GOALS} from '../../lib/average-goals/store';
+import {useGoalSummaries} from './widgets/use-goal-summaries';
+import {waterToday} from '../../lib/health-daily';
 import {BILLS} from '../../lib/bills/schema';
 import {upcomingBills} from '../../lib/bills/store';
 import {NOTES} from '../../lib/notes/schema';
@@ -28,19 +30,21 @@ export type NovaCounts = {
   briefsUnread: number; notesInbox: number | null; tasksDue: number | null; tasksOpen: number | null; focusWeek: number | null;
 };
 export function useNovaCounts(): NovaCounts {
-  const platform = usePlatform(), habits = useHabits(), health = useHealth(), today = useLocalToday();
+  const habits = useHabits(), health = useHealth(), today = useLocalToday(), taskClock = useTaskClock();
+  // Lane L8f (Part 13): goals as Today and Goals count them — the summaries' derived status plus the average goals.
+  const summaries = useGoalSummaries(), averages = useDeviceRecord(AVERAGE_GOALS);
   const bills = useDeviceRecord(BILLS), notes = useDeviceRecord(NOTES), tasks = useDeviceRecord(TASKS), focus = useDeviceRecord(FOCUS_SESSIONS), briefsUnread = useNovaBriefsUnread();
   return useMemo(() => {
     let waterToGoMl: number | null = null, waterUnit: 'ml' | 'fl-oz-us' = 'ml';
     if (health.loaded && !health.error) try {
-      const daily = dailyData(health.data), sum = waterSummary(health.data, healthDay(daily.preferences.timezone));
-      waterUnit = daily.preferences.waterUnit;
+      const sum = waterToday(health.data); // Session AL: L2's one water source
+      waterUnit = sum.unit;
       if (sum.targetMl) waterToGoMl = Math.max(0, sum.targetMl - sum.millilitres);
     } catch { waterToGoMl = null; }
-    const habitsLeft = habits.loaded && !habits.error ? habits.data.habits.filter(h => { const s = habitDay(h, habits.today, habits.today).status; return s === 'due' || s === 'partial'; }).length : null;
-    const t = tasks.loaded && !tasks.unreadable ? taskCounts(tasks.data, today) : null;
+    const habitsLeft = habits.loaded && !habits.error ? habitsLeftOn(habits.data.habits, habits.today, habits.today) : null;
+    const t = tasks.loaded && !tasks.unreadable ? taskCounts(tasks.data, taskClock.today, taskClock.clock) : null; // RR-8: the Tasks page's day and clock
     return {
-      goals: platform.loaded && !platform.error ? platform.data.goals.filter(g => g.status === 'active').length : null,
+      goals: summaries.loaded && !summaries.error && averages.loaded && !averages.unreadable ? activeGoalCount(summaries.goals, averages.data.goals) : null,
       habitsLeft, waterToGoMl, waterUnit,
       nextBill: bills.loaded && !bills.unreadable ? upcomingBills(bills.data, today, 60)[0] ?? null : null, billsRead: bills.loaded && !bills.unreadable,
       briefsUnread,
@@ -48,5 +52,5 @@ export function useNovaCounts(): NovaCounts {
       tasksDue: t ? t.overdue + t.today : null, tasksOpen: t ? t.open : null,
       focusWeek: focus.loaded && !focus.unreadable ? gardenOf(focus.data, today).weekSessions : null,
     };
-  }, [platform.loaded, platform.error, platform.data, habits.loaded, habits.error, habits.data, habits.today, health.loaded, health.error, health.data, bills.loaded, bills.unreadable, bills.data, notes.loaded, notes.unreadable, notes.data, tasks.loaded, tasks.unreadable, tasks.data, focus.loaded, focus.unreadable, focus.data, briefsUnread, today]);
+  }, [summaries.loaded, summaries.error, summaries.goals, averages.loaded, averages.unreadable, averages.data, habits.loaded, habits.error, habits.data, habits.today, health.loaded, health.error, health.data, bills.loaded, bills.unreadable, bills.data, notes.loaded, notes.unreadable, notes.data, tasks.loaded, tasks.unreadable, tasks.data, focus.loaded, focus.unreadable, focus.data, briefsUnread, today, taskClock.today, taskClock.clock]);
 }

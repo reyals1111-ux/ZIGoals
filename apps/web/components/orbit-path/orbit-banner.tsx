@@ -27,10 +27,11 @@ export function OrbitBanner({section, done, total, headingId, justComplete = fal
     <div className="habit-section-summary" data-path-box={box ? `banner:${section.id}` : undefined}>
       {/* (Session AG Polish 2, owner's change to Part 1b: a phone's banner is one row — "0/5", or "✓ Done" (the check alone
           under 360 px) — and says the whole in words: "0 of 5 complete", "Morning Orbit complete".) */}
+      {/* Session AL (L6 fourth pass, D-149): an orbit whose steps are all optional (none counted) says so, never "Nothing here yet". */}
       <HabitSectionBannerParts symbol={SECTION_SYMBOLS[kind]} title={name} identity={`orbit-banner:${section.id}`} titleId={headingId} chevron={false} heading={heading}
-        count={total ? complete ? 'Complete ✓' : `${done} of ${total}` : 'Nothing here yet'}
+        count={total ? complete ? 'Complete ✓' : `${done} of ${total}` : section.steps.length ? 'Optional' : 'Nothing here yet'}
         countShort={total ? complete ? <><span className="orbit-banner-check">✓</span><span className="orbit-banner-done"> Done</span></> : `${done}/${total}` : '—'}
-        spoken={total ? complete ? `${name} complete` : `${done} of ${total} complete` : 'nothing here yet'}/>
+        spoken={total ? complete ? `${name} complete` : `${done} of ${total} complete` : section.steps.length ? 'optional' : 'nothing here yet'}/>
       {justComplete && <span className="orbit-banner-sweep" aria-hidden="true"/>}
     </div>
     {/* (Its planet on the line, at the banner's height; where the banner leaves it too little room — a narrow phone — it

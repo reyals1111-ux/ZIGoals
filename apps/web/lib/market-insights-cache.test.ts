@@ -31,3 +31,12 @@ it('retains validated logo metadata when a successful movement refresh lacks an 
  let time=now,logo=true;const cache=createMarketInsightsCache(async()=>({entries:[{...entry(),fetchedAt:new Date(time).toISOString(),sparkline:null,logoUrl:logo?entry().logoUrl:null}],error:null}),()=>time);
  await cache.refresh([request]);time+=900001;logo=false;await cache.refresh([request]);expect(cache.getSnapshot().entries[0]?.logoUrl).toMatch(/^\/api\/market-logo/);
 });
+it('PR-016 (P-PR-01): the Showcase keeps the 24h change it first loaded, so Today, Markets and Portfolio read one figure',async()=>{
+ let calls=0,time=now;const cache=createMarketInsightsCache(async()=>{calls++;return {entries:[entry()],error:null};},()=>time);
+ await cache.refresh([request],false,true);expect(calls).toBe(1);
+ // 16 minutes later another page opens, and someone presses Refresh: nothing is asked again, nothing reads "not current".
+ time+=16*60000;await cache.refresh([request],false,true);await cache.refresh([request],true,true);cache.tick();
+ expect(calls).toBe(1);expect(cache.getSnapshot().results[key]).toMatchObject({stale:false,insight:{change24h:'1'}});
+ // Outside the Showcase the same age refreshes, as before.
+ await cache.refresh([request]);expect(calls).toBe(2);
+});

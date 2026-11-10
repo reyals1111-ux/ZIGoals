@@ -2,7 +2,7 @@ import {expect, test} from 'vitest';
 import {createHabit} from '../../habits';
 import {dailyData} from '../../health-daily';
 import {toolEnv, type ToolSources} from '../tools/env';
-import {DAY, gatesFor, SENTINEL, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
+import {DAY, gatesFor, SENTINEL, hasSentinel, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {HEALTH_CLOSED} from '../tools/format';
 import {runTool} from '../tools/registry';
 import {examplesReply, localAnswer, navigationIntent, type LocalReply} from './engine';
@@ -20,12 +20,15 @@ const sum = (title: string, from: string, to: string) => habit(title).entries.fi
 
 test('the brief\'s eight examples, answered with the figures the records hold', () => {
   expect(textOf(ask('How many minutes did I meditate this month?'))).toMatch(new RegExp(`^You logged ${sum('Meditate', '2026-10-01', DAY)} minutes of Meditate this month \\(Thu, Oct 1 to Mon, Oct 5\\)\\.`));
-  expect(textOf(ask('What\'s my longest reading streak?'))).toMatch(/^Your longest Read streak is \d+ days; the current one is \d+ days\.$/);
+  // Session AL (Z-021, deliberate): the streak line is followed by one line on why it can be longer than a month's check-ins.
+  expect(textOf(ask('What\'s my longest reading streak?'))).toMatch(/^Your longest Read streak is \d+ days; the current one is \d+ days\.\n- (?:The current one runs since \w{3}, \w{3} \d{1,2}: a|A) streak counts scheduled days in a row across months, and a skipped day keeps it going \(skipped days never count against you\), so it can be longer than one month’s check-ins$/);
   const water = dailyData(sources().health).water.filter(w => w.date === '2026-10-04').reduce((s, w) => s + w.amountMilli / 1000, 0);
   expect(textOf(ask('How much water did I drink yesterday?'))).toMatch(new RegExp(`^You logged ${water.toLocaleString('en-US')} mL of water yesterday \\(Sun, Oct 4\\)`));
   const week = sources().health.activity.filter(a => a.date >= '2026-09-28' && a.date <= '2026-10-04'), days = new Set(week.map(a => a.date)).size;
   expect(textOf(ask('Average steps last week?'))).toContain(`You averaged ${Math.round(week.reduce((s, a) => s + a.steps, 0) / days).toLocaleString('en-US')} steps a day last week (Mon, Sep 28 to Sun, Oct 4), over the ${days} days with steps recorded.`);
-  expect(textOf(ask('How far am I on my Japan goal?'))).toMatch(/^Japan adventure: [\d.]+% of the target — [\d,]+\.\d{2} USD of [\d,]+\.\d{2} USD\./);
+  // Session AL (Z-003 / N-004, deliberate): the goals list's own money format (formatGoalAmount, no ".00"), never "0.00 USD".
+  expect(textOf(ask('How far am I on my Japan goal?'))).toMatch(/^Japan adventure: [\d.]+% of the target — (?:US)?\$[\d,]+(?:\.\d{2})? of (?:US)?\$[\d,]+(?:\.\d{2})?\./);
+  expect(textOf(ask('How far am I on my Japan goal?'))).not.toMatch(/\d USD\b/);
   const monday = ask('What did I eat on Monday?');
   expect(textOf(monday)).toMatch(new RegExp(`^You logged ${sources().health.diary.filter(e => e.date === DAY).length} items on Mon, Oct 5:\\n- Breakfast: `));
   const btc = sources().platform.positions.filter(p => p.asset === 'BTC' && !p.archivedAt);
@@ -44,14 +47,17 @@ test('forty more phrasings across habits, Health, goals and wealth', () => {
     ['How many times did I exercise last week?', /^You checked in Exercise \d+ times last week/],
     ['How often did I meditate this month?', /^You checked in Meditate \d+ times this month/],
     ['What is my completion rate for reading this month?', /^Read this month \(Thu, Oct 1 to Mon, Oct 5\): \d+%/],
-    ['What\'s my current meditation streak?', /^Your current Meditate streak is \d+ days? \(longest: \d+ days?\)\.$/],
+    // Session AL (Z-021, deliberate): plus the one line on why a streak can be longer than a month's check-ins.
+    ['What\'s my current meditation streak?', /^Your current Meditate streak is \d+ days? \(longest: \d+ days?\)\.\n- (?:The current one runs since \w{3}, \w{3} \d{1,2}: a|A) streak counts scheduled days in a row across months, and a skipped day keeps it going \(skipped days never count against you\), so it can be longer than one month’s check-ins$/],
     ['best streak for exercise', /^Your longest Exercise streak is \d+ days?/],
     ['When did I last meditate?', /^You last checked in Meditate on Mon, Oct 5/],
     ['Did I meditate more this week than last week?', /^Meditate: \d+ minutes this week \(Mon, Oct 5\), and \d+ minutes last week/],
     ['Compare my reading this month vs last month', /^Read: \d+ minutes this month .*, and \d+ minutes last month/],
     ['Average minutes of reading per check-in this month?', /^On average [\d.]+ minutes per check-in for Read this month/],
     ['What was my best meditation day this month?', /^Your best Meditate day this month .* was \w{3}, \w{3} \d+ with \d+ minutes\.$/],
-    ['How many glasses of water did I drink yesterday?', /^Drink water: \d+ glasses yesterday \(Sun, Oct 4\)\.$/],
+    // Session AL (Part 13, deliberate): the Showcase's Drink water habit is 2 liters linked to the water journal, so a
+    // question in glasses is answered from that journal (it was the habit's own 8 glasses beside 0 mL in Health).
+    ['How many glasses of water did I drink yesterday?', /^You logged [\d,]+ mL of water yesterday \(Sun, Oct 4\)/],
     ['How many minutes did I walk this month?', /^Walk isn't measured in time, so there are no minutes to add up\. It's measured in steps: [\d,]+ steps this month/],
     ['How much water did I drink today?', /^You logged [\d,]+ mL of water today \(Mon, Oct 5\)/],
     ['How much water did I drink this week?', /^You logged [\d,]+ mL of water this week/],
@@ -72,7 +78,8 @@ test('forty more phrasings across habits, Health, goals and wealth', () => {
     ['When was my last fast?', /^Your last fast: 16 h on Sun, Oct 4 \(target 16 h\)\./],
     ['How many push-ups this week?', /^Push-ups: \d+ on \d+ days? this week/],
     ['How many squats did I do this month?', /^Squats: \d+/],
-    ['How much is left for my emergency fund?', /^Emergency fund: [\d,]+\.\d{2} USD to go \([\d.]+% of the target reached\)\.$/m],
+    // Session AL (Z-003 / N-004, deliberate): the goals list's money format (formatGoalAmount), never "0.00 USD".
+    ['How much is left for my emergency fund?', /^Emergency fund: (?:US)?\$[\d,]+(?:\.\d{2})? to go \([\d.]+% of the target reached\)\.$/m],
     ['What is the progress of my first home deposit?', /^First home deposit: [\d.]+% of the target/],
     ['How much did I contribute this month?', /^Contributions this month \(Thu, Oct 1 to Mon, Oct 5\), per currency \(never converted\):\n- [\d,]+\.\d{2} USD in/],
     ['How much did I put into my Japan goal last month?', /^Contributions to Japan adventure last month \(Tue, Sep 1 to Wed, Sep 30\)/],
@@ -123,7 +130,7 @@ test('Health questions with the gate closed: the plain refusal, nothing read, an
   // Habits, goals and wealth still answer; a Health-filled check-in stays out of the habit's figures.
   expect(ask('How many minutes did I meditate this month?', env).kind).toBe('answer');
   expect(textOf(ask('How many steps did I walk today?', env))).toContain('filled in from Health is not counted');
-  expect(textOf(ask('How many steps did I walk today?', env))).not.toContain(String(SENTINEL.habitValue));
+  expect(hasSentinel(textOf(ask('How many steps did I walk today?', env)), SENTINEL.habitValue)).toBe(false);
 });
 test('Showcase records say they are fictional, a sensitive screen reads nothing, and every answer keeps a calm tone', () => {
   const reply = ask('How many minutes did I meditate this month?');

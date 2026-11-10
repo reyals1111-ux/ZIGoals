@@ -14,29 +14,31 @@ import { usePhoneChrome } from "./use-phone-layout";
 // are the page's six labelled groups, Data & privacy first so backups stay on the first screen (Session E).
 const GROUPS: { title: string; rows: [label: string, note: string, target: string][] }[] = [
   { title: "Data & privacy", rows: [
-    ["Backups & restore", "Encrypted download and module copies", "private-vault"],
+    ["Backups & restore", "Encrypted backup and copies of each area", "private-vault"], // Session AL third pass (DV-261)
     ["Privacy & storage", "What stays in this browser", "privacy"],
     ["Export everything", "Optional: one readable ZIP of all your records", "export-everything"],
     ["Import from other apps", "Apple Health, Samsung, Oura, Loop", "switch-import"],
   ] },
   { title: "Your app", rows: [
-    ["Showcase tour", "Fictional demo data in separate storage", "showcase"],
     ["Pages & start page", "Hide what you don’t use; where ZIGoals opens", "your-pages"],
     ["Time zone", "The day your journals follow", "time-zone"],
     ["Wrap-up on Today", "An optional evening card", "wrap-up"],
     ["Motion & display", "Follow device preference, or Off", "appearance"],
-    ["Music & focus sounds", "The music player and Spotify", "music"],
-    ["Links on Today", "Your socials, apps and sites", "links"],
     ["Show the welcome again", "Set up a first goal and habit", "/app/welcome"],
   ] },
   { title: "Your areas", rows: [
     ["Habit settings", "Schedules, targets and history", "habits-settings"],
     ["Weekly review day", "The day Today offers your review", "habits-settings"],
-    ["Health settings", "Your journal and targets", "health-settings"],
-    ["Chess usernames", "chess.com and Lichess, public data", "chess"],
+    ["Health targets", "Calories, water, steps and units", "health-settings"],
     ["Guide on this device", "Calm notes from your own records", "guide"],
     ["Reminders when closed", "Push on this device, opt-in", "reminders"],
     ["Market data sources", "Price sources and freshness", "market-data"],
+  ] },
+  // Session AL sweep 4 (DV-262, DV-266): the optional extras in one group, so the areas read as the life areas only.
+  { title: "Extras", rows: [
+    ["Music & focus sounds", "The music player and Spotify", "music"],
+    ["Links on Today", "Your socials, apps and sites", "links"],
+    ["Chess usernames", "chess.com and Lichess, public data", "chess"],
   ] },
   { title: "Account & devices", rows: [
     ["Account & sync", "Email sign-in, encrypted vault, devices", "encrypted-sync"],
@@ -51,6 +53,10 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
   { title: "Help & diagnostics", rows: [
     ["Diagnostics & support", "Checks to share if something goes wrong", "diagnostics"],
     ["Send feedback", "Email us, with the details you choose", "send-feedback"],
+  ] },
+  // Session AL sweep 4 (DV-262): the demo tour last, on its own, not among the data rows.
+  { title: "Try it", rows: [
+    ["Showcase tour", "Fictional examples, in this tab only", "showcase"],
   ] },
 ];
 

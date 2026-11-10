@@ -63,6 +63,8 @@ export const hasSourceExtras = (x: SourceExtras) => Object.keys(x.nutrients).len
 
 /** The "add it yourself" draft: a name that carries the barcode, no brand, 100 g serving, every nutrient unknown. */
 export function missingFoodDraft(code: string): {name: string; brand: string; notes: string; servingGrams: number; nutrients: Nutrition} {
-  let barcode = code.trim(); try { barcode = normalizeBarcode(code); } catch { /* shown as typed */ }
+  // Session AL fifth pass (MO-007, MO-107): the code as typed (0000000000000 read "Product 00000000"); matching still goes
+  // through normalizeBarcode (sameCode), so a later scan of the same product finds it.
+  const barcode = code.trim();
   return {name: `Product ${barcode}`.slice(0, 120), brand: '', notes: `Barcode ${barcode}`, servingGrams: 100, nutrients: {kcal: null, proteinMg: null, carbsMg: null, fatMg: null}};
 }

@@ -3,6 +3,8 @@ import type {StakingJournalEntry} from '../staking/journal';
 import {zigText} from '../staking/view';
 import {csvSafeCell} from '../export/csv-safe';
 import {calendarDay} from '../visual-format';
+import {buildIcs, escapeText, type IcsEvent} from '../ics/ics';
+import type {HistoryPoint} from '../market-history';
 
 /**
  * Session AK (F4): staking clarity, pure and read-only. Everything comes from what the app already reads — the positions
@@ -100,13 +102,71 @@ export function rewardsHistory(entries: readonly StakingJournalEntry[]): Rewards
  * through csvSafeCell (a cell a spreadsheet could run as a formula is defused). Amounts in ZIG with all 18 places so the
  * sum is exact; an unknown amount is the words "in the transaction", never 0.
  */
-export const REWARDS_CSV_HEADER = ['Date (UTC)', 'Network', 'What', 'Address', 'Validators', 'Amount (ZIG)', 'Transaction'] as const;
+// Session AL fourth pass (C-DVG-69): two columns added at the end: ZIG's USD price on the claim's day and the claim's value then.
+export const REWARDS_CSV_HEADER = ['Date (UTC)', 'Network', 'What', 'Address', 'Validators', 'Amount (ZIG)', 'Transaction', 'ZIG price that day (USD, CoinGecko)', 'Value that day (USD)'] as const;
 const zigExact = (azig: string) => { const s = azig.padStart(19, '0'); const whole = s.slice(0, -18).replace(/^0+(?=\d)/, ''), frac = s.slice(-18).replace(/0+$/, ''); return frac ? `${whole}.${frac}` : whole; };
 const networkName = (chainId: string) => chainId === PRACTICE_CHAIN ? 'ZIGChain practice network (zig-test-2)' : chainId === 'zigchain-1' ? 'ZIGChain (zigchain-1)' : chainId;
-export function rewardsCsv(history: readonly RewardsHistoryRow[], claimable: readonly Claimable[], now: number): string {
+export function rewardsCsv(history: readonly RewardsHistoryRow[], claimable: readonly Claimable[], now: number, priceAt?: (at: string) => number | null): string {
   const rows: string[][] = [[...REWARDS_CSV_HEADER]];
-  for (const c of claimable) rows.push([new Date(c.observedAt ? Date.parse(c.observedAt) : now).toISOString(), networkName(c.network), 'Waiting to be claimed', c.account, c.byValidator.map(v => v.validator).join(' '), zigExact(c.total), '']);
-  for (const h of history) rows.push([h.at, networkName(h.network), h.action === 'sweep' ? 'Claimed and restaked (sweep)' : 'Claimed', h.wallet, h.validators.join(' '), h.amount ? zigExact(h.amount) : 'in the transaction', h.hash ?? '']);
+  const usd = (n: number | null) => n === null ? 'unknown' : n.toFixed(n < 1 ? 6 : 2);
+  const priced = (practice: boolean, at: string, amount: string | null): [string, string] => { if (practice) return ['test ZIG has no price', 'none']; const p = priceAt?.(at) ?? null; return [usd(p), amount ? usd(valueOnDay(amount, p)) : 'unknown']; };
+  for (const c of claimable) { const at = new Date(c.observedAt ? Date.parse(c.observedAt) : now).toISOString(); rows.push([at, networkName(c.network), 'Waiting to be claimed', c.account, c.byValidator.map(v => v.validator).join(' '), zigExact(c.total), '', ...priced(c.network === PRACTICE_CHAIN, at, c.total)]); }
+  for (const h of history) rows.push([h.at, networkName(h.network), h.action === 'sweep' ? 'Claimed and restaked (sweep)' : 'Claimed', h.wallet, h.validators.join(' '), h.amount ? zigExact(h.amount) : 'in the transaction', h.hash ?? '', ...priced(h.practice, h.at, h.amount)]);
   return rows.map(r => r.map(csvSafeCell).join(',')).join('\r\n') + '\r\n';
 }
 export const rewardsCsvName = (now: number) => `zigoals-staking-rewards-${new Date(now).toISOString().slice(0, 10)}.csv`;
+
+/**
+ * Session AL fourth pass (C-DVG-68): a reminder for the day unstaked ZIG comes back, as a calendar file the person adds
+ * to their own calendar (made on the device, downloaded, nothing sent). One all-day event per day of the calendar, with
+ * a reminder at 09:00 that day; amounts stay out of the file (a calendar can be shared), as on the Agenda.
+ */
+export function unbondingIcs(days: readonly {date: string; events: readonly UnbondingEvent[]}[], stamp: Date): string {
+  const events: IcsEvent[] = days.map(d => ({id: `zigoals-unbonding:${d.date}:${d.events.map(e => e.id).join(',')}`, date: d.date,
+    summary: d.events.every(e => e.practice) ? 'Unstaked test ZIG is back (ZIGChain practice network)' : 'Unstaked ZIG is back in your wallet (ZIGChain)',
+    description: `The chain's unbonding period ends today for ${d.events.length === 1 ? 'one unstake' : `${d.events.length} unstakes`}. Details on ZIGoals → Earn → Rewards, unstaking and history.`}));
+  const alarm = ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${escapeText('Unstaked ZIG is back in your wallet today')}`, 'TRIGGER:PT9H', 'END:VALARM'].join('\r\n');
+  return buildIcs(events, {stamp, name: 'ZIGoals unbonding dates'}).replace(/TRANSP:TRANSPARENT\r\nEND:VEVENT/g, `TRANSP:TRANSPARENT\r\n${alarm}\r\nEND:VEVENT`);
+}
+export const unbondingIcsName = (now: number) => `zigoals-unbonding-${new Date(now).toISOString().slice(0, 10)}.ics`;
+
+/**
+ * Session AL fourth pass (C-DVG-69): ZIG's USD price on a claim's day, from CoinGecko's daily history (the app's market
+ * history route). The point read on that UTC day, else the nearest one within a day; null when there is none (unknown,
+ * never 0). Test ZIG on the practice network has no price.
+ */
+export function priceOnDay(points: readonly HistoryPoint[], at: string): number | null {
+  const t = Date.parse(at);
+  if (Number.isNaN(t) || !points.length) return null;
+  const day = new Date(t).toISOString().slice(0, 10);
+  let best: HistoryPoint | null = points.find(p => p.at.slice(0, 10) === day) ?? null, gap = best ? 0 : Infinity;
+  if (!best) for (const p of points) { const d = Math.abs(Date.parse(p.at) - t); if (d < gap) { gap = d; best = p; } }
+  if (!best || gap > DAY_MS) return null;
+  const value = Number(best.value) / 10 ** best.decimals;
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+/** A claim's value that day in USD (amount in azig × that day's price), or null when either is unknown. */
+export function valueOnDay(amount: string | null, price: number | null): number | null {
+  if (!amount || price === null) return null;
+  const zig = Number(BigInt(amount) / 10n ** 12n) / 1e6;
+  return Number.isFinite(zig) ? zig * price : null;
+}
+
+/**
+ * Session AL fourth pass (C-BN-03): the claims of `rewardsHistory` by month, for a small bar chart: the ZIG claimed with a
+ * known amount (sweeps), and how many claims carry their amount only in the transaction (counted, never as 0). Real network
+ * only; the last `months` months, oldest first.
+ */
+export type RewardsMonth = {month: string; zig: number; known: number; inTransaction: number};
+export function rewardsByMonth(history: readonly RewardsHistoryRow[], now: number, months = 6): RewardsMonth[] {
+  const out: RewardsMonth[] = [];
+  const d = new Date(now);
+  for (let i = months - 1; i >= 0; i--) { const m = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - i, 1)); out.push({month: m.toISOString().slice(0, 7), zig: 0, known: 0, inTransaction: 0}); }
+  for (const h of history) {
+    if (h.practice) continue;
+    const row = out.find(m => h.at.startsWith(m.month));
+    if (!row) continue;
+    if (h.amount) { row.zig += Number(BigInt(h.amount) / 10n ** 12n) / 1e6; row.known += 1; } else row.inTransaction += 1;
+  }
+  return out;
+}

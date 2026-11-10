@@ -16,10 +16,15 @@ export const MAX_PAGE_CARDS = 40, PAGE_VIEW_CHARS = 1500;
 const HEALTH_WORDS = /health|water|weight|sleep|night|meditat|mindful|nutri|food|meal|kcal|calor|macro|protein|steps|activity|fast|diary|mood|measure|body|cycle|period/i;
 /** A title without figures, symbols or long tails: what a card is, never what it shows. */
 const FIGURE = /[-+−]?[$€£¥]?\d[\d.,:/%]*(?:\s*(?:l|ml|kg|lbs?|g|kcal|cal|steps?|mins?|minutes?|h|hrs?|hours?|days?|weeks?|months?|zig|stzig|usd|eur|usdc|km|mi|x|of|van|times?|keer|uur|dagen)\b)?/gi;
+// Session AL fourth pass (L7-4b; Lisbon LA-030): a date in a title ("Nov 4 – Nov 10 items", "Your last 7 days.") goes whole,
+// and a title left with only its glue words ("Your last .") falls back to the card's id.
+const DATE_WORDS = /\b(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?,?\s*|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s*\d{1,2}\b|\b\d{1,2}\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?/gi;
+const GLUE_ONLY = /^(?:(?:your|my|the|a|an|last|next|this|of|for|in|on|to|and|items?|today|now|–|-)\s*)+[.]?$/i;
 export function cleanLabel(text: string): string {
-  let t = text.replace(FIGURE, ' ').replace(/[€$£¥%+−±=<>#*_~|()[\]{}]/g, ' ').replace(/\s+/g, ' ').trim();
+  let t = text.replace(DATE_WORDS, ' ').replace(FIGURE, ' ').replace(/[€$£¥%+−±=<>#*_~|()[\]{}]/g, ' ').replace(/\s+/g, ' ').trim();
   for (let i = 0; i < 3; i++) t = t.replace(/(?:^|\s*)[·•:,;–—-]+\s*$/, '').replace(/^\s*[·•:,;–—-]+\s*/, '').trim();
-  return t.slice(0, 60).trim();
+  t = t.replace(/\s+[.]$/, '').replace(/\s*[–—-]\s*(?=[–—-]|$)/g, '').trim();
+  return GLUE_ONLY.test(t) ? '' : t.slice(0, 60).trim();
 }
 /**
  * A Health card by its id or its title. A widget's id from a Today preset carries the preset's name ("preset-habits-health-0"),
@@ -30,7 +35,7 @@ export const isHealthCard = (id: string, label: string) => HEALTH_WORDS.test(id.
 /** The page's own name for the route ("Today", "Wealth", "Earn", "Checklist"). */
 export function pageName(pathname: string): string {
   const path = pathname.replace(/\/+$/, '') || '/app', seg = path.split('/')[2] ?? '';
-  const names: Record<string, string> = {'': 'Today', earn: 'Earn', checklist: 'Checklist', goals: 'Goals', habits: 'Habits', health: 'Health', wealth: 'Wealth', portfolio: 'Portfolio', staking: 'Staking', markets: 'Markets', ecosystem: 'Ecosystem', activity: 'Activity', help: 'Help', journey: 'Journey', review: 'Life review', chess: 'Chess', governance: 'Governance', music: 'Music', timeline: 'Day Timeline', stories: 'Stories'};
+  const names: Record<string, string> = {'': 'Today', tasks: 'Tasks', agenda: 'Agenda', notes: 'Notes', journal: 'Journal', focus: 'Focus', nova: 'NOVA', zigi: 'ZIGi', earn: 'Earn', checklist: 'Checklist', goals: 'Goals', habits: 'Habits', health: 'Health', wealth: 'Wealth', portfolio: 'Portfolio', staking: 'Staking', markets: 'Markets', ecosystem: 'Ecosystem', activity: 'Activity', help: 'Help', journey: 'Journey', review: 'Life review', chess: 'Chess', governance: 'Governance', music: 'Music', timeline: 'Day Timeline', stories: 'Stories'};
   return names[seg] ?? AREA_LABELS[pageArea(path)];
 }
 type Found = {id: string; text: string; inView: boolean};

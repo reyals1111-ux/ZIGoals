@@ -17,6 +17,9 @@
 .goal-milestone-list { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 4px; }
 .goal-milestone-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
 .goal-milestone-row small { flex: 1 1 160px; }
+/* Session AL Part 15 (AL-COMPETITOR-GAP-114): the reorder handle (44 px), and the row being dragged. */
+.goal-milestone-grip { min-width: 44px; min-height: 44px; cursor: grab; letter-spacing: -2px; }
+.goal-milestone-row[data-dragging] { opacity: .6; }
 .goal-milestone-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin: 0 0 12px; padding: 10px 14px; border: 1px solid #a6c1fa33; border-radius: 14px; }
 .goal-milestone-note p { margin: 0; }
 .goal-what-if { margin-top: 12px; }
@@ -27,6 +30,10 @@
    Scoped to the overview's figures and facts: the timeline's long receipts and notes keep wrapping (a nowrap there ran
    into the next row and took its clicks — the packaged goal journey on CI). */
 .goal-detail-overview :is(.goal-detail-facts dd, .goal-detail-current) { white-space: nowrap; }
+/* Session AL (RR-11): on phones the facts sit three across (phone-goals.css), so a fact in words ("No saving plan yet",
+   "Your own pace") wraps between its words instead of running into the next column; an amount still has no break inside
+   it (overflow-wrap normal; a figure has no space to break at), so it keeps together as above. */
+@media (max-width: 600px) { :root .goal-detail-workspace .goal-detail-overview .goal-detail-facts dd { white-space: normal; overflow-wrap: normal; } }
 @media (max-width: 374px) { .goal-detail-overview .goal-detail-facts dd { font-size: .92em; } .goal-detail-workspace .goal-detail-current { font-size: clamp(28px, 10vw, 36px); } .goal-detail-overview .goal-detail-facts { grid-template-columns: minmax(0, 1fr) !important; } }
 
 /* Session AB-Design Phase 2 closing pass (layout audit, 320 px and the stress amounts): on phones the amount's column is a

@@ -9,7 +9,7 @@ import {ANTHROPIC_STREAM, FAKE_KEY, GEMINI_STREAM, OLLAMA_STREAM} from './fixtur
 import {ANTHROPIC_TOOL_STREAM, GEMINI_TOOL_STREAM, OLLAMA_TOOL_STREAM, OPENAI_ANSWER_STREAM, OPENAI_BAD_TOOL_STREAM, OPENAI_TOOL_STREAM, XAI_TOOL_STREAM} from './fixtures/tool-streams';
 import {EMPTY_NUDGE, MAX_CALLS_PER_ROUND, MAX_TOOL_ROUNDS, runWithTools, toolsFor, type LoopEvent} from './tool-loop';
 import {toolEnv, type ToolEnv} from './tools/env';
-import {gatesFor, SENTINEL, sentinelsIn, showcaseSources, withHandHealth, withSentinels} from './tools/fixtures';
+import {gatesFor, SENTINEL, hasSentinel, sentinelsIn, showcaseSources, withHandHealth, withSentinels} from './tools/fixtures';
 import {HEALTH_CLOSED} from './tools/format';
 import {runTool, toolText} from './tools/registry';
 import type {ChatEvent, ChatRequest, ToolSpec} from './types';
@@ -151,11 +151,11 @@ test('the Health gate closed: no Health tool is offered, a Health call is refuse
   const water = run.results.find(r => r.call.name === 'water')!;
   expect(water.result).toMatchObject({ok: false, reason: 'gate', refusal: HEALTH_CLOSED});
   for (const call of calls) expect(sentinelsIn(JSON.stringify(call.body))).toEqual([]);
-  expect(JSON.stringify(calls)).not.toContain(String(SENTINEL.habitValue));
+  expect(hasSentinel(JSON.stringify(calls), SENTINEL.habitValue)).toBe(false);
   // The control: with the gate open, the same exchange carries the sentinel water.
   const open = sequence([OPENAI_TOOL_STREAM, OPENAI_ANSWER_STREAM('MOCK answer')]);
   await drain(runWithTools({...chat('openai', open.fetcher), env: env(true), stream: streamChat}));
-  expect(JSON.stringify(open.calls[1]!.body)).toContain(String(SENTINEL.waterMl));
+  expect(hasSentinel(JSON.stringify(open.calls[1]!.body), SENTINEL.waterMl)).toBe(true);
 });
 
 test('bad calls are results the model reads, not crashes: arguments that are not JSON, a tool that does not exist', async () => {
@@ -204,7 +204,7 @@ test('the data cap: results past the answer\'s cap are replaced by a note the mo
   expect(run.results[0]!.result.ok).toBe(true);
   expect(run.results[1]!.result).toMatchObject({ok: false, reason: 'range', label: 'Water · today'});
   expect(run.results[1]!.text).toContain(`The data cap for one answer (${(first.length + 20).toLocaleString('en-US')} characters) is reached.`);
-  expect(JSON.stringify(calls[1]!.body)).not.toContain(String(SENTINEL.waterMl));
+  expect(hasSentinel(JSON.stringify(calls[1]!.body), SENTINEL.waterMl)).toBe(false);
   // Without tools offered (every area closed), the request is T's: no tools field at all.
   const none = sequence([OPENAI_ANSWER_STREAM('MOCK')]);
   const shut = toolEnv(showcaseSources(), gatesFor(true, 'today', '/app', {sensitive: true}), 'provider');

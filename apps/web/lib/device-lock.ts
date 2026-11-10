@@ -21,6 +21,21 @@ export async function pinHash(pin: string, salt: string): Promise<string> {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
   return hex(await crypto.subtle.deriveBits({name: 'PBKDF2', hash: 'SHA-256', salt: unhex(salt), iterations: ITERATIONS}, key, 256));
 }
+/**
+ * Session AL (BN-113, NB-145): the check before a lock is turned on, on the text exactly as typed. Earlier the fields
+ * silently dropped letters and cut a 9th digit, so "12ab34" twice or "123456789" twice turned the lock on with a PIN
+ * the person never chose. Now nothing is stripped: anything but 4 to 8 digits, or two entries that differ, is refused
+ * under its own field, and the lock is written only when both entries are the same valid PIN. Null means "turn it on".
+ */
+export type NewPinProblem = {pin?: string; again?: string};
+export function checkNewPin(pin: string, again: string): NewPinProblem | null {
+  if (pin === '') return {pin: 'Type a PIN of 4 to 8 digits.'};
+  if (/\D/.test(pin)) return {pin: 'Use digits only (0 to 9). Letters, spaces and signs are not part of a PIN.'};
+  if (pin.length < 4 || pin.length > 8) return {pin: `Use 4 to 8 digits (this one has ${pin.length}).`};
+  if (again === '') return {again: 'Type the same PIN again to confirm it.'};
+  if (again !== pin) return {again: 'The two PINs differ. Type the same PIN twice.'};
+  return null;
+}
 export async function newLock(pin: string): Promise<DeviceLock> {
   if (!PIN_RULE.test(pin)) throw new Error('Use 4 to 8 digits.');
   const salt = hex(crypto.getRandomValues(new Uint8Array(16)));

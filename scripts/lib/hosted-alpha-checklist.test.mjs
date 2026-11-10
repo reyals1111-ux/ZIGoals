@@ -16,11 +16,12 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(Object.isFrozen(CHECKLIST_STAGE)).toBe(true);
     // Wired by the lead (Session AF): appended last, exactly once, after the Earn stage 9; stages 1–8 keep their numbers and order.
     const numbers = VERIFIER_STAGES.map(s => s.number);
-    // Session AK appended stage 11 (AK) after it; 1–10 keep their numbers and order.
-    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    // Session AK appended stage 11 (AK) after it, and Session AL stage 12 (AL); 1–10 keep their numbers and order.
+    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     expect(VERIFIER_STAGES.filter(s => s.key === 'checklist')).toEqual([CHECKLIST_STAGE]);
-    expect(VERIFIER_STAGES.at(-2)).toBe(CHECKLIST_STAGE);
-    expect(VERIFIER_STAGES.at(-1)?.key).toBe('ak');
+    expect(VERIFIER_STAGES.at(-3)).toBe(CHECKLIST_STAGE);
+    expect(VERIFIER_STAGES.at(-2)?.key).toBe('ak');
+    expect(VERIFIER_STAGES.at(-1)?.key).toBe('al');
   });
   test('the sentinel is fictional, unique and never a secret-like value', () => {
     expect(CHECKLIST_SENTINELS.habit).toBe('Verifier orbit sip 7f3e');
@@ -33,7 +34,10 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(code.split('\n').filter(line => /^\s*await /.test(line) && !/^\s{2,}/.test(line))).toEqual([]);
   });
   test('its words and selectors are the app’s own', () => {
-    const star = read('../../apps/web/components/checklist/star-toggle.tsx'), page = read('../../apps/web/components/checklist/checklist-page.tsx');
+    // Session AL (CI14, page weights, deliberate): the star's button moved to star-toggle-button.tsx (its own chunk);
+    // star-toggle.tsx keeps the stand-in with the same "Star …" name. Both words are asserted where they now live.
+    const star = read('../../apps/web/components/checklist/star-toggle-button.tsx'), standIn = read('../../apps/web/components/checklist/star-toggle.tsx'), page = read('../../apps/web/components/checklist/checklist-page.tsx');
+    expect(standIn).toContain('`Star ${label} for your Checklist path`');
     const adapters = read('../../apps/web/lib/checklist/adapters.ts'), toast = read('../../apps/web/components/ui/undo-toast.tsx'), completion = read('../../apps/web/components/habits/habit-completion.tsx');
     expect(star).toContain('`Star ${label} for your Checklist path`');
     expect(star).toContain('`${label} is on your Checklist path. Take it off`');
@@ -43,7 +47,8 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(adapters).toContain('message: `${dot.label} logged for ${forDay(day, ctx.date)}.`');
     expect(adapters).toContain("undone: `${dot.label}: back as it was.`");
     expect(toast).toContain('className="aa-toast-undo"');
-    expect(completion).toContain('`${day.status === "complete" ? "Undo completion for" : "Complete"} ${habit.title}`');
+    // Session AL (L3 fourth pass, deliberate): the same words; the done state now also counts water Health holds (doneNow).
+    expect(completion).toContain('`${doneNow ? "Undo completion for" : "Complete"} ${habit.title}`');
     expect(CHECKLIST_PATH).toBe('/app/checklist');
   });
   // Session AG Polish 2 (ADR-031 K13): the tick completes the day, whose celebration holds the toast until it closes.

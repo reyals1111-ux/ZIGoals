@@ -5,7 +5,8 @@ import {everyHalfMinute} from '../half-minute';
 import type {HabitsStore} from './use-habits';
 import {habitCalendarDay} from '../../lib/habits';
 import {AUTO_RULES, type AutoApplied} from '../../lib/auto-rules/schema';
-import {applyAutoTick, autoTickOn, markAutoTickUndone, proposeAutoTicks, recordAutoTick, ruleHabitDays, undoAutoTick, type DaySources} from '../../lib/auto-rules/engine';
+import {applyAutoTick, autoTickOn, autoTickRevocations, clearAutoTick, markAutoTickUndone, proposeAutoTicks, recordAutoTick, ruleHabitDays, undoAutoTick, type DaySources} from '../../lib/auto-rules/engine';
+import {showStatus} from '../ui/undo-toast';
 
 /**
  * Session AK (5.6): runs the auto-complete rules, as useAutoCheckIns runs AH's Health links: once the journal, the
@@ -35,10 +36,22 @@ export function useAutoRules({habits, sources, healthApplied, ready}: {
     const run = () => {
       if (!ready || !habitsLoaded || habitsError || !rulesLoaded || unreadable || running.current || !rules.rules.length) return;
       const date = habitCalendarDay(habitData, new Date());
-      const ticks = proposeAutoTicks({record: rules, date, sources: sources(date), days: ruleHabitDays(rules, habitData, date), healthApplied});
-      if (!ticks.length) return;
+      const day = sources(date);
+      const ticks = proposeAutoTicks({record: rules, date, sources: day, days: ruleHabitDays(rules, habitData, date), healthApplied});
+      const revoked = autoTickRevocations({record: rules, date, sources: day, data: habitData});
+      if (!ticks.length && !revoked.length) return;
       running.current = true;
       void (async () => {
+        // Session AL (MO-125): the entry behind a tick was removed, so the tick goes back and the person is told.
+        for (const marker of revoked) {
+          try {
+            let changed = false;
+            await updateHabits(data => { const next = undoAutoTick(data, marker, new Date()); changed = next !== data; return next; });
+            updateRules(current => clearAutoTick(current, marker.habitId, marker.date));
+            const title = habitData.habits.find(h => h.id === marker.habitId)?.title;
+            if (changed && title) showStatus(`${title} is open again: what ticked it off was removed.`);
+          } catch { /* retried on the next run */ }
+        }
         for (const tick of ticks) {
           const out: {marker?: AutoApplied} = {};
           try {

@@ -1,7 +1,8 @@
-import {habitDay, habitRuleOn, latestHabitRule, measurementUnit, type HabitData} from '../habits';
+import {frequencyProgress, habitDay, habitRuleOn, latestHabitRule, measurementUnit, type HabitData} from '../habits';
 import {pathLabelOf} from './path-label';
 import {HEALTH_MEALS, type HealthData} from '../health';
-import {dailyData, waterSummary} from '../health-daily';
+import {dailyData, waterDayDone, waterOn} from '../health-daily';
+import {weightReadingText} from '../health-units';
 import type {Platform} from '../positions';
 import type {Sleep} from '../sleep/schema';
 import {nightDay, runningNights} from '../sleep/engine';
@@ -44,6 +45,8 @@ export type DerivedDot = {
   refusal?: string;
   /** A goal favourite: the milestone a tick completes (its next open step). */
   milestoneId?: string;
+  /** A Water favourite while Health has no daily water target: its stepper asks for one (it is never done without one). */
+  askWaterTarget?: boolean;
   item: ChecklistItem | ChecklistHealthItem;
 };
 
@@ -85,7 +88,14 @@ function habitDot(item: ChecklistItem, base: Base, s: DeriveSources, date: strin
   const value: StepValue | undefined = rule.type !== 'quit' && rule.measurement.kind !== 'boolean' && (rule.type === 'limit' || rule.target > 1 || rule.measurement.kind === 'duration')
     ? {current: item.lastValue ?? item.defaultValue ?? null, unit: measurementUnit(rule), suggested: item.defaultValue ?? (rule.type === 'limit' ? 0 : Math.max(1, Math.round((rule.target - day.count) * 100) / 100)), min: rule.type === 'limit' ? 0 : rule.measurement.kind === 'count' ? 1 : 0.5, max: 100_000, step: rule.measurement.kind === 'count' ? 1 : rule.measurement.kind === 'duration' ? 5 : 0.5}
     : undefined;
-  const state: StepState = day.status === 'complete' ? 'done' : running ? 'running' : 'undone';
+  // Session AL (P-LS-28, LS-036): an "X times a week" habit is lit on a day it was checked in ("1 of 2 this week"), as
+  // Habits counts that day; the week's own total stays on Habits.
+  const freq = rule.schedule.kind === 'frequency' ? frequencyProgress(habit, s.habitsDay) : null, checkedToday = !!freq && (entry?.count ?? 0) > 0 && entry?.disposition === 'logged';
+  const state: StepState = day.status === 'complete' || checkedToday ? 'done' : running ? 'running' : 'undone';
+  if (freq && (checkedToday || day.status !== 'complete')) {
+    const said = `${formatNumber(freq.done)} of ${formatNumber(freq.times)} this ${freq.period}`;
+    return {...dot, state, counted: true, note: said, ...(value ? {value, intent: 'value'} : {intent: 'tick'}), ...(state === 'done' && entry ? {doneAt: entry.updatedAt} : {})};
+  }
   const progress = day.status === 'partial' && day.target > 0 ? Math.min(.99, Math.max(.01, day.count / day.target)) : undefined;
   const note = day.status === 'complete' ? (rule.type === 'quit' ? 'Stayed clear' : rule.measurement.kind === 'boolean' ? undefined : `${formatNumber(day.count)} ${unitFor(day.count, measurementUnit(rule))}`.trim())
     : day.status === 'failed' ? 'Marked missed today' : running ? 'Timer running' : day.status === 'partial' ? `${formatNumber(day.count)} of ${formatNumber(day.target)} ${unitFor(day.target, measurementUnit(rule))}`.trim() : undefined;
@@ -125,10 +135,15 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
   const h = s.health, day = s.healthDay, prefs = h ? dailyData(h).preferences : null, here = {...base, href: '/app/health', ...forDay(day, date)};
   switch (item.input) {
     case 'water': {
-      const unit = prefs?.waterUnit === 'fl-oz-us' ? 'fl oz' : 'ml', sum = h ? waterSummary(h, day) : {entries: 0, millilitres: 0, targetMl: null};
+      const unit = prefs?.waterUnit === 'fl-oz-us' ? 'fl oz' : 'ml', sum = h ? waterOn(h, day) : {entries: 0, millilitres: 0, targetMl: null, reached: null};
+      // Session AL (P-LS-19, LS-016/LS-056/LC-002; the one water rule, lib/health-daily waterDayDone): the planet lights
+      // only when the day reaches the person's own Health water target. Fifth pass (replay L2 round 2): with no target it
+      // stays unlit ("250 ml today: done" lit every planet after one glass); its stepper asks for a target (2,000 ml offered).
+      const done = waterDayDone(sum), noTarget = !sum.targetMl;
       const suggested = item.defaultValue ?? (unit === 'ml' ? 250 : 8);
-      const note = sum.entries ? `${Math.round(sum.millilitres)} ml today${sum.targetMl ? ` of ${sum.targetMl}` : ''}` : undefined;
-      return {...here, label: item.label ?? 'Water', state: sum.entries ? 'done' : 'undone', counted: true, ...(note ? {note} : {}), intent: 'value', value: unit === 'ml' ? {current: item.lastValue ?? null, unit, suggested, min: 1, max: LIMITS.waterEntryMl, step: 50} : {current: item.lastValue ?? null, unit, suggested, min: 1, max: Math.floor(LIMITS.waterEntryMl / ML_PER_US_FL_OZ), step: 1}}; // Session AH (VA3): the one water limit
+      // Session AL (LS-056): the amount as logged, with its target when one is set, or that none is set yet.
+      const note = sum.entries ? `${formatNumber(sum.millilitres, {maximumFractionDigits: 1})} ml today${sum.targetMl ? ` of ${formatNumber(sum.targetMl)} ml` : ', no daily target yet'}` : undefined;
+      return {...here, label: item.label ?? 'Water', state: done ? 'done' : 'undone', counted: true, ...(note ? {note} : {}), ...(noTarget ? {askWaterTarget: true} : {}), intent: 'value', value: unit === 'ml' ? {current: item.lastValue ?? null, unit, suggested, min: 1, max: LIMITS.waterEntryMl, step: 50} : {current: item.lastValue ?? null, unit, suggested, min: 1, max: Math.floor(LIMITS.waterEntryMl / ML_PER_US_FL_OZ), step: 1}}; // Session AH (VA3): the one water limit
     }
     case 'diary': {
       const sourceId = item.ref?.sourceId, kind = item.ref?.sourceKind;
@@ -145,8 +160,8 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
       const today = h?.weights.find(w => w.date === day), latest = h ? [...h.weights].sort((a, b) => b.date.localeCompare(a.date))[0] : undefined;
       const lb = prefs?.weightUnit === 'lb', show = (g: number) => Math.round((lb ? g / LB : g / 1000) * 10) / 10;
       const last = item.lastValue ?? latest?.grams ?? null;
-      return {...here, label: item.label ?? 'Weigh in', state: today ? 'done' : 'undone', counted: true, ...(today ? {note: `${show(today.grams)} ${lb ? 'lb' : 'kg'}`, doneAt: today.updatedAt} : {}), intent: 'value',
-        value: {current: last === null ? null : show(last), unit: lb ? 'lb' : 'kg', suggested: last === null ? (lb ? 150 : 70) : show(last), min: lb ? 44 : 20, max: lb ? 880 : 400, step: 0.1}};
+      return {...here, label: item.label ?? 'Weigh in', state: today ? 'done' : 'undone', counted: true, ...(today ? {note: weightReadingText(today.grams, lb ? 'lb' : 'kg') /* Session AL (PRIMITIVES format layer); fifth pass (N-MO-14): as entered */, doneAt: today.updatedAt} : {}), intent: 'value',
+        value: {current: last === null ? null : show(last), unit: lb ? 'lb' : 'kg', suggested: last === null ? (lb ? 150 : 70) : show(last), min: lb ? 45 : 20, max: lb ? 880 : 400, step: 0.1}}; // Session AL third pass: 44 lb is under the store's 20 kg (45 to 881 lb, lib/limits)
     }
     case 'sleep': {
       const nights = s.sleep?.nights ?? [], ended = nights.filter(n => n.end !== null && nightDay(n) === day).sort((a, b) => (b.end ?? '').localeCompare(a.end ?? ''))[0], running = s.sleep ? runningNights(s.sleep)[0] : undefined;
@@ -175,7 +190,7 @@ type Base = Omit<DerivedDot, 'label' | 'state' | 'counted'>;
 /** Every dot on today's path, in the person's order (P7.4), each derived from its own page's record. */
 export function deriveDots(record: Checklist, today: ChecklistToday, date: string, sources: DeriveSources): DerivedDot[] {
   const receipts = new Set(today.ticks.map(t => t.id)), custom = new Set(today.custom);
-  return orderedItems(record).map(item => {
+  return distinctLabels(orderedItems(record).map(item => {
     const health = isHealthItem(item), kind: DotKind = health ? 'health' : item.kind as DotKind, sub = health ? item.input : item.kind;
     const colour = pathColour(item.colour, DEFAULT_COLOUR[sub] ?? 'cyan');
     const base: Base = {id: item.id, key: itemKey(item), kind, ...(health ? {input: item.input as HealthInput} : {}), section: sectionOfItem(record, item), colour, glyph: GLYPH[sub] ?? 'sparkle', item};
@@ -184,6 +199,18 @@ export function deriveDots(record: Checklist, today: ChecklistToday, date: strin
     if (item.kind === 'goal') return goalDot(item, base, sources, today);
     if (item.kind === 'goal-step') return goalStepDot(item, base, sources, date, receipts);
     return {...base, label: item.label ?? 'My item', state: custom.has(item.id) ? 'done' : 'undone', counted: true, intent: 'tick'} satisfies DerivedDot;
+  }));
+}
+/**
+ * Session AL (P-LS-67, LS-069; P-LS-70, LC-003): two planets with one name (two "QA Stretch" habits, the Meditate habit
+ * and Health's Meditate) get distinct names — "QA Stretch (2)" — so a screen reader and the List can tell them apart.
+ */
+function distinctLabels(dots: DerivedDot[]): DerivedDot[] {
+  const seen = new Map<string, number>();
+  return dots.map(d => {
+    const key = d.label.trim().toLowerCase(), n = (seen.get(key) ?? 0) + 1;
+    seen.set(key, n);
+    return n === 1 ? d : {...d, label: `${d.label} (${n})`};
   });
 }
 
@@ -201,6 +228,16 @@ export function summarise(dots: DerivedDot[], today: ChecklistToday): DaySummary
   return {total: counted.length, done: done.length, perfect, orderKnown, next: counted.find(d => d.state !== 'done') ?? null};
 }
 
+/**
+ * Session AL (PR-085, P-PR-21): ZIGi's line on the path. "All planets lit!" only when every planet on it is lit; when
+ * every planet due today is lit but some rest today (not scheduled, paused, closed), it says that instead.
+ */
+export function pathLine(summary: Pick<DaySummary, 'total' | 'done' | 'next'> | null, dots: readonly Pick<DerivedDot, 'state'>[]): string | undefined {
+  if (!summary || summary.total === 0) return undefined;
+  if (summary.done === 0) return 'Tap a planet to begin';
+  if (summary.next !== null) return undefined;
+  return dots.every(d => d.state === 'done') ? 'All planets lit!' : 'Every planet due today is lit';
+}
 /** The chests (P7.7): half way and all lit; their reward lines only with the game layer on. */
 export function checklistMilestones(game: {on: boolean; dayXp: number; badge?: string | null}): PathMilestone[] {
   return [

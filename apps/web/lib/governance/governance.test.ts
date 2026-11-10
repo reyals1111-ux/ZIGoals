@@ -83,3 +83,15 @@ describe('eligibility and the vote journal', () => {
     expect(confirmedVote(votes, '121')).toBeUndefined();
   });
 });
+
+// Session AL (BN-179, BN-008, BN-180): proposer Markdown shown as words; test and template titles labelled.
+test('BN-179: Markdown marks are dropped from a proposer summary; markup stays text', async () => {
+  const {plainMarkdown} = await import('./plain-words');
+  expect(plainMarkdown('## Summary\n\n**TL;DR**: retire `925,000` ZIG\n- one\n* two\n> quoted\n[docs](https://example.org)')).toBe('Summary\n\nTL;DR: retire 925,000 ZIG\n• one\n• two\nquoted\ndocs (https://example.org)');
+  expect(plainMarkdown('Read this <img src="x" onerror="1"> and <a href="https://evil.example">this</a>')).toBe('Read this <img src="x" onerror="1"> and <a href="https://evil.example">this</a>');
+});
+test('BN-008/BN-180: test and unfilled-template titles are recognised', async () => {
+  const {looksLikeTest} = await import('./plain-words');
+  for (const t of ['[COMPANY_NAME] Community signaling proposal', '[COMPANY_NAME]_Test', 'Test Proposal', 'Test scam proposal']) expect(looksLikeTest(t), t).toBe(true);
+  for (const t of ['Software Upgrade to v5', 'Increase Active Validator Set by 1. From 13 to 14 validators', 'Latest testnet params', 'Contest rules']) expect(looksLikeTest(t), t).toBe(false);
+});

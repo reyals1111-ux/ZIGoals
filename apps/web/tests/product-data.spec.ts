@@ -111,6 +111,8 @@ test("private Habit and Health sentinel values stay outside requests, headers, l
   await page.goto("/app/health");
   await openMealLog(page);
   await page.getByRole("combobox", { name: "Food or recipe", exact: true }).selectOption(healthData.foods[0]!.id);
+  // Session AL (A10-2, deliberate): the meal now defaults to the time of day, so the Breakfast this test reads is chosen.
+  await page.getByRole("form", { name: "Log a meal" }).getByLabel("Meal", { exact: true }).selectOption("Breakfast");
   await page.getByRole("button", { name: "Log to diary", exact: true }).click();
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText(`${sentinel}_food`);
   for (const route of ["/app", "/app/activity", "/app/goals", "/app/settings", "/app/ecosystem", "/app/health"]) {

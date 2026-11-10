@@ -9,7 +9,7 @@ import {aiGates, healthGate} from './gates';
 import {Handles} from './handles';
 import type {PageArea} from './settings';
 import {toolEnv, type ToolSources} from './tools/env';
-import {DAY, gatesFor, SENTINEL, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from './tools/fixtures';
+import {DAY, gatesFor, SENTINEL, hasSentinel, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from './tools/fixtures';
 import {availableTools, runTool, TOOLS, toolText} from './tools/registry';
 import {localAnswer} from './local-answers/engine';
 import {recordsForAi} from './local-answers/more';
@@ -88,9 +88,9 @@ test('Session W Part 5: the sentinel meditation session is in the journal too, a
 });
 test('Session W Part 7: records an import added (a day\'s steps, a day\'s vitals) are Health like the rest, and never leave with the gate closed', () => {
   const health = sources().health;
-  expect(JSON.stringify(health)).toContain(String(SENTINEL.importSteps));
-  expect(JSON.stringify(health)).toContain(String(SENTINEL.importKcal));
-  for (const {path, text} of everythingSent(false)) { expect(text, path).not.toContain(String(SENTINEL.importSteps)); expect(text, path).not.toContain(String(SENTINEL.importKcal)); }
+  expect(hasSentinel(JSON.stringify(health), SENTINEL.importSteps)).toBe(true);
+  expect(hasSentinel(JSON.stringify(health), SENTINEL.importKcal)).toBe(true);
+  for (const {path, text} of everythingSent(false)) { expect(hasSentinel(text, SENTINEL.importSteps), path).toBe(false); expect(hasSentinel(text, SENTINEL.importKcal), path).toBe(false); }
 });
 test('Session W Part 8: a linked service\'s record and a meditation\'s heart-rate summary are Health like the rest, and never leave with the gate closed', () => {
   const health = sources().health, {avg, min, max} = SENTINEL.heartRate, heart = new RegExp(`\\b(?:${avg}|${min}|${max})\\b`);
@@ -115,7 +115,7 @@ test('Session W Part 21: with the gate open, the new Health tools carry their se
   expect(text('sleep_nights')).toContain(SENTINEL.sleepNote);
   expect(text('meditation_sessions')).toContain(SENTINEL.meditationNote);
   expect(text('meditation_sessions')).toMatch(new RegExp(`\\b${avg}\\b[\\s\\S]*\\b${min}\\b[\\s\\S]*\\b${max}\\b`));
-  expect(text('vitals')).toContain(String(SENTINEL.importKcal));
+  expect(hasSentinel(text('vitals'), SENTINEL.importKcal)).toBe(true);
   expect(text('devices')).toMatch(/Strava \(linked\)/);
   // The same tools refuse with the gate closed, on every page, before reading anything.
   for (const {path, text: shut} of everythingSent(false).filter(s => /^tool (sleep_nights|sleep_summary|meditation_sessions|meditation_summary|vitals|devices) on /.test(s.path))) expect(JSON.parse(shut).refused, path).toBeTruthy();
@@ -230,7 +230,7 @@ test('Part 6: native tool calls carry no Health with the gate closed: no Health 
     expect(offered.filter(name => TOOLS.find(t => t.name === name)?.area === 'health'), pathname).toEqual([]);
     expect(requests.length, pathname).toBeGreaterThan(0);
     expect(sentinelsIn(JSON.stringify(requests)), pathname).toEqual([]);
-    expect(JSON.stringify(requests), pathname).not.toContain(String(SENTINEL.habitValue));
+    expect(hasSentinel(JSON.stringify(requests), SENTINEL.habitValue), pathname).toBe(false);
   }
   // The control: with the gate open on Health, the same exchange carries the sentinels.
   const open = await sent(true, 'health', '/app/health');

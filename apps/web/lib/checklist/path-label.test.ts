@@ -37,3 +37,15 @@ describe('the one word on the path', () => {
     expect(r.items[0]!.label).toBe('Play piano 15 minutes');
   });
 });
+
+/** Session AL fourth pass (L5-4): LS-053 / PR-031 / LS-017 — the helper that tells path words apart (not wired: O6 pin). */
+import {distinctPathLabels} from './path-label';
+describe('Session AL L5-4: the path words are told apart', () => {
+  const words = (names: string[], own: Record<number, string> = {}) => { const m = distinctPathLabels(names.map((name, i) => ({id: `i${i}`, name, ...(own[i] ? {own: own[i]} : {})}))); return names.map((_, i) => m.get(`i${i}`)); };
+  it('"0" and "-5" no longer both read "Step"', () => expect(words(['0', '-5'])).toEqual(['0', '-5']));
+  it('same names are numbered in path order', () => expect(words(['QA Stretch', 'QA Stretch (2)'])).toEqual(['Stretch', 'Stretch 2']));
+  it('an own item and a habit that share a word each keep a word of their own', () => expect(words(['QA Floss', 'Floss teeth'])).toEqual(['Floss', 'Floss teeth']));
+  it('the Showcase "Read" pair', () => expect(words(['Read: 30 minutes', 'Read ten pages'])).toEqual(['Read 30', 'Read pages']));
+  it("a person's own word is never changed", () => expect(words(['Read: 30 minutes', 'Read ten pages'], {0: 'Read'})).toEqual(['Read', 'Read pages']));
+  it('distinct words stay as they were', () => expect(words(['Water', 'Play piano 15 minutes'])).toEqual(['Water', 'Piano']));
+});

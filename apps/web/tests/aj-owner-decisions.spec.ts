@@ -21,7 +21,8 @@ test('GO3: the Goal wizard has its four steps, and "Create goal" is offered on s
   await freshDevice(page);
   await page.goto('/app/goals/new'); await hydrated(page);
   const steps = page.getByRole('list', {name: 'Goal creation progress'}).getByRole('listitem');
-  await expect(steps).toHaveText([/^1\s*Purpose$/, /^2\s*Optional sources$/, /^3\s*Optional Habit$/, /^4\s*Review$/]);
+  // Session AL (COPY_AUDIT, deliberate; D-008/T-014): still four steps, named for what each is for.
+  await expect(steps).toHaveText([/^1\s*Your goal$/, /^2\s*What counts$/, /^3\s*A rhythm \(optional\)$/, /^4\s*Review$/]);
   await expect(steps.first()).toHaveAttribute('aria-current', 'step');
   await expect(page.getByRole('button', {name: 'Create goal', exact: true})).toBeVisible();
   await expect(page.getByRole('button', {name: 'Continue →', exact: true})).toBeVisible();
@@ -48,7 +49,8 @@ test('ZI5: the sharing switches and "Include Health" show before any AI is conne
   await page.goto('/app/settings'); await hydrated(page);
   const privacy = page.getByRole('region', {name: 'Privacy & data'});
   await expect(privacy).toContainText('What each page may share', {timeout: 30_000});
-  await expect(privacy).toContainText('These apply once you connect your own AI. With no AI connected, nothing leaves this device');
+  // Session AL (COPY_AUDIT, deliberate): the switches also decide what ZIGi's on-device answers read (MO-052, P-MO-12).
+  await expect(privacy).toContainText('With no AI connected, nothing leaves this device: ZIGi answers from your records here, and these switches decide which pages those answers may read.');
   await expect(privacy.getByRole('switch', {name: /^Include Health/})).toBeAttached();
   expect(await privacy.getByRole('switch').count()).toBeGreaterThan(3);
 });

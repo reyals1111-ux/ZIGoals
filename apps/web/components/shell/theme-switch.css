@@ -23,11 +23,22 @@
 /* Session AD (Part 3): the line under the bar — on phones and in Settings what Nebula is and that Customize comes later.
    Readable size, the secondary text colour. Session AF (L5a, Part 10.7, ADR-028 H31): the sidebar's bar has no line. */
 .theme-switch-note { margin: 8px 2px 0; font-size: 14px; line-height: 1.45; color: #b9c8e2; }
+/* CI fix (H75, TK-183): the chosen theme's line and the other two, hidden, share one cell (stretched to the longest). */
+.theme-switch-note-slot { display: grid; }
+.theme-switch-note-slot > .theme-switch-note { grid-area: 1 / 1; }
+.theme-switch-note-ghost { visibility: hidden; }
 .app-sidebar .theme-switch-wrap { flex: none; }
 @media (max-width: 900px) { .app-sidebar .theme-switch-wrap { display: none; } }
 /* The lazy bar's slot keeps the bar's measured height while its chunk loads (Session AD weights). */
 .theme-switch-slot { min-height: 70px; } /* the sidebar's bar: 14 px above it, 56 px of bar (Session AF: no line under it) */
 .app-sidebar .theme-switch-slot { flex: none; }
+/* Session AL (DV-029b, DV-051b; AL-NAV-012): the sidebar's three buttons show their words under their marks (they were
+   icons with names only for screen readers), in the bar's own 44 px buttons, so the bar keeps its height. */
+.app-sidebar .theme-switch:not(.theme-switch-compact) .theme-option { grid-auto-flow: row; align-content: center; gap: 2px; }
+.app-sidebar .theme-switch:not(.theme-switch-compact) .theme-option > span { display: block; font-size: 12px; font-weight: 600; line-height: 14px; letter-spacing: .01em; }
+.app-sidebar .theme-switch:not(.theme-switch-compact) .theme-option svg { width: 18px; height: 18px; }
+/* Session AL (D-063, LS-H34, D-179, NB-075): the bar stays the sidebar's last item (a sticky bar would sit over the O4 Apps
+   group); its labelled buttons and Settings → Appearance are the ways to it. Carried: reaching it without scrolling at 800 px. */
 .theme-switch-slot-compact { min-height: 94px; }
 @media (max-width: 1023.98px) { .theme-switch-slot-compact { min-height: 119px; } }
 @media (max-width: 767.98px) { .theme-switch-slot-compact { min-height: 148px; } }
@@ -35,7 +46,8 @@
 /* Session AE (Part 3.5, ADR-027): a theme switch is one short colour cross-fade of the whole page (lib/ui-prefs/theme.ts
    starts it only where the browser has view transitions and motion is welcome, and only once the new sheet is in). This
    sheet loads with the bar, the only place a switch starts. Opacity only; none under reduced motion or Motion Off. */
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
+/* Session AL (NB-075, NB-086): shorter (it was 280 ms); with the sheet fetched on hover or focus it starts at once. */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
 @media (prefers-reduced-motion: reduce) { ::view-transition-old(root), ::view-transition-new(root) { animation: none; } }
 :root[data-app-motion=off]::view-transition-old(root), :root[data-app-motion=off]::view-transition-new(root) { animation: none; }
 /* Session AF (L5a, Part 10.2, ADR-028 H13): the ink twins of the nebula's accent colours, for small coloured words. Here,

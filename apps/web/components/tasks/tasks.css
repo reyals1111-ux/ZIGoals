@@ -54,3 +54,135 @@
 .tasks-add.is-folded .tasks-add-title { flex: 1 1 180px; }
 .tasks-add.is-folded .tasks-add-toggle { min-height: 44px; }
 .tasks-add-more { flex: 1 0 100%; display: flex; flex-wrap: wrap; align-items: end; gap: 8px; min-width: 0; }
+
+/* ---- Session AL (Part 8): Tasks at Todoist/TickTick level ------------------------------------------------------- */
+.tasks-page { width: min(1180px, 100%); }
+.tasks-links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.tasks-links button.text-link { min-height: 44px; font-size: 16px; }
+.tasks-layout { display: grid; grid-template-columns: minmax(200px, 240px) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .tasks-layout { grid-template-columns: minmax(0, 1fr); } }
+.tasks-nav { display: grid; gap: 4px; min-width: 0; position: sticky; top: 84px; }
+@media (max-width: 900px) { .tasks-nav { position: static; } .tasks-nav ul { display: flex; flex-wrap: wrap; gap: 6px; } .tasks-nav-item { width: auto; } }
+.tasks-nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+/* Session AL (A10-11): in one column (768 px) the 545 px of views (Inbox … Priority) stood above the list, so the first
+   task began at about y 1,500 of 1,024. The list comes first and its views follow it, as on a phone (globals.css orders
+   the phone's navs last); nothing is removed, and the page's source (and Tab) order is unchanged. */
+@media (max-width: 900px) { .tasks-layout > .tasks-nav { order: 1; } }
+.tasks-nav h3 { margin: 12px 0 2px; font-size: 14px; font-weight: 650; color: var(--text-secondary, var(--muted)); }
+.tasks-nav-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.tasks-nav-item small { font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
+.tasks-nav-item:hover { border-color: var(--line, rgba(128, 128, 160, .3)); }
+/* Session AL (CI10, ADR-028 H75/H112): the selected list's violet tint is the same in Nebula, Light and Dark (a coloured fill
+   keeps Nebula's colour; was cyan by day and grey at night). */
+.tasks-nav-item[aria-current=page] { border-color: var(--cyan); background: color-mix(in oklab, #8e6cf0 18%, transparent); font-weight: 650; }
+.tasks-nav-item[data-colour]::before { content: ""; flex: 0 0 10px; height: 10px; border-radius: 50%; background: var(--task-colour, #8a8fa3); margin-inline-end: -2px; }
+.tasks-nav-item span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.tasks-nav-new, .tasks-nav .text-link { min-height: 44px; }
+.tasks-nav-add { display: grid; gap: 8px; }
+.tasks-nav-filter { display: flex; align-items: center; }
+[data-colour=grey] { --task-colour: #8a8fa3; } [data-colour=red] { --task-colour: #e5484d; } [data-colour=orange] { --task-colour: #f08c38; }
+[data-colour=yellow] { --task-colour: #e2b93b; } [data-colour=green] { --task-colour: #46a758; } [data-colour=teal] { --task-colour: #12a594; }
+[data-colour=blue] { --task-colour: #3e8bf0; } [data-colour=violet] { --task-colour: #8e6cf0; } [data-colour=pink] { --task-colour: #e05aa8; }
+.tasks-main { display: grid; gap: 10px; min-width: 0; }
+.tasks-view-head { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 16px; }
+.tasks-view-head h2 { margin: 0; flex: 1 1 220px; }
+.tasks-view-head h2 small { font-size: 14px; font-weight: 500; color: var(--text-secondary, var(--muted)); }
+.tasks-filter { flex: 1 1 220px; }
+.tasks-filter input, .tasks-inline-form input, .tasks-inline-form button, .tasks-project-tools select, .tasks-project-tools button { min-height: 44px; }
+.tasks-inline-form, .tasks-project-tools, .tasks-section-tools, .tasks-io-actions { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 6px 10px; }
+.tasks-section-tools { margin-inline-start: 10px; font-size: 14px; font-weight: 500; }
+.tasks-section-tools .text-link, .tasks-project-tools .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+.tasks-toggle { display: inline-flex; border: 1px solid var(--line, rgba(128, 128, 160, .35)); border-radius: 12px; overflow: hidden; }
+.tasks-toggle button { min-height: 44px; min-width: 64px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.tasks-toggle button[aria-pressed=true] { background: color-mix(in oklab, var(--cyan) 18%, transparent); font-weight: 650; }
+.tasks-smart-add { display: grid; gap: 4px; }
+.tasks-smart-row { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.tasks-smart-row .tasks-add-title { flex: 1 1 260px; }
+.tasks-smart-row input, .tasks-smart-row button { min-height: 44px; }
+.tasks-smart-help, .tasks-smart-preview { margin: 0; }
+.tasks-smart-preview { min-height: 0; font-size: 15px; overflow-wrap: anywhere; }
+.tasks-smart-preview:empty { display: none; }
+.tasks-pieces { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.tasks-piece { display: inline-flex; align-items: center; gap: 6px; padding: 0 0 0 8px; border-radius: 999px; border: 1px solid var(--line, rgba(128, 128, 160, .35)); font-size: 14px; }
+.tasks-piece mark { background: color-mix(in oklab, var(--cyan) 22%, transparent); color: inherit; border-radius: 6px; padding: 0 4px; }
+.tasks-piece[data-kind=priority] mark { background: color-mix(in oklab, #e5484d 22%, transparent); }
+.tasks-piece[data-kind=project] mark, .tasks-piece[data-kind=label] mark { background: color-mix(in oklab, #8e6cf0 24%, transparent); }
+.tasks-piece[data-kind=recur] mark { background: color-mix(in oklab, #46a758 24%, transparent); }
+.tasks-piece .text-link { min-height: 44px; padding: 0 10px; }
+.tasks-field-note, .tasks-field-error { display: block; font-size: 14px; margin-top: 2px; }
+.tasks-field-error { color: var(--danger, currentColor); font-weight: 600; }
+.task { position: relative; padding-inline-start: calc(var(--task-depth, 0) * 22px); }
+.tasks-main .task:has(> .task-select) { grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "select done title actions" "select done meta actions" "sub sub sub sub"; }
+@media (max-width: 599.98px) { .tasks-main .task:has(> .task-select) { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: "select done title" "select done meta" "select done actions" "sub sub sub"; } .tasks-main .task .task-actions { justify-content: flex-start; } }
+.task-select { grid-area: select; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.task.is-selected { background: color-mix(in oklab, var(--cyan) 10%, transparent); border-radius: 10px; }
+.task:focus-visible, .task[data-focused]:focus-within { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 10px; }
+.task[draggable=true] { cursor: grab; }
+.task-title-button { all: unset; cursor: pointer; overflow-wrap: anywhere; }
+.task-title-button:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
+.task-meta { font-size: 14px; opacity: .9; }
+/* Session AL (CI22, CI 1579): the chips sit in the meta line at its 90 % opacity, so each colour is chosen for 4.5:1 there
+   (over the panel and over a selected row's tint). Nebula's P1 was #e5484d: 4.00:1 at 90 % on the Tasks panel (4.39 in
+   Dark), hidden whenever the row was overdue (its meta line is at full opacity, 4.72), so a P1 task due later today failed
+   1.4.3 and one past its time passed. Light's P2 was #a24d06: 4.38:1 at 90 %. Same hues, a step lighter / deeper. */
+.task-chip-p1 { color: #f47075; border-color: currentColor; font-weight: 650; }
+.task-chip-p2 { color: #f08c38; }
+.task-chip-p4 { color: var(--text-secondary, var(--muted)); }
+:root[data-theme=light] .task-chip-p1 { color: #b4232a; } :root[data-theme=light] .task-chip-p2 { color: #8f4305; }
+.task-project { display: inline-flex; align-items: center; gap: 2px; }
+.task-project[data-colour] > span:first-child { color: var(--task-colour); }
+.task-label { color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
+.task-notes { grid-column: 1 / -1; margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
+.task-sub { grid-area: sub; grid-column: 1 / -1; display: grid; gap: 4px; padding-inline-start: 44px; }
+.task-sub-toggle { justify-self: start; min-height: 44px; }
+/* CI1 (p6-keyboard): a row's "Add a subtask" stays focusable but out of sight until the row (or the button) has the focus. */
+.task-sub[data-only-new]:not(:focus-within) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.task-children { margin: 0; }
+.task-sub-add { display: flex; flex-wrap: wrap; align-items: end; gap: 6px; }
+.task-sub-add input, .task-sub-add button { min-height: 44px; }
+.task-move { font-size: 18px; }
+.task-editor-notes { flex: 1 1 100%; }
+.task-editor-notes textarea { width: 100%; min-height: 88px; }
+.task-editor-stale { flex: 1 1 100%; margin: 0; }
+.task-occurrence .task-done { font-size: 18px; }
+.tasks-group h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.tasks-add-section { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin: 6px 0 0; }
+.tasks-add-section .text-link, .tasks-add-section input, .tasks-add-section button { min-height: 44px; }
+.tasks-board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 8px; align-items: start; }
+@media (max-width: 600px) { .tasks-board { grid-auto-flow: row; grid-auto-columns: auto; overflow-x: visible; } }
+.tasks-column { display: grid; gap: 6px; padding: 10px; border-radius: 16px; border: 1px solid var(--line, rgba(128, 128, 160, .25)); min-width: 0; }
+.tasks-column h3 { margin: 0; font-size: 16px; }
+/* A board card stacks its actions under it. */
+.tasks-main .tasks-column .task { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: "select done title" "select done meta" "actions actions actions" "sub sub sub"; }
+.tasks-bulk { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 10px; padding: 8px 12px; border-radius: 14px; border: 1px solid var(--cyan); position: sticky; top: 72px; z-index: 2; background: var(--surface, var(--panel, rgba(10, 12, 30, .92))); }
+.tasks-bulk button, .tasks-bulk select { min-height: 44px; }
+.tasks-bulk strong { align-self: center; }
+.tasks-reminders ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tasks-reminders li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; overflow-wrap: anywhere; }
+.tasks-reminders .text-link { min-height: 44px; }
+.tasks-reminders h2, .tasks-salvage h2, .tasks-io h2 { margin: 0 0 4px; font-size: 18px; }
+.tasks-io, .tasks-salvage { display: grid; gap: 8px; }
+.tasks-io-actions button { min-height: 44px; }
+.tasks-completed { display: grid; gap: 8px; }
+.tasks-completed h2 small { font-size: 14px; font-weight: 500; color: var(--text-secondary, var(--muted)); }
+.tasks-bulk-inline { margin: 0; }
+.tasks-bulk-inline button { min-height: 44px; }
+.tasks-shortcuts { max-width: min(640px, calc(100vw - 32px)); border-radius: 20px; padding: 18px; }
+.tasks-shortcuts table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+.tasks-shortcuts th, .tasks-shortcuts td { text-align: start; padding: 6px 8px; border-bottom: 1px solid var(--line, rgba(128, 128, 160, .2)); vertical-align: top; }
+.tasks-shortcuts kbd { font: inherit; font-weight: 650; white-space: nowrap; }
+.tasks-shortcuts header button { min-width: 44px; min-height: 44px; }
+/* P-LS-61 (LS-H39): Dark differs from Nebula on Tasks by its deeper neutral lines and surfaces only (ADR-028 H75/H112:
+   the owner's "the eye should see no other difference"); the selected list and the pressed view keep Nebula's colours. */
+:root[data-theme=dark] .tasks-page .task { border-bottom-color: rgba(255, 255, 255, .12); }
+@media (prefers-reduced-motion: reduce) { .tasks-page * { scroll-behavior: auto; } }
+.tasks-today-reminders { list-style: none; margin: 0 0 8px; padding: 8px 10px; display: grid; gap: 2px; border-radius: 12px; border: 1px solid var(--warning, #e8a33d); }
+.tasks-today-reminders li { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; overflow-wrap: anywhere; }
+.tasks-today-reminders .text-link { min-height: 44px; }
+.goal-next-summary { margin: 0; }
+.tasks-status[data-empty] { min-height: 0; margin: 0; }
+/* Session AL (P-LS-43): a closed goal's linked tasks — keep, unlink or mark done. */
+.goal-close-tasks { margin: 0 0 12px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--cyan, #5fd4ff) 35%, transparent); border-radius: 12px; }
+.goal-close-tasks p { margin: 0 0 10px; }
+.goal-close-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.goal-close-actions button { min-height: 44px; }

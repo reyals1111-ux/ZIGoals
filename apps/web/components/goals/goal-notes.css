@@ -1,0 +1,5 @@
+/* Session AL (DV-030): long Goal notes fold to four lines; words never run off the card. */
+.goal-notes { max-width: 72ch; }
+.goal-notes-text { white-space: pre-line; overflow-wrap: anywhere; margin: 0; }
+.goal-notes-text[data-folded="true"] { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden; }
+.goal-notes-toggle { min-height: 44px; padding-inline: 0; }

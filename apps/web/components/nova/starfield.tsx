@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import {SKY_FPS, deviceHints, driftX, makeStars, nebulaClouds, skyMode, starCount, twinkleAt, type SkyMode, type Star} from '../../lib/nova/orb-starfield';
+import {countHudFrame} from '../../lib/nova/holo/motes';
 
 /**
  * Session AK (owner follow-up 2, N2 and M2; lane NA): NOVA's starfield and nebula band on a canvas behind everything. It
@@ -41,6 +42,10 @@ function drawStars(g: CanvasRenderingContext2D, stars: readonly Star[], w: numbe
   g.globalAlpha = 1;
 }
 
+/**
+ * Lane L8e: the HUD's floating motes no longer ride this canvas (components/nova/holo/motes-canvas.tsx draws them in the
+ * star's column): this canvas lies under every glass panel, and any change on it makes each panel's blur run again.
+ */
 export function Starfield({motion, accent}: {motion: boolean; accent: string}) {
   const canvas = useRef<HTMLCanvasElement>(null), [mode, setMode] = useState<SkyMode>('none');
   useEffect(() => {
@@ -60,6 +65,7 @@ export function Starfield({motion, accent}: {motion: boolean; accent: string}) {
     const nebula = document.createElement('canvas'), ng = nebula.getContext('2d');
     const start = performance.now();
     let w = 0, h = 0, stars: Star[] = [], frame = 0, last = 0, stopped = false;
+    const animated = mode === 'running';
     const size = () => {
       const rect = el.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 1.75);
       w = Math.max(1, Math.round(rect.width)); h = Math.max(1, Math.round(rect.height));
@@ -79,16 +85,19 @@ export function Starfield({motion, accent}: {motion: boolean; accent: string}) {
       if (stopped) return;
       frame = requestAnimationFrame(loop);
       if (now - last < 1000 / SKY_FPS - 1) return;
-      last = now; paint((now - start) / 1000);
+      last = now; paint((now - start) / 1000); countHudFrame();
     };
     size();
-    if (mode === 'still') paint(0);
-    else frame = requestAnimationFrame(loop);
-    const resize = new ResizeObserver(() => { size(); if (mode === 'still') paint(0); });
+    // Review m2 (lane L8d): a loop starts only in a tab that is in front (the effect re-runs as the tab hides, and the
+    // sky used to draw a few dozen frames into a hidden tab before the visibility handler stopped it).
+    if (!animated) paint(0);
+    else if (document.visibilityState !== 'hidden') frame = requestAnimationFrame(loop);
+    else { stopped = true; paint(0); }
+    const resize = new ResizeObserver(() => { size(); if (!animated) paint(0); });
     resize.observe(el);
     const visible = () => {
       cancelAnimationFrame(frame);
-      if (mode !== 'running') return;
+      if (!animated) return;
       if (document.visibilityState === 'hidden') { stopped = true; return; }
       stopped = false; frame = requestAnimationFrame(loop);
     };

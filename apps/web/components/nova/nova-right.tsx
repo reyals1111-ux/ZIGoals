@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {Suspense, lazy, useCallback, useEffect, useId, useRef, useState, type ReactNode} from 'react';
-import type {HermesStatus} from '../../lib/nova/hermes-record';
+import {hermesPanel, type HermesStatus} from '../../lib/nova/hermes-record';
 import {LoadBoundary} from '../load-boundary';
 import {useAiSettings} from '../ai/use-ai-settings';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -9,7 +9,7 @@ import {AI_ACTIONS, AI_MEMORY, AI_USAGE} from '../../lib/ai/store/records';
 import {dayKey, isFreeRoute} from '../../lib/ai/usage';
 import {PROVIDERS, isProviderId} from '../../lib/ai/providers';
 import {ZIGI_VOICE, voicePrefs} from '../../lib/zigi-voice';
-import {LOCAL_SERVERS, probeServer, scanLocalServers, scanLine, type LocalServer, type ScanResult} from '../../lib/nova/local-servers';
+import {LOCAL_SERVERS, probeServer, scanLocalServers, scanLine, scanStatus, type LocalServer, type ScanResult} from '../../lib/nova/local-servers';
 import {deviceFacts, factLines, loadedLine, ollamaLoaded, wakeSupport, type LoadedModel, type WakeSupport} from '../../lib/nova/widgets/telemetry';
 import {waterAmount} from '../../lib/nova/widgets/words';
 import {factTiles, notRunningLine} from '../../lib/nova/right-facts';
@@ -71,7 +71,8 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
   const actionsList = actions.loaded && !actions.unreadable ? [...(actions.data.actions ?? [])].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3) : null;
   const notes = memory.loaded && !memory.unreadable ? memory.data.notes?.length ?? 0 : null;
   const section = (id: RightSection, n: number, body: ReactNode) => <Section key={id} id={id} n={n} title={TITLES[id]} folded={folded.includes(id)} onFold={onFold}>{body}</Section>;
-  return <aside className="nova-right" aria-label="Behind the intelligence">
+  // Session AL sweep 2 (LA-024 / N-LS-05): a named region inside the shell's <main> (see nova-left.tsx).
+  return <aside role="region" className="nova-right" aria-label="Behind the intelligence">
     <header className="nova-right-head">
       <div><p className="nova-eyebrow"><span className="nova-on-dot" aria-hidden="true"/>Live, on this device</p><h2>Behind the intelligence</h2></div>
       <button type="button" className="nova-icon-btn" onClick={onHide} aria-label="Hide the right panel"><NovaIcon name="close"/></button>
@@ -84,14 +85,16 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
         {settings.loaded && s.enabled && s.mode === 'api' && s.provider && isProviderId(s.provider) && <p className="nova-row"><span className="nova-chip-dot" data-kind="cloud" aria-hidden="true"/><span>{PROVIDERS[s.provider].name}: configured, the key kept on this device{s.model ? ` · ${s.model}` : ''}</span></p>}
         <ul className="nova-right-list" aria-live="polite">
           {probe.state === 'asking' && <li role="status">Asking this computer…</li>}
-          {probe.results.filter(r => r.found || r.reason !== 'unreachable').map(r => <li key={r.server.id + r.server.baseUrl}>
-            <span className="nova-status" data-on={r.found || undefined}>{r.found ? 'Online' : 'Offline'}</span> {scanLine(r)}
+          {/* EX3 left-over 2: a server that answered but refused, wanted a key or sent an unreadable list is running. */}
+          {probe.results.filter(r => r.found || r.reason !== 'unreachable').map(r => { const st = scanStatus(r); return <li key={r.server.id + r.server.baseUrl}>
+            <span className="nova-status" data-on={st.on || undefined}>{st.word}</span> {scanLine(r)}
             {r.found && r.server.wire === 'ollama' && <ul className="nova-right-sub">{probe.loaded[r.server.baseUrl] === null ? <li>Loaded models: unknown (Ollama did not say)</li>
               : (probe.loaded[r.server.baseUrl] ?? []).length ? (probe.loaded[r.server.baseUrl] ?? []).map(m => <li key={m.name}>{loadedLine(m)}</li>) : <li>No model loaded right now (Ollama loads one on the first question).</li>}</ul>}
-          </li>)}
+          </li>; })}
           {silent && <li title={silent.detail}><span className="nova-status">Offline</span> {silent.line}</li>}
         </ul>
-        {hermes?.connected && <p className="nova-row"><span className="nova-status" data-on={hermes.reachable || undefined}>{hermes.reachable ? 'Reachable' : 'Not reachable'}</span><span>Hermes gateway at the last check{hermes.model ? ` · ${hermes.model}` : ''}{hermes.lastMs !== undefined ? ` · answered in ${formatNumber(hermes.lastMs)} ms` : ''}{hermes.checkedAt ? ` · ${formatDateTime(hermes.checkedAt)}` : ''}</span></p>}
+        {/* EX3 left-over 1: the same words as the guide's check (a refused key was reached). */}
+        {hermes?.connected && (() => { const p = hermesPanel(hermes); return <p className="nova-row"><span className="nova-status" data-on={p.on || undefined}>{p.pill}</span><span>{p.line}{hermes.model ? ` · ${hermes.model}` : ''}{hermes.lastMs !== undefined ? ` · answered in ${formatNumber(hermes.lastMs)} ms` : ''}{hermes.checkedAt ? ` · ${formatDateTime(hermes.checkedAt)}` : ''}</span></p>; })()}
         <div className="nova-right-actions"><Link className="nova-btn" href="/app/nova/setup" prefetch={false}>Brain setup</Link></div>
         {/* Release review 2 (R2-3): the technical rows wait behind this disclosure (local servers, Hermes, this device). */}
         <Tech label="Technical details: local servers, Hermes Agent, this device">

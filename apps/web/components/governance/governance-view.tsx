@@ -23,7 +23,7 @@ import type {StakingQuote} from '../../lib/staking/quote';
 import type {StakingReceipt} from '../../lib/staking/execute';
 import {connectStaking, dropStakingSession, keplrMobileLink, onKeystoreChange, readStakingSession, saveStakingSession, type StakingSession} from '../../lib/wallets/keplr-session';
 import {readProposals, readVote, type Read} from '../../lib/governance/client';
-import {WHY_VOTING_MATTERS, durationWords} from '../../lib/governance/plain-words';
+import {WHY_VOTING_MATTERS, durationWords, looksLikeTest} from '../../lib/governance/plain-words';
 import {confirmedVote, eligibilityOf, votesOf, type Eligibility} from '../../lib/governance/votes';
 import type {ProposalWire, ProposalsWire, VoteChoiceWire} from '../../lib/governance/wire';
 import {formatDateTime} from '../../lib/visual-format';
@@ -31,6 +31,7 @@ import {ProposalCard, type VoteState} from './proposal-card';
 import {WhatsThis} from '../earn/whats-this';
 import '../staking/staking.css';
 import './governance.css';
+import {PROPOSAL_FILTERS, filterCount, filterProposals, type ProposalFilter} from '../../lib/governance/filter';
 
 /**
  * Session AF chunk 3 (lane L2a; ADR-028 H16, H46, H61, H87; P6.5, P6.6, D6): /app/governance. Live proposals of the chosen
@@ -46,6 +47,9 @@ const ReviewSheet = lazy(() => import('../staking/review-sheet').then(m => ({def
 const session = () => { try { return window.sessionStorage; } catch { return null; } };
 const storage = () => { try { return getAppStorage(); } catch { return null; } };
 const NO_NAMES: ReadonlyMap<string, string> = new Map();
+/** Session AL (BN-093): the last list read well per network, kept in memory for this visit only (never stored). */
+const LAST_GOOD = new Map<string, ProposalsWire>();
+const AUTO_RETRY_MS = 20_000;
 type Stake = {phase: 'idle'} | {phase: 'reading'} | {phase: 'ok'; eligibility: Eligibility} | {phase: 'unavailable'};
 export function GovernanceView() {
   const showcase = useShowcase(), phone = usePhoneActive(), journal = useDeviceRecord(STAKING_JOURNAL);
@@ -67,8 +71,22 @@ export function GovernanceView() {
   }, [showcase]);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(timer); }, []);
   // Proposals of the chosen network: on open, on a network change, and every minute while one is being voted on.
-  const load = useCallback(async () => { setProposals(await readProposals(chainId)); }, [chainId]);
-  useEffect(() => { setProposals(null); void load(); }, [load]);
+  // Session AL (BN-093, BN-073): a failed read keeps the last good list of this network (this page visit's memory, never
+  // stored) with the reason beside it, and tries once more by itself after a short wait; Read again stays.
+  const [stale, setStale] = useState<string | null>(null), [retrying, setRetrying] = useState(false);
+  // Session AL (Part 15, P-BN-74/P-BN-75): filters and a search over the list, kept for this visit only.
+  const [filter, setFilter] = useState<ProposalFilter>('all'), [query, setQuery] = useState('');
+  const retryTimer = useRef<number | undefined>(undefined);
+  const load = useCallback(async (auto = false) => {
+    window.clearTimeout(retryTimer.current); setRetrying(false);
+    const answer = await readProposals(chainId);
+    if (answer.phase === 'ok') { LAST_GOOD.set(chainId, answer.wire); setStale(null); setProposals(answer); return; }
+    const kept = LAST_GOOD.get(chainId);
+    if (kept) { setStale(answer.reason); setProposals({phase: 'ok', wire: kept}); } else { setStale(null); setProposals(answer); }
+    if (!auto) { setRetrying(true); retryTimer.current = window.setTimeout(() => void load(true), AUTO_RETRY_MS); }
+  }, [chainId]);
+  useEffect(() => { const kept = LAST_GOOD.get(chainId); setStale(null); setProposals(kept ? {phase: 'ok', wire: kept} : null); void load(); return () => window.clearTimeout(retryTimer.current); }, [load, chainId]);
+  const readAgain = () => { if (!LAST_GOOD.has(chainId)) setProposals(null); void load(); };
   const anyVoting = proposals?.phase === 'ok' && proposals.wire.proposals.some(p => p.state === 'voting');
   useEffect(() => {
     if (!anyVoting) return;
@@ -156,6 +174,12 @@ export function GovernanceView() {
   const myVotes = useMemo(() => votesOf(journal.data, chainId, wallet?.address), [journal.data, chainId, wallet?.address]);
   const wire = proposals?.phase === 'ok' ? proposals.wire : null;
   const ordered = wire ? [...wire.proposals.filter(p => p.state === 'voting'), ...wire.proposals.filter(p => p.state === 'deposit'), ...wire.proposals.filter(p => p.state !== 'voting' && p.state !== 'deposit')] : [];
+  const shown = filterProposals(ordered, filter, query);
+  const ended = (p: ProposalWire) => p.state !== 'voting' && p.state !== 'deposit';
+  const main = shown.filter(p => !(ended(p) && looksLikeTest(p.title))), tests = shown.filter(p => ended(p) && looksLikeTest(p.title));
+  const firstTally = [...main, ...tests].find(o => o.tallyKind !== 'none');
+  const card = (p: ProposalWire) => <ProposalCard key={p.id} explainQuorum={p === firstTally} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
+    voting={wallet && !showcase ? {eligible, reviewing: reviewing === p.id, myVote: votes[p.id] ?? {phase: 'idle'}, journal: confirmedVote(myVotes, p.id), onReview: review, error: voteErrors[p.id]} : undefined}/>;
   const eligible = stake.phase === 'ok' && stake.eligibility.eligible;
   return <div className="dashboard governance-page">
     <PageHeader className="page-heading" titleId="governance-title" eyebrow="Staking · Governance" title="Governance"
@@ -168,7 +192,7 @@ export function GovernanceView() {
     </section>
     <section className={`panel staking-actions governance-network is-${network}`} aria-labelledby="governance-network-title">
       <div className="staking-actions-head">
-        <div><p className="eyebrow">Signed in your own wallet</p><h2 id="governance-network-title">Vote on a network</h2></div>
+        <div><p className="eyebrow">{/* Session AL (D-169, N-BN-02): a fact about how it works, not a status */}You sign every action in your own wallet</p><h2 id="governance-network-title">Vote on a network</h2></div>
         {/* Session AH (ST7, M-052): the Showcase never offers the real network (no real-money warning inside the demo). */}<NetworkSwitch network={network} onChoose={choose} disabled={showcase || !!quote || !!reviewing}/>
       </div>
       <NetworkBanner network={network}/>
@@ -202,12 +226,24 @@ export function GovernanceView() {
     <section className="governance-proposals" aria-labelledby="governance-proposals-title">
       <h2 id="governance-proposals-title">Proposals on {words.name}</h2>
       {!proposals ? <p role="status">Reading the proposals…</p>
-        : proposals.phase === 'unavailable' ? <p className="notice" role="status">Proposals are unavailable: {proposals.reason} <button type="button" className="text-link" onClick={() => { setProposals(null); void load(); }}>Read again</button></p>
+        : proposals.phase === 'unavailable' ? <p className="notice" role="status">Proposals are unavailable: {proposals.reason}{retrying ? ' ZIGoals tries once more by itself in a moment.' : ''} <button type="button" className="text-link" onClick={readAgain}>Read again</button></p>
         : <>
-          <p className="fine">Read from {wire!.source} at block {wire!.height}, {formatDateTime(wire!.observedAt!)}. {ordered.some(p => p.state === 'voting') ? `${ordered.filter(p => p.state === 'voting').length} open for voting now.` : 'None is open for voting right now.'} <button type="button" className="text-link" onClick={() => { setProposals(null); void load(); }}>Read again</button></p>
+          {stale && <p className="notice" role="status">The newest read did not work: {stale} The list below is the one read earlier, at block {wire!.height}.{retrying ? ' ZIGoals tries once more by itself in a moment.' : ''}</p>}
+          <p className="fine">Read from {wire!.source} at block {wire!.height}, {formatDateTime(wire!.observedAt!)}. {ordered.some(p => p.state === 'voting') ? `${ordered.filter(p => p.state === 'voting').length} open for voting now.` : 'None is open for voting right now.'} <button type="button" className="text-link" onClick={readAgain}>Read again</button></p>
           {!ordered.length && <p>No proposals on this network yet.</p>}
-          {ordered.map(p => <ProposalCard key={p.id} explainQuorum={p === ordered.find(o => o.tallyKind !== 'none')} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
-            voting={wallet && !showcase ? {eligible, reviewing: reviewing === p.id, myVote: votes[p.id] ?? {phase: 'idle'}, journal: confirmedVote(myVotes, p.id), onReview: review, error: voteErrors[p.id]} : undefined}/>)}
+          {ordered.length > 0 && <div className="governance-filters">
+            <div role="radiogroup" aria-label="Show proposals" className="governance-filter-chips">{PROPOSAL_FILTERS.map(([id, label]) => <button key={id} type="button" role="radio" aria-checked={filter === id} className={filter === id ? 'chip is-active' : 'chip'} onClick={() => setFilter(id)}>{label} <span className="governance-filter-count">{filterCount(ordered, id)}</span></button>)}</div>
+            <label className="field governance-search">Search proposals<input type="search" value={query} maxLength={80} placeholder="A word, or a number like 43" onChange={e => setQuery(e.target.value)} autoComplete="off"/></label>
+          </div>}
+          {ordered.length > 0 && shown.length === 0 && <p role="status">No proposal here fits{query.trim() ? ` “${query.trim()}”` : ''}{filter !== 'all' ? ` among ${PROPOSAL_FILTERS.find(([id]) => id === filter)![1].toLowerCase()}` : ''}. <button type="button" className="text-link" onClick={() => { setFilter('all'); setQuery(''); }}>Show them all</button></p>}
+          {main.map(card)}
+          {/* Session AL (BN-008, D-014): ended proposals whose title reads like a test or template fold into one closed group
+              after the real ones (still searchable; a search or a list of only such proposals opens it). */}
+          {tests.length > 0 && <details className="governance-tests" key={`${filter}:${query.trim()}`} open={query.trim() !== '' || main.length === 0}>
+            <summary>{tests.length === 1 ? '1 ended proposal that looks like a test or template' : `${tests.length} ended proposals that look like tests or templates`}</summary>
+            <p className="fine">Their titles read like tests or unfilled templates, so they may not be real decisions. They are listed as the chain holds them.</p>
+            {tests.map(card)}
+          </details>}
         </>}
     </section>
     {wallet && myVotes.length > 0 && <section className="panel governance-journal-list" aria-labelledby="governance-journal-title">

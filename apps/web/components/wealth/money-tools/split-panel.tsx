@@ -8,13 +8,14 @@ import {MIN_SPLIT, evenSplit, fromMinor, isSplit, minorUnits, setSplit, splitIss
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {useMoneyGoals} from './use-money-goals';
 import {money} from './format';
+import {parseNumberInput} from '../../../lib/numbers/parse';
 
 /**
  * Session AK (lane M, item 22): split one entry into 2 to 5 parts, each with a category and/or a Goal. The parts must add
  * up to the entry exactly (in cents); the line under the parts says how far off they are. Category totals and budgets
  * then count each part in its own category. "Make a rule" starts a rule from the chosen entry. Lazy-loaded by Money tools.
  */
-const readAmount = (raw: string) => raw.trim().replace(/\s/g, '').replace(',', '.');
+const readAmount = (raw: string) => { const r = parseNumberInput(raw); return r.ok ? r.text : raw.trim(); }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
 const label = (e: MoneyEntry) => `${formatDate(e.date)} · ${e.kind === 'income' ? '+' : '−'}${money(e.amount, e.currency)} · ${e.note || e.category}${isSplit(e) ? ' · split' : ''}`;
 export default function SplitPanel({log, onMakeRule}: {log: DeviceRecordState<MoneyLog>; onMakeRule: (entry: MoneyEntry) => void}) {
   const id = useId(), today = localDate(), {goals, nameOf} = useMoneyGoals();

@@ -31,7 +31,7 @@ async function seed(page: Page) {
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HEALTH_STORAGE_KEY]: JSON.stringify(health()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
 }
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);
-const view = (page: Page, name: string) => page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true}).click();
+const view = (page: Page, name: string) => page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name, exact: true}).click();
 
 test('N1–N3: the trend, the energy estimate and the coach show from six weeks of logs; Keep records, Adjust writes the target', async ({page}) => {
   // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the three cards live in Health's Weight view (the tiles at the top
@@ -40,7 +40,8 @@ test('N1–N3: the trend, the energy estimate and the coach show from six weeks 
   const trend = page.getByRole('region', {name: 'Weight trend'});
   await expect(trend.getByText(/trend today · .*\/week/)).toBeVisible();
   await expect(trend.getByRole('img', {name: /^Trend 7\d\.\d kg, [−-]0\.\d kg a week, goal 70 kg; 21 readings in 42 days\.$/})).toBeVisible();
-  const energy = page.getByRole('region', {name: 'Energy estimate'});
+  // Session AL (COPY_AUDIT, deliberate): P-DV-120 (DV-280) renamed the card "Maintenance estimate" (Journal energy is a mood).
+  const energy = page.getByRole('region', {name: 'Maintenance estimate'});
   await expect(energy.getByText(/kcal a day, about \d+–\d+/)).toBeVisible();
   await expect(energy.getByText('an estimate, not medical advice').first()).toBeVisible();
   const coach = page.getByRole('region', {name: 'Your coach'});

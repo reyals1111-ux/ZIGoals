@@ -12,7 +12,18 @@ import type {Portfolio} from './schema';
 const D = PortfolioDecimal;
 type Dec = InstanceType<typeof PortfolioDecimal>;
 type Lot = {quantity: Dec; unit: Dec | null};
-export type LotMethod = 'fifo' | 'lifo';
+/** Session AL (P-TK-75, C-TK-06, GAP-014): HIFO too — the highest cost per coin first. With an open lot of unknown cost
+ * the order cannot be known, so what the sale touches is unknown, never guessed. */
+export type LotMethod = 'fifo' | 'lifo' | 'hifo';
+const pickLot = (lots: readonly Lot[], method: LotMethod): number => {
+  if (method === 'fifo') return 0;
+  if (method === 'lifo') return lots.length - 1;
+  const unknown = lots.findIndex(l => l.unit === null);
+  if (unknown >= 0) return unknown;
+  let best = 0;
+  lots.forEach((l, i) => { if (l.unit!.greaterThan(lots[best]!.unit!)) best = i; });
+  return best;
+};
 export type LotResult = {coin: string; realized?: string; heldCost?: string; heldQuantity: string};
 export function lotResults(portfolio: Pick<Portfolio, 'transactions'>, method: LotMethod): Map<string, LotResult> {
   const state = new Map<string, {lots: Lot[]; realized: Dec | null}>();
@@ -26,10 +37,10 @@ export function lotResults(portfolio: Pick<Portfolio, 'transactions'>, method: L
       if (quantity.greaterThan(held)) throw new HoldingsBelowZero(t.coin, t.date);
       let left = quantity, cost: Dec | null = new D(0);
       while (left.greaterThan(0)) {
-        const lot = method === 'fifo' ? s.lots[0]! : s.lots[s.lots.length - 1]!, take = D.min(lot.quantity, left);
-        cost = cost === null || lot.unit === null ? null : cost.plus(take.times(lot.unit));
+        const index = pickLot(s.lots, method), lot = s.lots[index]!, take = D.min(lot.quantity, left);
+        cost = cost === null || lot.unit === null || (method === 'hifo' && s.lots.some(l => l.unit === null)) ? null : cost.plus(take.times(lot.unit));
         lot.quantity = lot.quantity.minus(take); left = left.minus(take);
-        if (lot.quantity.isZero()) { if (method === 'fifo') s.lots.shift(); else s.lots.pop(); }
+        if (lot.quantity.isZero()) s.lots.splice(index, 1);
       }
       if (t.kind === 'sell') s.realized = s.realized === null || cost === null ? null : s.realized.plus(quantity.times(t.price!)).minus(t.fee ?? 0).minus(cost);
       else if (t.fee !== undefined && s.realized !== null) s.realized = s.realized.minus(t.fee);

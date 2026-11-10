@@ -4,7 +4,7 @@ import {Fragment, useCallback, useMemo, useState} from 'react';
 import {PageHeader} from '../page-header';
 import {OrbitArt} from '../header-art/orbit-art';
 import {RemindersGlyph} from '../header-art/glyphs/reminders';
-import {showToast} from '../ui/undo-toast';
+import {showStatus, showUndo} from '../ui/undo-toast';
 import {zigiSignals} from '../zigi/bus';
 import {habitCheckIn} from '../habits/use-habits';
 import {formatClock, formatDate} from '../../lib/visual-format';
@@ -39,16 +39,16 @@ export function DayTimelinePage() {
       try {
         await habits.update(d => { if (!captured) { previous = entryOn(d, id, date); captured = true; } return habitCheckIn.smartDone(id, date)(d); });
         try { zigiSignals.emitValidated('habit_completed'); } catch { /* decoration */ }
-        showToast({message: `${b.title}: done for today.`, undo: () => habits.update(d => restoreHabitEntry(d, id, date, previous)), undone: `${b.title}: back as it was.`});
-      } catch (e) { showToast({message: storageMessageOr(e, 'This check-in could not be saved on this device.')}); }
+        showUndo({message: `${b.title}: done for today.`, restore: () => habits.update(d => restoreHabitEntry(d, id, date, previous)), undone: `${b.title}: back as it was.`});
+      } catch (e) { showStatus(storageMessageOr(e, 'This check-in could not be saved on this device.'), {tone: 'error'}); }
     }),
     skip: b => void run(async () => {
       if (!b.habitId || !day) return;
       const id = b.habitId, date = day.date; let previous: HabitEntry | undefined, captured = false;
       try {
         await habits.update(d => { if (!captured) { previous = entryOn(d, id, date); captured = true; } return setHabitEntryStatus(d, id, date, 'skipped', ''); });
-        showToast({message: `${b.title}: skipped today. A skip never breaks a streak.`, undo: () => habits.update(d => restoreHabitEntry(d, id, date, previous)), undone: `${b.title}: back as it was.`});
-      } catch (e) { showToast({message: storageMessageOr(e, 'The skip could not be saved on this device.')}); }
+        showUndo({message: `${b.title}: skipped today. A skip never breaks a streak.`, restore: () => habits.update(d => restoreHabitEntry(d, id, date, previous)), undone: `${b.title}: back as it was.`});
+      } catch (e) { showStatus(storageMessageOr(e, 'The skip could not be saved on this device.'), {tone: 'error'}); }
     }),
     log: b => void run(async () => {
       if (!b.mealPlanId) return;
@@ -56,8 +56,8 @@ export function DayTimelinePage() {
       try {
         await health.update(latest => logMealPlan(latest, plan, new Date().toISOString()));
         try { zigiSignals.emitValidated('health_log_recorded'); } catch { /* decoration */ }
-        showToast({message: `${b.title}: logged once in your diary. Remove it on Health if it was a mistake.`});
-      } catch (e) { showToast({message: storageMessageOr(e, 'This meal could not be logged on this device.')}); }
+        showStatus(`${b.title}: logged once in your diary. Remove it on Health if it was a mistake.`);
+      } catch (e) { showStatus(storageMessageOr(e, 'This meal could not be logged on this device.'), {tone: 'error'}); }
     }),
     move: (b, minutes, length) => {
       if (!b.timeKey) return;
@@ -65,14 +65,14 @@ export function DayTimelinePage() {
       if (previous?.time === time && (length === undefined || previous.minutes === length)) return;
       try {
         record.update(r => setTime(r, key, time, length));
-        showToast({message: `${b.title} moved to ${formatClock(time)} on this device.`, undo: () => record.update(r => restoreTime(r, key, previous)), undone: `${b.title} is back at ${b.start === null ? 'Any time' : clockLabel(b.start)}.`});
-      } catch (e) { showToast({message: storageMessageOr(e, 'The new time could not be kept on this device.')}); }
+        showUndo({message: `${b.title} moved to ${formatClock(time)} on this device.`, restore: () => record.update(r => restoreTime(r, key, previous)), undone: `${b.title} is back at ${b.start === null ? 'Any time' : clockLabel(b.start)}.`});
+      } catch (e) { showStatus(storageMessageOr(e, 'The new time could not be kept on this device.'), {tone: 'error'}); }
     },
     putBack: b => {
       if (!b.timeKey) return;
       const key = b.timeKey, previous = record.data.times[key];
-      try { record.update(r => clearTime(r, key)); showToast({message: `${b.title} is back at its own time.`, undo: () => record.update(r => restoreTime(r, key, previous)), undone: `${b.title} moved again.`}); }
-      catch (e) { showToast({message: storageMessageOr(e, 'The time could not be changed on this device.')}); }
+      try { record.update(r => clearTime(r, key)); showUndo({message: `${b.title} is back at its own time.`, restore: () => record.update(r => restoreTime(r, key, previous)), undone: `${b.title} moved again.`}); }
+      catch (e) { showStatus(storageMessageOr(e, 'The time could not be changed on this device.'), {tone: 'error'}); }
     },
     defaultTime: b => b.habitId ? (extras.data.times?.[b.habitId] ?? b.reminder ?? defaultHabitTime(habits.data, b.habitId, null)) : b.slot ? MEAL_TIMES[b.slot] : null,
     // Session AJ (item 35): a habit's time on every device (synced with the habit extras); the device-only move is cleared.
@@ -82,15 +82,15 @@ export function DayTimelinePage() {
       try {
         extras.update(r => setHabitTime(r, id, time));
         if (moved) record.update(r => clearTime(r, key));
-        showToast({message: `${b.title}: every day at ${formatClock(time)}, on all your devices.`, undo: () => { extras.update(r => setHabitTime(r, id, before)); if (moved) record.update(r => restoreTime(r, key, moved)); }, undone: `${b.title} is back as it was.`});
-      } catch (e) { showToast({message: storageMessageOr(e, 'The time could not be kept.')}); }
+        showUndo({message: `${b.title}: every day at ${formatClock(time)}, on all your devices.`, restore: () => { extras.update(r => setHabitTime(r, id, before)); if (moved) record.update(r => restoreTime(r, key, moved)); }, undone: `${b.title} is back as it was.`});
+      } catch (e) { showStatus(storageMessageOr(e, 'The time could not be kept.'), {tone: 'error'}); }
     },
     clearEveryDay: b => {
       if (!b.habitId || extras.unreadable) return;
       const id = b.habitId, before = extras.data.times?.[id] ?? null;
       if (!before) return;
-      try { extras.update(r => setHabitTime(r, id, null)); showToast({message: `${b.title}: its everyday time is removed on all your devices.`, undo: () => extras.update(r => setHabitTime(r, id, before)), undone: `${b.title}: every day at ${formatClock(before)} again.`}); }
-      catch (e) { showToast({message: storageMessageOr(e, 'The time could not be changed.')}); }
+      try { extras.update(r => setHabitTime(r, id, null)); showUndo({message: `${b.title}: its everyday time is removed on all your devices.`, restore: () => extras.update(r => setHabitTime(r, id, before)), undone: `${b.title}: every day at ${formatClock(before)} again.`}); }
+      catch (e) { showStatus(storageMessageOr(e, 'The time could not be changed.'), {tone: 'error'}); }
     },
   }), [run, day, habits, health, record, extras]);
 

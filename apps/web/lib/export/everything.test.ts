@@ -39,12 +39,14 @@ describe('T4 export everything', () => {
     expect(checkIns.length).toBe(entries + 1); expect(entries).toBeGreaterThanOrEqual(180);
     expect(checkIns.some(l => l.includes('"skipped"'))).toBe(true);
     const links = homeRecordsIn(records).habitLinks, marked = links.applied.filter(a => !a.undone);
-    expect(marked.length).toBe(12);
+    // Session AL (Part 13, deliberate): the Showcase's Drink water habit is linked to the water journal, so its ticked
+    // days carry automatic check-in markers too (12 for Walk's steps, 26 for water).
+    expect(marked.length).toBe(38);
     const withAuto = checkIns.slice(1).filter(l => !l.endsWith(',""'));
-    expect(withAuto.length).toBe(12);
+    expect(withAuto.length).toBe(38);
     for (const a of marked) expect(checkIns.some(l => l.startsWith(`"${a.habitId}"`) && l.includes(`"${a.date}"`) && l.endsWith(`"${a.appliedAt}"`)), `${a.habitId} ${a.date}`).toBe(true);
     const health = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!));
-    expect(lines(collected.csv['water.csv']).length).toBe((health.daily?.water.length ?? 0) + 1); expect(health.daily?.water.filter(w => !w.id.includes('earlier')).length).toBe(24); expect(health.daily?.water.filter(w => w.id.includes('earlier')).length).toBe(20); // Part 8's earlier season, 60–89 days back
+    expect(lines(collected.csv['water.csv']).length).toBe((health.daily?.water.length ?? 0) + 1); /* Session AL (Part 13, deliberate): each ticked Drink water day now holds its 2 L in the journal */ expect(health.daily?.water.filter(w => !w.id.includes('earlier')).length).toBe(54); expect(health.daily?.water.filter(w => w.id.includes('earlier')).length).toBe(20); // Part 8's earlier season, 60–89 days back
     expect(collected.csv['health-diary.csv']).toBe(exportHealthCsv(health, '1900-01-01', '2199-12-31'));
     expect(lines(collected.csv['weights.csv']).length).toBe(health.weights.length + (health.measurements ?? []).filter(m => m.kind === 'weight').length + 1);
     expect(lines(collected.csv['habits.csv']).length).toBe(habits.habits.length + 1);
@@ -165,4 +167,23 @@ test('portfolio-transactions.csv: one row per trade or transfer, with its portfo
   expect(lines[0]).toContain('"portfolio_id","portfolio_name"');
   const first = data.portfolios[0]!, tx = first.transactions[0]!;
   expect(lines.some(l => l.includes(`"${tx.id}"`) && l.includes(`"${first.name}"`))).toBe(true);
+});
+
+// Session AL final pass (BN-020; TIER 3 (export format), additive): wealth-positions.csv keeps its columns, exact base units
+// included, and adds the quantity and value as Wealth shows them at the end.
+describe('BN-020: wealth-positions.csv reads as Wealth shows it', () => {
+  test('two columns at the end; quantity and valuation_value keep the exact base units', () => {
+    const {records} = buildShowcase('2026-09-20');
+    const [header, ...rows] = lines(collectEverything(records, APP).csv['wealth-positions.csv']);
+    expect(header).toBe('"id","name","asset","asset_class","source_type","network","quantity","decimals","valuation_value","valuation_currency","valuation_decimals","valuation_source","observed_at_utc","archived_at_utc","provenance","notes","quantity_shown","valuation_value_shown"');
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      const cells = [...row.matchAll(/"((?:[^"]|"")*)"/g)].map(m => m[1]!);
+      const [quantity, decimals, shown] = [cells[6]!, Number(cells[7]), cells[16]!];
+      expect(quantity).toMatch(/^\d+$/);
+      // The shown quantity is the base units moved `decimals` places, without trailing zeros.
+      const whole = quantity.padStart(decimals + 1, '0'), expected = decimals ? `${whole.slice(0, -decimals)}.${whole.slice(-decimals)}`.replace(/\.?0+$/, '') : quantity;
+      expect(shown, row).toBe(expected);
+    }
+  });
 });

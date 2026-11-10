@@ -85,13 +85,16 @@ describe('crossPillarInsights (Session AA-Cloud Part 5)', () => {
     // probability of superiority of 0.60 or more). The Showcase's earlier season was redrawn for that rule (fictional: the
     // stretch after every long night and 6 of the 14 shorter ones, a night after a day with water 25 min longer), so its three
     // pairings stay early signs on every day of the year; Water and habits (88% and 82%) is "no clear difference so far".
-    expect(ready.map(i => [i.id, i.withA.days, i.withoutA.days, i.label])).toEqual([['steps-sleep', 24, 31, 'early'], ['water-sleep', 29, 27, 'early'], ['sleep-habits', 19, 37, 'early']]);
+    // Session AL (Part 13, deliberate): the Showcase's water habit is 2 liters linked to the water journal, so water is
+    // logged on most days: water and sleep (42 against 14 days, about 7 h 40 min against 7 h 31 min) is "no clear difference so far", and water and habits waits
+    // for 14 days without water.
+    expect(ready.map(i => [i.id, i.withA.days, i.withoutA.days, i.label])).toEqual([['steps-sleep', 24, 31, 'early'], ['sleep-habits', 19, 37, 'early']]);
     for (const i of ready.filter(r => r.unit === 'min')) expect(i.sentence).toMatch(/^On days you (walked at least 8,000 steps|logged water), you slept \d+ h( \d+ min)? that night on average; on (other days|days without), \d+ h( \d+ min)?\.$/);
-    expect(ready.map(i => i.sentence)).toEqual(['On days you walked at least 8,000 steps, you slept 8 h 11 min that night on average; on other days, 7 h 14 min.', 'On days you logged water, you slept 7 h 57 min that night on average; on days without, 7 h 17 min.', 'On days after a night of at least 8 h of sleep, you completed 100% of your scheduled habits; after shorter nights, 76%.']);
-    expect(unclear.map(i => [i.id, i.withA.days, i.withoutA.days, Math.round(i.withA.value * 100), Math.round(i.withoutA.value * 100)])).toEqual([['water-habits', 32, 28, 88, 82]]);
+    expect(ready.map(i => i.sentence)).toEqual(['On days you walked at least 8,000 steps, you slept 8 h 11 min that night on average; on other days, 7 h 14 min.', 'On days after a night of at least 8 h of sleep, you completed 100% of your scheduled habits; after shorter nights, 76%.']);
+    expect(unclear.map(i => [i.id, i.withA.days, i.withoutA.days, Math.round(i.withA.value * 100), Math.round(i.withoutA.value * 100)])).toEqual([['water-sleep', 42, 14, 45964, 45064]]);
     for (const i of unclear) { expect(i.withA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE); expect(i.withoutA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE); }
     // Session AI (feature 4): of the newer pairings, only food after 9 pm has records (7 and 19 days, still collecting).
-    expect(pending).toEqual([{id: 'late-food-sleep', title: 'Food after 9 pm and sleep', withA: 7, withoutA: 19, need: 14}]);
+    expect(pending).toEqual([{id: 'water-habits', title: 'Water and habits', withA: 47, withoutA: 13, need: 14}, {id: 'late-food-sleep', title: 'Food after 9 pm and sleep', withA: 7, withoutA: 19, need: 14}]);
     // The season's one habit: 30 days within the season, archived since the day after it.
     const stretch = habits.habits.find(h => h.id === EARLIER_HABIT_ID)!;
     expect(stretch.entries.map(e => e.date)).toEqual(Array.from({length: 30}, (_, k) => addLocalDays(day, EARLIER_FIRST + k)));

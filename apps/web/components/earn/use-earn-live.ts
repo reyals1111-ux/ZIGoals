@@ -1,9 +1,21 @@
 'use client';
 import {useEffect, useState} from 'react';
-import {EARN_FAMILIES, readEarn, readValidators, type EarnFamily, type FamilyData, type LiveState} from '../../lib/earn/client';
-import {recordEarnSnapshot} from '../../lib/earn/snapshot';
+import type {FamilyData, LiveState} from '../../lib/earn/client';
+import {EARN_FAMILIES, type EarnFamily} from '../../lib/earn/families';
+import {askRoute} from '../../lib/earn/ask-route';
 import {browserPollEnv, visiblePoll} from '../../lib/earn/visible-poll';
+import {useDayNow} from '../use-local-today';
 
+/**
+ * CI14 (page weights; budgets are never raised): the readers (lib/earn/client.ts with its answer schemas) and the snapshot
+ * ZIGi quotes are a chunk of their own, asked for as soon as this module loads; every read waits for them before it asks
+ * its route, so the page shows "reading" exactly as long as before plus, at most, that chunk's arrival.
+ * CI20 (CI 1575, ecosystem-cards:33): the route is asked the moment the read starts, as before CI14 (lib/earn/ask-route.ts,
+ * a few lines); only the checking of its answer waits for that chunk. Waiting for the chunk before asking had moved
+ * Ecosystem's one DefiLlama read on mount past the page's ready mark, into the time a person opens a card.
+ */
+const loadReaders = () => Promise.all([import('../../lib/earn/client'), import('../../lib/earn/snapshot')]);
+if (typeof window !== 'undefined') void loadReaders().catch(() => undefined);
 /**
  * Session AF (L1): one live family on the Earn page. Read on mount, then again every `pollMs` (2 minutes for the chain
  * and the apps, 10 for DefiLlama) only while the page is visible: a hidden tab reads nothing, and coming back reads at
@@ -16,7 +28,12 @@ export function useEarnLive<F extends EarnFamily>(family: F): LiveState<FamilyDa
     const {pollMs} = EARN_FAMILIES[family];
     // The visibility gate and the cadence live in lib/earn/visible-poll.ts (unit-tested); this is what one read does.
     const read = async () => {
-      const next = (family === 'validators' ? await readValidators() : await readEarn(family as Exclude<EarnFamily, 'validators'>)) as LiveState<FamilyData[F]>;
+      const asked = askRoute(EARN_FAMILIES[family].path);
+      let readers: Awaited<ReturnType<typeof loadReaders>>;
+      try { readers = await loadReaders(); } catch { if (alive) setState(current => current.phase === 'loading' ? {phase: 'unavailable', reason: 'UPSTREAM_DOWN'} : current); return; }
+      const [{earnAnswer, validatorsAnswer}, {recordEarnSnapshot}] = readers;
+      const got = await asked;
+      const next = (family === 'validators' ? validatorsAnswer(got) : earnAnswer(got)) as LiveState<FamilyData[F]>;
       // Session AF (L4, H69): what the page shows also goes into the device-side snapshot ZIGi quotes (memory only).
       if (alive) setState(current => recordEarnSnapshot(family, next.phase === 'unavailable' && current.phase === 'ok' && Date.now() - Date.parse(current.answer.fetchedAt) < 10 * 60_000 ? {phase: 'ok', answer: {...current.answer, stale: true, reason: next.reason === 'NOT_IN_THIS_BUILD' ? undefined : next.reason}} : next));
     };
@@ -27,7 +44,10 @@ export function useEarnLive<F extends EarnFamily>(family: F): LiveState<FamilyDa
 }
 /** A clock for "updated x min ago", ticking every 30 seconds. */
 export function useMinuteClock(): number {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(t); }, []);
-  return now;
+  // CI4 (React #418): the first render uses the server's day (useDayNow), so the hydrated text matches; this device's
+  // clock takes over right after mount and every 30 s.
+  const first = useDayNow();
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => { setNow(Date.now()); const t = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(t); }, []);
+  return now ?? first;
 }

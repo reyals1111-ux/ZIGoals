@@ -14,7 +14,9 @@ test('the goal page\'s eyebrow in plain words until the chain is chosen', () => 
   expect(goalEyebrow({type: 'QUANTITY'}, {type: 'Quantity Goal', source: 'Private allocation'}, false)).toBe('Count goal · Your own plan');
   expect(goalEyebrow({type: 'PROJECT'}, {type: 'Project Goal', source: 'Project'}, false)).toBe('Project');
   for (const t of ['VALUE', 'QUANTITY', 'PROJECT'] as const) expect(goalEyebrow({type: t}, s('Private allocation'), false)).not.toMatch(/allocation|Value Goal/i);
-  expect(goalEyebrow({type: 'VALUE'}, s('Private allocation'), true)).toBe('Value Goal · Private allocation');
+  // Session AL fifth pass (DV-018, DV-120): with the chain chosen the kind keeps the card's one name; its source words stay.
+  expect(goalEyebrow({type: 'VALUE'}, s('Private allocation'), true)).toBe('Savings goal · Private allocation');
+  expect(goalEyebrow({type: 'PROJECT'}, {type: 'Project Goal', source: 'Project'}, true)).toBe('Project');
 });
 test('the funding fact: "No saving plan yet" until the chain is chosen; "Funding Wealth" after', () => {
   const f = (fundingHealth: string) => ({requiresReview: false, status: 'active' as const, fundingHealth});

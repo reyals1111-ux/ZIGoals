@@ -1,3 +1,6 @@
+import {unitAmountText} from '../../plural';
+// Session AL third pass (L3's request, NB-114): a part-minute reads "12 s", never "0.2".
+import {durationCountText} from '../../habit-number';
 import * as z from 'zod';
 import {habitDay, habitRuleOn, habitStats, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitRule} from '../../habits';
 import type {ToolEnv} from './env';
@@ -17,6 +20,8 @@ const MINUTE_UNITS = new Set(['min', 'mins', 'minute', 'minutes', 'm', 'minuut',
 const HOUR_UNITS = new Set(['h', 'hr', 'hrs', 'hour', 'hours', 'uur', 'uren', 'heure', 'heures', 'stunde', 'stunden']);
 /** Minutes for a logged value under its day's rule, or null when the habit is not measured in time. */
 /** Session AI (ZI14): the first day of a streak counted in days, and what the streak counts. */
+/** NB-114: the logged amount in words when it is a part-minute or part-hour ("12 s", "1 h 15 min"); nothing otherwise. */
+export const loggedTextOf = (count: number, unit: string | null | undefined): {loggedText?: string} => { const t = durationCountText(count, unit); return t ? {loggedText: t} : {}; };
 function streakSince(current: number, unit: string, today: string): {since?: string; counts: string} {
   if (current > 0 && /^days?$/.test(unit)) {
     const d = new Date(`${today}T00:00:00Z`); d.setUTCDate(d.getUTCDate() - (current - 1));
@@ -71,7 +76,7 @@ export const listHabits: ToolDefinition<{include_archived?: boolean}> = {
     const rows = habits.map(habit => {
       const rule = latestHabitRule(habit), day = habitDay(habit, env.habitDay, env.habitDay), stats = habitStats(habit, env.habitDay);
       const entry = habit.entries.find(e => e.date === env.habitDay);
-      return {handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), type: rule.type, measure: unitOf(rule), schedule: scheduleLabel(rule.schedule, habit.id), target: `${rule.target}${measurementUnit(rule) ? ` ${measurementUnit(rule)}` : ''} per ${rule.targetPeriod}`, state: rule.state, today: day.status, todayValue: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count || 0, streak: `${stats.currentStreak} ${stats.streakUnit}`, timeOfDay: habit.timeOfDay};
+      return {handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), type: rule.type, measure: unitOf(rule), schedule: scheduleLabel(rule.schedule, habit.id), target: `${measurementUnit(rule) ? unitAmountText(rule.target, measurementUnit(rule)) : rule.target} per ${rule.targetPeriod}` /* Session AL (P-LA-30): "1 time", never "1 times" */, state: rule.state, today: day.status, todayValue: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count || 0, streak: unitAmountText(stats.currentStreak, stats.streakUnit), timeOfDay: habit.timeOfDay};
     });
     const capped = capRows(rows, env, false);
     return ok('list_habits', 'Your habits', provenance(env, 'Habits journal', null, null, null), {habits: capped.rows, count: rows.length, today: env.habitDay}, capped.truncated);
@@ -107,13 +112,13 @@ export function computeHabitStats(env: ToolEnv, habit: Habit, handle: string, ra
   let value: number | null = null, valueText = 'unknown', unit = metric === 'minutes' ? 'minutes' : unitOf(rule);
   const complete = scheduled.filter(r => r.status === 'complete').length, skipped = scheduled.filter(r => r.status === 'skipped' || r.status === 'planned-skip').length;
   const counted = scheduled.length - skipped, completionRate = counted > 0 ? Math.round(complete / counted * 100) : null;
-  if (metric === 'streak') { value = stats.currentStreak; unit = stats.streakUnit; valueText = `${stats.currentStreak} ${stats.streakUnit} now, best ${stats.bestStreak} ${stats.streakUnit}`; }
+  if (metric === 'streak') { value = stats.currentStreak; unit = stats.streakUnit; valueText = `${unitAmountText(stats.currentStreak, stats.streakUnit)} now, best ${unitAmountText(stats.bestStreak, stats.streakUnit)}`; } // L7-4b (LA-034): "1 day now, best 1 day"
   else if (metric === 'rate') { value = completionRate; unit = '%'; valueText = completionRate === null ? 'unknown: nothing was scheduled' : `${completionRate}% (${complete} of ${counted} scheduled days done${skipped ? `, ${plural(skipped, 'skipped day')} not counted` : ''})`; }
   else if (metric === 'count' && rule.measurement.kind === 'boolean') { value = visible.length; unit = 'check-ins'; valueText = plural(visible.length, 'check-in'); }
   else if (metric === 'minutes' && !amounts.length) { value = 0; valueText = '0 minutes'; if (!isTimed(rule)) { value = null; valueText = 'unknown: this habit is not measured in time'; } }
   else if (metric === 'minutes' && !known.length) { value = null; valueText = 'unknown: this habit is not measured in time'; }
   else if (units.length > 1) { value = null; valueText = `mixed units (${units.join(', ')}): ${units.map(u => `${num(known.filter(a => a.unit === u).reduce((s, a) => s + a.value, 0), 2)} ${u}`).join(' + ')}`; notes.push('The habit changed its unit in this period; the totals are shown per unit.'); }
-  else { value = known.reduce((s, a) => s + a.value, 0); unit = units[0] ?? unit; valueText = `${num(value, 2)} ${unit}`; }
+  else { value = known.reduce((s, a) => s + a.value, 0); unit = units[0] ?? unit; valueText = durationCountText(value, unit) ?? unitAmountText(value, unit); } // L7-4b (LA-034): "1 time", never "1 times"
   if (metric === 'minutes' && known.length && known.length < amounts.length) notes.push(`${plural(amounts.length - known.length, 'check-in')} not measured in time ${amounts.length - known.length === 1 ? 'is' : 'are'} not counted.`);
   if (hidden.length) notes.push(`${plural(hidden.length, 'check-in')} filled in from Health ${hidden.length === 1 ? 'is' : 'are'} not counted: Health isn't shared with ZIGi.`);
   const sorted = [...known].sort((a, b) => b.value - a.value || a.date.localeCompare(b.date));
@@ -178,7 +183,7 @@ export const habitsDue: ToolDefinition<Record<string, never>> = {
       const day = habitDay(habit, env.habitDay, env.habitDay);
       if (day.status !== 'due' && day.status !== 'partial') return [];
       const rule = latestHabitRule(habit), entry = habit.entries.find(e => e.date === env.habitDay);
-      return [{handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), status: day.status, logged: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count, target: `${rule.target}${measurementUnit(rule) ? ` ${measurementUnit(rule)}` : ''}`, timeOfDay: habit.timeOfDay}];
+      return [{handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), status: day.status, logged: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count, ...(entry && heldBack(env, entry) ? {} : loggedTextOf(day.count, measurementUnit(rule))), target: measurementUnit(rule) ? unitAmountText(rule.target, measurementUnit(rule)) : `${rule.target}`, timeOfDay: habit.timeOfDay}];
     });
     return ok('habits_due', 'Habits open today', provenance(env, 'Habits journal', null, {from: env.habitDay, to: env.habitDay, label: 'today'}, env.habitZone), {open: rows, count: rows.length});
   },

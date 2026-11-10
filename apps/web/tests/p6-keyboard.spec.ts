@@ -27,6 +27,17 @@ const ROUTES = [
   '/app/zigi', '/app/zigi/memory', '/app/settings', '/app/settings/data', '/app/settings/reminders', '/app/help',
 ];
 const STOPS = 25;
+/**
+ * Session AL (BUG-049, deliberate): the goal creator opens with the focus already in Goal name, inside the content (a
+ * keyboard user there no longer starts on the page body, 46 Tabs away). The page itself has bypassed the repeated blocks,
+ * so its first Tab goes on in the form. The skip link is still checked as strictly as anywhere else: the page must have
+ * put the focus in that field inside #main, Shift+Tab from it must come back to "Skip to content" (shown, with a focus
+ * indicator) without leaving the page, and Enter on it must put the next Tab in the content. Every other route keeps the
+ * first-Tab check.
+ */
+const FOCUS_ON_ARRIVAL: Readonly<Record<string, string>> = {'/app/goals/new': 'Goal name'};
+/** Shift+Tab back from the arrival field to the skip link; the shell holds well under 80 stops before the content. */
+const BACK_TO_SKIP = 80;
 type Stop = {key: string; where: string; visible: boolean; ring: boolean; covered: boolean; segmented: boolean; start: boolean};
 /** What has focus now, and how it shows. `key` identifies the element across steps (a mark on it, set once). */
 const stop = (page: Page) => page.evaluate((): Stop | null => {
@@ -84,15 +95,30 @@ for (const theme of THEMES) for (const [half, routes] of HALVES.entries()) {
     const findings: Findings = {};
     for (const path of routes) {
       await open(page, path);
-      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+      const arrival = FOCUS_ON_ARRIVAL[path];
+      const onSkip = () => page.evaluate(() => { const el = document.activeElement; return !!el && el.matches('a.skip') && el.textContent?.trim() === 'Skip to content'; });
+      if (arrival) {
+        // BUG-049: the page puts the focus in its first field inside the content (the wizard retries until the shell shows).
+        const inField = () => page.evaluate(name => { const el = document.activeElement as HTMLInputElement | null; return !!el && !!document.getElementById('main')?.contains(el) && [...(el.labels ?? [])].some(l => l.textContent?.trim().startsWith(name)); }, arrival);
+        await expect.poll(inField, {timeout: 6_000}).toBe(true).catch(() => note(findings, path, [`the page does not open with the focus in ${arrival}`]));
+      } else await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
       await watchExit(page);
       // The two full-screen views, NOVA (components/nova/nova-chrome.css) and the Checklist's overlay (a modal dialog;
       // components/checklist/checklist.css), hide the sidebar and bars with the skip link: no repeated block, so no skip
       // link is needed there (2.4.1); their walk starts in the view itself. Anywhere else the skip link must be there.
       const bars = await page.evaluate(() => document.documentElement.dataset.novaView !== 'on' && !document.querySelector('.checklist-overlay[open]'));
-      await page.keyboard.press('Tab');
+      if (arrival) {
+        // Shift+Tab walks back from the field, over the shell, to the skip link, which stays the first stop of the page.
+        let reached = false;
+        for (let i = 0; i < BACK_TO_SKIP && !reached; i++) {
+          await page.keyboard.press('Shift+Tab');
+          if (await page.evaluate(() => !!(window as unknown as {p6Out?: boolean}).p6Out)) break;
+          reached = await onSkip();
+        }
+        if (!reached) { note(findings, path, [`Shift+Tab from ${arrival} does not come back to "Skip to content"`]); continue; }
+      } else await page.keyboard.press('Tab');
       if (bars) {
-        if (!await page.evaluate(() => { const el = document.activeElement; return !!el && el.matches('a.skip') && el.textContent?.trim() === 'Skip to content'; })) { note(findings, path, ['the first Tab does not reach "Skip to content"']); continue; }
+        if (!await onSkip()) { note(findings, path, ['the first Tab does not reach "Skip to content"']); continue; }
         const skipRing = await stop(page);
         if (skipRing && !skipRing.ring) note(findings, path, ['"Skip to content" shows no focus indicator']);
         await page.keyboard.press('Enter');
@@ -141,10 +167,18 @@ for (const theme of THEMES) for (const [half, routes] of HALVES.entries()) {
 }
 
 /** Opens with the keyboard (focus, then Enter), checks focus is inside, Tab stays inside, Esc closes and focus returns. */
-async function roundTrip(page: Page, findings: Findings, label: string, trigger: Locator, dialog: Locator, {modal = true} = {}) {
+/** Session AL (O3): below 901 px, ZIGi from the keyboard: "Apps & extras" with Enter, then its ZIGi row with Enter. */
+async function zigiByKeyboard(page: Page) {
+  await page.getByTestId('apps-extras-button').focus(); await page.keyboard.press('Enter');
+  const sheet = page.getByRole('dialog', {name: 'Apps & extras'});
+  await expect(sheet).toBeVisible();
+  await sheet.getByRole('button', {name: /^ZIGi\b/}).focus(); await page.keyboard.press('Enter');
+}
+async function roundTrip(page: Page, findings: Findings, label: string, trigger: Locator, dialog: Locator, {modal = true, press}: {modal?: boolean; press?: () => Promise<void>} = {}) {
   await expect(trigger).toBeVisible();
-  await trigger.focus();
-  await page.keyboard.press('Enter');
+  // Session AL (O3): a dialog reached in two steps (ZIGi through "Apps & extras" below 901 px) brings its own keyboard press.
+  if (press) await press();
+  else { await trigger.focus(); await page.keyboard.press('Enter'); }
   await expect(dialog).toBeVisible({timeout: 10_000});
   await dialog.evaluate(el => Promise.all(el.getAnimations({subtree: true}).filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined))));
   await expect.poll(() => dialog.evaluate(el => el.contains(document.activeElement)), {timeout: 3_000}).toBe(true).catch(() => note(findings, label, ['focus did not move into it when it opened']));
@@ -166,7 +200,10 @@ for (const theme of THEMES) {
     await open(page, '/app');
     const quick = page.locator(isMobile ? '.phone-topbar .quick-add-trigger' : '.today-hero .quick-add-trigger').first();
     await roundTrip(page, findings, 'Quick add', quick, page.getByRole('dialog', {name: 'What would you like to add?'}));
-    await roundTrip(page, findings, 'ZIGi', page.getByRole('button', {name: /^Open ZIGi/}).first(), page.locator('dialog.ai-chat[open]'));
+    // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; the keyboard opens "Apps & extras",
+    // then its ZIGi row, and Esc gives the focus back to "Apps & extras". On a computer, as before.
+    if (page.viewportSize()!.width < 901) await roundTrip(page, findings, 'ZIGi', page.getByTestId('apps-extras-button'), page.locator('dialog.ai-chat[open]'), {press: () => zigiByKeyboard(page)});
+    else await roundTrip(page, findings, 'ZIGi', page.getByRole('button', {name: /^Open ZIGi/}).first(), page.locator('dialog.ai-chat[open]'));
     const chip = page.locator('.showcase-chip-button').first();
     if (await chip.isVisible()) await roundTrip(page, findings, 'The Showcase chip', chip, page.locator('.showcase-chip [role=dialog], .showcase-chip dialog, [role=dialog]').filter({hasText: /Showcase/}).first(), {modal: false});
     if (isMobile) await roundTrip(page, findings, 'More', page.getByRole('button', {name: 'More', exact: true}), page.getByRole('navigation', {name: 'Main navigation'}).getByRole('dialog', {name: 'More'}));
@@ -259,8 +296,11 @@ test('keyboard: a confirm card is reached with Tab, added with Enter and undone 
   await mockModel(page, [`Two fictional cards.\n\n${fence([{kind: 'log-water', glasses: 2}, {kind: 'create-habit', title: 'Evening stretch', type: 'build', measurement: 'minutes', target: 10, schedule: 'daily', timeOfDay: 'evening'}])}`]);
   await seedDevice(page);
   await open(page, '/app/habits');
-  const launcher = page.getByRole('button', {name: /^Open ZIGi/}).first();
-  await launcher.focus(); await page.keyboard.press('Enter');
+  // Session AL (owner decision O3, deliberate): below 901 px the keyboard opens ZIGi through "Apps & extras", and the focus
+  // returns there; on a computer, the launcher as before.
+  const compact = page.viewportSize()!.width < 901;
+  const launcher = compact ? page.getByTestId('apps-extras-button') : page.getByRole('button', {name: /^Open ZIGi/}).first();
+  if (compact) await zigiByKeyboard(page); else { await launcher.focus(); await page.keyboard.press('Enter'); }
   const panel = page.locator('dialog.ai-chat[open]');
   await expect(panel).toBeVisible();
   const box = panel.getByLabel('Message to your AI');

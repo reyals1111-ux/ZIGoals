@@ -1,0 +1,13 @@
+/* Session AL Part 12 (O2): the Premium badge and the Settings "Plan" row, both links to /app/plans. */
+/* The "Premium · free during the Alpha" badge, a link to Plans (components/plans/premium-badge.tsx). */
+.premium-badge { position: relative; display: inline-flex; align-items: center; min-height: 32px; padding: 4px 12px; border: 1px solid #c664ff66; border-radius: 999px; background: linear-gradient(110deg, #22104099, #0d2a44aa); color: var(--text); font-size: 14px; font-weight: 600; letter-spacing: .02em; text-decoration: none; white-space: nowrap; }
+.premium-badge:hover { border-color: #ff74beaa; }
+.premium-badge:focus-visible { outline: 3px solid var(--brand-cyan, #63e7ff); outline-offset: 2px; }
+/* The pill looks 32 px tall; its target reaches 44 px (6 px above and below). */
+.premium-badge::after { content: ""; position: absolute; inset: -6px 0; }
+.plan-settings-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; min-height: 44px; }
+.plan-settings-row p { margin: 0; color: var(--muted); font-size: 15px; }
+.plan-settings-row .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+@media (forced-colors: active) { .premium-badge { border-color: LinkText; } }
+/* CI fix (touch targets): with a touch screen the badge itself is 44 px tall, not only its widened hit area. */
+@media (pointer: coarse) { .premium-badge { min-height: 44px; } }

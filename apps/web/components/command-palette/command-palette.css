@@ -1,0 +1,16 @@
+/* Session AL fourth pass (LS-H36, C-LS-22): the command palette. The app's own colour tokens with fallbacks, so Nebula,
+   Light and Dark each read it; 44 px rows; no motion beyond the browser's own dialog. */
+.command-palette { width: min(640px, calc(100vw - 32px)); max-height: min(560px, calc(100dvh - 48px)); margin: 10vh auto auto; padding: 0; border-radius: 18px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 45%, transparent); background: var(--surface-glass, var(--panel, #0d1629)); color: var(--text, #eef3ff); box-shadow: 0 24px 60px -24px #000c; overflow: hidden; }
+.command-palette::backdrop { background: rgb(2 6 20 / .55); }
+.command-palette-box { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; max-height: inherit; }
+.command-palette-field { width: 100%; box-sizing: border-box; min-height: 56px; padding: 0 18px; border: 0; border-bottom: 1px solid var(--line, rgba(140, 160, 220, .3)); background: transparent; color: inherit; font: inherit; font-size: 18px; }
+.command-palette-field:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: -3px; }
+.command-palette-list { overflow-y: auto; padding: 6px; min-height: 0; }
+.command-palette-group { margin: 8px 10px 4px; font-size: 13px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--text-secondary, #b9c6e0); }
+.command-palette-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; min-height: 44px; padding: 10px 12px; border-radius: 12px; cursor: pointer; overflow-wrap: anywhere; }
+.command-palette-row[aria-selected="true"] { background: color-mix(in srgb, var(--brand-violet, #826cff) 22%, transparent); box-shadow: inset 3px 0 0 var(--brand-cyan, #63e7ff); }
+.command-palette-label { font-weight: 650; }
+.command-palette-detail { font-size: 14px; color: var(--text-secondary, #b9c6e0); }
+.command-palette-none { margin: 12px; }
+.command-palette-keys { margin: 0; padding: 10px 16px; border-top: 1px solid var(--line, rgba(140, 160, 220, .3)); font-size: 14px; color: var(--text-secondary, #b9c6e0); }
+@media (forced-colors: active) { .command-palette-row[aria-selected="true"] { outline: 2px solid Highlight; } }

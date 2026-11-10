@@ -53,3 +53,29 @@
   :root:not([data-zigi-side=left]) .governance-page { padding-inline-end: 64px; }
   :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) .governance-page { padding-inline-end: 72px; }
 }
+/* Session AL (BN-008, BN-180): the label beside a test or template proposal title; words carry it, not colour. */
+.governance-test-tag{margin:4px 0 0;font-size:.95rem;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+/* Session AL (Part 15, P-BN-74/P-BN-75): the list's filters and search. */
+.governance-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 16px; margin: 12px 0 16px; }
+.governance-filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.governance-filter-chips .chip { min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line, #6c9cc555); background: transparent; color: var(--text-strong, inherit); font: inherit; cursor: pointer; }
+.governance-filter-chips .chip.is-active { background: var(--brand-cyan, #74d5e9); border-color: transparent; color: #07111f; }
+.governance-filter-count { opacity: 0.8; font-variant-numeric: tabular-nums; }
+.governance-search { flex: 1 1 220px; min-width: 0; }
+.governance-search input { width: 100%; min-height: 44px; }
+/* Session AL (C-BN-13): turnout against the quorum, a bar with the quorum marked; the words beside it carry the numbers. */
+.governance-turnout{margin:10px 0 0}
+.governance-turnout-words{margin:0 0 6px}
+.governance-turnout-bar{position:relative;height:10px;border-radius:5px;background:var(--surface-1,#101b32);border:1px solid var(--line,#6b91c846)}
+.governance-turnout-bar span{display:block;height:100%;max-width:100%;border-radius:5px;background:#8f9bb8}
+.governance-turnout-bar span.is-met{background:#3ec58a}
+.governance-turnout-bar i{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:currentColor}
+/* Session AL (BN-008, D-014): ended test and template proposals fold into one group under the real ones. */
+.governance-tests{margin:16px 0 0}
+.governance-tests>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.governance-tests[open]>summary{margin-bottom:12px}
+/* Session AL fourth pass (C-BN-12). */
+.governance-validator-vote{margin:12px 0 0}
+.governance-validator-vote>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.governance-validator-vote form{display:grid;gap:8px;margin:8px 0}
+.governance-validator-vote form button{justify-self:start;min-height:44px}

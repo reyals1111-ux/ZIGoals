@@ -26,7 +26,10 @@ jobs:
     # Session AK ([TIER 3] (CI)): on slow runners every phase runs ~1.5x longer (lint 73→114 s, tsc 45→72 s, vitest
     # 350→527 s); runs took 14.7–15.3 min and two were cancelled at 15 after every step was green (41384658117,
     # 41401409092). 22 gives 1.4x headroom on a slow runner; no test timeout changes.
-    timeout-minutes: 22
+    # Session AL ([TIER 3] (CI)): main pushes were cancelled at 22m47s on slow runners while ordinary runs take 9-10 min
+    # (41693906273: 10m17s); this session adds the hosted verifier's --help step and more unit tests. 30 gives the slow
+    # runner about 1.3x again; no test timeout changes.
+    timeout-minutes: 30
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
@@ -47,6 +50,11 @@ jobs:
       - run: node scripts/doctor.mjs
       - run: pnpm check:deploy-configs && pnpm check:landing
       - run: pnpm lint && pnpm typecheck && pnpm test && pnpm build
+      # Session AL ([TIER 3] (CI)): the owner's hosted verifier and its whole import graph load under plain Node 24 (type
+      # stripping, no Vitest); run 56's verifier failed with ERR_MODULE_NOT_FOUND on an extensionless .ts import.
+      # --help loads every module, prints the stages and exits 0, with no browser and no network.
+      - name: Hosted verifier loads under plain Node (--help)
+        run: node scripts/verify-hosted-alpha.mjs --help
       - run: pnpm audit --prod --audit-level high
       # FIX_PLAN F1 (Q-SC-02): every dependency, development ones included, reported as a warning and never a failure.
       # The step above still fails on production advisories. Known on 2026-10-05: braces <=3.0.3 (GHSA-vfj7-8cjw-p6xm)
@@ -87,12 +95,17 @@ jobs:
     # worker-minutes) runs as its own "a11y" suite of three shards: Playwright cuts shards by test count in file order,
     # so in the main suite each project's sweep would land whole in one shard. A11Y_SWEEP (playwright.config.ts) keeps
     # the two suites apart; together they run every test exactly once. No test is dropped, skipped or loosened.
+    # Session AL ([TIER 3] (CI)): on main 17069c7d (run 41693906273) the slowest main shards took 46m24s, 45m10s and
+    # 44m46s of the 60 (mean 38.5 min, about 4 min of it setup), so the 40% headroom was gone before this session's new
+    # folder tests/grok53/ (under testDir, so already in the main suite). Twelve main shards: with 10% more tests the
+    # slowest is about 4 + (345 x 1.1 / 12) x 1.23 = 43 min, 1.4x headroom again. The a11y suite's slowest shard took
+    # 29m28s, so its three shards stay. No test is dropped, skipped or loosened.
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         suite: [main]
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         include:
           - {suite: a11y, shard: 1}
           - {suite: a11y, shard: 2}
@@ -134,7 +147,7 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          if [ "${{ matrix.suite }}" = a11y ]; then export A11Y_SWEEP=only SHARDS=3; else export A11Y_SWEEP=skip SHARDS=10; fi
+          if [ "${{ matrix.suite }}" = a11y ]; then export A11Y_SWEEP=only SHARDS=3; else export A11Y_SWEEP=skip SHARDS=12; fi
           env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 --shard=${{ matrix.shard }}/$SHARDS --reporter=line,json --output=/tmp/zigoals-web-results
       - name: Retain fixture-only browser failures
         if: always()
@@ -161,7 +174,9 @@ jobs:
     # Session AB-Design Phase 2 ([TIER 3] (CI)): the Alpha artifact checks and the Workers security gate run in their own
     # job, web-alpha-gate (this job had grown to 12.7 min and hit 15 on a slow runner); this one now ends at the page
     # weights, about 9 min.
-    timeout-minutes: 15
+    # Session AL ([TIER 3] (CI)): ordinary runs now take 11m13s-11m22s (41693906273, 41564645932), 75% of the 15, and
+    # slow runners run every phase about 1.5x longer (17 min). 25 gives that slow runner about 1.5x headroom.
+    timeout-minutes: 25
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
@@ -223,7 +238,9 @@ jobs:
     # topology 1.6 min, the security gate 1.5 min; with its own checkout, install and Chrome about 6 min.
     name: web Alpha gate (Alpha artifact, Run11 package, Workers security gate)
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Session AL ([TIER 3] (CI)): 6-8 min on ordinary runs (41693906273: 7m39s), up to ~12 on a slow runner; with the
+    # main pushes cancelled at 22m47s on slow runners, 25 keeps a slow runner (and a Chrome install retry) well inside.
+    timeout-minutes: 25
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED

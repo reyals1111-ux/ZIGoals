@@ -1,4 +1,5 @@
 'use client';
+import {NATIVE_TAGS} from '../../lib/earn/glance';
 import Link from 'next/link';
 import {useMemo, useState} from 'react';
 import {aprAtCommission} from '../../lib/earn/apr';
@@ -47,7 +48,7 @@ export function NativeSection({chain, validators, measured, now, reads = []}: {c
   return <OptionSection id="native-staking" eyebrow="ZIGChain · the network’s own staking" title="Stake ZIG with a validator"
     lede={<>Lend your ZIG’s weight to a validator that helps run ZIGChain, and share in the new ZIG the network pays out every block. <WhatsThis term="validator"/></>}
     logo={{alt: '', glyph: <EarnGlyphMark/>}}
-    tags={[{tone: 'live', text: 'Live on mainnet'}, {tone: 'keys', text: 'You keep the keys'}]}
+    tags={[...NATIVE_TAGS]}
     facts={[
       {label: 'Best for', value: <>Holding ZIG for the long run and earning the network’s own rewards, with no app in between. <WhatsThis term="rewards"/></>},
       {label: 'Who runs it', value: <>The ZIGChain network itself, and the validator you choose to delegate to. <WhatsThis term="staking"/></>},
@@ -64,7 +65,11 @@ export function NativeSection({chain, validators, measured, now, reads = []}: {c
       <LiveFigure id="native-apr-before" label="Before any commission · estimate, variable" now={now} figure={shown(chain, d => pct(d.apr.beforeCommission))}/>
       <LiveFigure id="native-bonded" label="ZIG staked on the network" now={now} figure={shown(chain, d => <>{zig(d.staking.bondedTokens, {compact: true})} <span className="earn-unit">({pct(d.staking.bondedShare, 1)} of all ZIG)</span></>)}/>
       <LiveFigure id="native-unbonding" label="Unbonding time when you leave" now={now} figure={shown(chain, d => duration(d.staking.unbondingSeconds))} hint={<WhatsThis term="unbonding"/>}/>
-      <LiveFigure id="native-commission" label="Commission validators charge now" now={now} figure={validators.phase === 'ok' && range ? {kind: 'ok', value: range, answer: validators.answer} : validators.phase === 'ok' ? {kind: 'unavailable', reason: 'MALFORMED'} : shown(validators, () => null)}/>
+      {/* Session AL (PR-040): when the validator list cannot be read, the measured validator's own commission (the figure the
+          measured line uses) is shown instead of "unavailable", named as one validator's, so the lines never disagree. */}
+      <LiveFigure id="native-commission" label="Commission validators charge now" now={now} figure={validators.phase === 'ok' && range ? {kind: 'ok', value: range, answer: validators.answer}
+        : m && measured.phase === 'ok' ? {kind: 'ok', value: <>{pctShort(m.validator.commission)} at {m.validator.moniker}, the validator measured above (the full list is unavailable right now)</>, answer: measured.answer}
+        : validators.phase === 'ok' ? {kind: 'unavailable', reason: 'MALFORMED'} : shown(validators, () => null)}/>
       <LiveFigure id="native-inflation" label="New ZIG a year (inflation)" now={now} figure={shown(chain, d => pct(d.mint.inflation))}/>
     </>}
     figuresNote={<>

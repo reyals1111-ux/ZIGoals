@@ -1,3 +1,7 @@
 /* Session AH (HA15; D-178, D-192): the 30-day heatmap in Dark: dark numbers on the pale "all done" cell, never white. */
 :root[data-theme=dark] .habit-month-grid>span:not(#\-) { border-color: #4a5a7a; }
 :root[data-theme=dark] .habit-month-grid>span[data-level=full]:not(#\-), :root[data-theme=dark] .habit-month-legend i[data-level=full]:not(#\-) { color: #10142a; font-weight: 750; }
+/* Session AL (NB-073, NB-075; P-NB-32, AL-THEME-005): the grid's colour is the day's share, the same step in every theme.
+   Dark's sheet had deepened "Under half" (#375573, a night-looking blue) to #0e2133, next to the empty cell's #020814, so a
+   partly done day read as empty by night and strong by day. The levels are data, not panels: Nebula's own steps here. */
+:root[data-theme=dark] .habit-month-grid>span[data-level=some]:not(#\-), :root[data-theme=dark] .habit-month-legend i[data-level=some]:not(#\-) { background-color: #375573; color: #ecf5ff; }

@@ -17,3 +17,17 @@ export function splitWealthTotals<T extends CurrencyTotal>(subtotals: readonly T
   const split = {primary, others: subtotals.filter(s => s !== primary)};
   return base ? {...split, baseEmpty: !inBase} : split;
 }
+
+/**
+ * Session AL (TK-039, TK-132, TK-007, TK-037; W1): the Wealth headline counts holdings only, so once the person tracks
+ * an account or a debt, the hero also states the net worth beside it (the same figure as "Accounts, debts & net worth",
+ * lib/accounts/net-worth.ts netWorthTotal) and says plainly when debts are larger than what is owned in a currency. A
+ * huge debt can no longer sit invisible behind a positive headline. Per currency, never converted.
+ */
+export type WorthMoney = {value: bigint; decimals: number};
+export type WorthRow = {currency: string; assets: WorthMoney; holdings: WorthMoney; debts: WorthMoney; net: WorthMoney; accounts: number};
+export type HeroWorthLine = {currency: string; net: WorthMoney; debts: WorthMoney; debtsExceed: boolean};
+export function heroNetWorth(rows: readonly WorthRow[]): HeroWorthLine[] {
+  if (!rows.some(r => r.accounts > 0)) return [];
+  return rows.map(r => ({currency: r.currency, net: r.net, debts: r.debts, debtsExceed: r.net.value < 0n && r.debts.value > 0n}));
+}

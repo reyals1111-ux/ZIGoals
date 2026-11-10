@@ -192,3 +192,14 @@ it('cumulative contribution evidence aggregates once with exact integers and exc
  const s={...state(),contributions:[event('a'),{...event('b'),direction:'OUT' as const,quantity:'500'},{...event('income'),provenance:'REWARD_INCOME' as const,quantity:'200'},{...event('future'),occurredAt:'2027-01-01T00:00:00Z'}]};
  expect(intelligence.contributionEvidenceSeries(s,'1',now)).toEqual({actual:[{at:'2026-09-02T12:00:00.000Z',value:'9500'}],income:[{at:'2026-09-02T12:00:00.000Z',value:'200'}]});
 });
+it('Session AL final pass (DV-038d): with the person’s zone, an event counts on its day there; the plan line writes its date, never ISO (B-185)',()=>{
+ // 23:30 UTC on 3 Nov is 00:30 on 4 Nov in Brussels.
+ const rows=[{id:'late',goalId:'1',at:'2026-11-03T23:30:00Z',kind:'contribution',label:'Evidence',provenance:'MANUAL'}];
+ expect(intelligence.pageGoalTimeline(rows,{page:0,from:'2026-11-04',to:'2026-11-04',timeZone:'Europe/Brussels'}).total).toBe(1);
+ expect(intelligence.pageGoalTimeline(rows,{page:0,from:'2026-11-04',to:'2026-11-04'}).total).toBe(0);
+ expect(intelligence.pageGoalTimeline(rows,{page:0,from:'2026-11-03',to:'2026-11-03',timeZone:'Europe/Brussels'}).total).toBe(0);
+ expect(()=>intelligence.pageGoalTimeline(rows,{page:0,from:'2026-11-05',to:'2026-11-04',timeZone:'Europe/Brussels'})).toThrow('Choose a valid date range.');
+ const s=state();s.goals[0]={...s.goals[0]!,planRevisions:[{id:'r1',effectiveFrom:'2026-11-04',recordedAt:'2026-11-04T08:00:00.000Z'} as never]};
+ const label=intelligence.goalTimeline(s,'1').find(e=>e.kind==='plan_revision')!.label;
+ expect(label).toMatch(/^Plan terms effective (4 Nov 2026|Nov 4, 2026)/);expect(label).not.toContain('2026-11-04');
+});

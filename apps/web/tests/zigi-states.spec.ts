@@ -6,6 +6,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY, ZIGI_KEY} from '../lib/ai/store/keys';
 import {ZIGI_MANIFEST} from '../components/zigi/manifest';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Phase 2 (P2.5): every one of the manifest's 25 states occurs in realistic use, each driven through the
@@ -53,13 +54,20 @@ async function seed(page: Page, {baseUrl = BASE, settings = {} as Partial<AiSett
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-const launcher = (page: Page) => page.locator('.ai-launcher-button');
+/**
+ * Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating figure; the same states (one bus) show on the
+ * panel's own figure, so while the panel is open that is what is read there. States at rest, with the panel closed, have no
+ * figure to show on below 901 px: those tests assert the O3 behaviour there instead. On a computer, the launcher as before.
+ */
+const compact = (page: Page) => page.viewportSize()!.width < 901;
+const FIGURE = (page: Page) => compact(page) ? 'dialog.ai-chat[open] .ai-chat-head .zigi' : '.ai-launcher-button';
+const launcher = (page: Page) => page.locator(FIGURE(page));
 /** Records every value the launcher's data-state takes from now on (clips that play for a second are caught this way). */
 async function observe(page: Page) {
-  await page.evaluate(() => { const w = window as unknown as {__states: string[]}; w.__states = []; const b = document.querySelector('.ai-launcher-button'); if (!b) return; const push = () => { const s = b.getAttribute('data-state') ?? ''; if (w.__states[w.__states.length - 1] !== s) w.__states.push(s); }; push(); new MutationObserver(push).observe(b, {attributes: true, attributeFilter: ['data-state']}); });
+  await page.evaluate(selector => { const w = window as unknown as {__states: string[]}; w.__states = []; const b = document.querySelector(selector); if (!b) return; const push = () => { const s = b.getAttribute('data-state') ?? ''; if (w.__states[w.__states.length - 1] !== s) w.__states.push(s); }; push(); new MutationObserver(push).observe(b, {attributes: true, attributeFilter: ['data-state']}); }, FIGURE(page));
 }
 const seen = (page: Page) => page.evaluate(() => (window as unknown as {__states: string[]}).__states ?? []);
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); } // Session AL (O3): the sheet below 901 px
 async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); }
 async function settled(page: Page) { await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toHaveCount(0, {timeout: 30_000}); await expect(panel(page).locator('.ai-turn-live')).toHaveCount(0); }
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
@@ -68,6 +76,26 @@ test('at rest: idle; the first open of the day: greeting; typing: listening; clo
   await server(page, () => 'Hello.');
   await seed(page);
   await page.goto('/app');
+  // Session AL (owner decision O3, deliberate): below 901 px there is no figure at rest (was: the launcher's idle, wave goodbye
+  // and idle read on the phone too); the panel's own figure shows typing and a quiet open panel there.
+  if (compact(page)) {
+    await expect(page.locator('.ai-launcher-button')).toHaveCount(0);
+    await openChat(page);
+    await observe(page);
+    await page.getByLabel('Message to your AI').focus(); await page.keyboard.type('hello');
+    await expect.poll(() => seen(page)).toContain('listening');
+    await page.getByLabel('Message to your AI').fill('');
+    await page.keyboard.press('Escape');
+    await expect(panel(page)).toHaveCount(0);
+    await openChat(page);
+    // Session AL (CI 1584/1586, WebKit phone; the wait only): the panel moves the focus into its box one frame after it opens,
+    // and that focus starts "typing" (ai-chat.tsx onFocus → user_typing_started). On a slow WebKit page the frame came after
+    // the 91 s jump, so "listening" began after the quiet time instead of before it. The clock moves once the box holds it.
+    await expect(page.getByLabel('Message to your AI')).toBeFocused({timeout: 15_000});
+    await page.clock.runFor(91_000);
+    await expect(launcher(page)).toHaveAttribute('data-state', 'sleepy');
+    return;
+  }
   await expect(launcher(page)).toHaveAttribute('data-state', 'idle');
   await observe(page);
   await openChat(page);
@@ -79,6 +107,7 @@ test('at rest: idle; the first open of the day: greeting; typing: listening; clo
   await expect.poll(() => seen(page)).toContain('wave-goodbye');
   await expect(launcher(page)).toHaveAttribute('data-state', 'idle', {timeout: 10_000});
   await openChat(page);
+  await expect(page.getByLabel('Message to your AI')).toBeFocused({timeout: 15_000}); // the same wait as on the phone (above)
   await page.clock.runFor(91_000);
   await expect(launcher(page)).toHaveAttribute('data-state', 'sleepy');
 });
@@ -130,6 +159,9 @@ test('offline at rest, then back: offline, then idle', async ({page, context}) =
   await server(page, () => 'Hello.');
   await seed(page);
   await page.goto('/app');
+  // Session AL (owner decision O3, deliberate): "at rest" is the floating figure, a computer's; below 901 px there is none
+  // (was: read on the phone too). The sheet opens ZIGi there.
+  if (compact(page)) { await expect(page.locator('.ai-launcher-button')).toHaveCount(0); await openChat(page); return; }
   await expect(launcher(page)).toHaveAttribute('data-state', 'idle');
   // The alive chunk (the machine on every page) loads once ZIGi is on screen and the browser is idle: its animated idle is the sign.
   await expect(launcher(page).locator('img').first()).toHaveAttribute('src', /anim/, {timeout: 15_000});
@@ -163,6 +195,16 @@ test('ZIGi hidden with the edge tab: peek; ZIGi on but not set up: attention, an
   await server(page, () => 'Hello.');
   await seed(page);
   await page.goto('/app');
+  // Session AL (owner decision O3, deliberate): below 901 px no chevron, edge tab or figure at rest (was: peek and attention read
+  // on the phone too); ZIGi not set up still opens from the sheet.
+  if (compact(page)) {
+    await expect(page.getByRole('button', {name: 'Hide ZIGi'})).toHaveCount(0); await expect(page.locator('.ai-edge-tab')).toHaveCount(0);
+    await seed(page, {settings: {model: null as unknown as string, provider: 'local'}});
+    await page.goto('/app');
+    await expect(page.locator('.ai-launcher-button')).toHaveCount(0);
+    await openChat(page);
+    return;
+  }
   await page.getByRole('button', {name: 'Hide ZIGi'}).click();
   await expect(page.locator('.ai-edge-tab .zigi-figure')).toHaveAttribute('data-state', 'peek');
   await page.getByRole('button', {name: 'Show ZIGi'}).click();

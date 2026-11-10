@@ -43,3 +43,11 @@
   :root .goal-tree.is-page ul .goal-tree-node > .flow-ring { --ring-size: 44px !important; width: 44px !important; height: 44px !important; flex: 0 0 44px !important; }
 }
 @media (forced-colors: active) { :root .goal-tree.is-page li::before, :root .goal-tree.is-page li::after { border-color: CanvasText; background: CanvasText; } }
+/* Session AL third pass (GAP-115): drop targets while dragging, and each node's ⋯ menu (44 px targets). */
+:root .goal-tree-node[data-drop], :root .goal-tree-root[data-drop] { outline: 2px dashed var(--pillar-goals, #9273ff); outline-offset: 3px; }
+:root .goal-tree-edit { margin: 4px 0 0 8px; font-size: 15px; }
+:root .goal-tree-edit > summary { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; cursor: pointer; border-radius: 12px; list-style: none; }
+:root .goal-tree-edit > summary::-webkit-details-marker { display: none; }
+:root .goal-tree-edit > div { display: grid; gap: 8px; padding: 8px 0; }
+:root .goal-tree-edit label { display: grid; gap: 4px; }
+:root .goal-tree-edit select, :root .goal-tree-edit a { min-height: 44px; }

@@ -13,7 +13,7 @@ async function showcase(page: Page) {
 const palette = (page: Page) => page.getByRole('dialog', {name: 'Search'});
 const field = (page: Page) => palette(page).getByRole('combobox');
 
-test('the header button and "/" open search on every page; ⌘K is not taken; Escape returns focus', async ({page, isMobile}) => {
+test('the header button and "/" open search on every page; ⌘K never opens search; Escape returns focus', async ({page, isMobile}) => {
   for (const path of ['/app', '/app/goals', '/app/wealth', '/app/settings', '/app/help']) {
     await page.goto(path);
     await expect(page.getByRole('heading', {level: 1}).first()).toBeVisible();
@@ -28,8 +28,22 @@ test('the header button and "/" open search on every page; ⌘K is not taken; Es
   await expect(field(page)).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(palette(page)).toHaveCount(0);
-  // ⌘K / Ctrl+K stays ZIGi's: it opens ZIGi's panel, never search (Gate C audit: the title's claim is now checked).
+  // Session AL (Q11, deliberate): ⌘/Ctrl+K opens the command menu (Ask ZIGi is its first row); ZIGi's own key is ⌘/Ctrl+Shift+Z.
+  // ⌘K never opens search; Enter on the menu's first row opens ZIGi's panel with its message box focused (was: ⌘K opened
+  // ZIGi's panel directly; Gate C audit: the title's claim is checked).
   await page.locator('body').press('ControlOrMeta+k');
+  const menu = page.getByRole('dialog', {name: 'Command menu'});
+  await expect(menu).toBeVisible();
+  await expect(palette(page)).toHaveCount(0);
+  await page.keyboard.press('Enter');
+  await expect(menu).toHaveCount(0);
+  await expect(page.locator('dialog.ai-chat[open]')).toHaveCount(1);
+  await expect(page.locator('dialog.ai-chat[open] textarea').first()).toBeFocused();
+  await expect(palette(page)).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('dialog.ai-chat[open]')).toHaveCount(0);
+  // ⌘/Ctrl+Shift+Z opens ZIGi directly, and still never search.
+  await page.locator('body').press('ControlOrMeta+Shift+z');
   await expect(page.locator('dialog.ai-chat[open]')).toHaveCount(1);
   await expect(palette(page)).toHaveCount(0);
   await page.keyboard.press('Escape');
@@ -103,6 +117,9 @@ test('recent searches stay on this device and clear; nothing matching says so; t
 test('on a phone, search is a full-screen sheet from the top bar', async ({page, isMobile}) => {
   test.skip(!isMobile, 'the phone sheet');
   await page.goto('/app');
+  // Session AL (CI11): tapped once the shell has hydrated, as above: on a slow runner (CPU ×4 here) a tap that lands before
+  // the app's script runs is never seen and the sheet never opens; after <html data-app-hydrated> it opens every time.
+  await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
   await page.locator('.phone-top-bar, .phone-topbar, header').getByRole('button', {name: 'Search'}).first().click();
   const box = (await palette(page).boundingBox())!, viewport = page.viewportSize()!;
   expect(box.width).toBeGreaterThanOrEqual(viewport.width - 1);
@@ -114,7 +131,10 @@ test('on a phone, search is a full-screen sheet from the top bar', async ({page,
 // and hands the words over once ZIGi is back; nothing is sent.
 test('"Ask ZIGi" in search works while ZIGi shows: the words wait in ZIGi\'s message box, unsent', async ({page}) => {
   await page.goto('/app');
-  await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; it "shows" once the root says so
+  // (the mark search reads) and opens from "Apps & extras". Desktop: the launcher, as before.
+  if (page.viewportSize()!.width < 901) { await expect(page.getByTestId('ai-launcher')).toHaveCount(0); await expect(page.locator('html[data-zigi-launcher="shown"]')).toBeAttached(); }
+  else await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
   await page.locator('body').press('/');
   await field(page).fill('how is my sleep');
   const ask = palette(page).getByRole('option', {name: /Ask ZIGi: “how is my sleep”/});

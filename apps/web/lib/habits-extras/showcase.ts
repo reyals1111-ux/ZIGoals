@@ -43,8 +43,10 @@ export function showcaseHabitsAa(habits: HabitData, day: string, zone: string): 
     quit.entries = Array.from({length: 30}, (_, n) => { const d = date(-29 + n), updatedAt = showcaseMoment(day, -29 + n, zone, `${SHOWCASE_QUIT_ID}:${d}`, 'evening'); if (skips[d]) return {date: d, count: 0, disposition: 'skipped' as const, note: skips[d]!, updatedAt}; return {date: d, count: slips.has(d) ? 1 : 0, disposition: slips.has(d) ? 'failed' as const : 'logged' as const, note: '', updatedAt}; });
   }
   data = habitDataSchema.parse(data);
-  // A timer on Read, paused at 25:00 this morning (the chip on the card and on Today; Resume and Finish work).
-  try { const read = data.habits.find(h => h.title === 'Read')!; if (!read.timer) { data = startHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(instantAt(day, '06:00', zone)), zone); data = pauseHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(instantAt(day, '06:25', zone))); } } catch { /* the Showcase still shows without a timer */ }
+  // A timer on Read, paused at 25:00 (the chip on the card and on Today; Resume and Finish work).
+  // Session AL (PR-047): it starts at the day's start, as today's other Showcase records do (lib/showcase-moment.ts), so
+  // "Started …" is not ahead of the clock at 03:15 (it said 6:00 AM). Kept deterministic: the same day, the same bytes.
+  try { const read = data.habits.find(h => h.title === 'Read')!; if (!read.timer) { data = startHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(instantAt(day, '00:00', zone)), zone); data = pauseHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(instantAt(day, '00:25', zone))); } } catch { /* the Showcase still shows without a timer */ }
   return habitDataSchema.parse(data);
 }
 /** The device record beside the habits: life areas (AA-Cloud's ids), the quit habit's cost, the end bell on Exercise. */

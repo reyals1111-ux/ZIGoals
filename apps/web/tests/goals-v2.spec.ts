@@ -62,8 +62,10 @@ test('"On track?": what is left, what the date would take with no growth, the re
   const section = await open(page, 'on-track');
   await expect(section).toContainText('Still to go: €4,500.00, from what is counted now.');
   await expect(section).toContainText('To reach it by Dec 30, 2026 with no growth: about €350.00 a week, or €1,500.00 every 30 days.');
-  await expect(section).toContainText('Recorded here over the last 90 days: €266.66 in every 30 days, net of withdrawals.');
-  await expect(section).toContainText('At that pace, with no growth, about Feb 20, 2028.');
+  // Session AL (COPY_AUDIT, deliberate; PR-024): "On track?" says the goal's one pace forecast (lib/goal-forecast.ts), not a second date.
+  // Fifth pass (PR-024, deliberate): and the forecast's own figure, once (the 90-day "€266.66 in every 30 days" was a second pace).
+  await expect(section).toContainText('Your pace forecast, with no growth: about €248.79 every 30 days, reaching it about Mar 27, 2028 (an estimate, not a promise).');
+  await expect(section).not.toContainText('Recorded here over the last');
   await section.locator('summary', {hasText: 'What if it grew?'}).click();
   await section.getByLabel('Growth you assume, % a year').fill('0');
   await section.getByLabel(/Added every month/).fill('500');
@@ -79,5 +81,6 @@ test('goal ideas fill the creator with a name, the kind of progress and steps; a
   // Session AK X1 (RELEASE_REVIEW R5): a project's choice reads "Finish a project" until the chain is chosen (it read "Project").
   await expect(page.getByRole('radio', {name: 'Finish a project', exact: true})).toBeChecked();
   await expect(page.getByLabel('Milestones, one per line')).toHaveValue('Run 3 km without stopping\nRun 5 km\nRun 8 km\nRun 10 km');
-  await expect(page.getByRole('link', {name: /A weight goal/})).toHaveAttribute('href', '/app/goals#goals-health');
+  // Session AL (DV-181, deliberate): the weight template opens the Health goal creator with Weight chosen.
+  await expect(page.getByRole('link', {name: /A weight goal/})).toHaveAttribute('href', '/app/goals?health-goal=weight#goals-health');
 });

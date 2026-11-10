@@ -1,0 +1,5 @@
+/* Session AL (BN-022, P-BN-31): a destructive button looks like a warning once armed, and plainly unavailable before. */
+:is(.erase-everything, .device-lock, .tracked-wallet) button.danger { min-height: 44px; border-radius: 12px; padding: .6rem 1rem; font-weight: 700; }
+:is(.erase-everything, .device-lock, .tracked-wallet) button.danger:not(:disabled) { background: #b3263f; color: #fff; border: 1px solid #ff8fa3; cursor: pointer; }
+:is(.erase-everything, .device-lock, .tracked-wallet) button.danger:not(:disabled):focus-visible { outline: 3px solid #ffd2da; outline-offset: 2px; }
+:is(.erase-everything, .device-lock, .tracked-wallet) button.danger:disabled { opacity: .5; cursor: not-allowed; }

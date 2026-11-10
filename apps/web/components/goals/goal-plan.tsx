@@ -17,6 +17,8 @@ import './goals.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 // Session AK (BUILD list 2 #1): a calm line while a note looks like recovery words or a key.
 import {SecretGuard} from '../secret-guard/secret-guard';
+import {FieldError, useFormErrors} from '../primitives/field-error';
+import {visionEmojiIssue} from '../../lib/vision-emoji';
 
 const now = () => new Date().toISOString();
 const AREA_COLORS = ['#7fd8c9', '#a3b5ff', '#f5c97a', '#f39ccf', '#8fdcf4', '#d2a6f6', '#ffb09e', '#b9e88f'];
@@ -36,7 +38,9 @@ export function GoalPlan({goalKey, name, summary, goals: tracked, finished}: {go
     {extras.unreadable && <p role="alert" className="notice">Your goal details on this device could not be read. Nothing here can change until they can.</p>}
     <div className="goal-plan-grid">
       <AreaAndVision goalKey={goalKey} name={name} extras={extras} />
-      <Reasons key={`${goalKey}:${extra?.updatedAt ?? ''}`} goalKey={goalKey} extras={extras} />
+      {/* Session AL final pass (T-077): the form starts over only when the saved plan itself changes (a save, an Undo of
+          it); it had been keyed by the goal's updatedAt, so choosing a gradient or an area threw the typed, unsaved text away. */}
+      <Reasons key={`${goalKey}:${JSON.stringify([extra?.why ?? '', extra?.obstacle ?? '', extra?.ifThen ?? ''])}`} goalKey={goalKey} extras={extras} />
       <SubGoals goalKey={goalKey} summary={summary} goals={goals} extras={extras} />
       {finished && <Story key={`story:${extra?.story ?? ''}`} goalKey={goalKey} extras={extras} />}
     </div>
@@ -47,6 +51,8 @@ type Extras = ReturnType<typeof useGoalExtras>;
 
 function AreaAndVision({goalKey, name, extras}: {goalKey: string; name: string; extras: Extras}) {
   const showcase = useShowcase(), groupId = useId(), [adding, setAdding] = useState(false), [label, setLabel] = useState(''), [busy, setBusy] = useState(false);
+  // Session AL final pass (T-079): the emoji box keeps one emoji; anything else is said under the box and not saved.
+  const emojiErrors = useFormErrors();
   const extra = extras.data.goals[goalKey], areas = areasOf(extras.data);
   const setVision = (vision: Vision | null, message: string) => extras.change(goalKey, x => setGoalVision(x, goalKey, vision, now()), message);
   async function pickPhoto(file: File | undefined) {
@@ -76,7 +82,7 @@ function AreaAndVision({goalKey, name, extras}: {goalKey: string; name: string; 
       <VisionArt vision={extra?.vision} name={name} className="vision-preview" />
       <fieldset disabled={!extras.writable || busy}><legend>Vision</legend>
         <div className="gradient-swatches">{GRADIENTS.map(g => <button key={g} type="button" className="gradient-swatch" style={{background: GRADIENT_CSS[g]}} aria-pressed={extra?.vision?.kind !== 'photo' && extra?.vision?.gradient === g} aria-label={`The ${g} gradient`} onClick={() => setVision({kind: 'gradient', gradient: g, ...(extra?.vision && extra.vision.kind !== 'photo' && extra.vision.emoji ? {emoji: extra.vision.emoji} : {})}, 'Vision saved.')} />)}</div>
-        <label className="field vision-emoji-field"><span>An emoji on it (optional)</span><input defaultValue={extra?.vision && extra.vision.kind !== 'photo' ? extra.vision.emoji ?? '' : ''} maxLength={8} onBlur={e => { const emoji = e.target.value.trim(); const gradient = extra?.vision && extra.vision.kind !== 'photo' ? extra.vision.gradient ?? 'nebula' : 'nebula'; if ((extra?.vision?.kind !== 'photo' ? extra?.vision?.emoji ?? '' : '') !== emoji) setVision(emoji ? {kind: 'gradient', gradient, emoji} : {kind: 'gradient', gradient}, 'Vision saved.'); }} /></label>
+        <label className="field vision-emoji-field"><span>An emoji on it (optional)</span><input {...emojiErrors.field('emoji')} defaultValue={extra?.vision && extra.vision.kind !== 'photo' ? extra.vision.emoji ?? '' : ''} maxLength={16} onBlur={e => { const emoji = e.target.value.trim(); const issue = visionEmojiIssue(emoji); emojiErrors.set('emoji', issue); if (issue) return; const gradient = extra?.vision && extra.vision.kind !== 'photo' ? extra.vision.gradient ?? 'nebula' : 'nebula'; if ((extra?.vision?.kind !== 'photo' ? extra?.vision?.emoji ?? '' : '') !== emoji) setVision(emoji ? {kind: 'gradient', gradient, emoji} : {kind: 'gradient', gradient}, 'Vision saved.'); }} /></label><FieldError {...emojiErrors.message('emoji')} alert />
         <label className="secondary vision-photo-button"><input type="file" accept="image/*" className="sr-only" onChange={e => { void pickPhoto(e.target.files?.[0]); e.target.value = ''; }} />{busy ? 'Keeping your photo…' : 'Use a photo'}</label>
         <p className="fine">A photo is made smaller on this device and kept here only; it is never uploaded or synced.</p>
         {extra?.vision && <button type="button" className="text-link" onClick={() => setVision(null, 'Vision removed.')}>Remove the vision</button>}

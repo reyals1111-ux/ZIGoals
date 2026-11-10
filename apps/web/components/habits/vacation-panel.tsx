@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { habitTargetPeriod, latestHabitRule, upcomingVacation, type HabitData, type TimeAwayKind, type VacationRun } from "../../lib/habits";
+import { habitTargetPeriod, latestHabitRule, setVacation, upcomingVacation, type HabitData, type TimeAwayKind, type VacationRun } from "../../lib/habits";
 /** Session AI (B3): the kinds of time away, in the panel's words. */
 const AWAY: Record<TimeAwayKind, { label: string; days: string; marked: string }> = { vacation: { label: "Vacation", days: "Vacation days", marked: "Vacation" }, sick: { label: "Sick days", days: "Sick days", marked: "Sick days" }, rest: { label: "Rest days", days: "Rest days", marked: "Rest days" } };
 import { addLocalDays } from "../../lib/local-date";
@@ -35,7 +35,10 @@ export function VacationPanel({ data, today, onMark, onClear, onClose }: { data:
     // Session X P2.1: a habit counted per week or month gets no skip days (its count spans the period), so the message
     // names only the habits that got them, and says what happened to the others.
     const periodic = ids.filter((id) => { const habit = active.find((h) => h.id === id); return !!habit && habitTargetPeriod(latestHabitRule(habit)) !== "day"; }).length, daily = ids.length - periodic, days = dayCount(from, to);
-    try { await onMark({ from, to, habitIds: ids, kind }); setMarked({ from, to, habitIds: ids, kind }); setMessage(`${daily ? `${AWAY[kind].marked} marked for ${daily} ${daily === 1 ? "habit" : "habits"}, ${days} ${days === 1 ? "day" : "days"}.` : "No days were marked."}${periodic ? ` ${periodic} ${periodic === 1 ? "habit counts" : "habits count"} per week or month and ${periodic === 1 ? "keeps its" : "keep their"} own count; skip days don't apply to ${periodic === 1 ? "it" : "them"}.` : ""}`); }
+    // Session AL (P-NB-66; NB-067, BUG-024): the days actually set aside (a day already checked in keeps its check-in), not only the range.
+    let set = -1; try { const skips = (d: HabitData) => d.habits.reduce((n, h) => n + h.entries.filter(e => e.disposition === "skipped").length, 0); set = skips(setVacation(data, { from, to, habitIds: ids, kind })) - skips(data); } catch { set = -1; }
+    const actual = set >= 0 && daily ? ` ${set} habit ${set === 1 ? "day was" : "days were"} set aside${set < daily * days ? "; days you had already checked in or skipped kept what you wrote" : ""}.` : "";
+    try { await onMark({ from, to, habitIds: ids, kind }); setMarked({ from, to, habitIds: ids, kind }); setMessage(`${daily ? `${AWAY[kind].marked} marked for ${daily} ${daily === 1 ? "habit" : "habits"}, ${days} ${days === 1 ? "day" : "days"}.${actual}` : "No days were marked."}${periodic ? ` ${periodic} ${periodic === 1 ? "habit counts" : "habits count"} per week or month and ${periodic === 1 ? "keeps its" : "keep their"} own count; skip days don't apply to ${periodic === 1 ? "it" : "them"}.` : ""}`); }
     catch (e) { const text = storageMessageOr(e, "The vacation days were not saved. Choose days from today up to a year ahead."); setError(text); if (/Choose days/.test(text)) fields.fail(text, "from", "to"); } finally { setBusy(false); }
   }
   // Session Y Part 8: vacation days marked earlier can be cleared later, stretch by stretch, from today on.
@@ -52,7 +55,7 @@ export function VacationPanel({ data, today, onMark, onClear, onClose }: { data:
     <div className="habit-section-heading"><div><p className="eyebrow">Time away</p><h2 id="habit-vacation-title" tabIndex={-1}>Vacation days</h2></div></div>
     <form onSubmit={mark}><fieldset disabled={busy} className="habit-form-fields">
       <div className="habit-form-grid"><label className="field">From<input {...fields.field("from")} type="date" required min={today} max={max} value={from} onChange={(event) => setFrom(event.target.value)} /></label><label className="field">To<input {...fields.field("to")} type="date" required min={from || today} max={max} value={to} onChange={(event) => setTo(event.target.value)} /></label></div>
-      <fieldset className="habit-vacation-kind"><legend>Kind of time away</legend>{(Object.keys(AWAY) as TimeAwayKind[]).map((k) => <label key={k}><input type="radio" name="time-away" checked={kind === k} onChange={() => setKind(k)} /> {AWAY[k].label}</label>)}</fieldset>
+      <fieldset className="habit-vacation-kind"><legend>Kind of time away</legend>{(Object.keys(AWAY) as TimeAwayKind[]).map((k) => <label key={k} className="habit-vacation-kind-option"><input type="radio" name="time-away" checked={kind === k} onChange={() => setKind(k)} /><span>{AWAY[k].label}</span></label>)}</fieldset>
       <fieldset className="habit-vacation-habits"><legend>Habits</legend>{active.length ? active.map((habit) => <label key={habit.id}><input type="checkbox" checked={chosen.has(habit.id)} onChange={(event) => { const next = new Set(chosen); if (event.target.checked) next.add(habit.id); else next.delete(habit.id); setChosen(next); }} /><span>{habit.title}</span></label>) : <p className="fine">No active habits yet.</p>}</fieldset>
       <p className="fine">Scheduled days in this range are marked as skipped. Streaks don’t break on skipped days, and reminders stay quiet on them. Any day you already wrote on (a check-in, your own skip, a note) is kept, and clearing gives every day back as it was.</p>
       <div className="actions"><button className="primary" type="submit" disabled={!ids.length}>{busy ? "Saving…" : kind === "vacation" ? "Mark vacation" : `Mark ${AWAY[kind].days.toLowerCase()}`}</button><button className="secondary" type="button" onClick={onClose}>{marked ? "Done" : "Cancel"}</button></div>

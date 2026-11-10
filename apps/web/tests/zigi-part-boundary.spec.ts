@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Phase 2 (P2.8, X-Cloud's H9): a part of ZIGi whose code loads on demand fails as that part alone. The
@@ -56,9 +57,12 @@ test("the chat cannot load: ZIGi's button stays, a note says the chat could not 
   // ("… due to access control checks", S64's class). The page settles first, so nothing is in flight at the move.
   await page.waitForLoadState('networkidle');
   await page.goto('/app/habits');
-  const launcher = page.locator('.ai-launcher-button');
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi opens from "Apps & extras" and that button stays after the
+  // failure (was: ZIGi's floating launcher at every width). On a computer, as before.
+  const compact = page.viewportSize()!.width < 901;
+  const launcher = compact ? page.getByTestId('apps-extras-button') : page.locator('.ai-launcher-button');
   await expect(launcher).toBeVisible();
-  await launcher.click();
+  if (compact) await pressZigi(page); else await launcher.click();
   await expect(page.locator('.ai-launcher-toast')).toContainText("ZIGi's chat could not be opened. Reload the page to try again.");
   await expect(launcher).toBeVisible();
   await expect(page.locator('main')).toBeVisible();

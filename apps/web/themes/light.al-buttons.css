@@ -1,0 +1,9 @@
+/* Session AL third pass (P-TK-40, TK-6B-09; WCAG 1.4.11): by day a secondary button's edge was #c1cbdc on the near-white
+   page (1.5:1), so "Hide amounts", "← Wealth" or a wallet's Rename read as loose words. Its edge takes a neutral slate,
+   #717d94: 3.1:1 or more on white, the day's ground, its own fill and the lavender hero (a neutral border colour, allowed
+   by the parity rule H75/H109). Outside the night islands only (the same list as the generated sheet's @scope); an
+   element's own deliberate edge (a more specific rule) still wins, and a disabled button keeps its paler edge. Ghost
+   ("quiet") buttons have no edge in any theme: their words name them (4.5:1 or more), as in Nebula. */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+  .secondary:not(:disabled):not(#\-) { border-color: #717d94; }
+}

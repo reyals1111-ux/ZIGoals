@@ -6,7 +6,8 @@ import {LoadBoundary} from '../load-boundary';
 /**
  * Search (Session AA-Cloud Part 4, S1): a magnifier in the header of every page and the "/" key (when the person is
  * not typing) open one palette over goals, habits, foods and recipes, assets, pages, settings, Help's answers and the
- * goal templates, all on this device. ⌘K stays ZIGi's. The palette loads when it first opens (weights), so the shell
+ * goal templates, all on this device. ⌘/Ctrl+K is the command menu's (components/command-palette/, Session AL Q11),
+ * never Search's. The palette loads when it first opens (weights), so the shell
  * carries only this button and its key.
  */
 const SearchPalette = lazy(() => import('./search-palette'));

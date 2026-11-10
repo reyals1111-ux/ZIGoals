@@ -51,7 +51,8 @@ test('one class map: the ETF reads ETFs everywhere it is classed, with one share
   // The chart's legend classes the ETF the same way, in the same colour as the composition's.
   await expect(page.locator('.wealth-history-legend').first()).toContainText('ETFs');
   // Each total says what it counts and its date.
-  await expect(page.locator('.wealth-hero-total .wealth-total-scope')).toHaveText(/^Your valued holdings on .+2026\. Net worth, in Accounts, debts & net worth, adds accounts and takes off debts\.$/); // Session AH (WE10): never "below", which a phone folds away
+  await expect(page.locator('.wealth-hero-total .wealth-total-scope')).toHaveText(/^Your holdings, valued on .+2026\. Net worth adds your accounts and subtracts your debts \(see Accounts, debts & net worth\)\.$/); // Session AH (WE10): never "below", which a phone folds away
+  // Session AL (COPY_AUDIT, deliberate): DV-251 — the old second sentence read as a spliced fragment; same meaning, plain words.
   await expect(page.getByRole('article', {name: 'Net worth in USD'}).locator('.accounts-worth-scope')).toHaveText(/^Accounts \+ holdings − debts, on .+2026$/);
   await expect(page.locator('.wealth-history-readout').first()).toContainText(/Recorded total on .+ · the latest record/);
 });

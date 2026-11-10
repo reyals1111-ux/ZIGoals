@@ -1,17 +1,16 @@
 'use client';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {weightTrend} from '../../lib/health-aa/trend';
+import {trendNote, weightTrend} from '../../lib/health-aa/trend';
 import {energyEstimate} from '../../lib/health-aa/energy';
 import {energyProgress} from '../../lib/health-aa/energy-progress';
 import {coachCheckIn} from '../../lib/health-aa/coach';
 import {HEALTH_COACH} from '../../lib/health-aa/coach-schema';
-import {weightChangeText, weightText, type WeightUnit} from '../../lib/health-units';
+import {weightChangeText, weightReadingsText, type WeightUnit} from '../../lib/health-units';
 import {formatNumber} from '../../lib/visual-format';
 import type {HealthData} from '../../lib/health';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import './health-highlights.css';
 
-const tenths = (g: number) => Math.round(g / 100) * 100;
 /** The trend line as a small ink sparkline (no axis: the tile's figure and the card below carry the numbers). Session AK
  * (G3): in the one chart look's gradient (its own ids per tile, Light's ink twins); a sparkline, so no glow. */
 function TrendInk({values}: {values: number[]}) {
@@ -36,16 +35,16 @@ export default function HealthHighlights({data, today, unit}: {data: HealthData;
   const trend = weightTrend(data, today, 42), energy = energyEstimate(data, today);
   const coachRecord = useDeviceRecord(HEALTH_COACH), coach = coachCheckIn(data, coachRecord.loaded && !coachRecord.unreadable ? coachRecord.data : {version: 1}, today, unit);
   const ink = trend.points.flatMap(p => p.trend === null ? [] : [p.trend]);
-  const rate = trend.weeklyRate === null ? null : weightChangeText(tenths(trend.weeklyRate), unit);
+  const rate = trend.weeklyRate === null ? null : weightChangeText(trend.weeklyRate, unit) /* Session AL fourth pass (PR-074): rounded once, in the shown unit, as the coach does (−0.6 lb, not −0.7 lb from 0.3 kg) */;
   return <section className="health-highlights" aria-label="Health highlights">
     <ul role="list">
       <li><a className="health-hl-tile" data-tone="trend" href="#health-weight-trend">
         <span className="health-hl-label">Weight trend</span>
         {trend.latestTrend === null ? <><strong className="health-hl-figure is-quiet">No trend yet</strong><span className="health-hl-note">Two or three readings a week draw the line.</span></>
-          : <><strong className="health-hl-figure">{weightText(tenths(trend.latestTrend), unit)}</strong><span className="health-hl-note">{rate ? `${rate} a week` : 'smoothed, six weeks'} · an estimate</span><TrendInk values={ink}/></>}
+          : <><strong className="health-hl-figure">{weightReadingsText(trend.latestTrend, trend.points.flatMap(p => p.grams === null ? [] : [p.grams]), unit) /* fifth pass (N-MO-14): at the readings' precision */}</strong><span className="health-hl-note">{trendNote(data.weights.filter(w => w.date <= today).length, rate) /* RR-6 */}</span><TrendInk values={ink}/></>}
       </a></li>
       <li><a className="health-hl-tile" data-tone="energy" href="#health-energy">
-        <span className="health-hl-label">Energy estimate</span>
+        <span className="health-hl-label">Maintenance estimate</span>
         {energy.ready && energy.expenditure !== null ? <><strong className="health-hl-figure">{formatNumber(energy.expenditure)} <small>kcal a day</small></strong><span className="health-hl-note">about {formatNumber(energy.low ?? 0)}–{formatNumber(energy.high ?? 0)} · an estimate</span></>
           : /* Session AK RB (R2-14): the input still missing, by name ("3 more weigh-ins to go"), never "28 of 14 days". */
             ((p) => <><strong className="health-hl-figure is-quiet">{p.figure}</strong><span className="health-hl-note">{p.note}</span><span className="health-hl-bar" aria-hidden="true"><i style={{width: `${Math.round(p.share * 100)}%`}}/></span></>)(energyProgress(energy))}

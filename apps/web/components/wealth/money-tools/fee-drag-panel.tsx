@@ -5,13 +5,14 @@ import {money} from './format';
 import {useChartWidth} from '../../charts/use-chart-width';
 import {ChartLookDefs, useChartLook} from '../../charts/chart-defs';
 import './money-tools.css';
+import {parseNumberInput} from '../../../lib/numbers/parse';
 
 /**
  * Session AK (lane M, item 18): the fee drag calculator beside the compound interest calculator. One amount, the same
  * yearly return, two yearly fees (expense ratios): the two balances as two lines and the difference at the end. An
  * illustration from the person's own numbers; nothing is stored and nothing is advice. Lazy-loaded on the calculator page.
  */
-const num = (raw: string) => raw.trim() === '' ? Number.NaN : Number(raw.trim().replace(/\s/g, '').replace(',', '.'));
+const num = (raw: string) => { const r = parseNumberInput(raw, {allowNegative: true}); return r.ok ? r.value : Number.NaN; }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
 // Session AK (G3): drawn at its measured width (FeeChart) in the one chart look.
 const H = 160, PAD = 8;
 export default function FeeDragPanel() {

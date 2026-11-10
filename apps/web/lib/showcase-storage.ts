@@ -67,6 +67,26 @@ export function undoShowcaseReset(session:Storage):boolean{
  for(const key of keys().filter(k=>k.startsWith(fresh)))try{session.removeItem(key);}catch{/* the restored generation is selected */}
  return true;
 }
+/**
+ * Security review Z1B-9: the photos kept under the Showcase's scope (notes, meals, progress, money) belong to the
+ * Showcase, not to the person: they are deleted when a Showcase starts (load or reset) and when it ends. Only the
+ * `showcase` scope, never an account's or the local person's. Best effort: a store that cannot open is left as it is.
+ * (The photo modules load only here, and only where the browser has IndexedDB; vision photos are never kept for it.)
+ */
+export const SHOWCASE_PHOTO_SCOPE='showcase';
+export async function clearShowcasePhotos(waitMs=1500):Promise<void>{
+ if(typeof indexedDB==='undefined')return;
+ // (Never holds a page back: a store that does not answer in time is left to finish on its own.)
+ let timer:ReturnType<typeof setTimeout>|undefined;
+ const wait=new Promise<void>(resolve=>{timer=setTimeout(resolve,waitMs);});
+ const work=Promise.allSettled([
+  import('./notes/photos').then(m=>m.deleteAllNotePhotos(SHOWCASE_PHOTO_SCOPE)),
+  import('./health-aa/photos').then(m=>m.deleteAllPhotoBlobs(SHOWCASE_PHOTO_SCOPE)),
+  import('./meal-estimates/photos').then(m=>m.deleteAllMealPhotos(SHOWCASE_PHOTO_SCOPE)),
+  import('./money-photos/store').then(m=>m.deleteMoneyPhotos(SHOWCASE_PHOTO_SCOPE)),
+ ]).then(()=>undefined);
+ await Promise.race([work,wait]);clearTimeout(timer);
+}
 export function activateShowcase(session:Storage,day:string,records:Readonly<Record<string,string>>,generation=crypto.randomUUID(),keep?:string):void{
  if(!/^[-a-zA-Z0-9]{1,80}$/.test(generation))throw Error('Invalid showcase generation.');
  const prefix=`${PREFIX}${generation}:`;if(Array.from({length:session.length},(_,i)=>session.key(i)).some(k=>k?.startsWith(prefix)))throw Error('Showcase generation already exists.');
@@ -77,5 +97,6 @@ export function activateShowcase(session:Storage,day:string,records:Readonly<Rec
  const kept=keep?`${PREFIX}${keep}:`:null;if(!kept)session.removeItem(SHOWCASE_UNDO);
  const obsolete=Array.from({length:session.length},(_,i)=>session.key(i)!).filter(k=>k.startsWith(PREFIX)&&!k.startsWith(prefix)&&!(kept&&k.startsWith(kept)));
  for(const key of obsolete)try{session.removeItem(key);}catch{/* The newly committed generation remains complete. */}
+ void clearShowcasePhotos(); // (Z1B-9; Settings awaits it again before it navigates: components/showcase-controls.tsx.)
 }
-export function exitShowcase(session=window.sessionStorage):void{session.removeItem(SHOWCASE_MARKER);session.removeItem(SHOWCASE_UNDO);}
+export function exitShowcase(session=window.sessionStorage):void{session.removeItem(SHOWCASE_MARKER);session.removeItem(SHOWCASE_UNDO);void clearShowcasePhotos();}

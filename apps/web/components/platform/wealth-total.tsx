@@ -3,8 +3,10 @@ import {useEffect, useRef, useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {NumberTicker} from '../motion/number-ticker';
 import {formatSignedGoalAmount} from '../../lib/goal-summary';
+import {displayLocale} from '../../lib/visual-format';
 import {amount} from './common';
-import {splitWealthTotals,type CurrencyTotal} from '../../lib/wealth-total';
+import {heroNetWorth,splitWealthTotals,type CurrencyTotal,type WorthRow} from '../../lib/wealth-total';
+import {moneyText} from '../../lib/accounts/net-worth';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {baseCurrencyOf} from '../../lib/ui-prefs/schema';
 import {useDefaultCurrency} from '../../lib/default-currency';
@@ -52,4 +54,26 @@ export function SplitMoney({subtotals,id,lead}:{subtotals:readonly CurrencyTotal
  const {primary,others}=splitWealthTotals(subtotals,lead);
  if(!primary)return <span>—</span>;
  return <><span className="split-figure" style={{'--chars':money(primary.value,primary.currency).length} as import('react').CSSProperties}>{money(primary.value,primary.currency)}</span><OtherCurrencyChip others={others} id={id}/></>;
+}
+/** A signed money amount from the accounts' exact Money (any decimals), in Wealth's style. */
+const worthMoney=(m:{value:bigint;decimals:number},currency:string)=>{const t=moneyText(m),negative=t.startsWith('-');return formatSignedGoalAmount(negative,negative?t.slice(1):t,currency);};
+/** Session AL (TK-127, fourth pass): a billion or more reads short in the net-worth line ("−€1T"), never 16 digits across the
+ * card; the exact amount is its accessible name and tooltip, and stays exact in the accounts list and every record. */
+export function shortWorth(m:{value:bigint;decimals:number},currency:string):string|null{
+ const t=moneyText(m),n=Number(t);if(!Number.isFinite(n)||Math.abs(n)<1e9)return null;
+ try{return new Intl.NumberFormat(displayLocale(),{style:'currency',currency,notation:'compact',maximumFractionDigits:2,signDisplay:'auto'}).format(n).replace('-','−');}catch{return null;}
+}
+/**
+ * Session AL (TK-039, TK-132, TK-007, W1): under the holdings headline, the net worth after debts (accounts + holdings −
+ * debts, per currency) as soon as an account or a debt is tracked, and a plain warning when debts are larger than what is
+ * owned in that currency. The headline itself keeps its meaning (holdings), and says so.
+ */
+export function HeroNetWorth({rows}:{rows:readonly WorthRow[]}){
+ const lines=heroNetWorth(rows);
+ if(!lines.length)return null;
+ const over=lines.filter(l=>l.debtsExceed);
+ return <div className="wealth-hero-networth" role="group" aria-label="Net worth after debts">
+  <p><span>Net worth after debts</span>{lines.map((l,i)=>{const exact=worthMoney(l.net,l.currency),short=shortWorth(l.net,l.currency);return <b key={l.currency} data-negative={l.net.value<0n||undefined}>{i>0?' · ':''}{short?<><span title={exact} aria-hidden="true">{short}</span><span className="sr-only">{exact}</span></>:exact}</b>;})}</p>
+  {over.length>0&&<p className="wealth-hero-debt-warning" role="note">Your debts are larger than what you own in {over.map(l=>l.currency).join(' and ')} ({over.map(l=>`${worthMoney(l.debts,l.currency)} owed`).join(', ')}). The total above counts holdings only.</p>}
+ </div>;
 }

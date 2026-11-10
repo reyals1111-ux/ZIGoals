@@ -1,15 +1,17 @@
 import {createHabit, habitDataSchema, habitInputSchema, type HabitData, type HabitInput} from '../habits';
 
 /**
- * H5: four routine templates (morning, evening, workout, focus). Each is a chain of habits created through the journal's
+ * H5: routine templates (morning, evening, workout, focus; Session AL: study and a weekly reset). Each is a chain of habits created through the journal's
  * own `createHabit` with "stack after" links, so a template is exactly what a person could build by hand in the editor.
  * Nothing is created until the person taps the template; an existing active habit with the same title is reused as a
  * step instead of being created twice.
  */
 export type RoutineTemplateStep = {title: string; category: string; minutes?: number; timeOfDay: HabitInput['timeOfDay']; description: string;
   /** Session AH (HA4, L-083): other titles a person may already use for this step ("Drink water" for "Glass of water"). */
-  aliases?: readonly string[]};
-export type RoutineTemplate = {id: 'morning' | 'evening' | 'workout' | 'focus'; title: string; blurb: string; steps: RoutineTemplateStep[]};
+  aliases?: readonly string[];
+  /** Session AL: a step done once a week (any day), not every day. */
+  weekly?: true};
+export type RoutineTemplate = {id: 'morning' | 'evening' | 'workout' | 'focus' | 'study' | 'reset'; title: string; blurb: string; steps: RoutineTemplateStep[]};
 export const ROUTINE_TEMPLATES: readonly RoutineTemplate[] = [
   {id: 'morning', title: 'Morning routine', blurb: 'A calm start: water, a stretch, a few quiet minutes and one line of intention.', steps: [
     {title: 'Glass of water', category: 'Wellbeing', timeOfDay: 'morning', description: 'One glass before anything else.', aliases: ['Drink water', 'Water', 'Drink a glass of water', 'Hydrate']},
@@ -29,9 +31,18 @@ export const ROUTINE_TEMPLATES: readonly RoutineTemplate[] = [
     {title: 'Clear the desk', category: 'Learning', timeOfDay: 'anytime', description: 'Only what the task needs.'},
     {title: 'Deep work', category: 'Learning', minutes: 50, timeOfDay: 'anytime', description: 'One block, no interruptions.'},
     {title: 'Short walk', category: 'Wellbeing', minutes: 10, timeOfDay: 'anytime', description: 'Ten minutes outside.'}]},
+  // Session AL (GAP-095, P-DVG-31, P-NB-C17): two more starter packs, built the same way (habits with "stack after").
+  {id: 'study', title: 'Study routine', blurb: 'One clear goal, a focused session, a quick look back.', steps: [
+    {title: 'Set a study goal', category: 'Learning', timeOfDay: 'anytime', description: 'One sentence: what you will learn now.'},
+    {title: 'Study session', category: 'Learning', minutes: 25, timeOfDay: 'anytime', description: 'Twenty-five minutes, phone away.', aliases: ['Study', 'Studying']},
+    {title: 'Review notes', category: 'Learning', minutes: 5, timeOfDay: 'anytime', description: 'Five minutes on what stuck.'}]},
+  {id: 'reset', title: 'Weekly reset', blurb: 'Once a week, any day: look back, plan ahead, tidy the space.', steps: [
+    {title: 'Look back on the week', category: 'Wellbeing', minutes: 10, weekly: true, timeOfDay: 'anytime', description: 'What went well, what to change.', aliases: ['Weekly review', 'Review my week']},
+    {title: 'Plan the week', category: 'Learning', minutes: 10, weekly: true, timeOfDay: 'anytime', description: 'The three things that matter most.'},
+    {title: 'Reset the space', category: 'Home', minutes: 15, weekly: true, timeOfDay: 'anytime', description: 'Laundry, desk, fridge: a fresh start.'}]},
 ];
 export function templateInput(step: RoutineTemplateStep, stackAfterId?: string): HabitInput {
-  return habitInputSchema.parse({title: step.title, category: step.category, description: step.description, notes: '', type: 'build', schedule: {kind: 'daily'}, target: step.minutes ?? 1, targetPeriod: 'day',
+  return habitInputSchema.parse({title: step.title, category: step.category, description: step.description, notes: '', type: 'build', schedule: step.weekly ? {kind: 'frequency', times: 1, period: 'week'} : {kind: 'daily'}, target: step.minutes ?? 1, targetPeriod: 'day',
     measurement: step.minutes ? {kind: 'duration', unit: 'minutes'} : {kind: 'boolean'}, timeOfDay: step.timeOfDay, endCondition: {kind: 'none'}, ...(stackAfterId ? {stackAfterId} : {})});
 }
 const sameTitle = (title: string) => title.trim().replace(/\s+/g, ' ').toLowerCase();

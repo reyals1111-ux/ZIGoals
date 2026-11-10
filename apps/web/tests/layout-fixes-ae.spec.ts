@@ -59,7 +59,10 @@ for (const demo of ['Showcase', 'a new device'] as const)
         scrollTo(0, 0);
         return {launchers: launchers.length, cards: cards.length, hits: [...hits]};
       });
-      expect(found.launchers, `${width}: the floating buttons are measured`).toBeGreaterThanOrEqual(demo === 'Showcase' ? 4 : 2);
+      // Session AL (owner decision O3, deliberate): at 900 px nothing floats (the tablet rail's "Apps & extras" holds ZIGi and
+      // Music), so no button is there to cover a word; was: the floating buttons measured at 900 px too.
+      if (width < 901) { expect(found.launchers, `${width}: no floating button below 901 px`).toBe(0); await expect(page.getByTestId('apps-extras-button')).toBeVisible(); }
+      else expect(found.launchers, `${width}: the floating buttons are measured`).toBeGreaterThanOrEqual(demo === 'Showcase' ? 4 : 2);
       expect(found.cards, `${width}: the rail holds its cards`).toBeGreaterThanOrEqual(3);
       expect(found.hits, `${width}: words under a floating button`).toEqual([]);
     }

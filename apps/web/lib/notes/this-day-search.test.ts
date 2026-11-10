@@ -18,7 +18,7 @@ describe('"This day" strip (B2): links to that day’s records, never copies; un
   let habits = createHabit(emptyHabitData(), {title: 'Read', category: 'Learning', description: '', notes: '', schedule: {kind: 'daily'}, target: 1, measurement: {kind: 'count', unit: 'times'}}, now, READ);
   habits = createHabit(habits, {title: 'Walk', category: 'Wellbeing', description: '', notes: '', schedule: {kind: 'daily'}, target: 1, measurement: {kind: 'count', unit: 'times'}}, now, '92000000-0000-4000-8000-000000000002');
   habits = logHabitValue(habits, READ, DAY, 1, {}, new Date(`${DAY}T20:00:00Z`));
-  const health = {diary: [{date: DAY}, {date: DAY}, {date: TODAY}], weights: [{date: DAY}], activity: [], daily: {water: [{date: DAY}]}} as unknown as HealthData;
+  const health = {diary: [{date: DAY}, {date: DAY}, {date: TODAY}], weights: [{date: DAY}], activity: [], daily: {water: [{date: DAY, amountMilli: 250000, unit: 'ml'}]}} as unknown as HealthData;
   const workouts = {workouts: [{id: 'w1', name: 'Leg day', date: DAY, startedAt: `${DAY}T07:00:00Z`, endedAt: `${DAY}T08:00:00Z`}, {id: 'w2', name: 'Unfinished', date: DAY, startedAt: `${DAY}T09:00:00Z`}]} as unknown as Workouts;
   const money = {entries: [{id: 'm1', kind: 'expense', amount: '12.50', category: 'Groceries', date: DAY}, {id: 'm2', kind: 'income', amount: '900', category: 'Salary', date: DAY}]} as unknown as MoneyLog;
   const platform = {goals: [{id: '9203', name: 'Japan adventure'}], contributions: [{goalId: '9203', direction: 'IN', occurredAt: `${DAY}T12:00:00Z`}, {goalId: '9203', direction: 'IN', occurredAt: `${DAY}T13:00:00Z`}, {goalId: '9203', direction: 'OUT', occurredAt: `${DAY}T14:00:00Z`}]} as unknown as Platform;
@@ -28,7 +28,8 @@ describe('"This day" strip (B2): links to that day’s records, never copies; un
     expect(items.map(i => [i.pillar, i.title, i.detail, i.href])).toEqual([
       ['habits', 'Read', 'Done', `/app/habits#habit-${READ}`],
       ['health', 'Food diary', '2 items logged', `/app/health?date=${DAY}`],
-      ['health', 'Water', '1 drink logged', `/app/health?date=${DAY}`],
+      // Session AL (COPY_AUDIT, deliberate; DV-191c): water in millilitres, the one water vocabulary.
+      ['health', 'Water', '250 mL logged', `/app/health?date=${DAY}`],
       ['health', 'Weight', 'Logged', `/app/health?date=${DAY}`],
       ['health', 'Leg day', 'Workout', '/app/health?view=workouts'],
       ['wealth', 'Money log', '1 spending entry · 1 income entry', '/app/wealth#spending'],

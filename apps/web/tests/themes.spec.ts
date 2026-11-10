@@ -24,7 +24,8 @@ test('Nebula is the default: no theme attribute, no theme sheet, the middle choi
   await expect(group.getByRole('radio')).toHaveText([/Light/, /Nebula/, /Dark/]);
   await expect(group.getByRole('radio', {name: 'Nebula theme'})).toHaveAttribute('aria-checked', 'true');
   await expect(group.getByRole('radio', {name: 'Nebula theme'})).toHaveAttribute('title', 'Nebula'); // Session AH (SE9)
-  await expect(page.locator('#appearance')).toContainText('Nebula is the look you know. Light and Dark are the same app by day and by night.');
+  // Session AL (COPY_AUDIT, deliberate): N-DV-12 — Nebula's line no longer assumes a returning visitor.
+  await expect(page.locator('#appearance')).toContainText('Nebula is ZIGoals’ own night-sky look. Light and Dark are the same app by day and by night.');
   await expect(page.locator('#appearance')).not.toContainText('coming later');
   // Session AE: final themes. Each is named plainly, and nothing in the bar, its tips or its note says "preview".
   for (const name of ['Light theme', 'Dark theme']) await expect(group.getByRole('radio', {name, exact: true})).toHaveCount(1);

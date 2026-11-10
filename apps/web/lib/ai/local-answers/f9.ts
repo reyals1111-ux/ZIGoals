@@ -87,7 +87,8 @@ function agendaAnswer(q: string, env: ToolEnv): LocalReply {
     const items = d.items.slice(0, 24 - shown); shown += items.length;
     lines.push(`${days === 1 ? '' : `${formatDate(d.date)}: `}${items.map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(i.title, 80)}${i.state === 'done' ? ' (done)' : i.state === 'skipped' ? ' (skipped)' : ''}`).join(', ')}`);
   }
-  if (!total) return {kind: 'answer', text: `Nothing is planned ${words} in your records. The agenda gathers habits, planned contributions, bills, meals and reviews.${fence({kind: 'open-agenda', view: days === 1 ? 'day' : 'week'})}`, calls};
+  // Session AL sweep 4 (PINS-AI): the agenda lists tasks too (f9-tools.ts agendaDays), so the empty line names them.
+  if (!total) return {kind: 'answer', text: `Nothing is planned ${words} in your records. The agenda gathers habits, tasks, planned contributions, bills, meals and reviews.${fence({kind: 'open-agenda', view: days === 1 ? 'day' : 'week'})}`, calls};
   return {kind: 'answer', text: [`On your agenda ${words}${total > shown ? ` (the first ${shown} of ${total})` : ''}:`, ...lines.map(l => `• ${l}`), 'No amounts here; each item opens where it lives on the agenda.'].join('\n') + fence({kind: 'open-agenda', view: days === 1 ? 'day' : 'week'}), calls};
 }
 

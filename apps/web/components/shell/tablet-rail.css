@@ -22,11 +22,17 @@
   :root .app-sidebar .app-nav:not(#\-) { display: flex; flex-direction: column; gap: 2px; flex: 1 0 auto; width: 100%; margin: 0; }
   :root .app-sidebar .app-nav a:not(#\-) {
     flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-    min-height: 56px; padding: 6px 2px; font-size: 12px; line-height: 1.15; text-align: center; overflow-wrap: anywhere;
+    min-height: 56px; padding: 6px 0; font-size: 12px; line-height: 1.15; text-align: center; overflow-wrap: anywhere;
   }
+  /* Session AL (BN-123 #5, P-BN-46): the label has the link's whole width (76 px), so "Governance" and "Ecosystem" stay one
+     word on one line instead of breaking after "Governanc". */
+  :root .app-sidebar .app-nav a > span:not(#\-) { max-width: 100%; letter-spacing: -.005em; }
   :root .app-sidebar .app-nav a[data-group-start]:not(:first-child):not(#\-) { margin-top: 10px; }
   /* Settings and Help at the rail's foot (when the rail is taller than its links). */
   :root .app-sidebar .app-nav a[href="/app/settings"]:not(#\-) { margin-top: auto; }
+  /* CI fix (page-marks): when the links fill the rail (the Showcase's Journey makes twenty) the auto margin is 0, so the
+     link before Settings keeps a group's gap below it: Settings and Help stay apart from the rest. */
+  :root .app-sidebar .app-nav a:has(+ a[href="/app/settings"]):not(#\-) { margin-bottom: 10px; }
   :root .app-sidebar :is(.product-descriptor, .sidebar-search, .sidebar-destination, .theme-switch-slot, .sidebar-star):not(#\-) { display: none; }
   :root .app-content:not(#\-) { margin-left: var(--rail-w); }
   :root .phone-tabbar:not(#\-) { display: none; }

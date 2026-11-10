@@ -4,6 +4,7 @@ import {gatesFor, showcaseSources} from '../tools/fixtures';
 import {parseReply} from '../actions/parse';
 import {localAnswer} from './engine';
 import {EXAMPLES_INTRO} from './examples';
+import {UNMATCHED_EN} from './al-fifth';
 import {EXAMPLES_INTRO_NL, howToReply, noModelReply, questionLanguage} from './no-model';
 
 // Session AB-Cloud Part 9 (ADR-023 C30): what ZIGi says with no model after the device's own answers had none.
@@ -19,7 +20,10 @@ test('a Dutch question gets its introduction in Dutch; the examples stay the Eng
     expect('examples' in r ? r.examples.length : 0, q).toBeGreaterThan(0);
     for (const example of 'examples' in r ? r.examples : []) expect(localAnswer(example, env()).kind, example).not.toBe('none');
   }
-  for (const q of ['Tell me a joke', 'What should I do today?', 'Is de app klaar?']) expect(noModelReply(q, env())).toMatchObject({kind: 'examples', text: EXAMPLES_INTRO});
+  // Session AL fifth pass (L7-5b; Lisbon N-LA-01, deliberate): an ask nothing matched that is not read as Dutch ("Is de app
+  // klaar?" has one Dutch word) leads with what the device does (UNMATCHED_EN), then the same introduction; a whole Dutch
+  // question keeps the Dutch introduction alone (pinned above).
+  for (const q of ['Tell me a joke', 'What should I do today?', 'Is de app klaar?']) expect(noModelReply(q, env())).toMatchObject({kind: 'examples', text: `${UNMATCHED_EN}\n${EXAMPLES_INTRO}`});
 });
 
 test('create a food, log a meal plan and plan a goal get their steps and a button to the right page, in English or Dutch', () => {
@@ -30,7 +34,6 @@ test('create a food, log a meal plan and plan a goal get their steps and a butto
     ['Log my meal plan for tomorrow', 'Health → Planner', {page: 'health', view: 'planner'}],
     ['Plan my meals for the week', 'plan a recipe or a food', {page: 'health', view: 'planner'}],
     ['Maak een maaltijdplan voor deze week', 'Kies een dag', {page: 'health', view: 'planner'}],
-    ['Make a goal for a new bike, 900 euros', 'Goals → Create a goal', {page: 'goals', view: 'new-goal'}],
     ['Plan a savings goal for Japan', 'the plan step suggests', {page: 'goals', view: 'new-goal'}],
     ['Maak een doel voor een nieuwe fiets', 'Geef het een naam', {page: 'goals', view: 'new-goal'}],
   ];
@@ -42,6 +45,15 @@ test('create a food, log a meal plan and plan a goal get their steps and a butto
     const parsed = parseReply(textOf(r));
     expect(parsed.proposals, q).toEqual([{kind: 'open-page', ...page}]); expect(parsed.rejected, q).toEqual([]);
   }
+  // Session AL (N-DV-08, deliberate): a goal the words name is the Goal wizard filled in (Quick add's parser), not an empty
+  // form: the same steps, then a goal-draft card with the name, the target and the currency.
+  const bike = noModelReply('Make a goal for a new bike, 900 euros', env());
+  expect(textOf(bike)).toContain('Goals → Create a goal');
+  const drafted = parseReply(textOf(bike));
+  expect(drafted.rejected).toEqual([]);
+  expect(drafted.proposals).toHaveLength(1);
+  expect(drafted.proposals[0]).toMatchObject({kind: 'goal-draft', target: 900, currency: 'EUR'});
+  expect(String((drafted.proposals[0] as {name?: string}).name)).toMatch(/bike/i);
   // Not a how-to: "Plan my week" and a lookup keep their own paths.
   expect(howToReply('Plan my week', 'en')).toBeNull();
   expect(howToReply('How far am I on my goals?', 'en')).toBeNull();

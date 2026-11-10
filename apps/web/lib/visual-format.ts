@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js';
+import {roundHalfUp,wholePercent} from './numbers/round';
 /**
  * Display formatting for numbers, money and dates: one module, one rule (Session G, Part 3; QA-06, QA-29).
  * - Numbers and money follow the browser's locale. Each currency keeps its own code or symbol; nothing is converted.
@@ -209,3 +210,57 @@ export function formatRelativeDay(date:DateInput,now:DateInput,options:DateOptio
  if(day&&today){const apart=Math.round((Date.parse(`${day}T12:00:00Z`)-Date.parse(`${today}T12:00:00Z`))/86_400_000);if(apart===0)return 'Today';if(apart===-1)return 'Yesterday';if(apart===1)return 'Tomorrow';}
  return formatDate(date,options);
 }
+
+/**
+ * Session AL (3f): the rest of the one format layer. Pages call these instead of their own Intl.NumberFormat, toFixed or
+ * "%" by hand (docs/review/session-al/PRIMITIVES.md lists the call sites still to switch).
+ *
+ * Percentages (PR-023: a ring read 99 % where its card read 100 %). A progress share is a whole percent, half up, and
+ * 100 only when complete (lib/numbers/round.ts wholePercent): 99.6 reads "99%" everywhere. Unknown is "—", never "0%".
+ */
+export function formatProgressPercent(value:number|string|null|undefined,complete?:boolean){
+ const whole=wholePercent(value,complete);
+ return whole===null?'—':numberFormat(active,{style:'percent',maximumFractionDigits:0}).format(whole/100);
+}
+/**
+ * Any other percentage (a share of a total, a change): half up to `decimals` (0 by default), the locale's percent sign,
+ * "+" before a gain when `signed`; −0 reads 0. `value` is in percent (12.5 means 12.5 %). Unknown is "—".
+ * Session AL sweep 4 (L8f note 2): `fixed` keeps every decimal ("25.0%"), for a figure shown beside one that has them.
+ */
+export function formatPercent(value:number|null|undefined,{decimals=0,signed=false,fixed=false}:{decimals?:number;signed?:boolean;fixed?:boolean}={}){
+ if(value===null||value===undefined||!Number.isFinite(value))return '—';
+ const rounded=roundHalfUp(value,decimals);
+ return numberFormat(active,{style:'percent',minimumFractionDigits:fixed?decimals:0,maximumFractionDigits:decimals,...(signed?{signDisplay:'exceptZero' as const}:{})}).format(rounded/100);
+}
+/** A measure or count half up to at most `decimals` (1 by default), grouped: the same rounding as every other figure. */
+export function formatRounded(value:number|null|undefined,decimals=1){
+ if(value===null||value===undefined||!Number.isFinite(value))return '—';
+ return numberFormat(active,{maximumFractionDigits:decimals}).format(roundHalfUp(value,decimals));
+}
+
+/**
+ * Currency (TK-014: a made-up code was accepted and shown as money). Alpha keeps two currencies, US dollars and euros.
+ * formatCurrencyAmount writes a USD or EUR amount as money, and (Session AL, TK-199) any other real ISO 4217 code written
+ * exactly as one ("GBP") as money in that currency with its own symbol ("£500.00"), never converted; anything else is
+ * never shown as a currency: the amount and the text the person typed ("40 XYZ", "12.5 gbp" stay their words); no code,
+ * or a value that is not a decimal: "—". The code is never invented or guessed.
+ */
+export const ALPHA_CURRENCIES=['USD','EUR'] as const;
+export type AlphaCurrency=typeof ALPHA_CURRENCIES[number];
+export function isAlphaCurrency(code:string|null|undefined):code is AlphaCurrency{return code==='USD'||code==='EUR';}
+export function formatCurrencyAmount(value:string|number|null|undefined,code:string|null|undefined,locale=displayLocale()){
+ const text=typeof value==='number'?(Number.isFinite(value)?new Decimal(value).toFixed():''):String(value??'').trim();
+ if(!DECIMAL.test(text))return '—';
+ const typed=String(code??'').replace(/\s+/g,' ').trim().slice(0,12);
+ if(isAlphaCurrency(typed)||(/^[A-Z]{3}$/.test(typed)&&isMoneyCurrency(typed)))return formatMoney(text,typed,locale);
+ if(!typed)return '—';
+ const plain=new Decimal(text).toFixed();
+ return `${formatExactNumber(plain==='-0'?'0':plain,locale)} ${typed}`;
+}
+
+/**
+ * Dates: one short and one long style. The short style is the medium date ("Oct 17, 2026"; formatDate); the long style
+ * adds the weekday and the full month ("Saturday, October 17, 2026"), for a heading or a confirmation that names a day.
+ */
+export const formatDateShort=formatDate;
+export function formatDateLong(date:DateInput,{timeZone}:{timeZone?:string}={}){return written(date,{weekday:'long',day:'numeric',month:'long',year:'numeric',...zoned(timeZone)});}

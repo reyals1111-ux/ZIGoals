@@ -1,7 +1,8 @@
 'use client';
 import {useCallback, useEffect, useState} from 'react';
 import {AiError, errorSteps} from '../../lib/ai/errors';
-import {holdKey, rememberKey, SHOWCASE_SCOPE} from '../../lib/ai/keys';
+import {forgetKey, holdKey, rememberKey, SHOWCASE_SCOPE} from '../../lib/ai/keys';
+import {LIVE_PRIVACY_PROBES} from '../../lib/ai/privacy-probes';
 import {detectLocalServer, testConnection} from '../../lib/ai/models';
 import {beginOpenRouterSignIn} from '../../lib/ai/openrouter-auth';
 import {LOCAL_SERVER_DEFAULTS, normalizeLocalBaseUrl, PROVIDERS, SUBSCRIPTION_APPS, type ProviderId, type SubscriptionAppId} from '../../lib/ai/providers';
@@ -38,17 +39,24 @@ function failureOf(error: unknown, providerName: string, local?: {server: 'ollam
  * Session AK P4 (FIRST_RUN_REVIEW FR-10, FR-11): `assistant` is whose setup this is (NOVA's guide says NOVA, not ZIGi);
  * `suggest` is the guide's pick and the memory it chose, so a found local model is chosen already (lib/ai/suggest-model.ts).
  */
+/** The program the person runs, as far as its answer and port say (MO-061: never "Ollama" for LM Studio's port). */
+function serverName(server: 'ollama' | 'openai-compatible', baseUrl: string): string {
+  if (server === 'ollama') return 'Ollama';
+  const port = (() => { try { return new URL(baseUrl).port; } catch { return ''; } })();
+  return port === '1234' ? 'LM Studio (an OpenAI-compatible server)' : port === '9931' || port === '8080' ? 'llama.cpp (an OpenAI-compatible server)' : 'an OpenAI-compatible server';
+}
 export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi', suggest}: {settings: AiSettingsStore; scope: string; seed?: SetupSeed; onDone?: () => void; assistant?: string; suggest?: {prefer?: readonly string[]; maxParams?: number | null}}) {
   const showcase = scope === SHOWCASE_SCOPE, phone = usePhoneActive();
   const [path, setPath] = useState<Path | null>(seed ? 'api' : null), [provider, setProvider] = useState<ProviderId>(seed?.provider ?? 'openai'), [key, setKey] = useState(seed?.key ?? '');
   const [remember, setRemember] = useState(seed ? seed.remember : settings.installed && !showcase);
-  const [baseUrl, setBaseUrl] = useState<string>(LOCAL_SERVER_DEFAULTS.ollama), [localServer, setLocalServer] = useState<'ollama' | 'openai-compatible' | null>(null), [token, setToken] = useState('');
+  const [baseUrl, setBaseUrl] = useState<string>(() => settings.data.provider === 'local' && settings.data.baseUrl ? settings.data.baseUrl : LOCAL_SERVER_DEFAULTS.ollama), /* Session AL (BN-049, P-BN-05): the address in use stays in the form */ [localServer, setLocalServer] = useState<'ollama' | 'openai-compatible' | null>(null), [token, setToken] = useState('');
   const [app, setApp] = useState<SubscriptionAppId>('chatgpt');
   const [models, setModels] = useState<ModelInfo[] | null>(null), [model, setModel] = useState<string | null>(null), [suggested, setSuggested] = useState<string | null>(null), [busy, setBusy] = useState<'test' | 'connect' | 'signin' | null>(null), [failure, setFailure] = useState<Failure | null>(null), [done, setDone] = useState(false);
   useEffect(() => { setRemember(settings.installed && !showcase); }, [settings.installed, showcase]);
   const reset = () => { setModels(null); setModel(null); setFailure(null); };
   const test = useCallback(async () => {
-    setBusy('test'); setFailure(null); setModels(null); setModel(null);
+    // Session AL second pass (Moscow MO-061, P-MO-16): a new test starts from a clean status, never an earlier "Found …".
+    setBusy('test'); setFailure(null); setModels(null); setModel(null); setLocalServer(null);
     try {
       if (path === 'api') {
         const list = await testConnection({provider, key: key.trim() || null});
@@ -56,6 +64,13 @@ export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi
       } else if (path === 'local') {
         const normalised = normalizeLocalBaseUrl(baseUrl), auth = token.trim() || null;
         const server = await detectLocalServer({baseUrl: normalised, key: auth});
+        // Security delta A (SA-7, 8 Nov): the same "is it really Ollama" check NOVA's scan runs (BN-035): a server that only
+        // looks like Ollama never gets "Found Ollama", a model list or Connect. Loaded with the test, not with the page.
+        if (server === 'ollama') {
+          const {verifyOllama} = await import('../../lib/nova/local-servers');
+          const real = await verifyOllama(normalised);
+          if (!real.ok) { setBaseUrl(normalised); setFailure({title: real.message, steps: []}); return; }
+        }
         setLocalServer(server); setBaseUrl(normalised);
         const list = await testConnection({provider: 'local', key: auth, baseUrl: normalised, localServer: server});
         const chat = list.filter(m => m.kind === 'chat'), pick = suggestModel(chat, suggest ?? {});
@@ -81,7 +96,12 @@ export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi
         if (!model || !localServer) throw Error('Test the connection and choose a model first.');
         const secret = token.trim();
         if (secret) { holdKey(scope, 'local', secret); if (remember && !showcase) await rememberKey(scope, 'local', secret); }
+        // Session AL Part 14 (security review Z1A-I4): a server connected without a token never gets the key an earlier
+        // local server had (such as the Hermes key "Use Hermes as NOVA's brain" put in this slot).
+        else await forgetKey(scope, 'local');
         settings.update(s => ({...s, enabled: true, mode: 'local', provider: 'local', model, localServer, baseUrl: normalizeLocalBaseUrl(baseUrl), subscriptionApp: null, rememberKey: remember && !showcase, connectedOn: today}));
+        // Z1A-6 (AL Part 14): a server whose /health says it is Hermes Agent is noted as the person's Hermes (treated as such by the privacy mode).
+        if (localServer === 'openai-compatible') void LIVE_PRIVACY_PROBES.hermes?.(normalizeLocalBaseUrl(baseUrl)).catch(() => undefined);
       }
       setKey(''); setToken(''); setDone(true); onDone?.();
     } catch (error) { setFailure({title: error instanceof Error ? error.message : 'The connection could not be saved.', steps: []}); }
@@ -93,7 +113,7 @@ export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi
     catch (error) { setFailure({title: error instanceof Error ? error.message : 'The sign-in could not start.', steps: ['Paste an OpenRouter key instead.']}); setBusy(null); }
   }, [remember, showcase]);
   const nova = assistant !== 'ZIGi';
-  if (done) return <div className="ai-setup-done"><ZigiAvatar state="celebrate" size={64} decorative/><div><p><strong>Connected.</strong> {nova ? `${assistant} now answers with your own model.` : 'ZIGi now answers with your own AI on every page where sharing is on.'} Health stays off until you turn on &ldquo;Include Health&rdquo;{nova ? ' in planet 5' : ' below'}.</p><p className="ai-note">{nova ? `Ask it on ${assistant}.` : 'Open ZIGi from the button at the bottom right, or with ⌘K / Ctrl+K.'}</p></div></div>;
+  if (done) return <div className="ai-setup-done"><ZigiAvatar state="celebrate" size={64} decorative/><div><p><strong>Connected.</strong> {nova ? `${assistant} now answers with your own model.` : 'ZIGi now answers with your own AI on every page where sharing is on.'} Health stays off until you turn on &ldquo;Include Health&rdquo;{nova ? ' in planet 5' : ' below'}.</p><p className="ai-note">{nova ? `Ask it on ${assistant}.` : 'Open ZIGi from the button at the bottom right, with ⌘/Ctrl+Shift+Z, or from the command menu (⌘/Ctrl+K).'}</p></div></div>;
   return <div className="ai-setup" data-testid="ai-setup">
     {path === null && <div className="ai-setup-paths" role="group" aria-label="How do you want to connect your AI?">
       <button type="button" className="ai-path" onClick={() => setPath('api')}><strong>I have an API key</strong><span>OpenAI, Anthropic, Google Gemini, xAI or OpenRouter. Pay-as-you-go, billed by them.</span></button>
@@ -123,7 +143,7 @@ export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi
         {hostedPage() && <li><strong>Chrome and Edge</strong> ask once whether this site may &ldquo;Access other apps and services on this device&rdquo;; <strong>Firefox</strong> asks too: allow it. <strong>Safari</strong> cannot reach a model on this computer from this site: use Chrome, Edge or Firefox here.</li>}
         {phone && <li><strong>A phone cannot reach a computer&rsquo;s localhost.</strong> Use a cloud provider here, or ZIGoals on the computer.</li>}
       </ul></details>
-      <div className="ai-card-actions"><button type="button" className="secondary" disabled={!baseUrl.trim() || busy !== null} onClick={() => void test()}>{busy === 'test' ? 'Testing…' : 'Test connection'}</button>{localServer && <span className="ai-note">Found {localServer === 'ollama' ? 'Ollama' : 'an OpenAI-compatible server'} at {baseUrl}.</span>}</div>
+      <div className="ai-card-actions"><button type="button" className="secondary" disabled={!baseUrl.trim() || busy !== null} onClick={() => void test()}>{busy === 'test' ? 'Testing…' : 'Test connection'}</button>{localServer && models !== null && !failure && busy === null && <span className="ai-note" role="status">Found {serverName(localServer, baseUrl)} at {baseUrl}.</span>}</div>
     </div>}
     {path === 'subscription' && <div className="ai-setup-form">
       <p>A subscription to a chat app gives no connection a browser app may use, and ZIGoals never asks for your password or reads your cookies. Instead, ZIGi writes the question with your page data; you copy it, open the app, and paste.</p>

@@ -27,7 +27,7 @@ export function UniverseCelebration({milestones, onCelebrate}: {milestones: read
     <h3 id="universe-celebration-title"><NebulaFlow identity={`universe-celebration:${current.id}`}>{current.title}</NebulaFlow></h3>
     <p className="celebration-line">{current.line}</p>
     <button type="button" className="primary" onClick={lovely}>{milestones.length > 1 ? 'Lovely, next' : 'Lovely'}</button>
-    {milestones.length > 1 && <p className="fine">{milestones.length - 1} more {milestones.length === 2 ? 'milestone' : 'milestones'} after this one.</p>}
+    {milestones.length > 1 && <p className="fine">{/* Session AL (DV-023e): these are rings and moons still to celebrate, not goal milestones */}{milestones.length - 1} more {milestones.length === 2 ? 'step' : 'steps'} of your universe to celebrate after this one.</p>}
     {error && <p role="alert" className="fine">{error}</p>}
   </section>;
 }

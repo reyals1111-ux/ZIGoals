@@ -124,9 +124,40 @@
 @media (max-width: 640px) { .today-line { display: none; } }
 .today-line { margin: 0 0 12px; font-size: 15px; line-height: 1.5; color: var(--text-secondary); overflow-wrap: anywhere; }
 .today-line-label { font-weight: 650; color: var(--text-primary, inherit); margin-inline-end: 4px; }
+.today-line-sep { margin-inline-end: 2px; color: var(--text-secondary, inherit); }
 /* Session AK G2 (RELEASE_REVIEW R11): the widget area's place while it waits to mount on a phone (components/use-mount-on-view.ts),
    so the cards under it start below it and do not move up into view and back. */
 .dashboard-widget-reserve { min-height: 60vh; }
+
+/* Session AL (P-NB-73; N-NB-12): in the phone's two-column focus row, a tile left alone on its row (the goal's "Next step"
+   at ~300 px) takes the whole row instead of half of it. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .today-focus-tiles > .focus-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+/* Session AL (T-070, P-DVR-81): Today's recent-activity rows wrap a long name or an unbroken word inside the card. */
+.recent-panel .activity-event { min-width: 0; }
+.recent-panel .activity-event :is(strong, p, small, span, a) { overflow-wrap: anywhere; }
+/* Session AL (GAP-040): the small recorded-wealth line under Today's headline; the sentence carries the fact. */
+.today-wealth-trend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; color: var(--text-secondary); }
+.today-wealth-trend svg { flex: none; color: var(--pillar-wealth-ink, var(--pillar-wealth, #f2c76b)); }
+.today-wealth-trend small { font-size: 14px; line-height: 1.45; color: var(--text-secondary); }
+@media (forced-colors: active) { .today-wealth-trend svg { color: CanvasText; } }
+
+/* Session AL (NB-093): a widget's ⋯ panel was cut at the card's edge (the card clips its art). While the panel is open
+   (card-options.tsx marks the card) the card lets it out, sits above its neighbours, and its art hides so nothing else spills. */
+.dashboard-widget[data-options-open] { overflow: visible; z-index: 40; }
+.dashboard-widget[data-options-open] > .dashboard-widget-art { visibility: hidden; }
+
+/* Session AL release review (RR-12): in Today's narrow side rail (a fresh profile's Recent activity at 1440 px) ZIGi beside
+   the words left them about 50 px, so "belongs" broke as "belo/ngs". A narrow card puts ZIGi above the words, and a heading
+   word breaks only when it cannot fit a line on its own. */
+@container (max-width: 420px) {
+  .recent-panel .timeline-empty :is(.empty-state-figure, .empty-state-copy) { grid-column: 1 / -1; }
+  .recent-panel .timeline-empty .empty-state-figure { width: 56px; height: 56px; }
+}
+.recent-panel .timeline-empty .empty-state-copy > :is(h2, h3, p) { overflow-wrap: break-word; }
+
+/* Session AL: the lanes' later rules sit above the AK G3 block, so that block stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
 /* Session AK (G3): richer cards, as the new surfaces (F6). Today's own cards (not the hero, the slogan or the Checklist): Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
    fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has

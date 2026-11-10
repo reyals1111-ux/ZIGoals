@@ -13,10 +13,11 @@ export function assetUnit(platform: Pick<Platform, 'positions'>, asset: string, 
 /**
  * Session AC (leftover from AB-Design's critique: "1 CUSTOM" where a contribution names no position): an amount with
  * its unit. A custom asset whose contribution names no position (or a position no longer here) reads honestly as units
- * of a custom asset ("1 unit of a custom asset"), never as the bare code; every other case is `assetUnit`'s.
+ * of a custom asset ("1 unit · a custom asset not in Wealth"), never as the bare code; every other case is `assetUnit`'s.
  */
 export function amountWithUnit(platform: Pick<Platform, 'positions'>, quantity: string, asset: string, positionId?: string): string {
   const unit = assetUnit(platform, asset, positionId);
   if (unit !== 'CUSTOM') return `${quantity} ${unit}`;
-  return `${quantity} ${quantity === '1' ? 'unit' : 'units'} of a custom asset`;
+  // Session AL final pass (L-060): what the unit is and why it has no name, in plain words ("1 unit of a custom asset" read as filler).
+  return `${quantity} ${quantity === '1' ? 'unit' : 'units'} · a custom asset not in Wealth`;
 }

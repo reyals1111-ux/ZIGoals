@@ -17,7 +17,9 @@ test('not found → search the Swiss food database → pick a food → the revie
   await page.goto('/app/health');
   await page.getByText('Scan or look up a food barcode', {exact: true}).click();
   const lookup = page.getByRole('region', {name: 'Barcode food lookup'});
-  await lookup.getByLabel('Product barcode').fill('4000000000000');
+  // Session AL (MO-007, MO-107, deliberate; 1e543c5e): a barcode's check digit is checked before the lookup, so the spec
+  // types a valid EAN-13 that the mocked route still does not find (4000000000000 is now refused before any request).
+  await lookup.getByLabel('Product barcode').fill('4000000000006');
   await lookup.getByRole('button', {name: 'Look up barcode', exact: true}).click();
   await expect(lookup).toContainText('Not found. Search the Swiss food database instead?');
   await lookup.getByRole('button', {name: 'Search the Swiss food database'}).click();

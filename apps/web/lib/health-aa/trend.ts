@@ -1,8 +1,11 @@
 import {addLocalDays} from '../local-date';
 import type {HealthData} from '../health';
+/** The sign of a number (-1, 0, 1). Not Math.sign: the wallet-signing guard (lib/staking/staking-guard.test.ts) rejects any call named sign outside the signer files. */
+const signOf = (n: number) => (n > 0 ? 1 : n < 0 ? -1 : 0);
 
 /**
  * N2: the weight trend, an exponentially weighted moving average over the daily readings (α 0.1 per day, so one
+ * (Session AL fourth pass, X3-16: with its steady-slope lag added back, see lagOf below)
  * reading moves the line a tenth of the way; days without a reading carry the line forward), the weekly rate of change
  * and the goal line. Grams in, grams out; the view shows the unit.
  * Session AH (TR10; B-011, N-058, N-120): one weekly rate for every view (the trend card, the coach, the energy estimate):
@@ -22,7 +25,44 @@ export function weeklyRateOf(weights: Pick<HealthData, 'weights'>['weights'], to
   const sxy = rows.reduce((a, r) => a + (r.x - mx) * (r.y - my), 0), sxx = rows.reduce((a, r) => a + (r.x - mx) ** 2, 0);
   return sxx ? Math.round(sxy / sxx * 7) : null;
 }
+/**
+ * Session AL (P-MO-70 / P-PR-23; MO-149, X3-16): what the weekly rate still needs, in words the coach can say. The coach
+ * said "two in the last week will do" to a person with seven daily readings: the rate needs readings at least SEVEN days
+ * apart within the last 28 days, which six or seven daily readings in one week are not. `readyOn` is the first day a
+ * reading would give the rate (the first reading plus seven days), or null when there is no reading in the window.
+ */
+export type RateReadiness = {readings: number; first: string | null; last: string | null; readyOn: string | null; ready: boolean};
+export function rateReadiness(weights: Pick<HealthData, 'weights'>['weights'], today: string): RateReadiness {
+  const start = addLocalDays(today, -(RATE_WINDOW_DAYS - 1));
+  const days = [...new Set(weights.filter(w => w.date >= start && w.date <= today).map(w => w.date))].sort();
+  const first = days[0] ?? null, last = days.at(-1) ?? null;
+  return {readings: days.length, first, last, readyOn: first ? addLocalDays(first, 7) : null, ready: weeklyRateOf(weights, today) !== null};
+}
 export const TREND_ALPHA = 0.1;
+/**
+ * Session AL fourth pass (X3-16): the smoothed line trailed a steady change by days (seven daily readings from 182.4 to
+ * 178.2 lb read a trend of 181.2). An average of the past lags a steady slope by about (1 − α) / α readings, so the line
+ * adds that lag back, from the weekly rate (the least-squares slope, needs readings seven days apart) and the mean gap
+ * between readings. It only moves toward the latest reading and at most nine tenths of the way, so a single noisy
+ * reading still moves it a little and the line stays a smoothed estimate, never the last reading itself.
+ */
+export const LAG_SHARE_MAX = 0.9;
+function lagOf(weights: Pick<HealthData, 'weights'>['weights'], date: string, line: number, latest: number | null, updates: number): number {
+  if (latest === null || updates < 1) return 0;
+  // The slope behind the lag: the least-squares slope of the readings in the rate window, from three readings over three
+  // days or more (the weekly rate shown waits for seven days; this only straightens the line).
+  const start = addLocalDays(date, -(RATE_WINDOW_DAYS - 1)), day = (d: string) => Date.parse(`${d}T00:00:00Z`) / 86_400_000;
+  const rows = weights.filter(w => w.date >= start && w.date <= date).map(w => ({x: day(w.date), y: w.grams}));
+  const seen = [...new Set(rows.map(r => r.x))].sort((a, b) => a - b);
+  if (seen.length < 3 || seen.at(-1)! - seen[0]! < 3) return 0;
+  const mx = rows.reduce((a, r) => a + r.x, 0) / rows.length, my = rows.reduce((a, r) => a + r.y, 0) / rows.length;
+  const sxx = rows.reduce((a, r) => a + (r.x - mx) ** 2, 0), perDay = sxx ? rows.reduce((a, r) => a + (r.x - mx) * (r.y - my), 0) / sxx : 0;
+  const gapDays = (seen.at(-1)! - seen[0]!) / (seen.length - 1);
+  const lag = perDay * gapDays * (1 - TREND_ALPHA) / TREND_ALPHA * (1 - (1 - TREND_ALPHA) ** updates);
+  const room = latest - line;
+  if (room === 0 || signOf(lag) !== signOf(room)) return 0;
+  return signOf(room) * Math.min(Math.abs(lag), Math.abs(room) * LAG_SHARE_MAX);
+}
 export type TrendPoint = {date: string; grams: number | null; trend: number | null};
 export type WeightTrend = {points: TrendPoint[]; latestTrend: number | null; weeklyRate: number | null; readings: number; goalGrams: number | null; latestReading: {date: string; grams: number} | null};
 export function weightTrend(data: Pick<HealthData, 'weights' | 'targets'>, today: string, days = 42): WeightTrend {
@@ -32,13 +72,22 @@ export function weightTrend(data: Pick<HealthData, 'weights' | 'targets'>, today
   let line: number | null = null;
   for (const w of [...data.weights].filter(w => w.date < first).sort((a, b) => a.date.localeCompare(b.date))) line = line === null ? w.grams : line + TREND_ALPHA * (w.grams - line);
   const points: TrendPoint[] = [];
-  let readings = 0;
+  let readings = 0, updates = Math.max(0, [...data.weights].filter(w => w.date < first).length - 1), lastSeen: number | null = null;
   for (let i = 0; i < days; i++) {
     const date = addLocalDays(first, i), grams = byDate.get(date) ?? null;
-    if (grams !== null) { readings++; line = line === null ? grams : line + TREND_ALPHA * (grams - line); }
-    points.push({date, grams, trend: line === null ? null : Math.round(line)});
+    if (grams !== null) { readings++; if (line !== null) updates++; line = line === null ? grams : line + TREND_ALPHA * (grams - line); lastSeen = grams; }
+    points.push({date, grams, trend: line === null ? null : Math.round(line + lagOf(data.weights, date, line, lastSeen, updates))});
   }
   const latestTrend = points[points.length - 1]!.trend;
   const last = [...data.weights].filter(w => w.date <= today).sort((a, b) => b.date.localeCompare(a.date))[0];
   return {points, latestTrend, weeklyRate: latestTrend !== null ? weeklyRateOf(data.weights, today) : null, readings, goalGrams: data.targets.weightGrams, latestReading: last ? {date: last.date, grams: last.grams} : null};
+}
+/**
+ * Session AL release review (RR-6): the weight tile's note says what is true for the readings there are. One reading is a
+ * start, not a "smoothed, six weeks" trend; a few readings without a weekly rate yet are said as that many readings.
+ */
+export function trendNote(readings: number, rate: string | null): string {
+  if (rate) return `${rate} a week · an estimate`;
+  if (readings <= 1) return 'First reading. Two or three a week draw the line.';
+  return `smoothed over ${readings} readings · an estimate`;
 }

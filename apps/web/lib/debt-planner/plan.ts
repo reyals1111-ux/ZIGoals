@@ -1,3 +1,4 @@
+import {parseNumberInput} from '../numbers/parse';
 /**
  * Session AK (F5a, item 1): the debt payoff planner, snowball against avalanche. Pure, in exact cents (bigint), no
  * dependency. Each month: interest is added to every open debt at the person's own yearly rate ÷ 12, rounded to the
@@ -38,7 +39,8 @@ export const MAX_MONTHS = 1200, MAX_DEBTS = 50, MAX_CENTS = 100_000_000_000_000n
 const RATE = /^(?:0|[1-9]\d{0,2})(?:\.\d{1,4})?$/;
 /** The rate in ten-thousandths of a percent ("21.9" → 219000n), or null when it is not a rate from 0 to 100. */
 export function rateE4(ratePercent: string): bigint | null {
-  const t = ratePercent.trim().replace(',', '.');
+  // Session AL (PRIMITIVES 3f): the app's one number reader ("5,25" and "5.25" alike); the rate rule stays here.
+  const read = parseNumberInput(ratePercent), t = read.ok ? read.text : '';
   if (!RATE.test(t)) return null;
   const [whole, frac = ''] = t.split('.');
   const v = BigInt(whole!) * 10_000n + BigInt(frac.padEnd(4, '0'));

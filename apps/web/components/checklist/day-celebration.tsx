@@ -19,7 +19,7 @@ import './day-celebration.css';
  * - Not ready to play within 1.5 s, autoplay refused, a source failing, reduced motion, Motion Off or Save-Data: the
  *   last frame and the words at once, and the clip never starts late. A clip that starts but stops moving for 1.5 s rests
  *   on its last frame with the words too: the moment never hangs on a clip (owner amendment 2).
- * - A tap anywhere (or Space or Enter) before the words skips to the last frame with the words; Escape and Continue close
+ * - A tap anywhere (or Space or Enter) before the words skips to the last frame with the words; Escape, Continue and (once the words show) a tap outside them close
  *   it; focus is held inside and returns to the path; the title, line and streak are its name and description; the media
  *   is aria-hidden.
  * - No Undo while it is open: the last tick's toast is held (hidden, its time standing still) and comes back for the time
@@ -94,7 +94,7 @@ export default function DayCelebration({streak, grew = false, perfect, total, on
   const onKeyDown = (e: KeyboardEvent<HTMLDialogElement>) => { if (!words && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); skip.current(); } };
   const word = total === 1 ? 'planet' : 'planets';
   return <dialog ref={ref} className="checklist-celebration" data-phase={phase} data-words={words ? '' : undefined} data-media={decision.play ? 'video' : 'still'}
-    aria-labelledby="checklist-celebration-title" aria-describedby="checklist-celebration-line checklist-celebration-streak" onCancel={e => e.preventDefault()} onKeyDown={onKeyDown} onClick={() => { if (!words) skip.current(); }}>
+    aria-labelledby="checklist-celebration-title" aria-describedby="checklist-celebration-line checklist-celebration-streak" onCancel={e => e.preventDefault()} onKeyDown={onKeyDown} onClick={e => { if (!words) { skip.current(); return; } /* Session AL fifth pass (replay L3-2 incidental): once its words show, the moment is over, so a tap outside them (on the frame, over the top bar's View switch on a phone) closes it, as Continue does; the frame no longer holds the page until Continue is found. */ if (!(e.target as Element).closest('.checklist-celebration-words')) onClose(); }}>
     <canvas ref={mirror} className="checklist-celebration-mirror" width={36} height={64} aria-hidden="true"/>
     <div className="checklist-celebration-frame">
       <div className="checklist-celebration-media" aria-hidden="true">

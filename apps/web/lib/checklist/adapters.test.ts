@@ -109,12 +109,13 @@ describe('a tick writes the real record through its page’s own function, and U
   });
   // Session AH Part 3 (DS2, T-110, T-116, M-134): a second tap moments later saves nothing, a short daytime sleep is a
   // nap, and the words follow the local time of day.
-  test('sleep: stopped within ten minutes nothing is saved (Undo resumes it); a daytime sleep is a nap; the greeting follows the hour', () => {
+  // Session AL fifth pass (PR-018, deliberate): the one timer minimum is a minute, so the quick second tap is 30 s later.
+  test('sleep: stopped within the one timer minimum nothing is saved (Undo resumes it); a daytime sleep is a nap; the greeting follows the hour', () => {
     const at = (iso: string) => new Date(iso);
     const s0 = stores(), s1 = run(s0, sleepPlan(dot(s0, 'Sleep'), ctx({now: at('2026-10-18T13:51:00.000Z')})).writes);
-    const quick = planTick(dot(s1, 'Sleep'), ctx({now: at('2026-10-18T13:52:00.000Z'), snapshot: {sleep: s1.sleep}})), s2 = run(s1, quick.writes);
+    const quick = planTick(dot(s1, 'Sleep'), ctx({now: at('2026-10-18T13:51:30.000Z'), snapshot: {sleep: s1.sleep}})), s2 = run(s1, quick.writes);
     expect(s2.sleep.nights).toEqual([]);
-    expect(quick.message).toBe('Stopped after less than ten minutes, so nothing was saved.');
+    expect(quick.message).toBe('Stopped after less than a minute, so nothing was saved.');
     expect(run(s2, quick.undo).sleep.nights.map(n => [n.start, n.end])).toEqual([['2026-10-18T13:51:00.000Z', null]]);
     const nap = planTick(dot(s1, 'Sleep'), ctx({now: at('2026-10-18T14:31:00.000Z'), snapshot: {sleep: s1.sleep}})), s3 = run(s1, nap.writes);
     expect(s3.sleep.nights.map(n => [n.kind, n.end])).toEqual([['nap', '2026-10-18T14:31:00.000Z']]);
@@ -145,7 +146,12 @@ describe('a tick writes the real record through its page’s own function, and U
     expect(s2.meditationRun.run).toBeNull();
     const back = run(s2, end.undo);
     expect(back.meditation.sessions).toEqual([]); expect(back.meditationRun).toEqual(s1.meditationRun);
-    expect(meditationTimerPlan(ctx({snapshot: {meditationRun: startRun({now: NOW, minutes: 5})}})).message).toBe('Less than a second: nothing to save.');
+    // Session AL (COPY, deliberate; L2's one timer rule, lib/health-timer-rules.ts): the same words as every other timer stop.
+    expect(meditationTimerPlan(ctx({snapshot: {meditationRun: startRun({now: NOW, minutes: 5})}})).message).toBe('Stopped after less than a minute, so nothing was saved.');
+    // Fifth pass (PR-018): 21 seconds is under the one minimum too, and its stop keeps nothing (it was saved as 21 s).
+    const short = meditationTimerPlan(ctx({now: new Date(NOW.getTime() + 21_000), snapshot: {meditationRun: startRun({now: NOW, minutes: 5})}}));
+    expect(short.message).toBe('Stopped after less than a minute, so nothing was saved.');
+    expect(run(s0, short.writes).meditation.sessions).toEqual([]);
   });
   test('a custom item lives on the path only: ticked, unticked, Undo', () => {
     const s0 = stores(), plan = planTick(dot(s0, 'Play piano 15 minutes'), ctx()), s1 = run(s0, plan.writes);
@@ -176,11 +182,12 @@ test('no adapter reaches a wallet, a network or another lane’s module', () => 
   }
 });
 
-// Session AH (HE7, M-136): a fast stopped within ten minutes saves nothing (no 0.0 h fast); Undo resumes it.
-test('a fast stopped within ten minutes is not saved, and Undo resumes it', () => {
+// Session AH (HE7, M-136): a fast stopped within the minimum saves nothing (no 0.0 h fast); Undo resumes it.
+// Session AL fifth pass (PR-018, deliberate): the one timer minimum is a minute, so the stop is 30 s after the start.
+test('a fast stopped within the one timer minimum is not saved, and Undo resumes it', () => {
   const s0 = stores(), start = fastPlan(dot(s0, 'Fast'), ctx({now: new Date('2026-10-17T20:00:00.000Z')})), s1 = run(s0, start.writes);
-  const stop = fastPlan(null, ctx({now: new Date('2026-10-17T20:05:00.000Z'), snapshot: {fasting: s1.fasting}}));
-  expect(stop.message).toBe('Stopped after less than ten minutes, so nothing was saved.');
+  const stop = fastPlan(null, ctx({now: new Date('2026-10-17T20:00:30.000Z'), snapshot: {fasting: s1.fasting}}));
+  expect(stop.message).toBe('Stopped after less than a minute, so nothing was saved.');
   const s2 = run(s1, stop.writes); expect(s2.fasting.sessions).toEqual([]);
   const s3 = run(s2, stop.undo); expect(s3.fasting.sessions.map(f => f.endedAt)).toEqual([null]);
 });

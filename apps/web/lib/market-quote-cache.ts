@@ -29,6 +29,12 @@ export function createMarketQuoteCache(load:(requests:readonly MarketQuoteReques
  const emit=()=>{for(const listener of listeners)listener();};
  function hydrate(store:Pick<Storage,'getItem'|'setItem'>){storage=store;try{const text=store.getItem(PUBLIC_QUOTE_KEY);if(!text||text.length>PUBLIC_QUOTES_MAX_BYTES)return;const raw=JSON.parse(text);const rows=Array.isArray(raw)?raw:[raw];if(rows.length>MAX_PUBLIC_QUOTES)return;const quotes=rows.map(q=>verifiedMarketQuote(q,clock()));state={...state,quotes:[...new Map(quotes.map(q=>[key(q),q])).values()],now:clock()};emit();}catch{/* Optional public cache is never allowed to contaminate private data. */}}
  function tick(){state={...state,now:clock()};emit();}
+ /**
+  * Session AL (TK-208, W26, M12, PR-016): another tab of the app saved newer quotes (the `storage` event). They are taken
+  * in when newer than this tab's, so Wealth in one tab and Markets in another show the same price and the same time
+  * instead of two fetches minutes apart. Quotes this tab holds that the other lacks are kept.
+  */
+ function adopt(text:string|null){try{if(!text||text.length>PUBLIC_QUOTES_MAX_BYTES)return;const raw=JSON.parse(text);const rows=Array.isArray(raw)?raw:[raw];if(rows.length>MAX_PUBLIC_QUOTES)return;const merged=new Map(state.quotes.map(q=>[key(q),q]));let changed=false;for(const row of rows){let quote:MarketQuote;try{quote=verifiedMarketQuote(row,clock());}catch{continue;}const previous=merged.get(key(quote));if(!previous||Date.parse(quote.observedAt??quote.fetchedAt??'')>Date.parse(previous.observedAt??previous.fetchedAt??'')){merged.delete(key(quote));merged.set(key(quote),quote);changed=true;}}if(changed){state={...state,quotes:[...merged.values()].slice(-MAX_PUBLIC_QUOTES),now:clock()};emit();}}catch{/* An unreadable public cache from another tab is ignored. */}}
  // Session AH Part 4 (TR2/TR3, M16): `frozen` (the Showcase) fetches only quotes it does not have yet; a quote it holds
  // is never re-priced, so a reload or Refresh never moves the Showcase's figures.
  async function refresh(raw:readonly MarketQuoteRequest[],force=false,frozen=false):Promise<void>{
@@ -42,5 +48,5 @@ export function createMarketQuoteCache(load:(requests:readonly MarketQuoteReques
  state={...state,quotes:[...merged.values()].slice(-MAX_PUBLIC_QUOTES),error:result.error?'Market prices could not be refreshed. Last verified evidence is retained; manual valuation remains available.':null};try{const text=JSON.stringify(state.quotes);if(text.length<=PUBLIC_QUOTES_MAX_BYTES)storage?.setItem(PUBLIC_QUOTE_KEY,text);}catch{/* Optional persistence. */}
  }catch{if(pending===work)state={...state,error:'Market prices could not be refreshed. Last verified evidence is retained; manual valuation remains available.'};}finally{work.done=true;if(pending===work){state={...state,loading:false,now:clock()};pending=null;emit();}}})());
  }
- return {getSnapshot:()=>state,subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener);};},hydrate,tick,refresh};
+ return {getSnapshot:()=>state,subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener);};},hydrate,adopt,tick,refresh};
 }

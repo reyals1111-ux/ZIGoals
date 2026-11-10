@@ -1,0 +1,25 @@
+/* Session AL (D-088): Settings' group headings fold their group (components/settings/settings-fold.tsx). The heading keeps
+   its look (components/life-pages.css, .settings-group-title); the button inside fills it as a 44 px target. Nothing
+   moves on a fold: no transition or animation, so Motion Off and reduced motion need nothing more. */
+.settings-page .settings-fold-toggle { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; margin: 0; padding: 0; border: 0; border-radius: 8px; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; text-align: left; line-height: inherit; transition: none; }
+.settings-page .settings-fold-toggle:hover { text-decoration: underline; text-underline-offset: 4px; }
+.settings-page .settings-fold-chevron { flex: none; margin-left: auto; color: #8fe6f4; }
+.settings-page .settings-fold-toggle[aria-expanded="false"] .settings-fold-chevron { transform: rotate(-90deg); }
+/* What a folded group holds, on one line under its heading. */
+.settings-page .settings-fold-summary { margin: -10px 0 0; overflow: hidden; color: var(--text-meta, #c2d0e5); font-size: 15px; line-height: 1.5; white-space: nowrap; text-overflow: ellipsis; }
+/* A folded group lays out at its own short size, not the 1400 px estimate of a group not yet near the screen
+   (components/life-pages.css, content-visibility), so "Fold all" shortens the page at once. */
+:root .settings-page > .settings-group[data-folded]:not(#settings-data) { content-visibility: visible; }
+/* Session AL (A10-10): at 768 px the sticky "Fold all" sat over the end of the scrolling links, with a cut-off "st…" in the
+   bar's padding beside it. The links now scroll inside a row of their own (app/app/settings/page.tsx) and "Fold all" stands
+   beside that row, so nothing scrolls under it. Below 768 px the row is no box at all and the index wraps as before. */
+.settings-sections-links { display: contents; }
+@media (min-width: 768px) {
+  :root .settings-page nav.settings-sections { overflow: visible; align-items: center; }
+  :root .settings-page .settings-sections > .settings-sections-links { display: flex; flex: 1 1 auto; align-items: center; gap: inherit; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+  :root .settings-page .settings-sections > .settings-sections-links > a { flex: none; white-space: nowrap; min-height: 44px; padding-block: 0; box-sizing: border-box; }
+  :root .settings-page nav.settings-sections .settings-fold-all { position: static; margin-left: 0; }
+}
+@media (forced-colors: active) {
+  .settings-page .settings-fold-chevron { color: CanvasText; }
+}

@@ -323,7 +323,7 @@ const LB_GRAMS = 453.59237;
 export function getHealthActivities(data: HealthData, weightUnit: WeightUnit = "kg"): { id: string; category: "HEALTH"; title: string; detail: string; at: string; day: string; href: string }[] {
   return [
     ...data.diary.map(e => ({ id: e.id, category: "HEALTH" as const, title: `${e.meal} logged`, detail: `${e.snapshot.name} · ${formatDate(e.date)}`, at: e.updatedAt, day: e.date, href: "/app/health" })),
-    ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${weightUnit === "lb" ? `${formatNumber(w.grams / LB_GRAMS, { maximumFractionDigits: 1 })} lb` : `${formatNumber(w.grams / 1000, { maximumFractionDigits: 1 })} kg`} · ${formatDate(w.date)}`, at: w.updatedAt, day: w.date, href: "/app/health" })),
+    ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${weightUnit === "lb" ? `${formatNumber(w.grams / LB_GRAMS, { maximumFractionDigits: 2 })} lb` : `${formatNumber(w.grams / 1000, { maximumFractionDigits: 2 })} kg`} · ${formatDate(w.date)}` /* Session AL fifth pass (N-MO-14): a reading as entered, as lib/health-units weightReadingText */, at: w.updatedAt, day: w.date, href: "/app/health" })),
     ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${formatNumber(a.steps)} steps · ${formatDate(a.date)}`, at: a.updatedAt, day: a.date, href: "/app/health" })),
   ].sort((a, b) => b.at.localeCompare(a.at));
 }

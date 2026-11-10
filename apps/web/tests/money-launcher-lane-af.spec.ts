@@ -56,25 +56,35 @@ for (const [path, root, name] of [['/app/governance', '.governance-page', 'Gover
       await page.setViewportSize({width, height: 1024});
       await page.goto(path);
       await expect(page.locator('main h1').first()).toBeVisible();
-      await expect(page.getByTestId('ai-launcher')).toBeVisible();
+      // Session AL (owner decision O3, deliberate): below 901 px (768, the tablet rail) nothing floats: ZIGi, the Checklist,
+      // Music and Earn are in "Apps & extras". Was: ZIGi's launcher shown and at least two floating buttons measured at 768 too.
+      const compact = width < 901;
+      if (compact) { await expect(page.getByTestId('ai-launcher')).toHaveCount(0); await expect(page.getByTestId('apps-extras-button')).toBeVisible(); }
+      else await expect(page.getByTestId('ai-launcher')).toBeVisible();
       await expect(page.locator(root)).toBeVisible();
       const found = await covered(page, root);
-      expect(found.launchers, `${width}: the floating buttons are measured`).toBeGreaterThanOrEqual(2);
+      if (compact) expect(found.launchers, `${width}: no floating button below 901 px`).toBe(0);
+      else expect(found.launchers, `${width}: the floating buttons are measured`).toBeGreaterThanOrEqual(2);
       expect(found.hits, `${width}: words or controls under a floating button`).toEqual([]);
     }
   });
 
+// Session AL (owner decision O3, deliberate): a phone has no floating ZIGi button any more (it opens from "Apps & extras" in
+// the top bar), so nothing can cover these lines. Was: ZIGi's phone button visible and each line ending left of its lane;
+// now: no floating button at all, the sheet's button there, and each line inside the screen.
 test('a phone: Earn’s first-screen disclaimer and Add money’s step line keep clear of ZIGi’s button', async ({page, isMobile}) => {
   test.skip(!isMobile, 'ZIGi’s phone button');
   await showcase(page);
   for (const [path, line] of [['/app/earn', '.earn-hero-note'], ['/app/wealth/add-money', '.add-money-hint']] as const) {
     await page.goto(path);
     await expect(page.locator(line)).toBeVisible();
-    const zigi = page.getByTestId('ai-launcher').locator('.ai-launcher-button');
-    await expect(zigi).toBeVisible();
-    const [button, words] = await Promise.all([zigi.boundingBox(), page.locator(line).evaluate(el => { const range = document.createRange(); range.selectNodeContents(el); return [...range.getClientRects()].filter(r => r.width > 1).map(r => ({left: r.left, right: r.right, top: r.top, bottom: r.bottom})); })]);
+    await expect(page.getByTestId('ai-launcher')).toHaveCount(0); // Session AL (O3, deliberate): was the launcher visible
+    await expect(page.getByTestId('apps-extras-button')).toBeVisible();
+    expect(await page.locator(LAUNCHERS).count(), `${path}: nothing floats`).toBe(0);
+    const words = await page.locator(line).evaluate(el => { const range = document.createRange(); range.selectNodeContents(el); return [...range.getClientRects()].filter(r => r.width > 1).map(r => ({left: r.left, right: r.right, top: r.top, bottom: r.bottom})); });
     expect(words.length, path).toBeGreaterThan(0);
-    // Each line of the words ends left of the button's lane, whatever height the button sits at.
-    for (const r of words) expect(r.right, `${path}: a line under ZIGi’s button`).toBeLessThanOrEqual(button!.x);
+    // Session AL (O3, deliberate): each line inside the screen (was: left of ZIGi's button lane).
+    const width = page.viewportSize()!.width;
+    for (const r of words) expect(r.right, `${path}: a line past the screen's edge`).toBeLessThanOrEqual(width);
   }
 });

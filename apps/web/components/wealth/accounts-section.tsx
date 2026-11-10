@@ -3,8 +3,11 @@ import {holdingsBySource, SOURCE_LABEL, type SourceKind} from '../../lib/account
 import {isMoneyCurrency} from '../../lib/visual-format';
 import {Suspense, lazy, useEffect, useState} from 'react';
 import {accountForPrefill, BALANCE_PREFILL_EVENT, takeBalancePrefill} from '../../lib/ai/actions/balance-prefill';
-import {showToast} from '../ui/undo-toast';
-import {ACCOUNTS, accountsSchema, ASSET_KINDS, DEBT_KINDS, isDebtKind, type Account, type AccountKind, type Accounts} from '../../lib/accounts/schema';
+import {showUndo} from '../ui/undo-toast';
+import {reinsertAccount, unarchiveAccount} from '../../lib/wealth-undo';
+import {plausibilityWarning} from '../../lib/wealth-plausibility';
+import {PlausibleCheck, usePlausibleCheck} from './plausible-check';
+import {ACCOUNTS, ASSET_KINDS, DEBT_KINDS, isDebtKind, type Account, type AccountKind, type Accounts} from '../../lib/accounts/schema';
 import {add, addAccount, balanceOn, editAccount, holdingsOf, moneyText, netWorthTotal, netWorthHistory, payoffMonths, recordBalance, recordPayment, removeAccount, usualPayment, type Money} from '../../lib/accounts/net-worth';
 import {parseAmountInput} from '../../lib/amount-input';
 import {formatGoalAmount} from '../../lib/goal-summary';
@@ -19,7 +22,9 @@ import {useFieldErrors} from '../field-errors';
 import './accounts.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {formatDate, formatMoney, formatNumber} from '../../lib/visual-format';
-import {amountIssue, moneyUnitsIssue, within} from '../../lib/limits/plausibility';
+import {amountIssue, moneyUnitsIssue, validateValue, within} from '../../lib/limits/plausibility';
+import {parseNumberInput} from '../../lib/numbers/parse';
+import {useMoneyCurrency} from './use-money-currency';
 // Session AK (F5a, items 1 and 3): the debt payoff planner (on its button) and the net-worth milestones, each its own chunk.
 const DebtPlanner = lazy(() => import('./debt-planner'));
 const NetWorthMilestones = lazy(() => import('./networth-milestones'));
@@ -33,6 +38,10 @@ const NetWorthMilestones = lazy(() => import('./networth-milestones'));
  */
 export const KIND_LABEL: Record<AccountKind, string> = {cash: 'Cash', savings: 'Savings', investment: 'Investment', pension: 'Pension', property: 'Property', vehicle: 'Vehicle', 'other-asset': 'Other asset', loan: 'Loan', mortgage: 'Mortgage', 'credit-card': 'Credit card', 'other-debt': 'Other debt'};
 const show = (m: Money, currency: string) => formatGoalAmount(moneyText(m), currency);
+/** Session AL (PRIMITIVES 3f): typed numbers through the one reader (decimal commas, grouping); NaN when unreadable. */
+const readNumber = (text: string) => { const r = parseNumberInput(text); return r.ok ? r.value : NaN; };
+/** A yearly rate as canonical text ("4,5" → "4.5"), '' when empty; refuses what isn't a number from 0 to 100. */
+const rateText = (raw: string) => { if (!raw.trim()) return ''; const v = validateValue('percent', raw); if (!v.ok) throw Error(`The yearly rate: ${v.error}`); return v.text; };
 const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); within(moneyUnitsIssue(value, 2)); /* Session AH (VA2, B3) */ if (value < 0n) throw Error('Enter the amount as a positive number; a debt’s balance is what is owed.'); return {value, decimals: 2, date}; };
 /** Session AC: inside Wealth's one holdings list, `only` follows its chips (Accounts: what you own; Debts: what you owe). */
 export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?: 'all' | 'accounts' | 'debts'}) {
@@ -58,7 +67,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   }, [handed, accounts.loaded, accounts.unreadable, accounts.data.items]);
   // Session AA-Cloud Part 6: archiving and removing also offer Undo in the shared toast.
   function change(fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) {
-    try { accounts.update(fn); setMessage(words); setError(''); if (undo) showToast({message: words, undo: () => accounts.update(undo.fn), undone: undo.done}); return true; } catch (cause) { /* Session AH (VA7): never the last success beside the error */ setMessage(''); setError(plainErrorMessage(cause, 'Not saved on this device.')); return false; }
+    try { accounts.update(fn); setMessage(words); setError(''); if (undo) showUndo({message: words, restore: () => accounts.update(undo.fn), undone: undo.done}); /* Session AL (3e): the one Undo; restore reads the latest record */ return true; } catch (cause) { /* Session AH (VA7): never the last success beside the error */ setMessage(''); setError(plainErrorMessage(cause, 'Not saved on this device.')); return false; }
   }
   const market = useMarketQuotes(wealthMarketRequests(platform.data)), now = useEvidenceNow(platform.data, market.now);
   if (!accounts.loaded) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title" aria-busy="true"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2></section>;
@@ -70,7 +79,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title">
     <header className="wealth-section-heading"><div><p className="eyebrow">EVERYTHING YOU OWN AND OWE</p><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p>Balances you enter, per account in its own currency. Accounts are kept on this device; with an account they also travel in your encrypted sync.</p></div>
       <button type="button" className="secondary" aria-expanded={adding} onClick={() => { setAdding(o => !o); setMessage(''); setError(''); }}>{adding ? 'Close' : 'Add an account or debt'}</button></header>
-    {adding && <AddAccount onAdd={(input, words) => { if (change(g => addAccount(g, input, new Date().toISOString()), words)) setAdding(false); }} today={today} />}
+    {adding && <AddAccount onAdd={(input, words) => { if (change(g => addAccount(g, input, new Date().toISOString()), words)) setAdding(false); }} today={today} held={worth.rows.map(r => ({currency: r.currency, value: BigInt(Math.round(Number(moneyText(add(r.assets, r.holdings))) || 0))}))} />}
     {worth.rows.length > 0 && <div className="accounts-worth" role="group" aria-label="Net worth by currency">
       {worth.rows.map(r => <article key={r.currency} className="accounts-worth-card" aria-label={`Net worth in ${r.currency}`}>
         <h3>Net worth · {r.currency}</h3>
@@ -92,7 +101,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
     {(['assets', 'debts'] as const).filter(group => only === 'all' || (group === 'debts') === (only === 'debts')).map(group => { const list = active.filter(a => isDebtKind(a.kind) === (group === 'debts')); return list.length > 0 && <div key={group} className="accounts-group"><h3>{group === 'assets' ? 'What you own' : 'What you owe'}</h3><ul className="accounts-list">{list.map(a => <AccountRow key={a.id} account={a} today={today} open={open?.id === a.id ? open.mode : null} setOpen={mode => { setOpen(mode ? {id: a.id, mode} : null); setPrefill(null); }} change={change} {...(prefill?.id === a.id ? {prefill} : {})} />)}</ul>
       {/* Session AK (F5a, item 1): snowball or avalanche, from these debts; loads on the button. */}
       {group === 'debts' && <><button type="button" className="secondary accounts-plan-button" aria-expanded={planOpen} onClick={() => setPlanOpen(o => !o)}>{planOpen ? 'Close the payoff planner' : 'Plan paying off your debts'}</button>{planOpen && <Suspense fallback={<p className="fine">Loading…</p>}><DebtPlanner /></Suspense>}</>}</div>; })}
-    {archived.length > 0 && <details className="accounts-archived"><summary>Archived ({archived.length})</summary><ul className="accounts-list">{archived.map(a => <li key={a.id}><span>{a.name} · {KIND_LABEL[a.kind]}</span><div className="actions"><button type="button" className="quiet" onClick={() => change(g => editAccount(g, a.id, {archived: false}, new Date().toISOString()), `${a.name} restored.`)}>Restore</button><button type="button" className="quiet" onClick={() => { const at = items.findIndex(x => x.id === a.id); change(g => removeAccount(g, a.id), `${a.name} removed from this device.`, {fn: g => g.items.some(x => x.id === a.id) ? g : accountsSchema.parse({...g, items: [...g.items.slice(0, at), a, ...g.items.slice(at)]}), done: `${a.name} is back.`}); }}>Remove</button></div></li>)}</ul></details>}
+    {archived.length > 0 && <details className="accounts-archived"><summary>Archived ({archived.length})</summary><ul className="accounts-list">{archived.map(a => <li key={a.id}><span>{a.name} · {KIND_LABEL[a.kind]}</span><div className="actions"><button type="button" className="quiet" onClick={() => change(g => editAccount(g, a.id, {archived: false}, new Date().toISOString()), `${a.name} unarchived.`)}>{/* Session AL (TK-190): the same word as an archived asset */}Unarchive</button><button type="button" className="quiet" onClick={() => { const at = items.findIndex(x => x.id === a.id); change(g => removeAccount(g, a.id), `${a.name} removed from this device.`, {fn: reinsertAccount(a, at), done: `${a.name} is back.`}); }}>Remove</button></div></li>)}</ul></details>}
     {message && <p role="status">{message}</p>}
     {error && <p role="alert">{error}</p>}
   </section>;
@@ -103,20 +112,26 @@ function AssetsVsDebts({assets, holdings, debts, currency}: {assets: Money; hold
     <span><b>Own</b><i style={{width: `${(own / max) * 100}%`}} /></span><span><b>Owe</b><i className="owe" style={{width: `${(owe / max) * 100}%`}} /></span>
   </div>;
 }
-function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount>[1], words: string) => void; today: string}) {
+function AddAccount({onAdd, today, held}: {onAdd: (input: Parameters<typeof addAccount>[1], words: string) => void; today: string; held: readonly {currency: string; value: bigint}[]}) {
   // Session Y Part 9: a refused currency or balance marks its own field (aria-invalid, described by the message) and takes the focus.
-  const [kind, setKind] = useState<AccountKind>('savings'), fe = useFieldErrors();
+  const [kind, setKind] = useState<AccountKind>('savings'), fe = useFieldErrors(), check = usePlausibleCheck();
+  // Session AL (P-DVR-22, PR-068): a new account or debt starts in the person's net-worth currency (was always EUR).
+  const startCurrency = useMoneyCurrency(held);
   return <form className="platform-form accounts-add" aria-label="Add an account or debt" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let field = ''; try {
-    const name = String(f.get('name')).trim(), currency = String(f.get('currency')).trim().toUpperCase(), balance = String(f.get('balance') ?? '').trim(), rate = String(f.get('rate') ?? '').trim().replace(',', '.');
+    const name = String(f.get('name')).trim(), currency = String(f.get('currency')).trim().toUpperCase(), balance = String(f.get('balance') ?? '').trim(), rate = rateText(String(f.get('rate') ?? ''));
     field = 'currency'; if (!isMoneyCurrency(currency)) throw Error(`“${currency}” is not a three-letter currency code ZIGoals knows. Use one such as EUR, USD or GBP.`);
     field = 'balance'; const money = balance ? toMoney(balance, String(f.get('date') || today)) : undefined; field = '';
+    // Session AL (P-TK-49, N-TK-12): a billion or more asks once ("check this?"); keeping it saves as typed.
+    if (!check.ask(`add:${currency}:${money ? moneyText(money) : ''}`, money ? plausibilityWarning(Number(moneyText(money)), currency, isDebtKind(kind) ? 'debt' : 'balance') : null)) { fe.clear(); return; }
     onAdd({id: crypto.randomUUID(), kind, name, currency, institution: String(f.get('institution') ?? ''), ...(rate ? {ratePercent: rate} : {}), ...(money ? {balance: money} : {})}, `${name} added.`); fe.clear();
   } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the account.'), ...(field ? [field] : [])); } }}>
     <label className="field">Kind<select value={kind} onChange={e => setKind(e.target.value as AccountKind)}><optgroup label="What you own">{ASSET_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup><optgroup label="What you owe">{DEBT_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup></select></label>
+    {/* Session AL (RR-2): an account counts toward net worth, not toward a goal; said where "Savings" invites it */(kind === 'cash' || kind === 'savings') && <p className="fine accounts-goal-note">An account counts toward net worth, not toward a goal. To count this money toward a goal, record it as a Cash asset instead (+ Add asset, then Cash), or from the goal’s What counts step.</p>}
     <label className="field">Name<input name="name" required maxLength={80} placeholder={isDebtKind(kind) ? 'For example, car loan' : 'For example, savings account'} /></label>
-    <label className="field">Currency<input name="currency" required maxLength={3} defaultValue="EUR" autoCapitalize="characters" {...fe.field('currency')} /></label>
+    <label className="field">Currency<input name="currency" required maxLength={3} key={startCurrency} defaultValue={startCurrency} autoCapitalize="characters" {...fe.field('currency')} /></label>
     <label className="field">Bank or provider (optional)<input name="institution" maxLength={80} /></label>
-    <label className="field">{isDebtKind(kind) ? 'What you owe now (optional)' : 'Balance now (optional)'}<input name="balance" inputMode="decimal" {...fe.field('balance')} /></label>
+    <label className="field">{isDebtKind(kind) ? 'What you owe now (optional)' : 'Balance now (optional)'}<input name="balance" inputMode="decimal" autoComplete="off" {...fe.field('balance', check.describedBy ? {describedBy: check.describedBy} : {})} onInput={check.clear} /></label>
+    <PlausibleCheck id={check.id} warning={check.warning} />
     <label className="field">On<input name="date" type="date" defaultValue={today} max={today} /></label>
     <label className="field">Yearly rate, your own figure (optional, %)<input name="rate" inputMode="decimal" /></label>
     <button type="submit" className="primary">Add</button>
@@ -124,9 +139,9 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
   </form>;
 }
 function AccountRow({account: a, today, open, setOpen, change, prefill}: {account: Account; today: string; open: 'balance' | 'payment' | 'edit' | null; setOpen: (mode: 'balance' | 'payment' | 'edit' | null) => void; change: (fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) => boolean; prefill?: {amount: string; date: string}}) {
-  const b = balanceOn(a), debt = isDebtKind(a.kind), usual = debt ? usualPayment(a, today) : null, [monthly, setMonthly] = useState(''), fe = useFieldErrors();
+  const b = balanceOn(a), debt = isDebtKind(a.kind), usual = debt ? usualPayment(a, today) : null, [monthly, setMonthly] = useState(''), fe = useFieldErrors(), [rateError, setRateError] = useState(''), check = usePlausibleCheck();
   // Session AH (WE7, B-152): the payoff calculator takes a payment above zero and up to a trillion, else it shows nothing.
-  const typedMonthly = monthly.trim() ? Number(monthly.replace(',', '.')) : NaN, monthlyBad = monthly.trim() !== '' && !(typedMonthly > 0 && !amountIssue(typedMonthly));
+  const typedMonthly = monthly.trim() ? readNumber(monthly) : NaN, monthlyBad = monthly.trim() !== '' && !(typedMonthly > 0 && !amountIssue(typedMonthly));
   const monthlyNumber = monthly.trim() ? (monthlyBad ? NaN : typedMonthly) : usual ? Number(moneyText(usual)) : NaN;
   const months = debt && b && a.ratePercent && Number.isFinite(monthlyNumber) ? payoffMonths(Number(moneyText(b)), Number(a.ratePercent), monthlyNumber) : undefined;
   const now = () => new Date().toISOString();
@@ -137,17 +152,20 @@ function AccountRow({account: a, today, open, setOpen, change, prefill}: {accoun
     {open && open !== 'edit' && <form key={open === 'balance' && prefill ? `prefill:${prefill.amount}:${prefill.date}` : open} className="platform-form accounts-inline" aria-label={open === 'balance' ? `New balance for ${a.name}` : `Payment on ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const m = toMoney(String(f.get('amount')), String(f.get('date') || today));
       // Session AH (WE7, L-067, B-199): a payment is above zero and never more than what is owed.
       if (open === 'payment') { if (BigInt(m.value) <= 0n) throw Error('Enter a payment above zero.'); if (b && Number(moneyText(m)) > Number(moneyText(b))) throw Error(`That is more than the ${moneyText(b)} ${a.currency} owed. Enter the payment you made, up to the balance.`); }
+      // Session AL (P-TK-49, TK-039, N-TK-12): a balance of a billion or more asks once before it is saved.
+      else if (!check.ask(`${a.id}:${moneyText(m)}`, plausibilityWarning(Number(moneyText(m)), a.currency, debt ? 'debt' : 'balance'))) { fe.clear(); return; }
       if (change(g => open === 'balance' ? recordBalance(g, a.id, m, now()) : recordPayment(g, a.id, m, now()), open === 'balance' ? `${a.name}: balance saved for ${formatDate(m.date)}.` : `${a.name}: payment recorded for ${formatDate(m.date)}. Enter the new balance when your statement shows it.`)) setOpen(null); fe.clear(); } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the amount.'), 'amount'); } }}>
-      <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" required defaultValue={open === 'balance' ? prefill?.amount : undefined} {...fe.field('amount')} /></label>
+      <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" autoComplete="off" required autoFocus defaultValue={open === 'balance' ? prefill?.amount : undefined} {...fe.field('amount', check.describedBy ? {describedBy: check.describedBy} : {})} onInput={check.clear} /></label>
+      <PlausibleCheck id={check.id} warning={check.warning} />
       <label className="field">On<input name="date" type="date" defaultValue={open === 'balance' && prefill ? prefill.date : today} max={today} /></label>
       <button type="submit" className="secondary">Save</button>
       {fe.error && <p role="alert" id={fe.messageId}>{fe.error}</p>}
     </form>}
-    {open === 'edit' && <form className="platform-form accounts-inline" aria-label={`Edit ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); const rate = String(f.get('rate') ?? '').trim().replace(',', '.'); if (change(g => editAccount(g, a.id, {name: String(f.get('name')).trim(), institution: String(f.get('institution') ?? '').trim() || null, ratePercent: rate || null}, now()), `${a.name} saved.`)) setOpen(null); }}>
-      <label className="field">Name<input name="name" required maxLength={80} defaultValue={a.name} /></label>
+    {open === 'edit' && <form className="platform-form accounts-inline" aria-label={`Edit ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let rate: string; try { rate = rateText(String(f.get('rate') ?? '')); } catch (cause) { setRateError(plainErrorMessage(cause, 'Check the rate.')); return; } setRateError(''); const newName = String(f.get('name')).trim(); if (change(g => editAccount(g, a.id, {name: newName, institution: String(f.get('institution') ?? '').trim() || null, ratePercent: rate || null}, now()), `${newName || a.name} saved.` /* Session AL (TK-005): the name as saved, not the old one */)) setOpen(null); }}>
+      <label className="field">Name<input name="name" required maxLength={80} defaultValue={a.name} autoFocus /* Session AL (TK-129, TK-138): Edit puts the focus in Name */ /></label>
       <label className="field">Bank or provider<input name="institution" maxLength={80} defaultValue={a.institution ?? ''} /></label>
-      <label className="field">Yearly rate, your own figure (%)<input name="rate" inputMode="decimal" defaultValue={a.ratePercent ?? ''} /></label>
-      <div className="actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={() => { if (change(g => editAccount(g, a.id, {archived: true}, now()), `${a.name} archived; its history is kept.`, {fn: g => editAccount(g, a.id, {archived: false}, now()), done: `${a.name} is back.`})) setOpen(null); }}>Archive</button></div>
+      <label className="field">Yearly rate, your own figure (%)<input name="rate" inputMode="decimal" autoComplete="off" defaultValue={a.ratePercent ?? ''} aria-invalid={rateError ? true : undefined} aria-describedby={rateError ? `${fe.messageId}-rate` : undefined} /></label>{rateError && <p className="field-error" role="alert" id={`${fe.messageId}-rate`}>{rateError}</p>}
+      <div className="actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={() => { if (change(g => editAccount(g, a.id, {archived: true}, now()), `${a.name} archived; its history is kept.`, {fn: unarchiveAccount(a.id), done: `${a.name} is back.`})) setOpen(null); }}>Archive</button></div>
     </form>}
     {debt && b && b.value > 0n && <details className="accounts-payoff"><summary>When would it be paid off?</summary>
       {a.ratePercent ? <><label className="field">Monthly payment ({a.currency}){usual ? `, usual: ${moneyText(usual)}` : ''}<input inputMode="decimal" value={monthly} onChange={e => setMonthly(e.target.value)} placeholder={usual ? moneyText(usual) : 'for example 250'} /></label>

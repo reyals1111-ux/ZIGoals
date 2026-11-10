@@ -40,6 +40,19 @@ export function localReview(env: ToolEnv): LocalReview | null {
     lastIntention: typeof d.lastIntention === 'string' && d.lastIntention !== 'none written' ? d.lastIntention : null, state: String(d.review ?? 'due'),
   };
 }
+/**
+ * Session AL final pass (Z-061): the review's line about planned days, read with the table under it. "Every day with a habit
+ * planned had a check-in" stood above a table of skipped days: a day counts once any habit has a check-in, so the line now
+ * says when habits were still skipped or left without a check-in on those days (counts, never a grade).
+ */
+export function plannedDaysLine(review: Pick<LocalReview, 'quietDays' | 'habits'>): string {
+  if (review.quietDays.length) return `Days with a habit planned and no check-in: ${review.quietDays.length} (${review.quietDays.join(', ')}).`;
+  const skipped = review.habits.reduce((n, h) => n + h.skipped, 0), open = review.habits.reduce((n, h) => n + Math.max(0, h.scheduled - h.done - h.skipped), 0);
+  if (!skipped && !open) return 'Every planned habit day had its check-in.';
+  const days = (n: number) => `${n} planned habit ${n === 1 ? 'day' : 'days'}`;
+  const parts = [skipped && `${days(skipped)} ${skipped === 1 ? 'was' : 'were'} skipped`, open && `${days(open)} had no check-in`].filter(Boolean).join(' and ');
+  return `Each day with a habit planned had at least one check-in, but not every habit did: ${parts} (each habit is in the table below).`;
+}
 /** What the person's AI receives for a reflection: the same figures, made again under that path's gates. */
 export function reviewForAi(env: ToolEnv): string | null {
   const result = runTool('weekly_review', {}, env);

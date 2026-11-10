@@ -1,0 +1,16 @@
+/* Session AL Part 12 (owner decision O2): the placeholder Plans page (app/app/plans/page.tsx), its badge and Settings row. */
+.plans-route { display: grid; gap: 18px; }
+.plans-placeholder { margin: 0; padding: 12px 16px; border: 1px solid #ffd27a55; border-radius: 14px; background: linear-gradient(110deg, #2a1d0a99, #1a1438aa); color: var(--text); font-size: 16px; font-weight: 600; }
+.plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 18px; }
+.plan-card { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.plan-card h2 { margin: 0; font-size: 24px; }
+.plan-price { margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.plan-price strong { font-size: 40px; line-height: 1.1; background: var(--nebula-emphasis, linear-gradient(110deg, #63e7ff, #826cff 60%, #ff74be)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.plan-price span { color: var(--muted); font-size: 15px; }
+.plan-note { margin: 0; color: var(--muted); font-size: 15px; }
+.plan-includes { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 16px; line-height: 1.45; }
+.plan-free { margin: auto 0 0; padding-top: 8px; color: var(--brand-cyan, #63e7ff); }
+.plans-facts ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; line-height: 1.5; }
+.plans-links { margin: 12px 0 0; }
+.plans-links .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+@media (forced-colors: active) { .plan-price strong { color: CanvasText; background: none; } }

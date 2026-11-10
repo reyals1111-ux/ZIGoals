@@ -25,7 +25,8 @@ async function mockServers(page: Page, sent: Sent[] = []) {
   await page.route(`${OLLAMA}/**`, route => {
     const url = route.request().url();
     if (url.endsWith('/api/version')) return json(route, {version: '0.30.0'});
-    if (url.endsWith('/api/tags')) return json(route, {models: [{name: 'qwen3.5:9b', model: 'qwen3.5:9b'}, {name: 'gemma4:31b-cloud', remote_host: 'https://ollama.com:443', remote_model: 'gemma4:31b'}]});
+    // Session AL (BN-035): a real Ollama /api/tags shape (modified_at, size, digest, details.format), which the brain check now requires.
+    if (url.endsWith('/api/tags')) return json(route, {models: [{name: 'qwen3.5:9b', model: 'qwen3.5:9b', modified_at: '2026-10-30T09:00:00Z', size: 6_600_000_000, digest: 'a'.repeat(64), details: {format: 'gguf'}}, {name: 'gemma4:31b-cloud', modified_at: '2026-10-30T09:00:00Z', remote_host: 'https://ollama.com:443', remote_model: 'gemma4:31b'}]});
     return route.fulfill({status: 404, body: ''});
   });
   await page.route(`${LMSTUDIO}/**`, route => route.request().url().endsWith('/v1/models') ? json(route, {data: [{id: 'qwen3.5-9b'}]}) : route.fulfill({status: 404, body: ''}));

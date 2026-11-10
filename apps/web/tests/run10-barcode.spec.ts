@@ -14,8 +14,11 @@ for(const cameraError of ['OverconstrainedError','NotFoundError'] as const)test(
   Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:async()=>{throw new DOMException('Requested device not found',cameraError);}});
  },cameraError);
  await page.route('**/api/food-lookup?*',route=>route.fulfill({status:404,json:{error:'NOT_FOUND'}}));await page.goto('/app/health');await page.getByText('Scan or look up a food barcode',{exact:true}).click();const area=page.getByRole('region',{name:'Barcode food lookup'});
- await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area).toContainText('Rear camera unavailable');await area.getByLabel('Product barcode',{exact:true}).fill('00001234');await area.getByRole('button',{name:'Look up barcode',exact:true}).click();await expect(area).toContainText('Product not found');
- await page.route('**/api/food-lookup?*',route=>route.fulfill({status:429,json:{error:'TRY_LATER'}}));await area.getByRole('button',{name:'Look up barcode',exact:true}).click();await expect(area).toContainText('cooling down');await expect(page.getByRole('button',{name:'Foods & recipes',exact:true})).toBeEnabled();
+// Session AL fifth pass (MO-107): 00001236 has a valid EAN-8 check digit (00001234 is now refused before the lookup).
+ await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area).toContainText('Rear camera unavailable');await area.getByLabel('Product barcode',{exact:true}).fill('00001236');await area.getByRole('button',{name:'Look up barcode',exact:true}).click();
+ // Session AL (P-MO-63; MO-007, MO-107, deliberate): the not-found line echoes the code and offers to add it yourself.
+ await expect(area).toContainText('Barcode 00001236 was not found in the food databases.');await expect(area.getByRole('heading',{name:'Add it yourself'})).toBeVisible();
+ await page.route('**/api/food-lookup?*',route=>route.fulfill({status:429,json:{error:'TRY_LATER'}}));await area.getByRole('button',{name:'Look up barcode',exact:true}).click();await expect(area).toContainText('cooling down');await expect(page.getByRole('tab',{name:'Foods & recipes',exact:true})).toBeEnabled();
 });
 test('unavailable camera API leaves typed barcode entry usable',async({page})=>{
  await page.addInitScript(()=>{Object.defineProperty(navigator,'mediaDevices',{value:undefined,configurable:true});});
@@ -35,7 +38,7 @@ test('camera is explicit and stops all tracks on cancel and navigation',async({p
  expect(await page.evaluate(()=>(window as unknown as {barcodeTestState:{requests:number}}).barcodeTestState.requests)).toBe(0);
  await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area.getByRole('button',{name:'Stop camera'})).toBeVisible();await area.getByRole('button',{name:'Stop camera'}).click();
  expect(await page.evaluate(()=>(window as unknown as {barcodeTestState:{stops:number}}).barcodeTestState.stops)).toBe(1);
- await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area.getByRole('button',{name:'Stop camera'})).toBeVisible();await page.getByRole('button',{name:'Weight',exact:true}).click();
+ await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area.getByRole('button',{name:'Stop camera'})).toBeVisible();await page.getByRole('tab',{name:'Weight',exact:true}).click();
  expect(await page.evaluate(()=>(window as unknown as {barcodeTestState:{stops:number}}).barcodeTestState.stops)).toBe(2);
 });
 test('closing the barcode panel stops its camera track',async({page})=>{
@@ -159,7 +162,7 @@ test('an older scan cannot attach its stopped stream after a newer scan starts',
 test('a lookup answered 429 is disabled for its retryAfter with a plain countdown, then announced as available',async({page})=>{
  let calls=0;await page.route('**/api/food-lookup?*',route=>{calls++;return route.fulfill({status:429,headers:{'Retry-After':'3'},json:{error:'TRY_LATER',retryAfter:3}});});
  await page.goto('/app/health');await page.getByText('Scan or look up a food barcode',{exact:true}).click();const area=page.getByRole('region',{name:'Barcode food lookup'});
- await area.getByLabel('Product barcode',{exact:true}).fill('00001234');const button=area.getByRole('button',{name:'Look up barcode',exact:true});await button.click();
+ await area.getByLabel('Product barcode',{exact:true}).fill('00001236');const button=area.getByRole('button',{name:'Look up barcode',exact:true});await button.click();
  await expect(area.getByRole('status')).toHaveText('Lookup is cooling down. You can look up again in 3 s. Your private food library still works.');
  await expect(button).toBeDisabled();await expect(area.getByText(/^Available again in [1-3] s$/)).toBeVisible();
  await expect(button).toBeEnabled({timeout:7000});await expect(area.getByRole('status')).toHaveText('Lookup is available again.');

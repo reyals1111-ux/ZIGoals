@@ -23,8 +23,8 @@ export const LOCAL_SERVERS: readonly LocalServer[] = [
 export const LLAMA_CPP_DEFAULT = 'http://127.0.0.1:9931';
 export type ScanModel = {id: string; cloud: boolean};
 export type ScanResult =
-  | {server: LocalServer; found: true; models: ScanModel[]}
-  | {server: LocalServer; found: false; reason: 'unreachable' | 'origin' | 'key' | 'refused' | 'unreadable'; message: string};
+  | {server: LocalServer; found: true; models: ScanModel[]; version?: string}
+  | {server: LocalServer; found: false; reason: 'unreachable' | 'origin' | 'key' | 'refused' | 'unreadable' | 'not-ollama'; message: string};
 export const PROBE_MS = 3000;
 function timed(signal: AbortSignal | undefined, ms: number): {signal: AbortSignal; done: () => void} {
   const controller = new AbortController(), timer = setTimeout(() => controller.abort(), ms);
@@ -37,16 +37,81 @@ export function ollamaCloudNames(tags: unknown): Set<string> {
   if (Array.isArray(models)) for (const m of models) { const e = (m ?? {}) as Record<string, unknown>, name = typeof e.name === 'string' ? e.name : typeof e.model === 'string' ? e.model : null; if (name && (e.remote_host || e.remote_model)) out.add(name); }
   return out;
 }
-/** One server: its chat models through ZIGi's own listing, each marked cloud when Ollama runs it on ollama.com. */
-export async function probeServer(server: LocalServer, {fetcher, signal, ms = PROBE_MS, key = null}: {fetcher?: typeof fetch; signal?: AbortSignal; ms?: number; key?: string | null} = {}): Promise<ScanResult> {
-  const t = timed(signal, ms);
+/**
+ * Session AL (lane L7; BN-035, BN-036, N-BN-15): a server on port 11434 is accepted as Ollama only when it answers like
+ * Ollama. A mock that answered /api/version with "0.0.0-mock" and /api/tags with a bare "mock:latest" got a green check and
+ * the person's records. Ollama's own answers (docs.ollama.com/api, read 4 Nov 2026): /api/version is {"version": "0.x.y"};
+ * /api/tags is {"models": [{name, model, modified_at, size, digest, details: {format, family, parameter_size,
+ * quantization_level}}]}. A model Ollama runs on ollama.com carries `remote_host` and may have no size or digest.
+ * Shape is not proof (a careful imitation still passes), so the setup also shows the address and the version it found.
+ */
+export const NOT_OLLAMA = (baseUrl: string) => `Something answered at ${baseUrl.replace(/^https?:\/\//, '')}, but it is not Ollama: its version or model list does not look like Ollama’s. Check that port ${(/:(\d+)/.exec(baseUrl.replace(/^https?:\/\//, ''))?.[1]) ?? '11434'} runs Ollama itself (close the other program, or start Ollama with “ollama serve”), then try again. Nothing was sent to it.`;
+const VERSION = /^(?:0|[1-9]\d{0,2})\.\d{1,4}\.\d{1,4}(?:[-+][0-9A-Za-z.-]+)?$/;
+export function ollamaVersionOk(body: unknown): string | null {
+  const v = (body as {version?: unknown} | null)?.version;
+  if (typeof v !== 'string' || !VERSION.test(v.trim())) return null;
+  if (/^0\.0\.0\b/.test(v) || /mock|fake|test|stub/i.test(v)) return null;
+  return v.trim();
+}
+export function ollamaTagsOk(body: unknown): boolean {
+  const models = (body as {models?: unknown} | null)?.models;
+  if (!Array.isArray(models)) return false;
+  return models.every(m => {
+    const e = (m ?? {}) as Record<string, unknown>, d = e.details as Record<string, unknown> | undefined;
+    if (typeof e.name !== 'string' || !e.name || typeof e.modified_at !== 'string' || Number.isNaN(Date.parse(e.modified_at))) return false;
+    if (e.remote_host || e.remote_model) return true; // a cloud model: no local blob
+    return typeof e.size === 'number' && e.size > 0 && typeof e.digest === 'string' && /^(?:sha256:)?[a-f0-9]{64}$/.test(e.digest) && !!d && typeof d === 'object' && typeof d.format === 'string';
+  });
+}
+/** Whether the server at `baseUrl` answers like Ollama: its version (when it is) or null with the reason in `NOT_OLLAMA`. */
+export async function verifyOllama(baseUrl: string, {fetcher, signal}: {fetcher?: typeof fetch; signal?: AbortSignal} = {}): Promise<{ok: true; version: string} | {ok: false; message: string}> {
+  const f = fetcher ?? ((i: RequestInfo | URL, init?: RequestInit) => fetch(i, init)), init: RequestInit = {signal, cache: 'no-store', credentials: 'omit', mode: 'cors'};
   try {
-    const list = await listModels({provider: 'local', baseUrl: server.baseUrl, localServer: server.wire, key, signal: t.signal, fetcher});
-    let cloud = new Set<string>();
-    if (server.wire === 'ollama') {
-      try { const f = fetcher ?? ((i: RequestInfo | URL, init?: RequestInit) => fetch(i, init)); const r = await f(`${server.baseUrl}/api/tags`, {signal: t.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}); if (r.ok) cloud = ollamaCloudNames(await r.json()); } catch { /* the names alone then */ }
+    const [v, t] = await Promise.all([f(`${baseUrl}/api/version`, init), f(`${baseUrl}/api/tags`, init)]);
+    if (!v.ok || !t.ok) return {ok: false, message: NOT_OLLAMA(baseUrl)};
+    const version = ollamaVersionOk(await v.json());
+    if (!version || !ollamaTagsOk(await t.json())) return {ok: false, message: NOT_OLLAMA(baseUrl)};
+    return {ok: true, version};
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    return {ok: false, message: NOT_OLLAMA(baseUrl)};
+  }
+}
+/** One server: its chat models through ZIGi's own listing, each marked cloud when Ollama runs it on ollama.com. */
+/** `verify` (Session AL, BN-035): the setup's scan checks that Ollama's port really runs Ollama before it is offered. */
+/**
+ * Session AL final pass (LA-012): one probe sends each request once. A plain GET asked again in the same probe (Ollama's
+ * /api/tags: the model list, the Ollama check and the cloud names) is answered from the first response, cloned.
+ */
+function onceEach(fetcher: typeof fetch | undefined): typeof fetch {
+  const base = fetcher ?? ((i: RequestInfo | URL, init?: RequestInit) => fetch(i, init)), seen = new Map<string, Promise<Response>>();
+  return ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, key = `${init?.mode ?? 'cors'} ${url}`;
+    if ((init?.method ?? 'GET').toUpperCase() !== 'GET' || init?.headers) return base(input, init);
+    const first = seen.get(key);
+    if (first) return first.then(r => typeof r.clone === 'function' ? r.clone() : base(input, init));
+    const made = base(input, init); seen.set(key, made); made.catch(() => seen.delete(key));
+    return made.then(r => typeof r.clone === 'function' ? r.clone() : r);
+  }) as typeof fetch;
+}
+export async function probeServer(server: LocalServer, {fetcher: given, signal, ms = PROBE_MS, key = null, verify = false}: {fetcher?: typeof fetch; signal?: AbortSignal; ms?: number; key?: string | null; verify?: boolean} = {}): Promise<ScanResult> {
+  const t = timed(signal, ms), fetcher = onceEach(given);
+  try {
+    // Session AL final pass (LA-012): one opaque knock first (nothing is read from it). Nothing answering is said at once,
+    // so a scan with no server running sends one request per server (it sent two: the list, then this knock).
+    if (!(await answersOpaquely(server, fetcher, t.signal))) return {server, found: false, reason: 'unreachable', message: signal?.aborted ? 'Stopped.' : 'Nothing answered at that address.'};
+    const list = await listModels({provider: 'local', baseUrl: server.baseUrl, localServer: server.wire, key, signal: t.signal, fetcher: given}); // its own fetcher (models.ts keeps the cloud names only for the real one)
+    let cloud = new Set<string>(), version: string | undefined;
+    if (server.wire === 'ollama' && verify) {
+      // Session AL (BN-035): only a server that answers like Ollama is offered as Ollama.
+      const real = await verifyOllama(server.baseUrl, {fetcher, signal: t.signal});
+      if (!real.ok) return {server, found: false, reason: 'not-ollama', message: real.message};
+      version = real.version;
     }
-    return {server, found: true, models: list.filter(m => m.kind === 'chat').map(m => ({id: m.id, cloud: m.cloud === true || cloud.has(m.id) || isOllamaCloudModel(m.id)}))};
+    if (server.wire === 'ollama') {
+      try { const f = fetcher; const r = await f(`${server.baseUrl}/api/tags`, {signal: t.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}); if (r.ok) cloud = ollamaCloudNames(await r.json()); } catch { /* the names alone then */ }
+    }
+    return {server, found: true, ...(version ? {version} : {}), models: list.filter(m => m.kind === 'chat').map(m => ({id: m.id, cloud: m.cloud === true || cloud.has(m.id) || isOllamaCloudModel(m.id)}))};
   } catch (error) {
     const kind = error instanceof AiError ? error.kind : 'local-unreachable';
     // Session AK lane P7 (EX3-3): the scan sends no key, so a 401/403 "bad key" means the server asks for one (LM Studio's
@@ -57,8 +122,8 @@ export async function probeServer(server: LocalServer, {fetcher, signal, ms = PR
     if (kind === 'aborted' && signal?.aborted) return {server, found: false, reason: 'unreachable', message: 'Stopped.'};
     // EX3-3: a server that refuses this site's origin and no server at all look the same to a normal request (the browser
     // hides the answer); one no-cors request (an opaque answer, nothing read from it) tells them apart, as the Hermes test does.
-    if (await answersOpaquely(server, fetcher, t.signal)) return {server, found: false, reason: 'origin', message: ORIGIN_FIX[server.id]};
-    return {server, found: false, reason: 'unreachable', message: 'Nothing answered at that address.'};
+    // LA-012: the opaque knock above already answered, so the server is there and refuses this site.
+    return {server, found: false, reason: 'origin', message: ORIGIN_FIX[server.id]};
   } finally { t.done(); }
 }
 /** What to change when a server is running but does not allow this site yet (each program's own setting). */
@@ -75,8 +140,17 @@ async function answersOpaquely(server: LocalServer, fetcher: typeof fetch | unde
   return f(`${server.baseUrl}${server.wire === 'ollama' ? '/api/version' : '/v1/models'}`, {signal, cache: 'no-store', credentials: 'omit', mode: 'no-cors'}).then(() => true, () => false);
 }
 /** Every known server, side by side; never more than one request in flight per server. */
-export async function scanLocalServers(options: {fetcher?: typeof fetch; signal?: AbortSignal; ms?: number; servers?: readonly LocalServer[]} = {}): Promise<ScanResult[]> {
+export async function scanLocalServers(options: {fetcher?: typeof fetch; signal?: AbortSignal; ms?: number; servers?: readonly LocalServer[]; verify?: boolean} = {}): Promise<ScanResult[]> {
   return Promise.all((options.servers ?? LOCAL_SERVERS).map(server => probeServer(server, options)));
+}
+/**
+ * Session AL Part 14 (lane P14-B; EXPLORATORY_ROUND3 left-over 2): the short status beside a scan's line in NOVA's right
+ * panel. A server that answered but refused this site, asked for a key, or sent a list that could not be read is running:
+ * "Running", never "Offline"; only nothing answering is "Offline". `on`: the server answered at all.
+ */
+export function scanStatus(result: ScanResult): {word: 'Online' | 'Running' | 'Offline'; on: boolean} {
+  if (result.found) return {word: 'Online', on: true};
+  return result.reason === 'unreachable' ? {word: 'Offline', on: false} : {word: 'Running', on: true};
 }
 /** One plain line per scan: "Ollama: 3 models (1 runs on ollama.com)" or "LM Studio: not running". */
 export function scanLine(result: ScanResult): string {

@@ -10,3 +10,6 @@
 .habit-time-suggest .fine { margin: 0; }
 .habit-time-suggest .actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
 .habit-time-suggest .actions > button { min-height: 44px; }
+/* Session AL Part 15 (AL-COMPETITOR-GAP-100): the habit's why, in Details and on the card. */
+.habit-intention-why { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; overflow-wrap: anywhere; }
+.habit-intention-why-field { grid-column: 1 / -1; }

@@ -9,7 +9,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -31,6 +31,8 @@ export type PlanInput = {
   supplements?: {id: string; time: string; weekdays: number; doneToday: boolean}[];
   /** Owner follow-up 1 (F4): the governance reminders the person set on a proposal (its own opt-in): when to remind, nothing else. */
   votes?: {id: string; at: number}[];
+  /** Session AL sweep 4 (C-DVG-68, C-BN-06): unstaked ZIG back today, a validator not earning (lib/notify/staking-items.ts). */
+  staking?: {kind: 'unbonding' | 'validator'; id: string; date: string}[];
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -90,6 +92,14 @@ export function buildPlan(input: PlanInput): Plan {
     if (at < now) { if (day !== today || inQuiet(wallClock(now, zone).time, quiet)) continue; at = Math.ceil(now / 60000) * 60000; }
     once.set(Math.floor(at / 60000), 'vote');
     push({at, kind: 'vote', id: v.id, href: '/app/governance', actionable: false});
+  }
+  // Session AL sweep 4 (C-DVG-68, C-BN-06): staking items sit at the morning time of their day (the end of quiet hours
+  // when the morning is quiet) and ride the wakes already planned: they add no wake minute, so what the push Worker gets
+  // is unchanged. Never labelled.
+  for (const s of input.staking ?? []) {
+    if (s.date < today) continue;
+    const time = inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs);
+    push({at: zonedInstant(s.date, time, zone), kind: s.kind, id: s.id, href: s.kind === 'unbonding' ? '/app/earn#staking-clarity' : '/app/staking', actionable: false});
   }
   // Wakes: one per minute of the day, its weekday masks joined; skips: today's instants whose items are all done.
   const byMinute = new Map<number, number>();

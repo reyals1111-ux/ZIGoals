@@ -102,10 +102,13 @@ test.describe('on the Showcase', () => {
       await expect(rows).toHaveCount(total - 1);
       await expect(links).not.toContainText(leftOut);
       const first = rows.first(), milestone = (await first.locator('strong').first().textContent())!;
+      // Session AL (COPY_AUDIT, deliberate): DV-019g/P-DV-130, the habit links wait folded and a milestone asks for a habit on demand.
+      await links.locator('summary').click();
+      await first.getByRole('button', {name: 'Link a habit', exact: true}).click();
       const select = first.getByRole('combobox', {name: `Habit for “${milestone}”`});
       const habit = (await select.locator('option').nth(1).textContent())!;
       await select.selectOption({label: habit});
-      await first.getByRole('button', {name: 'Link'}).click();
+      await first.getByRole('button', {name: 'Link', exact: true}).click();
       await expect(page.getByText(`${habit} now works toward “${milestone}”.`)).toBeVisible();
       await expect(first.getByRole('button', {name: `Unlink ${habit} from ${milestone}`})).toBeVisible();
       await page.reload(); await hydrated(page);

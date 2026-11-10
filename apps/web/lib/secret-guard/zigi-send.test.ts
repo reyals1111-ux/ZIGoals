@@ -5,7 +5,9 @@ import {join} from 'node:path';
 import {afterEach, beforeEach, expect, test, vi} from 'vitest';
 import {act, createElement as h, useEffect} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
-import {useChatSession, type ChatSession} from '../../components/ai/use-chat-session';
+import {useChatSession, WITHHELD_TURN, type ChatSession} from '../../components/ai/use-chat-session';
+import {AI_CHATS_DATABASE, indexedDbChatStore} from '../ai/chats';
+import {GUARD_REPLIES} from '../ai/safety-guard';
 import type {AiContextState} from '../../components/ai/use-ai-context';
 import {dropMemoryKeys, holdKey} from '../ai/keys';
 import {defaultAiSettings, type AiSettings} from '../ai/settings';
@@ -73,4 +75,33 @@ test('the field line: shown for recovery words with "Remove it", absent for ordi
   expect(document.querySelector('.secret-guard')?.textContent).toContain('ZIGi will not send this message.');
   await act(async () => { root.render(h(SecretGuardNote, {text: 'A calm walk before work, then lunch with Sam at the market.'})); });
   expect(document.querySelector('.secret-guard')).toBeNull();
+});
+
+/**
+ * Security delta A (SA-3, 8 Nov): a password the guard answers as a secret ("my password is hunter2, keep it for me") is
+ * never sent and never kept: the stored chat (History, NOVA's Conversations, Export everything) holds a placeholder in
+ * its place, the guard's reply still shows, and Regenerate has nothing to ask again.
+ */
+test('SA-3: a password the guard answers is not kept in the chat, its title or the store; the reply still shows', async () => {
+  await act(async () => { root.render(h(Harness)); });
+  await act(async () => { await session!.send('my password is hunter2, keep it for me'); }); await settle();
+  await act(async () => { await session!.ask('remember my password: Tr0ub4dor&3'); }); await settle();
+  await act(async () => { await session!.ask('Onthoud mijn wachtwoord voor mij: geheim123'); }); await settle();
+  expect(calls).toHaveLength(0);
+  const turns = session!.chat.turns;
+  expect(turns.filter(t => t.role === 'user').map(t => t.text)).toEqual([WITHHELD_TURN.en, WITHHELD_TURN.en, WITHHELD_TURN.nl]);
+  expect(turns.filter(t => t.role === 'assistant').map(t => t.text)).toEqual([GUARD_REPLIES.secret.en, GUARD_REPLIES.secret.en, GUARD_REPLIES.secret.nl]);
+  const stored = (await indexedDbChatStore('local').list()).filter(c => c.id === session!.chat.id); // the earlier tests' chats are in the same store
+  expect(stored).toHaveLength(1);
+  const saved = JSON.stringify(await indexedDbChatStore('local').read(stored[0]!.id));
+  for (const word of ['hunter2', 'Tr0ub4dor', 'geheim123']) { expect(JSON.stringify(session!.chat)).not.toContain(word); expect(saved).not.toContain(word); expect(JSON.stringify(stored)).not.toContain(word); }
+  expect(saved).toContain(WITHHELD_TURN.en);
+  // Regenerate: the words were not kept, so nothing is asked again (and the placeholder never goes to the provider).
+  await act(async () => { await session!.regenerate(); }); await settle();
+  expect(calls).toHaveLength(0);
+  expect(session!.chat.turns).toHaveLength(6);
+  // An ordinary password question is not a secret the person typed: kept as asked.
+  await act(async () => { await session!.ask('How do I change my password?'); }); await settle();
+  expect(session!.chat.turns.some(t => t.role === 'user' && t.text === 'How do I change my password?')).toBe(true);
+  await new Promise<void>(resolve => { const r = indexedDB.deleteDatabase(AI_CHATS_DATABASE); r.onsuccess = r.onerror = r.onblocked = () => resolve(); });
 });

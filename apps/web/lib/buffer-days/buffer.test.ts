@@ -41,9 +41,14 @@ describe('buffer days (Session AK lane M, item 11)', () => {
   });
   test('a cash account without a balance makes it "at least"; archived accounts and other currencies stay out', () => {
     const rows = bufferDays(accounts(account('cash', 'EUR', [['2026-10-01', '60000', 2]]), account('savings', 'EUR'), account('cash', 'EUR', [['2026-10-01', '999999', 2]], true), account('cash', 'USD', [['2026-10-01', '100', 2]])), month, today);
-    expect(rows.map(r => r.currency)).toEqual(['EUR', 'USD']);
+    // Session AL (A10-6, deliberate change): the spending in this window is all EUR, so the USD cash account no longer gets
+    // its own "log your USD spending" row (the review's Showcase case). Equally strict: the rows are exactly EUR, and USD
+    // comes back as its own row once USD spending is logged (below).
+    expect(rows.map(r => r.currency)).toEqual(['EUR']);
     expect(bufferSentence(rows[0]!)).toBe('Your cash covers at least 30 days of your usual spending.');
-    expect(rows[1]).toMatchObject({known: false, reason: 'short-history'});
+    const both = bufferDays(accounts(account('cash', 'EUR', [['2026-10-01', '60000', 2]]), account('cash', 'USD', [['2026-10-01', '100', 2]])), [...month, spend(-3, '2.00', 'USD')], today);
+    expect(both.map(r => r.currency)).toEqual(['EUR', 'USD']);
+    expect(both[1]).toMatchObject({known: false, reason: 'short-history'});
   });
   test('the trend compares with 30 days ago, when that is known', () => {
     const older = Array.from({length: 30}, (_, i) => spend(-30 - i, '10.00'));
@@ -70,5 +75,22 @@ describe('buffer days (Session AK lane M, item 11)', () => {
     // Income days never count as spending days.
     const incomeDays = Array.from({length: 20}, (_, i) => spend(-i, '100.00', 'USD', 'income'));
     expect(bufferDays(cash(), [...incomeDays, spend(0, '42.10', 'USD')], today)[0]).toMatchObject({known: false, reason: 'short-history'});
+  });
+  test('Session AL (A10-6): spending in EUR with cash accounts in USD names both currencies; unknown stays unknown', () => {
+    const usd = accounts(account('cash', 'USD', [['2026-10-01', '243000', 2]]), account('savings', 'USD', [['2026-10-01', '1045000', 2]]), account('loan', 'USD', [['2026-10-01', '691100', 2]]));
+    const rows = bufferDays(usd, month, today);
+    expect(rows).toEqual([{currency: 'EUR', known: false, reason: 'no-cash', missingBalances: 0, cashIn: ['USD']}]);
+    expect(bufferSentence(rows[0]!)).toBe('This cannot be worked out yet: your spending is logged in EUR, and your cash and savings accounts are in USD. Currencies are never converted, so add a cash or savings account in EUR with its balance.');
+    expect(bufferSentence(rows[0]!)).not.toMatch(/USD spending/);
+    // A EUR cash account with its balance makes the EUR buffer known.
+    const known = bufferDays(accounts(...usd.items, account('cash', 'EUR', [['2026-10-01', '60000', 2]])), month, today);
+    expect(known).toHaveLength(1);
+    expect(known[0]).toMatchObject({currency: 'EUR', known: true, days: 30});
+    // A EUR cash account without a balance is the plain "add a balance" line, with no other currency named.
+    const noBalance = bufferDays(accounts(...usd.items, account('cash', 'EUR')), month, today)[0]!;
+    expect(noBalance).toMatchObject({currency: 'EUR', reason: 'no-cash', missingBalances: 1});
+    expect(noBalance).not.toHaveProperty('cashIn');
+    // No spending at all in the window: one row per cash currency, as before.
+    expect(bufferDays(usd, [], today).map(r => [r.currency, r.known ? 'known' : r.reason])).toEqual([['USD', 'short-history']]);
   });
 });

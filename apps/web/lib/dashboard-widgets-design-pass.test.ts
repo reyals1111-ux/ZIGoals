@@ -55,7 +55,8 @@ test('top holding share stays inside one currency and flags incomplete coverage'
 
 test('exercise counters today: each counter separately, and no entry is never zero',()=>{
  const s=source();
- expect(widgetMetric(widget('exercise','counts'),s)).toMatchObject({value:'0 of 3 counted',facts:[{label:'Push-ups',value:'No entry'},{label:'Pull-ups',value:'No entry'},{label:'Squats',value:'No entry'}]});
+ // Session AL (Part 13, deliberate): nothing counted yet is said in words, never a measured "0 of 3".
+ expect(widgetMetric(widget('exercise','counts'),s)).toMatchObject({value:'Nothing counted yet today',facts:[{label:'Push-ups',value:'No entry'},{label:'Pull-ups',value:'No entry'},{label:'Squats',value:'No entry'}]});
  s.health=changeCount(changeCount(s.health,DEFAULT_COUNTERS[0]!.id,today,12),DEFAULT_COUNTERS[2]!.id,today,1);
  s.health=changeCount(s.health,DEFAULT_COUNTERS[2]!.id,today,-1);
  expect(widgetMetric(widget('exercise','counts'),s)).toMatchObject({value:'2 of 3 counted',facts:[{label:'Push-ups',value:'12'},{label:'Pull-ups',value:'No entry'},{label:'Squats',value:'0'}]});

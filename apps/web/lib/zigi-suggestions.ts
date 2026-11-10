@@ -1,5 +1,7 @@
 import * as z from 'zod';
 import type {DeviceRecordSpec} from './device-record';
+import {cardNumberIn} from './ai/safety-guard';
+import {looksSecret} from './secret-guard/guard';
 import {ZIGI_SUGGESTIONS_KEY} from './z-device-keys';
 
 /**
@@ -60,16 +62,24 @@ export const mentionsHealth = (text: string): boolean => HEALTH.test(text.normal
 const recent = (asks: readonly number[], now: number) => asks.filter(at => at <= now && now - at < WINDOW_MS);
 
 /**
- * The record after the person asked `text` at `now`. Nothing changes for a non-question or for a Health question while
- * Health is not shared. Keeps at most 200 questions: the least recently asked go first,
+ * Security delta A (SA-2, 8 Nov): words the chat refuses before anything is stored or sent (recovery words, a private
+ * key, a payment card number) are never kept as an ask, whoever calls `recordAsk` (defence in depth behind
+ * components/ai/ask-record.ts `keepsAsAsk`); one kept by an earlier build is dropped on the next write and never shown.
+ */
+const refused = (text: string) => looksSecret(text) || cardNumberIn(text);
+
+/**
+ * The record after the person asked `text` at `now`. Nothing changes for a non-question, for refused words (above) or for
+ * a Health question while Health is not shared. Keeps at most 200 questions: the least recently asked go first,
  * never a pinned one.
  */
 export function recordAsk(record: SuggestionsRecord, text: string, now: number, {healthShared}: {healthShared: boolean}): SuggestionsRecord {
   const key = normaliseQuestion(text);
-  if (!key) return record;
+  if (!key || refused(text)) return record;
   const health = mentionsHealth(text);
   if (health && !healthShared) return record;
   const questions = {...record.questions ?? {}};
+  for (const [k, e] of Object.entries(questions)) if (refused(e.text)) delete questions[k];
   const current = questions[key];
   const asks = [...recent(current?.asks ?? [], now), now].slice(-MAX_ASKS);
   const promoted = current?.promotedAt ?? (asks.length >= PROMOTE_AT ? now : undefined);
@@ -87,7 +97,7 @@ export type ShownSuggestion = {key: string; text: string; pinned: boolean};
 export function shownSuggestions(record: SuggestionsRecord, {healthShared}: {healthShared: boolean}): ShownSuggestion[] {
   const last = (e: SuggestionEntry) => Math.max(e.promotedAt ?? 0, ...e.asks);
   return Object.entries(record.questions ?? {})
-    .filter(([, e]) => e.promotedAt !== undefined && (healthShared || !e.health))
+    .filter(([, e]) => e.promotedAt !== undefined && (healthShared || !e.health) && !refused(e.text))
     .sort(([, a], [, b]) => Number(!!b.pinned) - Number(!!a.pinned) || last(b) - last(a))
     .slice(0, MAX_SHOWN)
     .map(([key, e]) => ({key, text: e.text, pinned: !!e.pinned}));

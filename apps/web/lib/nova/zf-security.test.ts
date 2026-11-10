@@ -201,12 +201,14 @@ describe('Z1A-11: recovery words never reach Hermes', () => {
 });
 
 describe('Z1A-9: "Say it in warmer words" sends only what may go', () => {
-  test('with ZIGi\'s Wealth share off, the copy for the model has no money line, while the brief on this device does', () => {
+  // Session AL (Q14, deliberate, stricter): "Wealth page data" off now closes the money line on the device too, as Settings
+  // says ("these switches decide which pages those answers may read"); the copy for the model still has none.
+  test('with ZIGi\'s Wealth share off, neither the brief on this device nor the copy for the model has a money line', () => {
     const settings = {...defaultAiSettings(), enabled: true, mode: 'api' as const, provider: 'openai' as const, model: 'gpt', pageShare: {...defaultAiSettings().pageShare, wealth: false}};
     const gates = aiGates({settings, area: 'today', pathname: '/app', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false});
     const sources = showcaseSources(DAY);
     const local = composeBrief('evening', DAY, toolEnv(sources, gates, 'local'))!;
-    expect(novaBriefLines(local).join('\n')).toMatch(/Spent today|Spent this week/);
+    expect(novaBriefLines(local).join('\n')).not.toMatch(/Spent today|Spent this week/);
     const sent = briefForModel(local, toolEnv(sources, gates, 'provider'));
     expect(sent === null || !/Spent today|Spent this week|EUR|USD/.test(novaBriefLines(sent).join('\n'))).toBe(true);
     expect(briefForModel(local, null)).toBeNull();

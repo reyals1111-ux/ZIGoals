@@ -49,3 +49,7 @@
 /* Session AB-Design Phase 2 closing pass (layout audit, coin page at 390 px): on touch screens and the phone layout the
    range chips and the source toggle are 44 × 44 targets (they were 40 px tall). */
 @media (max-width: 767.98px), (pointer: coarse) { .price-chart-ranges button { min-height: 44px; min-width: 44px; } }
+/* Session AL (Part 15, C-TK-19): the average-cost level, dashed, in the theme's text ink so it reads on Nebula, Dark and Light. */
+.price-chart .price-chart-cost { stroke: currentColor; stroke-width: 1.5; opacity: .75; }
+.price-chart .price-chart-cost-key { display: inline-flex; align-items: center; gap: 8px; }
+.price-chart .price-chart-cost-key line { stroke: currentColor; stroke-width: 2; }

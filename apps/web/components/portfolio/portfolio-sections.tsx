@@ -14,6 +14,7 @@ import {allocation, type AllTimeResult, type DayChange} from '../../lib/portfoli
 import {FEATURED_COINS} from './coin-picker';
 import {Change, compactAmount, compactMoney, direction, percent} from '../markets/market-format';
 import '../markets/data-table.css';
+import {DataTableMore} from '../markets/data-table-more';
 export {Change, percent};
 import type {CoinMarket, Price, Sizes} from './use-portfolio-market';
 import {useScrollEdges} from '../ui/use-scroll-edges';
@@ -76,7 +77,7 @@ function PriceCell({price, currency}: {price?: Price; currency: string}) {
  * (`data-label`), so no figure is clipped and nothing scrolls sideways inside the card. The roles are written out so the
  * cards stay a table to assistive tech when the phone's styles change how the rows are drawn.
  */
-export function HoldingsTable({portfolio, rows, sort, onSort, onRemove}: {portfolio: Portfolio; rows: Row[]; sort: 'value' | 'name' | 'result'; onSort: (sort: 'value' | 'name' | 'result') => void; /** Session AB-Design (owner request 27): removes a transaction from the expanded row's transfers. */ onRemove?: (id: string) => void}) {
+export function HoldingsTable({portfolio, rows, sort, onSort, onRemove, run}: {portfolio: Portfolio; rows: Row[]; sort: 'value' | 'name' | 'result'; onSort: (sort: 'value' | 'name' | 'result') => void; /** Session AB-Design (owner request 27): removes a transaction from the expanded row's transfers. */ onRemove?: (id: string) => void; /** Session AL (N-TK-05, P7): with it, each transaction in the expanded row has Edit beside Remove. */ run?: Run}) {
   const edges = useScrollEdges<HTMLDivElement>();
   const currency = portfolio.currency;
   const [open, setOpen] = useState<string | null>(null);
@@ -112,13 +113,16 @@ export function HoldingsTable({portfolio, rows, sort, onSort, onRemove}: {portfo
               <div><dt>Unrealized result</dt><dd data-direction={direction(row.unrealized)}>{!held ? '—' : row.unrealized === undefined ? 'Unknown' : `${formatSignedMoney(row.unrealized, currency)}${row.unrealizedPct ? ` (${percent(row.unrealizedPct)})` : ''}`}</dd></div>
             </dl>
             {row.market.sparkline ? <div className="coin-detail-spark"><Sparkline prices={row.market.sparkline} label={sparklineWords(row.coin.name, row.market.sparkline, text => formatPrice(text, currency))} /><small>Last 7 days</small></div> : null}
-            {(() => { const list = portfolio.transactions.filter(t => t.coin === row.holding.coin); return list.length ? <div className="coin-detail-transfers"><h4>Transfers and trades</h4><TransactionList portfolio={portfolio} list={list} names={names} onRemove={id => onRemove?.(id)} /></div> : <p className="fine">No transactions recorded for {row.coin.symbol} yet.</p>; })()}
+            {(() => { const list = portfolio.transactions.filter(t => t.coin === row.holding.coin); return list.length ? <div className="coin-detail-transfers"><h4>Transfers and trades</h4><TransactionList portfolio={portfolio} list={list} names={names} onRemove={id => onRemove?.(id)} run={run} /></div> : <p className="fine">No transactions recorded for {row.coin.symbol} yet.</p>; })()}
             <div className="coin-detail-links"><Link className="text-link" href={coinHref(row.coin, portfolio.id)}>Open {row.coin.name} with its price chart →</Link><span className="fine">Goals are funded from Wealth; Portfolio stays apart from them.</span></div>
           </div></td></tr>}
           </Fragment>;
         })}</tbody>
       </table>
     </div>
+    {/* Session AL (D-155, fifth pass): at 175 % zoom (731 px) Value and Result sat off to the right with no word that they
+        were there; the same line as Markets' table says so while the table runs past its edge. */}
+    <DataTableMore />
   </section>;
 }
 

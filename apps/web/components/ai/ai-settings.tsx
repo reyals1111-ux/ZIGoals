@@ -50,10 +50,13 @@ const ENTITLEMENT_LABEL = entitlementOf('hosted').label;
  */
 /** Panel polish round 2: a switch's name is one short line; a part in brackets becomes its description ("Food entries", "Typed or from a photo."). */
 const switchLabel = (text: string): [string, string | undefined] => { const m = /^(.+?) \((.+)\)$/.exec(text); return m ? [m[1]!, `${m[2]![0]!.toUpperCase()}${m[2]!.slice(1)}.`] : [text, undefined]; };
-const PAGE_NOTES: Record<PageArea, string> = {
-  today: 'what is due today and what you did: open habits, today\'s water, steps and meals as counts, goals with their next dates',
+export const PAGE_NOTES: Record<PageArea, string> = {
+  // Session AL fifth pass (LA-038): Tasks, the Agenda, the Checklist and Focus are Today's pages (lib/ai/context/pages.ts
+  // `pageArea`); their tasks, agenda and focus sessions are read under this switch (tools `tasks`, `agenda`,
+  // `focus_sessions` have area 'today'); the Checklist's dots are habits, read under Habits (`checklist_today`, area 'habits').
+  today: 'what is due today and what you did: open habits, today\'s water, steps and meals as counts, goals with their next dates. Tasks, the Agenda, the Checklist and Focus come under Today: their tasks, agenda and focus sessions are read with this switch',
   goals: 'each goal\'s name, target, progress and next planned date; never account, wallet or chain details',
-  habits: 'each habit\'s title, schedule, target, today\'s state and streak',
+  habits: 'each habit\'s title, schedule, target, today\'s state and streak; also the Checklist\'s dots, done and open (Health dots only with Include Health)',
   health: 'today\'s diary as names and counts, water, weight, steps, measurements, fasting; only with Include Health',
   wealth: 'tracked holdings by name and class with your recorded values, one total per currency; Portfolio as Real or Hypothetical; prices only as the page shows them',
   help: 'the Help notes about how ZIGoals works; no records',
@@ -63,7 +66,7 @@ const PAGE_NOTES: Record<PageArea, string> = {
  * #zigi-notes opens it: the "Remember this?" cards and Activity point here).
  */
 const NotesPanel = lazy(() => import('./ai-notes'));
-const NOTES_ANCHOR = 'zigi-notes', PACK_ANCHOR = 'zigi-pack', LOOK_ANCHOR = 'zigi-look';
+const NOTES_ANCHOR = 'zigi-notes', PACK_ANCHOR = 'zigi-pack', LOOK_ANCHOR = 'zigi-look', PAGE_SHARE_ANCHOR = 'zigi-page-share-title';
 /** A card that opens when the address names it (#zigi-notes, and #zigi-pack for ZIGi's /pack, Session V Part 10). */
 function useAnchoredCard(anchor: string) {
   const [open, setOpen] = useState(false), card = useRef<HTMLDetailsElement>(null);
@@ -212,6 +215,14 @@ export default function AiSettings() {
   // Session X-Local Part 5b: the Health gate as the chat would see it on the Health page right now (fail-closed).
   const healthOpen = consent({settings: data, area: 'health', pathname: '/app/health', layoutHasHealth, accountActive: healthConsent.accountActive, accountHealthPermitted: healthConsent.accountHealthPermitted}).health;
   const saveOptions = useCallback((change: Parameters<typeof options.update>[0]) => { try { options.update(change); } catch (error) { setMessage({text: `The setting was not saved on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); } }, [options]);
+  // Release review AL (RR-13): ZIGi's "Open Settings → ZIGi → Privacy & data" lands on the page switches ("Health page data",
+  // then "Include Health"), which render once the settings are read; the browser's own jump came before them.
+  useEffect(() => {
+    if (!settings.loaded) return;
+    const follow = () => { if (window.location.hash === `#${PAGE_SHARE_ANCHOR}`) requestAnimationFrame(() => document.getElementById(PAGE_SHARE_ANCHOR)?.scrollIntoView({block: 'start'})); };
+    follow(); window.addEventListener('hashchange', follow);
+    return () => window.removeEventListener('hashchange', follow);
+  }, [settings.loaded]);
   useEffect(() => { let active = true; if (!data.provider) { setRemembered(null); return; } hasRememberedKey(scope, data.provider).then(v => { if (active) setRemembered(v); }).catch(() => { if (active) setRemembered(false); }); return () => { active = false; }; }, [scope, data.provider, data.enabled, data.rememberKey]);
   const save = useCallback((change: (s: AiSettingsData) => AiSettingsData, text?: string) => { try { settings.update(change); if (text) setMessage({text}); } catch (error) { setMessage({text: `The setting was not saved on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); } }, [settings]);
   const loadModels = async () => {
@@ -259,7 +270,7 @@ export default function AiSettings() {
     {settings.unreadable && <p role="alert">This device&rsquo;s ZIGi settings could not be read; they count as off until you save a choice here.</p>}
     {callback.error && <p role="alert">{callback.error}</p>}
     <Group id="zigi-connection" title="Connection">
-      {!data.enabled && settings.loaded && <AiSetup settings={settings} scope={scope} seed={callback.seed} onDone={() => setMessage({text: 'Connected. ZIGi now answers with your own AI on every page where sharing is on; open it from the button at the bottom right or with ⌘K / Ctrl+K. Health stays off until you turn on “Include Health”.'})}/>}
+      {!data.enabled && settings.loaded && <AiSetup settings={settings} scope={scope} seed={callback.seed} onDone={() => setMessage({text: 'Connected. ZIGi now answers with your own AI on every page where sharing is on; open it from the button at the bottom right, with ⌘/Ctrl+Shift+Z, or from the command menu (⌘/Ctrl+K). Health stays off until you turn on “Include Health”.'})}/>}
       {data.enabled && <div className="ai-connection">
         <ZigiAvatar state="idle" size={44} decorative/>
         <div className="ai-connection-copy">
@@ -285,10 +296,11 @@ export default function AiSettings() {
     <Group id="zigi-privacy" title="Privacy & data">
       {/* Session AI (ZI5; Grok's N-019, M-089): these switches show before a connection too, where Help points to them. */}
       {settings.loaded && <>
-        <h4>What each page may share</h4>
-        {!data.enabled && <p className="ai-note">These apply once you connect your own AI. With no AI connected, nothing leaves this device: ZIGi answers from your records here.</p>}
+        {/* Session AL third pass (BN-017, P-BN-38): the six page switches are one group named by this heading. */}
+        <h4 id={PAGE_SHARE_ANCHOR}>What each page may share</h4>
+        {!data.enabled && <p className="ai-note">With no AI connected, nothing leaves this device: ZIGi answers from your records here, and these switches decide which pages those answers may read. Once you connect your own AI, they also decide what may be sent to it.</p>}
         <p className="ai-note">On by default except Health. Off means ZIGi answers without that page&rsquo;s data. Identifiers, wallet addresses, chain details, account and sync metadata are never sent.</p>
-        <div className="ai-switch-list">{PAGE_AREAS.map(area => <Switch key={area} checked={data.pageShare[area]} onChange={next => save(s => ({...s, pageShare: {...s.pageShare, [area]: next}}))} label={`${AREA_LABELS[area]} page data`} note={PAGE_NOTES[area]}/>)}</div>
+        <div className="ai-switch-list" role="group" aria-labelledby="zigi-page-share-title">{PAGE_AREAS.map(area => <Switch key={area} checked={data.pageShare[area]} onChange={next => save(s => ({...s, pageShare: {...s.pageShare, [area]: next}}))} label={`${AREA_LABELS[area]} page data`} note={PAGE_NOTES[area]}/>)}</div>
         <Switch checked={data.includeHealth} onChange={next => save(s => ({...s, includeHealth: next}))} label="Include Health" disabled={!layoutHasHealth} note={!layoutHasHealth ? 'Health is not part of your Today layout on this device, so nothing from Health can be shared. Add Health to Today first.' : healthConsent.accountActive && !healthConsent.accountHealthPermitted ? 'With your account open, Health is shared only when the account\'s Health permission is on for this device (Settings → Account & sync). It is not, so Health stays out.' : 'Health goes to your AI only with this switch, the Health page switch above and, with an account, its Health permission. Off by default.'}/>
         <h4>What your AI sees</h4>
         <p className="ai-note">Only this page&rsquo;s data, as plain text between data marks, after the instruction that it is records and not commands. Open ZIGi on any page and expand &ldquo;What your AI sees&rdquo; for the exact text that would go with your next message. Chats are kept on this device per account and are part of &ldquo;Export everything&rdquo;; keys never are.</p>
@@ -300,7 +312,7 @@ export default function AiSettings() {
     </Group>
     <Group id="zigi-look-group" title="ZIGi’s look and feel">
       {data.enabled && <>
-        <Switch checked={!data.launcherHidden} onChange={next => save(s => ({...s, launcherHidden: !next}))} label="Show the ZIGi button" note="Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K opens the chat as well."/>
+        <Switch checked={!data.launcherHidden} onChange={next => save(s => ({...s, launcherHidden: !next}))} label="Show the ZIGi button" note="Bottom right on a computer, above the tabs on a phone. ⌘/Ctrl+Shift+Z opens the chat as well, and so does Ask ZIGi in the command menu (⌘/Ctrl+K)."/>
       </>}
       {settings.loaded && <LookCard/>}
       {/* Session Z-Cloud Part 3: voice works with or without an AI connected, so its card is always here. */}

@@ -1,0 +1,22 @@
+/* Session AL (owner decision O4): the desktop sidebar's foldable Apps group (sidebar-apps.tsx), compact under the main
+   pages: 44 px rows (the main list's are 47 px), the same link look, a small header that folds it. Computers only. */
+/* A block: the global `nav { display: flex }` (globals.css) set the header and the list side by side, so the list ran 26 px
+   past the sidebar's edge (o4-sidebar-apps, 1440 px). */
+.sidebar-apps { display: block; flex: none; margin-top: 18px; }
+.sidebar-apps-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 0 16px; border: 1px solid transparent; border-radius: 11px; background: none;
+  color: #a9bbd8; font: inherit; font-size: 14px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+.sidebar-apps-toggle:hover { color: var(--text); }
+.sidebar-apps-toggle:focus-visible, .sidebar-apps-list a:focus-visible { outline: 3px solid var(--brand-cyan, #63e7ff); outline-offset: 1px; }
+.sidebar-apps-chevron { flex: none; transition: transform 200ms ease; }
+.sidebar-apps[data-folded] .sidebar-apps-chevron { transform: rotate(-90deg); }
+.sidebar-apps-list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.sidebar-apps-list[hidden] { display: none; }
+.sidebar-apps-list a { display: flex; align-items: center; gap: 15px; min-height: 44px; padding: 10px 16px; border: 1px solid transparent; border-radius: 11px; color: #a9bbd8; font-size: 14px; line-height: 1.35; text-decoration: none; }
+.sidebar-apps-list a svg { flex-shrink: 0; color: #86b7f9; }
+.sidebar-apps-list a:hover { color: var(--text); }
+.sidebar-apps-list a[aria-current="page"] { border-color: #63e7ff5c; color: var(--text); background: linear-gradient(115deg, #0d3049, #15182f); box-shadow: inset 0 0 16px #3db7ff17, 0 0 15px #3d73ff0d; }
+@media (prefers-reduced-motion: reduce) { .sidebar-apps-chevron { transition: none; } }
+:root[data-app-motion="off"] .sidebar-apps-chevron { transition: none; }
+@media (forced-colors: active) { .sidebar-apps-list a[aria-current="page"] { border-color: Highlight; } }
+/* Below 901 px the tablet rail and the "Apps & extras" sheet list these; a phone turned sideways has its own bars. */
+@media (max-width: 900.98px), (pointer: coarse) and (max-height: 500px) { :root .sidebar-apps:not(#\-) { display: none; } }

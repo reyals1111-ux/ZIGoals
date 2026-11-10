@@ -1,4 +1,5 @@
 'use client';
+import {vaultsTags} from '../../lib/earn/glance';
 import {YourVaultShares, type ShareRead} from './your-shares';
 import type {LiveState} from '../../lib/earn/client';
 import {decimal, tokenAmount} from '../../lib/earn/format';
@@ -12,6 +13,7 @@ import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection} from './option-section';
 import {Risk} from './risk';
 import {continueSentence} from './words';
+import {nobleUsdcLine} from '../../lib/earn/dated';
 import {WhatsThis} from './whats-this';
 
 /**
@@ -28,7 +30,7 @@ export const VAULT_GUIDES = {
   'private-credit': {id: 'vault-private-credit', app: 'Valdora', title: 'Supply USDC: Private Credit', provider: 'valdora', kind: 'vault-private-credit', open: 'Open Private Credit', option: 'valdora-vaults', steps},
   'core-income': {id: 'vault-core-income', app: 'Valdora', title: 'Supply USDC: Core Income', provider: 'valdora', kind: 'vault-core-income', open: 'Open Core Income', option: 'valdora-vaults', steps},
 } as const satisfies Record<Exclude<VaultId, 'nawa-usdc'>, Guide<'valdora'>>;
-const VALDORA_VAULTS = ['stablecoin-yield', 'private-credit', 'core-income'] as const;
+export const VALDORA_VAULTS = ['stablecoin-yield', 'private-credit', 'core-income'] as const;
 const ASSET_WORDS = {'USDC.n': 'USDC on Noble (USDC.n)', 'USDC.inj': 'USDC from Injective (USDC.inj)', other: 'another asset'} as const;
 type Ok = Extract<VaultRow, {status: 'ok'}>;
 export function vaultHint(v: Ok) {
@@ -46,10 +48,10 @@ export function VaultsSection({vaults, valdora, now, shares = []}: {vaults: Live
   return <OptionSection id="valdora-vaults" eyebrow="Valdora · USDC vaults" title="Lend USDC through a vault"
     lede="Supply USDC to one of Valdora’s vaults; a curator lends it to businesses, and the vault’s shares go up or down with how they repay."
     logo={{src: '/ecosystem-logos/valdora.png', alt: 'Valdora site icon'}}
-    tags={[paused ? {tone: 'paused', text: 'A vault is paused'} : {tone: 'live', text: 'Live on mainnet'}, {tone: 'third', text: 'A curator holds the money'}, {tone: 'beta', text: 'Holds USDC on Noble'}]}
+    tags={vaultsTags(paused)}
     notice={<>
       <p><b>Every USDC vault on ZIGChain holds USDC on Noble (USDC.n).</b> {data ? allNoble ? <>Read live from each vault’s own record at block {vaults.phase === 'ok' ? vaults.answer.height : ''}.</> : <>Read live: not every vault holds it now — see each vault below.</> : <>The vaults’ deposit asset is <Unavailable reason={unavailable} short/> right now; on {day(NOBLE_USDC.readOn)} all of them held it.</>}</p>
-      <p>{NOBLE_USDC.text} <span className="fine">({NOBLE_USDC.source}, read {day(NOBLE_USDC.readOn)})</span> <VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink></p>
+      <p>{nobleUsdcLine(now)} <span className="fine">({NOBLE_USDC.source}, read {day(NOBLE_USDC.readOn)}) · a dated notice, its dates worded from today; not a live figure</span> <VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink></p>
       <p className="fine">ZIGoals found no statement from Valdora about what this changes for deposits and withdrawals after 12 January 2027 (searched {day(NOBLE_USDC.readOn)}).</p>
     </>}
     facts={[

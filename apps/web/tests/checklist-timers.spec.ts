@@ -32,8 +32,10 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
   await openTimers(page);
   await expect(timer(page, 'Sleep')).toBeVisible();
   await expect(timer(page, 'Focus')).toHaveCount(0);
-  // Sleep.
+  // Sleep. Session AL fifth pass (PR-018): starting asks once, in place, as Fast and Focus do; nothing runs before Start.
   await timer(page, 'Sleep').click();
+  await expect(timer(page, 'Sleep')).toHaveAttribute('aria-pressed', 'false');
+  await page.getByRole('alertdialog', {name: 'Start sleep?'}).getByRole('button', {name: 'Start', exact: true}).click();
   await expect(timer(page, 'Sleep')).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(async () => (await stored<Health>(page, HEALTH_STORAGE_KEY))?.sleep?.nights.map(n => n.end)).toEqual([null]);
   await page.clock.fastForward('11:00');
@@ -45,7 +47,8 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
   await timer(page, 'Meditate').click();
   await expect.poll(async () => (await stored<{run: unknown}>(page, MEDITATION_RUN_KEY))?.run).not.toBeNull();
   await expect(timer(page, 'Meditate')).toHaveAttribute('aria-pressed', 'true');
-  await page.waitForTimeout(1600);
+  // Session AL fifth pass (PR-018): the one timer minimum is a minute for every timer, so the session runs past it.
+  await page.clock.fastForward('01:05');
   await timer(page, 'Meditate').click();
   await expect.poll(async () => (await stored<Health>(page, HEALTH_STORAGE_KEY))?.meditation?.sessions.length).toBe(1);
   await expect.poll(async () => (await stored<{run: unknown}>(page, MEDITATION_RUN_KEY))?.run).toBeNull();
@@ -64,6 +67,9 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
 });
 
 test('Focus shows with a timed habit on the path: its own timer starts, then the time is logged on Habits', async ({page}) => {
+  // Session AL (P-LS-31, LS-034/LC-010; deliberate): Focus logs whole minutes and under a minute saves nothing, so the
+  // page's clock is installed here and the session runs a minute and five seconds (it ran 1.2 s of real time).
+  await page.clock.install({time: new Date()});
   await seedChecklist(page, {path: fixturePath({piano: true})});
   await page.goto('/app/checklist');
   await openTimers(page);
@@ -76,10 +82,12 @@ test('Focus shows with a timed habit on the path: its own timer starts, then the
   await page.getByRole('alertdialog', {name: 'Start focus?'}).getByRole('button', {name: 'Start', exact: true}).click(); // Session AH (TO5)
   await expect.poll(async () => (await stored<{habits: {id: string; timer?: {state: string}}[]}>(page, HABITS_KEY))?.habits.find(h => h.id === ID.piano)?.timer?.state).toBe('running');
   await expect(focus).toHaveAttribute('aria-pressed', 'true');
-  await page.waitForTimeout(1200);
+  await page.clock.fastForward('01:05');
   await focus.click();
-  await expect.poll(async () => { const h = (await stored<{habits: {id: string; timer?: unknown; timerReceipts?: {status: string}[]}[]}>(page, HABITS_KEY))?.habits.find(x => x.id === ID.piano); return h ? {timer: h.timer ?? null, receipts: h.timerReceipts?.map(r => r.status)} : null; }).toEqual({timer: null, receipts: ['logged']});
-  await expect(page.locator('.aa-toast')).toContainText('your time is logged on Habits');
+  // Session AL (P-LS-31, deliberate): the timer closes with its own receipt marked "discarded" and the whole minute is
+  // logged as the day's entry on Habits (lib/checklist/adapters.ts), in place of a "logged" receipt of 1.2 seconds.
+  await expect.poll(async () => { const h = (await stored<{habits: {id: string; timer?: unknown; timerReceipts?: {status: string}[]; entries: {count: number}[]}[]}>(page, HABITS_KEY))?.habits.find(x => x.id === ID.piano); return h ? {timer: h.timer ?? null, receipts: h.timerReceipts?.map(r => r.status), logged: h.entries.map(e => e.count)} : null; }).toEqual({timer: null, receipts: ['discarded'], logged: [1]});
+  await expect(page.locator('.aa-toast')).toContainText(`${TITLE.piano}: 1 minute of focus logged on Habits.`);
 });
 
 test('honest timer cards: only a goal the person set says "Goal"; otherwise the card says what its value is', async ({page}, info) => {

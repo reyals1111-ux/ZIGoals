@@ -10,6 +10,9 @@ export function pageArea(pathname: string): PageArea {
   // Session W Part 14: Chess, a skill, gets Today's overview; its tools (chess_ratings, chess_games, Part 21) are Today's.
   // The Spotify sign-in page (/app/music/spotify, Part 20) stays Help's: a callback attaches nothing.
   if (path === '/app' || path === '/app/activity' || path === '/app/welcome' || path === '/app/chess') return 'today';
+  // Session AL fourth pass (L7-4b; Lisbon LA-030, LA-038, ctx-a): Tasks, the Agenda, the Checklist and Focus are Today's (as
+  // NOVA → Permissions → Today names them), never Help's: ZIGi on /app/tasks said "You are on Help".
+  if (/^\/app\/(tasks|agenda|checklist|focus)(\/|$)/.test(path)) return 'today';
   if (path === '/app/goals' || path.startsWith('/app/goals/')) return 'goals';
   if (path === '/app/habits' || path.startsWith('/app/habits/')) return 'habits';
   if (path === '/app/health' || path.startsWith('/app/health/')) return 'health';

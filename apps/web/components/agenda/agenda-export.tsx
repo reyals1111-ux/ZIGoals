@@ -5,6 +5,8 @@ import {buildIcs} from '../../lib/ics/ics';
 import {addLocalDays} from '../../lib/local-date';
 import {exportFileName} from '../../lib/showcase-detect';
 import {formatNumber} from '../../lib/visual-format';
+import {openTasks} from '../../lib/tasks/engine';
+import type {Tasks} from '../../lib/tasks/schema';
 
 /**
  * Export to a calendar (Session AK, F5d), loaded the first time the person opens it: the range (what is in view, or the
@@ -13,7 +15,8 @@ import {formatNumber} from '../../lib/visual-format';
  */
 type Range = 'view' | 'next30' | 'next60';
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
-export default function AgendaExport({input, hidden, view, viewFrom, viewTo, viewLabel, today, showcase, onClose}: {input: AgendaInput; hidden: readonly AgendaSource[]; view: AgendaView; viewFrom: string; viewTo: string; viewLabel: string; today: string; showcase: boolean; onClose: () => void}) {
+/** Session AL (P-LS-37, LS-009): open tasks with a day in the range go in too (an all-day event, or timed at their time). */
+export default function AgendaExport({input, tasks = null, hidden, view, viewFrom, viewTo, viewLabel, today, showcase, onClose}: {input: AgendaInput; tasks?: Tasks | null; hidden: readonly AgendaSource[]; view: AgendaView; viewFrom: string; viewTo: string; viewLabel: string; today: string; showcase: boolean; onClose: () => void}) {
   const id = useId(), box = useRef<HTMLDivElement>(null);
   // Session AK (F8, WCAG 2.4.3): the button that opened the choices is gone, so focus moves to the first choice (the range
   // picked) rather than falling to the page; Close returns it to "Choose what to export" (agenda-page.tsx).
@@ -22,7 +25,9 @@ export default function AgendaExport({input, hidden, view, viewFrom, viewTo, vie
   const [chosen, setChosen] = useState<ReadonlySet<AgendaSource>>(() => new Set(AGENDA_SOURCES.filter(s => !hidden.includes(s))));
   const [from, to] = range === 'view' ? [viewFrom, viewTo] : [today, addLocalDays(today, range === 'next30' ? 29 : 59)];
   const items = useMemo(() => buildAgenda(input, from, to).flatMap(d => d.items), [input, from, to]);
-  const picked = items.filter(i => chosen.has(i.source));
+  const [withTasks, setWithTasks] = useState(true);
+  const taskEvents = useMemo(() => tasks ? openTasks(tasks, today).filter(t => t.due && t.due >= from && t.due <= to).map(t => ({id: `task:${t.id}:${t.due}`, date: t.due!, time: t.time ?? null, minutes: t.time ? 30 : 0, title: t.title, detail: 'Task'})) : [], [tasks, today, from, to]);
+  const picked = [...items.filter(i => chosen.has(i.source)), ...(withTasks ? taskEvents : [])];
   const count = (s: AgendaSource) => items.filter(i => i.source === s).length;
   // Security review F10 (R1-F3): a Showcase file marks every event, since a calendar app ignores the file's own name.
   const download = () => {
@@ -43,6 +48,7 @@ export default function AgendaExport({input, hidden, view, viewFrom, viewTo, vie
       <label className="agenda-check"><input type="radio" name={`${id}-range`} checked={range === 'next60'} onChange={() => setRange('next60')} /><span>The next 60 days</span></label>
     </fieldset>
     <fieldset><legend>What goes in</legend>
+      {tasks && <label className="agenda-check" data-pillar="task"><input type="checkbox" checked={withTasks} onChange={e => setWithTasks(e.target.checked)} /><span>Tasks</span><small>{formatNumber(taskEvents.length)}</small></label>}
       {AGENDA_SOURCES.map(s => <label key={s} className="agenda-check" data-pillar={s}><input type="checkbox" checked={chosen.has(s)} onChange={e => setChosen(c => { const next = new Set(c); if (e.target.checked) next.add(s); else next.delete(s); return next; })} /><span>{SOURCE_LABEL[s]}</span><small>{formatNumber(count(s))}</small></label>)}
       <label className="agenda-check"><input type="checkbox" checked={details} onChange={e => setDetails(e.target.checked)} /><span>Add each item’s detail line (for example “Monthly bill due”)</span></label>
     </fieldset>

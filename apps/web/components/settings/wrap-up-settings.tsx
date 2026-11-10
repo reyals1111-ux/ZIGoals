@@ -5,6 +5,8 @@ import {usePrivateStore} from '../use-private-store';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings} from '../../lib/dashboard-settings';
 import {setWrapUp, wrapUpEnabled, wrapUpTime} from '../../lib/wrap-up/engine';
 import {formatClock} from '../../lib/visual-format';
+import {FieldError, useFormErrors} from '../primitives/field-error';
+import './settings-forms.css';
 
 /**
  * "Evening wrap-up" (Session W Part 13): off until turned on here. Saved with Today's settings (settings v3 `wrapUp`,
@@ -16,9 +18,14 @@ import {formatClock} from '../../lib/visual-format';
 export function WrapUpSettings() {
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
   const [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null), [pending, setPending] = useState<boolean | null>(null);
+  // Session AL final pass (D-173, AL-FIELD-ERROR-003): an empty or unreadable "From" is said under the field (aria-invalid,
+  // the app's field error), never only the browser's "Please fill out this field." bubble.
+  const timeErrors = useFormErrors();
   const ready = settings.loaded && !settings.error, on = pending ?? wrapUpEnabled(settings.data), time = wrapUpTime(settings.data);
-  async function save(enabled: boolean, at: string) {
-    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(at)) { setMessage({text: 'Choose a time, like 18:00.', failed: true}); return; }
+  async function save(enabled: boolean, at: string, {focus = true}: {focus?: boolean} = {}) {
+    // On leaving the field the message is set without taking the focus back (the next click lands where it was aimed).
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(at)) { const text = 'Choose a time, like 18:00. The wrap-up shows from that time.'; setMessage(null); if (focus) timeErrors.fail({time: text}); else timeErrors.set('time', text); return; }
+    timeErrors.clear('time');
     setPending(enabled);
     try {
       await settings.update(s => ({...setWrapUp(s, enabled, at, new Date().toISOString()), ...(enabled ? {onboarded: true} : {})}));
@@ -29,9 +36,9 @@ export function WrapUpSettings() {
   return <section className="panel wrap-up-settings" id="wrap-up" aria-label="Evening wrap-up">
     <p className="eyebrow">YOUR EVENING</p><h2>Evening wrap-up</h2>
     <p>Off unless you turn it on. From the time you choose, Today offers one card: your day from your own records, how it felt and one intention for tomorrow, which Today shows the next day.</p>
-    {ready && <form className="platform-form" onSubmit={e => e.preventDefault()} aria-label="Evening wrap-up choices">
+    {ready && <form className="platform-form" noValidate onSubmit={e => { e.preventDefault(); const input = e.currentTarget.querySelector<HTMLInputElement>('input[type=time]'); if (input && input.value !== time) void save(on, input.value); }} aria-label="Evening wrap-up choices">
       <label className="checkbox"><input type="checkbox" checked={on} onChange={e => void save(e.currentTarget.checked, time)} />Show the evening wrap-up on Today</label>
-      <label className="field">From<input type="time" required defaultValue={time} key={time} onBlur={e => { if (e.currentTarget.value !== time) void save(on, e.currentTarget.value); }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (e.currentTarget.value !== time) void save(on, e.currentTarget.value); } }} /></label>
+      <label className="field">From<input {...timeErrors.field('time')} type="time" required defaultValue={time} key={time} onBlur={e => { if (e.currentTarget.value !== time) void save(on, e.currentTarget.value, {focus: false}); }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (e.currentTarget.value !== time) void save(on, e.currentTarget.value); } }} /></label><FieldError {...timeErrors.message('time')} />
       {message && <p role={message.failed ? 'alert' : 'status'}>{message.text}</p>}
       {on && <p><Link className="text-link" href="/app?wrap-up=now">Start the wrap-up now →</Link></p>}
     </form>}

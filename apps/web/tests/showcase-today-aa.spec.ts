@@ -68,6 +68,10 @@ test('a new device: no cards until chosen; the chooser offers all six', async ({
 });
 
 test('Showcase insights, scenarios and last period\'s focus: the pairings have their 14 days, the calculator compares two plans', async ({page}) => {
+  // Session AL (CI 1592/1593, 8 Nov): the Showcase is built around the real day, and "Sleep and spending" splits its 31
+  // spending days by the nights before them, so on some weekdays (Sunday 8 Nov) one side has 13 and the app rightly shows it
+  // as "not enough days yet". The three pairings are checked on a fixed Wednesday, as the bots' Showcase day was.
+  await page.clock.setFixedTime(new Date('2026-11-04T10:00:00.000Z'));
   await showcase(page);
   await page.goto('/app/review');
   const insights = page.getByRole('region', {name: 'On the same days'});

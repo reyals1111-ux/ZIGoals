@@ -30,6 +30,9 @@
 
 /* Tabs */
 .note-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Session AL fourth pass (N-DV-07): the phone shell orders every nav last (globals.css, nav { order: 3 }), which put the
+   views under the capture box and the day note (y ≈ 1,770 at 388 px). They come first, in the first phone screen. */
+.notes-workspace > nav.note-tabs { order: 0; width: auto; gap: 6px; }
 .note-tab { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); background: transparent; color: inherit; font: inherit; font-size: 15px; font-weight: 650; cursor: pointer; }
 .note-tab.is-on { border-color: color-mix(in srgb, var(--brand-violet, #826cff) 75%, transparent); background: color-mix(in srgb, var(--brand-violet, #826cff) 18%, transparent); }
 .note-tab:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
@@ -167,3 +170,11 @@
 .note-ask-form input, .note-ask-form button { min-height: 44px; }
 .note-ask-form .note-ask-privacy { flex: 1 0 100%; }
 .note-ask-example { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1px dashed var(--line, rgba(128, 128, 160, .35)); min-width: 0; }
+/* Session AL (A10-9): at 375 px a chip's status broke mid-word ("Don / e") under the chip's overflow-wrap: anywhere, and
+   the day header's → wrapped onto a line of its own. The status keeps whole words (the title wraps first); the date
+   wraps inside its own space between the two arrows. */
+.note-day-chip-title { min-width: 0; overflow-wrap: break-word; }
+.note-day-chip-detail { flex: none; max-width: 60%; overflow-wrap: normal; }
+.note-day-head { flex-wrap: nowrap; }
+.note-day-head > .note-title { flex: 0 1 auto; min-width: 0; }
+.note-day-head > button { flex: none; }

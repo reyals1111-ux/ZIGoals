@@ -23,10 +23,45 @@ export function packPrivacyMode(mode: PrivacyMode | null, target: {provider: Pro
   return sendDecision(mode, target) === 'redact' ? 'guarded' : null;
 }
 /** Planet 5's check: every pillar in the pack belongs to an open scope, and no open scope's records were left out unread. */
-export function checkNovaScopes(scopes: NovaScopes, pack: Pick<NovaPack, 'included' | 'notShared'>, chainChosen: boolean, healthGate: boolean): CheckResult {
+/**
+ * Session AL fourth pass (lane L7-4b; Lisbon LA-003, Denver DV-062, Moscow MO-058, X3-11, X3-23): with no model connected
+ * nothing is sent, so the preview (the send's own input, security review Z1A-10) is empty; the check says that, and what
+ * NOVA will read once a model is connected, instead of blaming page switches that are on.
+ */
+/**
+ * Session AL fifth pass (LA-003, DV-062, MO-058, X3-11, X3-23): before a model is connected, what NOVA will read once one
+ * is, and what stays out, from the one sharing state (NOVA → Permissions, ZIGi's page switches, the Health gate). The check
+ * below and the preview above it (components/nova/setup/what-nova-sees.tsx) both read this, so they cannot disagree; the
+ * pack itself (the send's own input, Z1A-10) stays empty, because nothing is sent.
+ */
+export function beforeModel(scopes: NovaScopes, chainChosen: boolean, healthGate: boolean): {will: string[]; out: string[]; short: string[]; health: boolean} {
+  const keys = Object.keys(scopes) as (keyof NovaScopes)[], reads = (s: keyof NovaScopes) => scopeOpen(scopes, s, chainChosen) && (s !== 'health' || healthGate);
+  const name = (s: keyof NovaScopes) => NOVA_SCOPE_LABELS[s].split(':')[0]!;
+  // `short`: the areas by their one-word names, for the check's note, which is kept to 200 characters (CHECK_NOTE_MAX); the
+  // long names cut its last words ("… Wealth. Health:") before.
+  return {will: keys.filter(reads).map(name), out: keys.filter(s => !reads(s)).map(name), short: keys.filter(reads).map(s => `${s[0]!.toUpperCase()}${s.slice(1)}`), health: reads('health')};
+}
+/** The preview's text before a model is connected (plain lines, as the pack's own text is). */
+export function beforeModelText(scopes: NovaScopes, chainChosen: boolean, healthGate: boolean): string {
+  const {will, out} = beforeModel(scopes, chainChosen, healthGate);
+  return [`- Nothing is sent yet: no model is connected.`, `- Once one is, NOVA reads: ${will.length ? will.join('; ') : 'nothing (every area is off)'}.`, ...(out.length ? [`- Not shared with NOVA (NOVA → Permissions): ${out.join('; ')}.`] : [])].join('\n');
+}
+export function checkNovaScopes(scopes: NovaScopes, pack: Pick<NovaPack, 'included' | 'notShared'>, chainChosen: boolean, healthGate: boolean, connected = true): CheckResult {
   const leaked = pack.included.filter(p => !scopeOpen(scopes, PILLAR_SCOPE[p], chainChosen) || (PILLAR_SCOPE[p] === 'health' && !healthGate));
+  if (!connected && !pack.included.length) {
+    const {short, health} = beforeModel(scopes, chainChosen, healthGate);
+    return {ok: true, note: `No model is connected yet, so nothing is sent and the preview is empty. Once one is, NOVA reads ${short.length ? short.join(', ') : 'nothing (every area is off)'}. Health: ${health ? 'on' : 'off'}.`};
+  }
   if (leaked.length) return {ok: false, note: `The preview holds something you did not share (${leaked.join(', ')}). Reload and check again.`};
   const open = (Object.keys(scopes) as (keyof NovaScopes)[]).filter(s => scopeOpen(scopes, s, chainChosen) && (s !== 'health' || healthGate));
+  // Session AL (lane L7; Lisbon LA-003, Denver DV-062, Moscow MO-058; P-LA-05, P-DV-91, P-MO-14): the check and the preview
+  // read one state. A scope that is on while the preview reads nothing of it (its page switch in Settings → ZIGi is off) is
+  // a disagreement and fails, saying which switch; "NOVA can see" names only what the preview really carries.
+  const unread = open.filter(s => s !== 'health' && pack.notShared.some(p => PILLAR_SCOPE[p] === s) && !pack.included.some(p => PILLAR_SCOPE[p] === s));
+  if (unread.length) return {ok: false, note: `NOVA → Permissions lets NOVA see ${unread.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}, but the preview reads nothing of it: its page switch under Settings → ZIGi · Your Personal AI Companion → What each page may share is off. Turn both on (or both off), then check again.`};
   const health = scopes.health ? healthGate ? 'Health: on.' : 'Health: chosen, but its gate is still closed (see the note).' : 'Health: off.';
-  return {ok: true, note: open.length ? `NOVA can see: ${open.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}. ${health}` : `NOVA sees no records. ${health}`};
+  const seen = open.filter(s => pack.included.some(p => PILLAR_SCOPE[p] === s)), quiet = open.filter(s => !seen.includes(s));
+  const none = quiet.length ? ` Nothing recorded yet in: ${quiet.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}.` : '';
+  return {ok: true, note: seen.length ? `NOVA can see: ${seen.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}.${none} ${health}` : open.length ? `NOVA may read ${open.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}, but nothing there holds records yet. ${health}` : `NOVA sees no records. ${health}`};
 }
+

@@ -1,5 +1,7 @@
 'use client';
 import {showToast} from '../../ui/undo-toast';
+import {removeWithUndo} from '../../ui/remove-with-undo';
+import {announceHealthRemoval} from '../../../lib/health-events';
 import Link from 'next/link';
 import {lazy, useState} from 'react';
 import {asleep, balanceWords, BALANCE_MIN_NIGHTS, clockFromMidnight, clockFromNoon, consistency, dailySeries, deleteNight, inBedMinutes, nightDay, shortNights, sleepBalance, sleepDebt, summary, wakeConsistency} from '../../../lib/sleep/engine';
@@ -13,6 +15,7 @@ import {SleepDurationChart, SleepQualityChart, SleepTimesChart} from './sleep-ch
 import {NightForm, SleepGoalForm} from './sleep-forms';
 import {SleepTonight} from './sleep-tonight';
 import {useSleep} from './use-sleep';
+import {SleepCsvImport} from './sleep-csv-import';
 import {WindDownSetting, WindDownSounds} from './wind-down';
 import {FocusWindowSetting} from './focus-window-card';
 import {SleepScoreCard} from '../sleep-score-card';
@@ -22,6 +25,18 @@ import {OnDemandFold} from '../../insights/compare/on-demand-fold';
 import {sourceName} from '../../../lib/health-sources';
 import {formatClock, formatDate, formatTime} from '../../../lib/visual-format';
 import {plainErrorMessage} from '../../../lib/plain-error';
+import {energyCurve} from '../../../lib/energy-curve/curve';
+/** The energy fold's face: its name, then the focus window and tonight's bedtime it estimates (C-MO-23), or what it needs. */
+function energyFace(sleep: Parameters<typeof energyCurve>[0], today: string): string {
+  const curve = energyCurve(sleep, today), at = (m: number) => formatClock(clockFromMidnight(Math.round(m)));
+  return `Your energy today: an estimate from your sleep · ${curve ? `good focus ${at(curve.focus.from)}–${at(curve.focus.to)} · bedtime tonight ${at(curve.bedtime.from)}–${at(curve.bedtime.to)}` : 'log a night to see it'}`;
+}
+
+/** Session AL fourth pass (C-X3-13): the minutes under the goal on the short nights of the last 7 days, nothing netted. */
+function shortfall(sleep: Parameters<typeof energyCurve>[0], today: string): number {
+  const goal = sleep.goal?.minutes;
+  return goal ? dailySeries(sleep, today, 7).reduce((t, p) => t + (p.asleep !== null && p.asleep < goal ? goal - p.asleep : 0), 0) : 0;
+}
 
 const EnergyCurve = lazy(() => import('../../sleep/energy-curve'));
 
@@ -47,8 +62,11 @@ export default function SleepView() {
   const done = (text: string) => { setNote(text); setEditing(null); setSaves(n => n + 1); showToast({message: text}); };
   async function remove(id: string) {
     // Session AH Part 3 (DS3, L-009/L-010): a nap is called a nap.
-    const kind = store.sleep.nights.find(n => n.id === id)?.kind;
-    try { await store.update(s => deleteNight(s, id)); setConfirm(null); setNote(kind === 'nap' ? 'The nap is deleted.' : 'The night is deleted.'); } catch (error) { setNote(plainErrorMessage(error, 'Could not delete.')); }
+    const held = store.sleep.nights.find(n => n.id === id), kind = held?.kind, day = held ? nightDay(held) : null;
+    // Session AL (P-MO-56, MO-114/MO-136): a deleted night or nap gets the app's labelled Undo, as food, water and weight
+    // do; Undo puts that exact record back in the latest sleep log.
+    const said = kind === 'nap' ? 'The nap is deleted.' : 'The night is deleted.';
+    try { await removeWithUndo(store.update, s => deleteNight(s, id), said, kind === 'nap' ? 'The nap is back.' : 'The night is back.'); setConfirm(null); setNote(said); if (day) announceHealthRemoval({measures: ['sleepMinutes'], dates: [day]}); } catch (error) { setNote(plainErrorMessage(error, 'Could not delete.')); }
   }
   return <div className="sleep-view">
     <div className="page-heading header-art-host"><div>
@@ -60,7 +78,7 @@ export default function SleepView() {
     {note && <p className="sleep-note">{note}</p>}
     <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
     {/* Session AH (HE3, D-199): the log form sits near the top, full width, not squeezed beside the goal at the bottom. */}
-    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/></section>
+    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}
     <section className="panel sleep-week" aria-labelledby="sleep-week-title">
       <h2 id="sleep-week-title">Your last 7 days</h2>
@@ -69,7 +87,7 @@ export default function SleepView() {
         <div><dt>In bed, on average</dt><dd>{formatMinutes(week.inBed)}</dd></div>
         <div><dt>Bedtime · wake time</dt><dd>{formatClock(clockFromNoon(week.bed))} · {formatClock(clockFromMidnight(week.wake))}</dd><dd className="dd-note"><small>averages</small></dd></div>
         <div><dt>Your quality rating</dt><dd>{week.quality !== null ? `${week.quality} of 5` : 'Not rated'}</dd></div>
-        <div className="sleep-stat-wide"><dt>Sleep debt</dt><dd>{debt ? debt.minutes > 0 ? formatMinutes(debt.minutes) : `${formatMinutes(-debt.minutes)} ahead` : 'Set a goal'}</dd><dd className="dd-note"><small>{debt ? `Your goal (${formatMinutes(debt.goal)}) minus time asleep, added up over the ${debt.nights} ${debt.nights === 1 ? 'night' : 'nights'} you logged in the last 7 days.` : 'Needs your own sleep goal (below).'}</small></dd></div>
+        <div className="sleep-stat-wide"><dt>Sleep debt</dt><dd>{debt ? debt.minutes > 0 ? formatMinutes(debt.minutes) : `${formatMinutes(-debt.minutes)} ahead` : 'Set a goal'}</dd><dd className="dd-note"><small>{debt ? `Your goal (${formatMinutes(debt.goal)}) minus time asleep, added up over the ${debt.nights} ${debt.nights === 1 ? 'night' : 'nights'} you logged in the last 7 days: a long night makes up for a short one. Naps count toward the day they end on.` : 'Needs your own sleep goal (below).'}</small></dd>{/* Session AL fourth pass (C-X3-13): the same nights counted the other way, short nights only (a long night does not cancel one) */}{debt && <dd className="dd-note"><small>Short nights only: {formatMinutes(shortfall(sleep, today))} under your goal (long nights not netted against them).</small></dd>}</div>
         {/* Session AJ (item 26): the 14-night balance against the person's own goal, in kind words. */}
         <div className="sleep-stat-wide"><dt>Sleep balance, last 14 days</dt><dd>{balance ? balanceWords(balance, formatMinutes) : sleep.goal ? 'Not yet' : 'Set a goal'}</dd><dd className="dd-note"><small>{balance ? `Your time asleep against your goal (${formatMinutes(balance.goal)}), on average over the ${balance.nights} nights you logged. Every night is a fresh start.` : sleep.goal ? `Needs at least ${BALANCE_MIN_NIGHTS} logged nights in the last 14 days.` : 'Needs your own sleep goal (below).'}</small></dd></div>
         <div className="sleep-stat-wide"><dt>Bedtime consistency</dt><dd>{steady ? `± ${formatMinutes(steady.minutes)}` : 'Not yet'}</dd><dd className="dd-note"><small>{steady ? `How much your bedtimes vary: the standard deviation of ${steady.nights} bedtimes in the last 14 days.` : 'Needs at least 4 logged nights in 14 days.'}</small></dd></div>
@@ -78,7 +96,7 @@ export default function SleepView() {
       </dl> : <p>No night logged in the last 7 days yet.</p>}
     </section>
     <SleepScoreCard sleep={sleep} today={today}/>
-    <OnDemandFold className="energy-curve-fold" summary="Your energy today: an estimate from your sleep" label="The energy curve"><EnergyCurve sleep={sleep} today={today} now={store.now} zone={store.zone}/></OnDemandFold>
+    {/* Session AL fourth pass (MO-022): the fold says its answer on its face (the focus window), not only its name. */}<OnDemandFold className="energy-curve-fold" summary={energyFace(sleep, today)} label="The energy curve"><EnergyCurve sleep={sleep} today={today} now={store.now} zone={store.zone}/></OnDemandFold>
     <section className="panel sleep-charts" aria-labelledby="sleep-charts-title">
       <div className="sleep-charts-head"><h2 id="sleep-charts-title">Over time</h2>
         <div className="sleep-range" role="group" aria-label="Range">{([7, 30] as const).map(r => <button key={r} type="button" className="secondary" aria-pressed={range === r} onClick={() => setRange(r)}>{r} days</button>)}</div>

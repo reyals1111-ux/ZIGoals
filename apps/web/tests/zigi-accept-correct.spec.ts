@@ -9,6 +9,7 @@ import {FASTING_KEY} from '../lib/fasting/schema';
 import {REMINDERS_KEY} from '../lib/reminders/schema';
 import {WEEKLY_REVIEW_KEY} from '../lib/weekly-review/schema';
 import {PLATFORM_KEY} from '../lib/positions';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Part 5a, owner addition 4, "accepted means correct": for every writing kind, a MOCK reply becomes a
@@ -49,7 +50,7 @@ async function seed(page: Page) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function send(page: Page, text: string) {
   const box = page.getByLabel('Message to your AI'), sendButton = page.getByRole('button', {name: 'Send', exact: true});
   await box.fill(text);
@@ -100,6 +101,11 @@ function normalise(snap: Snap): Snap {
     health.habitLinks.applied = health.habitLinks.applied.filter((m: any) => m.appliedAt < EVENING);
     for (const h of out[HABITS_KEY]?.habits ?? []) h.entries = h.entries.filter((e: any) => !applied.some(m => m.habitId === h.id && m.date === e.date && m.value === e.count && e.note === ''));
   }
+  // Session AL (MO-125, deliberate): when the activity goes the same day, the link now takes its automatic tick back, marker
+  // and all, to the app's "nothing logged" (a 0, stamped, as an undone check-in leaves it: lib/habit-health-links/engine.ts
+  // revokeAutoCompletion, lib/habits.ts restoreHabitEntry). On a Health-linked habit that 0 reads as no entry.
+  const linked = new Set(Object.keys(health?.habitLinks?.links ?? {}));
+  for (const h of out[HABITS_KEY]?.habits ?? []) if (linked.has(h.id)) h.entries = h.entries.filter((e: any) => !(e.count === 0 && e.disposition === 'logged' && e.note === ''));
   return out;
 }
 const systemOf = (body: Body) => String(body.messages[0]!.content);

@@ -55,7 +55,7 @@ export function WealthHistoryChart({history, showcase, platform}: {history: Weal
   const end = all.length ? Date.parse(all.at(-1)!.at) : 0;
   const points = days === Infinity ? all : all.filter(p => end - Date.parse(p.at) <= days * 86400000);
   const classes = (() => { const seen = new Map<string, bigint>(); for (const p of points) for (const [c, v] of Object.entries(parts(p))) seen.set(c, (seen.get(c) ?? 0n) + BigInt(v)); return [...seen.entries()].sort((a, b) => Number(b[1] - a[1])).map(([c]) => c); })();
-  if (points.length < 2) return <p className="fine">{showcase && <ShowcaseTag/>}{showcase ? 'Fictional dated portfolio observations; two on different days draw the chart.' : 'Two valid observations on different days draw the chart.'}</p>;
+  if (points.length < 2) return <p className="fine">{showcase && <ShowcaseTag/>}{/* Session AL (TK-038, W2): one line per currency, named, in plain words (it read twice, identical, with two currencies) */}{showcase ? `${history.currency}: fictional dated portfolio observations; two on different days draw the chart.` : `${history.currency}: ${points.length === 1 ? 'one value recorded so far' : 'no value recorded yet'}. Come back on another day: a second recorded value draws this chart.`}</p>;
   const times = points.map(p => Date.parse(p.at)), start = times[0]!, last = times.at(-1)!;
   const values = points.map(p => BigInt(p.value)), lo = values.reduce((a, b) => a < b ? a : b), hi = values.reduce((a, b) => a > b ? a : b);
   const min = lo < 0n ? lo : 0n, pad = (hi - min) / 12n || 1n, max = hi + pad, span = max - min || 1n;

@@ -214,6 +214,16 @@ main header { margin-inline: 0; max-width: none; padding: 0; border-bottom: 0; }
   :root .today-page > :not(.today-layout, .for-you-place), :root .today-page > .for-you-place > *, :root .today-layout > .today-after { padding-inline-end: var(--launcher-gutter, 0px); }
   /* Earn's two paths kept their own 64 px lane; inside the gutter they need none. */
   :root:not([data-zigi-side=left]):not(#\#) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 0; }
+  /* Session AL (BN-127, P-BN-49, decided under O3): neither do Governance and Add money (their 64/72 px lane came on top of
+     this gutter, so their column ended 50-100 px short of every other page's). */
+  :root:not([data-zigi-side=left]):not(#\#) :is(.governance-page, .add-money-page) { padding-inline-end: 0; }
+}
+/* Session AL (BN-127, owner decision O3): below 901 px nothing floats, so no page keeps a launcher lane there. Between 901
+   and 1279 px (launchers floating, no gutter) Governance and Add money keep their lane (tests/money-launcher-lane-af.spec.ts). */
+@media (max-width: 900.98px) {
+  :root:not(#\#) :is(.governance-page, .add-money-page) { padding-inline-end: 0; }
+  :root:not(#\#) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 0; }
+  :root:not(#\#) .today-rail { --rail-lane: 0px; }
 }
 
 /* Session AK P4 (docs/review/session-ak/FIRST_RUN_REVIEW.md, FR-7): an inline error under its field had no style anywhere

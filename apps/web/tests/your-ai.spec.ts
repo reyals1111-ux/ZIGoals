@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {pressZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -50,7 +51,8 @@ function relaxedShowcase() { const records = buildShowcase('2026-09-20').records
 const launcher = (page: Page) => page.getByTestId('ai-launcher');
 const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi/});
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await openButton(page).click(); await expect(panel(page)).toBeVisible(); }
+// Session AL (O3): below 901 px through the "Apps & extras" sheet (tests/zigi-open.ts).
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); }
 const stored = (page: Page, key: string) => page.evaluate(k => localStorage.getItem(k), key);
 const habits = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k)!) as {habits: {id: string; title: string; entries: {date: string; count: number; disposition?: string}[]}[]}, HABITS_KEY);
@@ -61,7 +63,9 @@ test('off until connected: the launcher opens a setup pointer, and no provider i
   await page.route(/^https?:\/\/(?!127\.0\.0\.1:3\d{3})/, route => { external.push(route.request().url()); return route.abort(); });
   await seed(page, null);
   await page.goto('/app');
-  await expect(launcher(page)).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px no floating launcher; "Apps & extras" opens ZIGi (was: launcher visible).
+  if (page.viewportSize()!.width < 901) { await expect(launcher(page)).toHaveCount(0); await expect(page.getByTestId('apps-extras-button')).toBeVisible(); }
+  else await expect(launcher(page)).toBeVisible();
   await openChat(page);
   await expect(panel(page).getByRole('note', {name: 'ZIGi is not connected to an AI'})).toContainText('Not connected to an AI yet');
   await expect(panel(page).getByRole('link', {name: 'Set up', exact: true})).toHaveAttribute('href', '/app/settings#your-ai');
@@ -344,7 +348,7 @@ test('Today\'s data carries the review week from the weekly review on this devic
   expect(await preview.textContent()).not.toMatch(/health entries|meals logged|latest weight|min movement/);
 });
 
-test('hide with Undo, the Settings switch, ⌘K / Ctrl+K and focus back on the launcher', async ({page, isMobile}) => {
+test('hide with Undo, the Settings switch, ⌘K / Ctrl+K (Ask ZIGi), ⌘/Ctrl+Shift+Z and focus back on the launcher', async ({page, isMobile}) => {
   test.skip(isMobile, 'keyboard shortcut and hide pill are desktop behaviours');
   await seed(page, connectedLocal());
   await page.goto('/app');
@@ -352,7 +356,7 @@ test('hide with Undo, the Settings switch, ⌘K / Ctrl+K and focus back on the l
   await page.getByRole('button', {name: /Hide ZIGi/}).click();
   await expect(launcher(page)).toHaveCount(0);
   await expect(page.getByRole('status').filter({hasText: 'ZIGi is hidden'})).toBeVisible();
-  await page.locator('.ai-launcher-toast').getByRole('button', {name: 'Undo'}).click();
+  await page.locator('.aa-toast').filter({hasText: 'ZIGi is hidden'}).getByRole('button', {name: 'Undo'}).click();
   await expect(launcher(page)).toBeVisible();
   await page.getByRole('button', {name: /Hide ZIGi/}).click();
   expect(JSON.parse((await stored(page, AI_SETTINGS_KEY))!).launcherHidden).toBe(true);
@@ -360,24 +364,59 @@ test('hide with Undo, the Settings switch, ⌘K / Ctrl+K and focus back on the l
   await page.locator('#your-ai').getByRole('switch', {name: 'Show the ZIGi button'}).click();
   await page.goto('/app');
   await expect(launcher(page)).toBeVisible();
+  // Session AL (Q11, deliberate): ⌘/Ctrl+K opens the command menu (Ask ZIGi is its first row); ZIGi's own key is ⌘/Ctrl+Shift+Z.
   await page.keyboard.press('Control+k');
+  const menu = page.getByRole('dialog', {name: 'Command menu'});
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('option').first()).toHaveText(/^Ask ZIGi/);
+  await expect(panel(page)).toHaveCount(0);
+  await page.keyboard.press('Enter');
+  await expect(menu).toHaveCount(0);
   await expect(panel(page)).toBeVisible();
   await expect(page.getByLabel('Message to your AI')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(panel(page)).toHaveCount(0);
   await expect(openButton(page)).toBeFocused();
+  // ⌘/Ctrl+Shift+Z from the page opens ZIGi with its message box focused; the menu stays shut.
+  await page.keyboard.press('Control+Shift+z');
+  await expect(panel(page)).toBeVisible();
+  await expect(page.getByLabel('Message to your AI')).toBeFocused();
+  await expect(menu).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(panel(page)).toHaveCount(0);
+  await expect(openButton(page)).toBeFocused();
 });
 
-test('sensitive screens: the launcher is away while Settings shows the sign-in form and while a sheet is open', async ({page}) => {
+// Session AL (ADR-037 Q6, deliberate): ZIGi opens on Settings too; the sign-in email field makes the screen sensitive only
+// while it has the focus (was: the launcher away for as long as Settings showed the form). An open sheet still keeps it away.
+// Session AL (O3, deliberate): below 901 px nothing floats, so there the launcher is absent throughout.
+test('sensitive screens: the launcher shows beside Settings\' sign-in form, away while its field has the focus and while a sheet is open', async ({page}) => {
   await seed(page, connectedLocal());
+  const floats = page.viewportSize()!.width >= 901;
   await page.goto('/app/settings');
-  await expect(page.locator('#encrypted-sync input[type="email"]')).toBeVisible();
+  const email = page.locator('#encrypted-sync input[type="email"]');
+  await expect(email).toBeVisible();
+  if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
+  // Where email access is not set up on the installation (this build, CI) the field is disabled and takes no focus; where
+  // it is, a focused field sends ZIGi away until the focus leaves.
+  if (await email.isEnabled()) {
+    await email.focus();
+    await expect(launcher(page)).toHaveCount(0);
+    await email.blur();
+    if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
+  }
+  // The same focus rule for any field marked sensitive (use-sensitive-screen.ts), shown with a test field on this page.
+  await page.locator('main').evaluate(main => { const input = document.createElement('input'); input.setAttribute('data-sensitive', ''); input.setAttribute('aria-label', 'TEST secret field'); main.prepend(input); });
+  await page.getByLabel('TEST secret field').focus();
   await expect(launcher(page)).toHaveCount(0);
+  await page.getByLabel('TEST secret field').blur();
+  if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
   await page.goto('/app/wealth?add=asset');
   await expect(page.locator('dialog.wealth-sheet[open]')).toBeVisible();
   await expect(launcher(page)).toHaveCount(0);
   await page.keyboard.press('Escape');
-  await expect(launcher(page)).toBeVisible();
+  await expect(page.locator('dialog.wealth-sheet[open]')).toHaveCount(0);
+  if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
 });
 
 test('motion: the pending indicator and ZIGi hold still under reduced motion and Motion Off; the reply still streams', async ({page}) => {
@@ -392,32 +431,34 @@ test('motion: the pending indicator and ZIGi hold still under reduced motion and
   const dot = panel(page).locator('.ai-pending-dots i').first();
   await expect(dot).toBeVisible();
   expect(await dot.evaluate(el => getComputedStyle(el).animationName)).toBe('none');
-  expect(await page.locator('.ai-launcher-button .zigi img').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  // Session AL (owner decision O3, deliberate): below 901 px there is no floating ZIGi figure to hold still (was: its animation
+  // read at every width); on a computer, as before.
+  if (page.viewportSize()!.width < 901) await expect(page.locator('.ai-launcher-button')).toHaveCount(0);
+  else expect(await page.locator('.ai-launcher-button .zigi img').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
   await expect(panel(page).locator('.ai-turn-assistant')).toContainText('Still here.');
 });
 
-test('phone: a full-height sheet with a 16 px composer, the launcher above the tabs and away while More is open', async ({page, isMobile}) => {
+// Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; it opens from "Apps & extras" in the
+// top bar, and the chevron's device hide (a computer's) does not take it away there. Was: "the launcher above the tabs and
+// away while More is open" and "Show ZIGi again" in More.
+test('phone: a full-height sheet with a 16 px composer, opened from Apps & extras; no floating launcher, even after a device hide', async ({page, isMobile}) => {
   test.skip(!isMobile, 'phone layout only');
   await seed(page, connectedLocal());
   await page.goto('/app');
-  const button = openButton(page), tabs = page.locator('.phone-tabbar');
-  const [b, t] = await Promise.all([button.boundingBox(), tabs.boundingBox()]);
-  expect(b!.y + b!.height).toBeLessThanOrEqual(t!.y + 1);
-  expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44);
+  await expect(page.getByTestId('apps-extras-button')).toBeVisible();
+  await expect(launcher(page)).toHaveCount(0);
   await page.getByRole('button', {name: 'More', exact: true}).click();
   await expect(page.locator('dialog.phone-more[open]')).toBeVisible();
-  await expect(launcher(page)).toHaveCount(0);
   await expect(page.locator('dialog.phone-more[open]').getByRole('button', {name: 'Show ZIGi again'})).toHaveCount(0);
   await page.getByRole('button', {name: 'Close More'}).click();
-  await expect(launcher(page)).toBeVisible();
-  // Hidden through its device key, the launcher comes back from the More sheet.
+  // Hidden through its device key: still no floating launcher, still in Apps & extras.
   await page.evaluate(k => { const s = JSON.parse(localStorage.getItem(k)!); s.launcherHidden = true; localStorage.setItem(k, JSON.stringify(s)); }, AI_SETTINGS_KEY);
   await page.reload();
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(launcher(page)).toHaveCount(0);
   await page.getByRole('button', {name: 'More', exact: true}).click();
-  await page.locator('dialog.phone-more[open]').getByRole('button', {name: 'Show ZIGi again'}).click();
-  await expect(launcher(page)).toBeVisible();
+  await expect(page.locator('dialog.phone-more[open]').getByRole('button', {name: 'Show ZIGi again'})).toHaveCount(0);
+  await page.getByRole('button', {name: 'Close More'}).click();
   await openChat(page);
   const box = (await panel(page).boundingBox())!, viewport = page.viewportSize()!;
   expect(box.width).toBeGreaterThanOrEqual(viewport.width - 1); expect(box.height).toBeGreaterThanOrEqual(viewport.height * 0.9);
@@ -534,7 +575,8 @@ test('phone: a denied microphone shows the steps for this browser and the compos
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe('hidden');
   await page.keyboard.press('Escape');
   await expect(panel(page)).toHaveCount(0);
-  await expect(openButton(page)).toBeFocused();
+  // Session AL (owner decision O3, deliberate): on a phone the focus returns to "Apps & extras", which opened ZIGi (was: ZIGi's launcher).
+  await expect(page.getByTestId('apps-extras-button')).toBeFocused();
 });
 
 test('"Ask ZIGi about this" on a habit card and on a goal detail opens the chat with the item named, and sends nothing until Send', async ({page}) => {

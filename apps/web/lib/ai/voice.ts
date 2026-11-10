@@ -112,7 +112,7 @@ export function recognitionErrorText(code: string): string {
   switch (code) {
     case 'not-allowed': case 'service-not-allowed': return microphoneDeniedText(typeof navigator === 'undefined' ? 'other' : detectBrowser(navigator.userAgent));
     case 'no-speech': return 'No speech was heard.';
-    case 'audio-capture': return 'No microphone was found.';
+    case 'audio-capture': return 'No microphone was found: type instead.'; // Session AL (LA-015, P-LA-27): say what to do next
     case 'network': return 'The browser\'s speech service could not be reached.';
     case 'language-not-supported': return 'This language is not supported by the browser\'s speech recognition; choose another in Settings.';
     case 'aborted': return '';

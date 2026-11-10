@@ -51,3 +51,9 @@ test('SE2 (Session AH): the review reminder follows the one review day in Settin
   expect(planDue(p, at('09:30'), '2026-10-07', {weekday: 0, reviewWeekday: 0, fastDone: false}).map(d => d.kind)).toEqual(['review']);
   expect(planDue(p, at('09:30'), '2026-10-07', {weekday: 5, reviewWeekday: 0, fastDone: false})).toEqual([]);
 });
+
+test('Session AL (RR-3): the weekly review reminder opens the Life review, never the page it sits on', () => {
+  const p = setPlanItem(emptyRemindersPlan(), 'review', {on: true, time: '09:00'});
+  const due = planDue(p, at('09:30'), '2026-10-07', {weekday: 0, reviewWeekday: 0, fastDone: false});
+  expect(due.map(d => [d.kind, d.href])).toEqual([['review', '/app/review']]);
+});

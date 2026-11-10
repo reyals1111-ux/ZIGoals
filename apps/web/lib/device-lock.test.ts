@@ -5,7 +5,12 @@ import {newLock, readLock, tryPin, waitAfter, writeLock, DEVICE_LOCK_KEY} from '
 const memory = () => { const m = new Map<string, string>(); return {m, getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }, removeItem: (k: string) => { m.delete(k); }}; };
 test('the PIN is kept only as a salted hash; the right PIN opens, a wrong one counts', async () => {
   const lock = await newLock('2468');
-  expect(JSON.stringify(lock)).not.toContain('2468');
+  // Session AL (CI 1630, deliberate): the random salted hash can contain any 4 digits by chance (it did: "…bb2468d"), so the
+  // PIN is checked where it could leak — every field but the salt and the hash — and those two must be fixed-length hex.
+  const {salt, hash, ...rest} = lock as typeof lock & {salt: string; hash: string};
+  expect(JSON.stringify(rest)).not.toContain('2468');
+  expect(salt).toMatch(/^[0-9a-f]{32}$/);
+  expect(hash).toMatch(/^[0-9a-f]{64}$/);
   expect((await tryPin(lock, '2468', 0)).ok).toBe(true);
   const wrong = await tryPin(lock, '1111', 0);
   expect(wrong).toMatchObject({ok: false, waitMs: 0, lock: {failures: 1}});
@@ -27,4 +32,19 @@ test('the record reads back, and a damaged one reads as no lock (never locks the
   expect(readLock(s)).toBeNull();
   writeLock(s, null);
   expect(s.m.size).toBe(0);
+});
+
+// Session AL (BN-113, NB-145): the bot typed invalid PINs ("12ab34" twice, nine digits twice) and the old fields
+// silently stripped and cut them into a valid PIN, so the lock turned on with a PIN nobody chose. Checked as typed now.
+test('BN-113: a new PIN is checked exactly as typed; only two equal 4-8 digit entries turn the lock on', async () => {
+  const {checkNewPin} = await import('./device-lock');
+  expect(checkNewPin('12', '12')?.pin).toMatch(/4 to 8 digits \(this one has 2\)/);
+  expect(checkNewPin('12ab34', '12ab34')?.pin).toMatch(/digits only/);
+  expect(checkNewPin('123456789', '123456789')?.pin).toMatch(/this one has 9/);
+  expect(checkNewPin(' 1234', ' 1234')?.pin).toMatch(/digits only/);
+  expect(checkNewPin('1234', '1235')?.again).toMatch(/differ/);
+  expect(checkNewPin('1234', '')?.again).toMatch(/again/);
+  expect(checkNewPin('', '')?.pin).toBeTruthy();
+  expect(checkNewPin('1234', '1234')).toBeNull();
+  expect(checkNewPin('12345678', '12345678')).toBeNull();
 });

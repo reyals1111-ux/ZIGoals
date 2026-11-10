@@ -44,6 +44,9 @@ import {CSV_MAPPINGS} from '../csv/templates/saved';
 import {AUTO_RULES} from '../auto-rules/schema';
 import {FOOD_SCANS} from '../food-scans/schema';
 import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
+import {HEALTH_EXTRAS} from '../health-extras';
+import {PROFILE_NAME} from '../onboarding-setup';
+import {WATCHLIST_MORE} from '../markets-watchlist-more';
 import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {COMPARE_PAIR} from '../compare/schema';
@@ -57,7 +60,7 @@ import {HEALTH_NUMBERS} from '../health-numbers/store';
 import {NOVA_HERMES} from '../nova/hermes-record';
 import {NOVA_SETUP} from '../nova/setup';
 import {NOVA_WORKFLOWS} from '../nova/workflows/schema';
-import {NOVA_BRIEFS} from '../nova/briefs';
+import {NOVA_BRIEFS} from '../nova/briefs-record';
 import {NOVA_BRIDGE} from '../nova/bridge';
 import {NOVA_STORE} from '../nova/store';
 import {CALENDAR_IMPORT} from '../ics/calendar';
@@ -85,6 +88,7 @@ import {EXCHANGES_RECORD} from '../exchanges/record';
 import {JOURNAL} from '../journal/schema';
 import {ENERGY} from '../energy/schema';
 import {AI_MEMORY, HEALTH_NOTE_CATEGORIES} from '../ai/store/records';
+import {CHECKLIST, CHECKLIST_DAYS} from '../checklist/schema';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): what "Restore from a backup" can bring back from an
@@ -113,7 +117,7 @@ export type ModulePart = Part & {kind: 'module'; name: ModuleName};
  * the backup's share with the rest of this device's record left exactly as it is. A Merge is the usual one (only what this
  * device lacks is added) on the part's share. Both parts write the same key; Undo goes back newest first, so it holds.
  */
-export type PartSlice = {pick: (value: unknown) => unknown; has: (value: unknown) => boolean; replace: (current: unknown, backup: unknown) => unknown};
+export type PartSlice = {pick: (value: unknown) => unknown; has: (value: unknown) => boolean; replace: (current: unknown, backup: unknown) => unknown; summarize?: (value: unknown) => PartSummary};
 export type DevicePart = Part & {kind: 'device'; name: string; slice?: PartSlice};
 const mod = (name: ModuleName, label: string, group: RestoreGroup, key: string, schema: z.ZodType<unknown>): ModulePart => ({kind: 'module', id: `module:${name}`, name, label, group, key, schema, empty: () => undefined, health: name === 'health'});
 const dev = <T,>(name: string, label: string, group: RestoreGroup, spec: DeviceRecordSpec<T>, health = false): DevicePart => ({kind: 'device', id: `device:${name}`, name, label, group, key: spec.key, schema: spec.schema as z.ZodType<unknown>, empty: spec.empty as () => unknown, health});
@@ -133,6 +137,43 @@ function memorySlice(health: boolean): PartSlice {
     replace: (current, backup) => ({...(health ? (isObject(current) ? current : {version: 1}) : isObject(backup) ? backup : {version: 1}), notes: [...notesIn(current).filter(n => !mine(n)), ...notesIn(backup).filter(mine)]}),
   };
 }
+/**
+ * Session AL (P-LS-36, LS-025, LS-064; TIER 3 (stored format), behaviour additive): the Checklist restores from Export
+ * everything, with the rule its sync section follows (lib/vault/extras-sections.ts). Its path (favourites, custom items,
+ * orbits, order) and its day history restore with Today and Life; the Health quick inputs on the path (`healthItems`)
+ * only with the Health choice; today's tick receipts (`today`, which can name a Health entry) never: they stay as they
+ * are on this device. Each part's Replace leaves the other part's share of the record exactly as this device holds it.
+ */
+const listOf = (v: unknown, k: string): unknown[] => isObject(v) && Array.isArray(v[k]) ? v[k] as unknown[] : [];
+const idsOf = (list: unknown[]) => list.flatMap(i => isObject(i) && typeof i.id === 'string' ? [i.id] : []);
+const countOf = (label: string, n: number) => `${n} ${label}`;
+const checklistPathSlice: PartSlice = {
+  pick: v => ({...(isObject(v) ? v : {version: 1}), healthItems: []}),
+  has: v => listOf(v, 'items').length > 0 || listOf(v, 'sections').length > 0,
+  replace: (current, backup) => ({...(isObject(backup) ? backup : {version: 1}), healthItems: listOf(current, 'healthItems')}),
+  summarize: v => ({counts: [countOf(listOf(v, 'items').length === 1 ? 'item on the path' : 'items on the path', listOf(v, 'items').length), ...(listOf(v, 'sections').length ? [countOf(listOf(v, 'sections').length === 1 ? 'orbit' : 'orbits', listOf(v, 'sections').length)] : [])].join(' · '), from: null, through: null}),
+};
+const checklistHealthSlice: PartSlice = {
+  pick: v => { const health = listOf(v, 'healthItems'), ids = new Set(idsOf(health)); return {version: 1, items: [], healthItems: health, order: listOf(v, 'order').filter(id => typeof id === 'string' && ids.has(id))}; },
+  has: v => listOf(v, 'healthItems').length > 0,
+  replace: (current, backup) => {
+    const here = isObject(current) ? current : {version: 1, items: [], order: []}, order = listOf(here, 'order');
+    return {...here, healthItems: listOf(backup, 'healthItems'), order: [...order, ...listOf(backup, 'order').filter(id => !order.includes(id))]};
+  },
+  summarize: v => ({counts: countOf(listOf(v, 'healthItems').length === 1 ? 'Health quick input' : 'Health quick inputs', listOf(v, 'healthItems').length), from: null, through: null}),
+};
+const daysOf = (v: unknown): Record<string, unknown> => isObject(v) && isObject(v.days) ? v.days : {};
+const checklistDaysSlice: PartSlice = {
+  pick: v => { if (!isObject(v)) return {version: 1, days: {}}; const {today, ...rest} = v; void today; return rest; },
+  has: v => Object.keys(daysOf(v)).length > 0,
+  replace: (current, backup) => { const {today: _drop, ...rest} = isObject(backup) ? backup : {version: 1, days: {}}; void _drop; return {...rest, ...(isObject(current) && current.today !== undefined ? {today: current.today} : {})}; },
+  summarize: v => { const d = Object.keys(daysOf(v)).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort(); return {counts: countOf(d.length === 1 ? 'day recorded' : 'days recorded', Object.keys(daysOf(v)).length), from: d[0] ?? null, through: d.at(-1) ?? null}; },
+};
+const checklistParts: readonly DevicePart[] = [
+  {...dev('checklist', 'Checklist path and favourites', 'Today and Life', CHECKLIST), slice: checklistPathSlice},
+  {...dev('checklistHealth', 'Checklist Health quick inputs', 'Health', CHECKLIST, true), name: 'checklist', slice: checklistHealthSlice},
+  {...dev('checklistDays', 'Checklist day history', 'Today and Life', CHECKLIST_DAYS), slice: checklistDaysSlice},
+];
 const memoryPart = (health: boolean): DevicePart => ({...dev(health ? 'aiMemoryHealth' : 'aiMemory', health ? 'Memory notes about health and diet (ZIGi and NOVA)' : 'Memory for ZIGi and NOVA', health ? 'Health' : 'Today and Life', AI_MEMORY, health), name: 'aiMemory', slice: memorySlice(health)});
 
 export const MODULE_PARTS: readonly ModulePart[] = [
@@ -154,6 +195,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('energy', 'Daily energy', 'Health', ENERGY),
   dev('mealEstimates', 'Meal estimate ranges', 'Health', MEAL_ESTIMATES, true),
   dev('tasks', 'Tasks', 'Today and Life', TASKS),
+  // Session AL (P-LS-36): the Checklist's path, its Health quick inputs (Health choice only) and its day history.
+  ...checklistParts,
   dev('portfolioReceipts', 'Portfolio rewards, income and airdrops', 'Goals and Wealth', RECEIPTS),
   dev('portfolioImports', 'Portfolio rows from wallets', 'Goals and Wealth', IMPORTS),
   dev('readingSources', 'Where wealth readings came from', 'Goals and Wealth', READING_SOURCES),
@@ -168,6 +211,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AK Part 4: Health-describing, so restored only with the Health choice.
   dev('foodScans', 'Barcodes you scanned', 'Health', FOOD_SCANS, true),
   dev('nutrientExtras', 'Extra nutrients', 'Health', NUTRIENT_EXTRAS_RECORD, true),
+  // Session AL (GAP-045, GAP-079): meal names and times, drink types; Health-describing, so only with the Health choice.
+  dev('healthExtras', 'Meal names and drink types', 'Health', HEALTH_EXTRAS, true),
   dev('grocery', 'Grocery ticks and pantry', 'Health', GROCERY_RECORD, true),
   dev('calorieWeek', 'Weekly calorie budget', 'Health', CALORIE_WEEK, true),
   dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),
@@ -175,6 +220,10 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('govReminders', 'Governance vote reminders', 'Goals and Wealth', GOV_REMINDERS),
   dev('insightFeedback', 'Was this useful? on ZIGi notes', 'Today and Life', INSIGHT_FEEDBACK),
   dev('focusRounds', 'Focus bell and breaks', 'Today and Life', FOCUS_ROUNDS),
+  // Session AL (NB-006): the name the person gave in setup, for Today's greeting.
+  dev('profileName', 'Your name for the greeting', 'Today and Life', PROFILE_NAME),
+  // Session AL (C-TK-20): Markets favourites beyond the synced eight.
+  dev('watchlistMore', 'More Markets favourites', 'Goals and Wealth', WATCHLIST_MORE),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),
   dev('healthNumbers', 'Your numbers (blood pressure and lab values)', 'Health', HEALTH_NUMBERS, true),
@@ -227,7 +276,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('measurementsCustom', 'Custom measurements', 'Health', MEASUREMENTS_CUSTOM, true),
 ];
 /** What a file may hold and this never restores, said in the preview. */
-export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices, recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, Checklist favourites and day history, the staking journal and the practice/real choice, linked wallet balances, Goal Vault links, validator health alerts, ZIGi\'s plans, My universe milestones, Day timeline times and the Stories you opened and legacy simulation Goals (use an encrypted copy for those).';
+export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices, recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, today’s Checklist ticks, the staking journal and the practice/real choice, linked wallet balances, Goal Vault links, validator health alerts, ZIGi\'s plans, My universe milestones, Day timeline times and the Stories you opened and legacy simulation Goals (use an encrypted copy for those).';
 export const NEWER_PART_MESSAGE = 'Saved by a newer ZIGoals. Update the app on this device, then restore this part.';
 export const INVALID_PART_MESSAGE = 'This part did not read as a valid record, so it is left out.';
 export const MAX_DEVICE_PART_CHARS = 5_000_000;
@@ -294,7 +343,7 @@ export function summarizeValue(value: unknown): PartSummary {
 /** A part's summary: a module's own counts (the encrypted backup's preview labels), or the generic one. */
 export const summarizePart = (part: ModulePart | DevicePart, value: unknown): PartSummary => part.kind === 'module' ? moduleSummary(part, value) : part.slice ? sliceSummary(part.slice, value) : summarizeValue(value);
 const NO_NOTES: PartSummary = {counts: 'No notes', from: null, through: null};
-const sliceSummary = (slice: PartSlice, value: unknown): PartSummary => { const mine = slice.pick(value); return notesIn(mine).length ? summarizeValue(mine) : slice.has(mine) ? {counts: 'Settings only', from: null, through: null} : NO_NOTES; };
+const sliceSummary = (slice: PartSlice, value: unknown): PartSummary => { const mine = slice.pick(value); if (slice.summarize) return slice.summarize(mine); return notesIn(mine).length ? summarizeValue(mine) : slice.has(mine) ? {counts: 'Settings only', from: null, through: null} : NO_NOTES; };
 function moduleSummary(part: ModulePart, value: unknown): PartSummary {
   try {
     const [s] = summarizeBackupModules({[part.name]: JSON.stringify(value)} as Partial<Record<ModuleName, string>>);
@@ -314,7 +363,12 @@ export function planParts(json: {modules?: Record<string, unknown>; device?: Rec
     if (typeof version === 'number' && version > CURRENT_VERSIONS[part.name]) { out.push({...part, problem: NEWER_PART_MESSAGE, summary: null}); continue; }
     if (typeof version === 'number' && version < 1) { out.push({...part, problem: OLDER_PART_MESSAGE, summary: null}); continue; }
     const parsed = part.schema.safeParse(value);
-    const note = typeof version === 'number' && version < CURRENT_VERSIONS[part.name] ? {note: OLDER_READABLE_NOTE} : {};
+    // Release review AL (RR-7): a part is "saved by an earlier version" only when this build reads it through a migration
+    // (its schema lifts the stored version). Each store writes the lowest version its content needs (Habits 2 until a Health
+    // link, Health 1 until fasting…), so a lower number than CURRENT_VERSIONS (the newest it reads) is often today's format:
+    // a backup made seconds earlier said every part was older.
+    const read = parsed.success && isObject(parsed.data) ? parsed.data.schemaVersion : undefined;
+    const note = typeof version === 'number' && typeof read === 'number' && read > version ? {note: OLDER_READABLE_NOTE} : {};
     out.push(parsed.success ? {...part, ...note, value: parsed.data, summary: moduleSummary(part, parsed.data)} : {...part, problem: INVALID_PART_MESSAGE, summary: null});
   }
   for (const part of DEVICE_PARTS) {

@@ -10,7 +10,7 @@ import {lazy, Suspense, useEffect, useRef, useState, type RefObject} from 'react
  * sidebar, the phone's More, Help and Settings.
  */
 export function FooterTop() {
-  return <a className="site-footer-top" href="#main" aria-label="Back to top" onClick={event => { event.preventDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); document.getElementById('main')?.focus({preventScroll: true}); }}><span className="site-footer-top-word">Back to top</span> <span aria-hidden="true">↑</span></a>;
+  return <a className="site-footer-top" href="#main" aria-label="Back to top" onClick={event => { event.preventDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); /* Session AL fifth pass (D-230): <main> takes the focus only with a tabindex; without one the focus stayed on this link at the foot */ const main = document.getElementById('main'); if (main) { if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1'); main.focus({preventScroll: true}); } }}><span className="site-footer-top-word">Back to top</span> <span aria-hidden="true">↑</span></a>;
 }
 const FooterPath = lazy(() => import('./footer-path'));
 /** The constellation path and the opening moment: mounted inside the stage; finds its stage and footer from there. */

@@ -6,7 +6,7 @@ import type {Fasting} from '../../fasting/schema';
 import {habitDataSchema, type HabitData} from '../../habits';
 import {healthSchema, logHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, type HealthData} from '../../health';
 import {addCounter, changeCount} from '../../health-counters';
-import {addWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, saveMealPlan, dailyData} from '../../health-daily';
+import {addWater, removeWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, saveMealPlan, dailyData} from '../../health-daily';
 import {platformSchema, type Platform} from '../../positions';
 import {portfolioDataSchema, type PortfolioData} from '../../portfolio/schema';
 import {buildShowcase} from '../../showcase-data';
@@ -61,7 +61,13 @@ export const SENTINEL = {
 } as const;
 /** Every sentinel as text, for "contains none of these" checks. */
 export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote, String(SENTINEL.importSteps), String(SENTINEL.importKcal), SENTINEL.linkedWorkout, SENTINEL.moodNote];
-export const sentinelsIn = (text: string) => SENTINEL_TEXTS.filter(s => text.includes(s));
+// Session AL (Part 13): numbers reach the model formatted ("4,111 mL", "4.111", "4 111"), so a numeric sentinel matches its
+// digits with any grouping mark between them; a leak in a formatted figure is still a leak, and the open-gate controls see it.
+const GROUP = '[,.\u00a0\u202f\u2009 ]?';
+const numericPattern = (s: string) => /^\d+$/.test(s) ? new RegExp(`(?<![\\d])${s.split('').join(GROUP)}(?![\\d])`) : null;
+/** Whether `text` holds this sentinel, a numeric one in any digit grouping. */
+export const hasSentinel = (text: string, sentinel: string | number) => { const s = String(sentinel), re = numericPattern(s); return re ? re.test(text) : text.includes(s); };
+export const sentinelsIn = (text: string) => SENTINEL_TEXTS.filter(s => hasSentinel(text, s));
 
 // The Showcase's records for a day, built once per process: the lookup tests call this per phrase, and Session AA-Local's
 // additions doubled the build (76 ms); the records are strings, so sharing them is safe.
@@ -99,6 +105,9 @@ export function withSentinels(sources: ToolSources): ToolSources {
   health = saveMealFromRecipe(health, 'health_meal-sentinel-1', 'health_recipe-sentinel-1', 1000, stamp);
   health = saveMealPlan(health, {id: 'health_plan-sentinel-1', savedMealId: 'health_meal-sentinel-1', date: addLocalDays(day, 1), meal: 'Dinner'}, stamp);
   health = saveGroceryNotes(health, SENTINEL.grocery);
+  // Session AL (Part 13): the Showcase now logs water today too; the sentinel day holds only the sentinel water, so the
+  // day's total is the sentinel itself (a sum would hide it from both the leak checks and the open-gate controls).
+  for (const w of dailyData(health).water.filter(x => x.date === day)) health = removeWater(health, w.id);
   health = addWater(health, {id: 'health_water-sentinel-1', date: day, amountMilli: SENTINEL.waterMl * 1000, unit: 'ml'}, stamp);
   health = saveActivity(health, {id: 'health_activity-sentinel-1', date: day, name: SENTINEL.activity, steps: SENTINEL.steps, minutes: 41}, stamp);
   health = saveWeight(health, {id: 'health_weight-sentinel-1', date: day, grams: 59_173}, stamp);

@@ -10,7 +10,7 @@ const VIEWS=['Diary','Foods & recipes','Meals & planning','Weight','Measurements
 const health=(page:Page)=>page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:health:v1')??'null') as {weights?:{grams:number}[];daily?:{water:{amountMilli:number}[]}}|null);
 const grams=async(page:Page)=>(await health(page))?.weights?.map(w=>w.grams)??[];
 const millilitres=async(page:Page)=>(await health(page))?.daily?.water.map(w=>w.amountMilli)??[];
-const view=async(page:Page,name:string)=>{await page.getByRole('button',{name,exact:true}).click();};
+const view=async(page:Page,name:string)=>{await page.getByRole('tab',{name,exact:true}).click(); /* Session AL fifth pass (PR-014): the Health views are tabs */};
 
 test('with an en-US browser, "72,5" kg is saved as 72.5 kg and "1,5" mL of water as 1.5 mL, never 725 kg or 15 mL',async({page})=>{
  await page.goto('/app/health');
@@ -31,6 +31,11 @@ test('with an en-US browser, "72,5" kg is saved as 72.5 kg and "1,5" mL of water
  const water=page.getByRole('form',{name:'Water entry'}),amount=water.getByLabel('Water amount',{exact:true});
  await amount.pressSequentially('1,5');
  await expect(amount).toHaveValue('1,5');
+ await water.getByRole('button',{name:'Log water'}).click();
+ // Session AL (P-MO-43, MO-111, deliberate): less than 5 mL asks once (the comma was read: 1.5 mL, not 15 mL); nothing is
+ // saved until Log water is pressed again with the same amount.
+ await expect(water.getByText('1.5 mL is less than a sip. If it is right, press Log water again to keep it.')).toBeVisible();
+ expect(await millilitres(page)).toEqual([]);
  await water.getByRole('button',{name:'Log water'}).click();
  await expect(page.getByRole('status').filter({hasText:'Water recorded.'})).toBeVisible();
  await expect.poll(()=>millilitres(page)).toEqual([1_500]);

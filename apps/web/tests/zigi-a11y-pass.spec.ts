@@ -7,6 +7,7 @@ import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {audit} from './a11y-audit';
 import {openMealLog} from './phone-nav';
 import {chooseChain} from './chain-choice';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 16, the accessibility pass for people using a screen reader and for AI agents that drive a page by
@@ -80,6 +81,8 @@ test('goal creation, a contribution and the add-asset form', async ({page}) => {
   await seed(page);
   await page.goto('/app/goals/new');
   await clean(page.locator('main'), 'New goal');
+  /* Session AL fifth pass (DV-120, deliberate): no kind is preselected, so the spec chooses the count that shows the asset field */
+  await page.getByRole('radio', {name: 'Quantity', exact: true}).check();
   await expect(page.getByLabel('Goal asset', {exact: true})).toHaveAccessibleDescription(/^Use a symbol such as BTC or ZIG/);
   await page.goto('/app/goals');
   await page.getByRole('link', {name: 'Japan adventure'}).first().click();
@@ -99,7 +102,7 @@ test('goal creation, a contribution and the add-asset form', async ({page}) => {
 test('ZIGi\'s panel, proposal cards and Customize', async ({page}) => {
   await seed(page);
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   await expect(panel(page).locator('.ai-greeting-text')).toBeVisible();
   await clean(panel(page), 'ZIGi panel');
   // Session Z-Cloud Part 2: the brief moved into the Suggestions sheet; the panel is checked with the sheet open too.

@@ -1,4 +1,5 @@
 'use client';
+import {valdoraTags} from '../../lib/earn/glance';
 import type {LiveState} from '../../lib/earn/client';
 import {decimal, pctShort, tokenAmount, usd, zig} from '../../lib/earn/format';
 import type {DefillamaData, ValdoraData} from '../../lib/earn/live/types';
@@ -28,9 +29,11 @@ const readDay = () => formatDate(`${READ_ON}T12:00:00Z`, {timeZone: 'UTC'});
 export function ValdoraSection({valdora, llama, now, reads = []}: {valdora: LiveState<ValdoraData>; llama: LiveState<DefillamaData>; now: number; reads?: readonly PositionRead[]}) {
   const day = readDay();
   const data = valdora.phase === 'ok' ? valdora.answer.data : null;
-  const tags: Tag[] = [data?.paused || data?.emergencyMode ? {tone: 'paused', text: data.emergencyMode ? 'Emergency mode on' : 'Paused right now'} : {tone: 'live', text: 'Live on mainnet'}, {tone: 'contract', text: 'A contract holds the ZIG'}];
+  const tags: Tag[] = valdoraTags(data);
   const stzigPool = llama.phase === 'ok' && llama.answer.data.pools.status === 'ok' ? llama.answer.data.pools.rows.find(r => r.project === 'valdora-finance' && r.symbol.toUpperCase() === 'STZIG') : undefined;
   const unavailable = valdora.phase === 'unavailable' ? valdora.reason : 'UPSTREAM_DOWN';
+  // Session AL (PR-037): the ZIG behind stZIG by the contract's own figures (supply × rate), for the TVL line's comparison.
+  const stakedZig = data && data.rate.status === 'ok' ? (() => { const v = Number(data.stZigSupplyUnits) / 10 ** data.stZigDecimals * Number(data.rate.zigPerStZig); return Number.isFinite(v) && v > 0 ? formatNumber(v, {notation: 'compact', maximumFractionDigits: 1}) : null; })() : null;
   return <OptionSection id="valdora" eyebrow="Valdora · liquid staking" title="Stake and keep a token: stZIG"
     lede={<>Stake ZIG through Valdora’s contract and receive stZIG, a token that stands for your staked ZIG and is worth more ZIG as rewards come in. <WhatsThis term="liquid-staking"/></>}
     logo={{src: '/ecosystem-logos/valdora.png', alt: 'Valdora site icon'}}
@@ -51,7 +54,8 @@ export function ValdoraSection({valdora, llama, now, reads = []}: {valdora: Live
       <LiveFigure id="valdora-state" label="Contract state" now={now} figure={shown(valdora, d => d.emergencyMode ? 'Emergency mode on' : d.paused ? 'Paused' : 'Running, not paused')}/>
       <LiveFigure id="valdora-llama-apy" label="DefiLlama’s yearly figure for stZIG" third now={now} figure={stzigPool ? (stzigPool.apy === null ? {kind: 'unavailable', reason: 'NOT_PUBLISHED'} : {kind: 'ok', value: <>{formatNumber(stzigPool.apy, {maximumFractionDigits: 2})} % (APY)</>, answer: (llama as Extract<typeof llama, {phase: 'ok'}>).answer}) : shown(llama, d => d.pools.status === 'ok' ? {unavailable: 'NOT_PUBLISHED'} : {unavailable: d.pools.reason})}
         hint={<>DefiLlama’s own estimate, not ZIGoals’ and not a promise. <WhatsThis term="apy"/></>}/>
-      <LiveFigure id="valdora-llama-tvl" label="Value locked in Valdora on ZIGChain" third now={now} figure={shown(llama, d => d.protocols['valdora-finance'].status === 'ok' ? d.protocols['valdora-finance'].tvlUsd === null ? {unavailable: 'NOT_PUBLISHED'} : usd(d.protocols['valdora-finance'].tvlUsd) : {unavailable: d.protocols['valdora-finance'].reason})}/>
+      <LiveFigure id="valdora-llama-tvl" label="Value locked in Valdora on ZIGChain" third now={now} figure={shown(llama, d => d.protocols['valdora-finance'].status === 'ok' ? d.protocols['valdora-finance'].tvlUsd === null ? {unavailable: 'NOT_PUBLISHED'} : usd(d.protocols['valdora-finance'].tvlUsd) : {unavailable: d.protocols['valdora-finance'].reason})}
+        hint={<>{/* Session AL (PR-037): DefiLlama's total is not stZIG × rate; say so, with ZIGoals' own figure beside it. */}DefiLlama’s total for Valdora as a whole, in US dollars. It can count more than stZIG (such as the USDC vaults), so it need not match stZIG in circulation × the rate{stakedZig ? <> (about {stakedZig} ZIG from the contract, read now)</> : null}. ZIGoals has not checked how DefiLlama counts it.</>}/>
     </>}
     mine={<YourPosition reads={reads} kind="valdora"/>}
     columns={[

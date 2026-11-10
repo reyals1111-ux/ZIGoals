@@ -1,6 +1,7 @@
 import {formatNumber} from '../visual-format';
 import type {NoteKind} from '../insight-feedback/store';
 import {FORBIDDEN_INSIGHT_WORDS} from '../insights/engine';
+import {unitFor} from '../plural';
 
 /**
  * Session AK Part 8.3 and 8.4: ZIGi's short notes, made on this device from the person's own records with no model call.
@@ -55,7 +56,7 @@ export function periodNote(input: WeekInput): Note {
   const trend = skip.has('trend') ? undefined : input.trends.find(t => t.now !== null && t.before !== null && TREND_WORDS[t.label]);
   if (trend) { lines.push(TREND_WORDS[trend.label]!(trend.now!, trend.before!, p)); lead = 'trend'; }
   if (input.pairing && !skip.has('pairing')) { lines.push(`Seen together, not a cause: ${input.pairing}`); lead = 'pairing'; }
-  else if (input.streak && input.streak.streak > 0 && !skip.has('streak')) { lines.push(`Your longest running streak: ${input.streak.title}, ${formatNumber(input.streak.streak)} ${input.streak.unit}.`); lead = 'streak'; }
+  else if (input.streak && input.streak.streak > 0 && !skip.has('streak')) { lines.push(`Your longest running streak: ${input.streak.title}, ${formatNumber(input.streak.streak)} ${unitFor(input.streak.streak, input.streak.unit)}.`); lead = 'streak'; /* Session AL final pass (N-NB-04): "1 day", never "1 days" */ }
   if (!lines.length) return {title, lines: [`A quiet ${p} in your records. This note fills in as you check in a habit, log Health or record a contribution.`], empty: true, fine};
   return {title, lines: lines.slice(0, MAX_LINES), empty: false, fine, ...(lead ? {lead} : {})};
 }

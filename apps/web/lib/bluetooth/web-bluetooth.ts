@@ -1,10 +1,11 @@
-import {documentAllowsFeature} from '../health-navigation';
+import {documentFeatureState} from '../health-navigation';
 import {parseBodyComposition, parseHeartRate, parseWeight, type BodyCompositionReading, type HeartRateReading, type WeightReading} from './gatt';
 
 /**
  * Web Bluetooth for a heart-rate monitor and a scale (Session W Part 8). Feature-detected: the API exists in Chrome and
- * Edge on desktop and in Chrome on Android, not in Safari, Firefox or on iOS; the document must also allow it, which only
- * a page loaded as /app/health does (`bluetooth=(self)`). The browser shows its own chooser; only the standard services
+ * Edge on desktop and in Chrome on Android, not in Safari, Firefox or on iOS. Only Health's own components use it (Session
+ * AL TK-191: Chromium has no "bluetooth" Permissions-Policy feature, so that token was removed; lib/public-safety.test.ts
+ * keeps the module to components/health). The browser shows its own chooser; only the standard services
  * named here can be used (heart_rate, weight_scale, body_composition). Readings stay in this page.
  */
 type Characteristic = EventTarget & {value: DataView | null; startNotifications(): Promise<unknown>; stopNotifications(): Promise<unknown>};
@@ -17,7 +18,10 @@ export type Support = 'ok' | 'no-api' | 'policy';
 export function bluetoothSupport(doc: Document = document, nav: Navigator = navigator): Support {
   const api = (nav as Navigator & {bluetooth?: BluetoothApi}).bluetooth;
   if (!api || typeof api.requestDevice !== 'function') return 'no-api';
-  return documentAllowsFeature(doc, 'bluetooth') ? 'ok' : 'policy';
+  // Session AL third pass (INT): only a policy that knows Bluetooth and refuses it is "blocked". A browser whose policy
+  // does not list the feature (or has no policy API) cannot block it that way: the browser's own chooser decides, and a
+  // refusal there is said in plain words (bluetoothProblem). A browser without the API says "not supported" above.
+  return documentFeatureState(doc, 'bluetooth') === 'blocked' ? 'policy' : 'ok';
 }
 const api = () => (navigator as Navigator & {bluetooth?: BluetoothApi}).bluetooth!;
 /** Plain words for what went wrong (the person closing the chooser is not an error). */

@@ -11,6 +11,15 @@ import {formatClock} from '../../lib/visual-format';
 import {NOTIFY_CHANGE} from './notify-sync';
 import './notifications.css';
 
+/** Session AL (P-BN-37, BN-114): this browser's own answer, said beside the service's state (they are two things). */
+export type BrowserPermission = 'granted' | 'denied' | 'default' | 'unsupported';
+export const PERMISSION_LINE: Record<BrowserPermission, string> = {
+  granted: 'This browser: notifications allowed for ZIGoals.',
+  denied: 'This browser: notifications blocked for ZIGoals. Allow them in the browser’s site settings first.',
+  default: 'This browser: not asked yet. It asks when you press Turn on notifications.',
+  unsupported: 'This browser: no web notifications.',
+};
+const browserPermission = (): BrowserPermission => typeof Notification === 'undefined' ? 'unsupported' : Notification.permission === 'granted' || Notification.permission === 'denied' ? Notification.permission : 'default';
 type Phase = {kind: 'checking'} | {kind: 'off'; publicKey: string} | {kind: 'on'} | {kind: 'unavailable'; text: string; install?: boolean};
 /**
  * Settings → Notifications (Session AK Part 2, ADR-036 Q3, D1, A1–A4): one switch per type, the morning and evening
@@ -25,7 +34,15 @@ export function NotificationsCard() {
   // Session AK (CI fix, WebKit zigi-part-boundary:41): the build's status is asked of /api/push-device only once this card
   // comes near the screen (a #notifications jump, or scrolling to it), never on every Settings load: a page that never
   // shows the card sends no request about notifications, and none is left in flight when the person moves on.
-  const [near, setNear] = useState(false);
+  const [near, setNear] = useState(false), [permission, setPermission] = useState<BrowserPermission | null>(null);
+  // Read after mount (the server render has no browser), and again when the person comes back to the tab, since the
+  // permission is changed in the browser's own settings.
+  useEffect(() => {
+    const read = () => setPermission(browserPermission());
+    read();
+    document.addEventListener('visibilitychange', read);
+    return () => document.removeEventListener('visibilitychange', read);
+  }, []);
   useEffect(() => {
     const node = card.current;
     if (!node || typeof IntersectionObserver !== 'function') { setNear(true); return; }
@@ -55,6 +72,7 @@ export function NotificationsCard() {
     setBusy(true); setMessage(null);
     try {
       const device = await import('../../lib/notify/device'), result = await device.turnOnNotifications(phase.publicKey);
+      setPermission(browserPermission());
       if (result.ok) { save(p => ({...p, here: true})); setPhase({kind: 'on'}); setMessage({text: `Notifications are on for this device.${result.note ? ` ${result.note}` : ''}`}); }
       else setMessage({text: result.message, failed: true});
     } finally { setBusy(false); }
@@ -80,6 +98,7 @@ export function NotificationsCard() {
       <p>Never a habit’s name, an amount, a kind of reminder or anything you record. Every message is empty: the notification is composed here, after it arrives. Turning off deletes this device’s record at once; unused records leave after 30 days.</p>
     </details>
     <p role="status" className="notify-state">{state}{phase.kind === 'unavailable' && phase.install && <> <Link href="/app/help#install">How to add ZIGoals to your Home Screen →</Link></>}</p>
+    {permission && phase.kind !== 'checking' && !(phase.kind === 'unavailable' && phase.install) && <p className="fine notify-permission">{PERMISSION_LINE[permission]}</p>}
     <div className="notify-actions">
       {phase.kind === 'off' && <button type="button" className="primary" disabled={busy} onClick={() => void turnOn()}>{busy ? 'Setting up…' : 'Turn on notifications'}</button>}
       {phase.kind === 'on' && <><button type="button" className="secondary" disabled={busy} onClick={() => void test()}>Send a test notification</button><button type="button" className="quiet" disabled={busy} onClick={() => void turnOff()}>{busy ? 'Turning off…' : 'Turn off and delete from the server'}</button></>}

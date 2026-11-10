@@ -18,7 +18,16 @@ async function settledMoment(page: Page) {
   // (CI on c5014b60: the clip played in WebKit, and Continue — not shown, and not pressable, until the words come — could
   // never be clicked. While it plays, a tap on the clip, as a person would tap, skips to its last frame with the words; a
   // clip that stops moving shows them by itself within 1.5 s. Either way the words come, and Continue closes it.)
-  if (!await dialog.evaluate(d => d.hasAttribute('data-words'))) await dialog.click({position: {x: 40, y: 200}});
+  // Session AL fifth pass (replay L3-2 incidental, deliberate; f7f05c2a): once the words show, a tap outside them closes the
+  // moment, as Continue does. The tap at (40, 200) on the frame raced with them: in the replay (CI 1595, 1598, 1599, 1602,
+  // 1605, 1608, 1611) the dialog was gone right after the tap, so the words had very likely come as it landed. The tap now
+  // lands on the clip's lower part, where the words appear: before them it reaches the clip (the words take no pointer
+  // events until shown) and skips to the last frame with the words; after them it is a tap on the words, which keeps the
+  // moment open. Either way the words must come, and Continue must close it.
+  if (!await dialog.evaluate(d => d.hasAttribute('data-words'))) {
+    const [frame, words] = [await dialog.boundingBox(), await dialog.locator('.checklist-celebration-words').boundingBox()];
+    await dialog.click({position: {x: 40, y: words!.y - frame!.y + 40}});
+  }
   await expect(dialog).toHaveAttribute('data-words', '', {timeout: 2500});
   await dialog.getByRole('button', {name: 'Continue'}).click();
   await expect(party(page)).toHaveCount(0);

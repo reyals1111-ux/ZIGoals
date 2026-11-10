@@ -1,4 +1,4 @@
-import {MAX_BODY, MAX_NOTES, MAX_TITLE, MAX_TOTAL_CHARS, noteName, notesSchema, totalChars, type Note, type NoteSource, type Notes} from './schema';
+import {MAX_BODY, MAX_NOTES, MAX_TITLE, MAX_TOTAL_CHARS, noteName, notesSchema, shortNoteName, totalChars, type Note, type NoteSource, type Notes} from './schema';
 
 /**
  * Session AK (B1, B2): the pure changes behind notes — capture to the inbox, a day's daily note, edit, delete and file,
@@ -69,7 +69,7 @@ export function updateNote(record: Notes, id: string, patch: NotePatch, now: str
 export function removeNote(record: Notes, id: string): {record: Notes; undo: NotesUndo} {
   const note = record.notes.find(n => n.id === id);
   if (!note) throw new Error('This note is no longer on this device.');
-  return {record: checked({...record, notes: record.notes.filter(n => n.id !== id)}), undo: {before: [note], created: [], said: `“${noteName(note)}” is back.`}};
+  return {record: checked({...record, notes: record.notes.filter(n => n.id !== id)}), undo: {before: [note], created: [], said: `“${shortNoteName(note)}” is back.`}};
 }
 
 /** Where an inbox note can go. */

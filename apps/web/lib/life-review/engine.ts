@@ -6,11 +6,13 @@ import {waterSummary} from '../health-daily';
 import {dailySeries} from '../sleep/engine';
 import type {Platform} from '../positions';
 import type {WealthHistory} from '../wealth';
+import {wealthChange} from '../wealth-week';
 import type {AverageGoal} from '../average-goals/store';
 import {averageProgress} from '../average-goals/progress';
 import type {GoalExtras} from '../goal-extras/store';
 import {formatGoalAmount} from '../goal-summary';
 import {formatNumber} from '../visual-format';
+import {countText, unitFor} from '../plural';
 import {hoursMinutes} from '../insights/cross-pillar';
 
 /**
@@ -74,6 +76,8 @@ export function lifeReview(input: {
   /** Session AH Part 4 (TR13): today's holdings per currency in minor units, as Wealth and Today show them (live quotes
    *  included); a period that ends today ends at these, so the review never shows another figure for the same day. */
   current?: readonly {currency: string; value: bigint}[];
+  /** Session AL (RR-14): false while a holding has no value now (`current` is then only part of the total). */
+  currentComplete?: boolean;
 }): LifeReview {
   const {window, habits, health, platform, goals, averages, extras, history, today} = input;
   const now = days(window.start, window.end), before = days(window.prevStart, window.prevEnd), inNow = (d: string) => d >= window.start && d <= window.end;
@@ -118,7 +122,10 @@ export function lifeReview(input: {
       const asset = events[0]!.asset, same = events.every(e => e.asset === asset);
       goalsMoved.push({name: goal.name, href: summary.href, line: !same ? `${events.length} contributions, in more than one asset` : net.isZero() ? `${events.length} contributions that balance out` : `${net.isNegative() ? '' : '+'}${formatGoalAmount(net.toFixed(), asset)} put in (${events.length} ${events.length === 1 ? 'contribution' : 'contributions'})`});
     }
-    for (const h of platform.goalHistory) if (h.goalId === goal.id && h.kind === 'milestone' && inNow(dayOf(h.capturedAt))) goalsMoved.push({name: goal.name, href: summary.href, line: h.label});
+    // Session AL (NB-227): one line per goal for its milestone changes, however often a milestone was ticked and unticked.
+    const changes = platform.goalHistory.filter(h => h.goalId === goal.id && h.kind === 'milestone' && inNow(dayOf(h.capturedAt)));
+    if (changes.length === 1) goalsMoved.push({name: goal.name, href: summary.href, line: 'label' in changes[0]! ? changes[0]!.label : 'Milestone changed'});
+    else if (changes.length > 1) goalsMoved.push({name: goal.name, href: summary.href, line: `Milestones changed ${countText(changes.length, 'time')}${goal.milestones.length ? ` · ${formatNumber(goal.milestones.filter(m => m.done).length)} of ${countText(goal.milestones.length, 'milestone')} done now` : ''}`});
   }
   // Finished in the period: a tracked goal's last "completed" step (as the Hall reads it), an average goal's own day.
   for (const goal of platform.goals) {
@@ -136,20 +143,20 @@ export function lifeReview(input: {
   // The plans behind the active goals (G4), shown so the review can come back to them.
   const plans = goals.filter(g => g.status === 'active').flatMap(g => { const x = extras.goals[g.key]; return x && (x.why || x.ifThen) ? [{name: g.name, ...(x.why ? {why: x.why} : {}), ...(x.ifThen ? {ifThen: x.ifThen} : {})}] : []; }).slice(0, 4);
 
-  // Money: each currency's recorded total at the start and the end, never converted.
+  // Money: each currency's recorded total at the start and the end, never converted. Session AL (RR-14): worked out by
+  // lib/wealth-week.ts, the same reckoning as Today's "this week"; a period that ends today ends at today's live total,
+  // and while a holding has no value now the change is unknown (never a fall).
   const money: MoneyChange[] = history.map(h => {
-    // History values are in the currency's minor units (cents), as Wealth records them.
-    const units = (v: string | undefined) => v === undefined ? null : new Decimal(v).div(new Decimal(10).pow(h.decimals)).toFixed(h.decimals);
-    const at = (day: string) => units([...h.points].filter(p => dayOf(p.at) <= day).at(-1)?.value);
+    const units = (v: bigint | null) => v === null ? null : new Decimal(v.toString()).div(new Decimal(10).pow(h.decimals)).toFixed(h.decimals);
     const live = window.end >= today ? input.current?.find(c => c.currency === h.currency) : undefined;
-    const start = at(addLocalDays(window.start, -1)) ?? units(h.points.find(p => inNow(dayOf(p.at)))?.value), end = live ? new Decimal(live.value.toString()).div(100).toFixed(2) : at(window.end);
-    const change = start !== null && end !== null ? new Decimal(end).minus(start).toFixed(2) : null;
-    return {currency: h.currency, start, end, change, note: start === null || end === null ? 'Not enough recorded values in this period' : 'Recorded values, this currency only'};
+    const c = wealthChange({history: [h], currency: h.currency, before: addLocalDays(window.start, -1), end: window.end, firstInside: true, ...(live ? {now: {value: live.value, complete: input.currentComplete !== false}} : {})});
+    const start = units(c.start), end = units(c.end), change = units(c.change);
+    return {currency: h.currency, start, end, change, note: c.unknown === 'incomplete' ? 'Change not known: a holding has no value right now' : change === null ? 'Not enough recorded values in this period' : 'Recorded values, this currency only'};
   });
 
   const highlights: string[] = [];
   if (checkIns) highlights.push(`${formatNumber(checkIns)} habit ${checkIns === 1 ? 'check-in' : 'check-ins'}`);
-  if (streaks[0]) highlights.push(`Longest streak: ${streaks[0].title}, ${formatNumber(streaks[0].streak)} ${streaks[0].unit}`);
+  if (streaks[0]) highlights.push(`Longest streak: ${streaks[0].title}, ${formatNumber(streaks[0].streak)} ${unitFor(streaks[0].streak, streaks[0].unit)}`); // Session AL: "1 day", never "1 days"
   if (goalsMoved[0]) highlights.push(`${goalsMoved[0].name}: ${goalsMoved[0].line}`);
   if (healthTrends[0]!.now) highlights.push(`Sleep: ${healthTrends[0]!.now} a night on average`);
   return {window, highlights: highlights.slice(0, 4), wins, streaks, goalsMoved, plans, health: healthTrends, money, counts: {habitCheckIns: checkIns, healthDays, contributions: contributionCount}};

@@ -7,6 +7,8 @@ import {dailyData} from '../../../lib/health-daily';
 import {newHealthId, saveWeight} from '../../../lib/health';
 import {weightText} from '../../../lib/health-units';
 import {isShowcase} from '../../../lib/showcase-storage';
+import {useDeviceRecord} from '../../ai/use-device-record';
+import {MEASUREMENTS_CUSTOM, addBodyFat} from '../../../lib/health-aa/measurements-custom';
 import {bluetoothProblem, bluetoothSupport, connectScale, type Connection, type Support} from '../../../lib/bluetooth/web-bluetooth';
 import {connectMonitor, disconnectMonitor} from '../../../lib/bluetooth/monitor';
 import {heartSnapshot, SERVER_HEART, subscribeHeart} from '../../../lib/bluetooth/heart-store';
@@ -81,7 +83,7 @@ function HeartMonitor() {
 }
 
 function ScaleReader() {
-  const health = useHealth(), daily = dailyData(health.data), today = useHealthToday(daily.preferences.timezone), unit = daily.preferences.weightUnit;
+  const health = useHealth(), daily = dailyData(health.data), today = useHealthToday(daily.preferences.timezone), unit = daily.preferences.weightUnit, custom = useDeviceRecord(MEASUREMENTS_CUSTOM);
   const connection = useRef<Connection | null>(null), [name, setName] = useState<string | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState(''), [status, setStatus] = useState('');
   const [weight, setWeight] = useState<WeightReading | null>(null), [body, setBody] = useState<BodyCompositionReading | null>(null);
   useEffect(() => () => { connection.current?.stop(); connection.current = null; }, []);
@@ -97,7 +99,13 @@ function ScaleReader() {
     if (!weight) return;
     setError(''); setStatus('');
     if (isShowcase()) { setError('Showcase holds fictional records only, so readings are not saved here.'); return; }
-    try { await health.update(latest => saveWeight(latest, {id: latest.weights.find(w => w.date === today)?.id ?? newHealthId(), date: today, grams: Math.round(weight.kg * 1000)}, new Date().toISOString())); setStatus(`Saved as your weight for ${formatDate(today)}: ${shown(weight.kg)}.`); setWeight(null); setBody(null); }
+    try {
+      await health.update(latest => saveWeight(latest, {id: latest.weights.find(w => w.date === today)?.id ?? newHealthId(), date: today, grams: Math.round(weight.kg * 1000)}, new Date().toISOString()));
+      // Session AL third pass (GAP-053): the scale's body fat goes to Measurements → Body fat % (this device), when it gave one in range.
+      let fat = '';
+      if (body?.fatPct != null) { try { custom.update(r => addBodyFat(r, today, Math.round(body.fatPct! * 10) / 10, new Date().toISOString())); fat = ` and body fat ${body.fatPct.toFixed(1)} %`; } catch { fat = ' (its body fat was outside 2–75 % or could not be kept on this device, so it was not saved)'; } }
+      setStatus(`Saved as your weight for ${formatDate(today)}: ${shown(weight.kg)}${fat}.`); setWeight(null); setBody(null);
+    }
     catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'The weight was not saved.'); }
   }
   return <div className="devices-card" role="group" aria-label="Scale">
@@ -105,7 +113,7 @@ function ScaleReader() {
     {name ? <p className="fine">{name}: step on the scale. Each reading waits here for you to save it or not.</p> : <p>A scale that offers the standard weight or body composition service.</p>}
     {weight && <div className="devices-weight">
       <p className="devices-reading"><strong>{shown(weight.kg)}</strong>{body?.fatPct != null ? ` · body fat ${body.fatPct.toFixed(1)} %` : ''}</p>
-      {body?.fatPct != null && <p className="fine">Body fat is shown, not saved: your Health journal has no place for it yet.</p>}
+      {body?.fatPct != null && <p className="fine">Saving also keeps the body fat under Measurements → Body fat %, on this device.</p>}
       {existing && <p className="notice">You already have a weight for {formatDate(today)} ({weightText(existing.grams, 'kg')}); saving replaces it.</p>}
       <div className="actions"><button type="button" className="primary" onClick={() => void save()}>{existing ? 'Replace today’s weight' : 'Save as today’s weight'}</button><button type="button" className="quiet" onClick={() => { setWeight(null); setBody(null); }}>Not this one</button></div>
     </div>}

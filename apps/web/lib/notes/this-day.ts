@@ -43,8 +43,11 @@ export function thisDay(src: DaySources): {items: DayItem[]; unread: DayPillar[]
     const h = src.health!, href = `/app/health?date=${day}`;
     const meals = h.diary.filter(e => e.date === day).length;
     if (meals) items.push({id: 'health:food', pillar: 'health', title: 'Food diary', detail: `${plural(meals, 'item')} logged`, href});
-    const water = (h.daily?.water ?? []).filter(w => w.date === day).length;
-    if (water) items.push({id: 'health:water', pillar: 'health', title: 'Water', detail: `${plural(water, 'drink')} logged`, href});
+    // Session AL (DV-191c, P-DV-124): water in the one water vocabulary, millilitres (as Health and the Checklist say it),
+    // never "1 drink"; an entry whose amount cannot be read is counted as an entry.
+    const waters = (h.daily?.water ?? []).filter(w => w.date === day);
+    const millilitres = waters.reduce((n, w) => n + (Number.isFinite(w.amountMilli) ? w.amountMilli / 1000 * (w.unit === 'ml' ? 1 : 29.5735295625) : NaN), 0);
+    if (waters.length) items.push({id: 'health:water', pillar: 'health', title: 'Water', detail: Number.isFinite(millilitres) ? `${Math.round(millilitres).toLocaleString('en-US')} mL logged` : `${plural(waters.length, 'entry', 'entries')} logged`, href});
     if (h.weights.some(w => w.date === day)) items.push({id: 'health:weight', pillar: 'health', title: 'Weight', detail: 'Logged', href});
     const activity = h.activity.filter(a => a.date === day).length;
     if (activity) items.push({id: 'health:activity', pillar: 'health', title: 'Activity', detail: `${plural(activity, 'entry', 'entries')}`, href});

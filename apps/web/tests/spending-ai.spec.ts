@@ -35,7 +35,9 @@ test('Spending: a budget, an expense and its room to spend; remove with Undo', a
   expect((await log(page))?.entries).toMatchObject([{amount: '12.50', category: 'Food & drink', kind: 'expense', source: 'form'}]);
   await section.getByRole('button', {name: /^Remove Food & drink 12\.50 EUR/}).click();
   await expect(section).toContainText('€150.00');
-  await section.getByRole('button', {name: 'Undo'}).click();
+  // Session AL (L1 second pass, deliberate; 9ffb2510): a removal's Undo is the app's one Undo message (removeWithUndo), not a
+  // button inside the section.
+  await page.locator('.aa-toast').filter({hasText: 'Removed: Food & drink €12.50.'}).getByRole('button', {name: 'Undo', exact: true}).click();
   await expect(section).toContainText('€137.50');
 });
 test('a wrong amount is refused in plain words and nothing is saved', async ({page}) => {

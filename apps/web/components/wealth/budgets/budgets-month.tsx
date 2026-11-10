@@ -4,7 +4,7 @@ import {useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatMonth} from '../../../lib/visual-format';
-import {fromCents} from '../../../lib/money-log/engine';
+import {moneyCents} from '../money-tools/format';
 import {EXPENSE_CATEGORIES, MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
 import {budgetIssue, monthKey, monthView, removeBudget, setBudget, shiftMonth} from '../../../lib/budgets/engine';
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
@@ -13,6 +13,8 @@ import './budgets.css';
 import {amountProblem, resolveAmountText} from '../../../lib/money-calc/expression';
 import {CalcHint} from '../../money-calc/calc-hint';
 import '../../money-select/money-select.css';
+import {parseNumberInput} from '../../../lib/numbers/parse';
+import {useMoneyCurrency} from '../use-money-currency';
 
 /**
  * Session AK (7.7): category budgets, one month at a time, against the money log. Each row is the month's amount, plus
@@ -20,14 +22,15 @@ import '../../money-select/money-select.css';
  * (`zigoals:budgets:v1`); the weekly room to spend above is unchanged. Information, not advice. Lazy-loaded.
  */
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF'] as const;
-const money = (cents: number, currency: string) => { try { return new Intl.NumberFormat('en-GB', {style: 'currency', currency}).format(cents / 100); } catch { return `${fromCents(cents)} ${currency}`; } };
-const readAmount = (raw: string) => { const v = raw.trim().replace(/\s/g, '').replace(',', '.'); return /^\d{1,10}(\.\d{1,2})?$/.test(v) && Number(v) > 0 ? Number(v).toFixed(2) : v; };
+const money = (cents: number, currency: string) => moneyCents(cents, currency); // Session AL (PRIMITIVES 3f)
+const readAmount = (raw: string) => { const r = parseNumberInput(raw), v = r.ok ? r.text : raw.trim(); return /^\d{1,10}(\.\d{1,2})?$/.test(v) && Number(v) > 0 ? Number(v).toFixed(2) : v; }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
 
 export type BudgetsViewProps = {record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; showcase?: boolean; unreadable?: boolean; onChange: (change: (current: BudgetsRecord) => BudgetsRecord) => void};
 export function BudgetsView({record, entries, today, showcase = false, unreadable = false, onChange}: BudgetsViewProps) {
   const id = useId(), thisMonth = monthKey(today);
   const [month, setMonth] = useState(thisMonth), [status, setStatus] = useState(''), [problem, setProblem] = useState('');
-  const [category, setCategory] = useState<string>('Groceries'), [currency, setCurrency] = useState('EUR'), [amount, setAmount] = useState(''), [rollover, setRollover] = useState(false);
+  const startCurrency = useMoneyCurrency(); // Session AL (P-DVR-22): the one default currency, never a fixed EUR
+  const [category, setCategory] = useState<string>('Groceries'), [picked, setCurrency] = useState<string | null>(null), currency = picked ?? startCurrency, [amount, setAmount] = useState(''), [rollover, setRollover] = useState(false);
   // Session AK RB (RELEASE_REVIEW_2 R2-8): the form opens from its button (an empty Wealth showed every form in full).
   const [adding, setAdding] = useState(false);
   const view = useMemo(() => monthView(entries, record, month, today), [entries, record, month, today]);

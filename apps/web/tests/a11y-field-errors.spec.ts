@@ -81,7 +81,8 @@ test('accounts: a currency or a balance that does not read marks its own field a
   await currency.fill('EUR');
   await balance.fill('lots');
   await add.click();
-  await invalidWithMessage(balance, page, /^Enter a non-negative decimal amount\.$/);
+  // Session AL (BUG-012, DV-144, deliberate): letters get the shared sentence (lib/limits/amount-words.ts), not the parser's jargon.
+  await invalidWithMessage(balance, page, /^Enter a number, like 1500 or 12\.50\.$/);
   await expect(currency).not.toHaveAttribute('aria-invalid', 'true');
   expect((await audit(form)).filter(f => f.rule === 'aria-invalid-message')).toEqual([]);
   await balance.fill('5200');
@@ -95,11 +96,13 @@ test('goal wizard: a missing name, then a target that does not read, each mark t
   await page.getByRole('radio', {name: 'Save an amount', exact: true}).check();
   const name = page.getByLabel('Goal name', {exact: true}), target = page.getByLabel('Target amount', {exact: true});
   await page.getByRole('button', {name: 'Continue →'}).click();
-  await invalidWithMessage(name, page, /^Give your Goal a name\.$/);
+  // Session AL (COPY_AUDIT, deliberate; DV-007b/X3-19): "goal" is lower case mid-sentence.
+  await invalidWithMessage(name, page, /^Give your goal a name\.$/);
   await name.fill('Fictional trip');
   await target.fill('lots');
   await page.getByRole('button', {name: 'Continue →'}).click();
-  await invalidWithMessage(target, page, /^Enter a non-negative decimal amount\.$/);
+  // Session AL (COPY_AUDIT, deliberate): DV-003c, unreadable text reads in plain words (0 is refused too, so "non-negative" was wrong).
+  await invalidWithMessage(target, page, /^Enter a number, like 1500 or 12\.50\.$/);
   await expect(name).not.toHaveAttribute('aria-invalid', 'true');
   expect((await audit(page.locator('main'))).filter(f => f.rule === 'aria-invalid-message')).toEqual([]);
   await target.fill('1200');
@@ -119,7 +122,8 @@ test('asset editor: a quantity that does not read marks the quantity, which take
   const sheet = page.getByRole('dialog', {name: /^Edit Fictional coins/}), quantity = sheet.getByLabel('Asset quantity', {exact: true});
   await quantity.fill('lots');
   await sheet.getByRole('button', {name: 'Save changes', exact: true}).click();
-  await invalidWithMessage(quantity, page, /^Enter a non-negative decimal amount\.$/);
+  // Session AL (BUG-012, DV-144, deliberate): the shared sentence for letters, as every money form now says.
+  await invalidWithMessage(quantity, page, /^Enter a number, like 1500 or 12\.50\.$/);
   expect((await audit(sheet)).filter(f => f.rule === 'aria-invalid-message')).toEqual([]);
   await quantity.fill('120');
   await sheet.getByRole('button', {name: 'Save changes', exact: true}).click();

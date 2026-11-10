@@ -5,7 +5,7 @@ import type {LiveState} from '../../lib/earn/client';
 import {bps, duration} from '../../lib/earn/format';
 import type {ChainData, OroswapData} from '../../lib/earn/live/types';
 import {ZIG_ROUTES} from '../../lib/earn/options';
-import {START_STEPS, STEP_WORDS, startHereModel, type StartStepId, type StartStepState} from '../../lib/earn/start-here';
+import {REAL_ZIG_STEPS, START_STEPS, STEP_WORDS, startHereModel, type StartStepId, type StartStepState} from '../../lib/earn/start-here';
 import type {PathModel} from '../../lib/path/model';
 import {formatDate} from '../../lib/visual-format';
 import {VerifiedLink} from '../links/verified-link';
@@ -89,17 +89,18 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
       <p><Link className="primary" href="/app/staking">Practise on Staking</Link></p>
     </>;
     case 'add-money': return <>
-      <p>To earn for real you need crypto in your own wallet. A regulated provider sells it to you for a card payment or a bank transfer and sends it straight to your address: ZIGoals never holds it.</p>
+      {/* Session AL (BN-030, D-060, D-099; COPY_AUDIT, deliberate): an optional step, said first; no primary "buy" button. */}
+      <p><b>Optional.</b> Only if you decide to use real ZIG; practising is enough to learn staking, and nothing here tells you to buy. Real ZIG starts as crypto in your own wallet: a regulated provider sells it for a card payment or a bank transfer and sends it straight to your address. ZIGoals never holds it.</p>
       <Steps items={[
         {text: <>Open <Link className="text-link" href="/app/wealth/add-money">Add money</Link> and choose what to buy and on which network.</>},
         {text: 'The provider checks who you are (the rules say so) and shows its own fees before you pay.'},
         {text: 'It sends the crypto to your own address. The next step brings it onto ZIGChain.'},
       ]}/>
       <p className="fine">From a few minutes to longer: identity checks and bank transfers take the provider’s own time. You sign nothing in ZIGoals.</p>
-      <p><Link className="primary" href="/app/wealth/add-money">Add money</Link></p>
+      <p><Link className="secondary" href="/app/wealth/add-money">Add money</Link></p>
     </>;
     case 'get-zig': return <>
-      <p>ZIG is what you stake, and every ZIGChain fee is paid in it. These are the ways onto ZIGChain that worked when ZIGoals checked ({day(ZIG_ROUTES.readOn)}, {ZIG_ROUTES.source}): <WhatsThis term="bridge"/></p>
+      <p><b>Optional.</b> ZIG is what you stake, and every ZIGChain fee is paid in it. These are the ways onto ZIGChain that worked when ZIGoals checked ({day(ZIG_ROUTES.readOn)}, {ZIG_ROUTES.source}): <WhatsThis term="bridge"/></p>
       <ul className="earn-start-routes">{ZIG_ROUTES.routes.map(r => <li key={r.id} data-route={r.id}>
         <p><b>From {r.from}</b>: {r.how}</p>
         <p className="fine">{r.signatures === 1 ? 'One approval' : `${r.signatures} approvals`} · {r.time} (Skip Go’s estimate on {day(ZIG_ROUTES.readOn)}). {r.note}{poolFee(live.oroswap, r.pool)}</p>
@@ -109,7 +110,7 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
       <p className="earn-option-actions"><VerifiedLink provider="zig-finance" kind="skip-go" className="secondary">Open Skip Go</VerifiedLink> <VerifiedLink provider="zig-finance" kind="hub-bridge" className="secondary">ZIGChain Hub bridge</VerifiedLink> <VerifiedLink provider="oroswap" kind="swap" className="secondary">Swap on OroSwap</VerifiedLink></p>
     </>;
     case 'first-stake': return <>
-      <p>Your first stake on the real network: the same steps as your practice round, with real ZIG.</p>
+      <p><b>Optional.</b> Staking on the real network, if you choose it: the same steps as your practice round, with real ZIG.</p>
       <Steps items={[
         {text: <>Open <Link className="text-link" href="/app/staking">Staking</Link> and switch the network to Real. ZIGoals asks you to confirm that once.</>},
         {text: <>Connect Keplr, choose a validator (<a className="text-link" href="#validators">the list on this page</a> shows commission, uptime and how much stake each holds) and enter an amount. Keep some ZIG for fees.</>},
@@ -117,7 +118,7 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
         {text: <>Rewards start right away. To leave later, your ZIG is locked for {unbonding ?? <Unavailable reason={live.chain.phase === 'unavailable' ? live.chain.reason : 'UPSTREAM_DOWN'} short/>} with no rewards meanwhile. <WhatsThis term="unbonding"/></>},
       ]}/>
       <p className="fine">About 5 minutes. Only you can sign; ZIGoals never sees your keys.</p>
-      <p><Link className="primary" href="/app/staking">Stake on Staking</Link></p>
+      <p><Link className="secondary" href="/app/staking">Stake on Staking</Link></p>
     </>;
     case 'explore': return <>
       <p>Once you know staking, the other ways to earn on ZIGChain build on it. Each is explained below with its risks, in plain words.</p>
@@ -139,7 +140,8 @@ const endOnly = (model: PathModel): PathModel => ({...model, milestones: model.m
 
 export default function StartHerePath({states, open, onOpen, onMark, live, markError}: Props) {
   const model = useMemo(() => endOnly(startHereModel(states)), [states]);
-  const phone = usePhone(), guide = useRef<HTMLDivElement>(null), next = states.find(s => !s.done);
+  // Session AL (BN-030, D-060, D-099): ZIGi names the next practice step only; after practice it says the rest is optional.
+  const phone = usePhone(), guide = useRef<HTMLDivElement>(null), next = states.find(s => !s.done && !REAL_ZIG_STEPS.includes(s.id)), allDone = states.every(s => s.done);
   const panel = (stepId: string) => {
     const id = stepId as StartStepId, state = states.find(s => s.id === id);
     if (!state || !(START_STEPS as readonly string[]).includes(id)) return null;
@@ -154,7 +156,7 @@ export default function StartHerePath({states, open, onOpen, onMark, live, markE
   }, [phone, open]);
   return <>
     <Path model={model} ariaLabel="Start here: how staking works, step by step" layout="snake" className="earn-start-path" variant="orbit" follow={false}
-      bannerTitle={section => section.label} zigi={{say: next ? `Next: ${STEP_WORDS[next.id].label}` : 'All six done. Well travelled!'}} panelFor={open} onStep={step => onOpen(open === step.id ? null : step.id)} jumpLabel="Jump to your next step"
+      bannerTitle={section => section.label} zigi={{say: next ? `Next: ${STEP_WORDS[next.id].label}` : allDone ? 'All six done. Well travelled!' : 'Practice done. The rest is optional.'}} panelFor={open} onStep={step => onOpen(open === step.id ? null : step.id)} jumpLabel="Jump to your next step"
       renderPanel={phone ? undefined : step => panel(step.id)}/>
     {phone && open && <div ref={guide} className="earn-start-guide">{panel(open)}</div>}
   </>;

@@ -55,7 +55,8 @@ test('S4: the focuses step suggests habits and a goal, the setup is recorded and
   await page.evaluate(() => { localStorage.removeItem('zigoals:onboarding:v1'); localStorage.removeItem('zigoals:habits:v1'); });
   await page.goto('/app/welcome');
   await page.getByRole('button', {name: 'Let’s begin', exact: true}).click(); // welcome → pillars
-  await page.getByRole('button', {name: 'Continue without choosing', exact: true}).click(); // pillars → focuses
+  // Session AL (COPY_AUDIT, deliberate; N-NB-01): a step with nothing picked says "Skip this step", as the tour says "Skip the tour" (was "Continue without choosing").
+  await page.getByRole('button', {name: 'Skip this step', exact: true}).click(); // pillars → focuses
   await expect(page.getByRole('heading', {name: 'Two or three things to focus on.'})).toBeVisible();
   await page.getByRole('checkbox', {name: /Move more/}).check();
   await page.getByRole('checkbox', {name: /Save for something/}).check();

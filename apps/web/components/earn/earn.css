@@ -6,7 +6,7 @@
 .earn-page .earn-hero { margin-bottom: 8px; }
 .earn-hero-note { max-width: 680px; margin: 0 0 18px; color: var(--text-meta); }
 .earn-sections { display: grid; gap: 24px; }
-.earn-sections > .panel { margin: 0; }
+.earn-sections > .panel, .earn-sections > .phone-fold > .phone-fold-body > .panel { margin: 0; }
 
 /* The chip index */
 .earn-chips { position: sticky; top: var(--earn-chip-top); z-index: 20; margin: 0 -12px 20px; padding: 10px 12px; border-radius: 0 0 18px 18px; background: linear-gradient(180deg, #060b19f7, #0a1224ef); -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); }
@@ -33,7 +33,7 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 /* Earn's other sections (Start here, the validators, the Academy, the calculator, safety, the summary) are the options'
    peers: their titles take the same size, over the app's smaller in-panel heading (`:root .panel :is(.aa-section-heading,
    …) h2`, 19–22 px). */
-:root .earn-page .earn-sections > .panel > .aa-section-heading h2 { font-size: clamp(24px, 2.2vw + 10px, 32px); line-height: 1.15; }
+:root .earn-page .earn-sections > .panel > .aa-section-heading h2, :root .earn-page .earn-sections > .phone-fold > .phone-fold-body > .panel > .aa-section-heading h2 { font-size: clamp(24px, 2.2vw + 10px, 32px); line-height: 1.15; }
 :root .earn-page .earn-option-title > .eyebrow { text-wrap: balance; }
 .earn-option-lede { margin: 0 0 12px; color: var(--text-secondary); font-size: 17px; line-height: 1.5; max-width: 720px; }
 .earn-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -166,7 +166,7 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
   .earn-chips-rail::-webkit-scrollbar { display: none; }
   .earn-chip { scroll-snap-align: center; }
   html:has(.earn-chips) { scroll-padding-top: calc(var(--phone-bar, 52px) + var(--safe-top, 0px) + 72px); }
-  .earn-sections > .panel { padding: 20px 16px; }
+  .earn-sections > .panel, .earn-sections > .phone-fold > .phone-fold-body > .panel { padding: 20px 16px; } /* Session AL sweep 4: a folded section's too */
   .earn-option-head { grid-template-columns: minmax(0, 1fr); }
   .earn-medallion { width: 56px; height: 56px; }
   .earn-option-actions > * { flex: 1 1 100%; }
@@ -267,16 +267,8 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-illustration-svg .il-mark text { fill: #1a1206; font-weight: 800; }
 .earn-illustration-svg .il-lines rect { fill: #7fc8ff30; }
 
-/* Phones: the dock's apps as a strip at the top of the page (the floating dock is for computers, H68). */
-.earn-apps-strip { display: none; }
+/* Session AL (P-BN-48): the phones' app strip is gone (one topic strip, the index above); only its block's step-time rule stays. */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-  .earn-apps-strip { display: block; margin: 0 calc(-1 * var(--phone-gutter, 16px)) 12px; }
-  .earn-apps-strip ul { display: flex; gap: 12px; margin: 0; padding: 4px var(--phone-gutter, 16px); list-style: none; overflow-x: auto; scrollbar-width: none; }
-  .earn-apps-strip ul::-webkit-scrollbar { display: none; }
-  .earn-apps-strip-app { display: grid; justify-items: center; gap: 6px; min-width: 72px; min-height: 44px; color: var(--text-secondary); font-size: 14px; font-weight: 600; text-decoration: none; text-align: center; }
-  .earn-apps-strip .earn-dock-app-face { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 1px solid #ffd27a66; background: radial-gradient(120% 120% at 30% 20%, #23365c, #0b142a 72%); overflow: hidden; }
-  .earn-apps-strip .earn-dock-app-face img { width: 30px; height: 30px; object-fit: contain; }
-  .earn-apps-strip .earn-glyph-mark { width: 36px; height: 36px; }
   .earn-steps-time { margin-left: 0; }
 }
 /* crit1: with a mouse the one-row rail could not be scrolled (no scrollbar, the wheel scrolls the page), so six chips were
@@ -342,11 +334,8 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
   :root:not([data-zigi-side=left]) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 64px; }
   :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 72px; }
 }
-/* Session AF Gate C (design critique, money pages 7): on a phone ZIGi's button sits at the bottom right of the screen and
-   covered the end of the first screen's "Nothing here is advice" line; while ZIGi is on the right, that line keeps clear of it. */
-@media (max-width: 767.98px) {
-  :root:not([data-zigi-side=left]) .earn-hero-note { padding-inline-end: 60px; }
-}
+/* Session AL (P-BN-48, BN-126): the note kept 60 px clear of ZIGi's floating button on a phone; since O3 nothing floats
+   below 901 px, so the note runs the lede's full column width again. */
 /* Session AH (ST6, AF12): an end chest not reached yet says it lies ahead ("Start here, complete" at 0 of 6 had read as done).
    Earn's own paths only; the Checklist path is untouched. Screen readers already hear "(not reached yet)". */
 :is(.earn-start-path, .earn-academy-path) .path-chest:not([data-reached]) .path-chest-text strong::before { content: "Ahead · " / ""; font-weight: 500; opacity: .8; }
@@ -373,6 +362,25 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
    Session AK CI fix: a jump lays out its target's section and every section before it first (`data-laid-out`,
    earn-jump.tsx), so it lands on real sizes and stays there. */
 .earn-sections > .panel:not(#summary):not(#start-here):not(#staking-clarity):not(#academy):not([data-laid-out]) { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
+
+/* Session AL (BN-004): the same mainnet note inside the no-wallet preview card. */
+.earn-preview > .positions-network-note { margin: 0 0 12px; padding: 10px 14px; border-left: 4px solid var(--pillar-wealth, #ffd27a); border-radius: 10px; background: color-mix(in srgb, currentColor 6%, transparent); }
+/* Session AL fourth pass (C-BN-05): the compare box under a validator's name (44 px), and the side-by-side table. */
+.earn-validators .earn-compare{display:flex;flex-direction:row;align-items:center;gap:8px;min-height:44px;font-weight:500;font-size:14px}
+.earn-validators .earn-compare input{flex:none;margin:0;width:20px;height:20px}
+.earn-compare-panel{margin:16px 0 0}
+
+/* Session AL fifth pass (C-BN-07): the ways to earn side by side, in the validators table's own look. */
+.earn-compare-table tbody th small { display: block; margin-top: 2px; font-weight: 400; }
+.earn-compare-table .earn-tags { gap: 6px; }
+@media (min-width: 768px) { .earn-compare-table th:first-child { min-width: 180px; } .earn-compare-table td:nth-child(2) { min-width: 220px; } }
+/* Session AL fifth pass (N-BN-05): on a phone an option's fees, lockups and minimums, and its steps, fold to one row each. */
+.earn-more { margin: 8px 0; border-radius: 14px; border: 1px solid #7fc8ff26; background: #0a1226; }
+.earn-more > summary { min-height: 44px; display: flex; align-items: center; padding: 8px 14px; cursor: pointer; font-weight: 650; color: var(--text-strong); }
+.earn-more[open] > summary { border-bottom: 1px solid #7fc8ff1a; }
+.earn-more > :not(summary) { margin-inline: 14px; }
+.earn-more > ol { padding: 0; }
+/* Session AL: later rules sit above the AK G3 block, which stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
 /* Session AK (G3): richer cards, as the new surfaces (F6). Earn: Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
    fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has

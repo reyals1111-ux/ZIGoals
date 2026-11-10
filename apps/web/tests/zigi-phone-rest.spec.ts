@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {CONTROL_SELECTOR} from '../components/ai/launcher-rest';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Part 9, the owner's H7 (ADR-017 S81): on a phone the launcher's resting place covers no first-screen
@@ -8,7 +9,13 @@ import {CONTROL_SELECTOR} from '../components/ai/launcher-rest';
  * page the launcher now lifts to the nearest band that is free of `main`'s controls and returns to its corner on
  * scroll. A new device, every /api answered 503, two phone sizes; the launcher stays fully on screen (reachable) and the
  * edge tab (hide, then show again) keeps working.
+ *
+ * Session AL (owner decision O3, deliberate): below 901 px nothing floats; ZIGi has no launcher, resting place or edge tab on a
+ * phone and opens from the top bar's "Apps & extras". Each test below now asserts that on the same pages and sizes (was: the
+ * launcher's lifted rest, its corner, its edge tab and the press under the corner). The computer's launcher is unchanged and
+ * tested elsewhere.
  */
+const appsButton = (page: Page) => page.getByTestId('apps-extras-button');
 const PAGES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/markets', '/app/portfolio', '/app/staking', '/app/ecosystem', '/app/activity', '/app/chess', '/app/help'];
 const SIZES = [[390, 844], [360, 800]] as const;
 
@@ -51,14 +58,17 @@ for (const [width, height] of SIZES) {
     const report: string[] = [];
     for (const path of PAGES) {
       await page.goto(path);
-      await expect(page.locator('.ai-launcher')).toBeVisible();
-      const r = await settled(page); // the page's own first-screen parts settle, and the launcher has made its last timed placement
-      expect(r.launcher, path).not.toBeNull();
-      const L = r.launcher!;
-      expect(L.l, `${path}: on screen`).toBeGreaterThanOrEqual(0); expect(L.t, `${path}: on screen`).toBeGreaterThanOrEqual(0);
-      expect(L.r, `${path}: on screen`).toBeLessThanOrEqual(r.vw); expect(L.b, `${path}: on screen`).toBeLessThanOrEqual(r.vh);
-      report.push(`${path} ${L.l},${L.t}–${L.r},${L.b}${r.hits.length ? ' HITS ' + r.hits.map(h => `${h.text} ${h.covered}%`).join('; ') : ''}`);
+      // Session AL (O3, deliberate): no floating launcher (was: visible, resting clear of the controls); "Apps & extras" is
+      // in the top bar, fully on screen, a 44 px target.
+      await expect(appsButton(page)).toBeVisible();
+      const r = await settled(page); // the page's own first-screen parts settle
+      expect(r.launcher, `${path}: no floating launcher`).toBeNull();
       expect(r.hits, `${path}: a first-screen control under the launcher`).toEqual([]);
+      const A = (await appsButton(page).boundingBox())!;
+      expect(A.x, `${path}: on screen`).toBeGreaterThanOrEqual(0); expect(A.y, `${path}: on screen`).toBeGreaterThanOrEqual(0);
+      expect(A.x + A.width, `${path}: on screen`).toBeLessThanOrEqual(r.vw); expect(A.y + A.height, `${path}: on screen`).toBeLessThanOrEqual(r.vh);
+      expect(Math.min(A.width, A.height), `${path}: a 44 px target`).toBeGreaterThanOrEqual(44);
+      report.push(`${path} apps ${Math.round(A.x)},${Math.round(A.y)}–${Math.round(A.x + A.width)},${Math.round(A.y + A.height)}`);
     }
     console.log(`phone-rest ${width}x${height}:\n  ${report.join('\n  ')}`);
   });
@@ -69,23 +79,19 @@ test('390x844: scrolled past the top the launcher is back in its corner; hidden,
   await page.goto('/app/settings');
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await page.goto('/app/help');
-  await expect(page.locator('.ai-launcher')).toBeVisible();
+  // Session AL (O3, deliberate): no launcher at the top or scrolled (was: lifted, then back in its corner above the tab bar),
+  // no chevron and no edge tab (was: hidden, then shown again from the tab); "Apps & extras" opens ZIGi.
+  await expect(appsButton(page)).toBeVisible();
   await page.waitForTimeout(1600);
-  const lifted = (await overlaps(page)).launcher!;
+  expect((await overlaps(page)).launcher).toBeNull();
   await page.evaluate(() => window.scrollTo(0, 400));
-  await expect.poll(async () => (await overlaps(page)).launcher!.b, {timeout: 5_000}).toBeGreaterThanOrEqual(lifted.b);
-  const corner = (await overlaps(page)).launcher!;
-  expect(corner.b).toBeGreaterThan(lifted.b - 1);
-  // The corner is just above the tab bar.
-  const tabs = await page.locator('.phone-tabbar').boundingBox();
-  expect(tabs).not.toBeNull(); expect(corner.b).toBeLessThanOrEqual(tabs!.y + 1);
-  // Hide, then the edge tab brings it back.
-  await page.getByRole('button', {name: 'Hide ZIGi'}).click();
+  await page.waitForTimeout(300);
+  expect((await overlaps(page)).launcher).toBeNull();
+  await expect(page.getByRole('button', {name: 'Hide ZIGi'})).toHaveCount(0);
+  await expect(page.getByRole('button', {name: 'Show ZIGi'})).toHaveCount(0);
+  await pressZigi(page);
+  await expect(page.locator('dialog.ai-chat[open]')).toBeVisible();
   await expect(page.locator('.ai-launcher')).toHaveCount(0);
-  const tab = page.getByRole('button', {name: 'Show ZIGi'});
-  await expect(tab).toBeVisible();
-  await tab.click();
-  await expect(page.locator('.ai-launcher')).toBeVisible();
 });
 
 // Session Y (ADR-018 Y44): a tap on a control that lies where the corner launcher would sit is the control's, from the
@@ -102,31 +108,34 @@ test('390x844: a press on a control under the corner keeps that control under th
   // Session AF Gate C (moved at equal strength): Help on a phone now shows six topics and "All topics" (design review 2), so no
   // control sits under the corner there; the test takes the first of these pages whose first screen has one, and the
   // press check below is unchanged.
-  let target: {x: number; y: number; lift: number} | null = null, where = '';
+  // Session AL (O3, deliberate): there is no corner launcher on a phone any more, so nothing can take a press from a control
+  // (was: a page with a control where the corner launcher would sit, pressed and released there). On each of those pages no
+  // launcher is there, and a press on Goals' first first-screen control stays that control's until the release.
   for (const path of ['/app/help', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/markets', '/app/settings', '/app/earn']) {
     await page.goto(path);
-    await expect(page.locator('.ai-launcher')).toBeVisible();
+    await expect(appsButton(page)).toBeVisible();
     await page.waitForTimeout(1600);
-    // Where the corner is: the resting box moved down by its lift. A control there is what a person may tap.
-    target = await page.evaluate(selector => {
-      const box = document.querySelector('.ai-launcher')!, lift = parseFloat(getComputedStyle(box).getPropertyValue('--zigi-rest-lift')) || 0;
-      const L = box.getBoundingClientRect(), C = {left: L.left, right: L.right, top: L.top + lift, bottom: L.bottom + lift};
-      for (const c of document.querySelectorAll<HTMLElement>(`main :is(${selector})`)) {
-        const r = c.getBoundingClientRect(), left = Math.max(r.left, C.left), right = Math.min(r.right, C.right), top = Math.max(r.top, C.top), bottom = Math.min(r.bottom, C.bottom);
-        if (r.width === 0 || right - left < 4 || bottom - top < 4) continue;
-        const x = (left + right) / 2, y = (top + bottom) / 2;
-        if (x >= L.left && x <= L.right && y >= L.top && y <= L.bottom) continue; // under the resting launcher already
-        if (document.elementFromPoint(x, y) !== c && !c.contains(document.elementFromPoint(x, y))) continue;
-        c.setAttribute('data-y44-target', '');
-        return {x, y, lift};
-      }
-      return null;
-    }, CONTROL_SELECTOR);
-    if (target) { where = path; break; }
+    expect((await overlaps(page)).launcher, `${path}: no floating launcher`).toBeNull();
   }
-  expect(target, 'a page has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
-  test.info().annotations.push({type: 'corner page', description: where});
-  expect(target!.lift).toBeGreaterThan(0);
+  await page.goto('/app/goals');
+  await expect(appsButton(page)).toBeVisible();
+  // Session AL (CI12, CI 1561, every project): read 80 ms after the load, before the shell hydrated, every control's centre
+  // hit `.app-content` (a local run at 6x CPU throttling showed it), and the page then moved 44 px. A person presses once the
+  // page is ready: the control is chosen after the shell's hydration mark and the same settle as the loop above.
+  await expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '');
+  await page.waitForTimeout(1600);
+  const target = await page.evaluate(selector => {
+    for (const c of document.querySelectorAll<HTMLElement>(`main :is(${selector})`)) {
+      const r = c.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4 || r.bottom > innerHeight || r.top < 0) continue;
+      const x = r.left + r.width / 2, y = r.top + r.height / 2;
+      if (document.elementFromPoint(x, y) !== c && !c.contains(document.elementFromPoint(x, y))) continue;
+      c.setAttribute('data-y44-target', '');
+      return {x, y};
+    }
+    return null;
+  }, CONTROL_SELECTOR);
+  expect(target, 'a first-screen control to press').not.toBeNull();
   await page.mouse.move(target!.x, target!.y);
   await page.mouse.down();
   await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));

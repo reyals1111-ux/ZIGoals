@@ -42,14 +42,16 @@ describe('Wealth, Goal intelligence and Today (formatSignedGoalAmount)', () => {
     const cases = [
       ['en-US', true, '12.349', 'USD', '-$12.35'], ['en-US', false, '12.349', 'USD', '$12.34'],
       ['nl-BE', true, '1234.561', 'EUR', `-€${NBSP}1.234,57`], ['nl-BE', false, '1234.569', 'EUR', `€${NBSP}1.234,56`],
-      ['de-DE', true, '0.001', 'EUR', `-0,01${NBSP}€`], ['de-DE', true, '1234.561', 'GBP', '-1.234,57 GBP'],
-      ['ja-JP', true, '1234.56', 'JPY', '-1,235 JPY'], ['ja-JP', false, '1234.56', 'JPY', '1,234 JPY'],
+      ['de-DE', true, '0.001', 'EUR', `-0,01${NBSP}€`], ['de-DE', true, '1234.561', 'GBP', `-1.234,57${NBSP}£`],
+      ['ja-JP', true, '1234.56', 'JPY', '-￥1,235'], ['ja-JP', false, '1234.56', 'JPY', '￥1,234'],
       ['en-US', true, '1.1234567', 'ZIG', '-1.123456 ZIG'],
     ] as const;
     for (const [locale, negative, exact, currency, expected] of cases) expect(formatSignedGoalAmount(negative, exact, currency, locale), `${locale} ${negative ? '-' : ''}${exact} ${currency}`).toBe(expected);
   });
-  it('Wealth totals in cents: −1,234.56 JPY (123,456 cents) shows −1,235 JPY, a gain 1,234 JPY', () => {
-    expect(formatSignedGoalAmount(true, '1234.56', 'JPY', 'en-US')).toBe('-1,235 JPY');
-    expect(formatSignedGoalAmount(false, '1234.56', 'JPY', 'en-US')).toBe('1,234 JPY');
+  // Session AL (TK-199, deliberate): every ISO currency reads with its own symbol (it was the code for all but USD/EUR); the
+  // rounding pinned here is unchanged: a loss away from zero (−1,235), a gain toward it (1,234).
+  it('Wealth totals in cents: −1,234.56 JPY (123,456 cents) shows −¥1,235, a gain ¥1,234', () => {
+    expect(formatSignedGoalAmount(true, '1234.56', 'JPY', 'en-US')).toBe('-¥1,235');
+    expect(formatSignedGoalAmount(false, '1234.56', 'JPY', 'en-US')).toBe('¥1,234');
   });
 });

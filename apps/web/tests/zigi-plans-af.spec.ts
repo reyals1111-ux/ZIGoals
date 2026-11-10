@@ -29,7 +29,8 @@ test('one plan, one bundle: the head, the steps in order, per-step Add, Add all 
   await expect(cards.locator('h4')).toHaveText(['Create the goal "Run 10 km"', 'Create the habit "Run"', 'Remind me: Run', 'Add to your Checklist: Buy race socks', 'Remember this?', 'Open Earn']);
   expect(await stored(page, ZIGI_PLANS_KEY)).toBeNull();
   // One step added on its own: the plan is kept with that outcome.
-  await cards.filter({hasText: 'Buy race socks'}).getByRole('button', {name: 'Apply'}).click();
+  // Session AL fifth pass (N-LA-02, deliberate): "Add to your Checklist: …" says Add, as the plan's own line promises.
+  await cards.filter({hasText: 'Buy race socks'}).getByRole('button', {name: 'Add', exact: true}).click();
   await expect.poll(async () => (await stored(page, ZIGI_PLANS_KEY))?.plans?.[0]?.items?.map((i: {outcome: string}) => i.outcome)).toEqual(['proposed', 'proposed', 'proposed', 'opened', 'proposed', 'proposed']);
   expect((await stored(page, ZIGI_PLANS_KEY))!.plans[0]).toMatchObject({title: 'Your 10k plan', done: false});
   // Skip the rest: every step not decided is dismissed, nothing written for them.
@@ -68,7 +69,7 @@ test('a plan larger than ten steps is cut, and the cut is said; Add all adds the
   await expect(panel(page).getByRole('status').filter({hasText: 'Added 8 of 8.'})).toHaveCount(1);
   expect(await reminders()).toBe(remindersBefore + 4);
   // The Checklist items and the Remember card are not in Add all (forms and device records wait for their own tap).
-  await expect(panel(page).locator('.ai-card').filter({hasText: 'Laundry'}).getByRole('button', {name: 'Apply'})).toBeVisible();
+  await expect(panel(page).locator('.ai-card').filter({hasText: 'Laundry'}).getByRole('button', {name: 'Add', exact: true})).toBeVisible(); // N-LA-02: Add, as above
 });
 test('Session AI (feature 8): a plan shows how it is going across the habit and the goal it added', async ({page}) => {
   const at = '2026-10-15T08:00:00.000Z';

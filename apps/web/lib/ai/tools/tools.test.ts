@@ -3,8 +3,9 @@ import {createHabit, habitDataSchema, type HabitData} from '../../habits';
 import {HE6_NOTE} from '../actions/plan';
 import {DATA_CLOSE, DATA_OPEN} from '../context/specialists';
 import {Handles} from '../handles';
+import {addLocalDays} from '../../local-date';
 import {toolEnv, type ToolSources} from './env';
-import {DAY, gatesFor, SENTINEL, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from './fixtures';
+import {DAY, gatesFor, SENTINEL, hasSentinel, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from './fixtures';
 import {HEALTH_CLOSED} from './format';
 import {minutesOf} from './habits';
 import {availableTools, runTool, toolSpecs, TOOLS, toolText} from './registry';
@@ -129,9 +130,9 @@ test('a check-in filled in from Health is held back while the gate is closed, an
   const sources = withSentinels(showcaseSources());
   const shut = data(runTool('habit_stats', {habit: 'Walk', range: 'today'}, closed(sources)));
   expect(shut.heldBack).toBe(1); expect(shut.notes.join(' ')).toContain('filled in from Health is not counted');
-  expect(JSON.stringify(shut)).not.toContain(String(SENTINEL.habitValue));
+  expect(hasSentinel(JSON.stringify(shut), SENTINEL.habitValue)).toBe(false);
   expect(JSON.stringify(data(runTool('habit_checkins', {habit: 'Walk', range: 'today'}, closed(sources))))).toContain('from Health, not shared');
-  expect(JSON.stringify(data(runTool('list_habits', {}, closed(sources))))).not.toContain(String(SENTINEL.habitValue));
+  expect(hasSentinel(JSON.stringify(data(runTool('list_habits', {}, closed(sources)))), SENTINEL.habitValue)).toBe(false);
   const shown = data(runTool('habit_stats', {habit: 'Walk', range: 'today'}, open(sources)));
   expect(shown.heldBack).toBe(0); expect(shown.value).toBe(SENTINEL.habitValue);
 });
@@ -208,6 +209,31 @@ test('goals: handles, progress as the app shows it, contributions per asset and 
   expect(contributions.note).toBe('Totals are per asset and never converted.');
   const one = data(runTool('goal_contributions', {goal: 'Emergency', range: 'last month'}, env));
   expect(new Set(one.events.map((e: {goal: string}) => e.goal))).toEqual(new Set(['Emergency fund']));
+});
+test('goals: average goals (Session AL Part 13, L7) follow the Goals-page goals, with a handle; Health\'s measures are unknown while Health is closed', () => {
+  const at = `${DAY}T08:00:00.000Z`, entries = (value: number) => Array.from({length: 4}, (_, i) => ({day: addLocalDays(DAY, -i), value}));
+  const averageGoals: ToolSources['averageGoals'] = [
+    {id: 'avg-pages', name: 'Read 30 pages a day', metric: 'custom', unit: 'pages', target: 30, direction: 'at-least', windowDays: 7, status: 'active', createdAt: at, entries: entries(27)},
+    {id: 'avg-sleep', name: 'Sleep 8 hours a night', metric: 'sleep-hours', unit: 'h a night', target: 8, direction: 'at-least', windowDays: 14, status: 'active', createdAt: at, entries: []},
+    {id: 'avg-old', name: 'Old average', metric: 'custom', unit: '', target: 1, direction: 'at-most', windowDays: 30, status: 'closed', createdAt: at, entries: []},
+  ];
+  const sources = showcaseSources(DAY, {averageGoals}), env = open(sources), list = data(runTool('list_goals', {}, env));
+  const own = sources.platform.goals.filter(g => g.status !== 'closed').length;
+  expect(list.count).toBe(own + 2);
+  expect(list.goals.map((g: {handle: string}) => g.handle)).toEqual(list.goals.map((_: unknown, i: number) => `g${i + 1}`));
+  expect(list.goals.slice(own)).toEqual([
+    {handle: `g${own + 1}`, name: 'Read 30 pages a day', status: 'active', type: 'Keep an average', source: 'Kept on this device', window: 'the last 7 days', target: 'at least 30 pages', progress: '90%', now: '27 pages', daysRecorded: '4 of 7 days', met: false},
+    expect.objectContaining({handle: `g${own + 2}`, name: 'Sleep 8 hours a night', status: 'active', target: 'at least 8 h a night'}),
+  ]);
+  expect(data(runTool('list_goals', {include_closed: true}, open(sources))).goals.at(-1)).toMatchObject({name: 'Old average', status: 'closed', progress: 'unknown', now: 'unknown', daysRecorded: '0 of 30 days'});
+  // goal_progress answers for one by its handle or its name; an unknown name is still refused.
+  expect(data(runTool('goal_progress', {goal: `g${own + 1}`}, env))).toMatchObject({name: 'Read 30 pages a day', progress: '90%', now: '27 pages'});
+  expect(data(runTool('goal_progress', {goal: 'read 30 pages'}, open(sources)))).toMatchObject({name: 'Read 30 pages a day'});
+  expect(runTool('goal_progress', {goal: 'Nothing like this'}, env)).toMatchObject({ok: false, reason: 'not-found'});
+  // With Health closed, a measure Health records is unknown (never zero); the person's own measure still reads.
+  const shut = data(runTool('list_goals', {}, toolEnv(sources, gatesFor(false, 'goals', '/app/goals'), 'provider')));
+  expect(shut.goals.find((g: {name: string}) => g.name === 'Sleep 8 hours a night')).toMatchObject({progress: 'unknown', now: 'unknown', note: 'Its days come from Health, which is not shared here.'});
+  expect(shut.goals.find((g: {name: string}) => g.name === 'Read 30 pages a day')).toMatchObject({progress: '90%'});
 });
 test('weekly review: the person\'s own review day, counts only, Health lines only with the gate', () => {
   const sources = withSentinels(showcaseSources());

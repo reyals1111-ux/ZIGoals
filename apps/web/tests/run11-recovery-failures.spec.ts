@@ -8,7 +8,9 @@ async function bytes(page:Page){return page.evaluate(async()=>{
  const db=await new Promise<IDBDatabase>((resolve,reject)=>{const r=indexedDB.open('zigoals-private-vault-v1');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
  const names=[...db.objectStoreNames],stores:Record<string,unknown>={};if(names.length){const tx=db.transaction(names,'readonly');for(const name of names){const s=tx.objectStore(name);const read=(r:IDBRequest)=>new Promise(resolve=>{r.onsuccess=()=>resolve(r.result);});stores[name]={keys:await read(s.getAllKeys()),values:await read(s.getAll())};}}db.close();return {local,stores};
  });}
-async function upgrade(page:Page){await page.goto('/app/settings');await page.getByText('Transactional local storage',{exact:true}).click();await page.getByRole('button',{name:'Upgrade selected module storage',exact:true}).click();await expect(page.getByText('Using transactional local storage.',{exact:true})).toBeVisible();}
+// Session AL (CI11): the <summary> is clicked once Settings has hydrated; a click React replays after hydration toggles it shut
+// again (components/shell.tsx), which left "Upgrade selected module storage" hidden on a slow runner (CI 1561, 45 s).
+async function upgrade(page:Page){await page.goto('/app/settings');await page.locator('html[data-app-hydrated]').waitFor({state:'attached',timeout:20_000});await page.getByText('Transactional local storage',{exact:true}).click();await page.getByRole('button',{name:'Upgrade selected module storage',exact:true}).click();await expect(page.getByText('Using transactional local storage.',{exact:true})).toBeVisible();}
 test('protected backup wrong secret, damaged ciphertext and future domain schema each fail without changing the existing profile',async({page})=>{
  await page.route('**/api/**',r=>r.fulfill({status:503,json:{error:'Offline fictional fixture'}}));
  await page.goto('/app/health');await page.getByRole('button',{name:'Add 250 mL',exact:true}).click();await expect(page.getByRole('region',{name:'Water journal'})).toContainText('250 mL recorded');await upgrade(page);

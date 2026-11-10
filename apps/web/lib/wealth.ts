@@ -1,6 +1,7 @@
 /** Read-only projections of existing Positions and canonical Goal accounting. */
 import {ASSET_CLASSES,allocate,allocationBalance,goalProgress,positionSync,snapshotIsStale,type AssetClass,type Platform,type Position,type PrivateGoal} from './positions';
 import {isNativeZig,marketQuoteSchema,quoteIsStale,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
+import {isOwnCountSource} from './goals/goal-units';
 import {marketRequestKey,nativeZigRequest,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from './market-assets';
 /**
  * Session AF Gate C (design critique, money pages 1): the one class map every Wealth view reads. The saved records keep their
@@ -10,7 +11,13 @@ import {marketRequestKey,nativeZigRequest,uniqueMarketRequests,type MarketAssetR
  */
 export const WEALTH_CLASSES=['Crypto','Stablecoins','Stocks','ETFs','Precious Metals','Property','Cash','Custom'] as const;
 export type WealthClass=typeof WEALTH_CLASSES[number];
-export const isEtf=(p:Pick<Position,'marketRef'>)=>p.marketRef?.kind==='rwa'&&p.marketRef.assetType==='etf';
+/** Session AL (TK-010, fourth pass): a hand-added ETF (Add asset → ETFs, or an import row of class ETF) is stored as Stocks,
+ * as before, with this tag at the start of its provenance, so Wealth shows it under ETFs. Additive: older builds read the
+ * same record as a stock. */
+export const MANUAL_ETF_TAG='Manual Stocks; ETF; ';
+export const isEtf=(p:Pick<Position,'marketRef'>&{provenance?:string})=>p.marketRef?p.marketRef.kind==='rwa'&&p.marketRef.assetType==='etf':!!p.provenance?.startsWith(MANUAL_ETF_TAG);
+/** Marks a hand-added Stocks position as an ETF (see MANUAL_ETF_TAG); any other position is returned unchanged. */
+export function tagManualEtf<T extends {provenance:string;marketRef?:unknown;assetClass?:string}>(p:T):T{return !p.marketRef&&p.assetClass==='Stocks'&&p.provenance.startsWith('Manual Stocks; ')&&!p.provenance.startsWith(MANUAL_ETF_TAG)?{...p,provenance:(MANUAL_ETF_TAG+p.provenance.slice('Manual Stocks; '.length)).slice(0,500)}:p;}
 /**
  * Session AF Gate C (design critique, money pages 3): each class a clearly different hue, one value in every theme (inline
  * paint, never remapped). Lilac Property beside violet ETFs, and periwinkle Stocks beside sky-blue Cash, had read as one
@@ -129,18 +136,40 @@ function computeWealthHistory(s:Platform,sourceOf?:(snapshotId:string)=>string):
  });
 }
 
-type OverviewInputs={s:Platform;positions:Platform['positions'];allocations:Platform['allocations'];snapshots:Platform['valuationSnapshots'];events:Platform['assetEvents'];now:number;quotes:readonly MarketQuote[]};
+type OverviewInputs={s:Platform;positions:Platform['positions'];allocations:Platform['allocations'];snapshots:Platform['valuationSnapshots'];events:Platform['assetEvents'];now:number;quotes:readonly MarketQuote[];stablecoinsAsCash:boolean};
 let lastOverview:{inputs:OverviewInputs;result:ReturnType<typeof computeWealthOverview>}|undefined;
 /** Today shows several summaries of the same records in one render; the latest result is reused for the same inputs. */
-export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQuote[]=[]){
- const inputs:OverviewInputs={s,positions:s.positions,allocations:s.allocations,snapshots:s.valuationSnapshots,events:s.assetEvents,now,quotes};
+/** Session AL (GAP-028, P-TK-83, C-TK-14): the person may count stablecoins with cash in the class view (a display choice
+ * on this device; the holdings, their values and every total stay exactly as they are). */
+export const STABLECOINS_AS_CASH_KEY='zigoals:stablecoins-as-cash:v1';
+/** The class a row is shown under: Stablecoins join Cash when the person chose it. */
+export const shownWealthClass=(c:WealthClass,stablecoinsAsCash=false):WealthClass=>stablecoinsAsCash&&c==='Stablecoins'?'Cash':c;
+/**
+ * Session AL (A10-3): the line under a wealth total about market prices. Its time comes only from holdings valued by a
+ * market quote; a manual or recorded value's time is never shown as a market time. With holdings linked to a market but
+ * none valued by a quote, it says no market price is current ('own' when every such value is the person's own).
+ */
+export type MarketPricesLine={kind:'market';at:string}|{kind:'own'|'none'};
+type PricesRow={position:Pick<Position,'marketRef'|'archivedAt'>;pricedFromMarket?:boolean;valuedAt?:string;value?:bigint;valuationState?:string};
+export function marketPricesLine(rows:readonly PricesRow[]):MarketPricesLine|undefined{
+ const linked=rows.filter(r=>r.position.marketRef&&!r.position.archivedAt);
+ const at=linked.flatMap(r=>r.pricedFromMarket&&r.valuedAt?[r.valuedAt]:[]).sort((a,b)=>Date.parse(a)-Date.parse(b)).at(-1);
+ if(at)return {kind:'market',at};
+ const counted=linked.filter(r=>r.value!==undefined);
+ if(!counted.length)return undefined;
+ return {kind:counted.every(r=>r.valuationState==='manual')?'own':'none'};
+}
+export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQuote[]=[],{stablecoinsAsCash=false}:{stablecoinsAsCash?:boolean}={}){
+ const inputs:OverviewInputs={s,positions:s.positions,allocations:s.allocations,snapshots:s.valuationSnapshots,events:s.assetEvents,now,quotes,stablecoinsAsCash};
  const last=lastOverview?.inputs;
  if(last&&(Object.keys(inputs) as (keyof OverviewInputs)[]).every(key=>last[key]===inputs[key]))return lastOverview!.result;
- const result=computeWealthOverview(s,now,quotes);lastOverview={inputs,result};return result;
+ const result=computeWealthOverview(s,now,quotes,stablecoinsAsCash);lastOverview={inputs,result};return result;
 }
-function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote[]){
+function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote[],stablecoinsAsCash:boolean){
  const validQuotes=quotes.filter(q=>marketQuoteSchema.safeParse(q).success);
- const rows=s.positions.filter(p=>!p.archivedAt).map(p=>{
+ // Session AL sweep 3 (DV-147): a count goal's own tally ("40 pages") is that goal's count, not wealth: left out of the
+ // Wealth list, its totals and every count read from these rows (Today's "N assets · M need attention").
+ const rows=s.positions.filter(p=>!p.archivedAt&&!isOwnCountSource(p,s.goals)).map(p=>{
   const balance=allocationBalance(s,p.id),observed=BigInt(p.quantity),allocated=BigInt(balance.allocated)>observed?observed:BigInt(balance.allocated);
   const requestedCurrency=p.quoteCurrency??'USD';
   const matching=validQuotes.filter(q=>quoteMatchesPosition(p,q)&&q.currency===requestedCurrency&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];
@@ -154,7 +183,7 @@ function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote
   const marketValue=matching&&own?.source==='MANUAL'&&matching.currency===own.currency?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
   const allocatedValue=value===undefined?undefined:observed?value*allocated/observed:0n;
   const valuationState=own?.source==='MANUAL'?'manual':own?snapshotIsStale(own.observedAt,now)?'stale':'fresh':matching?quoteIsStale(matching,now)?'stale':'fresh':'missing';
-  return {position:p,assetClass:assetClassOf(p),wealthClass:wealthClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,marketValue,source:own?.source==='MANUAL'?'Manual value':own?'Verified Position value':matching?.source,valuedAt:own?.observedAt??matching?.observedAt??matching?.fetchedAt,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
+  return {position:p,assetClass:assetClassOf(p),wealthClass:wealthClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,marketValue,source:own?.source==='MANUAL'?'Manual value':own?'Verified Position value':matching?.source,valuedAt:own?.observedAt??matching?.observedAt??matching?.fetchedAt,/* Session AL (A10-3): the value is a market quote's, so its time is a market price's time */pricedFromMarket:!own&&!!matching,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
  });
  const summarize=(items:typeof rows)=>{
   const currencies=[...new Set(items.flatMap(r=>r.currency&&r.value!==undefined?[r.currency]:[]))];
@@ -162,5 +191,5 @@ function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote
   // Session AH (WE5, B-032): why a total is incomplete, kept apart: a value missing, or more than one currency.
   return {subtotals,incomplete:items.some(r=>r.value===undefined)||currencies.length>1,missingValue:items.some(r=>r.value===undefined),mixedCurrencies:currencies.length>1};
  };
- return {rows,...summarize(rows),history:wealthHistory(s),categories:WEALTH_CLASSES.map(assetClass=>{const items=rows.filter(r=>r.wealthClass===assetClass);return {assetClass,items,...summarize(items)};})};
+ return {rows,...summarize(rows),history:wealthHistory(s),categories:WEALTH_CLASSES.filter(c=>!(stablecoinsAsCash&&c==='Stablecoins')).map(assetClass=>{const items=rows.filter(r=>shownWealthClass(r.wealthClass,stablecoinsAsCash)===assetClass);return {assetClass,items,...summarize(items)};})};
 }

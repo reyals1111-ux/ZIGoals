@@ -1,12 +1,18 @@
 import {GRAMS_PER_LB} from '../../../lib/health-units';
 import {formatNumber} from '../../../lib/visual-format';
+import {roundHalfUp} from '../../../lib/numbers/round';
 import type {Measure, WorkoutSet} from '../../../lib/workouts/schema';
 
 /** Weights are kept in kilograms; the page reads and writes the Health weight unit. */
 export const KG_PER_LB = GRAMS_PER_LB / 1000;
 export const toUnit = (kg: number, unit: 'kg' | 'lb') => unit === 'lb' ? kg / KG_PER_LB : kg;
 export const fromUnit = (value: number, unit: 'kg' | 'lb') => Math.round((unit === 'lb' ? value * KG_PER_LB : value) * 1000) / 1000;
-export const weightShown = (kg: number, unit: 'kg' | 'lb') => `${formatNumber(toUnit(kg, unit), {maximumFractionDigits: unit === 'lb' ? 1 : 2})} ${unit}`;
+/** Session AL (P-MO-48; MO-165, N-MO-15): rounded half up at the shown precision (a 135 lb set never reads 134.9 lb). */
+export const weightShown = (kg: number, unit: 'kg' | 'lb') => { const d = unit === 'lb' ? 1 : 2; return `${formatNumber(roundHalfUp(toUnit(kg, unit), d), {maximumFractionDigits: d})} ${unit}`; };
+/** Session AL (P-MO-48, MO-165): a field's prefill is the value shown beside it ("133.4" in lb, never "133.38"). */
+export const weightPrefillText = (kg: number, unit: 'kg' | 'lb') => String(roundHalfUp(toUnit(kg, unit), unit === 'lb' ? 1 : 2));
+/** An estimate (one-rep max) at the precision it deserves: tenths of a kilogram, whole pounds ("102 kg", not "101.97 kg"). */
+export const estimateShown = (kg: number, unit: 'kg' | 'lb') => { const d = unit === 'lb' ? 0 : 1; return `${formatNumber(roundHalfUp(toUnit(kg, unit), d), {maximumFractionDigits: d})} ${unit}`; };
 /** "1:30" or "90" (seconds) or "2:05:00"; null when it cannot be read. */
 export function readClock(text: string): number | null {
   const t = text.trim(); if (!t) return null;

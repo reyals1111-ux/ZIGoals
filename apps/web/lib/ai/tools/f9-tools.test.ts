@@ -104,3 +104,34 @@ test('"open my Wrapped" and "open my agenda" are navigation cards on any page, i
   // Not navigation: a question that names the words.
   expect(textOf(ask('What is ZIGoals Wrapped?'))).not.toContain('open-wrapped');
 });
+
+import {emptyTasks} from '../../tasks/schema';
+import {addTask} from '../../tasks/engine';
+import {addLocalDays} from '../../local-date';
+import {NOVA_SCOPES, type NovaScopes} from '../context-pack/nova';
+import {novaLocalEnv} from '../../nova/local-env';
+import {agendaDays} from './f9-tools';
+test('Session AL (L5, LA-022, LS:st2-h): the agenda\'s days carry the person\'s tasks, so ZIGi and NOVA both answer "agenda this week" with them', () => {
+  const at = new Date(`${DAY}T08:00:00Z`), tomorrow = addLocalDays(DAY, 1);
+  let tasks = addTask(emptyTasks(), {title: 'Pick up parcel', due: DAY, time: '18:00'}, {id: 'task_1', at, today: DAY});
+  tasks = addTask(tasks, {title: 'Call the bank', due: tomorrow, priority: 'high'}, {id: 'task_2', at, today: DAY});
+  const s = sources({nova: {tasks}});
+  // agendaDays: each task on its day, in the Agenda page's order; a task list not read adds nothing.
+  const days = agendaDays(env(s), DAY, 2);
+  expect(days.map(d => d.date)).toEqual([DAY, tomorrow]);
+  expect(days[0]!.items.filter(i => i.source === 'task').map(i => [i.title, i.time])).toEqual([['Pick up parcel', '18:00']]);
+  expect(days[1]!.items.filter(i => i.source === 'task').map(i => [i.title, i.time])).toEqual([['Call the bank', null]]);
+  expect(agendaDays(env(sources()), DAY, 2).flatMap(d => d.items).some(i => i.source === 'task')).toBe(false);
+  // The agenda tool lists each task once, with its priority.
+  const rows = data(runTool('agenda', {days: 2}, env(s))).items as {day: string; what: string; kind: string; time?: string}[];
+  expect(rows.filter(r => r.kind.startsWith('task'))).toEqual([{day: DAY, time: '18:00', what: 'Pick up parcel', kind: 'task', state: 'open'}, {day: tomorrow, what: 'Call the bank', kind: 'task, high priority', state: 'open'}]);
+  // ZIGi's on-device answer and NOVA's.
+  expect(textOf(ask('What\'s on my agenda today?', env(s)))).toContain('Pick up parcel');
+  expect(textOf(ask('What is on my calendar tomorrow?', env(s)))).toContain('Call the bank');
+  const week = textOf(ask('What\'s on my agenda this week?', env(s)));
+  expect(week).toMatch(/^On your agenda this week/); expect(week).toContain('Pick up parcel');
+  const all = Object.fromEntries(NOVA_SCOPES.map(k => [k, true])) as NovaScopes, nova = novaLocalEnv({sources: s, gates: gatesFor(true, 'today'), scopes: all, chainChosen: true})!;
+  const novaWeek = textOf(localAnswer('What\'s on this week?', nova));
+  expect(novaWeek).toMatch(/^On your agenda this week/); expect(novaWeek).toContain('Pick up parcel');
+  expect(textOf(localAnswer('What do I have tomorrow?', nova))).toContain('Call the bank');
+});

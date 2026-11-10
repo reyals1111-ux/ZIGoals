@@ -3,7 +3,7 @@ import {useState} from 'react';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import type {WeekSummary} from '../../lib/weekly-review/engine';
-import {reviewState} from '../../lib/weekly-review/engine';
+import {reviewState} from '../../lib/weekly-review/window'; // CI13: not the week summary
 import {finishReview, reviewFor, saveReviewNotes, skipReview} from '../../lib/weekly-review/store';
 import type {ReviewNoteField} from '../../lib/weekly-review/schema';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';

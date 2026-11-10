@@ -105,7 +105,9 @@ test('a new gold holding changes grams to troy ounces with its quantity in the n
   await expect(sheet).toHaveCount(0);
   const saved = JSON.parse((await page.evaluate(key => localStorage.getItem(key), PLATFORM_KEY))!).positions[0];
   expect(saved).toMatchObject({asset: 'Gold troy ounces', denom: 'manual:Gold troy ounces', quantity: (3215n * 10n ** 15n).toString()});
-  await expect(page.locator('main')).toContainText('Gold troy ounces');
+  // Session AL (PR-049, fbab7f12; deliberate): the page says every quantity in words, "3.215 troy ounces of Gold" (the
+  // stored name is checked above); the new unit and its quantity both show.
+  await expect(page.locator('main')).toContainText('3.215 troy ounces of Gold');
 });
 test('a gold holding a Goal counts in keeps its unit and says why', async ({page}) => {
   const id = await seedGold(page, true);

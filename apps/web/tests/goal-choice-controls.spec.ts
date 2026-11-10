@@ -10,6 +10,7 @@ async function choose(radio:Locator,touch:boolean){if(touch)await radio.locator(
 
 test('risk and liquidity tiles work by keyboard and touch and save the same values as before',async({page,isMobile})=>{
  await page.goto('/app/goals/new');
+ /* Session AL fifth pass (DV-120, deliberate): with the chain chosen no kind is preselected, so the spec chooses the count it always made */await page.getByRole('radio',{name:'Quantity',exact:true}).check();
  await typeGoalName(page, 'Tile preferences');await page.getByLabel('Target amount',{exact:true}).fill('1200');
  await page.getByRole('button',{name:'Continue →'}).click();
  await page.getByLabel('ZIGoals funding / Local simulation',{exact:true}).check();
@@ -31,6 +32,7 @@ test('risk and liquidity tiles work by keyboard and touch and save the same valu
 
 test('wealth scope and cadence tiles keep one valid value and the saved plan reopens selected',async({page,isMobile})=>{
  await page.goto('/app/goals/new');
+ /* Session AL fifth pass (DV-120, deliberate): with the chain chosen no kind is preselected, so the spec chooses the count it always made */await page.getByRole('radio',{name:'Quantity',exact:true}).check();
  await typeGoalName(page, 'Tile cadence');await page.getByLabel('Target amount',{exact:true}).fill('500');
  await page.getByRole('button',{name:'Continue →'}).click();
  await page.getByLabel('Build it with future contributions',{exact:true}).check();

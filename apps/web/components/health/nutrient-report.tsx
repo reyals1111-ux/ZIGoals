@@ -23,7 +23,7 @@ export function NutrientReport({data, date}: {data: HealthData; date: string}) {
   const vitamins = useDeviceRecord(HEALTH_VITAMINS), extras = useDeviceRecord(NUTRIENT_EXTRAS_RECORD), micro = useDeviceRecord(MICRO_TARGETS);
   const ctx: ReportContext = {data, vitamins: vitamins.loaded && !vitamins.unreadable ? vitamins.data : {version: 1}, extras: extras.loaded && !extras.unreadable ? extras.data : {version: 1}, micro: micro.loaded && !micro.unreadable ? micro.data : {version: 1}};
   const [span, setSpan] = useState<'day' | 'week'>('day'), [open, setOpen] = useState<string | null>(null), [days, setDays] = useState<7 | 30 | 90>(7);
-  const all = span === 'day' ? nutrientDay(ctx, date).map(r => ({...r, value: r.total, note: r.entries > 0 && r.known < r.entries ? `${r.entries - r.known} of ${r.entries} entries have no value` : ''}))
+  const all = span === 'day' ? nutrientDay(ctx, date).map(r => ({...r, value: r.total, note: r.entries > 0 && r.known < r.entries ? `from ${r.known} of ${r.entries} ${r.entries === 1 ? 'entry' : 'entries'}` : '' /* Session AL fourth pass (MO-014): neutral, as the tiles */}))
     : nutrientAverages(ctx, date, 7).map(r => ({...r, value: r.average, note: r.average === null ? '' : `average of ${r.daysWithValue} ${plural(r.daysWithValue, 'day')} with a value, of ${r.loggedDays} logged`}));
   const shown = withData(all.map(r => ({...r, total: r.value}))), hidden = all.length - shown.length;
   return <div className="health-rich" data-region="nutrient-report">

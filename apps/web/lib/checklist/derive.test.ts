@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import {logHabitValue, planSkip} from '../habits';
 import {logHealthItem, saveWeight} from '../health';
-import {addWater} from '../health-daily';
+import {addWater, dailyData, saveHealthPreferences} from '../health-daily';
 import {startNight, endNight} from '../sleep/engine';
 import {saveManual} from '../meditation/engine';
 import {startFast} from '../fasting/engine';
@@ -32,13 +32,15 @@ describe('every dot is derived from its own page’s record', () => {
   test('done on its own page lights the dot, with no receipt (order unknown, never a penalty)', () => {
     let h = logHabitValue(sources().habits!, ID.walk, TODAY, 1, {}, NOW);
     h = logHabitValue(h, ID.push, TODAY, 40, {}, NOW);
-    let health = addWater(sources().health!, {id: 'health_water-0001', date: TODAY, amountMilli: 300000, unit: 'ml'}, NOW.toISOString());
+    // Session AL fifth pass (LS-016, deliberate): Water is done only at the person's Health target, so this day has one (300 ml).
+    const withTarget = saveHealthPreferences(sources().health!, {...dailyData(sources().health!).preferences, waterTargetMl: 300});
+    let health = addWater(withTarget, {id: 'health_water-0001', date: TODAY, amountMilli: 300000, unit: 'ml'}, NOW.toISOString());
     health = logHealthItem(health, {id: 'health_diary-0001', sourceId: VITAMIN, sourceKind: 'food', date: TODAY, meal: 'Breakfast', quantityMilli: 1000}, NOW.toISOString());
     health = saveWeight(health, {id: 'health_weight-0001', date: TODAY, grams: 72400}, NOW.toISOString());
     const dots = byLabel(deriveDots(fullPath(), fresh(), TODAY, sources({habits: h, health})));
     expect(dots['Morning walk']?.state).toBe('done');
     expect(dots['Push-ups']).toMatchObject({state: 'undone', partial: 0.4, note: '40 of 100 times'});
-    expect(dots.Water).toMatchObject({state: 'done', note: '300 ml today'});
+    expect(dots.Water).toMatchObject({state: 'done', note: '300 ml today of 300 ml'});
     expect(dots['Vitamin D']).toMatchObject({state: 'done', note: 'Logged · Breakfast'});
     expect(dots['Weigh in']).toMatchObject({state: 'done', note: '72.4 kg', value: {current: 72.4, unit: 'kg'}});
     const s = summarise(Object.values(dots), fresh());

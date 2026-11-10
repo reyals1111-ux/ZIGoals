@@ -36,7 +36,7 @@ function routine(id: RoutineTemplate['id']): RoutineTemplate {
 }
 /** Where a goal template opens: the same rule as the template library's own `templateHref` (components/goals). */
 export function goalTemplateHref(t: LibraryTemplate): GuidedAction['href'] {
-  return t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : t.kind === 'health-weight' ? '/app/goals#goals-health' : `/app/goals/new?template=${t.id}`;
+  return t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : t.kind === 'health-weight' ? '/app/goals?health-goal=weight#goals-health' : `/app/goals/new?template=${t.id}`;
 }
 
 /** A step that opens a goal template in the goal wizard (or the average form), pre-filled; nothing is saved until its own Save. */

@@ -1,0 +1,22 @@
+/* Session AL third pass (GAP-124, GAP-122, GAP-125): Activity's report card. Readable text (15 px+), 44 px targets, the
+   theme's own text tokens; the bars use the Goals pillar hue and carry no meaning on their own (a table says the numbers). */
+.activity-report { display: grid; gap: 12px; margin: 0 0 18px; padding: 14px 16px; border: 1px solid var(--line, rgba(127, 127, 160, .35)); border-radius: 14px; }
+.activity-report h3, .activity-report h4 { margin: 0; color: var(--text-strong, inherit); }
+.activity-report h4 { font-size: 15px; }
+.activity-report-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.activity-report-periods { display: flex; flex-wrap: wrap; gap: 6px; }
+.activity-report-periods button { min-height: 44px; padding: 0 14px; border-radius: 999px; font-size: 15px; }
+.activity-report-periods button[aria-pressed="true"] { font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.activity-report-summary { margin: 0; font-size: 16px; color: var(--text-primary, inherit); overflow-wrap: anywhere; }
+.activity-report-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.activity-report-grid > div { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.activity-report-figure { margin: 0; font-size: 22px; font-weight: 700; color: var(--text-strong, inherit); }
+.activity-report-note { margin: 0; font-size: 15px; line-height: 1.45; color: var(--text-secondary, inherit); }
+.activity-report-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 15px; }
+.activity-report-list li { display: flex; justify-content: space-between; gap: 10px; }
+.activity-report-list span { overflow-wrap: anywhere; color: var(--text-secondary, inherit); }
+.activity-report-bars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; align-items: end; height: 64px; border-bottom: 1px solid var(--line, rgba(127, 127, 160, .35)); }
+.activity-report-bars span { display: flex; align-items: end; height: 100%; }
+.activity-report-bars i { display: block; width: 100%; border-radius: 4px 4px 0 0; background: var(--pillar-goals, #9273ff); }
+.activity-report-bars i[data-empty] { opacity: .35; }
+@media (forced-colors: active) { .activity-report-bars i { background: CanvasText; } }

@@ -18,7 +18,8 @@ import {formatClock} from '../../lib/visual-format';
  */
 /** Session X-Local Part 3: Calm plays the idle clip only; Full adds a rare glance or thought between (idle.ts). */
 const ANIMATION_NOTES: Record<(typeof ZIGI_ANIMATIONS)[number], string> = {
-  full: 'Livelier: ZIGi’s idle clip, with a rare glance or thought in between, and a clip for what happens.',
+  // Session AL fourth pass (L7-4b; Denver D-247): plain words, no production terms (Calm's line is pinned by zigi-a11y-pass).
+  full: 'Livelier: ZIGi moves gently while it waits, with a rare glance or thought in between, and reacts to what happens.',
   calm: 'ZIGi’s idle clip while it waits, and a clip for what happens.',
   off: 'ZIGi holds still: a still frame for every state.',
 };

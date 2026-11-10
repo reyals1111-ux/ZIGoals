@@ -13,7 +13,7 @@ import {amount} from '../platform/common';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {calendarDay, formatDate, formatMoney, formatWeekday, isMoneyCurrency} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 import './challenge-card.css';
 
@@ -86,7 +86,7 @@ function Running({goal, events, challenge: c, update}: {goal: PrivateGoal; event
   const amounts: GoalAmount[] = useMemo(() => events.filter(e => e.goalId === goal.id && e.goalScope === 'private' && e.provenance !== 'REWARD_INCOME').flatMap(e => { const u = eventValueForGoal(e, goal); return u === null ? [] : [{day: calendarDay(e.occurredAt), units: e.direction === 'IN' ? u : -u}]; }), [events, goal]);
   const recorded = recordedSince(amounts, c.startedOn, today);
   const stop = () => {
-    try { update(r => removeChallenge(r, goal.id)); showToast({message: `${TITLE[c.kind]} stopped. Your goal and its records are unchanged.`, undo: () => update(r => setChallenge(r, goal.id, c)), undone: 'The challenge is back.'}); }
+    try { update(r => removeChallenge(r, goal.id)); showUndo({message: `${TITLE[c.kind]} stopped. Your goal and its records are unchanged.`, restore: () => update(r => setChallenge(r, goal.id, c)), undone: 'The challenge is back.'}); /* Session AL (A7): the one Undo */ }
     catch (cause) { setStatus(plainErrorMessage(cause, 'Not saved on this device.')); }
   };
   const change = (fn: (x: Challenge) => Challenge, words: string) => { try { update(r => setChallenge(r, goal.id, fn(r.goals[goal.id] ?? c))); setStatus(words); } catch (cause) { setStatus(plainErrorMessage(cause, 'Not saved on this device.')); } };

@@ -1,6 +1,8 @@
+import {healthGoalLine, healthGoalProgress} from '../../health-goals/progress';
+import type {HealthGoal} from '../../health-goals/schema';
 import {dailyData} from '../../health-daily';
 import {formatClock} from '../../visual-format';
-import {waterAmount} from '../../nova/widgets/words';
+import {NO_WATER_TODAY, waterText} from '../../health-units';
 import {briefChatText} from '../proactive/brief';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
@@ -12,7 +14,7 @@ import type {LocalReply, ToolCallRecord} from './engine';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
 import {novaAreaClosed, novaHealthClosed, type NovaEnvInfo} from './nova-env';
-import {amount, dayText, plural} from './words';
+import {dayText, goalMoney, nlUnits, plural} from './words';
 
 /**
  * Release review 2 (R2-2): the natural questions people ask NOVA first, answered on this device from the person's own
@@ -54,7 +56,8 @@ const say = (lang: Lang, en: string, nl: string) => lang === 'nl' ? nl : en;
 const run = (tool: string, args: Record<string, unknown>, env: ToolEnv): {result: ToolResult; record: ToolCallRecord} => { const result = runTool(tool, args, env); return {result, record: {tool, args, label: result.label}}; };
 const dataOf = (r: ToolResult): Data => (r as ToolOk).data as Data;
 /** "9000 USD" → "9,000.00 USD"; anything else as it is. */
-const money = (value: unknown) => { const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(String(value ?? '')); return m ? amount(m[1]!, m[2]!) : String(value ?? ''); };
+// Session AL (DV-078, P-DV-95): money with the app's formatter ("$0 of $500"), a count goal's word as typed ("20 books").
+const money = goalMoney; // words.ts: one goal money format for ZIGi and NOVA (Session AL final pass, DV:Z-003)
 
 export function novaOverviewAnswer(question: string, env: ToolEnv, info: NovaEnvInfo): LocalReply | null {
   const q = question.trim().replace(/[’`]/g, '\'').replace(/\s+/g, ' ');
@@ -77,8 +80,13 @@ function goalsAnswer(env: ToolEnv, lang: Lang): LocalReply {
   const r = run('list_goals', {}, env);
   if (!r.result.ok) return env.areas.goals ? {kind: 'refusal', text: r.result.refusal, calls: [r.record]} : {kind: 'refusal', text: novaAreaClosed('Goals', lang), calls: []};
   const goals = (dataOf(r.result).goals ?? []) as Data[], active = goals.filter(g => g.status === 'active'), done = goals.filter(g => g.status === 'completed').length;
+  // Session AL Part 14 (Denver DV-027c): the Health goals are goals too; they live in their own section of Goals (they read
+  // the Health journal), so they are named after the others, with where to find them. Only with the Health gate (env).
+  const health = healthGoalLines(env, lang);
+  if (!active.length && health.length) return {kind: 'answer', text: [say(lang, `You have no active goals in Goals yet${done ? ` (${plural(done, 'goal')} completed)` : ''}.`, `Je hebt nog geen actieve doelen in Goals${done ? ` (${done} afgerond)` : ''}.`), ...health].join('\n'), calls: [r.record]};
   if (!active.length) return {kind: 'answer', text: say(lang, `You have no active goals yet${done ? ` (${plural(done, 'goal')} completed)` : ''}. Open Goals to create one, or tell me the goal and I will draft it as a card.`, `Je hebt nog geen actieve doelen${done ? ` (${done} afgerond)` : ''}. Open Goals om er een te maken, of vertel me het doel en ik maak er een kaart van.`), calls: [r.record]};
-  const shown = active.slice(0, 8), year = env.habitDay.slice(0, 4);
+  // DV-078: up to twelve in the answer; any more are named as a count with where to see them all (a chat cannot unfold).
+  const shown = active.slice(0, 12), year = env.habitDay.slice(0, 4);
   const line = (g: Data) => {
     const figures = g.now && g.target && g.now !== 'unknown' && g.target !== 'unknown' ? say(lang, ` — ${money(g.now)} of ${money(g.target)}`, ` — ${money(g.now)} van ${money(g.target)}`) : '';
     const left = g.remaining && !/^0(?:\.0+)? /.test(String(g.remaining)) && g.remaining !== 'unknown' ? say(lang, `, ${money(g.remaining)} to go`, `, nog ${money(g.remaining)} te gaan`) : '';
@@ -86,21 +94,32 @@ function goalsAnswer(env: ToolEnv, lang: Lang): LocalReply {
     return `• ${clean(String(g.name), 60)}: ${g.progress && g.progress !== 'unknown' ? g.progress : say(lang, 'progress unknown', 'voortgang onbekend')}${figures}${left}${next}`;
   };
   const head = say(lang, `${plural(active.length, 'active goal')}, from your own records:`, `${active.length} actieve ${active.length === 1 ? 'doel' : 'doelen'}, uit je eigen gegevens:`);
-  const more = active.length > shown.length ? [say(lang, `…and ${plural(active.length - shown.length, 'more')}.`, `…en nog ${active.length - shown.length}.`)] : [];
+  const more = active.length > shown.length ? [say(lang, `…and ${plural(active.length - shown.length, 'more goal')}: Goals shows all ${active.length}.`, `…en nog ${active.length - shown.length}: Goals toont ze alle ${active.length}.`)] : [];
   const tail = [...(done ? [say(lang, `${plural(done, 'goal')} completed.`, `${done} ${done === 1 ? 'doel' : 'doelen'} afgerond.`)] : []), say(lang, 'Ask about one goal by its name for its plan and pace. Your own figures; not financial advice.', 'Vraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.')];
-  return {kind: 'answer', text: [head, ...shown.map(line), ...more, ...tail].join('\n'), calls: [r.record]};
+  return {kind: 'answer', text: [head, ...shown.map(line), ...more, ...health, ...tail].join('\n'), calls: [r.record]};
+}
+/** DV-027c: the active Health goals with their progress as Goals → Health goals shows it (a heading, then one line each, at most six). */
+function healthGoalLines(env: ToolEnv, lang: Lang): string[] {
+  const list = (env.healthGoals ?? []).filter(g => g.status === 'active');
+  if (!list.length || !env.health) return [];
+  const shown = list.slice(0, 6), line = (g: HealthGoal) => { let text = say(lang, 'progress unknown', 'voortgang onbekend'); try { text = healthGoalLine(g, healthGoalProgress(g, env.health!, env.healthDay)); } catch { /* unknown, never zero */ } return `• ${clean(g.name, 60)}: ${text === 'No data yet' ? say(lang, 'no data yet', 'nog geen gegevens') : text}`; };
+  return [say(lang, `${plural(list.length, 'health goal')} (Goals → Health goals, from your Health journal):`, `${list.length} ${list.length === 1 ? 'gezondheidsdoel' : 'gezondheidsdoelen'} (Goals → Health goals, uit je Health-dagboek):`), ...shown.map(line),
+    ...(list.length > shown.length ? [say(lang, `…and ${list.length - shown.length} more under Goals → Health goals.`, `…en nog ${list.length - shown.length} onder Goals → Health goals.`)] : [])];
 }
 
 const AGENDA_KIND_NL: Record<string, string> = {bill: 'rekening', 'goal contribution': 'inleg voor een doel', meal: 'maaltijd', workout: 'training', unbonding: 'unbonding', review: 'review'};
 function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalReply {
   const today = env.habitDay, calls: ToolCallRecord[] = [], lines: string[] = [];
   let anything = false;
+  // Release review A10 (A10-5): the tasks already said above (due today or still open from earlier); the agenda carries an
+  // overdue task into today, so it is left out of "Also planned today" and each task is said once, in its own group.
+  const said = new Set<string>(), taskKey = (title: unknown) => clean(String(title), 60);
   // Habits still open today.
   const h = run('habits_due', {}, env);
   if (h.result.ok) {
     calls.push(h.record);
     const open = (dataOf(h.result).open ?? []) as Data[];
-    if (open.length) { anything = true; lines.push(say(lang, `Habits still open: ${open.map(x => `${clean(String(x.title), 50)} (${typeof x.logged === 'number' ? `${x.logged} of ${x.target}` : `target ${x.target}`})`).join(', ')}`, `Gewoontes nog open: ${open.map(x => `${clean(String(x.title), 50)} (${typeof x.logged === 'number' ? `${x.logged} van ${x.target}` : `doel ${x.target}`})`).join(', ')}`)); }
+    if (open.length) { anything = true; lines.push(say(lang, `Habits still open: ${open.map(x => `${clean(String(x.title), 50)} (${typeof x.logged === 'number' ? `${x.loggedText ?? x.logged} of ${x.target}` : `target ${x.target}`})`).join(', ')}`, `Gewoontes nog open: ${open.map(x => `${clean(String(x.title), 50)} (${typeof x.logged === 'number' ? `${x.loggedText ?? x.logged} van ${nlUnits(String(x.target))}` : `doel ${nlUnits(String(x.target))}`})`).join(', ')}`)); }
     else lines.push(env.habits.habits.length ? say(lang, 'Habits: every habit planned for today is done.', 'Gewoontes: alles wat voor vandaag gepland stond is gedaan.') : say(lang, 'Habits: none kept yet.', 'Gewoontes: nog geen.'));
   } else lines.push(say(lang, 'Habits: off for NOVA, so not read (NOVA → Permissions).', 'Gewoontes: staan uit voor NOVA, dus niet gelezen (NOVA → Permissions).'));
   // Tasks due today or overdue (unknown when the list was not read).
@@ -110,10 +129,14 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
     const d = dataOf(t.result), rows = (d.open ?? []) as Data[];
     if (d.note === NOT_READ_HERE || d.note === UNREADABLE_HERE) lines.push(say(lang, 'Tasks: unknown here (the task list was not read).', 'Taken: onbekend hier (de takenlijst is niet gelezen).'));
     else {
-      const dueNow = rows.filter(r => r.state === 'today'), late = rows.filter(r => r.state === 'overdue');
-      const name = (r: Data) => `${clean(String(r.task), 80)}${r.time ? say(lang, ` at ${formatClock(r.time)}`, ` om ${formatClock(r.time)}`) : ''}${r.priority === 'high' ? say(lang, ' (high)', ' (hoog)') : ''}`;
+      // Release review AL (RR-8): a task due today whose time has passed is overdue (the Tasks page's rule): it stays with
+      // today's tasks, said to be late; "from earlier" is for days before today.
+      const dueNow = rows.filter(r => r.state === 'today' || (r.state === 'overdue' && r.due === today)), late = rows.filter(r => r.state === 'overdue' && r.due !== today);
+      const tags = (r: Data) => [...(r.priority === 'high' ? [say(lang, 'high', 'hoog')] : []), ...(r.state === 'overdue' ? [say(lang, 'late', 'te laat')] : [])];
+      const name = (r: Data) => `${clean(String(r.task), 80)}${r.time ? say(lang, ` at ${formatClock(r.time)}`, ` om ${formatClock(r.time)}`) : ''}${tags(r).length ? ` (${tags(r).join(', ')})` : ''}`;
       if (dueNow.length) { anything = true; lines.push(say(lang, `Tasks due today: ${dueNow.map(name).join(', ')}`, `Taken voor vandaag: ${dueNow.map(name).join(', ')}`)); }
       if (late.length) { anything = true; lines.push(say(lang, `Still open from earlier: ${late.map(r => `${clean(String(r.task), 80)} (since ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`, `Nog open van eerder: ${late.map(r => `${clean(String(r.task), 80)} (sinds ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`)); }
+      for (const r of [...dueNow, ...late]) said.add(taskKey(r.task));
       if (!dueNow.length && !late.length) lines.push(say(lang, 'Tasks: none due today.', 'Taken: niets voor vandaag.'));
     }
   } else lines.push(say(lang, 'Tasks and the agenda: Today is off for NOVA, so not read (NOVA → Permissions).', 'Taken en agenda: Today staat uit voor NOVA, dus niet gelezen (NOVA → Permissions).'));
@@ -121,11 +144,12 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
   const a = run('agenda', {from: today, days: 1}, env);
   if (a.result.ok && todayOpen) {
     calls.push(a.record);
-    const items = ((dataOf(a.result).items ?? []) as Data[]).filter(i => i.kind !== 'habit' && i.state !== 'done' && i.state !== 'skipped');
+    const items = ((dataOf(a.result).items ?? []) as Data[]).filter(i => i.kind !== 'habit' && i.state !== 'done' && i.state !== 'skipped' && !(String(i.kind).startsWith('task') && said.has(taskKey(i.what))));
     if (items.length) { anything = true; lines.push(say(lang, `Also planned today: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${i.kind})`).join(', ')}`, `Ook gepland vandaag: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${AGENDA_KIND_NL[i.kind] ?? i.kind})`).join(', ')}`)); }
   }
   const head = say(lang, `Today (${dayText(today)}), from your own records:`, `Vandaag (${dayText(today)}), uit je eigen gegevens:`);
-  const tail = anything ? say(lang, 'Titles and times, no amounts; each item opens where it lives.', 'Titels en tijden, geen bedragen; elk item opent waar het staat.') : say(lang, 'Nothing else is due today in your records.', 'Verder staat er vandaag niets in je gegevens.');
+  // Session AL fourth pass (L7-4b; Denver N-025): a habit's own target is shown ("0 of 2 liters"), so the line names what stays out: money.
+  const tail = anything ? say(lang, 'Titles, times and habit targets, no money amounts; each item opens where it lives.', 'Titels, tijden en gewoontedoelen, geen geldbedragen; elk item opent waar het staat.') : say(lang, 'Nothing else is due today in your records.', 'Verder staat er vandaag niets in je gegevens.');
   return {kind: 'answer', text: [head, ...lines.map(l => `• ${l}`), tail].join('\n'), calls};
 }
 
@@ -153,7 +177,7 @@ function habitsLeftAnswer(env: ToolEnv, lang: Lang): LocalReply {
   const open = (dataOf(r.result).open ?? []) as Data[];
   if (!open.length && !env.habits.habits.length) return {kind: 'answer', text: say(lang, 'No habit is kept yet: Habits → New habit, or ask me to create one.', 'Er is nog geen gewoonte: Habits → New habit, of vraag mij er een te maken.'), calls: [r.record]};
   if (!open.length) return {kind: 'answer', text: say(lang, 'No habit is left today: every habit planned for today is done.', 'Er staat vandaag geen gewoonte meer open: alles wat gepland stond is gedaan.'), calls: [r.record]};
-  const row = (x: Data) => `• ${clean(String(x.title), 60)}: ${typeof x.logged === 'number' ? say(lang, `${x.logged} of ${x.target}`, `${x.logged} van ${x.target}`) : x.status === 'partial' ? say(lang, `partly done, target ${x.target}`, `deels gedaan, doel ${x.target}`) : say(lang, `not yet, target ${x.target}`, `nog niet, doel ${x.target}`)}`;
+  const row = (x: Data) => `• ${clean(String(x.title), 60)}: ${typeof x.logged === 'number' ? say(lang, `${x.loggedText ?? x.logged} of ${x.target}`, `${x.loggedText ?? x.logged} van ${nlUnits(String(x.target))}`) : x.status === 'partial' ? say(lang, `partly done, target ${x.target}`, `deels gedaan, doel ${nlUnits(String(x.target))}`) : say(lang, `not yet, target ${x.target}`, `nog niet, doel ${nlUnits(String(x.target))}`)}`;
   return {kind: 'answer', text: [say(lang, `${plural(open.length, 'habit')} left today:`, `${open.length} ${open.length === 1 ? 'gewoonte' : 'gewoontes'} nog open vandaag:`), ...open.map(row)].join('\n'), calls: [r.record]};
 }
 
@@ -163,10 +187,14 @@ function waterAnswer(env: ToolEnv, info: NovaEnvInfo): LocalReply {
   if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
   const d = dataOf(r.result), total = Number(d.totalMl), target = typeof d.yourDailyTargetMl === 'number' ? d.yourDailyTargetMl : null;
   let unit: 'ml' | 'fl-oz-us' = 'ml'; try { unit = dailyData(env.health).preferences.waterUnit; } catch { unit = 'ml'; }
-  const had = Number.isFinite(total) ? waterAmount(total, unit) : 'unknown';
-  if (!target) return {kind: 'answer', text: `No daily water target is set, so there is no amount to go (it is unknown, not zero). Today you logged ${had}.`, calls: [r.record]};
-  if (total >= target) return {kind: 'answer', text: `Your water target is reached today: ${had} of ${waterAmount(target, unit)}.`, calls: [r.record]};
-  return {kind: 'answer', text: `${waterAmount(target - total, unit)} to go today: ${had} of ${waterAmount(target, unit)} logged.`, calls: [r.record]};
+  // Session AL (Part 13; NOVA review 2 M5): amounts in the words Today and Health use (lib/health-units.ts waterText: "1,000 mL",
+  // never "1 L" beside Today's "1,000 mL"), and a day with nothing logged is said so, never "you logged 0 mL".
+  const amount = (ml: number) => waterText(ml, unit), none = Number(d.daysWithWater) === 0;
+  const had = Number.isFinite(total) ? amount(total) : 'unknown';
+  if (!target) return {kind: 'answer', text: `No daily water target is set, so there is no amount to go (it is unknown, not zero). ${none ? `${NO_WATER_TODAY}.` : `Today you logged ${had}.`}`, calls: [r.record]};
+  if (none) return {kind: 'answer', text: `${amount(target)} to go today: no water logged yet.`, calls: [r.record]};
+  if (total >= target) return {kind: 'answer', text: `Your water target is reached today: ${had} of ${amount(target)}.`, calls: [r.record]};
+  return {kind: 'answer', text: `${amount(target - total)} to go today: ${had} of ${amount(target)} logged.`, calls: [r.record]};
 }
 
 /** The questions NOVA's welcome offers, each answered by this layer or the engine on NOVA's environment (tested). */

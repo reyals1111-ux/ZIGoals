@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "pnpm --filter @zigoals/web dev",
     "build": "pnpm --filter @zigoals/web build",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.workers.json",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.workers.json && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run",
     "lint": "eslint .",
     "check:deploy-configs": "node scripts/check-deployment-configs.mjs",

@@ -70,6 +70,20 @@ export const moveMilestone = <T extends {id: string}>(list: readonly T[], id: st
   return order.map(i => list.find(m => m.id === i)!);
 };
 export const moveMilestoneTo = <T,>(list: readonly T[], from: number, to: number): T[] => moveItem(list, from, to);
+/**
+ * Session AL Part 15 (AL-COMPETITOR-GAP-114; DV-019e, C-DV-12): a new milestone placed right after another one ("Add
+ * after"), or at the start ('start'); an id that is not there, or none, puts it at the end.
+ */
+export function insertMilestoneAfter<T extends {id: string}>(list: readonly T[], item: T, after: string | 'start' | null): T[] {
+  if (after === 'start') return [item, ...list];
+  const at = after ? list.findIndex(m => m.id === after) : -1;
+  return at < 0 ? [...list, item] : [...list.slice(0, at + 1), item, ...list.slice(at + 1)];
+}
+/** A drag that ends over another milestone: the dragged one takes its place. */
+export const dropMilestoneOn = <T extends {id: string}>(list: readonly T[], dragged: string, over: string): T[] => {
+  const from = list.findIndex(m => m.id === dragged), to = list.findIndex(m => m.id === over);
+  return from < 0 || to < 0 ? [...list] : moveItem(list, from, to);
+};
 
 // Habit → milestone links in the goal extras.
 export const MAX_LINKED_HABITS = 20, MAX_LINKED_MILESTONES = 100;

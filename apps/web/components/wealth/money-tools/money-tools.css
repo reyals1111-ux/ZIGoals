@@ -63,7 +63,8 @@
 .money-chart-band{fill:color-mix(in srgb,var(--violet,#8b7cff) 26%,transparent);stroke:none}
 .money-chart-mid{fill:none;stroke:var(--cyan,#6fd3ff);stroke-width:2.5;stroke-linejoin:round}
 .money-chart-target{stroke:var(--amber,#f5b65b);stroke-width:1.5;stroke-dasharray:4 4}
-.money-chart text{fill:currentColor;font-size:11px}
+/* Session AL (R30): 14 px like the chart look (charts/chart-look.css), also where a chart is drawn without .zg-chart. */
+.money-chart text{fill:currentColor;font-size:14px}
 .money-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .money-key{display:inline-block;width:18px;height:0;border-top:3px solid var(--cyan,#6fd3ff)}
 .money-key-b,.money-key-target{border-top:3px dashed var(--amber,#f5b65b)}

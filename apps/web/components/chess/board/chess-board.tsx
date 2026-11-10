@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useMemo, useRef, useState, type KeyboardEvent} from 'react';
-import {colorOf, FILES, kingSquare, legalMoves, parseMoveText, pieceName, squareName, toUci, type Move, type PieceChar, type Position, type Promotion} from '../../../lib/chess/rules';
+import {colorOf, FILES, kingSquare, legalMoves, parseMoveText, pieceName, squareName, toFen, toUci, type Move, type PieceChar, type Position, type Promotion} from '../../../lib/chess/rules';
 
 /**
  * Session AK (ADR-036 Q8, lane C): the in-app board, hand-written SVG (no images): 8×8 with coordinates, Unicode piece
@@ -117,12 +117,15 @@ export function ChessBoard({position, orientation, label, last = null, check = f
 
 /** A move typed as text: UCI (e2e4, e7e8q) or SAN (Nf3, O-O, exd5, e8=Q). */
 export function MoveInput({position, canMove, onMove, id}: {position: Position; canMove: boolean; onMove: (uci: string) => void; id: string}) {
-  const [error, setError] = useState('');
+  // Session AL (BN-121, BN-181; P-BN-56): a "not a legal move" note belongs to the position it was typed in; once the
+  // position changes (a move on the board, the reply, Start again, the end of the puzzle) or moving stops, it goes.
+  const [said, setError] = useState<{error: string; at: string}>({error: '', at: ''}), at = `${toFen(position)}|${canMove}`;
+  const error = said.at === at ? said.error : '';
   return <form className="chess-move-form" aria-label="Type a move" onSubmit={e => {
     e.preventDefault();
     const input = e.currentTarget.elements.namedItem('move') as HTMLInputElement, read = parseMoveText(position, input.value);
-    if ('error' in read) { setError(read.error); return; }
-    setError(''); input.value = ''; onMove(toUci(read.move));
+    if ('error' in read) { setError({error: read.error, at}); return; }
+    setError({error: '', at}); input.value = ''; onMove(toUci(read.move));
   }}>
     <label className="field" htmlFor={id}>Type a move (e2e4 or Nf3)<input id={id} name="move" autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={12} disabled={!canMove} aria-describedby={error ? `${id}-error` : undefined} /></label>
     <button type="submit" className="secondary" disabled={!canMove}>Play move</button>

@@ -6,7 +6,8 @@ import {useEffect} from 'react';
  * while more of it lies to the right, and globals.css fades that edge. A static fade, not an animation, so it holds
  * with reduced motion and Motion Off and never keeps a page "moving".
  */
-const ROWS = '.picker-tabs, .habit-filter-bar, .health-views, .view-tabs, .activity-context, .earn-chips';
+// Session AL (DV-222, DV-252a, P-DV-51): every phone row that scrolls sideways (components/phone/*.css), not only the chips.
+const ROWS = '.picker-tabs, .habit-filter-bar, .health-views, .view-tabs, .activity-context, .earn-chips, .phone-carousel, .goal-view-filters, .holdings-filters, .habit-consistency, .nutrition-dashboard, .health-roadmap-grid, .dashboard-summary-grid, .journey-steps';
 export function ScrollCues() {
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return;

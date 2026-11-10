@@ -8,7 +8,7 @@ test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(pa
 
 test('DS7: a second weight on the same day is kept beside the first, by choice', async ({page}) => {
   await page.goto('/app/health'); await hydrated(page);
-  await page.getByRole('button', {name: 'Weight', exact: true}).click();
+  await page.getByRole('tab', {name: 'Weight', exact: true}).click();
   const weight = page.getByRole('form', {name: 'Weight entry'});
   await weight.getByLabel('Weight (kg)').fill('73');
   await weight.getByRole('button', {name: 'Save weight'}).click();
@@ -28,6 +28,8 @@ test('DS9: Back closes Quick add and stays on the page; closing it with × leave
   const trigger = page.locator(isMobile ? '.phone-topbar .quick-add-trigger' : '.today-hero .quick-add-trigger');
   await trigger.click();
   await expect(page.getByRole('dialog')).toBeVisible();
+  // Session AL (integration 6e3a6263, 1 in 4 under load): Back is pressed once the dialog's own history entry is there, as on × below.
+  await expect.poll(() => page.evaluate(() => (history.state as {__zigoalsLayer?: unknown} | null)?.__zigoalsLayer ?? null)).not.toBeNull();
   await page.goBack();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page).toHaveURL(/\/app$/);
@@ -46,12 +48,15 @@ test('DS9: the Goal wizard\'s draft survives a reload, and "Start over" clears i
   await page.getByLabel('Target amount', {exact: true}).fill('1500');
   page.once('dialog', d => void d.accept());
   await page.reload(); await hydrated(page);
-  await expect(page.getByText('Your unfinished Goal is back, as you left it.')).toBeVisible();
+  // Session AL (BN-155, N-DV-02, deliberate): the line reads "Draft restored · Discard" (owner wording for the final pass);
+  // the same line, its button and what the button clears are pinned exactly as before.
+  await expect(page.locator('.wizard-draft-back')).toHaveText('Draft restored · Discard');
   await expect(page.getByLabel('Goal name', {exact: true})).toHaveValue('Fictional draft plan');
   await expect(page.getByLabel('Target amount', {exact: true})).toHaveValue('1500');
-  await page.getByRole('button', {name: 'Start over'}).click();
+  await page.getByRole('button', {name: 'Discard', exact: true}).click();
   await expect(page.getByLabel('Goal name', {exact: true})).toHaveValue('');
   page.once('dialog', d => void d.accept());
   await page.reload(); await hydrated(page);
-  await expect(page.getByText('Your unfinished Goal is back, as you left it.')).toHaveCount(0);
+  await expect(page.locator('.wizard-draft-back')).toHaveCount(0);
+  await expect(page.getByLabel('Goal name', {exact: true})).toHaveValue('');
 });

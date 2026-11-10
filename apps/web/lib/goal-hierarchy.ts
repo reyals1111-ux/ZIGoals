@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js';
 import type {GoalSummary} from './goal-summary';
 import {liveParent, type GoalExtras} from './goal-extras/store';
+import {isFinished} from './goals/finished';
 
 /**
  * G5, goal hierarchy (Session AA-Cloud Part 2): a parent's progress from its sub-goals. When every sub-goal counts in the
@@ -16,7 +17,8 @@ export function rollUp(parent: Pick<GoalSummary, 'currency' | 'target'>, childre
     const sum = children.reduce((t, c) => t.plus(c.current), new Decimal(0)), target = new Decimal(parent.target);
     if (target.gt(0)) return {kind: 'sum', current: sum.toFixed(), target: target.toFixed(), currency: parent.currency, share: Math.min(1, Math.max(0, sum.div(target).toNumber()))};
   }
-  return {kind: 'count', done: children.filter(c => c.status === 'completed').length, total: children.length};
+  // Session AL (L-055, G-012, P-DVR-12): a sub-goal finished then closed is done too (lib/goals/finished.ts).
+  return {kind: 'count', done: children.filter(isFinished).length, total: children.length};
 }
 export const rollUpWords = (r: RollUp, money: (value: string, currency: string) => string) => r.kind === 'sum'
   ? `${money(r.current, r.currency)} of ${money(r.target, r.currency)} from its sub-goals`

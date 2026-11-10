@@ -10,9 +10,12 @@ import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
 import {TemplatesGlyph} from '../header-art/glyphs/templates';
 import './goals.css';
 
-const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: 'Milestones goal', average: 'Keep an average', 'health-weight': 'Health goal'};
+const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: /* fourth pass (G-040): the card's own name */ 'Project', count: 'Count goal', average: 'Keep an average', 'health-weight': 'Health goal'};
 /** Where a template opens: the goal wizard, the average form, or Health goals for a weight. */
-export const templateHref = (t: LibraryTemplate) => t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : t.kind === 'health-weight' ? '/app/goals#goals-health' : `/app/goals/new?template=${t.id}`;
+// Session AL third pass (DV-181, P-DV-39): a weight template opens the Health goal creator with Weight chosen
+// (?health-goal=weight, read by components/health-goals/health-goals-section.tsx); it only jumped to the section.
+export const WEIGHT_GOAL_HREF = '/app/goals?health-goal=weight#goals-health';
+export const templateHref = (t: LibraryTemplate) => t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : t.kind === 'health-weight' ? WEIGHT_GOAL_HREF : `/app/goals/new?template=${t.id}`;
 
 /**
  * G6, the template library: ready goals (Session AK F5a: the count is the library's own, savings challenges included) across every life area, searchable and filtered by area. A template fills
@@ -47,9 +50,12 @@ function TemplateCard({t}: {t: LibraryTemplate}) {
     <h2>{t.title}</h2>
     <p>{t.summary}</p>
     {t.average && <p className="template-detail">{t.average.direction === 'at-least' ? 'At least' : 'At most'} {t.average.target.toLocaleString('en')} {t.average.unit}, over {t.average.windowDays} days (yours to change)</p>}
+    {t.count && <p className="template-detail">{t.count.target.toLocaleString('en')} {t.count.unit}, counted as you go (yours to change)</p>}
     {t.milestones && <ol className="template-steps" aria-label="Steps">{t.milestones.map(m => <li key={m}>{m}</li>)}</ol>}
     {t.habits && <p className="template-detail"><strong>Habits that help:</strong> {t.habits.map(h => h.title).join(' · ')}</p>}
-    <Link className="primary template-use" href={templateHref(t)} aria-label={`Use the template: ${t.title}`}>Use this template</Link>
+    {/* Session AL (DV-181, DV-083b, P-DV-39): a weight goal lives with Health goals; the button says where it goes. */}
+    {t.kind === 'health-weight' && <p className="template-detail" id={`template-${t.id}-where`}>Opens Health goals on the Goals page, with a weight goal ready to fill in.</p>}
+    <Link className="primary template-use" href={templateHref(t)} aria-label={`Use the template: ${t.title}`} aria-describedby={t.kind === 'health-weight' ? `template-${t.id}-where` : undefined}>{t.kind === 'health-weight' ? 'Open Health goals' : 'Use this template'}</Link>
   </li>;
 }
 

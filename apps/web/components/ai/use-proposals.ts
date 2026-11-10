@@ -31,6 +31,7 @@ import {checklistDay} from '../../lib/checklist/day';
 import type {ChecklistEnv} from '../../lib/ai/actions/plan';
 import {AK_SOUNDSCAPE_STATUS, akEffect} from '../../lib/ai/actions/ak-effects';
 import {startSoundscape} from '../music/soundscape-start';
+import {UNDO_REFUSED, undoRefused} from './card-undo';
 
 /** Session AF (L4): the Checklist as this device holds it now, for a Checklist card; null when the storage cannot be read at all. */
 function checklistEnv(now: Date): ChecklistEnv | null {
@@ -52,7 +53,8 @@ function checklistEnv(now: Date): ChecklistEnv | null {
  * Session X-Local Part 5a: Today's settings (`zigoals:settings:v1`, a link or a widget) are written through the same
  * private store Today and Settings use.
  */
-export const UNDO_REFUSED = 'Something changed since, so this undo was not applied. Your records are as they are now.';
+// Session AL (DV-071): the check and the sentence live in card-undo.ts, shared with NOVA's toast Undo.
+export {UNDO_REFUSED} from './card-undo';
 export class UndoRefused extends Error { constructor() { super(UNDO_REFUSED); this.name = 'UndoRefused'; } }
 type Written = keyof Stores;
 type Updater<K extends Written> = (change: (latest: Stores[K]) => Stores[K]) => unknown;
@@ -76,13 +78,22 @@ export type ProposalRunner = {
    * on a phone) is closed before the navigation starts, not inside it.
    */
   effect?: (plan: Plan, leave?: () => void) => {text: string; navigated: boolean} | null;
+  /**
+   * Session AL fifth pass (BN-047, LA-029): whose cards these are. NOVA's chat says so: its cards' notes name NOVA, and each
+   * confirmed card's line in the actions log carries `by: 'nova'` (Activity then reads "by NOVA"). Absent: ZIGi's, as before.
+   */
+  assistant?: 'NOVA';
+  /** Session AL fifth pass (BN-047): NOVA's own reading of "Health is not shared" (NOVA → Permissions and this device's gate). */
+  healthOff?: boolean;
 };
 /**
  * Session AK (owner follow-up 2 N7, lane NE's planner Env): NOVA's chat plans its cards on NOVA's surface, with whether
  * Health is shared at this moment (a memory is then kept as proposed by NOVA, a health-like one only with Health shared).
  * ZIGi's panel passes nothing, so its planner Env is exactly as before.
  */
-export type PlanSurface = {surface: 'nova'; healthShared: boolean};
+export type PlanSurface = {surface: 'nova'; healthShared: boolean;
+  /** Session AL fifth pass (BN-047): Health is not read by NOVA (its Permissions switch or this device's gate), for the cards' note. */
+  healthOff?: boolean};
 export function useProposals(planSurface?: PlanSurface): ProposalRunner {
   const health = useHealth(), habits = useHabits(), fasting = useFasting(), platform = usePlatform(), router = useRouter();
   const reminders = useReminders(), zigiReminders = useDeviceRecord(ZIGI_REMINDERS), weekly = useWeeklyReview(), memory = useDeviceRecord(AI_MEMORY);
@@ -103,11 +114,12 @@ export function useProposals(planSurface?: PlanSurface): ProposalRunner {
     return planAction(action, env);
   }, [days, stores, habits.data, planSurface?.surface, planSurface?.healthShared]); // eslint-disable-line react-hooks/exhaustive-deps -- the surface's two values, not the object
   /** "Actions by ZIGi" (Activity): a confirmed card is noted, an undone one forgotten; the note is a convenience and never blocks. */
+  const byNova = planSurface?.surface === 'nova';
   const note = useCallback((p: Plan, done: boolean, auto = false) => {
     if (!p.activity) return;
-    try { if (done) recordAction(getAppStorage(), {activityId: p.activity.id.slice(0, 200), kind: p.card.kind, title: p.activity.title.slice(0, 160) || p.card.title.slice(0, 160), at: new Date().toISOString(), ...(auto ? {auto: true} : {})}); else forgetAction(getAppStorage(), p.activity.id.slice(0, 200)); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_ACTIONS_KEY})); }
+    try { if (done) recordAction(getAppStorage(), {activityId: p.activity.id.slice(0, 200), kind: p.card.kind, title: p.activity.title.slice(0, 160) || p.card.title.slice(0, 160), at: new Date().toISOString(), ...(auto ? {auto: true} : {}), ...(byNova ? {by: 'nova' as const} : {})}); else forgetAction(getAppStorage(), p.activity.id.slice(0, 200)); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_ACTIONS_KEY})); }
     catch { /* the record itself was written; only the note is missing */ }
-  }, []);
+  }, [byNova]);
   /** One write through a store's own update: the change sees the latest record, and the stores it leaves are returned. */
   const through = useCallback(async <K extends Written>(key: K, update: Updater<K>, change: (base: Stores) => Stores): Promise<Stores> => {
     let after = stores;
@@ -143,7 +155,7 @@ export function useProposals(planSurface?: PlanSurface): ProposalRunner {
   const undo = useCallback(async (plans: readonly Plan[], after: readonly Stores[]): Promise<string | null> => {
     const pairs = plans.map((p, i) => ({p, undo: p.undo, baseline: after[i]})).filter((x): x is {p: Plan; undo: NonNullable<Plan['undo']>; baseline: Stores} => !!x.undo && !!x.baseline);
     // Every record must still be as the writes left it, checked on the latest stores before anything is undone.
-    if (pairs.some(({undo: u, baseline}) => !u.unchanged(baseline, stores))) return UNDO_REFUSED;
+    const refusedNow = undoRefused(pairs.map(x => x.p), pairs.map(x => x.baseline), stores); if (refusedNow) return refusedNow;
     for (const {p, undo: u, baseline} of [...pairs].reverse()) {
       try { await run(p, base => { if (!u.unchanged(baseline, base)) throw new UndoRefused(); return {...base, ...u.write(base)}; }); note(p, false); }
       catch (error) { return error instanceof Error ? error.message : 'This undo could not be applied.'; }
@@ -194,5 +206,5 @@ export function useProposals(planSurface?: PlanSurface): ProposalRunner {
     if (hash !== undefined && window.location.pathname + window.location.search === path) window.location.hash = hash; else router.push(href);
     return {text: effectStatus(e), navigated: true};
   }, [look, router]);
-  return {ready, stores, plan, apply, applyAll, undo, openForm, effect};
+  return {ready, stores, plan, apply, applyAll, undo, openForm, effect, ...(planSurface?.surface === 'nova' ? {assistant: 'NOVA' as const, ...(planSurface.healthOff !== undefined ? {healthOff: planSurface.healthOff} : {})} : {})};
 }

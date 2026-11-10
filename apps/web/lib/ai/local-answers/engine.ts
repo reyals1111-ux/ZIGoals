@@ -9,7 +9,7 @@ import {findRanges, previousRange, type DayRange} from '../tools/range';
 import {runTool} from '../tools/registry';
 import {normalise, stem, tokens} from '../tools/subjects';
 import type {ToolOk, ToolResult} from '../tools/types';
-import {amount, dayText, groupUnits, grouped, instantText, n, plural, span} from './words';
+import {amount, dayText, goalMoney, groupUnits, grouped, instantText, n, plural, span} from './words';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {normalizeSpoken} from '../spoken/normalize';
 import {afLocalAnswer} from './af';
@@ -20,6 +20,13 @@ import {g1LocalAnswer} from './g1';
 import {novaEnvInfo, novaWording} from './nova-env';
 import {novaOverviewAnswer} from './nova-overview';
 import {questionLanguage} from './no-model';
+import {isStreakBreak, streakBreakWords} from './p14b';
+import {isFoodEstimateAsk} from './al-third';
+import {safetyFirst} from '../safety-guard';
+import {unitFor} from '../../plural';
+import {averageKey} from '../../average-goals/store';
+import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
+import {healthGoalAsk} from './al-final';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -114,6 +121,13 @@ const ASSET_NAMES: Record<string, string> = {bitcoin: 'BTC', bitcoins: 'BTC', et
 const MIN_UNITS = new Set(['minutes', 'minute', 'min', 'mins']);
 
 type HabitHit = {habit: Habit; strength: 'strong' | 'weak' | 'partial'};
+/**
+ * Session AL fourth pass (lane L7-4b; Lisbon #038, #240, LA-005, C-LA-09): the words every question about habits or goals
+ * carries ("How many habits are left today?", "my A goal") never name a record by themselves: a habit called "… delete all
+ * my habits" was answered for "How many habits are left today?". A title made only of such words is matched whole.
+ */
+const GENERIC = new Set(['habit', 'habits', 'goal', 'goals', 'today', 'done', 'left', 'open', 'all', 'and', 'also', 'only', 'with', 'the', 'for', 'this', 'that', 'what', 'how', 'many', 'much', 'are', 'your']);
+const meaningful = (t: string) => t.length >= 3 && !GENERIC.has(t);
 const words = (q: string) => normalise(q).split(' ').filter(Boolean);
 // ADR-022 B51: a prefix match needs five letters on both sides (stems already fold inflections), so "lately" no longer names a "Late-night" habit.
 const close = (a: string, b: string) => a === b || (a.length >= 5 && b.length >= 5 && (a.startsWith(b) || b.startsWith(a)));
@@ -122,7 +136,7 @@ function habitHits(env: ToolEnv, q: string): HabitHit[] {
   const qStems = words(q).map(stem), hits: HabitHit[] = [];
   for (const habit of env.habits.habits) {
     if (latestHabitRule(habit).state === 'archived') continue;
-    const title = tokens(habit.title).map(stem).filter(t => t.length >= 3);
+    const title = tokens(habit.title).map(stem).filter(meaningful);
     if (!title.length) continue;
     const present = title.filter(t => qStems.some(w => close(w, t)));
     if (!present.length) continue;
@@ -166,7 +180,45 @@ export function detectSubjects(question: string, env: ToolEnv): Subjects {
   };
 }
 /** The answer to a question, or `none` when it is not a lookup ZIGi answers on the device. */
+/**
+ * Session AL second pass (Berlin BN-053, BN-058, BN-060, ZIGi-F3; P-BN-15): the device answers only on a strong whole-message
+ * match. A governance question ("voting period", "deposit for a proposal") is never a contributions or goal answer (the
+ * word "deposit" or "ZIG" no longer picks one): it falls through to the facts (al-facts.ts: open Governance) or to a model.
+ * Two questions in one message ("What is on the Ecosystem page, and what does Chess have to do with ZIGoals?") fall
+ * through as well, so one half is never answered as if it were the whole.
+ */
+const GOVERNANCE_ASK = /\b(?:governance|proposals?|quorum|veto|voting period|deposit period|vot(?:e|es|ing) (?:last|lasts|period|ends?|open))\b/i;
+const TWO_QUESTIONS = /\b(?:what|how|which|who|where|when|why|is|are|does|do)\b[^?]{2,}?,?\s+and\s+(?:what|how|which|who|where|when|why)\s+(?:is|are|does|do|did|much|many|long|about)\b/i;
+export function strongMatchOnly(question: string): boolean { return GOVERNANCE_ASK.test(question) || TWO_QUESTIONS.test(question); }
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
+  // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
+  // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.
+  if (safetyFirst(question)) return NONE;
+  // Session AL final pass (Z-025): a Health goal named in a goal question, with the habit of that name beside it (al-final.ts).
+  if (!subject) { const healthGoal = healthGoalAsk(question, env); if (healthGoal) return healthGoal; }
+  // Session AL fifth pass (L7-5b; Lisbon #216, LA-028, LZ-019): a phrase typed again and again is asked once; a message of
+  // several lines is answered line by line when every line has its own answer here (one line without one: the no-model
+  // path or the person's AI takes the whole message, so no line is dropped).
+  if (!subject) {
+    const once = onePhrase(question); if (once) return localAnswer(once, env);
+    const parts = messageLines(question);
+    if (parts) {
+      const replies = parts.map(p => { try { return localAnswer(p, env); } catch { return NONE; } });
+      if (replies.every(r => r.kind === 'answer' || r.kind === 'refusal')) return joinReplies(replies);
+      if (replies.some(r => r.kind !== 'none')) return NONE;
+    }
+  }
+  // Session AL fifth pass (L7-5b; Denver DVR:Z-052, Z-021, N-040; Nairobi H7): two goals named in one question get both
+  // answers; a goal that keeps an average is a goal (its own figures, Health's days only with Health shared); a habit's
+  // name with a past period is that question, never today's check-in.
+  if (!subject) {
+    const own = fifthLookup(normalizeSpoken(question), env);
+    if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, 'en') : own; }
+  }
+  if (!subject && strongMatchOnly(question)) return NONE;
+  // Session AL third pass (L7; P14-B): "how many calories in my plate of pasta" asks about a food, not today's diary. The
+  // lookups stay out: the person's AI answers it, or with none, no-model.ts says what the food library holds.
+  if (!subject && isFoodEstimateAsk(normalizeSpoken(question))) return NONE;
   // Release review 2 (R2-2): on NOVA's environment only (lib/nova/local-env.ts), the natural overview questions after
   // Session AF's commands, and every reply in NOVA's words (NOVA → Permissions). Any other environment: exactly as before.
   const nova = novaEnvInfo(env);
@@ -174,6 +226,64 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   const lang = questionLanguage(question) === 'nl' ? 'nl' : 'en', words = (reply: LocalReply) => novaWording(reply, nova, lang);
   if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return words(af); const own = novaOverviewAnswer(normalizeSpoken(question), env, nova); if (own) return words('text' in own ? {...own, text: groupUnits(own.text)} : own); }
   return words(engineAnswer(question, env, subject));
+}
+/**
+ * Session AL fifth pass (lane L7-5b): the goal and habit lookups the replay of 37d2370c found answered with something else.
+ * - Two or more goals named by their whole names in one question ("How far am I on my Emergency fund goal and my First
+ *   home deposit goal?") get each goal's own answer, never this month's contributions (Denver DVR:Z-052). A goal whose
+ *   name holds a contribution word ("First home deposit") is still that goal.
+ * - A goal that keeps an average ("Sleep 7 hours a night") is a Goals record: its name, target and window are answered under
+ *   Goals; the days it averages come from Health and are read only with Health shared, else said to be unknown here
+ *   (Denver Z-021, N-040). Nothing of Health is read while the gate is closed.
+ * - "Exercise last week" (a habit's whole name and a past period) is the question for that period (Nairobi H7).
+ */
+/** One environment is one snapshot of the records, so its goals are summed up once for the lookups above. */
+const GOALS_ONCE = new WeakMap<ToolEnv, ReturnType<typeof summaries>>();
+const goalsOnce = (env: ToolEnv) => { let hit = GOALS_ONCE.get(env); if (!hit) { hit = summaries(env); GOALS_ONCE.set(env, hit); } return hit; };
+function fifthLookup(question: string, env: ToolEnv): LocalReply | null {
+  if (questionLanguage(question) === 'nl') return null;
+  const q = question.toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
+  if (!q || q.length > 300 || MIXED.test(q)) return null;
+  const period = pastPeriodAsk(q, env.areas.habits === false ? [] : env.habits.habits.filter(h => latestHabitRule(h).state === 'active').map(h => h.title));
+  if (period) { let r: LocalReply = NONE; try { r = engineAnswer(period, env); } catch { r = NONE; } return r.kind === 'none' || r.kind === 'examples' ? null : r; }
+  if (env.areas.goals === false || ACTION.test(q) || STATEMENT.test(q)) return null;
+  if (!GOAL_PROGRESS.test(q) && !/^(?:show|list|what about|how about)\b/.test(q) && !/\bgoals?\b/.test(q)) return null;
+  const whole = goalsOnce(env).filter(g => g.status !== 'closed' && namesGoal(g.name, q));
+  const averages = (env.averageGoals ?? []).filter(g => g.status !== 'closed' && namesGoal(g.name, q) && !whole.some(w => normalise(w.name) === normalise(g.name)));
+  const rest = whole.reduce((t, g) => t.replace(normalise(g.name), ' '), ` ${normalise(q)} `);
+  if (whole.length + averages.length >= 2) {
+    const replies = [...whole.slice(0, 4).map(g => goalProgress(env, g.key, rest)), ...averages.slice(0, 4).map(g => averageAnswer(env, g))];
+    return joinReplies(replies);
+  }
+  if (averages.length === 1 && !whole.length) return averageAnswer(env, averages[0]!);
+  // "How far am I on my First home deposit goal?": the goal, not the contributions of the month.
+  if (whole.length === 1 && CONTRIBUTION.test(q) && !CONTRIBUTION.test(rest) && GOAL_PROGRESS.test(rest)) return goalProgress(env, whole[0]!.key, rest);
+  return null;
+}
+/** One goal that keeps an average, from the Goals tool's own row (the Health gate decides whether its days are read). */
+function averageAnswer(env: ToolEnv, goal: {id: string; name: string}): LocalReply {
+  // By its handle, so a Goals-page goal with a like name ("DV Count books" for "DV Sleep avg") is never read instead.
+  const handle = env.handles.add('goal', averageKey(goal.id), goal.name);
+  const r = call(env, 'goal_progress', {goal: handle}), refused = refusalOf([r]); if (refused) return refused;
+  const d = dataOf(r.result), title = clean(String(d.name ?? goal.name), 60), head = `${title} (a goal that keeps an average): ${d.target} over ${d.window}.`;
+  if (d.type !== 'Keep an average') return {kind: 'answer', text: `${title}: ${d.progress ?? 'unknown'} of the target.`, calls: [r.record]};
+  if (d.note) return {kind: 'answer', text: lines(head, ['Its days come from Health, which isn’t shared here, so its average is not read (unknown here, never zero). The goal itself stays on Goals.']), calls: [r.record]};
+  if (d.now === 'unknown') return {kind: 'answer', text: lines(head, [`No day with a value in the window yet${d.daysRecorded ? ` (${d.daysRecorded} recorded)` : ''}.`]), calls: [r.record]};
+  return {kind: 'answer', text: lines(head, [`Average now: ${d.now} (${d.progress} of the target), ${d.daysRecorded} recorded${d.met ? '; the target is met' : ''}.`]), calls: [r.record]};
+}
+/**
+ * Session AL (lane L7; DV-074, LA-005, LZ-009, P-DV-83, P-LA-15): NOVA's overview answers (goals overview, due today, sleep,
+ * habits left, water to go, the week, the day) in ZIGi's words, for ZIGi's no-model path (lib/ai/local-answers/no-model.ts):
+ * with no model to answer, ZIGi gives the same answer NOVA gives instead of the examples list. `localAnswer` itself stays as
+ * pinned (with a model connected these questions still go to the model).
+ */
+export function zigiOverview(question: string, env: ToolEnv): LocalReply | null {
+  const own = novaOverviewAnswer(question, env, {healthScope: true, healthGate: !!env.health});
+  if (!own || !('text' in own)) return own;
+  if (own.kind === 'refusal' && /^Health (?:is|staat)/.test(own.text)) return {kind: 'refusal', text: HEALTH_CLOSED, calls: []};
+  const text = own.text.replace(/ is off for NOVA, so it is not read here\. Turn it on in NOVA → Permissions\./g, ' isn’t shared with ZIGi here. Turn it on in Settings → ZIGi · Your Personal AI Companion.')
+    .replace(/off for NOVA, so not read \(NOVA → Permissions\)/g, 'not shared with ZIGi here (Settings → ZIGi)').replace(/staan? uit voor NOVA, dus niet gelezen \(NOVA → Permissions\)/g, 'niet gedeeld met ZIGi hier (Settings → ZIGi)').replace(/NOVA → Permissions/g, 'Settings → ZIGi').replace(/\bNOVA\b/g, 'ZIGi');
+  return {...own, text: groupUnits(text)};
 }
 function engineAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AF (L4): the Checklist commands, the Earn coach, the page and the brief, each with its own stop rule, first.
@@ -307,6 +417,9 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   if (ACTION.test(q) || STATEMENT.test(q) || MIXED.test(q)) return NONE;
   if (ADVICE.test(q)) return NONE;
   const habitList = habitListAnswer(env, q); if (habitList) return habitList;
+  // Session AL fourth pass (L7-4b; Moscow ZP-05, NP-04): "calories and macros" is the macros answer (al-more.ts), never kcal alone;
+  // a spending question about food is Wealth's (ai-session.ts), never the diary (Nairobi P26, NB:N-065).
+  if (!subject && (/\bmacros?\b/.test(q) || /\bspen[dt]\b|\bspending\b/.test(q))) return NONE;
   if (env.areas.today === false && env.areas.habits === false && env.areas.goals === false && env.areas.wealth === false && !env.health) return {kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []};
   // A lookup asks: question words, or a figure's name ending in a question mark ("Minutes of reading this month?").
   const asked = /\?\s*$/.test(q) && (W.minutes.test(q) || W.streak.test(q) || W.average.test(q) || W.rate.test(q) || /\b(steps|water|calories|protein)\b/.test(q) || WEALTH_TOTAL.test(q) || OWE.test(q));
@@ -322,13 +435,28 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   const ranges = (today: string) => findRanges(q, today);
   // Wealth first: a coin or asset the person holds, or the wealth total.
   const asset = mentionedAsset(env, q);
-  if (WEALTH_TOTAL.test(q)) return wealthTotal(env);
+  // Session AL fourth pass (Tokyo TK #4–#6, TK-049): "what changed in my wealth", "how much of my wealth is crypto" and "can you
+  // export my wealth data" ask something else than the total; their own answers come after (ai-session.ts, al-fourth.ts).
+  if (WEALTH_TOTAL.test(q) && !/\b(?:chang\w*|moved?|crypto\w*|share|percent\w*|export\w*|download|backup)\b|%/.test(q)) return wealthTotal(env);
   if (PORTFOLIO_WORTH.test(q) && env.portfolio) return portfolioAnswer(env);
-  if (asset && HOLD.test(q) && !CONTRIBUTION.test(q)) return holding(env, asset);
+  // Session AL fourth pass (Tokyo TK #7, TK:Z3): "how much ZIG have I staked?" asks about staking, never the holding.
+  // Session AL final pass (NB:P6, BUG-056, NB-107): a coin the person tracks nothing of is answered too ("You have no ETH
+  // recorded in Wealth", with where to add it), never the examples list and never 0 as if it were a holding.
+  const held = asset ?? (HOLD.test(q) && !mentionedGoals(env, q).length ? untrackedCoin(q) : null);
+  if (held && HOLD.test(q) && !CONTRIBUTION.test(q) && !/\bstak(?:e|ed|ing)\b|\brewards?\b/.test(q)) return holding(env, held, q);
   // Session W Part 21: accounts and debts, chess, My links, challenges and milestones (each behind its own area's switch),
   // and mindful minutes (Health). A habit the question names keeps its answer: "how often did I play chess" with a habit
   // called Chess, and "meditation" with a habit called Meditate, stay habit answers.
   if (OWE.test(q)) return accountsAnswer(env, q);
+  // Session AL fourth pass (Denver N-028, N-029, N-037, N-039, DV-063a, DV-076): a goal the question names by its whole name,
+  // or with the word "goal", is that goal: "my chess goal" is "Reach a chess rating", "my 52-week savings challenge" is the
+  // goal of that name, never the chess ratings or a habit challenge.
+  if (!subject && !MILESTONE.test(q) && (CHESS.test(q) || CHALLENGE.test(q))) {
+    const named = mentionedGoals(env, q), whole = named.filter(g => namesGoal(g.name, q));
+    const pick = whole.length ? whole : /\bgoal\b/.test(q) && (CHESS.test(q) || CHALLENGE.test(q)) ? named : [];
+    // "Is my 52-week savings challenge on track?": the on-track answer for that goal (ai-session.ts) comes after the lookups.
+    if (pick.length === 1) return /\bon (?:track|schedule)\b/.test(q) ? NONE : goalProgress(env, pick[0]!.key, q);
+  }
   if (CHESS.test(q) && (CHESS_SITE.test(q) || !strongestHabits(habitHits(env, q), q).some(h => h.strength === 'strong'))) return chessAnswer(env, q, ranges(env.habitDay));
   if (LINKS.test(q)) return linksAnswer(env);
   if (CHALLENGE.test(q)) return challengesAnswer(env);
@@ -382,8 +510,8 @@ const lines = (head: string, items: (string | false | null | undefined)[]) => [h
 function habitListAnswer(env: ToolEnv, q: string): LocalReply | null {
   if (HABITS_OPEN.test(q)) {
     const r = call(env, 'habits_due', {}), refused = refusalOf([r]); if (refused) return refused;
-    const open = (dataOf(r.result).open ?? []) as {title: string; status: string; logged: unknown; target: string}[];
-    const text = open.length ? `${plural(open.length, 'habit')} still open today:\n${open.map(h => `- ${h.title}: ${typeof h.logged === 'number' ? `${h.logged} of ${h.target}` : h.status === 'partial' ? `partly done, target ${h.target}` : `not yet, target ${h.target}`}`).join('\n')}` : 'Nothing is open today: every habit scheduled for today is done.';
+    const open = (dataOf(r.result).open ?? []) as {title: string; status: string; logged: unknown; loggedText?: string; target: string}[];
+    const text = open.length ? `${plural(open.length, 'habit')} still open today:\n${open.map(h => `- ${h.title}: ${typeof h.logged === 'number' ? `${h.loggedText ?? h.logged} of ${h.target}` : h.status === 'partial' ? `partly done, target ${h.target}` : `not yet, target ${h.target}`}`).join('\n')}` : 'Nothing is open today: every habit scheduled for today is done.';
     return {kind: 'answer', text, calls: [r.record]};
   }
   if (HABITS_COUNT.test(q) || HABITS_LIST.test(q) || HABITS_ARCHIVED.test(q)) {
@@ -393,6 +521,12 @@ function habitListAnswer(env: ToolEnv, q: string): LocalReply | null {
     if (archivedAsked) { const gone = rows.filter(h => h.state === 'archived'); return {kind: 'answer', text: gone.length ? `${plural(gone.length, 'archived habit')}:\n${gone.map(h => `- ${h.title}`).join('\n')}` : 'No habit is archived.', calls: [r.record]}; }
     const live = rows.filter(h => h.state !== 'archived');
     if (!live.length) return {kind: 'answer', text: 'No habit yet: Habits → New habit, or ask me to create one.', calls: [r.record]};
+    // Session AL second pass (Lisbon LA-017, L-051, LZ-007; P-LA-16): "how many habits did I complete today" is a count of
+    // today's done habits, as Habits and the Checklist counter show it, not the list of every habit.
+    if (/\b(?:did i|have i)\b.*\b(?:complete|completed|finish|finished|done|do|did)\b.*\btoday\b/.test(q)) {
+      const today = (rows as {title: string; state?: string; today?: string}[]).filter(h => h.state === 'active'), done = today.filter(h => h.today === 'complete'), part = today.filter(h => h.today === 'partial');
+      return {kind: 'answer', text: lines(`${done.length} of ${plural(today.length, 'habit')} done today${part.length ? `, ${part.length} partly` : ''}.`, [done.length > 0 && `Done: ${done.map(h => h.title).join(', ')}`, part.length > 0 && `Partly: ${part.map(h => h.title).join(', ')}`]), calls: [r.record]};
+    }
     return {kind: 'answer', text: `${plural(live.length, 'habit')}:\n${live.map(h => `- ${h.title}${h.schedule ? ` · ${h.schedule}` : ''}${h.target ? `, ${h.target}` : ''}`).join('\n')}`, calls: [r.record]};
   }
   const m = DID_I.exec(q);
@@ -406,12 +540,18 @@ function habitAnswer(env: ToolEnv, habit: Habit, q: string, found: DayRange[]): 
   const title = clean(habit.title, 60), rule = latestHabitRule(habit), unit = measurementUnit(rule) || (rule.measurement.kind === 'boolean' ? 'check-ins' : '');
   const timed = rule.measurement.kind === 'duration' || MIN_UNITS.has(unit.toLowerCase()) || /^(h|hr|hrs|hour|hours)$/i.test(unit);
   const stats = (r: DayRange, metric: string) => call(env, 'habit_stats', {habit: title, range: rangeArg(r), metric});
-  const valueOf = (d: Record<string, any>) => typeof d.value === 'number' ? `${n(d.value, 2)} ${d.unit}` : d.valueText as string; // eslint-disable-line @typescript-eslint/no-explicit-any
+  // Session AL fifth pass (L7-5b; Lisbon LA-034): "Drink water: 1 time today", the unit singular after exactly 1 (lib/plural.ts).
+  const valueOf = (d: Record<string, any>) => typeof d.value === 'number' ? `${n(d.value, 2)} ${unitFor(d.value, String(d.unit))}` : d.valueText as string; // eslint-disable-line @typescript-eslint/no-explicit-any
   if (W.streakBest.test(q) || W.streak.test(q)) {
     const s = call(env, 'habit_stats', {habit: title, metric: 'streak'}), refused = refusalOf([s]); if (refused) return refused;
     const st = dataOf(s.result).streak as {current: number; best: number; unit: string};
+    // Session AL Part 14 (G15): "my Read streak broke" gets the kind words (p14b.ts), from the same figures.
+    if (isStreakBreak(q)) return {kind: 'answer', text: streakBreakWords(title, st), calls: [s.record]};
     const head = W.streakBest.test(q) ? `Your longest ${title} streak is ${plural(st.best, st.unit.replace(/s$/, ''))}; the current one is ${plural(st.current, st.unit.replace(/s$/, ''))}.` : `Your current ${title} streak is ${plural(st.current, st.unit.replace(/s$/, ''))} (longest: ${plural(st.best, st.unit.replace(/s$/, ''))}).`;
-    return {kind: 'answer', text: head, calls: [s.record]};
+    // Session AL final pass (Z-021): why a streak can be longer than a month's check-ins beside it ("26 days" next to "3
+    // check-ins over 4 days"): it runs across months, and a skipped day keeps it going.
+    const since = typeof dataOf(s.result).streak?.since === 'string' ? dataOf(s.result).streak.since as string : null, long = Math.max(st.best, st.current) > 1 && /^days?$/.test(st.unit);
+    return {kind: 'answer', text: long ? lines(head, [`${since && st.current > 1 ? `The current one runs since ${dayText(since, env.habitDay.slice(0, 4))}: a` : 'A'} streak counts scheduled days in a row across months, and a skipped day keeps it going (skipped days never count against you), so it can be longer than one month’s check-ins`]) : head, calls: [s.record]};
   }
   if (W.last.test(q)) {
     const range = {from: habit.startDate < env.habitDay ? habit.startDate : env.habitDay, to: env.habitDay, label: 'since it began'};
@@ -587,9 +727,16 @@ function diaryAnswer(env: ToolEnv, found: DayRange[]): LocalReply {
   const multi = range.from !== range.to;
   return {kind: 'answer', text: lines(`You logged ${plural(d.count, 'item')} ${when}:`, [...entries.slice(0, 12).map(e => `${multi ? `${dayText(e.date, env.healthDay.slice(0, 4))}, ` : ''}${e.meal}: ${e.item} (${e.servings} ${e.servings === '1' ? 'serving' : 'servings'}, ${typeof e.kcal === 'number' ? `${n(e.kcal, 0)} kcal` : 'kcal unknown'})`), entries.length > 12 && `${plural(entries.length - 12, 'more item')} in Health`]), calls: [r.record]};
 }
+/** The goal's whole name stands in the question as written ("my 52-week savings challenge", "my A goal"). */
+const namesGoal = (name: string, q: string) => { const n = normalise(name); return n.length >= 3 && ` ${normalise(q)} `.includes(` ${n} `); };
 function mentionedGoals(env: ToolEnv, q: string) {
   const all = summaries(env).filter(g => g.status !== 'closed'), stems = words(q).map(stem);
-  const scored = all.map(goal => { const t = tokens(goal.name).map(stem).filter(x => x.length >= 3); return {goal, hits: t.filter(x => stems.some(w => close(w, x))).length, size: t.length}; }).filter(s => s.hits > 0);
+  const scored = all.map(goal => {
+    const t = tokens(goal.name).map(stem).filter(meaningful);
+    // "A goal", "B goal": no word of its own, so only the whole name, as written, names it.
+    if (!t.length) return {goal, hits: namesGoal(goal.name, q) ? 1 : 0, size: 1};
+    return {goal, hits: t.filter(x => stems.some(w => close(w, x))).length, size: t.length};
+  }).filter(s => s.hits > 0);
   if (!scored.length) return [];
   const best = Math.max(...scored.map(s => s.hits / Math.max(s.size, 1)));
   return scored.filter(s => s.hits / Math.max(s.size, 1) === best).map(s => s.goal);
@@ -600,7 +747,9 @@ function goalProgress(env: ToolEnv, key: string, q: string): LocalReply {
   const r = call(env, 'goal_progress', {goal: clean(goal.name, 120)}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), name = clean(goal.name, 60);
   if (goal.progressBound === 'unavailable') return {kind: 'answer', text: lines(`${name}: its value is unknown, so progress can't be worked out.`, [d.valuation, d.now && `Held now: ${d.now}`]), calls: [r.record]};
-  const money = (s: string) => s.replace(/^(-?\d+(?:\.\d+)?) ([A-Za-z]+)$/, (_m, v: string, c: string) => amount(v, c));
+  // Session AL (Z-003 / N-004, ADR-037 Q14): USD and EUR goal amounts read as the goals list writes them ("$0 of $500",
+  // formatGoalAmount, ".00" dropped as NOVA's list does); a count goal's own word keeps words.ts amount ("20 books").
+  const money = (s: string) => /^-?\d+(?:\.\d+)? [A-Za-z]+$/.test(s) ? goalMoney(s) : s; // words.ts goalMoney (final pass: one format)
   const remaining = /\b(left|remaining|to go|how much more|still need)\b/.test(q);
   const head = remaining ? `${name}: ${money(d.remaining)} to go (${d.progress} of the target reached).` : `${name}: ${d.progress} of the target — ${money(d.now)} of ${money(d.target)}.`;
   const plan = typeof d.plan === 'object' ? d.plan as {contributedNet: string; plannedThroughToday: string; nextDate: string} : null;
@@ -620,10 +769,16 @@ function mentionedAsset(env: ToolEnv, q: string): string | null {
   for (const [name, symbol] of Object.entries(ASSET_NAMES)) if (new RegExp(`\\b${name}\\b`).test(q) && symbols.includes(symbol)) return symbol;
   return symbols.find(s => s.length >= 2 && new RegExp(`\\b${s.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(q)) ?? null;
 }
-function holding(env: ToolEnv, asset: string): LocalReply {
+/** A coin or metal named in a holding question, held or not ("how much eth do i have" with nothing in Wealth). */
+const COIN_WORD = /\b(btc|eth|sol|zig|usdc|usdt|atom|osmo|dot|ada|xrp|bnb|doge|avax|link|tia|inj)\b/;
+function untrackedCoin(q: string): string | null {
+  for (const [name, symbol] of Object.entries(ASSET_NAMES)) if (new RegExp(`\\b${name}\\b`).test(q)) return symbol;
+  return COIN_WORD.exec(q)?.[1]?.toUpperCase() ?? null;
+}
+function holding(env: ToolEnv, asset: string, q = ''): LocalReply {
   const r = call(env, 'holdings', {asset}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), rows = d.holdings as {quantity: string; value: string; priceSource: string; valuedAt: string}[];
-  if (!rows.length) return {kind: 'answer', text: `You don't track any ${asset} in Wealth.`, calls: [r.record]};
+  if (!rows.length) return {kind: 'answer', text: lines(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, [`To track it: Wealth → + Add asset → ${/^(?:GOLD|SILVER)$/.test(asset) ? 'Precious metals' : 'Crypto'}, then ${asset} and the amount you hold`]), calls: [r.record]};
   const quantity = rows.reduce((s, row) => s.plus(/^\d+(\.\d+)?$/.test(row.quantity) ? row.quantity : 0), new Decimal(0)).toFixed();
   const values = new Map<string, Decimal>();
   for (const row of rows) { const m = /^(-?\d+\.\d{2}) ([A-Z]{3,10})$/.exec(row.value); if (m) values.set(m[2]!, (values.get(m[2]!) ?? new Decimal(0)).plus(m[1]!)); }
@@ -636,25 +791,30 @@ function holding(env: ToolEnv, asset: string): LocalReply {
     // Portfolio is named apart from Wealth; a hypothetical portfolio holds nothing, so it is never counted as holding.
     if (p.result.ok) for (const pf of dataOf(p.result).portfolios as {portfolio: string; kind: string; coins?: {coin: string; quantity: string}[]}[]) { const coin = pf.coins?.find(c => c.coin.toUpperCase() === asset); if (coin && pf.kind === 'Real') extra.push(`Portfolio (separate from Wealth): ${grouped(coin.quantity)} ${asset} in your Real portfolio ${pf.portfolio}`); }
   }
-  return {kind: 'answer', text: lines(`You hold ${grouped(quantity)} ${asset} in Wealth (${plural(rows.length, 'holding')}), ${worth}.`, [sources.length > 0 && `Prices: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && `${plural(unpriced, 'holding')} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, values.size > 1 && 'One total per currency, never converted', ...extra]), calls};
+  // Session AL final pass (TK:14, C-TK-35): "… in EUR?" says when no value is in that currency (values are never converted).
+  const wanted = /\bin (usd|eur)\b/i.exec(q)?.[1]?.toUpperCase(), noneIn = wanted && !values.has(wanted) ? `No value in ${wanted}: each value stays in its price's own currency and is never converted` : null;
+  return {kind: 'answer', text: lines(`You hold ${grouped(quantity)} ${asset} in Wealth (${plural(rows.length, 'holding')}), ${worth}.`, [noneIn, sources.length > 0 && `Prices: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && `${plural(unpriced, 'holding')} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, values.size > 1 && 'One total per currency, never converted', ...extra]), calls};
 }
 /** "2430.00 USD" as a local answer writes money: "2,430.00 USD". */
 const money = (text: string) => { const i = text.lastIndexOf(' '); return i > 0 ? amount(text.slice(0, i), text.slice(i + 1)) : text; };
 /** Session W Part 21: with accounts and debts on this device, net worth per currency joins the wealth answer. */
-function netWorthLine(env: ToolEnv): {line: string | null; record: ToolCallRecord | null} {
+function netWorthLine(env: ToolEnv): {line: string | null; record: ToolCallRecord | null; note?: string} {
   if (!(env.accounts?.items ?? []).some(a => !a.archivedAt)) return {line: null, record: null};
   const w = call(env, 'net_worth', {});
   if (!w.result.ok) return {line: null, record: w.record};
   const rows = dataOf(w.result).perCurrency as {netWorth: string; assets: string; debts: string; holdingsWithAValue: string}[];
   const parts = (r: (typeof rows)[number]) => ([['accounts', r.assets], ['holdings with a value', r.holdingsWithAValue], ['debts', r.debts]] as const).filter(([, v]) => !/^0(?:\.0+)? /.test(v)).map(([k, v]) => `${k} ${money(v)}`).join(', ');
-  return {line: rows.length ? `With your accounts and debts, your net worth is ${rows.map(r => `${money(r.netWorth)} (${parts(r) || 'nothing recorded'})`).join(' and ')}, never converted between currencies` : null, record: w.record};
+  // Session AL (TK-071, P-TK-31): a total of a billion or more is shown as it is, with a note that it may hold a typing slip.
+  const huge = rows.some(r => { const v = Number(r.netWorth.split(' ')[0]); return Number.isFinite(v) && Math.abs(v) >= 1e9; });
+  return {line: rows.length ? `With your accounts and debts, your net worth is ${rows.map(r => `${money(r.netWorth)} (${parts(r) || 'nothing recorded'})`).join(' and ')}, never converted between currencies` : null, record: w.record,
+    ...(huge ? {note: 'A total of a billion or more: if a balance or a debt was typed with extra digits, correct it in Wealth → Accounts, debts & net worth.'} : {})};
 }
 function wealthTotal(env: ToolEnv): LocalReply {
   const r = call(env, 'totals_per_currency', {}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), totals = d.totals as {currency: string; total: string}[], worth = netWorthLine(env), extra = worth.record ? [worth.record] : [];
-  if (!totals.length) return {kind: 'answer', text: lines(d.holdings ? 'None of your tracked holdings has a price, so there is no total.' : 'No holdings are tracked in Wealth yet.', [worth.line]), calls: [r.record, ...extra]};
+  if (!totals.length) return {kind: 'answer', text: lines(d.holdings ? 'None of your tracked holdings has a price, so there is no total.' : 'No holdings are tracked in Wealth yet.', [worth.line, worth.note]), calls: [r.record, ...extra]};
   const observed = (text: string) => { const [a, b] = text.split(' to '); return !a || a === 'unknown' ? 'time unknown' : b && b !== a ? `observed from ${instantText(a, env.habitDay)} to ${instantText(b, env.habitDay)}` : `observed ${instantText(a, env.habitDay)}`; };
-  return {kind: 'answer', text: lines(`Your tracked wealth, one total per currency (never converted): ${totals.map(t => amount(t.total, t.currency)).join(' and ')}.`, [d.withoutPrice > 0 && `${plural(d.withoutPrice, 'holding')} without a price ${d.withoutPrice === 1 ? 'is' : 'are'} not counted`, ...(d.prices as {source: string; observed: string}[]).map(p => `Values from ${p.source}, ${observed(p.observed)}`), worth.line]), calls: [r.record, ...extra]};
+  return {kind: 'answer', text: lines(`Your tracked wealth, one total per currency (never converted): ${totals.map(t => amount(t.total, t.currency)).join(' and ')}.`, [d.withoutPrice > 0 && `${plural(d.withoutPrice, 'holding')} without a price ${d.withoutPrice === 1 ? 'is' : 'are'} not counted`, ...(d.prices as {source: string; observed: string}[]).map(p => `Values from ${p.source}, ${observed(p.observed)}`), worth.line, worth.note]), calls: [r.record, ...extra]};
 }
 
 // ---- Session W Part 21 (W7): answers from the new tools, in the same plain words; unknown stays unknown, no advice ----
@@ -746,7 +906,10 @@ function challengesAnswer(env: ToolEnv): LocalReply {
 function portfolioAnswer(env: ToolEnv): LocalReply {
   const r = call(env, 'portfolios', {}), refused = refusalOf([r]); if (refused) return refused;
   const rows = dataOf(r.result).portfolios as {portfolio: string; kind: string; currency: string; value?: string; note?: string}[];
-  if (!rows.length) return {kind: 'answer', text: 'No portfolio yet; Wealth → Portfolio makes one.', calls: [r.record]};
+  // Session AL second pass (Nairobi NB-105, P-NB-60): no portfolio is not "nothing held": Wealth's own totals are named
+  // beside it, labelled as Wealth's, so the two answers about the same records never disagree.
+  if (!rows.length) { const w = call(env, 'totals_per_currency', {}), totals = w.result.ok ? (dataOf(w.result).totals ?? []) as {currency: string; total: string}[] : [];
+    return {kind: 'answer', text: totals.length ? `No portfolio yet (Wealth → Portfolio makes one). Your holdings in Wealth add up to ${totals.map(t => amount(t.total, t.currency)).join(' and ')}, one total per currency, never converted.` : 'No portfolio yet; Wealth → Portfolio makes one.', calls: [r.record, w.record]}; }
   const worth = (p: (typeof rows)[number]) => p.note ? p.note : !p.value || p.value === '0' ? 'holds nothing' : p.value.startsWith('unknown') ? 'has no prices, so no value' : `is worth ${money(p.value.replace(/\s*\(.*\)$/, ''))}${/\(/.test(p.value) ? ` (${p.value.replace(/^[^(]*\(/, '').replace(/\)$/, '')})` : ''}`;
   return {kind: 'answer', text: lines('Your portfolios, each in its own currency and never added together:', rows.map(p => `${p.portfolio} (${p.kind}) ${worth(p)}`)), calls: [r.record]};
 }
@@ -761,7 +924,8 @@ function bestStreakAnswer(env: ToolEnv): LocalReply {
     const st = dataOf(s.result).streak as {current: number; best: number; unit: string};
     found.push({title: clean(h.title, 60), best: st.best, current: st.current, unit: st.unit.replace(/s$/, '')});
   }
-  if (!found.length) return {kind: 'answer', text: 'No streak yet: the first check-in starts one.', calls};
+  // Session AL fourth pass (Lisbon LA-004): Habits not shared is said as such, never "No streak yet" (Drink water had one).
+  if (!found.length) { const first = calls.length ? runTool('habit_stats', {habit: clean(habits[0]!.title, 60), metric: 'streak'}, env) : null; if (first && !first.ok) return {kind: 'refusal', text: first.refusal, calls}; return {kind: 'answer', text: 'No streak yet: the first check-in starts one.', calls}; }
   found.sort((a, b) => b.best - a.best);
   // ZI3 (tied streaks): habits that share the longest streak are named together, never one of them as "the" longest.
   const top = found[0]!, tied = found.filter(f => f.best === top.best && f.unit === top.unit), rest = found.filter(f => !tied.includes(f)).slice(0, 2).filter(f => f.best > 0);
@@ -774,6 +938,8 @@ function milestonesAnswer(env: ToolEnv, q: string): LocalReply {
   const named = mentionedGoals(env, q), r = call(env, 'milestones', named.length === 1 ? {goal: clean(named[0]!.name, 120)} : {}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), goals = d.goals as {goal: string; done: number; total: number; milestones: {title: string; state: string; targetDate?: string}[]}[];
   if (!goals.length) return {kind: 'answer', text: d.note, calls: [r.record]};
-  const next = (g: (typeof goals)[number]) => g.milestones.filter(m => m.state === 'open').slice(0, 3).map(m => `${m.title}${m.targetDate ? ` (by ${dayText(m.targetDate, env.habitDay.slice(0, 4))})` : ''}`);
-  return {kind: 'answer', text: lines('Your milestones:', goals.map(g => `${g.goal}: ${g.done} of ${g.total} done${next(g).length ? `; next: ${next(g).join(', ')}` : ''}`)), calls: [r.record]};
+  // Session AL (DV-081): "next" is the first open milestone, with how many more are open; one line per goal.
+  const next = (g: (typeof goals)[number]) => { const open = g.milestones.filter(m => m.state === 'open'), first = open[0]; return first ? `; next: ${first.title}${first.targetDate ? ` (by ${dayText(first.targetDate, env.habitDay.slice(0, 4))})` : ''}${open.length > 1 ? ` (+${open.length - 1} more)` : ''}` : ''; };
+  const seen = new Set<string>(), unique = goals.filter(g => { const key = `${g.goal}|${g.done}|${g.total}|${g.milestones.map(m => m.title).join('|')}`; if (seen.has(key)) return false; seen.add(key); return true; });
+  return {kind: 'answer', text: lines('Your milestones:', unique.map(g => `${g.goal}: ${g.done} of ${g.total} done${next(g)}`)), calls: [r.record]};
 }

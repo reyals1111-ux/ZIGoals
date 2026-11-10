@@ -3,6 +3,7 @@ import type {HabitsStore} from '../../habits/use-habits';
 import type {useChess} from '../use-chess';
 import {LichessPlay} from './lichess-play';
 import {DailyPuzzle} from './daily-puzzle';
+import {ComputerPlay} from './computer-play';
 import './board.css';
 
 /**
@@ -11,6 +12,8 @@ import './board.css';
  */
 export default function PlayPanel({state, habits}: {state: ReturnType<typeof useChess>; habits: Pick<HabitsStore, 'data' | 'loaded' | 'error' | 'update'>}) {
   return <div className="chess-play-panel">
+    {/* Session AL fourth pass (BN-182, D-228, C-BN-24): a game with no sign-in, against a small computer on this device. */}
+    <ComputerPlay />
     <LichessPlay showcase={state.showcase} />
     <DailyPuzzle state={state} habits={habits} />
   </div>;

@@ -1,6 +1,7 @@
 'use client';
 import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {addSession, DEFAULT_BELLS, newSessionId} from '../../../lib/meditation/engine';
+import {timerRuleText, tooShortText, tooShortToSave} from '../../../lib/health-timer-rules';
 import {heartSnapshot, heartSummary, SERVER_HEART, subscribeHeart} from '../../../lib/bluetooth/heart-store';
 import {audioContext, audioReady, strike, type Strike} from '../../../lib/meditation/bells';
 import {bellTimes, clockText, elapsedMs, endedSession, isDone, isPaused, pauseRun, remainingMs, resumeRun, sessionFrom, type Run} from '../../../lib/meditation/timer';
@@ -67,6 +68,8 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
   async function save() {
     const ended = endedSession(run, store.now);
     if (!ended) { write(() => emptyMeditationRun()); onDone('Nothing to save: less than a second.'); return; }
+    // Session AL (PR-018): the one timer rule (lib/health-timer-rules.ts) decides what is too short, here and on the Checklist.
+    if (tooShortToSave('meditation', ended.seconds * 1000)) { write(() => emptyMeditationRun()); onDone(tooShortText('meditation')); return; }
     setBusy(true); setError('');
     try {
       const pulse = keepHeart ? heartSummary(Date.parse(ended.startedAt), Date.parse(ended.startedAt) + ended.seconds * 1000) : null;
@@ -85,7 +88,8 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
     return <section ref={panel} className="panel meditation-session meditation-finished" aria-labelledby="meditation-finished-title">
       <p className="eyebrow">{label.toUpperCase()} · DONE</p>
       <h2 id="meditation-finished-title" tabIndex={-1} ref={finishedHeading}>{ended ? `${ended.seconds >= 60 ? minutesText(Math.round(ended.seconds / 60)) : `${ended.seconds} s`} of ${run.kind === 'breathing' ? 'breathing' : 'stillness'}` : 'Less than a second'}</h2>
-      <p>Save it to your Health journal, or let it go. How you feel is optional.</p>
+      {/* Session AL fifth pass (PR-018): the one timer minimum said before Save, not only after it */}
+      {!ended || tooShortToSave('meditation', ended.seconds * 1000) ? <p>{timerRuleText}</p> : <p>Save it to your Health journal, or let it go. How you feel is optional.</p>}
       <MoodPicker legend="How do you feel now? (optional)" value={moodAfter} onChange={setMoodAfter}/>
       <label className="field">Note (optional)<textarea maxLength={500} rows={2} value={note} onChange={e => setNote(e.target.value)}/></label>
       {(() => { const pulse = ended ? heartSummary(Date.parse(ended.startedAt), Date.parse(ended.startedAt) + ended.seconds * 1000) : null; return pulse && <label className="checkbox"><input type="checkbox" checked={keepHeart} onChange={e => setKeepHeart(e.target.checked)}/>Keep my heart rate from this session: lowest {pulse.min}, average {pulse.avg}, highest {pulse.max} bpm (only these three numbers)</label>; })()}
@@ -105,6 +109,8 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
     <p className="meditation-left">{clockText(left)} left of {minutesText(run.plannedSec / 60)}</p>
     {!sound && bells.sound !== 'silent' && <p className="fine">The bells are quiet until you tap “Turn on the bells” (browsers allow sound only after a tap). <button type="button" className="text-link" onClick={() => void turnSoundOn()}>Turn on the bells</button></p>}
     {keepsScreenOn && !paused && <p className="fine">The screen stays on during the session.</p>}
+    {/* Session AL fourth pass (PR-018): the one timer rule, said where a session is stopped, as on the fasting card */}
+    <p className="fine">{timerRuleText}</p>
     {error && <p role="alert">{error}</p>}
     <div className="actions meditation-controls">
       {paused ? <button type="button" className="primary" onClick={() => write(r => resumeRun(r, new Date()))}>Resume</button> : <button type="button" className="secondary" onClick={() => write(r => pauseRun(r, new Date()))}>Pause</button>}

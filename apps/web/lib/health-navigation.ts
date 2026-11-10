@@ -21,8 +21,24 @@ export function healthNavigation({href,origin,cameraAllowed,accountOpen,button,m
 export function documentAllowsCamera(doc:Document):boolean{return documentAllowsFeature(doc,'camera');}
 /**
  * Whether this document may use a policy-controlled feature, where the browser can tell; otherwise false. Session W
- * Part 8: Web Bluetooth follows the camera's rule (`bluetooth=(self)` only on a document loaded as /app/health).
+ * Part 8: Web Bluetooth followed the camera's rule; since Session AL (TK-191) the header carries no "bluetooth" token
+ * (Chromium does not recognise one), and only Health's components reach the API.
  */
+/**
+ * Session AL third pass (INT, Bluetooth): what this document's policy says about a feature. A browser that does not
+ * know the feature lists it nowhere in `features()`, and its `allowsFeature` answers false for it, which read as
+ * "blocked" before; such a browser cannot be blocking it by policy, so the answer is 'unknown'. 'unknown' also when the
+ * browser has no policy API at all.
+ */
+export function documentFeatureState(doc:Document,feature:'camera'|'bluetooth'):'allowed'|'blocked'|'unknown'{
+ const policy=(doc as Document&{permissionsPolicy?:{allowsFeature:(feature:string)=>boolean;features?:()=>string[]};featurePolicy?:{allowsFeature:(feature:string)=>boolean;features?:()=>string[]}});
+ const api=policy.permissionsPolicy??policy.featurePolicy;
+ if(!api||typeof api.allowsFeature!=='function')return 'unknown';
+ try{
+  if(typeof api.features==='function'){const known=api.features();if(Array.isArray(known)&&!known.includes(feature))return 'unknown';}
+  return api.allowsFeature(feature)?'allowed':'blocked';
+ }catch{return 'unknown';}
+}
 export function documentAllowsFeature(doc:Document,feature:'camera'|'bluetooth'):boolean{
  const policy=(doc as Document&{permissionsPolicy?:{allowsFeature:(feature:string)=>boolean};featurePolicy?:{allowsFeature:(feature:string)=>boolean}});
  try{return (policy.permissionsPolicy??policy.featurePolicy)?.allowsFeature(feature)??false;}catch{return false;}

@@ -17,7 +17,7 @@ export function FastingTimeline({session}: {session: FastingSession | null}) {
     <p className="eyebrow">{t.running ? 'Running' : 'Your last fast'}</p><h2 id="fasting-timeline-title"><NebulaFlow identity="fasting-timeline-title">Fasting timeline</NebulaFlow></h2>
     <p className="health-big">{formatFast(t.hours * 3_600_000)}<small>of a {t.targetHours} h target</small></p>
     <div className="fasting-timeline-track" role="progressbar" aria-label={`${t.hours.toFixed(1)} of ${t.targetHours} hours`} aria-valuenow={Math.round(t.hours * 10) / 10} aria-valuemin={0} aria-valuemax={t.targetHours}><div className="fasting-timeline-fill" style={{width: `${Math.min(100, (t.hours / max) * 100)}%`}} /></div>
-    <ol className="fasting-timeline-stops" aria-hidden="true">{t.stops.map(s => <li key={s.hours} data-reached={s.reached || undefined} data-target={s.target || undefined} style={{left: `${(s.hours / max) * 100}%`}}><i /><strong>{s.hours} h</strong></li>)}</ol>
+    <ol className="fasting-timeline-stops" aria-hidden="true">{t.stops.map(s => <li key={s.hours} data-reached={s.reached || undefined} data-target={s.target || undefined} data-edge={s.hours / max >= 0.95 ? 'end' : s.hours / max <= 0.05 ? 'start' : undefined} style={{left: `${(s.hours / max) * 100}%`}}><i /><strong>{s.hours} h</strong></li>)}</ol>
     <ul className="fasting-timeline-lines">{t.stops.map(s => <li key={s.hours} data-reached={s.reached || undefined}><span aria-hidden="true">{s.reached ? '✓' : '○'}</span><span><strong>{s.title}</strong>{s.target ? ' (your target)' : ''} · {s.line}</span></li>)}</ul>
     <p className="fine">Hour marks people commonly choose, nothing more: the app makes no claim about what a fast does.</p>
   </section>;

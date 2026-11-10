@@ -1,7 +1,7 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {GLOSSARY} from '../lib/ai/earn/glossary';
 import {PLAIN_ASK, PLAIN_TERMS, type PlainTerm} from '../lib/earn/plain-words';
-import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {earnRoutes, openEarnFolds, seedShowcase} from './earn-fixtures';
 import {governanceRelay, openGovernance} from './governance-chain';
 import {SIGNER_CALLS, fakeChain, fakeKeplr, openStaking, relay} from './staking-chain';
 import {chooseChain} from './chain-choice';
@@ -69,6 +69,8 @@ test('Earn: each section offers its taps once, where the word first appears; eve
   await earnRoutes(page);
   await page.goto('/app/earn');
   await expect(page.locator('[data-live-figure="native-apr"]')).toHaveAttribute('data-state', 'ok');
+  // Session AL (D-088, deliberate): on a phone the wider sections are folded rows; they are opened first, as a person would.
+  await openEarnFolds(page);
   const seen = new Set<string>();
   for (const [id, expected] of Object.entries(EARN)) {
     const section = page.locator(`#${id}`);
@@ -82,7 +84,7 @@ test('Earn: each section offers its taps once, where the word first appears; eve
   // Start here: the guides under its dots (one open at a time) carry their own.
   const start = page.locator('#start-here');
   const dot = (name: string) => start.locator(`.path-dot[aria-label^="${name}:"]`);
-  for (const [step, terms] of [['Get a wallet', ['seed-phrase']], ['Practice first', ['practice-network']], ['Get ZIG', ['bridge', 'gas']], ['Your first real stake', ['unbonding']], ['Explore more', ['liquid-staking', 'pool', 'proposal']]] as const) {
+  for (const [step, terms] of [['Get a wallet', ['seed-phrase']], ['Practice first', ['practice-network']], ['Get ZIG', ['bridge', 'gas']], ['Staking on the real network', ['unbonding']] /* Session AL (COPY_AUDIT, deliberate): renamed step */, ['Explore more', ['liquid-staking', 'pool', 'proposal']]] as const) {
     await dot(step).click();
     const panel = start.locator('.earn-start-panel');
     await expect(panel).toHaveCount(1);

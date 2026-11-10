@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {loopRuns, readLoopLevel} from '../../lib/motion-loops/loops';
 import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
@@ -10,13 +11,25 @@ import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {pathBefore} from '../../lib/checklist/return-path';
 import {primeCelebrationVideo} from './celebration-clip';
 import {useChecklist} from './use-checklist';
-import {PathView} from './path-view';
+// CI14 (weights): the Path's stylesheets, in the order its code brought them, stay with the page (the cascade is unchanged);
+// its code (path-view.tsx, the path and ZIGi on it) is a chunk of its own, asked for as this page loads (below).
+import '../zigi/zigi.css';
+import '../orbit-path/orbit-node.css';
+import '../orbit-path/flow-line.css';
+import '../orbit-path/orbit-planet.css';
+import '../path/path.css';
+import '../path/path-orbit.css';
+import '../habits/habits-aa.css';
 import {ChecklistSky} from './checklist-sky';
 import {CHECKLIST_UNREADABLE_MESSAGE} from './use-checklist-record';
 import {FlameMark} from './checklist-marks';
 import {LoadBoundary} from '../load-boundary';
+import {ChunkFailed, chunk} from '../use-chunk';
 import {escapeTop, useEscapeLayer} from './escape-layers';
 import './checklist.css';
+import {useUndoShortcut} from '../tasks/use-undo-shortcut';
+import {isShowcase} from '../../lib/showcase-storage';
+import {SHOWCASE_CHIP} from '../../lib/showcase-copy';
 
 /**
  * Session AK P8c (owner decision 6): while the Checklist is open, the shell's other parts are not drawn. These two rules
@@ -42,11 +55,19 @@ const HistoryHeatmap = lazy(() => import('./history-heatmap').then(m => ({defaul
 const DayCelebration = lazy(() => import('./day-celebration'));
 // Session AG Polish 2 (owner Part 5): the quick-add form, its own chunk too.
 const OrbitQuickAdd = lazy(() => import('./orbit-quick-add').then(m => ({default: m.OrbitQuickAdd})));
+// CI14 (page weights; budgets are never raised): the Path renders only once the Checklist has been read, after mount
+// (the server and the first paint show the loading dots), so its code is a chunk of its own, asked for as this page loads
+// (components/use-chunk.ts). Until it is here the page counts as still loading: the same dots, no data-loaded. The first
+// paint is identical, and the path, ZIGi on it included, looks the same.
+const usePathView = chunk(() => import('./path-view'));
+/** The path's place while the Checklist is read (and while the Path's chunk arrives): six dots that wait. */
+const PathLoading = () => <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>;
 
 
 /** Round 3: below 1180 px the Checklist keeps a bar of its own at the foot (the timers' button, the toast, "Jump to next"),
  *  which the path never runs under; the jump button moves into it there. */
 const NARROW = '(max-width: 1179.98px)';
+const noChange = () => () => {};
 const useMedia = (query: string) => useSyncExternalStore(useCallback((l: () => void) => { const m = window.matchMedia?.(query); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); }, [query]), () => !!window.matchMedia?.(query).matches, () => false);
 
 /**
@@ -79,21 +100,31 @@ function cameFromTheApp(): boolean {
  * Finishing the day plays a full-screen celebration once a day. The address stays /app/checklist.
  */
 export function ChecklistPage() {
-  const state = useChecklist({commands: true}), {summary, streak, prefs, loaded} = state;
+  const path = usePathView(), PathView = path.mod?.PathView;
+  // CI14: the page is loaded once its records are read and the Path's code is here (use-chunk.ts).
+  const state = useChecklist({commands: true}), {summary, streak, prefs} = state, loaded = state.loaded && !!PathView;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
+  const showcase = useSyncExternalStore(noChange, isShowcase, () => false); // as components/showcase-controls useShowcase
   const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | 'quick' | null>(null), [arrive, setArrive] = useState<string | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
   const narrow = useMedia(NARROW), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
+  // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo here too (never in a text field; the page's own dialog does not count).
+  useUndoShortcut({page: dialog});
 
   // Into the top layer: the server's page carries the dialog open (so the first paint already shows only the Checklist);
   // once the page runs it becomes modal. Our own close here is not the person's close.
   const ownCloses = useRef(0), leaving = useRef(false), escaped = useRef(false);
   useLayoutEffect(() => {
     const d = dialog.current; if (!d) return;
+    // Session AL (A10 cycle, checklist-overlay-af:53): the cleanup below marks the page as leaving; when the layer is set up
+    // again without leaving (React's development double run, a Suspense boundary showing it again), X and Escape work again.
+    leaving.current = false;
     try { if (!d.matches(':modal')) { if (d.open) { ownCloses.current++; d.close(); } d.showModal(); } } catch { /* stays an open dialog in the page */ }
     // Focus starts on the Checklist itself (its name is read), not on the close button; Tab then walks its controls.
     d.focus({preventScroll: true});
     const releaseToast = toastSlot.current ? pushToastLayer(toastSlot.current) : () => undefined;
-    return () => { releaseToast(); leaving.current = true; try { if (d.open) d.close(); } catch { /* gone */ } };
+    // Its own close here counts as ours (ownCloses), so when the layer is set up again its late close event is not a leave.
+    const closes = ownCloses;
+    return () => { releaseToast(); leaving.current = true; try { if (d.open) { closes.current++; d.close(); } } catch { /* gone */ } };
   }, []);
   const leave = useCallback(() => {
     if (leaving.current) return; leaving.current = true;
@@ -131,6 +162,14 @@ export function ChecklistPage() {
   // once the day is one item from complete and not yet celebrated today (or when the celebration opens).
   const oneLeft = !!summary && summary.total > 0 && summary.total - summary.done === 1 && loaded && state.prefsLoaded && prefs.celebratedOn !== state.date;
   useEffect(() => { if (oneLeft) primeCelebrationVideo(); }, [oneLeft]);
+  // Session AL (P-LS-56, LS-H15; P-LS-57, LS-H38): the sheets' code loads once the page is idle, so Quick add, Options and
+  // Edit path open at once instead of "Opening…" for seconds (nothing is shown or written by this).
+  useEffect(() => {
+    const warm = () => { void import('./orbit-quick-add').catch(() => undefined); void import('./options-sheet').catch(() => undefined); void import('./edit-path').catch(() => undefined); };
+    const w = window as Window & {requestIdleCallback?: (f: () => void, o?: {timeout: number}) => number; cancelIdleCallback?: (id: number) => void};
+    if (w.requestIdleCallback) { const id = w.requestIdleCallback(warm, {timeout: 3000}); return () => w.cancelIdleCallback?.(id); }
+    const t = window.setTimeout(warm, 1500); return () => window.clearTimeout(t);
+  }, []);
 
   // Session AG Polish (owner Part 8): the top bar's flame ignites once when the day completes here and the streak grows.
   const lit = !!streak?.todayComplete, wasLit = useRef<boolean | null>(null), [ignite, setIgnite] = useState(0);
@@ -157,7 +196,9 @@ export function ChecklistPage() {
   return <><dialog ref={dialog} open tabIndex={-1} className="checklist-overlay checklist-page" aria-labelledby="checklist-title" data-view={prefs.view} data-loaded={loaded || undefined} data-sheet={sheet ?? undefined}
     onKeyDown={e => { if (e.key !== 'Escape' || e.defaultPrevented) return; e.preventDefault(); escaped.current = true; window.setTimeout(() => { escaped.current = false; }, 0); onEscape(); }}
     onCancel={e => { e.preventDefault(); if (!escaped.current) onEscape(); }}
-    onClose={() => {
+    onClose={e => {
+      // Only this dialog's own close: React passes a nested dialog's close (the day's celebration) up the tree too.
+      if (e.target !== e.currentTarget) return;
       if (ownCloses.current > 0) { ownCloses.current--; return; }
       if (leaving.current) return;
       // The browser closed it anyway (Escape twice without a tap between): stay if an inner layer took the Escape.
@@ -183,14 +224,17 @@ export function ChecklistPage() {
           <button type="button" aria-expanded={sheet === 'options'} onClick={() => open('options')}><ToolMark name="options"/>Options</button>
         </div>
         <div className="checklist-title"><h1 id="checklist-title"><NebulaFlow identity="checklist-title">Your orbit</NebulaFlow></h1></div>
+        {/* Session AL (A10-4): the Showcase's label, as on every other page (the status row's chip is under the overlay). It
+            hangs under the bar's start and takes no room in it, so the bar and the path keep their places. */}
+        {showcase && <p className="checklist-showcase" role="note"><span className="checklist-showcase-dot" aria-hidden="true"/>{SHOWCASE_CHIP}</p>}
         {/* Session AG Polish 3 (owner Part 3): no progress bar — reaching the orbits is the tracker; the words stay. */}
         {/* Part 18: the count is said, not shown (it updates as before). */}
         <div className="checklist-progress sr-only">
           <p className="checklist-progress-line"><strong>{progressText}</strong>{summary?.perfect && <span className="checklist-perfect"> · Perfect orbit</span>}{day && <span className="eyebrow"> · {day}</span>}</p>
         </div>
-        <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
+        <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}: the days every planet was lit`} title={/* Session AL fifth pass (LS-033, LS-070): the flame's rule, beside it */ 'The days every planet was lit'}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
         {/* Session AG Polish 2 (owner Part 5, pointer D-path 11): quick add where "⋯" stood; "⋯" moves to the far right. */}
-        <button type="button" className="checklist-plus-button" aria-label="Quick add to your Checklist" aria-expanded={sheet === 'quick'} onClick={() => { setMenu(false); setSheet(s => s === 'quick' ? null : 'quick'); }}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
+        <button type="button" className="checklist-plus-button" aria-label="Quick add to your Checklist" aria-expanded={sheet === 'quick'} onPointerEnter={() => void import('./orbit-quick-add').catch(() => undefined)} onClick={() => { setMenu(false); setSheet(s => s === 'quick' ? null : 'quick'); }}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
         <div className="checklist-menu-wrap">
           <button type="button" className="checklist-menu-button" aria-label="Checklist menu" aria-expanded={menu} onClick={() => setMenu(m => !m)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></button>
           {menu && <div className="checklist-menu" role="group" aria-label="Checklist menu">
@@ -206,10 +250,10 @@ export function ChecklistPage() {
 
     <div className="checklist-shell">
       <section className="checklist-stage" aria-labelledby="checklist-title" aria-busy={!loaded || undefined}>
-        {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
+        {path.failed ? <LoadBoundary label="Your path"><ChunkFailed what="The path"/></LoadBoundary> : !loaded ? <PathLoading/>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <LoadBoundary><Suspense fallback={<p className="fine" role="status">Loading the list…</p>}><ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/></Suspense></LoadBoundary> : <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/>}
+          : prefs.view === 'list' ? <LoadBoundary><Suspense fallback={<p className="fine" role="status">Loading the list…</p>}><ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/></Suspense></LoadBoundary> : PathView ? <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/> : null}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
@@ -217,11 +261,11 @@ export function ChecklistPage() {
         {/* Round 4: on a computer the twelve weeks stand open under the timers (the column's room); below that, a fold. */}
         {loaded && !empty && !state.unreadable && !narrow && state.date && <section className="checklist-history-open" aria-labelledby="checklist-history-title">
           <h2 id="checklist-history-title" className="checklist-history-title">Orbit consistency · last 12 weeks</h2>
-          <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>
+          <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null} state={state}/></Suspense>
         </section>}
         {loaded && !empty && !state.unreadable && (narrow || !state.date) && <details className="checklist-history-fold" onToggle={e => setHistory((e.currentTarget as HTMLDetailsElement).open)}>
           <summary>Orbit consistency<span className="checklist-history-span"> · last 12 weeks</span></summary>
-          {history && state.date && <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>}
+          {history && state.date && <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null} state={state}/></Suspense>}
         </details>}
       </aside>
     </div>
@@ -268,6 +312,12 @@ function About({onClose}: {onClose: () => void}) {
       <li><strong>Perfect orbit</strong>: every planet in path order.</li>
       <li><strong>Sleep, Meditate, Fast</strong>: one tap starts, the next ends, saved on Health.</li>
       <li><strong>Edit path</strong> adds, removes and reorders your planets, or makes an item a habit.</li>
+      {/* Session AL (P-LS-29, LS-070/LS-033): what the flame counts, said once. */}
+      <li><strong>The streak</strong> counts the days every planet was lit. A habit’s own streak, with its rest and skip days, is on Habits.</li>
+      {/* Session AL (P-LS-54, DV-162, LS-H13/LS-074): the naming, plainly. */}
+      <li><strong>Checklist or Tasks?</strong> The Checklist is your daily routine: the same planets every day. One-off to-dos with a day, a repeat or a project live in <Link href="/app/tasks">Tasks</Link>; the List view shows the ones due today.</li>
+      {/* Session AL (P-LA-31 page-side, LA-001/LZ-029): why ZIGi does not open here. */}
+      <li><strong>ZIGi is paused here</strong>: the Checklist is a private screen, so ZIGi’s key (⌘/Ctrl+Shift+Z) and the command menu (⌘/Ctrl+K) do nothing until you close it.</li>
     </ul>
     <p className="fine checklist-limits">Your Checklist stays on this device: favourites, your own items and the day history are not synced yet, so another device starts with an empty path.</p>
   </section>;

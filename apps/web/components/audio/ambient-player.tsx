@@ -40,7 +40,7 @@ export function AmbientPlayer() {
       <label className="checkbox ambient-check"><input type="checkbox" checked={stopOnHide} onChange={e => save(m => ({...m, ambient: {...m.ambient, stopOnHide: e.target.checked}}))}/><span>Stop when I leave ZIGoals (another tab or app)</span></label>
     </div>
     <div className="actions">{state.playing ? <button type="button" className="primary" onClick={stopAmbient}>Stop</button> : <button type="button" className="primary" onClick={() => void play()}>Play</button>}</div>
-    <p className="ambient-status" role="status">{state.playing ? `Playing ${playingLabel(state)}${state.endsAt ? ` · stops at ${clock(state.endsAt)}` : ''}` : 'Off'}</p>
+    <p className="ambient-status" role="status">{state.playing ? `Playing ${playingLabel(state)}${state.endsAt ? ` · stops at ${clock(state.endsAt)}` : ''}` : 'Focus sounds: off'/* Session AL sweep 3 (N-MO-28): never a bare "Off" read out after another message */}</p>
     {error && <p role="alert">{error}</p>}
     <p className="fine">Made on this device: nothing is downloaded or recorded. A change of timer or of “stop when I leave” applies from the next Play. A reload stops the sound.</p>
   </section>;

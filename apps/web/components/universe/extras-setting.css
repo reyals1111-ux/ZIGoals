@@ -5,3 +5,7 @@
 .af-extras-row small { font-size: 15px; color: var(--text-secondary); }
 .af-extras-row button { min-height: 44px; }
 .af-extras-row .fine, .af-extras-row [role=alert] { flex-basis: 100%; margin: 0; }
+/* Session AL (DV-275, P-DV-111): each button forgets something (with Undo), so it carries the quiet danger cue of a
+   destructive secondary action: the danger ink on its text and border, in every theme (Light and Dark set --danger-ink). */
+.af-extras-row button:not(:disabled) { color: var(--danger-ink, #f5a7af); border-color: color-mix(in srgb, var(--danger-ink, #f5a7af) 60%, transparent); }
+@media (forced-colors: active) { .af-extras-row button:not(:disabled) { color: ButtonText; border-color: ButtonText; } }

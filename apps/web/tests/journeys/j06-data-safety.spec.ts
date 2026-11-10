@@ -93,8 +93,9 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 6 data safety: Ex
   const snapshotBefore = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([k]) => k.startsWith('zigoals:') && !k.includes('notify')).sort()));
   await page.getByLabel(/^Test a backup: choose a backup file/).setInputFiles({name: 'zigoals-export.zip', mimeType: 'application/zip', buffer: zip});
   await expect(page.locator('.test-backup [role=status]')).toContainText(/^All \d+ parts would restore\./, {timeout: 20_000});
-  // Owner question J6-2: the Checklist is never restored (lib/restore/plan.ts NEVER_RESTORED), and Test a backup says so.
-  await expect(page.locator('.test-backup [role=status]')).toContainText('The Checklist is never restored from a backup');
+  // Session AL (P-LS-36, LS-064; answers owner question J6-2, deliberate): the Checklist restores from the readable
+  // export now (lib/restore/plan.ts), and Test a backup says so.
+  await expect(page.locator('.test-backup [role=status]')).toContainText('The Checklist restores too');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([k]) => k.startsWith('zigoals:') && !k.includes('notify')).sort()))).toBe(snapshotBefore);
 
   // Erase everything: typed confirmation; the server's device record, the caches and every database and key go.
@@ -128,9 +129,8 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 6 data safety: Ex
   await preview.getByLabel(/I checked my choices/).check();
   await preview.getByRole('button', {name: 'Restore the chosen parts'}).click();
   await expect(restore.getByRole('status').filter({hasText: 'Restored:'})).toBeVisible({timeout: 20_000});
-  // Every restorable record is back, value for value. The Checklist is listed as never restored (lib/restore/plan.ts
-  // NEVER_RESTORED), so it is not expected back (JOURNEY_BUGS.md J6-2 asks whether that should stay so).
-  for (const [key, expected] of Object.entries(kept)) if (key !== CHECKLIST_KEY) expect(await value(page, key), key).toMatchObject(expected as Record<string, unknown>); // a field the schema defaults may be written out
+  // Every restorable record is back, value for value, the Checklist included (Session AL, P-LS-36: it restores now).
+  for (const [key, expected] of Object.entries(kept)) expect(await value(page, key), key).toMatchObject(expected as Record<string, unknown>); // a field the schema defaults may be written out
   await page.goto('/app/habits'); await hydrated(page);
   await expect(page.getByRole('article', {name: 'Fictional journal', exact: true})).toBeVisible();
 }));

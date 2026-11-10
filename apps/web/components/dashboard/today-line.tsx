@@ -1,12 +1,12 @@
 'use client';
-import {habitsOnDay} from '../../lib/numbers/counts';
-import {waterSummary} from '../../lib/health-daily';
+import {habitsOnDay} from '../../lib/numbers/habit-counts'; // CI13: not Wealth's counts
+import {dailyData, waterSummary} from '../../lib/health-daily';
+import {waterText} from '../../lib/health-units';
 import {wealthHistory, wealthOverview} from '../../lib/wealth';
-import {weekWealthNet} from '../../lib/today/week-wealth';
+import {weekWealthChange} from '../../lib/wealth-week';
 import {splitWealthTotals} from '../../lib/wealth-total';
 import {formatGoalAmount} from '../../lib/goal-summary';
 import {amount} from '../platform/common';
-import {formatNumber} from '../../lib/visual-format';
 import type {HabitData} from '../../lib/habits';
 import type {HealthData} from '../../lib/health';
 import type {Platform} from '../../lib/positions';
@@ -21,16 +21,18 @@ import type {MarketQuote} from '../../lib/market-quotes';
 export function TodayLine({habits, health, platform, quotes, now, today, healthDate, showHabits, showHealth, financial}: {habits?: HabitData; health?: HealthData; platform?: Platform; quotes: readonly MarketQuote[]; now: number; today: string; healthDate: string; showHabits: boolean; showHealth: boolean; financial: boolean}) {
   const parts: string[] = [];
   if (showHabits && habits) { const {due, done} = habitsOnDay(habits.habits, today, today); if (due) parts.push(`${done} of ${due} habits`); }
-  if (showHealth && health) { try { const ml = waterSummary(health, healthDate).millilitres; if (ml > 0) parts.push(`${formatNumber(ml / 1000, {maximumFractionDigits: 1})} L water`); } catch { /* an unreadable day leaves the part out */ } }
+  if (showHealth && health) { try { const ml = waterSummary(health, healthDate).millilitres; if (ml > 0) parts.push(`${waterText(ml, dailyData(health).preferences.waterUnit)} water`); /* Session AL (P-NB-71; N-NB-06): the unit the water card and Health show, not "0.3 L" beside "250 mL" */ } catch { /* an unreadable day leaves the part out */ } }
   if (financial && platform) {
-    const primary = splitWealthTotals(wealthOverview(platform, now, quotes).subtotals).primary;
+    const overview = wealthOverview(platform, now, quotes), primary = splitWealthTotals(overview.subtotals).primary;
     if (primary && primary.value > 0n) {
       // Session AK F0 (M42): "this week" from Wealth's own recorded history in the same currency; unknown leaves it out.
-      const week = weekWealthNet(wealthHistory(platform), primary.currency, today), size = week ? (week.change < 0n ? -week.change : week.change) : 0n;
-      const weekly = !week ? '' : week.change === 0n ? ' (unchanged this week)' : ` (${week.change < 0n ? '−' : '+'}${formatGoalAmount(amount(size.toString(), 2), primary.currency)} this week)`;
+      // Session AL (RR-14): the same reckoning as the Life review (lib/wealth-week.ts): from a week ago's recorded value to
+      // the total shown here; while a holding has no value now, the change is unknown, never a fall.
+      const week = weekWealthChange(wealthHistory(platform), primary.currency, today, {value: primary.value, complete: !overview.missingValue}).change, size = week === null ? 0n : week < 0n ? -week : week;
+      const weekly = week === null ? '' : week === 0n ? ' (unchanged this week)' : ` (${week < 0n ? '−' : '+'}${formatGoalAmount(amount(size.toString(), 2), primary.currency)} this week)`;
       parts.push(`tracked wealth ${formatGoalAmount(amount(primary.value.toString(), 2), primary.currency)}${weekly}`);
     }
   }
   if (!parts.length) return null;
-  return <p className="today-line" data-today-line><span className="today-line-label">Today</span> {parts.join(' · ')}</p>;
+  return <p className="today-line" data-today-line>{/* Session AL (N-TK-22): a visible separator, so the line never reads as one sentence ("Today tracked wealth…") */}<span className="today-line-label">Today</span><span aria-hidden="true" className="today-line-sep">·</span> {parts.join(' · ')}</p>;
 }

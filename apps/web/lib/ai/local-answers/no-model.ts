@@ -1,10 +1,22 @@
 import type {ToolEnv} from '../tools/env';
-import type {LocalReply} from './engine';
+import {localAnswer, zigiOverview, type LocalReply} from './engine';
+import {alFirst, alMoreAnswer, fixTypos, rewriteQuestion} from './al-more';
+import {normalizeSpoken} from '../spoken/normalize';
+import {alFactsAnswer} from './al-facts';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {simpleCommand} from './ai-session';
 import {quickLogItems, quickLogReply} from '../../quick-log/multi';
 import {quickLogContext} from '../../quick-log/context';
-import {novaEnvInfo} from './nova-env';
+import {novaEnvInfo, novaWording} from './nova-env';
+import {mealPhotoReply, streakBreakReply} from './p14b';
+import {localDate} from '../../local-date';
+import {parseGoalBundle} from '../../goals/nl-bundle';
+import {checklistEditReply, foodEstimateReply, unknownTickReply, weeklyRecapReply} from './al-third';
+import {fourthAnswer, fourthFirst} from './al-fourth';
+import {safetyFirst} from '../safety-guard';
+// Session AL final pass (N-LA-01, BN-053): Help's words or the closest answer the device has, before the examples list.
+import {closestReply, helpReply} from './al-final';
+import {germanAsk, messageLines, onePhrase, tooLongAdd, unansweredLine, UNMATCHED_EN} from './al-fifth';
 
 /**
  * Session AB-Cloud Part 9 (ADR-023 C30): what ZIGi says when no model answers (no AI connected, no on-device model) and the
@@ -49,14 +61,24 @@ const action = (page: string, view?: string) => `\n\n\`\`\`zigoals-action\n${JSO
 /** The steps for a "how do I…" that only a model could have done for the person, or null. */
 export function howToReply(text: string, lang: ReplyLanguage): LocalReply | null {
   const hit = HOW_TO.find(h => h.en.test(text) || h.nl.test(text));
-  return hit ? {kind: 'answer', text: hit.text[lang] + action(hit.page, hit.view), calls: []} : null;
+  if (!hit) return null;
+  // Session AL (N-DV-08): "Create a goal: save 5k EUR for a bike by December" named its goal; the card is the Goal wizard
+  // filled in from the person's words (Quick add's own parser, Session AK), never an empty form. Nothing is saved here.
+  if (hit.id === 'plan-goal') { const draft = goalDraftCard(text); if (draft) return {kind: 'answer', text: hit.text[lang] + draft, calls: []}; }
+  return {kind: 'answer', text: hit.text[lang] + action(hit.page, hit.view), calls: []};
+}
+function goalDraftCard(text: string): string | null {
+  const today = localDate(), g = parseGoalBundle(text, today)?.goal;
+  if (!g?.name) return null;
+  const card = {kind: 'goal-draft', name: g.name, type: g.kind === 'value' ? 'VALUE' : 'PROJECT', ...(g.target !== undefined ? {target: g.target} : {}), ...(g.currency ? {currency: g.currency} : {}), ...(g.date && g.date > today ? {date: g.date} : {})};
+  return `\n\n\`\`\`zigoals-action\n${JSON.stringify(card)}\n\`\`\``;
 }
 /**
  * Session AK P4 (FIRST_RUN_REVIEW FR-2): a first question about saving ("Help me save for a holiday", "I want to put money
  * aside for a new bike", "Ik wil sparen voor een vakantie") is a goal the person wants to start. The reply offers the goal
  * form with the name filled in from their words (nothing is saved before they create it there).
  */
-const SAVE_EN = /\b(?:sav(?:e|ing)(?:\s+(?:up|money))?|put(?:ting)?\s+(?:some\s+)?(?:money\s+)?(?:aside|away)|set(?:ting)?\s+(?:some\s+)?(?:money\s+)?aside|budget(?:ing)?|(?:start|make|build|open)\s+(?:a\s+)?(?:savings?\s+)?fund)\s+(?:up\s+)?(?:for|towards?)\b\s*(.*)$/i;
+const SAVE_EN = /\b(?:sav(?:e|ing)(?:\s+(?:up|money))?(?:\s+(?:[$€]\s?\d[\d,.]*|\d[\d,.]*\s?(?:dollars?|euros?|usd|eur|[$€])))?|put(?:ting)?\s+(?:some\s+)?(?:money\s+)?(?:aside|away)|set(?:ting)?\s+(?:some\s+)?(?:money\s+)?aside|budget(?:ing)?|(?:start|make|build|open)\s+(?:a\s+)?(?:savings?\s+)?fund)\s+(?:up\s+)?(?:for|towards?)\b\s*(.*)$/i;
 const SAVE_NL = /\b(?:sparen|spaar|opzij\s*zetten|geld\s+opzij(?:\s*zetten)?)\s+(?:voor|om)\b\s*(.*)$/i;
 /** Words a question can carry around its noun ("a", "my", "next year") that are no part of the goal's name. */
 const NAME_LEAD = /^(?:a|an|the|my|our|some|een|de|het|mijn|onze|new|nieuwe?)\s+/i;
@@ -93,26 +115,136 @@ export function capabilitiesReply(text: string, lang: ReplyLanguage, env: ToolEn
   const nlAsk = CAN_DO_NL.test(text);
   if (!CAN_DO_EN.test(text) && !nlAsk) return null;
   const nova = !!(env && novaEnvInfo(env)), where = JSON.stringify(nova ? {kind: 'open-page', page: 'nova', view: 'setup'} : {kind: 'open-page', page: 'settings', view: 'zigi'});
-  const en = 'Right now I answer from your own records, on this device: what is due today, how your habits and goals are going, and what your money adds up to. Say a new habit (“Create a habit called Walk”) or a saving goal (“Help me save for a holiday”) and I prepare it for you to confirm.\nWith a brain of your own (a model on your computer, or your own key) I can also plan with you and talk things through.';
-  const nl = 'Nu beantwoord ik vragen uit je eigen gegevens, op dit apparaat: wat er vandaag open staat, hoe je gewoontes en doelen gaan en wat je geld bij elkaar is. Noem een nieuwe gewoonte (“Maak een gewoonte Wandelen”) of een spaardoel (“Ik wil sparen voor een vakantie”) en ik zet het klaar; jij bevestigt.\nMet een eigen brein (een model op je computer, of je eigen sleutel) kan ik ook met je plannen en meedenken.';
+  // Session AL fourth pass (L7-4b; Moscow ZP-32, NP-21, MO:Z-031): Health is named, with whether it is shared now.
+  const health = env?.health ? 'your Health (food, water, sleep, workouts), shared now' : 'your Health once you share it'; const healthNl = env?.health ? 'je Health (eten, water, slaap, trainingen), nu gedeeld' : 'je Health zodra je het deelt';
+  const en = `Right now I answer from your own records, on this device: what is due today, how your habits and goals are going, ${health}, and what your money adds up to. Say a new habit (“Create a habit called Walk”) or a saving goal (“Help me save for a holiday”) and I prepare it for you to confirm.\nWith a brain of your own (a model on your computer, or your own key) I can also plan with you and talk things through.`;
+  const nl = `Nu beantwoord ik vragen uit je eigen gegevens, op dit apparaat: wat er vandaag open staat, hoe je gewoontes en doelen gaan, ${healthNl}, en wat je geld bij elkaar is. Noem een nieuwe gewoonte (“Maak een gewoonte Wandelen”) of een spaardoel (“Ik wil sparen voor een vakantie”) en ik zet het klaar; jij bevestigt.\nMet een eigen brein (een model op je computer, of je eigen sleutel) kan ik ook met je plannen en meedenken.`;
   return {kind: 'answer', text: (lang === 'nl' || nlAsk ? nl : en) + `\n\n\`\`\`zigoals-action\n${where}\n\`\`\``, calls: []};
 }
-/** Everything ZIGi says without a model after the device's own answers had none. */
-export function noModelReply(text: string, env: ToolEnv | null): LocalReply {
+// Session AL final pass (BN:ZIGi #9, ZIGi-F8): the words of a French question about the app ("Combien de temps dure la
+// période de vote ?" read as English: one French word), so its answer carries the French note as every other French ask.
+const FRENCH = /\b(je|tu|mon|ma|mes|combien|quel(?:le)?s?|est-ce|pourquoi|comment|quand|aujourd'hui|j'ai|eau|objectifs?|habitudes?|bu|dormi|temps|dure|durée|période|les|une|du|des|avec|dans|sont|faut|peux|puis)\b/gi;
+const SPANISH = /\b(yo|mi|mis|cu[aá]nt[oa]s?|cu[aá]l(?:es)?|por qu[eé]|hoy|tengo|he|agua|metas?|h[aá]bitos?|dorm[ií]|beb[ií])\b/gi;
+// Session AL fourth pass (L7-4b; Lisbon #026, #027, #352/353, LA-010, LZ-020; ZIGi-F8): German and Japanese get the note too.
+// Session AL fifth pass (L7-5b; Lisbon #352/353, LA-010, LZ-020, ZIGi-F8): "Was steht auf meiner Checkliste?" carries German too.
+const GERMAN = /\b(ich|wie|viele|wieviel|habe|hast|heute|meine?[nmrs]?|füge|hinzu|aufgaben?|gewohnheit(?:en)?|erledigt|was|ist|nicht|und|bitte|welche|wann|zeig|zeige|steht|stehen|auf|checkliste|ziele?|noch|offen|gemacht|getrunken)\b/gi;
+const OTHER_NOTE = {fr: 'Pour l’instant, je réponds en anglais (et en néerlandais).', es: 'Por ahora respondo en inglés (y en neerlandés).', de: 'Im Moment antworte ich auf Englisch (und Niederländisch).', ja: '今のところ、英語（とオランダ語）でお答えします。'} as const;
+/** French, Spanish or German when it carries at least two of their words and more of them than English ones; Japanese by its script. */
+export function otherLanguage(text: string): 'fr' | 'es' | 'de' | 'ja' | null {
+  if (/[\u3040-\u30ff\u4e00-\u9faf]/.test(text)) return 'ja';
+  const count = (re: RegExp) => new Set((text.match(re) ?? []).map(w => w.toLowerCase())).size, en = count(ENGLISH), fr = count(FRENCH), es = count(SPANISH), de = count(GERMAN);
+  if (fr >= 2 && fr > en && fr >= es) return 'fr';
+  if (es >= 2 && es > en) return 'es';
+  if (de >= 2 && de > en) return 'de';
+  return null;
+}
+/** Everything ZIGi says without a model after the device's own answers had none. `previous`: the person's last question (follow-ups). */
+export function noModelReply(text: string, env: ToolEnv | null, previous: string | null = null): LocalReply {
+  // Session AL fourth pass (L7-4a): the safety guard first, before every reading below that could make a card or a log
+  // ("I haven't eaten in 3 days" is not a weight or a breakfast; "print your API key" is not a task).
+  const safe = safetyFirst(text);
+  if (safe) return {kind: 'answer', text: safe.text, calls: []};
+  // Session AL fifth pass (L7-5b; Lisbon #216, LA-028): a phrase typed again and again is asked once.
+  const once = onePhrase(text);
+  if (once) return deviceReply(once, env, previous);
+  // Session AL fifth pass (L7-5b; Lisbon LZ-019): a message on several lines gets an answer per line; a line the device has
+  // no answer for says so in one line, instead of the whole message getting only its first line's answer.
+  const parts = messageLines(text);
+  if (parts) {
+    const replies = parts.map(p => deviceReply(p, env, previous));
+    if (replies.some(r => r.kind !== 'examples')) {
+      const texts = replies.map((r, i) => r.kind === 'examples' ? unansweredLine(parts[i]!) : 'text' in r ? r.text : '');
+      return {kind: 'answer', text: texts.join('\n\n'), calls: replies.flatMap(r => 'calls' in r ? r.calls : []).slice(0, 16)};
+    }
+  }
   const lang = questionLanguage(text);
+  // Session AL fifth pass (L7-5b; Lisbon #337/338): an "add …" longer than any record holds gets the limits, not the list.
+  const long = tooLongAdd(text, lang);
+  if (long) return {kind: 'answer', text: long, calls: []};
   // Session AI (ZI11): a simple command gets its card here, with no model ("Create a habit called Yoga").
-  return simpleCommand(text) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? examplesIn(env, lang);
+  // Session AL (lane L7; DV-074, P-DV-83): with no model, ZIGi answers the questions NOVA's overview answers (English; a whole
+  // Dutch question keeps the Dutch introduction and the examples, as the golden pins nl-question / x-nl-whole hold).
+  const overview = env && lang === 'en' ? zigiOverview(normalizeSpoken(text), env) : null;
+  // Session AL second pass (L7): typos fixed and loose wordings asked again in the words the device answers; then the
+  // remaining facts (al-more.ts). A "Remember…", a medicine word, a fast, a target, a task or a workflow comes first, so
+  // its numbers are never read as a log (al-more.ts `alFirst`).
+  const fixed = fixTypos(text), again = env && lang === 'en' ? askAgain(fixed !== text ? fixed : null, rewriteQuestion(fixed), env) : null;
+  // Session AL Part 14 (lane P14-B; HE17, G15): a meal photo asked of the device, and a broken streak, come first.
+  // Session AL third pass (L7; P14-B's findings, LA-008): a food's calories, the week's recap and a Checklist edit, before
+  // the commands and the quick-log reading can take their words for a task or a log.
+  const third = foodEstimateReply(fixTypos(text), env, lang) ?? weeklyRecapReply(fixTypos(text), env, lang) ?? checklistEditReply(text, env);
+  // Session AL fourth pass (L7-4b): a plan, a habit edit, a goal sentence or a question about the path is never read as a
+  // task or a log line (fourthFirst); the phrasing families still on the examples list get their answer (fourthAnswer).
+  const fourth = lang === 'nl' ? null : fourthFirst(fixTypos(text), env, 'en', previous);
+  // Session AL fifth pass (L7-5b; Lisbon #352/353, LA-010, LZ-020, ZIGi-F8): a German question about the Checklist, habits,
+  // tasks or goals is answered as its English question, under the note below (languages are Beta, AL_SCOPE F).
+  const german = env && otherLanguage(text) === 'de' ? germanAsk(text) : null;
+  const de = german ? deviceReply(german, env, null) : null;
+  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
+  // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
+  // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
+  // Session AL fourth pass (L7-4b; Lisbon #024): an answer in English to a question in another language carries the note too.
+  const other = otherLanguage(text), info = env ? novaEnvInfo(env) : null;
+  // Session AL fifth pass (L7-5b; Lisbon N-LA-01): when nothing matched, the list says first what the device does answer.
+  if (reply.kind === 'examples' && lang === 'en' && reply.text === EXAMPLES_INTRO) reply = {...reply, text: `${UNMATCHED_EN}\n${EXAMPLES_INTRO}`};
+  if (info) reply = novaWording(reply, info, lang === 'nl' ? 'nl' : 'en'); // L7-4b (BN-047): NOVA's own words on this path too
+  return other && 'text' in reply && !reply.text.startsWith(OTHER_NOTE[other]) ? {...reply, text: `${OTHER_NOTE[other]}${reply.kind === 'examples' ? ' ' : '\n'}${reply.text}`} as LocalReply : reply;
 }
 
+/** One message the way the panel answers it with no model: the device's lookups first, then the no-model reply. */
+function deviceReply(text: string, env: ToolEnv | null, previous: string | null): LocalReply {
+  let r: LocalReply = {kind: 'none'};
+  if (env) { try { r = localAnswer(text, env); } catch { r = {kind: 'none'}; } }
+  return r.kind === 'none' ? noModelReply(text, env, previous) : r;
+}
+/** The device's own answer to the typo-fixed question, then to a looser wording asked again (null when neither answers). */
+function askAgain(fixed: string | null, rewritten: string | null, env: ToolEnv): LocalReply | null {
+  for (const q of [fixed, rewritten]) {
+    if (!q) continue;
+    let r: LocalReply = {kind: 'none'};
+    try { r = localAnswer(q, env); } catch { r = {kind: 'none'}; }
+    if (r.kind === 'answer' || r.kind === 'choices' || r.kind === 'refusal') return r;
+    const own = zigiOverview(normalizeSpoken(q), env);
+    if (own) return own;
+  }
+  return null;
+}
 /**
  * Session AI (J10, ZI11): with no model, a line of several things done, eaten or drunk becomes one card each, made on this
  * device ("30 push-ups, 500 ml water and a banana"). A single item Quick add already previews stays with Quick add; a
  * single food, mood or goal contribution gets its card here.
  */
-function quickLog(text: string, env: ToolEnv | null, lang: ReplyLanguage): LocalReply | null {
+function quickLog(raw: string, env: ToolEnv | null, lang: ReplyLanguage): LocalReply | null {
   if (!env) return null;
+  // Session AL third pass (L7): "calories in my lunch" is a question, never a food called "calories in my".
+  if (/^\s*(?:how (?:many|much) )?(?:calories|kcal|protein|carbs|fat|sugars?|calorie[eë]n)\b/i.test(raw)) return null;
+  const text = mealLine(raw);
   const ctx = quickLogContext(env), items = quickLogItems(text, ctx, lang), known = items.filter(i => i.action);
   if (!known.length || !(items.length >= 2 || ['log-food', 'log-mood', 'prefill-contribution', 'log-expense'].includes(String(known[0]!.action!.kind)))) return null;
   const reply = quickLogReply(text, ctx, lang);
-  return reply ? {kind: 'answer', text: reply.text, calls: []} : null;
+  return reply ? {kind: 'answer', text: cardFixes(reply.text, text, env), calls: []} : null;
+}
+/**
+ * Session AL fourth pass (L7-4b; Lisbon #363/364, LA-044; Moscow ZP-11, NP-09, MO-057): the meal said as a command is the
+ * meal, not part of the food's name ("Log breakfast: oatmeal" was a food called "Log oatmeal", "add oatmeal to breakfast"
+ * one called "add oatmeal to"). Quick add's own reader (lib/quick-add/parse.ts, shared) reads "breakfast: oatmeal".
+ */
+export function mealLine(text: string): string {
+  const t = text.trim();
+  const said = /^(?:please\s+)?(?:log|add|track|record|note|put)\s+(breakfast|lunch|dinner|snacks?)\s*[:,-]\s*(.+)$/i.exec(t);
+  if (said) return `${said[1]}: ${said[2]}`;
+  const to = /^(?:please\s+)?(?:log|add|track|record|put)\s+(.+?)\s+(?:to|for|in|at|with)\s+(?:my\s+)?(breakfast|lunch|dinner|snacks?)\s*[.!]?$/i.exec(t);
+  return to ? `${to[2]}: ${to[1]}` : t;
+}
+/**
+ * The cards ZIGi makes from the shared reader, read once more (L7-4b): a spending note keeps no "I" ("I paid 50 for dinner"
+ * was "I dinner"; Lisbon LA-034, #280–289c), and a food eaten in the night with no meal named goes to Snacks, never Breakfast
+ * ("I ate a banana" at 02:31; Lisbon #363/364).
+ */
+function cardFixes(reply: string, said: string, env: ToolEnv): string {
+  let out = reply.replace(/("note":")(?:I|I've|I have|we|We)\s+/g, '$1');
+  const named = /\b(?:breakfast|lunch|dinner|snacks?|ontbijt|lunch|avondeten|tussendoor)\b/i.test(said);
+  const hour = (() => { try { return Number(new Intl.DateTimeFormat('en-GB', {hour: '2-digit', hourCycle: 'h23', timeZone: env.healthZone}).format(env.now)); } catch { return env.now.getUTCHours(); } })();
+  if (!named && hour < 5) out = out.replace(/"meal":"Breakfast"/g, '"meal":"Snacks"');
+  return out;
 }

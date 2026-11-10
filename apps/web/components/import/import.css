@@ -29,8 +29,12 @@
 .import-actions button { min-height: 44px; }
 .import-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; margin: 0; padding: 10px 14px; border: 1px solid #6fdcff55; border-radius: 14px; background: #16232bcc; }
 .import-banner p { margin: 0; font-size: 15px; }
-.import-banner .actions { margin: 0; gap: 6px; }
-.import-banner .actions button { min-height: 44px; }
+.import-banner .actions { margin: 0; gap: 6px; display: flex; flex-wrap: wrap; justify-content: flex-start; }
+.import-banner .actions button { min-height: 44px; white-space: nowrap; }
+/* Session AL (P-MO-37; MO-075, MO-089): left-aligned text and visible button edges at every width; the sentence takes the room. */
+.import-banner { text-align: start; }
+.import-banner p { flex: 1 1 18ch; min-width: 0; }
+.import-banner .actions button.quiet { border: 1px solid currentColor; border-radius: 12px; padding-inline: 14px; }
 .import-recent { display: grid; gap: 8px; }
 .import-recent h4 { margin: 0; font-size: 15px; }
 .import-recent ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
@@ -74,3 +78,5 @@
 .switch-formats li p { margin: 0; font-size: 15px; }
 .switch-off { color: #ffd9a0; }
 .import-preset { margin: 0; }
+/* Session AL (P-DVR-07, D-078): why Next is not available yet, on its own line above the buttons. */
+.import-next-why { flex-basis: 100%; margin: 0; }

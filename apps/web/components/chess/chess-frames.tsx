@@ -25,13 +25,14 @@ export function ChessFrames() {
       <header><h3>{open.label}</h3><button type="button" className="secondary icon-button" aria-label="Close" onClick={close}>×</button></header>
       <iframe src={open.src} title={`${open.label} from ${open.site}`} sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" allow="" referrerPolicy="no-referrer" loading="lazy" />
       <div className="actions"><a className="text-link" href={open.creditHref} target="_blank" rel="noopener noreferrer">{open.credit}</a><button type="button" className="quiet" onClick={() => popUp(open.src)}>Pop out</button></div>
-      <p className="fine">Empty? <a href={open.creditHref} target="_blank" rel="noopener noreferrer">Open it on {open.site}</a>.</p>
+      {/* Session AL (P-PR-69, PR-109): a site may refuse to be shown in a frame (a blank page); the way out is said plainly. */}
+      <p className="chess-frame-fallback">Blank? {open.site} may refuse to show inside another app. <a className="text-link" href={open.creditHref} target="_blank" rel="noopener noreferrer">Open {open.label} on {open.site} in a new tab ↗</a></p>
     </dialog>}
   </section>;
 }
 export function PlayLinks() {
   return <section className="panel chess-play" aria-labelledby="chess-play-title"><h2 id="chess-play-title">Play</h2>
     <div className="actions">{CHESS_PLAY.map(p => <button key={p.href} type="button" className="secondary" onClick={() => popUp(p.href)}>{p.label}</button>)}</div>
-    <p className="fine">Opens the site in its own window; ZIGoals sees nothing of the game until the site lists it.</p>
+    <p className="fine">Opens the site in its own window; ZIGoals sees nothing of the game until the site lists it. If your browser blocks that window, open it in a new tab: {CHESS_PLAY.map((p, i) => <span key={p.href}>{i ? ' · ' : ''}<a className="text-link" href={p.href} target="_blank" rel="noopener noreferrer">{p.label.replace('Play on ', '')} ↗</a></span>)}.</p>
   </section>;
 }

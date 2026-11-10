@@ -7,7 +7,7 @@ import {BriefSections, localClock, ReadAloudButton, useBriefClock} from './brief
 import {chipsFor, type Chip, type ChipView} from '../../lib/ai/proactive/chips';
 import {dismissedOn, dismissFor} from '../../lib/ai/proactive/dismiss';
 import {INSIGHT_RULES, PATTERN_NOT_PROOF, sampleLine, usesHealth, zigiInsights} from '../../lib/ai/proactive/insights';
-import {localReview, REFLECT_ASK, reviewForAi} from '../../lib/ai/proactive/review';
+import {localReview, plannedDaysLine, REFLECT_ASK, reviewForAi} from '../../lib/ai/proactive/review';
 import {ZIGI, zigiPrefs} from '../../lib/ai/store/records';
 import {ZIGI_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {toolEnv, type ToolEnv} from '../../lib/ai/tools/env';
@@ -143,7 +143,7 @@ export function ReviewView({context, connected, session, onBack}: {context: Cont
       <ul className="ai-review-lines">
         <li>{review.checkIns} habit check-ins{review.busiestDay ? `; the busiest day was ${formatDate(review.busiestDay, {weekday: true})}` : ''}.</li>
         <li>{review.contributions} goal contributions recorded.</li>
-        <li>{review.quietDays.length ? `Days with a habit planned and no check-in: ${review.quietDays.length} (${review.quietDays.join(', ')}).` : 'Every day with a habit planned had a check-in.'}</li>
+        <li>{/* Session AL final pass (Z-061): read with the table below it (lib/ai/proactive/review.ts) */plannedDaysLine(review)}</li>
         {review.lastIntention && <li>Your intention last week: {review.lastIntention}</li>}
       </ul>
       {review.habits.length > 0 && <table className="ai-review-table"><thead><tr><th scope="col">Habit</th><th scope="col">Done</th><th scope="col">Planned</th><th scope="col">Skipped</th></tr></thead>

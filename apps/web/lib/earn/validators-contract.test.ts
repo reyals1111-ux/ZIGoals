@@ -18,9 +18,13 @@ describe('the Earn hub and the validators route agree on the wire', () => {
     if (parsed.success) { expect(parsed.data.network).toBe('zigchain-1'); expect(parsed.data.validators.length).toBeGreaterThan(0); }
   });
   test('the Earn page asks for the real network by the route\'s own name', () => {
-    const client = read('./client.ts');
-    expect(client).toContain("'/api/chain/validators?network=zigchain-1'");
-    expect(client).not.toMatch(/chain\/validators\?network=mainnet/);
+    // CI14 (weights, deliberate): the families and their routes moved from client.ts to families.ts (the page reads them
+    // before the reader chunk loads); the same assertions on the file that now holds the route, and the reader still
+    // asks the validators route through that table.
+    const families = read('./families.ts'), client = read('./client.ts');
+    expect(families).toContain("'/api/chain/validators?network=zigchain-1'");
+    expect(families + client).not.toMatch(/chain\/validators\?network=mainnet/);
+    expect(client).toContain('EARN_FAMILIES.validators.path');
   });
 });
 

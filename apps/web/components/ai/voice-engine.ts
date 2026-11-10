@@ -26,9 +26,15 @@ export function analyserAllowed(userAgent: string): boolean {
   if (/iphone|ipad|ipod/.test(ua) || (ua.includes('macintosh') && ua.includes('mobile/'))) return false;
   return (ua.includes('chrome/') || ua.includes('edg/') || ua.includes('chromium/')) && !ua.includes('firefox/');
 }
-/** Plain words for the recognition's error codes (Session Z-Cloud: no speech is a gentle retry; offline says so). */
-export function engineErrorText(code: string, online: boolean): string {
+/**
+ * Plain words for the recognition's error codes (Session Z-Cloud: no speech is a gentle retry; offline says so).
+ * Session AL final pass (LA-015, LZ-034): `noMic` (this device lists no microphone) says so, whatever code the browser
+ * gives (headless Chrome with no microphone gave a code that read "Listening stopped unexpectedly"); a blocked one says so.
+ */
+export function engineErrorText(code: string, online: boolean, noMic = false): string {
+  if (noMic && code !== 'aborted' && code !== 'network' && code !== 'language-not-supported') return 'No microphone was found. Use your keyboard’s dictation, or type.';
   switch (code) {
+    case 'not-allowed': case 'service-not-allowed': return 'The microphone is blocked for this site. Allow it from the icon left of the address, then try again, or type.';
     case 'no-speech': return 'I didn’t hear anything. Tap the microphone and try again.';
     case 'network': return online ? 'Your browser’s speech service could not be reached. Try again, or use your keyboard’s dictation.' : 'You’re offline, so your browser’s speech service can’t be reached. Use your keyboard’s dictation, or type.';
     case 'audio-capture': return 'No microphone was found. Use your keyboard’s dictation, or type.';
@@ -49,6 +55,8 @@ export class VoiceEngine {
   private listeners = new Set<Listener>();
   private endListeners = new Set<EndListener>();
   private session = 0;
+  /** LA-015: whether this device lists no microphone at all (read when listening starts; null: unknown). */
+  private noMic: boolean | null = null;
   constructor(private scope: Scope) { this.ctor = recognitionConstructor(scope); }
   get supported(): boolean { return this.ctor !== null; }
   get current(): EngineSnapshot { return this.snapshot; }
@@ -70,7 +78,7 @@ export class VoiceEngine {
     if (onDevice) { try { recognition.processLocally = true; } catch { /* an older Chrome */ } }
     let finalText = '';
     recognition.onresult = event => { if (session !== this.session) return; const {final, interim} = recognitionText(event.results); if (final) finalText = final; this.pulse(0.65 + Math.min(0.35, (interim.length % 7) / 20)); this.set({interim, final: finalText}); };
-    recognition.onerror = event => { if (session !== this.session) return; const text = engineErrorText(event.error, typeof navigator === 'undefined' || navigator.onLine !== false); if (text) this.set({error: text}); };
+    recognition.onerror = event => { if (session !== this.session) return; const text = engineErrorText(event.error, typeof navigator === 'undefined' || navigator.onLine !== false, this.noMic === true); if (text) this.set({error: text}); };
     recognition.onend = () => { if (session === this.session) this.finish(finalText || this.snapshot.interim, false); };
     const events = recognition as unknown as Record<string, unknown>;
     // Safari and Chrome both fire these; they drive the waves where no analyser may run.
@@ -79,6 +87,8 @@ export class VoiceEngine {
     events.onspeechstart = () => { if (session === this.session) this.pulse(0.8); };
     events.onsoundend = () => { if (session === this.session) this.pulse(0.15); };
     this.recognition = recognition;
+    // LA-015: the device's input list (kinds only; no permission asked, nothing recorded), so a missing microphone is named.
+    try { const media = this.scope.navigator?.mediaDevices; if (media?.enumerateDevices) void media.enumerateDevices().then(list => { this.noMic = !list.some(d => d.kind === 'audioinput'); }, () => undefined); } catch { /* unknown */ }
     try { recognition.start(); }
     catch { this.recognition = null; this.set({state: 'idle', error: 'Listening could not start here. Use your keyboard’s dictation, or type.', origin: null}); return false; }
     this.set({state: 'listening', interim: '', final: '', error: '', level: 0.12, origin, lang});
@@ -133,7 +143,7 @@ export class VoiceEngine {
     const Ctx = this.scope.AudioContext ?? this.scope.webkitAudioContext;
     if (!media?.getUserMedia || !Ctx) return;
     let stream: MediaStream;
-    try { stream = await media.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true}}); } catch { return; }
+    try { stream = await media.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true}}); } catch (error) { if ((error as {name?: string})?.name === 'NotFoundError') this.noMic = true; return; }
     if (session !== this.session || this.snapshot.state !== 'listening') { stream.getTracks().forEach(t => t.stop()); return; }
     this.stream = stream;
     try {

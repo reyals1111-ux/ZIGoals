@@ -171,7 +171,8 @@ export function frozenFixture() {
   // Session AG Polish 3 (owner amendment 10; TIER 3 stored format): an item's one word on the path, `pathLabel`, kept and
   // ignored by every older build (its items are loose records).
   checks.push({key: CHECKLIST_KEY, module: './checklist/schema', spec: 'CHECKLIST', expect: {version: 1, 'items.0.pathLabel': 'Piano'}});
-  records[CHECKLIST_DAYS_KEY] = JSON.stringify({version: 1, days: {'2026-10-17': {total: 6, done: 6, perfect: true}}});
+  // Session AL (L5 fifth pass, LS-032): a day filled in afterwards carries its additive `filled` list.
+  records[CHECKLIST_DAYS_KEY] = JSON.stringify({version: 1, days: {'2026-10-17': {total: 6, done: 6, perfect: true}, '2026-10-18': {total: 4, done: 3, filled: ['habit:00000000-0000-4000-8000-000000000001']}}});
   checks.push({key: CHECKLIST_DAYS_KEY, module: './checklist/schema', spec: 'CHECKLIST_DAYS', expect: {'days.2026-10-17.perfect': true}});
   // Session AF (L2a): native staking's choices and journal (fictional address and hash).
   records[STAKING_PREFS_KEY] = JSON.stringify({version: 1, network: 'real', realConfirmedAt: '2026-10-18T21:00:00.000Z', lastValidator: {'zigchain-1': 'zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl'}});
@@ -262,11 +263,11 @@ export function frozenFixture() {
   checks.push({key: BILLS_KEY, module: './bills/schema', spec: 'BILLS', expect: {'bills.0.amount': '900.00'}});
   records[BUDGETS_KEY] = JSON.stringify({version: 1, budgets: [{id: 'g1', category: 'Food', currency: 'EUR', monthly: '400.00', rollover: true, since: '2026-10'}]});
   checks.push({key: BUDGETS_KEY, module: './budgets/schema', spec: 'BUDGETS', expect: {'budgets.0.category': 'Food'}});
-  records[TARGET_ALLOCATION_KEY] = JSON.stringify({version: 1, basis: 'class', targets: [{key: 'crypto', label: 'Crypto', percent: 20}], band: 5});
+  records[TARGET_ALLOCATION_KEY] = JSON.stringify({version: 1, basis: 'class', targets: [{key: 'crypto', label: 'Crypto', percent: '20'}], band: 5});
   checks.push({key: TARGET_ALLOCATION_KEY, module: './allocation/target', spec: 'TARGET_ALLOCATION', expect: {band: 5}});
   records[CSV_MAPPINGS_KEY] = JSON.stringify({version: 1, mappings: [{id: 'm1', name: 'Fictional bank', target: 'money', columns: {date: 'Date', amount: 'Amount'}, savedAt: '2026-10-27T12:00:00.000Z'}]});
   checks.push({key: CSV_MAPPINGS_KEY, module: './csv/templates/saved', spec: 'CSV_MAPPINGS', expect: {'mappings.0.name': 'Fictional bank'}});
-  records[AUTO_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', source: 'steps', comparator: 'at-least', threshold: 8000, habitId: '00000000-0000-4000-8000-000000000001'}], applied: []});
+  records[AUTO_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', source: 'steps', comparator: 'at-least', threshold: 8000, unit: 'steps', habitId: '00000000-0000-4000-8000-000000000001', createdAt: '2026-10-27T08:00:00.000Z'}], applied: []});
   checks.push({key: AUTO_RULES_KEY, module: './auto-rules/schema', spec: 'AUTO_RULES', expect: {'rules.0.threshold': 8000}});
   records[BACKUP_REMINDER_KEY] = JSON.stringify({version: 1, savedOn: '2026-10-01', askedOn: '2026-10-20'});
   checks.push({key: BACKUP_REMINDER_KEY, module: './backup-reminder', spec: 'BACKUP_REMINDER', expect: {savedOn: '2026-10-01'}});
@@ -302,7 +303,7 @@ export function frozenFixture() {
   records[JOURNAL_DISPLAY_KEY] = JSON.stringify({version: 1, onThisDay: true, hidden: ["journal-fixture-1"]});
   checks.push({key: JOURNAL_DISPLAY_KEY, module: './on-this-day/store', spec: 'JOURNAL_DISPLAY', expect: {"hidden.0": "journal-fixture-1"}});
   // Owner follow-up 1 (F5): the agenda view and filters.
-  records[AGENDA_KEY] = JSON.stringify({version: 1, view: "week", hidden: ["bills"]});
+  records[AGENDA_KEY] = JSON.stringify({version: 1, view: "week", hidden: ["bill"]});
   checks.push({key: AGENDA_KEY, module: './agenda/store', spec: 'AGENDA', expect: {"view": "week"}});
   // Owner follow-up 1 (F5): ZIGoals Wrapped, the day each year was opened.
   records[WRAPPED_KEY] = JSON.stringify({version: 1, opened: {"2026": "2026-12-02"}});
@@ -376,7 +377,7 @@ export function frozenFixture() {
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
-test('the frozen-reader fixture is read by this build', () => {
+test('the frozen-reader fixture is read by this build', async () => {
   const fixture = frozenFixture();
   // Every extras record the sections carry is in the fixture with its older readers named (Gate C test audit: no filter, so
   // a record missing from the fixture fails here instead of dropping out of both sides).
@@ -397,5 +398,15 @@ test('the frozen-reader fixture is read by this build', () => {
   expect(JSON.parse(fixture.records['zigoals:health-coach:v1']!).answers['2026-10-12']).toEqual({answer: 'keep', at: '2026-10-13T12:00:00.000Z'});
   expect(platformSchema.parse(JSON.parse(fixture.records['zigoals:platform:v1']!)).schemaVersion).toBe(5);
   expect(goalExtrasSchema.parse(JSON.parse(fixture.records[GOAL_EXTRAS_KEY]!)).goals['private:1']!.cardArt).toBe('nebula-1');
+  // Session AL (frozen readers at #53): three records were not ones this build writes — a target percent as a number (the
+  // schema and setTargets keep strings), an auto-rule without its unit and createdAt, an agenda source "bills" (the source
+  // is "bill") — so #53's readers refused them although no writer produces them. Every record named by a check must parse
+  // with this build's own reader first, so the proof only ever carries records this build can write.
+  for (const check of fixture.checks) {
+    const mod = await import(`../${check.module.slice(2)}`) as Record<string, {schema?: {safeParse(v: unknown): {success: boolean}}; safeParse?(v: unknown): {success: boolean}}>;
+    const spec = mod[check.spec]; const schema = spec?.schema ?? spec;
+    if (!schema?.safeParse) continue;
+    expect(schema.safeParse(JSON.parse(fixture.records[check.key]!)).success, `${check.key} is a record this build reads`).toBe(true);
+  }
   if (process.env.FROZEN_OUT) writeFileSync(process.env.FROZEN_OUT, JSON.stringify(fixture));
 });

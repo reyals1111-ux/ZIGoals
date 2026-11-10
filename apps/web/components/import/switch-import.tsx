@@ -31,7 +31,7 @@ type Stage =
   | {step: 'refused'; message: string; meals: boolean}
   | {step: 'health'; plan: ImportPlan}
   | {step: 'habits'; plan: HabitsPlan}
-  | {step: 'done'; message: string; notes: string[]};
+  | {step: 'done'; message: string; notes: string[]; batchId?: string};
 
 // The preview, apply and undo code (and the export parsers behind it) loads with the reader or with "Undo this import",
 // not with Settings (Session X Part 5); a module loads once, so later imports reuse it.
@@ -94,7 +94,7 @@ export function SwitchImport() {
         let added: ReturnType<typeof previewImport>['addedIds'] | null = null, preview: Preview | null = null;
         await health.update(latest => { const result = previewImport(latest, items); added = result.addedIds; preview = result.preview; if (!sizeCheck(result.next, health.importLimit).fits) throw Error('This import no longer fits in your Health storage. Nothing was imported.'); return result.next; });
         const batch = batchFor(plan, added!, {id, at: new Date()}), note = remember(batch);
-        setStage({step: 'done', message: `Imported from ${plan.label}: ${countsText(batch.counts) || 'nothing new'}.`, notes: [...(note ? [note] : []), ...keptNotes(preview!)]});
+        setStage({step: 'done', message: `Imported from ${plan.label}: ${countsText(batch.counts) || 'nothing new'}.`, notes: [...(note ? [note] : []), ...keptNotes(preview!)], batchId: batch.id});
       }} />}
     {stage.step === 'habits' && review && <review.HabitsPreview plan={stage.plan} data={habits.data} onCancel={() => setStage({step: 'choose'})}
       onConfirm={async plan => {
@@ -103,7 +103,7 @@ export function SwitchImport() {
         await habits.update(latest => { const result = previewHabits(latest, plan.habits); created = result.created; entries = result.entries; return result.next; });
         const batch: ImportBatch = {id: crypto.randomUUID(), format: 'loop', label: plan.label, at: new Date().toISOString(), counts: {...(created.length ? {habits: created.length} : {}), ...(entries.length ? {entries: entries.length} : {})}, refs: {habits: {habitIds: created, entries}}};
         const note = remember(batch), checkIns = plan.habits.filter(h => created.includes(h.id)).reduce((t, h) => t + h.entries.length, 0) + entries.length;
-        setStage({step: 'done', message: `Imported from ${plan.label}: ${n(created.length)} ${created.length === 1 ? 'habit' : 'habits'} with ${n(checkIns)} ${checkIns === 1 ? 'check-in' : 'check-ins'}.`, notes: note ? [note] : []});
+        setStage({step: 'done', message: `Imported from ${plan.label}: ${n(created.length)} ${created.length === 1 ? 'habit' : 'habits'} with ${n(checkIns)} ${checkIns === 1 ? 'check-in' : 'check-ins'}.`, notes: note ? [note] : [], batchId: batch.id});
       }} />}
     {stage.step === 'done' && <div className="switch-done">
       <p role="status">{stage.message}</p>
@@ -112,7 +112,8 @@ export function SwitchImport() {
     </div>}
     {error && <p role="alert">{error}</p>}
     {health.error && <p className="notice">{health.error}</p>}
-    <RecentImports batches={batches.data.batches} unreadable={batches.unreadable} health={health} habits={habits} onChange={change => batches.update(change)} />
+    {/* Session AL (MO-039, P-MO-59): undoing the import just made replaces its "Imported from …" line, so the two never stand together. */}
+    <RecentImports batches={batches.data.batches} unreadable={batches.unreadable} health={health} habits={habits} onChange={change => batches.update(change)} onUndone={id => setStage(s => s.step === 'done' && s.batchId === id ? {step: 'choose'} : s)} />
     <MoreApps />
     <details className="switch-formats"><summary>Which apps, and how to export from each</summary>
       <ul>{FORMATS.map(f => <li key={f.id}><strong>{f.label}</strong>{f.state === 'off' ? <span className="switch-off"> · not read yet</span> : f.state === 'meals' ? <span> · in Health → Diary → Import a nutrition CSV</span> : null}
@@ -141,7 +142,7 @@ function ChooseStep({onFiles, disabled}: {onFiles: (files: FileList | null) => v
 
 
 type Store<T> = {data: T; loaded: boolean; update: (fn: (latest: T) => T) => Promise<unknown>};
-function RecentImports({batches, unreadable, health, habits, onChange}: {batches: readonly ImportBatch[]; unreadable: boolean; health: Store<HealthData>; habits: Store<HabitData>; onChange: (change: (current: {version: 1; batches: ImportBatch[]}) => {version: 1; batches: ImportBatch[]}) => unknown}) {
+function RecentImports({batches, unreadable, health, habits, onChange, onUndone}: {batches: readonly ImportBatch[]; unreadable: boolean; health: Store<HealthData>; habits: Store<HabitData>; onChange: (change: (current: {version: 1; batches: ImportBatch[]}) => {version: 1; batches: ImportBatch[]}) => unknown; onUndone?: (batchId: string) => void}) {
   const [asking, setAsking] = useState<string | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState(''), [status, setStatus] = useState(''), [kit, setKit] = useState<Review | null>(null);
   const live = batches.filter(b => !b.undoneAt).slice(-10).reverse(), hasLive = live.length > 0;
   // With imports to undo, their undo code is fetched ahead, so "Undo this import" answers at once.
@@ -155,7 +156,7 @@ function RecentImports({batches, unreadable, health, habits, onChange}: {batches
       const {undoHabits, undoImport} = kit ?? await loadReview();
       if (b.format === 'loop') await habits.update(latest => undoHabits(latest, b)); else await health.update(latest => undoImport(latest, b));
       onChange(current => ({...current, batches: current.batches.map(x => x.id === b.id ? {...x, undoneAt: new Date().toISOString()} : x)}));
-      setStatus(`The ${b.label} import from ${formatDate(b.at)} was undone.`); setAsking(null);
+      setStatus(`The ${b.label} import from ${formatDate(b.at)} was undone.`); setAsking(null); onUndone?.(b.id);
     } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'The import was not undone. Nothing was changed.'); }
     finally { setBusy(false); }
   }

@@ -3,7 +3,7 @@ import {useId, useState} from 'react';
 import {formatNumber} from '../../../lib/visual-format';
 import {addWarmups, BAR_CHOICES, defaultPlates, plateLoad, platesFor, savePlates, warmupRamp, workingWeightKg} from '../../../lib/workouts/depth';
 import type {ExerciseEntry, PlateSetup, Workouts} from '../../../lib/workouts/schema';
-import {fromUnit, toUnit} from './units';
+import {fromUnit, weightPrefillText} from './units';
 
 /**
  * Session AK (4.9; COMPETITORS.md T1, T2 — Strong's warm-up and plate calculators): a small sheet under a weighted
@@ -15,7 +15,7 @@ const n = (v: number) => formatNumber(v, {maximumFractionDigits: 2});
 export default function WorkoutTools({entry, w, unit, change}: {entry: ExerciseEntry; w: Workouts; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string) => boolean}) {
   const setup = platesFor(w, unit), id = useId();
   const working = workingWeightKg(entry);
-  const [target, setTarget] = useState(working === null ? '' : String(Math.round(toUnit(working, unit) * 100) / 100)), [editing, setEditing] = useState(false);
+  const [target, setTarget] = useState(working === null ? '' : weightPrefillText(working, unit)), [editing, setEditing] = useState(false);
   const value = Number(target.replace(',', '.')), valid = target.trim() !== '' && Number.isFinite(value) && value > 0 && value <= (unit === 'kg' ? 1000 : 2204);
   const ramp = valid ? warmupRamp(value, setup) : [], load = valid ? plateLoad(value, setup) : null;
   return <div className="workouts-tools">

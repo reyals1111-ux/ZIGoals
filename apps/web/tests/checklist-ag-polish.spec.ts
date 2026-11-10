@@ -1,7 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {NEBULA_GLYPH_STOPS} from '../components/orbit-path/nebula-glyph';
 import {CHECKLIST_KEY} from '../lib/af-checklist-keys';
-import {TITLE, seedChecklist, settled} from './checklist-fixtures';
+import {TITLE, seedChecklist, settled, waterTarget} from './checklist-fixtures';
 
 /**
  * Session AG Polish (ADR-030): the Checklist, finished. Part 1 — every node's glyph is drawn in the nebula colour flow
@@ -143,7 +143,9 @@ test('1e: a node\'s progress arc is exactly concentric with its ring at every wi
 /** Session AG Polish Parts 3–4: the Habits banners on the orbits, and each orbit's planet on the line. */
 const PLANET_BY_HEX: Record<string, string[]> = {'#23eaff': ['05'], '#459dff': ['06'], '#f06dff': ['07'], '#9273ff': ['09'], '#26e8bd': ['04', '08', '10'], '#ff74be': ['07', '09']};
 test('3: each orbit wears the Habits page\'s section banner — symbol, "… Orbit" in the nebula flow, the count right after it', async ({page}) => {
-  await open(page);
+  // Session AL (LS-016, X3-26, LC-002, deliberate; 1e543c5e): Water is done only at the person's own daily target, so the
+  // seed sets one glass (250 ml) as the target; the glass logged below still completes the morning.
+  await open(page, {extra: waterTarget()});
   const banners = page.locator('.path-stage .orbit-banner');
   await expect(banners).toHaveCount(3);
   await expect(page.locator('.path-stage').getByRole('heading', {level: 2})).toHaveText(['Morning Orbit', 'Afternoon Orbit', 'Evening Orbit']);
@@ -159,7 +161,9 @@ test('3: each orbit wears the Habits page\'s section banner — symbol, "… Orb
 });
 
 test('4: each orbit has its planet, chosen by its first node\'s hue, matte until it is reached, then lit', async ({page}) => {
-  await open(page);
+  // Session AL (LS-016, X3-26, LC-002, deliberate; 1e543c5e): Water is done only at the person's own daily target, so the
+  // seed sets one glass (250 ml) as the target; the glass logged below still completes the morning.
+  await open(page, {extra: waterTarget()});
   const facts = await page.locator('.path-stage .path-section').evaluateAll(sections => sections.map(s => ({id: s.getAttribute('data-section'), planet: s.querySelector('.orbit-planet')?.getAttribute('data-planet') ?? null, lit: s.querySelector('.orbit-planet')?.hasAttribute('data-lit') ?? null,
     first: getComputedStyle(s.querySelector('.path-dot')!).getPropertyValue('--node').trim(), hidden: s.querySelector('.orbit-planet')?.getAttribute('aria-hidden'), img: (() => { const i = s.querySelector('.orbit-planet img'); return i ? [i.getAttribute('loading'), i.getAttribute('decoding')] : null; })()})));
   for (const f of facts) {

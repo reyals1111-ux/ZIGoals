@@ -12,8 +12,32 @@ import {expect, type Locator, type Page} from '@playwright/test';
 const COLD = {timeout: 15_000};
 export const zigiPanel = (page: Page) => page.locator('dialog.ai-chat[open]');
 export const zigiBox = (page: Page) => zigiPanel(page).getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});
+/**
+ * Session AL (owner decision O3): below 901 px ZIGi has no floating button; it opens from the "Apps & extras" sheet (the
+ * phone's top bar, the tablet rail). On a computer this is the launcher's own button, as before.
+ */
+export async function pressZigi(page: Page) {
+  if ((page.viewportSize()?.width ?? 1440) >= 901) { await page.getByRole('button', {name: /Open ZIGi/}).click(); return; }
+  // Session AL (CI12, CI 1561: zigi-face-z:124 and zigi-personality:10 on the phone project): a press that lands before the top
+  // bar has hydrated only focuses the button and opens nothing; the press is repeated until the sheet shows (never while it is
+  // open). The sheet's own ZIGi button is then pressed once, as before.
+  const sheet = page.getByRole('dialog', {name: 'Apps & extras'});
+  await expect(async () => {
+    if (!await sheet.isVisible()) await page.getByTestId('apps-extras-button').click();
+    await expect(sheet).toBeVisible({timeout: 2_000});
+  }).toPass(COLD);
+  await sheet.getByRole('button', {name: /^ZIGi\b/}).click();
+}
+/**
+ * Session AL (O3): for the specs that pressed the first button named "Open ZIGi…" (on a computer a page's own "Open ZIGi",
+ * such as the brief's, can come before the launcher): that same press at ≥ 901 px; the "Apps & extras" sheet below.
+ */
+export async function pressZigiFirst(page: Page) {
+  if ((page.viewportSize()?.width ?? 1440) >= 901) { await page.getByRole('button', {name: /Open ZIGi/}).first().click(); return; }
+  await pressZigi(page);
+}
 export async function openZigi(page: Page) {
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   await expect(zigiPanel(page)).toBeVisible(COLD);
   // The panel's own box takes the focus (the subscription bridge shows a second box, "Your question", which may take it).
   await expect(zigiPanel(page).locator('textarea:focus, input:focus')).toHaveCount(1, COLD);

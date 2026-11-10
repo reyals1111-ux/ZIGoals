@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {pressZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -41,7 +42,7 @@ const chatAreas = (page: Page) => page.evaluate(() => (JSON.parse(localStorage.g
 test('"Don\'t keep this chat": the AI answers, the chat says it is not kept, nothing is written, and closing ends it', async ({page}) => {
   await seed(page);
   await page.goto('/app');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await expect(panel(page)).toBeVisible();
   // The empty start teaches the switch in one line.
   const offer = panel(page).locator('.ai-unkept-offer');
@@ -68,7 +69,7 @@ test('"Don\'t keep this chat": the AI answers, the chat says it is not kept, not
   // Closing the panel ends it: the next opening is an empty, kept chat.
   await page.keyboard.press('Escape');
   await expect(panel(page)).toHaveCount(0);
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(0);
   await expect(panel(page).getByRole('note', {name: 'This chat is not kept'})).toHaveCount(0);
   await expect(panel(page).locator('.ai-unkept-offer')).toBeVisible();
@@ -78,7 +79,7 @@ test('"Don\'t keep this chat": the AI answers, the chat says it is not kept, not
 test('a kept chat is saved as before; pressing the switch mid-way removes the saved copy, "Keep this chat" saves it again', async ({page}) => {
   await seed(page);
   await page.goto('/app');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await box(page).fill('How was my week?');
   await panel(page).locator('.ai-composer button[type=submit]').click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK:');

@@ -3,6 +3,9 @@ import {recordDayIssue, waterDayIssue, waterEntryIssue, within, ML_PER_US_FL_OZ}
 import {journalTimeZone} from './journal-zone';
 import {formatDate, formatNumber} from './visual-format';
 import {additionalNutrients,groceryEditSchema} from './health';
+import {exerciseData} from './health-counters';
+import type {Fasting} from './fasting/schema';
+import type {Workouts} from './workouts/schema';
 import {
   healthSchema, healthDateSchema, healthTimezoneSchema, savedMealSchema, mealItemSchema,
   diarySchema, waterSchema, recipeSnapshot, recipeServingGrams, recipeServingMl, parseHealthNumber,
@@ -73,6 +76,15 @@ export function previewMealCopy(items: MealItem[], dates: string[], meal: Health
     const parsed = mealItemSchema.parse(item);
     return diarySchema.parse({ id: `${operationId}-${d}-${i}`, sourceId: parsed.sourceId, sourceKind: parsed.sourceKind, snapshot: parsed.snapshot, quantityMilli: parsed.quantityMilli, date, meal, createdAt: at, updatedAt: at });
   }));
+}
+/**
+ * Session AL (P-MO-74, MO-011): a whole day copied with each entry kept in its own meal (breakfast stays breakfast),
+ * checked like previewMealCopy. The ids follow the same operation pattern, so commitMealCopy accepts the preview.
+ */
+export function previewDayCopy(data: HealthData, from: string, dates: string[], operationId: string, at: string): HealthDiaryEntry[] {
+  const entries = data.diary.filter(e => e.date === from);
+  if (dates.length < 1 || dates.length > 7 || new Set(dates).size !== dates.length || !entries.length || entries.length > 100) throw Error("Choose one to seven distinct dates and a day with entries.");
+  return dates.flatMap((date, d) => entries.map((e, i) => diarySchema.parse({ id: `${operationId}-${d}-${i}`, sourceId: e.sourceId, sourceKind: e.sourceKind, snapshot: structuredClone(e.snapshot), quantityMilli: e.quantityMilli, date, meal: e.meal, createdAt: at, updatedAt: at })));
 }
 export function commitMealCopy(data: HealthData, preview: HealthDiaryEntry[], operationId: string): HealthData {
   const state = dailyData(data);
@@ -170,6 +182,34 @@ export function waterSummary(data: HealthData, date: string) {
   const millilitres = Math.round(entries.reduce((sum, w) => sum + w.amountMilli / 1000 * (w.unit === "ml" ? 1 : 29.5735295625), 0) * 1000) / 1000;
   return { entries: entries.length, millilitres, targetMl: dailyData(data).preferences.waterTargetMl };
 }
+/**
+ * Session AL (NB-082, P-PR-03, PR-019, X3-12, X3-26, MO-063): THE water number for a day, read by every page (Health,
+ * Today, the Drink water habit, the Checklist, NOVA and ZIGi). The day is the Health journal's day in its zone, the sum
+ * is every entry in millilitres (fl oz converted), and `reached` compares it with the person's own target: null while no
+ * target is set (never "done" after one glass because no target exists). Unknown is not zero: `entries` 0 means nothing
+ * was logged.
+ */
+export type WaterDay = { day: string; millilitres: number; entries: number; targetMl: number | null; unit: WaterEntry["unit"]; reached: boolean | null };
+export function waterOn(data: HealthData, day: string): WaterDay {
+  const s = waterSummary(data, day), unit = dailyData(data).preferences.waterUnit;
+  return { day, millilitres: s.millilitres, entries: s.entries, targetMl: s.targetMl, unit, reached: s.targetMl ? s.millilitres >= s.targetMl : null };
+}
+/**
+ * Session AL fourth pass (X3-26, LS-016, LS-056, LC-002, PR-019): the one "water done" rule for every surface (the
+ * Checklist planet, Today, NOVA): done only when the day reaches the person's own target. With no target the day is
+ * never "done" after one glass; say WATER_NO_TARGET instead, with the amount logged.
+ */
+export const waterDayDone = (day: Pick<WaterDay, "reached">): boolean => day.reached === true;
+export const WATER_NO_TARGET = "No water target yet: set one in Health → Journal settings";
+export function waterToday(data: HealthData, now = new Date()): WaterDay {
+  return waterOn(data, healthDay(dailyData(data).preferences.timezone, now));
+}
+/**
+ * Session AL (NB-081, NB-089, P-NB-27): the Undo of a water log: removes exactly the entry with that id from the LATEST
+ * record (any other entry, logged since in this tab or another, stays). Use it as the restore of the toast:
+ *   showUndo({message, restore: () => health.update(undoWaterLog(id))}).
+ */
+export const undoWaterLog = (id: string) => (latest: HealthData): HealthData => dailyData(latest).water.some(w => w.id === id) ? removeWater(latest, id) : latest;
 /** The Health journal's zone: the Health zone (an override), then the journal zone (Session W Part 17, T2-A), then the device's. */
 export function healthZone(timezone: string | null): string {
   return healthTimezoneSchema.parse(timezone ?? journalTimeZone() ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
@@ -201,7 +241,14 @@ export function servingsFromMeasure(raw:string,snapshot:{servingGrams:number|nul
 }
 function validateRange(from: string, to: string) { healthDateSchema.parse(from); healthDateSchema.parse(to); if (from > to) throw Error("End date precedes start date."); }
 const csvCell = (value: string | number) => csvSafeCell(value);
-export function exportHealthCsv(data: HealthData, from: string, to: string): string {
+/**
+ * The Health CSV. Session AL final pass (MO-016, MO-031; TIER 3 (export format), additive): four columns at the end, each
+ * row's calories (kcal_entry: kcal per serving times the servings) and protein, carbs and fat in grams per serving beside
+ * the milligram columns; and rows for the quick counters (kind "counter"), and, when the caller passes them (they are
+ * device records outside the Health journal), finished fasts ("fast", hours) and finished workouts' sets ("workout set").
+ * Every existing column keeps its name, place and meaning.
+ */
+export function exportHealthCsv(data: HealthData, from: string, to: string, more: {fasting?: Fasting | null; workouts?: Workouts | null} = {}): string {
   validateRange(from, to); healthSchema.parse(data);
   const rows: (string | number)[][] = [["record_id", "date", "kind", "name", "meal", "quantity", "unit", "serving_weight_g", "kcal_per_serving", "protein_mg_per_serving", "carbs_mg_per_serving", "fat_mg_per_serving", "source", "created_at_utc", "updated_at_utc"]];
   const inRange = (item: { date: string }) => item.date >= from && item.date <= to;
@@ -209,7 +256,21 @@ export function exportHealthCsv(data: HealthData, from: string, to: string): str
   for (const w of data.weights.filter(inRange)) rows.push([w.id, w.date, "weight", "Body weight", "", w.grams, "g", "", "", "", "", "", "manual", w.createdAt, w.updatedAt]);
   for (const a of data.activity.filter(inRange)) for (const unit of ["steps", "minutes"] as const) rows.push([a.id, a.date, "activity", a.name, "", a[unit], unit, "", "", "", "", "", "manual", a.createdAt, a.updatedAt]);
   for (const w of dailyData(data).water.filter(inRange)) rows.push([w.id, w.date, "water", "Water", "", w.amountMilli / 1000, w.unit, "", "", "", "", "", "manual", w.createdAt, w.updatedAt]);
-  rows[0]!.push("serving_volume_ml","recipe_version","recipe_yield_quantity","recipe_yield_unit",...additionalNutrients.map(([key])=>key.replace(/Mg$/, "_mg_per_serving")));
-  const diaryById=new Map(data.diary.map(e=>[e.id,e]));for(const row of rows.slice(1)){const entry=row[2]==='diary'?diaryById.get(String(row[0])):undefined;row.push(entry?.snapshot.servingMl??"",entry?.snapshot.recipeVersion??"",entry?.snapshot.recipeYield?entry.snapshot.recipeYield.quantityMilli/1000:"",entry?.snapshot.recipeYield?.unit??"",...additionalNutrients.map(([key])=>entry?.snapshot.nutrients[key]??""));}
+  // Session AL (P-MO-60; MO-016, MO-031): the rest of the Health journal in the same columns, as added rows: body
+  // measurements (original unit), sleep (nights and naps, minutes in bed, on the day they ended) and meditation (minutes).
+  for (const m of data.measurements ?? []) { const day = healthDay(m.timezone, new Date(m.observedAt)); if (day >= from && day <= to) rows.push([m.id, day, "measurement", m.kind, "", m.quantityMilli / 1000, m.unit, "", "", "", "", "", m.sourceLabel, m.recordedAt, m.recordedAt]); }
+  for (const n of data.sleep?.nights ?? []) { if (n.end === null) continue; const day = healthDay(n.timeZone, new Date(n.end)); if (day >= from && day <= to) rows.push([n.id, day, n.kind === "nap" ? "nap" : "sleep", n.kind === "nap" ? "Nap" : "Night", "", Math.round((Date.parse(n.end) - Date.parse(n.start)) / 60_000), "minutes in bed", "", "", "", "", "", n.source, n.createdAt, n.updatedAt]); }
+  for (const m of data.meditation?.sessions ?? []) { const day = healthDay(dailyData(data).preferences.timezone, new Date(m.startedAt)); if (day >= from && day <= to) rows.push([m.id, day, "meditation", m.kind === "breathing" ? "Breathing" : "Meditation", "", Math.round(m.seconds / 6) / 10, "minutes", "", "", "", "", "", m.kind, m.startedAt, m.startedAt]); }
+  // Session AL final pass (MO-031): each day of a quick counter, each finished fast (on the day it ended, in its zone) and each
+  // set of a finished workout, in the same columns.
+  for (const d of exerciseData(data).days) { if (d.date < from || d.date > to) continue; const counter = exerciseData(data).counters.find(c => c.id === d.counterId); rows.push([d.id, d.date, "counter", counter?.name ?? d.counterId, "", d.count, "repetitions", "", "", "", "", "", "quick counter", "", ""]); }
+  for (const f of more.fasting?.sessions ?? []) { if (f.endedAt === null) continue; const day = healthDay(f.timeZone, new Date(f.endedAt)); if (day >= from && day <= to) rows.push([f.id, day, "fast", `${f.targetHours} h fast`, "", Math.round((Date.parse(f.endedAt) - Date.parse(f.startedAt)) / 360_000) / 10, "hours fasted", "", "", "", "", "", f.stoppedBy === "limit" ? "ended at the limit" : "manual", f.startedAt, f.endedAt]); }
+  for (const w of more.workouts?.workouts ?? []) { if (!w.endedAt || w.date < from || w.date > to) continue; for (const e of w.exercises) e.sets.forEach((st, i) => { const amount: [number | string, string] = st.reps !== undefined ? [st.reps, "reps"] : st.seconds !== undefined ? [st.seconds, "seconds"] : st.distanceKm !== undefined ? [st.distanceKm, "km"] : ["", ""]; rows.push([st.id, w.date, "workout set", `${w.name} · ${e.name} · set ${i + 1}${st.weightKg !== undefined ? ` · ${st.weightKg} kg` : ""}`, "", amount[0], amount[1], "", "", "", "", "", "workout", w.startedAt, w.endedAt ?? ""]); }); }
+  rows[0]!.push("serving_volume_ml","recipe_version","recipe_yield_quantity","recipe_yield_unit",...additionalNutrients.map(([key])=>key.replace(/Mg$/, "_mg_per_serving")),"weight_kg","weight_lb","kcal_entry","protein_g_per_serving","carbs_g_per_serving","fat_g_per_serving");
+  const diaryById=new Map(data.diary.map(e=>[e.id,e]));for(const row of rows.slice(1)){const entry=row[2]==='diary'?diaryById.get(String(row[0])):undefined;row.push(entry?.snapshot.servingMl??"",entry?.snapshot.recipeVersion??"",entry?.snapshot.recipeYield?entry.snapshot.recipeYield.quantityMilli/1000:"",entry?.snapshot.recipeYield?.unit??"",...additionalNutrients.map(([key])=>entry?.snapshot.nutrients[key]??""));
+    // Session AL (P-MO-60): a weight row also reads in kilograms and pounds (two decimals), beside its exact grams.
+    const grams=row[2]==='weight'?Number(row[5]):NaN;row.push(Number.isFinite(grams)?Math.round(grams/10)/100:"",Number.isFinite(grams)?Math.round(grams/453.59237*100)/100:"");
+    // Session AL final pass (MO-016): the entry's calories, and grams per serving to one decimal (the mg columns stay).
+    const n=entry?.snapshot.nutrients,g=(mg:number|null|undefined)=>typeof mg==="number"?Math.round(mg/100)/10:"";row.push(entry&&typeof n?.kcal==="number"?Math.round(n.kcal*entry.quantityMilli/100)/10:"",g(n?.proteinMg),g(n?.carbsMg),g(n?.fatMg));}
   return rows.map(row => row.map(csvCell).join(",")).join("\r\n");
 }

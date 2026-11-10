@@ -49,7 +49,7 @@ export function LifeBalanceCard({compact = false, ...layout}: LayoutAttrs & {com
         <BalanceLegend areas={result.areas} />
       </div>
       {result.unassigned > 0 && <p className="fine">{result.unassigned} {result.unassigned === 1 ? 'goal has' : 'goals have'} no life area yet. Choose one on the goal’s page.</p>}
-      <p className="fine">Progress is the average of what is known; an area with nothing known says so and is never counted as zero.</p>
+      <p className="fine">Each area shows how far its goals and habits are toward their targets this month, from what is known. Records alone don’t move it; an area with nothing known says “No data yet” and is never counted as zero.</p>
     </>}
   </section>;
 }

@@ -31,7 +31,7 @@
 .game-strip-toggle:focus-visible { outline: 2px solid #c9b4ff; outline-offset: -3px; }
 
 /* Journey */
-.journey-page { display: grid; gap: 22px; }
+.journey-page { display: grid; gap: 22px; grid-template-columns: minmax(0, 1fr); } /* Session AL (CI 1611, journey:79): one track that never grows to the sideways-scrolling "On this page" row (DV-045e) */
 .journey-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 16px; padding: 18px 0 4px; }
 .journey-hero h1 { font-size: clamp(2.2rem, 4vw, 3.8rem); letter-spacing: -.05em; line-height: 1.08; margin: 10px 0 16px; max-width: 760px; }
 .journey-off { display: grid; gap: 12px; }
@@ -101,6 +101,8 @@
 .celebration-symbol { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; font-size: 40px; color: #0b1020; background: linear-gradient(135deg, #6fe6f6, #c790f6, #f08bd6); box-shadow: 0 0 40px #c790f688; }
 .celebration-card h2 { margin: 0; font-size: clamp(24px, 4vw, 32px); letter-spacing: -.03em; }
 .celebration-line { margin: 0; font-size: 16px; color: var(--text-secondary); max-width: 340px; }
+/* Session AL (P-NB-02): what else came due at the same moment, on the same card. */
+.celebration-also { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 15px; color: var(--text-primary); }
 .celebration-card .primary { margin-top: 8px; min-height: 48px; min-width: 140px; }
 .celebration-particles { position: absolute; inset: 0; pointer-events: none; }
 .celebration-particles i { position: absolute; left: 50%; top: 34%; width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, #6fe6f6, #c790f6, #f08bd6); opacity: 0; transform: translate(-50%, -50%); animation: celebration-burst var(--t) cubic-bezier(.2, .7, .3, 1) forwards; animation-delay: calc(var(--i) * 18ms); }
@@ -159,3 +161,39 @@
 /* Session AB-Design Phase 2 closing pass (design critique): a level not reached yet is the one neutral "locked" marker —
    desaturating each planet's own hue had turned levels 9 and 10 a muddy olive outside the palette. */
 .journey-path li:not([data-reached]) .journey-path-node { filter: none; background: #1a142a; border: 2px solid #a184e255; color: #d8ccf5; box-shadow: none; }
+/* Session AL (P-NB-03): the XP table and the latest XP on Journey. */
+.journey-xp-explained details { margin-top: 8px; }
+.journey-xp-explained summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
+.journey-xp-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.journey-xp-table caption { caption-side: bottom; text-align: left; padding-top: 6px; }
+.journey-xp-table th, .journey-xp-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, .12)); }
+.journey-xp-history { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 15px; }
+.journey-xp-history li { display: flex; justify-content: space-between; gap: 12px; }
+/* Session AL (NB-227, NB-229): an unmet quest links to the place it is done; a full touch target. */
+.journey-quest-go { display: inline-flex; align-items: center; min-height: 44px; }
+/* Session AL (DV-275, P-DV-111): the switch stays on its label's line wherever it is mounted (a Settings form's own label
+   rules stacked it above the words). */
+label.game-setting-row { display: flex; flex-direction: row; align-items: flex-start; }
+label.game-setting-row > input { display: inline-block; }
+/* Session AL fourth pass (DV-118, G-031): a celebration found on arrival sits in a corner, never over the page. */
+.celebration-quiet { position: fixed; z-index: 70; right: 24px; bottom: 24px; width: min(340px, calc(100vw - 32px)); }
+.celebration-quiet .celebration-card { width: 100%; gap: 6px; padding: 18px 18px 16px; border-radius: 22px; }
+.celebration-quiet .celebration-symbol { width: 52px; height: 52px; font-size: 26px; }
+.celebration-quiet .celebration-card h2 { font-size: 22px; }
+.celebration-quiet .celebration-line { font-size: 15px; }
+.celebration-quiet .celebration-card .primary { margin-top: 4px; min-height: 44px; }
+@media (max-width: 900px) { .celebration-quiet { left: 16px; right: 16px; width: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); } }
+.celebration-quiet[data-still] .celebration-symbol { box-shadow: none; }
+/* Session AL fourth pass (DV-045e): the path's "show the whole path" toggle, 44 px. */
+.journey-path-more { justify-self: start; min-height: 44px; }
+/* Session AL fifth pass (DV-045e): the badges still to earn, folded under their count. */
+.journey-badges-ahead { display: grid; gap: 12px; }
+.journey-badges-ahead > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.journey-badges-ahead[open] > summary { margin-bottom: 4px; }
+/* Session AL fourth pass (DV-045e): Journey's "On this page" row; each link 44 px tall, headings land below the top bar. */
+.journey-jump ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.journey-jump a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #a184e244; color: inherit; text-decoration: none; font-size: 15px; }
+.journey-jump a:focus-visible { outline: 2px solid #d8bdff; outline-offset: 2px; }
+/* Session AL fifth pass (DV-045e): on a phone the row is one line that scrolls sideways (it wrapped to three), the page itself never. */
+@media (max-width: 640px) { .journey-jump ul { flex-wrap: nowrap; overflow-x: auto; padding: 2px; scrollbar-width: none; } .journey-jump li { flex: none; } }
+.journey-page :is(#universe, #rewards-shelf, [id^="journey-"][id$="-title"]) { scroll-margin-top: 88px; }

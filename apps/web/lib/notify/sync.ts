@@ -25,6 +25,7 @@ import {upcomingBills} from '../bills/store';
 import {SUPPLEMENTS} from '../supplements/schema';
 import {supplementReminders} from '../supplements/log';
 import {GOV_REMINDERS, governanceEvents} from '../zigchain-eco/governance';
+import {stakingItems} from './staking-items';
 
 /**
  * Session AK Part 2 (ADR-036 A1): gathers this device's records into the plan's input. Reads only; never throws (a record
@@ -83,6 +84,9 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   try { input.supplements = supplementReminders(readDeviceRecord(storage, SUPPLEMENTS).data, today); } catch { /* unreadable: no wakes */ }
   // Owner follow-up 1 (F4): governance vote reminders the person set on a proposal — an instant and an id, never a title.
   try { input.votes = governanceEvents(readDeviceRecord(storage, GOV_REMINDERS).data, {now, timeZone: zone}).map(e => ({id: e.id, at: Date.parse(e.at)})); } catch { /* unreadable: no wakes */ }
+  // Session AL sweep 4 (C-DVG-68, C-BN-06): unstaked ZIG back on its day and a validator not earning, from the positions
+  // last read on this device (no chain read here); never a name or an amount.
+  try { const staking = stakingItems((await readFinance(storage)).positions, {now, timeZone: zone, today}); if (staking.length) input.staking = staking; } catch { /* unreadable: no staking items */ }
   return input;
 }
 /** The plan for now, or null in the Showcase; with the live "Snooze 1 h" taps kept (journey bug J5-2, lib/notify/plan.ts withSnoozes). */

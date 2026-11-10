@@ -224,5 +224,34 @@
 .hall-card { grid-template-rows: auto 1fr; } .hall-body { display: flex; flex-direction: column; } .hall-body > .hall-area { align-self: flex-start; } .hall-actions { margin-top: auto; } /* every card's actions on one line */
 /* Gate C re-check: the average card keeps its own height in the goal grid (it had stretched to its row, ~250 px empty),
    and its line wraps as balanced lines ("14 of / 14 days" split the count). */
-.goal-grid > .average-goal-card, .goal-grid .average-goal-card { align-self: start; }
+/* Session AL fifth pass (DV-029d): cards in one row share its height (a 355 px average card sat beside 591 px goal cards);
+   the average card fills its row with its figure in the middle and its state line and link at the foot, so no empty band. */
+.goal-grid > .average-goal-card, .goal-grid .average-goal-card { align-self: stretch; display: flex; flex-direction: column; gap: 10px; margin-block: 0; } /* DV-029d (attempt 2): the .panel class's own block margins made the stretched card 24 px shorter than its row */
+.goal-grid .average-goal-card > .average-goal-figure { flex: 1 0 auto; }
+.goal-grid .average-goal-card > .average-goal-state { margin-top: auto; }
 .average-goal-figure > div > small { text-wrap: balance; }
+
+/* Session AL (DV-012e, P-DV-56): an average goal's page uses the goal pages' width. It sat in a 920 px column with the
+   right 40 % of a 1920 px screen empty; wide screens now put the day entry and the goal's settings side by side under
+   the overview, as the other goal pages fill their width. */
+:root .average-goal-page { max-width: none; }
+@media (min-width: 1200px) {
+  :root .average-goal-page { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+  :root .average-goal-page > :not(.average-goal-entry, .average-goal-settings) { grid-column: 1 / -1; }
+}
+/* Session AL third pass (GAP-119): debts as goals to reach zero. */
+.debt-paydown-list { margin: 0 0 10px; padding: 0; list-style: none; display: grid; gap: 10px; }
+.debt-paydown-list li { display: grid; gap: 2px; font-size: 15px; overflow-wrap: anywhere; }
+.debt-paydown-list li span { color: var(--text-secondary, inherit); }
+/* Session AL sweep 4 (C-BN-23): Chess's rating goals on Goals, read-only cards that open Chess. */
+.chess-rating-goal-list { margin: 0 0 10px; padding: 0; list-style: none; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.chess-rating-goal { display: grid; gap: 4px; min-height: 44px; padding: 12px 14px; border: 1px solid var(--line, currentColor); border-radius: 14px; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+.chess-rating-goal span { font-size: 15px; color: var(--text-secondary, inherit); }
+/* Session AL final pass (D-212, AL-A11Y-025): the Goals view filter chips (Active, Completed, Closed, All) answer the
+   pointer: an unpressed chip brightens its words and edge, the pressed one adds a soft ring. Colour only, no movement,
+   so Reduced motion and Motion Off need nothing more (motion.css keeps their transitions). */
+@media (hover: hover) {
+  .goals-page .goal-view-filters button:hover:not([aria-pressed="true"]):not(:disabled) { color: var(--text-strong, #f4f8ff); border-color: #7fe3f399; background: #1a2a4a; }
+  /* Above the pillar accent on a pressed chip (pillar-hero.css, :root main[data-pillar] … [aria-pressed=true]). */
+  :root main[data-pillar] .goals-page .goal-view-filters > button[aria-pressed="true"]:hover:not(:disabled) { background: #10345e; box-shadow: inset 0 0 0 1px var(--cyan, #45d8ef), 0 0 16px -4px #45d8efaa; }
+}

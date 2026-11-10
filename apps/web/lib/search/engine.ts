@@ -5,9 +5,11 @@
  * and case never matter ("cafe" finds "Café").
  */
 // Session AK (B4): 'note' — the person's notes (lib/search/notes.ts), found beside the four pillars.
-export const SEARCH_KINDS = ['page', 'goal', 'habit', 'food', 'recipe', 'asset', 'template', 'setting', 'help', 'note'] as const;
+// Session AL (P-LS-05, P-PR-40; LS-005, LS-047, PR-102, PR-112): tasks (with Todoist-style operators, lib/tasks/search.ts),
+// the Checklist's own items and the Ecosystem's projects are found too (lib/search/records.ts builds them).
+export const SEARCH_KINDS = ['page', 'goal', 'task', 'habit', 'checklist', 'food', 'recipe', 'asset', 'ecosystem', 'template', 'setting', 'help', 'note'] as const;
 export type SearchKind = (typeof SEARCH_KINDS)[number];
-export const KIND_LABEL: Record<SearchKind, string> = {page: 'Pages', goal: 'Goals', habit: 'Habits', food: 'Foods', recipe: 'Recipes', asset: 'Assets', template: 'Goal templates', setting: 'Settings', help: 'Help answers', note: 'Notes'};
+export const KIND_LABEL: Record<SearchKind, string> = {page: 'Pages', goal: 'Goals', task: 'Tasks', habit: 'Habits', checklist: 'Checklist', food: 'Foods', recipe: 'Recipes', asset: 'Assets', ecosystem: 'Ecosystem projects', template: 'Goal templates', setting: 'Settings', help: 'Help answers', note: 'Notes'};
 export type SearchItem = {id: string; kind: SearchKind; title: string; subtitle?: string; href: string; keywords?: readonly string[]};
 export type SearchHit = SearchItem & {score: number};
 
@@ -36,9 +38,15 @@ export function scoreItem(item: SearchItem, query: string): number | null {
 }
 
 /** The best matches, at most `perKind` of each kind and `limit` in all, best first within the kinds' own order. */
-export function search(items: readonly SearchItem[], query: string, {limit = 24, perKind = 6}: {limit?: number; perKind?: number} = {}): SearchHit[] {
-  const hits: SearchHit[] = [];
+export function search(items: readonly SearchItem[], query: string, options: {limit?: number; perKind?: number; extra?: readonly SearchHit[]} = {}): SearchHit[] {
+  const hits: SearchHit[] = [...(options.extra ?? [])];
   for (const item of items) { const score = scoreItem(item, query); if (score !== null) hits.push({...item, score}); }
+  return rankHits(hits, options);
+}
+/** Session AL: orders hits found by `search` or elsewhere (tasks matched by operators) the same way: best first, at most
+ *  `perKind` of a kind and `limit` in all, grouped by kind. */
+export function rankHits(found: readonly SearchHit[], {limit = 24, perKind = 6}: {limit?: number; perKind?: number} = {}): SearchHit[] {
+  const hits = [...found];
   hits.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
   const counts = new Map<SearchKind, number>(), kept: SearchHit[] = [];
   for (const hit of hits) {

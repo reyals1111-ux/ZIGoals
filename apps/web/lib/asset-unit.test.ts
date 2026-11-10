@@ -12,8 +12,8 @@ describe('assetUnit', () => {
 describe('amountWithUnit (Session AC)', () => {
   it('names a custom asset by its position when the contribution names one', () => expect(amountWithUnit(platform, '2', 'CUSTOM', 'cam')).toBe('2 Collectible camera'));
   it('says "custom asset" in words when no position is named, never the bare code', () => {
-    expect(amountWithUnit(platform, '1', 'CUSTOM')).toBe('1 unit of a custom asset');
-    expect(amountWithUnit(platform, '2.5', 'CUSTOM', 'gone')).toBe('2.5 units of a custom asset');
+    expect(amountWithUnit(platform, '1', 'CUSTOM')).toBe('1 unit · a custom asset not in Wealth');
+    expect(amountWithUnit(platform, '2.5', 'CUSTOM', 'gone')).toBe('2.5 units · a custom asset not in Wealth');
   });
   it('keeps every other code', () => expect(amountWithUnit(platform, '0.1', 'BTC', 'btc')).toBe('0.1 BTC'));
 });

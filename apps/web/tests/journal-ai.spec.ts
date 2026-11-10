@@ -32,7 +32,7 @@ test('Journal: energy, an entry, ZIGi asks one question, the answer stays; priva
   const journal = await stored<{entries: {text: string; followUp?: {from: string; answer?: string}}[]; shareWithAi: boolean}>(page, JOURNAL_KEY);
   expect(journal?.shareWithAi).toBe(false);
   expect(journal?.entries).toMatchObject([{text: 'Tired after a long meeting at work.', followUp: {from: 'device', answer: 'Fewer meetings on Friday.'}}]);
-  await page.getByRole('button', {name: `Remove the entry of ${TODAY}`}).click();
+  await page.getByRole('button', {name: 'Remove the entry of Oct 28, 2026'} /* AL Part 14 (R18, deliberate): the label says the day in words, as the page shows it; same exact name */).click();
   await page.getByRole('button', {name: 'Undo'}).click();
   await expect(page.locator('.journal-entries li')).toHaveCount(1);
 });

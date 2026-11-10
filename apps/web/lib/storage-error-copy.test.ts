@@ -60,12 +60,14 @@ describe('QA-22: backup refusals are told apart', () => {
     expect(backupRefusal(JSON.stringify({schemaVersion: 3, kind: 'zigoals-habits', habits: []}), habits)).toBe('NEWER_BACKUP');
     expect(backupRefusal(JSON.stringify({schemaVersion: 2, kind: 'zigoals-habits', habits: [{id: 'a'}, {id: 'a'}]}), habits)).toBe('DAMAGED');
   });
-  it('each refusal has its own coded message that says nothing was changed', () => {
+  // Session AL (BN-021, deliberate): the message is plain words only; it ends with "Existing data was not changed." and
+  // carries no internal code, each refusal still its own sentence.
+  it('each refusal has its own plain message that says nothing was changed', () => {
     const messages = (['TOO_LARGE', 'NOT_A_BACKUP', 'WRONG_MODULE', 'NEWER_BACKUP', 'DAMAGED'] as const).map(r => backupRefusalMessage(r, {module: 'habits', kind: 'zigoals-health', limit: 2_000_000}));
     expect(new Set(messages).size).toBe(5);
-    for (const message of messages) expect(message).toMatch(/Existing data was not changed\. \((TOO_LARGE|NOT_A_BACKUP|WRONG_MODULE|NEWER_BACKUP|DAMAGED)\)$/);
+    for (const message of messages) { expect(message).toMatch(/Existing data was not changed\.$/); expect(message).not.toMatch(/\([A-Z_]+\)|[A-Z]{2,}_[A-Z]/); }
     expect(messages[0]).toContain('2 MB');
-    expect(messages[2]).toBe('This is a Health backup. Restore it under Health. Existing data was not changed. (WRONG_MODULE)');
+    expect(messages[2]).toBe('This is a Health backup. Restore it under Health. Existing data was not changed.');
   });
 });
 

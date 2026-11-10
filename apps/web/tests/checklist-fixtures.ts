@@ -5,6 +5,8 @@ import {addCustom, addFavourite} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
+import {createEmptyHealth, HEALTH_STORAGE_KEY} from '../lib/health';
+import {dailyData, saveHealthPreferences} from '../lib/health-daily';
 
 /**
  * Session AF (L3): fictional records for the Checklist's browser specs — three habits and a path of four dots (a habit, a
@@ -31,6 +33,16 @@ export function fixturePath(options: {piano?: boolean} = {}): Checklist {
   r = addCustom(r, {label: TITLE.custom, colour: 'gold', section: 'evening'}, {id: `ck_fixture-${++n}`, at: new Date(CREATED.getTime() + n)});
   return r;
 }
+/**
+ * Session AL (LS-016, X3-26, LC-002, deliberate; 1e543c5e): Water lights only when the day reaches the person's own Health
+ * water target (with none it stays unlit after a glass). A Health record whose daily target is one glass (`ml`, 250 by
+ * default: the fixture's own Water default), for specs where one logged glass completes Water, as it did before. Pass it
+ * as `extra` to seedChecklist.
+ */
+export const waterTarget = (ml = 250): Record<string, string> => {
+  const health = createEmptyHealth();
+  return {[HEALTH_STORAGE_KEY]: JSON.stringify(saveHealthPreferences(health, {...dailyData(health).preferences, waterTargetMl: ml}))};
+};
 export const settled = (page: Page) => page.waitForLoadState('networkidle', {timeout: 10_000}).catch(() => undefined);
 /** Writes the fixture (and anything extra) before the app reads it; the app's own /api routes answer offline. */
 export async function seedChecklist(page: Page, {path = fixturePath(), extra = {}}: {path?: Checklist | null; extra?: Record<string, string>} = {}) {

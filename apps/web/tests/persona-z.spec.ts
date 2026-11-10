@@ -8,6 +8,7 @@ import {addWater, dailyData, saveHealthPreferences} from '../lib/health-daily';
 import {DASHBOARD_SETTINGS_KEY, presetSettings, WIDGET_CATALOG, type DashboardSettings} from '../lib/dashboard-settings';
 import {localDate} from '../lib/local-date';
 import {isPhone,mainNav,openMore,openFold} from './phone-nav';
+import {pressZigi} from './zigi-open';
 
 // Session Z-Cloud Part 4: the owner's persona decisions (docs/product/PERSONA_DECISIONS_Y.md items 1–3 and 5–12; item 4
 // skipped), built. Fictional records; every /api request is answered by a fixture.
@@ -169,7 +170,9 @@ test('6. Delete for good: an archived habit goes after its name is typed, its st
   await confirm.getByLabel('Type the habit’s name to confirm').fill('Stretch');
   await go.click();
   await expect(card).toHaveCount(0);
-  const undo = page.getByRole('status').filter({hasText: '“Stretch” was deleted for good.'}).getByRole('button', {name: /^Undo · \d+ s$/});
+  // Session AL (COPY_AUDIT/PRIMITIVES 3e, deliberate): the delete's Undo moved onto the app's one Undo toast (showUndo, ten
+  // seconds), so its button is the toast's "Undo deleting Stretch", no longer the page's own "Undo · N s" countdown.
+  const undo = page.locator('.aa-toast').filter({hasText: '“Stretch” was deleted for good.'}).getByRole('button', {name: 'Undo deleting Stretch', exact: true});
   await expect(undo).toBeVisible();
   const stored = async () => (await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), HABITS_KEY)) as {habits: {id: string; title: string; notes: string; entries: unknown[]; stackAfterId?: string; ruleRevisions?: unknown[]}[]};
   let record = await stored();
@@ -190,7 +193,8 @@ test('6. Delete for good: an archived habit goes after its name is typed, its st
   await page.getByRole('article', {name: 'Stretch', exact: true}).getByRole('button', {name: 'Delete for good…', exact: true}).click();
   await page.getByLabel('Type the habit’s name to confirm').fill('Stretch');
   await page.getByRole('button', {name: 'Delete for good', exact: true}).click();
-  await expect(page.getByRole('button', {name: /^Undo · \d+ s$/})).toHaveCount(0, {timeout: 15_000});
+  // Session AL (deliberate, as above): the toast's Undo is gone after its ten seconds.
+  await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo deleting Stretch', exact: true})).toHaveCount(0, {timeout: 15_000});
   await expect(page.getByText('Deleted habit')).toHaveCount(0);
   await page.getByRole('group', {name: 'Filter habits'}).getByRole('button', {name: 'All', exact: true}).click();
   await expect(page.getByText('Deleted habit')).toHaveCount(0);
@@ -228,12 +232,13 @@ test('7. lb and fl oz: weight history, the chart and Today read the chosen unit;
   health = addWater(health, {id: 'health_4b1d3f0e-8a2c-4b55-9f5d-2d7f3a9c0b22', date: day, amountMilli: 1_250_000, unit: 'ml'}, new Date().toISOString());
   await seed(page, {[HEALTH_STORAGE_KEY]: health});
   await page.goto('/app/health');
-  await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Weight', exact: true}).click();
+  await page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name: 'Weight', exact: true}).click();
   const history = page.getByRole('table', {name: 'Weight history'});
-  await expect(history).toContainText('159.6 lb');
+  // Session AL (N-MO-14, N-NB-10, deliberate): the history and "Latest" show a reading as entered, to two decimals (72.4 kg = 159.61 lb).
+  await expect(history).toContainText('159.61 lb');
   await expect(history).not.toContainText('kg');
-  await expect(page.locator('.health-weight-stats')).toContainText('159.6 lb');
-  await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Diary', exact: true}).click();
+  await expect(page.locator('.health-weight-stats')).toContainText('159.61 lb'); // "Latest" too, as entered (N-MO-14)
+  await page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name: 'Diary', exact: true}).click();
   await expect(page.getByRole('region', {name: 'Water journal'}).locator('.health-water-total')).toHaveText('42 fl oz recorded');
   const stored = await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), HEALTH_STORAGE_KEY);
   expect(stored.weights[0].grams).toBe(72_400);
@@ -254,7 +259,7 @@ test('7b. persona round: the water target is typed in US fl oz; the week reads f
   if (await isPhone(page)) await openFold(page, 'Seven days of care'); else await page.locator('summary').filter({hasText: /^Seven days of care/}).click();
   await expect(page.getByRole('group', {name: 'Water · US fl oz, last 7 days'})).toContainText('42');
   await expect(page.getByRole('group', {name: 'Water · mL, last 7 days'})).toHaveCount(0);
-  await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Journal settings', exact: true}).click();
+  await page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name: 'Journal settings', exact: true}).click();
   const form = page.getByRole('form', {name: 'Health preferences'});
   await form.getByLabel('Personal water target (US fl oz, optional)').fill('64');
   await form.getByRole('button', {name: 'Save journal preferences', exact: true}).click();
@@ -262,7 +267,9 @@ test('7b. persona round: the water target is typed in US fl oz; the week reads f
   await form.getByLabel('Preferred water unit').selectOption('ml');
   await expect(form.getByLabel('Personal water target (mL, optional)')).toHaveValue('1893');
   await page.goto('/app/activity');
-  await expect(page.locator('main')).toContainText('159.6 lb');
+  // Session AL (N-MO-14, N-NB-10, deliberate; 1e543c5e): Activity shows a reading as entered, to two decimals, as the
+  // weight history and "Latest" do in test 7 (72.4 kg = 159.61 lb; it read 159.6 lb).
+  await expect(page.locator('main')).toContainText('Weight recorded159.61 lb');
   await expect(page.locator('main')).not.toContainText('72.4 kg');
 });
 
@@ -372,9 +379,12 @@ test('12. phones: ZIGi is the one floating button; the music player opens from Z
   await showcase(page);
   await page.goto('/app/habits');
   await expect(page.locator('main h1').first()).toBeVisible();
-  await expect(page.getByTestId('ai-launcher')).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px nothing floats, ZIGi included; it opens from "Apps & extras".
+  // Was: ZIGi's floating launcher visible, pressed directly.
+  await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
+  await expect(page.getByTestId('apps-extras-button')).toBeVisible();
   await expect(page.getByRole('button', {name: 'Open the music player', exact: true})).toHaveCount(0);
-  await page.getByRole('button', {name: /^Open ZIGi/}).click();
+  await pressZigi(page);
   const panel = page.locator('dialog.ai-chat[open]');
   await expect(panel).toBeVisible();
   await panel.getByRole('button', {name: 'More: history, customize, settings and help'}).click();
@@ -410,7 +420,7 @@ test('persona round: Meet ZIGi and Help\'s local-model answer never scroll sidew
 test('persona round: an earlier on-device answer keeps its examples as words; the latest keeps them as buttons', async ({page}) => {
   await seed(page, {});
   await page.goto('/app');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   const panel = page.locator('dialog.ai-chat[open]');
   await expect(panel).toBeVisible();
   const box = panel.getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});

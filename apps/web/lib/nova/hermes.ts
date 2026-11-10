@@ -8,7 +8,7 @@ import {loadWordLists} from '../secret-guard/word-lists';
 import type {ChatEvent, ChatRequest} from '../ai/types';
 import {redactText, totalRedactions, type RedactionCounts} from './redact';
 import type {PrivacyMode} from './setup';
-import {hermesNeedsRedaction, normalizeHermesBase, novaHermesSchema, type NovaHermes} from './hermes-record';
+import {HERMES_KEY_WORDS, hermesNeedsRedaction, normalizeHermesBase, novaHermesSchema, type NovaHermes} from './hermes-record';
 export * from './hermes-record';
 
 /**
@@ -34,8 +34,8 @@ export const HERMES_FIXES: Readonly<Record<HermesProblem, {title: string; steps:
   cors: {title: 'Hermes is running, but does not allow this site yet (the browser blocked its answer).', steps: ['Set API_SERVER_CORS_ORIGINS to this site’s exact address (planet 4 of the guide), then restart the gateway.', 'Check again here.']},
   permission: {title: 'This browser blocks the site from reaching apps on this computer.', steps: ['Click the icon left of the address, turn on “Apps on device” (Chrome, Edge) or allow the site (Firefox), then reload.']},
   // Session AK lane P7 (EX3-5): no key was sent at all (none pasted, none kept on this device): not "refused the key".
-  'needs-key': {title: 'Hermes is running and asks for its key: none is on this device yet.', steps: ['Paste the key you put in API_SERVER_KEY (show it with “hermes config get API_SERVER_KEY --raw”), then test again.']},
-  'wrong-key': {title: 'Hermes refused the key.', steps: ['Show it with “hermes config get API_SERVER_KEY --raw” and paste it here again.', 'Restart the gateway after changing the key.']},
+  'needs-key': HERMES_KEY_WORDS['needs-key'],
+  'wrong-key': HERMES_KEY_WORDS['wrong-key'],
   'not-hermes': {title: 'Something answered at that address, but not Hermes’s API server.', steps: ['Check the port: Hermes uses 8642 unless API_SERVER_PORT says otherwise.']},
   unreadable: {title: 'Hermes answered, but its model list could not be read.', steps: ['Update Hermes Agent, restart the gateway, and check again.']},
   busy: {title: 'Hermes is busy or restarting.', steps: ['Wait a moment and check again (Hermes runs at most a set number of requests at once, and pauses while its gateway restarts).']},
@@ -79,7 +79,7 @@ export const hermesTestLine = (t: HermesTest) => t.ok ? `Hermes${t.version ? ` $
 export function withCheck(record: NovaHermes, test: HermesTest, base: string, at: Date): NovaHermes {
   // Session AK lane P7 (EX3-6): only an address that answered becomes "your Hermes" (NOVA lists it as an agent and offers
   // "Ask my Hermes" once one is saved); a failed test of a new address keeps the one that worked, or none.
-  return novaHermesSchema.parse({...record, version: 1, ...(test.ok ? {baseUrl: base, model: test.model} : {}), lastCheck: {at: at.toISOString(), reachable: test.ok, ...(test.ok ? {model: test.model} : {problem: test.problem}), ms: Math.min(600_000, test.ms)}});
+  return novaHermesSchema.parse({...record, version: 1, ...(test.ok ? {baseUrl: base, model: test.model} : {}), lastCheck: {at: at.toISOString(), reachable: test.ok, ...(test.ok ? {model: test.model, ...(test.version ? {version: test.version} : {})} : {problem: test.problem}), ms: Math.min(600_000, test.ms)}});
 }
 
 // ── "Ask my Hermes" (delegation) and the brain's request ───────────────────────────────────────────────────────────

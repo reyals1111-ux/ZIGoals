@@ -1,3 +1,94 @@
+# Session AL — "FIX EVERYTHING" (ADR-037) (2026-11-04/09, `feature/session-al-fix-everything`, [PR #100](https://github.com/reyals1111-ux/ZIGoals/pull/100); complete, not merged, not deployed)
+**Base:** `main` `17069c7d` (Merge #99, Session AK; live as Alpha #53). **Rules (owner):** the brief (Parts 0–17, R1–R9, O1–O7), the approved plan and the owner amendments A1–A12 (verbatim in ADR-037). One plan, one approval; no owner step during the session.
+
+## Part 0 — records (owner-reported, 4 Nov; AL_SCOPE E)
+- **Session AK** merged into `main` as `17069c7d` ([PR #99](https://github.com/reyals1111-ux/ZIGoals/pull/99)). Main CI ("Milestone quality", run 1479) on `17069c7d`: attempts 1 and 2 had **web checks cancelled at 22m47s** (with web integration and the Alpha gate cancelled; the "web" summary red; WebKit skipped on push by design) on a tree byte-identical to the green PR head `e3789ff0` (25 checks); **attempt 3 passed** (completed 3 Nov 23:11 UTC, checked by this session).
+- **Food Worker** `zigoals-acctest-food-lookup` deployed first from `17069c7d`: version `7d43fb1f-bebd-4956-af5e-64257c32a8b6`, rollback `0bff7eb3-89b1-44e7-8a6c-e2c15f87c893` (4 Nov ≈ 00:11). `FDC_API_KEY` is set as a secret; `FOOD_USER_AGENT` is a var.
+- **Alpha #53** = Manual Alpha deployment run 56 (`17069c7d89824a3799f6749beb37e6ab50122b4a`): version `6ea13ee8-0455-450b-bb10-61773264605f`, rollback `226adce0-19b2-4069-8159-4e7711cb5f4c` (#52), 4 Nov ≈ 00:15. "New version answering on every route: confirmed after 6 reads". The run is **red only from the stale "Local Demo" smoke text** (`scripts/lib/alpha-smoke.mjs:155`; AK's consumer-first fix R2 removed that wording). No automatic rollback, by design.
+- **Owner browser checks on #53:** Settings shows build `17069c7d…`; barcode `3017620422003` → Open Food Facts match; NOVA opens; Studio-4 art visible; Diagnostics show testnet v6.0.0 with the base fee.
+- **Hosted verifier:** not runnable (`ERR_MODULE_NOT_FOUND`: `packages/chain-config/src/index.ts` imports `./reviewed-versions` without an extension; Part 1b).
+- **Landing** `zigoals` deployed from `17069c7d` (AK's 24 landing files): version `1a2c1c75-6b00-4459-8da5-e9446ab2eed1`, rollback `8708970d-270f-4383-bc58-0e3e713f481f` (4 Nov ≈ 20:42 Brussels); `/`, `/privacy`, `/terms` 200 with the full header set, `/_headers` 404; owner browser check OK.
+- Rollback floor #32. **The next deploy is run 57 = Alpha #54.** Frozen readers are #37–#53 from now on (`scripts/frozen-readers.mjs`, #53 = `17069c7d`).
+- **Dependabot:** two moderate alerts (glob GHSA-3g3m-2fjr-6pw4, minimatch GHSA-g3hv-75wg-m249), build/lint tooling only; reviewed in [`docs/dependencies/AL_REVIEW.md`](dependencies/AL_REVIEW.md); nothing bumped (**Waits on owner**).
+
+Decisions: `docs/architecture/ADR-037-session-al.md`. Ledger and replays: `docs/review/session-al/`. Resume file: `docs/handoff/AL_RESUME.md`. 
+
+**Demo tour (15 minutes):** [`docs/handoff/AL_DEMO_TOUR.md`](handoff/AL_DEMO_TOUR.md). **Draft PR:** [reyals1111-ux/ZIGoals#100](https://github.com/reyals1111-ux/ZIGoals/pull/100) (out of Draft at the end; never merged or deployed by the session).
+
+## Outcome in one paragraph
+The Grok #53 bots' ~3,650 finding ids became 642 AL rows (`docs/review/session-al/GROK53_LEDGER.md`). After every lane's
+passes, two replay rounds per pillar, the release review "as if 1.0", one A10 cycle, the final replay (every id not FIXED
+plus every id never replayed, 1,211 ids on the final build) and the final fix pass (one attempt per row, re-checked by
+browser tests): **530 of 642 rows are fixed** (503 Fixed; 27 Fixed with their other ids an owner decision, not possible or
+not reproducible), 30 are owner decisions, 13 not possible, 2 wait on the owner, and **67 rows (112 ids) are carried to
+the next session** with their cause (`docs/review/session-al/CARRIED.md`). Part 15 built 40 roadmap/competitor items; the
+rest are ranked in `docs/review/session-al/NEXT_SESSION_BACKLOG.md`.
+
+## Parts and their commits (the full list: `git log 17069c7d..HEAD`, 230+ commits; the branch is updated from `main` by merge only)
+- **Part 0, records and ledger:** ADR-037, AL_RESUME, ROOT_CAUSE_KEYS, the eight per-bot ledgers and the merged ledger, HISTORY_MAP (150 reopened rows), frozen reader #53, the Dependabot review.
+- **Part 1 (L9), release and CI:** the smoke's first-run wording (`73d1a3e2`, TIER 3 deploy workflow script), the verifier under plain Node 24 (`a8188f0c`), CI limits and 12 shards (`65712e97`), chunked PR review (`51e624f9`), CI fix lanes CI1–CI24 and the CI 1602/1611 fixes (`558bd54f`, `f2412b3d`, `44340560`, `511cf261`, `5fcabc34`).
+- **Part 3 (L10a/L10b), shell and primitives:** O3 "Apps & extras" below 901 px and the O4 sidebar Apps group (`57fb1e5e`, pins `fda12454`), one field error, one limits table, one Undo/toast, one format layer with decimal commas (`434309c3`), the device-key registry (`9a92d6e2`).
+- **Parts 4–10, pillar lanes L1–L7:** each with a first pass, replay rounds 1–2 and fourth/fifth passes (lane files in `docs/review/session-al/lanes/`); Tasks at Todoist level with the Checklist's "Tasks due today" (`3bf6f507`, `818805b8`, `b11f6d0f`); ZIGi/NOVA safety, answers and honesty (L7, `ff274875` … `8bca454b`).
+- **Part 11 (L8), NOVA's holographic HUD:** `17a96b86`, the two reviews' findings (`ca7422a6`), the shimmer at about 12 a second (owner finish rule 15, `d38b8989`).
+- **Part 12, Plans:** `/app/plans`, placeholder only, no payment code (O2).
+- **Parts 13–14:** cross-module consistency and the earlier-scope rows (`a81b18dd`, `5848c55c`).
+- **Part 15:** builder A money/chain/platform (`2f4f3d9e`), builder B Health/Habits/Today/Goals (`0e8aaffb`), the backlog (`78be2446`).
+- **Part 16:** security delta A and B with their fixes (`4d01a2fc`, `6487806c`, `044ac17b`, `ab580b9d`); the release review RR-1…RR-18 (`60b3046d`, fixes `1f80da56`, `07357b31`, `596e675a`, outcomes `2f8cb078`).
+- **A10 cycle 1:** review `378b8408`, fixes `5aaf6a37`, `a83085cb`.
+- **Final replay and fix pass:** replays `a2eeeccf`, `e7447da9`, `d4f32757`, `fde50fe4`; fixes `f38d5968` (TIER 3 export format), `53df729f`, `13a7c83b`, `99cc79e6`; re-check and closing table `c615940e`.
+
+## Closing table (ADR-037 "Closing table (R9)", final state 9 Nov)
+| Outcome | Rows |
+|---|---|
+| Fixed | 503 |
+| Fixed + owner decision | 21 |
+| Fixed + not possible | 5 |
+| Fixed + not reproducible (R7) | 1 |
+| Owner decision | 30 |
+| Not possible | 13 |
+| Waits on owner | 2 |
+| Open (carried) | 50 |
+| Partly replayed (carried) | 17 |
+| **Total** | **642** |
+
+## Carried to next session (67 rows, 112 ids; each with its cause in `docs/review/session-al/CARRIED.md`)
+- **Owner calls (protected layouts or recorded decisions):** T-069 (the phone notice's "Saved in this browser only" is cut with an ellipsis at 375/394 px; wrapping it whole broke every phone page in the Showcase, so the fix was reverted after CI 1629), RR-16 (Wealth is 20,720 px at 1440; folding desktop sections), RR-17 and D-134 (the goal's name four times on Today; Quick add twice: the hero is protected), D-063/LS-H34/D-179/NB-075/DV-029a (the sidebar theme bar below the fold at 800 px: a sticky bar would sit over the O4 Apps group; the buttons now have words), DV-257c/DV-258c/D-194/D-013 (the header's lock only on rearrangeable pages, pinned by ui-design-pass; Notes' "Back to Today" is owner follow-up 2), DV-203/DV-226/LS-H39/N-NB-03 (Dark and Nebula look alike), B-083/M-131/M-104 (Undo given instead of a confirm), D-070/DV-247 (icon-only header buttons), TK-036, D-086, BUG-052, N-NB-21/DV-132 (FR-17), LS-017/LS-053/PR-031 (O6), LA-012 (Q14).
+- **New features (ranked in NEXT_SESSION_BACKLOG.md):** Activity search and CSV export (C-DVG-17, DV-046e, DV-054d, C-DV-13, PR-100), a "my day ends at" setting (C-DVG-22, C-NB-28, N-NB-11), a Trash (C-LS-20), editing money-log entries (PR-052), a Copilot import preset (C-DVG-51), fasting targets above 18 h (C-MO-36), a bulk confirm for ZIGi (LS:#012/#194/#351, C-LA-07), C-DVG-19, C-DVG-20, GAP-041, GAP-111.
+- **Carried by their lanes (two attempts used):** D-028 (Showcase Today Tab stops), LS-067 (ZIGi's peek clip on Tasks), DV-170, DV-010c/NB-253/T-014 (Fund Goal and the wizard's length), DV-053c, DV-040g/DV-056c (⋯ menus without menuitem roles), D-088/N-BN-10 (Settings folded by default would move 384 spec gotos), DV-045e (Journey 7,178 px at 1440), N-BN-05 (Earn 15,769 px at 375), MO-052 and B-201 (left by the final pass in another lane's file), D-224 (fixed, not browser-checked).
+- **Not replayable here (32 ids):** they need a service (prices, chain reads, the relay, food lookup), a real model, or steps the bot did not give; each says which in CARRIED.md.
+
+## Tier 3, in plain words (risk → rollback)
+35 commits carry a `TIER 3 (<area>)` label: stored format (each additive and optional, frozen readers #37–#53 pass, in export/restore/erase/catalog), auth/sync (`044ac17b`, `26e46d0b`, `818805b8`), headers/CSP (`91f0c1fb`, `f982d6a9`), the release verifier and the deploy workflow's smoke script (`73d1a3e2`, `a8188f0c`, `60316a3d`, `88dcf88b`, `f4079ea9`; the deploy workflow file is unchanged), CI (`51e624f9`, `65712e97`), the API (`ccfad605`), wallet (`be9c97a0`), positions (`5b839b4a`), the theme generator (`bbd2738e`) and the export format (`f38d5968`). Each commit message says the risk and the rollback (revert that commit; readers ignore unknown optional fields and columns).
+
+## Tests and assertions changed (deliberate; none weakened)
+Every changed assertion carries a `Session AL (<id>, deliberate)` comment with an equally strict replacement (listed in each commit message). Protected pins changed only for O3, O4 and O6 (`fda12454`, `3d1f575c`).
+
+## Evidence (final head)
+- **Local, on the 6e3a6263 production build:** tests/grok53/release (every RR, A10 and final-pass spec) with the affected goal, data-safety, field-error, storage, sidebar, Today-length, Journey and Checklist specs: 221 passed, 2 spec races fixed, then 51/51 re-run. Unit tests per lane (thousands; see the commits); typecheck and eslint clean; theme sheets `--check` clean; frozen readers #37–#53 pass.
+- **Route weights (gzip -6; budgets never raised):** every page under budget (Today 548.8/567, Goals 470.9/478, Tasks 465.3/468, NOVA 432.5/458, shell 431.7/447 at 596e675a).
+- **CI:** see "CI on the final head" below. Earlier full runs: 1611 (2f8cb078) found the scripts/ journeys, ten specs and two app regressions fixed since.
+
+## Known CI intermittents (this session)
+`docs/review/session-al/CI_INTERMITTENTS.md` (each with its sightings and diagnosis; one re-run each; WebKit class-B engine crashes and slow-mirror cancellations recorded, never chased).
+
+## Lessons (also in ADR-037)
+- The time of day and the weekday are test conditions (Showcase tasks due at fixed hours; Sunday's pairings).
+- A lane that moves code or copy runs `vitest run scripts` and the scripts/ browser journeys' strings too (CI 1602: Health's tabs and "goal" in scripts/).
+- `sed` expands `&` in a replacement to the match: use Python for strings with `&` (558bd54f, repaired in f2412b3d).
+- A sheet that closes through a history Back can abort the next page load in a test; wait for its history entry (DS9, RR-6).
+- Margins collapse: a line put between two margins adds both (today-screens 5.80 → 5.71).
+- `lazy()` + Suspense delays ~300 ms in React 19 (use use-chunk).
+
+## Owner list (what the owner does next)
+1. Review [reyals1111-ux/ZIGoals#100](https://github.com/reyals1111-ux/ZIGoals/pull/100) (out of Draft) and merge when satisfied.
+2. Deploy Alpha #54 from `main` with the Manual Alpha workflow (docs/deployment/MANUAL_ALPHA_WORKFLOW.md); frozen readers then become #37–#54.
+3. Decide the owner calls above (RR-16, RR-17, the theme bar, the header, Dark vs Nebula, confirm vs Undo).
+4. The Dependabot alerts (docs/dependencies/AL_REVIEW.md) wait on you.
+
+## CI on the final head
+**Green:** "Milestone quality" [run 1634](https://github.com/reyals1111-ux/ZIGoals/actions/runs/42635525980) on `01d06a7b`, the last code head (all 22 jobs; attempt 2 re-ran WebKit shard 1/3 after a class-B libWPEWebKit engine segfault, recorded in CI_INTERMITTENTS.md). This entry's own commit changes only docs.
+The runs before it (1611, 1627–1633) found the scripts/ journeys and older specs that still encoded this session's deliberate changes, two app regressions (Journey's width, Today's meals line), the phone notice's T-069 wrap (reverted, carried), Wrapped on Today closing itself (fixed), the Tasks page 0.2 kB over its budget (fixed without raising it), and spec races at fixed hours (the time of day is a test condition); each is in a commit after 2b57cb8e.
+
 # Session AK — "NUMBER ONE" (ADR-036) (2026-10-31/11-03, `feature/session-ak-number-one`, [PR #99](https://github.com/reyals1111-ux/ZIGoals/pull/99); complete, not merged, not deployed)
 **Base:** `main` `7000807` (Merge #98, Session AJ; live as Alpha #52). **Rules (owner):** the brief (Parts 0–16, D1–D12, MUSIC, RAMP/BANXA), the approved plan, the owner amendments A1–A22, owner follow-ups 1–5, owner decisions 6 and 7 and "Part 13 restored" (all verbatim in ADR-036). One plan, one approval; no owner step during the session.
 

@@ -135,6 +135,8 @@ describe('the guide\'s commands and facts', () => {
   });
 });
 
+/** Session AL (BN-035): a model as a real Ollama lists it (name, modified_at, size, digest, details); the scan and the brain check now require this shape. */
+const OLLAMA_TAG = (name: string) => ({name, model: name, modified_at: '2026-10-30T10:00:00Z', size: 6_600_000_000, digest: 'a'.repeat(64), details: {format: 'gguf', family: 'qwen3', parameter_size: '9B', quantization_level: 'Q4_K_M'}});
 /** MOCK local servers, answered here: Ollama (/api/version, /api/tags with one cloud model), LM Studio and llama.cpp (/v1/models). */
 function mockServers(up: {ollama?: boolean; lmstudio?: boolean; llamacpp?: boolean} = {ollama: true, lmstudio: true, llamacpp: true}) {
   const seen: string[] = [];
@@ -143,7 +145,7 @@ function mockServers(up: {ollama?: boolean; lmstudio?: boolean; llamacpp?: boole
     const json = (body: unknown) => new Response(JSON.stringify(body), {status: 200, headers: {'content-type': 'application/json'}});
     if (url.startsWith('http://127.0.0.1:11434') && up.ollama) {
       if (url.endsWith('/api/version')) return json({version: '0.30.0'});
-      if (url.endsWith('/api/tags')) return json({models: [{name: 'qwen3.5:9b', model: 'qwen3.5:9b'}, {name: 'gemma4:31b-cloud', remote_model: 'gemma4:31b', remote_host: 'https://ollama.com:443'}, {name: 'nomic-embed-text:latest'}]});
+      if (url.endsWith('/api/tags')) return json({models: [OLLAMA_TAG('qwen3.5:9b'), {name: 'gemma4:31b-cloud', model: 'gemma4:31b-cloud', modified_at: '2026-10-30T10:00:00Z', remote_model: 'gemma4:31b', remote_host: 'https://ollama.com:443'}, OLLAMA_TAG('nomic-embed-text:latest')]});
     }
     if (url.startsWith('http://localhost:1234') && up.lmstudio && url.endsWith('/v1/models')) return json({object: 'list', data: [{id: 'qwen3.5-9b'}, {id: 'text-embedding-nomic'}]});
     if (url.startsWith('http://127.0.0.1:9931') && up.llamacpp && url.endsWith('/v1/models')) return json({object: 'list', data: [{id: 'Qwen3.5-9B-Q4_K_M.gguf'}]});

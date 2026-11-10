@@ -4,7 +4,7 @@ import {noteTexts} from '../../../../lib/ai/privacy-mode';
 import {buildContextPack} from '../../../../lib/ai/context-pack/build';
 import {hermesSummary} from '../../../../lib/nova/hermes';
 import {HERMES_LINKS, SKILL_TIP, skillFile, skillFolder} from '../../../../lib/nova/hermes-guide';
-import {NOVA_HERMES} from '../../../../lib/nova/hermes-record';
+import {localModelStillConfirmed, NOVA_HERMES} from '../../../../lib/nova/hermes-record';
 import {PRIVACY_WORDS} from '../../../../lib/nova/privacy-mode';
 import {knownNamesFrom, redactionSummary} from '../../../../lib/nova/redact';
 import {NOVA_SETUP} from '../../../../lib/nova/setup';
@@ -34,9 +34,9 @@ export default function FurtherStep({hermes}: {hermes: HermesState}) {
   const summary = useMemo(() => {
     if (!sources) return null;
     const pack = buildContextPack({sources, gates: context.gates, scope: {...areas, health: areas.health && healthOpen, notes: false, days: 30}});
-    const made = hermesSummary({packMarkdown: pack.markdown, mode, confirmedLocal: record.data.localModelConfirmed === true, knownNames: knownNamesFrom(noteTexts())});
+    const made = hermesSummary({packMarkdown: pack.markdown, mode, confirmedLocal: localModelStillConfirmed(record.data), knownNames: knownNamesFrom(noteTexts())});
     return {...made, file: skillFile(localDate(), mode ? PRIVACY_WORDS[mode].label : 'not chosen', made.markdown), included: pack.included};
-  }, [sources, context.gates, areas, healthOpen, mode, record.data.localModelConfirmed]);
+  }, [sources, context.gates, areas, healthOpen, mode, record.data]); // Z1A-I5: the whole record (address, version, confirmation)
   const copy = () => { if (summary) navigator.clipboard?.writeText(summary.file).then(() => setGiven('copied'), () => setGiven('')); };
   const save = () => {
     if (!summary) return;

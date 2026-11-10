@@ -3,7 +3,7 @@ import {useMemo} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useHealth} from '../../health/use-health';
 import {useLocalToday} from '../../use-local-today';
-import {dailyData, healthDay, waterSummary} from '../../../lib/health-daily';
+import {waterToday} from '../../../lib/health-daily';
 import {dailySeries} from '../../../lib/sleep/engine';
 import {BILLS} from '../../../lib/bills/schema';
 import {billOccurrences} from '../../../lib/bills/store';
@@ -26,8 +26,8 @@ export default function GlanceWidget() {
     const s = orbit.summary!, facts: GlanceFacts = {orbit: null, water: null, meals: null, nextBill: null, focusMinutes: null, sleepMinutes: null, contributionsDue: s.contributionsDue};
     if (s.source !== 'none') facts.orbit = {done: s.done, total: s.total, unit: s.source === 'checklist' ? 'planet' : 'habit'};
     if (!health.error) try {
-      const daily = dailyData(health.data), day = healthDay(daily.preferences.timezone), water = waterSummary(health.data, day);
-      facts.water = {ml: water.millilitres, targetMl: water.targetMl, unit: daily.preferences.waterUnit};
+      const water = waterToday(health.data), day = water.day; // Session AL: L2's one water source
+      facts.water = {ml: water.millilitres, targetMl: water.targetMl, unit: water.unit};
       facts.meals = health.data.diary.filter(e => e.date === day).length;
       if (health.data.sleep) facts.sleepMinutes = dailySeries(health.data.sleep, today, 1)[0]?.asleep ?? null;
     } catch { /* an unreadable part is left out */ }

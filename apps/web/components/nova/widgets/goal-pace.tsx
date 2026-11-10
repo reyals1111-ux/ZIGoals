@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import {GlassBar} from '../../progress/glass-progress';
 import {paceWords, wholePercent} from '../../../lib/nova/widgets/words';
+import {isFinished} from '../../../lib/goals/finished';
 import type {WidgetSize} from '../../../lib/nova/store';
 import {useGoalSummaries} from './use-goal-summaries';
 import {NovaEmpty, NovaReading, NovaUnread} from './empty';
@@ -20,7 +21,7 @@ export default function GoalPaceWidget({size}: {size: WidgetSize}) {
   return <ul className="nova-goals">{shown.map(g => {
     const pace = paceWords(g.fundingHealth), unknown = g.progressBound === 'unavailable' || !/^\d+(\.\d+)?$/.test(g.progressPct);
     return <li key={g.key} data-tone={pace.tone}>
-      <div className="nova-goal-head"><Link href={g.href} prefetch={false}>{g.name}</Link><span className="nova-goal-pct">{wholePercent(g.progressPct, g.progressBound)}</span></div>
+      <div className="nova-goal-head"><Link href={g.href} prefetch={false}>{g.name}</Link><span className="nova-goal-pct">{wholePercent(g.progressPct, g.progressBound, isFinished(g))}</span></div>
       {!unknown && <GlassBar identity={`nova-goal-${g.key}`} value={Math.min(1, Number(g.progressPct) / 100)} aria-hidden="true"/>}
       <small className="nova-goal-pace">{pace.words}</small>
     </li>;

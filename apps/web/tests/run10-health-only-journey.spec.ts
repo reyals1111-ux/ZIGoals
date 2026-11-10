@@ -11,31 +11,40 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   await page.goto('/app');
   // Session AK (ADR-036 G2, RELEASE_REVIEW_2 R2-11, 15c1e159, deliberate): on a brand-new device "Make Today yours" waits
   // until the welcome is answered, so the welcome is answered first ("Not now"), as a person choosing a layout would.
-  await activate(page.getByRole('region', { name: 'Set up your first goal and habit in about a minute.' }).getByRole('button', { name: 'Not now', exact: true }));
-  await activate(page.getByRole('button', { name: /^Health-only/ }));
+  await activate(page.getByRole('region', { name: 'Set up your first goal and habit in about a minute.' }).getByRole('button', { name: 'Skip setup', exact: true })); // N-NB-01 (deliberate): was "Not now"
+  // Session AL (P-NB-08; NB-002, NB-033; deliberate): after "Not now" an empty device shows one setup entry, and "Make
+  // Today yours" waits until something is recorded, so the Health-only layout is chosen from Customize Today's own preset
+  // chooser (the same dialog and the same Apply), as tests/run10-widgets.spec.ts does.
+  await expect(page.getByRole('region', { name: 'Set up ZIGoals in about a minute.' })).toBeVisible();
+  await activate(page.getByRole('button', { name: 'Customize Today', exact: true }));
+  await activate(page.getByRole('button', { name: 'Choose preset', exact: true }));
   const preset = page.getByRole('dialog', { name: 'Choose your Today layout' });
   await expect(preset).toBeVisible();
+  await preset.getByRole('radio', { name: /^Health-only/ }).check();
   await preset.getByRole('button', { name: 'Apply layout' }).focus();
   await page.keyboard.press('Enter');
   await expect(preset).not.toBeVisible();
+  await activate(page.getByRole('button', { name: 'Finish customizing' }));
   await expect(page.locator('.personalized-today')).toHaveAttribute('data-interests', 'health');
   await expect(page.getByRole('region', { name: 'Today financial intelligence' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Connect Keplr/ })).toHaveCount(0);
   await expect(page.getByRole('complementary', { name: 'Showcase data' })).toHaveCount(0);
   await activate(nav.getByRole('link', { name: 'Health', exact: true }));
   await expect(page.getByRole('region', { name: 'Breakfast diary' })).toContainText('Nothing logged yet');
-  await activate(page.getByRole('button', { name: 'Foods & recipes', exact: true }));
+  await activate(page.getByRole('tab', { name: 'Foods & recipes', exact: true }));
   await activate(page.getByRole('button', { name: 'New food', exact: true }));
   const food = page.getByRole('form', { name: 'Food details' });
   for (const [label, value] of [['Food name', 'Fictional journey oats'], ['Serving weight (g)', '40'], ['Calories (kcal)', '150'], ['Protein (g)', '5'], ['Carbs (g)', '27'], ['Fat (g)', '3']]) await food.getByLabel(label!).fill(value!);
   await activate(food.getByRole('button', { name: 'Save food', exact: true }));
   await expect(page.getByRole('status').filter({ hasText: 'Food saved' })).toBeVisible();
-  await activate(page.getByRole('button', { name: 'Diary', exact: true }));
+  await activate(page.getByRole('tab', { name: 'Diary', exact: true }));
   const journalDate = await page.getByLabel('Journal date').inputValue();
   await openMealLog(page);
   const meal = page.getByRole('form', { name: 'Log a meal', exact: true });
   await meal.getByLabel('Food or recipe').selectOption({ label: 'Fictional journey oats · food' });
   await meal.getByLabel('Servings', { exact: true }).fill('1.5');
+  // Session AL (A10-2, deliberate): the meal now defaults to the time of day, so the Breakfast this test reads is chosen.
+  await meal.getByLabel('Meal', { exact: true }).selectOption('Breakfast');
   await activate(meal.getByRole('button', { name: 'Log to diary' }));
   await expect(page.getByRole('region', { name: 'Breakfast diary' })).toContainText('225 kcal');
   await activate(page.getByRole('button', { name: 'Add 250 mL', exact: true }));
@@ -83,7 +92,7 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   await expect(page.getByRole('region', { name: 'Breakfast diary' })).toContainText('Fictional journey oats');
   await expect(page.getByRole('region', { name: 'Breakfast diary' })).toContainText('225 kcal');
   await expect(page.getByRole('region', { name: 'Water journal' })).toContainText('250 mL recorded');
-  await activate(page.getByRole('button', { name: 'Foods & recipes', exact: true }));
+  await activate(page.getByRole('tab', { name: 'Foods & recipes', exact: true }));
   await expect(page.getByRole('heading', { name: 'Fictional journey oats', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const origin = new URL(page.url()).origin;

@@ -1,30 +1,33 @@
 'use client';
 import Link from 'next/link';
-import type {ReactNode} from 'react';
+import {useRef, type ReactNode} from 'react';
 import {habitDay} from '../../lib/habits';
-import {addWater, dailyData, removeWater, waterSummary} from '../../lib/health-daily';
+import {dailyData, waterOn} from '../../lib/health-daily';
+import {logWaterWithUndo} from '../health/water-log';
 import {waterButtons} from '../../lib/health-quick/quick';
-import {asleep, nightsIn} from '../../lib/sleep/engine';
+import {asleep, deleteNight, nightsIn, saveNight} from '../../lib/sleep/engine';
+import {quickLastNight} from '../../lib/health-sleep-form';
+import {useSleep} from '../health/sleep/use-sleep';
 import {elapsedMs, formatFast} from '../../lib/fasting/engine';
 import type {GoalSummary} from '../../lib/goal-summary';
 import {formatGoalAmount} from '../../lib/goal-summary';
+import {unitWord} from '../../lib/goals/goal-units';
 import type {GoalStep} from '../../lib/today/goal-roles';
 import {formatUnits} from '@zigoals/chain-config';
-import {formatDate} from '../../lib/visual-format';
+import {formatDate, formatProgressPercent} from '../../lib/visual-format';
+import {NO_WATER_TODAY, waterText} from '../../lib/health-units';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useFasting} from '../health/use-fasting';
 import {AppIcon} from '../app-icon';
 import {Slot} from '../progress/slot';
 import {SectionHeading} from '../ui/section-heading';
-import {showToast} from '../ui/undo-toast';
+import {showStatus, showUndo} from '../ui/undo-toast';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {newHealthId} from '../../lib/health';
 
-const ozText = (ml: number) => `${Math.round(ml / 29.5735295625 * 10) / 10} US fl oz`;
-const waterText = (ml: number, unit: 'ml' | 'fl-oz-us') => unit === 'ml' ? (ml >= 1000 ? `${Math.round(ml / 100) / 10} L` : `${Math.round(ml)} mL`) : ozText(ml);
-/** A goal's share as the cards show it: whole percent, rounded down ("45%", never "45.00%"). */
-const pct = (value: string) => { const n = Number(value); return Number.isFinite(n) ? `${Math.floor(n)}%` : value; };
+/** A goal's share as the cards show it: the one percent rule (half up, 100 % only when complete; Session AL, PR-023 / NB-252). */
+const pct = (value: string) => formatProgressPercent(value);
 const hours = (minutes: number) => `${Math.floor(minutes / 60)} h ${String(Math.round(minutes % 60)).padStart(2, '0')} min`;
 /** Session AF (L5a, Part 10.10): the top goal's next step in plain words (its progress is on its card). */
 export function stepText(step: GoalStep): string {
@@ -35,7 +38,8 @@ export function stepText(step: GoalStep): string {
     case 'milestone': return `Next milestone: ${step.title}`;
     case 'contribution': return `Next contribution ${amount}on ${formatDate(step.date)}`;
     case 'target': return step.days === 0 ? `Its target date is today, ${formatDate(step.date)}` : `${step.days} ${step.days === 1 ? 'day' : 'days'} to its target date, ${formatDate(step.date)}`;
-    case 'plan': return 'Next: set a contribution plan';
+    // Session AL sweep 3 (DV-057b): a count goal of your own unit plans a count, not a money contribution.
+    case 'plan': return step.unit ? `Next: plan how many ${unitWord(step.unit)} to add, and when` : 'Next: set a contribution plan';
     case 'open': return 'Open it to plan the next step';
   }
 }
@@ -55,19 +59,37 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
   const done = due.filter(h => habitDay(h, habits.today, habits.today).status === 'complete').length;
   const healthReady = health.loaded && !health.error;
   const daily = healthReady ? dailyData(health.data) : undefined;
-  const water = healthReady ? waterSummary(health.data, healthDate) : undefined;
+  // Session AL (L2 request; P-NB-28 source): the one water reading Health uses (its journal day, mL, `reached` null without a target).
+  const water = healthReady ? waterOn(health.data, healthDate) : undefined;
   const firstWater = healthReady ? waterButtons(health.data)[0] : undefined;
   const lastNight = healthReady && health.data.sleep ? nightsIn(health.data.sleep, healthDate, 1).at(-1) : undefined;
   const slept = lastNight ? asleep(lastNight) : null;
-  async function logWater() {
-    if (!firstWater) return;
-    // Session AH (HE1; N-105, B-001): the same id and payload as Health's own water button (a bare UUID is refused).
-    const id = newHealthId(), at = new Date().toISOString();
+  const lastTap = useRef(-Infinity);
+  // Session AL (NB-138, P-NB-43): last night in one tap, as water is: Health's own sleep write (quickLastNight + saveNight,
+  // so an overlap is still refused), with Undo that removes exactly that night from the latest record.
+  const sleepStore = useSleep();
+  async function logNight(h: number) {
     try {
-      await health.update(latest => addWater(latest, {id, date: healthDate, amountMilli: firstWater.amountMilli, unit: firstWater.unit}, at));
-      showToast({message: `Water logged: ${firstWater.label.replace(/^Add /, '')}.`, undo: () => health.update(latest => removeWater(latest, id)), undone: 'Water entry removed.'});
+      const before = new Set(sleepStore.sleep.nights.map(n => n.id));
+      let added: string | undefined;
+      await sleepStore.update(s => { const next = saveNight(s, quickLastNight(h, healthDate, Date.now(), sleepStore.zone), new Date()); added = next.nights.find(n => !before.has(n.id))?.id; return next; });
+      showUndo({message: `Last night saved: ${h} h of sleep.`, undone: 'Night removed.', restore: () => sleepStore.update(s => added && s.nights.some(n => n.id === added) ? deleteNight(s, added) : s)});
     } catch (e) {
-      showToast({message: plainErrorMessage(e, 'Could not log water on this device.')});
+      showStatus(plainErrorMessage(e, 'Could not log last night on this device.'), {tone: 'error'});
+    }
+  }
+  async function logWater(tapAt: number) {
+    if (!firstWater) return;
+    // Session AL (MO-111, P-MO-97): a second tap within 350 ms (the event's own time) is one tap, as on Health.
+    if (tapAt - lastTap.current < 350) return;
+    lastTap.current = tapAt;
+    // Session AH (HE1; N-105, B-001): the same id and payload as Health's own water button (a bare UUID is refused).
+    // Session AL (P-NB-27; NB-081, NB-089; L2 request): Health's one water write. Undo removes exactly THIS entry from the
+    // latest Health record (an entry logged since stays), through the app's one toast.
+    try {
+      await logWaterWithUndo(health.update, {id: newHealthId(), date: healthDate, amountMilli: firstWater.amountMilli, unit: firstWater.unit}, firstWater.label.replace(/^Add /, ''));
+    } catch (e) {
+      showStatus(plainErrorMessage(e, 'Could not log water on this device.'), {tone: 'error'});
     }
   }
   return <section className="today-focus" aria-labelledby="today-focus-title" data-habits-widget={habitsWidget ? '' : undefined}>
@@ -99,9 +121,11 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
       {showHealth && <article className="focus-tile" data-tone="health" aria-label="Focus: water today">
         <span className="focus-label"><AppIcon name="health" size={20} />Water</span>
         {!healthReady || !water || !daily ? <p role="status">{health.error ? 'Health needs attention.' : 'Loading Health…'}</p> : <>
-          <strong>{waterText(water.millilitres, daily.preferences.waterUnit)}</strong>
-          <p>{water.targetMl ? `of ${waterText(water.targetMl, daily.preferences.waterUnit)} today` : `${water.entries} ${water.entries === 1 ? 'entry' : 'entries'} today`}</p>
-          <div className="focus-actions">{firstWater && <button type="button" className="secondary" aria-label={`${firstWater.label} of water`} onClick={() => void logWater()}>{firstWater.label}</button>}<Link prefetch={false} className="text-link" href="/app/health?add=entry">Log food →</Link></div>
+          {/* Session AL (Part 13; NOVA review 2 M5): nothing logged is unknown, never a measured 0: "—" and the reason, as NOVA's water card and core say. */}
+          <strong>{water.entries ? waterText(water.millilitres, daily.preferences.waterUnit) : '—'}</strong>
+          {/* Session AL sweep 2 (NOVA review M5): nothing logged yet says so, as NOVA does. */}
+          <p>{!water.entries ? `${NO_WATER_TODAY}${water.targetMl ? ` · target ${waterText(water.targetMl, daily.preferences.waterUnit)}` : ''}` : water.targetMl ? `of ${waterText(water.targetMl, daily.preferences.waterUnit)} today` : `${water.entries} ${water.entries === 1 ? 'entry' : 'entries'} today`}</p>
+          <div className="focus-actions">{firstWater && <button type="button" className="secondary" aria-label={`${firstWater.label} of water`} onClick={e => void logWater(e.timeStamp)}>{firstWater.label}</button>}<Link prefetch={false} className="text-link" href="/app/health?add=entry">Log food →</Link></div>
         </>}
       </article>}
       {showHealth && <article className="focus-tile" data-tone="rest" aria-label={fasting.running ? 'Focus: fasting' : 'Focus: sleep'}>
@@ -115,7 +139,7 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
           <div className="focus-actions"><Link prefetch={false} className="text-link" href="/app/health?view=sleep">Open sleep →</Link></div>
         </> : <>
           <strong>No night logged</strong>
-          <div className="focus-actions"><Link prefetch={false} className="text-link" href="/app/health?view=sleep">Log last night →</Link></div>
+          <div className="focus-actions">{sleepStore.loaded && !sleepStore.error && [7, 8].map(h => <button key={h} type="button" className="secondary" aria-label={`Log ${h} hours of sleep last night`} onClick={() => void logNight(h)}>{h} h</button>)}<Link prefetch={false} className="text-link" href="/app/health?view=sleep">Enter the times →</Link></div>
         </>}
       </article>}
     </div>

@@ -118,6 +118,25 @@ export function undoAutoTick(data: HabitData, marker: AutoApplied, now = new Dat
   return logHabitValue(data, marker.habitId, marker.date, marker.before, {}, now);
 }
 
+/**
+ * Session AL (MO-125): the ticks to take back now: a rule ticked the day, the person has not changed it since (it holds
+ * what the rule wrote) and the source no longer meets the rule (its Health entry was removed). The day goes back to what
+ * it held before (undoAutoTick) and the marker is cleared, so the rule may tick it again if the entry returns.
+ */
+export function autoTickRevocations({record, date, sources, data}: {record: AutoRules; date: string; sources: DaySources; data: Pick<HabitData, 'habits'>}): AutoApplied[] {
+  return record.applied.filter(marker => {
+    if (marker.date !== date || marker.undone) return false;
+    const rule = record.rules.find(r => r.id === marker.ruleId);
+    if (!rule || rule.paused) return false;
+    const entry = data.habits.find(h => h.id === marker.habitId)?.entries.find(e => e.date === date);
+    if (!entry || entry.disposition !== 'logged' || entry.count !== marker.wrote) return false;
+    return !ruleSatisfied(rule, sourceValue(rule, sources));
+  });
+}
+export function clearAutoTick(record: AutoRules, habitId: string, date: string): AutoRules {
+  return appliedOn(record.applied, habitId, date) ? autoRulesSchema.parse({...record, applied: record.applied.filter(a => a.habitId !== habitId || a.date !== date)}) : record;
+}
+
 // Record mutators: pure, each validates the result.
 export function recordAutoTick(record: AutoRules, marker: AutoApplied): AutoRules {
   if (appliedOn(record.applied, marker.habitId, marker.date)) return record;

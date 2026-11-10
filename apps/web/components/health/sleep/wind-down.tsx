@@ -19,7 +19,8 @@ export function WindDownSetting() {
   if (!w.loaded) return null;
   if (w.unreadable) return <p className="fine" role="alert">This device’s reminders could not be read. They were not changed.</p>;
   return <form className="sleep-wind-down" onSubmit={submit} aria-label="Wind-down reminder">
-    <label className="field">Wind-down reminder (this device)<input type="time" name="time" defaultValue={time ?? '22:00'} key={time ?? 'none'}/></label>
+    {/* Session AL (P-MO-80): the suggested time sits before the default quiet hours (22:00), never inside them. */}
+    <label className="field">Wind-down reminder (this device)<input type="time" name="time" defaultValue={time ?? '21:30'} key={time ?? 'none'}/></label>
     <div className="actions"><button type="submit" className="secondary">{time ? 'Change' : 'Set reminder'}</button>{time && <button type="button" className="text-link" onClick={() => save(null, 'Wind-down reminder turned off.')}>Turn off</button>}</div>
     <p className="fine">{time ? `Today shows a card from ${formatClock(time)} until you go to bed.` : 'Off.'} ZIGi can knock too if you turned knocking on, outside its quiet hours.</p>
     {note && <p role={note.failed ? 'alert' : 'status'}>{note.text}</p>}

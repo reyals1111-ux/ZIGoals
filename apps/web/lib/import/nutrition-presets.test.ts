@@ -19,7 +19,8 @@ test('MyFitnessPal: one entry per meal named after it; calcium and iron (a % of 
   expect(preset.mapping.calcium).toBeUndefined();
   expect(preset.mapping.iron).toBeUndefined();
   const plan = planNutritionImport({rows: parsed.rows, mapping: preset.mapping, numberStyle: 'point', dateFormat: 'iso', basis: 'serving', today: '2026-10-07', importId: 'mfp', at: '2026-10-07T00:00:00.000Z'});
-  expect(plan.entries.map(e => [e.meal, e.snapshot.name, e.snapshot.nutrients.kcal, e.snapshot.nutrients.proteinMg])).toEqual([['Breakfast', 'Breakfast', 420, 22_000], ['Dinner', 'Dinner', 700, 40_000]]);
+  // Session AL third pass (MO-049; COPY_AUDIT, deliberate): a meal-totals row says it is the meal's total.
+  expect(plan.entries.map(e => [e.meal, e.snapshot.name, e.snapshot.nutrients.kcal, e.snapshot.nutrients.proteinMg])).toEqual([['Breakfast', 'Breakfast (meal total)', 420, 22_000], ['Dinner', 'Dinner (meal total)', 700, 40_000]]);
   expect(plan.entries[0]!.snapshot.nutrients.calciumMg).toBeUndefined();
   expect(plan.foods).toEqual([]);
 });

@@ -1,5 +1,5 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
-import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {earnRoutes, openEarnFolds, seedShowcase} from './earn-fixtures';
 import {seedChecklist, settled} from './checklist-fixtures';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist} from '../lib/checklist/schema';
@@ -25,6 +25,8 @@ async function openEarn(page: Page) {
   await page.goto('/app/earn');
   await expect(page.locator('[data-live-figure="native-apr"]')).toHaveAttribute('data-state', 'ok');
   await expect.poll(() => page.locator('[data-live-figure][data-state="loading"]').count()).toBe(0);
+  // Session AL (D-088, deliberate): on a phone the wider sections are folded rows; they are opened first, as a person would.
+  await openEarnFolds(page);
 }
 
 test.describe('Earn', () => {
@@ -166,8 +168,11 @@ test.describe('Earn', () => {
     // Session AF Gate C (design critique, copy; moved, as strict): the same official source, by its plain name.
     await expect(calc.locator('.earn-source').first()).toContainText('ZIGChain’s official mainnet server');
     await expect(calc.locator('.earn-source').first()).toContainText(/ · as of /);
-    // 15. The Academy's end chest is named like Start here's.
-    await expect(page.locator('#start-here .path-chest[data-milestone="start-complete"]')).toContainText('Start here, complete');
+    // 15. The Academy's end chest is named like Start here's. Session AL (D9, deliberate): the Academy path loads when it
+    // comes near the screen, so bring it into view first.
+    await page.locator('#academy').scrollIntoViewIfNeeded();
+    // Session AL (COPY_AUDIT, deliberate, D-149): the Earn guide ends with practice; its end reads "End of the guide".
+    await expect(page.locator('#start-here .path-chest[data-milestone="start-complete"]')).toContainText('End of the guide');
     await expect(page.locator('#academy .path-chest[data-milestone="academy-done"]')).toContainText(/Academy, complete|Every lesson passed/);
     await expect(page.locator('#academy .path-chest[data-milestone="academy-done"]')).not.toContainText('Earn Academy');
   });
@@ -394,7 +399,8 @@ test.describe('Gate C design review', () => {
     expect(area.left).toBeCloseTo(primary.left, 0);
     // Session AK (ADR-036, deliberate): from 1280 px the full-width parts under Today's columns keep the launchers' lane free (G2, RELEASE_REVIEW R20, components/ui/ui.css --launcher-gutter); 0 below 1280 px.
     const gutter = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--launcher-gutter')) || 0);
-    expect(gutter, 'the launcher lane').toBe(width >= 1280 ? 58 : 0);
+    // Session AL (CI 1629, deliberate; D-064/AL-LAUNCHER-OVERLAP-001, 53df729f): the same gutter applies from 901 px (app/globals.css), so 58 at 1024 px too.
+    expect(gutter, 'the launcher lane').toBe(width >= 901 ? 58 : 0);
     expect(area.right, 'under the rail too').toBeCloseTo(rail.right - gutter, 0);
     expect(area.top, 'below both columns').toBeGreaterThanOrEqual(Math.max(primary.bottom, rail.bottom));
   });

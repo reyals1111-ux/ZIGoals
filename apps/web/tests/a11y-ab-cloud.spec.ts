@@ -88,12 +88,12 @@ test('Vitamins on the food form and in the micronutrient view: named fields and 
   // Session AC (CI run 38868257022): the view bar is tapped once Health has opened its records; a tap before that went
   // nowhere and the Diary stayed.
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
-  await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Targets', exact: true}).click();
+  await page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name: 'Targets', exact: true}).click();
   const vitamins = page.getByRole('region', {name: 'Micronutrients'}).locator('[data-region="vitamins"]');
   await expect(vitamins.getByRole('progressbar').first()).toBeVisible();
   expect(await audit(vitamins)).toEqual([]);
   expect(await small(vitamins)).toEqual([]);
-  await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Foods & recipes', exact: true}).click();
+  await page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name: 'Foods & recipes', exact: true}).click();
   await page.getByRole('button', {name: /^Edit food /}).first().click();
   const fields = page.getByRole('group', {name: 'Vitamins (optional)'});
   await expect(fields).toBeVisible();

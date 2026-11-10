@@ -56,6 +56,8 @@ export async function createFictionalGoal(page, expect, {name = GOAL_SENTINELS.n
   await page.getByRole('group', {name: 'Category / artwork'}).getByRole('radio', {name: 'Travel', exact: true}).check();
   // Session AJ (item 11): the Goal-name race's helper (scripts/run11/goal-name.mjs) types until the field holds the name.
   await typeGoalName(page, name);
+  // Session AL (L4 fifth pass, 4a8543f9, deliberate): the wizard asks for the kind of progress; the verifier's ZIG target (18 decimals, GOAL_SENTINELS.targetUnits) is a Quantity of ZIG.
+  await page.getByRole('group', {name: 'What kind of progress matters?'}).getByRole('radio', {name: 'Quantity', exact: true}).check();
   await page.getByLabel('Target amount').fill(target);
   await page.getByRole('button', {name: 'Continue →', exact: true}).click();
   await page.getByLabel('ZIGoals funding / Local simulation', {exact: true}).check();

@@ -70,6 +70,10 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   let sheet = await openImport(page);
   await sheet.getByRole('button', {name: 'CSV file', exact: true}).click();
   await sheet.getByLabel('CSV file', {exact: true}).setInputFiles(file('bank.csv', CSV, 'text/csv'));
+  // Session AL (P-DVR-22, deliberate): a file with no currency column starts in the one default currency (en-US here),
+  // never a fixed EUR; this euro bank's file is set to EUR, as the person would.
+  // (A label that wraps its select carries the options' words, so the exact label text never matches; the combobox's name does.)
+  await sheet.getByRole('combobox', {name: 'Currency of this file', exact: true}).selectOption('EUR');
   await sheet.getByRole('button', {name: 'Next', exact: true}).click();
   await expect(sheet.locator('.import-summary')).toContainText('7 rows read · 7 ticked · 0 rows refused');
   await sheet.getByRole('button', {name: 'Next', exact: true}).click();
@@ -114,7 +118,9 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   await expect(page.locator('.money-status')).toContainText('Rule saved.');
   await page.getByRole('button', {name: 'Apply to the past 90 days…', exact: true}).click();
   await page.getByRole('button', {name: 'Apply to 3 entries', exact: true}).click();
-  await expect(page.locator('.money-status').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
+  // Session AL (PRIMITIVES 3e, deliberate): the rule run's Undo moved from a local link into the app's one Undo toast.
+  await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
+  await expect(page.locator('.money-status')).toContainText('3 entries changed.');
   await expect.poll(async () => (await moneyLog(page))!.entries.filter(e => e.note?.startsWith('Fictional Grocer')).map(e => e.category)).toEqual(['Groceries', 'Groceries', 'Groceries']);
 
   // A split: the hardware bill is half Home, half a Gift.
@@ -159,6 +165,8 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   const fund = page.getByRole('dialog', {name: 'Fund your Goal'});
   await fund.getByLabel('Cash amount', {exact: true}).fill('200');
   await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
+  await fund.getByRole('button', {name: 'Change the amount', exact: true}).click();
   await fund.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('50');
   await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click();
   await expect(fund.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
@@ -202,7 +210,8 @@ test('@journey 3b bug J3-1: weekly "Fund Goal" contributions from cash make a rh
     await nextDay(page, at(day, '10:00'), `/app/goals/tracked/${GOAL_ID}`);
     await page.getByRole('button', {name: 'Record contribution', exact: true}).click();
     const fund = page.getByRole('dialog', {name: 'Fund your Goal'});
-    if (i === 0) { await fund.getByLabel('Cash amount', {exact: true}).fill('500'); await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click(); }
+    // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
+    if (i === 0) { await fund.getByLabel('Cash amount', {exact: true}).fill('500'); await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click(); await fund.getByRole('button', {name: 'Change the amount', exact: true}).click(); }
     else await fund.getByRole('button', {name: /^EUR Cash/}).click();
     await fund.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('50');
     await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click();
@@ -225,6 +234,8 @@ test('@journey 3c bug J3-2: "Fill in" from the contribution rhythm fills the amo
   let fund = page.getByRole('dialog', {name: 'Fund your Goal'});
   await fund.getByLabel('Cash amount', {exact: true}).fill('200');
   await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
+  await fund.getByRole('button', {name: 'Change the amount', exact: true}).click();
   await fund.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('50');
   await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click();
   await fund.getByRole('button', {name: 'Confirm & fund Goal', exact: true}).click();

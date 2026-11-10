@@ -88,6 +88,8 @@ export function reactionOf(skin: Skin, code: string, manifest: Manifest = ZIGI_M
 export const clipLanded = (clip: ExtraClip | null | undefined): clip is ExtraClip => !!clip && typeof clip === 'object' && !!(clip.files?.animated || clip.files?.animatedFallback);
 /** The X030 cheer (the Checklist's celebration), or null while it has not landed. */
 export const cheerOf = (skin: Skin): ExtraClip | null => { const clip = extrasOf(skin).celebrations?.cheer; return clipLanded(clip) ? clip : null; };
+/** Session AL Part 14 (D13): a held-gaze clip (X020 chat box, X021 the person, X022 the page), or null while it has not landed. */
+export const gazeOf = (skin: Skin, slot: 'chatInput' | 'viewer' | 'target' | null): ExtraClip | null => { if (!slot) return null; const clip = extrasOf(skin).gaze[slot]; return clipLanded(clip) ? clip : null; };
 /** The X050–X054 variant clips that have landed, in slot order. */
 export const variantsOf = (skin: Skin): ExtraClip[] => Object.values(extrasOf(skin).variants ?? {}).filter(clipLanded);
 /** The events whose reaction clip has landed and is named by a trigger (reactionTriggers: R0nn → semantic event). */

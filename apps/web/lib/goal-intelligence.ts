@@ -1,7 +1,10 @@
 /** Private financial facts and zero-return forecasts. No network or execution dependencies. */
 import {contributionEventSchema,platformSchema,localGoalLocked,confirmedLocalObservation,goalProgress,planScenario,rescaleUnits,scenarioHorizon,type ContributionEvent,type Platform,type PrivateGoal,type GoalHistory,type ValuationSnapshot} from './positions';
+import {dateObservedCompletions} from './goals/observed-completion';
+import {archivedReleaseLabel} from './goals/released';
 import {marketQuoteSchema,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import type {z} from 'zod';
+import {calendarDay,formatDate} from './visual-format';
 import {capturePlanChanges,captureGoalLifecycle,revisionInstallments,effectiveContributionPlan,planDay,planZone,shiftPlanDay} from './plan-revisions';
 export const MAX_VALUATION_SNAPSHOTS=50000;
 export const MAX_GOAL_HISTORY=50000;
@@ -48,6 +51,17 @@ export function contributionTotals(s:Platform,goalId:string,now=Date.now(),scope
  const latest=events.filter(e=>!e.reversesId&&e.provenance!=='REWARD_INCOME'&&e.direction==='IN'&&!reversed.has(e.id)).sort((a,b)=>Date.parse(b.occurredAt)-Date.parse(a.occurredAt)||b.id.localeCompare(a.id))[0];
  return {contributed:contributed.toString(),withdrawn:withdrawn.toString(),net:(contributed-withdrawn).toString(),rewardIncome:rewardIncome.toString(),latest,unvaluedCount};
 }
+/**
+ * Session AL (DV-037, P-DV-26): the net of a Goal's history-only records (fundingMode HISTORY_ONLY, net of reversals and
+ * withdrawals), in Goal base units. These are counted in "Actual contributed" but never in progress.
+ */
+export function historyOnlyNet(s:Platform,g:Pick<PrivateGoal,'id'|'asset'|'decimals'|'type'>,now=Date.now()):string{
+ const events=s.contributions.filter(e=>e.goalId===g.id&&e.goalScope==='private'&&Date.parse(e.occurredAt)<=now&&e.provenance!=='REWARD_INCOME');
+ const historyIds=new Set(events.filter(e=>e.fundingMode==='HISTORY_ONLY'&&!e.reversesId).map(e=>e.id));
+ let net=0n;
+ for(const e of events){const counts=historyIds.has(e.id)||(!!e.reversesId&&historyIds.has(e.reversesId));if(!counts)continue;const v=eventValueForGoal(e,g);if(v===null)continue;net+=e.direction==='IN'?v:-v;}
+ return net.toString();
+}
 /** Only explicit funding links consume scheduled installments; history and market changes do not. */
 export function scheduledFundingCredits(s:Platform,g:PrivateGoal,now:number):Map<string,bigint>{
  const credits=new Map<string,bigint>();
@@ -89,7 +103,9 @@ export function fundingHealth(s:Platform,goalId:string,now=Date.now(),quotes:rea
  // the target, and by the target date when there is one; a shortfall or a later finish reads "Behind".
  const reaches=projected>=target&&(!g.targetDate||(completionDate!==null&&completionDate<=g.targetDate));
  // UNKNOWN liquidity (manual stocks, property, custom assets) is reported as unknown, never as "not liquid".
- const allocatedLiquidity=s.allocations.filter(a=>a.goalId===goalId&&BigInt(a.quantity)>0n).map(a=>s.positions.find(p=>p.id===a.positionId)?.liquidity);
+ // Session AL fifth pass (DV-034a, DV-104, MO-120): a count of the person's own unit (books) has no liquidity to warn about
+ // ("The liquidity of some allocated wealth is unknown." on a books goal).
+ const allocatedLiquidity=g.type==='QUANTITY'&&g.denom.startsWith('manual:')?[]:s.allocations.filter(a=>a.goalId===goalId&&BigInt(a.quantity)>0n).map(a=>s.positions.find(p=>p.id===a.positionId)?.liquidity);
  const liquidityWarning=allocatedLiquidity.some(l=>l!==undefined&&l!=='LIQUID'&&l!=='UNKNOWN'),liquidityUnknown=allocatedLiquidity.includes('UNKNOWN');
  const warnings=[...(g.planRevisions?.[0]?.priorHistory==='unknown'?['Earlier plan terms are unknown; planned totals start at the first recorded revision. Lifetime actual contributions and this partial plan history cannot establish complete historical pace.']:[]),...(g.planRevisions?.length&&s.contributions.some(e=>e.goalId===g.id&&e.goalScope==='private'&&e.scheduledDate&&!e.installmentId)?['Older date-only funding links are retained as unmatched history; no revision match is assumed.']:[]),...(liquidityWarning?['Some allocated wealth is not liquid.']:[]),...(liquidityUnknown?['The liquidity of some allocated wealth is unknown.']:[]),...(progress.requiresReview?['Stale, missing or incomplete valuation/quantity evidence needs review.']:[]),...(planWarning?['Plan requires a compatible price assumption.']:[]),...(totals.unvaluedCount?['Some recorded events have no value in this Goal’s unit.']:[])];
  return {current:progress.current,target:progress.target,remaining:progress.remaining,actual:totals.net,rewardIncome:totals.rewardIncome,plannedThroughToday,dueToday,planZone:zone,variance:variance.toString(),plannedFuture,requiredRecurring:dates.length?((BigInt(progress.remaining)+BigInt(dates.length)-1n)/BigInt(dates.length)).toString():null,completionDate,nextDate,overdue:variance<0n,latest:totals.latest,shortfall:max(0n,target-projected).toString(),surplus:max(0n,projected-target).toString(),warnings,status:progress.requiresReview||planWarning||g.planRevisions?.[0]?.priorHistory==='unknown'?'REVIEW':BigInt(progress.current)>=target?'COMPLETED':!effectiveContributionPlan(g,today)?.active&&plannedFuture==='0'?'NO_PLAN':variance<0n||!reaches?'BEHIND':variance>0n?'AHEAD':'ON_TRACK',horizon};
@@ -99,13 +115,29 @@ export function goalTimeline(s:Platform,goalId:string,scope:'private'|'local'='p
  const result:GoalTimelineEvent[]=s.contributions.filter(e=>e.goalId===goalId&&e.goalScope===scope).map(e=>({id:`contribution:${e.id}`,goalId,at:e.occurredAt,kind:e.reversesId?'reversal':e.provenance==='REWARD_INCOME'?'income':e.direction==='IN'?'contribution':'withdrawal',label:e.reversesId?'Contribution correction':e.provenance==='REWARD_INCOME'?'Recorded reward / income':e.direction==='IN'?'Contribution':'Withdrawal',provenance:e.provenance,quantity:e.quantity,asset:e.asset,decimals:e.decimals}));
  if(scope==='private'){
   const goal=s.goals.find(g=>g.id===goalId);
-  for(const r of goal?.planRevisions??[])result.push({id:r.id,goalId,at:r.recordedAt,kind:'plan_revision',label:`Plan terms effective ${r.effectiveFrom}${r.priorHistory==='unknown'?' · earlier terms unknown':''}`,provenance:'RETAINED_PLAN_REVISION'});
-  for(const e of goal?.lifecycle??[])result.push({id:e.id,goalId,at:e.at,kind:'lifecycle',label:e.kind==='completed'?'Target reached · retained milestone':e.kind==='closed'?'Goal closed':e.kind==='reopened'?'Goal reopened · new cycle':'Target revised · new cycle',provenance:'RETAINED_MILESTONE',quantity:e.current,asset:e.asset,decimals:e.decimals});
-  for(const h of s.goalHistory.filter(h=>h.goalId===goalId))result.push(h.kind==='valuation'?{id:h.id,goalId,at:h.capturedAt,kind:'valuation',label:'Counted Goal value snapshot',provenance:h.requiresReview?'INCOMPLETE_EVIDENCE':'PRIVATE_SNAPSHOT',quantity:h.current,asset:h.asset,decimals:h.decimals}:{id:h.id,goalId,at:h.capturedAt,kind:h.kind,label:h.label,provenance:h.provenance});
+  for(const r of goal?.planRevisions??[])result.push({id:r.id,goalId,at:r.recordedAt,kind:'plan_revision',label:/* Session AL final pass (B-185, M-060, DV-033d): the shared date format, never ISO */`Plan terms effective ${formatDate(r.effectiveFrom)}${r.priorHistory==='unknown'?' · earlier terms unknown':''}`,provenance:'RETAINED_PLAN_REVISION'});
+  for(const e of goal?.lifecycle??[])result.push({id:e.id,goalId,at:e.at,kind:'lifecycle',label:/* Session AL (P-DV-75): plain words */e.kind==='completed'?'Target reached · goal completed':e.kind==='closed'?'Goal closed':e.kind==='reopened'?'Goal reopened':'Target changed',provenance:'RETAINED_MILESTONE',quantity:e.current,asset:e.asset,decimals:e.decimals});
+  // Session AL (DV-046a, DV-088, DV-113, P-DV-71; G-033, BUG-040): one close writes a lifecycle row and a status row; the
+  // timeline (and so Activity) shows the lifecycle row once and skips the status row that repeats it.
+  const lifecycleAt=(kind:string)=>(goal?.lifecycle??[]).filter(e=>e.kind===kind).map(e=>Date.parse(e.at));
+  const repeatsLifecycle=(h:GoalHistory)=>{if(h.kind!=='status')return false;const kind=h.label==='Goal closed'?'closed':h.label==='Goal completed'?'completed':h.label==='Goal reactivated'?'reopened':null;if(!kind)return false;const at=Date.parse(h.capturedAt);return lifecycleAt(kind).some(t=>Math.abs(t-at)<=60_000);};
+  // Session AL fourth pass (DV-041b, NB-098, NB-174): a project counts milestones; its daily value snapshots ("0 USD")
+  // are not part of its story, so its timeline lists milestones, status and lifecycle only.
+  for(const h of s.goalHistory.filter(h=>h.goalId===goalId&&!repeatsLifecycle(h)&&!(goal?.type==='PROJECT'&&h.kind==='valuation')))result.push(h.kind==='valuation'?{id:h.id,goalId,at:h.capturedAt,kind:'valuation',label:'Counted value snapshot',provenance:h.requiresReview?'INCOMPLETE_EVIDENCE':'PRIVATE_SNAPSHOT',quantity:h.current,asset:h.asset,decimals:h.decimals}:{id:h.id,goalId,at:h.capturedAt,kind:h.kind,label:h.label,provenance:h.provenance});
   const positions=new Set(s.allocations.filter(a=>a.goalId===goalId).map(a=>a.positionId));
   for(const [i,o] of s.snapshots.entries())if(positions.has(o.positionId)){const p=s.positions.find(p=>p.id===o.positionId);if(p)result.push({id:`observation:${o.positionId}:${o.observedAt}:${i}`,goalId,at:o.observedAt,kind:'observation',label:'Position quantity observed',provenance:p.provenance,quantity:o.quantity,asset:p.asset,decimals:p.decimals});}
  }
  return result.sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||a.id.localeCompare(b.id));
+}
+/** Session AL (DV-046b, P-DV-72): one line for a milestone change ("Milestone ticked: “Build”"), at most 300 characters. */
+export function milestoneChangeLabel(before:PrivateGoal['milestones'],after:PrivateGoal['milestones']):string{
+ const q=(t:string)=>`“${t.length>80?t.slice(0,79)+'…':t}”`;
+ const changes:string[]=[];
+ for(const m of after){const o=before.find(x=>x.id===m.id);if(!o)changes.push(`Milestone added: ${q(m.title)}`);else{if(o.title!==m.title)changes.push(`Milestone renamed: ${q(o.title)} → ${q(m.title)}`);if(o.done!==m.done)changes.push(`${m.done?'Milestone ticked':'Milestone unticked'}: ${q(m.title)}`);}}
+ for(const o of before)if(!after.some(m=>m.id===o.id))changes.push(`Milestone removed: ${q(o.title)}`);
+ if(!changes.length)return 'Milestones reordered';
+ const text=changes.length===1?changes[0]!:`${changes[0]} and ${changes.length-1} more ${changes.length===2?'change':'changes'}`;
+ return text.slice(0,300);
 }
 /** Record changed facts once at the private store mutation boundary, not on render. */
 export function recordGoalChanges(before:Platform,after:Platform,now=Date.now()):Platform {
@@ -113,10 +145,23 @@ export function recordGoalChanges(before:Platform,after:Platform,now=Date.now())
  const capturedAt=timestamp(now),added:GoalHistory[]=[];
  for(const g of after.goals){const old=before.goals.find(x=>x.id===g.id);
   const add=(kind:'allocation'|'plan'|'milestone'|'status',label:string)=>added.push({id:`change:${g.id}:${kind}:${crypto.randomUUID()}`,goalId:g.id,kind,capturedAt,label,provenance:'LOCAL_EDIT'});
-  if(JSON.stringify(old?.plan)!==JSON.stringify(g.plan))add('plan',!old?.plan?'Contribution plan created':g.plan?.active===false?'Contribution plan paused':'Contribution plan changed');
-  if(old&&JSON.stringify(old.milestones)!==JSON.stringify(g.milestones))add('milestone','Goal milestones changed');
-  if(old&&old.status!==g.status)add('status',g.status==='completed'?'Goal completed':g.status==='closed'?'Goal closed':'Goal reactivated');
-  if(JSON.stringify(before.allocations.filter(a=>a.goalId===g.id))!==JSON.stringify(after.allocations.filter(a=>a.goalId===g.id)))add('allocation','Goal allocation changed');
+  // Session AL (P-DV-09): Undo of a Delete brings the Goal back with its own history rows; no new "plan created" row.
+  const restored=!old&&after.goalHistory.some(h=>h.goalId===g.id);
+  if(!restored&&JSON.stringify(old?.plan)!==JSON.stringify(g.plan))add('plan',!old?.plan?'Contribution plan created':g.plan?.active===false?'Contribution plan paused':'Contribution plan changed');
+  // Session AL (DV-046b, DV-112, P-DV-72; G-035): the row says which milestone and what happened to it.
+  if(old&&JSON.stringify(old.milestones)!==JSON.stringify(g.milestones))add('milestone',milestoneChangeLabel(old.milestones,g.milestones));
+  // Session AL (DV-025b): a target lowered to what is already counted reads as reached, said as such (not "Goal completed").
+  const byEdit=g.status==='completed'&&old?.target!==g.target&&!g.lifecycle?.some(e=>e.kind==='completed'&&e.cycle===(g.lifecycle?.at(-1)?.cycle??0));
+  if(old&&old.status!==g.status)add('status',byEdit?'Target lowered to what is counted · reads as reached':g.status==='completed'?'Goal completed':g.status==='closed'?'Goal closed':'Goal reactivated');
+  // Fix-up (CI 1539, TK-196): an allocation released because its asset was archived in this same save names that asset
+  // (lib/goals/released.ts reads it); any other change to this goal's allocations is the plain line, as before.
+  const was=before.allocations.filter(a=>a.goalId===g.id),kept=after.allocations.filter(a=>a.goalId===g.id);
+  if(JSON.stringify(was)!==JSON.stringify(kept)){
+   const archivedHere=(id:string)=>!!after.positions.find(p=>p.id===id)?.archivedAt&&!before.positions.find(p=>p.id===id)?.archivedAt;
+   const released=was.filter(a=>archivedHere(a.positionId)&&!kept.some(b=>b.positionId===a.positionId));
+   for(const a of released){const p=after.positions.find(x=>x.id===a.positionId)!;add('allocation',archivedReleaseLabel(p.validator?.name??p.providerId));}
+   if(JSON.stringify(was.filter(a=>!released.includes(a)))!==JSON.stringify(kept))add('allocation','Goal allocation changed');
+  }
  }
  return added.length?compactHistory({...after,goalHistory:[...after.goalHistory,...added]}):after;
 }
@@ -129,7 +174,8 @@ function compactHistory(s:Platform):Platform {
 }
 /** Collection and byte ceilings reject new captures instead of deleting earlier evidence. */
 export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=Date.now()):Platform {
- s=captureGoalLifecycle(s,s,now,quotes);
+ // PR-057/B-058 (fourth pass): a completion this tick only notices is dated where the goal's own history first showed it.
+ {const ticked=captureGoalLifecycle(s,s,now,quotes);s=dateObservedCompletions(s,ticked,now);}
  const capturedAt=timestamp(now),day=capturedAt.slice(0,10),valuations:ValuationSnapshot[]=[],goals:GoalHistory[]=[];
  const captureDays={...s.historyCaptureDays};
  for(const p of s.positions.filter(p=>!p.archivedAt)){
@@ -161,11 +207,20 @@ export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=D
  return compactHistory({...s,historyCaptureDays:Object.fromEntries(Object.entries(captureDays).filter(([key])=>activeKeys.has(key))),valuationSnapshots:[...s.valuationSnapshots,...valuations],goalHistory:[...s.goalHistory,...goals]});
 }
 
-/** All retained facts remain reachable; date filters use UTC, display may use local time. */
-export function pageGoalTimeline(events:readonly GoalTimelineEvent[],query:{page:number;kind?:string;from?:string;to?:string}){
+/** All retained facts remain reachable; date filters use the person's zone when given (else UTC), as the times are shown. */
+/**
+ * `from`/`to` are calendar days. Session AL final pass (DV-038d): with `timeZone` (the person's app zone) an event counts on
+ * its day in that zone, as its time is shown; without it, the day in UTC (the earlier reading, kept for callers that pass none).
+ */
+export function pageGoalTimeline(events:readonly GoalTimelineEvent[],query:{page:number;kind?:string;from?:string;to?:string;timeZone?:string}){
+ const day=/^\d{4}-\d{2}-\d{2}$/;
+ if(query.timeZone){
+  if(query.from&&!day.test(query.from)||query.to&&!day.test(query.to)||query.from&&query.to&&query.from>query.to)throw Error('Choose a valid date range.');
+ }
  const start=query.from?Date.parse(query.from+'T00:00:00Z'):-Infinity,end=query.to?Date.parse(query.to+'T23:59:59.999Z'):Infinity;
  if(Number.isNaN(start)||Number.isNaN(end)||start>end)throw Error('Choose a valid UTC date range.');
- const filtered=events.filter(e=>(!query.kind||e.kind===query.kind)&&Date.parse(e.at)>=start&&Date.parse(e.at)<=end).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||a.id.localeCompare(b.id));
+ const inRange=(at:string)=>{if(!query.timeZone)return Date.parse(at)>=start&&Date.parse(at)<=end;const d=calendarDay(at,query.timeZone);return (!query.from||d>=query.from)&&(!query.to||d<=query.to);};
+ const filtered=events.filter(e=>(!query.kind||e.kind===query.kind)&&inRange(e.at)).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||a.id.localeCompare(b.id));
  const pages=Math.max(1,Math.ceil(filtered.length/12)),page=Math.max(0,Math.min(pages-1,Number.isSafeInteger(query.page)?query.page:0));
  return {events:filtered.slice(page*12,page*12+12),page,pages,total:filtered.length};
 }

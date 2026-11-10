@@ -10,7 +10,13 @@ import type {DeviceRecordSpec} from '../device-record';
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const customKindSchema = z.looseObject({id: z.string().regex(/^[a-z0-9-]{1,40}$/), label: z.string().min(1).max(40), unit: z.enum(['cm', 'in'])});
 export const customReadingSchema = z.looseObject({id: z.string().min(1).max(80), kind: z.string().regex(/^[a-z0-9-]{1,40}$/), date: day, valueMilli: z.number().int().min(1).max(5_000_000), at: z.iso.datetime()});
-export const measurementsCustomSchema = z.looseObject({version: z.literal(1), kinds: z.array(customKindSchema).max(20).optional(), readings: z.array(customReadingSchema).max(5000).optional()});
+/**
+ * Session AL third pass (GAP-053, C-MO-17): body-fat readings in tenths of a percent (2.0–75.0 %), one per day, beside the
+ * custom kinds. A new optional part of this loose record, so builds that do not know it keep it and ignore it. A scale's
+ * reading or your own; the number is what you typed, never estimated.
+ */
+export const bodyFatReadingSchema = z.looseObject({id: z.string().min(1).max(80), date: day, tenths: z.number().int().min(20).max(750), at: z.iso.datetime()});
+export const measurementsCustomSchema = z.looseObject({version: z.literal(1), kinds: z.array(customKindSchema).max(20).optional(), readings: z.array(customReadingSchema).max(5000).optional(), bodyFat: z.array(bodyFatReadingSchema).max(5000).optional()});
 export type MeasurementsCustom = z.infer<typeof measurementsCustomSchema>;
 export const emptyMeasurementsCustom = (): MeasurementsCustom => ({version: 1});
 export const MEASUREMENTS_CUSTOM: DeviceRecordSpec<MeasurementsCustom> = {key: MEASUREMENTS_CUSTOM_KEY, schema: measurementsCustomSchema, empty: emptyMeasurementsCustom};
@@ -29,3 +35,13 @@ export function addCustomReading(r: MeasurementsCustom, kind: string, date: stri
 }
 export const removeCustomReading = (r: MeasurementsCustom, id: string): MeasurementsCustom => measurementsCustomSchema.parse({...r, readings: (r.readings ?? []).filter(x => x.id !== id)});
 export const customHistory = (r: MeasurementsCustom, kind: string) => (r.readings ?? []).filter(x => x.kind === kind).sort((a, b) => a.date.localeCompare(b.date));
+
+export const BODY_FAT_MIN = 2, BODY_FAT_MAX = 75;
+/** One body-fat reading for a day (a second on the same day replaces it), in percent with one decimal. */
+export function addBodyFat(r: MeasurementsCustom, date: string, percent: number, at: string, id = `bodyfat_${crypto.randomUUID()}`): MeasurementsCustom {
+  if (!(percent >= BODY_FAT_MIN && percent <= BODY_FAT_MAX)) throw new Error(`A body-fat reading is between ${BODY_FAT_MIN} % and ${BODY_FAT_MAX} %.`);
+  const kept = (r.bodyFat ?? []).filter(x => x.date !== date);
+  return measurementsCustomSchema.parse({...r, bodyFat: [...kept, {id, date, tenths: Math.round(percent * 10), at}]});
+}
+export const removeBodyFat = (r: MeasurementsCustom, id: string): MeasurementsCustom => { const left = (r.bodyFat ?? []).filter(x => x.id !== id); return measurementsCustomSchema.parse({...r, bodyFat: left.length ? left : undefined}); };
+export const bodyFatHistory = (r: MeasurementsCustom | null | undefined) => [...(r?.bodyFat ?? [])].sort((a, b) => a.date.localeCompare(b.date)).map(x => ({id: x.id, date: x.date, value: x.tenths / 10}));

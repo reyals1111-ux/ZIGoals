@@ -4,7 +4,7 @@ import {inQuietHours} from '../habits-extras/bell';
 /**
  * Which plan reminders are due now, on this device: the time has passed today, the kind is on, it was not dismissed
  * today, and the quiet hours do not cover now (a reminder that falls in the quiet hours waits until they end). The weekly
- * review and the goal check-in take a weekday; a fast's end needs a running fast past its target.
+ * review and the goal check-in take a weekday; a fast's end needs a running fast past its target, and no time of day.
  */
 export type PlanDue = {id: string; kind: PlanKind; title: string; line: string; href: string};
 export function planDue(plan: RemindersPlan, now: Date, today: string, context: {weekday: number; reviewWeekday: number; fastDone: boolean}): PlanDue[] {
@@ -13,13 +13,15 @@ export function planDue(plan: RemindersPlan, now: Date, today: string, context: 
   const out: PlanDue[] = [];
   for (const kind of Object.keys(plan.items ?? {}) as PlanKind[]) {
     const item = plan.items![kind]!; if (!item.on || plan.dismissed?.[kind] === today) continue;
-    const [h, m] = (item.time ?? PLAN_LABELS[kind].defaultTime).split(':').map(Number); if (minutes < h! * 60 + m!) continue;
+    // Session AL fifth pass (C-DVG-41): a fast's end has no clock time of its own; it is due the moment the running fast
+    // reaches its target (a 16 h fast ending at 06:00 waited for 12:00), the quiet hours still kept.
+    const [h, m] = (item.time ?? PLAN_LABELS[kind].defaultTime).split(':').map(Number); if (kind !== 'fasting-end' && minutes < h! * 60 + m!) continue;
     // Session AH (SE2; B-126, N-093): one review day, Settings' (a weekday stored here by older builds is not used).
     if (kind === 'review' && context.reviewWeekday !== context.weekday) continue;
     if (kind === 'goal-checkin' && (item.weekday ?? 0) !== context.weekday) continue;
     if (kind === 'fasting-end' && !context.fastDone) continue;
     const line = kind === 'bedtime' ? 'Time to wind down.' : kind === 'review' ? 'Your weekly review is open.' : kind === 'fasting-end' ? 'Your fast has reached its target hours.' : 'A moment for your goals.';
-    out.push({id: kind, kind, title: PLAN_LABELS[kind].title, line, href: kind === 'bedtime' ? '/app/health?view=sleep' : kind === 'review' ? '/app' : kind === 'fasting-end' ? '/app/health' : '/app/goals'});
+    out.push({id: kind, kind, title: PLAN_LABELS[kind].title, line, href: kind === 'bedtime' ? '/app/health?view=sleep' : kind === 'review' ? '/app/review' : kind === 'fasting-end' ? '/app/health' : '/app/goals'});
   }
   return out;
 }

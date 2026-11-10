@@ -9,6 +9,8 @@ import { entranceAllowed } from "./use-entrance";
 import { usePagesView } from "./pages/use-pages-view";
 import { groupStarts, hrefShown } from "../lib/pages/visibility";
 import { useChainChoice } from "./chain/use-chain-choice";
+import { SIDEBAR_APP_HREFS } from "../lib/ui-prefs/apps";
+import { CHECKLIST_ROUTE } from "../lib/af-checklist-keys";
 
 /**
  * The single source of navigation order and grouping, for the desktop sidebar, the tablet header and the phone More sheet
@@ -50,8 +52,19 @@ export const navGroupOf = (href: string) => (NAV_GROUPS.findIndex(group => group
  * The destinations that show (Session W Part 2, "Your pages & buttons"), in the same order, and the space before each
  * group's first visible one; with nothing hidden this is exactly NAV_ITEMS and NAV_GROUP_START.
  */
+/**
+ * Session AL (NB-028; AL-NAV-010): the Checklist's entry is registered on every device by its launcher
+ * (components/checklist/checklist-launcher.tsx), but only after hydration, so on a computer it appeared ~1 s after the first
+ * paint and moved Settings and Help down 44 px. It is in the list from the first paint (the server's HTML too); the
+ * launcher's registration then finds it already there. NOVA, when registered, keeps its place before it (nav-extras ORDER).
+ */
+const CHECKLIST_EXTRA = [CHECKLIST_ROUTE, "Checklist", "checklist"] as const;
+function withChecklist(extras: ReturnType<typeof useNavExtras>) {
+  if (extras.some(([href]) => href === CHECKLIST_ROUTE)) return extras;
+  return [...extras.filter(([href]) => href === "/app/nova"), CHECKLIST_EXTRA, ...extras.filter(([href]) => href !== "/app/nova")];
+}
 export function useVisibleNav() {
-  const view = usePagesView(), extras = useNavExtras(), chain = useChainChoice(), governance = chain.earn.governanceShown === true;
+  const view = usePagesView(), extras = withChecklist(useNavExtras()), chain = useChainChoice(), governance = chain.earn.governanceShown === true;
   // Session AK X1 (RELEASE_REVIEW R3): Earn shows with Wealth once the chain is chosen, or by its own switch (lib/chain-choice.ts).
   const earn = chain.earnShown;
   // Session AA-Cloud: entries another lane registers (components/nav-extras.ts) sit before Settings, in its group.
@@ -162,9 +175,13 @@ export function AppNav() {
   const columns = Math.max(1, ...[1, 2, 3].map(group => items.filter(([href]) => navGroupOf(href) === group).length));
   return (
     <nav ref={nav} className="app-nav" aria-label="Main navigation" style={{ "--nav-cols": columns } as CSSProperties}>
+      {/* Session AL (owner decision O4): NOVA, Tasks, Notes and the Journal sit in the sidebar's Apps group on a computer
+          (components/shell/sidebar-apps.tsx), so the main list leaves them out there (`data-nav-app`, navigation.css); the
+          tablet rail, the phone's More sheet and search keep them here. */}
       {items.map((item) => { const [href, label, icon] = item; return (
         <Link key={href} href={href} prefetch={navPrefetch(href)}
           data-group-start={starts.get(href)} data-nav-compact={navCompact(item) || undefined}
+          data-nav-app={SIDEBAR_APP_HREFS.includes(href) || undefined}
           aria-current={isActive(href) ? "page" : undefined}>
           <AppIcon name={icon} luminous={isActive(href)} /><span>{label}</span>
         </Link>

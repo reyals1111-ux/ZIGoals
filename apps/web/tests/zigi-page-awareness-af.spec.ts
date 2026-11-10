@@ -55,12 +55,31 @@ test('"explain this page" goes to the person\'s AI with the "This page" chip: ti
   await panel(page).locator('.ai-composer button[type=submit]').click();
   await expect.poll(() => bodies.length).toBe(2);
   expect(JSON.stringify(bodies[1]!.messages)).not.toContain('page_view');
-  // On Settings (its sign-in form is a sensitive screen) ZIGi is away altogether: no button, no ⌘K, nothing of it read or
-  // sent (the page view itself is null there: lib/ai/context/page-view.test.ts).
+  // Session AL (ADR-037 Q6, deliberate): ZIGi opens on Settings too (was: away altogether, no button and no key); nothing of
+  // Settings is read: "Explain this page" there brings no "This page" chip and no page view goes anywhere (the page view
+  // itself is null there: lib/ai/context/page-view.test.ts). Q11: ⌘/Ctrl+K opens the command menu, not ZIGi's panel;
+  // ZIGi's own key is ⌘/Ctrl+Shift+Z.
   await page.goto('/app/settings');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-  await expect(page.getByRole('button', {name: /Open ZIGi/})).toHaveCount(0);
   await page.keyboard.press('ControlOrMeta+k');
+  // Session AL (CI12, CI 1561): the command menu loads at its first open; an Escape sent before it showed reached nothing, the
+  // menu then opened and kept the focus in its field, where ⌘/Ctrl+Shift+Z stays Redo. As a person does, the menu is seen,
+  // then closed, before ZIGi's key.
+  const menu = page.getByRole('dialog', {name: 'Command menu'});
+  await expect(menu).toBeVisible();
   await expect(panel(page)).toHaveCount(0);
-  expect(bodies).toHaveLength(2);
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await page.locator('body').press('ControlOrMeta+Shift+z');
+  await expect(panel(page)).toBeVisible();
+  // The chat open on Today comes back (PR-025); this question starts its own.
+  await panel(page).getByRole('button', {name: 'New chat', exact: true}).click();
+  await expect(panel(page).locator('.ai-turn-user')).toHaveCount(0);
+  const answers = 0;
+  await box(page).fill('Explain this page');
+  await expect(box(page)).toHaveValue('Explain this page');
+  await expect(panel(page).getByRole('button', {name: 'Leave out This page'})).toHaveCount(0);
+  await panel(page).locator('.ai-composer button[type=submit]').click();
+  await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(answers + 1, {timeout: 15_000});
+  expect(bodies.slice(2).some(b => JSON.stringify(b.messages).includes('page_view')), 'nothing of Settings is read').toBe(false);
 });

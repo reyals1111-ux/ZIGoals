@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
-import {Suspense, lazy, useEffect, useState} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
+import {hideToast, lastToastId} from '../ui/undo-toast';
 import {LoadBoundary} from '../load-boundary';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import {CaptureBox} from './capture-box';
@@ -14,9 +15,10 @@ import {formatDate} from '../../lib/visual-format';
 import {noteName} from '../../lib/notes/schema';
 import {addTopic, dailiesOf, dailyNoteOf, inboxOf, topicsOf} from '../../lib/notes/store';
 import {linkKey, noteHref} from '../../lib/notes/links';
-import {notePhotoIds, deleteNotePhoto, orphanPhotoIds} from '../../lib/notes/photos';
+import {sweepNotePhotos} from '../../lib/notes/photos';
 import {photoScope} from '../../lib/health-aa/photos';
 import './notes.css';
+import {useUndoShortcut} from '../tasks/use-undo-shortcut';
 
 const ThisDayStrip = lazy(() => import('./this-day-strip'));
 const GraphView = lazy(() => import('./graph-view'));
@@ -36,19 +38,31 @@ type View = (typeof VIEWS)[number][0];
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 export default function NotesWorkspace({showcase = false}: {showcase?: boolean}) {
   const params = useSearchParams(), router = useRouter(), path = usePathname();
-  const {notes, status, undo, runUndo, change} = useNotes(), targets = useLinkTargets();
+  const {notes, status, change: changeNotes} = useNotes(), targets = useLinkTargets();
   const record = notes.data, index = useLinkIndex(record, targets), today = localDate();
+  const [searching, setSearching] = useState(false);
+  useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
   const noteId = params.get('note'), dayParam = params.get('day'), capture = params.get('capture') === '1';
   const day = dayParam === 'today' || !dayParam ? today : DAY.test(dayParam) ? dayParam : today;
   const view: View = noteId ? 'notes' : dayParam ? 'today' : (VIEWS.find(([v]) => v === params.get('view'))?.[0] ?? 'today');
   const go = (q: Record<string, string>) => { const query = new URLSearchParams(q).toString(); router.replace(query ? `${path}?${query}` : path, {scroll: false}); };
   const inbox = inboxOf(record), open = noteId ? record.notes.find(n => n.id === noteId) ?? null : null;
+  // Session AL final pass (PR-106, AL-TOAST-011): a "deleted · Undo" toast belongs to the view it was made in (or the one a
+  // delete moves to) and ends when the person opens another Notes view; it had stayed over Days and the Graph.
+  const toastOf = useRef<{id: number; view: View} | null>(null);
+  const change = useCallback<typeof changeNotes>((fn, said, offer) => {
+    const before = lastToastId(), ok = changeNotes(fn, said, offer), id = lastToastId();
+    if (id !== before) toastOf.current = {id, view};
+    return ok;
+  }, [changeNotes, view]);
+  useEffect(() => { const t = toastOf.current; if (t && t.view !== view) { hideToast(t.id); toastOf.current = null; } }, [view]);
   const [newTitle, setNewTitle] = useState('');
-  // Photos whose note is gone (deleted on an earlier visit, past its Undo) are removed from this browser.
+  // Photos whose note is gone are removed from this browser once no note has named them for 30 days (security review
+  // Z1B-7, AL Part 14: a Restore of an older copy, then its Undo, must find today's photos still here).
   useEffect(() => {
     if (!notes.loaded || notes.unreadable) return;
     const named = record.notes.map(n => n.photoId);
-    void notePhotoIds(photoScope()).then(ids => Promise.all(orphanPhotoIds(ids, named).map(id => deleteNotePhoto(photoScope(), id))), () => undefined);
+    void sweepNotePhotos(photoScope(), named).catch(() => undefined);
     // Only on arrival: a photo deleted with its note during this visit can still come back with Undo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes.loaded]);
@@ -63,23 +77,24 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
   return <div className="notes-workspace">
     {showcase && <p className="fine">Fictional Showcase notes, labelled as examples.</p>}
     {notes.unreadable && <p role="alert">This device&rsquo;s notes could not be read; they are not written over.</p>}
-    <section className="panel note-capture-panel" aria-label="Capture">
-      <CaptureBox autoFocus={capture} showInboxLink={view !== 'inbox'}/>
-    </section>
+    {/* Session AL (N-DV-07, P-DV-124): the views first, so a phone sees them in its first screen */}
     <nav className="note-tabs" aria-label="Notes views">
       {VIEWS.map(([v, label]) => <button key={v} type="button" className={`note-tab${view === v ? ' is-on' : ''}`} aria-current={view === v ? 'page' : undefined} onClick={() => go(v === 'today' ? {} : {view: v})}>
         {label}{v === 'inbox' && inbox.length > 0 && <><span className="note-tab-count" aria-hidden="true">{inbox.length}</span><span className="sr-only">, {inbox.length} to file</span></>}
       </button>)}
     </nav>
-    {(status || undo) && <p className="note-status" role="status" aria-live="polite">{status} {undo && <button type="button" className="text-link" onClick={runUndo}>Undo</button>}</p>}
+    <section className="panel note-capture-panel" aria-label="Capture">
+      <CaptureBox autoFocus={capture} showInboxLink={view !== 'inbox'}/>
+    </section>
+    {status && <p className="note-status" role="status" aria-live="polite">{status}</p>}
 
     {/* "Open note", not "Note": the note's text box is labelled "Note", and the region around it shared that name (lane NV). */}
     {noteId && <section className="panel" aria-label="Open note">
       <p className="note-back"><button type="button" className="text-link" onClick={() => go(open?.kind === 'daily' ? {view: 'days'} : open?.kind === 'inbox' ? {view: 'inbox'} : {view: 'notes'})}>← {open?.kind === 'daily' ? 'Days' : open?.kind === 'inbox' ? 'Inbox' : 'All notes'}</button></p>
       {open ? <>
-        <h2 className="note-title">{open.kind === 'daily' && open.day ? formatDate(open.day, {weekday: true}) : noteName(open)}{open.example && <span className="fine"> · Showcase example</span>}</h2>
+        <h2 className="note-title">{/* Session AL (PR-107, P-PR-45): a note with no title of its own is not headed by its first line, which the note shows just below (it read twice) */open.kind === 'daily' && open.day ? formatDate(open.day, {weekday: true}) : open.title.trim() ? open.title.trim() : open.kind === 'inbox' ? `Inbox capture · ${formatDate(open.day ?? open.createdAt.slice(0, 10))}` : noteName(open)}{open.example && <span className="fine"> · Showcase example</span>}</h2>
         {open.kind === 'daily' && open.day && <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={open.day}/></Suspense></LoadBoundary>}
-        <NoteEditor key={open.id} note={open} index={index} change={change} onCreateLink={createNote} onDeleted={() => go({view: open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'})}/>
+        <NoteEditor key={open.id} note={open} index={index} change={change} onCreateLink={createNote} onDeleted={() => { const to: View = open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'; if (toastOf.current) toastOf.current.view = to; go({view: to}); }}/>
       </> : <p className="fine">This note is not on this device. It may have been deleted. <Link className="text-link" href="/app/notes?view=notes">All notes</Link></p>}
     </section>}
 
@@ -108,8 +123,9 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         <button type="submit" className="secondary" disabled={!newTitle.trim()}>Make note</button>
         <SecretGuard text={newTitle} onRemove={() => setNewTitle('')}/>
       </form>
-      <NotesSearch notes={record.notes}/>
-      {topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
+      <NotesSearch notes={record.notes} onSearching={setSearching}/>
+      {/* Session AL (PR-105, P-PR-43): while a search is typed, its results are the list (the full list no longer stays below "No note has those words.") */}
+      {searching ? null : topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
         : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. A note that links a goal or a habit shows on its page.</p>}
     </section>}
 

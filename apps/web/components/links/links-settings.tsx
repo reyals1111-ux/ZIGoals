@@ -3,7 +3,8 @@ import {useId, useState, type FormEvent} from 'react';
 import {usePrivateStore} from '../use-private-store';
 import {LinkGlyph, ICON_NAME} from './link-glyph';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, type DashboardSettings} from '../../lib/dashboard-settings';
-import {LINK_ICONS, MAX_LINKS, type LinkIcon, type PersonalLink} from '../../lib/links/schema';
+import {LINK_ICONS, MAX_LINKS, linkUrlIssue, type LinkIcon, type PersonalLink} from '../../lib/links/schema';
+import {FieldError, useFormErrors} from '../primitives/field-error';
 import {addLink, editLink, linkHost, linkInputIssue, linksOf, moveLink, removeLink, sortedLinks, suggestedIcon, type LinkInput} from '../../lib/links/engine';
 import './links.css';
 
@@ -45,16 +46,21 @@ export function LinksSettings() {
 
 function LinkForm({initial, onSave, onCancel}: {initial?: PersonalLink; onSave: (input: LinkInput) => Promise<boolean>; onCancel: () => void}) {
   const iconId = useId(), [label, setLabel] = useState(initial?.label ?? ''), [url, setUrl] = useState(initial?.url ?? 'https://'), [icon, setIcon] = useState<LinkIcon>(initial?.icon ?? 'monogram'), [chosen, setChosen] = useState(!!initial), [problem, setProblem] = useState('');
+  // Session AL final pass (D-172, AL-FIELD-ERROR-003): an empty name or an unfinished address ("https://") is said under its
+  // own field, and the first takes the focus; the browser's own check (no message, only the focus moving) is off.
+  const fieldErrors = useFormErrors();
   function submit(event: FormEvent) {
     event.preventDefault();
-    const input = {label, url, icon}, issue = linkInputIssue(input);
+    const input = {label, url, icon};
+    if (fieldErrors.fail({label: label.trim() ? null : 'Give the link a name.', url: linkUrlIssue(url.trim())})) { setProblem(''); return; }
+    const issue = linkInputIssue(input);
     if (issue) { setProblem(issue); return; }
     setProblem(''); void onSave(input);
   }
-  return <form className="links-form" aria-label={initial ? `Edit ${initial.label}` : 'Add a link'} onSubmit={submit}>
-    <label className="field"><span>Name</span><input value={label} maxLength={40} autoComplete="off" onChange={event => setLabel(event.target.value)} /></label>
+  return <form className="links-form" noValidate aria-label={initial ? `Edit ${initial.label}` : 'Add a link'} onSubmit={submit}>
+    <label className="field"><span>Name</span><input {...fieldErrors.field('label')} value={label} maxLength={40} autoComplete="off" onChange={event => setLabel(event.target.value)} /></label><FieldError {...fieldErrors.message('label')} />
     {/* The address suggests a picture until the person picks one; nothing is fetched to decide. */}
-    <label className="field"><span>Address (https://)</span><input type="url" inputMode="url" value={url} autoComplete="off" autoCapitalize="none" spellCheck={false} onChange={event => { setUrl(event.target.value); if (!chosen) setIcon(suggestedIcon(event.target.value)); }} /></label>
+    <label className="field"><span>Address (https://)</span><input {...fieldErrors.field('url')} type="url" inputMode="url" value={url} autoComplete="off" autoCapitalize="none" spellCheck={false} onChange={event => { setUrl(event.target.value); if (!chosen) setIcon(suggestedIcon(event.target.value)); }} /></label><FieldError {...fieldErrors.message('url')} />
     {/* Its own label (not wrapped around the list), so the icon list is named "Icon" only, not by every choice in it. */}
     <div className="links-icon-field"><label className="field" htmlFor={iconId}><span>Icon</span></label><span className="links-icon-choice"><LinkGlyph icon={icon} label={label || '?'} /><select id={iconId} value={icon} onChange={event => { setIcon(event.target.value as LinkIcon); setChosen(true); }}>{LINK_ICONS.map(value => <option key={value} value={value}>{ICON_NAME[value]}</option>)}</select></span></div>
     {problem && <p role="alert">{problem}</p>}

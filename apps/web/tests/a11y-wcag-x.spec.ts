@@ -71,15 +71,29 @@ for (const state of ['empty', 'showcase'] as const) {
   });
 }
 
+/** Session AL (BUG-049, deliberate): the one page that opens with the focus in a field of its content (tests/p6-keyboard.spec.ts). */
+const FOCUS_ON_ARRIVAL: Readonly<Record<string, string>> = {'/app/goals/new': 'Goal name'};
 test('keyboard: the skip link comes first and works; focus is always visible, never trapped and never hidden behind the bars', async ({page}) => {
   test.setTimeout(300_000);
   await showcase(page);
   const findings: Findings = {};
   for (const [path, heading] of ALL) {
     await open(page, path, heading);
-    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-    await page.keyboard.press('Tab');
-    if (!await page.getByRole('link', {name: 'Skip to content', exact: true}).evaluate(el => el === document.activeElement)) { add(findings, path, ['the first Tab does not reach "Skip to content"']); continue; }
+    const onSkip = () => page.getByRole('link', {name: 'Skip to content', exact: true}).evaluate(el => el === document.activeElement);
+    const arrival = FOCUS_ON_ARRIVAL[path];
+    if (arrival) {
+      // Session AL (BUG-049, deliberate; as tests/p6-keyboard.spec.ts): the goal creator opens with the focus in Goal name
+      // inside #main, and Shift+Tab from there must come back over the shell to "Skip to content", the page's first stop.
+      const inField = () => page.evaluate(name => { const el = document.activeElement as HTMLInputElement | null; return !!el && !!document.getElementById('main')?.contains(el) && [...(el.labels ?? [])].some(l => l.textContent?.trim().startsWith(name)); }, arrival);
+      if (!await expect.poll(inField, {timeout: 6_000}).toBe(true).then(() => true, () => false)) { add(findings, path, [`the page does not open with the focus in ${arrival}`]); continue; }
+      let reached = false;
+      for (let i = 0; i < 80 && !reached; i++) { await page.keyboard.press('Shift+Tab'); reached = await onSkip(); }
+      if (!reached) { add(findings, path, [`Shift+Tab from ${arrival} does not come back to "Skip to content"`]); continue; }
+    } else {
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+      await page.keyboard.press('Tab');
+      if (!await onSkip()) { add(findings, path, ['the first Tab does not reach "Skip to content"']); continue; }
+    }
     await page.keyboard.press('Enter');
     // 2.4.1: after the skip link, the next Tab lands in the content (the browser moves its focus starting point there).
     await page.keyboard.press('Tab');

@@ -31,6 +31,12 @@
    (lib/ui-prefs/theme.ts tags those "theme"). Browsers without transition types keep their default crossfade. */
 :root:not(:active-view-transition-type(theme))::view-transition-old(root),
 :root:not(:active-view-transition-type(theme))::view-transition-new(root) { animation: none; }
+/* Session AL (P14-D): leaving a page too tall to capture whole (lib/motion/view-transition-gate.ts releases its name), the
+   window-sized root picture holds what was on screen: it fades out above the root's new picture, as the page would have,
+   while the arriving page fades in over it. Calm: the same 150 ms fade. Off and reduced motion: the rules below. */
+:root[data-zg-vt-page=root]::view-transition-old(root) { animation: 120ms var(--zg-ease-out) both zg-vt-out; z-index: 1; }
+:root[data-zg-vt-page=root]::view-transition-new(root) { animation: none; }
+:root[data-app-motion=calm][data-zg-vt-page=root]::view-transition-old(root) { animation: 150ms ease-out both zg-vt-out; }
 /* PROTECTED chrome — desktop sidebar / tablet rail, phone top bar and bottom bar — is pinned: a fixed name only while a
    page transition runs, no animation, drawn above the arriving page, its old picture hidden. Its look never changes. */
 :root:active-view-transition:not(:active-view-transition-type(theme)) .app-sidebar { view-transition-name: zg-chrome-side; }

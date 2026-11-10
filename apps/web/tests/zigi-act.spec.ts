@@ -5,6 +5,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {AI_ACTIONS_KEY, AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 7: acting by chat, voice and photo, through the real panel against a MOCK local OpenAI-compatible
@@ -42,7 +43,7 @@ async function seed(page: Page, settings: Partial<AiSettings> = {}, extra: Recor
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) {
-  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await pressZigi(page); await expect(panel(page)).toBeVisible();
   // Session AF Gate C: the panel puts the focus in its box as it opens (ai-chat.tsx, the open effect). CI's WebKit run on c9d97eef
   // typed 120 ms after the panel opened, while that focus was still moving: the trace shows the fill's text never reached
   // the box and Send stayed disabled. A person types once the cursor is there; the test waits for it too.

@@ -54,8 +54,13 @@ test('the five tools are registered, read only, each behind its switch (workouts
 });
 test('tasks: the open ones in the list\'s order with the goal they serve; done tasks are not listed', () => {
   const d = data(runTool('tasks', {}, env(sources({nova: {tasks: tasks()}}))));
-  expect(d.counts).toEqual({open: 2, overdue: 0, today: 1});
-  expect(d.open).toEqual([{task: 'Book the dentist', state: 'today', due: DAY, time: '10:30', priority: 'high'}, {task: 'Compare savings accounts', state: 'soon', due: '2026-11-02', priority: 'normal', goal: 'Emergency fund'}]);
+  // Release review AL (RR-8, deliberate): overdue is the Tasks page's one rule (the day and, today, the time in the person's
+  // zone). This env's clock is past 10:30, so the dentist is overdue here as on Tasks; before its time it is "today".
+  expect(d.counts).toEqual({open: 2, overdue: 1, today: 0});
+  expect(d.open).toEqual([{task: 'Book the dentist', state: 'overdue', due: DAY, time: '10:30', priority: 'high'}, {task: 'Compare savings accounts', state: 'soon', due: '2026-11-02', priority: 'normal', goal: 'Emergency fund'}]);
+  const morning = data(runTool('tasks', {}, env({...sources({nova: {tasks: tasks()}}), now: new Date(`${DAY}T08:00:00.000Z`)})));
+  expect(morning.counts).toEqual({open: 2, overdue: 0, today: 1});
+  expect((morning.open as {state: string}[])[0]!.state).toBe('today');
 });
 test('unknown is never "none": a record not read on this path, or unreadable, says so', () => {
   expect(data(runTool('tasks', {}, env(sources({nova: undefined})))).note).toBe(NOT_READ_HERE);

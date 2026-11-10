@@ -1,11 +1,14 @@
 'use client';
 import {useCallback, useEffect, useId, useRef, useState} from 'react';
+import {revealField} from '../lib/primitives/field-focus';
 
 /**
  * Session Y Part 9 (persona row 19, WCAG 3.3.1 and 4.1.2): a form's error is tied to the fields it is about. Each such
  * field gets `aria-invalid` and an `aria-describedby` that points at the message, and when a submit fails the first of
  * them takes the focus, so a screen reader hears the field and why at once. A message about the whole form (a failed
  * save) names no field and stays the form's alert, as before.
+ * Session AL: new forms use components/primitives/field-error.tsx (one message under each field, cleared on edit);
+ * this single-message hook stays for its four callers until they move.
  */
 export type FieldErrors = {
   /** The message to show (empty when none), rendered as `<p role="alert" id={messageId}>`. */
@@ -28,7 +31,8 @@ export function useFieldErrors(): FieldErrors {
     focusNext.current = false;
     const first = state.fields[0], id = first ? ids.current[first] ?? `${base}${first}` : null;
     const element = id ? document.getElementById(id) : null;
-    if (element instanceof HTMLElement && !element.hasAttribute('disabled')) element.focus();
+    // Session AL (3d, BUG-009): scrolled to the middle as well, so the message under it is in view (reduced motion: a jump).
+    if (element instanceof HTMLElement && !element.hasAttribute('disabled')) revealField(element);
   }, [state, base]);
   const field = useCallback((name: string, options: {id?: string; describedBy?: string} = {}) => {
     const id = options.id ?? `${base}${name}`;

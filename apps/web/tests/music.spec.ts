@@ -49,8 +49,9 @@ async function openPlayer(page: Page) {
 /** Where focus returns when the player closes: its button on a computer; on a phone ZIGi's launcher, or More without it. */
 async function opener(page: Page) {
   if (!await isPhone(page)) return page.getByRole('button', {name: 'Open the music player'});
-  const zigi = page.getByTestId('ai-launcher').locator('.ai-launcher-button');
-  return await zigi.count() ? zigi : page.getByRole('button', {name: 'More', exact: true});
+  // Session AL (owner decision O3, deliberate): a phone has no floating ZIGi button; the focus goes to "Apps & extras"
+  // (components/music/music-launcher.tsx). Was: ZIGi's launcher, or More without it.
+  return page.getByTestId('apps-extras-button');
 }
 async function showPlayer(page: Page) {
   await page.goto('/app/settings');
@@ -74,7 +75,8 @@ test('hidden until shown (the approved default): Settings → Music shows it; th
   await page.goto('/app');
   const button = page.getByRole('button', {name: 'Open the music player'}), launcher = page.getByTestId('ai-launcher');
   if (await isPhone(page)) {
-    await expect(launcher).toBeVisible(); await expect(button).toHaveCount(0);
+    // Session AL (owner decision O3, deliberate): nothing floats on a phone; was: ZIGi's launcher visible.
+    await expect(launcher).toHaveCount(0); await expect(page.getByTestId('apps-extras-button')).toBeVisible(); await expect(button).toHaveCount(0);
     const sheet = await openMore(page); await expect(sheet.getByRole('button', {name: /Your soundtrack/})).toBeVisible(); await page.keyboard.press('Escape');
   } else {
   await expect(button).toBeVisible(); await expect(launcher).toBeVisible();

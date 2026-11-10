@@ -3,7 +3,7 @@
 # pull request, least privilege, the secret never printed, and a clean skip without it. It needs the repository secret
 # ANTHROPIC_API_KEY and the repository variable PR_REVIEW_MODEL (a model id); without either the job ends green with a
 # one-line note. It uses only an action this repository already pins (actions/checkout) and Node's own fetch.
-# Rollback: delete this file and scripts/pr-review/.
+# Rollback: delete this file and scripts/pr-review/. Session AL's chunking: revert its commit (one request again).
 name: PR review (advisory)
 
 on:
@@ -22,7 +22,9 @@ jobs:
   review:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Session AL (TIER 3 CI): a large diff is reviewed in up to PR_REVIEW_MAX_CHUNKS parts (default 8), one request at a
+    # time, each given at most 5 minutes (usually about one); 45 covers eight slow parts. docs/ci/PR_REVIEW_CHUNKS.md.
+    timeout-minutes: 45
     steps:
       - name: Skip cleanly without the secret or the model
         id: gate
@@ -46,6 +48,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           PR_REVIEW_MODEL: ${{ vars.PR_REVIEW_MODEL }}
+          # Optional (Session AL): the most parts a large diff may cost; unset or invalid means 8 (1 to 32 accepted).
+          PR_REVIEW_MAX_CHUNKS: ${{ vars.PR_REVIEW_MAX_CHUNKS }}
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
           BASE: ${{ github.event.pull_request.base.sha }}

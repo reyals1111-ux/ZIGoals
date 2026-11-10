@@ -5,6 +5,7 @@ import {AF_CHECKLIST_CATALOG_LABELS} from '../af-checklist-keys';
 import {WALLET_CATALOG_LABELS} from '../af-wallet-keys';
 import {AF_ZIGI_CATALOG_LABELS} from '../af-zigi-keys';
 import {AF_EXTRAS_CATALOG_LABELS} from '../af-extras-keys';
+import {AL_CATALOG_LABELS} from '../al-device-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -103,6 +104,9 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   // Session AF (L4, L5b): ZIGi's plans; My universe, Day timeline and Stories.
   zigiPlans: [AF_ZIGI_CATALOG_LABELS.zigiPlans[0], AF_ZIGI_CATALOG_LABELS.zigiPlans[1]],
   universe: [AF_EXTRAS_CATALOG_LABELS.universe[0], AF_EXTRAS_CATALOG_LABELS.universe[1]], dayTimeline: [AF_EXTRAS_CATALOG_LABELS.dayTimeline[0], AF_EXTRAS_CATALOG_LABELS.dayTimeline[1]], stories: [AF_EXTRAS_CATALOG_LABELS.stories[0], AF_EXTRAS_CATALOG_LABELS.stories[1]],
+  // Session AL (lib/al-device-keys.ts): the Apps & extras display choices (O3, O4).
+  appsPrefs: [AL_CATALOG_LABELS.appsPrefs[0], AL_CATALOG_LABELS.appsPrefs[1]], walletNames: [AL_CATALOG_LABELS.walletNames[0], AL_CATALOG_LABELS.walletNames[1]],
+  chessPuzzle: [AL_CATALOG_LABELS.chessPuzzle[0], AL_CATALOG_LABELS.chessPuzzle[1]], novaHud: [AL_CATALOG_LABELS.novaHud[0], AL_CATALOG_LABELS.novaHud[1]], healthExtras: [AL_CATALOG_LABELS.healthExtras[0], AL_CATALOG_LABELS.healthExtras[1]], stablecoinsAsCash: [AL_CATALOG_LABELS.stablecoinsAsCash[0], AL_CATALOG_LABELS.stablecoinsAsCash[1]], chessPuzzleLog: [AL_CATALOG_LABELS.chessPuzzleLog[0], AL_CATALOG_LABELS.chessPuzzleLog[1]], ecoTvlHistory: [AL_CATALOG_LABELS.ecoTvlHistory[0], AL_CATALOG_LABELS.ecoTvlHistory[1]], profileName: [AL_CATALOG_LABELS.profileName[0], AL_CATALOG_LABELS.profileName[1]], watchlistMore: [AL_CATALOG_LABELS.watchlistMore[0], AL_CATALOG_LABELS.watchlistMore[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page
@@ -133,6 +137,25 @@ export const DEVICE_ONLY: readonly CatalogEntry[] = [
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */
 export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)', 'Notification snapshot, push identity and taps waiting to apply (IndexedDB, this device only)', 'Offline food library (public data, IndexedDB)', 'Your own Spotify client id (IndexedDB, this device only)', 'Barcode lookups and exchange refreshes asked for while offline (IndexedDB, this device only)', 'Meal photos you chose to keep (IndexedDB, this device only)', 'Your Lichess connection (IndexedDB, this device only, never exported)', 'Photos in notes (IndexedDB, this device only)', 'Receipt photos on money entries (IndexedDB, this device only)'] as const;
+/**
+ * Session AL (third pass, INT): the copies a restore keeps of what it replaced, `<key>:recovery:<uuid>` (lib/vault/
+ * recovery-copies.ts; Tasks, the Checklist and its day history since Session AL, the modules and device records before).
+ * They are not in the key list above (their names are made at restore time), never exported or synced, and erased with
+ * everything else. `recoveryCopyEntry` names one for the Data health page: "Recovery copy: <the record's label>", in the
+ * record's own area, this device only; any other key is null.
+ */
+const RECOVERY_COPY = /^(.+):recovery:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function recoveryCopyEntry(key: string): CatalogEntry | null {
+  const of = RECOVERY_COPY.exec(key)?.[1];
+  const record = of ? [...SYNCED, ...DEVICE_ONLY].find(e => e.key === of) : undefined;
+  return record ? {key, label: `Recovery copy: ${record.label}`, home: 'device', area: record.area} : null;
+}
+/** Every recovery copy in a storage view, named (the keys of records this catalog does not know are left out). */
+export function recoveryCopies(storage: Pick<Storage, 'length' | 'key'>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (let i = 0; i < storage.length; i++) { const k = storage.key(i); const entry = k ? recoveryCopyEntry(k) : null; if (entry) out.push(entry); }
+  return out.sort((a, b) => a.label.localeCompare(b.label));
+}
 /** Worked out each time from the records above, never stored. */
 export const NEVER_STORED = ['Calculator results', 'Life review figures', 'Insights and pairings', 'Search results', 'Pace forecasts', 'The life balance wheel'] as const;
 export const HOME_LABEL: Record<Home, string> = {sync: 'Encrypted sync with an account', 'sync-consent': 'Encrypted sync after this device\'s consent', device: 'This device only'};

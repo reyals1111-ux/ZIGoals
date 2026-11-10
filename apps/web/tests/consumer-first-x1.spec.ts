@@ -65,7 +65,8 @@ test('a new device: no money tools in the navigation, no wallet buttons, the neu
 
 test('a new device: Settings groups no wallet, network or contract rows; its notices sit behind Licences', async ({page, isMobile}) => {
   await ready(page, '/app/settings');
-  await expect(page.locator('.page-heading .page-lede')).toHaveText('Everything you add stays on this device.');
+  // Session AL (COPY_AUDIT, deliberate): DV-261, the line is true once sync exists (it said "Everything … stays on this device").
+  await expect(page.locator('.page-heading .page-lede')).toHaveText('Your records live on this device unless you turn on sync.');
   await expect(page.locator('#wallet-network, #account, #network, #contract')).toHaveCount(0);
   await expect(page.getByText('Wallet & network (advanced)')).toHaveCount(0);
   await expect(page.getByText('Earn dock — on this device')).toHaveCount(0);
@@ -94,7 +95,8 @@ test('a new device: Create a goal starts with money in its currency, in plain wo
   expect(await kinds.evaluateAll(els => els.map(el => el.getAttribute('aria-label')))).toEqual(['Save an amount', 'Reach a number of something', 'Finish a project']);
   await expect(page.getByRole('radio', {name: 'Save an amount', exact: true})).toBeChecked();
   await expect(page.getByRole('radio', {name: 'USD · US dollar'})).toBeChecked();
-  await expect(page.getByRole('region', {name: 'Goal preview'})).toContainText('Save an amount · USD · Custom · At your own pace');
+  await expect(page.getByRole('region', {name: 'Goal preview'})).toContainText('Save an amount · USD · At your own pace'); // Session AL fifth pass (N-071): no "Custom" when no category was chosen
+  await expect(page.getByRole('region', {name: 'Goal preview'})).not.toContainText('Custom');
   // Counting something: the asset field's example is not the chain's coin.
   await page.getByRole('radio', {name: 'Reach a number of something', exact: true}).check();
   await expect(page.getByLabel('Goal asset', {exact: true})).toHaveAccessibleDescription(/^Use a symbol such as BTC or GOLD\./);
@@ -127,9 +129,15 @@ test('a new device: a project goal is created through every step, and its page n
   expect(await page.locator('main').textContent()).not.toMatch(/\bZIG\b/);
 });
 
-test('once the chain is chosen, Create a goal is as it was: Quantity first, and Reward offered', async ({page}) => {
+test('once the chain is chosen, Create a goal lists Quantity first and offers Reward, with none preselected', async ({page}) => {
   await chooseChain(page);
   await ready(page, '/app/goals/new');
+  // Session AL fifth pass (DV-120, deliberate): no kind is preselected once the chain is chosen (name + Create made an
+  // asset-quantity goal); Quantity is still the first choice, and choosing it is as it was.
+  const kinds = page.getByRole('group', {name: 'What kind of progress matters?'}).getByRole('radio');
+  expect(await kinds.evaluateAll(els => els.map(el => el.getAttribute('aria-label')))).toEqual(['Quantity', 'Value', 'Reward', 'Project']);
+  for (const kind of await kinds.all()) await expect(kind).not.toBeChecked();
+  await page.getByRole('radio', {name: 'Quantity', exact: true}).check();
   await expect(page.getByRole('radio', {name: 'Quantity', exact: true})).toBeChecked();
   await expect(page.getByRole('radio', {name: 'Reward', exact: true})).toHaveCount(1);
   await expect(page.getByLabel('Goal asset', {exact: true})).toHaveAccessibleDescription(/^Use a symbol such as BTC or ZIG\./);
@@ -142,7 +150,8 @@ test('choosing a money tool in Settings brings the chain back: the money tools, 
   await expect(markets).not.toBeChecked();
   // A controlled switch: it shows the saved choice once the save is done, so a click, then the saved state.
   await markets.click();
-  await expect(pages.getByRole('status')).toHaveText('Markets shows again.');
+  // Session AL (P-BN-34 / BN-016, deliberate; bbd2738e): a switch that changes more than itself says so beside the switches.
+  await expect(pages.getByRole('status')).toHaveText('Markets shows again. The money pages that start off (Earn, Markets, Staking, Portfolio and Ecosystem) show now too; each keeps its own switch here.');
   await expect(markets).toBeChecked();
   // One money tool switched on is choosing the chain: the others show by default too, each with its own switch.
   for (const tool of ['Staking', 'Portfolio', 'Ecosystem', 'Earn']) await expect(pages.getByRole('switch', {name: tool, exact: true}), tool).toBeChecked();
@@ -218,7 +227,8 @@ test('the welcome\'s "Crypto & ZIGChain" extra is the explicit chain choice: the
   const step = (title: string) => expect(flow.getByRole('heading', {level: 1, name: title})).toBeVisible();
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
   await step('Two or three things to focus on.');
-  await flow.getByRole('button', {name: 'Continue without choosing', exact: true}).click();
+  // Session AL (COPY_AUDIT, deliberate; N-NB-01): a step with nothing picked says "Skip this step", as the tour says "Skip the tour" (was "Continue without choosing").
+  await flow.getByRole('button', {name: 'Skip this step', exact: true}).click();
   await step('A few things to start with.');
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
   await step('A quick look around.');

@@ -17,6 +17,7 @@ test('private position allocation and plans survive reload without financial or 
  await picker.getByRole('button',{name:'Save asset',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Example reserve',exact:true})).toBeVisible();
  await page.goto('/app/goals/new');
+ /* Session AL fifth pass (DV-120, deliberate): with the chain chosen no kind is preselected, so the spec chooses the count it always made */await page.getByRole('radio',{name:'Quantity',exact:true}).check();
  await typeGoalName(page, 'Example destination');
  await page.getByLabel('Target amount',{exact:true}).fill('200');
  for(let step=0;step<3;step++)await page.getByRole('button',{name:'Continue →'}).click();

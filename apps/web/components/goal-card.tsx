@@ -9,49 +9,69 @@ import type {GoalMetadata} from '@zigoals/shared-types';
 import type {LocalGoal} from '../lib/local-ledger';
 import {formatGoalAmount,legacyGoalSummary,progressText,type GoalSummary,type ProgressBound} from '../lib/goal-summary';
 import {visualTone} from './visual-tone';
+import {kindLabel} from '../lib/goals/kind-names';
 // Gate C weights: the card's scene is a lazy chunk (decorative; the card keeps its box while it arrives). Goals sat 1.6 kB over its budget; budgets are never raised.
 const SceneArt = lazy(() => import('./scene-art').then(m => ({default: m.SceneArt})));
 import {ProgressRing} from './platform/financial-ui';
-import {formatDate, formatPlainDecimal} from '../lib/visual-format';
+import {formatDate, formatPlainDecimal, isMoneyCurrency} from '../lib/visual-format';
 import {PinToToday} from './pin-to-today';
+import {CardOptions} from './card-options';
 import type {LayoutAttrs} from './layout-edit';
 import {Suspense, lazy, useId, useState} from 'react';
 import {useCardArt} from './goals/use-card-art';
+import {goalArt} from '../lib/goals/goal-art';
 import type {CardArt} from '../lib/card-art/catalog';
 import './goal-card-ab.css';
 import {StarToggle} from './checklist/star-toggle';
 // Session AK M1: the title morphs into the goal page's heading (Full motion only).
 import {GoalTitleMorph} from './motion/goal-title-morph';
 import {noteGoalOpen} from '../lib/motion/goal-morph';
+import './goals/goal-card-order.css';
 const GoalArtPicker = lazy(() => import('./goals/goal-art-picker'));
+/**
+ * Session AL sweep 2 (D-211, P-DVR-29): while the card's scene loads, its art box shows the shared calm skeleton (no shimmer
+ * under reduced motion or Motion Off), not an empty block. A <div>: the box hides its direct <span> children.
+ */
+export function GoalArtSkeleton(){return <div className="aa-skeleton goal-card-art-skeleton" aria-hidden="true"><b/></div>;}
 export const displayAmount= formatGoalAmount;
 export function GoalProgressRing({name,progressPct,goalId,assetMix=[],complete,bound}:{assetMix?:AssetMix[];name:string;progressPct:string;goalId?:string;complete?:boolean;bound?:ProgressBound}){
  return <div className="goal-progress-ring"><ProgressRing percent={progressPct} complete={complete} assetMix={assetMix} identity={goalId??name} size={94} label={`${name} progress`} bound={bound}/></div>;
 }
 /** QA-38 (Session I, Part 10): why a Goal's progress is a lower bound, or unavailable. */
-export function unvaluedNote(g:Pick<GoalSummary,'progressBound'|'unvaluedSources'|'heldAsset'>){
+export function unvaluedNote(g:Pick<GoalSummary,'progressBound'|'unvaluedSources'|'heldAsset'|'valueReason'>){
  if(!g.unvaluedSources||g.heldAsset)return undefined;
+ // Session AL third pass (MO-160, MO-145): the reason in words when one covers every unvalued source (another currency).
+ if(g.valueReason)return g.valueReason;
  return g.progressBound==='unavailable'?'No source has a value yet, so progress is unavailable.':`${g.unvaluedSources} ${g.unvaluedSources===1?'source has':'sources have'} no value yet, so progress may be higher.`;
 }
 export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&{summary:GoalSummary;compact?:boolean}){
  // Session AB-Design (owner request 17): the chosen artwork (AB-Cloud's cardArt through the mirror, or the Showcase's), previewed while the picker is open; the card's size never changes.
  const chosen=useCardArt(g.key),[picker,setPicker]=useState(false),[preview,setPreview]=useState<CardArt|null>(null),gid=useId();
- const scene:CardArt=preview??chosen??g.scene;
+ // Session AL (DV-022a, D-208, P-DV-63): the same picture as the Vision board and the goal page; a fitting default.
+ const scene:CardArt=preview??goalArt(g,chosen);
  const morph=!compact&&g.href.startsWith('/app/goals/tracked/'),open=()=>noteGoalOpen(g.id,g.name);
+ // Session AL (DV-013/DV-049c/DV-057b, P-DV-20): the card names the kind in plain words ("Savings goal", not "VALUE GOAL"),
+ // with or without the chain; a local-simulation category stays as it is.
+ const kind=kindLabel(g.type,false);
+ // Session AL (DV-021e, DV-043e, DV-056a, DV-102; P-DV-61): the card's ⋯ also opens the goal where it is managed: its details
+ // to edit, and its status to close or reopen (a private goal's page opens that section from the address).
+ const manage=g.key.startsWith('private:')?<><Link href={g.href}>Open goal</Link><Link href={`${g.href}#edit-goal`}>Edit details</Link><Link href={`${g.href}#goal-status`}>{g.status==='closed'?'Reopen…':'Close…'}</Link>{/* Session AL fourth pass (DV-056a, BN-149, TK-179): Delete from the card, confirmed (with its Undo) on the goal's page */}<Link href={`${g.href}#delete-goal`}>Delete…</Link></>:null;
  return <article {...layout} className={`goal-card destination-card unified-goal-card${compact?' compact-goal':''}`} data-tone={visualTone(g.id)} data-goal-key={g.key}>
-  <div className="goal-card-art"><Suspense fallback={null}><SceneArt scene={scene}/></Suspense><span>{g.type}</span></div>
-  <div className="card-top"><span className="eyebrow">{g.type}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span>{/* Session AF (the lead): the Checklist star and the card's options stay together at the row's end, so the options menu never opens past the card when the row wraps (it opened under the sidebar at 1280 × 720). */}{!compact&&g.status!=='closed'&&<span className="card-top-tools">{g.key.startsWith('private:')&&<StarToggle item={{kind:'goal',goalId:g.id}} label={g.name}/>}<PinToToday label={g.name} askName={g.name} choices={[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`,menu:'progress'},{kind:'goal',metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`,menu:'next contribution'}]} extra={<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button>}/></span>}</div>
+  <div className="goal-card-art"><Suspense fallback={<GoalArtSkeleton/>}><SceneArt scene={scene}/></Suspense><span>{kind}</span></div>
+  {/* Session AL fourth pass (D-029): the title is the card's first tab stop; the star and ⋯ follow it (goals/goal-card-order.css keeps them on the row above) */}
+  {morph?<GoalTitleMorph id={g.id}><h2 className="nebula-number"><Link href={g.href} onClick={open}>{g.name}</Link></h2></GoalTitleMorph>:<h2 className="nebula-number"><Link href={g.href}>{g.name}</Link></h2>}
+  <div className="card-top"><span className="eyebrow">{kind}</span>{/* Session AL fourth pass (G-030): a project has milestones, not a saving plan, so never "No plan" */}<span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.type==='Project Goal'?'IN_PROGRESS':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.type==='Project Goal'?'In progress':g.fundingHealth}</span>{/* Session AF (the lead): the Checklist star and the card's options stay together at the row's end, so the options menu never opens past the card when the row wraps (it opened under the sidebar at 1280 × 720). */}{!compact&&g.status!=='closed'&&<span className="card-top-tools">{g.key.startsWith('private:')&&<StarToggle item={{kind:'goal',goalId:g.id}} label={g.name}/>}<PinToToday label={g.name} askName={g.name} askAs={{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`}} choices={/* Session AL fifth pass (NB-175): a completed goal has no progress or next contribution to follow on Today; a project has no contributions */g.status==='completed'?[]:[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`,menu:'progress'},...(g.type==='Project Goal'?[]:[{kind:'goal' as const,metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`,menu:'next contribution'}])]} extra={<>{manage}<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button></>}/></span>}{/* Session AL (DV-043e, P-DV-61): a closed card keeps its ⋯, with Reopen and the artwork */}{!compact&&g.status==='closed'&&<span className="card-top-tools"><CardOptions label={g.name}>{manage}<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button></CardOptions></span>}</div>
   {picker&&<Suspense fallback={null}><GoalArtPicker goalKey={g.key} name={g.name} current={scene} onClose={()=>setPicker(false)} onPreview={setPreview}/></Suspense>}
   {/* Session AK M1: a private goal's full card (one per goal on its page) shares its title with the goal page's heading. */}
-  {morph?<GoalTitleMorph id={g.id}><h2 className="nebula-number"><Link href={g.href} onClick={open}>{g.name}</Link></h2></GoalTitleMorph>:<h2 className="nebula-number"><Link href={g.href}>{g.name}</Link></h2>}
   <p className="goal-value nebula-number">{g.progressBound==='unavailable'&&!g.heldAsset?'Value unavailable':`${g.progressBound==='at-least'?'At least ':''}${formatGoalAmount(g.current,g.heldAsset??g.currency)}`}<span> / {g.target?formatGoalAmount(g.target,g.currency):'No target saved'}</span></p>
-  <div className="goal-progress"><GoalProgressRing goalId={g.id} name={g.name} progressPct={g.progressPct} assetMix={g.assetMix} complete={g.status==='closed'?undefined:g.status==='completed'} bound={g.progressBound}/><div className="goal-progress-caption"><strong>{g.currency==='milestones'?'Of your journey complete':g.progressBound==='unavailable'?'Progress unavailable':g.progressBound==='at-least'?`${progressText(g.progressPct,'at-least')} of your goal funded`:'Of your goal funded'}</strong><span className={g.remaining!==undefined?'goal-remaining':undefined}>{g.heldAsset||g.progressBound==='unavailable'?'Remaining unknown':g.remaining!==undefined?`${g.progressBound==='at-least'?'At most ':''}${formatGoalAmount(g.remaining,g.currency)} remaining`:'Recover your plan'}</span>{g.targetDate&&<span className="goal-target">Target <time dateTime={g.targetDate}>{formatDate(g.targetDate)}</time></span>}</div></div>
+  <div className="goal-progress"><GoalProgressRing goalId={g.id} name={g.name} progressPct={g.progressPct} assetMix={g.assetMix} complete={g.status==='closed'?undefined:g.status==='completed'} bound={g.progressBound}/><div className="goal-progress-caption"><strong>{/* Session AL (DV-022c-2, P-DV-19): "funded" only for money; a count goal is "done" */g.currency==='milestones'?'Of your journey complete':g.progressBound==='unavailable'?'Progress unavailable':g.progressBound==='at-least'?`${progressText(g.progressPct,'at-least')} ${isMoneyCurrency(g.currency)?'of your goal funded':'of the way there'}`:isMoneyCurrency(g.currency)?'Of your goal funded':'Of the way there'}</strong><span className={g.remaining!==undefined?'goal-remaining':undefined}>{g.heldAsset||g.progressBound==='unavailable'?'Remaining unknown':g.remaining!==undefined?`${g.progressBound==='at-least'?'At most ':''}${formatGoalAmount(g.remaining,g.currency)} remaining`:'Recover your plan'}</span>{g.targetDate&&<span className="goal-target">Target <time dateTime={g.targetDate}>{formatDate(g.targetDate)}</time></span>}</div></div>
   {unvaluedNote(g)&&<p className="fine valuation-state">{unvaluedNote(g)}</p>}
+  {/* Session AL third pass (TK-196): an archived asset stopped counting here; the goal page says which and asks for a review */}{!!g.released&&<p className="fine valuation-state">{g.released===1?'An archived asset no longer counts toward this goal.':`${g.released} archived assets no longer count toward this goal.`} Open it to review.</p>}
   {/* Session AB-Design (owner request 18): the sources, the plan, the next contribution, the valuation note and the state line wait behind one small nebula arrow; Open Goal stays. */}
   {compact?<>
    <div className="card-bottom">{g.metadata.map(m=><div key={m.label}><small>{m.label}</small><strong>{m.value}</strong></div>)}</div>
    {g.nextContributionDate&&<p className="goal-next-contribution"><span>Next contribution</span><time dateTime={g.nextContributionDate}>{formatDate(g.nextContributionDate)}</time></p>}
-   <div className="card-footer"><small>{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</small><Link href={g.href} className="text-link">Open Goal →</Link></div>
+   <div className="card-footer"><small>{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</small><Link href={g.href} className="text-link">Open goal →</Link></div>
   </>:<>
    <details className="goal-card-more">
     <summary aria-label={`Details for ${g.name}`}><span className="goal-card-more-chevron" aria-hidden="true"><svg viewBox="0 0 22 12" width="18" height="10" focusable="false"><defs><linearGradient id={`${gid}-chev`} x1="0" x2="1"><stop offset="0" stopColor="var(--brand-cyan, #63e7ff)"/><stop offset=".5" stopColor="var(--brand-violet, #826cff)"/><stop offset="1" stopColor="var(--brand-magenta, #c664ff)"/></linearGradient></defs><path d="M3 3l8 6 8-6" fill="none" stroke={`url(#${gid}-chev)`} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg></span><span className="goal-card-more-word">Details</span><small>{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</small></summary>
@@ -61,7 +81,7 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
     {g.nextContributionDate&&<p className="goal-next-contribution"><span>Next contribution</span><time dateTime={g.nextContributionDate}>{formatDate(g.nextContributionDate)}</time></p>}
     <p className="fine goal-card-state">{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</p>
    </details>
-   <div className="card-footer"><Link href={g.href} className="text-link" onClick={morph?open:undefined}>Open Goal →</Link></div>
+   <div className="card-footer">{/* D-029: the same place as the title link, so one tab stop is enough */}<Link href={g.href} className="text-link" tabIndex={-1} onClick={morph?open:undefined}>Open goal →</Link></div>
   </>}
  </article>;
 }

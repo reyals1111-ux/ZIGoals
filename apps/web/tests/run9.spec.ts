@@ -67,7 +67,7 @@ test('automatic selection preserves exact identity, quotes privately, and keeps 
  await page.getByRole('button',{name:'Crypto',exact:true}).click();
  const search=page.getByRole('searchbox');await search.fill('BTC');await expect(page.getByRole('list',{name:'Market assets'}).getByRole('button')).toHaveCount(2);
  await page.getByRole('list',{name:'Market assets'}).getByRole('button').filter({hasText:'CoinGecko ID bitcoin'}).filter({hasNotText:'collision'}).click();
- await page.getByLabel('Asset quantity',{exact:true}).fill('0.25');await page.getByRole('button',{name:'Save asset for this Goal',exact:true}).click();await expect(page.getByRole('button',{name:'Save asset for this Goal',exact:true})).toHaveCount(0);
+ await page.getByLabel('Asset quantity',{exact:true}).fill('0.25');await page.getByRole('button',{name:'Save asset for this goal',exact:true}).click();await expect(page.getByRole('button',{name:'Save asset for this goal',exact:true})).toHaveCount(0);
  await page.goto('/app/wealth');await expect(page.locator('.wealth-hero')).toContainText('$16,250');
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));expect(saved.positions[0].marketRef.id).toBe('bitcoin');expect(saved.positions[0].quantity).toBe('250000000000000000');expect(saved.contributions).toHaveLength(0);
  expect(catalogCalls).toBe(1);expect(calls.length).toBeGreaterThan(0);for(const body of calls){expect(JSON.stringify(body)).not.toContain('250000');expect(JSON.stringify(body)).not.toContain('Automatic wealth');}

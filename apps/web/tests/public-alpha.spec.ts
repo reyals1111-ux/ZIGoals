@@ -7,6 +7,7 @@ import { navLink, walletArea } from "./phone-nav";
 import { toBech32 } from "@cosmjs/encoding";
 import { connectSources } from "../lib/csp-compose.mjs";
 import {chooseChain} from "./chain-choice";
+import {pressZigi} from "./zigi-open";
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
 
 test("Alpha declares an explicit same-origin icon that resolves", async ({ page, request }) => {
@@ -69,8 +70,9 @@ test("the effective Permissions-Policy: the microphone on the app pages, the cam
   }
   expect(egress.permissionsPolicy.app).toContain("microphone=(self)"); expect(egress.permissionsPolicy.app).toContain("camera=()");
   expect(egress.permissionsPolicy.health).toContain("camera=(self)"); expect(egress.permissionsPolicy.health).toContain("microphone=(self)");
-  // Session W Part 8: Web Bluetooth only on Health.
-  expect(egress.permissionsPolicy.health).toContain("bluetooth=(self)"); expect(egress.permissionsPolicy.app).toContain("bluetooth=()"); expect(egress.permissionsPolicy.global).toContain("bluetooth=()");
+  // Session W Part 8: Web Bluetooth only on Health — Session AL (TK-191, TIER 3 headers): held in the code, not the header
+  // (Chromium does not recognise a "bluetooth" policy feature and logged an error on every load; lib/public-safety.test.ts).
+  for (const value of Object.values(egress.permissionsPolicy)) expect(value).not.toContain("bluetooth");
   // The root redirects to /app (307); the global policy is asserted on that response itself, not on the page it leads to.
   const root = await request.get("/", {maxRedirects: 0});
   expect([200, 307, 308]).toContain(root.status());
@@ -141,7 +143,7 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
 // each page: every <script in the server's HTML carries that response's nonce, and a script without one is a chunk of
 // this origin the runtime appended (not in the server's HTML). Any CSP violation fails the gate.
 // Every app page without a record id in its address (app/app/**/page.tsx); Music opens in a player, not a page.
-const APP_ROUTES = ["/app", "/app/goals", "/app/goals/new", "/app/goals/positions", "/app/goals/tracked", "/app/habits", "/app/health", "/app/wealth", "/app/markets", "/app/staking", "/app/portfolio", "/app/ecosystem", "/app/chess", "/app/activity", "/app/settings", "/app/help", "/app/welcome", "/app/zigi"];
+const APP_ROUTES = ["/app", "/app/goals", "/app/goals/new", "/app/goals/positions", "/app/goals/tracked", "/app/habits", "/app/health", "/app/wealth", "/app/markets", "/app/staking", "/app/portfolio", "/app/ecosystem", "/app/chess", "/app/activity", "/app/settings", "/app/help", "/app/welcome", "/app/zigi", "/app/plans"]; // Session AL (O2): /app/plans
 type SeenScript = {src: string; nonced: boolean};
 async function watchScripts(page: Page) {
   await page.addInitScript(() => {
@@ -186,7 +188,7 @@ test("F15: on every app page and after opening ZIGi, every added script is the s
   const response = await page.goto("/app/habits");
   await page.waitForLoadState("networkidle");
   const before = await page.evaluate(() => (Reflect.get(window, "__gateScripts") as unknown[]).length);
-  await page.getByRole("button", {name: /^Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await expect(page.locator("dialog.ai-chat[open]")).toBeVisible();
   await page.waitForLoadState("networkidle");
   expect(await page.evaluate(() => (Reflect.get(window, "__gateScripts") as unknown[]).length), "opening ZIGi loaded its chunk").toBeGreaterThan(before);
@@ -217,6 +219,9 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.goto("/app/goals/new");
   await page.getByText("Personalize artwork and notes (optional)").click();
   await page.getByRole("group",{name:"Category / artwork"}).getByRole("radio",{name:"Travel"}).check();
+  // Session AL (DV-120, deliberate; 4a8543f9): with the chain chosen no kind is preselected (it was Quantity), so the test
+  // chooses the count it always made, as a person does; every check below is unchanged.
+  await page.getByRole("radio",{name:"Quantity",exact:true}).check(); await expect(page.getByRole("radio",{name:"Quantity",exact:true})).toBeChecked();
   await typeGoalName(page, sentinel); await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button",{name:"Continue"}).click(); await page.getByLabel("ZIGoals funding / Local simulation",{exact:true}).check(); await page.getByRole("button",{name:"Continue"}).click(); await page.getByRole("button",{name:"Continue"}).click();
   await page.getByRole("button",{name:"Create goal",exact:true}).click();

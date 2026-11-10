@@ -31,7 +31,7 @@ import {wealthMoney} from '../platform/wealth-money';
 import {CrossInsightsCard} from '../insights/cross-insights-card';
 import {Slot} from '../progress/slot';
 import {SectionHeading} from '../ui/section-heading';
-import {showToast} from '../ui/undo-toast';
+import {showStatus, showUndo} from '../ui/undo-toast';
 import {formatDay} from '../goals/format';
 import './life-review.css';
 import { unitFor } from '../../lib/plural';
@@ -64,7 +64,7 @@ export function LifeReviewView() {
     goals: goals.goals.map(g => ({key: g.key, id: g.id, name: g.name, href: g.href, status: g.status})),
     averages: averages.unreadable ? [] : averages.data.goals, extras: extras.data,
     history: platform.error ? [] : wealthOverview(platform.data, now).history, today,
-    current: platform.error ? [] : wealthOverview(platform.data, market.now || now, market.quotes).subtotals,
+    ...(platform.error ? {current: []} : (o => ({current: o.subtotals, currentComplete: !o.missingValue}))(wealthOverview(platform.data, market.now || now, market.quotes))),
   }), [ready, window, habits.data, habits.error, health.data, platform.data, platform.error, goals.goals, averages.data, averages.unreadable, extras.data, today, now, market.now, market.quotes]);
   const [focusDraft, setFocusDraft] = useState<{key: string; text: string} | null>(null);
   const saved = record.loaded ? record.data.focus[window.key]?.text ?? '' : '';
@@ -75,15 +75,16 @@ export function LifeReviewView() {
     const before = saved;
     try {
       record.update(s => setFocus(s, window.key, focusText, new Date().toISOString()));
-      showToast({message: focusText.trim() ? 'Your focus is saved on this device.' : 'Focus cleared.', undo: () => record.update(s => setFocus(s, window.key, before, new Date().toISOString())), undone: 'Focus put back.'});
-    } catch { showToast({message: 'Your focus could not be saved on this device.'}); }
+      // Session AL (3e): the one Undo; restore writes the earlier focus back into the stored record.
+      showUndo({message: focusText.trim() ? 'Your focus is saved on this device.' : 'Focus cleared.', restore: () => { record.update(s => setFocus(s, window.key, before, new Date().toISOString())); }, undone: 'Focus put back.'});
+    } catch { showStatus('Your focus could not be saved on this device.', {tone: 'error'}); }
   };
   const [sharing, setSharing] = useState(false);
   const financial = isShown(pages, 'wealth') || isShown(pages, 'goals');
 
   return <div className="life-review">
     <div className="life-review-period" role="group" aria-label="Review period">
-      {(['week', 'month'] as const).map(p => <button key={p} type="button" aria-pressed={period === p} onClick={() => pick(p)}>{p === 'week' ? 'This week' : 'This month'}</button>)}
+      {(['week', 'month'] as const).map(p => <button key={p} type="button" aria-pressed={period === p} onClick={() => pick(p)}>{/* Session AL (NB-227): the review's week is the last seven days (Journey's week starts on Monday), so it says so */}{p === 'week' ? 'Last 7 days' : 'This month'}</button>)}
       <p>{formatDay(window.start)} – {formatDay(window.end)} · beside {formatDay(window.prevStart)} – {formatDay(window.prevEnd)}</p>
     </div>
     {!review ? <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
@@ -155,7 +156,7 @@ function WeeklyReflection({financial, habits, health, platform, legacy, today}: 
   if (!store.loaded || store.unreadable) return null;
   const w = reviewWindow(store.data.weekday, today), state = reviewState(store.data, w.weekStart);
   const summary = () => weekSummary({...w, habits, health, platform, localGoals: legacy.goals, metadata: legacy.metadata?.goals ?? {}, now, financial, review: store.data});
-  return <section className="life-reflection" aria-label="Your weekly reflection">
+  return <section className="life-reflection" id="weekly-reflection" aria-label="Your weekly reflection">
     {state === 'done' || state === 'skipped' ? <p className="fine">{note || (state === 'done' ? `Your reflection for ${formatDay(w.weekStart)} – ${formatDay(w.weekEnd)} is saved on this device.` : `You skipped the reflection for ${formatDay(w.weekStart)} – ${formatDay(w.weekEnd)}.`)}</p>
       : <WeeklyReviewCard store={store} weekStart={w.weekStart} weekEnd={w.weekEnd} summary={summary} financial={financial} formatWealth={s => wealthMoney(s.value, s.currency)} onDone={setNote} />}
   </section>;

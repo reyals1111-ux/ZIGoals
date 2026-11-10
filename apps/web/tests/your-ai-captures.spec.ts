@@ -5,6 +5,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
+import {pressZigi} from './zigi-open';
 
 /**
  * ZIGi · your AI: the owner's screenshot gallery (ADR-012 follow-up, part B). Opt-in: `ZIGI_CAPTURES=1` writes every
@@ -43,7 +44,8 @@ async function seed(page: Page, settings: AiSettings | null) {
 }
 const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi/});
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await openButton(page).click(); await expect(panel(page)).toBeVisible(); }
+// Session AL (O3): below 901 px through the "Apps & extras" sheet (tests/zigi-open.ts).
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); }
 async function settle(page: Page) { await page.waitForTimeout(350); }
 /** A fresh Settings page on its ZIGi anchor: a hash-only goto would not reload, so the route leaves first. */
@@ -62,16 +64,24 @@ for (const viewport of VIEWPORTS) {
     test('launcher, setup paths and the bridge', async ({page}) => {
       await seed(page, null);
       await page.goto('/app');
-      await expect(openButton(page)).toBeVisible();
-      await shot(page, '01-launcher-default');
-      await openButton(page).hover(); await page.waitForTimeout(250);
-      await shot(page, '02-launcher-hover');
+      // Session AL (owner decision O3, deliberate): below 901 px there is no floating launcher to picture, hover or hide;
+      // the phone's gallery pictures "Apps & extras" instead.
+      const compact = viewport.width < 901;
+      if (compact) { await expect(page.getByTestId('apps-extras-button')).toBeVisible(); await shot(page, '01-apps-extras-button'); }
+      else {
+        await expect(openButton(page)).toBeVisible();
+        await shot(page, '01-launcher-default');
+        await openButton(page).hover(); await page.waitForTimeout(250);
+        await shot(page, '02-launcher-hover');
+      }
       await openChat(page);
       await shot(page, '03-not-connected');
       await page.keyboard.press('Escape');
-      await page.getByRole('button', {name: /Hide ZIGi/}).click();
-      await shot(page, '04-launcher-hidden-undo-toast');
-      await page.getByRole('button', {name: 'Undo', exact: true}).click();
+      if (!compact) {
+        await page.getByRole('button', {name: /Hide ZIGi/}).click();
+        await shot(page, '04-launcher-hidden-undo-toast');
+        await page.getByRole('button', {name: 'Undo', exact: true}).click();
+      }
       await page.goto('/app/settings#your-ai');
       const section = page.locator('#your-ai');
       await expect(section.getByTestId('ai-setup')).toBeVisible();

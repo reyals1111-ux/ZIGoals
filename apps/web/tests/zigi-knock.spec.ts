@@ -8,6 +8,7 @@ import {KNOCK_OFFER} from '../lib/ai/knock/offer';
 import {createHabit, habitDataSchema, HABITS_KEY, type HabitData} from '../lib/habits';
 import {PLATFORM_KEY} from '../lib/positions';
 import {REMINDERS_KEY} from '../lib/reminders/schema';
+import {pressZigi, typeInZigi} from './zigi-open';
 
 /**
  * Session V Part 13, ZIGi's knock end to end, with a fixed clock (Sunday 2026-09-20, the Showcase day): off by default
@@ -51,10 +52,20 @@ const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
  * When knocking is off the companion is not mounted at all, so nothing can knock.
  */
 async function settled(page: Page, {on = false} = {}) {
-  await expect(page.getByTestId('ai-launcher')).toBeVisible(FIRST);
+  // Session AL (owner decision O3, deliberate): below 901 px there is no floating launcher (was: it, at every width); the
+  // "Apps & extras" button is there, and the knock companion still looks.
+  if (compact(page)) { await expect(page.getByTestId('apps-extras-button')).toBeVisible(FIRST); await expect(page.getByTestId('ai-launcher')).toHaveCount(0); }
+  else await expect(page.getByTestId('ai-launcher')).toBeVisible(FIRST);
   if (on) await expect(page.locator('html[data-zigi-knock-looked]')).toBeAttached(FIRST);
   else { await page.waitForTimeout(1500); await expect(page.locator('html[data-zigi-knock-looked]')).not.toBeAttached(); }
 }
+/**
+ * Session AL (owner decision O3, deliberate): the knock is the floating ZIGi's bubble (components/ai/ai-launcher.tsx keeps the
+ * companion away below 901 px), so on the compact shell no knock ever shows and nothing is counted; Today's reminder card
+ * stays. The tests below assert that there and keep every computer assertion as it was.
+ */
+const compact = (page: Page) => page.viewportSize()!.width < 901;
+async function noKnockHere(page: Page) { await settled(page, {on: true}); await page.waitForTimeout(500); await expect(knock(page)).toHaveCount(0); }
 // The fixed clock is read in UTC on every runner (quiet hours, "Tonight" and the reminder's 18:00 are local times).
 test.use({timezoneId: 'UTC'});
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
@@ -72,6 +83,8 @@ test('knocking is off by default: a due reminder only shows its card on Today', 
 test('on: ZIGi knocks once for a due reminder; "Do it now" gives the check-in card, and adding it checks the habit in', async ({page}) => {
   await seed(page, KNOCK_ON);
   await page.goto('/app/habits');
+  // Session AL (O3, deliberate): below 901 px no knock and nothing counted (was: the knock shown on the phone too).
+  if (compact(page)) { await noKnockHere(page); expect(await stored(page, ZIGI_KNOCK_KEY)).toBeNull(); return; }
   await expect(knock(page)).toBeVisible(FIRST);
   await expect(knock(page).getByRole('heading', {name: 'Stretch evening'})).toBeVisible(FIRST);
   await expect(knock(page)).toContainText('On your list for today · 18:00');
@@ -95,6 +108,8 @@ test('on: ZIGi knocks once for a due reminder; "Do it now" gives the check-in ca
 test('Snooze holds the reminder for its time, then ZIGi knocks once more; Not today dismisses it for the day', async ({page}) => {
   await seed(page, KNOCK_ON);
   await page.goto('/app/goals');
+  // Session AL (O3, deliberate): below 901 px no knock to snooze (was: the knock shown on the phone too).
+  if (compact(page)) { await noKnockHere(page); return; }
   await expect(knock(page)).toBeVisible(FIRST);
   await knock(page).getByRole('button', {name: 'Snooze'}).click();
   await expect(knock(page).getByRole('group', {name: 'Snooze for'}).getByRole('button')).toHaveText(['15 minutes', '1 hour', 'Tonight', 'Back']);
@@ -121,7 +136,9 @@ test('never in the quiet hours, while ZIGi is hidden, on a sensitive screen, or 
   await expect(knock(page)).toHaveCount(0);
   await seed(page, {...KNOCK_ON, [AI_SETTINGS_KEY]: {...defaultAiSettings(), launcherHidden: true}});
   await page.goto('/app/habits');
-  await expect(page.getByRole('button', {name: 'Show ZIGi', exact: true})).toBeVisible(FIRST);
+  // Session AL (O3, deliberate): below 901 px the device hide does not apply and there is no edge tab (was: the tab shown).
+  if (compact(page)) { await settled(page, {on: true}); await expect(page.getByRole('button', {name: 'Show ZIGi', exact: true})).toHaveCount(0); }
+  else await expect(page.getByRole('button', {name: 'Show ZIGi', exact: true})).toBeVisible(FIRST);
   await page.waitForTimeout(1500);
   await expect(knock(page)).toHaveCount(0);
   await seed(page, KNOCK_ON);
@@ -135,6 +152,8 @@ test('never in the quiet hours, while ZIGi is hidden, on a sensitive screen, or 
   await page.waitForTimeout(1500);
   await expect(knock(page)).toHaveCount(0);
   await page.keyboard.press('Escape');
+  // Session AL (O3, deliberate): below 901 px no knock comes back after the sheet either (was: shown on the phone too).
+  if (compact(page)) { await noKnockHere(page); return; }
   await expect(knock(page)).toBeVisible(FIRST);
 });
 
@@ -151,6 +170,8 @@ test('ZIGi\'s weekly reminders: a goal check-in shows on Today with "Open goal" 
   expect((await stored(page, ZIGI_REMINDERS_KEY)).dismissed).toEqual({[DAY]: [`goal:private:${goal.id}`]});
   await seed(page, {...KNOCK_ON, [REMINDERS_KEY]: {version: 1, habits: {}, dismissed: {}}, [ZIGI_REMINDERS_KEY]: {version: 1, goalCheckIns: {[`private:${goal.id}`]: {weekday: 0, time: '18:00'}}}});
   await page.goto('/app/habits');
+  // Session AL (O3, deliberate): below 901 px it does not knock elsewhere (was: the knock shown on the phone too).
+  if (compact(page)) { await noKnockHere(page); return; }
   await expect(knock(page).getByRole('heading', {name: `Weekly check-in: ${goal.name}`})).toBeVisible(FIRST);
   await knock(page).getByRole('button', {name: 'Open goal'}).click();
   await page.waitForURL(`**/app/goals/tracked/${goal.id}`);
@@ -164,6 +185,8 @@ test('a push that arrives while the page is open knocks at once; opening from a 
   await expect(knock(page)).toHaveCount(0);
   await page.clock.setFixedTime(new Date('2026-09-20T18:00:10.000Z'));
   await page.evaluate(() => navigator.serviceWorker.dispatchEvent(new MessageEvent('message', {data: {type: 'zigoals:push-reminder'}})));
+  // Session AL (O3, deliberate): below 901 px no knock and no floating figure to greet (was: both on the phone too).
+  if (compact(page)) { await page.waitForTimeout(1500); await expect(knock(page)).toHaveCount(0); await page.goto('/app/goals?zigi=hello'); await expect.poll(() => new URL(page.url()).search).toBe(''); await expect(page.locator('.ai-launcher-button')).toHaveCount(0); return; }
   await expect(knock(page)).toBeVisible({timeout: 3000});
   await page.goto('/app/goals?zigi=hello');
   await expect(page.locator('.ai-launcher-button')).toHaveAttribute('data-state', 'greeting');
@@ -185,10 +208,12 @@ test('offered once after the first chat: "Not now" keeps knocking off and the qu
   await mockProvider(page);
   await seed(page, {[AI_SETTINGS_KEY]: connected});
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await expect(panel(page)).toBeVisible();
   await expect(panel(page).getByText(KNOCK_OFFER)).toHaveCount(0);
-  await page.getByLabel('Message to your AI').fill('Hello');
+  // Session AL (CI12, CI 1561, WebKit): the "ZIGi's box empty after a fill" class (Session AJ item 13): the words are typed
+  // until the box holds them and Send is enabled (tests/zigi-open.ts), then sent as before.
+  await typeInZigi(page, 'Hello', {field: page.getByLabel('Message to your AI')});
   await panel(page).locator('.ai-composer button[type=submit]').click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: hello there.');
   const offer = panel(page).getByRole('group', {name: 'A question from ZIGi'});
@@ -197,8 +222,8 @@ test('offered once after the first chat: "Not now" keeps knocking off and the qu
   await expect(offer).toHaveCount(0);
   expect((await stored(page, ZIGI_KEY)).knock).toEqual({offer: 'declined', offeredOn: DAY}); // Session Z-Local (ADR-020 L43): the day the offer showed is kept
   await page.reload();
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
-  await page.getByLabel('Message to your AI').fill('Hello again');
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
+  await typeInZigi(page, 'Hello again', {field: page.getByLabel('Message to your AI')});
   await panel(page).locator('.ai-composer button[type=submit]').click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: hello there.');
   await expect(panel(page).getByText(KNOCK_OFFER)).toHaveCount(0);
@@ -208,16 +233,20 @@ test('"Yes, knock" on a later day turns knocking on; ZIGi knocks once the panel 
   await mockProvider(page);
   await seed(page, {[AI_SETTINGS_KEY]: {...connected, connectedOn: '2026-09-18'}});
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   const offer = panel(page).getByRole('group', {name: 'A question from ZIGi'});
   await expect(offer).toContainText(KNOCK_OFFER);
   await offer.getByRole('button', {name: 'Yes, knock'}).click();
   expect((await stored(page, ZIGI_KEY)).knock).toEqual({offer: 'accepted', enabled: true, offeredOn: DAY}); // Session Z-Local (ADR-020 L43)
   await expect(knock(page)).toHaveCount(0);
   await panel(page).getByRole('button', {name: 'Close ZIGi', exact: true}).click();
-  await expect(knock(page)).toBeVisible(FIRST);
-  await knock(page).getByRole('button', {name: "Close ZIGi's reminder"}).click();
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  // Session AL (O3, deliberate): below 901 px the switch is on but no knock shows (was: the knock shown on the phone too).
+  if (compact(page)) await noKnockHere(page);
+  else {
+    await expect(knock(page)).toBeVisible(FIRST);
+    await knock(page).getByRole('button', {name: "Close ZIGi's reminder"}).click();
+  }
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
   const knockSwitch = panel(page).getByRole('switch', {name: 'Knock when a reminder is due'});
   await expect(knockSwitch).toHaveAttribute('aria-checked', 'true');

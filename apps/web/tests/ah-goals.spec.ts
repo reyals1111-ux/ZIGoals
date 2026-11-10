@@ -37,11 +37,11 @@ test('GO2: closing a goal can pause its supporting habit; Delete says in words w
   await create(page, 'Fictional review goal', 'Project');
   const supporting = page.locator('#supporting-habits');
   if (!await supporting.evaluate(el => el instanceof HTMLDetailsElement ? el.open : true)) await supporting.locator('summary').first().click();
-  await supporting.getByRole('button', {name: 'Add weekly Goal review habit', exact: true}).click();
+  await supporting.getByRole('button', {name: 'Add weekly goal review habit', exact: true}).click();
   await expect(supporting.getByRole('heading', {name: 'Review Fictional review goal'})).toBeVisible();
   const status = page.locator('#goal-status');
   if (!await status.evaluate(el => el instanceof HTMLDetailsElement ? el.open : true)) await status.locator('summary').first().click();
-  await status.getByRole('button', {name: 'Close Goal and release allocations', exact: true}).click();
+  await status.getByRole('button', {name: 'Close goal and release allocations', exact: true}).click();
   const ask = page.getByRole('alertdialog', {name: 'Confirm Goal action'});
   await expect(ask.getByRole('checkbox')).toBeChecked();
   await expect(ask).toContainText('Also pause its 1 supporting habit (Review Fictional review goal).');

@@ -51,7 +51,7 @@ test('C9: every Health view answers to ?tab=', async ({page}) => {
   await page.goto('/app/health?tab=workouts'); await hydrated(page);
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Train with a plan.');
   await page.goto('/app/health?tab=planner'); await hydrated(page);
-  await expect(page.getByRole('button', {name: 'Planner', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('tab', {name: 'Planner', exact: true})).toHaveAttribute('aria-selected', 'true');
 });
 
 test('HE7: each wrong custom fasting target says what is wrong, and nothing starts', async ({page}) => {
