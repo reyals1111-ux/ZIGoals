@@ -22,3 +22,14 @@
 .nc-sees-grid li[data-on] .nc-sees-cell { background: var(--neon, #9273ff); border-color: var(--neon, #9273ff); box-shadow: 0 0 8px var(--neon, #9273ff); }
 .nc-sees-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nc-sees-why { font-size: 14px; }
+.nc-sees-more { margin: 0; font-size: 15px; font-weight: 600; color: #d6e0f5; }
+.nc-sees[data-size=S] { gap: 2px; }
+.nc-sees[data-size=S] .nc-sees-count b { font-size: 22px; }
+.nc-sees[data-size=M] .nc-sees-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.nc-brain[data-size=S] { gap: 4px; }
+.nc-brain[data-size=S] .nc-brain-title { font-size: 15px; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Design review AM-D20: at S "Your requests" is the newest request on one line, its Show again and the source line. */
+.nova-widget[data-size=S] .nc-requests { gap: 2px; }
+.nova-widget[data-size=S] .nc-requests .nc-request-text { -webkit-line-clamp: 1; }
+.nova-widget[data-size=S] .nc-requests .nc-requests-more { display: none; }
+.nova-widget[data-size=S] .nc-requests .nc-request-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

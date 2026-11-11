@@ -71,16 +71,25 @@ export function leanAt(offset: number, radius: number, extent: number): number {
 }
 
 /** Orbit placement: each widget, in order, to the side with fewer rows used (left on a tie) while it fits; else the band.
- *  `rows` is the rows each size takes (AK's cards: ROWS; the Holo look: HOLO_ROWS). */
-export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS, rowsOf: Record<WidgetSize, number> = ROWS): Placed[] {
-  const used = {left: 0, right: 0}, out: Placed[] = [];
-  widgets.forEach((w, order) => {
-    const rows = rowsOf[w.size];
-    const first: 'left' | 'right' = used.left <= used.right ? 'left' : 'right', second = first === 'left' ? 'right' : 'left';
+ *  `rows` is the rows each size takes (AK's cards: ROWS; the Holo look: HOLO_ROWS).
+ *  Design review AM-D9: `prefer` names the side a widget already stands on. Those keep their side (while it fits) and are
+ *  placed first; a widget without one then takes the emptier side. So making, hiding, closing or pinning one widget never
+ *  sends another across the star. Within a side the list's order stands. */
+export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS, rowsOf: Record<WidgetSize, number> = ROWS, prefer?: (id: string) => 'left' | 'right' | undefined): Placed[] {
+  const used = {left: 0, right: 0}, sides = new Map<number, Side>();
+  const put = (order: number, rows: number, first: 'left' | 'right') => {
+    const second = first === 'left' ? 'right' : 'left';
     const side: Side = used[first] + rows <= sideRows ? first : used[second] + rows <= sideRows ? second : 'band';
-    if (side === 'band') { out.push({...w, side, row: 0, rows, lean: 0, order}); return; }
-    out.push({...w, side, row: used[side] + 1, rows, lean: 0, order});
-    used[side] += rows;
+    sides.set(order, side);
+    if (side !== 'band') used[side] += rows;
+  };
+  if (prefer) widgets.forEach((w, order) => { const kept = prefer(w.id); if (kept) put(order, rowsOf[w.size], kept); });
+  widgets.forEach((w, order) => { if (!sides.has(order)) put(order, rowsOf[w.size], used.left <= used.right ? 'left' : 'right'); });
+  const next = {left: 0, right: 0}, out: Placed[] = widgets.map((w, order) => {
+    const rows = rowsOf[w.size], side = sides.get(order)!;
+    if (side === 'band') return {...w, side, row: 0, rows, lean: 0, order};
+    const row = next[side] + 1; next[side] += rows;
+    return {...w, side, row, rows, lean: 0, order};
   });
   // Each column is centred on the star: a panel's offset is its centre's distance from the column's middle.
   for (const side of ['left', 'right'] as const) {

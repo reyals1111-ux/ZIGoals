@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useState, type CSSProperties} from 'react';
 import {dayLeftWords, daysLeftWords, msToNextMinute, timeRings} from '../../../lib/nova/cards/time';
 import {formatDate, formatNumber, formatPercent, formatTime} from '../../../lib/visual-format';
 import {CardFoot, Fact, Rings, type CardProps} from '../cards/kit';
@@ -46,6 +46,14 @@ export default function TimeWidget({size}: {size: CardProps['size']; params?: Ca
     {size !== 'S' && <div className="nc-time-rings">
       <Rings size={size === 'L' ? 104 : 76} items={items.map(it => ({key: it.key, share: it.share, figure: pct(it.share), label: it.label}))}/>
       <p className="nc-time-left">{items.map(it => <span key={it.key}>{it.left}</span>)}</p>
+    </div>}
+    {/* Design review AM-D21 (L): the space is used — today as a 24-hour strip with the time marked, the week's seven
+        days and the year's twelve months, each lit as far as it has passed (decoration: the same figures are the rings'
+        words and the table's). */}
+    {size === 'L' && <div className="nc-time-strips" aria-hidden="true">
+      <div className="nc-time-strip" data-kind="day"><span className="nc-time-strip-name">Today</span><span className="nc-time-bar"><i style={{width: `${(rings.day.share * 100).toFixed(2)}%`}}/><b style={{left: `${(rings.day.share * 100).toFixed(2)}%`}}/></span><span className="nc-time-scale">{['00', '06', '12', '18', '24'].map(h => <span key={h}>{h}</span>)}</span></div>
+      <div className="nc-time-strip" data-kind="week"><span className="nc-time-strip-name">This week</span><span className="nc-time-cells" style={{'--nc-cols': 7} as CSSProperties}>{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => { const at = (now.getDay() + 6) % 7; return <i key={i} data-state={i < at ? 'past' : i === at ? 'now' : undefined}>{d}</i>; })}</span></div>
+      <div className="nc-time-strip" data-kind="year"><span className="nc-time-strip-name">This year</span><span className="nc-time-cells" style={{'--nc-cols': 12} as CSSProperties}>{['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map((m, i) => <i key={i} data-state={i < now.getMonth() ? 'past' : i === now.getMonth() ? 'now' : undefined}>{m}</i>)}</span></div>
     </div>}
     {size === 'L' && <div className="nc-facts">
       <Fact label="Day of the year" value={`${formatNumber(rings.year.dayOfYear)} of ${formatNumber(rings.year.days)}`}/>

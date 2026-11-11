@@ -44,7 +44,9 @@ const SEGMENTS = 10;
  */
 export function CoreReadout({rings}: {rings: CoreRing[]}) {
   if (!rings.length) return null;
-  return <ul className="holo-core-readout" aria-label="Today’s core">{rings.map((r, i) => {
+  // Design review AM-D4: while every figure is unknown the four read-outs say nothing; the calm stage leaves them out
+  // (holo-parts.css hides `[data-all-unknown]` there). One known figure brings all four back, the unknown ones with their reason.
+  return <ul className="holo-core-readout" aria-label="Today’s core" data-all-unknown={rings.every(r => r.share === null) || undefined}>{rings.map((r, i) => {
     const lit = r.share === null ? 0 : Math.round(Math.max(0, Math.min(1, r.share)) * SEGMENTS);
     return <li key={r.pillar} data-pillar={r.pillar} data-unknown={r.share === null || undefined} title={r.reason ? `${r.measure}: ${r.reason}` : r.measure}>
       <PillarMark pillar={r.pillar} size={14}/><span className="holo-core-name">{SHORT[r.pillar] ?? r.measure}</span>

@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
-import {governorStep, rgb, speakPulse, STAR_ACCENT, STAR_STATE, STAR_TIERS, starPace, starPixels, starRender, type StarRender} from '../../../lib/nova/core/governor';
+import {GOVERNOR_GRACE_MS, governorStep, rgb, speakPulse, STAR_ACCENT, STAR_STATE, STAR_TIERS, starPace, starPixels, starRender, type StarRender} from '../../../lib/nova/core/governor';
 import {STAR_FRAG, STAR_UNIFORMS, STAR_VERT, type StarUniform} from '../../../lib/nova/core/star-shader';
 import type {HudMotionState} from '../../../lib/nova/holo/motion';
 import {countHudFrame} from '../../../lib/nova/holo/motes';
@@ -74,7 +74,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
 
     // The picture's own clock and eased values.
     const v = {t: 12, spin: 0.72, rate: 0.06, listen: 0, think: 0, speak: 0, beam: 0, beamA: 0, beamKey: live.current.beam?.key ?? 0, beamAt: -1e9};
-    let frame = 0, timer = 0, last = 0, lastDraw = 0, tier = 0, late = 0, lost = 0, stopped = false, activeAt = performance.now(), focused = true; // the focus is read from focus and blur events only (a page that never had it still starts active)
+    let frame = 0, timer = 0, last = 0, lastDraw = 0, tier = 0, late = 0, graceUntil = 0, lost = 0, stopped = false, activeAt = performance.now(), focused = true; // the focus is read from focus and blur events only (a page that never had it still starts active)
     const pixels = (scale: number) => { const want = starPixels(live.current.size, window.devicePixelRatio, scale, tier); if (el.width !== want) { el.width = want; el.height = want; } };
     const draw = (now: number, dt: number, speed: number) => {
       if (!gl) return;
@@ -106,9 +106,12 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
       frame = 0;
       if (stopped || !gl) return;
       const pace = starPace({hud: live.current.hud, state: live.current.state, focused, idleMs: now - activeAt, phone: live.current.phone});
+      // The active pace is its own frames per second, not the display's: on a 60 or 120 Hz screen the frames between are skipped.
+      if (pace.fps >= 30 && lastDraw && now - lastDraw < 1000 / pace.fps - 6) { frame = requestAnimationFrame(tick); return; }
       const dt = last ? Math.min(0.25, (now - last) / 1000) : 0; last = now;
-      // The governor watches the active pace only (at rest a late frame is nobody's concern).
-      if (pace.mode === 'active' && lastDraw) { const g = governorStep(tier, late, now - lastDraw, pace.fps); tier = g.tier; late = g.late; }
+      // The governor watches the active pace only (at rest a late frame is nobody's concern), and not while the page is
+      // still loading or the star has just woken.
+      if (pace.mode === 'active' && lastDraw && now >= graceUntil) { const g = governorStep(tier, late, now - lastDraw, pace.fps); tier = g.tier; late = g.late; }
       lastDraw = now;
       if (STAR_TIERS[tier]!.still) { still(); el.dataset.star = 'still'; el.dataset.starTier = String(tier); return; }
       pixels(pace.scale); draw(now, dt, pace.speed);
@@ -122,7 +125,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
       else timer = window.setTimeout(() => { frame = requestAnimationFrame(tick); }, 1000 / fps - 8);
     };
     const start = () => {
-      cancel(); last = 0; lastDraw = 0;
+      cancel(); last = 0; lastDraw = 0; late = 0; graceUntil = performance.now() + GOVERNOR_GRACE_MS;
       if (stopped || !gl) return;
       if (live.current.render !== 'running' || document.visibilityState === 'hidden') { still(); return; }
       frame = requestAnimationFrame(tick);

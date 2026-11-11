@@ -4,26 +4,49 @@
  * body 15 px, every target 44 px. Nothing here loops: a drawing draws once when its widget is made (Full motion only),
  * fades in under Calm, and is simply there under Motion Off and reduced motion. NOVA is a night island in every theme.
  */
-.nc-foot { margin: auto 0 0; padding-top: 8px; font-size: 14px; line-height: 1.35; color: #b9c6df; display: flex; flex-wrap: wrap; column-gap: 4px; }
+/* Design review AM-D38: the foot is the last line of every widget, on one baseline across neighbours — the body fills its
+   frame (the rule under .nc-body), the foot takes the space above it, and it is one line with an ellipsis. A credit that
+   must stay whole (the weather's service and licence) may wrap. */
+.nc-foot { margin: auto 0 0; padding-top: 6px; font-size: 14px; line-height: 1.35; color: #b9c6df; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: none; }
+.nc-foot[data-wrap], .nc-foot[role=status] { white-space: normal; overflow: visible; }
+.nova-widget .nc-body > .nc-foot { margin-top: auto; }
 .nc-foot-source { color: #cfdaf0; }
 .nc-foot a { color: var(--neon-ink, #eef3ff); text-decoration: underline; text-underline-offset: 3px; }
 .nc-body { display: flex; flex-direction: column; gap: 10px; min-height: 100%; }
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .nc-body { flex: 1 0 auto; min-height: 0; }
 
-/* ---- A state with no figure: locked, off, nothing yet ---- */
-.nc-notice { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; padding: 4px 0; }
+/* ---- A state with no figure: locked, off, nothing yet ----
+   Design review AM-D22: ONE teaching layout for every widget with nothing to show — an icon, one sentence, one action —
+   whichever component draws it (the kit's CardNotice, the HUD's HoloEmpty, the earlier widgets' NovaEmpty: the last two
+   keep their own class names and unlit shapes, in this same grid, type and button).
+   AM-D21, AM-D22: a locked or teaching widget is never the asked size's empty slab — its frame is one unit tall (size S)
+   and grows only as far as its sentence and its 44 px action need (widget-grid.tsx marks the frame `data-notice`). */
+.nc-notice, .nova-widget[data-holo] .holo-empty, .nova-widget[data-holo] .nova-empty { display: grid; grid-template-columns: 48px minmax(0, 1fr); column-gap: 14px; row-gap: 2px; align-items: center; padding: 4px 0; }
 .nc-notice-glyph { width: 48px; height: 48px; flex: none; }
 .nc-notice-ring { fill: color-mix(in oklab, var(--neon, #9273ff) 8%, transparent); stroke: color-mix(in oklab, var(--neon, #9273ff) 55%, transparent); stroke-width: 1.2; stroke-dasharray: 3 4; }
 .nc-notice-mark { fill: none; stroke: var(--neon-ink, #eef3ff); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .nc-notice-title { margin: 0; font-size: 15px; font-weight: 700; color: #f2f6ff; }
-.nc-notice-text { margin: 2px 0 0; font-size: 15px; line-height: 1.45; color: #d0dbf0; }
-.nc-action { display: inline-flex; align-items: center; min-height: 44px; margin-top: 4px; padding: 0 14px; border-radius: 12px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 12%, transparent); color: #f4f7ff; font: inherit; font-size: 15px; font-weight: 650; text-decoration: none; cursor: pointer; }
-.nc-action:hover { background: color-mix(in oklab, var(--neon, #9273ff) 24%, transparent); }
-.nova-widget[data-size=S] .nc-notice-glyph { display: none; }
-.nova-widget[data-size=S] .nc-notice { grid-template-columns: minmax(0, 1fr); }
+.nc-notice-text, .nova-widget[data-holo] .holo-empty-words, .nova-widget[data-holo] .nova-empty > p { margin: 2px 0 0; font-size: 15px; line-height: 1.45; color: #d0dbf0; }
+.nc-action, .nova-widget[data-holo] .holo-empty-action, .nova-widget[data-holo] .nova-empty > .nova-link { display: inline-flex; align-items: center; justify-self: start; min-height: 44px; margin-top: 4px; padding: 0 14px; border-radius: 12px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 12%, transparent); color: #f4f7ff; font: inherit; font-size: 15px; font-weight: 650; text-decoration: none; cursor: pointer; }
+:is(.nc-action, .nova-widget[data-holo] .holo-empty-action, .nova-widget[data-holo] .nova-empty > .nova-link):hover { background: color-mix(in oklab, var(--neon, #9273ff) 24%, transparent); text-decoration: none; }
+/* The HUD's unlit shape and the earlier widgets' art take the icon's place: one 48 px mark, top-aligned with the sentence. */
+.nova-widget[data-holo] .holo-empty-shape, .nova-widget[data-holo] .nova-empty-art { grid-column: 1; grid-row: 1 / span 2; align-self: start; width: 48px; height: 48px; justify-content: center; }
+.nova-widget[data-holo] .holo-empty-shape > :not(:first-child) { display: none; }
+.nova-widget[data-holo] :is(.holo-empty-words, .holo-empty-action, .nova-empty > p, .nova-empty > .nova-link) { grid-column: 2; }
+.nc-notice-glyph { align-self: start; }
+.nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size][data-size]:is([data-locked], [data-notice]) { height: auto; min-height: var(--h-s); }
+.nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size][data-size]:is([data-locked], [data-notice]) .nova-widget-body { flex: 1 1 auto; container: holo-body / inline-size; overflow: visible; margin-inline: 0; padding-inline: 0; }
+.nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size][data-size]:is([data-locked], [data-notice]) .nova-widget-inner { min-height: 0; padding-block: 0; justify-content: flex-start; }
+.nova-widget[data-holo]:is([data-locked], [data-notice]) > :is(.holo-ruler, .holo-sheen) { display: none; }
 
 /* ---- Hero, change, facts ---- */
 .nc-hero { min-width: 0; }
-.nc-hero-figure { margin: 0; display: flex; align-items: baseline; gap: 6px; line-height: 1; }
+/* Design review AM-D37: the hero's glow is behind the digits, not in them — a soft haze on the figure's own box, and only
+   a 6 px shadow at 45 % on the type, so the counters of 0, 8 and 5 stay open at any pixel ratio. */
+.nc-hero-figure { position: relative; isolation: isolate; margin: 0; display: flex; align-items: baseline; gap: 6px; line-height: 1; }
+.nc-hero-figure::before { content: ''; position: absolute; z-index: -1; inset: -8px 0; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, color-mix(in oklab, var(--neon, #9273ff) 20%, transparent), transparent); filter: blur(10px); }
+.nova-widget .nc-hero-num, .nova-widget .nw-temp-num { text-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 45%, transparent); }
+.nova-frame[data-look=classic] .nc-hero-figure::before { content: none; }
 .nc-hero-num { font-size: clamp(30px, 3.1vw, 44px); font-weight: 650; }
 .nova-widget[data-size=S] .nc-hero-num { font-size: 26px; }
 .nova-widget[data-size=L] .nc-hero-num { font-size: clamp(38px, 3.8vw, 56px); }
@@ -64,7 +87,9 @@
 .nc-lattice-row i[data-cell=part] { background: linear-gradient(to top, var(--neon, #23eaff) 50%, transparent 50%); border-color: var(--neon, #23eaff); }
 .nc-lattice-row i[data-cell=missed] { border-style: dashed; border-color: #ffffff59; }
 .nc-lattice-row i[data-cell=rest] { border-color: transparent; background: radial-gradient(circle, #ffffff40 0 1.5px, transparent 2px); }
-.nc-lattice-row i[data-cell=ahead] { border-color: #ffffff1f; }
+/* Design review AM-D39: an unlit cell's border is 28 % ink (it was near the sky's colour); today carries a ring. */
+.nc-lattice-row i[data-cell=ahead] { border-color: #ffffff47; }
+.nc-lattice-row i[data-today] { outline: 2px solid #fff; outline-offset: 1px; }
 
 /* ---- Capsules ---- */
 .nc-capsules { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }

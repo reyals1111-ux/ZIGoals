@@ -21,7 +21,17 @@ const CloseIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" focusable="f
 const MoreIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></g></svg>;
 
 export type WidgetStage = {pinned: boolean; onPin: () => void; onUnpin: () => void; onHide: () => void; onClose: () => void};
-/** A widget's stage actions: three icon buttons where the panel is wide enough, the same three under "More" where it is not. */
+/**
+ * Design review AM-D29: the pinned mark — a small filled pin beside the title with the words "Pinned" for assistive
+ * technology (it was a 6 px dot that read as a status light). It shows where the Pin button itself is folded away (a
+ * narrow panel, or while arranging); where the button is in view, its filled glyph and pressed state say the same.
+ */
+export const PinnedMark = () => <span className="ns-pinned" title="Pinned"><PinIcon on/><span className="sr-only">Pinned</span></span>;
+/**
+ * A widget's stage actions (design review AM-D11): Pin, Hide and Close as three named 44 px buttons in the head's one
+ * right-aligned group wherever the panel is 340 px or wider (the default desktop column is 374 px); the same three under
+ * "More" on a narrower panel.
+ */
 export function WidgetActions({title, stage}: {title: string; stage: WidgetStage}) {
   const [open, setOpen] = useState(false), box = useRef<HTMLSpanElement>(null), button = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -55,6 +65,8 @@ const GATE_WORDS: Readonly<Record<WidgetGate, {title: string; text: string}>> = 
   goals: {title: 'Goals page data is off', text: 'That switch decides what NOVA may read, so nothing is shown here. Your Goals page still shows everything.'},
   habits: {title: 'Habits page data is off', text: 'That switch decides what NOVA may read, so nothing is shown here. Your Habits page still shows everything.'},
   wealth: {title: 'Wealth page data is off', text: 'That switch decides what NOVA may read, so nothing is shown here. Your Wealth page still shows everything.'},
+  notes: {title: 'Notes are off for NOVA', text: 'NOVA reads your notes only when you allow it. Your Notes page still shows everything.'},
+  journal: {title: 'The journal is off for NOVA', text: 'NOVA reads your journal only when you allow it. Your Journal page still shows everything.'},
 };
 /** A made widget whose switch is off (D5): which switch, and nothing else. */
 export function WidgetLocked({id}: {id: string}) {
@@ -85,7 +97,9 @@ export function OneTap({available, onAsk, more}: {available: (id: string) => boo
  * NOVA's newest words, under the star (D7). The whole reply is in the conversation; this line shows its beginning as
  * plain text, says who answered, and opens the conversation. It is the stage's polite live region for answers.
  */
-export function StageAnswerLine({answer, persona, onOpen, onDismiss}: {answer: StageAnswer; persona: string; onOpen: () => void; onDismiss: () => void}) {
+export function StageAnswerLine({answer, persona, onOpen, onDismiss, widget, onGoTo}: {answer: StageAnswer; persona: string; onOpen: () => void; onDismiss: () => void;
+  /** Design review AM-D18: the widget this answer made, one keypress away (the widgets come before the command bar in the page's order). */
+  widget?: {id: string; title: string} | null; onGoTo?: (id: string) => void}) {
   let text = answer.text;
   try { text = plainText(parseBlocks(answer.text)); } catch { /* the words as they are */ }
   const short = text.replace(/\s+/g, ' ').trim(), cut = short.length > 320 ? `${short.slice(0, 317).replace(/\s+\S*$/, '')}…` : short;
@@ -94,6 +108,7 @@ export function StageAnswerLine({answer, persona, onOpen, onDismiss}: {answer: S
     <p className="ns-answer-text"><span className="sr-only">{persona}: </span>{cut}</p>
     <p className="ns-answer-meta">
       <span className="ns-answer-by">{answer.by === 'device' ? 'Answered on this device · no AI used' : 'From your AI'}</span>
+      {widget && onGoTo && <button type="button" className="ns-link" onClick={() => onGoTo(widget.id)}>Go to {widget.title}</button>}
       <button type="button" className="ns-link" onClick={onOpen}>{answer.decision ? 'Open to decide' : 'Open the conversation'}</button>
       <button type="button" className="ns-link" onClick={onDismiss} aria-label={`Dismiss ${persona}’s answer`}>Dismiss</button>
     </p>

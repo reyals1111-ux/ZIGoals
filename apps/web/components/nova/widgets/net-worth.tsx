@@ -16,7 +16,9 @@ import {usePillarShown} from '../holo/use-hud-data';
 import '../cards/wealth-cards.css';
 
 /**
- * Session AM (ADR-038; art direction §4, Wealth): "Net worth" in gold. The hero is the tracked wealth of the headline
+ * Session AM (ADR-038; art direction §4, Wealth): "Tracked wealth" in gold (design review AM-D13: titled for what it
+ * counts, the holdings on Wealth; accounts and debts are not in it, so it is not called net worth). The line ends on
+ * today's total, so the hero, the line's last point and every size say one amount. The hero is the tracked wealth of the headline
  * currency exactly as the wealth HUD words it (lib/nova/holo/wealth.ts wealthHud over the Wealth page's own overview and
  * quotes; "known so far" while a holding has no value yet, other currencies named apart and never converted). Under it,
  * the change between the first and the last *recorded* valuation in the range (only with two of them, with its date) and
@@ -60,15 +62,15 @@ export default function NetWorthWidget({size = 'M', params}: Partial<CardProps>)
         <TrendArea values={card.series} height={size === 'L' ? 112 : 44} labels={[on(first.at), on(last.at)]}
           {...(size === 'L' && card.high && card.low && card.high.cents !== card.low.cents ? {maxLabel: money(card.high.cents), minLabel: money(card.low.cents)} : {})}/>
       </div>
-      : <p className="nc-networth-note">{card.points.length === 1 && first ? `One valuation recorded in ${card.rangeWords} (${on(first.at)}). A change shows once there are two.` : `No valuation recorded in ${card.rangeWords}, so there is no change to show.`}</p>)}
+      : <p className="nc-networth-note">{card.recorded === 1 && first ? `One valuation recorded in ${card.rangeWords} (${on(first.at)}). A change shows once there are two.` : `No valuation recorded in ${card.rangeWords}, so there is no change to show.`}</p>)}
     {size === 'L' && <div className="nc-facts">
       {card.high && card.low && card.points.length > 1 && <><Fact label="Highest recorded" value={`${money(card.high.cents)} · ${on(card.high.at)}`}/><Fact label="Lowest recorded" value={`${money(card.low.cents)} · ${on(card.low.at)}`}/></>}
       {last && card.points.length > 1 && last.cents !== card.high?.cents && last.cents !== card.low?.cents && <Fact label="Last recorded" value={`${money(last.cents)} · ${on(last.at)}`}/>}
-      {last && card.points.length === 1 && <Fact label="Recorded" value={`${money(last.cents)} · ${on(last.at)}`}/>}
-      {card.points.length > 1 && <Fact label="Valuations recorded" value={String(card.points.length)}/>}
+      {last && card.recorded === 1 && card.points.length === 1 && <Fact label="Recorded" value={`${money(last.cents)} · ${on(last.at)}`}/>}
+      {card.points.length > 1 && <Fact label="Valuations recorded" value={String(card.recorded)}/>}
     </div>}
     {size === 'L' && card.knownSoFar && <p className="nc-networth-note">A holding without a value is not counted as zero: this total is what is known so far.</p>}
     <CardFoot source="Your Wealth records" asOf={netWorthAsOf(card.lastAt, size === 'S' ? undefined : read.prices, on, formatTime)}>{size === 'S' && card.otherCurrencies.length > 0 ? <span className="nc-networth-apart">+ held in {card.otherCurrencies.join(', ')}, never converted</span> : null}</CardFoot>
-    <HoloTable caption={`Net worth in ${cur || 'your currency'}, ${card.rangeWords}`} rows={netWorthRows(card, money, percent, on)}/>
+    <HoloTable caption={`Tracked wealth in ${cur || 'your currency'}, ${card.rangeWords}`} rows={netWorthRows(card, money, percent, on)}/>
   </div>;
 }

@@ -26,17 +26,19 @@ export default function NovaBrainWidget({size = 'S'}: Partial<CardProps>) {
   const {brain, loaded} = useBrain(), setup = useDeviceRecord(NOVA_SETUP);
   if (!loaded || !setup.loaded) return <HoloReading/>;
   const words = KIND_WORDS[brain.kind], mode = setup.unreadable ? null : setup.data.privacyMode ?? null;
-  return <div className="nc-body nc-brain">
+  // Design review AM-D20: each size holds what fits its box — S: what answers, in one line; M: its words and the privacy
+  // mode; L: the privacy mode in words and the way to the setup guide (at S and M the head's own link opens it).
+  return <div className="nc-body nc-brain" data-size={size}>
     <div className="nc-brain-head">
       <span className="nc-brain-dot" data-on={brain.kind !== 'none' || undefined} aria-hidden="true"/>
-      <div><p className="nc-brain-title">{words.title}</p><p className="nc-brain-words">{brain.kind === 'none' ? 'No AI connected' : brain.words}</p></div>
+      <div><p className="nc-brain-title">{words.title}</p>{size !== 'S' && <p className="nc-brain-words">{brain.kind === 'none' ? 'No AI connected' : brain.words}</p>}</div>
     </div>
     {size !== 'S' && <p className="nc-brain-text">{words.text}</p>}
-    <div className="nc-facts">
+    {size !== 'S' && <div className="nc-facts">
       <Fact label="Privacy mode" value={mode ? PRIVACY_WORDS[mode].label : 'Not chosen yet'}/>
       {size === 'L' && mode && <p className="nc-brain-text">{PRIVACY_WORDS[mode].what}</p>}
-    </div>
-    {brain.kind === 'none' && <Link className="nc-action" href="/app/nova/setup" prefetch={false}>Give NOVA a brain<span aria-hidden="true"> →</span></Link>}
+    </div>}
+    {size === 'L' && brain.kind === 'none' && <Link className="nc-action" href="/app/nova/setup" prefetch={false}>Give NOVA a brain<span aria-hidden="true"> →</span></Link>}
     <CardFoot source="This device’s settings" asOf="now"/>
   </div>;
 }

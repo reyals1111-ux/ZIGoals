@@ -13,7 +13,7 @@
   position: fixed; inset: 0; z-index: 44; color: var(--nova-ink); color-scheme: dark; isolation: isolate;
 }
 :root[data-theme=dark] .nova-root { --nova-deep: #010207; --nova-glass: color-mix(in oklab, #060a1d 74%, transparent); --nova-glass-strong: color-mix(in oklab, #040716 94%, transparent); }
-@media (max-width: 540px) { .nova-root { bottom: calc(var(--phone-tabs, 60px) + env(safe-area-inset-bottom, 0px)); } }
+/* Session AM (design review AM-D26): on a phone NOVA reaches the window's bottom edge (the app's tab bar steps aside while NOVA is open: nova-chrome.css). */
 .nova-frame[data-accent=violet] { --nova-a: var(--brand-violet, #9273ff); --nova-b: var(--brand-cyan, #63e7ff); --nova-c: var(--brand-magenta, #f06dff); --nova-hi: var(--accent-violet, #cbbfff); }
 .nova-frame[data-accent=cyan] { --nova-a: var(--brand-cyan, #23eaff); --nova-b: var(--brand-violet, #9273ff); --nova-c: var(--brand-blue, #459dff); --nova-hi: var(--accent-cyan, #9ee8f8); }
 .nova-frame[data-accent=magenta] { --nova-a: var(--brand-magenta, #f06dff); --nova-b: var(--brand-violet, #9273ff); --nova-c: var(--brand-cyan, #63e7ff); --nova-hi: var(--accent-magenta, #f3b0e6); }
@@ -63,8 +63,8 @@
 .nova-icon-btn:hover, .nova-icon-btn[aria-pressed=true] { border-color: color-mix(in oklab, var(--nova-a) 60%, transparent); background: color-mix(in oklab, var(--nova-a) 16%, transparent); }
 .nova-mini-btn { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; border-radius: 12px; border: 1px solid var(--nova-edge-soft); background: color-mix(in oklab, #ffffff 5%, transparent); color: var(--nova-ink); cursor: pointer; }
 .nova-mini-btn:disabled { opacity: .45; cursor: not-allowed; }
-.nova-kbd { display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 6px; border-radius: 7px; border: 1px solid var(--nova-edge-soft); background: #ffffff0d; color: var(--nova-ink-2); font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
-.nova-eyebrow { margin: 0; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--nova-ink-3); font-weight: 600; }
+.nova-kbd { display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 6px; border-radius: 7px; border: 1px solid var(--nova-edge-soft); background: #ffffff0d; color: var(--nova-ink-2); font: 600 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.nova-eyebrow { margin: 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: var(--nova-ink-3); font-weight: 600; }
 .nova-fine { margin: 0; font-size: 14px; color: var(--nova-ink-3); }
 .nova-link { color: var(--nova-hi); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; display: inline-flex; align-items: center; min-height: 44px; }
 .nova-chip-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--nova-ink-3); box-shadow: 0 0 8px currentColor; }
@@ -81,7 +81,7 @@
 .nova-switch > span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--nova-ink-2); transition: transform .18s ease; }
 .nova-switch[aria-checked=true] > span { background: linear-gradient(120deg, var(--nova-b), var(--nova-a)); }
 .nova-switch[aria-checked=true] > span::after { transform: translateX(22px); background: #fff; }
-.nova-status { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 13px; font-weight: 700; background: #ffffff14; color: var(--nova-ink-2); }
+.nova-status { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 14px; font-weight: 700; background: #ffffff14; color: var(--nova-ink-2); }
 .nova-status[data-on] { background: color-mix(in oklab, var(--accent-teal, #86f0d6) 22%, transparent); color: var(--accent-teal, #86f0d6); }
 .nova-row { display: flex; align-items: flex-start; gap: 10px; margin: 0; }
 .nova-row .nova-chip-dot { margin-top: 7px; }
@@ -101,12 +101,12 @@
 .nova-exit { padding: 0 12px; background: color-mix(in oklab, #ffffff 8%, transparent); }
 .nova-exit .nova-kbd { margin-left: 2px; }
 .nova-clock { display: grid; justify-items: center; margin: 0; text-align: center; }
-.nova-clock-label { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--nova-ink-3); font-weight: 600; }
+.nova-clock-label { font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--nova-ink-3); font-weight: 600; }
 .nova-clock-time { font-size: clamp(30px, 3.4vw, 46px); line-height: 1.05; font-weight: 300; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: var(--nova-ink); }
 .nova-clock-date { font-size: 14px; color: var(--nova-ink-2); }
 .nova-clock-compact .nova-clock-label { display: none; }
 .nova-clock-compact .nova-clock-time { font-size: 24px; }
-.nova-clock-compact .nova-clock-date { font-size: 13px; }
+.nova-clock-compact .nova-clock-date { font-size: 14px; }
 .nova-quick ul { display: grid; grid-template-columns: repeat(var(--cols, 7), 44px); gap: 8px; margin: 0; padding: 0; list-style: none; }
 @container nova-centre (min-width: 1700px) { .nova-quick ul { grid-template-columns: repeat(var(--cells, 14), 44px); } }
 @container nova-centre (max-width: 1180px) {
@@ -194,7 +194,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-orb-state[data-state=listening] .nova-orb-state-word { color: var(--accent-cyan, #9ee8f8); }
 .nova-orb-state[data-state=thinking] .nova-orb-state-word { color: var(--accent-magenta, #f3b0e6); }
 .nova-orb-state[data-state=speaking] .nova-orb-state-word { color: var(--accent-teal, #86f0d6); }
-.nova-orb-state-hint { font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--nova-ink-3); }
+.nova-orb-state-hint { font-size: 14px; letter-spacing: .16em; text-transform: uppercase; color: var(--nova-ink-3); }
 .nova-greeting { margin: 6px 0 0; min-height: 1.4em; font-size: clamp(19px, min(2.2vw, 2.6cqi), 28px); font-weight: 600; letter-spacing: -.01em; background: linear-gradient(100deg, #ffffff 0%, #ffffff 45%, var(--nova-hi) 80%, var(--nova-b) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 /* ND-3: the person's day in one line, under the greeting (facts only; the full words in its title when it is cut). */
 .nova-dayline { margin: 0; max-width: min(100%, 640px); min-height: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px; color: var(--nova-ink-2); }
@@ -235,7 +235,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 @container nova-stage (max-width: 1080px) { .nova-orbit { --lean-k: .45; } }
 /* A narrow stage (a tablet, or both side panels open on a 1440 px screen): the star takes the first screen whole, the
    widgets follow below it (beside it the centre column was too narrow for the greeting and the day line). */
-@container nova-stage (max-width: 800px) {
+@container nova-stage (max-width: 760px) {
   .nova-orbit-main { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; height: auto; gap: 14px; align-items: start; overflow: visible; }
   .nova-orbit-centre { overflow: clip; overflow-clip-margin: 8px; }
   .nova-orbit-centre { grid-column: 1 / -1; grid-row: auto; min-height: 100cqb; }
@@ -298,7 +298,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-editbar p { margin: 0; color: var(--nova-ink-2); font-size: 14px; }
 
 /* ---- The foot: command field and its menus; the conversation ---- */
-.nova-foot { display: grid; justify-items: center; padding: 8px 20px 16px; }
+.nova-foot { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; padding: 8px 20px 16px; } /* AM-D1: one column that can never be wider than the window */
 /* Session AK P3 (ND-5): the command field alone in the middle, as one calm glass bar; View controls pinned to the foot's
    bottom-left corner and the routing menu to its bottom-right, out of the field's row. On a narrow centre the two menus
    become 44 px icon buttons on either side of the field. */
@@ -322,7 +322,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-command-text { flex: 1 1 auto; min-width: 0; display: grid; }
 .nova-root .nova-command input:not(#\-) { min-height: 44px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--nova-ink); font-size: 18px; outline: none; }
 .nova-command input::placeholder { color: var(--nova-ink-2); opacity: 1; }
-.nova-command small { font-size: 13px; color: var(--nova-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nova-command small { font-size: 14px; color: var(--nova-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @container nova-centre (max-width: 760px) { .nova-command small { display: none; } }
 /* ND-5: on a narrow centre the field keeps its width for words; the shortcut stays in aria-keyshortcuts and in Help. */
 @container nova-centre (max-width: 900px) { .nova-frame:not([data-phone]) .nova-command .nova-kbd { display: none; } }
@@ -335,7 +335,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-menu[data-align=end] .nova-menu-panel { right: 0; }
 .nova-menu-panel[hidden] { display: none; }
 .nova-fieldset { margin: 0; padding: 0; border: 0; display: grid; gap: 8px; min-width: 0; }
-.nova-fieldset legend { padding: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--nova-ink-3); }
+.nova-fieldset legend { padding: 0 0 6px; font-size: 14px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--nova-ink-3); }
 .nova-segment { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 6px; }
 .nova-seg { position: relative; display: grid; place-items: center; min-height: 44px; border-radius: 12px; border: 1px solid var(--nova-edge-soft); cursor: pointer; font-weight: 600; }
 .nova-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
@@ -350,7 +350,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-menu-foot .nova-btn { width: 100%; }
 .nova-check, .nova-radio { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
 .nova-radio { align-items: flex-start; padding-top: 10px; }
-.nova-radio small { display: block; color: var(--nova-ink-3); font-size: 13px; }
+.nova-radio small { display: block; color: var(--nova-ink-3); font-size: 14px; }
 .nova-talk { width: min(1020px, 100%); height: min(64vh, 680px); display: flex; flex-direction: column; border-radius: 24px; border: 1px solid var(--nova-edge); background: var(--nova-glass-strong); overflow: hidden; box-shadow: 0 40px 90px -40px #000; -webkit-backdrop-filter: blur(22px) saturate(1.3); backdrop-filter: blur(22px) saturate(1.3); }
 .nova-talk > * { flex: 1 1 auto; min-height: 0; }
 /* Session AK P3 (ND-7): with the conversation open on a computer it is the one large glass panel: the stage behind it
@@ -377,17 +377,17 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-left[data-state=rail] .nova-left-top { flex-direction: column; }
 .nova-left-brand { display: flex; align-items: center; gap: 10px; margin: 0; color: var(--nova-hi); }
 .nova-left-brand span { display: grid; line-height: 1.2; color: var(--nova-ink); }
-.nova-left-brand small { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; color: var(--nova-ink-3); }
+.nova-left-brand small { font-size: 14px; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; color: var(--nova-ink-3); }
 .nova-left-space { padding: 12px 14px; border-radius: 16px; border: 1px solid var(--nova-edge-soft); background: #ffffff08; }
 .nova-left-space p { display: grid; gap: 2px; margin: 0; }
-.nova-left-space small { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--accent-teal, #86f0d6); }
+.nova-left-space small { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--accent-teal, #86f0d6); }
 .nova-left-life { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border-radius: 14px; background: linear-gradient(120deg, color-mix(in oklab, var(--nova-b) 22%, transparent), color-mix(in oklab, var(--nova-a) 28%, transparent)); border: 1px solid var(--nova-edge); color: var(--nova-ink); text-decoration: none; font-weight: 700; }
 .nova-left-life span { display: grid; line-height: 1.25; }
-.nova-left-life small { font-size: 13px; font-weight: 500; color: var(--nova-ink-2); }
+.nova-left-life small { font-size: 14px; font-weight: 500; color: var(--nova-ink-2); }
 .nova-left[data-state=rail] .nova-left-life { justify-content: center; width: 52px; padding: 0; }
 .nova-root .nova-left-find input:not(#\-) { width: 100%; font-size: 15px; }
 .nova-left-nav { display: grid; align-content: start; gap: 10px; width: 100%; flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; margin-inline: -6px; padding: 6px; }
-.nova-left-heading { display: flex; justify-content: space-between; margin: 0; padding: 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--nova-ink-3); }
+.nova-left-heading { display: flex; justify-content: space-between; margin: 0; padding: 0 8px; font-size: 14px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--nova-ink-3); }
 .nova-left-section ul { display: grid; gap: 2px; margin: 4px 0 0; padding: 0; list-style: none; }
 .nova-left-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 4px 8px; border: 0; border-radius: 12px; background: none; color: var(--nova-ink); font: inherit; font-size: 15px; text-align: left; text-decoration: none; cursor: pointer; }
 .nova-left-row:hover { background: #ffffff0d; }
@@ -418,17 +418,17 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-right-section h3 { margin: 0; }
 .nova-right-section h3 button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 12px; border: 0; background: none; color: var(--nova-ink); font: inherit; font-size: 15px; font-weight: 700; text-align: left; cursor: pointer; }
 .nova-right-section h3 button .nova-icon { margin-left: auto; color: var(--nova-ink-3); }
-.nova-num { font: 600 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--nova-hi); }
+.nova-num { font: 600 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--nova-hi); }
 .nova-right-body { display: grid; gap: 10px; padding: 0 12px 12px; font-size: 14px; color: var(--nova-ink-2); }
 .nova-right-body[hidden] { display: none; }
 .nova-right-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .nova-right-sub { margin: 6px 0 0; padding-left: 18px; color: var(--nova-ink-3); }
-.nova-right-sub-title { margin: 4px 0 0; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--nova-ink-3); }
+.nova-right-sub-title { margin: 4px 0 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: var(--nova-ink-3); }
 .nova-right-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.nova-right-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--nova-edge-soft); font-size: 13px; color: var(--nova-ink-3); }
+.nova-right-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--nova-edge-soft); font-size: 14px; color: var(--nova-ink-3); }
 .nova-facts { display: grid; gap: 10px; margin: 0; }
 .nova-facts > div { display: grid; gap: 2px; }
-.nova-facts dt { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--nova-ink-3); font-weight: 600; }
+.nova-facts dt { font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--nova-ink-3); font-weight: 600; }
 .nova-facts dd { margin: 0; color: var(--nova-ink); }
 .nova-facts dd small { display: block; color: var(--nova-ink-3); font-size: 14px; }
 .nova-facts-compact > div { grid-template-columns: 1fr auto; align-items: baseline; }
@@ -569,7 +569,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 /* ND-13: this device at a glance — four small tiles; an unknown says so in a quieter tone. */
 .nova-fact-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; }
 .nova-fact-tiles > div { display: grid; gap: 2px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--nova-edge-soft); background: #ffffff08; }
-.nova-fact-tiles dt { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--nova-ink-3); font-weight: 600; }
+.nova-fact-tiles dt { font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--nova-ink-3); font-weight: 600; }
 .nova-fact-tiles dd { margin: 0; font-size: 16px; font-weight: 600; color: var(--nova-ink); font-variant-numeric: tabular-nums; }
 .nova-fact-tiles dd[data-unknown] { font-weight: 500; color: var(--nova-ink-3); }
 .nova-status-row strong { color: var(--nova-ink); }
@@ -594,7 +594,6 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-top { padding-top: 8px; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-top .nova-clock-label { display: none; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-top .nova-clock-time { font-size: 24px; }
-  .nova-frame[data-look=holo]:not([data-phone]) .nova-top .nova-clock-date { font-size: 13px; }
   /* The top bar's planets in one row where the centre has the width (a 1280 × 720 laptop: 48 px back for the HUD). */
   @container nova-centre (min-width: 1150px) {
     .nova-frame[data-look=holo]:not([data-phone]) .nova-quick ul { grid-template-columns: repeat(var(--cells, 14), 44px); gap: 6px; }
@@ -619,9 +618,9 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 /* M4: a tablet (or a narrow centre): the chips are one row that scrolls sideways (they took four rows), so the HUD starts
    on the first screen. */
 @container nova-centre (max-width: 900px) {
-  .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-chips { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; max-width: 100%; padding-block: 2px; }
-  .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-chips > li { flex: none; }
-  .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-chips { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right: 24px; }
+  /* Design review AM-D7, AM-D8: the chips wrap (they were one row cut by a fade: "Showcase · fic"); each chip may break its own words. */
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-chips { max-width: 100%; gap: 4px 8px; }
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-chips > li { min-width: 0; max-width: 100%; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-setup-banner .nova-setup-banner-text p { display: none; }
 }
 /* M8: a phone's HUD scrolls as one page — the top bar, the deck and the setup invitation scroll away with the star and its
@@ -650,3 +649,101 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-frame[data-look=holo]:not([data-phone]) :is(.nova-left, .nova-chip, .nova-setup-banner, .nova-command) { -webkit-backdrop-filter: none; backdrop-filter: none; }
 .nova-frame[data-look=holo]:not([data-phone]) .nova-left { background: color-mix(in oklab, #060b1d 90%, transparent); }
 .nova-frame[data-look=holo]:not([data-phone]) :is(.nova-chip, .nova-setup-banner) { background: color-mix(in oklab, #0a1028 88%, transparent); }
+
+/* ==== Session AM design review (docs/review/session-am/NOVA_AM_DESIGN_REVIEW.md): the stage's layout and its chrome ==== */
+
+/* AM-D14, AM-D5, AM-D6: the star does not move when NOVA speaks. The words under the star (its state, then the greeting
+   and the day line, or NOVA's answer) live in a slot of fixed height; the stack — name, star, slot — is centred as one
+   block, so the star's centre is the same on the calm stage, with a one-line answer and with a long one. The star's box
+   gives way first on a short stage (never the words): it is as tall as the stage leaves after the slot. */
+/* The slot holds NOVA's state and the tallest answer card of its step: beside widgets (a star column of 300 px) that is the
+   words (2, 3 or 4 lines), who answered, and two rows of links. The question's echo shows on the calm stage's wide column only. */
+.nova-stage { --ns-slot: 228px; --ns-lines: 3; }
+@container nova-stage (min-height: 640px) { .nova-stage { --ns-slot: 252px; --ns-lines: 4; } }
+@container nova-stage (max-height: 520px) { .nova-stage { --ns-slot: 204px; --ns-lines: 2; } }
+.nova-frame[data-stage=set]:not([data-phone]) .ns-answer-asked { display: none; }
+.nova-frame[data-stage]:not([data-phone]) .nova-orbit-centre > .nova-stage:not(#\-) { grid-template-rows: auto auto var(--ns-slot); align-content: center; }
+.nova-frame[data-stage]:not([data-phone]) .nova-orbit-centre > .nova-stage > .nova-stage-below { align-self: start; }
+.nova-orb-button[data-star] { min-height: min(var(--star-box, 0px), max(96px, calc(100cqb - var(--ns-slot) - 124px))); }
+/* AM-D33: the day line may take two lines (it was cut: "…1,000 mL of water t…"); one line beside the read-outs. */
+.nova-frame:not([data-phone]) .nova-stage .nova-dayline { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.nova-frame[data-stage=calm]:not([data-phone]) .nova-stage-below:has(.holo-core-readout:not([data-all-unknown])) .nova-dayline { -webkit-line-clamp: 1; line-clamp: 1; }
+@container nova-stage (min-width: 1240.02px) { .nova-frame[data-stage=set]:not([data-phone]) .nova-stage-below:has(.holo-core-readout) .nova-dayline { -webkit-line-clamp: 1; line-clamp: 1; } }
+@container nova-stage (max-height: 520px) {
+  .nova-frame:not([data-phone]) .nova-stage .nova-greeting:not(#\-) { font-size: 17px; margin-top: 0; }
+}
+/* AM-D5: a calm stage (no widget beside the star) is one centred column, so the greeting is one line. */
+.nova-frame[data-stage=calm]:not([data-phone]) .nova-orbit-main:not(#\-) { grid-template-columns: minmax(0, 640px); justify-content: center; }
+.nova-frame[data-stage=calm]:not([data-phone]) .nova-orbit-centre:not(#\-) { grid-column: 1; }
+.nova-frame[data-stage=calm]:not([data-phone]) .nova-orbit-side { display: none; }
+/* AM-D7: three columns (widgets, star, widgets) down to 760 px of stage; AM-D8: under that, two widget columns under a smaller star while the stage has 600 px. */
+@container nova-stage (min-width: 760.02px) and (max-width: 920px) {
+  .nova-frame[data-stage=set][data-look=holo]:not([data-phone]) .nova-orbit-main:not(#\-) { grid-template-columns: minmax(220px, 1fr) minmax(240px, .8fr) minmax(220px, 1fr); column-gap: 14px; }
+}
+/* Under the three columns the star is a header above the widgets: its slot is the short one, so the widgets start on the first screen. */
+@container nova-stage (max-width: 760px) { .nova-frame[data-stage=set]:not([data-phone]) .nova-stage { --ns-slot: 164px; --ns-lines: 2; } }
+@container nova-stage (min-width: 600px) and (max-width: 760px) {
+  .nova-frame[data-stage=set][data-look=holo]:not([data-phone]) .nova-orbit-main:not(#\-) { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; }
+  .nova-frame[data-stage=set][data-look=holo]:not([data-phone]) .nova-orbit-band-grid:not(#\-) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* AM-D4, AM-D27: the top bar's tiles are one row wherever the centre has 1150 px (a 1440 px window with the left bar open),
+   at any height; every tile keeps its name and shows it on hover and keyboard focus. Exit and Your day are icons there. */
+@container nova-centre (min-width: 1150px) and (max-width: 1699.98px) {
+  .nova-frame:not([data-phone]) .nova-quick ul { grid-template-columns: repeat(var(--cells, 14), 44px); gap: 6px; }
+  .nova-frame:not([data-phone]) .nova-top { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; }
+  .nova-frame:not([data-phone]) .nova-top .nova-clock { justify-self: center; }
+  .nova-frame:not([data-phone]) .nova-top-left .nova-top-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .nova-frame:not([data-phone]) .nova-top-left :is(.nova-exit, .nova-pill) { width: 44px; padding: 0; }
+  .nova-frame:not([data-phone]) .nova-top-left .nova-exit .nova-kbd { display: none; }
+  .nova-frame:not([data-phone]) .nova-top .nova-clock-label { display: none; }
+}
+/* AM-D4: the calm stage's chrome is quiet. The status chips are one line of plain words (no pills; each still a 44 px
+   link to its own place), the invitation is one slim line beside them where they fit, with 16 px between it and the
+   star's name, and the command bar drops its key cap (the shortcut stays in the field's own keyshortcuts and in "?"). */
+.nova-frame[data-stage=calm]:not([data-phone]) .nova-deck .nova-chip:not(.nova-showcase) { border-color: transparent; background: none; padding-inline: 6px; }
+.nova-frame:not([data-phone]) .nova-deck { margin-bottom: 6px; min-height: 50px; } /* one row's height with or without the invitation, so the stage under it does not shift when the invitation steps aside */
+.nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner .nova-setup-banner-text p { display: none; }
+.nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner { flex-wrap: nowrap; min-height: 48px; box-sizing: border-box; }
+.nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner .nova-setup-actions { flex-wrap: nowrap; }
+.nova-frame[data-stage=calm] .nova-command .nova-kbd { display: none; }
+
+/* AM-D17: on a computer of 1100 px or more the open conversation is a column docked on the right (420 px), in the right
+   bar's place: the star and the widgets stay on the stage beside it. Narrower windows keep the covering panel. */
+@media (min-width: 1100px) {
+  .nova-frame[data-chat]:not([data-phone]) .nova-centre { padding-right: 420px; box-sizing: border-box; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-centre > .nova-stage-area:not(#\-) { flex: 1 1 0; padding-block: 10px 16px; overflow-y: auto; visibility: visible; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-centre > .nova-foot:not(#\-) { flex: none; padding: 0; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk:not(#\-) { position: absolute; top: 0; right: 0; bottom: 0; width: 420px; height: auto; max-height: none; border-radius: 0; border-width: 0 0 0 1px; box-shadow: none; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-right { display: none; }
+}
+
+/* AM-D26: a phone. NOVA is a chat agent there: the app's tab bar steps aside (nova-chrome.css), so NOVA takes the window
+   to its bottom edge; the stage is the star, its state and the newest words, then the chips and the field. */
+.nova-frame[data-phone] .nova-foot { padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
+.nova-frame[data-phone] .holo-phone-column > .nova-stage { min-height: calc(100svh - 246px); align-content: center; } /* the first screen is NOVA itself; pinned widgets start under it */
+/* AM-D40: the first paint is the star with the line under it, in the window's middle (the frame's three columns put the star at the left edge). */
+.nova-waiting { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+.nova-frame[data-opening=waiting] { grid-template-columns: minmax(0, 1fr); place-items: center; align-content: center; }
+/* AM-D6: on a narrow centre (a 1024 px window) the deck's one row is tighter, so the chips and the invitation still share it. */
+@container nova-centre (max-width: 1100px) {
+  .nova-frame[data-stage=calm]:not([data-phone]) .nova-deck { gap: 4px; padding: 0 10px; }
+  .nova-frame[data-stage=calm]:not([data-phone]) .nova-deck > .nova-chips { gap: 0; }
+  .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner { padding-left: 12px; gap: 8px 10px; }
+  .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner h2 { font-size: 15px; }
+}
+/* AM-D4, AM-D6, AM-D27: one row of tiles on a narrower centre too (a 1024 px window; 1440 px with the right bar or the
+   docked conversation open). The row keeps the first entries of the dock and the window's own tools (Customize, the mini
+   window, NOVA's own window, Fullscreen, the right bar); the dock's other entries wait behind "Quick access", the labelled
+   sheet that already holds every entry on a phone — each with its own name, and its single-key shortcut still works. */
+@container nova-centre (min-width: 800.02px) and (max-width: 1149.98px) {
+  .nova-frame:not([data-phone]) .nova-quick-more { display: inline-grid; }
+  .nova-frame:not([data-phone]) .nova-quick li:nth-child(n+4):nth-last-child(n+6) { display: none; }
+  .nova-frame:not([data-phone]) .nova-quick ul { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 44px; gap: 6px; }
+  .nova-frame:not([data-phone]) :is(.nova-top, .nova-top-right) { align-items: center; }
+  .nova-frame:not([data-phone]) .nova-top .nova-clock-label { display: none; }
+}
+@container nova-centre (min-width: 800.02px) and (max-width: 900px) {
+  .nova-frame:not([data-phone]) .nova-quick li:nth-child(3):nth-last-child(n+6) { display: none; }
+  .nova-frame:not([data-phone]) .nova-quick ul { gap: 4px; }
+}

@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useEffect, useState, type ReactNode} from 'react';
+import {Suspense, lazy, useEffect, useState, type CSSProperties, type ReactNode} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {NOVA_SETUP, setupProgress, showSetupCard, setCardHidden} from '../../lib/nova/setup';
@@ -37,7 +37,8 @@ function NovaGreeting({greeting, typingFrom}: {greeting: string; typingFrom: num
     const id = window.setInterval(() => setElapsed(performance.now() - typingFrom), 32);
     return () => window.clearInterval(id);
   }, [typingFrom]);
-  const typed = typingFrom === null ? greeting.length : typedLength(greeting, elapsed);
+  // Design review AM-D34: the line is revealed word by word (the caret never stands inside a word, which read as broken spacing).
+  const raw = typingFrom === null ? greeting.length : typedLength(greeting, elapsed), typed = raw >= greeting.length ? greeting.length : Math.max(0, greeting.lastIndexOf(' ', raw));
   return <p className="nova-greeting">{greeting.slice(0, typed)}<span className="nova-caret" aria-hidden="true" data-done={typed >= greeting.length || undefined}/>{typed < greeting.length && <span className="nova-greeting-rest">{greeting.slice(typed)}</span>}</p>;
 }
 /**
@@ -57,14 +58,16 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
   core?: {rings: ReactNode; readout: ReactNode};
 }) {
   const letters = persona.name.toUpperCase().split('').join('·').replace(/·\s·/g, ' ');
-  return <div className="nova-stage" data-holo-core={core ? '' : undefined}>
+  // Design review AM-D14: the words under the star live in a slot of fixed height (nova.css), so the star's centre is the
+  // same with the greeting, a one-line answer or a long one; `data-answer` lets the sheet size what stands in the slot.
+  return <div className="nova-stage" data-holo-core={core ? '' : undefined} data-answer={answer ? '' : undefined}>
     <svg className="nova-rings" viewBox="-500 -500 1000 1000" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
       <circle className="nova-ring nova-ring-1" r="190"/><circle className="nova-ring nova-ring-2" r="300"/><circle className="nova-ring nova-ring-3" r="420"/>
       {/* ND-16: both moons ride the middle ring, on arcs the side columns leave open. */}
       <circle className="nova-ring-moon" cx="300" cy="0" r="5"/><circle className="nova-ring-moon nova-ring-moon-2" cx="-150" cy="-260" r="3.5"/>
     </svg>
     <div className="nova-stage-above"><p className="nova-name" aria-hidden="true">{letters}</p></div>
-    <button type="button" className="nova-orb-button" onClick={onTalk} aria-expanded={talkOpen} aria-controls={talkOpen ? "nova-talk" : undefined} aria-describedby="nova-orb-state" data-star={starOn && persona.avatar !== 'zigi' ? '' : undefined} style={starOn && starBox && persona.avatar !== 'zigi' ? {minHeight: starBox} : undefined}>
+    <button type="button" className="nova-orb-button" onClick={onTalk} aria-expanded={talkOpen} aria-controls={talkOpen ? "nova-talk" : undefined} aria-describedby="nova-orb-state" data-star={starOn && persona.avatar !== 'zigi' ? '' : undefined} style={starOn && starBox && persona.avatar !== 'zigi' ? {'--star-box': `${starBox}px`} as CSSProperties : undefined}>
       {persona.avatar !== 'zigi' && star}
       {persona.avatar === 'zigi' ? <PersonaMark avatar="zigi" size={170} state={orb}/> : <NovaOrb state={orb} size={220}/>}
       <span className="sr-only">Talk to {persona.name}</span>

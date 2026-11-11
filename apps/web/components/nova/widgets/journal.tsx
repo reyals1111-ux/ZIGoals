@@ -17,6 +17,17 @@ import '../cards/life-cards.css';
  * record and only each entry's day (lib/nova/cards/journal.ts): what was written stays on its page.
  * S: the hero. M: the hero beside the month. L: the month larger, with the days written and the last entry.
  */
+/**
+ * Design review AM-D39: a row is a week, so it is named by its ISO week ("W45"), not by a date that reads as one day in a
+ * list of days; today's cell carries a ring. `monday` is the row's Monday (the selector's own key).
+ */
+const DAY_MS = 86_400_000, utc = (date: string) => Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10));
+const dayIndex = (monday: string, day: string) => Math.round((utc(day) - utc(monday)) / DAY_MS);
+/** The ISO week of the week that starts on `monday`: the week of the year its Thursday falls in. */
+function isoWeek(monday: string): number {
+  const thursday = utc(monday) + 3 * DAY_MS;
+  return 1 + Math.floor((thursday - Date.UTC(new Date(thursday).getUTCFullYear(), 0, 1)) / (7 * DAY_MS));
+}
 export default function JournalWidget({size}: {size: CardProps['size']; params?: CardProps['params']}) {
   const journal = useDeviceRecord(JOURNAL), today = localDate();
   const month = useMemo(() => journal.loaded && !journal.unreadable ? journalMonth(journal.data.entries, today) : null, [journal.loaded, journal.unreadable, journal.data, today]);
@@ -29,7 +40,7 @@ export default function JournalWidget({size}: {size: CardProps['size']; params?:
     ? <Hero value={`${month.streak}`} unit={`${plural(month.streak, 'day')} in a row`} label={size === 'S' ? `${month.entries} this month` : `${entries} this month`}/>
     : <Hero value={`${month.entries}`} unit={plural(month.entries, 'entry', 'entries')} label="This month"/>;
   const calendar = <Lattice columns={Array.from({length: 7}, (_, i) => formatWeekday(addLocalDays(month.firstMonday, i)).slice(0, 1))}
-    rows={month.weeks.map(w => ({key: w.key, label: formatDate(w.first, {year: false}), cells: w.cells}))}/>;
+    rows={month.weeks.map(w => { const at = dayIndex(w.key, today); return {key: w.key, label: `W${isoWeek(w.key)}`, cells: w.cells, today: at >= 0 && at < 7 ? at : undefined}; })}/>;
   return <div className="nc-body nc-journal" data-size={size}>
     {size === 'S' ? hero : size === 'M' ? <div className="nc-journal-main">
       <div className="nc-journal-side">{hero}{last && <Fact label="Last entry" value={last}/>}</div>
@@ -42,7 +53,7 @@ export default function JournalWidget({size}: {size: CardProps['size']; params?:
         <Fact label="Days written this month" value={`${month.daysWritten}`}/>
         {last && <Fact label="Last entry" value={last}/>}
       </div>
-      <p className="nc-journal-key" aria-hidden="true"><span><i data-cell="done"/>A day you wrote</span><span><i data-cell="ahead"/>Still to come</span></p>
+      <p className="nc-journal-key" aria-hidden="true"><span><i data-cell="done"/>A day you wrote</span><span><i data-cell="ahead" data-today=""/>Today</span><span><i data-cell="ahead"/>Not written, or still to come</span></p>
     </>}
     <CardFoot source="Your journal" asOf="today"/>
     <HoloTable caption={`Journal, ${monthName}`} rows={[

@@ -7,7 +7,7 @@ import {BENTO_SPAN, HOLO_ROWS, ROWS as ROWS_AK, MAX_LEAN, dropPlace, holoRowsFit
 import {settleDelay} from '../../lib/nova/orb';
 import {WIDGET_SIZES, type NovaLayout, type NovaWidget, type WidgetSize} from '../../lib/nova/store';
 import type {StageWidget, WidgetParams} from '../../lib/nova/stage/record';
-import {WidgetActions, WidgetLocked} from './stage/stage-parts';
+import {PinnedMark, WidgetActions, WidgetLocked} from './stage/stage-parts';
 import type {StageApi} from './stage/use-stage';
 import {widgetSpec} from '../../lib/nova/widgets/catalog';
 import {NovaIcon} from './icons';
@@ -82,7 +82,17 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
   // Review fixes (lane L8d, B1, M2): the Holo look's own rows — S one unit, M two, L four — as many as the stage holds, the
   // unit grown to fill its height; AK's cards keep their rows and caps.
   const fit = holo ? holoRowsFit(stageHeight) : rowsFit(stageHeight), unit = holo ? holoUnit(stageHeight, fit) : 0;
-  const placed = layout === 'orbit' && !phone ? placeOrbit(shown, fit, holo ? HOLO_ROWS : ROWS_AK) : [];
+  // Design review AM-D9: a widget keeps its side of the star while one or a few widgets are made, hidden, closed or
+  // pinned around it (the sides are remembered for this visit only). An arrangement the person makes themselves (arranging,
+  // a preset: the list changes by more than a few) is placed afresh.
+  const standing = useRef<{ids: ReadonlySet<string>; side: ReadonlyMap<string, 'left' | 'right'>}>({ids: new Set(), side: new Map()});
+  // A locked widget is a short notice whatever size was asked: in the orbit it takes the rows of S (design review AM-D21).
+  const rowsOfShown = live ? shown.map(w => { const on = live.shown.find(x => x.id === w.id); return on && live.gateOpen(on) === false && w.size !== 'S' ? {...w, size: 'S' as const} : w; }) : shown;
+  const before = standing.current, ids = new Set(shown.map(w => w.id));
+  const changed = shown.filter(w => !before.ids.has(w.id)).length + [...before.ids].filter(id => !ids.has(id)).length;
+  const keepSides = !editing && before.ids.size > 0 && changed <= 3;
+  const placed = layout === 'orbit' && !phone ? placeOrbit(rowsOfShown, fit, holo ? HOLO_ROWS : ROWS_AK, keepSides ? id => before.side.get(id) : undefined).map((p, i) => ({...p, size: shown[i]!.size})) : [];
+  standing.current = {ids, side: new Map(placed.flatMap(p => p.side === 'band' ? [] : [[p.id, p.side] as const]))};
   // Review m9: after a move from the keyboard, the status line says where the panel is now ("2 of 9, right column").
   const moved = useRef<string | null>(null), announce = actions.announce;
   useEffect(() => {
@@ -154,11 +164,13 @@ function WidgetFrame({widget, index, count, style, side, editing, opening, dragg
   useOffscreenMark(panel, holo);
   // Session AK P3 (ND-2): a card ends where its content ends, up to its size's height; content past it fades out softly
   // (the full view is one tap away, on the header's link).
-  const body = useRef<HTMLDivElement>(null), inner = useRef<HTMLDivElement>(null), [cut, setCut] = useState(false);
+  // Design review AM-D21, AM-D22: a widget whose body is only a teaching notice (nothing logged yet, off, choose a place)
+  // is marked `data-notice`, so its frame is one unit tall whatever size was asked (cards.css), as a locked one is.
+  const body = useRef<HTMLDivElement>(null), inner = useRef<HTMLDivElement>(null), [cut, setCut] = useState(false), [notice, setNotice] = useState(false);
   useEffect(() => {
     const outer = body.current, content = inner.current;
     if (!outer || !content || typeof ResizeObserver === 'undefined') return;
-    const read = () => setCut(content.scrollHeight > outer.clientHeight + 2);
+    const read = () => { setCut(content.scrollHeight > outer.clientHeight + 2); setNotice(content.childElementCount === 1 && !!content.firstElementChild?.matches('.nc-notice, .holo-empty, .nova-empty')); };
     read();
     const observer = new ResizeObserver(read); observer.observe(outer); observer.observe(content);
     return () => observer.disconnect();
@@ -182,12 +194,16 @@ function WidgetFrame({widget, index, count, style, side, editing, opening, dragg
   const tap = holo && !editing && actions.quick && gate === true ? (e: MouseEvent<HTMLDivElement>) => { if (!(e.target as Element).closest('a, button, input, textarea, select, label, summary')) actions.quick!(widget.id); } : undefined;
   const stageActions = live ? {pinned, onPin: () => live.pin(widget.id), onUnpin: () => live.unpin(widget.id), onHide: () => live.hide(widget.id), onClose: () => live.close(widget.id)} : null;
   return <article ref={panel} className="nova-widget" data-widget={widget.id} data-size={widget.size} data-pillar={spec.pillar} data-side={side} data-holo={holo ? '' : undefined} data-fit={fitKind}
-    data-made={live ? (fresh ? 'fresh' : pinned ? undefined : 'made') : undefined} data-pinned={live && pinned ? '' : undefined} data-locked={gate === false ? '' : undefined} data-dragging={dragging ? '' : undefined} data-drop={dropTarget ? '' : undefined} data-cut={cut && !editing ? '' : undefined} style={css} aria-labelledby={`${id}-t`}>
+    data-made={live ? (fresh ? 'fresh' : pinned ? undefined : 'made') : undefined} data-pinned={live && pinned ? '' : undefined} data-locked={gate === false ? '' : undefined} data-notice={notice && gate !== false ? '' : undefined} data-dragging={dragging ? '' : undefined} data-drop={dropTarget ? '' : undefined} data-cut={cut && !editing ? '' : undefined} style={css} aria-labelledby={`${id}-t`} tabIndex={-1}>
     <span className="nova-widget-planet" aria-hidden="true"/>
     {holo && <><span className="holo-aura" aria-hidden="true"/><span className="holo-brackets" aria-hidden="true"/><span className="holo-ruler" aria-hidden="true"/><span className="holo-sheen" aria-hidden="true"/></>}
     {fresh && <span className="ns-scan" aria-hidden="true"/>}
     <header className="nova-widget-head">
-      <h3 id={`${id}-t`}>{spec.title}</h3>
+      {/* Design review AM-D11: the title leads and gives way with an ellipsis (its whole text is its tooltip); every action
+          sits in one right-aligned group in a fixed order — Quick actions · Pin · Hide · Close · Open — so nothing moves
+          with the title's length. AM-D29: the pinned mark is a pin glyph with the word "Pinned", outside the heading's text. */}
+      {live && pinned && <PinnedMark/>}
+      <h3 id={`${id}-t`} title={spec.title}>{spec.title}</h3>
       {editing ? <button type="button" className="nova-grip" aria-label={`Move ${spec.title}: drag, or use the arrow keys`} {...grip}><NovaIcon name="grip" size={18}/></button>
         : <>{holo && actions.quick && gate !== false && <button type="button" className="holo-act" aria-haspopup="dialog" aria-label={`Quick actions: ${spec.title}`} title="Quick actions" onClick={() => actions.quick!(widget.id)}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg></button>}
           {stageActions && <WidgetActions title={spec.title} stage={stageActions}/>}

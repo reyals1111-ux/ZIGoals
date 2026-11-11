@@ -21,6 +21,12 @@
 /* ---- Figures and words ---- */
 .holo-num { color: var(--neon-ink, #eef3ff); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .01em; text-shadow: 0 0 14px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
 .holo-num-big { font-size: clamp(24px, 2.2vw, 30px); line-height: 1.1; }
+/* Design review AM-D10: while a figure counts (once, when its widget is made), a hidden copy of the final text holds its width and the count draws over it. */
+.holo-num[data-counting] { position: relative; display: inline-block; }
+.holo-num-arc[data-counting] { display: grid; }
+.holo-num-size { visibility: hidden; }
+.holo-num-run { position: absolute; inset-inline-start: 0; top: 0; white-space: nowrap; }
+.holo-num-arc .holo-num-run { inset: 0; display: grid; place-items: center; }
 .holo-num-ring { font-size: 22px; line-height: 1.05; }
 .nova-widget[data-size=S] .holo-num-ring { font-size: 16px; }
 .holo-num-arc { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; }
@@ -30,7 +36,7 @@
 .holo-note-line { margin: 0; font-size: 14px; color: #c9d4ea; }
 .holo-big-line { margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
 .holo-big-line small { font-size: 14px; color: #c9d4ea; }
-.holo-tag { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 45%, transparent); font-size: 12px; font-weight: 600; color: #dfe7f8; background: #ffffff08; justify-self: start; }
+.holo-tag { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 45%, transparent); font-size: 14px; font-weight: 600; color: #dfe7f8; background: #ffffff08; justify-self: start; }
 .holo-tag-estimate { margin-right: 6px; border-style: dashed; }
 .holo-hidden { margin: 0; font-size: 14px; color: #dde6f8; }
 .holo-hidden .nova-link { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
@@ -39,7 +45,7 @@
 .holo-ring { position: relative; flex: none; width: var(--ring, 120px); height: var(--ring, 120px); display: grid; place-items: center; }
 .holo-ring > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .holo-ring-centre { position: relative; display: grid; justify-items: center; text-align: center; line-height: 1.1; }
-.holo-ring-centre small { font-size: 12px; color: #c9d4ea; }
+.holo-ring-centre small { font-size: 14px; color: #c9d4ea; }
 .holo-orn-dash { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); stroke-width: .7; stroke-dasharray: 1.5 4.5; }
 .holo-orn-ticks { fill: none; stroke: color-mix(in oklab, var(--neon-2, #cbbfff) 32%, transparent); stroke-width: .6; }
 .holo-orn-major { stroke: color-mix(in oklab, var(--neon-2, #cbbfff) 55%, transparent); stroke-width: 1; }
@@ -82,7 +88,7 @@
 /* ---- Segmented meters ---- */
 .holo-meters { display: grid; gap: 6px; min-width: 0; flex: 1 1 0; }
 .holo-meter { display: grid; grid-template-columns: minmax(52px, auto) minmax(36px, 1fr) max-content; align-items: center; column-gap: 8px; min-width: 0; }
-.holo-meter-label { font-size: 13px; font-weight: 600; color: #d3ddf1; white-space: nowrap; }
+.holo-meter-label { font-size: 14px; font-weight: 600; color: #d3ddf1; white-space: nowrap; }
 .holo-segs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; height: 10px; }
 .holo-segs i { --part: 0; border-radius: 1.5px; background: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0d); background-image: linear-gradient(90deg, var(--neon, #9273ff) calc(var(--part) * 100%), transparent 0); }
 .holo-segs i[data-lit] { background: var(--neon, #9273ff); box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 75%, transparent); }
@@ -91,7 +97,7 @@
    so a still HUD seemed to change a pixel. Same look: 1 px dashed, inside the slot. */
 .holo-meter[data-unknown] .holo-segs i { background: transparent; border: 1px dashed #ffffff22; box-sizing: border-box; }
 .holo-meter-value { font-size: 14px; white-space: nowrap; text-align: right; }
-.holo-meter-value small { font-size: 13px; color: #c9d4ea; font-weight: 500; }
+.holo-meter-value small { font-size: 14px; color: #c9d4ea; font-weight: 500; }
 .holo-meter .holo-note { grid-column: 1 / -1; }
 .holo-meter[data-compact] .holo-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -102,9 +108,9 @@
 .holo-hearts { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; }
 .holo-hearts li { display: grid; justify-items: center; gap: 2px; }
 .holo-hearts svg { width: 26px; height: 26px; overflow: visible; }
-.holo-hearts small { font-size: 12px; color: #d3ddf1; }
+.holo-hearts small { font-size: 14px; color: #d3ddf1; }
 .holo-heart-shell { fill: #ff4fb81f; stroke: #ff8fd6; stroke-width: 1.6; }
-.holo-hearts .holo-heart-pct { font-size: 12px; font-weight: 700; color: #ffc8e8; font-variant-numeric: tabular-nums; }
+.holo-hearts .holo-heart-pct { font-size: 14px; font-weight: 700; color: #ffc8e8; font-variant-numeric: tabular-nums; }
 .holo-heart-fill { fill: #ff4fb8; filter: drop-shadow(0 0 4px #ff4fb8); }
 .holo-heartline { display: grid; gap: 4px; }
 .holo-streaks { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; min-width: 0; }
@@ -115,7 +121,7 @@
 .holo-week-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .holo-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; flex: 1 1 0; }
 .holo-week-day { display: grid; justify-items: center; gap: 3px; }
-.holo-week-day small { font-size: 12px; color: #c9d4ea; }
+.holo-week-day small { font-size: 14px; color: #c9d4ea; }
 .holo-col { display: grid; grid-template-rows: repeat(5, 6px); gap: 2px; width: 14px; transform: scaleY(-1); }
 .holo-col i { border-radius: 1px; background: color-mix(in oklab, var(--neon, #2ef2ff) 14%, #ffffff0d); }
 .holo-col i[data-lit] { background: var(--neon, #2ef2ff); box-shadow: 0 0 5px color-mix(in oklab, var(--neon, #2ef2ff) 70%, transparent); }
@@ -126,12 +132,12 @@
 .holo-arc-box svg { width: 100%; height: 100%; overflow: visible; }
 .holo-arc-name { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; max-width: 100%; color: #eef3ff; font-weight: 600; font-size: 14px; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .holo-arc-name:hover { text-decoration: underline; }
-.holo-pace-words { margin-top: -8px; font-size: 13px; color: #c9d4ea; }
+.holo-pace-words { margin-top: -8px; font-size: 14px; color: #c9d4ea; }
 .holo-arcs li[data-tone=good] .holo-pace-words { color: #9ff3dc; } .holo-arcs li[data-tone=attention] .holo-pace-words { color: #ffe2a8; }
 .holo-more { margin: 0; }
 .holo-more a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: var(--nova-hi, #cbbfff); font-weight: 600; }
 .holo-pace-box { display: grid; gap: 4px; }
-.holo-estimate { margin: 0; font-size: 13px; color: #d3ddf1; }
+.holo-estimate { margin: 0; font-size: 14px; color: #d3ddf1; }
 .holo-wealth-head { display: grid; gap: 2px; }
 .holo-legend { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; flex: 1 1 0; min-width: 0; }
 .holo-legend li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 14px; color: #dbe4f6; }
@@ -149,10 +155,10 @@
 .holo-next-time { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--neon-ink, #dcecff); font-size: 14px; }
 .holo-next li a, .holo-next li > span:nth-child(2) { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: #eef3ff; font-weight: 600; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .holo-next li a:hover { text-decoration: underline; }
-.holo-next li small { grid-column: 2; margin-top: -10px; font-size: 13px; color: #c9d4ea; }
+.holo-next li small { grid-column: 2; margin-top: -10px; font-size: 14px; color: #c9d4ea; }
 .holo-counters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
 .holo-counters div { display: grid; justify-items: center; padding: 4px 0; border-radius: 10px; border: 1px solid color-mix(in oklab, var(--neon, #a47bff) 30%, transparent); background: #ffffff06; }
-.holo-counters dt { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #cfdaf0; }
+.holo-counters dt { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #cfdaf0; }
 .holo-counters dd { margin: 0; font-size: 20px; }
 /* Review M7 (lane L8d): attention is coral with a "!", never Wealth's amber. */
 .holo-counters div[data-tone=attention] { border-color: #ff6b5a99; background: #ff6b5a12; } .holo-counters div[data-tone=attention] .holo-num { color: #ffd0ca; text-shadow: 0 0 12px #ff6b5a99; }
@@ -160,7 +166,7 @@
 .holo-captures { display: grid; margin: 0; padding: 0; list-style: none; }
 .holo-captures li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
 .holo-captures a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: #eef3ff; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.holo-captures small { font-size: 13px; color: #c9d4ea; font-variant-numeric: tabular-nums; }
+.holo-captures small { font-size: 14px; color: #c9d4ea; font-variant-numeric: tabular-nums; }
 
 /* ---- The core around the orb, and its readout ---- */
 /* Review M3 (lane L8d): always a circle around the orb (the button can be taller than the orb), 1.44 × the orb's size. */
@@ -168,13 +174,13 @@
 .holo-core .holo-stack-box { position: absolute; inset: 0; width: 100%; height: 100%; }
 .holo-core-readout { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; margin: 4px 0 0; padding: 0; list-style: none; max-width: 100%; }
 .holo-core-readout li { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #d3ddf1; }
-.holo-core-readout small { font-size: 12px; color: #c3cfe6; }
+.holo-core-readout small { font-size: 14px; color: #c3cfe6; }
 .holo-core-name { color: #d9e2f4; }
 
 /* ---- Quick actions (in NOVA's sheet) ---- */
 .holo-actions { display: grid; gap: 16px; }
 .holo-action { display: grid; gap: 10px; padding: 14px 16px; border-radius: 14px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 45%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 7%, #070b1f); box-shadow: 0 0 22px -12px var(--neon, #9273ff); }
-.holo-action h3 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--neon-ink, #eef3ff); }
+.holo-action h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--neon-ink, #eef3ff); }
 .holo-action > .nova-btn { justify-self: start; }
 .holo-inline-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
 .holo-inline-form .nova-field { flex: 1 1 200px; }
@@ -187,7 +193,7 @@
 .holo-preset-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
 .holo-preset { display: grid; gap: 2px; align-content: start; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--nova-edge, #ffffff2a); background: #ffffff08; color: var(--nova-ink, #eef3ff); font: inherit; text-align: left; cursor: pointer; }
 .holo-preset span { font-weight: 700; }
-.holo-preset small { font-size: 13px; color: #c9d4ea; }
+.holo-preset small { font-size: 14px; color: #c9d4ea; }
 .holo-preset[aria-pressed=true] { border-color: var(--nova-hi, #cbbfff); background: color-mix(in oklab, var(--nova-a, #9273ff) 20%, transparent); box-shadow: 0 0 0 1px var(--nova-hi, #cbbfff) inset; }
 .holo-preset:hover { border-color: color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent); }
 
@@ -246,17 +252,17 @@
     linear-gradient(var(--c), var(--c)) bottom left / 10px 1.5px no-repeat, linear-gradient(var(--c), var(--c)) bottom left / 1.5px 10px no-repeat,
     linear-gradient(var(--c), var(--c)) bottom right / 10px 1.5px no-repeat, linear-gradient(var(--c), var(--c)) bottom right / 1.5px 10px no-repeat; }
 .holo-frame > svg { display: block; width: 100%; height: auto; overflow: visible; }
-.holo-frame-label { position: absolute; font-size: 12px; line-height: 16px; color: #d3ddf1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.holo-frame-label { position: absolute; font-size: 14px; line-height: 16px; color: #d3ddf1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .holo-frame-label[data-at=top] { top: 1px; right: 8px; } .holo-frame-label[data-at=bottom] { bottom: 2px; right: 8px; }
 .holo-frame-label[data-at=from] { bottom: 2px; left: 8px; } .holo-frame-label[data-at=title] { top: 1px; left: 8px; font-weight: 700; letter-spacing: .04em; color: #ffe6b0; }
 /* Review p8 (lane L8d): "max" and "min" say what the corner figures are (12 px tabular figures). */
-.holo-frame-key { font-weight: 700; color: #ffe6b0; text-transform: uppercase; letter-spacing: .06em; font-size: 11.5px; }
+.holo-frame-key { font-weight: 700; color: #ffe6b0; text-transform: uppercase; letter-spacing: .06em; font-size: 14px; }
 .holo-wave-plot { position: relative; }
 .holo-wave-plot > svg { display: block; width: 100%; height: 48px; overflow: visible; }
 .holo-wave[data-size=L] .holo-wave-plot > svg, .nova-widget[data-size=L] .holo-wave-plot > svg { height: 80px; }
 .holo-wave-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px #ffbf3c, 0 0 8px #ffbf3c; }
 .holo-wave-dot[data-now] { background: #070b1f; box-shadow: none; border: 1.5px dashed #ffe08a; width: 10px; height: 10px; margin: -5px 0 0 -5px; }
-.holo-wave-tag { position: absolute; transform: translate(calc(-100% - 8px), -50%); padding: 0 4px; border-radius: 3px; background: #070b1fd9; font-size: 12px; line-height: 15px; font-weight: 700; color: #ffe6b0; font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; }
+.holo-wave-tag { position: absolute; transform: translate(calc(-100% - 8px), -50%); padding: 0 4px; border-radius: 3px; background: #070b1fd9; font-size: 14px; line-height: 15px; font-weight: 700; color: #ffe6b0; font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; }
 .holo-wave-tag[data-at=now] { color: #fff2c9; font-weight: 600; transform: translate(calc(-100% - 9px), 20%); }
 .holo-now-link { fill: none; stroke: #ffe08a; stroke-width: 1.2; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; opacity: .8; }
 .holo-grid-fine { stroke: #ffffff0e; }
@@ -271,17 +277,17 @@
 .holo-histo { display: grid; gap: 2px; }
 .holo-histo-plot { position: relative; }
 .holo-histo-plot > svg { display: block; width: 100%; height: 64px; overflow: visible; }
-.holo-histo-line-tag { position: absolute; right: 0; transform: translateY(-115%); padding: 0 4px; border-radius: 3px; background: #070b1fcc; font-size: 12px; line-height: 14px; font-weight: 700; color: #f4f7ff; font-variant-numeric: tabular-nums; }
+.holo-histo-line-tag { position: absolute; right: 0; transform: translateY(-115%); padding: 0 4px; border-radius: 3px; background: #070b1fcc; font-size: 14px; line-height: 14px; font-weight: 700; color: #f4f7ff; font-variant-numeric: tabular-nums; }
 .holo-bar-a { stop-color: #8f6bff; stop-opacity: .75; } .holo-bar-b { stop-color: #ff4fb8; stop-opacity: .95; }
 .holo-bar-tip { fill: #5ff2ff; filter: drop-shadow(0 0 4px #5ff2ff); }
 .holo-bar-empty { fill: none; stroke: #ffffff40; stroke-width: 1; stroke-dasharray: 2 2; vector-effect: non-scaling-stroke; }
 .holo-ref-line { fill: none; stroke: #f4f7ff; stroke-width: 1.4; opacity: .9; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 3px #5ff2ff); }
 .holo-histo-days { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); text-align: center; }
-.holo-histo-days small { font-size: 12px; color: #c9d4ea; }
+.holo-histo-days small { font-size: 14px; color: #c9d4ea; }
 
 /* The pace chart's own names, placed over it (Target on its line, Today at its x, Estimate on the band). */
 .holo-pace-chart { position: relative; }
-.holo-chart-tag { position: absolute; font-size: 12px; line-height: 14px; font-weight: 700; letter-spacing: .06em; color: #e0d4ff; background: #070b1fcc; padding: 0 4px; border-radius: 3px; pointer-events: none; white-space: nowrap; }
+.holo-chart-tag { position: absolute; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: .06em; color: #e0d4ff; background: #070b1fcc; padding: 0 4px; border-radius: 3px; pointer-events: none; white-space: nowrap; }
 .holo-chart-tag[data-at=target] { left: 2px; transform: translateY(-110%); }
 .holo-chart-tag[data-at=today] { bottom: -2px; transform: translate(-50%, 100%); }
 /* Second review M1 (lane L8f): the chart keeps its names inside its own box (the band's tag left it; the chip says "Estimate"). */
@@ -302,14 +308,14 @@
 
 /* The purpose flow's ribbons (large Wealth panel). */
 .holo-flow-box { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; }
-.holo-flow-end { font-size: 12px; color: #d3ddf1; writing-mode: vertical-rl; transform: rotate(180deg); }
+.holo-flow-end { font-size: 14px; color: #d3ddf1; writing-mode: vertical-rl; transform: rotate(180deg); }
 .holo-flow-ribbons { display: block; width: 100%; height: 64px; overflow: visible; }
 .holo-flow-source { fill: #ffd98a; filter: drop-shadow(0 0 4px #ffbf3c); }
 .holo-ribbon { fill: #ffbf3c; opacity: .42; }
 .holo-flow-node { fill: #ffbf3c; }
 .holo-flow-ribbons g[data-i="1"] :is(.holo-ribbon, .holo-flow-node) { fill: #ff9a3c; } .holo-flow-ribbons g[data-i="2"] :is(.holo-ribbon, .holo-flow-node) { fill: #ffe08a; }
 .holo-flow-ribbons g[data-free] .holo-ribbon { fill: #ffffff; opacity: .12; } .holo-flow-ribbons g[data-free] .holo-flow-node { fill: #ffffff55; }
-.holo-flow-legend { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: #dbe4f6; }
+.holo-flow-legend { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; font-size: 14px; color: #dbe4f6; }
 .holo-flow-legend li { display: flex; align-items: center; gap: 6px; max-width: 12em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .holo-key[data-free] { background: repeating-linear-gradient(90deg, #ffffff60 0 2px, transparent 2px 4px); border-radius: 2px; }
 
@@ -326,7 +332,7 @@
 /* The core's readout (M4, p6, B2): the rings' legend right under the orb's state, two by two in the rings' order (outer to
    inner), each with its mark, name and figure over a 6 px segmented bar in its neon; an unknown is a hairline and its reason. */
 .holo-core-readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; column-gap: 18px; row-gap: 6px; width: min(100%, 380px); margin: 2px 0; padding: 0; list-style: none; }
-.holo-core-readout li { position: static; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 6px; row-gap: 3px; padding: 0; font-size: 13px; color: #d3ddf1; text-align: left; }
+.holo-core-readout li { position: static; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 6px; row-gap: 3px; padding: 0; font-size: 14px; color: #d3ddf1; text-align: left; }
 .holo-core-readout .holo-num { font-size: 14px; }
 .holo-core-readout .holo-core-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .holo-core-bar { position: static; grid-column: 1 / -1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; height: 6px; border-radius: 0; background: none; overflow: visible; }
@@ -334,7 +340,7 @@
 .holo-core-bar i { border-radius: 1px; background: color-mix(in oklab, var(--neon, #9273ff) 16%, #ffffff10); }
 .holo-core-bar i[data-lit] { background: var(--neon, #9273ff); box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
 .holo-core-bar[data-unknown] { height: 1px; background: #c9d4ea; opacity: .45; }
-.holo-core-why { grid-column: 1 / -1; min-width: 0; font-size: 12px; line-height: 1.25; color: #c3cfe6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.holo-core-why { grid-column: 1 / -1; min-width: 0; font-size: 14px; line-height: 1.25; color: #c3cfe6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Goals (B1, M1): each goal one link — its arc, its name on one centred line (ellipsis; the full name in its tooltip and the
    table) and its pace words; the pace line whole under them, its names in place. */
@@ -346,14 +352,14 @@
 .holo-goals .holo-arc-box { width: 64px; height: 64px; }
 .holo-goals[data-size=L] .holo-arc-box { width: 78px; height: 78px; }
 .holo-arc-name { display: block; justify-content: normal; min-height: 0; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: 14px; line-height: 18px; font-weight: 600; color: #eef3ff; }
-.holo-arcs .holo-pace-words { margin: 0; font-size: 13px; line-height: 16px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.holo-arcs .holo-pace-words { margin: 0; font-size: 14px; line-height: 16px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .holo-goals[data-size=S] .holo-arc-link { grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; column-gap: 10px; text-align: left; align-items: center; }
 .holo-goals[data-size=S] .holo-arc-box { grid-row: 1 / span 2; width: 52px; height: 52px; }
-.holo-goals[data-size=S] .holo-num-arc { font-size: 13px; }
+.holo-goals[data-size=S] .holo-num-arc { font-size: 14px; }
 .holo-pace-box { gap: 3px; }
 .holo-pace-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .holo-pace-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.holo-more-link { display: inline-flex; align-items: center; flex: none; min-height: 44px; min-width: 44px; margin: -14px -6px; padding: 0 6px; border-radius: 8px; color: var(--nova-hi, #cbbfff); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.holo-more-link { display: inline-flex; align-items: center; flex: none; min-height: 44px; min-width: 44px; margin: -14px -6px; padding: 0 6px; border-radius: 8px; color: var(--nova-hi, #cbbfff); font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; }
 .holo-pace-chart > .holo-pace { height: 52px; }
 .holo-goals[data-size=L] .holo-pace-chart > .holo-pace { height: 76px; }
 .holo-pace-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--neon, #a47bff), 0 0 8px var(--neon, #a47bff); pointer-events: none; }
@@ -364,8 +370,8 @@
 
 /* The Agenda clock (m5, M1): its hours in readable words inside the dial, times that never wrap, one short count line. */
 .holo-clock { overflow: visible; }
-.holo-dial-hour { position: absolute; transform: translate(-50%, -50%); font-size: 12px; line-height: 1; font-weight: 600; color: #dfe7f8; font-variant-numeric: tabular-nums; pointer-events: none; }
-.holo-agenda-count { margin: 0; font-size: 13px; font-weight: 600; color: #d3ddf1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.holo-dial-hour { position: absolute; transform: translate(-50%, -50%); font-size: 14px; line-height: 1; font-weight: 600; color: #dfe7f8; font-variant-numeric: tabular-nums; pointer-events: none; }
+.holo-agenda-count { margin: 0; font-size: 14px; font-weight: 600; color: #d3ddf1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .holo-agenda-count .holo-num { font-size: 15px; }
 .holo-next li { grid-template-columns: 76px minmax(0, 1fr); }
 .holo-next-time { white-space: nowrap; }
@@ -408,6 +414,8 @@
 .holo-empty-action { grid-column: 2; justify-self: start; display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
 .nova-widget[data-size=S] .holo-empty-ring { width: 52px; height: 52px; }
 .nova-widget[data-size=S] .holo-empty-arc:not(:first-child), .nova-widget[data-size=S] .holo-empty-frame { display: none; }
+/* Design review AM-D22: on the Holo stage every teaching state is ONE layout (cards/cards.css): the unlit shape is one 48 px mark in the icon's place, at every size. */
+.nova-widget[data-holo][data-size] :is(.holo-empty-ring, .holo-empty-arc, .holo-empty-frame) { display: grid; width: 48px; height: 48px; }
 
 /* m11: the quick actions are small HUD panels (brackets, the grid, the pillar's neon); a habit's row is one line. */
 .holo-action { position: relative; background: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px) 0 0 / 22px 22px, color-mix(in oklab, var(--neon, #9273ff) 7%, #070b1f); }
@@ -423,14 +431,14 @@
 .holo-habit-list li:first-child { border-top: 0; padding-top: 2px; }
 .holo-habit-list li > .habit-completion { display: contents; }
 .holo-habit-title { grid-column: 1; grid-row: 1; align-self: end; min-width: 0; overflow-wrap: break-word; line-height: 1.3; }
-.holo-habit-list .habit-completion > div:not(.habit-check-actions) { grid-column: 1; grid-row: 2; align-self: start; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; min-width: 0; font-size: 13px; color: #c9d4ea; }
+.holo-habit-list .habit-completion > div:not(.habit-check-actions) { grid-column: 1; grid-row: 2; align-self: start; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; min-width: 0; font-size: 14px; color: #c9d4ea; }
 .holo-habit-list .habit-completion .habit-count { white-space: nowrap; }
 .holo-habit-list .habit-completion .habit-count strong { font-size: 15px; color: #eef3ff; }
-.holo-habit-list .habit-completion :is(.habit-result, .habit-period-progress) { font-size: 13px; }
+.holo-habit-list .habit-completion :is(.habit-result, .habit-period-progress) { font-size: 14px; }
 .holo-habit-list .habit-check-actions { grid-column: 2; grid-row: 1 / span 2; display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 6px; }
 .holo-habit-list .habit-check-actions button { flex: none; max-width: none; white-space: nowrap; overflow-wrap: normal; }
 .holo-habit-list .habit-check-actions .quiet { font-size: 1.05rem; }
-.holo-habit-list .habit-completion > :is(p, span):not(.habit-status) { grid-column: 1 / -1; margin: 2px 0 0; font-size: 13px; line-height: 1.35; color: #c9d4ea; }
+.holo-habit-list .habit-completion > :is(p, span):not(.habit-status) { grid-column: 1 / -1; margin: 2px 0 0; font-size: 14px; line-height: 1.35; color: #c9d4ea; }
 @container holo-action (max-width: 360px) {
   .holo-habit-list li { grid-template-columns: minmax(0, 1fr) auto; }
   .holo-habit-title { grid-column: 1; grid-row: 1; }
@@ -470,7 +478,7 @@
    the ring, never on its stroke. */
 .holo-health .holo-ring { margin-bottom: 18px; } .holo-habits .holo-dial { margin-bottom: 15px; }
 .holo-health .holo-ring > .holo-ring-centre, .holo-habits .holo-dial > .holo-ring-centre { position: static; }
-.holo-health .holo-ring > .holo-ring-centre > small, .holo-habits .holo-dial > .holo-ring-centre > small { position: absolute; left: 50%; top: calc(100% + 3px); translate: -50% 0; white-space: nowrap; font-size: 12px; line-height: 14px; color: #d3ddf1; }
+.holo-health .holo-ring > .holo-ring-centre > small, .holo-habits .holo-dial > .holo-ring-centre > small { position: absolute; left: 50%; top: calc(100% + 3px); translate: -50% 0; white-space: nowrap; font-size: 14px; line-height: 14px; color: #d3ddf1; }
 .holo-habits .holo-dial > .holo-ring-centre > small { top: calc(100% + 1px); }
 .holo-health .holo-ring .holo-num-ring, .nova-widget[data-size] .holo-health .holo-ring .holo-num-ring { font-size: clamp(12px, calc(var(--ring, 104px) * .19), 30px); }
 .holo-habits .holo-dial .holo-num-ring, .nova-widget[data-size] .holo-habits .holo-dial .holo-num-ring { font-size: clamp(13px, calc(var(--ring, 80px) * .24), 26px); }
@@ -480,7 +488,7 @@
    "/ 120 g"), so no target is ever cut ("8,800 / 8,0"). */
 @container holo-body (max-width: 310px) {
   .holo-health .holo-meter-value { display: grid; justify-items: end; line-height: 1.15; }
-  .holo-health .holo-meter-value small { font-size: 12px; }
+  .holo-health .holo-meter-value small { font-size: 14px; }
   .holo-health .holo-meter { grid-template-columns: minmax(44px, auto) minmax(28px, 1fr) max-content; }
 }
 /* m2: names get the room they need — a goal's name may take two lines (then an ellipsis), an agenda row's title ends in an
@@ -493,7 +501,7 @@
 .holo-core-why { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 /* p6: the ring's column — the ring, its caption, and its reason under it. */
 .holo-ring-col { display: grid; justify-items: center; align-content: center; gap: 0; flex: none; max-width: 150px; }
-.holo-ring-col > .holo-ring-note { max-width: 132px; margin: 0; text-align: center; font-size: 12px; line-height: 1.3; }
+.holo-ring-col > .holo-ring-note { max-width: 132px; margin: 0; text-align: center; font-size: 14px; line-height: 1.3; }
 /* m2, M1: a goal's name has two lines; in a fitted panel shorter than 230 px the arcs and the pace line give 12 px back so
    both still fit whole (1440 × 900). */
 @container holo-body (max-height: 229px) { .holo-goals[data-size=M] .holo-arc-box { width: 56px; height: 56px; } .holo-goals[data-size=M] .holo-pace-chart > .holo-pace { height: 46px; } }
@@ -502,3 +510,19 @@
    goes under the value, whole. */
 .holo-health .holo-meter { grid-template-columns: minmax(44px, auto) minmax(28px, 1fr) minmax(min-content, max-content); }
 .holo-health .holo-meter-value { display: flex; flex-wrap: wrap; justify-content: flex-end; column-gap: .3em; line-height: 1.15; min-width: 0; }
+
+/* ==== Session AM design review (AM-D4, AM-D6, AM-D33): the four read-outs under the star ==== */
+/* The calm stage leaves them out while every figure is unknown (four dashes and four "No … yet" lines said nothing). */
+.nova-frame[data-stage=calm] .holo-core-readout[data-all-unknown] { display: none; }
+/* A name and its figure are two lines — the name beside its mark, the figure whole under it — so a long figure ("1,000 mL
+   of 2,000 mL") never takes the name's place and the four bars stay level. */
+.holo-core-readout li { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+.holo-core-readout li > svg { flex: none; }
+.holo-core-readout .holo-core-name { flex: 1 1 0; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.holo-core-readout .holo-num { flex: 0 0 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.holo-core-readout .holo-core-bar, .holo-core-readout .holo-core-why { flex: 0 0 100%; }
+/* A short stage, a star column under 360 px (three columns on less than 1240 px of stage) and a phone show the star and NOVA's words, not the read-outs. */
+@container nova-stage (max-height: 520px) { .holo-core-readout { display: none; } }
+@container nova-stage (max-width: 1240px) { .nova-frame[data-stage=set] .holo-core-readout { display: none; } }
+@container nova-stage (max-width: 1500px) { .nova-frame[data-stage=set] .nova-orbit-main[data-wide] .holo-core-readout { display: none; } }
+.nova-frame[data-phone] .holo-core-readout { display: none; }

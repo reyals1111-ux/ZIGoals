@@ -11,7 +11,7 @@ import type {DeviceHints} from '../orb-starfield';
  *   reduced motion, a hidden tab and a very small device get one still frame per state.
  * - `starPace`: frames per second and resolution for a running star. Active (the person just pressed a key, tapped,
  *   asked, or NOVA is listening, thinking or speaking) is 30 fps; resting (the window is not focused, or 60 s passed
- *   without a key, tap or request) is 6 fps at half resolution; Calm is 12 fps. Activity is never read from pointer
+ *   without a key, tap or request) is 6 fps at the same resolution; Calm is 12 fps. Activity is never read from pointer
  *   movement. Phones are lighter.
  * - The governor: when frames arrive late for a while, quality steps down a tier (resolution, then noise octaves); the
  *   last tier is one still frame. It never steps up during a visit.
@@ -26,24 +26,32 @@ export function starRender({hud, webgl, hints, failed}: {hud: HudMotionState; we
 export const REST_AFTER_MS = 60_000;
 export type StarPace = {mode: 'active' | 'resting' | 'calm'; fps: number; scale: number; speed: number};
 export function starPace({hud, state, focused, idleMs, phone}: {hud: HudMotionState; state: NovaOrbState; focused: boolean; idleMs: number; phone: boolean}): StarPace {
-  if (hud === 'calm') return {mode: 'calm', fps: 12, scale: phone ? 0.6 : 0.8, speed: 1 / 3};
+  if (hud === 'calm') return {mode: 'calm', fps: 12, scale: phone ? 0.7 : 1, speed: 1 / 3};
   const busy = state !== 'idle';
-  if (!busy && (!focused || idleMs >= REST_AFTER_MS)) return {mode: 'resting', fps: 6, scale: 0.5, speed: 1};
+  // Design review AM-D16: rest is a matter of frames per second, never of sharpness: the star keeps its resolution.
+  if (!busy && (!focused || idleMs >= REST_AFTER_MS)) return {mode: 'resting', fps: 6, scale: phone ? 0.7 : 1, speed: 1};
   return {mode: 'active', fps: phone ? 24 : 30, scale: phone ? 0.7 : 1, speed: 1};
 }
-/** Quality tiers, best first: the resolution's share and the noise octaves; the last is one still frame. */
-export const STAR_TIERS: readonly {scale: number; detail: number; still?: true}[] = [{scale: 1, detail: 5}, {scale: 0.75, detail: 4}, {scale: 0.5, detail: 3}, {scale: 0.5, detail: 3, still: true}];
+/** Quality tiers, best first: the noise octaves step down before the resolution does; the last is one still frame, drawn at full quality (one frame costs nothing). */
+export const STAR_TIERS: readonly {scale: number; detail: number; still?: true}[] = [{scale: 1, detail: 5}, {scale: 1, detail: 4}, {scale: 0.75, detail: 3}, {scale: 1, detail: 5, still: true}];
 export const SLOW_FRAMES = 12;
 /**
  * The governor's step: `late` counts consecutive frames that arrived later than one and a half times their slot. After
  * `SLOW_FRAMES` in a row the tier goes down one (and the count starts again); a frame on time resets the count.
+ * A very late frame counts as four.
  */
 export function governorStep(tier: number, late: number, frameMs: number, fps: number): {tier: number; late: number} {
   const slot = 1000 / Math.max(1, fps);
   if (!(frameMs > slot * 1.5)) return {tier, late: 0};
-  if (late + 1 < SLOW_FRAMES) return {tier, late: late + 1};
+  // A frame that took more than four slots (a device that cannot keep up at all: software rendering, a throttled CPU)
+  // counts as four, so the star reaches a tier it can afford within about a second and a half instead of six.
+  const count = late + (frameMs > slot * VERY_LATE_SLOTS ? VERY_LATE_WEIGHT : 1);
+  if (count < SLOW_FRAMES) return {tier, late: count};
   return {tier: Math.min(STAR_TIERS.length - 1, tier + 1), late: 0};
 }
+export const VERY_LATE_SLOTS = 4, VERY_LATE_WEIGHT = 4;
+/** The governor starts watching this long after the star starts or wakes: a page that is still loading is not a slow device. */
+export const GOVERNOR_GRACE_MS = 2000;
 /** The canvas's backing size for a box of `css` pixels: the device's pixel ratio capped at 1.5, times the pace and the tier. */
 export function starPixels(css: number, dpr: number, paceScale: number, tier: number): number {
   const t = STAR_TIERS[Math.max(0, Math.min(STAR_TIERS.length - 1, tier))]!;

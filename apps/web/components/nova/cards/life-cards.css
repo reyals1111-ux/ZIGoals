@@ -49,15 +49,16 @@
 .nc-goal-saved { margin: -6px 0 0; font-size: 15px; line-height: 1.4; color: #e6edfb; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .nc-goal-estimate { margin: 0; display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 15px; line-height: 1.4; color: #e6edfb; }
 .nc-goal-chip { flex: none; padding: 1px 9px; border-radius: 999px; border: 1px dashed color-mix(in oklab, var(--neon, #9273ff) 65%, transparent); background: #ffffff08; font-size: 14px; font-weight: 600; color: #dfe7f8; }
-.nc-goal-chart { position: relative; margin: 2px 0 20px; }
+.nc-goal-chart { position: relative; margin: 18px 0 28px; }
 .nc-goal-chart .nc-goal-pace { height: 108px; }
 .nc-goal-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--neon, #a47bff), 0 0 10px var(--neon, #a47bff); pointer-events: none; }
 /* Where the central estimate meets the target: a hollow, dashed mark (a projection, never a recorded point). */
 .nc-goal-dot[data-kind=estimate] { background: #070b1f; box-shadow: none; border: 1.5px dashed var(--neon-2, #c9b0ff); }
 .nc-goal-detail { margin: -6px 0 0; font-size: 14px; line-height: 1.4; color: #c3cfe6; }
 .nc-goal-tag { position: absolute; padding: 0 5px; border-radius: 4px; background: #070b1fcc; font-size: 14px; line-height: 18px; font-weight: 650; color: #e0d4ff; white-space: nowrap; pointer-events: none; }
-.nc-goal-tag[data-at=target] { left: 2px; transform: translateY(18%); }
-.nc-goal-tag[data-at=today] { top: 100%; margin-top: 2px; transform: translateX(-50%); }
+/* Design review AM-D31: "Target" sits at the end of the target line (where the pace arrives), "Today" at its own dot. */
+.nc-goal-tag[data-at=target] { right: 2px; transform: translateY(-112%); }
+.nc-goal-tag[data-at=today] { margin-top: 9px; transform: translateX(-50%); }
 .nc-goal-tag[data-at=today][data-side=end] { transform: translateX(-100%); }
 .nc-goal-tag[data-at=today][data-side=start] { transform: none; }
 @container holo-body (max-height: 72px) { .nc-goal[data-size=S] .nc-goal-ring { width: 34px; height: 34px; } }
@@ -89,14 +90,15 @@
 .nc-journal :is(.nc-lattice-note, .nc-lattice-head span:last-child) { display: none; }
 .nc-journal .nc-lattice-label { font-size: 14px; line-height: 18px; color: #c3cfe6; }
 .nc-journal .nc-lattice-head span { line-height: 18px; }
-.nc-journal .nc-lattice-row i[data-cell=missed] { border-style: solid; border-color: color-mix(in oklab, var(--neon, #cbbfff) 34%, transparent); }
+.nc-journal .nc-lattice-row i[data-cell=missed] { border-style: solid; border-color: color-mix(in oklab, #eef3ff 34%, transparent); }
 .nc-journal .nc-lattice-row i[data-cell=rest] { background: none; }
 .nc-journal[data-size=L] .nc-lattice { gap: 6px; }
 .nc-journal[data-size=L] :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(64px, 1fr) repeat(7, minmax(18px, 26px)); gap: 6px; }
 .nc-journal[data-size=L] .nc-lattice-label { font-size: 15px; line-height: 20px; }
 .nc-journal-key { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
 .nc-journal-key span { display: inline-flex; align-items: center; gap: 6px; }
-.nc-journal-key i { width: 12px; height: 12px; border-radius: 4px; border: 1px solid #ffffff1f; }
+.nc-journal-key i { width: 12px; height: 12px; border-radius: 4px; border: 1px solid #ffffff47; }
+.nc-journal-key i[data-today] { outline: 2px solid #fff; outline-offset: 1px; }
 .nc-journal-key i[data-cell=done] { background: var(--neon, #cbbfff); border-color: var(--neon, #cbbfff); }
 
 /* A narrow panel (the column beside a large one): the week's date leaves each row (the day letters and the table keep
@@ -119,6 +121,19 @@
 .nc-time-left span { min-width: 0; }
 .nc-time[data-size=M] .nc-hero-num { font-size: 36px; }
 .nc-time[data-size=L] .nc-ring-figure { font-size: 20px; }
+/* Design review AM-D21: Time at L uses its space — the day as a 24-hour strip, the week's days, the year's months. */
+.nc-time[data-size=L] { gap: 14px; justify-content: center; }
+.nc-time-strips { display: grid; gap: 12px; }
+.nc-time-strip { display: grid; grid-template-columns: 7.4em minmax(0, 1fr); align-items: center; gap: 4px 12px; }
+.nc-time-strip-name { white-space: nowrap; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
+.nc-time-bar { position: relative; height: 10px; border-radius: 5px; background: #ffffff14; }
+.nc-time-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #a9b8ff) 45%, transparent), var(--neon, #a9b8ff)); box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #a9b8ff) 60%, transparent); }
+.nc-time-bar b { position: absolute; top: -4px; width: 2px; height: 18px; margin-left: -1px; border-radius: 1px; background: #fff; box-shadow: 0 0 8px #fff; }
+.nc-time-scale { grid-column: 2; display: flex; justify-content: space-between; font-size: 14px; color: #c3cfe6; font-variant-numeric: tabular-nums; }
+.nc-time-cells { display: grid; grid-template-columns: repeat(var(--nc-cols, 7), minmax(0, 1fr)); gap: 4px; }
+.nc-time-cells i { display: grid; place-items: center; min-height: 26px; border-radius: 6px; border: 1px solid #ffffff47; font-style: normal; font-size: 14px; font-weight: 600; color: #c3cfe6; }
+.nc-time-cells i[data-state=past] { border-color: color-mix(in oklab, var(--neon, #a9b8ff) 70%, transparent); background: color-mix(in oklab, var(--neon, #a9b8ff) 22%, transparent); color: #f2f6ff; }
+.nc-time-cells i[data-state=now] { border-color: #fff; background: color-mix(in oklab, var(--neon, #a9b8ff) 34%, transparent); color: #fff; box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #a9b8ff) 70%, transparent); }
 .nc-time[data-size=L] .nc-time-rings { margin-block: 6px; }
 /* A short medium panel keeps its three rings whole: they tighten instead of a line being cut. */
 @container holo-body (max-height: 212px) {

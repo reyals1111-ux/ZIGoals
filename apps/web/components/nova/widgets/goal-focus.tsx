@@ -61,7 +61,7 @@ function PaceLine({chart, label}: {chart: PaceChart; label: string}) {
     <i className="nc-goal-dot" style={{left: pct(nx, W), top: pct(ny, H)}} aria-hidden="true"/>
     {b && <i className="nc-goal-dot" data-kind="estimate" style={{left: pct(x(b.mid), W), top: pct(ty, H)}} aria-hidden="true"/>}
     <span className="nc-goal-tag" data-at="target" style={{top: pct(ty, H)}} aria-hidden="true">Target</span>
-    <span className="nc-goal-tag" data-at="today" data-side={nx > W * 0.8 ? 'end' : nx < W * 0.2 ? 'start' : undefined} style={{left: pct(nx, W)}} aria-hidden="true">Today</span>
+    <span className="nc-goal-tag" data-at="today" data-side={nx > W * 0.8 ? 'end' : nx < W * 0.2 ? 'start' : undefined} style={{left: pct(nx, W), top: pct(ny, H)}} aria-hidden="true">Today</span>
   </div>;
 }
 
@@ -90,7 +90,7 @@ export default function GoalFocusWidget({size, params}: {size: CardProps['size']
   if (error || !focus) return <HoloUnread what="Your goals"/>;
   const {goal, pace} = focus;
   if (!goal) return <CardNotice kind="empty" title="No active goals yet" href="/app/goals/new" action="Set a goal">Set one and its progress, its pace and what is left show here.</CardNotice>;
-  const words = estimateWords(pace?.forecast), unknown = goal.pct === null;
+  const words = estimateWords(pace?.forecast, goal), unknown = goal.pct === null;
   const tone = goal.pace.tone === 'good' ? true : goal.pace.tone === 'attention' ? false : null, direction = /^ahead/i.test(goal.pace.words) ? 'up' as const : /^behind/i.test(goal.pace.words) ? 'down' as const : 'flat' as const;
   const name = <Link className="nc-goal-name" href={goal.href} prefetch={false} title={goal.name}>{goal.name}</Link>;
   const estimate = words && <p className="nc-goal-estimate">{words.estimate && <span className="nc-goal-chip">Estimate</span>}<span>{words.headline}</span></p>;

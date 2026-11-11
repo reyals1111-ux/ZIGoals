@@ -1,10 +1,10 @@
 'use client';
-import {useEffect, useRef, type ReactNode} from 'react';
+import {useEffect, useRef, type CSSProperties, type ReactNode} from 'react';
 import {condition, MET_CREDIT, MET_LICENCE_URL, MET_SITE_URL, type Condition} from '../../../lib/nova/world/met';
 import type {WorldReading} from '../../../lib/nova/world/record';
 import {clockTime, degrees, umbrella} from '../../../lib/nova/world/words';
 import {formatWeekday} from '../../../lib/visual-format';
-import {Capsules, CardFoot, CardNotice, Fact, type CardProps} from '../cards/kit';
+import {CardFoot, CardNotice, type CardProps} from '../cards/kit';
 import {HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {useWeather} from './use-weather';
 import '../cards/world-cards.css';
@@ -55,9 +55,10 @@ export function WeatherOff({what}: {what: string}) {
     {what} Turn it on and this device asks MET Norway, which then sees your network address and your place, rounded to about 1 km. Nothing is asked until then.
   </CardNotice>;
 }
+/** The foot. Design review AM-D32: the Showcase's is one line; AM-D38: the service's credit and licence stay whole (they may wrap). */
 export function Credit({reading, place, example}: {reading: WorldReading; place: string; example: boolean}) {
-  if (example) return <CardFoot source="Showcase example · not a real reading" asOf="no service is asked in the Showcase"/>;
-  return <CardFoot source={place} asOf={`read ${clockTime(reading.now.at)}`}>
+  if (example) return <CardFoot source="Showcase example · not a real reading"/>;
+  return <CardFoot source={place} asOf={`read ${clockTime(reading.now.at)}`} wrap>
     <span className="nw-credit"> · <a href={MET_SITE_URL} target="_blank" rel="noreferrer noopener">{MET_CREDIT}</a> (<a href={MET_LICENCE_URL} target="_blank" rel="noreferrer noopener">CC BY 4.0</a>)</span>
   </CardFoot>;
 }
@@ -69,30 +70,44 @@ export default function WeatherWidget({size = 'M'}: Partial<CardProps>) {
   if (w.kind === 'no-place') return <CardNotice kind="empty" title="Choose your place" href={PERMISSIONS} action="Choose a place">Weather is on. Pick a city from the list, or type a position, and the weather for it shows here.</CardNotice>;
   if (w.kind === 'asking') return <div ref={frame} className="nc-body"><p className="nova-reading" role="status">Asking MET Norway for {w.place.name}…</p></div>;
   if (w.kind === 'failed') return <div ref={frame} className="nc-body"><CardNotice kind="empty" title="No reading yet">{w.words} NOVA asks again in ten minutes, never more often.</CardNotice></div>;
+  // Design review AM-D19 (L): six hourly columns (eight where the panel is 460 px or wider: world-cards.css), precipitation
+  // as bars on one scale with one label, on the peak; each day as a row that states its lowest AND its highest; wind,
+  // humidity and UV on one line; the source line is the body's last line, always in view.
   const {reading, place} = w, now = reading.now, brolly = umbrella(reading), hours = reading.hours.slice(0, size === 'L' ? 8 : 6), days = reading.days.slice(0, 5);
-  const lo = Math.min(...days.map(d => d.min)), hi = Math.max(...days.map(d => d.max));
+  const lo = Math.min(...days.map(d => d.min)), hi = Math.max(...days.map(d => d.max)), span = hi - lo || 1;
+  const rain = hours.map(h => typeof h.precip === 'number' && h.precip > 0 ? h.precip : 0), rainTop = Math.max(0, ...rain);
+  const peakOf = (count: number) => { const part = rain.slice(0, count), top = Math.max(0, ...part); return top > 0 ? part.indexOf(top) : -1; }, peak6 = peakOf(6), peak8 = peakOf(8);
+  const facts: (readonly [string, string])[] = [];
+  if (typeof now.wind === 'number') facts.push(['Wind', `${Math.round(now.wind * 3.6)} km/h`]);
+  if (typeof now.humidity === 'number') facts.push(['Humidity', `${Math.round(now.humidity)}%`]);
+  if (typeof now.uv === 'number') facts.push(['UV (clear sky)', String(Math.round(now.uv))]);
   return <div ref={frame} className="nc-body nw-weather" data-size={size}>
     <div className="nw-now">
-      <WeatherScene sky={sky!} size={size === 'S' ? 52 : size === 'M' ? 64 : 108}/>
+      <WeatherScene sky={sky!} size={size === 'S' ? 46 : size === 'M' ? 64 : 96}/>
       <div className="nw-now-words">
         <p className="nw-temp"><span className="holo-num nw-temp-num">{degrees(now.t)}</span><span className="nw-temp-unit">C</span></p>
         <p className="nw-condition">{sky!.words}</p>
         {(size === 'L' || (size === 'M' && brolly.expected)) && <p className="nw-umbrella">{brolly.words}</p>}
       </div>
     </div>
-    {size !== 'S' && hours.length > 1 && <ol className="nw-hours" aria-label="The next hours">{hours.map(h => { const c = condition(h.symbol); return <li key={h.at}>
+    {size !== 'S' && hours.length > 1 && <ol className="nw-hours" aria-label="The next hours" data-rain={size === 'L' && rainTop > 0 ? '' : undefined}>{hours.map((h, i) => { const c = condition(h.symbol); return <li key={h.at}>
       <span className="nw-hour-time">{clockTime(h.at)}</span>
       <WeatherScene sky={c} size={26}/>
       <span className="nw-hour-temp">{degrees(h.t)}</span>
-      {size === 'L' && <span className="nw-hour-rain">{typeof h.precip === 'number' && h.precip > 0 ? `${h.precip} mm` : ''}</span>}
+      {size === 'L' && rainTop > 0 && <span className="nw-hour-rain" data-peak6={i === peak6 || undefined} data-peak8={i === peak8 || undefined}>
+        <span className="nw-rain-bar" aria-hidden="true"><i style={{'--nw-rain': (rain[i]! / rainTop).toFixed(3)} as CSSProperties}/></span>
+        <b>{rain[i]! > 0 ? `${rain[i]} mm` : ''}</b>
+      </span>}
     </li>; })}</ol>}
     {size === 'L' && days.length > 1 && <div className="nw-days"><p className="holo-label">The next days · lowest to highest</p>
-      <Capsules lo={lo} hi={hi} items={days.map(d => ({key: d.date, top: degrees(d.max), min: d.min, max: d.max, bottom: formatWeekday(d.date).slice(0, 3), mark: <WeatherScene sky={condition(d.symbol)} size={24}/>}))}/></div>}
-    {size === 'L' && <div className="nc-facts">
-      {typeof now.wind === 'number' && <Fact label="Wind" value={`${Math.round(now.wind * 3.6)} km/h`}/>}
-      {typeof now.humidity === 'number' && <Fact label="Humidity" value={`${Math.round(now.humidity)}%`}/>}
-      {typeof now.uv === 'number' && <Fact label="UV index (clear sky)" value={String(Math.round(now.uv))}/>}
-    </div>}
+      <ol className="nw-dayrows">{days.map(d => <li key={d.date}>
+        <span className="nw-day-name">{formatWeekday(d.date).slice(0, 3)}</span>
+        <WeatherScene sky={condition(d.symbol)} size={22}/>
+        <span className="nw-day-lo"><span className="sr-only">lowest </span>{degrees(d.min)}</span>
+        <span className="nw-day-track" aria-hidden="true"><i style={{left: `${((d.min - lo) / span * 100).toFixed(1)}%`, right: `${((hi - d.max) / span * 100).toFixed(1)}%`}}/></span>
+        <span className="nw-day-hi"><span className="sr-only">highest </span>{degrees(d.max)}</span>
+      </li>)}</ol></div>}
+    {size === 'L' && facts.length > 0 && <p className="nw-facts">{facts.map(([label, value]) => <span key={label}>{label} <b>{value}</b></span>)}</p>}
     {w.stale && <p className="nc-foot" role="status">{w.stale} The last reading stays.</p>}
     <HoloTable caption={`Weather in ${place.name}`} rows={[['Now', `${degrees(now.t)}C, ${sky!.words}`], ['Next hours', brolly.words], ...hours.map(h => [clockTime(h.at), `${degrees(h.t)}C, ${condition(h.symbol).words}`] as const), ...days.map(d => [formatWeekday(d.date), `${degrees(d.min)} to ${degrees(d.max)}C, ${condition(d.symbol).words}`] as const)]}/>
     <Credit reading={reading} place={place.name} example={w.example}/>

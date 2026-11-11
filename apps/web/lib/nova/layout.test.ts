@@ -37,6 +37,25 @@ describe('Orbit layout', () => {
   it('the opening order follows the orbit order', () => {
     expect(placeOrbit(w(['S', 'M', 'L'])).map(p => p.order)).toEqual([0, 1, 2]);
   });
+  it('AM-D9: a widget keeps the side it stands on when another is made, hidden or pinned; a new one takes the emptier side', () => {
+    const list = (ids: string[]) => ids.map((id, slot) => ({id, size: 'M' as const, slot}));
+    const sideOf = (placed: ReturnType<typeof placeOrbit>) => Object.fromEntries(placed.map(p => [p.id, p.side]));
+    const first = sideOf(placeOrbit(list(['weather', 'habits', 'worth'])));
+    expect(first).toEqual({weather: 'left', habits: 'right', worth: 'left'});
+    const prefer = (id: string) => first[id] as 'left' | 'right' | undefined;
+    // Weather is hidden: without the memory Net worth would cross to the left and Habits stay; with it nobody moves.
+    expect(sideOf(placeOrbit(list(['habits', 'worth'])))).toEqual({habits: 'left', worth: 'right'});
+    expect(sideOf(placeOrbit(list(['habits', 'worth']), undefined, undefined, prefer))).toEqual({habits: 'right', worth: 'left'});
+    // Net worth is pinned (it moves behind the made ones in the list): still nobody crosses.
+    expect(sideOf(placeOrbit(list(['weather', 'habits', 'worth']).reverse(), undefined, undefined, prefer))).toEqual(first);
+    // A new widget, first in the list: the others stay, it takes the emptier side and leads its column.
+    const more = placeOrbit(list(['sun', 'weather', 'habits', 'worth']), undefined, undefined, prefer);
+    expect(sideOf(more)).toEqual({sun: 'right', ...first});
+    expect(more.filter(p => p.side === 'right').map(p => [p.id, p.row])).toEqual([['sun', 1], ['habits', 3]]);
+    // A side that is full gives way: the widget goes to the other side, then to the band; rows never overlap.
+    const tight = placeOrbit(list(['a', 'b', 'c']), 2, undefined, () => 'left');
+    expect(tight.map(p => p.side)).toEqual(['left', 'right', 'band']);
+  });
 });
 
 describe('what each layout shows', () => {

@@ -20,9 +20,14 @@ import './cards.css';
  */
 export type CardProps = {size: WidgetSize; params: WidgetParams};
 
-/** The foot: where the figures come from and when they are from ("Your Health records · today 14:20"). */
-export function CardFoot({source, asOf, children}: {source: string; asOf?: string | null; children?: ReactNode}) {
-  return <p className="nc-foot"><span className="nc-foot-source">{source}</span>{asOf ? <span className="nc-foot-asof"> · {asOf}</span> : null}{children}</p>;
+/**
+ * The foot: where the figures come from and when they are from ("Your Health records · today 14:20").
+ * Design review AM-D38: every foot is the last line of its widget, on the same baseline as its neighbours' (the body
+ * fills its frame and the foot takes the space above it), and it is one line, cut with an ellipsis (its whole text is its
+ * tooltip). `wrap`: a credit that must stay whole (the weather's service and licence links) may take a second line.
+ */
+export function CardFoot({source, asOf, children, wrap}: {source: string; asOf?: string | null; children?: ReactNode; wrap?: boolean}) {
+  return <p className="nc-foot" data-wrap={wrap || undefined} title={wrap ? undefined : `${source}${asOf ? ` · ${asOf}` : ''}`}><span className="nc-foot-source">{source}</span>{asOf ? <span className="nc-foot-asof"> · {asOf}</span> : null}{children}</p>;
 }
 /** A state that shows no figure: one line of words and at most one action (locked, off, nothing yet). */
 export function CardNotice({kind, title, children, href, action, onAction}: {kind: 'locked' | 'off' | 'empty'; title: string; children: ReactNode; href?: string; action?: string; onAction?: () => void}) {
@@ -104,12 +109,12 @@ export function TrendArea({values, labels, minLabel, maxLabel, height = 96, mark
  * text beside it and the whole is described by the widget's table, so the cells are decoration.
  */
 export type LatticeCell = 'done' | 'missed' | 'rest' | 'ahead' | 'part';
-export function Lattice({rows, columns}: {rows: readonly {key: string; label: string; cells: readonly LatticeCell[]; note?: string}[]; columns: readonly string[]}) {
+export function Lattice({rows, columns}: {rows: readonly {key: string; label: string; cells: readonly LatticeCell[]; note?: string; /** The cell that is today (a ring around it), if it is in this row. */ today?: number}[]; columns: readonly string[]}) {
   return <div className="nc-lattice" style={{'--nc-cols': columns.length} as CSSProperties}>
     <div className="nc-lattice-head" aria-hidden="true"><span/>{columns.map((c, i) => <span key={i}>{c}</span>)}<span/></div>
     {rows.map(r => <div key={r.key} className="nc-lattice-row">
       <span className="nc-lattice-label" title={r.label}>{r.label}</span>
-      {r.cells.map((c, i) => <i key={i} data-cell={c} aria-hidden="true"/>)}
+      {r.cells.map((c, i) => <i key={i} data-cell={c} data-today={r.today === i || undefined} aria-hidden="true"/>)}
       <span className="nc-lattice-note">{r.note ?? ''}</span>
     </div>)}
   </div>;

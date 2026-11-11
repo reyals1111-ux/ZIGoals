@@ -1,6 +1,7 @@
 'use client';
 import {useState} from 'react';
-import {asksOf, NOVA_STAGE} from '../../../lib/nova/stage/record';
+import {NOVA_STAGE} from '../../../lib/nova/stage/record';
+import {asksNewestFirst} from '../../../lib/nova/stage/requests';
 import {showAgain} from '../../../lib/nova/stage/events';
 import {formatRelativeDay, formatTime} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
@@ -17,7 +18,7 @@ export default function RequestsWidget({size = 'M'}: Partial<CardProps>) {
   const stage = useDeviceRecord(NOVA_STAGE), [now] = useState(() => new Date());
   if (!stage.loaded) return <HoloReading/>;
   if (stage.unreadable) return <HoloUnread what="Your requests"/>;
-  const asks = asksOf(stage.data), shown = asks.slice(0, size === 'S' ? 1 : size === 'M' ? 3 : 7);
+  const asks = asksNewestFirst(stage.data), shown = asks.slice(0, size === 'S' ? 1 : size === 'M' ? 2 : 7);
   if (!asks.length) return <CardNotice kind="empty" title="Nothing asked yet">Ask NOVA something, or tap one of the requests above the command bar. What you ask is kept here.</CardNotice>;
   return <div className="nc-body nc-requests">
     <ul className="nc-requests-list" aria-label="Your recent requests">{shown.map(a => <li key={a.id} className="nc-request">

@@ -1,10 +1,9 @@
 'use client';
 import Link from 'next/link';
-import {useId, type CSSProperties, type ReactNode} from 'react';
-import {NumberTicker} from '../../motion/number-ticker';
+import {useId, useRef, type CSSProperties, type ReactNode} from 'react';
 import {HEART_PATH, arcPath, clamp01, flowRibbons, histogramBars, histogramY, linePath, polar, segmentsLit, smoothPath, sparkPoints, tickPath, timePoints} from '../../../lib/nova/holo/geometry';
 import {formatPercent} from '../../../lib/visual-format';
-import {useChangeCount} from './use-hud-motion';
+import {useChangeCount, useCountOnce} from './use-hud-motion';
 
 /**
  * Session AL Part 11 (lane L8): the HUD's drawing parts. Every drawing is decoration over words: the figures it shows are
@@ -35,10 +34,18 @@ export function LensRing({className = ''}: {className?: string}) {
   return <span className={`holo-lens ${className}`.trim()} data-motion-essential="" aria-hidden="true"/>;
 }
 
-/** A figure that counts up once (Full motion) and pulses when it changes (Full: a glow; Calm: a fade; Off: nothing). */
+/**
+ * A figure. Design review AM-D10: it counts up at most once, when its widget is first made (Full motion; never on a
+ * re-mount, a re-flow, Pin, Hide and Show or a scroll into view), for at most 420 ms, and always ends on the exact text;
+ * money never counts (use-hud-motion.ts). It pulses when its value changes (Full: a glow; Calm: a fade; Off: nothing).
+ * The final text is what assistive technology reads at every moment; the counting digits are decoration over a copy
+ * that holds the figure's width.
+ */
 export function HoloFigure({text, className = ''}: {text: string; className?: string}) {
-  const changed = useChangeCount(text);
-  return <span key={changed} className={`holo-num ${className}`.trim()} data-pulse={changed ? '' : undefined}><NumberTicker text={text}/></span>;
+  const changed = useChangeCount(text), host = useRef<HTMLSpanElement>(null), {start, run} = useCountOnce(host, text);
+  return <span ref={host} key={changed} className={`holo-num ${className}`.trim()} data-pulse={changed ? '' : undefined} data-counting={start !== null ? '' : undefined}>
+    {start === null ? text : <><span className="sr-only">{text}</span><span className="holo-num-size" aria-hidden="true">{text}</span><span ref={run} className="holo-num-run" aria-hidden="true">{start}</span></>}
+  </span>;
 }
 
 /** A labelled meter: the label, a row of segments lit by the share, and the value against its target in words. */

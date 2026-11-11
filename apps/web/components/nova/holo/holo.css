@@ -158,7 +158,7 @@
 .holo-keys { display: grid; gap: 14px; }
 .holo-keys-table { width: 100%; border-collapse: collapse; font-size: 15px; color: var(--nova-ink, #eef3ff); }
 .holo-keys-table th, .holo-keys-table td { padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--nova-edge-soft, #ffffff1f); vertical-align: middle; }
-.holo-keys-table thead th { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
+.holo-keys-table thead th { font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
 .holo-keys-table tbody th { width: 9em; font-weight: 600; }
 .holo-keys-table tr[data-off] td { color: #c3cfe6; }
 .holo-keys-off { color: #c3cfe6; }
@@ -198,7 +198,7 @@
 .holo-phone-column .nova-widget[data-holo] .nova-widget-body { container: holo-body / inline-size; overflow: visible; }
 
 /* M2: Holo's orbit is wider, and a column holding a large panel widens: the hero beside the star. */
-@container nova-stage (min-width: 800.02px) {
+@container nova-stage (min-width: 760.02px) {
   .nova-frame[data-look=holo] .nova-orbit { max-width: 1560px; }
   .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(250px, 1fr) minmax(300px, .9fr) minmax(250px, 1fr); }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(340px, 1.45fr) minmax(290px, .85fr) minmax(240px, 1fr); }
@@ -212,10 +212,11 @@
 /* Session AM (ADR-038 D1, D2; deliberate): the faint glass plate behind a whole column is gone. Widgets are made one at a
    time on a calm stage, so a column-high plate behind a single widget read as an empty panel; each widget is its own glass,
    and the tick rail toward the star stays as the wing's edge. */
-.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side:not(:empty)::after { content: ''; position: absolute; top: 18px; bottom: 18px; width: 6px; z-index: -1; pointer-events: none; opacity: .7;
+/* Design review AM-D23: the two tick rails are a pair. One widget alone has no rail (a single rail read as a stray line). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main:has(> .nova-orbit-side[data-side=left]:not(:empty)):has(> .nova-orbit-side[data-side=right]:not(:empty)) > .nova-orbit-side::after { content: ''; position: absolute; top: 18px; bottom: 18px; width: 6px; z-index: -1; pointer-events: none; opacity: .7;
   background: repeating-linear-gradient(to bottom, #c9d2ff66 0 1px, transparent 1px 12px), linear-gradient(#a9b8ff40, #a9b8ff40) 50% 0 / 1px 100% no-repeat; }
-.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side[data-side=left]:not(:empty)::after { right: -16px; }
-.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side[data-side=right]:not(:empty)::after { left: -16px; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side[data-side=left]::after { right: -16px; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side[data-side=right]::after { left: -16px; }
 
 /* m4: a floor under the star — the far grid plane, in perspective, reading as the ground of the star system. */
 .nova-orbit-centre { position: relative; isolation: isolate; }
@@ -320,7 +321,7 @@
 /* M4: a narrow stage (a tablet, ≤ 800 px) shows the star at its own height (it used to take the whole first screen) and the
    panels under it in one column of up to 560 px, each as tall as its content, so the first view holds the HUD and no value
    runs past its panel (two 245 px columns cut them). */
-@container nova-stage (max-width: 800px) {
+@container nova-stage (max-width: 760px) {
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main { grid-template-columns: minmax(0, 560px); justify-content: center; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre { min-height: 0; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-band-grid { grid-template-columns: minmax(0, 560px); justify-content: center; }
@@ -364,7 +365,7 @@
 .nova-widget[data-holo][data-size=S] .nova-focus > p { margin: 0; }
 .nova-widget[data-holo][data-size=S] .nova-focus .nova-figure { font-size: 22px; }
 .nova-widget[data-holo][data-size=S] .nova-focus .nova-big { line-height: 1.15; }
-.nova-widget[data-holo][data-size=S] .nova-focus .nova-big small { font-size: 13px; }
+.nova-widget[data-holo][data-size=S] .nova-focus .nova-big small { font-size: 14px; }
 /* M3: on a short window (≤ 800 px high) the star's stack sits high in its column — NOVA's name, the orb, then its state and
    readout — so the readout stays above the command field (at 1280 × 720 it slid under it). */
 @media (max-height: 800px) { .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre > .nova-stage[data-holo-core] { grid-template-rows: auto auto minmax(min-content, 1fr); } }

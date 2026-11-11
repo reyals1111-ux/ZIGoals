@@ -87,9 +87,9 @@ void main(){
   // ---- the orbit and the planet, rim-lit from the core ----
   float oa = uT*(.10+.12*uThink) + 1.1; float OR = .40;
   vec2 po = rot(-ROLL) * vec2(cos(oa)*OR, sin(oa)*OR*TILT);
-  float pr = .034 * (1. - .22*sin(oa));
+  float pr = .046 * (1. - .16*sin(oa));
   float orb = smoothstep(.0035,.0,abs(r-OR)) * (.5+.5*cos(a - oa)) ;
-  col += uB * orb * .22 + uB * smoothstep(.003,.0,abs(r-OR))*.05;
+  col += uB * orb * .34 + uB * smoothstep(.003,.0,abs(r-OR))*.13;
   vec2 d = uv - po; float pd = length(d);
   float body = smoothstep(pr, pr-.0035, pd);
   float behind = step(0., sin(oa)) * smoothstep(.12,.05, length(po));
@@ -98,7 +98,8 @@ void main(){
     vec3 nrm = normalize(vec3(n, nz)); vec3 L = normalize(vec3(-po, -.22));
     float lit = max(0., dot(nrm, L));
     float rim = pow(1.-nz, 2.5);
-    vec3 pc = vec3(.012,.014,.04) + mix(uA, vec3(1.), .6) * pow(lit, .7) * 2.6 + uB * rim * .45 + uC*.05*rim;
+    // Design review AM-D16: the planet is a body in every frame: a faint fill on its night side, a lit limb all the way round.
+    vec3 pc = vec3(.03,.035,.08) + mix(uB, vec3(1.), .3) * .12 * (.35 + .65*nz) + mix(uA, vec3(1.), .6) * pow(lit, .7) * 2.6 + uB * rim * .8 + uC*.08*rim;
     pc *= .75 + .25*noise(n*6.+2.);
     col = mix(col, pc, body*(1.-behind));
   }

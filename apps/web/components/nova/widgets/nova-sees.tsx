@@ -16,6 +16,7 @@ import '../cards/nova-cards.css';
  * Permissions (a model never can: there is no tool or action for it).
  */
 const NAME: Readonly<Record<NovaScope, string>> = {today: 'Today, agenda and tasks', goals: 'Goals', habits: 'Habits', health: 'Health', wealth: 'Wealth', notes: 'Notes', journal: 'Journal', earn: 'Earn'};
+const SHORT: Readonly<Record<NovaScope, string>> = {today: 'Today', goals: 'Goals', habits: 'Habits', health: 'Health', wealth: 'Wealth', notes: 'Notes', journal: 'Journal', earn: 'Earn'};
 export default function NovaSeesWidget({size = 'M'}: Partial<CardProps>) {
   const setup = useDeviceRecord(NOVA_SETUP), settings = useAiSettings(), world = useDeviceRecord(NOVA_WORLD);
   if (!setup.loaded || !settings.loaded || !world.loaded) return <HoloReading/>;
@@ -23,13 +24,17 @@ export default function NovaSeesWidget({size = 'M'}: Partial<CardProps>) {
   // What decides each row: NOVA's own permission, and the device's page-data switch behind it (Health: both of its switches).
   const device: Readonly<Record<NovaScope, boolean>> = {today: share.today, goals: share.goals, habits: share.habits, health: share.health && settings.data.includeHealth, wealth: share.wealth, notes: share.today, journal: share.today, earn: share.wealth};
   const rows = NOVA_SCOPES.map(s => ({key: s, name: NAME[s], on: scopes[s] && device[s], why: !scopes[s] ? 'off in Permissions' : !device[s] ? 'page data off in Settings' : 'read on this device'}));
-  const weather = worldOn(world.unreadable ? {version: 1} : world.data), shown = size === 'S' ? rows.slice(0, 4) : rows, lit = rows.filter(r => r.on).length;
-  return <div className="nc-body nc-sees">
+  const weather = worldOn(world.unreadable ? {version: 1} : world.data), lit = rows.filter(r => r.on).length;
+  // Design review AM-D20: each size holds what fits its box. S: the count. M: the count and the parts that are OFF (what
+  // NOVA cannot read is the news), up to four, then how many are on ("+5 on"). L: every part. A cell names its part in
+  // one or two words; the table for assistive technology keeps every part's whole name and reason at every size.
+  const cells = [...rows.map(r => ({key: r.key as string, name: SHORT[r.key], on: r.on, world: false})), {key: 'weather', name: 'Weather', on: weather, world: true}];
+  const off = cells.filter(c => !c.on), on = cells.length - off.length, shown = size === 'L' ? cells : size === 'M' ? off.slice(0, 4) : [], moreOff = size === 'M' ? off.length - shown.length : 0;
+  return <div className="nc-body nc-sees" data-size={size}>
     <p className="nc-sees-count"><b>{lit}</b> of {rows.length} parts of your life are open to NOVA</p>
-    <ul className="nc-sees-grid" aria-hidden="true">{shown.map(r => <li key={r.key} data-on={r.on || undefined}><span className="nc-sees-cell"/><span className="nc-sees-name">{r.name}</span><span className="nc-sees-why">{r.on ? 'On' : 'Off'}</span></li>)}
-      {size !== 'S' && <li data-on={weather || undefined} data-world=""><span className="nc-sees-cell"/><span className="nc-sees-name">Weather (outside data)</span><span className="nc-sees-why">{weather ? 'On' : 'Off'}</span></li>}
-    </ul>
+    {shown.length > 0 && <ul className="nc-sees-grid" aria-hidden="true">{shown.map(c => <li key={c.key} data-on={c.on || undefined} data-world={c.world ? '' : undefined}><span className="nc-sees-cell"/><span className="nc-sees-name">{c.name}</span><span className="nc-sees-why">{c.on ? 'On' : 'Off'}</span></li>)}</ul>}
+    {size === 'M' && <p className="nc-sees-more" aria-hidden="true">{off.length === 0 ? 'Every part is on, the weather too.' : `${moreOff > 0 ? `+${moreOff} more off · ` : ''}+${on} on`}</p>}
     <HoloTable caption="What NOVA can see" rows={[...rows.map(r => [r.name, `${r.on ? 'On' : 'Off'} (${r.why})`] as const), ['Weather (outside data)', weather ? 'On: MET Norway is asked for your rounded place' : 'Off: nothing is fetched']]}/>
-    <CardFoot source="NOVA → Permissions and Settings on this device" asOf="now"/>
+    <CardFoot source="Permissions on this device" asOf="now"/>
   </div>;
 }
