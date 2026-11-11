@@ -111,8 +111,8 @@ NOVA today is a holographic HUD: eighteen widgets that are always on the stage a
 ### Proofs on the production build (11 Nov, this session's sandbox: Chromium without a GPU, so WebGL is software-rendered)
 - **Weights (gzip, budgets not raised):** `/app/nova` 434.3 kB of 458; `/app/nova/setup` 445.8 of 458; the shell 433.4 of 447; every route "ok" (`node scripts/check-weight-budget.mjs`).
 - **Idle and rest** (empty profile, 1440×900, Full motion, main-thread share over 5–10 s, software GL): active 4.8 %, the window not focused (resting, 6 frames a second) 2.3 %.
-- **Hidden** (`tests/grok53/hud/hud-perf.spec.ts`, visibility set hidden): 0 sky frames, 0 running HUD animations, 0.047 s of main-thread work in 3 s (1.6 %).
-- **CPU 4×** (Showcase, Command arrangement): with the governor at its still frame the page's own frames are 16.7 ms median, 16.8 ms p95.
+- **Hidden** (`tests/grok53/hud/hud-perf.spec.ts` on the final build, visibility set hidden): 0 sky frames, 0 running HUD animations, 0.029 s of main-thread work in 3 s (1.0 %).
+- **CPU 4×** (the same spec, Command arrangement, Full motion): 218 frames in 4 s, 16.7 ms median, 33.4 ms p95, no frame over 50 ms (the star is its still frame here by D39; before D39 the same spec read 66.7 ms). On graphics hardware the running star is judged by the governor (D37); that path is not measured in this sandbox.
 - **Motion Off and reduced motion:** one still frame per state, no beam, no count-up, widgets simply there (unit rules in `lib/nova/core/governor.test.ts`, `lib/nova/holo/am-count.test.ts`; browser spec `tests/nova-stage-am.spec.ts`).
 
 ## Lessons carried in
