@@ -9,13 +9,29 @@ Read this first after a pause; continue from "Next" without asking. Branch `feat
 - Browser checks: Playwright Chromium only, at most 2 workers, one run at a time. `/opt/google/chrome/chrome` exists here. WebGL works headless (SwiftShader).
 - Owner references: `git fetch origin review/session-am-refs` (REFERENCES.md and `grok/`); captures stay out of the repo.
 
+## Preview now (A8; added after parts 2–4 were pushed, 11 Nov)
+1. `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, open http://127.0.0.1:3100/app/nova on a computer (an empty profile shows the calm stage: the star alone).
+2. Settings → Load Showcase Demo, then open NOVA again (the Command arrangement around the star, labelled as the Showcase's).
+3. Three requests to try in the command bar (or tap the chips above it):
+   - "Show my habits this week" (a cyan lattice is made beside the star; Pin, Hide and Close are in its header or under "More").
+   - "Show my net worth" (gold; the answer appears under the star, "Answered on this device · no AI used").
+   - "What's my weight progress this month?" (the Showcase keeps Health off for NOVA, so the widget is made *locked* and says which switch; turn Health on in NOVA → Permissions and in Settings → ZIGi to see it in magenta with hearts).
+   Also: "clear the stage" (with Undo), "pin the net worth", "Sluit alles".
+Not in yet at this checkpoint: the weather widget's look (the MET Norway client is being built), the side bars' redesign, the model's widget tool, sync, the phone pass, the specs.
+
 ## Done
 - **Part 0** `30c867f9`: STATUS records; frozen readers #37–#54.
-- **Pre-work:** `docs/design/NOVA_AM_ART_DIRECTION.md`, `docs/architecture/ADR-038-session-am.md`, this file. A shader prototype of the centre node was rendered in the sandbox (spiral, core, rim-lit planet, light streak, four states).
+- **Pre-work** `d4035415`, plan and amendments `b7d15637`: art direction, ADR-038 (O1–O5, A1–A8, D1–D22), this file.
+- **Part 1** `803d8dc2` (TIER 3 stored format: `zigoals:nova-stage:v1`, `zigoals:nova-world:v1` in every registry; backup format 4 kept; frozen readers #37–#54 pass), `30d6112b` (the summon step, EN/NL families, stage commands, sixteen new widget kinds with gates).
+- **Parts 2–4, first pass** `14a4316c`, `e7936fa6`: the widget kit (`components/nova/cards/kit.tsx`), Health/Habits/Goals/Journal/Time/Wealth widgets and NOVA's own three, the WebGL star system (`components/nova/core`, `lib/nova/core`), the live stage (`components/nova/stage`: use-stage, use-summoner, stage-parts), D2's calm default, cut-corner frames, the Showcase's request history.
 
 ## In progress
-- The plan was approved on 11 Nov with amendments A1–A8 (verbatim in ADR-038; the approved plan's parts are the list below). No more questions: decide and record in ADR-038.
-- Part 1 (summon step and stage record).
+- Helpers: the MET Norway client + CSP host (lib/nova/world, egress policy; TIER 3 CSP/egress commit of its own), the `nova` sync section with the old-Worker proof (TIER 3 sync commit of its own), the last four life widgets' polish.
+- Lead: side bars (part 5), then the model's widget tool (part 6).
+
+## Still open inside parts 2–4
+- The weather and sun widgets' bodies (on the helper's client), the mic in the command bar, specs for the new stage (D2 changes to existing specs are deliberate and marked).
+- Decided: the Showcase opens on its Command arrangement (existing HUD specs depend on it) and seeds a request history; made widgets stand in front of pinned ones; a made Health widget is locked while NOVA's Health permission or the device's Health gate is off.
 
 ## Next (the plan's parts, in order)
 1. Summon step and the stage record (`lib/nova/summon`, `lib/nova/stage`), stored-format registries (TIER 3 stored format).
