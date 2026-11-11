@@ -31,6 +31,9 @@ export function useCore(): CoreRing[] {
  * The rings, drawn around the orb (decoration: the readout says the same in words). Review M3, M4 (lane L8d): the rings
  * leave 40° open at the top, so NOVA's name never sits on an arc; a known ring's track is solid and dim, an unknown one a
  * single faint hairline with a short dash in that opening — four unknowns are a quiet ladder, never a rainbow of dashes.
+ * Session AM-2: a precision bezel — each ring a thick gradient arc in its pillar's neon with a white core and a lit end,
+ * on a dark groove that reads against the star, inside a tick scale (72 ticks, the twelfths longer) that turns slowly
+ * (an ornament: holo-parts.css).
  */
 export function CoreRings({rings}: {rings: CoreRing[]}) {
   return <span className="holo-core" aria-hidden="true"><LensRing className="holo-core-lens"/><RingStack rings={rings.map(r => ({key: r.pillar, share: r.share, pillar: r.pillar}))} size={120} gap={5.2} start={20} sweep={320}/></span>;

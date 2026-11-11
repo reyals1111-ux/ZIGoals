@@ -3,14 +3,18 @@ import Link from 'next/link';
 import type {ReactNode} from 'react';
 import {LazyPillarArt} from '../../illustrations/lazy-pillar-art';
 import type {WidgetPillar} from '../../../lib/nova/widgets/catalog';
+import {Ghost} from '../holo/parts';
 
 /**
  * An empty widget teaches: the pillar's illustration, one plain line, and where to start. Session AK lane EXF (EX-14): give
  * `href`/`action` only when they differ from the widget's own link under it (lib/nova/widgets/catalog.ts), never the same
  * words to the same page twice.
+ * Session AM-2: on the Holo stage the mark is the widget's own instrument, unlit (`ghost`: a ring, rows, bars, a clock, a
+ * line) in a tick bezel; the Classic cards keep the pillar's illustration (widgets.css shows one or the other).
  */
-export function NovaEmpty({pillar, children, href, action}: {pillar: WidgetPillar; children: ReactNode; href?: string; action?: string}) {
+export function NovaEmpty({pillar, children, href, action, ghost = 'ring'}: {pillar: WidgetPillar; children: ReactNode; href?: string; action?: string; ghost?: 'ring' | 'rows' | 'bars' | 'clock' | 'wave' | 'stack' | 'arcs'}) {
   return <div className="nova-empty">
+    <span className="nova-empty-ghost" aria-hidden="true"><Ghost kind={ghost}/></span>
     {/* Session AM: the new realms (mind, world, NOVA itself) wear the day's own illustration. */}
     <LazyPillarArt pillar={pillar === 'mind' || pillar === 'world' || pillar === 'nova' ? 'orbit' : pillar} size={44} className="nova-empty-art"/>
     <p>{children}</p>

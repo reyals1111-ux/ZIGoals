@@ -39,11 +39,20 @@
 .nova-chip-link:hover { background: color-mix(in oklab, var(--nova-a) 18%, transparent); }
 .nova-playing { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 12px; align-items: center; }
 .nova-playing-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.nova-disc { width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle, #0a1028 18%, transparent 19%), conic-gradient(from 0deg, var(--nova-b), var(--nova-a), var(--nova-c, #f06dff), var(--nova-b)); box-shadow: 0 0 14px color-mix(in oklab, var(--nova-a) 50%, transparent); }
-.nova-playing[data-playing] .nova-disc { animation: nova-disc 6s linear infinite; }
-@keyframes nova-disc { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .nova-playing[data-playing] .nova-disc { animation: none; } }
-:root[data-app-motion=off] .nova-playing .nova-disc { animation: none; }
+.nova-disc { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: 3px; width: 46px; height: 44px; padding: 5px 5px 6px; border-radius: 4px; box-sizing: border-box; background: color-mix(in oklab, var(--neon, #9273ff) 7%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); }
+.nova-disc i { height: 28%; border-radius: 1.5px; transform-origin: 50% 100%; background: linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), var(--neon, #9273ff) 80%, var(--neon-2, #c0adff)); box-shadow: inset 0 2px 0 #fff, 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 65%, transparent); opacity: .55; }
+.nova-disc i:nth-child(2) { height: 46%; } .nova-disc i:nth-child(3) { height: 34%; } .nova-disc i:nth-child(4) { height: 52%; } .nova-disc i:nth-child(5) { height: 30%; }
+.nova-playing[data-playing] .nova-disc i { height: 100%; opacity: 1; transform: scaleY(.5); }
+.nova-playing[data-playing] .nova-disc i:nth-child(2) { transform: scaleY(.85); } .nova-playing[data-playing] .nova-disc i:nth-child(3) { transform: scaleY(.62); } .nova-playing[data-playing] .nova-disc i:nth-child(4) { transform: scaleY(.95); } .nova-playing[data-playing] .nova-disc i:nth-child(5) { transform: scaleY(.45); }
+/* The level meter moves only while this device's own sound plays, under Full motion (transform only, in steps); it holds still in a hidden tab, off screen, under Calm, Off and reduced motion. */
+@keyframes nova-level { 0% { transform: scaleY(.35); } 30% { transform: scaleY(1); } 55% { transform: scaleY(.5); } 80% { transform: scaleY(.82); } 100% { transform: scaleY(.35); } }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i { animation: nova-level 1.9s steps(9) infinite; will-change: transform; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(2) { animation-duration: 1.5s; animation-delay: -.6s; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(3) { animation-duration: 2.3s; animation-delay: -1.1s; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(4) { animation-duration: 1.7s; animation-delay: -.3s; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(5) { animation-duration: 2.1s; animation-delay: -1.4s; }
+@media (prefers-reduced-motion: reduce) { .nova-playing .nova-disc i { animation: none !important; } }
+:root[data-app-motion=off] .nova-playing .nova-disc i { animation: none !important; }
 .nova-round { display: grid; place-items: center; width: 44px; height: 44px; margin-top: 6px; border-radius: 50%; border: 0; background: linear-gradient(120deg, var(--nova-b), var(--nova-a)); color: #0a0f24; cursor: pointer; }
 .nova-markets li { display: flex; justify-content: space-between; gap: 8px; min-height: 32px; align-items: baseline; }
 .nova-market-name { font-weight: 600; }
@@ -65,3 +74,109 @@
 /* Session AL Part 11 (lane L8; N-049, P-DV-102): Goal pace in Bento held 2 of 9 goals with no way to the rest — a cut list
    now scrolls inside its card (its links take the keyboard there), and its "N more" link stays at the end. */
 .nova-widget[data-widget=goal-pace][data-cut] .nova-widget-body { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+
+/* ==== Session AM-2 ("NOVA, stunning"; art direction D): the earlier widgets as holograms ====
+   Rows with a lit node and a hairline between them, hero figures in the realm's ink with a static bloom, 14 px tracked
+   capitals for labels, small actions as lit keys (stage.css `.ns-act`'s recipe), and one small instrument each, built
+   from holo/parts.tsx. Scoped to the Holo stage; the Classic cards keep AK's look. Only transform and opacity move. */
+.hw-rows { display: grid; gap: 0; margin: 0; list-style: none; min-width: 0; }
+.nova-glance.hw-rows { padding: 0; }
+.hw-row { position: relative; }
+.nova-widget[data-holo] .hw-rows > .hw-row { padding: 6px 0 6px 18px; font-size: 15px; line-height: 1.4; color: #dbe4f6; border-top: 1px solid color-mix(in oklab, var(--neon, #7fc8ff) 15%, transparent); }
+.nova-widget[data-holo] .hw-rows > .hw-row:first-child { border-top: 0; }
+.nova-widget[data-holo] .hw-rows > .hw-row::before { content: ''; position: absolute; left: 1px; top: 13px; width: 7px; height: 7px; border-radius: 50%; background: color-mix(in oklab, #fff 50%, var(--neon, #7fc8ff)); box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 1px var(--neon, #7fc8ff); }
+.nova-widget[data-holo] .hw-rows > .hw-row a { color: #eef3ff; }
+/* Words and figures on the Holo stage. */
+.nova-widget[data-holo] .nova-line { color: #dbe4f6; }
+.nova-widget[data-holo] .nova-quiet { color: #c3cfe6; }
+.nova-widget[data-holo] .nova-big { align-items: baseline; gap: 2px 8px; }
+.nova-widget[data-holo] .nova-big small { font-size: 15px; color: #cdd8ee; }
+.nova-widget[data-holo] .nova-big .nova-figure { font-size: clamp(26px, 11cqi, 40px); font-weight: 680; letter-spacing: -.012em; line-height: 1.04; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 28px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); }
+.nova-widget[data-holo] .nova-big .nova-figure-words { font-size: clamp(20px, 7cqi, 26px); line-height: 1.2; }
+.nova-widget[data-holo] .nova-count { display: inline-block; margin-left: 8px; padding: 0 7px; border-radius: 3px; border: 1px solid color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent); background: color-mix(in oklab, var(--neon, #7fc8ff) 14%, transparent); color: var(--neon-ink, #e3f3ff); font-size: 14px; font-weight: 700; }
+/* A small action inside a widget: a lit key (a 44 px target; the key itself is its inner 32 px). */
+.nova-widget[data-holo] .nova-chip-link { position: relative; min-height: 44px; margin-top: 0; padding: 0 13px; border: 0; border-radius: 0; background: none; color: var(--neon-ink, #eef3ff); font-size: 15px; font-weight: 650; isolation: isolate; }
+.nova-widget[data-holo] .nova-chip-link::before { content: ''; position: absolute; inset: 6px 0; z-index: -1; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 13%, #060a1c); clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px); box-shadow: inset 0 0 12px -4px var(--neon, #9273ff); transition: background-color .12s, border-color .12s; }
+.nova-widget[data-holo] .nova-chip-link:hover { background: none; }
+.nova-widget[data-holo] .nova-chip-link:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
+.nova-widget[data-holo] .nova-round { margin-top: 0; background: color-mix(in oklab, var(--neon, #9273ff) 14%, #060a1c); color: var(--neon-ink, #eef3ff); box-shadow: inset 0 0 0 1.5px var(--neon, #9273ff), 0 0 12px -2px var(--neon, #9273ff), inset 0 0 14px -4px var(--neon, #9273ff); }
+.nova-widget[data-holo] .nova-round:hover { background: color-mix(in oklab, var(--neon, #9273ff) 32%, #060a1c); }
+/* An unlit instrument in a teaching state: the Holo stage shows the widget's ghost, the Classic cards the pillar's art. */
+.nova-empty-ghost { display: none; }
+.nova-empty-ghost > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.nova-widget[data-holo] .nova-empty > .nova-empty-ghost { display: block; grid-column: 1; grid-row: 1 / span 2; align-self: start; width: 48px; height: 48px; }
+.nova-widget[data-holo] .nova-empty > .nova-empty-art { display: none; }
+/* A small ring gauge beside words (Day at a glance, a running focus phase). */
+.hw-mini-ring { flex: none; }
+.hw-mini-ring .holo-num-ring, .nova-widget[data-size] .hw-mini-ring .holo-num-ring { font-size: clamp(14px, calc(var(--ring, 76px) * .26), 24px); }
+.hw-glance { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.hw-glance > .hw-rows { flex: 1 1 0; }
+/* Focus: a running phase beside its ring, with one pip a block; a week as seven columns. */
+.hw-focus { display: grid; gap: 6px; min-width: 0; }
+.hw-focus[data-running] { grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-items: center; }
+.hw-focus[data-running] > .hw-mini-ring { grid-row: 1 / span 3; }
+.hw-focus[data-running] > :not(.hw-mini-ring) { grid-column: 2; }
+.hw-focus[data-running] > :is(.nova-focus-actions, [role=alert]) { grid-column: 1 / -1; }
+.hw-pips { display: flex; gap: 5px; }
+.hw-pips i { width: 16px; height: 5px; border-radius: 2px; transform: skewX(-22deg); background: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0a); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent); }
+.hw-pips i[data-lit] { background: var(--neon, #9273ff); box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.hw-pips i[data-now] { background: linear-gradient(90deg, var(--neon-2, #c0adff), #fff); box-shadow: 0 0 8px 1px var(--neon, #9273ff); }
+.hw-focus .holo-cols { --cols-h: 44px; max-width: 320px; }
+.hw-focus > .nova-chip-link { justify-self: start; }
+/* NOVA briefs: the brief's kind beside a small dial of the day. */
+.hw-briefs { display: grid; gap: 4px; min-width: 0; }
+.hw-briefs > .nova-chip-link { justify-self: start; }
+.hw-head { display: flex; align-items: center; flex-wrap: wrap; gap: 0 8px; }
+.nova-widget[data-holo] .hw-head strong { font-size: 14px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--neon-ink, #e3f3ff); }
+.hw-dayglyph { position: relative; flex: none; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #7fc8ff) 60%, transparent), inset 0 0 0 4px #04071a, inset 0 0 0 5px color-mix(in oklab, var(--neon, #7fc8ff) 28%, transparent); background: linear-gradient(#0000 49%, color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent) 49% 51%, #0000 51%); }
+.hw-dayglyph i { position: absolute; top: 50%; left: 0; width: 7px; height: 7px; margin: -3.5px 0 0 -2px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 2px var(--neon, #7fc8ff); }
+.hw-briefs[data-kind=evening] .hw-dayglyph i { left: auto; right: 0; margin-right: -2px; }
+/* Goal pace: each goal a row with its percent as a figure and a lit meter. */
+.nova-widget[data-holo] .hw-goals { gap: 0; }
+.nova-widget[data-holo] .hw-goals > .hw-row { gap: 0; padding: 0 0 7px; border-top: 1px solid color-mix(in oklab, var(--neon, #9273ff) 15%, transparent); }
+.nova-widget[data-holo] .hw-goals > .hw-row:first-child { border-top: 0; }
+.nova-widget[data-holo] .hw-goals .nova-goal-head a { color: #eef3ff; font-size: 15px; }
+.nova-widget[data-holo] .hw-goals .nova-goal-pct { color: var(--neon-ink, #e2d9ff); font-size: 20px; font-weight: 700; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 28px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); }
+.nova-widget[data-holo] .hw-goals .holo-gauge { margin: -6px 0 5px; }
+.nova-widget[data-holo] .hw-goals .nova-goal-pace { color: #c9d4ea; }
+.nova-widget[data-holo] .hw-goals li[data-tone=good] .nova-goal-pace { color: #9ff3dc; }
+.nova-widget[data-holo] .hw-goals li[data-tone=attention] .nova-goal-pace { color: #ffe2a8; }
+.nova-widget[data-holo] .hw-goals .nova-more a { color: var(--neon-ink, #e2d9ff); font-weight: 600; }
+/* Market watch: each market a row with a lit node (dim until its price is in), the price as a figure. */
+.nova-widget[data-holo] .hw-markets { gap: 0; }
+.nova-widget[data-holo] .hw-markets > .hw-row { min-height: 34px; align-items: center; padding: 5px 0 5px 18px; border-top: 1px solid #ffd27a26; }
+.nova-widget[data-holo] .hw-markets > .hw-row:first-child { border-top: 0; }
+.nova-widget[data-holo] .hw-markets > .hw-row::before { content: ''; position: absolute; left: 1px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; border: 1.5px solid color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent); box-sizing: border-box; }
+.nova-widget[data-holo] .hw-markets > .hw-row[data-priced]::before { border: 0; background: color-mix(in oklab, #fff 50%, var(--neon, #ffd27a)); box-shadow: 0 0 0 1.5px var(--neon, #ffd27a), 0 0 8px 1px var(--neon, #ffd27a); }
+.nova-widget[data-holo] .hw-markets .nova-market-name { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #dfe7f8; }
+.nova-widget[data-holo] .hw-markets .nova-market-price { color: var(--neon-ink, #fff0cf); font-size: 16px; font-weight: 700; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ffd27a) 55%, transparent); }
+.nova-widget[data-holo] .hw-markets small { font-size: 14px; font-weight: 500; color: #c3cfe6; text-shadow: none; }
+/* Next bill and contribution: the two facts as rows with lit nodes, over a runway of the next two months. */
+.hw-money { display: grid; gap: 10px; min-width: 0; }
+.nova-widget[data-holo] .hw-facts { gap: 0; }
+.nova-widget[data-holo] .hw-facts > div { position: relative; padding: 5px 0 6px 18px; border-top: 1px solid #ffd27a26; }
+.nova-widget[data-holo] .hw-facts > div:first-child { border-top: 0; padding-top: 0; }
+.nova-widget[data-holo] .hw-facts > div::before { content: ''; position: absolute; left: 1px; top: 11px; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid #ffd27a99; box-sizing: border-box; }
+.nova-widget[data-holo] .hw-facts > div:first-child::before { top: 6px; }
+.nova-widget[data-holo] .hw-facts > div[data-kind]::before { border: 0; background: color-mix(in oklab, #fff 50%, var(--mark, #ffd27a)); box-shadow: 0 0 0 1.5px var(--mark, #ffd27a), 0 0 8px 1px var(--mark, #ffd27a); }
+.hw-facts > div[data-kind=contribution], .hw-runway-mark[data-kind=contribution] { --mark: #a98fff; }
+.nova-widget[data-holo] .hw-facts dt { color: #cdd8ee; font-weight: 700; letter-spacing: .12em; }
+.nova-widget[data-holo] .hw-facts dd { color: #eef3ff; font-size: 15px; }
+.nova-widget[data-holo] .hw-facts dd small { color: #c9d4ea; }
+.hw-runway { display: grid; gap: 3px; }
+.hw-runway-track { position: relative; display: block; height: 14px; margin: 0 5px;
+  background: linear-gradient(color-mix(in oklab, var(--neon, #ffd27a) 34%, transparent), color-mix(in oklab, var(--neon, #ffd27a) 34%, transparent)) 0 50% / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 55%, transparent) 0 1px, transparent 1px calc(100% * 7 / 60)) 0 50% / 100% 7px no-repeat; }
+.hw-runway-now { position: absolute; left: 0; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px var(--neon, #ffd27a), 0 0 9px 2px var(--neon, #ffd27a); }
+.hw-runway-mark { --mark: #ffd27a; position: absolute; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; transform: rotate(45deg); border-radius: 1.5px; background: color-mix(in oklab, #fff 45%, var(--mark)); box-shadow: 0 0 0 1.5px var(--mark), 0 0 9px 2px var(--mark); }
+.hw-runway-ends { display: flex; justify-content: space-between; }
+.hw-runway-ends small { font-size: 14px; line-height: 16px; color: #c3cfe6; }
+.nova-frame[data-look=classic] .hw-runway, .nova-frame[data-look=classic] .hw-dayglyph { display: none; }
+/* The Tasks rows on the Holo stage: the box is a lit key (its 44 px target is the row's own label, components/tasks). */
+.nova-widget[data-holo] .tasks-widget .task-done input { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; margin: 0; border-radius: 3px; border: 1.5px solid color-mix(in oklab, var(--neon, #9273ff) 80%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 10%, #060a1c); box-shadow: 0 0 8px -2px var(--neon, #9273ff), inset 0 0 8px -3px var(--neon, #9273ff); cursor: pointer; }
+.nova-widget[data-holo] .tasks-widget .task-done input:checked { border-color: var(--neon-2, #c0adff); background: radial-gradient(circle, #fff 0 30%, var(--neon, #9273ff) 36%); box-shadow: 0 0 10px 1px var(--neon, #9273ff); }
+.nova-widget[data-holo] .tasks-widget .task-done input:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: 2px; }
+/* Reading and unreadable states on the Holo stage: one quiet instrument line (a dim scale before the words). */
+.nova-widget[data-holo] .nova-reading { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #cdd8ee; }
+.nova-widget[data-holo] .nova-reading::before { content: ''; flex: none; width: 34px; height: 8px; background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 0 2px, transparent 2px 6px); opacity: .8; }
+.nova-widget[data-holo] .nova-unread { padding-left: 12px; border-left: 2px solid #ffe2a8; font-size: 15px; line-height: 1.4; }
