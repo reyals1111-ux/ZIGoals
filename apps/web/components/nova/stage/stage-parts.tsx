@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useRef, useState, type ReactNode} from 'react';
+import {type ReactNode} from 'react';
 import {plainText, parseBlocks} from '../../../lib/ai/safe-render';
 import type {StageWidget} from '../../../lib/nova/stage/record';
 import {ONE_TAP, widgetTitle} from '../../../lib/nova/summon/words';
@@ -16,9 +16,8 @@ import './stage.css';
  */
 const I = {fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round'} as const;
 const PinIcon = ({on}: {on: boolean}) => <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path {...I} fill={on ? 'currentColor' : 'none'} d="M9 4h6l-1 6 3.5 3.5h-11L10 10z"/><path {...I} d="M12 13.5V20"/></svg>;
-const HideIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path {...I} d="M6 17.5h12"/><path {...I} d="m8.5 9.5 3.5 3.5 3.5-3.5"/></svg>;
+const HideIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path {...I} strokeWidth={2.2} d="M6.5 16.5h11"/></svg>;
 const CloseIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path {...I} d="M7 7l10 10M17 7 7 17"/></svg>;
-const MoreIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></g></svg>;
 
 export type WidgetStage = {pinned: boolean; onPin: () => void; onUnpin: () => void; onHide: () => void; onClose: () => void};
 /**
@@ -28,35 +27,17 @@ export type WidgetStage = {pinned: boolean; onPin: () => void; onUnpin: () => vo
  */
 export const PinnedMark = () => <span className="ns-pinned" title="Pinned"><PinIcon on/><span className="sr-only">Pinned</span></span>;
 /**
- * A widget's stage actions (design review AM-D11): Pin, Hide and Close as three named 44 px buttons in the head's one
- * right-aligned group wherever the panel is 340 px or wider (the default desktop column is 374 px); the same three under
- * "More" on a narrower panel.
+ * A widget's stage actions (Session AM-2, ADR-038 "AM-2" F2): Pin, Hide and Close as three named 44 px keys in the head's
+ * one right-aligned group, on every widget at every width. (Session AM folded them under a "More" button on a panel
+ * narrower than 312 px; the owner could not close or hide a widget, so the menu is gone.)
  */
 export function WidgetActions({title, stage}: {title: string; stage: WidgetStage}) {
-  const [open, setOpen] = useState(false), box = useRef<HTMLSpanElement>(null), button = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('pointerdown', away);
-    return () => document.removeEventListener('pointerdown', away);
-  }, [open]);
-  const pin = stage.pinned ? {label: `Unpin ${title}`, words: 'Unpin', act: stage.onUnpin} : {label: `Pin ${title}`, words: 'Pin', act: stage.onPin};
-  const run = (act: () => void) => () => { setOpen(false); act(); };
-  return <>
-    <span className="ns-actions" role="group" aria-label={`${title} on the stage`}>
-      <button type="button" className="ns-act" aria-pressed={stage.pinned} aria-label={pin.label} title={stage.pinned ? 'Pinned · tap to unpin' : 'Pin: keep on the stage'} onClick={pin.act}><PinIcon on={stage.pinned}/></button>
-      <button type="button" className="ns-act" aria-label={`Hide ${title} in the dock`} title="Hide in the dock" onClick={stage.onHide}><HideIcon/></button>
-      <button type="button" className="ns-act" aria-label={`Close ${title}`} title="Close" onClick={stage.onClose}><CloseIcon/></button>
-    </span>
-    <span ref={box} className="ns-more" onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); button.current?.focus(); } }}>
-      <button ref={button} type="button" className="ns-act" aria-expanded={open} aria-haspopup="true" aria-label={`More for ${title}`} title="Pin, hide or close" onClick={() => setOpen(o => !o)}><MoreIcon/></button>
-      {open && <span className="ns-more-list" role="group" aria-label={`${title} on the stage`}>
-        <button type="button" className="ns-more-item" aria-pressed={stage.pinned} onClick={run(pin.act)}><PinIcon on={stage.pinned}/>{pin.words}</button>
-        <button type="button" className="ns-more-item" onClick={run(stage.onHide)}><HideIcon/>Hide in the dock</button>
-        <button type="button" className="ns-more-item" onClick={run(stage.onClose)}><CloseIcon/>Close</button>
-      </span>}
-    </span>
-  </>;
+  const pin = stage.pinned ? {label: `Unpin ${title}`, act: stage.onUnpin} : {label: `Pin ${title}`, act: stage.onPin};
+  return <span className="ns-actions" role="group" aria-label={`${title} on the stage`}>
+    <button type="button" className="ns-act" data-act="pin" aria-pressed={stage.pinned} aria-label={pin.label} title={stage.pinned ? 'Pinned · press to unpin' : 'Pin: keep on the stage'} onClick={pin.act}><PinIcon on={stage.pinned}/></button>
+    <button type="button" className="ns-act" data-act="hide" aria-label={`Hide ${title} in the dock`} title="Hide in the dock" onClick={stage.onHide}><HideIcon/></button>
+    <button type="button" className="ns-act" data-act="close" aria-label={`Close ${title}`} title="Close" onClick={stage.onClose}><CloseIcon/></button>
+  </span>;
 }
 
 const GATE_WORDS: Readonly<Record<WidgetGate, {title: string; text: string}>> = {

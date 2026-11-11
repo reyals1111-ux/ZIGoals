@@ -27,7 +27,7 @@
 
 /* ---- Steps: today against the target, and the chart's caption ---- */
 .nc-steps-meter { display: block; width: 100%; max-width: 160px; height: 6px; border-radius: 3px; background: #ffffff1a; overflow: hidden; }
-.nc-steps-meter i { display: block; height: 100%; width: calc(var(--nc-share, 0) * 100%); border-radius: 3px; background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ff4fb8) 50%, transparent), var(--neon, #ff4fb8)); box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ff4fb8) 70%, transparent); }
+.nc-steps-meter i { display: block; height: 100%; width: calc(var(--nc-share, 0) * 100%); border-radius: 3px; background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ff74be) 50%, transparent), var(--neon, #ff74be)); box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ff74be) 70%, transparent); }
 .nc-steps-cap, .nc-workouts-cap { margin: 0; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
 .nc-steps-cap b, .nc-workouts-cap b { font-weight: 650; color: #f2f6ff; font-variant-numeric: tabular-nums; }
 

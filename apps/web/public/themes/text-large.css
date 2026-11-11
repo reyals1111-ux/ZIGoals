@@ -2145,7 +2145,6 @@
 :where(:root[data-text=large]) .nb-stage-name small:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nb-lives:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/nova/stage/stage.css  */
-:where(:root[data-text=large]) .ns-more-item:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .ns-dock-label:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ns-chip:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .ns-answer-asked:not(#\-) { font-size: calc(14px * 1.125); }

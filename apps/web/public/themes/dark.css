@@ -12853,16 +12853,16 @@
         color: #c3cfe6
     }
     .nc-ring[data-pillar=goals]:not(#\-) {
-        --neon: #a47bff
+        --neon: #9273ff
     }
     .nc-ring[data-pillar=habits]:not(#\-) {
-        --neon: #2ef2ff
+        --neon: #23eaff
     }
     .nc-ring[data-pillar=health]:not(#\-) {
-        --neon: #ff4fb8
+        --neon: #ff74be
     }
     .nc-ring[data-pillar=wealth]:not(#\-) {
-        --neon: #ffbf3c
+        --neon: #ffd27a
     }
     .nc-ring-track:not(#\-) {
         fill: none;
@@ -12899,9 +12899,9 @@
         background-color: #ffffff1a
     }
     .nc-steps-meter i:not(#\-) {
-        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ff4fb8) 50%, transparent), var(--neon, #ff4fb8));
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ff74be) 50%, transparent), var(--neon, #ff74be));
         background-color: transparent;
-        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ff4fb8) 70%, transparent)
+        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ff74be) 70%, transparent)
     }
     .nc-steps-cap:not(#\-), .nc-workouts-cap:not(#\-) {
         color: #c3cfe6
@@ -12971,7 +12971,7 @@
     .nc-goal-dot:not(#\-) {
         background-image: none;
         background-color: #fff;
-        box-shadow: 0 0 0 2px var(--neon, #a47bff), 0 0 10px var(--neon, #a47bff)
+        box-shadow: 0 0 0 2px var(--neon, #9273ff), 0 0 10px var(--neon, #9273ff)
     }
     .nc-goal-dot[data-kind=estimate]:not(#\-) {
         background-image: none;
@@ -13024,9 +13024,9 @@
         background-color: #ffffff14
     }
     .nc-time-bar i:not(#\-) {
-        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #a9b8ff) 45%, transparent), var(--neon, #a9b8ff));
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #7fc8ff) 45%, transparent), var(--neon, #7fc8ff));
         background-color: transparent;
-        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #a9b8ff) 60%, transparent)
+        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #7fc8ff) 60%, transparent)
     }
     .nc-time-bar b:not(#\-) {
         background-image: none;
@@ -13041,17 +13041,17 @@
         color: #c3cfe6
     }
     .nc-time-cells i[data-state=past]:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #a9b8ff) 70%, transparent);
+        border-color: color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent);
         background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #a9b8ff) 22%, transparent);
+        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 22%, transparent);
         color: #f2f6ff
     }
     .nc-time-cells i[data-state=now]:not(#\-) {
         border-color: #fff;
         background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #a9b8ff) 34%, transparent);
+        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 34%, transparent);
         color: #fff;
-        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #a9b8ff) 70%, transparent)
+        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent)
     }
 }
 /*  components/nova/cards/nova-cards.css  */
@@ -13779,39 +13779,39 @@
 /*  components/nova/holo/holo-parts.css  */
 @scope (:root[data-theme=dark]) {
     .nova-widget[data-pillar=health]:not(#\-), .holo-action[data-pillar=health]:not(#\-), .holo-core-readout li[data-pillar=health]:not(#\-) {
-        --neon: #ff4fb8;
-        --neon-2: #ff8fd6;
-        --neon-ink: #ffc8e8
+        --neon: #ff74be;
+        --neon-2: #ffa9d8;
+        --neon-ink: #ffd3ea
     }
     .nova-widget[data-pillar=habits]:not(#\-), .holo-action[data-pillar=habits]:not(#\-), .holo-core-readout li[data-pillar=habits]:not(#\-) {
-        --neon: #2ef2ff;
-        --neon-2: #8ff8ff;
-        --neon-ink: #c2fbff
+        --neon: #23eaff;
+        --neon-2: #8ff6ff;
+        --neon-ink: #c6fbff
     }
     .nova-widget[data-pillar=goals]:not(#\-), .holo-action[data-pillar=goals]:not(#\-), .holo-core-readout li[data-pillar=goals]:not(#\-) {
-        --neon: #a47bff;
-        --neon-2: #c9b0ff;
-        --neon-ink: #e0d4ff
+        --neon: #9273ff;
+        --neon-2: #c0adff;
+        --neon-ink: #e2d9ff
     }
     .nova-widget[data-pillar=wealth]:not(#\-), .holo-action[data-pillar=wealth]:not(#\-), .holo-core-readout li[data-pillar=wealth]:not(#\-) {
-        --neon: #ffbf3c;
-        --neon-2: #ffd98a;
-        --neon-ink: #ffe6b0
+        --neon: #ffd27a;
+        --neon-2: #ffe6b3;
+        --neon-ink: #fff0cf
     }
     .nova-widget[data-pillar=orbit]:not(#\-), .holo-action[data-pillar=orbit]:not(#\-) {
-        --neon: #a9b8ff;
-        --neon-2: #d6deff;
-        --neon-ink: #e8edff
+        --neon: #7fc8ff;
+        --neon-2: #c4e6ff;
+        --neon-ink: #e3f3ff
     }
     .nova-widget[data-pillar=mind]:not(#\-) {
-        --neon: #cbbfff;
-        --neon-2: #f0ebff;
-        --neon-ink: #f3efff
+        --neon: #d59bff;
+        --neon-2: #ecd2ff;
+        --neon-ink: #f6e9ff
     }
     .nova-widget[data-pillar=world]:not(#\-) {
-        --neon: #7fb6ff;
+        --neon: #5aa2ff;
         --neon-2: #ffd9a0;
-        --neon-ink: #eaf3ff
+        --neon-ink: #e6f0ff
     }
     .nova-widget[data-pillar=nova]:not(#\-) {
         --neon: var(--nova-a, #9273ff);
@@ -14442,54 +14442,45 @@
         background-color: transparent
     }
     .nova-widget[data-holo]:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #9273ff) 58%, transparent);
-        --holo-tint: linear-gradient(162deg, color-mix(in oklab, var(--neon, #9273ff) 14%, #0a1030e8) 0%, #060a1ce6 46%, #04061299 100%);
-        --holo-grid: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 7%, transparent) 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 7%, transparent) 1px, transparent 1px) 0 0 / 22px 22px;
-        --holo-glass: var(--holo-grid), var(--holo-tint);
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 78%, transparent);
+        --holo-tint: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 20%, transparent) 0, transparent 46px),
+    linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 13%, transparent) 0, transparent 34%),
+    linear-gradient(165deg, color-mix(in oklab, var(--neon, #9273ff) 17%, #0a1030) 0%, #070b24 44%, #04071a 100%);
+        --holo-grid: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 9%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 9%, transparent) 1px, transparent 1px) 0 0 / 24px 24px;
+        --holo-scan: repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 3px);
+        --holo-glass: var(--holo-scan), var(--holo-grid), var(--holo-tint);
+        --holo-bloom: 0 0 14px 1px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 46px 4px color-mix(in oklab, var(--neon, #9273ff) 26%, transparent), 0 0 120px 18px color-mix(in oklab, var(--neon, #9273ff) 10%, transparent), 0 34px 60px -22px #000e;
         background: var(--holo-glass);
-        box-shadow: inset 0 0 0 1px #ffffff0a, inset 0 1px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 26px 50px -30px #000
+        box-shadow: inset 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 50%, transparent), var(--holo-bloom)
     }
     .nova-widget[data-holo][data-size=S]:not(#\-) {
-        --holo-glass: var(--holo-tint)
-    }
-    .nova-widget[data-holo][data-size=L]:not(#\-) {
-        --holo-glass: repeating-linear-gradient(0deg, #ffffff05 0 1px, transparent 1px 3px), var(--holo-grid), var(--holo-tint)
+        --holo-glass: var(--holo-scan), var(--holo-tint)
     }
     .nova-widget[data-holo]:not(#\-)::after {
-        background-image: linear-gradient(162deg, #ffffffd0 0%, var(--neon, #9273ff) 16%, transparent 42%, transparent 72%, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 100%);
+        background-image: linear-gradient(135deg, #fff 0%, var(--neon, #9273ff) 14%, color-mix(in oklab, var(--neon, #9273ff) 72%, transparent) 50%, var(--neon, #9273ff) 86%, #fff 100%);
         background-color: transparent
-    }
-    .nova-widget[data-holo][data-size=L]:not(#\-) {
-        box-shadow: inset 0 0 0 1px #ffffff0a, inset 0 1px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 0 70px -18px #f06dff8c, 0 26px 50px -30px #000
     }
     .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):not(#\-) {
         background-image: none;
         background-color: transparent;
         border-color: transparent;
         box-shadow: none;
-        --holo-shape: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)))
+        --holo-shape: polygon(var(--cut) 0, calc(100% - var(--nick)) 0, 100% var(--nick), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--nick) 100%, 0 calc(100% - var(--nick)), 0 var(--cut))
     }
     .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):not(#\-)::before {
         border-color: currentcolor;
         background: var(--holo-glass);
-        box-shadow: none
-    }
-    .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):not(#\-)::after {
-        background-image: linear-gradient(162deg, #ffffffe6 0%, var(--neon, #9273ff) 18%, color-mix(in oklab, var(--neon, #9273ff) 38%, transparent) 46%, color-mix(in oklab, var(--neon, #9273ff) 30%, transparent) 70%, var(--neon, #9273ff) 100%);
-        background-color: transparent
+        box-shadow: inset 0 0 30px -8px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
     }
     .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):is(:hover, :focus-within):not(#\-)::after {
-        filter: brightness(1.35)
+        background-image: linear-gradient(135deg, #fff 0%, color-mix(in oklab, var(--neon, #9273ff) 70%, #fff) 30%, var(--neon, #9273ff) 50%, color-mix(in oklab, var(--neon, #9273ff) 70%, #fff) 70%, #fff 100%);
+        background-color: transparent
     }
     .holo-aura:not(#\-) {
-        box-shadow: 0 0 22px 4px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 60px 6px color-mix(in oklab, var(--neon, #9273ff) 16%, transparent), 0 30px 46px -14px #000c
+        box-shadow: var(--holo-bloom)
     }
     .nova-widget[data-holo][data-size=L] > .holo-aura:not(#\-) {
-        box-shadow: 0 0 26px 5px color-mix(in oklab, var(--neon, #9273ff) 46%, transparent), 0 0 80px 10px #f06dff2e, 0 30px 50px -14px #000c
-    }
-    .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]) > .holo-brackets:not(#\-) {
-        background: linear-gradient(var(--b), var(--b)) top left / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) top left / 1.5px var(--l) no-repeat,
-    linear-gradient(var(--b), var(--b)) bottom right / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) bottom right / 1.5px var(--l) no-repeat
+        box-shadow: var(--holo-bloom), 0 0 90px 10px #f06dff2b
     }
     .holo-ruler:not(#\-) {
         background-image: repeating-linear-gradient(to bottom, color-mix(in oklab, var(--neon, #9273ff) 75%, #fff) 0 1px, transparent 1px 40px), repeating-linear-gradient(to bottom, color-mix(in oklab, var(--neon, #9273ff) 45%, transparent) 0 1px, transparent 1px 8px);
@@ -14497,10 +14488,31 @@
     }
     .nova-widget[data-holo] .nova-widget-head h3:not(#\-) {
         color: var(--neon-ink, #eef3ff);
-        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent)
+        text-shadow: 0 0 12px color-mix(in oklab, var(--neon, #9273ff) 75%, transparent)
+    }
+    .nova-widget[data-holo] .nova-widget-head h3:not(#\-)::before {
+        background: var(--neon, #9273ff);
+        box-shadow: 0 0 0 2px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent)
+    }
+    .nova-widget[data-holo] .nova-widget-head:not(#\-) {
+        background-image: linear-gradient(90deg, var(--neon, #9273ff) 0, var(--neon, #9273ff) 54px, color-mix(in oklab, var(--neon, #9273ff) 34%, transparent) 54px, color-mix(in oklab, var(--neon, #9273ff) 10%, transparent) 100%);
+        background-color: transparent
     }
     .nova-widget[data-holo] .nova-widget-open:not(#\-) {
         color: #e6ecfb
+    }
+    .nova-widget[data-holo] .nova-widget-open:not(#\-) {
+        color: var(--neon-ink, #eef3ff)
+    }
+    .nova-widget[data-holo] .nova-widget-open:not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 52%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 11%, #010108)
+    }
+    .nova-widget[data-holo] .nova-widget-open:hover:not(#\-)::before {
+        border-color: var(--neon, #9273ff);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 30%, #010108)
     }
     .nova-widget[data-holo]:hover:not(#\-) {
         border-color: var(--neon, #9273ff)
@@ -14521,52 +14533,52 @@
         box-shadow: 0 0 8px var(--neon, #9273ff)
     }
     .holo-brackets:not(#\-) {
-        --b: color-mix(in oklab, var(--neon, #9273ff) 90%, #fff);
+        --b: color-mix(in oklab, var(--neon, #9273ff) 88%, #fff);
         background: linear-gradient(var(--b), var(--b)) top left / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) top left / 1.5px var(--l) no-repeat,
     linear-gradient(var(--b), var(--b)) top right / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) top right / 1.5px var(--l) no-repeat,
     linear-gradient(var(--b), var(--b)) bottom left / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) bottom left / 1.5px var(--l) no-repeat,
     linear-gradient(var(--b), var(--b)) bottom right / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) bottom right / 1.5px var(--l) no-repeat
+    }
+    .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]) > .holo-brackets:not(#\-) {
+        --c: calc(var(--cut) - 2px);
+        --n: calc(var(--nick) - 1px);
+        --dim: color-mix(in oklab, var(--neon, #9273ff) 26%, transparent);
+        background-image: linear-gradient(135deg, var(--b) 0, var(--b) 34px, transparent 35px, transparent calc(100% - 35px), var(--b) calc(100% - 34px)), linear-gradient(45deg, var(--b) 0, var(--b) 22px, transparent 23px, transparent calc(100% - 23px), var(--b) calc(100% - 22px)), linear-gradient(var(--dim), var(--dim));
+        background-color: transparent
     }
     .holo-sheen:not(#\-)::before {
         background-image: linear-gradient(90deg, transparent, color-mix(in oklab, var(--neon, #9273ff) 18%, #ffffff10), transparent);
         background-color: transparent
     }
     .holo-act:not(#\-) {
-        border-color: transparent;
+        border-color: currentcolor;
         background-image: none;
         background-color: transparent;
         color: var(--neon-ink, #eef3ff)
     }
-    .holo-act:hover:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #9273ff) 55%, transparent);
+    .holo-act:not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 52%, transparent);
         background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #9273ff) 14%, transparent)
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 11%, #010108)
     }
-    .holo-act svg:not(#\-) {
-        filter: drop-shadow(0 0 4px var(--neon, #9273ff))
-    }
-    .nova-orbit-side > .nova-widget[data-holo][data-size=L]:not([data-dragging]):not(#\-) {
+    .holo-act:hover:not(#\-)::before {
+        border-color: var(--neon, #9273ff);
         background-image: none;
-        background-color: transparent;
-        border-color: transparent;
-        box-shadow: none
-    }
-    .nova-orbit-side > .nova-widget[data-holo][data-size=L]:not([data-dragging]):not(#\-)::before {
-        border-color: color-mix(in oklab, var(--neon, #9273ff) 58%, transparent);
-        background: var(--holo-glass);
-        box-shadow: inset 0 0 0 1px #ffffff0a, inset 0 1px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 0 70px -18px #f06dff8c, 0 26px 50px -30px #000
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 30%, #010108)
     }
     .nova-frame[data-phone] .nova-widget[data-holo]:not(#\-) {
-        background-color: #010108
+        background-color: #010108;
+        --holo-bloom: 0 0 12px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 18px 30px -18px #000c
     }
     :scope[data-glow="soft"] .nova-widget[data-holo]:not(#\-) {
-        box-shadow: inset 0 0 0 1px #ffffff0a, 0 20px 40px -30px #000
+        --holo-bloom: 0 20px 40px -24px #000
     }
     @media (forced-colors: active) {
         .nova-widget[data-holo]:not(#\-) {
             border-color: currentcolor;
             background-image: none;
-            background-color: transparent
+            background-color: transparent;
+            box-shadow: none
         }
     }
     .holo-keys-btn:not(#\-) {
@@ -14599,7 +14611,7 @@
         --h-l: calc(var(--holo-u, 124px) * 4 + 36px)
     }
     .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main:has(> .nova-orbit-side[data-side=left]:not(:empty)):has(> .nova-orbit-side[data-side=right]:not(:empty)) > .nova-orbit-side:not(#\-)::after {
-        background-image: repeating-linear-gradient(to bottom, #c9d2ff66 0 1px, transparent 1px 12px), linear-gradient(#a9b8ff40, #a9b8ff40);
+        background-image: repeating-linear-gradient(to bottom, #c9d2ff66 0 1px, transparent 1px 12px), linear-gradient(#7fc8ff40, #7fc8ff40);
         background-color: transparent
     }
     .holo-floor:not(#\-) {
@@ -14613,19 +14625,19 @@
         text-shadow: 0 0 2px #050818, 0 0 6px #050818, 0 0 18px color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent)
     }
     .nova-frame[data-look=classic] .nova-widget[data-pillar=health]:not(#\-) {
-        --neon: color-mix(in oklab, #ff4fb8 55%, #cfd8ef)
+        --neon: color-mix(in oklab, #ff74be 55%, #cfd8ef)
     }
     .nova-frame[data-look=classic] .nova-widget[data-pillar=habits]:not(#\-) {
-        --neon: color-mix(in oklab, #2ef2ff 55%, #cfd8ef)
+        --neon: color-mix(in oklab, #23eaff 55%, #cfd8ef)
     }
     .nova-frame[data-look=classic] .nova-widget[data-pillar=goals]:not(#\-) {
-        --neon: color-mix(in oklab, #a47bff 55%, #cfd8ef)
+        --neon: color-mix(in oklab, #9273ff 55%, #cfd8ef)
     }
     .nova-frame[data-look=classic] .nova-widget[data-pillar=wealth]:not(#\-) {
-        --neon: color-mix(in oklab, #ffbf3c 55%, #cfd8ef)
+        --neon: color-mix(in oklab, #ffd27a 55%, #cfd8ef)
     }
     .nova-frame[data-look=classic] .nova-widget[data-pillar=orbit]:not(#\-) {
-        --neon: color-mix(in oklab, #a9b8ff 55%, #cfd8ef)
+        --neon: color-mix(in oklab, #7fc8ff 55%, #cfd8ef)
     }
     .nova-frame[data-look=classic] .nova-widget .holo-arc:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-arc-end:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-spark-line:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-mark:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-planet:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-heart-fill:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-mix-seg:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-wave-line:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-bar-tip:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-ref-line:not(#\-), .nova-frame[data-look=classic] .nova-widget .holo-flow-source:not(#\-) {
         filter: none
@@ -14646,15 +14658,8 @@
         color: #ffd4a8;
         border-color: #ffb469
     }
-    :scope[data-glow="soft"] .nova-orbit-side > .nova-widget[data-holo][data-size=L]:not(#\-)::before {
-        box-shadow: inset 0 0 0 1px #ffffff0a, 0 20px 40px -30px #000
-    }
-    @media (forced-colors: active) {
-        .nova-orbit-side > .nova-widget[data-holo][data-size=L]:not(#\-)::before {
-            border-color: CanvasText;
-            background-image: none;
-            background-color: transparent
-        }
+    :scope[data-glow="soft"] .nova-widget[data-holo] > .holo-aura:not(#\-) {
+        box-shadow: 0 20px 40px -24px #000
     }
 }
 /*  components/nova/live/live-chips.css  */
@@ -15896,68 +15901,72 @@
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
-        color: #d6e0f5
+        color: var(--neon-ink, #eef3ff)
     }
-    .ns-act:hover:not(#\-) {
-        color: #fff;
+    .ns-act:not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 52%, transparent);
         background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #9273ff) 22%, transparent)
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 11%, #010108)
+    }
+    .ns-act:hover:not(#\-)::before {
+        border-color: var(--neon, #9273ff);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 30%, #010108)
+    }
+    .ns-act:active:not(#\-)::before {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c)
     }
     .ns-act[aria-pressed=true]:not(#\-) {
-        color: var(--neon-ink, #fff)
+        color: #fff
     }
-    .ns-more-list:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #9273ff) 50%, transparent);
+    .ns-act[aria-pressed=true]:not(#\-)::before {
+        border-color: var(--neon, #9273ff);
         background-image: none;
-        background-color: #01020af2;
-        box-shadow: 0 18px 40px -18px #000
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 36%, #060a1c);
+        box-shadow: 0 0 12px -2px var(--neon, #9273ff)
     }
-    .ns-more-item:not(#\-) {
-        border-color: currentcolor;
-        background-image: none;
-        background-color: transparent;
-        color: #eef3ff
+    .ns-act[data-act=close]:hover:not(#\-) {
+        color: #fff
     }
-    .ns-more-item:hover:not(#\-) {
+    .ns-act[data-act=close]:hover:not(#\-)::before {
+        border-color: #ff8fa3;
         background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #9273ff) 22%, transparent)
+        background-color: #ff5c7a40
     }
     .ns-pinned:not(#\-) {
         color: var(--neon-ink, #eef3ff)
     }
-    .ns-pinned svg:not(#\-) {
-        filter: drop-shadow(0 0 4px var(--neon, #9273ff))
-    }
-    .ns-act[aria-pressed=true] svg:not(#\-) {
-        filter: drop-shadow(0 0 5px var(--neon, #9273ff))
+    .ns-scan:not(#\-) {
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #ffffff66), color-mix(in oklab, var(--neon, #9273ff) 30%, transparent));
+        background-color: transparent
     }
     .ns-scan:not(#\-)::before {
         border-bottom-color: #fff;
-        background-image: linear-gradient(to top, color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), transparent 22%);
-        background-color: transparent;
-        box-shadow: 0 6px 18px var(--neon, #9273ff)
+        background-image: linear-gradient(to top, color-mix(in oklab, var(--neon, #9273ff) 60%, #ffffff40), transparent 26%);
+        background-color: transparent
     }
     .ns-dock-label:not(#\-) {
         color: #c3cfe6
     }
     .ns-chip:not(#\-) {
-        --neon: #a9b8ff;
+        --neon: #7fc8ff;
         border-color: color-mix(in oklab, var(--neon) 46%, transparent);
         background-image: none;
         background-color: color-mix(in oklab, var(--neon) 9%, #010108cc);
         color: #eef3ff
     }
     .ns-chip[data-pillar=health]:not(#\-) {
-        --neon: #ff4fb8
+        --neon: #ff74be
     }
     .ns-chip[data-pillar=habits]:not(#\-) {
-        --neon: #2ef2ff
+        --neon: #23eaff
     }
     .ns-chip[data-pillar=goals]:not(#\-) {
-        --neon: #a47bff
+        --neon: #9273ff
     }
     .ns-chip[data-pillar=wealth]:not(#\-) {
-        --neon: #ffbf3c
+        --neon: #ffd27a
     }
     .ns-chip[data-pillar=mind]:not(#\-) {
         --neon: #cbbfff

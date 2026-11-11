@@ -4,52 +4,65 @@
  * rim and the glass arrive, one scan line sweeps down, then it rests) under Full motion, fades in under Calm (150 ms), and
  * is simply there under Motion Off and reduced motion. Closing and hiding are instant. Nothing follows the pointer.
  */
-/* ---- A widget's stage actions ---- */
-.ns-actions { display: none; align-items: center; flex: none; }
-.ns-more { position: relative; display: inline-flex; flex: none; }
-.ns-act { display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -10px -4px; padding: 0; border: 0; border-radius: 12px; background: transparent; color: #d6e0f5; cursor: pointer; }
-.ns-act svg { width: 20px; height: 20px; }
-.ns-act:hover { color: #fff; background: color-mix(in oklab, var(--neon, #9273ff) 22%, transparent); }
-.ns-act[aria-pressed=true] { color: var(--neon-ink, #fff); }
-.ns-more-list { position: absolute; top: calc(100% + 4px); right: -4px; z-index: 6; display: grid; min-width: 190px; padding: 6px; border-radius: 14px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 50%, transparent); background: #070b1ff2; box-shadow: 0 18px 40px -18px #000; }
-.ns-more-item { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #eef3ff; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer; }
-.ns-more-item svg { width: 20px; height: 20px; flex: none; }
-.ns-more-item:hover { background: color-mix(in oklab, var(--neon, #9273ff) 22%, transparent); }
-/* Design review AM-D11: a panel of 312 px of content or more (the default desktop column is 374 px with its padding) shows Pin, Hide and Close as
-   named buttons; a narrower one keeps them under "More". The title leads and truncates; everything after it is one
-   right-aligned group in a fixed order (Quick actions · Pin · Hide · Close · Open), so no control moves with the title. */
-@container holo-panel (min-width: 312px) { .ns-actions { display: inline-flex; } .ns-more { display: none; } }
-.nova-frame[data-look=classic] .ns-actions { display: inline-flex; }
-.nova-frame[data-look=classic] .ns-more { display: none; }
-.nova-frame[data-editing] :is(.ns-actions, .ns-more) { display: none; }
+/* ---- A widget's stage actions (Session AM-2, ADR-038 "AM-2" F2) ----
+ * Pin, Hide and Close are three keys in every widget's head, on every widget (made on request, arranged, the Showcase's,
+ * the earlier HUD panels) at every width and in every layout. There is no "More" menu any more: in Session AM the keys
+ * folded under one below 312 px of panel, which was most layouts under about 1100 px of stage, and the owner could not
+ * close or hide a widget. The title gives way first (an ellipsis; its whole text is its tooltip); a panel too narrow for
+ * one row gives the keys a second head row. Each key is a 44 px target with a smaller lit key drawn inside it.
+ * Order, fixed: title · Quick actions · Pin · Hide · Close · Open.
+ */
+.ns-actions { display: inline-flex; align-items: center; flex: none; }
+.ns-act { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -10px -4px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--neon-ink, #eef3ff); cursor: pointer; }
+.ns-act::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 52%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 11%, #060a1c); transition: background-color .12s, border-color .12s; }
+.ns-act svg { position: relative; width: 17px; height: 17px; }
+.ns-act:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
+.ns-act:active::before { background: color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c); }
+.ns-act[aria-pressed=true] { color: #fff; }
+.ns-act[aria-pressed=true]::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 36%, #060a1c); box-shadow: 0 0 12px -2px var(--neon, #9273ff); }
+/* Close is told apart: its key warms when it is about to be pressed. */
+.ns-act[data-act=close]:hover { color: #fff; }
+.ns-act[data-act=close]:hover::before { border-color: #ff8fa3; background: #ff5c7a40; }
+.nova-frame[data-editing] .ns-actions { display: none; }
 .nova-widget .nova-widget-head > h3 { margin-right: auto; min-width: 0; }
 .nova-widget[data-holo] .nova-widget-head > h3 { flex: 0 1 auto; }
-.nova-widget .nova-widget-head > :is(.holo-act, .ns-actions, .ns-more) { margin-left: 0; flex: none; }
-.nova-widget .nova-widget-head > :is(.holo-act, .ns-actions, .ns-more) ~ .nova-widget-open { margin-left: 0; }
-/* AM-D29: the pinned mark is a pin glyph (with "Pinned" in words for assistive technology), shown where the Pin button is
-   folded away; where the button shows, its filled glyph is the mark. */
-.ns-pinned { display: inline-grid; place-items: center; flex: none; width: 20px; height: 20px; margin-right: 6px; color: var(--neon-ink, #eef3ff); }
-.ns-pinned svg { width: 16px; height: 16px; filter: drop-shadow(0 0 4px var(--neon, #9273ff)); }
-@container holo-panel (min-width: 312px) { .ns-pinned { display: none; } }
-.nova-frame[data-look=classic] .ns-pinned { display: none; }
+.nova-widget .nova-widget-head > :is(.holo-act, .ns-actions) { margin-left: 0; flex: none; }
+.nova-widget .nova-widget-head > :is(.holo-act, .ns-actions) ~ .nova-widget-open { margin-left: 0; }
+/* A panel too narrow for the title and the keys on one row: the title takes the first row, the keys the second. */
+@container holo-panel (max-width: 296px) {
+  .nova-widget[data-holo] .nova-widget-head { flex-wrap: wrap; row-gap: 10px; }
+  .nova-widget[data-holo] .nova-widget-head > h3 { flex: 1 0 100%; margin-right: 0; }
+  .nova-widget[data-holo] .nova-widget-head > h3 + * { margin-left: auto; }
+}
+/* AM-D29: the pinned mark is a pin glyph (with "Pinned" in words for assistive technology), shown while arranging, where
+   the keys are put away; everywhere else the Pin key itself is lit. */
+.ns-pinned { display: none; place-items: center; flex: none; width: 20px; height: 20px; margin-right: 6px; color: var(--neon-ink, #eef3ff); }
+.ns-pinned svg { width: 16px; height: 16px; }
 .nova-frame[data-editing] .ns-pinned { display: inline-grid; }
-.ns-act[aria-pressed=true] svg { filter: drop-shadow(0 0 5px var(--neon, #9273ff)); }
 
-/* ---- How a widget is made ---- */
-.ns-scan { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; border-radius: inherit; opacity: 0; }
-.ns-scan::before { content: ''; position: absolute; inset: 0; border-bottom: 2px solid #fff; background: linear-gradient(to top, color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), transparent 22%); box-shadow: 0 6px 18px var(--neon, #9273ff); transform: translateY(-100%); }
-.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] { animation: ns-made .86s cubic-bezier(.2, .7, .2, 1) both; }
-.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ns-scan { animation: ns-scan-show .6s .14s linear both; }
-.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ns-scan::before { animation: ns-scan .52s .16s cubic-bezier(.3, 0, .3, 1) both; }
-.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] :is(.nova-widget-head, .nova-widget-body) { animation: ns-reveal .5s .2s cubic-bezier(.2, .7, .2, 1) both; }
+/* ---- How a widget is made (AM-2 F3; B2: transform and opacity only) ----
+ * Under Full motion, within 900 ms: the slab arrives a little small and settles; its inner frame snaps in from just
+ * outside; a white-hot flash fades off the glass; one scan line sweeps down; the head and the instrument rise into place
+ * behind it. Calm: a 150 ms fade. Motion Off and reduced motion: simply there. Nothing here animates a filter, a shadow,
+ * a blur or a clip-path, and nothing loops.
+ */
+.ns-scan { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; border-radius: inherit; opacity: 0; background: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #ffffff66), color-mix(in oklab, var(--neon, #9273ff) 30%, transparent)); }
+.ns-scan::before { content: ''; position: absolute; inset: 0; border-bottom: 2px solid #fff; background: linear-gradient(to top, color-mix(in oklab, var(--neon, #9273ff) 60%, #ffffff40), transparent 26%); transform: translateY(-100%); }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] { animation: ns-made .8s cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ns-scan { animation: ns-flash .78s .04s linear both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ns-scan::before { animation: ns-scan .56s .16s cubic-bezier(.3, 0, .3, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] > .holo-brackets { animation: ns-snap .5s .06s cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .nova-widget-head { animation: ns-rise .42s .24s cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .nova-widget-body { animation: ns-rise .5s .36s cubic-bezier(.2, .7, .2, 1) both; }
 .nova-frame[data-hud-motion=calm] .nova-widget[data-made=fresh] { animation: ns-fade .15s ease-out both; }
-@keyframes ns-made { 0% { opacity: 0; transform: scale(.965); filter: brightness(2.4) saturate(1.4); } 22% { opacity: 1; } 60% { transform: scale(1); } 100% { opacity: 1; transform: scale(1); filter: brightness(1) saturate(1); } }
+@keyframes ns-made { 0% { opacity: 0; transform: scale(.955); } 26% { opacity: 1; } 100% { opacity: 1; transform: scale(1); } }
+@keyframes ns-flash { 0% { opacity: 0; } 8% { opacity: .9; } 30% { opacity: .5; } 82% { opacity: .22; } 100% { opacity: 0; } }
 @keyframes ns-scan { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-@keyframes ns-scan-show { 0% { opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes ns-reveal { from { opacity: 0; clip-path: inset(0 0 100% 0); } to { opacity: 1; clip-path: inset(0 0 -20px 0); } }
+@keyframes ns-snap { from { opacity: 0; transform: scale(1.07); } to { opacity: .95; transform: scale(1); } }
+@keyframes ns-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes ns-fade { from { opacity: 0; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .nova-widget[data-made=fresh],   .nova-widget[data-made=fresh] :is(.ns-scan, .nova-widget-head, .nova-widget-body), .nova-widget[data-made=fresh] .ns-scan::before { animation: none !important; } }
-:root[data-app-motion=off] .nova-widget[data-made=fresh], :root[data-app-motion=off] .nova-widget[data-made=fresh] :is(.ns-scan, .nova-widget-head, .nova-widget-body), :root[data-app-motion=off] .nova-widget[data-made=fresh] .ns-scan::before { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .nova-widget[data-made=fresh], .nova-widget[data-made=fresh] :is(.ns-scan, .holo-brackets, .nova-widget-head, .nova-widget-body), .nova-widget[data-made=fresh] .ns-scan::before { animation: none !important; } }
+:root[data-app-motion=off] .nova-widget[data-made=fresh], :root[data-app-motion=off] .nova-widget[data-made=fresh] :is(.ns-scan, .holo-brackets, .nova-widget-head, .nova-widget-body), :root[data-app-motion=off] .nova-widget[data-made=fresh] .ns-scan::before { animation: none !important; }
 
 /* ---- Chips: the dock and the one-tap requests ---- */
 /* Design review AM-D1, AM-D7: the strip is never wider than the foot, and the one-tap requests are ONE row at every width.
@@ -64,8 +77,8 @@
 .ns-onetap > :first-child { margin-left: auto; }
 .ns-onetap > :last-child { margin-right: auto; }
 .ns-dock-label { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #c3cfe6; }
-.ns-chip { --neon: #a9b8ff; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid color-mix(in oklab, var(--neon) 46%, transparent); background: color-mix(in oklab, var(--neon) 9%, #060a1ccc); color: #eef3ff; font: inherit; font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: background .12s ease-out, border-color .12s ease-out, transform .09s ease-out; }
-.ns-chip[data-pillar=health] { --neon: #ff4fb8; } .ns-chip[data-pillar=habits] { --neon: #2ef2ff; } .ns-chip[data-pillar=goals] { --neon: #a47bff; } .ns-chip[data-pillar=wealth] { --neon: #ffbf3c; }
+.ns-chip { --neon: #7fc8ff; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid color-mix(in oklab, var(--neon) 46%, transparent); background: color-mix(in oklab, var(--neon) 9%, #060a1ccc); color: #eef3ff; font: inherit; font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: background .12s ease-out, border-color .12s ease-out, transform .09s ease-out; }
+.ns-chip[data-pillar=health] { --neon: #ff74be; } .ns-chip[data-pillar=habits] { --neon: #23eaff; } .ns-chip[data-pillar=goals] { --neon: #9273ff; } .ns-chip[data-pillar=wealth] { --neon: #ffd27a; }
 .ns-chip[data-pillar=mind] { --neon: #cbbfff; } .ns-chip[data-pillar=world] { --neon: #7fb6ff; } .ns-chip[data-pillar=nova] { --neon: #9273ff; }
 .ns-chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 8px var(--neon); flex: none; }
 .ns-chip:hover { background: color-mix(in oklab, var(--neon) 22%, #060a1ccc); border-color: color-mix(in oklab, var(--neon) 80%, transparent); }

@@ -51,7 +51,7 @@
 .nc-goal-chip { flex: none; padding: 1px 9px; border-radius: 999px; border: 1px dashed color-mix(in oklab, var(--neon, #9273ff) 65%, transparent); background: #ffffff08; font-size: 14px; font-weight: 600; color: #dfe7f8; }
 .nc-goal-chart { position: relative; margin: 18px 0 28px; }
 .nc-goal-chart .nc-goal-pace { height: 108px; }
-.nc-goal-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--neon, #a47bff), 0 0 10px var(--neon, #a47bff); pointer-events: none; }
+.nc-goal-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--neon, #9273ff), 0 0 10px var(--neon, #9273ff); pointer-events: none; }
 /* Where the central estimate meets the target: a hollow, dashed mark (a projection, never a recorded point). */
 .nc-goal-dot[data-kind=estimate] { background: #070b1f; box-shadow: none; border: 1.5px dashed var(--neon-2, #c9b0ff); }
 .nc-goal-detail { margin: -6px 0 0; font-size: 14px; line-height: 1.4; color: #c3cfe6; }
@@ -127,13 +127,13 @@
 .nc-time-strip { display: grid; grid-template-columns: 7.4em minmax(0, 1fr); align-items: center; gap: 4px 12px; }
 .nc-time-strip-name { white-space: nowrap; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
 .nc-time-bar { position: relative; height: 10px; border-radius: 5px; background: #ffffff14; }
-.nc-time-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #a9b8ff) 45%, transparent), var(--neon, #a9b8ff)); box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #a9b8ff) 60%, transparent); }
+.nc-time-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #7fc8ff) 45%, transparent), var(--neon, #7fc8ff)); box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #7fc8ff) 60%, transparent); }
 .nc-time-bar b { position: absolute; top: -4px; width: 2px; height: 18px; margin-left: -1px; border-radius: 1px; background: #fff; box-shadow: 0 0 8px #fff; }
 .nc-time-scale { grid-column: 2; display: flex; justify-content: space-between; font-size: 14px; color: #c3cfe6; font-variant-numeric: tabular-nums; }
 .nc-time-cells { display: grid; grid-template-columns: repeat(var(--nc-cols, 7), minmax(0, 1fr)); gap: 4px; }
 .nc-time-cells i { display: grid; place-items: center; min-height: 26px; border-radius: 6px; border: 1px solid #ffffff47; font-style: normal; font-size: 14px; font-weight: 600; color: #c3cfe6; }
-.nc-time-cells i[data-state=past] { border-color: color-mix(in oklab, var(--neon, #a9b8ff) 70%, transparent); background: color-mix(in oklab, var(--neon, #a9b8ff) 22%, transparent); color: #f2f6ff; }
-.nc-time-cells i[data-state=now] { border-color: #fff; background: color-mix(in oklab, var(--neon, #a9b8ff) 34%, transparent); color: #fff; box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #a9b8ff) 70%, transparent); }
+.nc-time-cells i[data-state=past] { border-color: color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent); background: color-mix(in oklab, var(--neon, #7fc8ff) 22%, transparent); color: #f2f6ff; }
+.nc-time-cells i[data-state=now] { border-color: #fff; background: color-mix(in oklab, var(--neon, #7fc8ff) 34%, transparent); color: #fff; box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent); }
 .nc-time[data-size=L] .nc-time-rings { margin-block: 6px; }
 /* A short medium panel keeps its three rings whole: they tighten instead of a line being cut. */
 @container holo-body (max-height: 212px) {

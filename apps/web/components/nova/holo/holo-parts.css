@@ -6,16 +6,18 @@
  * state (data-hud-motion on NOVA's frame): Full turns the ornament rings slowly, Calm three times slower, Off and reduced
  * motion are still, a hidden tab or an off-screen panel pauses.
  */
-.nova-widget[data-pillar=health], .holo-action[data-pillar=health], .holo-core-readout li[data-pillar=health] { --neon: #ff4fb8; --neon-2: #ff8fd6; --neon-ink: #ffc8e8; }
-.nova-widget[data-pillar=habits], .holo-action[data-pillar=habits], .holo-core-readout li[data-pillar=habits] { --neon: #2ef2ff; --neon-2: #8ff8ff; --neon-ink: #c2fbff; }
-.nova-widget[data-pillar=goals], .holo-action[data-pillar=goals], .holo-core-readout li[data-pillar=goals] { --neon: #a47bff; --neon-2: #c9b0ff; --neon-ink: #e0d4ff; }
-.nova-widget[data-pillar=wealth], .holo-action[data-pillar=wealth], .holo-core-readout li[data-pillar=wealth] { --neon: #ffbf3c; --neon-2: #ffd98a; --neon-ink: #ffe6b0; }
+.nova-widget[data-pillar=health], .holo-action[data-pillar=health], .holo-core-readout li[data-pillar=health] { --neon: #ff74be; --neon-2: #ffa9d8; --neon-ink: #ffd3ea; }
+.nova-widget[data-pillar=habits], .holo-action[data-pillar=habits], .holo-core-readout li[data-pillar=habits] { --neon: #23eaff; --neon-2: #8ff6ff; --neon-ink: #c6fbff; }
+.nova-widget[data-pillar=goals], .holo-action[data-pillar=goals], .holo-core-readout li[data-pillar=goals] { --neon: #9273ff; --neon-2: #c0adff; --neon-ink: #e2d9ff; }
+.nova-widget[data-pillar=wealth], .holo-action[data-pillar=wealth], .holo-core-readout li[data-pillar=wealth] { --neon: #ffd27a; --neon-2: #ffe6b3; --neon-ink: #fff0cf; }
+/* Session AM-2 (F1): the four pillars wear the owner's palette (Goals #9273ff, Habits #23eaff, Health #ff74be, Wealth #ffd27a);
+   the day is ice blue, the mind orchid, the world azure, so no two realms read as one. */
 /* Review M7 (lane L8d): the day's own panels (Today's orbit, Next three, the Agenda clock, Notes, Focus, briefs) wear a fixed
    "ice", whatever the accent: never Habits' cyan, never a pillar's hue. */
-.nova-widget[data-pillar=orbit], .holo-action[data-pillar=orbit] { --neon: #a9b8ff; --neon-2: #d6deff; --neon-ink: #e8edff; }
+.nova-widget[data-pillar=orbit], .holo-action[data-pillar=orbit] { --neon: #7fc8ff; --neon-2: #c4e6ff; --neon-ink: #e3f3ff; }
 /* Session AM (art direction §2): mind (notes, journal) in lilac, world (outside data) in sky, NOVA itself in the person's accent. */
-.nova-widget[data-pillar=mind] { --neon: #cbbfff; --neon-2: #f0ebff; --neon-ink: #f3efff; }
-.nova-widget[data-pillar=world] { --neon: #7fb6ff; --neon-2: #ffd9a0; --neon-ink: #eaf3ff; }
+.nova-widget[data-pillar=mind] { --neon: #d59bff; --neon-2: #ecd2ff; --neon-ink: #f6e9ff; }
+.nova-widget[data-pillar=world] { --neon: #5aa2ff; --neon-2: #ffd9a0; --neon-ink: #e6f0ff; }
 .nova-widget[data-pillar=nova] { --neon: var(--nova-a, #9273ff); --neon-2: var(--nova-b, #63e7ff); --neon-ink: #f1edff; }
 
 /* ---- Figures and words ---- */

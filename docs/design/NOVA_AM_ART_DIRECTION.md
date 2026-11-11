@@ -235,3 +235,89 @@ How:
 - **Data.** Widgets read the app's stores through the pages' own hooks (they already update across tabs); no polling.
   Outside data is fetched only when a widget that needs it is on the stage, at most once per 30 minutes per place, and
   never while hidden.
+
+---
+
+# AM-2 — "NOVA, STUNNING": the design language (11 Nov 2026)
+
+Session AM's look read as "slightly upgraded". AM-2 replaces the look of everything inside NOVA; the concept, the
+words, the mechanics and the safety of §1–§9 stay. Where this part and §2–§6 disagree about *look*, this part wins.
+Decisions are in ADR-038 "AM-2". The bar is the 43 references (`review/session-am-refs`) and screenshots 1–4.
+
+## A. One sentence
+**The observatory, lit:** four depth layers and one light source. The star is the brightest thing on the screen and
+everything else looks lit by it — back to front: deep nebula → the star system → the widget plane (holograms) → the HUD
+frame (the instrument the person looks through).
+
+## B. What the references do that AM did not (the checklist for every surface)
+1. **Light has weight.** Strokes are 2–3.5 px where they carry data (rings, bars, chart lines), with a bright core and a
+   soft bloom behind. Hairlines (1 px) are for frames, grids and ticks only.
+2. **Double frames.** A bright outer rim and a faint inner hairline with bright corner marks; cut corners; small tabs,
+   notches and tick rulers. Never a plain rounded rectangle.
+3. **Gradient data.** A ring or a bar is a gradient along its length (the realm's neon into its lighter second colour,
+   or cyan → violet → magenta on NOVA's own instruments), brightest at its leading end, with a lit cap or dot there.
+4. **Big figures.** One hero figure per widget at 36–56 px, tabular, weight 650–700, in the realm's ink with a neon
+   bloom behind it; its unit small beside it; its label in 14 px tracked capitals above or below.
+5. **Bezels and ticks.** Rings sit inside tick bezels; charts sit on fine grids with small axis ticks; lists have a lit
+   node per row. Ornament is thin and dim and never looks like a figure.
+6. **Strips.** The foot of a widget is an instrument strip: source · as-of · a small live dot, in 14 px, on a hairline.
+7. **Saturation.** Deep navy glass (`#04071a`–`#0a1030`), full-strength neon. No grey panels, no washed pastel fills.
+
+## C. Tokens (CSS custom properties; all exist on `.nova-widget[data-pillar]`, holo-parts.css)
+| Realm (`data-pillar`) | `--neon` | `--neon-2` | `--neon-ink` |
+|---|---|---|---|
+| goals | `#9273ff` | `#c0adff` | `#e2d9ff` |
+| habits | `#23eaff` | `#8ff6ff` | `#c6fbff` |
+| health | `#ff74be` | `#ffa9d8` | `#ffd3ea` |
+| wealth | `#ffd27a` | `#ffe6b3` | `#fff0cf` |
+| orbit (the day) | `#7fc8ff` | `#c4e6ff` | `#e3f3ff` |
+| mind | `#d59bff` | `#ecd2ff` | `#f6e9ff` |
+| world | `#5aa2ff` | `#ffd9a0` | `#e6f0ff` (re-tinted by the weather) |
+| nova | `--nova-a` | `--nova-b` | `#f1edff` |
+
+- **Text.** Figures and titles use `--neon-ink` (always ≥ 7:1 on the glass). `--neon` as text only at ≥ 24 px or bold
+  ≥ 18.66 px and only where it reaches 4.5:1 (cyan, gold and pink do; violet `#9273ff` does not at small sizes: use
+  `--neon-2` or ink). Labels are `#cdd8ee` or lighter, 14 px minimum; body 15–16 px.
+- **Bloom recipe (static).** Behind a stroke or a figure: `drop-shadow(0 0 6px neon)` on an SVG group, or
+  `text-shadow: 0 0 14px neon 70 %`, or for a box `0 0 14px 1px neon 62 %, 0 0 46px 4px neon 26 %`. Set once; never
+  animated.
+- **The frame** is `holo/holo.css` "The panel" (aura → glass → rim → inner hairline → ruler), `--cut` 18 px and `--nick`
+  7 px (13 / 5 on a small widget). Widget bodies must not draw their own outer frame.
+- **The keys** are `stage/stage.css` `.ns-act` (a 44 px target with a 34 × 28 lit key inside). Any small action inside a
+  widget uses the same recipe.
+
+## D. Instruments (the kit every widget draws with)
+- **Ring gauge** (refs 05, 12, 31, 39, 42, 43): track 3.5 px at neon 16 %; value arc 3.5–5 px, gradient, round cap, a
+  lit dot at its end; a tick bezel outside (60 ticks, every fifth longer); the figure in the middle.
+- **Bars** (refs 06, 19, 20, 33, 37): vertical columns with a gradient from neon 35 % at the foot to full neon at the
+  top and a 2 px white-hot cap; horizontal meters as segmented or solid tracks with a lit leading end.
+- **Trend** (refs 01, 15, 23): a 2.5 px line with bloom, an area fill fading to nothing, a fine grid, a lit lead point
+  with a ring, min/max ticks in 14 px.
+- **Lattice / heat** (ref 32): rounded cells, unlit cells as outlines, lit cells filled with a bloom; today outlined.
+- **Rows** (refs 14, 18): a lit node, the label, a right-aligned figure, a hairline between rows.
+- **Themes.** Health: magenta, hearts, a heartbeat trace. Habits: cyan lattice and streak rings. Goals: violet
+  concentric arcs. Wealth: gold terminal lines and stacked bars. The day: ice clock bezel and timeline. Weather: the sky
+  itself (sun ring, crescent, cloud glass, rain streaks, snow, fog), the frame re-tinted by it.
+
+## E. Motion (owner addition B2: glow stays cheap)
+- **Animate only `transform` and `opacity`.** Never animate `box-shadow`, `filter`, `backdrop-filter`, `clip-path`,
+  `background`, `width`/`height` or a colour in a loop. Bloom and glow layers are static.
+- **No `backdrop-filter` on the widget plane.** Glass is its own colour.
+- **Made (once, ≤ 900 ms, Full only):** the frame arrives (stage.css F3); the instrument then draws itself once: a ring
+  or a line may draw with `stroke-dashoffset` (a one-shot on a small SVG path, no filter on the animated element),
+  bars rise with `transform: scaleY`, rows rise with `translateY` + opacity, figures count up (`HoloFigure`).
+- **Ambient (O5, Full; Calm: slower and fewer; Off / reduced motion: none):** only ornaments move — a tick bezel turning
+  (`transform: rotate`, the existing `holo-spin` on `.holo-orn` / `.holo-lens`), the sheen band, a lead dot's opacity,
+  the weather's drift. Never a data arc, bar or line. Everything stops when the tab is hidden
+  (`.nova-frame[data-hud-motion=paused]`) and when the widget is off screen (`.nova-widget[data-off]`).
+- **Nothing follows the pointer.**
+
+## F. Rules the specs keep (do not break; change a spec only where a layout change requires it, marked deliberate)
+- Night island in every theme; `.holo-num` and the widget title ≥ 4.5:1; every visible button or link ≥ 44 × 44 px.
+- `data-fit=rows` instruments drop whole rows to fit their panel (container queries on `holo-body`) and are never cut.
+- Under Motion Off / reduced motion: zero running animations in `.nova-root`, pixel-still.
+- `holo-spin` runs only on `span.holo-orn` and `span.holo-lens`, 90 s Full / 270 s Calm (`ci15-perf.test.ts` pins the
+  strings); nothing animates inside `.holo-arc`, `.holo-track`, `.holo-segs`, `.holo-bar`, `.holo-wave-line`.
+- A class styled directly belongs to one sheet (`lib/nova/css-collisions.test.ts`); `-webkit-backdrop-filter` before
+  `backdrop-filter` where one is still used outside the widget plane.
+- Every figure keeps its source and as-of; unknown is drawn as unknown (a dashed, unlit trace), never as 0.
