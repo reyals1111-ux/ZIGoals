@@ -20,7 +20,7 @@ export default function RequestsWidget({size = 'M'}: Partial<CardProps>) {
   const stage = useDeviceRecord(NOVA_STAGE), [now] = useState(() => new Date());
   if (!stage.loaded) return <HoloReading/>;
   if (stage.unreadable) return <HoloUnread what="Your requests"/>;
-  const asks = asksNewestFirst(stage.data), shown = asks.slice(0, size === 'S' ? 1 : size === 'M' ? 2 : 7);
+  const asks = asksNewestFirst(stage.data), shown = asks.slice(0, size === 'S' ? 1 : size === 'M' ? 2 : 5);
   if (!asks.length) return <CardNotice kind="empty" ghost="rows" title="Nothing asked yet">Ask NOVA something, or tap one of the requests above the command bar. What you ask is kept here.</CardNotice>;
   return <div className="nc-body nc-requests" data-size={size}>
     <ul className="nc-requests-list" aria-label="Your recent requests">{shown.map((a, i) => <li key={a.id} className="nc-request nc-rise" style={{'--nc-i': Math.min(i, 6)} as CSSProperties}>

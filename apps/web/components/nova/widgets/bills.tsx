@@ -23,9 +23,9 @@ import '../cards/wealth-cards.css';
 const SHOWN = {S: 1, M: 3, L: 6} as const;
 /** The countdown dial (the kit's ring gauge; a bezel of thirty ticks, one a day): the days to the due date inside, lit by how near it is. Decoration over the row's words. */
 function Countdown({line, size}: {line: BillLine; size: number}) {
-  const days = Math.abs(line.days), big = size >= 60, worded = size >= 84, figure = <b className="nc-ring-figure">{days > 99 ? '99+' : days}</b>;
+  const days = Math.abs(line.days), big = size >= 60, figure = <b className="nc-ring-figure">{days > 99 ? '99+' : days}</b>;
   return <Gauge share={line.near} size={size} bezel={big} ticks={30} spin={big} tone={line.overdue ? 'over' : undefined} decor className="nc-bills-dial">
-    {worded ? <span className="nc-bills-dial-words">{figure}<small className="nc-bills-dial-unit">{line.overdue ? 'late' : days === 1 ? 'day' : 'days'}</small></span> : figure}
+    {big ? <span className="nc-bills-dial-words">{figure}<small className="nc-bills-dial-unit">{line.overdue ? 'late' : days === 1 ? 'day' : 'days'}</small></span> : figure}
   </Gauge>;
 }
 export default function BillsWidget({size = 'M'}: Partial<CardProps>) {
@@ -39,7 +39,7 @@ export default function BillsWidget({size = 'M'}: Partial<CardProps>) {
   const lines = card.lines.slice(0, SHOWN[size]), rest = lines.slice(1), more = card.lines.length - lines.length;
   return <div className="nc-body nc-bills-card" data-size={size}>
     <div className="nc-bills-next">
-      {size !== 'S' && <Countdown line={next} size={size === 'L' ? 96 : 64}/>}
+      <Countdown line={next} size={size === 'L' ? 96 : size === 'S' ? 36 : 64}/>
       <Hero value={next.amount} label={next.title}>
         <p className="nc-bills-when" data-over={next.overdue || undefined}>{size === 'S' ? next.when : `${next.date} · ${next.when}`}</p>
       </Hero>

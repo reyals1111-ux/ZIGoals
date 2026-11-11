@@ -23,11 +23,13 @@
 .nc-networth-card[data-size=M] .nc-networth-note, .nc-spending-card[data-size=M] .nc-spending-note { flex-basis: 100%; }
 .nc-networth-card[data-size=L] .nc-delta { margin-top: 8px; }
 /* Small: the figure, then its label over its one line. A long amount takes the room it needs. */
-.nova-widget[data-size=S] :is(.nc-networth-card, .nc-spending-card, .nc-bills-card) .nc-hero-num { font-size: 32px; }
+.nova-widget[data-size=S] :is(.nc-networth-card, .nc-spending-card, .nc-bills-card) .nc-hero-num { font-size: 36px; }
+/* A long amount in a narrow small widget: the spark gives its room to the label. */
+@container holo-body (max-width: 480px) { .nova-widget[data-size=S] :is(.nc-networth-top, .nc-spending-top) .nc-hero[data-len] ~ .nc-mini { display: none; } }
 .nova-widget[data-size=S] :is(.nc-networth-card, .nc-spending-card, .nc-budgets-card, .nc-bills-card) .nc-hero-words { flex: 1 1 0; }
 @container holo-body (max-width: 290px) {
   .nc-body.nc-networth-card[data-size=M] .nc-hero[data-len] .nc-hero-num, .nc-body.nc-spending-card[data-size=M] .nc-hero[data-len] .nc-hero-num, .nc-body.nc-bills-card[data-size=M] .nc-hero[data-len] .nc-hero-num { font-size: 30px; }
-  .nova-widget[data-size=S] :is(.nc-networth-card, .nc-spending-card, .nc-bills-card) .nc-hero[data-len] .nc-hero-num { font-size: 26px; }
+  .nova-widget[data-size=S] :is(.nc-networth-card, .nc-spending-card, .nc-bills-card) .nc-hero[data-len] .nc-hero-num { font-size: 30px; }
 }
 
 /* ---- One-line notes and the terminal captions over an instrument ---- */
@@ -36,13 +38,22 @@
 .nc-networth-caption::before, .nc-spending-caption::before, .nc-budgets-caption::before, .nc-bills-caption::before { content: ''; position: absolute; left: 0; top: .2em; bottom: .2em; width: 3px; border-radius: 1px; background: var(--neon, #ffd27a); box-shadow: 0 0 6px var(--neon, #ffd27a); }
 .nc-networth-apart, .nc-spending-apart { flex-basis: 100%; }
 .nc-networth-line, .nc-spending-bars, .nc-budgets-bars, .nc-bills-after { min-width: 0; }
+.nc-networth-top, .nc-spending-top { flex: none; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.nc-networth-top > .nc-hero, .nc-spending-top > .nc-hero { flex: 1 1 0; }
+/* The recorded line is the elastic row of its body. Its highest and lowest are named on it where it is tall enough for
+   them (the large size, a wide medium one). */
+.nc-networth-card[data-size=M] .nc-trend-edge { display: none; }
+.nc-networth-line { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.nc-networth-line > p { flex: none; }
+.nc-spending-bars, .nc-budgets-bars, .nc-budgets-top, .nc-bills-next, .nc-bills-after, .nc-body > .nc-networth-note, .nc-body > .nc-facts { flex: none; }
 .nc-spending-bars, .nc-budgets-bars { display: grid; gap: 9px; }
 .nc-spending-bars > .nc-spending-caption, .nc-budgets-bars > .nc-budgets-caption { margin-bottom: 0; }
 .nc-spending-card[data-size=M] .nc-bars, .nc-budgets-card[data-size=M] .nc-bars { gap: 6px; }
 .nc-spending-card[data-size=M] .nc-bar, .nc-budgets-card[data-size=M] .nc-bar { row-gap: 2px; }
 .nc-spending-card[data-size=L] .nc-stack { height: 18px; }
 .nc-spending-what { margin: -2px 0 4px; font-size: 14px; line-height: 1.35; color: #c3cfe6; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* A short medium panel drops whole rows: the line's dates and the stacked bar first (the table and the rows keep both). */
+/* A short medium panel drops whole rows, never the foot: the line's dates, the other-currency note and the stacked bar
+   first (the table and the rows keep them), then the third meter, then the line itself, then the second meter. */
 @container holo-body (max-height: 214px) {
   .nc-networth-card[data-size=M] .nc-trend-dates { display: none; }
   .nc-body.nc-spending-card[data-size=M], .nc-body.nc-budgets-card[data-size=M] { gap: 6px; }
@@ -50,19 +61,23 @@
   .nc-spending-card[data-size=M] .nc-bars, .nc-budgets-card[data-size=M] .nc-bars { gap: 4px; }
   .nc-spending-card[data-size=M] .nc-stack { height: 12px; }
 }
-@container holo-body (max-height: 196px) { .nc-networth-card[data-size=M] .nc-networth-note, .nc-spending-card[data-size=M] .nc-stack { display: none; } }
+@container holo-body (max-height: 198px) and (max-width: 519px) { .nc-networth-card[data-size=M] .nc-networth-note, .nc-spending-card[data-size=M] .nc-stack, .nc-spending-card[data-size=M] .nc-spending-note { display: none; } }
+@container holo-body (max-height: 180px) { .nc-spending-card[data-size=M] .nc-bar:nth-child(n+3), .nc-budgets-card[data-size=M] .nc-bar:nth-child(n+3) { display: none; } }
+@container holo-body (max-height: 160px) { .nc-networth-card[data-size=M] .nc-networth-line { display: none; } }
+@container holo-body (max-height: 146px) { .nc-spending-card[data-size=M] .nc-bar:nth-child(n+2), .nc-budgets-card[data-size=M] .nc-bar:nth-child(n+2) { display: none; } }
 
 /* ---- Budgets: the count beside a ring of the budgets within plan ---- */
 .nc-budgets-top { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .nc-budgets-top .nc-hero { flex: 1 1 0; }
 .nc-budgets-card[data-size=L] .nc-budgets-top { gap: 16px; }
-.nc-budgets-card[data-size=M] .nc-budgets-ring { width: 44px; height: 44px; }
-@container holo-body (max-height: 206px) { .nc-budgets-card[data-size=M] .nc-budgets-ring { width: 36px; height: 36px; } }
+.nc-budgets-card[data-size=M] .nc-budgets-ring { --nc-d: 44; }
+.nc-budgets-card[data-size=S] .nc-budgets-top { gap: 10px; }
+@container holo-body (max-height: 206px) { .nc-budgets-card[data-size=M] .nc-budgets-ring { --nc-d: 36; } }
 @container holo-body (max-width: 250px) { .nc-budgets-card[data-size=M] .nc-budgets-ring { display: none; } }
 
 /* ---- Bills: the next one beside its countdown ring, then the ones after it as rows ---- */
 .nc-bills-next { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; min-width: 0; }
-.nc-bills-card[data-size=S] .nc-bills-next { grid-template-columns: minmax(0, 1fr); }
+.nc-bills-card[data-size=S] .nc-bills-next { gap: 10px; }
 .nc-bills-card .nc-hero-label { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nc-bills-card[data-size=M] .nc-hero { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 0; }
 .nc-bills-card[data-size=M] .nc-hero-label { order: -1; margin: 0 0 4px; }
@@ -75,6 +90,8 @@
 .nc-bills-card[data-size=M] .nc-bills-row .nc-bills-when { line-height: 1.25; }
 .nc-bills-card[data-size=L] .nc-bills-next .nc-ring-figure { font-size: 28px; }
 .nc-bills-dial-unit { margin-top: 1px; font-size: 14px; font-weight: 600; color: #d6e0f5; }
+/* The unit under the days shows only where the ring is wide enough to hold it (84 px or more: the large size, a wide medium). */
+.nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial-unit { display: none; }
 .nc-bills-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
 .nc-bills-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; min-width: 0; padding: 5px 0; border-top: 1px solid color-mix(in oklab, var(--neon, #ffd27a) 16%, transparent); }
 .nc-bills-row:first-child { border-top-color: color-mix(in oklab, var(--neon, #ffd27a) 34%, transparent); }
@@ -88,3 +105,79 @@
 .nc-bills-row .nc-bills-when { grid-column: 2 / -1; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
 .nc-bills-row .nc-bills-when[data-over] { color: #ffd9a8; }
 @container holo-body (max-width: 250px) { .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial { display: none; } .nc-bills-card[data-size=M] .nc-bills-next { grid-template-columns: minmax(0, 1fr); } }
+/* A short medium panel: the next bill's label joins its amount's row, then the second row after it goes (the table keeps it). */
+@container holo-body (max-height: 212px) {
+  .nc-bills-card[data-size=M] .nc-hero { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 12px; }
+  .nc-bills-card[data-size=M] .nc-hero-label { order: 0; margin: 0; }
+  .nc-bills-card[data-size=M] .nc-hero .nc-bills-when { flex-basis: 100%; margin-top: 0; }
+  .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial { --nc-d: 56; }
+}
+@container holo-body (max-height: 204px) and (max-width: 519px) { .nc-bills-card[data-size=M] .nc-bills-row:nth-child(n+2) { display: none; } }
+@container holo-body (max-height: 162px) { .nc-bills-card[data-size=M] .nc-bills-after { display: none; } }
+
+/* ---- A wide medium panel (about 700 × 190): the hero on the left, the instrument filling the right ---- */
+@container holo-body (min-width: 520px) {
+  .nc-body.nc-networth-card[data-size=M], .nc-body.nc-spending-card[data-size=M], .nc-body.nc-budgets-card[data-size=M], .nc-body.nc-bills-card[data-size=M] { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: minmax(0, 1fr) auto; gap: 6px 36px; }
+  .nc-budgets-card[data-size=M], .nc-bills-card[data-size=M] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .nc-networth-card[data-size=M] > .nc-networth-top, .nc-spending-card[data-size=M] > .nc-spending-top, .nc-budgets-card[data-size=M] > .nc-budgets-top, .nc-bills-card[data-size=M] > .nc-bills-next { grid-area: 1 / 1; align-self: center; }
+  .nc-networth-card[data-size=M] > .nc-networth-line, .nc-networth-card[data-size=M] > .nc-networth-note { grid-area: 1 / 2; }
+  .nc-networth-card[data-size=M] > .nc-networth-note { align-self: center; }
+  .nc-spending-card[data-size=M] > .nc-spending-bars, .nc-budgets-card[data-size=M] > .nc-budgets-bars, .nc-bills-card[data-size=M] > .nc-bills-after { grid-area: 1 / 2; align-self: center; }
+  .nc-networth-card[data-size=M] > .nc-foot, .nc-spending-card[data-size=M] > .nc-foot, .nc-budgets-card[data-size=M] > .nc-foot, .nc-bills-card[data-size=M] > .nc-foot { grid-area: 2 / 1 / 3 / 3; margin-top: 0; }
+  /* The hero stands in its column: the label over a 48 px figure, its lines under it. */
+  .nc-networth-card[data-size=M] .nc-hero, .nc-spending-card[data-size=M] .nc-hero, .nc-budgets-card[data-size=M] .nc-hero, .nc-bills-card[data-size=M] .nc-hero { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 0; }
+  .nc-networth-card[data-size=M] .nc-hero-label, .nc-spending-card[data-size=M] .nc-hero-label, .nc-budgets-card[data-size=M] .nc-hero-label, .nc-bills-card[data-size=M] .nc-hero-label { order: -1; flex: none; margin: 0 0 6px; }
+  .nc-body.nc-networth-card[data-size=M] .nc-hero-num, .nc-body.nc-spending-card[data-size=M] .nc-hero-num, .nc-body.nc-budgets-card[data-size=M] .nc-hero-num, .nc-body.nc-bills-card[data-size=M] .nc-hero-num { font-size: 46px; }
+  .nc-networth-card[data-size=M] .nc-delta { margin-top: 6px; font-size: 15px; }
+  .nc-networth-card[data-size=M] .nc-trend-dates { display: flex; }
+  .nc-networth-card[data-size=M] .nc-trend-edge { display: block; }
+  .nc-budgets-card[data-size=M] .nc-budgets-ring { --nc-d: 124; --nc-w: 6; }
+  .nc-budgets-card[data-size=M] .nc-budgets-top { gap: 22px; }
+  .nc-bills-card[data-size=M] .nc-bills-next { gap: 22px; }
+  .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial { --nc-d: 124; --nc-w: 6; }
+  .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial-unit { display: block; }
+  .nc-bills-card[data-size=M] .nc-bills-next .nc-ring-figure { font-size: 34px; }
+  .nc-bills-card[data-size=M] .nc-bills-row { padding: 6px 0; }
+  .nc-bills-card[data-size=M] .nc-bills-row .nc-bills-dial { --nc-d: 44; }
+  .nc-spending-card[data-size=M] .nc-stack { height: 18px; }
+  .nc-spending-card[data-size=M] .nc-bars, .nc-budgets-card[data-size=M] .nc-bars { gap: 8px; }
+  .nc-spending-card[data-size=M] .nc-bar-track, .nc-budgets-card[data-size=M] .nc-bar-track { height: 10px; }
+}
+@container holo-body (min-width: 520px) and (max-height: 176px) {
+  .nc-budgets-card[data-size=M] .nc-budgets-ring, .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial { --nc-d: 104; }
+  .nc-body.nc-networth-card[data-size=M] .nc-hero-num, .nc-body.nc-spending-card[data-size=M] .nc-hero-num, .nc-body.nc-budgets-card[data-size=M] .nc-hero-num, .nc-body.nc-bills-card[data-size=M] .nc-hero-num { font-size: 38px; }
+  .nc-spending-card[data-size=M] .nc-stack { display: none; }
+}
+/* ---- A large panel: rings of 120 px (a wide one: 150), a taller stacked bar and meters ---- */
+@container holo-body (min-height: 300px) {
+  .nc-budgets-card[data-size=L] .nc-budgets-ring { --nc-d: 104; --nc-w: 6; }
+  .nc-bills-card[data-size=L] .nc-bills-next .nc-bills-dial { --nc-d: 120; --nc-w: 6; }
+  .nc-bills-card[data-size=L] .nc-bills-next .nc-ring-figure { font-size: 34px; }
+  .nc-networth-card[data-size=L] .nc-trend-plot { min-height: 96px; }
+}
+@container holo-body (min-height: 300px) and (min-width: 520px) {
+  /* The hero and the facts on the left; the instrument the whole height of the right. */
+  .nc-body.nc-networth-card[data-size=L], .nc-body.nc-spending-card[data-size=L], .nc-body.nc-budgets-card[data-size=L], .nc-body.nc-bills-card[data-size=L] { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto auto auto minmax(0, 1fr) auto; gap: 10px 44px; }
+  .nc-networth-card[data-size=L] > *, .nc-spending-card[data-size=L] > *, .nc-budgets-card[data-size=L] > *, .nc-bills-card[data-size=L] > * { grid-column: 1; }
+  .nc-networth-card[data-size=L] > .nc-networth-line, .nc-spending-card[data-size=L] > .nc-spending-bars, .nc-budgets-card[data-size=L] > .nc-budgets-bars, .nc-bills-card[data-size=L] > .nc-bills-after { grid-column: 2; grid-row: 1 / 5; }
+  .nc-spending-card[data-size=L] > .nc-spending-bars, .nc-budgets-card[data-size=L] > .nc-budgets-bars, .nc-bills-card[data-size=L] > .nc-bills-after { align-self: center; }
+  .nc-networth-card[data-size=L] > .nc-foot, .nc-spending-card[data-size=L] > .nc-foot, .nc-budgets-card[data-size=L] > .nc-foot, .nc-bills-card[data-size=L] > .nc-foot { grid-column: 1 / -1; grid-row: 5; margin-top: 0; }
+  .nc-budgets-card[data-size=L] .nc-budgets-top, .nc-bills-card[data-size=L] .nc-bills-next { grid-template-columns: minmax(0, 1fr); flex-direction: column; align-items: flex-start; justify-items: start; }
+  .nc-budgets-card[data-size=L] .nc-budgets-ring { --nc-d: 140; }
+  .nc-budgets-card[data-size=L] .nc-budgets-top, .nc-bills-card[data-size=L] .nc-bills-next { gap: 28px; }
+  .nc-bills-card[data-size=L] .nc-bills-next .nc-bills-dial { --nc-d: 150; --nc-w: 6.5; }
+  .nc-bills-card[data-size=L] .nc-bills-next .nc-ring-figure { font-size: 42px; }
+  .nc-bills-card[data-size=L] .nc-bills-row .nc-bills-dial { --nc-d: 48; }
+  .nc-bills-card[data-size=L] .nc-bills-row { padding: 8px 0; }
+  .nc-spending-card[data-size=L] .nc-stack { height: 26px; }
+  .nc-spending-card[data-size=L] .nc-bar-track, .nc-budgets-card[data-size=L] .nc-bar-track { height: 12px; }
+  .nc-spending-card[data-size=L] .nc-bars, .nc-budgets-card[data-size=L] .nc-bars { gap: 14px; }
+  .nc-body.nc-networth-card[data-size=L] .nc-hero-num, .nc-body.nc-spending-card[data-size=L] .nc-hero-num, .nc-body.nc-bills-card[data-size=L] .nc-hero-num { font-size: 56px; }
+}
+/* A narrow large panel that is short drops whole rows (the table keeps each): notes first, then the facts, then the last rows. */
+@container holo-body (max-height: 560px) and (max-width: 519px) { .nc-budgets-card[data-size=L] .nc-bar-note { display: none; } .nc-bills-card[data-size=L] .nc-bills-row .nc-bills-dial { --nc-d: 34; } .nc-bills-card[data-size=L] .nc-bills-row { padding: 3px 0; } }
+@container holo-body (max-height: 524px) and (max-width: 519px) { .nc-spending-card[data-size=L] .nc-spending-what, .nc-spending-card[data-size=L] .nc-spending-bars > .nc-spending-note, .nc-budgets-card[data-size=L] .nc-budgets-bars > .nc-budgets-note { display: none; } .nc-budgets-card[data-size=L] .nc-budgets-ring { --nc-d: 76; } .nc-bills-card[data-size=L] .nc-bills-next .nc-bills-dial { --nc-d: 96; } .nc-bills-card[data-size=L] .nc-bills-next .nc-ring-figure { font-size: 28px; } }
+@container holo-body (max-height: 484px) and (max-width: 519px) { .nc-spending-card[data-size=L] > .nc-facts, .nc-budgets-card[data-size=L] > .nc-facts, .nc-bills-card[data-size=L] > .nc-facts { display: none; } }
+@container holo-body (max-height: 430px) and (max-width: 519px) { .nc-networth-card[data-size=L] > .nc-networth-note, .nc-bills-card[data-size=L] .nc-bills-row:nth-child(n+5) { display: none; } }
+@container holo-body (max-height: 400px) and (max-width: 519px) { .nc-networth-card[data-size=L] > .nc-facts .nc-fact:nth-child(n+3) { display: none; } .nc-bills-card[data-size=L] .nc-bills-row:nth-child(n+4) { display: none; } }
+@container holo-body (min-width: 520px) and (min-height: 300px) and (max-height: 400px) { .nc-budgets-card[data-size=L] .nc-bar-note, .nc-spending-card[data-size=L] .nc-spending-what, .nc-networth-card[data-size=L] > .nc-networth-note { display: none; } .nc-budgets-card[data-size=L] .nc-budgets-ring, .nc-bills-card[data-size=L] .nc-bills-next .nc-bills-dial { --nc-d: 120; } .nc-bills-card[data-size=L] .nc-bills-row { padding: 4px 0; } .nc-bills-card[data-size=L] .nc-bills-row .nc-bills-dial { --nc-d: 40; } }

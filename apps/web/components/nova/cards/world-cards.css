@@ -17,7 +17,7 @@
 .nova-widget[data-sky=thunder] { --neon: #f06dff; --neon-2: #9be8ff; --neon-ink: #fdeaff; }
 
 /* ---- The scene ---- */
-.nw-scene { position: relative; flex: none; display: inline-block; vertical-align: middle; }
+.nw-scene { position: relative; flex: none; display: inline-block; vertical-align: middle; width: var(--nw-size, var(--nw-s, 64px)); height: var(--nw-size, var(--nw-s, 64px)); }
 .nw-scene > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .nw-rays-box { position: absolute; }
 .nw-stop-hot { stop-color: #fff; }
@@ -54,7 +54,7 @@
 
 /* ---- Now ---- */
 .nw-weather { gap: 12px; }
-.nw-now { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.nw-now { flex: none; display: flex; align-items: center; gap: 18px; min-width: 0; }
 .nw-now-words { min-width: 0; }
 .nw-temp { margin: 0; display: flex; align-items: flex-start; gap: 3px; line-height: 1; }
 .nw-temp-num { font-size: clamp(46px, 4.2vw, 62px); font-weight: 680; letter-spacing: -.02em; }
@@ -66,34 +66,34 @@
 .nw-condition::before { content: ''; position: absolute; left: 0; top: .2em; bottom: .2em; width: 3px; border-radius: 1px; background: var(--neon, #7fb6ff); box-shadow: 0 0 6px var(--neon, #7fb6ff); }
 .nw-umbrella { margin: 4px 0 0; font-size: 15px; line-height: 1.4; color: #d6e0f5; }
 
-/* ---- The outlook: a temperature line over the precipitation bars, its hours named under it ---- */
-.nw-outlook { position: relative; min-width: 0; padding-top: 6px; border-top: 1px solid color-mix(in oklab, var(--neon, #7fb6ff) 30%, transparent); }
-.nw-outlook-plot { position: absolute; left: 0; right: 0; top: 28px; height: var(--nw-plot, 36px); pointer-events: none;
+/* ---- The outlook: a temperature line over the precipitation bars, its hours named under it ----
+   Four rows shared by every hour (a subgrid): the temperature, the plot, the small scene, the time. The plot's row is the
+   body's elastic row: it takes what the panel has left (the drawing stretches with it) and gives way first. */
+.nw-outlook { position: relative; flex: 1 1 calc(var(--nw-plot, 36px) + 78px); min-width: 0; min-height: 0; display: grid; grid-template-rows: 20px minmax(calc(20px + var(--nw-keep, 0px)), 1fr) auto auto; row-gap: 2px; padding-top: 6px; border-top: 1px solid color-mix(in oklab, var(--neon, #7fb6ff) 30%, transparent); }
+.nw-outlook-plot { grid-area: 2 / 1; position: relative; min-height: 0; pointer-events: none;
   background: repeating-linear-gradient(90deg, transparent 0 calc(100% / var(--nw-n, 6) - 1px), color-mix(in oklab, var(--neon, #7fb6ff) 12%, transparent) calc(100% / var(--nw-n, 6) - 1px) calc(100% / var(--nw-n, 6))),
+    repeating-linear-gradient(0deg, color-mix(in oklab, var(--neon, #7fb6ff) 10%, transparent) 0 1px, transparent 1px 25%),
     linear-gradient(90deg, color-mix(in oklab, var(--neon, #7fb6ff) 60%, transparent), color-mix(in oklab, var(--neon, #7fb6ff) 22%, transparent)) 0 100% / 100% 1px no-repeat; }
-.nw-outlook-plot > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.nw-rain-col { stroke: none; transform-box: fill-box; transform-origin: 50% 100%; }
-.nw-rain-cap { fill: #fff; }
-.nw-stop-rain-a { stop-color: #b4f5ff; }
-.nw-stop-rain-b { stop-color: #3ee6ff; stop-opacity: .45; }
-/* The hour of now: its column is lit (a cell of the strip, as the lead point is of the line). */
-.nw-hours li:first-child::before { content: ''; position: absolute; inset: 0 1px -2px; z-index: -1; border-radius: 3px; border: 1px solid color-mix(in oklab, var(--neon, #7fb6ff) 34%, transparent); background: linear-gradient(180deg, color-mix(in oklab, var(--neon, #7fb6ff) 16%, transparent), transparent 70%); }
-.nw-hours { isolation: isolate; }
+/* The line keeps clear of the bars (and the peak's label) under it. */
+.nw-outlook-line { position: absolute; inset: 0 0 var(--nw-keep, 0px) 0; }
+.nw-outlook-line > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .nw-outlook-dot { position: absolute; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px var(--neon, #7fb6ff), 0 0 7px 1px var(--neon, #7fb6ff); }
 .nw-outlook-dot[data-lead] { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; box-shadow: 0 0 0 2.5px var(--neon, #7fb6ff), 0 0 0 6px color-mix(in oklab, var(--neon, #7fb6ff) 24%, transparent), 0 0 14px 3px var(--neon, #7fb6ff); }
-.nw-hours { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--nw-n, 6), minmax(0, 1fr)); }
-.nw-hours li { position: relative; display: grid; grid-template-rows: 20px var(--nw-plot, 36px) auto auto; justify-items: center; row-gap: 2px; min-width: 0; }
+.nw-hours { grid-area: 1 / 1 / 5 / 2; isolation: isolate; list-style: none; margin: 0; padding: 0; min-height: 0; display: grid; grid-template-rows: subgrid; grid-template-columns: repeat(var(--nw-n, 6), minmax(0, 1fr)); }
+.nw-hours li { position: relative; grid-row: 1 / 5; display: grid; grid-template-rows: subgrid; justify-items: center; min-width: 0; min-height: 0; }
+/* The hour of now: its column is lit (a cell of the strip, as the lead point is of the line). */
+.nw-hours li:first-child::before { content: ''; position: absolute; inset: 0 1px -2px; z-index: -1; border-radius: 3px; border: 1px solid color-mix(in oklab, var(--neon, #7fb6ff) 34%, transparent); background: linear-gradient(180deg, color-mix(in oklab, var(--neon, #7fb6ff) 16%, transparent), transparent 70%); }
 .nw-hour-temp { grid-row: 1; font-size: 15px; line-height: 20px; font-weight: 650; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; }
-.nw-hours .nw-scene { grid-row: 3; margin-top: 3px; }
+/* Precipitation: a bar per named hour on one scale (14 px at the peak), the peak's amount over its bar. */
+.nw-hour-rain { grid-row: 2; align-self: end; display: grid; justify-items: center; row-gap: 2px; min-width: 0; }
+.nw-hour-rain b { padding: 0 5px; border-radius: 3px; background: #050919d9; font-size: 14px; line-height: 18px; font-weight: 650; color: #b5f3fd; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nw-hour-rain i { display: block; width: 8px; height: calc(3px + var(--nw-rain, 0) * 11px); border-radius: 2px 2px 0 0; background: linear-gradient(180deg, #fff 0 2px, #b4f5ff 2px, #3ee6ff80 100%); box-shadow: 0 0 8px #3ee6ff99; transform-origin: 50% 100%; }
+.nw-hours .nw-scene { grid-row: 3; margin-top: 2px; }
 .nw-hour-time { grid-row: 4; font-size: 14px; line-height: 1.3; color: #c3cfe6; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.nw-hour-rain { position: absolute; left: 50%; top: calc(var(--nw-plot, 36px) - 13px); transform: translateX(-50%); padding: 0 5px; border-radius: 3px; background: #050919d9; font-size: 14px; line-height: 18px; font-weight: 650; color: #b5f3fd; white-space: nowrap; font-variant-numeric: tabular-nums; }
-/* A short medium panel drops the row of small scenes (the hours keep their time and their temperature). */
-@container holo-body (max-height: 226px) { .nw-weather[data-size=M] .nw-hours .nw-scene { display: none; } }
-@container holo-body (max-height: 204px) { .nw-weather[data-size=M] { gap: 4px; } .nw-weather[data-size=M] .nw-now .nw-scene { width: 72px !important; height: 72px !important; } }
 @container holo-body (max-width: 262px) { .nw-hours li:nth-child(even) .nw-hour-time { visibility: hidden; } }
 
 /* ---- The next days: capsules from lowest to highest on one scale ---- */
-.nw-days { display: grid; gap: 6px; }
+.nw-days { flex: none; display: grid; gap: 6px; }
 .nw-daycols { list-style: none; margin: 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
 .nw-daycols li { display: grid; grid-template-rows: auto auto auto auto auto; justify-items: center; row-gap: 3px; min-width: 0; font-variant-numeric: tabular-nums; border-left: 1px solid color-mix(in oklab, var(--neon, #7fb6ff) 16%, transparent); }
 .nw-daycols li:first-child { border-left: 0; }
@@ -102,15 +102,59 @@
 .nw-day-hi { grid-row: 3; font-size: 15px; line-height: 1.25; font-weight: 650; color: var(--neon-ink, #f2f6ff); }
 .nw-day-track { grid-row: 4; --nc-cap: 30px; }
 .nw-day-lo { grid-row: 5; font-size: 14px; line-height: 1.25; color: #c3cfe6; }
-.nw-facts { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 18px; font-size: 14px; line-height: 1.4; color: #cdd8ee; }
+.nw-facts { flex: none; margin: 0; display: flex; flex-wrap: wrap; gap: 2px 18px; font-size: 14px; line-height: 1.4; color: #cdd8ee; }
 .nw-facts span { position: relative; padding-left: 13px; }
 .nw-facts span::before { content: ''; position: absolute; left: 1px; top: .52em; width: 5px; height: 5px; transform: rotate(45deg); background: var(--neon, #7fb6ff); box-shadow: 0 0 6px 1px var(--neon, #7fb6ff); }
 .nw-facts b { font-size: 15px; font-weight: 650; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; }
-/* A short large panel drops whole rows, never half of one: the days' small scenes, then the facts line, then the days. */
+
+/* ---- Fit: a body drops whole rows, never half of one, and never its foot ---- */
+/* Medium, narrow: the hours' small scenes go first, then the scene of now and its figure step down, then the outlook goes. */
+@container holo-body (max-height: 236px) { .nw-weather[data-size=M] .nw-hours .nw-scene { display: none; } }
+@container holo-body (max-height: 210px) and (max-width: 519px) {
+  .nw-weather[data-size=M] { gap: 6px; }
+  .nw-weather[data-size=M] .nw-now .nw-scene { --nw-size: 52px; }
+  .nw-weather[data-size=M] .nw-temp-num { font-size: 40px; }
+  .nw-weather[data-size=M] .nw-now-words { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
+  .nw-weather[data-size=M] .nw-condition { margin: 0; }
+  .nw-weather[data-size=M] .nw-umbrella { flex-basis: 100%; margin: 0; font-size: 14px; line-height: 1.25; }
+}
+@container holo-body (max-height: 176px) and (max-width: 519px) { .nw-weather[data-size=M] .nw-umbrella { display: none; } }
+@container holo-body (max-height: 176px) and (max-width: 519px) { .nw-weather[data-size=M] .nw-outlook { display: none; } }
+@container holo-body (max-height: 150px) { .nw-weather[data-size=M] .nw-outlook { display: none; } }
+/* Large: the days' small scenes, then the facts line, then the umbrella line, then the days. */
 .nw-weather[data-size=L] { gap: 10px; }
-@container holo-body (max-height: 500px) { .nw-weather[data-size=L] .nw-daycols .nw-scene { display: none; } }
-@container holo-body (max-height: 462px) { .nw-weather[data-size=L] .nw-facts { display: none; } }
-@container holo-body (max-height: 430px) { .nw-weather[data-size=L] .nw-days { display: none; } }
+@container holo-body (max-height: 500px) and (max-width: 519px) { .nw-weather[data-size=L] .nw-daycols .nw-scene { display: none; } }
+@container holo-body (max-height: 452px) and (max-width: 519px) { .nw-weather[data-size=L] .nw-facts { display: none; } }
+@container holo-body (max-height: 418px) and (max-width: 519px) { .nw-weather[data-size=L] .nw-umbrella { display: none; } }
+@container holo-body (max-height: 384px) and (max-width: 519px) { .nw-weather[data-size=L] .nw-days { display: none; } }
+
+/* ---- Scale: a wide medium panel (about 700 × 190) puts now beside the outlook; a wide large one puts now and the facts
+   on the left, the outlook over the days on the right; the scene and the figure grow with the panel ---- */
+@container holo-body (min-width: 520px) {
+  .nw-weather[data-size=M] { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; gap: 6px 40px; }
+  .nw-weather[data-size=M] > .nw-now { grid-area: 1 / 1; align-self: center; gap: 22px; max-width: 46cqi; }
+  .nw-weather[data-size=M] > .nw-outlook { grid-area: 1 / 2; }
+  .nw-weather[data-size=M] > .nc-foot[role=status] { grid-area: 2 / 1 / 3 / 3; }
+  .nw-weather[data-size=M] > .nc-foot:not([role=status]) { grid-area: 3 / 1 / 4 / 3; margin-top: 0; }
+  .nw-weather[data-size=M] .nw-now .nw-scene { --nw-size: 124px; }
+  .nw-weather[data-size=M] .nw-temp-num { font-size: 62px; }
+  .nw-weather[data-size=M] .nw-hours .nw-scene { display: inline-block; }
+}
+@container holo-body (min-width: 520px) and (max-height: 176px) { .nw-weather[data-size=M] .nw-now .nw-scene { --nw-size: 96px; } .nw-weather[data-size=M] .nw-temp-num { font-size: 52px; } .nw-weather[data-size=M] .nw-hours .nw-scene { display: none; } }
+@container holo-body (min-width: 520px) and (min-height: 300px) {
+  .nw-weather[data-size=L] { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); grid-template-rows: minmax(0, 1fr) auto auto auto; gap: 10px 40px; }
+  .nw-weather[data-size=L] > .nw-now { grid-area: 1 / 1; align-self: center; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .nw-weather[data-size=L] > .nw-facts { grid-area: 2 / 1; flex-direction: column; gap: 4px; align-self: end; }
+  .nw-weather[data-size=L] > .nw-outlook { grid-area: 1 / 2; }
+  .nw-weather[data-size=L] > .nw-days { grid-area: 2 / 2; }
+  .nw-weather[data-size=L] > .nc-foot[role=status] { grid-area: 3 / 1 / 4 / 3; }
+  .nw-weather[data-size=L] > .nc-foot:not([role=status]) { grid-area: 4 / 1 / 5 / 3; margin-top: 0; }
+  .nw-weather[data-size=L] .nw-now .nw-scene { --nw-size: 150px; }
+  .nw-weather[data-size=L] .nw-temp-num { font-size: 72px; }
+  .nw-weather[data-size=L] .nw-hours .nw-scene, .nw-weather[data-size=L] .nw-daycols .nw-scene { --nw-size: 32px; }
+  .nw-weather[data-size=L] .nw-day-track { --nc-cap: 44px; width: 12px; }
+}
+@container holo-body (min-width: 520px) and (min-height: 300px) and (max-height: 380px) { .nw-weather[data-size=L] .nw-daycols .nw-scene { display: none; } .nw-weather[data-size=L] .nw-now .nw-scene { --nw-size: 112px; } }
 
 /* The widget LOOKS like the weather: the frame's own glass takes a sky gradient from the condition (it flows through the
    panel's --holo-tint, so the cut corners, the rim and the tilt of a large panel carry it). The tint stays a dark glass:
@@ -126,8 +170,10 @@
 .nova-widget[data-holo][data-sky=thunder] { --sky-a: #6a45c9; --sky-b: #f06dff; }
 .nw-credit a { color: #e6edfb; text-decoration: underline; text-underline-offset: 3px; }
 
-/* ---- The sun: a dome of light over the horizon ---- */
-.nw-sunarc svg { display: block; width: 100%; max-width: 250px; height: auto; margin: 0 auto; overflow: visible; fill: none; }
+/* ---- The sun: a dome of light over the horizon ----
+   The arc is the body's elastic row: it is as large as the panel allows (the drawing keeps its shape inside its box). */
+.nw-sunarc { flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.nw-sunarc svg { display: block; flex: 1 1 108px; min-height: 44px; width: 100%; overflow: visible; fill: none; }
 .nw-stop-dome-a { stop-color: #ffcf7a; stop-opacity: .26; }
 .nw-stop-arc-a { stop-color: #ff9a3c; }
 .nw-stop-arc-b { stop-color: #fff0c4; }
@@ -139,22 +185,39 @@
 .nw-arc-tick { stroke: #ffe2a6; stroke-width: .8; stroke-linecap: round; opacity: .85; }
 .nw-arc-sun .nw-rays { stroke-width: 1.1; }
 .nw-arc-sun .nw-sun-ring { stroke-width: .8; }
-.nw-sun-times { margin: 6px 0 0; display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: #c3cfe6; }
+.nw-sun-times { flex: none; margin: 6px 0 0; display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: #c3cfe6; }
 .nw-sunbody[data-size=M] { gap: 6px; }
-.nw-sunbody[data-size=M] .nw-sunarc svg { max-width: 224px; }
-.nw-sunbody[data-size=L] .nw-sunarc svg { max-width: none; }
-.nw-sunbody[data-size=L] { gap: 14px; justify-content: center; }
-.nw-sunbody[data-size=L] .nw-sun-times b { font-size: 26px; }
+.nw-sunbody[data-size=L] { gap: 12px; }
+.nw-sunbody > .nc-facts { flex: none; }
+.nw-sunbody[data-size=L] .nw-sun-times b { font-size: 28px; }
 .nw-sun-times .nw-sun-length { text-align: center; }
-.nw-sun-times span:last-child { text-align: right; }
-.nw-sun-times b { display: block; font-size: 19px; font-weight: 680; color: var(--neon-ink, #f4f7ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 12px color-mix(in oklab, #ffcf7a 60%, transparent); }
-@container holo-body (max-height: 212px) { .nw-sunbody[data-size=M] .nw-sunarc svg { max-width: 196px; } }
-@container holo-body (max-height: 192px) { .nw-sunbody[data-size=M] .nw-sunarc svg { max-width: 172px; } }
+.nw-sun-times .nw-sun-set { text-align: right; }
+.nw-sun-times b { display: block; font-size: 20px; font-weight: 680; line-height: 1.15; color: var(--neon-ink, #f4f7ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 12px color-mix(in oklab, #ffcf7a 60%, transparent); }
+/* Small: one row — a small arc with the sun on it, then both times as figures with their names. */
+.nw-sunbody[data-size=S] .nw-sunarc { flex-direction: row; align-items: center; gap: 14px; }
+.nw-sunbody[data-size=S] .nw-sunarc svg { flex: none; width: 62px; height: 34px; min-height: 0; }
+.nw-sunbody[data-size=S] .nw-sun-times { flex: 1 1 0; margin: 0; align-items: baseline; justify-content: flex-start; gap: 4px 18px; flex-wrap: wrap; }
+.nw-sunbody[data-size=S] .nw-sun-times b { display: inline; margin-right: 4px; font-size: 22px; }
+@container holo-body (max-width: 380px) { .nw-sunbody[data-size=S] .nw-sunarc svg { display: none; } }
+/* A short medium panel: the arc gives way (it is elastic); under 136 px it goes and the times stay. */
+@container holo-body (max-height: 136px) { .nw-sunbody[data-size=M] .nw-sunarc svg { display: none; } }
+/* A wide medium panel: the arc full height in the middle, the times as 30 px figures at the horizon's two ends, the length of the day over the sunrise. */
+@container holo-body (min-width: 520px) {
+  .nw-sunbody[data-size=M] .nw-sunarc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; column-gap: 20px; }
+  .nw-sunbody[data-size=M] .nw-sunarc svg { grid-area: 1 / 2 / 3 / 3; height: 100%; min-height: 0; }
+  .nw-sunbody[data-size=M] .nw-sun-times { display: contents; }
+  .nw-sunbody[data-size=M] .nw-sun-length { grid-area: 1 / 1; align-self: start; text-align: left; font-size: 14px; color: #c3cfe6; }
+  .nw-sunbody[data-size=M] .nw-sun-rise { grid-area: 2 / 1; font-size: 14px; color: #c3cfe6; }
+  .nw-sunbody[data-size=M] .nw-sun-set { grid-area: 2 / 3; font-size: 14px; color: #c3cfe6; }
+  .nw-sunbody[data-size=M] .nw-sun-times b { font-size: 32px; }
+  .nw-sunbody[data-size=M] .nw-sun-length b { font-size: 22px; }
+}
+@container holo-body (min-width: 520px) and (min-height: 300px) { .nw-sunbody[data-size=L] .nw-sun-times b { font-size: 36px; } .nw-sunbody[data-size=L] .nc-fact { padding-block: 7px; font-size: 16px; } }
 
 /* ---- Made: the outlook's bars rise, the sun's path draws, the bolt lights once ---- */
 @keyframes nw-arc-draw { from { stroke-dashoffset: var(--nc-len, 1); } to { stroke-dashoffset: 0; } }
 @keyframes nw-bolt { 0% { opacity: .15; } 30% { opacity: 1; } 55% { opacity: .5; } 100% { opacity: 1; } }
-.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .nw-rain-col { animation: nc-grow-y .42s .5s cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .nw-hour-rain i { animation: nc-grow-y .42s calc(.5s + var(--nc-i, 0) * 30ms) cubic-bezier(.2, .7, .2, 1) both; }
 .nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .nw-arc-done { animation: nw-arc-draw .5s .44s cubic-bezier(.3, .6, .2, 1) both; }
 .nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] :is(.nw-arc-sun, .nw-outlook-dot) { animation: nc-fade .24s .76s ease-out both; }
 .nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .nw-bolt { animation: nw-bolt .7s .5s ease-out both; }
@@ -175,7 +238,7 @@
 .nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nw-scene[data-live] .nw-fog path:nth-child(2n) { animation-direction: alternate-reverse; }
 .nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nw-scene[data-live] .nw-star:nth-of-type(2) { animation: nw-twinkle 4.6s ease-in-out infinite; }
 
-/* Design review AM-D20: at S the weather and the sun fit one unit with their source line. */
+/* Design review AM-D20: at S the weather and the sun fit one unit with their source line: one row — the scene, the figure, the condition. */
 .nw-weather[data-size=S] { gap: 4px; }
 .nw-weather[data-size=S] .nw-now { gap: 12px; }
 .nw-weather[data-size=S] .nw-now-words { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; min-width: 0; }

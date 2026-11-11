@@ -39,7 +39,7 @@ export default function SunWidget({size = 'S'}: Partial<CardProps>) {
   const ARC = 'M12 56A48 44 0 0 1 108 56', rays = Array.from({length: 12}, (_, i) => { const p = polar(0, 0, 6.6, i * 30), q = polar(0, 0, i % 2 ? 8.4 : 10, i * 30); return `M${p.x} ${p.y}L${q.x} ${q.y}`; }).join('');
   return <div className="nc-body nw-sunbody" data-size={size}>
     <div className="nw-sunarc">
-      {size !== 'S' && <svg viewBox="0 0 120 66" aria-hidden="true" focusable="false">
+      <svg viewBox="0 0 120 66" aria-hidden="true" focusable="false">
         <defs>
           <linearGradient id={`${id}d`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" className="nw-stop-dome-a"/><stop offset="1" className="nw-stop-none"/></linearGradient>
           <linearGradient id={`${id}a`} gradientUnits="userSpaceOnUse" x1="12" y1="0" x2={Math.max(13, sun.x)} y2="0"><stop offset="0" className="nw-stop-arc-a"/><stop offset="1" className="nw-stop-arc-b"/></linearGradient>
@@ -58,8 +58,8 @@ export default function SunWidget({size = 'S'}: Partial<CardProps>) {
           <circle className="nw-sun-ring" r="5.6"/>
           <circle className="nw-sun-core" r="4" fill={`url(#${id}s)`}/>
         </g>
-      </svg>}
-      <p className="nw-sun-times"><span><b>{clockTime(rise)}</b> sunrise</span>{size === 'M' && <span className="nw-sun-length"><b>{length}</b> of daylight</span>}<span><b>{clockTime(set)}</b> sunset</span></p>
+      </svg>
+      <p className="nw-sun-times"><span className="nw-sun-rise"><b>{clockTime(rise)}</b> sunrise</span>{size === 'M' && <span className="nw-sun-length"><b>{length}</b> of daylight</span>}<span className="nw-sun-set"><b>{clockTime(set)}</b> sunset</span></p>
     </div>
     {size === 'L' && <div className="nc-facts">
       <Fact label="Daylight" value={length}/>

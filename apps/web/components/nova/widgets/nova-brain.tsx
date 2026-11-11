@@ -32,7 +32,7 @@ export default function NovaBrainWidget({size = 'S'}: Partial<CardProps>) {
   // mode; L: the privacy mode in words and the way to the setup guide (at S and M the head's own link opens it).
   return <div className="nc-body nc-brain" data-size={size}>
     <div className="nc-brain-head">
-      <Gauge share={brain.kind === 'none' ? null : 1} size={size === 'S' ? 40 : size === 'L' ? 72 : 60} bezel={size !== 'S'} spin={brain.kind !== 'none'} decor className="nc-brain-core"><span className="nc-brain-dot" data-on={brain.kind !== 'none' || undefined}/></Gauge>
+      <Gauge share={brain.kind === 'none' ? null : 1} size={size === 'S' ? 36 : size === 'L' ? 76 : 60} bezel={size !== 'S'} spin={brain.kind !== 'none'} decor className="nc-brain-core"><span className="nc-brain-dot" data-on={brain.kind !== 'none' || undefined}/></Gauge>
       <div><p className="nc-brain-title">{words.title}</p>{size !== 'S' && <p className="nc-brain-words">{brain.kind === 'none' ? 'No AI connected' : brain.words}</p>}</div>
     </div>
     {size !== 'S' && <p className="nc-brain-text">{words.text}</p>}

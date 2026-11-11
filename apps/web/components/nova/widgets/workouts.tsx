@@ -37,7 +37,7 @@ export default function WorkoutsWidget({size = 'M', params}: Partial<CardProps>)
       <Hero value={formatNumber(card.count)} unit={card.countWord} label={card.window.words}>
         <p className="nc-workouts-note">{card.count ? `${card.minutesText} in total` : `Last one ${card.recent[0]?.dateText ?? '—'}`}</p>
       </Hero>
-      {size !== 'S' && <div className="nc-workouts-side" aria-hidden="true"><HeartTrace/><HeartMark size={size === 'L' ? 56 : 44}/></div>}
+      {size === 'S' ? <span className="nc-mini" aria-hidden="true"><HeartMark size={36}/></span> : <div className="nc-workouts-side" aria-hidden="true"><HeartTrace/><HeartMark size={size === 'L' ? 56 : 44}/></div>}
     </div>
     {size !== 'S' && card.count > 0 && <div className="nc-workouts-chart">
       {size === 'L' && <p className="nc-workouts-cap">{dated ? 'Workouts in the week of' : `Workouts each ${card.by}`}</p>}

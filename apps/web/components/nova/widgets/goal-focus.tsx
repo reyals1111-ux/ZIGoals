@@ -99,10 +99,10 @@ export default function GoalFocusWidget({size, params}: {size: CardProps['size']
   const estimate = words && <p className="nc-goal-estimate">{words.estimate && <span className="nc-goal-chip">Estimate</span>}<span>{words.headline}</span></p>;
   return <div className="nc-body nc-goal" data-size={size}>
     {size === 'S' ? <div className="nc-goal-hero">
-      <GoalRing pct={goal.pct} size={44}/>
+      <GoalRing pct={goal.pct} size={36}/>
       <Hero value={goal.text} label={goal.name}/>
     </div> : <div className="nc-goal-hero">
-      <GoalRing pct={goal.pct} size={size === 'L' ? 132 : 108}>
+      <GoalRing pct={goal.pct} size={size === 'L' ? 132 : 120}>
         <span className="nc-goal-figure">{goal.atLeast && <small>at least</small>}<HoloFigure text={goal.figure} className="nc-goal-num"/><small>{unknown ? 'unknown' : 'reached'}</small></span>
       </GoalRing>
       <div className="nc-goal-words">
@@ -113,7 +113,8 @@ export default function GoalFocusWidget({size, params}: {size: CardProps['size']
     </div>}
     {size !== 'S' && estimate}
     {size === 'L' && words && <p className="nc-goal-detail">{words.detail}</p>}
-    {size === 'L' && pace?.chart && words && <PaceLine chart={pace.chart} label={`${words.headline}. ${words.detail}`}/>}
+    {/* The pace line: at Large always; at Medium only where the panel is wide enough to hold it beside the dial (life-cards.css). */}
+    {size !== 'S' && pace?.chart && words && <PaceLine chart={pace.chart} label={`${words.headline}. ${words.detail}`}/>}
     {size !== 'S' && (goal.left || (size === 'L' && goal.targetDate)) && <div className="nc-facts nc-goal-facts">
       {goal.left && <Fact label="Left to go" value={goal.left}/>}
       {size === 'L' && goal.targetDate && <Fact label="Target date" value={formatDate(goal.targetDate)}/>}

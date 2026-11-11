@@ -57,7 +57,7 @@ export default function WeightWidget({size = 'M', params}: Partial<CardProps>) {
       <Hero value={card.hero.value} unit={card.hero.unit} label={`Logged ${logDayWords(card.latest.date, day)}`}>
         {card.change ? <Delta text={twoLines(card.change.text)} direction={card.change.direction} good={card.change.good}/> : size !== 'S' && card.note ? <p className="nc-weight-note">{card.note}</p> : null}
       </Hero>
-      {size !== 'S' && <div className="nc-weight-side" aria-hidden="true"><HeartTrace/><HeartMark size={size === 'L' ? 56 : 44}/></div>}
+      {size === 'S' ? <span className="nc-mini" aria-hidden="true"><HeartMark size={36}/></span> : <div className="nc-weight-side" aria-hidden="true"><HeartTrace/><HeartMark size={size === 'L' ? 56 : 44}/></div>}
     </div>
     {size !== 'S' && drawn && <div className="nc-weight-chart">
       {/* Medium has no room for the dates under the line: the change beside the figure names the first day, the figure's label the last. */}

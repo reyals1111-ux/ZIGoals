@@ -31,7 +31,7 @@ export default function HabitWeekWidget({size}: {size: CardProps['size']; params
   return <div className="nc-body nc-habitweek" data-size={size}>
     <div className="nc-habitweek-top">
       {/* Today's share of what is due, as a ring (decoration: the figure beside it says it). Nothing due: an empty ring. */}
-      {size !== 'S' && <Gauge share={week.due ? week.done / week.due : 0} size={size === 'L' ? 64 : 50} spin={size === 'L'} className="nc-habitweek-ring"/>}
+      <Gauge share={week.due ? week.done / week.due : 0} size={size === 'L' ? 64 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} className="nc-habitweek-ring"/>
       <Hero value={`${week.done}`} unit={`of ${week.due}`} label={!week.due ? 'Nothing due today' : week.done >= week.due ? 'All done today' : 'Done today'}/>
     </div>
     {size !== 'S' && <Lattice columns={week.days.map(d => formatWeekday(d).slice(0, 1))} rows={week.rows.map(r => ({key: r.id, label: r.title, cells: r.cells, note: streakNote(r.streak, r.unit)}))}/>}

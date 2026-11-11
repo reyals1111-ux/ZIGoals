@@ -3,7 +3,7 @@ import {useEffect, useMemo, useState, type CSSProperties} from 'react';
 import {dayLeftWords, daysLeftWords, msToNextMinute, timeRings} from '../../../lib/nova/cards/time';
 import {formatDate, formatNumber, formatPercent, formatTime} from '../../../lib/visual-format';
 import {tickPath} from '../../../lib/nova/holo/geometry';
-import {ArcMark, CardFoot, Fact, type CardProps} from '../cards/kit';
+import {ArcMark, CardFoot, Fact, Gauge, type CardProps} from '../cards/kit';
 import {HoloTable, Orn} from '../holo/parts';
 import '../cards/life-cards.css';
 
@@ -32,13 +32,13 @@ function useMinute(): Date | null {
  * Decoration: each ring's percent and what is left are the rows beside it and the table.
  */
 function TimeDial({shares, size, hours}: {shares: readonly number[]; size: number; hours?: boolean}) {
-  const k = 100 / size, w = (size >= 150 ? 5 : 4.4) * k, step = w * 1.75;
-  return <span className="nc-time-dial" data-hours={hours || undefined} style={{'--nc-gauge': `${size}px`, '--nc-blur': `${(3.2 * k).toFixed(2)}px`} as CSSProperties} aria-hidden="true">
+  const px = size >= 150 ? 5.5 : 4.6, k = 100 / size, w = px * k, step = w * 1.75;
+  return <span className="nc-gauge nc-time-dial" data-hours={hours || undefined} style={{'--nc-d0': size, '--nc-w': px} as CSSProperties} aria-hidden="true">
     <svg viewBox="-50 -50 100 100" focusable="false">
       <path className="nc-bezel" d={tickPath(0, 0, 45, 47.5, 96)}/>
       <path className="nc-bezel nc-bezel-major" d={tickPath(0, 0, 44, 49, 24)}/>
       <path className="nc-time-cardinal" d="M0 -49.5l2.6 5h-5.2ZM49.5 0l-5 2.6v-5.2ZM0 49.5l-2.6 -5h5.2ZM-49.5 0l5 -2.6v5.2Z"/>
-      {shares.map((share, i) => <g key={i} className="nc-time-arc" data-i={i}><ArcMark share={share} r={41 - w / 2 - i * step} w={w * (i ? .82 : 1)} track={3 * k}/></g>)}
+      {shares.map((share, i) => <g key={i} className="nc-time-arc" data-i={i}><ArcMark share={share} r={41 - w / 2 - i * step} w={w} k={i ? .82 : undefined}/></g>)}
       <path className="nc-time-star" d="M0 -8.5 1.9 -1.9 8.5 0 1.9 1.9 0 8.5 -1.9 1.9 -8.5 0 -1.9 -1.9Z"/>
     </svg>
     <Orn view="-50 -50 100 100"><circle className="nc-gauge-orbit" r="49.4"/></Orn>
@@ -63,9 +63,11 @@ export default function TimeWidget({size}: {size: CardProps['size']; params?: Ca
   ];
   return <div className="nc-body nc-time" data-size={size}>
     {/* The kit's hero in its own markup: a clock that changes every minute neither counts up nor pulses. */}
-    <div className="nc-hero"><p className="nc-hero-figure"><span className="holo-num nc-hero-num">{formatTime(now)}</span></p><div className="nc-hero-words"><p className="nc-hero-label">{formatDate(now, {weekday: true, year: false})}</p></div></div>
+    <div className="nc-row"><div className="nc-hero"><p className="nc-hero-figure"><span className="holo-num nc-hero-num">{formatTime(now)}</span></p><div className="nc-hero-words"><p className="nc-hero-label">{formatDate(now, {weekday: true, year: false})}</p></div></div>
+      {/* Small: today's share as a ring at the row's end (decoration; the large sizes say it in words). */}
+      {size === 'S' && <span className="nc-mini"><Gauge share={rings.day.share} size={36} bezel={false} decor/></span>}</div>
     {size !== 'S' && <div className="nc-time-rings">
-      <TimeDial shares={items.map(it => it.share)} size={size === 'L' ? 148 : 108} hours={size === 'L'}/>
+      <TimeDial shares={items.map(it => it.share)} size={size === 'L' ? 148 : 120} hours={size === 'L'}/>
       <ul className="nc-time-rows">{items.map((it, i) => <li key={it.key} className="nc-rise" data-i={i} style={{'--nc-i': i} as CSSProperties}>
         <span className="nc-time-row-name">{it.label}</span><b className="nc-time-row-pct">{pct(it.share)}</b><span className="nc-time-row-left">{it.left}</span>
       </li>)}</ul>

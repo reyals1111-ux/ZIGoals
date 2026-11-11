@@ -29,11 +29,11 @@ export default function StepsWidget({size = 'M', params}: Partial<CardProps>) {
   if (health.error || !card) return <HoloUnread what="Your Health journal"/>;
   if (!card.latest) return <CardNotice kind="empty" title="No steps logged yet" href="/app/health?view=activity" action="Log your steps">{size === 'S' ? null : 'Add today’s steps on Health and your days show here.'}</CardNotice>;
   const {today, target, average, best, logged} = card, week = card.window.range === 'week';
-  const ring = size === 'L' ? 112 : 84;
+  const ring = size === 'L' ? 124 : size === 'S' ? 36 : 96;
   return <div className="nc-body nc-steps" data-size={size}>
     <div className="nc-steps-top">
       {/* The ring is today's share of the target (decoration: the words beside it say it); without a target there is no ring to fill. */}
-      {size !== 'S' && (today.share !== null ? <Gauge share={today.share} size={ring} spin className="nc-steps-ring"><HeartMark size={ring * .4}/></Gauge> : <span className="nc-steps-ring nc-steps-heart" aria-hidden="true"><HeartMark size={ring * .56}/></span>)}
+      {today.share !== null ? <Gauge share={today.share} size={ring} spin className="nc-steps-ring">{size === 'S' ? null : <HeartMark size={ring * .4}/>}</Gauge> : <span className="nc-steps-ring nc-steps-heart" aria-hidden="true"><HeartMark size={size === 'S' ? 36 : ring * .56}/></span>}
       <Hero value={today.text} unit={target ? `of ${target.text}` : today.steps === null ? undefined : 'steps'} label="Steps today">
         {today.note && <p className="nc-steps-note" data-tone={today.steps !== null && today.share === 1 ? 'good' : undefined}>{today.note}</p>}
       </Hero>

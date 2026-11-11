@@ -96,21 +96,23 @@ export function Fact({label, value}: {label: string; value: ReactNode}) {
 
 /**
  * One lit arc of a gauge, inside an SVG whose box is −50…50: a dim track, the value as a thick arc in a gradient that is
- * brightest at its leading end, a lit dot there and a soft bloom behind it. `w` is the arc's width in the box's units.
- * Unknown (null) is an unlit dashed track, never 0.
+ * brightest at its leading end, a lit dot there and a soft bloom behind it. Unknown (null) is an unlit dashed track,
+ * never 0. `w` is the arc's width in the box's units at the gauge's design size: it only places the radius. The stroke
+ * itself is set in the sheet from the gauge's own `--nc-w` (px) and `--nc-d` (its diameter in px), so a gauge that a
+ * container query makes larger keeps a 5–6 px line instead of a thick band; `k` thins one arc of several (inner rings).
  */
-export function ArcMark({share, r, w, start = 0, sweep = 360, track = w * .78}: {share: number | null; r: number; w: number; start?: number; sweep?: number; track?: number}) {
+export function ArcMark({share, r, w, start = 0, sweep = 360, k}: {share: number | null; r: number; w: number; start?: number; sweep?: number; k?: number}) {
   const id = useUid(), s = share === null ? 0 : clamp01(share);
   const a1 = start + sweep * s, span = a1 - start, lit = span > 0.5 ? arcPath(0, 0, r, start, a1) : '', end = polar(0, 0, r, a1);
   // The gradient runs along the last half-turn of the arc, so its leading end is always the brightest part.
   const half = Math.min(span, 180) / 2, phi = (a1 - half) * Math.PI / 180, ext = Math.max(1, r * Math.sin(half * Math.PI / 180)), gx = f2(Math.cos(phi) * ext), gy = f2(Math.sin(phi) * ext);
-  return <g className="nc-arcmark" data-unknown={share === null || undefined}>
+  return <g className="nc-arcmark" data-unknown={share === null || undefined} style={k ? {'--nc-wk': k} as CSSProperties : undefined}>
     <defs><linearGradient id={`${id}g`} gradientUnits="userSpaceOnUse" x1={-gx} y1={-gy} x2={gx} y2={gy}><stop offset="0" className="nc-g-a"/><stop offset="1" className="nc-g-b"/></linearGradient></defs>
-    <path className="nc-gauge-track" style={{strokeWidth: f2(track)}} d={arcPath(0, 0, r, start, start + sweep)}/>
+    <path className="nc-gauge-track" d={arcPath(0, 0, r, start, start + sweep)}/>
     {lit && <>
-      <path className="nc-gauge-glow nc-glow" style={{strokeWidth: f2(w * 2.4)}} d={lit}/>
-      <path className="nc-gauge-arc nc-draw" pathLength={1} stroke={`url(#${id}g)`} style={{strokeWidth: f2(w)}} d={lit}/>
-      <path className="nc-glint" style={{strokeWidth: f2(Math.max(.7, w * .16))}} d={lit}/>
+      <path className="nc-gauge-glow nc-glow" d={lit}/>
+      <path className="nc-gauge-arc nc-draw" pathLength={1} stroke={`url(#${id}g)`} d={lit}/>
+      <path className="nc-glint nc-gauge-glint" d={lit}/>
       <circle className="nc-gauge-end" cx={end.x} cy={end.y} r={f2(w * .78)}/>
     </>}
   </g>;
@@ -118,7 +120,8 @@ export function ArcMark({share, r, w, start = 0, sweep = 360, track = w * .78}: 
 /**
  * A ring gauge (AM-2 D): the lit arc (`ArcMark`) inside a tick bezel (every fifth tick longer), the figure, if any, in the
  * middle (its children). `sweep` under 360 opens the ring (a dial); `spin` adds one slowly turning ornament ring (never
- * the data). Decoration: the words beside it carry the value.
+ * the data). Decoration: the words beside it carry the value. `size` is its diameter in px where nothing else decides:
+ * the sheets make a hero gauge larger in a larger panel (container queries set `--nc-d`), and its line stays `thick` px.
  */
 export function Gauge({share, size = 64, sweep = 360, start = 0, bezel, spin = false, thick, ticks, children, className = '', tone, extra, decor}: {
   share: number | null; size?: number; sweep?: number; start?: number; bezel?: boolean; spin?: boolean; thick?: number; ticks?: number; children?: ReactNode; className?: string; tone?: 'over';
@@ -127,13 +130,13 @@ export function Gauge({share, size = 64, sweep = 360, start = 0, bezel, spin = f
   /** More drawing inside the gauge's own box (viewBox −50…50), under its arc: inner ornament rings, milestone marks. */
   extra?: ReactNode;
 }) {
-  const k = 100 / size, rim = bezel ?? size >= 60, w = (thick ?? (size >= 100 ? 6.5 : size >= 60 ? 5.5 : 4.2)) * k, r = (rim ? 41 : 46.5) - w / 2;
+  const k = 100 / size, rim = bezel ?? size >= 60, px = thick ?? (size >= 100 ? 6 : size >= 60 ? 5.5 : 4.2), w = px * k, r = (rim ? 41 : 46.5) - w / 2;
   const n = ticks ?? Math.max(2, Math.round(60 * sweep / 360)), full = sweep >= 360;
-  return <span className={`nc-gauge ${className}`.trim()} data-tone={tone} aria-hidden={decor || undefined} style={{'--nc-gauge': `${size}px`, '--nc-blur': `${f2(3.4 * k)}px`} as CSSProperties}>
+  return <span className={`nc-gauge ${className}`.trim()} data-tone={tone} data-rim={rim || undefined} aria-hidden={decor || undefined} style={{'--nc-d0': size, '--nc-w': px} as CSSProperties}>
     <svg viewBox="-50 -50 100 100" aria-hidden="true" focusable="false">
       {rim && <><path className="nc-bezel" d={tickPath(0, 0, 45, 47.5, full ? n : n + 1, start, sweep)}/><path className="nc-bezel nc-bezel-major" d={tickPath(0, 0, 44, 49, full ? Math.round(n / 5) : Math.round(n / 5) + 1, start, sweep)}/></>}
       {extra}
-      <ArcMark share={share} r={r} w={w} start={start} sweep={sweep} track={3.5 * k}/>
+      <ArcMark share={share} r={r} w={w} start={start} sweep={sweep}/>
     </svg>
     {spin && rim && <Orn view="-50 -50 100 100"><circle className="nc-gauge-orbit" r="49.4"/></Orn>}
     {children !== undefined && children !== null && <span className="nc-gauge-centre">{children}</span>}

@@ -44,7 +44,7 @@ export function WeatherScene({sky, size = 96, live = false}: {sky: Condition; si
     {(kind === 'snow' || kind === 'sleet') && <g className="nw-snow">{[[19, 49], [32, 55], [45, 49], [25.5, 59.5], [39, 60]].map(([x, y]) => <path key={`${x}`} d={flake(x!, y!)}/>)}</g>}
     {kind === 'thunder' && <path className="nw-bolt" fill={`url(#${id}b)`} d="M35 37l-9 13h7.4l-3.2 10.5L41 46h-7.6z"/>}
   </>;
-  return <span className="nw-scene" data-kind={kind} data-night={night || undefined} data-live={live || undefined} style={{width: size, height: size}} aria-hidden="true">
+  return <span className="nw-scene" data-kind={kind} data-night={night || undefined} data-live={live || undefined} style={{'--nw-s': `${size}px`} as CSSProperties} aria-hidden="true">
     <svg viewBox="0 0 64 64" focusable="false">
       <defs>
         <radialGradient id={`${id}s`}><stop offset="0" className="nw-stop-hot"/><stop offset=".5" className="nw-stop-sun"/><stop offset="1" className="nw-stop-sun-edge"/></radialGradient>
@@ -112,9 +112,10 @@ export default function WeatherWidget({size = 'M'}: Partial<CardProps>) {
   const count = size === 'L' ? 8 : 6, step = Math.max(1, Math.min(4, Math.floor((reading.hours.length - 1) / (count - 1)) || 1));
   const hours = Array.from({length: count}, (_, i) => reading.hours[i * step]).filter((h): h is WorldReading['hours'][number] => !!h), all = reading.hours.slice(0, (hours.length - 1) * step + 1), n = hours.length;
   const lo = Math.min(...days.map(d => d.min)), hi = Math.max(...days.map(d => d.max)), span = hi - lo || 1;
-  const wetOf = (h: {precip?: number}) => typeof h.precip === 'number' && h.precip > 0 ? h.precip : 0, rain = hours.map(wetOf), rainTop = Math.max(0, ...all.map(wetOf)), peak = Math.max(0, ...rain) > 0 ? rain.indexOf(Math.max(...rain)) : -1;
-  // The outlook's drawing: one column per named hour (its point at the column's centre), the hours between them on the same line.
-  const PW = n * 40, PH = size === 'L' ? (peak >= 0 ? 58 : 46) : 36, base = size === 'L' && peak >= 0 ? 40 : rainTop > 0 ? 22 : 12, tLo = Math.min(...all.map(h => h.t)), tHi = Math.max(...all.map(h => h.t)), tSpan = tHi - tLo || 1;
+  const wetOf = (h: {precip?: number}) => typeof h.precip === 'number' && h.precip > 0 ? h.precip : 0, rain = hours.map(wetOf), rainTop = Math.max(0, ...rain), peak = rainTop > 0 ? rain.indexOf(rainTop) : -1;
+  // The outlook's drawing: one column per named hour (its point at the column's centre), the hours between them on the same
+  // line. The plot is the body's elastic row (world-cards.css): the drawing stretches with it, the bars under it do not.
+  const PW = n * 40, PH = 40, base = 12, keep = rainTop > 0 ? (size === 'L' ? 36 : 16) : 0, tLo = Math.min(...all.map(h => h.t)), tHi = Math.max(...all.map(h => h.t)), tSpan = tHi - tLo || 1;
   const px = (j: number) => +((j / step + .5) * 40).toFixed(2), py = (t: number) => +(6 + (1 - (t - tLo) / tSpan) * (PH - base)).toFixed(2);
   const pts = all.map((h, j) => ({x: px(j), y: py(h.t)})), curve = pts.length > 2 ? smoothPath(pts) : linePath(pts);
   const facts: (readonly [string, string])[] = [];
@@ -123,32 +124,30 @@ export default function WeatherWidget({size = 'M'}: Partial<CardProps>) {
   if (typeof now.uv === 'number') facts.push(['UV (clear sky)', String(Math.round(now.uv))]);
   return <div ref={frame} className="nc-body nw-weather" data-size={size}>
     <div className="nw-now">
-      <WeatherScene sky={sky!} size={size === 'S' ? 52 : size === 'M' ? 84 : 96} live/>
+      <WeatherScene sky={sky!} size={size === 'S' ? 36 : size === 'M' ? 84 : 96} live/>
       <div className="nw-now-words">
         <p className="nw-temp"><span className="holo-num nw-temp-num">{degrees(now.t)}</span><span className="nw-temp-unit">C</span></p>
         <p className="nw-condition">{sky!.words}</p>
         {(size === 'L' || (size === 'M' && brolly.expected)) && <p className="nw-umbrella">{brolly.words}</p>}
       </div>
     </div>
-    {size !== 'S' && n > 1 && <div className="nw-outlook" data-rain={rainTop > 0 ? '' : undefined} style={{'--nw-plot': `${PH}px`, '--nw-n': n} as CSSProperties}>
-      <div className="nw-outlook-plot" aria-hidden="true">
+    {size !== 'S' && n > 1 && <div className="nw-outlook" data-rain={rainTop > 0 ? '' : undefined} style={{'--nw-plot': `${(size === 'L' ? 46 : 36) + keep}px`, '--nw-keep': `${keep}px`, '--nw-n': n} as CSSProperties}>
+      <div className="nw-outlook-plot" aria-hidden="true"><div className="nw-outlook-line">
         <svg viewBox={`0 0 ${PW} ${PH}`} preserveAspectRatio="none" focusable="false">
           <defs>
             <linearGradient id={`${uid}f`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" className="nc-fill-a"/><stop offset=".6" className="nc-fill-m"/><stop offset="1" className="nc-fill-b"/></linearGradient>
             <linearGradient id={`${uid}s`} gradientUnits="userSpaceOnUse" x1={pts[0]!.x} y1="0" x2={pts.at(-1)!.x} y2="0"><stop offset="0" className="nc-g-b"/><stop offset="1" className="nc-g-a"/></linearGradient>
-            <linearGradient id={`${uid}r`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" className="nw-stop-rain-a"/><stop offset="1" className="nw-stop-rain-b"/></linearGradient>
           </defs>
-          {rainTop > 0 && all.map((h, j) => { const tall = +(3 + 11 * wetOf(h) / rainTop).toFixed(2); return wetOf(h) > 0 ? <g key={h.at} className="nw-rain-col"><rect fill={`url(#${uid}r)`} x={px(j) - 3.5} y={PH - tall} width="7" height={tall} rx="1.5"/><rect className="nw-rain-cap" x={px(j) - 3.5} y={PH - tall} width="7" height="1.6" rx=".8"/></g> : null; })}
           <path className="nc-trend-fill" fill={`url(#${uid}f)`} d={`${curve}L${pts.at(-1)!.x} ${PH}L${pts[0]!.x} ${PH}Z`}/>
           <path className="nc-trend-glow nc-glow" d={curve}/><path className="nc-trend-line nc-draw" pathLength={1} stroke={`url(#${uid}s)`} d={curve}/><path className="nc-glint nc-trend-glint" d={curve}/>
         </svg>
         {hours.map((h, i) => <i key={h.at} className="nw-outlook-dot" data-lead={i === 0 || undefined} style={{left: `${((i + .5) / n * 100).toFixed(2)}%`, top: `${(py(h.t) / PH * 100).toFixed(2)}%`}}/>)}
-      </div>
+      </div></div>
       <ol className="nw-hours" aria-label="The next hours">{hours.map((h, i) => <li key={h.at}>
         <span className="nw-hour-time">{clockTime(h.at)}</span>
         <WeatherScene sky={condition(h.symbol)} size={24}/>
         <span className="nw-hour-temp">{degrees(h.t)}</span>
-        {size === 'L' && i === peak && <b className="nw-hour-rain">{rain[i]} mm</b>}
+        {rainTop > 0 && <span className="nw-hour-rain">{size === 'L' && i === peak && <b>{rain[i]} mm</b>}{rain[i]! > 0 && <i aria-hidden="true" style={{'--nw-rain': (rain[i]! / rainTop).toFixed(3), '--nc-i': i} as CSSProperties}/>}</span>}
       </li>)}</ol>
     </div>}
     {size === 'L' && days.length > 1 && <div className="nw-days"><p className="holo-label">The next days · lowest to highest</p>

@@ -53,16 +53,19 @@ export default function NetWorthWidget({size = 'M', params}: Partial<CardProps>)
   const cur = card.currency ?? '', money = (cents: bigint) => wealthMoney(cents, cur), on = (at: string) => day(at, today);
   const first = card.points[0], last = card.points.at(-1);
   return <div className="nc-body nc-networth-card" data-size={size}>
-    <Hero value={card.total === null ? '—' : money(card.total)} label={card.knownSoFar ? (size === 'S' ? 'Known so far' : 'Tracked wealth · known so far') : 'Tracked wealth'}>
+    <div className="nc-networth-top"><Hero value={card.total === null ? '—' : money(card.total)} label={card.knownSoFar ? (size === 'S' ? 'Known so far' : 'Tracked wealth · known so far') : 'Tracked wealth'}>
       {card.total === null && <p className="nc-networth-note">Not valued yet: your holdings have no known value.</p>}
       {size !== 'S' && card.otherCurrencies.length > 0 && <p className="nc-networth-note">+ held in {card.otherCurrencies.join(', ')} · never converted</p>}
       {size !== 'S' && card.change && <Delta text={changeWords(card.change, money, percent, on)} direction={card.change.direction} good={card.change.direction === 'up' ? true : card.change.direction === 'down' ? false : null}/>}
     </Hero>
+      {/* Small: the recorded line as a spark at the row's end (decoration; the medium and large sizes draw it whole). */}
+      {size === 'S' && card.points.length > 1 && <span className="nc-mini" aria-hidden="true"><TrendArea values={card.series} height={32}/></span>}
+    </div>
     {size !== 'S' && (card.points.length > 1 && first && last
       ? <div className="nc-networth-line">
         {size === 'L' && <p className="nc-networth-caption">Recorded valuations · {card.rangeWords}</p>}
         <TrendArea values={card.series} height={size === 'L' ? 112 : 44} labels={[on(first.at), on(last.at)]}
-          {...(size === 'L' && card.high && card.low && card.high.cents !== card.low.cents ? {maxLabel: money(card.high.cents), minLabel: money(card.low.cents)} : {})}/>
+          {...(card.high && card.low && card.high.cents !== card.low.cents ? {maxLabel: money(card.high.cents), minLabel: money(card.low.cents)} : {})}/>
       </div>
       : <p className="nc-networth-note">{card.recorded === 1 && first ? `One valuation recorded in ${card.rangeWords} (${on(first.at)}). A change shows once there are two.` : `No valuation recorded in ${card.rangeWords}, so there is no change to show.`}</p>)}
     {size === 'L' && <div className="nc-facts">

@@ -38,7 +38,7 @@ export default function NovaSeesWidget({size = 'M'}: Partial<CardProps>) {
   const off = cells.filter(c => !c.on), on = cells.length - off.length, shown = size === 'S' ? [] : cells;
   return <div className="nc-body nc-sees" data-size={size}>
     <div className="nc-sees-top">
-      {size !== 'S' && <Gauge share={rows.length ? lit / rows.length : null} size={size === 'L' ? 76 : 56} bezel ticks={rows.length * 5} spin={size === 'L'} decor className="nc-sees-ring"/>}
+      <Gauge share={rows.length ? lit / rows.length : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 56} bezel={size !== 'S'} ticks={rows.length * 5} spin={size === 'L'} decor className="nc-sees-ring"/>
       <p className="nc-sees-count"><b>{lit}</b> <span>of {rows.length} parts of your life are open to NOVA</span></p>
     </div>
     {shown.length > 0 && <ul className="nc-sees-grid" aria-hidden="true">{shown.map((c, i) => <li key={c.key} className="nc-rise" data-on={c.on || undefined} data-world={c.world ? '' : undefined} data-realm={c.realm} style={{'--nc-i': Math.min(i, 6)} as CSSProperties}><span className="nc-sees-cell"/><span className="nc-sees-name">{c.name}</span><span className="nc-sees-rule"/><span className="nc-sees-why">{c.on ? 'On' : 'Off'}</span></li>)}</ul>}

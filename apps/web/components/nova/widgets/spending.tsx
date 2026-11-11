@@ -34,9 +34,12 @@ export default function SpendingWidget({size = 'M', params}: Partial<CardProps>)
   </div>;
   const top = card.categories.slice(0, SHOWN[size]), more = card.categories.length - top.length;
   return <div className="nc-body nc-spending-card" data-size={size}>
-    <Hero value={card.total} label={size === 'L' ? `Spent ${card.window.words}` : card.window.words.replace(/^in /, '')}>
+    <div className="nc-spending-top"><Hero value={card.total} label={size === 'L' ? `Spent ${card.window.words}` : card.window.words.replace(/^in /, '')}>
       {size !== 'S' && card.others.length > 0 && <p className="nc-spending-note">{card.others.map(o => `+ ${o.text} in ${o.currency}`).join(' · ')} · never converted</p>}
     </Hero>
+      {/* Small: the categories as one stacked bar at the row's end (decoration; the medium and large sizes name them). */}
+      {size === 'S' && card.categories.length > 0 && <span className="nc-mini"><StackBar parts={card.categories.slice(0, 4).map(c => ({key: c.category, share: c.share}))}/></span>}
+    </div>
     {top.length > 0 && <div className="nc-spending-bars">
       {size === 'L' && <p className="nc-spending-caption">By category · share of the total</p>}
       <StackBar parts={top.map(c => ({key: c.category, share: c.share}))}/>

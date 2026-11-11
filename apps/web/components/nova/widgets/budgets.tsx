@@ -30,7 +30,7 @@ export default function BudgetsWidget({size = 'M'}: Partial<CardProps>) {
   const top = card.lines.slice(0, SHOWN[size]), more = card.lines.length - top.length;
   return <div className="nc-body nc-budgets-card" data-size={size}>
     <div className="nc-budgets-top">
-      {size !== 'S' && <Gauge share={card.count ? card.within / card.count : null} size={size === 'L' ? 76 : 50} spin={size === 'L'} decor className="nc-budgets-ring"/>}
+      <Gauge share={card.count ? card.within / card.count : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor className="nc-budgets-ring"/>
       <Hero value={card.hero} label={`${card.count === 1 ? 'budget' : 'budgets'} within plan`}/>
     </div>
     {top.length > 0 && <div className="nc-budgets-bars">
