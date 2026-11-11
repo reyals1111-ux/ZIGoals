@@ -64,8 +64,10 @@ export const NOVA_ACTIONS = Object.freeze({
 });
 /** The words each part must show (lib/nova/summon/words.ts, stage-parts.tsx, widgets/weather.tsx, stage/use-stage.ts). */
 export const NOVA_WORDS = Object.freeze({
-  answer: Object.freeze(['On the stage', 'no AI used']),
-  announced: `Added: ${HABITS_TITLE}`,
+  // Session AM (design review AM-D2, deliberate): the answer is the widget's own line ("Habits this week: …"), not "On the
+  // stage: <title>", and the announcement carries it ("Habits this week is on the stage: …").
+  answer: Object.freeze([`${HABITS_TITLE}`, 'no AI used']),
+  announced: `${HABITS_TITLE} is on the stage`,
   weatherOff: Object.freeze(['Weather is off', 'MET Norway']),
   closed: `${HABITS_TITLE} left the stage.`,
 });

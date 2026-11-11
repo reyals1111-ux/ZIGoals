@@ -51,8 +51,9 @@ test('every selector and every word the stage reads is written by the app', () =
   expect(parts).toContain('<CloseIcon/>Close</button>');
   expect(parts).toContain('aria-label={`Show ${widgetTitle(w.id)} again`}');
   const words = web('lib/nova/summon/words.ts'), catalog = web('lib/nova/widgets/catalog.ts');
-  expect(words).toContain('`On the stage: ${');
-  expect(words).toContain('return `Added: ${names}.');
+  // Session AM (design review AM-D2, deliberate): the words the stage checks are the widget's own line and the announcement that carries it.
+  expect(words).toContain("is on the stage: ${lines[widgets[0]!.id]} ${count}`");
+  expect(words).toContain('export function answerWords(');
   expect(words).toContain(`ask: 'Show my habits this week', widget: '${NOVA_WIDGETS.habits.id}'`);
   expect(catalog).toContain(`{id: '${NOVA_WIDGETS.habits.id}', title: '${NOVA_WIDGETS.habits.title}'`);
   expect(catalog).toContain(`{id: '${NOVA_WIDGETS.weather.id}', title: '${NOVA_WIDGETS.weather.title}'`);
@@ -63,7 +64,7 @@ test('every selector and every word the stage reads is written by the app', () =
   const toast = web('components/ui/undo-toast.tsx');
   expect(toast).toContain('className="aa-toast"');
   expect(toast).toContain('className="aa-toast-undo"');
-  expect(NOVA_WORDS).toEqual({answer: ['On the stage', 'no AI used'], announced: 'Added: Habits this week', weatherOff: ['Weather is off', 'MET Norway'], closed: 'Habits this week left the stage.'});
+  expect(NOVA_WORDS).toEqual({answer: ['Habits this week', 'no AI used'], announced: 'Habits this week is on the stage', weatherOff: ['Weather is off', 'MET Norway'], closed: 'Habits this week left the stage.'});
   expect(NOVA_ACTIONS.hide).toEqual({inline: 'Hide Habits this week in the dock', more: 'Hide in the dock'});
   expect(S.dockChip).toBe('button[aria-label="Show Habits this week again"]');
   expect(S.moreButton).toBe('.nova-widget[data-widget="habit-week"] button[aria-label="More for Habits this week"]');
@@ -149,8 +150,8 @@ function fakeNova({loads = true, stage = true, actions = 'inline', has = {}, csp
   const enter = words => {
     if (words === NOVA_REQUESTS.habits && part.habits) {
       state.widgets.add(H);
-      if (part.answer) state.answer = '“Show my habits this week” NOVA: On the stage: Habits this week · the last 7 days. Answered on this device · no AI used';
-      if (part.announce) state.status = 'Added: Habits this week · the last 7 days. 1 widget on the stage.';
+      if (part.answer) state.answer = 'NOVA: Habits this week: You have no habits yet. Answered on this device · no AI used';
+      if (part.announce) state.status = 'Habits this week is on the stage: You have no habits yet. 1 widget on the stage.';
     } else if (words === NOVA_REQUESTS.weather && part.weather) { state.widgets.add(W); for (const url of asks) emit(url); }
     else if (words === NOVA_REQUESTS.clear && part.clear) state.widgets.clear();
   };
@@ -233,7 +234,7 @@ test('a missing widget is a report item and one review reason, never an exceptio
 test('each smaller missing part is recorded the same way: the line, the announcement, the actions, the chip, the toast, the weather widget', async () => {
   for (const [options, absent] of [
     [{has: {answer: false}}, `NOVA's line under the star (${S.answer})`],
-    [{has: {announce: false}}, `the polite announcement "Added: Habits this week" (${S.status})`],
+    [{has: {announce: false}}, `the polite announcement "Habits this week is on the stage" (${S.status})`],
     [{actions: 'none'}, `the widget's Pin, Hide and Close (neither ${S.inlineActions} nor ${S.moreButton} is visible)`],
     [{has: {chip: false}}, `the dock chip "Show Habits this week again" (${S.dockChip})`],
     [{has: {toast: false}}, `the toast after Close (${S.toast})`],
