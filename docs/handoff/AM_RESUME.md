@@ -32,16 +32,24 @@ Not in yet at this checkpoint: the weather widget's look (the MET Norway client 
 - **Parts 5, 9, 10, 11** `ac1984cf`: the side bars (go-to, Requests, On the stage, Your choices), gentle cards wired, the phone path (answers in words; requests kept for the computer), NOVA in its own window (no manifest change), the mic, the rest rule.
 - ADR-038 D23–D34 record every decision made after the approval.
 
-## In progress (helpers)
-- A fresh-eyes design review → `docs/review/session-am/NOVA_AM_DESIGN_REVIEW.md` (the lead fixes its findings).
-- A defensive security review → `docs/review/session-am/AM_SECURITY_REVIEW.md` (the lead fixes its findings).
-- The hosted verifier's stage 13 "NOVA" (`scripts/lib/hosted-alpha-nova.mjs`).
-- The in-app guide, Help, What's new, the rename label "Premium · free during the Alpha", `docs/product/NOVA.md`.
+## Done in the finish so far (pushed through `3abf5068`)
+- The two reviews are in the repo: `docs/review/session-am/AM_SECURITY_REVIEW.md` (13 findings, none Critical or High) and `NOVA_AM_DESIGN_REVIEW.md` (40 findings, 3 blockers).
+- Security fixes pushed: `98b1afb5` TIER 3 (sync) AM-S11; `ddff3472` TIER 3 (stored format, CSP/egress) AM-S3/S9/S10; `3abf5068` the privacy text (AM-S13). ADR-038 D35 lists every finding and its fix.
+- The hosted verifier's stage 13 (`b496d275`), the user guide (`2218e518`), the demo tour (`9f82a35d`).
+
+## In progress (11 Nov, about 07:40 UTC; nothing of this is committed yet)
+- **Security, the AI-safety half** (AM-S1, S2, S4–S8, S12) is in the working tree with its proofs (`lib/nova/stage/am-security.test.ts`); it shares files with the design fixes below (`use-summoner.ts`, `summon.ts`, `words.ts`, `use-stage.ts`), so it is committed with them as `TIER 3 (AI safety)`.
+- **Design-review fixes**, three helpers plus the lead:
+  - answers with figures and the engine-first rule (AM-D2, D3, D12, D13, D22, D25, D31; ADR-038 D36): `lib/nova/summon/lines.ts`, `use-summoner.ts`;
+  - stage layout and chrome (AM-D1, D4–D8, D14, D17, D23, D24, D26, D33–D35): `nova.css`, `stage.css`, `nova-stage.tsx`, `nova-dashboard.tsx`;
+  - widgets (AM-D10, D11, D19–D22, D29, D31, D37–D39): `components/nova/widgets`, `cards`, `widget-grid.tsx`, `stage-parts.tsx`;
+  - the lead: the star's states and beam (D15), sharpness and planet (D16), a widget keeps its side (D9, ADR D38), the governor (ADR D37), the conversation's Light parity. Still open: D18 (a "Go to the widget" link in the answer; the widget as a focus target) and the star's whole disc as the button.
+- **Browser specs.** CI run 1643 failed 122 specs, nearly all from two deliberate changes (D2 the empty stage; the conversation mounted but hidden). A helper repaired the shared helpers and most specs (`tests/nova-am.ts`, `tests/grok53/ai/helpers.ts`, …; uncommitted). Open: a second pass against a production build once the design fixes are in (geometry specs `p3-nova-polish:59`, `hud-review2:112/:153`; `nova-chat:180`, `j12-nova:79`, `al-nova-workflow-undo:25`, `hud-elements:36`; the mobile project; the new `tests/nova-stage-am.spec.ts`, never run).
 
 ## Still to do after those
-- Playwright: existing NOVA specs updated for D2 (arrange the Command preset first; assertions as strict) and new specs for the live stage and every A1 item; one browser run at a time, Chromium, 2 workers.
-- One production build: route weights (`/app/nova` ≤ 458 kB), the perf proofs (idle, CPU 4×, Motion Off still, hidden paused), then CI on the PR.
-- `docs/handoff/AM_DEMO_TOUR.md`, the STATUS entry (final commit), the PR out of Draft, the report to the owner (≤ 15 lines).
+- One production build: the second spec pass, route weights (`/app/nova` ≤ 458 kB), the perf proofs (idle, CPU 4×, Motion Off still, hidden paused) into ADR-038, screenshots at 1440/1024/390 in the three themes.
+- CI green on the PR head (at most two fix attempts per failure; a known intermittent gets one re-run).
+- `docs/handoff/AM_DEMO_TOUR.md` re-read against the final behaviour (the left bar's "Your day" group is now "Your plan"; a request without a widget opens the conversation), ADR-038's closing table, the STATUS entry (final commit), the PR out of Draft, the report to the owner (≤ 15 lines).
 
 ## Next (the plan's parts, in order)
 1. Summon step and the stage record (`lib/nova/summon`, `lib/nova/stage`), stored-format registries (TIER 3 stored format).
