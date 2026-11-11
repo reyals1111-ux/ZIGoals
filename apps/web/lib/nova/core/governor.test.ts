@@ -8,6 +8,12 @@ describe('starRender: running, one still frame, or the SVG orb', () => {
   it('falls back to the SVG orb without WebGL, after a failure, with Save-Data or a low battery', () => {
     expect(starRender({hud: 'full', webgl: false, hints: able, failed: false})).toBe('orb');
     expect(starRender({hud: 'full', webgl: true, hints: able, failed: true})).toBe('orb');
+    // A7: a browser that draws WebGL in software gets one still frame per state (never a running star), in Calm too;
+    // the orb's own reasons still lead.
+    expect(starRender({hud: 'full', webgl: true, hints: able, failed: false, software: true})).toBe('still');
+    expect(starRender({hud: 'calm', webgl: true, hints: able, failed: false, software: true})).toBe('still');
+    expect(starRender({hud: 'full', webgl: true, hints: able, failed: false, software: false})).toBe('running');
+    expect(starRender({hud: 'full', webgl: true, hints: {...able, saveData: true}, failed: false, software: true})).toBe('orb');
     expect(starRender({hud: 'full', webgl: true, hints: {...able, saveData: true}, failed: false})).toBe('orb');
     expect(starRender({hud: 'full', webgl: true, hints: {...able, lowBattery: true}, failed: false})).toBe('orb');
   });

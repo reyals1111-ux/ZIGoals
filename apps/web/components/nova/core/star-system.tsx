@@ -31,17 +31,23 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
   onRender?: (render: StarRender) => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [failed, setFailed] = useState(false), [hints, setHints] = useState<DeviceHints | null>(null), [webgl, setWebgl] = useState<boolean | null>(null);
+  const [failed, setFailed] = useState(false), [hints, setHints] = useState<DeviceHints | null>(null), [webgl, setWebgl] = useState<boolean | null>(null), [software, setSoftware] = useState(false);
   // What the device says about itself (the battery arrives a little later, where the browser has one).
   useEffect(() => {
     setHints(deviceHints());
     let live = true;
     const nav = navigator as Navigator & {getBattery?: () => Promise<{level: number; charging: boolean}>};
     nav.getBattery?.().then(b => { if (live && !b.charging && b.level <= 0.2) setHints(h => ({...(h ?? {}), lowBattery: true})); }).catch(() => undefined);
-    try { const probe = document.createElement('canvas'); setWebgl(!!(probe.getContext('webgl', {failIfMajorPerformanceCaveat: false}) ?? probe.getContext('experimental-webgl'))); } catch { setWebgl(false); }
+    try {
+      // With graphics hardware the first ask succeeds. If only the second does, the browser draws WebGL in software.
+      const hard = document.createElement('canvas').getContext('webgl', {failIfMajorPerformanceCaveat: true}), probe = document.createElement('canvas');
+      const any = hard ?? probe.getContext('webgl') ?? probe.getContext('experimental-webgl');
+      setWebgl(!!any); setSoftware(!hard && !!any);
+      try { (hard ?? (any as WebGLRenderingContext | null))?.getExtension('WEBGL_lose_context')?.loseContext(); } catch { /* the probe is dropped with its canvas */ }
+    } catch { setWebgl(false); }
     return () => { live = false; };
   }, []);
-  const render: StarRender | null = hints === null || webgl === null ? null : starRender({hud, webgl, hints, failed});
+  const render: StarRender | null = hints === null || webgl === null ? null : starRender({hud, webgl, hints, failed, software});
   useEffect(() => { if (render) onRender?.(render); }, [render, onRender]);
 
   // Everything the loop reads lives in refs, so a state change never rebuilds the GL program.
@@ -155,6 +161,6 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
   }, [drawn]);
 
   if (!drawn) return null;
-  return <canvas ref={canvas} className="nova-star" aria-hidden="true" data-star="starting" data-motion-essential="" style={{width: size, height: size}}/>;
+  return <canvas ref={canvas} className="nova-star" aria-hidden="true" data-star="starting" data-star-software={software ? '' : undefined} data-motion-essential="" style={{width: size, height: size}}/>;
 }
 export default StarSystem;

@@ -8,7 +8,7 @@ import type {DeviceHints} from '../orb-starfield';
  *
  * - `starRender`: whether the star is drawn at all, as a running picture, one still frame, or not (the SVG orb shows).
  *   No WebGL, a context that could not be restored, Save-Data and a low battery fall back to the SVG orb; Motion Off and
- *   reduced motion, a hidden tab and a very small device get one still frame per state.
+ *   reduced motion, a hidden tab, a very small device and a browser that draws WebGL in software get one still frame per state.
  * - `starPace`: frames per second and resolution for a running star. Active (the person just pressed a key, tapped,
  *   asked, or NOVA is listening, thinking or speaking) is 30 fps; resting (the window is not focused, or 60 s passed
  *   without a key, tap or request) is 6 fps at the same resolution; Calm is 12 fps. Activity is never read from pointer
@@ -17,9 +17,14 @@ import type {DeviceHints} from '../orb-starfield';
  *   last tier is one still frame. It never steps up during a visit.
  */
 export type StarRender = 'running' | 'still' | 'orb';
-export function starRender({hud, webgl, hints, failed}: {hud: HudMotionState; webgl: boolean; hints: DeviceHints; failed: boolean}): StarRender {
+export function starRender({hud, webgl, hints, failed, software = false}: {hud: HudMotionState; webgl: boolean; hints: DeviceHints; failed: boolean;
+  /** The browser draws WebGL without the graphics hardware (it reports a major performance caveat): every frame is the processor's work. */
+  software?: boolean}): StarRender {
   if (!webgl || failed || hints.saveData === true || hints.lowBattery === true) return 'orb';
   if (hud === 'still' || hud === 'paused') return 'still';
+  // A7: without graphics hardware a running star would take the processor from the page (measured: 67 ms a frame at
+  // CPU 4×), so it is one composed frame per state, like Motion Off's.
+  if (software) return 'still';
   if ((typeof hints.hardwareConcurrency === 'number' && hints.hardwareConcurrency > 0 && hints.hardwareConcurrency <= 2) || (typeof hints.deviceMemory === 'number' && hints.deviceMemory > 0 && hints.deviceMemory <= 2)) return 'still';
   return 'running';
 }
