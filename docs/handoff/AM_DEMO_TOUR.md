@@ -18,7 +18,7 @@ then http://127.0.0.1:3100/app/nova (Chrome or Edge on a computer; a window of 1
 Settings → **Load Showcase Demo**, then open NOVA again. The Showcase's own arrangement stands around the star (labelled "Showcase · fictional example data"): Health, Goals, Habits and Wealth as cut-corner glass instruments, more below.
 
 ## 3. Ask, and a widget is made (4 minutes)
-Type in the command bar (or tap a chip). Each answer appears under the star with "Answered on this device · no AI used", and a widget is projected beside the star, in front of the others.
+Type in the command bar (or tap a chip). A request NOVA has a widget for is answered under the star, with its figure in one sentence and "Answered on this device · no AI used"; the star thinks, speaks and sends a beam to the widget it projects beside it. "Go to …" in the answer puts the keyboard on that widget. Anything else you type is a conversation: it opens at once, as it always did.
 
 Questions to try:
 1. **Show my habits this week** — a cyan lattice: each habit against the last seven days, with streaks.
@@ -31,7 +31,7 @@ Questions to try:
 8. **What can you see?**, **Which model are you using?**, **What did I ask before?**, **show the time**.
 
 ## 4. Pin, hide, close, open (2 minutes)
-- Each widget's header has **Pin**, **Hide** and **Close** (on a narrow widget: under **More**), and an arrow that opens its full page; Back returns to the same stage.
+- Each widget's header has **Pin**, **Hide** and **Close** (on a very narrow widget: under **More**), and an arrow that opens its full page; Back returns to the same stage. A widget keeps its side of the star while others come and go.
 - **Pin** keeps a widget (a small dot beside its title); unpinned widgets leave after 12 hours, or stay until you close them (right bar → Your choices).
 - **Hide** folds it into the **Dock** above the command bar; tap the chip to bring it back.
 - **Close** has Undo. Say **clear the stage** (Undo too), **pin the net worth**, **sluit het weer**.
@@ -39,7 +39,7 @@ Questions to try:
 - **View** (bottom left): the arrangements (Command, Health, Wealth, Minimal) in one tap, the layouts, Holo or Classic, and the widget gallery.
 
 ## 5. The side bars (1 minute)
-- **Left** — everything in the app: Today, your pillars, your day, your mind, money, more, agents. Type in **Go to…**: "sleep", "bills", "new goal", "rekeningen" jump straight to the place. The arrow at its top folds it to icons or hides it.
+- **Left** — everything in the app: Today, your pillars, your plan, your mind, money, more, agents. Type in **Go to…**: "sleep", "bills", "new goal", "rekeningen" jump straight to the place. The arrow at its top folds it to icons or hides it.
 - **Right** (the last tile of the top bar, or `]`) — **Requests** (what you asked; "from your phone" when it came from there; Show again; Forget), **On the stage**, **Your choices** (keep made widgets; gentle cards, off by default), then Behind the intelligence.
 
 ## 6. Voice, a model, your own window (2 minutes)
