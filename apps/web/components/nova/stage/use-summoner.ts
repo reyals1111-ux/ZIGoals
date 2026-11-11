@@ -2,7 +2,7 @@
 import {useCallback, useEffect, useRef} from 'react';
 import type {HudPreset} from '../../../lib/nova/layout';
 import type {AskDevice, MakeRequest} from '../../../lib/nova/stage/record';
-import {mergeSummons, stageCalls, summonFor, summonForTools, type StageCommand, type SummonContext, type SummonPlan} from '../../../lib/nova/summon/summon';
+import {mergeSummons, stageCalls, summonFor, summonForTools, unsafeWords, type StageCommand, type SummonContext, type SummonPlan} from '../../../lib/nova/summon/summon';
 import {commandWords, madeWords} from '../../../lib/nova/summon/words';
 import {getAppStorage} from '../../../lib/showcase-storage';
 import {formatDate, formatTime} from '../../../lib/visual-format';
@@ -47,6 +47,9 @@ export function useSummoner({bridge, session, say, goals}: {
   /** Before the engine: true when the stage answered the words itself (a command, or a plain "show me …"). */
   const direct = useCallback((text: string): boolean => {
     if (!bridge) return false;
+    // Words the engine refuses or answers with the guard (a secret, a card number, a guarded topic) are the engine's alone:
+    // nothing is made, nothing is kept as a request, and the words are not held here.
+    if (unsafeWords(text)) { pending.current = null; return false; }
     const plan = summonFor(text, context()), ask: StageAsk = {text, by: 'device', device: bridge.device, kept: kept.current};
     pending.current = null;
     if (plan.command && bridge.device === 'phone') { say(text, plan.lang === 'nl' ? 'Dat is voor NOVA op een computer: op een telefoon is er geen podium, hier praat je met NOVA.' : 'That is for NOVA on a computer: a phone has no stage, here you talk with NOVA.'); return true; }
@@ -80,7 +83,7 @@ export function useSummoner({bridge, session, say, goals}: {
     return false;
   }, [bridge, context, say]);
   /** A question that reaches the engine by another way (a welcome chip, "ask this instead"): its widgets wait for the reply too. */
-  const note = useCallback((text: string) => { if (bridge && pending.current?.question !== text) pending.current = {question: text, plan: summonFor(text, context())}; }, [bridge, context]);
+  const note = useCallback((text: string) => { if (!bridge) return; if (unsafeWords(text)) { pending.current = null; return; } if (pending.current?.question !== text) pending.current = {question: text, plan: summonFor(text, context())}; }, [bridge, context]);
 
   // When a reply arrives: make what the question and the reply's lookups ask for, and hand the reply to the stage's line.
   const turns = session.chat.turns, chatId = session.chat.id, status = session.status, localFor = session.localFor, parsed = session.parsed;

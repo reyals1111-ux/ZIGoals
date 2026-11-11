@@ -1,4 +1,5 @@
-import {safetyFirst} from '../../ai/safety-guard';
+import {cardNumberIn, safetyFirst} from '../../ai/safety-guard';
+import {looksSecret} from '../../secret-guard/guard';
 import type {HudPreset} from '../layout';
 import {WIDGET_RANGES, type MakeRequest, type WidgetRange} from '../stage/record';
 import {widgetSpec} from '../widgets/catalog';
@@ -27,6 +28,8 @@ export type SummonPlan = {
 export const MAX_SUMMON = 3;
 const NONE = (lang: SummonLang): SummonPlan => ({lang, widgets: [], command: null, direct: false});
 
+/** What the engine refuses or answers with the guard before anything else: the summon step never acts on it and never keeps it. */
+export const unsafeWords = (text: string): boolean => !!safetyFirst(text) || looksSecret(text) || cardNumberIn(text);
 /** Lowercase, accents folded, punctuation to spaces: what the families match against. */
 export const normal = (text: string): string => text.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[’'`]/g, '').replace(/[^a-z0-9%]+/g, ' ').trim();
 const NL_WORDS = /\b(ik|mijn|mij|hoe|wat|wanneer|welke|vandaag|deze|laat|toon|zien|het|een|niet|geen|heb|ben|gaat|staat|doelen|gewoontes?|gewicht|slaap|geld|weer|sluit|alles|maak|leeg|vast|verberg|afgelopen|maand|jaar|hoeveel|waar|uitgaven|rekening(?:en)?|taken|dagboek|notities)\b/g;
@@ -121,7 +124,9 @@ export function goalNamed(text: string, goals: SummonContext['goals']): {id: str
  */
 export function summonFor(question: string, ctx: SummonContext = {}): SummonPlan {
   const lang = summonLanguage(question), n = normal(question);
-  if (!n || n.length > 600 || safetyFirst(question)) return NONE(lang);
+  // Safety first, exactly as the engine does before anything is answered, kept or sent: a message the guard answers, one
+  // that holds a secret (a key, a password, recovery words) or a card number makes no widget and is no command.
+  if (!n || n.length > 600 || unsafeWords(question)) return NONE(lang);
   const can = (id: string) => !!widgetSpec(id) && (ctx.available?.(id) ?? true);
   const both = (re: Readonly<Record<SummonLang, RegExp>>) => re[lang].test(n) || re[lang === 'en' ? 'nl' : 'en'].test(n);
   if (both(CLEAR)) return {lang, widgets: [], command: {kind: 'clear'}, direct: true};
