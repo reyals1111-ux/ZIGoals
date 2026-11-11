@@ -31,7 +31,8 @@
 .cc-bezel-marks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff); stroke-width: 4.4; }
 .cc-bezel-arc { stroke: color-mix(in oklab, var(--nova-a, #9273ff) 80%, #fff); stroke-width: .7; }
 .nova-stage[data-star] > .nova-rings { display: none; }
-.nova-frame[data-phone] .nova-orb-button > .cc-bezel { width: 280px; height: 280px; margin: -140px 0 0 -140px; opacity: .6; }
+/* A phone's star is small and already wears the four pillar rings: no bezel there. */
+.nova-frame[data-phone] .nova-orb-button > .cc-bezel { display: none; }
 /* A glow along the horizon, where the floor's grid ends (the line itself is the far edge of the grid plane, holo.css). */
 .cc-horizon { position: absolute; left: 0; right: 0; bottom: 14%; height: 22%; pointer-events: none;
   background: radial-gradient(60% 50% at 50% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 22%, transparent), transparent 70%); }

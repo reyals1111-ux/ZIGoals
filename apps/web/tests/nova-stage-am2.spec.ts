@@ -250,3 +250,70 @@ test.describe('AM-2 (F2): Pin, Hide and Close on every widget', () => {
     expect(report.filter(r => r.problems.length)).toEqual([]);
   });
 });
+
+/**
+ * AM-2 (B2, the owner's rule): glow stays cheap. Inside NOVA only `transform` and `opacity` are animated; bloom and glow
+ * are static (no animated box-shadow, filter, backdrop-filter, clip-path, background or colour); the widget plane has
+ * no backdrop-filter at all. Read from the running page: every animation the browser is running, with the properties
+ * its keyframes change, on the Showcase's full stage, while a widget is being made, and with the conversation open.
+ */
+type Running = {name: string; on: string; props: string[]};
+const CHEAP = new Set(['transform', 'opacity']);
+/** Every running animation inside NOVA and what it animates. A transition counts too (its property is its name). */
+const runningInNova = (page: Page) => page.evaluate(() => {
+  const root = document.querySelector('.nova-root');
+  return document.getAnimations().filter(a => a.playState === 'running' && root?.contains((a.effect as KeyframeEffect | null)?.target ?? null)).map(a => {
+    const effect = a.effect as KeyframeEffect, target = effect.target as Element, props = new Set<string>();
+    for (const frame of effect.getKeyframes()) for (const key of Object.keys(frame)) if (!['offset', 'easing', 'composite', 'computedOffset'].includes(key)) props.add(key.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`));
+    return {name: (a as CSSAnimation).animationName ?? `transition:${(a as CSSTransition).transitionProperty}`, on: `${target.tagName.toLowerCase()}.${String((target as SVGElement).className?.baseVal ?? target.className).split(' ').filter(Boolean).join('.')}${effect.pseudoElement ?? ''}`, props: [...props]};
+  });
+});
+/** Short colour and background transitions on a press or a hover are allowed (≤ 150 ms, never a loop): they are told apart by being transitions. */
+const costly = (list: Running[]) => list.filter(a => !a.name.startsWith('transition:') && a.props.some(p => !CHEAP.has(p)));
+
+test.describe('AM-2 (B2): glow stays cheap', () => {
+  test.skip(({isMobile}) => isMobile, 'computer layouts');
+  test.use({viewport: {width: 1440, height: 900}});
+
+  test('on the Showcase’s full stage only transform and opacity are animated, and no widget has a backdrop-filter', async ({page}) => {
+    await page.emulateMedia({reducedMotion: 'no-preference'});
+    await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+    await page.goto('/app/settings');
+    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
+    await page.reload();
+    await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
+    await page.waitForURL('**/app');
+    await open(page);
+    await expect(frame(page)).toHaveAttribute('data-hud-motion', 'full');
+    await expect(page.locator('.nova-stage-area article.nova-widget').first()).toBeVisible();
+    // Sampled over two seconds, so a loop that starts late (a sheen's delay, an ornament) is seen too.
+    const seen: Running[] = [];
+    for (let i = 0; i < 8; i++) { seen.push(...await runningInNova(page)); await page.waitForTimeout(250); }
+    expect(seen.length, 'the stage is alive: ornaments move').toBeGreaterThan(0);
+    expect(costly(seen)).toEqual([]);
+    // Loops are ornaments' only: every infinite animation animates transform or opacity alone (transitions cannot loop).
+    const filters = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.nova-stage-area article.nova-widget, .nova-stage-area article.nova-widget *')].filter(el => { const s = getComputedStyle(el), b = s.backdropFilter || (s as unknown as {webkitBackdropFilter?: string}).webkitBackdropFilter || 'none'; return b !== 'none'; }).map(el => `${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]}`));
+    expect(filters, 'backdrop-filter on the widget plane').toEqual([]);
+    const pseudo = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.nova-stage-area article.nova-widget')].flatMap(el => ['::before', '::after'].filter(p => { const s = getComputedStyle(el, p), b = s.backdropFilter || 'none'; return b !== 'none'; }).map(p => `${el.dataset.widget}${p}`)));
+    expect(pseudo, 'backdrop-filter on a widget’s plate or rim').toEqual([]);
+  });
+
+  test('while a widget is being made, and when it settles, nothing costly is animated and nothing of the making loops', async ({page}) => {
+    await page.emulateMedia({reducedMotion: 'no-preference'});
+    await fresh(page);
+    await open(page);
+    const field = page.locator('.nova-command input');
+    await field.fill('Show my habits this week'); await field.press('Enter');
+    const made = page.locator('.nova-stage-area article.nova-widget[data-widget="habit-week"]');
+    await expect(made).toBeVisible();
+    const during: Running[] = [];
+    for (let i = 0; i < 6; i++) { during.push(...await runningInNova(page)); await page.waitForTimeout(120); }
+    // The one exception, once, while it is made (ADR-038 AM-2 F3): a ring or a line may draw itself with stroke-dashoffset.
+    expect(costly(during.map(a => ({...a, props: a.props.filter(p => p !== 'stroke-dashoffset')})))).toEqual([]);
+    // After the moment (≤ 900 ms, plus the answer's own entrance) nothing of the making is still running: it ran once.
+    await page.waitForTimeout(1600);
+    const after = await runningInNova(page);
+    expect(after.filter(a => /^ns-(made|flash|scan|snap|rise|fade|beam)/.test(a.name))).toEqual([]);
+    expect(costly(after)).toEqual([]);
+  });
+});

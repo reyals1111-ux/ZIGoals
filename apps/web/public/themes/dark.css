@@ -12650,57 +12650,126 @@
 /*  components/nova/cards/cards.css  */
 @scope (:root[data-theme=dark]) {
     .nc-foot:not(#\-) {
-        color: #b9c6df
+        color: #c3cfe6;
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 85%, transparent) 0, color-mix(in oklab, var(--neon, #9273ff) 22%, transparent) 46px, color-mix(in oklab, var(--neon, #9273ff) 8%, transparent) 100%), repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 60%, transparent) 0 1px, transparent 1px 5px);
+        background-color: transparent
+    }
+    .nc-foot-dot:not(#\-) {
+        background: var(--neon-2, #c0adff);
+        box-shadow: 0 0 0 2px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent), 0 0 8px 1px var(--neon, #9273ff)
     }
     .nc-foot-source:not(#\-) {
-        color: #cfdaf0
+        color: #dbe4f6
     }
     .nc-foot a:not(#\-) {
         color: var(--neon-ink, #eef3ff)
     }
+    .nc-notice-ticks:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 46%, transparent)
+    }
     .nc-notice-ring:not(#\-) {
-        fill: color-mix(in oklab, var(--neon, #9273ff) 8%, transparent);
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
+        fill: color-mix(in oklab, var(--neon, #9273ff) 9%, #050919);
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 50%, transparent)
+    }
+    .nc-notice-arc:not(#\-) {
+        fill: none;
+        stroke: var(--neon, #9273ff);
+        filter: drop-shadow(0 0 3px var(--neon, #9273ff))
     }
     .nc-notice-mark:not(#\-) {
         fill: none;
         stroke: var(--neon-ink, #eef3ff)
     }
+    .nc-ghost-grid:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 20%, transparent)
+    }
+    .nc-ghost-line:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 62%, transparent)
+    }
+    .nc-ghost-base:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 42%, transparent)
+    }
+    .nc-ghost-dot:not(#\-) {
+        fill: #050919;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)
+    }
     .nc-notice-title:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff);
+        text-shadow: 0 0 12px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent)
     }
     .nc-notice-text:not(#\-), .nova-widget[data-holo] .holo-empty-words:not(#\-), .nova-widget[data-holo] .nova-empty > p:not(#\-) {
-        color: #d0dbf0
+        color: #d6e0f5
+    }
+    .nc-notice-text:not(#\-) {
+        text-shadow: 0 0 5px #04071a, 0 0 2px #04071a
     }
     .nc-action:not(#\-), .nova-widget[data-holo] .holo-empty-action:not(#\-), .nova-widget[data-holo] .nova-empty > .nova-link:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #9273ff) 60%, transparent);
-        background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #9273ff) 12%, transparent);
-        color: #f4f7ff
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 82%, transparent);
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 30%, #010108), color-mix(in oklab, var(--neon, #9273ff) 12%, #010108));
+        background-color: transparent;
+        box-shadow: inset 0 1px 0 #ffffff30, inset 0 0 14px -4px var(--neon, #9273ff), 0 0 16px -4px var(--neon, #9273ff);
+        color: #fff
     }
     :is(.nc-action, .nova-widget[data-holo] .holo-empty-action, .nova-widget[data-holo] .nova-empty > .nova-link):hover:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #9273ff) 24%, transparent)
+        border-color: var(--neon-2, #c0adff);
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c), color-mix(in oklab, var(--neon, #9273ff) 24%, #010108));
+        background-color: transparent
+    }
+    .nc-g-a:not(#\-) {
+        stop-color: var(--neon, #9273ff)
+    }
+    .nc-g-b:not(#\-) {
+        stop-color: var(--neon-2, #c0adff)
+    }
+    .nc-fill-a:not(#\-) {
+        stop-color: var(--neon, #9273ff)
+    }
+    .nc-fill-m:not(#\-) {
+        stop-color: var(--neon, #9273ff)
+    }
+    .nc-fill-b:not(#\-) {
+        stop-color: var(--neon, #9273ff)
+    }
+    .nc-glow:not(#\-) {
+        fill: none;
+        stroke: var(--neon, #9273ff)
+    }
+    .nc-glint:not(#\-) {
+        fill: none;
+        stroke: #ffffffc4
     }
     .nc-hero-figure:not(#\-)::before {
-        background-image: radial-gradient(closest-side, color-mix(in oklab, var(--neon, #9273ff) 20%, transparent), transparent);
+        background-image: radial-gradient(closest-side, color-mix(in oklab, var(--neon, #9273ff) 30%, transparent), transparent);
         background-color: transparent;
         filter: blur(10px)
     }
     .nova-widget .nc-hero-num:not(#\-), .nova-widget .nw-temp-num:not(#\-) {
-        text-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 45%, transparent)
+        text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent)
     }
     .nc-hero-unit:not(#\-) {
-        color: #d6e0f5
+        color: var(--neon-2, #d6e0f5)
     }
     .nc-hero-label:not(#\-) {
-        color: #cfdaf0
+        color: #cdd8ee
+    }
+    .nc-hero-label:not(#\-)::before {
+        background: var(--neon, #9273ff);
+        box-shadow: 0 0 6px var(--neon, #9273ff)
     }
     .nc-delta:not(#\-) {
+        border-color: color-mix(in oklab, currentColor 34%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, currentColor 9%, #010108);
         color: #e6edfb
     }
     .nc-delta svg:not(#\-) {
-        fill: none;
+        background-image: none;
+        background-color: color-mix(in oklab, currentColor 22%, transparent);
+        fill: currentColor;
         stroke: currentColor
     }
     .nc-delta[data-tone=good]:not(#\-) {
@@ -12710,40 +12779,128 @@
         color: #ffd9a8
     }
     .nc-fact:not(#\-) {
-        color: #d6e0f5
+        color: #d6e0f5;
+        border-top-color: color-mix(in oklab, var(--neon, #9273ff) 16%, transparent)
+    }
+    .nc-fact:first-child:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)
     }
     .nc-fact-label:not(#\-) {
-        color: #c3cfe6
+        color: #cdd8ee
+    }
+    .nc-fact-label:not(#\-)::before {
+        background: var(--neon, #9273ff);
+        box-shadow: 0 0 7px 1px color-mix(in oklab, var(--neon, #9273ff) 80%, transparent)
     }
     .nc-fact-value:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff)
+    }
+    .nc-bezel:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 34%, transparent)
+    }
+    .nc-bezel-major:not(#\-) {
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 78%, transparent)
+    }
+    .nc-gauge-track:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 18%, #ffffff0a)
+    }
+    .nc-arcmark[data-unknown] .nc-gauge-track:not(#\-) {
+        stroke: #c9d4ea
+    }
+    .nc-gauge-glow:not(#\-) {
+        filter: blur(var(--nc-blur, 3px))
+    }
+    .nc-gauge-arc:not(#\-) {
+        fill: none
+    }
+    .nc-gauge-end:not(#\-) {
+        fill: #fff;
+        stroke: var(--neon-2, #c0adff);
+        filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 5px var(--neon, #9273ff))
+    }
+    .nc-gauge-orbit:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .nc-gauge[data-tone=over]:not(#\-) {
+        --neon: #ff8f7c;
+        --neon-2: #ffd3c9
+    }
+    .nc-ring[data-pillar=goals]:not(#\-) {
+        --neon: #9273ff;
+        --neon-2: #c0adff
+    }
+    .nc-ring[data-pillar=habits]:not(#\-) {
+        --neon: #23eaff;
+        --neon-2: #8ff6ff
+    }
+    .nc-ring[data-pillar=health]:not(#\-) {
+        --neon: #ff74be;
+        --neon-2: #ffa9d8
+    }
+    .nc-ring[data-pillar=wealth]:not(#\-) {
+        --neon: #ffd27a;
+        --neon-2: #ffe6b3
+    }
+    .nc-ring-figure:not(#\-) {
+        color: var(--neon-ink, #f4f7ff);
+        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .nc-ring-label:not(#\-) {
+        color: #d6e0f5
+    }
+    .nc-trend-plot:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent), color-mix(in oklab, var(--neon, #9273ff) 26%, transparent)), linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)), repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 11%, transparent) 0 1px, transparent 1px 12.5%), repeating-linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 11%, transparent) 0 1px, transparent 1px 25%);
+        background-color: transparent
+    }
+    .nc-trend-plot:not(#\-)::after {
+        background-image: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 60%, transparent) 0 1px, transparent 1px 6.25%);
+        background-color: transparent
+    }
+    .nc-trend-glow:not(#\-) {
+        filter: blur(4px)
+    }
+    .nc-trend-line:not(#\-) {
+        fill: none
+    }
+    .nc-trend-drop:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 62%, transparent)
     }
     .nc-trend-target:not(#\-) {
         fill: none;
-        stroke: color-mix(in oklab, var(--neon-ink, #eef3ff) 70%, transparent)
+        stroke: color-mix(in oklab, var(--neon-ink, #eef3ff) 78%, transparent)
     }
     .nc-trend-mark:not(#\-) {
         background-image: none;
         background-color: #fff;
-        box-shadow: 0 0 0 3px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent), 0 0 14px var(--neon, #9273ff)
+        box-shadow: 0 0 0 2.5px var(--neon, #9273ff), 0 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent), 0 0 16px 3px var(--neon, #9273ff)
+    }
+    .nc-trend-mark:not(#\-)::after {
+        border-color: color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)
     }
     .nc-trend-mark[data-marker=heart]:not(#\-) {
         background-image: none;
         background-color: transparent;
-        box-shadow: none;
-        filter: drop-shadow(0 0 6px var(--neon, #ff74be))
+        box-shadow: none
     }
     .nc-trend-mark svg:not(#\-) {
         fill: #fff;
-        stroke: var(--neon, #ff74be)
+        stroke: var(--neon, #ff74be);
+        filter: drop-shadow(0 0 5px var(--neon, #ff74be))
     }
     .nc-trend-edge:not(#\-) {
+        border-left-color: var(--neon, #9273ff);
         background-image: none;
-        background-color: #010108cc;
-        color: #e6edfb
+        background-color: #010107e0;
+        color: var(--neon-ink, #e6edfb)
     }
     .nc-trend-goal:not(#\-) {
-        color: #d6e0f5
+        border-left-color: currentcolor;
+        border-right-color: color-mix(in oklab, var(--neon-ink, #eef3ff) 78%, transparent);
+        color: #e6edfb
     }
     .nc-trend-dates:not(#\-) {
         color: #c3cfe6
@@ -12754,26 +12911,34 @@
     .nc-lattice-label:not(#\-) {
         color: #e6edfb
     }
+    .nc-lattice-label:not(#\-)::before {
+        background: var(--neon, #23eaff);
+        box-shadow: 0 0 6px 1px var(--neon, #23eaff)
+    }
     .nc-lattice-note:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff)
     }
     .nc-lattice-row i:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #23eaff) 34%, transparent);
+        border-color: color-mix(in oklab, var(--neon, #23eaff) 40%, transparent);
         background-image: none;
-        background-color: transparent
+        background-color: color-mix(in oklab, var(--neon, #23eaff) 6%, transparent)
     }
     .nc-lattice-row i[data-cell=done]:not(#\-) {
-        background: var(--neon, #23eaff);
-        border-color: var(--neon, #23eaff);
-        box-shadow: 0 0 8px color-mix(in oklab, var(--neon, #23eaff) 70%, transparent)
+        border-color: var(--neon-2, #8ff6ff);
+        background-image: linear-gradient(150deg, #fff 0%, var(--neon-2, #8ff6ff) 24%, var(--neon, #23eaff) 68%, color-mix(in oklab, var(--neon, #23eaff) 70%, #0a1030) 100%);
+        background-color: transparent;
+        box-shadow: 0 0 9px 1px color-mix(in oklab, var(--neon, #23eaff) 72%, transparent), inset 0 0 0 1px #ffffff40
     }
     .nc-lattice-row i[data-cell=part]:not(#\-) {
-        background-image: linear-gradient(to top, var(--neon, #23eaff) 50%, transparent 50%);
+        border-color: var(--neon, #23eaff);
+        background-image: linear-gradient(to top, var(--neon, #23eaff) 50%, color-mix(in oklab, var(--neon, #23eaff) 8%, transparent) 50%);
         background-color: transparent;
-        border-color: var(--neon, #23eaff)
+        box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #23eaff) 45%, transparent)
     }
     .nc-lattice-row i[data-cell=missed]:not(#\-) {
-        border-color: #ffffff59
+        border-color: #ffffff59;
+        background-image: none;
+        background-color: transparent
     }
     .nc-lattice-row i[data-cell=rest]:not(#\-) {
         border-color: transparent;
@@ -12781,106 +12946,164 @@
         background-color: transparent
     }
     .nc-lattice-row i[data-cell=ahead]:not(#\-) {
-        border-color: #ffffff47
+        border-color: #ffffff47;
+        background-image: none;
+        background-color: transparent
     }
     .nc-lattice-row i[data-today]:not(#\-) {
         outline-color: #fff
     }
     .nc-capsule-top:not(#\-), .nc-capsule-bottom:not(#\-) {
-        color: #d6e0f5
+        color: #c3cfe6
     }
     .nc-capsule-top:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff)
     }
     .nc-capsule-track:not(#\-) {
-        background-image: none;
-        background-color: #ffffff14
+        background-image: repeating-linear-gradient(to bottom, color-mix(in oklab, var(--neon, #7fb6ff) 30%, transparent) 0 1px, transparent 1px 6px), none;
+        background-color: color-mix(in oklab, var(--neon, #7fb6ff) 9%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #7fb6ff) 22%, transparent)
     }
     .nc-capsule-track i:not(#\-) {
-        background-image: linear-gradient(to top, color-mix(in oklab, var(--neon, #7fb6ff) 60%, #fff 0%), var(--neon-2, #ffd9a0));
+        background-image: linear-gradient(to top, var(--neon, #7fb6ff), var(--neon-2, #ffd9a0));
         background-color: transparent;
-        box-shadow: 0 0 8px color-mix(in oklab, var(--neon, #7fb6ff) 60%, transparent)
+        box-shadow: 0 0 10px 1px color-mix(in oklab, var(--neon, #7fb6ff) 62%, transparent), inset 0 2px 0 #ffffffd9, inset 0 -2px 0 #ffffff80
     }
     .nc-bar-label:not(#\-) {
         color: #e6edfb
     }
+    .nc-bar-label:not(#\-)::before {
+        background: var(--neon, #ffd27a);
+        box-shadow: 0 0 7px 1px color-mix(in oklab, var(--neon, #ffd27a) 80%, transparent)
+    }
     .nc-bar-value:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff)
     }
     .nc-bar-track:not(#\-) {
-        background-image: none;
-        background-color: #ffffff14
+        background-image: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 20%, transparent) 0 3px, transparent 3px 5px);
+        background-color: transparent
     }
     .nc-bar-track i:not(#\-) {
-        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 55%, transparent), var(--neon, #ffd27a));
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 42%, #0a1030), var(--neon, #ffd27a) 70%, var(--neon-2, #ffe6b3));
         background-color: transparent;
-        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent)
+        box-shadow: 0 0 12px 1px color-mix(in oklab, var(--neon, #ffd27a) 58%, transparent), inset 0 1px 0 #ffffff66
+    }
+    .nc-bar-track i:not(#\-)::after {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 6px 1px #fff, 0 0 12px 3px var(--neon, #ffd27a)
+    }
+    .nc-bar[data-over]:not(#\-) {
+        --neon: #ff8f7c;
+        --neon-2: #ffd3c9
     }
     .nc-bar[data-over] .nc-bar-track i:not(#\-) {
-        background-image: repeating-linear-gradient(135deg, var(--neon, #ffd27a) 0 6px, #ff9b8a 6px 12px);
+        background-image: repeating-linear-gradient(135deg, #ff8f7c 0 6px, #ffd27a 6px 12px);
         background-color: transparent
     }
     .nc-bar[data-unknown] .nc-bar-track:not(#\-) {
-        background-image: repeating-linear-gradient(90deg, #ffffff24 0 6px, transparent 6px 12px);
+        background-image: repeating-linear-gradient(90deg, #ffffff38 0 6px, transparent 6px 12px);
         background-color: transparent
     }
     .nc-bar-note:not(#\-) {
         color: #c3cfe6
     }
-    .nc-columns-plot:not(#\-) {
-        border-bottom-color: #ffffff24
-    }
-    .nc-column i:not(#\-) {
-        background-image: linear-gradient(to top, color-mix(in oklab, var(--neon, #23eaff) 35%, transparent), var(--neon, #23eaff));
+    .nc-stack i:not(#\-) {
+        --nc-c: var(--neon, #ffd27a);
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--nc-c) 62%, #fff), var(--nc-c) 52%, color-mix(in oklab, var(--nc-c) 58%, #0a1030));
         background-color: transparent;
-        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #23eaff) 65%, transparent)
+        box-shadow: 0 0 12px 0 color-mix(in oklab, var(--nc-c) 55%, transparent), inset 0 1px 0 #ffffffb0
     }
-    .nc-column[data-empty] i:not(#\-) {
+    .nc-stack i[data-i="1"]:not(#\-) {
+        --nc-c: color-mix(in oklab, var(--neon, #ffd27a) 76%, #0a1030)
+    }
+    .nc-stack i[data-i="2"]:not(#\-) {
+        --nc-c: color-mix(in oklab, var(--neon, #ffd27a) 56%, #0a1030)
+    }
+    .nc-stack i[data-i="3"]:not(#\-) {
+        --nc-c: color-mix(in oklab, var(--neon, #ffd27a) 40%, #0a1030)
+    }
+    .nc-stack i[data-rest]:not(#\-) {
+        background-image: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 24%, transparent) 0 3px, transparent 3px 5px);
+        background-color: transparent;
         box-shadow: none
     }
-    .nc-column[data-empty]:not(#\-)::after {
-        border-top-color: #ffffff66
+    .nc-bars[data-keyed] .nc-bar[data-i="1"] .nc-bar-label:not(#\-)::before {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #ffd27a) 76%, #0a1030)
+    }
+    .nc-bars[data-keyed] .nc-bar[data-i="2"] .nc-bar-label:not(#\-)::before {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #ffd27a) 56%, #0a1030)
+    }
+    .nc-bars[data-keyed] .nc-bar[data-i="3"] .nc-bar-label:not(#\-)::before {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #ffd27a) 40%, #0a1030)
+    }
+    .nc-columns-plot:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #23eaff) 75%, transparent), color-mix(in oklab, var(--neon, #23eaff) 30%, transparent)), repeating-linear-gradient(0deg, color-mix(in oklab, var(--neon, #23eaff) 11%, transparent) 0 1px, transparent 1px 25%);
+        background-color: transparent
+    }
+    .nc-column:not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon, #23eaff) 20%, transparent);
+        border-bottom-color: currentcolor;
+        background-image: linear-gradient(to top, color-mix(in oklab, var(--neon, #23eaff) 10%, transparent), transparent 80%);
+        background-color: transparent
+    }
+    .nc-column[data-mark]:not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon-2, #8ff6ff) 60%, transparent)
+    }
+    .nc-column i:not(#\-) {
+        background-image: linear-gradient(to top, color-mix(in oklab, var(--neon, #23eaff) 35%, #010213), var(--neon, #23eaff) 78%, var(--neon-2, #8ff6ff));
+        background-color: transparent;
+        box-shadow: 0 0 14px 1px color-mix(in oklab, var(--neon, #23eaff) 60%, transparent), inset 1px 0 0 #ffffff40, inset -1px 0 0 #ffffff1f
+    }
+    .nc-column i:not(#\-)::after {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 6px 1px #fff, 0 0 12px 3px var(--neon, #23eaff)
+    }
+    .nc-column[data-empty]:not(#\-)::before {
+        border-color: #ffffff3d;
+        background-image: none;
+        background-color: transparent
     }
     .nc-columns-line:not(#\-) {
-        border-top-color: color-mix(in oklab, var(--neon-ink, #eef3ff) 75%, transparent)
+        border-top-color: color-mix(in oklab, var(--neon-ink, #eef3ff) 80%, transparent)
     }
     .nc-columns-line b:not(#\-) {
+        border-left-color: var(--neon, #23eaff);
         background-image: none;
-        background-color: #010108cc;
-        color: #e6edfb
+        background-color: #010107e0;
+        color: var(--neon-ink, #e6edfb)
     }
     .nc-columns-labels span:not(#\-) {
         color: #c3cfe6
     }
-    .nc-ring[data-pillar=goals]:not(#\-) {
-        --neon: #9273ff
+    .nc-pulse-glow:not(#\-) {
+        filter: blur(3px)
     }
-    .nc-ring[data-pillar=habits]:not(#\-) {
-        --neon: #23eaff
-    }
-    .nc-ring[data-pillar=health]:not(#\-) {
-        --neon: #ff74be
-    }
-    .nc-ring[data-pillar=wealth]:not(#\-) {
-        --neon: #ffd27a
-    }
-    .nc-ring-track:not(#\-) {
+    .nc-pulse-line:not(#\-) {
         fill: none;
-        stroke: #ffffff1c
+        stroke: var(--neon-2, #ffa9d8)
     }
-    .nc-ring[data-unknown] .nc-ring-track:not(#\-) {
-        stroke: #ffffff40
+    .nc-heart-glow:not(#\-) {
+        filter: blur(1.6px)
     }
-    .nc-ring-arc:not(#\-) {
+    .nc-heart-shell:not(#\-) {
+        fill: color-mix(in oklab, var(--neon, #ff74be) 16%, transparent)
+    }
+    .nc-heart-beat:not(#\-) {
         fill: none;
-        stroke: var(--neon, #9273ff);
-        filter: drop-shadow(0 0 4px var(--neon, #9273ff))
+        stroke: #fff;
+        filter: drop-shadow(0 0 2px var(--neon, #ff74be))
     }
-    .nc-ring-figure:not(#\-) {
-        color: #f4f7ff
-    }
-    .nc-ring-label:not(#\-) {
-        color: #d6e0f5
+    @media (forced-colors: active) {
+        .nc-lattice-row i[data-cell=done]:not(#\-), .nc-bar-track i:not(#\-), .nc-column i:not(#\-), .nc-capsule-track i:not(#\-), .nc-stack i:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            box-shadow: none
+        }
     }
 }
 /*  components/nova/cards/health-cards.css  */
@@ -12894,20 +13117,26 @@
     .nc-weight-logged-text:not(#\-) {
         color: #d6e0f5
     }
-    .nc-steps-meter:not(#\-) {
-        background-image: none;
-        background-color: #ffffff1a
-    }
-    .nc-steps-meter i:not(#\-) {
-        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ff74be) 50%, transparent), var(--neon, #ff74be));
-        background-color: transparent;
-        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ff74be) 70%, transparent)
-    }
     .nc-steps-cap:not(#\-), .nc-workouts-cap:not(#\-) {
         color: #c3cfe6
     }
     .nc-steps-cap b:not(#\-), .nc-workouts-cap b:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff)
+    }
+    .nc-workouts-list:not(#\-)::before {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #ff74be) 45%, transparent)
+    }
+    .nc-workouts-row:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #ff74be) 14%, transparent)
+    }
+    .nc-workouts-row:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .nc-workouts-row:not(#\-)::before {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 2px var(--neon, #ff74be), 0 0 9px 2px var(--neon, #ff74be)
     }
     .nc-workouts-name:not(#\-) {
         color: #e6edfb
@@ -12916,23 +13145,25 @@
         color: #c3cfe6
     }
     .nc-workouts-minutes:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff)
     }
 }
 /*  components/nova/cards/life-cards.css  */
 @scope (:root[data-theme=dark]) {
     .nc-habitweek-more:not(#\-) {
-        color: #cfdaf0
+        color: var(--neon-ink, #cfdaf0)
     }
     .nc-habitweek-key:not(#\-) {
         color: #c3cfe6
     }
     .nc-habitweek-key i:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #23eaff) 34%, transparent)
+        border-color: color-mix(in oklab, var(--neon, #23eaff) 40%, transparent)
     }
     .nc-habitweek-key i[data-cell=done]:not(#\-) {
-        background: var(--neon, #23eaff);
-        border-color: var(--neon, #23eaff)
+        border-color: var(--neon-2, #8ff6ff);
+        background-image: linear-gradient(150deg, #fff 0%, var(--neon-2, #8ff6ff) 24%, var(--neon, #23eaff) 68%);
+        background-color: transparent;
+        box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #23eaff) 70%, transparent)
     }
     .nc-habitweek-key i[data-cell=part]:not(#\-) {
         background-image: linear-gradient(to top, var(--neon, #23eaff) 50%, transparent 50%);
@@ -12948,30 +13179,82 @@
         background-color: transparent
     }
     .nc-habitweek-key i[data-cell=ahead]:not(#\-) {
-        border-color: #ffffff1f
+        border-color: #ffffff47
+    }
+    .nc-habitweek-stat:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #23eaff) 18%, transparent)
+    }
+    .nc-habitweek-stat:first-child:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #23eaff) 36%, transparent)
+    }
+    .nc-habitweek-stat-label:not(#\-) {
+        color: #cdd8ee
+    }
+    .nc-habitweek-stat b:not(#\-) {
+        color: var(--neon-ink, #f2f6ff)
+    }
+    .nc-habitweek-streak:not(#\-) {
+        fill: none;
+        stroke: var(--neon, #23eaff);
+        filter: drop-shadow(0 0 3px var(--neon, #23eaff))
+    }
+    .nc-habitweek-streak circle:nth-child(2):not(#\-) {
+        stroke: var(--neon-2, #8ff6ff)
+    }
+    .nc-habitweek-streak circle:nth-child(3):not(#\-) {
+        stroke: #fff
+    }
+    .nc-habitweek-streak-core:not(#\-) {
+        fill: #fff;
+        stroke: none
+    }
+    .nc-goal-inner:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 50%, transparent)
+    }
+    .nc-goal-inner-dash:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 60%, transparent)
+    }
+    .nc-goal-stone:not(#\-) {
+        fill: #070b24;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent)
+    }
+    .nc-goal-stone[data-lit]:not(#\-) {
+        fill: #fff;
+        stroke: var(--neon, #9273ff);
+        filter: drop-shadow(0 0 2.5px var(--neon, #9273ff))
     }
     .nc-goal-figure small:not(#\-) {
-        color: #c3cfe6
+        color: #cdd8ee
     }
     .nc-goal-name:not(#\-) {
-        color: #eef3ff
+        color: var(--neon-ink, #eef3ff)
+    }
+    .nc-goal-name:not(#\-)::before {
+        background: var(--neon, #9273ff);
+        box-shadow: 0 0 6px var(--neon, #9273ff)
     }
     .nc-goal-saved:not(#\-) {
-        color: #e6edfb
+        color: #eef3ff
     }
     .nc-goal-estimate:not(#\-) {
         color: #e6edfb
     }
     .nc-goal-chip:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #9273ff) 65%, transparent);
+        border-color: color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent);
         background-image: none;
-        background-color: #ffffff08;
-        color: #dfe7f8
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 12%, transparent);
+        color: var(--neon-ink, #dfe7f8)
+    }
+    .nc-goal-chart:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent), color-mix(in oklab, var(--neon, #9273ff) 26%, transparent)), repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 12%, transparent) 0 1px, transparent 1px 12.5%), repeating-linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 12%, transparent) 0 1px, transparent 1px 25%);
+        background-color: transparent
     }
     .nc-goal-dot:not(#\-) {
         background-image: none;
         background-color: #fff;
-        box-shadow: 0 0 0 2px var(--neon, #9273ff), 0 0 10px var(--neon, #9273ff)
+        box-shadow: 0 0 0 2.5px var(--neon, #9273ff), 0 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent), 0 0 16px 3px var(--neon, #9273ff)
     }
     .nc-goal-dot[data-kind=estimate]:not(#\-) {
         background-image: none;
@@ -12983,12 +13266,20 @@
         color: #c3cfe6
     }
     .nc-goal-tag:not(#\-) {
+        border-left-color: var(--neon, #9273ff);
         background-image: none;
-        background-color: #01020acc;
-        color: #e0d4ff
+        background-color: #010107e0;
+        color: var(--neon-ink, #e0d4ff)
+    }
+    .nc-journal-side .nc-fact:not(#\-) {
+        border-top-color: currentcolor
     }
     .nc-journal-month:not(#\-) {
-        color: #cfdaf0
+        color: #cdd8ee
+    }
+    .nc-journal-month:not(#\-)::before {
+        background: var(--neon, #d59bff);
+        box-shadow: 0 0 6px var(--neon, #d59bff)
     }
     .nc-journal .nc-lattice-label:not(#\-) {
         color: #c3cfe6
@@ -13010,28 +13301,68 @@
         outline-color: #fff
     }
     .nc-journal-key i[data-cell=done]:not(#\-) {
-        background: var(--neon, #cbbfff);
-        border-color: var(--neon, #cbbfff)
+        border-color: var(--neon-2, #ecd2ff);
+        background-image: linear-gradient(150deg, #fff 0%, var(--neon-2, #ecd2ff) 24%, var(--neon, #d59bff) 68%);
+        background-color: transparent;
+        box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #d59bff) 70%, transparent)
     }
-    .nc-time-left:not(#\-) {
-        color: #d6e0f5
+    .nc-time-cardinal:not(#\-) {
+        fill: var(--neon-2, #c4e6ff);
+        stroke: none;
+        filter: drop-shadow(0 0 2px var(--neon, #7fc8ff))
+    }
+    .nc-time-star:not(#\-) {
+        fill: color-mix(in oklab, var(--neon, #7fc8ff) 22%, #050919);
+        stroke: var(--neon-2, #c4e6ff);
+        filter: drop-shadow(0 0 2.5px var(--neon, #7fc8ff))
+    }
+    .nc-time-arc[data-i="1"]:not(#\-), .nc-time-rows li[data-i="1"]:not(#\-) {
+        --neon: #8f9dff;
+        --neon-2: #c9d0ff
+    }
+    .nc-time-arc[data-i="2"]:not(#\-), .nc-time-rows li[data-i="2"]:not(#\-) {
+        --neon: #b89cff;
+        --neon-2: #e2d6ff
+    }
+    .nc-time-hour:not(#\-) {
+        color: #cdd8ee
+    }
+    .nc-time-rows li:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #7fc8ff) 18%, transparent)
+    }
+    .nc-time-rows li:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .nc-time-rows li:not(#\-)::before {
+        background: var(--neon, #7fc8ff);
+        box-shadow: 0 0 0 2px color-mix(in oklab, var(--neon, #7fc8ff) 26%, transparent), 0 0 8px 1px var(--neon, #7fc8ff)
+    }
+    .nc-time-row-name:not(#\-) {
+        color: #cdd8ee
+    }
+    .nc-time-row-pct:not(#\-) {
+        color: var(--neon-2, #e3f3ff);
+        text-shadow: 0 0 12px color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent)
+    }
+    .nc-time-row-left:not(#\-) {
+        color: #c3cfe6
     }
     .nc-time-strip-name:not(#\-) {
-        color: #cfdaf0
+        color: #cdd8ee
     }
     .nc-time-bar:not(#\-) {
-        background-image: none;
-        background-color: #ffffff14
+        background-image: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #7fc8ff) 22%, transparent) 0 3px, transparent 3px 5px);
+        background-color: transparent
     }
     .nc-time-bar i:not(#\-) {
-        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #7fc8ff) 45%, transparent), var(--neon, #7fc8ff));
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #7fc8ff) 42%, #0a1030), var(--neon, #7fc8ff) 70%, var(--neon-2, #c4e6ff));
         background-color: transparent;
-        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #7fc8ff) 60%, transparent)
+        box-shadow: 0 0 12px 1px color-mix(in oklab, var(--neon, #7fc8ff) 58%, transparent), inset 0 1px 0 #ffffff66
     }
     .nc-time-bar b:not(#\-) {
         background-image: none;
         background-color: #fff;
-        box-shadow: 0 0 8px #fff
+        box-shadow: 0 0 6px 1px #fff, 0 0 12px 3px var(--neon, #7fc8ff)
     }
     .nc-time-scale:not(#\-) {
         color: #c3cfe6
@@ -13041,32 +13372,69 @@
         color: #c3cfe6
     }
     .nc-time-cells i[data-state=past]:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent);
-        background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 22%, transparent);
+        border-color: color-mix(in oklab, var(--neon, #7fc8ff) 75%, transparent);
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #7fc8ff) 34%, transparent), color-mix(in oklab, var(--neon, #7fc8ff) 14%, transparent));
+        background-color: transparent;
         color: #f2f6ff
     }
     .nc-time-cells i[data-state=now]:not(#\-) {
         border-color: #fff;
-        background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 34%, transparent);
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #7fc8ff) 62%, transparent), color-mix(in oklab, var(--neon, #7fc8ff) 30%, transparent));
+        background-color: transparent;
         color: #fff;
-        box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent)
+        box-shadow: 0 0 12px 1px color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent), inset 0 1px 0 #ffffff80
     }
 }
 /*  components/nova/cards/nova-cards.css  */
 @scope (:root[data-theme=dark]) {
-    .nc-request:not(#\-) {
-        border-bottom-color: #ffffff1a
+    .nc-requests-list:not(#\-)::before {
+        background-image: linear-gradient(180deg, var(--neon-2, #63e7ff), color-mix(in oklab, var(--neon, #9273ff) 45%, transparent));
+        background-color: transparent
     }
-    .nc-request:last-child:not(#\-) {
-        border-bottom-color: currentcolor
+    .nc-request:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #9273ff) 16%, transparent)
+    }
+    .nc-request:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .nc-request:not(#\-)::before {
+        border-color: var(--neon, #9273ff);
+        background-image: none;
+        background-color: #01010c;
+        box-shadow: 0 0 8px 1px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .nc-request:first-child:not(#\-)::before {
+        border-color: var(--neon-2, #63e7ff);
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--neon-2, #63e7ff) 26%, transparent), 0 0 12px 2px var(--neon-2, #63e7ff)
     }
     .nc-request-text:not(#\-) {
         color: #f2f6ff
     }
     .nc-request-meta:not(#\-) {
         color: #c3cfe6
+    }
+    .nc-requests .nc-request-again:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none
+    }
+    .nc-requests .nc-request-again:not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 82%, transparent);
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 30%, #010108), color-mix(in oklab, var(--neon, #9273ff) 12%, #010108));
+        background-color: transparent;
+        box-shadow: inset 0 1px 0 #ffffff30, 0 0 12px -4px var(--neon, #9273ff)
+    }
+    .nc-requests .nc-request-again:hover:not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .nc-requests .nc-request-again:hover:not(#\-)::before {
+        border-color: var(--neon-2, #63e7ff);
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c), color-mix(in oklab, var(--neon, #9273ff) 24%, #010108));
+        background-color: transparent
     }
     .nc-requests-more:not(#\-) {
         color: #c3cfe6
@@ -13075,50 +13443,105 @@
         border-color: #c3cfe6
     }
     .nc-brain-dot[data-on]:not(#\-) {
-        border-color: #a8f5d2;
-        background-image: none;
-        background-color: #a8f5d2;
-        box-shadow: 0 0 12px #a8f5d2
+        border-color: #fff;
+        background-image: radial-gradient(circle, #fff 0 30%, #a8f5d2 70%);
+        background-color: transparent;
+        box-shadow: 0 0 0 4px #a8f5d233, 0 0 14px 3px #a8f5d2
     }
     .nc-brain-title:not(#\-) {
-        color: #cfdaf0
+        color: #cdd8ee
+    }
+    .nc-brain-title:not(#\-)::before {
+        background: var(--neon-2, #63e7ff);
+        box-shadow: 0 0 6px var(--neon-2, #63e7ff)
     }
     .nc-brain-words:not(#\-) {
-        color: #f4f7ff
+        color: var(--neon-ink, #f4f7ff);
+        text-shadow: 0 0 14px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
     }
     .nc-brain-text:not(#\-) {
-        color: #d0dbf0
+        color: #d6e0f5
     }
     .nc-sees-count:not(#\-) {
         color: #d6e0f5
     }
     .nc-sees-count b:not(#\-) {
-        color: #f4f7ff;
-        text-shadow: 0 0 14px var(--neon, #9273ff)
+        color: var(--neon-ink, #f4f7ff);
+        text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent)
     }
     .nc-sees-grid li:not(#\-) {
-        border-color: #ffffff40;
-        color: #c3cfe6
+        --neon: var(--nova-a, #9273ff);
+        color: #c3cfe6;
+        border-top-color: #ffffff14
     }
-    .nc-sees-grid li[data-on]:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #9273ff) 70%, transparent);
-        background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #9273ff) 14%, transparent);
-        color: #f2f6ff
+    .nc-sees-grid li:first-child:not(#\-) {
+        border-top-color: currentcolor
     }
-    .nc-sees-grid li[data-world][data-on]:not(#\-) {
-        --neon: #7fb6ff
+    .nc-sees-grid li[data-realm=goals]:not(#\-) {
+        --neon: #9273ff
+    }
+    .nc-sees-grid li[data-realm=habits]:not(#\-) {
+        --neon: #23eaff
+    }
+    .nc-sees-grid li[data-realm=health]:not(#\-) {
+        --neon: #ff74be
+    }
+    .nc-sees-grid li[data-realm=wealth]:not(#\-) {
+        --neon: #ffd27a
+    }
+    .nc-sees-grid li[data-realm=orbit]:not(#\-) {
+        --neon: #7fc8ff
+    }
+    .nc-sees-grid li[data-realm=mind]:not(#\-) {
+        --neon: #d59bff
+    }
+    .nc-sees-grid li[data-realm=world]:not(#\-) {
+        --neon: #5aa2ff
     }
     .nc-sees-cell:not(#\-) {
-        border-color: currentColor
+        border-color: #c3cfe6
+    }
+    .nc-sees-grid li[data-on]:not(#\-) {
+        color: #f2f6ff
     }
     .nc-sees-grid li[data-on] .nc-sees-cell:not(#\-) {
-        background: var(--neon, #9273ff);
-        border-color: var(--neon, #9273ff);
-        box-shadow: 0 0 8px var(--neon, #9273ff)
+        border-color: currentcolor;
+        background-image: linear-gradient(135deg, #fff, var(--neon, #9273ff) 60%);
+        background-color: transparent;
+        box-shadow: 0 0 0 2px color-mix(in oklab, var(--neon, #9273ff) 26%, transparent), 0 0 10px 1px var(--neon, #9273ff)
+    }
+    .nc-sees-rule:not(#\-) {
+        background-image: repeating-linear-gradient(90deg, #ffffff33 0 2px, transparent 2px 6px);
+        background-color: transparent
+    }
+    .nc-sees-grid li[data-on] .nc-sees-rule:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent), color-mix(in oklab, var(--neon, #9273ff) 12%, transparent));
+        background-color: transparent
+    }
+    .nc-sees-why:not(#\-) {
+        border-color: #ffffff59
+    }
+    .nc-sees-grid li[data-on] .nc-sees-why:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 80%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 18%, #010108);
+        color: #fff;
+        box-shadow: 0 0 10px -3px var(--neon, #9273ff)
     }
     .nc-sees-more:not(#\-) {
         color: #d6e0f5
+    }
+    .nc-sees[data-size=M] .nc-sees-grid li:not(#\-) {
+        border-color: #ffffff40
+    }
+    .nc-sees[data-size=M] .nc-sees-grid li[data-on]:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 55%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 10%, transparent)
+    }
+    .nc-sees[data-size=M] .nc-sees-why:not(#\-) {
+        border-color: currentcolor;
+        color: #dbe4f6
     }
 }
 /*  components/nova/cards/wealth-cards.css  */
@@ -13127,7 +13550,11 @@
         color: #c9d4ea
     }
     .nc-networth-caption:not(#\-), .nc-spending-caption:not(#\-), .nc-budgets-caption:not(#\-), .nc-bills-caption:not(#\-) {
-        color: #cfdaf0
+        color: #cdd8ee
+    }
+    .nc-networth-caption:not(#\-)::before, .nc-spending-caption:not(#\-)::before, .nc-budgets-caption:not(#\-)::before, .nc-bills-caption:not(#\-)::before {
+        background: var(--neon, #ffd27a);
+        box-shadow: 0 0 6px var(--neon, #ffd27a)
     }
     .nc-spending-what:not(#\-) {
         color: #c3cfe6
@@ -13138,17 +13565,20 @@
     .nc-bills-when[data-over]:not(#\-) {
         color: #ffd9a8
     }
-    .nc-bills-dial[data-over] .nc-ring-arc:not(#\-) {
-        stroke: #ff9b8a
-    }
     .nc-bills-dial-unit:not(#\-) {
         color: #d6e0f5
+    }
+    .nc-bills-row:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #ffd27a) 16%, transparent)
+    }
+    .nc-bills-row:first-child:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #ffd27a) 34%, transparent)
     }
     .nc-bills-name:not(#\-) {
         color: #f2f6ff
     }
     .nc-bills-amount:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff)
     }
     .nc-bills-row .nc-bills-when:not(#\-) {
         color: #c3cfe6
@@ -13161,141 +13591,203 @@
 @scope (:root[data-theme=dark]) {
     .nova-widget[data-sky=clear]:not(#\-) {
         --neon: #ffcf7a;
-        --neon-2: #7fb6ff;
+        --neon-2: #fff0c4;
         --neon-ink: #fff6e2
     }
     .nova-widget[data-sky=clear][data-night]:not(#\-), .nova-widget[data-sky=partly][data-night]:not(#\-) {
-        --neon: #b9c8ff;
+        --neon: #9fb2ff;
         --neon-2: #e8eeff;
         --neon-ink: #eef2ff
     }
     .nova-widget[data-sky=partly]:not(#\-) {
-        --neon: #9ccbff;
-        --neon-2: #ffd9a0;
+        --neon: #7fbcff;
+        --neon-2: #ffe0a8;
         --neon-ink: #eef6ff
     }
     .nova-widget[data-sky=cloud]:not(#\-), .nova-widget[data-sky=fog]:not(#\-) {
         --neon: #a9bbd8;
-        --neon-2: #dfe8f6;
+        --neon-2: #e4ecf8;
         --neon-ink: #eef3ff
     }
     .nova-widget[data-sky=drizzle]:not(#\-), .nova-widget[data-sky=rain]:not(#\-) {
         --neon: #3ee6ff;
-        --neon-2: #7fb6ff;
+        --neon-2: #b4f5ff;
         --neon-ink: #e6fbff
     }
     .nova-widget[data-sky=sleet]:not(#\-), .nova-widget[data-sky=snow]:not(#\-) {
-        --neon: #d6ecff;
+        --neon: #cfe6ff;
         --neon-2: #ffffff;
         --neon-ink: #f4faff
     }
     .nova-widget[data-sky=thunder]:not(#\-) {
         --neon: #f06dff;
-        --neon-2: #3ee6ff;
+        --neon-2: #9be8ff;
         --neon-ink: #fdeaff
     }
-    .nw-scene:not(#\-) {
-        fill: none;
-        stroke: var(--neon, #7fb6ff);
-        filter: drop-shadow(0 0 5px color-mix(in oklab, var(--neon, #7fb6ff) 70%, transparent))
+    .nw-scene > svg:not(#\-) {
+        fill: none
     }
-    .nw-hours .nw-scene:not(#\-), .nc-capsule .nw-scene:not(#\-) {
-        --neon: #cfe0ff;
-        filter: none
+    .nw-stop-hot:not(#\-) {
+        stop-color: #fff
     }
-    .nw-sun circle:not(#\-) {
-        fill: color-mix(in oklab, #ffcf7a 30%, transparent);
-        stroke: #ffe2a6
+    .nw-stop-sun:not(#\-) {
+        stop-color: #ffe9b0
+    }
+    .nw-stop-sun-edge:not(#\-) {
+        stop-color: #ffb23e
+    }
+    .nw-stop-halo:not(#\-) {
+        stop-color: #ffcf7a
+    }
+    .nw-scene[data-night] .nw-stop-halo:not(#\-) {
+        stop-color: #9fb2ff
+    }
+    .nw-stop-none:not(#\-) {
+        stop-color: #ffcf7a
+    }
+    .nw-stop-glass-a:not(#\-) {
+        stop-color: #f4f8ff
+    }
+    .nw-stop-glass-b:not(#\-) {
+        stop-color: #6f8fd0
+    }
+    .nw-stop-moon-a:not(#\-) {
+        stop-color: #ffffff
+    }
+    .nw-stop-moon-b:not(#\-) {
+        stop-color: #8fa4ff
+    }
+    .nw-stop-bolt:not(#\-) {
+        stop-color: #f06dff
+    }
+    .nw-sun-core:not(#\-) {
+        stroke: #fff6d8;
+        filter: drop-shadow(0 0 3px #ffcf7a)
+    }
+    .nw-sun-ring:not(#\-) {
+        stroke: #ffd98a
     }
     .nw-rays:not(#\-) {
-        stroke: #ffcf7a
+        fill: none;
+        stroke: #ffd98a;
+        filter: drop-shadow(0 0 2px #ffb23e)
     }
-    .nw-moon path:not(#\-) {
-        fill: color-mix(in oklab, #b9c8ff 18%, transparent);
-        stroke: #e8eeff
+    .nw-moon-body:not(#\-) {
+        stroke: #f1f4ff;
+        filter: drop-shadow(0 0 4px #9fb2ff)
     }
     .nw-star:not(#\-) {
         fill: #fff;
         stroke: none
     }
     .nw-cloud:not(#\-) {
-        fill: #0a1030cc;
-        stroke: #dfe8f6
+        stroke: #f6f9ff
     }
-    .nw-cloud-back:not(#\-) {
-        stroke: #9fb1d0
+    .nw-cloud-glow:not(#\-) {
+        stroke: color-mix(in oklab, var(--neon, #7fb6ff) 42%, transparent)
+    }
+    .nw-cloud-shine:not(#\-) {
+        stroke: #fff
     }
     .nw-fog path:not(#\-) {
-        stroke: #c9d6ea
+        stroke: #dbe6f6
+    }
+    .nw-fog path:nth-child(2n):not(#\-) {
+        stroke: #a9bbd8
     }
     .nw-rain path:not(#\-) {
-        stroke: #3ee6ff
+        stroke: #7ff1ff
     }
-    .nw-snow circle:not(#\-) {
-        fill: #fff;
-        stroke: none
+    .nw-snow path:not(#\-) {
+        stroke: #fff
     }
     .nw-bolt:not(#\-) {
-        fill: #f06dff;
-        stroke: #ffd6ff;
-        filter: drop-shadow(0 0 6px #f06dff)
+        stroke: #fff;
+        filter: drop-shadow(0 0 5px #f06dff)
+    }
+    .nw-hours .nw-scene :is(.nw-cloud, .nw-sun-core, .nw-rays, .nw-moon-body, .nw-rain path, .nw-snow path, .nw-fog path, .nw-bolt, .nw-star):not(#\-), .nw-daycols .nw-scene :is(.nw-cloud, .nw-sun-core, .nw-rays, .nw-moon-body, .nw-rain path, .nw-snow path, .nw-fog path, .nw-bolt, .nw-star):not(#\-) {
+        filter: none
     }
     .nw-temp-unit:not(#\-) {
-        color: #d6e0f5
+        color: var(--neon-2, #d6e0f5)
     }
     .nw-condition:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff)
+    }
+    .nw-condition:not(#\-)::before {
+        background: var(--neon, #7fb6ff);
+        box-shadow: 0 0 6px var(--neon, #7fb6ff)
     }
     .nw-umbrella:not(#\-) {
-        color: #d0dbf0
+        color: #d6e0f5
     }
-    .nw-hours:not(#\-) {
-        border-top-color: #ffffff1f
+    .nw-outlook:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #7fb6ff) 30%, transparent)
+    }
+    .nw-outlook-plot:not(#\-) {
+        background-image: repeating-linear-gradient(90deg, transparent 0 calc(100% / var(--nw-n, 6) - 1px), color-mix(in oklab, var(--neon, #7fb6ff) 12%, transparent) calc(100% / var(--nw-n, 6) - 1px) calc(100% / var(--nw-n, 6))), linear-gradient(90deg, color-mix(in oklab, var(--neon, #7fb6ff) 60%, transparent), color-mix(in oklab, var(--neon, #7fb6ff) 22%, transparent));
+        background-color: transparent
+    }
+    .nw-rain-col:not(#\-) {
+        stroke: none
+    }
+    .nw-rain-cap:not(#\-) {
+        fill: #fff
+    }
+    .nw-stop-rain-a:not(#\-) {
+        stop-color: #b4f5ff
+    }
+    .nw-stop-rain-b:not(#\-) {
+        stop-color: #3ee6ff
+    }
+    .nw-hours li:first-child:not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon, #7fb6ff) 34%, transparent);
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #7fb6ff) 16%, transparent), transparent 70%);
+        background-color: transparent
+    }
+    .nw-outlook-dot:not(#\-) {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 1.5px var(--neon, #7fb6ff), 0 0 7px 1px var(--neon, #7fb6ff)
+    }
+    .nw-outlook-dot[data-lead]:not(#\-) {
+        box-shadow: 0 0 0 2.5px var(--neon, #7fb6ff), 0 0 0 6px color-mix(in oklab, var(--neon, #7fb6ff) 24%, transparent), 0 0 14px 3px var(--neon, #7fb6ff)
+    }
+    .nw-hour-temp:not(#\-) {
+        color: var(--neon-ink, #f2f6ff)
     }
     .nw-hour-time:not(#\-) {
         color: #c3cfe6
     }
-    .nw-hour-temp:not(#\-) {
-        color: #f2f6ff
-    }
-    .nw-rain-bar:not(#\-) {
-        border-bottom-color: #ffffff2e
-    }
-    .nw-rain-bar i:not(#\-) {
-        background-image: linear-gradient(to top, color-mix(in oklab, #3ee6ff 45%, transparent), #3ee6ff);
-        background-color: transparent;
-        box-shadow: 0 0 8px #3ee6ff80
-    }
-    .nw-hour-rain b:not(#\-) {
+    .nw-hour-rain:not(#\-) {
+        background-image: none;
+        background-color: #010107d9;
         color: #b5f3fd
     }
+    .nw-daycols li:not(#\-) {
+        border-left-color: color-mix(in oklab, var(--neon, #7fb6ff) 16%, transparent)
+    }
+    .nw-daycols li:first-child:not(#\-) {
+        border-left-color: currentcolor
+    }
     .nw-day-name:not(#\-) {
-        color: #d6e0f5
+        color: #cdd8ee
+    }
+    .nw-day-hi:not(#\-) {
+        color: var(--neon-ink, #f2f6ff)
     }
     .nw-day-lo:not(#\-) {
         color: #c3cfe6
     }
-    .nw-day-hi:not(#\-) {
-        color: #f2f6ff
-    }
-    .nw-day-track:not(#\-) {
-        background-image: none;
-        background-color: #ffffff14
-    }
-    .nw-day-track i:not(#\-) {
-        background-image: linear-gradient(90deg, var(--neon, #7fb6ff), var(--neon-2, #ffd9a0));
-        background-color: transparent;
-        box-shadow: 0 0 8px color-mix(in oklab, var(--neon, #7fb6ff) 60%, transparent)
-    }
-    .nw-dayrows .nw-scene:not(#\-) {
-        --neon: #cfe0ff;
-        filter: none
-    }
     .nw-facts:not(#\-) {
-        color: #c3cfe6
+        color: #cdd8ee
+    }
+    .nw-facts span:not(#\-)::before {
+        background: var(--neon, #7fb6ff);
+        box-shadow: 0 0 6px 1px var(--neon, #7fb6ff)
     }
     .nw-facts b:not(#\-) {
-        color: #f2f6ff
+        color: var(--neon-ink, #f2f6ff)
     }
     .nova-widget[data-holo][data-sky]:not(#\-) {
         --sky-a: #7fb6ff;
@@ -13329,57 +13821,64 @@
     .nw-credit a:not(#\-) {
         color: #e6edfb
     }
-    .nw-arc-track:not(#\-) {
-        fill: none;
-        stroke: #ffffff2e
+    .nw-sunarc svg:not(#\-) {
+        fill: none
     }
-    .nw-arc-done:not(#\-) {
-        fill: none;
-        stroke: #ffcf7a;
-        filter: drop-shadow(0 0 5px #ffcf7a)
+    .nw-stop-dome-a:not(#\-) {
+        stop-color: #ffcf7a
+    }
+    .nw-stop-arc-a:not(#\-) {
+        stop-color: #ff9a3c
+    }
+    .nw-stop-arc-b:not(#\-) {
+        stop-color: #fff0c4
+    }
+    .nw-arc-track:not(#\-) {
+        stroke: #ffffff3d
+    }
+    .nw-arc-glow:not(#\-) {
+        stroke: #ffb23e;
+        filter: blur(2.4px)
     }
     .nw-horizon:not(#\-) {
-        stroke: #ffffff40
+        stroke: color-mix(in oklab, #ffcf7a 60%, transparent)
     }
-    .nw-arc-sun:not(#\-) {
-        fill: #fff3d6;
-        stroke: #ffcf7a;
-        filter: drop-shadow(0 0 8px #ffcf7a)
+    .nw-horizon-ticks:not(#\-) {
+        stroke: #ffe2a6
+    }
+    .nw-arc-tick:not(#\-) {
+        stroke: #ffe2a6
     }
     .nw-sun-times:not(#\-) {
         color: #c3cfe6
     }
-    .nw-arc-tick:not(#\-) {
-        fill: none;
-        stroke: #ffe2a6
-    }
     .nw-sun-times b:not(#\-) {
-        color: #f4f7ff
+        color: var(--neon-ink, #f4f7ff);
+        text-shadow: 0 0 12px color-mix(in oklab, #ffcf7a 60%, transparent)
     }
 }
 /*  components/nova/chat/nova-chat.css  */
 @scope (:root[data-theme=dark]) {
     .nova-chat:not(#\-) {
-        --nova-glass: color-mix(in srgb,var(--panel,#020412) 82%,transparent);
-        --nova-edge: color-mix(in srgb,var(--violet,#826cff) 34%,var(--line,#25324a));
+        --nova-glass: #010213;
+        --nova-edge: color-mix(in srgb,var(--nova-b,#63e7ff) 42%,#ffffff1a);
         color: var(--text,#f3f6ff);
-        background-image: linear-gradient(165deg,var(--nova-glass),color-mix(in srgb,var(--bg,#010206) 88%,transparent));
+        background-image: none;
         background-color: transparent;
-        border-color: var(--nova-edge);
-        box-shadow: 0 40px 120px -40px #000000cc,inset 0 1px 0 #ffffff0f
+        border-color: currentcolor
     }
     .nova-chat:not(#\-)::before {
-        background-image: radial-gradient(closest-side,color-mix(in srgb,var(--violet,#826cff) 22%,transparent),transparent 72%);
+        background-image: radial-gradient(closest-side,color-mix(in srgb,var(--nova-c,#f06dff) 14%,transparent),transparent 72%);
         background-color: transparent
     }
-    .nova-chat-sheet:not(#\-) {
-        border-bottom-color: currentcolor
-    }
     .nova-chat-head:not(#\-) {
-        border-bottom-color: var(--line,#25324a)
+        border-color: currentcolor
     }
     .nova-chat-eyebrow:not(#\-) {
         color: var(--muted,#a4b2cd)
+    }
+    .nova-chat-title:not(#\-) {
+        text-shadow: 0 0 16px color-mix(in srgb,var(--nova-b,#63e7ff) 70%,transparent)
     }
     .nova-chat-status:not(#\-) {
         color: var(--muted,#a4b2cd)
@@ -13391,13 +13890,14 @@
     .nova-dot[data-on]:not(#\-) {
         background-image: none;
         background-color: var(--cyan,#63e7ff);
-        box-shadow: 0 0 10px color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)
+        box-shadow: 0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 22%,transparent),0 0 10px color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)
     }
     .nova-close:not(#\-) {
-        border-color: var(--line,#25324a);
+        border-color: currentcolor;
         background-image: none;
         background-color: transparent;
-        color: inherit
+        color: inherit;
+        --k-rim: color-mix(in srgb,var(--nova-c,#f06dff) 50%,transparent)
     }
     .nova-close:focus-visible:not(#\-), .nova-chat-tool:focus-visible:not(#\-) {
         outline-color: var(--cyan,#63e7ff)
@@ -13418,30 +13918,41 @@
         color: var(--muted,#a4b2cd)
     }
     .nova-invite:not(#\-) {
-        border-color: var(--nova-edge);
-        background-image: none;
-        background-color: color-mix(in srgb,var(--violet,#826cff) 8%,transparent)
+        --k-rim: color-mix(in srgb,var(--nova-a,#9273ff) 80%,transparent);
+        --k-rim-2: color-mix(in srgb,var(--nova-b,#63e7ff) 36%,transparent);
+        --k-plate: color-mix(in srgb,var(--nova-a,#9273ff) 16%,#0a1030);
+        --k-plate-2: #060a1c
+    }
+    .nova-turn-body:not(#\-) {
+        --turn: var(--nova-a,#9273ff);
+        --k-rim: color-mix(in srgb,var(--turn) 92%,#fff);
+        --k-rim-2: color-mix(in srgb,var(--turn) 20%,transparent);
+        --k-plate: color-mix(in srgb,var(--turn) 13%,#0a1030);
+        --k-plate-2: #060a1c
     }
     .nova-turn-who:not(#\-) {
         color: var(--muted,#a4b2cd)
     }
     .nova-turn-user .nova-turn-body:not(#\-) {
-        border-color: var(--line,#25324a);
-        background-image: none;
-        background-color: color-mix(in srgb,var(--panel,#020412) 70%,transparent)
+        --turn: var(--nova-b,#63e7ff);
+        --k-rim: color-mix(in srgb,var(--turn) 24%,transparent);
+        --k-rim-2: var(--turn);
+        --k-plate: #0a1030;
+        --k-plate-2: color-mix(in srgb,var(--turn) 16%,#0a1030)
     }
     .nova-turn-zigi .nova-turn-body:not(#\-) {
-        border-left-color: color-mix(in srgb,var(--cyan,#63e7ff) 50%,transparent)
+        --turn: var(--accent-teal,#86f0d6)
     }
     .nova-turn-body pre:not(#\-) {
         background-image: none;
-        background-color: color-mix(in srgb,var(--bg,#010206) 80%,transparent);
+        background-color: #010106;
         border-color: var(--line,#25324a)
     }
     .nova-voice:not(#\-) {
+        border-left-color: color-mix(in srgb,var(--nova-a,#9273ff) 70%,transparent);
         color: var(--muted,#a4b2cd);
         background-image: none;
-        background-color: color-mix(in srgb,var(--violet,#826cff) 7%,transparent)
+        background-color: color-mix(in srgb,var(--nova-a,#9273ff) 8%,transparent)
     }
     .nova-voice strong:not(#\-) {
         color: var(--text,#f3f6ff)
@@ -13463,13 +13974,17 @@
         color: var(--muted,#a4b2cd)
     }
     .nova-composer:not(#\-) {
-        border-color: var(--nova-edge);
-        background-image: none;
-        background-color: color-mix(in srgb,var(--panel,#020412) 60%,transparent)
+        border-color: transparent;
+        --k-rim: color-mix(in srgb,var(--nova-b,#63e7ff) 80%,transparent);
+        --k-rim-2: color-mix(in srgb,var(--nova-c,#f06dff) 70%,transparent);
+        --k-plate: #0a1030;
+        --k-plate-2: #04071a;
+        --k-glow: 0 0 22px -8px var(--nova-a,#9273ff)
     }
     .nova-composer:focus-within:not(#\-) {
-        border-color: color-mix(in srgb,var(--cyan,#63e7ff) 60%,var(--line,#25324a));
-        box-shadow: 0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 18%,transparent)
+        --k-rim: var(--nova-b,#63e7ff);
+        --k-rim-2: var(--nova-b,#63e7ff);
+        --k-glow: 0 0 22px -4px var(--nova-b,#63e7ff)
     }
     .nova-composer textarea:not(#\-) {
         border-color: currentcolor;
@@ -13503,9 +14018,9 @@
         color: var(--muted,#a4b2cd)
     }
     .nova-list-tools input:not(#\-) {
-        border-color: var(--line,#25324a);
+        border-color: var(--nova-edge);
         background-image: none;
-        background-color: color-mix(in srgb,var(--panel,#020412) 70%,transparent);
+        background-color: #010109;
         color: inherit
     }
     .nova-list-heading:not(#\-) {
@@ -13515,7 +14030,9 @@
         border-color: transparent
     }
     .nova-list-items li.nova-list-current:not(#\-) {
-        border-color: var(--nova-edge,#3b3f7a)
+        border-left-color: var(--nova-b,#63e7ff);
+        background-image: linear-gradient(90deg,color-mix(in srgb,var(--nova-b,#63e7ff) 14%,transparent),transparent 80%);
+        background-color: transparent
     }
     .nova-list-open:not(#\-) {
         border-color: currentcolor;
@@ -13531,9 +14048,9 @@
         color: var(--muted,#a4b2cd)
     }
     .nova-duo:not(#\-) {
-        border-color: color-mix(in srgb,var(--violet,#826cff) 34%,var(--line,#25324a));
+        border-color: color-mix(in srgb,var(--nova-a,#9273ff) 50%,var(--line,#25324a));
         background-image: none;
-        background-color: color-mix(in srgb,var(--panel,#020412) 80%,transparent);
+        background-color: #01020d;
         color: var(--text,#f3f6ff)
     }
     .nova-duo-side span:not(#\-) {
@@ -13572,10 +14089,26 @@
         fill: #ffffff
     }
     .nova-turn-hermes .nova-turn-body:not(#\-) {
-        border-left-color: color-mix(in srgb,var(--pink,#c664ff) 50%,transparent)
+        --turn: var(--nova-c,#f06dff)
     }
     .nova-agent:not(#\-) {
         color: var(--muted,#a4b2cd)
+    }
+    .nova-chat .ai-chip:not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text,#eef1ff);
+        --k-rim: color-mix(in srgb,var(--nova-a,#9273ff) 85%,#fff);
+        --k-rim-2: color-mix(in srgb,var(--nova-b,#63e7ff) 40%,transparent);
+        --k-plate: color-mix(in srgb,var(--nova-a,#9273ff) 18%,#0a1030);
+        --k-plate-2: #060a1c
+    }
+    .nova-chat .ai-chip:is(:hover,:focus-visible):not(#\-):not(#\-):not(#\-) {
+        --k-rim: var(--nova-b,#63e7ff);
+        --k-rim-2: var(--nova-b,#63e7ff);
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 26%,#0a1030);
+        --k-glow: 0 0 14px -3px var(--nova-b,#63e7ff)
     }
     .nova-chat .ai-reply-icon:not(#\-) {
         border-color: currentcolor;
@@ -13633,24 +14166,68 @@
         outline-color: currentcolor;
         color: inherit
     }
-    .nova-chat .nova-chat-send:not(#\-) {
+    .nova-chat .nova-chat-send:not(#\-):not(#\-):not(#\-) {
         border-color: currentcolor;
-        background-image: linear-gradient(120deg,var(--nova-b,#63e7ff),var(--nova-a,#9273ff));
+        background-image: none;
         background-color: transparent;
-        color: #0a0f24
+        box-shadow: none;
+        color: #04102a;
+        --k-rim: #fff;
+        --k-rim-2: color-mix(in srgb,var(--nova-b,#63e7ff) 60%,#fff);
+        --k-plate: var(--nova-b,#63e7ff);
+        --k-plate-2: var(--nova-a,#9273ff);
+        --k-glow: 0 0 14px -2px var(--nova-b,#63e7ff)
     }
     .nova-chat-more-list:not(#\-) {
         border-color: var(--nova-edge);
+        border-top-color: var(--nova-c,#f06dff);
         background-image: none;
-        background-color: #020313;
+        background-color: #01020c;
         box-shadow: 0 22px 50px -18px rgba(0,0,0,.9)
-    }
-    .nova-chat .nova-composer:focus-within:not(#\-) {
-        border-color: var(--nova-focus,#63e7ff);
-        box-shadow: 0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 45%,transparent)
     }
     .nova-frame .nova-chat:not(#\-) {
         --line: #2a3a5c
+    }
+    .nova-chat :is(.secondary,.primary):not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none;
+        color: var(--text,#f3f6ff);
+        text-shadow: none
+    }
+    .nova-chat .secondary:is(:hover,:focus-visible):not(:disabled):not(#\-):not(#\-):not(#\-) {
+        --k-rim: var(--nova-b,#63e7ff);
+        --k-rim-2: var(--nova-a,#9273ff);
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 22%,#0c1335);
+        --k-glow: 0 0 14px -3px var(--nova-b,#63e7ff)
+    }
+    .nova-chat .secondary[aria-pressed=true]:not(#\-):not(#\-):not(#\-) {
+        --k-rim: var(--nova-b,#63e7ff);
+        --k-plate: color-mix(in srgb,var(--nova-a,#9273ff) 38%,#0c1335)
+    }
+    .nova-chat .primary:not(.nova-chat-send):not(#\-):not(#\-):not(#\-) {
+        color: #fff;
+        --k-rim: #fff;
+        --k-rim-2: var(--nova-b,#63e7ff);
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 34%,#0a1232);
+        --k-plate-2: color-mix(in srgb,var(--nova-a,#9273ff) 56%,#0a1232);
+        --k-glow: 0 0 14px -2px color-mix(in srgb,var(--nova-b,#63e7ff) 70%,transparent)
+    }
+    .nova-chat .nova-mic-on:not(#\-):not(#\-):not(#\-) {
+        color: #fff;
+        --k-rim: var(--nova-b,#63e7ff);
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 34%,#0a1232);
+        --k-glow: 0 0 14px -2px var(--nova-b,#63e7ff)
+    }
+    .nova-chat .nova-chat-send:is(:hover,:focus-visible):not(:disabled):not(#\-):not(#\-):not(#\-) {
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 70%,#fff);
+        --k-glow: 0 0 18px 0 var(--nova-b,#63e7ff)
+    }
+    @media (forced-colors:active) {
+        .nova-turn-body:not(#\-), .nova-composer:not(#\-), .nova-invite:not(#\-) {
+            border-color: currentcolor
+        }
     }
 }
 /*  components/nova/command-bar.css  */
@@ -13824,10 +14401,10 @@
     }
     .holo-num:not(#\-) {
         color: var(--neon-ink, #eef3ff);
-        text-shadow: 0 0 14px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 28px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent)
     }
     .holo-label:not(#\-) {
-        color: #cfdaf0
+        color: #cdd8ee
     }
     .holo-note:not(#\-) {
         color: #c3cfe6
@@ -13836,61 +14413,122 @@
         color: #c9d4ea
     }
     .holo-big-line small:not(#\-) {
-        color: #c9d4ea
+        color: #cdd8ee
     }
     .holo-tag:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #9273ff) 45%, transparent);
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 38%, transparent);
         color: #dfe7f8;
         background-image: none;
-        background-color: #ffffff08
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 8%, transparent)
+    }
+    .holo-tag:not(#\-)::before {
+        background: var(--neon-2, #c0adff);
+        box-shadow: 0 0 6px 1px var(--neon, #9273ff)
     }
     .holo-hidden:not(#\-) {
         color: #dde6f8
     }
     .holo-ring-centre small:not(#\-) {
-        color: #c9d4ea
+        color: #cdd8ee
+    }
+    .holo-well:not(#\-) {
+        fill: color-mix(in oklab, var(--neon, #9273ff) 7%, #04071a);
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 22%, transparent)
     }
     .holo-orn-dash:not(#\-) {
         fill: none;
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 42%, transparent)
+    }
+    .holo-orn-seg:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent)
+    }
+    .holo-orn-pip:not(#\-) {
+        fill: color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)
     }
     .holo-orn-ticks:not(#\-) {
         fill: none;
-        stroke: color-mix(in oklab, var(--neon-2, #cbbfff) 32%, transparent)
+        stroke: color-mix(in oklab, var(--neon-2, #cbbfff) 42%, transparent)
     }
     .holo-orn-major:not(#\-) {
-        stroke: color-mix(in oklab, var(--neon-2, #cbbfff) 55%, transparent)
+        stroke: color-mix(in oklab, var(--neon-2, #cbbfff) 78%, transparent)
+    }
+    .holo-orn-hair:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 30%, transparent)
     }
     .holo-track:not(#\-), .holo-track-path:not(#\-) {
         fill: none;
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 16%, #ffffff10)
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 17%, #ffffff0d)
     }
     .holo-arc:not(#\-) {
         fill: none;
-        stroke: var(--neon, #9273ff);
-        filter: drop-shadow(0 0 2px var(--neon, #9273ff)) drop-shadow(0 0 7px color-mix(in oklab, var(--neon, #9273ff) 65%, transparent))
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) calc(var(--t, 1) * 72%), var(--neon, #9273ff))
+    }
+    .holo-arc-g:not(#\-) {
+        filter: drop-shadow(0 0 1.6px var(--neon, #9273ff)) drop-shadow(0 0 5px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent))
     }
     .holo-glint:not(#\-) {
         fill: none;
-        stroke: #ffffffb3
+        stroke: #ffffffc4
     }
     .holo-arc-end:not(#\-) {
         fill: #fff;
-        filter: drop-shadow(0 0 4px var(--neon, #9273ff))
+        stroke: var(--neon, #9273ff)
+    }
+    @supports (color: oklch(from red l c h)) {
+        .holo-arc:not(#\-) {
+            stroke: color-mix(in oklab, var(--neon, #9273ff) calc(var(--t, 1) * 100%), oklch(from var(--neon, #9273ff) calc(l - .13) calc(c * 1.25) h))
+        }
+    }
+    @supports (color: oklch(from red l c h)) {
+        .holo-segs i[data-lit]:not(#\-) {
+            background-color: color-mix(in oklab, var(--neon, #9273ff) calc(var(--k) * 100%), oklch(from var(--neon, #9273ff) calc(l - .12) calc(c * 1.25) h))
+        }
+    }
+    @supports (color: oklch(from red l c h)) {
+        .holo-gauge-fill:not(#\-), .holo-slider-fill:not(#\-) {
+            background-image: linear-gradient(90deg, oklch(from var(--neon, #9273ff) calc(l - .14) calc(c * 1.25) h / .7), var(--neon, #9273ff) 70%, var(--neon-2, #c0adff));
+            background-color: transparent
+        }
+    }
+    @supports (color: oklch(from red l c h)) {
+        .holo-cols-slot i:not(#\-) {
+            background-image: linear-gradient(0deg, oklch(from var(--neon, #23eaff) calc(l - .16) calc(c * 1.2) h / .55), var(--neon, #23eaff) 80%, var(--neon-2, #8ff6ff));
+            background-color: transparent
+        }
+    }
+    @supports (color: oklch(from red l c h)) {
+        .holo-core-bar i[data-lit]:not(#\-) {
+            background-image: linear-gradient(90deg, oklch(from var(--neon, #9273ff) calc(l - .1) calc(c * 1.25) h), var(--neon, #9273ff));
+            background-color: transparent
+        }
+    }
+    .holo-lead:not(#\-) {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 1.5px var(--neon, #9273ff), 0 0 9px 2px var(--neon, #9273ff), 0 0 22px 5px color-mix(in oklab, var(--neon, #9273ff) 45%, transparent)
+    }
+    .holo-lead:not(#\-)::after {
+        border-color: color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent)
     }
     .holo-stack g[data-pillar=health]:not(#\-) {
-        --neon: #ff4fb8
+        --neon: #ff74be;
+        --neon-2: #ffa9d8
     }
     .holo-stack g[data-pillar=habits]:not(#\-) {
-        --neon: #2ef2ff
+        --neon: #23eaff;
+        --neon-2: #8ff6ff
     }
     .holo-stack g[data-pillar=goals]:not(#\-) {
-        --neon: #a47bff
+        --neon: #9273ff;
+        --neon-2: #c0adff
     }
     .holo-stack g[data-pillar=wealth]:not(#\-) {
-        --neon: #ffbf3c
+        --neon: #ffd27a;
+        --neon-2: #ffe6b3
     }
-    :is(.holo-track, .holo-track-path)[data-unknown]:not(#\-) {
+    :is(.holo-track, .holo-track-path)[data-unknown]:not(#\-), .holo-stack g[data-lead] .holo-track[data-unknown]:not(#\-) {
         stroke: #c9d4ea
     }
     .holo-unknown-mark:not(#\-) {
@@ -13901,10 +14539,11 @@
         fill: #c9d4ea
     }
     .holo-hand:not(#\-) {
-        stroke: #ffffffcc
+        stroke: #ffffffd9
     }
     .holo-hub:not(#\-) {
-        fill: #fff
+        fill: #fff;
+        stroke: var(--neon, #7fc8ff)
     }
     .holo-mark:not(#\-) {
         fill: var(--neon-2, #cbbfff);
@@ -13930,31 +14569,32 @@
         filter: none
     }
     .holo-planet:not(#\-) {
-        fill: #0a1028;
+        fill: #070b22;
         stroke: color-mix(in oklab, var(--neon, #63e7ff) 70%, transparent)
     }
     .holo-planet[data-lit]:not(#\-) {
-        fill: var(--neon, #63e7ff);
-        stroke: #fff;
-        filter: drop-shadow(0 0 4px var(--neon, #63e7ff))
+        fill: #fff;
+        stroke: var(--neon, #63e7ff);
+        filter: drop-shadow(0 0 3px var(--neon, #63e7ff)) drop-shadow(0 0 7px color-mix(in oklab, var(--neon, #63e7ff) 60%, transparent))
     }
     .holo-mix-seg:not(#\-) {
         fill: none;
-        stroke: #ffbf3c;
-        filter: drop-shadow(0 0 3px #ffbf3c99)
+        stroke: #ffd27a;
+        filter: drop-shadow(0 0 3px #ffbf3caa)
     }
     .holo-mix-seg[data-i="1"]:not(#\-) {
         stroke: #ff9a3c
     }
     .holo-mix-seg[data-i="2"]:not(#\-) {
-        stroke: #ffe08a
+        stroke: #fff0cf
     }
     .holo-mix-seg[data-i="3"]:not(#\-) {
         stroke: #d9a441
     }
     .holo-key:not(#\-) {
         background-image: none;
-        background-color: #ffbf3c
+        background-color: #ffd27a;
+        box-shadow: 0 0 6px #ffbf3c99
     }
     .holo-key[data-i="1"]:not(#\-) {
         background-image: none;
@@ -13962,7 +14602,7 @@
     }
     .holo-key[data-i="2"]:not(#\-) {
         background-image: none;
-        background-color: #ffe08a
+        background-color: #fff0cf
     }
     .holo-key[data-i="3"]:not(#\-) {
         background-image: none;
@@ -13971,7 +14611,7 @@
     .holo-spark-line:not(#\-) {
         fill: none;
         stroke: var(--neon, #9273ff);
-        filter: drop-shadow(0 0 2px var(--neon, #9273ff)) drop-shadow(0 0 6px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent))
+        filter: drop-shadow(0 0 2px var(--neon, #9273ff)) drop-shadow(0 0 7px color-mix(in oklab, var(--neon, #9273ff) 65%, transparent))
     }
     .holo-stop-a:not(#\-) {
         stop-color: var(--neon, #9273ff)
@@ -13981,72 +14621,142 @@
     }
     .holo-grid-lines:not(#\-) {
         fill: none;
-        stroke: #ffffff12
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 16%, #ffffff14)
+    }
+    .holo-grid-fine:not(#\-) {
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 9%, #ffffff0a)
     }
     .holo-target-line:not(#\-) {
         fill: none;
-        stroke: #ffffff70
+        stroke: #ffffff8c
+    }
+    .holo-band-a:not(#\-) {
+        stop-color: var(--neon, #9273ff)
+    }
+    .holo-band-b:not(#\-) {
+        stop-color: var(--neon-2, #c0adff)
     }
     .holo-band-mid:not(#\-) {
         fill: none;
         stroke: var(--neon-2, #c9b0ff)
     }
     .holo-meter-label:not(#\-) {
-        color: #d3ddf1
+        color: #cdd8ee
     }
     .holo-segs i:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0d);
-        background-image: linear-gradient(90deg, var(--neon, #9273ff) calc(var(--part) * 100%), transparent 0)
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 13%, #ffffff0a);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 20%, transparent)
     }
     .holo-segs i[data-lit]:not(#\-) {
-        background: var(--neon, #9273ff);
-        box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 75%, transparent)
+        background-color: color-mix(in oklab, var(--neon-2, #c0adff) calc(var(--k) * 62%), var(--neon, #9273ff));
+        box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 72%, transparent)
+    }
+    .holo-segs i[data-lead]:not(#\-) {
+        background-image: linear-gradient(90deg, var(--neon-2, #c0adff), #fff calc(max(var(--part), 1 - min(1, var(--part) * 1000)) * 100%), transparent 0);
+        box-shadow: 0 0 8px 1px var(--neon, #9273ff), 0 0 18px 2px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
     }
     .holo-meter[data-unknown] .holo-segs i:not(#\-) {
         background-image: none;
         background-color: transparent;
-        border-color: #ffffff22
+        border-color: #ffffff26;
+        box-shadow: none
     }
     .holo-meter-value small:not(#\-) {
         color: #c9d4ea
     }
-    .holo-hearts small:not(#\-) {
-        color: #d3ddf1
+    .holo-gauge:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 15%, #ffffff0c);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 20%, transparent)
     }
-    .holo-heart-shell:not(#\-) {
-        fill: #ff4fb81f;
-        stroke: #ff8fd6
+    .holo-gauge-fill:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 50%, transparent), var(--neon, #9273ff) 62%, var(--neon-2, #c0adff));
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in oklab, var(--neon, #9273ff) 72%, transparent), 0 0 18px color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)
     }
-    .holo-hearts .holo-heart-pct:not(#\-) {
-        color: #ffc8e8
+    .holo-gauge-fill:not(#\-)::after {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 5px 1px #fff, 0 0 12px 3px var(--neon, #9273ff)
     }
-    .holo-heart-fill:not(#\-) {
-        fill: #ff4fb8;
-        filter: drop-shadow(0 0 4px #ff4fb8)
+    .holo-gauge[data-unknown]:not(#\-) {
+        background-image: linear-gradient(90deg, #ffffff40 50%, transparent 0);
+        background-color: transparent;
+        box-shadow: none
     }
-    .holo-streaks li:not(#\-) {
-        color: #dbe4f6
+    .holo-cols-slot:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #23eaff) 6%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #23eaff) 26%, transparent)
     }
-    .holo-dot:not(#\-) {
-        background: var(--neon, #2ef2ff);
-        box-shadow: 0 0 6px var(--neon, #2ef2ff)
+    .holo-cols-slot i:not(#\-) {
+        background-image: linear-gradient(0deg, color-mix(in oklab, var(--neon, #23eaff) 34%, transparent), var(--neon, #23eaff) 78%, var(--neon-2, #8ff6ff));
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in oklab, var(--neon, #23eaff) 68%, transparent), 0 0 20px color-mix(in oklab, var(--neon, #23eaff) 30%, transparent)
     }
-    .holo-week-day small:not(#\-) {
+    .holo-cols-slot i:not(#\-)::after {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 5px 1px #fff, 0 0 10px 2px var(--neon-2, #8ff6ff)
+    }
+    .holo-cols-day[data-today] .holo-cols-slot:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--neon-2, #8ff6ff), 0 0 9px color-mix(in oklab, var(--neon, #23eaff) 42%, transparent)
+    }
+    .holo-cols-day small:not(#\-) {
         color: #c9d4ea
     }
-    .holo-col i:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #2ef2ff) 14%, #ffffff0d)
+    .holo-cols-day[data-today] small:not(#\-) {
+        color: var(--neon-ink, #c6fbff)
     }
-    .holo-col i[data-lit]:not(#\-) {
-        background: var(--neon, #2ef2ff);
-        box-shadow: 0 0 5px color-mix(in oklab, var(--neon, #2ef2ff) 70%, transparent)
+    .holo-dot:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, #fff 55%, var(--neon, #2ef2ff));
+        box-shadow: 0 0 0 1.5px var(--neon, #2ef2ff), 0 0 8px 1px var(--neon, #2ef2ff)
+    }
+    .holo-ecg path:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon, #ff74be) 55%, transparent)
+    }
+    .holo-hearts small:not(#\-) {
+        color: #cdd8ee
+    }
+    .holo-heart-shell:not(#\-) {
+        fill: #0b0720;
+        stroke: #ff8fd0
+    }
+    .holo-hearts .holo-heart-pct:not(#\-) {
+        background-image: none;
+        background-color: #01010ae6;
+        color: #ffd3ea
+    }
+    .holo-heart-fill:not(#\-) {
+        fill: #ff5fb4;
+        filter: drop-shadow(0 0 3px #ff4fb8) drop-shadow(0 0 7px #ff4fb899)
+    }
+    .holo-heart-beat:not(#\-) {
+        fill: none;
+        stroke: #fff
+    }
+    .holo-hearts li[data-full] .holo-heart-shell:not(#\-) {
+        stroke: #ffd3ea
+    }
+    .holo-ref-key:not(#\-) {
+        color: #d3ddf1
+    }
+    .holo-streaks li:not(#\-) {
+        color: #e3ebfa;
+        border-top-color: color-mix(in oklab, var(--neon, #23eaff) 16%, transparent)
+    }
+    .holo-streaks li:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .holo-arc-link:not(#\-) {
+        color: #eef3ff
     }
     .holo-arc-name:not(#\-) {
         color: #eef3ff
     }
-    .holo-pace-words:not(#\-) {
+    .holo-arcs .holo-pace-words:not(#\-) {
         color: #c9d4ea
     }
     .holo-arcs li[data-tone=good] .holo-pace-words:not(#\-) {
@@ -14058,67 +14768,321 @@
     .holo-more a:not(#\-) {
         color: var(--nova-hi, #cbbfff)
     }
+    .holo-more-link:not(#\-) {
+        color: var(--neon-ink, #e2d9ff)
+    }
+    .holo-pace-chart:not(#\-) {
+        border-left-color: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent);
+        border-bottom-color: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)
+    }
+    .holo-pace-dot:not(#\-) {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 1.5px var(--neon, #9273ff), 0 0 9px 2px var(--neon, #9273ff), 0 0 20px 4px color-mix(in oklab, var(--neon, #9273ff) 45%, transparent)
+    }
+    .holo-chart-tag:not(#\-) {
+        color: var(--neon-ink, #e2d9ff);
+        background-image: none;
+        background-color: #01020ad9
+    }
     .holo-estimate:not(#\-) {
         color: #d3ddf1
     }
+    .holo-sliders li:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #9273ff) 14%, transparent)
+    }
+    .holo-slider-name:not(#\-) {
+        color: #eef3ff
+    }
+    .holo-slider:not(#\-) {
+        background-image: linear-gradient(90deg, transparent calc(25% - .5px), #ffffff4d 0 calc(25% + .5px), transparent 0 calc(50% - .5px), #ffffff4d 0 calc(50% + .5px), transparent 0 calc(75% - .5px), #ffffff4d 0 calc(75% + .5px), transparent 0), linear-gradient(color-mix(in oklab, var(--neon, #a47bff) 20%, #ffffff12), color-mix(in oklab, var(--neon, #a47bff) 20%, #ffffff12));
+        background-color: transparent
+    }
+    .holo-slider-fill:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #a47bff) 50%, transparent), var(--neon, #a47bff) 60%, var(--neon-2, #c0adff));
+        background-color: transparent;
+        box-shadow: 0 0 8px var(--neon, #a47bff)
+    }
+    .holo-slider-dot:not(#\-) {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 1.5px var(--neon, #a47bff), 0 0 9px 2px var(--neon, #a47bff)
+    }
+    .holo-slider[data-unknown]:not(#\-) {
+        background-image: linear-gradient(90deg, #ffffff40 50%, transparent 0);
+        background-color: transparent
+    }
     .holo-legend li:not(#\-) {
-        color: #dbe4f6
+        color: #e3ebfa;
+        border-top-color: #ffd27a24
+    }
+    .holo-legend li:first-child:not(#\-) {
+        border-top-color: currentcolor
     }
     .holo-purpose p:not(#\-) {
         color: #d3ddf1
     }
-    .holo-flow i:not(#\-) {
+    .holo-flow:not(#\-) {
+        box-shadow: inset 0 0 0 1px #ffd27a3d;
         background-image: none;
-        background-color: #ffbf3c;
-        box-shadow: 0 0 6px #ffbf3c88
+        background-color: #ffd27a0d
+    }
+    .holo-flow i:not(#\-) {
+        background-image: linear-gradient(90deg, #ffb445, #ffd27a);
+        background-color: transparent;
+        box-shadow: 0 0 8px #ffbf3cb0, 0 0 18px #ffbf3c50
     }
     .holo-flow i[data-i="1"]:not(#\-) {
-        background-image: none;
-        background-color: #ff9a3c
+        background-image: linear-gradient(90deg, #ff9a3c, #ffbd6b);
+        background-color: transparent
     }
     .holo-flow i[data-i="2"]:not(#\-) {
+        background-image: linear-gradient(90deg, #ffe08a, #fff0cf);
+        background-color: transparent
+    }
+    .holo-flow i:nth-last-child(2):not(#\-)::after {
         background-image: none;
-        background-color: #ffe08a
+        background-color: #fff;
+        box-shadow: 0 0 5px 1px #fff, 0 0 12px 3px #ffbf3c
     }
     .holo-flow i[data-free]:not(#\-) {
-        background-image: repeating-linear-gradient(90deg, #ffffff30 0 4px, transparent 4px 7px);
+        background-image: repeating-linear-gradient(115deg, #ffffff38 0 2px, transparent 2px 6px);
         background-color: transparent;
         box-shadow: none
+    }
+    .holo-frame:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #ffd27a) 30%, transparent);
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #ffd27a) 7%, transparent), transparent 70%);
+        background-color: transparent
+    }
+    .holo-frame:not(#\-)::before {
+        --c: color-mix(in oklab, var(--neon, #ffd27a) 80%, #fff);
+        background-image: linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c));
+        background-color: transparent
+    }
+    .holo-frame-label:not(#\-) {
+        color: #d7e0f3
+    }
+    .holo-frame-label[data-at=title]:not(#\-) {
+        color: #fff0cf
+    }
+    .holo-frame-key:not(#\-) {
+        color: #ffe6b3
+    }
+    .holo-wave-dot:not(#\-) {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 1.5px #ffd27a, 0 0 9px 2px #ffbf3c, 0 0 22px 5px #ffbf3c66
+    }
+    .holo-wave-dot[data-now]:not(#\-) {
+        background-image: none;
+        background-color: #01020a;
+        box-shadow: none;
+        border-color: #ffe08a
+    }
+    .holo-wave-mark:not(#\-) {
+        background-image: none;
+        background-color: #fff0cf;
+        box-shadow: 0 0 6px 1px #ffbf3c
+    }
+    .holo-wave-mark:not(#\-)::after {
+        background-image: none;
+        background-color: #fff0cf
+    }
+    .holo-wave-tag:not(#\-) {
+        background-image: none;
+        background-color: #01020ad9;
+        color: #fff0cf
+    }
+    .holo-wave-tag[data-at=now]:not(#\-) {
+        color: #fff2c9
+    }
+    .holo-now-link:not(#\-) {
+        fill: none;
+        stroke: #ffe08a
+    }
+    .holo-ruler-bars:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon, #ffd27a) 44%, transparent)
+    }
+    .holo-wave-a:not(#\-) {
+        stop-color: #ffb445
+    }
+    .holo-wave-b:not(#\-) {
+        stop-color: #fff0cf
+    }
+    .holo-wave-line:not(#\-) {
+        fill: none;
+        filter: drop-shadow(0 0 3px #ffbf3c)
+    }
+    .holo-wave-glow:not(#\-) {
+        fill: none;
+        stroke: #ffb445;
+        filter: blur(4px)
+    }
+    .holo-flow-end:not(#\-) {
+        color: #d3ddf1
+    }
+    .holo-flow-source:not(#\-) {
+        fill: #fff0cf;
+        filter: drop-shadow(0 0 4px #ffbf3c)
+    }
+    .holo-ribbon:not(#\-) {
+        fill: #ffbf3c
+    }
+    .holo-flow-node:not(#\-) {
+        fill: #ffd27a;
+        filter: drop-shadow(0 0 3px #ffbf3c)
+    }
+    .holo-flow-ribbons g[data-i="1"] :is(.holo-ribbon, .holo-flow-node):not(#\-) {
+        fill: #ff9a3c
+    }
+    .holo-flow-ribbons g[data-i="2"] :is(.holo-ribbon, .holo-flow-node):not(#\-) {
+        fill: #ffe08a
+    }
+    .holo-flow-ribbons g[data-free] .holo-ribbon:not(#\-) {
+        fill: #ffffff
+    }
+    .holo-flow-ribbons g[data-free] .holo-flow-node:not(#\-) {
+        fill: #ffffff55;
+        filter: none
+    }
+    .holo-flow-legend:not(#\-) {
+        color: #dbe4f6
+    }
+    .holo-key[data-free]:not(#\-) {
+        background-image: repeating-linear-gradient(90deg, #ffffff60 0 2px, transparent 2px 4px);
+        background-color: transparent;
+        box-shadow: none
+    }
+    .holo-histo-line-tag:not(#\-) {
+        background-image: none;
+        background-color: #01020ad9;
+        color: #f4f7ff
+    }
+    .holo-bar-a:not(#\-) {
+        stop-color: var(--neon, #ff74be)
+    }
+    .holo-bar-b:not(#\-) {
+        stop-color: var(--neon, #ff74be)
+    }
+    .holo-bar:not(#\-) {
+        filter: drop-shadow(0 0 3px color-mix(in oklab, var(--neon, #ff74be) 80%, transparent))
+    }
+    .holo-bar-slot:not(#\-) {
+        fill: color-mix(in oklab, var(--neon, #ff74be) 6%, transparent);
+        stroke: color-mix(in oklab, var(--neon, #ff74be) 26%, transparent)
+    }
+    .holo-bar-tip:not(#\-) {
+        fill: #fff;
+        filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 5px var(--neon-2, #ffa9d8))
+    }
+    .holo-bar-empty:not(#\-) {
+        fill: none;
+        stroke: #ffffff40
+    }
+    .holo-ref-line:not(#\-) {
+        fill: none;
+        stroke: #f4f7ff
+    }
+    .holo-histo-days small:not(#\-) {
+        color: #c9d4ea
+    }
+    .holo-hand-tip:not(#\-) {
+        stroke: #fff;
+        filter: drop-shadow(0 0 3px var(--neon, #7fc8ff))
+    }
+    .holo-dial-hour:not(#\-) {
+        color: #dfe7f8
+    }
+    .holo-agenda-count:not(#\-) {
+        color: #cdd8ee
+    }
+    .holo-next li:not(#\-) {
+        --node: var(--neon, #7fc8ff);
+        border-top-color: color-mix(in oklab, var(--neon, #7fc8ff) 15%, transparent)
+    }
+    .holo-next li:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .holo-next li[data-pillar=health]:not(#\-) {
+        --node: #ff74be
+    }
+    .holo-next li[data-pillar=habits]:not(#\-) {
+        --node: #23eaff
+    }
+    .holo-next li[data-pillar=goals]:not(#\-) {
+        --node: #a98fff
+    }
+    .holo-next li[data-pillar=wealth]:not(#\-) {
+        --node: #ffd27a
+    }
+    .holo-next li:not(#\-)::before {
+        background-image: none;
+        background-color: color-mix(in oklab, #fff 55%, var(--node));
+        box-shadow: 0 0 0 1.5px var(--node), 0 0 8px 1px var(--node)
+    }
+    .holo-next li:not(#\-)::after {
+        background-image: linear-gradient(var(--node), transparent);
+        background-color: transparent
     }
     .holo-next-time:not(#\-) {
         color: var(--neon-ink, #dcecff)
     }
+    .holo-next li small:not(#\-) {
+        color: #c3cfe6
+    }
     .holo-next li a:not(#\-), .holo-next li > span:nth-child(2):not(#\-) {
         color: #eef3ff
     }
-    .holo-next li small:not(#\-) {
-        color: #c9d4ea
-    }
     .holo-counters div:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #a47bff) 30%, transparent);
-        background-image: none;
-        background-color: #ffffff06
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #a47bff) 11%, transparent), transparent);
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #a47bff) 26%, transparent)
+    }
+    .holo-counters div:not(#\-)::before {
+        background: var(--neon, #a47bff);
+        box-shadow: 0 0 8px 1px var(--neon, #a47bff)
     }
     .holo-counters dt:not(#\-) {
-        color: #cfdaf0
+        color: #cdd8ee
     }
     .holo-counters div[data-tone=attention]:not(#\-) {
-        border-color: #ff6b5a99;
+        background-image: linear-gradient(180deg, #ff6b5a26, transparent);
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px #ff6b5a99
+    }
+    .holo-counters div[data-tone=attention]:not(#\-)::before {
         background-image: none;
-        background-color: #ff6b5a12
+        background-color: #ff8a7c;
+        box-shadow: 0 0 8px 1px #ff6b5a
     }
     .holo-counters div[data-tone=attention] .holo-num:not(#\-) {
         color: #ffd0ca;
-        text-shadow: 0 0 12px #ff6b5a99
+        text-shadow: 0 0 12px #ff6b5aaa, 0 0 30px #ff6b5a55
     }
     .holo-attention-mark:not(#\-) {
         color: #ffb4aa
+    }
+    .holo-captures li:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #7fc8ff) 15%, transparent)
+    }
+    .holo-captures li:not(#\-)::before {
+        background-image: none;
+        background-color: color-mix(in oklab, #fff 50%, var(--neon, #7fc8ff));
+        box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 1px var(--neon, #7fc8ff)
     }
     .holo-captures a:not(#\-) {
         color: #eef3ff
     }
     .holo-captures small:not(#\-) {
         color: #c9d4ea
+    }
+    .holo-notes[data-size=S] .holo-captures li:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .holo-orbit-line:not(#\-) {
+        color: #dbe4f6
     }
     .holo-core-readout li:not(#\-) {
         color: #d3ddf1
@@ -14159,181 +15123,6 @@
     .holo-preset:hover:not(#\-) {
         border-color: color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent)
     }
-    @media (forced-colors: active) {
-        .holo-arc:not(#\-), .holo-spark-line:not(#\-), .holo-mark:not(#\-), .holo-planet[data-lit]:not(#\-), .holo-heart-fill:not(#\-), .holo-mix-seg:not(#\-), .holo-wave-line:not(#\-), .holo-bar-tip:not(#\-) {
-            filter: none
-        }
-    }
-    @media (forced-colors: active) {
-        .holo-core-bar:not(#\-)::before, .holo-slider-fill:not(#\-), .holo-slider-dot:not(#\-) {
-            background-image: none;
-            background-color: transparent;
-            box-shadow: none
-        }
-    }
-    @media (forced-colors: active) {
-        .holo-segs i[data-lit]:not(#\-), .holo-col i[data-lit]:not(#\-), .holo-flow i:not(#\-) {
-            background-image: none;
-            background-color: transparent;
-            box-shadow: none
-        }
-    }
-    .holo-lens:not(#\-) {
-        background-image: conic-gradient(from 20deg, #2ef2ff, #8f7bff 30%, #f06dff 55%, #ff9ad8 70%, #2ef2ff);
-        background-color: transparent;
-        filter: drop-shadow(0 0 4px #f06dff88)
-    }
-    .holo-frame:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #ffbf3c) 26%, transparent);
-        background-image: linear-gradient(180deg, #ffffff05, transparent);
-        background-color: transparent
-    }
-    .holo-frame:not(#\-)::before {
-        --c: color-mix(in oklab, var(--neon, #ffbf3c) 85%, #fff);
-        background-image: linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c));
-        background-color: transparent
-    }
-    .holo-frame-label:not(#\-) {
-        color: #d3ddf1
-    }
-    .holo-frame-label[data-at=title]:not(#\-) {
-        color: #ffe6b0
-    }
-    .holo-frame-key:not(#\-) {
-        color: #ffe6b0
-    }
-    .holo-wave-dot:not(#\-) {
-        background-image: none;
-        background-color: #fff;
-        box-shadow: 0 0 0 2px #ffbf3c, 0 0 8px #ffbf3c
-    }
-    .holo-wave-dot[data-now]:not(#\-) {
-        background-image: none;
-        background-color: #01020a;
-        box-shadow: none;
-        border-color: #ffe08a
-    }
-    .holo-wave-tag:not(#\-) {
-        background-image: none;
-        background-color: #01020ad9;
-        color: #ffe6b0
-    }
-    .holo-wave-tag[data-at=now]:not(#\-) {
-        color: #fff2c9
-    }
-    .holo-now-link:not(#\-) {
-        fill: none;
-        stroke: #ffe08a
-    }
-    .holo-grid-fine:not(#\-) {
-        stroke: #ffffff0e
-    }
-    .holo-ruler-bars:not(#\-) {
-        fill: none;
-        stroke: color-mix(in oklab, var(--neon, #ffbf3c) 38%, transparent)
-    }
-    .holo-wave-a:not(#\-) {
-        stop-color: #ffd27a
-    }
-    .holo-wave-b:not(#\-) {
-        stop-color: #ff8a3c
-    }
-    .holo-wave-line:not(#\-) {
-        fill: none;
-        filter: drop-shadow(0 0 3px #ffbf3c)
-    }
-    .holo-wave-glow:not(#\-) {
-        fill: none;
-        stroke: #ff4fb8;
-        filter: blur(3px)
-    }
-    .holo-ref-key:not(#\-) {
-        color: #d3ddf1
-    }
-    .holo-histo-line-tag:not(#\-) {
-        background-image: none;
-        background-color: #01020acc;
-        color: #f4f7ff
-    }
-    .holo-bar-a:not(#\-) {
-        stop-color: #8f6bff
-    }
-    .holo-bar-b:not(#\-) {
-        stop-color: #ff4fb8
-    }
-    .holo-bar-tip:not(#\-) {
-        fill: #5ff2ff;
-        filter: drop-shadow(0 0 4px #5ff2ff)
-    }
-    .holo-bar-empty:not(#\-) {
-        fill: none;
-        stroke: #ffffff40
-    }
-    .holo-ref-line:not(#\-) {
-        fill: none;
-        stroke: #f4f7ff;
-        filter: drop-shadow(0 0 3px #5ff2ff)
-    }
-    .holo-histo-days small:not(#\-) {
-        color: #c9d4ea
-    }
-    .holo-chart-tag:not(#\-) {
-        color: #e0d4ff;
-        background-image: none;
-        background-color: #01020acc
-    }
-    .holo-slider-name:not(#\-) {
-        color: #eef3ff
-    }
-    .holo-slider:not(#\-) {
-        background-image: linear-gradient(90deg, transparent calc(25% - .5px), #ffffff38 0 calc(25% + .5px), transparent 0 calc(50% - .5px), #ffffff38 0 calc(50% + .5px), transparent 0 calc(75% - .5px), #ffffff38 0 calc(75% + .5px), transparent 0), linear-gradient(color-mix(in oklab, var(--neon, #a47bff) 18%, #ffffff12), color-mix(in oklab, var(--neon, #a47bff) 18%, #ffffff12));
-        background-color: transparent
-    }
-    .holo-slider-fill:not(#\-) {
-        background: var(--neon, #a47bff);
-        box-shadow: 0 0 6px var(--neon, #a47bff)
-    }
-    .holo-slider-dot:not(#\-) {
-        background-image: none;
-        background-color: #fff;
-        box-shadow: 0 0 0 2px var(--neon, #a47bff), 0 0 8px var(--neon, #a47bff)
-    }
-    .holo-slider[data-unknown]:not(#\-) {
-        background-image: linear-gradient(90deg, #ffffff40 50%, transparent 0);
-        background-color: transparent
-    }
-    .holo-flow-end:not(#\-) {
-        color: #d3ddf1
-    }
-    .holo-flow-source:not(#\-) {
-        fill: #ffd98a;
-        filter: drop-shadow(0 0 4px #ffbf3c)
-    }
-    .holo-ribbon:not(#\-) {
-        fill: #ffbf3c
-    }
-    .holo-flow-node:not(#\-) {
-        fill: #ffbf3c
-    }
-    .holo-flow-ribbons g[data-i="1"] :is(.holo-ribbon, .holo-flow-node):not(#\-) {
-        fill: #ff9a3c
-    }
-    .holo-flow-ribbons g[data-i="2"] :is(.holo-ribbon, .holo-flow-node):not(#\-) {
-        fill: #ffe08a
-    }
-    .holo-flow-ribbons g[data-free] .holo-ribbon:not(#\-) {
-        fill: #ffffff
-    }
-    .holo-flow-ribbons g[data-free] .holo-flow-node:not(#\-) {
-        fill: #ffffff55
-    }
-    .holo-flow-legend:not(#\-) {
-        color: #dbe4f6
-    }
-    .holo-key[data-free]:not(#\-) {
-        background-image: repeating-linear-gradient(90deg, #ffffff60 0 2px, transparent 2px 4px);
-        background-color: transparent
-    }
     .holo-core-bar:not(#\-) {
         background-image: none;
         background-color: color-mix(in oklab, var(--neon, #9273ff) 18%, #ffffff10)
@@ -14368,42 +15157,6 @@
     .holo-core-why:not(#\-) {
         color: #c3cfe6
     }
-    .holo-arc-link:not(#\-) {
-        color: #eef3ff
-    }
-    .holo-arc-name:not(#\-) {
-        color: #eef3ff
-    }
-    .holo-more-link:not(#\-) {
-        color: var(--nova-hi, #cbbfff)
-    }
-    .holo-pace-dot:not(#\-) {
-        background-image: none;
-        background-color: #fff;
-        box-shadow: 0 0 0 2px var(--neon, #a47bff), 0 0 8px var(--neon, #a47bff)
-    }
-    .holo-dial-hour:not(#\-) {
-        color: #dfe7f8
-    }
-    .holo-agenda-count:not(#\-) {
-        color: #d3ddf1
-    }
-    .holo-orbit-line:not(#\-) {
-        color: #dbe4f6
-    }
-    .holo-empty-shape b:not(#\-) {
-        color: #dfe7f8
-    }
-    .holo-empty-frame:not(#\-) {
-        border-color: color-mix(in oklab, var(--neon, #ffbf3c) 40%, transparent)
-    }
-    .holo-empty-line:not(#\-) {
-        fill: none;
-        stroke: #ffffff45
-    }
-    .holo-empty-words:not(#\-) {
-        color: #dbe4f6
-    }
     .holo-action:not(#\-) {
         background-image: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 6%, transparent) 1px, transparent 1px), none;
         background-color: color-mix(in oklab, var(--neon, #9273ff) 7%, #01020a)
@@ -14429,11 +15182,104 @@
     .holo-sketch-band:not(#\-) {
         fill: #c9d4ea
     }
+    .holo-pace-dot:not(#\-)::after, .holo-wave-dot:not([data-now]):not(#\-)::after {
+        border-color: color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent)
+    }
+    @media (forced-colors: active) {
+        .holo-arc-g:not(#\-), .holo-spark-line:not(#\-), .holo-mark:not(#\-), .holo-planet[data-lit]:not(#\-), .holo-heart-fill:not(#\-), .holo-mix-seg:not(#\-), .holo-wave-line:not(#\-), .holo-bar-tip:not(#\-), .holo-bar:not(#\-) {
+            filter: none
+        }
+    }
+    @media (forced-colors: active) {
+        .holo-arc:not(#\-) {
+            stroke: Highlight
+        }
+    }
+    @media (forced-colors: active) {
+        .holo-core-bar:not(#\-)::before, .holo-slider-fill:not(#\-), .holo-slider-dot:not(#\-), .holo-gauge-fill:not(#\-), .holo-cols-slot i:not(#\-), .holo-lead:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            box-shadow: none
+        }
+    }
+    @media (forced-colors: active) {
+        .holo-segs i[data-lit]:not(#\-), .holo-segs i[data-lead]:not(#\-), .holo-flow i:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            box-shadow: none
+        }
+    }
+    .holo-lens:not(#\-) {
+        background-image: conic-gradient(from 20deg, #2ef2ff, #8f7bff 30%, #f06dff 55%, #ff9ad8 70%, #2ef2ff);
+        background-color: transparent;
+        filter: drop-shadow(0 0 4px #f06dff88)
+    }
+    .holo-empty-shape b:not(#\-) {
+        color: #dfe7f8;
+        text-shadow: 0 0 8px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .holo-ghost-rim:not(#\-) {
+        fill: color-mix(in oklab, var(--neon, #9273ff) 10%, #04071a);
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 80%, transparent)
+    }
+    .holo-ghost-ticks:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 70%, transparent)
+    }
+    .holo-ghost-track:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)
+    }
+    .holo-ghost-grid:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 30%, transparent)
+    }
+    .holo-ghost-lit:not(#\-) {
+        fill: none;
+        stroke: var(--neon-2, #c0adff);
+        filter: drop-shadow(0 0 2.5px var(--neon, #9273ff))
+    }
+    .holo-ghost-dot:not(#\-) {
+        fill: #fff;
+        stroke: var(--neon, #9273ff);
+        filter: drop-shadow(0 0 2.5px var(--neon, #9273ff))
+    }
+    .holo-empty-words:not(#\-) {
+        color: #dbe4f6
+    }
     .holo-health .holo-ring > .holo-ring-centre > small:not(#\-), .holo-habits .holo-dial > .holo-ring-centre > small:not(#\-) {
         color: #d3ddf1
     }
-    .holo-hand-tip:not(#\-) {
-        stroke: #fff
+    .holo-core .holo-stack .holo-track-path:not(#\-) {
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 26%, #040718)
+    }
+    .holo-core .holo-stack .holo-track-path[data-unknown]:not(#\-) {
+        stroke: #c9d4ea
+    }
+    .holo-core .holo-arc-g:not(#\-) {
+        filter: drop-shadow(0 0 1.2px var(--neon, #9273ff)) drop-shadow(0 0 4px var(--neon, #9273ff))
+    }
+    .holo-core .holo-orn-ticks:not(#\-) {
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 60%, #ffffff66)
+    }
+    .holo-core .holo-orn-major:not(#\-) {
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 70%, #fff)
+    }
+    .holo-core-readout .holo-core-name:not(#\-) {
+        color: #cdd8ee
+    }
+    .holo-core-bar i:not(#\-) {
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 20%, transparent)
+    }
+    .holo-core-bar i[data-lit]:not(#\-) {
+        background-image: linear-gradient(90deg, var(--neon, #9273ff), var(--neon-2, #c0adff));
+        background-color: transparent;
+        box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 72%, transparent)
+    }
+    .holo-core-bar i[data-lit]:not(:has(+ i[data-lit])):not(#\-) {
+        background-image: linear-gradient(90deg, var(--neon-2, #c0adff), #fff);
+        background-color: transparent;
+        box-shadow: 0 0 8px 1px var(--neon, #9273ff), 0 0 18px 2px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
     }
 }
 /*  components/nova/holo/holo.css  */
@@ -14783,56 +15629,116 @@
         background-color: transparent;
         box-shadow: 0 0 60px color-mix(in oklab, var(--brand-violet, #9273ff) 60%, transparent)
     }
+    .nova-frame:not(#\-) {
+        --sh-a: var(--nova-a, #9273ff);
+        --sh-b: var(--nova-b, #63e7ff);
+        --sh-c: var(--nova-c, #f06dff);
+        --sh-line: color-mix(in oklab, var(--nova-b, #63e7ff) 24%, #ffffff12);
+        --sh-ink-neon: color-mix(in oklab, var(--nova-b, #63e7ff) 34%, #ffffff)
+    }
+    :where(.nova-frame) :where(.nova-btn):not(#\-), :where(.nova-frame) :where(.nova-pill):not(#\-), :where(.nova-frame) :where(.nova-exit):not(#\-), :where(.nova-frame) :where(.nova-menu-button):not(#\-), :where(.nova-frame) :where(.nova-icon-btn):not(#\-), :where(.nova-frame) :where(.nova-mini-btn):not(#\-), :where(.nova-frame) :where(.nova-tile):not(#\-), :where(.nova-frame) :where(.nova-seg):not(#\-), :where(.nova-frame) :where(.nova-send):not(#\-), :where(.nova-frame) :where(.nova-kbd):not(#\-), :where(.nova-frame) :where(.nova-status):not(#\-), :where(.nova-frame) :where(.nova-num):not(#\-), :where(.nova-frame) :where(.nova-switch > span):not(#\-), :where(.nova-frame) :where(.nova-left-life):not(#\-), :where(.nova-frame) :where(.nova-left-dot):not(#\-), :where(.nova-frame) :where(.nova-left-count):not(#\-), :where(.nova-frame) :where(.nova-fact-tiles > div):not(#\-), :where(.nova-frame) :where(.nova-yours-part):not(#\-), :where(.nova-frame) :where(.nova-avatar-choice):not(#\-), :where(.nova-frame) :where(.nova-accent):not(#\-), :where(.nova-frame) :where(.nova-status-line):not(#\-), :where(.nova-frame) :where(.ncb-well):not(#\-), :where(.nova-frame) :where(.holo-keys-btn):not(#\-), :where(.nova-frame) :where(.ns-chip):not(#\-), :where(.nova-frame) :where(.ns-link):not(#\-), :where(.nova-frame) :where(.ns-answer-close):not(#\-), :where(.nova-frame) :where(.nb-act):not(#\-), :where(.nova-frame) :where(.nb-find):not(#\-), :where(.nova-frame) :where(.nb-fold-count):not(#\-), :where(.nova-frame) :where(.nb-sec-icon):not(#\-), :where(.nova-frame) :where(.nb-enter):not(#\-), :where(.nova-frame) :where(.nb-ask):not(#\-), :where(.nova-frame) :where(.nb-lives):not(#\-), :where(.nova-frame) :where(.nova-chat-tool):not(#\-), :where(.nova-frame) :where(.nova-close):not(#\-), :where(.nova-frame) :where(.nova-chat-send):not(#\-), :where(.nova-frame) :where(.nova-mic):not(#\-), :where(.nova-frame) :where(.nova-stop):not(#\-), :where(.nova-frame) :where(.nova-composer):not(#\-), :where(.nova-frame) :where(.nova-turn-body):not(#\-), :where(.nova-frame) :where(.nova-invite):not(#\-), :where(.nova-frame) :where(.nova-chat .ai-chip):not(#\-), :where(.nova-frame) :where(.nova-chat .secondary):not(#\-), :where(.nova-frame) :where(.nova-chat .primary):not(#\-) {
+        --kl: calc(var(--kc) * 1.4142);
+        --k-rim: color-mix(in oklab, var(--nova-hi, #cbbfff) 40%, transparent);
+        --k-rim-2: var(--k-rim);
+        --k-plate: #0c1335f2;
+        --k-plate-2: #070b20f2
+    }
+    :where(.nova-frame) :where(.nova-btn):not(#\-)::before, :where(.nova-frame) :where(.nova-pill):not(#\-)::before, :where(.nova-frame) :where(.nova-exit):not(#\-)::before, :where(.nova-frame) :where(.nova-menu-button):not(#\-)::before, :where(.nova-frame) :where(.nova-icon-btn):not(#\-)::before, :where(.nova-frame) :where(.nova-mini-btn):not(#\-)::before, :where(.nova-frame) :where(.nova-tile):not(#\-)::before, :where(.nova-frame) :where(.nova-seg):not(#\-)::before, :where(.nova-frame) :where(.nova-send):not(#\-)::before, :where(.nova-frame) :where(.nova-kbd):not(#\-)::before, :where(.nova-frame) :where(.nova-status):not(#\-)::before, :where(.nova-frame) :where(.nova-num):not(#\-)::before, :where(.nova-frame) :where(.nova-switch > span):not(#\-)::before, :where(.nova-frame) :where(.nova-left-life):not(#\-)::before, :where(.nova-frame) :where(.nova-left-dot):not(#\-)::before, :where(.nova-frame) :where(.nova-left-count):not(#\-)::before, :where(.nova-frame) :where(.nova-fact-tiles > div):not(#\-)::before, :where(.nova-frame) :where(.nova-yours-part):not(#\-)::before, :where(.nova-frame) :where(.nova-avatar-choice):not(#\-)::before, :where(.nova-frame) :where(.nova-accent):not(#\-)::before, :where(.nova-frame) :where(.nova-status-line):not(#\-)::before, :where(.nova-frame) :where(.ncb-well):not(#\-)::before, :where(.nova-frame) :where(.holo-keys-btn):not(#\-)::before, :where(.nova-frame) :where(.ns-chip):not(#\-)::before, :where(.nova-frame) :where(.ns-link):not(#\-)::before, :where(.nova-frame) :where(.ns-answer-close):not(#\-)::before, :where(.nova-frame) :where(.nb-act):not(#\-)::before, :where(.nova-frame) :where(.nb-find):not(#\-)::before, :where(.nova-frame) :where(.nb-fold-count):not(#\-)::before, :where(.nova-frame) :where(.nb-sec-icon):not(#\-)::before, :where(.nova-frame) :where(.nb-enter):not(#\-)::before, :where(.nova-frame) :where(.nb-ask):not(#\-)::before, :where(.nova-frame) :where(.nb-lives):not(#\-)::before, :where(.nova-frame) :where(.nova-chat-tool):not(#\-)::before, :where(.nova-frame) :where(.nova-close):not(#\-)::before, :where(.nova-frame) :where(.nova-chat-send):not(#\-)::before, :where(.nova-frame) :where(.nova-mic):not(#\-)::before, :where(.nova-frame) :where(.nova-stop):not(#\-)::before, :where(.nova-frame) :where(.nova-composer):not(#\-)::before, :where(.nova-frame) :where(.nova-turn-body):not(#\-)::before, :where(.nova-frame) :where(.nova-invite):not(#\-)::before, :where(.nova-frame) :where(.nova-chat .ai-chip):not(#\-)::before, :where(.nova-frame) :where(.nova-chat .secondary):not(#\-)::before, :where(.nova-frame) :where(.nova-chat .primary):not(#\-)::before {
+        box-shadow: var(--k-glow);
+        background: linear-gradient(90deg, var(--k-rim), var(--k-rim-2)) var(--kl) 0 / calc(100% - var(--kl)) var(--kw) no-repeat,
+    linear-gradient(90deg, var(--k-rim-2), var(--k-rim)) 0 100% / calc(100% - var(--kl)) var(--kw) no-repeat,
+    linear-gradient(var(--k-rim), var(--k-rim-2)) 0 var(--kl) / var(--kw) calc(100% - var(--kl)) no-repeat,
+    linear-gradient(var(--k-rim-2), var(--k-rim)) 100% 0 / var(--kw) calc(100% - var(--kl)) no-repeat,
+    linear-gradient(135deg, transparent calc(var(--kc) - .5px), var(--k-rim) var(--kc), var(--k-rim) calc(var(--kc) + var(--kw) - .45px), var(--k-plate) calc(var(--kc) + var(--kw) + .05px), var(--k-plate-2) calc(100% - var(--kc) - var(--kw) - .05px), var(--k-rim) calc(100% - var(--kc) - var(--kw) + .45px), var(--k-rim) calc(100% - var(--kc)), transparent calc(100% - var(--kc) + .5px))
+    }
+    :where(.nova-frame) :where(.nova-btn):not(#\-)::after, :where(.nova-frame) :where(.nova-pill):not(#\-)::after, :where(.nova-frame) :where(.nova-exit):not(#\-)::after, :where(.nova-frame) :where(.nova-menu-button):not(#\-)::after, :where(.nova-frame) :where(.nova-send):not(#\-)::after, :where(.nova-frame) :where(.ns-chip):not(#\-)::after, :where(.nova-frame) :where(.ns-link):not(#\-)::after, :where(.nova-frame) :where(.nb-act):not(#\-)::after, :where(.nova-frame) :where(.nova-chat-tool):not(#\-)::after, :where(.nova-frame) :where(.nova-chat-send):not(#\-)::after, :where(.nova-frame) :where(.nova-close):not(#\-)::after, :where(.nova-frame) :where(.nova-chat .ai-chip):not(#\-)::after, :where(.nova-frame) :where(.nova-chat .secondary):not(#\-)::after, :where(.nova-frame) :where(.nova-chat .primary):not(#\-)::after {
+        background-image: linear-gradient(135deg, transparent calc(var(--kc) - .6px), #ffffffb3 var(--kc), color-mix(in oklab, var(--sh-b) 42%, transparent) 46%, color-mix(in oklab, var(--sh-a) 30%, transparent) 54%, #ffffff8c calc(100% - var(--kc)), transparent calc(100% - var(--kc) + .6px));
+        background-color: transparent
+    }
+    :where(.nova-frame) :where(.nova-command):not(#\-), :where(.nova-frame) :where(.nova-left):not(#\-), :where(.nova-frame) :where(.nova-right):not(#\-), :where(.nova-frame) :where(.nova-chips):not(#\-), :where(.nova-frame) :where(.nova-clock):not(#\-), :where(.nova-frame) :where(.nova-top-left):not(#\-), :where(.nova-frame) :where(.nova-top-right):not(#\-), :where(.nova-frame) :where(.nova-setup-banner):not(#\-), :where(.nova-frame) :where(.nova-talk):not(#\-), :where(.nova-frame) :where(.ns-answer):not(#\-), :where(.nova-frame) :where(.ns-dock):not(#\-), :where(.nova-frame) :where(.sh-inner):not(#\-), :where(.nova-frame) :where(.ncb-pulse):not(#\-) {
+        --c1: var(--c, 12px);
+        --c2: var(--n, 4px);
+        --c3: var(--c, 12px);
+        --c4: var(--n, 4px);
+        --k: calc(var(--w) * .414);
+        --sh-oct: polygon(var(--c1) 0, calc(100% - var(--c2)) 0, 100% var(--c2), 100% calc(100% - var(--c3)), calc(100% - var(--c3)) 100%, var(--c4) 100%, 0 calc(100% - var(--c4)), 0 var(--c1));
+        --sh-ring: polygon(evenodd, var(--c1) 0, calc(100% - var(--c2)) 0, 100% var(--c2), 100% calc(100% - var(--c3)), calc(100% - var(--c3)) 100%, var(--c4) 100%, 0 calc(100% - var(--c4)), 0 var(--c1), var(--c1) 0,
+    calc(var(--c1) + var(--k)) var(--w), var(--w) calc(var(--c1) + var(--k)), var(--w) calc(100% - var(--c4) - var(--k)), calc(var(--c4) + var(--k)) calc(100% - var(--w)), calc(100% - var(--c3) - var(--k)) calc(100% - var(--w)), calc(100% - var(--w)) calc(100% - var(--c3) - var(--k)), calc(100% - var(--w)) calc(var(--c2) + var(--k)), calc(100% - var(--c2) - var(--k)) var(--w), calc(var(--c1) + var(--k)) var(--w));
+        --sh-glass: linear-gradient(180deg, color-mix(in oklab, var(--sh-b) 9%, #010314) 0, #01020b 46%, #010107 100%);
+        --sh-rimg: linear-gradient(100deg, var(--sh-b), var(--sh-a) 50%, var(--sh-c))
+    }
+    :where(.nova-frame) :where(.nova-chips):not(#\-)::before, :where(.nova-frame) :where(.nova-clock):not(#\-)::before, :where(.nova-frame) :where(.nova-top-left):not(#\-)::before, :where(.nova-frame) :where(.nova-top-right):not(#\-)::before, :where(.nova-frame) :where(.nova-setup-banner):not(#\-)::before, :where(.nova-frame) :where(.nova-right):not(#\-)::before, :where(.nova-frame) :where(.ns-answer):not(#\-)::before, :where(.nova-frame) :where(.ns-dock):not(#\-)::before {
+        background: var(--sh-glass)
+    }
+    :where(.nova-frame) :where(.nova-chips):not(#\-)::after, :where(.nova-frame) :where(.nova-clock):not(#\-)::after, :where(.nova-frame) :where(.nova-top-left):not(#\-)::after, :where(.nova-frame) :where(.nova-top-right):not(#\-)::after, :where(.nova-frame) :where(.nova-setup-banner):not(#\-)::after, :where(.nova-frame) :where(.nova-right):not(#\-)::after, :where(.nova-frame) :where(.ns-answer):not(#\-)::after, :where(.nova-frame) :where(.ns-dock):not(#\-)::after {
+        background: var(--sh-rimg)
+    }
+    .sh-inner:not(#\-) {
+        background-image: radial-gradient(circle 26px at 0 0, color-mix(in oklab, var(--sh-b) 90%, #fff), transparent), radial-gradient(circle 26px at 100% 0, color-mix(in oklab, var(--sh-a) 80%, #fff), transparent), radial-gradient(circle 26px at 100% 100%, color-mix(in oklab, var(--sh-c) 90%, #fff), transparent), radial-gradient(circle 26px at 0 100%, color-mix(in oklab, var(--sh-a) 80%, #fff), transparent), none;
+        background-color: color-mix(in oklab, var(--sh-b) 16%, #ffffff0d)
+    }
     .nova-btn:not(#\-), .nova-pill:not(#\-), .nova-exit:not(#\-), .nova-menu-button:not(#\-) {
-        border-color: var(--nova-edge);
+        border-color: currentcolor;
         background-image: none;
-        background-color: color-mix(in oklab, #ffffff 6%, transparent);
+        background-color: transparent;
         color: var(--nova-ink)
     }
-    .nova-btn:hover:not(#\-), .nova-pill:hover:not(#\-), .nova-exit:hover:not(#\-), .nova-menu-button:hover:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, var(--nova-a) 18%, transparent);
-        border-color: color-mix(in oklab, var(--nova-a) 55%, transparent)
+    :is(.nova-btn, .nova-pill, .nova-exit, .nova-menu-button, .nova-icon-btn, .nova-mini-btn):is(:hover, :focus-visible):not(:disabled):not(#\-) {
+        --k-rim: var(--sh-b);
+        --k-rim-2: var(--sh-a);
+        --k-plate: color-mix(in oklab, var(--sh-b) 22%, #0c1335);
+        --k-plate-2: color-mix(in oklab, var(--sh-a) 24%, #070b20);
+        --k-glow: 0 0 14px -3px var(--sh-b)
     }
     .nova-btn-primary:not(#\-) {
-        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
-        background-color: transparent;
-        color: #0a0f24;
-        border-color: transparent
+        color: #fff;
+        text-shadow: 0 1px 2px #000a;
+        --k-rim: #fff;
+        --k-rim-2: var(--sh-b);
+        --k-plate: color-mix(in oklab, var(--sh-b) 34%, #0a1232);
+        --k-plate-2: color-mix(in oklab, var(--sh-a) 56%, #0a1232);
+        --k-glow: 0 0 14px -2px color-mix(in oklab, var(--sh-b) 70%, transparent), 0 0 34px -8px var(--sh-a)
     }
-    .nova-btn-primary:hover:not(#\-) {
-        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
-        background-color: transparent;
-        filter: brightness(1.08)
+    .nova-btn-primary:is(:hover, :focus-visible):not(:disabled):not(#\-) {
+        --k-rim: #fff;
+        --k-rim-2: #fff;
+        --k-plate: color-mix(in oklab, var(--sh-b) 44%, #0a1232);
+        --k-plate-2: color-mix(in oklab, var(--sh-a) 66%, #0a1232);
+        --k-glow: 0 0 18px -1px var(--sh-b), 0 0 40px -6px var(--sh-a)
     }
     .nova-btn[aria-pressed=true]:not(#\-) {
-        border-color: var(--nova-hi)
+        --k-rim: var(--sh-b);
+        --k-rim-2: var(--nova-hi);
+        --k-plate: color-mix(in oklab, var(--sh-a) 36%, #0c1335);
+        --k-glow: 0 0 12px -3px var(--sh-b)
     }
     .nova-icon-btn:not(#\-) {
-        border-color: var(--nova-edge-soft);
+        border-color: currentcolor;
         background-image: none;
-        background-color: color-mix(in oklab, #ffffff 5%, transparent);
+        background-color: transparent;
         color: var(--nova-ink)
     }
-    .nova-icon-btn:hover:not(#\-), .nova-icon-btn[aria-pressed=true]:not(#\-) {
-        border-color: color-mix(in oklab, var(--nova-a) 60%, transparent);
-        background-image: none;
-        background-color: color-mix(in oklab, var(--nova-a) 16%, transparent)
+    .nova-icon-btn[aria-pressed=true]:not(#\-) {
+        --k-rim: var(--sh-b);
+        --k-plate: color-mix(in oklab, var(--sh-a) 36%, #0c1335)
     }
     .nova-mini-btn:not(#\-) {
-        border-color: var(--nova-edge-soft);
+        border-color: currentcolor;
         background-image: none;
-        background-color: color-mix(in oklab, #ffffff 5%, transparent);
+        background-color: transparent;
         color: var(--nova-ink)
     }
     .nova-kbd:not(#\-) {
-        border-color: var(--nova-edge-soft);
+        border-color: currentcolor;
         background-image: none;
-        background-color: #ffffff0d;
-        color: var(--nova-ink-2)
+        background-color: transparent;
+        color: var(--nova-ink-2);
+        --k-rim: #ffffff38;
+        --k-plate: #111a40;
+        --k-plate-2: #080d26
     }
     .nova-eyebrow:not(#\-) {
-        color: var(--nova-ink-3)
+        color: color-mix(in oklab, var(--nova-b, #63e7ff) 26%, var(--nova-ink-2))
     }
     .nova-fine:not(#\-) {
         color: var(--nova-ink-3)
@@ -14843,7 +15749,7 @@
     .nova-chip-dot:not(#\-) {
         background-image: none;
         background-color: var(--nova-ink-3);
-        box-shadow: 0 0 8px currentColor
+        box-shadow: 0 0 0 3px #ffffff12, 0 0 8px currentColor
     }
     :is(.nova-chip-dot[data-kind=local]:not(#\-), .nova-chip-dot[data-kind=device]:not(#\-), .nova-chip-dot[data-kind=strict]:not(#\-), .nova-chip-dot[data-kind=on]:not(#\-), .nova-chip:is([data-kind=local], [data-kind=device], [data-kind=strict], [data-kind=on]) .nova-chip-dot):not(#\-) {
         background-image: none;
@@ -14864,7 +15770,7 @@
     .nova-on-dot:not(#\-) {
         background-image: none;
         background-color: var(--accent-teal, #86f0d6);
-        box-shadow: 0 0 10px var(--accent-teal, #86f0d6)
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent-teal, #86f0d6) 22%, transparent), 0 0 10px var(--accent-teal, #86f0d6)
     }
     .nova-switch:not(#\-) {
         border-color: currentcolor;
@@ -14872,37 +15778,42 @@
         background-color: transparent
     }
     .nova-switch > span:not(#\-) {
-        background-image: none;
-        background-color: #ffffff1f;
-        border-color: var(--nova-edge)
+        --k-rim: #ffffff40;
+        --k-plate: #0a1030;
+        --k-plate-2: #060a1e
     }
     .nova-switch > span:not(#\-)::after {
         background-image: none;
-        background-color: var(--nova-ink-2)
+        background-color: var(--nova-ink-3)
     }
     .nova-switch[aria-checked=true] > span:not(#\-) {
-        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
-        background-color: transparent
+        --k-rim: var(--sh-b);
+        --k-rim-2: var(--sh-a);
+        --k-plate: color-mix(in oklab, var(--sh-b) 40%, #0a1232);
+        --k-plate-2: color-mix(in oklab, var(--sh-a) 55%, #0a1232);
+        --k-glow: 0 0 12px -3px var(--sh-b)
     }
     .nova-switch[aria-checked=true] > span:not(#\-)::after {
         background-image: none;
-        background-color: #fff
+        background-color: #fff;
+        box-shadow: 0 0 8px #fff
     }
     .nova-status:not(#\-) {
-        background-image: none;
-        background-color: #ffffff14;
-        color: var(--nova-ink-2)
+        color: var(--nova-ink-2);
+        --k-rim: #ffffff30;
+        --k-plate: #101842;
+        --k-plate-2: #0a1030
     }
     .nova-status[data-on]:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, var(--accent-teal, #86f0d6) 22%, transparent);
-        color: var(--accent-teal, #86f0d6)
+        color: var(--accent-teal, #86f0d6);
+        --k-rim: color-mix(in oklab, var(--accent-teal, #86f0d6) 70%, transparent);
+        --k-plate: color-mix(in oklab, var(--accent-teal, #86f0d6) 16%, #0a1030)
     }
     .nova-root :where(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-), .nova-sheet :where(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-) {
         background-image: none;
-        background-color: #01020a;
+        background-color: #010109;
         color: var(--nova-ink);
-        border-color: var(--nova-edge)
+        border-color: color-mix(in oklab, var(--nova-b, #63e7ff) 34%, #ffffff1f)
     }
     .nova-root label:not(#\-):not(#\-), .nova-root p:not(#\-):not(#\-), .nova-root li:not(#\-):not(#\-) {
         color: inherit
@@ -14910,33 +15821,108 @@
     .nova-root :is(input[type=checkbox], input[type=radio]):not(#\-):not(#\-) {
         accent-color: var(--nova-a)
     }
-    .nova-exit:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, #ffffff 8%, transparent)
+    .nova-top-left:not(#\-) {
+        --sh-glass: #010107d9;
+        --sh-rimg: linear-gradient(90deg, color-mix(in oklab, var(--sh-b) 70%, transparent), color-mix(in oklab, var(--sh-a) 30%, transparent))
+    }
+    .nova-top-right:not(#\-) {
+        --sh-glass: #010107d9;
+        --sh-rimg: linear-gradient(90deg, color-mix(in oklab, var(--sh-a) 30%, transparent), color-mix(in oklab, var(--sh-c) 70%, transparent))
+    }
+    .nova-pill:not(#\-) {
+        --k-rim: color-mix(in oklab, var(--sh-b) 60%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--sh-a) 60%, transparent);
+        --k-plate: color-mix(in oklab, var(--sh-a) 20%, #0c1335)
+    }
+    .nova-pill > svg:not(#\-) {
+        color: var(--sh-ink-neon)
+    }
+    .nova-clock:not(#\-) {
+        --sh-glass: linear-gradient(180deg, color-mix(in oklab, var(--sh-b) 14%, #010314), #010107 70%);
+        --sh-rimg: linear-gradient(90deg, var(--sh-b), color-mix(in oklab, var(--sh-a) 55%, transparent) 30%, color-mix(in oklab, var(--sh-a) 55%, transparent) 70%, var(--sh-c))
     }
     .nova-clock-label:not(#\-) {
         color: var(--nova-ink-3)
     }
     .nova-clock-time:not(#\-) {
-        color: var(--nova-ink)
+        color: #f3fbff;
+        text-shadow: 0 0 14px color-mix(in oklab, var(--sh-b) 75%, transparent)
     }
     .nova-clock-date:not(#\-) {
         color: var(--nova-ink-2)
     }
-    .nova-tile:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        background-image: radial-gradient(120% 120% at 30% 20%, color-mix(in oklab, var(--nova-a) 22%, #010313), #01020b 72%);
-        background-color: transparent;
-        color: var(--nova-ink)
+    @container nova-centre (min-width: 1500px) {
+        .nova-frame:not([data-phone]) .nova-clock-date:not(#\-) {
+            border-left-color: var(--sh-line)
+        }
     }
-    .nova-tile:hover:not(#\-), .nova-tile:focus-within:not(#\-), .nova-tile[aria-pressed=true]:not(#\-) {
-        border-color: color-mix(in oklab, var(--nova-hi) 70%, transparent);
-        box-shadow: 0 0 16px color-mix(in oklab, var(--nova-a) 45%, transparent)
+    @container nova-centre (min-width: 2100px) {
+        .nova-frame:not([data-phone]) .nova-clock-time:not(#\-)::before, .nova-frame:not([data-phone]) .nova-clock-time:not(#\-)::after {
+            background-image: linear-gradient(var(--sh-b) 0 0), repeating-linear-gradient(90deg, var(--sh-b) 0 1px, transparent 1px 8px);
+            background-color: transparent
+        }
+    }
+    @container nova-centre (min-width: 2100px) {
+        .nova-frame:not([data-phone]) .nova-clock-time:not(#\-)::after {
+            background-image: linear-gradient(var(--sh-c) 0 0), repeating-linear-gradient(90deg, var(--sh-c) 0 1px, transparent 1px 8px);
+            background-color: transparent
+        }
+    }
+    .nova-quick li.nova-quick-tool-first:not(#\-)::before {
+        background-image: linear-gradient(transparent, var(--sh-c), transparent);
+        background-color: transparent
+    }
+    .nova-tile:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: #d6dff2;
+        --k-rim: color-mix(in oklab, var(--sh-a) 36%, #ffffff2b);
+        --k-rim-2: color-mix(in oklab, var(--sh-c) 30%, #ffffff1f);
+        --k-plate: #0d1538;
+        --k-plate-2: #060a1e
+    }
+    .nova-tile:is(:hover, :focus-visible, :focus-within):not(#\-), .nova-tile[aria-pressed=true]:not(#\-) {
+        color: #fff;
+        --k-rim: var(--sh-b);
+        --k-rim-2: var(--sh-a);
+        --k-plate: color-mix(in oklab, var(--sh-b) 24%, #0c1335);
+        --k-plate-2: color-mix(in oklab, var(--sh-a) 30%, #070b20);
+        --k-glow: 0 0 14px -3px var(--sh-b)
+    }
+    .nova-tile[aria-pressed=true]:not(#\-) {
+        --k-plate: color-mix(in oklab, var(--sh-a) 46%, #0c1335);
+        --k-plate-2: color-mix(in oklab, var(--sh-c) 24%, #070b20)
+    }
+    .nova-tile-planet:not(#\-)::before {
+        background-image: none;
+        background-color: #ffffff2e
+    }
+    .nova-tile:is(:hover, :focus-visible, :focus-within) .nova-tile-planet:not(#\-)::before, .nova-tile[aria-pressed=true] .nova-tile-planet:not(#\-)::before {
+        background: var(--sh-b);
+        box-shadow: 0 0 8px var(--sh-b)
+    }
+    .nova-tile-planet:not(#\-)::after {
+        background-image: linear-gradient(135deg, transparent 4.5px, #ffffff99 5px, color-mix(in oklab, var(--sh-b) 40%, transparent) 46%, color-mix(in oklab, var(--sh-a) 30%, transparent) 54%, #ffffff80 calc(100% - 5px), transparent calc(100% - 4.5px));
+        background-color: transparent
+    }
+    .nova-tile-planet[data-dock=goals]:not(#\-) {
+        color: #c0adff
+    }
+    .nova-tile-planet[data-dock=habits]:not(#\-) {
+        color: #5ff0ff
+    }
+    .nova-tile-planet[data-dock=health]:not(#\-) {
+        color: #ff8fca
+    }
+    .nova-tile-planet[data-dock=wealth]:not(#\-) {
+        color: #ffd98e
     }
     .nova-tile[data-tip]:is(:hover, :focus-visible, :focus-within):not(#\-)::after {
         background-image: none;
-        background-color: #01030e;
-        border-color: var(--nova-edge);
+        background-color: #01020c;
+        border-color: color-mix(in oklab, var(--sh-b) 60%, transparent);
+        box-shadow: 0 10px 24px -8px #000, 0 0 12px -4px var(--sh-b);
         color: var(--nova-ink)
     }
     .nova-tile-quickadd .nova-quickadd:not(#\-) {
@@ -14945,14 +15931,21 @@
         background-color: transparent;
         color: var(--nova-ink)
     }
+    .nova-chips:not(#\-) {
+        --sh-glass: linear-gradient(180deg, #010314e6, #010107e6);
+        --sh-rimg: linear-gradient(90deg, color-mix(in oklab, var(--sh-b) 85%, transparent), color-mix(in oklab, var(--sh-a) 40%, transparent) 50%, color-mix(in oklab, var(--sh-c) 85%, transparent))
+    }
+    .nova-chips > li + li:not(#\-)::before {
+        background: var(--sh-line)
+    }
     .nova-chip:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        background: var(--nova-glass);
         color: var(--nova-ink-2)
     }
     a.nova-chip:hover:not(#\-) {
-        border-color: var(--nova-edge);
         color: var(--nova-ink)
+    }
+    a.nova-chip:hover .nova-chip-key:not(#\-) {
+        color: var(--sh-ink-neon)
     }
     .nova-chip-key:not(#\-) {
         color: var(--nova-ink-3)
@@ -15037,12 +16030,17 @@
         background-color: var(--pillar-wealth, #ffd27a)
     }
     .nova-chips .nova-showcase:not(#\-) {
-        background: var(--nova-glass);
-        border-color: color-mix(in oklab, var(--pillar-wealth, #ffd27a) 60%, transparent)
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: #ffe2a8
     }
     .nova-setup-banner:not(#\-) {
-        border-color: var(--nova-edge);
-        background: var(--nova-glass)
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        --sh-glass: linear-gradient(180deg, #020316e6, #010107e6);
+        --sh-rimg: linear-gradient(90deg, var(--sh-b), color-mix(in oklab, var(--sh-a) 60%, transparent))
     }
     .nova-setup-banner p:not(#\-) {
         color: var(--nova-ink-2)
@@ -15054,7 +16052,8 @@
     }
     .nova-widget:not(#\-) {
         border-color: var(--nova-edge-soft);
-        background: var(--nova-glass);
+        background-image: none;
+        background-color: var(--nova-glass);
         box-shadow: 0 18px 40px -26px #000c, inset 0 1px 0 #ffffff0f;
         --pillar: var(--nova-a)
     }
@@ -15114,15 +16113,61 @@
         color: var(--nova-ink-2)
     }
     .nova-command:not(#\-) {
-        border-color: var(--nova-edge);
+        border-color: currentcolor;
         background-image: none;
-        background-color: var(--nova-glass-strong);
-        color: var(--nova-hi);
-        box-shadow: 0 24px 60px -30px #000e, inset 0 1px 0 #ffffff10
+        background-color: transparent;
+        color: var(--sh-ink-neon)
     }
-    .nova-command:focus-within:not(#\-) {
-        border-color: var(--nova-hi);
-        box-shadow: 0 0 0 3px color-mix(in oklab, var(--nova-focus) 40%, transparent), 0 24px 60px -30px #000e
+    .nova-frame .nova-command.zg-glass:not(#\-):not(#\-):not(#\-)::before {
+        background-image: repeating-linear-gradient(90deg, color-mix(in oklab, var(--sh-b) 46%, transparent) 0 1px, transparent 1px 9px), linear-gradient(90deg, color-mix(in oklab, var(--sh-b) 16%, transparent), transparent 22%, transparent 78%, color-mix(in oklab, var(--sh-c) 16%, transparent)), linear-gradient(180deg, color-mix(in oklab, var(--sh-a) 14%, #010316) 0, #01020b 50%, #010107 100%);
+        background-color: transparent
+    }
+    .nova-frame .nova-command.zg-glass:not(#\-):not(#\-):not(#\-)::after {
+        background-image: linear-gradient(90deg, #fff 0, var(--sh-b) 5%, var(--sh-b) 24%, var(--sh-a) 50%, var(--sh-c) 76%, var(--sh-c) 95%, #fff 100%);
+        background-color: transparent
+    }
+    .nova-frame .nova-command.zg-glass:not(#\-):not(#\-):focus-within:not(#\-)::after {
+        background-image: linear-gradient(90deg, #fff 0, var(--sh-b) 14%, #fff 50%, var(--sh-c) 86%, #fff 100%);
+        background-color: transparent
+    }
+    .ncb-glow:not(#\-) {
+        box-shadow: -40px 0 46px -8px color-mix(in oklab, var(--sh-b) 46%, transparent), 40px 0 46px -8px color-mix(in oklab, var(--sh-c) 46%, transparent), 0 0 30px 2px color-mix(in oklab, var(--sh-a) 50%, transparent), 0 26px 50px -18px #000
+    }
+    .ncb-trace:not(#\-) {
+        color: var(--sh-b);
+        filter: drop-shadow(0 0 4px currentColor)
+    }
+    .ncb-trace[data-side=end]:not(#\-) {
+        color: var(--sh-c)
+    }
+    .ncb-trace path:not(#\-) {
+        fill: none;
+        stroke: currentColor
+    }
+    .ncb-trace circle:not(#\-) {
+        fill: #050818;
+        stroke: currentColor
+    }
+    .ncb-trace circle[data-lit]:not(#\-) {
+        fill: currentColor
+    }
+    .ncb-trace rect:not(#\-) {
+        fill: currentColor
+    }
+    .ncb-well:not(#\-) {
+        color: var(--sh-ink-neon);
+        --k-rim: color-mix(in oklab, var(--sh-b) 62%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--sh-a) 50%, transparent);
+        --k-plate: color-mix(in oklab, var(--sh-b) 16%, #0a1232);
+        --k-plate-2: #060a1e
+    }
+    .ncb-well > svg:not(#\-) {
+        filter: drop-shadow(0 0 5px var(--sh-b))
+    }
+    .nova-command:focus-within .ncb-well:not(#\-) {
+        --k-rim: var(--sh-b);
+        --k-glow: 0 0 12px -2px var(--sh-b);
+        color: #fff
     }
     .nova-root .nova-command input:not(#\-):not(#\-) {
         border-color: currentcolor;
@@ -15138,80 +16183,179 @@
     .nova-command small:not(#\-) {
         color: var(--nova-ink-3)
     }
+    .nova-command .holo-keys-btn:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--nova-ink);
+        --k-rim: color-mix(in oklab, var(--sh-b) 52%, transparent);
+        --k-plate: color-mix(in oklab, var(--sh-b) 11%, #060a1c);
+        --k-plate-2: #060a1c
+    }
+    .nova-command .holo-keys-btn:is(:hover, :focus-visible):not(#\-) {
+        --k-rim: var(--sh-b);
+        --k-plate: color-mix(in oklab, var(--sh-b) 30%, #060a1c);
+        --k-glow: 0 0 12px -3px var(--sh-b)
+    }
     .nova-send:not(#\-) {
         border-color: currentcolor;
-        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-image: none;
         background-color: transparent;
-        color: #0a0f24
+        color: #04102a;
+        --k-rim: #fff;
+        --k-rim-2: color-mix(in oklab, var(--sh-b) 60%, #fff);
+        --k-plate: var(--sh-b);
+        --k-plate-2: var(--sh-a);
+        --k-glow: 0 0 16px -1px color-mix(in oklab, var(--sh-b) 80%, transparent), 0 0 38px -4px var(--sh-a)
+    }
+    .nova-send:is(:hover, :focus-visible):not(#\-) {
+        --k-plate: color-mix(in oklab, var(--sh-b) 70%, #fff);
+        --k-glow: 0 0 20px 0 var(--sh-b), 0 0 44px -2px var(--sh-a)
+    }
+    .ncb-pulse:not(#\-)::before {
+        background-image: linear-gradient(90deg, transparent, color-mix(in oklab, var(--sh-b) 60%, transparent) 55%, #ffffffcc 78%, transparent);
+        background-color: transparent
     }
     .nova-menu-button:not(#\-) {
-        background-image: none;
-        background-color: var(--nova-glass-strong)
+        --k-rim: color-mix(in oklab, var(--sh-b) 50%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--sh-a) 50%, transparent)
+    }
+    .nova-menu[data-align=end] .nova-menu-button:not(#\-) {
+        --k-rim: color-mix(in oklab, var(--sh-a) 50%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--sh-c) 60%, transparent)
+    }
+    .nova-menu-button > svg:first-child:not(#\-) {
+        color: var(--sh-ink-neon)
+    }
+    .nova-menu-button[aria-expanded=true]:not(#\-) {
+        --k-rim: var(--sh-b);
+        --k-rim-2: var(--sh-a);
+        --k-plate: color-mix(in oklab, var(--sh-a) 34%, #0c1335);
+        --k-glow: 0 0 14px -3px var(--sh-b)
     }
     .nova-menu-panel:not(#\-) {
-        border-color: var(--nova-edge);
+        border-color: color-mix(in oklab, var(--sh-b) 42%, #ffffff14);
+        border-top-color: var(--sh-b);
         background-image: none;
-        background-color: var(--nova-glass-strong);
-        box-shadow: 0 30px 80px -30px #000e
+        background-color: #01020c;
+        box-shadow: 0 30px 80px -24px #000, 0 0 30px -10px var(--sh-b)
+    }
+    .nova-menu[data-align=end] .nova-menu-panel:not(#\-) {
+        border-top-color: var(--sh-c)
     }
     .nova-fieldset:not(#\-) {
         border-color: currentcolor
     }
     .nova-fieldset legend:not(#\-) {
-        color: var(--nova-ink-3)
+        color: color-mix(in oklab, var(--nova-b, #63e7ff) 26%, var(--nova-ink-2))
     }
-    .nova-seg:not(#\-) {
-        border-color: var(--nova-edge-soft)
+    .nova-seg:hover:not(#\-) {
+        --k-rim: var(--sh-b)
     }
     .nova-seg:has(input:checked):not(#\-) {
-        background-image: linear-gradient(120deg, color-mix(in oklab, var(--nova-b) 40%, transparent), color-mix(in oklab, var(--nova-a) 50%, transparent));
-        background-color: transparent;
-        border-color: var(--nova-hi)
+        --k-rim: #fff;
+        --k-rim-2: var(--sh-b);
+        --k-plate: color-mix(in oklab, var(--sh-b) 34%, #0a1232);
+        --k-plate-2: color-mix(in oklab, var(--sh-a) 52%, #0a1232);
+        --k-glow: 0 0 12px -3px var(--sh-b)
     }
     .nova-seg:has(input:focus-visible):not(#\-) {
         outline-color: var(--nova-focus)
     }
     .nova-menu-foot:not(#\-) {
         background-image: none;
-        background-color: var(--nova-glass-strong);
-        border-top-color: var(--nova-edge-soft)
+        background-color: #01020c;
+        border-top-color: var(--sh-line)
+    }
+    .nova-menu-panel .nova-size:not(#\-) {
+        border-color: color-mix(in oklab, var(--sh-b) 40%, transparent);
+        background-image: none;
+        background-color: #010213
+    }
+    .nova-menu-panel .nova-size:hover:not(#\-) {
+        border-color: var(--sh-b)
+    }
+    .nova-menu-panel .nova-size[aria-pressed=true]:not(#\-) {
+        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-color: transparent;
+        border-color: #fff;
+        box-shadow: 0 0 12px -3px var(--sh-b)
     }
     .nova-radio small:not(#\-) {
         color: var(--nova-ink-3)
     }
     .nova-talk:not(#\-) {
-        border-color: var(--nova-edge);
+        border-color: currentcolor;
         background-image: none;
-        background-color: var(--nova-glass-strong);
-        box-shadow: 0 40px 90px -40px #000
+        background-color: transparent
+    }
+    .nova-talk:not(#\-)::before {
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--sh-a) 12%, #010314) 0, #01020b 140px, #010107 100%);
+        background-color: transparent
+    }
+    .nova-talk:not(#\-)::after {
+        background-image: linear-gradient(200deg, #fff 0, var(--sh-c) 8%, var(--sh-a) 50%, color-mix(in oklab, var(--sh-b) 60%, transparent) 100%);
+        background-color: transparent
     }
     .nova-left:not(#\-) {
-        border-right-color: var(--nova-edge-soft);
+        border-color: currentcolor;
         background-image: none;
-        background-color: color-mix(in oklab, #010208 78%, transparent)
+        background-color: transparent
+    }
+    .nova-frame .nova-left.zg-glass:not(#\-):not(#\-):not(#\-)::before {
+        background-image: linear-gradient(90deg, transparent 60%, color-mix(in oklab, var(--sh-b) 9%, transparent)), linear-gradient(180deg, color-mix(in oklab, var(--sh-b) 13%, #010314f2) 0, #01020bf0 120px, #010107f2 100%);
+        background-color: transparent
+    }
+    .nova-frame .nova-left.zg-glass:not(#\-):not(#\-):not(#\-)::after {
+        background-image: linear-gradient(105deg, color-mix(in oklab, var(--sh-b) 34%, transparent) 0, color-mix(in oklab, var(--sh-a) 46%, transparent) 55%, var(--sh-b) 84%, #fff 100%);
+        background-color: transparent
+    }
+    .nova-left-top:not(#\-) {
+        border-color: currentcolor
+    }
+    .nova-left[data-state=rail] .nova-left-top:not(#\-) {
+        border-color: currentcolor
     }
     .nova-left-brand:not(#\-) {
-        color: var(--nova-hi)
+        color: var(--sh-ink-neon)
+    }
+    .nova-left-brand > svg:not(#\-) {
+        filter: drop-shadow(0 0 6px var(--sh-b))
     }
     .nova-left-brand span:not(#\-) {
         color: var(--nova-ink)
+    }
+    .nova-left-brand strong:not(#\-) {
+        text-shadow: 0 0 14px color-mix(in oklab, var(--sh-b) 80%, transparent)
     }
     .nova-left-brand small:not(#\-) {
         color: var(--nova-ink-3)
     }
     .nova-left-space:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        background-image: none;
-        background-color: #ffffff08
+        border-left-color: var(--accent-teal, #86f0d6);
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--accent-teal, #86f0d6) 13%, transparent), transparent);
+        background-color: transparent
     }
     .nova-left-space small:not(#\-) {
         color: var(--accent-teal, #86f0d6)
     }
     .nova-left-life:not(#\-) {
-        background-image: linear-gradient(120deg, color-mix(in oklab, var(--nova-b) 22%, transparent), color-mix(in oklab, var(--nova-a) 28%, transparent));
-        background-color: transparent;
-        border-color: var(--nova-edge);
-        color: var(--nova-ink)
+        color: var(--nova-ink);
+        --k-rim: var(--sh-b);
+        --k-rim-2: var(--sh-a);
+        --k-plate: color-mix(in oklab, var(--sh-b) 24%, #0a1232);
+        --k-plate-2: color-mix(in oklab, var(--sh-a) 34%, #0a1232);
+        --k-glow: 0 0 16px -4px var(--sh-b)
+    }
+    .nova-left-life:is(:hover, :focus-visible):not(#\-) {
+        --k-rim: #fff;
+        --k-plate: color-mix(in oklab, var(--sh-b) 34%, #0a1232);
+        --k-plate-2: color-mix(in oklab, var(--sh-a) 46%, #0a1232);
+        --k-glow: 0 0 20px -3px var(--sh-b)
+    }
+    .nova-left-life > svg:not(#\-) {
+        color: var(--sh-ink-neon);
+        filter: drop-shadow(0 0 5px var(--sh-b))
     }
     .nova-left-life small:not(#\-) {
         color: var(--nova-ink-2)
@@ -15220,91 +16364,113 @@
         color: var(--nova-ink-3)
     }
     .nova-left-row:not(#\-) {
+        --dot: var(--nova-hi);
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
         color: var(--nova-ink)
     }
-    .nova-left-row:hover:not(#\-) {
+    .nova-left-row:hover:not(#\-), .nova-left-row:focus-visible:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--dot) 22%, transparent), transparent 88%);
+        background-color: transparent;
+        box-shadow: inset 2px 0 0 var(--dot)
+    }
+    .nova-left[data-state=rail] .nova-left-row:is(:hover, :focus-visible):not(#\-) {
         background-image: none;
-        background-color: #ffffff0d
+        background-color: transparent;
+        box-shadow: none
     }
     .nova-left-dot:not(#\-) {
-        color: var(--dot, var(--nova-hi));
-        background-image: none;
-        background-color: color-mix(in oklab, var(--dot, var(--nova-a)) 16%, transparent)
+        color: color-mix(in oklab, var(--dot) 70%, #fff);
+        --k-rim: color-mix(in oklab, var(--dot) 80%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--dot) 44%, transparent);
+        --k-plate: color-mix(in oklab, var(--dot) 22%, #0a1030);
+        --k-plate-2: color-mix(in oklab, var(--dot) 7%, #070b20);
+        --k-glow: 0 0 10px -3px var(--dot)
     }
-    .nova-left-dot[data-tone=goals]:not(#\-) {
+    .nova-left-row:is(:hover, :focus-visible) .nova-left-dot:not(#\-) {
+        color: #fff;
+        --k-rim: var(--dot);
+        --k-rim-2: var(--dot);
+        --k-plate: color-mix(in oklab, var(--dot) 40%, #0a1030);
+        --k-glow: 0 0 14px -2px var(--dot)
+    }
+    .nova-left-row:has(> .nova-left-dot[data-tone=goals]):not(#\-) {
         --dot: var(--pillar-goals, #9273ff)
     }
-    .nova-left-dot[data-tone=habits]:not(#\-) {
+    .nova-left-row:has(> .nova-left-dot[data-tone=habits]):not(#\-) {
         --dot: var(--pillar-habits, #23eaff)
     }
-    .nova-left-dot[data-tone=health]:not(#\-) {
+    .nova-left-row:has(> .nova-left-dot[data-tone=health]):not(#\-) {
         --dot: var(--pillar-health, #ff74be)
     }
-    .nova-left-dot[data-tone=wealth]:not(#\-) {
+    .nova-left-row:has(> .nova-left-dot[data-tone=wealth]):not(#\-) {
         --dot: var(--pillar-wealth, #ffd27a)
     }
-    .nova-left-dot[data-tone=violet]:not(#\-) {
+    .nova-left-row:has(> .nova-left-dot[data-tone=violet]):not(#\-) {
         --dot: var(--accent-violet, #cbbfff)
     }
-    .nova-left-dot[data-tone=cyan]:not(#\-) {
+    .nova-left-row:has(> .nova-left-dot[data-tone=cyan]):not(#\-) {
         --dot: var(--accent-cyan, #9ee8f8)
     }
-    .nova-left-dot[data-tone=teal]:not(#\-) {
+    .nova-left-row:has(> .nova-left-dot[data-tone=teal]):not(#\-) {
         --dot: var(--accent-teal, #86f0d6)
     }
-    .nova-left-dot[data-tone=magenta]:not(#\-) {
+    .nova-left-row:has(> .nova-left-dot[data-tone=magenta]):not(#\-) {
         --dot: var(--accent-magenta, #f3b0e6)
     }
-    .nova-left-dot[data-tone=muted]:not(#\-) {
-        --dot: var(--nova-ink-2)
+    .nova-left-row:has(> .nova-left-dot[data-tone=muted]):not(#\-) {
+        --dot: #aebcd8
     }
     .nova-left-dot[data-status]:not(#\-)::after {
         border-color: #060b1d;
         background-image: none;
-        background-color: var(--accent-teal, #86f0d6)
+        background-color: var(--accent-teal, #86f0d6);
+        box-shadow: 0 0 6px var(--accent-teal, #86f0d6)
     }
     .nova-left-dot[data-status=calm]:not(#\-)::after {
         background-image: none;
-        background-color: var(--accent-cyan, #9ee8f8)
+        background-color: var(--accent-cyan, #9ee8f8);
+        box-shadow: 0 0 6px var(--accent-cyan, #9ee8f8)
     }
     .nova-left-dot[data-status=off]:not(#\-)::after {
         background-image: none;
-        background-color: var(--nova-ink-3)
+        background-color: var(--nova-ink-3);
+        box-shadow: none
     }
     .nova-left-count:not(#\-) {
-        background-image: none;
-        background-color: #ffffff12;
-        color: var(--nova-ink-2)
+        color: color-mix(in oklab, var(--dot) 38%, #fff);
+        --k-rim: color-mix(in oklab, var(--dot) 70%, transparent);
+        --k-plate: color-mix(in oklab, var(--dot) 20%, #0a1030);
+        --k-plate-2: #080d26
     }
     .nova-left-none:not(#\-) {
         color: var(--nova-ink-3)
     }
     .nova-left-foot:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        background-image: none;
-        background-color: #ffffff06
+        border-color: currentcolor
     }
     .nova-signature:not(#\-) {
         color: var(--nova-ink-2)
     }
     .nova-signature strong:not(#\-) {
-        color: var(--nova-hi)
+        color: var(--sh-ink-neon)
     }
     .nova-left-brain:not(#\-) {
         color: var(--nova-ink-3)
     }
     .nova-right:not(#\-) {
-        border-left-color: var(--nova-edge-soft);
+        border-color: currentcolor;
         background-image: none;
-        background-color: color-mix(in oklab, #010208 80%, transparent)
+        background-color: transparent;
+        --sh-glass: linear-gradient(270deg, transparent 60%, color-mix(in oklab, var(--sh-c) 8%, transparent)), linear-gradient(180deg, color-mix(in oklab, var(--sh-c) 11%, #010314f2) 0, #01020bf0 120px, #010107f2 100%);
+        --sh-rimg: linear-gradient(255deg, color-mix(in oklab, var(--sh-c) 34%, transparent) 0, color-mix(in oklab, var(--sh-a) 46%, transparent) 55%, var(--sh-c) 84%, #fff 100%)
+    }
+    .nova-right-head h2:not(#\-) {
+        text-shadow: 0 0 16px color-mix(in oklab, var(--sh-c) 60%, transparent)
     }
     .nova-right-section:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        background-image: none;
-        background-color: #ffffff06
+        border-top-color: var(--sh-line)
     }
     .nova-right-section h3 button:not(#\-) {
         border-color: currentcolor;
@@ -15312,11 +16478,24 @@
         background-color: transparent;
         color: var(--nova-ink)
     }
-    .nova-right-section h3 button .nova-icon:not(#\-) {
+    .nova-right-section h3 button:hover:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--sh-c) 16%, transparent), transparent 85%);
+        background-color: transparent
+    }
+    .nova-right-section h3 button > .nova-icon:not(#\-) {
         color: var(--nova-ink-3)
     }
+    .nova-right-section:not([data-folded]) h3 button:not(#\-) {
+        border-color: currentcolor;
+        text-shadow: 0 0 12px color-mix(in oklab, var(--sh-c) 70%, transparent)
+    }
     .nova-num:not(#\-) {
-        color: var(--nova-hi)
+        color: var(--sh-ink-neon);
+        text-shadow: none;
+        --k-rim: color-mix(in oklab, var(--sh-b) 60%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--sh-c) 60%, transparent);
+        --k-plate: #101842;
+        --k-plate-2: #080d26
     }
     .nova-right-body:not(#\-) {
         color: var(--nova-ink-2)
@@ -15328,8 +16507,8 @@
         color: var(--nova-ink-3)
     }
     .nova-right-foot:not(#\-) {
-        border-top-color: var(--nova-edge-soft);
-        color: var(--nova-ink-3)
+        color: var(--nova-ink-3);
+        border-color: currentcolor
     }
     .nova-facts dt:not(#\-) {
         color: var(--nova-ink-3)
@@ -15340,22 +16519,32 @@
     .nova-facts dd small:not(#\-) {
         color: var(--nova-ink-3)
     }
+    .nova-facts-compact > div:not(#\-) {
+        border-bottom-color: #ffffff0f
+    }
+    .nova-tools > li + li:not(#\-) {
+        border-top-color: #ffffff10
+    }
     .nova-tool:not(#\-) {
         color: var(--nova-ink)
     }
+    .nova-tool > svg:not(#\-) {
+        color: var(--sh-ink-neon);
+        filter: drop-shadow(0 0 4px var(--sh-b))
+    }
     .nova-tool:hover:not(#\-) {
-        background-image: none;
-        background-color: #ffffff0d
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--sh-b) 16%, transparent), transparent 90%);
+        background-color: transparent
     }
     .nova-tool strong:not(#\-) {
-        color: var(--nova-hi)
+        color: var(--sh-ink-neon)
     }
     .nova-sheet:not(#\-) {
         color: var(--nova-ink);
-        border-color: var(--nova-edge);
+        border-color: color-mix(in oklab, var(--nova-b, #63e7ff) 46%, #ffffff14);
         background-image: none;
-        background-color: color-mix(in oklab, #01020b 96%, transparent);
-        box-shadow: 0 40px 100px -30px #000;
+        background-color: #01010a;
+        box-shadow: 0 40px 100px -30px #000, 0 0 60px -18px var(--nova-a, #9273ff);
         --text: #f0f5ff;
         --text-strong: #f4f8ff;
         --text-secondary: #dde7f7;
@@ -15377,11 +16566,21 @@
     }
     .nova-sheet:not(#\-)::backdrop {
         background-image: none;
-        background-color: #000103cc
+        background-color: #000103d9
+    }
+    .nova-sheet[data-place=bottom]:not(#\-) {
+        border-color: var(--nova-b, #63e7ff)
+    }
+    .nova-sheet[data-place=center]:not(#\-) {
+        border-top-color: var(--nova-b, #63e7ff)
     }
     .nova-sheet-head:not(#\-) {
         background-image: none;
-        background-color: color-mix(in oklab, #01020b 96%, transparent)
+        background-color: #01010a;
+        border-color: currentcolor
+    }
+    .nova-sheet-head h2:not(#\-) {
+        text-shadow: 0 0 18px color-mix(in oklab, var(--nova-b, #63e7ff) 55%, transparent)
     }
     .nova-sheet :is(button, a, input, select, textarea, summary):focus-visible:not(#\-) {
         outline-color: var(--nova-focus)
@@ -15391,28 +16590,30 @@
     }
     .nova-sheet :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-) {
         background-image: none;
-        background-color: #01020a;
+        background-color: #010109;
         color: var(--nova-ink);
-        border-color: var(--nova-edge)
+        border-color: color-mix(in oklab, var(--nova-b, #63e7ff) 34%, #ffffff1f)
     }
     .nova-sheet input[type=file]:not(#\-):not(#\-) {
         color: var(--nova-ink)
     }
     .nova-yours-part:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        background-image: none;
-        background-color: #ffffff06
+        --k-rim: color-mix(in oklab, var(--nova-b, #63e7ff) 42%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--nova-a, #9273ff) 30%, transparent);
+        --k-plate: #0a1030;
+        --k-plate-2: #060a1c
     }
     .nova-field small:not(#\-) {
         color: var(--nova-ink-3)
     }
     .nova-avatar-choice:not(#\-), .nova-accent:not(#\-) {
-        border-color: var(--nova-edge-soft)
+        --k-rim: #ffffff2e
     }
     .nova-avatar-choice:has(input:checked):not(#\-), .nova-accent:has(input:checked):not(#\-) {
-        border-color: var(--nova-hi);
-        background-image: none;
-        background-color: #ffffff0d
+        --k-rim: #fff;
+        --k-rim-2: var(--nova-b, #63e7ff);
+        --k-plate: color-mix(in oklab, var(--nova-a, #9273ff) 36%, #0a1232);
+        --k-glow: 0 0 12px -3px var(--nova-b, #63e7ff)
     }
     .nova-avatar-choice:has(input:focus-visible):not(#\-), .nova-accent:has(input:focus-visible):not(#\-) {
         outline-color: var(--nova-focus)
@@ -15440,20 +16641,24 @@
         background-image: linear-gradient(135deg, var(--brand-magenta, #f06dff), var(--pillar-wealth, #ffd27a));
         background-color: transparent
     }
+    .nova-dock-list li + li:not(#\-) {
+        border-top-color: #ffffff10
+    }
     .nova-preview:not(#\-) {
-        border-color: var(--nova-edge)
+        border-color: color-mix(in oklab, var(--nova-b, #63e7ff) 50%, transparent)
     }
     .nova-status-line:not(#\-) {
-        background-image: none;
-        background-color: #ffffff0d;
-        color: var(--nova-ink)
+        color: var(--nova-ink);
+        --k-rim: color-mix(in oklab, var(--accent-teal, #86f0d6) 55%, transparent);
+        --k-plate: #0a1030;
+        --k-plate-2: #080d26
     }
     :scope[data-glow="soft"] .nova-frame :is(.nova-tile, .nova-widget-planet, .nova-name):not(#\-) {
         box-shadow: none;
         text-shadow: none
     }
     @media (forced-colors: active) {
-        .nova-widget:not(#\-), .nova-left:not(#\-), .nova-right:not(#\-), .nova-command:not(#\-), .nova-talk:not(#\-), .nova-tile:not(#\-) {
+        .nova-widget:not(#\-), .nova-left:not(#\-), .nova-right:not(#\-), .nova-command:not(#\-), .nova-talk:not(#\-), .nova-tile:not(#\-), .nova-chips:not(#\-), .nova-clock:not(#\-), .nova-btn:not(#\-), .nova-pill:not(#\-), .nova-exit:not(#\-), .nova-menu-button:not(#\-), .nova-icon-btn:not(#\-) {
             border-color: currentcolor
         }
     }
@@ -15466,12 +16671,14 @@
     }
     .nova-mini-day:not(#\-) {
         border-color: var(--nova-edge-soft);
-        background: var(--nova-glass)
+        background-image: none;
+        background-color: var(--nova-glass)
     }
     .nova-icon-btn[data-tip]:is(:hover, :focus-visible):not(#\-)::after {
         background-image: none;
-        background-color: #01030e;
-        border-color: var(--nova-edge);
+        background-color: #01020c;
+        border-color: color-mix(in oklab, var(--sh-b) 60%, transparent);
+        box-shadow: 0 10px 24px -8px #000, 0 0 12px -4px var(--sh-b);
         color: var(--nova-ink)
     }
     .nova-tech:not(#\-) {
@@ -15481,22 +16688,25 @@
         color: var(--nova-ink-2)
     }
     .nova-tech-chevron:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        color: var(--nova-hi)
+        border-color: var(--sh-line);
+        color: var(--sh-ink-neon)
     }
     .nova-fact-tiles > div:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        background-image: none;
-        background-color: #ffffff08
+        --k-rim: color-mix(in oklab, var(--sh-c) 50%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--sh-a) 30%, transparent);
+        --k-plate: #0b1232;
+        --k-plate-2: #060a1c
     }
     .nova-fact-tiles dt:not(#\-) {
         color: var(--nova-ink-3)
     }
     .nova-fact-tiles dd:not(#\-) {
-        color: var(--nova-ink)
+        color: var(--sh-ink-neon);
+        text-shadow: 0 0 12px color-mix(in oklab, var(--sh-b) 60%, transparent)
     }
     .nova-fact-tiles dd[data-unknown]:not(#\-) {
-        color: var(--nova-ink-3)
+        color: var(--nova-ink-3);
+        text-shadow: none
     }
     .nova-status-row strong:not(#\-) {
         color: var(--nova-ink)
@@ -15504,12 +16714,6 @@
     :scope:has(.nova-frame) .aa-toast:not(#\-) {
         background-image: linear-gradient(135deg, #010815, #070519);
         background-color: transparent
-    }
-    .nova-frame[data-look=holo]:not([data-phone]) .nova-quick .nova-tile:not(:hover, :focus-visible, :focus-within, [aria-pressed=true]):not(#\-) {
-        border-color: #ffffff0f;
-        background-image: none;
-        background-color: #01020bb3;
-        color: #c9d4ea
     }
     .nova-frame[data-phone][data-look=holo] .nova-centre > .nova-foot:not(#\-) {
         background-image: linear-gradient(to bottom, transparent, var(--nova-deep, #000105) 26px);
@@ -15527,26 +16731,34 @@
     .nova-stage-area:focus-visible:not(#\-) {
         outline-color: var(--nova-focus)
     }
-    .nova-frame[data-look=holo]:not([data-phone]) .nova-left:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, #010208 90%, transparent)
+    .nova-frame[data-phone] .nova-clock:not(#\-) {
+        --sh-glass: #010107b3
     }
-    .nova-frame[data-look=holo]:not([data-phone]) :is(.nova-chip, .nova-setup-banner):not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, #01030e 88%, transparent)
+    .nova-frame[data-phone] .ncb-glow:not(#\-) {
+        box-shadow: 0 0 22px 0 color-mix(in oklab, var(--sh-a) 55%, transparent)
     }
-    .nova-frame[data-stage=calm]:not([data-phone]) .nova-deck .nova-chip:not(.nova-showcase):not(#\-) {
-        border-color: transparent;
-        background-image: none;
-        background-color: transparent
+    .nova-frame[data-phone] .nova-send:not(#\-) {
+        --k-glow: 0 0 12px -2px var(--sh-b)
     }
-    .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner:not(#\-) {
-        border-color: currentcolor;
-        box-shadow: inset 0 0 0 1px var(--nova-edge)
+    :scope[data-glow="soft"] .nova-frame :is(button, a, label, span, p, div):not(#\-)::before {
+        box-shadow: none
     }
-    @media (min-width: 1100px) {
-        .nova-frame[data-chat]:not([data-phone]) .nova-talk:not(#\-):not(#\-) {
-            box-shadow: none
+    @media (forced-colors: active) {
+        .nova-frame :is(button, a, label, span, p, div, ul, form, aside, kbd, li):not(#\-)::before, .nova-frame :is(button, a, label, span, p, div, ul, form, aside, kbd, li):not(#\-)::after {
+            background-image: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important
+        }
+    }
+    @media (forced-colors: active) {
+        .nova-switch > span:not(#\-)::after {
+            background-image: none !important;
+            background-color: transparent !important
+        }
+    }
+    @media (forced-colors: active) {
+        .nova-switch > span:not(#\-) {
+            border-color: currentcolor
         }
     }
 }
@@ -15668,10 +16880,14 @@
         background-image: none;
         background-color: color-mix(in srgb, var(--bg, #010207) 92%, transparent);
         border-color: color-mix(in srgb, var(--violet, #8b7cff) 40%, var(--line, #2a325a));
+        border-top-color: var(--cyan, #6fd3ff);
+        box-shadow: 0 0 34px -18px var(--violet, #8b7cff);
         color: var(--text, #eef1ff)
     }
     .nova-step-n:not(#\-) {
-        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 60%, transparent);
+        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 70%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--cyan, #6fd3ff) 9%, transparent);
         color: var(--cyan, #6fd3ff)
     }
     .nova-cmd-shell:not(#\-) {
@@ -15681,6 +16897,7 @@
         background-image: none;
         background-color: color-mix(in srgb, var(--bg, #010207) 70%, #000);
         border-color: var(--line, #2a325a);
+        border-left-color: var(--cyan, #6fd3ff);
         color: var(--text, #eef1ff)
     }
     .nova-cmd pre:focus-visible:not(#\-) {
@@ -15688,11 +16905,13 @@
     }
     .nova-honest:not(#\-), .nova-note:not(#\-), .nova-warn:not(#\-) {
         border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 35%, var(--line, #2a325a));
+        border-left-color: var(--cyan, #6fd3ff);
         background-image: none;
         background-color: color-mix(in srgb, var(--cyan, #6fd3ff) 7%, transparent)
     }
     .nova-warn:not(#\-) {
         border-color: color-mix(in srgb, var(--pink, #ff74be) 45%, var(--line, #2a325a));
+        border-left-color: var(--pink, #ff74be);
         background-image: none;
         background-color: color-mix(in srgb, var(--pink, #ff74be) 8%, transparent)
     }
@@ -15712,9 +16931,10 @@
         border-color: var(--line, #2a325a)
     }
     .nova-mode:has(input:checked):not(#\-) {
-        border-color: color-mix(in srgb, var(--violet, #8b7cff) 70%, transparent);
+        border-color: color-mix(in srgb, var(--violet, #8b7cff) 80%, transparent);
         background-image: none;
-        background-color: color-mix(in srgb, var(--violet, #8b7cff) 12%, transparent)
+        background-color: color-mix(in srgb, var(--violet, #8b7cff) 12%, transparent);
+        box-shadow: inset 3px 0 0 var(--cyan, #6fd3ff), 0 0 18px -8px var(--violet, #8b7cff)
     }
     .nova-tag:not(#\-) {
         border-color: var(--line, #2a325a);
@@ -15746,24 +16966,27 @@
     .nova-badge-dot:not(#\-) {
         background-image: none;
         background-color: var(--cyan, #6fd3ff);
-        box-shadow: 0 0 8px var(--cyan, #6fd3ff)
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan, #6fd3ff) 24%, transparent), 0 0 8px var(--cyan, #6fd3ff)
     }
     .nova-online:not(#\-) {
-        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a))
+        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a));
+        border-top-color: var(--cyan, #6fd3ff)
     }
     .nova-guide-card:not(#\-) {
         border-color: color-mix(in srgb, var(--violet, #8b7cff) 45%, var(--line, #2a325a));
+        border-top-color: var(--cyan, #6fd3ff);
         background-image: none;
         background-color: color-mix(in srgb, var(--panel, #020313) 85%, transparent);
         color: var(--text, #eef1ff)
     }
     .nova-guide-card-bar:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in srgb, var(--line, #0b0f28) 80%, transparent)
+        background-image: repeating-linear-gradient(90deg, color-mix(in srgb, var(--line, #0b0f28) 90%, transparent) 0 6px, transparent 6px 8px);
+        background-color: transparent
     }
     .nova-guide-card-bar > span:not(#\-) {
         background-image: linear-gradient(90deg, var(--violet, #8b7cff), var(--cyan, #6fd3ff));
-        background-color: transparent
+        background-color: transparent;
+        box-shadow: inset -3px 0 0 #fff
     }
     .nova-choice button[aria-pressed=true]:not(#\-):not(#\-) {
         background-image: none;
@@ -15779,22 +17002,41 @@
 }
 /*  components/nova/stage/bars.css  */
 @scope (:root[data-theme=dark]) {
+    .nb-find:not(#\-) {
+        --k-rim: color-mix(in oklab, var(--nova-b, #63e7ff) 55%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--nova-a, #9273ff) 40%, transparent);
+        --k-plate: #050919;
+        --k-plate-2: #070c24
+    }
+    .nb-find:focus-within:not(#\-) {
+        --k-rim: var(--nova-b, #63e7ff);
+        --k-rim-2: var(--nova-b, #63e7ff);
+        --k-glow: 0 0 14px -3px var(--nova-b, #63e7ff)
+    }
     .nb-find-icon:not(#\-) {
-        color: var(--nova-ink-3)
+        color: color-mix(in oklab, var(--nova-b, #63e7ff) 34%, #fff)
+    }
+    .nova-root .nb-find input:not(#\-):not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: transparent
     }
     .nb-where:not(#\-) {
         color: var(--nova-ink-3)
     }
     .nb-results .nova-left-row[data-first]:not(#\-) {
-        background-image: none;
-        background-color: #ffffff0f;
-        box-shadow: inset 0 0 0 1px var(--nova-edge)
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--dot, #cbbfff) 22%, transparent), transparent 88%);
+        background-color: transparent;
+        box-shadow: inset 2px 0 0 var(--dot, #cbbfff)
     }
     .nb-enter:not(#\-) {
-        border-color: var(--nova-edge-soft);
+        border-color: currentcolor;
         background-image: none;
-        background-color: #ffffff0a;
-        color: var(--nova-ink-2)
+        background-color: transparent;
+        color: var(--nova-ink-2);
+        --k-rim: #ffffff38;
+        --k-plate: #111a40;
+        --k-plate-2: #080d26
     }
     .nb-none:not(#\-) {
         color: var(--nova-ink-2)
@@ -15803,23 +17045,42 @@
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
-        color: var(--nova-ink-3)
+        color: var(--nova-ink-2)
     }
     .nb-fold:hover:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nb-fold > span:first-child:not(#\-)::before {
         background-image: none;
-        background-color: #ffffff0d;
-        color: var(--nova-ink-2)
+        background-color: var(--nova-b, #63e7ff);
+        box-shadow: 0 0 0 2px color-mix(in oklab, var(--nova-b, #63e7ff) 26%, transparent), 0 0 8px var(--nova-b, #63e7ff)
+    }
+    .nb-fold > span:first-child:not(#\-)::after {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--nova-b, #63e7ff) 60%, transparent), transparent);
+        background-color: transparent
+    }
+    .nb-fold:hover > span:first-child:not(#\-)::after {
+        background-image: linear-gradient(90deg, var(--nova-b, #63e7ff), transparent);
+        background-color: transparent
     }
     .nb-fold-count:not(#\-) {
-        background-image: none;
-        background-color: #ffffff0f;
-        color: var(--nova-ink-2)
+        color: var(--nova-ink-2);
+        --k-rim: #ffffff33;
+        --k-plate: #101842;
+        --k-plate-2: #080d26
+    }
+    .nb-fold > svg:not(#\-) {
+        color: var(--nova-ink-3)
     }
     .nova-left[data-state=rail] .nb-section + .nb-section:not(#\-) {
-        border-top-color: var(--nova-edge-soft)
+        border-top-color: color-mix(in oklab, var(--nova-b, #63e7ff) 24%, #ffffff12)
     }
     .nb-sec-icon:not(#\-) {
-        color: var(--nova-hi)
+        color: color-mix(in oklab, var(--nova-c, #f06dff) 34%, #fff);
+        --k-rim: color-mix(in oklab, var(--nova-c, #f06dff) 62%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--nova-a, #9273ff) 50%, transparent);
+        --k-plate: #101842;
+        --k-plate-2: #080d26
     }
     .nova-right-section h3 button .nb-sec-icon .nova-icon:not(#\-) {
         color: inherit
@@ -15828,9 +17089,10 @@
         color: var(--nova-ink-3)
     }
     .nb-ask:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        background-image: none;
-        background-color: #ffffff08
+        --k-rim: color-mix(in oklab, var(--nova-b, #63e7ff) 62%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--nova-a, #9273ff) 22%, transparent);
+        --k-plate: #0c1437;
+        --k-plate-2: #060a1c
     }
     .nb-ask-text:not(#\-) {
         color: var(--nova-ink)
@@ -15839,7 +17101,7 @@
         color: var(--nova-ink-3)
     }
     .nb-ask-meta time:not(#\-) {
-        color: var(--nova-ink-2)
+        color: color-mix(in oklab, var(--nova-b, #63e7ff) 34%, #fff)
     }
     .nb-ask-phone:not(#\-) {
         color: var(--accent-cyan, #9ee8f8)
@@ -15856,9 +17118,8 @@
         background-color: #ffffff0d;
         color: var(--nova-ink)
     }
-    .nb-stage-row:nth-child(odd):not(#\-) {
-        background-image: none;
-        background-color: #ffffff08
+    .nb-stage-row + .nb-stage-row:not(#\-) {
+        border-top-color: #ffffff12
     }
     .nb-stage-name:not(#\-) {
         color: var(--nova-ink)
@@ -15873,27 +17134,35 @@
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
-        color: var(--nova-ink-2)
+        color: var(--nova-ink);
+        --k-rim: color-mix(in oklab, var(--nova-c, #f06dff) 46%, transparent);
+        --k-plate: color-mix(in oklab, var(--nova-c, #f06dff) 9%, #060a1c);
+        --k-plate-2: #060a1c
     }
-    .nb-act:hover:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, var(--nova-a, #9273ff) 20%, transparent);
-        color: var(--nova-ink)
+    .nb-act:is(:hover, :focus-visible):not(#\-) {
+        color: #fff;
+        --k-rim: var(--nova-c, #f06dff);
+        --k-plate: color-mix(in oklab, var(--nova-c, #f06dff) 30%, #060a1c);
+        --k-glow: 0 0 12px -3px var(--nova-c, #f06dff)
     }
     .nb-act[data-on]:not(#\-) {
-        color: var(--nova-hi)
+        color: #fff;
+        --k-rim: var(--nova-c, #f06dff);
+        --k-plate: color-mix(in oklab, var(--nova-c, #f06dff) 36%, #060a1c);
+        --k-glow: 0 0 12px -3px var(--nova-c, #f06dff)
     }
     .nb-lives:not(#\-) {
-        border-color: var(--nova-edge-soft);
-        background-image: none;
-        background-color: #ffffff08;
-        color: var(--nova-ink-2)
+        color: var(--nova-ink-2);
+        --k-rim: color-mix(in oklab, var(--accent-teal, #86f0d6) 60%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--accent-teal, #86f0d6) 18%, transparent);
+        --k-plate: color-mix(in oklab, var(--accent-teal, #86f0d6) 9%, #0a1030);
+        --k-plate-2: #060a1c
     }
     .nb-lives svg:not(#\-) {
         color: var(--accent-teal, #86f0d6)
     }
     @media (forced-colors: active) {
-        .nb-ask:not(#\-), .nb-lives:not(#\-), .nb-enter:not(#\-) {
+        .nb-ask:not(#\-), .nb-lives:not(#\-), .nb-enter:not(#\-), .nb-find:not(#\-) {
             border-color: currentcolor
         }
     }
@@ -16003,15 +17272,28 @@
         background-image: linear-gradient(to top, color-mix(in oklab, var(--neon, #9273ff) 60%, #ffffff40), transparent 26%);
         background-color: transparent
     }
+    .ns-strip:not(#\-)::before {
+        background-image: linear-gradient(90deg, transparent, var(--nova-b, #63e7ff) 16%, var(--nova-a, #9273ff) 50%, var(--nova-c, #f06dff) 84%, transparent);
+        background-color: transparent
+    }
+    .ns-dock:not(#\-) {
+        --sh-glass: #010107;
+        --sh-rimg: color-mix(in oklab, var(--nova-hi, #cbbfff) 36%, #050919)
+    }
     .ns-dock-label:not(#\-) {
         color: #c3cfe6
     }
     .ns-chip:not(#\-) {
         --neon: #7fc8ff;
-        border-color: color-mix(in oklab, var(--neon) 46%, transparent);
+        border-color: currentcolor;
         background-image: none;
-        background-color: color-mix(in oklab, var(--neon) 9%, #010108cc);
-        color: #eef3ff
+        background-color: transparent;
+        color: #f1f5ff;
+        --k-rim: color-mix(in oklab, var(--neon) 82%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--neon) 36%, #0a1030);
+        --k-plate: color-mix(in oklab, var(--neon) 22%, #080d26);
+        --k-plate-2: color-mix(in oklab, var(--neon) 7%, #050919);
+        --k-glow: 0 0 12px -4px var(--neon)
     }
     .ns-chip[data-pillar=health]:not(#\-) {
         --neon: #ff74be
@@ -16035,25 +17317,58 @@
         --neon: #9273ff
     }
     .ns-chip-dot:not(#\-) {
-        background: var(--neon);
-        box-shadow: 0 0 8px var(--neon)
-    }
-    .ns-chip:hover:not(#\-) {
         background-image: none;
-        background-color: color-mix(in oklab, var(--neon) 22%, #010108cc);
-        border-color: color-mix(in oklab, var(--neon) 80%, transparent)
+        background-color: color-mix(in oklab, var(--neon) 70%, #fff);
+        box-shadow: 0 0 0 2px color-mix(in oklab, var(--neon) 26%, transparent), 0 0 8px var(--neon)
+    }
+    .ns-chip:is(:hover, :focus-visible):not(#\-) {
+        color: #fff;
+        --k-rim: color-mix(in oklab, var(--neon) 60%, #fff);
+        --k-rim-2: var(--neon);
+        --k-plate: color-mix(in oklab, var(--neon) 40%, #080d26);
+        --k-plate-2: color-mix(in oklab, var(--neon) 18%, #050919);
+        --k-glow: 0 0 16px -2px var(--neon)
+    }
+    .ns-dock .ns-chip:not(#\-) {
+        color: #d3dcef;
+        --k-rim: color-mix(in oklab, var(--neon) 46%, #0a1030);
+        --k-rim-2: color-mix(in oklab, var(--neon) 20%, #0a1030);
+        --k-plate: #0a1030;
+        --k-plate-2: #060a1c
+    }
+    .ns-dock .ns-chip-dot:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1.5px var(--neon)
     }
     .ns-answer:not(#\-) {
-        border-color: color-mix(in oklab, var(--nova-a, #9273ff) 42%, transparent);
-        background-image: linear-gradient(160deg, color-mix(in oklab, var(--nova-a, #9273ff) 12%, #01020ae6), #010106e6);
+        border-color: currentcolor;
+        background-image: none;
         background-color: transparent;
-        box-shadow: 0 0 30px -12px var(--nova-a, #9273ff)
+        --sh-glass: repeating-linear-gradient(0deg, #ffffff08 0 1px, transparent 1px 3px), linear-gradient(180deg, color-mix(in oklab, var(--nova-b, #63e7ff) 24%, #010314) 0, color-mix(in oklab, var(--nova-a, #9273ff) 16%, #01020d) 40px, #01020b 40px, #010107 100%);
+        --sh-rimg: linear-gradient(115deg, #fff 0, var(--nova-b, #63e7ff) 9%, var(--nova-a, #9273ff) 52%, var(--nova-c, #f06dff) 91%, #fff 100%)
+    }
+    .ns-answer-glow:not(#\-) {
+        box-shadow: 0 0 16px 1px color-mix(in oklab, var(--nova-b, #63e7ff) 50%, transparent), 0 0 50px 6px color-mix(in oklab, var(--nova-a, #9273ff) 36%, transparent), 0 26px 44px -20px #000
+    }
+    .ns-answer-head:not(#\-) {
+        color: #e9fbff;
+        text-shadow: 0 0 12px color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent);
+        border-color: currentcolor
+    }
+    .ns-answer-mark:not(#\-) {
+        color: #fff;
+        filter: drop-shadow(0 0 5px var(--nova-b, #63e7ff))
     }
     .ns-answer-asked:not(#\-) {
         color: #c3cfe6
     }
     .ns-answer-text:not(#\-) {
-        color: #f2f6ff
+        color: #f4f8ff
+    }
+    .ns-fig:not(#\-) {
+        color: color-mix(in oklab, var(--nova-b, #63e7ff) 62%, #fff);
+        text-shadow: 0 0 14px color-mix(in oklab, var(--nova-b, #63e7ff) 85%, transparent)
     }
     .ns-answer-meta:not(#\-) {
         color: #c3cfe6
@@ -16062,10 +17377,21 @@
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
-        color: #dfe8ff
+        color: #f1f5ff;
+        --k-rim: color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent);
+        --k-rim-2: color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent);
+        --k-plate: color-mix(in oklab, var(--nova-b, #63e7ff) 14%, #0a1030);
+        --k-plate-2: color-mix(in oklab, var(--nova-a, #9273ff) 16%, #060a1c)
     }
-    .ns-link:hover:not(#\-) {
-        color: #fff
+    .ns-link:is(:hover, :focus-visible):not(#\-) {
+        color: #fff;
+        --k-rim: var(--nova-b, #63e7ff);
+        --k-rim-2: var(--nova-b, #63e7ff);
+        --k-plate: color-mix(in oklab, var(--nova-b, #63e7ff) 32%, #0a1030);
+        --k-glow: 0 0 14px -3px var(--nova-b, #63e7ff)
+    }
+    .nova-frame[data-phone] .ns-answer-glow:not(#\-) {
+        box-shadow: 0 0 18px 0 color-mix(in oklab, var(--nova-a, #9273ff) 45%, transparent)
     }
     .nova-widget:focus-visible:not(#\-) {
         outline-color: var(--nova-focus, #63e7ff)
@@ -16074,10 +17400,15 @@
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
-        color: #c3cfe6
+        color: #e6ecfb;
+        --k-rim: color-mix(in oklab, var(--nova-b, #63e7ff) 52%, transparent);
+        --k-plate: #0a1030;
+        --k-plate-2: #060a1c
     }
     .ns-answer-close:hover:not(#\-) {
-        color: #fff
+        color: #fff;
+        --k-rim: #ff8fa3;
+        --k-plate: #4a1830
     }
     .ns-answer-close:focus-visible:not(#\-) {
         outline-color: var(--nova-focus, #63e7ff)
@@ -16143,9 +17474,14 @@
         background-color: color-mix(in oklab, var(--nova-a) 18%, transparent)
     }
     .nova-disc:not(#\-) {
-        background-image: radial-gradient(circle, #01030e 18%, transparent 19%), conic-gradient(from 0deg, var(--nova-b), var(--nova-a), var(--nova-c, #f06dff), var(--nova-b));
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 7%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)
+    }
+    .nova-disc i:not(#\-) {
+        background-image: linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), var(--neon, #9273ff) 80%, var(--neon-2, #c0adff));
         background-color: transparent;
-        box-shadow: 0 0 14px color-mix(in oklab, var(--nova-a) 50%, transparent)
+        box-shadow: inset 0 2px 0 #fff, 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 65%, transparent)
     }
     .nova-round:not(#\-) {
         border-color: currentcolor;
@@ -16182,6 +17518,218 @@
     }
     .nova-widget .tasks-widget .task-goal:not(#\-) {
         color: var(--nova-hi)
+    }
+    .nova-widget[data-holo] .hw-rows > .hw-row:not(#\-) {
+        color: #dbe4f6;
+        border-top-color: color-mix(in oklab, var(--neon, #7fc8ff) 15%, transparent)
+    }
+    .nova-widget[data-holo] .hw-rows > .hw-row:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .nova-widget[data-holo] .hw-rows > .hw-row:not(#\-)::before {
+        background-image: none;
+        background-color: color-mix(in oklab, #fff 50%, var(--neon, #7fc8ff));
+        box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 1px var(--neon, #7fc8ff)
+    }
+    .nova-widget[data-holo] .hw-rows > .hw-row a:not(#\-) {
+        color: #eef3ff
+    }
+    .nova-widget[data-holo] .nova-line:not(#\-) {
+        color: #dbe4f6
+    }
+    .nova-widget[data-holo] .nova-quiet:not(#\-) {
+        color: #c3cfe6
+    }
+    .nova-widget[data-holo] .nova-big small:not(#\-) {
+        color: #cdd8ee
+    }
+    .nova-widget[data-holo] .nova-big .nova-figure:not(#\-) {
+        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 28px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent)
+    }
+    .nova-widget[data-holo] .nova-count:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 14%, transparent);
+        color: var(--neon-ink, #e3f3ff)
+    }
+    .nova-widget[data-holo] .nova-chip-link:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--neon-ink, #eef3ff)
+    }
+    .nova-widget[data-holo] .nova-chip-link:not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 62%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 13%, #010108);
+        box-shadow: inset 0 0 12px -4px var(--neon, #9273ff)
+    }
+    .nova-widget[data-holo] .nova-chip-link:hover:not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .nova-widget[data-holo] .nova-chip-link:hover:not(#\-)::before {
+        border-color: var(--neon, #9273ff);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 30%, #010108)
+    }
+    .nova-widget[data-holo] .nova-round:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 14%, #010108);
+        color: var(--neon-ink, #eef3ff);
+        box-shadow: inset 0 0 0 1.5px var(--neon, #9273ff), 0 0 12px -2px var(--neon, #9273ff), inset 0 0 14px -4px var(--neon, #9273ff)
+    }
+    .nova-widget[data-holo] .nova-round:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 32%, #010108)
+    }
+    .hw-pips i:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0a);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent)
+    }
+    .hw-pips i[data-lit]:not(#\-) {
+        background: var(--neon, #9273ff);
+        box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .hw-pips i[data-now]:not(#\-) {
+        background-image: linear-gradient(90deg, var(--neon-2, #c0adff), #fff);
+        background-color: transparent;
+        box-shadow: 0 0 8px 1px var(--neon, #9273ff)
+    }
+    .nova-widget[data-holo] .hw-head strong:not(#\-) {
+        color: var(--neon-ink, #e3f3ff)
+    }
+    .hw-dayglyph:not(#\-) {
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #7fc8ff) 60%, transparent), inset 0 0 0 4px #04071a, inset 0 0 0 5px color-mix(in oklab, var(--neon, #7fc8ff) 28%, transparent);
+        background-image: linear-gradient(#0000 49%, color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent) 49% 51%, #0000 51%);
+        background-color: transparent
+    }
+    .hw-dayglyph i:not(#\-) {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 2px var(--neon, #7fc8ff)
+    }
+    .nova-widget[data-holo] .hw-goals > .hw-row:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #9273ff) 15%, transparent)
+    }
+    .nova-widget[data-holo] .hw-goals > .hw-row:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .nova-widget[data-holo] .hw-goals .nova-goal-head a:not(#\-) {
+        color: #eef3ff
+    }
+    .nova-widget[data-holo] .hw-goals .nova-goal-pct:not(#\-) {
+        color: var(--neon-ink, #e2d9ff);
+        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 28px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent)
+    }
+    .nova-widget[data-holo] .hw-goals .nova-goal-pace:not(#\-) {
+        color: #c9d4ea
+    }
+    .nova-widget[data-holo] .hw-goals li[data-tone=good] .nova-goal-pace:not(#\-) {
+        color: #9ff3dc
+    }
+    .nova-widget[data-holo] .hw-goals li[data-tone=attention] .nova-goal-pace:not(#\-) {
+        color: #ffe2a8
+    }
+    .nova-widget[data-holo] .hw-goals .nova-more a:not(#\-) {
+        color: var(--neon-ink, #e2d9ff)
+    }
+    .nova-widget[data-holo] .hw-markets > .hw-row:not(#\-) {
+        border-top-color: #ffd27a26
+    }
+    .nova-widget[data-holo] .hw-markets > .hw-row:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .nova-widget[data-holo] .hw-markets > .hw-row:not(#\-)::before {
+        border-color: color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent)
+    }
+    .nova-widget[data-holo] .hw-markets > .hw-row[data-priced]:not(#\-)::before {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: color-mix(in oklab, #fff 50%, var(--neon, #ffd27a));
+        box-shadow: 0 0 0 1.5px var(--neon, #ffd27a), 0 0 8px 1px var(--neon, #ffd27a)
+    }
+    .nova-widget[data-holo] .hw-markets .nova-market-name:not(#\-) {
+        color: #dfe7f8
+    }
+    .nova-widget[data-holo] .hw-markets .nova-market-price:not(#\-) {
+        color: var(--neon-ink, #fff0cf);
+        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ffd27a) 55%, transparent)
+    }
+    .nova-widget[data-holo] .hw-markets small:not(#\-) {
+        color: #c3cfe6;
+        text-shadow: none
+    }
+    .nova-widget[data-holo] .hw-facts > div:not(#\-) {
+        border-top-color: #ffd27a26
+    }
+    .nova-widget[data-holo] .hw-facts > div:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .nova-widget[data-holo] .hw-facts > div:not(#\-)::before {
+        border-color: #ffd27a99
+    }
+    .nova-widget[data-holo] .hw-facts > div[data-kind]:not(#\-)::before {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: color-mix(in oklab, #fff 50%, var(--mark, #ffd27a));
+        box-shadow: 0 0 0 1.5px var(--mark, #ffd27a), 0 0 8px 1px var(--mark, #ffd27a)
+    }
+    .hw-facts > div[data-kind=contribution]:not(#\-), .hw-runway-mark[data-kind=contribution]:not(#\-) {
+        --mark: #a98fff
+    }
+    .nova-widget[data-holo] .hw-facts dt:not(#\-) {
+        color: #cdd8ee
+    }
+    .nova-widget[data-holo] .hw-facts dd:not(#\-) {
+        color: #eef3ff
+    }
+    .nova-widget[data-holo] .hw-facts dd small:not(#\-) {
+        color: #c9d4ea
+    }
+    .hw-runway-track:not(#\-) {
+        background-image: linear-gradient(color-mix(in oklab, var(--neon, #ffd27a) 34%, transparent), color-mix(in oklab, var(--neon, #ffd27a) 34%, transparent)), repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 55%, transparent) 0 1px, transparent 1px calc(100% * 7 / 60));
+        background-color: transparent
+    }
+    .hw-runway-now:not(#\-) {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 1.5px var(--neon, #ffd27a), 0 0 9px 2px var(--neon, #ffd27a)
+    }
+    .hw-runway-mark:not(#\-) {
+        --mark: #ffd27a;
+        background-image: none;
+        background-color: color-mix(in oklab, #fff 45%, var(--mark));
+        box-shadow: 0 0 0 1.5px var(--mark), 0 0 9px 2px var(--mark)
+    }
+    .hw-runway-ends small:not(#\-) {
+        color: #c3cfe6
+    }
+    .nova-widget[data-holo] .tasks-widget .task-done input:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 80%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 10%, #010108);
+        box-shadow: 0 0 8px -2px var(--neon, #9273ff), inset 0 0 8px -3px var(--neon, #9273ff)
+    }
+    .nova-widget[data-holo] .tasks-widget .task-done input:checked:not(#\-) {
+        border-color: var(--neon-2, #c0adff);
+        background-image: radial-gradient(circle, #fff 0 30%, var(--neon, #9273ff) 36%);
+        background-color: transparent;
+        box-shadow: 0 0 10px 1px var(--neon, #9273ff)
+    }
+    .nova-widget[data-holo] .tasks-widget .task-done input:focus-visible:not(#\-) {
+        outline-color: var(--nova-focus, #63e7ff)
+    }
+    .nova-widget[data-holo] .nova-reading:not(#\-) {
+        color: #cdd8ee
+    }
+    .nova-widget[data-holo] .nova-reading:not(#\-)::before {
+        background-image: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 0 2px, transparent 2px 6px);
+        background-color: transparent
+    }
+    .nova-widget[data-holo] .nova-unread:not(#\-) {
+        border-left-color: #ffe2a8
     }
 }
 /*  components/nova/workflows/workflows.css  */
