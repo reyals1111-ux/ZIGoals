@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {GOVERNOR_GRACE_MS, governorStep, REST_AFTER_MS, rgb, SLOW_FRAMES, speakPulse, STAR_ACCENT, STAR_STATE, STAR_TIERS, starPace, starPixels, starRender, VERY_LATE_WEIGHT} from './governor';
+import {GOVERNOR_GRACE_MS, governorStep, REST_AFTER_MS, rgb, SLOW_FRAMES, softwareRenderer, speakPulse, STAR_ACCENT, STAR_STATE, STAR_TIERS, starPace, starPixels, starRender, VERY_LATE_WEIGHT} from './governor';
 import {STAR_FRAG, STAR_UNIFORMS, STAR_VERT} from './star-shader';
 
 /** Session AM (ADR-038 D10, D11, A7): the centre node's rules. */
@@ -14,6 +14,9 @@ describe('starRender: running, one still frame, or the SVG orb', () => {
     expect(starRender({hud: 'calm', webgl: true, hints: able, failed: false, software: true})).toBe('still');
     expect(starRender({hud: 'full', webgl: true, hints: able, failed: false, software: false})).toBe('running');
     expect(starRender({hud: 'full', webgl: true, hints: {...able, saveData: true}, failed: false, software: true})).toBe('orb');
+    // The renderer's own name is the second witness (headless Chromium grants a context on SwiftShader without a caveat).
+    for (const name of ['ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)', 'llvmpipe (LLVM 15.0.7, 256 bits)', 'softpipe', 'Microsoft Basic Render Driver', 'Software Rasterizer']) expect(softwareRenderer(name), name).toBe(true);
+    for (const name of ['ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)', 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)', 'Mali-G78', 'Adreno (TM) 740', '', null, undefined]) expect(softwareRenderer(name), String(name)).toBe(false);
     expect(starRender({hud: 'full', webgl: true, hints: {...able, saveData: true}, failed: false})).toBe('orb');
     expect(starRender({hud: 'full', webgl: true, hints: {...able, lowBattery: true}, failed: false})).toBe('orb');
   });

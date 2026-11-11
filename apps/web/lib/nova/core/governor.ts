@@ -28,6 +28,12 @@ export function starRender({hud, webgl, hints, failed, software = false}: {hud: 
   if ((typeof hints.hardwareConcurrency === 'number' && hints.hardwareConcurrency > 0 && hints.hardwareConcurrency <= 2) || (typeof hints.deviceMemory === 'number' && hints.deviceMemory > 0 && hints.deviceMemory <= 2)) return 'still';
   return 'running';
 }
+/**
+ * Whether a WebGL renderer's own name says it draws on the processor (SwiftShader, llvmpipe, softpipe, Microsoft's basic
+ * render driver, "software"). Some browsers grant a context without reporting a performance caveat (headless Chromium
+ * does); the name is the second witness. A name that is not given says nothing.
+ */
+export const softwareRenderer = (name: string | null | undefined): boolean => !!name && /swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
 export const REST_AFTER_MS = 60_000;
 export type StarPace = {mode: 'active' | 'resting' | 'calm'; fps: number; scale: number; speed: number};
 export function starPace({hud, state, focused, idleMs, phone}: {hud: HudMotionState; state: NovaOrbState; focused: boolean; idleMs: number; phone: boolean}): StarPace {

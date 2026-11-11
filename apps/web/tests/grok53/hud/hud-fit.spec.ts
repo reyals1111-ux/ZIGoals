@@ -61,14 +61,19 @@ for (const [width, height, least] of [[1440, 900, 3], [1920, 1080, 4]] as const)
     if (await goals.locator('.holo-pace-chart').count()) await expect(goals.locator('.holo-pace-chart svg')).toBeInViewport({ratio: 1});
     // The core's readout and the words under the orb clear the command field; NOVA's name and state clear the rings.
     const foot = (await page.locator('.nova-foot').boundingBox())!;
-    for (const sel of ['.holo-core-readout', '.nova-greeting', '.nova-dayline']) {
+    // Session AM (design review AM-D33, deliberate): the read-out shows where the star's column has room for it (1920) and
+    // is hidden, not squeezed, at 1440; where it shows it clears the command field as before.
+    const readout = page.locator('.holo-core-readout');
+    if (width >= 1920) await expect(readout).toBeVisible(); else await expect(readout).toBeHidden();
+    for (const sel of [...(width >= 1920 ? ['.holo-core-readout'] : []), '.nova-greeting', '.nova-dayline']) {
       const b = (await page.locator(sel).boundingBox())!;
       expect(b.y + b.height, `${sel} above the command field`).toBeLessThanOrEqual(foot.y + 0.5);
     }
     const rings = (await page.locator('.holo-core').boundingBox())!, name = (await page.locator('.nova-name').boundingBox())!, state = (await page.locator('.nova-orb-state').boundingBox())!;
     expect(name.y + name.height, 'NOVA’s name above the rings').toBeLessThanOrEqual(rings.y + 1);
     expect(state.y, 'the state under the rings').toBeGreaterThanOrEqual(rings.y + rings.height - 1);
-    await expect(page.getByRole('list', {name: 'Today’s core'}).locator('li')).toHaveCount(4);
+    // AM-D33, deliberate: the four read-outs are a named list where they show (1920); at 1440 the same four are in the page, hidden.
+    if (width >= 1920) await expect(page.getByRole('list', {name: 'Today’s core'}).locator('li')).toHaveCount(4); else await expect(readout.locator('li')).toHaveCount(4);
   });
 }
 

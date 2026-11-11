@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
-import {GOVERNOR_GRACE_MS, governorStep, rgb, speakPulse, STAR_ACCENT, STAR_STATE, STAR_TIERS, starPace, starPixels, starRender, type StarRender} from '../../../lib/nova/core/governor';
+import {GOVERNOR_GRACE_MS, governorStep, rgb, softwareRenderer, speakPulse, STAR_ACCENT, STAR_STATE, STAR_TIERS, starPace, starPixels, starRender, type StarRender} from '../../../lib/nova/core/governor';
 import {STAR_FRAG, STAR_UNIFORMS, STAR_VERT, type StarUniform} from '../../../lib/nova/core/star-shader';
 import type {HudMotionState} from '../../../lib/nova/holo/motion';
 import {countHudFrame} from '../../../lib/nova/holo/motes';
@@ -42,7 +42,9 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
       // With graphics hardware the first ask succeeds. If only the second does, the browser draws WebGL in software.
       const hard = document.createElement('canvas').getContext('webgl', {failIfMajorPerformanceCaveat: true}), probe = document.createElement('canvas');
       const any = hard ?? probe.getContext('webgl') ?? probe.getContext('experimental-webgl');
-      setWebgl(!!any); setSoftware(!hard && !!any);
+      let name: string | null = null;
+      try { const gl = any as WebGLRenderingContext | null, info = gl?.getExtension('WEBGL_debug_renderer_info'); name = gl ? String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? '') : null; } catch { name = null; }
+      setWebgl(!!any); setSoftware(!!any && (!hard || softwareRenderer(name)));
       try { (hard ?? (any as WebGLRenderingContext | null))?.getExtension('WEBGL_lose_context')?.loseContext(); } catch { /* the probe is dropped with its canvas */ }
     } catch { setWebgl(false); }
     return () => { live = false; };
