@@ -631,7 +631,9 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-frame[data-phone][data-look=holo] .nova-centre > .nova-foot { position: sticky; bottom: 0; z-index: 3; margin-top: auto; background: linear-gradient(to bottom, transparent, var(--nova-deep, #020414) 26px); }
 /* Session AL (CI8, WCAG 2.4.11): a control Tab brings into view stops above the pinned command field (86 px at 390 px),
    never under it; the browser keeps this much of the scroller's foot clear when it scrolls focus into view. */
-.nova-frame[data-phone][data-look=holo] .nova-centre { scroll-padding-bottom: 112px; }
+/* Session AM: the phone's foot is the one-tap row and the command field (144 px); a control that takes the keyboard's focus
+   stops above it, never under it (p6-keyboard, 2.4.11). */
+.nova-frame[data-phone] .nova-centre { scroll-padding-bottom: 168px; }
 .nova-frame[data-phone][data-look=holo] .nova-stage[data-holo-core] { --orb: min(132px, 36vw); padding-block: 0; grid-template-rows: auto auto auto; }
 .nova-frame[data-phone][data-look=holo] .nova-stage-above { padding-top: 4px; }
 .nova-frame[data-phone][data-look=holo] .nova-deck > .nova-setup-banner { padding: 8px 10px 8px 14px; }
