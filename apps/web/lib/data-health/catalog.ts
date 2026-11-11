@@ -6,6 +6,7 @@ import {WALLET_CATALOG_LABELS} from '../af-wallet-keys';
 import {AF_ZIGI_CATALOG_LABELS} from '../af-zigi-keys';
 import {AF_EXTRAS_CATALOG_LABELS} from '../af-extras-keys';
 import {AL_CATALOG_LABELS} from '../al-device-keys';
+import {AM_CATALOG_LABELS} from '../am-device-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -107,6 +108,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   // Session AL (lib/al-device-keys.ts): the Apps & extras display choices (O3, O4).
   appsPrefs: [AL_CATALOG_LABELS.appsPrefs[0], AL_CATALOG_LABELS.appsPrefs[1]], walletNames: [AL_CATALOG_LABELS.walletNames[0], AL_CATALOG_LABELS.walletNames[1]],
   chessPuzzle: [AL_CATALOG_LABELS.chessPuzzle[0], AL_CATALOG_LABELS.chessPuzzle[1]], novaHud: [AL_CATALOG_LABELS.novaHud[0], AL_CATALOG_LABELS.novaHud[1]], healthExtras: [AL_CATALOG_LABELS.healthExtras[0], AL_CATALOG_LABELS.healthExtras[1]], stablecoinsAsCash: [AL_CATALOG_LABELS.stablecoinsAsCash[0], AL_CATALOG_LABELS.stablecoinsAsCash[1]], chessPuzzleLog: [AL_CATALOG_LABELS.chessPuzzleLog[0], AL_CATALOG_LABELS.chessPuzzleLog[1]], ecoTvlHistory: [AL_CATALOG_LABELS.ecoTvlHistory[0], AL_CATALOG_LABELS.ecoTvlHistory[1]], profileName: [AL_CATALOG_LABELS.profileName[0], AL_CATALOG_LABELS.profileName[1]], watchlistMore: [AL_CATALOG_LABELS.watchlistMore[0], AL_CATALOG_LABELS.watchlistMore[1]],
+  // Session AM (lib/am-device-keys.ts; ADR-038 D16, D17): NOVA's stage record and its outside-data record.
+  novaStage: [AM_CATALOG_LABELS.novaStage[0], AM_CATALOG_LABELS.novaStage[1]], novaWorld: [AM_CATALOG_LABELS.novaWorld[0], AM_CATALOG_LABELS.novaWorld[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page

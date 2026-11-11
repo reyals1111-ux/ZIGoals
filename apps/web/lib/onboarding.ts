@@ -31,6 +31,7 @@ import {AH_DISPLAY_KEYS, AH_PERSONAL_KEYS} from './ah-device-keys';
 import {AI_PERSONAL_KEYS} from './ai-device-keys';
 import {AJ_PERSONAL_KEYS} from './aj-device-keys';
 import {AL_DISPLAY_KEYS, AL_PERSONAL_KEYS} from './al-device-keys';
+import {AM_DISPLAY_KEYS, AM_PERSONAL_KEYS} from './am-device-keys';
 // AA-Cloud's six device keys as literals (ADR-022 B53): importing their store modules here would carry every schema into
 // each page that asks "is this device new?"; lib/onboarding.test.ts keeps the literals equal to the stores' constants.
 const GOAL_EXTRAS_KEY = 'zigoals:goal-extras:v1', AVERAGE_GOALS_KEY = 'zigoals:average-goals:v1', CALCULATOR_KEY = 'zigoals:calculator:v1', SEARCH_RECENT_KEY = 'zigoals:search-recent:v1', LIFE_REVIEW_KEY = 'zigoals:life-review:v1', TODAY_CARDS_KEY = 'zigoals:today-cards:v1';
@@ -73,13 +74,15 @@ export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HE
   // Session AH (lib/ah-device-keys.ts): workouts and Portfolio's last-visit note.
   ...AH_PERSONAL_KEYS,
   // Session AI: the expense log, journal, energy, meal ranges, tasks and the Portfolio's side records.
-  ...AI_PERSONAL_KEYS, ...AJ_PERSONAL_KEYS, ...AL_PERSONAL_KEYS];
+  ...AI_PERSONAL_KEYS, ...AJ_PERSONAL_KEYS, ...AL_PERSONAL_KEYS,
+  // Session AM (lib/am-device-keys.ts; ADR-038 D16, D17): NOVA's requests and made widgets, and its weather choice and place.
+  ...AM_PERSONAL_KEYS];
 /**
  * Device keys that hold no personal records: display preferences, public caches and this flag. The sync offer's "Not now"
  * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as
  * Session L's follow-up asked: on its own it no longer keeps the welcome away from a device with nothing on it.
  */
-export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:ak-tour:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS, TODAY_CARDS_KEY, ...AB_DESIGN_DISPLAY_KEYS, ...EARN_DISPLAY_KEYS, STAKING_PREFS_KEY, ...AF_ZIGI_DISPLAY_KEYS, ...AF_EXTRAS_DISPLAY_KEYS, ...AH_DISPLAY_KEYS, ...AL_DISPLAY_KEYS];
+export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:ak-tour:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS, TODAY_CARDS_KEY, ...AB_DESIGN_DISPLAY_KEYS, ...EARN_DISPLAY_KEYS, STAKING_PREFS_KEY, ...AF_ZIGI_DISPLAY_KEYS, ...AF_EXTRAS_DISPLAY_KEYS, ...AH_DISPLAY_KEYS, ...AL_DISPLAY_KEYS, ...AM_DISPLAY_KEYS];
 
 /**
  * Whether this device looks brand-new: no ZIGoals key other than the non-personal ones above (Today settings are

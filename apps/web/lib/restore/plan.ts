@@ -63,6 +63,8 @@ import {NOVA_WORKFLOWS} from '../nova/workflows/schema';
 import {NOVA_BRIEFS} from '../nova/briefs-record';
 import {NOVA_BRIDGE} from '../nova/bridge';
 import {NOVA_STORE} from '../nova/store';
+import {NOVA_STAGE} from '../nova/stage/record';
+import {NOVA_WORLD} from '../nova/world/record';
 import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
 import {NETWORTH_MILESTONES} from '../networth-milestones/milestones';
@@ -234,6 +236,10 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('novaBriefs', 'NOVA briefs', 'Health', NOVA_BRIEFS, true),
   dev('novaBridge', 'NOVA chat origins', 'Today and Life', NOVA_BRIDGE),
   dev('nova', 'NOVA layout and persona', 'Today and Life', NOVA_STORE),
+  // Session AM (ADR-038 D16, D17; TIER 3 (stored format), additive): what the person asked NOVA for and the widgets it made;
+  // the weather switch, the chosen place and its last reading.
+  dev('novaStage', 'NOVA requests and made widgets', 'Today and Life', NOVA_STAGE),
+  dev('novaWorld', 'NOVA weather choice and place', 'Today and Life', NOVA_WORLD),
   dev('calendarImport', 'Imported calendars', 'Today and Life', CALENDAR_IMPORT),
   dev('notes', 'Notes', 'Today and Life', NOTES),
   // Session AK WA (N7): ZIGi's and NOVA's one memory; its health and diet notes only with the Health choice.
