@@ -5,13 +5,16 @@ import {DEFAULT_WIDGETS, MAX_INSTRUCTIONS, MAX_WIDGETS, NOVA_KEY, NOVA_STORE, WI
 const memory = (initial: Record<string, string> = {}) => { const map = new Map(Object.entries(initial)); return {getItem: (k: string) => map.get(k) ?? null, setItem: (k: string, v: string) => { map.set(k, v); }, map}; };
 
 describe('zigoals:nova:v1', () => {
+  // Session AM (D2, deliberate): a NOVA without its own arrangement has no widgets (the stage starts calm; widgets are made
+  // on request). It used to read as AK's eight defaults; the assertion is as strict, on the new default.
   it('is a new device key; a missing record reads as the defaults, never as unreadable', () => {
     expect(NOVA_KEY).toBe('zigoals:nova:v1');
     const read = readDeviceRecord(memory(), NOVA_STORE);
     expect(read).toEqual({data: {version: 1}, unreadable: false});
     expect(layoutOf(read.data)).toBe('orbit'); expect(accentOf(read.data)).toBe('violet'); expect(shortcutsOn(read.data)).toBe(true);
     expect(personaOf(read.data)).toEqual({name: 'NOVA', avatar: 'orb'});
-    expect(widgetsFor(read.data)).toEqual(DEFAULT_WIDGETS);
+    expect(widgetsFor(read.data)).toEqual([]);
+    expect(DEFAULT_WIDGETS.map(w => w.id)).toEqual(['orbit', 'next', 'glance', 'water', 'goal-pace', 'money', 'sleep', 'now-playing']); // the "Everyday" set stays available
   });
   it('keeps fields a later build adds, and reads a later build’s layout or accent as the default instead of dropping the record', () => {
     const later = {version: 1, layout: 'galaxy', accent: 'ultraviolet', persona: {name: 'Vega', avatar: 'hologram'}, widgets: [{id: 'orbit', size: 'XL', slot: 0}], future: {x: 1}};
@@ -39,12 +42,17 @@ describe('zigoals:nova:v1', () => {
     expect(novaRecordSchema.safeParse({version: 1, dock: {order: Array.from({length: 33}, (_, i) => `d-${i}`)}}).success).toBe(false);
     expect(novaRecordSchema.safeParse({version: 2}).success).toBe(false);
   });
-  it('review M8 (lane L8d): a brand-new NOVA starts on the Command preset; a record that exists keeps its widgets', async () => {
+  // Session AM (D2, deliberate): review M8's rule ended — a brand-new NOVA starts calm, not on the Command preset; the
+  // preset is one tap away as an arrangement (A1), and a record that exists still keeps its widgets exactly.
+  it('Session AM (D2): a brand-new NOVA starts calm; the Command preset is an arrangement; a record that exists keeps its widgets', async () => {
     const {presetWidgets} = await import('./layout');
-    expect(markOpeningSeen(emptyNova())).toEqual({version: 1, openingSeen: true, widgets: presetWidgets('command')});
-    expect(widgetsFor(markOpeningSeen(emptyNova())).map(w => w.id)).toEqual(presetWidgets('command').map(w => w.id));
-    // Opened before (openingSeen) or arranged in any way: untouched, the earlier defaults still read as before.
-    expect(widgetsFor({version: 1, openingSeen: true})).toEqual([...DEFAULT_WIDGETS]);
+    expect(markOpeningSeen(emptyNova())).toEqual({version: 1, openingSeen: true});
+    expect(widgetsFor(markOpeningSeen(emptyNova()))).toEqual([]);
+    expect(presetWidgets('command').length).toBeGreaterThan(4); // still there to arrange
+    // Opened before (openingSeen) without an arrangement: calm too (it used to read as the eight defaults).
+    expect(widgetsFor({version: 1, openingSeen: true})).toEqual([]);
+    const arranged: NovaRecord = {version: 1, widgets: [{id: 'water', size: 'L', slot: 0}, {id: 'orbit', size: 'M', slot: 1}]};
+    expect(widgetsFor(markOpeningSeen(arranged))).toEqual([{id: 'water', size: 'L', slot: 0}, {id: 'orbit', size: 'M', slot: 1}]);
     expect(markOpeningSeen({version: 1, accent: 'gold'})).toEqual({version: 1, accent: 'gold', openingSeen: true});
     expect(markOpeningSeen({version: 1, widgets: []})).toEqual({version: 1, widgets: [], openingSeen: true});
   });
@@ -72,7 +80,8 @@ describe('widgets on their orbits', () => {
   });
   it('adds at the end or at a place, never twice, and refuses a 25th in plain words', () => {
     const one = addWidget(emptyNova(), 'markets', 'L');
-    expect(widgetsFor(one).at(-1)).toEqual({id: 'markets', size: 'L', slot: DEFAULT_WIDGETS.length});
+    expect(widgetsFor(one)).toEqual([{id: 'markets', size: 'L', slot: 0}]); // Session AM (D2, deliberate): the first pinned widget of a calm stage (it used to follow the eight defaults)
+    expect(widgetsFor(addWidget(addWidget(one, 'water', 'S'), 'orbit')).map(w => [w.id, w.slot])).toEqual([['markets', 0], ['water', 1], ['orbit', 2]]);
     expect(addWidget(one, 'markets')).toBe(one);
     expect(widgetsFor(addWidget({version: 1, widgets: []}, 'water', 'S', 9))).toEqual([{id: 'water', size: 'S', slot: 0}]);
     const full: NovaRecord = {version: 1, widgets: Array.from({length: MAX_WIDGETS}, (_, i) => ({id: `w-${i}`, size: 'S' as const, slot: i}))};

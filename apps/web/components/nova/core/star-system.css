@@ -1,0 +1,8 @@
+/*
+ * Session AM (ADR-038 D10; art direction §5): the centre node's canvas. Square, centred on the orb button, larger than
+ * the button (the nebula's haze reaches past it) and never in the way of a tap: the button under it stays the control.
+ * While the star is drawn the SVG orb keeps its box and gives way (it is the fallback and the still picture elsewhere).
+ */
+.nova-star { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 0; display: block; max-width: none; }
+.nova-orb-button[data-star] > .nova-orb { opacity: 0; }
+.nova-orb-button[data-star] > .nova-orb, .nova-orb-button[data-star] > .nova-orb * { animation: none !important; }

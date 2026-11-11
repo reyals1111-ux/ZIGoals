@@ -15,7 +15,7 @@ import {DUO_IDLE, duoState, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, novaHandoffPend
 import {dockEntries, dockForKey, type DockEntry} from '../../lib/nova/dock';
 import {greetingFor, openingSkippedNote, type NovaOrbState} from '../../lib/nova/orb';
 import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full / Calm / Off
-import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, swapWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
+import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, resizeWidget, restoreWidgets, swapWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
 import {HUD_PRESET_LABEL, HUD_PRESET_PLAN, presetShown, presetWidgets, setHudLook, setHudPreset, type HudLook, type HudPreset} from '../../lib/nova/layout';
 import {BURST_MS, isTextEntry, shortcutKind, typedLetter} from '../../lib/nova/holo/keys';
@@ -35,6 +35,11 @@ import {useClock, useNova, useNovaMotionLevel} from './use-nova';
 import {useOpening} from './use-opening';
 import {useWakePhrase} from './use-wake';
 import {WidgetGrid, type GridActions} from './widget-grid';
+import {OneTap, StageAnswerLine, StageDock} from './stage/stage-parts';
+import {useStage, type StageGates} from './stage/use-stage';
+import type {StageAnswer, StageBridge} from './stage/use-summoner';
+import type {StarBeam} from './core/star-system';
+import {sendToNova} from '../../lib/nova/bridge';
 import {NovaIcon} from './icons';
 import {openPipWindow, pipHost} from '../../lib/ai/pip';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -57,6 +62,8 @@ const NovaLive = lazy(() => import('./live/live-chips'));
 const HoloCore = lazy(() => import('./holo/holo-core'));
 const QuickActions = lazy(() => import('./holo/quick-actions'));
 const ShortcutList = lazy(() => import('./holo/shortcut-list'));
+/** Session AM (ADR-038 D10): the centre node's WebGL star system, its own chunk, loaded after first paint. */
+const StarSystem = lazy(() => import('./core/star-system'));
 
 type Sheet = {kind: 'day'} | {kind: 'panels'; id: NovaPanelId} | {kind: 'yours'} | {kind: 'quick'} | {kind: 'actions'; id: string} | {kind: 'keys'};
 const PANEL_HASH = /^#nova-(memory|permissions|activity|workflows|cost|models)$/;
@@ -96,6 +103,8 @@ export default function NovaDashboard() {
   const duo = useSyncExternalStore(subscribeDuo, duoState, () => DUO_IDLE);
   // Session AL Part 11 (lane L8): the look (Holo by default, Classic on choice) and the HUD's motion state (O5).
   const {hud, look} = useHudRecord(), holo = look === 'holo', hudMove = useHudMotion(phone);
+  // Session AM (D10, A7): whether the star system draws (else the SVG orb shows: no WebGL, Save-Data, a low battery).
+  const [starDraws, setStarDraws] = useState(false), onStarRender = (render: 'running' | 'still' | 'orb') => setStarDraws(render !== 'orb');
 
   const novaUpdate = nova.update;
   const save = useCallback((change: (r: NovaRecord) => NovaRecord, done?: string): boolean => {
@@ -107,6 +116,9 @@ export default function NovaDashboard() {
   const widgets = useMemo(() => widgetsFor(r, id => widgetAvailable(id, ctx)), [r, ctx]);
   const available = useMemo(() => gallery(ctx, widgets.map(w => w.id)), [ctx, widgets]);
   const canShow = useCallback((id: string) => widgetAvailable(id, ctx), [ctx]);
+  // Session AM (ADR-038 D1–D7): the live stage — the pinned widgets above and the widgets NOVA makes on request, one list.
+  const stage = useStage({nova: r, save, canShow, announce: setStatus});
+  const [answer, setAnswer] = useState<StageAnswer | null>(null), [beam, setBeam] = useState<StarBeam | null>(null), inPlace = useRef(false);
   const entries = useMemo(() => dockEntries(r, {pageShown: page => isShown(pagesView, page), earn: chain.earnShown}), [r, pagesView, chain.earnShown]);
   const panels = panelsOf(r, width), left = phone ? 'hidden' : panels.left, right = phone ? 'hidden' : panels.right;
 
@@ -159,7 +171,8 @@ export default function NovaDashboard() {
   // A question handed over from ⌘/Ctrl + J or "Continue in NOVA" (NB's bridge) opens the conversation.
   useEffect(() => {
     if (novaHandoffPending() || new URLSearchParams(window.location.search).has(NOVA_CHAT_PARAM)) setChatOpen(true);
-    const handoff = () => setChatOpen(true);
+    // Session AM (D7): words from the stage's own command field are answered in place; a hand-off from elsewhere opens the conversation.
+    const handoff = () => { if (inPlace.current) { inPlace.current = false; return; } setChatOpen(true); };
     window.addEventListener(NOVA_HANDOFF_EVENT, handoff);
     return () => window.removeEventListener(NOVA_HANDOFF_EVENT, handoff);
   }, []);
@@ -226,17 +239,16 @@ export default function NovaDashboard() {
 
   const title = (id: string) => widgetSpec(id)?.title ?? 'The widget';
   const actions: GridActions = {
-    move: (id, to) => { save(rr => placeWidget(rr, id, to), `${title(id)} moved.`); },
-    nudge: (id, by) => { save(rr => nudgeWidget(rr, id, by), `${title(id)} moved ${by < 0 ? 'earlier' : 'later'}.`); requestAnimationFrame(() => root.current?.querySelector<HTMLElement>(`[data-widget="${id}"] .nova-grip`)?.focus()); },
-    resize: (id, size: WidgetSize) => { save(rr => resizeWidget(rr, id, size), `${title(id)} is ${size === 'S' ? 'small' : size === 'M' ? 'medium' : 'large'} now.`); },
-    remove: id => {
-      const before = widgetsFor(r);
-      if (save(rr => removeWidget(rr, id))) showUndo({message: `${title(id)} left the stage.`, undone: `${title(id)} is back.`, restore: () => { if (!save(rr => restoreWidgets(rr, before))) throw Error('This could not be put back on this device.'); }});
-    },
+    // Session AM (D3): arranging a widget NOVA made keeps it (it is pinned first, then moved).
+    move: (id, to) => { stage.pin(id); save(rr => placeWidget(rr, id, to), `${title(id)} moved.`); },
+    nudge: (id, by) => { stage.pin(id); save(rr => nudgeWidget(rr, id, by), `${title(id)} moved ${by < 0 ? 'earlier' : 'later'}.`); requestAnimationFrame(() => root.current?.querySelector<HTMLElement>(`[data-widget="${id}"] .nova-grip`)?.focus()); },
+    resize: (id, size: WidgetSize) => { stage.resize(id, size); save(rr => resizeWidget(rr, id, size), `${title(id)} is ${size === 'S' ? 'small' : size === 'M' ? 'medium' : 'large'} now.`); },
+    // Session AM (D3): closing is the stage's (a pinned widget leaves NOVA's own record, a made one the stage record), with Undo.
+    remove: id => stage.close(id),
     quick: id => setSheet({kind: 'actions', id}),
     // Review m9 (lane L8d): Left/Right on a grip trade places with the panel level with it in the other column; the grid
     // then says where the panel is now.
-    swap: (a, b) => { save(rr => swapWidgets(rr, a, b), `${title(a)} changed columns.`); requestAnimationFrame(() => root.current?.querySelector<HTMLElement>(`[data-widget="${a}"] .nova-grip`)?.focus()); },
+    swap: (a, b) => { stage.pin(a); stage.pin(b); save(rr => swapWidgets(rr, a, b), `${title(a)} changed columns.`); requestAnimationFrame(() => root.current?.querySelector<HTMLElement>(`[data-widget="${a}"] .nova-grip`)?.focus()); },
     announce: words => setStatus(words),
   };
   // Session AL Part 11 (lane L8): a preset replaces the layout and the widgets in one step, with Undo putting both back.
@@ -250,7 +262,34 @@ export default function NovaDashboard() {
   };
   const setLook = (next: HudLook) => { try { hud.update(h => setHudLook(h, next)); setStatus(next === 'holo' ? 'Holo look: a holographic HUD.' : 'Classic look: the glass cards.'); } catch (e) { setStatus(plainErrorMessage(e, 'This choice could not be saved on this device.')); } };
   const shownPreset = presetShown(layout, widgets, canShow);
-  const toggleWidget = (id: string, on: boolean) => { if (on) save(rr => addWidget(rr, id, widgetSpec(id)?.size ?? 'M'), `${title(id)} is on the stage.`); else actions.remove(id); };
+  const toggleWidget = (id: string, on: boolean) => { if (on) { if (save(rr => addWidget(rr, id, stage.shown.find(w => w.id === id)?.size ?? widgetSpec(id)?.size ?? 'M'), `${title(id)} is on the stage.`)) stage.show(id); } else actions.remove(id); };
+  // Session AM (D6, D7): what NOVA's chat engine tells the stage. On a phone NOVA is a chat agent: a request is kept with
+  // the widgets it would make (the computer shows it under Requests), and nothing is projected.
+  // One bridge object for the whole visit; each call reads this render's stage through a ref (the chat engine keeps a stable handle).
+  const bridgeLive = useRef({phone, canShow, stage, applyPreset}); bridgeLive.current = {phone, canShow, stage, applyPreset};
+  const gatesKey = useRef('');
+  const [bridge] = useState<StageBridge>(() => ({
+    get device() { return bridgeLive.current.phone ? 'phone' as const : 'computer' as const; },
+    available: id => bridgeLive.current.canShow(id),
+    make: (requests, ask) => { const {phone: onPhone, stage: st} = bridgeLive.current; if (onPhone) { if (ask) st.noteAsk(ask, requests); return false; } return st.make(requests, ask); },
+    command: c => bridgeLive.current.stage.command(c), arrangement: preset => bridgeLive.current.applyPreset(preset), noteAsk: (ask, made) => bridgeLive.current.stage.noteAsk(ask, made),
+    setGates: (g: StageGates | null) => { const key = JSON.stringify(g); if (key !== gatesKey.current) { gatesKey.current = key; bridgeLive.current.stage.setGates(g); } },
+    answer: a => { setAnswer(a); if (a?.decision) setChatOpen(true); },
+    attention: () => setChatOpen(true),
+  }));
+  const askInPlace = (text: string) => { inPlace.current = !phone; if (!sendToNova(text)) inPlace.current = false; else if (phone) setChatOpen(true); };
+  // The star's beam toward a widget that was just made (decoration; the direction is read from where the widget landed).
+  const freshKey = [...stage.fresh].join(' ');
+  useEffect(() => {
+    if (!freshKey) return;
+    const frame = requestAnimationFrame(() => {
+      const first = freshKey.split(' ')[0], el = first ? root.current?.querySelector<HTMLElement>(`[data-widget="${first}"]`) : null, orbEl = root.current?.querySelector<HTMLElement>('.nova-orb-button');
+      if (!el || !orbEl) return;
+      const a = el.getBoundingClientRect(), b = orbEl.getBoundingClientRect();
+      setBeam({angle: Math.atan2(-((a.top + a.height / 2) - (b.top + b.height / 2)), (a.left + a.width / 2) - (b.left + b.width / 2)), key: Date.now()});
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [freshKey]);
 
   // Session AL second pass (lane L8; BN-051): while a model on this computer (or the Hermes Agent) is working on a reply, the
   // HUD holds its ornaments still and the sky draws no motes, so the page leaves the computer's power to the model.
@@ -258,11 +297,13 @@ export default function NovaDashboard() {
   const hudState = holo ? (modelBusy && (hudMove.state === 'full' || hudMove.state === 'calm') ? 'paused' : hudMove.state) : undefined;
   if (!nova.loaded) return <div className="nova-frame" data-accent="violet" data-opening="waiting"><Reading label={`${persona.name} is starting…`}/></div>;
   const core = holo ? {rings: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="rings"/></Suspense></LoadBoundary>, readout: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="readout"/></Suspense></LoadBoundary>} : undefined;
-  const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core}/>;
+  const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={orb} hud={hudMove.state} accent={accent} phone={phone} size={phone ? 320 : width >= 1280 ? 560 : 460} beam={beam} onRender={onStarRender}/></Suspense></LoadBoundary>;
+  const answerLine = answer && !chatOpen ? <StageAnswerLine answer={answer} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)}/> : undefined;
+  const stageNode = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} answer={answerLine}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
-  const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen/></Suspense></LoadBoundary>;
+  const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
-    data-left={left} data-right={right} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
+    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
     {/* Second review m8 (lane L8f): the first stop, past the left panel and the top bar (43 stops) to the HUD itself. */}
     <a className="nova-skip" href="#nova-hud" onClick={e => { e.preventDefault(); root.current?.querySelector<HTMLElement>('#nova-hud')?.focus({preventScroll: true}); }}>Skip to the HUD</a>
     <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent}/></Suspense></LoadBoundary></div>
@@ -281,19 +322,22 @@ export default function NovaDashboard() {
         {!phone && <StatusChips brain={brain} showcase={showcase}/>}
         <LoadBoundary quiet><Suspense fallback={null}><NovaLive/></Suspense></LoadBoundary>
         {/* Session AK P3 (ND-23): the setup invitation, one slim line under the chips (it left the star's stack). */}
-        {!chatOpen && <NovaSetupBanner persona={persona.name} brain={brain}/>}
+        {/* Session AM: the invitation shows on the calm stage; once widgets or an answer are up it steps aside (the guide stays one tap away in the left bar and Behind the intelligence). */}
+        {!chatOpen && stage.shown.length === 0 && !answer && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{phone && !holo ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy}/>}</div>
+      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={stageNode} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">
-        {chatOpen && !phone && <div id="nova-talk" className="nova-talk" role="region" aria-label={`Conversation with ${persona.name}`}>{chat}</div>}
+        {/* Session AM (D7): the conversation stays mounted on a computer (folded while the stage answers in place), so a reply keeps streaming and is there when it opens. */}
+        {!phone && <div id="nova-talk" className="nova-talk" role="region" aria-label={`Conversation with ${persona.name}`} hidden={!chatOpen}>{chat}</div>}
+        {!chatOpen && !editing && <div className="ns-strip"><OneTap available={canShow} onAsk={askInPlace}/>{!phone && <StageDock docked={stage.docked} onShow={stage.show}/>}</div>}
         {!chatOpen && <div className="nova-foot-row">
           {!phone && <ViewControls layout={layout} widgets={widgets} available={available} editing={editing} onLayout={l => save(rr => setLayout(rr, l), `${l[0]!.toUpperCase()}${l.slice(1)} layout.`)} onToggle={toggleWidget}
             onSize={actions.resize} onArrange={() => setEditing(v => !v)} extra={<PresetPicker compact shown={shownPreset} onApply={applyPreset}/>}/>}
           {/* Session AL second pass (P-TK-41): the shortcuts are discoverable — the field's "?" button and the "?" key open their list. */}
-          <CommandField you={you} persona={persona.name} inputRef={command} onOpen={openChat} value={draft} onValue={setDraft} onKeys={phone ? undefined : () => setSheet({kind: 'keys'})} keysOn={shortcuts}/>
+          <CommandField you={you} persona={persona.name} inputRef={command} onOpen={sent => { if (phone || !sent) openChat(); }} onBeforeSend={() => { inPlace.current = !phone; }} value={draft} onValue={setDraft} onKeys={phone ? undefined : () => setSheet({kind: 'keys'})} keysOn={shortcuts}/>
           {/* Release review 2 (R2-3): model routing appears once a brain is connected (with none, there is nothing to route). */}
           {!phone && brain.kind !== 'none' && <RoutingMenu brain={brain} routing={routingOf(r)} onRouting={rt => save(rr => setRouting(rr, rt), rt === 'auto' ? 'Automatic: your connected brain answers.' : undefined)} openModels={() => setSheet({kind: 'panels', id: 'models'})}/>}
         </div>}

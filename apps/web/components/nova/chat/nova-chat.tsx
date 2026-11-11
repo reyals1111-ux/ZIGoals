@@ -56,6 +56,7 @@ import {DONT_KEEP_LABEL, UnkeptBanner, UnkeptOffer} from '../../ai/unkept-chat';
 import {downloadChat, NovaConversations} from './nova-conversations';
 import {AgentGlyph, PersonaFigure} from './nova-figure';
 import {NovaReplyTurn, NovaUserTurn, type TurnCommon} from './nova-turns';
+import {useSummoner, type StageBridge} from '../stage/use-summoner';
 import '../../ai/ai.css';
 import '../../ai/chat-polish.css';
 import '../../ai/safe-text.css';
@@ -84,14 +85,16 @@ export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
  */
 export type NovaChatProps = {layout: 'panel' | 'side' | 'sheet'; onOrbState?: (state: OrbState) => void; onClose?: () => void; collapsed?: boolean; onCollapse?: () => void;
   /** Session AK lane EXF (EX-2): the composer takes the focus when the chat opens (the field that opened it is gone). */
-  focusOnOpen?: boolean};
+  focusOnOpen?: boolean;
+  /** Session AM (ADR-038 D6, D7): NOVA's stage — a request makes its widgets there and the newest reply shows under the star. */
+  stage?: StageBridge};
 export const NOVA_SETUP_HREF = '/app/nova/setup';
 const SETTINGS_HREF = '/app/settings#your-ai';
 /** NOVA's own messages read the day: Today's records and specialist. */
 const NOVA_AREA: PageArea = 'today';
 const NOVA_INSTRUCTIONS_MAX = 2000;
 type Delegation = {before: ReadonlySet<string>; area: PageArea; chatId: string; done: boolean; agent: NovaAgentId};
-export function NovaChat({layout, onOrbState, onClose, collapsed = false, onCollapse, focusOnOpen = false}: NovaChatProps) {
+export function NovaChat({layout, onOrbState, onClose, collapsed = false, onCollapse, focusOnOpen = false, stage}: NovaChatProps) {
   const settings = useAiSettings(), scope = currentAiScope(), sensitive = useSensitiveScreen(), router = useRouter();
   const novaRecord = useDeviceRecord(NOVA_STORE), persona = personaOf(novaRecord.data), instructions = instructionsOf(novaRecord.data);
   // NOVA's own standing instructions join the person's ZIGi instructions for NOVA's messages (inside the same data marks).
@@ -132,6 +135,13 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   // Session AL fifth pass (BN-047, LA-032): Health is read by NOVA only with NOVA → Permissions → Health AND this device's
   // Health gate; otherwise a Health card or a Quick add line says, in NOVA's name, that saving still saves to Health.
   const novaHealthOff = !(scopesNow.health && context.gates.localHealth);
+  // Session AM (D5): what a made widget may read — the same switches NOVA's on-device answers read under (Q14, Q16).
+  const setStageGates = stage?.setGates, stageAttention = stage?.attention;
+  useEffect(() => {
+    if (!setStageGates) return;
+    const env = sensitive ? null : localEnvNow();
+    setStageGates(env ? {today: env.areas.today, goals: env.areas.goals, habits: env.areas.habits, wealth: env.areas.wealth, health: env.areas.health && env.health !== null} : sensitive ? {today: false, goals: false, habits: false, wealth: false, health: false} : null);
+  }, [setStageGates, localEnvNow, sensitive]);
   const session = useChatSession({settings: data, scope, context, nova}), runner = useProposals({surface: 'nova', healthShared: context.gates.localHealth, healthOff: novaHealthOff}), autoAccept = useAutoAccept(context.gates.health);
   // G1 #20: a task handed over in a chat that is not kept is marked in memory only (`unkeptMarks`), never in the bridge record.
   const [unkeptMarks, setUnkeptMarks] = useState<Record<string, DelegatedTurn>>({});
@@ -162,9 +172,12 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   }, [focusOnOpen]);
 
   // ---- Sending ----
-  const ask = useCallback((text: string, options: SendOptions = {}) => { void session.ask(text, {area: NOVA_AREA, ...options}); }, [session]);
   const [seeing, setSeeing] = useState<string | null>(null);
   const say = session.say;
+  // Session AM (D4–D7): which widgets a request makes on NOVA's stage (components/nova/stage/use-summoner.ts).
+  const stageGoals = useCallback(() => { try { return (contextRef.current.toolSources()?.platform?.goals ?? []).map(g => ({id: g.id, name: g.name})); } catch { return []; } }, []);
+  const summon = useSummoner({bridge: stage, session, say, goals: stageGoals});
+  const ask = useCallback((text: string, options: SendOptions = {}) => { if (!options.zigi && !options.agent) summon.note(text); void session.ask(text, {area: NOVA_AREA, ...options}); }, [session, summon]);
   /** The commands NOVA takes as ZIGi does; the views that live in ZIGi's panel are named there. */
   const command = useCallback((typed: string): boolean => {
     const parsed = parseSlash(typed); if (!parsed) return false;
@@ -207,8 +220,10 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     const mark = replace ? marks[replace] : undefined;
     if (mark?.role === 'task') { void runDelegation(text, mark.area, replace, mark.agent ?? 'zigi'); return; }
     if (!replace && command(text)) return;
+    // Session AM (D7): a stage command or a plain "show me …" is answered on the stage itself, on this device.
+    if (!replace && !pasted && summon.direct(text)) return;
     ask(text, {...(replace ? {replace} : {}), ...(pasted ? {pasted: true} : {})});
-  }, [ask, command, marks, runDelegation]);
+  }, [ask, command, marks, runDelegation, summon]);
   const retry = useCallback(() => {
     if (busy) return;
     const last = lastQuestion(session.chat), mark = last ? marks[last.id] : undefined;
@@ -293,6 +308,9 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     return () => window.removeEventListener(NOVA_HANDOFF_EVENT, on);
   }, [ready]);
 
+  // Session AM (D7): while the conversation is folded into the stage, anything that needs the person opens it.
+  const needsPerson = !!(session.failure || session.confirmation || session.spendCheck);
+  useEffect(() => { if (needsPerson && collapsed) stageAttention?.(); }, [needsPerson, collapsed, stageAttention]);
   // ---- The orb, the announcements, reading aloud ----
   const orb: OrbState = listening ? 'listening' : reader.speaking || session.status === 'streaming' ? 'speaking' : session.status === 'pending' ? 'thinking' : 'idle';
   useEffect(() => { onOrbState?.(orb); }, [orb, onOrbState]);

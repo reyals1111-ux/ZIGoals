@@ -1,0 +1,100 @@
+/*
+ * Session AM (ADR-038; art direction §2, §4): the bodies of four widgets NOVA makes on request — "Habits this week",
+ * "Goal", "Journal" and "Time" (components/nova/widgets). They are built from the kit (cards/kit.tsx, cards.css) and the
+ * HUD's drawing parts; this sheet only places them. Every class here is this sheet's own (nc-habitweek-, nc-goal-,
+ * nc-journal-, nc-time-); a kit class is only ever adjusted inside one of them. Text is 14 px or more; nothing loops.
+ */
+
+/* One line for the hero where height is short: the figure, then its label beside it. */
+.nc-habitweek .nc-hero, .nc-time .nc-hero, .nc-journal[data-size=S] .nc-hero, .nc-goal[data-size=S] .nc-hero { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.nc-habitweek .nc-hero-label, .nc-time .nc-hero-label, .nc-journal[data-size=S] .nc-hero-label, .nc-goal[data-size=S] .nc-hero-label { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nc-habitweek[data-size=S], .nc-time[data-size=S], .nc-journal[data-size=S], .nc-goal[data-size=S] { gap: 2px; }
+
+/* ---- Habits this week ---- */
+/* "+3 more" shares the foot's line, at its far end. */
+.nc-habitweek-more { margin-left: auto; padding-left: 12px; color: #cfdaf0; white-space: nowrap; }
+.nc-habitweek :is(.nc-lattice-label, .nc-lattice-note) { line-height: 20px; }
+.nc-habitweek .nc-lattice-head span { line-height: 18px; }
+.nc-habitweek-key { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
+.nc-habitweek-key span { display: inline-flex; align-items: center; gap: 6px; }
+.nc-habitweek-key i { width: 12px; height: 12px; border-radius: 4px; border: 1px solid color-mix(in oklab, var(--neon, #23eaff) 34%, transparent); }
+.nc-habitweek-key i[data-cell=done] { background: var(--neon, #23eaff); border-color: var(--neon, #23eaff); }
+.nc-habitweek-key i[data-cell=part] { background: linear-gradient(to top, var(--neon, #23eaff) 50%, transparent 50%); border-color: var(--neon, #23eaff); }
+.nc-habitweek-key i[data-cell=missed] { border-style: dashed; border-color: #ffffff59; }
+.nc-habitweek-key i[data-cell=rest] { border-color: transparent; background: radial-gradient(circle, #ffffff40 0 1.5px, transparent 2px); }
+.nc-habitweek-key i[data-cell=ahead] { border-color: #ffffff1f; }
+.nc-habitweek[data-size=L] .nc-lattice { gap: 8px; }
+/* The day letters stand over their cells: the streak beside each row keeps one width, so the head and every row share their columns. */
+.nc-habitweek :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(72px, 1fr) repeat(7, minmax(14px, 22px)) 46px; }
+/* A short medium panel keeps all four rows: the cells tighten, then the hero, instead of a row being cut. */
+@container holo-body (max-height: 228px) {
+  .nc-habitweek[data-size=M] { gap: 8px; }
+  .nc-habitweek[data-size=M] .nc-lattice { gap: 5px; }
+  .nc-habitweek[data-size=M] :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(72px, 1fr) repeat(7, 18px) 46px; }
+}
+@container holo-body (max-height: 206px) { .nc-habitweek[data-size=M] .nc-hero-num { font-size: 30px; } }
+
+/* ---- Goal ---- */
+.nc-goal-hero { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; }
+.nc-goal[data-size=S] .nc-goal-hero { gap: 10px; }
+.nc-goal-ring { position: relative; flex: none; display: grid; place-items: center; width: var(--nc-goal-ring, 108px); height: var(--nc-goal-ring, 108px); }
+.nc-goal-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.nc-goal-figure { position: relative; display: grid; justify-items: center; text-align: center; line-height: 1.1; }
+.nc-goal-figure small { font-size: 14px; line-height: 1.2; color: #c3cfe6; }
+.nc-goal-num { font-size: 26px; font-weight: 650; }
+.nc-goal[data-size=L] .nc-goal-num { font-size: 34px; }
+.nc-goal-words { display: grid; justify-items: start; min-width: 0; }
+.nc-goal-name { display: block; max-width: 100%; min-height: 44px; line-height: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #eef3ff; text-decoration: none; }
+.nc-goal-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.nc-goal-saved { margin: -6px 0 0; font-size: 15px; line-height: 1.4; color: #e6edfb; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.nc-goal-estimate { margin: 0; display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 15px; line-height: 1.4; color: #e6edfb; }
+.nc-goal-chip { flex: none; padding: 1px 9px; border-radius: 999px; border: 1px dashed color-mix(in oklab, var(--neon, #9273ff) 65%, transparent); background: #ffffff08; font-size: 14px; font-weight: 600; color: #dfe7f8; }
+.nc-goal-chart { position: relative; margin: 2px 0 20px; }
+.nc-goal-chart .nc-goal-pace { height: 108px; }
+.nc-goal-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--neon, #a47bff), 0 0 10px var(--neon, #a47bff); pointer-events: none; }
+/* Where the central estimate meets the target: a hollow, dashed mark (a projection, never a recorded point). */
+.nc-goal-dot[data-kind=estimate] { background: #070b1f; box-shadow: none; border: 1.5px dashed var(--neon-2, #c9b0ff); }
+.nc-goal-detail { margin: -6px 0 0; font-size: 14px; line-height: 1.4; color: #c3cfe6; }
+.nc-goal-tag { position: absolute; padding: 0 5px; border-radius: 4px; background: #070b1fcc; font-size: 14px; line-height: 18px; font-weight: 650; color: #e0d4ff; white-space: nowrap; pointer-events: none; }
+.nc-goal-tag[data-at=target] { left: 2px; transform: translateY(18%); }
+.nc-goal-tag[data-at=today] { top: 100%; margin-top: 2px; transform: translateX(-50%); }
+.nc-goal-tag[data-at=today][data-side=end] { transform: translateX(-100%); }
+.nc-goal-tag[data-at=today][data-side=start] { transform: none; }
+@container holo-body (max-height: 72px) { .nc-goal[data-size=S] .nc-goal-ring { width: 34px; height: 34px; } }
+/* A short medium panel keeps the arc, the pace and the estimate; what is left moves to the large size and the table. */
+@container holo-body (max-height: 212px) { .nc-goal[data-size=M] .nc-goal-facts { display: none; } }
+
+/* ---- Journal ---- */
+.nc-journal-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+.nc-journal-side { display: grid; gap: 8px; min-width: 0; }
+.nc-journal-side .nc-hero-figure { flex-wrap: wrap; row-gap: 4px; }
+.nc-journal-side .nc-fact { display: grid; gap: 0; }
+.nc-journal-side .nc-fact-value { text-align: left; }
+.nc-journal-month { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
+/* The month is a calendar: a short date names each week, a quiet day is a plain empty cell, and cells outside the month are blank. */
+.nc-journal .nc-lattice { gap: 4px; }
+.nc-journal :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(50px, auto) repeat(7, 16px) minmax(0, auto); gap: 4px; }
+.nc-journal .nc-lattice-label { font-size: 14px; line-height: 16px; color: #c3cfe6; }
+.nc-journal .nc-lattice-row i[data-cell=missed] { border-style: solid; border-color: color-mix(in oklab, var(--neon, #cbbfff) 34%, transparent); }
+.nc-journal .nc-lattice-row i[data-cell=rest] { background: none; }
+.nc-journal[data-size=L] .nc-lattice { gap: 6px; }
+.nc-journal[data-size=L] :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(64px, 1fr) repeat(7, minmax(18px, 26px)) minmax(0, auto); gap: 6px; }
+.nc-journal[data-size=L] .nc-lattice-label { font-size: 15px; line-height: 20px; }
+.nc-journal-key { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
+.nc-journal-key span { display: inline-flex; align-items: center; gap: 6px; }
+.nc-journal-key i { width: 12px; height: 12px; border-radius: 4px; border: 1px solid #ffffff1f; }
+.nc-journal-key i[data-cell=done] { background: var(--neon, #cbbfff); border-color: var(--neon, #cbbfff); }
+
+/* ---- Time ---- */
+.nc-time-rings { display: grid; gap: 2px; }
+.nc-time .nc-rings, .nc-time-left { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 8px; justify-items: center; }
+.nc-time .nc-ring { width: 100%; }
+.nc-time-left { margin: 0; font-size: 14px; line-height: 1.35; color: #d6e0f5; text-align: center; font-variant-numeric: tabular-nums; }
+.nc-time-left span { min-width: 0; }
+.nc-time[data-size=L] .nc-ring-figure { font-size: 20px; }
+.nc-time[data-size=L] .nc-time-rings { margin-block: 6px; }
+/* A short medium panel keeps its three rings whole: they tighten instead of a line being cut. */
+@container holo-body (max-height: 212px) {
+  .nc-time[data-size=M] { gap: 6px; }
+  .nc-time[data-size=M] .nc-ring-dial { width: 60px; height: 60px; }
+}

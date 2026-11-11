@@ -13,6 +13,10 @@
 /* Review M7 (lane L8d): the day's own panels (Today's orbit, Next three, the Agenda clock, Notes, Focus, briefs) wear a fixed
    "ice", whatever the accent: never Habits' cyan, never a pillar's hue. */
 .nova-widget[data-pillar=orbit], .holo-action[data-pillar=orbit] { --neon: #a9b8ff; --neon-2: #d6deff; --neon-ink: #e8edff; }
+/* Session AM (art direction §2): mind (notes, journal) in lilac, world (outside data) in sky, NOVA itself in the person's accent. */
+.nova-widget[data-pillar=mind] { --neon: #cbbfff; --neon-2: #f0ebff; --neon-ink: #f3efff; }
+.nova-widget[data-pillar=world] { --neon: #7fb6ff; --neon-2: #ffd9a0; --neon-ink: #eaf3ff; }
+.nova-widget[data-pillar=nova] { --neon: var(--nova-a, #9273ff); --neon-2: var(--nova-b, #63e7ff); --neon-ink: #f1edff; }
 
 /* ---- Figures and words ---- */
 .holo-num { color: var(--neon-ink, #eef3ff); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .01em; text-shadow: 0 0 14px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }

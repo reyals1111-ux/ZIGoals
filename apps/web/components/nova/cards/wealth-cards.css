@@ -1,0 +1,56 @@
+/*
+ * Session AM (ADR-038; art direction §2, §4): the four Wealth widgets NOVA makes on request (components/nova/widgets/
+ * net-worth.tsx, spending.tsx, budgets.tsx, bills.tsx) over the kit (cards.css). Only what the kit does not have: a
+ * compact hero for the small and medium sizes (the words beside the figure where they fit), one-line notes and captions,
+ * and the bills' countdown rows. Gold comes from the frame's `--neon`; labels are ink, never under 14 px. Nothing here
+ * animates: the kit draws its instruments once.
+ */
+.nc-body.nc-networth-card, .nc-body.nc-spending-card, .nc-body.nc-budgets-card, .nc-body.nc-bills-card { gap: 8px; min-width: 0; }
+.nc-body.nc-networth-card[data-size=S], .nc-body.nc-spending-card[data-size=S], .nc-body.nc-budgets-card[data-size=S], .nc-body.nc-bills-card[data-size=S] { gap: 2px; }
+.nc-body.nc-networth-card[data-size=L], .nc-body.nc-spending-card[data-size=L], .nc-body.nc-budgets-card[data-size=L], .nc-body.nc-bills-card[data-size=L] { gap: 14px; }
+.nc-networth-card[data-size=S] .nc-foot, .nc-spending-card[data-size=S] .nc-foot, .nc-budgets-card[data-size=S] .nc-foot, .nc-bills-card[data-size=S] .nc-foot { padding-top: 2px; }
+.nc-networth-card[data-size=M] .nc-foot, .nc-spending-card[data-size=M] .nc-foot, .nc-budgets-card[data-size=M] .nc-foot, .nc-bills-card[data-size=M] .nc-foot { padding-top: 4px; }
+
+/* ---- The hero: small and medium keep its words on the figure's line where they fit (they wrap under it where not) ---- */
+.nc-networth-card[data-size=S] .nc-hero, .nc-networth-card[data-size=M] .nc-hero, .nc-spending-card[data-size=S] .nc-hero, .nc-spending-card[data-size=M] .nc-hero,
+.nc-budgets-card[data-size=S] .nc-hero, .nc-budgets-card[data-size=M] .nc-hero, .nc-bills-card[data-size=S] .nc-hero, .nc-bills-card[data-size=M] .nc-hero { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.nc-networth-card[data-size=S] .nc-hero-label, .nc-networth-card[data-size=M] .nc-hero-label, .nc-spending-card[data-size=S] .nc-hero-label, .nc-spending-card[data-size=M] .nc-hero-label,
+.nc-budgets-card[data-size=S] .nc-hero-label, .nc-budgets-card[data-size=M] .nc-hero-label, .nc-bills-card[data-size=S] .nc-hero-label, .nc-bills-card[data-size=M] .nc-hero-label { margin: 0; min-width: 0; }
+/* A money figure is long ("$537,406.10"): one step under the kit's size, so nine digits still fit the frame. */
+.nc-body.nc-networth-card[data-size=M] .nc-hero-num, .nc-body.nc-spending-card[data-size=M] .nc-hero-num, .nc-body.nc-budgets-card[data-size=M] .nc-hero-num, .nc-body.nc-bills-card[data-size=M] .nc-hero-num { font-size: clamp(28px, 2.4vw, 34px); }
+.nc-body.nc-networth-card[data-size=L] .nc-hero-num, .nc-body.nc-spending-card[data-size=L] .nc-hero-num, .nc-body.nc-bills-card[data-size=L] .nc-hero-num { font-size: clamp(34px, 3.2vw, 46px); }
+.nc-networth-card .nc-hero-figure, .nc-spending-card .nc-hero-figure, .nc-bills-card .nc-hero-figure { white-space: nowrap; }
+.nc-networth-card .nc-delta { flex-basis: 100%; margin-top: 2px; }
+.nc-networth-card[data-size=L] .nc-delta { margin-top: 8px; }
+
+/* ---- One-line notes and the small-caps captions over an instrument ---- */
+.nc-networth-note, .nc-spending-note, .nc-budgets-note, .nc-bills-note { margin: 0; flex-basis: 100%; font-size: 14px; line-height: 1.4; color: #c9d4ea; }
+.nc-networth-caption, .nc-spending-caption, .nc-budgets-caption, .nc-bills-caption { margin: 0 0 6px; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
+.nc-networth-apart, .nc-spending-apart { flex-basis: 100%; }
+.nc-networth-line, .nc-spending-bars, .nc-budgets-bars, .nc-bills-after { min-width: 0; }
+.nc-spending-bars .nc-spending-note, .nc-budgets-bars .nc-budgets-note, .nc-bills-after .nc-bills-note { margin-top: 6px; }
+.nc-spending-card[data-size=M] .nc-bars, .nc-budgets-card[data-size=M] .nc-bars { gap: 6px; }
+.nc-spending-what { margin: -2px 0 2px; font-size: 14px; line-height: 1.35; color: #c3cfe6; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Bills: the next one beside its countdown dial, then the ones after it as rows ---- */
+.nc-bills-next { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; min-width: 0; }
+.nc-bills-card[data-size=S] .nc-bills-next { grid-template-columns: minmax(0, 1fr); }
+.nc-bills-card .nc-hero-label { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-bills-when { margin: 0; flex-basis: 100%; font-size: 15px; line-height: 1.4; color: #e6edfb; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-bills-card[data-size=S] .nc-hero .nc-bills-when { flex-basis: auto; }
+.nc-bills-card[data-size=L] .nc-hero .nc-bills-when { margin-top: 4px; }
+.nc-bills-when[data-over] { color: #ffd9a8; font-weight: 650; }
+.nc-bills-dial { flex: none; }
+.nc-bills-dial[data-over] .nc-ring-arc { stroke: #ff9b8a; }
+.nc-bills-dial-words { position: relative; display: grid; justify-items: center; line-height: 1; }
+.nc-bills-next .nc-ring-figure { font-size: 20px; }
+.nc-bills-card[data-size=L] .nc-bills-next .nc-ring-figure { font-size: 24px; }
+.nc-bills-dial-unit { margin-top: 2px; font-size: 14px; font-weight: 600; color: #d6e0f5; }
+.nc-bills-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.nc-bills-card[data-size=M] .nc-bills-list { gap: 6px; }
+.nc-bills-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; min-width: 0; }
+.nc-bills-row .nc-bills-dial { grid-row: 1 / span 2; }
+.nc-bills-name { font-size: 15px; font-weight: 600; line-height: 1.35; color: #f2f6ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-bills-amount { font-size: 15px; font-weight: 650; line-height: 1.35; color: #f2f6ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nc-bills-row .nc-bills-when { grid-column: 2 / -1; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
+.nc-bills-row .nc-bills-when[data-over] { color: #ffd9a8; }

@@ -45,8 +45,12 @@ function NovaGreeting({greeting, typingFrom}: {greeting: string; typingFrom: num
  * day line and the Showcase label below — so the star sits at the optical centre of whatever holds it (the window, on the
  * Orbit, Minimal and phone layouts). The setup invitation left the stack: it is the slim banner under the status chips.
  */
-export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase, onTalk, talkOpen, core}: {
+export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase, onTalk, talkOpen, core, star, starOn = false, answer}: {
   persona: Persona; orb: NovaOrbState; greeting: string; typingFrom: number | null; counts: NovaCounts; showcase: boolean; onTalk: () => void; talkOpen: boolean;
+  /** Session AM (ADR-038 D10): the nebula star system's canvas, and whether it is drawing (then the SVG orb gives way to it). */
+  star?: ReactNode; starOn?: boolean;
+  /** Session AM (D7): NOVA's newest words, shown in place of the greeting and the day line while there is an answer. */
+  answer?: ReactNode;
   /** Session AL Part 11 (lane L8): the Holo core — four pillar rings around the orb and their readout under its state. */
   core?: {rings: ReactNode; readout: ReactNode};
 }) {
@@ -58,7 +62,8 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
       <circle className="nova-ring-moon" cx="300" cy="0" r="5"/><circle className="nova-ring-moon nova-ring-moon-2" cx="-150" cy="-260" r="3.5"/>
     </svg>
     <div className="nova-stage-above"><p className="nova-name" aria-hidden="true">{letters}</p></div>
-    <button type="button" className="nova-orb-button" onClick={onTalk} aria-expanded={talkOpen} aria-controls={talkOpen ? "nova-talk" : undefined} aria-describedby="nova-orb-state">
+    <button type="button" className="nova-orb-button" onClick={onTalk} aria-expanded={talkOpen} aria-controls={talkOpen ? "nova-talk" : undefined} aria-describedby="nova-orb-state" data-star={starOn && persona.avatar !== 'zigi' ? '' : undefined}>
+      {persona.avatar !== 'zigi' && star}
       {persona.avatar === 'zigi' ? <PersonaMark avatar="zigi" size={170} state={orb}/> : <NovaOrb state={orb} size={220}/>}
       <span className="sr-only">Talk to {persona.name}</span>
       {core?.rings}
@@ -67,11 +72,13 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
       <p className="nova-orb-state" id="nova-orb-state" data-state={orb}><span className="nova-orb-state-word">{ORB_STATE_LABEL[orb]}</span><span className="nova-orb-state-hint">{orb === 'idle' ? 'Tap to talk' : orb === 'listening' ? 'Speak now' : orb === 'thinking' ? 'Working on it' : 'Answering'}</span></p>
       {/* Review M4, B2 (lane L8d): the core's readout — its legend — sits right under the orb's state, ordered as the rings
           are (outer to inner), above the greeting; it used to fall under the command field at 1440 px. */}
-      {core?.readout}
+      {!answer && core?.readout}
       {/* Release review 2 (R2-22): the greeting is in the page once; the part still to type waits invisible in place (read by
           assistive technology as one sentence, and the line keeps its width while it types). */}
-      <NovaGreeting key={typingFrom ?? 'done'} greeting={greeting} typingFrom={typingFrom}/>
-      <LoadBoundary quiet><Suspense fallback={<p className="nova-dayline"> </p>}><NovaDayLine counts={counts}/></Suspense></LoadBoundary>
+      {answer ?? <>
+        <NovaGreeting key={typingFrom ?? 'done'} greeting={greeting} typingFrom={typingFrom}/>
+        <LoadBoundary quiet><Suspense fallback={<p className="nova-dayline"> </p>}><NovaDayLine counts={counts}/></Suspense></LoadBoundary>
+      </>}
       {showcase && <p className="nova-showcase"><span className="nova-chip-dot" aria-hidden="true"/>Showcase · fictional example data</p>}
     </div>
   </div>;

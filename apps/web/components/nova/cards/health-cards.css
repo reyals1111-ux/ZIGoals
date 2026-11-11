@@ -1,0 +1,39 @@
+/*
+ * Session AM (ADR-038; art direction §2, §4): the three Health widgets NOVA makes on request (widgets/weight.tsx,
+ * steps.tsx, workouts.tsx), built on the kit (cards/kit.tsx, cards.css). Only what the kit does not draw is here: the row
+ * of hearts for the days logged, the step meter under today's figure, and the lines of the last workouts. Neon is a
+ * stroke and a glow in the panel's own `--neon` (Health: magenta); words are ink, 14 px or more. Nothing here moves.
+ */
+/* The body: tighter than the kit's below Large (a Medium widget is about 220 px tall inside), the foot at the bottom, the "on your screen only" tag at its own width. */
+.nc-body.nc-weight, .nc-body.nc-steps, .nc-body.nc-workouts { gap: 6px; }
+.nova-widget[data-size=L] .nc-body.nc-weight, .nova-widget[data-size=L] .nc-body.nc-steps, .nova-widget[data-size=L] .nc-body.nc-workouts { gap: 10px; }
+.nc-weight .nc-foot, .nc-steps .nc-foot, .nc-workouts .nc-foot { margin-top: auto; padding-top: 2px; }
+.nc-weight .holo-tag, .nc-steps .holo-tag, .nc-workouts .holo-tag { align-self: flex-start; }
+
+/* ---- The top row: the hero figure, and beside it the one line that qualifies it ---- */
+.nc-weight-top, .nc-steps-top, .nc-workouts-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px 16px; min-width: 0; }
+.nc-weight-side, .nc-steps-side, .nc-workouts-side { flex: 1 1 0; min-width: 0; display: grid; justify-items: end; align-content: start; gap: 6px; padding-top: 4px; text-align: right; }
+.nc-weight-note, .nc-steps-note, .nc-workouts-note { margin: 0; font-size: 15px; line-height: 1.35; color: #d6e0f5; }
+.nc-steps-note[data-tone=good] { color: #a8f5d2; font-weight: 600; }
+.nc-weight-side .nc-delta { width: min-content; margin-top: 0; align-items: flex-start; line-height: 1.35; text-align: left; }
+.nc-weight-side .nc-delta svg { flex: none; margin-top: 4px; }
+.nc-weight-chart, .nc-steps-chart, .nc-workouts-chart { display: grid; gap: 6px; min-width: 0; }
+
+/* ---- Weight: the days logged, as hearts ---- */
+.nc-weight-logged { display: flex; align-items: center; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; min-width: 0; }
+.nc-weight-hearts { display: flex; gap: 3px; }
+.nc-weight-hearts svg { width: 16px; height: 16px; overflow: visible; }
+.nc-weight-logged-text { font-size: 14px; line-height: 1.3; color: #d6e0f5; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- Steps: today against the target, and the chart's caption ---- */
+.nc-steps-meter { display: block; width: 100%; max-width: 160px; height: 6px; border-radius: 3px; background: #ffffff1a; overflow: hidden; }
+.nc-steps-meter i { display: block; height: 100%; width: calc(var(--nc-share, 0) * 100%); border-radius: 3px; background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ff4fb8) 50%, transparent), var(--neon, #ff4fb8)); box-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ff4fb8) 70%, transparent); }
+.nc-steps-cap, .nc-workouts-cap { margin: 0; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
+.nc-steps-cap b, .nc-workouts-cap b { font-weight: 650; color: #f2f6ff; font-variant-numeric: tabular-nums; }
+
+/* ---- Workouts: the last ones as lines ---- */
+.nc-workouts-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.nc-workouts-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: baseline; font-size: 15px; line-height: 1.4; }
+.nc-workouts-name { color: #e6edfb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-workouts-date { color: #c3cfe6; white-space: nowrap; }
+.nc-workouts-minutes { min-width: 64px; font-weight: 650; color: #f2f6ff; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }

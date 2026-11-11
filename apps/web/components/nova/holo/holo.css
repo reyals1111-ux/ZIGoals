@@ -182,8 +182,9 @@
 /* "What still feels flat" 1 (lane L8d): each side column is one console wing — a faint glass plate behind its panels with
    a tick rail on the edge toward the star — so the panels read as parts of one instrument, not stickers on the sky. */
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side { position: relative; isolation: isolate; }
-.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side:not(:empty)::before { content: ''; position: absolute; inset: 4px -10px; z-index: -1; border-radius: 22px; pointer-events: none;
-  border: 1px solid #a9b8ff1c; background: linear-gradient(180deg, #8f7bff0d, #2ef2ff06 50%, #f06dff0b); box-shadow: inset 0 0 50px #8f7bff12; }
+/* Session AM (ADR-038 D1, D2; deliberate): the faint glass plate behind a whole column is gone. Widgets are made one at a
+   time on a calm stage, so a column-high plate behind a single widget read as an empty panel; each widget is its own glass,
+   and the tick rail toward the star stays as the wing's edge. */
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side:not(:empty)::after { content: ''; position: absolute; top: 18px; bottom: 18px; width: 6px; z-index: -1; pointer-events: none; opacity: .7;
   background: repeating-linear-gradient(to bottom, #c9d2ff66 0 1px, transparent 1px 12px), linear-gradient(#a9b8ff40, #a9b8ff40) 50% 0 / 1px 100% no-repeat; }
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side[data-side=left]:not(:empty)::after { right: -16px; }

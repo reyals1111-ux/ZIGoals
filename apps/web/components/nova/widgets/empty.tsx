@@ -11,7 +11,8 @@ import type {WidgetPillar} from '../../../lib/nova/widgets/catalog';
  */
 export function NovaEmpty({pillar, children, href, action}: {pillar: WidgetPillar; children: ReactNode; href?: string; action?: string}) {
   return <div className="nova-empty">
-    <LazyPillarArt pillar={pillar} size={44} className="nova-empty-art"/>
+    {/* Session AM: the new realms (mind, world, NOVA itself) wear the day's own illustration. */}
+    <LazyPillarArt pillar={pillar === 'mind' || pillar === 'world' || pillar === 'nova' ? 'orbit' : pillar} size={44} className="nova-empty-art"/>
     <p>{children}</p>
     {href && action && <Link className="nova-link" href={href} prefetch={false}>{action} <span aria-hidden="true">→</span></Link>}
   </div>;

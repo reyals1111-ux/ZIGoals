@@ -96,7 +96,11 @@ export function RoutingMenu({brain, routing, onRouting, openModels}: {brain: Bra
   </>}</Menu>;
 }
 
-export function CommandField({you, persona, inputRef, onOpen, value, onValue, onKeys, keysOn = true}: {you: string; persona: string; inputRef: React.RefObject<HTMLInputElement | null>; onOpen: () => void;
+export function CommandField({you, persona, inputRef, onOpen, onBeforeSend, value, onValue, onKeys, keysOn = true}: {you: string; persona: string; inputRef: React.RefObject<HTMLInputElement | null>;
+  /** Called after Enter: `sent` says whether words went to NOVA (Session AM, D7: on a computer the stage then answers in place; with nothing typed the conversation opens). */
+  onOpen: (sent: boolean) => void;
+  /** Session AM (D7): called just before the words go to NOVA (the dashboard notes they come from the stage's own field). */
+  onBeforeSend?: () => void;
   /** Session AL second pass (lane L8; DV-070, TK-074): the words can live with the dashboard, so they outlast the field (the
    *  conversation opening hides it) and letters typed while no field had the focus land here. */
   value?: string; onValue?: (text: string) => void;
@@ -107,7 +111,7 @@ export function CommandField({you, persona, inputRef, onOpen, value, onValue, on
   const apple = useApplePlatform(); // Session AK P3 (ND-21): ⌘K on Apple devices, Ctrl K elsewhere
   // Session AL Part 14 (DV-070): every change is noted as NOVA's draft, so the chat that opens while the person types starts
   // from these words; a successful sendToNova clears it.
-  const submit = (e: FormEvent) => { e.preventDefault(); const t = text.trim(); if (t && sendToNova(t, {pasted: pasted.current})) { setText(''); pasted.current = false; } onOpen(); };
+  const submit = (e: FormEvent) => { e.preventDefault(); const t = text.trim(); let sent = false; if (t) { onBeforeSend?.(); if (sendToNova(t, {pasted: pasted.current})) { setText(''); pasted.current = false; sent = true; } } onOpen(sent); };
   // Session AK P3 (ND-5): one calm glass field (the input draws no box of its own) and a one-line hint.
   return <form className="nova-command zg-glass" onSubmit={submit} aria-label={`Ask ${persona}`}>
     <NovaIcon name="star" size={22}/>
