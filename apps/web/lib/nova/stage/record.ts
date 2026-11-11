@@ -62,6 +62,8 @@ export const novaStageSchema = z.looseObject({
   keep: z.boolean().optional(),
   /** A5: gentle cards from the briefs while NOVA is open (absent: off). */
   proactive: z.boolean().optional(),
+  /** A5: which gentle cards NOVA already put on the stage on which local day (each at most once a day). */
+  gentle: z.looseObject({day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), shown: z.array(itemId).max(8)}).optional().catch(undefined),
 });
 export type NovaStage = z.infer<typeof novaStageSchema>;
 export const emptyStage = (): NovaStage => ({version: 1});
@@ -151,6 +153,10 @@ export function pruneStage(r: NovaStage, now: number): NovaStage {
   const made = (r.made ?? []).filter(w => now - Date.parse(w.at) < MADE_TTL_MS), ids = new Set(made.map(w => w.id));
   return parse({...r, made, hidden: (r.hidden ?? []).filter(id => ids.has(id) || !(r.made ?? []).some(w => w.id === id))});
 }
+
+/** The gentle cards already shown on `day` (another day's list reads as none). */
+export const gentleShown = (r: NovaStage, day: string): readonly string[] => r.gentle?.day === day ? r.gentle.shown : [];
+export const noteGentle = (r: NovaStage, day: string, id: string): NovaStage => parse({...r, gentle: {day, shown: [...new Set([...gentleShown(r, day), id])].slice(-8)}});
 
 // ---- Requests (D16, D19) ----
 const oneLine = (text: string) => text.replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, MAX_ASK_TEXT);

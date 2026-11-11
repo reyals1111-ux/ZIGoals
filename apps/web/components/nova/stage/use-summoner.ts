@@ -2,7 +2,7 @@
 import {useCallback, useEffect, useRef} from 'react';
 import type {HudPreset} from '../../../lib/nova/layout';
 import type {AskDevice, MakeRequest} from '../../../lib/nova/stage/record';
-import {mergeSummons, summonFor, summonForTools, type StageCommand, type SummonContext, type SummonPlan} from '../../../lib/nova/summon/summon';
+import {mergeSummons, stageCalls, summonFor, summonForTools, type StageCommand, type SummonContext, type SummonPlan} from '../../../lib/nova/summon/summon';
 import {commandWords, madeWords} from '../../../lib/nova/summon/words';
 import type {ChatSession} from '../../ai/use-chat-session';
 import type {StageAsk, StageGates} from './use-stage';
@@ -80,10 +80,13 @@ export function useSummoner({bridge, session, say, goals}: {
     const wait = pending.current; pending.current = null;
     const question = asked?.text ?? wait?.question ?? '';
     if (wait && wait.question === question) {
-      const calls = local?.reply && 'calls' in local.reply ? local.reply.calls : (reply.tools ?? []);
-      const widgets = mergeSummons(wait.plan.widgets, summonForTools(calls.map(c => ({tool: c.tool, args: c.args ?? null})), context()));
+      const calls = (local?.reply && 'calls' in local.reply ? local.reply.calls : (reply.tools ?? [])).map(c => ({tool: c.tool, args: c.args ?? null}));
+      // A4: what the person's model asked the stage for explicitly comes first; then the question's own widgets and the lookups'.
+      const asked = by === 'model' ? stageCalls(calls, context()) : {show: [], commands: []};
+      const widgets = mergeSummons(asked.show, mergeSummons(wait.plan.widgets, summonForTools(calls, context())));
       const ask: StageAsk = {text: question, by, device: bridge.device, kept: kept.current};
       if (widgets.length) bridge.make(widgets, ask); else bridge.noteAsk(ask);
+      for (const command of asked.commands) bridge.command(command);
     }
     const p = parsed.get(reply.id), decision = !!(p && p.proposals.length) || local?.reply.kind === 'choices';
     bridge.answer({id: reply.id, question, text: p?.text ?? reply.text, by, decision});

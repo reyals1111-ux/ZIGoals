@@ -57,6 +57,8 @@ import {downloadChat, NovaConversations} from './nova-conversations';
 import {AgentGlyph, PersonaFigure} from './nova-figure';
 import {NovaReplyTurn, NovaUserTurn, type TurnCommon} from './nova-turns';
 import {useSummoner, type StageBridge} from '../stage/use-summoner';
+import {WIDGETS} from '../../../lib/nova/widgets/catalog';
+import {stageWeather} from '../../../lib/nova/world/stage-weather';
 import '../../ai/ai.css';
 import '../../ai/chat-polish.css';
 import '../../ai/safe-text.css';
@@ -106,6 +108,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const hermesRecord = useDeviceRecord(NOVA_HERMES), hermes = useMemo(() => hermesAgent(hermesRecord.data, scope), [hermesRecord.data, scope]);
   const chainChosen = useChainChoice().chosen;
   const contextRef = useRef(context), hermesRef = useRef(hermes), dataRef = useRef(data), chainRef = useRef(chainChosen);
+  const stageRef = useRef(stage); useEffect(() => { stageRef.current = stage; }, [stage]);
   useEffect(() => { contextRef.current = context; dataRef.current = data; chainRef.current = chainChosen; }, [context, data, chainChosen]);
   useEffect(() => { hermesRef.current = hermes; }, [hermes]);
   /** NOVA's pack input at this moment (lane NE): the same input for the send and for "What NOVA can see". */
@@ -113,7 +116,14 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const nova = useMemo<NovaSurface>(() => ({
     persona: persona.name,
     // Built at the moment of each send, from the records of that moment, under this page's gates and NOVA's scopes.
-    novaPack: (question?: string) => { const input = packInput(); return input ? buildNovaPack({...input, ...(question ? {question} : {})}) : null; },
+    novaPack: (question?: string) => {
+      const input = packInput(); if (!input) return null;
+      const pack = buildNovaPack({...input, ...(question ? {question} : {})});
+      // Session AM (A4): on a computer NOVA's own model may ask the stage for a widget and read the weather this device holds.
+      const st = stageRef.current;
+      if (st && st.device === 'computer') { try { pack.env.stage = {kinds: WIDGETS.map(w => w.id).filter(id => st.available(id)), weather: stageWeather(getAppStorage())}; } catch { /* no stage tools for this message */ } }
+      return pack;
+    },
     // Security review Z1A-4: a task for ZIGi or Hermes meets NOVA → Permissions too (Health off by default), read at the send.
     pack: area => pagePack({area, sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}}),
     taskEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),

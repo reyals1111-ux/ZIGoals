@@ -168,6 +168,24 @@ const argRef = (args: Record<string, unknown> | null | undefined): string | unde
   for (const key of ['goalId', 'goal_id', 'id', 'goal']) { const v = args[key]; if (typeof v === 'string' && v && v.length <= 80) return v; }
   return undefined;
 };
+/**
+ * A4: the model's explicit `stage_widget` calls → what the stage does. "show" becomes a widget to make (with its range);
+ * pin, hide and close become stage commands. Arguments are checked against the closed catalogue again here: a call that
+ * names anything else is dropped. At most `MAX_SUMMON` of each.
+ */
+export function stageCalls(calls: readonly {tool: string; args?: Record<string, unknown> | null}[], ctx: SummonContext = {}): {show: MakeRequest[]; commands: Exclude<StageCommand, {kind: 'clear'} | {kind: 'arrangement'}>[]} {
+  const show: MakeRequest[] = [], commands: Exclude<StageCommand, {kind: 'clear'} | {kind: 'arrangement'}>[] = [];
+  for (const call of calls) {
+    if (call.tool !== 'stage_widget') continue;
+    const id = typeof call.args?.widget === 'string' ? call.args.widget : '', action = call.args?.action, spec = widgetSpec(id);
+    if (!spec || !(ctx.available?.(id) ?? true)) continue;
+    if (action === 'show') {
+      const range = spec.params?.includes('range') ? WIDGET_RANGES.find(r => r === call.args?.range) : undefined;
+      if (show.length < MAX_SUMMON && !show.some(w => w.id === id)) show.push({id, ...(range ? {params: {range}} : {})});
+    } else if ((action === 'pin' || action === 'hide' || action === 'close') && commands.length < MAX_SUMMON && !commands.some(c => c.id === id)) commands.push({kind: action, id});
+  }
+  return {show, commands};
+}
 export function summonForTools(calls: readonly {tool: string; args?: Record<string, unknown> | null}[], ctx: SummonContext = {}): MakeRequest[] {
   const out: MakeRequest[] = [];
   for (const call of calls) {

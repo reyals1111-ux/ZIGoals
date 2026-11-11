@@ -24,6 +24,8 @@ export type ToolDefinition<A = Record<string, unknown>> = {
   title: string;
   description: string;
   area: ToolArea;
+  /** Session AM (ADR-038 A4): a tool only NOVA's stage offers (the environment carries `stage`); it reads none of the person's records, so no area switch closes it. */
+  surface?: 'nova';
   parameters: JsonSchema;
   args: z.ZodType<A>;
   /** The chip label for a call ("Meditate · this month"). */

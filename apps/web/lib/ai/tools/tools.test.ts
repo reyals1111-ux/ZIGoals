@@ -33,7 +33,12 @@ test('the registry: unique names, portable JSON-Schema parameters, plain descrip
   // Part 8: fictional notes, so "about_me" has something to read like every other tool.
   const env = open({...withPortfolios(withHandHealth(showcaseSources())), notes: [{text: 'Prefers short answers', category: 'preferences'}]});
   const required: Record<string, unknown> = {habit_stats: {habit: 'Meditate'}, habit_checkins: {habit: 'Meditate'}, search_foods: {query: 'oats'}, goal_progress: {goal: 'Japan'}, goal_what_if: {goal: 'Japan', extra_per_month: 100} /* Session AK (Part 12) */};
-  for (const tool of TOOLS) {
+  // Session AM (A4, deliberate): NOVA's two stage tools read none of the person's records and run only on NOVA's own
+  // surface (the environment carries `stage`), so they are not part of "every tool runs on the Showcase's records"; they
+  // have their own tests (nova-stage.test.ts). Exactly those two are set apart, and here they refuse.
+  expect(TOOLS.filter(t => t.surface === 'nova').map(t => t.name)).toEqual(['stage_widget', 'weather']);
+  for (const tool of TOOLS.filter(t => t.surface === 'nova')) expect(runTool(tool.name, tool.name === 'stage_widget' ? {action: 'show', widget: 'weight'} : {}, env)).toMatchObject({ok: false, reason: 'area'});
+  for (const tool of TOOLS.filter(t => t.surface !== 'nova')) {
     const result = runTool(tool.name, required[tool.name] ?? {}, env);
     expect(result.ok, `${tool.name}: ${result.ok ? '' : result.refusal}`).toBe(true);
     expect(okData(result).provenance, tool.name).toMatch(/^Fictional Showcase data · From your /);
