@@ -119,9 +119,13 @@ test.describe('NOVA’s live stage on a computer', () => {
   test('Dutch requests make the same widgets, with a range from the words', async ({page}) => {
     await fresh(page);
     await open(page);
-    await ask(page, 'Laat mijn gewoontes zien');
+    // ADR-038 D36 (the engine comes first): a bare "Laat mijn gewoontes zien" is the engine's own navigation ("Opening
+    // Habits.", as "Show my habits" is in English), so the widget request names the week, which only the stage answers.
+    await ask(page, 'Toon mijn gewoontes deze week');
     await expect(widget(page, 'habit-week')).toBeVisible();
-    await expect(page.locator('.ns-answer')).toContainText('Op het podium: Gewoontes deze week.');
+    // AM-D2 (deliberate): the answer is the widget's own line, in Dutch, not "Op het podium: Gewoontes deze week."
+    await expect(page.locator('.ns-answer')).toContainText('Gewoontes deze week: Je hebt nog geen gewoontes.');
+    await expect(page.getByRole('region', {name: 'Conversation with NOVA'})).toBeHidden();
     await ask(page, 'Toon mijn vermogen dit jaar');
     await expect(widget(page, 'net-worth')).toBeVisible();
     expect((await read(page, STAGE_KEY)).params['net-worth']).toEqual({range: 'year'});
@@ -130,7 +134,14 @@ test.describe('NOVA’s live stage on a computer', () => {
   test('D5, D25: a Health widget is made locked while Health is off for NOVA, names the switch and shows no figure', async ({page}) => {
     await fresh(page);
     await open(page);
+    // ADR-038 D36 (the engine comes first): typed, "Show my weight" is the engine's own note that Health is off for NOVA;
+    // a note never gets a widget, and it is said under the star with the conversation one press away.
     await ask(page, 'Show my weight');
+    await expect(page.locator('.ns-answer')).toContainText('Health is off for NOVA, so nothing from Health is read here.');
+    await expect(page.locator('.ns-answer').getByRole('button', {name: 'Open the conversation'})).toBeVisible();
+    await expect(page.locator('.nova-stage-area .nova-widget')).toHaveCount(0);
+    // A request the stage itself answers (the one-tap "Weight this month") makes the widget, locked.
+    await page.getByRole('group', {name: 'One-tap requests'}).getByRole('button', {name: 'Weight this month'}).click();
     const w = widget(page, 'weight');
     await expect(w).toBeVisible();
     await expect(w).toHaveAttribute('data-locked', '');
@@ -188,6 +199,10 @@ test.describe('NOVA’s live stage on a computer', () => {
     expect(await page.evaluate(() => document.querySelector('.nova-root')!.getAnimations({subtree: true}).filter(a => a.playState === 'running').length)).toBe(0);
     const star = page.locator('.nova-star');
     if (await star.count()) await expect(star).toHaveAttribute('data-star', 'still');
+    // The star draws one composed still frame per state (thinking, speaking, then standing by: components/nova/core/star-system.tsx
+    // `still`), so the frames are counted once the answer has been said and the star is back at rest; from then on, none.
+    await expect(page.locator('.nova-orb-state')).toHaveAttribute('data-state', 'idle');
+    await page.waitForTimeout(800);
     const before = await page.evaluate(() => (window as unknown as {__zgHudFrames?: number}).__zgHudFrames ?? 0);
     await page.waitForTimeout(1500);
     expect(await page.evaluate(() => (window as unknown as {__zgHudFrames?: number}).__zgHudFrames ?? 0)).toBe(before);
@@ -229,9 +244,13 @@ test.describe('NOVA’s live stage on a computer', () => {
     // Holo and Classic.
     await expect(frame(page)).toHaveAttribute('data-look', 'holo');
     await page.getByRole('button', {name: 'Customize the view'}).click();
-    await page.getByRole('group', {name: 'Widget look'}).getByRole('radio', {name: /Classic/}).check();
+    // The look is a pair of pressed buttons in "Make NOVA yours" (components/nova/holo/presets.tsx), not radios.
+    const looks = page.getByRole('dialog', {name: 'Make NOVA yours'}).getByRole('group', {name: 'Widget look'});
+    await looks.getByRole('button', {name: /Classic/}).click();
     await expect(frame(page)).toHaveAttribute('data-look', 'classic');
-    await page.getByRole('group', {name: 'Widget look'}).getByRole('radio', {name: /Holo/}).check();
+    await expect(looks.getByRole('button', {name: /Classic/})).toHaveAttribute('aria-pressed', 'true');
+    await looks.getByRole('button', {name: /Holo/}).click();
+    await expect(frame(page)).toHaveAttribute('data-look', 'holo');
     await page.getByRole('button', {name: /^Close Make .* yours$/}).click();
     // ⌘/Ctrl + K goes to NOVA's own field.
     await page.locator('.nova-orb-button').focus();

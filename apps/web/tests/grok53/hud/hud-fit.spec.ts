@@ -101,11 +101,15 @@ test('M11, M5: a small panel\'s header never covers its body; water with nothing
     link?.scrollIntoView({block: 'nearest', inline: 'nearest'});
     const r = link?.getBoundingClientRect();
     const hit = r && r.width ? document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) : null;
-    return {id: (el as HTMLElement).dataset.widget, headBottom: head.bottom, bodyTop: body.top, oneLine: head.height <= 30, linkOnTop: !r || !r.width || (!!hit && (hit === link || link!.contains(hit))), name: link?.getAttribute('aria-label') ?? ''};
+    return {id: (el as HTMLElement).dataset.widget, headBottom: head.bottom, bodyTop: body.top, oneLine: head.height <= 34 && new Set([...el.querySelectorAll('.nova-widget-head :is(button, a)')].filter(c => c.getClientRects().length).map(c => Math.round(c.getBoundingClientRect().top))).size === 1, linkOnTop: !r || !r.width || (!!hit && (hit === link || link!.contains(hit))), name: link?.getAttribute('aria-label') ?? ''};
   }));
   expect(small.length).toBeGreaterThan(0);
   for (const s of small) {
-    expect(s.oneLine, `${s.id}: its header is one line`).toBe(true);
+    // Session AM (widget head, deliberate): the head now holds Pin / Hide / Close beside the quick actions and the link,
+    // and a title that would be cut takes two short lines instead of an ellipsis (components/nova/stage/stage.css). "One
+    // line" (a head of at most 30 px) is now one row: a head of at most 34 px (two title lines) with every control on
+    // one line; it still ends before the body and nothing covers the link.
+    expect(s.oneLine, `${s.id}: its header is one row (a title of two short lines at most, every control on one line)`).toBe(true);
     expect(s.headBottom, `${s.id}: the header ends before the body`).toBeLessThanOrEqual(s.bodyTop + 0.5);
     expect(s.linkOnTop, `${s.id}: nothing covers its link`).toBe(true);
     expect(s.name, `${s.id}: the arrow keeps its name`).toMatch(/^Open /);

@@ -105,8 +105,18 @@ test.describe('NOVA on a computer', () => {
     await expect(right).toHaveCount(0);
     await page.getByRole('button', {name: 'Show Behind the intelligence'}).click();
     await expect(right).toBeVisible();
+    // Session AM (AM-D7, deliberate): under 1600 px of window only one side bar is open at a time. Opening the right bar
+    // folds the left to its rail, and that is saved as the person's choice; hiding the right bar leaves the rail as it is.
+    await expect(left).toHaveAttribute('data-state', 'rail');
+    expect((await stored(page)).panels).toMatchObject({left: 'rail', right: 'open'});
     await right.getByRole('button', {name: 'Hide the right panel'}).click();
     await expect(right).toHaveCount(0);
+    await expect(left).toHaveAttribute('data-state', 'rail');
+    // The left bar's own fold button, from open (the rail's button hides the bar; "Show the left panel" opens it again).
+    await left.getByRole('button', {name: 'Hide the left panel'}).click();
+    await expect(left).toHaveCount(0);
+    await page.getByRole('button', {name: 'Show the left panel'}).click();
+    await expect(left).toHaveAttribute('data-state', 'open');
     await left.getByRole('button', {name: 'Fold the left panel to icons'}).click();
     await expect(left).toHaveAttribute('data-state', 'rail');
     await page.reload();
@@ -119,10 +129,18 @@ test.describe('NOVA on a computer', () => {
     await expect(page.locator('aside.nova-left')).toHaveAttribute('data-state', 'open');
     await page.locator('body').press(']');
     await expect(page.getByRole('region', {name: 'Behind the intelligence'})).toBeVisible();
+    await expect(page.locator('aside.nova-left')).toHaveAttribute('data-state', 'rail'); // AM-D7 (deliberate): the right bar opened, the left folded
     // Each numbered section folds on its own, by keyboard too.
     const voice = page.getByRole('region', {name: 'Behind the intelligence'}).getByRole('button', {name: 'Voice', exact: true});
     await voice.focus(); await page.keyboard.press('Enter');
     await expect(voice).toHaveAttribute('aria-expanded', 'false');
+    // AM-D7: from 1600 px of window both bars stay open side by side.
+    await page.setViewportSize({width: 1920, height: 1080});
+    await page.locator('aside.nova-left').getByRole('button', {name: 'Hide the left panel'}).click();
+    await page.getByRole('button', {name: 'Show the left panel'}).click();
+    await expect(page.locator('aside.nova-left')).toHaveAttribute('data-state', 'open');
+    await expect(page.getByRole('region', {name: 'Behind the intelligence'})).toBeVisible();
+    expect((await stored(page)).panels).toMatchObject({left: 'open', right: 'open'});
   });
 
   test('widgets: add, move, resize and remove with the keyboard; Undo puts one back', async ({page}) => {
@@ -274,6 +292,15 @@ test.describe('Release review 2 on NOVA (R2-4, R2-5, R2-22)', () => {
     // Session AK P3 (NOVA_DESIGN_REVIEW.md ND-23), a deliberate move: the stage's card became a one-line banner, and the line
     // that tells NOVA and ZIGi apart is said on the guide's first planet, "Meet NOVA" (tests/p3-nova-polish.spec.ts checks it
     // there), and in the conversation's welcome.
+    // Session AM (calm stage, deliberate): the invitation shows on the calm stage only; once widgets or an answer are up it
+    // steps aside (components/nova/nova-dashboard.tsx). On this arranged stage it is not there; on a stage with no widgets
+    // it is, with the same line.
+    await expect(page.locator('.nova-widget').first()).toBeVisible();
+    await expect(page.getByRole('region', {name: 'Give NOVA a brain of its own'})).toHaveCount(0);
+    await fresh(page, {[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true})});
+    await page.goto('/app/nova');
+    await expect(frame(page)).toHaveAttribute('data-stage', 'calm');
+    await expect(page.getByRole('region', {name: 'Give NOVA a brain of its own'})).toBeVisible();
     await expect(page.getByRole('region', {name: 'Give NOVA a brain of its own'})).toContainText('It already answers simple questions on this device.');
   });
   test('in Light, the phone\'s bottom bar wears NOVA\'s night while NOVA is open, and turns light again after', async ({page}) => {

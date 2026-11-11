@@ -529,3 +529,7 @@
 /* AM-D24: with 14 px labels the wealth chart's title and its highest figure no longer share the top edge of a narrow panel; the title steps aside there (the panel's own heading says what is drawn). */
 @container holo-body (max-width: 350px) { .holo-frame-label[data-at=title] { display: none; } }
 .nova-widget[data-widget=tasks] :is(.task-chip, .nova-eyebrow) { font-size: 14px; }
+
+/* Second spec pass (hud-fit, 1440 × 900 Showcase): with 14 px labels the Health panel at M was 4 px taller than its body
+   (234 in 230). The hearts are 22 px there, so every row stays and nothing scrolls. */
+@container holo-body (max-height: 240px) { .holo-health .holo-hearts svg { width: 22px; height: 22px; } }

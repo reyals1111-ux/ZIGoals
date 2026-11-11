@@ -417,7 +417,7 @@ export default function NovaDashboard() {
   // Beside widgets the nebula keeps to the star's own column (about a third of the stage), so it never lies over a widget.
   const hudRoom = (hudSize?.height ?? height - 300) - 26, hudWide = hudSize?.width ?? width - 300, starSlot = hudRoom <= 520 ? 204 : hudRoom >= 640 ? 252 : 228, starRoom = (hudRoom - starSlot - 124) / 0.42;
   const starCalm = width >= 1280 ? 560 : 460, starCap = stage.shown.length ? (hudWide >= 1100 ? 440 : hudWide >= 960 ? 340 : 300) : starCalm;
-  const starSize = phone ? 260 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 110 : Math.round(Math.max(240, Math.min(hudWide > 800 ? starCalm : starCap, starRoom)) * 0.42);
+  const starSize = phone ? 260 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 110 : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.42);
   const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} beam={beam} onRender={onStarRender}/></Suspense></LoadBoundary>;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).
   const answerWidget = lastMade && stage.shown.some(w => w.id === lastMade) ? {id: lastMade, title: widgetSpec(lastMade)?.title ?? 'the widget'} : null;

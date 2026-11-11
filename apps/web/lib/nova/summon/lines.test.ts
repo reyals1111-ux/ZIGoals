@@ -30,7 +30,7 @@ import {WEATHER_OFF_WORDS, WEATHER_PLACE_WORDS} from '../world/ask';
 import {showcaseReading, SHOWCASE_PLACE} from '../world/showcase';
 import {engineLook, replyLook} from './engine-look';
 import {lineData, lockedLine, plainName, seesCount, stageLine, stageLines, type LineData} from './lines';
-import {FAMILIES, replyWidgets, stageOwns, summonFor} from './summon';
+import {FAMILIES, isLogLine, replyWidgets, stageOwns, summonFor} from './summon';
 import {answerWords, announceMade, commandAskWords, keptAskWords, lineWords, madeWords, sentenceCut, stageAnswerText} from './words';
 
 /**
@@ -282,6 +282,16 @@ describe('the stage owns the answer when it made a widget and the engine had non
   });
 });
 
+describe('a log line is the engine’s (its Quick add offer), never a widget request', () => {
+  it.each(['drank 2 glasses of water', 'walked 4000 steps', 'slept 7 hours', 'weighed 81.4 kg', '2 glazen water gedronken'])('%s', text => {
+    const plan = summonFor(text);
+    expect(plan.command).toBeNull();
+    expect(isLogLine(text, plan), text).toBe(true);
+  });
+  it('a plain "show me …", a question and a stage command are not log lines', () => {
+    for (const text of ['Show my water', 'show my habits this week', 'How much water did I drink?', 'Did I journal this month?', 'habits this week', 'my steps', 'bills', 'net worth', 'spending', 'close the weather', 'clear the stage']) expect(isLogLine(text, summonFor(text)), text).toBe(false);
+  });
+});
 describe('the engine comes first (the lead’s rule): what it answers itself stays its reply, and no unrelated widget is made', () => {
   const env = () => novaLocalEnv({sources: empty(), gates: gatesFor(false), scopes: DEFAULT_NOVA_SCOPES, chainChosen: false});
   const five = ['Add a habit called Evening walk', '10-minute morning routine', 'give me a 10-minute routine for tonight', 'Show my Sleep 7 hours a night goal', 'open goals\nand tell me what is left today', 'What can you read about me?'];

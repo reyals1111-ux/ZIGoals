@@ -7,7 +7,7 @@ import {readDeviceRecord} from '../../../lib/device-record';
 import type {EngineLook} from '../../../lib/nova/summon/engine-look';
 import {lineData, stageLines, type LineData, type LineWeather} from '../../../lib/nova/summon/lines';
 import {asksOf, NOVA_STAGE} from '../../../lib/nova/stage/record';
-import {mergeSummons, replyWidgets, stageCalls, stageOwns, summonFor, summonForTools, unsafeWords, type StageCommand, type SummonContext, type SummonLang, type SummonPlan} from '../../../lib/nova/summon/summon';
+import {isLogLine, mergeSummons, replyWidgets, stageCalls, stageOwns, summonFor, summonForTools, unsafeWords, type StageCommand, type SummonContext, type SummonLang, type SummonPlan} from '../../../lib/nova/summon/summon';
 import {answerWords, commandAskWords, commandWords, lineWords, ONE_TAP, stageAnswerText} from '../../../lib/nova/summon/words';
 import {getAppStorage, isShowcase, showcaseDay} from '../../../lib/showcase-storage';
 import {formatDate, formatTime} from '../../../lib/visual-format';
@@ -124,7 +124,8 @@ export function useSummoner({bridge, session, say, goals, lookupsFor, sources, e
     if (plan.widgets.length && engine) { try { look = engine(text); } catch { look = {kind: 'other', calls: []}; } }
     // The stage's own one-tap requests ("Agenda", "What's next") make their widget where the engine would open a page or
     // read out a brief; the engine's answers from records still come first (the widget is then made beside them).
-    const owns = stageOwns(plan, look.kind, look.kind === 'other' && ONE_TAP.some(tap => tap.ask === text.trim()));
+    const oneTap = ONE_TAP.some(tap => tap.ask === text.trim());
+    const owns = (oneTap || !isLogLine(text, plan)) && stageOwns(plan, look.kind, look.kind === 'other' && oneTap);
     // A phone has no stage (NOVA is a chat agent there): a command for the stage says so, the weather and the time are
     // answered in words, a widget request is answered with its widgets' short lines (design review AM-D26), and every other
     // request goes to the engine, which answers in words; the request is kept with the widgets it would make, for the computer (D19).
@@ -190,7 +191,7 @@ export function useSummoner({bridge, session, say, goals, lookupsFor, sources, e
       // The device's own engine (never a model's words): a widget is made only when it belongs to the reply (`replyWidgets`:
       // the records it read; nothing beside a card, a navigation, a refusal or a note). A model's reply: as before.
       const widgets = reply.source === 'local' && local
-        ? replyWidgets(wait.plan, {kind: local.reply.kind, calls, card: decision}, context())
+        ? (local.reply.kind === 'examples' && isLogLine(question, wait.plan) ? [] : replyWidgets(wait.plan, {kind: local.reply.kind, calls, card: decision}, context()))
         : mergeSummons(asked.show, mergeSummons(wait.plan.widgets, summonForTools(calls, context())));
       const ask: StageAsk = {text: question, by, device: bridge.device, kept: kept.current, chat: chatId};
       lines = linesFor(widgets, lang);

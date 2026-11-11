@@ -235,7 +235,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 @container nova-stage (max-width: 1080px) { .nova-orbit { --lean-k: .45; } }
 /* A narrow stage (a tablet, or both side panels open on a 1440 px screen): the star takes the first screen whole, the
    widgets follow below it (beside it the centre column was too narrow for the greeting and the day line). */
-@container nova-stage (max-width: 760px) {
+@container nova-stage (max-width: 900px) {
   .nova-orbit-main { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; height: auto; gap: 14px; align-items: start; overflow: visible; }
   .nova-orbit-centre { overflow: clip; overflow-clip-margin: 8px; }
   .nova-orbit-centre { grid-column: 1 / -1; grid-row: auto; min-height: 100cqb; }
@@ -676,13 +676,15 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-frame[data-stage=calm]:not([data-phone]) .nova-orbit-main:not(#\-) { grid-template-columns: minmax(0, 640px); justify-content: center; }
 .nova-frame[data-stage=calm]:not([data-phone]) .nova-orbit-centre:not(#\-) { grid-column: 1; }
 .nova-frame[data-stage=calm]:not([data-phone]) .nova-orbit-side { display: none; }
-/* AM-D7: three columns (widgets, star, widgets) down to 760 px of stage; AM-D8: under that, two widget columns under a smaller star while the stage has 600 px. */
-@container nova-stage (min-width: 760.02px) and (max-width: 920px) {
+/* AM-D7: three columns (widgets, star, widgets) down to 900 px of stage (a side column of 310 px: at 250 px the HUD's
+   values ran past their panels, measured on an 820 px tablet); AM-D8: under that, two widget columns under a smaller
+   star while the stage has 680 px, one column below. */
+@container nova-stage (min-width: 900.02px) and (max-width: 1040px) {
   .nova-frame[data-stage=set][data-look=holo]:not([data-phone]) .nova-orbit-main:not(#\-) { grid-template-columns: minmax(220px, 1fr) minmax(240px, .8fr) minmax(220px, 1fr); column-gap: 14px; }
 }
 /* Under the three columns the star is a header above the widgets: its slot is the short one, so the widgets start on the first screen. */
-@container nova-stage (max-width: 760px) { .nova-frame[data-stage=set]:not([data-phone]) .nova-stage { --ns-slot: 190px; --ns-lines: 2; } }
-@container nova-stage (min-width: 600px) and (max-width: 760px) {
+@container nova-stage (max-width: 900px) { .nova-frame[data-stage=set]:not([data-phone]) .nova-stage { --ns-slot: 190px; --ns-lines: 2; } }
+@container nova-stage (min-width: 680px) and (max-width: 900px) {
   .nova-frame[data-stage=set][data-look=holo]:not([data-phone]) .nova-orbit-main:not(#\-) { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; }
   .nova-frame[data-stage=set][data-look=holo]:not([data-phone]) .nova-orbit-band-grid:not(#\-) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

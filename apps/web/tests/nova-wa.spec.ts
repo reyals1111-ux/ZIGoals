@@ -46,7 +46,10 @@ test('N1: while NOVA hands a task to ZIGi, the Duo shows both side by side on th
     [AI_SETTINGS_KEY]: JSON.stringify({...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, includeHealth: true, pageShare: {...base.pageShare, health: true}})});
   await page.goto('/app/nova');
   await expect(duo(page)).toHaveCount(0);
-  await page.getByRole('button', {name: 'Talk to NOVA'}).click();
+  // Session AM (the mic in the command bar): the command bar's microphone button is named "Talk to NOVA" too, so the
+  // star is asked for by what it is; it keeps that name.
+  await expect(page.locator('.nova-orb-button')).toHaveAccessibleName('Talk to NOVA');
+  await page.locator('.nova-orb-button').click();
   // A task, not a lookup: ZIGi first meets its on-device answers (components/nova/chat/nova-chat.tsx runDelegation), so a
   // question the device answers ("How did my water go…") never reaches the model; a request to write goes to the MOCK model.
   const box = chat(page).getByRole('textbox', {name: /^Message /});

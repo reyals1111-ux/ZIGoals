@@ -1,5 +1,6 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
 import {pressZigi} from './zigi-open';
+import {openNovaConversation} from './nova-am';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -203,6 +204,11 @@ test('R2-2 (release review 2): with no model, NOVA answers the natural questions
   await panels.getByRole('button', {name: 'Close NOVA’s panels'}).click();
   await page.getByRole('textbox', {name: 'Message NOVA'}).fill('How did I sleep?');
   await page.getByRole('textbox', {name: 'Message NOVA'}).press('Enter');
+  // Session AM (D7, deliberate): the panels' sheet closed the conversation, so these words went from the stage's command
+  // field; a request the stage has a widget for is answered under the star, and the person opens the conversation from
+  // the answer (tests/nova-am.ts). The reply is then read in the open conversation, as before.
+  await openNovaConversation(page);
+  await expect(last()).toBeVisible();
   await expect(last()).toContainText('nights logged', {timeout: 15_000});
   await sendInNova(page, 'How many habits are left today?');
   await expect(last()).toContainText('left today');

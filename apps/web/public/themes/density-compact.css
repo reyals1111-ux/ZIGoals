@@ -4047,7 +4047,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-orb-button:not(#\-) { margin-block: calc(var(--orb) * .24); }
 :where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-stage-below:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] .nova-widget-inner:not(#\-) { padding-top: 0; padding-bottom: 0; }
-@container nova-stage (max-width: 760px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size] .nova-widget-inner:not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@container nova-stage (max-width: 900px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size] .nova-widget-inner:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 @container holo-panel (max-width: 420px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-widget-open:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .nova-widget[data-holo][data-size=S] .nova-focus:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .nova-widget[data-holo][data-size=S] .nova-focus > p:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -4110,8 +4110,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-orbit-side:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nova-orbit-band:not(#\-) { row-gap: 10px; padding-top: 8px; }
 :where(:root[data-density=compact]) .nova-orbit-band-grid:not(#\-) { row-gap: 14px; }
-@container nova-stage (max-width: 760px) { :where(:root[data-density=compact]) .nova-orbit-main:not(#\-) { row-gap: 14px; } }
-@container nova-stage (max-width: 760px) { :where(:root[data-density=compact]) .nova-orbit-side > .nova-widget:not(#\-) { margin-top: 0 !important; margin-bottom: 0 !important; } }
+@container nova-stage (max-width: 900px) { :where(:root[data-density=compact]) .nova-orbit-main:not(#\-) { row-gap: 14px; } }
+@container nova-stage (max-width: 900px) { :where(:root[data-density=compact]) .nova-orbit-side > .nova-widget:not(#\-) { margin-top: 0 !important; margin-bottom: 0 !important; } }
 :where(:root[data-density=compact]) .nova-bento:not(#\-) { row-gap: 14px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-focus-layout:not(#\-) { row-gap: 14px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-focus-row:not(#\-) { row-gap: 10.5px; }

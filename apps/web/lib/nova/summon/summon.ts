@@ -1,3 +1,4 @@
+import {quickAddOffered} from '../../ai/actions/decline';
 import {cardNumberIn, safetyFirst} from '../../ai/safety-guard';
 import {looksSecret} from '../../secret-guard/guard';
 import type {HudPreset} from '../layout';
@@ -241,6 +242,14 @@ export type EngineLookKind = 'fallback' | 'records' | 'other' | 'model';
  * Whatever the engine answers itself stays the engine's reply, word for word. `oneTap`: the words are one of the stage's
  * own one-tap requests, tapped (lib/nova/summon/words.ts ONE_TAP).
  */
+/**
+ * A line the engine may offer to save ("drank 2 glasses of water": the Quick add offer under its reply) is a write, and a
+ * write never gets a widget (D36): the stage neither answers it nor makes anything beside the reply. A plain "show me …"
+ * and a stage command are never such a line.
+ */
+const LOG_WORDS = /\d|\b(?:drank|drunk|ate|eaten|walked|ran|slept|weighed|meditated|logged|did|had|took|gedronken|gegeten|gelopen|gewandeld|geslapen|gewogen|gemediteerd|gedaan|genomen|gehad)\b/i;
+/** A quantity or a done-it verb makes it a log line; a bare name ("bills", "my steps", "habits this week") is a request. */
+export const isLogLine = (text: string, plan: Pick<SummonPlan, 'command' | 'direct'>): boolean => !plan.command && !plan.direct && LOG_WORDS.test(text) && quickAddOffered(text);
 export function stageOwns(plan: Pick<SummonPlan, 'command' | 'widgets' | 'direct'>, look: EngineLookKind, oneTap = false): boolean {
   if (plan.command) return true;
   if (!plan.widgets.length) return false;

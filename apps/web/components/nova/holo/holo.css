@@ -198,7 +198,7 @@
 .holo-phone-column .nova-widget[data-holo] .nova-widget-body { container: holo-body / inline-size; overflow: visible; }
 
 /* M2: Holo's orbit is wider, and a column holding a large panel widens: the hero beside the star. */
-@container nova-stage (min-width: 760.02px) {
+@container nova-stage (min-width: 900.02px) {
   .nova-frame[data-look=holo] .nova-orbit { max-width: 1560px; }
   .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(250px, 1fr) minmax(300px, .9fr) minmax(250px, 1fr); }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(340px, 1.45fr) minmax(290px, .85fr) minmax(240px, 1fr); }
@@ -321,7 +321,7 @@
 /* M4: a narrow stage (a tablet, ≤ 800 px) shows the star at its own height (it used to take the whole first screen) and the
    panels under it in one column of up to 560 px, each as tall as its content, so the first view holds the HUD and no value
    runs past its panel (two 245 px columns cut them). */
-@container nova-stage (max-width: 760px) {
+@container nova-stage (max-width: 900px) {
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main { grid-template-columns: minmax(0, 560px); justify-content: center; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre { min-height: 0; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-band-grid { grid-template-columns: minmax(0, 560px); justify-content: center; }

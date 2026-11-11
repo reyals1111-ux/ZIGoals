@@ -71,6 +71,12 @@ test.describe('NOVA on a computer', () => {
     await page.keyboard.press('Escape');
     // Session AM (D7, deliberate): the closed conversation stays in the page on a computer, hidden (it was removed: toHaveCount(0)); what the person sees is the same — no conversation.
     await expect(page.locator('section.nova-chat')).toBeHidden();
+    // Session AM (AM-D35, deliberate): Esc closes what is open first. With the conversation closed, NOVA's answer stands
+    // under the star; the second Esc closes that card and stays in NOVA, and only the third, with nothing open, leaves.
+    await expect(page.locator('.ns-answer')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.ns-answer')).toHaveCount(0);
+    await expect(page).toHaveURL(/\/app\/nova(\?|$)/);
     await page.keyboard.press('Escape');
     await expect(page).toHaveURL(/\/app\/goals$/);
   });

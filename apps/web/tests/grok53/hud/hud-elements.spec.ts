@@ -42,9 +42,14 @@ for (const [width, height] of [[1440, 900], [1920, 1080]] as const) {
     // The core: four segmented pillar rings around the orb, a lens ring, and the stacked neon bar meters in words.
     await expect(page.locator('.nova-orb-button .holo-core .holo-stack-box')).toBeAttached();
     await expect(page.locator('.nova-orb-button .holo-core-lens')).toBeAttached();
-    const core = page.getByRole('list', {name: 'Today’s core'});
+    // Session AM (calm stage, deliberate): on a set stage the core's four read-outs show only where the stage is wider than
+    // 1240 px (components/nova/holo/holo-parts.css); at 1440 with the left bar open it is 1,164 px, so they are in the
+    // page (four, each with its bar) but not shown, and at 1920 they are shown and read as a list, as before.
+    const core = page.locator('.holo-core-readout[aria-label="Today’s core"]');
     await expect(core.locator('li')).toHaveCount(4);
     await expect(core.locator('li .holo-core-bar')).toHaveCount(4);
+    if (width >= 1920) { await expect(page.getByRole('list', {name: 'Today’s core'})).toBeVisible(); await expect(page.getByRole('list', {name: 'Today’s core'}).getByRole('listitem')).toHaveCount(4); }
+    else { await expect(core).toBeHidden(); await expect(page.getByRole('list', {name: 'Today’s core'})).toHaveCount(0); }
 
     // Health (medium, beside the star): the kcal ring and its meters, each with its target in words, and its table.
     const health = panel(page, 'Health HUD');

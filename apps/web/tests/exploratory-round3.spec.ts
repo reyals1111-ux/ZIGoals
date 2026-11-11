@@ -107,6 +107,10 @@ test.describe('NOVA on a computer', () => {
       await panel.getByLabel('API_SERVER_KEY').fill(key);
       await panel.getByLabel(/Remember the key/).check();
       await panel.getByRole('button', {name: /Test \/health|Check again/}).click();
+      // Session AM, second pass (spec cause): on the second visit the row already reads "Checked: it works." from the first
+      // test, so that line alone was true before the new check (and the key's hand-over to the brain) had run, and the
+      // spec left the page mid-check. The check is over when its button is back from "Checking…".
+      await expect(panel.locator('.nova-guide-check').getByRole('button', {name: 'Check again'})).toBeEnabled({timeout: 15_000});
       await expect(panel.locator('.nova-guide-check-result')).toContainText('Checked: it works.');
       return panel;
     };
