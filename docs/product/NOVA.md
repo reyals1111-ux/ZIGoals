@@ -30,11 +30,11 @@ Ten requests the on-device step understands in English, with no model:
 
 | Ask | Widget |
 |---|---|
-| How is my day? | Your day |
-| What's next? | The next three |
+| How is my day? | Day at a glance |
+| What's next? | Next three |
 | Show my habits this week | Habits this week |
-| How are my goals? | Goals |
-| What's on my agenda? | Agenda |
+| How are my goals? | Goals HUD |
+| What's on my agenda? | Agenda clock |
 | What are my tasks? | Tasks |
 | What's my weight progress this month? | Weight, the last 30 days (needs Health, see Permissions) |
 | What is my net worth? | Net worth |
@@ -51,8 +51,8 @@ Five in Dutch:
 | Wat staat er in mijn agenda? | Agenda |
 | Wat voor weer is het? | Weer |
 
-You can also name one of your goals ("Am I on track for Japan?") and NOVA makes that goal's widget. A message the safety
-guard answers makes no widget.
+You can also name one of your goals ("Am I on track for Japan?", with a goal called Japan adventure) and NOVA makes that
+goal's widget. A message the safety guard answers makes no widget.
 
 ## Widgets
 
@@ -60,7 +60,7 @@ guard answers makes no widget.
 - **Hide** folds it into the **dock**, a row of chips. Tap a chip to bring it back.
 - **Close** removes it, with Undo.
 - **Open** goes to the widget's full page. Back returns to the same stage.
-- **Sizes:** Small, Medium and Large, in Customize the view.
+- **Sizes:** Small, Medium and Large, set while you arrange the stage.
 - **Arrangements:** ready-made sets, one request away: Command, Health HUD, Wealth HUD and Minimal. An arrangement
   replaces yours; Undo puts it back. The layouts Orbit, Bento, Focus and Minimal, and the Holo and Classic looks, are in
   Customize the view too.
