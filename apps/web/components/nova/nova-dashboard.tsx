@@ -40,6 +40,7 @@ import {useStage, type StageGates} from './stage/use-stage';
 import type {StageAnswer, StageBridge} from './stage/use-summoner';
 import type {StarBeam} from './core/star-system';
 import {sendToNova} from '../../lib/nova/bridge';
+import {STAGE_AGAIN_EVENT} from '../../lib/nova/stage/events';
 import {NovaIcon} from './icons';
 import {openPipWindow, pipHost} from '../../lib/ai/pip';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -71,6 +72,11 @@ const PANEL_HASH = /^#nova-(memory|permissions|activity|workflows|cost|models)$/
 const typing = (t: EventTarget | null) => t instanceof HTMLElement && isTextEntry({tagName: t.tagName, isContentEditable: t.isContentEditable, role: t.getAttribute('role')});
 /** Session AK lane EXF (EX-2): a key from inside the conversation (its composer, its buttons, its sheet) is never a shortcut. */
 const inChat = (t: EventTarget | null) => t instanceof Element && !!t.closest('.nova-talk, .nova-chat, .nova-sheet');
+function useHeight(): number {
+  const [height, setHeight] = useState(() => typeof window === 'undefined' ? 900 : window.innerHeight);
+  useEffect(() => { const read = () => setHeight(window.innerHeight); window.addEventListener('resize', read); return () => window.removeEventListener('resize', read); }, []);
+  return height;
+}
 function useWidth(): number {
   const [width, setWidth] = useState(() => typeof window === 'undefined' ? 1440 : window.innerWidth);
   useEffect(() => { const read = () => setWidth(window.innerWidth); window.addEventListener('resize', read); return () => window.removeEventListener('resize', read); }, []);
@@ -88,7 +94,7 @@ const Reading = ({label}: {label: string}) => <p className="nova-reading" role="
  */
 export default function NovaDashboard() {
   const nova = useNova(), r = nova.data, router = useRouter();
-  const motionLevel = useNovaMotionLevel(), motion = loopRuns(motionLevel), now = useClock(), width = useWidth(), phone = width <= 640;
+  const motionLevel = useNovaMotionLevel(), motion = loopRuns(motionLevel), now = useClock(), width = useWidth(), height = useHeight(), phone = width <= 640;
   const persona = personaOf(r), you = yourNameOf(r), layout = layoutOf(r), accent = accentOf(r), shortcuts = shortcutsOn(r);
   const hermesRecord = useDeviceRecord(NOVA_HERMES), hermes = hermesRecord.loaded && !hermesRecord.unreadable ? hermesStatus(hermesRecord.data) : null;
   const showcase = useShowcase(), chain = useChainChoice(), pagesView = usePagesView(), {brain} = useBrain(), counts = useNovaCounts();
@@ -117,7 +123,7 @@ export default function NovaDashboard() {
   const available = useMemo(() => gallery(ctx, widgets.map(w => w.id)), [ctx, widgets]);
   const canShow = useCallback((id: string) => widgetAvailable(id, ctx), [ctx]);
   // Session AM (ADR-038 D1–D7): the live stage — the pinned widgets above and the widgets NOVA makes on request, one list.
-  const stage = useStage({nova: r, save, canShow, announce: setStatus});
+  const stage = useStage({nova: r, save, canShow, announce: setStatus, arranging: editing});
   const [answer, setAnswer] = useState<StageAnswer | null>(null), [beam, setBeam] = useState<StarBeam | null>(null), inPlace = useRef(false);
   const entries = useMemo(() => dockEntries(r, {pageShown: page => isShown(pagesView, page), earn: chain.earnShown}), [r, pagesView, chain.earnShown]);
   const panels = panelsOf(r, width), left = phone ? 'hidden' : panels.left, right = phone ? 'hidden' : panels.right;
@@ -278,6 +284,12 @@ export default function NovaDashboard() {
     attention: () => setChatOpen(true),
   }));
   const askInPlace = (text: string) => { inPlace.current = !phone; if (!sendToNova(text)) inPlace.current = false; else if (phone) setChatOpen(true); };
+  // "Show again" from the Requests widget or the right bar: that request's widgets are made again (D19).
+  useEffect(() => {
+    const again = (e: Event) => { const id = (e as CustomEvent<string>).detail, ask = bridgeLive.current.stage.asks.find(x => x.id === id); if (ask) bridgeLive.current.stage.again(ask); };
+    window.addEventListener(STAGE_AGAIN_EVENT, again);
+    return () => window.removeEventListener(STAGE_AGAIN_EVENT, again);
+  }, []);
   // The star's beam toward a widget that was just made (decoration; the direction is read from where the widget landed).
   const freshKey = [...stage.fresh].join(' ');
   useEffect(() => {
@@ -297,9 +309,12 @@ export default function NovaDashboard() {
   const hudState = holo ? (modelBusy && (hudMove.state === 'full' || hudMove.state === 'calm') ? 'paused' : hudMove.state) : undefined;
   if (!nova.loaded) return <div className="nova-frame" data-accent="violet" data-opening="waiting"><Reading label={`${persona.name} is starting…`}/></div>;
   const core = holo ? {rings: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="rings"/></Suspense></LoadBoundary>, readout: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="readout"/></Suspense></LoadBoundary>} : undefined;
-  const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={orb} hud={hudMove.state} accent={accent} phone={phone} size={phone ? 320 : width >= 1280 ? 560 : 460} beam={beam} onRender={onStarRender}/></Suspense></LoadBoundary>;
+  // The star's box: as large as the window's height allows (its disc is about half as tall as it is wide).
+  // On the calm stage it is the hero; beside widgets it steps back so the centre column keeps room for NOVA's words.
+  const starSize = phone ? 320 : Math.round(Math.max(320, Math.min(stage.shown.length ? (width >= 1280 ? 440 : 380) : (width >= 1280 ? 560 : 460), (height - 360) * 1.02)));
+  const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={orb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} beam={beam} onRender={onStarRender}/></Suspense></LoadBoundary>;
   const answerLine = answer && !chatOpen ? <StageAnswerLine answer={answer} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)}/> : undefined;
-  const stageNode = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} answer={answerLine}/>;
+  const stageNode = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={Math.round(starSize * 0.42)} answer={answerLine}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}

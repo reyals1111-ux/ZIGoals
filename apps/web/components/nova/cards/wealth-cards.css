@@ -7,7 +7,7 @@
  */
 .nc-body.nc-networth-card, .nc-body.nc-spending-card, .nc-body.nc-budgets-card, .nc-body.nc-bills-card { gap: 8px; min-width: 0; }
 .nc-body.nc-networth-card[data-size=S], .nc-body.nc-spending-card[data-size=S], .nc-body.nc-budgets-card[data-size=S], .nc-body.nc-bills-card[data-size=S] { gap: 2px; }
-.nc-body.nc-networth-card[data-size=L], .nc-body.nc-spending-card[data-size=L], .nc-body.nc-budgets-card[data-size=L], .nc-body.nc-bills-card[data-size=L] { gap: 14px; }
+.nc-body.nc-networth-card[data-size=L], .nc-body.nc-spending-card[data-size=L], .nc-body.nc-budgets-card[data-size=L], .nc-body.nc-bills-card[data-size=L] { gap: 12px; }
 .nc-networth-card[data-size=S] .nc-foot, .nc-spending-card[data-size=S] .nc-foot, .nc-budgets-card[data-size=S] .nc-foot, .nc-bills-card[data-size=S] .nc-foot { padding-top: 2px; }
 .nc-networth-card[data-size=M] .nc-foot, .nc-spending-card[data-size=M] .nc-foot, .nc-budgets-card[data-size=M] .nc-foot, .nc-bills-card[data-size=M] .nc-foot { padding-top: 4px; }
 
@@ -24,11 +24,11 @@
 .nc-networth-card[data-size=L] .nc-delta { margin-top: 8px; }
 
 /* ---- One-line notes and the small-caps captions over an instrument ---- */
-.nc-networth-note, .nc-spending-note, .nc-budgets-note, .nc-bills-note { margin: 0; flex-basis: 100%; font-size: 14px; line-height: 1.4; color: #c9d4ea; }
+.nc-networth-note, .nc-spending-note, .nc-budgets-note { margin: 0; flex-basis: 100%; font-size: 14px; line-height: 1.4; color: #c9d4ea; }
 .nc-networth-caption, .nc-spending-caption, .nc-budgets-caption, .nc-bills-caption { margin: 0 0 6px; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
 .nc-networth-apart, .nc-spending-apart { flex-basis: 100%; }
 .nc-networth-line, .nc-spending-bars, .nc-budgets-bars, .nc-bills-after { min-width: 0; }
-.nc-spending-bars .nc-spending-note, .nc-budgets-bars .nc-budgets-note, .nc-bills-after .nc-bills-note { margin-top: 6px; }
+.nc-spending-bars .nc-spending-note, .nc-budgets-bars .nc-budgets-note { margin-top: 6px; }
 .nc-spending-card[data-size=M] .nc-bars, .nc-budgets-card[data-size=M] .nc-bars { gap: 6px; }
 .nc-spending-what { margin: -2px 0 2px; font-size: 14px; line-height: 1.35; color: #c3cfe6; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 

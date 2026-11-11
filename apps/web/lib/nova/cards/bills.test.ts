@@ -26,7 +26,9 @@ describe('upcoming bills card (Session AM)', () => {
       ['Music', '€9.99', '2026-11-11', 'today'], ['Paper', '€3.50', '2026-11-12', 'tomorrow'], ['Gym', '€25.00', '2026-11-14', 'in 3 days'],
       ['Rent', '€950.00', '2026-12-01', 'in 20 days'], ['Insurance', '$180.00', '2027-03-01', 'in 110 days'],
     ]);
-    expect(card.next).toMatchObject({title: 'Music', days: 0, overdue: false, near: 1});
+    expect(card.next).toMatchObject({title: 'Music', days: 0, overdue: false, near: 1, date: 'Wed, Nov 11'});
+    // A due date in another year says its year.
+    expect(card.lines.at(-1)!.date).toBe('Mon, Mar 1, 2027');
     // Today through 30 days ahead, per currency (the weekly bill comes five times, the monthly one due today comes again on Dec 11); USD has nothing due, so it is not listed as 0.
     expect(card.month).toEqual([{currency: 'EUR', text: '€1,012.48', count: 9}]);
     expect(card.typical).toEqual([{currency: 'EUR', text: '€1,000.16'}, {currency: 'USD', text: '$15.00'}]);

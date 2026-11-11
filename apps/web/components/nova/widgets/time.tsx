@@ -2,7 +2,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import {dayLeftWords, daysLeftWords, msToNextMinute, timeRings} from '../../../lib/nova/cards/time';
 import {formatDate, formatNumber, formatPercent, formatTime} from '../../../lib/visual-format';
-import {CardFoot, Fact, Hero, Rings, type CardProps} from '../cards/kit';
+import {CardFoot, Fact, Rings, type CardProps} from '../cards/kit';
 import {HoloTable} from '../holo/parts';
 import '../cards/life-cards.css';
 
@@ -41,7 +41,8 @@ export default function TimeWidget({size}: {size: CardProps['size']; params?: Ca
     {key: 'year', label: 'This year', share: rings.year.share, left: daysLeftWords(rings.year.daysLeft)},
   ];
   return <div className="nc-body nc-time" data-size={size}>
-    <Hero value={formatTime(now)} label={formatDate(now, {weekday: true, year: false})}/>
+    {/* The kit's hero in its own markup: a clock that changes every minute neither counts up nor pulses. */}
+    <div className="nc-hero"><p className="nc-hero-figure"><span className="holo-num nc-hero-num">{formatTime(now)}</span></p><p className="nc-hero-label">{formatDate(now, {weekday: true, year: false})}</p></div>
     {size !== 'S' && <div className="nc-time-rings">
       <Rings size={size === 'L' ? 104 : 76} items={items.map(it => ({key: it.key, share: it.share, figure: pct(it.share), label: it.label}))}/>
       <p className="nc-time-left">{items.map(it => <span key={it.key}>{it.left}</span>)}</p>

@@ -38,13 +38,40 @@
   background: linear-gradient(162deg, #ffffffd0 0%, var(--neon, #9273ff) 16%, transparent 42%, transparent 72%, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 100%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
 .nova-widget[data-holo][data-size=L] { box-shadow: inset 0 0 0 1px #ffffff0a, inset 0 1px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 0 70px -18px #f06dff8c, 0 26px 50px -30px #000; }
+/*
+ * Session AM (art direction §4): cut corners. On a computer a Holo panel is a glass slab with its top-right and
+ * bottom-left corners cut: the glass, its backdrop blur and its edge move to a back-plate (::before) clipped to that
+ * shape, the rim (::after) becomes a hairline along the same outline, brightest at the top-left, and the glow is its own
+ * layer behind the plate (.holo-aura), so nothing of it is clipped. While a panel is dragged or the stage is being
+ * arranged, and on phones, the panel keeps the rounded glass above. Static decoration: nothing here animates.
+ */
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]) { isolation: isolate; background: none; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; --cut: 18px; --rim: 1.4px;
+  --holo-shape: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut))); }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo][data-size=S]:not([data-dragging]) { --cut: 12px; }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging])::before { content: ''; position: absolute; inset: -1px; z-index: -1; pointer-events: none; border: 0; border-radius: 0;
+  background: var(--holo-glass); box-shadow: none; clip-path: var(--holo-shape);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5) brightness(.9); backdrop-filter: blur(16px) saturate(1.5) brightness(.9); }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging])::after { border-radius: 0; padding: 0; -webkit-mask: none; mask: none;
+  background: linear-gradient(162deg, #ffffffe6 0%, var(--neon, #9273ff) 18%, color-mix(in oklab, var(--neon, #9273ff) 38%, transparent) 46%, color-mix(in oklab, var(--neon, #9273ff) 30%, transparent) 70%, var(--neon, #9273ff) 100%);
+  clip-path: polygon(evenodd, 0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 0,
+    var(--rim) var(--rim), var(--rim) calc(100% - var(--cut) - var(--rim) * .42), calc(var(--cut) + var(--rim) * .42) calc(100% - var(--rim)), calc(100% - var(--rim)) calc(100% - var(--rim)), calc(100% - var(--rim)) calc(var(--cut) + var(--rim) * .42), calc(100% - var(--cut) - var(--rim) * .42) var(--rim), var(--rim) var(--rim)); }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):is(:hover, :focus-within)::after { filter: brightness(1.35); }
+/* The glow, behind the plate: the panel's neon close in, the nebula's magenta further out (stronger on a large panel). */
+.holo-aura { position: absolute; inset: 8px; z-index: -2; border-radius: 18px; pointer-events: none; display: none;
+  box-shadow: 0 0 22px 4px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 60px 6px color-mix(in oklab, var(--neon, #9273ff) 16%, transparent), 0 30px 46px -14px #000c; }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]) > .holo-aura { display: block; }
+.nova-widget[data-holo][data-size=L] > .holo-aura { box-shadow: 0 0 26px 5px color-mix(in oklab, var(--neon, #9273ff) 46%, transparent), 0 0 80px 10px #f06dff2e, 0 30px 50px -14px #000c; }
+/* The bracket marks leave the two cut corners (the rim draws those); the square corners keep theirs. */
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]) > .holo-brackets { background:
+    linear-gradient(var(--b), var(--b)) top left / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) top left / 1.5px var(--l) no-repeat,
+    linear-gradient(var(--b), var(--b)) bottom right / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) bottom right / 1.5px var(--l) no-repeat; }
 /* The tick ruler down the left edge (ornament, never data): fine ticks, a longer one every fifth. */
 .holo-ruler { position: absolute; left: 4px; top: 40px; bottom: 18px; width: 7px; pointer-events: none; opacity: .7;
   background: repeating-linear-gradient(to bottom, color-mix(in oklab, var(--neon, #9273ff) 75%, #fff) 0 1px, transparent 1px 40px) 0 0 / 7px 100% no-repeat,
     repeating-linear-gradient(to bottom, color-mix(in oklab, var(--neon, #9273ff) 45%, transparent) 0 1px, transparent 1px 8px) 0 0 / 4px 100% no-repeat; }
 .nova-widget[data-holo]:not([data-size=L]) .holo-ruler, .nova-widget[data-holo][data-size=S] .holo-sheen { display: none; }
 
-.nova-widget[data-holo] .nova-widget-head h3 { color: var(--neon-ink, #eef3ff); letter-spacing: .16em; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); }
+.nova-widget[data-holo] .nova-widget-head h3 { color: var(--neon-ink, #eef3ff); font-size: 14px; letter-spacing: .14em; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); }
 .nova-widget[data-holo] .nova-widget-open { color: #e6ecfb; font-weight: 500; }
 /* Review p2 (lane L8d): the quick-actions bolt sits right beside the page link (the title leads); M11: the header never
    wraps over the body — the title gives way with an ellipsis, and a small panel's link is an arrow-only 44 px target. */

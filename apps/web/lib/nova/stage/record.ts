@@ -83,14 +83,17 @@ export function madeAt(r: NovaStage, now: number, known: (id: string) => boolean
   }).map(w => ({id: w.id, at: w.at, ...(w.size ? {size: w.size} : {})}));
 }
 /**
- * The stage's list: the arranged (pinned) widgets in their order, then the made ones (newest first), without the hidden
- * ones; each with whether it is pinned. `pinned` is `widgetsFor(...)` of NOVA's own record.
+ * The stage's list: the made widgets (newest first), then the arranged (pinned) ones in their order — or the pinned ones
+ * first while arranging — without the hidden ones; each with whether it is pinned. `pinned` is `widgetsFor(...)` of NOVA's own record.
  */
 export type StageWidget = NovaWidget & {pinned: boolean; at?: string};
-export function stageWidgets(r: NovaStage, pinned: readonly NovaWidget[], now: number, sizeOf: (id: string) => WidgetSize, known: (id: string) => boolean = () => true): {shown: StageWidget[]; docked: StageWidget[]} {
+export function stageWidgets(r: NovaStage, pinned: readonly NovaWidget[], now: number, sizeOf: (id: string) => WidgetSize, known: (id: string) => boolean = () => true, order: 'made-first' | 'pinned-first' = 'made-first'): {shown: StageWidget[]; docked: StageWidget[]} {
   const hidden = new Set(hiddenOf(r)), pinnedIds = new Set(pinned.map(w => w.id));
-  const made = madeAt(r, now, known).filter(w => !pinnedIds.has(w.id));
-  const all: StageWidget[] = [...pinned.map(w => ({...w, pinned: true})), ...made.map(w => ({id: w.id, size: w.size ?? sizeOf(w.id), slot: 0, pinned: false, at: w.at}))].map((w, slot) => ({...w, slot}));
+  const made: StageWidget[] = madeAt(r, now, known).filter(w => !pinnedIds.has(w.id)).map(w => ({id: w.id, size: w.size ?? sizeOf(w.id), slot: 0, pinned: false, at: w.at}));
+  const kept: StageWidget[] = pinned.map(w => ({...w, pinned: true}));
+  // What was just asked for stands in front (it must be in view the moment it is made); while arranging, the arranged
+  // widgets lead in their own order, so a place on the orbits means the same before and after a move.
+  const all: StageWidget[] = (order === 'made-first' ? [...made, ...kept] : [...kept, ...made]).map((w, slot) => ({...w, slot}));
   return {shown: all.filter(w => !hidden.has(w.id)).map((w, slot) => ({...w, slot})), docked: all.filter(w => hidden.has(w.id))};
 }
 
@@ -165,3 +168,22 @@ export function recordAsk(r: NovaStage, ask: {id: string; at: Date; text: string
 export const askRequests = (ask: NovaAsk): MakeRequest[] => (ask.widgets ?? []).map(id => ({id, ...(ask.params?.[id] ? {params: ask.params[id]} : {})}));
 export const forgetAsk = (r: NovaStage, id: string): NovaStage => (r.asks ?? []).some(a => a.id === id) ? parse({...r, asks: (r.asks ?? []).filter(a => a.id !== id)}) : r;
 export const forgetAsks = (r: NovaStage): NovaStage => { const next = {...r}; delete next.asks; return parse(next); };
+
+/**
+ * The Showcase's stage (fictional, labelled on the page as the Showcase's): the history of four example requests, one of
+ * them from a phone, each one tap from being shown again. The Showcase's widgets themselves are its Command arrangement
+ * (lib/nova/store.ts `showcaseNova`); nothing is "made" before the visitor asks. No personal field: the words are the
+ * Showcase's own example questions.
+ */
+export function showcaseStage(day: string): NovaStage {
+  const at = (hm: string) => `${day}T${hm}:00.000Z`;
+  return novaStageSchema.parse({
+    version: 1,
+    asks: [
+      {id: 'showcase-4', at: at('08:12'), text: 'Show my habits this week', widgets: ['habit-week'], device: 'computer', by: 'device'},
+      {id: 'showcase-3', at: at('08:10'), text: 'Am I on track for Japan?', widgets: ['goal-focus'], device: 'computer', by: 'device'},
+      {id: 'showcase-2', at: at('08:06'), text: 'Show my net worth', widgets: ['net-worth'], params: {'net-worth': {range: 'quarter'}}, device: 'phone', by: 'device'},
+      {id: 'showcase-1', at: at('08:02'), text: 'What’s the weather?', widgets: ['weather'], device: 'computer', by: 'device'},
+    ],
+  });
+}

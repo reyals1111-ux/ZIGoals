@@ -10,7 +10,9 @@ import {presetWidgets} from './layout';
  * `zigoals:nova-bridge:v1`, lib/nova/bridge.ts.)
  *
  * A loose object, version 1, every field optional (an absent field reads as its default through the helpers below), every
- * list bounded. Device-only: never synced; in Export everything, restore and erase through the lead's registries. No key,
+ * list bounded. Session AM (ADR-038 D18): the layout and the arranged widgets travel in the encrypted `nova` extras
+ * section, by allow-list (lib/vault/extras-nova.ts); every other field stays on this device, and a field added here
+ * stays on the device too until it is named there. In Export everything, restore and erase through the lead's registries. No key,
  * token, health figure or amount is ever stored here. Reads are tolerant: an enum value a later build adds reads as the
  * default (`.catch`), so an older build shows its own default instead of dropping the whole record.
  */

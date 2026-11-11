@@ -37,7 +37,9 @@ export type StageApi = {
   noteAsk: (ask: StageAsk, widgets?: readonly MakeRequest[]) => void;
 };
 const FRESH_MS = 1700;
-export function useStage({nova, save, canShow, announce}: {
+export function useStage({nova, save, canShow, announce, arranging = false}: {
+  /** While the person arranges the stage, the pinned widgets lead in their own order. */
+  arranging?: boolean;
   nova: NovaRecord; save: (change: (r: NovaRecord) => NovaRecord, done?: string) => boolean; canShow: (id: string) => boolean; announce: (words: string) => void;
 }): StageApi {
   const record = useDeviceRecord(NOVA_STAGE), data = record.data;
@@ -54,7 +56,7 @@ export function useStage({nova, save, canShow, announce}: {
   }, []);
   const pinned = useMemo(() => widgetsFor(nova, canShow), [nova, canShow]);
   const sizeOf = useCallback((id: string): WidgetSize => widgetSpec(id)?.size ?? 'M', []);
-  const {shown, docked} = useMemo(() => stageWidgets(data, pinned, now, sizeOf, canShow), [data, pinned, now, sizeOf, canShow]);
+  const {shown, docked} = useMemo(() => stageWidgets(data, pinned, now, sizeOf, canShow, arranging ? 'pinned-first' : 'made-first'), [data, pinned, now, sizeOf, canShow, arranging]);
   const latest = useRef({pinned, shown, docked, data});
   latest.current = {pinned, shown, docked, data};
   const update = useCallback((change: (r: NovaStage) => NovaStage): boolean => {

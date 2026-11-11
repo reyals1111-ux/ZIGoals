@@ -57,7 +57,7 @@ export default function NetWorthWidget({size = 'M', params}: Partial<CardProps>)
     {size !== 'S' && (card.points.length > 1 && first && last
       ? <div className="nc-networth-line">
         {size === 'L' && <p className="nc-networth-caption">Recorded valuations · {card.rangeWords}</p>}
-        <TrendArea values={card.series} height={size === 'L' ? 132 : 44} labels={[on(first.at), on(last.at)]}
+        <TrendArea values={card.series} height={size === 'L' ? 112 : 44} labels={[on(first.at), on(last.at)]}
           {...(size === 'L' && card.high && card.low && card.high.cents !== card.low.cents ? {maxLabel: money(card.high.cents), minLabel: money(card.low.cents)} : {})}/>
       </div>
       : <p className="nc-networth-note">{card.points.length === 1 && first ? `One valuation recorded in ${card.rangeWords} (${on(first.at)}). A change shows once there are two.` : `No valuation recorded in ${card.rangeWords}, so there is no change to show.`}</p>)}

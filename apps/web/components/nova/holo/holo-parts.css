@@ -24,9 +24,9 @@
 .holo-num-ring { font-size: 22px; line-height: 1.05; }
 .nova-widget[data-size=S] .holo-num-ring { font-size: 16px; }
 .holo-num-arc { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; }
-.holo-label { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #cfdaf0; }
+.holo-label { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #cfdaf0; }
 .holo-label .holo-num { letter-spacing: .02em; }
-.holo-note { display: block; font-size: 13px; line-height: 1.35; color: #c3cfe6; }
+.holo-note { display: block; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
 .holo-note-line { margin: 0; font-size: 14px; color: #c9d4ea; }
 .holo-big-line { margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
 .holo-big-line small { font-size: 14px; color: #c9d4ea; }

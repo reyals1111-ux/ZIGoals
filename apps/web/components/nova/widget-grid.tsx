@@ -184,7 +184,7 @@ function WidgetFrame({widget, index, count, style, side, editing, opening, dragg
   return <article ref={panel} className="nova-widget" data-widget={widget.id} data-size={widget.size} data-pillar={spec.pillar} data-side={side} data-holo={holo ? '' : undefined} data-fit={fitKind}
     data-made={live ? (fresh ? 'fresh' : pinned ? undefined : 'made') : undefined} data-pinned={live && pinned ? '' : undefined} data-locked={gate === false ? '' : undefined} data-dragging={dragging ? '' : undefined} data-drop={dropTarget ? '' : undefined} data-cut={cut && !editing ? '' : undefined} style={css} aria-labelledby={`${id}-t`}>
     <span className="nova-widget-planet" aria-hidden="true"/>
-    {holo && <><span className="holo-brackets" aria-hidden="true"/><span className="holo-ruler" aria-hidden="true"/><span className="holo-sheen" aria-hidden="true"/></>}
+    {holo && <><span className="holo-aura" aria-hidden="true"/><span className="holo-brackets" aria-hidden="true"/><span className="holo-ruler" aria-hidden="true"/><span className="holo-sheen" aria-hidden="true"/></>}
     {fresh && <span className="ns-scan" aria-hidden="true"/>}
     <header className="nova-widget-head">
       <h3 id={`${id}-t`}>{spec.title}</h3>

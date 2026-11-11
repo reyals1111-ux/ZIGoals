@@ -1,0 +1,24 @@
+/* Session AM (ADR-038): NOVA's own widgets — your requests, its brain, what it can see. Labels 14 px or more; targets 44 px. */
+.nc-requests-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.nc-request { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #ffffff1a; }
+.nc-request:last-child { border-bottom: 0; padding-bottom: 0; }
+.nc-request-text { margin: 0; font-size: 15px; line-height: 1.4; color: #f2f6ff; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.nc-request-meta { grid-column: 1; margin: 0; font-size: 14px; color: #c3cfe6; }
+.nc-request-again { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; white-space: nowrap; }
+.nc-requests-more { margin: 0; font-size: 14px; color: #c3cfe6; }
+.nc-brain-head { display: flex; align-items: center; gap: 12px; }
+.nc-brain-dot { width: 14px; height: 14px; flex: none; border-radius: 50%; border: 2px solid #c3cfe6; }
+.nc-brain-dot[data-on] { border-color: #a8f5d2; background: #a8f5d2; box-shadow: 0 0 12px #a8f5d2; }
+.nc-brain-title { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
+.nc-brain-words { margin: 2px 0 0; font-size: 18px; font-weight: 650; color: #f4f7ff; }
+.nc-brain-text { margin: 0; font-size: 15px; line-height: 1.45; color: #d0dbf0; }
+.nc-sees-count { margin: 0; font-size: 15px; color: #d6e0f5; }
+.nc-sees-count b { font-size: 28px; font-weight: 650; color: #f4f7ff; text-shadow: 0 0 14px var(--neon, #9273ff); margin-right: 4px; }
+.nc-sees-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.nc-sees-grid li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border-radius: 10px; border: 1px dashed #ffffff40; color: #c3cfe6; }
+.nc-sees-grid li[data-on] { border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 14%, transparent); color: #f2f6ff; }
+.nc-sees-grid li[data-world][data-on] { --neon: #7fb6ff; }
+.nc-sees-cell { width: 10px; height: 10px; border-radius: 3px; border: 1px solid currentColor; }
+.nc-sees-grid li[data-on] .nc-sees-cell { background: var(--neon, #9273ff); border-color: var(--neon, #9273ff); box-shadow: 0 0 8px var(--neon, #9273ff); }
+.nc-sees-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-sees-why { font-size: 14px; }

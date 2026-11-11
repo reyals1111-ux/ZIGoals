@@ -21,7 +21,7 @@ export function dueWords(days: number): string {
 /** How near a due date is, for the countdown dial: full on the day (and when overdue), empty a month or more ahead. */
 export const NEAR_DAYS = 30;
 export const nearness = (days: number): number => days <= 0 ? 1 : Math.max(0, 1 - days / NEAR_DAYS);
-export type BillLine = {id: string; title: string; amount: string; currency: string; cadence: BillCadence; due: string; days: number; overdue: boolean; when: string; near: number};
+export type BillLine = {id: string; title: string; amount: string; currency: string; cadence: BillCadence; due: string; /** The due date in words ("Tue, Dec 1"; with its year when that is not this year). */ date: string; days: number; overdue: boolean; when: string; near: number};
 export type BillsCard = {
   state: 'empty' | 'live';
   /** Every bill at its next due date, soonest first. */
@@ -33,12 +33,12 @@ export type BillsCard = {
   typical: {currency: string; text: string}[];
 };
 const money = (amountCents: number, currency: string) => formatCurrencyAmount(fromCents(amountCents), currency);
-export const billDay = (due: string) => formatDate(due, {weekday: true, year: false});
+const billDay = (due: string, today: string) => formatDate(due, {weekday: true, year: !due.startsWith(today.slice(0, 4))});
 
 /** One line for a bill due on `due`, seen from `today` (a due date before today reads as overdue). */
 export function billLine(bill: {id: string; title: string; amount: string; currency: string; cadence: BillCadence}, due: string, today: string): BillLine {
   const days = daysBetween(today, due);
-  return {id: bill.id, title: bill.title, amount: formatCurrencyAmount(bill.amount, bill.currency), currency: bill.currency, cadence: bill.cadence, due, days, overdue: days < 0, when: dueWords(days), near: nearness(days)};
+  return {id: bill.id, title: bill.title, amount: formatCurrencyAmount(bill.amount, bill.currency), currency: bill.currency, cadence: bill.cadence, due, date: billDay(due, today), days, overdue: days < 0, when: dueWords(days), near: nearness(days)};
 }
 export function billsCard(record: BillsRecord, today: string): BillsCard {
   const lines = record.bills.map(b => billLine(b, nextDueOf(b, today), today)).sort((a, b) => a.due.localeCompare(b.due) || a.title.localeCompare(b.title));
@@ -51,7 +51,7 @@ export function billsCard(record: BillsRecord, today: string): BillsCard {
 /** The widget's table for assistive technology: the same figures as text. */
 export function billsRows(card: BillsCard, shown = card.lines.length): [string, string][] {
   return [
-    ...card.lines.slice(0, shown).map((l, i) => [i === 0 ? `Next bill: ${l.title}` : l.title, `${l.amount}, due ${billDay(l.due)}, ${l.when}`] as [string, string]),
+    ...card.lines.slice(0, shown).map((l, i) => [i === 0 ? `Next bill: ${l.title}` : l.title, `${l.amount}, due ${l.date}, ${l.when}`] as [string, string]),
     ...(card.lines.length > shown ? [['More bills', `${card.lines.length - shown} more on Wealth`] as [string, string]] : []),
     ...card.month.map(m => [`Due in the next ${NEAR_DAYS} days in ${m.currency}`, `${m.text} across ${m.count} ${m.count === 1 ? 'due date' : 'due dates'}`] as [string, string]),
     ...card.typical.map(t => [`A typical month in ${t.currency}, an estimate`, `about ${t.text}`] as [string, string]),

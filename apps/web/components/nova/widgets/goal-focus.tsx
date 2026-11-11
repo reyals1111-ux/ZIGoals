@@ -94,7 +94,7 @@ export default function GoalFocusWidget({size, params}: {size: CardProps['size']
   const tone = goal.pace.tone === 'good' ? true : goal.pace.tone === 'attention' ? false : null, direction = /^ahead/i.test(goal.pace.words) ? 'up' as const : /^behind/i.test(goal.pace.words) ? 'down' as const : 'flat' as const;
   const name = <Link className="nc-goal-name" href={goal.href} prefetch={false} title={goal.name}>{goal.name}</Link>;
   const estimate = words && <p className="nc-goal-estimate">{words.estimate && <span className="nc-goal-chip">Estimate</span>}<span>{words.headline}</span></p>;
-  return <div className="nc-body nc-goal" data-size={size} data-tone={goal.pace.tone}>
+  return <div className="nc-body nc-goal" data-size={size}>
     {size === 'S' ? <div className="nc-goal-hero">
       <GoalRing pct={goal.pct} size={44}/>
       <Hero value={goal.text} label={goal.name}/>

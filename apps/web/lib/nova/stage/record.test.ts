@@ -33,14 +33,15 @@ describe('made widgets', () => {
     expect(pruneStage(kept, later(13).getTime())).toBe(kept);
     expect(pruneStage(r, later(1).getTime())).toBe(r);
   });
-  it('the stage is the pinned widgets, then the made ones, without the dock', () => {
+  it('the stage is the made widgets, then the pinned ones, without the dock', () => {
     let r = makeWidgets(emptyStage(), [{id: 'weather'}, {id: 'weight'}], t0);
     r = setHidden(r, 'weather', true);
     const pinned = [{id: 'tasks', size: 'M' as const, slot: 0}, {id: 'weight', size: 'L' as const, slot: 1}];
     const {shown, docked} = stageWidgets(r, pinned, later(1).getTime(), sizeOf);
     expect(shown.map(w => [w.id, w.pinned, w.slot])).toEqual([['tasks', true, 0], ['weight', true, 1]]);
     expect(docked.map(w => w.id)).toEqual(['weather']);
-    expect(stageWidgets(setHidden(r, 'weather', false), pinned, later(1).getTime(), sizeOf).shown.map(w => w.id)).toEqual(['tasks', 'weight', 'weather']);
+    expect(stageWidgets(setHidden(r, 'weather', false), pinned, later(1).getTime(), sizeOf).shown.map(w => w.id)).toEqual(['weather', 'tasks', 'weight']); // what was asked for stands in front
+    expect(stageWidgets(setHidden(r, 'weather', false), pinned, later(1).getTime(), sizeOf, () => true, 'pinned-first').shown.map(w => w.id)).toEqual(['tasks', 'weight', 'weather']); // while arranging
     expect(stageWidgets(r, [], later(1).getTime(), sizeOf, id => id !== 'weight').shown).toEqual([]);
   });
   it('close, pin (drop), unpin (keep as made), resize, clear and Undo', () => {
@@ -85,5 +86,16 @@ describe('requests', () => {
     expect(proactiveOn(setProactive(emptyStage(), true))).toBe(true);
     expect(setProactive(setProactive(emptyStage(), true), false).proactive).toBeUndefined();
     expect(setKeep(setKeep(emptyStage(), true), false).keep).toBeUndefined();
+  });
+});
+
+describe('the Showcase stage', () => {
+  it('is a valid record: a history of four example requests, one from a phone, nothing made before the visitor asks, no personal field', async () => {
+    const {showcaseStage} = await import('./record');
+    const s = showcaseStage('2026-11-11');
+    expect(madeAt(s, Date.parse('2026-11-11T09:00:00Z'))).toEqual([]);
+    expect(asksOf(s).map(a => a.widgets?.[0])).toEqual(['habit-week', 'goal-focus', 'net-worth', 'weather']);
+    expect(asksOf(s).filter(a => a.device === 'phone').length).toBe(1);
+    expect(JSON.stringify(s)).not.toMatch(/@|\d{5,}/);
   });
 });

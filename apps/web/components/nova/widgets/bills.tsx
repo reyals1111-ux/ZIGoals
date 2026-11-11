@@ -1,7 +1,7 @@
 'use client';
 import {useMemo, type CSSProperties} from 'react';
 import {BILLS} from '../../../lib/bills/schema';
-import {NEAR_DAYS, billDay, billsCard, billsRows, type BillLine} from '../../../lib/nova/cards/bills';
+import {NEAR_DAYS, billsCard, billsRows, type BillLine} from '../../../lib/nova/cards/bills';
 import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
@@ -44,22 +44,22 @@ export default function BillsWidget({size = 'M'}: Partial<CardProps>) {
     <div className="nc-bills-next">
       {size !== 'S' && <Countdown line={next} size={size === 'L' ? 76 : 56}/>}
       <Hero value={next.amount} label={next.title}>
-        <p className="nc-bills-when" data-over={next.overdue || undefined}>{size === 'S' ? next.when : `${billDay(next.due)} · ${next.when}`}</p>
+        <p className="nc-bills-when" data-over={next.overdue || undefined}>{size === 'S' ? next.when : `${next.date} · ${next.when}`}</p>
       </Hero>
     </div>
     {rest.length > 0 && <div className="nc-bills-after">
-      {size === 'L' && <p className="nc-bills-caption">After that</p>}
+      {size === 'L' && <p className="nc-bills-caption">After that{more > 0 ? ` · ${more} more on Wealth` : ''}</p>}
       <ul className="nc-bills-list">{rest.map(l => <li key={l.id} className="nc-bills-row" data-over={l.overdue || undefined}>
         <Countdown line={l} size={40}/>
         <span className="nc-bills-name" title={l.title}>{l.title}</span>
         <span className="nc-bills-amount">{l.amount}</span>
-        <span className="nc-bills-when" data-over={l.overdue || undefined}>{billDay(l.due)} · {l.when}</span>
+        <span className="nc-bills-when" data-over={l.overdue || undefined}>{l.date} · {l.when}</span>
       </li>)}</ul>
-      {size === 'L' && more > 0 && <p className="nc-bills-note">{more} more {more === 1 ? 'bill' : 'bills'} on Wealth.</p>}
     </div>}
     {size === 'L' && <div className="nc-facts">
-      {card.month.slice(0, 2).map(m => <Fact key={m.currency} label={`Due in the next ${NEAR_DAYS} days`} value={m.text}/>)}
-      {card.typical.slice(0, 2).map(t => <Fact key={t.currency} label="A typical month, estimated" value={`about ${t.text}`}/>)}
+      {/* Each currency is its own figure, side by side: never converted, never added. */}
+      {card.month.length > 0 && <Fact label={`Due in the next ${NEAR_DAYS} days`} value={card.month.slice(0, 3).map(m => m.text).join(' · ')}/>}
+      {card.typical.length > 0 && <Fact label="A typical month, estimated" value={`about ${card.typical.slice(0, 3).map(t => t.text).join(' · ')}`}/>}
     </div>}
     <CardFoot source="Your Wealth records" asOf={`as of today, ${formatDate(today, {year: false})}`}/>
     <HoloTable caption="Upcoming bills" rows={billsRows(card, lines.length)}/>
