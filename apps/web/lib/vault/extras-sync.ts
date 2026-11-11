@@ -169,8 +169,11 @@ export function applySection(storage: Pick<Storage, 'getItem' | 'setItem' | 'rem
     if (target === undefined ? current === undefined : current !== undefined && same(target, current)) continue;
     if (target === undefined) { writes.push({key, text: null}); continue; }
     const held = collected.raw[key] === null ? {} : JSON.parse(collected.raw[key]!) as Records, kept: Records = {};
-    for (const field of r.deviceFields ?? []) if (held[field] !== undefined) kept[field] = held[field];
-    const candidate = {...(target as Records), ...kept}, parsed = r.spec.schema.safeParse(candidate);
+    // Security review AM-S11: a device field never arrives from another device. A copy that carries one anyway (an
+    // earlier build's, a tampered one) has it dropped; this device's own value, or its absence, stays.
+    const arriving = {...(target as Records)};
+    for (const field of r.deviceFields ?? []) { delete arriving[field]; if (held[field] !== undefined) kept[field] = held[field]; }
+    const candidate = {...arriving, ...kept}, parsed = r.spec.schema.safeParse(candidate);
     if (!parsed.success) throw refused();
     writes.push({key, text: JSON.stringify(r.verbatim ? candidate : parsed.data)});
   }

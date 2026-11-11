@@ -17,7 +17,7 @@ import {HEALTH_VITAMINS} from '../health-vitamins/schema';
 import {CHECKLIST, CHECKLIST_DAYS} from '../checklist/schema';
 import {NOVA_STORE} from '../nova/store';
 import {NOVA_STAGE} from '../nova/stage/record';
-import {fitNovaArrangement, fitNovaStage, NOVA_DEVICE_FIELDS, NOVA_SYNC_FIELDS} from './extras-nova';
+import {fitNovaArrangement, fitNovaStage, NOVA_DEVICE_FIELDS, NOVA_STAGE_DEVICE_FIELDS, NOVA_SYNC_FIELDS} from './extras-nova';
 
 /**
  * Session AB-Cloud Part 2 ([TIER 3] (sync), ADR-023 C4): what each encrypted extras section carries. Every record is a
@@ -62,7 +62,7 @@ export const EXTRAS_SECTIONS: readonly ExtrasSection[] = [
   // start page, the opening and the dock's order stay on each device. Nothing here is Health data (kinds, ids, times and
   // the person's own words; never a figure). `zigoals:nova-world:v1` and every other NOVA key are not in any section.
   // Effective once private-sync is redeployed; until then this section is not listed and NOVA stays on the device.
-  {name: 'nova', consent: 'account', records: [record(NOVA_STAGE, undefined, {verbatim: true, fit: fitNovaStage}), record(NOVA_STORE, NOVA_DEVICE_FIELDS, {syncFields: NOVA_SYNC_FIELDS, verbatim: true, fit: fitNovaArrangement})]},
+  {name: 'nova', consent: 'account', records: [record(NOVA_STAGE, NOVA_STAGE_DEVICE_FIELDS, {verbatim: true, fit: fitNovaStage}), record(NOVA_STORE, NOVA_DEVICE_FIELDS, {syncFields: NOVA_SYNC_FIELDS, verbatim: true, fit: fitNovaArrangement})]},
 ];
 /** Every device key the extras carry: an edit to one schedules a sync, like a module edit. */
 export const EXTRAS_KEYS: readonly string[] = EXTRAS_SECTIONS.flatMap(s => s.records.map(r => r.spec.key));

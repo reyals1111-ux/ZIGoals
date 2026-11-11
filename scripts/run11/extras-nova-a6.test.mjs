@@ -245,11 +245,30 @@ test('this build\'s Worker: the same two devices; the five sections sync as befo
   const head=(await (await current.call('/v1/extras?with=nova')).json()).sections.nova;
   expect((await current.call('/v1/extras',{protocol:1,action:'put',vault:vault.manifest.vault,operation:crypto.randomUUID(),section:'nova',base:head.revision,generation:head.generation,epoch:vault.manifest.epoch,parts:await sealSection(vault.key,vault.manifest,'nova',head.revision+1,sectionText(withLater))})).status).toBe(200);
   expect(states(await app.sync(vault,a)).nova).toBe('unchanged');
-  a.storage.setItem(STAGE,JSON.stringify({...read(a,STAGE),keep:true}));
+  // Session AM (AM-S11, deliberate): was "the phone turns on keep, the section is pushed and the sealed copy holds
+  // keep:true". The stage record's three per-device choices (keep, proactive, gentle) stay on the device: turning them
+  // on sends nothing to the Worker, and the sealed copy never holds them.
+  const own={keep:true,proactive:true,gentle:{day:'2026-11-11',shown:['weight']}};
+  a.storage.setItem(STAGE,JSON.stringify({...read(a,STAGE),...own}));
+  const sentBefore=app.log.length;
+  expect(states(await app.sync(vault,a)).nova).toBe('unchanged');
+  expect(app.log.slice(sentBefore).filter(entry=>entry.method!=='GET'||entry.path.includes('section='))).toEqual([]);
+  // Everything else of the record still travels: a widget folded into the dock is pushed, through this build, with the
+  // later build's record and field untouched; the sealed copy is the phone's record without exactly those three fields.
+  a.storage.setItem(STAGE,JSON.stringify({...read(a,STAGE),hidden:['steps']}));
   expect(states(await app.sync(vault,a)).nova).toBe('pushed');
   const after=JSON.parse(await openSection(vault.key,vault.manifest,extrasSectionCloudSchema.parse(await (await current.call('/v1/extras?section=nova')).json()))).records;
-  expect(after['zigoals:nova-later-record:v3']).toEqual({version:3,list:[1,2,3]});expect(after[NOVA].theme).toBe('later-theme');expect(after[STAGE].keep).toBe(true);
+  expect(after['zigoals:nova-later-record:v3']).toEqual({version:3,list:[1,2,3]});expect(after[NOVA].theme).toBe('later-theme');
+  const {keep,proactive,gentle,...travels}=read(a,STAGE);
+  expect({keep,proactive,gentle}).toEqual(own);
+  expect(Object.keys(travels).sort()).toEqual(['asks','hidden','made','params','version']);expect(travels.hidden).toEqual(['steps']);
+  expect(after[STAGE]).toEqual(travels);
+  for(const field of ['keep','proactive','gentle'])expect(after[STAGE],field).not.toHaveProperty(field);
   expect(a.storage.getItem('zigoals:nova-later-record:v3')).toBeNull();expect(read(a,NOVA).theme).toBeUndefined();
+  // The computer gets what travels and none of the phone's three choices; the phone keeps them.
+  expect(states(await app.sync(vault,b)).nova).toBe('pulled');
+  expect(read(b,STAGE)).toEqual(travels);
+  expect(read(a,STAGE)).toEqual({...travels,...own});
  }finally{await current.mf.dispose();}
 },120000);
 

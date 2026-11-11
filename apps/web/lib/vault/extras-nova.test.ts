@@ -3,14 +3,15 @@ import {createVault} from './crypto';
 import {EXTRAS_HEADS_QUERY, SERVICE_UPDATE_NOTE, applySection, collectSection, extrasHeadsSchema, extrasTransport, mergeSection, openSection, sealSection, sectionText, syncExtras, type ExtrasBase, type ExtrasTransport} from './extras-sync';
 import {EXTRAS_SECTIONS} from './extras-sections';
 import {EXTRAS_OPTIONAL_SECTIONS} from './extras-keys';
-import {NOVA_DEVICE_FIELDS, NOVA_SYNC_FIELDS, fitNovaArrangement, fitNovaStage} from './extras-nova';
+import {NOVA_DEVICE_FIELDS, NOVA_STAGE_DEVICE_FIELDS, NOVA_SYNC_FIELDS, fitNovaArrangement, fitNovaStage} from './extras-nova';
 import {MAX_WIDGETS, NOVA_KEY, NOVA_STORE, novaRecordSchema, widgetsFor} from '../nova/store';
 import {MAX_ASKS, NOVA_STAGE, NOVA_STAGE_KEY, asksOf, novaStageSchema} from '../nova/stage/record';
 import {NOVA_WORLD_KEY} from '../nova/world/record';
 import {setGoalReasons, emptyGoalExtras} from '../goal-extras/store';
 
 // Session AM (ADR-038 O2, D18, D19, A6; TIER 3 (sync)): the `nova` extras section. Of `zigoals:nova:v1` exactly the
-// layout and the pinned widgets travel, by allow-list; the stage record travels whole. An in-memory cloud with the
+// layout and the pinned widgets travel, by allow-list; the stage record travels but for its three per-device choices
+// (security review AM-S11: keep, proactive, gentle). An in-memory cloud with the
 // Worker's rules stands in for private sync (the Worker itself, deployed and new, is proven in
 // scripts/run11/extras-nova-a6.test.mjs). Fictional records only.
 const nova = EXTRAS_SECTIONS.find(s => s.name === 'nova')!;
@@ -51,11 +52,14 @@ const ask = (id: string, n: number, device: 'phone' | 'computer' = 'computer', w
 const FULL = {version: 1, openingSeen: true, layout: 'bento', widgets: [{id: 'orbit', size: 'M', slot: 0}, {id: 'water', size: 'S', slot: 1}], dock: {order: ['today', 'goals'], hidden: ['wealth']}, persona: {name: 'Fictional Ava', avatar: 'zigi'}, accent: 'cyan', customInstructions: 'Fictional: be brief.', shortcuts: false, yourName: 'Fictional Rey', panels: {left: 'rail', right: 'open', folded: ['usage']}, routing: 'fictional-model', wake: true, startOnNova: true};
 
 describe('what travels, pinned (D18)', () => {
-  test('the section: the stage record whole, and of NOVA\'s own record the layout and the pinned widgets by allow-list; account consent', () => {
+  // Session AM (AM-S11, deliberate): the stage record no longer travels whole (was: `deviceFields` undefined). Its three
+  // per-device choices stay on each device by deny-list, exactly these three; no allow-list, still written as stored.
+  test('the section: the stage record but for its three per-device choices, and of NOVA\'s own record the layout and the pinned widgets by allow-list; account consent', () => {
     expect(nova.consent).toBe('account');
     expect(nova.records.map(r => r.spec)).toEqual([NOVA_STAGE, NOVA_STORE]);
     const [stage, own] = nova.records;
-    expect([stage!.deviceFields, stage!.syncFields, stage!.verbatim]).toEqual([undefined, undefined, true]);
+    expect([stage!.deviceFields, stage!.syncFields, stage!.verbatim]).toEqual([['keep', 'proactive', 'gentle'], undefined, true]);
+    expect(stage!.deviceFields).toBe(NOVA_STAGE_DEVICE_FIELDS);
     expect([own!.syncFields, own!.deviceFields, own!.verbatim]).toEqual([['layout', 'widgets'], NOVA_DEVICE_FIELDS, true]);
     expect(NOVA_SYNC_FIELDS).toEqual(['layout', 'widgets']);
     // No other section uses the allow-list, the as-stored rule or a fit: the sections before Session AM behave as they did.
@@ -138,7 +142,13 @@ describe('two devices (D18, D19)', () => {
     expect(byState(await computer.sync()).nova).toBe('pulled');
     // D19: the phone's request, with its widgets and where it was asked.
     expect(asksOf(novaStageSchema.parse(read(computer, NOVA_STAGE_KEY)))).toEqual([{id: 'a-phone-1', at: at(5), text: 'Fictional request a-phone-1', widgets: ['habit-week'], device: 'phone', by: 'device'}]);
-    expect(read(computer, NOVA_STAGE_KEY)).toEqual(read(phone, NOVA_STAGE_KEY));
+    // Session AM (AM-S11, deliberate): was "the computer's stage record equals the phone's". The phone's "keep until I
+    // close" is the phone's own choice: every other field arrives exactly as the phone holds it, that one does not, and
+    // the phone still has it.
+    const {keep: phoneKeeps, ...travelled} = read(phone, NOVA_STAGE_KEY);
+    expect(phoneKeeps).toBe(true);
+    expect(read(computer, NOVA_STAGE_KEY)).toEqual(travelled);
+    expect(read(computer, NOVA_STAGE_KEY)).toEqual({version: 1, made: [{id: 'habit-week', at: at(5)}], hidden: ['steps'], params: {weight: {range: 'month'}}, asks: [ask('a-phone-1', 5, 'phone', ['habit-week'])]});
     // The pinned widgets and the layout.
     expect(widgetsFor(novaRecordSchema.parse(read(computer, NOVA_KEY))).map(w => w.id)).toEqual(['weight', 'steps']);
     expect(read(computer, NOVA_KEY)).toEqual({...own, layout: 'focus', widgets: [{id: 'weight', size: 'M', slot: 0}, {id: 'steps', size: 'S', slot: 1}]});
@@ -149,6 +159,7 @@ describe('two devices (D18, D19)', () => {
     const held = (await cloudNova())!;
     expect(Object.keys(held).sort()).toEqual([NOVA_STAGE_KEY, NOVA_KEY].sort());
     expect(held[NOVA_KEY]).toEqual({layout: 'focus', widgets: [{id: 'weight', size: 'M', slot: 0}, {id: 'steps', size: 'S', slot: 1}]});
+    expect(held[NOVA_STAGE_KEY]).toEqual(travelled); // AM-S11: the sealed copy holds no "keep" either
     expect(computer.storage.getItem(NOVA_WORLD_KEY)).toBe('{"version":1,"on":true}');
     expect(phone.storage.getItem(NOVA_WORLD_KEY)).toBeNull();
     // Settled: nothing more to send from either side.
@@ -159,6 +170,72 @@ describe('two devices (D18, D19)', () => {
     expect(byState(await computer.sync()).nova).toBe('unchanged');
     expect(byState(await phone.sync()).nova).toBe('unchanged');
     expect(read(phone, NOVA_KEY).persona).toEqual(FULL.persona);
+  });
+  // Security review AM-S11: whether made widgets are kept, whether gentle cards are on and which this device showed today.
+  test('AM-S11: every field of the stage record is decided: version, the four that travel, or one of the three that stay on the device', () => {
+    expect(NOVA_STAGE_DEVICE_FIELDS).toEqual(['keep', 'proactive', 'gentle']);
+    expect(Object.keys(novaStageSchema.shape).sort()).toEqual(['version', 'made', 'hidden', 'params', 'asks', ...NOVA_STAGE_DEVICE_FIELDS].sort());
+    // Collected for sync: everything but the three, a later build's field included; each of the three alone is nothing to send.
+    const full = {version: 1, made: [{id: 'weight', at: at(1)}], hidden: ['steps'], params: {weight: {range: 'month'}}, asks: [ask('a1', 1, 'phone', ['weight'])], keep: true, proactive: true, gentle: {day: '2026-11-11', shown: ['weight']}, laterTop: {a: 1}};
+    expect(novaStageSchema.safeParse(full).success).toBe(true);
+    const storage = memoryStorage(); storage.setItem(NOVA_STAGE_KEY, JSON.stringify(full));
+    const {keep, proactive, gentle, ...travels} = full;
+    expect([keep, proactive, gentle]).toEqual([true, true, {day: '2026-11-11', shown: ['weight']}]);
+    expect(collectSection(storage, nova).records[NOVA_STAGE_KEY]).toEqual(travels);
+    expect(sectionText(collectSection(storage, nova).records)).not.toMatch(/"keep"|"proactive"|"gentle"/);
+    for (const field of NOVA_STAGE_DEVICE_FIELDS) {
+      const one = memoryStorage(); one.setItem(NOVA_STAGE_KEY, JSON.stringify({version: 1, [field]: (full as Record<string, unknown>)[field]}));
+      expect(collectSection(one, nova).records[NOVA_STAGE_KEY], field).toEqual({version: 1});
+    }
+    // Written from another device: what travels is taken, this device's three choices stay byte for byte.
+    const mine = {version: 1, asks: [ask('m1', 2)], keep: true, proactive: true, gentle: {day: '2026-11-10', shown: ['sleep']}};
+    const here = memoryStorage(); here.setItem(NOVA_STAGE_KEY, JSON.stringify(mine));
+    expect(applySection(here, nova, collectSection(here, nova), {[NOVA_STAGE_KEY]: travels})).toEqual([NOVA_STAGE_KEY]);
+    expect(read({storage: here}, NOVA_STAGE_KEY)).toEqual({...travels, keep: true, proactive: true, gentle: {day: '2026-11-10', shown: ['sleep']}});
+    // The same again changes nothing (compare before write).
+    expect(applySection(here, nova, collectSection(here, nova), {[NOVA_STAGE_KEY]: travels})).toEqual([]);
+  });
+  test('AM-S11: a device\'s keep, gentle cards and today\'s shown cards never reach the other device or the cloud; changing only them sends nothing', async () => {
+    const {device, cloud, cloudNova} = await account();
+    const phone = device(), computer = device();
+    const phoneOwn = {keep: true, proactive: true, gentle: {day: '2026-11-11', shown: ['weight', 'sleep']}}, computerOwn = {gentle: {day: '2026-11-10', shown: ['tasks']}};
+    phone.storage.setItem(NOVA_STAGE_KEY, JSON.stringify({version: 1, made: [{id: 'weight', at: at(5)}], asks: [ask('a-phone-1', 5, 'phone', ['weight'])], ...phoneOwn}));
+    computer.storage.setItem(NOVA_STAGE_KEY, JSON.stringify({version: 1, ...computerOwn}));
+    expect(byState(await phone.sync()).nova).toBe('pushed');
+    await computer.sync(); await phone.sync(); await computer.sync();
+    const travels = {version: 1, made: [{id: 'weight', at: at(5)}], asks: [ask('a-phone-1', 5, 'phone', ['weight'])]};
+    expect((await cloudNova())![NOVA_STAGE_KEY]).toEqual(travels);
+    expect(read(phone, NOVA_STAGE_KEY)).toEqual({...travels, ...phoneOwn});
+    expect(read(computer, NOVA_STAGE_KEY)).toEqual({...travels, ...computerOwn});
+    expect([read(computer, NOVA_STAGE_KEY).keep, read(computer, NOVA_STAGE_KEY).proactive]).toEqual([undefined, undefined]);
+    // The computer turns its own gentle cards on and the phone turns "keep" off: nothing is written to the cloud, neither device changes the other.
+    cloud.calls.length = 0;
+    computer.storage.setItem(NOVA_STAGE_KEY, JSON.stringify({...read(computer, NOVA_STAGE_KEY), proactive: true}));
+    const phoneWithout = read(phone, NOVA_STAGE_KEY); delete phoneWithout.keep;
+    phone.storage.setItem(NOVA_STAGE_KEY, JSON.stringify(phoneWithout));
+    expect([byState(await computer.sync()).nova, byState(await phone.sync()).nova, byState(await computer.sync()).nova]).toEqual(['unchanged', 'unchanged', 'unchanged']);
+    expect(cloud.calls.filter(c => c.startsWith('write'))).toEqual([]);
+    expect((await cloudNova())![NOVA_STAGE_KEY]).toEqual(travels);
+    expect(read(phone, NOVA_STAGE_KEY)).toEqual({...travels, proactive: true, gentle: phoneOwn.gentle});
+    expect(read(computer, NOVA_STAGE_KEY)).toEqual({...travels, ...computerOwn, proactive: true});
+    // A travelling change still goes both ways, and still without the three.
+    phone.storage.setItem(NOVA_STAGE_KEY, JSON.stringify({...read(phone, NOVA_STAGE_KEY), hidden: ['weight']}));
+    expect(byState(await phone.sync()).nova).toBe('pushed');
+    expect(byState(await computer.sync()).nova).toBe('pulled');
+    expect((await cloudNova())![NOVA_STAGE_KEY]).toEqual({...travels, hidden: ['weight']});
+    expect(read(computer, NOVA_STAGE_KEY)).toEqual({...travels, hidden: ['weight'], ...computerOwn, proactive: true});
+  });
+  test('AM-S11 (second pass): a cloud copy that carries keep, gentle cards or shown cards anyway (another build\'s, a tampered one) sets none of them on a device that holds none, and never replaces a device\'s own', async () => {
+    const {device, putNova} = await account();
+    const fresh = device(), chosen = device();
+    chosen.storage.setItem(NOVA_STAGE_KEY, JSON.stringify({version: 1, proactive: false, made: []}));
+    await putNova({[NOVA_STAGE_KEY]: {version: 1, made: [{id: 'habit-week', at: at(5)}], asks: [ask('a-other-1', 5, 'phone', ['habit-week'])], keep: true, proactive: true, gentle: {day: '2026-11-11', shown: ['plan']}}});
+    expect(byState(await fresh.sync()).nova).toBe('pulled');
+    expect(read(fresh, NOVA_STAGE_KEY)).toEqual({version: 1, made: [{id: 'habit-week', at: at(5)}], asks: [ask('a-other-1', 5, 'phone', ['habit-week'])]});
+    await chosen.sync();
+    const mine = read(chosen, NOVA_STAGE_KEY);
+    expect([mine.keep, mine.proactive, mine.gentle]).toEqual([undefined, false, undefined]);
+    expect(mine.asks).toEqual([ask('a-other-1', 5, 'phone', ['habit-week'])]);
   });
   test('both ask and both pin while apart: every request is kept, newest first; both arrangements join; a later sync settles both devices on the same', async () => {
     const {device} = await account();

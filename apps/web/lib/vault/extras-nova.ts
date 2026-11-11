@@ -15,6 +15,13 @@ import {same} from './extras-merge';
 export const NOVA_SYNC_FIELDS: readonly string[] = ['layout', 'widgets'];
 export const NOVA_DEVICE_FIELDS: readonly string[] = ['openingSeen', 'dock', 'persona', 'accent', 'customInstructions', 'shortcuts', 'yourName', 'panels', 'routing', 'wake', 'startOnNova'];
 
+/**
+ * Security review AM-S11: the stage record's per-device choices stay on each device — whether made widgets are kept until
+ * closed, whether gentle cards are on, and which gentle cards this device showed today. Another device (or a tampered
+ * copy) cannot switch them here; the requests, the made widgets, their parameters and the dock travel.
+ */
+export const NOVA_STAGE_DEVICE_FIELDS: readonly string[] = ['keep', 'proactive', 'gentle'];
+
 type Loose = Record<string, unknown>;
 const isObject = (v: unknown): v is Loose => !!v && typeof v === 'object' && !Array.isArray(v);
 const size = (v: unknown) => Array.isArray(v) ? v.length : isObject(v) ? Object.keys(v).length : 0;
