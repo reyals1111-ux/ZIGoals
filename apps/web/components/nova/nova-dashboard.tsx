@@ -42,6 +42,7 @@ import type {StarBeam} from './core/star-system';
 import {useResting} from './core/use-resting';
 import type {StarReport} from './core/star-system';
 import {starDebug} from '../../lib/nova/core/star-debug';
+import {StageDepth, StageHud} from './stage/command-centre';
 import {sendToNova} from '../../lib/nova/bridge';
 import {STAGE_AGAIN_EVENT} from '../../lib/nova/stage/events';
 import {daysUntil, gentleCard} from '../../lib/nova/stage/proactive';
@@ -421,7 +422,9 @@ export default function NovaDashboard() {
   // NOVA's name and state do not move when the first widget is made.
   // Beside widgets the nebula keeps to the star's own column (about a third of the stage), so it never lies over a widget.
   const hudRoom = (hudSize?.height ?? height - 300) - 26, hudWide = hudSize?.width ?? width - 300, starSlot = hudRoom <= 520 ? 204 : hudRoom >= 640 ? 252 : 228, starRoom = (hudRoom - starSlot - 124) / 0.42;
-  const starCalm = width >= 1280 ? 560 : 460, starCap = stage.shown.length ? (hudWide >= 1100 ? 440 : hudWide >= 960 ? 340 : 300) : starCalm;
+  // Session AM-2 (ADR-038 "AM-2", G3): the star is larger — the hero of a calm stage (up to 940 px on a wide window) and
+  // still large beside widgets, where its light now lies behind the widgets' glass instead of stopping at its column.
+  const starCalm = width >= 2200 ? 940 : width >= 1700 ? 760 : width >= 1280 ? 600 : 460, starCap = stage.shown.length ? (hudWide >= 1900 ? 660 : hudWide >= 1500 ? 560 : hudWide >= 1100 ? 480 : hudWide >= 960 ? 360 : 300) : starCalm;
   const starSize = phone ? 260 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 110 : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.42);
   const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;
   const starWhy = starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
@@ -438,7 +441,7 @@ export default function NovaDashboard() {
     <a className="nova-skip" href="#nova-hud" onClick={e => { e.preventDefault(); root.current?.querySelector<HTMLElement>('#nova-hud')?.focus({preventScroll: true}); }}>Skip to the HUD</a>
     <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion && !resting} accent={accent}/></Suspense></LoadBoundary></div>
     {/* Session AL Part 11 (lane L8): the HUD's depth layers — a far grid plane and a near glow at the edges (decoration). */}
-    {holo && <div className="holo-depth" aria-hidden="true"><div className="holo-plane"/><div className="holo-glow"/></div>}
+    {holo && <div className="holo-depth" aria-hidden="true"><StageDepth/><div className="holo-plane"/><div className="holo-glow"/></div>}
     {left !== 'hidden' && <NovaLeft state={left} onCycle={cycleLeft} you={you} brain={brain} counts={counts} pages={p => isShown(pagesView, p)} earn={chain.earnShown} chess={isShown(pagesView, 'chess')} governance={chain.earn.governanceShown === true} chain={chain.chosen}
       persona={persona.name} onNova={openChat} onZigi={() => { if (launcherShown()) askZigi(''); else router.push('/app/zigi'); }} zigiStatus={brain.kind === 'none' ? 'calm' : 'on'} hermes={hermes}/>}
     <div className="nova-centre">
@@ -456,7 +459,7 @@ export default function NovaDashboard() {
         {!chatOpen && stage.shown.length === 0 && !answerNow && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={stageNode} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting}/>}</div>
+      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={stageNode} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">

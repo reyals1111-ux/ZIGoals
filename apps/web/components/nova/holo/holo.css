@@ -14,7 +14,12 @@
   background-image: linear-gradient(color-mix(in oklab, var(--nova-b, #63e7ff) 30%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--nova-a, #9273ff) 30%, transparent) 1px, transparent 1px);
   background-size: 64px 64px; -webkit-mask-image: linear-gradient(to top, #000 0%, #0008 45%, transparent 92%); mask-image: linear-gradient(to top, #000 0%, #0008 45%, transparent 92%); opacity: .4; }
 /* Review m4 (lane L8d): the far grid plane is perceptible — brighter, lower and shallower, under the command field. */
-.nova-frame[data-look=holo] .holo-plane { opacity: .6; height: 34%; bottom: 7%; }
+/* Session AM-2 (G1): the floor is a real plane now — a lit grid that runs from under the command bar to a horizon of
+   light at its far edge (the plane's own top edge, so the line is always where the grid ends). Static. */
+.nova-frame[data-look=holo] .holo-plane { opacity: .62; left: -70%; right: -70%; height: 150%; bottom: 0; background-size: 96px 96px; transform: perspective(900px) rotateX(62deg);
+  border-top: 5px solid color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff);
+  background-image: linear-gradient(color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent) 2px, transparent 2px), linear-gradient(90deg, color-mix(in oklab, var(--nova-a, #9273ff) 70%, transparent) 2px, transparent 2px);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000c 30%, #0007 100%); mask-image: linear-gradient(to top, #000 0%, #000c 30%, #0007 100%); }
 .holo-glow { position: absolute; inset: 0; background: radial-gradient(60% 40% at 50% 108%, color-mix(in oklab, var(--nova-c, #f06dff) 16%, transparent), transparent 70%), radial-gradient(40% 50% at -6% 50%, color-mix(in oklab, var(--nova-b, #63e7ff) 10%, transparent), transparent 70%), radial-gradient(40% 50% at 106% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 12%, transparent), transparent 70%); }
 
 /* ---- The panel (Session AM-2, ADR-038 "AM-2" F1: the hologram) ----
@@ -214,6 +219,17 @@
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(340px, 1.45fr) minmax(290px, .85fr) minmax(240px, 1fr); }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(240px, 1fr) minmax(290px, .85fr) minmax(340px, 1.45fr); }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(320px, 1.3fr) minmax(280px, .8fr) minmax(320px, 1.3fr); }
+}
+/* Session AM-2 (ADR-038 "AM-2", G3): a wide window is used, not left empty. From 1700 px of stage the widget wings and
+   the star's column all widen (the orbit was capped at 1560 px, a strip in the middle of a 2560 px screen), and the band
+   below holds four widgets a row. */
+@container nova-stage (min-width: 1700px) {
+  .nova-frame[data-look=holo] .nova-orbit { max-width: 2320px; }
+  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(380px, 1.2fr) minmax(460px, 1fr) minmax(380px, 1.2fr); gap: 28px; }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(460px, 1.5fr) minmax(440px, 1fr) minmax(360px, 1.1fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(360px, 1.1fr) minmax(440px, 1fr) minmax(460px, 1.5fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(440px, 1.35fr) minmax(420px, .9fr) minmax(440px, 1.35fr); }
+  .nova-frame[data-look=holo] .nova-orbit-band-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* "What still feels flat" 1 (lane L8d): each side column is one console wing — a faint glass plate behind its panels with

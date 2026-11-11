@@ -62,7 +62,7 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
   const letters = persona.name.toUpperCase().split('').join('·').replace(/·\s·/g, ' ');
   // Design review AM-D14: the words under the star live in a slot of fixed height (nova.css), so the star's centre is the
   // same with the greeting, a one-line answer or a long one; `data-answer` lets the sheet size what stands in the slot.
-  return <div className="nova-stage" data-holo-core={core ? '' : undefined} data-answer={answer ? '' : undefined}>
+  return <div className="nova-stage" data-holo-core={core ? '' : undefined} data-answer={answer ? '' : undefined} data-star={starOn && persona.avatar !== 'zigi' ? '' : undefined}>
     <svg className="nova-rings" viewBox="-500 -500 1000 1000" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
       <circle className="nova-ring nova-ring-1" r="190"/><circle className="nova-ring nova-ring-2" r="300"/><circle className="nova-ring nova-ring-3" r="420"/>
       {/* ND-16: both moons ride the middle ring, on arcs the side columns leave open. */}
@@ -70,6 +70,14 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
     </svg>
     <div className="nova-stage-above"><p className="nova-name" aria-hidden="true">{letters}</p></div>
     <button type="button" className="nova-orb-button" onClick={onTalk} aria-expanded={talkOpen} aria-controls={talkOpen ? "nova-talk" : undefined} aria-describedby="nova-orb-state" data-star={starOn && persona.avatar !== 'zigi' ? '' : undefined} style={starOn && starBox && persona.avatar !== 'zigi' ? {'--star-box': `${starBox}px`} as CSSProperties : undefined}>
+      {/* Session AM-2 (G1): the star's light streak, carried across the stage (decoration; components/nova/stage/command-centre.css). */}
+      {starOn && persona.avatar !== 'zigi' && <span className="cc-streak" aria-hidden="true"/>}
+      {/* Session AM-2 (G4): the star's bezel — a ring of fine ticks around the galaxy, turning slowly (an ornament: `holo-orn`,
+          the HUD's own slow spin under Full and Calm, still otherwise). It replaces AK's three orbit rings while the star draws. */}
+      {starOn && persona.avatar !== 'zigi' && <span className="cc-bezel holo-orn" aria-hidden="true"><svg viewBox="-100 -100 200 200" focusable="false">
+        <circle r="97" className="cc-bezel-line"/><circle r="92.5" className="cc-bezel-ticks" pathLength="360" strokeDasharray="0.22 2.78"/><circle r="91.5" className="cc-bezel-marks" pathLength="360" strokeDasharray="0.5 29.5"/>
+        <circle r="99.2" className="cc-bezel-arc" pathLength="360" strokeDasharray="38 142"/><circle r="85" className="cc-bezel-line" pathLength="360" strokeDasharray="1 5"/>
+      </svg></span>}
       {persona.avatar !== 'zigi' && star}
       {persona.avatar === 'zigi' ? <PersonaMark avatar="zigi" size={170} state={orb}/> : <NovaOrb state={orb} size={220}/>}
       <span className="sr-only">Talk to {persona.name}</span>
