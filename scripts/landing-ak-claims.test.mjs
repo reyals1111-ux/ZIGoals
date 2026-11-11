@@ -41,3 +41,27 @@ test("the privacy page names what the new pieces send, and the terms name the ne
   for (const line of ["Phone wallets (WalletConnect, when it is switched on)", "Notifications while ZIGoals is closed (off by default; being switched on)", "Lichess (when you connect it to play)", "USDA FoodData Central", "a photo of a nutrition label", "Files you import"]) expect(privacy).toContain(line);
   expect(terms).toContain("the financial freedom model are information and models, never advice or a promise");
 });
+
+// Session AM (ADR-038 A2, D12–D17): NOVA's one outside service is on the privacy page, off until turned on, with what
+// MET Norway receives and keeps, how often it is asked, the credit and licence, and the proxy that is not built yet.
+test("Session AM: the privacy page names MET Norway, off until turned on, with what it receives and its credit", () => {
+  const page = read("privacy.html"), privacy = text(page);
+  const item = privacy.match(/Weather in NOVA, from MET Norway \(off until you turn it on\):[^]*?required before a wider launch\./)?.[0] ?? "";
+  for (const line of [
+    "Weather (outside data)", "a city from a list that ships with the app, or a position you type",
+    "No geocoding service is asked, and your browser’s location is never requested.",
+    "only while a weather widget is on NOVA’s stage and the page is visible, your own browser asks api.met.no directly",
+    "rounded to two decimals (about 1 km)",
+    "MET Norway therefore sees your network (IP) address and that rounded place, and keeps both in its logs",
+    "No account, no key, no cookie, no other data; ZIGoals has no server in between and receives nothing.",
+    "At most one request per place per 10 minutes, and not before the previous reading’s expiry time.",
+    "The last reading (temperatures, symbols, sun times) is kept on your device",
+    "Credit: Data from MET Norway, licence CC BY 4.0",
+    "it cannot turn weather on, choose the place or fetch anything",
+    "a caching proxy that would hide your IP address from MET Norway",
+  ]) expect(item, line).toContain(line);
+  expect(page).toContain('<a href="https://www.met.no/en/About-us/privacy" rel="noopener noreferrer">');
+  expect(page).toContain('<a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener noreferrer">CC BY 4.0</a>');
+  // MET Norway's terms: the name of its consumer weather service is never used.
+  expect(privacy).not.toMatch(/\bYr\b/i);
+});
