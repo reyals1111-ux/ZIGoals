@@ -85,7 +85,15 @@ export function HoloOrbit({size}: {size: WidgetSize}) {
       <Orn><OrnMarks/></Orn>
       <div className="holo-ring-centre"><HoloFigure text={`${summary.done}/${summary.total}`} className="holo-num-ring"/>{size !== 'S' && <small>{unit}</small>}</div>
     </div>
-    <p className="holo-orbit-line">{summary.line}</p>
+    <div className="holo-orbit-side">
+      <p className="holo-orbit-line">{summary.line}</p>
+      {/* Round 2: what is still open on the orbit, as lit rows (the summary's own next items: lib/orbit-card/summary.ts). */}
+      {size !== 'S' && summary.next.length > 0 && <ol className="holo-next holo-orbit-next" aria-label="Next on your orbit">{summary.next.map(i => <li key={i.key} data-pillar={i.pillar}>
+        <span className="holo-next-time">{i.time ? formatClock(i.time) : '—'}</span>
+        <Link href={i.href} prefetch={false} title={i.label}>{i.label}</Link>
+        <small>{WHEN[i.when]}</small>
+      </li>)}</ol>}
+    </div>
     <HoloTable caption="Today’s orbit" rows={[['Done', `${summary.done} of ${summary.total} ${unit}`]]}/>
   </div>;
 }

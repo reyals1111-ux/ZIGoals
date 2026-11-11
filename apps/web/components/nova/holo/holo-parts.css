@@ -54,9 +54,9 @@
 .holo-big-line { margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
 .holo-big-line small { font-size: 15px; color: #cdd8ee; }
 /* The foot strip of a Health panel ("On your screen only"): a hairline, a lit dot, 14 px words. */
-.holo-tag { display: inline-flex; align-items: center; gap: 7px; min-height: 20px; line-height: 18px; padding: 0 9px 0 8px; border-radius: 3px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 38%, transparent); font-size: 14px; font-weight: 600; letter-spacing: .01em; color: #dfe7f8; background: color-mix(in oklab, var(--neon, #9273ff) 8%, transparent); justify-self: start; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.holo-tag::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--neon-2, #c0adff); box-shadow: 0 0 6px 1px var(--neon, #9273ff); }
-.holo-tag-estimate { margin-right: 6px; border-style: dashed; }
+.holo-tag { display: block; width: fit-content; max-width: 100%; box-sizing: border-box; min-height: 22px; line-height: 20px; padding: 0 9px 0 8px; border-radius: 3px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 38%, transparent); font-size: 14px; font-weight: 600; letter-spacing: .01em; color: #dfe7f8; background: color-mix(in oklab, var(--neon, #9273ff) 8%, transparent); justify-self: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.holo-tag::before { content: ''; display: inline-block; vertical-align: 1px; margin-right: 7px; width: 6px; height: 6px; border-radius: 50%; background: var(--neon-2, #c0adff); box-shadow: 0 0 6px 1px var(--neon, #9273ff); }
+.holo-tag-estimate { flex: none; margin-right: 6px; border-style: dashed; }
 .holo-hidden { margin: 0; font-size: 14px; color: #dde6f8; }
 .holo-hidden .nova-link { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
 
@@ -132,6 +132,7 @@
 .holo-stop-b { stop-color: var(--neon, #9273ff); stop-opacity: 0; }
 .holo-grid-lines { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 16%, #ffffff14); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .holo-grid-fine { stroke: color-mix(in oklab, var(--neon, #9273ff) 9%, #ffffff0a); }
+.holo-wave .holo-grid-lines { stroke: #ffd27a2e; } .holo-wave .holo-grid-fine { stroke: #ffd27a17; }
 .holo-target-line { fill: none; stroke: #ffffff8c; stroke-width: 1; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
 .holo-band { opacity: .6; }
 .holo-goals .holo-band { opacity: 1; }
@@ -182,23 +183,13 @@
 
 /* Health (magenta): the calorie ring in its bezel, the meters beside it, the hearts on their heartbeat trace, the foot strip. */
 .holo-health[data-size=S] .holo-split, .holo-habits[data-size=S] .holo-split { gap: 10px; }
-.holo-health[data-size=M] .holo-ring { --ring: clamp(84px, min(100cqh - 102px, 100cqi - 216px), 150px); }
-.holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 200px) / 3), 9px); }
-.holo-health[data-size=L] .holo-ring { --ring: clamp(110px, min(32cqh, 100cqi - 216px), 190px); }
-.holo-health[data-size=L] { gap: clamp(8px, calc(8px + (100cqh - 380px) * .04), 16px); --mgap: clamp(4px, calc(4px + (100cqh - 380px) * .04), 14px); }
-/* With a heart-rate line under the week, the week's chart and the gaps give their room to it. */
-.holo-health[data-size=L]:has(.holo-heartline) { gap: clamp(8px, calc(8px + (100cqh - 470px) * .04), 14px); --mgap: clamp(4px, calc(4px + (100cqh - 470px) * .04), 12px); --histo-h: clamp(48px, calc(48px + (100cqh - 470px) * .45), 110px); --spark-h: 40px; }
-.holo-health[data-size=S] .holo-ring { --ring: clamp(44px, calc(100cqh - 21px), 64px); }
 .holo-heartrow { position: relative; min-width: 0; }
-.holo-ecg { position: absolute; left: 0; top: 1px; width: 100%; height: 22px; overflow: visible; pointer-events: none; }
-.holo-ecg path { fill: none; stroke: color-mix(in oklab, var(--neon, #ff74be) 55%, transparent); stroke-width: 1.2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.holo-hearts { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0 6px; margin: 0; padding: 0; list-style: none; }
+.holo-hearts { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0 4px; margin: 0; padding: 0; list-style: none; }
 .holo-hearts li { display: grid; grid-template-columns: auto auto; grid-template-areas: "heart pct" "label label"; justify-content: center; justify-items: center; align-items: center; column-gap: 4px; row-gap: 0; min-width: 0; }
 .holo-hearts svg { grid-area: heart; width: 22px; height: 22px; overflow: visible; }
 .holo-hearts small { grid-area: label; max-width: 100%; font-size: 14px; line-height: 16px; color: #cdd8ee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* The shell hides the trace behind it (the same night glass), so each heart sits on the line like a bead. */
 .holo-heart-shell { fill: #0b0720; stroke: #ff8fd0; stroke-width: 1.5; }
-.holo-hearts .holo-heart-pct { grid-area: pct; padding: 0 2px; border-radius: 3px; background: #07091fe6; font-size: 14px; line-height: 18px; font-weight: 700; color: #ffd3ea; font-variant-numeric: tabular-nums; overflow: visible; }
+.holo-hearts .holo-heart-pct { grid-area: pct; font-size: 14px; line-height: 18px; font-weight: 700; color: #ffd3ea; font-variant-numeric: tabular-nums; overflow: visible; }
 .holo-heart-fill { fill: #ff5fb4; filter: drop-shadow(0 0 3px #ff4fb8) drop-shadow(0 0 7px #ff4fb899); }
 .holo-heart-beat { fill: none; stroke: #fff; stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
 .holo-hearts li[data-full] .holo-heart-shell { stroke: #ffd3ea; }
@@ -208,14 +199,7 @@
 .holo-ring-note { margin: 0 0 2px; }
 
 /* Habits (cyan): today's ring with the streaks' orbits inside it, the streak rows, the week's columns, the 30-day dial. */
-.holo-habits[data-size=M] .holo-today { --ring: clamp(84px, min(100cqh - 90px, 40cqi), 150px); }
-.holo-habits[data-size=L] .holo-today { --ring: clamp(110px, min(36cqh, 62cqi), 240px); align-self: center; }
-.holo-habits[data-size=L] .holo-split { flex-direction: column; align-items: stretch; gap: 14px; }
-.holo-habits[data-size=L] { gap: clamp(10px, 3cqh, 20px); }
-.holo-habits[data-size=L] .holo-streaks li { padding: 6px 0 7px; }
-.holo-habits[data-size=S] .holo-cols { --cols-h: clamp(36px, calc(100cqh - 16px), 60px); max-width: 220px; margin-left: auto; }
-.holo-habits[data-size=S] .holo-split { justify-content: space-between; }
-.holo-today .holo-num-ring, .nova-widget[data-size] .holo-today .holo-num-ring { font-size: clamp(13px, min(calc(var(--ring, 108px) * .18), calc(var(--ring, 108px) * .62 / var(--chars, 3))), 40px); }
+.holo-today .holo-num-ring, .nova-widget[data-size] .holo-today .holo-num-ring { font-size: clamp(13px, min(calc(var(--ring, 108px) * .2), calc(var(--ring, 108px) * .62 / var(--chars, 3))), 48px); }
 .holo-today .holo-ring-centre small { font-size: 14px; line-height: 15px; }
 .holo-today[data-small] .holo-ring-centre small { display: none; }
 .holo-streaks { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; min-width: 0; }
@@ -227,15 +211,9 @@
 .holo-streaks .holo-gauge { grid-column: 1 / -1; height: 4px; }
 .holo-stack-list { min-width: 0; flex: 1 1 0; }
 .holo-week-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.holo-habits[data-size=M] .holo-cols { --cols-h: 54px; }
-.holo-habits .holo-dial { --ring: 64px; margin-bottom: 15px; }
-.holo-habits[data-size=L] .holo-dial { --ring: clamp(84px, 20cqh, 120px); }
-.holo-habits[data-size=L] .holo-cols { --cols-h: clamp(56px, 16cqh, 96px); }
 
 /* Goals (violet): each goal's arc in its tick scale, then the pace line. */
 .holo-goals { gap: 6px; --arc: 64px; }
-.holo-goals[data-size=M] { --arc: clamp(48px, calc(100cqh - 146px), 96px); }
-.holo-goals[data-size=L] { --arc: clamp(64px, min(19cqh, 30cqi), 132px); gap: clamp(6px, 2cqh, 14px); }
 .holo-goals[data-size=S] { --arc: clamp(44px, calc(100cqh - 16px), 64px); grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 8px; }
 .holo-goals[data-size=S] .holo-arc-name { margin-top: 0; }
 .holo-arcs { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
@@ -249,7 +227,6 @@
 .holo-arc-box .holo-glint { stroke-width: 1.2; }
 .holo-arc-box .holo-lead { width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; }
 .holo-arc-box .holo-lead::after { inset: -5px; }
-.holo-goals .holo-num-arc { font-size: clamp(14px, calc(var(--arc, 64px) * .25), 26px); }
 /* m2: names get the room they need — a goal's name may take two lines (then an ellipsis). */
 .holo-arc-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; min-height: 0; min-width: 0; max-width: 100%; overflow: hidden; overflow-wrap: break-word; white-space: normal; text-align: center; margin-top: -6px; font-size: 14px; line-height: 17px; font-weight: 600; color: #eef3ff; }
 .holo-arcs .holo-pace-words { margin: 0; font-size: 14px; line-height: 16px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c9d4ea; }
@@ -266,8 +243,6 @@
 /* The pace chart's own names, placed over it (Target on its line, Today at its x). The chart keeps them inside its box. */
 .holo-pace-chart { position: relative; overflow-x: clip; overflow-clip-margin: 4px; border-left: 1px solid color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); }
 .holo-pace-chart .holo-pace { height: var(--pace-h, 52px); }
-.holo-goals[data-size=M] { --pace-h: 44px; }
-.holo-goals[data-size=L] { --pace-h: clamp(48px, calc(20cqh - 20px), 120px); }
 .holo-pace-dot { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px var(--neon, #9273ff), 0 0 9px 2px var(--neon, #9273ff), 0 0 20px 4px color-mix(in oklab, var(--neon, #9273ff) 45%, transparent); pointer-events: none; }
 .holo-chart-tag { position: absolute; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: .06em; color: var(--neon-ink, #e2d9ff); background: #070b1fd9; padding: 0 4px; border-radius: 3px; pointer-events: none; white-space: nowrap; }
 .holo-chart-tag[data-at=target] { right: 3px; transform: translateY(18%); }
@@ -316,25 +291,23 @@
     linear-gradient(var(--c), var(--c)) bottom right / 12px 2px no-repeat, linear-gradient(var(--c), var(--c)) bottom right / 2px 12px no-repeat; }
 .holo-frame > svg { display: block; width: 100%; height: auto; overflow: visible; }
 .holo-frame-label { position: absolute; font-size: 14px; line-height: 16px; color: #d7e0f3; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.holo-frame-label[data-at=top] { top: 1px; right: 12px; } .holo-frame-label[data-at=bottom] { bottom: 2px; right: 12px; }
-.holo-frame-label[data-at=from] { bottom: 2px; left: 8px; } .holo-frame-label[data-at=title] { top: 1px; left: 8px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #fff0cf; }
+.holo-frame-label[data-at=top] { top: 1px; right: 18px; } .holo-frame-label[data-at=bottom] { bottom: 2px; right: 18px; }
+.holo-frame-label[data-at=from] { bottom: 2px; left: 18px; } .holo-frame-label[data-at=title] { top: 1px; left: 18px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #fff0cf; }
 /* Review p8 (lane L8d): "max" and "min" say what the corner figures are. */
 .holo-frame-key { font-weight: 700; color: #ffe6b3; text-transform: uppercase; letter-spacing: .08em; font-size: 14px; }
 .holo-wave-plot { position: relative; }
 .holo-wave-plot svg { display: block; width: 100%; height: var(--wave-h, 48px); overflow: visible; }
-.holo-wealth[data-size=M] { --wave-h: clamp(34px, calc(100cqh - 176px), 96px); }
-.holo-wealth[data-size=L] { --wave-h: clamp(48px, calc(100cqh - 404px), 150px); }
 .holo-wave-dot { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px #ffd27a, 0 0 9px 2px #ffbf3c, 0 0 22px 5px #ffbf3c66; }
 .holo-wave-dot[data-now] { background: #070b1f; box-shadow: none; border: 1.5px dashed #ffe08a; width: 10px; height: 10px; margin: -5px 0 0 -5px; }
-/* The highest and lowest records, marked on the line: a small tick up at the max, down at the min. */
-.holo-wave-mark { position: absolute; width: 1px; height: 9px; margin-left: -.5px; background: #fff0cf; box-shadow: 0 0 6px 1px #ffbf3c; pointer-events: none; }
-.holo-wave-mark[data-at=max] { transform: translateY(-13px); }
-.holo-wave-mark[data-at=min] { transform: translateY(4px); }
-.holo-wave-mark::after { content: ''; position: absolute; left: -2.5px; width: 6px; height: 1px; background: #fff0cf; }
-.holo-wave-mark[data-at=max]::after { top: 0; } .holo-wave-mark[data-at=min]::after { bottom: 0; }
-.holo-wave-tag { position: absolute; transform: translate(calc(-100% - 8px), -50%); padding: 0 4px; border-radius: 3px; background: #070b1fd9; font-size: 14px; line-height: 15px; font-weight: 700; color: #fff0cf; font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; }
-.holo-wave-tag[data-at=now] { color: #fff2c9; font-weight: 600; transform: translate(calc(-100% - 9px), 20%); }
-.holo-wave-tag[data-at=now][data-low] { transform: translate(calc(-100% - 9px), -120%); }
+.holo-wave-mark { position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; transform: rotate(45deg); border: 1.5px solid #fff0cf; background: #070b1f; box-shadow: 0 0 6px 1px #ffbf3c; box-sizing: border-box; pointer-events: none; }
+.holo-wave-guide { fill: none; stroke: #ffe6b3; stroke-opacity: .34; stroke-width: 1; stroke-dasharray: 2 5; vector-effect: non-scaling-stroke; }
+/* The key in the plot's free corner: the last record's value and "now", each after its point's own mark. */
+.holo-wave-legend { position: absolute; left: 6px; display: grid; justify-items: start; gap: 1px; pointer-events: none; }
+.holo-wave-legend[data-corner=top] { top: 3px; } .holo-wave-legend[data-corner=bottom] { bottom: 3px; }
+.holo-wave-tag { display: inline-flex; align-items: center; gap: 6px; padding: 0 5px; border-radius: 3px; background: #070b1fd9; font-size: 14px; line-height: 16px; font-weight: 700; color: #fff0cf; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.holo-wave-tag::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px #ffd27a, 0 0 6px 1px #ffbf3c; }
+.holo-wave-tag[data-at=now] { color: #fff2c9; font-weight: 600; }
+.holo-wave-tag[data-at=now]::before { background: #070b1f; box-shadow: none; border: 1.5px dashed #ffe08a; box-sizing: border-box; width: 9px; height: 9px; }
 .holo-now-link { fill: none; stroke: #ffe08a; stroke-width: 1.2; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; opacity: .8; }
 .holo-ruler-bars { fill: none; stroke: color-mix(in oklab, var(--neon, #ffd27a) 44%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .holo-wave-a { stop-color: #ffb445; } .holo-wave-b { stop-color: #fff0cf; }
@@ -357,7 +330,6 @@
 .holo-histo { display: grid; gap: 2px; }
 .holo-histo-plot { position: relative; }
 .holo-histo-plot > svg { display: block; width: 100%; height: var(--histo-h, 64px); overflow: visible; }
-.holo-health[data-size=L] { --histo-h: clamp(48px, calc(48px + (100cqh - 380px) * .45), 130px); --spark-h: 40px; }
 .holo-histo-line-tag { position: absolute; right: 0; transform: translateY(-115%); padding: 0 4px; border-radius: 3px; background: #070b1fd9; font-size: 14px; line-height: 14px; font-weight: 700; color: #f4f7ff; font-variant-numeric: tabular-nums; }
 .holo-bar-a { stop-color: var(--neon, #ff74be); stop-opacity: .34; } .holo-bar-b { stop-color: var(--neon, #ff74be); stop-opacity: 1; }
 .holo-bar { filter: drop-shadow(0 0 3px color-mix(in oklab, var(--neon, #ff74be) 80%, transparent)); }
@@ -371,13 +343,8 @@
 
 /* The Agenda clock (ice): a compass-like bezel sized to its panel, then the next rows with their lit nodes. */
 .holo-agenda { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 14px; }
-.holo-agenda > .sr-only, .holo-goals > .sr-only, .holo-orbit > .sr-only { position: absolute; }
-.holo-agenda[data-size=M] .holo-clock { --ring: clamp(96px, min(100cqh - 14px, 42cqi), 190px); }
-.holo-agenda[data-size=L] .holo-clock { --ring: clamp(120px, min(46cqh, 54cqi), 260px); }
-.holo-agenda[data-size=L] { grid-template-columns: minmax(0, 1fr); justify-items: center; row-gap: 12px; }
 .holo-agenda[data-size=S] .holo-clock .holo-num-ring { font-size: clamp(12px, calc(64px * .9 / var(--chars, 3)), 16px); }
 .holo-agenda[data-size=S] .holo-next li { padding-top: 0; }
-.holo-agenda[data-size=L] .holo-agenda-side { width: 100%; }
 .holo-clock { overflow: visible; }
 .holo-clock-day .holo-arc { stroke-width: 3; opacity: .82; }
 .holo-clock .holo-track { stroke-width: 3; }
@@ -429,10 +396,6 @@
 
 /* Today's orbit: a bezelled ring whose lit planets ride a gradient arc, the day's next step beside it. */
 .holo-orbit { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 16px; }
-.holo-orbit[data-size=S] { column-gap: 14px; }
-.holo-orbit[data-size=M] .holo-orbit-ring { --ring: clamp(96px, min(100cqh - 14px, 50cqi), 190px); }
-.holo-orbit[data-size=L] .holo-orbit-ring { --ring: clamp(120px, min(52cqh, 70cqi), 280px); }
-.holo-orbit[data-size=L] { grid-template-columns: minmax(0, 1fr); justify-items: center; row-gap: 12px; text-align: center; }
 .holo-orbit-ring .holo-track { stroke-width: 2; }
 .holo-orbit-arc .holo-arc { stroke-width: 2.6; }
 .holo-orbit-ring .holo-num-ring, .nova-widget[data-size] .holo-orbit-ring .holo-num-ring { font-size: clamp(14px, min(calc(var(--ring, 120px) * .24), calc(var(--ring, 120px) * .9 / var(--chars, 3))), 56px); }
@@ -653,74 +616,251 @@
 /* p6: the ring's column — the ring, its caption, and its reason under it. */
 .holo-ring-col { display: grid; justify-items: center; align-content: center; gap: 0; flex: none; max-width: 190px; }
 .holo-ring-col > .holo-ring-note { max-width: 132px; margin: 0; text-align: center; font-size: 14px; line-height: 1.3; }
-.holo-health[data-size=M] .holo-ring-col:has(> .holo-ring-note) .holo-ring { --ring: clamp(72px, min(100cqh - 138px, 100cqi - 214px), 150px); }
 /* Release review AL (RR-9): a meter's value never runs past its panel ("1,000 mL / 2,000 n" at 1440 × 900): when "value /
    target" does not fit beside its label the target goes under the value, whole. */
 .holo-health .holo-meter-value { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; column-gap: .3em; line-height: 18px; min-width: 0; }
 
-/* ==== B1: each instrument drops whole rows to fit its panel (its body is the `holo-body` size container in Holo's
-   fixed-height layouts); a phone's panels have no height to fit, so these never apply there (cqh then reads the window's
-   height, and every ring takes its largest size). Width rules keep figures whole (M1). ==== */
-/* Health: the hearts go first, then the foot strip; a short panel's meters are one line each. */
-@container holo-body (max-height: 204px) {
-  .holo-health .holo-heartrow { display: none; }
-  .holo-health[data-size=M] .holo-ring { --ring: clamp(72px, min(100cqh - 54px, 100cqi - 214px), 150px); }
+/* ==== AM-2 round 2: THE SCALE RULE, and whole rows only (B1) ====
+   An instrument fills its panel at every size. Its body is the `holo-body` size container in Holo's fixed-height
+   layouts, so every ring, chart and hero figure is sized from the body's own height (cqh) and width (cqi), and each
+   instrument has two arrangements: stacked in a narrow body (about 250–560 px wide) and side by side in a wide one (a
+   2560 px screen gives a medium panel about 730 × 195 px). Whole rows drop below the heights written beside each rule
+   (the sums are in the comments: a row is never cut in half). A phone's or the band's panel has no height to fit: there
+   cqh reads the stage's or the window's height, every `max-height` query is false, and each instrument takes its
+   width-limited size. ==== */
+.holo-health > .sr-only, .holo-habits > .sr-only, .holo-wealth > .sr-only, .holo-agenda > .sr-only, .holo-goals > .sr-only, .holo-orbit > .sr-only { position: absolute; }
+
+/* ---- Health. Rows: the ring (R + 18 for its caption, + 40 for a reason under it) beside the meters (29 each + gaps),
+   the hearts (38), the foot strip (22); 8 between rows. A meter's label gives way before its value ever wraps. ---- */
+.holo-health { --note: 0px; }
+.holo-ring-col:has(> .holo-ring-note) { --note: 40px; }
+.holo-health .holo-heartrow { display: none; }
+.holo-health .holo-meter { grid-template-columns: minmax(0, 1fr) minmax(0, max-content); }
+.holo-health .holo-meter-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.holo-health[data-size=S] .holo-ring { --ring: clamp(44px, calc(100cqh - 21px), 64px); }
+.holo-health:is([data-size=M], [data-size=L]) .holo-split { gap: 10px; }
+/* M, stacked, no hearts: max(R + 18, 116 + 3g) + 8 + 22 ≤ h. */
+.holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 206px), 190px); }
+.holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 150px) / 3), 9px); }
+/* L, stacked: the ring row, the week's chart, then (with heart-rate data) its line; the gaps and the chart share the slack above 380 px. */
+.holo-health[data-size=L] .holo-ring { --ring: clamp(96px, min(32cqh, 100cqi - 206px), 190px); }
+.holo-health[data-size=L] { gap: clamp(8px, calc(8px + (100cqh - 380px) * .04), 16px); --mgap: clamp(4px, calc(4px + (100cqh - 380px) * .04), 14px); --histo-h: clamp(48px, calc(48px + (100cqh - 380px) * .45), 130px); --spark-h: 40px; }
+.holo-health[data-size=L]:has(.holo-heartline) { gap: clamp(8px, calc(8px + (100cqh - 470px) * .04), 14px); --mgap: clamp(4px, calc(4px + (100cqh - 470px) * .04), 12px); --histo-h: clamp(48px, calc(48px + (100cqh - 470px) * .45), 110px); }
+/* The hearts' row needs 360 px for five tiles that do not touch (63 px each). With it: max(R + 18, 116 + 3g) + 8 + 38 + 8 + 22 ≤ h. */
+@container holo-body (min-width: 360px) {
+  .holo-health:is([data-size=M], [data-size=L]) .holo-heartrow { display: block; }
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 102px - var(--note), 100cqi - 206px), 190px); }
+  .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 200px) / 3), 9px); }
 }
-@container holo-body (max-height: 172px) {
-  .holo-health .holo-tag { display: none; }
-  .holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 22px, 100cqi - 214px), 150px); }
-  .holo-health[data-size=M] .holo-meters { gap: 4px; }
-  .holo-health[data-size=M] .holo-meter { grid-template-columns: minmax(52px, max-content) minmax(24px, 1fr) max-content; grid-template-areas: "label segs value" "note note note"; align-items: center; row-gap: 0; }
+/* A medium panel's meters keep their reasons in their tooltips and the table below 300 px (three reasons are 51 px). */
+@container holo-body (max-height: 299px) { .holo-health[data-size=M] .holo-meter .holo-note { display: none; } }
+/* Below 214 px the stacked hearts go (whole), and the ring and the gaps take their room back. */
+@container holo-body (max-height: 213px) and (max-width: 559.98px) {
+  .holo-health[data-size=M] .holo-heartrow { display: none; }
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 206px), 190px); }
+  .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 150px) / 3), 9px); }
 }
-@container holo-body (max-width: 300px) {
-  .holo-health[data-size=M] .holo-meter:nth-child(n + 4), .holo-health[data-size=M] .holo-heartrow { display: none; }
-  .holo-health .holo-split { gap: 10px; }
-  .holo-meter-label { letter-spacing: .02em; }
-  .holo-streaks .holo-gauge { display: none; }
+/* Wide: the ring at the body's height, the meters, the hearts as a column, the strip under the meters and the hearts.
+   max(R + 18, max(116 + 3g, 122) + 8 + 22) ≤ h. */
+@container holo-body (min-width: 560px) {
+  .holo-health:is([data-size=M], [data-size=L]) { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 24px; }
+  .holo-health:is([data-size=M], [data-size=L]) .holo-split { display: contents; }
+  .holo-health:is([data-size=M], [data-size=L]) .holo-ring-col { grid-column: 1; grid-row: 1 / span 2; }
+  .holo-health:is([data-size=M], [data-size=L]) .holo-meters { grid-column: 2; grid-row: 1; }
+  .holo-health:is([data-size=M], [data-size=L]) .holo-heartrow { display: block; grid-column: 3; grid-row: 1; }
+  .holo-health:is([data-size=M], [data-size=L]) .holo-tag { grid-column: 2 / -1; grid-row: 2; }
+  .holo-health:is([data-size=M], [data-size=L]) .holo-hearts { grid-auto-flow: row; grid-auto-columns: auto; gap: 3px 0; }
+  .holo-health:is([data-size=M], [data-size=L]) .holo-hearts li { grid-template-columns: 22px 40px auto; grid-template-areas: "heart pct label"; justify-content: start; justify-items: start; column-gap: 6px; }
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(64px, calc(100cqh - 22px - var(--note)), 190px); }
+  .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 150px) / 3), 10px); }
+  /* L, wide: the ring row (ring, six meters, hearts), then the week's chart at the body's width, the heart line, the strip. */
+  .holo-health[data-size=L] .holo-ring-col { grid-row: 1; }
+  .holo-health[data-size=L] :is(.holo-week-kcal, .holo-heartline, .holo-tag) { grid-column: 1 / -1; grid-row: auto; }
+  .holo-health[data-size=L] { column-gap: 24px; --histo-h: clamp(48px, calc(100cqh - 334px), 180px); }
+  .holo-health[data-size=L]:has(.holo-heartline) { --histo-h: clamp(48px, calc(100cqh - 410px), 160px); }
+  .holo-health[data-size=L] .holo-ring { --ring: clamp(96px, min(42cqh, 24cqi), 190px); }
 }
+/* Below 161 px the foot strip goes; below 131 px a medium panel keeps three meters, below 99 px two; a wide one's hearts go below 126 px. */
+@container holo-body (max-height: 160px) { .holo-health[data-size=M] .holo-tag { display: none; } }
+@container holo-body (max-height: 160px) and (max-width: 559.98px) {
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(56px, min(100cqh - 20px - var(--note), 100cqi - 206px), 190px); }
+  .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 120px) / 3), 9px); }
+}
+@container holo-body (max-height: 160px) and (min-width: 560px) { .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 120px) / 3), 10px); } }
+@container holo-body (max-height: 130px) { .holo-health[data-size=M] .holo-meter:nth-child(n + 4) { display: none; } .holo-health[data-size=M] { --mgap: 3px; } }
+@container holo-body (max-height: 125px) and (min-width: 560px) { .holo-health[data-size=M] .holo-heartrow { display: none; } }
+@container holo-body (max-height: 98px) { .holo-health[data-size=M] .holo-meter:nth-child(n + 3) { display: none; } }
 @container holo-body (max-height: 445px) { .holo-health[data-size=L] .holo-heartline { display: none; } }
 @container holo-body (max-height: 372px) { .holo-health[data-size=L] .holo-week-kcal { display: none; } }
-/* Habits: the week's row goes, and today's ring takes the height. */
-@container holo-body (max-height: 190px) {
-  .holo-habits .holo-week-row { display: none; }
-  .holo-habits[data-size=M] .holo-today { --ring: clamp(64px, min(100cqh - 4px, 40cqi), 150px); }
+
+/* ---- Habits. Rows: today's ring (R) beside the streaks (35 a row, 105), then the week (79: columns 54 + 18, dial 64 + 15). ---- */
+.holo-habits .holo-dial { --ring: 64px; margin-bottom: 15px; }
+.holo-habits[data-size=S] .holo-cols { --cols-h: clamp(36px, calc(100cqh - 16px), 60px); max-width: 220px; margin-left: auto; }
+.holo-habits[data-size=S] .holo-split { justify-content: space-between; }
+/* M, stacked: max(R, 105) + 8 + 79 ≤ h. */
+.holo-habits[data-size=M] .holo-today { --ring: clamp(72px, min(100cqh - 94px, 40cqi), 190px); }
+.holo-habits[data-size=M] .holo-cols { --cols-h: 54px; }
+/* L, stacked: the ring over the streaks, then the week. */
+.holo-habits[data-size=L] .holo-today { --ring: clamp(110px, min(36cqh, 62cqi), 240px); align-self: center; }
+.holo-habits[data-size=L] .holo-split { flex-direction: column; align-items: stretch; gap: 14px; }
+.holo-habits[data-size=L] { gap: clamp(10px, 3cqh, 20px); }
+.holo-habits[data-size=L] .holo-streaks li { padding: 6px 0 7px; }
+.holo-habits[data-size=L] .holo-dial { --ring: clamp(84px, 20cqh, 120px); }
+.holo-habits[data-size=L] .holo-cols { --cols-h: clamp(56px, 16cqh, 96px); }
+@container holo-body (max-height: 199px) and (max-width: 639.98px) {
+  .holo-habits[data-size=M] .holo-week-row { display: none; }
+  .holo-habits[data-size=M] .holo-today { --ring: clamp(64px, min(100cqh - 4px, 40cqi), 190px); }
 }
-@container holo-body (max-height: 132px) { .holo-habits .holo-streaks .holo-gauge { display: none; } }
-/* Goals: the pace words, then the pace line; the arcs take what is left. */
-@container holo-body (max-height: 206px) {
-  .holo-goals .holo-arcs .holo-pace-words { display: none; }
-  .holo-goals[data-size=M] { --arc: clamp(44px, calc(100cqh - 126px), 96px); --pace-h: 40px; }
+/* Wide: one row — the ring at the body's height, the streaks, the week's columns at the body's height, the dial. */
+@container holo-body (min-width: 640px) {
+  .holo-habits[data-size=M] { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 26px; }
+  .holo-habits[data-size=M] .holo-split { gap: 22px; }
+  .holo-habits[data-size=M] .holo-today { --ring: clamp(72px, min(100cqh - 4px, 24cqi), 190px); }
+  .holo-habits[data-size=M] .holo-week-row { align-items: center; gap: 18px; }
+  .holo-habits[data-size=M] .holo-cols { --cols-h: clamp(40px, calc(100cqh - 32px), 150px); flex: none; width: 170px; }
+  .holo-habits[data-size=M] .holo-dial { --ring: clamp(56px, min(100cqh - 26px, 13cqi), 110px); }
+  /* L, wide: the ring beside the streaks (R ≤ h − 190), the week under them (135). */
+  .holo-habits[data-size=L] .holo-split { flex-direction: row; align-items: center; gap: 26px; }
+  .holo-habits[data-size=L] .holo-today { --ring: clamp(110px, min(100cqh - 190px, 36cqi), 260px); }
+  .holo-habits[data-size=L] .holo-streaks li { padding: 10px 0 11px; }
+  .holo-habits[data-size=L] .holo-cols { --cols-h: 100px; }
+  .holo-habits[data-size=L] .holo-dial { --ring: 112px; }
 }
-@container holo-body (max-height: 150px) {
-  .holo-goals .holo-pace-box { display: none; }
-  .holo-goals[data-size=M] { --arc: clamp(44px, calc(100cqh - 44px), 96px); }
+@container holo-body (max-height: 110px) { .holo-habits[data-size=M] .holo-streaks .holo-gauge { display: none; } }
+@container holo-body (max-width: 300px) { .holo-habits .holo-streaks .holo-gauge { display: none; } }
+
+/* ---- Goals. Rows: the arcs (A + 28 for a name of two lines + 16 for the pace words + 2), the pace box (P + 47). ---- */
+/* M, stacked: (A + 50) + 6 + (36 + 42) ≤ h, from 190 px (the pace line stays in view at a laptop's height); below that the arcs alone, as large as the body lets them be. */
+.holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 140px, calc((100cqi - 16px) / 3)), 132px); --pace-h: 36px; }
+.holo-goals[data-size=L] { --arc: clamp(64px, min(19cqh, 30cqi), 132px); --pace-h: clamp(48px, calc(20cqh - 20px), 120px); gap: clamp(6px, 2cqh, 14px); }
+.holo-goals .holo-num-arc { font-size: clamp(14px, calc(var(--arc, 64px) * .25), 36px); }
+@container holo-body (max-height: 189px) and (max-width: 559.98px) {
+  .holo-goals[data-size=M] .holo-pace-box { display: none; }
+  .holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 54px, calc((100cqi - 16px) / 3)), 132px); }
 }
-/* Wealth: the mix dial, the note, the set-aside meter, then the line; the line takes the height that is left. */
-@container holo-body (max-height: 289px) { .holo-wealth[data-size=M] .holo-wealth-mid { display: none; } }
-@container holo-body (max-height: 205px) {
-  .holo-wealth .holo-wealth-head .holo-note { display: none; }
-  .holo-wealth[data-size=M] { --wave-h: clamp(34px, calc(100cqh - 158px), 96px); }
+/* Wide: the arcs at the body's height (A + 46 ≤ h) beside the pace line at the body's height (P + 47 ≤ h). */
+@container holo-body (min-width: 560px) {
+  .holo-goals[data-size=M] { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 26px; --arc: clamp(44px, min(100cqh - 54px, 17cqi), 140px); --pace-h: clamp(40px, calc(100cqh - 56px), 150px); }
+  .holo-goals[data-size=M] .holo-arcs { grid-template-columns: repeat(var(--n, 3), calc(var(--arc) + 22px)); }
+  .holo-goals[data-size=M] .holo-estimate-note { display: none; }
+  /* L, wide: the arcs over the next goals' sliders (A + 46 + 10 + 180 ≤ h), the pace line beside them. */
+  .holo-goals[data-size=L] { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "arcs pace" "sliders pace"; align-items: center; align-content: center; column-gap: 28px; --arc: clamp(64px, min(100cqh - 250px, 16cqi), 140px); --pace-h: clamp(64px, calc(100cqh - 120px), 200px); }
+  .holo-goals[data-size=L] .holo-arcs { grid-area: arcs; }
+  .holo-goals[data-size=L] .holo-sliders { grid-area: sliders; }
+  .holo-goals[data-size=L] :is(.holo-pace-box, .holo-more) { grid-area: pace; }
 }
-@container holo-body (max-height: 195px) {
-  .holo-wealth .holo-purpose { display: none; }
-  .holo-wealth[data-size=M] { --wave-h: clamp(34px, calc(100cqh - 120px), 96px); }
+/* Below 119 px the pace words go (A + 30 ≤ h). */
+@container holo-body (max-height: 118px) {
+  .holo-goals[data-size=M] .holo-arcs .holo-pace-words { display: none; }
+  .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 38px, calc((100cqi - 16px) / 3)), 132px); }
 }
-@container holo-body (max-height: 155px) {
-  .holo-wealth .holo-num-big { font-size: clamp(22px, calc(100cqi / (var(--chars, 6) * .58)), 30px); }
-  .holo-wealth[data-size=M] { --wave-h: clamp(30px, calc(100cqh - 102px), 96px); }
-}
-@container holo-body (max-height: 131px) { .holo-wealth .holo-wave { display: none; } }
-@container holo-body (max-height: 64px) { .holo-wealth .holo-wealth-head .holo-label { display: none; } }
+@container holo-body (max-height: 118px) and (min-width: 560px) { .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 38px, 17cqi), 140px); } }
+@container holo-body (max-height: 103px) and (min-width: 560px) { .holo-goals[data-size=M] .holo-pace-box { display: none; } }
+
+/* ---- Wealth. Rows: the head (label 18, the figure F × 1.04, a note 17), the frame (W + 44), the set-aside meter (33). ---- */
+.holo-wealth-head .holo-label, .holo-wealth-head .holo-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* M, stacked, from 246 px: 18 + 48 + 17 + 2, 8, W + 44, 8, 33. */
+.holo-wealth[data-size=M] { --wave-h: clamp(34px, calc(100cqh - 182px), 150px); }
+/* L, stacked: the head (66), the frame, then the mix (130) and the purpose flow (91), one over the other below 440 px. */
+.holo-wealth[data-size=L] { --wave-h: clamp(48px, calc(100cqh - 416px), 220px); }
+@container holo-body (max-width: 340px) { .holo-wealth-head .holo-label { letter-spacing: .05em; } }
 @container holo-body (max-width: 440px) { .holo-estimate-note, .holo-purpose-free { display: none; } }
 @container holo-body (min-width: 440px) {
   .holo-wealth[data-size=L] .holo-wealth-lower { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; column-gap: 16px; }
+  .holo-wealth[data-size=L] { --wave-h: clamp(48px, calc(100cqh - 286px), 240px); }
 }
-/* AM-D24: with 14 px labels the wealth chart's title and its highest figure no longer share the top edge of a narrow panel; the title steps aside there (the panel's own heading says what is drawn). */
-@container holo-body (max-width: 420px) { .holo-frame-label[data-at=title] { display: none; } }
-/* The Agenda clock: its third row, then its second. */
-@container holo-body (max-height: 182px) { .holo-agenda .holo-next li:nth-child(3) { display: none; } }
-@container holo-body (max-height: 130px) { .holo-agenda .holo-next li:nth-child(2) { display: none; } }
-@container holo-body (max-width: 300px) { .holo-agenda[data-size=M] .holo-clock { --ring: clamp(84px, min(100cqh - 14px, 40cqi), 190px); } .holo-agenda { column-gap: 10px; } }
+/* A medium panel shows its mix dial only where it has no height to fit (a phone, the band). */
+@container holo-body (max-height: 330px) { .holo-wealth[data-size=M] .holo-wealth-mid { display: none; } }
+/* 200–245 px: the note goes; the frame takes what the label, the figure (19.8cqh, at most 48) and the meter leave. */
+@container holo-body (max-height: 245px) and (max-width: 559.98px) {
+  .holo-wealth[data-size=M] .holo-wealth-head .holo-note { display: none; }
+  .holo-wealth[data-size=M] { --wave-h: clamp(34px, calc(100cqh - 118px - min(48px, 19.8cqh)), 150px); }
+}
+/* Below 200 px the set-aside meter goes. */
+@container holo-body (max-height: 203px) and (max-width: 559.98px) {
+  .holo-wealth[data-size=M] .holo-purpose { display: none; }
+  .holo-wealth[data-size=M] { --wave-h: clamp(34px, calc(100cqh - 78px - min(48px, 19.8cqh)), 150px); }
+}
+/* Wide: the head over the set-aside meter on the left (18 + F + 17 + 10 + 33 ≤ h), the frame at the body's height on the right. */
+@container holo-body (min-width: 560px) {
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-wealth-head .holo-label { letter-spacing: .06em; }
+  .holo-wealth:is([data-size=M], [data-size=L]) { grid-template-columns: minmax(0, 44%) minmax(0, 1fr); grid-template-areas: "head wave" "lower wave"; grid-template-rows: auto auto; align-content: center; column-gap: 26px; row-gap: 10px; }
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-wealth-head { grid-area: head; }
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-wave { grid-area: wave; align-self: center; }
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-wealth-lower { grid-area: lower; }
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-num-big { font-size: clamp(24px, min(calc(40cqi / (var(--chars, 6) * .58)), 25cqh), 56px); }
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-purpose-free { display: none; }
+  .holo-wealth[data-size=M] { --wave-h: clamp(30px, calc(100cqh - 48px), 260px); }
+  .holo-wealth[data-size=L] { --wave-h: clamp(48px, calc(100cqh - 48px), 260px); }
+  .holo-wealth[data-size=L] .holo-wealth-lower { grid-template-columns: minmax(0, 1fr); }
+}
+@container holo-body (max-height: 150px) and (min-width: 560px) { .holo-wealth[data-size=M] .holo-wealth-head .holo-note { display: none; } }
+@container holo-body (max-height: 132px) and (min-width: 560px) { .holo-wealth[data-size=M] .holo-purpose { display: none; } }
+@container holo-body (max-height: 360px) and (min-width: 560px) { .holo-wealth[data-size=L] .holo-wealth-mid { display: none; } }
+/* Below 141 px a stacked panel's figure is 30 px (18 + 32 + 8 + W + 44 ≤ h); below 131 px the line goes; below 65 px the label. */
+@container holo-body (max-height: 140px) and (max-width: 559.98px) {
+  .holo-wealth[data-size=M] .holo-num-big { font-size: clamp(22px, calc(100cqi / (var(--chars, 6) * .58)), 30px); }
+  .holo-wealth[data-size=M] { --wave-h: clamp(26px, calc(100cqh - 106px), 150px); }
+}
+@container holo-body (max-height: 131px) and (max-width: 559.98px) { .holo-wealth[data-size=M] .holo-wave { display: none; } }
+@container holo-body (max-height: 64px) { .holo-wealth .holo-wealth-head .holo-label { display: none; } }
+/* AM-D24: the chart's title and its highest figure do not share the top edge of a narrow frame; the title steps aside there (the panel's own heading says what is drawn). */
+.holo-frame-label[data-at=title] { display: none; }
+@container holo-body (min-width: 800px) { .holo-frame-label[data-at=title] { display: block; } }
+
+/* ---- The Agenda clock. The dial at the body's height beside its rows: the count (30), then 50 a row (stacked) or 45 (wide, one line each). ---- */
+.holo-agenda[data-size=M] .holo-clock { --ring: clamp(84px, min(100cqh - 10px, 42cqi), 190px); }
+.holo-agenda[data-size=L] .holo-clock { --ring: clamp(120px, min(46cqh, 54cqi), 260px); }
+.holo-agenda[data-size=L] { grid-template-columns: minmax(0, 1fr); justify-items: center; row-gap: 12px; }
+.holo-agenda[data-size=L] .holo-agenda-side { width: 100%; }
+@container holo-body (max-height: 190px) and (max-width: 559.98px) { .holo-agenda[data-size=M] .holo-next li:nth-child(3) { display: none; } }
+@container holo-body (max-height: 140px) and (max-width: 559.98px) { .holo-agenda[data-size=M] .holo-next li:nth-child(2) { display: none; } }
+@container holo-body (max-width: 300px) { .holo-agenda[data-size=M] .holo-clock { --ring: clamp(72px, min(100cqh - 10px, 38cqi), 190px); } .holo-agenda { column-gap: 10px; } }
+/* Wide: every row of a "next" list is one line — its time, its title, and its state at the row's end. */
+@container holo-body (min-width: 560px) {
+  .holo-next li { grid-template-columns: 84px minmax(0, 1fr) max-content; grid-template-areas: "time title when"; align-items: center; column-gap: 12px; padding-top: 0; }
+  .holo-next li::before { top: 18px; }
+  .holo-next li::after { top: 30px; bottom: -14px; }
+  .holo-next li a, .holo-next li > span:nth-child(2) { margin: 0; }
+  .holo-next li small { text-transform: uppercase; letter-spacing: .1em; font-weight: 600; color: var(--neon-ink, #dcecff); }
+  .holo-agenda[data-size=M] .holo-clock { --ring: clamp(84px, min(100cqh - 10px, 30cqi), 190px); }
+  .holo-agenda:is([data-size=M], [data-size=L]) { column-gap: 28px; }
+  .holo-agenda[data-size=L] { grid-template-columns: auto minmax(0, 1fr); justify-items: stretch; }
+  .holo-agenda[data-size=L] .holo-clock { --ring: clamp(120px, min(100cqh - 20px, 40cqi), 300px); }
+}
+@container holo-body (max-height: 172px) and (min-width: 560px) { .holo-agenda[data-size=M] .holo-next li:nth-child(3) { display: none; } }
+@container holo-body (max-height: 126px) and (min-width: 560px) { .holo-agenda[data-size=M] .holo-next li:nth-child(2) { display: none; } }
+
+/* ---- Today's orbit. The dial at the body's height; beside it the day's line (two lines, 44) and what is still open as rows (50 each; wide: 45). ---- */
+.holo-orbit[data-size=S] { column-gap: 14px; }
+.holo-orbit[data-size=M] .holo-orbit-ring { --ring: clamp(84px, min(100cqh - 10px, 44cqi), 190px); }
+.holo-orbit[data-size=L] .holo-orbit-ring { --ring: clamp(110px, min(42cqh, 70cqi), 280px); }
+.holo-orbit[data-size=L] { grid-template-columns: minmax(0, 1fr); justify-items: center; row-gap: 12px; }
+.holo-orbit[data-size=L] .holo-orbit-side { width: 100%; }
+.holo-orbit-side { display: grid; gap: 6px; min-width: 0; }
+.holo-orbit:is([data-size=M], [data-size=L]) .holo-orbit-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; line-height: 22px; }
+.holo-orbit[data-size=S] .holo-orbit-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; line-height: 22px; }
+@container holo-body (max-height: 208px) and (max-width: 559.98px) { .holo-orbit[data-size=M] .holo-orbit-next li:nth-child(3) { display: none; } }
+@container holo-body (max-height: 156px) and (max-width: 559.98px) { .holo-orbit[data-size=M] .holo-orbit-next li:nth-child(2) { display: none; } }
+@container holo-body (max-height: 106px) and (max-width: 559.98px) { .holo-orbit[data-size=M] .holo-orbit-next { display: none; } }
+@container holo-body (min-width: 560px) {
+  .holo-orbit[data-size=M] .holo-orbit-ring { --ring: clamp(84px, min(100cqh - 10px, 30cqi), 190px); }
+  .holo-orbit:is([data-size=M], [data-size=L]) { column-gap: 28px; }
+  .holo-orbit[data-size=M] .holo-orbit-line { -webkit-line-clamp: 1; line-clamp: 1; }
+  .holo-orbit[data-size=L] { grid-template-columns: auto minmax(0, 1fr); justify-items: stretch; }
+  .holo-orbit[data-size=L] .holo-orbit-ring { --ring: clamp(120px, min(100cqh - 20px, 40cqi), 300px); }
+}
+@container holo-body (max-height: 170px) and (min-width: 560px) { .holo-orbit[data-size=M] .holo-orbit-next li:nth-child(3) { display: none; } }
+@container holo-body (max-height: 124px) and (min-width: 560px) { .holo-orbit[data-size=M] .holo-orbit-next li:nth-child(2) { display: none; } }
+@container holo-body (max-height: 78px) and (min-width: 560px) { .holo-orbit[data-size=M] .holo-orbit-next { display: none; } }
+
+/* ---- Teaching states (M8, AM-D22): the instrument's ghost, large and dim, beside the words and the key. A medium or
+   large panel's ghost is as large as its body lets it be (96–132 px on a computer); a small panel keeps the 48 px mark. ---- */
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) :is(.holo-empty, .nova-empty) { --ghost: clamp(64px, min(100cqh - 24px, 30cqi), 132px); grid-template-columns: var(--ghost) minmax(0, 1fr); column-gap: 20px; align-items: center; align-content: center; }
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) :is(.holo-empty-shape, .nova-empty > .nova-empty-ghost) { width: var(--ghost); height: var(--ghost); align-self: center; opacity: .85; }
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) .holo-empty-shape :is(.holo-empty-ring, .holo-empty-arc, .holo-empty-frame) { width: var(--ghost); height: var(--ghost); }
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) .holo-empty-shape b { font-size: clamp(15px, calc(var(--ghost) * .2), 26px); }
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) :is(.holo-empty-words, .nova-empty > p) { font-size: 16px; }
 
 /* m2: the core's names and reasons wrap onto a second line instead of "Emerge…" / "No water logged yet t…". */
 .holo-core-readout { width: min(100%, 440px); column-gap: 16px; }
@@ -747,12 +887,13 @@
 /* ==== AM-2: the core as a precision bezel, and its read-outs ==== */
 /* The four pillar rings: thick gradient arcs with a white core and a lit end, hairline tracks between them, a tick scale
    outside (it turns, an ornament) and end stops at the opening under NOVA's name. */
-.holo-core .holo-stack .holo-track-path { stroke-width: 3.6; stroke: color-mix(in oklab, var(--neon, #9273ff) 26%, #040718); stroke-opacity: .62; }
-.holo-core .holo-stack .holo-track-path[data-unknown] { stroke: #c9d4ea; stroke-opacity: 1; stroke-width: .5; }
-.holo-core .holo-stack .holo-arc { stroke-width: 3.2; }
-.holo-core .holo-stack .holo-glint { stroke-width: .7; }
-.holo-core .holo-arc-end { stroke-width: .6; }
-.holo-core .holo-arc-g { filter: drop-shadow(0 0 1.2px var(--neon, #9273ff)) drop-shadow(0 0 4px var(--neon, #9273ff)); }
+.holo-core .holo-stack :is(.holo-track-path, .holo-arc, .holo-glint) { vector-effect: non-scaling-stroke; }
+.holo-core .holo-stack .holo-track-path { stroke-width: 5px; stroke: color-mix(in oklab, var(--neon, #9273ff) 30%, #040718); stroke-opacity: .7; }
+.holo-core .holo-stack .holo-track-path[data-unknown] { stroke: #c9d4ea; stroke-opacity: 1; stroke-width: 1px; }
+.holo-core .holo-stack .holo-arc { stroke-width: 5px; }
+.holo-core .holo-stack .holo-glint { stroke-width: 1.2px; }
+.holo-core .holo-arc-end { stroke-width: .5; }
+.holo-core .holo-arc-g { filter: drop-shadow(0 0 2px var(--neon, #9273ff)) drop-shadow(0 0 8px var(--neon, #9273ff)); }
 .holo-core .holo-orn-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 60%, #ffffff66); stroke-width: .4; }
 .holo-core .holo-orn-major { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 70%, #fff); stroke-width: .8; }
 /* Each read-out: the pillar's mark, its name in tracked capitals, its figure in its own ink and a segmented bar whose
@@ -773,4 +914,5 @@
 .nova-frame[data-look=classic] .holo-agenda[data-size=M] .holo-clock { --ring: 120px; } .nova-frame[data-look=classic] .holo-agenda[data-size=L] .holo-clock { --ring: 156px; }
 .nova-frame[data-look=classic] .holo-wealth[data-size] { --wave-h: 48px; } .nova-frame[data-look=classic] .holo-wealth[data-size=L] { --wave-h: 80px; }
 .nova-frame[data-look=classic] .holo-health[data-size] { --mgap: 6px; --histo-h: 64px; --spark-h: 44px; }
+.nova-frame[data-look=classic] .holo-health:is([data-size=M], [data-size=L]) .holo-heartrow { display: block; }
 .nova-frame[data-look=classic] .holo-num-big, .nova-frame[data-look=classic] .holo-wealth .holo-num-big { font-size: clamp(24px, 2.2vw, 30px); }

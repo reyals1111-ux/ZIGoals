@@ -38,7 +38,7 @@ export default function FocusWidget({size}: {size: WidgetSize}) {
   const start = () => startPomodoro({settings, ...(saved?.sound ? {startSound: () => { void startSoundscape('focus'); }} : {})});
   const error = snap.error ? <p role="alert" className="nova-line">{snap.error}</p> : null;
   if (view.kind === 'running') return <div className="nova-focus hw-focus" data-running="" data-size={size}>
-    <TickRing share={snap.run ? phaseShare(snap.run, snap.now || snap.run.phaseStartedAt) : null} size={size === 'S' ? 56 : 84} className="hw-mini-ring"/>
+    <TickRing share={snap.run ? phaseShare(snap.run, snap.now || snap.run.phaseStartedAt) : null} size={size === 'S' ? 56 : undefined} className="hw-mini-ring"/>
     <p className="nova-big"><span className="nova-figure" role="timer" aria-live="off" aria-label={`${view.clock} left`}>{view.clock}</span><small> {view.phase}</small></p>
     <p className="nova-line">Block {view.block} of {view.blocks}{view.task && size !== 'S' ? ` · for “${view.task}”` : ''}</p>
     <span className="hw-pips" aria-hidden="true">{Array.from({length: Math.min(12, view.blocks)}, (_, i) => <i key={i} data-lit={i < view.block - 1 || undefined} data-now={i === view.block - 1 || undefined}/>)}</span>

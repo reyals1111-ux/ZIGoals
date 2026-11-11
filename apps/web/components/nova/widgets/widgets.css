@@ -107,7 +107,8 @@
 .nova-widget[data-holo] .nova-empty > .nova-empty-ghost { display: block; grid-column: 1; grid-row: 1 / span 2; align-self: start; width: 48px; height: 48px; }
 .nova-widget[data-holo] .nova-empty > .nova-empty-art { display: none; }
 /* A small ring gauge beside words (Day at a glance, a running focus phase). */
-.hw-mini-ring { flex: none; }
+.hw-mini-ring { flex: none; --ring: clamp(72px, min(100cqh - 24px, 26cqi), 150px); }
+.nova-frame[data-look=classic] .hw-mini-ring { --ring: 76px; }
 .hw-mini-ring .holo-num-ring, .nova-widget[data-size] .hw-mini-ring .holo-num-ring { font-size: clamp(14px, calc(var(--ring, 76px) * .26), 24px); }
 .hw-glance { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .hw-glance > .hw-rows { flex: 1 1 0; }
@@ -180,3 +181,17 @@
 .nova-widget[data-holo] .nova-reading { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #cdd8ee; }
 .nova-widget[data-holo] .nova-reading::before { content: ''; flex: none; width: 34px; height: 8px; background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 0 2px, transparent 2px 6px); opacity: .8; }
 .nova-widget[data-holo] .nova-unread { padding-left: 12px; border-left: 2px solid #ffe2a8; font-size: 15px; line-height: 1.4; }
+
+/* ==== AM-2 round 2 (the scale rule): in a wide body (a 2560 px screen gives a medium panel about 730 px) the earlier
+   widgets use the width — two columns of rows, a larger instrument beside the words. ==== */
+@container holo-body (min-width: 560px) {
+  .hw-glance { gap: 28px; }
+  .hw-glance > .hw-rows, .nova-widget[data-holo] .hw-markets { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+  .nova-widget[data-holo] .hw-glance > .hw-rows > .hw-row:nth-child(2), .nova-widget[data-holo] .hw-markets > .hw-row:nth-child(2) { border-top: 0; }
+  .nova-widget[data-holo] .hw-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+  .nova-widget[data-holo] .hw-facts > div:nth-child(2) { border-top: 0; padding-top: 0; }
+  .nova-widget[data-holo] .hw-facts > div:nth-child(2)::before { top: 6px; }
+  .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; column-gap: 28px; }
+  .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .holo-cols { grid-column: 2; grid-row: 1 / span 3; --cols-h: clamp(44px, calc(100cqh - 60px), 130px); max-width: none; }
+  .hw-focus[data-running] { column-gap: 24px; }
+}

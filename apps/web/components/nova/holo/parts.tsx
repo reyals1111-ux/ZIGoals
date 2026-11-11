@@ -122,7 +122,7 @@ export function TickRing({share, size, ticks = 60, children, className = '', len
  * AM-2: each arc is a gradient with a white core and a lit end; `first` is the outer ring's radius (the habits' streak
  * rings sit inside today's own ring), and end stops mark a gap's two ends.
  */
-export function RingStack({rings, size = 120, gap = 9, segments = 0, start = 0, sweep = 360, first = 50, bezel = true}: {rings: {key: string; share: number | null; pillar?: string; r?: number; lead?: boolean}[]; size?: number; gap?: number; segments?: number; start?: number; sweep?: number; first?: number; bezel?: boolean}) {
+export function RingStack({rings, size = 120, gap = 9, segments = 0, start = 0, sweep = 360, first = 50, bezel = true, scale = 55.6}: {rings: {key: string; share: number | null; pillar?: string; r?: number; lead?: boolean}[]; size?: number; gap?: number; segments?: number; start?: number; sweep?: number; first?: number; bezel?: boolean; /** The inner radius of the turning tick scale (outside the rings by default; the core keeps it inside them). */ scale?: number}) {
   const full = sweep >= 360;
   return <span className="holo-stack-box" style={{'--ring': `${size}px`} as CSSProperties} aria-hidden="true">
     <svg className="holo-stack" viewBox="-60 -60 120 120" focusable="false">
@@ -134,11 +134,11 @@ export function RingStack({rings, size = 120, gap = 9, segments = 0, start = 0, 
           {full ? <circle className="holo-track" r={rad} data-unknown={r.share === null || undefined} style={trackStyle}/>
             : <path className="holo-track-path" d={arcPath(0, 0, rad, start, start + sweep)} data-unknown={r.share === null || undefined}/>}
           {r.share === null && !full && <path className="holo-unknown-mark" d={`M${(-2.6).toFixed(1)} ${(-rad).toFixed(2)}H2.6`}/>}
-          {s > 0 && <g className="holo-arc-g"><GradArc r={rad} from={from} to={from + s * sweep}/><Glint d={arc}/><circle className="holo-arc-end" cx={end.x} cy={end.y} r={r.lead ? 3 : 2.2}/></g>}
+          {s > 0 && <g className="holo-arc-g"><GradArc r={rad} from={from} to={from + s * sweep}/><Glint d={arc}/><circle className="holo-arc-end" cx={end.x} cy={end.y} r={r.lead ? 3 : 2.4}/></g>}
         </g>;
       })}
     </svg>
-    {bezel && <Orn reverse><path className="holo-orn-ticks" d={tickPath(0, 0, 55.6, 58.4, 72)}/><path className="holo-orn-ticks holo-orn-major" d={tickPath(0, 0, 54.6, 59.2, 12)}/></Orn>}
+    {bezel && <Orn reverse><path className="holo-orn-ticks" d={tickPath(0, 0, scale, scale + 2.8, 72)}/><path className="holo-orn-ticks holo-orn-major" d={tickPath(0, 0, scale - 1, scale + 3.6, 12)}/></Orn>}
   </span>;
 }
 
@@ -191,7 +191,10 @@ export function Spark({values, width = 220, height = 56, className = '', domain}
  * hollow, dashed point at today's place, named in words — the headline and the line never disagree without a word.
  * The dots are HTML over the stretched drawing, so they stay round.
  * AM-2: a lit terminal line — a grid of rows and columns, the highest and lowest records marked on the line itself (a
- * small tick up at the max, down at the min; the frame's labels say their values), a gradient area and a wide bloom.
+ * small diamond at each, with a faint dashed level across the plot; the frame's labels say their values), a gradient
+ * area and a wide bloom. Round 2: nothing lies over the line's end — the last record's value and "now" are a small key in
+ * the plot's free corner (the upper one when the line starts low, the lower one when it starts high), each with its
+ * point's own mark before it.
  */
 export function WaveChart({points, width = 300, height = 64, title, labels, endLabel, now, className = ''}: {
   points: readonly {at: string; value: number}[]; width?: number; height?: number; className?: string; title: string;
@@ -202,6 +205,8 @@ export function WaveChart({points, width = 300, height = 64, title, labels, endL
   if (pts.length < 2) return null;
   const line = smoothPath(pts), last = pts.at(-1)!, at = (p: {x: number; y: number}) => pctOf(p, width, height), [rows, cols] = gridPath(width, height, 4, 12);
   const hi = pts.reduce((a, b) => b.v > a.v ? b : a), lo = pts.reduce((a, b) => b.v < a.v ? b : a);
+  // The key's corner: where the first stretch of the line (its left 45 %) is not.
+  const left = pts.filter(p => p.x <= width * 0.45), leftY = left.length ? left.reduce((n, p) => n + p.y, 0) / left.length : pts[0]!.y;
   return <figure className={`holo-frame holo-wave ${className}`.trim()} aria-hidden="true">
     <span className="holo-frame-label" data-at="title">{title}</span>
     <span className="holo-frame-label" data-at="top"><span className="holo-frame-key">max</span> {labels.max}</span>
@@ -213,6 +218,7 @@ export function WaveChart({points, width = 300, height = 64, title, labels, endL
         </defs>
         <path className="holo-grid-lines" d={rows}/><path className="holo-grid-lines holo-grid-fine" d={cols}/>
         <path className="holo-ruler-bars" d={Array.from({length: 48}, (_, i) => `M${(width * (i + 0.5) / 48).toFixed(1)} ${height}v${i % 6 === 0 ? -7 : -3}`).join('')}/>
+        {hi !== lo && <path className="holo-wave-guide" d={`M0 ${hi.y}H${width}M0 ${lo.y}H${width}`}/>}
         <path d={`${line}L${last.x} ${height}L${pts[0]!.x} ${height}Z`} fill={`url(#${id}f)`} className="holo-spark-fill"/>
         <path className="holo-wave-glow" d={line}/>
         <path className="holo-wave-line" d={line} stroke={`url(#${id}l)`}/>
@@ -221,8 +227,11 @@ export function WaveChart({points, width = 300, height = 64, title, labels, endL
       </svg></span>
       {hi !== lo && <><i className="holo-wave-mark" data-at="max" style={at(hi)}/><i className="holo-wave-mark" data-at="min" style={at(lo)}/></>}
       <i className="holo-wave-dot" style={at(last)}/>
-      {endLabel && <span className="holo-wave-tag" data-at="end" style={at(last)}>{endLabel}</span>}
-      {here && now && <><i className="holo-wave-dot" data-now="" style={at(here)}/><span className="holo-wave-tag" data-at="now" data-low={here.y > height * 0.55 || undefined} style={at(here)}>{now.label}</span></>}
+      {here && now && <i className="holo-wave-dot" data-now="" style={at(here)}/>}
+      {(endLabel || (here && now)) && <span className="holo-wave-legend" data-corner={leftY > height / 2 ? 'top' : 'bottom'}>
+        {endLabel && <span className="holo-wave-tag" data-at="end">{endLabel}</span>}
+        {here && now && <span className="holo-wave-tag" data-at="now">{now.label}</span>}
+      </span>}
     </div>
     <span className="holo-frame-label" data-at="from">{labels.span}</span>
     <span className="holo-frame-label" data-at="bottom"><span className="holo-frame-key">min</span> {labels.min}</span>
@@ -294,18 +303,17 @@ export function FlowRibbons({shares, width = 260, height = 64}: {shares: readonl
 }
 
 /** AM-2: the hearts' wire and each heart's own beat (ornaments: the same lines whatever the figures). */
-const ECG = 'M0 12H280', BEAT = 'M3.4 12.6h4.2l1.5-2.6 2.2 6 2.3-8.2 1.9 4.8h5.1';
+const BEAT = 'M3.4 12.6h4.2l1.5-2.6 2.2 6 2.3-8.2 1.9 4.8h5.1';
 /**
  * Hearts that fill by the share of a target, each named under it (never meaning by colour alone). Review m6 (lane L8d): each
  * says its share in figures too ("90%", "110%"; second review p7: NOVA's one percent style, the format layer's half-up rounding: a heart is full at its target, the words say how far past), and the
  * unfilled part of the shell is a faint pink, so 90 % and 100 % read apart.
- * AM-2: each heart has its figure beside it and its name under both, and the row sits on a dim heartbeat trace.
+ * AM-2: each heart carries a beat line, its figure beside it and its name under both (a row), or beside both (a column in a wide panel).
  */
 export function Hearts({hearts}: {hearts: readonly {key: string; label: string; share: number}[]}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   if (!hearts.length) return null;
   return <div className="holo-heartrow">
-    <svg className="holo-ecg" viewBox="0 0 280 24" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d={ECG}/></svg>
     <ul className="holo-hearts" aria-label="Targets as hearts: each fills by its share of your target">{hearts.map(h => {
       const s = clamp01(h.share), pct = Math.max(0, h.share) * 100;
       return <li key={h.key} data-full={s >= 1 || undefined}>
