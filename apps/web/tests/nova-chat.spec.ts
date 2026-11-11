@@ -52,7 +52,9 @@ async function askThroughBar(page: Page, text: string) {
   await bar.getByRole('textbox').fill(text);
   await bar.getByRole('textbox').press('Enter');
   await expect(page).toHaveURL(/\/app\/nova(\?|$)/);
-  await expect(chat(page)).toBeVisible();
+  // Session AM (D7; CI 1670): NOVA's page hands the words to the conversation once it has loaded; on a slow runner that
+  // took longer than five seconds. The helper waits for the conversation to be open, as it always ends.
+  await openNovaConversation(page);
 }
 async function sendInNova(page: Page, text: string) {
   const box = chat(page).getByRole('textbox', {name: /^Message /});

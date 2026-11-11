@@ -3,6 +3,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
+import {openNovaConversation} from './nova-am';
 
 /**
  * Session AK, lane WB (WIRING_AUDIT_2.md's missing tests): shared steps of the tests/wiring-2-*.spec.ts files. Every reply
@@ -62,6 +63,10 @@ export async function askNova(page: Page, text: string) {
   await bar.getByRole('textbox').fill(text);
   await bar.getByRole('textbox').press('Enter');
   await expect(page).toHaveURL(/\/app\/nova(\?|$)/);
-  await expect(novaChat(page)).toBeVisible();
+  // Session AM (D7, deliberate; CI 1670 main shard 5): the conversation is mounted but closed until it is needed. Words
+  // the stage has a widget for are answered under the star, and the conversation opens by itself only when the reply
+  // carries a card to decide; on a slow runner that came after this helper's five seconds. It now ends as before, with
+  // the conversation open: by itself, or from the answer's own button.
+  await openNovaConversation(page);
 }
 export const zigiPanel = (page: Page) => page.locator('dialog.ai-chat[open]');

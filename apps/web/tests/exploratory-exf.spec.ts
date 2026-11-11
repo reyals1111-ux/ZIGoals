@@ -66,7 +66,7 @@ test.describe('NOVA on a computer', () => {
     await bar.getByRole('textbox').fill('How many habits do I have?');
     await bar.getByRole('textbox').press('Enter');
     await expect(page).toHaveURL(/\/app\/nova(\?|$)/);
-    await expect(page.locator('section.nova-chat')).toBeVisible();
+    await openNovaConversation(page); // Session AM (D7; CI 1670): the conversation opens once NOVA's page has taken the words over
     await expect(composer(page)).toBeFocused();
     await page.keyboard.press('Escape');
     // Session AM (D7, deliberate): the closed conversation stays in the page on a computer, hidden (it was removed: toHaveCount(0)); what the person sees is the same — no conversation.

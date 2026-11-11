@@ -44,6 +44,7 @@ export const novaAnswerOpen = (page: Page) => page.locator('.ns-answer').getByRo
  */
 export async function openNovaConversation(page: Page, timeout = 15_000) {
   await expect(novaChat(page).or(novaAnswerOpen(page)).filter({visible: true}).first()).toBeVisible({timeout});
-  if (!await novaChat(page).isVisible()) await novaAnswerOpen(page).click();
+  // The conversation can open by itself (a card to decide) in the moment between the look and the press: the press is then not needed.
+  if (!await novaChat(page).isVisible()) await novaAnswerOpen(page).click({timeout: 3_000}).catch(() => undefined);
   await expect(novaChat(page)).toBeVisible();
 }
