@@ -9,7 +9,11 @@ describe('the widget gallery', () => {
   it('names every widget the brief asks for, each with its page and a way to open it', () => {
     expect(WIDGETS.map(w => w.id)).toEqual(['orbit', 'next', 'tasks', 'glance', 'water', 'focus', 'now-playing', 'money', 'goal-pace', 'sleep', 'briefs', 'notes', 'markets',
       // Session AL Part 11 (lane L8), a deliberate extension: the holographic HUD's five instruments.
-      'health-hud', 'habits-hud', 'goals-hud', 'wealth-hud', 'agenda-clock']);
+      'health-hud', 'habits-hud', 'goals-hud', 'wealth-hud', 'agenda-clock',
+      // Session AM (ADR-038 D1–D5), a deliberate extension: the widgets NOVA makes on request.
+      'weight', 'steps', 'workouts', 'habit-week', 'goal-focus', 'net-worth', 'spending', 'budgets', 'bills', 'journal', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests']);
+    // Session AM (D5): every widget that shows the person's records names the switch a made widget reads under.
+    for (const w of WIDGETS) if (!['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests'].includes(w.id)) expect(w.gate, w.id).toMatch(/^(today|goals|habits|health|wealth)$/);
     for (const w of WIDGETS) { expect(w.href.startsWith('/app/')).toBe(true); expect(w.open.length).toBeGreaterThan(3); expect(w.about.endsWith('.')).toBe(true); }
     for (const w of DEFAULT_WIDGETS) expect(isWidgetId(w.id)).toBe(true);
   });
