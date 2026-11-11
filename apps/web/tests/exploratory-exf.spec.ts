@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openNovaConversation, withEarlierWidgets} from './nova-am';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 
 /**
@@ -13,7 +14,9 @@ async function fresh(page: Page, extra: Record<string, string> = {}) {
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), ...extra});
 }
-const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true, ...more})});
+// Session AM (D2, deliberate): a record without a widget list used to read as AK's eight "Everyday" widgets; the stage now
+// starts empty, so the record these tests start from arranges that same list first (tests/nova-am.ts), and each assertion stays.
+const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify(withEarlierWidgets({version: 1, openingSeen: true, ...more}))});
 const frame = (page: Page) => page.locator('.nova-frame');
 const composer = (page: Page) => page.locator('section.nova-chat').getByRole('textbox', {name: 'Message NOVA'});
 async function openNova(page: Page) {
@@ -31,6 +34,10 @@ test.describe('NOVA on a computer', () => {
     const field = page.locator('.nova-command').getByRole('textbox', {name: 'Message NOVA'});
     await field.fill('hello');
     await field.press('Enter');
+    // Session AM (D7, deliberate): Enter in the dashboard field no longer always opens the conversation (words the stage
+    // has a widget for are answered under the star); it is opened as a person would, from the answer's button when it did
+    // not open by itself, and is then read exactly as before.
+    await openNovaConversation(page);
     await expect(composer(page)).toBeFocused();
     // "t" is Tasks' single-key shortcut: typed now it is a word in the composer, and NOVA stays.
     await page.keyboard.type('tasks');
@@ -44,7 +51,8 @@ test.describe('NOVA on a computer', () => {
     await expect(page).toHaveURL(/\/app\/nova$/);
     // Esc closes the chat and the command field takes the focus back; then the shortcuts are back too.
     await page.keyboard.press('Escape');
-    await expect(page.locator('section.nova-chat')).toHaveCount(0);
+    // Session AM (D7, deliberate): the closed conversation stays in the page on a computer, hidden (it was removed: toHaveCount(0)); what the person sees is the same — no conversation.
+    await expect(page.locator('section.nova-chat')).toBeHidden();
     await expect(field).toBeFocused();
   });
 
@@ -61,7 +69,8 @@ test.describe('NOVA on a computer', () => {
     await expect(page.locator('section.nova-chat')).toBeVisible();
     await expect(composer(page)).toBeFocused();
     await page.keyboard.press('Escape');
-    await expect(page.locator('section.nova-chat')).toHaveCount(0);
+    // Session AM (D7, deliberate): the closed conversation stays in the page on a computer, hidden (it was removed: toHaveCount(0)); what the person sees is the same — no conversation.
+    await expect(page.locator('section.nova-chat')).toBeHidden();
     await page.keyboard.press('Escape');
     await expect(page).toHaveURL(/\/app\/goals$/);
   });
@@ -126,6 +135,10 @@ test.describe('NOVA on a computer', () => {
     const field = page.locator('.nova-command').getByRole('textbox', {name: 'Message NOVA'});
     await field.fill('How many habits do I have?');
     await field.press('Enter');
+    // Session AM (D7, deliberate): Enter in the dashboard field no longer always opens the conversation (words the stage
+    // has a widget for are answered under the star); it is opened as a person would, from the answer's button when it did
+    // not open by itself, and is then read exactly as before.
+    await openNovaConversation(page);
     await expect(page.locator('section.nova-chat .nova-turn-assistant').first()).toBeVisible({timeout: 20_000});
     await page.reload();
     await page.getByRole('button', {name: 'Open the conversation with NOVA'}).click();

@@ -94,7 +94,11 @@ for (const [width, height] of [[1440, 900], [1920, 1080]] as const) {
     await expect(big.locator('.holo-hearts .holo-heart-pct').first()).toContainText('%');
     await expect(big.locator('.holo-ruler')).toBeAttached();
     // The large panel glows magenta at its edge (the reference's tilted panel): on its tilted back-plate (review m13).
-    expect(await big.evaluate(el => getComputedStyle(el, '::before').boxShadow)).toMatch(/240, 109, 255|f06dff/i);
+    // Session AM (D-frames, deliberate): the back-plate now has cut corners (a clip-path would cut a shadow off), so the
+    // magenta glow sits on the panel's own glow layer behind the plate; the same colour is asserted there, and the layer shows.
+    const aura = big.locator('> .holo-aura');
+    await expect(aura).toBeVisible();
+    expect(await aura.evaluate(el => getComputedStyle(el).boxShadow)).toMatch(/240, 109, 255|f06dff/i);
     expect(await big.evaluate(el => getComputedStyle(el).transform)).toBe('none');
     await preset(page, /^Wealth HUD/);
     const money = panel(page, 'Wealth HUD');

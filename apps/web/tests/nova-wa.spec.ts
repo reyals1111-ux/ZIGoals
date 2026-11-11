@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {withEarlierWidgets} from './nova-am';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -29,7 +30,7 @@ async function server(page: Page, reply: (body: Body) => string) {
     return route.fulfill({status: 404, body: ''});
   });
 }
-const settled = {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true})};
+const settled = {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [NOVA_KEY]: JSON.stringify(withEarlierWidgets({version: 1, openingSeen: true}))}; // Session AM (D2, deliberate): the earlier default (AK's eight widgets) is arranged first; the stage now starts empty (tests/nova-am.ts)
 async function seed(page: Page, values: Record<string, string>) {
   await page.clock.install({time: EVENING});
   await page.goto('/app/settings');

@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openNovaConversation, withEarlierWidgets} from './nova-am';
 import {readFile} from 'node:fs/promises';
 import {audit} from './a11y-audit';
 import {defaultAiSettings} from '../lib/ai/settings';
@@ -18,7 +19,9 @@ async function fresh(page: Page, extra: Record<string, string> = {}) {
   await page.goto('/app/settings');
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), ...extra});
 }
-const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true, ...more})});
+// Session AM (D2, deliberate): a record without a widget list used to read as AK's eight "Everyday" widgets; the stage now
+// starts empty, so the record these tests start from arranges that same list first (tests/nova-am.ts), and each assertion stays.
+const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify(withEarlierWidgets({version: 1, openingSeen: true, ...more}))});
 const frame = (page: Page) => page.locator('.nova-frame');
 async function noSideScroll(page: Page) { expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0); }
 
@@ -41,13 +44,17 @@ test.describe('NOVA on a computer', () => {
 
   test('reduced motion and Motion Off show the finished dashboard at once', async ({page}) => {
     await page.emulateMedia({reducedMotion: 'reduce'});
-    await fresh(page);
+    // Session AM (D2, deliberate): a brand-new NOVA was given the Command arrangement once its opening was seen; the stage
+    // now starts empty, so the finished dashboard this test reads is arranged first (the Command list, from the app's own
+    // code: tests/nova-am.ts). The opening is still unseen, so reduced motion and Motion Off are what finish it.
+    const arranged = {[NOVA_KEY]: JSON.stringify(withEarlierWidgets({version: 1}))};
+    await fresh(page, arranged);
     await page.goto('/app/nova');
     await expect(frame(page)).toHaveAttribute('data-opening', 'done');
     await expect(page.locator('.nova-widget').first()).toBeVisible();
     await expect(page.locator('.nova-sky-canvas')).not.toHaveAttribute('data-sky', 'running');
     await page.emulateMedia({reducedMotion: 'no-preference'});
-    await fresh(page, {'zigoals:motion:v1': 'off'});
+    await fresh(page, {'zigoals:motion:v1': 'off', ...arranged});
     await page.goto('/app/nova');
     await expect(frame(page)).toHaveAttribute('data-opening', 'done');
   });
@@ -335,6 +342,10 @@ test.describe('EX-1: the command field and the open chat are inside the window',
     await inside(page, 'the command field', await field.boundingBox());
     await field.getByRole('textbox', {name: 'Message NOVA'}).fill('What is next today?');
     await field.getByRole('textbox', {name: 'Message NOVA'}).press('Enter');
+    // Session AM (D7, deliberate): Enter in the dashboard field no longer always opens the conversation (words the stage
+    // has a widget for are answered under the star); it is opened as a person would, from the answer's button when it did
+    // not open by itself, and is then read exactly as before.
+    await openNovaConversation(page);
     const talk = page.getByRole('region', {name: 'Conversation with NOVA'});
     await expect(talk.locator('section.nova-chat')).toBeVisible();
     await inside(page, 'the conversation panel', await talk.boundingBox());

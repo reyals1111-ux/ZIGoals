@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {withEarlierWidgets} from '../../nova-am';
 import {hydrated} from '../../ah-helpers';
 import {NOON, NOVA_KEY, frame, freshNova, panel, storedJson} from './hud-helpers';
 
@@ -122,6 +123,11 @@ test('M8: a brand-new NOVA opens on the instruments; an empty instrument is draw
   await page.goto('/app/settings');
   // No NOVA record at all on this device (Motion Off, so the opening does not play and the stage shows at once).
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); localStorage.setItem('zigoals:motion:v1', 'off'); });
+  // Session AM (D2, deliberate): a brand-new NOVA no longer opens on the Command arrangement by itself (its stage starts
+  // empty; the instruments are one tap away under View). The arrangement a brand-new NOVA was given is put on the stage
+  // first, built by the app's own code (tests/nova-am.ts), and what M8 is about — an empty instrument drawn unlit with
+  // its reason, never a zero — is read exactly as before.
+  await page.evaluate(([k, v]) => localStorage.setItem(k, v), [NOVA_KEY, JSON.stringify(withEarlierWidgets({version: 1}))] as const);
   await page.goto('/app/nova'); await hydrated(page);
   await expect(frame(page)).toHaveAttribute('data-look', 'holo');
   await expect(panel(page, 'Health HUD')).toBeVisible();

@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openNovaConversation, withEarlierWidgets} from './nova-am';
 import {defaultAiSettings} from '../lib/ai/settings';
 import {novaAndZigi} from '../lib/nova/one-line';
 import {OPEN_DAY} from '../lib/nova/day-line';
@@ -15,7 +16,9 @@ import {OPEN_DAY} from '../lib/nova/day-line';
  */
 const NOVA_KEY = 'zigoals:nova:v1';
 type Theme = 'nebula' | 'light' | 'dark';
-const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true, ...more})});
+// Session AM (D2, deliberate): a record without a widget list used to read as AK's eight "Everyday" widgets; the stage now
+// starts empty, so the record these tests start from arranges that same list first (tests/nova-am.ts), and each assertion stays.
+const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify(withEarlierWidgets({version: 1, openingSeen: true, ...more}))});
 const localBrain = () => ({'zigoals:ai:v1': JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'llama3.2:3b', localServer: 'ollama', baseUrl: 'http://127.0.0.1:11434'})});
 async function fresh(page: Page, extra: Record<string, string> = {}, theme: Theme = 'nebula') {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
@@ -159,6 +162,10 @@ test.describe('NOVA polish on a computer', () => {
     await openNova(page);
     await page.getByRole('textbox', {name: 'Message NOVA'}).fill('What is next today?');
     await page.getByRole('textbox', {name: 'Message NOVA'}).press('Enter');
+    // Session AM (D7, deliberate): Enter in the dashboard field no longer always opens the conversation (words the stage
+    // has a widget for are answered under the star); it is opened as a person would, from the answer's button when it did
+    // not open by itself, and is then read exactly as before.
+    await openNovaConversation(page);
     const talk = page.getByRole('region', {name: 'Conversation with NOVA'});
     await expect(talk.locator('section.nova-chat')).toBeVisible();
     expect(await page.locator('.nova-widget').evaluateAll(els => els.filter(el => el.checkVisibility({visibilityProperty: true})).length)).toBe(0);
