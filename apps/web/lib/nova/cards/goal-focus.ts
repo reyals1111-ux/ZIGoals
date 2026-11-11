@@ -32,6 +32,8 @@ export type FocusGoal = {
   /** What is still to go; null when unknown, not counted, or the goal is reached. */
   left: string | null;
   targetDate: string | null;
+  /** The plan in one line, "Plan: $6,000.00 by Apr 1, 2027"; null without a saved target and a target date. */
+  plan: string | null;
 };
 
 function fromSummary(g: GoalSummary): FocusGoal {
@@ -46,9 +48,10 @@ function fromSummary(g: GoalSummary): FocusGoal {
     saved: g.target ? `${current} of ${formatGoalAmount(g.target, g.currency)}` : `${current} · no target saved`,
     left: finished || !g.remaining || g.progressBound === 'unavailable' ? null : `${atLeast ? 'At most ' : ''}${formatGoalAmount(g.remaining, g.currency)}`,
     targetDate: g.targetDate ?? null,
+    plan: g.target && g.targetDate && !finished ? `Plan: ${formatGoalAmount(g.target, g.currency)} by ${formatDate(g.targetDate)}` : null,
   };
 }
-const fromArc = (a: GoalArc): FocusGoal => ({key: a.key, name: a.name, href: a.href, status: 'active', pct: a.pct, text: a.text, figure: a.pct === null ? '—' : a.text, atLeast: false, pace: a.pace, saved: null, left: null, targetDate: null});
+const fromArc = (a: GoalArc): FocusGoal => ({key: a.key, name: a.name, href: a.href, status: 'active', pct: a.pct, text: a.text, figure: a.pct === null ? '—' : a.text, atLeast: false, pace: a.pace, saved: null, left: null, targetDate: null, plan: null});
 
 /**
  * The goal the widget shows. `goals` are the summaries (every status), `arcs` the Goals HUD's active arcs in its order,
@@ -66,8 +69,18 @@ export function focusGoal(goals: readonly GoalSummary[], arcs: readonly GoalArc[
   return lead ? fromSummary(lead) : arcs[0] ? fromArc(arcs[0]) : null;
 }
 
-/** The forecast in the goal page's own words; `estimate` marks a projection (shown as an estimate, never a promise). */
-export function estimateWords(forecast: Forecast | null | undefined): {headline: string; detail: string; estimate: boolean} | null {
+/**
+ * The forecast in the goal page's own words; `estimate` marks a projection (shown as an estimate, never a promise).
+ *
+ * Session AM (design review AM-D31): with the goal given, the line under its plan verdict never cancels that verdict.
+ * "Behind plan" is said from the plan (the target and its date); "Not enough history yet" is about the pace forecast,
+ * and the two read as one denying the other. While the history is too short for a forecast, the line is the plan itself
+ * ("Plan: $6,000.00 by Apr 1, 2027") and the detail says what a forecast still needs; a goal with no plan to state has
+ * no line there at all.
+ */
+export function estimateWords(forecast: Forecast | null | undefined, goal?: Pick<FocusGoal, 'plan'>): {headline: string; detail: string; estimate: boolean} | null {
   if (!forecast) return null;
-  return {...forecastWords(forecast, day => formatDate(day)), estimate: forecast.state === 'estimate'};
+  const words = forecastWords(forecast, day => formatDate(day));
+  if (goal && forecast.state === 'not-enough') return goal.plan ? {headline: goal.plan, detail: `No pace forecast yet. ${words.detail}`, estimate: false} : null;
+  return {...words, estimate: forecast.state === 'estimate'};
 }

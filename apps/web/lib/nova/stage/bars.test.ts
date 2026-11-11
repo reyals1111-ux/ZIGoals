@@ -48,7 +48,7 @@ describe('NOVA left bar: everything in the app, in sections that fold', () => {
     expect(host.querySelector('a.nova-left-life')!.getAttribute('href')).toBe('/app/today');
     expect(host.querySelector('a.nova-left-life')!.getAttribute('aria-label')).toBe('Your life: all four pillars on Today');
     const folds = [...host.querySelectorAll<HTMLButtonElement>('.nb-fold')];
-    expect(folds.map(b => b.querySelector('span')!.textContent)).toEqual(['Your pillars', 'Your day', 'Your mind', 'Money', 'More', 'Agents']);
+    expect(folds.map(b => b.querySelector('span')!.textContent)).toEqual(['Your pillars', 'Your plan', 'Your mind', 'Money', 'More', 'Agents']); // Session AM (deliberate): the group was "Your day", the same name as the top bar's "Your day" button (two buttons with one name)
     expect(folds.map(b => b.getAttribute('aria-expanded'))).toEqual(['true', 'true', 'true', 'false', 'false', 'true']);
     for (const b of folds) expect(host.querySelector(`[id="${b.getAttribute('aria-controls')}"]`)).toBeTruthy();
     const more = folds[4]!, list = host.querySelector<HTMLElement>(`[id="${more.getAttribute('aria-controls')}"]`)!;
@@ -196,7 +196,8 @@ describe('NOVA right bar: Requests', () => {
     expect(rows.map(r => r.querySelectorAll('time').length)).toEqual([1, 1, 1]);
     expect(rows[2]!.textContent).toContain('from your phone');
     expect(rows[0]!.textContent).not.toContain('from your phone');
-    expect(rows[2]!.textContent).toContain('made Net worth');
+    // Session AM (design review AM-D13, deliberate): the widget is titled for what it counts, "Tracked wealth" (was "Net worth").
+    expect(rows[2]!.textContent).toContain('made Tracked wealth');
     expect(rows.map(r => !!r.querySelector('button.nova-btn'))).toEqual([true, false, true]);
     const seen: string[] = []; const on = (e: Event) => seen.push((e as CustomEvent<string>).detail);
     window.addEventListener(STAGE_AGAIN_EVENT, on);
@@ -243,11 +244,11 @@ describe('NOVA right bar: On the stage', () => {
       pin: note('pin'), unpin: note('unpin'), hide: note('hide'), show: note('show'), close: note('close')} as unknown as StageApi;
     await act(async () => root.render(createElement(StageList, {stage, persona: 'NOVA'})));
     const rows = [...host.querySelectorAll('.nb-stage-row')];
-    expect(rows.map(r => r.querySelector('.nb-stage-name')!.firstChild!.textContent)).toEqual(['Net worth', 'Tasks', 'Weather']);
+    expect(rows.map(r => r.querySelector('.nb-stage-name')!.firstChild!.textContent)).toEqual(['Tracked wealth', 'Tasks', 'Weather']); // AM-D13, deliberate: the new title
     expect(rows[0]!.querySelector('small')!.textContent).toMatch(/^Made /);
     expect(rows[1]!.querySelector('small')!.textContent).toBe('Pinned');
     expect(rows[2]!.querySelector('small')!.textContent).toMatch(/ · in the dock$/);
-    for (const name of ['Net worth: pin', 'Net worth: hide in the dock', 'Net worth: close', 'Tasks: unpin', 'Weather: show on the stage', 'Weather: close']) await click(button(name));
+    for (const name of ['Tracked wealth: pin', 'Tracked wealth: hide in the dock', 'Tracked wealth: close', 'Tasks: unpin', 'Weather: show on the stage', 'Weather: close']) await click(button(name));
     expect(did).toEqual(['pin:net-worth', 'hide:net-worth', 'close:net-worth', 'unpin:tasks', 'show:weather', 'close:weather']);
     await act(async () => root.render(createElement(StageList, {stage: {...stage, shown: [], docked: []} as StageApi, persona: 'NOVA'})));
     expect(host.textContent).toContain('The stage is clear.');

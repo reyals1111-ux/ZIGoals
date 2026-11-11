@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {stageCalls} from '../../nova/summon/summon';
+import {MAX_MODEL_COMMANDS, stageCalls} from '../../nova/summon/summon';
 import {WIDGETS} from '../../nova/widgets/catalog';
 import {stageWeather} from '../../nova/world/stage-weather';
 import {NOVA_WORLD_KEY} from '../../nova/world/record';
@@ -44,9 +44,13 @@ describe('stage_widget', () => {
       {tool: 'stage_widget', args: {action: 'pin', widget: 'weight'}}, {tool: 'stage_widget', args: {action: 'close', widget: 'nope'}}, {tool: 'stage_widget', args: {action: 'erase', widget: 'weight'}},
       {tool: 'weight', args: {action: 'close', widget: 'weight'}}, {tool: 'stage_widget', args: null}];
     expect(stageCalls(calls)).toEqual({show: [{id: 'weight', params: {range: 'year'}}, {id: 'sleep'}], commands: [{kind: 'pin', id: 'weight'}]});
+    // Security review AM-S1: a model never pins a widget whose switch is off (a pin must not lift the locked state).
+    expect(stageCalls(calls, {gateOpen: (id: string) => id !== 'weight'}).commands).toEqual([]);
     expect(stageCalls(calls, {available: (id: string) => id !== 'weight'})).toEqual({show: [{id: 'sleep'}], commands: []});
     const many = Array.from({length: 9}, (_, i) => ({tool: 'stage_widget', args: {action: 'close', widget: WIDGETS[i]!.id}}));
-    expect(stageCalls(many).commands.length).toBe(3);
+    // Session AM (AM-S7, deliberate): one command per reply, the first (was: at most three), so its Undo is the one on screen.
+    expect(MAX_MODEL_COMMANDS).toBe(1);
+    expect(stageCalls(many).commands).toEqual([{kind: 'close', id: WIDGETS[0]!.id}]);
   });
 });
 

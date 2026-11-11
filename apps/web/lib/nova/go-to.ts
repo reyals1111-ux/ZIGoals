@@ -16,7 +16,8 @@ export type GoToNeed =
 /** The left bar's sections, in the order they show. Today stands alone above them. */
 export const GO_TO_SECTIONS = ['pillars', 'day', 'mind', 'money', 'more'] as const;
 export type GoToSection = (typeof GO_TO_SECTIONS)[number];
-export const GO_TO_SECTION_LABEL: Readonly<Record<GoToSection, string>> = {pillars: 'Your pillars', day: 'Your day', mind: 'Your mind', money: 'Money', more: 'More'};
+/** The left bar's groups. "Your plan" (agenda, tasks, checklist, focus) is not called "Your day": the top bar's "Your day" button opens the briefs, and two buttons must not share a name. */
+export const GO_TO_SECTION_LABEL: Readonly<Record<GoToSection, string>> = {pillars: 'Your pillars', day: 'Your plan', mind: 'Your mind', money: 'Money', more: 'More'};
 export type GoToEntry = {
   id: string;
   /** The name shown and matched first. "NOVA" stands for the persona's name (the bar writes the person's own). */

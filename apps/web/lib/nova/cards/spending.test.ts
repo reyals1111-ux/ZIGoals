@@ -10,7 +10,11 @@ const log = (entries: MoneyEntry[]) => moneyLogSchema.parse({version: 1, entries
 describe('spending card (Session AM)', () => {
   it('the range: this month so far by default, else the last days with today included', () => {
     expect(spendingWindow(TODAY)).toEqual({from: '2026-11-01', to: TODAY, words: 'this month'});
-    expect(spendingWindow(TODAY, 'week')).toEqual({from: '2026-11-05', to: TODAY, words: 'in the last 7 days'});
+    // Session AM (design review AM-D13, deliberate): the window now names its range, and "month" is this calendar month
+    // (one definition in every size and in NOVA's words), where it was the last 30 days.
+    expect(spendingWindow(TODAY, 'week')).toEqual({from: '2026-11-05', to: TODAY, words: 'in the last 7 days', range: 'week'});
+    expect(spendingWindow(TODAY, 'month')).toEqual(spendingWindow(TODAY));
+    expect(spendingWindow(TODAY, 'quarter')).toEqual({from: '2026-08-14', to: TODAY, words: 'in the last 90 days', range: 'quarter'});
     expect(spendingWindow(TODAY, 'year').from).toBe('2025-11-12');
   });
   it('teaches with an empty log, and with income only (income is not spending)', () => {
@@ -52,10 +56,17 @@ describe('spending card (Session AM)', () => {
     expect(card.largest).toMatchObject({text: '$90.00', what: 'Fun'});
     expect(spendingRows(card).at(-1)).toEqual(['Also spent in EUR', '€40.00, never converted']);
   });
-  it('a requested range reads the last days, not the month', () => {
-    const card = spendingCard(log([entry('2026-10-20', '12.00', 'Fun'), entry('2026-11-10', '3.00', 'Fun')]), TODAY, 'month');
-    expect(card).toMatchObject({state: 'live', total: '€15.00'});
-    expect(spendingRows(card)[0]).toEqual(['Spent in the last 30 days', '€15.00 in 2 entries']);
+  // Session AM (design review AM-D13, deliberate): "month" was the last 30 days (€15.00 here) beside words and an answer
+  // about the calendar month; it is now this month in every size, and a quarter still reads the last days.
+  it('a requested range reads the last days; the month is this calendar month, as the default is', () => {
+    const entries = [entry('2026-10-20', '12.00', 'Fun'), entry('2026-11-10', '3.00', 'Fun')];
+    const card = spendingCard(log(entries), TODAY, 'month');
+    expect(card).toMatchObject({state: 'live', total: '€3.00'});
+    expect(spendingRows(card)[0]).toEqual(['Spent this month', '€3.00 in 1 entry']);
+    expect(card).toEqual(spendingCard(log(entries), TODAY));
+    const quarter = spendingCard(log(entries), TODAY, 'quarter');
+    expect(quarter).toMatchObject({state: 'live', total: '€15.00'});
+    expect(spendingRows(quarter)[0]).toEqual(['Spent in the last 90 days', '€15.00 in 2 entries']);
     expect(spendingCard(log([entry('2026-10-20', '12.00', 'Fun'), entry('2026-11-10', '3.00', 'Fun')]), TODAY, 'week').total).toBe('€3.00');
   });
 });

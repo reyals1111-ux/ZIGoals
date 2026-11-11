@@ -45,6 +45,7 @@ import {buildNovaPack, DEFAULT_NOVA_SCOPES, whatNovaCanSee} from '../../../lib/a
 import {hermesAgent, novaPackInput} from '../../../lib/nova/bridge-pack';
 import {NOVA_HERMES} from '../../../lib/nova/hermes-record';
 import {useChainChoice} from '../../chain/use-chain-choice';
+import {stageGatesOf} from '../stage/stage-gates';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useProposals} from '../../ai/use-proposals';
 import {useSensitiveScreen} from '../../ai/use-sensitive-screen';
@@ -57,7 +58,11 @@ import {downloadChat, NovaConversations} from './nova-conversations';
 import {AgentGlyph, PersonaFigure} from './nova-figure';
 import {NovaReplyTurn, NovaUserTurn, type TurnCommon} from './nova-turns';
 import {useSummoner, type StageBridge} from '../stage/use-summoner';
+import {engineLook} from '../../../lib/nova/summon/engine-look';
+import {seesCount} from '../../../lib/nova/summon/lines';
+import {previousQuestion} from '../../../lib/ai/local-answers/followup';
 import {WIDGETS} from '../../../lib/nova/widgets/catalog';
+import {forgetStageAsksOfChats} from '../../../lib/nova/stage/record';
 import {stageWeather} from '../../../lib/nova/world/stage-weather';
 import '../../ai/ai.css';
 import '../../ai/chat-polish.css';
@@ -132,7 +137,8 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     moreEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),
     localEnv: () => novaLocalEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}),
     remember: chatId => { rememberNovaChat(getAppStorage(), chatId); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); },
-    forget: chatId => { forgetNovaChats(getAppStorage(), [chatId]); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); }, // G1 #20
+    forget: chatId => { forgetNovaChats(getAppStorage(), [chatId]); forgetStageAsksOfChats(getAppStorage(), [chatId]); // AM-S8: its requests leave the stage record too
+      window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); }, // G1 #20
     agent: name => name === 'hermes' ? hermesRef.current : null,
   }), [persona.name, packInput]);
   /** R2-2: NOVA's on-device environment from this render's records (the welcome's questions, /brief and /log). */
@@ -149,9 +155,8 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const setStageGates = stage?.setGates, stageAttention = stage?.attention;
   useEffect(() => {
     if (!setStageGates) return;
-    const env = sensitive ? null : localEnvNow();
-    setStageGates(env ? {today: env.areas.today, goals: env.areas.goals, habits: env.areas.habits, wealth: env.areas.wealth, health: env.areas.health && env.health !== null} : sensitive ? {today: false, goals: false, habits: false, wealth: false, health: false} : null);
-  }, [setStageGates, localEnvNow, sensitive]);
+    setStageGates(stageGatesOf(sensitive ? null : localEnvNow(), sensitive, scopesNow)); // the one rule, also read without the conversation (AM-S2, AM-S12)
+  }, [setStageGates, localEnvNow, sensitive, scopesNow]);
   const session = useChatSession({settings: data, scope, context, nova}), runner = useProposals({surface: 'nova', healthShared: context.gates.localHealth, healthOff: novaHealthOff}), autoAccept = useAutoAccept(context.gates.health);
   // G1 #20: a task handed over in a chat that is not kept is marked in memory only (`unkeptMarks`), never in the bridge record.
   const [unkeptMarks, setUnkeptMarks] = useState<Record<string, DelegatedTurn>>({});
@@ -186,7 +191,24 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const say = session.say;
   // Session AM (D4–D7): which widgets a request makes on NOVA's stage (components/nova/stage/use-summoner.ts).
   const stageGoals = useCallback(() => { try { return (contextRef.current.toolSources()?.platform?.goals ?? []).map(g => ({id: g.id, name: g.name})); } catch { return []; } }, []);
-  const summon = useSummoner({bridge: stage, session, say, goals: stageGoals});
+  // Design review AM-D2: the stage's words are each made widget's one-line figure summary, from the records the engine read
+  // for this moment (the summoner holds each line back by its widget's own switch); and the engine comes first: the stage
+  // answers by itself only what the on-device engine has no answer of its own for (lib/nova/summon/engine-look.ts).
+  const stageSources = useCallback(() => { try { return contextRef.current.toolSources(); } catch { return null; } }, []);
+  const stageFacts = useRef<{brain: {kind: string; words: string} | null; scopes: Readonly<Record<string, boolean>>; share: typeof data.pageShare; includeHealth: boolean}>({brain: null, scopes: scopesNow, share: data.pageShare, includeHealth: data.includeHealth});
+  const stageExtras = useCallback(() => {
+    const f = stageFacts.current; let weather = false;
+    try { weather = stageWeather(getAppStorage()).on; } catch { weather = false; }
+    return {brain: f.brain, sees: seesCount(f.scopes, f.share, f.includeHealth, weather)};
+  }, []);
+  const askedBefore = session.chat.turns;
+  const stageEngine = useCallback((text: string) => {
+    const c = contextRef.current, brain = stageFacts.current.brain;
+    let env = null;
+    try { env = novaLocalEnv({sources: c.toolSources(), gates: c.gates, scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}); } catch { env = null; }
+    return engineLook(text, env, {previous: previousQuestion([...askedBefore].reverse().filter(t => t.role === 'user').map(t => t.text)), model: connected || (!!brain && brain.kind !== 'none')});
+  }, [askedBefore, connected]);
+  const summon = useSummoner({bridge: stage, session, say, goals: stageGoals, lookupsFor: session.lookupsFor, sources: stageSources, extras: stageExtras, engine: stageEngine});
   const ask = useCallback((text: string, options: SendOptions = {}) => { if (!options.zigi && !options.agent) summon.note(text); void session.ask(text, {area: NOVA_AREA, ...options}); }, [session, summon]);
   /** The commands NOVA takes as ZIGi does; the views that live in ZIGi's panel are named there. */
   const command = useCallback((typed: string): boolean => {
@@ -352,7 +374,9 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const examples = useMemo(() => examplesFor(sensitive ? null : localEnvNow(), 3), [localEnvNow, sensitive]);
   // Session AK P4 (FIRST_RUN_REVIEW FR-22): the first reply from the person's own local model (never Hermes, never an Ollama
   // cloud model) is marked once per device, and planet 4 lights with it (lib/nova/setup.ts noteFirstLocalReply).
-  const {brain: novaBrain} = useBrain(), firstLocalReply = setupRec.loaded && !setupRec.unreadable ? setupRec.data.firstLocalReply ?? null : null;
+  const {brain: novaBrain, loaded: brainLoaded} = useBrain();
+  useEffect(() => { stageFacts.current = {brain: brainLoaded ? novaBrain : null, scopes: scopesNow, share: data.pageShare, includeHealth: data.includeHealth}; }, [brainLoaded, novaBrain, scopesNow, data.pageShare, data.includeHealth]);
+  const firstLocalReply = setupRec.loaded && !setupRec.unreadable ? setupRec.data.firstLocalReply ?? null : null;
   useEffect(() => {
     const t = lastAssistant;
     if (!t || busy || !setupRec.loaded || setupRec.unreadable || setupRec.data.firstLocalReply || marks[t.id]) return;

@@ -1,5 +1,6 @@
 import * as z from 'zod';
-import type {DeviceRecordSpec} from '../../device-record';
+import {readDeviceRecord, updateDeviceRecord, type DeviceRecordSpec} from '../../device-record';
+import {ZIGI_STORE_EVENT} from '../../ai/store/keys';
 import {itemId, MAX_WIDGETS, WIDGET_SIZES, type NovaWidget, type WidgetSize} from '../store';
 
 /**
@@ -49,8 +50,10 @@ export const askSchema = z.looseObject({
   params: z.record(itemId, widgetParamsSchema).optional(),
   device: z.enum(ASK_DEVICES).catch('computer'),
   by: z.enum(ASK_SOURCES).catch('device'),
+  /** The conversation it was asked in (AM-S8): its requests are forgotten with it. */
+  chat: z.string().min(1).max(80).regex(/^[A-Za-z0-9_-]+$/).optional().catch(undefined),
 });
-export type NovaAsk = {id: string; at: string; text: string; widgets?: string[]; params?: Record<string, WidgetParams>; device: AskDevice; by: AskSource};
+export type NovaAsk = {id: string; at: string; text: string; widgets?: string[]; params?: Record<string, WidgetParams>; device: AskDevice; by: AskSource; chat?: string};
 
 export const novaStageSchema = z.looseObject({
   version: z.literal(1),
@@ -81,7 +84,9 @@ export function madeAt(r: NovaStage, now: number, known: (id: string) => boolean
   return (r.made ?? []).filter(w => {
     if (!known(w.id) || seen.has(w.id)) return false;
     seen.add(w.id);
-    return keep || now - Date.parse(w.at) < MADE_TTL_MS;
+    // AM-S11: a time from the future (another device's clock, a tampered record) is no reason to stay for ever: more than a day ahead is dropped.
+    const age = now - Date.parse(w.at);
+    return age > -86_400_000 && (keep || age < MADE_TTL_MS);
   }).map(w => ({id: w.id, at: w.at, ...(w.size ? {size: w.size} : {})}));
 }
 /**
@@ -162,17 +167,28 @@ export const noteGentle = (r: NovaStage, day: string, id: string): NovaStage => 
 const oneLine = (text: string) => text.replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, MAX_ASK_TEXT);
 export const askId = (now: Date, salt = Math.floor(Math.random() * 1e6)): string => `a${now.getTime().toString(36)}-${salt.toString(36)}`;
 /** Records a request (newest first, at most `MAX_ASKS`); an empty line is not a request. */
-export function recordAsk(r: NovaStage, ask: {id: string; at: Date; text: string; widgets?: readonly MakeRequest[]; device: AskDevice; by: AskSource}): NovaStage {
+export function recordAsk(r: NovaStage, ask: {id: string; at: Date; text: string; widgets?: readonly MakeRequest[]; device: AskDevice; by: AskSource; chat?: string}): NovaStage {
   const text = oneLine(ask.text);
   if (!text) return r;
   const widgets = (ask.widgets ?? []).slice(0, MAX_ASK_WIDGETS), params: Record<string, WidgetParams> = {};
   for (const w of widgets) { const p = cleanParams(w.params); if (p) params[w.id] = p; }
-  const entry: NovaAsk = {id: ask.id, at: ask.at.toISOString(), text, device: ask.device, by: ask.by, ...(widgets.length ? {widgets: [...new Set(widgets.map(w => w.id))]} : {}), ...(Object.keys(params).length ? {params} : {})};
+  const entry: NovaAsk = {id: ask.id, at: ask.at.toISOString(), text, device: ask.device, by: ask.by, ...(widgets.length ? {widgets: [...new Set(widgets.map(w => w.id))]} : {}), ...(Object.keys(params).length ? {params} : {}), ...(ask.chat && /^[A-Za-z0-9_-]{1,80}$/.test(ask.chat) ? {chat: ask.chat} : {})};
   return parse({...r, asks: [entry, ...(r.asks ?? []).filter(a => a.id !== ask.id)].slice(0, MAX_ASKS)});
 }
 /** A request's widgets, as requests to make again ("Show again"). */
 export const askRequests = (ask: NovaAsk): MakeRequest[] => (ask.widgets ?? []).map(id => ({id, ...(ask.params?.[id] ? {params: ask.params[id]} : {})}));
 export const forgetAsk = (r: NovaStage, id: string): NovaStage => (r.asks ?? []).some(a => a.id === id) ? parse({...r, asks: (r.asks ?? []).filter(a => a.id !== id)}) : r;
+/** AM-S8: the requests asked in these conversations are forgotten with them. */
+export const forgetAsksOfChats = (r: NovaStage, chats: readonly string[]): NovaStage => (r.asks ?? []).some(a => a.chat && chats.includes(a.chat)) ? parse({...r, asks: (r.asks ?? []).filter(a => !(a.chat && chats.includes(a.chat)))}) : r;
+/** The same, on the device's storage (a conversation was deleted or is no longer kept); a refused write leaves the record as it is. */
+export function forgetStageAsksOfChats(storage: Pick<Storage, 'getItem' | 'setItem'>, chats: readonly string[]): void {
+  try {
+    const before = readDeviceRecord(storage, NOVA_STAGE);
+    if (before.unreadable || !(before.data.asks ?? []).some(a => a.chat && chats.includes(a.chat))) return;
+    updateDeviceRecord(storage, NOVA_STAGE, r => forgetAsksOfChats(r, chats));
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_STAGE_KEY}));
+  } catch { /* the history is a convenience; the conversation itself is gone */ }
+}
 export const forgetAsks = (r: NovaStage): NovaStage => { const next = {...r}; delete next.asks; return parse(next); };
 
 /**
@@ -180,16 +196,24 @@ export const forgetAsks = (r: NovaStage): NovaStage => { const next = {...r}; de
  * them from a phone, each one tap from being shown again. The Showcase's widgets themselves are its Command arrangement
  * (lib/nova/store.ts `showcaseNova`); nothing is "made" before the visitor asks. No personal field: the words are the
  * Showcase's own example questions.
+ *
+ * Design review AM-D25: an example request is never stamped in the future. With `now` (the moment the Showcase is
+ * loaded, lib/showcase.ts) the examples are 2 and 3 hours, a day and two days before it; without it (the Showcase's
+ * builder, which depends on its day alone) they are on the two days before `day`, early enough to be in the past in
+ * every time zone whose calendar day is `day`. Newest first.
  */
-export function showcaseStage(day: string): NovaStage {
-  const at = (hm: string) => `${day}T${hm}:00.000Z`;
+export const SHOWCASE_ASK_AGES_MS: readonly number[] = [2 * 3_600_000, 3 * 3_600_000, 24 * 3_600_000, 48 * 3_600_000];
+export function showcaseStage(day: string, now?: number): NovaStage {
+  // The earliest instant at which a device's calendar day can be `day` is 10:00 UTC the day before (UTC+14).
+  const base = typeof now === 'number' && Number.isFinite(now) ? now : Date.parse(`${day}T00:00:00.000Z`) - 14 * 3_600_000;
+  const at = (i: number) => new Date(base - SHOWCASE_ASK_AGES_MS[i]!).toISOString();
   return novaStageSchema.parse({
     version: 1,
     asks: [
-      {id: 'showcase-4', at: at('08:12'), text: 'Show my habits this week', widgets: ['habit-week'], device: 'computer', by: 'device'},
-      {id: 'showcase-3', at: at('08:10'), text: 'Am I on track for Japan?', widgets: ['goal-focus'], device: 'computer', by: 'device'},
-      {id: 'showcase-2', at: at('08:06'), text: 'Show my net worth', widgets: ['net-worth'], params: {'net-worth': {range: 'quarter'}}, device: 'phone', by: 'device'},
-      {id: 'showcase-1', at: at('08:02'), text: 'What’s the weather?', widgets: ['weather'], device: 'computer', by: 'device'},
+      {id: 'showcase-4', at: at(0), text: 'Show my habits this week', widgets: ['habit-week'], device: 'computer', by: 'device'},
+      {id: 'showcase-3', at: at(1), text: 'Am I on track for Japan?', widgets: ['goal-focus'], device: 'computer', by: 'device'},
+      {id: 'showcase-2', at: at(2), text: 'Show my net worth', widgets: ['net-worth'], params: {'net-worth': {range: 'quarter'}}, device: 'phone', by: 'device'},
+      {id: 'showcase-1', at: at(3), text: 'What’s the weather?', widgets: ['weather'], device: 'computer', by: 'device'},
     ],
   });
 }

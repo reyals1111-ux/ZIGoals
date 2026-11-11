@@ -6,10 +6,12 @@ import {MAX_ASKS, asksOf, novaStageSchema, type NovaAsk, type NovaStage} from '.
  * stage record — newest first, split into Today and Earlier by the device's own calendar day — and how a forgotten request
  * comes back on Undo. Pure; the record's own `forgetAsk` / `forgetAsks` do the forgetting.
  */
+/** The requests by time, newest first (design review AM-D25): the one order of the right bar and of the "Your requests" widget, whatever order the record holds. */
+export const asksNewestFirst = (r: NovaStage): NovaAsk[] => [...asksOf(r)].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
 export type AskGroups = {today: NovaAsk[]; earlier: NovaAsk[]};
 /** The requests newest first, split by the calendar day of `now` (an instant or a day key; in `timeZone`, the device's by default). */
 export function groupAsks(r: NovaStage, now: Date | number | string, timeZone?: string): AskGroups {
-  const day = calendarDay(now, timeZone), sorted = [...asksOf(r)].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+  const day = calendarDay(now, timeZone), sorted = asksNewestFirst(r);
   return {today: sorted.filter(a => calendarDay(a.at, timeZone) === day), earlier: sorted.filter(a => calendarDay(a.at, timeZone) !== day)};
 }
 /**

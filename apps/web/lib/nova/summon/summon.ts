@@ -17,7 +17,9 @@ import {widgetSpec} from '../widgets/catalog';
  */
 export type SummonLang = 'en' | 'nl';
 export type StageCommand = {kind: 'clear'} | {kind: 'close' | 'pin' | 'unpin' | 'hide'; id: string} | {kind: 'arrangement'; preset: HudPreset};
-export type SummonContext = {goals?: readonly {id: string; name: string}[]; available?: (id: string) => boolean};
+export type SummonContext = {goals?: readonly {id: string; name: string}[]; available?: (id: string) => boolean;
+  /** Whether a widget's switch is open right now (security review AM-S1: a model never pins a widget whose switch is off). */
+  gateOpen?: (id: string) => boolean};
 export type SummonPlan = {
   lang: SummonLang;
   widgets: MakeRequest[];
@@ -54,7 +56,7 @@ export const FAMILIES: readonly Family[] = [
   {id: 'spending', en: /\b(spend|spent|spending|expenses?)\b/, nl: /\b(uitgaven|uitgegeven|uitgeven|kosten)\b/},
   {id: 'bills', en: /\b(bills?|subscriptions?|rent|invoices?)\b/, nl: /\b(rekening(?:en)?|abonnement(?:en)?|huur|facturen|factuur)\b/},
   {id: 'money', en: /\b(contributions?|contribute|set aside|saving for)\b/, nl: /\b(bijdragen?|inleg|opzij ?gezet|sparen voor)\b/},
-  {id: 'net-worth', en: /\b(net worth|worth|assets|how much (?:money )?do i have|how rich)\b/, nl: /\b(vermogen|waard|bezit(?:tingen)?|hoeveel (?:geld )?heb ik)\b/},
+  {id: 'net-worth', en: /\b(net worth|worth|tracked wealth|assets|how much (?:money )?do i have|how rich)\b/, nl: /\b(vermogen|waard|bezit(?:tingen)?|hoeveel (?:geld )?heb ik)\b/},
   {id: 'markets', en: /\b(markets?|prices?|crypto|bitcoin|coins?|stocks?)\b/, nl: /\b(markt(?:en)?|koers(?:en)?|crypto|bitcoin|aandelen)\b/},
   {id: 'wealth-hud', en: /\b(wealth|money|finances?|financial|portfolio|savings)\b/, nl: /\b(geld|financien|financieel|portefeuille|spaargeld)\b/},
   {id: 'goals-hud', en: /\b(goals)\b/, nl: /\b(doelen)\b/},
@@ -176,8 +178,10 @@ const argRef = (args: Record<string, unknown> | null | undefined): string | unde
 /**
  * A4: the model's explicit `stage_widget` calls → what the stage does. "show" becomes a widget to make (with its range);
  * pin, hide and close become stage commands. Arguments are checked against the closed catalogue again here: a call that
- * names anything else is dropped. At most `MAX_SUMMON` of each.
+ * names anything else is dropped. At most `MAX_SUMMON` shows and ONE command per reply (security review AM-S7: each
+ * command has its own Undo, and one toast holds one Undo), and never a pin for a widget whose switch is off (AM-S1).
  */
+export const MAX_MODEL_COMMANDS = 1;
 export function stageCalls(calls: readonly {tool: string; args?: Record<string, unknown> | null}[], ctx: SummonContext = {}): {show: MakeRequest[]; commands: Exclude<StageCommand, {kind: 'clear'} | {kind: 'arrangement'}>[]} {
   const show: MakeRequest[] = [], commands: Exclude<StageCommand, {kind: 'clear'} | {kind: 'arrangement'}>[] = [];
   for (const call of calls) {
@@ -187,7 +191,7 @@ export function stageCalls(calls: readonly {tool: string; args?: Record<string, 
     if (action === 'show') {
       const range = spec.params?.includes('range') ? WIDGET_RANGES.find(r => r === call.args?.range) : undefined;
       if (show.length < MAX_SUMMON && !show.some(w => w.id === id)) show.push({id, ...(range ? {params: {range}} : {})});
-    } else if ((action === 'pin' || action === 'hide' || action === 'close') && commands.length < MAX_SUMMON && !commands.some(c => c.id === id)) commands.push({kind: action, id});
+    } else if ((action === 'pin' || action === 'hide' || action === 'close') && commands.length < MAX_MODEL_COMMANDS && !(action === 'pin' && ctx.gateOpen && !ctx.gateOpen(id))) commands.push({kind: action, id});
   }
   return {show, commands};
 }
@@ -207,11 +211,57 @@ export function summonForTools(calls: readonly {tool: string; args?: Record<stri
   }
   return out;
 }
-/** The request's own widgets first, then what the answer's lookups add, each kind once, `MAX_SUMMON` at most. */
+/**
+ * The request's own widgets first, then what the answer's lookups add, each kind once, `MAX_SUMMON` at most. The goal
+ * widgets (one goal, the goals' pace, the Goals HUD) say the same thing three ways, so one request makes one of them: the
+ * first asked for (design review AM-D22: "Am I on track for Japan?" on an empty profile made Goal pace and the Goals HUD).
+ */
+const GOAL_KIND: ReadonlySet<string> = new Set(['goal-focus', 'goal-pace', 'goals-hud']);
 export function mergeSummons(first: readonly MakeRequest[], more: readonly MakeRequest[]): MakeRequest[] {
   const out: MakeRequest[] = [];
-  // One goal's own widget says what the general goal widgets would say again: with it, they stay off the stage.
-  const oneGoal = first.some(w => w.id === 'goal-focus'), again = (id: string) => oneGoal && (id === 'goal-pace' || id === 'goals-hud');
+  const again = (id: string) => GOAL_KIND.has(id) && out.some(x => GOAL_KIND.has(x.id));
   for (const w of [...first, ...more]) { if (out.length >= MAX_SUMMON) break; if (!out.some(x => x.id === w.id) && !again(w.id)) out.push(w); }
   return out;
+}
+
+/**
+ * Session AM (lead's rule, after the browser specs): the engine comes first. What the on-device engine would say to these
+ * words, as far as the stage needs to know it (lib/nova/summon/engine-look.ts reads it from the engine itself):
+ * - `fallback`: nothing of its own (its general "that isn't something I can answer…" list);
+ * - `records`: an answer read from the person's records, with the lookups it ran;
+ * - `other`: anything else it says itself — a card to confirm, a navigation ("Opening Goals."), a refusal, a note that
+ *   this needs the person's own AI, a permissions answer, a question back;
+ * - `model`: no answer on the device, and a model is connected: the model answers.
+ */
+export type EngineLookKind = 'fallback' | 'records' | 'other' | 'model';
+/**
+ * Whether the stage answers the words by itself, before the engine. Only a stage command, or a widget request the
+ * on-device engine has no answer of its own for (then the widget's line is the answer, design review AM-D3). With a model
+ * connected nothing changes: a plain "show me …" (or a stage-only family) is the stage's, every other question the model's.
+ * Whatever the engine answers itself stays the engine's reply, word for word. `oneTap`: the words are one of the stage's
+ * own one-tap requests, tapped (lib/nova/summon/words.ts ONE_TAP).
+ */
+export function stageOwns(plan: Pick<SummonPlan, 'command' | 'widgets' | 'direct'>, look: EngineLookKind, oneTap = false): boolean {
+  if (plan.command) return true;
+  if (!plan.widgets.length) return false;
+  // A one-tap request above the command bar is a request to the stage itself ("Agenda" makes the agenda's widget; the
+  // same words typed are the engine's, which opens the Agenda page).
+  return oneTap || look === 'fallback' || (look === 'model' && plan.direct);
+}
+/**
+ * The widgets made beside an on-device reply: only those that belong to it. A reply that read records makes the widgets
+ * of its lookups, and those of the question's own families that read under the same switch as a lookup (the weight
+ * question's "Weight · the last 30 days" beside the `weight` lookup). A card to confirm (a write, an add, a log), a
+ * navigation, a refusal, a note or a question back makes nothing. The general fallback is the stage's own answer: the
+ * question's widgets are made and their lines are said.
+ */
+export function replyWidgets(plan: Pick<SummonPlan, 'widgets'>, reply: {kind: 'answer' | 'choices' | 'refusal' | 'examples' | 'none' | undefined; calls: readonly {tool: string; args?: Record<string, unknown> | null}[]; card: boolean}, ctx: SummonContext = {}): MakeRequest[] {
+  if (reply.kind === 'examples') return [...plan.widgets];
+  if (reply.kind !== 'answer' || reply.card || !reply.calls.length) return [];
+  const gates = new Set(reply.calls.map(c => widgetSpec(TOOL_WIDGET[c.tool] ?? '')?.gate).filter(Boolean));
+  const own = plan.widgets.filter(w => gates.has(widgetSpec(w.id)?.gate)), all = mergeSummons(own, summonForTools(reply.calls, ctx));
+  // One request, one widget of a kind: the question's own widget is enough beside the general HUD a second lookup maps to
+  // ("Show my net worth" reads two wealth lookups; it makes the wealth widget asked for, not the Wealth HUD too).
+  const general = (id: string) => (id === 'wealth-hud' || id === 'health-hud' || id === 'habits-hud' || id === 'goals-hud' || id === 'glance') && !own.some(w => w.id === id);
+  return own.length ? all.filter(w => !(general(w.id) && own.some(o => widgetSpec(o.id)?.gate === widgetSpec(w.id)?.gate))) : all;
 }

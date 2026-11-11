@@ -89,4 +89,23 @@ describe('Goal: one goal, through the same functions as the Goals HUD and the go
     expect(thin).toMatchObject({estimate: false, headline: 'Not enough history yet'});
     expect(estimateWords(paceForecast(points, 6000, 6000, '2026-11-11'))).toMatchObject({estimate: false, headline: 'Target reached'});
   });
+
+  it('AM-D31: beside a plan verdict the line never says "Not enough history yet": it states the plan, or nothing', () => {
+    const short = paceForecast([{day: '2026-11-01', value: 2400}], 2500, 6000, '2026-11-11');
+    expect(short.state).toBe('not-enough');
+    const behind = focusGoal([g('a', '41.66', {fundingHealth: 'BEHIND', targetDate: '2027-04-01'})], [], 'a', null)!;
+    expect(behind.pace.words).toBe('Behind plan');
+    expect(behind.plan).toBe(`Plan: $6,000.00 by ${formatDate('2027-04-01')}`);
+    const words = estimateWords(short, behind)!;
+    expect(words).toMatchObject({headline: behind.plan, estimate: false});
+    expect(`${words.headline} ${words.detail}`).not.toMatch(/Not enough history/i);
+    expect(words.detail).toMatch(/^No pace forecast yet\. A forecast needs at least 3 recorded steps/);
+    // No target date: no plan to state, so no second statement at all.
+    const noDate = focusGoal([g('a', '41.66', {fundingHealth: 'BEHIND'})], [], 'a', null)!;
+    expect(noDate.plan).toBeNull();
+    expect(estimateWords(short, noDate)).toBeNull();
+    // A real estimate, a reached target and a stalled pace keep the forecast's own words.
+    const points = [{day: '2026-09-01', value: 1000}, {day: '2026-10-01', value: 1700}, {day: '2026-11-01', value: 2400}];
+    expect(estimateWords(paceForecast(points, 2500, 6000, '2026-11-11'), behind)).toEqual(estimateWords(paceForecast(points, 2500, 6000, '2026-11-11')));
+  });
 });

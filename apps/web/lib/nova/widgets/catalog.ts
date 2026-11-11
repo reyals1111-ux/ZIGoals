@@ -12,8 +12,10 @@ export type WidgetPillar = 'goals' | 'habits' | 'health' | 'wealth' | 'orbit' | 
  * Session AM (ADR-038 D5): the switch a widget *made by a request* reads under — the page-data area of NOVA's on-device
  * answers (ADR-037 Q14), `health` being Health's own three-part gate with NOVA's Health permission (Q16). Absent: the
  * widget shows nothing of the person's records (the clock, NOVA's own state) or carries its own switch (weather).
+ * Security review AM-S2: Notes and the Journal have their own gates (NOVA's Notes and Journal permissions, both off by
+ * default), and `today` is NOVA's Today permission itself, not "any of Today, Notes or the Journal".
  */
-export type WidgetGate = 'today' | 'goals' | 'habits' | 'health' | 'wealth';
+export type WidgetGate = 'today' | 'goals' | 'habits' | 'health' | 'wealth' | 'notes' | 'journal';
 /** Session AM (D3): the small parameters a request may set on a widget — a range of days, or one record's id. */
 export type WidgetParamName = 'range' | 'ref';
 export type WidgetNeed = 'markets' | 'notes' | 'briefs';
@@ -49,7 +51,7 @@ export const WIDGETS: readonly WidgetSpec[] = [
   {id: 'goal-pace', title: 'Goal pace', about: 'Your active goals: how far along, and whether the plan keeps pace.', pillar: 'goals', href: '/app/goals', open: 'Open Goals', size: 'M', gate: 'goals'},
   {id: 'sleep', title: 'Sleep balance', about: 'Your nights against your own sleep goal, over two weeks.', pillar: 'health', href: '/app/health?view=sleep', open: 'Open Sleep', size: 'S', gate: 'health'},
   {id: 'briefs', title: 'NOVA briefs', about: 'Your morning brief and evening recap, made on this device.', pillar: 'orbit', href: '/app/nova#briefs', open: 'Read your briefs', size: 'S', gate: 'today', needs: 'briefs'},
-  {id: 'notes', title: 'Notes inbox', about: 'Captured notes waiting to be filed.', pillar: 'orbit', href: '/app/notes', open: 'Open your notes', size: 'S', gate: 'today', needs: 'notes'},
+  {id: 'notes', title: 'Notes inbox', about: 'Captured notes waiting to be filed.', pillar: 'orbit', href: '/app/notes', open: 'Open your notes', size: 'S', gate: 'notes', needs: 'notes'},
   {id: 'markets', title: 'Market watch', about: 'The markets you follow, with each price’s time.', pillar: 'wealth', href: '/app/markets', open: 'Open Markets', size: 'M', gate: 'wealth', needs: 'markets'},
   // Session AL Part 11 (lane L8): the holographic HUD's instruments. Older builds leave these ids out (widgetsFor's `known`).
   {id: 'health-hud', title: 'Health HUD', about: 'Calories, protein, carbs, fat, water, sleep and steps against your own targets.', pillar: 'health', href: '/app/health', open: 'Open Health', size: 'L', gate: 'health'},
@@ -63,16 +65,17 @@ export const WIDGETS: readonly WidgetSpec[] = [
   {id: 'workouts', title: 'Workouts', about: 'The workouts you logged, week by week.', pillar: 'health', href: '/app/health?view=workouts', open: 'Open Health', size: 'M', gate: 'health', params: ['range'], made: true},
   {id: 'habit-week', title: 'Habits this week', about: 'Every habit against the last seven days: done, missed, not due.', pillar: 'habits', href: '/app/habits', open: 'Open Habits', size: 'M', gate: 'habits', made: true},
   {id: 'goal-focus', title: 'Goal', about: 'One goal: how far, what is left and whether the plan keeps pace.', pillar: 'goals', href: '/app/goals', open: 'Open Goals', size: 'M', gate: 'goals', params: ['ref'], made: true},
-  {id: 'net-worth', title: 'Net worth', about: 'Your recorded valuations over time, with the change over the range.', pillar: 'wealth', href: '/app/wealth', open: 'Open Wealth', size: 'M', gate: 'wealth', params: ['range'], made: true},
+  {id: 'net-worth', title: 'Tracked wealth', about: 'What you hold on Wealth: its recorded valuations over time, ending on today’s total.', pillar: 'wealth', href: '/app/wealth', open: 'Open Wealth', size: 'M', gate: 'wealth', params: ['range'], made: true},
   {id: 'spending', title: 'Spending', about: 'What you logged as spent, by category, for the month.', pillar: 'wealth', href: '/app/wealth#spending', open: 'Open Wealth', size: 'M', gate: 'wealth', params: ['range'], made: true},
   {id: 'budgets', title: 'Budgets', about: 'Each budget against what you logged this month.', pillar: 'wealth', href: '/app/wealth?view=budgets', open: 'Open Wealth', size: 'M', gate: 'wealth', made: true},
   {id: 'bills', title: 'Upcoming bills', about: 'The bills that come next, in date order.', pillar: 'wealth', href: '/app/wealth?view=bills', open: 'Open Wealth', size: 'M', gate: 'wealth', made: true},
-  {id: 'journal', title: 'Journal', about: 'The days you wrote this month, and your streak.', pillar: 'mind', href: '/app/journal', open: 'Open your journal', size: 'M', gate: 'today', made: true},
+  {id: 'journal', title: 'Journal', about: 'The days you wrote this month, and your streak.', pillar: 'mind', href: '/app/journal', open: 'Open your journal', size: 'M', gate: 'journal', made: true},
   {id: 'time', title: 'Time', about: 'How much of today, this week and this year has passed.', pillar: 'orbit', href: '/app/agenda', open: 'Open your agenda', size: 'S', made: true},
   {id: 'weather', title: 'Weather', about: 'The weather where you are, once you turn outside data on. Data from MET Norway.', pillar: 'world', href: '/app/nova#nova-permissions', open: 'Weather settings', size: 'M', made: true},
   {id: 'sun', title: 'Sun', about: 'Sunrise, sunset and the length of the day, once you turn outside data on.', pillar: 'world', href: '/app/nova#nova-permissions', open: 'Weather settings', size: 'M', made: true},
   {id: 'nova-sees', title: 'What NOVA can see', about: 'Which parts of your life NOVA may read, switch by switch.', pillar: 'nova', href: '/app/nova#nova-permissions', open: 'Open Permissions', size: 'M', made: true},
-  {id: 'nova-brain', title: 'NOVA’s brain', about: 'What answers right now: this device, your local model, your key or your agent.', pillar: 'nova', href: '/app/nova/setup', open: 'Open the setup guide', size: 'S', made: true},
+  // Design review AM-D20: NOVA's brain is M by default (its words and the privacy mode do not fit one unit).
+  {id: 'nova-brain', title: 'NOVA’s brain', about: 'What answers right now: this device, your local model, your key or your agent.', pillar: 'nova', href: '/app/nova/setup', open: 'Open the setup guide', size: 'M', made: true},
   {id: 'requests', title: 'Your requests', about: 'What you asked NOVA lately, one tap from being shown again.', pillar: 'nova', href: '/app/nova', open: 'Open NOVA', size: 'M', made: true},
 ];
 const BY_ID = new Map(WIDGETS.map(w => [w.id, w]));

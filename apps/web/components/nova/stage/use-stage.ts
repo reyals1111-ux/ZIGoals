@@ -4,7 +4,7 @@ import {plainErrorMessage} from '../../../lib/plain-error';
 import {askId, askRequests, clearMade, closeMade, dropMade, keepAsMade, makeWidgets, NOVA_STAGE, paramsOf, pruneStage, recordAsk, resizeMade, restoreStage, setHidden, stageWidgets, type AskDevice, type AskSource, type MakeRequest, type NovaAsk, type NovaStage, type StageWidget, type WidgetParams} from '../../../lib/nova/stage/record';
 import {addWidget, removeWidget, restoreWidgets, widgetsFor, type NovaRecord, type NovaWidget, type WidgetSize} from '../../../lib/nova/store';
 import type {StageCommand} from '../../../lib/nova/summon/summon';
-import {announceMade, widgetTitle} from '../../../lib/nova/summon/words';
+import {announceMade, keptAskWords, widgetTitle} from '../../../lib/nova/summon/words';
 import {widgetSpec, type WidgetGate} from '../../../lib/nova/widgets/catalog';
 import {useDeviceRecord, type DeviceRecordState} from '../../ai/use-device-record';
 import {showUndo} from '../../ui/undo-toast';
@@ -18,7 +18,11 @@ import {showUndo} from '../../ui/undo-toast';
  */
 /** What a made widget may read (D5): each page-data area's switch as NOVA's on-device answers see it; null until NOVA's chat engine has read them. */
 export type StageGates = Readonly<Record<WidgetGate, boolean>>;
-export type StageAsk = {text: string; by: AskSource; device: AskDevice; kept: boolean};
+export type StageAsk = {text: string; by: AskSource; device: AskDevice; kept: boolean;
+  /** The conversation the request was asked in: its requests leave with it ("Don't keep this chat", a deleted conversation). */
+  chat?: string;
+  /** Design review AM-D2: each made widget's one-line figure summary (lib/nova/summon/lines.ts), for the polite announcement. Never kept. */
+  lines?: Readonly<Record<string, string>>};
 export type StageApi = {
   loaded: boolean;
   shown: StageWidget[]; docked: StageWidget[];
@@ -71,7 +75,7 @@ export function useStage({nova, save, canShow, announce, arranging = false}: {
   const noteAsk = useCallback((ask: StageAsk, widgets: readonly MakeRequest[] = []) => {
     if (!ask.kept) return;
     const at = new Date();
-    update(r => recordAsk(r, {id: askId(at), at, text: ask.text, widgets, device: ask.device, by: ask.by}));
+    update(r => recordAsk(r, {id: askId(at), at, text: keptAskWords(ask.text, widgets), widgets, device: ask.device, by: ask.by, ...(ask.chat ? {chat: ask.chat} : {})}));
   }, [update]);
   const make = useCallback((requests: readonly MakeRequest[], ask?: StageAsk): boolean => {
     const wanted = requests.filter(q => canShow(q.id));
@@ -79,12 +83,12 @@ export function useStage({nova, save, canShow, announce, arranging = false}: {
     const at = new Date(), pinnedIds = new Set(latest.current.pinned.map(w => w.id));
     const ok = update(r => {
       const next = makeWidgets(pruneStage(r, at.getTime()), wanted, at, pinnedIds);
-      return ask?.kept ? recordAsk(next, {id: askId(at), at, text: ask.text, widgets: wanted, device: ask.device, by: ask.by}) : next;
+      return ask?.kept ? recordAsk(next, {id: askId(at), at, text: keptAskWords(ask.text, wanted), widgets: wanted, device: ask.device, by: ask.by, ...(ask.chat ? {chat: ask.chat} : {})}) : next;
     });
     if (!ok) return false;
     markFresh(wanted.map(q => q.id));
     const total = new Set([...latest.current.shown.map(w => w.id), ...wanted.map(q => q.id)]).size;
-    announce(announceMade(wanted, total));
+    announce(announceMade(wanted, total, ask?.lines));
     return true;
   }, [canShow, update, markFresh, announce, noteAsk]);
   const again = useCallback((ask: NovaAsk) => { make(askRequests(ask)); }, [make]);
@@ -138,8 +142,12 @@ export function useStage({nova, save, canShow, announce, arranging = false}: {
 
   const paramsFor = useCallback((id: string) => paramsOf(data, id), [data]);
   const gateOpen = useCallback((w: StageWidget): boolean | null => {
-    const gate = widgetSpec(w.id)?.gate;
-    if (w.pinned || !gate) return true;
+    const spec = widgetSpec(w.id), gate = spec?.gate;
+    if (!gate) return true;
+    // Security review AM-S1: pinning never opens a gate. A widget of this session's catalogue reads under its switch
+    // whether it was made or pinned; only the earlier HUD panels a person arranged themselves keep their behaviour (their
+    // own page's figures on their own screen, marked "On your screen only").
+    if (w.pinned && !spec?.made) return true;
     return gates === null ? null : gates[gate];
   }, [gates]);
   return {loaded: record.loaded, shown, docked, fresh, paramsFor, gateOpen, gates, setGates, asks: (data.asks ?? []) as readonly NovaAsk[], record, make, again, command, close, pin, unpin, hide, show, resize, clear, noteAsk};

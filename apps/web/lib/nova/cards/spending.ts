@@ -12,11 +12,18 @@ import {RANGE_DAYS, RANGE_WORDS, type WidgetRange} from '../stage/record';
  * in the range, as the Wealth headline picks its own); every other currency is listed apart, never converted and never
  * added. Only what was logged counts: nothing logged in the range is "nothing logged", never "you spent 0".
  */
-export type SpendingWindow = {from: string; to: string; words: string};
-/** The range: this calendar month so far when the request names none; else the last 7, 30, 90 or 365 days, today included. */
+export type SpendingWindow = {from: string; to: string; words: string;
+  /** The range of days counted back from today; absent: this calendar month so far. */
+  range?: Exclude<WidgetRange, 'month'>};
+/**
+ * The range: this calendar month so far when the request names none or names the month; else the last 7, 90 or 365 days,
+ * today included. Session AM (design review AM-D13): one definition of "the month" in every size, in NOVA's words and in
+ * the on-device answer ("You spent … this month" is the calendar month, as Wealth → Spending counts it). Before, a
+ * request that said "this month" drew the last 30 days beside words about the calendar month.
+ */
 export function spendingWindow(today: string, range?: WidgetRange): SpendingWindow {
-  if (!range) return {from: monthOf(today).start, to: today, words: 'this month'};
-  return {from: addLocalDays(today, -(RANGE_DAYS[range] - 1)), to: today, words: `in ${RANGE_WORDS[range]}`};
+  if (!range || range === 'month' || !Object.hasOwn(RANGE_DAYS, range)) return {from: monthOf(today).start, to: today, words: 'this month'};
+  return {from: addLocalDays(today, -(RANGE_DAYS[range] - 1)), to: today, words: `in ${RANGE_WORDS[range]}`, range};
 }
 export const cardMoney = (amountCents: number, currency: string) => formatCurrencyAmount(fromCents(amountCents), currency);
 export type SpendingCategory = {category: string; cents: number; share: number; text: string; percent: string};

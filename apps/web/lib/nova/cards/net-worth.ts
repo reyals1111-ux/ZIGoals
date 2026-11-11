@@ -6,9 +6,11 @@ import {RANGE_DAYS, RANGE_WORDS, type WidgetRange} from '../stage/record';
  * Session AM (ADR-038; art direction §4, Wealth): the "Net worth" widget's figures, pure. They are the wealth HUD's own
  * (lib/nova/holo/wealth.ts wealthHud over the Wealth page's overview): the tracked wealth of the headline currency, known
  * so far when a holding has no value yet, and that currency's recorded valuations. Currencies are never converted or
- * added together; a holding without a value is "not valued", never 0. The change is between two *recorded* valuations
- * inside the range (the first and the last), in exact cents (BigInt); with fewer than two there is no change to state.
- * Nothing here projects anything.
+ * added together; a holding without a value is "not valued", never 0. The line is the recorded valuations inside the
+ * range and ends on today's total, so the change is from the first recorded valuation in the range to today's total (the
+ * hero), in exact cents (BigInt); with no valuation before today there is no change to state. Nothing here projects
+ * anything. Session AM (design review AM-D13): the widget is titled "Tracked wealth", what it counts — the holdings on
+ * Wealth. Accounts and debts are not in it, so it is not called net worth (Wealth's own net worth adds and subtracts them).
  */
 export const NET_WORTH_RANGE: WidgetRange = 'quarter';
 export type RecordedPoint = {at: string; cents: bigint};
@@ -24,8 +26,10 @@ export type NetWorthCard = {
   knownSoFar: boolean;
   /** Other currencies held, each apart (never converted, never added). */
   otherCurrencies: string[];
-  /** The recorded valuations inside the range, oldest first. */
+  /** The line's points, oldest first: the recorded valuations inside the range and, last, today's total (the hero's figure) when it is known. */
   points: RecordedPoint[];
+  /** How many valuations were recorded inside the range (today's total is not one of them). */
+  recorded: number;
   change: NetWorthChange | null;
   high: RecordedPoint | null; low: RecordedPoint | null;
   /** The newest recorded valuation of the headline currency (inside the range or not), for the foot. */
@@ -40,7 +44,12 @@ const daysApart = (from: string, to: string) => Math.round((Date.parse(`${to}T00
 export function netWorthCard(hud: Pick<WealthHud, 'primary' | 'otherCurrencies' | 'line' | 'incomplete' | 'missingValue' | 'holdings'>, today: string, range: WidgetRange = NET_WORTH_RANGE): NetWorthCard {
   const from = addLocalDays(today, -RANGE_DAYS[range]);
   const all = hud.line.filter(p => dayOf(p.at) && Number.isFinite(p.value)).map(p => ({at: p.at, cents: cents(p.value)}));
-  const points = all.filter(p => dayOf(p.at) >= from && dayOf(p.at) <= today);
+  const recorded = all.filter(p => dayOf(p.at) >= from && dayOf(p.at) <= today);
+  // Session AM (design review AM-D13): the line ends on today's total, the hero's own figure, so the hero, the line's last
+  // point, the change and every size say one amount. A valuation recorded earlier today gives way to it (the total is the
+  // newer reading of the same day); with no known total the line is the recorded valuations alone.
+  const total = hud.primary ? hud.primary.value : null;
+  const points = total === null ? recorded : [...recorded.filter(p => dayOf(p.at) < today), {at: today, cents: total}];
   const first = points[0], last = points.at(-1);
   const change: NetWorthChange | null = first && last && points.length >= 2 ? (() => {
     const diff = last.cents - first.cents;
@@ -53,9 +62,9 @@ export function netWorthCard(hud: Pick<WealthHud, 'primary' | 'otherCurrencies' 
   if (first) for (const p of points) series[daysApart(dayOf(first.at), dayOf(p.at))] = Number(p.cents) / 100;
   return {
     state: hud.holdings > 0 ? 'live' : 'empty', range, rangeWords: RANGE_WORDS[range],
-    currency: hud.primary?.currency ?? null, total: hud.primary ? hud.primary.value : null,
+    currency: hud.primary?.currency ?? null, total,
     knownSoFar: hud.incomplete && !!hud.primary, otherCurrencies: [...hud.otherCurrencies],
-    points, change, high, low, lastAt: all.at(-1)?.at ?? null, series,
+    points, recorded: recorded.length, change, high, low, lastAt: all.at(-1)?.at ?? null, series,
   };
 }
 
@@ -74,8 +83,8 @@ export function netWorthAsOf(lastAt: string | null, prices: {kind: 'market'; at:
 export function netWorthRows(card: NetWorthCard, money: (cents: bigint) => string, percent: (value: number) => string, day: (at: string) => string): [string, string][] {
   const rows: [string, string][] = [[card.knownSoFar ? 'Tracked wealth, known so far' : 'Tracked wealth', card.total === null ? 'Not valued yet' : money(card.total)]];
   if (card.change) rows.push([`Change over ${card.rangeWords}`, changeWords(card.change, money, percent, day)]);
-  else rows.push([`Change over ${card.rangeWords}`, card.points.length === 1 ? 'One valuation recorded, so no change to state yet' : 'No valuation recorded in this range']);
-  if (card.points.length > 1) rows.push(['Recorded valuations', `${card.points.length}, from ${money(card.points[0]!.cents)} on ${day(card.points[0]!.at)} to ${money(card.points.at(-1)!.cents)} on ${day(card.points.at(-1)!.at)}`]);
+  else rows.push([`Change over ${card.rangeWords}`, card.recorded >= 1 ? 'One valuation recorded, so no change to state yet' : 'No valuation recorded in this range']);
+  if (card.points.length > 1) rows.push(['Recorded valuations', `${card.recorded}, from ${money(card.points[0]!.cents)} on ${day(card.points[0]!.at)} to ${money(card.points.at(-1)!.cents)} on ${day(card.points.at(-1)!.at)}`]);
   if (card.high && card.low && card.points.length > 1) rows.push(['Highest', `${money(card.high.cents)} on ${day(card.high.at)}`], ['Lowest', `${money(card.low.cents)} on ${day(card.low.at)}`]);
   if (card.otherCurrencies.length) rows.push(['Other currencies', `${card.otherCurrencies.join(', ')}, never converted`]);
   return rows;
