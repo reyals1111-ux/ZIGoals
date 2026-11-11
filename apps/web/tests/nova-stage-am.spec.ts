@@ -21,13 +21,15 @@ const field = (page: Page) => page.locator('.nova-command input');
 const widget = (page: Page, id: string) => page.locator(`.nova-widget[data-widget="${id}"]`);
 async function ask(page: Page, words: string) { await field(page).fill(words); await field(page).press('Enter'); }
 async function open(page: Page) { await page.goto('/app/nova'); await expect(frame(page)).toHaveAttribute('data-opening', 'done'); await expect(field(page)).toBeVisible(); }
-/** A widget's stage action: the inline button where the panel is wide, else the same action under "More". */
+/**
+ * A widget's stage action. Session AM-2 (ADR-038 "AM-2", F2, deliberate; was "the inline button where the panel is wide,
+ * else the same action under More"): Pin, Hide and Close are keys in every widget's head at every width, so the helper
+ * presses the key itself and nothing else. tests/nova-stage-am2.spec.ts proves the keys for every kind of the catalogue.
+ */
 async function act(page: Page, title: string, action: 'Pin' | 'Unpin' | 'Hide' | 'Close') {
   const name = action === 'Hide' ? `Hide ${title} in the dock` : `${action} ${title}`;
-  const inline = page.getByRole('button', {name, exact: true});
-  if (await inline.isVisible().catch(() => false)) { await inline.click(); return; }
-  await page.getByRole('button', {name: `More for ${title}`}).click();
-  await page.getByRole('group', {name: `${title} on the stage`}).getByRole('button', {name: action === 'Hide' ? 'Hide in the dock' : action, exact: true}).click();
+  await expect(page.getByRole('button', {name: `More for ${title}`})).toHaveCount(0);
+  await page.locator('.nova-widget-head').getByRole('button', {name, exact: true}).click();
 }
 
 test.describe('NOVA’s live stage on a computer', () => {

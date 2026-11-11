@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {WIDGETS} from '../lib/nova/widgets/catalog';
 
 /**
  * Session AM-2 (ADR-038 "AM-2"): NOVA, stunning. What this pass must never lose again:
@@ -116,5 +117,136 @@ test.describe('AM-2: the centre star is always there, and says how it is drawn',
     await expect(page.locator('.nova-star-picture')).toHaveCount(0);
     await expect(star).toBeVisible();
     await expect(star).toHaveAttribute('data-star', 'active');
+  });
+});
+
+/**
+ * AM-2 (F2): Pin, Hide and Close are three keys in the head of EVERY widget on a computer — every kind of the catalogue
+ * (the widgets NOVA makes on request, the earlier HUD panels, the Showcase's arrangement), at every width and in every
+ * layout — directly in the head, never behind a menu. In Session AM they folded under "More" below 312 px of panel and the
+ * owner could not close or hide a widget. The catalogue itself is the list, so a new kind is covered the day it is added.
+ */
+
+const KINDS = WIDGETS.map(w => ({id: w.id, title: w.title}));
+const SIZES = ['S', 'M', 'L'] as const;
+/** The catalogue in batches a NOVA record may hold (24 widgets at most), sizes mixed so every kind meets narrow and wide panels across the batches. */
+const batches = (per: number) => Array.from({length: Math.ceil(KINDS.length / per)}, (_, b) => KINDS.slice(b * per, b * per + per).map((k, i) => ({id: k.id, size: SIZES[(i + b) % 3]!, slot: i})));
+const arranged = (widgets: {id: string; size: string; slot: number}[], layout = 'orbit') => ({[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true, layout, widgets}), 'zigoals:earn-prefs:v1': JSON.stringify({version: 1, pageShown: true})}); // the chain is chosen (tests/chain-choice.ts), so the Markets widget exists too
+type KeyReport = {id: string; problems: string[]};
+/** For every widget on the stage: its three keys by their accessible names, each visible, at least 44 px, inside the widget's head, and the thing a tap at its middle lands on. */
+const keysOnStage = (page: Page, kinds: {id: string; title: string}[]) => page.evaluate(async list => {
+  const out: KeyReport[] = [];
+  for (const {id, title} of list) {
+    const widget = document.querySelector<HTMLElement>(`.nova-stage-area article.nova-widget[data-widget="${id}"]`), problems: string[] = [];
+    if (!widget) { out.push({id, problems: ['not on the stage']}); continue; }
+    widget.scrollIntoView({block: 'start', behavior: 'instant' as ScrollBehavior}); // its head in view (a tall band widget is taller than the stage's window)
+    await new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)));
+    const head = widget.querySelector<HTMLElement>('.nova-widget-head')!.getBoundingClientRect(), box = widget.getBoundingClientRect();
+    for (const name of [`Unpin ${title}`, `Hide ${title} in the dock`, `Close ${title}`]) {
+      const key = [...widget.querySelectorAll<HTMLButtonElement>('.nova-widget-head button')].find(b => b.getAttribute('aria-label') === name);
+      if (!key) { problems.push(`no "${name}" button in the head`); continue; }
+      const r = key.getBoundingClientRect(), style = getComputedStyle(key), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      if (style.display === 'none' || style.visibility !== 'visible' || Number(style.opacity) < 0.99) problems.push(`"${name}" is not shown`);
+      if (r.width < 43.5 || r.height < 43.5) problems.push(`"${name}" is ${Math.round(r.width)}×${Math.round(r.height)} px`);
+      if (cx < box.left || cx > box.right || cy < head.top - 12 || cy > head.bottom + 12) problems.push(`"${name}" is outside its widget's head`);
+      if (cx < 0 || cx > innerWidth || cy < 0 || cy > innerHeight) problems.push(`"${name}" is outside the window`);
+      const hit = document.elementFromPoint(cx, cy);
+      if (!hit || !(hit === key || key.contains(hit))) problems.push(`a tap on "${name}" lands on ${hit ? `<${hit.tagName.toLowerCase()} class="${(hit as HTMLElement).className}">` : 'nothing'}`);
+      // The key's own glyph is in view too (not clipped away by the head).
+      const glyph = key.querySelector('svg')?.getBoundingClientRect();
+      if (!glyph || glyph.width < 12 || glyph.top < head.top - 2 || glyph.bottom > head.bottom + 14) problems.push(`"${name}" shows no glyph`);
+    }
+    if (widget.querySelector('.ns-more, [aria-label^="More for"]')) problems.push('a "More" menu is back');
+    out.push({id, problems});
+  }
+  return out;
+}, kinds);
+
+test.describe('AM-2 (F2): Pin, Hide and Close on every widget', () => {
+  test.skip(({isMobile}) => isMobile, 'computer layouts');
+  for (const [width, height] of [[2560, 1440], [1440, 900], [1024, 768], [760, 900]] as const) {
+    for (const layout of ['orbit', 'bento'] as const) {
+      test(`every kind of the catalogue shows its three keys in its head at ${width} × ${height}, ${layout}`, async ({page}) => {
+        test.setTimeout(120_000);
+        await page.setViewportSize({width, height});
+        const seen = new Set<string>();
+        for (const batch of batches(12)) {
+          await fresh(page, arranged(batch, layout));
+          await open(page);
+          const ids = new Set(batch.map(w => w.id)), kinds = KINDS.filter(k => ids.has(k.id));
+          await expect(page.locator('.nova-stage-area article.nova-widget')).toHaveCount(batch.length);
+          const report = await keysOnStage(page, kinds);
+          expect(report.filter(r => r.problems.length), `${layout} at ${width} px`).toEqual([]);
+          for (const r of report) seen.add(r.id);
+        }
+        expect([...seen].sort()).toEqual(KINDS.map(k => k.id).sort()); // every kind, none skipped
+      });
+    }
+  }
+  test('Focus shows its three widgets with their keys too', async ({page}) => {
+    await page.setViewportSize({width: 1440, height: 900});
+    const batch = batches(3)[0]!;
+    await fresh(page, arranged(batch, 'focus'));
+    await open(page);
+    const report = await keysOnStage(page, KINDS.filter(k => batch.some(w => w.id === k.id)));
+    expect(report.filter(r => r.problems.length)).toEqual([]);
+  });
+
+  test('each kind’s keys do their work: close (with Undo), hide to the dock and back, unpin and pin', async ({page}) => {
+    test.setTimeout(240_000);
+    await page.setViewportSize({width: 1440, height: 900});
+    const widget = (id: string) => page.locator(`.nova-stage-area article.nova-widget[data-widget="${id}"]`);
+    for (const batch of batches(12)) {
+      await fresh(page, arranged(batch));
+      await open(page);
+      for (const {id} of batch) {
+        const title = KINDS.find(k => k.id === id)!.title, head = widget(id).locator('.nova-widget-head');
+        await widget(id).scrollIntoViewIfNeeded();
+        // Close, then Undo: the widget is back where it was, still pinned.
+        await head.getByRole('button', {name: `Close ${title}`, exact: true}).click();
+        await expect(widget(id), id).toHaveCount(0);
+        await page.getByRole('button', {name: 'Undo'}).first().click();
+        await expect(widget(id), id).toBeVisible();
+        await expect(widget(id)).toHaveAttribute('data-pinned', '');
+        // Hide: a chip in the dock; a tap brings it back.
+        await widget(id).scrollIntoViewIfNeeded();
+        await head.getByRole('button', {name: `Hide ${title} in the dock`, exact: true}).click();
+        await expect(widget(id), id).toHaveCount(0);
+        await page.getByRole('group', {name: 'Dock: hidden widgets'}).getByRole('button', {name: `Show ${title} again`, exact: true}).click();
+        await expect(widget(id), id).toBeVisible();
+        // Unpin and pin: the key says which it is.
+        await widget(id).scrollIntoViewIfNeeded();
+        await head.getByRole('button', {name: `Unpin ${title}`, exact: true}).click();
+        await expect(head.getByRole('button', {name: `Pin ${title}`, exact: true})).toHaveAttribute('aria-pressed', 'false');
+        await expect(widget(id)).not.toHaveAttribute('data-pinned', '');
+        await head.getByRole('button', {name: `Pin ${title}`, exact: true}).click();
+        await expect(head.getByRole('button', {name: `Unpin ${title}`, exact: true})).toHaveAttribute('aria-pressed', 'true');
+      }
+    }
+  });
+
+  test('a widget made by a request and the Showcase’s arrangement carry the same keys', async ({page}) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({width: 1440, height: 900});
+    // Made on request (not pinned): Pin is offered, and the three keys are in the head.
+    await fresh(page);
+    await open(page);
+    const field = page.locator('.nova-command input');
+    for (const words of ['Show my habits this week', 'Show my net worth', 'show the time']) { await field.fill(words); await field.press('Enter'); await page.waitForTimeout(400); }
+    for (const [id, title] of [['habit-week', 'Habits this week'], ['net-worth', 'Tracked wealth'], ['time', 'Time']] as const) {
+      const head = page.locator(`.nova-stage-area article.nova-widget[data-widget="${id}"] .nova-widget-head`);
+      await expect(head).toBeVisible();
+      for (const name of [`Pin ${title}`, `Hide ${title} in the dock`, `Close ${title}`]) await expect(head.getByRole('button', {name, exact: true})).toBeVisible();
+      await expect(page.getByRole('button', {name: `More for ${title}`})).toHaveCount(0);
+    }
+    // The Showcase: its Command arrangement, every panel.
+    await page.goto('/app/settings');
+    await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
+    await page.waitForURL('**/app');
+    await open(page);
+    const shown = await page.locator('.nova-stage-area article.nova-widget').evaluateAll(els => els.map(el => (el as HTMLElement).dataset.widget!));
+    expect(shown.length).toBeGreaterThanOrEqual(8);
+    const report = await keysOnStage(page, KINDS.filter(k => shown.includes(k.id)));
+    expect(report.filter(r => r.problems.length)).toEqual([]);
   });
 });
