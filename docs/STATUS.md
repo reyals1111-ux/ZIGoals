@@ -1,3 +1,16 @@
+# Session AM — "NOVA, ALWAYS ON" (ADR-038) (2026-11-11, `feature/session-am-nova`; in progress, not merged, not deployed)
+**Base:** `main` `c65882f3` (Merge #100, Session AL; live as Alpha #54). **Rules (owner):** the brief for Session AM (one task: make NOVA the most impressive part of ZIGoals), the owner decisions of 11 Nov (outside data, sync, dependencies) and the one approved plan (verbatim in ADR-038).
+
+## Part 0 — records (owner-reported, 11 Nov)
+- **Session AL** merged into `main` as `c65882f3d4d2935783961600aa6e6ae2fd01c62b` ([PR #100](https://github.com/reyals1111-ux/ZIGoals/pull/100), 10 Nov 00:43 UTC). PR CI ("Milestone quality", run 1635) was green on attempt 3 (WebKit shard 2/3 flaky); main CI (run 1636) was green on attempt 2.
+- **Alpha #54** = Manual Alpha deployment run 57 (10 Nov 04:26–04:53 UTC), green: new version `1333dc2c-15b5-49f8-87d1-545b5a8b114d`, rollback `6ea13ee8-0455-450b-bb10-61773264605f` (#53).
+- **Owner's hosted verifier on #54** (11 Nov 02:10 UTC): PASS, 12/12 stages, no review items, 0 not-configured, 4 aborted by navigation; testnet v6.0.0, base fee 2.5 Gazig/gas.
+- **Owner logged out of Cloudflare** (confirmed 11 Nov).
+- **Landing** is still version `1a2c1c75-6b00-4459-8da5-e9446ab2eed1` (Session AL's `privacy.html` change is not deployed yet).
+- Rollback floor #32. **The next deploy is run 58 = Alpha #55.** Frozen readers are #37–#54 from now on (`scripts/frozen-readers.mjs`, #54 = `c65882f3`).
+
+Decisions: `docs/architecture/ADR-038-session-am.md`. Art direction: `docs/design/NOVA_AM_ART_DIRECTION.md`. Resume file: `docs/handoff/AM_RESUME.md`.
+
 # Session AL — "FIX EVERYTHING" (ADR-037) (2026-11-04/09, `feature/session-al-fix-everything`, [PR #100](https://github.com/reyals1111-ux/ZIGoals/pull/100); complete, not merged, not deployed)
 **Base:** `main` `17069c7d` (Merge #99, Session AK; live as Alpha #53). **Rules (owner):** the brief (Parts 0–17, R1–R9, O1–O7), the approved plan and the owner amendments A1–A12 (verbatim in ADR-037). One plan, one approval; no owner step during the session.
 
