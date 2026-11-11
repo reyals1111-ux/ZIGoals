@@ -1,4 +1,8 @@
-/* Session AK (owner follow-up 2, N3; lane NC): "Build your own NOVA" and its card. Theme tokens only (the nebula palette's
+/* Session AM-2 (ADR-038 "AM-2"): the guide speaks NOVA's language where it can without leaving the app's theme — squared
+   corners with a lit edge in NOVA's cyan and violet, step numbers and tags as cut tags, the progress bar as a lit meter,
+   commands as terminal lines. Colours stay the theme's own tokens (so Nebula, Light and Dark read alike), sizes and boxes
+   are unchanged, and nothing here moves.
+   Session AK (owner follow-up 2, N3; lane NC): "Build your own NOVA" and its card. Theme tokens only (the nebula palette's
    own variables with their Nebula values as fallbacks), so Nebula, Light with its dark islands and Dark read alike. Every
    target is at least 44 px; nothing moves under reduced motion or Motion Off. */
 /* One column that may shrink (minmax(0, 1fr)): an auto column took the path's min-content (302 px) and pushed the page
@@ -20,26 +24,26 @@
    path does (components/earn/earn.css): only its night surface and shade turn light; the Checklist's own day button
    (components/path/path-orbit.css) is unchanged. */
 :root[data-theme=light] .path-stage.nova-guide-path[data-variant=orbit] .path-jump { border-color: #8cc8ff80; background: linear-gradient(100deg, #fffffff5, #eef0fbf5); color: #23264d; box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59; }
-.nova-panel { display: grid; gap: 12px; padding: 16px 18px; border-radius: 16px; min-width: 0; text-align: start; line-height: 1.55;
-  background: color-mix(in srgb, var(--bg, #070a1a) 92%, transparent); border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 40%, var(--line, #2a325a)); color: var(--text, #eef1ff); }
+.nova-panel { display: grid; gap: 12px; padding: 16px 18px; border-radius: 6px; min-width: 0; text-align: start; line-height: 1.55;
+  background: color-mix(in srgb, var(--bg, #070a1a) 92%, transparent); border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 40%, var(--line, #2a325a)); box-shadow: 0 0 34px -18px var(--violet, #8b7cff); color: var(--text, #eef1ff); }
 .nova-panel p, .nova-panel ul, .nova-panel ol { margin: 0; }
-.nova-panel-title { margin: 0; font-size: 18px; }
+.nova-panel-title { margin: 0; font-size: 18px; letter-spacing: .01em; }
 .nova-sub { margin: 4px 0 0; font-size: 16px; }
 .nova-panel h3:not(.nova-panel-title) { margin: 0; font-size: 16px; }
 .nova-promises { padding-left: 18px; display: grid; gap: 6px; }
 .nova-steps { list-style: none; padding: 0; display: grid; gap: 10px; }
 .nova-steps > li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; align-items: start; }
-.nova-step-n { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 60%, transparent); color: var(--cyan, #6fd3ff); font-weight: 700; }
+.nova-step-n { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 3px 9px 3px 9px; border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 70%, transparent); background: color-mix(in srgb, var(--cyan, #6fd3ff) 9%, transparent); color: var(--cyan, #6fd3ff); font-weight: 700; font-variant-numeric: tabular-nums; }
 .nova-cmd { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 8px; align-items: center; margin-top: 6px; }
-.nova-cmd-shell { grid-column: 1 / -1; font-size: 13px; color: var(--muted, #aab2d9); }
-.nova-cmd pre { margin: 0; min-width: 0; overflow-x: auto; padding: 10px 12px; border-radius: 10px; font-size: 14px; white-space: pre;
-  background: color-mix(in srgb, var(--bg, #070a1a) 70%, #000); border: 1px solid var(--line, #2a325a); color: var(--text, #eef1ff); }
+.nova-cmd-shell { grid-column: 1 / -1; font-size: 14px; letter-spacing: .04em; color: var(--muted, #aab2d9); }
+.nova-cmd pre { margin: 0; min-width: 0; overflow-x: auto; padding: 10px 12px; border-radius: 3px; font-size: 14px; white-space: pre;
+  background: color-mix(in srgb, var(--bg, #070a1a) 70%, #000); border: 1px solid var(--line, #2a325a); border-left: 2px solid var(--cyan, #6fd3ff); color: var(--text, #eef1ff); }
 .nova-cmd pre:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
 .nova-cmd-copy { min-height: 44px; min-width: 64px; }
 .nova-choice button { min-height: 44px; }
 .nova-way { display: grid; gap: 10px; padding-top: 4px; min-width: 0; }
-.nova-honest, .nova-note, .nova-warn { padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 35%, var(--line, #2a325a)); background: color-mix(in srgb, var(--cyan, #6fd3ff) 7%, transparent); }
-.nova-warn { border-color: color-mix(in srgb, var(--pink, #ff74be) 45%, var(--line, #2a325a)); background: color-mix(in srgb, var(--pink, #ff74be) 8%, transparent); }
+.nova-honest, .nova-note, .nova-warn { padding: 10px 12px; border-radius: 3px; border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 35%, var(--line, #2a325a)); border-left: 2px solid var(--cyan, #6fd3ff); background: color-mix(in srgb, var(--cyan, #6fd3ff) 7%, transparent); }
+.nova-warn { border-color: color-mix(in srgb, var(--pink, #ff74be) 45%, var(--line, #2a325a)); border-left-color: var(--pink, #ff74be); background: color-mix(in srgb, var(--pink, #ff74be) 8%, transparent); }
 .nova-more summary, .nova-try summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--cyan, #6fd3ff); }
 .nova-more ul { padding-left: 18px; display: grid; gap: 6px; }
 .nova-keys { padding-left: 18px; display: grid; gap: 6px; overflow-wrap: anywhere; }
@@ -49,16 +53,16 @@
 .nova-pick { overflow-wrap: anywhere; }
 .nova-modes { display: grid; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
 .nova-modes legend { font-weight: 650; margin-bottom: 6px; }
-.nova-mode { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px; min-height: 44px; border-radius: 14px; cursor: pointer;
+.nova-mode { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px; min-height: 44px; border-radius: 4px; cursor: pointer;
   border: 1px solid var(--line, #2a325a); }
-.nova-mode:has(input:checked) { border-color: color-mix(in srgb, var(--violet, #8b7cff) 70%, transparent); background: color-mix(in srgb, var(--violet, #8b7cff) 12%, transparent); }
+.nova-mode:has(input:checked) { border-color: color-mix(in srgb, var(--violet, #8b7cff) 80%, transparent); background: color-mix(in srgb, var(--violet, #8b7cff) 12%, transparent); box-shadow: inset 3px 0 0 var(--cyan, #6fd3ff), 0 0 18px -8px var(--violet, #8b7cff); }
 .nova-mode input { width: 20px; height: 20px; margin: 2px 0 0; }
-.nova-tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line, #2a325a); color: var(--muted, #aab2d9); white-space: nowrap; }
+.nova-tag { font-size: 14px; padding: 1px 8px; border-radius: 3px; border: 1px solid var(--line, #2a325a); color: var(--muted, #aab2d9); white-space: nowrap; }
 .nova-scopes { display: grid; gap: 6px; border: 0; padding: 0; margin: 0; }
 .nova-scopes legend { font-weight: 650; margin-bottom: 6px; }
 .nova-guide-send { display: grid; gap: 8px; }
 .nova-guide-send-line { margin: 0; }
-.nova-guide-send-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px 12px; border-radius: 10px; font-size: 14px; background: color-mix(in srgb, var(--bg, #070a1a) 80%, transparent); border: 1px solid var(--line, #2a325a); }
+.nova-guide-send-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px 12px; border-radius: 3px; font-size: 14px; background: color-mix(in srgb, var(--bg, #070a1a) 80%, transparent); border: 1px solid var(--line, #2a325a); }
 .nova-guide-send[data-decision="refuse"] .nova-guide-send-line { color: var(--pink, #ff74be); }
 .nova-brief { padding-left: 18px; display: grid; gap: 4px; }
 .nova-guide-check { display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line, #2a325a); }
@@ -67,10 +71,10 @@
 .nova-connect { padding-top: 6px; }
 
 /* "NOVA online": a badge that reads without motion, and a one-time glow the first time. */
-.nova-badge { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 4px 12px; border-radius: 999px; font-weight: 700; letter-spacing: .04em;
+.nova-badge { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 4px 12px; border-radius: 3px 10px 3px 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   color: var(--text, #eef1ff); border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 60%, transparent); background: color-mix(in srgb, var(--violet, #8b7cff) 18%, transparent); }
-.nova-badge-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--cyan, #6fd3ff); box-shadow: 0 0 8px var(--cyan, #6fd3ff); }
-.nova-online { display: grid; gap: 8px; justify-items: start; padding: 14px 16px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a)); }
+.nova-badge-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--cyan, #6fd3ff); box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan, #6fd3ff) 24%, transparent), 0 0 8px var(--cyan, #6fd3ff); }
+.nova-online { display: grid; gap: 8px; justify-items: start; padding: 14px 16px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a)); border-top: 2px solid var(--cyan, #6fd3ff); }
 .nova-online p { margin: 0; }
 @media (prefers-reduced-motion: no-preference) {
   :root:not([data-app-motion=off]) .nova-online-new { animation: nova-online-glow 2.4s ease-out 1 both; }
@@ -80,13 +84,14 @@
 @keyframes nova-online-badge { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* The setup card on NOVA (lane NA's slot). */
-.nova-guide-card { display: grid; gap: 10px; padding: 16px 18px; border-radius: 18px; min-width: 0;
-  border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 45%, var(--line, #2a325a)); background: color-mix(in srgb, var(--panel, #0d1430) 85%, transparent); color: var(--text, #eef1ff); }
+.nova-guide-card { display: grid; gap: 10px; padding: 16px 18px; border-radius: 6px; min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 45%, var(--line, #2a325a)); border-top: 2px solid var(--cyan, #6fd3ff); background: color-mix(in srgb, var(--panel, #0d1430) 85%, transparent); color: var(--text, #eef1ff); }
 .nova-guide-card h2 { margin: 0; font-size: 18px; }
 .nova-guide-card p { margin: 0; }
 .nova-guide-card-done { padding: 10px 12px; }
-.nova-guide-card-bar { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--line, #2a325a) 80%, transparent); overflow: hidden; }
-.nova-guide-card-bar > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--violet, #8b7cff), var(--cyan, #6fd3ff)); }
+/* The progress bar: a lit meter — a gradient along its length with a white-hot leading end, over fine ticks. */
+.nova-guide-card-bar { height: 8px; border-radius: 2px; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--line, #2a325a) 90%, transparent) 0 6px, transparent 6px 8px); overflow: hidden; }
+.nova-guide-card-bar > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--violet, #8b7cff), var(--cyan, #6fd3ff)); box-shadow: inset -3px 0 0 #fff; }
 .nova-guide-card .ai-card-actions a, .nova-guide-card .ai-card-actions button { min-height: 44px; display: inline-flex; align-items: center; }
 @media (max-width: 400px) { .nova-cmd { grid-template-columns: minmax(0, 1fr); } .nova-cmd-copy { justify-self: start; } }
 .nova-guide-card .ai-card-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }

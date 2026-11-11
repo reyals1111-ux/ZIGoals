@@ -92,7 +92,13 @@ test('at rest: idle; the first open of the day: greeting; typing: listening; clo
     // and that focus starts "typing" (ai-chat.tsx onFocus → user_typing_started). On a slow WebKit page the frame came after
     // the 91 s jump, so "listening" began after the quiet time instead of before it. The clock moves once the box holds it.
     await expect(page.getByLabel('Message to your AI')).toBeFocused({timeout: 15_000});
-    await page.clock.runFor(91_000);
+    // Session AM (CI 1668, both attempts, WebKit phone; the order only, the assertion is unchanged): the box's focus makes
+    // ZIGi listen (ai-chat.tsx onFocus), and listening ends only when typing stops (alive.ts, 3 s after the last key). The
+    // test relied on the "typing stopped" of the "hello" above landing AFTER this focus; on a slow page it had already
+    // fired, ZIGi kept listening and never slept. The quiet time now starts from a key typed here, in the focused box:
+    // typing stops 3 s later, and 90 s after that the open panel is sleepy.
+    await page.keyboard.type('h'); await page.keyboard.press('Backspace');
+    await page.clock.runFor(3_000 + 91_000);
     await expect(launcher(page)).toHaveAttribute('data-state', 'sleepy');
     return;
   }

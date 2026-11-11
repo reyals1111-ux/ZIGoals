@@ -4,7 +4,7 @@ import {useMemo, type CSSProperties} from 'react';
 import type {WidgetSize} from '../../../lib/nova/store';
 import {balanceWords, sleepBalance} from '../../../lib/sleep/engine';
 import {durationWords} from '../../../lib/nova/widgets/words';
-import {polar} from '../../../lib/nova/holo/geometry';
+import {polar, tickPath} from '../../../lib/nova/holo/geometry';
 import {nextItems} from '../../../lib/nova/holo/agenda';
 import {recentNotes, tasksHud} from '../../../lib/nova/holo/lists';
 import {NOTES} from '../../../lib/notes/schema';
@@ -16,7 +16,7 @@ import {useTaskClock} from '../../tasks/use-task-list';
 import {useOrbitDay} from '../widgets/use-orbit-day';
 import {NovaEmpty} from '../widgets/empty';
 import TasksWidget from '../widgets/tasks';
-import {HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, NotShared, Orn, SegMeter} from './parts';
+import {GradArc, HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, Lead, NotShared, Orn, OrnMarks, SegMeter} from './parts';
 import {useHealthHud, useHealthShared, usePillarShown} from './use-hud-data';
 import {useAgendaToday} from './use-agenda-today';
 import './holo-parts.css';
@@ -30,6 +30,9 @@ import './holo-parts.css';
  * Review fixes (lane L8d): water with nothing logged today is "—" with its reason (M5); Today's orbit is a 140 px ring with
  * the day's next step beside it (p5) and, empty, the ring unlit (M8); an overdue count is coral with "!" — never Wealth's
  * amber (M7).
+ * Session AM-2 (art direction D): each is a hologram of its own — a hero figure over a wide segmented meter (Water, Sleep),
+ * the orbit as a bezelled ring whose lit planets ride a gradient arc, the day's next steps as a timeline of lit nodes,
+ * the tasks' counters as three lit read-outs, the newest notes as rows with nodes.
  */
 export function HoloWater({size}: {size: WidgetSize}) {
   const shown = usePillarShown('health'), shared = useHealthShared(), {hud, loaded, error} = useHealthHud();
@@ -39,7 +42,7 @@ export function HoloWater({size}: {size: WidgetSize}) {
   const w = hud.water;
   return <div className="holo-water" data-size={size}>
     <p className="holo-big-line"><HoloFigure text={w.text} className="holo-num-big"/>{w.targetText ? <small> of {w.targetText}</small> : null}</p>
-    <SegMeter label="Today" share={w.share} text={w.share === null ? '—' : formatPercent(w.share * 100)} note={w.note} count={size === 'S' ? 10 : 16} compact={size === 'S'}/>
+    <SegMeter label="Today" share={w.share} text={w.share === null ? '—' : formatPercent(w.share * 100)} note={w.note} count={size === 'S' ? 12 : 20} compact={size === 'S'}/>
     {w.value === null && <p className="sr-only">No water logged yet today.</p>}
     {!shared && size !== 'S' && <NotShared/>}
     <HoloTable caption="Water today" rows={[['Logged', w.value === null ? '— (no water logged yet today)' : w.text], ['Your target', w.targetText ?? 'No target set']]}/>
@@ -53,7 +56,8 @@ export function HoloSleep({size}: {size: WidgetSize}) {
   const s = hud.sleep, sleep = health.data.sleep, balance = sleep ? sleepBalance(sleep, day) : null;
   if (!sleep || !sleep.nights.length) return <HoloEmpty kind="ring" href="/app/health?view=sleep" action="Log a night">No nights logged yet.{size === 'S' ? '' : ' Set a sleep goal too, to see your balance.'}</HoloEmpty>;
   return <div className="holo-sleep" data-size={size}>
-    <SegMeter label="Last night" share={s.share} text={s.text} targetText={s.targetText} note={s.note} count={size === 'S' ? 10 : 14} compact={size === 'S'}/>
+    <p className="holo-big-line"><HoloFigure text={s.text} className="holo-num-big"/>{s.targetText ? <small> of {s.targetText}</small> : null}</p>
+    <SegMeter label="Last night" share={s.share} text={s.share === null ? '—' : formatPercent(s.share * 100)} note={s.note} count={size === 'S' ? 12 : 20} compact={size === 'S'}/>
     {size !== 'S' && balance && <p className="holo-note-line">{balanceWords(balance, durationWords)}</p>}
     <HoloTable caption="Sleep" rows={[['Last night', `${s.text}${s.targetText ? ` of ${s.targetText}` : ''}`], ...(balance ? [['Two-week balance', balanceWords(balance, durationWords)] as const] : [])]}/>
   </div>;
@@ -63,17 +67,33 @@ export function HoloOrbit({size}: {size: WidgetSize}) {
   const {summary} = useOrbitDay();
   if (!summary) return <HoloReading/>;
   if (summary.source === 'none') return <HoloEmpty kind="ring">Your day’s orbit fills in as you add a habit or star something for the Checklist.</HoloEmpty>;
-  const n = Math.min(24, summary.total), dial = size === 'S' ? 64 : size === 'M' ? 140 : 164, unit = summary.source === 'checklist' ? 'planets lit' : 'habits done';
+  const n = Math.min(24, summary.total), dial = size === 'S' ? 64 : undefined, unit = summary.source === 'checklist' ? 'planets lit' : 'habits done';
+  const share = summary.total ? Math.min(1, summary.done / summary.total) : 0, lit = Math.min(n, summary.done), step = n ? 360 / n : 0, end = polar(0, 0, 42, Math.max(0, lit - 1) * step);
   return <div className="holo-orbit" data-size={size}>
-    <div className="holo-ring" style={{'--ring': `${dial}px`} as CSSProperties}>
+    <div className="holo-ring holo-orbit-ring" data-small={size === 'S' || undefined} style={dial ? {'--ring': `${dial}px`} as CSSProperties : undefined}>
       <svg viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
+        <circle className="holo-well" r="37"/>
+        <path className="holo-orn-ticks" d={tickPath(0, 0, 50.5, 53, size === 'S' ? 24 : 60)}/>
+        <path className="holo-orn-ticks holo-orn-major" d={tickPath(0, 0, 49.5, 54.6, 12)}/>
+        {size !== 'S' && <circle className="holo-orn-hair" r="34.6"/>}
         <circle className="holo-track" r="42"/>
-        {Array.from({length: n}, (_, i) => { const p = polar(0, 0, 42, i / n * 360); return <circle key={i} className="holo-planet" data-lit={i < summary.done || undefined} cx={p.x} cy={p.y} r={n > 12 ? 3.4 : 5}/>; })}
+        {/* The lit planets ride one gradient arc from the first to the last of them (the same count as the figure). */}
+        {lit > 1 && <g className="holo-arc-g holo-orbit-arc"><GradArc r={42} from={0} to={(lit - 1) * step}/></g>}
+        {Array.from({length: n}, (_, i) => { const p = polar(0, 0, 42, i * step); return <circle key={i} className="holo-planet" data-lit={i < summary.done || undefined} cx={p.x} cy={p.y} r={n > 12 ? 3.4 : 4.8}/>; })}
       </svg>
-      <Orn><circle className="holo-orn-dash" r="56"/></Orn>
+      {lit > 0 && share < 1 && <Lead x={end.x} y={end.y}/>}
+      <Orn><OrnMarks/></Orn>
       <div className="holo-ring-centre"><HoloFigure text={`${summary.done}/${summary.total}`} className="holo-num-ring"/>{size !== 'S' && <small>{unit}</small>}</div>
     </div>
-    {size !== 'S' && <p className="holo-orbit-line">{summary.line}</p>}
+    <div className="holo-orbit-side">
+      <p className="holo-orbit-line">{summary.line}</p>
+      {/* Round 2: what is still open on the orbit, as lit rows (the summary's own next items: lib/orbit-card/summary.ts). */}
+      {size !== 'S' && summary.next.length > 0 && <ol className="holo-next holo-orbit-next" aria-label="Next on your orbit">{summary.next.map(i => <li key={i.key} data-pillar={i.pillar}>
+        <span className="holo-next-time">{i.time ? formatClock(i.time) : '—'}</span>
+        <Link href={i.href} prefetch={false} title={i.label}>{i.label}</Link>
+        <small>{WHEN[i.when]}</small>
+      </li>)}</ol>}
+    </div>
     <HoloTable caption="Today’s orbit" rows={[['Done', `${summary.done} of ${summary.total} ${unit}`]]}/>
   </div>;
 }
@@ -83,8 +103,8 @@ export function HoloNext({size}: {size: WidgetSize}) {
   const {items, now} = useAgendaToday();
   if (!items) return <HoloReading/>;
   const next = nextItems(items, now, size === 'S' ? 2 : 3);
-  if (!next.length) return <NovaEmpty pillar="habits" href="/app/habits" action="Add a habit">{items.length ? 'Nothing else is due today. A calm orbit.' : 'Nothing is planned yet. A habit, a task or a bill shows up here at its time.'}</NovaEmpty>;
-  return <ol className="holo-next holo-next-wide" aria-label="Next in your day">{next.map(i => <li key={i.id} data-pillar={i.pillar}>
+  if (!next.length) return <NovaEmpty pillar="habits" ghost="rows" href="/app/habits" action="Add a habit">{items.length ? 'Nothing else is due today. A calm orbit.' : 'Nothing is planned yet. A habit, a task or a bill shows up here at its time.'}</NovaEmpty>;
+  return <ol className="holo-next holo-next-wide" aria-label="Next in your day">{next.map(i => <li key={i.id} data-pillar={i.pillar} data-when={i.when}>
     <span className="holo-next-time">{i.time ? formatClock(i.time) : '—'}</span>
     {i.href ? <Link href={i.href} prefetch={false}>{i.title}</Link> : <span>{i.title}</span>}
     <small>{WHEN[i.when]}</small>
@@ -111,10 +131,10 @@ export function HoloNotes({size}: {size: WidgetSize}) {
   const record = useDeviceRecord(NOTES);
   if (!record.loaded) return <HoloReading/>;
   if (record.unreadable) return <HoloUnread what="Your notes"/>;
-  const r = recentNotes(record.data, size === 'L' ? 5 : size === 'M' ? 3 : 1);
-  if (!r.total) return <NovaEmpty pillar="orbit">Your notes start here. A quick capture from anywhere lands in your inbox.</NovaEmpty>;
+  const r = recentNotes(record.data, size === 'L' ? 5 : size === 'M' ? 3 : 2); // a small panel shows its second note only where it is wide (holo-parts.css)
+  if (!r.total) return <NovaEmpty pillar="orbit" ghost="rows">Your notes start here. A quick capture from anywhere lands in your inbox.</NovaEmpty>;
   return <div className="holo-notes" data-size={size}>
-    <p className="holo-label"><HoloFigure text={String(r.inbox)}/> in your inbox</p>
+    <p className="holo-label holo-notes-head"><HoloFigure text={String(r.inbox)} className="holo-num-big"/> <span>in your inbox</span></p>
     <ol className="holo-captures" aria-label="Recent captures">{r.recent.map(n => <li key={n.id}><Link href="/app/notes" prefetch={false}>{n.name}</Link><small>{formatTime(n.at)}</small></li>)}</ol>
   </div>;
 }

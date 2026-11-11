@@ -29,7 +29,8 @@ export default function NowPlayingWidget() {
   // button is the one extra door, and only where the player is shown.
   const open = playerShown ? <button type="button" className="nova-chip-link" onClick={openMusicPlayer}>Open the player</button> : null;
   return <div className="nova-playing" data-playing={source === 'ambient' && ambient.playing || undefined}>
-    <span className="nova-disc" aria-hidden="true"/>
+    {/* Session AM-2: a small level meter (five columns; an ornament: it moves only while this device's own sound plays, under Full motion). */}
+    <span className="nova-disc" aria-hidden="true"><i/><i/><i/><i/><i/></span>
     <div className="nova-playing-text">
       <p className="nova-line"><strong>{label}</strong></p>
       <p className="nova-line nova-quiet" role="status">{source === 'ambient' ? (ambient.playing ? 'Playing, made on this device.' : 'Stopped.') : source === 'spotify' ? 'Plays in Spotify; the player has its controls.' : 'Plays in Apple Music.'}</p>

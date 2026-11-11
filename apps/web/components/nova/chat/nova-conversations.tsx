@@ -5,6 +5,7 @@ import {AREA_LABELS} from '../../../lib/ai/context/pages';
 import {forgetChatAreas, groupHistory} from '../../../lib/ai/history';
 import {currentChatStore} from '../../../lib/ai/scope';
 import {chatOrigins, delegatedTurns, forgetNovaChats, type ChatOrigin} from '../../../lib/nova/bridge';
+import {forgetStageAsksOfChats} from '../../../lib/nova/stage/record';
 import {chatFileName, chatMarkdown} from '../../../lib/nova/bridge-export';
 import {getAppStorage} from '../../../lib/showcase-storage';
 import {formatDateTime} from '../../../lib/visual-format';
@@ -45,7 +46,7 @@ export function NovaConversations({session, persona, onOpen}: {session: ChatSess
     const p = pendingRef.current; pendingRef.current = null; setPending(null);
     if (timer.current !== null) { window.clearTimeout(timer.current); timer.current = null; }
     if (!p) return;
-    try { await session.remove(p.id); const storage = getAppStorage(); forgetChatAreas(storage, [p.id]); forgetNovaChats(storage, [p.id]); }
+    try { await session.remove(p.id); const storage = getAppStorage(); forgetChatAreas(storage, [p.id]); forgetNovaChats(storage, [p.id]); forgetStageAsksOfChats(storage, [p.id]); }
     catch { setError('A conversation could not be deleted on this device.'); }
     await refresh();
   }, [session, refresh]);

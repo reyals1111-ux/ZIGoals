@@ -20,9 +20,22 @@ export const EXTRAS_SECTIONS = ['goals', 'life', 'habits', 'health'];
  * Session AK (8.10, AFL8; `TIER 3 (auth/sync)`): sections a newer client asks for by name. They are stored, written and
  * deleted like the four, but the default list of heads stays exactly the four, so an older client (which reads that list
  * strictly) never sees a section it does not know; a client that knows them asks with `?with=checklist`.
+ * An optional section holds no Health-describing record, so only `health` follows the Health domain's deletions.
  */
-export const EXTRAS_SECTIONS_OPTIONAL = ['checklist'];
+export const EXTRAS_SECTIONS_OPTIONAL = ['checklist', 'nova'];
 const KNOWN_SECTIONS = [...EXTRAS_SECTIONS, ...EXTRAS_SECTIONS_OPTIONAL];
+/**
+ * Session AM (ADR-038 D18, A6; `TIER 3 (sync)`): `nova` (NOVA's requests, made and pinned widgets and layout) is the
+ * second optional section, and a client may now ask for several: one `with` per section (`?with=checklist&with=nova`).
+ * The Worker deployed before this one read the first `with` only, so that form is answered by both: the earlier one lists
+ * the four and the Checklist, this one also lists NOVA. Here the first `with` is checked exactly as before (a name that
+ * is not an optional section is refused, so a request with one `with` answers byte for byte as it did); each further
+ * `with` must be a well-formed name, given once, at most EXTRAS_WITH_MAX in all, and a well-formed name this Worker does
+ * not know is not listed (never an error): a later app that asks for a section added after this Worker keeps every
+ * section this Worker has, and reads the missing head as "not yet".
+ */
+export const EXTRAS_WITH_MAX = 8;
+const SECTION_NAME = /^[a-z][a-z0-9-]{0,31}$/;
 /** Per section, as the Portfolio: one snapshot fits one relay request (the app's relay reads at most 1,010,000 bytes). */
 export const EXTRAS_PARTS_MAX = 16, EXTRAS_BYTES_MAX = 1_000_000, EXTRAS_RECEIPTS_KEPT = 64;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -61,7 +74,8 @@ export async function settleHealthExtras(store) { await head(store, 'health'); }
 
 /**
  * GET `?section=<name>`: that section's head and sealed parts. GET without a section: every section's head (no parts), so a
- * device fetches parts only for a section that changed. POST {protocol:1, action:'put', vault, operation, section, base,
+ * device fetches parts only for a section that changed; the optional sections' heads only when named (`?with=<name>`, once
+ * per section). POST {protocol:1, action:'put', vault, operation, section, base,
  * generation, epoch, parts} replaces a section's snapshot; {protocol:1, action:'delete', vault, operation, section, base,
  * generation} removes it and counts a deletion. Both are idempotent per operation id.
  * @param {Request} request @param {RecordState} state @param {(request:Request,max?:number)=>Promise<any>} readJSON
@@ -69,16 +83,18 @@ export async function settleHealthExtras(store) { await head(store, 'health'); }
  */
 export async function extrasRequest(request, state, readJSON, validEnvelope, sessionHash) {
   if (request.method === 'GET') {
-    const params = new URL(request.url).searchParams, asked = params.get('section'), withOptional = params.get('with');
+    const params = new URL(request.url).searchParams, asked = params.get('section'), named = params.getAll('with');
     if (asked !== null && !KNOWN_SECTIONS.includes(asked)) return reply({error: 'INVALID_EXTRAS_REQUEST'}, 400);
-    if (withOptional !== null && !EXTRAS_SECTIONS_OPTIONAL.includes(withOptional)) return reply({error: 'INVALID_EXTRAS_REQUEST'}, 400);
+    if (named.length && !EXTRAS_SECTIONS_OPTIONAL.includes(/** @type {string} */ (named[0]))) return reply({error: 'INVALID_EXTRAS_REQUEST'}, 400);
+    if (named.length > EXTRAS_WITH_MAX || new Set(named).size !== named.length || !named.every(name => SECTION_NAME.test(name))) return reply({error: 'INVALID_EXTRAS_REQUEST'}, 400);
+    const optional = named.filter(name => EXTRAS_SECTIONS_OPTIONAL.includes(name));
     return state.storage.transaction(async store => {
       if (await store.get('account-deleted')) return reply({error: 'ACCOUNT_DELETED'}, 410);
       if (!await sessionAllowed(store, sessionHash)) return reply({error: 'SESSION_REVOKED'}, 401);
       if (asked === null) {
         /** @type {Record<string, {revision:number,generation:number,epoch:number|null,parts:number}>} */
         const sections = {};
-        for (const section of withOptional ? [...EXTRAS_SECTIONS, withOptional] : EXTRAS_SECTIONS) { const h = await head(store, section); sections[section] = {revision: h.revision, generation: h.generation, epoch: h.epoch, parts: h.parts}; }
+        for (const section of [...EXTRAS_SECTIONS, ...optional]) { const h = await head(store, section); sections[section] = {revision: h.revision, generation: h.generation, epoch: h.epoch, parts: h.parts}; }
         return reply({protocol: 1, sections});
       }
       const current = await head(store, asked), parts = current.parts ? await store.get(partKeys(asked, current.parts)) : new Map();

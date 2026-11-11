@@ -193,6 +193,11 @@ test('the title sweeps once, and stays still under reduced motion', async ({page
 for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links, buttons and questions at least 44 px tall`, async ({page}) => {
   await page.setViewportSize({width, height: 844});
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  // Session AM: the count below is taken once every answer's links are laid out. The answers far down the page get
+  // their boxes a moment after the page is hydrated (26 links had none on the first read and all had one right after:
+  // 50, then 76, on the same build), so the count raced; the number itself is as exact as before.
+  await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
+  await expect.poll(() => page.locator('.help-page').evaluate(root => [...root.querySelectorAll('.help-question a')].filter(el => !(el.getBoundingClientRect().width > 0)).length), {timeout: 15_000}).toBe(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   // Session AF Gate C (design critique; deliberate, stronger): a link inside a sentence is part of the sentence — inline
   // text with words beside it, the WCAG 2.5.8 inline exception that the layout audit and the touch-target specs already
@@ -234,7 +239,9 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // Session AL Part 15 (GAP-178, C-DVG-90, deliberate; 2f4f3d9e): the new "Every published version, newest first" section
   // links "What’s new" inside its sentence, and each listed release's "Read more" follows its title and " · " in the same
   // line of text (nine of the ten releases have a Help section): ten more in-sentence links (62 → 72).
-  expect(inline).toBe(72);
+  // Session AM (deliberate): NOVA's new answers link inside their sentences: "What does NOVA's weather send" to the
+  // stage's answer, Plans from the rename answer, MET Norway's privacy statement and the CC BY 4.0 licence (72 → 76).
+  expect(inline).toBe(76);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });

@@ -6,6 +6,7 @@ import {WALLET_CATALOG_LABELS} from '../af-wallet-keys';
 import {AF_ZIGI_CATALOG_LABELS} from '../af-zigi-keys';
 import {AF_EXTRAS_CATALOG_LABELS} from '../af-extras-keys';
 import {AL_CATALOG_LABELS} from '../al-device-keys';
+import {AM_CATALOG_LABELS} from '../am-device-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -107,13 +108,17 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   // Session AL (lib/al-device-keys.ts): the Apps & extras display choices (O3, O4).
   appsPrefs: [AL_CATALOG_LABELS.appsPrefs[0], AL_CATALOG_LABELS.appsPrefs[1]], walletNames: [AL_CATALOG_LABELS.walletNames[0], AL_CATALOG_LABELS.walletNames[1]],
   chessPuzzle: [AL_CATALOG_LABELS.chessPuzzle[0], AL_CATALOG_LABELS.chessPuzzle[1]], novaHud: [AL_CATALOG_LABELS.novaHud[0], AL_CATALOG_LABELS.novaHud[1]], healthExtras: [AL_CATALOG_LABELS.healthExtras[0], AL_CATALOG_LABELS.healthExtras[1]], stablecoinsAsCash: [AL_CATALOG_LABELS.stablecoinsAsCash[0], AL_CATALOG_LABELS.stablecoinsAsCash[1]], chessPuzzleLog: [AL_CATALOG_LABELS.chessPuzzleLog[0], AL_CATALOG_LABELS.chessPuzzleLog[1]], ecoTvlHistory: [AL_CATALOG_LABELS.ecoTvlHistory[0], AL_CATALOG_LABELS.ecoTvlHistory[1]], profileName: [AL_CATALOG_LABELS.profileName[0], AL_CATALOG_LABELS.profileName[1]], watchlistMore: [AL_CATALOG_LABELS.watchlistMore[0], AL_CATALOG_LABELS.watchlistMore[1]],
+  // Session AM (lib/am-device-keys.ts; ADR-038 D16, D17): NOVA's stage record and its outside-data record.
+  novaStage: [AM_CATALOG_LABELS.novaStage[0], AM_CATALOG_LABELS.novaStage[1]], novaWorld: [AM_CATALOG_LABELS.novaWorld[0], AM_CATALOG_LABELS.novaWorld[1]],
 };
+/** Session AM (ADR-038 D18): the one record of which only a part travels, in the words the Data health page shows. */
+export const NOVA_PARTLY_SYNCED_LABEL = 'NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)';
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page
  * reads them there) and their synced copy lives in the home named here: accounts and milestone dates inside finance v5
  * (Part 1, C6), the AA records in the encrypted extras sections (Part 2, C1; `lib/vault/extras-sections.ts`).
  */
-export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home; area: string}>> = {
+export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home; area: string; label?: string}>> = {
   accounts: {home: 'sync', area: 'Goals & Wealth'}, milestoneDates: {home: 'sync', area: 'Goals & Wealth'},
   // Part 2 (C1, C4): the encrypted extras sections, on unless turned off in Settings → Sync; Health's only with its consent.
   goalExtras: {home: 'sync', area: 'Goals'}, averageGoals: {home: 'sync', area: 'Goals'},
@@ -122,6 +127,11 @@ export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home
   healthCoach: {home: 'sync-consent', area: 'Health'}, microTargets: {home: 'sync-consent', area: 'Health'}, macroMode: {home: 'sync-consent', area: 'Health'}, aisles: {home: 'sync-consent', area: 'Health'}, measurementsCustom: {home: 'sync-consent', area: 'Health'}, healthVitamins: {home: 'sync-consent', area: 'Health'},
   // Session AK (8.10, AFL8): the Checklist section; its Health quick inputs and today's ticks stay on each device.
   checklist: {home: 'sync', area: 'Checklist'}, checklistDays: {home: 'sync', area: 'Checklist'},
+  // Session AM (ADR-038 D18): the NOVA section. The stage record travels whole. Of `zigoals:nova:v1` only the layout and
+  // the pinned widgets travel; a key is listed once, so it stands with the synced records under a label that names what
+  // travels and what stays (NOVA_PARTLY_SYNCED_LABEL), never as "this device only" (two of its fields leave the device)
+  // and never as plainly synced (the rest does not). `zigoals:nova-world:v1` and every other NOVA key stay device-only.
+  novaStage: {home: 'sync', area: 'NOVA'}, nova: {home: 'sync', area: 'NOVA', label: NOVA_PARTLY_SYNCED_LABEL},
 };
 const DEVICE_NAMES = Object.keys(DEVICE_KEYS) as (keyof typeof DEVICE_KEYS)[];
 export const SYNCED: readonly CatalogEntry[] = [
@@ -129,7 +139,7 @@ export const SYNCED: readonly CatalogEntry[] = [
   {key: MODULE_KEYS.habits, label: 'Habits and check-ins', home: 'sync', area: 'Habits'},
   {key: MODULE_KEYS.settings, label: 'Today\'s layout, widgets and settings', home: 'sync', area: 'Today'},
   {key: MODULE_KEYS.health, label: 'Health journal (food, water, activity, sleep, weight)', home: 'sync-consent', area: 'Health'},
-  ...DEVICE_NAMES.filter(name => DEVICE_SYNCED[name]).map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_LABELS[name][0], home: DEVICE_SYNCED[name]!.home, area: DEVICE_SYNCED[name]!.area})),
+  ...DEVICE_NAMES.filter(name => DEVICE_SYNCED[name]).map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_SYNCED[name]!.label ?? DEVICE_LABELS[name][0], home: DEVICE_SYNCED[name]!.home, area: DEVICE_SYNCED[name]!.area})),
 ];
 export const DEVICE_ONLY: readonly CatalogEntry[] = [
   ...DEVICE_NAMES.filter(name => !DEVICE_SYNCED[name]).map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_LABELS[name][0], home: 'device', area: DEVICE_LABELS[name][1]})),

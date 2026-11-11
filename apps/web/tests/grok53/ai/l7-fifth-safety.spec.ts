@@ -2,7 +2,7 @@ import {expect, test, type Locator, type Page} from '@playwright/test';
 import {openZigi, sendToZigi, zigiPanel} from '../../zigi-open';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../../../lib/ai/settings';
 import {ADVICE_REPLIES, GUARD_REPLIES} from '../../../lib/ai/safety-guard';
-import {nova, seed, sendInNova} from './helpers';
+import {nova, novaField, seed, sendInNova} from './helpers';
 
 /**
  * Session AL fifth pass (lane L7-5a): the safety rows the Grok #53 replay round 2 on 37d2370c still found open
@@ -70,7 +70,12 @@ for (const cond of CONDITIONS) test.describe(cond.name, () => {
     } else {
       // NOVA's page first, settled (its first visit writes its own layout record, `zigoals:nova:v1`), then the words.
       await page.goto('/app/nova');
-      await expect(page.getByRole('form', {name: /^Ask /}).getByRole('textbox', {name: /^Message /}).or(nova(page))).toBeVisible({timeout: 60_000});
+      // Session AM (D7, deliberate): this read `field.or(nova(page))` (whichever of the two the page opened on). The
+      // conversation is now always in the page on a computer, hidden until it opens, so the pair matched two elements;
+      // a plain visit to NOVA opens on the stage, and the settled page is the one whose command field is visible with
+      // the conversation hidden.
+      await expect(novaField(page)).toBeVisible({timeout: 60_000});
+      await expect(nova(page)).toBeHidden();
       await page.waitForLoadState('networkidle');
       const before = await records(page);
       await sendInNova(page, row.ask);

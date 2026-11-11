@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {withEarlierWidgets} from '../../nova-am';
 import {hydrated} from '../../ah-helpers';
 import {NOON, NOVA_KEY, frame, freshNova, panel, storedJson} from './hud-helpers';
 
@@ -60,14 +61,19 @@ for (const [width, height, least] of [[1440, 900, 3], [1920, 1080, 4]] as const)
     if (await goals.locator('.holo-pace-chart').count()) await expect(goals.locator('.holo-pace-chart svg')).toBeInViewport({ratio: 1});
     // The core's readout and the words under the orb clear the command field; NOVA's name and state clear the rings.
     const foot = (await page.locator('.nova-foot').boundingBox())!;
-    for (const sel of ['.holo-core-readout', '.nova-greeting', '.nova-dayline']) {
+    // Session AM (design review AM-D33, deliberate): the read-out shows where the star's column has room for it (1920) and
+    // is hidden, not squeezed, at 1440; where it shows it clears the command field as before.
+    const readout = page.locator('.holo-core-readout');
+    if (width >= 1920) await expect(readout).toBeVisible(); else await expect(readout).toBeHidden();
+    for (const sel of [...(width >= 1920 ? ['.holo-core-readout'] : []), '.nova-greeting', '.nova-dayline']) {
       const b = (await page.locator(sel).boundingBox())!;
       expect(b.y + b.height, `${sel} above the command field`).toBeLessThanOrEqual(foot.y + 0.5);
     }
     const rings = (await page.locator('.holo-core').boundingBox())!, name = (await page.locator('.nova-name').boundingBox())!, state = (await page.locator('.nova-orb-state').boundingBox())!;
     expect(name.y + name.height, 'NOVA’s name above the rings').toBeLessThanOrEqual(rings.y + 1);
     expect(state.y, 'the state under the rings').toBeGreaterThanOrEqual(rings.y + rings.height - 1);
-    await expect(page.getByRole('list', {name: 'Today’s core'}).locator('li')).toHaveCount(4);
+    // AM-D33, deliberate: the four read-outs are a named list where they show (1920); at 1440 the same four are in the page, hidden.
+    if (width >= 1920) await expect(page.getByRole('list', {name: 'Today’s core'}).locator('li')).toHaveCount(4); else await expect(readout.locator('li')).toHaveCount(4);
   });
 }
 
@@ -100,11 +106,15 @@ test('M11, M5: a small panel\'s header never covers its body; water with nothing
     link?.scrollIntoView({block: 'nearest', inline: 'nearest'});
     const r = link?.getBoundingClientRect();
     const hit = r && r.width ? document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) : null;
-    return {id: (el as HTMLElement).dataset.widget, headBottom: head.bottom, bodyTop: body.top, oneLine: head.height <= 30, linkOnTop: !r || !r.width || (!!hit && (hit === link || link!.contains(hit))), name: link?.getAttribute('aria-label') ?? ''};
+    return {id: (el as HTMLElement).dataset.widget, headBottom: head.bottom, bodyTop: body.top, oneLine: head.height <= 34 && new Set([...el.querySelectorAll('.nova-widget-head :is(button, a)')].filter(c => c.getClientRects().length).map(c => Math.round(c.getBoundingClientRect().top))).size === 1, linkOnTop: !r || !r.width || (!!hit && (hit === link || link!.contains(hit))), name: link?.getAttribute('aria-label') ?? ''};
   }));
   expect(small.length).toBeGreaterThan(0);
   for (const s of small) {
-    expect(s.oneLine, `${s.id}: its header is one line`).toBe(true);
+    // Session AM (widget head, deliberate): the head now holds Pin / Hide / Close beside the quick actions and the link,
+    // and a title that would be cut takes two short lines instead of an ellipsis (components/nova/stage/stage.css). "One
+    // line" (a head of at most 30 px) is now one row: a head of at most 34 px (two title lines) with every control on
+    // one line; it still ends before the body and nothing covers the link.
+    expect(s.oneLine, `${s.id}: its header is one row (a title of two short lines at most, every control on one line)`).toBe(true);
     expect(s.headBottom, `${s.id}: the header ends before the body`).toBeLessThanOrEqual(s.bodyTop + 0.5);
     expect(s.linkOnTop, `${s.id}: nothing covers its link`).toBe(true);
     expect(s.name, `${s.id}: the arrow keeps its name`).toMatch(/^Open /);
@@ -122,6 +132,11 @@ test('M8: a brand-new NOVA opens on the instruments; an empty instrument is draw
   await page.goto('/app/settings');
   // No NOVA record at all on this device (Motion Off, so the opening does not play and the stage shows at once).
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); localStorage.setItem('zigoals:motion:v1', 'off'); });
+  // Session AM (D2, deliberate): a brand-new NOVA no longer opens on the Command arrangement by itself (its stage starts
+  // empty; the instruments are one tap away under View). The arrangement a brand-new NOVA was given is put on the stage
+  // first, built by the app's own code (tests/nova-am.ts), and what M8 is about — an empty instrument drawn unlit with
+  // its reason, never a zero — is read exactly as before.
+  await page.evaluate(([k, v]) => localStorage.setItem(k, v), [NOVA_KEY, JSON.stringify(withEarlierWidgets({version: 1}))] as const);
   await page.goto('/app/nova'); await hydrated(page);
   await expect(frame(page)).toHaveAttribute('data-look', 'holo');
   await expect(panel(page, 'Health HUD')).toBeVisible();

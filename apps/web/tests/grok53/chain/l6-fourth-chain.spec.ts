@@ -99,6 +99,11 @@ test('BN-003: at 375 px Dark the real-network dialog keeps short buttons and the
   const view = await openGovernance(page);
   await view.getByRole('button', {name: /Real network \(real ZIG\)/}).click();
   const dialog = page.getByRole('dialog', {name: 'This is real money'});
+  // Session AM (CI 1643 and 1669, both projects; the wait only): the boxes below are read one after the other, and while
+  // the dialog was still coming in the second read saw it elsewhere (15.6, 32, 47, 78 px apart on one build, 5 runs in 16
+  // on a loaded machine). The measurements are taken once the dialog's own entrance has finished.
+  await expect(dialog).toBeVisible();
+  await dialog.evaluate(el => Promise.all(el.getAnimations({subtree: true}).map(a => a.finished.catch(() => undefined))));
   for (const name of ['Not now', 'Continue on the real network']) {
     const box = (await dialog.getByRole('button', {name}).boundingBox())!;
     expect(box.height, name).toBeGreaterThanOrEqual(44);

@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {withEarlierWidgets} from './nova-am';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -19,7 +20,9 @@ import {NOVA_WORKFLOWS_KEY} from '../lib/nova/workflows/schema';
 const BASE = 'http://127.0.0.1:1234', DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
 const nova = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), NOVA_KEY);
 const frame = (page: Page) => page.locator('.nova-frame');
-const seen = (more: Record<string, unknown> = {}) => JSON.stringify({version: 1, openingSeen: true, ...more});
+// Session AM (D2, deliberate): a record without a widget list used to read as AK's eight "Everyday" widgets; the stage now
+// starts empty, so the record these tests start from arranges that same list first (tests/nova-am.ts), and each assertion stays.
+const seen = (more: Record<string, unknown> = {}) => JSON.stringify(withEarlierWidgets({version: 1, openingSeen: true, ...more}));
 const localAi = () => ({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE});
 const chunk = (delta: Record<string, unknown>, finish: string | null = null) => `data: ${JSON.stringify({id: 'mock', object: 'chat.completion.chunk', choices: [{index: 0, delta, finish_reason: finish}]})}\n\n`;
 const stream = (text: string) => [chunk({role: 'assistant', content: text}), chunk({}, 'stop'), 'data: [DONE]\n\n'].join('');

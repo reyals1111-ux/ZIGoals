@@ -3669,6 +3669,333 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .notify-times .field:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/notify/notify-sync.css  */
 :where(:root[data-density=compact]) .sw-update:not(#\-) { row-gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+/*  components/nova/cards/cards.css  */
+:where(:root[data-density=compact]) .nc-body:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nc-foot:not(#\-) { margin-top: auto; margin-bottom: 0; padding-top: 6px; }
+:where(:root[data-density=compact]) .nova-widget .nc-body > .nc-foot:not(#\-) { margin-top: auto; }
+:where(:root[data-density=compact]) .nc-foot-dot:not(#\-) { margin-top: 0; margin-bottom: 2px; }
+:where(:root[data-density=compact]) .nc-notice:not(#\-), :where(:root[data-density=compact]) .nova-widget[data-holo] .holo-empty:not(#\-), :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-empty:not(#\-) { row-gap: 2px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nc-notice-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-notice-text:not(#\-), :where(:root[data-density=compact]) .nova-widget[data-holo] .holo-empty-words:not(#\-), :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-empty > p:not(#\-) { margin-top: 2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-action:not(#\-), :where(:root[data-density=compact]) .nova-widget[data-holo] .holo-empty-action:not(#\-), :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-empty > .nova-link:not(#\-) { margin-top: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size][data-size]:is([data-locked], [data-notice]) .nova-widget-inner:not(#\-) { padding-top: 0; padding-bottom: 0; }
+@container holo-body (min-height: 150px) { :where(:root[data-density=compact]) .nc-notice:not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@container holo-body (min-height: 150px) { :where(:root[data-density=compact]) .nc-notice .nc-action:not(#\-) { margin-top: 10px; padding-top: 0; padding-bottom: 0; } }
+:where(:root[data-density=compact]) .nc-hero-figure:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 7px; }
+:where(:root[data-density=compact]) .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-widget[data-size=S] .nc-hero:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nova-widget[data-size=S] .nc-hero-words:not(#\-) { row-gap: 1px; }
+:where(:root[data-density=compact]) .nova-widget[data-size=S] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-size=S] .nc-body:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-row:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .nova-widget[data-size=M] .nc-delta:not(#\-) { margin-top: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-size=M] .nc-delta svg:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+@container holo-body (max-height: 185px) { :where(:root[data-density=compact]) .nova-widget[data-size=M] .nc-body:not(#\-) { row-gap: 6px; } }
+@container holo-body (max-height: 185px) { :where(:root[data-density=compact]) .nova-widget[data-size=M] .nc-hero:not(#\-) { row-gap: 0; } }
+@container holo-body (max-height: 185px) { :where(:root[data-density=compact]) .nova-widget[data-size=M] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 0; } }
+:where(:root[data-density=compact]) .nc-delta:not(#\-) { row-gap: 8px; margin-top: 7px; padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .nc-delta svg:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nc-facts:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nc-fact:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 12px; padding-top: 5px; padding-bottom: 5px; }
+:where(:root[data-density=compact]) .nc-split:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .nc-rings:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nc-ring:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-trend-mark:not(#\-) { margin-top: -5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-trend-mark[data-marker=heart]:not(#\-) { margin-top: -13px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-trend-edge:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-trend-goal:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-trend-dates:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-lattice:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-lattice-head:not(#\-) { row-gap: 5px; }
+:where(:root[data-density=compact]) .nc-lattice-row:not(#\-) { row-gap: 3.75px; }
+:where(:root[data-density=compact]) .nc-lattice-label:not(#\-)::before { margin-top: -3px; }
+:where(:root[data-density=compact]) .nc-capsules:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-capsule:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .nc-bars:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .nc-bar:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .nc-bar-label:not(#\-)::before { margin-top: -3px; }
+:where(:root[data-density=compact]) .nc-stack:not(#\-) { row-gap: 2.25px; }
+:where(:root[data-density=compact]) .nc-columns-plot:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-columns-line b:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-columns-labels:not(#\-) { row-gap: 6px; margin-top: 5px; }
+/*  components/nova/cards/health-cards.css  */
+:where(:root[data-density=compact]) .nc-body.nc-weight:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-steps:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-workouts:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-widget[data-size=L] .nc-body.nc-weight:not(#\-), :where(:root[data-density=compact]) .nova-widget[data-size=L] .nc-body.nc-steps:not(#\-), :where(:root[data-density=compact]) .nova-widget[data-size=L] .nc-body.nc-workouts:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nc-weight .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-steps .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-workouts .nc-foot:not(#\-) { margin-top: auto; }
+:where(:root[data-density=compact]) .nc-weight-top:not(#\-), :where(:root[data-density=compact]) .nc-workouts-top:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-weight-side:not(#\-), :where(:root[data-density=compact]) .nc-workouts-side:not(#\-) { row-gap: 2px; padding-top: 2px; }
+:where(:root[data-density=compact]) .nc-weight-note:not(#\-), :where(:root[data-density=compact]) .nc-steps-note:not(#\-), :where(:root[data-density=compact]) .nc-workouts-note:not(#\-) { margin-top: 5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-weight-chart:not(#\-), :where(:root[data-density=compact]) .nc-steps-chart:not(#\-), :where(:root[data-density=compact]) .nc-workouts-chart:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-widget[data-size=S] :is(.nc-weight-top, .nc-workouts-top):not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nova-widget[data-size=S] .nc-weight .nc-delta:not(#\-) { margin-top: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-size=S] .nc-weight .nc-delta svg:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .nova-widget[data-size=S] :is(.nc-steps-note, .nc-workouts-note):not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-weight-logged:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-weight-hearts:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-steps-top:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .nc-steps[data-size=S] .nc-steps-top:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nc-steps-cap:not(#\-), :where(:root[data-density=compact]) .nc-workouts-cap:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-workouts-list:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-workouts-row:not(#\-) { row-gap: 9px; padding-top: 3.75px; padding-bottom: 3.75px; }
+:where(:root[data-density=compact]) .nc-workouts-row:not(#\-)::before { margin-top: -4px; }
+@container holo-body (max-width: 519px) { :where(:root[data-density=compact]) .nc-weight[data-size=M] .nc-hero:not(#\-), :where(:root[data-density=compact]) .nc-workouts[data-size=M] .nc-hero:not(#\-) { row-gap: 0; } }
+@container holo-body (max-width: 519px) { :where(:root[data-density=compact]) .nc-weight[data-size=M] .nc-hero-label:not(#\-), :where(:root[data-density=compact]) .nc-workouts[data-size=M] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 0; } }
+@container holo-body (max-width: 519px) { :where(:root[data-density=compact]) .nc-weight[data-size=M] .nc-delta:not(#\-), :where(:root[data-density=compact]) .nc-workouts[data-size=M] .nc-workouts-note:not(#\-) { margin-top: 0; margin-bottom: 0; } }
+@container holo-body (max-height: 185px) { :where(:root[data-density=compact]) .nc-steps[data-size=M] .nc-steps-note:not(#\-), :where(:root[data-density=compact]) .nc-workouts[data-size=M] .nc-workouts-note:not(#\-) { margin-top: 0; margin-bottom: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-weight[data-size=M]:not(#\-), :where(:root[data-density=compact]) .nc-steps[data-size=M]:not(#\-), :where(:root[data-density=compact]) .nc-workouts[data-size=M]:not(#\-) { row-gap: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-weight[data-size=M] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-steps[data-size=M] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-workouts[data-size=M] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-steps[data-size=M] .nc-steps-top:not(#\-) { row-gap: 22px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-weight[data-size=L]:not(#\-), :where(:root[data-density=compact]) .nc-steps[data-size=L]:not(#\-), :where(:root[data-density=compact]) .nc-workouts[data-size=L]:not(#\-) { row-gap: 10px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-weight[data-size=L] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-steps[data-size=L] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-workouts[data-size=L] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-steps[data-size=L] .nc-steps-top:not(#\-) { row-gap: 14px; } }
+/*  components/nova/cards/life-cards.css  */
+:where(:root[data-density=compact]) .nc-habitweek .nc-hero:not(#\-), :where(:root[data-density=compact]) .nc-time[data-size=M] .nc-hero:not(#\-), :where(:root[data-density=compact]) .nc-goal[data-size=S] .nc-hero:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .nc-habitweek .nc-hero-label:not(#\-), :where(:root[data-density=compact]) .nc-time[data-size=M] .nc-hero-label:not(#\-), :where(:root[data-density=compact]) .nc-goal[data-size=S] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-habitweek[data-size=S]:not(#\-), :where(:root[data-density=compact]) .nc-time[data-size=S]:not(#\-), :where(:root[data-density=compact]) .nc-journal[data-size=S]:not(#\-), :where(:root[data-density=compact]) .nc-goal[data-size=S]:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-habitweek-top:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nc-habitweek[data-size=L] .nc-habitweek-top:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .nc-habitweek-key:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-habitweek-key span:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-habitweek[data-size=L] .nc-lattice:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-habitweek-stats:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nc-habitweek-stat:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 3px; padding-bottom: 3px; }
+@container holo-body (max-height: 228px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M]:not(#\-) { row-gap: 6px; } }
+@container holo-body (max-height: 228px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] .nc-lattice:not(#\-) { row-gap: 5px; } }
+@container holo-body (max-height: 206px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M]:not(#\-) { row-gap: 4px; } }
+@container holo-body (max-height: 206px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] .nc-lattice:not(#\-) { row-gap: 4px; } }
+:where(:root[data-density=compact]) .nc-habitweek[data-size=S] .nc-habitweek-top:not(#\-) { row-gap: 10px; }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M]:not(#\-) { row-gap: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] > .nc-habitweek-top:not(#\-) { row-gap: 18px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] > .nc-lattice:not(#\-) { row-gap: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] > .nc-lattice :is(.nc-lattice-head, .nc-lattice-row):not(#\-) { row-gap: 5.25px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] .nc-hero:not(#\-) { row-gap: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 6px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=L]:not(#\-) { row-gap: 10px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=L] > .nc-lattice:not(#\-) { row-gap: 7px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=L] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=L] .nc-habitweek-top:not(#\-) { row-gap: 22px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=L] .nc-hero:not(#\-) { row-gap: 0; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=L] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 6px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=L] :is(.nc-lattice-head, .nc-lattice-row):not(#\-) { row-gap: 5.25px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) and (max-height: 400px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=L] > .nc-lattice:not(#\-) { row-gap: 5px; } }
+:where(:root[data-density=compact]) .nc-goal-hero:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .nc-goal[data-size=S] .nc-goal-hero:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nc-goal-saved:not(#\-) { margin-top: -6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-goal-words .nc-delta:not(#\-) { margin-top: 5px; }
+:where(:root[data-density=compact]) .nc-goal-estimate:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .nc-goal-chip:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .nc-goal-chart:not(#\-) { margin-top: 18px; margin-bottom: 28px; }
+:where(:root[data-density=compact]) .nc-goal-dot:not(#\-) { margin-top: -5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-goal-detail:not(#\-) { margin-top: -6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-goal-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-goal-tag[data-at=today]:not(#\-) { margin-top: 11px; }
+@container holo-body (max-height: 234px) and (max-width: 519px) { :where(:root[data-density=compact]) .nc-goal[data-size=M]:not(#\-) { row-gap: 6px; } }
+@container holo-body (max-height: 234px) and (max-width: 519px) { :where(:root[data-density=compact]) .nc-goal[data-size=M] .nc-goal-name:not(#\-) { margin-top: -4px; margin-bottom: -4px; } }
+@container holo-body (max-width: 310px) { :where(:root[data-density=compact]) .nc-goal[data-size=M] .nc-goal-hero:not(#\-) { row-gap: 12px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-goal[data-size=M]:not(#\-) { row-gap: 4px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-goal[data-size=M] > .nc-goal-hero:not(#\-) { row-gap: 20px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-goal[data-size=M] > .nc-goal-chart:not(#\-) { margin-top: 14px; margin-bottom: 24px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-goal[data-size=M] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-goal[data-size=L]:not(#\-) { row-gap: 8px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-goal[data-size=L] > .nc-goal-hero:not(#\-) { row-gap: 14px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-goal[data-size=L] > .nc-goal-detail:not(#\-) { margin-top: 0; margin-bottom: 0; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-goal[data-size=L] > .nc-foot:not(#\-) { margin-top: 0; } }
+:where(:root[data-density=compact]) .nc-journal-main:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .nc-journal-side:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nc-journal .nc-hero-figure:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-journal-side .nc-fact:not(#\-) { row-gap: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-journal-month:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-journal[data-size=M] .nc-hero-label:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-journal .nc-lattice:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-journal :is(.nc-lattice-head, .nc-lattice-row):not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .nc-journal[data-size=L] .nc-lattice:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-journal[data-size=L] :is(.nc-lattice-head, .nc-lattice-row):not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nc-journal-key:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-journal-key span:not(#\-) { row-gap: 6px; }
+@container holo-body (max-width: 310px) { :where(:root[data-density=compact]) .nc-journal-main:not(#\-) { row-gap: 12px; } }
+:where(:root[data-density=compact]) .nc-journal-strip:not(#\-) { row-gap: 3px; }
+@container holo-body (max-height: 190px) { :where(:root[data-density=compact]) .nc-journal[data-size=M] :is(.nc-lattice-head, .nc-lattice-row):not(#\-) { row-gap: 2.25px; } }
+@container holo-body (max-height: 190px) { :where(:root[data-density=compact]) .nc-journal[data-size=M] .nc-lattice:not(#\-) { row-gap: 3px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-journal[data-size=M] .nc-journal-main:not(#\-) { row-gap: 36px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-journal[data-size=M] :is(.nc-lattice-head, .nc-lattice-row):not(#\-) { row-gap: 3px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-journal[data-size=M] .nc-lattice:not(#\-) { row-gap: 4px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-journal[data-size=M] .nc-journal-side .nc-fact:not(#\-) { row-gap: 12px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-journal[data-size=M] .nc-journal-side:not(#\-) { row-gap: 10px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-journal[data-size=L] :is(.nc-lattice-head, .nc-lattice-row):not(#\-) { row-gap: 6px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-journal[data-size=L] .nc-lattice:not(#\-) { row-gap: 8px; } }
+@container holo-body (max-height: 478px) and (max-width: 519px) { :where(:root[data-density=compact]) .nc-journal[data-size=L]:not(#\-) { row-gap: 8px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-journal[data-size=L]:not(#\-) { row-gap: 10px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-journal[data-size=L] > .nc-foot:not(#\-) { margin-top: 0; } }
+:where(:root[data-density=compact]) .nc-time-rings:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .nc-time-dial[data-hours]:not(#\-) { margin-top: 20px; margin-bottom: 20px; }
+:where(:root[data-density=compact]) .nc-time-rows:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-time-rows li:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .nc-time[data-size=L] .nc-time-rows li:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .nc-time[data-size=L]:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nc-time-strips:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nc-time-strip:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-time-cells:not(#\-) { row-gap: 4px; }
+@container holo-body (max-height: 238px) { :where(:root[data-density=compact]) .nc-time[data-size=M]:not(#\-) { row-gap: 6px; } }
+@container holo-body (max-height: 238px) { :where(:root[data-density=compact]) .nc-time[data-size=M] .nc-time-rows li:not(#\-) { padding-top: 2.25px; padding-bottom: 2.25px; } }
+@container holo-body (max-height: 178px) and (max-width: 519px) { :where(:root[data-density=compact]) .nc-time[data-size=M] .nc-time-rows li:not(#\-) { padding-top: 1.5px; padding-bottom: 1.5px; } }
+@container holo-body (max-height: 164px) and (max-width: 519px) { :where(:root[data-density=compact]) .nc-time[data-size=M] .nc-time-rows li:not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-time[data-size=M]:not(#\-) { row-gap: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-time[data-size=M] > .nc-time-rings:not(#\-) { row-gap: 22px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-time[data-size=M] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-time[data-size=M] .nc-hero:not(#\-) { row-gap: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-time[data-size=M] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 6px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-time[data-size=L]:not(#\-) { row-gap: 10px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-time[data-size=L] > .nc-time-rings:not(#\-) { row-gap: 26px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-time[data-size=L] > .nc-foot:not(#\-) { margin-top: 0; } }
+:where(:root[data-density=compact]) .nc-time[data-size=S] > .nc-row:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .nc-time-rows.nc-time-inline li:not(#\-) { row-gap: 0; padding-top: 0; padding-bottom: 0; }
+/*  components/nova/cards/nova-cards.css  */
+:where(:root[data-density=compact]) .nc-requests-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 0; }
+:where(:root[data-density=compact]) .nc-request:not(#\-) { row-gap: 1px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nc-request-text:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-request-meta:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-requests .nc-request-again:not(#\-) { margin-top: -9px; margin-bottom: -9px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-requests[data-size=M] .nc-request:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nc-requests[data-size=M]:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-requests-more:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-brain-head:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .nc-brain-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-brain-words:not(#\-) { margin-top: 3px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-brain-text:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-brain .nc-facts > .nc-brain-text:not(#\-) { margin-top: 2px; }
+:where(:root[data-density=compact]) .nc-sees-top:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .nc-sees-count:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 12px; }
+:where(:root[data-density=compact]) .nc-sees-grid:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 0; }
+:where(:root[data-density=compact]) .nc-sees-grid li:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .nc-sees-why:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .nc-sees-more:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-sees[data-size=S]:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-sees[data-size=S] .nc-sees-top:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nc-sees[data-size=M]:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-sees[data-size=M] .nc-sees-grid:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .nc-sees[data-size=M] .nc-sees-grid li:not(#\-) { row-gap: 5.25px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-sees[data-size=M] .nc-sees-why:not(#\-) { padding-top: 0; padding-bottom: 0; }
+@container holo-body (max-height: 166px) { :where(:root[data-density=compact]) .nc-sees[data-size=M]:not(#\-) { row-gap: 4px; } }
+@container holo-body (max-height: 166px) { :where(:root[data-density=compact]) .nc-sees[data-size=M] .nc-sees-grid:not(#\-) { row-gap: 2.25px; } }
+:where(:root[data-density=compact]) .nc-brain[data-size=S]:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nc-brain[data-size=M]:not(#\-) { row-gap: 8px; }
+@container holo-body (max-height: 214px) { :where(:root[data-density=compact]) .nc-brain[data-size=M]:not(#\-) { row-gap: 5px; } }
+@container holo-body (max-height: 214px) { :where(:root[data-density=compact]) .nc-brain[data-size=M] .nc-fact:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
+:where(:root[data-density=compact]) .nc-requests[data-size=S]:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .nc-requests[data-size=S] .nc-request:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-requests[data-size=S] .nc-request-again:not(#\-) { margin-top: -4px; margin-bottom: -4px; }
+@container holo-body (max-height: 480px) { :where(:root[data-density=compact]) .nc-sees[data-size=L]:not(#\-) { row-gap: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=M]:not(#\-), :where(:root[data-density=compact]) .nc-brain[data-size=M]:not(#\-) { row-gap: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=M] > .nc-sees-top.nc-sees-top:not(#\-) { row-gap: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=M] > .nc-sees-top:not(#\-), :where(:root[data-density=compact]) .nc-brain[data-size=M] > .nc-brain-head:not(#\-) { row-gap: 22px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=M] > .nc-sees-grid:not(#\-) { row-gap: 4.5px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=M] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-brain[data-size=M] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=M] .nc-sees-grid li:not(#\-) { padding-top: 0; padding-bottom: 0; row-gap: 6.75px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-requests:not([data-size=S]) .nc-request:not(#\-) { padding-top: 8px; padding-bottom: 8px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-requests:not([data-size=S]) .nc-request:not(#\-)::before { margin-top: -5px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=L]:not(#\-) { row-gap: 8px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=L] > .nc-sees-top:not(#\-) { row-gap: 18px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=L] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-sees[data-size=L] .nc-sees-count:not(#\-) { row-gap: 4px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-brain[data-size=L] .nc-brain-head:not(#\-) { row-gap: 26px; } }
+@container holo-body (min-width: 520px) and (max-width: 619px) { :where(:root[data-density=compact]) .nc-sees[data-size=M] .nc-sees-grid li:not(#\-) { padding-top: 0; padding-bottom: 0; row-gap: 4.5px; } }
+/*  components/nova/cards/wealth-cards.css  */
+:where(:root[data-density=compact]) .nc-body.nc-networth-card:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-spending-card:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-budgets-card:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-bills-card:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-body.nc-networth-card[data-size=S]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-spending-card[data-size=S]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-budgets-card[data-size=S]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-bills-card[data-size=S]:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .nc-body.nc-networth-card[data-size=L]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-spending-card[data-size=L]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-budgets-card[data-size=L]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-bills-card[data-size=L]:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .nc-networth-card[data-size=M] .nc-hero:not(#\-), :where(:root[data-density=compact]) .nc-spending-card[data-size=M] .nc-hero:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-hero:not(#\-), :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .nc-networth-card[data-size=M] .nc-hero-label:not(#\-), :where(:root[data-density=compact]) .nc-spending-card[data-size=M] .nc-hero-label:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-hero-label:not(#\-), :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-networth-card .nc-delta:not(#\-) { margin-top: 4px; }
+:where(:root[data-density=compact]) .nc-networth-card[data-size=L] .nc-delta:not(#\-) { margin-top: 8px; }
+:where(:root[data-density=compact]) .nc-networth-note:not(#\-), :where(:root[data-density=compact]) .nc-spending-note:not(#\-), :where(:root[data-density=compact]) .nc-budgets-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-networth-caption:not(#\-), :where(:root[data-density=compact]) .nc-spending-caption:not(#\-), :where(:root[data-density=compact]) .nc-budgets-caption:not(#\-), :where(:root[data-density=compact]) .nc-bills-caption:not(#\-) { margin-top: 0; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .nc-networth-top:not(#\-), :where(:root[data-density=compact]) .nc-spending-top:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nc-spending-bars:not(#\-), :where(:root[data-density=compact]) .nc-budgets-bars:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .nc-spending-bars > .nc-spending-caption:not(#\-), :where(:root[data-density=compact]) .nc-budgets-bars > .nc-budgets-caption:not(#\-) { margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-spending-card[data-size=M] .nc-bars:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-bars:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nc-spending-card[data-size=M] .nc-bar:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-bar:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .nc-spending-what:not(#\-) { margin-top: -2px; margin-bottom: 4px; }
+@container holo-body (max-height: 214px) { :where(:root[data-density=compact]) .nc-body.nc-spending-card[data-size=M]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-budgets-card[data-size=M]:not(#\-) { row-gap: 4.5px; } }
+@container holo-body (max-height: 214px) { :where(:root[data-density=compact]) .nc-spending-card[data-size=M] .nc-spending-bars:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-budgets-bars:not(#\-) { row-gap: 6px; } }
+@container holo-body (max-height: 214px) { :where(:root[data-density=compact]) .nc-spending-card[data-size=M] .nc-bars:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-bars:not(#\-) { row-gap: 4px; } }
+:where(:root[data-density=compact]) .nc-budgets-top:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nc-budgets-card[data-size=L] .nc-budgets-top:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .nc-budgets-card[data-size=S] .nc-budgets-top:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nc-bills-next:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .nc-bills-card[data-size=S] .nc-bills-next:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .nc-bills-when:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-bills-card:not([data-size=S]) .nc-hero .nc-bills-when:not(#\-) { margin-top: 5px; }
+:where(:root[data-density=compact]) .nc-bills-dial-unit:not(#\-) { margin-top: 1px; }
+:where(:root[data-density=compact]) .nc-bills-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 0; }
+:where(:root[data-density=compact]) .nc-bills-row:not(#\-) { padding-top: 3.75px; padding-bottom: 3.75px; }
+:where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-bills-row:not(#\-) { padding-top: 1.5px; padding-bottom: 1.5px; }
+:where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-bills-next:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero .nc-bills-when:not(#\-) { margin-top: 2px; }
+@container holo-body (max-height: 212px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero:not(#\-) { row-gap: 0; } }
+@container holo-body (max-height: 212px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 0; } }
+@container holo-body (max-height: 212px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero .nc-bills-when:not(#\-) { margin-top: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-body.nc-networth-card[data-size=M]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-spending-card[data-size=M]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-budgets-card[data-size=M]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-bills-card[data-size=M]:not(#\-) { row-gap: 4.5px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero-label:not(#\-) { margin-bottom: 4px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-networth-card[data-size=M] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-spending-card[data-size=M] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-bills-card[data-size=M] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-networth-card[data-size=M] .nc-hero:not(#\-), :where(:root[data-density=compact]) .nc-spending-card[data-size=M] .nc-hero:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-hero:not(#\-), :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero:not(#\-) { row-gap: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-networth-card[data-size=M] .nc-hero-label:not(#\-), :where(:root[data-density=compact]) .nc-spending-card[data-size=M] .nc-hero-label:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-hero-label:not(#\-), :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-networth-card[data-size=M] .nc-delta:not(#\-) { margin-top: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-budgets-top:not(#\-) { row-gap: 22px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-bills-next:not(#\-) { row-gap: 18px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-bills-row:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-spending-card[data-size=M] .nc-bars:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-bars:not(#\-) { row-gap: 8px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-body.nc-networth-card[data-size=L]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-spending-card[data-size=L]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-budgets-card[data-size=L]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-bills-card[data-size=L]:not(#\-) { row-gap: 7.5px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-networth-card[data-size=L] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-spending-card[data-size=L] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=L] > .nc-foot:not(#\-), :where(:root[data-density=compact]) .nc-bills-card[data-size=L] > .nc-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-budgets-card[data-size=L] .nc-budgets-top:not(#\-), :where(:root[data-density=compact]) .nc-bills-card[data-size=L] .nc-bills-next:not(#\-) { row-gap: 28px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=L] .nc-bills-row:not(#\-) { padding-top: 6px; padding-bottom: 6px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-spending-card[data-size=L] .nc-bars:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=L] .nc-bars:not(#\-) { row-gap: 14px; } }
+@container holo-body (max-height: 560px) and (max-width: 519px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=L] .nc-bills-row:not(#\-) { padding-top: 2.25px; padding-bottom: 2.25px; } }
+@container holo-body (min-width: 520px) and (min-height: 300px) and (max-height: 400px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=L] .nc-bills-row:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
+/*  components/nova/cards/world-cards.css  */
+:where(:root[data-density=compact]) .nw-weather:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nw-now:not(#\-) { row-gap: 18px; }
+:where(:root[data-density=compact]) .nw-temp:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .nw-weather[data-size=M]:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nw-temp-unit:not(#\-) { margin-top: 6px; }
+:where(:root[data-density=compact]) .nw-condition:not(#\-) { margin-top: 5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nw-umbrella:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nw-outlook:not(#\-) { row-gap: 2px; padding-top: 6px; }
+:where(:root[data-density=compact]) .nw-outlook-dot:not(#\-) { margin-top: -3px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nw-outlook-dot[data-lead]:not(#\-) { margin-top: -4.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nw-hours:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nw-hour-rain:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .nw-hour-rain b:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nw-hours .nw-scene:not(#\-) { margin-top: 2px; }
+:where(:root[data-density=compact]) .nw-days:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nw-daycols:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nw-daycols li:not(#\-) { row-gap: 2.25px; }
+:where(:root[data-density=compact]) .nw-facts:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
+@container holo-body (max-height: 210px) and (max-width: 519px) { :where(:root[data-density=compact]) .nw-weather[data-size=M]:not(#\-) { row-gap: 6px; } }
+@container holo-body (max-height: 210px) and (max-width: 519px) { :where(:root[data-density=compact]) .nw-weather[data-size=M] .nw-now-words:not(#\-) { row-gap: 0; } }
+@container holo-body (max-height: 210px) and (max-width: 519px) { :where(:root[data-density=compact]) .nw-weather[data-size=M] .nw-condition:not(#\-) { margin-top: 0; margin-bottom: 0; } }
+@container holo-body (max-height: 210px) and (max-width: 519px) { :where(:root[data-density=compact]) .nw-weather[data-size=M] .nw-umbrella:not(#\-) { margin-top: 0; margin-bottom: 0; } }
+:where(:root[data-density=compact]) .nw-weather[data-size=L]:not(#\-) { row-gap: 10px; }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nw-weather[data-size=M]:not(#\-) { row-gap: 6px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nw-weather[data-size=M] > .nw-now:not(#\-) { row-gap: 22px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nw-weather[data-size=M] > .nc-foot:not([role=status]):not(#\-) { margin-top: 0; } }
+@container holo-body (min-width: 520px) and (min-height: 300px) { :where(:root[data-density=compact]) .nw-weather[data-size=L]:not(#\-) { row-gap: 10px; } }
+@container holo-body (min-width: 520px) and (min-height: 300px) { :where(:root[data-density=compact]) .nw-weather[data-size=L] > .nw-now:not(#\-) { row-gap: 10px; } }
+@container holo-body (min-width: 520px) and (min-height: 300px) { :where(:root[data-density=compact]) .nw-weather[data-size=L] > .nw-facts:not(#\-) { row-gap: 4px; } }
+@container holo-body (min-width: 520px) and (min-height: 300px) { :where(:root[data-density=compact]) .nw-weather[data-size=L] > .nc-foot:not([role=status]):not(#\-) { margin-top: 0; } }
+:where(:root[data-density=compact]) .nw-sun-times:not(#\-) { margin-top: 6px; margin-bottom: 0; row-gap: 12px; }
+:where(:root[data-density=compact]) .nw-sunbody[data-size=M]:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nw-sunbody[data-size=L]:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nw-sunbody[data-size=S] .nw-sunarc:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .nw-sunbody[data-size=S] .nw-sun-times:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+@container holo-body (min-width: 520px) and (min-height: 300px) { :where(:root[data-density=compact]) .nw-sunbody[data-size=L] .nc-fact:not(#\-) { padding-top: 7px; padding-bottom: 7px; } }
+:where(:root[data-density=compact]) .nw-weather[data-size=S]:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nw-weather[data-size=S] .nw-now:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nw-weather[data-size=S] .nw-now-words:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nw-weather[data-size=S] .nw-condition:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nw-sunbody[data-size=S]:not(#\-) { row-gap: 4px; }
 /*  components/nova/chat/nova-chat.css  */
 :where(:root[data-density=compact]) .nova-chat-sheet:not(#\-) { padding-bottom: var(--safe-bottom,env(safe-area-inset-bottom,0px)); }
 :where(:root[data-density=compact]) .nova-chat-head:not(#\-) { row-gap: 10px; padding-top: 18px; padding-bottom: 14px; }
@@ -3685,10 +4012,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-welcome-sub:not(#\-) { margin-top: 0; margin-bottom: 10px; }
 :where(:root[data-density=compact]) .nova-invite:not(#\-) { padding-top: 14px; padding-bottom: 14px; }
 :where(:root[data-density=compact]) .nova-invite p:not(#\-) { margin-top: 0; margin-bottom: 8px; }
-:where(:root[data-density=compact]) .nova-turn:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nova-turn:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .nova-turn-figure:not(#\-) { padding-top: 2px; }
-:where(:root[data-density=compact]) .nova-turn-who:not(#\-) { margin-top: 0; margin-bottom: 4px; }
-:where(:root[data-density=compact]) .nova-turn-user .nova-turn-body:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-turn-body:not(#\-) { padding-top: 10px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-turn-who:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-turn-who:not(#\-)::before { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-turn-user .nova-turn-body:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .nova-turn-user .nova-turn-body p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-turn-edit:not(#\-) { margin-top: -8px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-turn-body pre:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
@@ -3701,7 +4030,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-paused:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-composer-wrap:not(#\-) { padding-top: 10px; padding-bottom: 4px; row-gap: 6px; }
 :where(:root[data-density=compact]) .nova-chat-sheet .nova-composer-wrap:not(#\-) { padding-top: 8px; padding-bottom: 4px; }
-:where(:root[data-density=compact]) .nova-composer:not(#\-) { row-gap: 8px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-composer:not(#\-) { row-gap: 8px; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-composer textarea:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .nova-composer-actions:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nova-chat-send:not(#\-) { padding-top: 0; padding-bottom: 0; }
@@ -3718,7 +4047,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-list:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .nova-list-tools input:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-list-heading:not(#\-) { margin-top: 10.5px; margin-bottom: 4.5px; }
-:where(:root[data-density=compact]) .nova-list-items:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-list-items:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 0; }
 :where(:root[data-density=compact]) .nova-list-items li:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .nova-list-open:not(#\-) { row-gap: 1.5px; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-duo:not(#\-) { row-gap: 12px; padding-top: 12px; padding-bottom: 12px; }
@@ -3729,6 +4058,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-duo-slot:not(#\-) { padding-top: 4px; padding-bottom: 0; }
 @media (max-width:480px) { :where(:root[data-density=compact]) .nova-chat-tool:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .nova-turn-permissions:not(#\-) { margin-top: 8px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat .ai-chip:not(#\-):not(#\-):not(#\-) { padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-chat .ai-reply-icons:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .nova-chat .ai-reply-icon:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-chat .ai-reply-icon[data-tip]:not(#\-)::after { padding-top: 5px; padding-bottom: 5px; }
@@ -3737,11 +4067,38 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-chat .ai-more-item:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-chat .nova-continue:not(#\-) { row-gap: 8px; margin-top: 12px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-chat .nova-composer textarea:not(#\-):not(#\-):not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
-:where(:root[data-density=compact]) .nova-chat .nova-chat-send:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat .nova-chat-send:not(#\-):not(#\-):not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-chat-tool:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .nova-chat-more-list:not(#\-) { row-gap: 4.5px; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-chat .nova-see:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-chat-sheet .nova-see:not(#\-) { margin-top: 0; margin-bottom: 0; }
+@media (min-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-head:not(#\-) { padding-top: 14px; padding-bottom: 10px; row-gap: 8px; } }
+@media (min-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-tools:not(#\-) { row-gap: 6px; } }
+@media (min-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-tool:not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@media (min-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-tools > .nova-chat-tool[aria-pressed]:not(#\-) { row-gap: 0; padding-top: 0; padding-bottom: 0; } }
+@media (min-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-log:not(#\-) { padding-top: 14px; padding-bottom: 34px; } }
+@media (min-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-foot:not(#\-) { padding-top: 2px; padding-bottom: 10px; } }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-head:not(#\-) { row-gap: 8px; padding-top: 6px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-title:not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-tools:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-tool:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-tools > .nova-chat-tool[aria-pressed]:not(#\-) { row-gap: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-panel .nova-composer-wrap:not(#\-) { padding-top: 12px; }
+:where(:root[data-density=compact]) .nova-chat-panel .nova-chat-foot:not(#\-) { margin-top: 6px; padding-top: 8px; }
+:where(:root[data-density=compact]) .nova-chat .ai-turn-source:not(#\-) { row-gap: 9px; margin-top: 10px; margin-bottom: 0; padding-top: 8px; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat .ai-reply-row:not(#\-) { row-gap: 0; margin-top: 1.5px; }
+:where(:root[data-density=compact]) .nova-sheet-body:has(>.nova-chat-sheet):not(#\-) { padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-head:not(#\-) { margin-top: 2px; padding-top: 6px; padding-bottom: 9px; row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-tool:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-log:not(#\-) { padding-top: 16px; padding-bottom: 12px; row-gap: 18px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-turn:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-turn-body:not(#\-) { padding-top: 12px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-turn-user .nova-turn-body:not(#\-) { padding-top: 11px; padding-bottom: 11px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-composer-wrap:not(#\-) { padding-top: 10px; padding-bottom: 4px; row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-foot:not(#\-) { padding-top: 4px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-chat-panel .nova-chat-log:not(#\-) { padding-bottom: 34px; }
+:where(:root[data-density=compact]) .nova-chat .ai-unkept-offer:not(#\-) { row-gap: 0; margin-top: 12px; margin-bottom: 12px; padding-top: 4px; padding-bottom: 8px; }
 /*  components/nova/command-bar.css  */
 :where(:root[data-density=compact]) .nova-bar:not(#\-) { margin-top: 12vh; margin-bottom: auto; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-bar-body:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }
@@ -3751,6 +4108,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-bar-hint:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-bar-actions:not(#\-) { row-gap: 8px; }
 @media (max-width:480px) { :where(:root[data-density=compact]) .nova-bar:not(#\-) { margin-top: 8vh; } }
+/*  components/nova/core/star-system.css  */
+:where(:root[data-density=compact]) .nova-star-why:not(#\-) { margin-top: 2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ns-beam:not(#\-) { margin-top: -1px; }
+:where(:root[data-density=compact]) .ns-beam:not(#\-)::after { margin-top: -7px; }
 /*  components/nova/guide-band.css  */
 :where(:root[data-density=compact]) .nova-root.nova-guide-band:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 14px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-guide-band-back:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
@@ -3765,43 +4126,84 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/nova/holo/holo-parts.css  */
 :where(:root[data-density=compact]) .holo-label:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .holo-note-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-big-line:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-big-line:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
 :where(:root[data-density=compact]) .holo-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-hidden:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-meters:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-lead:not(#\-) { margin-top: -4.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-ring[data-small] .holo-lead:not(#\-) { margin-top: -3.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-meters:not(#\-) { gap: var(--mgap, 7px); }
+:where(:root[data-density=compact]) .holo-meter:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .holo-segs:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .holo-cols:not(#\-) { row-gap: 5px; }
+:where(:root[data-density=compact]) .holo-cols-day:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .holo-split:not(#\-) { row-gap: 14px; }
-:where(:root[data-density=compact]) .holo-health:not(#\-), :where(:root[data-density=compact]) .holo-habits:not(#\-), :where(:root[data-density=compact]) .holo-goals:not(#\-), :where(:root[data-density=compact]) .holo-wealth:not(#\-), :where(:root[data-density=compact]) .holo-agenda:not(#\-), :where(:root[data-density=compact]) .holo-water:not(#\-), :where(:root[data-density=compact]) .holo-sleep:not(#\-), :where(:root[data-density=compact]) .holo-orbit:not(#\-), :where(:root[data-density=compact]) .holo-notes:not(#\-), :where(:root[data-density=compact]) .holo-tasks:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .holo-health:not(#\-), :where(:root[data-density=compact]) .holo-habits:not(#\-), :where(:root[data-density=compact]) .holo-goals:not(#\-), :where(:root[data-density=compact]) .holo-wealth:not(#\-), :where(:root[data-density=compact]) .holo-agenda:not(#\-), :where(:root[data-density=compact]) .holo-water:not(#\-), :where(:root[data-density=compact]) .holo-sleep:not(#\-), :where(:root[data-density=compact]) .holo-orbit:not(#\-), :where(:root[data-density=compact]) .holo-notes:not(#\-), :where(:root[data-density=compact]) .holo-tasks:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .holo-health[data-size=S] .holo-split:not(#\-), :where(:root[data-density=compact]) .holo-habits[data-size=S] .holo-split:not(#\-) { row-gap: 10px; }
-:where(:root[data-density=compact]) .holo-hearts:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-hearts li:not(#\-) { row-gap: 1.5px; }
+:where(:root[data-density=compact]) .holo-hearts:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-hearts li:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .holo-heartline:not(#\-) { row-gap: 4px; }
-:where(:root[data-density=compact]) .holo-streaks:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-streaks li:not(#\-) { row-gap: 6px; }
-:where(:root[data-density=compact]) .holo-week-row:not(#\-) { row-gap: 9px; }
-:where(:root[data-density=compact]) .holo-week:not(#\-) { row-gap: 6px; }
-:where(:root[data-density=compact]) .holo-week-day:not(#\-) { row-gap: 3px; }
-:where(:root[data-density=compact]) .holo-col:not(#\-) { row-gap: 2px; }
-:where(:root[data-density=compact]) .holo-arcs:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-arcs li:not(#\-) { row-gap: 0; }
-:where(:root[data-density=compact]) .holo-pace-words:not(#\-) { margin-top: -8px; }
+:where(:root[data-density=compact]) .holo-week-kcal:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .holo-ring-note:not(#\-) { margin-top: 0; margin-bottom: 2px; }
+:where(:root[data-density=compact]) .holo-streaks:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-streaks li:not(#\-) { row-gap: 2.25px; padding-top: 3.75px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .holo-streaks li:first-child:not(#\-) { padding-top: 0; }
+:where(:root[data-density=compact]) .holo-streaks li:last-child:not(#\-) { padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-week-row:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .holo-goals:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-goals[data-size=S] .holo-arc-name:not(#\-) { margin-top: 0; }
+:where(:root[data-density=compact]) .holo-arcs:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-arc-link:not(#\-) { padding-top: 0; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .holo-arc-box .holo-lead:not(#\-) { margin-top: -3.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-arc-name:not(#\-) { margin-top: -6px; }
+:where(:root[data-density=compact]) .holo-arcs .holo-pace-words:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .holo-more:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-pace-box:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .holo-pace-box:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .holo-pace-head:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .holo-more-link:not(#\-) { margin-top: -14px; margin-bottom: -14px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-pace-dot:not(#\-) { margin-top: -4.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-chart-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-estimate:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-wealth-head:not(#\-) { row-gap: 2px; }
-:where(:root[data-density=compact]) .holo-legend:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-legend li:not(#\-) { row-gap: 6px; }
-:where(:root[data-density=compact]) .holo-purpose:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-sliders:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-wealth:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .holo-wealth-head:not(#\-) { row-gap: 1px; }
+:where(:root[data-density=compact]) .holo-wealth-lower:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .holo-legend:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-legend li:not(#\-) { row-gap: 6px; padding-top: 2.25px; padding-bottom: 2.25px; }
+:where(:root[data-density=compact]) .holo-purpose:not(#\-) { row-gap: 5px; }
 :where(:root[data-density=compact]) .holo-purpose p:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-flow:not(#\-) { row-gap: 2px; }
-:where(:root[data-density=compact]) .holo-agenda-side:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .holo-flow:not(#\-) { row-gap: 2px; padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .holo-frame:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 19px; padding-bottom: 19px; }
+:where(:root[data-density=compact]) .holo-wave-dot:not(#\-) { margin-top: -4.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-wave-dot[data-now]:not(#\-) { margin-top: -5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-wave-mark:not(#\-) { margin-top: -3.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-wave-legend:not(#\-) { row-gap: 1px; }
+:where(:root[data-density=compact]) .holo-wave-tag:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-flow-box:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .holo-flow-legend:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-flow-legend li:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .holo-histo:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .holo-histo-line-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-agenda[data-size=S] .holo-next li:not(#\-) { padding-top: 0; }
+:where(:root[data-density=compact]) .holo-agenda-side:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .holo-agenda-count:not(#\-) { margin-top: 0; margin-bottom: 2px; }
+:where(:root[data-density=compact]) .holo-agenda[data-empty] .holo-agenda-side:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .holo-next:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-next li small:not(#\-) { margin-top: -10px; }
+:where(:root[data-density=compact]) .holo-next li:not(#\-) { padding-top: 3.75px; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-next li a:not(#\-), :where(:root[data-density=compact]) .holo-next li > span:nth-child(2):not(#\-) { margin-top: -12px; margin-bottom: -6px; }
+:where(:root[data-density=compact]) .holo-next-wide li:not(#\-) { padding-top: 5.25px; }
 :where(:root[data-density=compact]) .holo-counters:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-counters div:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .holo-counters div:not(#\-) { row-gap: 0; padding-top: 5px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .holo-counters dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-notes-head:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .holo-captures:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-captures li:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-captures li:not(#\-)::before { margin-top: -3.5px; }
+:where(:root[data-density=compact]) .holo-notes[data-size=S]:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .holo-notes[data-size=S] .holo-captures a:not(#\-) { margin-top: -7px; margin-bottom: -7px; }
+:where(:root[data-density=compact]) .holo-orbit-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-water:not(#\-), :where(:root[data-density=compact]) .holo-notes:not(#\-), :where(:root[data-density=compact]) .holo-sleep:not(#\-) { row-gap: 7px; }
+:where(:root[data-density=compact]) .holo-water .holo-segs:not(#\-), :where(:root[data-density=compact]) .holo-sleep .holo-segs:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]):not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .holo-core-readout:not(#\-) { row-gap: 4px; margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-core-readout li:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .holo-actions:not(#\-) { row-gap: 16px; }
@@ -3813,45 +4215,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .holo-habit-list li:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .holo-preset-row:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .holo-preset:not(#\-) { row-gap: 2px; padding-top: 10px; padding-bottom: 10px; }
-:where(:root[data-density=compact]) .holo-frame:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 19px; padding-bottom: 19px; }
-:where(:root[data-density=compact]) .holo-wave-dot:not(#\-) { margin-top: -4px; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-wave-dot[data-now]:not(#\-) { margin-top: -5px; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-wave-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-week-kcal:not(#\-) { row-gap: 4px; }
-:where(:root[data-density=compact]) .holo-histo:not(#\-) { row-gap: 2px; }
-:where(:root[data-density=compact]) .holo-histo-line-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-chart-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-sliders:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-flow-box:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .holo-flow-legend:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-flow-legend li:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .holo-core-readout:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .holo-core-readout li:not(#\-) { padding-bottom: 4.5px; }
 :where(:root[data-density=compact]) .holo-core-readout:not(#\-) { row-gap: 6px; margin-top: 2px; margin-bottom: 2px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-core-readout li:not(#\-) { row-gap: 2.25px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-core-bar:not(#\-) { row-gap: 2px; }
-:where(:root[data-density=compact]) .holo-goals:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .holo-arcs:not(#\-) { row-gap: 6px; }
-:where(:root[data-density=compact]) .holo-arc-link:not(#\-) { padding-top: 0; padding-bottom: 2px; }
-:where(:root[data-density=compact]) .holo-arcs .holo-pace-words:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-pace-box:not(#\-) { row-gap: 3px; }
-:where(:root[data-density=compact]) .holo-pace-head:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .holo-more-link:not(#\-) { margin-top: -14px; margin-bottom: -14px; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-pace-dot:not(#\-) { margin-top: -4px; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-agenda-count:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-agenda[data-empty] .holo-agenda-side:not(#\-) { row-gap: 2px; }
-:where(:root[data-density=compact]) .holo-wealth:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .holo-wealth-head:not(#\-) { row-gap: 0; }
-:where(:root[data-density=compact]) .holo-wealth-lower:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .holo-purpose:not(#\-) { row-gap: 4px; }
-:where(:root[data-density=compact]) .holo-hearts:not(#\-) { row-gap: 4px; }
-:where(:root[data-density=compact]) .holo-hearts li:not(#\-) { row-gap: 0; }
-:where(:root[data-density=compact]) .holo-ring-note:not(#\-) { margin-top: 0; margin-bottom: 2px; }
-:where(:root[data-density=compact]) .holo-orbit-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .holo-water:not(#\-), :where(:root[data-density=compact]) .holo-notes:not(#\-), :where(:root[data-density=compact]) .holo-sleep:not(#\-) { row-gap: 6px; }
-:where(:root[data-density=compact]) .holo-empty:not(#\-) { row-gap: 2px; }
-:where(:root[data-density=compact]) .holo-empty-shape:not(#\-) { row-gap: 4px; }
-:where(:root[data-density=compact]) .holo-empty-words:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .holo-habit-list:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .holo-habit-list li:not(#\-) { row-gap: 1.5px; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .holo-habit-list li:first-child:not(#\-) { padding-top: 1.5px; }
@@ -3860,27 +4228,54 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .holo-habit-list .habit-completion > :is(p, span):not(.habit-status):not(#\-) { margin-top: 2px; margin-bottom: 0; }
 @container holo-action (max-width: 360px) { :where(:root[data-density=compact]) .holo-habit-list .habit-check-actions:not(#\-) { margin-top: 4px; } }
 :where(:root[data-density=compact]) .holo-preset-sketch:not(#\-) { margin-bottom: 4px; }
-@container holo-body (max-width: 330px) { :where(:root[data-density=compact]) .holo-health .holo-split:not(#\-) { row-gap: 10px; } }
+:where(:root[data-density=compact]) .holo-empty:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .holo-empty-shape:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .holo-empty-words:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .holo-health .holo-ring:not(#\-) { margin-bottom: 18px; }
-:where(:root[data-density=compact]) .holo-habits .holo-dial:not(#\-) { margin-bottom: 15px; }
 :where(:root[data-density=compact]) .holo-ring-col:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .holo-ring-col > .holo-ring-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .holo-health:is([data-size=M], [data-size=L]) .holo-split:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .holo-health[data-size=L]:not(#\-) { row-gap: clamp(8px, calc(8px + (100cqh - 380px) * .04), 16px); }
+:where(:root[data-density=compact]) .holo-health[data-size=L]:has(.holo-heartline):not(#\-) { row-gap: clamp(8px, calc(8px + (100cqh - 470px) * .04), 14px); }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-health:is([data-size=M], [data-size=L]) .holo-hearts:not(#\-) { row-gap: 3px; } }
+:where(:root[data-density=compact]) .holo-habits .holo-dial:not(#\-) { margin-bottom: 15px; }
+:where(:root[data-density=compact]) .holo-habits[data-size=L] .holo-split:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .holo-habits[data-size=L]:not(#\-) { row-gap: clamp(10px, 3cqh, 20px); }
+:where(:root[data-density=compact]) .holo-habits[data-size=L] .holo-streaks li:not(#\-) { padding-top: 4.5px; padding-bottom: 5.25px; }
+@container holo-body (min-width: 640px) { :where(:root[data-density=compact]) .holo-habits[data-size=M] .holo-split:not(#\-) { row-gap: 22px; } }
+@container holo-body (min-width: 640px) { :where(:root[data-density=compact]) .holo-habits[data-size=M] .holo-week-row:not(#\-) { row-gap: 13.5px; } }
+@container holo-body (min-width: 640px) { :where(:root[data-density=compact]) .holo-habits[data-size=L] .holo-split:not(#\-) { row-gap: 26px; } }
+@container holo-body (min-width: 640px) { :where(:root[data-density=compact]) .holo-habits[data-size=L] .holo-streaks li:not(#\-) { padding-top: 7.5px; padding-bottom: 8.25px; } }
+:where(:root[data-density=compact]) .holo-goals[data-size=L]:not(#\-) { row-gap: clamp(6px, 2cqh, 14px); }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-wealth:is([data-size=M], [data-size=L]):not(#\-) { row-gap: 10px; } }
+:where(:root[data-density=compact]) .holo-agenda[data-size=L]:not(#\-) { row-gap: 12px; }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-next li:not(#\-) { padding-top: 0; } }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-next li a:not(#\-), :where(:root[data-density=compact]) .holo-next li > span:nth-child(2):not(#\-) { margin-top: 0; margin-bottom: 0; } }
+:where(:root[data-density=compact]) .holo-orbit[data-size=L]:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .holo-orbit-side:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-core-readout li:not(#\-) { row-gap: 1.5px; }
+:where(:root[data-density=compact]) .holo-estimate:not(#\-) { row-gap: 2px; }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) :is(.holo-water, .holo-sleep)[data-size=S] .holo-segs:not(#\-) { row-gap: 3px; } }
 /*  components/nova/holo/holo.css  */
-:where(:root[data-density=compact]) .nova-widget[data-holo]:not(#\-)::after { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo]:not(#\-)::after { padding-top: 1.5px; padding-bottom: 1.5px; }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):not(#\-)::after { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo][data-size=S] .nova-widget-head:not(#\-) { padding-bottom: 1px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .nova-widget-head:not(#\-) { padding-bottom: 2px; }
 :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-widget-head:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-widget-open-arrow:not(#\-) { padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .holo-act:not(#\-) { margin-top: -10px; margin-bottom: -10px; }
+:where(:root[data-density=compact]) .holo-act:not(#\-) { margin-top: -10px; margin-bottom: -10px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-phone-column:not(#\-) { row-gap: 12px; padding-top: 8px; padding-bottom: 24px; }
 :where(:root[data-density=compact]) .holo-keys:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .holo-keys-table th:not(#\-), :where(:root[data-density=compact]) .holo-keys-table td:not(#\-) { padding-top: 8px; padding-bottom: 8px; }
-:where(:root[data-density=compact]) .nova-frame:not([data-phone]) [data-holo-fit]:not([data-holo-fit=bento]) .nova-widget[data-holo]:not(#\-) { padding-top: 12px; padding-bottom: 10px; row-gap: 6px; }
-:where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-bento > .nova-widget[data-holo]:not(#\-) { padding-top: 12px; padding-bottom: 10px; row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]) [data-holo-fit]:not([data-holo-fit=bento]) .nova-widget[data-holo]:not(#\-) { padding-top: 11px; padding-bottom: 8px; row-gap: 3px; }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-bento > .nova-widget[data-holo]:not(#\-) { padding-top: 11px; padding-bottom: 8px; row-gap: 4px; }
 :where(:root[data-density=compact]) .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-fit=scroll] .nova-widget-inner:not(#\-) { padding-top: 8px; padding-bottom: 8px; }
+@container nova-stage (min-width: 1700px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo] .nova-orbit-main:not(#\-) { row-gap: 28px; } }
 :where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-greeting:not(#\-) { margin-top: 2px; }
 :where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-orb-button:not(#\-) { margin-block: calc(var(--orb) * .24); }
 :where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-stage-below:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] .nova-widget-inner:not(#\-) { padding-top: 0; padding-bottom: 0; }
-@container nova-stage (max-width: 800px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size] .nova-widget-inner:not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@container nova-stage (max-width: 900px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size] .nova-widget-inner:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 @container holo-panel (max-width: 420px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-widget-open:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .nova-widget[data-holo][data-size=S] .nova-focus:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .nova-widget[data-holo][data-size=S] .nova-focus > p:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3899,31 +4294,39 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-switch-row:not(#\-) { row-gap: 9px; }
 :where(:root[data-density=compact]) .nova-switch:not(#\-) { padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .nova-switch > span:not(#\-) { margin-top: -15px; }
+:where(:root[data-density=compact]) .nova-switch > span:not(#\-) { margin-top: -14px; }
 :where(:root[data-density=compact]) .nova-status:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
 :where(:root[data-density=compact]) .nova-row:not(#\-) { row-gap: 7.5px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-row .nova-chip-dot:not(#\-) { margin-top: 7px; }
 :where(:root[data-density=compact]) .nova-row-actions:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nova-root :where(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-), :where(:root[data-density=compact]) .nova-sheet :where(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-) { padding-top: 8px; padding-bottom: 8px; }
-:where(:root[data-density=compact]) .nova-top:not(#\-) { row-gap: 12px; padding-top: 14px; padding-bottom: 4px; }
-:where(:root[data-density=compact]) .nova-top-left:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .nova-top-right:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-top:not(#\-) { row-gap: 12px; padding-top: 10px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-top-left:not(#\-) { row-gap: 4px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-top-right:not(#\-) { row-gap: 4px; padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .nova-exit:not(#\-) { padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .nova-clock:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-quick ul:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-clock:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .nova-clock-compact:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+@container nova-centre (min-width: 1500px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-clock:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
+@container nova-centre (min-width: 2100px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-clock-time:not(#\-)::before, :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-clock-time:not(#\-)::after { margin-top: -4.5px; } }
+:where(:root[data-density=compact]) .nova-quick ul:not(#\-) { row-gap: 2.25px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 @container nova-centre (max-width: 1180px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-top-left :is(.nova-exit, .nova-pill):not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .nova-tile:not(#\-) { padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .nova-tile[data-tip]:is(:hover, :focus-visible, :focus-within):not(#\-)::after { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-tile-planet > svg:not(#\-) { margin-top: -3px; }
+:where(:root[data-density=compact]) .nova-tile[data-tip]:is(:hover, :focus-visible, :focus-within):not(#\-)::after { padding-top: 5px; padding-bottom: 5px; }
 :where(:root[data-density=compact]) .nova-tile-quickadd .nova-quickadd:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-tile-labelled:not(#\-) { padding-top: 7.5px; padding-bottom: 7.5px; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-tile-labelled .nova-tile-planet > svg:not(#\-) { margin-top: 0; }
 :where(:root[data-density=compact]) .nova-quick-sheet:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .nova-chips:not(#\-) { row-gap: 8px; margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chips:not(#\-) { row-gap: 0; margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-chip:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .nova-wake:not(#\-) { margin-top: 6px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-deck:not(#\-) { row-gap: 8px; margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .nova-deck > .nova-chips:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-deck > .nova-chips:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-deck > .nova-live:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-deck > .nova-setup-banner:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 2px; padding-bottom: 2px; }
+@container nova-centre (min-width: 900.02px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) .nova-showcase:not(#\-) { padding-top: 2px; padding-bottom: 2px; } }
+@container nova-centre (min-width: 900.02px) { :where(:root[data-density=compact]) :has(> [data-kind=scopes])) > .nova-chip:not(#\-) { padding-top: 2px; padding-bottom: 2px; } }
+@container nova-centre (min-width: 900.02px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) > li:is(.nova-chip-narrow:not(#\-) { padding-top: 1.5px; padding-bottom: 1.5px; } }
 :where(:root[data-density=compact]) .nova-stage-area:not(#\-) { padding-top: 10px; padding-bottom: 16px; }
 :where(:root[data-density=compact]) .nova-stage:not(#\-) { row-gap: 6px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-stage-below:not(#\-) { row-gap: 4px; }
@@ -3933,7 +4336,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-greeting:not(#\-) { margin-top: 6px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-dayline:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-showcase:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 0; padding-top: 4px; padding-bottom: 4px; }
-:where(:root[data-density=compact]) .nova-chips .nova-showcase:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chips .nova-showcase:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .nova-setup-banner:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 0; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-setup-banner-text:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .nova-setup-banner h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3943,8 +4346,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-orbit-side:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nova-orbit-band:not(#\-) { row-gap: 10px; padding-top: 8px; }
 :where(:root[data-density=compact]) .nova-orbit-band-grid:not(#\-) { row-gap: 14px; }
-@container nova-stage (max-width: 800px) { :where(:root[data-density=compact]) .nova-orbit-main:not(#\-) { row-gap: 14px; } }
-@container nova-stage (max-width: 800px) { :where(:root[data-density=compact]) .nova-orbit-side > .nova-widget:not(#\-) { margin-top: 0 !important; margin-bottom: 0 !important; } }
+@container nova-stage (max-width: 900px) { :where(:root[data-density=compact]) .nova-orbit-main:not(#\-) { row-gap: 14px; } }
+@container nova-stage (max-width: 900px) { :where(:root[data-density=compact]) .nova-orbit-side > .nova-widget:not(#\-) { margin-top: 0 !important; margin-bottom: 0 !important; } }
 :where(:root[data-density=compact]) .nova-bento:not(#\-) { row-gap: 14px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-focus-layout:not(#\-) { row-gap: 14px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-focus-row:not(#\-) { row-gap: 10.5px; }
@@ -3960,7 +4363,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-foot:not(#\-) { padding-top: 8px; padding-bottom: 16px; }
 @container nova-centre (max-width: 1100px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-foot-row:not(#\-) { row-gap: 7.5px; } }
 @container nova-centre (max-width: 1100px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-foot-row > .nova-menu .nova-menu-button:not(#\-) { padding-top: 0; padding-bottom: 0; } }
-:where(:root[data-density=compact]) .nova-command:not(#\-) { row-gap: 12px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-command:not(#\-) { row-gap: 10px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-frame .nova-command.zg-glass:not(#\-):not(#\-):not(#\-)::before { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .ncb-trace:not(#\-) { margin-top: -32px; }
 :where(:root[data-density=compact]) .nova-root .nova-command input:not(#\-):not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-menu-button:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-menu-panel:not(#\-) { row-gap: 9px; padding-top: 10.5px; padding-bottom: 10.5px; }
@@ -3973,41 +4378,47 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-menu-foot:not(#\-) { margin-top: 0; margin-bottom: -14px; padding-top: 10px; padding-bottom: 14px; }
 :where(:root[data-density=compact]) .nova-check:not(#\-), :where(:root[data-density=compact]) .nova-radio:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .nova-radio:not(#\-) { padding-top: 10px; }
+:where(:root[data-density=compact]) .nova-talk:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-centre > .nova-stage-area:not(#\-) { padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .nova-left:not(#\-) { row-gap: 12px; padding-top: 14px; padding-bottom: 14px; }
-:where(:root[data-density=compact]) .nova-left-head:not(#\-) { row-gap: 12px; }
-:where(:root[data-density=compact]) .nova-left-top:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .nova-left-brand:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-left-space:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
-:where(:root[data-density=compact]) .nova-left-space p:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left:not(#\-) { row-gap: 10px; padding-top: 20px; padding-bottom: 18px; }
+:where(:root[data-density=compact]) .nova-frame .nova-left.zg-glass:not(#\-):not(#\-):not(#\-)::before { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left[data-state=rail]:not(#\-) { padding-top: 20px; padding-bottom: 18px; }
+:where(:root[data-density=compact]) .nova-left-head:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nova-left-top:not(#\-) { row-gap: 6px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-left[data-state=rail] .nova-left-top:not(#\-) { padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left-brand:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left-space:not(#\-) { padding-top: 7px; padding-bottom: 7px; }
+:where(:root[data-density=compact]) .nova-left-space p:not(#\-) { row-gap: 1px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-left-space small:not(#\-) { row-gap: 6px; }
-:where(:root[data-density=compact]) .nova-left-life:not(#\-) { row-gap: 12px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-left-life:not(#\-) { row-gap: 12px; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-left[data-state=rail] .nova-left-life:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-left-nav:not(#\-) { row-gap: 10px; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-left-heading:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-left-section ul:not(#\-) { row-gap: 1.5px; margin-top: 3px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-left-row:not(#\-) { row-gap: 7.5px; padding-top: 3px; padding-bottom: 3px; }
 :where(:root[data-density=compact]) .nova-left[data-state=rail] .nova-left-row:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
-:where(:root[data-density=compact]) .nova-left-count:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .nova-left-count:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
 :where(:root[data-density=compact]) .nova-left-none:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .nova-left-foot:not(#\-) { margin-top: auto; row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-left-foot:not(#\-) { margin-top: auto; row-gap: 4px; padding-top: 10px; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-signature:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-left-brain:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-right-head:not(#\-) { row-gap: 8px; padding-top: 16px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-left-brain:not(#\-) { row-gap: 9px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-right:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-right-head:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .nova-right-head h2:not(#\-) { margin-top: 2px; margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-right-scroll:not(#\-) { padding-top: 0; padding-bottom: 12px; row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-right-scroll:not(#\-) { padding-top: 0; padding-bottom: 10px; row-gap: 0; }
 :where(:root[data-density=compact]) .nova-right-section h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-right-section h3 button:not(#\-) { row-gap: 10px; padding-top: 0; padding-bottom: 0; }
-:where(:root[data-density=compact]) .nova-right-body:not(#\-) { row-gap: 10px; padding-top: 0; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-right-body:not(#\-) { row-gap: 10px; padding-top: 10px; padding-bottom: 14px; }
 :where(:root[data-density=compact]) .nova-right-list:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-right-sub:not(#\-) { margin-top: 6px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-right-sub-title:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-right-actions:not(#\-) { row-gap: 6px; }
-:where(:root[data-density=compact]) .nova-right-foot:not(#\-) { row-gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-right-foot:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-facts:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-facts > div:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .nova-facts dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-tools:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-facts-compact > div:not(#\-) { padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-tools:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-tool:not(#\-) { row-gap: 10px; padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .nova-sheet:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-sheet[data-place=center]:not(#\-) { margin-top: auto; margin-bottom: auto; }
@@ -4023,7 +4434,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-avatar-choices:not(#\-), :where(:root[data-density=compact]) .nova-accents:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .nova-avatar-choice:not(#\-), :where(:root[data-density=compact]) .nova-accent:not(#\-) { row-gap: 10px; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-avatar-choice input:not(#\-), :where(:root[data-density=compact]) .nova-accent input:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-dock-list:not(#\-) { row-gap: 3px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-dock-list:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-dock-list li:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .nova-dock-name:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .nova-preview:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
@@ -4035,13 +4446,14 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-frame[data-phone] .nova-stage-area:not(#\-) { padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-frame[data-phone] .nova-stage-above:not(#\-) { padding-top: 16px; }
 :where(:root[data-density=compact]) .nova-frame[data-phone] .nova-foot:not(#\-) { padding-top: 8px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .nova-command:not(#\-) { row-gap: 6px; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-frame[data-phone] .nova-command-text:not(#\-) { row-gap: 0; }
 @media (max-width: 380px) { :where(:root[data-density=compact]) .nova-frame[data-phone] .nova-exit:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .nova-mini-frame:not(#\-) { row-gap: 12px; padding-top: 16px; padding-bottom: 16px; }
 :where(:root[data-density=compact]) .nova-mini-head:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nova-mini-head p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-mini-day:not(#\-) { row-gap: 6px; padding-top: 12px; padding-bottom: 12px; }
-:where(:root[data-density=compact]) .nova-icon-btn[data-tip]:is(:hover, :focus-visible):not(#\-)::after { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-icon-btn[data-tip]:is(:hover, :focus-visible):not(#\-)::after { padding-top: 5px; padding-bottom: 5px; }
 @container nova-centre (min-width: 1600px) { :where(:root[data-density=compact]) .nova-icon-btn-labelled:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .nova-tech:not(#\-) { padding-top: 4px; }
 :where(:root[data-density=compact]) .nova-tech > summary:not(#\-) { row-gap: 6px; }
@@ -4050,16 +4462,26 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-fact-tiles dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-tech-body:not(#\-) { row-gap: 10px; padding-top: 6px; }
 @media (max-height: 800px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]) .nova-top:not(#\-) { padding-top: 8px; } }
-@media (max-height: 800px) { @container nova-centre (min-width: 1150px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]) .nova-quick ul:not(#\-) { row-gap: 4.5px; } } }
 @media (max-height: 800px) { @container nova-centre (min-width: 1150px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]) .nova-top-left :is(.nova-exit, .nova-pill):not(#\-) { padding-top: 0; padding-bottom: 0; } } }
 @media (max-height: 800px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck:not(#\-) { row-gap: 6px; } }
-@container nova-centre (max-width: 900px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]) .nova-deck > .nova-chips:not(#\-) { padding-top: 2px; padding-bottom: 2px; } }
 :where(:root[data-density=compact]) .nova-frame[data-phone][data-look=holo] .nova-centre > .nova-stage-area:not(#\-) { padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-frame[data-phone][data-look=holo] .nova-centre > .nova-foot:not(#\-) { margin-top: auto; }
 :where(:root[data-density=compact]) .nova-frame[data-phone][data-look=holo] .nova-stage[data-holo-core]:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-frame[data-phone][data-look=holo] .nova-stage-above:not(#\-) { padding-top: 4px; }
 :where(:root[data-density=compact]) .nova-frame[data-phone][data-look=holo] .nova-deck > .nova-setup-banner:not(#\-) { padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-skip:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
+@container nova-stage (max-height: 520px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-stage .nova-greeting:not(#\-):not(#\-) { margin-top: 0; } }
+@container nova-centre (min-width: 1150px) and (max-width: 1779.98px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-top-left :is(.nova-exit, .nova-pill):not(#\-) { padding-top: 0; padding-bottom: 0; } }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck:not(#\-) { margin-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner:not(#\-) { padding-top: 0; padding-bottom: 0; }
+@media (min-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-centre > .nova-stage-area:not(#\-):not(#\-) { padding-top: 10px; padding-bottom: 16px; } }
+@media (min-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-centre > .nova-foot:not(#\-):not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@media (min-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-chat]:not([data-phone]) .nova-talk:not(#\-):not(#\-) { padding-top: 12px; padding-bottom: 12px; } }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .nova-foot:not(#\-) { padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .holo-phone-column > .nova-stage:not(#\-):not(#\-) { padding-top: 6svh; }
+@container nova-centre (max-width: 1100px) { :where(:root[data-density=compact]) .nova-frame[data-stage=calm]:not([data-phone]) .nova-deck:not(#\-) { row-gap: 4px; padding-top: 0; padding-bottom: 0; } }
+@container nova-centre (max-width: 1100px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner:not(#\-) { row-gap: 8px; } }
+:where(:root[data-density=compact]) .nova-frame[data-phone] :is(.nova-top-left, .nova-top-right):not(#\-) { padding-top: 0; padding-bottom: 0; }
 /*  components/nova/panels/panels.css  */
 :where(:root[data-density=compact]) .nova-panels:not(#\-), :where(:root[data-density=compact]) .nova-briefs:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nova-panel-head:not(#\-) { row-gap: 6px; }
@@ -4079,6 +4501,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-brief-polished .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-radio-row:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; row-gap: 3px; }
 :where(:root[data-density=compact]) .nova-radio-row .ai-check:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-weather-choice:not(#\-) { margin-top: 18px; padding-top: 14px; row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-weather-place:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-weather-row:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-weather-input:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-weather-found:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
 /*  components/nova/setup/setup.css  */
 :where(:root[data-density=compact]) .nova-setup:not(#\-) { row-gap: 16px; }
 :where(:root[data-density=compact]) .nova-progress:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -4103,7 +4530,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-modes legend:not(#\-) { margin-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-mode:not(#\-) { row-gap: 10px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .nova-mode input:not(#\-) { margin-top: 2px; margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-tag:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .nova-tag:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
 :where(:root[data-density=compact]) .nova-scopes:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-scopes legend:not(#\-) { margin-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-guide-send:not(#\-) { row-gap: 8px; }
@@ -4124,6 +4551,62 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-choice.ai-card-actions:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nova-choice button:not(#\-):not(#\-) { row-gap: 4px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-step-action:not(#\-) { margin-top: 6px; }
+/*  components/nova/stage/bars.css  */
+:where(:root[data-density=compact]) .nb-find-icon:not(#\-) { margin-top: -9px; }
+:where(:root[data-density=compact]) .nb-results:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-enter:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .nb-none:not(#\-) { row-gap: 10px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nb-none p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-heading:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-fold:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-fold > span:first-child:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .nb-fold > span:first-child:not(#\-)::before { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-fold-count:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .nova-left .nb-section > ul:not(#\-) { margin-top: 0; }
+:where(:root[data-density=compact]) .nova-left[data-state=rail] .nb-section + .nb-section:not(#\-) { padding-top: 6px; }
+:where(:root[data-density=compact]) .nova-left .nova-left-nav:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .nova-left[data-state=rail] .nova-left-nav:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nb-asks:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nb-group:not(#\-) { margin-top: 3px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-ask-list:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-ask:not(#\-) { row-gap: 0; padding-top: 9px; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-ask-text:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-ask-meta:not(#\-) { row-gap: 2px; margin-top: 2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-ask-phone:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nb-ask-acts:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-quiet:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-asks-foot:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nb-stage:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-stage-row:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nb-act:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-lives:not(#\-) { row-gap: 8px; margin-top: 2px; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nb-lives svg:not(#\-) { margin-top: 1px; }
+/*  components/nova/stage/command-centre.css  */
+:where(:root[data-density=compact]) .cc-streak:not(#\-) { margin-top: -.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-orb-button > .cc-bezel:not(#\-) { margin-top: calc(var(--star-size, 440px) * -.53); margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-frame[data-stage=set] .nova-orb-button > .cc-bezel:not(#\-) { margin-top: calc(var(--star-size, 440px) * -.43); margin-bottom: 0; }
+:where(:root[data-density=compact]) .cc-read:not(#\-) { row-gap: 8px; }
+@media (min-height: 1000px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-stage-area:not(#\-) { padding-top: 34px; padding-bottom: 36px; } }
+:where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit > .nova-orbit-band:not(#\-) { padding-top: 30px; }
+/*  components/nova/stage/stage.css  */
+:where(:root[data-density=compact]) .ns-act:not(#\-) { margin-top: -10px; margin-bottom: -10px; padding-top: 0; padding-bottom: 0; }
+@container holo-panel (max-width: 284px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-widget-head:not(#\-) { row-gap: 10px; } }
+:where(:root[data-density=compact]) .ns-strip:not(#\-) { row-gap: 2px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .ns-dock:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .ns-onetap:not(#\-) { row-gap: 8px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .ns-chip:not(#\-) { row-gap: 9px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .ns-answer:not(#\-) { margin-top: 6px; margin-bottom: 0; padding-top: 0; padding-bottom: 5px; }
+:where(:root[data-density=compact]) .ns-answer-head:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .ns-answer-asked:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ns-answer-text:not(#\-) { margin-top: 7px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ns-answer-meta:not(#\-) { margin-top: 5px; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .ns-link:not(#\-) { row-gap: 7px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .ns-strip:not(#\-) { margin-bottom: 2px; }
+@media (min-height: 740px) { :where(:root[data-density=compact]) .nova-frame[data-phone] .ns-onetap:not(#\-) { row-gap: 2px; padding-top: 2px; padding-bottom: 4px; } }
+@media (min-height: 740px) { :where(:root[data-density=compact]) .nova-frame[data-phone] .ns-onetap > .ns-chip:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; } }
+@container nova-stage (max-height: 520px) { :where(:root[data-density=compact]) .ns-answer:not(#\-) { margin-top: 2px; } }
+@container nova-stage (max-height: 520px) { :where(:root[data-density=compact]) .ns-answer-text:not(#\-) { margin-top: 4px; } }
+:where(:root[data-density=compact]) .ns-answer-close:not(#\-) { padding-top: 0; padding-bottom: 0; }
 /*  components/nova/widgets/widgets.css  */
 :where(:root[data-density=compact]) .nova-widget-body p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-big:not(#\-) { row-gap: 4px; }
@@ -4138,12 +4621,47 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-chip-link:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 6px; }
 :where(:root[data-density=compact]) .nova-playing:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .nova-playing-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-disc:not(#\-) { row-gap: 3px; padding-top: 5px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-round:not(#\-) { margin-top: 6px; }
 :where(:root[data-density=compact]) .nova-markets li:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nova-focus-actions:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .nova-widget .tasks-widget:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nova-widget .tasks-widget .tasks-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-widget .tasks-widget .nova-eyebrow:not(#\-) { margin-top: 4.5px; }
+:where(:root[data-density=compact]) .hw-rows:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-glance.hw-rows:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-rows > .hw-row:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .nova-big:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .nova-count:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .nova-chip-link:not(#\-) { margin-top: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .nova-round:not(#\-) { margin-top: 0; }
+:where(:root[data-density=compact]) .hw-glance:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .hw-focus:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .hw-pips:not(#\-) { row-gap: 5px; }
+:where(:root[data-density=compact]) .hw-briefs:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .hw-head:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .hw-dayglyph i:not(#\-) { margin-top: -3.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-goals:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-goals > .hw-row:not(#\-) { row-gap: 0; padding-top: 0; padding-bottom: 5.25px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-goals .holo-gauge:not(#\-) { margin-top: -6px; margin-bottom: 5px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-markets:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-markets > .hw-row:not(#\-) { padding-top: 3.75px; padding-bottom: 3.75px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-markets > .hw-row:not(#\-)::before { margin-top: -3.5px; }
+:where(:root[data-density=compact]) .hw-money:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-facts:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-facts > div:not(#\-) { padding-top: 5px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-facts > div:first-child:not(#\-) { padding-top: 0; }
+:where(:root[data-density=compact]) .hw-runway:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .hw-runway-track:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .hw-runway-now:not(#\-) { margin-top: -4.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .hw-runway-mark:not(#\-) { margin-top: -4.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-done input:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .nova-reading:not(#\-) { row-gap: 10px; }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .hw-glance:not(#\-) { row-gap: 28px; } }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .hw-facts > div:nth-child(2):not(#\-) { padding-top: 0; } }
+:where(:root[data-density=compact]) .hw-focus[data-size=S] > .nova-chip-link:not(#\-) { margin-top: -6px; margin-bottom: -6px; }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .hw-focus[data-size=S]:not([data-running]):not(#\-) { row-gap: 22px; } }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .hw-focus[data-size=S] > .nova-chip-link:not(#\-) { margin-top: 0; margin-bottom: 0; } }
 /*  components/nova/workflows/workflows.css  */
 :where(:root[data-density=compact]) .nova-workflows:not(#\-), :where(:root[data-density=compact]) .nova-wf-run:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nova-workflows h4:not(#\-), :where(:root[data-density=compact]) .nova-wf-run h3:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit h3:not(#\-) { margin-top: 4px; margin-bottom: 0; }

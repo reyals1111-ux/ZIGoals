@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../../lib/dashboard-set
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../../../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../../../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../../../lib/ai/store/keys';
+import {novaChat, openNovaConversation} from '../../nova-am';
 
 /** Session AL (lane L7): shared steps for the AI specs (bot widths, an empty profile or the Showcase, a MOCK local model). */
 export const DAY = '2026-11-04', MORNING = '2026-11-04T09:00:00.000Z', BASE = 'http://127.0.0.1:1234';
@@ -33,18 +34,24 @@ export async function seed(page: Page, {settings = null, showcase = false, extra
   });
   await page.waitForLoadState('networkidle');
 }
-export const nova = (page: Page) => page.locator('section.nova-chat');
+export const nova = novaChat;
+/** NOVA's dashboard command field ("Ask NOVA" on its stage; there while the conversation is closed). */
+export const novaField = (page: Page) => page.getByRole('form', {name: /^Ask /}).getByRole('textbox', {name: /^Message /});
 /** ⌘/Ctrl + J (the command bar) sends the words to NOVA, whose page opens with its chat (as tests/nova-chat.spec.ts does). */
 export async function sendInNova(page: Page, text: string) {
   // Fix-up FX-G53b: on NOVA itself ⌘/Ctrl + J opens no bar by design (components/nova/nova-entry.tsx: "except on NOVA
   // itself, which has its own command field"), so there the words go where a person types them: the open chat's composer,
-  // or else the dashboard's "Ask NOVA" field, whose Enter sends them and opens the chat. The dashboard mounts after
-  // hydration, so the field is ready once it is visible.
+  // or else the dashboard's "Ask NOVA" field, whose Enter sends them. The dashboard mounts after hydration, so the field
+  // is ready once it is visible.
+  // Session AM (D7, deliberate): Enter in the dashboard field no longer always opens the chat. Words the stage has a
+  // widget for are answered under the star with the conversation closed; the person opens it from the answer's button.
+  // Either way the conversation ends up open and visible, which is what every caller reads next.
   if (/^\/app\/nova\/?$/.test(new URL(page.url()).pathname)) {
-    const field = await nova(page).isVisible() ? nova(page).getByRole('textbox', {name: /^Message /}) : page.getByRole('form', {name: /^Ask /}).getByRole('textbox', {name: /^Message /});
+    const open = await nova(page).isVisible();
+    const field = open ? nova(page).getByRole('textbox', {name: /^Message /}) : novaField(page);
     await field.fill(text);
     await field.press('Enter');
-    await expect(nova(page)).toBeVisible();
+    if (open) await expect(nova(page)).toBeVisible(); else await openNovaConversation(page);
     return;
   }
   await page.keyboard.press(process.platform === 'darwin' ? 'Meta+j' : 'Control+j');
@@ -53,5 +60,5 @@ export async function sendInNova(page: Page, text: string) {
   await bar.getByRole('textbox').fill(text);
   await bar.getByRole('textbox').press('Enter');
   await expect(page).toHaveURL(/\/app\/nova(\?|$)/);
-  await expect(nova(page)).toBeVisible();
+  await openNovaConversation(page);
 }

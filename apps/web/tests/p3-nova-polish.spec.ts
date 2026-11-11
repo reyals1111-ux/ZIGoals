@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {everydayWidgets, openNovaConversation, withEarlierWidgets} from './nova-am';
 import {defaultAiSettings} from '../lib/ai/settings';
 import {novaAndZigi} from '../lib/nova/one-line';
 import {OPEN_DAY} from '../lib/nova/day-line';
@@ -15,7 +16,9 @@ import {OPEN_DAY} from '../lib/nova/day-line';
  */
 const NOVA_KEY = 'zigoals:nova:v1';
 type Theme = 'nebula' | 'light' | 'dark';
-const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true, ...more})});
+// Session AM (D2, deliberate): a record without a widget list used to read as AK's eight "Everyday" widgets; the stage now
+// starts empty, so the record these tests start from arranges that same list first (tests/nova-am.ts), and each assertion stays.
+const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify(withEarlierWidgets({version: 1, openingSeen: true, ...more}))});
 const localBrain = () => ({'zigoals:ai:v1': JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'llama3.2:3b', localServer: 'ollama', baseUrl: 'http://127.0.0.1:11434'})});
 async function fresh(page: Page, extra: Record<string, string> = {}, theme: Theme = 'nebula') {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
@@ -56,9 +59,11 @@ test.describe('NOVA polish on a computer', () => {
   test.skip(({isMobile}) => isMobile, 'computer layouts');
 
   for (const [width, height] of [[1440, 900], [1920, 1080]] as const) for (const start of ['fresh', 'showcase'] as const) {
-    test(`ND-1: the star, its state and the greeting are in the window, the orb at the stage's middle (${width} × ${height}, ${start})`, async ({page}) => {
+    test(`ND-1: the star, its state and the greeting are in the window, the star above the stage's middle and still when an answer appears (${width} × ${height}, ${start})`, async ({page}) => {
       await page.setViewportSize({width, height});
-      if (start === 'fresh') await fresh(page, seen()); else await showcase(page);
+      // Session AM (D2, deliberate): the Showcase's NOVA record held no list either (it read as the Everyday eight); that
+      // same list is arranged first, so ND-2 below still measures eight cards.
+      if (start === 'fresh') await fresh(page, seen()); else await showcase(page, {widgets: everydayWidgets()});
       await openNova(page);
       const foot = await box(page, '.nova-foot');
       for (const sel of ['.nova-orb-button', '.nova-orb-state', '.nova-greeting', '.nova-dayline']) {
@@ -66,8 +71,30 @@ test.describe('NOVA polish on a computer', () => {
         inWindow(page, b, sel);
         expect(b.y + b.height, `${sel} above the command field`).toBeLessThanOrEqual(foot.y + 0.5);
       }
+      // Session AM (AM-D14, deliberate): the star no longer sits at the stage area's middle (within 8 % of its height).
+      // Its words live in a slot of fixed height under it, so the star stands above the middle, whole inside the stage
+      // area; nothing lies over the star, its name, its state words or the greeting; and the star and its name stay
+      // exactly where they are when an answer takes the greeting's place (they used to jump by up to 72 px).
       const orb = await box(page, '.nova-orb-button'), area = await box(page, '.nova-stage-area');
-      expect(Math.abs((orb.y + orb.height / 2) - (area.y + area.height / 2)), 'the orb at the stage area\'s middle').toBeLessThanOrEqual(area.height * 0.08);
+      expect(orb.y, 'the orb starts inside the stage area').toBeGreaterThanOrEqual(area.y - 0.5);
+      expect(orb.y + orb.height / 2, 'the orb\'s centre is above the stage area\'s middle').toBeLessThan(area.y + area.height / 2);
+      const covered = await page.evaluate(sels => sels.flatMap(sel => {
+        const el = document.querySelector(sel)!, r = el.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return hit && el.contains(hit) ? [] : [`${sel} is under ${hit ? `${hit.tagName.toLowerCase()}.${String((hit as HTMLElement).className)}` : 'nothing'}`];
+      }), ['.nova-orb-button', '.nova-orb-state', '.nova-greeting', '.nova-dayline']);
+      expect(covered, 'nothing lies over the star, its state or the greeting').toEqual([]);
+      const name = await box(page, '.nova-name');
+      inWindow(page, name, '.nova-name');
+      await page.getByRole('textbox', {name: 'Message NOVA'}).fill('show the time');
+      await page.getByRole('textbox', {name: 'Message NOVA'}).press('Enter');
+      await expect(page.locator('.ns-answer')).toBeVisible();
+      await expect(page.locator('.nova-widget[data-widget="time"]')).toBeVisible();
+      await atRest(page, '.nova-stage');
+      const nameAfter = await box(page, '.nova-name'), orbAfter = await box(page, '.nova-orb-button'), answer = await box(page, '.ns-answer');
+      expect(Math.abs(nameAfter.y - name.y), 'the star\'s name does not move when an answer appears').toBeLessThanOrEqual(0.5);
+      expect(Math.abs(orbAfter.y - orb.y), 'the star does not move when an answer appears').toBeLessThanOrEqual(0.5);
+      inWindow(page, answer, '.ns-answer');
+      expect(answer.y, 'the answer is under the star').toBeGreaterThanOrEqual(orbAfter.y + orbAfter.height - 0.5);
       // The opening's ignition happens there too: the orb is centred between the side columns.
       const centre = await box(page, '.nova-orbit-centre');
       expect(Math.abs((orb.x + orb.width / 2) - (centre.x + centre.width / 2))).toBeLessThanOrEqual(2);
@@ -87,6 +114,16 @@ test.describe('NOVA polish on a computer', () => {
     await openNova(page);
     await expect(page.locator('.nova-dayline')).toHaveText(OPEN_DAY);
     const banner = page.getByRole('region', {name: 'Give NOVA a brain of its own'});
+    // Session AM (calm stage, deliberate): the invitation shows on the calm stage only; once widgets or an answer are up
+    // it steps aside (components/nova/nova-dashboard.tsx). On this arranged stage it is not there; on a stage with no
+    // widgets it is, one line, measured as before.
+    await expect(page.locator('.nova-widget').first()).toBeVisible();
+    await expect(banner).toHaveCount(0);
+    await fresh(page, {[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true})});
+    await openNova(page);
+    await expect(page.locator('.nova-frame')).toHaveAttribute('data-stage', 'calm');
+    await expect(page.locator('.nova-dayline')).toHaveText(OPEN_DAY);
+    await expect(banner).toBeVisible();
     await expect(banner).toContainText('It already answers simple questions on this device.');
     await expect(banner.getByRole('link', {name: 'Start the guide'})).toHaveAttribute('href', '/app/nova/setup');
     expect((await banner.boundingBox())!.height).toBeLessThanOrEqual(72);
@@ -153,15 +190,45 @@ test.describe('NOVA polish on a computer', () => {
     expect(segments).toBe(1);
   });
 
-  test('ND-7: the open conversation is one panel — no widget behind it, one frame around the composer', async ({page}) => {
+  test('ND-7: the open conversation is one docked column — no widget behind it, one frame around the composer', async ({page}) => {
     await page.setViewportSize({width: 1440, height: 900});
     await fresh(page, seen());
     await openNova(page);
     await page.getByRole('textbox', {name: 'Message NOVA'}).fill('What is next today?');
     await page.getByRole('textbox', {name: 'Message NOVA'}).press('Enter');
+    // Session AM (D7, deliberate): Enter in the dashboard field no longer always opens the conversation (words the stage
+    // has a widget for are answered under the star); it is opened as a person would, from the answer's button when it did
+    // not open by itself, and is then read exactly as before.
+    await openNovaConversation(page);
     const talk = page.getByRole('region', {name: 'Conversation with NOVA'});
     await expect(talk.locator('section.nova-chat')).toBeVisible();
+    // Session AM (AM-D17, deliberate): from 1100 px of window the open conversation is a 420 px column docked on the right
+    // (it used to be one panel over a hidden stage). The star and the widgets stay; "no widget behind it" is now: no widget
+    // lies under the column, the column is whole inside the window at its right edge, the right bar gives way, and the
+    // foot (the command field's row) takes no height while the conversation is open.
+    const {width: winW, height: winH} = page.viewportSize()!;
+    await atRest(page, '.nova-talk');
+    const col = await box(page, '.nova-talk');
+    inWindow(page, col, 'the conversation');
+    expect(Math.abs(col.width - 420), 'the docked column is 420 px wide').toBeLessThanOrEqual(1);
+    expect(Math.abs(col.x + col.width - winW), 'the column is at the window\'s right edge').toBeLessThanOrEqual(1);
+    const centre = await box(page, '.nova-centre');
+    expect(Math.abs(col.y - centre.y) + Math.abs(col.height - centre.height), 'the column is as tall as the stage\'s column').toBeLessThanOrEqual(1);
+    expect(col.height, 'the column fills the window\'s height under the app\'s own chrome').toBeGreaterThanOrEqual(winH - 120);
+    await expect(page.locator('.nova-stage-area')).toBeVisible();
+    await expect(page.locator('.nova-orb-button')).toBeVisible();
+    const shown = await page.locator('.nova-widget').evaluateAll(els => els.filter(el => el.checkVisibility({visibilityProperty: true})).map(el => { const r = el.getBoundingClientRect(); return {id: (el as HTMLElement).dataset.widget, right: r.right}; }));
+    expect(shown.length, 'the widgets stay on the stage').toBeGreaterThan(0);
+    for (const w of shown) expect(w.right, `${w.id} is beside the conversation, not under it`).toBeLessThanOrEqual(col.x + 0.5);
+    expect(await page.locator('.nova-right').evaluateAll(els => els.filter(el => el.checkVisibility()).length), 'the right bar gives way to the conversation').toBe(0);
+    expect((await box(page, '.nova-foot')).height, 'the foot takes no height while the conversation is open').toBe(0);
+    await expect(page.locator('.nova-command')).toHaveCount(0);
+    // Under 1100 px the conversation is still the one panel over the stage: no widget shows behind it.
+    await page.setViewportSize({width: 1024, height: 900});
+    await expect(talk.locator('section.nova-chat')).toBeVisible();
+    inWindow(page, await box(page, '.nova-talk'), 'the conversation at 1024 px');
     expect(await page.locator('.nova-widget').evaluateAll(els => els.filter(el => el.checkVisibility({visibilityProperty: true})).length)).toBe(0);
+    await page.setViewportSize({width: 1440, height: 900});
     const framed = await talk.locator('.nova-composer').evaluate(el => [el, ...el.querySelectorAll('*')].filter(n => parseFloat(getComputedStyle(n).borderTopWidth) > 0 && getComputedStyle(n).borderTopStyle !== 'none' && n.getBoundingClientRect().width > 120).length);
     expect(framed).toBe(1);
     const actions = await talk.locator('.nova-composer-actions > button').evaluateAll(els => new Set(els.map(el => Math.round(el.getBoundingClientRect().top))).size);

@@ -40,12 +40,14 @@ export function useApplePlatform(): boolean {
  * middle; on the right one tidy grid of 44 px planets — the dock, Customize, Fullscreen, the mini window — with the
  * right-panel toggle as its last cell, two rows deep (one row on a wide centre).
  */
-export function NovaTop({now, persona, entries, shortcuts, fullscreen, fullscreenOk, handlers, onExit, onDay, onSearch, onWorkflows, onMini, miniOpen, leftHidden, onShowLeft, rightOpen, onToggleRight, compact, onQuick}: {
+export function NovaTop({now, persona, entries, shortcuts, fullscreen, fullscreenOk, handlers, onExit, onDay, onSearch, onWorkflows, onMini, miniOpen, onOwnWindow, leftHidden, onShowLeft, rightOpen, onToggleRight, compact, onQuick}: {
   now: Date | null; persona: string; entries: DockEntry[]; shortcuts: boolean; fullscreen: boolean; fullscreenOk: boolean; handlers: QuickHandlers;
   onExit: () => void; onDay: () => void; onSearch: () => void; onWorkflows: () => void; onMini?: () => void; miniOpen: boolean;
+  /** Session AM (A3): NOVA in a window of its own (a computer, not already in that window). */
+  onOwnWindow?: () => void;
   leftHidden: boolean; onShowLeft: () => void; rightOpen: boolean; onToggleRight: () => void; compact: boolean; onQuick: () => void;
 }) {
-  const grid = entries.filter(e => !e.hidden).slice(0, 10), cells = grid.length + 2 + (fullscreenOk ? 1 : 0) + (onMini ? 1 : 0);
+  const grid = entries.filter(e => !e.hidden).slice(0, 10), cells = grid.length + 2 + (fullscreenOk ? 1 : 0) + (onMini ? 1 : 0) + (onOwnWindow ? 1 : 0);
   return <header className="nova-top">
     <div className="nova-top-left">
       <button type="button" className="nova-exit" onClick={onExit} aria-keyshortcuts="Escape"><NovaIcon name="exit" size={20}/><span className="nova-top-word">Exit {persona}</span><kbd className="nova-kbd" aria-hidden="true">Esc</kbd></button>
@@ -62,8 +64,9 @@ export function NovaTop({now, persona, entries, shortcuts, fullscreen, fullscree
         <button type="button" className="nova-icon-btn nova-quick-more" onClick={onQuick} aria-label="Quick access" aria-haspopup="dialog" data-tip="Quick access" data-tip-end=""><NovaIcon name="widgets"/></button>
         <nav className="nova-quick" aria-label="Quick access" style={{'--cells': cells, '--cols': Math.ceil(cells / 2)} as CSSProperties}>
           <ul>{grid.map(e => <li key={e.id}><QuickTile entry={e} shortcuts={shortcuts} act={handlers.act}/></li>)}
-            <li><button type="button" className="nova-tile" onClick={handlers.customize} aria-label="Customize the view" data-tip="Customize the view"><span className="nova-tile-planet" aria-hidden="true"><NovaIcon name="yours" size={20}/></span></button></li>
+            <li className="nova-quick-tool-first"><button type="button" className="nova-tile" onClick={handlers.customize} aria-label="Customize the view" data-tip="Customize the view"><span className="nova-tile-planet" aria-hidden="true"><NovaIcon name="yours" size={20}/></span></button></li>
             {onMini && <li><button type="button" className="nova-tile" onClick={onMini} aria-pressed={miniOpen} aria-label={miniOpen ? 'Close the mini window' : 'Open a mini window that stays on top'} data-tip={miniOpen ? 'Close the mini window' : 'Mini window, stays on top'}><span className="nova-tile-planet" aria-hidden="true"><NovaIcon name="mini" size={20}/></span></button></li>}
+            {onOwnWindow && <li><button type="button" className="nova-tile" onClick={onOwnWindow} aria-label="Open NOVA in its own window" data-tip="NOVA in its own window"><span className="nova-tile-planet" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="6.5" width="13" height="11" rx="2"/><path d="M8 6.5V5a1.5 1.5 0 0 1 1.5-1.5H19A1.5 1.5 0 0 1 20.5 5v8A1.5 1.5 0 0 1 19 14.5h-2.5M3.5 10h13"/></g></svg></span></button></li>}
             {fullscreenOk && <li><button type="button" className="nova-tile" onClick={handlers.fullscreen} aria-pressed={fullscreen} aria-label="Fullscreen" data-tip={fullscreen ? 'Leave fullscreen · Esc' : 'Fullscreen'}><span className="nova-tile-planet" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d={fullscreen ? 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' : 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></span></button></li>}
             {/* The right panel's toggle is the grid's last cell (ND-4: aligned to the grid, not hanging beside it). */}
             <li><button type="button" className="nova-tile nova-tile-panel" onClick={onToggleRight} aria-pressed={rightOpen} aria-label={rightOpen ? 'Hide Behind the intelligence' : 'Show Behind the intelligence'} data-tip={rightOpen ? 'Hide Behind the intelligence' : 'Behind the intelligence: brains, voice, usage'}><span className="nova-tile-planet" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15M17 8.5h1M17 11.5h1"/></g></svg></span></button></li>

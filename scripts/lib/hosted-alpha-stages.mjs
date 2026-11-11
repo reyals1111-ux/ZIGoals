@@ -18,6 +18,7 @@ import {readPolicyWindow, policyWindowNote} from './market-policy-window.mjs';
 import {CHECKLIST_SENTINELS, CHECKLIST_STAGE} from './hosted-alpha-checklist.mjs';
 import {AK_STAGE} from './hosted-alpha-ak.mjs';
 import {AL_STAGE} from './hosted-alpha-al.mjs';
+import {NOVA_STAGE} from './hosted-alpha-nova.mjs';
 import {EARN_STAGE} from './hosted-alpha-earn.mjs';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal, todayQuickAdd} from './hosted-alpha-goal-stage.mjs';
 
@@ -264,6 +265,8 @@ export const VERIFIER_STAGES = Object.freeze([
   AK_STAGE,
   // Session AL (TIER 3 (verifier)): plans, tasks and the Apps entries; a part the build lacks is recorded, never a failure.
   AL_STAGE,
+  // Session AM (TIER 3 (verifier), ADR-038): NOVA's calm stage, a request's widget, and Weather off; a part it could not check is a review reason.
+  NOVA_STAGE,
 ].map(stage => Object.freeze(stage)));
 
 /**

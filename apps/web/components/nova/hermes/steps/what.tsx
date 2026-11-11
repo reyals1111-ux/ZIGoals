@@ -13,7 +13,7 @@ export default function WhatStep({hermes}: {hermes: HermesState}) {
   const [understood, setUnderstood] = useState(false), kind = browserKind(ua);
   return <>
     <p><b>Hermes Agent</b> is Nous Research’s open-source personal agent (MIT licence): it runs on your computer with its own tools, skills, memory and choice of model. <a className="text-link" href={HERMES_LINKS.docs} target="_blank" rel="noopener noreferrer">Its documentation</a> · <a className="text-link" href={HERMES_LINKS.github} target="_blank" rel="noopener noreferrer">GitHub</a>. ZIGoals has no partnership with it.</p>
-    <p>With NOVA it can be the brain the whole chat runs on, or a second agent NOVA asks for help (“Ask my Hermes”).</p>
+    <p>With NOVA it can be the brain the whole chat runs on, or a second agent NOVA asks for help (“Ask my Hermes”). Either way, the widgets on NOVA’s stage are made on this device from your own records; Hermes never puts words or numbers into a widget.</p>
     <p className="nova-note" role="note">{HERMES_POWER}</p>
     <p className="nova-note" role="note">{HERMES_STORES}</p>
     <p className="nova-honest" role="note">{loopbackNote(kind, phone)}</p>

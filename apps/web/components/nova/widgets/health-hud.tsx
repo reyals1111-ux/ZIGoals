@@ -18,6 +18,9 @@ import '../holo/holo-parts.css';
  * histogram has headroom and its target's value at the line's end (m8). A medium panel shows the ring and four meters, the
  * hearts where its height allows; a large one everything. Second review M2, p6 (lane L8f): the ring's figure fits inside it,
  * its "of 2,200 kcal" and its reason sit under it.
+ * Session AM-2 (art direction D, Health: magenta, hearts, a heartbeat trace): the calorie ring is the hero — a thick
+ * gradient arc with its lit end inside a tick bezel, sized to its panel (holo-parts.css) — beside meters whose bars run
+ * the panel's width; the hearts sit in one row on a heartbeat trace; "On your screen only" is the panel's foot strip.
  */
 export default function HealthHudWidget({size}: {size: WidgetSize}) {
   const shown = usePillarShown('health'), shared = useHealthShared(), {hud, loaded, error, health, day} = useHealthHud();
@@ -33,7 +36,7 @@ export default function HealthHudWidget({size}: {size: WidgetSize}) {
     <div className="holo-split">
       {/* Second review p6 (lane L8f): the ring's reason ("No meals logged today") sits under the ring it explains. */}
       <div className="holo-ring-col">
-        <TickRing share={k.share} size={size === 'S' ? 64 : size === 'M' ? 104 : 140}>
+        <TickRing share={k.share} small={size === 'S'} className="holo-kcal">
           <HoloFigure text={k.value === null ? '—' : k.text.replace(/ kcal$/, '')} className="holo-num-ring"/>
           <small>{k.value === null ? 'kcal' : k.targetText ? `of ${k.targetText}` : 'kcal'}</small>
         </TickRing>
@@ -50,7 +53,7 @@ export default function HealthHudWidget({size}: {size: WidgetSize}) {
     </div>}
     {size === 'L' && hud.heart && <div className="holo-heartline">
       <span className="holo-label">{hud.heart.kind === 'resting' ? 'Resting heart rate' : 'Average heart rate'} · <b className="holo-num">{hud.heart.latest} bpm</b> · {formatDate(hud.heart.points.at(-1)!.date, {year: false})}</span>
-      <Spark values={hud.heart.points.map(p => p.bpm)} height={44}/>
+      <Spark values={hud.heart.points.map(p => p.bpm)} height={44} className="holo-heart-spark"/>
     </div>}
     {!shared && size !== 'S' && <NotShared/>}
     <HoloTable caption="Health today, against your targets" rows={[[k.label, `${k.text}${k.targetText ? ` of ${k.targetText}` : ''}${k.note ? ` (${k.note})` : ''}`], ...all.map(m => [m.label, `${m.text}${m.targetText ? ` of ${m.targetText}` : ''}${m.note ? ` (${m.note})` : ''}`] as const),

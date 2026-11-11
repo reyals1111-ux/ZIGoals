@@ -31,8 +31,12 @@ test('Settings → Your data: where each part lives, what this device holds, wha
   // page renders, so a row dropped from the catalog fails here.
   // Session AK (ADR-036 8.10 AFL8, e7d9951e, deliberate): the Checklist travels as an encrypted extras section, so its two
   // records (favourites and day history) are synced rows now: 4 modules + 19 device records, each named below.
-  await expect(synced.getByRole('listitem')).toHaveCount(23);
-  expect(SYNCED).toHaveLength(23);
+  // Session AM (D18, deliberate): NOVA's stage record and, of NOVA's own record, the layout and the pinned widgets travel
+  // as the encrypted `nova` extras section, so both are synced rows now: 4 modules + 21 device records (was 23 rows),
+  // each named below; NOVA's own record says in its label what stays on this device.
+  await expect(synced.getByRole('listitem')).toHaveCount(25);
+  expect(SYNCED).toHaveLength(25);
+  for (const label of ['NOVA: your requests, the widgets it made and the dock', 'NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)']) await expect(synced).toContainText(label);
   await expect(synced.getByRole('listitem').filter({hasText: 'Habits and check-ins'})).toContainText(/\d+(\.\d)? (B|kB|MB)/);
   for (const label of ['Goal plans, life areas, visions and sub-goals', 'Accounts and debts', 'Micronutrient targets', 'Checklist favourites and custom items', 'Checklist day history']) await expect(synced).toContainText(label);
   await expect(page.getByRole('region', {name: 'Kept on this device'})).toContainText('Recent searches');

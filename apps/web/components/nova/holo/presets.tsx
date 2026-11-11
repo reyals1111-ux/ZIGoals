@@ -7,7 +7,7 @@ import {widgetSpec} from '../../../lib/nova/widgets/catalog';
  * colour, as tall as its size (what fits beside the star at a 1440 px window; the rest is the band, dotted under it).
  * Decoration: the button says the preset's name and what it holds in words.
  */
-const SKETCH_INK: Record<string, string> = {health: '#ff4fb8', habits: '#2ef2ff', goals: '#a47bff', wealth: '#ffbf3c', orbit: '#a9b8ff'};
+const SKETCH_INK: Record<string, string> = {health: '#ff74be', habits: '#23eaff', goals: '#9273ff', wealth: '#ffd27a', orbit: '#7fc8ff'};
 export function PresetSketch({preset}: {preset: HudPreset}) {
   const plan = HUD_PRESET_PLAN[preset], widgets = presetWidgets(preset), unit = 7.5, top = 4;
   const ink = (id: string) => SKETCH_INK[widgetSpec(id)?.pillar ?? 'orbit'] ?? SKETCH_INK.orbit;

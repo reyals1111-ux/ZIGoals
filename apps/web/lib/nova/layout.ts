@@ -71,16 +71,31 @@ export function leanAt(offset: number, radius: number, extent: number): number {
 }
 
 /** Orbit placement: each widget, in order, to the side with fewer rows used (left on a tie) while it fits; else the band.
- *  `rows` is the rows each size takes (AK's cards: ROWS; the Holo look: HOLO_ROWS). */
-export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS, rowsOf: Record<WidgetSize, number> = ROWS): Placed[] {
-  const used = {left: 0, right: 0}, out: Placed[] = [];
-  widgets.forEach((w, order) => {
-    const rows = rowsOf[w.size];
-    const first: 'left' | 'right' = used.left <= used.right ? 'left' : 'right', second = first === 'left' ? 'right' : 'left';
+ *  `rows` is the rows each size takes (AK's cards: ROWS; the Holo look: HOLO_ROWS).
+ *  Design review AM-D9: `prefer` names the side a widget already stands on. Those keep their side while it fits; a widget
+ *  without one (a new one) is given room first, on the emptier side. So making, hiding, closing or pinning one widget never
+ *  sends another across the star. Within a side the list's order stands. */
+export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS, rowsOf: Record<WidgetSize, number> = ROWS, prefer?: (id: string) => Side | undefined): Placed[] {
+  const used = {left: 0, right: 0}, sides = new Map<number, Side>();
+  const put = (order: number, rows: number, first: 'left' | 'right') => {
+    const second = first === 'left' ? 'right' : 'left';
     const side: Side = used[first] + rows <= sideRows ? first : used[second] + rows <= sideRows ? second : 'band';
-    if (side === 'band') { out.push({...w, side, row: 0, rows, lean: 0, order}); return; }
-    out.push({...w, side, row: used[side] + 1, rows, lean: 0, order});
-    used[side] += rows;
+    sides.set(order, side);
+    if (side !== 'band') used[side] += rows;
+  };
+  // A widget that stood nowhere before (a new one) is placed first, so it always gets room beside the star: it takes the
+  // side that will be the emptier one once those that keep their side stand there. Then the others take their own side
+  // while it still fits. One whose side is full, and one that stood in the band, take what room is left, else the band.
+  const kept = widgets.map(w => prefer?.(w.id)), load = {left: 0, right: 0}, waiting: number[] = [];
+  widgets.forEach((w, order) => { const side = kept[order]; if (side === 'left' || side === 'right') load[side] += rowsOf[w.size]; });
+  widgets.forEach((w, order) => { if (!kept[order]) put(order, rowsOf[w.size], used.left + load.left <= used.right + load.right ? 'left' : 'right'); });
+  widgets.forEach((w, order) => { const side = kept[order]; if (!side) return; if (side !== 'band' && used[side] + rowsOf[w.size] <= sideRows) put(order, rowsOf[w.size], side); else waiting.push(order); });
+  for (const order of waiting) { const side = kept[order]!; put(order, rowsOf[widgets[order]!.size], side === 'band' ? (used.left <= used.right ? 'left' : 'right') : side); }
+  const next = {left: 0, right: 0}, out: Placed[] = widgets.map((w, order) => {
+    const rows = rowsOf[w.size], side = sides.get(order)!;
+    if (side === 'band') return {...w, side, row: 0, rows, lean: 0, order};
+    const row = next[side] + 1; next[side] += rows;
+    return {...w, side, row, rows, lean: 0, order};
   });
   // Each column is centred on the star: a panel's offset is its centre's distance from the column's middle.
   for (const side of ['left', 'right'] as const) {

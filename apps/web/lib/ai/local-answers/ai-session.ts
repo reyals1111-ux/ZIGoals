@@ -60,7 +60,11 @@ function onTrackAnswer(lang: Lang, named: string | undefined, env: ToolEnv): Loc
   const match = wanted ? list.find(g => g.name.toLowerCase() === wanted.toLowerCase()) ?? list.find(g => g.name.toLowerCase().includes(wanted.toLowerCase()) || wanted.toLowerCase().includes(g.name.toLowerCase())) : list.length === 1 ? list[0] : undefined;
   if (!match) {
     const names = list.map(g => g.name).slice(0, 8).join(', ');
-    return {kind: 'answer', text: wanted ? say(lang, `I could not find a goal called “${wanted}”.${names ? ` Your goals: ${names}.` : ''} Ask again with one of these names.`, `Ik vind geen doel met de naam “${wanted}”.${names ? ` Je doelen: ${names}.` : ''} Vraag het opnieuw met een van deze namen.`)
+    // Design review AM-D22: never "ask again with one of these names" with no names. No goals: say so. Goals: up to three.
+    const few = list.map(g => g.name).slice(0, 3).join(', '), more = list.length - Math.min(3, list.length);
+    return {kind: 'answer', text: wanted ? (list.length
+      ? say(lang, `I could not find a goal called “${wanted}”. Your goals: ${few}${more ? ` and ${more} more` : ''}. Ask again with one of these names.`, `Ik vind geen doel met de naam “${wanted}”. Je doelen: ${few}${more ? ` en nog ${more}` : ''}. Vraag het opnieuw met een van deze namen.`)
+      : say(lang, 'You have no goals yet.', 'Je hebt nog geen doelen.'))
       : say(lang, `Which goal? ${names ? `Your goals: ${names}.` : 'You have no goals yet.'}`, `Welk doel? ${names ? `Je doelen: ${names}.` : 'Je hebt nog geen doelen.'}`), calls: [goals.record]};
   }
   const g = call('goal_progress', {goal: match.name}, env);

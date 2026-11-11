@@ -1,7 +1,7 @@
 'use client';
 import type {CSSProperties} from 'react';
 import type {WidgetSize} from '../../../lib/nova/store';
-import {arcPath} from '../../../lib/nova/holo/geometry';
+import {arcPath, tickPath} from '../../../lib/nova/holo/geometry';
 import {frameWords} from '../../../lib/nova/holo/wealth';
 import {formatDate, formatPercent} from '../../../lib/visual-format';
 import {wealthMoney} from '../../platform/wealth-money';
@@ -21,15 +21,20 @@ import '../holo/holo-parts.css';
  * whole rows: a medium panel shows the total, the line and the purpose flow (the mix dial where its height allows), a large
  * one the dial and the flow's ribbons side by side (B1). An empty panel is the frame unlit (M8). Second review m9 (lane L8f):
  * a figure is printed once on the frame, and the hollow point says "now" with today's figure.
+ * Session AM-2 (art direction D, Wealth: gold terminal lines): the total is the hero figure; the recorded valuations are a
+ * lit terminal line over a grid with its highest and lowest records marked; what is set aside is a gold meter with a
+ * white-hot end and the rest of it hatched (still available); the mix dial sits in a tick bezel.
  */
 function MixDial({mix, size}: {mix: {assetClass: string; share: number}[]; size: number}) {
   const starts = mix.map((_, i) => mix.slice(0, i).reduce((n, m) => n + m.share, 0)), gap = mix.length > 1 ? 2 : 0;
   return <span className="holo-ring" style={{'--ring': `${size}px`} as CSSProperties} aria-hidden="true">
     <svg className="holo-mix" viewBox="-60 -60 120 120" focusable="false">
+      <path className="holo-orn-ticks" d={tickPath(0, 0, 53, 55.4, 60)}/>
+      <circle className="holo-orn-hair" r="35"/>
       <circle className="holo-track" r="44"/>
       {mix.map((m, i) => <path key={m.assetClass} className="holo-mix-seg" data-i={i % 4} d={arcPath(0, 0, 44, starts[i]! * 360 + gap, (starts[i]! + m.share) * 360 - gap)}/>)}
     </svg>
-    <Orn><circle className="holo-orn-dash" r="55"/></Orn>
+    <Orn><circle className="holo-orn-dash" r="58.4"/><path className="holo-orn-seg" d={arcPath(0, 0, 58.4, 30, 62)}/><path className="holo-orn-seg" d={arcPath(0, 0, 58.4, 210, 242)}/></Orn>
   </span>;
 }
 /** Cents of a line value (the line keeps major units) for the frame's labels, in Wealth's own money words. */
@@ -58,7 +63,7 @@ export default function WealthHudWidget({size}: {size: WidgetSize}) {
       {!p && <small className="holo-note">{hud.missingValue ? 'Your holdings have no known value yet.' : 'No value yet.'}</small>}
       {hud.otherCurrencies.length > 0 && <small className="holo-note">+ held in {hud.otherCurrencies.join(', ')} · never converted</small>}
     </div>
-    {size !== 'S' && line.length > 1 && <WaveChart points={line} height={size === 'L' ? 80 : 48} className="holo-wealth-line" title="Recorded valuations"
+    {size !== 'S' && line.length > 1 && <WaveChart points={line} height={size === 'L' ? 80 : 56} className="holo-wealth-line" title="Recorded valuations"
       labels={frameLabels(line, cur)} endLabel={frameLabels(line, cur).end ?? undefined} now={nowPoint}/>}
     <div className="holo-wealth-lower">
     {size !== 'S' && p && mix.length > 0 && <div className="holo-split holo-wealth-mid">

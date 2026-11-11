@@ -46,6 +46,27 @@ describe("Help's What's new and notice answers follow the live app", () => {
     for (const words of ['the Checklist', 'the screen cover', 'Settings &rarr; your account', 'a one-time code', 'Paused while a private screen is open in the tab.']) expect(answer, words).toContain(words);
   });
 
+  // Session AM (ADR-038 A2, D12–D17): Help names NOVA's one outside service, off by default, as docs/PRIVACY.md does.
+  it('says what NOVA\'s weather sends to MET Norway, that it is off until turned on, and where NOVA\'s requests are kept', () => {
+    const answer = (id: string) => help.slice(help.indexOf(`id="${id}"`), help.indexOf('</HelpQuestion>', help.indexOf(`id="${id}"`)));
+    const weather = answer('nova-weather');
+    for (const words of [
+      '<strong>Nothing until you turn it on.</strong>', 'it is off until you turn on &ldquo;Weather (outside data)&rdquo; in NOVA &rarr; Permissions and choose a place',
+      'a city from a list that ships with the app, or a position you type', 'No geocoding service is asked, and your browser&rsquo;s location is never requested.',
+      // Session AM (security review AM-S13, deliberate): the answer now names the phone's weather question, what the lookup hands a model and that a model can ask for the widget.
+      'only while a weather widget is on NOVA&rsquo;s stage (or, on a phone, when you ask NOVA about the weather) and the page is visible, your own browser asks MET Norway (api.met.no) directly',
+      'rounded to two decimals (about 1 km)', 'MET Norway therefore sees your network (IP) address and that rounded place, and keeps both in its logs',
+      'href="https://www.met.no/en/About-us/privacy"', 'No account, no key, no cookie, no other data. ZIGoals has no server in between and receives nothing.',
+      'At most one request per place per 10 minutes, and not before the previous reading&rsquo;s expiry time.',
+      'is kept on this device only; it is in Export everything, restore and erase', 'Credit: Data from MET Norway, licence', 'href="https://creativecommons.org/licenses/by/4.0/"',
+      'the place&rsquo;s name and the reading, which then go to that model like the rest of the answer (to a cloud provider when the model is one and the privacy mode is Guarded or Relaxed)', 'It can ask for the weather widget, which follows your switch and the ten-minute rule; it cannot turn weather on or choose the place.', 'a caching proxy that would hide your IP address from MET Norway; it is required before a wider launch.',
+    ]) expect(weather, words).toContain(words);
+    const requests = answer('nova-requests');
+    for (const words of ['the requests you made to NOVA (your own words, at most 200), the widgets NOVA made, the dock and two choices', 'The public Alpha has no accounts, so it stays on this device.', 'end-to-end encrypted in an optional sync section, together with NOVA&rsquo;s layout and pinned widgets']) expect(requests, words).toContain(words);
+    // MET Norway's terms: the name of its consumer weather service is never used.
+    expect(help).not.toMatch(/\bYr\b/);
+  });
+
   it('every Help topic says when its text last changed (GAP-165)', () => {
     const sections = [...help.matchAll(/<Section id="([a-z0-9-]+)"([^>]*)>/g)];
     expect(sections.length).toBeGreaterThan(15);
