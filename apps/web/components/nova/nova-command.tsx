@@ -96,6 +96,19 @@ export function RoutingMenu({brain, routing, onRouting, openModels}: {brain: Bra
   </>}</Menu>;
 }
 
+/**
+ * Session AM-2 (ref 11): the circuit traces that leave the command bar's ends. One drawing, anchored to the bar's edge
+ * (its right side; the right end mirrors it in CSS); the bar shows as much of it as the room beside it allows. Decoration.
+ */
+function CircuitTrace({side}: {side: 'start' | 'end'}) {
+  return <svg className="ncb-trace" data-side={side} viewBox="0 0 168 64" preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
+    <path d="M168 32H22M168 22h-12l-9-10h-27M168 42h-12l-9 10h-19M132 32l-11-12H74M108 32l-11 12H52M62 32 52 22H30M40 32l-9 9H14"/>
+    <circle cx="116" cy="12" r="3.2"/><circle cx="124" cy="52" r="3.2"/><circle cx="70" cy="20" r="3.2"/><circle cx="48" cy="44" r="3.2"/><circle cx="26" cy="22" r="3.2"/><circle cx="10" cy="41" r="3.2"/><circle cx="18" cy="32" r="3.2"/>
+    <circle data-lit="" cx="146" cy="32" r="2.2"/><circle data-lit="" cx="86" cy="32" r="2.2"/><circle data-lit="" cx="116" cy="12" r="1.1"/><circle data-lit="" cx="48" cy="44" r="1.1"/>
+    <rect x="150" y="57" width="6" height="2.5"/><rect x="140" y="57" width="6" height="2.5"/><rect x="130" y="57" width="6" height="2.5"/><rect x="112" y="57" width="12" height="2.5"/><rect x="150" y="4.5" width="6" height="2.5"/><rect x="134" y="4.5" width="12" height="2.5"/>
+  </svg>;
+}
+
 export function CommandField({you, persona, inputRef, onOpen, onBeforeSend, onMic, value, onValue, onKeys, keysOn = true}: {you: string; persona: string; inputRef: React.RefObject<HTMLInputElement | null>;
   /** Called after Enter: `sent` says whether words went to NOVA (Session AM, D7: on a computer the stage then answers in place; with nothing typed the conversation opens). */
   onOpen: (sent: boolean) => void;
@@ -108,15 +121,21 @@ export function CommandField({you, persona, inputRef, onOpen, onBeforeSend, onMi
   value?: string; onValue?: (text: string) => void;
   /** Session AL second pass (P-TK-41): opens the list of keyboard shortcuts (computers). */
   onKeys?: () => void; keysOn?: boolean}) {
-  const [own, setOwn] = useState(''), hint = useId(), pasted = useRef(false); // Z1A-2: a paste is marked, so no card from the reply is auto-accepted
+  const [own, setOwn] = useState(''), hint = useId(), pasted = useRef(false), [pulse, setPulse] = useState(0); // Z1A-2: a paste is marked, so no card from the reply is auto-accepted
   const text = value ?? own, setText = (t: string) => { if (onValue) onValue(t); else setOwn(t); };
   const apple = useApplePlatform(); // Session AK P3 (ND-21): ⌘K on Apple devices, Ctrl K elsewhere
   // Session AL Part 14 (DV-070): every change is noted as NOVA's draft, so the chat that opens while the person types starts
   // from these words; a successful sendToNova clears it.
-  const submit = (e: FormEvent) => { e.preventDefault(); const t = text.trim(); let sent = false; if (t) { onBeforeSend?.(); if (sendToNova(t, {pasted: pasted.current})) { setText(''); pasted.current = false; sent = true; } } onOpen(sent); };
-  // Session AK P3 (ND-5): one calm glass field (the input draws no box of its own) and a one-line hint.
+  const submit = (e: FormEvent) => { e.preventDefault(); const t = text.trim(); let sent = false; if (t) { onBeforeSend?.(); if (sendToNova(t, {pasted: pasted.current})) { setText(''); pasted.current = false; sent = true; setPulse(n => n + 1); } } onOpen(sent); };
+  // Session AK P3 (ND-5): one field (the input draws no box of its own) and a one-line hint.
+  // Session AM-2: the bar is an instrument — a double frame, circuit traces at both ends, the star in a lit well; every
+  // added part is decoration (aria-hidden, no pointer events). When words are sent, one band of light crosses the bar
+  // (keyed by the count of sends, so it plays once per send; Full motion only, see nova.css).
   return <form className="nova-command zg-glass" onSubmit={submit} aria-label={`Ask ${persona}`}>
-    <NovaIcon name="star" size={22}/>
+    <span className="ncb-glow" aria-hidden="true"/><span className="sh-inner" aria-hidden="true"/>
+    <CircuitTrace side="start"/><CircuitTrace side="end"/>
+    {pulse > 0 && <span key={pulse} className="ncb-pulse" aria-hidden="true"/>}
+    <span className="ncb-well" aria-hidden="true"><NovaIcon name="star" size={22}/></span>
     <div className="nova-command-text">
       <input ref={inputRef} value={text} onChange={e => { const t = e.target.value.slice(0, MAX_INPUT_CHARS); setText(t); if (!t) pasted.current = false; noteNovaDraft(t, {pasted: pasted.current}); }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} aria-keyshortcuts={commandKeyShortcut(apple, 'k')} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
       <small id={hint}>Enter to ask {persona} · nothing is sent before you press it.</small>

@@ -93,6 +93,7 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
   const section = (id: RightSection, n: number | string, body: ReactNode) => <Section key={id} id={id} n={n} title={TITLES[id]} folded={folded.includes(id)} onFold={onFold}>{body}</Section>;
   // Session AL sweep 2 (LA-024 / N-LS-05): a named region inside the shell's <main> (see nova-left.tsx).
   return <aside role="region" className="nova-right" aria-label="Behind the intelligence">
+    <span className="sh-inner" aria-hidden="true"/>
     <header className="nova-right-head">
       <div><p className="nova-eyebrow"><span className="nova-on-dot" aria-hidden="true"/>Live, on this device</p><h2>Behind the intelligence</h2></div>
       <button type="button" className="nova-icon-btn" onClick={onHide} aria-label="Hide the right panel"><NovaIcon name="close"/></button>

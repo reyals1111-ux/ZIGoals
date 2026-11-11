@@ -65,61 +65,92 @@
 :root[data-app-motion=off] .nova-widget[data-made=fresh], :root[data-app-motion=off] .nova-widget[data-made=fresh] :is(.ns-scan, .holo-brackets, .nova-widget-head, .nova-widget-body), :root[data-app-motion=off] .nova-widget[data-made=fresh] .ns-scan::before { animation: none !important; }
 
 /* ---- Chips: the dock and the one-tap requests ---- */
-/* Design review AM-D1, AM-D7: the strip is never wider than the foot, and the one-tap requests are ONE row at every width.
+/* Session AM-2: the one-tap requests are neon keys slotted on a rail — each a cut key in its pillar's colour (the key
+   recipe of nova.css: one static ::before layer; the key is drawn 38 px tall inside its 44 px target), threaded on one
+   hairline that runs from NOVA's second colour to its third. The dock is a tray of unlit keys beside them.
+   Design review AM-D1, AM-D7: the strip is never wider than the foot, and the one-tap requests are ONE row at every width.
    Chips that do not fit scroll sideways inside the row (no scrollbar is drawn; a swipe, a wheel or Tab reaches each one,
    and focus scrolls its chip into view). The row's auto margins centre it while it fits and let it start at the left
    edge once it scrolls, so the first chip is never cut off. The 6 px padding keeps a chip's focus ring inside the row. */
-.ns-strip { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 18px; width: 100%; min-width: 0; max-width: 100%; margin-bottom: 4px; }
-.ns-dock { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
+.ns-strip { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 18px; width: 100%; min-width: 0; max-width: 100%; margin-bottom: 6px; }
+.ns-strip::before { content: ''; position: absolute; left: 4%; right: 4%; top: 27px; height: 1px; z-index: -1; pointer-events: none; opacity: .6; background: linear-gradient(90deg, transparent, var(--nova-b, #63e7ff) 16%, var(--nova-a, #9273ff) 50%, var(--nova-c, #f06dff) 84%, transparent); }
+.ns-dock { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 0 8px 0 12px; --c: 8px; --n: 3px; --w: 1px; --sh-glass: #050919; --sh-rimg: color-mix(in oklab, var(--nova-hi, #cbbfff) 36%, #050919); }
 .ns-onetap { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap: 8px; flex: 0 1 auto; min-width: 0; max-width: 100%; box-sizing: border-box; padding: 6px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; scroll-padding-inline: 6px; }
 .ns-onetap::-webkit-scrollbar { display: none; }
 .ns-onetap > .ns-chip { flex: none; }
 .ns-onetap > :first-child { margin-left: auto; }
 .ns-onetap > :last-child { margin-right: auto; }
-.ns-dock-label { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #c3cfe6; }
-.ns-chip { --neon: #7fc8ff; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid color-mix(in oklab, var(--neon) 46%, transparent); background: color-mix(in oklab, var(--neon) 9%, #060a1ccc); color: #eef3ff; font: inherit; font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: background .12s ease-out, border-color .12s ease-out, transform .09s ease-out; }
+.ns-dock-label { font-size: 14px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #c3cfe6; }
+.ns-chip { --neon: #7fc8ff; display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px 0 14px; border: 0; border-radius: 4px; background: none; color: #f1f5ff; font: inherit; font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: transform .09s ease-out;
+  --kc: 6px; --k-inset: 3px 0; --k-rim: color-mix(in oklab, var(--neon) 82%, transparent); --k-rim-2: color-mix(in oklab, var(--neon) 36%, #0a1030); --k-plate: color-mix(in oklab, var(--neon) 22%, #080d26); --k-plate-2: color-mix(in oklab, var(--neon) 7%, #050919); --k-glow: 0 0 12px -4px var(--neon); }
 .ns-chip[data-pillar=health] { --neon: #ff74be; } .ns-chip[data-pillar=habits] { --neon: #23eaff; } .ns-chip[data-pillar=goals] { --neon: #9273ff; } .ns-chip[data-pillar=wealth] { --neon: #ffd27a; }
 .ns-chip[data-pillar=mind] { --neon: #cbbfff; } .ns-chip[data-pillar=world] { --neon: #7fb6ff; } .ns-chip[data-pillar=nova] { --neon: #9273ff; }
-.ns-chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 8px var(--neon); flex: none; }
-.ns-chip:hover { background: color-mix(in oklab, var(--neon) 22%, #060a1ccc); border-color: color-mix(in oklab, var(--neon) 80%, transparent); }
-.ns-chip:active { transform: scale(.97); }
-.ns-dock .ns-chip { border-style: dashed; }
+/* The key's lit node: a small diamond in the pillar's colour. */
+.ns-chip-dot { width: 7px; height: 7px; flex: none; transform: rotate(45deg); background: color-mix(in oklab, var(--neon) 70%, #fff); box-shadow: 0 0 0 2px color-mix(in oklab, var(--neon) 26%, transparent), 0 0 8px var(--neon); }
+.ns-chip:is(:hover, :focus-visible) { color: #fff; --k-rim: color-mix(in oklab, var(--neon) 60%, #fff); --k-rim-2: var(--neon); --k-plate: color-mix(in oklab, var(--neon) 40%, #080d26); --k-plate-2: color-mix(in oklab, var(--neon) 18%, #050919); --k-glow: 0 0 16px -2px var(--neon); }
+.ns-chip:active { transform: scale(.955); }
+/* In the dock a key is unlit: a dim rim, no bloom. */
+.ns-dock .ns-chip { color: #d3dcef; --k-rim: color-mix(in oklab, var(--neon) 46%, #0a1030); --k-rim-2: color-mix(in oklab, var(--neon) 20%, #0a1030); --k-plate: #0a1030; --k-plate-2: #060a1c; --k-glow: none; }
+.ns-dock .ns-chip-dot { background: none; box-shadow: inset 0 0 0 1.5px var(--neon); }
 @media (prefers-reduced-motion: reduce) { .ns-chip { transition: none; } .ns-chip:active { transform: none; } }
 :root[data-app-motion=off] .ns-chip { transition: none; }
 :root[data-app-motion=off] .ns-chip:active { transform: none; }
 
-/* ---- NOVA's answer under the star ---- */
-.ns-answer { box-sizing: border-box; width: min(560px, 100%); margin: 6px auto 0; padding: 10px 16px 4px; border-radius: 16px; border: 1px solid color-mix(in oklab, var(--nova-a, #9273ff) 42%, transparent); background: linear-gradient(160deg, color-mix(in oklab, var(--nova-a, #9273ff) 12%, #070b1fe6), #050818e6); box-shadow: 0 0 30px -12px var(--nova-a, #9273ff); text-align: left; }
-.ns-answer-asked { margin: 0 0 4px; font-size: 14px; color: #c3cfe6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ns-answer-text { margin: 0; font-size: 16px; line-height: 1.5; color: #f2f6ff; display: -webkit-box; -webkit-line-clamp: var(--ns-lines, 3); line-clamp: var(--ns-lines, 3); -webkit-box-orient: vertical; overflow: hidden; }
-.ns-answer-meta { margin: 2px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; font-size: 14px; color: #c3cfe6; }
-.ns-answer-by { margin-right: auto; }
-.ns-link { min-height: 44px; padding: 0 4px; border: 0; background: none; color: #dfe8ff; font: inherit; font-size: 15px; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.ns-link:hover { color: #fff; }
-.nova-frame[data-hud-motion=full] .ns-answer { animation: ns-fade .24s ease-out both; }
+/* ---- NOVA's answer under the star: a holographic read-out ---- */
+/* Session AM-2 (refs 02, 07, 35): a slab of dark glass with scanlines, cut at two corners, a rim that runs from NOVA's
+   second colour to its third and a faint inner hairline with bright corner marks; a head strip (NOVA's mark and who
+   answered) on a line that starts bright and runs out; the words large, their figures lit; its links as keys. Static: only
+   its arrival moves (it rises 8 px and fades in under Full motion, fades under Calm, is simply there otherwise). */
+.ns-answer { position: relative; isolation: isolate; box-sizing: border-box; width: min(560px, 100%); margin: 6px auto 0; padding: 0 14px 5px; border: 0; background: none; text-align: left; --c: 14px; --n: 4px; --w: 1.5px;
+  --sh-glass: repeating-linear-gradient(0deg, #ffffff08 0 1px, transparent 1px 3px), linear-gradient(180deg, color-mix(in oklab, var(--nova-b, #63e7ff) 24%, #0a1232) 0, color-mix(in oklab, var(--nova-a, #9273ff) 16%, #080c26) 40px, #070b22 40px, #04071a 100%);
+  --sh-rimg: linear-gradient(115deg, #fff 0, var(--nova-b, #63e7ff) 9%, var(--nova-a, #9273ff) 52%, var(--nova-c, #f06dff) 91%, #fff 100%); }
+/* The bloom behind the slab (static; its own layer so the cut corners stay clean). */
+.ns-answer-glow { position: absolute; inset: 8px; z-index: -2; border-radius: 14px; pointer-events: none; box-shadow: 0 0 16px 1px color-mix(in oklab, var(--nova-b, #63e7ff) 50%, transparent), 0 0 50px 6px color-mix(in oklab, var(--nova-a, #9273ff) 36%, transparent), 0 26px 44px -20px #000; }
+.ns-answer > .sh-inner { inset: 4px; --c: 11px; --n: 2px; }
+.ns-answer-head { display: flex; align-items: center; gap: 8px; min-height: 40px; box-sizing: border-box; margin: 0 -14px; padding: 0 44px 0 14px; font-size: 14px; font-weight: 600; line-height: 1.2; color: #e9fbff; text-shadow: 0 0 12px color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent);
+  border: solid; border-width: 0 0 1px; border-image: linear-gradient(90deg, transparent 0, transparent 14px, var(--nova-b, #63e7ff) 14px, var(--nova-b, #63e7ff) 70px, color-mix(in oklab, var(--nova-a, #9273ff) 46%, transparent) 70px, transparent 96%) 1; }
+.ns-answer-mark { flex: none; width: 18px; height: 18px; color: #fff; filter: drop-shadow(0 0 5px var(--nova-b, #63e7ff)); }
+.ns-answer-asked { margin: 6px 0 0; font-size: 14px; color: #c3cfe6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ns-answer-text { margin: 7px 0 0; font-size: 17px; line-height: 1.45; color: #f4f8ff; display: -webkit-box; -webkit-line-clamp: var(--ns-lines, 3); line-clamp: var(--ns-lines, 3); -webkit-box-orient: vertical; overflow: hidden; }
+/* A figure in the answer: lit, in tabular numerals. */
+.ns-fig { font-weight: 700; font-variant-numeric: tabular-nums; color: color-mix(in oklab, var(--nova-b, #63e7ff) 62%, #fff); text-shadow: 0 0 14px color-mix(in oklab, var(--nova-b, #63e7ff) 85%, transparent); }
+.ns-answer-meta { margin: 5px 0 0; display: flex; flex-wrap: nowrap; align-items: stretch; justify-content: flex-end; gap: 8px; font-size: 14px; color: #c3cfe6; }
+/* The answer's links are keys: two share one row (their words may take two short lines). */
+.ns-link { flex: 1 1 0; min-width: 0; max-width: 260px; min-height: 44px; padding: 0 10px; border: 0; border-radius: 4px; background: none; color: #f1f5ff; font: inherit; font-size: 14px; font-weight: 650; line-height: 1.15; cursor: pointer;
+  --k-inset: 3px 0; --k-rim: color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent); --k-rim-2: color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent); --k-plate: color-mix(in oklab, var(--nova-b, #63e7ff) 14%, #0a1030); --k-plate-2: color-mix(in oklab, var(--nova-a, #9273ff) 16%, #060a1c); }
+.ns-link:is(:hover, :focus-visible) { color: #fff; --k-rim: var(--nova-b, #63e7ff); --k-rim-2: var(--nova-b, #63e7ff); --k-plate: color-mix(in oklab, var(--nova-b, #63e7ff) 32%, #0a1030); --k-glow: 0 0 14px -3px var(--nova-b, #63e7ff); }
+.nova-frame[data-hud-motion=full] .ns-answer { animation: ns-rise .3s cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=calm] .ns-answer { animation: ns-fade .15s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .ns-answer { animation: none !important; } }
 :root[data-app-motion=off] .ns-answer { animation: none !important; }
 .nova-talk[hidden] { display: none; }
 /* A phone: NOVA is a chat agent. The one-tap requests are one row that scrolls sideways (every chip reachable by swipe and by Tab), never three rows over the star. */
 .nova-frame[data-phone] .ns-strip { margin-bottom: 2px; }
+.nova-frame[data-phone] .ns-strip::before { left: 0; right: 0; }
 .nova-frame[data-phone] .ns-onetap { width: 100%; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
 .nova-frame[data-phone] .ns-onetap > .ns-chip { scroll-snap-align: start; }
+/* A phone's answer is lighter: a thinner rim and a small bloom. */
+.nova-frame[data-phone] .ns-answer { --w: 1px; }
+.nova-frame[data-phone] .ns-answer-glow { box-shadow: 0 0 18px 0 color-mix(in oklab, var(--nova-a, #9273ff) 45%, transparent); }
+.nova-frame[data-phone] .ns-link { max-width: none; }
 .ns-mic-btn svg { display: block; }
 /* A short stage (a laptop window, a tablet on its side): the answer keeps its actions in view — the question's echo and the name above the star step back. */
 @container nova-stage (max-height: 520px) {
-  .ns-answer { padding: 6px 14px 2px; margin-top: 2px; }
+  .ns-answer { margin-top: 2px; }
+  .ns-answer-head { min-height: 36px; }
+  .ns-answer-text { margin-top: 4px; }
   .ns-answer-asked { display: none; }
 }
 /* Design review AM-D18: a widget is a focus target (the answer's "Go to …" lands on it); the ring is the stage's own. */
 .nova-widget:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: 3px; }
 /* In the default column the title sits beside five controls: its letters stand closer so "Habits this week" is read whole. */
 @container holo-panel (max-width: 399px) { .nova-widget[data-holo] .nova-widget-head h3 { letter-spacing: .04em; } }
-/* The answer's Dismiss is a corner button (44 px), so "Go to …" and "Open the conversation" share one row. */
-.ns-answer { position: relative; }
-.ns-answer-close { position: absolute; top: 0; right: 0; display: inline-grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; color: #c3cfe6; font: inherit; font-size: 22px; line-height: 1; cursor: pointer; }
-.ns-answer-close:hover { color: #fff; }
+/* The answer's Dismiss is a corner key (a 44 px target with a lit key drawn inside), so "Go to …" and "Open the conversation" share one row. */
+.ns-answer-close { position: absolute; top: -2px; right: 0; display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #e6ecfb; cursor: pointer; --kc: 4px; --kw: 1px; --k-inset: 9px 7px; --k-rim: color-mix(in oklab, var(--nova-b, #63e7ff) 52%, transparent); --k-plate: #0a1030; --k-plate-2: #060a1c; }
+.ns-answer-close svg { width: 16px; height: 16px; }
+.ns-answer-close:hover { color: #fff; --k-rim: #ff8fa3; --k-plate: #4a1830; }
 .ns-answer-close:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: -3px; }
-.ns-answer-text, .ns-answer-asked { padding-right: 34px; }
+.ns-answer-text, .ns-answer-asked { padding-right: 0; }
 /* A long title beside five controls takes two short lines instead of an ellipsis (the head is 44 px tall either way). */
 @container holo-panel (max-width: 399px) { .nova-frame .nova-widget[data-holo] .nova-widget-head h3 { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; line-height: 1.15; letter-spacing: .06em; } }
 /* A panel body that scrolls is a keyboard stop (axe scrollable-region-focusable); its ring sits inside the frame. */

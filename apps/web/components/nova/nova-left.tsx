@@ -118,6 +118,7 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
   // Session AL sweep 2 (LA-024 / N-LS-05): a named region, not a complementary landmark: this panel sits inside the shell's
   // <main>, where a complementary landmark is not top level (axe landmark-complementary-is-top-level). Still an <aside>.
   return <aside role="region" className="nova-left zg-glass" data-state={state} aria-label={`${persona} navigation`}>
+    <span className="sh-inner" aria-hidden="true"/>
     <div className="nova-left-head">
     <div className="nova-left-top">
       <p className="nova-left-brand"><NovaIcon name="star" size={20}/>{!rail && <span><strong>{persona}</strong><small>Private intelligence</small></span>}</p>
