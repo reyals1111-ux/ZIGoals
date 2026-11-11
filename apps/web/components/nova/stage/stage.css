@@ -70,3 +70,10 @@
 .nova-frame[data-phone] .ns-onetap { flex-wrap: nowrap; justify-content: flex-start; width: 100%; overflow-x: auto; padding: 2px 12px; scrollbar-width: none; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
 .nova-frame[data-phone] .ns-onetap > .ns-chip { flex: none; scroll-snap-align: start; }
 .ns-mic-btn svg { display: block; }
+/* A short stage (a laptop window, a tablet on its side): the answer keeps its actions in view — the question's echo and the name above the star step back. */
+@container nova-stage (max-height: 470px) {
+  .ns-answer { padding: 8px 14px; margin-top: 2px; }
+  .ns-answer-asked { display: none; }
+  .ns-answer-text { -webkit-line-clamp: 2; }
+  .nova-stage:has(.ns-answer) > .nova-stage-above { display: none; }
+}

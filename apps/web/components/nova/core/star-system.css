@@ -6,3 +6,5 @@
 .nova-star { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 0; display: block; max-width: none; }
 .nova-orb-button[data-star] > .nova-orb { opacity: 0; }
 .nova-orb-button[data-star] > .nova-orb, .nova-orb-button[data-star] > .nova-orb * { animation: none !important; }
+/* While the star is drawn the orb's own box can be smaller (the star's canvas reaches past it), so NOVA's words under it fit a short window. */
+.nova-orb-button[data-star] > .nova-orb { width: clamp(88px, min(18cqi, 22cqb), 200px); }

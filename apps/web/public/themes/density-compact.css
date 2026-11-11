@@ -4302,6 +4302,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .ns-link:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-frame[data-phone] .ns-strip:not(#\-) { margin-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-frame[data-phone] .ns-onetap:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+@container nova-stage (max-height: 470px) { :where(:root[data-density=compact]) .ns-answer:not(#\-) { padding-top: 8px; padding-bottom: 8px; margin-top: 2px; } }
 /*  components/nova/widgets/widgets.css  */
 :where(:root[data-density=compact]) .nova-widget-body p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-big:not(#\-) { row-gap: 4px; }
