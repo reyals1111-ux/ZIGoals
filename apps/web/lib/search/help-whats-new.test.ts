@@ -53,12 +53,13 @@ describe("Help's What's new and notice answers follow the live app", () => {
     for (const words of [
       '<strong>Nothing until you turn it on.</strong>', 'it is off until you turn on &ldquo;Weather (outside data)&rdquo; in NOVA &rarr; Permissions and choose a place',
       'a city from a list that ships with the app, or a position you type', 'No geocoding service is asked, and your browser&rsquo;s location is never requested.',
-      'only while a weather widget is on NOVA&rsquo;s stage and the page is visible, your own browser asks MET Norway (api.met.no) directly',
+      // Session AM (security review AM-S13, deliberate): the answer now names the phone's weather question, what the lookup hands a model and that a model can ask for the widget.
+      'only while a weather widget is on NOVA&rsquo;s stage (or, on a phone, when you ask NOVA about the weather) and the page is visible, your own browser asks MET Norway (api.met.no) directly',
       'rounded to two decimals (about 1 km)', 'MET Norway therefore sees your network (IP) address and that rounded place, and keeps both in its logs',
       'href="https://www.met.no/en/About-us/privacy"', 'No account, no key, no cookie, no other data. ZIGoals has no server in between and receives nothing.',
       'At most one request per place per 10 minutes, and not before the previous reading&rsquo;s expiry time.',
       'is kept on this device only; it is in Export everything, restore and erase', 'Credit: Data from MET Norway, licence', 'href="https://creativecommons.org/licenses/by/4.0/"',
-      'it cannot turn weather on, choose the place or fetch anything', 'a caching proxy that would hide your IP address from MET Norway; it is required before a wider launch.',
+      'the place&rsquo;s name and the reading, which then go to that model like the rest of the answer (to a cloud provider when the model is one and the privacy mode is Guarded or Relaxed)', 'It can ask for the weather widget, which follows your switch and the ten-minute rule; it cannot turn weather on or choose the place.', 'a caching proxy that would hide your IP address from MET Norway; it is required before a wider launch.',
     ]) expect(weather, words).toContain(words);
     const requests = answer('nova-requests');
     for (const words of ['the requests you made to NOVA (your own words, at most 200), the widgets NOVA made, the dock and two choices', 'The public Alpha has no accounts, so it stays on this device.', 'end-to-end encrypted in an optional sync section, together with NOVA&rsquo;s layout and pinned widgets']) expect(requests, words).toContain(words);

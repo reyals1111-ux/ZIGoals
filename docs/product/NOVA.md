@@ -211,7 +211,10 @@ Weather is the only outside data in NOVA, and it is off until you turn it on.
   the app, or a position you type. Your browser's location is never asked.
 - **What MET Norway sees:** your network address and your place rounded to about 1 km, and it keeps both in its logs. No
   account, no key, no cookie, nothing else. Your browser asks MET Norway directly; ZIGoals has no server in between.
-- **When:** only while a weather widget is on the stage and the page is visible, at most once per place per 10 minutes.
+- **When:** only while a weather widget is on the stage (or, on a phone, when you ask NOVA about the weather) and the
+  page is visible, at most once per place per 10 minutes. A connected model can ask for the weather widget, which
+  follows your switch and the same rule; what it reads through the weather lookup (the place's name and the reading)
+  goes to that model like the rest of the answer.
 - **Credit:** the widget says "Data from MET Norway", licence CC BY 4.0, and names the reading's time.
 - **Turn it off:** the same switch. Nothing is asked from MET Norway after that. The last reading stays on this device
   until you erase it; it is in Export everything.

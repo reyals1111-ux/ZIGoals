@@ -50,14 +50,16 @@ test("Session AM: the privacy page names MET Norway, off until turned on, with w
   for (const line of [
     "Weather (outside data)", "a city from a list that ships with the app, or a position you type",
     "No geocoding service is asked, and your browser’s location is never requested.",
-    "only while a weather widget is on NOVA’s stage and the page is visible, your own browser asks api.met.no directly",
+    // Session AM (security review AM-S13, deliberate): the page now names the phone's weather question, what the lookup hands a model and that a model can ask for the widget.
+    "only while a weather widget is on NOVA’s stage (or, on a phone, when you ask NOVA about the weather) and the page is visible, your own browser asks api.met.no directly",
     "rounded to two decimals (about 1 km)",
     "MET Norway therefore sees your network (IP) address and that rounded place, and keeps both in its logs",
     "No account, no key, no cookie, no other data; ZIGoals has no server in between and receives nothing.",
     "At most one request per place per 10 minutes, and not before the previous reading’s expiry time.",
     "The last reading (temperatures, symbols, sun times) is kept on your device",
     "Credit: Data from MET Norway, licence CC BY 4.0",
-    "it cannot turn weather on, choose the place or fetch anything",
+    "the place’s name and the reading, which then go to that model like the rest of the answer (to a cloud provider when the model is one and the privacy mode is Guarded or Relaxed)",
+    "It can ask for the weather widget, which follows your switch and the ten-minute rule; it cannot turn weather on or choose the place.",
     "a caching proxy that would hide your IP address from MET Norway",
   ]) expect(item, line).toContain(line);
   expect(page).toContain('<a href="https://www.met.no/en/About-us/privacy" rel="noopener noreferrer">');

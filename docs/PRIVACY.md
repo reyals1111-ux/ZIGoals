@@ -270,9 +270,9 @@ gains one outside service, and two records on this device.
 - **Weather (outside data): MET Norway** (`https://api.met.no`, Locationforecast 2.0 and Sunrise 3.0). It is off until
   you turn on "Weather (outside data)" in NOVA → Permissions and choose a place: a city from a list that ships with the
   app, or a position you type. No geocoding service is asked, and the browser's location is never requested.
-- **What MET Norway receives:** when weather is on, and only while a weather widget is on NOVA's stage and the page is
-  visible, your own browser asks `api.met.no` directly for the forecast at that place, rounded to two decimals (about
-  1 km). MET Norway therefore sees your network (IP) address and that rounded place, and keeps both in its logs
+- **What MET Norway receives:** when weather is on, and only while a weather widget is on NOVA's stage (or, on a phone, when
+  you ask NOVA about the weather) and the page is visible, your own browser asks `api.met.no` directly for the forecast
+  at that place, rounded to two decimals (about 1 km). MET Norway therefore sees your network (IP) address and that rounded place, and keeps both in its logs
   ([MET Norway's privacy statement](https://www.met.no/en/About-us/privacy)). No account, no key, no cookie, no other
   data. ZIGoals has no server in between and receives nothing.
 - **How often:** at most one request per place per 10 minutes, and not before the previous reading's expiry time.
@@ -280,8 +280,10 @@ gains one outside service, and two records on this device.
   device only; it is in "Export everything", restore and erase. The reading may also sit in the browser's own HTTP
   cache until it expires.
 - **Credit:** Data from MET Norway, licence [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-- **A connected AI model** can read the reading this device already holds only through NOVA's `weather` lookup. It
-  cannot turn weather on, choose the place or fetch anything.
+- **A connected AI model** can read the reading this device already holds only through NOVA's `weather` lookup: the
+  place's name and the reading, which then go to that model like the rest of the answer (to a cloud provider when the
+  model is one and the privacy mode is Guarded or Relaxed). It can ask for the weather widget, which follows your
+  switch and the ten-minute rule. It cannot turn weather on or choose the place.
 - **Carried, not built:** a caching proxy that would hide your IP address from MET Norway. It is required before a
   wider launch.
 - **NOVA's stage record** (`zigoals:nova-stage:v1`): the requests you made to NOVA (your own words, at most 200), the

@@ -23,7 +23,8 @@ describe('Session AM: PRIVACY.md names each Session AM device key, and MET Norwa
       'MET Norway** (`https://api.met.no`, Locationforecast 2.0 and Sunrise 3.0)',
       'It is off until you turn on "Weather (outside data)" in NOVA → Permissions and choose a place',
       'No geocoding service is asked, and the browser\'s location is never requested.',
-      'only while a weather widget is on NOVA\'s stage and the page is visible, your own browser asks `api.met.no` directly',
+      // Session AM (security review AM-S13, deliberate): the text now names the phone's weather question, what the lookup hands a model and that a model can ask for the widget.
+      'only while a weather widget is on NOVA\'s stage (or, on a phone, when you ask NOVA about the weather) and the page is visible, your own browser asks `api.met.no` directly',
       'rounded to two decimals (about 1 km)',
       'MET Norway therefore sees your network (IP) address and that rounded place, and keeps both in its logs',
       '(https://www.met.no/en/About-us/privacy)',
@@ -31,7 +32,7 @@ describe('Session AM: PRIVACY.md names each Session AM device key, and MET Norwa
       'at most one request per place per 10 minutes, and not before the previous reading\'s expiry time',
       'the browser\'s own HTTP cache until it expires',
       'Data from MET Norway, licence [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)',
-      'only through NOVA\'s `weather` lookup. It cannot turn weather on, choose the place or fetch anything.',
+      'only through NOVA\'s `weather` lookup: the place\'s name and the reading, which then go to that model like the rest of the answer (to a cloud provider when the model is one and the privacy mode is Guarded or Relaxed)', 'It can ask for the weather widget, which follows your switch and the ten-minute rule. It cannot turn weather on or choose the place.',
       'a caching proxy that would hide your IP address from MET Norway. It is required before a wider launch.',
       'the requests you made to NOVA (your own words, at most 200), the widgets NOVA made, the dock and two choices',
       'With an account it travels end-to-end encrypted in a new optional sync section, together with NOVA\'s layout and pinned widgets.',
