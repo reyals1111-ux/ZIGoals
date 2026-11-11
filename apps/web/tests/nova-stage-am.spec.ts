@@ -214,14 +214,19 @@ test.describe('NOVA’s live stage on a computer', () => {
     await open(page);
     const star = page.locator('.nova-star');
     test.skip(!(await star.count()), 'no WebGL in this browser: the SVG orb shows (its own specs cover it)');
-    await expect(star).toHaveAttribute('data-star', /active|still/);
-    test.skip((await star.getAttribute('data-star')) === 'still', 'this machine’s frames are too slow: the governor chose the still frame');
+    await expect(star).not.toHaveAttribute('data-star', 'starting');
+    // Session AM (the software rule, deliberate): a browser that draws WebGL in software (the suite's Chromium, and CI)
+    // gets one still frame per state and says so with `data-star-software`: there the star is `still` before, during and
+    // after rest. With graphics hardware it runs (`active`), rests when the window loses the focus (`resting`) and wakes
+    // on a key. Either way the sky stops while NOVA rests. Both paths are exact: no "active or still", no skip.
+    const software = await star.evaluate(el => el.hasAttribute('data-star-software'));
+    await expect(star).toHaveAttribute('data-star', software ? 'still' : 'active');
     await page.evaluate(() => window.dispatchEvent(new Event('blur')));
-    await expect(star).toHaveAttribute('data-star', 'resting');
+    await expect(star).toHaveAttribute('data-star', software ? 'still' : 'resting');
     await expect(page.locator('.nova-sky-canvas')).toHaveAttribute('data-sky', 'still');
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await page.keyboard.press('Shift');
-    await expect(star).toHaveAttribute('data-star', /active|still/);
+    await expect(star).toHaveAttribute('data-star', software ? 'still' : 'active');
   });
 
   test('A1: quick actions with Undo, the arrangements, Holo and Classic, the Hermes page, ⌘/Ctrl + K and the briefs are all still there', async ({page}) => {
