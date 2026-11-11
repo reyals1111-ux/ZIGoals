@@ -1,4 +1,4 @@
-# Session AM — "NOVA, ALWAYS ON" (ADR-038) (2026-11-11, `feature/session-am-nova`; in progress, not merged, not deployed)
+# Session AM — "NOVA, ALWAYS ON" (ADR-038) (2026-11-11, `feature/session-am-nova`, [PR #101](https://github.com/reyals1111-ux/ZIGoals/pull/101); complete, not merged, not deployed)
 **Base:** `main` `c65882f3` (Merge #100, Session AL; live as Alpha #54). **Rules (owner):** the brief for Session AM (one task: make NOVA the most impressive part of ZIGoals), the owner decisions of 11 Nov (outside data, sync, dependencies) and the one approved plan (verbatim in ADR-038).
 
 ## Part 0 — records (owner-reported, 11 Nov)
@@ -10,6 +10,72 @@
 - Rollback floor #32. **The next deploy is run 58 = Alpha #55.** Frozen readers are #37–#54 from now on (`scripts/frozen-readers.mjs`, #54 = `c65882f3`).
 
 Decisions: `docs/architecture/ADR-038-session-am.md`. Art direction: `docs/design/NOVA_AM_ART_DIRECTION.md`. Resume file: `docs/handoff/AM_RESUME.md`.
+
+**Demo tour (12 minutes, starts "Open NOVA"):** [`docs/handoff/AM_DEMO_TOUR.md`](handoff/AM_DEMO_TOUR.md). **User guide:** [`docs/product/NOVA.md`](product/NOVA.md). **Draft PR:** [reyals1111-ux/ZIGoals#101](https://github.com/reyals1111-ux/ZIGoals/pull/101) (out of Draft at the end; never merged or deployed by the session). Reviews: `docs/review/session-am/`.
+
+## Outcome in one paragraph
+NOVA opens as its own full-window app with a calm, nearly empty stage: one living star system in the centre (a hand-written WebGL spiral with a bright core, a planet on its orbit and a light streak) that shows listening, thinking and speaking, and sends a beam to each widget it makes. Widgets are made on request, typed, spoken or by one tap, in English and Dutch, with no model: the request is mapped to a closed catalogue of 34 widgets (16 new: weight, steps, workouts, habits this week, one goal, tracked wealth, spending, budgets, bills, journal, time, weather, sun, what NOVA can see, NOVA's brain, your requests), each drawn from the person's own records under the same permissions NOVA's answers read with, each with its source and as-of, each with Pin, Hide, Close, quick actions with Undo and a way to its page and back. The answer is one sentence with the widget's own figure under the star; anything else is a conversation. With a connected model (Ollama, LM Studio, llama.cpp, an own key, Hermes) the model can ask the stage for a widget through one closed tool and read the weather the device already holds; it can never change a permission or a switch. Weather comes from MET Norway only after the person turns it on. The stage's requests, made widgets and layout travel in a new optional end-to-end encrypted sync section (proven harmless against today's Worker); on the public Alpha they stay on the device. A phone is a chat agent whose requests appear on the computer. Two fresh reviews ran at the end (security: 13 findings, none Critical or High, all closed; design: 40 findings, the 3 blockers and 20 of 23 majors fixed, 3 majors partly, ADR-038 D40).
+
+## Parts and their commits (the full list: `git log c65882f3..HEAD`, 43 commits before this entry; the branch was never rebased)
+| Part | What | Commits |
+|---|---|---|
+| 0 | Records; art direction; ADR-038; the plan and the owner's amendments A1–A8 verbatim | `30c867f9`, `d4035415`, `b7d15637` |
+| 1 | Two additive device records (`zigoals:nova-stage:v1`, `zigoals:nova-world:v1`) in export, restore, erase, Data health; the summon step (EN/NL families → widgets; lookups → widgets) | `803d8dc2` (TIER 3), `30d6112b` |
+| 2–4 | The widget kit and the made widgets; cut-corner glass frames; the centre node (shader, governor, rest and still rules, SVG-orb fallback); the live stage (empty default D2, one-tap requests, answer in place, pin / hide / close / dock, Showcase stage) | `14a4316c`, `e7936fa6`, `8552cd85` |
+| 6 | The model's `stage_widget` tool and `weather` lookup (NOVA's surface only); gentle cards' rules | `cf43a6e3` (TIER 3) |
+| 7 | MET Norway behind its switch: one host in `connect-src`, the client's rules (A2), the weather and sun widgets, the privacy texts | `bbdad363` (TIER 3), `652b6f56`, `76f48de7` |
+| 8 | The `nova` extras sync section, allow-list for NOVA's own record, the old-Worker proof (A6), rollback notes | `c544c922` (TIER 3), `92407ff7` |
+| 5, 9, 10, 11 | Side bars (left: everything, a go-to for 94 places; right: Requests, On the stage, Your choices), gentle cards (opt-in), "keep made widgets", the phone as a chat agent, NOVA in its own window, the setup hub, the rename label "Premium · free during the Alpha", the user guide | `ac1984cf`, `9f82a35d`, `2218e518`, `27e22085` |
+| 13 | Safety of the stage's own answers; hosted verifier stage 13; the two reviews; the security fixes; the design fixes; browser specs; proofs | `3af3959a` (TIER 3), `b496d275`, `e9d79f52` (TIER 3), `3abf5068`, `98b1afb5` (TIER 3), `ddff3472` (TIER 3), `d83c8ff0` (TIER 3), `9f98e8b4`, `63d95b2a`, `a15d2273`, `d05c49fb`, `e3d57efe`, `718c2ce7`, `3a8eaf97`, `f5d2c523` (software rendering gets the still star), `259c9363`, `b0c9c227`, `5e5c986b` (second spec pass and CI 1661), `735244ae`, `21c636a2` |
+
+## Tier 3, in plain words (risk → rollback)
+- **Stored formats** (`803d8dc2`, `ddff3472`): two new device records, additive and optional; the backup format stays 4; frozen readers #37–#54 pass; both are in export, restore, erase and Data health. A restore brings the weather place, never the switch. → Revert; older builds ignore the two keys.
+- **CSP/egress** (`bbdad363`, `ddff3472`): `connect-src` gains exactly `https://api.met.no`, asked only after the person's own switch, at most once per place per 10 minutes, never while hidden, two-decimal position, no redirects, a size cap, 15 s limit. → Revert the commit; the switch then has nothing to ask.
+- **Sync** (`c544c922`, `98b1afb5`): an optional section `nova` (requests, made widgets, layout, pinned widgets); the app asks `with=checklist&with=nova` and today's Worker answers the first as before (proof: `scripts/run11/extras-nova-a6.test.mjs` against the Worker frozen at `c65882f3`). "Keep made widgets", the gentle-cards switch and the shown cards never travel. → App back to #54: its requests are answered byte for byte as before, NOVA's sealed copy stays unread. Worker back: NOVA stays local with a note. ADR-038 "Rollback".
+- **AI safety** (`cf43a6e3`, `3af3959a`, `d83c8ff0`): one closed tool for the model (show, pin, hide, close a catalogue widget; one command per reply; a pin never opens a gate); the stage's own answers run the guard, secret and card checks first; a Health request is kept by its widgets' names; Notes and Journal widgets have their own gates. No tool or action exists for a permission, the weather switch, the privacy mode or a page-data switch (test). → Revert; nothing stored changes shape.
+- **Release verifier** (`b496d275`, `e9d79f52`): stage 13 "NOVA" appended (the calm stage, a request makes its widget, weather stays off); the deploy workflow file is unchanged. → Revert; twelve stages as before.
+- **PWA:** no manifest or service-worker change (NOVA's own window is `window.open`; ADR-038 D31).
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries a `Session AM (<id>, deliberate)` comment and an equally strict replacement, named in its commit: D2 (the empty default: `store.test`, `hud-record.test`, `widgets.test`, and the browser specs that now arrange the earlier widgets first through `tests/nova-am.ts`); D7 (the conversation is hidden, not absent); AM-S5/S9/S11/S13 (kept words, restore, per-device fields, privacy sentences); AM-D2/D13/D16 (the answer's words, "Tracked wealth", the star's rest and tiers); the frame's glow layer (`hud-elements`); the left bar's "Your plan". The grocery ticks-cap test got a 30 s limit (its assertions unchanged).
+
+## Known CI intermittents (this session)
+- `apps/web/lib/grocery/grocery.test.ts` "ticks are capped" timed out at 5 s in run 1652 (3.4 s alone): given 30 s, assertions unchanged (`735244ae`).
+- **`tests/zigi-states.spec.ts:75` (WebKit phone)** failed on both attempts of run 1668 (and on this branch's docs-only commit in run 1639; listed since Session AL): the reopened box's focus makes ZIGi listen, and the test relied on the earlier typing's "stopped" landing after it. Second fix attempt in `21c636a2` (the quiet time starts from a key typed in the focused box; the assertion is unchanged). ZIGi's states were not touched by this session.
+- `tests/zigi-accept-correct.spec.ts:271` (WebKit desktop, run 1668 attempt 1): `page.goto: WebKit encountered an internal error`; passed on the re-run.
+- `tests/a11y-wcag-x.spec.ts:268` (/app/settings, the Guide switch "On"): the colour was read while the switch faded to its saved state (1.28:1, then 1.00:1 on a second local run on a loaded machine; it settles to 16:1). Not touched by this session; CI's a11y shards passed on `3abf5068`. One re-run if it shows in CI.
+- WebKit shard 1/3 in run 1652: a libWPEWebKit engine segfault before `zigi-memory:174` and `webkit-smoke:40` (class B in `docs/review/session-al/CI_INTERMITTENTS.md`).
+- `grok53/hud/hud-perf:23`, `zigi-states:75` (WebKit phone), `theme-parity-af:15` /app/music (renderer stall): listed in `CI_INTERMITTENTS.md`; hud-perf's cause on runners without a GPU is fixed by ADR-038 D39.
+
+## Evidence (final head)
+- **Unit:** `pnpm exec vitest run` (whole repository, final code head): 1,277 files passed, 24 skipped; 10,449 tests passed, 47 skipped, none failed. `pnpm lint`: 0 errors. `tsc --noEmit`: clean. Frozen readers #37–#54 pass.
+- **Production build (PUBLIC_ALPHA_UNDEPLOYED, the last code head), Chromium:** the NOVA specs on the desktop project, 140 passed (the HUD suite, `nova-dashboard`, `p3-nova-polish`, `p1-nova-make`, the exploratory specs, `nova-chat`, `al-second-pass`, `p14b-nova`, `al-nova-workflow-undo`, `final-zigi`), plus `nova-stage-am`, `nova-wa` and `hud-perf` 15/15, `p6-axe-surfaces` NOVA, `theme-parity-af` /app/nova 4/4, `p6-keyboard` routes part 2 in three themes; on the mobile project 41 passed and 70 skipped by design (the HUD suite, `nova-dashboard`, `nova-stage-am`, `l7-fifth-answers`, `al-second-pass`, `nova-chat`, `nova-wa`, `p1-nova-make`); `help-page` 19/19 desktop, 2/2 mobile.
+- **Route weights (gzip; budgets never raised):** `/app/nova` 434.3 kB of 458, `/app/nova/setup` 445.8 of 458, shell 433.4 of 447; every route ok.
+- **Performance and motion** (ADR-038 "Proofs"): hud-perf at CPU 4× 16.7 ms median, 33.4 ms p95, no long frame; hidden tab 0 frames, 0 running animations, 1.0 % main thread; resting 2.3 %; Motion Off and reduced motion still. This sandbox has no GPU: the running star on graphics hardware is the owner's check.
+- **Sync safety (A6):** `scripts/run11/extras-nova-a6.test.mjs`, seven scenarios against the Worker frozen at `c65882f3` and the new one.
+- **Reviews:** `docs/review/session-am/AM_SECURITY_REVIEW.md` (13/13 closed, ADR-038 D35), `NOVA_AM_DESIGN_REVIEW.md` (ADR-038 D40).
+
+## Not done, or only partly (each also in ADR-038 D40 or "Carried")
+- The caching proxy Worker for weather (hides the IP from MET Norway): carried, required before a wider launch.
+- Design review: D4 (the top bar keeps its tiles, one row), D17 (the phone's conversation head is one row plus a tools row), D26 (pinned widgets below the phone's first screen, not in a sheet), D27, D28, D34, D36, D40 partly or left; D31's L chart partly.
+- A true net-worth widget (accounts + holdings − debts with a history): the widget is "Tracked wealth" and says what it leaves out.
+- In narrow panels (a side bar open at 1440) Goals, Habits and Wealth HUD can be a few px taller than their body: they scroll inside the panel and are a named keyboard stop; their row-dropping thresholds were not re-tuned for the 14 px labels.
+- Nine older widgets have no figure sentence yet (agenda clock, briefs, focus, glance, markets, next, notes, now playing, orbit): their answer names the widget.
+- Not measured on real graphics hardware: the star's frame rate, the governor's steps, the "made" moment as a recording.
+- "Keep NOVA open in its own window" is a browser window (`window.open`), not an installed-app window: no manifest or service-worker change was needed or made (ADR-038 D31).
+
+## Owner list (what the owner does next)
+1. Review [reyals1111-ux/ZIGoals#101](https://github.com/reyals1111-ux/ZIGoals/pull/101) (out of Draft) and merge when satisfied.
+2. Redeploy the `private-sync` Worker (one file changed, `workers/private-sync/extras.mjs`) first, then deploy **Alpha #55** from `main` with the Manual Alpha workflow; either order is safe (ADR-038 "What the owner redeploys"). Frozen readers then become #37–#55.
+3. Redeploy the landing for `landing/privacy.html` (this session's MET Norway text and Session AL's change, still on `1a2c1c75`).
+4. Decide: the weather caching proxy (carried); whether the top bar's tiles should fold into one "Tools" tray (D4, D27); whether "Tracked wealth" should become a true net worth.
+5. Look at the running star on a computer with a GPU (Chrome or Edge, 1440 × 900 or larger) and at Dutch requests; the hosted verifier now has 13 stages.
+6. One question about ZIGi (not NOVA): while the chat box holds the focus ZIGi stays "listening", so a quiet open panel only gets sleepy after typing has stopped. If a focused, silent panel should also get sleepy after 90 s, that is a small change in `components/zigi/events.ts` for a later session.
+
+## CI on the final head
+- **"Milestone quality" [run 1668](https://github.com/reyals1111-ux/ZIGoals/actions/runs/42995069928) on `5e5c986b`, the last head with app code** (attempt 2 after the one re-run of the two failed WebKit shards): contract, web checks (lint, types, unit, build, audit, secret scan), web integration, the Alpha gate, all twelve main browser shards, all three a11y shards and WebKit shards 1/3 and 2/3 are green. **WebKit shard 3/3 is red on one test, `zigi-states:75`** (see "Known CI intermittents": not this session's code; fixed in the spec by `21c636a2`), which makes the summary job "web" red.
+- The runs before it (1639–1661) found: the specs that still encoded the two deliberate changes (D2 the empty stage, D7 the hidden conversation; 122 failures in run 1643), the star's frame time on runners without a GPU (ADR-038 D39), the grocery test's time limit, the phone's focus under NOVA's foot and the Help link count (run 1661). Each is fixed in the commits named above.
+- `21c636a2` (a spec only) and this entry are pushed together; their run had not finished when this was written. The session stays subscribed to the PR and fixes or records what that run shows.
 
 # Session AL — "FIX EVERYTHING" (ADR-037) (2026-11-04/09, `feature/session-al-fix-everything`, [PR #100](https://github.com/reyals1111-ux/ZIGoals/pull/100); complete, not merged, not deployed)
 **Base:** `main` `17069c7d` (Merge #99, Session AK; live as Alpha #53). **Rules (owner):** the brief (Parts 0–17, R1–R9, O1–O7), the approved plan and the owner amendments A1–A12 (verbatim in ADR-037). One plan, one approval; no owner step during the session.
