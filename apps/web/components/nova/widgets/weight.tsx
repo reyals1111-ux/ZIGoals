@@ -6,7 +6,7 @@ import {dailyData} from '../../../lib/health-daily';
 import {LOG_WEIGHT_HREF} from '../../../lib/health-aa/coach-slot';
 import {logDayWords, shortDate, weightCard, weightRows} from '../../../lib/nova/cards/weight';
 import {HEART_PATH, clamp01} from '../../../lib/nova/holo/geometry';
-import {CardFoot, CardNotice, Delta, Fact, Hero, TrendArea, type CardProps} from '../cards/kit';
+import {CardFoot, CardNotice, Delta, Fact, HeartMark, HeartTrace, Hero, TrendArea, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread, NotShared} from '../holo/parts';
 import {useHealthShared, usePillarShown} from '../holo/use-hud-data';
 import '../cards/health-cards.css';
@@ -19,6 +19,8 @@ import '../cards/health-cards.css';
  * with a weigh-in. Every figure is the Health page's own, in the person's unit (lib/nova/cards/weight.ts); a day without
  * a reading is a gap in the line, never a zero. Small: the figure and its change. Medium: with the line and the hearts.
  * Large: with the lowest, highest and average of the range.
+ * AM-2: Health is magenta with hearts — the figure under its label, the change as a lit chip, a glass heart with the
+ * heartbeat running into it (ornament, never a reading), the line on a fine grid with a heart at its lead.
  */
 
 /** Hearts for the days logged: `filled` of them lit from the left (a part heart is cut at that share); the count is beside them in words. */
@@ -50,16 +52,16 @@ export default function WeightWidget({size = 'M', params}: Partial<CardProps>) {
   if (health.error || !card) return <HoloUnread what="Your Health journal"/>;
   if (!card.latest || !card.hero) return <CardNotice kind="empty" title="No weight logged yet" href={LOG_WEIGHT_HREF} action="Log your weight">{size === 'S' ? null : 'Add a weigh-in on Health and your progress shows here.'}</CardNotice>;
   const drawn = card.readings.length > 0;
-  return <div className="nc-body nc-weight">
+  return <div className="nc-body nc-weight" data-size={size}>
     <div className="nc-weight-top">
-      <Hero value={card.hero.value} unit={card.hero.unit} label={`Logged ${logDayWords(card.latest.date, day)}`}/>
-      <div className="nc-weight-side">
+      <Hero value={card.hero.value} unit={card.hero.unit} label={`Logged ${logDayWords(card.latest.date, day)}`}>
         {card.change ? <Delta text={twoLines(card.change.text)} direction={card.change.direction} good={card.change.good}/> : size !== 'S' && card.note ? <p className="nc-weight-note">{card.note}</p> : null}
-      </div>
+      </Hero>
+      {size !== 'S' && <div className="nc-weight-side" aria-hidden="true"><HeartTrace/><HeartMark size={size === 'L' ? 56 : 44}/></div>}
     </div>
     {size !== 'S' && drawn && <div className="nc-weight-chart">
       {/* Medium has no room for the dates under the line: the change beside the figure names the first day, the figure's label the last. */}
-      <TrendArea values={card.values} marker="heart" height={size === 'L' ? 128 : 64} minLabel={card.edges.min} maxLabel={card.edges.max} labels={size === 'L' ? card.edges.dates ?? undefined : undefined}
+      <TrendArea values={card.values} marker="heart" height={size === 'L' ? 128 : 56} minLabel={card.edges.min} maxLabel={card.edges.max} labels={size === 'L' ? card.edges.dates ?? undefined : undefined}
         target={card.target?.grams ?? null} targetLabel={card.target ? `Goal ${card.target.text}` : null}/>
     </div>}
     {size !== 'S' && <LoggedHearts of={card.logged.hearts.of} filled={card.logged.hearts.filled} text={card.logged.text}/>}

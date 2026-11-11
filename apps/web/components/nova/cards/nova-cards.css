@@ -1,35 +1,84 @@
-/* Session AM (ADR-038): NOVA's own widgets — your requests, its brain, what it can see. Labels 14 px or more; targets 44 px. */
-.nc-requests-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.nc-request { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #ffffff1a; }
-.nc-request:last-child { border-bottom: 0; padding-bottom: 0; }
-.nc-request-text { margin: 0; font-size: 15px; line-height: 1.4; color: #f2f6ff; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.nc-request-meta { grid-column: 1; margin: 0; font-size: 14px; color: #c3cfe6; }
-.nc-request-again { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; white-space: nowrap; }
-.nc-requests-more { margin: 0; font-size: 14px; color: #c3cfe6; }
-.nc-brain-head { display: flex; align-items: center; gap: 12px; }
-.nc-brain-dot { width: 14px; height: 14px; flex: none; border-radius: 50%; border: 2px solid #c3cfe6; }
-.nc-brain-dot[data-on] { border-color: #a8f5d2; background: #a8f5d2; box-shadow: 0 0 12px #a8f5d2; }
-.nc-brain-title { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
-.nc-brain-words { margin: 2px 0 0; font-size: 18px; font-weight: 650; color: #f4f7ff; }
-.nc-brain-text { margin: 0; font-size: 15px; line-height: 1.45; color: #d0dbf0; }
-.nc-sees-count { margin: 0; font-size: 15px; color: #d6e0f5; }
-.nc-sees-count b { font-size: 28px; font-weight: 650; color: #f4f7ff; text-shadow: 0 0 14px var(--neon, #9273ff); margin-right: 4px; }
-.nc-sees-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-.nc-sees-grid li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border-radius: 10px; border: 1px dashed #ffffff40; color: #c3cfe6; }
-.nc-sees-grid li[data-on] { border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 14%, transparent); color: #f2f6ff; }
-.nc-sees-grid li[data-world][data-on] { --neon: #7fb6ff; }
-.nc-sees-cell { width: 10px; height: 10px; border-radius: 3px; border: 1px solid currentColor; }
-.nc-sees-grid li[data-on] .nc-sees-cell { background: var(--neon, #9273ff); border-color: var(--neon, #9273ff); box-shadow: 0 0 8px var(--neon, #9273ff); }
-.nc-sees-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nc-sees-why { font-size: 14px; }
+/*
+ * Session AM (ADR-038) and AM-2 (design language D: rows, refs 14 and 18): NOVA's own widgets — your requests (a
+ * timeline with nodes), its brain (a status read-out round a core lamp), what it can see (a permissions matrix as lit
+ * status rows). NOVA's instruments run from its violet into its cyan (`--neon` → `--neon-2`). Labels 14 px or more;
+ * targets 44 px. Nothing here moves but the kit's once-made rise and the dials' one orbit.
+ */
+
+/* ---- Your requests: a timeline ---- */
+.nc-requests-list { position: relative; list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.nc-requests-list::before { content: ''; position: absolute; left: 4.5px; top: 14px; bottom: 14px; width: 1px; background: linear-gradient(180deg, var(--neon-2, #63e7ff), color-mix(in oklab, var(--neon, #9273ff) 45%, transparent)); }
+.nc-request { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 12px; align-items: center; padding: 6px 0 6px 22px; border-top: 1px solid color-mix(in oklab, var(--neon, #9273ff) 16%, transparent); }
+.nc-request:first-child { border-top: 0; }
+.nc-request::before { content: ''; position: absolute; left: 0; top: 13px; width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; border: 2px solid var(--neon, #9273ff); background: #070b24; box-shadow: 0 0 8px 1px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nc-request:first-child::before { border-color: var(--neon-2, #63e7ff); background: #fff; box-shadow: 0 0 0 3px color-mix(in oklab, var(--neon-2, #63e7ff) 26%, transparent), 0 0 12px 2px var(--neon-2, #63e7ff); }
+.nc-request-text { grid-column: 1 / -1; margin: 0; font-size: 15px; line-height: 1.4; color: #f2f6ff; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
+.nc-request-meta { grid-column: 1; margin: 0; font-size: 14px; line-height: 1.35; color: #c3cfe6; font-variant-numeric: tabular-nums; }
+/* "Show again" is the stage's key recipe: a 44 px target with a 28 px lit key inside it, on the line of when and where. */
+.nc-requests .nc-request-again { position: relative; isolation: isolate; grid-column: 2; grid-row: 2; min-height: 44px; margin: -9px 0; padding: 0 12px; border: 0; border-radius: 10px; background: none; box-shadow: none; font-size: 14px; white-space: nowrap; }
+.nc-requests .nc-request-again::before { content: ''; position: absolute; z-index: -1; inset: 8px 0; border-radius: 3px 9px 3px 9px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 82%, transparent); background: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c), color-mix(in oklab, var(--neon, #9273ff) 12%, #060a1c)); box-shadow: inset 0 1px 0 #ffffff30, 0 0 12px -4px var(--neon, #9273ff); }
+.nc-requests .nc-request-again:hover { background: none; }
+.nc-requests .nc-request-again:hover::before { border-color: var(--neon-2, #63e7ff); background: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c), color-mix(in oklab, var(--neon, #9273ff) 24%, #060a1c)); }
+.nc-requests[data-size=M] .nc-request-text { -webkit-line-clamp: 1; line-clamp: 1; }
+.nc-requests[data-size=M] .nc-request { padding-block: 4px; }
+.nc-requests[data-size=M] { gap: 6px; }
+.nc-request-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-requests-more { margin: 0; padding-left: 22px; font-size: 14px; color: #c3cfe6; }
+
+/* ---- NOVA's brain: a status read-out ---- */
+.nc-brain-head { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.nc-brain-head > div { min-width: 0; }
+.nc-brain-dot { display: block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #c3cfe6; box-sizing: border-box; }
+.nc-brain-dot[data-on] { border-color: #fff; background: radial-gradient(circle, #fff 0 30%, #a8f5d2 70%); box-shadow: 0 0 0 4px #a8f5d233, 0 0 14px 3px #a8f5d2; }
+.nc-brain-title { position: relative; margin: 0; padding-left: 11px; font-size: 14px; font-weight: 700; letter-spacing: .1em; line-height: 1.3; text-transform: uppercase; color: #cdd8ee; }
+.nc-brain-title::before { content: ''; position: absolute; left: 0; top: .2em; bottom: .2em; width: 3px; border-radius: 1px; background: var(--neon-2, #63e7ff); box-shadow: 0 0 6px var(--neon-2, #63e7ff); }
+.nc-brain-words { margin: 3px 0 0; font-size: 20px; font-weight: 680; line-height: 1.2; color: var(--neon-ink, #f4f7ff); text-shadow: 0 0 14px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nc-brain-text { margin: 0; font-size: 15px; line-height: 1.45; color: #d6e0f5; }
+.nc-brain .nc-facts > .nc-brain-text { margin-top: 2px; }
+.nc-brain .nc-action { align-self: flex-start; }
+
+/* ---- What NOVA can see: status rows ---- */
+.nc-sees-top { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.nc-sees-count { margin: 0; min-width: 0; display: flex; align-items: center; gap: 12px; font-size: 15px; line-height: 1.35; color: #d6e0f5; }
+.nc-sees-count b { flex: none; font-size: 40px; font-weight: 680; line-height: 1; color: var(--neon-ink, #f4f7ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); }
+.nc-sees-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+.nc-sees-grid li { --neon: var(--nova-a, #9273ff); display: grid; grid-template-columns: auto auto minmax(12px, 1fr) auto; align-items: center; gap: 10px; min-height: 34px; color: #c3cfe6; border-top: 1px solid #ffffff14; }
+.nc-sees-grid li:first-child { border-top: 0; }
+.nc-sees-grid li[data-realm=goals] { --neon: #9273ff; } .nc-sees-grid li[data-realm=habits] { --neon: #23eaff; } .nc-sees-grid li[data-realm=health] { --neon: #ff74be; } .nc-sees-grid li[data-realm=wealth] { --neon: #ffd27a; }
+.nc-sees-grid li[data-realm=orbit] { --neon: #7fc8ff; } .nc-sees-grid li[data-realm=mind] { --neon: #d59bff; } .nc-sees-grid li[data-realm=world] { --neon: #5aa2ff; }
+.nc-sees-cell { width: 10px; height: 10px; box-sizing: border-box; transform: rotate(45deg); border: 1px dashed #c3cfe6; }
+.nc-sees-grid li[data-on] { color: #f2f6ff; }
+.nc-sees-grid li[data-on] .nc-sees-cell { border: 0; background: linear-gradient(135deg, #fff, var(--neon, #9273ff) 60%); box-shadow: 0 0 0 2px color-mix(in oklab, var(--neon, #9273ff) 26%, transparent), 0 0 10px 1px var(--neon, #9273ff); }
+.nc-sees-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-sees-rule { height: 1px; background: repeating-linear-gradient(90deg, #ffffff33 0 2px, transparent 2px 6px); }
+.nc-sees-grid li[data-on] .nc-sees-rule { background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent), color-mix(in oklab, var(--neon, #9273ff) 12%, transparent)); }
+.nc-sees-why { min-width: 38px; padding: 1px 8px; border-radius: 2px 7px 2px 7px; border: 1px dashed #ffffff59; font-size: 14px; font-weight: 650; letter-spacing: .06em; text-align: center; text-transform: uppercase; }
+.nc-sees-grid li[data-on] .nc-sees-why { border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 80%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 18%, #060a1c); color: #fff; box-shadow: 0 0 10px -3px var(--neon, #9273ff); }
 .nc-sees-more { margin: 0; font-size: 15px; font-weight: 600; color: #d6e0f5; }
-.nc-sees[data-size=S] { gap: 2px; }
-.nc-sees[data-size=S] .nc-sees-count b { font-size: 22px; }
-.nc-sees[data-size=M] .nc-sees-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.nc-sees[data-size=S] { gap: 4px; }
+.nc-sees[data-size=S] .nc-sees-count b { font-size: 32px; }
+/* Medium: the whole matrix as compact cells, three across — a lit node for on, a hollow dashed node and "Off" for off. */
+.nc-sees[data-size=M] { gap: 6px; }
+.nc-sees[data-size=M] .nc-sees-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 6px; }
+.nc-sees[data-size=M] .nc-sees-grid li { grid-template-columns: auto minmax(0, 1fr) auto; min-height: 24px; gap: 7px; padding: 0 6px 0 7px; border: 1px dashed #ffffff40; border-radius: 2px 7px 2px 7px; }
+.nc-sees[data-size=M] .nc-sees-grid li[data-on] { border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 55%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 10%, transparent); }
+.nc-sees[data-size=M] .nc-sees-rule, .nc-sees[data-size=M] .nc-sees-grid li[data-on] .nc-sees-why { display: none; }
+.nc-sees[data-size=M] .nc-sees-name { font-size: 14px; }
+.nc-sees[data-size=M] .nc-sees-why { min-width: 0; padding: 0; border: 0; letter-spacing: .04em; color: #dbe4f6; }
+.nc-sees[data-size=M] .nc-sees-cell { width: 8px; height: 8px; }
+.nc-sees[data-size=M] .nc-sees-more { font-size: 14px; }
+@container holo-body (max-height: 214px) { .nc-sees[data-size=M] .nc-sees-ring { width: 44px; height: 44px; } .nc-sees[data-size=M] .nc-sees-count b { font-size: 32px; } }
+@container holo-body (max-height: 186px) { .nc-sees[data-size=M] .nc-sees-more { display: none; } }
+@container holo-body (max-width: 300px) { .nc-sees[data-size=M] .nc-sees-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .nc-sees[data-size=M] .nc-sees-more { display: none; } }
+@container holo-body (max-width: 250px) { .nc-sees .nc-sees-ring { display: none; } }
 .nc-brain[data-size=S] { gap: 4px; }
 .nc-brain[data-size=S] .nc-brain-title { font-size: 15px; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-brain[data-size=M] { gap: 8px; }
+@container holo-body (max-height: 214px) { .nc-brain[data-size=M] { gap: 5px; } .nc-brain[data-size=M] .nc-brain-core { width: 48px; height: 48px; } .nc-brain[data-size=M] .nc-brain-text { line-height: 1.36; } .nc-brain[data-size=M] .nc-fact { padding-block: 3px; } }
 /* Design review AM-D20: at S "Your requests" is the newest request on one line, its Show again and the source line. */
 .nova-widget[data-size=S] .nc-requests { gap: 2px; }
-.nova-widget[data-size=S] .nc-requests .nc-request-text { -webkit-line-clamp: 1; }
+.nova-widget[data-size=S] .nc-requests .nc-request { padding-block: 0; }
+.nova-widget[data-size=S] .nc-requests .nc-requests-list::before { content: none; }
+.nova-widget[data-size=S] .nc-requests .nc-request-text { -webkit-line-clamp: 1; line-clamp: 1; }
 .nova-widget[data-size=S] .nc-requests .nc-requests-more { display: none; }
 .nova-widget[data-size=S] .nc-requests .nc-request-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

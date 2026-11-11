@@ -16,6 +16,7 @@ import '../cards/life-cards.css';
  * Monday; a day without an entry is a plain empty cell), and the day of the last entry. It reads the Journal page's own
  * record and only each entry's day (lib/nova/cards/journal.ts): what was written stays on its page.
  * S: the hero. M: the hero beside the month. L: the month larger, with the days written and the last entry.
+ * AM-2: Mind is orchid — the month is a lattice of lit glass cells under its day letters, today ringed.
  */
 /**
  * Design review AM-D39: a row is a week, so it is named by its ISO week ("W45"), not by a date that reads as one day in a
@@ -33,7 +34,7 @@ export default function JournalWidget({size}: {size: CardProps['size']; params?:
   const month = useMemo(() => journal.loaded && !journal.unreadable ? journalMonth(journal.data.entries, today) : null, [journal.loaded, journal.unreadable, journal.data, today]);
   if (!journal.loaded) return <HoloReading/>;
   if (journal.unreadable || !month) return <HoloUnread what="Your journal"/>;
-  if (!month.total) return <CardNotice kind="empty" title="No entries yet" href="/app/journal" action="Write today’s entry">The days you write light up here, a month at a time.</CardNotice>;
+  if (!month.total) return <CardNotice kind="empty" ghost="lattice" title="No entries yet" href="/app/journal" action="Write today’s entry">The days you write light up here, a month at a time.</CardNotice>;
   const entries = countText(month.entries, 'entry', 'entries'), monthName = formatMonth(month.month);
   const last = month.lastDate ? formatRelativeDay(month.lastDate, today, {year: month.lastDate.slice(0, 4) !== today.slice(0, 4)}) : null;
   const hero = month.streak > 0

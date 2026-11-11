@@ -2,8 +2,9 @@
 import {useEffect, useMemo, useState, type CSSProperties} from 'react';
 import {dayLeftWords, daysLeftWords, msToNextMinute, timeRings} from '../../../lib/nova/cards/time';
 import {formatDate, formatNumber, formatPercent, formatTime} from '../../../lib/visual-format';
-import {CardFoot, Fact, Rings, type CardProps} from '../cards/kit';
-import {HoloTable} from '../holo/parts';
+import {tickPath} from '../../../lib/nova/holo/geometry';
+import {ArcMark, CardFoot, Fact, type CardProps} from '../cards/kit';
+import {HoloTable, Orn} from '../holo/parts';
 import '../cards/life-cards.css';
 
 /**
@@ -26,6 +27,26 @@ function useMinute(): Date | null {
 }
 
 /**
+ * The day's dial (AM-2: "ice clock, rings, a compass-like bezel"): three concentric arcs — today outermost, then this week,
+ * then this year — inside a tick bezel with four cardinal marks, a small compass star at its centre and one slow orbit.
+ * Decoration: each ring's percent and what is left are the rows beside it and the table.
+ */
+function TimeDial({shares, size, hours}: {shares: readonly number[]; size: number; hours?: boolean}) {
+  const k = 100 / size, w = (size >= 150 ? 5 : 4.4) * k, step = w * 1.75;
+  return <span className="nc-time-dial" data-hours={hours || undefined} style={{'--nc-gauge': `${size}px`, '--nc-blur': `${(3.2 * k).toFixed(2)}px`} as CSSProperties} aria-hidden="true">
+    <svg viewBox="-50 -50 100 100" focusable="false">
+      <path className="nc-bezel" d={tickPath(0, 0, 45, 47.5, 96)}/>
+      <path className="nc-bezel nc-bezel-major" d={tickPath(0, 0, 44, 49, 24)}/>
+      <path className="nc-time-cardinal" d="M0 -49.5l2.6 5h-5.2ZM49.5 0l-5 2.6v-5.2ZM0 49.5l-2.6 -5h5.2ZM-49.5 0l5 -2.6v5.2Z"/>
+      {shares.map((share, i) => <g key={i} className="nc-time-arc" data-i={i}><ArcMark share={share} r={41 - w / 2 - i * step} w={w * (i ? .82 : 1)} track={3 * k}/></g>)}
+      <path className="nc-time-star" d="M0 -8.5 1.9 -1.9 8.5 0 1.9 1.9 0 8.5 -1.9 1.9 -8.5 0 -1.9 -1.9Z"/>
+    </svg>
+    <Orn view="-50 -50 100 100"><circle className="nc-gauge-orbit" r="49.4"/></Orn>
+    {hours && ['00', '06', '12', '18'].map((h, i) => <span key={h} className="nc-time-hour" data-at={i}>{h}</span>)}
+  </span>;
+}
+
+/**
  * Session AM (ADR-038; art direction §4, The day): "Time" in the day's ice — the local time as the hero and three rings:
  * how much of today, of this week (from Monday) and of this year has passed, each with its percent and what is left in
  * words. No records are read (lib/nova/cards/time.ts); it is recomputed once a minute, never every second.
@@ -42,10 +63,12 @@ export default function TimeWidget({size}: {size: CardProps['size']; params?: Ca
   ];
   return <div className="nc-body nc-time" data-size={size}>
     {/* The kit's hero in its own markup: a clock that changes every minute neither counts up nor pulses. */}
-    <div className="nc-hero"><p className="nc-hero-figure"><span className="holo-num nc-hero-num">{formatTime(now)}</span></p><p className="nc-hero-label">{formatDate(now, {weekday: true, year: false})}</p></div>
+    <div className="nc-hero"><p className="nc-hero-figure"><span className="holo-num nc-hero-num">{formatTime(now)}</span></p><div className="nc-hero-words"><p className="nc-hero-label">{formatDate(now, {weekday: true, year: false})}</p></div></div>
     {size !== 'S' && <div className="nc-time-rings">
-      <Rings size={size === 'L' ? 104 : 76} items={items.map(it => ({key: it.key, share: it.share, figure: pct(it.share), label: it.label}))}/>
-      <p className="nc-time-left">{items.map(it => <span key={it.key}>{it.left}</span>)}</p>
+      <TimeDial shares={items.map(it => it.share)} size={size === 'L' ? 148 : 108} hours={size === 'L'}/>
+      <ul className="nc-time-rows">{items.map((it, i) => <li key={it.key} className="nc-rise" data-i={i} style={{'--nc-i': i} as CSSProperties}>
+        <span className="nc-time-row-name">{it.label}</span><b className="nc-time-row-pct">{pct(it.share)}</b><span className="nc-time-row-left">{it.left}</span>
+      </li>)}</ul>
     </div>}
     {/* Design review AM-D21 (L): the space is used — today as a 24-hour strip with the time marked, the week's seven
         days and the year's twelve months, each lit as far as it has passed (decoration: the same figures are the rings'

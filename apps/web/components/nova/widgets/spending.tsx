@@ -5,7 +5,7 @@ import {spendingAsOf, spendingCard, spendingRows} from '../../../lib/nova/cards/
 import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
-import {Bars, CardFoot, CardNotice, Fact, Hero, type CardProps} from '../cards/kit';
+import {Bars, CardFoot, CardNotice, Fact, Hero, StackBar, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import '../cards/wealth-cards.css';
@@ -16,6 +16,8 @@ import '../cards/wealth-cards.css';
  * lib/nova/cards/spending.ts). The hero is the total of the leading currency; the categories are meters by their share
  * of that total; the largest single entry is one line. Another currency is named apart, never converted, never added.
  * Nothing logged is said as such, never as a zero. Its one link opens Wealth; nothing here moves money.
+ * AM-2: a gold terminal — the total, one stacked bar of the categories shown (the rest of the total unlit), and each
+ * category as a row whose node wears its slice's shade over a ticked meter with a white-hot leading end.
  */
 const SHOWN = {S: 0, M: 3, L: 5} as const;
 export default function SpendingWidget({size = 'M', params}: Partial<CardProps>) {
@@ -24,9 +26,9 @@ export default function SpendingWidget({size = 'M', params}: Partial<CardProps>)
   if (!shown) return <HoloHidden pillar="Wealth"/>;
   if (!log.loaded) return <HoloReading/>;
   if (log.unreadable) return <HoloUnread what="Your Wealth records"/>;
-  if (card.state === 'empty') return <CardNotice kind="empty" title="Nothing logged yet" href="/app/wealth#spending" action="Log what you spent">Log what you spend on Wealth and it adds up here by category.</CardNotice>;
+  if (card.state === 'empty') return <CardNotice kind="empty" ghost="bars" title="Nothing logged yet" href="/app/wealth#spending" action="Log what you spent">Log what you spend on Wealth and it adds up here by category.</CardNotice>;
   if (card.state === 'quiet') return <div className="nc-body nc-spending-card" data-size={size}>
-    <CardNotice kind="empty" title={`Nothing logged as spent ${card.window.words}`} href="/app/wealth#spending" action="Log what you spent">Your last entry is from {card.lastDate ? formatDate(card.lastDate, {year: !card.lastDate.startsWith(today.slice(0, 4))}) : 'earlier'}.</CardNotice>
+    <CardNotice kind="empty" ghost="bars" title={`Nothing logged as spent ${card.window.words}`} href="/app/wealth#spending" action="Log what you spent">Your last entry is from {card.lastDate ? formatDate(card.lastDate, {year: !card.lastDate.startsWith(today.slice(0, 4))}) : 'earlier'}.</CardNotice>
     <CardFoot source="Your Wealth records" asOf={spendingAsOf(card)}/>
     <HoloTable caption="Spending" rows={spendingRows(card)}/>
   </div>;
@@ -37,7 +39,8 @@ export default function SpendingWidget({size = 'M', params}: Partial<CardProps>)
     </Hero>
     {top.length > 0 && <div className="nc-spending-bars">
       {size === 'L' && <p className="nc-spending-caption">By category · share of the total</p>}
-      <Bars rows={top.map(c => ({key: c.category, label: c.category, share: c.share, value: `${c.text} · ${c.percent}`}))}/>
+      <StackBar parts={top.map(c => ({key: c.category, share: c.share}))}/>
+      <Bars keyed rows={top.map(c => ({key: c.category, label: c.category, share: c.share, value: `${c.text} · ${c.percent}`}))}/>
       {size === 'L' && more > 0 && <p className="nc-spending-note">{more} more {more === 1 ? 'category' : 'categories'} on Wealth.</p>}
     </div>}
     {size === 'L' && <div className="nc-facts">

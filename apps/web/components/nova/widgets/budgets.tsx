@@ -5,7 +5,7 @@ import {MONEY_LOG} from '../../../lib/money-log/schema';
 import {budgetsAsOf, budgetsCard, budgetsRows} from '../../../lib/nova/cards/budgets';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
-import {Bars, CardFoot, CardNotice, Fact, Hero, type CardProps} from '../cards/kit';
+import {Bars, CardFoot, CardNotice, Fact, Gauge, Hero, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import '../cards/wealth-cards.css';
@@ -16,6 +16,8 @@ import '../cards/wealth-cards.css';
  * figures in lib/nova/cards/budgets.ts). The hero counts the budgets within plan ("3 of 4"); a budget above its amount
  * is striped and says so in words ("over by €40.00"). Each budget keeps its own currency; nothing is converted or added
  * across currencies. Facts from the log, no projection, no advice; its one link opens Wealth.
+ * AM-2: the count beside a ring of the budgets within plan, each budget a row over a ticked meter with a white-hot
+ * leading end (coral and striped once it is over).
  */
 const SHOWN = {S: 0, M: 3, L: 5} as const;
 export default function BudgetsWidget({size = 'M'}: Partial<CardProps>) {
@@ -24,10 +26,13 @@ export default function BudgetsWidget({size = 'M'}: Partial<CardProps>) {
   if (!shown) return <HoloHidden pillar="Wealth"/>;
   if (!budgets.loaded || !log.loaded) return <HoloReading/>;
   if (budgets.unreadable || log.unreadable) return <HoloUnread what="Your Wealth records"/>;
-  if (card.state === 'empty') return <CardNotice kind="empty" title="No budget yet" href="/app/wealth?view=budgets" action="Set a budget">Give a category a monthly amount on Wealth and it fills here as you log.</CardNotice>;
+  if (card.state === 'empty') return <CardNotice kind="empty" ghost="bars" title="No budget yet" href="/app/wealth?view=budgets" action="Set a budget">Give a category a monthly amount on Wealth and it fills here as you log.</CardNotice>;
   const top = card.lines.slice(0, SHOWN[size]), more = card.lines.length - top.length;
   return <div className="nc-body nc-budgets-card" data-size={size}>
-    <Hero value={card.hero} label={`${card.count === 1 ? 'budget' : 'budgets'} within plan`}/>
+    <div className="nc-budgets-top">
+      {size !== 'S' && <Gauge share={card.count ? card.within / card.count : null} size={size === 'L' ? 76 : 50} spin={size === 'L'} decor className="nc-budgets-ring"/>}
+      <Hero value={card.hero} label={`${card.count === 1 ? 'budget' : 'budgets'} within plan`}/>
+    </div>
     {top.length > 0 && <div className="nc-budgets-bars">
       {size === 'L' && <p className="nc-budgets-caption">Spent this month · of each budget</p>}
       <Bars rows={top.map(l => ({key: l.id, label: l.category, share: l.share, over: l.over, value: size === 'L' ? `${l.spent} of ${l.available}` : l.words, ...(size === 'L' && (l.over || top.length <= 4) ? {note: l.words} : {})}))}/>

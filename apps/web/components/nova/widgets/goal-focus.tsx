@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useId, useMemo, type CSSProperties, type ReactNode} from 'react';
+import {useId, useMemo, type ReactNode} from 'react';
 import {paceForecast, privateGoalPoints, type Forecast} from '../../../lib/goal-forecast';
 import {localDate} from '../../../lib/local-date';
 import {estimateWords, focusGoal, type FocusGoal} from '../../../lib/nova/cards/goal-focus';
@@ -9,8 +9,8 @@ import {MILESTONES, paceChart, type PaceChart} from '../../../lib/nova/holo/goal
 import {formatDate} from '../../../lib/visual-format';
 import {useEvidenceNow} from '../../platform/use-evidence-now';
 import {usePlatform} from '../../platform/use-platform';
-import {CardFoot, CardNotice, Delta, Fact, Hero, type CardProps} from '../cards/kit';
-import {Glint, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
+import {CardFoot, CardNotice, Delta, Fact, Gauge, Hero, type CardProps} from '../cards/kit';
+import {HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {useGoalsHud, usePillarShown} from '../holo/use-hud-data';
 import '../cards/life-cards.css';
 
@@ -22,19 +22,19 @@ import '../cards/life-cards.css';
  * the goal's own page (lib/nova/cards/goal-focus.ts).
  * S: the arc, the percent and the name. M: the amounts, the pace and the estimate. L: the pace line, what is left and
  * the target date.
+ * AM-2: Goals are violet concentric arcs — the percent on a thick gradient arc inside a tick bezel, and inside it a
+ * thin ring with the three milestones as nodes (lit once reached), a dashed ornament ring and one slow orbit; the pace
+ * line is a lit line on a fine grid with today as its lead point.
  */
 const SWEEP = 270, START = -135;
-/** The goal's arc, as the Goals HUD draws one: a track, milestone ticks at a quarter, a half and three quarters, the lit share. */
+/** The goal's dial: the lit share on an open arc inside a tick bezel; inside it the milestones (a quarter, a half, three quarters) as nodes on a thin ring, lit once reached. */
 function GoalRing({pct, size, children}: {pct: number | null; size: number; children?: ReactNode}) {
-  const s = pct === null ? 0 : Math.max(0, Math.min(1, pct / 100)), end = polar(0, 0, 40, START + SWEEP * s), lit = arcPath(0, 0, 40, START, START + SWEEP * s);
-  return <span className="nc-goal-ring" style={{'--nc-goal-ring': `${size}px`} as CSSProperties}>
-    <svg viewBox="-50 -50 100 100" aria-hidden="true" focusable="false">
-      <path className="holo-track-path" d={arcPath(0, 0, 40, START, START + SWEEP)} data-unknown={pct === null || undefined}/>
-      {MILESTONES.map(m => { const a = polar(0, 0, 33, START + SWEEP * m / 100), b = polar(0, 0, 47, START + SWEEP * m / 100); return <path key={m} className="holo-orn-ticks holo-orn-major" d={`M${a.x} ${a.y}L${b.x} ${b.y}`}/>; })}
-      {s > 0 && lit && <><path className="holo-arc nc-draw" pathLength={1} d={lit}/><Glint d={lit}/><circle className="holo-arc-end" cx={end.x} cy={end.y} r="3"/></>}
-    </svg>
-    {children}
-  </span>;
+  const s = pct === null ? null : Math.max(0, Math.min(1, pct / 100)), rich = size >= 80;
+  return <Gauge share={s} size={size} start={START} sweep={SWEEP} bezel={rich} spin={rich} className="nc-goal-ring" extra={rich ? <>
+    <path className="nc-goal-inner" d={arcPath(0, 0, 31.5, START, START + SWEEP)}/>
+    <circle className="nc-goal-inner-dash" r="27.5"/>
+    {MILESTONES.map(m => { const p = polar(0, 0, 31.5, START + SWEEP * m / 100); return <circle key={m} className="nc-goal-stone" data-lit={(pct !== null && pct >= m) || undefined} cx={p.x} cy={p.y} r="2"/>; })}
+  </> : undefined}>{children}</Gauge>;
 }
 /**
  * The pace line, as the Goals HUD draws it (the same selector, lib/nova/holo/goals.ts paceChart, and the same strokes):
@@ -48,13 +48,16 @@ function PaceLine({chart, label}: {chart: PaceChart; label: string}) {
   const b = chart.band, ty = y(chart.target), nx = x(chart.now.t), ny = y(chart.now.v), pct = (n: number, of: number) => `${Math.max(0, Math.min(100, n / of * 100)).toFixed(1)}%`;
   return <div className="nc-goal-chart">
     <svg className="holo-pace nc-goal-pace" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
-      <defs><linearGradient id={`${id}b`} x1="0" x2="1"><stop offset="0" className="holo-stop-a"/><stop offset="1" className="holo-stop-b"/></linearGradient></defs>
-      <path className="holo-grid-lines" d={[0.25, 0.5, 0.75].map(f => `M0 ${H * f}H${W}`).join('')}/>
+      <defs>
+        <linearGradient id={`${id}b`} x1="0" x2="1"><stop offset="0" className="holo-stop-a"/><stop offset="1" className="holo-stop-b"/></linearGradient>
+        <linearGradient id={`${id}s`} gradientUnits="userSpaceOnUse" x1={P} y1="0" x2={Math.max(nx, P + 1)} y2="0"><stop offset="0" className="nc-g-a"/><stop offset="1" className="nc-g-b"/></linearGradient>
+      </defs>
       <path className="holo-target-line" d={`M${P} ${ty.toFixed(1)}H${W - P}`}/>
       {b && <path className="holo-band" fill={`url(#${id}b)`} d={`M${nx.toFixed(1)} ${ny.toFixed(1)}L${x(b.early).toFixed(1)} ${ty.toFixed(1)}L${(b.late === null ? W - P : x(b.late)).toFixed(1)} ${ty.toFixed(1)}Z`}/>}
       {b && <path className="holo-band-mid" d={`M${nx.toFixed(1)} ${ny.toFixed(1)}L${x(b.mid).toFixed(1)} ${ty.toFixed(1)}`}/>}
-      <path className="holo-spark-line nc-draw" pathLength={1} d={line}/>
-      <Glint d={line}/>
+      <path className="nc-trend-glow nc-glow" d={line}/>
+      <path className="nc-trend-line nc-draw" pathLength={1} stroke={`url(#${id}s)`} d={line}/>
+      <path className="nc-glint nc-trend-glint" d={line}/>
       <title>{label}</title>
     </svg>
     {/* Today's point and the chart's own names are HTML over the stretched drawing, so they stay round and readable. */}
@@ -89,7 +92,7 @@ export default function GoalFocusWidget({size, params}: {size: CardProps['size']
   if (!loaded) return <HoloReading/>;
   if (error || !focus) return <HoloUnread what="Your goals"/>;
   const {goal, pace} = focus;
-  if (!goal) return <CardNotice kind="empty" title="No active goals yet" href="/app/goals/new" action="Set a goal">Set one and its progress, its pace and what is left show here.</CardNotice>;
+  if (!goal) return <CardNotice kind="empty" ghost="ring" title="No active goals yet" href="/app/goals/new" action="Set a goal">Set one and its progress, its pace and what is left show here.</CardNotice>;
   const words = estimateWords(pace?.forecast, goal), unknown = goal.pct === null;
   const tone = goal.pace.tone === 'good' ? true : goal.pace.tone === 'attention' ? false : null, direction = /^ahead/i.test(goal.pace.words) ? 'up' as const : /^behind/i.test(goal.pace.words) ? 'down' as const : 'flat' as const;
   const name = <Link className="nc-goal-name" href={goal.href} prefetch={false} title={goal.name}>{goal.name}</Link>;

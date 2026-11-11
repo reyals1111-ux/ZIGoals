@@ -25,6 +25,8 @@ import '../cards/wealth-cards.css';
  * the recorded-valuation line, a day at its own place. The foot names the newest valuation and, where the total follows
  * market prices, their time (lib/wealth.ts marketPricesLine, as the Wealth page says it). ZIGoals never moves money; this
  * only reads, and its one link opens Wealth. Figures: lib/nova/cards/net-worth.ts.
+ * AM-2: a gold terminal — the total with its bloom, the change as a lit chip, the recorded line on a fine grid with axis
+ * ticks, a soft fill, the newest valuation as a lit lead point with its drop line; at Large the facts as rows.
  */
 /** The wealth HUD's figures (the same requests and quotes as `useWealthHud`), with the time of the market prices behind the total. */
 function useNetWorth() {

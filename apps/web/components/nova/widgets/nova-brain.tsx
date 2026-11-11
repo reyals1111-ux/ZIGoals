@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {NOVA_SETUP} from '../../../lib/nova/setup';
 import {PRIVACY_WORDS} from '../../../lib/nova/privacy-mode';
 import {useDeviceRecord} from '../../ai/use-device-record';
-import {CardFoot, Fact, type CardProps} from '../cards/kit';
+import {CardFoot, Fact, Gauge, type CardProps} from '../cards/kit';
 import {HoloReading} from '../holo/parts';
 import {useBrain} from '../status-chips';
 import '../cards/nova-cards.css';
@@ -12,6 +12,8 @@ import '../cards/nova-cards.css';
  * Session AM (ADR-038 D6): "NOVA's brain" — what answers right now, in plain words: on-device answers (no AI at all), a
  * model on this computer, the person's own key, their Hermes Agent or Chrome's on-device model, with the privacy mode
  * that decides what may leave the device. It reads the engine's own settings; it never tests or calls anything.
+ * AM-2: a status read-out — a core lamp inside a ring (lit and slowly orbited while a model is connected; an unlit,
+ * dashed ring with a hollow lamp for on-device answers), the state in words, and the privacy mode as a row.
  */
 const KIND_WORDS = {
   none: {title: 'On-device answers', text: 'Answers and widgets come from your own records on this device. No AI is used and nothing is sent.'},
@@ -30,7 +32,7 @@ export default function NovaBrainWidget({size = 'S'}: Partial<CardProps>) {
   // mode; L: the privacy mode in words and the way to the setup guide (at S and M the head's own link opens it).
   return <div className="nc-body nc-brain" data-size={size}>
     <div className="nc-brain-head">
-      <span className="nc-brain-dot" data-on={brain.kind !== 'none' || undefined} aria-hidden="true"/>
+      <Gauge share={brain.kind === 'none' ? null : 1} size={size === 'S' ? 40 : size === 'L' ? 72 : 60} bezel={size !== 'S'} spin={brain.kind !== 'none'} decor className="nc-brain-core"><span className="nc-brain-dot" data-on={brain.kind !== 'none' || undefined}/></Gauge>
       <div><p className="nc-brain-title">{words.title}</p>{size !== 'S' && <p className="nc-brain-words">{brain.kind === 'none' ? 'No AI connected' : brain.words}</p>}</div>
     </div>
     {size !== 'S' && <p className="nc-brain-text">{words.text}</p>}
