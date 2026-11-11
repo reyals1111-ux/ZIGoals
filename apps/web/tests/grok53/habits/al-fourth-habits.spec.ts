@@ -194,6 +194,11 @@ test.describe('Showcase at 01:26', () => {
     // The bot's step: a goal's "Add weekly Goal review habit", then the habit's card. No Showcase habit carries a goal
     // link of its own (lib/showcase-data.ts), so the spec adds the review habit as the bot did.
     await open(page, '/app/goals');
+    // Session AM (CI 1669 and 1670; the wait only): under load the first click on the link was swallowed — the link took
+    // the focus and the page stayed on Goals (2 runs in 14 locally with the CPU busy; a second click went through), as
+    // when the list is drawn again between the press and the release. The click waits until the page has finished
+    // loading its data; 24 of 24 under the same load.
+    await page.waitForLoadState('networkidle');
     await page.getByRole('link', {name: 'Open Goal →'}).first().click();
     await page.waitForURL(/\/app\/goals\/tracked\/[^/?#]+$/, {waitUntil: 'commit'});
     await expect(page.locator('main h1').first()).not.toHaveText('Your Goals');
