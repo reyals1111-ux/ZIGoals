@@ -308,10 +308,20 @@ test.describe('NOVA on a phone is a chat agent', () => {
     const stage = await read(page, STAGE_KEY);
     expect(stage.made ?? []).toEqual([]);
     expect(stage.asks[0]).toMatchObject({text: 'Show my habits this week', widgets: ['habit-week'], device: 'phone'});
-    // The one-tap requests are one row, inside the window.
+    // Session AM-2 (ADR-038 "AM-2", H2, deliberate; was "the one-tap requests are one row of at most 60 px"): on a tall
+    // phone the one-tap requests are a two-column grid of pillar keys above the command bar (the first screen was a star
+    // and empty sky, with the row cut at its third key). Every key is whole inside the window, none is cut, the grid is
+    // two columns and at most 160 px tall; a short phone keeps the one row. Nothing overflows sideways either way.
     await chat.getByRole('button', {name: /^Close/}).first().click();
     const strip = page.getByRole('group', {name: 'One-tap requests'});
-    expect((await strip.boundingBox())!.height).toBeLessThanOrEqual(60);
+    const keys = await strip.getByRole('button').evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return {left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top), bottom: Math.round(r.bottom), height: Math.round(r.height)}; }));
+    expect(keys.length).toBeGreaterThanOrEqual(4);
+    const size = page.viewportSize()!;
+    if (size.height >= 740) {
+      for (const k of keys) { expect(k.left).toBeGreaterThanOrEqual(0); expect(k.right).toBeLessThanOrEqual(size.width); expect(k.bottom).toBeLessThanOrEqual(size.height); expect(k.height).toBeGreaterThanOrEqual(44); }
+      expect(new Set(keys.map(k => k.left)).size).toBe(2);
+      expect((await strip.boundingBox())!.height).toBeLessThanOrEqual(160);
+    } else expect((await strip.boundingBox())!.height).toBeLessThanOrEqual(60);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
   });
 });

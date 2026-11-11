@@ -14,9 +14,10 @@
  */
 .ns-actions { display: inline-flex; align-items: center; flex: none; }
 .ns-act { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -10px -4px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--neon-ink, #eef3ff); cursor: pointer; }
-.ns-act::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 52%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 11%, #060a1c); transition: background-color .12s, border-color .12s; }
+.ns-act::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 6%, #060a1c); transition: background-color .12s, border-color .12s; }
 .ns-act svg { position: relative; width: 17px; height: 17px; }
-.ns-act:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
+.nova-widget:is(:hover, :focus-within) .ns-act::before { border-color: color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 13%, #060a1c); }
+.nova-widget .ns-act:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
 .ns-act:active::before { background: color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c); }
 .ns-act[aria-pressed=true] { color: #fff; }
 .ns-act[aria-pressed=true]::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 36%, #060a1c); box-shadow: 0 0 12px -2px var(--neon, #9273ff); }
@@ -29,7 +30,7 @@
 .nova-widget .nova-widget-head > :is(.holo-act, .ns-actions) { margin-left: 0; flex: none; }
 .nova-widget .nova-widget-head > :is(.holo-act, .ns-actions) ~ .nova-widget-open { margin-left: 0; }
 /* A panel too narrow for the title and the keys on one row: the title takes the first row, the keys the second. */
-@container holo-panel (max-width: 296px) {
+@container holo-panel (max-width: 284px) {
   .nova-widget[data-holo] .nova-widget-head { flex-wrap: wrap; row-gap: 10px; }
   .nova-widget[data-holo] .nova-widget-head > h3 { flex: 1 0 100%; margin-right: 0; }
   .nova-widget[data-holo] .nova-widget-head > h3 + * { margin-left: auto; }
@@ -102,22 +103,36 @@
    answered) on a line that starts bright and runs out; the words large, their figures lit; its links as keys. Static: only
    its arrival moves (it rises 8 px and fades in under Full motion, fades under Calm, is simply there otherwise). */
 .ns-answer { position: relative; isolation: isolate; box-sizing: border-box; width: min(560px, 100%); margin: 6px auto 0; padding: 0 14px 5px; border: 0; background: none; text-align: left; --c: 14px; --n: 4px; --w: 1.5px;
-  --sh-glass: repeating-linear-gradient(0deg, #ffffff08 0 1px, transparent 1px 3px), linear-gradient(180deg, color-mix(in oklab, var(--nova-b, #63e7ff) 24%, #0a1232) 0, color-mix(in oklab, var(--nova-a, #9273ff) 16%, #080c26) 40px, #070b22 40px, #04071a 100%);
+  --sh-glass: linear-gradient(90deg, transparent, color-mix(in oklab, var(--nova-b, #63e7ff) 60%, transparent) 18%, color-mix(in oklab, var(--nova-c, #f06dff) 50%, transparent) 82%, transparent) 0 calc(100% - 56px) / 100% 1px no-repeat, repeating-linear-gradient(0deg, #ffffff08 0 1px, transparent 1px 3px), linear-gradient(180deg, color-mix(in oklab, var(--nova-b, #63e7ff) 24%, #0a1232) 0, color-mix(in oklab, var(--nova-a, #9273ff) 16%, #080c26) 40px, #070b22 40px, #04071a 100%);
   --sh-rimg: linear-gradient(115deg, #fff 0, var(--nova-b, #63e7ff) 9%, var(--nova-a, #9273ff) 52%, var(--nova-c, #f06dff) 91%, #fff 100%); }
 /* The bloom behind the slab (static; its own layer so the cut corners stay clean). */
 .ns-answer-glow { position: absolute; inset: 8px; z-index: -2; border-radius: 14px; pointer-events: none; box-shadow: 0 0 16px 1px color-mix(in oklab, var(--nova-b, #63e7ff) 50%, transparent), 0 0 50px 6px color-mix(in oklab, var(--nova-a, #9273ff) 36%, transparent), 0 26px 44px -20px #000; }
 .ns-answer > .sh-inner { inset: 4px; --c: 11px; --n: 2px; }
 .ns-answer-head { display: flex; align-items: center; gap: 8px; min-height: 40px; box-sizing: border-box; margin: 0 -14px; padding: 0 44px 0 14px; font-size: 14px; font-weight: 600; line-height: 1.2; color: #e9fbff; text-shadow: 0 0 12px color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent);
   border: solid; border-width: 0 0 1px; border-image: linear-gradient(90deg, transparent 0, transparent 14px, var(--nova-b, #63e7ff) 14px, var(--nova-b, #63e7ff) 70px, color-mix(in oklab, var(--nova-a, #9273ff) 46%, transparent) 70px, transparent 96%) 1; }
+/* The head strip's tick ruler (ornament): it takes the room the words leave and gives it up first. */
+.ns-answer-head::after { content: ''; flex: 0 1 72px; min-width: 0; height: 8px; margin-left: auto; opacity: .85; background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff) 0 1px, transparent 1px 6px), linear-gradient(color-mix(in oklab, var(--nova-b, #63e7ff) 60%, transparent) 0 0) 0 100% / 100% 1px no-repeat; }
+.ns-answer-by { flex: 0 1 auto; min-width: 0; }
 .ns-answer-mark { flex: none; width: 18px; height: 18px; color: #fff; filter: drop-shadow(0 0 5px var(--nova-b, #63e7ff)); }
 .ns-answer-asked { margin: 6px 0 0; font-size: 14px; color: #c3cfe6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ns-answer-text { margin: 7px 0 0; font-size: 17px; line-height: 1.45; color: #f4f8ff; display: -webkit-box; -webkit-line-clamp: var(--ns-lines, 3); line-clamp: var(--ns-lines, 3); -webkit-box-orient: vertical; overflow: hidden; }
 /* A figure in the answer: lit, in tabular numerals. */
 .ns-fig { font-weight: 700; font-variant-numeric: tabular-nums; color: color-mix(in oklab, var(--nova-b, #63e7ff) 62%, #fff); text-shadow: 0 0 14px color-mix(in oklab, var(--nova-b, #63e7ff) 85%, transparent); }
+/* The answer's first figure leads: larger, white-hot (the line's height is unchanged). */
+.ns-fig-lead { font-size: 24px; line-height: 1; color: #fff; text-shadow: 0 0 10px var(--nova-b, #63e7ff), 0 0 24px color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent); }
+/* One scan as the read-out arrives (Full motion only; transform and opacity): a band of light crosses the glass once. */
+.ns-answer-scan { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; clip-path: var(--sh-oct); }
+.ns-answer-scan::before { content: ''; position: absolute; inset: 0 0 auto; height: 44%; opacity: 0; border-bottom: 1.5px solid #fff; background: linear-gradient(to top, color-mix(in oklab, var(--nova-b, #63e7ff) 42%, transparent), transparent 70%); transform: translateY(-100%); }
+.nova-frame[data-hud-motion=full] .ns-answer-scan::before { animation: ns-answer-scan .62s .12s cubic-bezier(.3, 0, .3, 1) both; }
+@keyframes ns-answer-scan { 0% { opacity: 0; transform: translateY(-100%); } 15% { opacity: 1; } 85% { opacity: .8; } 100% { opacity: 0; transform: translateY(230%); } }
+@media (prefers-reduced-motion: reduce) { .ns-answer-scan { display: none; } }
+:root[data-app-motion=off] .ns-answer-scan { display: none; }
 .ns-answer-meta { margin: 5px 0 0; display: flex; flex-wrap: nowrap; align-items: stretch; justify-content: flex-end; gap: 8px; font-size: 14px; color: #c3cfe6; }
 /* The answer's links are keys: two share one row (their words may take two short lines). */
-.ns-link { flex: 1 1 0; min-width: 0; max-width: 260px; min-height: 44px; padding: 0 10px; border: 0; border-radius: 4px; background: none; color: #f1f5ff; font: inherit; font-size: 14px; font-weight: 650; line-height: 1.15; cursor: pointer;
+.ns-link { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 1 1 0; min-width: 0; max-width: 260px; min-height: 44px; padding: 0 9px; border: 0; border-radius: 4px; background: none; color: #f1f5ff; font: inherit; font-size: 14px; font-weight: 650; line-height: 1.15; text-align: left; cursor: pointer;
   --k-inset: 3px 0; --k-rim: color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent); --k-rim-2: color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent); --k-plate: color-mix(in oklab, var(--nova-b, #63e7ff) 14%, #0a1030); --k-plate-2: color-mix(in oklab, var(--nova-a, #9273ff) 16%, #060a1c); }
+/* A key's glyph (ornament; the words name the key). */
+.ns-link > svg { flex: none; width: 17px; height: 17px; color: color-mix(in oklab, var(--nova-b, #63e7ff) 60%, #fff); filter: drop-shadow(0 0 4px var(--nova-b, #63e7ff)); }
 .ns-link:is(:hover, :focus-visible) { color: #fff; --k-rim: var(--nova-b, #63e7ff); --k-rim-2: var(--nova-b, #63e7ff); --k-plate: color-mix(in oklab, var(--nova-b, #63e7ff) 32%, #0a1030); --k-glow: 0 0 14px -3px var(--nova-b, #63e7ff); }
 .nova-frame[data-hud-motion=full] .ns-answer { animation: ns-rise .3s cubic-bezier(.2, .7, .2, 1) both; }
 .nova-frame[data-hud-motion=calm] .ns-answer { animation: ns-fade .15s ease-out both; }
@@ -129,6 +144,15 @@
 .nova-frame[data-phone] .ns-strip::before { left: 0; right: 0; }
 .nova-frame[data-phone] .ns-onetap { width: 100%; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
 .nova-frame[data-phone] .ns-onetap > .ns-chip { scroll-snap-align: start; }
+/* A short phone keeps the one row; a fade at its end says that it scrolls. */
+.nova-frame[data-phone] .ns-strip::after { content: ''; position: absolute; right: 0; top: 6px; width: 40px; height: 44px; pointer-events: none; background: linear-gradient(90deg, transparent, var(--nova-deep, #050818) 85%); }
+/* A phone of 740 px or more (AM-2, deliberate: the row cut its third key with no hint and the first screen stood half
+   empty): the same six buttons, in the same order, as a two-column grid of pillar keys above the command bar. */
+@media (min-height: 740px) {
+  .nova-frame[data-phone] .ns-onetap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 8px; padding: 2px 0 4px; overflow: visible; scroll-snap-type: none; }
+  .nova-frame[data-phone] .ns-onetap > .ns-chip { width: 100%; min-width: 0; margin: 0; justify-content: flex-start; padding: 0 8px 0 12px; gap: 8px; white-space: normal; line-height: 1.15; text-align: left; }
+  .nova-frame[data-phone] .ns-strip::before, .nova-frame[data-phone] .ns-strip::after { content: none; }
+}
 /* A phone's answer is lighter: a thinner rim and a small bloom. */
 .nova-frame[data-phone] .ns-answer { --w: 1px; }
 .nova-frame[data-phone] .ns-answer-glow { box-shadow: 0 0 18px 0 color-mix(in oklab, var(--nova-a, #9273ff) 45%, transparent); }
@@ -138,6 +162,7 @@
 @container nova-stage (max-height: 520px) {
   .ns-answer { margin-top: 2px; }
   .ns-answer-head { min-height: 36px; }
+  .ns-fig-lead { font-size: 20px; }
   .ns-answer-text { margin-top: 4px; }
   .ns-answer-asked { display: none; }
 }

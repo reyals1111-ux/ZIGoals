@@ -69,6 +69,9 @@
 .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]) > .holo-aura { display: block; }
 /* A large widget is the hero beside the star: the nebula's magenta joins its bloom. */
 .nova-widget[data-holo][data-size=L] > .holo-aura { box-shadow: var(--holo-bloom), 0 0 90px 10px #f06dff2b; }
+/* Round 1 of the critique ("chrome heavier than content"): the head's keys are quiet at rest (always there, always
+   44 px) and light up with the widget under the pointer or holding the focus (a fixed highlight). */
+.nova-widget[data-holo]:is(:hover, :focus-within) :is(.holo-act, .nova-widget-open)::before { border-color: color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 13%, #060a1c); }
 /* The tick ruler down the left edge (ornament, never data): fine ticks, a longer one every fifth. */
 .holo-ruler { position: absolute; left: 5px; top: 44px; bottom: 22px; width: 7px; pointer-events: none; opacity: .75;
   background: repeating-linear-gradient(to bottom, color-mix(in oklab, var(--neon, #9273ff) 75%, #fff) 0 1px, transparent 1px 40px) 0 0 / 7px 100% no-repeat,
@@ -93,7 +96,7 @@
 .nova-widget[data-holo] .nova-widget-open-arrow { justify-content: center; width: 44px; padding: 0; font-size: 18px; }
 /* The page link is the last key of the head: its words where there is room, its arrow alone on a narrow panel. */
 .nova-widget[data-holo] .nova-widget-open { position: relative; margin-right: -4px; color: var(--neon-ink, #eef3ff); }
-.nova-widget[data-holo] .nova-widget-open::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 52%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 11%, #060a1c); transition: background-color .12s, border-color .12s; }
+.nova-widget[data-holo] .nova-widget-open::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 6%, #060a1c); transition: background-color .12s, border-color .12s; }
 .nova-widget[data-holo] .nova-widget-open:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
 .nova-widget[data-holo] .nova-widget-open > span { position: relative; }
 .nova-widget[data-holo]:hover { border-color: var(--neon, #9273ff); }
@@ -131,7 +134,7 @@
 /* The quick-actions button in the header. */
 /* AM-2 (F2): a key like the stage's own (stage.css `.ns-act`): a 44 px target with a smaller lit key drawn inside it. */
 .holo-act { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -10px -4px -10px auto; padding: 0; border-radius: 10px; border: 0; background: none; color: var(--neon-ink, #eef3ff); cursor: pointer; }
-.holo-act::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 52%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 11%, #060a1c); transition: background-color .12s, border-color .12s; }
+.holo-act::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 6%, #060a1c); transition: background-color .12s, border-color .12s; }
 .holo-act:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
 .holo-act svg { position: relative; width: 17px; height: 17px; }
 .holo-instrument { cursor: pointer; }
@@ -215,17 +218,18 @@
 /* M2: Holo's orbit is wider, and a column holding a large panel widens: the hero beside the star. */
 @container nova-stage (min-width: 900.02px) {
   .nova-frame[data-look=holo] .nova-orbit { max-width: 1560px; }
-  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(250px, 1fr) minmax(300px, .9fr) minmax(250px, 1fr); }
-  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(340px, 1.45fr) minmax(290px, .85fr) minmax(240px, 1fr); }
-  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(240px, 1fr) minmax(290px, .85fr) minmax(340px, 1.45fr); }
-  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(320px, 1.3fr) minmax(280px, .8fr) minmax(320px, 1.3fr); }
+  /* Round 1 of the critique: the star's column is the widest (it was the narrowest: the galaxy sat cropped between the wings). */
+  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(250px, 1fr) minmax(340px, 1.25fr) minmax(250px, 1fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(340px, 1.45fr) minmax(320px, 1.1fr) minmax(240px, 1fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(240px, 1fr) minmax(320px, 1.1fr) minmax(340px, 1.45fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(320px, 1.3fr) minmax(300px, 1fr) minmax(320px, 1.3fr); }
 }
 /* Session AM-2 (ADR-038 "AM-2", G3): a wide window is used, not left empty. From 1700 px of stage the widget wings and
    the star's column all widen (the orbit was capped at 1560 px, a strip in the middle of a 2560 px screen), and the band
    below holds four widgets a row. */
 @container nova-stage (min-width: 1700px) {
   .nova-frame[data-look=holo] .nova-orbit { max-width: 2320px; }
-  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(380px, 1.2fr) minmax(460px, 1fr) minmax(380px, 1.2fr); gap: 28px; }
+  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(380px, 1.1fr) minmax(520px, 1.1fr) minmax(380px, 1.1fr); gap: 28px; }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(460px, 1.5fr) minmax(440px, 1fr) minmax(360px, 1.1fr); }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(360px, 1.1fr) minmax(440px, 1fr) minmax(460px, 1.5fr); }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(440px, 1.35fr) minmax(420px, .9fr) minmax(440px, 1.35fr); }

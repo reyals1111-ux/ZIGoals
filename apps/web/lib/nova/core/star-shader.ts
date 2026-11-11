@@ -46,8 +46,8 @@ void main(){
   float na = atan(uv.y, uv.x + 1e-5), nw = na + 2.2*log(rr+.05) + uSpin*.18;
   vec2 np = vec2(cos(nw), sin(nw)) * rr;
   float cloud = fbm(np*3.2 + vec2(3.7, uSpin*.05)), cloud2 = fbm(np*6.5 - vec2(1.3, 8.2));
-  float neb = up(.36,.82, cloud) * dn(.10,.46, rr) * (.45+.8*cloud2);
-  col += mix(mix(uA, uC, up(.3,.8,cloud2)), peach, up(.5,.9,cloud)*.55) * neb * .95;
+  float neb = up(.4,.84, cloud) * dn(.08,.40, rr) * (.4+.8*cloud2);
+  col += mix(mix(uA, uC, up(.3,.8,cloud2)), peach, up(.5,.9,cloud)*.55) * neb * .6;
   // ---- the disc: tilted, two log-spiral arms with finer spurs, the inner disc turns faster ----
   vec2 q = rot(ROLL) * uv; q.y /= TILT;
   float r = length(q), a = atan(q.y, q.x + 1e-5), lr = log(r+.02);
@@ -75,10 +75,10 @@ void main(){
   col += mix(uB, vec3(1.), .45) * knot * 1.1;
   // ---- the core: a white heart, a violet bloom, a thin accretion ring ----
   float pulse = 1. + .06*sin(uT*1.1) + .5*uSpeak*uPulse + .12*uThink*sin(uT*5.) + .08*uListen;
-  float core = exp(-r*r*300./(pulse*pulse)) * 2.6 + exp(-r*16.)*.75*pulse;
+  float core = exp(-r*r*300./(pulse*pulse)) * 2.6 + exp(-r*16.)*.75*pulse + exp(-r*r*2600.)*1.8;
   col += mix(vec3(1.), uA*1.1+.3, up(0.,.18,r)) * core;
   float bulge = exp(-length(uv*vec2(1.,1.3))*7.5);
-  col += (uA*.6 + uC*.34 + .1) * (bulge * .8 + exp(-rr*5.)*.10) * pulse;
+  col += (uA*.6 + uC*.34 + .1) * (bulge * .8 + exp(-rr*7.)*.05) * pulse;
   float ringR = .085*pulse;
   float acc = dn(0.,.006, abs(r-ringR)) * (.55 + .45*cos(a - uSpin*3.)) + dn(0.,.03, abs(r-ringR))*.12;
   col += mix(uB, vec3(1.), .6) * acc * .7;
@@ -94,7 +94,7 @@ void main(){
   col += mix(uB, vec3(1.), .4) * uThink * sweep * disc * up(.05,.14,r) * (.4 + 1.1*arms);
   // ---- stars: in the disc (turning with it) and a field streaming toward the viewer ----
   vec2 sg = rot(uSpin*.5) * q * 52.; vec2 si = floor(sg); float sh = hash(si);
-  float st = dn(0., .12*sh+.02, length(fract(sg)-.5 - (vec2(hash(si+1.7),hash(si+5.3))-.5)*.7)) * step(.86, sh) * dn(.1,.68,r);
+  float st = dn(0., .12*sh+.02, length(fract(sg)-.5 - (vec2(hash(si+1.7),hash(si+5.3))-.5)*.7)) * step(.84, sh) * dn(.1,.68,r) * 1.3;
   col += vec3(1.,.96,1.) * st * (.6+.4*sin(uT*1.7+sh*40.));
   vec2 tg = rot(uSpin*.42) * q * 118. + 7.; vec2 ti = floor(tg); float th = hash(ti+2.3);
   float tiny = dn(0., .16, length(fract(tg)-.5 - (vec2(hash(ti+4.1),hash(ti+8.7))-.5)*.6)) * step(.78, th) * dn(.12,.7,r) * (.35 + .65*arms);
@@ -106,7 +106,7 @@ void main(){
     col += mix(vec3(.8,.88,1.), uA+.4, ph*.5) * tw * up(0.,.3,z) * dn(.75,1.,z) * up(.09,.24,rr);
   }
   // ---- the thin horizontal light streak through the core ----
-  float streak = exp(-abs(uv.y)*240.) * exp(-abs(uv.x)*(2.6 - .9*uSpeak*uPulse)) + exp(-abs(uv.y)*46.) * exp(-abs(uv.x)*6.5)*.24;
+  float streak = exp(-abs(uv.y)*330.) * exp(-abs(uv.x)*(2.2 - .8*uSpeak*uPulse)) * 1.5 + exp(-abs(uv.y)*46.) * exp(-abs(uv.x)*6.5)*.26;
   col += vec3(.42,.68,1.) * streak * pulse * 1.05;
   // ---- the beam toward a widget being made: a hairline and a spark that travels along it ----
   vec2 bd = vec2(cos(uBeamA), sin(uBeamA)); float along = dot(uv, bd), across = abs(dot(uv, vec2(-bd.y, bd.x)));

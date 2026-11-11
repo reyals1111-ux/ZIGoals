@@ -72,12 +72,12 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
     <button type="button" className="nova-orb-button" onClick={onTalk} aria-expanded={talkOpen} aria-controls={talkOpen ? "nova-talk" : undefined} aria-describedby="nova-orb-state" data-star={starOn && persona.avatar !== 'zigi' ? '' : undefined} style={starOn && starBox && persona.avatar !== 'zigi' ? {'--star-box': `${starBox}px`} as CSSProperties : undefined}>
       {/* Session AM-2 (G1): the star's light streak, carried across the stage (decoration; components/nova/stage/command-centre.css). */}
       {starOn && persona.avatar !== 'zigi' && <span className="cc-streak" aria-hidden="true"/>}
-      {/* Session AM-2 (G4): the star's bezel — a ring of fine ticks around the galaxy, turning slowly (an ornament: `holo-orn`,
-          the HUD's own slow spin under Full and Calm, still otherwise). It replaces AK's three orbit rings while the star draws. */}
-      {starOn && persona.avatar !== 'zigi' && <span className="cc-bezel holo-orn" aria-hidden="true"><svg viewBox="-100 -100 200 200" focusable="false">
-        <circle r="97" className="cc-bezel-line"/><circle r="92.5" className="cc-bezel-ticks" pathLength="360" strokeDasharray="0.22 2.78"/><circle r="91.5" className="cc-bezel-marks" pathLength="360" strokeDasharray="0.5 29.5"/>
-        <circle r="99.2" className="cc-bezel-arc" pathLength="360" strokeDasharray="38 142"/><circle r="85" className="cc-bezel-line" pathLength="360" strokeDasharray="1 5"/>
-      </svg></span>}
+      {/* Session AM-2 (G4): the star's bezel — a ring of fine ticks in the galaxy's own plane, just outside its arms (static
+          decoration; components/nova/stage/command-centre.css). It replaces AK's three orbit rings while the star draws. */}
+      {starOn && persona.avatar !== 'zigi' && <span className="cc-bezel" aria-hidden="true"><svg viewBox="-100 -100 200 200" focusable="false"><g transform="rotate(21.8)">
+        <ellipse rx="97" ry="42.7" className="cc-bezel-line"/><ellipse rx="93" ry="40.9" className="cc-bezel-ticks" pathLength="360" strokeDasharray="0.2 2.8"/><ellipse rx="92.2" ry="40.6" className="cc-bezel-marks" pathLength="360" strokeDasharray="0.45 29.55"/>
+        <ellipse rx="99.5" ry="43.8" className="cc-bezel-arc" pathLength="360" strokeDasharray="36 144"/>
+      </g></svg></span>}
       {persona.avatar !== 'zigi' && star}
       {persona.avatar === 'zigi' ? <PersonaMark avatar="zigi" size={170} state={orb}/> : <NovaOrb state={orb} size={220}/>}
       <span className="sr-only">Talk to {persona.name}</span>

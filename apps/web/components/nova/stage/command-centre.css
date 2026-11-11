@@ -9,27 +9,30 @@
    window's edges so the widgets' own glow reads against them. */
 .cc-nebula { position: absolute; inset: -4%; pointer-events: none;
   background:
-    radial-gradient(38% 46% at 50% 44%, color-mix(in oklab, var(--nova-a, #9273ff) 34%, transparent), transparent 72%),
-    radial-gradient(30% 34% at 30% 28%, color-mix(in oklab, var(--nova-c, #f06dff) 20%, transparent), transparent 70%),
-    radial-gradient(34% 30% at 74% 66%, color-mix(in oklab, var(--nova-c, #f06dff) 18%, transparent), transparent 72%),
-    radial-gradient(26% 30% at 78% 22%, color-mix(in oklab, var(--nova-b, #63e7ff) 13%, transparent), transparent 70%),
-    radial-gradient(28% 26% at 20% 74%, color-mix(in oklab, var(--nova-b, #63e7ff) 11%, transparent), transparent 72%),
-    radial-gradient(18% 14% at 58% 50%, #ffb48a1f, transparent 70%),
-    radial-gradient(120% 96% at 50% 46%, transparent 48%, #01020ad9 100%); }
+    radial-gradient(30% 36% at 50% 44%, color-mix(in oklab, var(--nova-a, #9273ff) 15%, transparent), transparent 72%),
+    radial-gradient(26% 30% at 28% 26%, color-mix(in oklab, var(--nova-c, #f06dff) 8%, transparent), transparent 70%),
+    radial-gradient(30% 26% at 76% 68%, color-mix(in oklab, var(--nova-c, #f06dff) 8%, transparent), transparent 72%),
+    radial-gradient(22% 26% at 80% 20%, color-mix(in oklab, var(--nova-b, #63e7ff) 6%, transparent), transparent 70%),
+    radial-gradient(24% 22% at 18% 76%, color-mix(in oklab, var(--nova-b, #63e7ff) 5%, transparent), transparent 72%),
+    radial-gradient(100% 84% at 50% 46%, transparent 24%, #010208e6 78%, #010208 100%); }
+/* Round 1 of the critique: the sky read as mid-lavender, and neon cannot bloom on a mid-tone. The night is near black
+   now: AK's diagonal haze steps back under the Holo look, and the colour stays close to the star. */
+.nova-frame[data-look=holo]:not([data-phone]) > .nova-sky { opacity: .5; }
 /* The star's thin blue light streak, carried across the whole stage (owner screenshot 4): a line through the star's
    centre, inside its button, so it stays at the star's height. The star draws the bright middle itself; this line takes
    over where the star's own canvas fades and runs out toward both edges. */
 .cc-streak { position: absolute; left: 50%; top: 50%; width: 200vw; height: 1px; margin: -.5px 0 0 -100vw; z-index: 0; pointer-events: none;
   background: linear-gradient(90deg, transparent 12%, #6fa8ff2e 30%, #9cc8ff80 41%, transparent 46%, transparent 54%, #9cc8ff80 59%, #6fa8ff2e 70%, transparent 88%);
   box-shadow: 0 0 14px 1px #6fb0ff40; }
-/* G4: the star's bezel. A circle of fine ticks a little wider than the galaxy, concentric with it (AK's three orbit rings
-   were centred on the words' stack, so they sat off the star). The span turns slowly (`holo-orn`); the lines are static. */
-.nova-orb-button > .cc-bezel { position: absolute; inset: auto; left: 50%; top: 50%; width: calc(var(--star-box, 180px) * 1.96); height: calc(var(--star-box, 180px) * 1.96); margin: calc(var(--star-box, 180px) * -.98) 0 0 calc(var(--star-box, 180px) * -.98); z-index: 0; pointer-events: none; opacity: .8; }
+/* G4: the star's bezel — a ring of fine ticks in the galaxy's own plane (the disc's tilt and roll), just outside its
+   arms, so it frames the star without crossing NOVA's name above it or its words below. Static. (AK's three orbit
+   rings were centred on the words' stack, so they sat off the star; they give way while the star draws.) */
+.nova-orb-button > .cc-bezel { position: absolute; inset: auto; left: 50%; top: 50%; width: calc(var(--star-box, 180px) * 2.5); height: calc(var(--star-box, 180px) * 2.5); margin: calc(var(--star-box, 180px) * -1.25) 0 0 calc(var(--star-box, 180px) * -1.25); z-index: 0; pointer-events: none; opacity: .85; }
 .cc-bezel > svg { display: block; width: 100%; height: 100%; overflow: visible; fill: none; }
-.cc-bezel-line { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 55%, transparent); stroke-width: .25; }
-.cc-bezel-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent); stroke-width: 2.2; }
-.cc-bezel-marks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff); stroke-width: 4.4; }
-.cc-bezel-arc { stroke: color-mix(in oklab, var(--nova-a, #9273ff) 80%, #fff); stroke-width: .7; }
+.cc-bezel-line { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 60%, transparent); stroke-width: .3; }
+.cc-bezel-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 75%, transparent); stroke-width: 1.8; }
+.cc-bezel-marks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff); stroke-width: 3.6; }
+.cc-bezel-arc { stroke: color-mix(in oklab, var(--nova-a, #9273ff) 80%, #fff); stroke-width: .8; }
 .nova-stage[data-star] > .nova-rings { display: none; }
 /* A phone's star is small and already wears the four pillar rings: no bezel there. */
 .nova-frame[data-phone] .nova-orb-button > .cc-bezel { display: none; }
@@ -41,7 +44,7 @@
 /* ---- G2: the HUD frame ---- */
 /* A zero-height strip that sticks to the top of the stage's own window; its frame is as tall as that window (the stage
    area is a size container), so it stays put while the widgets scroll under it. */
-.cc-hud { position: sticky; top: 10px; height: 0; z-index: 0; pointer-events: none; }
+.cc-hud { position: sticky; top: 0; height: 0; z-index: 0; pointer-events: none; }
 .cc-hud-frame { position: absolute; left: -12px; right: -12px; top: -6px; height: calc(100cqb + 14px); --cc: color-mix(in oklab, var(--nova-b, #63e7ff) 62%, var(--nova-a, #9273ff)); }
 .cc-corner { position: absolute; width: 34px; height: 34px; opacity: .85;
   background: linear-gradient(var(--cc), var(--cc)) 0 0 / 100% 1.5px no-repeat, linear-gradient(var(--cc), var(--cc)) 0 0 / 1.5px 100% no-repeat,
@@ -69,10 +72,21 @@
 .cc-read { display: none; }
 @media (min-height: 1000px) {
   .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-stage-area { padding-block: 34px 36px; }
-  .nova-frame[data-look=holo]:not([data-phone]) .cc-hud { top: 34px; }
   .nova-frame[data-look=holo]:not([data-phone]) .cc-hud-frame { top: -28px; height: calc(100cqb + 58px); }
   .nova-frame[data-look=holo]:not([data-phone]) .cc-read { display: inline-flex; }
 }
 @container nova-stage (max-width: 1180px) { .cc-read:not(#\-) { display: none; } .cc-rule { display: none; } .cc-corner { width: 22px; height: 22px; } }
 .nova-frame[data-phone] .cc-hud, .nova-frame[data-look=classic] .cc-hud, .nova-frame[data-editing] .cc-hud { display: none; }
 @media (forced-colors: active) { .cc-hud, .cc-nebula, .cc-streak, .cc-horizon { display: none; } }
+
+/* ---- Round 1 of the critique: composition ---- */
+/* The band's label starts below the stage's first window (it sat half under the one-tap keys at the fold). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit > .nova-orbit-band { padding-top: 30px; }
+/* One straight edge per wing: AK's lean along a circle made each panel a different width (a ragged column). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main > .nova-orbit-side > .nova-widget[data-holo] { margin-inline: 0; }
+/* On a wide window the two wings turn a little toward the star (a static 2.5 degrees; never pointer-driven): the glass
+   wall of owner screenshot 1. Whole wings turn, so each widget's frame, bloom and words stay one piece. */
+@container nova-stage (min-width: 1700px) {
+  .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side[data-side=left] { transform: perspective(2400px) rotateY(2.5deg); transform-origin: 0 50%; }
+  .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side[data-side=right] { transform: perspective(2400px) rotateY(-2.5deg); transform-origin: 100% 50%; }
+}

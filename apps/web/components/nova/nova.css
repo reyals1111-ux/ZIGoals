@@ -153,6 +153,8 @@
 .nova-top-left { position: relative; isolation: isolate; justify-self: start; display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; min-width: 0; max-width: 100%; padding: 4px; --c: 9px; --n: 3px; --w: 1px; --sh-glass: #050919d9; --sh-rimg: linear-gradient(90deg, color-mix(in oklab, var(--sh-b) 70%, transparent), color-mix(in oklab, var(--sh-a) 30%, transparent)); }
 .nova-top-right { position: relative; isolation: isolate; justify-self: end; display: flex; justify-content: flex-end; align-items: center; gap: 4px; min-width: 0; max-width: 100%; padding: 4px; --c1: 3px; --c2: 9px; --c3: 3px; --c4: 9px; --w: 1px; --sh-glass: #050919d9; --sh-rimg: linear-gradient(90deg, color-mix(in oklab, var(--sh-a) 30%, transparent), color-mix(in oklab, var(--sh-c) 70%, transparent)); }
 .nova-exit { padding: 0 12px; }
+.nova-top-left :is(.nova-exit, .nova-icon-btn):not(:hover, :focus-visible) { --k-rim: color-mix(in oklab, var(--sh-b) 70%, transparent); --k-rim-2: color-mix(in oklab, var(--sh-a) 26%, #ffffff1a); --k-plate: #0f173c; }
+.nova-top-left :is(.nova-exit, .nova-pill, .nova-icon-btn):is(:hover, :focus-visible) { --k-rim: #fff; --k-plate: color-mix(in oklab, var(--sh-b) 36%, #0c1335); --k-glow: 0 0 18px -2px var(--sh-b), 0 0 5px -1px var(--sh-b); }
 .nova-exit .nova-kbd { margin-left: 2px; }
 .nova-pill { --k-rim: color-mix(in oklab, var(--sh-b) 60%, transparent); --k-rim-2: color-mix(in oklab, var(--sh-a) 60%, transparent); --k-plate: color-mix(in oklab, var(--sh-a) 20%, #0c1335); }
 .nova-pill > svg { color: var(--sh-ink-neon); }
@@ -200,14 +202,15 @@
   .nova-frame:not([data-phone]) .nova-quick li.nova-quick-tool-first::before { content: none; }
 }
 /* A tile: a 44 px cut cap. Quiet at rest (p5: the tiles must not compete with the stage's figures), lit when pointed at. */
-.nova-tile { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 4px; background: none; color: #d6dff2; text-decoration: none; cursor: pointer; font: inherit; --k-rim: color-mix(in oklab, var(--sh-a) 36%, #ffffff2b); --k-rim-2: color-mix(in oklab, var(--sh-c) 30%, #ffffff1f); --k-plate: #0d1538; --k-plate-2: #060a1e; }
-.nova-tile:is(:hover, :focus-visible, :focus-within), .nova-tile[aria-pressed=true] { color: #fff; --k-rim: var(--sh-b); --k-rim-2: var(--sh-a); --k-plate: color-mix(in oklab, var(--sh-b) 24%, #0c1335); --k-plate-2: color-mix(in oklab, var(--sh-a) 30%, #070b20); --k-glow: 0 0 14px -3px var(--sh-b); }
+/* At rest a key carries its group's light: a lit top-left rim (NOVA's third colour in the right bay, its second in the left) and a dim light under its glyph. */
+.nova-tile { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 4px; background: none; color: #dbe3f4; text-decoration: none; cursor: pointer; font: inherit; --k-rim: color-mix(in oklab, var(--sh-c) 66%, transparent); --k-rim-2: color-mix(in oklab, var(--sh-a) 26%, #ffffff1a); --k-plate: #0f173c; --k-plate-2: #060a1e; }
+.nova-tile:is(:hover, :focus-visible, :focus-within), .nova-tile[aria-pressed=true] { color: #fff; --k-rim: #fff; --k-rim-2: var(--sh-b); --k-plate: color-mix(in oklab, var(--sh-b) 36%, #0c1335); --k-plate-2: color-mix(in oklab, var(--sh-a) 40%, #070b20); --k-glow: 0 0 18px -2px var(--sh-b), 0 0 5px -1px var(--sh-b); }
 .nova-tile[aria-pressed=true] { --k-plate: color-mix(in oklab, var(--sh-a) 46%, #0c1335); --k-plate-2: color-mix(in oklab, var(--sh-c) 24%, #070b20); }
 .nova-tile[data-tip]:is(:hover, :focus-visible, :focus-within), .nova-icon-btn[data-tip]:is(:hover, :focus-visible) { z-index: 7; }
 .nova-tile-planet { display: grid; place-items: center; pointer-events: none; }
 /* The key's light: a short bar under the glyph. */
-.nova-tile-planet::before { content: ''; position: absolute; left: 50%; bottom: 5px; width: 12px; height: 2px; margin-left: -6px; border-radius: 1px; background: #ffffff2e; }
-.nova-tile:is(:hover, :focus-visible, :focus-within) .nova-tile-planet::before, .nova-tile[aria-pressed=true] .nova-tile-planet::before { background: var(--sh-b); box-shadow: 0 0 8px var(--sh-b); }
+.nova-tile-planet::before { content: ''; position: absolute; left: 50%; bottom: 5px; width: 14px; height: 2px; margin-left: -7px; border-radius: 1px; background: color-mix(in oklab, var(--sh-c) 70%, transparent); }
+.nova-tile:is(:hover, :focus-visible, :focus-within) .nova-tile-planet::before, .nova-tile[aria-pressed=true] .nova-tile-planet::before { background: #fff; box-shadow: 0 0 8px 1px var(--sh-b); }
 .nova-tile-planet > svg { margin-top: -3px; }
 /* A tile's own rim flash (its ::after is its tooltip): a wash over the cap, on while pressed, fading once released. */
 .nova-tile-planet::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .45s ease-out; background: linear-gradient(135deg, transparent 4.5px, #ffffff99 5px, color-mix(in oklab, var(--sh-b) 40%, transparent) 46%, color-mix(in oklab, var(--sh-a) 30%, transparent) 54%, #ffffff80 calc(100% - 5px), transparent calc(100% - 4.5px)); }
@@ -508,8 +511,10 @@ a.nova-chip:hover .nova-chip-key { color: var(--sh-ink-neon); }
 .nova-radio { align-items: flex-start; padding-top: 10px; }
 .nova-radio small { display: block; color: var(--nova-ink-3); font-size: 14px; }
 /* The conversation's slot. Under 1100 px it is one panel over the stage; from 1100 px a console docked on the right (below). */
-.nova-talk { position: relative; isolation: isolate; width: min(1020px, 100%); height: min(64vh, 680px); display: flex; flex-direction: column; border: 0; background: none; overflow: hidden; --c: 18px; --n: 5px; }
-.nova-talk::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; clip-path: var(--sh-oct); background: linear-gradient(180deg, color-mix(in oklab, var(--sh-a) 12%, #0a1232) 0, #070b22 140px, #04071a 100%); }
+.nova-talk { position: relative; isolation: isolate; box-sizing: border-box; width: min(1020px, 100%); height: min(64vh, 680px); display: flex; flex-direction: column; padding: 4px; border: 0; background: none; overflow: hidden; --c: 18px; --n: 5px; }
+.nova-talk::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; clip-path: var(--sh-oct);
+  background: repeating-linear-gradient(0deg, #ffffff07 0 1px, transparent 1px 3px), linear-gradient(color-mix(in oklab, var(--sh-c) 9%, transparent) 1px, transparent 1px) 0 0 / 100% 28px, linear-gradient(90deg, color-mix(in oklab, var(--sh-c) 9%, transparent) 1px, transparent 1px) 0 0 / 28px 100%,
+    linear-gradient(90deg, color-mix(in oklab, var(--sh-c) 10%, transparent), transparent 40%), linear-gradient(180deg, color-mix(in oklab, var(--sh-c) 18%, #0a1232) 0, color-mix(in oklab, var(--sh-a) 10%, #070b22) 150px, #04071a 100%); }
 .nova-talk::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; clip-path: var(--sh-ring); background: linear-gradient(200deg, #fff 0, var(--sh-c) 8%, var(--sh-a) 50%, color-mix(in oklab, var(--sh-b) 60%, transparent) 100%); }
 .nova-talk > * { flex: 1 1 auto; min-height: 0; }
 /* Session AK P3 (ND-7): with the conversation open on a computer it is the one large glass panel: the stage behind it
@@ -823,6 +828,8 @@ a.nova-chip:hover .nova-chip-key { color: var(--sh-ink-neon); }
 /* Session AM: the phone's foot is the one-tap row and the command field (144 px); a control that takes the keyboard's focus
    stops above it, never under it (p6-keyboard, 2.4.11). */
 .nova-frame[data-phone] .nova-centre { scroll-padding-bottom: 168px; }
+/* AM-2: on a phone of 740 px or more the one-tap requests are a grid of keys (stage.css), so the foot is taller. */
+@media (min-height: 740px) { .nova-frame[data-phone] .nova-centre { scroll-padding-bottom: 262px; } }
 .nova-frame[data-phone][data-look=holo] .nova-stage[data-holo-core] { --orb: min(132px, 36vw); padding-block: 0; grid-template-rows: auto auto auto; }
 .nova-frame[data-phone][data-look=holo] .nova-stage-above { padding-top: 4px; }
 .nova-frame[data-phone][data-look=holo] .nova-deck > .nova-setup-banner { padding: 8px 10px 8px 14px; }

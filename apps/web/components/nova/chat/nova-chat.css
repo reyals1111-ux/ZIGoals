@@ -35,9 +35,12 @@
 .nova-turn{display:flex;gap:10px;align-items:flex-start;max-width:100%}
 .nova-turn-figure{flex:none;padding-top:2px}
 .nova-turn-body{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;padding:10px 12px 4px 14px;--turn:var(--nova-a,#9273ff);--kc:7px;--kw:1.25px;--k-rim:color-mix(in srgb,var(--turn) 92%,#fff);--k-rim-2:color-mix(in srgb,var(--turn) 20%,transparent);--k-plate:color-mix(in srgb,var(--turn) 13%,#0a1030);--k-plate-2:#060a1c}
-.nova-turn-who{margin:0 0 4px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
+/* Who speaks: an instrument label in the speaker's colour — a lit diamond, tracked capitals, a hairline that runs out. */
+.nova-turn-who{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb,var(--turn,#9273ff) 42%,#fff)}
+.nova-turn-who::before{content:"";flex:none;width:6px;height:6px;margin:0 2px 0 1px;transform:rotate(45deg);background:var(--turn,#9273ff);box-shadow:0 0 0 2px color-mix(in srgb,var(--turn,#9273ff) 26%,transparent),0 0 8px var(--turn,#9273ff)}
+.nova-turn-who::after{content:"";flex:1 1 auto;min-width:8px;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--turn,#9273ff) 70%,transparent),transparent)}
 .nova-turn-user{justify-content:flex-end}
-.nova-turn-user .nova-turn-body{flex:0 1 auto;max-width:min(78%,640px);padding:10px 16px;--turn:var(--nova-b,#63e7ff);--k-rim:color-mix(in srgb,var(--turn) 24%,transparent);--k-rim-2:var(--turn);--k-plate:#0a1030;--k-plate-2:color-mix(in srgb,var(--turn) 16%,#0a1030)}
+.nova-turn-user .nova-turn-body{flex:0 1 auto;max-width:min(82%,640px);padding:10px 16px;--turn:var(--nova-b,#63e7ff);--kw:1.5px;--k-rim:color-mix(in srgb,var(--turn) 46%,transparent);--k-rim-2:var(--turn);--k-plate:color-mix(in srgb,var(--turn) 14%,#0a1030);--k-plate-2:color-mix(in srgb,var(--turn) 30%,#0a1030);--k-glow:0 0 16px -8px var(--turn)}
 .nova-turn-user .nova-turn-body p{margin:0}
 .nova-turn-zigi .nova-turn-body{--turn:var(--accent-teal,#86f0d6)}
 .nova-turn-edit{display:flex;justify-content:flex-end;margin:-8px 0 0}
@@ -162,7 +165,7 @@
 .nova-chat .nova-composer{align-items:center}
 .nova-chat .nova-composer-actions{flex:none;flex-wrap:nowrap}
 .nova-chat .nova-chat-send:not(#\-):not(#\-){display:inline-grid;place-items:center;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:4px;background:none;box-shadow:none;color:#04102a;--kc:7px;--kw:1.5px;--k-rim:#fff;--k-rim-2:color-mix(in srgb,var(--nova-b,#63e7ff) 60%,#fff);--k-plate:var(--nova-b,#63e7ff);--k-plate-2:var(--nova-a,#9273ff);--k-glow:0 0 14px -2px var(--nova-b,#63e7ff)}
-.nova-chat .nova-chat-send:disabled{opacity:.55}
+.nova-chat .nova-chat-send:disabled:not(#\-):not(#\-){opacity:.72;--k-glow:none}
 .nova-chat .nova-mic{border-radius:4px}
 .nova-chat .nova-composer-hint{font-size:14px}
 .nova-chat-tool{display:inline-flex;align-items:center;gap:8px}
@@ -217,6 +220,42 @@
 .nova-chat .nova-mic-on:not(#\-):not(#\-){color:#fff;--k-rim:var(--nova-b,#63e7ff);--k-plate:color-mix(in srgb,var(--nova-b,#63e7ff) 34%,#0a1232);--k-glow:0 0 14px -2px var(--nova-b,#63e7ff)}
 .nova-chat .nova-chat-send:is(:hover,:focus-visible):not(:disabled):not(#\-):not(#\-){--k-plate:color-mix(in srgb,var(--nova-b,#63e7ff) 70%,#fff);--k-glow:0 0 18px 0 var(--nova-b,#63e7ff)}
 /* A phone's conversation: lighter — thinner rims, no bloom behind the composer. */
-.nova-chat-sheet .nova-turn-body{--kw:1px}
-.nova-chat-sheet .nova-composer{--k-glow:none}
 @media (forced-colors:active){.nova-turn-body,.nova-composer,.nova-invite{border:1px solid CanvasText}}
+
+/* ==== Session AM-2, second pass: the conversation is a console ==== */
+/* On a computer it stands in the right bar's place and must read as part of the command centre: its slot (nova.css
+   `.nova-talk`) is the slab — grid and scanline glass, a rim brightest on the edge that faces the stage — and this sheet
+   gives it the inner hairline with corner marks, a head strip with a tick ruler, hairlines between its parts, and under
+   each answer an instrument strip that says who answered. Static; nothing here moves. */
+.nova-chat>.sh-inner{position:absolute;inset:1px;--c1:15px;--c2:3px;--c3:15px;--c4:3px}
+.nova-chat-sheet>.sh-inner{display:none}
+.nova-chat-panel .nova-chat-head{background:linear-gradient(180deg,color-mix(in srgb,var(--nova-c,#f06dff) 16%,transparent),transparent)}
+.nova-chat-head::after{content:"";position:absolute;right:18px;bottom:4px;width:96px;height:6px;pointer-events:none;opacity:.8;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--nova-c,#f06dff) 80%,#fff) 0 1px,transparent 1px 6px)}
+.nova-chat-panel .nova-composer-wrap{padding-top:12px;border-top:1px solid color-mix(in srgb,var(--nova-c,#f06dff) 30%,#ffffff14);background:linear-gradient(180deg,#04071ab3,transparent 85%)}
+.nova-chat-panel .nova-chat-foot{margin-top:6px;padding-top:8px;border-top:1px solid #ffffff12}
+/* Under an answer: who answered, as an instrument strip (a live node, a hairline above). */
+.nova-chat .ai-turn-source{display:flex;align-items:center;gap:9px;min-width:0;margin:10px 0 0;padding:8px 0 0;border-top:1px solid color-mix(in srgb,var(--turn,#9273ff) 38%,transparent);font-size:14px;line-height:1.3;letter-spacing:.03em;color:color-mix(in srgb,var(--accent-teal,#86f0d6) 62%,#fff)}
+.nova-chat .ai-turn-source::before{content:"";flex:none;width:7px;height:7px;margin-left:2px;border-radius:50%;background:var(--accent-teal,#86f0d6);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-teal,#86f0d6) 22%,transparent),0 0 8px var(--accent-teal,#86f0d6)}
+.nova-chat .ai-reply-row{display:flex;flex-wrap:wrap;align-items:center;gap:0 6px;margin-top:2px}
+.nova-chat .ai-reply-row .ai-reply-icons{margin-left:auto}
+.nova-chat .ai-turn-time{font:600 14px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted,#a4b2cd)}
+
+/* A phone (owner: "the chat agent gets the same visual language, lighter"): the sheet is the console. Its head is a strip
+   (NOVA's figure, its state in one line, the tools as keys); messages are glass cards with a neon edge by speaker — the
+   person's on the right in NOVA's second colour, NOVA's on the left beside its figure; the composer is the small command
+   instrument with a lit Send. Room between the parts; scanline glass; no blur, a light bloom only. */
+.nova-sheet[data-place=bottom]:has(.nova-chat-sheet){background:repeating-linear-gradient(0deg,#ffffff05 0 1px,transparent 1px 3px),linear-gradient(180deg,#0e1742 0,#070b22 170px,#050818 100%);box-shadow:0 -12px 36px -20px var(--nova-b,#63e7ff),0 40px 100px -30px #000}
+.nova-sheet-body:has(>.nova-chat-sheet){padding-inline:8px;padding-bottom:8px}
+.nova-sheet-body:has(>.nova-chat-sheet)>.nova-sheet-head{margin-inline:-8px;background:#0b1338}
+.nova-sheet-body:has(>.nova-chat-sheet)>.nova-sheet-head h2[id]{letter-spacing:.2em}
+.nova-chat-sheet .nova-chat-head{margin-top:2px;padding:6px 2px 9px 8px;gap:6px;background:linear-gradient(90deg,color-mix(in srgb,var(--nova-b,#63e7ff) 12%,transparent),transparent 70%)}
+.nova-chat-sheet .nova-chat-status{white-space:nowrap;text-overflow:ellipsis;color:color-mix(in srgb,var(--nova-b,#63e7ff) 30%,#fff)}
+.nova-chat-sheet .nova-chat-status .nova-dot{display:none}
+.nova-chat-sheet .nova-chat-tool{padding:0 9px}
+.nova-chat-sheet .nova-chat-log{padding:16px 6px 12px;gap:18px}
+.nova-chat-sheet .nova-turn{gap:8px}
+.nova-chat-sheet .nova-turn-body{padding:12px 14px 6px}
+.nova-chat-sheet .nova-turn-user .nova-turn-body{max-width:86%;padding:11px 16px}
+.nova-chat-sheet .nova-composer-wrap{padding:10px 6px 4px;gap:8px}
+.nova-chat-sheet .nova-composer{min-height:58px;box-sizing:border-box;--k-glow:0 0 18px -8px var(--nova-b,#63e7ff)}
+.nova-chat-sheet .nova-chat-foot{padding:4px 12px 10px}

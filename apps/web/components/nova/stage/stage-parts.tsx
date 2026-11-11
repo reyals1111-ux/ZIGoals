@@ -76,7 +76,7 @@ export function OneTap({available, onAsk, more}: {available: (id: string) => boo
 
 /** The figures in a line of words (a number with its separators, a currency sign before it, a percent sign after it), lit; the characters are unchanged. */
 const FIGURE = /((?:[$€£]\s?)?\d(?:[\d.,:]*\d)?(?:\s?%)?)/;
-const lit = (words: string): ReactNode[] => words.split(FIGURE).map((part, i) => i % 2 ? <b key={i} className="ns-fig">{part}</b> : part);
+const lit = (words: string): ReactNode[] => words.split(FIGURE).map((part, i) => i % 2 ? <b key={i} className={i === 1 ? 'ns-fig ns-fig-lead' : 'ns-fig'}>{part}</b> : part);
 
 /**
  * NOVA's newest words, under the star (D7). The whole reply is in the conversation; this line shows its beginning as
@@ -91,7 +91,7 @@ export function StageAnswerLine({answer, persona, onOpen, onDismiss, widget, onG
   // Session AM-2: a holographic read-out. Its head strip carries NOVA's mark and who answered (it stood under the words);
   // the figures in the words are lit (the same characters, marked up for the eye only); its links are keys.
   return <div className="ns-answer" data-by={answer.by}>
-    <span className="ns-answer-glow" aria-hidden="true"/><span className="sh-inner" aria-hidden="true"/>
+    <span className="ns-answer-glow" aria-hidden="true"/><span className="sh-inner" aria-hidden="true"/><span className="ns-answer-scan" aria-hidden="true"/>
     {/* The way to put the answer away sits in the card's corner (its links then fit one row). */}
     <button type="button" className="ns-answer-close" onClick={onDismiss} aria-label={`Dismiss ${persona}’s answer`} title="Dismiss"><CloseIcon/></button>
     <p className="ns-answer-head"><svg className="ns-answer-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2.5c1.1 6.6 2.9 8.4 9.5 9.5-6.6 1.1-8.4 2.9-9.5 9.5-1.1-6.6-2.9-8.4-9.5-9.5 6.6-1.1 8.4-2.9 9.5-9.5z"/></svg>
@@ -99,8 +99,8 @@ export function StageAnswerLine({answer, persona, onOpen, onDismiss, widget, onG
     {answer.question && <p className="ns-answer-asked"><span className="sr-only">You asked: </span>“{answer.question.length > 90 ? `${answer.question.slice(0, 88)}…` : answer.question}”</p>}
     <p className="ns-answer-text"><span className="sr-only">{persona}: </span>{lit(cut)}</p>
     <p className="ns-answer-meta">
-      {widget && onGoTo && <button type="button" className="ns-link" onClick={() => onGoTo(widget.id)}>Go to {widget.title}</button>}
-      <button type="button" className="ns-link" onClick={onOpen}>{answer.decision ? 'Open to decide' : 'Open the conversation'}</button>
+      {widget && onGoTo && <button type="button" className="ns-link" onClick={() => onGoTo(widget.id)}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g {...I}><circle cx="12" cy="12" r="5.5"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></g></svg>Go to {widget.title}</button>}
+      <button type="button" className="ns-link" onClick={onOpen}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path {...I} d="M5 6.5h14v9.5h-7.5L7.5 19.5V16H5z"/></svg>{answer.decision ? 'Open to decide' : 'Open the conversation'}</button>
 
     </p>
   </div>;

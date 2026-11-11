@@ -392,6 +392,8 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => { const leave = onCollapse ?? onClose; if (event.key === 'Escape' && leave && !event.defaultPrevented) { event.preventDefault(); leave(); } };
 
   return <section className={`nova-chat nova-chat-${layout}`} aria-labelledby={titleId} hidden={collapsed} data-collapsed={collapsed ? '' : undefined} onKeyDown={onKeyDown} onPointerDown={() => { if (reader.speaking) reader.stop(); }}>
+    {/* Session AM-2: the console's inner hairline with its corner marks (decoration; nova.css `.sh-inner`). */}
+    <span className="sh-inner" aria-hidden="true"/>
     <header className="nova-chat-head">
       <PersonaFigure persona={persona} size={layout === 'sheet' ? 34 : 44} state={orb}/>
       <div className="nova-chat-identity">
