@@ -261,7 +261,8 @@ a.nova-chip:hover .nova-chip-key { color: var(--sh-ink-neon); }
    lines inside the strip's own 44 px (no word is cut); the other segments keep one line. Under 900 px of centre the strip's
    segments wrap as before (AM-D7, AM-D8). */
 @container nova-centre (min-width: 900.02px) {
-  .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) { flex: 1 1 600px; max-width: max-content; min-width: 0; flex-wrap: nowrap; }
+  /* The strip shrinks only as far as its words can wrap (never under them: at 1280 px it slid under the setup banner, which then took the chip's taps); past that the deck wraps. */
+  .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) { flex: 1 1 600px; max-width: max-content; min-width: min-content; flex-wrap: nowrap; }
   .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) > li { flex: 0 0 auto; white-space: nowrap; }
   .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) > li.nova-chip-narrow { flex-shrink: 1; white-space: normal; }
   .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) > li:has(> [data-kind=scopes]) { flex-shrink: 4; white-space: normal; }

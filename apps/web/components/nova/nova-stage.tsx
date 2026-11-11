@@ -46,12 +46,14 @@ function NovaGreeting({greeting, typingFrom}: {greeting: string; typingFrom: num
  * day line and the Showcase label below — so the star sits at the optical centre of whatever holds it (the window, on the
  * Orbit, Minimal and phone layouts). The setup invitation left the stack: it is the slim banner under the status chips.
  */
-export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase, onTalk, talkOpen, core, star, starOn = false, starBox, starWhy, answer}: {
+export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase, onTalk, talkOpen, core, star, starOn = false, starBox, starSize, starWhy, answer}: {
   persona: Persona; orb: NovaOrbState; greeting: string; typingFrom: number | null; counts: NovaCounts; showcase: boolean; onTalk: () => void; talkOpen: boolean;
   /** Session AM (ADR-038 D10): the nebula star system's canvas, and whether it is drawing (then the SVG orb gives way to it). */
   star?: ReactNode; starOn?: boolean;
   /** The height the star's disc needs inside the stack (CSS px), so the words under it never sit on the nebula. */
   starBox?: number;
+  /** The star's own canvas size (CSS px): its bezel is drawn to it. */
+  starSize?: number;
   /** Session AM-2 (ADR-038 "AM-2", E4): the honest line — why the star is still, slower than usual or a picture (and, in a LOCAL_DEMO build, how it is drawn). */
   starWhy?: {kind: string; text: string; details?: string | null; open?: boolean} | null;
   /** Session AM (D7): NOVA's newest words, shown in place of the greeting and the day line while there is an answer. */
@@ -69,7 +71,7 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
       <circle className="nova-ring-moon" cx="300" cy="0" r="5"/><circle className="nova-ring-moon nova-ring-moon-2" cx="-150" cy="-260" r="3.5"/>
     </svg>
     <div className="nova-stage-above"><p className="nova-name" aria-hidden="true">{letters}</p></div>
-    <button type="button" className="nova-orb-button" onClick={onTalk} aria-expanded={talkOpen} aria-controls={talkOpen ? "nova-talk" : undefined} aria-describedby="nova-orb-state" data-star={starOn && persona.avatar !== 'zigi' ? '' : undefined} style={starOn && starBox && persona.avatar !== 'zigi' ? {'--star-box': `${starBox}px`} as CSSProperties : undefined}>
+    <button type="button" className="nova-orb-button" onClick={onTalk} aria-expanded={talkOpen} aria-controls={talkOpen ? "nova-talk" : undefined} aria-describedby="nova-orb-state" data-star={starOn && persona.avatar !== 'zigi' ? '' : undefined} style={starOn && starBox && persona.avatar !== 'zigi' ? {'--star-box': `${starBox}px`, '--star-size': `${starSize ?? Math.round(starBox / 0.42)}px`} as CSSProperties : undefined}>
       {/* Session AM-2 (G1): the star's light streak, carried across the stage (decoration; components/nova/stage/command-centre.css). */}
       {starOn && persona.avatar !== 'zigi' && <span className="cc-streak" aria-hidden="true"/>}
       {/* Session AM-2 (G4): the star's bezel — a ring of fine ticks in the galaxy's own plane, just outside its arms (static

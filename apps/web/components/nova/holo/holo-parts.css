@@ -611,7 +611,7 @@
 .holo-health .holo-ring > .holo-ring-centre, .holo-habits .holo-dial > .holo-ring-centre { position: static; }
 .holo-health .holo-ring > .holo-ring-centre > small, .holo-habits .holo-dial > .holo-ring-centre > small { position: absolute; left: 50%; top: calc(100% + 3px); translate: -50% 0; white-space: nowrap; font-size: 14px; line-height: 14px; color: #d3ddf1; }
 .holo-habits .holo-dial > .holo-ring-centre > small { top: calc(100% + 1px); }
-.holo-health .holo-ring .holo-num-ring, .nova-widget[data-size] .holo-health .holo-ring .holo-num-ring { font-size: clamp(12px, min(calc(var(--ring, 104px) * .215), calc(var(--ring, 104px) * 1.1 / var(--chars, 5))), 44px); }
+.holo-health .holo-ring .holo-num-ring, .nova-widget[data-size] .holo-health .holo-ring .holo-num-ring { font-size: clamp(12px, min(calc(var(--ring, 104px) * .215), calc(var(--ring, 104px) * 1.05 / var(--chars, 5))), 44px); }
 .holo-habits .holo-dial .holo-num-ring, .nova-widget[data-size] .holo-habits .holo-dial .holo-num-ring { font-size: clamp(13px, calc(var(--ring, 80px) * .3), 34px); }
 /* p6: the ring's column — the ring, its caption, and its reason under it. */
 .holo-ring-col { display: grid; justify-items: center; align-content: center; gap: 0; flex: none; max-width: 190px; }
@@ -916,3 +916,15 @@
 .nova-frame[data-look=classic] .holo-health[data-size] { --mgap: 6px; --histo-h: 64px; --spark-h: 44px; }
 .nova-frame[data-look=classic] .holo-health:is([data-size=M], [data-size=L]) .holo-heartrow { display: block; }
 .nova-frame[data-look=classic] .holo-num-big, .nova-frame[data-look=classic] .holo-wealth .holo-num-big { font-size: clamp(24px, 2.2vw, 30px); }
+
+/* ==== Session AM-2, after the second captures (the lead): words that carry meaning are never cut ====
+   The privacy tag ("On your screen only · not in NOVA's chat"), a goal's status ("Ahead of plan") and the estimate's
+   date were ending in an ellipsis in the default column. They are whole now: the tag sheds its dot and padding where the
+   body is narrow and may take a second line; the status and the estimate wrap instead of truncating. */
+.holo-arcs .holo-pace-words { white-space: normal; overflow: visible; text-overflow: clip; text-wrap: balance; }
+.holo-estimate { white-space: normal; overflow: visible; flex-wrap: wrap; row-gap: 2px; }
+.holo-estimate-words { overflow: visible; text-overflow: clip; }
+@container holo-body (max-width: 350px) {
+  .holo-health .holo-tag { grid-column: 1 / -1; padding-inline: 5px; letter-spacing: 0; white-space: normal; line-height: 18px; }
+  .holo-health .holo-tag::before { display: none; }
+}

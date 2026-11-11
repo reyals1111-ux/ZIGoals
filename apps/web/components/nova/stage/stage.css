@@ -29,6 +29,12 @@
 .nova-widget[data-holo] .nova-widget-head > h3 { flex: 0 1 auto; }
 .nova-widget .nova-widget-head > :is(.holo-act, .ns-actions) { margin-left: 0; flex: none; }
 .nova-widget .nova-widget-head > :is(.holo-act, .ns-actions) ~ .nova-widget-open { margin-left: 0; }
+/* Beside five keys in the default column the title needs every pixel: the keys stand a little closer (each still a
+   44 px target), so "Health HUD" and "Wealth HUD" are one line. */
+@container holo-panel (max-width: 399px) {
+  .nova-widget[data-holo] .nova-widget-head :is(.ns-act, .holo-act) { margin-inline: -6px; }
+  .nova-widget[data-holo] .nova-widget-head .nova-widget-open { margin-left: -2px; }
+}
 /* A panel too narrow for the title and the keys on one row: the title takes the first row, the keys the second. */
 @container holo-panel (max-width: 284px) {
   .nova-widget[data-holo] .nova-widget-head { flex-wrap: wrap; row-gap: 10px; }

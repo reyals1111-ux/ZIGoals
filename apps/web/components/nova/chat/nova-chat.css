@@ -246,7 +246,7 @@
    instrument with a lit Send. Room between the parts; scanline glass; no blur, a light bloom only. */
 .nova-sheet[data-place=bottom]:has(.nova-chat-sheet){background:repeating-linear-gradient(0deg,#ffffff05 0 1px,transparent 1px 3px),linear-gradient(180deg,#0e1742 0,#070b22 170px,#050818 100%);box-shadow:0 -12px 36px -20px var(--nova-b,#63e7ff),0 40px 100px -30px #000}
 .nova-sheet-body:has(>.nova-chat-sheet){padding-inline:8px;padding-bottom:8px}
-.nova-sheet-body:has(>.nova-chat-sheet)>.nova-sheet-head{margin-inline:-8px;background:#0b1338}
+.nova-sheet-body:has(>.nova-chat-sheet)>.nova-sheet-head{margin-inline:-8px;padding-inline:14px 8px;background:#0b1338}
 .nova-sheet-body:has(>.nova-chat-sheet)>.nova-sheet-head h2[id]{letter-spacing:.2em}
 .nova-chat-sheet .nova-chat-head{margin-top:2px;padding:6px 2px 9px 8px;gap:6px;background:linear-gradient(90deg,color-mix(in srgb,var(--nova-b,#63e7ff) 12%,transparent),transparent 70%)}
 .nova-chat-sheet .nova-chat-status{white-space:nowrap;text-overflow:ellipsis;color:color-mix(in srgb,var(--nova-b,#63e7ff) 30%,#fff)}

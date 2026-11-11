@@ -45,6 +45,8 @@
   --holo-bloom: 0 0 14px 1px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 46px 4px color-mix(in oklab, var(--neon, #9273ff) 26%, transparent), 0 0 120px 18px color-mix(in oklab, var(--neon, #9273ff) 10%, transparent), 0 34px 60px -22px #000e;
   background: var(--holo-glass);
   box-shadow: inset 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 50%, transparent), var(--holo-bloom);
+  /* B2: no backdrop-filter on the widget plane (the base card's blur is switched off here; tests/nova-stage-am2.spec.ts reads it). */
+  -webkit-backdrop-filter: none; backdrop-filter: none;
 }
 .nova-widget[data-holo] .nova-widget-planet { display: none; }
 .nova-widget[data-holo][data-size=S] { --holo-glass: var(--holo-scan), var(--holo-tint); }
@@ -72,6 +74,8 @@
 /* Round 1 of the critique ("chrome heavier than content"): the head's keys are quiet at rest (always there, always
    44 px) and light up with the widget under the pointer or holding the focus (a fixed highlight). */
 .nova-widget[data-holo]:is(:hover, :focus-within) :is(.holo-act, .nova-widget-open)::before { border-color: color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 13%, #060a1c); }
+/* A small panel's head may hold a title of two short lines: it keeps to 34 px (hud-fit M11), its divider on its last pixel. */
+.nova-widget[data-holo][data-size=S] .nova-widget-head { padding-bottom: 1px; }
 /* The tick ruler down the left edge (ornament, never data): fine ticks, a longer one every fifth. */
 .holo-ruler { position: absolute; left: 5px; top: 44px; bottom: 22px; width: 7px; pointer-events: none; opacity: .75;
   background: repeating-linear-gradient(to bottom, color-mix(in oklab, var(--neon, #9273ff) 75%, #fff) 0 1px, transparent 1px 40px) 0 0 / 7px 100% no-repeat,
@@ -84,7 +88,7 @@
    bright under the title and runs out toward the keys (static). */
 .nova-widget[data-holo] .nova-widget-head h3 { position: relative; padding-left: 19px; }
 .nova-widget[data-holo] .nova-widget-head h3::before { content: ''; position: absolute; left: 3px; top: .34em; width: 7px; height: 7px; transform: rotate(45deg); background: var(--neon, #9273ff); box-shadow: 0 0 0 2px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent); }
-.nova-widget[data-holo] .nova-widget-head { padding-bottom: 4px; background: linear-gradient(90deg, var(--neon, #9273ff) 0, var(--neon, #9273ff) 54px, color-mix(in oklab, var(--neon, #9273ff) 34%, transparent) 54px, color-mix(in oklab, var(--neon, #9273ff) 10%, transparent) 100%) 0 100% / 100% 1px no-repeat; }
+.nova-widget[data-holo] .nova-widget-head { padding-bottom: 2px; background: linear-gradient(90deg, var(--neon, #9273ff) 0, var(--neon, #9273ff) 54px, color-mix(in oklab, var(--neon, #9273ff) 34%, transparent) 54px, color-mix(in oklab, var(--neon, #9273ff) 10%, transparent) 100%) 0 100% / 100% 1px no-repeat; }
 .nova-widget[data-holo] .nova-widget-open { color: #e6ecfb; font-weight: 500; }
 /* Review p2 (lane L8d): the quick-actions bolt sits right beside the page link (the title leads); M11: the header never
    wraps over the body — the title gives way with an ellipsis, and a small panel's link is an arrow-only 44 px target. */
@@ -188,7 +192,7 @@
    so each instrument drops whole rows to fit (holo-parts.css), and no fade ever crosses a chart. */
 .nova-frame:not([data-phone]) [data-holo-fit]:not([data-holo-fit=bento]) .nova-widget[data-holo] {
   --h-s: var(--holo-u, 124px); --h-m: calc(var(--holo-u, 124px) * 2 + 12px); --h-l: calc(var(--holo-u, 124px) * 4 + 36px);
-  height: var(--h-m); max-height: none; padding: 11px 16px 8px; gap: 4px; }
+  height: var(--h-m); max-height: none; padding: 11px 16px 8px; gap: 3px; }
 .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size=S] { height: var(--h-s); }
 .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size=L] { height: var(--h-l); }
 /* Focus: the star first, its three panels one row under it, each a unit and a half. */
@@ -219,7 +223,7 @@
 @container nova-stage (min-width: 900.02px) {
   .nova-frame[data-look=holo] .nova-orbit { max-width: 1560px; }
   /* Round 1 of the critique: the star's column is the widest (it was the narrowest: the galaxy sat cropped between the wings). */
-  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(250px, 1fr) minmax(340px, 1.25fr) minmax(250px, 1fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(250px, 1fr) minmax(340px, 1.1fr) minmax(250px, 1fr); }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(340px, 1.45fr) minmax(320px, 1.1fr) minmax(240px, 1fr); }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(240px, 1fr) minmax(320px, 1.1fr) minmax(340px, 1.45fr); }
   .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(320px, 1.3fr) minmax(300px, 1fr) minmax(320px, 1.3fr); }

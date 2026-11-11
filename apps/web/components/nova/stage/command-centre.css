@@ -27,7 +27,7 @@
 /* G4: the star's bezel — a ring of fine ticks in the galaxy's own plane (the disc's tilt and roll), just outside its
    arms, so it frames the star without crossing NOVA's name above it or its words below. Static. (AK's three orbit
    rings were centred on the words' stack, so they sat off the star; they give way while the star draws.) */
-.nova-orb-button > .cc-bezel { position: absolute; inset: auto; left: 50%; top: 50%; width: calc(var(--star-box, 180px) * 2.5); height: calc(var(--star-box, 180px) * 2.5); margin: calc(var(--star-box, 180px) * -1.25) 0 0 calc(var(--star-box, 180px) * -1.25); z-index: 0; pointer-events: none; opacity: .85; }
+.nova-orb-button > .cc-bezel { position: absolute; inset: auto; left: 50%; top: 50%; width: calc(var(--star-size, 440px) * 1.06); height: calc(var(--star-size, 440px) * 1.06); margin: calc(var(--star-size, 440px) * -.53) 0 0 calc(var(--star-size, 440px) * -.53); z-index: 0; pointer-events: none; opacity: .85; }
 .cc-bezel > svg { display: block; width: 100%; height: 100%; overflow: visible; fill: none; }
 .cc-bezel-line { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 60%, transparent); stroke-width: .3; }
 .cc-bezel-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 75%, transparent); stroke-width: 1.8; }
@@ -84,9 +84,13 @@
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit > .nova-orbit-band { padding-top: 30px; }
 /* One straight edge per wing: AK's lean along a circle made each panel a different width (a ragged column). */
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main > .nova-orbit-side > .nova-widget[data-holo] { margin-inline: 0; }
-/* On a wide window the two wings turn a little toward the star (a static 2.5 degrees; never pointer-driven): the glass
-   wall of owner screenshot 1. Whole wings turn, so each widget's frame, bloom and words stay one piece. */
+/* On a wide window the two wings turn a little toward the star (a static 1.8 degrees; never pointer-driven): the glass
+   wall of owner screenshot 1. Whole wings turn, so each widget's frame, bloom and words stay one piece. The turn is
+   small enough that a 44 px key at the wing's far edge still measures 43.7 px (the keys' spec reads it at 2560 px). */
 @container nova-stage (min-width: 1700px) {
-  .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side[data-side=left] { transform: perspective(2400px) rotateY(2.5deg); transform-origin: 0 50%; }
-  .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side[data-side=right] { transform: perspective(2400px) rotateY(-2.5deg); transform-origin: 100% 50%; }
+  .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side[data-side=left] { transform: perspective(3600px) rotateY(1.8deg); transform-origin: 0 50%; }
+  .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side[data-side=right] { transform: perspective(3600px) rotateY(-1.8deg); transform-origin: 100% 50%; }
+  /* A turned wing's far edge is a little further away: its head's keys are drawn 2 px wider there, so each still measures 44 px on the screen. */
+  .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side .nova-widget-head :is(.ns-act, .holo-act) { width: 46px; margin-inline: -5px; }
+  .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side .nova-widget-head .nova-widget-open { min-width: 46px; }
 }
