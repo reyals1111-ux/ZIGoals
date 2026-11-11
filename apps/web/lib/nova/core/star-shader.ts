@@ -129,11 +129,11 @@ void main(){
   float solid = body*(1.-behind);
   if (body > 0.) {
     vec2 n = d/pr; float nz = sqrt(max(0., 1.-dot(n,n)));
-    vec3 nrm = normalize(vec3(n, nz)); vec3 L = normalize(vec3(-po, -.22));
+    vec3 nrm = normalize(vec3(n, nz)); vec3 L = normalize(vec3(-po/max(length(po), 1e-4), -.12));
     float lit = max(0., dot(nrm, L));
     float rim = sq(1.-nz)*sqrt(max(1.-nz, 0.)), facing = max(0., dot(n, -po/max(length(po), 1e-4)));
     // A body in every frame: a dark globe with faint bands, a thin lit limb all the way round, brightest toward the core.
-    vec3 pc = vec3(.012,.016,.045) + uA * .05 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uA, vec3(1.), .65) * lit*sqrt(max(lit, 0.)) * 1.5 + mix(uB, vec3(1.), .35) * rim * (.55 + 2.6*facing);
+    vec3 pc = vec3(.012,.016,.045) + uA * .05 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uA, vec3(1.), .7) * lit*sqrt(max(lit, 0.)) * 3.2 + mix(uB, vec3(1.), .35) * rim * (.7 + 3.*facing);
     col = mix(col, pc, solid);
   }
   col += uB * exp(-max(pd-pr, 0.)*70.) * (.16 + .3*max(0., dot(d, -po)/max(pd*length(po), 1e-4))) * (1.-behind) * (1.-body);
