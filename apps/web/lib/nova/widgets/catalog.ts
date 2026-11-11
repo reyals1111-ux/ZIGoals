@@ -70,7 +70,7 @@ export const WIDGETS: readonly WidgetSpec[] = [
   {id: 'journal', title: 'Journal', about: 'The days you wrote this month, and your streak.', pillar: 'mind', href: '/app/journal', open: 'Open your journal', size: 'M', gate: 'today', made: true},
   {id: 'time', title: 'Time', about: 'How much of today, this week and this year has passed.', pillar: 'orbit', href: '/app/agenda', open: 'Open your agenda', size: 'S', made: true},
   {id: 'weather', title: 'Weather', about: 'The weather where you are, once you turn outside data on. Data from MET Norway.', pillar: 'world', href: '/app/nova#nova-permissions', open: 'Weather settings', size: 'M', made: true},
-  {id: 'sun', title: 'Sun', about: 'Sunrise, sunset and the length of the day, once you turn outside data on.', pillar: 'world', href: '/app/nova#nova-permissions', open: 'Weather settings', size: 'S', made: true},
+  {id: 'sun', title: 'Sun', about: 'Sunrise, sunset and the length of the day, once you turn outside data on.', pillar: 'world', href: '/app/nova#nova-permissions', open: 'Weather settings', size: 'M', made: true},
   {id: 'nova-sees', title: 'What NOVA can see', about: 'Which parts of your life NOVA may read, switch by switch.', pillar: 'nova', href: '/app/nova#nova-permissions', open: 'Open Permissions', size: 'M', made: true},
   {id: 'nova-brain', title: 'NOVA’s brain', about: 'What answers right now: this device, your local model, your key or your agent.', pillar: 'nova', href: '/app/nova/setup', open: 'Open the setup guide', size: 'S', made: true},
   {id: 'requests', title: 'Your requests', about: 'What you asked NOVA lately, one tap from being shown again.', pillar: 'nova', href: '/app/nova', open: 'Open NOVA', size: 'M', made: true},

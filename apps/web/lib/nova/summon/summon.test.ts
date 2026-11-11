@@ -29,7 +29,7 @@ describe('summonFor: a question makes its widget (English and Dutch families)', 
     ['notes', 'Show my notes', ['Toon mijn notities']],
     ['weather', 'What’s the weather?', ['Wat voor weer is het?', 'Do I need an umbrella?', 'Gaat het regenen?', 'is it cold outside']],
     ['sun', 'When is sunset?', ['Hoe laat is de zonsondergang?', 'sunrise tomorrow']],
-    ['time', 'What time is it?', ['Hoe laat is het?', 'how much of the year is gone']],
+    ['time', 'What time is it?', ['Hoe laat is het?', 'how much of the year is gone', 'show the time', 'toon de klok']],
     ['nova-sees', 'What can you see?', ['Wat kun je zien?', 'show your permissions']],
     ['nova-brain', 'Which model are you using?', ['Welk model gebruik je?']],
     ['requests', 'What did I ask before?', ['Wat heb ik gevraagd?']],
@@ -117,6 +117,7 @@ describe('summonForTools: an answer’s lookups make the same widgets', () => {
   it('each kind once, three at most; the request’s own widgets lead a merge', () => {
     expect(summonForTools([{tool: 'sleep_nights'}, {tool: 'sleep_summary'}, {tool: 'steps'}, {tool: 'water'}, {tool: 'tasks'}]).map(w => w.id)).toEqual(['sleep', 'steps', 'water']);
     expect(mergeSummons([{id: 'weight', params: {range: 'month'}}], [{id: 'weight'}, {id: 'water'}]).map(w => w.id)).toEqual(['weight', 'water']);
+    expect(mergeSummons([{id: 'goal-focus', params: {ref: 'g-japan'}}], [{id: 'goal-pace'}, {id: 'goals-hud'}, {id: 'tasks'}]).map(w => w.id)).toEqual(['goal-focus', 'tasks']); // one goal's widget is enough
   });
 });
 

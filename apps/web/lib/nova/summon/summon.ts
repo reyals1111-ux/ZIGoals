@@ -66,7 +66,7 @@ export const FAMILIES: readonly Family[] = [
   {id: 'next', en: /\b(whats next|what is next|next up|up next|what should i do|what now)\b/, nl: /\b(wat nu|wat staat er|wat moet ik|volgende|straks)\b/},
   {id: 'sun', en: /\b(sunrise|sunset|daylight|golden hour|sun (?:rise|set|up|down))\b/, nl: /\b(zonsopgang|zonsopkomst|zonsondergang|daglicht|zon (?:op|onder))\b/, stageOnly: true},
   {id: 'weather', en: /\b(weather|rain|raining|rainy|umbrella|temperature|forecast|sunny|snow|snowing|windy|degrees|cold outside|warm outside|hot outside|jacket|coat)\b/, nl: /\b(weer|weerbericht|regen|regent|regenen|paraplu|temperatuur|zonnig|sneeuw|sneeuwt|graden|koud buiten|warm buiten|jas)\b/, stageOnly: true},
-  {id: 'time', en: /\b(time left|what time|year progress|how much of the (?:day|week|year)|days left)\b/, nl: /\b(hoe laat|tijd over|hoeveel van (?:de dag|de week|het jaar)|dagen over)\b/, stageOnly: true},
+  {id: 'time', en: /\b(time left|what time|the time|clock|year progress|how much of the (?:day|week|year)|days left)\b/, nl: /\b(hoe laat|de tijd|klok|tijd over|hoeveel van (?:de dag|de week|het jaar)|dagen over)\b/, stageOnly: true},
   {id: 'nova-sees', en: /\b(what can you see|what do you see|what do you know|permissions?|what can you read|privacy)\b/, nl: /\b(wat kun je zien|wat zie je|wat weet je|toestemming(?:en)?|wat mag je|privacy)\b/, stageOnly: true},
   {id: 'nova-brain', en: /\b(which model|what model|which brain|your brain|are you (?:online|connected)|which ai)\b/, nl: /\b(welk model|welk brein|je brein|ben je (?:online|verbonden)|welke ai)\b/, stageOnly: true},
   {id: 'requests', en: /\b(what did i ask|my requests|request history|asked (?:you )?(?:before|earlier|lately))\b/, nl: /\b(wat heb ik gevraagd|mijn vragen|eerder gevraagd|geschiedenis)\b/, stageOnly: true},
@@ -205,6 +205,8 @@ export function summonForTools(calls: readonly {tool: string; args?: Record<stri
 /** The request's own widgets first, then what the answer's lookups add, each kind once, `MAX_SUMMON` at most. */
 export function mergeSummons(first: readonly MakeRequest[], more: readonly MakeRequest[]): MakeRequest[] {
   const out: MakeRequest[] = [];
-  for (const w of [...first, ...more]) { if (out.length >= MAX_SUMMON) break; if (!out.some(x => x.id === w.id)) out.push(w); }
+  // One goal's own widget says what the general goal widgets would say again: with it, they stay off the stage.
+  const oneGoal = first.some(w => w.id === 'goal-focus'), again = (id: string) => oneGoal && (id === 'goal-pace' || id === 'goals-hud');
+  for (const w of [...first, ...more]) { if (out.length >= MAX_SUMMON) break; if (!out.some(x => x.id === w.id) && !again(w.id)) out.push(w); }
   return out;
 }

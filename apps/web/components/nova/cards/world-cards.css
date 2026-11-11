@@ -1,0 +1,62 @@
+/*
+ * Session AM (art direction §4): the weather and sun widgets. The sky decides the frame's colour: the widget's panel gets
+ * `data-sky` (and `data-night`) from its body. Scenes are thin strokes; the only motion is the weather's own small drift
+ * (rain falling, snow drifting, clouds easing 2 px), under Full motion, on screen, and never while the tab is hidden. One
+ * bolt brightens once when the widget is made. Calm, Motion Off and reduced motion: still.
+ */
+.nova-widget[data-sky=clear] { --neon: #ffcf7a; --neon-2: #7fb6ff; --neon-ink: #fff6e2; }
+.nova-widget[data-sky=clear][data-night], .nova-widget[data-sky=partly][data-night] { --neon: #b9c8ff; --neon-2: #e8eeff; --neon-ink: #eef2ff; }
+.nova-widget[data-sky=partly] { --neon: #9ccbff; --neon-2: #ffd9a0; --neon-ink: #eef6ff; }
+.nova-widget[data-sky=cloud], .nova-widget[data-sky=fog] { --neon: #a9bbd8; --neon-2: #dfe8f6; --neon-ink: #eef3ff; }
+.nova-widget[data-sky=drizzle], .nova-widget[data-sky=rain] { --neon: #3ee6ff; --neon-2: #7fb6ff; --neon-ink: #e6fbff; }
+.nova-widget[data-sky=sleet], .nova-widget[data-sky=snow] { --neon: #d6ecff; --neon-2: #ffffff; --neon-ink: #f4faff; }
+.nova-widget[data-sky=thunder] { --neon: #f06dff; --neon-2: #3ee6ff; --neon-ink: #fdeaff; }
+.nw-scene { flex: none; overflow: visible; fill: none; stroke: var(--neon, #7fb6ff); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 5px color-mix(in oklab, var(--neon, #7fb6ff) 70%, transparent)); }
+.nw-hours .nw-scene, .nc-capsule .nw-scene { --neon: #cfe0ff; stroke-width: 2.4; filter: none; }
+.nw-sun circle { fill: color-mix(in oklab, #ffcf7a 30%, transparent); stroke: #ffe2a6; }
+.nw-rays { stroke: #ffcf7a; }
+.nw-moon path { fill: color-mix(in oklab, #b9c8ff 18%, transparent); stroke: #e8eeff; }
+.nw-star { fill: #fff; stroke: none; }
+.nw-cloud { fill: #0a1030cc; stroke: #dfe8f6; }
+.nw-cloud-back { stroke: #9fb1d0; opacity: .8; }
+.nw-fog path { stroke: #c9d6ea; stroke-dasharray: 10 6; }
+.nw-rain path { stroke: #3ee6ff; }
+.nw-rain[data-light] path { stroke-dasharray: 3 4; }
+.nw-snow circle { fill: #fff; stroke: none; }
+.nw-bolt { fill: #f06dff; stroke: #ffd6ff; stroke-width: 1; filter: drop-shadow(0 0 6px #f06dff); }
+.nw-weather { gap: 12px; }
+.nw-now { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.nw-temp { margin: 0; display: flex; align-items: flex-start; gap: 2px; line-height: 1; }
+.nw-temp-num { font-size: clamp(40px, 4vw, 60px); font-weight: 650; }
+.nw-weather[data-size=M] .nw-temp-num { font-size: 42px; }
+.nw-weather[data-size=M] { gap: 8px; }
+.nw-weather[data-size=S] .nw-temp-num { font-size: 32px; }
+.nw-temp-unit { margin-top: 6px; font-size: 16px; font-weight: 600; color: #d6e0f5; }
+.nw-condition { margin: 4px 0 0; font-size: 16px; font-weight: 650; color: #f2f6ff; }
+.nw-umbrella { margin: 2px 0 0; font-size: 15px; line-height: 1.4; color: #d0dbf0; }
+.nw-hours { list-style: none; margin: 0; padding: 8px 0 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; border-top: 1px solid #ffffff1f; }
+.nw-hours li { display: grid; justify-items: center; gap: 2px; min-width: 0; }
+.nw-hour-time { font-size: 14px; color: #c3cfe6; white-space: nowrap; }
+.nw-hour-temp { font-size: 15px; font-weight: 650; color: #f2f6ff; font-variant-numeric: tabular-nums; }
+.nw-hour-rain { min-height: 20px; font-size: 14px; color: #9fe9f8; white-space: nowrap; }
+.nw-days { display: grid; gap: 6px; }
+.nw-credit a { color: #e6edfb; text-decoration: underline; text-underline-offset: 3px; }
+.nw-sunarc svg { display: block; width: 100%; max-width: 220px; height: auto; margin: 0 auto; overflow: visible; }
+.nw-arc-track { fill: none; stroke: #ffffff2e; stroke-width: 1.6; stroke-dasharray: 2 5; }
+.nw-arc-done { fill: none; stroke: #ffcf7a; stroke-width: 2.2; stroke-linecap: round; filter: drop-shadow(0 0 5px #ffcf7a); }
+.nw-horizon { stroke: #ffffff40; stroke-width: 1; }
+.nw-arc-sun { fill: #fff3d6; stroke: #ffcf7a; stroke-width: 1.6; filter: drop-shadow(0 0 8px #ffcf7a); }
+.nw-sun-times { margin: 4px 0 0; display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: #c3cfe6; }
+.nw-sun-times b { display: block; font-size: 18px; font-weight: 650; color: #f4f7ff; font-variant-numeric: tabular-nums; }
+/* The weather's own drift: Full motion only, on screen, paused with the stage. */
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nw-now .nw-rain path { animation: nw-fall .9s linear infinite; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nw-now .nw-rain path:nth-child(2n) { animation-delay: -.45s; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nw-now .nw-snow circle { animation: nw-drift 3.2s ease-in-out infinite alternate; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nw-now .nw-cloud-back { animation: nw-ease 20s ease-in-out infinite alternate; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .nw-bolt { animation: nw-bolt .7s .5s ease-out both; }
+@keyframes nw-fall { from { transform: translate(2px, -5px); opacity: 0; } 30% { opacity: 1; } to { transform: translate(-3px, 6px); opacity: 0; } }
+@keyframes nw-drift { from { transform: translate(-2px, -3px); } to { transform: translate(2px, 3px); } }
+@keyframes nw-ease { from { transform: translateX(-2px); } to { transform: translateX(2px); } }
+@keyframes nw-bolt { 0% { opacity: .2; } 30% { opacity: 1; filter: drop-shadow(0 0 14px #f06dff); } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .nw-rain path, .nw-snow circle, .nw-cloud-back, .nw-bolt { animation: none !important; } }
+:root[data-app-motion=off] :is(.nw-rain path, .nw-snow circle, .nw-cloud-back, .nw-bolt) { animation: none !important; }
