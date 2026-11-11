@@ -15,10 +15,10 @@
 .ns-more-item { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #eef3ff; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer; }
 .ns-more-item svg { width: 20px; height: 20px; flex: none; }
 .ns-more-item:hover { background: color-mix(in oklab, var(--neon, #9273ff) 22%, transparent); }
-/* Design review AM-D11: a panel of 340 px or more (the default desktop column is 374 px) shows Pin, Hide and Close as
+/* Design review AM-D11: a panel of 312 px of content or more (the default desktop column is 374 px with its padding) shows Pin, Hide and Close as
    named buttons; a narrower one keeps them under "More". The title leads and truncates; everything after it is one
    right-aligned group in a fixed order (Quick actions · Pin · Hide · Close · Open), so no control moves with the title. */
-@container holo-panel (min-width: 340px) { .ns-actions { display: inline-flex; } .ns-more { display: none; } }
+@container holo-panel (min-width: 312px) { .ns-actions { display: inline-flex; } .ns-more { display: none; } }
 .nova-frame[data-look=classic] .ns-actions { display: inline-flex; }
 .nova-frame[data-look=classic] .ns-more { display: none; }
 .nova-frame[data-editing] :is(.ns-actions, .ns-more) { display: none; }
@@ -30,7 +30,7 @@
    folded away; where the button shows, its filled glyph is the mark. */
 .ns-pinned { display: inline-grid; place-items: center; flex: none; width: 20px; height: 20px; margin-right: 6px; color: var(--neon-ink, #eef3ff); }
 .ns-pinned svg { width: 16px; height: 16px; filter: drop-shadow(0 0 4px var(--neon, #9273ff)); }
-@container holo-panel (min-width: 340px) { .ns-pinned { display: none; } }
+@container holo-panel (min-width: 312px) { .ns-pinned { display: none; } }
 .nova-frame[data-look=classic] .ns-pinned { display: none; }
 .nova-frame[data-editing] .ns-pinned { display: inline-grid; }
 .ns-act[aria-pressed=true] svg { filter: drop-shadow(0 0 5px var(--neon, #9273ff)); }
@@ -99,3 +99,5 @@
 }
 /* Design review AM-D18: a widget is a focus target (the answer's "Go to …" lands on it); the ring is the stage's own. */
 .nova-widget:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: 3px; }
+/* In the default column the title sits beside five controls: its letters stand closer so "Habits this week" is read whole. */
+@container holo-panel (max-width: 399px) { .nova-widget[data-holo] .nova-widget-head h3 { letter-spacing: .04em; } }

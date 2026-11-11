@@ -159,6 +159,8 @@ export default function NovaDashboard() {
   const stage = useStage({nova: r, save, canShow, announce: setStatus, arranging: editing});
   const [answer, setAnswer] = useState<StageAnswer | null>(null), [beam, setBeam] = useState<StarBeam | null>(null), inPlace = useRef(false);
   const [beamLine, setBeamLine] = useState<{x: number; y: number; length: number; turn: number; key: number} | null>(null), beamTimer = useRef(0), beamRuns = useRef(false), [stageOrb, setStageOrb] = useState<NovaOrbState | null>(null), [lastMade, setLastMade] = useState<string | null>(null);
+  // Design review AM-D30: an answer that speaks for widgets is gone once none of them is on the stage (closed, cleared, expired).
+  const answerNow = answer && answer.widgets?.length && !answer.widgets.some(id => stage.shown.some(w => w.id === id) || stage.docked.some(w => w.id === id)) ? null : answer;
   const entries = useMemo(() => dockEntries(r, {pageShown: page => isShown(pagesView, page), earn: chain.earnShown}), [r, pagesView, chain.earnShown]);
   // Design review AM-D17: from 1100 px the open conversation is a column docked on the right, in the right bar's place; under
   // 1600 px the left bar shows as its rail while it is open (one open bar at a time; the stored choice is untouched).
@@ -345,7 +347,7 @@ export default function NovaDashboard() {
   // A5: the gentle cards (opt-in, off by default). While NOVA is open and nothing else is going on, at most one widget is
   // put on the stage for something the person's own records say is worth a glance, with one line under the star. Each
   // card once a day; rarer under Calm; nothing while the tab is hidden; never a notification.
-  const gentleOn = stage.loaded && proactiveOn(stage.record.data), gentleQuiet = !phone && !chatOpen && !editing && !answer && !draft && stage.fresh.size === 0 && hudMove.state !== 'paused';
+  const gentleOn = stage.loaded && proactiveOn(stage.record.data), gentleQuiet = !phone && !chatOpen && !editing && !answerNow && !draft && stage.fresh.size === 0 && hudMove.state !== 'paused';
   const billDue = counts.nextBill?.due ?? null, gentleGates = stage.gates;
   useEffect(() => {
     if (!gentleOn || !gentleQuiet || !gentleGates) return;
@@ -391,7 +393,7 @@ export default function NovaDashboard() {
   // itself has no model at work, so the stage holds "thinking" for a moment and "speaking" while the answer is new; the
   // conversation's own state (a model listening, thinking, speaking) always leads.
   beamRuns.current = hudMove.state === 'full' && !phone;
-  const answerKey = answer && !chatOpen ? answer.id : '';
+  const answerKey = answerNow && !chatOpen ? answerNow.id : '';
   useEffect(() => {
     if (!freshKey && !answerKey) return;
     const timers = [window.setTimeout(() => setStageOrb('thinking'), 0), window.setTimeout(() => setStageOrb('speaking'), 340), window.setTimeout(() => setStageOrb(null), 2400)];
@@ -415,12 +417,12 @@ export default function NovaDashboard() {
   // Beside widgets the nebula keeps to the star's own column (about a third of the stage), so it never lies over a widget.
   const hudRoom = (hudSize?.height ?? height - 300) - 26, hudWide = hudSize?.width ?? width - 300, starSlot = hudRoom <= 520 ? 204 : hudRoom >= 640 ? 252 : 228, starRoom = (hudRoom - starSlot - 124) / 0.42;
   const starCalm = width >= 1280 ? 560 : 460, starCap = stage.shown.length ? (hudWide >= 1100 ? 440 : hudWide >= 960 ? 340 : 300) : starCalm;
-  const starSize = phone ? 260 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 110 : Math.round(Math.max(240, Math.min(hudWide > 760 ? starCalm : starCap, starRoom)) * 0.42);
+  const starSize = phone ? 260 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 110 : Math.round(Math.max(240, Math.min(hudWide > 800 ? starCalm : starCap, starRoom)) * 0.42);
   const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} beam={beam} onRender={onStarRender}/></Suspense></LoadBoundary>;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).
   const answerWidget = lastMade && stage.shown.some(w => w.id === lastMade) ? {id: lastMade, title: widgetSpec(lastMade)?.title ?? 'the widget'} : null;
   const goToWidget = (id: string) => { const el = root.current?.querySelector<HTMLElement>(`article[data-widget="${id}"]`); if (el) { el.scrollIntoView({block: 'nearest'}); el.focus({preventScroll: true}); } };
-  const answerLine = answer && !chatOpen ? <StageAnswerLine answer={answer} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)} widget={answerWidget} onGoTo={goToWidget}/> : undefined;
+  const answerLine = answerNow && !chatOpen ? <StageAnswerLine answer={answerNow} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)} widget={answerWidget} onGoTo={goToWidget}/> : undefined;
   const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={starBox} answer={answerLine}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}/></Suspense></LoadBoundary>;
@@ -445,7 +447,7 @@ export default function NovaDashboard() {
         <LoadBoundary quiet><Suspense fallback={null}><NovaLive/></Suspense></LoadBoundary>
         {/* Session AK P3 (ND-23): the setup invitation, one slim line under the chips (it left the star's stack). */}
         {/* Session AM: the invitation shows on the calm stage; once widgets or an answer are up it steps aside (the guide stays one tap away in the left bar and Behind the intelligence). */}
-        {!chatOpen && stage.shown.length === 0 && !answer && <NovaSetupBanner persona={persona.name} brain={brain}/>}
+        {!chatOpen && stage.shown.length === 0 && !answerNow && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
       <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={stageNode} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting}/>}</div>
