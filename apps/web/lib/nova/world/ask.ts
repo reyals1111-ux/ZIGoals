@@ -1,6 +1,6 @@
 import {readDeviceRecord, updateDeviceRecord} from '../../device-record';
 import {fetchWeather, shouldFetch, WeatherError, MET_CREDIT, MET_CREDIT_NL} from './met';
-import {NOVA_WORLD, placeOf, readingOf, worldOn} from './record';
+import {applyFetched, NOVA_WORLD, placeOf, readingOf, worldOn} from './record';
 import {umbrella, weatherSentence} from './words';
 
 /**
@@ -10,6 +10,7 @@ import {umbrella, weatherSentence} from './words';
  * turn it on and never guesses.
  */
 type Lang = 'en' | 'nl';
+export const WEATHER_TIMEOUT_MS = 15_000;
 type Store = Pick<Storage, 'getItem' | 'setItem'>;
 export const WEATHER_OFF_WORDS: Readonly<Record<Lang, string>> = {
   en: 'Weather is off. Turn on “Weather (outside data)” in NOVA → Permissions and choose your place; then I ask MET Norway, which sees your network address and that place, rounded to about 1 km. Until then I don’t guess the weather.',
@@ -26,11 +27,13 @@ export async function weatherAnswer(storage: Store, now: Date, lang: Lang, fetch
   if (!place) return WEATHER_PLACE_WORDS[lang];
   let trouble = '';
   if (shouldFetch({world, now, hidden: false, wanted: true})) {
-    try { const next = await fetchWeather({world, now, fetchImpl}); world = updateDeviceRecord(storage, NOVA_WORLD, () => next); }
+    // AM-S3: the answer is merged into the record as it is when it arrives (never a copy taken before the request), and the request gives up after 15 s.
+    const stop = new AbortController(), timer = setTimeout(() => stop.abort(), WEATHER_TIMEOUT_MS);
+    try { const next = await fetchWeather({world, now, fetchImpl, signal: stop.signal}); world = updateDeviceRecord(storage, NOVA_WORLD, current => applyFetched(current, next)); }
     catch (e) {
       trouble = e instanceof Error ? e.message : '';
-      if (e instanceof WeatherError) { try { world = updateDeviceRecord(storage, NOVA_WORLD, () => (e as WeatherError).world); } catch { /* the ten-minute rule then holds in memory only */ } }
-    }
+      if (e instanceof WeatherError) { try { world = updateDeviceRecord(storage, NOVA_WORLD, current => applyFetched(current, (e as WeatherError).world)); } catch { /* the ten-minute rule then holds in memory only */ } }
+    } finally { clearTimeout(timer); }
   }
   const reading = readingOf(world);
   if (!reading) return lang === 'nl' ? `Ik heb nog geen weerbericht voor ${place.name}. ${trouble} Ik vraag het hooguit eens per tien minuten.`.replace(/\s+/g, ' ') : `I have no reading for ${place.name} yet. ${trouble} I ask at most once in ten minutes.`.replace(/\s+/g, ' ');

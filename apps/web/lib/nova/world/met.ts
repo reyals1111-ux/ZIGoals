@@ -241,6 +241,15 @@ const answered = (status: number): boolean => status === 200 || status === 203;
  * 429, a server error or no answer: a `WeatherError` in plain words whose `world` has the ask counted, so the
  * 10-minute rule holds after an error too.
  */
+/** Security review AM-S10: an answer larger than this is not read (a full forecast is about 150 kB). */
+export const MAX_ANSWER_CHARS = 1_500_000;
+async function boundedJson(response: Response): Promise<unknown> {
+  const declared = Number(response.headers.get('content-length') ?? '0');
+  if (declared > MAX_ANSWER_CHARS) throw Error('too large');
+  const body = await response.text();
+  if (body.length > MAX_ANSWER_CHARS) throw Error('too large');
+  return JSON.parse(body);
+}
 export async function fetchWeather({world, now, fetchImpl = fetch, signal, timeZone = deviceZone(), revalidate = 'browser'}: FetchWeatherOptions): Promise<NovaWorld> {
   if (!worldOn(world)) throw new WeatherError(WEATHER_OFF, world);
   const place = placeOf(world);
@@ -248,7 +257,8 @@ export async function fetchWeather({world, now, fetchImpl = fetch, signal, timeZ
   const kept = readingOf(world), asked = markAsked(world, now);
   const fail = (words: string) => new WeatherError(`${words}${kept ? LAST_STAYS : ''}`, asked);
   const init = (headers?: Record<string, string>): RequestInit => ({
-    method: 'GET', credentials: 'omit', cache: revalidate === 'header' ? 'no-store' : 'no-cache', referrerPolicy: MET_REFERRER_POLICY,
+    // Security review AM-S10: a redirect is an error (the answer comes from api.met.no or not at all).
+    method: 'GET', credentials: 'omit', redirect: 'error', cache: revalidate === 'header' ? 'no-store' : 'no-cache', referrerPolicy: MET_REFERRER_POLICY,
     ...(headers ? {headers} : {}), ...(signal ? {signal} : {}),
   });
   let response: Response;
@@ -259,7 +269,7 @@ export async function fetchWeather({world, now, fetchImpl = fetch, signal, timeZ
   if (response.status === 304 && kept) reading = {...kept, expires};
   else if (answered(response.status)) {
     let json: unknown;
-    try { json = await response.json(); } catch { throw fail(signal?.aborted ? MET_STOPPED : MET_UNREADABLE); }
+    try { json = await boundedJson(response); } catch { throw fail(signal?.aborted ? MET_STOPPED : MET_UNREADABLE); }
     let parts: ForecastParts;
     try { parts = parseForecast(json, place, now, timeZone); } catch (error) { throw fail(error instanceof Error && error.message === MET_NO_CURRENT ? MET_NO_CURRENT : MET_UNREADABLE); }
     reading = known({...parts, fetchedAt: now.toISOString(), expires, lastModified: plainHeader(response.headers.get('last-modified'))});
@@ -272,7 +282,7 @@ export async function fetchWeather({world, now, fetchImpl = fetch, signal, timeZ
   if (!sun) {
     try {
       const answer = await fetchImpl(sunUrl(place, today.date, today.offset), init());
-      if (answered(answer.status)) sun = parseSun(await answer.json());
+      if (answered(answer.status)) sun = parseSun(await boundedJson(answer));
     } catch { /* The reading stands without the sun. */ }
   }
   const next: WorldReading = {...reading};

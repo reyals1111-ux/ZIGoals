@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {AM_CATALOG_LABELS, AM_DISPLAY_KEYS, AM_ERASE_KEYS, AM_EXPORT_KEYS, AM_PERSONAL_KEYS, NOVA_STAGE_KEY_LITERAL, NOVA_WORLD_KEY_LITERAL} from './am-device-keys';
 import {NOVA_STAGE, NOVA_STAGE_KEY} from './nova/stage/record';
-import {NOVA_WORLD, NOVA_WORLD_KEY} from './nova/world/record';
+import {NOVA_WORLD, NOVA_WORLD_KEY, NOVA_WORLD_RESTORE, novaWorldRestoreSchema} from './nova/world/record';
 import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from './onboarding';
 import {DEVICE_KEYS, EVERYTHING_KEYS, MODULE_KEYS} from './export/everything';
 import {DEVICE_ONLY, NOVA_PARTLY_SYNCED_LABEL, SYNCED} from './data-health/catalog';
@@ -94,10 +94,13 @@ describe('Session AM device keys', () => {
     for (const key of all) expect(m.has(key), key).toBe(false);
     expect(m.has('zigoals:unrelated-am-test:v1')).toBe(true);
   });
-  test('a restore brings each record back with its own reader, in Today and Life, outside the Health choice', () => {
+  // Session AM (AM-S9, deliberate): the weather record is restored through its own restore reader (was: NOVA_WORLD's
+  // schema, label 'NOVA weather choice and place'). The reader brings the place and never the switch, the reading or the
+  // time of the last ask, so the label names the place only. The stage record is checked exactly as before.
+  test('a restore brings each record back with its own reader, in Today and Life, outside the Health choice; the weather record through the reader that never brings the switch', () => {
     const expected = [
       {name: 'novaStage', key: NOVA_STAGE_KEY, label: 'NOVA requests and made widgets', schema: NOVA_STAGE.schema},
-      {name: 'novaWorld', key: NOVA_WORLD_KEY, label: 'NOVA weather choice and place', schema: NOVA_WORLD.schema},
+      {name: 'novaWorld', key: NOVA_WORLD_KEY, label: 'NOVA weather place', schema: NOVA_WORLD_RESTORE.schema},
     ];
     for (const want of expected) {
       const parts = DEVICE_PARTS.filter(part => part.key === want.key);
@@ -108,24 +111,55 @@ describe('Session AM device keys', () => {
       // The encrypted backup (format 4) carries it in its Today and Life section, by the same judgement.
       expect(sectionOf(parts[0]!)).toBe('lifeRecords');
     }
+    // The restore reader is not the device's reader: same key and empty value, another schema; the device's own reader keeps the switch.
+    expect(NOVA_WORLD_RESTORE.schema).toBe(novaWorldRestoreSchema);
+    expect(NOVA_WORLD_RESTORE.schema).not.toBe(NOVA_WORLD.schema);
+    expect([NOVA_WORLD_RESTORE.key, NOVA_WORLD_RESTORE.empty()]).toEqual([NOVA_WORLD.key, NOVA_WORLD.empty()]);
+    const part = DEVICE_PARTS.find(p => p.key === NOVA_WORLD_KEY)!;
+    const reading = {lat: 50.85, lon: 4.35, fetchedAt: '2026-11-11T09:00:00.000Z', expires: '2026-11-11T09:30:00.000Z', now: {at: '2026-11-11T09:00:00.000Z', t: 7, symbol: 'cloudy'}, hours: [], days: []};
+    const full = {version: 1, on: true, place: {name: 'Brussels', lat: 50.85, lon: 4.35}, reading, askedAt: '2026-11-11T09:00:00.000Z'};
+    expect(NOVA_WORLD.schema.parse(full)).toEqual(full);
+    expect(part.schema.parse(full)).toEqual({version: 1, place: {name: 'Brussels', lat: 50.85, lon: 4.35}});
+    // A crafted file cannot say "on" in any spelling the device's reader would take, and a switch without a place restores as nothing.
+    for (const crafted of [{version: 1, on: true}, {version: 1, on: true, askedAt: '2026-11-11T09:00:00.000Z'}, {version: 1, on: true, reading}]) expect(part.schema.parse(crafted), JSON.stringify(crafted)).toEqual({version: 1});
+    for (const refused of [{version: 1, on: 'yes', place: full.place}, {version: 2, place: full.place}]) expect(part.schema.safeParse(refused).success, JSON.stringify(refused)).toBe(false);
   });
-  test('the encrypted backup carries both in its Today and Life section, still format 4, and a fresh device gets them back', () => {
+  // Session AM (AM-S9, deliberate): the fresh device gets the stage record back whole, as before, and of the weather record
+  // the place only (was: the whole record, `on: true` included, under the label 'NOVA weather choice and place'). The
+  // switch, the reading and the time of the last ask are not in the backup either. Still format 4.
+  test('the encrypted backup carries both in its Today and Life section, still format 4; a fresh device gets the stage record back whole and the weather place without the switch', () => {
     const stage = {version: 1, made: [{id: 'weight', at: '2026-11-11T09:00:00.000Z'}], params: {weight: {range: 'month'}}, asks: [{id: 'a1', at: '2026-11-11T09:00:00.000Z', text: 'What is my weight progress this month?', widgets: ['weight'], device: 'computer', by: 'device'}]};
-    const world = {version: 1, on: true, place: {name: 'Brussels', lat: 50.85, lon: 4.35}};
+    const reading = {lat: 50.85, lon: 4.35, fetchedAt: '2026-11-11T09:00:00.000Z', expires: '2026-11-11T09:30:00.000Z', now: {at: '2026-11-11T09:00:00.000Z', t: 7, symbol: 'cloudy'}, hours: [], days: []};
+    const world = {version: 1, on: true, place: {name: 'Brussels', lat: 50.85, lon: 4.35}, reading, askedAt: '2026-11-11T09:00:00.000Z'};
     const here = memory();
     here.storage.setItem(NOVA_STAGE_KEY, JSON.stringify(stage)); here.storage.setItem(NOVA_WORLD_KEY, JSON.stringify(world));
     const {sections, warnings} = exportRecordSections(here.storage, {health: false});
     expect(warnings).toEqual([]);
     expect(Object.keys(sections)).toEqual(['lifeRecords']);
     expect(backupFormatVersion(Object.keys(sections))).toBe(4);
-    expect(Object.keys((JSON.parse(sections.lifeRecords!) as {records: Record<string, unknown>}).records).sort()).toEqual(['device:novaStage', 'device:novaWorld']);
+    const carried = (JSON.parse(sections.lifeRecords!) as {records: Record<string, unknown>}).records;
+    expect(Object.keys(carried).sort()).toEqual(['device:novaStage', 'device:novaWorld']);
+    expect(carried['device:novaStage']).toEqual(stage);
+    // The backup itself holds the place and nothing else of the weather record.
+    expect(carried['device:novaWorld']).toEqual({version: 1, place: {name: 'Brussels', lat: 50.85, lon: 4.35}});
+    // Making the backup changes nothing on this device: its switch and reading stay.
+    expect(JSON.parse(here.m.get(NOVA_WORLD_KEY)!)).toEqual(world);
     const fresh = memory();
-    expect(restoreRecordSection(fresh.storage, 'lifeRecords', sections.lifeRecords!)).toEqual({restored: ['NOVA requests and made widgets', 'NOVA weather choice and place'], skipped: 0});
+    expect(restoreRecordSection(fresh.storage, 'lifeRecords', sections.lifeRecords!)).toEqual({restored: ['NOVA requests and made widgets', 'NOVA weather place'], skipped: 0});
     expect(JSON.parse(fresh.m.get(NOVA_STAGE_KEY)!)).toEqual(stage);
-    expect(JSON.parse(fresh.m.get(NOVA_WORLD_KEY)!)).toEqual(world);
-    // A record that is only its empty value is not carried.
+    const restored = JSON.parse(fresh.m.get(NOVA_WORLD_KEY)!);
+    expect(restored).toEqual({version: 1, place: {name: 'Brussels', lat: 50.85, lon: 4.35}});
+    for (const field of ['on', 'reading', 'askedAt']) expect(restored, field).not.toHaveProperty(field);
+    // A backup made by a build from before this fix (or a crafted one) that says "on": the place arrives, the switch does not.
+    const older = JSON.stringify({format: 'zigoals-device-records-backup', version: 1, records: {'device:novaWorld': world}});
+    const other = memory();
+    expect(restoreRecordSection(other.storage, 'lifeRecords', older)).toEqual({restored: ['NOVA weather place'], skipped: 0});
+    expect(JSON.parse(other.m.get(NOVA_WORLD_KEY)!)).toEqual({version: 1, place: {name: 'Brussels', lat: 50.85, lon: 4.35}});
+    // A record that is only its empty value is not carried; a switch with no place is nothing to carry either.
     const empty = memory();
     empty.storage.setItem(NOVA_STAGE_KEY, JSON.stringify(NOVA_STAGE.empty())); empty.storage.setItem(NOVA_WORLD_KEY, JSON.stringify(NOVA_WORLD.empty()));
+    expect(exportRecordSections(empty.storage, {health: false}).sections).toEqual({});
+    empty.storage.setItem(NOVA_WORLD_KEY, JSON.stringify({version: 1, on: true}));
     expect(exportRecordSections(empty.storage, {health: false}).sections).toEqual({});
   });
 });

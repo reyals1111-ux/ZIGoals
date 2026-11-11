@@ -2,7 +2,10 @@
 import {useEffect, useRef, useState} from 'react';
 import {showcaseDay} from '../../../lib/showcase-storage';
 import {fetchWeather, shouldFetch, WeatherError} from '../../../lib/nova/world/met';
-import {NOVA_WORLD, placeOf, readingOf, worldOn, type NovaWorld, type WorldPlace, type WorldReading} from '../../../lib/nova/world/record';
+import {applyFetched, markAsked, NOVA_WORLD, placeOf, readingOf, worldOn, type NovaWorld, type WorldPlace, type WorldReading} from '../../../lib/nova/world/record';
+import {WEATHER_TIMEOUT_MS} from '../../../lib/nova/world/ask';
+import {readDeviceRecord} from '../../../lib/device-record';
+import {getAppStorage} from '../../../lib/showcase-storage';
 import {SHOWCASE_PLACE, showcaseReading} from '../../../lib/nova/world/showcase';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useShowcase} from '../../showcase-controls';
@@ -33,11 +36,19 @@ export function useWeather(): WeatherState {
     if (worldOn(data) && placeOf(data)) again(reading ? Date.parse(reading.expires) - now.getTime() + 2000 : 10 * 60_000 + 2000);
     const visible = () => { if (document.visibilityState !== 'hidden') setTick(t => t + 1); };
     document.addEventListener('visibilitychange', visible);
-    if (shouldFetch({world: data, now, hidden, wanted: true})) {
-      const ask = inFlight ?? (inFlight = fetchWeather({world: data, now}).finally(() => { inFlight = null; }));
-      ask.then(next => { try { update(() => next); } catch { /* storage refused: the reading shows until the page closes */ } if (live.current) setFailed(null); })
+    // Security review AM-S10: the rule is checked against the device's record as it is now (another tab may just have
+    // asked), and the ask is written down before the request leaves, so two tabs do not both ask.
+    let fresh = data; try { const read = readDeviceRecord(getAppStorage(), NOVA_WORLD); if (!read.unreadable) fresh = read.data; } catch { fresh = data; }
+    if (shouldFetch({world: fresh, now, hidden, wanted: true}) && shouldFetch({world: data, now, hidden, wanted: true})) {
+      if (!inFlight) {
+        try { update(current => markAsked(current, now)); } catch { /* the rule then counts from this tab's memory only */ }
+        // AM-S3: the request gives up after 15 s, and its answer is merged into the record as it is when it arrives.
+        const stop = new AbortController(), timeout = window.setTimeout(() => stop.abort(), WEATHER_TIMEOUT_MS);
+        inFlight = fetchWeather({world: fresh, now, signal: stop.signal}).finally(() => { window.clearTimeout(timeout); inFlight = null; });
+      }
+      inFlight.then(next => { try { update(current => applyFetched(current, next)); } catch { /* storage refused: the reading shows until the page closes */ } if (live.current) setFailed(null); })
         .catch(e => {
-          if (e instanceof WeatherError && e.world) { try { update(() => e.world!); } catch { /* the rule then counts from memory only */ } }
+          if (e instanceof WeatherError && e.world) { try { update(current => applyFetched(current, e.world)); } catch { /* the rule then counts from memory only */ } }
           if (live.current) setFailed(e instanceof Error ? e.message : 'The weather could not be read just now.');
         });
     }

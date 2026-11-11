@@ -64,7 +64,7 @@ import {NOVA_BRIEFS} from '../nova/briefs-record';
 import {NOVA_BRIDGE} from '../nova/bridge';
 import {NOVA_STORE} from '../nova/store';
 import {NOVA_STAGE} from '../nova/stage/record';
-import {NOVA_WORLD} from '../nova/world/record';
+import {keepWorldSwitch, NOVA_WORLD_RESTORE} from '../nova/world/record';
 import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
 import {NETWORTH_MILESTONES} from '../networth-milestones/milestones';
@@ -120,7 +120,9 @@ export type ModulePart = Part & {kind: 'module'; name: ModuleName};
  * device lacks is added) on the part's share. Both parts write the same key; Undo goes back newest first, so it holds.
  */
 export type PartSlice = {pick: (value: unknown) => unknown; has: (value: unknown) => boolean; replace: (current: unknown, backup: unknown) => unknown; summarize?: (value: unknown) => PartSummary};
-export type DevicePart = Part & {kind: 'device'; name: string; slice?: PartSlice};
+export type DevicePart = Part & {kind: 'device'; name: string; slice?: PartSlice;
+  /** What a restore never changes on this device (security review AM-S9): given this device's stored record as it is and the value about to be written, the value to write. */
+  local?: (currentRaw: unknown, next: unknown) => unknown};
 const mod = (name: ModuleName, label: string, group: RestoreGroup, key: string, schema: z.ZodType<unknown>): ModulePart => ({kind: 'module', id: `module:${name}`, name, label, group, key, schema, empty: () => undefined, health: name === 'health'});
 const dev = <T,>(name: string, label: string, group: RestoreGroup, spec: DeviceRecordSpec<T>, health = false): DevicePart => ({kind: 'device', id: `device:${name}`, name, label, group, key: spec.key, schema: spec.schema as z.ZodType<unknown>, empty: spec.empty as () => unknown, health});
 const spec = <T,>(key: string, schema: z.ZodType<T>, empty: () => T): DeviceRecordSpec<T> => ({key, schema, empty});
@@ -239,7 +241,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AM (ADR-038 D16, D17; TIER 3 (stored format), additive): what the person asked NOVA for and the widgets it made;
   // the weather switch, the chosen place and its last reading.
   dev('novaStage', 'NOVA requests and made widgets', 'Today and Life', NOVA_STAGE),
-  dev('novaWorld', 'NOVA weather choice and place', 'Today and Life', NOVA_WORLD),
+  // Security review AM-S9: the place is restored, the switch is not (outside data is off until turned on on this device).
+  {...dev('novaWorld', 'NOVA weather place', 'Today and Life', NOVA_WORLD_RESTORE), local: keepWorldSwitch},
   dev('calendarImport', 'Imported calendars', 'Today and Life', CALENDAR_IMPORT),
   dev('notes', 'Notes', 'Today and Life', NOTES),
   // Session AK WA (N7): ZIGi's and NOVA's one memory; its health and diet notes only with the Health choice.

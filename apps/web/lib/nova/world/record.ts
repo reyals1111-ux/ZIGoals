@@ -46,10 +46,29 @@ export type NovaWorld = z.infer<typeof novaWorldSchema>;
 export const emptyWorld = (): NovaWorld => ({version: 1});
 export const NOVA_WORLD: DeviceRecordSpec<NovaWorld> = {key: NOVA_WORLD_KEY, schema: novaWorldSchema, empty: emptyWorld};
 
+/**
+ * Security review AM-S9: what a restore or a backup may bring to a device — the place, never the switch. Outside data is
+ * off until the person turns it on *on that device*, so a restored record arrives switched off and without a reading.
+ */
+export const novaWorldRestoreSchema = novaWorldSchema.transform((r): NovaWorld => { const next: NovaWorld = {...r}; delete next.on; delete next.reading; delete next.askedAt; return next; });
+export const NOVA_WORLD_RESTORE: DeviceRecordSpec<NovaWorld> = {key: NOVA_WORLD_KEY, schema: novaWorldRestoreSchema as unknown as z.ZodType<NovaWorld>, empty: emptyWorld};
+/**
+ * Security review AM-S9 (second pass): a restore that merges into, or replaces, this device's record never changes this
+ * device's own switch. When the restored record names the place this device already has, the device keeps its switch, its
+ * reading and the time it last asked; when the place changes, weather is off until the person turns it on here.
+ */
+export function keepWorldSwitch(currentRaw: unknown, next: unknown): unknown {
+  const mine = novaWorldSchema.safeParse(currentRaw), theirs = novaWorldSchema.safeParse(next);
+  if (!mine.success || !theirs.success || mine.data.on !== true) return next;
+  const a = mine.data.place, b = theirs.data.place;
+  if (!a || !b || round2(a.lat) !== round2(b.lat) || round2(a.lon) !== round2(b.lon)) return next;
+  return {...theirs.data, on: true, ...(mine.data.reading ? {reading: mine.data.reading} : {}), ...(mine.data.askedAt ? {askedAt: mine.data.askedAt} : {})};
+}
 export const worldOn = (r: NovaWorld): boolean => r.on === true;
-export const placeOf = (r: NovaWorld): WorldPlace | null => r.place ? {name: r.place.name, lat: r.place.lat, lon: r.place.lon} : null;
+/** The chosen place, at two decimals whatever was stored (security review AM-S10: a hand-edited record never sends or matches more). */
+export const placeOf = (r: NovaWorld): WorldPlace | null => r.place ? {name: r.place.name, lat: round2(r.place.lat), lon: round2(r.place.lon)} : null;
 /** The reading for the chosen place (a reading of another place is not this place's). */
-export const readingOf = (r: NovaWorld): WorldReading | null => r.reading && r.place && r.reading.lat === r.place.lat && r.reading.lon === r.place.lon ? r.reading : null;
+export const readingOf = (r: NovaWorld): WorldReading | null => r.reading && r.place && round2(r.reading.lat) === round2(r.place.lat) && round2(r.reading.lon) === round2(r.place.lon) ? r.reading : null;
 export const setWorldOn = (r: NovaWorld, on: boolean): NovaWorld => { const next = {...r}; if (on) next.on = true; else { delete next.on; } return novaWorldSchema.parse(next); };
 export function setPlace(r: NovaWorld, place: WorldPlace | null): NovaWorld {
   const next = {...r};
@@ -61,4 +80,17 @@ export function setPlace(r: NovaWorld, place: WorldPlace | null): NovaWorld {
   return novaWorldSchema.parse({...next, place: {name, lat: round2(place.lat), lon: round2(place.lon)}});
 }
 export const setReading = (r: NovaWorld, reading: WorldReading, askedAt: Date): NovaWorld => novaWorldSchema.parse({...r, reading, askedAt: askedAt.toISOString()});
+/**
+ * Security review AM-S3: what a finished request may write. Only the reading and the time of the ask, and only into the
+ * record as it is NOW: if the person turned weather off, removed their place or chose another while the request ran, the
+ * record stays exactly as they left it (the answer is dropped).
+ */
+export function applyFetched(current: NovaWorld, fetched: NovaWorld): NovaWorld {
+  const now = placeOf(current), then = placeOf(fetched);
+  if (!worldOn(current) || !now || !then || now.lat !== then.lat || now.lon !== then.lon) return current;
+  const next = {...current};
+  if (fetched.reading) next.reading = fetched.reading;
+  if (fetched.askedAt) next.askedAt = fetched.askedAt;
+  return novaWorldSchema.parse(next);
+}
 export const markAsked = (r: NovaWorld, askedAt: Date): NovaWorld => novaWorldSchema.parse({...r, askedAt: askedAt.toISOString()});

@@ -246,7 +246,9 @@ describe('asking the service', () => {
   const status = (code: number, headers: Record<string, string> = {}) => new Response(code === 304 ? null : 'no', {status: code, headers});
   const FORECAST_URL = 'https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=50.85&lon=4.35';
   const SUN_URL = 'https://api.met.no/weatherapi/sunrise/3.0/sun?lat=50.85&lon=4.35&date=2026-11-11&offset=%2B01:00';
-  const PLAIN = {method: 'GET', credentials: 'omit', cache: 'no-cache', referrerPolicy: 'strict-origin-when-cross-origin'};
+  // Session AM (AM-S10, deliberate): every request now also says `redirect: 'error'` (was: these four options and no
+  // other). Still exactly these options and no header of ours, compared whole below.
+  const PLAIN = {method: 'GET', credentials: 'omit', redirect: 'error', cache: 'no-cache', referrerPolicy: 'strict-origin-when-cross-origin'};
   const failure = async (run: Promise<unknown>): Promise<WeatherError> => { const error = await run.then(() => null, (e: unknown) => e); expect(error).toBeInstanceOf(WeatherError); return error as WeatherError; };
 
   test('a first ask: one plain GET for the forecast, then one for today\'s sun, with no header of ours; the record to store', async () => {
@@ -280,7 +282,8 @@ describe('asking the service', () => {
     const world = withReading({lastModified: MODIFIED, sun: {rise: '2026-11-11T06:51:00.000Z', set: '2026-11-11T16:01:00.000Z'}});
     const {calls, impl} = service(status(304, {expires: 'Wed, 11 Nov 2026 05:40:00 GMT', 'last-modified': MODIFIED}));
     const next = await fetchWeather({world, now: later(31 * MINUTE), fetchImpl: impl, timeZone: ZONE, revalidate: 'header'});
-    expect(calls).toEqual([{url: FORECAST_URL, init: {method: 'GET', credentials: 'omit', cache: 'no-store', referrerPolicy: 'strict-origin-when-cross-origin', headers: {'If-Modified-Since': MODIFIED}}}]);
+    // Session AM (AM-S10, deliberate): `redirect: 'error'` here too; the header is still the only one.
+    expect(calls).toEqual([{url: FORECAST_URL, init: {method: 'GET', credentials: 'omit', redirect: 'error', cache: 'no-store', referrerPolicy: 'strict-origin-when-cross-origin', headers: {'If-Modified-Since': MODIFIED}}}]);
     expect(readingOf(next)).toEqual({...readingOf(world)!, expires: '2026-11-11T05:40:00.000Z'});
     expect(next.askedAt).toBe(later(31 * MINUTE).toISOString());
     expect(shouldFetch({world: next, now: later(60 * MINUTE), hidden: false, wanted: true})).toBe(false);
