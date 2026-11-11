@@ -43,7 +43,8 @@ export default function GlanceWidget({size}: {size?: WidgetSize}) {
   const {lines, orbit: o} = glance;
   if (!lines.length) return <NovaEmpty pillar="orbit" ghost="rows">Your day at a glance fills in from your own records: a habit, a glass of water, a night of sleep, a bill.</NovaEmpty>;
   return <div className="hw-glance" data-size={size}>
-    {o && o.total > 0 && size !== 'S' && <TickRing share={o.done / o.total} className="hw-mini-ring"><span aria-hidden="true"><HoloFigure text={`${o.done}/${o.total}`} className="holo-num-ring"/></span></TickRing>}
+    {/* Round 3: the ring is always there — unlit, with "—", while nothing is counted on the day's orbit yet (never a zero). */}
+    <TickRing share={o && o.total > 0 ? o.done / o.total : null} small={size === 'S'} className="hw-mini-ring"><span aria-hidden="true"><HoloFigure text={o && o.total > 0 ? `${o.done}/${o.total}` : '—'} className="holo-num-ring"/></span></TickRing>
     <ul className="nova-glance hw-rows">{lines.map(line => <li key={line} className="hw-row">{line}</li>)}</ul>
   </div>;
 }

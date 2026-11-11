@@ -74,7 +74,7 @@ void main(){
   float knot = dn(0.,.34, length(fract(kg)-.5 - (vec2(hash(ki),hash(ki+9.))-.5)*.5)) * step(.80, kh) * arms * disc * up(.06,.2,r);
   col += mix(uB, vec3(1.), .45) * knot * 1.1;
   // ---- the core: a white heart, a violet bloom, a thin accretion ring ----
-  float pulse = 1. + .06*sin(uT*1.1) + .5*uSpeak*uPulse + .12*uThink*sin(uT*5.) + .08*uListen;
+  float pulse = 1. + .06*sin(uT*1.1) + .5*uSpeak*uPulse + .12*uThink*sin(uT*5.) + .22*uThink + .08*uListen;
   float core = exp(-r*r*300./(pulse*pulse)) * 2.6 + exp(-r*16.)*.75*pulse + exp(-r*r*2600.)*1.8;
   col += mix(vec3(1.), uA*1.1+.3, up(0.,.18,r)) * core;
   float bulge = exp(-length(uv*vec2(1.,1.3))*7.5);
@@ -87,9 +87,15 @@ void main(){
   col += vec3(.9,.92,1.) * glint * .3 * pulse;
   // ---- listening: rings fall inward · speaking: rings travel outward · thinking: a sweep of light turns through the disc ----
   float wIn = .5+.5*sin(r*64. + uT*5.5), wOut = .5+.5*sin(r*44. - uT*7.);
-  float ringIn = uListen * dn(.02,.5,r) * sq(sq(wIn)*sq(wIn)) * .7 * up(.03,.1,r);
-  float ringOut = uSpeak * dn(.06,.56,r) * sq(sq(wOut)*sq(wOut)*wOut) * (.25+.75*uPulse);
+  float ringIn = uListen * dn(.02,.5,r) * sq(sq(wIn)*sq(wIn)) * 1.5 * up(.03,.1,r);
+  float ringOut = uSpeak * dn(.06,.56,r) * sq(sq(wOut)*sq(wOut)*wOut) * (.7+.9*uPulse);
   col += uB * ringIn + mix(uC, vec3(1.), .45) * ringOut;
+  // Each state also has a look of its own that a single still frame shows: listening is washed in the second colour with a
+  // lit rim at the disc's edge; thinking carries two bright arcs that turn inside the disc and a whiter core; speaking is
+  // warmed by the third colour.
+  col += uB * uListen * (disc * (.07 + .12*gas) + dn(0.,.010, abs(r-.535)) * .9);
+  col += mix(uB, vec3(1.), .6) * uThink * dn(0.,.007, abs(r-.31)) * sq(.5+.5*cos(2.*a - uT*2.4)) * 1.3;
+  col += uC * uSpeak * disc * (.06 + .10*gas);
   float sw = .5+.5*cos(a + uT*2.6), sw2 = .5+.5*cos(a + uT*2.6 + 3.14159); float sweep = sq(sq(sq(sw))) + sq(sq(sq(sw2)))*.55;
   col += mix(uB, vec3(1.), .4) * uThink * sweep * disc * up(.05,.14,r) * (.4 + 1.1*arms);
   // ---- stars: in the disc (turning with it) and a field streaming toward the viewer ----

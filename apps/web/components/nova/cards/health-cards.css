@@ -128,3 +128,18 @@
 @container holo-body (min-height: 300px) and (min-width: 520px) and (max-height: 400px) { .nc-steps[data-size=L] .nc-steps-ring { --nc-d: 132; } .nc-steps[data-size=L] .nc-steps-ring .nc-heart { width: 52px; } .nc-steps[data-size=L] > .nc-health-rule { display: none; } }
 /* A narrow large panel that is short: the facts go (the table keeps them), the chart keeps its height. */
 @container holo-body (max-height: 400px) and (max-width: 519px) { .nc-weight[data-size=L] > .nc-facts, .nc-steps[data-size=L] > .nc-facts, .nc-steps[data-size=L] > .nc-health-rule { display: none; } }
+/* ---- Very large panels (a body 640 px or wider): the ring and the figure step up again, where the height allows ---- */
+@container holo-body (min-width: 640px) and (min-height: 186px) {
+  .nc-steps[data-size=M] .nc-steps-ring { --nc-d: 142; }
+  .nc-steps[data-size=M] .nc-steps-ring .nc-heart { width: 56px; }
+  .nc-weight[data-size=M] .nc-hero-num, .nc-workouts[data-size=M] .nc-hero-num, .nc-steps[data-size=M] .nc-hero-num { font-size: 54px; }
+}
+@container holo-body (min-width: 640px) and (min-height: 380px) {
+  .nc-steps[data-size=L] .nc-steps-ring { --nc-d: 176; }
+  .nc-steps[data-size=L] .nc-steps-ring .nc-heart { width: 70px; }
+  .nc-steps[data-size=L] > .nc-health-rule { display: none; }
+}
+@container holo-body (min-width: 640px) and (min-height: 460px) {
+  .nc-steps[data-size=L] .nc-steps-ring { --nc-d: 208; --nc-w: 7; }
+  .nc-steps[data-size=L] .nc-steps-ring .nc-heart { width: 84px; }
+}

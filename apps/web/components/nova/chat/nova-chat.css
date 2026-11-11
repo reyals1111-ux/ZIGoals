@@ -189,7 +189,7 @@
   .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-tools { flex: 1 1 100%; flex-wrap: nowrap; justify-content: flex-end; gap: 6px; }
   .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-tool { padding: 0 12px; }
   .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-tools > .nova-chat-tool[aria-pressed] { font-size: 0; gap: 0; min-width: 44px; justify-content: center; padding: 0; }
-  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-log { padding: 14px; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-log { padding: 14px 14px 34px; }
   .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-welcome-title { font-size: 26px; }
   .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-foot { padding: 2px 14px 10px; }
 }
@@ -250,7 +250,6 @@
 .nova-sheet-body:has(>.nova-chat-sheet)>.nova-sheet-head h2[id]{letter-spacing:.2em}
 .nova-chat-sheet .nova-chat-head{margin-top:2px;padding:6px 2px 9px 8px;gap:6px;background:linear-gradient(90deg,color-mix(in srgb,var(--nova-b,#63e7ff) 12%,transparent),transparent 70%)}
 .nova-chat-sheet .nova-chat-status{white-space:nowrap;text-overflow:ellipsis;color:color-mix(in srgb,var(--nova-b,#63e7ff) 30%,#fff)}
-.nova-chat-sheet .nova-chat-status .nova-dot{display:none}
 .nova-chat-sheet .nova-chat-tool{padding:0 9px}
 .nova-chat-sheet .nova-chat-log{padding:16px 6px 12px;gap:18px}
 .nova-chat-sheet .nova-turn{gap:8px}
@@ -259,3 +258,22 @@
 .nova-chat-sheet .nova-composer-wrap{padding:10px 6px 4px;gap:8px}
 .nova-chat-sheet .nova-composer{min-height:58px;box-sizing:border-box;--k-glow:0 0 18px -8px var(--nova-b,#63e7ff)}
 .nova-chat-sheet .nova-chat-foot{padding:4px 12px 10px}
+
+/* ==== Session AM-2, third pass ==== */
+/* The conversation's last card clears the composer: the log ends in 34 px of room and fades out over its last 30 px, so a
+   card that runs on below reads as "more below", never as sliced (static mask; a computer's panel only). */
+.nova-chat-panel .nova-chat-log{padding-bottom:34px;scroll-padding-bottom:34px;-webkit-mask-image:linear-gradient(#000 calc(100% - 30px),transparent);mask-image:linear-gradient(#000 calc(100% - 30px),transparent)}
+/* "A chat you'd rather not keep?" is its own strip: the question with its link beside it, the rest of the sentence under
+   the question (the same words in the same order; the link keeps its 44 px). */
+.nova-chat .ai-unkept-offer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:0 12px;margin:12px 0;padding:4px 10px 8px 12px;border-left:2px solid color-mix(in srgb,var(--nova-a,#9273ff) 80%,transparent);background:color-mix(in srgb,var(--nova-a,#9273ff) 9%,transparent);font-size:14px;line-height:1.45;text-wrap:balance}
+.nova-chat .ai-unkept-offer>button{display:inline-flex;align-items:center;min-height:44px;white-space:nowrap}
+/* A phone: NOVA is present in its conversation. Its figure (the chat head's own, 34 px) stands 60 px tall in the sheet's
+   head strip beside the title, with a light bloom; the row under it keeps the state and the tools. Only when the
+   conversation follows the sheet's head directly (with the Duo between them the figure stays in its row). */
+.nova-sheet-head+.nova-chat-sheet{overflow:visible}
+.nova-sheet-head+.nova-chat-sheet::before{content:none}
+.nova-sheet-head+.nova-chat-sheet .nova-chat-head>:first-child:not(.nova-chat-identity){position:absolute;left:6px;top:-70px;z-index:3;width:60px!important;height:60px!important;border-radius:50%;box-shadow:0 0 20px -2px var(--nova-b,#63e7ff),0 0 44px -10px var(--nova-a,#9273ff)}
+.nova-sheet-head+.nova-chat-sheet .nova-chat-head>:first-child:not(.nova-chat-identity) :is(svg,img,canvas){width:100%;height:100%}
+.nova-sheet-body:has(>.nova-sheet-head+.nova-chat-sheet)>.nova-sheet-head .nova-eyebrow{margin-left:68px}
+.nova-sheet-body:has(>.nova-sheet-head+.nova-chat-sheet)>.nova-sheet-head h2[id]{margin-left:68px}
+

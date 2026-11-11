@@ -118,7 +118,15 @@
 /* ---- A wide medium panel (about 700 × 190): the hero on the left, the instrument filling the right ---- */
 @container holo-body (min-width: 520px) {
   .nc-body.nc-networth-card[data-size=M], .nc-body.nc-spending-card[data-size=M], .nc-body.nc-budgets-card[data-size=M], .nc-body.nc-bills-card[data-size=M] { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: minmax(0, 1fr) auto; gap: 6px 36px; }
-  .nc-budgets-card[data-size=M], .nc-bills-card[data-size=M] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .nc-budgets-card[data-size=M] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  /* Bills: the next bill keeps a column wide enough for its ring and its whole amount; the list takes the rest; names and dates wrap instead of being cut. */
+  .nc-body.nc-bills-card[data-size=M] { grid-template-columns: minmax(340px, 5fr) minmax(0, 6fr); column-gap: 32px; }
+  .nc-bills-card[data-size=M] .nc-bills-next { grid-template-columns: auto minmax(0, 1fr); }
+  .nc-bills-card[data-size=M] .nc-hero { min-width: 0; max-width: 100%; }
+  .nc-bills-card[data-size=M] .nc-hero-label, .nc-bills-card[data-size=M] .nc-bills-when, .nc-bills-card[data-size=M] .nc-bills-name { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+  .nc-bills-card[data-size=M] .nc-hero-label { line-height: 1.2; margin-bottom: 4px; }
+  .nc-bills-card[data-size=M] .nc-bills-row { align-items: start; }
+  .nc-bills-card[data-size=M] .nc-bills-row .nc-bills-dial { align-self: center; }
   .nc-networth-card[data-size=M] > .nc-networth-top, .nc-spending-card[data-size=M] > .nc-spending-top, .nc-budgets-card[data-size=M] > .nc-budgets-top, .nc-bills-card[data-size=M] > .nc-bills-next { grid-area: 1 / 1; align-self: center; }
   .nc-networth-card[data-size=M] > .nc-networth-line, .nc-networth-card[data-size=M] > .nc-networth-note { grid-area: 1 / 2; }
   .nc-networth-card[data-size=M] > .nc-networth-note { align-self: center; }
@@ -128,13 +136,16 @@
   .nc-networth-card[data-size=M] .nc-hero, .nc-spending-card[data-size=M] .nc-hero, .nc-budgets-card[data-size=M] .nc-hero, .nc-bills-card[data-size=M] .nc-hero { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 0; }
   .nc-networth-card[data-size=M] .nc-hero-label, .nc-spending-card[data-size=M] .nc-hero-label, .nc-budgets-card[data-size=M] .nc-hero-label, .nc-bills-card[data-size=M] .nc-hero-label { order: -1; flex: none; margin: 0 0 6px; }
   .nc-body.nc-networth-card[data-size=M] .nc-hero-num, .nc-body.nc-spending-card[data-size=M] .nc-hero-num, .nc-body.nc-budgets-card[data-size=M] .nc-hero-num, .nc-body.nc-bills-card[data-size=M] .nc-hero-num { font-size: 46px; }
+  /* A long amount steps down, so it never leaves its column. */
+  .nc-body.nc-networth-card[data-size=M] .nc-hero[data-len] .nc-hero-num, .nc-body.nc-spending-card[data-size=M] .nc-hero[data-len] .nc-hero-num, .nc-body.nc-bills-card[data-size=M] .nc-hero[data-len] .nc-hero-num { font-size: 40px; }
+  .nc-body.nc-networth-card[data-size=M] .nc-hero[data-len=xl] .nc-hero-num, .nc-body.nc-spending-card[data-size=M] .nc-hero[data-len=xl] .nc-hero-num, .nc-body.nc-bills-card[data-size=M] .nc-hero[data-len=xl] .nc-hero-num { font-size: 34px; }
   .nc-networth-card[data-size=M] .nc-delta { margin-top: 6px; font-size: 15px; }
   .nc-networth-card[data-size=M] .nc-trend-dates { display: flex; }
   .nc-networth-card[data-size=M] .nc-trend-edge { display: block; }
   .nc-budgets-card[data-size=M] .nc-budgets-ring { --nc-d: 124; --nc-w: 6; }
   .nc-budgets-card[data-size=M] .nc-budgets-top { gap: 22px; }
-  .nc-bills-card[data-size=M] .nc-bills-next { gap: 22px; }
-  .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial { --nc-d: 124; --nc-w: 6; }
+  .nc-bills-card[data-size=M] .nc-bills-next { gap: 18px; }
+  .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial { --nc-d: 112; --nc-w: 6; }
   .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial-unit { display: block; }
   .nc-bills-card[data-size=M] .nc-bills-next .nc-ring-figure { font-size: 34px; }
   .nc-bills-card[data-size=M] .nc-bills-row { padding: 6px 0; }
@@ -144,7 +155,7 @@
   .nc-spending-card[data-size=M] .nc-bar-track, .nc-budgets-card[data-size=M] .nc-bar-track { height: 10px; }
 }
 @container holo-body (min-width: 520px) and (max-height: 176px) {
-  .nc-budgets-card[data-size=M] .nc-budgets-ring, .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial { --nc-d: 104; }
+  .nc-budgets-card[data-size=M] .nc-budgets-ring, .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial { --nc-d: 100; }
   .nc-body.nc-networth-card[data-size=M] .nc-hero-num, .nc-body.nc-spending-card[data-size=M] .nc-hero-num, .nc-body.nc-budgets-card[data-size=M] .nc-hero-num, .nc-body.nc-bills-card[data-size=M] .nc-hero-num { font-size: 38px; }
   .nc-spending-card[data-size=M] .nc-stack { display: none; }
 }
@@ -181,3 +192,21 @@
 @container holo-body (max-height: 430px) and (max-width: 519px) { .nc-networth-card[data-size=L] > .nc-networth-note, .nc-bills-card[data-size=L] .nc-bills-row:nth-child(n+5) { display: none; } }
 @container holo-body (max-height: 400px) and (max-width: 519px) { .nc-networth-card[data-size=L] > .nc-facts .nc-fact:nth-child(n+3) { display: none; } .nc-bills-card[data-size=L] .nc-bills-row:nth-child(n+4) { display: none; } }
 @container holo-body (min-width: 520px) and (min-height: 300px) and (max-height: 400px) { .nc-budgets-card[data-size=L] .nc-bar-note, .nc-spending-card[data-size=L] .nc-spending-what, .nc-networth-card[data-size=L] > .nc-networth-note { display: none; } .nc-budgets-card[data-size=L] .nc-budgets-ring, .nc-bills-card[data-size=L] .nc-bills-next .nc-bills-dial { --nc-d: 120; } .nc-bills-card[data-size=L] .nc-bills-row { padding: 4px 0; } .nc-bills-card[data-size=L] .nc-bills-row .nc-bills-dial { --nc-d: 40; } }
+/* ---- Very large panels (a body 640 px or wider): hero figures and hero rings step up again, where the height allows ---- */
+@container holo-body (min-width: 640px) and (min-height: 186px) {
+  .nc-budgets-card[data-size=M] .nc-budgets-ring { --nc-d: 140; }
+  .nc-body.nc-budgets-card[data-size=M] .nc-hero-num, .nc-body.nc-spending-card[data-size=M] .nc-hero-num { font-size: 54px; }
+  .nc-body.nc-networth-card[data-size=M] .nc-hero:not([data-len]) .nc-hero-num { font-size: 52px; }
+  .nc-body.nc-spending-card[data-size=M] .nc-hero[data-len] .nc-hero-num { font-size: 44px; }
+}
+@container holo-body (min-width: 640px) and (min-height: 380px) {
+  .nc-budgets-card[data-size=L] .nc-budgets-ring { --nc-d: 168; --nc-w: 6.5; }
+  .nc-bills-card[data-size=L] .nc-bills-next .nc-bills-dial { --nc-d: 172; --nc-w: 6.5; }
+  .nc-bills-card[data-size=L] .nc-bills-next .nc-ring-figure { font-size: 48px; }
+  .nc-body.nc-networth-card[data-size=L] .nc-hero-num, .nc-body.nc-spending-card[data-size=L] .nc-hero-num, .nc-body.nc-bills-card[data-size=L] .nc-hero-num, .nc-body.nc-budgets-card[data-size=L] .nc-hero-num { font-size: 60px; }
+  .nc-body.nc-networth-card[data-size=L] .nc-hero[data-len=xl] .nc-hero-num, .nc-body.nc-spending-card[data-size=L] .nc-hero[data-len=xl] .nc-hero-num, .nc-body.nc-bills-card[data-size=L] .nc-hero[data-len=xl] .nc-hero-num { font-size: 46px; }
+}
+@container holo-body (min-width: 640px) and (min-height: 460px) {
+  .nc-budgets-card[data-size=L] .nc-budgets-ring { --nc-d: 200; }
+  .nc-bills-card[data-size=L] .nc-bills-next .nc-bills-dial { --nc-d: 200; }
+}

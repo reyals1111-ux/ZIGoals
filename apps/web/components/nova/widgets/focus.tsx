@@ -60,7 +60,7 @@ export default function FocusWidget({size}: {size: WidgetSize}) {
     <NovaEmpty pillar="habits" ghost="clock">No focus sessions this week yet. A Pomodoro is a calm way to start: {settings.work} minutes of focus, then a short break.</NovaEmpty>
     {startButton}{error}
   </div>;
-  const days = size === 'S' || !readable ? [] : lastSevenDays(today), perDay = days.map(d => focusMinutesBetween(record.data, d, d).minutes), best = Math.max(1, ...perDay);
+  const days = !readable ? [] : lastSevenDays(today), perDay = days.map(d => focusMinutesBetween(record.data, d, d).minutes), best = Math.max(1, ...perDay);
   return <div className="nova-focus hw-focus" data-size={size}>
     <p className="nova-big"><span className="nova-figure">{durationWords(view.minutes)}</span><small> this week</small></p>
     {days.length > 0 && <Columns shares={perDay.map(m => m > 0 ? m / best : null)} labels={days.map(d => formatWeekday(d).slice(0, 2))} today={6}/>}

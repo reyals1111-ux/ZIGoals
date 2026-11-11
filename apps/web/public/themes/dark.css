@@ -12707,9 +12707,6 @@
     .nc-notice-text:not(#\-), .nova-widget[data-holo] .holo-empty-words:not(#\-), .nova-widget[data-holo] .nova-empty > p:not(#\-) {
         color: #d6e0f5
     }
-    .nc-notice-text:not(#\-) {
-        text-shadow: 0 0 5px #04071a, 0 0 2px #04071a
-    }
     .nc-action:not(#\-), .nova-widget[data-holo] .holo-empty-action:not(#\-), .nova-widget[data-holo] .nova-empty > .nova-link:not(#\-) {
         border-color: color-mix(in oklab, var(--neon, #9273ff) 82%, transparent);
         background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 30%, #010108), color-mix(in oklab, var(--neon, #9273ff) 12%, #010108));
@@ -13418,6 +13415,9 @@
             border-top-color: color-mix(in oklab, var(--neon, #7fc8ff) 34%, transparent)
         }
     }
+    .nc-time-rows.nc-time-inline li:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/nova/cards/nova-cards.css  */
 @scope (:root[data-theme=dark]) {
@@ -13576,6 +13576,16 @@
     .nc-sees[data-size=M] .nc-sees-why:not(#\-) {
         border-color: currentcolor;
         color: #dbe4f6
+    }
+    @container holo-body (max-width: 619px) {
+        .nc-sees[data-size=M] .nc-sees-grid li:not([data-on]) .nc-sees-name:not(#\-) {
+            color: #c3cfe6
+        }
+    }
+    @container holo-body (min-width: 520px) {
+        .nc-sees[data-size=M] .nc-sees-count span:not(#\-) {
+            color: #d6e0f5
+        }
     }
 }
 /*  components/nova/cards/wealth-cards.css  */
@@ -14327,6 +14337,14 @@
     .nova-chat-sheet .nova-composer:not(#\-) {
         --k-glow: 0 0 18px -8px var(--nova-b,#63e7ff)
     }
+    .nova-chat .ai-unkept-offer:not(#\-) {
+        border-left-color: color-mix(in srgb,var(--nova-a,#9273ff) 80%,transparent);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--nova-a,#9273ff) 9%,transparent)
+    }
+    .nova-sheet-head+.nova-chat-sheet .nova-chat-head>:first-child:not(.nova-chat-identity):not(#\-) {
+        box-shadow: 0 0 20px -2px var(--nova-b,#63e7ff),0 0 44px -10px var(--nova-a,#9273ff)
+    }
 }
 /*  components/nova/command-bar.css  */
 @scope (:root[data-theme=dark]) {
@@ -14762,7 +14780,7 @@
     .holo-meter[data-unknown] .holo-segs i:not(#\-) {
         background-image: none;
         background-color: transparent;
-        border-color: #ffffff26;
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 45%, #ffffff30);
         box-shadow: none
     }
     .holo-meter-value small:not(#\-) {
@@ -15418,6 +15436,21 @@
         background-image: linear-gradient(90deg, var(--neon-2, #c0adff), #fff);
         background-color: transparent;
         box-shadow: 0 0 8px 1px var(--neon, #9273ff), 0 0 18px 2px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
+    }
+    @container holo-body (max-width: 350px) {
+        .holo-health[data-size=M] .holo-ring:not(#\-) {
+            --ring: clamp(56px, min(100cqh - 70px - var(--note), 100cqi - 206px), 190px)
+        }
+    }
+    @container holo-body (max-width: 350px) and (max-height: 178px) {
+        .holo-health[data-size=M] .holo-ring:not(#\-) {
+            --ring: clamp(56px, min(100cqh - 20px - var(--note), 100cqi - 206px), 190px)
+        }
+    }
+    @container holo-body (min-width: 640px) {
+        .holo-health[data-size=M] .holo-ring:not(#\-) {
+            --ring: clamp(64px, calc(100cqh - 22px - var(--note)), 220px)
+        }
     }
 }
 /*  components/nova/holo/holo.css  */
@@ -17034,7 +17067,6 @@
         background-image: none;
         background-color: color-mix(in srgb, var(--bg, #010207) 92%, transparent);
         border-color: color-mix(in srgb, var(--violet, #8b7cff) 40%, var(--line, #2a325a));
-        border-top-color: var(--cyan, #6fd3ff);
         box-shadow: 0 0 34px -18px var(--violet, #8b7cff);
         color: var(--text, #eef1ff)
     }

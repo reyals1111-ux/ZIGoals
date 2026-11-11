@@ -151,7 +151,7 @@
 /* Lane L8g (O5): the unknown slots' dashes are a border (snapped to whole pixels), not an inset outline. An outline stroked
    at a fractional offset (the content-fit panels put meters at y = 318.3 px) was rastered differently by the first capture,
    so a still HUD seemed to change a pixel. Same look: 1 px dashed, inside the slot. */
-.holo-meter[data-unknown] .holo-segs i { background: transparent; border: 1px dashed #ffffff26; box-sizing: border-box; box-shadow: none; }
+.holo-meter[data-unknown] .holo-segs i { background: transparent; border: 1px dashed color-mix(in oklab, var(--neon, #9273ff) 45%, #ffffff30); box-sizing: border-box; box-shadow: none; }
 .holo-meter-value { grid-area: value; font-size: 14px; line-height: 18px; white-space: nowrap; text-align: right; justify-self: end; }
 .holo-meter-value small { font-size: 14px; color: #c9d4ea; font-weight: 500; }
 .holo-meter .holo-note { grid-area: note; }
@@ -398,7 +398,7 @@
 .holo-orbit { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 16px; }
 .holo-orbit-ring .holo-track { stroke-width: 2; }
 .holo-orbit-arc .holo-arc { stroke-width: 2.6; }
-.holo-orbit-ring .holo-num-ring, .nova-widget[data-size] .holo-orbit-ring .holo-num-ring { font-size: clamp(14px, min(calc(var(--ring, 120px) * .24), calc(var(--ring, 120px) * .9 / var(--chars, 3))), 56px); }
+.holo-orbit-ring .holo-num-ring, .nova-widget[data-size] .holo-orbit-ring .holo-num-ring { font-size: clamp(14px, min(calc(var(--ring, 120px) * .24), calc(var(--ring, 120px) * .9 / var(--chars, 3))), 64px); }
 .holo-orbit-line { margin: 0; font-size: 15px; line-height: 1.45; color: #dbe4f6; }
 .holo-orbit .holo-ring-centre small { max-width: 8em; }
 .holo-water, .holo-notes, .holo-sleep { gap: 7px; }
@@ -611,10 +611,10 @@
 .holo-health .holo-ring > .holo-ring-centre, .holo-habits .holo-dial > .holo-ring-centre { position: static; }
 .holo-health .holo-ring > .holo-ring-centre > small, .holo-habits .holo-dial > .holo-ring-centre > small { position: absolute; left: 50%; top: calc(100% + 3px); translate: -50% 0; white-space: nowrap; font-size: 14px; line-height: 14px; color: #d3ddf1; }
 .holo-habits .holo-dial > .holo-ring-centre > small { top: calc(100% + 1px); }
-.holo-health .holo-ring .holo-num-ring, .nova-widget[data-size] .holo-health .holo-ring .holo-num-ring { font-size: clamp(12px, min(calc(var(--ring, 104px) * .215), calc(var(--ring, 104px) * 1.05 / var(--chars, 5))), 44px); }
+.holo-health .holo-ring .holo-num-ring, .nova-widget[data-size] .holo-health .holo-ring .holo-num-ring { font-size: clamp(12px, min(calc(var(--ring, 104px) * .215), calc(var(--ring, 104px) * 1.05 / var(--chars, 5))), 48px); }
 .holo-habits .holo-dial .holo-num-ring, .nova-widget[data-size] .holo-habits .holo-dial .holo-num-ring { font-size: clamp(13px, calc(var(--ring, 80px) * .3), 34px); }
 /* p6: the ring's column — the ring, its caption, and its reason under it. */
-.holo-ring-col { display: grid; justify-items: center; align-content: center; gap: 0; flex: none; max-width: 190px; }
+.holo-ring-col { display: grid; justify-items: center; align-content: center; gap: 0; flex: none; max-width: 224px; }
 .holo-ring-col > .holo-ring-note { max-width: 132px; margin: 0; text-align: center; font-size: 14px; line-height: 1.3; }
 /* Release review AL (RR-9): a meter's value never runs past its panel ("1,000 mL / 2,000 n" at 1440 × 900): when "value /
    target" does not fit beside its label the target goes under the value, whole. */
@@ -927,4 +927,67 @@
 @container holo-body (max-width: 350px) {
   .holo-health .holo-tag { grid-column: 1 / -1; padding-inline: 5px; letter-spacing: 0; white-space: normal; line-height: 18px; }
   .holo-health .holo-tag::before { display: none; }
+}
+
+/* ==== AM-2 round 3 (after the third captures) ==== */
+/* Goals. The pace chart is a box of its own height with its drawing laid over it, so in a medium panel it can give way
+   (down to 18 px) when a status or the estimate takes a second line: whole rows, never half a row. "Today" stays inside
+   the chart at either end. */
+.holo-pace-chart { height: var(--pace-h, 52px); }
+.holo-pace-chart > .holo-wipe { position: absolute; inset: 0; }
+.holo-pace-chart .holo-pace { position: absolute; inset: 0; width: 100%; height: 100%; }
+.holo-chart-tag[data-at=today] { left: clamp(28px, var(--x, 0%), calc(100% - 28px)); }
+.holo-goals[data-size=M] { display: flex; flex-direction: column; max-height: 100cqh; }
+.holo-goals[data-size=M] > .holo-arcs { flex: none; }
+.holo-goals[data-size=M] .holo-pace-box { display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; max-height: 100cqh; }
+.holo-goals[data-size=M] .holo-pace-box > :is(.holo-pace-head, .holo-estimate) { flex: none; }
+.holo-goals[data-size=M] .holo-pace-chart { flex: 0 1 auto; min-height: 18px; }
+/* A body under 320 px wraps the status words (16 more): the arcs alone below 256 px. */
+@container holo-body (max-width: 319.98px) and (max-height: 255px) {
+  .holo-goals[data-size=M] .holo-pace-box { display: none; }
+  .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 72px, calc((100cqi - 16px) / 3)), 132px); }
+}
+/* Wide: the pace column is wider (the arcs' columns are A + 14), its title may take two lines beside "+N more", and the
+   estimate is whole on up to three: 36 + 3 + P + 4 + 60 ≤ h. */
+@container holo-body (min-width: 560px) {
+  .holo-goals[data-size=M] { display: grid; max-height: none; --pace-h: clamp(40px, calc(100cqh - 114px), 150px); }
+  .holo-goals[data-size=M] .holo-arcs { grid-template-columns: repeat(var(--n, 3), calc(var(--arc) + 14px)); }
+  .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-name { white-space: normal; overflow: visible; text-overflow: clip; }
+}
+@container holo-body (min-width: 640px) { .holo-goals[data-size=M] .holo-estimate-note { display: inline; } }
+
+/* Health in a body of 350 px or less: the privacy strip may take two lines (18 more). */
+@container holo-body (max-width: 350px) {
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(56px, min(100cqh - 70px - var(--note), 100cqi - 206px), 190px); }
+  .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 168px) / 3), 9px); }
+}
+@container holo-body (max-width: 350px) and (max-height: 178px) {
+  .holo-health[data-size=M] .holo-tag { display: none; }
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(56px, min(100cqh - 20px - var(--note), 100cqi - 206px), 190px); }
+  .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 120px) / 3), 9px); }
+}
+@container holo-body (max-width: 350px) and (max-height: 130px) { .holo-health[data-size=M] { --mgap: 3px; } }
+
+/* Small panels in a wide body (a 2560 px screen: about 700 × 60): the figure and its instrument share the row. */
+.holo-notes[data-size=S] .holo-captures li:nth-child(n + 2) { display: none; }
+@container holo-body (min-width: 560px) {
+  :is(.holo-water, .holo-sleep, .holo-notes)[data-size=S] { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 28px; }
+  :is(.holo-water, .holo-sleep)[data-size=S] .holo-segs { height: 12px; gap: 3px; }
+  .holo-notes[data-size=S] .holo-captures { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+  .holo-notes[data-size=S] .holo-captures li:nth-child(2) { display: grid; }
+  .nova-widget[data-size=S] .holo-notes-head .holo-num-big { font-size: 32px; }
+}
+
+/* A very large body (640 px and wider): the hero rings and figures step up with it. */
+@container holo-body (min-width: 640px) {
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(64px, calc(100cqh - 22px - var(--note)), 220px); }
+  .holo-health[data-size=L] .holo-ring { --ring: clamp(96px, min(42cqh, 30cqi), 220px); }
+  .holo-habits[data-size=M] .holo-today { --ring: clamp(72px, min(100cqh - 4px, 27cqi), 220px); }
+  .holo-agenda[data-size=M] .holo-clock, .holo-orbit[data-size=M] .holo-orbit-ring { --ring: clamp(84px, min(100cqh - 10px, 30cqi), 220px); }
+  .holo-wealth:is([data-size=M], [data-size=L]) { grid-template-columns: minmax(0, 48%) minmax(0, 1fr); }
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-num-big { font-size: clamp(24px, min(calc(46cqi / (var(--chars, 6) * .58)), 27cqh), 64px); }
+  :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]) .holo-num-big { font-size: clamp(30px, min(calc(100cqi / (var(--chars, 6) * .58)), 31cqh), 64px); }
+  .holo-counters dd { font-size: 40px; }
+  .holo-notes:is([data-size=M], [data-size=L]) .holo-notes-head .holo-num-big { font-size: 48px; }
+  .holo-streaks li, .holo-streaks .holo-num, .holo-orbit-line { font-size: 16px; }
 }

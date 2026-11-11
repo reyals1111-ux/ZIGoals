@@ -344,3 +344,30 @@
   .nc-time[data-size=L] .nc-time-strips, .nc-time[data-size=L] > .nc-facts { display: grid; }
 }
 @container holo-body (min-height: 300px) and (min-width: 520px) and (max-height: 400px) { .nc-time[data-size=L] .nc-time-dial { --nc-d: 160; } .nc-time[data-size=L] > .nc-facts { display: none; } }
+/* ---- Very large panels (a body 640 px or wider): rings and figures step up again, where the height allows ---- */
+@container holo-body (min-width: 640px) and (min-height: 186px) {
+  .nc-habitweek[data-size=M] .nc-habitweek-ring { --nc-d: 138; }
+  .nc-goal[data-size=M] .nc-goal-ring { --nc-d: 146; }
+  .nc-goal[data-size=M] .nc-goal-num { font-size: 42px; }
+  .nc-time[data-size=M] .nc-time-dial { --nc-d: 148; }
+  .nc-habitweek[data-size=M] .nc-hero-num, .nc-journal[data-size=M] .nc-hero-num { font-size: 56px; }
+}
+@container holo-body (min-width: 640px) and (min-height: 380px) {
+  .nc-habitweek[data-size=L] .nc-habitweek-ring { --nc-d: 156; --nc-w: 6.5; }
+  .nc-goal[data-size=L] .nc-goal-ring { --nc-d: 208; --nc-w: 7; }
+  .nc-goal[data-size=L] .nc-goal-num { font-size: 58px; }
+  .nc-time[data-size=L] .nc-time-dial { --nc-d: 210; --nc-w: 6.5; }
+}
+@container holo-body (min-width: 640px) and (min-height: 460px) {
+  .nc-habitweek[data-size=L] .nc-habitweek-ring { --nc-d: 184; }
+  .nc-time[data-size=L] .nc-time-dial { --nc-d: 220; }
+}
+/* Small: the dial, the time and its date in one row; where the row is 620 px or wider the three shares follow, each a lit node, a name and its percent under it. */
+.nc-time[data-size=S] > .nc-row { gap: 12px; }
+.nc-time[data-size=S] > .nc-row > .nc-hero { flex: 0 1 auto; }
+.nc-time-rows.nc-time-inline { display: none; flex: none; margin-left: auto; grid-auto-flow: column; column-gap: 20px; align-items: center; }
+.nc-time-rows.nc-time-inline li { grid-template-columns: auto; row-gap: 0; padding: 0 0 0 15px; border: 0; }
+.nc-time-rows.nc-time-inline li::before { top: 5px; }
+.nc-time-rows.nc-time-inline .nc-time-row-name { line-height: 1.2; overflow: visible; }
+.nc-time-rows.nc-time-inline .nc-time-row-pct { font-size: 16px; line-height: 1.15; }
+@container holo-body (min-width: 620px) { .nc-time-rows.nc-time-inline { display: grid; } }

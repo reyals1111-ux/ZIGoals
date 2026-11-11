@@ -195,3 +195,21 @@
   .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .holo-cols { grid-column: 2; grid-row: 1 / span 3; --cols-h: clamp(44px, calc(100cqh - 60px), 130px); max-width: none; }
   .hw-focus[data-running] { column-gap: 24px; }
 }
+
+/* ==== AM-2 round 3: small panels in a wide body, and larger figures in a very large one ==== */
+.hw-mini-ring[data-small] { --ring: clamp(36px, calc(100cqh - 22px), 56px); }
+.nova-frame[data-look=classic] .hw-mini-ring[data-small] { --ring: 48px; }
+/* Focus, small: the week's columns join the row only where the body is wide; the key overlaps the row's own space. */
+.hw-focus[data-size=S] > .holo-cols { display: none; }
+.hw-focus[data-size=S] > .nova-chip-link { margin-block: -6px; }
+@container holo-body (min-width: 560px) {
+  .hw-focus[data-size=S]:not([data-running]) { display: flex; align-items: center; gap: 22px; }
+  .hw-focus[data-size=S]:not([data-running]) > .holo-cols { display: grid; order: 3; flex: none; width: 210px; max-width: none; margin-left: auto; --cols-h: clamp(24px, calc(100cqh - 30px), 60px); }
+  .hw-focus[data-size=S] .holo-cols-day small { display: none; }
+  .hw-focus[data-size=S] > .nova-chip-link { margin-block: 0; }
+}
+@container holo-body (min-width: 640px) {
+  .nova-widget[data-holo]:is([data-size=M], [data-size=L]) .nova-big .nova-figure { font-size: clamp(26px, min(8cqi, 30cqh), 56px); }
+  .nova-widget[data-holo] .hw-goals .nova-goal-pct { font-size: 24px; }
+  .nova-widget[data-holo] .hw-rows > .hw-row, .nova-widget[data-holo] .hw-facts dd { font-size: 16px; }
+}

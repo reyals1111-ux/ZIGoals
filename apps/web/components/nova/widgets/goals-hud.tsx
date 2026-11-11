@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useId} from 'react';
+import {useId, type CSSProperties} from 'react';
 import type {WidgetSize} from '../../../lib/nova/store';
 import {MILESTONES, type PaceChart} from '../../../lib/nova/holo/goals';
 import {arcPath, polar, tickPath} from '../../../lib/nova/holo/geometry';
@@ -66,7 +66,7 @@ function PaceLine({chart, label}: {chart: PaceChart; label: string}) {
   {/* The chart's own names, in place (decoration over the words below, which say the same). Second review M1, p8 (lane
       L8f): the band's "Estimate" is said once, by the chip under the chart; its tag on the band ran past the panel's edge. */}
   <span className="holo-chart-tag" data-at="target" style={{top: pct(ty, H)}} aria-hidden="true">Target</span>
-  <span className="holo-chart-tag" data-at="today" style={{left: pct(nx, W)}} aria-hidden="true">Today</span>
+  <span className="holo-chart-tag" data-at="today" style={{'--x': pct(nx, W)} as CSSProperties} aria-hidden="true">Today</span>
   </div>;
 }
 export default function GoalsHudWidget({size}: {size: WidgetSize}) {

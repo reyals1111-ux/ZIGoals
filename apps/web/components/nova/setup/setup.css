@@ -25,7 +25,7 @@
    (components/path/path-orbit.css) is unchanged. */
 :root[data-theme=light] .path-stage.nova-guide-path[data-variant=orbit] .path-jump { border-color: #8cc8ff80; background: linear-gradient(100deg, #fffffff5, #eef0fbf5); color: #23264d; box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59; }
 .nova-panel { display: grid; gap: 12px; padding: 16px 18px; border-radius: 6px; min-width: 0; text-align: start; line-height: 1.55;
-  background: color-mix(in srgb, var(--bg, #070a1a) 92%, transparent); border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 40%, var(--line, #2a325a)); border-top: 2px solid var(--cyan, #6fd3ff); box-shadow: 0 0 34px -18px var(--violet, #8b7cff); color: var(--text, #eef1ff); }
+  background: color-mix(in srgb, var(--bg, #070a1a) 92%, transparent); border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 40%, var(--line, #2a325a)); box-shadow: 0 0 34px -18px var(--violet, #8b7cff); color: var(--text, #eef1ff); }
 .nova-panel p, .nova-panel ul, .nova-panel ol { margin: 0; }
 .nova-panel-title { margin: 0; font-size: 18px; letter-spacing: .01em; }
 .nova-sub { margin: 4px 0 0; font-size: 16px; }

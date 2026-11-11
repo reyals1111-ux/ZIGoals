@@ -219,7 +219,7 @@ test.describe('NOVA’s live stage on a computer', () => {
     await expect(star).not.toHaveAttribute('data-star', 'starting');
     // Session AM-2 (ADR-038 "AM-2", E2, deliberate; was "software rendering → `still` before, during and after rest"):
     // software rendering only slows the star. On both paths it runs (`active`), rests when the window loses the focus
-    // (`resting`) and wakes on a key; the frames per second are the path's own (8 and 4 in software, 30 and 6 with
+    // (`resting`) and wakes on a key; the frames per second are the path's own (8 and 1 in software, 30 and 6 with
     // graphics hardware). Either way the sky stops while NOVA rests. Both paths are exact: no "active or still", no skip.
     const software = await star.evaluate(el => el.hasAttribute('data-star-software'));
     await expect(star).toHaveAttribute('data-star', 'active');
@@ -227,7 +227,7 @@ test.describe('NOVA’s live stage on a computer', () => {
     await expect(star).toHaveAttribute('data-star-proven', ''); // the first frame was read back with light in it
     await page.evaluate(() => window.dispatchEvent(new Event('blur')));
     await expect(star).toHaveAttribute('data-star', 'resting');
-    await expect(star).toHaveAttribute('data-star-fps', software ? '4' : '6');
+    await expect(star).toHaveAttribute('data-star-fps', software ? '1' : '6');
     await expect(page.locator('.nova-sky-canvas')).toHaveAttribute('data-sky', 'still');
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await page.keyboard.press('Shift');

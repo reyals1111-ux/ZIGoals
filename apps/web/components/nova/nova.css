@@ -326,11 +326,14 @@ a.nova-chip:hover .nova-chip-key { color: var(--sh-ink-neon); }
    are sized to their content and centred on the star; each card leans toward the star by its inner edge only (the outer
    edges stay in line). The outer band follows below the fold. */
 .nova-orbit { --lean-k: 1; display: grid; gap: 20px; max-width: 1240px; margin: 0 auto; }
-.nova-orbit-main { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(260px, 1.15fr) minmax(180px, 1fr); grid-template-rows: minmax(0, 1fr); column-gap: 20px; height: 100cqb; min-height: 0; overflow: clip; overflow-clip-margin: 8px; }
+/* Session AM-2 (found by the keys' spec at 2560 px): the main row is as tall as the stage's window and grows when a wing
+   holds more than fits (a column of locked or teaching panels can be taller than its units); it was a fixed height that
+   clipped such a wing at both ends, so the top widget's head, with its Close key, was cut away. */
+.nova-orbit-main { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(260px, 1.15fr) minmax(180px, 1fr); grid-template-rows: minmax(0, 1fr); column-gap: 20px; min-height: 100cqb; overflow: clip; overflow-clip-margin: 8px; }
 .nova-orbit-centre { grid-column: 2; grid-row: 1; display: grid; min-width: 0; min-height: 0; }
 /* While arranging, the cards carry their buttons and may grow: the orbit grows with them and the stage scrolls. */
 .nova-frame[data-editing] .nova-orbit-main { height: auto; min-height: 100cqb; overflow: visible; }
-.nova-orbit-side { grid-row: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; min-width: 0; min-height: 0; }
+.nova-orbit-side { grid-row: 1; display: flex; flex-direction: column; justify-content: safe center; gap: 12px; min-width: 0; min-height: 0; }
 .nova-orbit-side[data-side=left] { grid-column: 1; }
 .nova-orbit-side[data-side=right] { grid-column: 3; }
 .nova-orbit-side[data-side=left] > .nova-widget { margin-right: calc(var(--inset, 0px) * var(--lean-k)); --from-x: 48px; }

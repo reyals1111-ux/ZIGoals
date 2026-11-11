@@ -131,7 +131,7 @@ export function HoloNotes({size}: {size: WidgetSize}) {
   const record = useDeviceRecord(NOTES);
   if (!record.loaded) return <HoloReading/>;
   if (record.unreadable) return <HoloUnread what="Your notes"/>;
-  const r = recentNotes(record.data, size === 'L' ? 5 : size === 'M' ? 3 : 1);
+  const r = recentNotes(record.data, size === 'L' ? 5 : size === 'M' ? 3 : 2); // a small panel shows its second note only where it is wide (holo-parts.css)
   if (!r.total) return <NovaEmpty pillar="orbit" ghost="rows">Your notes start here. A quick capture from anywhere lands in your inbox.</NovaEmpty>;
   return <div className="holo-notes" data-size={size}>
     <p className="holo-label holo-notes-head"><HoloFigure text={String(r.inbox)} className="holo-num-big"/> <span>in your inbox</span></p>

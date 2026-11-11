@@ -44,7 +44,7 @@ export type StarPace = {mode: 'active' | 'resting' | 'calm'; fps: number; scale:
  */
 export const STAR_TIERS: readonly {scale: number; detail: number; fps?: number}[] = [{scale: 1, detail: 5}, {scale: 1, detail: 4}, {scale: 0.75, detail: 3}, {scale: 0.5, detail: 3, fps: 12}];
 /** What software rendering, a low battery and a light device may ask of the pace (each only lowers it). */
-export const SOFTWARE_PACE = {fps: 8, restFps: 4, scale: 0.5, detail: 3} as const, BATTERY_FPS = 15, LIGHT_PACE = {fps: 15, scale: 0.75, detail: 4} as const;
+export const SOFTWARE_PACE = {fps: 8, restFps: 1, scale: 0.5, detail: 3} as const, BATTERY_FPS = 15, LIGHT_PACE = {fps: 15, scale: 0.75, detail: 4} as const;
 export function starPace({hud, state, focused, idleMs, phone, software = false, hints = {}, tier = 0}: {hud: HudMotionState; state: NovaOrbState; focused: boolean; idleMs: number; phone: boolean;
   /** The browser draws WebGL without graphics hardware: every frame is the processor's work. */
   software?: boolean; hints?: DeviceHints;
