@@ -8,7 +8,8 @@ import type {ExtrasStatus} from '../vault-sync-controls';
 export function readExtrasChoiceNow(): {enabled: boolean; explained: boolean} {
   try { const raw = getAppStorage().getItem(EXTRAS_CHOICE_KEY); if (raw === null) return {enabled: true, explained: false}; const v = JSON.parse(raw); return {enabled: v?.enabled !== false, explained: v?.explained === true}; } catch { return {enabled: true, explained: false}; }
 }
-const SECTION_DONE: Record<string, string> = {goals: 'goal extras', life: 'calculator, Life review, Today and reminders', habits: 'habit extras', health: 'Health extras'};
+// Session AM (ADR-038 D18): the Checklist's and NOVA's sections are named too (a section without a name here read as an empty place in the line).
+const SECTION_DONE: Record<string, string> = {goals: 'goal extras', life: 'calculator, Life review, Today and reminders', habits: 'habit extras', health: 'Health extras', checklist: 'Checklist items', nova: 'NOVA requests, pinned widgets and layout'};
 export const EXTRAS_EXPLAINED = 'Your goal plans and life areas, sub-goals, stories and card art, average goals, calculator scenarios, the Life review focus, Today’s cards, the reminders plan, habit extras, routines and the game now travel with your encrypted sync, so your other devices show them too. Health extras (the coach’s answers, micronutrient and vitamin targets, how macros are shown, aisles and custom measurements) travel only while Health sync is on. Photos, recent searches and the welcome’s setup stay on this device.';
 
 function line(status: ExtrasStatus | null, health: boolean): string | null {

@@ -19,18 +19,23 @@ export async function workerAnswer(mf,url,init){
  const response=await mf.dispatchFetch(url,init),empty=[101,204,205,304].includes(response.status);
  return new Response(empty?null:await response.arrayBuffer(),{status:response.status,statusText:response.statusText,headers:response.headers});
 }
-export async function privateRuntime(persist){
+/**
+ * Session AM (ADR-038 A6): `source` names the folder the Worker is bundled from (a URL ending in `/`). The default is the
+ * repository's own `workers/private-sync/`; a frozen copy of a deployed Worker (fixtures/private-sync-<commit>/) runs in
+ * the same harness, so an app can be proven against the service as it is deployed.
+ */
+export async function privateRuntime(persist,{source}={}){
  persist??=await mkdtemp(join(tmpdir(),'zigoals-run11-vault-'));
- const mf=await createPrivateMiniflare({persist});
+ const mf=await createPrivateMiniflare({persist,source});
  const call=(path,body,token='fixture')=>mf.dispatchFetch('https://sync.test'+path,{method:body?'POST':'GET',headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken(token),'x-zigoals-account':ACCOUNT,'content-type':'application/json'},...(body?{body:JSON.stringify(body.action==='refresh'?{...body,previous:fixtureToken(body.previous)}:body)}:{})});
  return {mf,call,persist};
 }
 
-export async function createPrivateMiniflare({persist,origin='https://app.test',outboundService,recoveryMode='serve',bindings={},lifecycleService}){
+export async function createPrivateMiniflare({persist,origin='https://app.test',outboundService,recoveryMode='serve',bindings={},lifecycleService,source=new URL('../../workers/private-sync/',import.meta.url)}){
  const syntheticUpstream=outboundService??(async request=>Response.json(fixtureAlias(request)==='invalid'?{}:{id:ACCOUNT},{status:fixtureAlias(request)==='invalid'?401:200}));
  // Every worker outbound request stays in this Node callback. Never forward to fetch.
  const isolatedUpstream=async request=>{if(new URL(request.url).hostname!=='fixture.supabase.co'&&new URL(request.url).hostname!=='test.supabase.co')throw Error('Fixture refused external destination');return syntheticUpstream(request);};
- const bundle=async name=>(await build({entryPoints:[new URL('../../workers/private-sync/'+name,import.meta.url).pathname],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers']})).outputFiles[0].text;
+ const bundle=async name=>(await build({entryPoints:[new URL(name,source).pathname],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers']})).outputFiles[0].text;
  return new Miniflare({...convertV4MiniflareOptions({workers:[{name:'run11-private-sync',modules:true,script:await bundle('worker.mjs'),compatibilityDate:'2026-09-13',durableObjects:{VAULTS:{className:'PrivateVault',useSQLite:true}},serviceBindings:{LIFECYCLE:lifecycleService??{name:'run11-lifecycle',entrypoint:'LifecycleService'}},bindings:{AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public-fixture',APP_ORIGIN:origin,STEP_UP_REQUIRED:'on',...bindings},outboundService:isolatedUpstream},{name:'run11-lifecycle',modules:true,script:await bundle('lifecycle.mjs'),compatibilityDate:'2026-09-13',durableObjects:{LIFECYCLES:{className:'LifecycleAuthority',useSQLite:true}},bindings:{RECOVERY_MODE:recoveryMode,AUTH_ORIGIN:'https://fixture.supabase.co',...(bindings.AUTH_ADMIN_KEY?{AUTH_ADMIN_KEY:bindings.AUTH_ADMIN_KEY}:{})},outboundService:isolatedUpstream},doProbeWorker({className:'LifecycleAuthority',scriptName:'run11-lifecycle'})],durableObjectsPersist:persist}),resourcePersistencePath:persist});
 }
 

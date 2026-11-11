@@ -2,8 +2,9 @@
  * Session AM (ADR-038 D16, D17): this session's device keys and their rows for the shared registries, as literals in a
  * module with no imports (the lib/al-device-keys.ts pattern), so the welcome check, Export everything, the data catalog
  * and the account erase can name them without shipping a schema; lib/am-device-keys.test.ts proves each literal equals
- * its owner's constant and that every registry carries it. Every record is versioned and loose, exported, restored,
- * erased with the account and, for now, on this device only (TIER 3 stored format: additive keys only).
+ * its owner's constant and that every registry carries it. Every record is versioned and loose, exported, restored and
+ * erased with the account (TIER 3 stored format: additive keys only). The stage record travels in the encrypted `nova`
+ * extras section (D18, lib/vault/extras-sections.ts); the outside-data record stays on this device.
  * - `zigoals:nova-stage:v1` (personal; D16): what the person asked NOVA for — their requests in their own words, the
  *   widgets NOVA made, the widgets' small parameters and the dock (lib/nova/stage/record.ts NOVA_STAGE).
  */

@@ -1,0 +1,13 @@
+{
+  "source": "c65882f3d4d2935783961600aa6e6ae2fd01c62b",
+  "scope": "The private-sync Worker as deployed with Alpha #54 (Session AM, ADR-038 A6): exact unmodified tracked bytes of workers/private-sync/*.mjs at that commit (git show c65882f3:workers/private-sync/<file>). Run only in Miniflare by scripts/run11/extras-nova-a6.test.mjs to prove that an app with the nova extras section keeps every other section syncing against the service that is deployed today. Never deployed from here, never edited.",
+  "files": {
+    "extras.mjs": "2b8db3ce3ee332c63a1c9f614c625c8b0443eba78b0f86ab1380cb6393513903",
+    "lifecycle.mjs": "68103473f16d0cdb81f1a091aa3e454814c1031c43063e84a4eafa3f8baf80b0",
+    "portfolio.mjs": "8ac813c262805bf978f0932a86889aa8e2b36e4eac2974866dbd93e74fcedfa7",
+    "rotation.mjs": "0345d80f7c31b794f8dddb874c193d651ad86edda0d5bee9aafbf08ba5b79f05",
+    "sessions.mjs": "224590d7d547484e4d494bd62448a3b0838433ef22fe8a9e818e5dbb8eef815e",
+    "step-up.mjs": "86f5ef2276584553e1d1cb3dded58f5153c9d8f89889525aaf3664fc0dc16270",
+    "worker.mjs": "4bda735d6e640961afd993e1aa3dee3c225d1f57bb83002d5d241aa529951f80"
+  }
+}

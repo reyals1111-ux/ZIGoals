@@ -2,8 +2,8 @@ import * as z from 'zod';
 import {openRecord, sealRecord, type EncryptedEnvelope, type VaultManifest} from './crypto';
 import {RevisionConflict} from './cloud-sync';
 import {canonical, mergeExtras, same, setOwn} from './extras-merge';
-import {EXTRAS_SECTIONS, type ExtrasSection, type ExtrasSectionName} from './extras-sections';
-import {EXTRAS_CHOICE_KEY} from './extras-keys';
+import {EXTRAS_SECTIONS, type ExtrasRecord, type ExtrasSection, type ExtrasSectionName} from './extras-sections';
+import {EXTRAS_CHOICE_KEY, EXTRAS_OPTIONAL_SECTIONS} from './extras-keys';
 import {announceSyncedDeviceChanges} from './account-data';
 
 /**
@@ -21,14 +21,15 @@ import {announceSyncedDeviceChanges} from './account-data';
  * the merged snapshot is uploaded only when it differs from the cloud's.
  */
 export const EXTRAS_PART_CHARS = 48_000, EXTRAS_MAX_PARTS = 14, EXTRAS_SEALED_MAX = 1_000_000;
-const SECTION_INDEX: Record<ExtrasSectionName, number> = {goals: 0, life: 1, habits: 2, health: 3, checklist: 4};
+const SECTION_INDEX: Record<ExtrasSectionName, number> = {goals: 0, life: 1, habits: 2, health: 3, checklist: 4, nova: 5};
 // Fixed objects, distinct from every vault record (random v4 ids) and from the Portfolio's (0x100 + index).
 const partObject = (section: ExtrasSectionName, index: number) => `00000000-0000-4000-8000-${(0x400 + SECTION_INDEX[section] * 0x20 + index).toString(16).padStart(12, '0')}`;
 // Session AK (8.10, AFL8): the Checklist section, asked for by name (a private-sync that predates it simply never lists it).
-const sectionName = z.enum(['goals', 'life', 'habits', 'health', 'checklist']);
+// Session AM (ADR-038 D18): the NOVA section, asked for the same way.
+const sectionName = z.enum(['goals', 'life', 'habits', 'health', 'checklist', 'nova']);
 const partSchema = z.object({version: z.literal(1), section: sectionName, index: z.number().int().min(0), count: z.number().int().min(1).max(EXTRAS_MAX_PARTS), text: z.string().max(EXTRAS_PART_CHARS)}).strict();
 const headSchema = z.object({revision: z.number().int().min(0), generation: z.number().int().min(0), epoch: z.number().int().min(1).nullable(), parts: z.number().int().min(0).max(16)}).strict();
-export const extrasHeadsSchema = z.object({protocol: z.literal(1), sections: z.object({goals: headSchema, life: headSchema, habits: headSchema, health: headSchema, checklist: headSchema.optional()}).strict()}).strict();
+export const extrasHeadsSchema = z.object({protocol: z.literal(1), sections: z.object({goals: headSchema, life: headSchema, habits: headSchema, health: headSchema, checklist: headSchema.optional(), nova: headSchema.optional()}).strict()}).strict();
 export const extrasSectionCloudSchema = z.object({protocol: z.literal(1), section: sectionName, revision: z.number().int().min(0), generation: z.number().int().min(0), epoch: z.number().int().min(1).nullable(), parts: z.array(z.unknown()).max(16)}).strict();
 export type ExtrasHeads = z.infer<typeof extrasHeadsSchema>;
 export type ExtrasSectionCloud = z.infer<typeof extrasSectionCloudSchema>;
@@ -43,7 +44,7 @@ export const extrasBaseSchema = z.object({version: z.literal(1), vault: z.uuid()
   held: z.literal(true).optional()}).strict();
 export type ExtrasBase = z.infer<typeof extrasBaseSchema>;
 export class ExtrasTooLarge extends Error { constructor(section: string) { super(`Your ${SECTION_LABEL[section as ExtrasSectionName] ?? section} are larger than their encrypted copy can hold (about 1 MB). They stay on this device; nothing was uploaded.`); } }
-export const SECTION_LABEL: Record<ExtrasSectionName, string> = {goals: 'goal extras', life: 'calculator, Life review and Today extras', habits: 'habit extras', health: 'Health extras', checklist: 'Checklist items'};
+export const SECTION_LABEL: Record<ExtrasSectionName, string> = {goals: 'goal extras', life: 'calculator, Life review and Today extras', habits: 'habit extras', health: 'Health extras', checklist: 'Checklist items', nova: 'NOVA requests, pinned widgets and layout'};
 
 /** The canonical text a section is sealed and compared as (sorted keys, so key order never reads as a change). */
 export const sectionText = (records: Records) => canonical({version: 1, records});
@@ -79,7 +80,19 @@ export function readExtrasChoice(storage: Pick<Storage, 'getItem'>): ExtrasChoic
 }
 export function writeExtrasChoice(storage: Pick<Storage, 'setItem'>, choice: ExtrasChoice) { storage.setItem(EXTRAS_CHOICE_KEY, JSON.stringify({version: 1, enabled: choice.enabled, ...(choice.explained ? {explained: true} : {})})); }
 
-/** What this device's keys hold for a section, without the fields that stay on each device. */
+const isRecord = (v: unknown): v is Records => !!v && typeof v === 'object' && !Array.isArray(v);
+/** Session AM (D18): the fields of an allow-list record that travel, and nothing else; `undefined` when there is no record. */
+function travelling(value: unknown, fields: readonly string[]): Records | undefined {
+  if (!isRecord(value)) return undefined;
+  const out: Records = {};
+  for (const field of fields) if (Object.hasOwn(value, field) && value[field] !== undefined) setOwn(out, field, value[field]);
+  return out;
+}
+/**
+ * What this device's keys hold for a section, without the fields that stay on each device. A record with `syncFields`
+ * gives only those fields (an allow-list: a field a later build adds to it never travels from here); a `verbatim`
+ * record gives what is stored, checked by its schema but not rewritten by it.
+ */
 export function collectSection(storage: Pick<Storage, 'getItem'>, section: ExtrasSection): {records: Records; raw: Record<string, string | null>; unreadable: string[]} {
   const records: Records = {}, raw: Record<string, string | null> = {}, unreadable: string[] = [];
   for (const r of section.records) {
@@ -89,7 +102,9 @@ export function collectSection(storage: Pick<Storage, 'getItem'>, section: Extra
     let parsed: z.ZodSafeParseResult<unknown>;
     try { parsed = r.spec.schema.safeParse(JSON.parse(text)); } catch { unreadable.push(key); continue; }
     if (!parsed.success) { unreadable.push(key); continue; }
-    const value = {...(parsed.data as Records)};
+    const held = (r.verbatim ? JSON.parse(text) : parsed.data) as Records;
+    if (r.syncFields) { records[key] = travelling(held, r.syncFields)!; continue; }
+    const value = {...held};
     for (const field of r.deviceFields ?? []) delete value[field];
     records[key] = value;
   }
@@ -100,29 +115,64 @@ export function collectSection(storage: Pick<Storage, 'getItem'>, section: Extra
  * cloud holds it; this build never reads, changes or removes it.
  */
 export function mergeSection(section: ExtrasSection, base: Records | undefined, local: Records, remote: Records): Records {
-  const known = new Set(section.records.map(r => r.spec.key)), out: Records = {};
+  const known = new Map(section.records.map(r => [r.spec.key, r] as const)), out: Records = {};
   for (const key of new Set([...Object.keys(base ?? {}), ...Object.keys(local), ...Object.keys(remote)])) {
-    const value = known.has(key) ? mergeExtras(base === undefined ? undefined : base[key], local[key], remote[key]) : remote[key];
+    const record = known.get(key);
+    const value = record ? mergeRecord(record, base === undefined ? undefined : base[key], local[key], remote[key]) : remote[key];
     if (value !== undefined) setOwn(out, key, value);
   }
   return out;
 }
 /**
+ * One known record's merge. Session AM (ADR-038 D18): a value joined from both devices is brought back inside the
+ * record's bounds by its `fit`; an allow-list record (`syncFields`) merges only those fields, and any other field its
+ * cloud copy holds (one a later build lets travel) is carried as the cloud holds it, the way a later build's record is.
+ */
+function mergeRecord(record: ExtrasRecord, base: unknown, local: unknown, remote: unknown): unknown {
+  const side = (value: unknown) => isRecord(value) ? value : undefined;
+  const fit = (value: unknown, l: unknown, r: unknown) => record.fit && isRecord(value) ? record.fit(value, side(l), side(r)) : value;
+  const fields = record.syncFields;
+  if (!fields) return fit(mergeExtras(base, local, remote), local, remote);
+  const mine = travelling(local, fields), theirs = travelling(remote, fields);
+  const merged = fit(mergeExtras(travelling(base, fields), mine, theirs), mine, theirs), out: Records = {};
+  if (isRecord(remote)) for (const field of Object.keys(remote)) if (!fields.includes(field)) setOwn(out, field, remote[field]);
+  if (isRecord(merged)) for (const field of Object.keys(merged)) setOwn(out, field, merged[field]);
+  return merged === undefined && !Object.keys(out).length ? undefined : out;
+}
+/**
  * Writes a merge into the device keys: every changed record validated by its own schema first (one refusal changes
  * nothing), then written only while its key still holds the bytes collected (an edit made meanwhile is never
  * overwritten: the sync stops and runs again). The fields that stay on each device are kept from this device.
+ *
+ * Session AM (ADR-038 D18): for an allow-list record (`syncFields`) only those fields are written; everything else the
+ * key holds is kept as it is, a field this build does not know included, and the record is never removed (when the other
+ * devices no longer hold the travelling fields, they are cleared here and the rest stays). A `verbatim` record is
+ * written as merged, checked by its schema but not rewritten by it, so a value a later build wrote in a field this build
+ * reads tolerantly travels on unchanged.
  */
 export function applySection(storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>, section: ExtrasSection, collected: ReturnType<typeof collectSection>, merged: Records): string[] {
   const writes: {key: string; text: string | null}[] = [];
   for (const r of section.records) {
     const key = r.spec.key, target = merged[key], current = collected.records[key];
+    const refused = () => Error(`Your ${SECTION_LABEL[section.name]} from another device could not be combined with this device's. Nothing was changed on this device.`);
+    if (r.syncFields) {
+      const next = travelling(target, r.syncFields);
+      if (next === undefined ? current === undefined || same(current, {}) : current !== undefined && same(next, current)) continue;
+      const candidate: Records = collected.raw[key] === null ? {...(r.spec.empty() as Records)} : JSON.parse(collected.raw[key]!) as Records;
+      for (const field of r.syncFields) delete candidate[field];
+      for (const field of Object.keys(next ?? {})) setOwn(candidate, field, next![field]);
+      const parsed = r.spec.schema.safeParse(candidate);
+      if (!parsed.success) throw refused();
+      writes.push({key, text: JSON.stringify(r.verbatim ? candidate : parsed.data)});
+      continue;
+    }
     if (target === undefined ? current === undefined : current !== undefined && same(target, current)) continue;
     if (target === undefined) { writes.push({key, text: null}); continue; }
     const held = collected.raw[key] === null ? {} : JSON.parse(collected.raw[key]!) as Records, kept: Records = {};
     for (const field of r.deviceFields ?? []) if (held[field] !== undefined) kept[field] = held[field];
-    const parsed = r.spec.schema.safeParse({...(target as Records), ...kept});
-    if (!parsed.success) throw Error(`Your ${SECTION_LABEL[section.name]} from another device could not be combined with this device's. Nothing was changed on this device.`);
-    writes.push({key, text: JSON.stringify(parsed.data)});
+    const candidate = {...(target as Records), ...kept}, parsed = r.spec.schema.safeParse(candidate);
+    if (!parsed.success) throw refused();
+    writes.push({key, text: JSON.stringify(r.verbatim ? candidate : parsed.data)});
   }
   if (writes.some(w => storage.getItem(w.key) !== collected.raw[w.key])) throw new ExtrasChangedDuringSync();
   for (const w of writes) { if (w.text === null) storage.removeItem(w.key); else storage.setItem(w.key, w.text); }
@@ -208,8 +258,11 @@ export async function syncSection(input: SyncInput, section: ExtrasSection, head
  * its own outcome and never stops the others or the account sync; a revision conflict (another device wrote between the
  * heads and the upload) retries that section once.
  */
-/** Session AK (AFL8): shown when the sync service does not list an optional section yet. */
-export const SERVICE_UPDATE_NOTE = 'Your Checklist items sync once the sync service is updated. Nothing was changed here.';
+/**
+ * Session AK (AFL8): shown when the sync service does not list an optional section yet. Session AM (ADR-038 D18): in
+ * the section's own words (the Checklist's sentence is the one it was), so it also says so for NOVA.
+ */
+export const SERVICE_UPDATE_NOTE = (section: ExtrasSectionName) => `Your ${SECTION_LABEL[section]} sync once the sync service is updated. Nothing was changed here.`;
 export async function syncExtras(input: SyncInput & {health: boolean}): Promise<ExtrasOutcome[]> {
   const heads = extrasHeadsSchema.parse(await input.transport.heads()); input.fence();
   const outcomes: ExtrasOutcome[] = [];
@@ -217,13 +270,13 @@ export async function syncExtras(input: SyncInput & {health: boolean}): Promise<
     if (section.consent === 'health' && !input.health) { outcomes.push({section: section.name, state: 'skipped'}); continue; }
     // Session AK (AFL8): a private-sync that predates an optional section never lists it; that section waits, untouched.
     const first = heads.sections[section.name];
-    if (!first) { outcomes.push({section: section.name, state: 'skipped', message: SERVICE_UPDATE_NOTE}); continue; }
+    if (!first) { outcomes.push({section: section.name, state: 'skipped', message: SERVICE_UPDATE_NOTE(section.name)}); continue; }
     try {
       try { outcomes.push(await syncSection(input, section, first)); }
       catch (error) {
         if (!(error instanceof RevisionConflict)) throw error;
         const again = extrasHeadsSchema.parse(await input.transport.heads()); input.fence();
-        const head = again.sections[section.name]; if (!head) throw Error(SERVICE_UPDATE_NOTE);
+        const head = again.sections[section.name]; if (!head) throw Error(SERVICE_UPDATE_NOTE(section.name));
         outcomes.push(await syncSection(input, section, head));
       }
     } catch (error) {
@@ -247,11 +300,18 @@ export async function deleteExtrasCopies({transport, manifest, storage, bases, f
   await bases.clear();
 }
 
+/**
+ * The heads request's query: every optional section asked for by name, each as its own `with` (Session AM, ADR-038 A6).
+ * The private-sync deployed before the NOVA section reads the first `with` only and refuses a value it does not know, so
+ * the Checklist stays first and NOVA is a second `with`: that service answers exactly as it did for `with=checklist`
+ * (the four sections and the Checklist), and NOVA is simply not listed. One name per `with`, never a list in one value.
+ */
+export const EXTRAS_HEADS_QUERY = EXTRAS_OPTIONAL_SECTIONS.map(name => `&with=${name}`).join('');
 /** The relay's extras calls (lib/server/private-account.ts), with the vault transport's errors. */
 export function extrasTransport(account: string, fence: () => void): ExtrasTransport {
-  async function request(query: string | null, operation?: unknown, also?: 'checklist') {
+  async function request(query: string | null, operation?: unknown, heads = false) {
     fence();
-    const response = await fetch('/api/private-account' + (operation ? '' : `?action=extras${query ? `&section=${query}` : also ? `&with=${also}` : ''}`), {method: operation ? 'POST' : 'GET', headers: {'X-Zigoals-Account': account, ...(operation ? {'Content-Type': 'application/json'} : {})}, ...(operation ? {body: JSON.stringify({action: 'extras', operation})} : {}), cache: 'no-store', signal: AbortSignal.timeout(20000)});
+    const response = await fetch('/api/private-account' + (operation ? '' : `?action=extras${query ? `&section=${query}` : heads ? EXTRAS_HEADS_QUERY : ''}`), {method: operation ? 'POST' : 'GET', headers: {'X-Zigoals-Account': account, ...(operation ? {'Content-Type': 'application/json'} : {})}, ...(operation ? {body: JSON.stringify({action: 'extras', operation})} : {}), cache: 'no-store', signal: AbortSignal.timeout(20000)});
     const text = await response.text(); if (text.length > (operation ? 32768 : 1_100_000)) throw Error('Sync response exceeds capacity.'); fence();
     const data = JSON.parse(text);
     if (!response.ok) {
@@ -260,7 +320,7 @@ export function extrasTransport(account: string, fence: () => void): ExtrasTrans
     }
     return data;
   }
-  return {heads: () => request(null, undefined, 'checklist'), read: section => request(section), write: operation => request(null, operation)};
+  return {heads: () => request(null, undefined, true), read: section => request(section), write: operation => request(null, operation)};
 }
 
 /** This device's bases in IndexedDB (`zigoals-extras-sync-v1`), per account. */

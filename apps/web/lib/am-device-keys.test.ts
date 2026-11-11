@@ -4,14 +4,17 @@ import {NOVA_STAGE, NOVA_STAGE_KEY} from './nova/stage/record';
 import {NOVA_WORLD, NOVA_WORLD_KEY} from './nova/world/record';
 import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from './onboarding';
 import {DEVICE_KEYS, EVERYTHING_KEYS, MODULE_KEYS} from './export/everything';
-import {DEVICE_ONLY, SYNCED} from './data-health/catalog';
+import {DEVICE_ONLY, NOVA_PARTLY_SYNCED_LABEL, SYNCED} from './data-health/catalog';
+import {NOVA_KEY, novaRecordSchema} from './nova/store';
+import {EXTRAS_SECTIONS} from './vault/extras-sections';
+import {collectSection} from './vault/extras-sync';
 import {forgetAaDeviceRecords} from './aa-device-forget';
 import {DEVICE_PARTS} from './restore/plan';
 import {exportRecordSections, restoreRecordSection, sectionOf} from './vault/backup-records';
 import {backupFormatVersion} from './vault/backup';
 
-// Session AM (ADR-038 D16, D17): every key this session adds is wired into the shared registries, device only (the
-// lib/al-device-keys.test.ts checks, for this session's module).
+// Session AM (ADR-038 D16, D17): every key this session adds is wired into the shared registries (the
+// lib/al-device-keys.test.ts checks, for this session's module); D18: the stage record also travels in encrypted sync.
 const memory = () => {
   const m = new Map<string, string>();
   const storage = {get length() { return m.size; }, key: (i: number) => [...m.keys()][i] ?? null, getItem: (k: string) => m.get(k) ?? null,
@@ -49,13 +52,38 @@ describe('Session AM device keys', () => {
       expect(Object.values(MODULE_KEYS)).not.toContain(key);
     }
   });
-  test('the data catalog lists each key once, on this device only, with its label and area', () => {
+  // Session AM (D18, deliberate): the stage record travels in the encrypted `nova` extras section, so the catalog lists
+  // it once under "synced" (account consent) and not as device-only (was: every key of this session on this device
+  // only). The outside-data record is still on this device only, checked as strictly as before.
+  test('the data catalog lists each key once, with its label and area: the stage record synced, the outside-data record on this device only', () => {
     expect(Object.keys(AM_CATALOG_LABELS).sort()).toEqual(Object.keys(AM_EXPORT_KEYS).sort());
+    expect(Object.entries(AM_EXPORT_KEYS).map(([name, key]) => [name, key, SYNCED.some(entry => entry.key === key)])).toEqual([['novaStage', NOVA_STAGE_KEY, true], ['novaWorld', NOVA_WORLD_KEY, false]]);
     for (const [name, key] of Object.entries(AM_EXPORT_KEYS)) {
       const [label, area] = (AM_CATALOG_LABELS as Record<string, readonly [string, string]>)[name]!;
-      expect(DEVICE_ONLY.filter(entry => entry.key === key)).toEqual([{key, label, home: 'device', area}]);
-      expect(SYNCED.map(entry => entry.key)).not.toContain(key);
+      const synced = key === NOVA_STAGE_KEY;
+      expect((synced ? SYNCED : DEVICE_ONLY).filter(entry => entry.key === key)).toEqual([{key, label, home: synced ? 'sync' : 'device', area}]);
+      expect((synced ? DEVICE_ONLY : SYNCED).map(entry => entry.key)).not.toContain(key);
     }
+  });
+  // Session AM (D18, deliberate): `zigoals:nova:v1` was "this device only" in the catalog. Two of its fields travel now,
+  // so it is listed once, with the synced records, under a label that names what travels and what stays; exactly those
+  // two fields travel and every other field of the record never does.
+  test('zigoals:nova:v1 is listed once, as partly synced: exactly the layout and the pinned widgets travel, every other field never', () => {
+    expect([...SYNCED, ...DEVICE_ONLY].filter(entry => entry.key === NOVA_KEY)).toEqual([{key: NOVA_KEY, label: NOVA_PARTLY_SYNCED_LABEL, home: 'sync', area: 'NOVA'}]);
+    expect(SYNCED.filter(entry => entry.key === NOVA_KEY)).toHaveLength(1);
+    expect(NOVA_PARTLY_SYNCED_LABEL).toBe('NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)');
+    const own = EXTRAS_SECTIONS.flatMap(s => s.records).filter(r => r.spec.key === NOVA_KEY);
+    expect(own.map(r => r.syncFields)).toEqual([['layout', 'widgets']]);
+    const fields = Object.keys(novaRecordSchema.shape).filter(f => f !== 'version');
+    expect(fields.filter(f => !own[0]!.syncFields!.includes(f)).sort()).toEqual([...own[0]!.deviceFields!].sort());
+    // Every field at once, and one a later build might add: only the two leave the device.
+    const {storage} = memory();
+    storage.setItem(NOVA_KEY, JSON.stringify({version: 1, openingSeen: true, layout: 'focus', widgets: [{id: 'orbit', size: 'M', slot: 0}], dock: {order: ['today']}, persona: {name: 'Fictional'}, accent: 'gold', customInstructions: 'Fictional', shortcuts: true, yourName: 'Fictional', panels: {left: 'rail'}, routing: 'auto', wake: true, startOnNova: true, addedLater: 1}));
+    const collected = collectSection(storage, EXTRAS_SECTIONS.find(s => s.name === 'nova')!);
+    expect(collected.records[NOVA_KEY]).toEqual({layout: 'focus', widgets: [{id: 'orbit', size: 'M', slot: 0}]});
+    // No other NOVA key is in any section: the outside-data record and AK's and AL's NOVA records stay on the device.
+    expect(EXTRAS_SECTIONS.flatMap(s => s.records.map(r => r.spec.key)).filter(key => key.includes('nova')).sort()).toEqual([NOVA_STAGE_KEY, NOVA_KEY].sort());
+    for (const key of [NOVA_WORLD_KEY, 'zigoals:nova-bridge:v1', 'zigoals:nova-briefs:v1', 'zigoals:nova-workflows:v1', 'zigoals:nova-setup:v1', 'zigoals:nova-hermes:v1', 'zigoals:nova-hud:v1']) expect(DEVICE_ONLY.filter(entry => entry.key === key).map(entry => entry.home), key).toEqual(['device']);
   });
   test('the account erase removes every key and leaves other records alone', () => {
     expect([...AM_ERASE_KEYS].sort()).toEqual([...all].sort());
