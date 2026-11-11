@@ -4,6 +4,24 @@
  * While the star is drawn the SVG orb keeps its box and gives way (it is the fallback and the still picture elsewhere).
  */
 .nova-star { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 0; display: block; max-width: none; }
+.nova-star[hidden] { display: none; }
+/*
+ * Session AM-2 (ADR-038 "AM-2", E3): the star as a picture, where WebGL cannot draw it — the same galaxy, with the
+ * state marked on top in the disc's own plane. Nothing here moves.
+ */
+.nova-star-picture > img, .nova-star-picture > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.nova-star-picture[data-state=thinking] > img { filter: brightness(1.18) saturate(1.1); }
+.nova-star-picture[data-state=speaking] > img { filter: brightness(1.1); }
+.nova-star-mark-in { stroke: var(--nova-b, #23eaff); stroke-width: .7; opacity: .8; }
+.nova-star-mark-out { stroke: color-mix(in srgb, var(--nova-c, #f06dff) 55%, #fff); stroke-width: .8; opacity: .7; }
+.nova-star-mark-think { stroke: color-mix(in srgb, var(--nova-b, #23eaff) 60%, #fff); stroke-width: 1.1; opacity: .9; }
+/*
+ * AM-2 (E4): the honest line under the star's state — why the star is still, slower than usual or a picture. Small, in
+ * the stage's quiet ink; it is text, so it is read by assistive technology with the state above it.
+ */
+.nova-star-why { margin: 2px 0 0; font-size: 14px; line-height: 1.35; letter-spacing: .01em; color: var(--nova-ink-3, #aebcd8); text-wrap: balance; }
+.nova-star-why[data-kind=picture] { color: #ffd9a0; }
+.nova-star-why-more { display: block; font-size: 14px; color: var(--nova-ink-3, #aebcd8); opacity: .9; overflow-wrap: anywhere; }
 .nova-orb-button[data-star] > .nova-orb { opacity: 0; }
 .nova-orb-button[data-star] > .nova-orb, .nova-orb-button[data-star] > .nova-orb * { animation: none !important; }
 /* While the star is drawn the orb's own box can be smaller (the star's canvas reaches past it), so NOVA's words under it fit a short window. */

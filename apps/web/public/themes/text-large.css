@@ -1965,6 +1965,9 @@
 :where(:root[data-text=large]) .nova-bar-title:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-bar-row input:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .nova-bar-hint:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/nova/core/star-system.css  */
+:where(:root[data-text=large]) .nova-star-why:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nova-star-why-more:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/nova/guide-band.css  */
 :where(:root[data-text=large]) .nova-guide-band-progress:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/nova/hermes/hermes-example.css  */

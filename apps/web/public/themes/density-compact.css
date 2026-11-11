@@ -3915,6 +3915,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-bar-actions:not(#\-) { row-gap: 8px; }
 @media (max-width:480px) { :where(:root[data-density=compact]) .nova-bar:not(#\-) { margin-top: 8vh; } }
 /*  components/nova/core/star-system.css  */
+:where(:root[data-density=compact]) .nova-star-why:not(#\-) { margin-top: 2px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .ns-beam:not(#\-) { margin-top: -1px; }
 /*  components/nova/guide-band.css  */
 :where(:root[data-density=compact]) .nova-root.nova-guide-band:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 14px; padding-top: 8px; padding-bottom: 8px; }

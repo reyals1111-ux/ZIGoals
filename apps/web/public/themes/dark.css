@@ -13690,6 +13690,30 @@
 }
 /*  components/nova/core/star-system.css  */
 @scope (:root[data-theme=dark]) {
+    .nova-star-picture[data-state=thinking] > img:not(#\-) {
+        filter: brightness(1.18) saturate(1.1)
+    }
+    .nova-star-picture[data-state=speaking] > img:not(#\-) {
+        filter: brightness(1.1)
+    }
+    .nova-star-mark-in:not(#\-) {
+        stroke: var(--nova-b, #23eaff)
+    }
+    .nova-star-mark-out:not(#\-) {
+        stroke: color-mix(in srgb, var(--nova-c, #f06dff) 55%, #fff)
+    }
+    .nova-star-mark-think:not(#\-) {
+        stroke: color-mix(in srgb, var(--nova-b, #23eaff) 60%, #fff)
+    }
+    .nova-star-why:not(#\-) {
+        color: var(--nova-ink-3, #aebcd8)
+    }
+    .nova-star-why[data-kind=picture]:not(#\-) {
+        color: #ffd9a0
+    }
+    .nova-star-why-more:not(#\-) {
+        color: var(--nova-ink-3, #aebcd8)
+    }
     .ns-beam:not(#\-) {
         background-image: linear-gradient(90deg, rgb(255 255 255 / 0) 0, rgb(255 255 255 / .95) 14%, var(--nova-b, #23eaff) 55%, rgb(255 255 255 / .9) 100%);
         background-color: transparent;

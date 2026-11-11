@@ -3,6 +3,22 @@
 Read this first after a pause; continue from "Next" without asking. Branch `feature/session-am-nova`, Draft
 [PR #101](https://github.com/reyals1111-ux/ZIGoals/pull/101). Rules: CLAUDE.md, the owner's brief (in ADR-038), ADR-038 D1–D22.
 
+## AM-2 — "NOVA, STUNNING" (a visual pass on this branch; read this section first)
+The owner's brief and the approved plan are in ADR-038 "AM-2" (approval items 1–8, additions B1–B3, decisions E1–…). Order of work: (a) the star → (b) the hologram frame and Close/Hide/Pin on every widget → (c) the instruments → (d) the stage, side bars, top bar, command bar, answer → (e) phone, conversation, setup → (f) critique rounds against the 43 references → (g) production build, specs, B2 proofs, weights → (h) ADR-038 AM-2, `AM_DEMO_TOUR.md`, STATUS (final commit), the report. Rules: push after each part and at least every 45 minutes; lint, typecheck, focused tests before each push; every NOVA CSS change regenerates the theme sheets (`node scripts/themes/build-themes.mjs`); never merge, deploy or dispatch.
+
+**Environment for AM-2 (this sandbox had no nvm):** Node 24.19.0 unpacked from nodejs.org into `/opt/node24` (`export PATH=/opt/node24/bin:$PATH`); `NODE_OPTIONS=--max-old-space-size=8192 pnpm typecheck`; captures with a small Playwright script in the scratchpad (never in the repo); the star's workbench renders `lib/nova/core/star-shader.ts` on a blank page.
+
+**Done so far:** (a) the star: portable shader, read-back proof, the new pace rules, the still picture, the honest line, the capture switches, `tests/nova-stage-am2.spec.ts` (six star specs).
+**Next:** (b), then on down the list above.
+
+### Preview now (star) — B1, for the owner's Mac
+1. `git fetch origin && git checkout feature/session-am-nova && git pull`, then `pnpm install --frozen-lockfile --ignore-scripts`.
+2. `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, then open **http://127.0.0.1:3100/app/nova?star=why** in Chrome, and the same address in Safari. (A fresh profile or a private window avoids an older NOVA record; if NOVA shows ZIGi's face in the centre, choose the star again under Make it yours.)
+3. **What you should see:** in the centre a large violet–magenta spiral galaxy with a white core, a thin blue streak through it, a dark planet with a lit rim on its orbit and a small moon, slowly turning; under "STANDBY" the line **"The star is running"** and below it something like `active · 30 fps · tier 0 · 840 px · ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max, …)` in Chrome, or `… · Apple GPU` in Safari. Tap the star and type a question: the arms wind tighter while it thinks. Without `?star=why` the line is hidden while the star runs at full pace.
+4. **If the galaxy is not turning, or not there, read back three things:** (i) the line under STANDBY, word for word (for example "Still picture: the graphics driver drew an empty frame", "Slow star: frames arrived late on this device", "Still star: your device asks for reduced motion"); (ii) the small grey details line under it (pace, tier, size, renderer name); (iii) which browser, and whether the Mac was on battery or in Low Power Mode. A still galaxy *picture* with a "Still picture: …" line means WebGL could not draw it and the fallback worked; an empty centre with "The star is running" would be a new finding.
+5. The other lines can be tried on purpose: Settings → Motion → Off ("Still star: Motion is Off in ZIGoals"); macOS System Settings → Accessibility → Display → Reduce motion ("…your device asks for reduced motion"); Motion → Calm ("Slow star: Calm motion is on").
+The rest of NOVA still has AM's look at this checkpoint; the overhaul of the widgets and the stage follows in the next pushes.
+
 ## Environment notes (cloud sandbox)
 - Node 24.19.0 through nvm: `export PATH=/opt/nvm/versions/node/v24.19.0/bin:$PATH` (install once: `source /opt/nvm/nvm.sh && nvm install 24.19.0`). `pnpm install --frozen-lockfile --ignore-scripts`.
 - Dev server: `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev` (3100). `next dev` rewrites `apps/web/AGENTS.md` and `next-env.d.ts`; restore them before a commit (`git checkout -- apps/web/AGENTS.md apps/web/next-env.d.ts`).

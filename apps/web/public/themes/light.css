@@ -13267,6 +13267,30 @@
 }
 /*  components/nova/core/star-system.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .nova-star-picture[data-state=thinking] > img:not(#\-) {
+        filter: brightness(1.18) saturate(1.1)
+    }
+    .nova-star-picture[data-state=speaking] > img:not(#\-) {
+        filter: brightness(1.1)
+    }
+    .nova-star-mark-in:not(#\-) {
+        stroke: var(--nova-b, #23eaff)
+    }
+    .nova-star-mark-out:not(#\-) {
+        stroke: color-mix(in srgb, var(--nova-c, #f06dff) 55%, #fff)
+    }
+    .nova-star-mark-think:not(#\-) {
+        stroke: color-mix(in srgb, var(--nova-b, #23eaff) 60%, #fff)
+    }
+    .nova-star-why:not(#\-) {
+        color: var(--nova-ink-3, #171e2d)
+    }
+    .nova-star-why[data-kind=picture]:not(#\-) {
+        color: #78571e
+    }
+    .nova-star-why-more:not(#\-) {
+        color: var(--nova-ink-3, #171e2d)
+    }
     .ns-beam:not(#\-) {
         background-image: linear-gradient(90deg, #24242400 0, #242424f2 14%, var(--nova-b, #23eaff) 55%, #242424e6 100%);
         background-color: transparent;

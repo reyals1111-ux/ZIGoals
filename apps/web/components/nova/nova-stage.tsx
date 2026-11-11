@@ -46,12 +46,14 @@ function NovaGreeting({greeting, typingFrom}: {greeting: string; typingFrom: num
  * day line and the Showcase label below — so the star sits at the optical centre of whatever holds it (the window, on the
  * Orbit, Minimal and phone layouts). The setup invitation left the stack: it is the slim banner under the status chips.
  */
-export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase, onTalk, talkOpen, core, star, starOn = false, starBox, answer}: {
+export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase, onTalk, talkOpen, core, star, starOn = false, starBox, starWhy, answer}: {
   persona: Persona; orb: NovaOrbState; greeting: string; typingFrom: number | null; counts: NovaCounts; showcase: boolean; onTalk: () => void; talkOpen: boolean;
   /** Session AM (ADR-038 D10): the nebula star system's canvas, and whether it is drawing (then the SVG orb gives way to it). */
   star?: ReactNode; starOn?: boolean;
   /** The height the star's disc needs inside the stack (CSS px), so the words under it never sit on the nebula. */
   starBox?: number;
+  /** Session AM-2 (ADR-038 "AM-2", E4): the honest line — why the star is still, slower than usual or a picture (and, in a LOCAL_DEMO build, how it is drawn). */
+  starWhy?: {kind: string; text: string; details?: string | null; open?: boolean} | null;
   /** Session AM (D7): NOVA's newest words, shown in place of the greeting and the day line while there is an answer. */
   answer?: ReactNode;
   /** Session AL Part 11 (lane L8): the Holo core — four pillar rings around the orb and their readout under its state. */
@@ -77,6 +79,7 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
       <p className="nova-orb-state" id="nova-orb-state" data-state={orb}><span className="nova-orb-state-word">{ORB_STATE_LABEL[orb]}</span><span className="nova-orb-state-hint">{orb === 'idle' ? 'Tap to talk' : orb === 'listening' ? 'Speak now' : orb === 'thinking' ? 'Working on it' : 'Answering'}</span></p>
       {/* Review M4, B2 (lane L8d): the core's readout — its legend — sits right under the orb's state, ordered as the rings
           are (outer to inner), above the greeting; it used to fall under the command field at 1440 px. */}
+      {starWhy && persona.avatar !== 'zigi' && <p className="nova-star-why" data-kind={starWhy.kind} title={starWhy.details ?? undefined}>{starWhy.text}{starWhy.open && starWhy.details && <span className="nova-star-why-more">{starWhy.details}</span>}</p>}
       {!answer && core?.readout}
       {/* Release review 2 (R2-22): the greeting is in the page once; the part still to type waits invisible in place (read by
           assistive technology as one sentence, and the line keeps its width while it types). */}

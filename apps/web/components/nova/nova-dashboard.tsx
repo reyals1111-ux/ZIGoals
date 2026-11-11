@@ -40,6 +40,8 @@ import {useStage, type StageGates} from './stage/use-stage';
 import type {StageAnswer, StageBridge} from './stage/use-summoner';
 import type {StarBeam} from './core/star-system';
 import {useResting} from './core/use-resting';
+import type {StarReport} from './core/star-system';
+import {starDebug} from '../../lib/nova/core/star-debug';
 import {sendToNova} from '../../lib/nova/bridge';
 import {STAGE_AGAIN_EVENT} from '../../lib/nova/stage/events';
 import {daysUntil, gentleCard} from '../../lib/nova/stage/proactive';
@@ -143,7 +145,10 @@ export default function NovaDashboard() {
   // Session AM (D11): at rest (the window not focused, or a minute without a key, tap or request) the scripted loops stop.
   const resting = useResting();
   const hudSize = useHudSize(root, nova.loaded);
-  const [starDraws, setStarDraws] = useState(false), onStarRender = (render: 'running' | 'still' | 'orb') => setStarDraws(render !== 'orb');
+  // Session AM-2 (ADR-038 "AM-2", E3, E4): what stands in the centre (the star, its still picture, or the SVG orb) and the honest line under it.
+  const [starReport, setStarReport] = useState<StarReport | null>(null), starDraws = !!starReport && starReport.shows !== 'orb';
+  const onStarReport = useCallback((report: StarReport) => setStarReport(report), []);
+  const [starHold] = useState(() => starDebug().hold);
 
   const novaUpdate = nova.update;
   const save = useCallback((change: (r: NovaRecord) => NovaRecord, done?: string): boolean => {
@@ -399,7 +404,7 @@ export default function NovaDashboard() {
     const timers = [window.setTimeout(() => setStageOrb('thinking'), 0), window.setTimeout(() => setStageOrb('speaking'), 340), window.setTimeout(() => setStageOrb(null), 2400)];
     return () => { for (const t of timers) window.clearTimeout(t); };
   }, [freshKey, answerKey]);
-  const shownOrb: NovaOrbState = orb !== 'idle' ? orb : stageOrb ?? 'idle';
+  const shownOrb: NovaOrbState = starHold ?? (orb !== 'idle' ? orb : stageOrb ?? 'idle');
 
   // Session AL second pass (lane L8; BN-051): while a model on this computer (or the Hermes Agent) is working on a reply, the
   // HUD holds its ornaments still and the sky draws no motes, so the page leaves the computer's power to the model.
@@ -418,12 +423,13 @@ export default function NovaDashboard() {
   const hudRoom = (hudSize?.height ?? height - 300) - 26, hudWide = hudSize?.width ?? width - 300, starSlot = hudRoom <= 520 ? 204 : hudRoom >= 640 ? 252 : 228, starRoom = (hudRoom - starSlot - 124) / 0.42;
   const starCalm = width >= 1280 ? 560 : 460, starCap = stage.shown.length ? (hudWide >= 1100 ? 440 : hudWide >= 960 ? 340 : 300) : starCalm;
   const starSize = phone ? 260 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 110 : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.42);
-  const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} beam={beam} onRender={onStarRender}/></Suspense></LoadBoundary>;
+  const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;
+  const starWhy = starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).
   const answerWidget = lastMade && stage.shown.some(w => w.id === lastMade) ? {id: lastMade, title: widgetSpec(lastMade)?.title ?? 'the widget'} : null;
   const goToWidget = (id: string) => { const el = root.current?.querySelector<HTMLElement>(`article[data-widget="${id}"]`); if (el) { el.scrollIntoView({block: 'nearest'}); el.focus({preventScroll: true}); } };
   const answerLine = answerNow && !chatOpen ? <StageAnswerLine answer={answerNow} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)} widget={answerWidget} onGoTo={goToWidget}/> : undefined;
-  const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={starBox} answer={answerLine}/>;
+  const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={starBox} starWhy={starWhy} answer={answerLine}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
