@@ -94,3 +94,14 @@
   .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side .nova-widget-head :is(.ns-act, .holo-act) { width: 46px; margin-inline: -5px; }
   .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side .nova-widget-head .nova-widget-open { min-width: 46px; }
 }
+
+/* ---- J1 (owner addition B2): a light ambient layer where the browser draws without graphics hardware ----
+   Measured in the session's sandbox (no GPU) with the Showcase at 2560 x 1440: the sheen bands and lead-dot pings over
+   turned wings held every frame to 100 ms; without them the median is one display frame. With graphics hardware nothing
+   here applies. The ornaments' slow stepped spin stays (the stage is still alive), and so does the star. */
+.nova-frame[data-soft] .holo-sheen::before, .nova-frame[data-soft] .holo-lead::after, .nova-frame[data-soft] .holo-pace-dot::after, .nova-frame[data-soft] .holo-wave-dot::after { animation: none !important; }
+@container nova-stage (min-width: 1700px) {
+  .nova-frame[data-soft][data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side:is([data-side=left], [data-side=right]) { transform: none; }
+  /* On a very wide stage each step of an ornament's spin recomposes several megapixels on the processor: there the ornaments rest too (at 1440 px they keep turning). */
+  .nova-frame[data-soft] .holo-orn, .nova-frame[data-soft] .holo-lens { animation: none !important; }
+}

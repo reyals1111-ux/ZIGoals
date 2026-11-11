@@ -32,6 +32,8 @@ import './star-system.css';
  */
 export type StarBeam = {angle: number; key: number};
 export type StarReport = {shows: 'star' | 'picture' | 'orb'; why: StarWhy | null;
+  /** The browser draws without graphics hardware (and the star is not held live for a capture): the stage keeps its ambient layer light too. */
+  software: boolean;
   /** LOCAL_DEMO only: the renderer's name, the pace and the tier, for a person checking their own device. */
   details: string | null;
   /** `?star=why` (LOCAL_DEMO): show the line even while the star runs at its full pace. */
@@ -80,7 +82,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
   const why = ready && render ? starWhy({render, webgl: probe.webgl, failure, hud, reducedMotion, software, hints, tier}) : null;
   const shows: StarReport['shows'] | null = render === null ? null : render !== 'picture' ? 'star' : pictureFailed ? 'orb' : 'picture';
   const details = STAR_DETAILS && ready && shows ? [shows === 'star' ? (render === 'still' ? 'one still frame' : info || 'starting') : shows === 'picture' ? 'the still picture' : 'the SVG orb', probe.renderer ?? (probe.webgl ? 'renderer not named' : 'no WebGL'), probe.software ? 'software rendering' : null, debug.live ? 'held live (?star=live)' : null].filter(Boolean).join(' · ') : null;
-  useEffect(() => { if (shows) onReport?.({shows, why, details, always: debug.why}); }, [shows, why?.code, details, debug.why]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (shows) onReport?.({shows, why, software, details, always: debug.why}); }, [shows, why?.code, software, details, debug.why]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Everything the loop reads lives in refs, so a state change never rebuilds the GL program.
   const live = useRef({state, hud, phone, accent, beam, size, render, software, hints, debug});

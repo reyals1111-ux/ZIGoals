@@ -14,7 +14,7 @@ import type {DeviceHints} from '../orb-starfield';
  *   a driver that draws an empty frame, a lost context that does not come back.
  * - Everything else only makes it **slower or coarser**, never still and never hidden (`starPace`): software rendering,
  *   a low battery, a light device, frames that arrive late (the governor's tiers), Calm, and rest (the window not
- *   focused, or a minute without a key, tap or request). Save-Data is about the network and no longer changes the star.
+ *   focused, or 30 s without a key, tap or request). Save-Data is about the network and no longer changes the star.
  *   Activity is never read from pointer movement. Phones are lighter.
  * - `starWhy`: one honest line for the stage whenever the star is still, slower than usual or a picture, so the person
  *   can tell which rule is at work.
@@ -35,7 +35,8 @@ export function starRender({hud, webgl, failure}: {hud: HudMotionState; webgl: b
 export const softwareRenderer = (name: string | null | undefined): boolean => !!name && /swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
 /** A light device: two cores or fewer, or 2 GB or less (a browser that says nothing counts as able). */
 export const lightDevice = (h: DeviceHints): boolean => (typeof h.hardwareConcurrency === 'number' && h.hardwareConcurrency > 0 && h.hardwareConcurrency <= 2) || (typeof h.deviceMemory === 'number' && h.deviceMemory > 0 && h.deviceMemory <= 2);
-export const REST_AFTER_MS = 60_000;
+/** Rest begins this long after the last key, tap or request (AM-2, B2: "idle, no request for 30 s, shows near-zero animation work"; it was a minute). */
+export const REST_AFTER_MS = 30_000;
 export type StarPace = {mode: 'active' | 'resting' | 'calm'; fps: number; scale: number; speed: number; detail: number};
 /**
  * Quality tiers, best first: the noise octaves step down before the resolution does. The last tier is slow and coarse,

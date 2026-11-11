@@ -410,7 +410,12 @@ export default function NovaDashboard() {
   // Session AL second pass (lane L8; BN-051): while a model on this computer (or the Hermes Agent) is working on a reply, the
   // HUD holds its ornaments still and the sky draws no motes, so the page leaves the computer's power to the model.
   const modelBusy = (orb === 'thinking' || orb === 'speaking') && (brain.kind === 'local' || brain.kind === 'hermes' || brain.kind === 'device');
-  const hudState = holo ? (modelBusy && (hudMove.state === 'full' || hudMove.state === 'calm') ? 'paused' : hudMove.state) : undefined;
+  // Session AM-2 (ADR-038 "AM-2", J1; owner addition B2): at rest (the window not focused, or 30 s without a key, tap or
+  // request) the HUD's ambient loops hold too, so an idle NOVA costs next to nothing; the star keeps its slow resting pace.
+  // `soft`: the browser draws without graphics hardware — every animated frame is the processor's work, so the ambient
+  // layer stays light there (no sheen, no pings, a still sky, flat wings; stage/command-centre.css). The star still runs.
+  const soft = !!starReport?.software;
+  const hudState = holo ? ((modelBusy || resting) && (hudMove.state === 'full' || hudMove.state === 'calm') ? 'paused' : hudMove.state) : undefined;
   if (!nova.loaded) return <div className="nova-frame nova-waiting" data-accent="violet" data-opening="waiting"><span className="nova-waiting-star" aria-hidden="true"/><Reading label={`${persona.name} is starting…`}/></div>;
   const core = holo ? {rings: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="rings"/></Suspense></LoadBoundary>, readout: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="readout"/></Suspense></LoadBoundary>} : undefined;
   // The star's box: as large as the window's height allows (its disc is about half as tall as it is wide).
@@ -436,10 +441,10 @@ export default function NovaDashboard() {
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
-    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
+    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined} data-soft={soft || undefined}>
     {/* Second review m8 (lane L8f): the first stop, past the left panel and the top bar (43 stops) to the HUD itself. */}
     <a className="nova-skip" href="#nova-hud" onClick={e => { e.preventDefault(); root.current?.querySelector<HTMLElement>('#nova-hud')?.focus({preventScroll: true}); }}>Skip to the HUD</a>
-    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion && !resting} accent={accent}/></Suspense></LoadBoundary></div>
+    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion && !resting && !soft} accent={accent}/></Suspense></LoadBoundary></div>
     {/* Session AL Part 11 (lane L8): the HUD's depth layers — a far grid plane and a near glow at the edges (decoration). */}
     {holo && <div className="holo-depth" aria-hidden="true"><StageDepth/><div className="holo-plane"/><div className="holo-glow"/></div>}
     {left !== 'hidden' && <NovaLeft state={left} onCycle={cycleLeft} you={you} brain={brain} counts={counts} pages={p => isShown(pagesView, p)} earn={chain.earnShown} chess={isShown(pagesView, 'chess')} governance={chain.earn.governanceShown === true} chain={chain.chosen}
@@ -459,7 +464,7 @@ export default function NovaDashboard() {
         {!chatOpen && stage.shown.length === 0 && !answerNow && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={stageNode} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting}/>}</div>
+      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={stageNode} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting && !soft}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">
