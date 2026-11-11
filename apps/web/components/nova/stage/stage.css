@@ -109,3 +109,5 @@
 .ns-answer-text, .ns-answer-asked { padding-right: 34px; }
 /* A long title beside five controls takes two short lines instead of an ellipsis (the head is 44 px tall either way). */
 @container holo-panel (max-width: 399px) { .nova-frame .nova-widget[data-holo] .nova-widget-head h3 { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; line-height: 1.15; letter-spacing: .06em; } }
+/* A panel body that scrolls is a keyboard stop (axe scrollable-region-focusable); its ring sits inside the frame. */
+.nova-widget-body:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: -3px; border-radius: 10px; }

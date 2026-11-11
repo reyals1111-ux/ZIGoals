@@ -15992,6 +15992,9 @@
     .ns-answer-close:focus-visible:not(#\-) {
         outline-color: var(--nova-focus, #63e7ff)
     }
+    .nova-widget-body:focus-visible:not(#\-) {
+        outline-color: var(--nova-focus, #63e7ff)
+    }
 }
 /*  components/nova/widgets/widgets.css  */
 @scope (:root[data-theme=dark]) {
