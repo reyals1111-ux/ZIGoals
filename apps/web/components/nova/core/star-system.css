@@ -26,3 +26,8 @@
 }
 @media (prefers-reduced-motion: reduce) { .ns-beam { display: none; } }
 :root[data-app-motion=off] .ns-beam { display: none; }
+/*
+ * Design review AM-D16: the whole disc is the button, not only the box in its middle. The ring lies behind the stage's
+ * words (the state line, the answer and its links stay their own targets); only the star's own empty sky answers a tap.
+ */
+.nova-orb-button[data-star]::before { content: ''; position: absolute; left: 50%; top: 50%; z-index: -1; width: min(calc(var(--star-box, 180px) * 1.3), 100cqi); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; }

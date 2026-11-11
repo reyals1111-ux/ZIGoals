@@ -526,3 +526,6 @@
 @container nova-stage (max-width: 1240px) { .nova-frame[data-stage=set] .holo-core-readout { display: none; } }
 @container nova-stage (max-width: 1500px) { .nova-frame[data-stage=set] .nova-orbit-main[data-wide] .holo-core-readout { display: none; } }
 .nova-frame[data-phone] .holo-core-readout { display: none; }
+/* AM-D24: with 14 px labels the wealth chart's title and its highest figure no longer share the top edge of a narrow panel; the title steps aside there (the panel's own heading says what is drawn). */
+@container holo-body (max-width: 350px) { .holo-frame-label[data-at=title] { display: none; } }
+.nova-widget[data-widget=tasks] :is(.task-chip, .nova-eyebrow) { font-size: 14px; }

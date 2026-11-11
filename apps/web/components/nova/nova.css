@@ -681,7 +681,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
   .nova-frame[data-stage=set][data-look=holo]:not([data-phone]) .nova-orbit-main:not(#\-) { grid-template-columns: minmax(220px, 1fr) minmax(240px, .8fr) minmax(220px, 1fr); column-gap: 14px; }
 }
 /* Under the three columns the star is a header above the widgets: its slot is the short one, so the widgets start on the first screen. */
-@container nova-stage (max-width: 760px) { .nova-frame[data-stage=set]:not([data-phone]) .nova-stage { --ns-slot: 164px; --ns-lines: 2; } }
+@container nova-stage (max-width: 760px) { .nova-frame[data-stage=set]:not([data-phone]) .nova-stage { --ns-slot: 190px; --ns-lines: 2; } }
 @container nova-stage (min-width: 600px) and (max-width: 760px) {
   .nova-frame[data-stage=set][data-look=holo]:not([data-phone]) .nova-orbit-main:not(#\-) { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; }
   .nova-frame[data-stage=set][data-look=holo]:not([data-phone]) .nova-orbit-band-grid:not(#\-) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -702,9 +702,9 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
    link to its own place), the invitation is one slim line beside them where they fit, with 16 px between it and the
    star's name, and the command bar drops its key cap (the shortcut stays in the field's own keyshortcuts and in "?"). */
 .nova-frame[data-stage=calm]:not([data-phone]) .nova-deck .nova-chip:not(.nova-showcase) { border-color: transparent; background: none; padding-inline: 6px; }
-.nova-frame:not([data-phone]) .nova-deck { margin-bottom: 6px; min-height: 50px; } /* one row's height with or without the invitation, so the stage under it does not shift when the invitation steps aside */
+.nova-frame:not([data-phone]) .nova-deck { margin-bottom: 6px; min-height: 44px; } /* one row's height with or without the invitation (it is 44 px high, as the chips are), so the stage under it does not shift when the invitation steps aside */
 .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner .nova-setup-banner-text p { display: none; }
-.nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner { flex-wrap: nowrap; min-height: 48px; box-sizing: border-box; }
+.nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner { flex-wrap: nowrap; box-sizing: border-box; height: 44px; padding: 0 0 0 14px; border: 0; box-shadow: inset 0 0 0 1px var(--nova-edge); }
 .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner .nova-setup-actions { flex-wrap: nowrap; }
 .nova-frame[data-stage=calm] .nova-command .nova-kbd { display: none; }
 
@@ -721,7 +721,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 /* AM-D26: a phone. NOVA is a chat agent there: the app's tab bar steps aside (nova-chrome.css), so NOVA takes the window
    to its bottom edge; the stage is the star, its state and the newest words, then the chips and the field. */
 .nova-frame[data-phone] .nova-foot { padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
-.nova-frame[data-phone] .holo-phone-column > .nova-stage { min-height: calc(100svh - 246px); align-content: center; } /* the first screen is NOVA itself; pinned widgets start under it */
+.nova-frame[data-phone] .holo-phone-column > .nova-stage:not(#\-) { min-height: calc(100svh - 246px); align-content: start; padding-top: 6svh; box-sizing: border-box; } /* the first screen is NOVA itself — the star at one height whatever stands under it (AM-D14) — and pinned widgets start under it */
 /* AM-D40: the first paint is the star with the line under it, in the window's middle (the frame's three columns put the star at the left edge). */
 .nova-waiting { grid-template-columns: minmax(0, 1fr); justify-items: center; }
 .nova-frame[data-opening=waiting] { grid-template-columns: minmax(0, 1fr); place-items: center; align-content: center; }

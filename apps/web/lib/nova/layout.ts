@@ -72,10 +72,10 @@ export function leanAt(offset: number, radius: number, extent: number): number {
 
 /** Orbit placement: each widget, in order, to the side with fewer rows used (left on a tie) while it fits; else the band.
  *  `rows` is the rows each size takes (AK's cards: ROWS; the Holo look: HOLO_ROWS).
- *  Design review AM-D9: `prefer` names the side a widget already stands on. Those keep their side (while it fits) and are
- *  placed first; a widget without one then takes the emptier side. So making, hiding, closing or pinning one widget never
+ *  Design review AM-D9: `prefer` names the side a widget already stands on. Those keep their side while it fits; a widget
+ *  without one (a new one) is given room first, on the emptier side. So making, hiding, closing or pinning one widget never
  *  sends another across the star. Within a side the list's order stands. */
-export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS, rowsOf: Record<WidgetSize, number> = ROWS, prefer?: (id: string) => 'left' | 'right' | undefined): Placed[] {
+export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS, rowsOf: Record<WidgetSize, number> = ROWS, prefer?: (id: string) => Side | undefined): Placed[] {
   const used = {left: 0, right: 0}, sides = new Map<number, Side>();
   const put = (order: number, rows: number, first: 'left' | 'right') => {
     const second = first === 'left' ? 'right' : 'left';
@@ -83,8 +83,14 @@ export function placeOrbit(widgets: readonly NovaWidget[], sideRows = SIDE_ROWS,
     sides.set(order, side);
     if (side !== 'band') used[side] += rows;
   };
-  if (prefer) widgets.forEach((w, order) => { const kept = prefer(w.id); if (kept) put(order, rowsOf[w.size], kept); });
-  widgets.forEach((w, order) => { if (!sides.has(order)) put(order, rowsOf[w.size], used.left <= used.right ? 'left' : 'right'); });
+  // A widget that stood nowhere before (a new one) is placed first, so it always gets room beside the star: it takes the
+  // side that will be the emptier one once those that keep their side stand there. Then the others take their own side
+  // while it still fits. One whose side is full, and one that stood in the band, take what room is left, else the band.
+  const kept = widgets.map(w => prefer?.(w.id)), load = {left: 0, right: 0}, waiting: number[] = [];
+  widgets.forEach((w, order) => { const side = kept[order]; if (side === 'left' || side === 'right') load[side] += rowsOf[w.size]; });
+  widgets.forEach((w, order) => { if (!kept[order]) put(order, rowsOf[w.size], used.left + load.left <= used.right + load.right ? 'left' : 'right'); });
+  widgets.forEach((w, order) => { const side = kept[order]; if (!side) return; if (side !== 'band' && used[side] + rowsOf[w.size] <= sideRows) put(order, rowsOf[w.size], side); else waiting.push(order); });
+  for (const order of waiting) { const side = kept[order]!; put(order, rowsOf[widgets[order]!.size], side === 'band' ? (used.left <= used.right ? 'left' : 'right') : side); }
   const next = {left: 0, right: 0}, out: Placed[] = widgets.map((w, order) => {
     const rows = rowsOf[w.size], side = sides.get(order)!;
     if (side === 'band') return {...w, side, row: 0, rows, lean: 0, order};

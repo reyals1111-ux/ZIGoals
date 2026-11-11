@@ -104,13 +104,15 @@ export function StageAnswerLine({answer, persona, onOpen, onDismiss, widget, onG
   try { text = plainText(parseBlocks(answer.text)); } catch { /* the words as they are */ }
   const short = text.replace(/\s+/g, ' ').trim(), cut = short.length > 320 ? `${short.slice(0, 317).replace(/\s+\S*$/, '')}…` : short;
   return <div className="ns-answer" data-by={answer.by}>
+    {/* The way to put the answer away sits in the card's corner (its links then fit one row). */}
+    <button type="button" className="ns-answer-close" onClick={onDismiss} aria-label={`Dismiss ${persona}’s answer`} title="Dismiss"><span aria-hidden="true">×</span></button>
     {answer.question && <p className="ns-answer-asked"><span className="sr-only">You asked: </span>“{answer.question.length > 90 ? `${answer.question.slice(0, 88)}…` : answer.question}”</p>}
     <p className="ns-answer-text"><span className="sr-only">{persona}: </span>{cut}</p>
     <p className="ns-answer-meta">
       <span className="ns-answer-by">{answer.by === 'device' ? 'Answered on this device · no AI used' : 'From your AI'}</span>
       {widget && onGoTo && <button type="button" className="ns-link" onClick={() => onGoTo(widget.id)}>Go to {widget.title}</button>}
       <button type="button" className="ns-link" onClick={onOpen}>{answer.decision ? 'Open to decide' : 'Open the conversation'}</button>
-      <button type="button" className="ns-link" onClick={onDismiss} aria-label={`Dismiss ${persona}’s answer`}>Dismiss</button>
+
     </p>
   </div>;
 }

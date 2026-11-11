@@ -85,14 +85,15 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
   // Design review AM-D9: a widget keeps its side of the star while one or a few widgets are made, hidden, closed or
   // pinned around it (the sides are remembered for this visit only). An arrangement the person makes themselves (arranging,
   // a preset: the list changes by more than a few) is placed afresh.
-  const standing = useRef<{ids: ReadonlySet<string>; side: ReadonlyMap<string, 'left' | 'right'>}>({ids: new Set(), side: new Map()});
+  const standing = useRef<{fit: number; side: ReadonlyMap<string, 'left' | 'right' | 'band'>}>({fit: 0, side: new Map()});
   // A locked widget is a short notice whatever size was asked: in the orbit it takes the rows of S (design review AM-D21).
   const rowsOfShown = live ? shown.map(w => { const on = live.shown.find(x => x.id === w.id); return on && live.gateOpen(on) === false && w.size !== 'S' ? {...w, size: 'S' as const} : w; }) : shown;
   const before = standing.current, ids = new Set(shown.map(w => w.id));
-  const changed = shown.filter(w => !before.ids.has(w.id)).length + [...before.ids].filter(id => !ids.has(id)).length;
-  const keepSides = !editing && before.ids.size > 0 && changed <= 3;
+  const changed = shown.filter(w => !before.side.has(w.id)).length + [...before.side.keys()].filter(id => !ids.has(id)).length;
+  // The memory holds for the same stage height only (another height is another set of rows) and for a change of a few widgets.
+  const keepSides = !editing && before.side.size > 0 && before.fit === fit && changed <= 3;
   const placed = layout === 'orbit' && !phone ? placeOrbit(rowsOfShown, fit, holo ? HOLO_ROWS : ROWS_AK, keepSides ? id => before.side.get(id) : undefined).map((p, i) => ({...p, size: shown[i]!.size})) : [];
-  standing.current = {ids, side: new Map(placed.flatMap(p => p.side === 'band' ? [] : [[p.id, p.side] as const]))};
+  standing.current = {fit, side: new Map(placed.map(p => [p.id, p.side] as const))};
   // Review m9: after a move from the keyboard, the status line says where the panel is now ("2 of 9, right column").
   const moved = useRef<string | null>(null), announce = actions.announce;
   useEffect(() => {

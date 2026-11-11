@@ -15005,6 +15005,10 @@
         background-image: none;
         background-color: transparent
     }
+    .nova-frame:not([data-phone]) .nova-deck > .nova-setup-banner:not(#\-) {
+        border-color: currentcolor;
+        box-shadow: inset 0 0 0 1px var(--nova-edge)
+    }
     @media (min-width: 1100px) {
         .nova-frame[data-chat]:not([data-phone]) .nova-talk:not(#\-):not(#\-) {
             box-shadow: none
@@ -15476,6 +15480,18 @@
         color: #0f0f0f
     }
     .nova-widget:focus-visible:not(#\-) {
+        outline-color: var(--nova-focus, #63e7ff)
+    }
+    .ns-answer-close:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: #0a111e
+    }
+    .ns-answer-close:hover:not(#\-) {
+        color: #0f0f0f
+    }
+    .ns-answer-close:focus-visible:not(#\-) {
         outline-color: var(--nova-focus, #63e7ff)
     }
 }

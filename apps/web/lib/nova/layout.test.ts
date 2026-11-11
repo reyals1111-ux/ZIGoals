@@ -42,7 +42,7 @@ describe('Orbit layout', () => {
     const sideOf = (placed: ReturnType<typeof placeOrbit>) => Object.fromEntries(placed.map(p => [p.id, p.side]));
     const first = sideOf(placeOrbit(list(['weather', 'habits', 'worth'])));
     expect(first).toEqual({weather: 'left', habits: 'right', worth: 'left'});
-    const prefer = (id: string) => first[id] as 'left' | 'right' | undefined;
+    const prefer = (id: string) => first[id];
     // Weather is hidden: without the memory Net worth would cross to the left and Habits stay; with it nobody moves.
     expect(sideOf(placeOrbit(list(['habits', 'worth'])))).toEqual({habits: 'left', worth: 'right'});
     expect(sideOf(placeOrbit(list(['habits', 'worth']), undefined, undefined, prefer))).toEqual({habits: 'right', worth: 'left'});
@@ -52,6 +52,17 @@ describe('Orbit layout', () => {
     const more = placeOrbit(list(['sun', 'weather', 'habits', 'worth']), undefined, undefined, prefer);
     expect(sideOf(more)).toEqual({sun: 'right', ...first});
     expect(more.filter(p => p.side === 'right').map(p => [p.id, p.row])).toEqual([['sun', 1], ['habits', 3]]);
+    // Full columns (two M each in four rows): the new widget still stands beside the star, at the top of the emptier side;
+    // the last one of that side goes to the band instead of the new one.
+    const full = placeOrbit(list(['a', 'b', 'c', 'd']), 4);
+    expect(full.map(p => p.side)).toEqual(['left', 'right', 'left', 'right']);
+    const sides4 = sideOf(full), crowded = placeOrbit(list(['new', 'a', 'b', 'c', 'd']), 4, undefined, id => sides4[id]);
+    expect(sideOf(crowded)).toEqual({new: 'left', a: 'left', b: 'right', c: 'band', d: 'right'});
+    // The same list again (a re-render): everyone stays exactly where they stood, the band included.
+    const again = sideOf(crowded);
+    expect(sideOf(placeOrbit(list(['new', 'a', 'b', 'c', 'd']), 4, undefined, id => again[id]))).toEqual(again);
+    // Room opens (a is closed): the one waiting in the band takes it; nobody crosses.
+    expect(sideOf(placeOrbit(list(['new', 'b', 'c', 'd']), 4, undefined, id => again[id]))).toEqual({new: 'left', b: 'right', c: 'left', d: 'right'});
     // A side that is full gives way: the widget goes to the other side, then to the band; rows never overlap.
     const tight = placeOrbit(list(['a', 'b', 'c']), 2, undefined, () => 'left');
     expect(tight.map(p => p.side)).toEqual(['left', 'right', 'band']);
