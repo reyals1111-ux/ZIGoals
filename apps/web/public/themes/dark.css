@@ -13714,10 +13714,14 @@
     .nova-star-why-more:not(#\-) {
         color: var(--nova-ink-3, #aebcd8)
     }
-    .ns-beam:not(#\-) {
+    .ns-beam:not(#\-)::before {
         background-image: linear-gradient(90deg, rgb(255 255 255 / 0) 0, rgb(255 255 255 / .95) 14%, var(--nova-b, #23eaff) 55%, rgb(255 255 255 / .9) 100%);
         background-color: transparent;
         box-shadow: 0 0 10px 1px color-mix(in srgb, var(--nova-b, #23eaff) 70%, transparent), 0 0 2px #fff
+    }
+    .ns-beam:not(#\-)::after {
+        background-image: radial-gradient(7px 7px at 100% 50%, #fff 0, color-mix(in srgb, var(--nova-b, #23eaff) 80%, #fff) 45%, transparent 100%);
+        background-color: transparent
     }
 }
 /*  components/nova/guide-band.css  */
@@ -14436,6 +14440,10 @@
 @scope (:root[data-theme=dark]) {
     .holo-plane:not(#\-) {
         background-image: linear-gradient(color-mix(in oklab, var(--nova-b, #63e7ff) 30%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--nova-a, #9273ff) 30%, transparent) 1px, transparent 1px)
+    }
+    .nova-frame[data-look=holo] .holo-plane:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff);
+        background-image: linear-gradient(color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent) 2px, transparent 2px), linear-gradient(90deg, color-mix(in oklab, var(--nova-a, #9273ff) 70%, transparent) 2px, transparent 2px)
     }
     .holo-glow:not(#\-) {
         background-image: radial-gradient(60% 40% at 50% 108%, color-mix(in oklab, var(--nova-c, #f06dff) 16%, transparent), transparent 70%), radial-gradient(40% 50% at -6% 50%, color-mix(in oklab, var(--nova-b, #63e7ff) 10%, transparent), transparent 70%), radial-gradient(40% 50% at 106% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 12%, transparent), transparent 70%);
@@ -15893,6 +15901,55 @@
         .nb-results .nova-left-row[data-first]:not(#\-) {
             outline-color: currentcolor
         }
+    }
+}
+/*  components/nova/stage/command-centre.css  */
+@scope (:root[data-theme=dark]) {
+    .cc-nebula:not(#\-) {
+        background-image: radial-gradient(38% 46% at 50% 44%, color-mix(in oklab, var(--nova-a, #9273ff) 34%, transparent), transparent 72%), radial-gradient(30% 34% at 30% 28%, color-mix(in oklab, var(--nova-c, #f06dff) 20%, transparent), transparent 70%), radial-gradient(34% 30% at 74% 66%, color-mix(in oklab, var(--nova-c, #f06dff) 18%, transparent), transparent 72%), radial-gradient(26% 30% at 78% 22%, color-mix(in oklab, var(--nova-b, #63e7ff) 13%, transparent), transparent 70%), radial-gradient(28% 26% at 20% 74%, color-mix(in oklab, var(--nova-b, #63e7ff) 11%, transparent), transparent 72%), radial-gradient(18% 14% at 58% 50%, #ffb48a1f, transparent 70%), radial-gradient(120% 96% at 50% 46%, transparent 48%, #000002d9 100%);
+        background-color: transparent
+    }
+    .cc-streak:not(#\-) {
+        background-image: linear-gradient(90deg, transparent 12%, #6fa8ff2e 30%, #9cc8ff80 41%, transparent 46%, transparent 54%, #9cc8ff80 59%, #6fa8ff2e 70%, transparent 88%);
+        background-color: transparent;
+        box-shadow: 0 0 14px 1px #6fb0ff40
+    }
+    .cc-bezel > svg:not(#\-) {
+        fill: none
+    }
+    .cc-bezel-line:not(#\-) {
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 55%, transparent)
+    }
+    .cc-bezel-ticks:not(#\-) {
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent)
+    }
+    .cc-bezel-marks:not(#\-) {
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff)
+    }
+    .cc-bezel-arc:not(#\-) {
+        stroke: color-mix(in oklab, var(--nova-a, #9273ff) 80%, #fff)
+    }
+    .cc-horizon:not(#\-) {
+        background-image: radial-gradient(60% 50% at 50% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 22%, transparent), transparent 70%);
+        background-color: transparent
+    }
+    .cc-hud-frame:not(#\-) {
+        --cc: color-mix(in oklab, var(--nova-b, #63e7ff) 62%, var(--nova-a, #9273ff))
+    }
+    .cc-corner:not(#\-) {
+        background-image: linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc));
+        background-color: transparent
+    }
+    .cc-rule:not(#\-) {
+        background-image: repeating-linear-gradient(to bottom, var(--cc) 0 1px, transparent 1px 50px), repeating-linear-gradient(to bottom, color-mix(in oklab, var(--cc) 55%, transparent) 0 1px, transparent 1px 10px);
+        background-color: transparent
+    }
+    .cc-read:not(#\-) {
+        color: var(--nova-ink-2, #cdd8ee);
+        text-shadow: 0 0 2px #050818, 0 0 8px #050818
+    }
+    .cc-read > b:not(#\-) {
+        color: color-mix(in oklab, var(--cc) 70%, #fff)
     }
 }
 /*  components/nova/stage/stage.css  */

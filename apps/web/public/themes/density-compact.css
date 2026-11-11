@@ -3917,6 +3917,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/nova/core/star-system.css  */
 :where(:root[data-density=compact]) .nova-star-why:not(#\-) { margin-top: 2px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .ns-beam:not(#\-) { margin-top: -1px; }
+:where(:root[data-density=compact]) .ns-beam:not(#\-)::after { margin-top: -7px; }
 /*  components/nova/guide-band.css  */
 :where(:root[data-density=compact]) .nova-root.nova-guide-band:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 14px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-guide-band-back:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
@@ -4045,6 +4046,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-frame:not([data-phone]) [data-holo-fit]:not([data-holo-fit=bento]) .nova-widget[data-holo]:not(#\-) { padding-top: 11px; padding-bottom: 8px; row-gap: 4px; }
 :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-bento > .nova-widget[data-holo]:not(#\-) { padding-top: 11px; padding-bottom: 8px; row-gap: 4px; }
 :where(:root[data-density=compact]) .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-fit=scroll] .nova-widget-inner:not(#\-) { padding-top: 8px; padding-bottom: 8px; }
+@container nova-stage (min-width: 1700px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo] .nova-orbit-main:not(#\-) { row-gap: 28px; } }
 :where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-greeting:not(#\-) { margin-top: 2px; }
 :where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-orb-button:not(#\-) { margin-block: calc(var(--orb) * .24); }
 :where(:root[data-density=compact]) .nova-stage[data-holo-core] .nova-stage-below:not(#\-) { row-gap: 3px; }
@@ -4340,6 +4342,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nb-act:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nb-lives:not(#\-) { row-gap: 8px; margin-top: 2px; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .nb-lives svg:not(#\-) { margin-top: 1px; }
+/*  components/nova/stage/command-centre.css  */
+:where(:root[data-density=compact]) .cc-streak:not(#\-) { margin-top: -.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-orb-button > .cc-bezel:not(#\-) { margin-top: calc(var(--star-box, 180px) * -.98); margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .nova-orb-button > .cc-bezel:not(#\-) { margin-top: -140px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .cc-read:not(#\-) { row-gap: 8px; }
+@media (min-height: 1000px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-stage-area:not(#\-) { padding-top: 34px; padding-bottom: 36px; } }
 /*  components/nova/stage/stage.css  */
 :where(:root[data-density=compact]) .ns-act:not(#\-) { margin-top: -10px; margin-bottom: -10px; padding-top: 0; padding-bottom: 0; }
 @container holo-panel (max-width: 296px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-widget-head:not(#\-) { row-gap: 10px; } }
