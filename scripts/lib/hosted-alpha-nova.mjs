@@ -50,17 +50,19 @@ export const NOVA_SELECTORS = Object.freeze({
   habits: HABITS,
   weather: widgetAt(NOVA_WIDGETS.weather.id),
   inlineActions: `${HABITS} .ns-actions`,
-  moreButton: `${HABITS} button[aria-label="More for ${HABITS_TITLE}"]`,
-  moreItem: `${HABITS} .ns-more-list .ns-more-item`,
   dockChip: `button[aria-label="Show ${HABITS_TITLE} again"]`,
   toast: '.aa-toast',
   toastUndo: '.aa-toast .aa-toast-undo',
 });
-/** Pin, Hide and Close: the inline button's name, and the same action's words under "More". */
+/**
+ * Pin, Hide and Close: each key's name in the widget's head. Session AM-2 (ADR-038 "AM-2", F2; TIER 3 release verifier):
+ * the app no longer has a "More" menu to fold them under (they are keys in every widget's head at every width), so the
+ * stage looks for the keys themselves and nowhere else.
+ */
 export const NOVA_ACTIONS = Object.freeze({
-  pin: Object.freeze({inline: `Pin ${HABITS_TITLE}`, more: 'Pin'}),
-  hide: Object.freeze({inline: `Hide ${HABITS_TITLE} in the dock`, more: 'Hide in the dock'}),
-  close: Object.freeze({inline: `Close ${HABITS_TITLE}`, more: 'Close'}),
+  pin: Object.freeze({inline: `Pin ${HABITS_TITLE}`}),
+  hide: Object.freeze({inline: `Hide ${HABITS_TITLE} in the dock`}),
+  close: Object.freeze({inline: `Close ${HABITS_TITLE}`}),
 });
 /** The words each part must show (lib/nova/summon/words.ts, stage-parts.tsx, widgets/weather.tsx, stage/use-stage.ts). */
 export const NOVA_WORDS = Object.freeze({
@@ -74,7 +76,7 @@ export const NOVA_WORDS = Object.freeze({
 const S = NOVA_SELECTORS;
 /** The page and its shell (as every stage waits), NOVA's own chunk, a widget a request makes, and a small part of one. */
 const LOAD_MS = 20_000, STAGE_MS = 20_000, MAKE_MS = 30_000, APPEAR_MS = 10_000;
-/** A narrow panel hides the inline group and shows "More" instead: the group is given this long before "More" is tried. */
+/** How long the widget's keys are given to show (they arrive with the widget's head). */
 const INLINE_MS = 1500;
 
 /** The origins the verifier allows the app's pages (verify-hosted-alpha.mjs): the base and the Testnet's two endpoints. */
@@ -144,12 +146,10 @@ async function says(page, out, selector, words, what, ms = APPEAR_MS) {
   else out.absent.push(`${what} (${selector})`);
   return false;
 }
-/** How the widget's Pin, Hide and Close are reached now: the inline group, or the "More" button (opened here); null: neither. */
+/** How the widget's Pin, Hide and Close are reached: the keys in its head; null when they are not shown. */
 async function reachActions(page) {
   if (await shows(page.locator(S.inlineActions), INLINE_MS)) return kind => page.locator(`${S.inlineActions} button[aria-label="${NOVA_ACTIONS[kind].inline}"]`);
-  if (!(await shows(page.locator(S.moreButton)))) return null;
-  await page.locator(S.moreButton).first().click();
-  return kind => page.locator(S.moreItem).filter({hasText: NOVA_ACTIONS[kind].more});
+  return null;
 }
 
 async function nova(page, {base, report, egressPolicy}) {
@@ -205,7 +205,7 @@ async function nova(page, {base, report, egressPolicy}) {
     // 4. Pin, Hide and Close: Hide leaves a dock chip that brings the widget back; Close offers Undo and the stage is calm.
     if (made) await part('4. Pin, Hide and Close', async () => {
       let action = await reachActions(page);
-      if (!action) { out.absent.push(`the widget's Pin, Hide and Close (neither ${S.inlineActions} nor ${S.moreButton} is visible)`); return; }
+      if (!action) { out.absent.push(`the widget's Pin, Hide and Close (${S.inlineActions} is not visible)`); return; }
       for (const kind of ['pin', 'hide', 'close']) if (!(await shows(action(kind)))) out.absent.push(`${kind[0].toUpperCase()}${kind.slice(1)} on the ${HABITS_TITLE} widget`);
       await action('hide').first().click();
       const chip = page.locator(S.dockChip);

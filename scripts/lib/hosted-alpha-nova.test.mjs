@@ -41,14 +41,12 @@ test('every selector and every word the stage reads is written by the app', () =
   expect(parts).toContain('className="ns-answer"');
   expect(parts).toContain("'Answered on this device · no AI used'");
   expect(parts).toContain('className="ns-actions" role="group"');
-  expect(parts).toContain('aria-label={`More for ${title}`}');
-  expect(parts).toContain('className="ns-more-list"');
-  expect(parts).toContain('className="ns-more-item"');
+  // Session AM-2 (ADR-038 "AM-2", F2, deliberate): the keys are in every widget's head; the app writes no "More" menu any more.
+  expect(parts).not.toContain('More for');
+  expect(parts).not.toContain('ns-more');
   expect(parts).toContain('label: `Pin ${title}`');
   expect(parts).toContain('aria-label={`Hide ${title} in the dock`}');
   expect(parts).toContain('aria-label={`Close ${title}`}');
-  expect(parts).toContain('<HideIcon/>Hide in the dock</button>');
-  expect(parts).toContain('<CloseIcon/>Close</button>');
   expect(parts).toContain('aria-label={`Show ${widgetTitle(w.id)} again`}');
   const words = web('lib/nova/summon/words.ts'), catalog = web('lib/nova/widgets/catalog.ts');
   // Session AM (design review AM-D2, deliberate): the words the stage checks are the widget's own line and the announcement that carries it.
@@ -65,9 +63,10 @@ test('every selector and every word the stage reads is written by the app', () =
   expect(toast).toContain('className="aa-toast"');
   expect(toast).toContain('className="aa-toast-undo"');
   expect(NOVA_WORDS).toEqual({answer: ['Habits this week', 'no AI used'], announced: 'Habits this week is on the stage', weatherOff: ['Weather is off', 'MET Norway'], closed: 'Habits this week left the stage.'});
-  expect(NOVA_ACTIONS.hide).toEqual({inline: 'Hide Habits this week in the dock', more: 'Hide in the dock'});
+  expect(NOVA_ACTIONS).toEqual({pin: {inline: 'Pin Habits this week'}, hide: {inline: 'Hide Habits this week in the dock'}, close: {inline: 'Close Habits this week'}});
   expect(S.dockChip).toBe('button[aria-label="Show Habits this week again"]');
-  expect(S.moreButton).toBe('.nova-widget[data-widget="habit-week"] button[aria-label="More for Habits this week"]');
+  expect(S.inlineActions).toBe('.nova-widget[data-widget="habit-week"] .ns-actions');
+  expect(Object.keys(S).filter(k => /more/i.test(k))).toEqual([]); // AM-2 (F2, deliberate): no "More" selector is left to read
 });
 
 test('the requests: MET Norway is always a finding (without its query), another origin too; the app\'s own origins are not', () => {
@@ -106,12 +105,12 @@ test('connect-src: MET Norway exactly once and nothing the reviewed list lacks; 
 
 /**
  * A fake NOVA: what this build has, and what the stage did with it. `has` switches a part off; `actions` is how Pin, Hide
- * and Close are reached ('inline', 'more' or 'none'); `asks` lists the outside addresses a weather question fetches.
+ * and Close are reached ('inline' or 'none'); `asks` lists the outside addresses a weather question fetches.
  */
 function fakeNova({loads = true, stage = true, actions = 'inline', has = {}, csp = servedCsp(), title = 'NOVA · ZIGoals Alpha', weatherText = 'Weather is off. Turn it on and this device asks MET Norway.', asks = [], sidebarHidden = true, startWith = []} = {}) {
   const part = {habits: true, weather: true, answer: true, announce: true, chip: true, toast: true, clear: true, command: true, ...has};
   const calls = [], listeners = new Set();
-  const state = {widgets: new Set(startWith), docked: new Set(), answer: '', status: '', toast: '', more: false};
+  const state = {widgets: new Set(startWith), docked: new Set(), answer: '', status: '', toast: ''};
   const emit = url => { for (const listener of [...listeners]) listener({url: () => url}); };
   const H = NOVA_WIDGETS.habits.id, W = NOVA_WIDGETS.weather.id;
   /** The elements a selector finds now: {text, visible, attrs}. */
@@ -133,18 +132,15 @@ function fakeNova({loads = true, stage = true, actions = 'inline', has = {}, csp
     if (selector === S.weather) return state.widgets.has(W) ? one(`Weather ${weatherText}`) : [];
     if (selector === S.inlineActions) return state.widgets.has(H) ? one('', actions === 'inline') : [];
     if (['pin', 'hide', 'close'].some(kind => selector === inline(kind))) return state.widgets.has(H) ? one('', actions === 'inline') : [];
-    if (selector === S.moreButton) return state.widgets.has(H) ? one('', actions === 'more') : [];
-    if (selector === S.moreItem) return state.widgets.has(H) && state.more ? ['Pin', 'Hide in the dock', 'Close'].flatMap(text => one(text)) : [];
     if (selector === S.dockChip) return state.docked.has(H) ? one('Habits this week') : [];
     if (selector === S.toast) return state.toast ? one(`${state.toast} Undo ×`) : [];
     if (selector === S.toastUndo) return state.toast ? one('Undo') : [];
     throw Error(`the fake has no ${selector}`);
   };
-  const act = (selector, text) => {
-    const is = kind => selector === `${S.inlineActions} button[aria-label="${NOVA_ACTIONS[kind].inline}"]` || (selector === S.moreItem && text === NOVA_ACTIONS[kind].more);
-    if (selector === S.moreButton) state.more = !state.more;
-    else if (is('hide')) { state.more = false; state.widgets.delete(H); if (part.chip) state.docked.add(H); }
-    else if (is('close')) { state.more = false; state.widgets.delete(H); if (part.toast) state.toast = NOVA_WORDS.closed; }
+  const act = selector => {
+    const is = kind => selector === `${S.inlineActions} button[aria-label="${NOVA_ACTIONS[kind].inline}"]`;
+    if (is('hide')) { state.widgets.delete(H); if (part.chip) state.docked.add(H); }
+    else if (is('close')) { state.widgets.delete(H); if (part.toast) state.toast = NOVA_WORDS.closed; }
     else if (selector === S.dockChip) { state.docked.delete(H); state.widgets.add(H); }
   };
   const enter = words => {
@@ -212,10 +208,12 @@ test('a complete NOVA: the page first, the three requests as typed, nothing abse
   expect(report.review).toEqual([]);
 });
 
-test('a narrow panel: Pin, Hide and Close are reached through "More for Habits this week"', async () => {
-  const {calls, report, failure} = await run({actions: 'more'});
+test('AM-2 (F2, deliberate; was "a narrow panel reaches them through More"): the keys are pressed in the widget\'s head and nowhere else', async () => {
+  const {calls, report, failure} = await run({});
   expect(failure).toBeNull();
-  expect(calls.filter(c => c[0] === 'click').map(c => c.slice(1))).toEqual([[S.moreButton], [S.moreItem, 'Hide in the dock'], [S.dockChip], [S.moreButton], [S.moreItem, 'Close']]);
+  const clicks = calls.filter(c => c[0] === 'click').map(c => c[1]);
+  expect(clicks).toEqual([`${S.inlineActions} button[aria-label="Hide Habits this week in the dock"]`, S.dockChip, `${S.inlineActions} button[aria-label="Close Habits this week"]`]);
+  expect(clicks.some(c => /more/i.test(String(c)))).toBe(false);
   expect(report.nova.absent).toEqual([]); expect(report.review).toEqual([]);
 });
 
@@ -235,7 +233,7 @@ test('each smaller missing part is recorded the same way: the line, the announce
   for (const [options, absent] of [
     [{has: {answer: false}}, `NOVA's line under the star (${S.answer})`],
     [{has: {announce: false}}, `the polite announcement "Habits this week is on the stage" (${S.status})`],
-    [{actions: 'none'}, `the widget's Pin, Hide and Close (neither ${S.inlineActions} nor ${S.moreButton} is visible)`],
+    [{actions: 'none'}, `the widget's Pin, Hide and Close (${S.inlineActions} is not visible)`],
     [{has: {chip: false}}, `the dock chip "Show Habits this week again" (${S.dockChip})`],
     [{has: {toast: false}}, `the toast after Close (${S.toast})`],
     [{has: {weather: false}}, `the weather widget (${S.weather}) after "What's the weather?"`],
