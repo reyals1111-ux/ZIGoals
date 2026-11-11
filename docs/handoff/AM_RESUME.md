@@ -25,13 +25,23 @@ Not in yet at this checkpoint: the weather widget's look (the MET Norway client 
 - **Part 1** `803d8dc2` (TIER 3 stored format: `zigoals:nova-stage:v1`, `zigoals:nova-world:v1` in every registry; backup format 4 kept; frozen readers #37–#54 pass), `30d6112b` (the summon step, EN/NL families, stage commands, sixteen new widget kinds with gates).
 - **Parts 2–4, first pass** `14a4316c`, `e7936fa6`: the widget kit (`components/nova/cards/kit.tsx`), Health/Habits/Goals/Journal/Time/Wealth widgets and NOVA's own three, the WebGL star system (`components/nova/core`, `lib/nova/core`), the live stage (`components/nova/stage`: use-stage, use-summoner, stage-parts), D2's calm default, cut-corner frames, the Showcase's request history.
 
-## In progress
-- Helpers: the MET Norway client + CSP host (lib/nova/world, egress policy; TIER 3 CSP/egress commit of its own), the `nova` sync section with the old-Worker proof (TIER 3 sync commit of its own), the last four life widgets' polish.
-- Lead: side bars (part 5), then the model's widget tool (part 6).
+## Done since the preview checkpoint
+- **Part 6** `cf43a6e3` (TIER 3 AI safety): the model's `stage_widget` tool and `weather` lookup on NOVA's surface only; the A4 proof; the gentle cards' rules.
+- **Part 7** `bbdad363` (TIER 3 CSP/egress: `https://api.met.no` only; the MET Norway client, city list, words), `652b6f56` (the weather and sun widgets, the Permissions switch with the place picker), `76f48de7` (docs/PRIVACY.md, landing/privacy.html).
+- **Part 8** `c544c922` (TIER 3 sync: the optional `nova` extras section with the old-Worker proof; backup format 4; rollback notes in ADR-038).
+- **Parts 5, 9, 10, 11** `ac1984cf`: the side bars (go-to, Requests, On the stage, Your choices), gentle cards wired, the phone path (answers in words; requests kept for the computer), NOVA in its own window (no manifest change), the mic, the rest rule.
+- ADR-038 D23–D34 record every decision made after the approval.
 
-## Still open inside parts 2–4
-- The weather and sun widgets' bodies (on the helper's client), the mic in the command bar, specs for the new stage (D2 changes to existing specs are deliberate and marked).
-- Decided: the Showcase opens on its Command arrangement (existing HUD specs depend on it) and seeds a request history; made widgets stand in front of pinned ones; a made Health widget is locked while NOVA's Health permission or the device's Health gate is off.
+## In progress (helpers)
+- A fresh-eyes design review → `docs/review/session-am/NOVA_AM_DESIGN_REVIEW.md` (the lead fixes its findings).
+- A defensive security review → `docs/review/session-am/AM_SECURITY_REVIEW.md` (the lead fixes its findings).
+- The hosted verifier's stage 13 "NOVA" (`scripts/lib/hosted-alpha-nova.mjs`).
+- The in-app guide, Help, What's new, the rename label "Premium · free during the Alpha", `docs/product/NOVA.md`.
+
+## Still to do after those
+- Playwright: existing NOVA specs updated for D2 (arrange the Command preset first; assertions as strict) and new specs for the live stage and every A1 item; one browser run at a time, Chromium, 2 workers.
+- One production build: route weights (`/app/nova` ≤ 458 kB), the perf proofs (idle, CPU 4×, Motion Off still, hidden paused), then CI on the PR.
+- `docs/handoff/AM_DEMO_TOUR.md`, the STATUS entry (final commit), the PR out of Draft, the report to the owner (≤ 15 lines).
 
 ## Next (the plan's parts, in order)
 1. Summon step and the stage record (`lib/nova/summon`, `lib/nova/stage`), stored-format registries (TIER 3 stored format).
