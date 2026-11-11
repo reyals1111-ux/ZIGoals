@@ -90,7 +90,7 @@
 .nc-journal :is(.nc-lattice-note, .nc-lattice-head span:last-child) { display: none; }
 .nc-journal .nc-lattice-label { font-size: 14px; line-height: 18px; color: #c3cfe6; }
 .nc-journal .nc-lattice-head span { line-height: 18px; }
-.nc-journal .nc-lattice-row i[data-cell=missed] { border-style: solid; border-color: color-mix(in oklab, #eef3ff 34%, transparent); }
+.nc-journal .nc-lattice-row i[data-cell=missed] { border-style: solid; border-color: #eef3ff57; } /* 34 % of the ink, as a plain colour: the theme generator reads it like its neighbours */
 .nc-journal .nc-lattice-row i[data-cell=rest] { background: none; }
 .nc-journal[data-size=L] .nc-lattice { gap: 6px; }
 .nc-journal[data-size=L] :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(64px, 1fr) repeat(7, minmax(18px, 26px)); gap: 6px; }

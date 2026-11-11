@@ -12994,7 +12994,7 @@
         color: #c3cfe6
     }
     .nc-journal .nc-lattice-row i[data-cell=missed]:not(#\-) {
-        border-color: color-mix(in oklab, #eef3ff 34%, transparent)
+        border-color: #eef3ff57
     }
     .nc-journal .nc-lattice-row i[data-cell=rest]:not(#\-) {
         background-image: none;
