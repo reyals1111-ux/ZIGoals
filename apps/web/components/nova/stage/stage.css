@@ -65,3 +65,8 @@
 @media (prefers-reduced-motion: reduce) { .ns-answer { animation: none !important; } }
 :root[data-app-motion=off] .ns-answer { animation: none !important; }
 .nova-talk[hidden] { display: none; }
+/* A phone: NOVA is a chat agent. The one-tap requests are one row that scrolls sideways (every chip reachable by swipe and by Tab), never three rows over the star. */
+.nova-frame[data-phone] .ns-strip { margin-bottom: 8px; }
+.nova-frame[data-phone] .ns-onetap { flex-wrap: nowrap; justify-content: flex-start; width: 100%; overflow-x: auto; padding: 2px 12px; scrollbar-width: none; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.nova-frame[data-phone] .ns-onetap > .ns-chip { flex: none; scroll-snap-align: start; }
+.ns-mic-btn svg { display: block; }

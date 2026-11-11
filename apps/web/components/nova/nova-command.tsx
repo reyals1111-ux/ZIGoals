@@ -96,11 +96,13 @@ export function RoutingMenu({brain, routing, onRouting, openModels}: {brain: Bra
   </>}</Menu>;
 }
 
-export function CommandField({you, persona, inputRef, onOpen, onBeforeSend, value, onValue, onKeys, keysOn = true}: {you: string; persona: string; inputRef: React.RefObject<HTMLInputElement | null>;
+export function CommandField({you, persona, inputRef, onOpen, onBeforeSend, onMic, value, onValue, onKeys, keysOn = true}: {you: string; persona: string; inputRef: React.RefObject<HTMLInputElement | null>;
   /** Called after Enter: `sent` says whether words went to NOVA (Session AM, D7: on a computer the stage then answers in place; with nothing typed the conversation opens). */
   onOpen: (sent: boolean) => void;
   /** Session AM (D7): called just before the words go to NOVA (the dashboard notes they come from the stage's own field). */
   onBeforeSend?: () => void;
+  /** Session AM (D9): opens the conversation on its microphone (speech input keeps its own switch and its disclosure there). */
+  onMic?: () => void;
   /** Session AL second pass (lane L8; DV-070, TK-074): the words can live with the dashboard, so they outlast the field (the
    *  conversation opening hides it) and letters typed while no field had the focus land here. */
   value?: string; onValue?: (text: string) => void;
@@ -119,6 +121,7 @@ export function CommandField({you, persona, inputRef, onOpen, onBeforeSend, valu
       <input ref={inputRef} value={text} onChange={e => { const t = e.target.value.slice(0, MAX_INPUT_CHARS); setText(t); if (!t) pasted.current = false; noteNovaDraft(t, {pasted: pasted.current}); }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} aria-keyshortcuts={commandKeyShortcut(apple, 'k')} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
       <small id={hint}>Enter to ask {persona} · nothing is sent before you press it.</small>
     </div>
+    {onMic && <button type="button" className="holo-keys-btn ns-mic-btn" onClick={onMic} aria-label={`Talk to ${persona}`} data-tip="Talk"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="9" y="3.5" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></button>}
     {onKeys && <button type="button" className="holo-keys-btn" onClick={onKeys} aria-label="Keyboard shortcuts" aria-haspopup="dialog" aria-keyshortcuts={keysOn ? '?' : undefined} data-tip="Keyboard shortcuts · ?"><span aria-hidden="true">?</span></button>}
     <kbd className="nova-kbd" aria-hidden="true">{commandKeyLabel(apple, 'k')}</kbd>
     <button type="submit" className="nova-send" aria-label={text.trim() ? `Send to ${persona}` : `Open the conversation with ${persona}`}><NovaIcon name="right" size={22}/></button>

@@ -3786,6 +3786,19 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nc-bills-dial-unit:not(#\-) { margin-top: 2px; }
 :where(:root[data-density=compact]) .nc-bills-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-bills-list:not(#\-) { row-gap: 4.5px; }
+/*  components/nova/cards/world-cards.css  */
+:where(:root[data-density=compact]) .nw-weather:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nw-now:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .nw-temp:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .nw-weather[data-size=M]:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nw-temp-unit:not(#\-) { margin-top: 6px; }
+:where(:root[data-density=compact]) .nw-condition:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nw-umbrella:not(#\-) { margin-top: 2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nw-hours:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .nw-hours li:not(#\-) { row-gap: 1.5px; }
+:where(:root[data-density=compact]) .nw-days:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nw-sunarc svg:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nw-sun-times:not(#\-) { margin-top: 4px; margin-bottom: 0; row-gap: 12px; }
 /*  components/nova/chat/nova-chat.css  */
 :where(:root[data-density=compact]) .nova-chat-sheet:not(#\-) { padding-bottom: var(--safe-bottom,env(safe-area-inset-bottom,0px)); }
 :where(:root[data-density=compact]) .nova-chat-head:not(#\-) { row-gap: 10px; padding-top: 18px; padding-bottom: 14px; }
@@ -4197,6 +4210,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-brief-polished .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-radio-row:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; row-gap: 3px; }
 :where(:root[data-density=compact]) .nova-radio-row .ai-check:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-weather-choice:not(#\-) { margin-top: 18px; padding-top: 14px; row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-weather-place:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-weather-row:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-weather-input:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-weather-found:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
 /*  components/nova/setup/setup.css  */
 :where(:root[data-density=compact]) .nova-setup:not(#\-) { row-gap: 16px; }
 :where(:root[data-density=compact]) .nova-progress:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -4242,6 +4260,34 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-choice.ai-card-actions:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nova-choice button:not(#\-):not(#\-) { row-gap: 4px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-step-action:not(#\-) { margin-top: 6px; }
+/*  components/nova/stage/bars.css  */
+:where(:root[data-density=compact]) .nb-find-icon:not(#\-) { margin-top: -9px; }
+:where(:root[data-density=compact]) .nb-results:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-enter:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .nb-none:not(#\-) { row-gap: 10px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nb-none p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-heading:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-fold:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-fold-count:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .nova-left .nb-section > ul:not(#\-) { margin-top: 0; }
+:where(:root[data-density=compact]) .nova-left[data-state=rail] .nb-section + .nb-section:not(#\-) { padding-top: 6px; }
+:where(:root[data-density=compact]) .nova-left .nova-left-nav:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nova-left[data-state=rail] .nova-left-nav:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nb-asks:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nb-group:not(#\-) { margin-top: 3px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-ask-list:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-ask:not(#\-) { row-gap: 1px; padding-top: 8px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .nb-ask-text:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-ask-meta:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nb-ask-phone:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nb-ask-acts:not(#\-) { row-gap: 6px; margin-top: 2px; }
+:where(:root[data-density=compact]) .nb-quiet:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-asks-foot:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nb-stage:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-stage-row:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nb-act:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nb-lives:not(#\-) { row-gap: 8px; margin-top: 2px; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nb-lives svg:not(#\-) { margin-top: 1px; }
 /*  components/nova/stage/stage.css  */
 :where(:root[data-density=compact]) .ns-act:not(#\-) { margin-top: -10px; margin-bottom: -10px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .ns-more-list:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; }
@@ -4254,6 +4300,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .ns-answer-text:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .ns-answer-meta:not(#\-) { margin-top: 6px; margin-bottom: 0; row-gap: 2px; }
 :where(:root[data-density=compact]) .ns-link:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .ns-strip:not(#\-) { margin-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .ns-onetap:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
 /*  components/nova/widgets/widgets.css  */
 :where(:root[data-density=compact]) .nova-widget-body p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-big:not(#\-) { row-gap: 4px; }

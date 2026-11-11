@@ -402,12 +402,12 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-left-dot[data-status=off]::after { background: var(--nova-ink-3); }
 .nova-left-label { flex: 1 1 auto; min-width: 0; }
 .nova-left[data-state=rail] .nova-left-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
-.nova-left-count { min-width: 26px; padding: 1px 8px; border-radius: 99px; background: #ffffff12; color: var(--nova-ink-2); font-size: 13px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.nova-left-count { min-width: 26px; padding: 1px 8px; border-radius: 99px; background: #ffffff12; color: var(--nova-ink-2); font-size: 14px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
 .nova-left-none { margin: 0; padding: 0 8px; font-size: 14px; color: var(--nova-ink-3); }
 .nova-left-foot { flex: none; margin-top: auto; display: grid; gap: 8px; padding: 12px; border-radius: 16px; border: 1px solid var(--nova-edge-soft); background: #ffffff06; }
 .nova-signature { margin: 0; font-size: 14px; color: var(--nova-ink-2); }
 .nova-signature strong { letter-spacing: .2em; color: var(--nova-hi); }
-.nova-left-brain { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: var(--nova-ink-3); }
+.nova-left-brain { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--nova-ink-3); }
 
 /* ---- Right panel ---- */
 .nova-right { position: relative; z-index: 2; width: 348px; display: flex; flex-direction: column; min-height: 0; border-left: 1px solid var(--nova-edge-soft); background: color-mix(in oklab, #060b1d 80%, transparent); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); animation: nova-panel-right .24s cubic-bezier(.22, 1, .36, 1) both; }

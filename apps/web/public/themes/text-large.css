@@ -1911,6 +1911,18 @@
 :where(:root[data-text=large]) .nc-bills-name:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .nc-bills-amount:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .nc-bills-row .nc-bills-when:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/nova/cards/world-cards.css  */
+:where(:root[data-text=large]) .nw-temp-num:not(#\-) { font-size: calc(clamp(40px, 4vw, 60px) * 1.125); }
+:where(:root[data-text=large]) .nw-weather[data-size=M] .nw-temp-num:not(#\-) { font-size: calc(42px * 1.125); }
+:where(:root[data-text=large]) .nw-weather[data-size=S] .nw-temp-num:not(#\-) { font-size: calc(32px * 1.125); }
+:where(:root[data-text=large]) .nw-temp-unit:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .nw-condition:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .nw-umbrella:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .nw-hour-time:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nw-hour-temp:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .nw-hour-rain:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nw-sun-times:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nw-sun-times b:not(#\-) { font-size: calc(18px * 1.125); }
 /*  components/nova/chat/nova-chat.css  */
 :where(:root[data-text=large]) .nova-chat-eyebrow:not(#\-) { font-size: calc(12px * 1.125); }
 :where(:root[data-text=large]) .nova-chat-title:not(#\-) { font-size: calc(24px * 1.125); }
@@ -2065,10 +2077,10 @@
 :where(:root[data-text=large]) .nova-root .nova-left-find input:not(#\-):not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .nova-left-heading:not(#\-) { font-size: calc(13px * 1.125); }
 :where(:root[data-text=large]) .nova-left-row:not(#\-) { font-size: calc(15px * 1.125); }
-:where(:root[data-text=large]) .nova-left-count:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .nova-left-count:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-left-none:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-signature:not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .nova-left-brain:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .nova-left-brain:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-right-head h2:not(#\-) { font-size: calc(20px * 1.125); }
 :where(:root[data-text=large]) .nova-right-section h3 button:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .nova-right-body:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2092,6 +2104,8 @@
 /*  components/nova/panels/panels.css  */
 :where(:root[data-text=large]) .nova-panel-badge:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-brief-lines:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .nova-weather-label:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .nova-weather-input:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/nova/setup/setup.css  */
 :where(:root[data-text=large]) .nova-panel-title:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .nova-sub:not(#\-) { font-size: calc(16px * 1.125); }
@@ -2101,6 +2115,19 @@
 :where(:root[data-text=large]) .nova-tag:not(#\-) { font-size: calc(12px * 1.125); }
 :where(:root[data-text=large]) .nova-guide-send-text:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-guide-card h2:not(#\-) { font-size: calc(18px * 1.125); }
+/*  components/nova/stage/bars.css  */
+:where(:root[data-text=large]) .nb-where:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nb-enter:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nb-none:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .nb-fold:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nb-fold-count:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nb-group:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nb-ask-text:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .nb-ask-meta:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nb-quiet:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nb-stage-name:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .nb-stage-name small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nb-lives:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/nova/stage/stage.css  */
 :where(:root[data-text=large]) .ns-more-item:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .ns-dock-label:not(#\-) { font-size: calc(14px * 1.125); }

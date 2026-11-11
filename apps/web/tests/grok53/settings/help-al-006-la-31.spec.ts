@@ -28,7 +28,9 @@ test('PR-032: Known limitations says the Lichess limit is about starting a game,
 test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Checklist — and each link opens its answer', async ({page}) => {
   await page.goto('/app/help'); await hydrated(page);
   const list = page.locator('#whats-new-alpha .help-whats-new-now');
-  await expect(list.getByRole('link')).toHaveCount(12);
+  // Session AM (ADR-038, deliberate): NOVA's stage leads this version's list, so it holds thirteen links (it held twelve).
+  await expect(list.getByRole('link')).toHaveCount(13);
+  await expect(list.getByRole('link', {name: /^NOVA makes a widget for what you ask/})).toHaveAttribute('href', '#help-nova-stage');
   for (const name of [/^NOVA: your private command center/, /^Notes that link/, /^Tasks with a calendar import/, /^The Checklist: your day as one path/]) await expect(list.getByRole('link', {name})).toBeVisible();
   for (const link of await list.getByRole('link').all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await list.getByRole('link', {name: /^Tasks with a calendar import/}).click();

@@ -13103,6 +13103,137 @@
         color: #ffd9a8
     }
 }
+/*  components/nova/cards/world-cards.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-widget[data-sky=clear]:not(#\-) {
+        --neon: #ffcf7a;
+        --neon-2: #7fb6ff;
+        --neon-ink: #fff6e2
+    }
+    .nova-widget[data-sky=clear][data-night]:not(#\-), .nova-widget[data-sky=partly][data-night]:not(#\-) {
+        --neon: #b9c8ff;
+        --neon-2: #e8eeff;
+        --neon-ink: #eef2ff
+    }
+    .nova-widget[data-sky=partly]:not(#\-) {
+        --neon: #9ccbff;
+        --neon-2: #ffd9a0;
+        --neon-ink: #eef6ff
+    }
+    .nova-widget[data-sky=cloud]:not(#\-), .nova-widget[data-sky=fog]:not(#\-) {
+        --neon: #a9bbd8;
+        --neon-2: #dfe8f6;
+        --neon-ink: #eef3ff
+    }
+    .nova-widget[data-sky=drizzle]:not(#\-), .nova-widget[data-sky=rain]:not(#\-) {
+        --neon: #3ee6ff;
+        --neon-2: #7fb6ff;
+        --neon-ink: #e6fbff
+    }
+    .nova-widget[data-sky=sleet]:not(#\-), .nova-widget[data-sky=snow]:not(#\-) {
+        --neon: #d6ecff;
+        --neon-2: #ffffff;
+        --neon-ink: #f4faff
+    }
+    .nova-widget[data-sky=thunder]:not(#\-) {
+        --neon: #f06dff;
+        --neon-2: #3ee6ff;
+        --neon-ink: #fdeaff
+    }
+    .nw-scene:not(#\-) {
+        fill: none;
+        stroke: var(--neon, #7fb6ff);
+        filter: drop-shadow(0 0 5px color-mix(in oklab, var(--neon, #7fb6ff) 70%, transparent))
+    }
+    .nw-hours .nw-scene:not(#\-), .nc-capsule .nw-scene:not(#\-) {
+        --neon: #cfe0ff;
+        filter: none
+    }
+    .nw-sun circle:not(#\-) {
+        fill: color-mix(in oklab, #ffcf7a 30%, transparent);
+        stroke: #ffe2a6
+    }
+    .nw-rays:not(#\-) {
+        stroke: #ffcf7a
+    }
+    .nw-moon path:not(#\-) {
+        fill: color-mix(in oklab, #b9c8ff 18%, transparent);
+        stroke: #e8eeff
+    }
+    .nw-star:not(#\-) {
+        fill: #fff;
+        stroke: none
+    }
+    .nw-cloud:not(#\-) {
+        fill: #0a1030cc;
+        stroke: #dfe8f6
+    }
+    .nw-cloud-back:not(#\-) {
+        stroke: #9fb1d0
+    }
+    .nw-fog path:not(#\-) {
+        stroke: #c9d6ea
+    }
+    .nw-rain path:not(#\-) {
+        stroke: #3ee6ff
+    }
+    .nw-snow circle:not(#\-) {
+        fill: #fff;
+        stroke: none
+    }
+    .nw-bolt:not(#\-) {
+        fill: #f06dff;
+        stroke: #ffd6ff;
+        filter: drop-shadow(0 0 6px #f06dff)
+    }
+    .nw-temp-unit:not(#\-) {
+        color: #d6e0f5
+    }
+    .nw-condition:not(#\-) {
+        color: #f2f6ff
+    }
+    .nw-umbrella:not(#\-) {
+        color: #d0dbf0
+    }
+    .nw-hours:not(#\-) {
+        border-top-color: #ffffff1f
+    }
+    .nw-hour-time:not(#\-) {
+        color: #c3cfe6
+    }
+    .nw-hour-temp:not(#\-) {
+        color: #f2f6ff
+    }
+    .nw-hour-rain:not(#\-) {
+        color: #9fe9f8
+    }
+    .nw-credit a:not(#\-) {
+        color: #e6edfb
+    }
+    .nw-arc-track:not(#\-) {
+        fill: none;
+        stroke: #ffffff2e
+    }
+    .nw-arc-done:not(#\-) {
+        fill: none;
+        stroke: #ffcf7a;
+        filter: drop-shadow(0 0 5px #ffcf7a)
+    }
+    .nw-horizon:not(#\-) {
+        stroke: #ffffff40
+    }
+    .nw-arc-sun:not(#\-) {
+        fill: #fff3d6;
+        stroke: #ffcf7a;
+        filter: drop-shadow(0 0 8px #ffcf7a)
+    }
+    .nw-sun-times:not(#\-) {
+        color: #c3cfe6
+    }
+    .nw-sun-times b:not(#\-) {
+        color: #f4f7ff
+    }
+}
 /*  components/nova/chat/nova-chat.css  */
 @scope (:root[data-theme=dark]) {
     .nova-chat:not(#\-) {
@@ -15327,6 +15458,18 @@
     .nova-radio-row:not(#\-) {
         border-color: currentcolor
     }
+    .nova-weather-choice:not(#\-) {
+        border-top-color: var(--nova-edge-soft, #ffffff14)
+    }
+    .nova-weather-label:not(#\-) {
+        color: var(--nova-ink, #eef3ff)
+    }
+    .nova-weather-input:not(#\-) {
+        border-color: var(--nova-edge, #ffffff33);
+        background-image: none;
+        background-color: #010106;
+        color: var(--nova-ink, #eef3ff)
+    }
 }
 /*  components/nova/setup/setup.css  */
 @scope (:root[data-theme=dark]) {
@@ -15447,6 +15590,132 @@
     .nova-tag-recommended:not(#\-) {
         border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 55%, transparent);
         color: var(--text, #eef1ff)
+    }
+}
+/*  components/nova/stage/bars.css  */
+@scope (:root[data-theme=dark]) {
+    .nb-find-icon:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nb-where:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nb-results .nova-left-row[data-first]:not(#\-) {
+        background-image: none;
+        background-color: #ffffff0f;
+        box-shadow: inset 0 0 0 1px var(--nova-edge)
+    }
+    .nb-enter:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff0a;
+        color: var(--nova-ink-2)
+    }
+    .nb-none:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nb-fold:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--nova-ink-3)
+    }
+    .nb-fold:hover:not(#\-) {
+        background-image: none;
+        background-color: #ffffff0d;
+        color: var(--nova-ink-2)
+    }
+    .nb-fold-count:not(#\-) {
+        background-image: none;
+        background-color: #ffffff0f;
+        color: var(--nova-ink-2)
+    }
+    .nova-left[data-state=rail] .nb-section + .nb-section:not(#\-) {
+        border-top-color: var(--nova-edge-soft)
+    }
+    .nb-sec-icon:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-right-section h3 button .nb-sec-icon .nova-icon:not(#\-) {
+        color: inherit
+    }
+    .nb-group:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nb-ask:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff08
+    }
+    .nb-ask-text:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nb-ask-meta:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nb-ask-meta time:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nb-ask-phone:not(#\-) {
+        color: var(--accent-cyan, #9ee8f8)
+    }
+    .nb-quiet:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--nova-hi);
+        text-decoration-color: color-mix(in oklab, currentColor 45%, transparent)
+    }
+    .nb-quiet:hover:not(#\-) {
+        background-image: none;
+        background-color: #ffffff0d;
+        color: var(--nova-ink)
+    }
+    .nb-stage-row:nth-child(odd):not(#\-) {
+        background-image: none;
+        background-color: #ffffff08
+    }
+    .nb-stage-name:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nb-stage-name small:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nb-stage-row[data-docked] .nb-stage-name:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nb-act:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--nova-ink-2)
+    }
+    .nb-act:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--nova-a, #9273ff) 20%, transparent);
+        color: var(--nova-ink)
+    }
+    .nb-act[data-on]:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nb-lives:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff08;
+        color: var(--nova-ink-2)
+    }
+    .nb-lives svg:not(#\-) {
+        color: var(--accent-teal, #86f0d6)
+    }
+    @media (forced-colors: active) {
+        .nb-ask:not(#\-), .nb-lives:not(#\-), .nb-enter:not(#\-) {
+            border-color: currentcolor
+        }
+    }
+    @media (forced-colors: active) {
+        .nb-results .nova-left-row[data-first]:not(#\-) {
+            outline-color: currentcolor
+        }
     }
 }
 /*  components/nova/stage/stage.css  */

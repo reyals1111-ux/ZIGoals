@@ -39,8 +39,12 @@ import {OneTap, StageAnswerLine, StageDock} from './stage/stage-parts';
 import {useStage, type StageGates} from './stage/use-stage';
 import type {StageAnswer, StageBridge} from './stage/use-summoner';
 import type {StarBeam} from './core/star-system';
+import {useResting} from './core/use-resting';
 import {sendToNova} from '../../lib/nova/bridge';
 import {STAGE_AGAIN_EVENT} from '../../lib/nova/stage/events';
+import {daysUntil, gentleCard} from '../../lib/nova/stage/proactive';
+import {gentleShown, noteGentle, proactiveOn} from '../../lib/nova/stage/record';
+import {localDate} from '../../lib/local-date';
 import {NovaIcon} from './icons';
 import {openPipWindow, pipHost} from '../../lib/ai/pip';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -110,6 +114,8 @@ export default function NovaDashboard() {
   // Session AL Part 11 (lane L8): the look (Holo by default, Classic on choice) and the HUD's motion state (O5).
   const {hud, look} = useHudRecord(), holo = look === 'holo', hudMove = useHudMotion(phone);
   // Session AM (D10, A7): whether the star system draws (else the SVG orb shows: no WebGL, Save-Data, a low battery).
+  // Session AM (D11): at rest (the window not focused, or a minute without a key, tap or request) the scripted loops stop.
+  const resting = useResting();
   const [starDraws, setStarDraws] = useState(false), onStarRender = (render: 'running' | 'still' | 'orb') => setStarDraws(render !== 'orb');
 
   const novaUpdate = nova.update;
@@ -138,6 +144,8 @@ export default function NovaDashboard() {
     // Session AK lane WB (N8): "Open ZIGoals on NOVA" replaced Today with NOVA, so NOVA is where this visit landed: Exit goes
     // to Today, never Back to whatever the tab showed before the app (tests/wiring-2-nova-start.spec.ts).
     if (openedOnNova()) landed = true;
+    // Session AM (A3): in NOVA's own window, Exit closes that window (the app's own tab is still where it was).
+    if (window.name === 'zigoals-nova' && window.opener === null && window.history.length <= 2) { window.close(); if (window.closed) return; }
     if (!landed && window.history.length > 1) router.back(); else router.push('/app/today');
   }, [router]);
   const openChat = useCallback(() => { setChatOpen(true); }, [setChatOpen]);
@@ -290,6 +298,27 @@ export default function NovaDashboard() {
     window.addEventListener(STAGE_AGAIN_EVENT, again);
     return () => window.removeEventListener(STAGE_AGAIN_EVENT, again);
   }, []);
+  // A5: the gentle cards (opt-in, off by default). While NOVA is open and nothing else is going on, at most one widget is
+  // put on the stage for something the person's own records say is worth a glance, with one line under the star. Each
+  // card once a day; rarer under Calm; nothing while the tab is hidden; never a notification.
+  const gentleOn = stage.loaded && proactiveOn(stage.record.data), gentleQuiet = !phone && !chatOpen && !editing && !answer && !draft && stage.fresh.size === 0 && hudMove.state !== 'paused';
+  const billDue = counts.nextBill?.due ?? null, gentleGates = stage.gates;
+  useEffect(() => {
+    if (!gentleOn || !gentleQuiet || !gentleGates) return;
+    const timer = window.setTimeout(() => {
+      const st = bridgeLive.current.stage, day = localDate(), clock = new Date();
+      const card = gentleCard({hour: clock.getHours(), tasksDue: counts.tasksDue, habitsLeft: counts.habitsLeft, billInDays: daysUntil(day, billDue)},
+        {calm: hudMove.state === 'calm', shown: gentleShown(st.record.data, day), gate: g => gentleGates[g], available: id => bridgeLive.current.canShow(id) && !st.shown.some(w => w.id === id)});
+      if (!card || !st.make([{id: card.id}])) return;
+      try { st.record.update(r => noteGentle(r, day, card.id)); } catch { /* the card shows; it may show once more today */ }
+      setAnswer({id: `gentle-${day}-${card.id}`, question: '', text: card.why, by: 'device', decision: false});
+    }, 4000);
+    return () => window.clearTimeout(timer);
+  }, [gentleOn, gentleQuiet, gentleGates, counts.tasksDue, counts.habitsLeft, billDue, hudMove.state]);
+  // A3: NOVA in a window of its own (a separate window the person can keep beside their work; no install needed).
+  const [ownWindow, setOwnWindow] = useState(false);
+  useEffect(() => { setOwnWindow(window.name === 'zigoals-nova' || window.matchMedia?.('(display-mode: standalone)').matches === true); }, []);
+  const openOwnWindow = () => { const w = window.open('/app/nova', 'zigoals-nova', 'popup=yes,width=1360,height=860'); if (!w) setStatus('This browser did not open a new window. Allow pop-ups for ZIGoals, or install ZIGoals and open NOVA from its shortcut.'); else setStatus('NOVA opened in its own window.'); };
   // The star's beam toward a widget that was just made (decoration; the direction is read from where the widget landed).
   const freshKey = [...stage.fresh].join(' ');
   useEffect(() => {
@@ -321,15 +350,15 @@ export default function NovaDashboard() {
     data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
     {/* Second review m8 (lane L8f): the first stop, past the left panel and the top bar (43 stops) to the HUD itself. */}
     <a className="nova-skip" href="#nova-hud" onClick={e => { e.preventDefault(); root.current?.querySelector<HTMLElement>('#nova-hud')?.focus({preventScroll: true}); }}>Skip to the HUD</a>
-    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent}/></Suspense></LoadBoundary></div>
+    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion && !resting} accent={accent}/></Suspense></LoadBoundary></div>
     {/* Session AL Part 11 (lane L8): the HUD's depth layers — a far grid plane and a near glow at the edges (decoration). */}
     {holo && <div className="holo-depth" aria-hidden="true"><div className="holo-plane"/><div className="holo-glow"/></div>}
-    {left !== 'hidden' && <NovaLeft state={left} onCycle={cycleLeft} you={you} brain={brain} counts={counts} pages={p => isShown(pagesView, p)} earn={chain.earnShown} chess={isShown(pagesView, 'chess')}
+    {left !== 'hidden' && <NovaLeft state={left} onCycle={cycleLeft} you={you} brain={brain} counts={counts} pages={p => isShown(pagesView, p)} earn={chain.earnShown} chess={isShown(pagesView, 'chess')} governance={chain.earn.governanceShown === true} chain={chain.chosen}
       persona={persona.name} onNova={openChat} onZigi={() => { if (launcherShown()) askZigi(''); else router.push('/app/zigi'); }} zigiStatus={brain.kind === 'none' ? 'calm' : 'on'} hermes={hermes}/>}
     <div className="nova-centre">
       <NovaTop now={now} persona={persona.name} entries={entries} shortcuts={shortcuts} fullscreen={fullscreen} fullscreenOk={fullscreenOk && !phone}
         handlers={{act, customize: () => setSheet({kind: 'yours'}), fullscreen: toggleFullscreen}} onExit={exit} onDay={() => setSheet({kind: 'day'})} onSearch={() => openSearch()}
-        onWorkflows={() => setSheet({kind: 'panels', id: 'workflows'})} onMini={pipOk && !phone ? () => { if (pip) pip.close(); else void openMini(); } : undefined} miniOpen={!!pip} leftHidden={left === 'hidden'} onShowLeft={() => save(rr => setLeftPanel(rr, 'open'))}
+        onWorkflows={() => setSheet({kind: 'panels', id: 'workflows'})} onMini={pipOk && !phone ? () => { if (pip) pip.close(); else void openMini(); } : undefined} miniOpen={!!pip} onOwnWindow={!phone && !ownWindow ? openOwnWindow : undefined} leftHidden={left === 'hidden'} onShowLeft={() => save(rr => setLeftPanel(rr, 'open'))}
         rightOpen={right === 'open'} onToggleRight={toggleRight} compact={phone} onQuick={() => setSheet({kind: 'quick'})}/>
       {/* Review fix (lane L8d, NOVA_HUD_REVIEW B2): the status chips, what is running now and the setup invitation share one
           deck that wraps (two slim rows at most on a computer, where they took three and pushed the HUD below the fold). */}
@@ -341,7 +370,7 @@ export default function NovaDashboard() {
         {!chatOpen && stage.shown.length === 0 && !answer && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={stageNode} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy}/>}</div>
+      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={stageNode} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">
@@ -352,7 +381,7 @@ export default function NovaDashboard() {
           {!phone && <ViewControls layout={layout} widgets={widgets} available={available} editing={editing} onLayout={l => save(rr => setLayout(rr, l), `${l[0]!.toUpperCase()}${l.slice(1)} layout.`)} onToggle={toggleWidget}
             onSize={actions.resize} onArrange={() => setEditing(v => !v)} extra={<PresetPicker compact shown={shownPreset} onApply={applyPreset}/>}/>}
           {/* Session AL second pass (P-TK-41): the shortcuts are discoverable — the field's "?" button and the "?" key open their list. */}
-          <CommandField you={you} persona={persona.name} inputRef={command} onOpen={sent => { if (phone || !sent) openChat(); }} onBeforeSend={() => { inPlace.current = !phone; }} value={draft} onValue={setDraft} onKeys={phone ? undefined : () => setSheet({kind: 'keys'})} keysOn={shortcuts}/>
+          <CommandField you={you} persona={persona.name} inputRef={command} onOpen={sent => { if (phone || !sent) openChat(); }} onBeforeSend={() => { inPlace.current = !phone; }} onMic={() => { openChat(); window.setTimeout(() => root.current?.querySelector<HTMLElement>('.nova-talk .nova-mic, .nova-sheet .nova-mic')?.focus(), 350); }} value={draft} onValue={setDraft} onKeys={phone ? undefined : () => setSheet({kind: 'keys'})} keysOn={shortcuts}/>
           {/* Release review 2 (R2-3): model routing appears once a brain is connected (with none, there is nothing to route). */}
           {!phone && brain.kind !== 'none' && <RoutingMenu brain={brain} routing={routingOf(r)} onRouting={rt => save(rr => setRouting(rr, rt), rt === 'auto' ? 'Automatic: your connected brain answers.' : undefined)} openModels={() => setSheet({kind: 'panels', id: 'models'})}/>}
         </div>}
@@ -360,7 +389,7 @@ export default function NovaDashboard() {
     </div>
     {right === 'open' && <LoadBoundary label="Behind the intelligence"><Suspense fallback={<aside role="region" className="nova-right" aria-label="Behind the intelligence" aria-busy="true"><Reading label="Reading…"/></aside>}>
       <NovaRight folded={panels.folded} onFold={(id, f) => save(rr => foldSection(rr, id, f))} onHide={() => save(rr => setRightPanel(rr, 'hidden'))} persona={persona.name} brain={brain} counts={counts} hermes={hermes}
-        onTalk={openChat} wake={wakeOn(r)} onWake={on => save(rr => setWake(rr, on), on ? `${persona.name} listens for its name on this device.` : 'Wake phrase off.')} openPanel={id => setSheet({kind: 'panels', id})}/>
+        onTalk={openChat} wake={wakeOn(r)} onWake={on => save(rr => setWake(rr, on), on ? `${persona.name} listens for its name on this device.` : 'Wake phrase off.')} openPanel={id => setSheet({kind: 'panels', id})} stage={stage}/>
     </Suspense></LoadBoundary>}
     {chatOpen && phone && <NovaSheet title={persona.name} eyebrow="Your conversation" place="bottom" onClose={closeChat}>{duoView}{chat}</NovaSheet>}
     {sheet?.kind === 'day' && <NovaSheet title="Your day" eyebrow="Morning brief and evening recap" place="right" onClose={closeSheet}><LoadBoundary label="Your day"><Suspense fallback={<Reading label="Reading your day…"/>}><NovaBriefs/></Suspense></LoadBoundary></NovaSheet>}

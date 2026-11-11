@@ -4,6 +4,9 @@ import type {HudPreset} from '../../../lib/nova/layout';
 import type {AskDevice, MakeRequest} from '../../../lib/nova/stage/record';
 import {mergeSummons, stageCalls, summonFor, summonForTools, type StageCommand, type SummonContext, type SummonPlan} from '../../../lib/nova/summon/summon';
 import {commandWords, madeWords} from '../../../lib/nova/summon/words';
+import {getAppStorage} from '../../../lib/showcase-storage';
+import {formatDate, formatTime} from '../../../lib/visual-format';
+import {weatherAnswer, WEATHER_OFF_WORDS} from '../../../lib/nova/world/ask';
 import type {ChatSession} from '../../ai/use-chat-session';
 import type {StageAsk, StageGates} from './use-stage';
 
@@ -46,12 +49,27 @@ export function useSummoner({bridge, session, say, goals}: {
     if (!bridge) return false;
     const plan = summonFor(text, context()), ask: StageAsk = {text, by: 'device', device: bridge.device, kept: kept.current};
     pending.current = null;
+    if (plan.command && bridge.device === 'phone') { say(text, plan.lang === 'nl' ? 'Dat is voor NOVA op een computer: op een telefoon is er geen podium, hier praat je met NOVA.' : 'That is for NOVA on a computer: a phone has no stage, here you talk with NOVA.'); return true; }
     if (plan.command) {
       let done = true;
       if (plan.command.kind === 'arrangement') bridge.arrangement(plan.command.preset); else done = bridge.command(plan.command);
       bridge.noteAsk(ask);
       say(text, commandWords(plan.command, plan.lang, done));
       return true;
+    }
+    // A phone has no stage (NOVA is a chat agent there): a command for the stage says so, the weather and the time are
+    // answered in words, and every other request goes to the engine, which answers in words; the request is kept with the
+    // widgets it would make, for the computer (D19).
+    if (bridge.device === 'phone') {
+      const only = plan.widgets.length === 1 ? plan.widgets[0]!.id : null;
+      if (only === 'weather' || only === 'sun') {
+        bridge.make(plan.widgets, ask);
+        void weatherAnswer(getAppStorage(), new Date(), plan.lang).then(words => say(text, words)).catch(() => say(text, WEATHER_OFF_WORDS[plan.lang]));
+        return true;
+      }
+      if (only === 'time') { bridge.make(plan.widgets, ask); const clock = new Date(); say(text, plan.lang === 'nl' ? `Het is ${formatTime(clock)}, ${formatDate(clock, {weekday: true})}.` : `It is ${formatTime(clock)}, ${formatDate(clock, {weekday: true})}.`); return true; }
+      pending.current = {question: text, plan};
+      return false;
     }
     if (plan.direct && plan.widgets.length) {
       bridge.make(plan.widgets, ask);

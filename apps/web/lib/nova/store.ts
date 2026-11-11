@@ -34,8 +34,12 @@ export const LEFT_STATES = ['open', 'rail', 'hidden'] as const;
 export type LeftState = (typeof LEFT_STATES)[number];
 export const RIGHT_STATES = ['open', 'hidden'] as const;
 export type RightState = (typeof RIGHT_STATES)[number];
-/** The right panel's numbered sections ("Behind the intelligence"). */
-export const RIGHT_SECTIONS = ['brains', 'voice', 'tools', 'usage', 'memory', 'activity'] as const;
+/**
+ * The right panel's sections ("Behind the intelligence"): the six numbered ones, then (Session AM, added at the end so a
+ * `folded` list stored by an older build reads as it did) what was asked, what is on the stage and the stage's choices,
+ * which show above them.
+ */
+export const RIGHT_SECTIONS = ['brains', 'voice', 'tools', 'usage', 'memory', 'activity', 'requests', 'stage', 'choices'] as const;
 export type RightSection = (typeof RIGHT_SECTIONS)[number];
 export const DEFAULT_PERSONA_NAME = 'NOVA';
 /** A widget or dock id: lowercase words joined by hyphens (an id a later build adds is kept and simply not shown). */

@@ -74,7 +74,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
 
     // The picture's own clock and eased values.
     const v = {t: 12, spin: 0.72, rate: 0.06, listen: 0, think: 0, speak: 0, beam: 0, beamA: 0, beamKey: live.current.beam?.key ?? 0, beamAt: -1e9};
-    let frame = 0, timer = 0, last = 0, lastDraw = 0, tier = 0, late = 0, lost = 0, stopped = false, activeAt = performance.now(), focused = document.hasFocus();
+    let frame = 0, timer = 0, last = 0, lastDraw = 0, tier = 0, late = 0, lost = 0, stopped = false, activeAt = performance.now(), focused = true; // the focus is read from focus and blur events only (a page that never had it still starts active)
     const pixels = (scale: number) => { const want = starPixels(live.current.size, window.devicePixelRatio, scale, tier); if (el.width !== want) { el.width = want; el.height = want; } };
     const draw = (now: number, dt: number, speed: number) => {
       if (!gl) return;
