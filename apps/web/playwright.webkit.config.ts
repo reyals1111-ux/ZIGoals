@@ -1,4 +1,6 @@
+import {join} from 'node:path';
 import {defineConfig, devices} from '@playwright/test';
+import {WEBKIT_TEST_IGNORE, WEBKIT_TEST_MATCH, webkitShardMatch} from './playwright.webkit.shards';
 
 /**
  * Session X-Local Part 6f: the same tests in WebKit (Playwright's build of Safari's engine), two projects, run by hand
@@ -9,8 +11,12 @@ export default defineConfig({
   testDir: './tests',
   timeout: 60_000,
   // Session Y Part 6: CI's WebKit job runs this selection; `webkit-phone` is its curated phone set.
-  testMatch: process.env.WEBKIT_MATCH ? new RegExp(process.env.WEBKIT_MATCH) : /(webkit-[a-z0-9-]+|zigi-[a-z0-9-]+)\.spec\.ts$/,
-  testIgnore: /zigi-(real-model|conversations|pages-conversations|day-in-the-life|on-device|browser-agents)\.spec\.ts$/,
+  // Session AN ([TIER 3] (CI)): CI's four shards are the duration-balanced lists in playwright.webkit.shards.ts
+  // (`WEBKIT_SHARD=n/4`, which first checks that every selected spec is in exactly one list); without it, every spec.
+  testMatch: process.env.WEBKIT_MATCH ? new RegExp(process.env.WEBKIT_MATCH)
+    : process.env.WEBKIT_SHARD ? webkitShardMatch(process.env.WEBKIT_SHARD, join(__dirname, 'tests'))
+    : WEBKIT_TEST_MATCH,
+  testIgnore: WEBKIT_TEST_IGNORE,
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3102',
     trace: 'retain-on-failure',
