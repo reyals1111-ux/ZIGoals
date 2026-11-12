@@ -24,8 +24,8 @@ below); continue without questions. If the weekly limit pauses this session, res
 ## Parts
 | Part | State | Commits | Evidence |
 |---|---|---|---|
-| 1 TIER 3 (CI): WebKit 3 → 4 duration-balanced shards | pushed; CI run 1683 (43279591582) on PR #102 | `0f2d8876` | local `--list`: 176+130+150+136 = 592, 0 duplicates, union identical to the unsharded list; guard tested with a temporary new spec |
-| 2 TIER 3 (dependencies): glob / minimatch overrides | committed (option 2; upstream has not moved) | (Part 2 commit) | pnpm audit 0; lint/typecheck; build:alpha + check:alpha; .open-next lists in docs/dependencies/AN_REVIEW.md; pnpm test |
+| 1 TIER 3 (CI): WebKit 3 → 4 duration-balanced shards | proven on CI run 1683 (43279591582): 176+130+150+136 = 592 started, 0 duplicates, set = `--list`; slowest shard's tests 37.4 → 29.5 min | `0f2d8876` | local `--list`: 176+130+150+136 = 592, 0 duplicates, union identical to the unsharded list; guard tested with a temporary new spec |
+| 2 TIER 3 (dependencies): glob / minimatch overrides | committed (option 2; upstream has not moved) | `921ea417`, `b1ab27ae` | pnpm audit 0; lint/typecheck; build:alpha + check:alpha; .open-next lists in docs/dependencies/AN_REVIEW.md; pnpm test |
 | 3 Third alert | recorded in docs/dependencies/AN_REVIEW.md §3: identified (crypto-bigint 0.5.5, RUSTSEC-2026-0387, contract crypto stack; report, no fix) | — | OSV over Cargo.lock |
 | END STATUS entry | — | — | — |
 
@@ -34,6 +34,6 @@ Per (project, file) durations rebuilt from the WebKit jobs' timestamped line-rep
 ids in the STATUS entry), median of three; desktop `zigi-accept-correct` ≈ 25 min alone is the floor of any shard.
 
 ## Next steps
-1. Clean rebuild after the Part 2 commit; `.open-next` list diff against the before list (scratchpad) should show only the Next build id.
-2. Collect the WebKit proof from run 1683 (4 job logs: start-line ids, each once, set = `--list`), then the full CI on the Part 2 head.
+1. Done: clean rebuild and `.open-next` comparison (AN_REVIEW.md §2); WebKit proof from run 1683.
+2. Full CI on the Part 2 head: run 1685 (43284806298, `b1ab27ae`). Run 1683's failures (re-run = 1685): WebKit `zigi-memory-page:22` (class B segfault), `zigi-chat-polish:319` (first sighting, log 164 < 200 px at 900×500); Chromium `a11y-wcag-x:49`, `run11-route-mobile-acceptance:30`, `fourth-pass-field-errors:106` (also on PR #101 run 1678), `spending-ai:52`. Untouched by this diff; a second failure means investigate.
 3. STATUS entry as the final commit; mark PR #102 ready only if the owner's rules say so (they don't: keep Draft until the owner).
