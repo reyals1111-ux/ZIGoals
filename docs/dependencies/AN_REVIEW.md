@@ -44,14 +44,18 @@ The packages ship no changelog, so I compared the exported API and the READMEs.
 - **Engines:** glob 14 needs Node 18/20/≥22 and minimatch 11 needs Node 20/≥22. The project uses Node 24.
 
 ### Proof
-- **Local:** `pnpm lint` shows 0 errors (the same 20 warnings as main), `pnpm typecheck` passes, and `pnpm test` passes (count in the STATUS entry).
+- **Local:** `pnpm lint` shows 0 errors (the same 20 warnings as main), and `pnpm typecheck` passes. `pnpm test`: 10,044 tests pass and 6 fail. The 6 are in `scripts/pre-run11-setup.test.mjs`, `lib/wealth-al-pass4.test.ts` (TK-127, `−€1.00T` against `−€1T`, an ICU difference) and `lib/vault/finance-homes.test.ts`, and they fail **identically with main's lockfile**: this sandbox runs Node 22, not the project's 24. CI's unit job is the evidence.
 - **Local:** `pnpm build:alpha` (the OpenNext build) and `pnpm check:alpha` (the wrangler dry run) both pass. The upload was 29,911.07 KiB before and 29,911.18 KiB after.
-- **OpenNext output (owner addition 3):** I listed every `.open-next` file with its size before and after. The result is in the STATUS entry. The first after-build ran on an uncommitted tree, so it showed:
-  - the dirty-build markers: the `-d` version suffix, "(working changes)" and `"dirty": true`;
-  - chunk renames that follow from those markers;
-  - the per-build Next build id.
+- **OpenNext output (owner addition 3):** I listed every `.open-next` file with its size and compared two clean builds: `0f2d8876` (before the overrides) and `921ea417` (after).
+  - **Size:** 4,879 files both times. 4,878 have identical sizes. The only one that changed is `server-functions/default/apps/web/handler.mjs`, 22,317,428 → 22,317,433 bytes (+5).
+  - **Names:** the build id directory (`assets/_next/static/<id>/`, `cache/<id>/`) changed, and 7 client chunks were renamed at the same sizes.
+  - **Contents:** with the per-build values normalised, every difference is one of these:
+    - **(a) per-build values:** the commit SHA (`NEXT_PUBLIC_APP_COMMIT`, the Settings build line), the Next build id, and Next's per-build preview-mode and server-action keys;
+    - **(b) content hashes and minifier names:** chunk names follow their content (which holds the commit). The minifier's generated identifiers are permuted, and in `handler.mjs` some go from 3 to 4 characters, which is the +5 bytes;
+    - **(c) the order of 10 of the 156 `if (path.endsWith("…react-loadable-manifest.json"))` lookups** in OpenNext's manifest patch. That order comes from its file glob, so this is glob 14's traversal order. The set of 156 lookups is identical. Each moved entry is an exact path that returns `{}`. The only overlapping suffix (the generic `_client-reference-manifest.js`, against its 87 specific paths) keeps the same relative order. Behaviour is therefore unchanged.
 
-  Nothing came from glob or minimatch. The clean rerun after the commit is recorded in the STATUS entry.
+    Nothing else differs, so the overrides stay.
+  - **Earlier dirty build:** the first after-build ran on an uncommitted tree. It also showed the dirty-build markers (the `-d` version suffix, "(working changes)", `"dirty": true`), which is why I reran it clean.
 - **CI:** the full "Milestone quality" run on the PR.
 
 ## 3. GitHub's third alert (Security tab, 10 Nov)
