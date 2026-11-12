@@ -24,11 +24,16 @@ below); continue without questions. If the weekly limit pauses this session, res
 ## Parts
 | Part | State | Commits | Evidence |
 |---|---|---|---|
-| 1 TIER 3 (CI): WebKit 3 → 4 duration-balanced shards | committed, awaiting CI | (this commit) | local `--list`: 176+130+150+136 = 592, 0 duplicates, union identical to the unsharded list; guard tested with a temporary new spec |
-| 2 TIER 3 (dependencies): glob / minimatch overrides | next | — | — |
-| 3 Third alert | identified (crypto-bigint 0.5.5, RUSTSEC-2026-0387, contract crypto stack; report, no fix) | — | OSV over Cargo.lock |
+| 1 TIER 3 (CI): WebKit 3 → 4 duration-balanced shards | pushed; CI run 1683 (43279591582) on PR #102 | `0f2d8876` | local `--list`: 176+130+150+136 = 592, 0 duplicates, union identical to the unsharded list; guard tested with a temporary new spec |
+| 2 TIER 3 (dependencies): glob / minimatch overrides | committed (option 2; upstream has not moved) | (Part 2 commit) | pnpm audit 0; lint/typecheck; build:alpha + check:alpha; .open-next lists in docs/dependencies/AN_REVIEW.md; pnpm test |
+| 3 Third alert | recorded in docs/dependencies/AN_REVIEW.md §3: identified (crypto-bigint 0.5.5, RUSTSEC-2026-0387, contract crypto stack; report, no fix) | — | OSV over Cargo.lock |
 | END STATUS entry | — | — | — |
 
 ## Measurement (Part 1)
 Per (project, file) durations rebuilt from the WebKit jobs' timestamped line-reporter logs (runs 1634, 1677, 1680; job
 ids in the STATUS entry), median of three; desktop `zigi-accept-correct` ≈ 25 min alone is the floor of any shard.
+
+## Next steps
+1. Clean rebuild after the Part 2 commit; `.open-next` list diff against the before list (scratchpad) should show only the Next build id.
+2. Collect the WebKit proof from run 1683 (4 job logs: start-line ids, each once, set = `--list`), then the full CI on the Part 2 head.
+3. STATUS entry as the final commit; mark PR #102 ready only if the owner's rules say so (they don't: keep Draft until the owner).
