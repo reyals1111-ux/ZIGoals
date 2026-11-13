@@ -161,6 +161,20 @@ each pushed head, final head green.
 - **D9 (Activity periods):** the period chips change only the report card (unchanged); search and CSV follow the kind filter.
 - **D10 (cross-lane, for AM-2):** `lib/ai/local-answers/al-fourth.ts` says the theme is under "Your app → Theme"; it is now
   Settings → Appearance. AO does not edit lib/ai.
+- **D11 (D-070 on a phone):** at 388 px the phone top bar holds six 44 px icons; a visible word beside or under the wallet
+  icon does not fit without a second row in the protected phone chrome, so words show where the bar has room
+  (components/shell/header-words.ts) and every icon keeps its accessible name. The 768+ header shows its words.
+- **D12 (T-014):** the owner's 13 Nov brief lists "a shorter goal wizard (T-014)" in scope, which supersedes the earlier
+  four-step decision (GO3/ADR-033 M33, pinned in tests/aj-owner-decisions.spec.ts, now three steps with a comment).
+- **D13 (the hosted verifier):** its goal stage walks the creator by its own "Step N of M" text, so it passes on the deployed
+  four-step creator (#54) and the three-step one (TIER 3 release verifier, behaviour-preserving).
+- **D14 (D-028):** Showcase Today 176 → 143 Tab stops (skip links "Skip to a part of Today", roving focus in the week grid,
+  What's new, goal titles, My links); the ≤ 90 target needs the sidebar and the habit rows changed — carried, guarded at ≤ 145.
+- **D15 (C-MO-36 and Copilot):** the Copilot preset's sign rule (spending positive) follows the published format; the import
+  preview asks the person to check it before saving.
+- **D16 (left as owner decisions or carried, with cause):** BN-022 (erase names each area: needs a key-to-area map; the
+  no-auto-reload is deliberate), D-003 and D-090 (copy decisions), DV-170 (Remove inside ⋯: a visual decision), G-025
+  (nothing left open), the Today grid's day for Health cells (Health's own day).
 
 ## Closing table
 (filled at the end: every row Fixed / Built / Owner decision / Not possible / Carried + cause)
