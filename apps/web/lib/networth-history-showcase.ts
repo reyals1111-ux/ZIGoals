@@ -12,12 +12,15 @@ const cents = (v: bigint) => { const neg = v < 0n, a = neg ? -v : v; return `${n
  */
 export function showcaseNetworthHistory(day: string): NetworthHistory {
   const days: NetworthDay[] = [];
-  for (let back = 69; back >= 0; back--) {
+  // Session AO (UX review, Major 1): the latest day ends exactly on the Showcase's own Wealth totals ($501,800.00 and
+  // €8,000.00, as the hero shows), earlier days lead up to them, and the series starts with the chart above it (67 days back).
+  for (let back = 67; back >= 0; back--) {
     // Not opened: every eighth day, and a four-day trip three weeks ago.
     if (back > 0 && (back % 8 === 5 || (back >= 20 && back <= 23))) continue;
-    const d = addLocalDays(day, -back), i = BigInt(69 - back), wave = BigInt([0, 3, 5, 2, -1, -4, -2, 1][Number(i % 8n)]!);
-    const at = `${d}T18:00:00.000Z`;
-    const wealth = 2_412_000_00n + i * 61_500n + wave * 180_000n, accounts = 1_180_000n + i * 4_200n, portfolio = 812_000n + i * 3_100n + wave * 41_000n, eur = 405_000n + i * 900n;
+    const d = addLocalDays(day, -back), i = BigInt(67 - back), b = BigInt(back), wave = BigInt([0, 3, 5, 2, -1, -4, -2, 1][back % 8]!);
+    // Never stamped later than the day's own start for today (no "as of" in the future); evenings for earlier days.
+    const at = back === 0 ? `${d}T00:00:00.000Z` : `${d}T18:00:00.000Z`;
+    const wealth = 501_800_00n - b * 61_500n + wave * 180_000n, accounts = 1_180_000n + i * 4_200n, portfolio = 812_000n + i * 3_100n + wave * 41_000n, eur = 8_000_00n - b * 900n;
     const noPrice = back === 12;
     days.push({day: d, at, sources: [
       {source: 'wealth', currency: 'EUR', value: cents(eur), asOf: at},

@@ -138,7 +138,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
       </div>
       {!logging ? <div className="spending-actions"><button ref={logButton} type="button" className="primary" aria-expanded={false} aria-controls={`${id}-log`} onClick={() => setLogging(true)}>Log spending</button></div>
       : <form className="spending-form" id={`${id}-log`} onSubmit={save} aria-label={editing ? `Edit ${editing.category} ${editing.amount} ${editing.currency} on ${editing.date}` : 'Log spending or income'}>
-        {editing ? <p className="spending-editing">Editing {editing.kind === 'income' ? 'money received' : 'spending'} in {editing.currency}: {editing.category} · {money(Math.round(Number(editing.amount) * 100), editing.currency)} · {editing.date}</p>
+        {editing ? <p className="spending-editing">Editing {editing.kind === 'income' ? 'money received' : 'spending'} in {editing.currency}: {editing.category} · {money(Math.round(Number(editing.amount) * 100), editing.currency)} · {formatDate(editing.date)}</p>
         : <div className="spending-kind" role="radiogroup" aria-label="Kind">
           {(['expense', 'income'] as const).map(k => <label key={k} className="spending-chip"><input type="radio" name={`${id}-kind`} checked={kind === k} onChange={() => { setKind(k); setCategory(k === 'expense' ? 'Food & drink' : 'Salary'); }}/><span>{k === 'expense' ? 'Spent' : 'Received'}</span></label>)}
         </div>}

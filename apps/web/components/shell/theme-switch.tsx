@@ -13,7 +13,8 @@ import {THEME_SHEETS} from '../../lib/ui-prefs/theme-sheets';
 const THEME_NOTE: Readonly<Record<Theme, string>> = {
   nebula: 'Nebula is ZIGoals’ own night-sky look. Light and Dark are the same app by day and by night.',
   light: 'Light is ZIGoals by day: bright pages, the same nebula colours a shade deeper. Nebula and Dark are its night looks.',
-  dark: 'Dark is ZIGoals by night: the nebula deeper and calmer, with less glow. Light is the day look; Nebula the starry one.',
+  // Session AO (DV-203, owner decision 13 Nov): Dark is a true flat dark now.
+  dark: 'Dark is a true dark look: flat near-black surfaces with no stars or mist, and the same colours. Light is the day look; Nebula the starry one.',
 };
 
 const Sun = () => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"/></g></svg>;

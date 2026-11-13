@@ -175,6 +175,16 @@ each pushed head, final head green.
 - **D16 (left as owner decisions or carried, with cause):** BN-022 (erase names each area: needs a key-to-area map; the
   no-auto-reload is deliberate), D-003 and D-090 (copy decisions), DV-170 (Remove inside ⋯: a visual decision), G-025
   (nothing left open), the Today grid's day for Health cells (Health's own day).
+- **D17 (fresh reviews, Part 6):** security delta: nothing Critical or High; the Medium and two Lows fixed (5e45ccdf; that
+  commit's message lost the word "example" to shell backticks, not rewritten). UX review: no blocker; Major 1 (the
+  Showcase's net-worth example now ends on the hero's own totals, never stamped in the future) and Major 2 (Dark's Settings
+  note) fixed; Major 3 (the floating music/Checklist/ZIGi buttons over Today's right rail when scrolled at 1440) predates AO
+  and is carried (a right gutter for the launchers changes Today's layout specs; ZIGi's button is the NOVA lane's). Minors
+  fixed: "My day ends at" row in the phone list, Settings' doubled "APPEARANCE", a readable date in money-log Edit.
+  Minors carried with cause: the review step opens with the rhythm fold (order inside dense JSX; next session), squashed
+  13–16 px checkboxes in four older forms, 12–13 px notice/chip text (AL sizes; T-069 fits only at these sizes), the
+  per-area "Perfect weeks" list unlabeled (Activity report, older), Earn's path labels at 390, two "Keep an average" hints,
+  CSV Value/Unit read from the row's words, the Wealth chip row's cut-off at 1440.
 
 ## Closing table
 Totals: Fixed 49, Carried 47, Built 13, Owner decision 7, Not possible 2 (AL's 112 carried ids + the owner calls and backlog items AO built).

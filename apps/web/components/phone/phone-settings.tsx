@@ -26,6 +26,8 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
   { title: "Your app", rows: [
     ["Pages & start page", "Hide what you don’t use; where ZIGoals opens", "your-pages"],
     ["Time zone", "The day your journals follow", "time-zone"],
+    // Session AO (C-DVG-22, UX review): its own row, as on a computer.
+    ["My day ends at", "When habits and the Checklist start a new day", "day-ends"],
     ["Wrap-up on Today", "An optional evening card", "wrap-up"],
     ["Show the welcome again", "Set up a first goal and habit", "/app/welcome"],
   ] },
