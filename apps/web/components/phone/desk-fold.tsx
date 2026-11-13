@@ -26,6 +26,20 @@ function DeskOrPhoneFold({ desk, ...props }: FoldProps & { desk: string }) {
   const layout: LayoutAttrs = { "data-layout-item": props["data-layout-item"], "data-layout-region": props["data-layout-region"] };
   return <DeskFoldRow id={desk} label={props.label} detail={props.detail} {...layout}>{props.children}</DeskFoldRow>;
 }
+/**
+ * Brings a jump's target into view and keeps it there while the sections above it finish loading (they load as their own
+ * chunks and can push it down after one scroll), for about a second and a half, unless the person scrolls first.
+ */
+function holdInView(el: HTMLElement) {
+  let stopped = false;
+  const stop = () => { stopped = true; for (const t of ["wheel", "touchstart", "keydown", "pointerdown"]) window.removeEventListener(t, stop); };
+  for (const t of ["wheel", "touchstart", "keydown", "pointerdown"]) window.addEventListener(t, stop, { passive: true });
+  const at = (ms: number) => window.setTimeout(() => { if (!stopped) el.scrollIntoView({ block: "start" }); }, ms);
+  el.scrollIntoView({ block: "start" });
+  requestAnimationFrame(() => { if (!stopped) el.scrollIntoView({ block: "start" }); });
+  [250, 600, 1000, 1500].forEach(at);
+  window.setTimeout(stop, 1600);
+}
 function DeskFoldRow({ id, label, detail, children, ...layout }: LayoutAttrs & { id: string; label: string; detail?: string; children: ReactNode }) {
   const remembered = useSyncExternalStore(wealthFolds.subscribe, () => wealthFolds.snapshot().has(id), () => false);
   // A jump into the module opens it for this visit (not remembered: only the person's own press is).
@@ -35,7 +49,7 @@ function DeskFoldRow({ id, label, detail, children, ...layout }: LayoutAttrs & {
     const reveal = () => {
       const target = hashId(location.hash), el = target ? document.getElementById(target) : null;
       // The DOM opens now (React's state catches up), so the scroll that follows finds the target (as Settings' folds do).
-      if (el && body.current?.contains(el)) { body.current.removeAttribute("hidden"); setJumped(true); el.scrollIntoView({ block: "start" }); requestAnimationFrame(() => el.scrollIntoView({ block: "start" })); }
+      if (el && body.current?.contains(el)) { body.current.removeAttribute("hidden"); setJumped(true); holdInView(el); }
     };
     reveal();
     window.addEventListener("hashchange", reveal);
