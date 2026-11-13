@@ -1,3 +1,12 @@
+# Session AO — "EVERYTHING LEFT" (ADR-039) (2026-11-13 onwards, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO"; Draft, in progress, not merged, not deployed)
+**Base:** Session AN's head `2af55a26` on `main` `c65882f3`. **Rules (owner):** the brief, one plan approval (13 Nov) with two stored-data rules, verbatim in `docs/architecture/ADR-039-session-ao.md`. Resume file: `docs/handoff/AO_RESUME.md`.
+
+## Part 0 — records (13 Nov)
+- **Session AN** ([PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102)): WebKit in 4 duration-balanced shards; glob/minimatch audit overrides (`pnpm audit` 0); the third alert is `crypto-bigint` 0.5.5 (RUSTSEC-2026-0387) in the contract's CosmWasm crypto stack, recorded, not fixed. **Not merged** when AO started (main still `c65882f3`), so AO continues on its branch and AN's commits stay as they are.
+- **Session AM** ([PR #101](https://github.com/reyals1111-ux/ZIGoals/pull/101), NOVA) complete, not merged; **AM-2** continues on it (resumes Sunday). AO does not touch its lane.
+- **Owner's hosted verifier on Alpha #54** (11 Nov 02:10 UTC): PASS, 12/12 stages.
+- **Frozen readers** are #37–#54 (`scripts/frozen-readers.mjs` gains #54 = `c65882f3`, the same line PR #101 adds). #55 is not deployed.
+
 # Session AN — "CI + TOOLING" (2026-11-12, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102); Draft, not merged, not deployed)
 **Base:** `main` `c65882f3` (Merge #100, Session AL). **Rules (owner):** the brief, one plan approval with owner additions 1–4 (`docs/handoff/AN_RESUME.md`). Own files only: the parallel lane AM-2 (PR #101) was not touched. Resume file: `docs/handoff/AN_RESUME.md`.
 
