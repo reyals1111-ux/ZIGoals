@@ -185,6 +185,12 @@ each pushed head, final head green.
   13–16 px checkboxes in four older forms, 12–13 px notice/chip text (AL sizes; T-069 fits only at these sizes), the
   per-area "Perfect weeks" list unlabeled (Activity report, older), Earn's path labels at 390, two "Keep an average" hints,
   CSV Value/Unit read from the row's words, the Wealth chip row's cut-off at 1440.
+- **D18 (route weights, CI 1701):** the integration job's weight check found seven pages over budget. Five attempts at the
+  cause (262cf14b) brought the shell from +3.9 to +1.8 kB over its pre-AO size and three pages under; four remain over by
+  0.7–1.9 kB (/app/habits 505.9/504, /app/earn 497.8/496, /app/agenda 485.7/485, /app/tasks 469.4/468). The rest is a
+  chunk boundary: the habits/limits group the shell loads now splits in two (each gzipped alone). Budgets have always been
+  the owner's to raise, so none was changed: **owner decision** — raise those four lines by ≤ 2 kB with this reason, or a
+  dedicated weight pass in a later session.
 
 ## Closing table
 Totals: Fixed 49, Carried 47, Built 13, Owner decision 7, Not possible 2 (AL's 112 carried ids + the owner calls and backlog items AO built).
