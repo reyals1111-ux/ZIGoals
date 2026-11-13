@@ -62,7 +62,7 @@ test('Perfect days: today n of m, the run, a browsable month in words, nothing w
   const detail = panel.locator('.habit-perfect-detail');
   await expect(detail).toContainText('1 of 2 due habits done.');
   await expect(detail.getByRole('listitem').filter({hasText: 'AO Stretch'})).toContainText('Done');
-  await expect(detail.getByRole('listitem').filter({hasText: 'AO Read'})).toContainText('Not done');
+  await expect(detail.getByRole('listitem').filter({hasText: 'AO Read'})).toContainText('Missed: nothing logged');
   expect(await stored(page)).toBe(before); // looking writes nothing
 
   // A day's habit opens its own check-in for that day (Habits' History, its own rules).
