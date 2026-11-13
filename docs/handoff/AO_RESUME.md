@@ -22,8 +22,15 @@ questions** after any usage pause: read this file, then the next row below.
 | 3 (earlier note) | many committed (menus, Activity, PR-052, B-201, TK-036, C-MO-36, NB-114, DV-053c, L-075, M-011, LS-067, D-055) | d256b946, 3934199b | D-088, D-028, T-014, DV-010c, DV-045e, N-BN-05, BUG-051, DV-274/NB-045, D-224/D-231, C-LS-20, the rest |
 | 4 My day ends at | committed (TIER 3) | e2452897 | CI |
 | 5 backlog #1 #4 #11 #15 | all four done (8c6c7b2b, e2452897, aa67f009) | | — |
-| 6 reviews, tour, closing, STATUS | reviews running; demo tour written | | fix review findings; closing table; STATUS last |
+| 6 reviews, tour, closing, STATUS | reviews done and fixed (5e45ccdf, 74feffa9); tour, closing table done | | CI green on the final head (fix spec fallout from RR-16/RR-17/menus/T-014 as CI reports), then the STATUS entry as the last commit |
 
 ## Local notes
 - This sandbox runs Node 22 (CI: 24.19.0); WebKit is not installable here, so WebKit rows are fixed from traces/spec
   reading and proven in CI.
+
+## State at the last update (13 Nov, late)
+- Head e326cc37 pushed. CI: 1691 (3934199b) showed the expected RR-16/RR-17/menu-role spec fallout, fixed in aa67f009,
+  183d0852, e326cc37; WebKit and a11y shards were green on 1691. Next: watch the run on the newest head; fix only what it
+  shows (2 attempts per failure; a known intermittent one re-run).
+- Local verification uses a production build at :3101 (`NODE_OPTIONS=--max-old-space-size=8192` for the build's type check).
+- Frozen readers #37–#54: PASS (18 releases). Unit: 6 failures are this sandbox's Node 22 baseline (same on 2af55a26).
