@@ -177,4 +177,125 @@ each pushed head, final head green.
   (nothing left open), the Today grid's day for Health cells (Health's own day).
 
 ## Closing table
-(filled at the end: every row Fixed / Built / Owner decision / Not possible / Carried + cause)
+Totals: Fixed 49, Carried 47, Built 13, Owner decision 7, Not possible 2 (AL's 112 carried ids + the owner calls and backlog items AO built).
+
+| AL row | id | outcome | evidence / cause |
+|---|---|---|---|
+| AL-COUNTS-001 | TK pass-1 "'Current' badge on stale prices" | Carried | needs a service or a model (AL: Needs a service: a live price that ages past 15 minutes. Wit…) |
+| AL-NUMBERS-SOURCE-001 | D-262 | Carried | needs a service or a model (AL: Needs a service: live price drift between two loads (/api bl…) |
+| AL-NUMBERS-SOURCE-001 | D-200 | Carried | needs a service or a model (AL: Needs a service: live price drift on reload. The "Totals in …) |
+| AL-NUMBERS-SOURCE-001 | TK-6B-06 | Carried | needs a service or a model (AL: Needs a service: live 24h change against its as-of stamp in …) |
+| AL-ROUNDING-001 | TK pass-1 "Unformatted prices" | Carried | needs a service or a model (AL: Needs a service: coin pages need /api/market-detail and hist…) |
+| AL-COPY-001 | M10 | Carried | needs a service or a model (AL: Needs a service: market logos come from /api/market-logo. Of…) |
+| AL-COPY-001 | TK-203 | Carried | needs the market-logo service (same steps as M10) |
+| AL-FIELD-ERROR-002 | TK-036 | Fixed | years 1–100 (3934199b) |
+| AL-SEARCH-001 | W15 | Carried | needs a service or a model (AL: Needs a service: the public asset catalog behind "gold"/"bit…) |
+| AL-COMPETITOR-GAP-008 | C-DVG-51 | Built | Copilot CSV preset (aa67f009) |
+| AL-FIELD-ERROR-003 | D-052 | Carried | needs a service or a model (AL: Needs a service: adding a ninth favourite goes through the m…) |
+| AL-FIELD-ERROR-003 | D-090 | Owner decision | "Sleep debt" wording is a copy call; validation part already fixed |
+| AL-FIELD-ERROR-004 | C-DVG-35 | Carried | needs a service or a model (AL: Needs a service: a working barcode lookup needs the food-loo…) |
+| AL-FIELD-ERROR-004 | MO-007 | Carried | needs a service or a model (AL: Needs a service: whether a lookup succeeds needs the food-lo…) |
+| AL-FIELD-ERROR-004 | Oct-26 gap: barcode provider inactive | Carried | needs a service or a model (AL: Needs a service: turning a lookup provider on is a deploymen…) |
+| AL-FIELD-ERROR-004 | C-MO-01 | Carried | needs a service or a model (AL: Needs a service (a branded barcode lookup, e.g. Nutella 3017…) |
+| AL-LIMITS-003 | C-MO-36 | Fixed | Health form to 24 h (3934199b); ZIGi/NOVA cards stay 18 h until the NOVA lane adopts it (D6) |
+| AL-LIMITS-003 | PR-018 | Fixed | minimum said at the field, no Save that saves nothing (aa67f009) |
+| AL-UNITS-003 | NB-114 | Fixed | one decimal reader; already worked, now tested (3934199b) |
+| AL-XP-BADGES-003 | DV-045e | Fixed | six sections fold on every size (aa67f009); tests/ao/page-lengths |
+| AL-TIMEZONE-002 | C-DVG-22 | Built | My day ends at (e2452897) |
+| AL-TIMEZONE-002 | C-NB-28 | Built | as C-DVG-22 |
+| AL-TIMEZONE-002 | N-NB-11 | Built | as C-DVG-22 |
+| AL-CONFIRM-DELETE-005 | B-083 | Owner decision | keep Undo, no confirm (call g, 13 Nov) |
+| AL-CONFIRM-DELETE-005 | M-104 | Owner decision | as B-083 |
+| AL-CONFIRM-DELETE-005 | M-131 | Owner decision | as B-083 |
+| AL-A11Y-014 | DV-040g | Fixed | APG menu button, menuitems (d256b946) |
+| AL-A11Y-014 | DV-056c | Fixed | as DV-040g |
+| AL-A11Y-015 | DV-170 | Owner decision | Remove inside ⋯ is a visual call; Remove is named and has Undo |
+| AL-A11Y-016 | D-028 | Carried | 176 → 143 stops (skip links, roving lists); ≤ 90 needs the sidebar and habit rows (D14) |
+| AL-A11Y-016 | D-055 | Fixed | Edit on a holding's ⋯; long names wrap (b00a7985) |
+| AL-COPY-040 | DV-053c | Fixed | "Target rating" field (3934199b) |
+| AL-COPY-042 | DV-089 | Carried | needs a service or a model (AL: Needs a model: the NOVA workflow that made goals (tagged "Go…) |
+| AL-COPY-043 | T-014 | Fixed | three steps (aa67f009; D12) |
+| AL-COPY-044 | C-DVG-17 | Built | Activity search + CSV (d256b946) |
+| AL-COPY-044 | DV-046e | Built | as C-DVG-17 |
+| AL-COPY-044 | DV-054d | Built | as C-DVG-17 |
+| AL-COPY-044 | C-DV-13 | Built | as C-DVG-17 |
+| AL-COPY-044 | PR-100 | Built | as C-DVG-17 |
+| AL-DISCOVERABILITY-002 | DV-010c | Fixed | Cash in two screens (aa67f009) |
+| AL-DISCOVERABILITY-002 | NB-253 | Fixed | as DV-010c |
+| AL-SEARCH-003 | D-079 | Carried | needs a service or a model (AL: Needs a service: Wealth → Add asset → "Find your asset" sear…) |
+| AL-CHECKLIST-001 | D-086 | Fixed | "planets" in the heat-map line (aa67f009) |
+| AL-PERF-007 | LS-067 | Fixed | clip fetched only once shown (3934199b) |
+| AL-LAYOUT-DESKTOP-015 | D-088 | Carried | folded by default needs 408 Settings gotos in 249 specs moved first (D8); Appearance first covers the 800 px part |
+| AL-LAYOUT-DESKTOP-015 | N-BN-10 | Carried | as D-088 |
+| AL-LAYOUT-500-001 | N-BN-05 | Fixed | Earn folds six sections on phones (aa67f009) |
+| AL-SETTINGS-005 | PR-035 | Carried | needs a connected model to see the cap in use |
+| AL-COMPETITOR-GAP-132 | C-BN-01 | Carried | needs a service or a model (AL: Needs a service: the Staking validator list (commission / up…) |
+| AL-COMPETITOR-GAP-132 | C-DVG-67 | Carried | needs a service or a model (AL: Same as C-BN-01 (needs the chain relay).…) |
+| AL-COMPETITOR-GAP-134 | C-DVG-69 | Carried | needs a service or a model (AL: Needs a service: the claim’s "ZIG price that day" comes from…) |
+| AL-COMPETITOR-GAP-136 | C-BN-05 | Carried | needs a service or a model (AL: Needs a service: comparing validators needs the live validat…) |
+| AL-COMPETITOR-GAP-137 | C-BN-06 | Carried | needs a service or a model (AL: Needs a service: jailing alerts need a tracked wallet’s live…) |
+| AL-COMPETITOR-GAP-141 | C-BN-11 | Carried | needs a service or a model (AL: Needs a service: the vote-deadline reminder sits on an open …) |
+| AL-COMPETITOR-GAP-142 | C-BN-12 | Carried | needs a service or a model (AL: Needs a service: a validator’s vote lookup is read live from…) |
+| AL-AI-CONNECTION-001 | BN-034 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-CONNECTION-001 | BN-050 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-ACTIONS-003 | LS:#012 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-ACTIONS-003 | LS:#194 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-ACTIONS-003 | LS:#351 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-ACTIONS-003 | C-LA-07 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-FACTS-003 | Z-057 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-FACTS-009 | NB:N11 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-NUMBERS-SOURCE-014 | TK-048 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-NUMBERS-SOURCE-014 | TK-052 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-NUMBERS-SOURCE-014 | TK:1 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-ACTIONS-010 | LS:#046 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-CONNECTION-007 | PR-028 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-FACTS-011 | DV-077 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-FACTS-011 | DV:N-045 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-AI-STABILITY-005 | N-DV-03 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-PRIVACY-006 | MO-052 | Carried | NOVA/ZIGi answers live in the AM lane (not touched by AO) |
+| AL-COPY-066 | D-003 | Owner decision | section-level Showcase lines are a copy call |
+| AL-LAUNCHER-OVERLAP-001 | T-069 | Fixed | "On this device", whole, one line (b00a7985) |
+| AL-LAUNCHER-OVERLAP-001 | D-070 | Fixed | words beside header icons where they fit; on a 388 px phone not possible without a second row (D11) |
+| AL-LAYOUT-375-011 | DV-223 | Fixed | as D-070 |
+| AL-LAYOUT-375-011 | DV-247 | Fixed | as D-070 (768: words shown) |
+| AL-LAYOUT-375-011 | DV-257c | Fixed | one header; Notes/Journal like the other pages (7d48c6f3; D7) |
+| AL-LAYOUT-375-011 | DV-258c | Fixed | no "Back to Today" (7d48c6f3) |
+| AL-LAYOUT-768-004 | N-127 | Not possible | retracted by the bot; no steps |
+| AL-LAYOUT-768-004 | BUG-051 | Fixed | holding cards up to 900 px (aa67f009) |
+| AL-LAYOUT-768-004 | N-153 | Not possible | no steps in the bot files |
+| AL-LAYOUT-768-004 | D-134 | Fixed | a goal named once; Quick add once at every width (b00a7985) |
+| AL-NAV-010 | DV-274 | Fixed | one list for More and its preview (aa67f009) |
+| AL-NAV-010 | NB-045 | Fixed | as DV-274 |
+| AL-NAV-010 | D-194 | Fixed | one cluster order (7d48c6f3) |
+| AL-THEME-004 | D-063 | Fixed | Appearance first in Settings (b00a7985); sidebar unchanged (protected) |
+| AL-THEME-004 | D-176 | Carried | needs a service or a model (AL: Needs a service: Wealth's and Markets' reference prices come…) |
+| AL-THEME-005 | D-179 | Fixed | as D-063 |
+| AL-LAYOUT-DESKTOP-017 | DV-029a | Fixed | as D-063 |
+| AL-NAV-011 | D-013 | Fixed | lock only where rearrangeable, same slot (7d48c6f3) |
+| AL-NAV-012 | LS-H34 | Fixed | as D-063 |
+| AL-THEME-006 | DV-203 | Fixed | Dark flat near-black (b00a7985) |
+| AL-THEME-006 | DV-226 | Fixed | as DV-203 |
+| AL-THEME-006 | LS-H39 | Fixed | as DV-203 |
+| AL-THEME-006 | N-NB-03 | Fixed | as DV-203 |
+| AL-MOTION-002 | NB-075 | Fixed | as D-063 |
+| AL-A11Y-025 | D-231 | Fixed | hover on the Tuck-away chevrons (aa67f009); ZIGi's round button is the NOVA lane's |
+| AL-A11Y-025 | D-224 | Fixed | hover on Settings chips (aa67f009) |
+| AL-FIELD-ERROR-018 | BN-081 | Carried | needs a service or a model (AL: Needs a service: the Net APR assumption field appears only a…) |
+| AL-FIELD-ERROR-018 | BN-134 | Fixed | letters and signs refused at the field (aa67f009) |
+| AL-FIELD-ERROR-019 | G-025 | Fixed | nothing left open (AL fix holds) |
+| AL-LIMITS-005 | M-011 | Fixed | one limits table (3934199b) |
+| AL-LIMITS-005 | LS-H29 | Fixed | duplicate-name notice in Checklist quick add (3934199b) |
+| AL-ROUNDING-004 | L-075 | Fixed | largest remainder to 100 % (3934199b) |
+| AL-TIMEZONE-004 | N-BN-17 | Carried | needs a service or a model (AL: Needs a service: the Staking snapshot and Chess "updated" ti…) |
+| AL-TIMEZONE-004 | X3-29 | Carried | needs a service or a model (AL: Needs a service: same surfaces as N-BN-17 (Staking/Chess tim…) |
+| AL-TOAST-011 | D-037 | Fixed | toast with Open Today and Undo (aa67f009) |
+| AL-UNDO-005 | PR-052 | Fixed | Edit for a money-log entry (d256b946) |
+| AL-DATES-008 | B-201 | Fixed | no Edit on an archived habit (d256b946) |
+| AL-TOAST-012 | C-LS-20 | Fixed | Undo on workouts, meditation, bills, budgets, emergency rows (aa67f009); no Trash (a new record) |
+| AL-BACKUP-RESTORE-001 | BN-022 | Owner decision | naming each erased area needs a key-to-area map; no auto-reload is deliberate (D16) |
+| owner call a | RR-16 | Fixed | Wealth desktop sections fold, remembered (b00a7985); Showcase 1440: ~20,720 → 9,755 px |
+| owner call b | RR-17 | Fixed | as D-134 |
+| backlog #1 | C-DVG-19 | Built | Perfect days (aa67f009) |
+| backlog #4 | CO4 | Built | week-grid cells open that day's check-in; the P&L row existed, now labelled (aa67f009) |
+| backlog #11 | CO6 | Built | net-worth history by source (e2452897) |
+| backlog #15 | GAP-118 | Built | 252 templates (8c6c7b2b) |
