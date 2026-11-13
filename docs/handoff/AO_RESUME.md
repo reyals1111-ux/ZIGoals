@@ -34,3 +34,6 @@ questions** after any usage pause: read this file, then the next row below.
   shows (2 attempts per failure; a known intermittent one re-run).
 - Local verification uses a production build at :3101 (`NODE_OPTIONS=--max-old-space-size=8192` for the build's type check).
 - Frozen readers #37–#54: PASS (18 releases). Unit: 6 failures are this sandbox's Node 22 baseline (same on 2af55a26).
+
+## Final state
+Complete. STATUS entry committed last; run 1704 on bf748935: 21/23 green; red = route weights (owner decision D18) and l6-fourth-chain:95 (fixed in 9e244e16). Nothing left to resume unless the owner asks.

@@ -1,11 +1,48 @@
-# Session AO — "EVERYTHING LEFT" (ADR-039) (2026-11-13 onwards, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO"; Draft, in progress, not merged, not deployed)
-**Base:** Session AN's head `2af55a26` on `main` `c65882f3`. **Rules (owner):** the brief, one plan approval (13 Nov) with two stored-data rules, verbatim in `docs/architecture/ADR-039-session-ao.md`. Resume file: `docs/handoff/AO_RESUME.md`.
+# Session AO — "EVERYTHING LEFT" (ADR-039) (2026-11-13, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO"; Draft, complete, not merged, not deployed)
+**Base:** Session AN's head `2af55a26` on `main` `c65882f3`. **Rules (owner):** the brief, one plan approval (13 Nov) with two stored-data rules, verbatim in `docs/architecture/ADR-039-session-ao.md`. Resume file: `docs/handoff/AO_RESUME.md`. Demo tour: [`docs/handoff/AO_DEMO_TOUR.md`](handoff/AO_DEMO_TOUR.md).
 
 ## Part 0 — records (13 Nov)
-- **Session AN** ([PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102)): WebKit in 4 duration-balanced shards; glob/minimatch audit overrides (`pnpm audit` 0); the third alert is `crypto-bigint` 0.5.5 (RUSTSEC-2026-0387) in the contract's CosmWasm crypto stack, recorded, not fixed. **Not merged** when AO started (main still `c65882f3`), so AO continues on its branch and AN's commits stay as they are.
-- **Session AM** ([PR #101](https://github.com/reyals1111-ux/ZIGoals/pull/101), NOVA) complete, not merged; **AM-2** continues on it (resumes Sunday). AO does not touch its lane.
-- **Owner's hosted verifier on Alpha #54** (11 Nov 02:10 UTC): PASS, 12/12 stages.
-- **Frozen readers** are #37–#54 (`scripts/frozen-readers.mjs` gains #54 = `c65882f3`, the same line PR #101 adds). #55 is not deployed.
+- **Session AN** (PR #102): WebKit in 4 duration-balanced shards; glob/minimatch overrides (`pnpm audit` 0); third alert `crypto-bigint` 0.5.5 (RUSTSEC-2026-0387), contract crypto stack, not fixed. **Not merged** at AO's start, so AO continued on its branch (AN's commits unchanged).
+- **Session AM** (PR #101) complete, not merged; **AM-2** continues there. AO never touched its lane (D10 lists two cross-lane notes for it).
+- **Owner's hosted verifier on Alpha #54** (11 Nov): PASS 12/12. **Frozen readers** #37–#54 (#54 = `c65882f3`, the line PR #101 adds, byte for byte). #55 not deployed.
+
+## Parts and their commits (`git log 2af55a26..HEAD`; never rebased)
+| Part | What | Commits |
+|---|---|---|
+| 0 | records, ADR-039, AO_RESUME | `1b5652d3` |
+| 1 | CI intermittents at their cause (earn-coach URL wait, settled polls, hydration waits, `tests/quiet-page.ts`, one re-fetch) | `0b5d9af8` |
+| 2 | owner calls a–f: Wealth folds (RR-16), a goal named once on Today (RR-17/D-134), "On this device" (T-069), Appearance first, one header (e), Dark flat (f); g = Undo kept (owner decision) | `b00a7985`, `7d48c6f3` |
+| 3 | carried rows: ⋯ menus, Activity search/CSV, money-log Edit, B-201, TK-036, C-MO-36, NB-114, DV-053c, L-075, M-011/LS-H29, LS-067, T-014, DV-010c, DV-045e, N-BN-05, BUG-051, DV-274/NB-045, D-224/D-231, D-028 (partly), C-LS-20, PR-018, C-DVG-51, BN-134, D-037, D-086 | `d256b946`, `3934199b`, `aa67f009` |
+| 4 | **TIER 3 (stored format)** "My day ends at" (`zigoals:day-ends:v1`) | `e2452897` |
+| 5 | #15 252 templates; **TIER 3 (stored format)** #11 net-worth history by source (`zigoals:networth-history:v1`); #1 Perfect days; #4 week-grid check-ins | `8c6c7b2b`, `e2452897`, `aa67f009` |
+| 6 | **TIER 3 (release verifier)** goal stage on 3- and 4-step creators; security delta (**TIER 3** `5e45ccdf`); UX review fixes; ADR closing table; demo tour; CI fallout fixes; route-weight cuts | `c25e0b22`, `5e45ccdf`, `74feffa9`, `82d0ad70`, `93802f00`, `183d0852`, `e326cc37`, `ba2e0d98`, `262cf14b`, `bf748935`, `9e244e16` |
+
+## Closing table (ADR-039)
+Fixed 49 · Built 13 · Owner decision 7 · Not possible 2 · Carried 47 (25 need a service, 17 are ZIGi/NOVA answers in AM's lane, TK-203 needs the logo service, PR-035 a model; D-028 at 143 of a ≤ 90 goal, D-088/N-BN-10 Settings folded by default: 408 spec gotos to move first). Every id with its evidence or cause is in ADR-039.
+
+## Tier 3, in plain words (risk → rollback)
+- **Stored formats** (`e2452897`, `5e45ccdf`): two additive device records, in Export everything, backup format 4, restore, erase, the catalog; older builds ignore both keys; a restore never brings a Showcase example history into real storage; a future-dated day-end change is ignored. → Revert the commits.
+- **Release verifier** (`c25e0b22`): the goal stage reads the creator's own "Step N of M", so it passes on #54 (4 steps) and AO (3 steps). The deploy workflow file is unchanged. → Revert.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries a `Session AO (<id>, deliberate)` comment and an equally strict replacement, listed in its commit (owner calls a–f, menuitem roles, the three-step creator, the folds' `openFold`, phone Settings rows 24 → 25, help-page's settled count). New: `tests/ao/` (day-ends, owner-calls, header-consistency, page-lengths, perfect-day, today-tab-stops) and unit tests for every new lib.
+
+## Evidence (final code head)
+- **Local:** tsc clean; eslint 0 errors; vitest 10,168 passed (6 failures are this sandbox's Node 22 baseline, the same on `2af55a26`); theme sheets `--check` clean; **frozen readers #37–#54 PASS** (18 releases).
+- **Reviews:** security delta — nothing Critical or High; one Medium and two Lows fixed (`5e45ccdf`). UX — no blocker; Majors 1–2 fixed, Major 3 (launchers over Today's right rail when scrolled at 1440) predates AO, carried (D17).
+- **Route weights (gzip -6):** shell 436.3/447 (pre-AO 434.5). **Over budget, owner decision D18:** /app/habits 505.9/504, /app/earn 497.8/496, /app/agenda 485.7/485, /app/tasks 469.4/468 (a chunk split in the shell's habits group after five attempts; no budget changed).
+
+## CI on the final head
+[Run 1704](https://github.com/reyals1111-ux/ZIGoals/actions/runs/43523332202) on `bf748935` (the last app-code head): **21 of 23 jobs green on attempt 1**, including all four WebKit shards, the three a11y shards and 11 of 12 main shards. Red: the integration job's **route-weight check** (D18, owner decision) and main shard 8's `l6-fourth-chain:95` (listed intermittent; PR #101's fix applied byte for byte in `9e244e16`, 6/6 locally). Run 1703 before it: WebKit 2/4 had a class-B engine segfault (recorded, not chased).
+
+## Known CI intermittents (this session)
+`zigi-chat-polish:319`, `a11y-wcag-x:49`, `run11-route-mobile-acceptance:30`, `j05-notifications:74`, `j04-offline:23`, `for-you:8`, `zigi-voice-z:199`, `bn-114-notify-permission:25` (mobile, 1701; 2/2 locally): first sightings, recorded; the Settings "On" contrast read mid-fade (`a11y-wcag-x:269`, local only, CI green); WebKit class-B segfaults (1703).
+
+## Owner list
+1. **Route weights (D18):** raise /app/habits, /app/earn, /app/agenda and /app/tasks by ≤ 2 kB with the reason in ADR-039 D18, or schedule a weight pass. Until then `web` is red on that one check.
+2. Review [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) (Draft) and merge when satisfied; whichever of #101/#102 merges second merges `main` in (theme sheets regenerated, both registries kept).
+3. For AM-2: ZIGi's on-device answer still says "Your app → Theme" (now Settings → Appearance); ZIGi/NOVA fasting cards stay at 18 h (Health's form allows 24 h).
+4. Deploy (#55) only after the merge, through the Manual Alpha workflow.
 
 # Session AN — "CI + TOOLING" (2026-11-12, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102); Draft, not merged, not deployed)
 **Base:** `main` `c65882f3` (Merge #100, Session AL). **Rules (owner):** the brief, one plan approval with owner additions 1–4 (`docs/handoff/AN_RESUME.md`). Own files only: the parallel lane AM-2 (PR #101) was not touched. Resume file: `docs/handoff/AN_RESUME.md`.
