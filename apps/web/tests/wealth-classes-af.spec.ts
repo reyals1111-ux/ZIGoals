@@ -44,6 +44,7 @@ test('one class map: the ETF reads ETFs everywhere it is classed, with one share
   const legend = await usd.locator('.composition-legend > div').evaluateAll(rows => Object.fromEntries(rows.map(r => [r.querySelector('dt')!.textContent!.trim(), r.querySelector('dd span')!.textContent!.trim()])));
   expect(legend.ETFs).toMatch(/^11\.9\d%$/);
   expect(legend.Stocks).toMatch(/^3\.0\d%$/);
+  await openFold(page, 'Allocation and coverage'); // Session AO (RR-16, deliberate): folded by default on a computer
   const allocation = page.locator('section[aria-labelledby="bottom-wealth-allocation"] .bottom-legend li');
   await expect(allocation.first()).toBeVisible();
   const shares = await allocation.evaluateAll(items => Object.fromEntries(items.map(li => [li.querySelector('span')!.textContent!.trim(), li.querySelector('strong')!.textContent!.trim()])));

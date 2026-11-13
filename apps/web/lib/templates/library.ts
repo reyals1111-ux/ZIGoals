@@ -1,6 +1,9 @@
 import type {BuiltInArea} from '../goal-extras/store';
 import {GOAL_LIBRARY, type LibraryTemplate} from './goal-library';
 import {HABIT_GROUP_LABEL, HABIT_TEMPLATES, type HabitTemplate} from './habits';
+import {LIBRARY_HABITS} from './library-habits';
+/** Every habit idea a person can pick (the starters and the library's), as the Habit ideas panel offers them. */
+export const ALL_HABIT_TEMPLATES: readonly HabitTemplate[] = [...HABIT_TEMPLATES, ...LIBRARY_HABITS];
 import {LIBRARY_GOAL_AREA} from './library-goals';
 
 /**
@@ -34,7 +37,7 @@ const byArea = (a: CatalogueEntry, b: CatalogueEntry) => CATALOGUE_AREA_IDS.inde
 /** The whole library, by area (goals before habits within an area, each in its own list's order). */
 export const TEMPLATE_CATALOGUE: readonly CatalogueEntry[] = [
   ...GOAL_LIBRARY.map((goal): CatalogueEntry => ({kind: 'goal', id: `goal:${goal.id}`, area: catalogueAreaOfGoal(goal), title: goal.title, summary: goal.summary, goal})),
-  ...HABIT_TEMPLATES.map((habit): CatalogueEntry => ({kind: 'habit', id: `habit:${habit.id}`, area: habit.group, title: habit.title, summary: habit.note, habit})),
+  ...ALL_HABIT_TEMPLATES.map((habit): CatalogueEntry => ({kind: 'habit', id: `habit:${habit.id}`, area: habit.group, title: habit.title, summary: habit.note, habit})),
 ].map((e, i) => ({e, i})).sort((a, b) => byArea(a.e, b.e) || a.i - b.i).map(x => x.e);
 
 const fold = (s: string) => s.toLocaleLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '');

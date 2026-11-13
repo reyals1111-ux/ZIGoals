@@ -1,5 +1,6 @@
 import {afterAll, beforeAll, describe, expect, test, vi} from 'vitest';
-import {activityDay, chooseDayEnd, dayEndsSchema, dayUnder, emptyDayEnds, type DayEnds} from './day-boundary';
+import {activityDay, chooseDayEnd, dayEndsSchema, dayUnder, emptyDayEnds, readDayEnds, type DayEnds} from './day-boundary';
+import {readFileSync} from 'node:fs';
 
 const at = (iso: string) => new Date(iso);
 const BXL = 'Europe/Brussels', TOKYO = 'Asia/Tokyo', NY = 'America/New_York';
@@ -89,5 +90,20 @@ describe('owner rule 1: a change never re-dates the past and never breaks a stre
   test('choosing the same end changes nothing', () => {
     const s = emptyDayEnds();
     expect(chooseDayEnd(s, 0)).toBe(s);
+  });
+});
+
+describe('the shell reads the record without its schema, by exactly its rules', () => {
+  test('readDayEnds accepts what the schema accepts and reads everything else as midnight', () => {
+    const cases: unknown[] = [{version: 1, endsAt: 180}, {version: 1, endsAt: 0, change: {at: '2026-11-13T01:00:00.000Z', from: 180}}, {version: 1, endsAt: 45}, {version: 1, endsAt: 420}, {version: 2, endsAt: 60}, {version: 1, endsAt: 60, extra: 1}, {version: 1, endsAt: 60, change: {at: 'x', from: 0}}, {version: 1, endsAt: 60, change: {at: '2026-11-13T01:00:00.000Z', from: 15}}, {version: 1, endsAt: 60, change: {at: '2026-11-13T01:00:00.000Z', from: 0, y: 1}}, [], 'x', null];
+    for (const c of cases) {
+      const parsed = dayEndsSchema.safeParse(c);
+      expect(readDayEnds(JSON.stringify(c)), JSON.stringify(c)).toEqual(parsed.success ? parsed.data : emptyDayEnds());
+    }
+    expect(readDayEnds('{')).toEqual(emptyDayEnds());
+    expect(readDayEnds(null)).toEqual(emptyDayEnds());
+  });
+  test('the keeper names the same key', () => {
+    expect(readFileSync(new URL('../components/day-ends-keeper.tsx', import.meta.url), 'utf8')).toContain("'zigoals:day-ends:v1'");
   });
 });

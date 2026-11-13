@@ -1,5 +1,4 @@
 import {habitInputSchema, type HabitInput} from '../habits';
-import {LIBRARY_HABITS} from './library-habits';
 
 /**
  * Starter habits (Session W Part 3; the library on the Habits page arrives with Part 10): curated, calm, one tap to a
@@ -87,8 +86,10 @@ const CORE_HABIT_TEMPLATES: readonly HabitTemplate[] = [
   {id: 'laundry', group: 'home', title: 'Do the laundry', note: 'Once a week', category: 'Home', measurement: yes, target: 1, schedule: perWeek(1)},
   {id: 'meal-plan', group: 'home', title: 'Plan the week’s meals', note: 'Once a week', category: 'Home', measurement: yes, target: 1, schedule: perWeek(1)},
 ];
-/** The starter habits and the template library's added ideas (lib/templates/library-habits.ts), one list. */
-export const HABIT_TEMPLATES: readonly HabitTemplate[] = [...CORE_HABIT_TEMPLATES, ...LIBRARY_HABITS];
+/** The starter habits. The template library's added ideas (lib/templates/library-habits.ts) join them in the searchable
+ *  catalogue (lib/templates/library.ts), which loads with the Habit ideas panel, so pages that only need the starters stay light
+ *  (route weights). */
+export const HABIT_TEMPLATES: readonly HabitTemplate[] = CORE_HABIT_TEMPLATES;
 export const habitTemplate = (id: string) => HABIT_TEMPLATES.find(t => t.id === id);
 /** A template as a complete new habit (the person can change anything afterwards). */
 export function habitTemplateInputOf(t: HabitTemplate): HabitInput {

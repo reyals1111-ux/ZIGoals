@@ -4,7 +4,8 @@ import {emptyGoalExtras, goalExtrasSchema, setGoalTemplate} from '../goal-extras
 import {TEXT_LIMITS} from '../limits/text';
 import {wizardIdeaOf} from '../goals/wizard-ideas';
 import {GOAL_LIBRARY, templateById} from './goal-library';
-import {HABIT_GROUP_LABEL, HABIT_TEMPLATES, habitTemplateInputOf} from './habits';
+import {HABIT_GROUP_LABEL, habitTemplateInputOf} from './habits';
+import {ALL_HABIT_TEMPLATES} from './library';
 import {CATALOGUE_AREAS, TEMPLATE_CATALOGUE, catalogueAreaOfGoal, catalogueAreasFor, searchCatalogue} from './library';
 import {LIBRARY_GOALS} from './library-goals';
 import {LIBRARY_HABITS} from './library-habits';
@@ -23,15 +24,15 @@ const textOf = (e: (typeof TEMPLATE_CATALOGUE)[number]) => e.kind === 'goal'
 describe('the template library', () => {
   it('holds 150 or more entries across goals and habits, every area used, ids and titles unique', () => {
     expect(TEMPLATE_CATALOGUE.length).toBeGreaterThanOrEqual(150);
-    expect(TEMPLATE_CATALOGUE.length).toBe(GOAL_LIBRARY.length + HABIT_TEMPLATES.length);
+    expect(TEMPLATE_CATALOGUE.length).toBe(GOAL_LIBRARY.length + ALL_HABIT_TEMPLATES.length);
     expect(new Set(TEMPLATE_CATALOGUE.map(e => e.id)).size).toBe(TEMPLATE_CATALOGUE.length);
     expect(new Set(TEMPLATE_CATALOGUE.map(e => e.title.trim().toLowerCase())).size).toBe(TEMPLATE_CATALOGUE.length);
     expect(new Set(GOAL_LIBRARY.map(t => t.id)).size).toBe(GOAL_LIBRARY.length);
-    expect(new Set(HABIT_TEMPLATES.map(t => t.id)).size).toBe(HABIT_TEMPLATES.length);
+    expect(new Set(ALL_HABIT_TEMPLATES.map(t => t.id)).size).toBe(ALL_HABIT_TEMPLATES.length);
     for (const area of CATALOGUE_AREAS) expect(TEMPLATE_CATALOGUE.filter(e => e.area === area.id).length, area.id).toBeGreaterThanOrEqual(5);
     // every added entry is in the library once, and the library stays grouped by area
     for (const t of LIBRARY_GOALS) expect(GOAL_LIBRARY.filter(x => x.id === t.id), t.id).toHaveLength(1);
-    for (const t of LIBRARY_HABITS) expect(HABIT_TEMPLATES.filter(x => x.id === t.id), t.id).toHaveLength(1);
+    for (const t of LIBRARY_HABITS) expect(ALL_HABIT_TEMPLATES.filter(x => x.id === t.id), t.id).toHaveLength(1);
     const order = TEMPLATE_CATALOGUE.map(e => CATALOGUE_AREAS.findIndex(a => a.id === e.area));
     expect(order).toEqual([...order].sort((a, b) => a - b));
   });
@@ -56,7 +57,7 @@ describe('the template library', () => {
   });
 
   it('every habit is valid Habits input; a goal’s suggested habits are made by Habits’ own createHabit', () => {
-    for (const t of HABIT_TEMPLATES) {
+    for (const t of ALL_HABIT_TEMPLATES) {
       expect(habitInputSchema.safeParse(habitTemplateInputOf(t)).success, t.id).toBe(true);
       expect(t.title.length, t.id).toBeLessThanOrEqual(TEXT_LIMITS.habitTitle);
       expect(HABIT_GROUP_LABEL[t.group], t.id).toBeTruthy();

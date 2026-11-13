@@ -52,3 +52,8 @@ describe('a habit name already in use (LS-H29)', () => {
     expect(twice.habits.filter(h => h.title === 'H1 water')).toHaveLength(2);
   });
 });
+
+it('the table\'s task limits equal the Tasks schema\'s own (literals here, so the table imports no schema)', () => {
+  expect(TEXT_LIMITS.taskTitle).toBe(TASK_TITLE_MAX);
+  expect(TEXT_LIMITS.taskListName).toBe(PROJECT_NAME_MAX);
+});

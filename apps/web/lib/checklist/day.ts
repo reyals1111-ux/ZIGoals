@@ -1,6 +1,6 @@
 import {deviceTimeZone, journalTimeZone} from '../journal-zone';
 import {addDays} from '../zone-time';
-import {boundaryDay, currentDayEnds} from '../day-boundary';
+import {boundaryDay, currentDayEnds} from '../day-boundary-core';
 import {checklistDaysSchema, type ChecklistDaySummary, type ChecklistDays, type ChecklistToday} from './schema';
 
 /**

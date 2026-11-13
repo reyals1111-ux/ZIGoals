@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {checklistDay, checklistZone} from '../../lib/checklist/day';
 import {everyHalfMinute} from '../half-minute';
 import {useJournalZone} from '../use-journal-zone';
-import {subscribeDayEnds} from '../../lib/day-boundary';
+import {subscribeDayEnds} from '../../lib/day-boundary-core';
 
 /**
  * The Checklist's day in a component (ADR-028 H66): local midnight in the journal zone, else the device's. Read after

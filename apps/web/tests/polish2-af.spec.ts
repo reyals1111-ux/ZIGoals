@@ -1,3 +1,4 @@
+import {openDeskFold} from './ao/folds';
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {earnRoutes, openEarnFolds, seedShowcase} from './earn-fixtures';
 import {seedChecklist, settled} from './checklist-fixtures';
@@ -38,7 +39,10 @@ test.describe('Earn', () => {
     const sizes = await page.locator('.earn-option-title h2').evaluateAll(hs => hs.map(h => parseFloat(getComputedStyle(h).fontSize)));
     expect(sizes).toHaveLength(11);
     for (const s of sizes) expect(s).toBeGreaterThanOrEqual(24);
-    const sectionSizes = await page.locator('.earn-sections > .panel > .aa-section-heading h2').evaluateAll(hs => hs.map(h => [h.id, parseFloat(getComputedStyle(h).fontSize)] as const));
+    // Session AO (N-BN-05, deliberate): on a phone Earn folds its validators and Academy sections to rows; they are opened
+    // as a reader would, and each section is found inside its fold (the same titles and the same 24 px rule).
+    if (info.project.name === 'mobile') for (const label of ['Choose a validator from facts', 'Earn Academy: learn it before you earn it']) await openDeskFold(page, label);
+    const sectionSizes = await page.locator('.earn-sections .panel > .aa-section-heading h2').evaluateAll(hs => hs.map(h => [h.id, parseFloat(getComputedStyle(h).fontSize)] as const));
     expect(sectionSizes.map(([id]) => id)).toEqual(expect.arrayContaining(['start-here-title', 'validators-title', 'academy-title', 'calculator-title', 'safety-title']));
     for (const [id, size] of sectionSizes) expect(size, id).toBeGreaterThanOrEqual(24);
     // 9. Eyebrows balance their lines.

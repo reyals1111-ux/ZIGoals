@@ -1,4 +1,3 @@
-import {PROJECT_NAME_MAX, TASK_TITLE_MAX} from '../tasks/schema';
 /**
  * Session AL fifth pass (lane L7-5b; Lisbon #337/338): the longest text one record of each kind holds, in one table, so a
  * message that is too long gets the same numbers the forms and the cards' schemas enforce. A task title (lib/tasks/schema.ts
@@ -15,7 +14,9 @@ import {PROJECT_NAME_MAX, TASK_TITLE_MAX} from '../tasks/schema';
 export const TEXT_LIMITS = {
   goalName: 80, averageGoalName: 100, healthGoalName: 100,
   habitTitle: 100,
-  taskTitle: TASK_TITLE_MAX, taskListName: PROJECT_NAME_MAX,
+  // Literals, not imports: importing lib/tasks/schema here pulled the Tasks schemas into every page that reads this table
+  // (route weights). lib/limits/text.test.ts proves both equal TASK_TITLE_MAX and PROJECT_NAME_MAX.
+  taskTitle: 140, taskListName: 60,
   checklistItem: 60,
   memoryNote: 500,
 } as const;

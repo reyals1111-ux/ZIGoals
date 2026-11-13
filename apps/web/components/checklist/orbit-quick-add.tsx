@@ -13,7 +13,8 @@ import {readFormNumber} from '../../lib/decimal-input';
 import {INVISIBLE_NAME, isInvisibleName} from '../../lib/visible-text';
 import {HABIT_TONE_COLOURS} from '../../lib/path/orbit-colours';
 import {PATH_COLOURS, type PathColour} from '../../lib/path/colours';
-import {activeHabitNamed, sameHabitNameNotice, type HabitInput} from '../../lib/habits';
+import type {HabitInput} from '../../lib/habits';
+import {activeHabitNamed, sameHabitNameNotice} from '../../lib/habit-names';
 import type {ChecklistState} from './use-checklist';
 import {plainErrorMessage} from '../../lib/plain-error';
 

@@ -8,7 +8,7 @@ import { shareHabitData } from "../../lib/habit-sharing";
 import {scheduleHabitEdit,scheduleHabitState,earliestHabitChange} from "../../lib/habit-actions";
 import { deletedHabitIds, isDeletedHabit, withoutDeletedHabits, type DeletedHabit } from "../../lib/habit-delete";
 import { localDate } from "../../lib/local-date";
-import { subscribeDayEnds } from "../../lib/day-boundary";
+import { subscribeDayEnds } from "../../lib/day-boundary-core";
 import { installMonthWeekdayOverlay } from "../../lib/habit-month-weekday/install";
 
 // Session AK F0 (5.1): "the first Monday of the month" reads its overlay from the habit extras in the browser (lib/habits.ts setHabitScheduleOverlay).

@@ -1,12 +1,12 @@
 import * as z from "zod";
 import { addLocalDays, localDate, localWeekday } from "./local-date";
 import { journalTimeZone } from "./journal-zone";
-import { boundaryDay, currentDayEnds } from "./day-boundary";
 import { formatDate, formatNumber } from "./visual-format";
 import { unitAmountText } from "./plural";
 import { minutesIssue, within } from "./limits/plausibility";
 import { durationCountText } from "./habit-number";
 import { TEXT_LIMITS } from "./limits/text"; // Session AO (M-011): the one table
+import { boundaryDay, currentDayEnds } from "./day-boundary-core";
 
 export const HABITS_KEY = "zigoals:habits:v1";
 const dateSchema = z.string().regex(/^20\d{2}-\d{2}-\d{2}$|^21\d{2}-\d{2}-\d{2}$/).refine((value) => {
@@ -158,13 +158,7 @@ export function clearHabitTimezone(data:HabitData):HabitData{if(data.timeZone===
 export function emptyHabitData(): HabitData { return { schemaVersion: 2, kind: "zigoals-habits", habits: [] }; }
 export function habitRuleOn(habit: Habit, date: string): HabitRule | undefined { for (let index = habit.rules.length - 1; index >= 0; index--) if (habit.rules[index]!.from <= date) return habit.rules[index]; return undefined; }
 export function latestHabitRule(habit: Habit): HabitRule { return habit.rules[habit.rules.length - 1]!; }
-/** Session AO (LS-H29): an active habit already called `title` (outer spaces and letter case ignored), other than `exceptId`. */
-export function activeHabitNamed(habits: readonly Habit[], title: string, exceptId?: string): Habit | undefined {
-  const name = title.trim().toLocaleLowerCase();
-  return name ? habits.find(h => h.id !== exceptId && latestHabitRule(h).state === "active" && h.title.trim().toLocaleLowerCase() === name) : undefined;
-}
-/** Session AO (LS-H29): the one sentence for a habit name already in use; saving stays allowed (a second habit is made). */
-export const sameHabitNameNotice = (title: string) => `You already have a habit called “${title.trim()}”.`;
+export {activeHabitNamed, sameHabitNameNotice} from "./habit-names";
 export function goalLinkMatches(link: HabitGoalLink | undefined, scope: HabitGoalLink): boolean { return !!link && link.chainId === scope.chainId && link.owner === scope.owner && link.goalId === scope.goalId; }
 function replaceHabit(data: HabitData, id: string, transform: (habit: Habit) => Habit): HabitData {
   if (!data.habits.some((habit) => habit.id === id)) throw new Error("This habit is no longer available. Refresh and try again.");

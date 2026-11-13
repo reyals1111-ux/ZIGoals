@@ -1,8 +1,8 @@
 'use client';
 import {useLayoutEffect} from 'react';
 import {ACCOUNT_CHANGE} from '../lib/account-session';
-import {DAY_ENDS_RECORD, emptyDayEnds, setCurrentDayEnds} from '../lib/day-boundary';
-import {readDeviceRecord} from '../lib/device-record';
+const DAY_ENDS_KEY = 'zigoals:day-ends:v1'; // lib/day-boundary.ts DAY_ENDS_KEY (equal by test)
+import {emptyDayEnds, readDayEnds, setCurrentDayEnds} from '../lib/day-boundary-core';
 import {ZIGI_STORE_EVENT} from '../lib/ai/store/keys';
 import {getAppStorage} from '../lib/showcase-storage';
 
@@ -13,10 +13,11 @@ import {getAppStorage} from '../lib/showcase-storage';
  */
 export function useDayEndsKeeper(): void {
   useLayoutEffect(() => {
-    const apply = () => { try { setCurrentDayEnds(readDeviceRecord(getAppStorage(), DAY_ENDS_RECORD).data); } catch { setCurrentDayEnds(emptyDayEnds()); } };
+    // Read without the record's schema (the shell stays light); readDayEnds keeps exactly its rules (lib/day-boundary-core.ts).
+    const apply = () => { try { setCurrentDayEnds(readDayEnds(getAppStorage().getItem(DAY_ENDS_KEY))); } catch { setCurrentDayEnds(emptyDayEnds()); } };
     apply();
-    const onSaved = (event: Event) => { const key = (event as CustomEvent<string>).detail; if (!key || key === DAY_ENDS_RECORD.key) apply(); };
-    const onStorage = (event: StorageEvent) => { if (!event.key || event.key.endsWith(DAY_ENDS_RECORD.key)) apply(); };
+    const onSaved = (event: Event) => { const key = (event as CustomEvent<string>).detail; if (!key || key === DAY_ENDS_KEY) apply(); };
+    const onStorage = (event: StorageEvent) => { if (!event.key || event.key.endsWith(DAY_ENDS_KEY)) apply(); };
     window.addEventListener(ZIGI_STORE_EVENT, onSaved); window.addEventListener('storage', onStorage); window.addEventListener(ACCOUNT_CHANGE, apply);
     return () => { window.removeEventListener(ZIGI_STORE_EVENT, onSaved); window.removeEventListener('storage', onStorage); window.removeEventListener(ACCOUNT_CHANGE, apply); };
   }, []);
