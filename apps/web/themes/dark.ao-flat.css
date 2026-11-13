@@ -1,0 +1,18 @@
+/* Session AO (DV-203, DV-226, LS-H39, N-NB-03; the owner's decision of 13 Nov): Dark is a true dark theme. Flat near-black
+   surfaces and no sky: no starfield, no colour mist or haze, no stars in the sidebar, no twinkles or shooting stars over
+   the Checklist. The ground is Nebula's own ground (#020918) with its navy taken out by the generator's Dark surface rule
+   (scripts/themes/build-themes.mjs: a neutral night panel keeps Nebula's lightness, its chroma held to 0.012), #06090e, so
+   the cards (Nebula's #0b1327 → #11141a), the veils and the footer's last scrim all meet it without a seam. The accents,
+   the artwork (the Today hero, the page-header art, the footer banner, the Checklist's planet) and the words keep Nebula's
+   colours, so every word keeps Nebula's contrast. Nebula keeps its cosmic sky; Light is unchanged. Colours only: no box
+   moves. One id more of weight than the generated rules, so the order of the hand layers does not matter. */
+:root[data-theme=dark] body:not(#\-):not(#\-) { background: #06090e; }
+/* The page's sky and the Checklist's sky (the dashboard's ground): one flat colour, no starfield. */
+:root[data-theme=dark] .app-content:not(#\-):not(#\-)::before, :root[data-theme=dark] .checklist-sky:not(#\-):not(#\-) { opacity: 1; background: #06090e; }
+/* The page's veils eased the starfield into the ground at the top and the bottom; with no starfield there is nothing to veil. */
+:root[data-theme=dark] .app-content:not(#\-):not(#\-)::after { background: none; }
+/* The Checklist's drifting mist and its ambient twinkles and shooting stars are Nebula's sky: not drawn in Dark. */
+:root[data-theme=dark] .checklist-sky .checklist-mist:not(#\-):not(#\-), :root[data-theme=dark] .checklist-ambient:not(#\-):not(#\-) { display: none; }
+/* The sidebar (and, at 768–900 px, the page's header): the same flat ground, no stars layer; its line stays Nebula's.
+   Its layout, the planet foot (.sidebar-destination) and the theme bar are untouched. */
+:root[data-theme=dark] .app-sidebar:not(#\-):not(#\-) { background: #06090e; }

@@ -15,6 +15,8 @@ test('without a fragment the lower groups wait; the first group, the head and th
   await page.goto('/app/settings');
   await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
   const groups = await visibility(page);
+  // Session AO (owner decision 13 Nov, deliberate): Appearance is now the first group and renders with Data & privacy.
+  expect(groups['settings-look']).toBe('visible');
   expect(groups['settings-data']).toBe('visible');
   for (const id of ['settings-app', 'settings-areas', 'settings-account', 'settings-zigi', 'settings-help']) expect(groups[id], id).toBe('auto');
   await expect(page.locator('.settings-page')).not.toHaveAttribute('data-jump', '');

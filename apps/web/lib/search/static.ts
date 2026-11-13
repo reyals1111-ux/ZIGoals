@@ -62,7 +62,7 @@ export const SETTINGS: readonly SearchItem[] = [
   {id: 'setting:privacy', kind: 'setting', title: 'Keep a copy of your progress', subtitle: 'Data & privacy', href: '/app/settings#privacy', keywords: ['backup', 'export', 'private backups']},
   {id: 'setting:your-data', kind: 'setting', title: 'Your data', subtitle: 'Data & privacy', href: '/app/settings/data', keywords: ['data health', 'storage', 'where', 'sync', 'device', 'privacy']},
   {id: 'setting:your-pages', kind: 'setting', title: 'Your pages & buttons', subtitle: 'Your app', href: '/app/settings#your-pages', keywords: ['hide page', 'quick add', 'navigation']},
-  {id: 'setting:appearance', kind: 'setting', title: 'Motion', subtitle: 'Your app', href: '/app/settings#appearance', keywords: ['animations', 'reduced motion', 'appearance']},
+  {id: 'setting:appearance', kind: 'setting', title: 'Motion', subtitle: 'Appearance', href: '/app/settings#appearance', keywords: ['animations', 'reduced motion', 'appearance', 'theme', 'dark', 'light', 'nebula']},
   {id: 'setting:time-zone', kind: 'setting', title: 'Time zone', subtitle: 'Your app', href: '/app/settings#time-zone', keywords: ['journal zone', 'travel']},
   {id: 'setting:wrap-up', kind: 'setting', title: 'Daily wrap-up', subtitle: 'Your app', href: '/app/settings#wrap-up', keywords: ['evening', 'reminder']},
   {id: 'setting:habits', kind: 'setting', title: 'Habit settings', subtitle: 'Your areas', href: '/app/settings#habits-settings', keywords: ['rhythm', 'week start']},

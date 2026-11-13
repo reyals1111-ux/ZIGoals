@@ -117,7 +117,7 @@ async function sky(page: Page) {
 const luminance = (rgb: number[]) => { const [r, g, b] = rgb.map(v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!; };
 const contrast = (a: number[], b: number[]) => { const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p); return (x! + 0.05) / (y! + 0.05); };
 
-test('the sidebar sky: a clean colour behind the logo and first buttons, stars lower down, each theme its own (never plain white or black)', async ({page}, info) => {
+test('the sidebar sky: a clean colour behind the logo and first buttons, stars lower down (Dark flat, Session AO), each theme its own (never plain white or black)', async ({page}, info) => {
   test.skip(info.project.name !== 'desktop', 'The sidebar is the computer’s (phones have the tab bar)');
   await page.setViewportSize({width: 1440, height: 900});
   await page.addInitScript(() => localStorage.setItem('zigoals:motion:v1', 'off'));
@@ -133,11 +133,16 @@ test('the sidebar sky: a clean colour behind the logo and first buttons, stars l
     const sidebar = page.locator('aside.app-sidebar');
     const style = await sidebar.evaluate(s => { const cs = getComputedStyle(s), link = s.querySelector('.app-nav a:not([aria-current])')!; return {colour: cs.backgroundColor, image: cs.backgroundImage, ink: getComputedStyle(link).color}; });
     expect(['rgb(255, 255, 255)', 'rgb(0, 0, 0)'], theme).not.toContain(style.colour);
-    expect(style.image, theme).toMatch(/sidebar-stars(-dawn)?\.svg/);
+    // Session AO (DV-203, owner decision 13 Nov, deliberate): Dark is a true dark theme — its sidebar is one flat near-black
+    // with no stars. Was: stars lower down in every theme. Restated at equal strength: Nebula and Light keep their stars;
+    // Dark has no stars layer and not one pixel standing out anywhere in its sky.
+    if (theme === 'dark') expect(style, theme).toEqual(expect.objectContaining({colour: 'rgb(6, 9, 14)', image: 'none'}));
+    else expect(style.image, theme).toMatch(/sidebar-stars(-dawn)?\.svg/);
     backgrounds.add(`${style.colour} ${style.image}`);
     const measured = await sky(page);
     expect(measured.top, `${theme}: the top quarter is one clean colour`).toBe(0);
-    expect(measured.lower, `${theme}: stars in the lower half`).toBeGreaterThan(20);
+    if (theme === 'dark') expect(measured.lower, 'dark: no stars, a flat sky').toBe(0);
+    else expect(measured.lower, `${theme}: stars in the lower half`).toBeGreaterThan(20);
     expect([[255, 255, 255], [0, 0, 0]], theme).not.toContainEqual(measured.topColour);
     // The words on it: dark ink by day (≥ 4.5:1), the night's light words otherwise.
     const ink = style.ink.match(/\d+/g)!.slice(0, 3).map(Number);

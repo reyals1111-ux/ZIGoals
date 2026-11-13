@@ -6,7 +6,9 @@ import {freshDevice, hydrated, offlineApi} from '../../ah-helpers';
 // moves or hides); "Fold all" beside the sticky index shortens the page to six headings, each with a one-line summary;
 // a jump (an index link, a deep link, a fragment) opens the group that holds its target and lands on it. The folds last
 // for this tab only (sessionStorage 'zigoals:settings-folds:v1').
-const GROUPS = [['settings-data', 'Data & privacy'], ['settings-app', 'Your app'], ['settings-areas', 'Your areas'], ['settings-account', 'Account & devices'], ['settings-zigi', 'Your assistant'], ['settings-help', 'Help & diagnostics']] as const;
+// Session AO (owner decision 13 Nov, deliberate): Appearance is the first group (theme, motion, display; #appearance moved
+// out of Your app unchanged).
+const GROUPS = [['settings-look', 'Appearance'], ['settings-data', 'Data & privacy'], ['settings-app', 'Your app'], ['settings-areas', 'Your areas'], ['settings-account', 'Account & devices'], ['settings-zigi', 'Your assistant'], ['settings-help', 'Help & diagnostics']] as const;
 const KEY = 'zigoals:settings-folds:v1';
 const toggle = (page: Page, title: string) => page.getByRole('heading', {level: 2, name: title, exact: true}).getByRole('button', {name: title, exact: true});
 const foldAll = (page: Page) => page.getByRole('navigation', {name: 'Settings sections'}).getByRole('button', {name: /^(Fold all|Open all)$/});

@@ -8,7 +8,8 @@ import {colours, deeperSameHue, skeleton} from './parity/classify';
  * exact colour; Habits' 28-day blocks keep each card's own colour; gradient headings keep the nebula's flow in deeper shades of
  * the same hues (the owner's decision of 19 Oct, H130); small
  * coloured words take a deeper shade of their own hue; the reward-reserve card follows the theme; a theme switch moves no
- * box. By night the star-system background is black with a very subtle colour mist.
+ * box. By night the star-system background is black with a very subtle colour mist (Session AO, DV-203: now one flat
+ * near-black ground, no starfield or mist).
  */
 const lum = (rgb: string) => { const [r, g, b] = rgb.match(/[\d.]+/g)!.slice(0, 3).map(Number).map(v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!; };
 const ratio = (a: string, b: string) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x! + 0.05) / (y! + 0.05); };
@@ -98,16 +99,20 @@ test('the reward-reserve card follows the theme by day; by night it is as it was
   expect(dark.color).toBe(nebula.color);
 });
 
-test('by night (Dark): a black ground with four faint colour mists and the stars; Nebula’s fills kept', async ({page}) => {
+// Session AO (DV-203, owner decision 13 Nov, deliberate): Dark is a true dark theme. Was: "by night (Dark): a black ground
+// with four faint colour mists and the stars" (body rgb(0, 0, 0), four radial mists, the starfield). Restated at equal
+// strength: Dark's ground is one flat near-black colour with no image (no starfield, no mist, no veils), Nebula still draws
+// its starfield, and Nebula's fills are kept.
+test('by night (Dark): one flat near-black ground, no starfield or mist; Nebula keeps its sky; Nebula’s fills kept', async ({page}) => {
   test.setTimeout(90_000);
   await openDevice(page);
+  const ground = () => page.evaluate(() => { const s = getComputedStyle(document.querySelector('.app-content')!, '::before'), v = getComputedStyle(document.querySelector('.app-content')!, '::after'); return {image: s.backgroundImage, colour: s.backgroundColor, opacity: s.opacity, veil: v.backgroundImage, body: getComputedStyle(document.body).backgroundColor}; });
   await openIn(page, '/app', 'nebula');
   const quickNebula = await styleOf(page, '.hero-actions .primary, .today-hero .primary', ['background-image']);
+  expect((await ground()).image, 'Nebula: the starfield').toMatch(/starfield\.svg/);
   await openIn(page, '/app', 'dark');
-  const sky = await page.evaluate(() => { const s = getComputedStyle(document.querySelector('.app-content')!, '::before'); return {image: s.backgroundImage, opacity: s.opacity, body: getComputedStyle(document.body).backgroundColor}; });
-  expect(sky.body).toBe('rgb(0, 0, 0)');
-  expect(sky.image.match(/radial-gradient/g)?.length).toBe(4);
-  for (const mist of ['rgba(26, 21, 63, 0.8)', 'rgba(15, 34, 56, 0.8)', 'rgba(42, 18, 48, 0.8)', 'rgba(14, 42, 42, 0.8)']) expect(sky.image).toContain(mist);
-  expect(sky.image).toMatch(/starfield/);
+  const sky = await ground();
+  expect(sky.body).toBe('rgb(6, 9, 14)');
+  expect(sky).toMatchObject({image: 'none', colour: 'rgb(6, 9, 14)', opacity: '1', veil: 'none'});
   expect((await styleOf(page, '.hero-actions .primary, .today-hero .primary', ['background-image']))['background-image']).toBe(quickNebula['background-image']);
 });

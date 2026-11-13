@@ -587,6 +587,9 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 @media (max-width: 650px) { :root:where([data-density=compact]) .unified-activity .activity-event:not(#\-) { padding-top: 12px; padding-bottom: 12px; row-gap: 10px; } }
 @media (max-width: 650px) { :root:where([data-density=compact]) .unified-activity ol:not(#\-) { row-gap: 6px; } }
 :where(:root[data-density=compact]) .activity-context .activity-source-link:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .unified-activity .activity-search-row:not(#\-) { row-gap: 7.5px; margin-top: 12px; margin-bottom: 3px; }
+:where(:root[data-density=compact]) .unified-activity .activity-search-field:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .unified-activity .activity-search-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/activity/activity-report.css  */
 :where(:root[data-density=compact]) .activity-report:not(#\-) { row-gap: 12px; margin-top: 0; margin-bottom: 18px; padding-top: 14px; padding-bottom: 14px; }
 :where(:root[data-density=compact]) .activity-report h3:not(#\-), :where(:root[data-density=compact]) .activity-report h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -5836,6 +5839,16 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .today-tasks-due-line .text-link:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .today-tasks-due .tasks-today-reminders:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 8px; row-gap: 2px; }
 :where(:root[data-density=compact]) .today-tasks-due .tasks-today-reminders li:not(#\-) { row-gap: 0; }
+/*  components/templates/library-search.css  */
+:where(:root[data-density=compact]) .library-search:not(#\-) { row-gap: 10px; margin-top: 10px; }
+:where(:root[data-density=compact]) .library-search-panel:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .library-search-field:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .library-chips:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .library-chips button:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .library-count:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .library-results:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .library-result:not(#\-) { row-gap: 4px; padding-top: 10px; padding-bottom: 10px; }
+@media (max-width: 600px) { :where(:root[data-density=compact]) .library-chips:not(#\-) { padding-bottom: 2px; } }
 /*  components/timeline/timeline.css  */
 :where(:root[data-density=compact]) .timeline-page:not(#\-) { row-gap: 18px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .timeline-links:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
@@ -6174,6 +6187,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .spending-form-actions:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .spending-budget-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .spending-budget>[role=alert]:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .spending-entry-actions:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .spending-editing:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wealth/wealth-history-chart.css  */
 :where(:root[data-density=compact]) .wealth-history-chart:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 10px; }
 :where(:root[data-density=compact]) .wealth-history-tools:not(#\-) { row-gap: 6px; }

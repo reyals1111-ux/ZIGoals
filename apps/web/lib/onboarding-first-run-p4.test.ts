@@ -22,7 +22,8 @@ test('FR-8: "Save for something" suggests "Put money aside", weekly, under Money
 test('FR-4: Today says "You\'re set" with the new goal and today\'s habits, until a habit is ticked, closed or a day passes', () => {
   const l = setupLanding(made, now, {goalName: 'Emergency fund', habitsToday: 2, tickedToday: false});
   expect(l).toEqual({goal: 'Emergency fund', habits: 2});
-  expect(setupLandingLine(l!)).toBe('Your goal “Emergency fund” · 2 habits for today');
+  // Session AO (RR-17, owner decision 13 Nov, deliberate): the name appears once on Today (in Today's focus), not here too.
+  expect(setupLandingLine(l!)).toBe('Your goal is set · 2 habits for today');
   expect(setupLandingLine({habits: 1})).toBe('1 habit for today');
   expect(setupLanding(made, now, {goalName: 'Emergency fund', habitsToday: 2, tickedToday: true})).toBeNull();
   expect(setupLanding({...made, landingClosed: true}, now, {habitsToday: 2, tickedToday: false})).toBeNull();

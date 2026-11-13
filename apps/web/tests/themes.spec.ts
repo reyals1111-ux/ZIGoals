@@ -47,8 +47,15 @@ for (const theme of ['light', 'dark'] as const) {
     expect(await page.evaluate(() => Reflect.get(window, '__themeAtBody'))).toBe(theme);
     await expect(page.locator('html')).not.toHaveAttribute('data-theme-loading', /.*/);
     // The page ground: a pale sky by day, near black for Dark (Nebula's is a deep navy, rgb(6, 11, 25)).
-    const [r, g, b] = (await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).match(/\d+/g)!.map(Number);
-    if (theme === 'light') expect(Math.min(r!, g!, b!)).toBeGreaterThan(225); else expect(Math.max(r!, g!, b!)).toBeLessThan(10);
+    // Session AO (DV-203, owner decision 13 Nov, deliberate): Dark's ground is one flat near-black, Nebula's ground without its
+    // navy. Was: every channel under 10 (black with a mist). Restated at equal strength: exactly that colour, and no sky image.
+    const body = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    const [r, g, b] = body.match(/\d+/g)!.map(Number);
+    if (theme === 'light') expect(Math.min(r!, g!, b!)).toBeGreaterThan(225);
+    else {
+      expect(body).toBe('rgb(6, 9, 14)');
+      expect(await page.evaluate(() => getComputedStyle(document.querySelector('.app-content')!, '::before').backgroundImage), 'Dark: no starfield').toBe('none');
+    }
     // The early script is the server's own same-origin file, in <head>, with this response's nonce, and not async.
     const csp = response!.headers()['content-security-policy']!, nonce = /'nonce-([^']+)'/.exec(csp)?.[1];
     const head = (await response!.text()).split('</head>')[0]!, tag = /<script[^>]*src="\/theme-boot\.js\?v=[0-9a-f]{12}"[^>]*>/.exec(head)?.[0];

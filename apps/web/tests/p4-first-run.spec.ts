@@ -98,7 +98,10 @@ test('FR-4, FR-7, FR-8, FR-15, FR-23: the welcome stalls loudly, names its habit
   await page.waitForURL(/\/app$/);
   const set = page.getByRole('heading', {name: 'You’re set.'});
   await expect(set).toBeFocused();
-  await expect(page.locator('.setup-landing')).toContainText('Your goal “Emergency fund”');
+  // Session AO (RR-17, owner decision 13 Nov, deliberate): the goal is named once on Today (Today's focus), not in "You're set".
+  await expect(page.locator('.setup-landing')).toContainText('Your goal is set');
+  await expect(page.locator('.setup-landing')).not.toContainText('Emergency fund');
+  await expect(page.getByRole('article', {name: 'Focus: next goal step'}).locator('strong')).toHaveText('Emergency fund');
   await expect(page.getByText('Your coach', {exact: true})).toHaveCount(0);
   await page.getByRole('button', {name: 'Close “You’re set”'}).click();
   await expect(set).toHaveCount(0);

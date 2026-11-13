@@ -68,7 +68,9 @@ describe('the one-line summary a folded heading shows', () => {
   });
   test('each group names what it holds', () => {
     expect(foldSummary('settings-data')).toBe('Your data, backups, export everything, import from other apps and erase everything');
-    expect(foldSummary('settings-app')).toBe('Plan, pages & buttons, Checklist, time zone, wrap-up, theme & motion, music and links');
+    // Session AO (owner decision 13 Nov, deliberate): theme & motion is the Appearance group's own, first.
+    expect(foldSummary('settings-look')).toBe('Theme, motion and font, text size and density');
+    expect(foldSummary('settings-app')).toBe('Plan, pages & buttons, Checklist, time zone, wrap-up, music and links');
     expect(foldSummary('settings-areas')).toBe('Habits, Health targets, chess, Guide, install, notifications, reminders and market data');
     expect(foldSummary('settings-account')).toBe('Account & sync and the PIN screen cover');
     expect(foldSummary('settings-zigi')).toBe('ZIGi’s settings and NOVA’s command center');

@@ -13,6 +13,10 @@ import { usePhoneChrome } from "./use-phone-layout";
 // section headings), so a link or text lookup by name still finds exactly one element. Session W Part 24: the groups
 // are the page's six labelled groups, Data & privacy first so backups stay on the first screen (Session E).
 const GROUPS: { title: string; rows: [label: string, note: string, target: string][] }[] = [
+  // Session AO (owner decision 13 Nov): Appearance first, as on a computer.
+  { title: "Appearance", rows: [
+    ["Theme, motion & display", "Nebula, Dark or Light; motion; text size", "appearance"],
+  ] },
   { title: "Data & privacy", rows: [
     ["Backups & restore", "Encrypted backup and copies of each area", "private-vault"], // Session AL third pass (DV-261)
     ["Privacy & storage", "What stays in this browser", "privacy"],
@@ -23,7 +27,6 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
     ["Pages & start page", "Hide what you don’t use; where ZIGoals opens", "your-pages"],
     ["Time zone", "The day your journals follow", "time-zone"],
     ["Wrap-up on Today", "An optional evening card", "wrap-up"],
-    ["Motion & display", "Follow device preference, or Off", "appearance"],
     ["Show the welcome again", "Set up a first goal and habit", "/app/welcome"],
   ] },
   { title: "Your areas", rows: [

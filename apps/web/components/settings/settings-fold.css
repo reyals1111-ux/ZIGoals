@@ -9,7 +9,7 @@
 .settings-page .settings-fold-summary { margin: -10px 0 0; overflow: hidden; color: var(--text-meta, #c2d0e5); font-size: 15px; line-height: 1.5; white-space: nowrap; text-overflow: ellipsis; }
 /* A folded group lays out at its own short size, not the 1400 px estimate of a group not yet near the screen
    (components/life-pages.css, content-visibility), so "Fold all" shortens the page at once. */
-:root .settings-page > .settings-group[data-folded]:not(#settings-data) { content-visibility: visible; }
+:root .settings-page > .settings-group[data-folded]:not(#settings-look):not(#settings-data) { content-visibility: visible; }
 /* Session AL (A10-10): at 768 px the sticky "Fold all" sat over the end of the scrolling links, with a cut-off "st…" in the
    bar's padding beside it. The links now scroll inside a row of their own (app/app/settings/page.tsx) and "Fold all" stands
    beside that row, so nothing scrolls under it. Below 768 px the row is no box at all and the index wraps as before. */

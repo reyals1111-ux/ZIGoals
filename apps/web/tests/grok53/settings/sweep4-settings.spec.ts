@@ -61,7 +61,9 @@ test('DV-262/DV-266: the phone\'s Settings list ends with "Try it"; Chess sits w
   await freshDevice(page);
   await page.goto('/app/settings'); await hydrated(page);
   const list = page.getByRole('navigation', {name: 'Settings sections'});
-  await expect(list.getByRole('heading', {level: 2})).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Extras', 'Account & devices', 'Your assistant', 'Help & diagnostics', 'Try it']);
+  // Session AO (owner decision 13 Nov, deliberate): Appearance is the first group (theme, motion, display; #appearance moved
+  // out of Your app unchanged).
+  await expect(list.getByRole('heading', {level: 2})).toHaveText(['Appearance', 'Data & privacy', 'Your app', 'Your areas', 'Extras', 'Account & devices', 'Your assistant', 'Help & diagnostics', 'Try it']);
   const group = (name: string) => list.getByRole('region', {name, exact: true});
   await expect(group('Try it').getByRole('link')).toHaveText([/^Showcase tour\s*Fictional examples, in this tab only/]);
   await expect(group('Data & privacy')).not.toContainText('Showcase');

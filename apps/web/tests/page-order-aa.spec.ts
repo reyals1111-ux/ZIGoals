@@ -80,8 +80,10 @@ test('Today: a person’s own arrangement shows as saved, without group headings
   expect(to).toBeGreaterThanOrEqual(0); expect(from).toBeGreaterThan(to);
   for (let step = 0; step < from - to; step++) {
     const now = await arranged(), at = now.indexOf(before[1]!);
-    if (await second.locator('.dashboard-builtin-options').count()) { await second.locator('.dashboard-builtin-options .card-options-trigger').click(); await second.getByRole('button', {name: 'Move earlier'}).click(); }
-    else { await second.locator('.card-options-trigger').first().click(); await second.getByRole('button', {name: /^Move .+ up$/}).filter({hasText: 'Move earlier'}).click(); }
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    if (await second.locator('.dashboard-builtin-options').count()) { await second.locator('.dashboard-builtin-options .card-options-trigger').click(); await second.getByRole('menuitem', {name: 'Move earlier'}).click(); }
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    else { await second.locator('.card-options-trigger').first().click(); await second.getByRole('menuitem', {name: /^Move .+ up$/}).filter({hasText: 'Move earlier'}).click(); }
     await expect.poll(arranged).toEqual([...now.slice(0, at - 1), now[at], now[at - 1], ...now.slice(at + 1)]);
   }
   await expect.poll(modules).toEqual([before[1], before[0], ...before.slice(2)]);
@@ -165,8 +167,10 @@ test('Markets, Health and Help keep their sections; Settings keeps its six group
   // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant" (ZIGi's and NOVA's settings).
   // Session AK X1 (RELEASE_REVIEW R4, deliberate): the Showcase has chosen the chain, so Account & devices holds the advanced
   // "Wallet & network" group, whose title wears the same group-title style (its own six groups are unchanged).
-  await expect(page.locator('.settings-group-title')).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Account & devices', 'Wallet & network (advanced)', 'Your assistant', 'Help & diagnostics']);
-  await expect(page.locator('.settings-group')).toHaveCount(6);
+  // Session AO (owner decision 13 Nov, deliberate): Appearance is the first group (theme, motion, display; #appearance moved
+  // out of Your app unchanged).
+  await expect(page.locator('.settings-group-title')).toHaveText(['Appearance', 'Data & privacy', 'Your app', 'Your areas', 'Account & devices', 'Wallet & network (advanced)', 'Your assistant', 'Help & diagnostics']);
+  await expect(page.locator('.settings-group')).toHaveCount(7);
 });
 
 test('Settings: the in-page index stays in view while the page scrolls (computers and tablets)', async ({page}) => {

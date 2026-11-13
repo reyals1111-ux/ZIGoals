@@ -1,8 +1,8 @@
 import {describe, expect, it} from 'vitest';
-import {readFileSync} from 'node:fs';
+import {readFileSync, readdirSync} from 'node:fs';
 import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {buildAll, boostSelector, colourLonghands, mapValue, MAPS, ISLANDS, NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA, TEXT_CONTRAST, GRADIENT_TEXT_CONTRAST, GRADIENT_TEXT_TOKENS} from './build-themes.mjs';
+import {buildAll, boostSelector, colourLonghands, mapValue, MAPS, ISLANDS, NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA, TEXT_CONTRAST, GRADIENT_TEXT_CONTRAST, GRADIENT_TEXT_TOKENS, DARK_SURFACE_CHROMA} from './build-themes.mjs';
 import {sourceFiles, NOT_SOURCES, largeSize, textSelector, scopedSelector, verticalLonghands, compactLength, isSpacedContainer, TEXT_SCALE, DENSITY_SCALE} from './build-themes.mjs';
 import * as parity from '../../apps/web/tests/parity/classify.ts';
 
@@ -167,10 +167,40 @@ describe('Session AF (L5a, Part 10.2, ADR-028 D9, H13, H75): Light is Nebula by 
     expect(hand).not.toMatch(/calc-milestone|exercise-medallion|habit-week-bars|goal-choice-tiles|habit-month-grid|--ha-|--nebula-flow-mid/);
     expect(hand).not.toMatch(/staking-card[^{}]*\{[^}]*color-scheme:\s*dark/); // the reserve card is no night island by day
   });
-  it('Dark: the star-system background is black with a subtle mist; every coloured fill keeps Nebula’s colour', () => {
-    expect(sheets.dark).toMatch(/:root\[data-theme=dark\] body:not\(#\\-\) \{ background: #000000; \}/);
-    expect((sheets.dark.match(/radial-gradient\([^)]*#(1a153f|0f2238|2a1230|0e2a2a)cc 0/g) ?? []).length).toBe(4);
-    expect(sheets.dark).toMatch(/var\(--cosmic-starfield\) center \/ cover no-repeat/);
+  // Session AO (DV-203, owner decision 13 Nov, deliberate): Dark is a true dark theme. Was: "the star-system background is
+  // black with a subtle mist" (body #000000, four radial colour mists, the starfield). Restated at equal strength: the flat
+  // near-black ground, no starfield, mist or sidebar stars in any of Dark's hand layers, and Nebula still draws its sky.
+  it('Dark: a flat near-black ground with no starfield, mist or stars; Nebula keeps its cosmic sky', () => {
+    const hand = readdirSync(join(WEB, 'themes')).filter(n => n.startsWith('dark.')).map(n => readFileSync(join(WEB, 'themes', n), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')).join('\n');
+    expect(hand).not.toMatch(/starfield|sidebar-stars|radial-gradient|url\(/);
+    for (const rule of [
+      ':root[data-theme=dark] body:not(#\\-):not(#\\-) { background: #06090e; }',
+      ':root[data-theme=dark] .app-content:not(#\\-):not(#\\-)::before, :root[data-theme=dark] .checklist-sky:not(#\\-):not(#\\-) { opacity: 1; background: #06090e; }',
+      ':root[data-theme=dark] .app-content:not(#\\-):not(#\\-)::after { background: none; }',
+      ':root[data-theme=dark] .checklist-sky .checklist-mist:not(#\\-):not(#\\-), :root[data-theme=dark] .checklist-ambient:not(#\\-):not(#\\-) { display: none; }',
+      ':root[data-theme=dark] .app-sidebar:not(#\\-):not(#\\-) { background: #06090e; }',
+    ]) expect(sheets.dark, rule).toContain(rule);
+    // The hand rules come after every generated rule (so a generated starfield layer never shows through).
+    expect(sheets.dark.indexOf(':root[data-theme=dark] .app-sidebar:not(#\\-):not(#\\-)')).toBeGreaterThan(sheets.dark.lastIndexOf('sidebar-stars.svg'));
+    expect(sheets.dark.indexOf(':root[data-theme=dark] .app-content:not(#\\-):not(#\\-)::before')).toBeGreaterThan(sheets.dark.lastIndexOf('--cosmic-starfield) center'));
+    // The ground is Nebula's own ground with its navy taken out by the generator's Dark surface rule, so cards, veils and
+    // the footer's scrim meet it without a seam; the cards are near-black, a step above it.
+    expect(mapValue('#020918', 'surface', 'dark')).toBe('#06090e');
+    expect(mapValue('#0b1327', 'surface', 'dark')).toBe('#11141a');
+    for (const hex of ['#020918', '#0b1327', '#102139', '#0d1629']) { const c = oklch(mapValue(hex, 'surface', 'dark')); expect(c.C, hex).toBeLessThanOrEqual(DARK_SURFACE_CHROMA + 0.002); expect(Math.abs(c.L - oklch(hex).L), hex).toBeLessThan(0.005); }
+    // A tinted night panel and every coloured fill keep Nebula's colour.
+    for (const hex of ['#26204a', '#16d9ed', '#9273ff']) expect(mapValue(hex, 'surface', 'dark'), hex).toBeNull();
+    // The same text contrast: body words ≥ 4.5:1 (Nebula's text and muted words) on the ground and on the cards.
+    const lum = hex => { const [r, g, b] = [1, 3, 5].map(i => lin(parseInt(hex.slice(i, i + 2), 16))); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+    for (const word of ['#f0f5ff', '#bccadf', '#a4b2cd']) for (const ground of ['#06090e', '#11141a', mapValue('#102139', 'surface', 'dark')]) expect(contrast(word, ground), `${word} on ${ground}`).toBeGreaterThanOrEqual(4.5);
+    // Nebula keeps its cosmic sky: the source CSS still draws the starfield and the sidebar's stars, and Light's sheet is not Dark's.
+    const v21 = readFileSync(join(WEB, 'app', 'visual-v21.css'), 'utf8'), checklist = readFileSync(join(WEB, 'components', 'checklist', 'checklist.css'), 'utf8');
+    expect(v21).toMatch(/\.app-content::before \{[^}]*background: var\(--cosmic-starfield\) center \/ cover no-repeat, var\(--cosmic-dark\)/);
+    expect(v21).toMatch(/\.app-sidebar \{ background: url\('\/art\/v24\/sidebar-stars\.svg'\)/);
+    expect(checklist).toMatch(/\.checklist-sky \{[^}]*background: var\(--cosmic-starfield\) center \/ cover no-repeat/);
+    expect(checklist).toMatch(/\.checklist-mist-a \{[^}]*radial-gradient/);
+    expect(sheets.light).not.toContain('#06090e; }');
   });
   it('the generator and the parity test share one rule for what may flip', () => {
     expect([parity.NEUTRAL_CHROMA, parity.NIGHT_L, parity.NIGHT_CHROMA]).toEqual([NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA]);

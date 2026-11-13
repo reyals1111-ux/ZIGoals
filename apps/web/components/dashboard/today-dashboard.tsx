@@ -231,8 +231,11 @@ export function TodayDashboard(){
  const builtinOnToday=(id:DashboardBuiltinId)=>!placement.hiddenBuiltins.includes(id)&&todayItemShown(pagesView,{builtin:id});
  const panelGoalId=financial&&platform.loaded&&!platform.error&&hasFundingGoal&&builtinOnToday('attention')&&roles.attention&&roles.attention.why!=='only'?roles.attention.id:null;
  const goalCardsOnToday=financial&&builtinOnToday('goals');
- const gridCards=activeCards.filter(g=>!panelGoalId||g.key!==`private:${panelGoalId}`);
- const shownGoals=new Set<string>([...(panelGoalId?[panelGoalId]:[]),...(goalCardsOnToday?gridCards.flatMap(g=>g.key.startsWith('private:')?[g.key.slice('private:'.length)]:[]):[])]);
+ // Session AO (RR-17, D-134; owner decision 13 Nov): a goal's name appears once on Today. The focus tile's goal (named there,
+ // with its progress) has no second card either, as the panel's goal has none (R2-9).
+ const focusGoalKey=financial&&!brandNew?nextGoal?.key:undefined;
+ const gridCards=activeCards.filter(g=>(!panelGoalId||g.key!==`private:${panelGoalId}`)&&g.key!==focusGoalKey);
+ const shownGoals=new Set<string>([...(focusGoalKey?.startsWith('private:')?[focusGoalKey.slice('private:'.length)]:[]),...(panelGoalId?[panelGoalId]:[]),...(goalCardsOnToday?gridCards.flatMap(g=>g.key.startsWith('private:')?[g.key.slice('private:'.length)]:[]):[])]);
  async function change(update:(s:DashboardSettings)=>DashboardSettings,message='Layout saved on this device.'){
   setBusy(true);setError('');
   // Session AH Part 3 (DS5): a change that only removed something (a widget) offers a labelled Undo in the app's toast.
@@ -282,7 +285,7 @@ export function TodayDashboard(){
    <CardOptions label={metric.title}><AskZigiItem kind={w.kind} metric={w.metric} name={habit?.title??(w.entity?goals.find(g=>g.key===w.entity)?.name:undefined)}/><button type="button" disabled={busy} onClick={()=>setEditor(w)}>Edit widget</button><button type="button" disabled={busy} onClick={()=>apply(s=>saveWidget(s,{...w,hidden:!w.hidden},w.revision))}>{w.hidden?'Show widget':'Hide widget'}</button><button type="button" aria-label={`Move ${metric.title} up`} disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,metric.title)}>Move earlier</button><button type="button" aria-label={`Move ${metric.title} down`} disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,metric.title)}>Move later</button><button type="button" onClick={()=>moveLane(ref,region,metric.title)} disabled={busy}>Move to {region==='main'?'rail':'main'}</button><button type="button" disabled={busy||w.size==='compact'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'compact'},w.revision),'Compact size saved.')}>Compact size</button><button type="button" disabled={busy||w.size==='wide'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'wide'},w.revision),'Wide size saved.')}>Wide size</button><button type="button" disabled={busy} onClick={()=>apply(s=>removeWidget(s,w.id),'Widget removed. Your underlying record was kept.')}>Remove widget</button></CardOptions>
   </article>;
  }
- const intelligence=(module:'life'|'attention'|'funding'|'needs-attention'|'watchlist')=><TodayIntelligence sources={sources} goalId={module==='attention'?roles.attention?.id:undefined} shownGoals={shownGoals} habitsReady={habits.loaded&&!habits.error} healthReady={health.loaded&&!health.error} module={module} pricesLoading={!market.quotes.length&&(market.loading||!market.error)}/>;
+ const intelligence=(module:'life'|'attention'|'funding'|'needs-attention'|'watchlist')=><TodayIntelligence sources={sources} goalId={module==='attention'?roles.attention?.id:undefined} nameShown={!!focusGoalKey&&module==='attention'&&focusGoalKey===`private:${roles.attention?.id}`} shownGoals={shownGoals} habitsReady={habits.loaded&&!habits.error} healthReady={health.loaded&&!health.error} module={module} pricesLoading={!market.quotes.length&&(market.loading||!market.error)}/>;
  function renderBuiltin(id:DashboardBuiltinId){
   if(['whole-life','attention','funding','needs-attention','watchlist'].includes(id)){
    if(!financial||!platform.loaded||!!platform.error||id==='attention'&&!hasFundingGoal)return null;

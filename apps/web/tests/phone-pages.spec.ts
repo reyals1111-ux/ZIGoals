@@ -64,7 +64,9 @@ test('Settings on a phone: a grouped list under the title goes to every section;
  const rows=list.getByRole('link');expect(await rows.count()).toBe(24);
  await expect(list.getByRole('link',{name:'Wallet & network (advanced)',exact:true})).toHaveCount(0);
  // Session AL (COPY_AUDIT, deliberate): DV-262/DV-266 — Music, Links and Chess in "Extras"; the Showcase tour last, in "Try it". Still 24 rows.
- expect(await list.getByRole('heading',{level:2}).allTextContents()).toEqual(['Data & privacy','Your app','Your areas','Extras','Account & devices','Your assistant','Help & diagnostics','Try it']);
+ // Session AO (owner decision 13 Nov, deliberate): Appearance is the first group (theme, motion, display; #appearance moved
+ // out of Your app unchanged).
+ expect(await list.getByRole('heading',{level:2}).allTextContents()).toEqual(['Appearance','Data & privacy','Your app','Your areas','Extras','Account & devices','Your assistant','Help & diagnostics','Try it']);
  await expect(list.getByRole('link',{name:'Show the welcome again',exact:true})).toHaveAttribute('href','/app/welcome');
  for(const link of await rows.all()){
   const href=(await link.getAttribute('href'))!;if(href==='/app/welcome')continue;expect(href).toMatch(/^#[a-z-]+$/);

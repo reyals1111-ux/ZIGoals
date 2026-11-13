@@ -466,6 +466,10 @@
 :where(:root[data-text=large]) .activity-page .unified-activity .activity-history-source:not(#\-) { font-size: calc(14px * 1.125); }
 @media (max-width: 650px) { :root:where([data-text=large]) .unified-activity .activity-event-content strong:not(#\-), :root:where([data-text=large]) .unified-activity .activity-event-content a:not(#\-) { font-size: calc(16px * 1.125); } }
 :where(:root[data-text=large]) .unified-activity .activity-event .activity-remove:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .unified-activity .activity-search-field > span:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .unified-activity .activity-search-field input:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .unified-activity .activity-search-status:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .unified-activity .activity-export:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/activity/activity-report.css  */
 :where(:root[data-text=large]) .activity-report h4:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .activity-report-periods button:not(#\-) { font-size: calc(15px * 1.125); }
@@ -2951,6 +2955,13 @@
 :where(:root[data-text=large]) .tasks-column h3:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .tasks-reminders h2:not(#\-), :where(:root[data-text=large]) .tasks-salvage h2:not(#\-), :where(:root[data-text=large]) .tasks-io h2:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .tasks-completed h2 small:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/templates/library-search.css  */
+:where(:root[data-text=large]) .library-search-field:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .library-search-field input:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .library-chips button:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .library-count:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .library-result strong:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .library-result small:not(#\-), :where(:root[data-text=large]) .library-result-meta:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/timeline/timeline.css  */
 :where(:root[data-text=large]) .timeline-links a:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .timeline-band > h2:not(#\-) { font-size: calc(20px * 1.125); }
@@ -3093,6 +3104,7 @@
 :where(:root[data-text=large]) .spending-chip span:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .spending-status:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .spending-lists h3:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .spending-editing:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/wealth/wealth-history-chart.css  */
 :where(:root[data-text=large]) .wealth-history-tools .quiet:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .wealth-history-readout strong:not(#\-) { font-size: calc(26px * 1.125); }

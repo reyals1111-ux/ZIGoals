@@ -51,7 +51,9 @@ export function setupLanding(s: OnboardingSetup, now: Date, state: {goalName?: s
 }
 /** The card's one line ("Your goal “Emergency fund” · 2 habits for today"). */
 export function setupLandingLine(l: {goal?: string; habits: number}): string {
-  return [l.goal && `Your goal “${l.goal}”`, l.habits > 0 && `${l.habits} ${l.habits === 1 ? 'habit' : 'habits'} for today`].filter(Boolean).join(' · ');
+  // Session AO (RR-17, owner decision 13 Nov): the goal's name appears once on Today (Today's focus names it), so here it is
+  // "Your goal is set".
+  return [l.goal && 'Your goal is set', l.habits > 0 && `${l.habits} ${l.habits === 1 ? 'habit' : 'habits'} for today`].filter(Boolean).join(' · ');
 }
 /** The tab-only note the welcome leaves for Today (sessionStorage, never a record): Today moves the focus to the card once. */
 export const LANDING_NOTE = 'zigoals:welcome-landing';

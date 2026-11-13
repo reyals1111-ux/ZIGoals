@@ -407,7 +407,9 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
   await expect(section).not.toContainText(/preview/i);
   await expect(page.locator('#help-ad-themes')).not.toContainText(/preview/i);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
-  for (const [id, words] of [['ae-scene', 'painted straight onto the starfield'], ['ae-finale', 'It plays once per visit and then rests; with reduced motion or Motion Off it is simply there, still'], ['ae-themes', 'its button now shows a small ZG mark'], ['ae-sidebar', 'a near-black sky with dimmer stars in Dark'], ['ae-header-art', 'Goals a lotus opening in a target'], ['ae-wallets', 'Nothing is signed or sent, and a linked address never becomes the app’s wallet'], ['ae-wallet-card', 'testnet ZIG have no market value'], ['ae-habits', 'Routines, together with Your stacks, is its own block'], ['ae-music', 'It is ZIGi’s twin now']] as const) {
+  // Session AO (DV-203, owner decision 13 Nov, deliberate): ae-sidebar was 'a near-black sky with dimmer stars in Dark'; Dark's
+  // sidebar is flat now, and the answer says so word for word.
+  for (const [id, words] of [['ae-scene', 'painted straight onto the starfield'], ['ae-finale', 'It plays once per visit and then rests; with reduced motion or Motion Off it is simply there, still'], ['ae-themes', 'its button now shows a small ZG mark'], ['ae-sidebar', 'a flat near-black with no stars in Dark'], ['ae-header-art', 'Goals a lotus opening in a target'], ['ae-wallets', 'Nothing is signed or sent, and a linked address never becomes the app’s wallet'], ['ae-wallet-card', 'testnet ZIG have no market value'], ['ae-habits', 'Routines, together with Your stacks, is its own block'], ['ae-music', 'It is ZIGi’s twin now']] as const) {
     await page.goto(`/app/help#help-${id}`);
     await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
     await expect(page.locator(`#help-${id}`), id).toContainText(words);

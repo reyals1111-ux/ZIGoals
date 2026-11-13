@@ -8,7 +8,8 @@ import {hashId} from './hash-id';
 export const SETTINGS_FOLDS_KEY = 'zigoals:settings-folds:v1';
 
 /** The groups in page order (app/app/settings/page.tsx renders one per id). */
-export const SETTINGS_GROUP_IDS = ['settings-data', 'settings-app', 'settings-areas', 'settings-account', 'settings-zigi', 'settings-help'] as const;
+// Session AO (owner decision 13 Nov: the theme switch below the fold at 800 px): Appearance is the first group.
+export const SETTINGS_GROUP_IDS = ['settings-look', 'settings-data', 'settings-app', 'settings-areas', 'settings-account', 'settings-zigi', 'settings-help'] as const;
 export type SettingsGroupId = typeof SETTINGS_GROUP_IDS[number];
 
 export const isSettingsGroupId = (id: unknown): id is SettingsGroupId => typeof id === 'string' && (SETTINGS_GROUP_IDS as readonly string[]).includes(id);
@@ -75,8 +76,9 @@ export function listPhrase(parts: readonly string[]): string {
 // What each group holds, in its own order, named as its sections are. `chain` parts show only once the chain is chosen
 // (lib/chain-choice.ts), as their sections do.
 const SUMMARY: Record<SettingsGroupId, [part: string, chain?: true][]> = {
+  'settings-look': [['Theme'], ['motion'], ['font, text size and density']],
   'settings-data': [['Your data'], ['backups'], ['export everything'], ['import from other apps'], ['erase everything']],
-  'settings-app': [['Plan'], ['pages & buttons'], ['Checklist'], ['Earn and Staking choices', true], ['time zone'], ['wrap-up'], ['theme & motion'], ['music'], ['links']],
+  'settings-app': [['Plan'], ['pages & buttons'], ['Checklist'], ['Earn and Staking choices', true], ['time zone'], ['wrap-up'], ['music'], ['links']],
   'settings-areas': [['Habits'], ['Health targets'], ['chess'], ['Guide'], ['install'], ['notifications'], ['reminders'], ['market data']],
   'settings-account': [['Account & sync'], ['the PIN screen cover'], ['wallet & network', true]],
   'settings-zigi': [['ZIGi’s settings'], ['NOVA’s command center']],
