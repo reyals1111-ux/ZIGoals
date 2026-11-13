@@ -1,3 +1,4 @@
+import {getAppStorage} from './showcase-storage';
 /**
  * Session AO (RR-16, owner decision 13 Nov): Wealth's longer sections fold on a computer or a tablet by default (Wealth was
  * about 20,720 px tall at 1440 px with the Showcase). Which sections the person opened is remembered on this device. A
@@ -25,7 +26,8 @@ export function serialiseOpen(ids: Iterable<string>): string | null {
 type Listener = () => void;
 const listeners = new Set<Listener>();
 let cache: {raw: string | null; open: ReadonlySet<string>} | null = null;
-function store(): Storage | null { try { return typeof window === 'undefined' ? null : window.localStorage; } catch { return null; } }
+// Through the app storage (per account; the Showcase tab's own storage there), as the device records are (security delta, Info).
+function store(): Storage | null { try { return typeof window === 'undefined' ? null : getAppStorage(); } catch { return null; } }
 function read(): ReadonlySet<string> {
   let raw: string | null = null;
   try { raw = store()?.getItem(WEALTH_FOLDS_KEY) ?? null; } catch { raw = null; }

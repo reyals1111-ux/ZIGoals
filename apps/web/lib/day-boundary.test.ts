@@ -1,4 +1,4 @@
-import {describe, expect, test} from 'vitest';
+import {afterAll, beforeAll, describe, expect, test, vi} from 'vitest';
 import {activityDay, chooseDayEnd, dayEndsSchema, dayUnder, emptyDayEnds, type DayEnds} from './day-boundary';
 
 const at = (iso: string) => new Date(iso);
@@ -34,6 +34,9 @@ describe('My day ends at (C-DVG-22): the wall clock in the day\'s zone decides',
 });
 
 describe('owner rule 1: a change never re-dates the past and never breaks a streak by itself', () => {
+  // The walks below are dated after this file was written; the clock is set after them (a change in the future is ignored).
+  beforeAll(() => { vi.useFakeTimers({toFake: ['Date']}); vi.setSystemTime(new Date('2027-01-01T00:00:00Z')); });
+  afterAll(() => { vi.useRealTimers(); });
   const walk = (s: DayEnds, zone: string, from: string, hours: number) => Array.from({length: hours * 2 + 1}, (_, i) => activityDay(s, new Date(Date.parse(from) + i * 1_800_000), zone));
   const monotonic = (days: string[]) => days.every((d, i) => i === 0 || d >= days[i - 1]!);
   const distinct = (days: string[]) => [...new Set(days)];
@@ -78,6 +81,10 @@ describe('owner rule 1: a change never re-dates the past and never breaks a stre
     expect(monotonic(days)).toBe(true);
     expect(days[0]).toBe('2026-10-25');
     expect(distinct(days)).toEqual(['2026-10-25', '2026-10-26']);
+  });
+  test('a change dated in the future is ignored: the chosen end applies (security delta, Low)', () => {
+    const s = {version: 1 as const, endsAt: 0, change: {at: '9999-01-01T00:00:00.000Z', from: 360}};
+    expect(activityDay(s, at('2026-11-14T04:00:00Z'), BXL)).toBe('2026-11-14'); // 05:00 CET: midnight rules, not 06:00
   });
   test('choosing the same end changes nothing', () => {
     const s = emptyDayEnds();

@@ -171,6 +171,12 @@ const checklistDaysSlice: PartSlice = {
   replace: (current, backup) => { const {today: _drop, ...rest} = isObject(backup) ? backup : {version: 1, days: {}}; void _drop; return {...rest, ...(isObject(current) && current.today !== undefined ? {today: current.today} : {})}; },
   summarize: v => { const d = Object.keys(daysOf(v)).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort(); return {counts: countOf(d.length === 1 ? 'day recorded' : 'days recorded', Object.keys(daysOf(v)).length), from: d[0] ?? null, through: d.at(-1) ?? null}; },
 };
+const realHistory = (v: unknown): v is Record<string, unknown> => isObject(v) && v.example === undefined;
+const networthSlice: PartSlice = {
+  pick: v => realHistory(v) ? v : {version: 1, days: []},
+  has: v => realHistory(v) && Array.isArray(v.days) && v.days.length > 0,
+  replace: (current, backup) => realHistory(backup) ? backup : current ?? {version: 1, days: []},
+};
 const checklistParts: readonly DevicePart[] = [
   {...dev('checklist', 'Checklist path and favourites', 'Today and Life', CHECKLIST), slice: checklistPathSlice},
   {...dev('checklistHealth', 'Checklist Health quick inputs', 'Health', CHECKLIST, true), name: 'checklist', slice: checklistHealthSlice},
@@ -244,7 +250,9 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   memoryPart(false), memoryPart(true),
   dev('networthMilestones', 'Net-worth milestones', 'Goals and Wealth', NETWORTH_MILESTONES),
   // Session AO (backlog #11): net worth by source, one snapshot per day Wealth was opened (Merge adds the backup's other days).
-  dev('networthHistory', 'Net worth by source (recorded days)', 'Goals and Wealth', NETWORTH_HISTORY),
+  // Session AO security delta (Medium): a Showcase example history (`example`) never enters this device's real record, by
+  // Replace or Merge (merged in, it would later be replaced whole by the next real snapshot and take the real days with it).
+  {...dev('networthHistory', 'Net worth by source (recorded days)', 'Goals and Wealth', NETWORTH_HISTORY), slice: networthSlice},
   dev('savingsChallenges', 'Savings challenges', 'Goals and Wealth', SAVINGS_CHALLENGES),
   dev('debtPlanner', 'Debt payoff planner', 'Goals and Wealth', DEBT_PLANNER),
   dev('wrapped', 'ZIGoals Wrapped', 'Today and Life', WRAPPED),

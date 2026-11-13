@@ -20,7 +20,8 @@ export const AO_EXPORT_KEYS = {dayEnds: DAY_ENDS_KEY_LITERAL, networthHistory: N
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AO_CATALOG_LABELS = {
   dayEnds: ['My day ends at (when habits, the Checklist and streaks start a new day)', 'Settings'],
-  networthHistory: ['Net worth by source: one snapshot per day you opened Wealth', 'Wealth'],
+  // Security delta (Low): it names the items that had no value on a day (accounts, portfolios, wallets) until it is erased.
+  networthHistory: ['Net worth by source: one snapshot per day you opened Wealth (with the names of items that had no value)', 'Wealth'],
 } as const;
 /** The account erase (`lib/aa-device-forget.ts`): every key above. */
 export const AO_ERASE_KEYS: readonly string[] = [...AO_PERSONAL_KEYS, ...AO_DISPLAY_KEYS];

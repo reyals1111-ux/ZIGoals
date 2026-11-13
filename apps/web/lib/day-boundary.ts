@@ -45,7 +45,9 @@ export function dayUnder(endsAt: number, now: Date, zone: string | null): string
 /** The day `now` counts for under a stored setting, with owner rule 1's change rule. */
 export function activityDay(setting: DayEnds, now: Date, zone: string | null): string {
   const change = setting.change;
-  if (!change) return dayUnder(setting.endsAt, now, zone);
+  // Session AO security delta (Low): a change dated in the future (a restored record, a clock set back) is ignored, so it can
+  // never keep an old end in force while Settings shows the new one.
+  if (!change || Date.parse(change.at) > Date.now() + 5 * 60_000) return dayUnder(setting.endsAt, now, zone);
   const at = new Date(change.at);
   if (now.getTime() < at.getTime()) return dayUnder(change.from, now, zone);
   const oldAtChange = dayUnder(change.from, at, zone);

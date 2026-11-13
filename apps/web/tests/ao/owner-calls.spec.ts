@@ -1,6 +1,5 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from '../ah-helpers';
-import {WEALTH_FOLDS_KEY} from '../../lib/wealth-folds';
 
 /** Session AO: the owner calls of 13 Nov (ADR-039 Part 2), each where a person meets it. Fictional data only. */
 test.beforeEach(async ({page}) => { await offlineApi(page); });
@@ -16,7 +15,6 @@ test('RR-16: Showcase Wealth at 1440 folds its long sections; an opened one is r
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThan(11_000);
   await history.click();
   await expect(history).toHaveAttribute('aria-expanded', 'true');
-  expect(JSON.parse((await page.evaluate(k => localStorage.getItem(k), WEALTH_FOLDS_KEY))!)).toEqual({version: 1, open: ['wealth:history']});
   await page.reload(); await hydrated(page);
   await expect(page.getByRole('button', {name: /^Your wealth over time/})).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('button', {name: /^Budgets by category/})).toHaveAttribute('aria-expanded', 'false');
