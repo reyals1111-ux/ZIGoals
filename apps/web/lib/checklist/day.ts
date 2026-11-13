@@ -1,5 +1,6 @@
 import {deviceTimeZone, journalTimeZone} from '../journal-zone';
 import {addDays} from '../zone-time';
+import {boundaryDay, currentDayEnds} from '../day-boundary';
 import {checklistDaysSchema, type ChecklistDaySummary, type ChecklistDays, type ChecklistToday} from './schema';
 
 /**
@@ -12,7 +13,8 @@ export function zonedDay(now: Date, zone: string): string {
   return `${get('year')}-${get('month')}-${get('day')}`;
 }
 export const checklistZone = (): string => journalTimeZone() ?? deviceTimeZone();
-export const checklistDay = (now = new Date(), zone = checklistZone()): string => zonedDay(now, zone);
+// Session AO (C-DVG-22): the Checklist's day rule is unchanged; only where the day ends follows "My day ends at".
+export const checklistDay = (now = new Date(), zone = checklistZone()): string => currentDayEnds().endsAt || currentDayEnds().change ? boundaryDay(now, zone) : zonedDay(now, zone);
 
 export const MAX_SEALED_DAYS = 400, BACKFILL_DAYS = 14;
 const emptyToday = (date: string): ChecklistToday => ({date, ticks: [], custom: [], nudged: []});

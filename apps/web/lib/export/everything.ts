@@ -95,6 +95,7 @@ import {WALLET_EXPORT_KEYS} from '../af-wallet-keys';
 import {AF_ZIGI_EXPORT_KEYS} from '../af-zigi-keys';
 import {AF_EXTRAS_EXPORT_KEYS} from '../af-extras-keys';
 import {AL_EXPORT_KEYS} from '../al-device-keys';
+import {AO_EXPORT_KEYS} from '../ao-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -219,7 +220,9 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // syncs (extras section) and since Session AL it restores (lib/restore/plan.ts, today's ticks excepted).
   ...EARN_EXPORT_KEYS, ...AF_CHECKLIST_EXPORT_KEYS, stakingJournal: STAKING_JOURNAL_KEY, stakingPrefs: STAKING_PREFS_KEY, validatorAlerts: VALIDATOR_ALERTS_KEY, ...WALLET_EXPORT_KEYS, ...AF_ZIGI_EXPORT_KEYS, ...AF_EXTRAS_EXPORT_KEYS,
   // Session AL (lib/al-device-keys.ts): the Apps & extras display choices (O3, O4).
-  ...AL_EXPORT_KEYS} as const;
+  ...AL_EXPORT_KEYS,
+  // Session AO (lib/ao-device-keys.ts): "My day ends at".
+  ...AO_EXPORT_KEYS} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',

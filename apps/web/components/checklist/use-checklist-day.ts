@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react';
 import {checklistDay, checklistZone} from '../../lib/checklist/day';
 import {everyHalfMinute} from '../half-minute';
 import {useJournalZone} from '../use-journal-zone';
+import {subscribeDayEnds} from '../../lib/day-boundary';
 
 /**
  * The Checklist's day in a component (ADR-028 H66): local midnight in the journal zone, else the device's. Read after
@@ -16,7 +17,8 @@ export function useChecklistDay(): {date: string | null; zone: string | null} {
     refresh();
     const stop = everyHalfMinute(refresh), onVisible = () => { if (document.visibilityState === 'visible') refresh(); };
     window.addEventListener('focus', refresh); document.addEventListener('visibilitychange', onVisible);
-    return () => { stop(); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', onVisible); };
+    const unsubscribe = subscribeDayEnds(refresh);
+    return () => { stop(); unsubscribe(); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', onVisible); };
   }, [journal]);
   return state;
 }

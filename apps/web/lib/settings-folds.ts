@@ -78,7 +78,7 @@ export function listPhrase(parts: readonly string[]): string {
 const SUMMARY: Record<SettingsGroupId, [part: string, chain?: true][]> = {
   'settings-look': [['Theme'], ['motion'], ['font, text size and density']],
   'settings-data': [['Your data'], ['backups'], ['export everything'], ['import from other apps'], ['erase everything']],
-  'settings-app': [['Plan'], ['pages & buttons'], ['Checklist'], ['Earn and Staking choices', true], ['time zone'], ['wrap-up'], ['music'], ['links']],
+  'settings-app': [['Plan'], ['pages & buttons'], ['Checklist'], ['Earn and Staking choices', true], ['time zone'], ['my day ends at'], ['wrap-up'], ['music'], ['links']],
   'settings-areas': [['Habits'], ['Health targets'], ['chess'], ['Guide'], ['install'], ['notifications'], ['reminders'], ['market data']],
   'settings-account': [['Account & sync'], ['the PIN screen cover'], ['wallet & network', true]],
   'settings-zigi': [['ZIGi’s settings'], ['NOVA’s command center']],

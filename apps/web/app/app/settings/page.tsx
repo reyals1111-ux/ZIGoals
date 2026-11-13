@@ -42,6 +42,7 @@ import { HeaderArtCorner, OrbitArt } from "../../../components/header-art/orbit-
 import { SettingsGlyph } from "../../../components/header-art/glyphs/settings";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 import { TimeZoneSettings } from "../../../components/settings/time-zone-settings";
+import { DayEndsSetting } from "../../../components/settings/day-ends-setting";
 import { KeepSettingsJump } from "../../../components/settings/keep-jump";
 import { SettingsRenderAll } from "../../../components/settings/settings-render-all";
 import { WrapUpSettings } from "../../../components/settings/wrap-up-settings";
@@ -244,6 +245,8 @@ export default function Settings() {
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>
         <TimeZoneSettings/>
+        {/* Session AO (C-DVG-22): "My day ends at", beside the time zone. */}
+        <DayEndsSetting/>
         <WrapUpSettings/>
         <MusicSettings/>
         <LinksSettings/>

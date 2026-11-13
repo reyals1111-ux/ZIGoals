@@ -8,6 +8,7 @@ import { shareHabitData } from "../../lib/habit-sharing";
 import {scheduleHabitEdit,scheduleHabitState,earliestHabitChange} from "../../lib/habit-actions";
 import { deletedHabitIds, isDeletedHabit, withoutDeletedHabits, type DeletedHabit } from "../../lib/habit-delete";
 import { localDate } from "../../lib/local-date";
+import { subscribeDayEnds } from "../../lib/day-boundary";
 import { installMonthWeekdayOverlay } from "../../lib/habit-month-weekday/install";
 
 // Session AK F0 (5.1): "the first Monday of the month" reads its overlay from the habit extras in the browser (lib/habits.ts setHabitScheduleOverlay).
@@ -66,7 +67,8 @@ export function useHabits() {
     refreshDate();
     const stop = everyHalfMinute(refreshDate);
     window.addEventListener("focus", refreshDate);
-    return () => { stop(); window.removeEventListener("focus", refreshDate); };
+    const unsubscribe = subscribeDayEnds(refreshDate); // Session AO (C-DVG-22): a new "My day ends at" applies at once
+    return () => { stop(); unsubscribe(); window.removeEventListener("focus", refreshDate); };
   }, [timeZone, journal]);
   // Actions depend only on the store's update, so their identity is stable once the store has loaded.
   const update = store.update;

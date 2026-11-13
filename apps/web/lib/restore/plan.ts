@@ -46,6 +46,7 @@ import {FOOD_SCANS} from '../food-scans/schema';
 import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
 import {HEALTH_EXTRAS} from '../health-extras';
 import {PROFILE_NAME} from '../onboarding-setup';
+import {DAY_ENDS_RECORD} from '../day-boundary';
 import {WATCHLIST_MORE} from '../markets-watchlist-more';
 import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
@@ -67,6 +68,7 @@ import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
 import {NETWORTH_MILESTONES} from '../networth-milestones/milestones';
 import {SAVINGS_CHALLENGES} from '../savings-challenges/challenges';
+import {NETWORTH_HISTORY} from '../networth-history';
 import {DEBT_PLANNER} from '../debt-planner/store';
 import {WRAPPED} from '../wrapped/store';
 import {AGENDA} from '../agenda/store';
@@ -224,6 +226,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('profileName', 'Your name for the greeting', 'Today and Life', PROFILE_NAME),
   // Session AL (C-TK-20): Markets favourites beyond the synced eight.
   dev('watchlistMore', 'More Markets favourites', 'Goals and Wealth', WATCHLIST_MORE),
+  // Session AO (C-DVG-22): "My day ends at" (a restore never re-dates the days it brings back).
+  dev('dayEnds', 'My day ends at', 'Today and Life', DAY_ENDS_RECORD),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),
   dev('healthNumbers', 'Your numbers (blood pressure and lab values)', 'Health', HEALTH_NUMBERS, true),
@@ -239,6 +243,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AK WA (N7): ZIGi's and NOVA's one memory; its health and diet notes only with the Health choice.
   memoryPart(false), memoryPart(true),
   dev('networthMilestones', 'Net-worth milestones', 'Goals and Wealth', NETWORTH_MILESTONES),
+  // Session AO (backlog #11): net worth by source, one snapshot per day Wealth was opened (Merge adds the backup's other days).
+  dev('networthHistory', 'Net worth by source (recorded days)', 'Goals and Wealth', NETWORTH_HISTORY),
   dev('savingsChallenges', 'Savings challenges', 'Goals and Wealth', SAVINGS_CHALLENGES),
   dev('debtPlanner', 'Debt payoff planner', 'Goals and Wealth', DEBT_PLANNER),
   dev('wrapped', 'ZIGoals Wrapped', 'Today and Life', WRAPPED),

@@ -1,10 +1,12 @@
 import * as z from "zod";
 import { addLocalDays, localDate, localWeekday } from "./local-date";
 import { journalTimeZone } from "./journal-zone";
+import { boundaryDay, currentDayEnds } from "./day-boundary";
 import { formatDate, formatNumber } from "./visual-format";
 import { unitAmountText } from "./plural";
 import { minutesIssue, within } from "./limits/plausibility";
 import { durationCountText } from "./habit-number";
+import { TEXT_LIMITS } from "./limits/text"; // Session AO (M-011): the one table
 
 export const HABITS_KEY = "zigoals:habits:v1";
 const dateSchema = z.string().regex(/^20\d{2}-\d{2}-\d{2}$|^21\d{2}-\d{2}-\d{2}$/).refine((value) => {
@@ -41,7 +43,7 @@ const endConditionSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("goal"), goal: habitGoalLinkSchema }).strict(),
 ]);
 const inputShape = z.object({
-  title: z.string().trim().min(1).max(100), category: z.string().trim().min(1).max(50), description: z.string().max(500), notes: z.string().max(2000), goalLink: habitGoalLinkSchema.optional(),
+  title: z.string().trim().min(1).max(TEXT_LIMITS.habitTitle), category: z.string().trim().min(1).max(50), description: z.string().max(500), notes: z.string().max(2000), goalLink: habitGoalLinkSchema.optional(),
   type: z.enum(["build", "quit", "limit"]).default("build"), measurement: habitMeasurementSchema.default({ kind: "count", unit: "times" }), schedule: habitScheduleSchema,
   target: valueSchema, targetPeriod: z.enum(["day", "week", "month", "year"]).default("day"), timeOfDay: z.enum(["anytime", "morning", "afternoon", "evening"]).default("anytime"),
   endCondition: endConditionSchema.default({ kind: "none" }), stackAfterId: z.uuid().optional(),
@@ -76,7 +78,7 @@ const timezoneSchema=z.string().min(1).max(100).refine(value=>{try{new Intl.Date
 const timerSchema=z.object({id:z.uuid(),startedAt:timestampSchema,date:dateSchema,timeZone:timezoneSchema,ruleFingerprint:z.string().max(5000),unit:z.enum(['minutes','hours']),state:z.enum(['running','paused']),segmentStartedAt:timestampSchema,pausedAt:timestampSchema.optional(),elapsedMs:z.number().int().min(0).max(604800000)}).strict().refine(t=>Date.parse(t.segmentStartedAt)>=Date.parse(t.startedAt)&&(t.state==='paused'?!!t.pausedAt&&Date.parse(t.pausedAt)>=Date.parse(t.segmentStartedAt):!t.pausedAt),'Invalid saved timer timestamps or state.');
 const timerReceiptSchema=z.object({id:z.uuid(),timerId:z.uuid().optional(),date:dateSchema,startedAt:timestampSchema,endedAt:timestampSchema,elapsedMs:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),timeZone:timezoneSchema,ruleFingerprint:z.string().max(5000),unit:z.enum(['minutes','hours']),value:valueSchema,status:z.enum(['logged','discarded']),recordedAt:timestampSchema}).strict();
 const habitSchema = z.object({
-  id: z.uuid(), title: z.string().trim().min(1).max(100), category: z.string().trim().min(1).max(50), description: z.string().max(500), notes: z.string().max(2000), goalLink: habitGoalLinkSchema.optional(),
+  id: z.uuid(), title: z.string().trim().min(1).max(TEXT_LIMITS.habitTitle), category: z.string().trim().min(1).max(50), description: z.string().max(500), notes: z.string().max(2000), goalLink: habitGoalLinkSchema.optional(),
   timeOfDay: z.enum(["anytime", "morning", "afternoon", "evening"]), endCondition: endConditionSchema, stackAfterId: z.uuid().optional(), startDate: dateSchema,
   ruleRevisions:z.array(z.object({id:z.string().max(250),recordedAt:timestampSchema,source:z.enum(['retained','scheduled']),rule:ruleSchema}).strict()).max(4000).optional(),
   timer:timerSchema.optional(),timerReceipts:z.array(timerReceiptSchema).max(10000).optional(),
@@ -116,7 +118,7 @@ const v1ScheduleSchema = z.discriminatedUnion("kind", [z.object({ kind: z.litera
 const v1RuleSchema = z.object({ from: dateSchema, schedule: v1ScheduleSchema, target: z.number().int().min(1).max(10000), state: z.enum(["active", "paused", "archived"]) }).strict();
 const v1EntrySchema = z.object({ date: dateSchema, count: z.number().int().min(0).max(10000), note: z.string().max(2000), updatedAt: timestampSchema }).strict();
 const v1HabitSchema = z.object({
-  id: z.uuid(), title: z.string().trim().min(1).max(100), category: z.string().trim().min(1).max(50), description: z.string().max(500), notes: z.string().max(2000), goalLink: habitGoalLinkSchema.optional(),
+  id: z.uuid(), title: z.string().trim().min(1).max(TEXT_LIMITS.habitTitle), category: z.string().trim().min(1).max(50), description: z.string().max(500), notes: z.string().max(2000), goalLink: habitGoalLinkSchema.optional(),
   startDate: dateSchema, createdAt: timestampSchema, updatedAt: timestampSchema, rules: z.array(v1RuleSchema).min(1).max(2000), entries: z.array(v1EntrySchema).max(20000),
 }).strict().superRefine((habit, context) => {
   if (habit.rules[0]!.from !== habit.startDate || habit.rules.some((rule, index) => index > 0 && rule.from <= habit.rules[index - 1]!.from)) context.addIssue({ code: "custom", message: "Invalid V1 rule history." });
@@ -144,6 +146,8 @@ export const habitDataSchema: z.ZodType<HabitData> = z.union([habitDataV3Schema,
 /** The Habit journal's day: the Habits zone (an override), then the journal zone (Session W Part 17, T2-A), then the device's. */
 export function habitCalendarDay(data:Pick<HabitData,'timeZone'>,now=new Date()):string{
  const zone=data.timeZone??journalTimeZone();
+ // Session AO (C-DVG-22): "My day ends at" (lib/day-boundary.ts); at midnight, the default, exactly the calendar day as before.
+ if(currentDayEnds().endsAt||currentDayEnds().change)return dateSchema.parse(boundaryDay(now,zone?timezoneSchema.parse(zone):null));
  if(!zone)return localDate(now);
  const parts=new Intl.DateTimeFormat('en',{timeZone:timezoneSchema.parse(zone),year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),get=(type:string)=>parts.find(p=>p.type===type)!.value;
  return dateSchema.parse(`${get('year')}-${get('month')}-${get('day')}`);
@@ -154,6 +158,13 @@ export function clearHabitTimezone(data:HabitData):HabitData{if(data.timeZone===
 export function emptyHabitData(): HabitData { return { schemaVersion: 2, kind: "zigoals-habits", habits: [] }; }
 export function habitRuleOn(habit: Habit, date: string): HabitRule | undefined { for (let index = habit.rules.length - 1; index >= 0; index--) if (habit.rules[index]!.from <= date) return habit.rules[index]; return undefined; }
 export function latestHabitRule(habit: Habit): HabitRule { return habit.rules[habit.rules.length - 1]!; }
+/** Session AO (LS-H29): an active habit already called `title` (outer spaces and letter case ignored), other than `exceptId`. */
+export function activeHabitNamed(habits: readonly Habit[], title: string, exceptId?: string): Habit | undefined {
+  const name = title.trim().toLocaleLowerCase();
+  return name ? habits.find(h => h.id !== exceptId && latestHabitRule(h).state === "active" && h.title.trim().toLocaleLowerCase() === name) : undefined;
+}
+/** Session AO (LS-H29): the one sentence for a habit name already in use; saving stays allowed (a second habit is made). */
+export const sameHabitNameNotice = (title: string) => `You already have a habit called “${title.trim()}”.`;
 export function goalLinkMatches(link: HabitGoalLink | undefined, scope: HabitGoalLink): boolean { return !!link && link.chainId === scope.chainId && link.owner === scope.owner && link.goalId === scope.goalId; }
 function replaceHabit(data: HabitData, id: string, transform: (habit: Habit) => Habit): HabitData {
   if (!data.habits.some((habit) => habit.id === id)) throw new Error("This habit is no longer available. Refresh and try again.");

@@ -8,6 +8,7 @@ import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
 import { Fragment, Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { setJournalTimeZone } from "../lib/journal-zone";
+import { useDayEndsKeeper } from "./day-ends-keeper";
 import { refreshPagesChain, setSyncedPages } from "../lib/pages/view-store";
 import { useChainChoice } from "./chain/use-chain-choice";
 import { homeHref, isShown, pageIdForPath } from "../lib/pages/visibility";
@@ -32,6 +33,7 @@ import "./charts/charts.css";
 import { LazyThemeSwitch as ThemeSwitch } from "./shell/theme-switch-lazy";
 import { AlphaFacts } from "./alpha/alpha-facts";
 import { GamifyButton } from "./game/gamify-button";
+import { useStatusRowWords } from "./shell/header-words"; // Session AO (D-070, DV-247): the status row's words where they fit
 import { PHONE_STATUS_EVENT } from "./phone/phone-status-event";
 import {useWorkspaceSelection} from './workspace-status';
 import {usePrivateStore} from './use-private-store';
@@ -110,6 +112,8 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   // unreadable settings record leaves no journal zone: days follow each module's zone, then the device's, as before.
   const journalZone=preferences.loaded&&!preferences.error?preferences.data.journalTimeZone??null:null;
   useLayoutEffect(()=>{setJournalTimeZone(journalZone,preferences.loaded);},[journalZone,preferences.loaded]);
+  // Session AO (C-DVG-22): "My day ends at" is set from this device's record in the same way (components/day-ends-keeper.tsx).
+  useDayEndsKeeper();
   // Session W Part 2: the pages and buttons that show, from the same settings read, for the whole shell at once (a
   // layout effect, so the sidebar and tab bar change in the same frame as the settings arrive); unreadable settings show
   // every page. A bare /app may move to the person's start page before Today renders (use-start-page.ts).
@@ -121,7 +125,8 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   useLayoutEffect(()=>{refreshPagesChain(chain.wallet);},[chain.wallet,chain.linkedWallets,chain.earn.pageShown,chain.earn.governanceShown,showcase]);
   const pagesView=usePagesView(),startHold=useStartPage(pagesState,pagesView),pathname=usePathname();
   const hiddenPage=pagesState==="ready"?pageIdForPath(pathname):null,showQuickAdd=isShown(pagesView,"quick-add");
-  const dialog = useRef<HTMLDialogElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null), statusRow = useRef<HTMLDivElement>(null);
+  useStatusRowWords(statusRow);
   const compact = useCompactShell(), phoneChrome = usePhoneActive(), railApps = compact && !phoneChrome;
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
@@ -222,7 +227,11 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
       <div className="workspace" aria-busy={!selection.ready||!preferences.loaded||startHold} style={{visibility:selection.ready&&preferences.loaded&&!startHold?undefined:"hidden"}}>
         {/* The status row (Session AB-Design): the Showcase chip on the left; the wallet buttons (computers; phones reach them in More → Status & wallet), the page's own tools, Gamify and the layout lock on the right.
             Session AE (Part 1, ADR-027; owner): the demo balance is no longer repeated here or in the phone's Status sheet; Today's wallet card shows the simulated balance. */}
-        <div className="status-row">
+        {/* Session AO (DV-258c/D-013/D-194, owner decision 13 Nov): one header on every page, phones included. The right-hand
+            cluster is always, in this order: the page's own extras (Habits' Vacation), the shared Game layer, then the layout
+            lock, only on a page that can be rearranged (LayoutLockButton); each keeps its slot. Its icons show their words
+            wherever the row holds them on one line (components/shell/header-words.ts). */}
+        <div className="status-row" ref={statusRow}>
         <ShowcaseChip/>
         {/* Session AL (N-LS-01, P-LS-69): computers had Quick add only in Today's hero (the sidebar's copy is hidden there, the
             sidebar's layout PROTECTED), so on every other page it could not be reached. It sits here, in the status row Gamify
