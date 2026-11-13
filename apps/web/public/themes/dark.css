@@ -20540,6 +20540,42 @@
         color: var(--text-meta,var(--muted))
     }
 }
+/*  components/wealth/networth-history.css  */
+@scope (:root[data-theme=dark]) {
+    .networth-history:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .networth-series:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--surface-0) 40%, transparent)
+    }
+    .networth-series-latest small:not(#\-), .networth-series-missing:not(#\-) {
+        color: var(--muted)
+    }
+    .networth-spark-base:not(#\-) {
+        stroke: var(--line)
+    }
+    .networth-spark-line:not(#\-) {
+        fill: none;
+        stroke: var(--brand-cyan)
+    }
+    .networth-spark-dot:not(#\-) {
+        fill: var(--brand-cyan)
+    }
+    .networth-spark-unknown:not(#\-) {
+        fill: var(--muted)
+    }
+    .networth-days th:not(#\-), .networth-days td:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .networth-gap-row td:not(#\-) {
+        color: var(--muted)
+    }
+    :scope[data-hide-amounts="on"] .networth-spark:not(#\-) {
+        filter: blur(7px)
+    }
+}
 /*  components/wealth/networth-milestones.css  */
 @scope (:root[data-theme=dark]) {
     .nwm-celebration:not(#\-) {

@@ -1718,6 +1718,7 @@
 :where(:root[data-text=large]) .year-pixels-months:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .year-pixels-legend:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/layout-edit.css  */
+:where(:root[data-text=large]) .layout-lock-word:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .layout-move:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .layout-bar p:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/life-pages.css  */
@@ -2239,6 +2240,7 @@
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .phone-status-sheet .phone-status-mode strong:not(#\-) { font-size: calc(15px * 1.125); } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .phone-status-sheet .wallet button:not(#\-) { font-size: calc(15px * 1.125); } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .app-content > .private-read-delay h2:not(#\-) { font-size: calc(19px * 1.125); } }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .phone-wealth[data-words] .phone-wealth-word:not(#\-) { font-size: calc(14px * 1.125); } }
 /*  components/phone/phone-today.css  */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .today-page .today-hero .today-lede:not(#\-) { font-size: calc(16px * 1.125); } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .today-page .today-hero .hero-actions :is(a, button):not(#\-) { font-size: calc(16px * 1.125); } }
@@ -3092,6 +3094,12 @@
 :where(:root[data-text=large]) .fi-summary:not(#\-) { font-size: calc(17px * 1.125); }
 :where(:root[data-text=large]) .fi-table th small:not(#\-) { font-size: calc(12px * 1.125); }
 @media (max-width:400px) { :where(:root[data-text=large]) .fi-table:not(#\-) { font-size: calc(13px * 1.125); } }
+/*  components/wealth/networth-history.css  */
+:where(:root[data-text=large]) .networth-history h3:not(#\-) { font-size: calc(1.15rem * 1.125); }
+:where(:root[data-text=large]) .networth-series h4:not(#\-) { font-size: calc(.95rem * 1.125); }
+:where(:root[data-text=large]) .networth-series-latest strong:not(#\-) { font-size: calc(1.2rem * 1.125); }
+:where(:root[data-text=large]) .networth-series-latest small:not(#\-), :where(:root[data-text=large]) .networth-series-missing:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .networth-days:not(#\-) { font-size: calc(.875rem * 1.125); }
 /*  components/wealth/networth-milestones.css  */
 :where(:root[data-text=large]) .nwm-celebration h3:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .nwm-symbol:not(#\-) { font-size: calc(22px * 1.125); }

@@ -1271,6 +1271,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .checklist-quick-days .checklist-quick-chip > span:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .checklist-quick-row:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .checklist-quick-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .checklist-quick-same-name:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .checklist-quick-fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .checklist-options-head:not(#\-) { row-gap: 9px; }
 :where(:root[data-density=compact]) .checklist-options-head h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -1958,6 +1959,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .gamify-switch .gamify-state:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .gamify-note:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .gamify-journey:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .status-row[data-words] .gamify-trigger:not(#\-) { row-gap: 8px; }
 /*  components/goal-card-ab.css  */
 :where(:root[data-density=compact]) .goal-card-more:not(#\-) { margin-top: 4.5px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .goal-card-more > summary:not(#\-) { row-gap: 7.5px; padding-top: 6px; padding-bottom: 6px; }
@@ -3347,6 +3349,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .year-pixels-entries:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
 /*  components/layout-edit.css  */
 :where(:root[data-density=compact]) .layout-lock:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .status-row[data-words] .layout-lock:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .status-row:not(#\-) { row-gap: 9px; }
 :where(:root[data-density=compact]) .status-row:has(.layout-lock):not(#\-) { margin-bottom: 6px; }
 @media (max-width:700px) { :where(:root[data-density=compact]) .status-row > .layout-lock-slot:not(#\-) { margin-bottom: 6px; } }
@@ -4511,6 +4514,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-tab:not(#\-) { row-gap: 8px; } }
 @media (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .app-topbar:not(#\-) { padding-top: 2px; padding-bottom: 2px; } }
 :root:where([data-density=compact]) .phone-topbar .phone-title.sr-only:not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .phone-wealth[data-words]:not(#\-) { row-gap: 1px; padding-top: 0; padding-bottom: 0; } }
 /*  components/phone/phone-targets.css  */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .goal-card h2.nebula-number > a:not(#\-), :root:where([data-density=compact]) .intelligence-heading h2 > a:not(#\-), :root:where([data-density=compact]) .funding-agenda h3 > a:not(#\-), :root:where([data-density=compact]) .market-product-card > header h2 > a:not(#\-), :root:where([data-density=compact]) .nutrition-meal-timeline > li > div > a:not(#\-), :root:where([data-density=compact]) .activity-page .unified-activity .activity-event-content > a:not(#\-) { padding-top: max(0px, calc((44px - 1lh) / 2 + 0.5px)); padding-bottom: max(0px, calc((44px - 1lh) / 2 + 0.5px)); margin-top: min(0px, calc((1lh - 44px) / 2 - 0.5px)); margin-bottom: min(0px, calc((1lh - 44px) / 2 - 0.5px)); } }
 /*  components/phone/phone-today.css  */
@@ -6141,6 +6145,17 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .fi-legend:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .fi-legend li:not(#\-) { row-gap: 6px; }
 @media (max-width:400px) { :where(:root[data-density=compact]) .fi-table th:not(#\-), :where(:root[data-density=compact]) .fi-table td:not(#\-) { padding-top: 5px; padding-bottom: 5px; } }
+/*  components/wealth/networth-history.css  */
+:where(:root[data-density=compact]) .networth-history:not(#\-) { row-gap: 10px; margin-top: 26px; padding-top: 20px; }
+:where(:root[data-density=compact]) .networth-history h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .networth-history-since:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .networth-history-grid:not(#\-) { row-gap: 10.5px; }
+:where(:root[data-density=compact]) .networth-series:not(#\-) { row-gap: 8px; padding-top: 16px; padding-bottom: 16px; }
+:where(:root[data-density=compact]) .networth-series h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .networth-series-latest:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .networth-series-missing:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .networth-days caption:not(#\-) { padding-bottom: 6px; }
+:where(:root[data-density=compact]) .networth-days th:not(#\-), :where(:root[data-density=compact]) .networth-days td:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
 /*  components/wealth/networth-milestones.css  */
 :where(:root[data-density=compact]) .nwm:not(#\-) { row-gap: 10px; margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .nwm-celebration:not(#\-) { row-gap: 12px; padding-top: 14px; padding-bottom: 14px; }

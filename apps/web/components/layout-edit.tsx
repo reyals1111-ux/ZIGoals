@@ -77,6 +77,8 @@ export function PageTools({children}: {children: ReactNode}) {
   useEffect(() => { setSlot(document.getElementById(PAGE_TOOLS_SLOT)); }, []);
   return slot ? createPortal(children, slot) : null;
 }
+/* Session AO (D-070, DV-247, owner decision 13 Nov): its visible word ("Unlock layout" / "Lock layout", inside its name) shows
+   wherever the status row has room (components/shell/header-words.ts); only pages that can be rearranged render it. */
 /** The page's lock: "Unlock layout to rearrange" / "Lock layout". It always renders into the Shell's slot, so it sits in the same spot on every page. */
 export function LayoutLockButton() {
   const context = useLayoutPage();
@@ -84,7 +86,7 @@ export function LayoutLockButton() {
   useEffect(() => { setSlot(document.getElementById(LAYOUT_LOCK_SLOT)); }, []);
   if (!context || !slot) return null;
   const {unlocked, setUnlocked, announce} = context;
-  return createPortal(<button type="button" className="layout-lock" data-unlocked={unlocked || undefined} aria-label={unlocked ? 'Lock layout' : 'Unlock layout to rearrange'} title={unlocked ? 'Lock layout' : 'Rearrange this page'} onClick={() => { setUnlocked(!unlocked); announce(unlocked ? 'Layout locked.' : 'Layout unlocked. Use the arrow buttons on a card, or drag its handle, to rearrange.'); }}><LockIcon open={unlocked}/></button>, slot);
+  return createPortal(<button type="button" className="layout-lock" data-unlocked={unlocked || undefined} aria-label={unlocked ? 'Lock layout' : 'Unlock layout to rearrange'} title={unlocked ? 'Lock layout' : 'Rearrange this page'} onClick={() => { setUnlocked(!unlocked); announce(unlocked ? 'Layout locked.' : 'Layout unlocked. Use the arrow buttons on a card, or drag its handle, to rearrange.'); }}><LockIcon open={unlocked}/><span className="layout-lock-word" aria-hidden="true">{unlocked ? 'Lock layout' : 'Unlock layout'}</span></button>, slot);
 }
 
 export type LayoutEntry = {id: string; label: string; node: ReactNode};

@@ -28,6 +28,7 @@ import { LogoMark, Wordmark } from "../brand-mark";
 import { LogoIntro } from "../logo-intro";
 import { QuickAdd } from "../quick-add";
 import { SearchButton } from "../search/search-trigger";
+import { useTopBarWord } from "../shell/header-words";
 import { OfflinePill } from "../offline-notice";
 import { entranceAllowed } from "../use-entrance";
 import { usePhoneActive, usePhoneChrome } from "./use-phone-layout";
@@ -81,6 +82,8 @@ const isNavPage = (href: string) => NAV_ITEMS.some(([h]) => h === href);
 const OFF_NAV_TITLES: Readonly<Record<string, string>> = {
   "/app/journey": "Journey", "/app/review": "Life review", "/app/journal": "Journal", "/app/guided": "Guided journeys",
   "/app/zigi/memory": "What ZIGi remembers", "/app/share": "Shared with ZIGoals",
+  // Session AO (DV-258c, owner decision 13 Nov): Notes and Tasks are navigation entries that show the logo, like the others.
+  "/app/notes": "Notes", "/app/tasks": "Tasks",
 };
 export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/goals/new") return { title: "New Goal", back: { href: "/app/goals", label: "Goals" } };
@@ -97,9 +100,8 @@ export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/timeline") return { title: "Day timeline", back: { href: "/app", label: "Today" } };
   // Owner follow-up 1 (F5): the agenda is reached from Today's timeline card and Search, so it leads back to Today.
   if (path === "/app/agenda") return { title: "Agenda", back: { href: "/app", label: "Today" } };
-  // Owner follow-up 2 (B, T1): Notes and Tasks are reached from Today, the Journal, the Agenda and search, so they lead back to Today.
-  if (path === "/app/notes") return { title: "Notes", back: { href: "/app", label: "Today" } };
-  if (path === "/app/tasks") return { title: "Tasks", back: { href: "/app", label: "Today" } };
+  // Owner follow-up 2 (B, T1) had Notes and Tasks lead "Back to Today". Session AO (DV-258c/D-013, owner decision 13 Nov): one
+  // header on every page, so they show the logo ("ZIGoals home") like the Journal and every navigation page (OFF_NAV_TITLES).
   if (path === "/app/stories") return { title: "Stories", back: { href: "/app", label: "Today" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
   return { title: item ? item[1] : OFF_NAV_TITLES[path] ?? "ZIGoals" };
@@ -147,15 +149,18 @@ function useTitleOnScroll(active: boolean, bar: RefObject<HTMLDivElement | null>
 }
 
 export function PhoneTopBar() {
-  const show = usePhoneChrome(), active = usePhoneActive(), path = usePathname(), bar = useRef<HTMLDivElement>(null);
+  const show = usePhoneChrome(), active = usePhoneActive(), path = usePathname(), bar = useRef<HTMLDivElement>(null), wealthLink = useRef<HTMLAnchorElement>(null);
   useVisualViewportInsets(active);
   usePressFeedback(active);
   useTitleOnScroll(active, bar, path);
   const { view, items } = useVisibleNav(), moreOpen = useMoreOpen(); // every hook before the early return
+  // Session AO (D-070, owner decision 13 Nov): the wallet shortcut's word, "Wealth", under its icon wherever the bar has room.
+  // Keyed on the path: the bar's buttons differ per page (the Checklist pill leaves on the Checklist).
+  const wealthShortcut = isShown(view, "wealth") && isShown(view, "wealth-shortcut");
+  useTopBarWord(wealthLink, active && show && wealthShortcut, path);
   if (!show) return null;
   // Session AL sweep 4 (D-159): Help steps back to Settings only when Settings' Help link opened it; otherwise the logo.
   const routed = phoneRoute(path), route = path === "/app/help" && !helpOpenedFromSettings() ? { title: routed.title } : routed, onWealth = isNavActive(path, "/app/wealth");
-  const wealthShortcut = isShown(view, "wealth") && isShown(view, "wealth-shortcut");
   // Session AB-Design (owner request 10, ADR-024 D2): More opens from the top bar; Settings and Help are its last rows.
   const moreCurrent = phoneTabs(items, isNavPage).more.some(([href]) => isNavActive(path, href));
   // Session AL third pass (P-LA-29, LA-024/N-LS-05): the bar is the page's banner landmark, so the logo, Back and its
@@ -174,7 +179,7 @@ export function PhoneTopBar() {
         <SearchButton className="phone-search" />
         <OfflinePill />
         {/* The wallet shortcut keeps its icon while that button is shown; Settings moved into More (Session AB-Design). */}
-        {wealthShortcut && <Link className="phone-wealth" href="/app/wealth" prefetch={navPrefetch("/app/wealth")} aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /></Link>}
+        {wealthShortcut && <Link ref={wealthLink} className="phone-wealth" href="/app/wealth" prefetch={navPrefetch("/app/wealth")} aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /><span className="phone-wealth-word" aria-hidden="true">Wealth</span></Link>}
         {/* Session AL (owner decision O3): ZIGi, Music, Earn and the apps live here below 901 px; nothing floats over the page.
             Served with the bar, like the Checklist pill, so it never pushes the bar's icons aside after load (layout shift). */}
         <AppsExtrasButton className="phone-apps-extras" />

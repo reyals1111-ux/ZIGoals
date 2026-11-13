@@ -19775,6 +19775,42 @@
         color: var(--text-meta,var(--muted))
     }
 }
+/*  components/wealth/networth-history.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .networth-history:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .networth-series:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: color-mix(in srgb, #f3f5f9 40%, transparent)
+    }
+    .networth-series-latest small:not(#\-), .networth-series-missing:not(#\-) {
+        color: var(--muted)
+    }
+    .networth-spark-base:not(#\-) {
+        stroke: var(--line)
+    }
+    .networth-spark-line:not(#\-) {
+        fill: none;
+        stroke: var(--brand-cyan)
+    }
+    .networth-spark-dot:not(#\-) {
+        fill: var(--brand-cyan)
+    }
+    .networth-spark-unknown:not(#\-) {
+        fill: var(--muted)
+    }
+    .networth-days th:not(#\-), .networth-days td:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .networth-gap-row td:not(#\-) {
+        color: var(--muted)
+    }
+    :scope[data-hide-amounts="on"] .networth-spark:not(#\-) {
+        filter: blur(7px)
+    }
+}
 /*  components/wealth/networth-milestones.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .nwm-celebration:not(#\-) {
