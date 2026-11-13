@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openFold} from './phone-nav';
 
 /**
  * Session AF Gate C (design critique, money pages 1–3): Wealth classes each holding once. The Showcase's Vanguard S&P 500
@@ -30,6 +31,8 @@ test('one class map: the ETF reads ETFs everywhere it is classed, with one share
   await expect(page.locator('.owned-asset-card h3')).toHaveText('Vanguard S&P 500 ETF');
   await chips.getByRole('button', {name: /^All \d+$/}).click();
   // The class cards.
+  // Session AO (RR-16, deliberate): the class view folds by default on a computer; opened from its row first.
+  await openFold(page, 'Your wealth, in perspective');
   const mix = page.getByRole('region', {name: 'Asset mix'});
   await expect(mix.locator('.class-summary').filter({hasText: 'Stocks'})).toContainText('$15,100.00');
   await expect(mix.locator('.class-summary').filter({hasText: 'Stocks'})).toContainText('AAPL · NVDA');
@@ -70,6 +73,8 @@ test('plain units: a property and a custom asset in words, and no reference pric
   await expect(camera.locator('.owned-asset-heading p')).toHaveText('Custom');
   await expect(cash.locator('.holding-unit-price')).toHaveCount(0);
   // The class cards name a property or a custom asset, never its stored code.
+  // Session AO (RR-16, deliberate): the class view folds by default on a computer; opened from its row first.
+  await openFold(page, 'Your wealth, in perspective');
   const mix = page.getByRole('region', {name: 'Asset mix'});
   await expect(mix.locator('.class-summary').filter({hasText: 'Property'}).locator('.class-summary-caption')).toHaveText('Riverside apartment');
   await expect(mix.locator('.class-summary').filter({hasText: 'Custom'}).locator('.class-summary-caption')).toHaveText('Collectible camera');

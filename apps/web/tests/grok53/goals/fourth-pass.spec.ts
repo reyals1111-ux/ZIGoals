@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {emptyDevice, hydrated, open, toast} from '../l3-helpers';
 import {loadShowcase} from '../../ah-helpers';
+import {quietPage} from '../../quiet-page';
 import {project, seedGoals, stored, openModule} from './goal-fixtures';
 import {continueToGoalReview} from '../../goal-name';
 
@@ -135,6 +136,10 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
     await expect(page.locator('.goal-detail-heading .eyebrow')).toHaveText('Count goal · Your own count');
     await expect(page.locator('main')).not.toContainText(/Market movement can change wealth|From counted wealth/);
     // DV-147: its tally is not offered to a savings goal.
+    // Session AO (DV-010c, local 2-worker run): the Fund sheet closes through a history Back; the next page opens once it
+    // has (ADR-037 lesson: a closing sheet's Back can override the next navigation).
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await quietPage(page);
     await open(page, '/app/goals/new');
     await page.getByLabel('Goal name', {exact: true}).click();
     await page.keyboard.type('Fictional savings', {delay: 20});
