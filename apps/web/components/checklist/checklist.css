@@ -430,6 +430,7 @@
 .checklist-quick-swatch > input:checked + span { border-color: var(--swatch); box-shadow: 0 0 14px -2px var(--swatch); }
 .checklist-quick-row { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 12px; }
 .checklist-quick-error { margin: 0; color: #ffb1c1; font-size: 14px; font-weight: 650; }
+.checklist-quick-same-name { margin: 0; } /* Session AO (LS-H29) */
 :root[data-theme=light] .checklist-quick-error { color: #b4174a; }
 .checklist-quick-go { min-height: 48px; font-size: 16px; }
 .checklist-quick-fine { margin: 0; }

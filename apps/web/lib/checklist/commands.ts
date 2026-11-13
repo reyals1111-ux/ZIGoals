@@ -4,6 +4,7 @@ import {setCustomDone} from './day';
 import type {DerivedDot} from './derive';
 import {CHECKLIST, CHECKLIST_DAYS, type Checklist, type ChecklistDays} from './schema';
 import {addCustom, newChecklistId, orderedItems, removeItem, type FavouriteRef} from './store';
+import {TEXT_LIMITS} from '../limits/text';
 
 /**
  * The Checklist's command surface for ZIGi (Session AF, L3; P7.21). ZIGi reads; it never patches these records itself.
@@ -35,15 +36,15 @@ const text = (v: unknown, max: number) => typeof v === 'string' && v.trim().leng
 const customItems = (record: Checklist) => orderedItems(record).filter(i => i.kind === 'custom').map(i => ({id: i.id, label: i.label ?? ''}));
 export const checklistDeviceWrite: Entry<Checklist> = {spec: CHECKLIST, apply: (record, patch) => {
   if (!object(patch)) throw new Error('Nothing to change.');
-  if (object(patch.add)) { const label = text(patch.add.text, 60); if (!label) throw new Error('Name the item in 1 to 60 characters.'); return addCustom(record, {label}, {id: newChecklistId(), at: new Date()}); }
-  if (object(patch.favorite) && patch.favorite.on === false) { const name = text(patch.favorite.item, 100); const found = name ? findItemByName(orderedItems(record).map(i => ({id: i.id, label: i.label ?? ''})), name) : null; if (!found) throw new Error('No single item on your path has that name.'); return removeItem(record, found.id); }
+  if (object(patch.add)) { const label = text(patch.add.text, TEXT_LIMITS.checklistItem); if (!label) throw new Error(`Name the item in 1 to ${TEXT_LIMITS.checklistItem} characters.`); return addCustom(record, {label}, {id: newChecklistId(), at: new Date()}); }
+  if (object(patch.favorite) && patch.favorite.on === false) { const name = text(patch.favorite.item, TEXT_LIMITS.habitTitle); const found = name ? findItemByName(orderedItems(record).map(i => ({id: i.id, label: i.label ?? ''})), name) : null; if (!found) throw new Error('No single item on your path has that name.'); return removeItem(record, found.id); }
   throw new Error('That change is not one a card can make.');
 }};
 /** Ticking a custom item needs the path's own record; its day is the Checklist's day (given by the caller). */
 export function checklistDaysDeviceWrite(record: () => Checklist): Entry<ChecklistDays> {
   return {spec: CHECKLIST_DAYS, apply: (days, patch) => {
     if (!object(patch) || !object(patch.check)) throw new Error('That change is not one a card can make.');
-    const name = text(patch.check.item, 100), day = typeof patch.check.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(patch.check.day) ? patch.check.day : null;
+    const name = text(patch.check.item, TEXT_LIMITS.habitTitle), day = typeof patch.check.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(patch.check.day) ? patch.check.day : null;
     if (!name || !day) throw new Error('Say which item and which day.');
     const found = findItemByName(customItems(record()), name); if (!found) throw new Error('No single custom item on your path has that name.');
     return setCustomDone(days, day, found.id, patch.check.done !== false);

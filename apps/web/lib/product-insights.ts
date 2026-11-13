@@ -1,6 +1,7 @@
 import {formatUnits} from '@zigoals/chain-config';
 import {fundingHealth} from './goal-intelligence';
 import {wealthOverview,ASSET_COLORS,WEALTH_CLASSES} from './wealth';
+import {shareBasisPoints} from './shares';
 import type {Platform,Position} from './positions';
 import {verifiedMarketQuote,quoteMatchesPosition,type MarketQuote} from './market-quotes';
 import {marketRefKey,type MarketAssetRef} from './market-assets';
@@ -22,19 +23,8 @@ export function holdingUnitQuote(position:Position,quotes:readonly MarketQuote[]
 }
 /** A part of a total in basis points (hundredths of a percent), to the nearest one. */
 const nearestBasisPoints=(part:bigint,total:bigint)=>total>0n?Number((part*20000n+total)/(2n*total)):0;
-/**
- * Session AF Gate C (design critique 1): each class's share of a total to the nearest hundredth of a percent, adding up to
- * exactly 100 % (the largest remainders take the last basis points). Each is the holding's own figure when a class holds
- * one valued holding, so the composition, the allocation bar and the top holdings never read 4.99 % and 4.98 % for the same
- * money (the earlier running sum had carried its rounding into the next class).
- */
-export function shareBasisPoints(values:readonly bigint[],total:bigint):number[]{
- if(total<=0n)return values.map(()=>0);
- const floors=values.map(v=>v*10000n/total),rest=values.map((v,i)=>({i,r:v*10000n-floors[i]!*total}));
- let missing=10000-floors.reduce((n,f)=>n+Number(f),0);const out=floors.map(Number);
- for(const {i} of [...rest].sort((a,b)=>a.r===b.r?a.i-b.i:a.r>b.r?-1:1)){if(missing<=0)break;out[i]!+=1;missing--;}
- return out;
-}
+/** Session AO (L-075): the one largest-remainder rounding now lives in lib/shares.ts (kept exported here for callers). */
+export {shareBasisPoints};
 export function portfolioComposition(overview:ReturnType<typeof wealthOverview>){
  return overview.subtotals.map(total=>{
   // Session AF Gate C (design critique 1): the classes are Wealth's one class map (an ETF is "ETFs" here as everywhere), in

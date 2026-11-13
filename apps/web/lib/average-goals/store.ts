@@ -1,5 +1,6 @@
 import * as z from 'zod';
 import type {DeviceRecordSpec} from '../device-record';
+import {TEXT_LIMITS} from '../limits/text';
 
 /**
  * G8, "keep an average" (Session AA-Cloud Part 2, `[TIER 3] (storage)`): a fifth kind of goal, such as 7 h of sleep a
@@ -23,7 +24,7 @@ const day = z.iso.date();
 const entrySchema = z.looseObject({day, value: z.number().finite().min(0).max(1_000_000)});
 export const averageGoalSchema = z.looseObject({
   id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),
-  name: z.string().trim().min(1).max(100),
+  name: z.string().trim().min(1).max(TEXT_LIMITS.averageGoalName),
   metric: z.enum(Object.keys(AVERAGE_METRICS) as [AverageMetric, ...AverageMetric[]]),
   unit: z.string().max(30),
   target: z.number().finite().positive().max(1_000_000),

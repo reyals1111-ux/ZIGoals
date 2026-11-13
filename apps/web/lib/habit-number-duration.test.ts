@@ -1,5 +1,6 @@
 import {expect, test} from 'vitest';
-import {readDurationText} from './habit-number';
+import {readDurationText, readHabitValueText} from './habit-number';
+import {createHabit, emptyHabitData, logHabitValue} from './habits';
 
 test('AL-COMPETITOR-GAP-121: a time habit takes hours and minutes as typed, in its own unit', () => {
   expect(readDurationText('1:30', 'minutes')).toBe(90);
@@ -37,4 +38,20 @@ test('C-DVG-10, B-197: a habit target reads "1:30" and keeps to the shared limit
   expect(habitTargetMax('quantity', 'steps', 'day')).toBe(100_000);
   expect(habitTargetMax('quantity', 'hours', 'week')).toBe(168);
   expect(habitTargetMax('quantity', 'pages', 'day')).toBe(1_000_000_000);
+});
+
+// Session AO (NB-114): a Duration habit's "Set or add a value" takes part-minutes with a decimal comma or point, and
+// stores them in the entry's existing shape (a number of minutes).
+test('NB-114: "Warm up", 5 minutes, takes 2,5 and 2.5 minutes and keeps them as 2.5', () => {
+  const minutes = {kind: 'duration', unit: 'minutes'};
+  for (const typed of ['2,5', '2.5', ' 2,5 ', '2,5 min', '2.5 min']) expect(readHabitValueText(typed, minutes), typed).toBe(2.5);
+  expect(readHabitValueText('1:30', minutes)).toBe(90);
+  expect(readHabitValueText('0,5', {kind: 'duration', unit: 'hours'})).toBe(0.5);
+  expect(() => readHabitValueText('2,5', {kind: 'count'})).toThrow('Enter a whole number');
+  expect(() => readHabitValueText('', minutes)).toThrow('Enter a number');
+  const id = '92000000-0000-4000-8000-000000000301', at = new Date('2026-11-02T08:00:00Z');
+  let data = createHabit(emptyHabitData(), {title: 'Warm up', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 5, measurement: {kind: 'duration', unit: 'minutes'}}, at, id);
+  data = logHabitValue(data, id, '2026-11-02', readHabitValueText('2,5', minutes), {}, at);
+  data = logHabitValue(data, id, '2026-11-02', readHabitValueText('2.5', minutes), {mode: 'add'}, at);
+  expect(data.habits[0]!.entries[0]).toMatchObject({date: '2026-11-02', count: 5, disposition: 'logged'});
 });

@@ -3,6 +3,7 @@ import {useState, type DragEvent} from 'react';
 import {labelsInUse, viewTasks, type TaskView} from '../../lib/tasks/engine';
 import {TASK_COLOURS, LEVEL_WORDS, type Project, type TaskColour, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import {formatNumber} from '../../lib/visual-format';
+import {TEXT_LIMITS} from '../../lib/limits/text'; // Session AO (M-011): the one limits table
 
 /**
  * Session AL (Part 8, P-LS-06, LS-045): the views of Tasks — Inbox, Today, Upcoming, everything, overdue, completed;
@@ -70,7 +71,7 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
     {old.length > 0 && <><button type="button" className="text-link" aria-expanded={archived} onClick={() => setArchived(!archived)}>Archived projects ({formatNumber(old.length)})</button>
       {archived && <ul>{old.map(p => item({kind: 'project', id: p.id}, p.name, undefined, undefined, p.colour))}</ul>}</>}
     {adding ? <form className="tasks-nav-add" noValidate onSubmit={e => { e.preventDefault(); if (name.trim() && onAddProject(name, colour)) { setName(''); setAdding(false); } }}>
-      <label className="field"><span>Project name</span><input autoFocus dir="auto" value={name} maxLength={60} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setAdding(false); }} /></label>
+      <label className="field"><span>Project name</span><input autoFocus dir="auto" value={name} maxLength={TEXT_LIMITS.taskListName} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setAdding(false); }} /></label>
       <label className="field"><span>Colour</span><select value={colour} onChange={e => setColour(e.target.value as TaskColour)}>{TASK_COLOURS.map(c => <option key={c} value={c}>{c[0]!.toUpperCase() + c.slice(1)}</option>)}</select></label>
       <span className="tasks-io-actions"><button type="submit" className="secondary" disabled={!name.trim()}>Add project</button><button type="button" className="quiet" onClick={() => setAdding(false)}>Cancel</button></span>
     </form> : <button type="button" className="text-link tasks-nav-new" onClick={() => setAdding(true)}>+ Add a project</button>}

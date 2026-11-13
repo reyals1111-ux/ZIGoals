@@ -1,6 +1,6 @@
 import {describe, expect, it, test} from 'vitest';
 import Decimal from 'decimal.js';
-import {DEFAULT_INPUT, compound, milestoneWhen, periodRate, whatIfs, type CompoundInput} from './engine';
+import {DEFAULT_INPUT, LIMITS, compound, compoundInputSchema, milestoneWhen, periodRate, whatIfs, type CompoundInput} from './engine';
 
 const base: CompoundInput = {...DEFAULT_INPUT, start: '0', contribution: '0', increasePercent: 0, inflationPercent: 0};
 const cents = (n: Decimal.Value) => new Decimal(n).toFixed(2);
@@ -72,11 +72,15 @@ describe('compound interest (Session AA-Cloud Part 3), against closed-form value
   });
   it('what-ifs: two points higher and lower, and five more years', () => {
     expect(whatIfs({...DEFAULT_INPUT, ratePercent: 5, years: 20}).map(w => [w.id, w.input.ratePercent, w.input.years])).toEqual([['higher', 7, 20], ['lower', 3, 20], ['earlier', 5, 25]]);
-    expect(whatIfs({...DEFAULT_INPUT, years: 58}).map(w => w.id)).toEqual(['higher', 'lower']);
+    // Session AO (TK-036, deliberate): the limit is 100 years, so 96 has no room for five more (58 did at the old 60).
+    expect(whatIfs({...DEFAULT_INPUT, years: 96}).map(w => w.id)).toEqual(['higher', 'lower']);
+    expect(whatIfs({...DEFAULT_INPUT, years: 95}).map(w => w.id)).toEqual(['higher', 'lower', 'earlier']);
   });
   it('refuses what it cannot compute honestly', () => {
     expect(() => compound({...base, years: 0})).toThrow();
-    expect(() => compound({...base, years: 61})).toThrow();
+    // Session AO (TK-036, deliberate): plans now run to 100 whole years; 101 is refused as 61 was.
+    expect(() => compound({...base, years: 101})).toThrow();
+    expect(() => compound({...base, years: 100.5})).toThrow();
     expect(() => compound({...base, start: '-5'})).toThrow();
     expect(() => compound({...base, start: '1.234'})).toThrow();
     expect(() => compound({...base, ratePercent: 101})).toThrow();
@@ -92,4 +96,29 @@ test('1 year and 6 months at 0 %: eighteen monthly contributions, one extra row 
   // A yearly contribution falls in no part year; the half year still grows: 1,000 × 1.1 + 100 = 1,200, then × 1.1^0.5.
   expect(Number(yearly.final)).toBeCloseTo(1200 * Math.sqrt(1.1), 2);
   expect(compound({...DEFAULT_INPUT, months: 0}).rows).toHaveLength(DEFAULT_INPUT.years);
+});
+
+// Session AO (TK-036): whole years from 1 to 100, the same exact maths; big results still come out as exact decimals.
+describe('plans up to 100 years (Session AO, TK-036)', () => {
+  it('accepts 61 and 100 whole years and refuses 0, 101 and fractions', () => {
+    expect(LIMITS.years).toBe(100);
+    for (const years of [1, 61, 100]) expect(compoundInputSchema.safeParse({...DEFAULT_INPUT, years}).success, String(years)).toBe(true);
+    for (const years of [0, 101, 61.5]) expect(compoundInputSchema.safeParse({...DEFAULT_INPUT, years}).success, String(years)).toBe(false);
+  });
+  it('100 years at 5 % yearly matches the closed form, one row per year', () => {
+    const r = compound({...DEFAULT_INPUT, start: '1000', contribution: '0', frequency: 'yearly', compounding: 'yearly', ratePercent: 5, years: 100});
+    expect(r.rows).toHaveLength(100);
+    expect(r.final).toBe(new Decimal('1.05').pow(100).times(1000).toFixed(2));
+    expect(r.final).toBe('131501.26');
+  });
+  it('a very large 100-year result is still an exact decimal string (the page then says it is too large to show)', () => {
+    const r = compound({...DEFAULT_INPUT, start: '1000000000000', contribution: '0', frequency: 'yearly', compounding: 'yearly', ratePercent: 100, years: 100});
+    expect(r.final).toBe(`${2n ** 100n * 10n ** 12n}.00`); // exact: 2^100 × 10^12
+    expect(new Decimal(r.final).gt('1e15')).toBe(true);
+  });
+  it('the slowest plan (weekly for 100 years, rising contributions) still computes', () => {
+    const r = compound({...DEFAULT_INPUT, frequency: 'weekly', years: 100, increasePercent: 3, inflationPercent: 2});
+    expect(r.rows).toHaveLength(100);
+    expect(r.realFinal).not.toBeNull();
+  });
 });

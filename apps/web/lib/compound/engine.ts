@@ -15,7 +15,8 @@ export const FREQUENCY = {weekly: 52, monthly: 12, yearly: 1} as const;
 export type Compounding = keyof typeof COMPOUNDING;
 export type Frequency = keyof typeof FREQUENCY;
 export const MILESTONES = [10_000, 100_000, 1_000_000] as const;
-export const LIMITS = {years: 60, ratePercent: 100, increasePercent: 50, inflationPercent: 25, amount: '1000000000000'} as const;
+/** Session AO (TK-036): plans run up to 100 whole years (was 60); the same exact Decimal maths, period by period. */
+export const LIMITS = {years: 100, ratePercent: 100, increasePercent: 50, inflationPercent: 25, amount: '1000000000000'} as const;
 
 const amount = z.string().regex(/^\d{1,13}(\.\d{1,2})?$/, 'Write an amount with up to two decimals.');
 const percent = (min: number, max: number) => z.number().finite().min(min).max(max);

@@ -27,6 +27,7 @@ import {showStatus} from '../ui/undo-toast';
 import {chunk} from '../use-chunk';
 import {isTypingTarget, isUndoShortcut} from '../../lib/tasks/undo-shortcut';
 import './tasks.css';
+import {TEXT_LIMITS} from '../../lib/limits/text'; // Session AO (M-011): the one limits table
 
 /**
  * /app/tasks (Session AK, T1; Session AL Part 8: Tasks at Todoist/TickTick level, owner decision O6). Your to-do list:
@@ -388,7 +389,7 @@ function GroupList({id, title, items, row, extra, drop}: {id: string; title: Rea
 function SubtaskAdd({parent, onAdd}: {parent: Task; onAdd: (title: string) => boolean}) {
   const [text, setText] = useState(''), [error, setError] = useState('');
   return <form className="task-sub-add" aria-label={`Add a subtask to “${parent.title}”`} noValidate onSubmit={e => { e.preventDefault(); if (!text.trim()) { setError('Type a subtask first.'); return; } if (onAdd(text.trim())) { setText(''); setError(''); } }}>
-    <label className="field"><span className="sr-only">New subtask</span><input dir="auto" value={text} maxLength={140} placeholder="Add a subtask" aria-invalid={error ? true : undefined} onChange={e => { setText(e.target.value); setError(''); }} /></label>
+    <label className="field"><span className="sr-only">New subtask</span><input dir="auto" value={text} maxLength={TEXT_LIMITS.taskTitle} placeholder="Add a subtask" aria-invalid={error ? true : undefined} onChange={e => { setText(e.target.value); setError(''); }} /></label>
     <button type="submit" className="quiet">Add</button>{error && <small role="alert" className="tasks-field-error">{error}</small>}
   </form>;
 }
@@ -396,20 +397,20 @@ function AddSectionForm({onAdd}: {onAdd: (name: string) => boolean}) {
   const [open, setOpen] = useState(false), [name, setName] = useState('');
   if (!open) return <p className="tasks-add-section"><button type="button" className="text-link" onClick={() => setOpen(true)}>+ Add a section</button></p>;
   return <form className="tasks-add-section" noValidate onSubmit={e => { e.preventDefault(); if (name.trim() && onAdd(name.trim())) { setName(''); setOpen(false); } }}>
-    <label className="field"><span>Section name</span><input autoFocus value={name} maxLength={60} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setOpen(false); }} /></label>
+    <label className="field"><span>Section name</span><input autoFocus value={name} maxLength={TEXT_LIMITS.taskListName} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setOpen(false); }} /></label>
     <button type="submit" className="secondary" disabled={!name.trim()}>Add section</button><button type="button" className="quiet" onClick={() => setOpen(false)}>Cancel</button>
   </form>;
 }
 function SectionTools({name, onRename, onRemove}: {name: string; onRename: (n: string) => boolean; onRemove: () => void}) {
   const [renaming, setRenaming] = useState(false), [value, setValue] = useState(name);
-  if (renaming) return <form className="tasks-inline-form" noValidate onSubmit={e => { e.preventDefault(); if (value.trim() && onRename(value.trim())) setRenaming(false); }}><label className="field"><span className="sr-only">Section name</span><input autoFocus value={value} maxLength={60} onChange={e => setValue(e.target.value)} /></label><button type="submit" className="quiet">Save</button><button type="button" className="quiet" onClick={() => setRenaming(false)}>Cancel</button></form>;
+  if (renaming) return <form className="tasks-inline-form" noValidate onSubmit={e => { e.preventDefault(); if (value.trim() && onRename(value.trim())) setRenaming(false); }}><label className="field"><span className="sr-only">Section name</span><input autoFocus value={value} maxLength={TEXT_LIMITS.taskListName} onChange={e => setValue(e.target.value)} /></label><button type="submit" className="quiet">Save</button><button type="button" className="quiet" onClick={() => setRenaming(false)}>Cancel</button></form>;
   return <span className="tasks-section-tools"><button type="button" className="text-link" aria-label={`Rename the section “${name}”`} onClick={() => setRenaming(true)}>Rename</button><button type="button" className="text-link" aria-label={`Remove the section “${name}”`} onClick={onRemove}>Remove</button></span>;
 }
 function ProjectTools({project, board, onBoard, onEdit, onRemove}: {project: NonNullable<Tasks['projects']>[number]; board: boolean; onBoard: (b: boolean) => void; onEdit: (patch: {name?: string; colour?: TaskColour; archived?: boolean}) => boolean; onRemove: () => void}) {
   const [renaming, setRenaming] = useState(false), [name, setName] = useState(project.name);
   return <div className="tasks-project-tools">
     <span role="group" aria-label="Layout" className="tasks-toggle"><button type="button" aria-pressed={!board} onClick={() => onBoard(false)}>List</button><button type="button" aria-pressed={board} onClick={() => onBoard(true)}>Board</button></span>
-    {renaming ? <form className="tasks-inline-form" noValidate onSubmit={e => { e.preventDefault(); if (onEdit({name})) setRenaming(false); }}><label className="field"><span>Project name</span><input autoFocus value={name} maxLength={60} onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet">Save</button><button type="button" className="quiet" onClick={() => setRenaming(false)}>Cancel</button></form>
+    {renaming ? <form className="tasks-inline-form" noValidate onSubmit={e => { e.preventDefault(); if (onEdit({name})) setRenaming(false); }}><label className="field"><span>Project name</span><input autoFocus value={name} maxLength={TEXT_LIMITS.taskListName} onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet">Save</button><button type="button" className="quiet" onClick={() => setRenaming(false)}>Cancel</button></form>
       : <button type="button" className="text-link" onClick={() => setRenaming(true)}>Rename</button>}
     <label className="field tasks-colour"><span>Colour</span><select value={project.colour} onChange={e => onEdit({colour: e.target.value as TaskColour})}>{TASK_COLOURS.map(c => <option key={c} value={c}>{c[0]!.toUpperCase() + c.slice(1)}</option>)}</select></label>
     <button type="button" className="text-link" onClick={() => onEdit({archived: !project.archived})}>{project.archived ? 'Bring back from the archive' : 'Archive'}</button>

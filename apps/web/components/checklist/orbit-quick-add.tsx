@@ -13,7 +13,7 @@ import {readFormNumber} from '../../lib/decimal-input';
 import {INVISIBLE_NAME, isInvisibleName} from '../../lib/visible-text';
 import {HABIT_TONE_COLOURS} from '../../lib/path/orbit-colours';
 import {PATH_COLOURS, type PathColour} from '../../lib/path/colours';
-import type {HabitInput} from '../../lib/habits';
+import {activeHabitNamed, sameHabitNameNotice, type HabitInput} from '../../lib/habits';
 import type {ChecklistState} from './use-checklist';
 import {plainErrorMessage} from '../../lib/plain-error';
 
@@ -106,6 +106,8 @@ export function OrbitQuickAdd({state, onClose, onAdded}: {state: ChecklistState;
       <label className="checklist-quick-name" htmlFor={`${uid}-name`}>Name</label>
       <input ref={nameRef} {...field('name')} className="checklist-quick-input" type="text" value={name} maxLength={QUICK_NAME_MAX} autoComplete="off" enterKeyHint="done" placeholder="e.g. Drink water" required onChange={e => setName(e.target.value)}/>
       {problem('name')}
+      {/* Session AO (LS-H29): the same name as an active habit is said, never refused: Add still makes a second habit. */}
+      {!errors.name && activeHabitNamed(state.stores.habits.data.habits, name) && <p className="fine checklist-quick-same-name" role="status">{sameHabitNameNotice(name)} Adding makes a second one.</p>}
       <fieldset className="checklist-quick-group"><legend>Orbit</legend>
         <div className="checklist-quick-chips">{TIME_SECTIONS.map(id => <label key={id} className="checklist-quick-chip"><input type="radio" name={`${uid}-orbit`} value={id} checked={orbit === id} onChange={() => setOrbit(id)}/><span><span aria-hidden="true">{SECTION_SYMBOLS[id]}</span> {WORDS[id]}</span></label>)}</div>
       </fieldset>
