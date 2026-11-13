@@ -1081,6 +1081,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width:760px) { :where(:root[data-density=compact]) .bottom-timeline-dot:not(#\-) { margin-top: 6px; } }
 :where(:root[data-density=compact]) .bottom-row li:has(> .bottom-cell-link):not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .bottom-cell-link:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .bottom-week-day:not(#\-) { row-gap: 8px; margin-top: 12px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .bottom-week-day h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .bottom-week-day ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .bottom-week-day li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .bottom-week-day-actions:not(#\-) { row-gap: 8px; }
 /*  components/brand/logo-wordmark.css  */
 :where(:root[data-density=compact]) .logo-wordmark:not(#\-) { row-gap: .12em; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .logo-wordmark-letters:not(#\-) { padding-bottom: .06em; }
@@ -1177,6 +1182,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .checklist-launcher-fold:not(#\-)::after { padding-top: 5px; padding-bottom: 5px; }
 :where(:root[data-density=compact]) .checklist-edge-tab:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact])[data-zigi-side=left] .checklist-edge-tab:not(#\-) { padding-top: 0; padding-bottom: 0; }
+@media (hover: hover) { :where(:root[data-density=compact]) .checklist-launcher:not(#\-)::before { padding-top: 5px; padding-bottom: 5px; } }
 /*  components/checklist/checklist-setting.css  */
 :where(:root[data-density=compact]) .af-checklist-setting:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .af-checklist-setting-row:not(#\-) { row-gap: 10.5px; }
@@ -1532,6 +1538,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width:767.98px),(pointer:coarse) and (max-height:500px) { :root:where([data-density=compact]) .today-page .today-layout>.today-after:not(#\-) { row-gap: 16px; } }
 :where(:root[data-density=compact]) .today-line:not(#\-) { margin-top: 0; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .today-wealth-trend:not(#\-) { row-gap: 6px; margin-top: 6px; }
+:where(:root[data-density=compact]) .today-skips ul:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .today-skips .today-skip:not(#\-) { padding-top: 0; padding-bottom: 0; }
 /*  components/dashboard/hero-fold.css  */
 :where(:root[data-density=compact]) .hero-fold:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .today-hero-folded:not(#\-) { padding-top: 0; padding-bottom: 0; margin-bottom: 14px; }
@@ -2001,6 +2009,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .goal-optional[open]:not(#\-) { row-gap: 1rem; }
 :where(:root[data-density=compact]) .goal-optional .goal-choice-tiles:not(#\-) { padding-top: .2rem; padding-bottom: .2rem; }
 :where(:root[data-density=compact]) .goal-optional>label:not(#\-) { row-gap: .5rem; }
+:where(:root[data-density=compact]) .unified-wizard .wizard-rhythm:not(#\-) { margin-top: 0; margin-bottom: 1.25rem; }
 :where(:root[data-density=compact]) .goal-ideas:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .goal-ideas legend:not(#\-) { margin-bottom: 8px; }
 :where(:root[data-density=compact]) .goal-ideas-list:not(#\-) { row-gap: 6px; }
@@ -2619,6 +2628,20 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-time-suggest .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .habit-time-suggest .actions:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .habit-intention-why:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+/*  components/habits/perfect-days.css  */
+:where(:root[data-density=compact]) .habit-perfect:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .habit-perfect-today:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-perfect-facts:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-perfect-nav:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .habit-perfect-grid th:not(#\-) { padding-top: 0; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .habit-perfect-grid td:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .habit-perfect-day:not(#\-) { row-gap: 1px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .habit-perfect-legend:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-perfect-detail:not(#\-) { row-gap: 6px; padding-top: 10px; }
+:where(:root[data-density=compact]) .habit-perfect-detail h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-perfect-detail p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-perfect-detail ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .habit-perfect-detail li:not(#\-) { row-gap: 3px; }
 /*  components/habits/recurrence-phrase.css  */
 :where(:root[data-density=compact]) .recurrence-phrase:not(#\-) { row-gap: 6px; margin-top: 4px; margin-bottom: 10px; }
 :where(:root[data-density=compact]) .recurrence-phrase-echo:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3512,6 +3535,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact])[data-zigi-side=left] .music-edge-tab:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .music-edge-tab:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact])[data-zigi-side=left] .music-edge-tab:not(#\-) { padding-top: 0; padding-bottom: 0; }
+@media (hover:hover) { :where(:root[data-density=compact]) .music-launcher:not(#\-)::before { padding-top: 5px; padding-bottom: 5px; } }
 /*  components/music/music-mix.css  */
 :where(:root[data-density=compact]) .music-mix:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .music-mix fieldset:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
@@ -5290,11 +5314,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .coin-detail-links:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .portfolio-hero .portfolio-note:not(#\-) { margin-top: 8px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .portfolio-add > summary:not(#\-) { row-gap: 7.5px; }
-@media (max-width: 479.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .data-table tbody > tr:not(.data-detail-row):not(#\-) { row-gap: 3px; margin-top: 7.5px; padding-top: 4.5px; padding-bottom: 10.5px; } }
-@media (max-width: 479.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .data-table tbody > tr > :is(th, td):not(.data-col-optional, .data-col-wide):not(#\-) { padding-top: 0; padding-bottom: 0; } }
-@media (max-width: 479.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .data-table tbody > tr > td:not(#\-)::before { margin-bottom: 2px; } }
-@media (max-width: 479.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .data-table tbody > tr.data-detail-row > td:not(#\-) { padding-top: 0 !important; padding-bottom: 0 !important; } }
-@media (max-width: 479.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .coin-detail:not(#\-) { margin-top: 4px; } }
+@media (max-width: 900.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .data-table tbody > tr:not(.data-detail-row):not(#\-) { row-gap: 7.5px; margin-top: 7.5px; padding-top: 4.5px; padding-bottom: 10.5px; } }
+@media (max-width: 900.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .data-table tbody > tr > :is(th, td):not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@media (max-width: 900.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .data-table tbody > tr > td:not(#\-)::before { margin-bottom: 2px; } }
+@media (max-width: 900.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .data-table tbody > tr.data-detail-row > td:not(#\-) { padding-top: 0 !important; padding-bottom: 0 !important; } }
+@media (max-width: 900.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .coin-detail:not(#\-) { margin-top: 4px; } }
+@media (max-width: 479.98px) { :where(:root[data-density=compact]) .portfolio-holdings-section .data-table tbody > tr:not(.data-detail-row):not(#\-) { row-gap: 3px; } }
 :where(:root[data-density=compact]) .portfolio-since:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .trade-checkin:not(#\-) { margin-top: 8px; margin-bottom: 8px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .trade-checkin-row:not(#\-) { margin-top: 6px; margin-bottom: 6px; padding-top: 0; padding-bottom: 0; row-gap: 6px; }

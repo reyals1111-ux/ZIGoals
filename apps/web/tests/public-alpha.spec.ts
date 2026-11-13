@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import {typeGoalName} from './goal-name';
+import {continueToGoalReview, typeGoalName} from './goal-name';
 import {expectAlphaMode} from "./ab-shell";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -223,7 +223,7 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   // chooses the count it always made, as a person does; every check below is unchanged.
   await page.getByRole("radio",{name:"Quantity",exact:true}).check(); await expect(page.getByRole("radio",{name:"Quantity",exact:true})).toBeChecked();
   await typeGoalName(page, sentinel); await page.getByLabel("Target amount").fill("1200");
-  await page.getByRole("button",{name:"Continue"}).click(); await page.getByLabel("ZIGoals funding / Local simulation",{exact:true}).check(); await page.getByRole("button",{name:"Continue"}).click(); await page.getByRole("button",{name:"Continue"}).click();
+  await page.getByRole("button",{name:"Continue"}).click(); await page.getByLabel("ZIGoals funding / Local simulation",{exact:true}).check(); /* Session AO (T-014, deliberate): one Continue to the review, the last step */ await continueToGoalReview(page, 2);
   await page.getByRole("button",{name:"Create goal",exact:true}).click();
   await page.getByRole("button",{name:"Confirm simulation"}).focus(); await page.keyboard.press("Tab"); await expect(page.getByRole("button",{name:"Cancel",exact:true})).toBeFocused();
   await page.getByRole("button",{name:"Confirm simulation"}).click();

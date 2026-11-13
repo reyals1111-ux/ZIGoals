@@ -17,10 +17,10 @@ questions** after any usage pause: read this file, then the next row below.
 |---|---|---|---|
 | 0 records | done | (this commit) | — |
 | 1 CI stability | done (CI proof on the next run) | (see git log "Part 1") | CI run on the pushed head |
-| 2 owner calls a–g | next | | a RR-16 first |
-| 3 AL carried rows | pending | | |
-| 4 My day ends at | pending | | owner rule 1 |
-| 5 backlog #1 #4 #11 #15 | pending | | owner rule 2 for #11 |
+| 2 owner calls a–g | a–f committed; g = owner decision (record) | b00a7985, 7d48c6f3 (2e) | browser proof on the production build |
+| 3 AL carried rows | many committed (menus, Activity, PR-052, B-201, TK-036, C-MO-36, NB-114, DV-053c, L-075, M-011, LS-067, D-055) | d256b946, 3934199b | D-088, D-028, T-014, DV-010c, DV-045e, N-BN-05, BUG-051, DV-274/NB-045, D-224/D-231, C-LS-20, the rest |
+| 4 My day ends at | committed (TIER 3) | e2452897 | CI |
+| 5 backlog #1 #4 #11 #15 | #15 (8c6c7b2b) and #11 (e2452897) done | | #1 Perfect day, #4 week-grid logging |
 | 6 reviews, tour, closing, STATUS | pending | | |
 
 ## Local notes

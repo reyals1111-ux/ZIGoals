@@ -4,7 +4,8 @@ import {loadShowcase} from './ah-helpers';
 /**
  * Session AJ (item 8): the owner's decisions themselves, pinned in the browser (the unit pins I5 and ST5 are in
  * lib/owner-decisions.test.ts). A later change to one of these has to say it is changing an owner decision.
- * - GO3: the Goal wizard keeps its four steps, and "Create goal" is there on step 1.
+ * - GO3: the Goal wizard keeps its steps, and "Create goal" is there on step 1. Session AO (T-014, deliberate; ADR-039
+ *   Part 3 changes M33's "four steps"): three steps, the optional rhythm a closed part of the review.
  * - TO1: Today is on by default (bare /app opens Today) and can be switched off.
  * - ZI5: ZIGi's sharing switches and "Include Health" show before any AI is connected.
  * - D4 (item 17): one dismissible demo/alpha notice; the Showcase chip (so fictional records never look real) is a status
@@ -17,12 +18,13 @@ async function freshDevice(page: Page) {
 }
 const hydrated = (page: Page) => expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '', {timeout: 20_000});
 
-test('GO3: the Goal wizard has its four steps, and "Create goal" is offered on step 1', async ({page}) => {
+test('GO3: the Goal wizard has its three steps, and "Create goal" is offered on step 1', async ({page}) => {
   await freshDevice(page);
   await page.goto('/app/goals/new'); await hydrated(page);
   const steps = page.getByRole('list', {name: 'Goal creation progress'}).getByRole('listitem');
-  // Session AL (COPY_AUDIT, deliberate; D-008/T-014): still four steps, named for what each is for.
-  await expect(steps).toHaveText([/^1\s*Your goal$/, /^2\s*What counts$/, /^3\s*A rhythm \(optional\)$/, /^4\s*Review$/]);
+  // Session AL (COPY_AUDIT, deliberate; D-008/T-014): steps named for what each is for.
+  // Session AO (T-014, deliberate; ADR-039 Part 3, changing owner decision M33's four steps): three steps; the rhythm is part of the review.
+  await expect(steps).toHaveText([/^1\s*Your goal$/, /^2\s*What counts$/, /^3\s*Review$/]);
   await expect(steps.first()).toHaveAttribute('aria-current', 'step');
   await expect(page.getByRole('button', {name: 'Create goal', exact: true})).toBeVisible();
   await expect(page.getByRole('button', {name: 'Continue →', exact: true})).toBeVisible();

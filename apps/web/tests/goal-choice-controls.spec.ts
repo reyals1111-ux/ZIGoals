@@ -1,5 +1,5 @@
 import {expect,test,type Locator} from '@playwright/test';
-import {typeGoalName} from './goal-name';
+import {continueToGoalReview, typeGoalName} from './goal-name';
 import {chooseChain} from './chain-choice';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the local ZIG simulation funding choice.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
@@ -22,7 +22,7 @@ test('risk and liquidity tiles work by keyboard and touch and save the same valu
  await expect(liquidity.getByRole('radio',{name:'Anytime',exact:true})).toBeChecked();
  await choose(liquidity.getByRole('radio',{name:'Within a month',exact:true}),isMobile);
  await expect(liquidity.getByRole('radio',{name:'Anytime',exact:true})).not.toBeChecked();
- for(let i=0;i<2;i++)await page.getByRole('button',{name:'Continue →'}).click();
+ /* Session AO (T-014, deliberate): one Continue to the review, the last step */await continueToGoalReview(page,2);
  await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByRole('button',{name:'Confirm simulation'}).click();
  // The review step already shows this heading, so it cannot signal the save: wait for the created Goal's page, then for the stored plan itself.
  await expect(page).toHaveURL(/\/app\/goals\/\d+$/);await expect(page.getByRole('heading',{name:'Tile preferences',exact:true})).toBeVisible();
@@ -47,7 +47,7 @@ test('wealth scope and cadence tiles keep one valid value and the saved plan reo
  await cadence.getByRole('radio',{name:'Monthly',exact:true}).focus();await page.keyboard.press('ArrowRight');
  await expect(cadence.getByRole('radio',{name:'Yearly',exact:true})).toBeChecked();
  await expect(cadence.getByRole('radio',{name:'Yearly',exact:true})).toHaveAttribute('value','yearly');
- for(let i=0;i<2;i++)await page.getByRole('button',{name:'Continue →'}).click();
+ /* Session AO (T-014, deliberate): one Continue to the review, the last step */await continueToGoalReview(page,2);
  await page.getByRole('button',{name:'Create goal',exact:true}).click();
  await expect(page).toHaveURL(/\/app\/goals\/tracked\//);
  const plan=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!).goals.find((g:{name:string})=>g.name==='Tile cadence')?.plan);

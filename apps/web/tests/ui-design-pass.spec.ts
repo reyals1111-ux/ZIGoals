@@ -309,7 +309,11 @@ test.describe('Part 3: liquid glass',()=>{
   test.skip(isMobile,'Hover needs a fine pointer');
   await showcase(page);
   for(const [path,selector] of [['/app/wealth','.composition-legend>*'],['/app/staking','.platform-position-row'],['/app','.habit-today-list>li']] as const){
-   await page.goto(path);const row=page.locator(selector).nth(1);await row.evaluate(e=>e.scrollIntoView({block:'center'}));await expect(row).toBeVisible();
+   await page.goto(path);
+   // Session AO (RR-16, owner decision 13 Nov, deliberate): on a computer Wealth's composition folds by default; it is opened
+   // as a person does (its row), then the same row is checked exactly as before.
+   if(path==='/app/wealth'){const fold=page.getByRole('button',{name:/^The shape of your wealth/});await fold.click();await expect(fold).toHaveAttribute('aria-expanded','true');}
+   const row=page.locator(selector).nth(1);await row.evaluate(e=>e.scrollIntoView({block:'center'}));await expect(row).toBeVisible();
    const before=await row.evaluate(e=>{const o=e.getBoundingClientRect();return [...e.querySelectorAll('*')].slice(0,6).map(c=>{const r=c.getBoundingClientRect();return [Math.round((r.left-o.left)*10),Math.round((r.top-o.top)*10),Math.round(r.width*10)];});});
    const r=(await row.boundingBox())!;await page.mouse.move(r.x+r.width*.3,r.y+r.height/2);await page.mouse.move(r.x+r.width*.35,r.y+r.height/2,{steps:3});
    await expect(row,path).toHaveAttribute('data-glass','row');await expect(row,path).toHaveAttribute('data-glass-hover','');

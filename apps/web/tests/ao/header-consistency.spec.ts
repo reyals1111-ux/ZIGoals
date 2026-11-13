@@ -79,17 +79,17 @@ for (const width of [1280, 388] as const) {
         // The logo, never "Back to Today".
         await expect(page.getByRole('link', {name: 'Back to Today', exact: true}), label).toHaveCount(0);
         await expect(page.getByRole('link', {name: 'ZIGoals home', exact: true}).filter({visible: true}), label).toHaveCount(1);
-        // The phone's wallet shortcut says "Wealth" under its icon where the bar has room (it has at 388 px, fresh).
+        // The phone's wallet shortcut: named "Wealth", 44 px, inside the window. At 388 px its six 44 px icons fill the bar, so
+        // the word under the icon shows only where the bar has room (ADR-039 D11); when shown it is the name's own word, ≥ 14 px.
         if (phone) {
           const wealth = page.locator('.phone-topbar .phone-wealth');
           await expect(wealth, label).toBeVisible();
-          await expect(wealth.locator('.phone-wealth-word'), label).toBeVisible();
-          await expect(wealth.locator('.phone-wealth-word'), label).toHaveText('Wealth');
-          const w = await wealth.evaluate(el => { const r = el.getBoundingClientRect(), word = el.querySelector<HTMLElement>('.phone-wealth-word')!; return {width: r.width, height: r.height, right: r.right, size: parseFloat(getComputedStyle(word).fontSize)}; });
+          await expect(wealth, label).toHaveAccessibleName(/^Wealth/);
+          const w = await wealth.evaluate(el => { const r = el.getBoundingClientRect(), word = el.querySelector<HTMLElement>('.phone-wealth-word'), shown = !!word && word.getBoundingClientRect().width > 1 && getComputedStyle(word).visibility !== 'hidden'; return {width: r.width, height: r.height, right: r.right, shown, text: word?.textContent ?? '', size: word ? parseFloat(getComputedStyle(word).fontSize) : 0}; });
           expect(w.width, label).toBeGreaterThanOrEqual(44);
           expect(w.height, label).toBeGreaterThanOrEqual(44);
-          expect(w.size, label).toBeGreaterThanOrEqual(14);
           expect(w.right, label).toBeLessThanOrEqual(width);
+          if (w.shown) { expect(w.text, label).toBe('Wealth'); expect(w.size, label).toBeGreaterThanOrEqual(14); }
         }
         // Nothing scrolls sideways.
         expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), label).toBeLessThanOrEqual(0);

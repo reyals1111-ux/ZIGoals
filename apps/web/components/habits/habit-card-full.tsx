@@ -53,15 +53,20 @@ const DETAILS_OPEN = new Map<string, boolean>();
  * too: an action re-renders or remounts the card, and an uncontrolled fold closed itself. Memory only, by habit and fold.
  */
 const INNER_OPEN = new Map<string, boolean>();
-/** Session AL (GAP-085): a habit's own page (/app/habits?habit=<id>) opens its card's details, History and Consistency. */
-export function openHabitPage(id: string) { DETAILS_OPEN.set(id, true); INNER_OPEN.set(`${id}:history`, true); INNER_OPEN.set(`${id}:insights`, true); }
+/**
+ * Session AL (GAP-085): a habit's own page (/app/habits?habit=<id>) opens its card's details, History and Consistency.
+ * Session AO (CO4): with `&date=<day>` (Today's week grid, Perfect days) its History opens on that day's check-in.
+ */
+export function openHabitPage(id: string, date?: string | null) { DETAILS_OPEN.set(id, true); INNER_OPEN.set(`${id}:history`, true); INNER_OPEN.set(`${id}:insights`, true); linkHistoryDay(id, date); }
+/** Back on the whole list: no History keeps a day a link asked for. */
+export function leaveHabitPage() { linkHistoryDay(null); }
 function useKeptOpen(key: string, onOpen?: () => void) {
   const ref = useRef<HTMLDetailsElement>(null);
   useEffect(() => { if (INNER_OPEN.get(key) && ref.current && !ref.current.open) { ref.current.open = true; onOpen?.(); } });
   return {ref, onToggle: (event: React.SyntheticEvent<HTMLDetailsElement>) => { const open = event.currentTarget.open; INNER_OPEN.set(key, open); if (open) onOpen?.(); }};
 }
 
-import {plain, statusLabel} from './habit-card-words';
+import {linkHistoryDay, plain, statusLabel} from './habit-card-words';
 function targetCopy(habit: Habit,today:string) {
   const rule = habitRuleOn(habit,today)??habit.rules[0]!; const unit = measurementUnit(rule); const period = habitTargetPeriod(rule);
   // Session X P2.1: "Avoid times" and "3× per week · 1 per week" read wrong; a count unit says nothing on its own.

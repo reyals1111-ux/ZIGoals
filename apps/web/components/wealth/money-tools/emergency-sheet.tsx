@@ -1,4 +1,5 @@
 'use client';
+import {removeWithUndo} from '../../ui/remove-with-undo';
 import {useEffect, useId, useMemo, useState, type FormEvent, type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {useDeviceRecord} from '../../ai/use-device-record';
@@ -57,6 +58,7 @@ export default function EmergencySheetPanel({showcase = false}: {showcase?: bool
     const timer = window.setTimeout(() => { window.print(); }, 50);
     return () => { window.clearTimeout(timer); window.removeEventListener('afterprint', done); document.documentElement.classList.remove('emergency-printing'); };
   }, [printing]);
+  // Session AO (C-LS-20): a removed row comes back with the app's one Undo toast (onRemove below).
   const write = (fn: (s: EmergencySheet) => EmergencySheet, words: string) => {
     setError('');
     try { sheet.update(fn); setStatus(words); return true; } catch (cause) { setStatus(''); setError(plainErrorMessage(cause, 'Not saved on this device.')); return false; }
@@ -91,7 +93,7 @@ export default function EmergencySheetPanel({showcase = false}: {showcase?: bool
     {warnings.length > 0 && <ul className="emergency-warnings" role="alert">{warnings.map(w => <li key={w}>{w} Take it out and write where it is kept instead.</li>)}</ul>}
     <div className="money-actions"><button type="button" className="secondary" disabled={docs === null && note === null} onClick={saveTexts}>Save notes</button></div>
 
-    {(['accounts', 'wallets', 'insurance'] as const).map(list => <RowList key={list} list={list} sheet={sheet.data} onAdd={(row, words) => write(s => putRow(s, list, row as never, new Date()), words)} onRemove={(rowId, words) => write(s => removeRow(s, list, rowId, new Date()), words)}/>)}
+    {(['accounts', 'wallets', 'insurance'] as const).map(list => <RowList key={list} list={list} sheet={sheet.data} onAdd={(row, words) => write(s => putRow(s, list, row as never, new Date()), words)} onRemove={(rowId, words) => { setError(''); void removeWithUndo(sheet.update, s => removeRow(s, list, rowId, new Date()), words, 'The row is back.').then(() => setStatus(words), cause => { setStatus(''); setError(plainErrorMessage(cause, 'Not saved on this device.')); }); }}/>)}
 
     <div className="money-actions"><button type="button" className="primary" onClick={print}>Print or save as PDF</button></div>
     {refusal.length > 0 && <div role="alert" className="emergency-refusal"><p><strong>Not printed.</strong> These fields look like a key or recovery words, which must never be on paper here:</p><ul>{refusal.map(r => <li key={r}>{r}</li>)}</ul></div>}

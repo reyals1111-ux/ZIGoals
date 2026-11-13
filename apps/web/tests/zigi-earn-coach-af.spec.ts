@@ -4,6 +4,7 @@ import {earnRoutes} from './earn-fixtures';
 import {SIGNER_CALLS, fakeKeplr, relay} from './staking-chain';
 import {block, lastLocal, MORNING, openChat, panel, say, seed, server, stored} from './zigi-af';
 import {chooseChain} from './chain-choice';
+import {openFold} from './phone-nav';
 import {attachTransitionTiming, recordTransitionTiming} from './vt-timing';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests ZIGi's Earn coach.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
@@ -27,6 +28,8 @@ test('glossary on the device: no figure before the Earn page read one; then the 
   expect(await lastLocal(page).locator('.ai-local-answer').textContent()).not.toMatch(/\d/);
   // On Earn the live figures are read (the recorded answers); the coach quotes them as the page states them.
   await page.goto('/app/earn');
+  // Session AO (N-BN-05, deliberate): on a phone native staking is a folded row; opened first, it shows as before.
+  await openFold(page, 'Stake ZIG with a validator');
   await expect(page.locator('#native-staking')).toBeVisible();
   await page.waitForLoadState('networkidle');
   await openChat(page);

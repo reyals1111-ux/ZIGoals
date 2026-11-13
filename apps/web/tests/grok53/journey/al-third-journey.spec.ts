@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {emptyDevice, offline, open} from '../l3-helpers';
+import {openDeskFold} from '../../ao/folds';
 
 /** Session AL third pass (lane L3): Journey and game-layer rows. Every /api request answered 503. */
 async function showcase(page: Page) {
@@ -34,6 +35,7 @@ test('MO-161 (P-MO-49): a shelf price of 0 or below is refused in words under th
     localStorage.setItem('zigoals:rewards-shelf:v1', JSON.stringify({version: 1, on: true}));
   });
   await open(page, '/app/journey');
+  await openDeskFold(page, 'Rewards shelf'); // Session AO (DV-045e, deliberate): a folded row on Journey now; opened first
   const shelf = page.locator('#rewards-shelf');
   await shelf.getByLabel('A treat').fill('Fictional film night');
   for (const price of ['0', '-5']) {

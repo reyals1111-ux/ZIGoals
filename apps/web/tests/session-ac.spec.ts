@@ -239,7 +239,9 @@ test.describe('item 9d: phone tables', () => {
       expect(box.left).toBeGreaterThanOrEqual(0);
       expect(box.right).toBeLessThanOrEqual(390);
     }
-    await page.setViewportSize({width: 520, height: 844});
+    // Session AO (BUG-051, deliberate): the holdings are cards up to 900 px now (at 768 the table ran 1,310 px inside a
+    // 578 px section), so the table's edge marks are checked where the table returns and still runs past its box: 920 px.
+    await page.setViewportSize({width: 920, height: 844});
     await page.goto('/app/portfolio'); await settled(page);
     const wrap = page.locator('.data-table-wrap').first();
     await expect(wrap).toHaveAttribute('data-more-right', '');

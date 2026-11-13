@@ -422,6 +422,13 @@
             color: var(--brand-cyan-ink)
         }
     }
+    @media (hover: hover) {
+        .settings-page .settings-sections a:hover:not(#\-) {
+            color: var(--brand-cyan-ink);
+            background-color: #698abb33;
+            border-color: #96b8e366
+        }
+    }
     .hidden-page-chip > p:not(#\-) {
         border-color: var(--line, #c3cae3);
         color: var(--text)
@@ -3869,6 +3876,29 @@
     .bottom-row [data-sign="down"]:not(#\-) {
         color: color-mix(in srgb, var(--warning, #7f5305) 42%, #000)
     }
+    button.bottom-cell-link:not(#\-) {
+        color: inherit;
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor
+    }
+    button.bottom-cell-link[aria-expanded="true"]:not(#\-) {
+        box-shadow: inset 0 0 0 2px #9fe6ff99
+    }
+    .bottom-week-day:not(#\-) {
+        background-image: none;
+        background-color: #24242408;
+        border-color: #3333332f
+    }
+    .bottom-week-day h3:not(#\-) {
+        color: #0d0f14
+    }
+    .bottom-week-day li:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .bottom-week-day li strong:not(#\-) {
+        color: #0d0f14
+    }
 }
 /*  components/brand/logo-wordmark.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -4414,6 +4444,20 @@
     @media (forced-colors: active) {
         .checklist-mark:not(#\-) {
             filter: none
+        }
+    }
+    @media (hover: hover) {
+        .checklist-launcher:not(#\-)::before {
+            background-image: none;
+            background-color: color-mix(in srgb, var(--panel, #eff2fa) 94%, transparent);
+            border-color: var(--line, #c3cae3);
+            color: var(--text, #0d0f18)
+        }
+    }
+    @media (hover: hover) {
+        .checklist-launcher-fold:hover:not(#\-) {
+            background-image: none;
+            background-color: color-mix(in srgb, var(--cyan, #6fd3ff) 16%, transparent)
         }
     }
 }
@@ -5679,6 +5723,11 @@
         :scope :where(.today-page) .today-earn-card:not(#\-), :scope :where(.today-page) .for-you-card:not(#\-), :scope :where(.today-page) .wrap-up-card:not(#\-), :scope :where(.today-page) .today-game-card:not(#\-), :scope :where(.today-page) .today-journal-card:not(#\-), :scope :where(.today-page) .today-tasks-card:not(#\-) {
             box-shadow: none
         }
+    }
+    .today-skips .today-skip:not(#\-) {
+        background-image: none;
+        background-color: var(--text-strong);
+        color: var(--bg)
     }
 }
 /*  components/dashboard/hero-fold.css  */
@@ -8886,6 +8935,79 @@
         color: var(--text-secondary)
     }
 }
+/*  components/habits/perfect-days.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .habit-perfect-today:not(#\-) {
+        color: #110d16
+    }
+    .habit-perfect-facts:not(#\-) {
+        color: #1c1524
+    }
+    .habit-perfect-facts strong:not(#\-) {
+        color: #110d16
+    }
+    .habit-perfect-nav strong:not(#\-) {
+        color: #110d16
+    }
+    .habit-perfect-grid th:not(#\-) {
+        color: #1c1524
+    }
+    .habit-perfect-day:not(#\-) {
+        color: #120c1a;
+        background-image: none;
+        background-color: #e6e2eb19;
+        border-color: #3a2b4a4d
+    }
+    .habit-perfect-day[data-kind="perfect"]:not(#\-) {
+        color: #110d16;
+        background-image: none;
+        background-color: #9876c05c;
+        border-color: #c4a5f39c
+    }
+    .habit-perfect-day[data-kind="partly"]:not(#\-) {
+        background-image: none;
+        background-color: #8867af35;
+        border-color: #b995e477
+    }
+    .habit-perfect-day[data-kind="no-record"]:not(#\-) {
+        border-color: #c17b8b99
+    }
+    .habit-perfect-day[data-kind="nothing-due"]:not(#\-) {
+        color: #1c1524;
+        background-image: none;
+        background-color: transparent
+    }
+    .habit-perfect-day[data-today]:not(#\-) {
+        box-shadow: inset 0 0 0 2px #9fe6ff99
+    }
+    .habit-perfect-day[aria-pressed="true"]:not(#\-) {
+        outline-color: #dbbbff
+    }
+    .habit-perfect-day:disabled:not(#\-) {
+        color: #332d3d;
+        background-image: none;
+        background-color: transparent;
+        border-color: transparent
+    }
+    .habit-perfect-legend:not(#\-) {
+        color: #1c1524
+    }
+    .habit-perfect-legend b:not(#\-) {
+        color: #110d16
+    }
+    .habit-perfect-detail:not(#\-) {
+        border-top-color: #3d284d42
+    }
+    .habit-perfect-detail h3:not(#\-) {
+        color: #110d16
+    }
+    .habit-perfect-detail p:not(#\-) {
+        color: #120c1a
+    }
+    .habit-perfect-detail li:not(#\-) {
+        color: #120c1a
+    }
+}
 /*  components/habits/recurrence-phrase.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .recurrence-phrase-filler:not(#\-) {
@@ -11716,6 +11838,20 @@
         --launcher-slot-checklist: var(--launcher-first);
         --launcher-slot-music: calc(var(--launcher-first) + var(--launcher-pitch) * var(--launcher-has-checklist));
         --launcher-slot-earn: calc(var(--launcher-first) + var(--launcher-pitch) * (var(--launcher-has-checklist) + var(--launcher-has-music)))
+    }
+    @media (hover:hover) {
+        .music-launcher:not(#\-)::before {
+            background-image: none;
+            background-color: color-mix(in srgb,var(--panel,#eff2fa) 94%,transparent);
+            border-color: var(--line,#c3cae3);
+            color: var(--text,#0d0f18)
+        }
+    }
+    @media (hover:hover) {
+        .music-launcher-fold:hover:not(#\-) {
+            background-image: none;
+            background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 16%,transparent)
+        }
     }
 }
 /*  components/music/music-mix.css  */
@@ -17485,33 +17621,33 @@
         border-right-color: currentColor;
         border-bottom-color: currentColor
     }
-    @media (max-width: 479.98px) {
+    @media (max-width: 900.98px) {
         .portfolio-holdings-section .data-table-wrap:not(#\-) {
             border-color: currentcolor;
             background-image: none;
             background-color: transparent
         }
     }
-    @media (max-width: 479.98px) {
+    @media (max-width: 900.98px) {
         .portfolio-holdings-section .data-table tbody > tr:not(.data-detail-row):not(#\-) {
             border-color: #7fc8ff24;
             background-image: none;
             background-color: #eef2f8cc
         }
     }
-    @media (max-width: 479.98px) {
-        .portfolio-holdings-section .data-table tbody > tr > :is(th, td):not(.data-col-optional, .data-col-wide):not(#\-) {
+    @media (max-width: 900.98px) {
+        .portfolio-holdings-section .data-table tbody > tr > :is(th, td):not(#\-) {
             border-color: currentcolor;
             background-image: none;
             background-color: transparent
         }
     }
-    @media (max-width: 479.98px) {
+    @media (max-width: 900.98px) {
         .portfolio-holdings-section .data-table tbody > tr > td:not(#\-)::before {
             color: #0d1724
         }
     }
-    @media (max-width: 479.98px) {
+    @media (max-width: 900.98px) {
         .portfolio-holdings-section .data-table tbody > tr.data-detail-row > td:not(#\-) {
             border-color: currentcolor
         }

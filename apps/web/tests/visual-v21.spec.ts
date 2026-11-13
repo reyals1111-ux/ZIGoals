@@ -15,7 +15,9 @@ test("V2.1 artwork, summary-first composition and stable decorative identities",
   await openTodayWidgets(page);
   // Session AK (ADR-036, deliberate): a goal shows once on Today (G2, RELEASE_REVIEW_2 R2-9) — as its card under "Your goals"; the destinations widget lists no goal names while those cards are on Today.
   await expect(page.getByRole("article", { name: "Your destinations", exact: true })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Your goals", exact: true }).getByRole("link", { name: "First home", exact: true })).toBeVisible();
+  // Session AO (RR-17/D-134, owner decision 13 Nov, deliberate): a goal is named once on Today; the top goal ("First home" here)
+  // is named in Today's focus (was: its card under Your goals, which no longer repeats it).
+  await expect(page.getByRole("article", { name: "Focus: next goal step" }).locator("strong").getByText("First home", { exact: true })).toBeVisible();
   await expect(page.locator(".quote-panel")).toHaveCount(0);
   const snapshot = page.getByRole("region", { name: "Your Today widgets" }).getByRole("region", { name: "Life and Wealth snapshot" });
   await expect(snapshot).toBeVisible();
@@ -37,7 +39,7 @@ test("V2.1 artwork, summary-first composition and stable decorative identities",
     if (name === "today") await openTodayWidgets(page);
     // Session AK (ADR-036, deliberate): a goal shows once on Today (G2, R2-9), as its card under "Your goals"; the destinations widget no longer repeats its name.
     if (name === "today") await expect(page.getByRole("article", { name: "Your destinations", exact: true })).toBeVisible();
-    if (name === "today") await expect(page.getByRole("region", { name: "Your goals", exact: true }).getByRole("link", { name: "First home", exact: true })).toBeVisible();
+    if (name === "today") await expect(page.getByRole("article", { name: "Focus: next goal step" }).locator("strong").getByText("First home", { exact: true })).toBeVisible();
     if (name === "habits") await expect(page.getByRole("article", { name: "Review my spending" })).toBeVisible();
     if (name === "health") await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("Morning oats");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), name).toBe(true);

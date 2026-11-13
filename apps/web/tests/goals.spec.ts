@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import {typeGoalName} from './goal-name';
+import {continueToGoalReview, typeGoalName} from './goal-name';
 import {expectAlphaMode} from "./ab-shell";
 import { navLink, openFold, walletArea } from "./phone-nav";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
@@ -127,8 +127,8 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button", {name:"Continue"}).click();
   await page.getByLabel("ZIGoals funding / Local simulation", {exact:true}).check();
-  for (let step = 0; step < 2; step++)
-    await page.getByRole("button", { name: "Continue" }).click();
+  // Session AO (T-014, deliberate): one Continue to the review, the last step.
+  await continueToGoalReview(page, 2);
   await expect(
     page.getByRole("button", { name: "Create goal", exact: true }),
   ).toBeDisabled();
@@ -255,8 +255,8 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("ZIGoals funding / Local simulation", {exact:true}).check();
   await page.getByLabel("Planned starting amount").fill("100");
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
+  // Session AO (T-014, deliberate): one Continue to the review, the last step.
+  await continueToGoalReview(page, 2);
   await page.getByRole("button", { name: "Create goal", exact: true }).click();
   await page.getByRole("button", { name: "Confirm simulation" }).focus();
   await page.keyboard.press("Tab");

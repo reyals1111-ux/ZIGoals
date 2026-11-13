@@ -141,6 +141,26 @@ each pushed head, final head green.
   | hud-perf:23 | runner without GPU | AM lane (ADR-038 D39) |
   | zigi-chat-polish:319, a11y-wcag-x:49, run11-route-mobile-acceptance:30, j05-notifications:74, j04-offline:23, for-you:8, zigi-voice-z:199 | first sightings; the job logs' tails hold no failure detail and the traces expired | recorded; one re-run each; investigate on a second sighting |
   | WebKit class B segfaults | engine | recorded, not chased |
+- **D4 (RR-17/D-134, call b):** "a goal's name once on Today" extends AL's R2-9 rule: the focus tile's goal has no second card
+  (the panel's goal already had none); the tile keeps its progress; when the panel shows the same goal its heading reads
+  "Your top goal" (link named after the goal); "You're set" says "Your goal is set". Recent activity is a log of events and
+  keeps naming what happened. Quick add: at 1440 only the hero's shows (the status/sidebar triggers are hidden there).
+- **D5 (Part 4 storage):** "My day ends at" is its own device record `zigoals:day-ends:v1`, not a field of the settings
+  record as the plan said: the settings schemas are `.strict()`, so a new field would make frozen readers #37–#54 refuse
+  synced/exported settings. Device-only (like the theme); exported, restored, erased, catalogued. The rule after a change
+  (owner rule 1): the day in progress keeps the rule it started under until both rules name the same day. Health's own day
+  (meals, water) is not in the owner's list and stays the calendar day; a Checklist Health tick before the end shows the
+  date it was logged for (the existing dot).
+- **D6 (C-MO-36 vs the NOVA lane):** Health's form and `startFast` take 1–24 h; ZIGi's/NOVA's fasting cards (lib/ai, AM's
+  lane) still accept up to 18 h through `MAX_CUSTOM_HOURS`. The NOVA lane adopts 24 when it merges (owner list).
+- **D7 (call e and AL's O3):** one cluster order everywhere (page extras, Game layer, lock last and only where a page can be
+  rearranged). A helper had put the rocket back on phones; reverted, because AL's owner decision O3 moved Game layer into
+  Apps & extras on phones. On a phone, Notes and Journal are therefore like Earn, Help and Tasks (no empty row).
+- **D8 (D-088, Settings folded by default):** deferred to the end of Part 3: 408 plain `goto('/app/settings')` in 249 specs
+  reach controls inside the groups; folding them by default needs those specs moved first.
+- **D9 (Activity periods):** the period chips change only the report card (unchanged); search and CSV follow the kind filter.
+- **D10 (cross-lane, for AM-2):** `lib/ai/local-answers/al-fourth.ts` says the theme is under "Your app → Theme"; it is now
+  Settings → Appearance. AO does not edit lib/ai.
 
 ## Closing table
 (filled at the end: every row Fixed / Built / Owner decision / Not possible / Carried + cause)

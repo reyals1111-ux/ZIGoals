@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {AT, goal, seedGoals, stored, openModule} from './goal-fixtures';
+import {continueToGoalReview, openGoalRhythm} from '../../goal-name';
 import {HABITS_KEY, createHabit, emptyHabitData} from '../../../lib/habits';
 import {ACCOUNTS_KEY} from '../../../lib/w-device-keys';
 import {DEBT_PLANNER_KEY} from '../../../lib/debt-planner/store';
@@ -50,12 +51,15 @@ test('BN-155, N-BN-20 (P-BN-60): a reload brings back the step and the weekly-re
   await seedGoals(page, [], '/app/goals/new');
   await page.getByLabel('Goal name').fill('Fictional trip');
   await page.getByPlaceholder(/Your amount in/).fill('2000');
-  await page.getByRole('button', {name: 'Continue →'}).click();
-  await page.getByRole('button', {name: 'Continue →'}).click();
+  // Session AO (T-014, deliberate): three steps; the weekly-review tick is in the review's rhythm, opened with one tap.
+  await continueToGoalReview(page);
+  await openGoalRhythm(page);
   await page.getByLabel('Add a weekly review habit for this Goal (Mondays)').check();
   page.once('dialog', d => void d.accept());
   await page.reload();
-  await expect(page.getByText('Step 3 of 4')).toBeVisible();
+  await expect(page.getByText('Step 3 of 3')).toBeVisible();
+  // A restored tick opens the rhythm, so it is seen.
+  await expect(page.locator('details.wizard-rhythm')).toHaveAttribute('open', '');
   // Session AL (BN-155, deliberate): the restored line reads "Draft restored · Discard".
   await expect(page.locator('.wizard-draft-back')).toHaveText('Draft restored · Discard');
   await expect(page.getByLabel('Add a weekly review habit for this Goal (Mondays)')).toBeChecked();

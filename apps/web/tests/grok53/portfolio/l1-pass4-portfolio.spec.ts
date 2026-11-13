@@ -111,12 +111,26 @@ test('TK-029 / X3-03: Analysis says the chart figure is "as of" its dated prices
   await expect(quote).toContainText('The chart reads dated prices, so it can differ a little from Value above, which uses the latest quote.');
 });
 
-test('D-155 (fifth pass): at 175 % zoom (731 px) the holdings table says more columns sit to its right, and stops once there', async ({page}) => {
+test('D-155 (fifth pass): at 175 % zoom (731 px) every holding is a card with Value and Result in view; a wider table says more columns sit to its right, and stops once there', async ({page}) => {
   await page.setViewportSize({width: 731, height: 900});
   await buyHalfBitcoin(page);
   const section = page.locator('.portfolio-holdings-section'), wrap = section.locator('.data-table-wrap'), more = section.locator('.data-table-more');
+  // Session AO (BUG-051, deliberate): at 731 px the holdings are cards (up to 900 px), so nothing runs past the box: Value
+  // and Result show in each card, inside the section, and the hint has nothing to say. The hint is checked where the table
+  // returns and still runs past its box (920 px), exactly as before.
+  expect(await wrap.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+  const box = (await wrap.boundingBox())!;
+  for (const label of ['Value', 'Result']) {
+    const cell = section.locator(`tbody > tr:not(.data-detail-row) > td[data-label="${label}"]`).first();
+    await expect(cell, label).toBeVisible();
+    const at = (await cell.boundingBox())!;
+    expect(at.x, label).toBeGreaterThanOrEqual(box.x - 0.5);
+    expect(at.x + at.width, label).toBeLessThanOrEqual(box.x + box.width + 0.5);
+  }
+  await expect(more).toBeHidden();
+  await page.setViewportSize({width: 920, height: 900});
   // Value and Result sit past the box's right edge at this width (the page itself never scrolls sideways).
-  expect(await wrap.evaluate(el => el.scrollWidth - el.clientWidth)).toBeGreaterThan(100);
+  await expect.poll(() => wrap.evaluate(el => el.scrollWidth - el.clientWidth)).toBeGreaterThan(100);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
   await expect(more).toBeVisible();
   await expect(more).toHaveText('More columns to the right: swipe the table sideways.');

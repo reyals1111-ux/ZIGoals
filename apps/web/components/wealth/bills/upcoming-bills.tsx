@@ -1,4 +1,5 @@
 'use client';
+import {removeWithUndo} from '../../ui/remove-with-undo';
 import {ShowcaseTag} from '../../ui/showcase-tag';
 import {useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
@@ -42,7 +43,8 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
   };
   const confirm = (c: BillCandidate) => change(r => confirmCandidate(r, c, crypto.randomUUID(), new Date()), `${c.title} added to your bills.`);
   const dismiss = (c: BillCandidate) => change(r => dismissCandidate(r, c.key, today), `${c.title} will not be suggested again.`);
-  const remove = (bill: Bill) => change(r => removeBill(r, bill.id), `${bill.title} removed from your bills.`);
+  // Session AO (C-LS-20): a removed bill comes back with the app's one Undo toast.
+  const remove = (bill: Bill) => { setProblem(''); const said = `${bill.title} removed from your bills.`; void removeWithUndo(onChange, r => removeBill(r, bill.id), said, `${bill.title} is back in your bills.`).then(() => setStatus(said), cause => { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.'); }); };
   return <div className="bills-body">
     {showcase && <p className="fine"><ShowcaseTag/> Fictional Showcase entries.</p>}
     {unreadable && <p role="alert">This device&rsquo;s bills could not be read; nothing was changed. New bills start a fresh list.</p>}

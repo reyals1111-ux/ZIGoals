@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
+import {continueToGoalReview} from '../../goal-name';
 
 /**
  * Release review AL "as if 1.0" (docs/review/session-al/RELEASE_REVIEW_AL.md), the money findings (Wealth, Goals, Life
@@ -69,9 +70,8 @@ test.describe('RR-11', () => {
     await open(page, '/app/goals/new');
     await page.getByRole('button', {name: 'Start from the idea: Emergency fund'}).click();
     await page.getByLabel('Target amount', {exact: true}).fill('6000');
-    await page.getByRole('button', {name: 'Continue →', exact: true}).click();
-    await page.getByRole('button', {name: 'Continue →', exact: true}).click();
-    await page.getByRole('button', {name: 'Continue →', exact: true}).click();
+    // Session AO (T-014, deliberate): three steps; Continue to the review, which is checked to be the last step.
+    await continueToGoalReview(page);
     await page.getByRole('button', {name: 'Create goal', exact: true}).click();
     await page.waitForURL(/\/app\/goals\/tracked\//);
     const facts = page.locator('.goal-detail-facts').first();

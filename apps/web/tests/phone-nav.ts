@@ -40,7 +40,15 @@ export async function closeMore(page:Page){
  * content shows; elsewhere nothing is folded and this does nothing.
  */
 export async function openFold(page:Page,label:string){
- if(!await isPhone(page))return;
+ // Session AO (RR-16, owner decision 13 Nov): on a computer or a tablet Wealth's longer sections fold too (desk folds,
+ // remembered on the device); one is opened from its row as a reader would. Other pages fold only on a phone.
+ if(!await isPhone(page)){
+  if(!/^\/app\/(wealth|journey)(\/?$|[?#])/.test(new URL(page.url()).pathname+new URL(page.url()).search))return;
+  const desk=page.locator('.desk-fold-toggle').filter({hasText:label}).first();
+  if(!await desk.waitFor({state:'attached',timeout:10000}).then(()=>true,()=>false))return;
+  await expect(async()=>{if(await desk.getAttribute('aria-expanded')!=='true')await desk.click();await expect(desk).toHaveAttribute('aria-expanded','true',{timeout:1500});}).toPass({timeout:15000});
+  return;
+ }
  const toggle=page.locator('.phone-fold-toggle').filter({hasText:label}).first();
  // Session AK RB (RELEASE_REVIEW_2 R2-8): on a phone, Wealth with fewer than two assets keeps its analytic rows inside one
  // "More about your wealth" row; a row inside it is reached by opening that row first, as a reader would.

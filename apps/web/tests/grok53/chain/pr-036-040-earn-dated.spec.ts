@@ -52,7 +52,11 @@ test('PR-039: every external link on Earn has a name a screen reader can say', a
 test('BN-027: the Ecosystem header gives the newest source read, and Zignaly\'s card says its 1 Nov date passed', async ({page}) => {
   await earnRoutes(page);
   await page.goto('/app/ecosystem');
+  // Session AO (CI 1688, strict mode: two .ecosystem-review): React keeps a streamed part in a hidden holder until it swaps
+  // it in, so the header is read once no holder is left (as a11y-wcag-x does); the same assertions follow.
+  await expect(page.locator('div[hidden][id^="S:"]')).toHaveCount(0);
   const review = page.locator('.ecosystem-review');
+  await expect(review).toHaveCount(1);
   await expect(review).toContainText('Sources last read');
   await expect(review).not.toContainText('Sep 23');
   await expect(page.locator('.ecosystem-not-live')).not.toContainText('being voted on until 2 November');

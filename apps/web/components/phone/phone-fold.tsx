@@ -71,7 +71,8 @@ function DeskFold({ id, label, detail, children, ...layout }: LayoutAttrs & { id
   useIsoLayoutEffect(() => {
     const reveal = () => {
       const target = hashId(location.hash), el = target ? document.getElementById(target) : null;
-      if (el && body.current?.contains(el)) { setJumped(true); requestAnimationFrame(() => el.scrollIntoView({ block: "start" })); }
+      // The DOM opens now (React's state catches up), so the scroll that follows finds the target (as Settings' folds do).
+      if (el && body.current?.contains(el)) { body.current.removeAttribute("hidden"); setJumped(true); el.scrollIntoView({ block: "start" }); requestAnimationFrame(() => el.scrollIntoView({ block: "start" })); }
     };
     reveal();
     window.addEventListener("hashchange", reveal);

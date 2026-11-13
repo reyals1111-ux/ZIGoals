@@ -5,6 +5,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {UNIVERSE_KEY} from '../lib/af-extras-keys';
 import {addLocalDays} from '../lib/local-date';
+import {openDeskFold} from './ao/folds';
 
 /**
  * Session AF (L5b; P9.1, ADR-028 H55, H77): My Universe on /app/journey, above the game sections and with the game layer
@@ -43,6 +44,10 @@ const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localS
 test('with the game layer off: the universe sits above the game sections; a milestone reached today celebrates once and only "Lovely" writes', async ({page}) => {
   await seed(page);
   await page.goto('/app/journey');
+  // Session AO (DV-045e, deliberate): My universe is a folded row on Journey now (every size); it is opened first, as a
+  // person would, and every check below is the same. The row's open state is the device's display memory, written here
+  // by the press and before the bytes below are compared.
+  await openDeskFold(page, 'My universe');
   const section = universe(page);
   await expect(section).toBeVisible();
   await expect(page.getByRole('heading', {name: 'The game layer is off.'})).toBeVisible();
@@ -54,6 +59,7 @@ test('with the game layer off: the universe sits above the game sections; a mile
   // Viewing writes nothing: the same bytes after a reload with the celebration still waiting.
   const before = await storage(page);
   await page.reload();
+  await openDeskFold(page, 'My universe'); // Session AO (DV-045e): a phone folds it again on each visit
   await expect(universe(page).getByRole('region', {name: 'Habits gained ring 2'})).toBeVisible();
   expect(await storage(page)).toBe(before);
   expect(await stored(page, UNIVERSE_KEY)).toBeNull();
@@ -63,6 +69,7 @@ test('with the game layer off: the universe sits above the game sections; a mile
   const after = JSON.parse(await storage(page)) as [[string, string][], [string, string][]], was = JSON.parse(before) as typeof after;
   expect(after[0].filter(([k]) => k !== UNIVERSE_KEY)).toEqual(was[0]); // nothing else written
   await page.reload();
+  await openDeskFold(page, 'My universe');
   await expect(universe(page)).toBeVisible();
   await expect(universe(page).getByRole('region', {name: 'Habits gained ring 2'})).toHaveCount(0);
 });
@@ -71,6 +78,7 @@ test('four planets: 44 px controls, the facts in counts only, a share image of 1
   await noFileShare(page);
   await seed(page, {[UNIVERSE_KEY]: JSON.stringify({version: 1, celebrated: {'universe:habits:ring:2': TODAY}})});
   await page.goto('/app/journey');
+  await openDeskFold(page, 'My universe'); // Session AO (DV-045e, deliberate): a folded row on Journey now; opened first
   const section = universe(page);
   await expect(section.getByRole('heading', {level: 2})).toHaveText('2 rings, 1 moon');
   for (const name of ['Habits', 'Health', 'Goals', 'Wealth']) {
@@ -101,6 +109,7 @@ test('reduced motion and Motion Off: the universe is a still and the celebration
   await page.emulateMedia({reducedMotion: 'reduce'});
   await seed(page);
   await page.goto('/app/journey');
+  await openDeskFold(page, 'My universe'); // Session AO (DV-045e, deliberate): a folded row on Journey now; opened first
   const section = universe(page);
   await expect(section.getByRole('region', {name: 'Habits gained ring 2'})).toBeVisible();
   await expect(section.locator('.universe-scene')).not.toHaveAttribute('data-entrance', /./);
@@ -111,6 +120,7 @@ test('reduced motion and Motion Off: the universe is a still and the celebration
   await page.emulateMedia({reducedMotion: 'no-preference'});
   await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off'));
   await page.reload();
+  await openDeskFold(page, 'My universe');
   await expect(universe(page).getByRole('region', {name: 'Habits gained ring 2'})).toBeVisible();
   await expect(universe(page).locator('.universe-scene')).not.toHaveAttribute('data-entrance', /./);
   await expect(universe(page).locator('.celebration-particles')).toHaveCount(0);
@@ -121,11 +131,13 @@ test('the Showcase: a universe from the demo records, no celebration over it, an
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/journey');
+  await openDeskFold(page, 'My universe'); // Session AO (DV-045e, deliberate): a folded row on Journey now; opened before the bytes are compared
   const section = universe(page);
   await expect(section.getByRole('heading', {level: 2})).toHaveText(/^\d+ rings?, \d+ moons?$/);
   await expect(section.locator('.universe-celebration')).toHaveCount(0);
   const before = await storage(page);
   await page.reload();
+  await openDeskFold(page, 'My universe');
   await expect(universe(page).getByRole('list', {name: 'Your four planets'})).toBeVisible();
   expect(await storage(page)).toBe(before);
 });

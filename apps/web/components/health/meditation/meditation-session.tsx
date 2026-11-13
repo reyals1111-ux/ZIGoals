@@ -84,17 +84,20 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
   function letGo() { write(() => emptyMeditationRun()); onDone('The session was not saved.'); }
   const label = run.kind === 'breathing' ? 'Breathing' : 'Meditation';
   if (finished) {
-    const ended = endedSession(run, store.now);
+    const ended = endedSession(run, store.now), short = !ended || tooShortToSave('meditation', ended.seconds * 1000);
     return <section ref={panel} className="panel meditation-session meditation-finished" aria-labelledby="meditation-finished-title">
       <p className="eyebrow">{label.toUpperCase()} · DONE</p>
       <h2 id="meditation-finished-title" tabIndex={-1} ref={finishedHeading}>{ended ? `${ended.seconds >= 60 ? minutesText(Math.round(ended.seconds / 60)) : `${ended.seconds} s`} of ${run.kind === 'breathing' ? 'breathing' : 'stillness'}` : 'Less than a second'}</h2>
       {/* Session AL fifth pass (PR-018): the one timer minimum said before Save, not only after it */}
-      {!ended || tooShortToSave('meditation', ended.seconds * 1000) ? <p>{timerRuleText}</p> : <p>Save it to your Health journal, or let it go. How you feel is optional.</p>}
-      <MoodPicker legend="How do you feel now? (optional)" value={moodAfter} onChange={setMoodAfter}/>
+      {short ? <p>{timerRuleText}</p> : <p>Save it to your Health journal, or let it go. How you feel is optional.</p>}
+      {!short && <><MoodPicker legend="How do you feel now? (optional)" value={moodAfter} onChange={setMoodAfter}/>
       <label className="field">Note (optional)<textarea maxLength={500} rows={2} value={note} onChange={e => setNote(e.target.value)}/></label>
-      {(() => { const pulse = ended ? heartSummary(Date.parse(ended.startedAt), Date.parse(ended.startedAt) + ended.seconds * 1000) : null; return pulse && <label className="checkbox"><input type="checkbox" checked={keepHeart} onChange={e => setKeepHeart(e.target.checked)}/>Keep my heart rate from this session: lowest {pulse.min}, average {pulse.avg}, highest {pulse.max} bpm (only these three numbers)</label>; })()}
+      {(() => { const pulse = ended ? heartSummary(Date.parse(ended.startedAt), Date.parse(ended.startedAt) + ended.seconds * 1000) : null; return pulse && <label className="checkbox"><input type="checkbox" checked={keepHeart} onChange={e => setKeepHeart(e.target.checked)}/>Keep my heart rate from this session: lowest {pulse.min}, average {pulse.avg}, highest {pulse.max} bpm (only these three numbers)</label>; })()}</>}
       {error && <p role="alert">{error}</p>}
-      <div className="actions"><button type="button" className="primary" disabled={busy} onClick={() => void save()}>{busy ? 'Saving…' : 'Save'}</button><button type="button" className="secondary" disabled={busy} onClick={letGo}>Don’t save</button></div>
+      {/* Session AO (PR-018): under the one minimum there is nothing to save, so no Save button that would save nothing */}
+      {short
+        ? <div className="actions"><button type="button" className="primary" onClick={() => { write(() => emptyMeditationRun()); onDone(ended ? tooShortText('meditation') : 'Nothing to save: less than a second.'); }}>Close</button></div>
+        : <div className="actions"><button type="button" className="primary" disabled={busy} onClick={() => void save()}>{busy ? 'Saving…' : 'Save'}</button><button type="button" className="secondary" disabled={busy} onClick={letGo}>Don’t save</button></div>}
     </section>;
   }
   const left = remainingMs(run, store.now), total = run.plannedSec * 1000, progress = 1 - left / total;

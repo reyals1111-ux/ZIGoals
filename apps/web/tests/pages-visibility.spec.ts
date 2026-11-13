@@ -282,7 +282,8 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   const names = (await card.locator('fieldset.pages-switches').first().locator('label.pages-switch').allTextContents()).map(name => name.trim());
   expect(names.indexOf('Chess')).toBeGreaterThan(0);
   expect(names.indexOf('Governance')).toBe(names.indexOf('Chess') + 1);
-  await expect(card.getByText('On this device. It shows while Staking shows; Earn links to it either way.', {exact: true})).toBeVisible();
+  // Session AO (DV-274, deliberate): the note says in plain words that it starts off, where it sits and what links to it.
+  await expect(card.getByText('Off until you switch it on, on this device only. Governance sits with Staking: it shows only while Staking shows, and Earn’s “Have a say” section links to it either way.', {exact: true})).toBeVisible();
   const synced = await page.evaluate(k => localStorage.getItem(k), SETTINGS);
   await governance.click();
   await expect(card.getByRole('status')).toHaveText('Governance shows on this device.');

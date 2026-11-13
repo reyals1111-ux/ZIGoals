@@ -66,7 +66,10 @@ test('phone: Wealth folds its secondary modules, a link into one opens it, and a
   await expect(page.locator('#wealth-history')).toBeVisible();
 });
 
-test('desktop: no module is folded and every one shows as before', async ({page, isMobile}) => {
+// Session AO (RR-16, owner decision 13 Nov, deliberate): Wealth's longer sections fold on a computer too (was: none folded);
+// Today still folds nothing but "For you". Equally strict: Wealth's folds are exactly the desk folds, each a closed row with
+// a 44 px toggle, and opening "Your wealth over time" shows #wealth-history as before.
+test('desktop: Today folds no module; Wealth folds its longer sections, each one opens to show it as before', async ({page, isMobile}) => {
   test.skip(!!isMobile, 'Desktop layout only.');
   await showcase(page);
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
@@ -75,6 +78,10 @@ test('desktop: no module is folded and every one shows as before', async ({page,
   // Session AB-Design (owner request 2): the 'How it works' card is the footer's 3-step line now; the how-to opens from the hero.
   await page.goto('/app/wealth');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-  await expect(page.locator('.phone-fold')).toHaveCount(0);
+  await expect(page.locator('.phone-fold').first()).toBeAttached();
+  await expect(page.locator('.phone-fold:not(.desk-fold)')).toHaveCount(0);
+  for (const toggle of await page.locator('.desk-fold-toggle').all()) { await expect(toggle).toHaveAttribute('aria-expanded', 'false'); expect((await toggle.boundingBox())!.height).toBeGreaterThanOrEqual(44); }
+  const history = page.getByRole('button', {name: /^Your wealth over time/});
+  await history.click();
   await expect(page.locator('#wealth-history')).toBeVisible();
 });

@@ -1,4 +1,5 @@
 'use client';
+import {removeWithUndo} from '../../ui/remove-with-undo';
 import {ShowcaseTag} from '../../ui/showcase-tag';
 import {useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
@@ -34,6 +35,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
   // Session AK RB (RELEASE_REVIEW_2 R2-8): the form opens from its button (an empty Wealth showed every form in full).
   const [adding, setAdding] = useState(false);
   const view = useMemo(() => monthView(entries, record, month, today), [entries, record, month, today]);
+  // Session AO (C-LS-20): Remove offers the app's one Undo toast (components/ui/remove-with-undo.ts).
   const change = (fn: (r: BudgetsRecord) => BudgetsRecord, done: string) => { setProblem(''); try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); } };
   const save = (event: FormEvent) => {
     event.preventDefault();
@@ -61,7 +63,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
         <td>{money(r.spent, r.currency)}</td>
         <td>{money(r.available, r.currency)}{r.carried > 0 && <small className="fine"> incl. {money(r.carried, r.currency)} rolled over</small>}</td>
         <td>{r.left >= 0 ? money(r.left, r.currency) : <>{money(-r.left, r.currency)} over</>}</td>
-        <td><button type="button" className="quiet" onClick={() => change(x => removeBudget(x, r.id), `Budget for ${r.category} removed.`)} aria-label={`Remove the ${r.category} budget in ${r.currency}`}>Remove</button></td>
+        <td><button type="button" className="quiet" onClick={() => { setProblem(''); const said = `Budget for ${r.category} removed.`; void removeWithUndo(onChange, x => removeBudget(x, r.id), said, `The ${r.category} budget is back.`).then(() => setStatus(said), cause => { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); }); }} aria-label={`Remove the ${r.category} budget in ${r.currency}`}>Remove</button></td>
       </tr>)}</tbody>
     </table> : <p className="fine">No budgets for this month yet. Set one, for example Groceries at 300 a month.</p>}
     {view.unbudgeted.length > 0 && <p className="fine">Also spent this month, without a budget: {view.unbudgeted.slice(0, 6).map(u => `${u.category} ${money(u.spent, u.currency)}`).join(' · ')}.</p>}

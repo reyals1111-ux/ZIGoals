@@ -709,6 +709,8 @@
 :where(:root[data-text=large]) .bottom-counts dd:not(#\-) { font-size: calc(24px * 1.125); }
 :where(:root[data-text=large]) .bottom-sources strong:not(#\-), :where(:root[data-text=large]) .bottom-places strong:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .bottom-sources span:not(#\-), :where(:root[data-text=large]) .bottom-places span:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .bottom-week-day h3:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .bottom-week-day li:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/brand/logo-wordmark.css  */
 :where(:root[data-text=large]) .logo-wordmark-large:not(#\-) { font-size: calc(clamp(56px, 6vw, 86px) * 1.125); }
 :where(:root[data-text=large]) .logo-wordmark-medium:not(#\-) { font-size: calc(clamp(36px, 4vw, 52px) * 1.125); }
@@ -766,6 +768,7 @@
 :root:where([data-text=large]) :is(.sleep-key, .evidence-chart-legend) > :is(li, span):not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/checklist/checklist-launcher.css  */
 :where(:root[data-text=large]) .checklist-launcher-fold:not(#\-)::after { font-size: calc(14px * 1.125); }
+@media (hover: hover) { :where(:root[data-text=large]) .checklist-launcher:not(#\-)::before { font-size: calc(14px * 1.125); } }
 /*  components/checklist/checklist-setting.css  */
 :where(:root[data-text=large]) .af-checklist-setting-row strong:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .af-checklist-setting-row small:not(#\-) { font-size: calc(15px * 1.125); }
@@ -893,6 +896,7 @@
 :where(:root[data-text=large]) .dashboard-placement-controls button:not(#\-), :where(:root[data-text=large]) .dashboard-insert-here:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .today-line:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .today-wealth-trend small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .today-skips .today-skip:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/dashboard/hero-fold.css  */
 @media (max-width: 540px) { :where(:root[data-text=large]) .today-hero-strip .eyebrow:not(#\-) { font-size: calc(14px * 1.125); } }
 /*  components/dashboard/how-it-works.css  */
@@ -1095,6 +1099,7 @@
 :where(:root[data-text=large]) .goal-type-cards small:not(#\-) { font-size: calc(.88rem * 1.125); }
 :where(:root[data-text=large]) .goal-live-preview>strong:not(#\-) { font-size: calc(1.55rem * 1.125); }
 :where(:root[data-text=large]) .unified-wizard .form-grid small:not(#\-) { font-size: calc(.82rem * 1.125); }
+:where(:root[data-text=large]) .unified-wizard .wizard-rhythm>summary:not(#\-) { font-size: calc(16px * 1.125); }
 @media (min-width: 761px) and (max-width: 1023px) { :where(:root[data-text=large]) .unified-wizard .wizard-story strong:not(#\-) { font-size: calc(24px * 1.125); } }
 /*  components/goal-summary.css  */
 :where(:root[data-text=large]) .unified-goal-card .goal-progress-ring strong:not(#\-) { font-size: calc(15px * 1.125); }
@@ -1359,6 +1364,17 @@
 :where(:root[data-text=large]) .habit-health-so-far:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/habits/intention.css  */
 :where(:root[data-text=large]) .habit-intention-line > span:not(#\-) { font-size: calc(15px * 1.125); }
+/*  components/habits/perfect-days.css  */
+:where(:root[data-text=large]) .habit-perfect-today:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-facts:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-nav strong:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-grid th:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-date:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-mark:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-legend:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-detail h3:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-detail p:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-detail li:not(#\-) { font-size: calc(.9375rem * 1.125); }
 /*  components/habits/reorder.css  */
 :where(:root[data-text=large]) .habit-reorder-hint:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .habit-compact-table thead th:not(#\-) { font-size: calc(12px * 1.125); }
@@ -1786,7 +1802,8 @@
 :where(:root[data-text=large]) .mood-words-quadrant:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .mood-words-word:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/music/music-launcher.css  */
-:where(:root[data-text=large]) .music-launcher-fold:not(#\-)::after { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .music-launcher-fold:not(#\-)::after { font-size: calc(14px * 1.125); }
+@media (hover:hover) { :where(:root[data-text=large]) .music-launcher:not(#\-)::before { font-size: calc(14px * 1.125); } }
 /*  components/music/music-mix.css  */
 :where(:root[data-text=large]) .music-mix legend:not(#\-) { font-size: calc(.9375rem * 1.125); }
 :where(:root[data-text=large]) .music-mix-preset:not(#\-) { font-size: calc(.9375rem * 1.125); }
@@ -2714,7 +2731,7 @@
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .portfolio-summary-big .portfolio-totals dd:not(#\-) { font-size: calc(19px * 1.125); } }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .data-coin-toggle strong:not(#\-) { font-size: calc(14px * 1.125); } }
 :where(:root[data-text=large]) .portfolio-hero .portfolio-note:not(#\-) { font-size: calc(14px * 1.125); }
-@media (max-width: 479.98px) { :where(:root[data-text=large]) .portfolio-holdings-section .data-table tbody > tr > td:not(#\-)::before { font-size: calc(13px * 1.125); } }
+@media (max-width: 900.98px) { :where(:root[data-text=large]) .portfolio-holdings-section .data-table tbody > tr > td:not(#\-)::before { font-size: calc(14px * 1.125); } }
 @media (max-width: 359.98px) { :where(:root[data-text=large]) .portfolio-holdings-section .data-table tbody > tr > td:not(#\-) { font-size: calc(14px * 1.125); } }
 :where(:root[data-text=large]) .trade-checkin summary:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .trade-checkin-row legend:not(#\-) { font-size: calc(14px * 1.125); }

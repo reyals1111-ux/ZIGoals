@@ -3,6 +3,7 @@ import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue, saveHabitTimezon
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {GAME_KEY} from '../lib/aa-device-keys';
 import {CELEBRATIONS_KEY} from '../lib/w-device-keys';
+import {openDeskFold} from './ao/folds';
 
 /**
  * Session AA-Local Part 2 (H7, S10): the game layer is off by default and shows nothing; on, the Journey page shows the
@@ -52,12 +53,17 @@ test('on: the level is derived from the records, three quests, badges and the pa
   await expect(level).toBeVisible();
   await expect(page.getByRole('list').filter({has: page.getByText('of 1', {exact: false})}).first()).toBeVisible();
   await expect(page.getByRole('heading', {name: 'Quests', exact: true}).locator('..').getByRole('listitem')).toHaveCount(3);
+  // Session AO (DV-045e, deliberate): the badge cabinet and the path are folded rows on Journey (every size), each naming
+  // what it holds; opened as a person would, every check below is the same.
+  await expect(page.getByRole('button', {name: /^Badge cabinet \d+ of \d+ earned$/})).toHaveAttribute('aria-expanded', 'false');
+  await openDeskFold(page, 'Badge cabinet');
   await expect(page.getByLabel('First step: earned')).toBeVisible();
   await expect(page.getByLabel('Seven in a row: earned')).toBeVisible();
   // Session AL fifth pass (DV-045e, deliberate; as strict): the badges still to earn wait in a fold with their count.
   await expect(page.getByLabel('Thirty in a row: not yet')).toBeHidden();
   await page.locator('.journey-badges-ahead > summary').click();
   await expect(page.getByLabel('Thirty in a row: not yet')).toBeVisible();
+  await openDeskFold(page, 'Milestones');
   await expect(page.getByText('You are here')).toBeVisible();
   // A check-in on Habits: 190 → 200 XP, level 2, celebrated once; Undo takes the XP back.
   await page.goto('/app/habits');
@@ -79,6 +85,9 @@ test('on: the level is derived from the records, three quests, badges and the pa
 test('a freeze earned by a seven-day streak repairs one missed day of the last week through the journal', async ({page}) => {
   await seed(page, {version: 1, enabled: true, levelSeen: 1, badgesSeen: {'first-step': TODAY, 'first-week': TODAY, 'streak-7': TODAY}});
   await page.goto('/app/journey');
+  // Session AO (DV-045e, deliberate): Freezes is a folded row naming how many are in hand; opened as a person would.
+  await expect(page.getByRole('button', {name: 'Freezes 2 in hand', exact: true})).toBeVisible();
+  await openDeskFold(page, 'Freezes');
   const freezes = page.getByRole('region', {name: 'Freezes'});
   await expect(freezes.getByText(/You have 2 freezes/)).toBeVisible(); // a 19-day streak: two sevens
   await freezes.getByRole('button', {name: 'Use a freeze', exact: true}).first().click();

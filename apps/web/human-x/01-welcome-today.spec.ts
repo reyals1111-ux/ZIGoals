@@ -407,8 +407,9 @@ async function fundWithCash(page: Page, amount: string) {
   const sheet = page.getByRole('dialog', {name: 'Fund your Goal'});
   await sheet.getByRole('button', {name: 'Cash', exact: true}).click();
   await sheet.getByLabel('Cash amount', {exact: true}).fill(amount);
-  await sheet.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AO (DV-010c, deliberate): new cash previews from its own form (two screens, the preview still before any write).
   await sheet.getByRole('button', {name: 'Preview contribution', exact: true}).click();
+  await expect(sheet.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
   await sheet.getByRole('button', {name: 'Confirm & fund Goal', exact: true}).click();
   await expect(sheet).toHaveCount(0);
   await expect(page.getByRole('status').filter({hasText: 'Goal funded.'})).toBeVisible();

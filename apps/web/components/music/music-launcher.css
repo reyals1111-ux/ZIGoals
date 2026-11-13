@@ -13,7 +13,7 @@
 .music-launcher-fold:hover svg,.music-launcher-fold:focus-visible svg{opacity:1}
 .music-launcher-fold:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:-2px}
 :root[data-zigi-side=left] .music-launcher-fold svg{transform:rotate(180deg)}
-.music-launcher-fold::after{content:attr(data-tip);position:absolute;top:50%;right:calc(100% + 4px);translate:0 -50%;padding:5px 9px;border-radius:8px;background:color-mix(in srgb,var(--panel,#0f1530) 94%,transparent);border:1px solid var(--line,#2a325a);color:var(--text,#eef1ff);font-size:13px;line-height:1.2;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease}
+.music-launcher-fold::after{content:attr(data-tip);position:absolute;top:50%;right:calc(100% + 4px);translate:0 -50%;padding:5px 9px;border-radius:8px;background:color-mix(in srgb,var(--panel,#0f1530) 94%,transparent);border:1px solid var(--line,#2a325a);color:var(--text,#eef1ff);font-size:14px;line-height:1.2;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease}
 :root[data-zigi-side=left] .music-launcher-fold::after{right:auto;left:calc(100% + 6px)}
 .music-launcher-fold:hover::after,.music-launcher-fold:focus-visible::after{opacity:1}
 /* Tucked: a small tab at the edge brings the button back. */
@@ -62,3 +62,13 @@
 :root:has(.music-launcher-stack,.music-edge-tab){--launcher-has-music:1}
 .music-launcher-stack{bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + var(--launcher-slot-music,118px))}
 .music-edge-tab{bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + var(--launcher-slot-music,118px) + 4px)}
+/* Session AO (D-231): with a pointer, the round button names itself on hover, as its "Tuck away" arrow does, and the arrow
+   takes a soft ground under the pointer. Pointer only (no hover on touch); the label is 14 px on the panel colour. */
+@media (hover:hover){
+  .music-launcher::before{content:attr(aria-label);position:absolute;top:50%;right:calc(100% + 8px);translate:0 -50%;padding:5px 9px;border-radius:8px;background:color-mix(in srgb,var(--panel,#0f1530) 94%,transparent);border:1px solid var(--line,#2a325a);color:var(--text,#eef1ff);font-size:14px;font-weight:600;line-height:1.3;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease}
+  .music-launcher:hover::before{opacity:1}
+  :root[data-zigi-side=left] .music-launcher::before{right:auto;left:calc(100% + 8px)}
+  .music-launcher-fold:hover{background:color-mix(in srgb,var(--cyan,#6fd3ff) 16%,transparent)}
+}
+@media (prefers-reduced-motion:reduce){.music-launcher::before{transition:none}}
+:root[data-app-motion=off] .music-launcher::before{transition:none}

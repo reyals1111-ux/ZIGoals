@@ -164,7 +164,10 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   await page.getByRole('button', {name: 'Record contribution', exact: true}).click();
   const fund = page.getByRole('dialog', {name: 'Fund your Goal'});
   await fund.getByLabel('Cash amount', {exact: true}).fill('200');
-  await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AO (DV-010c, deliberate): new cash previews its own amount at once; Back opens the details form, where this step counts a different amount.
+  await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click();
+  await expect(fund.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
+  await fund.getByRole('button', {name: 'Back', exact: true}).click();
   // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
   await fund.getByRole('button', {name: 'Change the amount', exact: true}).click();
   await fund.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('50');
@@ -211,7 +214,7 @@ test('@journey 3b bug J3-1: weekly "Fund Goal" contributions from cash make a rh
     await page.getByRole('button', {name: 'Record contribution', exact: true}).click();
     const fund = page.getByRole('dialog', {name: 'Fund your Goal'});
     // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
-    if (i === 0) { await fund.getByLabel('Cash amount', {exact: true}).fill('500'); await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click(); await fund.getByRole('button', {name: 'Change the amount', exact: true}).click(); }
+    if (i === 0) { await fund.getByLabel('Cash amount', {exact: true}).fill('500'); /* Session AO (DV-010c, deliberate): the preview at once, then Back to count a different amount */ await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click(); await expect(fund.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible(); await fund.getByRole('button', {name: 'Back', exact: true}).click(); await fund.getByRole('button', {name: 'Change the amount', exact: true}).click(); }
     else await fund.getByRole('button', {name: /^EUR Cash/}).click();
     await fund.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('50');
     await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click();
@@ -233,7 +236,10 @@ test('@journey 3c bug J3-2: "Fill in" from the contribution rhythm fills the amo
   await page.getByRole('button', {name: 'Record contribution', exact: true}).click();
   let fund = page.getByRole('dialog', {name: 'Fund your Goal'});
   await fund.getByLabel('Cash amount', {exact: true}).fill('200');
-  await fund.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AO (DV-010c, deliberate): new cash previews its own amount at once; Back opens the details form, where this step counts a different amount.
+  await fund.getByRole('button', {name: 'Preview contribution', exact: true}).click();
+  await expect(fund.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
+  await fund.getByRole('button', {name: 'Back', exact: true}).click();
   // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
   await fund.getByRole('button', {name: 'Change the amount', exact: true}).click();
   await fund.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('50');

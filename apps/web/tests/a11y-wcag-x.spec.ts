@@ -1,6 +1,7 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {audit} from './a11y-audit';
 import {isPhone, openMore} from './phone-nav';
+import {openDeskFold} from './ao/folds';
 
 // Session X Part 12: WCAG 2.2 AA across every page, both projects, empty and with the Showcase. Checks that a browser can
 // decide by itself (names, labels, structure, titles, keyboard, focus, reflow, text spacing, target size, contrast,
@@ -276,6 +277,9 @@ test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and
     // Session AK CI (the wait only): NOVA's dashboard mounts after its heading and then plays its one-time opening from
     // opacity 0; its real end state is `data-opening="done"` (CI on 183733b3 measured every NOVA text at 1.00:1 at t = 0).
     if (path === '/app/nova') await expect(page.locator('.nova-frame')).toHaveAttribute('data-opening', 'done', {timeout: 15_000});
+    // Session AO (DV-045e, deliberate): Journey's longer sections are folded rows now (every size); they are opened first,
+    // so Focus Sessions, My universe's Life Score and the rest are measured as before.
+    if (path === '/app/journey') for (const label of ['My universe', 'Focus sessions', 'Badge cabinet', 'Milestones', 'Freezes', 'Rewards shelf']) await openDeskFold(page, label);
     if (rootSelector === '.music-panel') { if (await isPhone(page)) { const sheet = await openMore(page); await sheet.getByRole('button', {name: /Your soundtrack/}).click(); } else await page.getByRole('button', {name: 'Open the music player', exact: true}).click(); await expect(page.locator(rootSelector)).toBeVisible(); }
     // The settled colours: a switch that takes its saved state after loading fades its colours for a moment, and a page's
     // one-time entrance (motion-page-enter, arrive-card) fades its cards in from 85 % opacity; both are waited out

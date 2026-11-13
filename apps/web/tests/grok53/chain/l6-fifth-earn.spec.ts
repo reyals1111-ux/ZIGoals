@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {earnRoutes, openEarnFolds, seedShowcase} from '../../earn-fixtures';
+import {openFold} from '../../phone-nav';
 import {chooseChain} from '../../chain-choice';
 
 // Session AL fifth pass (lane L6): C-BN-07 (Earn had no side-by-side table of its options with their risk labels) and
@@ -41,6 +42,9 @@ test('N-BN-05: at 375 px each option’s fees, lockups and minimums, and its ste
   const native = page.locator('#native-staking');
   await expect(native.locator('details.earn-more[data-earn-more="columns"] > summary')).toHaveText('Fees, lockups and minimums');
   await expect(native.locator('details.earn-more[data-earn-more="steps"] > summary')).toHaveText('What you’ll do there · 6 steps');
+  // Session AO (N-BN-05, deliberate): native staking is itself a folded row on a phone now; opened, as a person would, its
+  // risks are open and its columns and steps are one row each, as before.
+  await openFold(page, 'Stake ZIG with a validator');
   await expect(native.locator('.earn-risks')).toBeVisible();
   await expect(native.locator('.earn-steps ol')).toBeHidden();
   // Zignaly's "How to withdraw" (a deadline) stays open.

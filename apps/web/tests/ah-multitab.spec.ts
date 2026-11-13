@@ -1,5 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
-import {typeGoalName} from './goal-name';
+import {continueToGoalReview, typeGoalName} from './goal-name';
 import {HABITS_KEY} from '../lib/habits';
 import {PLATFORM_KEY} from '../lib/positions';
 
@@ -17,8 +17,9 @@ async function createGoal(page: Page, name: string) {
   // The name is typed first, right as the wizard opens: the shared Goal-name helper (Session AJ item 11, was inline here).
   await typeGoalName(page, name);
   await page.getByLabel('Target amount', {exact: true}).fill('1200');
-  // Three steps to the review, each Continue once it is there (a one-shot isVisible() skipped a step that was still rendering).
-  for (let i = 0; i < 3; i++) { const next = page.getByRole('button', {name: 'Continue →'}); await expect(next).toBeVisible(); await next.click(); }
+  // Session AO (T-014, deliberate): two steps to the review (the rhythm is part of it), each Continue once it is there (a
+  // one-shot isVisible() skipped a step that was still rendering), and the review is checked to be the last step.
+  await continueToGoalReview(page);
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();
   await expect(page).not.toHaveURL(/\/app\/goals\/new$/);
 }

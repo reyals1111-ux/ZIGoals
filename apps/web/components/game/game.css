@@ -197,3 +197,5 @@ label.game-setting-row > input { display: inline-block; }
 /* Session AL fifth pass (DV-045e): on a phone the row is one line that scrolls sideways (it wrapped to three), the page itself never. */
 @media (max-width: 640px) { .journey-jump ul { flex-wrap: nowrap; overflow-x: auto; padding: 2px; scrollbar-width: none; } .journey-jump li { flex: none; } }
 .journey-page :is(#universe, #rewards-shelf, [id^="journey-"][id$="-title"]) { scroll-margin-top: 88px; }
+/* Session AO (DV-045e): a folded row beside an open section keeps its own height, never stretched to the section's. */
+.journey-pair > .phone-fold { align-content: start; }
