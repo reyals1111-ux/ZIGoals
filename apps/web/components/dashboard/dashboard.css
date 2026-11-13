@@ -169,9 +169,10 @@
 
 /* Session AO (D-028): Today's skip links (components/dashboard/today-skips.tsx): out of sight until one has the focus, as
    "Skip to content" is; black on white (21:1), 44 px targets, no motion. */
-.today-skips{position:fixed;left:16px;top:-200px;z-index:1000}
+/* Out of sight by clipping (never off the page, which a layout check reads as overflow) until one link has the focus. */
+.today-skips{position:fixed;left:16px;top:10px;z-index:1000}
+.today-skips:not(:focus-within){clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
 /* Session AO (a11y-wcag-x 2.4.11): on a computer the sidebar sits at the left edge, so the links show beside it, never under it. */
 @media (min-width:901px){.today-skips{left:calc(var(--sidebar-width,216px) + 16px)}}
-.today-skips:focus-within{top:10px}
 .today-skips ul{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
 .today-skips .today-skip{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;background:var(--text-strong);color:var(--bg);font-size:16px;border-radius:8px}

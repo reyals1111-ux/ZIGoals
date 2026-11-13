@@ -61,7 +61,7 @@ test('Settings on a phone: a grouped list under the title goes to every section;
  // Session AK X1 (RELEASE_REVIEW R4, deliberate): the wallet, network and contract rows became one "Wallet & network
  // (advanced)" row, shown once the chain is chosen (lib/chain-choice.ts); a new device has none of them, so 23.
  // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant", with a row for NOVA's settings: 24.
- const rows=list.getByRole('link');expect(await rows.count()).toBe(24);
+ /* Session AO (owner decision 13 Nov and C-DVG-22, deliberate): Appearance's own row and "My day ends at" (24 → 25; Motion & display became Appearance's row) */const rows=list.getByRole('link');expect(await rows.count()).toBe(25);
  await expect(list.getByRole('link',{name:'Wallet & network (advanced)',exact:true})).toHaveCount(0);
  // Session AL (COPY_AUDIT, deliberate): DV-262/DV-266 — Music, Links and Chess in "Extras"; the Showcase tour last, in "Try it". Still 24 rows.
  // Session AO (owner decision 13 Nov, deliberate): Appearance is the first group (theme, motion, display; #appearance moved

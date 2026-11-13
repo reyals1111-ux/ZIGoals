@@ -199,7 +199,9 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // apply — so it is not held to 44 px here either; every other link, button and question still is. In its place each
   // in-sentence link is checked to be just that: inline, starting on the same line as an opening "(" before it (the "("
   // had been stranded at a line's end), and no line of it taller than its sentence's own line height.
-  const {small, inline, stranded, tall} = await page.locator('.help-page').evaluate(root => {
+  // Session AO (local 2-worker runs read 49 of 72 while the lower answers were still rendering): the links are counted once
+  // the page has settled (the same count, polled), then every check below runs on that settled page.
+  const measure = () => page.locator('.help-page').evaluate(root => {
     const out = {small: [] as string[], inline: 0, stranded: [] as string[], tall: [] as string[]};
     for (const el of root.querySelectorAll<HTMLElement>('a, button, summary')) {
       const box = el.getBoundingClientRect(), name = el.textContent?.trim() ?? '';
@@ -220,6 +222,8 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
     }
     return out;
   });
+  await expect.poll(async () => (await measure()).inline, {timeout: 15_000}).toBe(72);
+  const {small, inline, stranded, tall} = await measure();
   expect(small).toEqual([]);
   // Gate C test audit (equal strength restored): the exemption covers exactly the in-sentence links Help has today, so a
   // standalone link placed after a label cannot slip out of the 44 px rule unnoticed (a new in-sentence link moves this).

@@ -65,7 +65,8 @@
   .alpha-notice p > .alpha-notice-short { display: inline; flex-shrink: 0; font-style: normal; font-size: 13px; line-height: 1.35; color: var(--text-secondary, #dde7f7); white-space: nowrap; }
   /* The label may wrap (whole, never ellipsised): the Showcase's longer one ("… nothing moves unless you sign") ran up to
      103 px past a 335 px window when it could not shrink (o3-apps-extras, 335/375/545 px). Session AO: the label gives way. */
-  .alpha-notice strong { flex: 0 1 auto; min-width: 0; margin: 0; font-size: 12px; line-height: 1.35; }
+  /* Session AO (T-069): the label may take three short lines beside "On this device"; a 1.25 line keeps the notice as tall as before. */
+  .alpha-notice strong { flex: 0 1 auto; min-width: 0; margin: 0; font-size: 12px; line-height: 1.25; }
   .alpha-notice .text-link { margin: 0; }
   .alpha-notice-dot { margin-top: 0; }
   :root .workspace > .status-row { flex-wrap: nowrap; gap: 8px; padding: 6px 0 2px; margin: 0; }

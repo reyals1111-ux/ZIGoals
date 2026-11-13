@@ -33,6 +33,7 @@ test('one class map: the ETF reads ETFs everywhere it is classed, with one share
   // The class cards.
   // Session AO (RR-16, deliberate): the class view folds by default on a computer; opened from its row first.
   await openFold(page, 'Your wealth, in perspective');
+  await openFold(page, 'The shape of your wealth');
   const mix = page.getByRole('region', {name: 'Asset mix'});
   await expect(mix.locator('.class-summary').filter({hasText: 'Stocks'})).toContainText('$15,100.00');
   await expect(mix.locator('.class-summary').filter({hasText: 'Stocks'})).toContainText('AAPL · NVDA');
