@@ -1,4 +1,5 @@
 import {habitInputSchema, type HabitInput} from '../habits';
+import {LIBRARY_HABITS} from './library-habits';
 
 /**
  * Starter habits (Session W Part 3; the library on the Habits page arrives with Part 10): curated, calm, one tap to a
@@ -6,9 +7,10 @@ import {habitInputSchema, type HabitInput} from '../habits';
  * hold no sum, and nothing here measures a person against anyone else. The editor's own templates (Walk, My ZIG plan, …)
  * stay exactly as they were.
  */
-export const HABIT_TEMPLATE_GROUPS = ['health', 'mind', 'fitness', 'learning', 'money', 'chess', 'sleep', 'home'] as const;
+// Backlog #15 (the template library): food, work, relationships and creativity join the groups (lib/templates/library-habits.ts).
+export const HABIT_TEMPLATE_GROUPS = ['health', 'mind', 'fitness', 'learning', 'money', 'chess', 'sleep', 'home', 'food', 'work', 'people', 'creativity'] as const;
 export type HabitTemplateGroup = typeof HABIT_TEMPLATE_GROUPS[number];
-export const HABIT_GROUP_LABEL: Readonly<Record<HabitTemplateGroup, string>> = {health: 'Health', mind: 'Mind', fitness: 'Fitness', learning: 'Learning', money: 'Money', chess: 'Chess', sleep: 'Sleep', home: 'Home'};
+export const HABIT_GROUP_LABEL: Readonly<Record<HabitTemplateGroup, string>> = {health: 'Health', mind: 'Mind', fitness: 'Fitness', learning: 'Learning', money: 'Money', chess: 'Chess', sleep: 'Sleep', home: 'Home', food: 'Food', work: 'Work & career', people: 'Relationships', creativity: 'Creativity'};
 type Measurement = HabitInput['measurement'];
 type Schedule = HabitInput['schedule'];
 export type HabitTemplate = {id: string; group: HabitTemplateGroup; title: string; note: string; category: string; type?: 'build' | 'quit' | 'limit'; measurement: Measurement; target: number; schedule: Schedule; timeOfDay?: 'anytime' | 'morning' | 'afternoon' | 'evening'};
@@ -19,7 +21,7 @@ const perMonth = (times: number): Schedule => ({kind: 'frequency', times, period
 const yes: Measurement = {kind: 'boolean'}, minutes: Measurement = {kind: 'duration', unit: 'minutes'}, hours: Measurement = {kind: 'duration', unit: 'hours'};
 const count = (unit: string): Measurement => ({kind: 'count', unit}), quantity = (unit: string): Measurement => ({kind: 'quantity', unit});
 
-export const HABIT_TEMPLATES: readonly HabitTemplate[] = [
+const CORE_HABIT_TEMPLATES: readonly HabitTemplate[] = [
   // Health
   {id: 'water', group: 'health', title: 'Drink water', note: '2 liters a day', category: 'Health', measurement: quantity('liters'), target: 2, schedule: daily},
   {id: 'fruit-veg', group: 'health', title: 'Eat fruit and vegetables', note: '5 portions a day', category: 'Health', measurement: count('portions'), target: 5, schedule: daily},
@@ -85,6 +87,8 @@ export const HABIT_TEMPLATES: readonly HabitTemplate[] = [
   {id: 'laundry', group: 'home', title: 'Do the laundry', note: 'Once a week', category: 'Home', measurement: yes, target: 1, schedule: perWeek(1)},
   {id: 'meal-plan', group: 'home', title: 'Plan the week’s meals', note: 'Once a week', category: 'Home', measurement: yes, target: 1, schedule: perWeek(1)},
 ];
+/** The starter habits and the template library's added ideas (lib/templates/library-habits.ts), one list. */
+export const HABIT_TEMPLATES: readonly HabitTemplate[] = [...CORE_HABIT_TEMPLATES, ...LIBRARY_HABITS];
 export const habitTemplate = (id: string) => HABIT_TEMPLATES.find(t => t.id === id);
 /** A template as a complete new habit (the person can change anything afterwards). */
 export function habitTemplateInputOf(t: HabitTemplate): HabitInput {
