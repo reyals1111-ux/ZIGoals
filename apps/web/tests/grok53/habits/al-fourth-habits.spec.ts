@@ -122,7 +122,8 @@ test.describe('fresh profile', () => {
     const read = await createHabit(page, 'Read');
     await read.getByRole('button', {name: 'Complete Read', exact: true}).click();
     await read.getByRole('button', {name: 'Options for Read'}).click();
-    await read.getByRole('group', {name: 'Read options'}).getByRole('button', {name: 'Duplicate Read'}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await read.getByRole('menu', {name: 'Read options'}).getByRole('menuitem', {name: 'Duplicate Read'}).click();
     const copy = card(page, 'Read (copy)');
     await expect(copy).toBeVisible();
     await expect(copy.locator('.habit-result')).toHaveText('Due');
@@ -157,7 +158,8 @@ test.describe('fresh profile', () => {
     expect(box.height).toBeLessThanOrEqual(72);
     expect(box.height).toBeGreaterThanOrEqual(44);
     await stretch.getByRole('button', {name: 'Options for Stretch'}).click();
-    await stretch.getByRole('group', {name: 'Stretch options'}).getByRole('button', {name: 'Archive habit…'}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await stretch.getByRole('menu', {name: 'Stretch options'}).getByRole('menuitem', {name: 'Archive habit…'}).click();
     await stretch.getByRole('alertdialog').getByRole('button', {name: 'Archive habit', exact: true}).click();
     await expect(toast(page)).toContainText('Stretch is archived today.');
     await page.getByRole('group', {name: 'Filter habits'}).getByRole('button', {name: 'Archived', exact: true}).click();

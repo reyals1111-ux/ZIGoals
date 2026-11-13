@@ -7,6 +7,7 @@ import './activity-product.css';
 import {ActivityReport} from './activity/activity-report';
 import {useLocalToday} from './use-local-today';
 import {emptyFor} from './activity/empty-for';
+import {ActivitySearchField} from './activity/search-field';
 import {LoadBoundary} from './load-boundary';
 import {ChunkFailed, chunk} from './use-chunk';
 
@@ -22,10 +23,12 @@ import {ChunkFailed, chunk} from './use-chunk';
 const useFeed = chunk(() => import('./activity-feed'));
 type FeedProps = ComponentProps<typeof Feed>;
 const NO_ROWS: never[] = [], NO_HABITS: never[] = [];
-function FeedStandIn({category = 'ALL', report = false}: FeedProps) {
+function FeedStandIn({category = 'ALL', report = false, query, onQuery}: FeedProps) {
   const today = useLocalToday(), e = emptyFor(category);
   return <div className="unified-activity">
     {report && <ActivityReport rows={NO_ROWS} habits={NO_HABITS} today={today}/>}
+    {/* PR-100: the same search field (its words are the page's), with an empty result line, as the list first renders. */}
+    {onQuery && <ActivitySearchField value={query ?? ''} onChange={onQuery}><p className="activity-search-status" role="status" aria-live="polite"></p></ActivitySearchField>}
     <EmptyState className="timeline-empty" zigi="encouraging" title={e.title} action={e.href ? <Link className="text-link" href={e.href}>{e.link}</Link> : undefined}>{e.body}</EmptyState>
   </div>;
 }

@@ -49,8 +49,12 @@ import {REMOVAL_UNDO_MS} from '../lib/goals/removal-undo'; // CI13: the constant
 import {SHOWCASE_ROW_SOURCE, isShowcaseGoalCompletion, isShowcaseRow, showcaseRowIds} from "./activity-showcase";
 import {showcaseDay} from "../lib/showcase-storage";
 import {emptyFor} from "./activity/empty-for";
+// C-DVG-17 / DV-046e / DV-054d / C-DV-13 / PR-100: search by the words a row shows, and Export CSV of the filtered rows.
+import {ActivitySearchField} from "./activity/search-field";
+import {activityCsv, activityCsvName, csvTime, kindWord, matchesQuery, rowWords, splitAmount} from "../lib/activity-search";
+import {exportFileName} from "../lib/showcase-detect";
 const deviceDay = (iso: string) => zonedDay(new Date(iso), checklistZone());
-export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts, report = false }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void; /** The Activity page's report card above the list (GAP-124). */ report?: boolean }) {
+export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts, report = false, query, onQuery }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void; /** The Activity page's report card above the list (GAP-124). */ report?: boolean; /** PR-100: the Activity page's search (with Export CSV); none elsewhere. */ query?: string; onQuery?: (query: string) => void }) {
   const showcase = useShowcase();
   // CI1 (product-visual, React #418): the report's day is the server's in the hydrated HTML, the browser's right after mount.
   const today = useLocalToday();
@@ -131,7 +135,21 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   // Session AL (DV-046d, DV-169, P-DV-74): one selection for the list and for its chip's count.
   const select = (c: string) => c === "ZIGI" ? [...base.filter(event => zigi.ids.has(event.id)), ...zigiOnly] : base.filter(event => c === "ALL" || event.category === c);
   const allEntries = select(category).map(event => ({...event, dayKey: activityDay(event)})).sort((a, b) => b.dayKey.localeCompare(a.dayKey) || b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
-  const entries = allEntries.slice(0, limit), keys = activityKeys(entries);
+  // PR-100: what a row shows, in words, for the search and the export (the same words as the row itself, below).
+  const zone = activityTimeZone();
+  const byWords = (event: (typeof allEntries)[number]) => (zigi.ids.has(event.id) || event.id.startsWith("zigi:")) ? (autoById.get(event.id) ? "Added by ZIGi (auto-accept)" : novaById.has(event.id.replace(/^zigi:/, "")) ? "by NOVA" : "by ZIGi") : "";
+  const sourceOf = (event: (typeof allEntries)[number]) => /* Session AL (D-227, P-DVR-42): the Showcase is said once above the list, not on every row */showcase && seeded && (isShowcaseRow(event.id, seeded) || ('goalId' in event && typeof event.goalId === 'string' && isShowcaseGoalCompletion(event.id, event.goalId, platform.data, seeded))) ? SHOWCASE_ROW_SOURCE : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser";
+  const presentationOf = (event: (typeof allEntries)[number]) => event.category === "TASK" ? TASK_ACTIVITY_PRESENTATION : activityPresentation(event);
+  const searching = !!query?.trim();
+  const found = searching ? allEntries.filter(event => matchesQuery(rowWords([presentationOf(event).label, byWords(event), event.title, event.detail, sourceOf(event), activityTimeLabel(event.at, zone)]), query!)) : allEntries;
+  const entries = found.slice(0, limit), keys = activityKeys(entries);
+  // PR-100: exactly the rows the filters find (all of them, also those after "Show more"), made on this device only.
+  const exportCsv = () => {
+    const rows = found.map(event => { const time = activityTimeLabel(event.at, zone), amount = splitAmount(event.detail); return {date: event.dayKey, time: csvTime(event.at, zone, time !== null), kind: kindWord(event.category), title: event.title, detail: event.detail, value: amount.value, unit: amount.unit, source: sourceOf(event)}; });
+    const name = exportFileName(activityCsvName(today), showcase), url = URL.createObjectURL(new Blob([activityCsv(rows)], {type: 'text/csv;charset=utf-8'})), a = document.createElement('a');
+    a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showStatus(`${countText(rows.length, 'row', 'rows')} saved as ${name}. Made on this device; nothing was sent.`);
+  };
   // Session AI (SE5): a Health entry can be removed from the log itself, with the app's one Undo; the others keep the undo
   // where they were made (a habit day in its day editor, a goal's contribution on its goal).
   const healthKind = (id: string): "diary" | "weights" | "activity" | "water" | null => health.data.diary.some(e => e.id === id) ? "diary" : health.data.weights.some(w => w.id === id) ? "weights" : health.data.activity.some(a => a.id === id) ? "activity" : (() => { try { return dailyData(health.data).water.some(w => w.id === id) ? "water" as const : null; } catch { return null; } })();
@@ -153,9 +171,10 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   return <div className="unified-activity">
     {report && <ActivityReport rows={base.map(event => ({category: event.category, dayKey: activityDay(event)}))} habits={habits.data.habits} today={today}/>}
     {(habits.error || health.error) && <p className="fine">Some private history needs attention in Settings; stored data has been preserved.</p>}
+    {onQuery && <ActivitySearchField value={query ?? ""} onChange={onQuery}><p className="activity-search-status" role="status" aria-live="polite">{searching ? countText(found.length, "result", "results") : ""}</p>{found.length > 0 && <button type="button" className="secondary activity-export" onClick={exportCsv}>Export CSV</button>}</ActivitySearchField>}
     {showcase && <p className="activity-history-source">Showcase example history: rows marked “Showcase example” are fictional; what you add here is yours.</p>}
     {entries.length ? <ol>{entries.map((event, index) => {
-      const presentation = event.category === "TASK" ? TASK_ACTIVITY_PRESENTATION : activityPresentation(event);
+      const presentation = presentationOf(event);
       // Session AH (TR12): grouped under the record's own day, newest day first.
       const heading = activityDayHeading(event.dayKey);
       const startsDay = index === 0 || event.dayKey !== entries[index - 1]!.dayKey;
@@ -163,14 +182,14 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
         {startsDay && <h3 className="activity-date-heading">{heading}</h3>}
         <article className="activity-event" data-category={event.category} data-tone={presentation.tone}>
           <span className={`timeline-icon timeline-${presentation.tone}`}><AppIcon name={presentation.icon} size={28} /></span>
-          <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : novaById.has(event.id.replace(/^zigi:/, "")) ? " · by NOVA" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link>{event.detail && <p>{event.detail}</p>}<small>{/* Session AL (D-227, P-DVR-42): the Showcase is said once above the list, not on every row */showcase && seeded && (isShowcaseRow(event.id, seeded) || ('goalId' in event && typeof event.goalId === 'string' && isShowcaseGoalCompletion(event.id, event.goalId, platform.data, seeded))) ? SHOWCASE_ROW_SOURCE : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
-          {(() => { const time = activityTimeLabel(event.at, activityTimeZone()); return time ? <time dateTime={event.at}>{time}</time> : null; })()}
+          <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : novaById.has(event.id.replace(/^zigi:/, "")) ? " · by NOVA" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link>{event.detail && <p>{event.detail}</p>}<small>{sourceOf(event)}</small></div>
+          {(() => { const time = activityTimeLabel(event.at, zone); return time ? <time dateTime={event.at}>{time}</time> : null; })()}
           {!showcase && event.category === "HABIT" && habitDay(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => removeHabitDay(event.id, event.title)}>Remove</button>}
           {!showcase && (() => { const goal = contributionGoal(event.id); return goal ? <Link className="text-link activity-remove" href={`/app/goals/tracked/${goal}#funding-wealth`} aria-label={`Reverse on its goal: ${event.title}`}>Reverse on its goal →</Link> : null; })()}
           {!showcase && event.category === "HEALTH" && healthKind(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => remove(event.id, event.title)}>Remove</button>}
         </article>
       </li>;
-    })}</ol> : (e => <EmptyState className="timeline-empty" zigi="encouraging" title={e.title} action={e.href ? <Link className="text-link" href={e.href}>{e.link}</Link> : undefined}>{e.body}</EmptyState>)(emptyFor(category))}
-    {onMore && allEntries.length > limit && <button className="quiet" onClick={onMore}>Show more activity</button>}
+    })}</ol> : searching ? <EmptyState className="timeline-empty activity-search-empty" zigi="encouraging" title="Nothing matched your search.">{`${category === "ALL" ? "No activity" : category === "ZIGI" ? "No action by ZIGi" : `No ${kindWord(category).toLowerCase()} activity`} shows “${query!.trim()}”. Try other words, or another filter.`}</EmptyState> : (e => <EmptyState className="timeline-empty" zigi="encouraging" title={e.title} action={e.href ? <Link className="text-link" href={e.href}>{e.link}</Link> : undefined}>{e.body}</EmptyState>)(emptyFor(category))}
+    {onMore && found.length > limit && <button className="quiet" onClick={onMore}>Show more activity</button>}
   </div>;
 }

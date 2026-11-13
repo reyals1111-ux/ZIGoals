@@ -19,7 +19,8 @@ test('widget insertion, rail placement and encrypted layout recovery keep one bi
  await expect(placed).toBeVisible();
  await expect.poll(()=>habits.evaluate(el=>el.nextElementSibling?.getAttribute('data-kind'))).toBe('widget');
  await card.getByRole('button',{name:'Options for My water'}).click();
- await card.getByRole('button',{name:'Move to rail'}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await card.getByRole('menuitem',{name:'Move to rail'}).click();
  await expect(page.locator('.today-rail > .placed-module').filter({has:card})).toBeVisible();
  await page.reload();
  await openTodayWidgets(page);
@@ -27,10 +28,12 @@ test('widget insertion, rail placement and encrypted layout recovery keep one bi
  await expect(page.locator('.placed-module').filter({has:card})).toHaveCount(1);
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();
  await card.getByRole('button',{name:'Options for My water'}).click();
- await card.getByRole('button',{name:'Hide widget'}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await card.getByRole('menuitem',{name:'Hide widget'}).click();
  await expect(card).toHaveAttribute('data-hidden','true');
  await card.getByRole('button',{name:'Options for My water'}).click();
- await card.getByRole('button',{name:'Show widget'}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await card.getByRole('menuitem',{name:'Show widget'}).click();
  await expect(card).not.toHaveAttribute('data-hidden','true');
 
  await page.goto('/app/settings');
@@ -46,7 +49,8 @@ test('widget insertion, rail placement and encrypted layout recovery keep one bi
  await page.goto('/app');
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();
  await card.getByRole('button',{name:'Options for My water'}).click();
- await card.getByRole('button',{name:'Remove widget'}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await card.getByRole('menuitem',{name:'Remove widget'}).click();
  await expect(card).toHaveCount(0);
  await page.goto('/app/settings');
  await vault.getByText('Restore an encrypted backup').click();

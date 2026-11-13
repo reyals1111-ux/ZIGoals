@@ -248,8 +248,10 @@ test.describe('Showcase 1280 Dark', () => {
     await page.getByRole('button', {name: 'Completed', exact: true}).click();
     const card = page.locator('[data-goal-key="private:9204"]');
     await card.getByRole('button', {name: /^Options for /}).click();
-    await expect(card.getByRole('button', {name: /to Today$/})).toHaveCount(0);
-    await expect(card.getByRole('link', {name: 'Delete…'})).toBeVisible();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await expect(card.getByRole('menuitem', {name: /to Today$/})).toHaveCount(0);
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await expect(card.getByRole('menuitem', {name: 'Delete…'})).toBeVisible();
   });
 
   test('M-091: Today\'s Quick add opens on its line field', async ({page}) => {

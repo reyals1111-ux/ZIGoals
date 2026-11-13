@@ -178,14 +178,16 @@ test.describe('item 7: a vision tile\'s own image', () => {
     const before = (await tile.boundingBox())!;
     await tile.getByRole('button', {name: /^Options for /}).click();
     const chooser = page.waitForEvent('filechooser');
-    await tile.getByRole('button', {name: 'Change image', exact: true}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await tile.getByRole('menuitem', {name: 'Change image', exact: true}).click();
     await (await chooser).setFiles({name: 'mine.png', mimeType: 'image/png', buffer: png});
     await expect(tile.locator('img[src^="blob:"]')).toHaveCount(1);
     const after = (await tile.boundingBox())!;
     expect(Math.abs(after.width - before.width)).toBeLessThanOrEqual(1); expect(Math.abs(after.height - before.height)).toBeLessThanOrEqual(1);
     expect(await tile.locator('img[src^="blob:"]').evaluate(img => getComputedStyle(img).objectFit)).toBe('cover');
     await tile.getByRole('button', {name: /^Options for /}).click();
-    await tile.getByRole('button', {name: 'Back to the illustration', exact: true}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await tile.getByRole('menuitem', {name: 'Back to the illustration', exact: true}).click();
     await expect(tile.locator('img[src^="blob:"]')).toHaveCount(0);
     await expect(tile.locator('img[src^="/showcase/vision/"]')).toHaveCount(1);
     // ⋯ and "Open Goal →" (shown on hover and focus, always on touch) never cover each other.

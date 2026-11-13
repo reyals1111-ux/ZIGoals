@@ -319,7 +319,8 @@ test('10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi 
   const card = page.getByRole('article', {name: 'Stretch', exact: true});
   await expect(card.locator('.habit-card-heading .ai-ask-link')).toHaveCount(0);
   await card.getByRole('button', {name: 'Options for Stretch', exact: true}).click();
-  await expect(card.getByRole('group', {name: 'Stretch options'}).getByRole('button', {name: 'Ask ZIGi about this habit', exact: true})).toBeVisible();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(card.getByRole('menu', {name: 'Stretch options'}).getByRole('menuitem', {name: 'Ask ZIGi about this habit', exact: true})).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', {name: 'Ask ZIGi about my habits', exact: true})).toHaveCount(1);
 });

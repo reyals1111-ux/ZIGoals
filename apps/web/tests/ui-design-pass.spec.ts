@@ -433,16 +433,19 @@ test.describe('Part 4: Health',()=>{
   const planks=page.getByRole('article',{name:'Planks',exact:true});await expect(planks).toBeVisible();
   await page.getByRole('button',{name:'Increase Planks'}).click();await expect(count(page,'Planks')).toHaveText('1');
   // Session AB-Design (owner request 22): one ⋯ on the card opens "Manage counters"; each row there has its own actions.
-  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('button',{name:'Manage counters…'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('menuitem',{name:'Manage counters…'}).click();
   await page.getByRole('dialog',{name:'Manage counters'}).locator('li').filter({hasText:'Planks'}).getByRole('button',{name:'Rename or change icon'}).click();
   const edit=page.getByRole('dialog',{name:'Edit Planks'});await edit.getByLabel('Counter name').fill('Plank holds');await edit.getByRole('button',{name:'Save counter'}).click();
   await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toBeVisible();
   await page.reload();const renamed=page.getByRole('article',{name:'Plank holds',exact:true});await expect(renamed).toBeVisible();await expect(count(page,'Plank holds')).toHaveText('1');
-  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('button',{name:'Manage counters…'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('menuitem',{name:'Manage counters…'}).click();
   await page.getByRole('dialog',{name:'Manage counters'}).locator('li').filter({hasText:'Plank holds'}).getByRole('button',{name:'Delete counter'}).click();
   const confirm=page.getByRole('dialog',{name:'Delete Plank holds?'});await expect(confirm).toContainText('its daily history');
   await confirm.getByRole('button',{name:'Keep counter'}).click();await expect(renamed).toBeVisible();
-  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('button',{name:'Manage counters…'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('menuitem',{name:'Manage counters…'}).click();
   await page.getByRole('dialog',{name:'Manage counters'}).locator('li').filter({hasText:'Plank holds'}).getByRole('button',{name:'Delete counter'}).click();
   await page.getByRole('dialog',{name:'Delete Plank holds?'}).getByRole('button',{name:'Delete counter'}).click();
   await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toHaveCount(0);
@@ -538,7 +541,8 @@ test.describe('Part 7: Today widgets',()=>{
   await expect(preview).toContainText('Push-ups');
   await editor.getByRole('button',{name:'Save widget'}).click();await expect(editor).toHaveCount(0);
   const card=page.getByRole('article',{name:'Exercise counters today'});await expect(card).toBeVisible();await expect(card).toContainText('Squats');
-  await card.getByRole('button',{name:'Options for Exercise counters today'}).click();await card.getByRole('button',{name:'Edit widget'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await card.getByRole('button',{name:'Options for Exercise counters today'}).click();await card.getByRole('menuitem',{name:'Edit widget'}).click();
   const edit=page.getByRole('dialog',{name:'Edit widget'});await edit.getByRole('button',{name:'Remove widget'}).click();
   await expect(edit).toHaveCount(0);await expect(page.getByRole('article',{name:'Exercise counters today'})).toHaveCount(0);
  });

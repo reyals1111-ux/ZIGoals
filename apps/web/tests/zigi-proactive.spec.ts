@@ -121,7 +121,8 @@ test('"Ask ZIGi about this" from a number\'s menu: the question and a removable 
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.zigiLauncher ?? '')).toBe('shown');
   const total = page.locator('.wealth-hero-total');
   await total.getByRole('button', {name: /^Options for/}).click();
-  await total.getByRole('button', {name: 'Ask ZIGi about this'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await total.getByRole('menuitem', {name: 'Ask ZIGi about this'}).click();
   await expect(panel(page)).toBeVisible();
   await expect(page.getByLabel('Message to your AI')).toHaveValue('What is my net worth?');
   await expect(panel(page).getByRole('group', {name: 'Records ZIGi chose for this question'})).toContainText('Wealth totals');
@@ -136,7 +137,8 @@ test('"Ask ZIGi about this" from a number\'s menu: the question and a removable 
   if (compact) await expect.poll(() => page.evaluate(() => document.documentElement.dataset.zigiLauncher ?? '')).toBe('shown');
   else expect(await page.evaluate(() => document.documentElement.dataset.zigiLauncher ?? null)).toBeNull();
   await page.locator('.wealth-hero-total').getByRole('button', {name: /^Options for/}).click();
-  await expect(page.locator('.wealth-hero-total').getByRole('button', {name: 'Ask ZIGi about this'})).toHaveCount(compact ? 1 : 0);
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(page.locator('.wealth-hero-total').getByRole('menuitem', {name: 'Ask ZIGi about this'})).toHaveCount(compact ? 1 : 0);
 });
 
 test('Today: the brief card only with ZIGi on, at the lowest priority; "Not today" hides it for the day; nothing written on view', async ({page}) => {

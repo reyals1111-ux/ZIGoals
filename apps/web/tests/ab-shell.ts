@@ -109,7 +109,8 @@ export async function openFilm(page:Page){
 /** Session AB-Design (owner request 15): Positions left the Goals filter row for the page's ⋯ menu; this opens it and returns the link. */
 export async function goalsPositionsLink(page:Page){
  await page.getByRole('button',{name:'Options for Goals',exact:true}).click();
- const link=page.getByRole('group',{name:'Goals options',exact:true}).getByRole('link',{name:'Positions →',exact:true});
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ const link=page.getByRole('menu',{name:'Goals options',exact:true}).getByRole('menuitem',{name:'Positions →',exact:true});
  await expect(link).toHaveAttribute('href','/app/staking#positions');
  return link;
 }

@@ -587,7 +587,8 @@ test('"Ask ZIGi about this" on a habit card and on a goal detail opens the chat 
   const card = page.locator('article.habit-card').first();
   const label = (await card.getAttribute('aria-label'))!;
   await card.getByRole('button', {name: `Options for ${label}`, exact: true}).click();
-  const ask = card.getByRole('button', {name: 'Ask ZIGi about this habit', exact: true});
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  const ask = card.getByRole('menuitem', {name: 'Ask ZIGi about this habit', exact: true});
   await expect(ask).toBeVisible();
   await ask.click();
   await expect(panel(page)).toBeVisible();

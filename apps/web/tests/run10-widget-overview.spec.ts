@@ -20,10 +20,12 @@ test('six selected widgets remain individually reachable and update when hidden 
  await expect(page.locator('article.dashboard-widget[aria-label="Explore safely"] a.text-link')).toHaveAttribute('href','/app/ecosystem');
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();
  await page.getByRole('article',{name:'My water'}).getByRole('button',{name:'Options for My water'}).click();
- await page.getByRole('article',{name:'My water'}).getByRole('button',{name:'Hide widget'}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await page.getByRole('article',{name:'My water'}).getByRole('menuitem',{name:'Hide widget'}).click();
  await expect(cards).toHaveCount(5);
  await page.getByRole('article',{name:'Explore safely'}).getByRole('button',{name:'Options for Explore safely'}).click();
- await page.getByRole('article',{name:'Explore safely'}).getByRole('button',{name:'Remove widget'}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await page.getByRole('article',{name:'Explore safely'}).getByRole('menuitem',{name:'Remove widget'}).click();
  await expect(cards).toHaveCount(4);
  await page.reload();
  await expect(cards).toHaveCount(4);

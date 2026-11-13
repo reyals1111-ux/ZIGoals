@@ -144,7 +144,8 @@ test('J012: Customize Today at 1024 px: a hidden widget keeps a readable title a
   const id = await page.locator('.today-page .placed-module[data-kind="widget"]').first().getAttribute('data-module');
   const widget = page.locator(`.today-page .placed-module[data-kind="widget"][data-module="${id}"]`);
   await widget.getByRole('button', {name: /^Options for/}).click();
-  await widget.getByRole('button', {name: 'Hide widget'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await widget.getByRole('menuitem', {name: 'Hide widget'}).click();
   await expect(widget).toHaveAttribute('data-hidden', 'true');
   const options = widget.getByRole('button', {name: /^Options for/});
   await options.evaluate(button => button.scrollIntoView({block: 'center'}));
@@ -152,7 +153,8 @@ test('J012: Customize Today at 1024 px: a hidden widget keeps a readable title a
   expect(await options.evaluate(button => { const r = button.getBoundingClientRect(); return button.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)); })).toBe(true);
   expect((await widget.locator('.dashboard-widget-heading h3').boundingBox())!.width).toBeGreaterThan(60);
   await options.click();
-  await widget.getByRole('button', {name: 'Show widget'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await widget.getByRole('menuitem', {name: 'Show widget'}).click();
   await expect(widget).not.toHaveAttribute('data-hidden', 'true');
 });
 

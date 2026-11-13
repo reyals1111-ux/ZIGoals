@@ -18,10 +18,12 @@ test('visual library hides ineligible staking and card menu returns focus on Esc
  const card=page.getByRole('article',{name:'Your destinations',exact:true});
  const trigger=card.getByRole('button',{name:'Options for Your destinations'});
  await trigger.click();
- await expect(card.getByRole('group',{name:'Your destinations options'})).toBeVisible();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await expect(card.getByRole('menu',{name:'Your destinations options'})).toBeVisible();
  await card.screenshot({path:info.outputPath('today-card-options-320.png'),animations:'disabled'});
  await page.keyboard.press('Escape');
- await expect(card.getByRole('group',{name:'Your destinations options'})).toHaveCount(0);
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await expect(card.getByRole('menu',{name:'Your destinations options'})).toHaveCount(0);
  await expect(trigger).toBeFocused();
  await page.getByRole('button',{name:'Add widget',exact:true}).click();
  const editor=page.getByRole('dialog',{name:'Add a widget'});
@@ -39,22 +41,26 @@ test('source-card pinning keeps Goal, Habit, asset and research bindings distinc
  await page.goto('/app/goals');
  const goal=page.locator('.unified-goal-card').first();
  await goal.getByRole('button',{name:/Options for/}).click();
- await goal.getByRole('button',{name:/Add .* progress to Today/}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await goal.getByRole('menuitem',{name:/Add .* progress to Today/}).click();
  await expect(goal.getByRole('status')).toContainText('added to Today');
  await page.goto('/app/habits');
  const habit=page.locator('.habit-card').first();
  await habit.getByRole('button',{name:/Options for/}).click();
- await habit.getByRole('button',{name:/Add .* check-in to Today/}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await habit.getByRole('menuitem',{name:/Add .* check-in to Today/}).click();
  await expect(habit.getByRole('status')).toContainText('added to Today');
  await page.goto('/app/wealth');
  const asset=page.locator('.owned-asset-card').first();
  await asset.getByRole('button',{name:/Options for/}).click();
- await asset.getByRole('button',{name:/Add .* quantity to Today/}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await asset.getByRole('menuitem',{name:/Add .* quantity to Today/}).click();
  await expect(asset.getByRole('status')).toContainText('added to Today');
  await page.goto('/app/ecosystem');
  const project=page.locator('.ecosystem-project').first();
  await project.getByRole('button',{name:/Options for/}).click();
- await project.getByRole('button',{name:/research shortcut to Today/}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await project.getByRole('menuitem',{name:/research shortcut to Today/}).click();
  await expect(project.getByRole('status')).toContainText('added to Today');
  await page.goto('/app');
  // Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): the overview no longer repeats the widgets that are cards on Today;
@@ -66,7 +72,8 @@ test('source-card pinning keeps Goal, Habit, asset and research bindings distinc
  await expect(summary).toHaveCount(8);
  await page.goto('/app/goals');
  await goal.getByRole('button',{name:/Options for/}).click();
- await goal.getByRole('button',{name:/Add .* progress to Today/}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await goal.getByRole('menuitem',{name:/Add .* progress to Today/}).click();
  await expect(goal.getByRole('status')).toContainText('already on Today');
  await page.goto('/app');
  await expect(summary).toHaveCount(8);
@@ -104,7 +111,8 @@ test('a bound Habit updates its Today summary and card after the source changes'
  await expect(item).toContainText(onePage);
  await expect(card).toContainText(onePage);
  await card.getByRole('button',{name:'Options for Reading today'}).click();
- await card.getByRole('button',{name:'Remove widget'}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await card.getByRole('menuitem',{name:'Remove widget'}).click();
  await expect(card).toHaveCount(0);
  await page.goto('/app/habits');
  await expect(page.locator('.habit-card').filter({hasText:'Fictional daily reading'}).locator('.habit-count strong')).toHaveText('1');
@@ -122,7 +130,8 @@ test('a missing Habit binding stays visible and can be rebound to a saved source
  await expect(card).toContainText('Record unavailable');
  await expect(card).toContainText('Choose another or remove this widget');
  await card.getByRole('button',{name:'Options for Saved reading card'}).click();
- await card.getByRole('button',{name:'Edit widget'}).click();
+ // Session AO (DV-040g, deliberate): items are menuitems now
+ await card.getByRole('menuitem',{name:'Edit widget'}).click();
  const editor=page.getByRole('dialog',{name:'Edit widget'});
  await expect(editor.getByText('Previously selected record unavailable.')).toBeVisible();
  await editor.getByRole('group',{name:'Choose a saved record'}).getByRole('button',{name:/Fictional replacement Habit/}).click();

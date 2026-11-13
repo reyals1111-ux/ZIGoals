@@ -210,7 +210,8 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
     // "Open Goal →" repeats the title link and is not a second stop.
     await expect(card.getByRole('link', {name: 'Open Goal →'})).toHaveAttribute('tabindex', '-1');
     await card.getByRole('button', {name: /^Options for /}).click();
-    await page.getByRole('link', {name: 'Delete…'}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await page.getByRole('menuitem', {name: 'Delete…'}).click();
     await page.waitForURL('**/app/goals/tracked/72');
     await expect(page.getByText(/Delete this goal\?/)).toBeVisible();
   });
