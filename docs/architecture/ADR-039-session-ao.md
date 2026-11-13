@@ -126,6 +126,21 @@ each pushed head, final head green.
 - **D1 (branch):** PR #102 not merged at start (main `c65882f3`), so AO continues on `feature/session-an-ci-tooling`.
 - **D2 (frozen readers):** #54 = `c65882f3` added with the byte-identical line PR #101 adds, so whichever PR merges
   second merges this file without a conflict.
+- **D3 (Part 1, CI rows):** every fix keeps its assertion and waits for the real state:
+  | Row | Cause | Fix |
+  |---|---|---|
+  | zigi-earn-coach-af:59 (WebKit) | view-transition navigation lands after the 5 s URL wait (AN, run 1686 trace) | same URL, 15 s wait (as zigi-knock) |
+  | fourth-pass-field-errors:106 | boxes read once while the message's entrance/reflow moved (136 px) | the same two bounds polled ≤ 5 s |
+  | settings-switches-sweep:45 part 2 | lazy() switch drawn after `data-app-hydrated` | re-scan polled ≤ 5 s before "gone or unusable" |
+  | exploratory-round3:66 | typed before hydration, state replaced | `openNova` waits for `data-app-hydrated` |
+  | zigi-part-boundary:42 | the spec's own `route.fetch` met a socket hang up | fetched once more on that error only |
+  | spending-ai:52 (45 s timeout) | Quick add pressed before hydration opened nothing | press after `data-app-hydrated`; dialog visible asserted |
+  | zigi-accept-correct:268/271 (WebKit class A) | goto cancels the launcher's idle imports started after networkidle | new `tests/quiet-page.ts` (hydrated + 1 s without a new resource) in the seed |
+  | zigi-voice-z:221, webkit-earn:19, install-chrome.test:100 | (AL Fixes 1–3) | already in main (verified) |
+  | l6-fourth-chain:95, al-fourth-habits:193, zigi-states:75 | — | fixed on PR #101 (AM lane); arrive with its merge |
+  | hud-perf:23 | runner without GPU | AM lane (ADR-038 D39) |
+  | zigi-chat-polish:319, a11y-wcag-x:49, run11-route-mobile-acceptance:30, j05-notifications:74, j04-offline:23, for-you:8, zigi-voice-z:199 | first sightings; the job logs' tails hold no failure detail and the traces expired | recorded; one re-run each; investigate on a second sighting |
+  | WebKit class B segfaults | engine | recorded, not chased |
 
 ## Closing table
 (filled at the end: every row Fixed / Built / Owner decision / Not possible / Carried + cause)

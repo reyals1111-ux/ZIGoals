@@ -10,6 +10,7 @@ import {REMINDERS_KEY} from '../lib/reminders/schema';
 import {WEEKLY_REVIEW_KEY} from '../lib/weekly-review/schema';
 import {PLATFORM_KEY} from '../lib/positions';
 import {pressZigi} from './zigi-open';
+import {quietPage} from './quiet-page';
 
 /**
  * Session X-Local Part 5a, owner addition 4, "accepted means correct": for every writing kind, a MOCK reply becomes a
@@ -48,6 +49,9 @@ async function seed(page: Page) {
   // document it never answers) hit that navigation while the prefetches it cancelled were in flight (CI runs 38875420929,
   // 38902988046, 38915648788).
   await page.waitForLoadState('networkidle');
+  // Session AO (run 1668 attempt 1, ":271 page.goto: WebKit encountered an internal error"): the launcher's idle imports can
+  // start just after networkidle; the next goto waits until none has started for a second (tests/quiet-page.ts).
+  await quietPage(page);
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }

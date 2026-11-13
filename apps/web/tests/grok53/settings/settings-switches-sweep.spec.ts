@@ -62,9 +62,12 @@ for (let part = 0; part < PARTS; part++) test(`Settings: every on/off switch cha
     if (!changed) { problems.push(`${name}: did not change when pressed`); continue; }
     await page.reload();
     try { await hydrated(page); } catch { problems.push(`${name}: Settings did not finish loading after a reload`); await page.goto('/app/settings'); await hydrated(page); }
-    await scan(page);
+    // Session AO (CI 1611, 1669; CI_INTERMITTENTS "settings-switches-sweep:45"): some switches are lazy() chunks with no
+    // fallback (Cycle log), drawn a moment after `data-app-hydrated`; the scan is repeated for up to 5 s before the switch
+    // is called gone. The same verdict is reached for a switch that never comes back.
+    const usable = await expect.poll(async () => { await scan(page); const b = tagged(page, name); return await b.count() > 0 && await b.isEnabled(); }, {timeout: 5_000}).toBe(true).then(() => true, () => false);
     box = tagged(page, name);
-    if (!await box.count() || !await box.isEnabled()) { problems.push(`${name}: gone or unusable after a reload`); continue; }
+    if (!usable) { problems.push(`${name}: gone or unusable after a reload`); continue; }
     if (await on(box) === before) problems.push(`${name}: not kept after a reload`);
     await box.click();
     const back = await expect.poll(() => on(box), {timeout: 2_000}).toBe(before).then(() => true, () => false);

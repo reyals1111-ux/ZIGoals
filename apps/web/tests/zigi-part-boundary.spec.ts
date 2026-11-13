@@ -10,7 +10,10 @@ import {pressZigi} from './zigi-open';
  */
 async function blockChunk(page: Page, literal: string) {
   await page.route('**/_next/static/chunks/**', async route => {
-    const response = await route.fetch(); const text = await response.text();
+    // Session AO (CI 1632, CI_INTERMITTENTS "zigi-part-boundary:42"): the test's own fetch of a chunk can meet a socket hang
+    // up under load (WebKit), which left that chunk unanswered; it is fetched once more before the handler decides. The
+    // blocked part is still refused, every other chunk still passed on.
+    const response = await route.fetch().catch(e => /socket hang up|ECONNRESET/i.test(String(e)) ? route.fetch() : Promise.reject(e)); const text = await response.text();
     if (text.includes(literal)) return route.abort('failed');
     const headers = Object.fromEntries(Object.entries(response.headers()).filter(([k]) => !['content-encoding', 'content-length'].includes(k.toLowerCase())));
     await route.fulfill({status: response.status(), headers, body: text});

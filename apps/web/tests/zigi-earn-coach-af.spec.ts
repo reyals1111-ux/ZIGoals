@@ -70,7 +70,9 @@ test('a staking card fills in the review on Staking, read once; nothing is signe
   await expect(card).toContainText('Stake 100 ZIG · practice network (no real value)');
   await expect(card).toContainText('nothing is signed or sent until you review it there and sign in your own wallet');
   await card.getByRole('button', {name: 'Open the review'}).click();
-  await expect(page).toHaveURL(/\/app\/staking/);
+  // Session AO (CI 1686, WebKit): the navigation runs inside a view transition whose DOM update took 2.7 s in WebKit, so
+  // the URL changes after the 5 s default; the same URL is required, waited for 15 s as zigi-knock's first knock.
+  await expect(page).toHaveURL(/\/app\/staking/, {timeout: 15_000});
   await expect(page.getByText('ZIGi filled this in. Check every field; nothing is signed until you review and sign.')).toBeVisible();
   expect(await stored(page, STAKING_PREFILL_KEY, 'session')).toBeNull(); // read once by the staking form, then gone
   expect(calls.filter(c => SIGNER_CALLS.test(c))).toEqual([]);

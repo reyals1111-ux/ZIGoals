@@ -16,8 +16,8 @@ questions** after any usage pause: read this file, then the next row below.
 | Part | State | Commits | Next |
 |---|---|---|---|
 | 0 records | done | (this commit) | — |
-| 1 CI stability | next | | the rows in ADR-039 Part 1 |
-| 2 owner calls a–g | pending | | |
+| 1 CI stability | done (CI proof on the next run) | (see git log "Part 1") | CI run on the pushed head |
+| 2 owner calls a–g | next | | a RR-16 first |
 | 3 AL carried rows | pending | | |
 | 4 My day ends at | pending | | owner rule 1 |
 | 5 backlog #1 #4 #11 #15 | pending | | owner rule 2 for #11 |
