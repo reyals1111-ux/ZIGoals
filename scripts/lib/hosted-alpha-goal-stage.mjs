@@ -4,6 +4,7 @@
 // check going stale unnoticed. Browser-local only: a local simulation goal named by fictional sentinels; no wallet, no
 // signature, nothing written to a server. `expect` is Playwright's, passed in by the caller.
 import {typeGoalName} from '../run11/goal-name.mjs';
+import {openSettingsGroups} from './settings-open.mjs';
 
 export const GOAL_SENTINELS = Object.freeze({
   name: 'M5_FICTIONAL_GOAL_81f3c7',
@@ -32,7 +33,7 @@ async function openLocalSimulation(page) {
  * browser). A build where Earn's switch is locked on (before Session AK X1) is left as it is. Ends back on Today.
  */
 export async function chooseChainInSettings(page, expect) {
-  await page.goto(new URL('/app/settings', page.url()).href);
+  await page.goto(new URL('/app/settings', page.url()).href); await openSettingsGroups(page);
   const earn = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Earn', exact: true});
   await expect(earn).toBeVisible();
   // The switch is usable once this device's choices are read; a build that locks it to Wealth shows it on already.
