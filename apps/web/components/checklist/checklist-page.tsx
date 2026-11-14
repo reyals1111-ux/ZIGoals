@@ -1,4 +1,6 @@
 'use client';
+import {useDayGoal} from './use-day-goal';
+import {needOn} from '../../lib/checklist/day-goal-core';
 import Link from 'next/link';
 import {loopRuns, readLoopLevel} from '../../lib/motion-loops/loops';
 import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
@@ -102,7 +104,7 @@ function cameFromTheApp(): boolean {
 export function ChecklistPage() {
   const path = usePathView(), PathView = path.mod?.PathView;
   // CI14: the page is loaded once its records are read and the Path's code is here (use-chunk.ts).
-  const state = useChecklist({commands: true}), {summary, streak, prefs} = state, loaded = state.loaded && !!PathView;
+  const state = useChecklist({commands: true}), {summary, streak, prefs} = state, loaded = state.loaded && !!PathView, dayGoal = useDayGoal();
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
   const showcase = useSyncExternalStore(noChange, isShowcase, () => false); // as components/showcase-controls useShowcase
   const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | 'quick' | null>(null), [arrive, setArrive] = useState<string | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
@@ -176,6 +178,8 @@ export function ChecklistPage() {
   useEffect(() => { if (!loaded) return; if (wasLit.current === false && lit) setIgnite(n => n + 1); wasLit.current = lit; }, [lit, loaded]);
   const total = summary?.total ?? 0, done = summary?.done ?? 0, empty = loaded && state.dots.length === 0;
   const streakDays = streak?.current ?? 0;
+  // Session AP (owner decision 14 Nov): the flame's words follow "A day counts as done at N" in force today.
+  const dayRule = needOn(dayGoal, state.date ?? '');
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
   const day = state.date ? formatDate(state.date, {weekday: true, year: false}) : '';
   const [menu, setMenu] = useState(false);
@@ -232,7 +236,7 @@ export function ChecklistPage() {
         <div className="checklist-progress sr-only">
           <p className="checklist-progress-line"><strong>{progressText}</strong>{summary?.perfect && <span className="checklist-perfect"> · Perfect orbit</span>}{day && <span className="eyebrow"> · {day}</span>}</p>
         </div>
-        <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}: the days every planet was lit`} title={/* Session AL fifth pass (LS-033, LS-070): the flame's rule, beside it */ 'The days every planet was lit'}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
+        <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}: ${dayRule === null ? 'the days every planet was lit' : `the days that counted as done (${dayRule} ${dayRule === 1 ? 'planet' : 'planets'}, or all on a shorter day)`}`} title={/* Session AL fifth pass (LS-033, LS-070): the flame's rule, beside it */ 'The days every planet was lit'}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
         {/* Session AG Polish 2 (owner Part 5, pointer D-path 11): quick add where "⋯" stood; "⋯" moves to the far right. */}
         <button type="button" className="checklist-plus-button" aria-label="Quick add to your Checklist" aria-expanded={sheet === 'quick'} onPointerEnter={() => void import('./orbit-quick-add').catch(() => undefined)} onClick={() => { setMenu(false); setSheet(s => s === 'quick' ? null : 'quick'); }}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
         <div className="checklist-menu-wrap">

@@ -47,6 +47,7 @@ import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
 import {HEALTH_EXTRAS} from '../health-extras';
 import {PROFILE_NAME} from '../onboarding-setup';
 import {DAY_ENDS_RECORD} from '../day-boundary';
+import {DAY_GOAL_RECORD} from '../checklist/day-goal';
 import {WATCHLIST_MORE} from '../markets-watchlist-more';
 import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
@@ -234,6 +235,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('watchlistMore', 'More Markets favourites', 'Goals and Wealth', WATCHLIST_MORE),
   // Session AO (C-DVG-22): "My day ends at" (a restore never re-dates the days it brings back).
   dev('dayEnds', 'My day ends at', 'Today and Life', DAY_ENDS_RECORD),
+  // Session AP (owner decision 14 Nov): "A day counts as done at N", its dated changes as they were (nothing re-counted).
+  dev('dayGoal', 'A day counts as done at', 'Today and Life', DAY_GOAL_RECORD),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),
   dev('healthNumbers', 'Your numbers (blood pressure and lab values)', 'Health', HEALTH_NUMBERS, true),

@@ -7,6 +7,7 @@ import {AF_ZIGI_CATALOG_LABELS} from '../af-zigi-keys';
 import {AF_EXTRAS_CATALOG_LABELS} from '../af-extras-keys';
 import {AL_CATALOG_LABELS} from '../al-device-keys';
 import {AO_CATALOG_LABELS} from '../ao-device-keys';
+import {AP_CATALOG_LABELS} from '../ap-device-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -111,6 +112,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   // Session AO (lib/ao-device-keys.ts): "My day ends at".
   dayEnds: [AO_CATALOG_LABELS.dayEnds[0], AO_CATALOG_LABELS.dayEnds[1]],
   networthHistory: [AO_CATALOG_LABELS.networthHistory[0], AO_CATALOG_LABELS.networthHistory[1]],
+  // Session AP (lib/ap-device-keys.ts).
+  dayGoal: [AP_CATALOG_LABELS.dayGoal[0], AP_CATALOG_LABELS.dayGoal[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page

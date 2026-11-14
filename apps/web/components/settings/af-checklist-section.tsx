@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
@@ -13,6 +13,7 @@ import '../checklist/checklist-setting.css';
  * this device, and the page stays reachable from the navigation. A display choice in `zigoals:ui-prefs:v1` (`checklist`),
  * never in the synced pages record (older builds read that record strictly).
  */
+const DayGoalSetting = lazy(() => import('./day-goal-setting'));
 export function AfChecklistSection() {
   const prefs = useUiPrefs(), [error, setError] = useState('');
   const on = checklistPrefsOf(prefs.data).launcher, usable = prefs.loaded && !prefs.unreadable;
@@ -22,5 +23,7 @@ export function AfChecklistSection() {
     </label>
     <p className="fine"><Link className="text-link" href={CHECKLIST_ROUTE}>Open the Checklist →</Link></p>
     {error && <p role="alert">{error}</p>}
+    {/* Session AP (owner decision 14 Nov): its own chunk (Settings' weight); the label arrives with it. */}
+    <div id="day-goal"><Suspense fallback={null}><DayGoalSetting/></Suspense></div>
   </div>;
 }
