@@ -27,7 +27,6 @@ import {useEarnLive, useMinuteClock} from './use-earn-live';
 import {ValdoraSection} from './valdora-section';
 import {ValidatorsSection} from './validators-section';
 import {VaultsSection} from './vaults-section';
-import {GoalVaultsSection, GovernanceSection, StablecoinsSection} from './wider-sections';
 import {SourceLine, Unavailable} from './live-figure';
 import {SectionBoundary} from './section-boundary';
 import {PhoneFold} from '../phone/phone-fold';
@@ -45,7 +44,16 @@ const StakingClarity = lazy(() => import('../zigchain-eco/staking-clarity'));
  */
 const Summary = memo(LiveSummary), StartHere = memo(StartHereSection), Native = memo(NativeSection), Valdora = memo(ValdoraSection);
 const Vaults = memo(VaultsSection), Oroswap = memo(OroswapSection), Nawa = memo(NawaSection), Defa = memo(DefaSection), Permapod = memo(PermapodSection);
-const Zignaly = memo(ZignalySection), Governance = memo(GovernanceSection), GoalVaults = memo(GoalVaultsSection), Stablecoins = memo(StablecoinsSection);
+// Session AP (route weights): the three wider sections near the end of the page (governance, goal-linked stake,
+// stablecoins) load after the page shows; their headings and anchors are on the page at once (SectionBoundary).
+const wider = () => import('./wider-sections');
+const GovernanceLazy = lazy(() => wider().then(m => ({default: m.GovernanceSection}))), GoalVaultsLazy = lazy(() => wider().then(m => ({default: m.GoalVaultsSection}))), StablecoinsLazy = lazy(() => wider().then(m => ({default: m.StablecoinsSection})));
+// Until a section arrives its anchor holds its place, so an address such as /app/earn#governance lands on it at once.
+const Holding = ({id}: {id: string}) => <div id={id} className="panel earn-option earn-option-loading" aria-busy="true"/>;
+function GovernanceSlot() { return <Suspense fallback={<Holding id="governance"/>}><GovernanceLazy/></Suspense>; }
+function GoalVaultsSlot({now}: {now: number}) { return <Suspense fallback={<Holding id="goal-vaults"/>}><GoalVaultsLazy now={now}/></Suspense>; }
+function StablecoinsSlot(p: Parameters<typeof StablecoinsLazy>[0]) { return <Suspense fallback={<Holding id="stablecoins"/>}><StablecoinsLazy {...p}/></Suspense>; }
+const Zignaly = memo(ZignalySection), Governance = memo(GovernanceSlot), GoalVaults = memo(GoalVaultsSlot), Stablecoins = memo(StablecoinsSlot);
 const Validators = memo(ValidatorsSection), Academy = memo(AcademySection), Safety = memo(SafetyBlock), Compare = memo(CompareTable);
 
 /**

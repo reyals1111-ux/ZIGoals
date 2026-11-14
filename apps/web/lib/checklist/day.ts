@@ -1,18 +1,11 @@
-import {deviceTimeZone, journalTimeZone} from '../journal-zone';
 import {addDays} from '../zone-time';
 import {boundaryDay, currentDayEnds} from '../day-boundary-core';
 import {checklistDaysSchema, type ChecklistDaySummary, type ChecklistDays, type ChecklistToday} from './schema';
 
-/**
- * The Checklist's day (Session AF, ADR-028 H66; P7.15): local midnight in the person's journal time zone, else this
- * device's. The app has no day-start hour, so midnight is the rule (said once in Options). Each page still writes with its
- * own day (Habits' zone override, Health's zone); when that differs the dot says which date it was logged for.
- */
-export function zonedDay(now: Date, zone: string): string {
-  const parts = new Intl.DateTimeFormat('en', {timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit'}).formatToParts(now), get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
-  return `${get('year')}-${get('month')}-${get('day')}`;
-}
-export const checklistZone = (): string => journalTimeZone() ?? deviceTimeZone();
+// Session AP (route weights): zonedDay and checklistZone live in ./zone (no schema), so a page that needs only the
+// Checklist's zone (Tasks, Agenda) does not load the Checklist's record schemas.
+import {checklistZone, zonedDay} from './zone';
+export {checklistZone, zonedDay};
 // Session AO (C-DVG-22): the Checklist's day rule is unchanged; only where the day ends follows "My day ends at".
 export const checklistDay = (now = new Date(), zone = checklistZone()): string => currentDayEnds().endsAt || currentDayEnds().change ? boundaryDay(now, zone) : zonedDay(now, zone);
 

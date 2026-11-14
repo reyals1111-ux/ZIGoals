@@ -389,3 +389,6 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 @media (hover: hover) and (pointer: fine) { :root :where(.earn-page) .panel:hover { border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent)); } }
 :root :where(.earn-page) .panel:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.earn-page) .panel { box-shadow: none; } }
+
+/* Session AP (route weights): a wider section's place while its code arrives (components/earn/earn-view.tsx). */
+.earn-option-loading{min-height:240px}

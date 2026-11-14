@@ -3,7 +3,6 @@ import Link from 'next/link';
 import {useEffect, useId, useState} from 'react';
 import {isShowcase} from '../../lib/showcase-storage';
 import {pushSupport} from '../../lib/push/support';
-import {pushBuildAvailability} from '../push/use-push';
 import './reminders.css';
 import '../push/push.css';
 
@@ -13,7 +12,8 @@ function usePushOffer() {
   useEffect(() => {
     let active = true;
     if (isShowcase() || pushSupport() === 'unsupported') return;
-    void pushBuildAvailability().then(a => { if (active) setOffer(a.available); });
+    // Session AP (route weights): the push module loads only when this browser could use push, after the page shows.
+    void import('../push/use-push').then(m => m.pushBuildAvailability()).then(a => { if (active) setOffer(a.available); }, () => undefined);
     return () => { active = false; };
   }, []);
   return offer;

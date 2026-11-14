@@ -18,7 +18,7 @@ import {
 } from '../../lib/tasks/engine';
 import {dueReminders} from '../../lib/tasks/reminders';
 import {salvageTasks, keepSalvaged} from '../../lib/tasks/device';
-import {checklistZone} from '../../lib/checklist/day';
+import {checklistZone} from '../../lib/checklist/zone';
 import {addLocalDays} from '../../lib/local-date';
 import {MAX_SUBTASK_DEPTH, MAX_TASKS, TASK_COLOURS, type Task, type TaskColour, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import {isShowcase} from '../../lib/showcase';

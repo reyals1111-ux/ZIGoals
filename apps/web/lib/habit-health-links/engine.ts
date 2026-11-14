@@ -5,7 +5,7 @@ import {latestWeightObservation} from '../body-measurements';
 import {countOn, exerciseData} from '../health-counters';
 import type {AppliedCheckInV4, HabitHealthLinkV4, HabitHealthLinksV4, HealthMeasureV4} from './schema';
 import {healthGroupIn} from '../vault/w-homes';
-import {asleep, bedClock, nightDay} from '../sleep/engine';
+import {asleep, bedClock, nightDay} from '../sleep/night';
 import {minutesOn as meditationMinutesOn} from '../meditation/stats';
 import type {SleepNight} from '../sleep/schema';
 import {formatNumber} from '../visual-format';

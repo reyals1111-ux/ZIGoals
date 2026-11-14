@@ -194,6 +194,21 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
 - **D2 (for AM-2, owner addition 1):** the new health-type records (mood tags, symptoms) are not in any ZIGi/NOVA context
   builder; the NOVA lane adds them behind the Health switches (Q14/Q16) when it merges.
 - **D3 (for AM-2):** `workers/weather-proxy` is built and OFF; the app client is the NOVA lane's.
+- **D4 (Part 1, CI 1706 rows; every assertion kept):**
+  | Row | Cause | Fix |
+  |---|---|---|
+  | theme-parity-af:15 /app folded (mobile) | app: Today's skip-link list was filtered once by a 1.2 s timer, so its links depended on when the page was read (Nebula 4, Dark 3) | the list follows the page (first frame, changes under `#main`, resize; one check per frame; never while focused) |
+  | earn-dock:36, :71 (desktop) | app: the quiet celebration card (z 70, bottom-right) sat over the launcher column and took the dock's click (a Showcase celebration due that day) | at ≥ 901 px the quiet card sits beside the launcher column |
+  | zigi-face-z:185 (WebKit phone) | the words were typed while the previous answer was settling the composer; Send stayed off | `say()` presses once the box holds the words and Send is on (typed again only if lost) |
+  | earn-guide-zigi:54 (mobile) | the CI trace shows the reload's folds opened and the click on "Open Valdora" taken (the link focused) but no tab; not reproduced (passes locally on the same build) | first sighting: recorded in CI_INTERMITTENTS; investigated again on a second sighting |
+- **D5 (local proof):** on the Part 1 production build: earn-dock (3), earn-guide-zigi (2), zigi-face-z:185 (Chromium), theme-parity-af:15 (49 states × 2 projects) all pass; one parity state (/app · showcase, desktop) hit the 240 s limit under the 2-worker load (the recorded renderer-stall class) and passed alone in 21 s.
+- **D6 (route weights, owner decision 14 Nov):** the weight pass brought every page under its budget without raising any
+  line (production build, gzip -6): /app/habits 505.9 → 501.2 (504), /app/earn 497.8 → 491.7 (496), /app/agenda
+  485.7 → 483.7 (485), /app/tasks 469.4 → 467.0 (468), shell 436.3 → 435.1 (447). How (a per-source-file map from one
+  scratch build with browser source maps, not committed): the Checklist's zone helpers in `lib/checklist/zone.ts` (no
+  record schema; Tasks and Agenda no longer load the Checklist schemas), a night's readings in `lib/sleep/night.ts` (Habits'
+  Health links no longer load Sleep's schemas), the push module loaded by the reminder field only after the page shows,
+  and Earn's three wider sections (governance, goal-linked stake, stablecoins) on demand with their anchors in place.
 
 ## Closing table
 (filled at Part 7)
