@@ -318,10 +318,11 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   views are one sideways row on a phone; no ceiling moved; (c) a Settings jump to a part of ZIGi's section that is drawn
   later, by a same-page address change, left its group folded (zigi-part-boundary, zigi-memory): every jump (arrival, link,
   router, back and forward) now opens its group, waiting for a late target; (d) specs that seed records and then use
-  Settings open its groups (LS-025 and seven more of the same shape). **Budget:** after four weight passes on Settings this
-  session, the jump fix (every jump opens its group, also for a target drawn later) the launcher wording in Help and the regenerated theme-sheet hashes left `/app/settings` 51
-  bytes over; its line is raised by exactly that (531,000 → 531,051 bytes), as the owner's rule allows (≤ 2 kB, the exact overage, reason
-  here). No other line moved.
+  Settings open its groups (LS-025 and seven more of the same shape). **Budget (no line raised):** the jump fixes took `/app/settings` over its
+  line; raising it is refused by the owner's standing rule O3 (Session AE's budgets are never raised,
+  scripts/check-weight-budget.test.mjs), which this session's ≤ 2 kB allowance does not override. So every Settings jump
+  (arrival, link, router, back and forward, and the late watcher) moved into the module Settings already loads on demand
+  (settings-late-jump.ts): Settings is 530,803 bytes of its 531,000; no budget changed.
 
 - **D24 (CI 1726 fallout, the complete run after D20 and Part 6):** (a) **Bento's switch moved** from the header cluster to
   "Arrange this page" (the bar the layout lock opens): in the header it pushed the lock onto a second line at 1280 on Habits
