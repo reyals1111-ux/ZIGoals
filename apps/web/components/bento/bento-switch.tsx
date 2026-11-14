@@ -53,10 +53,12 @@ export default function BentoSwitch({page}: {page: BentoPage}) {
     // Cards that load after the switch (a slow first paint) are picked up within a few seconds.
     const apply = () => { delete root.dataset.bento; const found = markWide(page); root.dataset.bento = page; if (!found && tries++ < 10) retry = window.setTimeout(apply, 300); };
     apply();
+    // A page that is still filling in (parts load on demand after a reload) is measured again once it settles.
+    const settle = [600, 2000].map(ms => window.setTimeout(apply, ms));
     // Only a real change of the window's width measures again (never a resize the tiles themselves could cause).
     const onResize = () => { if (Math.abs(window.innerWidth - width) < 1) return; width = window.innerWidth; cancelAnimationFrame(frame); frame = requestAnimationFrame(apply); };
     window.addEventListener('resize', onResize);
-    return () => { cancelAnimationFrame(frame); clearTimeout(retry); window.removeEventListener('resize', onResize); if (root.dataset.bento === page) delete root.dataset.bento; for (const el of document.querySelectorAll('[data-bento-grid]')) el.removeAttribute('data-bento-grid'); };
+    return () => { cancelAnimationFrame(frame); clearTimeout(retry); settle.forEach(clearTimeout); window.removeEventListener('resize', onResize); if (root.dataset.bento === page) delete root.dataset.bento; for (const el of document.querySelectorAll('[data-bento-grid]')) el.removeAttribute('data-bento-grid'); };
   }, [on, page]);
   const choose = (next: boolean) => {
     setOn(next);
