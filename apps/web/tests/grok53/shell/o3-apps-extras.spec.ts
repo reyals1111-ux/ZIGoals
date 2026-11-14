@@ -126,7 +126,7 @@ test('the sheet: every switched-on entry, focus kept inside, Escape and focus ba
 
 test('switched-off entries are absent; fresh defaults hide Earn and Music; the Apps switches remove pages (500, fresh profile)', async ({page}) => {
   await page.setViewportSize({width: 500, height: 900});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
   await ready(page, '/app/settings');
   await button(page).click();

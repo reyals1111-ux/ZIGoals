@@ -13,7 +13,7 @@ test.use({viewport: {width: 1280, height: 800}, timezoneId: 'Europe/Brussels'});
 test('Showcase: water and the Drink water habit agree on Today, Health and Habits; Goals and Today count 7 active goals', async ({page}) => {
   await page.clock.install({time: new Date('2026-11-04T14:00:00Z')});
   await offline(page);
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await openSettings(page); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();

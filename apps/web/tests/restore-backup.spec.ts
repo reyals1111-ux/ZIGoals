@@ -52,7 +52,7 @@ const restoreStatus = (region: Locator) => region.locator('.restore-backup').get
 
 test('Export everything → lose records → restore from the ZIP gives them back byte for byte; Undo puts the loss back; a photo returns to this device', async ({page}) => {
   const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [PROGRESS_PHOTOS_KEY]: JSON.stringify({version: 1, photos: [PHOTO]}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
   await photoDb(page, 'put', webp());
   const habits = await stored(page, HABITS_KEY), extras = await stored(page, GOAL_EXTRAS_KEY);
@@ -101,7 +101,7 @@ test('Export everything → lose records → restore from the ZIP gives them bac
 });
 
 test('a file that is not an export is refused with a plain sentence and nothing changes; the Showcase cannot restore', async ({page}) => {
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(settings => { localStorage.clear(); localStorage.setItem('zigoals:dashboard-settings:v1', settings); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, JSON.stringify({...presetSettings('balanced'), onboarded: true}));
   await page.goto('/app/settings/data');
   const region = restoreRegion(page), before = await zigoalsKeys(page);
@@ -121,7 +121,7 @@ test('a photo already on this device is never overwritten; Undo survives a reloa
   // Gate C test audit (ADR-023 C22): the restore adds missing photos only. Session AD item 11 (ADR-026, a deliberate
   // change): its Undo no longer ends with the tab; it is kept with the restore's undo record until it is used.
   const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [PROGRESS_PHOTOS_KEY]: JSON.stringify({version: 1, photos: [PHOTO]}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
   await photoDb(page, 'put', webp());
   const habits = await stored(page, HABITS_KEY);
@@ -165,7 +165,7 @@ test('a photo already on this device is never overwritten; Undo survives a reloa
 test('“Keep the restore” ends the Undo, also after a reload; a part changed later ends it too; the restored records stay', async ({page}) => {
   // Session AD item 11 (ADR-026).
   const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
   const habits = await stored(page, HABITS_KEY);
   const zip = await exportZip(page);
@@ -199,7 +199,7 @@ test('“Keep the restore” ends the Undo, also after a reload; a part changed 
 
 test('other ZIGoals files picked by mistake, and a ZIP cut short, are refused with their own sentence; nothing changes', async ({page}) => {
   // Session AD item 11 (ADR-026): foreign and incomplete files.
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(settings => { localStorage.clear(); localStorage.setItem('zigoals:dashboard-settings:v1', settings); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, JSON.stringify({...presetSettings('balanced'), onboarded: true}));
   await page.goto('/app/settings/data');
   const region = restoreRegion(page), before = await zigoalsKeys(page);

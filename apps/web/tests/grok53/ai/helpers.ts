@@ -26,7 +26,7 @@ export async function mockModel(page: Page, reply = 'MOCK reply.'): Promise<Body
 /** A fresh profile (or the Showcase's records), onboarded, with or without a model. */
 export async function seed(page: Page, {settings = null, showcase = false, extra = {}}: {settings?: AiSettings | null; showcase?: boolean; extra?: Record<string, string>} = {}) {
   await page.clock.install({time: MORNING});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
     ...(showcase ? buildShowcase(DAY).records : {}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'}), ...(settings ? {[AI_SETTINGS_KEY]: JSON.stringify(settings)} : {}), ...extra,

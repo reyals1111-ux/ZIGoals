@@ -1,4 +1,5 @@
 import {expect,type Locator,type Page} from '@playwright/test';
+import {openAllSettingsGroups} from './settings-open';
 import {isPhone,navLink,openMore} from './phone-nav';
 
 /**
@@ -57,6 +58,8 @@ export async function inAboutAlpha(page:Page,check:(about:Locator)=>Promise<void
   await (await navLink(page,'Settings')).click();
   await page.waitForURL(url=>url.pathname==='/app/settings');
  }
+ // Session AP (D-088): Settings opens folded; the facts block's group is opened, as a person does (no-op where all are open).
+ await openAllSettingsGroups(page);
  const about=aboutAlpha(page).first();
  await about.scrollIntoViewIfNeeded();
  await check(about);

@@ -20,7 +20,7 @@ function habits(days: number): HabitData {
 async function seed(page: Page, days: number) {
   await page.clock.install({time: new Date(`${TODAY}T03:30:00.000Z`)});
   await offline(page);
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {[HABITS_KEY]: JSON.stringify(habits(days)), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [GAME_KEY]: JSON.stringify({version: 1, enabled: true, badges: false, levelSeen: 1})});
 }

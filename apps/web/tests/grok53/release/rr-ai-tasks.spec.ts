@@ -16,7 +16,7 @@ const phoneOnly = () => test.skip(({isMobile}) => !isMobile, 'phone width: runs 
 async function showcase(page: Page) {
   await offlineApi(page);
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await loadShowcase(page);
 }

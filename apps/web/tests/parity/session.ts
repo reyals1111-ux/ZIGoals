@@ -16,7 +16,7 @@ const KEY = 'zigoals:ui-prefs:v1';
 export async function openDevice(page: Page, {showcase = true}: {showcase?: boolean} = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, contentType: 'application/json', body: '{}'}));
   await page.clock.setFixedTime(new Date());
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(k => { localStorage.setItem(k, JSON.stringify({version: 1, dismissed: {alphaNotice: true}})); localStorage.setItem('zigoals:motion:v1', 'off'); }, KEY);
   if (showcase) {
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();

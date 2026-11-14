@@ -13,7 +13,7 @@ test('Local Demo export, wipe and import restores all four modules identically',
  test.setTimeout(90000);
  const {records}=buildShowcase('2026-09-20');
  const seeded:Record<string,string>={...records,[DASHBOARD_SETTINGS_KEY]:JSON.stringify({...presetSettings('habits-health'),onboarded:true})};
- await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */await page.evaluate(values=>{localStorage.clear();for(const [k,v]of Object.entries(values))localStorage.setItem(k,v);},seeded);await page.reload(); await openAllSettingsGroups(page);
+ await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */await page.evaluate(values=>{localStorage.clear();for(const [k,v]of Object.entries(values))localStorage.setItem(k,v);},seeded);await page.reload(); await openAllSettingsGroups(page);
  const read=()=>page.evaluate(keys=>Object.fromEntries(Object.entries(keys).map(([d,k])=>[d,localStorage.getItem(k)])),KEYS);
  const before=await read();for(const d of Object.keys(KEYS))expect(before[d],d).toBe(seeded[KEYS[d as keyof typeof KEYS]]);
  await page.getByLabel('Include my Health records in this encrypted download.',{exact:true}).check();

@@ -60,7 +60,7 @@ test('O4: the Apps group under the main pages, foldable, remembered, keyboard re
 
 test('O4: a switched-off app leaves the group; below 901 px the group is not shown (fresh profile)', async ({page}) => {
   await page.setViewportSize({width: 1280, height: 900});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
   await openSettings(page); await hydrated(page);
   await expect.poll(() => group(page).getByRole('link').allTextContents()).toEqual(APPS);

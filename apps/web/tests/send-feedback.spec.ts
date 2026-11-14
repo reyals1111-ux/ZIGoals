@@ -87,7 +87,7 @@ test('Help: the controls are readable and easy to hit; the checkbox sits beside 
 
 test('Settings → Help & diagnostics: the same email; Motion Off is named when chosen', async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off'));
   await page.reload();
   await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups

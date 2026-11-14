@@ -70,7 +70,7 @@ for (const theme of ['light', 'dark'] as const) {
 }
 
 test('the Showcase reads the same device theme, and going back to Nebula removes the sheet', async ({page}) => {
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, theme: 'light', heroCollapsed: false})), KEY);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');

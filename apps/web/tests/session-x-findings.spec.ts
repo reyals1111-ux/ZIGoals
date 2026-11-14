@@ -24,7 +24,7 @@ const stored = (page: Page) => page.evaluate(k => (JSON.parse(localStorage.getIt
 test('J054: a goal edited in two tabs keeps both changes: the second tab never writes back the name the first changed', async ({page, isMobile}) => {
   test.skip(isMobile, 'Two tabs on a computer; the form is the same on a phone.');
   const goal = privateGoalSchema.parse({id: '7', name: 'Fictional reserve', type: 'VALUE', status: 'active', asset: 'EUR', denom: 'EUR', decimals: 2, target: '600000', targetDate: '2026-12-30', notes: '', createdAt: '2026-06-01T09:00:00.000Z', milestones: []});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [PLATFORM_KEY, JSON.stringify({...emptyPlatform(), goals: [goal]})]);
   const other = await page.context().newPage();
   for (const tab of [page, other]) { await tab.goto('/app/goals/tracked/7'); await tab.locator('#edit-goal > summary').click(); }
@@ -255,7 +255,7 @@ test('a traveller: Today\'s "Your week" ends on the day of the time zone their j
   test.skip(isMobile, 'The week strip counts the same on a phone; its days are folded there.');
   // The device is in Brussels at 23:30 on 7 October; the journal follows Asia/Tokyo, where it is already 06:30 on the 8th.
   await page.clock.install({time: new Date('2026-10-07T21:30:00Z')});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   const tokyo = saveHealthPreferences(createEmptyHealth(), {...dailyData(createEmptyHealth()).preferences, timezone: 'Asia/Tokyo'});
   const withWater = addWater(tokyo, {id: 'health_6b3c1a64-5f43-4f53-9d1e-7a0c2b9e1f10', date: '2026-10-08', amountMilli: 250_000, unit: 'ml'}, '2026-10-07T21:30:00.000Z');
   await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HEALTH_STORAGE_KEY, JSON.stringify(withWater)]);
@@ -285,7 +285,7 @@ test('the Guide\'s "Open habit" shows that habit even when today\'s filter would
   const at = new Date('2026-10-01T08:00:00.000Z'), swimId = '5d9a6e2c-2b0f-4c41-9d6b-3e7a1f2c8b40';
   let habits = createHabit(emptyHabitData(), {title: 'Fictional daily walk', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, measurement: {kind: 'boolean'}, target: 1}, at);
   habits = createHabit(habits, {title: 'Fictional Sunday swim', category: 'Health', description: '', notes: '', schedule: {kind: 'weekdays', days: [0]}, measurement: {kind: 'boolean'}, target: 1}, at, swimId);
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HABITS_KEY, JSON.stringify(habits)]);
   await page.goto(`/app/habits#habit-${swimId}`);
   const swim = page.locator(`#habit-${swimId}`);

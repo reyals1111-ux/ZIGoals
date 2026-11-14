@@ -10,7 +10,7 @@ import {EARLIER_LINKS, WHATS_NEW_LINKS} from '../components/for-you/whats-new-ca
 test.beforeEach(async ({page}) => { await page.clock.setFixedTime(new Date('2026-09-20T09:30:00.000Z')); await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 const seed = async (page: import('@playwright/test').Page) => {
   const {records} = buildShowcase('2026-09-20');
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})});
 };
 

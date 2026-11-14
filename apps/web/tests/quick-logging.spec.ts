@@ -18,7 +18,7 @@ function journal(): HealthData {
 async function seed(page: Page, health: HealthData | null = journal()) {
   await page.clock.install({time: new Date(`${TODAY}T08:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(([settingsKey, settings, healthKey, healthValue]) => { localStorage.clear(); localStorage.setItem(settingsKey!, settings!); if (healthValue) localStorage.setItem(healthKey!, healthValue); },
     [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('balanced'), onboarded: true}), HEALTH_STORAGE_KEY, health ? JSON.stringify(health) : ''] as const);
 }

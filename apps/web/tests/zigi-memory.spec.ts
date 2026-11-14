@@ -33,7 +33,7 @@ async function server(page: Page, reply: (body: Body) => string) {
 const note = (id: string, text: string, category: string, source = 'person') => ({id, text, category, source, createdAt: '2026-09-19T08:00:00.000Z', updatedAt: '2026-09-19T08:00:00.000Z'});
 async function seed(page: Page, settings: Partial<AiSettings> | null, extra: Record<string, string> = {}) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   const ai = settings ? {[AI_SETTINGS_KEY]: JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, ...settings}), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'})} : {};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...ai, ...extra});
   // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
@@ -172,7 +172,7 @@ test('"Remember this?": Remember keeps the note as ZIGi\'s, Undo forgets it; a h
 });
 
 test('Showcase: notes stay in the tab, fictional, and never reach the person\'s own notes', async ({page}) => {
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await page.reload();
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();

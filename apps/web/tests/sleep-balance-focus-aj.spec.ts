@@ -16,7 +16,7 @@ const SAVED = new Date('2026-10-29T08:00:00.000Z');
 const night = (s: Sleep, wake: string, bed: string, up: string) => saveNight(s, {kind: 'night', start: instantAt(bed > up ? addDays(wake, -1) : wake, bed, BXL), end: instantAt(wake, up, BXL), timeZone: BXL, latencyMin: 0, awakeMin: 0}, SAVED);
 async function seed(page: Page, sleep: Sleep) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   const health: HealthData = withHealthGroup(createEmptyHealth(), 'sleep', sleep, false);
   await page.evaluate(entries => { for (const [key, value] of Object.entries(entries)) localStorage.setItem(key, value); }, {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [HEALTH_STORAGE_KEY]: JSON.stringify(healthSchema.parse(health))});
 }

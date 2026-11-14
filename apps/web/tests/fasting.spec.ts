@@ -13,7 +13,7 @@ test.beforeEach(async ({page}) => {
   await page.clock.install({time: new Date('2026-09-15T10:00:00.000Z')});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   // A person who uses Health has been through Today's first-run choice; Today's "For you" area needs that.
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
 });
 // Session U Part 9: with the sync writes on (lib/vault/sync-writes.ts), fasts live in Health (`fasting`) and the device

@@ -54,7 +54,7 @@ for (const [width, height] of SIZES) {
   test(`${width}x${height}: on every app page the launcher rests clear of the first screen's controls and stays on screen`, async ({page}) => {
     test.setTimeout(150_000);
     await page.setViewportSize({width, height});
-    await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+    await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
     await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
     const report: string[] = [];
     for (const path of PAGES) {
@@ -77,7 +77,7 @@ for (const [width, height] of SIZES) {
 
 test('390x844: scrolled past the top the launcher is back in its corner; hidden, the edge tab shows it again', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await page.goto('/app/help');
   // Session AL (O3, deliberate): no launcher at the top or scrolled (was: lifted, then back in its corner above the tab bar),
@@ -101,7 +101,7 @@ test('390x844: scrolled past the top the launcher is back in its corner; hidden,
 // Keyboard focus still sends it to the corner (a11y-wcag-x's 2.4.11 walk covers that path).
 test('390x844: a press on a control under the corner keeps that control under the pointer until the release', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   // Session Z-Cloud Gate B (mechanics): a page whose first screen has a control where the corner is. Session AB-Design moved every game card to its page's bottom and the Goals cards below the first screen, so Help (its topic chips) is that page now; before that it was Activity's game card, and originally
   // Activity's game card to the page's bottom (owner request 9), so Goals is that page now: its first card's Details summary

@@ -37,7 +37,7 @@ test('Today at 390×844 stays within its screen-count ceilings', async ({page}) 
   await page.waitForURL('**/app');
   const showcase = await screens();
   const {records} = buildShowcase('2026-09-20'); // the fixed clock's own day
-  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { sessionStorage.clear(); localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})});
   await page.goto('/app');
   const local = await screens();
