@@ -53,11 +53,14 @@ test('DV-036d (P-DV-76): the source cards show their part of the list', async ({
 test('DV-102/DV-043e (P-DV-61): the card ⋯ opens the goal to edit or close; a closed card keeps a ⋯ with Reopen', async ({page}) => {
   await seedGoals(page, [goal('64', {name: 'Fictional bike'}), goal('65', {name: 'Fictional closed', status: 'closed'})], '/app/goals?filter=all');
   await page.getByRole('button', {name: 'Options for Fictional bike'}).click();
-  await expect(page.getByRole('link', {name: 'Edit details'})).toHaveAttribute('href', '/app/goals/tracked/64#edit-goal');
-  await expect(page.getByRole('link', {name: 'Close…'})).toHaveAttribute('href', '/app/goals/tracked/64#goal-status');
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(page.getByRole('menuitem', {name: 'Edit details'})).toHaveAttribute('href', '/app/goals/tracked/64#edit-goal');
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(page.getByRole('menuitem', {name: 'Close…'})).toHaveAttribute('href', '/app/goals/tracked/64#goal-status');
   await page.keyboard.press('Escape');
   await page.getByRole('button', {name: 'Options for Fictional closed'}).click();
-  await expect(page.getByRole('link', {name: 'Reopen…'})).toBeVisible();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(page.getByRole('menuitem', {name: 'Reopen…'})).toBeVisible();
 });
 
 test('BUG-019/DV-022a (P-DV-63): one fitting artwork per goal on Cards and the Vision board', async ({page}) => {

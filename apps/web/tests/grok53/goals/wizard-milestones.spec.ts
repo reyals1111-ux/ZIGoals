@@ -15,7 +15,8 @@ test('DV-016a: a too-long milestone line is refused on step 1, under the box, wi
   const box = page.getByLabel('Milestones, one per line');
   await box.fill(`Run 3 km\n${'x'.repeat(150)}`);
   await page.getByRole('button', {name: 'Continue →'}).click();
-  await expect(page.getByText('Step 1 of 4')).toBeVisible();
+  // Session AO (T-014, deliberate): the creator has three steps.
+  await expect(page.getByText('Step 1 of 3')).toBeVisible();
   await expect(wizard.getByRole('alert')).toHaveText('Milestone 2 is 150 characters long; use at most 100.');
   await expect(box).toBeFocused();
   await box.fill('Run 3 km without stopping\nRest\nRun 3 km without stopping');

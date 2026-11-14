@@ -1,5 +1,6 @@
 import {expect,test,type Locator,type Page} from '@playwright/test';
 import {openFold} from './phone-nav';
+import {openSettings} from './settings-open';
 
 type Sample={name:string;start:string;mid?:string;end?:string;final?:string};
 /** The computed property to sample, optionally only for targets inside `within` (several indicators share one animation). */
@@ -45,7 +46,7 @@ async function settled(page:Page,name:string){
 }
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
 /** Fictional seven-day sequences for every requested identity; quotes stay offline. */
 async function fictionalMovement(page:Page){

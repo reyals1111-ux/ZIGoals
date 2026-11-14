@@ -2,6 +2,8 @@ import {expect,test,type Page} from '@playwright/test';
 import {closeMore,isPhone,mainNav,navLink,openMore} from './phone-nav';
 import {ALPHA_LABEL,ALPHA_LABEL_CHOSEN,ALPHA_SENTENCE,aboutAlpha,alphaNotice,expectAlphaMode,openStatusSheet} from './ab-shell';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
+import {afterGoto} from './settings-open';
 
 // Session E, Part 2: the phone shell. Phone sizes are set explicitly so both projects run them (the desktop project with a
 // fine pointer, the mobile project with a coarse one); the landscape case needs the coarse pointer.
@@ -18,11 +20,11 @@ const LOCKED=new Set(['/app','/app/goals','/app/staking','/app/habits','/app/hea
 // with "More pages", a link to Settings → Your pages & buttons, before Settings.
 const MORE=['Activity','NOVA','Checklist','Tasks','Notes','Journal','More pages','Settings','Help'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
-async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
+async function showcase(page:Page){await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
 
 /** Boxes of the honesty labels, the lock, the page title and the bars, in viewport coordinates, after the page settled. */
 async function firstScreen(page:Page,path:string){
- await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();
+ await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();
  await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy','true');
  return page.evaluate(()=>{
   const box=(selector:string)=>{const e=document.querySelector(selector);if(!e)return null;const r=e.getBoundingClientRect();return r.width&&r.height?{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height}:null;};
@@ -154,7 +156,7 @@ test('without JavaScript a phone still shows the tab bar, the top bar and the ho
  // Session AC (owner finding 3): the footer's sentence and mode moved to Settings' facts block, in its server HTML too.
  await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);await expect(page.locator('.site-footer .mode-strip')).toHaveCount(0);
  // (Without scripts the workspace stays hidden until the stores are read, so the block is read in Settings' server HTML.)
- await page.goto('/app/settings');await expect(aboutAlpha(page).locator('.mode-strip')).toHaveCount(1);await expect(aboutAlpha(page).locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+ await openSettings(page);await expect(aboutAlpha(page).locator('.mode-strip')).toHaveCount(1);await expect(aboutAlpha(page).locator('.mode-strip')).toContainText('LOCAL SIMULATION');
  await expect(aboutAlpha(page).locator('.network-banner')).toContainText(ALPHA_SENTENCE);
  await context.close();
 });

@@ -1,4 +1,6 @@
 'use client';
+import {useDayGoal} from './use-day-goal';
+import {needOn} from '../../lib/checklist/day-goal-core';
 import Link from 'next/link';
 import {useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent} from 'react';
 import {PATH_COLOURS} from '../../lib/path/colours';
@@ -64,6 +66,8 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     return () => window.clearTimeout(t);
   }, [doneKey]);
   const list = useRef<HTMLDivElement>(null);
+  // Session AP (owner decision 14 Nov): the flame's rule as chosen in Settings ("A day counts as done at N").
+  const dayRule = needOn(useDayGoal(), state.date ?? '');
   // Session AG Polish 2 (owner Part 5): a row just added by quick add comes into view.
   const shown = useRef<string | null>(null);
   useEffect(() => {
@@ -147,7 +151,7 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
   };
   return <div ref={list} className="checklist-list-view" onKeyDown={onKeyDown}>
     {/* Session AL fifth pass (LS-033, LS-070): the flame's rule, said where the rows are; each habit row has its own streak. */}
-    <p className="fine checklist-streak-rule">The flame counts the days every planet was lit; a day with nothing on the path rests. Each habit row shows that habit’s own streak.</p>
+    <p className="fine checklist-streak-rule">{dayRule === null ? 'The flame counts the days every planet was lit' : `The flame counts the days ${dayRule} ${dayRule === 1 ? 'planet was' : 'planets were'} lit (every planet on a shorter day), as you chose in Settings`}; a day with nothing on the path rests. Each habit row shows that habit’s own streak.</p>
     {groups.map(g => {
       const counted = g.dots.filter(d => d.counted), doneN = counted.filter(d => d.state === 'done').length, first = g.dots[0]!, tone = PATH_COLOURS[colours.get(first.id) ?? first.colour].token;
       const banner: PathSection = {id: g.id, label: g.label, colour: colours.get(first.id) ?? first.colour, steps: []};

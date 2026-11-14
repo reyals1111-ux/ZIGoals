@@ -27,7 +27,7 @@ async function addHabit(page: Page, title: string, measure?: {kind: string; targ
 }
 async function motion(page: Page, setting: 'default' | 'reduced' | 'off') {
   if (setting === 'reduced') await page.emulateMedia({reducedMotion: 'reduce'});
-  if (setting === 'off') { await page.goto('/app/settings'); await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off')); }
+  if (setting === 'off') { await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */ await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off')); }
 }
 
 for (const setting of ['default', 'reduced', 'off'] as const) test(`vacation days marked earlier are listed and cleared later, stretch by stretch (motion ${setting})`, async ({page}) => {
@@ -89,7 +89,7 @@ async function seedGold(page: Page, allocated = false, valued = false) {
   const gold = manualSourcePosition({category: 'Precious metals', name: 'Grandma’s coins', quantity: '100', currency: 'EUR', metal: 'Gold', unit: 'grams', ...(valued ? {value: '7000'} : {})}, '91000000-0000-4000-8000-000000000001', '2026-09-14T10:00:00.000Z');
   let platform = saveAsset(emptyPlatform(), gold);
   if (allocated) platform = {...platform, goals: [privateGoalSchema.parse({id: '1', name: 'Gold reserve', type: 'QUANTITY', status: 'active', asset: 'Gold grams', denom: 'manual:Gold grams', decimals: 18, target: (500n * 10n ** 18n).toString(), notes: '', createdAt: '2026-09-14T10:00:00.000Z', milestones: []})]};
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [PLATFORM_KEY, JSON.stringify(platform)]);
   return gold.id;
 }

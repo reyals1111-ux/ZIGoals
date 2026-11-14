@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // Session W Part 18 (W3): "Sign out all other devices" is its own explained action under Settings → Devices and sessions,
 // with a confirmation and no session list needed first. It sends the existing revoke-others request (the relay also
@@ -24,7 +25,7 @@ async function account(page: Page) {
 
 test('sign out all other devices: explained, confirmed, no list needed first; cancelling sends nothing', async ({page}) => {
   const posts = await account(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const panel = page.getByRole('region', {name: 'Account sessions'});
   const group = panel.getByRole('group', {name: 'Sign out all other devices'});
   await expect(group).toContainText('they can no longer read or write your vault, and they are signed out at the email provider too. This device stays signed in.');
@@ -42,7 +43,7 @@ test('sign out all other devices: explained, confirmed, no list needed first; ca
 
 test('the session list keeps per-session Revoke and no longer repeats the sign-out-others button', async ({page}) => {
   const posts = await account(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const panel = page.getByRole('region', {name: 'Account sessions'});
   await panel.getByRole('button', {name: 'Refresh sessions'}).click();
   await expect(panel.getByRole('listitem')).toHaveCount(2);

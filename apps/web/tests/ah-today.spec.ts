@@ -1,11 +1,12 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from './ah-helpers';
+import {openSettings} from './settings-open';
 
 // Session AH Part 11 (TO1): a start page other than Today never breaks Today. Fictional data only.
 test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(page); });
 
 test('TO1: with Goals as the start page, /app opens Goals, the Today link shows Today, and /app/today is Today', async ({page}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.locator('#pages-start-page').selectOption('goals');
   await expect(page.getByText('ZigGoals now opens on Goals'.replace('ZigGoals', 'ZIGoals'), {exact: false}).first()).toBeVisible();
   await page.goto('/app'); await hydrated(page);
@@ -20,7 +21,7 @@ test('TO1: with Goals as the start page, /app opens Goals, the Today link shows 
 });
 
 test('DE4: in the Showcase, the welcome offers "Start my own", which leaves the demo and opens the welcome', async ({page}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app'); await hydrated(page);
   await page.goto('/app/welcome'); await hydrated(page);
@@ -32,7 +33,7 @@ test('DE4: in the Showcase, the welcome offers "Start my own", which leaves the 
 
 test('TO2: "Start the wrap-up now" opens it on Today before its time', async ({page}) => {
   await page.clock.install({time: new Date('2026-10-26T09:00:00')});
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const settings = page.getByRole('region', {name: 'Evening wrap-up', exact: true});
   await settings.getByLabel('Show the evening wrap-up on Today').check();
   await expect(settings.getByRole('status')).toContainText('Saved.');

@@ -1,3 +1,137 @@
+# Session AP — "READY FOR FRIENDS" (ADR-040) (2026-11-14, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO + AP"; Draft, in progress, not merged, not deployed)
+**Base:** Session AO's head `ca2678d7` on `main` `c65882f3` (PR #101 not merged at the start). **Rules (owner):** the brief, one plan approval (14 Nov) with five additions, verbatim in `docs/architecture/ADR-040-session-ap.md`. Resume file: `docs/handoff/AP_RESUME.md`. The full entry replaces this header as the session's final commit.
+
+# Session AO — "EVERYTHING LEFT" (ADR-039) (2026-11-13, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO"; Draft, complete, not merged, not deployed)
+**Base:** Session AN's head `2af55a26` on `main` `c65882f3`. **Rules (owner):** the brief, one plan approval (13 Nov) with two stored-data rules, verbatim in `docs/architecture/ADR-039-session-ao.md`. Resume file: `docs/handoff/AO_RESUME.md`. Demo tour: [`docs/handoff/AO_DEMO_TOUR.md`](handoff/AO_DEMO_TOUR.md).
+
+## Part 0 — records (13 Nov)
+- **Session AN** (PR #102): WebKit in 4 duration-balanced shards; glob/minimatch overrides (`pnpm audit` 0); third alert `crypto-bigint` 0.5.5 (RUSTSEC-2026-0387), contract crypto stack, not fixed. **Not merged** at AO's start, so AO continued on its branch (AN's commits unchanged).
+- **Session AM** (PR #101) complete, not merged; **AM-2** continues there. AO never touched its lane (D10 lists two cross-lane notes for it).
+- **Owner's hosted verifier on Alpha #54** (11 Nov): PASS 12/12. **Frozen readers** #37–#54 (#54 = `c65882f3`, the line PR #101 adds, byte for byte). #55 not deployed.
+
+## Parts and their commits (`git log 2af55a26..HEAD`; never rebased)
+| Part | What | Commits |
+|---|---|---|
+| 0 | records, ADR-039, AO_RESUME | `1b5652d3` |
+| 1 | CI intermittents at their cause (earn-coach URL wait, settled polls, hydration waits, `tests/quiet-page.ts`, one re-fetch) | `0b5d9af8` |
+| 2 | owner calls a–f: Wealth folds (RR-16), a goal named once on Today (RR-17/D-134), "On this device" (T-069), Appearance first, one header (e), Dark flat (f); g = Undo kept (owner decision) | `b00a7985`, `7d48c6f3` |
+| 3 | carried rows: ⋯ menus, Activity search/CSV, money-log Edit, B-201, TK-036, C-MO-36, NB-114, DV-053c, L-075, M-011/LS-H29, LS-067, T-014, DV-010c, DV-045e, N-BN-05, BUG-051, DV-274/NB-045, D-224/D-231, D-028 (partly), C-LS-20, PR-018, C-DVG-51, BN-134, D-037, D-086 | `d256b946`, `3934199b`, `aa67f009` |
+| 4 | **TIER 3 (stored format)** "My day ends at" (`zigoals:day-ends:v1`) | `e2452897` |
+| 5 | #15 252 templates; **TIER 3 (stored format)** #11 net-worth history by source (`zigoals:networth-history:v1`); #1 Perfect days; #4 week-grid check-ins | `8c6c7b2b`, `e2452897`, `aa67f009` |
+| 6 | **TIER 3 (release verifier)** goal stage on 3- and 4-step creators; security delta (**TIER 3** `5e45ccdf`); UX review fixes; ADR closing table; demo tour; CI fallout fixes; route-weight cuts | `c25e0b22`, `5e45ccdf`, `74feffa9`, `82d0ad70`, `93802f00`, `183d0852`, `e326cc37`, `ba2e0d98`, `262cf14b`, `bf748935`, `9e244e16` |
+
+## Closing table (ADR-039)
+Fixed 49 · Built 13 · Owner decision 7 · Not possible 2 · Carried 47 (25 need a service, 17 are ZIGi/NOVA answers in AM's lane, TK-203 needs the logo service, PR-035 a model; D-028 at 143 of a ≤ 90 goal, D-088/N-BN-10 Settings folded by default: 408 spec gotos to move first). Every id with its evidence or cause is in ADR-039.
+
+## Tier 3, in plain words (risk → rollback)
+- **Stored formats** (`e2452897`, `5e45ccdf`): two additive device records, in Export everything, backup format 4, restore, erase, the catalog; older builds ignore both keys; a restore never brings a Showcase example history into real storage; a future-dated day-end change is ignored. → Revert the commits.
+- **Release verifier** (`c25e0b22`): the goal stage reads the creator's own "Step N of M", so it passes on #54 (4 steps) and AO (3 steps). The deploy workflow file is unchanged. → Revert.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries a `Session AO (<id>, deliberate)` comment and an equally strict replacement, listed in its commit (owner calls a–f, menuitem roles, the three-step creator, the folds' `openFold`, phone Settings rows 24 → 25, help-page's settled count). New: `tests/ao/` (day-ends, owner-calls, header-consistency, page-lengths, perfect-day, today-tab-stops) and unit tests for every new lib.
+
+## Evidence (final code head)
+- **Local:** tsc clean; eslint 0 errors; vitest 10,168 passed (6 failures are this sandbox's Node 22 baseline, the same on `2af55a26`); theme sheets `--check` clean; **frozen readers #37–#54 PASS** (18 releases).
+- **Reviews:** security delta — nothing Critical or High; one Medium and two Lows fixed (`5e45ccdf`). UX — no blocker; Majors 1–2 fixed, Major 3 (launchers over Today's right rail when scrolled at 1440) predates AO, carried (D17).
+- **Route weights (gzip -6):** shell 436.3/447 (pre-AO 434.5). **Over budget, owner decision D18:** /app/habits 505.9/504, /app/earn 497.8/496, /app/agenda 485.7/485, /app/tasks 469.4/468 (a chunk split in the shell's habits group after five attempts; no budget changed).
+
+## CI on the final head
+[Run 1704](https://github.com/reyals1111-ux/ZIGoals/actions/runs/43523332202) on `bf748935` (the last app-code head): **21 of 23 jobs green on attempt 1**, including all four WebKit shards, the three a11y shards and 11 of 12 main shards. Red: the integration job's **route-weight check** (D18, owner decision) and main shard 8's `l6-fourth-chain:95` (listed intermittent; PR #101's fix applied byte for byte in `9e244e16`, 6/6 locally). Run 1703 before it: WebKit 2/4 had a class-B engine segfault (recorded, not chased).
+
+## Known CI intermittents (this session)
+`zigi-chat-polish:319`, `a11y-wcag-x:49`, `run11-route-mobile-acceptance:30`, `j05-notifications:74`, `j04-offline:23`, `for-you:8`, `zigi-voice-z:199`, `bn-114-notify-permission:25` (mobile, 1701; 2/2 locally): first sightings, recorded; the Settings "On" contrast read mid-fade (`a11y-wcag-x:269`, local only, CI green); WebKit class-B segfaults (1703).
+
+## Owner list
+1. **Route weights (D18):** raise /app/habits, /app/earn, /app/agenda and /app/tasks by ≤ 2 kB with the reason in ADR-039 D18, or schedule a weight pass. Until then `web` is red on that one check.
+2. Review [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) (Draft) and merge when satisfied; whichever of #101/#102 merges second merges `main` in (theme sheets regenerated, both registries kept).
+3. For AM-2: ZIGi's on-device answer still says "Your app → Theme" (now Settings → Appearance); ZIGi/NOVA fasting cards stay at 18 h (Health's form allows 24 h).
+4. Deploy (#55) only after the merge, through the Manual Alpha workflow.
+
+# Session AN — "CI + TOOLING" (2026-11-12, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102); Draft, not merged, not deployed)
+**Base:** `main` `c65882f3` (Merge #100, Session AL). **Rules (owner):** the brief, one plan approval with owner additions 1–4 (`docs/handoff/AN_RESUME.md`). Own files only: the parallel lane AM-2 (PR #101) was not touched. Resume file: `docs/handoff/AN_RESUME.md`.
+
+## Part 1 — TIER 3 (CI): WebKit browser tests in 4 duration-balanced shards (`0f2d8876`)
+- **Before:** Playwright's `--shard` cuts by test count. In run 1634 (main's last WebKit run) the three shards held 199, 206 and 187 tests, and their tests took 32.5, 37.4 and 19.9 min (jobs 35.6, 40.6 and 22.6 min of the 45).
+- **Measured:** I rebuilt per-(project, file) durations from the timestamped line-reporter logs of runs 1634, 1677 and 1680 through the REST API (9 jobs). Each shard's worker-minutes match 2 × its reported wall time, which checks the method.
+  - Total: about 156 worker-minutes; I used the median of the three runs.
+  - The floor: desktop `zigi-accept-correct` (75 tests) takes about 25 min alone.
+- **Change:**
+  - `apps/web/playwright.webkit.shards.ts` holds four explicit file lists, packed by simulating the job's two workers. Projected tests per shard: about 25, 19, 19 and 18 min.
+  - `WEBKIT_SHARD=n/4` selects a list. The config first checks that every spec the unchanged match/ignore regexes select is in exactly one list. If one isn't, it throws, naming the file and the fix: "zigi-x.spec.ts is a WebKit spec in no shard: add it to the shortest list in apps/web/playwright.webkit.shards.ts (shard 4)" (owner addition 1). The same check runs in `pnpm test` (`scripts/ci/webkit-shards.test.ts`, 3 tests).
+  - `ci.yml` `web-webkit`: matrix 1–4, `WEBKIT_SHARD` instead of `--shard=N/3`. It still runs on pull requests only, still has 45 min, and still feeds the required `web` check (main's ruleset requires `web`, `contract`, `compare`).
+  - No test, assertion or timeout changed.
+- **Proof, counts before and after:**
+
+| Run | Shards | "Running N tests" | Start lines | Distinct / duplicates | = unsharded `--list` (592) | Skipped | Slowest shard's tests |
+|---|---|---|---|---|---|---|---|
+| 1634 (main, before) | 3 | 199 + 206 + 187 | 592 | 592 / 0 | yes | 74 | 37.4 min |
+| 1683 (`0f2d8876`) | 4 | 176 + 130 + 150 + 136 | 592 | 592 / 0 | yes | 74 | 29.5 min |
+| 1686 (`5aa188dc`) | 4 | 176 + 130 + 150 + 136 | 592 | 592 / 0 | yes | 74 | 22.2 min |
+
+  Local: `--list` per shard gives the same 592, with 0 duplicates and a union identical to the unsharded list. A temporary new `zigi-*.spec.ts` made the config throw with the message above.
+  - Method: every `[project] › file:line › title` start line in the four job logs, compared as a set with `playwright test -c playwright.webkit.config.ts --list`.
+  - In run 1683 the job walls were 33.8, 21.7, 22.8 and 25.2 min (before: 35.6, 40.6, 22.6), so the slowest WebKit job finished about 7 min sooner and every shard now has 11+ min of headroom.
+- **For whichever of PR #101 / #102 merges second:** a new `webkit-*`/`zigi-*` spec now fails the WebKit job until it is added to a list. PR #101 currently adds none; it only edits `zigi-states.spec.ts`, which is listed.
+
+## Part 2 — TIER 3 (dependencies), owner-approved option 2 (`921ea417`, evidence `b1ab27ae`)
+- **Option 1:** not available. The newest `@opennextjs/cloudflare` (1.20.17), `@opennextjs/aws` (4.1.16) and `@typescript-eslint/typescript-estree` (8.72.2) still declare glob ≤ 13 and minimatch ^10.
+- **Overrides** in `pnpm-workspace.yaml`:
+  - `"@opennextjs/cloudflare>glob": ^14.0.2` (new);
+  - `"@node-minify/core>glob"` raised from `10.5.0` to `^14.0.2`;
+  - `"@typescript-eslint/typescript-estree>minimatch": ^11.0.1` (new).
+
+  glob 13.0.6/10.5.0 → 14.0.5 and minimatch 10.2.6/9.0.9 → 11.0.8. `pnpm audit`: **No known vulnerabilities found** (was 2 moderate). The lock gains 4 entries and loses 20.
+- **New packages** (owner addition 2): `glob` 14.0.5, `minimatch` 11.0.8, `path-scurry` 3.0.0 and `@isaacs/nonrecursive-glob-match` 1.1.0. All are published by `isaacs`, the sole maintainer of glob and minimatch. Integrity hashes are in `docs/dependencies/AN_REVIEW.md` and the commit message.
+- **API:** glob 14 has the same exports as 13. minimatch 11 drops `makeRe`, which nothing here uses.
+- **Local proof:**
+  - `pnpm lint`: 0 errors (the same 20 warnings as main). `pnpm typecheck`: clean.
+  - `build:alpha` and `check:alpha` pass (upload 29,911.07 → 29,911.08 KiB).
+  - `pnpm test`: 6 tests fail identically with main's lockfile (this sandbox's Node 22); CI's unit job is green.
+- **OpenNext output** (owner addition 3), two clean builds (`0f2d8876` against `921ea417`):
+  - 4,879 files both times; 4,878 have identical sizes, and `handler.mjs` is +5 bytes.
+  - Every content difference is one of: the commit, the build id and Next's per-build keys; chunk names and minifier identifiers; or the order of 10 of 156 `react-loadable-manifest` lookups. That order comes from glob 14's traversal; the set is the same and no overlapping suffix changes order. Details are in AN_REVIEW.md §2.
+  - The overrides stay.
+- **The third alert:** very likely `crypto-bigint` 0.5.5, **RUSTSEC-2026-0387** (published 23 Oct; timing variability in constant-time operations; fixed in 0.7.6). It enters through `cosmwasm-std` 2.2.2 → `cosmwasm-crypto` → `k256`/`p256`/`ecdsa` → `elliptic-curve` 0.13 in the Goal Manager contract.
+  - Found with OSV over `Cargo.lock`, because this session cannot read the Dependabot API.
+  - **Not fixed:** it is not build/lint tooling, it needs a CosmWasm major upgrade, and contract crypto is out of scope.
+  - Low exposure: no secret-key arithmetic in the contract. AN_REVIEW.md §3 has the reading.
+
+## CI
+- **[Run 1683](https://github.com/reyals1111-ux/ZIGoals/actions/runs/43279591582) on `0f2d8876` (Part 1):**
+  - checks, contract, Alpha gate, integration, a11y shards: green;
+  - WebKit 1–3 green and WebKit 4 failing 2 tests;
+  - Chromium main shards 1, 5, 8 and 11 failing 1 test each.
+- **[Run 1686](https://github.com/reyals1111-ux/ZIGoals/actions/runs/43290112921) on `5aa188dc` (Parts 1–2, the final code head):**
+  - checks (lint, types, unit, build, **audit**), contract and the **Alpha gate (the OpenNext build)** green on attempt 1;
+  - 7 jobs failed on attempt 1 and got one re-run (attempt 2): all green except **WebKit shard 4/4, `zigi-earn-coach-af:59` (desktop), failing twice**.
+  - So `web` is red on the final head, on that one test.
+- **Not caused by this diff:**
+  - The test passed in run 1683 in the same shard.
+  - Its spec, app code and Playwright project are unchanged.
+  - The trace (attempt 2's artifact) shows the click works. The navigation to `/app/staking` runs inside a view transition whose DOM update took 2.7 s in WebKit, so the URL changed just after `toHaveURL`'s 5 s default. At the timeout the page was still on `/app`; the spec's own afterEach timing then reads `/app/staking#staking-actions-title`.
+- **Proposed fix** (spec, outside this session's files, equally strict): `await expect(page).toHaveURL(/\/app\/staking/, {timeout: 15_000})`, as `zigi-knock`'s first knock waits 15 s. Then one more CI run.
+
+## Known CI intermittents (this session; none in a file, job or tool this diff changes)
+| Test | Run(s) | Reading | Proposed |
+|---|---|---|---|
+| WebKit `zigi-earn-coach-af:59` (desktop) | 1686 attempts 1 and 2; passed in 1683 | The view-transition navigation lands just after the 5 s URL wait (above) | The spec's URL wait at 15 s (owner / next session) |
+| WebKit `zigi-memory-page:22`, `webkit-celebration:35` | 1683, 1686 | Class B: `ThreadedCompositor` segfault in libWPEWebKit (kernel line) | Record; re-run passed |
+| WebKit `zigi-chat-polish:319` (desktop) | 1683 | First sighting: the conversation log 164 px against ≥ 200 right after a resize to 900×500 | Record; passed in 1686 |
+| WebKit `zigi-states:75` (mobile) | 1686 attempt 1 | Third sighting of the listed item (CI_INTERMITTENTS); PR #101 edits this spec | AM-2's lane; re-run passed |
+| `grok53/health/fourth-pass-field-errors:106` | 1683 (mobile), 1686 (desktop), and PR #101's run 1678 | Spec race of the DV-029d shape: the message-to-field distance is read once right after the message shows (136 px against < 80) | Spec: poll the distance until the layout settles (equally strict); re-run passed |
+| `grok53/hud/hud-perf:23` | 1686 attempt 1 (and PR #101's 1678 and 1680) | Listed (CI_INTERMITTENTS, CI 1632) | Re-run passed |
+| `a11y-wcag-x:49`, `run11-route-mobile-acceptance:30`, `spending-ai:52` (45 s timeout), `journeys/j05-notifications:74` | 1683 or 1686 attempt 1, once each | First sightings | Passed on the next run |
+| `scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs` | 1686 attempt 1 | Listed (CI 1629) | Re-run passed |
+
+## Rollback
+Revert the commits: `0f2d8876` (shards) and/or `921ea417` (overrides; `pnpm install` restores the lock). The other commits are docs.
+
+## Owner list
+1. `zigi-earn-coach-af:59`: apply the 15 s URL wait (or let a session do it), then one more CI run. Until then `web` is red on the final head.
+2. Review [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) (Draft) and merge when satisfied; whichever of #101/#102 merges second merges `main` in.
+3. Confirm on the Security tab that the third alert is `crypto-bigint` (RUSTSEC-2026-0387), and plan it with the next CosmWasm upgrade.
+4. The inert override `minimatch@10>brace-expansion` can go in a later cleanup.
+
 # Session AL — "FIX EVERYTHING" (ADR-037) (2026-11-04/09, `feature/session-al-fix-everything`, [PR #100](https://github.com/reyals1111-ux/ZIGoals/pull/100); complete, not merged, not deployed)
 **Base:** `main` `17069c7d` (Merge #99, Session AK; live as Alpha #53). **Rules (owner):** the brief (Parts 0–17, R1–R9, O1–O7), the approved plan and the owner amendments A1–A12 (verbatim in ADR-037). One plan, one approval; no owner step during the session.
 

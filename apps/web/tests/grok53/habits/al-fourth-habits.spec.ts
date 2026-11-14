@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {openHabitMoreOptions} from '../../habit-form-helpers';
 import {createHabit, emptyDevice, logWaterOnHealth, open, toast} from '../l3-helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL fourth pass (lane L3, GROK53_REPLAY_L3_1 "exact steps" 2, 5, 6, 7, 8, 9, 15, 20, 21, 22, 23): Habits as the
@@ -15,7 +16,7 @@ async function newHabitForm(page: Page) {
 }
 async function showcase(page: Page) {
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
@@ -122,7 +123,8 @@ test.describe('fresh profile', () => {
     const read = await createHabit(page, 'Read');
     await read.getByRole('button', {name: 'Complete Read', exact: true}).click();
     await read.getByRole('button', {name: 'Options for Read'}).click();
-    await read.getByRole('group', {name: 'Read options'}).getByRole('button', {name: 'Duplicate Read'}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await read.getByRole('menu', {name: 'Read options'}).getByRole('menuitem', {name: 'Duplicate Read'}).click();
     const copy = card(page, 'Read (copy)');
     await expect(copy).toBeVisible();
     await expect(copy.locator('.habit-result')).toHaveText('Due');
@@ -157,7 +159,8 @@ test.describe('fresh profile', () => {
     expect(box.height).toBeLessThanOrEqual(72);
     expect(box.height).toBeGreaterThanOrEqual(44);
     await stretch.getByRole('button', {name: 'Options for Stretch'}).click();
-    await stretch.getByRole('group', {name: 'Stretch options'}).getByRole('button', {name: 'Archive habit…'}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await stretch.getByRole('menu', {name: 'Stretch options'}).getByRole('menuitem', {name: 'Archive habit…'}).click();
     await stretch.getByRole('alertdialog').getByRole('button', {name: 'Archive habit', exact: true}).click();
     await expect(toast(page)).toContainText('Stretch is archived today.');
     await page.getByRole('group', {name: 'Filter habits'}).getByRole('button', {name: 'Archived', exact: true}).click();

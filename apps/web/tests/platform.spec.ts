@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {typeGoalName} from './goal-name';
+import {continueToGoalReview, typeGoalName} from './goal-name';
 import {chooseChain} from './chain-choice';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests ZIG positions and addresses.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
@@ -20,7 +20,8 @@ test('private position allocation and plans survive reload without financial or 
  /* Session AL fifth pass (DV-120, deliberate): with the chain chosen no kind is preselected, so the spec chooses the count it always made */await page.getByRole('radio',{name:'Quantity',exact:true}).check();
  await typeGoalName(page, 'Example destination');
  await page.getByLabel('Target amount',{exact:true}).fill('200');
- for(let step=0;step<3;step++)await page.getByRole('button',{name:'Continue →'}).click();
+ // Session AO (T-014, deliberate): three steps; Continue to the review, which is checked to be the last step.
+ await continueToGoalReview(page);
  await page.getByRole('button',{name:'Create goal',exact:true}).click();
  await expect(page).toHaveURL(/\/app\/goals\/tracked\/\d+$/);
  await page.locator('#allocate > summary').click();

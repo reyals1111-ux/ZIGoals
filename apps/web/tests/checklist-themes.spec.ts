@@ -65,7 +65,16 @@ test('nodes, name tabs, the line, the labels’ planets and the timers’ rings 
     const sky = await page.locator('.checklist-sky').evaluate(el => ({background: getComputedStyle(el).backgroundColor, mist: getComputedStyle(el.querySelector('.checklist-mist-a')!).backgroundImage}));
     const g = await ground();
     expect(g.sky, `${theme}: the dashboard's ground`).toEqual(g.shell);
-    if (theme === 'dark') { const [r, g, b] = sky.background.match(/\d+/g)!.map(Number); expect(Math.max(r!, g!, b!), 'Dark: a near-black sky').toBeLessThan(10); }
+    // Session AO (DV-203, owner decision 13 Nov, deliberate): Dark is a true dark theme. Was: a near-black sky (every channel
+    // under 10) with its faint mist. Restated at equal strength: exactly Dark's flat ground, no starfield, the mist and the
+    // ambient twinkles not drawn (Nebula's sky keeps its starfield, checked above).
+    if (theme === 'dark') {
+      expect(sky.background, 'Dark: the flat near-black ground').toBe('rgb(6, 9, 14)');
+      expect(g.sky[0], 'Dark: no starfield').toBe('none');
+      expect(await page.locator('.checklist-sky .checklist-mist').evaluateAll(els => els.map(el => getComputedStyle(el).display)), 'Dark: no mist').toEqual(['none', 'none', 'none']);
+      const ambient = page.locator('.checklist-ambient');
+      if (await ambient.count()) expect(await ambient.evaluate(el => getComputedStyle(el).display), 'Dark: no twinkles or shooting stars').toBe('none');
+    }
     else expect(sky.mist, 'Light: a light colour mist').toMatch(/rgb\((2[2-5]\d), (2[2-5]\d), (2[2-5]\d)\)/);
     if (theme === 'light') { const [r, g, b] = (await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).match(/\d+/g)!.map(Number); expect(Math.min(r!, g!, b!)).toBeGreaterThan(225); }
   }

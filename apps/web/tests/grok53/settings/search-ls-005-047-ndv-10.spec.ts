@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../../ah-helpers';
+import {openSettings} from '../../settings-open';
 
 // Session AL (lane L6, second pass): global search (Lisbon LS-005/LS-047, Professor PR-102/PR-112, Denver N-DV-10).
 // Desktop 1280, a fresh empty profile with three fictional tasks and one Checklist item.
@@ -51,7 +52,7 @@ test('PR-102/PR-112: an Ecosystem project is found by name', async ({page}) => {
   await box.fill('valdora');
   await expect(palette(page).getByRole('group', {name: 'Ecosystem projects'})).toHaveCount(0);
   await page.keyboard.press('Escape');
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const ecosystem = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Ecosystem', exact: true});
   await ecosystem.click(); // a controlled switch: it shows the saved choice once saved
   await expect(ecosystem).toBeChecked();

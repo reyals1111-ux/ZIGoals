@@ -1,0 +1,40 @@
+/* Session AP (features 1–7): Health's orbits, trends, symptom tracker, meal copy, mood tags and food-logging month.
+   Labels 14 px and up, inputs 16 px, targets 44 px; nothing moves (Motion Off and reduced motion need nothing more). */
+.ap-orbits-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin: 16px 0 0; padding: 0; list-style: none; }
+.ap-orbit { display: grid; justify-items: center; gap: 6px; text-align: center; padding: 12px; border: 1px solid var(--line, #6a9cc342); border-radius: 18px; }
+.ap-orbit svg { width: 112px; height: 112px; overflow: visible; }
+.ap-orbit h3 { margin: 0; font-size: 17px; }
+.ap-orbit p { margin: 0; font-size: 15px; }
+.ap-orbit .fine, .ap-trend .fine { font-size: 14px; }
+.ap-orbit-track { fill: none; stroke: currentColor; stroke-opacity: .45; stroke-width: 2; stroke-dasharray: 2 6; }
+.ap-orbit-arc { fill: none; stroke-width: 6; stroke-linecap: round; }
+.ap-orbit[data-orbit="steps"] { --ap-orbit: var(--pillar-health, #ff74be); }
+.ap-orbit[data-orbit="minutes"] { --ap-orbit: var(--pillar-habits, #23eaff); }
+.ap-orbit[data-orbit="workouts"] { --ap-orbit: var(--pillar-goals, #9273ff); }
+.ap-orbit .ap-orbit-arc { stroke: var(--ap-orbit); }
+.ap-orbit .ap-orbit-planet { fill: var(--ap-orbit); stroke: var(--panel, #0b1a2c); stroke-width: 2; }
+.ap-orbit .ap-orbit-sun { fill: var(--ap-orbit); fill-opacity: .3; }
+.ap-trends-list { display: grid; gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.ap-trend { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: start; }
+.ap-trend-arrow { font-size: 24px; line-height: 1.2; min-width: 28px; text-align: center; }
+.ap-trend p { margin: 0; font-size: 15px; }
+.ap-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; padding: 0; list-style: none; }
+.ap-chips button, .ap-levels button, .ap-plus-form button { min-height: 44px; min-width: 44px; font-size: 15px; }
+.ap-plus-form { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: end; }
+.ap-plus-form .field { flex: 1 1 200px; margin: 0; }
+.ap-plus-form .field span { font-size: 14px; }
+.ap-plus-form input, .ap-plus-form select { font-size: 16px; min-height: 44px; }
+.ap-symptom-list { display: grid; gap: 14px; margin: 12px 0; padding: 0; list-style: none; }
+.ap-symptom-list > li { display: grid; gap: 6px; padding-bottom: 12px; border-bottom: 1px solid var(--line, #6a9cc342); }
+.ap-symptom-list h3 { margin: 0; font-size: 16px; }
+.ap-levels { display: flex; flex-wrap: wrap; gap: 6px; }
+.ap-levels button[aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: 1px; font-weight: 700; }
+.ap-field-error { font-size: 15px; margin: 4px 0 0; }
+.ap-food-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; max-width: 320px; margin: 12px 0; padding: 0; list-style: none; }
+.ap-food-month li { aspect-ratio: 1; display: grid; place-items: center; font-size: 14px; border-radius: 8px; border: 1px solid var(--line, #6a9cc342); }
+.ap-food-month li[data-logged] { border-width: 2px; font-weight: 700; }
+.ap-food-month li[data-logged]::after { content: "•"; margin-left: 1px; }
+.ap-splits { width: 100%; border-collapse: collapse; font-size: 15px; margin: 8px 0; }
+.ap-splits th, .ap-splits td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line, #6a9cc342); }
+.ap-splits th { font-size: 14px; }
+@media (max-width: 650px) { .ap-orbits-list { grid-template-columns: 1fr 1fr; } .ap-orbit svg { width: 96px; height: 96px; } }

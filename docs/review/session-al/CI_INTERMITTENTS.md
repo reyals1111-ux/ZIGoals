@@ -137,3 +137,11 @@ checks.`" (ADR-017 S64, AF16). `webkit-smoke` and `webkit-phone` filter exactly 
 ## Needed with lane L9's verifier stage 12
 `apps/web/tests/hosted-verifier-order.spec.ts:39` pins the local browser stages: it must read
 `toEqual([2, 3, 4, 5, 6, 9, 10, 11, 12])` (and its title/comment may name "AL"). Stage 12 skips each part a build lacks.
+
+## Session AP (CI 1706 on ca2678d7)
+| Item | Reading | Done |
+|---|---|---|
+| `earn-guide-zigi:54` (mobile, shard 7) | After the reload the folds opened and the click on "Open Valdora" was taken (the CI snapshot shows the link focused) but no tab opened in 45 s; passes locally on the same build. | First sighting: recorded; investigate on a second. |
+| `theme-parity-af:15` /app · folded (mobile, shard 11) | **Not an intermittent: the app.** Today's skip-link list was filtered by a 1.2 s timer, so its links depended on when the page was read. | Fixed at the cause (Session AP Part 1, ADR-040 D4). |
+| `earn-dock:36/:71` (desktop, shard 1) | **Not an intermittent: the app** (date-dependent). A quiet celebration card due on the Showcase that day sat over the launcher column. | Fixed at the cause (D4). |
+| `zigi-face-z:185` (WebKit phone, shard 4/4) | The words were typed while the composer settled after the previous answer; Send stayed off. | Spec waits for the words and an enabled Send (D4). |

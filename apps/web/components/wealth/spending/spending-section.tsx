@@ -4,9 +4,8 @@ import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatDate} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
-import {amountIssue, dateIssue} from '../../../lib/limits/plausibility';
 import {addEntry, byCategory, fromCents, monthOf, removeEntry, roomToSpend, totals, weekOf} from '../../../lib/money-log/engine';
-import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, MONEY_LOG, amountText, type MoneyEntry} from '../../../lib/money-log/schema';
+import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
 import './spending.css';
 import {usePhoneShowAll} from '../../phone/phone-show-all';
 // Session AK (lane M): rules on new entries, the review mark, and Money tools (its own chunk, loaded after this body).
@@ -20,13 +19,17 @@ const MoneyTools = lazy(() => import('../money-tools/money-tools'));
 // (its own chunk, on "Map"), and a calculator in the amount fields. Pure parts in lib/; nothing new is stored.
 import {categoriesRecentFirst} from '../../../lib/recent-categories/recent';
 import {selectionLine, summarizeSelection} from '../../../lib/money-log/selection';
-import {amountProblem, resolveAmountText} from '../../../lib/money-calc/expression';
+import {amountProblem} from '../../../lib/money-calc/expression';
+// PR-052: one form check for a new entry and an edit, and the edit itself (in place, the same id).
+import {checkMoneyEdit, checkMoneyForm, readMoneyAmount, replaceEntry} from '../../../lib/money-log/form';
 import {CalcHint} from '../../money-calc/calc-hint';
 import {MONEY_DRAFT_EVENT, type MoneyDraft} from '../../money-photos/draft-event';
 import '../../money-select/money-select.css';
-import {parseNumberInput} from '../../../lib/numbers/parse';
-import {removeWithUndo} from '../../ui/remove-with-undo';
+import {changeWithUndo, removeWithUndo} from '../../ui/remove-with-undo';
 const SpendingMap = lazy(() => import('../../spending-map/spending-map'));
+// Session AP (features 1, 2, 4, 5): Your money over time (month by month, categories over a year, top payees, your usual
+// pace, age of money and tags), its own chunk; each view inside is its own chunk again.
+const SpendingInsights = lazy(() => import('./insights/spending-insights'));
 
 /**
  * Session AI (B3 competitor gap; feature 5's numbers): the expense and income log with a weekly "room to spend". Logged
@@ -35,9 +38,11 @@ const SpendingMap = lazy(() => import('../../spending-map/spending-map'));
  */
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF'] as const;
 const money = (cents: number, currency: string) => moneyCents(cents, currency); // Session AL (PRIMITIVES 3f): the one format layer
-const readAmount = (raw: string): string | null => { const resolved = resolveAmountText(raw); if (resolved === null) return null; const r = parseNumberInput(resolved), v = r.ok ? r.text : resolved.trim(); /* Session AL (PRIMITIVES 3f) */ return amountText.safeParse(v).success ? Number(v).toFixed(2) : null; };
+const readAmount = readMoneyAmount;
 /** Session AK (#19): why a typed sum cannot be saved, in its own words; lane EXF (EX-9): also a plain amount that is too large. */
 const sumProblem = amountProblem;
+/** PR-052: an edited entry's own category stays choosable when it is not one of the usual ones (a rule's or ZIGi's). */
+const withOwn = (chips: readonly string[], own: string | undefined): readonly string[] => own && !chips.includes(own) ? [own, ...chips] : chips;
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
   const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
@@ -57,12 +62,22 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   const weekEntries = useMemo(() => log.data.entries.filter(e => e.date >= week.start && e.date <= today).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)), [log.data.entries, week.start, today]);
   const monthCats = useMemo(() => byCategory(log.data.entries, month.start, month.end), [log.data.entries, month.start, month.end]);
   const monthTotals = useMemo(() => totals(log.data.entries, month.start, month.end), [log.data.entries, month.start, month.end]);
+  // PR-052: an entry being edited in the same form (its amount, category, note and date), or null for a new one.
+  const [editing, setEditing] = useState<MoneyEntry | null>(null);
+  const endEdit = () => { setEditing(null); setAmount(''); setNote(''); setDate(today); setLogging(false); requestAnimationFrame(() => logButton.current?.focus()); };
+  const startEdit = (entry: MoneyEntry) => { setEditing(entry); setKind(entry.kind); setAmount(entry.amount); setCategory(entry.category); setNote(entry.note ?? ''); setDate(entry.date); setProblem(''); setStatus(''); setLogging(true); requestAnimationFrame(() => amountField.current?.focus()); };
+  const saveEdit = (entry: MoneyEntry) => {
+    const checked = checkMoneyEdit(entry, {amount, category, note, date}, today);
+    if (!checked.ok) return setProblem(checked.problem);
+    void changeWithUndo(log.update, current => replaceEntry(current, checked.entry), 'Saved.', {undone: 'Edit undone.', undoLabel: `Undo the edit to ${checked.entry.category}`})
+      .then(() => { endEdit(); setStatus('Saved.'); }, () => setProblem('This could not be saved on this device. Nothing was changed.'));
+  };
   const save = (event: FormEvent) => {
     event.preventDefault(); setProblem(''); setStatus('');
-    const value = readAmount(amount);
-    if (!value) return setProblem(sumProblem(amount) ?? 'Enter an amount above zero, with at most two decimals (for example 12.50).');
-    const issue = amountIssue(Number(value)) ?? dateIssue(date, today);
-    if (issue) return setProblem(issue);
+    if (editing) return saveEdit(editing);
+    const checked = checkMoneyForm({amount, date, today});
+    if (!checked.ok) return setProblem(checked.problem);
+    const value = checked.amount;
     const typed: MoneyEntry = {id: crypto.randomUUID(), kind, amount: value, currency: chosen, category, ...(note.trim() ? {note: note.trim().slice(0, 200)} : {}), date, createdAt: new Date().toISOString(), source: 'form'};
     // Session AK (lane M, item 1): the person's rules run on a new entry too (first match wins); the status names it.
     const ruled = applyRules([typed], rules.data.rules), entry = ruled.entries[0]!, byRule = ruled.changes.length > 0;
@@ -93,7 +108,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   useEffect(() => {
     const take = (event: Event) => {
       const d = (event as CustomEvent<MoneyDraft>).detail ?? {};
-      setKind('expense'); setProblem('');
+      setEditing(null); setKind('expense'); setProblem('');
       if (d.amount) setAmount(d.amount);
       if (d.date) setDate(d.date);
       if (d.payee) setNote(d.payee.slice(0, 200));
@@ -125,21 +140,22 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         </div>
       </div>
       {!logging ? <div className="spending-actions"><button ref={logButton} type="button" className="primary" aria-expanded={false} aria-controls={`${id}-log`} onClick={() => setLogging(true)}>Log spending</button></div>
-      : <form className="spending-form" id={`${id}-log`} onSubmit={save} aria-label="Log spending or income">
-        <div className="spending-kind" role="radiogroup" aria-label="Kind">
+      : <form className="spending-form" id={`${id}-log`} onSubmit={save} aria-label={editing ? `Edit ${editing.category} ${editing.amount} ${editing.currency} on ${editing.date}` : 'Log spending or income'}>
+        {editing ? <p className="spending-editing">Editing {editing.kind === 'income' ? 'money received' : 'spending'} in {editing.currency}: {editing.category} · {money(Math.round(Number(editing.amount) * 100), editing.currency)} · {formatDate(editing.date)}</p>
+        : <div className="spending-kind" role="radiogroup" aria-label="Kind">
           {(['expense', 'income'] as const).map(k => <label key={k} className="spending-chip"><input type="radio" name={`${id}-kind`} checked={kind === k} onChange={() => { setKind(k); setCategory(k === 'expense' ? 'Food & drink' : 'Salary'); }}/><span>{k === 'expense' ? 'Spent' : 'Received'}</span></label>)}
-        </div>
+        </div>}
         <div className="spending-row">
           <label className="field"><span>Amount</span><input ref={amountField} inputMode="decimal" autoComplete="off" value={amount} onChange={e => setAmount(e.target.value)} placeholder="12.50" aria-describedby={`${id}-calc`}/></label>
-          <label className="field spending-currency"><span>Currency</span><select value={chosen} onChange={e => setCur(e.target.value)}>{[...new Set([currency, ...CURRENCIES])].map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+          {!editing && <label className="field spending-currency"><span>Currency</span><select value={chosen} onChange={e => setCur(e.target.value)}>{[...new Set([currency, ...CURRENCIES])].map(c => <option key={c} value={c}>{c}</option>)}</select></label>}
           <label className="field"><span>Date</span><input type="date" value={date} max={today} min="1990-01-01" onChange={e => setDate(e.target.value)}/></label>
         </div>
         <CalcHint value={amount} id={`${id}-calc`}/>
-        <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{ordered.chips.map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={category === c} onChange={() => setCategory(c)}/><span>{c}</span></label>)}</fieldset>
+        <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{withOwn(ordered.chips, editing?.category).map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={category === c} onChange={() => setCategory(c)}/><span>{c}</span></label>)}</fieldset>
         <label className="field"><span>Note — optional</span><input maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
         <SecretGuard text={note} onRemove={() => setNote('')}/>
         {problem && <p role="alert">{problem}</p>}
-        <div className="spending-form-actions"><button type="submit" className="primary">Save</button><button type="button" className="quiet" onClick={() => { setLogging(false); setProblem(''); requestAnimationFrame(() => logButton.current?.focus()); }}>Done</button></div>
+        <div className="spending-form-actions"><button type="submit" className="primary">{editing ? 'Save changes' : 'Save'}</button>{editing ? <button type="button" className="quiet" onClick={() => { setProblem(''); endEdit(); }}>Cancel edit</button> : <button type="button" className="quiet" onClick={() => { setLogging(false); setProblem(''); requestAnimationFrame(() => logButton.current?.focus()); }}>Done</button>}</div>
       </form>}
     </div>
     <p className="spending-status" role="status" aria-live="polite">{status}</p>
@@ -156,7 +172,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
           {selecting && <label className="money-select-check"><input type="checkbox" checked={picked.has(e.id)} onChange={() => togglePick(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
           <span className="spending-entry-what">{toReview.has(e.id) && <span className="spending-review-dot" title="To review"><span className="visually-hidden">To review: </span></span>}<strong>{e.category}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {e.date}</span></span>
           <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(Math.round(Number(e.amount) * 100), e.currency)}</span>
-          <button type="button" className="text-link spending-remove" aria-label={`Remove ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => remove(e)}>Remove</button>
+          <span className="spending-entry-actions"><button type="button" className="text-link spending-edit" aria-label={`Edit ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => startEdit(e)}>Edit</button><button type="button" className="text-link spending-remove" aria-label={`Remove ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => { if (editing?.id === e.id) endEdit(); remove(e); }}>Remove</button></span>
         </li>)}</ul> : <p className="fine">Nothing logged this week yet.</p>}
         {!selecting && weekMore.button(weekEntries.length, 'entries')}
         {selecting && weekEntries.length > 0 && <p className="money-select-total" aria-live="polite">{selectionLine(pickedSummary, money)}{pickedSummary.totals.length > 1 ? <span className="fine"> · each currency on its own, never converted</span> : null}</p>}
@@ -174,6 +190,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         {monthTotals.map(t => <p key={t.currency} className="fine">This month in {t.currency}: spent {money(t.expenses, t.currency)}, received {money(t.income, t.currency)}.</p>)}
       </section>
     </div>
+    <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase}/></Suspense>
     {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
     : <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">
       <label className="field"><span>Weekly budget ({chosen}) — leave empty for none</span><input inputMode="decimal" value={budgetDraft ?? (log.data.budget ? fromCents(Math.round(Number(log.data.budget.weekly) * 100)) : '')} onChange={e => setBudgetDraft(e.target.value)} aria-describedby={`${id}-budget-calc`}/></label>

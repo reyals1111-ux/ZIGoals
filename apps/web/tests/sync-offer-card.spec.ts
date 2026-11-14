@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {createVault} from '../lib/vault/crypto';
+import {openSettings} from './settings-open';
 
 // The encrypted-sync offer in Settings (Session L). Account requests are answered by fixtures, as in
 // run10-account-access.spec.ts; scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs drives the same card
@@ -36,7 +37,7 @@ const localKeys = (page: Page) => page.evaluate(() => Object.keys(localStorage).
 
 test('no offer before sign-in, and none where accounts are not configured (today\'s Alpha)', async ({page}) => {
   await page.route('**/api/private-account*', route => route.fulfill({status: 503, json: {error: 'HOSTED_CONFIGURATION_REQUIRED'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.getByRole('region', {name: 'Email account access'})).toContainText('not configured');
   await expect(page.getByRole('button', {name: TURN_ON})).toHaveCount(0);
   await expect(card(page)).toHaveCount(0);
@@ -46,7 +47,7 @@ test('no offer before sign-in, and none where accounts are not configured (today
 });
 
 test('after sign-in the offer explains sync, keeps Health as its own unticked choice, moves no focus and writes nothing', async ({page}) => {
-  await fixtureAccount(page);await page.goto('/app/settings');
+  await fixtureAccount(page);await openSettings(page);
   await expect(page.getByRole('button', {name: 'Send email code', exact: true})).toBeEnabled();
   const before = await localKeys(page);
   await signIn(page);
@@ -73,7 +74,7 @@ test('after sign-in the offer explains sync, keeps Health as its own unticked ch
 });
 
 test('"Turn on" starts the existing vault creation: the secret box appears unconfirmed and focus moves to the next step', async ({page}) => {
-  await fixtureAccount(page);await page.goto('/app/settings');await signIn(page);
+  await fixtureAccount(page);await openSettings(page);await signIn(page);
   await card(page).getByRole('button', {name: TURN_ON, exact: true}).click();
   await expect(page.getByLabel('New vault recovery secret', {exact: true})).not.toHaveValue('');
   await expect(page.getByLabel('I saved this vault recovery secret separately.')).not.toBeChecked();
@@ -88,7 +89,7 @@ test('"Turn on" starts the existing vault creation: the secret box appears uncon
 });
 
 test('"Not now" leaves one calm reminder that survives a reload, with an exact device flag', async ({page}) => {
-  await fixtureAccount(page);await page.goto('/app/settings');await signIn(page);
+  await fixtureAccount(page);await openSettings(page);await signIn(page);
   await card(page).getByRole('button', {name: 'Not now', exact: true}).click();
   const reminder = page.getByRole('region', {name: 'Encrypted sync is off for this account on this device.', exact: true});
   await expect(reminder).toBeVisible();
@@ -104,7 +105,7 @@ test('"Not now" leaves one calm reminder that survives a reload, with an exact d
 
 test('on a device new to an existing vault, "Turn on" moves to the recovery secret field; a returning device sees no offer', async ({page}) => {
   const {manifest} = await createVault();
-  await fixtureAccount(page, manifest);await page.goto('/app/settings');await signIn(page);
+  await fixtureAccount(page, manifest);await openSettings(page);await signIn(page);
   const offer = card(page, DEVICE);
   await expect(offer).toContainText('Your account already has encrypted sync.');
   await expect(offer).toContainText('Your password manager can fill in the recovery secret.');
@@ -119,7 +120,7 @@ test('on a device new to an existing vault, "Turn on" moves to the recovery secr
 });
 
 test('the offer works by keyboard alone', async ({page}) => {
-  await fixtureAccount(page);await page.goto('/app/settings');await signIn(page);
+  await fixtureAccount(page);await openSettings(page);await signIn(page);
   const offer = card(page), health = offer.getByRole('checkbox', {name: HEALTH, exact: true});
   await health.focus();await page.keyboard.press('Space');await expect(health).toBeChecked();await page.keyboard.press('Space');await expect(health).not.toBeChecked();
   await page.keyboard.press('Tab');await expect(offer.getByRole('button', {name: TURN_ON, exact: true})).toBeFocused();
@@ -131,7 +132,7 @@ test('the offer works by keyboard alone', async ({page}) => {
 
 test('one fade on arrival, and none under reduced motion or Motion Off', async ({page}) => {
   const animation = () => card(page).evaluate(el => getComputedStyle(el).animationName);
-  await fixtureAccount(page);await page.goto('/app/settings');await signIn(page);
+  await fixtureAccount(page);await openSettings(page);await signIn(page);
   expect(await animation()).toBe('sync-offer-in');
   expect(await card(page).evaluate(el => getComputedStyle(el).animationIterationCount)).toBe('1');
   await page.emulateMedia({reducedMotion: 'reduce'});
@@ -146,7 +147,7 @@ test('one fade on arrival, and none under reduced motion or Motion Off', async (
 
 for (const width of [320, 390]) test(`the offer fits a ${width} px phone with full-width 44 px choices`, async ({page}) => {
   await page.setViewportSize({width, height: 844});
-  await fixtureAccount(page);await page.goto('/app/settings');await signIn(page);
+  await fixtureAccount(page);await openSettings(page);await signIn(page);
   const offer = card(page);await expect(offer).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   for (const name of [TURN_ON, 'Not now']) {

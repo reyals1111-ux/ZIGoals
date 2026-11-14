@@ -1,10 +1,12 @@
 import {expect,test,type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
+import {afterGoto} from './settings-open';
 
 // Session E, Part 3: every page laid out for a phone. Sizes are set explicitly so both projects run these checks.
 const PAGES=['/app','/app/goals','/app/goals/new','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
-async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
-async function open(page:Page,path:string){await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy','true');}
+async function showcase(page:Page){await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
+async function open(page:Page,path:string){await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy','true');}
 
 for(const [width,height] of [[390,844],[360,800],[320,568]] as const)
  test(`${width}x${height}: no page scrolls sideways and every title starts on the first screen, above the tab bar`,async({page})=>{
@@ -61,10 +63,12 @@ test('Settings on a phone: a grouped list under the title goes to every section;
  // Session AK X1 (RELEASE_REVIEW R4, deliberate): the wallet, network and contract rows became one "Wallet & network
  // (advanced)" row, shown once the chain is chosen (lib/chain-choice.ts); a new device has none of them, so 23.
  // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant", with a row for NOVA's settings: 24.
- const rows=list.getByRole('link');expect(await rows.count()).toBe(24);
+ /* Session AO (owner decision 13 Nov and C-DVG-22, deliberate): Appearance's own row and "My day ends at" (24 → 25; Motion & display became Appearance's row) */const rows=list.getByRole('link');expect(await rows.count()).toBe(25);
  await expect(list.getByRole('link',{name:'Wallet & network (advanced)',exact:true})).toHaveCount(0);
  // Session AL (COPY_AUDIT, deliberate): DV-262/DV-266 — Music, Links and Chess in "Extras"; the Showcase tour last, in "Try it". Still 24 rows.
- expect(await list.getByRole('heading',{level:2}).allTextContents()).toEqual(['Data & privacy','Your app','Your areas','Extras','Account & devices','Your assistant','Help & diagnostics','Try it']);
+ // Session AO (owner decision 13 Nov, deliberate): Appearance is the first group (theme, motion, display; #appearance moved
+ // out of Your app unchanged).
+ expect(await list.getByRole('heading',{level:2}).allTextContents()).toEqual(['Appearance','Data & privacy','Your app','Your areas','Extras','Account & devices','Your assistant','Help & diagnostics','Try it']);
  await expect(list.getByRole('link',{name:'Show the welcome again',exact:true})).toHaveAttribute('href','/app/welcome');
  for(const link of await rows.all()){
   const href=(await link.getAttribute('href'))!;if(href==='/app/welcome')continue;expect(href).toMatch(/^#[a-z-]+$/);

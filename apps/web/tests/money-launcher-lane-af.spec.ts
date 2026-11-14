@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the Earn dock and money launchers.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -16,7 +17,7 @@ test.beforeEach(async ({page}) => {
   await page.emulateMedia({reducedMotion: 'reduce'});
 });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }

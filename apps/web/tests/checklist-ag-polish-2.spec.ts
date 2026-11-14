@@ -141,9 +141,10 @@ test('8 (Session AG Polish 3, owner Part 5 and amendment 1): orbit consistency i
     if (level === 'future') continue;
     expect(title, `${level}: its title begins with its legend words`).toContain({none: 'Nothing', some: 'Some orbits', all: 'All orbits'}[level as 'none' | 'some' | 'all']!);
   }
-  expect(titles.filter(([l]) => l === 'all').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('All orbits — all 4 items done')]));
-  expect(titles.filter(([l]) => l === 'some').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('Some orbits — 2 of 4 items done')]));
-  expect(titles.filter(([l]) => l === 'none').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('Nothing — none of 4 items done')]));
+  // Session AO (D-086, deliberate): "planets", the header's word, in place of "items".
+  expect(titles.filter(([l]) => l === 'all').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('All orbits — all 4 planets done')]));
+  expect(titles.filter(([l]) => l === 'some').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('Some orbits — 2 of 4 planets done')]));
+  expect(titles.filter(([l]) => l === 'none').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('Nothing — none of 4 planets done')]));
   expect(titles.filter(([l]) => l === 'all')).toHaveLength(2);
   await expect(page.locator('.checklist-history .sr-only li').first()).toContainText(/Some orbits|All orbits/);
   const facts = await page.locator('.checklist-history').evaluate(h => {

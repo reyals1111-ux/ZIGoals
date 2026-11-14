@@ -10,7 +10,7 @@
 // (scripts/run11/sync-lost-ack*.test.*); it is not repeated here.
 import {test,expect} from 'vitest';
 import {BROWSER,accountUi,anyCodeProvider,launchChrome,privateWorkers,reviewOrigin,routeAccount} from './harness.mjs';
-import {typeGoalName} from '../goal-name.mjs';
+import {continueToGoalReview,typeGoalName} from '../goal-name.mjs';
 
 /** The head (catalog) record id (apps/web/lib/vault/cloud-sync.ts). */
 const HEAD='00000000-0000-4000-8000-000000000001';
@@ -32,14 +32,14 @@ async function createValueGoal(page,ui,name){
  await ui.go('Goals');await page.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();
  await typeGoalName(page,name);await page.getByRole('radio',{name:'Save an amount',exact:true}).check()/* Session AK (ADR-036, deliberate): R5 9ccb860a names the kinds in plain words until the chain is chosen */;
  await page.getByLabel('Target amount',{exact:true}).fill('1000');
- for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue →',exact:true}).click();
+ /* Session AO (T-014, deliberate): three steps; Continue to the review, checked to be the last step */await continueToGoalReview(page);
  await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();
 }
 /** One 200 USD cash contribution, then its reversal: the steps of packaged-goal-journey.mjs. */
 async function fundAndReverse(page,note){
  await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();/* Session AL (DV-007b, deliberate): the sheet's title reads "Fund your goal" */const dialog=page.getByRole('dialog',{name:'Fund your goal',exact:true});
  await dialog.getByRole('button',{name:'Cash',exact:true}).click();await dialog.getByLabel('Asset name',{exact:true}).fill('Stage 8 rehearsal cash');await dialog.getByLabel('Cash amount',{exact:true}).fill('200');
- await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();await dialog.getByLabel('Note (optional)',{exact:true}).fill(note);
+ /* Session AO (DV-010c, deliberate): new cash previews from its own form; Back opens the details form, where the contribution's note is added */await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByText('REVIEW YOUR CONTRIBUTION',{exact:true}).waitFor();await dialog.getByRole('button',{name:'Back',exact:true}).click();await dialog.getByLabel('Note (optional)',{exact:true}).fill(note);
  await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await dialog.waitFor({state:'hidden'});
  await (await openModule(page,'allocate')).getByText('Allocated to this goal: 200 USD',{exact:true}).waitFor();
  await page.getByRole('button',{name:'Reverse history entry',exact:true}).click();const correction=page.getByRole('dialog',{name:'Review history correction',exact:true});

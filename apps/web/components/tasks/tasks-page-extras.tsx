@@ -3,6 +3,7 @@ import {useState} from 'react';
 import type {salvageTasks} from '../../lib/tasks/device';
 import {MAX_TASKS, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import {formatNumber} from '../../lib/visual-format';
+import {TEXT_LIMITS} from '../../lib/limits/text'; // Session AO (M-011): the one limits table
 
 /**
  * CI14 (page weights; budgets are never raised): the parts of the Tasks page that show only after an action or in a rare
@@ -12,7 +13,7 @@ import {formatNumber} from '../../lib/visual-format';
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
 export function FilterSave({onSave}: {onSave: (name: string) => boolean}) {
   const [name, setName] = useState('');
-  return <form className="tasks-inline-form" noValidate onSubmit={e => { e.preventDefault(); if (name.trim() && onSave(name.trim())) setName(''); }}><label className="field"><span>Save this filter as</span><input value={name} maxLength={60} placeholder="Calls today" onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet" disabled={!name.trim()}>Save filter</button></form>;
+  return <form className="tasks-inline-form" noValidate onSubmit={e => { e.preventDefault(); if (name.trim() && onSave(name.trim())) setName(''); }}><label className="field"><span>Save this filter as</span><input value={name} maxLength={TEXT_LIMITS.taskListName} placeholder="Calls today" onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet" disabled={!name.trim()}>Save filter</button></form>;
 }
 export function BulkBar({count, total, projects, onDone, onLevel, onDue, onMove, onRemove, onClear, onAll}: {count: number; total: number; projects: NonNullable<Tasks['projects']>; onDone: () => void; onLevel: (l: TaskLevel) => void; onDue: (d: 'today' | 'tomorrow') => void; onMove: (p: string | null) => void; onRemove: () => void; onClear: () => void; onAll: () => void}) {
   return <div className="tasks-bulk" role="toolbar" aria-label={`${count} selected`}>

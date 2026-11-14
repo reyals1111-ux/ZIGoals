@@ -2,6 +2,7 @@ import {test, type Page} from '@playwright/test';
 import {desktopOnly, expect, hydrated, offlineApis, seedRecords, stored, strayRequests, ZONE} from './journey-helpers';
 import {buildStoredZip} from '../../lib/export/zip';
 import {APPLE_XML, FITBIT, GARMIN, LOOP, OURA, SAMSUNG} from '../../lib/import/switch/test-fixtures';
+import {openSettings} from '../settings-open';
 
 /**
  * Session AK F2, journey 10: switching to ZIGoals from other apps, one export after another, as a person moving their
@@ -45,7 +46,7 @@ test('@journey 10 Switch to ZIGoals: every importer\'s fixture, one after anothe
   await page.clock.install({time: new Date('2026-10-20T08:00:00Z')});
   await offlineApis(page);
   await seedRecords(page, {}, {settings: 'balanced'});
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
 
   // Health histories: Apple Health, Samsung Health, Oura.
   await healthImport(page, 'export.zip', zip({'apple_health_export/export.xml': APPLE_XML}), 'Apple Health');
@@ -108,7 +109,7 @@ test('@journey 10 Switch to ZIGoals: every importer\'s fixture, one after anothe
   await expect.poll(async () => (await stored<{workouts: {name: string}[]}>(page, 'zigoals:workouts:v1'))?.workouts.map(w => w.name).sort()).toEqual(['Fictional push day', 'Fictional run', 'Fictional upper']);
 
   // Settings lists the imports, each with its own Undo.
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await expect(card(page).getByRole('region', {name: 'Your imports'}).getByRole('button', {name: 'Undo this import'}).first()).toBeVisible();
   expect(stray).toEqual([]);
 });

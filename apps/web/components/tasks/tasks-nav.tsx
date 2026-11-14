@@ -3,9 +3,11 @@ import {useState, type DragEvent} from 'react';
 import {labelsInUse, viewTasks, type TaskView} from '../../lib/tasks/engine';
 import {TASK_COLOURS, LEVEL_WORDS, type Project, type TaskColour, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import {formatNumber} from '../../lib/visual-format';
+import {TEXT_LIMITS} from '../../lib/limits/text'; // Session AO (M-011): the one limits table
 
 /**
- * Session AL (Part 8, P-LS-06, LS-045): the views of Tasks — Inbox, Today, Upcoming, everything, overdue, completed;
+ * Session AL (Part 8, P-LS-06, LS-045): the views of Tasks — Inbox, Today, Upcoming, everything, overdue, completed
+ * (Session AP: This evening, Someday and the Priority matrix, each drawn by its own chunk, tasks-when-views.tsx);
  * projects (drop a dragged task on one to move it), labels, priorities and saved filters. A list of buttons on wide
  * screens; on a phone the same buttons wrap above the list. The view is kept in the address (?view=…).
  */
@@ -22,7 +24,7 @@ export function viewKey(view: TaskView, board = false): string {
 export function readView(raw: string | null, record: Tasks): {view: TaskView; board: boolean} | null {
   if (!raw) return null;
   const v = raw.trim();
-  const simple = ['inbox', 'today', 'upcoming', 'all', 'overdue', 'completed'] as const;
+  const simple = ['inbox', 'today', 'upcoming', 'all', 'overdue', 'completed', 'evening', 'someday', 'matrix'] as const;
   if ((simple as readonly string[]).includes(v)) return {view: {kind: v as (typeof simple)[number]}, board: false};
   if (v === 'done') return {view: {kind: 'completed'}, board: false};
   if (v === 'calendar') return {view: {kind: 'upcoming'}, board: false};
@@ -42,6 +44,9 @@ export function viewTitle(view: TaskView, record: Tasks): string {
     case 'all': return 'All open tasks';
     case 'overdue': return 'Overdue';
     case 'completed': return 'Completed';
+    case 'evening': return 'This evening';
+    case 'someday': return 'Someday';
+    case 'matrix': return 'Priority matrix';
     case 'project': return record.projects?.find(p => p.id === view.id)?.name ?? 'Project';
     case 'label': return `@${view.name}`;
     case 'priority': return LEVEL_WORDS[view.level];
@@ -63,6 +68,9 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
       {item({kind: 'upcoming'}, 'Upcoming', count({kind: 'upcoming'}))}
       {item({kind: 'all'}, 'All open', counts.open)}
       {counts.overdue > 0 && item({kind: 'overdue'}, 'Overdue', counts.overdue)}
+      {item({kind: 'evening'}, 'This evening')}
+      {item({kind: 'someday'}, 'Someday')}
+      {item({kind: 'matrix'}, 'Priority matrix')}
       {item({kind: 'completed'}, 'Completed')}
     </ul>
     <h3>Projects</h3>
@@ -70,7 +78,7 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
     {old.length > 0 && <><button type="button" className="text-link" aria-expanded={archived} onClick={() => setArchived(!archived)}>Archived projects ({formatNumber(old.length)})</button>
       {archived && <ul>{old.map(p => item({kind: 'project', id: p.id}, p.name, undefined, undefined, p.colour))}</ul>}</>}
     {adding ? <form className="tasks-nav-add" noValidate onSubmit={e => { e.preventDefault(); if (name.trim() && onAddProject(name, colour)) { setName(''); setAdding(false); } }}>
-      <label className="field"><span>Project name</span><input autoFocus dir="auto" value={name} maxLength={60} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setAdding(false); }} /></label>
+      <label className="field"><span>Project name</span><input autoFocus dir="auto" value={name} maxLength={TEXT_LIMITS.taskListName} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setAdding(false); }} /></label>
       <label className="field"><span>Colour</span><select value={colour} onChange={e => setColour(e.target.value as TaskColour)}>{TASK_COLOURS.map(c => <option key={c} value={c}>{c[0]!.toUpperCase() + c.slice(1)}</option>)}</select></label>
       <span className="tasks-io-actions"><button type="submit" className="secondary" disabled={!name.trim()}>Add project</button><button type="button" className="quiet" onClick={() => setAdding(false)}>Cancel</button></span>
     </form> : <button type="button" className="text-link tasks-nav-new" onClick={() => setAdding(true)}>+ Add a project</button>}

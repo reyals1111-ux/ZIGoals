@@ -1,9 +1,10 @@
 import {expect,test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 test('approved Today hierarchy, copy and rail coexist with saved widgets',async({page,isMobile},info)=>{
  await page.setViewportSize({width:isMobile?390:1440,height:900});
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
- await page.goto('/app/settings');
+ await openSettings(page);
  await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();
  await page.waitForURL('**/app');
  await expect(page.getByRole('heading',{name:"Today's Goals, Habits & Health = Tomorrow's Wealth"})).toBeVisible();

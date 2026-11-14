@@ -38,7 +38,7 @@ export function CalculatorChart({result, start, currency, lines}: {result: Compo
   const contributedArea = `${base} ${lower.join(' ')} ${end}`;
   const growthArea = `${upper.join(' ')} ${[...lower].reverse().join(' ')}`;
   const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => bottom + f * (top - bottom));
-  const step = maxX - minX <= 12 ? (maxX - minX <= 6 ? 1 : 2) : maxX - minX <= 30 ? 5 : 10;
+  const step = maxX - minX <= 12 ? (maxX - minX <= 6 ? 1 : 2) : maxX - minX <= 30 ? 5 : maxX - minX <= 60 ? 10 : 20; // Session AO (TK-036): plans to 100 years keep about six year labels
   const xTicks: number[] = [];
   for (let t = Math.ceil(minX / step) * step; t <= maxX; t += step) xTicks.push(t);
 

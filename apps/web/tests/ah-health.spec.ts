@@ -63,7 +63,7 @@ test('HE7: each wrong custom fasting target says what is wrong, and nothing star
   if (!await timer.isVisible()) await fold.click();
   await timer.getByRole('button', {name: 'Custom', exact: true}).click();
   const target = timer.getByLabel(/^Target hours/), start = timer.getByRole('button', {name: 'Start fast', exact: true});
-  for (const [typed, said] of [['', 'Enter a target in whole hours.'], ['16.5', 'Enter whole hours, like 16.'], ['30', 'Choose a target from 1 to 18 hours.']] as const) {
+  for (const [typed, said] of [['', 'Enter a target in whole hours.'], ['16.5', 'Enter whole hours, like 16.'], ['30', 'Choose a target from 1 to 24 hours.'], ['25', 'Choose a target from 1 to 24 hours.']] as const) { // Session AO (C-MO-36, deliberate): 1–24 h now (was 1–18); 25 is refused as 19 was
     await target.fill(typed); await start.click();
     await expect(timer.getByRole('alert')).toHaveText(said);
   }

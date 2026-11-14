@@ -12,7 +12,7 @@ import {allDoneNoteId, comebackNoteId, comebackSeenRecently, checkInFacts, strea
 import {appliedCheckIn, markAutoCheckInUndone} from "../../lib/habit-health-links/store";
 import {checkInFailureMessage} from "../../lib/storage-error-copy";
 import {formNumberText} from "../../lib/decimal-input";
-import {durationCountText, readDurationText, readHabitNumber} from "../../lib/habit-number";
+import {durationCountText, readHabitValueText} from "../../lib/habit-number";
 import {formatNumber} from "../../lib/visual-format";
 import {unitFor} from "../../lib/plural";
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -106,7 +106,7 @@ export function HabitCompletion({part='both',  habit, store, compact = false }: 
   function settled() { const queue = checkIns.current; queue.saving = false; queue.shown = null; setPending(null); setBusy(false); }
   // Typed values follow Health's decimal-comma rule ("0,5" is 0.5; "1,234" is refused with a reason).
   // Session AL Part 15 (AL-COMPETITOR-GAP-121): a time habit also takes "1:30", "1 h 30 min" or "45 min", read into its unit.
-  function typed() { try { const time = rule.measurement.kind === "duration" ? readDurationText(manual, rule.measurement.unit) : null; return time ?? readHabitNumber(manual, { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setError(plainErrorMessage(e, "Enter a number.")); return null; } }
+  function typed() { try { return readHabitValueText(manual, rule.measurement); /* Session AO (NB-114): one reader, decimal comma or point */ } catch (e) { setError(plainErrorMessage(e, "Enter a number.")); return null; } }
   // Session AL fourth pass (N-085): an exercise habit's value may name its activity (Health's list), kept in the day's note.
   const activityNote = () => withActivityNote(day.note, activity);
   async function saveManual(event: FormEvent) { event.preventDefault(); const value = typed(); if (value !== null) await run(() => withActivity ? store.setValue(habit.id, store.today, value, activityNote()) : store.setValue(habit.id, store.today, value)); }

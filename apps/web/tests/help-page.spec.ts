@@ -1,5 +1,6 @@
 import {LOGO_INTRO_KEY} from '../components/logo-intro-decision';
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // Help (Session L): structure, wording that follows the owner principle, keyboard, motion, phones, and no requests or
 // writes on view.
@@ -199,7 +200,9 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // apply — so it is not held to 44 px here either; every other link, button and question still is. In its place each
   // in-sentence link is checked to be just that: inline, starting on the same line as an opening "(" before it (the "("
   // had been stranded at a line's end), and no line of it taller than its sentence's own line height.
-  const {small, inline, stranded, tall} = await page.locator('.help-page').evaluate(root => {
+  // Session AO (local 2-worker runs read 49 of 72 while the lower answers were still rendering): the links are counted once
+  // the page has settled (the same count, polled), then every check below runs on that settled page.
+  const measure = () => page.locator('.help-page').evaluate(root => {
     const out = {small: [] as string[], inline: 0, stranded: [] as string[], tall: [] as string[]};
     for (const el of root.querySelectorAll<HTMLElement>('a, button, summary')) {
       const box = el.getBoundingClientRect(), name = el.textContent?.trim() ?? '';
@@ -220,6 +223,8 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
     }
     return out;
   });
+  await expect.poll(async () => (await measure()).inline, {timeout: 15_000}).toBe(74);
+  const {small, inline, stranded, tall} = await measure();
   expect(small).toEqual([]);
   // Gate C test audit (equal strength restored): the exemption covers exactly the in-sentence links Help has today, so a
   // standalone link placed after a label cannot slip out of the 44 px rule unnoticed (a new in-sentence link moves this).
@@ -234,7 +239,9 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // Session AL Part 15 (GAP-178, C-DVG-90, deliberate; 2f4f3d9e): the new "Every published version, newest first" section
   // links "What’s new" inside its sentence, and each listed release's "Read more" follows its title and " · " in the same
   // line of text (nine of the ten releases have a Help section): ten more in-sentence links (62 → 72).
-  expect(inline).toBe(72);
+  // Session AP (deliberate): the new answers for the Journal's numbers and the Agenda's hour grid link the Journal and Tasks
+  // inside their sentences (72 → 74).
+  expect(inline).toBe(74);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });
@@ -247,7 +254,7 @@ test('at phone width the top bar names Help and steps back to Settings', async (
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.locator('.phone-title')).toHaveText('Help');
   await expect(page.locator('.phone-topbar').getByRole('link', {name: 'Back to Settings', exact: true})).toHaveCount(0);
-  await page.goto('/app/settings');await page.getByRole('link', {name: 'Help & feedback →', exact: true}).click();
+  await openSettings(page);await page.getByRole('link', {name: 'Help & feedback →', exact: true}).click();
   await expect(page).toHaveURL(/\/app\/help$/);await expect(page.locator('.phone-title')).toHaveText('Help');
   const back = page.locator('.phone-topbar').getByRole('link', {name: 'Back to Settings', exact: true});
   await expect(back).toBeVisible();
@@ -407,7 +414,9 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
   await expect(section).not.toContainText(/preview/i);
   await expect(page.locator('#help-ad-themes')).not.toContainText(/preview/i);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
-  for (const [id, words] of [['ae-scene', 'painted straight onto the starfield'], ['ae-finale', 'It plays once per visit and then rests; with reduced motion or Motion Off it is simply there, still'], ['ae-themes', 'its button now shows a small ZG mark'], ['ae-sidebar', 'a near-black sky with dimmer stars in Dark'], ['ae-header-art', 'Goals a lotus opening in a target'], ['ae-wallets', 'Nothing is signed or sent, and a linked address never becomes the app’s wallet'], ['ae-wallet-card', 'testnet ZIG have no market value'], ['ae-habits', 'Routines, together with Your stacks, is its own block'], ['ae-music', 'It is ZIGi’s twin now']] as const) {
+  // Session AO (DV-203, owner decision 13 Nov, deliberate): ae-sidebar was 'a near-black sky with dimmer stars in Dark'; Dark's
+  // sidebar is flat now, and the answer says so word for word.
+  for (const [id, words] of [['ae-scene', 'painted straight onto the starfield'], ['ae-finale', 'It plays once per visit and then rests; with reduced motion or Motion Off it is simply there, still'], ['ae-themes', 'its button now shows a small ZG mark'], ['ae-sidebar', 'a flat near-black with no stars in Dark'], ['ae-header-art', 'Goals a lotus opening in a target'], ['ae-wallets', 'Nothing is signed or sent, and a linked address never becomes the app’s wallet'], ['ae-wallet-card', 'testnet ZIG have no market value'], ['ae-habits', 'Routines, together with Your stacks, is its own block'], ['ae-music', 'It is ZIGi’s twin now']] as const) {
     await page.goto(`/app/help#help-${id}`);
     await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
     await expect(page.locator(`#help-${id}`), id).toContainText(words);

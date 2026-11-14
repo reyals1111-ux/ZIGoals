@@ -9,7 +9,7 @@ import {hydrated} from '../../ah-helpers';
  */
 export async function freshHealth(page: Page, health?: HealthData) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   const records: Record<string, string> = {'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})};
   if (health) records[HEALTH_STORAGE_KEY] = JSON.stringify(healthSchema.parse(health));
   await page.evaluate(entries => { localStorage.clear(); sessionStorage.clear(); for (const [key, value] of Object.entries(entries)) localStorage.setItem(key, value); }, records);

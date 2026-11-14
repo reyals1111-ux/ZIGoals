@@ -42,6 +42,7 @@ import { HeaderArtCorner, OrbitArt } from "../../../components/header-art/orbit-
 import { SettingsGlyph } from "../../../components/header-art/glyphs/settings";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 import { TimeZoneSettings } from "../../../components/settings/time-zone-settings";
+import { DayEndsSetting } from "../../../components/settings/day-ends-setting";
 import { KeepSettingsJump } from "../../../components/settings/keep-jump";
 import { SettingsRenderAll } from "../../../components/settings/settings-render-all";
 import { WrapUpSettings } from "../../../components/settings/wrap-up-settings";
@@ -64,9 +65,10 @@ const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wa
  * Session AK G2 (RELEASE_REVIEW_2 R2-4): the ZIGi group is "Your assistant", ZIGi's settings and NOVA's together, one name
  * for one engine; its id (#settings-zigi) and every anchor in it (#your-ai and ZIGi's own) stay as they were.
  */
-const SETTINGS_GROUPS: [id: SettingsGroupId, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "Your assistant"], ["settings-help", "Help & diagnostics"]];
+const SETTINGS_GROUPS: [id: SettingsGroupId, title: string][] = [["settings-look", "Appearance"], ["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "Your assistant"], ["settings-help", "Help & diagnostics"]];
 /** Session AB-Design (owner request 36): one small line icon per Settings group, before its title. */
 const GROUP_ICON: Record<string, ReactNode> = {
+  'settings-look': <><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></>,
   'settings-data': <path d="M4 7h16M4 12h16M4 17h10"/>,
   'settings-app': <><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M9 17h6"/></>,
   'settings-areas': <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></>,
@@ -142,6 +144,11 @@ export default function Settings() {
       <SettingsFolds chain={chain}>
       <SettingsSectionsNav/>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
+      {/* Session AO (owner decision 13 Nov): Appearance comes first, so the theme switch is on the first screen at 800 px (the
+          protected sidebar's own switch stays where it is). Its panel and id (#appearance) are unchanged. */}
+      <SettingsGroup id="settings-look" title="Appearance">
+        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">THEME, MOTION &amp; DISPLAY</p><h2>Theme</h2><p className="fine">How ZIGoals looks on this device. Your choice stays here and is never synced.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/>{/* Session AJ (item 32, D5): font, text size, density and glow, on this device only. */}<LazyCustomizeSettings/></section>
+      </SettingsGroup>
       <SettingsGroup id="settings-data" title="Data & privacy">
         <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p>{/* Session AK G2 (RELEASE_REVIEW_2 R2-16, re-opening part of R4): the format sentence was for developers; it went. */}<p className="fine">Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
         {/* Session AA-Cloud Part 6: the Data health page (where each part lives, what this device holds, what ZIGi sees). */}
@@ -238,8 +245,9 @@ export default function Settings() {
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>
         <TimeZoneSettings/>
+        {/* Session AO (C-DVG-22): "My day ends at", beside the time zone. */}
+        <DayEndsSetting/>
         <WrapUpSettings/>
-        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">How ZIGoals looks on this device. Your choice stays here and is never synced.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/>{/* Session AJ (item 32, D5): font, text size, density and glow, on this device only. */}<LazyCustomizeSettings/></section>
         <MusicSettings/>
         <LinksSettings/>
         <ShowcaseSlot at="bottom"/>

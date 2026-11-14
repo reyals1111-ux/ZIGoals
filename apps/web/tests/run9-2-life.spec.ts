@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { closeFormSheet } from './phone-nav';
+import {openSettings} from './settings-open';
 
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', { name: 'Load Showcase Demo', exact: true }).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('complementary', { name: 'Showcase data' })).toBeVisible();

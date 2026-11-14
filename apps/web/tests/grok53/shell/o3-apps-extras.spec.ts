@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
+import {afterGoto} from '../../settings-open';
 
 /**
  * Session AL (owner decision O3, lane L10a): below 901 px nothing floats over the page. ZIGi, the Earn dock, Music and the
@@ -21,7 +22,7 @@ async function showEarnDock(page: Page) {
   await page.evaluate(() => { const marker = JSON.parse(sessionStorage.getItem('zigoals:showcase:active:v1')!); sessionStorage.setItem(`zigoals:showcase:v1:${marker.generation}:zigoals:earn-prefs:v1`, JSON.stringify({version: 1, dockShown: true})); });
 }
 async function ready(page: Page, path: string) {
-  await page.goto(path); await hydrated(page);
+  await page.goto(path); await afterGoto(page, path); await hydrated(page);
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('main').first()).toBeVisible();
   await expect(button(page)).toBeVisible();
@@ -125,7 +126,7 @@ test('the sheet: every switched-on entry, focus kept inside, Escape and focus ba
 
 test('switched-off entries are absent; fresh defaults hide Earn and Music; the Apps switches remove pages (500, fresh profile)', async ({page}) => {
   await page.setViewportSize({width: 500, height: 900});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
   await ready(page, '/app/settings');
   await button(page).click();

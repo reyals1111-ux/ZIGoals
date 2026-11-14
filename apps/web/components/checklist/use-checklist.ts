@@ -19,6 +19,7 @@ import {sealDay, todayOf} from '../../lib/checklist/day';
 import {deriveDots, summarise, type DerivedDot, type DeriveSources} from '../../lib/checklist/derive';
 import type {TickContext, TickPlan, Write} from '../../lib/checklist/adapters';
 import {checklistStreak} from '../../lib/checklist/streak';
+import {useDayGoal} from './use-day-goal';
 import {tickFeedback} from '../../lib/checklist/feedback';
 import {addCustom, addFavourite, newChecklistId, rememberValue, type FavouriteRef} from '../../lib/checklist/store';
 import {checklistSummary, registerChecklistCommands, type TimerKind} from '../../lib/checklist/commands';
@@ -66,7 +67,9 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
   const today = useMemo(() => date ? todayOf(days.data, date) : null, [days.data, date]);
   const dots = useMemo<DerivedDot[]>(() => loaded && date && today ? deriveDots(record.data, today, date, sourcesFor(date)) : [], [loaded, date, today, record.data, sourcesFor]);
   const summary = useMemo(() => today ? summarise(dots, today) : null, [dots, today]);
-  const streak = useMemo(() => date && summary ? checklistStreak(days.data, date, summary) : null, [days.data, date, summary]);
+  // Session AP (owner decision 14 Nov): "A day counts as done at N", each day by its own day's rule.
+  const dayGoal = useDayGoal();
+  const streak = useMemo(() => date && summary ? checklistStreak(days.data, date, summary, dayGoal) : null, [days.data, date, summary, dayGoal]);
 
   // The first read on a new day seals the day the record still holds (P7.15). Never over unreadable bytes.
   const sealing = useRef<string | null>(null);

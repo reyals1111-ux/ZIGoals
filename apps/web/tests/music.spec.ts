@@ -1,5 +1,6 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
 import {isPhone, openMore} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // Session W Part 20: "Your soundtrack". The music button (hidden until shown; the Showcase shows it), the panel in the
 // NOVA look with Focus sounds, Spotify and Apple Music, the mini-bar, Settings → Music and the phone's More row. Spotify
@@ -54,7 +55,7 @@ async function opener(page: Page) {
   return page.getByTestId('apps-extras-button');
 }
 async function showPlayer(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   const card = page.getByRole('region', {name: 'Your soundtrack.'});
   await card.getByRole('button', {name: 'Show the music player'}).click();
   await expect(card.getByRole('status')).toHaveText('The music player shows again.');
@@ -87,7 +88,7 @@ test('hidden until shown (the approved default): Settings → Music shows it; th
   expect(box.x + box.width <= zigi.x || zigi.x + zigi.width <= box.x || box.y + box.height <= zigi.y || zigi.y + zigi.height <= box.y).toBe(true);
   }
   // The switch under Your pages & buttons is the same one, and hides it everywhere again.
-  await page.goto('/app/settings');
+  await openSettings(page);
   // Saved like every page switch (a click, then the stored choice re-renders it), as pages-visibility.spec does.
   const toggle = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Music player'});
   await toggle.click();
@@ -222,7 +223,7 @@ test('the Showcase shows the player and connects nothing: no Spotify request, no
   // Counted from the moment the Showcase is loaded (the Settings visit before it is an ordinary Local Demo page).
   const asked: string[] = []; let showcase = false;
   page.on('request', r => { const url = new URL(r.url()); if (showcase && (/spotify|scdn/.test(url.hostname) || url.pathname === '/api/music-config')) asked.push(r.url()); });
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   showcase = true;
@@ -230,7 +231,7 @@ test('the Showcase shows the player and connects nothing: no Spotify request, no
   await panel(page).getByRole('group', {name: 'Play from'}).getByRole('button', {name: 'Spotify'}).click();
   await expect(panel(page)).toContainText('The Showcase connects nothing.');
   await expect(panel(page).getByRole('button', {name: 'Connect Spotify'})).toHaveCount(0);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.getByRole('region', {name: 'Your soundtrack.'}).locator('.music-settings-state')).toHaveText('The Showcase connects nothing.');
   expect(asked).toEqual([]);
 });

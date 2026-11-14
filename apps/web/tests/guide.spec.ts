@@ -3,6 +3,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {GUIDE_KEY} from '../lib/coach/schema';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
+import {openSettings} from './settings-open';
 
 // The Guide (ADR-011, phase 1): off by default, one labelled note a day on Today, "Not today", the switch, the review's paragraph.
 const LABEL = 'Guide · on this device, no AI service';
@@ -13,7 +14,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 async function seed(page: Page, time: string) {
   await page.clock.install({time});
   const {records} = buildShowcase('2026-09-20');
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [GUIDE_KEY]: ''});
   await page.evaluate(key => localStorage.removeItem(key), GUIDE_KEY);
 }
@@ -35,7 +36,7 @@ test('off by default: no card, no request, and the switch in Settings says so', 
   await page.goto('/app'); await reveal(page);
   await expect(card(page)).toHaveCount(0);
   expect(requests).toEqual([]);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const section = page.getByRole('region', {name: 'Guide on this device.', exact: true});
   await expect(section).toContainText('Reads only what you record here, on this device. Nothing is sent anywhere. Turn it off any time.');
   await expect(toggle(page)).toHaveAttribute('aria-checked', 'false');
@@ -45,7 +46,7 @@ test('off by default: no card, no request, and the switch in Settings says so', 
 
 test('turning it on shows one labelled note; "Not today" hides that note until the next day; "Turn off the Guide" removes it and resets the switch', async ({page}) => {
   await seed(page, MONDAY_EVENING);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await toggle(page).click();
   await expect(toggle(page)).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByRole('status').filter({hasText: 'The Guide is on for this device.'})).toBeVisible();
@@ -81,7 +82,7 @@ test('turning it on shows one labelled note; "Not today" hides that note until t
 
 test('viewing writes nothing; keyboard reaches every control by name', async ({page}) => {
   await seed(page, MONDAY_EVENING);
-  await page.goto('/app/settings'); await toggle(page).click(); await expect(toggle(page)).toHaveAttribute('aria-checked', 'true');
+  await openSettings(page); await toggle(page).click(); await expect(toggle(page)).toHaveAttribute('aria-checked', 'true');
   await page.goto('/app'); await reveal(page);
   await expect(card(page)).toBeVisible();
   const snapshot = async () => page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
@@ -113,7 +114,7 @@ test('the weekly review\'s last step shows the Guide\'s paragraph only while the
   let dialog = await openReview();
   await expect(dialog.getByRole('note', {name: 'Guide', exact: true})).toHaveCount(0);
   await dialog.getByRole('button', {name: /^Close (the review|Your week)$/}).click(); // the desktop modal's button, or the phone sheet's ×
-  await page.goto('/app/settings'); await toggle(page).click(); await expect(toggle(page)).toHaveAttribute('aria-checked', 'true');
+  await openSettings(page); await toggle(page).click(); await expect(toggle(page)).toHaveAttribute('aria-checked', 'true');
   dialog = await openReview();
   const note = dialog.getByRole('note', {name: 'Guide', exact: true});
   await expect(note).toContainText(LABEL);
@@ -123,7 +124,7 @@ test('the weekly review\'s last step shows the Guide\'s paragraph only while the
 
 test('Showcase: the Guide is on in the demo and its card says so; viewing writes nothing', async ({page}) => {
   await page.clock.install({time: MONDAY_EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await reveal(page);

@@ -1,0 +1,38 @@
+/* Session AP (owner decision 14 Nov, backlog #8): the Bento view (components/bento/bento-switch.tsx). Computers only. The
+   switch sits in the page's header cluster before the layout lock (AO's one cluster order); 44 px targets, 15 px words. */
+.bento-switch { display: none; }
+@media (min-width: 901px) {
+  /* 44 px tall like the cluster's other controls (one line, the same top): the outline is drawn inside. */
+  .bento-switch { display: inline-flex; align-items: center; gap: 0; height: 44px; padding: 0; border-radius: 999px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text, #eef1ff) 18%, transparent); background: color-mix(in srgb, var(--panel, #10162e) 70%, transparent); }
+  /* The group's name is for assistive tech; the two words say it on screen (the header keeps one line at 1280). */
+  .bento-switch-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .bento-switch button { min-height: 44px; min-width: 44px; padding: 0 12px; border: 0; border-radius: 999px; background: none; color: var(--text, #eef1ff); font: inherit; font-size: 15px; cursor: pointer; }
+  .bento-switch button[aria-checked="true"] { background: color-mix(in srgb, var(--cyan, #6fd3ff) 22%, transparent); font-weight: 600; }
+  .bento-switch button:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .bento-switch button:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
+
+  /* The cards of the page's main area, as tiles: as many 480 px columns as fit (300 px on Today), the gaps filled in order. */
+  :root[data-bento] [data-bento-grid] {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); grid-auto-flow: row dense; gap: 20px; align-items: start;
+  }
+  /* UX review (Blocker): the page's own header and anything that is not one of its cards keep the whole row, and so does a
+     card that lays its own content out in columns (both marked by the switch); only self-contained cards become tiles. */
+  :root[data-bento] [data-bento-grid] > :not([data-layout-region]),
+  :root[data-bento] [data-layout-region][data-bento-wide] { grid-column: 1 / -1; }
+  :root[data-bento] :is([data-layout-region="today:main"], [data-layout-region="goals:body"], [data-layout-region="habits:body"], [data-layout-region="health:body"], [data-layout-region="wealth:body"]) { min-width: 0; margin-block: 0; }
+  /* Today's cards carry their own spans in the list (built-in and wide cards take the whole row); as tiles each takes one,
+     in narrower columns (Today's main area sits beside its rail). */
+  :root[data-bento=today] .dashboard-layout-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+  :root[data-bento=today] .dashboard-layout-grid > .placed-module[data-layout-region="today:main"] { grid-column: auto; }
+}
+/* Wide windows: the first two tiles are large (two columns each). */
+@media (min-width: 1280px) {
+  :root[data-bento=today] .dashboard-layout-grid > .placed-module[data-layout-region="today:main"]:not([data-bento-wide]):nth-child(-n+2) { grid-column: span 2; }
+}
+/* ADR-040 D24: the switch lives in "Arrange this page", the bar's own dark island in every theme (its words as the bar's). */
+@media (min-width: 901px) {
+  .layout-bar .bento-switch { box-shadow: inset 0 0 0 1px #a9c9ff55; background: #ffffff0d; }
+  .layout-bar .bento-switch-label { position: static; width: auto; height: auto; overflow: visible; clip-path: none; padding: 0 6px 0 14px; color: #e3ecfa; font-size: 15px; }
+  .layout-bar .bento-switch button { color: #e3ecfa; }
+  .layout-bar .bento-switch button[aria-checked="true"] { background: #6fd3ff38; color: #fff; }
+}

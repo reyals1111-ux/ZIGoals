@@ -2,10 +2,11 @@ import {expect,test,type Page} from '@playwright/test';
 import {alphaNotice} from './ab-shell';
 import {isPhone,openFold} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
+import {afterGoto, openSettings} from './settings-open';
 
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
 /** WCAG relative-luminance contrast between a computed rgb() colour and a background hex. */
 function contrast(rgb:string,bg:string){
@@ -19,7 +20,7 @@ test.describe('Part 1: readability foundation',()=>{
  test('page ledes and eyebrows use the shared header system',async({page,isMobile})=>{
   await showcase(page);
   for(const [path,lede] of [['/app','Make room for a brighter tomorrow.'],['/app/goals','Small steps. A bigger future. Every plan starts with you.'],['/app/habits','Make room for what matters. Every small return adds to the pattern.'],['/app/health','Your food, water, movement and progress. Your private journal.']] as const){
-   await page.goto(path);
+   await page.goto(path); await afterGoto(page, path);
    const el=page.locator('main .page-lede').filter({hasText:lede}).first();await expect(el).toBeVisible();
    const style=await el.evaluate(e=>{const s=getComputedStyle(e);return {size:parseFloat(s.fontSize),weight:Number(s.fontWeight),color:s.color};});
    expect(style.size).toBeGreaterThanOrEqual(isMobile?16:18);expect(style.weight).toBeGreaterThanOrEqual(500);
@@ -75,7 +76,7 @@ test.describe('Part 1: readability foundation',()=>{
  });
  test('Habits and Health load without hydration warnings',async({page})=>{
   const warnings:string[]=[];page.on('console',m=>{if(/hydrat/i.test(m.text()))warnings.push(m.text());});
-  await showcase(page);for(const path of ['/app/habits','/app/health']){await page.goto(path);await page.waitForTimeout(1200);}
+  await showcase(page);for(const path of ['/app/habits','/app/health']){await page.goto(path); await afterGoto(page, path);await page.waitForTimeout(1200);}
   expect(warnings).toEqual([]);
  });
 });
@@ -105,7 +106,7 @@ test.describe('Part 18.5: one white→nebula style for titles and topics',()=>{
  test('every page title and page eyebrow reads white on the left and turns nebula from the middle, from one shared utility',async({page})=>{
   await showcase(page);
   for(const path of PAGES){
-   await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();await page.waitForTimeout(1900);
+   await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();await page.waitForTimeout(1900);
    const r=await page.evaluate(()=>{const flow=(el:Element|null)=>{const f=el?.querySelector(':scope > .nebula-flow');if(!f)return null;const s=getComputedStyle(f),p=getComputedStyle(el!);
      // The shared mid-to-right gradient (white to 42%, then the nebula) is on the text; the parent adds nothing of its own.
      return {white:/rgb\(244, 248, 255\) 0%, rgb\(244, 248, 255\) 42%/.test(s.backgroundImage),clip:s.backgroundClip.split(', ').every(c=>c==='text'),parent:p.backgroundImage};};
@@ -132,7 +133,7 @@ test.describe('Part 18.4: one place for the layout lock',()=>{
  test('the lock sits right after the wallet buttons, in the same spot on every page',async({page,isMobile})=>{
   await showcase(page);const spots=new Set<number>();
   for(const path of PAGES){
-   await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();await page.evaluate(()=>scrollTo(0,0));
+   await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();await page.evaluate(()=>scrollTo(0,0));
    await expect(page.getByRole('button',{name:'Unlock layout to rearrange',exact:true})).toBeVisible();
    const w=await where(page);
    // On phones the whole status strip sits below the navigation and banners; on desktop it is in the first view.
@@ -144,7 +145,7 @@ test.describe('Part 18.4: one place for the layout lock',()=>{
   }
   expect(spots.size).toBe(1);
   // Settings and Ecosystem have nothing to rearrange: no lock, and no empty space for one.
-  for(const path of ['/app/settings','/app/ecosystem']){await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();await expect(page.locator('.layout-lock')).toHaveCount(0);}
+  for(const path of ['/app/settings','/app/ecosystem']){await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();await expect(page.locator('.layout-lock')).toHaveCount(0);}
  });
  test('without the mode strip, the lock keeps its place at the right of the same row',async({page,isMobile})=>{
   await page.addInitScript(({key,value})=>{if(!sessionStorage.getItem('fixture-seeded')){localStorage.setItem(key,value);sessionStorage.setItem('fixture-seeded','1');}},{key:DASHBOARD_SETTINGS_KEY,value:JSON.stringify(presetSettings('habits-health'))});
@@ -189,7 +190,7 @@ test.describe('Part 2: personal layouts',()=>{
  test('honesty banners and the page header are never movable',async({page,isMobile})=>{
   await showcase(page);
   for(const path of ['/app','/app/goals','/app/wealth','/app/health']){
-   await page.goto(path);await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+   await page.goto(path); await afterGoto(page, path);await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
    await expect(page.locator('.layout-controls').first()).toBeVisible();
    // Session AC (owner finding 3): the footer's disclaimer spans moved to Settings' facts block (checked below).
    await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip'),path).toHaveCount(0);
@@ -203,7 +204,7 @@ test.describe('Part 2: personal layouts',()=>{
    await page.getByRole('button',{name:path==='/app'?'Finish customizing':'Done',exact:true}).click();
   }
   // Session AC: Settings' facts block (the footer's spans until then) is never inside a movable item either.
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.locator('#privacy')).toContainText('Keep a copy of your progress.'); // Session AD: the footer's "Make a backup in Settings" lands here
   const about=page.locator('.about-alpha');
   for(const selector of ['.network-banner','.mode-strip']){const el=about.locator(selector);await expect(el).toBeVisible();expect(await el.evaluate(e=>!!e.closest('[data-layout-item]')),selector).toBe(false);}
@@ -309,7 +310,11 @@ test.describe('Part 3: liquid glass',()=>{
   test.skip(isMobile,'Hover needs a fine pointer');
   await showcase(page);
   for(const [path,selector] of [['/app/wealth','.composition-legend>*'],['/app/staking','.platform-position-row'],['/app','.habit-today-list>li']] as const){
-   await page.goto(path);const row=page.locator(selector).nth(1);await row.evaluate(e=>e.scrollIntoView({block:'center'}));await expect(row).toBeVisible();
+   await page.goto(path); await afterGoto(page, path);
+   // Session AO (RR-16, owner decision 13 Nov, deliberate): on a computer Wealth's composition folds by default; it is opened
+   // as a person does (its row), then the same row is checked exactly as before.
+   if(path==='/app/wealth'){const fold=page.getByRole('button',{name:/^The shape of your wealth/});await fold.click();await expect(fold).toHaveAttribute('aria-expanded','true');}
+   const row=page.locator(selector).nth(1);await row.evaluate(e=>e.scrollIntoView({block:'center'}));await expect(row).toBeVisible();
    const before=await row.evaluate(e=>{const o=e.getBoundingClientRect();return [...e.querySelectorAll('*')].slice(0,6).map(c=>{const r=c.getBoundingClientRect();return [Math.round((r.left-o.left)*10),Math.round((r.top-o.top)*10),Math.round(r.width*10)];});});
    const r=(await row.boundingBox())!;await page.mouse.move(r.x+r.width*.3,r.y+r.height/2);await page.mouse.move(r.x+r.width*.35,r.y+r.height/2,{steps:3});
    await expect(row,path).toHaveAttribute('data-glass','row');await expect(row,path).toHaveAttribute('data-glass-hover','');
@@ -433,16 +438,19 @@ test.describe('Part 4: Health',()=>{
   const planks=page.getByRole('article',{name:'Planks',exact:true});await expect(planks).toBeVisible();
   await page.getByRole('button',{name:'Increase Planks'}).click();await expect(count(page,'Planks')).toHaveText('1');
   // Session AB-Design (owner request 22): one ⋯ on the card opens "Manage counters"; each row there has its own actions.
-  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('button',{name:'Manage counters…'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('menuitem',{name:'Manage counters…'}).click();
   await page.getByRole('dialog',{name:'Manage counters'}).locator('li').filter({hasText:'Planks'}).getByRole('button',{name:'Rename or change icon'}).click();
   const edit=page.getByRole('dialog',{name:'Edit Planks'});await edit.getByLabel('Counter name').fill('Plank holds');await edit.getByRole('button',{name:'Save counter'}).click();
   await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toBeVisible();
   await page.reload();const renamed=page.getByRole('article',{name:'Plank holds',exact:true});await expect(renamed).toBeVisible();await expect(count(page,'Plank holds')).toHaveText('1');
-  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('button',{name:'Manage counters…'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('menuitem',{name:'Manage counters…'}).click();
   await page.getByRole('dialog',{name:'Manage counters'}).locator('li').filter({hasText:'Plank holds'}).getByRole('button',{name:'Delete counter'}).click();
   const confirm=page.getByRole('dialog',{name:'Delete Plank holds?'});await expect(confirm).toContainText('its daily history');
   await confirm.getByRole('button',{name:'Keep counter'}).click();await expect(renamed).toBeVisible();
-  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('button',{name:'Manage counters…'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('menuitem',{name:'Manage counters…'}).click();
   await page.getByRole('dialog',{name:'Manage counters'}).locator('li').filter({hasText:'Plank holds'}).getByRole('button',{name:'Delete counter'}).click();
   await page.getByRole('dialog',{name:'Delete Plank holds?'}).getByRole('button',{name:'Delete counter'}).click();
   await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toHaveCount(0);
@@ -513,7 +521,7 @@ test.describe('Part 6: the footer banner (Session AB-Design, owner request 2: th
   for(const el of await footer.locator('.site-footer-steps p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);
   for(const el of await footer.locator('.site-footer-steps p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(15);
   // The facts' new place: Settings' facts block, readable (≥ 14 px, as the footer's line was).
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.locator('#privacy')).toContainText('Keep a copy of your progress.'); // Session AD: the footer's "Make a backup in Settings" lands here
   const about=page.locator('.about-alpha');
   await expect(about).toContainText('Contract execution is disabled on this Alpha.');
@@ -538,7 +546,8 @@ test.describe('Part 7: Today widgets',()=>{
   await expect(preview).toContainText('Push-ups');
   await editor.getByRole('button',{name:'Save widget'}).click();await expect(editor).toHaveCount(0);
   const card=page.getByRole('article',{name:'Exercise counters today'});await expect(card).toBeVisible();await expect(card).toContainText('Squats');
-  await card.getByRole('button',{name:'Options for Exercise counters today'}).click();await card.getByRole('button',{name:'Edit widget'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await card.getByRole('button',{name:'Options for Exercise counters today'}).click();await card.getByRole('menuitem',{name:'Edit widget'}).click();
   const edit=page.getByRole('dialog',{name:'Edit widget'});await edit.getByRole('button',{name:'Remove widget'}).click();
   await expect(edit).toHaveCount(0);await expect(page.getByRole('article',{name:'Exercise counters today'})).toHaveCount(0);
  });
@@ -556,7 +565,7 @@ test.describe('Part 8: bottom sections',()=>{
    ['/app/markets','markets:body','markets:sources','no new price appears'],
    ['/app/staking','positions:main','positions:sources','Public ZIG positions'],
   ] as const){
-   await page.goto(path);
+   await page.goto(path); await afterGoto(page, path);
    const items=page.locator(`[data-layout-region="${region}"]`);await expect(items.last()).toHaveAttribute('data-layout-item',id);
    await expect(items.last()).toContainText(text);
    // The allocation card's honesty line stays asserted now that the calculator sits after it (owner request 26).
@@ -565,7 +574,7 @@ test.describe('Part 8: bottom sections',()=>{
    await expect(items.last()).not.toContainText(/projected|forecast to|you should|recommend(?!ation)/i);
    if(path==='/app'){await expect(items.nth(-2)).toHaveAttribute('data-layout-item','today:game');await expect(items.nth(-3)).toHaveAttribute('data-layout-item','today:week');await expect(items.nth(-3)).toContainText('A dash means nothing was recorded that day.');} // owner requests 9 and 11: Your week, the game card (Gamify is on in the Showcase), My links
   }
-  await page.goto('/app/settings');const home=page.getByRole('region',{name:'Where your data lives.'});await expect(home).toContainText('Browser storage is not a backup');
+  await openSettings(page);const home=page.getByRole('region',{name:'Where your data lives.'});await expect(home).toContainText('Browser storage is not a backup');
   await expect(home).toContainText('not synced or backed up');expect(await home.getAttribute('data-layout-item')).toBeNull();
  });
 });

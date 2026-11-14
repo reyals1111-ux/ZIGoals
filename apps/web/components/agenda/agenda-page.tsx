@@ -39,6 +39,8 @@ const useAgendaDays = chunk(() => import('./agenda-days'));
 const AgendaExport = lazy(() => import('./agenda-export'));
 // Session AK (T2): the .ics reader and its preview, loaded the first time the person imports a calendar.
 const CalendarImport = lazy(() => import('./calendar-import'));
+// Session AP (time-blocking): the day by the hour, loaded the first time the person opens it.
+const AgendaHourGrid = lazy(() => import('./agenda-hour-grid'));
 const VIEW_LABEL: Record<AgendaView, string> = {day: 'Day', week: 'Week', month: 'Month'};
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
 const TEACH: Record<AgendaSource, [string, string]> = {
@@ -54,7 +56,7 @@ export function AgendaPage() {
   // Session AK (T1): tasks are the one kind the Agenda ticks (with Undo), and the day view adds them.
   const list = useTaskList(), goals = useGoalOptions();
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
-  const [importing, setImporting] = useState(false), importButton = useRef<HTMLButtonElement>(null);
+  const [hours, setHours] = useState(false), [importing, setImporting] = useState(false), importButton = useRef<HTMLButtonElement>(null);
   const [chosen, setChosen] = useState<AgendaView | null>(null), [anchor, setAnchor] = useState<string | null>(null), [exporting, setExporting] = useState(false), [note, setNote] = useState('');
   const view: AgendaView = chosen ?? (record.loaded && !record.unreadable ? record.data.view : undefined) ?? 'week';
   const at = anchor ?? today, hidden = useMemo(() => record.unreadable ? [] : record.data.hidden ?? [], [record.unreadable, record.data.hidden]);
@@ -134,7 +136,8 @@ export function AgendaPage() {
             {EXTRA_SOURCES.map(s => <label key={s} className="agenda-check" data-pillar={s}><input type="checkbox" checked={!hiddenExtra.includes(s)} onChange={e => toggleExtra(s, e.target.checked)} /><span>{EXTRA_LABEL[s]}</span><small>{extraCounts[s] ? formatNumber(extraCounts[s]) : knownExtra.has(s) ? '0' : 'none yet'}</small></label>)}
           </fieldset>
         </details>
-        {view === 'day' && <rows.DayList day={days[0]!} heading={false} {...rowProps} />}
+        {view === 'day' && <p className="agenda-hours-toggle"><button type="button" className="secondary" aria-pressed={hours} onPointerEnter={() => void import('./agenda-hour-grid').catch(() => undefined)} onClick={() => setHours(h => !h)}>By the hour</button></p>}
+        {view === 'day' && (hours ? <LoadBoundary label="The day by the hour"><Suspense fallback={<p className="fine">Opening the hours…</p>}><AgendaHourGrid day={days[0]!} today={today} onMove={moveTask} onTick={tickTask} /></Suspense></LoadBoundary> : <rows.DayList day={days[0]!} heading={false} {...rowProps} />)}
         {view === 'day' && days[0]!.date >= today && !list.tasks.unreadable && <rows.TaskAddForm compact onAdd={list.add} goals={[]} today={today} fixedDue={days[0]!.date} label={`Add a task for ${formatDate(days[0]!.date, {weekday: true, year: false})}`} submit="Add task" />}
         {view === 'week' && <ol className="agenda-week">{days.map(d => <li key={d.date}><rows.DayList day={d} heading {...rowProps} /></li>)}</ol>}
         {view === 'month' && <rows.MonthGrid days={days} first={range.first} last={range.last} selected={at} onSelect={setAnchor} {...rowProps} />}

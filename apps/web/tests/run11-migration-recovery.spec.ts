@@ -2,6 +2,7 @@ import {test,expect,type Page} from '@playwright/test';
 import {platformSchema,privateGoalSchema} from '../lib/positions';
 import {habitDataSchema} from '../lib/habits';
 import {createEmptyHealth,healthSchema} from '../lib/health';
+import {openSettings, openAllSettingsGroups } from './settings-open';
 const at='2026-09-23T12:00:00.000Z';
 const fixtures={
  finance:{schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[privateGoalSchema.parse({id:'77',name:'Legacy migration reserve',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'200000',notes:'Fictional preserved plan',createdAt:at,milestones:[]})],allocations:[],snapshots:[]},
@@ -22,8 +23,8 @@ async function state(page:Page,key:string){return page.evaluate(async key=>{
 for(const domain of ['finance','habits','health'] as const)for(const boundary of ['transaction-abort','pointer-publication'] as const)test(`${domain} v1 migration recovers ${boundary} from an already-open second tab`,async({page,context})=>{
  await context.route('**/api/**',r=>r.fulfill({status:503,json:{error:'Offline fictional fixture'}}));
  const key=`zigoals:${domain==='finance'?'platform':domain}:v1`,raw=' '+JSON.stringify(fixtures[domain])+'\n';
- await page.goto('/app/settings');await page.evaluate(({key,raw})=>localStorage.setItem(key,raw),{key,raw});await page.reload();
- const other=await context.newPage();await other.goto('/app/settings');
+ await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */await page.evaluate(({key,raw})=>localStorage.setItem(key,raw),{key,raw});await page.reload(); await openAllSettingsGroups(page);
+ const other=await context.newPage();await openSettings(other);
  for(const tab of [page,other]){await tab.getByText('Transactional local storage',{exact:true}).click();await tab.getByRole('combobox',{name:/^Module/}).selectOption(domain);}
  await page.evaluate(({key,boundary})=>{
   if(boundary==='pointer-publication'){const original=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k===key&&v.includes('zigoals-indexeddb-pointer')){Storage.prototype.setItem=original;throw Error('Fixture pointer publication interrupted');}return original.call(this,k,v);};}

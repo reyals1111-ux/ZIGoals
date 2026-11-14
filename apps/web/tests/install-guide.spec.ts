@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {LOGO_INTRO_KEY} from '../components/logo-intro-decision';
+import {openSettings} from './settings-open';
 
 // Help → "Install ZIGoals on your iPhone" and "Keep my data on this device" (Session L). Detection uses features only:
 // the mobile project emulates an iPhone with Chrome, which has no navigator.standalone, so it must not be told it is in
@@ -57,7 +58,7 @@ test('viewing Help only reads the state: nothing is asked and nothing is written
   await page.addInitScript(key => { try { sessionStorage.setItem(key, 'played'); } catch { /* storage denied */ } }, LOGO_INTRO_KEY);
   await storageStub(page, 'yes');
   const decided = () => expect(page.locator('html')).toHaveAttribute('data-logo-intro', /^(reduced-motion|played|hidden)$/);
-  await page.goto('/app/settings');await decided();const before = await storageSnapshot(page);
+  await openSettings(page);await decided();const before = await storageSnapshot(page);
   await open(page);await decided();
   await expect(keepStatus(page)).toHaveText('Your browser hasn’t promised this yet.');
   expect(await calls(page)).toEqual({persist: 0, persisted: 1});

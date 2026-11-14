@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {draftBlockedBy, leaveAsks, wizardGuardOn} from './wizard-guard';
+import {draftBlockedBy, draftStepOf, leaveAsks, wizardGuardOn} from './wizard-guard';
 
 const draft = {name: 'Berlin draft', type: 'VALUE', target: '1500', date: '', notes: '', milestones: '', category: 'Custom', asset: '', step: 2};
 
@@ -28,5 +28,12 @@ describe('leaving the creator (N-DV-02, D-205)', () => {
     expect(wizardGuardOn({saved: true, restored: false, touched: true, typed: true})).toBe(false);
     expect(wizardGuardOn({saved: false, restored: true, touched: false, typed: true})).toBe(false);
     expect(wizardGuardOn({saved: false, restored: false, touched: true, typed: true})).toBe(true);
+  });
+});
+
+describe('the creator draft step (Session AO, T-014: three steps)', () => {
+  it('opens a four-step draft left on the rhythm or the review on the last step, and step 1 drafts on step 1', () => {
+    expect([1, 2, 3, '2', '3'].map(draftStepOf)).toEqual([1, 2, 2, 2, 2]);
+    expect([0, -1, 1.5, 'x', null, undefined, Number.NaN].map(draftStepOf)).toEqual([null, null, null, null, null, null, null]);
   });
 });

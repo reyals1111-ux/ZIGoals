@@ -31,7 +31,7 @@ export default function RewardsShelf({xpTotal}: {xpTotal: number}) {
     const id = newId();
     if (save(c => claimReward(c, rewardId, xpTotal, {id, at: new Date().toISOString()}), `Enjoy it: ${title}.`)) showUndo({message: `Claimed: ${title}. Enjoy it.`, restore: () => shelf.update(c => undoClaim(c, id)), undone: 'Claim taken back; the points are yours again.'});
   };
-  return <section id="rewards-shelf" className="panel rewards-shelf" aria-labelledby="rewards-shelf-title">
+  return <section className="panel rewards-shelf" aria-labelledby="rewards-shelf-title">
     <p className="eyebrow">Optional · your own treats</p>
     <h2 id="rewards-shelf-title">Rewards shelf</h2>
     <label className="game-setting-row"><input type="checkbox" role="switch" aria-label="Rewards shelf" aria-checked={on} checked={on} disabled={shelf.unreadable} onChange={e => save(c => setShelfOn(c, e.target.checked), e.target.checked ? 'The shelf is on.' : 'The shelf is off; your treats stay saved.')} /><span><strong>Rewards shelf</strong><small>List treats with a point price. Your points are the XP you already earn; claiming a treat marks it enjoyed. No penalties, no negative points.</small></span></label>

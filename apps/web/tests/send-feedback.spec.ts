@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openAllSettingsGroups} from './settings-open';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {ZIGI_KEY} from '../lib/ai/store/keys';
 
@@ -52,7 +53,9 @@ test('Help: details only when ticked, shown in full, the person\'s to edit, and 
   await expect(details).toBeVisible();
   const text = await details.inputValue();
   for (const line of [/^Browser: \S.*$/m, /^System: \S.*$/m, /^Window: \d+ × \d+ px, pixel ratio [\d.]+$/m, /^Motion: follows the device; the device asks for reduced motion: (yes|no)$/m, /^Installed app: no, in a browser tab$/m, /^Time zone: Europe\/Brussels$/m]) expect(text).toMatch(line);
-  expect(text.split('\n')).toHaveLength(6);
+  // Session AP (friends Alpha, deliberate): three more coarse lines (was 6): the build, the theme and the screen, each by its shape.
+  for (const line of [/^App: \S.*$/m, /^Theme: (Nebula|Light|Dark)$/m, /^Screen: \d+ × \d+ px$/m]) expect(text).toMatch(line);
+  expect(text.split('\n')).toHaveLength(9);
   expect(await body(page, section)).toContain(`Device and browser:\n${text}\n\nApp version: `);
   // Edited, the email carries exactly the person's words; unticked, none of them.
   await details.fill('Browser: mine\nTime zone: not saying');
@@ -84,9 +87,10 @@ test('Help: the controls are readable and easy to hit; the checkbox sits beside 
 
 test('Settings → Help & diagnostics: the same email; Motion Off is named when chosen', async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off'));
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   const panel = page.getByRole('group', {name: 'Help & diagnostics', exact: true}).locator('#send-feedback');
   await expect(panel.getByRole('heading', {name: 'Tell us what you think', exact: true})).toBeVisible();
   expect(await body(page, panel)).toMatch(/^What happened:\n\nWhat you expected:\n\nDevice and browser:\n\nApp version: .+\n\n\(Please leave out codes/);
@@ -108,7 +112,9 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Owner decision 6 (ADR-036, deliberate): Earn's first load, accepted with its measurement (was 33), checked by its words.
   // Session AK Part 13 (ADR-036, deliberate): Studio-4's three "to polish later" items (was 34), each checked by its words.
   // Owner decision 7 (ADR-036, deliberate): ZIGi's box on Safari at the moment it opens (was 37), checked by its words.
-  await expect(items).toHaveCount(38);
+  // Session AP (14 Nov, deliberate): six more for this release (was 38), each checked by its words below.
+  await expect(items).toHaveCount(44);
+  for (const words of ['Weather isn’t on.', 'Mood tags, symptoms and run splits stay private like Health:', 'The Bento view and the buttons that step aside are for computers;', 'Someday tasks also show in Inbox and All,', 'The activity orbits are on Health only;', 'Money insights need history:']) await expect(section).toContainText(words);
   await expect(section).toContainText('On Safari, words typed into ZIGi’s box at the very moment it opens might be lost');
   for (const words of ['ZIGi’s hide move, when you dismiss its knock, always leaves to the right', 'In a browser that can’t play animated WebP, ZIGi’s moves use a fallback at 12 frames a second', 'A few of ZIGi’s new moves aren’t used yet: its glances (at the chat box, at you, at something on the page) and its hello without walking in']) await expect(section).toContainText(words);
   await expect(section).toContainText('Earn takes a few seconds to settle on a slower phone: on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds');
@@ -125,7 +131,9 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   ] as const) { await expect(section).toContainText(words); await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href); }
   await expect(section).toContainText('the Finnish Fineli table isn’t in it yet');
   await expect(section).toContainText('It can travel as an optional, encrypted part of your sync once the sync service is updated.');
-  for (const words of ['Price alerts check only while ZIGoals is open', 'A watched Bitcoin wallet shows its confirmed balance', 'Focus Sessions can’t block other apps', 'GPX and TCX imports keep only a summary', 'The food search waits for its service']) await expect(section).toContainText(words);
+  for (const words of ['Price alerts check only while ZIGoals is open', 'A watched Bitcoin wallet shows its confirmed balance', 'Focus Sessions can’t block other apps', 'a run you import gets its pace and kilometre splits', 'The food search waits for its service']) await expect(section).toContainText(words);
+  // Session AP (Part 6, deliberate): GPX/TCX runs now keep pace and splits, so the limit says what is still true (older runs keep their summary).
+  await expect(section).toContainText('runs imported before keep their summary');
   await expect(section).toContainText('ZIGi never stakes, signs or moves money');
   await expect(section).toContainText('Timeline times stay on this device');
   await expect(section).toContainText('Add money opens the providers’ plain sites');

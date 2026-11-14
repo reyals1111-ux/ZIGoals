@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF (L5a, Part 10.11): Wealth's chip row ("What you have": All · Accounts · Debts · Assets · each kind · Needs
@@ -12,7 +13,7 @@ test.describe('Wealth’s chip row', () => {
   for (const width of [1024, 1280, 1440, 1920]) {
     test(`${width} px: one row, "Needs attention" whole, every chip reachable`, async ({page}) => {
       await page.setViewportSize({width, height: 900});
-      await page.goto('/app/settings');
+      await openSettings(page);
       await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
       await page.waitForURL('**/app');
       await page.goto('/app/wealth');

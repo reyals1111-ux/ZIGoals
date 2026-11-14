@@ -3,6 +3,7 @@ import {HEALTH_GOALS_KEY} from '../lib/health-goals/schema';
 import {isPhone} from './phone-nav';
 import {HEALTH_STORAGE_KEY} from '../lib/health';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
+import {openSettings} from './settings-open';
 
 // G3 (Session P): health goals on the Goals page and Today, counted from the Health journal only; kept on this device.
 test.use({timezoneId: 'Europe/Brussels'});
@@ -16,7 +17,7 @@ const HOME = SYNC_WRITES ? HEALTH_STORAGE_KEY : HEALTH_GOALS_KEY;
 const sessionGoals = (page: Page) => page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), HOME);
 
 test('Showcase: the fictional goal is counted from the Showcase journal on Goals and Today, and viewing writes nothing', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const before = await sessionGoals(page);

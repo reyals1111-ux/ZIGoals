@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openAllSettingsGroups} from './settings-open';
 import {encryptBackup} from '../lib/vault/backup';
 import {createEmptyHealth, HEALTH_STORAGE_KEY, healthSchema} from '../lib/health';
 import {emptyPlatform, PLATFORM_KEY, platformSchema} from '../lib/positions';
@@ -44,9 +45,10 @@ for (const [label, domain, key, record] of OLD) {
     // The record is valid for its own version (the fixture is what that version wrote).
     expect(SCHEMAS[domain].safeParse(record).success, `${label} fixture is valid`).toBe(true);
     const {file, recovery} = await encryptBackup({[domain]: JSON.stringify(record)});
-    await page.goto('/app/settings');
+    await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
     await page.evaluate(() => localStorage.clear());
     await page.reload();
+    await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
     await restore(page, file, recovery);
     await page.getByLabel(/^Module to restore/).selectOption(domain);
     await page.getByLabel('Replace the selected module with this validated backup.', {exact: true}).check();
@@ -71,9 +73,10 @@ for (const [label, domain, key] of CURRENT) {
     expect(record.schemaVersion, `${label} is the current version`).toBe(domain === 'health' ? 4 : 3);
     expect(raw).toContain(domain === 'health' ? '"meditation"' : '"links"');
     const {file, recovery} = await encryptBackup({[domain]: raw});
-    await page.goto('/app/settings');
+    await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
     await page.evaluate(() => localStorage.clear());
     await page.reload();
+    await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
     await restore(page, file, recovery);
     await page.getByLabel(/^Module to restore/).selectOption(domain);
     await page.getByLabel('Replace the selected module with this validated backup.', {exact: true}).check();
@@ -85,9 +88,10 @@ for (const [label, domain, key] of CURRENT) {
 
 test('a wrong secret or another file is refused with a plain reason, and nothing changes', async ({page}) => {
   const {file} = await encryptBackup({health: JSON.stringify(healthV1)});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HEALTH_STORAGE_KEY, JSON.stringify(healthV1)]);
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   const before = await page.evaluate(() => JSON.stringify({...localStorage}));
   await restore(page, file, 'not the secret');
   await expect(page.getByRole('alert').first()).toBeVisible();

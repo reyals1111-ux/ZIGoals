@@ -1,6 +1,7 @@
 import {readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {expect, test} from '@playwright/test';
+import {afterGoto} from './settings-open';
 
 // Session X Part 12 (WCAG 2.4.2 Page titled): every page names itself in the browser tab and history, "<page> · ZIGoals
 // Alpha"; client-side navigation changes the title too (Next.js announces the new title to screen readers on navigation).
@@ -16,7 +17,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 test('every page has its own title', async ({page}) => {
   test.setTimeout(90_000);
   for (const [path, title] of PAGES) {
-    await page.goto(path);
+    await page.goto(path); await afterGoto(page, path);
     await expect(page, path).toHaveTitle(`${title} · ZIGoals Alpha`);
   }
   await page.goto('/');
@@ -53,7 +54,7 @@ test('every route under /app carries the " · ZIGoals Alpha" title', async ({pag
   const pageFiles = (readdirSync(join(__dirname, '..', 'app', 'app'), {recursive: true}) as string[]).filter(f => /(^|\/)page\.tsx$/.test(f));
   expect(new Set(EVERY_ROUTE.map(([path]) => path.split('?')[0])).size).toBe(pageFiles.length);
   for (const [path, title] of EVERY_ROUTE) {
-    await page.goto(path);
+    await page.goto(path); await afterGoto(page, path);
     await expect(page, path).toHaveTitle(`${title} · ZIGoals Alpha`);
   }
 });

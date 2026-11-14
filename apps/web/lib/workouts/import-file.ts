@@ -1,5 +1,7 @@
 import {localDate} from '../local-date';
 import {workoutsSchema, type Workout, type Workouts, type WORKOUT_TYPES} from './schema';
+import {computeSplits} from './splits';
+import type {WorkoutSplits} from './splits-schema';
 
 /**
  * Session AJ (item 27, D12): read a GPX or TCX workout file on the device and keep its summary only — start, length,
@@ -7,7 +9,9 @@ import {workoutsSchema, type Workout, type Workouts, type WORKOUT_TYPES} from '.
  * the caller passes the browser's DOMParser (tests pass jsdom's). Every refusal is a plain sentence.
  *
  * Safety: the text is limited before parsing, and any entity declaration is refused before the parser sees it (DOMParser
- * never fetches, but it would expand internal entities).
+ * never fetches, but it would expand internal entities). Session AP (feature 5, owner rule on GPX/TCX imports): a document
+ * type of any kind is refused too, before parsing, so no external DTD or entity is ever named to a parser; nothing here
+ * opens the network, and the point count is bounded.
  */
 export const IMPORT_MAX_CHARS = 5 * 1024 * 1024;
 export const IMPORT_MAX_POINTS = 200_000;
@@ -36,6 +40,11 @@ export type ImportSummary = {
   distanceKm: number | null;
   elevationM: number | null;
   avgHr: number | null;
+  /**
+   * Session AP (feature 5): a run's pace and per-km splits from its track points (GPX and TCX only), kept at import in
+   * zigoals:workout-splits:v1 by workout id; null when the points give none. Never the points themselves.
+   */
+  splits?: WorkoutSplits | null;
 };
 export type XmlParser = {parseFromString(text: string, type: 'application/xml'): Document};
 
@@ -129,7 +138,8 @@ function summarize(source: ImportSource, segments: Point[][], meta: {name: strin
   const avg = meta.avgHr ?? (hrs.length ? hrs.reduce((a, b) => a + b, 0) / hrs.length : null);
   const avgHr = avg === null ? null : Math.round(avg);
   const sport = clean(meta.sport, 40), {label, type} = sportLabel(sport);
-  return {source, importId: importIdFor(start!, seconds!, meters), name: clean(meta.name, 80) || `${label} (imported)`, sport, label, type,
+  const splits = label === 'Run' && (source === 'gpx' || source === 'tcx') ? computeSplits(segments, haversineMeters, source) : undefined;
+  return {...(splits !== undefined ? {splits} : {}), source, importId: importIdFor(start!, seconds!, meters), name: clean(meta.name, 80) || `${label} (imported)`, sport, label, type,
     startedAt: new Date(start!).toISOString(), durationSeconds: Math.round(seconds!),
     distanceKm: meters === null ? null : Math.round(meters) / 1000, elevationM: gain === null ? null : Math.round(gain), avgHr: avgHr !== null && avgHr >= 20 && avgHr <= 250 ? avgHr : null};
 }
@@ -177,6 +187,7 @@ export function readWorkoutFile(text: string, parser: XmlParser): ImportSummary[
   if (typeof text !== 'string' || !text.trim()) refuse('This file is empty. Choose a GPX or TCX file.');
   if (text.length > IMPORT_MAX_CHARS) refuse('This file is larger than 5 MB. Export one workout at a time, then try again.');
   if (/<!ENTITY/i.test(text)) refuse('This file declares its own XML entities. ZIGoals does not open such files, to keep your device safe.');
+  if (/<!DOCTYPE/i.test(text)) refuse('This file declares a document type (DOCTYPE). GPX and TCX files have none, so ZIGoals does not open it, to keep your device safe.');
   let doc: Document;
   try { doc = parser.parseFromString(text, 'application/xml'); } catch { return refuse('This file could not be read as XML. Choose a GPX or TCX file.'); }
   if (doc.getElementsByTagName('parsererror').length || !doc.documentElement) refuse('This file could not be read as XML. Choose a GPX or TCX file.');

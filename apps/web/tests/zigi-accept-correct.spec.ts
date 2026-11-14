@@ -10,6 +10,7 @@ import {REMINDERS_KEY} from '../lib/reminders/schema';
 import {WEEKLY_REVIEW_KEY} from '../lib/weekly-review/schema';
 import {PLATFORM_KEY} from '../lib/positions';
 import {pressZigi} from './zigi-open';
+import {quietPage} from './quiet-page';
 
 /**
  * Session X-Local Part 5a, owner addition 4, "accepted means correct": for every writing kind, a MOCK reply becomes a
@@ -40,7 +41,7 @@ async function server(page: Page, replies: readonly Reply[]) {
 }
 async function seed(page: Page) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   const base = defaultAiSettings();
   const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, includeHealth: true, pageShare: {...base.pageShare, health: true}};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'})});
@@ -48,6 +49,9 @@ async function seed(page: Page) {
   // document it never answers) hit that navigation while the prefetches it cancelled were in flight (CI runs 38875420929,
   // 38902988046, 38915648788).
   await page.waitForLoadState('networkidle');
+  // Session AO (run 1668 attempt 1, ":271 page.goto: WebKit encountered an internal error"): the launcher's idle imports can
+  // start just after networkidle; the next goto waits until none has started for a second (tests/quiet-page.ts).
+  await quietPage(page);
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }

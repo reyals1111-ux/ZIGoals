@@ -1,4 +1,5 @@
 import {test, type Page} from '@playwright/test';
+import {openAllSettingsGroups} from '../settings-open';
 import {desktopOnlyTest, inTheme, JOURNEY_THEMES, themedTitle, expect, hydrated, seedRecords} from './journey-helpers';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue} from '../../lib/habits';
 import {createEmptyHealth, healthSchema, HEALTH_STORAGE_KEY} from '../../lib/health';
@@ -66,9 +67,9 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 6 data safety: Ex
   // The device in use: the offline worker caches pages; notifications are on.
   await page.goto('/app');
   await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistration('/'))?.active?.scriptURL ?? ''), {timeout: 30_000}).toMatch(/\/sw\.js/);
-  await page.reload(); await hydrated(page);
+  await page.reload(); await hydrated(page); await openAllSettingsGroups(page);
   await page.goto('/app/habits'); await hydrated(page);
-  await page.goto('/app/settings#notifications'); await hydrated(page);
+  await page.goto('/app/settings#notifications'); await hydrated(page); await openAllSettingsGroups(page);
   await page.locator('#notifications').getByRole('button', {name: 'Turn on notifications'}).click();
   await expect(page.locator('#notifications').getByRole('status').first()).toHaveText('On for this device.');
   const before = await zigoals(page);
@@ -89,7 +90,7 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 6 data safety: Ex
   const zip = Buffer.concat(chunks);
 
   // Test a backup: every part would restore; nothing on this device changes.
-  await page.goto('/app/settings/data'); await hydrated(page);
+  await page.goto('/app/settings/data'); await hydrated(page); await openAllSettingsGroups(page);
   const snapshotBefore = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([k]) => k.startsWith('zigoals:') && !k.includes('notify')).sort()));
   await page.getByLabel(/^Test a backup: choose a backup file/).setInputFiles({name: 'zigoals-export.zip', mimeType: 'application/zip', buffer: zip});
   await expect(page.locator('.test-backup [role=status]')).toContainText(/^All \d+ parts would restore\./, {timeout: 20_000});
@@ -99,7 +100,7 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 6 data safety: Ex
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([k]) => k.startsWith('zigoals:') && !k.includes('notify')).sort()))).toBe(snapshotBefore);
 
   // Erase everything: typed confirmation; the server's device record, the caches and every database and key go.
-  await page.goto('/app/settings#erase-everything'); await hydrated(page);
+  await page.goto('/app/settings#erase-everything'); await hydrated(page); await openAllSettingsGroups(page);
   const erase = page.locator('#erase-everything');
   await erase.getByRole('button', {name: 'Erase everything…', exact: true}).click();
   await erase.getByLabel('Type ERASE to confirm').fill('ERASE');
@@ -117,7 +118,7 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 6 data safety: Ex
   // A fresh start: the welcome is back; then Restore from the ZIP.
   await page.goto('/app'); await hydrated(page);
   await expect(page.getByRole('region', {name: 'Set up your first goal and habit in about a minute.'})).toBeVisible();
-  await page.goto('/app/settings/data'); await hydrated(page);
+  await page.goto('/app/settings/data'); await hydrated(page); await openAllSettingsGroups(page);
   const restore = page.getByRole('region', {name: 'Restore from a backup'});
   await restore.getByLabel('Export everything ZIP').setInputFiles({name: 'zigoals-export.zip', mimeType: 'application/zip', buffer: zip});
   const preview = restore.getByLabel('What this backup holds');
@@ -143,8 +144,8 @@ test('@journey 6b bug J6-1: after Erase everything no ZIGoals cache is left', as
   await seedRecords(page, records());
   await page.goto('/app');
   await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistration('/'))?.active?.scriptURL ?? ''), {timeout: 30_000}).toMatch(/\/sw\.js/);
-  await page.reload(); await hydrated(page);
-  await page.goto('/app/settings#erase-everything'); await hydrated(page);
+  await page.reload(); await hydrated(page); await openAllSettingsGroups(page);
+  await page.goto('/app/settings#erase-everything'); await hydrated(page); await openAllSettingsGroups(page);
   const erase = page.locator('#erase-everything');
   await erase.getByRole('button', {name: 'Erase everything…', exact: true}).click();
   await erase.getByLabel('Type ERASE to confirm').fill('ERASE');

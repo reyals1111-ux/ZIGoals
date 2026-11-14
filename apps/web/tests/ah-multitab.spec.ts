@@ -1,5 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
-import {typeGoalName} from './goal-name';
+import {continueToGoalReview, typeGoalName} from './goal-name';
 import {HABITS_KEY} from '../lib/habits';
 import {PLATFORM_KEY} from '../lib/positions';
 
@@ -7,7 +7,7 @@ import {PLATFORM_KEY} from '../lib/positions';
 // another tab saved since. Each tab opens its page first; then both save, the older tab last.
 test.beforeEach(async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
 });
 const hydrated = (page: Page) => page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
@@ -17,8 +17,9 @@ async function createGoal(page: Page, name: string) {
   // The name is typed first, right as the wizard opens: the shared Goal-name helper (Session AJ item 11, was inline here).
   await typeGoalName(page, name);
   await page.getByLabel('Target amount', {exact: true}).fill('1200');
-  // Three steps to the review, each Continue once it is there (a one-shot isVisible() skipped a step that was still rendering).
-  for (let i = 0; i < 3; i++) { const next = page.getByRole('button', {name: 'Continue →'}); await expect(next).toBeVisible(); await next.click(); }
+  // Session AO (T-014, deliberate): two steps to the review (the rhythm is part of it), each Continue once it is there (a
+  // one-shot isVisible() skipped a step that was still rendering), and the review is checked to be the last step.
+  await continueToGoalReview(page);
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();
   await expect(page).not.toHaveURL(/\/app\/goals\/new$/);
 }

@@ -31,7 +31,7 @@ async function seedProfile(page: Page, set: 'L2' | 'DV', {habitsShared = true, h
     ...(healthShared ? {[AI_SETTINGS_KEY]: JSON.stringify({...defaultAiSettings(), includeHealth: true, pageShare: {...defaultAiSettings().pageShare, health: true}})} : {}),
   };
   await page.clock.install({time: NIGHT});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, records);
   await page.waitForLoadState('networkidle');
 }

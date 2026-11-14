@@ -16,7 +16,7 @@ test('a mouse click on Send keeps the focus in the message box; Escape then clos
     if (url.endsWith('/v1/chat/completions')) return route.fulfill({status: 200, contentType: 'text/event-stream', body: chunk({role: 'assistant', content: 'You have no habits yet. '}) + chunk({content: 'Tell me one and I will draft it as a card.'}, 'stop') + 'data: [DONE]\n\n'});
     return route.fulfill({status: 404, body: ''});
   });
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem(v.key, v.value); }, {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: 'http://127.0.0.1:1234'})});
   await page.goto('/app/habits');
   await pressZigi(page);

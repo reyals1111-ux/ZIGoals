@@ -4,6 +4,7 @@
 // check going stale unnoticed. Browser-local only: a local simulation goal named by fictional sentinels; no wallet, no
 // signature, nothing written to a server. `expect` is Playwright's, passed in by the caller.
 import {typeGoalName} from '../run11/goal-name.mjs';
+import {openSettingsGroups} from './settings-open.mjs';
 
 export const GOAL_SENTINELS = Object.freeze({
   name: 'M5_FICTIONAL_GOAL_81f3c7',
@@ -32,7 +33,7 @@ async function openLocalSimulation(page) {
  * browser). A build where Earn's switch is locked on (before Session AK X1) is left as it is. Ends back on Today.
  */
 export async function chooseChainInSettings(page, expect) {
-  await page.goto(new URL('/app/settings', page.url()).href);
+  await page.goto(new URL('/app/settings', page.url()).href); await openSettingsGroups(page);
   const earn = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Earn', exact: true});
   await expect(earn).toBeVisible();
   // The switch is usable once this device's choices are read; a build that locks it to Wealth shows it on already.
@@ -61,7 +62,17 @@ export async function createFictionalGoal(page, expect, {name = GOAL_SENTINELS.n
   await page.getByLabel('Target amount').fill(target);
   await page.getByRole('button', {name: 'Continue →', exact: true}).click();
   await page.getByLabel('ZIGoals funding / Local simulation', {exact: true}).check();
-  for (let step = 0; step < 2; step++) await page.getByRole('button', {name: 'Continue →', exact: true}).click();
+  // TIER 3 (release verifier), Session AO (T-014): the owner's live check runs against whatever build is deployed — the
+  // four-step creator (#54 and older: two more Continues) or the three-step one (one more). Continue is pressed while the
+  // creator still offers it (at most three times), so both reach the last step and nothing else changes.
+  const stepText = page.getByText(/^Step \d+ of \d+$/).first();
+  for (let presses = 0; presses < 3; presses++) {
+    const [at, of] = ((await stepText.textContent()) ?? '').match(/\d+/g)?.map(Number) ?? [0, 0];
+    if (!of || at >= of) break;
+    await page.getByRole('button', {name: 'Continue →', exact: true}).click();
+    await expect(page.getByText(`Step ${at + 1} of ${of}`, {exact: true}).first()).toBeVisible();
+  }
+  await expect(page.getByRole('button', {name: 'Continue →', exact: true})).toHaveCount(0);
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();
   await page.getByRole('button', {name: 'Confirm simulation', exact: true}).click();
   await expect(page.getByRole('heading', {name, exact: true})).toBeVisible();

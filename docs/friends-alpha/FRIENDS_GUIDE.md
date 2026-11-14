@@ -3,6 +3,7 @@ For the owner: a one-page welcome to send to friends as it is, or adapt. It matc
 Session L (2026-10-02), updated with Sessions T–W, Session X (2026-10-08: parts 7–9 below) and Session Z-Cloud
 (2026-10-10: parts 3, 8 and 9 below), Session AH (part 8c), Session AJ (2026-10-30: part 8d and the
 last seven lines of part 9 before Session AK's) and Session AK (2026-10-31: part 8e and the last eight lines of part 9),
+and Sessions AO and AP (14 Nov 2026, Session AP: part 8f, and the dated update at the end of part 9),
 and follows the owner
 principle: sync is switched on once, backups are optional, and the one thing to keep safe is the recovery secret.
 Accounts and encrypted sync are only available after Stage 7/8 activation; until then, part 2 "Before accounts open"
@@ -155,6 +156,23 @@ All optional. Help explains each one, and **Take the 1-minute tour** (in the Wha
 - **Switch to ZIGoals:** Daylio, Habitica and YNAB; Strong and Hevy, FIT files and Strava's export in Workouts.
 - **Your data:** Test a backup (nothing changes), a monthly backup reminder, and honest notes on which apps can read what you export.
 
+## 8f. New in this release (Sessions AO and AP)
+
+All optional, all on your device. Help explains each one.
+
+- **Your first five.** After the short setup, Today shows five small steps: Today itself, a goal, a habit, a meal and a money record. Each one ticks itself once you add it. Tap **Not now, hide this** whenever you like.
+- **My day ends at** (Settings → Your app). For night owls: habits, the Checklist and streaks count for the day until the time you choose, from midnight to 6:00.
+- **A day counts as done at N** (Settings → Your app → Checklist). Off means every dot, as before. At 4, a six-dot day counts once four dots are lit ("4 of 6"). It applies from today on; past days keep their rule.
+- **Perfect days** in Habits: the days every habit due was done, month by month, in words.
+- **Net worth by source**, day by day, in Wealth's "Your wealth over time". A day ZIGoals wasn't opened stays a gap; nothing is filled in.
+- **252 templates:** 130 goals and 122 habits, searchable from the goal creator and the habit form.
+- **Settings starts folded** on a computer or tablet: each group shows its heading and one line. The groups you open stay open on this device, and **Open all** opens everything.
+- **Bento view** (computers): **Unlock layout → Layout: List · Bento** on Today, Goals, Habits, Health and Wealth shows the same cards as tiles. Each page remembers your choice on this device.
+- **Buttons that step aside** (computers): when ZIGi, Music, the Checklist or the Earn dock would cover what you're reading, they slide toward the edge, and come back when you move on (they can be pressed where they are).
+- **Send feedback** has **Copy these details**: copy the device details you previewed, to paste into a message or a form. The details now also name the theme and screen size.
+
+<!-- AP: Part 6 features to add -->
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
@@ -172,23 +190,32 @@ All optional. Help explains each one, and **Take the 1-minute tour** (in the Wha
 - **The Bitcoin wallet watch** reads mempool.space only, and shows the confirmed balance.
 - **Focus Sessions can't block other apps.** A web page can't, so time away from the page counts as away.
 - **GPX and TCX imports keep only a summary,** never the route.
-- **The Swiss food search** waits until we switch on its service.
+- **The Swiss food search** goes through ZIGoals' food service; if the service is paused or busy, ZIGoals says so.
 - **Foods from the Swiss database** show their source in the brand line; there is no separate source record yet.
 - **The Inter font** is downloaded, from ZIGoals itself, only when you choose it in Customize.
 - **Notifications on your device are being switched on.** You can set them up now; nothing reaches your phone until they are on.
 - **The Checklist syncs** as an optional, encrypted part of your sync only once our sync service is updated; until then it stays on the device.
-- **Barcode lookups and US foods** wait for the food service too. The food library from the French and British tables works offline; the Finnish Fineli table isn't in it yet.
+- **Barcode lookups and US foods** go through ZIGoals' food service too. If it is paused or busy, ZIGoals says so, and your own food library and the offline library from the French and British tables still work. The Finnish Fineli table isn't in it yet.
 - **Reading a label or estimating a meal from a photo** needs your own AI connected to ZIGi.
 - **Grocery ticks** stay on the device where you tick them.
 - **Phone wallets by WalletConnect** are being switched on, and staking with Keplr Mobile over WalletConnect hasn't been tried on a real phone yet; Keplr in the browser is the tested way.
 - **Garmin** workouts come in only as FIT files you export from Garmin.
 - **Lichess games** found from ZIGoals are rapid or classical only; Lichess doesn't let other apps look for bullet or blitz games.
 
+**Update, 14 Nov 2026 (Session AP):**
+
+- **Weather is off.** There is no weather from ZIGoals' own service yet. <!-- AP: if the deployed build includes PR #101 (NOVA), add: "NOVA's Weather switch, off until you turn it on, asks MET Norway directly; MET sees your network address and the place rounded to about 1 km." -->
+- **Notifications are off until we switch them on**, both kinds: reminders through an account (accounts aren't open yet) and notifications on this device. Until then, due reminders show on Today while ZIGoals is open.
+- **Prices can be missing** for a while. A missing price stays "unknown", never zero.
+- **No AI is connected for you.** ZIGi and NOVA answer from your own records on your device, or use an AI you connect yourself. ZIGoals AI · powered by Claude isn't offered yet.
+- **"A day counts as done at N" starts on the day you change it.** Days already past keep the rule they had.
+- **Safari:** on iPhone and iPad there are still no Home Screen shortcuts (install from Share → Add to Home Screen, part 1). On Safari, words typed into ZIGi's box at the very moment it opens may be lost; type them again.
+
 The full list, kept up to date, is in **Help → Known limitations**.
 
 ## 10. Tell us what you think
 
-**Help → Send feedback** (also in **Settings → Help & diagnostics**) opens an email to **contact@zigoals.app** in your own mail app, with a short template and the app version. If you like, tick **Add details about this device**: you see exactly what would be added (browser, system, window size, motion settings, whether ZIGoals is installed, time zone) and can edit or delete any of it. Nothing is sent until you send the email yourself. Please leave out codes, your recovery secret, and personal money or health details.
+**Help → Send feedback** (also in **Settings → Help & diagnostics**) opens an email to **contact@zigoals.app** in your own mail app, with a short template and the app version. If you like, tick **Add details about this device**: you see exactly what would be added (browser, system, window and screen size, motion settings, whether ZIGoals is installed, time zone and theme) and can edit or delete any of it, or copy it with **Copy these details**. Nothing is sent until you send the email yourself. Please leave out codes, your recovery secret, and personal money or health details.
 
 Found a security problem? Please write privately to **hello@zigoals.app**.
 

@@ -46,6 +46,14 @@ import {FOOD_SCANS} from '../food-scans/schema';
 import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
 import {HEALTH_EXTRAS} from '../health-extras';
 import {PROFILE_NAME} from '../onboarding-setup';
+import {DAY_ENDS_RECORD} from '../day-boundary';
+import {DAY_GOAL_RECORD} from '../checklist/day-goal';
+import {TASK_WHEN} from '../tasks/when';
+import {COUNTDOWNS} from '../countdowns/schema';
+import {MONEY_TAGS_RECORD} from '../money-tags/schema';
+import {MOOD_TAGS} from '../mood-tags/schema';
+import {SYMPTOMS} from '../symptoms/schema';
+import {WORKOUT_SPLITS} from '../workouts/splits-schema';
 import {WATCHLIST_MORE} from '../markets-watchlist-more';
 import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
@@ -67,6 +75,7 @@ import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
 import {NETWORTH_MILESTONES} from '../networth-milestones/milestones';
 import {SAVINGS_CHALLENGES} from '../savings-challenges/challenges';
+import {NETWORTH_HISTORY} from '../networth-history';
 import {DEBT_PLANNER} from '../debt-planner/store';
 import {WRAPPED} from '../wrapped/store';
 import {AGENDA} from '../agenda/store';
@@ -169,6 +178,12 @@ const checklistDaysSlice: PartSlice = {
   replace: (current, backup) => { const {today: _drop, ...rest} = isObject(backup) ? backup : {version: 1, days: {}}; void _drop; return {...rest, ...(isObject(current) && current.today !== undefined ? {today: current.today} : {})}; },
   summarize: v => { const d = Object.keys(daysOf(v)).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort(); return {counts: countOf(d.length === 1 ? 'day recorded' : 'days recorded', Object.keys(daysOf(v)).length), from: d[0] ?? null, through: d.at(-1) ?? null}; },
 };
+const realHistory = (v: unknown): v is Record<string, unknown> => isObject(v) && v.example === undefined;
+const networthSlice: PartSlice = {
+  pick: v => realHistory(v) ? v : {version: 1, days: []},
+  has: v => realHistory(v) && Array.isArray(v.days) && v.days.length > 0,
+  replace: (current, backup) => realHistory(backup) ? backup : current ?? {version: 1, days: []},
+};
 const checklistParts: readonly DevicePart[] = [
   {...dev('checklist', 'Checklist path and favourites', 'Today and Life', CHECKLIST), slice: checklistPathSlice},
   {...dev('checklistHealth', 'Checklist Health quick inputs', 'Health', CHECKLIST, true), name: 'checklist', slice: checklistHealthSlice},
@@ -224,6 +239,17 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('profileName', 'Your name for the greeting', 'Today and Life', PROFILE_NAME),
   // Session AL (C-TK-20): Markets favourites beyond the synced eight.
   dev('watchlistMore', 'More Markets favourites', 'Goals and Wealth', WATCHLIST_MORE),
+  // Session AO (C-DVG-22): "My day ends at" (a restore never re-dates the days it brings back).
+  dev('dayEnds', 'My day ends at', 'Today and Life', DAY_ENDS_RECORD),
+  // Session AP (owner decision 14 Nov): "A day counts as done at N", its dated changes as they were (nothing re-counted).
+  dev('dayGoal', 'A day counts as done at', 'Today and Life', DAY_GOAL_RECORD),
+  // Session AP (Part 6): each its own record; the three health-type ones only with the Health choice (owner addition 1).
+  dev('taskWhen', 'This evening and Someday', 'Today and Life', TASK_WHEN),
+  dev('countdowns', 'Days until', 'Today and Life', COUNTDOWNS),
+  dev('moneyTags', 'Tags on money entries', 'Goals and Wealth', MONEY_TAGS_RECORD),
+  dev('moodTags', 'Mood tags', 'Health', MOOD_TAGS, true),
+  dev('symptoms', 'Symptoms and factors', 'Health', SYMPTOMS, true),
+  dev('workoutSplits', 'Run pace and splits', 'Health', WORKOUT_SPLITS, true),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),
   dev('healthNumbers', 'Your numbers (blood pressure and lab values)', 'Health', HEALTH_NUMBERS, true),
@@ -239,6 +265,10 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AK WA (N7): ZIGi's and NOVA's one memory; its health and diet notes only with the Health choice.
   memoryPart(false), memoryPart(true),
   dev('networthMilestones', 'Net-worth milestones', 'Goals and Wealth', NETWORTH_MILESTONES),
+  // Session AO (backlog #11): net worth by source, one snapshot per day Wealth was opened (Merge adds the backup's other days).
+  // Session AO security delta (Medium): a Showcase example history (`example`) never enters this device's real record, by
+  // Replace or Merge (merged in, it would later be replaced whole by the next real snapshot and take the real days with it).
+  {...dev('networthHistory', 'Net worth by source (recorded days)', 'Goals and Wealth', NETWORTH_HISTORY), slice: networthSlice},
   dev('savingsChallenges', 'Savings challenges', 'Goals and Wealth', SAVINGS_CHALLENGES),
   dev('debtPlanner', 'Debt payoff planner', 'Goals and Wealth', DEBT_PLANNER),
   dev('wrapped', 'ZIGoals Wrapped', 'Today and Life', WRAPPED),

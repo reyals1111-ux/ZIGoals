@@ -3,6 +3,7 @@ import {HABIT_HEALTH_LINKS_KEY} from '../lib/habit-health-links/schema';
 import {isPhone} from './phone-nav';
 import {HEALTH_STORAGE_KEY} from '../lib/health';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
+import {openSettings} from './settings-open';
 
 // H7 (Session P): a habit that ticks itself off from the Health journal; the rule and the markers stay on this device.
 test.use({timezoneId: 'Europe/Brussels'});
@@ -24,7 +25,7 @@ async function addHabit(page: Page, title: string) {
 }
 
 test('Showcase: the Walk card says it was done automatically, and viewing writes nothing', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const before = await sessionLinks(page);

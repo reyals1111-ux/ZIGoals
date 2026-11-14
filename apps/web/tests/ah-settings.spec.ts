@@ -1,11 +1,12 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from './ah-helpers';
+import {openSettings} from './settings-open';
 
 // Session AH Part 12 (SE14): the optional screen lock. Fictional PIN only.
 test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(page); });
 
 test('SE14: off by default; a PIN hides a new tab; a wrong PIN says so; a forgotten PIN removes the lock after a wait, records untouched', async ({page, context}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const card = page.locator('#device-lock');
   await expect(card).toContainText('off unless you turn it on');
   await card.getByLabel('PIN (4 to 8 digits)').fill('2468');

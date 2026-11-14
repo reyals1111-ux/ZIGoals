@@ -102,7 +102,7 @@ export function MoneyImportPanel({onClose}: {onClose: () => void}) {
  * or a preset is used), every row is previewed with possible repeats and rows already in the log unticked, refused rows
  * say why, and nothing is added until the person confirms. Undo removes exactly what this import added.
  */
-/** Session AL Part 15 (GAP-008): a Mint or Monarch export is pre-matched by its own column names (a YNAB register is named
+/** Session AL Part 15 (GAP-008): a Mint, Monarch or (Session AO, C-DVG-51) Copilot export is pre-matched by its own column names (a YNAB register is named
  * and pointed to its own reader); the dates are guessed from the file, the app's own order only when they could be either. */
 function moneySetup(text: string, found: (app: MoneyAppExport | null) => void): CsvSetup {
   const guessed = setupFromText(text, MONEY_OPTIONS), app = detectMoneyAppExport(guessed.parsed.header);
@@ -120,7 +120,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1), [file, setFile] = useState<CsvFile | null>(null), [setup, setSetup] = useState<CsvSetup | null>(null), [pickedCurrency, setCurrency] = useState<string | null>(null), currency = pickedCurrency ?? startCurrency;
   const [picked, setPicked] = useState<ReadonlySet<number> | null>(null), [error, setError] = useState(''), [app, setApp] = useState<MoneyAppExport | null>(null);
   const [done, setDone] = useState<{added: number; refused: RefusedRow[]; ids: ReadonlySet<string>; undone?: boolean} | null>(null);
-  const plan = useMemo(() => setup ? planMoneyRows({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, currency}) : null, [setup, currency]);
+  const plan = useMemo(() => setup ? planMoneyRows({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, currency, positiveIsOut: app?.positiveIsOut}) : null, [setup, currency, app]);
   const logged = useMemo(() => new Set(plan && log.loaded ? plan.transactions.filter(t => alreadyLogged(t, log.data) || loggedWithRules(t, log.data, rules.data.rules)).map(t => t.index) : []), [plan, log.loaded, log.data, rules.data.rules]);
   const included = picked ?? new Set(plan?.transactions.filter(t => !t.duplicate && !logged.has(t.index)).map(t => t.index) ?? []);
   const chosen = plan?.transactions.filter(t => included.has(t.index)) ?? [];

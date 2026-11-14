@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /** Session AA-Cloud Part 2: Goals best-in-class (G1–G8), in the Showcase and on a new device. */
 test.beforeEach(async ({page}) => {
@@ -6,7 +7,7 @@ test.beforeEach(async ({page}) => {
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
 });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
@@ -83,7 +84,7 @@ test('a goal’s pace forecast is labelled an estimate; its plan saves with Undo
 test('a template fills in the goal wizard and offers its habits', async ({page}) => {
   await page.goto('/app/goals/templates');
   await expect(page.getByRole('heading', {name: 'Goal templates', level: 1})).toBeVisible();
-  await expect(page.locator('.template-card')).toHaveCount(53); // Session AH (DE5): + "Keep spending under a cap"; owner follow-up 1 (F5): + 3 savings challenges and 7 more
+  await expect(page.locator('.template-card')).toHaveCount(130); // Session AH (DE5): + "Keep spending under a cap"; owner follow-up 1 (F5): + 3 savings challenges and 7 more; backlog #15 (the template library): + 77 goals (lib/templates/library-goals.ts)
   await page.getByLabel('Search templates').fill('10k');
   await expect(page.locator('.template-card')).toHaveCount(1);
   await page.getByRole('link', {name: 'Use the template: Run a 10K'}).click();

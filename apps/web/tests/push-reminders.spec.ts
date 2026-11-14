@@ -1,6 +1,7 @@
 import {expect, test, type BrowserContext, type Page, type Worker} from '@playwright/test';
 import {PUSH_KEY} from '../lib/push/client';
 import {navLink} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // Push reminders (ADR-010): the Settings panel's states, turn on (one worker at /push-sw.js, no title or count sent),
 // a reminder-time change re-sends the schedule, turn off unsubscribes and unregisters, nothing on view, never in Showcase.
@@ -86,7 +87,7 @@ async function signIn(page: Page) {
 }
 /** Sign in and create the vault (fixture cloud), which unlocks the account's records on this tab. */
 async function signInAndUnlock(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await signIn(page);
   await page.getByRole('button', {name: 'Turn on encrypted sync (recommended)', exact: true}).click();
   await expect(page.getByLabel('New vault recovery secret', {exact: true})).not.toHaveValue('');
@@ -102,7 +103,7 @@ const record = (page: Page) => page.evaluate(key => { const found = Object.entri
 test('without the fixture the panel says the build has no push, offers no button, and the reminder field shows no offer', async ({page}) => {
   await page.route('**/api/private-account*', route => route.fulfill({status: 503, json: {error: 'HOSTED_CONFIGURATION_REQUIRED'}}));
   await fixturePush(page, false);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(state(page)).toHaveText('Not available in this build.');
   await expect(panel(page).getByRole('button')).toHaveCount(0);
   await expect(panel(page)).toContainText('Never a habit’s name, a count, or anything you record.');
@@ -115,14 +116,14 @@ test('signed out: off until an account is signed in; Showcase never offers it; n
   if (onMobile()) await installed(page);
   await fixtureAccount(page);
   const calls = await fixturePush(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(state(page)).toHaveText('Off. Sign in to your account first.');
   await expect(panel(page).getByRole('button', {name: 'Turn on on this device', exact: true})).toHaveCount(0);
   expect(calls).toEqual([]);
   expect(await record(page)).toBeNull();
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(state(page)).toHaveText('Not available in Showcase.');
   expect(calls).toEqual([]);
 });
@@ -183,12 +184,12 @@ test('an iPhone browser tab is told to install first; a locked account is told t
   await fixtureAccount(page);
   await fixturePush(page);
   if (onMobile()) {
-    await page.goto('/app/settings');
+    await openSettings(page);
     await expect(state(page)).toContainText('Add ZIGoals to your Home Screen first.');
     await expect(state(page).getByRole('link', {name: 'How to install →', exact: true})).toHaveAttribute('href', '/app/help#install');
     await expect(panel(page).getByRole('button')).toHaveCount(0);
   } else {
-    await page.goto('/app/settings');
+    await openSettings(page);
     await signIn(page);
     await expect(page.getByRole('button', {name: 'Turn on encrypted sync (recommended)', exact: true})).toBeVisible();
     await expect(state(page)).toHaveText('Unlock your account records first.');

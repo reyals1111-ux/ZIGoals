@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {HEALTH_STORAGE_KEY, type HealthData} from '../lib/health';
 import {IMPORT_UNDO_KEY} from '../lib/import/undo-schema';
 import {isPhone} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // I1 (Session P): meals from a nutrition CSV; blank stays unknown; a food joins the library only with a serving measure.
 const FIXTURE_A = 'Date,Meal,Food,Calories,Protein (g),Carbohydrates (g),Fat (g)\n2026-09-14,Breakfast,Oats,380,13,67,\n2026-09-14,Lunch,Rice bowl,520,18,80,12\n2026-09-15,Snacks,Apple,95,0.5,25,0.3\n';
@@ -78,7 +79,7 @@ test('fixture B: a serving size makes library foods, one per distinct food', asy
 });
 
 test('Showcase: the fictional example import is listed and viewing writes nothing', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const before = await page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), IMPORT_UNDO_KEY);

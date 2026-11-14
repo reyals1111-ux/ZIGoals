@@ -2,7 +2,8 @@ import {expect, test, type Page} from '@playwright/test';
 import {chooseChain} from './chain-choice';
 import {ALPHA_LABEL, ALPHA_LABEL_CHOSEN, alphaNotice} from './ab-shell';
 import {isPhone, mainNav, openMore} from './phone-nav';
-import {typeGoalName} from './goal-name';
+import {continueToGoalReview, typeGoalName} from './goal-name';
+import {afterGoto} from './settings-open';
 
 /**
  * Session AK X1 (RELEASE_REVIEW R2–R5, R8, R14, R22; the owner's non-negotiable "consumer first, chain invisible: crypto
@@ -16,7 +17,7 @@ const CHAIN_WORDS = /\bZIG\b|Keplr|Testnet|Contract|[Ss]imulated|Demo records|St
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 async function ready(page: Page, path: string) {
-  await page.goto(path);
+  await page.goto(path); await afterGoto(page, path);
   await expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '');
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('main h1').first()).toBeVisible();
@@ -121,7 +122,8 @@ test('a new device: a project goal is created through every step, and its page n
   await typeGoalName(page, 'Fictional garden project');
   await page.getByRole('radio', {name: 'Finish a project', exact: true}).check();
   await page.getByLabel('Milestones, one per line').fill('Plan the beds\nPlant');
-  for (let i = 0; i < 3; i++) await page.getByRole('button', {name: 'Continue →', exact: true}).click();
+  // Session AO (T-014, deliberate): three steps; Continue to the review, which is checked to be the last step.
+  await continueToGoalReview(page);
   await expect(page.getByRole('heading', {name: 'Fictional garden project', level: 2})).toBeVisible();
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();
   await expect(page.getByTestId('tracked-progress')).toBeVisible();

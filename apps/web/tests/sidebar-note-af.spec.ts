@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF (L5a, Part 10.7, ADR-028 H31): the sidebar's three theme buttons have no "Saved on this device" line under
@@ -18,7 +19,7 @@ test('the sidebar’s theme bar has no line under it; the fact stays in Settings
   expect(Math.abs(bar.group - bar.wrapBottom)).toBeLessThanOrEqual(0.5); // nothing under the three buttons
   expect(Math.abs(bar.slot - bar.wrap)).toBeLessThanOrEqual(0.5); // the reserved slot is the bar's own height
   // The fact's homes.
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.locator('#appearance')).toContainText('Your choice stays here and is never synced.');
   await page.goto('/app/settings/data');
   await expect(page.locator('main')).toContainText('How pages look on this device');

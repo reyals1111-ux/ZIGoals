@@ -1,0 +1,48 @@
+/* Session AP: Your money over time (Wealth → Spending). Theme tokens, 14 px and larger text, 44 px targets, no motion. */
+.money-insights{display:grid;gap:10px;min-width:0}
+.money-insights h3{font-size:17px;margin:0}
+.money-insights h4{font-size:16px;margin:0}
+.money-insights-views{display:flex;flex-wrap:wrap;gap:8px}
+.money-insights-views button,.money-insights button{min-height:44px;font-size:15px}
+.money-insights-views button[aria-pressed="true"],.money-tags-filter button[aria-pressed="true"]{background:color-mix(in srgb,var(--violet,#8b7cff) 24%,transparent);border-color:var(--violet,#8b7cff)}
+.money-insights-panel{display:grid;gap:14px;min-width:0}
+.money-insights-currency{display:grid;gap:8px;min-width:0}
+.money-insights-rule{font-size:14px;margin:0}
+.money-insights-table{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}
+.money-insights-table caption{text-align:left;font-size:14px;padding-bottom:4px}
+.money-insights-table th,.money-insights-table td{padding:6px;border-bottom:1px solid var(--line,rgba(140,160,220,.25));text-align:right}
+.money-insights-table th:first-child,.money-insights-table td:first-child{text-align:left}
+.money-insights-table td{white-space:nowrap}
+.money-insights-table .money-insights-gap td,.money-insights-table .money-insights-gap th{font-style:italic}
+@media (max-width:520px){.money-insights-table{font-size:14px}.money-insights-table th,.money-insights-table td{padding:6px 4px}.money-insights-table td{white-space:normal}}
+.money-insights-chart{display:block;width:100%;max-width:640px;height:auto}
+.money-insights-chart .bar-in{fill:color-mix(in srgb,var(--cyan,#45d8ef) 70%,var(--panel,#0d1629))}
+.money-insights-chart .bar-out{fill:color-mix(in srgb,var(--pink,#ed79d4) 70%,var(--panel,#0d1629))}
+.money-insights-chart .axis{stroke:color-mix(in srgb,var(--text,#e8eefc) 40%,transparent);stroke-width:1}
+.money-insights-chart .gap-mark{fill:none;stroke:color-mix(in srgb,var(--text,#e8eefc) 45%,transparent);stroke-dasharray:3 3}
+.money-insights-chart text{fill:var(--text,#e8eefc);font-size:14px}
+.money-insights-spark{display:block;width:120px;height:32px;flex:0 0 120px}
+.money-insights-spark polyline{fill:none;stroke:var(--cyan,#6fd3ff);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.money-insights-spark circle{fill:var(--cyan,#6fd3ff)}
+.money-insights-trend{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.money-insights-trend li{display:flex;align-items:center;gap:10px;min-height:44px;border-bottom:1px solid var(--line,rgba(140,160,220,.18))}
+.money-insights-trend li > span:first-child{flex:1;min-width:0;overflow-wrap:anywhere}
+.money-insights-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:14px;margin:0}
+.money-insights-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.money-insights-legend .in{background:color-mix(in srgb,var(--cyan,#45d8ef) 70%,var(--panel,#0d1629))}
+.money-insights-legend .out{background:color-mix(in srgb,var(--pink,#ed79d4) 70%,var(--panel,#0d1629))}
+.money-insights .field select,.money-insights .field input{font-size:16px;min-height:48px}
+.money-tags-filter{display:flex;flex-wrap:wrap;gap:8px}
+.money-tags-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.money-tags-list li{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid var(--line,rgba(140,160,220,.18))}
+.money-tags-list li form{grid-column:1 / -1;display:grid;gap:8px;padding:8px 0}
+.money-tags-list .money-tags-what{min-width:0;overflow-wrap:anywhere}
+.money-tags-chip{display:inline-block;font-size:14px;padding:2px 8px;margin:2px 4px 2px 0;border-radius:999px;border:1px solid var(--line,rgba(140,160,220,.4))}
+.money-tags-actions{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:520px){.money-tags-list li{grid-template-columns:1fr auto}.money-tags-list li > button{grid-column:1 / -1;justify-self:start}}
+/* Session AP (UX review, Minor): by day the "Received" bars (and their legend) measured 1.4:1; a deeper teal keeps 3:1. */
+:root[data-theme=light] .money-insights-chart .bar-in,:root[data-theme=light] .money-insights-legend .in{fill:#0b7f93;background:#0b7f93}
+:root[data-theme=light] .money-insights-spark polyline{stroke:#0b7f93}:root[data-theme=light] .money-insights-spark circle{fill:#0b7f93}
+/* Session AP (CI 1726, pillar-phone-length): on a phone the six views are one row that scrolls sideways (the page stays
+   within its screen count); the last button peeks out at the edge, so the row reads as more. */
+@media (max-width: 600px){.money-insights-views{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;scroll-padding-inline:4px}.money-insights-views button{flex:none}}

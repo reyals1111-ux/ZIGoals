@@ -8,6 +8,7 @@ import {addDays, instantAt} from '../lib/zone-time';
 import {withHealthGroup} from '../lib/vault/w-homes';
 import {W_REMINDERS_KEY} from '../lib/w-device-keys';
 import {isPhone, openTodayWidgets} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // Session W Part 4: Sleep, a view of Health (/app/health?view=sleep). Nights are instants plus the zone they were lived
 // in, so the night through Brussels' clock change on 25 October 2026 lasts nine hours; a missing night is never zero;
@@ -19,7 +20,7 @@ const SAVED = new Date('2026-10-25T09:00:00.000Z');
 
 async function seed(page: Page, {health, settings = {}, extra = {}}: {health?: HealthData; settings?: Record<string, unknown>; extra?: Record<string, string>} = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   const records: Record<string, string> = {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true, ...settings}), ...extra};
   if (health) records[HEALTH_STORAGE_KEY] = JSON.stringify(healthSchema.parse(health));
   await page.evaluate(entries => { for (const [key, value] of Object.entries(entries)) localStorage.setItem(key, value); }, records);
@@ -287,7 +288,7 @@ test('Showcase: fictional nights with a pattern from their own tags, and nothing
   const outside: string[] = [];
   page.on('request', request => { if (!request.url().startsWith(baseURL!) && !request.url().startsWith('data:')) outside.push(request.url()); });
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await openSleep(page);

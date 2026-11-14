@@ -10,7 +10,10 @@ import {pressZigi} from './zigi-open';
  */
 async function blockChunk(page: Page, literal: string) {
   await page.route('**/_next/static/chunks/**', async route => {
-    const response = await route.fetch(); const text = await response.text();
+    // Session AO (CI 1632, CI_INTERMITTENTS "zigi-part-boundary:42"): the test's own fetch of a chunk can meet a socket hang
+    // up under load (WebKit), which left that chunk unanswered; it is fetched once more before the handler decides. The
+    // blocked part is still refused, every other chunk still passed on.
+    const response = await route.fetch().catch(e => /socket hang up|ECONNRESET/i.test(String(e)) ? route.fetch() : Promise.reject(e)); const text = await response.text();
     if (text.includes(literal)) return route.abort('failed');
     const headers = Object.fromEntries(Object.entries(response.headers()).filter(([k]) => !['content-encoding', 'content-length'].includes(k.toLowerCase())));
     await route.fulfill({status: response.status(), headers, body: text});
@@ -21,7 +24,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 test('the Customize panel cannot load: the panel says so, the rest of the ZIGi section and the page keep working', async ({page}) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   await blockChunk(page, 'Edge tab while ZIGi is hidden');
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem(v.key, v.value); }, {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), enabled: true})});
   await page.goto('/app/settings#zigi-look');
   const section = page.locator('section#your-ai');
@@ -50,7 +53,7 @@ test("the chat cannot load: ZIGi's button stays, a note says the chat could not 
   page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame()) navigations.push(Date.now()); });
   page.on('pageerror', e => { const at = Date.now(); if ((/^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) || /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/api\/(?:music-config|push|private-account)(?:\?action=[a-z]+)? due to access control checks\.?$/.test(e.message)) && navigations.some(t => Math.abs(at - t) <= 1500)) prefetchCancels.push(e.message); else errors.push(e.message); });
   await blockChunk(page, 'Message to your AI');
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem(v.key, v.value); }, {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), enabled: true})});
   // Gate B in WebKit (ADR-017 S77): the settings page's own probes (music config, push, the private account's status) were
   // still in flight when the next page was opened, and WebKit reports a fetch cancelled by a navigation as a page error

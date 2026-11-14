@@ -72,7 +72,7 @@ test.describe('2. one amount wording (BUG-012, M-057, NB-189, DV-144, B-024, DV-
     const cash = fund.getByLabel('Cash amount');
     for (const [raw, said] of [['0', 'Enter an amount above 0.'], ['-5', 'Enter an amount above 0.'], ['abc', 'Enter a number, like 1500 or 12.50.'], ['1e3', 'Enter a number, like 1500 or 12.50.']] as const) {
       await cash.fill(raw);
-      await fund.getByRole('button', {name: 'Continue with this asset'}).click();
+      await fund.getByRole('button', {name: 'Preview contribution'}).click(); // Session AO (DV-010c, deliberate): the Cash form's own button
       await expect(fund.getByText(said, {exact: true}), raw).toBeVisible();
       await expect(cash).toHaveAttribute('aria-invalid', 'true');
       await expect(cash).toBeFocused();

@@ -1,6 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {verifiedLink} from '../../../packages/ecosystem-registry/src/verified-links';
-import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {earnRoutes, openEarnFolds, seedShowcase} from './earn-fixtures';
+import {isPhone} from './phone-nav';
 import {chooseChain} from './chain-choice';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn's guide.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
@@ -36,7 +37,9 @@ test('Open Valdora opens the registry URL in a new tab and keeps the step panel 
   await panel.getByRole('button', {name: 'Back', exact: true}).click();
   await expect(panel.getByText('Step 1 of 5')).toBeVisible();
   // The page under the panel still works (not a modal), and Escape closes the panel with focus back on the link.
-  await expect(page.locator('#oroswap')).toBeVisible();
+  // Session AO (N-BN-05, deliberate): on a phone OroSwap is a folded row, so the page under the panel shows that row
+  // (the same visibility check, on what a phone shows there); elsewhere the section itself.
+  await expect(await isPhone(page) ? page.getByRole('button', {name: /^Swap, or earn swap fees in a pool/}) : page.locator('#oroswap')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(panel).toHaveCount(0);
   await expect(open).toBeFocused();
@@ -51,6 +54,8 @@ test('every guide opens its own registry URL', async ({page, context, baseURL}) 
   await seedShowcase(page);
   await earnRoutes(page);
   await page.goto('/app/earn');
+  // Session AO (N-BN-05, deliberate): on a phone the ways to earn below Start here are folded rows; they open first.
+  await openEarnFolds(page);
   for (const [name, url, title] of [
     ['Open Keplr staking', verifiedLink('zig-finance', 'keplr-staking').url, 'Stake ZIG in Keplr'],
     ['Open OroSwap', verifiedLink('oroswap', 'swap').url, 'Swap on OroSwap'],

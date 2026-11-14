@@ -4,6 +4,8 @@ import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 import {ALPHA_ESSENTIALS} from '../components/shell/alpha-notice';
 import {createEmptyHealth,HEALTH_STORAGE_KEY} from '../lib/health';
 import {ACCOUNT_SELECTOR} from '../lib/account-session';
+import {openSettings} from './settings-open';
+import {afterGoto} from './settings-open';
 
 // Part 15: the testnet bar and the mode strip follow the app mode. A private store that is loading, unreadable,
 // corrupt or written by a newer build must never hide them (deploy #12 hid both when Today settings failed to read).
@@ -32,7 +34,7 @@ for(const store of stores)
   test.slow();
   await page.addInitScript(({key,value})=>{if(!sessionStorage.getItem('fixture-seeded')){localStorage.setItem(key,value);sessionStorage.setItem('fixture-seeded','1');}},{key:store.key,value:store.value});
   for(const path of PAGES){
-   await page.goto(path);await expect(page.locator('main h1').first(),path).toBeVisible();
+   await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first(),path).toBeVisible();
    await expectBanners(page,path);
    if(store.unreadableOn.includes(path))await expect(page.getByText(UNREADABLE).first(),path).toBeVisible();
   }
@@ -44,7 +46,7 @@ test('a damaged account selection keeps the honesty banners and says so',async({
  test.slow(); // Session AC: the facts block is reached from each of the 10 pages, twice.
  await page.addInitScript(key=>sessionStorage.setItem(key,'{"version":9}'),ACCOUNT_SELECTOR);
  for(const path of PAGES){
-  await page.goto(path);await expect(page.locator('main h1').first(),path).toBeVisible();
+  await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first(),path).toBeVisible();
   await expectBanners(page,path);
   // Session AC: the storage line left the footer with the facts; it is read in Settings' facts block from every page.
   await inAboutAlpha(page,about=>expect(about.locator('.workspace-status'),path).toContainText('Account selection needs attention'));
@@ -56,7 +58,7 @@ test.describe('while private stores are still loading',()=>{
  test.use({javaScriptEnabled:false});
  test('the honesty banners are already visible on every main page',async({page})=>{
   for(const path of PAGES){
-   await page.goto(path);
+   await page.goto(path); await afterGoto(page, path);
    await expect(page.locator('.workspace'),path).toHaveAttribute('aria-busy','true');
    // Without scripts there is no in-app navigation (the phone's More sheet needs them): the notice here, and the facts
    // block from Settings' own server HTML, the same facts the footer's server line carried until Session AC.
@@ -71,7 +73,7 @@ test.describe('while private stores are still loading',()=>{
   }
   // Without scripts the workspace stays hidden until the stores are read (every page, Settings too), so the block is
   // asserted in Settings' server HTML, word for word; while loading, the visible facts are the notice's (above).
-  await page.goto('/app/settings');
+  await openSettings(page);
   const about=aboutAlpha(page);await expect(about).toHaveCount(1);
   await expect(about.locator('.network-banner strong')).toHaveText(ALPHA_LABEL);await expect(about.locator('.network-banner')).toContainText(ALPHA_SENTENCE);
   await expect(about.locator('.mode-strip')).toContainText('LOCAL SIMULATION');await expect(about).toContainText('Browser storage is not a backup.');

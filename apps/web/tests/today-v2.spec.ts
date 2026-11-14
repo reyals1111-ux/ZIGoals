@@ -4,6 +4,7 @@ import {createEmptyHealth} from '../lib/health';
 import {addWater} from '../lib/health-daily';
 import {presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
+import {openSettings} from './settings-open';
 
 // Session W Part 13: the evening wrap-up (off by default; settings v3 `wrapUp`, the mood in Health v4 `moods`), the
 // next day's intention line, and Today's items leaving with a hidden page. Offline fixture; the clock is fixed.
@@ -44,7 +45,7 @@ async function revealForYou(page: Page) {
 
 test('the wrap-up: turned on in Settings, a calm card after 18:00 with the day in your records, the mood saved in Health, the intention shown the next day', async ({page}) => {
   await seed(page, {[SETTINGS]: onboarded(), [HABITS]: habits(), [HEALTH]: health(), ...quietToday}, '2026-10-01T16:30:00.000Z');
-  await page.goto('/app/settings');
+  await openSettings(page);
   const settings = page.getByRole('region', {name: 'Evening wrap-up', exact: true});
   await expect(settings.getByLabel('Show the evening wrap-up on Today')).not.toBeChecked();
   await settings.getByLabel('Show the evening wrap-up on Today').check();

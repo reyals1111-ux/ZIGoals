@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {AI_SETTINGS_KEY} from '../lib/ai/settings';
-import {earnRoutes} from './earn-fixtures';
+import {earnRoutes, openEarnFolds} from './earn-fixtures';
 import {BASE, MORNING, panel, seed, server} from './zigi-af';
 import {chooseChain} from './chain-choice';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn's guide.
@@ -59,6 +59,8 @@ test('every guide asks about its own way to earn; with the ZIGi launcher hidden 
   await earnRoutes(page);
   await page.goto('/app/earn');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.zigiLauncher ?? '')).toBe('shown');
+  // Session AO (N-BN-05, deliberate): on a phone the ways to earn below Start here are folded rows; they open first.
+  await openEarnFolds(page);
   for (const [name, title, chip] of [
     ['Open Keplr staking', 'Stake ZIG in Keplr', 'Earn figures · Native staking'],
     ['Open OroSwap pools', 'Add liquidity on OroSwap', 'Earn figures · OroSwap'],
@@ -82,6 +84,7 @@ test('every guide asks about its own way to earn; with the ZIGi launcher hidden 
   await page.evaluate(key => { const s = JSON.parse(localStorage.getItem(key)!); localStorage.setItem(key, JSON.stringify({...s, launcherHidden: true})); }, AI_SETTINGS_KEY);
   await page.reload();
   await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
+  await openEarnFolds(page); // Session AO (N-BN-05, deliberate): a phone's rows are folded again after the reload
   const link = page.locator('#valdora').getByRole('link', {name: /^Open Valdora/});
   await link.scrollIntoViewIfNeeded();
   const [tab] = await Promise.all([context.waitForEvent('page'), link.click()]);

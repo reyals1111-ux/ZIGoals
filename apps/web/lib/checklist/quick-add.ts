@@ -1,4 +1,5 @@
 import {visualTone} from '../../components/visual-tone';
+import {TEXT_LIMITS} from '../limits/text';
 
 /**
  * Session AG Polish 2 (ADR-031 K11; owner Part 5 and amendment 3): the Checklist quick add's two rules, pure.
@@ -6,7 +7,7 @@ import {visualTone} from '../../components/visual-tone';
  * - Undo removes the habit only while it is exactly as quick add created it: never edited, never checked in, nothing added.
  */
 /** Session AL (P-LS-15, LS-H14/LS-H29): the habit form's own title limit (100), so quick add and the full form agree. */
-export const QUICK_NAME_MAX = 100;
+export const QUICK_NAME_MAX = TEXT_LIMITS.habitTitle; // Session AO (M-011): read from the one table
 /** A habit id whose card tone is `tone` (0–4), or any id for automatic (null). Bounded: never loops for long. */
 export function habitIdForTone(tone: number | null, make: () => string = () => crypto.randomUUID()): string {
   for (let i = 0; i < 400; i++) { const id = make(); if (tone === null || visualTone(id) === tone) return id; }

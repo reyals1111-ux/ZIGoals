@@ -1,15 +1,19 @@
 'use client';
 import './settings-fold.css';
-import {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode} from 'react';
+import {Suspense, createContext, lazy, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode} from 'react';
+const FoldedShowcase = lazy(() => import('./settings-folded-showcase'));
 import {hashId} from '../../lib/hash-id';
-import {SETTINGS_GROUP_IDS, allFolded, foldSummary, foldsForJump, groupForHash, groupForTarget, loadFolds, saveFolds, type SettingsGroupId} from '../../lib/settings-folds';
+import {SETTINGS_FOLDS_KEY, SETTINGS_GROUP_IDS, foldSummary, foldedAtStart, groupForHash, groupForTarget, loadOpen, openOf, saveOpen, showcaseGroupOpen, type SettingsGroupId} from '../../lib/settings-folds';
+import {PHONE_QUERY} from '../phone/use-phone-layout';
+import {isShowcase} from '../../lib/showcase-storage';
 
 /**
  * Session AL (D-088, N-BN-10, DV-266, D-005, N-BN-05): each of Settings' six groups folds from its heading, and "Fold all"
  * beside the sticky index shortens the page to six headings. Every group is open by default, so nothing a person or a
  * spec reaches moves or hides until someone folds it. A jump (an index link, any #anchor, Search, Help, a deep link)
- * opens the group that holds its target before the browser scrolls there. What is folded lasts for this tab only
- * (sessionStorage, lib/settings-folds.ts). Phones keep their own list (components/phone/phone-settings.tsx).
+ * opens the group that holds its target before the browser scrolls there. Phones keep their own list
+ * (components/phone/phone-settings.tsx). Session AP (D-088 completed): on a computer or a tablet every group starts
+ * folded but the ones this device keeps open and the one a jump lands in (lib/settings-folds.ts, localStorage).
  */
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
@@ -18,7 +22,8 @@ const FoldContext = createContext<Folds | null>(null);
 const NONE: Folds = {folded: new Set(), chain: false, toggle: () => {}, setAll: () => {}, reveal: () => false};
 const useFolds = () => useContext(FoldContext) ?? NONE;
 
-function tabStore(): Storage | null { try { return window.sessionStorage; } catch { return null; } }
+function deviceStore(): Storage | null { try { return window.localStorage; } catch { return null; } }
+const onPhone = () => { try { return window.matchMedia(PHONE_QUERY).matches; } catch { return false; } };
 /** The id of the Settings group around an element, read from the page. */
 const groupOf = (id: string) => document.getElementById(id)?.closest('.settings-page .settings-group')?.id ?? null;
 const bodyId = (id: string) => `${id}-body`;
@@ -27,13 +32,13 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
   const [folded, setFolded] = useState<ReadonlySet<SettingsGroupId>>(() => new Set());
   const saved = useRef(false), reanchor = useRef(false);
 
-  // After hydration (the server and the first paint have every group open): this tab's folds, less the group a jump
-  // lands in. Before paint, so a folded group never flashes open on a computer.
+  // After hydration (the server and the first paint have every group open): on a computer or a tablet, every group folds
+  // but the ones this device keeps open and the one a jump lands in. Before paint, so a folded group never flashes open.
   useIsoLayoutEffect(() => {
-    const stored = loadFolds(tabStore());
+    try { window.sessionStorage.removeItem(SETTINGS_FOLDS_KEY); } catch { /* AL's tab-only key, gone with the tab anyway */ }
+    if (onPhone()) return;
     const target = groupForHash(window.location.hash, groupOf);
-    const next = foldsForJump(stored, target);
-    if (next.length !== stored.length) saveFolds(tabStore(), next);
+    const next = foldedAtStart(loadOpen(deviceStore()), target, showcaseGroupOpen(deviceStore(), isShowcase()) ? ['settings-app'] : []);
     if (!next.length) return;
     reanchor.current = target !== null;
     setFolded(new Set(next));
@@ -46,7 +51,7 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
     (id ? document.getElementById(id) : null)?.scrollIntoView({block: 'start', behavior: 'instant'});
   }, [folded]);
   // Saves each change after the first render (the start above saved what it changed itself).
-  useEffect(() => { if (saved.current) saveFolds(tabStore(), folded); else saved.current = true; }, [folded]);
+  useEffect(() => { if (saved.current) saveOpen(deviceStore(), openOf(folded)); else saved.current = true; }, [folded]);
 
   /** Opens the group that holds `id` when it is folded. The DOM opens now, so the browser's own scroll that follows finds
    *  the target; React's state catches up. True when it was folded. */
@@ -58,29 +63,12 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
     setFolded(prev => { const next = new Set(prev); next.delete(group); return next; });
     return true;
   }, []);
-
+  // Every jump (the address on arrival, a link, the router, back and forward) opens its target's group, also for a target
+  // drawn a moment later (ZIGi's sections load on demand): settings-late-jump.ts, loaded with the page (Settings' weight).
   useEffect(() => {
-    const here = (url: URL) => url.pathname === window.location.pathname && url.hash.length > 1;
-    // Capture: before the link's own scroll (an index link, a Help or Search link to a section, any #anchor here).
-    const onClick = (event: MouseEvent) => {
-      const link = (event.target as Element | null)?.closest?.('a[href*="#"]') as HTMLAnchorElement | null;
-      if (!link) return;
-      const url = new URL(link.href, window.location.href);
-      if (here(url)) reveal(hashId(url.hash));
-    };
-    // The router's own pushes (Search, a Link) where the browser reports navigations; it fires before the scroll.
-    type Nav = {addEventListener: (t: string, f: (e: {destination: {url: string}}) => void) => void; removeEventListener: (t: string, f: (e: {destination: {url: string}}) => void) => void};
-    const nav = (window as Window & {navigation?: Nav}).navigation;
-    const onNavigate = (event: {destination: {url: string}}) => { try { const url = new URL(event.destination.url); if (here(url)) reveal(hashId(url.hash)); } catch { /* not a URL we handle */ } };
-    // Anything else (back and forward, a typed fragment): the browser already tried to scroll, so scroll once it is open.
-    const onHash = () => {
-      const id = hashId(window.location.hash);
-      if (reveal(id)) (id ? document.getElementById(id) : null)?.scrollIntoView({block: 'start'});
-    };
-    document.addEventListener('click', onClick, true);
-    nav?.addEventListener('navigate', onNavigate);
-    window.addEventListener('hashchange', onHash);
-    return () => { document.removeEventListener('click', onClick, true); nav?.removeEventListener('navigate', onNavigate); window.removeEventListener('hashchange', onHash); };
+    let stop: (() => void) | null = null, gone = false;
+    void import('./settings-late-jump').then(m => { if (!gone) stop = m.startJumps(reveal); }, () => undefined);
+    return () => { gone = true; stop?.(); };
   }, [reveal]);
 
   const toggle = useCallback((id: SettingsGroupId) => setFolded(prev => { const next = new Set(prev); if (!next.delete(id)) next.add(id); return next; }), []);
@@ -93,7 +81,8 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
  *  it holds shows while it is folded. The group keeps its id, role and name (tests/settings-groups.spec.ts). */
 export function SettingsFoldGroup({id, title, icon, children}: {id: SettingsGroupId; title: string; icon?: ReactNode; children: ReactNode}) {
   const {folded, chain, toggle, reveal} = useFolds();
-  const isFolded = folded.has(id);
+  const isFolded = folded.has(id), [showcaseOn, setShowcaseOn] = useState(false);
+  useEffect(() => { setShowcaseOn(isShowcase()); }, []);
   const body = useRef<HTMLDivElement>(null);
   // `hidden="until-found"`: find in page and the browser's own fragment jumps still reach a folded group's words and open
   // it (where a browser does not know the value, it is plain `hidden`). Set here, not by React, which only knows true/false.
@@ -116,6 +105,9 @@ export function SettingsFoldGroup({id, title, icon, children}: {id: SettingsGrou
       </button>
     </h2>
     {isFolded && <p className="settings-fold-summary" id={`${id}-summary`}>{foldSummary(id, {chain})}</p>}
+    {/* Session AP (D20): Settings → Load Showcase Demo is a new person's first step (the friends' guide says so), so while the
+        group that holds the Showcase card is folded its summary carries the same button (only one is ever visible). */}
+    {isFolded && id === 'settings-app' && !showcaseOn && <Suspense fallback={null}><FoldedShowcase/></Suspense>}
     <div className="settings-fold-body" id={bodyId(id)} ref={body}>{children}</div>
   </div>;
 }
@@ -123,14 +115,16 @@ export function SettingsFoldGroup({id, title, icon, children}: {id: SettingsGrou
 /** "Fold all" / "Open all", at the end of the sticky index row. */
 export function SettingsFoldAll() {
   const {folded, setAll} = useFolds();
-  const all = allFolded(folded);
+  // Session AP (D-088 completed): "Open all" while any group is folded (Settings now starts folded, sometimes with one group
+  // open), "Fold all" once every group is open.
+  const some = folded.size > 0;
   const onClick = () => {
-    setAll(!all);
+    setAll(!some);
     // Folding from far down the page: show the six headings from the first, not the page's clamped end.
-    if (!all) requestAnimationFrame(() => {
+    if (!some) requestAnimationFrame(() => {
       const first = document.getElementById(SETTINGS_GROUP_IDS[0]);
       if (first && first.getBoundingClientRect().top < 0) first.scrollIntoView({block: 'start'});
     });
   };
-  return <button type="button" className="quiet settings-fold-all" aria-controls={SETTINGS_GROUP_IDS.map(bodyId).join(' ')} onClick={onClick}>{all ? 'Open all' : 'Fold all'}</button>;
+  return <button type="button" className="quiet settings-fold-all" aria-controls={SETTINGS_GROUP_IDS.map(bodyId).join(' ')} onClick={onClick}>{some ? 'Open all' : 'Fold all'}</button>;
 }

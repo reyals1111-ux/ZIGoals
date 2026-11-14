@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {HABITS_KEY} from '../lib/habits';
 import {navLink} from './phone-nav';
+import {openSettings} from './settings-open';
 
 /**
  * Session V Part 16 end to end: browser AI agents (WebMCP). No test browser offers WebMCP without Chrome's testing flag,
@@ -43,7 +44,7 @@ async function fakeModelContext(page: Page) {
 }
 async function seed(page: Page, extra: Record<string, unknown> = {}) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const settings = {...defaultAiSettings(), enabled: true, mode: 'subscription', subscriptionApp: 'chatgpt'};
   const values = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(settings),
     ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]))};

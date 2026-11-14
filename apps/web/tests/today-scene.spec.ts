@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AE (Part 1, the owner's brief, ADR-027): Today's hero is one seamless cosmic scene. The artwork (today's
@@ -117,7 +118,7 @@ test('no hard edge: across every former boundary of the art and of the old conti
 
 test('by day (Light): the scene keeps its own night, a pool with no edge, and the status row above stays in the day', async ({page}, info) => {
   test.skip(info.project.name !== 'desktop', 'computers: the pool fades in over the gutter beside the sidebar');
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => localStorage.setItem('zigoals:ui-prefs:v1', JSON.stringify({version: 1, theme: 'light'})));
   await today(page);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
@@ -162,7 +163,7 @@ const gapAfterHero = async (page: Page) => { await page.evaluate(() => Promise.a
 
 test('folded, the scene is gone and Today\'s focus moves up; the fold is saved; unfolding brings it back', async ({page}) => {
   // A used device (the Showcase): Today's focus follows the hero and moves up when it folds.
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.locator('.today-hero').first()).toBeVisible();

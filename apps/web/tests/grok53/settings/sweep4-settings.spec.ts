@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated} from '../../ah-helpers';
+import {openSettings} from '../../settings-open';
 
 // Session AL sweep 4 (lane SW4): the L6 fourth pass's requests 3 and 4 in the replay's conditions (Lisbon 1280; Denver
 // 388 Light/Dark; Berlin 375 Dark), a fresh profile; Europe/Brussels, en-GB.
@@ -8,7 +9,7 @@ test.use({timezoneId: 'Europe/Brussels', locale: 'en-GB'});
 test('DV-273/NB-029/N-002: "Load Showcase Demo" is a secondary button, not the page\'s main action (1280)', async ({page}) => {
   await page.setViewportSize({width: 1280, height: 900});
   await freshDevice(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const load = page.getByRole('button', {name: 'Load Showcase Demo', exact: true});
   await expect(load).toHaveClass(/\bsecondary\b/);
   await expect(load).not.toHaveClass(/\bprimary\b/);
@@ -59,9 +60,11 @@ test('BN-001: More says where the pages that start off are, and takes you there 
 test('DV-262/DV-266: the phone\'s Settings list ends with "Try it"; Chess sits with Music and Links in "Extras" (388)', async ({page}) => {
   await page.setViewportSize({width: 388, height: 844});
   await freshDevice(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const list = page.getByRole('navigation', {name: 'Settings sections'});
-  await expect(list.getByRole('heading', {level: 2})).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Extras', 'Account & devices', 'Your assistant', 'Help & diagnostics', 'Try it']);
+  // Session AO (owner decision 13 Nov, deliberate): Appearance is the first group (theme, motion, display; #appearance moved
+  // out of Your app unchanged).
+  await expect(list.getByRole('heading', {level: 2})).toHaveText(['Appearance', 'Data & privacy', 'Your app', 'Your areas', 'Extras', 'Account & devices', 'Your assistant', 'Help & diagnostics', 'Try it']);
   const group = (name: string) => list.getByRole('region', {name, exact: true});
   await expect(group('Try it').getByRole('link')).toHaveText([/^Showcase tour\s*Fictional examples, in this tab only/]);
   await expect(group('Data & privacy')).not.toContainText('Showcase');
@@ -77,7 +80,7 @@ test('D-159: on a phone, Help\'s top bar steps back to Settings only when Settin
   const bar = page.locator('.phone-topbar');
   await expect(bar.getByRole('link', {name: 'Back to Settings', exact: true})).toHaveCount(0);
   await expect(bar.getByRole('link', {name: 'ZIGoals home', exact: true})).toBeVisible();
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.getByRole('link', {name: 'Help & feedback →', exact: true}).click();
   await expect(page).toHaveURL(/\/app\/help$/);
   await expect(bar.getByRole('link', {name: 'Back to Settings', exact: true})).toBeVisible();

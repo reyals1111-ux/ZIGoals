@@ -466,6 +466,10 @@
 :where(:root[data-text=large]) .activity-page .unified-activity .activity-history-source:not(#\-) { font-size: calc(14px * 1.125); }
 @media (max-width: 650px) { :root:where([data-text=large]) .unified-activity .activity-event-content strong:not(#\-), :root:where([data-text=large]) .unified-activity .activity-event-content a:not(#\-) { font-size: calc(16px * 1.125); } }
 :where(:root[data-text=large]) .unified-activity .activity-event .activity-remove:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .unified-activity .activity-search-field > span:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .unified-activity .activity-search-field input:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .unified-activity .activity-search-status:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .unified-activity .activity-export:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/activity/activity-report.css  */
 :where(:root[data-text=large]) .activity-report h4:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .activity-report-periods button:not(#\-) { font-size: calc(15px * 1.125); }
@@ -483,6 +487,14 @@
 :where(:root[data-text=large]) .add-money-hint:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .add-money-tile details summary:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .add-money-tile details p:not(#\-) { font-size: calc(15px * 1.125); }
+/*  components/agenda/agenda-hour-grid.css  */
+:where(:root[data-text=large]) .agenda-hours-title:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .agenda-hours-title small:not(#\-), :where(:root[data-text=large]) .agenda-hours-help:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .agenda-hours-waiting h4:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .agenda-hour-clock:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .agenda-hour-text small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .agenda-hour-move:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .agenda-hour-item .agenda-task-move select:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/agenda/agenda.css  */
 :where(:root[data-text=large]) .agenda-links a:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .agenda-range:not(#\-) { font-size: calc(20px * 1.125); }
@@ -501,6 +513,7 @@
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .agenda-range:not(#\-) { font-size: calc(18px * 1.125); } }
 :where(:root[data-text=large]) .agenda-check[data-pillar=task]:not(#\-), :where(:root[data-text=large]) .agenda-check[data-pillar=event]:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .agenda-calendars small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .agenda-load:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/ai/agent-tools.css  */
 :where(:root[data-text=large]) .zigi-agent-calls:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .zigi-agent-details:not(#\-) { font-size: calc(14px * 1.125); }
@@ -682,6 +695,9 @@
 :where(:root[data-text=large]) .ambient-row select:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .ambient-check:not(#\-) { font-size: calc(.9375rem * 1.125); }
 :where(:root[data-text=large]) .ambient-pill:not(#\-) { font-size: calc(.9375rem * 1.125); }
+/*  components/bento/bento.css  */
+@media (min-width: 901px) { :where(:root[data-text=large]) .bento-switch button:not(#\-) { font-size: calc(15px * 1.125); } }
+@media (min-width: 901px) { :where(:root[data-text=large]) .layout-bar .bento-switch-label:not(#\-) { font-size: calc(15px * 1.125); } }
 /*  components/bottom-sections.css  */
 :where(:root[data-text=large]) .bottom-section-heading h2:not(#\-) { font-size: calc(clamp(24px,2.4vw,32px) * 1.125); }
 :where(:root[data-text=large]) .bottom-section .bottom-section-lede:not(#\-) { font-size: calc(17px * 1.125); }
@@ -705,6 +721,8 @@
 :where(:root[data-text=large]) .bottom-counts dd:not(#\-) { font-size: calc(24px * 1.125); }
 :where(:root[data-text=large]) .bottom-sources strong:not(#\-), :where(:root[data-text=large]) .bottom-places strong:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .bottom-sources span:not(#\-), :where(:root[data-text=large]) .bottom-places span:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .bottom-week-day h3:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .bottom-week-day li:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/brand/logo-wordmark.css  */
 :where(:root[data-text=large]) .logo-wordmark-large:not(#\-) { font-size: calc(clamp(56px, 6vw, 86px) * 1.125); }
 :where(:root[data-text=large]) .logo-wordmark-medium:not(#\-) { font-size: calc(clamp(36px, 4vw, 52px) * 1.125); }
@@ -762,6 +780,7 @@
 :root:where([data-text=large]) :is(.sleep-key, .evidence-chart-legend) > :is(li, span):not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/checklist/checklist-launcher.css  */
 :where(:root[data-text=large]) .checklist-launcher-fold:not(#\-)::after { font-size: calc(14px * 1.125); }
+@media (hover: hover) { :where(:root[data-text=large]) .checklist-launcher:not(#\-)::before { font-size: calc(14px * 1.125); } }
 /*  components/checklist/checklist-setting.css  */
 :where(:root[data-text=large]) .af-checklist-setting-row strong:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .af-checklist-setting-row small:not(#\-) { font-size: calc(15px * 1.125); }
@@ -865,6 +884,16 @@
 :where(:root[data-text=large]) .command-palette-group:not(#\-) { font-size: calc(13px * 1.125); }
 :where(:root[data-text=large]) .command-palette-detail:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .command-palette-keys:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/countdowns/countdowns.css  */
+:where(:root[data-text=large]) .countdowns-card h3:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .countdown-days:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .countdown-text small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .countdown .text-link:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .countdowns-card summary:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .countdowns-add .field span:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .countdowns-add input:not(#\-), :where(:root[data-text=large]) .countdowns-add button:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .countdowns-error:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .agenda-countdown small:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/dashboard/dashboard.css  */
 :where(:root[data-text=large]) .dashboard-summary-item strong:not(#\-) { font-size: calc(1.2rem * 1.125); }
 :where(:root[data-text=large]) .dashboard-widget-heading h3:not(#\-) { font-size: calc(1.1rem * 1.125); }
@@ -889,6 +918,7 @@
 :where(:root[data-text=large]) .dashboard-placement-controls button:not(#\-), :where(:root[data-text=large]) .dashboard-insert-here:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .today-line:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .today-wealth-trend small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .today-skips .today-skip:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/dashboard/hero-fold.css  */
 @media (max-width: 540px) { :where(:root[data-text=large]) .today-hero-strip .eyebrow:not(#\-) { font-size: calc(14px * 1.125); } }
 /*  components/dashboard/how-it-works.css  */
@@ -1091,6 +1121,7 @@
 :where(:root[data-text=large]) .goal-type-cards small:not(#\-) { font-size: calc(.88rem * 1.125); }
 :where(:root[data-text=large]) .goal-live-preview>strong:not(#\-) { font-size: calc(1.55rem * 1.125); }
 :where(:root[data-text=large]) .unified-wizard .form-grid small:not(#\-) { font-size: calc(.82rem * 1.125); }
+:where(:root[data-text=large]) .unified-wizard .wizard-rhythm>summary:not(#\-) { font-size: calc(16px * 1.125); }
 @media (min-width: 761px) and (max-width: 1023px) { :where(:root[data-text=large]) .unified-wizard .wizard-story strong:not(#\-) { font-size: calc(24px * 1.125); } }
 /*  components/goal-summary.css  */
 :where(:root[data-text=large]) .unified-goal-card .goal-progress-ring strong:not(#\-) { font-size: calc(15px * 1.125); }
@@ -1355,6 +1386,17 @@
 :where(:root[data-text=large]) .habit-health-so-far:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/habits/intention.css  */
 :where(:root[data-text=large]) .habit-intention-line > span:not(#\-) { font-size: calc(15px * 1.125); }
+/*  components/habits/perfect-days.css  */
+:where(:root[data-text=large]) .habit-perfect-today:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-facts:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-nav strong:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-grid th:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-date:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-mark:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-legend:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-detail h3:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-detail p:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .habit-perfect-detail li:not(#\-) { font-size: calc(.9375rem * 1.125); }
 /*  components/habits/reorder.css  */
 :where(:root[data-text=large]) .habit-reorder-hint:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .habit-compact-table thead th:not(#\-) { font-size: calc(12px * 1.125); }
@@ -1586,6 +1628,20 @@
 /*  components/health/photo-compare.css  */
 :where(:root[data-text=large]) .photo-compare-tag:not(#\-) { font-size: calc(13px * 1.125); }
 :where(:root[data-text=large]) .photo-compare figcaption:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/health/plus/plus.css  */
+:where(:root[data-text=large]) .ap-orbit h3:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .ap-orbit p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .ap-orbit .fine:not(#\-), :where(:root[data-text=large]) .ap-trend .fine:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .ap-trend-arrow:not(#\-) { font-size: calc(24px * 1.125); }
+:where(:root[data-text=large]) .ap-trend p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .ap-chips button:not(#\-), :where(:root[data-text=large]) .ap-levels button:not(#\-), :where(:root[data-text=large]) .ap-plus-form button:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .ap-plus-form .field span:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .ap-plus-form input:not(#\-), :where(:root[data-text=large]) .ap-plus-form select:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .ap-symptom-list h3:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .ap-field-error:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .ap-food-month li:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .ap-splits:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .ap-splits th:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/health/sleep/sleep.css  */
 :where(:root[data-text=large]) .sleep-card .sleep-last:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .sleep-card .sleep-last strong:not(#\-) { font-size: calc(22px * 1.125); }
@@ -1706,6 +1762,10 @@
 :where(:root[data-text=large]) .journal-week-day:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .journal-week-dot:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .journal-week-lines:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .journal-stats dt:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .journal-stats dd:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .journal-stats dd small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .journal-entry-words:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-text=large]) .on-this-day-title:not(#\-) { font-size: calc(18px * 1.125); }
 /*  components/journal/year-pixels.css  */
@@ -1714,6 +1774,7 @@
 :where(:root[data-text=large]) .year-pixels-months:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .year-pixels-legend:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/layout-edit.css  */
+:where(:root[data-text=large]) .layout-lock-word:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .layout-move:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .layout-bar p:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/life-pages.css  */
@@ -1781,7 +1842,8 @@
 :where(:root[data-text=large]) .mood-words-quadrant:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .mood-words-word:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/music/music-launcher.css  */
-:where(:root[data-text=large]) .music-launcher-fold:not(#\-)::after { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .music-launcher-fold:not(#\-)::after { font-size: calc(14px * 1.125); }
+@media (hover:hover) { :where(:root[data-text=large]) .music-launcher:not(#\-)::before { font-size: calc(14px * 1.125); } }
 /*  components/music/music-mix.css  */
 :where(:root[data-text=large]) .music-mix legend:not(#\-) { font-size: calc(.9375rem * 1.125); }
 :where(:root[data-text=large]) .music-mix-preset:not(#\-) { font-size: calc(.9375rem * 1.125); }
@@ -2051,6 +2113,11 @@
 /*  components/offline-notice.css  */
 :where(:root[data-text=large]) .offline-notice:not(#\-) { font-size: calc(15px * 1.125); }
 :root:where([data-text=large]) .offline-pill:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/onboarding/first-five.css  */
+:where(:root[data-text=large]) .first-five-steps strong:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .first-five-steps small:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .first-five-mark:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .first-five-close:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/onboarding/onboarding.css  */
 :where(:root[data-text=large]) .onboarding-welcome h2:not(#\-) { font-size: calc(clamp(22px, 2.4vw, 28px) * 1.125); }
 :where(:root[data-text=large]) .onboarding-welcome p:not(.eyebrow):not(#\-) { font-size: calc(16px * 1.125); }
@@ -2235,6 +2302,7 @@
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .phone-status-sheet .phone-status-mode strong:not(#\-) { font-size: calc(15px * 1.125); } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .phone-status-sheet .wallet button:not(#\-) { font-size: calc(15px * 1.125); } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .app-content > .private-read-delay h2:not(#\-) { font-size: calc(19px * 1.125); } }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .phone-wealth[data-words] .phone-wealth-word:not(#\-) { font-size: calc(14px * 1.125); } }
 /*  components/phone/phone-today.css  */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .today-page .today-hero .today-lede:not(#\-) { font-size: calc(16px * 1.125); } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .today-page .today-hero .hero-actions :is(a, button):not(#\-) { font-size: calc(16px * 1.125); } }
@@ -2708,7 +2776,7 @@
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .portfolio-summary-big .portfolio-totals dd:not(#\-) { font-size: calc(19px * 1.125); } }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .data-coin-toggle strong:not(#\-) { font-size: calc(14px * 1.125); } }
 :where(:root[data-text=large]) .portfolio-hero .portfolio-note:not(#\-) { font-size: calc(14px * 1.125); }
-@media (max-width: 479.98px) { :where(:root[data-text=large]) .portfolio-holdings-section .data-table tbody > tr > td:not(#\-)::before { font-size: calc(13px * 1.125); } }
+@media (max-width: 900.98px) { :where(:root[data-text=large]) .portfolio-holdings-section .data-table tbody > tr > td:not(#\-)::before { font-size: calc(14px * 1.125); } }
 @media (max-width: 359.98px) { :where(:root[data-text=large]) .portfolio-holdings-section .data-table tbody > tr > td:not(#\-) { font-size: calc(14px * 1.125); } }
 :where(:root[data-text=large]) .trade-checkin summary:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .trade-checkin-row legend:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2820,6 +2888,7 @@
 :where(:root[data-text=large]) .pages-preview-more:not(#\-) { font-size: calc(.875rem * 1.125); }
 /*  components/settings/settings-fold.css  */
 :where(:root[data-text=large]) .settings-page .settings-fold-summary:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .settings-page .settings-fold-quick button:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/share-cards/share-cards.css  */
 :where(:root[data-text=large]) .share-sheet-eyebrow:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .share-sheet-title:not(#\-) { font-size: calc(22px * 1.125); }
@@ -2930,6 +2999,15 @@
 :root:where([data-text=large]) .ss-what:not(#\-) { font-size: calc(15px * 1.125); }
 :root:where([data-text=large]) .ss-what strong:not(#\-) { font-size: calc(16px * 1.125); }
 :root:where([data-text=large]) .ss-notice:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/tasks/tasks-when.css  */
+:where(:root[data-text=large]) .tasks-when-lede:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .tasks-when-actions .text-link:not(#\-), :where(:root[data-text=large]) .tasks-when-form button:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-when-form .field span:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .tasks-when-form select:not(#\-), :where(:root[data-text=large]) .tasks-when-form input:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .tasks-when-note:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .tasks-matrix-box h3:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .tasks-matrix-box h3 small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .tasks-matrix-hint:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/tasks/tasks.css  */
 :where(:root[data-text=large]) .task-meta:not(#\-) { font-size: calc(13px * 1.125); }
 :where(:root[data-text=large]) .task-chip:not(#\-) { font-size: calc(12px * 1.125); }
@@ -2951,6 +3029,13 @@
 :where(:root[data-text=large]) .tasks-column h3:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .tasks-reminders h2:not(#\-), :where(:root[data-text=large]) .tasks-salvage h2:not(#\-), :where(:root[data-text=large]) .tasks-io h2:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .tasks-completed h2 small:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/templates/library-search.css  */
+:where(:root[data-text=large]) .library-search-field:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .library-search-field input:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .library-chips button:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .library-count:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .library-result strong:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .library-result small:not(#\-), :where(:root[data-text=large]) .library-result-meta:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/timeline/timeline.css  */
 :where(:root[data-text=large]) .timeline-links a:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .timeline-band > h2:not(#\-) { font-size: calc(20px * 1.125); }
@@ -3081,18 +3166,37 @@
 :where(:root[data-text=large]) .fi-summary:not(#\-) { font-size: calc(17px * 1.125); }
 :where(:root[data-text=large]) .fi-table th small:not(#\-) { font-size: calc(12px * 1.125); }
 @media (max-width:400px) { :where(:root[data-text=large]) .fi-table:not(#\-) { font-size: calc(13px * 1.125); } }
+/*  components/wealth/networth-history.css  */
+:where(:root[data-text=large]) .networth-history h3:not(#\-) { font-size: calc(1.15rem * 1.125); }
+:where(:root[data-text=large]) .networth-series h4:not(#\-) { font-size: calc(.95rem * 1.125); }
+:where(:root[data-text=large]) .networth-series-latest strong:not(#\-) { font-size: calc(1.2rem * 1.125); }
+:where(:root[data-text=large]) .networth-series-latest small:not(#\-), :where(:root[data-text=large]) .networth-series-missing:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .networth-days:not(#\-) { font-size: calc(.875rem * 1.125); }
 /*  components/wealth/networth-milestones.css  */
 :where(:root[data-text=large]) .nwm-celebration h3:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .nwm-symbol:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .nws-since legend:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/wealth/plausible-check.css  */
 :where(:root[data-text=large]) .plausible-check:not(#\-) { font-size: calc(15px * 1.125); }
+/*  components/wealth/spending/insights/insights.css  */
+:where(:root[data-text=large]) .money-insights h3:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .money-insights h4:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .money-insights-views button:not(#\-), :where(:root[data-text=large]) .money-insights button:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .money-insights-rule:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .money-insights-table:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .money-insights-table caption:not(#\-) { font-size: calc(14px * 1.125); }
+@media (max-width:520px) { :where(:root[data-text=large]) .money-insights-table:not(#\-) { font-size: calc(14px * 1.125); } }
+:where(:root[data-text=large]) .money-insights-chart text:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .money-insights-legend:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .money-insights .field select:not(#\-), :where(:root[data-text=large]) .money-insights .field input:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .money-tags-chip:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/wealth/spending/spending.css  */
 :where(:root[data-text=large]) .spending-room-text strong:not(#\-) { font-size: calc(24px * 1.125); }
 :where(:root[data-text=large]) .spending-cats legend:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .spending-chip span:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .spending-status:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .spending-lists h3:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .spending-editing:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/wealth/wealth-history-chart.css  */
 :where(:root[data-text=large]) .wealth-history-tools .quiet:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .wealth-history-readout strong:not(#\-) { font-size: calc(26px * 1.125); }

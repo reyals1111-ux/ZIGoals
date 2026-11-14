@@ -1,5 +1,6 @@
 import {SYNCED} from '../lib/data-health/catalog';
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /** Session AA-Cloud Part 6: the Data health page, the offline pill and Undo on the reversible actions. */
 test.beforeEach(async ({page}) => {
@@ -7,7 +8,7 @@ test.beforeEach(async ({page}) => {
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
 });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
@@ -15,7 +16,7 @@ const undo = (page: Page) => page.getByRole('status').getByRole('button', {name:
 
 test('Settings → Your data: where each part lives, what this device holds, what ZIGi can see; it changes nothing', async ({page}) => {
   await showcase(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   // Phase 2 (deliberate, ADR-024): the footer now has its own "Your data" link (owner brief d), so the Settings door is
   // found inside the page's main content. As strict.
   await expect(page.getByRole('main').getByRole('link', {name: /^Your data/})).toBeVisible();

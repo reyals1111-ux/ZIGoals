@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { createHabit, emptyHabitData, HABITS_KEY } from "../lib/habits";
 import { createEmptyHealth, HEALTH_STORAGE_KEY, saveFood } from "../lib/health";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
+import {afterGoto, openSettings, openAllSettingsGroups} from './settings-open';
 const metadataKey = "zigoals:metadata:v1:local-simulation:local-demo-user";
 const ledgerKey = "zigoals:local-ledger:v1";
 const at = new Date("2026-09-15T10:00:00Z");
@@ -57,7 +58,7 @@ test("V1 upgrade, explicit module restore and linked Goal reload preserve all pr
       sessionStorage.setItem("zigoals:wallet-reconnect-hint:v1", "owner-fixture-hint");
     }
   }, { metadataKey, ledgerKey, metadata: JSON.stringify(goalPlan), ledger: JSON.stringify(ledger) });
-  await page.goto("/app/settings");
+  await openSettings(page);
   expect(await page.evaluate(keys => keys.map(key => localStorage.getItem(key)), [HABITS_KEY, HEALTH_STORAGE_KEY])).toEqual([null, null]);
   const panel = await restore(page, "Habits", JSON.stringify(linkedHabit));
   await expect(panel.getByRole("status")).toContainText("Habits restored");
@@ -73,9 +74,10 @@ test("V1 upgrade, explicit module restore and linked Goal reload preserve all pr
 });
 test("damaged private exports retain exact bytes and explicit restore quarantines originals", async ({ page }) => {
   const damaged = "  { damaged HEALTH_PRIVATE_RESTORE\n";
-  await page.goto("/app/settings");
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(({ key, damaged }) => localStorage.setItem(key, damaged), { key: HEALTH_STORAGE_KEY, damaged });
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   const panel = page.getByRole("region", { name: "Health backup", exact: true });
   const download = page.waitForEvent("download");
   await panel.getByRole("button", { name: "Export Health", exact: true }).click();
@@ -100,7 +102,7 @@ test("private Habit and Health sentinel values stay outside requests, headers, l
   await page.addInitScript(() => {
     Object.assign(window, { keplr: Object.fromEntries(["enable", "getKey", "getOfflineSignerAuto", "signAmino", "signDirect", "sendTx"].map(name => [name, () => { Reflect.get(window, "__recordPrivateWalletCall")(name); throw Error("Unexpected wallet call"); }])) });
   });
-  await page.goto("/app/settings");
+  await openSettings(page);
   const habitData = createHabit(emptyHabitData(), { title: `${sentinel}_habit`, notes: `${sentinel}_note`, category: "Wellbeing", description: `${sentinel}_description`, schedule: { kind: "daily" }, target: 1 }, at, "baa9296b-4551-4471-84da-e2953abdc275");
   const healthData = saveFood(createEmptyHealth(), { id: "health_f9840d00-a001-4000-9000-f9840d00a001", name: `${sentinel}_food`, brand: `${sentinel}_brand`, servingGrams: 100, nutrients: { kcal: 173, proteinMg: 17003, carbsMg: 27301, fatMg: 5301 }, createdAt: at.toISOString(), updatedAt: at.toISOString() });
   await expect((await restore(page, "Habits", JSON.stringify(habitData))).getByRole("status")).toContainText("Habits restored");
@@ -116,7 +118,7 @@ test("private Habit and Health sentinel values stay outside requests, headers, l
   await page.getByRole("button", { name: "Log to diary", exact: true }).click();
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText(`${sentinel}_food`);
   for (const route of ["/app", "/app/activity", "/app/goals", "/app/settings", "/app/ecosystem", "/app/health"]) {
-    await page.goto(route); await expect(page.locator("main")).toBeVisible();
+    await page.goto(route); await afterGoto(page, route); await expect(page.locator("main")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   await page.reload(); await requestsSettled(page);

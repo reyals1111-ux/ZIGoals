@@ -31,7 +31,7 @@
    near the screen (the browser keeps its measured size once seen). The first group, the page's head and its two indexes
    always render. A page opened on an address with a fragment, or one that follows a fragment link, renders every group
    first (`data-jump`, components/settings/settings-render-all.tsx), so jumps land exactly where they always did. */
-.settings-page:not([data-jump]) > .settings-group:not(#settings-data) { content-visibility: auto; contain-intrinsic-size: auto 1400px; }
+.settings-page:not([data-jump]) > .settings-group:not(#settings-look):not(#settings-data) { content-visibility: auto; contain-intrinsic-size: auto 1400px; }
 /* Session AK (G3): richer cards, as the new surfaces (F6). Settings: Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
    fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has

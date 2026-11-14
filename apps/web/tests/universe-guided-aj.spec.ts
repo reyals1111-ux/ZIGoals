@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
+import {openDeskFold} from './ao/folds';
 
 // Session AJ (Part 6): Guided journeys (A7: reached from search, Goals, Habits and My Universe; no sidebar entry), the
 // Life Score (opt-in, D10) and Focus Sessions (D13). Fictional records; every request to the server answered offline.
@@ -13,6 +14,7 @@ test('Guided journeys: no sidebar entry; start one, today\'s step opens, Done an
   await page.clock.install({time: new Date('2026-10-29T09:00:00Z')});
   await page.goto('/app/journey');
   await expect(page.getByRole('navigation', {name: 'Main navigation'}).getByRole('link', {name: /Guided/})).toHaveCount(0);
+  await openDeskFold(page, 'My universe'); // Session AO (DV-045e, deliberate): My universe is a folded row on Journey now
   await page.getByRole('link', {name: 'Guided journeys →'}).click();
   await expect(page).toHaveURL(/\/app\/guided$/);
   const programs = page.getByRole('region', {name: 'Choose a journey'});
@@ -51,6 +53,7 @@ test('search finds Guided journeys', async ({page}) => {
 test('the Life Score is off until turned on; then a number with a Why? per pillar, missing pillars left out', async ({page}) => {
   await fresh(page);
   await page.goto('/app/journey');
+  await openDeskFold(page, 'My universe'); // Session AO (DV-045e, deliberate): the Life Score sits in My universe, a folded row now
   const offer = page.getByRole('group', {name: 'Life Score'});
   await expect(offer).toContainText('Off until you turn it on.');
   await offer.getByRole('button', {name: 'Turn on Life Score'}).click();

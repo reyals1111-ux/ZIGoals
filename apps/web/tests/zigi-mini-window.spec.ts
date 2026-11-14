@@ -3,6 +3,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {pressZigi} from './zigi-open';
+import {openSettings} from './settings-open';
 
 /**
  * Session V Part 14, ZIGi's mini window (Document Picture-in-Picture), end to end. The test browser's own Document
@@ -14,7 +15,7 @@ import {pressZigi} from './zigi-open';
 const DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
 async function seed(page: Page) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   const values = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]})};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);
   // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
@@ -39,7 +40,7 @@ async function pictureInPicture(page: Page, mode: 'real' | 'stand-in' | 'none') 
 }
 /** The real API where this browser has it, else the stand-in; the choice is noted on the test. */
 async function bestPictureInPicture(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   const real = await page.evaluate(() => typeof (window as unknown as {documentPictureInPicture?: {requestWindow?: unknown}}).documentPictureInPicture?.requestWindow === 'function');
   test.info().annotations.push({type: 'mini window', description: real ? "the browser's own Document Picture-in-Picture" : 'the stand-in'});
   await pictureInPicture(page, real ? 'real' : 'stand-in');

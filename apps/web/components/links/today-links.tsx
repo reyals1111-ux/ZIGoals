@@ -1,4 +1,6 @@
+'use client';
 import Link from 'next/link';
+import {useRovingFocus} from '../ui/use-roving-focus';
 import type {LayoutAttrs} from '../layout-edit';
 import {LinkGlyph} from './link-glyph';
 import {NebulaFlow} from '../nebula-flow';
@@ -10,8 +12,10 @@ import './links.css';
  * no referrer; ZIGoals adds nothing to the address. On a phone the card is a folded row ("My links").
  */
 export function TodayLinks({links, ...layout}: LayoutAttrs & {links: readonly PersonalLink[]}) {
+  // Session AO (D-028): the links are one Tab stop (a roving tabindex); the arrow keys move along them.
+  const list = useRovingFocus<HTMLUListElement>('a[href]');
   return <section {...layout} className="panel today-links" aria-labelledby="today-links-title">
     <header className="today-links-head"><h2 id="today-links-title"><NebulaFlow identity="today-links-title">My links</NebulaFlow></h2><Link className="text-link" href="/app/settings#links">Edit</Link></header>
-    <ul className="today-links-list">{links.map(link => <li key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><span className="today-link-disc" aria-hidden="true"><LinkGlyph icon={link.icon} label={link.label} /></span><span>{link.label}</span><span className="sr-only"> (opens in a new tab)</span></a></li>)}</ul>
+    <ul className="today-links-list" ref={list}>{links.map(link => <li key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><span className="today-link-disc" aria-hidden="true"><LinkGlyph icon={link.icon} label={link.label} /></span><span>{link.label}</span><span className="sr-only"> (opens in a new tab)</span></a></li>)}</ul>
   </section>;
 }

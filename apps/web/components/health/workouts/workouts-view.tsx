@@ -4,7 +4,9 @@ import {LoggingFor, useLinkedDay} from '../health-day';
 import {lazy, Suspense, useEffect, useMemo, useState} from 'react';
 import {NebulaFlow} from '../../nebula-flow';
 import {ConfirmInline} from '../../ui/confirm-inline';
-import {showStatus} from '../../ui/undo-toast';
+import {showStatus, showUndo} from '../../ui/undo-toast';
+import {removeWithUndo} from '../../ui/remove-with-undo';
+import {reinsertItems, removedItems, type Removed} from '../../../lib/undo-removal';
 import {useHealth} from '../use-health';
 import {dailyData, healthDay, healthZone} from '../../../lib/health-daily';
 import {newHealthId, removeHealthItem, saveActivity} from '../../../lib/health';
@@ -20,6 +22,10 @@ import {CATEGORIES, MEASURES, SET_KINDS, type ExerciseEntry, type Measure, type 
 import {clock, estimateShown, weightPrefillText, fromUnit, readClock, setText, weightShown} from './units';
 import {useWorkouts} from './use-workouts';
 import {WorkoutsImport, importedLine, type ImportChoice} from './workouts-import';
+import {useDeviceRecord} from '../../ai/use-device-record';
+import {WORKOUT_SPLITS, type WorkoutSplits} from '../../../lib/workouts/splits-schema';
+import {withSplits, withoutSplits} from '../../../lib/workouts/splits';
+import {WorkoutSplitsTable} from './workout-splits';
 import './workouts.css';
 import {ArtNote} from '../../illustrations/art-note';
 import {Skeleton} from '../../ui/skeleton';
@@ -47,6 +53,8 @@ const bestWords = (b: PersonalBest, unit: 'kg' | 'lb') => `${b.name}: ${b.what =
 
 export default function WorkoutsView() {
   const record = useWorkouts(), health = useHealth();
+  // Session AP (feature 5): a run's pace and per-km splits, kept at import by workout id (never back-filled).
+  const splitsRecord = useDeviceRecord(WORKOUT_SPLITS);
   const [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now()), [restUntil, setRestUntil] = useState<number | null>(null);
   const [tookMinutes, setTookMinutes] = useState('');
   const [asking, setAsking] = useState<null | 'finish' | 'discard' | {remove: string}>(null), [summary, setSummary] = useState<{workout: Workout; bests: PersonalBest[]} | null>(null);
@@ -60,7 +68,15 @@ export default function WorkoutsView() {
   // One clock for the elapsed time and the rest timer, every second while either shows.
   useEffect(() => { if (!current && restUntil === null) return; const t = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(t); }, [current, restUntil]);
   useEffect(() => { if (restUntil !== null && now >= restUntil) { setRestUntil(null); setNote('Rest is over. Next set when you are ready.'); } }, [now, restUntil]);
-  const change = (fn: (w: Workouts) => Workouts, said?: string) => { try { record.update(fn); if (said) setNote(said); return true; } catch (e) { setNote(plainErrorMessage(e, 'That could not be saved on this device.')); return false; } };
+  // Session AO (C-LS-20): a removal names `undone` and gets the app's one Undo toast (components/ui/remove-with-undo.ts),
+  // which puts exactly the removed routine, exercise or set back into the latest log.
+  const change = (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => {
+    if (undone && said) {
+      try { const out = removeWithUndo(record.update, fn, said, undone); void Promise.resolve(out).catch(e => setNote(plainErrorMessage(e, 'That could not be saved on this device.'))); setNote(said); return true; }
+      catch (e) { setNote(plainErrorMessage(e, 'That could not be saved on this device.')); return false; }
+    }
+    try { record.update(fn); if (said) setNote(said); return true; } catch (e) { setNote(plainErrorMessage(e, 'That could not be saved on this device.')); return false; }
+  };
 
   // Session AL (P-MO-22, MO-026): a skeleton under the line while the log opens, and Reload after 10 s.
   if (!record.loaded || !health.loaded) return <section className="panel"><h1>Workouts</h1><p>Opening your workout log…</p><Skeleton label="Opening your workout log" lines={4}/><SlowReload/></section>;
@@ -107,7 +123,10 @@ export default function WorkoutsView() {
       if (workout) made.push(workout);
       return next;
     }, x); });
-    return addedWords(made.map(x => x.name), await keepMinutes(made));
+    const paced = made.flatMap(x => { const s = list.find(c => c.summary.importId === importInfo(x)?.importId)?.summary.splits; return s ? [[x.id, s] as const] : []; });
+    let splitsMissed = false;
+    if (paced.length) { try { splitsRecord.update(r => paced.reduce((acc, [id, s]) => withSplits(acc, id, s), r)); } catch { splitsMissed = true; } }
+    return `${addedWords(made.map(x => x.name), await keepMinutes(made))}${splitsMissed ? ' Their pace and splits could not be saved on this device.' : ''}`;
   }
   async function addLifts(plan: LiftsPlan): Promise<string> {
     const {addLiftWorkouts} = await import('../../../lib/workouts/import-lifts');
@@ -128,9 +147,16 @@ export default function WorkoutsView() {
   async function remove(id: string) {
     const target = w.workouts.find(x => x.id === id); setAsking(null);
     if (!target) return;
-    if (!change(x => removeWorkout(x, id))) return;
-    if (target.activityId) { try { await health.update(h => h.activity.some(a => a.id === target.activityId) ? removeHealthItem(h, 'activity', target.activityId!) : h); } catch { /* the workout is gone; its minutes stay in Health */ } }
-    setNote(`${target.name} on ${formatDate(target.date)} is deleted, with its minutes in Health.`);
+    // Session AO (C-LS-20): Undo puts back the workout and the minutes it had added to Health, each into its latest record.
+    let wBefore: Workouts | undefined, wAfter: Workouts | undefined;
+    if (!change(x => { const next = removeWorkout(x, id); wBefore = x; wAfter = next; return next; })) return;
+    const splitsBack: WorkoutSplits | undefined = splitsRecord.data.workouts[id];
+    if (splitsBack) { try { splitsRecord.update(r => withoutSplits(r, id)); } catch { /* the workout is gone; its splits stay until the next delete */ } }
+    let healthBack: Removed[] | null = null;
+    if (target.activityId) { try { await health.update(h => { if (!h.activity.some(a => a.id === target.activityId)) return h; const next = removeHealthItem(h, 'activity', target.activityId!); healthBack = removedItems(h, next); return next; }); } catch { /* the workout is gone; its minutes stay in Health */ } }
+    const said = `${target.name} on ${formatDate(target.date)} is deleted, with its minutes in Health.`, workoutBack = wBefore && wAfter ? removedItems(wBefore, wAfter) : null, healthItems = healthBack as Removed[] | null;
+    setNote(said);
+    if (workoutBack) showUndo({message: said, undone: `${target.name} is back${healthItems ? ', with its minutes in Health' : ''}.`, restore: async () => { record.update(latest => reinsertItems(latest, workoutBack)); if (splitsBack) { try { splitsRecord.update(r => withSplits(r, id, splitsBack)); } catch { /* the workout is back without its splits */ } } if (healthItems) await health.update(latest => reinsertItems(latest, healthItems)); }});
   }
 
   return <div className="workouts-view">{today && <LoggingFor date={logDay} today={today}/>}
@@ -159,7 +185,7 @@ export default function WorkoutsView() {
         {w.templates.length > 0 && <><h3>Your routines</h3><ul className="workouts-routines">{w.templates.map(t => <li key={t.id}>
           <div><strong>{t.name}</strong><span>{t.exercises.map(e => e.name).join(' · ')}</span></div>
           <div className="workouts-row-actions"><button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), template: t})} aria-label={`Start ${t.name}`}>Start</button>
-            <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`)}>Remove</button></div>
+            <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`, `Routine ${t.name} is back.`)}>Remove</button></div>
         </li>)}</ul></>}
       </section>}
     {asking === 'finish' && current && <ConfirmInline title="Finish with unticked sets?" confirmLabel="Finish workout" cancelLabel="Keep logging" tone="neutral" onConfirm={() => void finish()} onCancel={() => setAsking(null)}><p>Sets you have not ticked are left out. Tick a set when you finish it.</p></ConfirmInline>}
@@ -179,6 +205,7 @@ export default function WorkoutsView() {
       {past.length ? <ul className="workouts-past">{past.slice(0, 30).map(x => <li key={x.id}>
         <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
           {importInfo(x) && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
+          {splitsRecord.data.workouts[x.id] && <WorkoutSplitsTable s={splitsRecord.data.workouts[x.id]!} name={x.name}/>}
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unit)}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
             {!current && x.exercises.length > 0 && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
@@ -206,7 +233,7 @@ export default function WorkoutsView() {
 }
 
 function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRest, onSkipRest, onFinish, onDiscard}: {workout: Workout; w: Workouts; unit: 'kg' | 'lb'; now: number; library: LibraryExercise[]; restUntil: number | null;
-  change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onRest: (entryId: string) => void; onSkipRest: () => void; onFinish: () => void; onDiscard: () => void}) {
+  change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: (entryId: string) => void; onSkipRest: () => void; onFinish: () => void; onDiscard: () => void}) {
   const [picking, setPicking] = useState(workout.exercises.length === 0);
   const letters = supersetLabels(workout.exercises);
   const elapsed = Math.max(0, Math.floor((now - Date.parse(workout.startedAt)) / 1000));
@@ -224,14 +251,14 @@ function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRe
   </section>;
 }
 
-function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onRest: () => void;
+function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
   w: Workouts; letter?: string; nextLetter?: string}) {
   const headId = `ex-${entry.id}`, [tools, setTools] = useState(false), rpe = entry.measure === 'weight-reps' || entry.measure === 'reps';
   return <article className="workouts-exercise" aria-labelledby={headId} data-superset={letter ? '' : undefined}>
     <header><h3 id={headId}>{letter && <span className="workouts-superset-tag">Superset {letter}<span className="sr-only">:</span></span>} {entry.name}</h3><div className="workouts-row-actions">
       <button className="quiet" type="button" disabled={index === 0} aria-label={`Move ${entry.name} up`} onClick={() => change(x => moveExercise(x, entry.id, -1))}>↑</button>
       <button className="quiet" type="button" disabled={index === count - 1} aria-label={`Move ${entry.name} down`} onClick={() => change(x => moveExercise(x, entry.id, 1))}>↓</button>
-      <button className="quiet" type="button" aria-label={`Remove ${entry.name}`} onClick={() => change(x => removeExercise(x, entry.id), `${entry.name} removed from this workout.`)}>Remove</button></div></header>
+      <button className="quiet" type="button" aria-label={`Remove ${entry.name}`} onClick={() => change(x => removeExercise(x, entry.id), `${entry.name} removed from this workout.`, `${entry.name} is back in this workout.`)}>Remove</button></div></header>
     <table className="workouts-sets"><caption className="sr-only">{entry.name}: sets</caption>
       <thead><tr><th scope="col">Set</th><th scope="col">Last time</th>{entry.measure === 'weight-reps' && <th scope="col">{unit}</th>}{entry.measure === 'distance-time' && <th scope="col">km</th>}{(entry.measure === 'weight-reps' || entry.measure === 'reps') && <th scope="col">Reps</th>}{(entry.measure === 'time' || entry.measure === 'distance-time') && <th scope="col">Time</th>}{rpe && <th scope="col"><abbr title="Rate of perceived exertion: 10 is nothing left, 8 is about two reps left">RPE</abbr></th>}<th scope="col"><span className="sr-only">Done</span></th><th scope="col"><span className="sr-only">Remove</span></th></tr></thead>
       <tbody>{entry.sets.map((s, i) => <SetRow key={s.id} entry={entry} set={s} n={i + 1} previous={previous?.sets[i]} unit={unit} change={change} onDone={onRest} rpe={rpe}/>)}</tbody>
@@ -256,7 +283,7 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
   </article>;
 }
 
-function SetRow({entry, set, n, previous, unit, change, onDone, rpe}: {entry: ExerciseEntry; set: WorkoutSet; n: number; previous?: WorkoutSet; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onDone: () => void; rpe: boolean}) {
+function SetRow({entry, set, n, previous, unit, change, onDone, rpe}: {entry: ExerciseEntry; set: WorkoutSet; n: number; previous?: WorkoutSet; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onDone: () => void; rpe: boolean}) {
   const m = entry.measure, label = `${entry.name}, set ${n}`;
   const [weight, setWeight] = useState(set.weightKg === undefined ? '' : weightPrefillText(set.weightKg, unit));
   const [reps, setReps] = useState(set.reps === undefined ? '' : String(set.reps)), [time, setTime] = useState(set.seconds ? clock(set.seconds) : ''), [dist, setDist] = useState(set.distanceKm === undefined ? '' : String(set.distanceKm));
@@ -289,7 +316,7 @@ function SetRow({entry, set, n, previous, unit, change, onDone, rpe}: {entry: Ex
     {rpe && <td><select className="workouts-rpe" value={set.rpe === undefined ? '' : String(set.rpe)} aria-label={`${label}: RPE, how hard it felt`} title={set.rpe !== undefined ? RPE_WORDS[set.rpe] : undefined}
       onChange={e => change(x => setRpe(x, entry.id, set.id, e.target.value === '' ? null : Number(e.target.value)))}><option value="">—</option>{RPE_VALUES.map(v => <option key={v} value={v}>{v}</option>)}</select></td>}
     <td><button className="workouts-tick" type="button" aria-pressed={set.done} aria-label={set.done ? `${label} done; undo` : `Mark ${label} done`} onClick={tick}>✓</button></td>
-    <td><button className="quiet workouts-remove" type="button" aria-label={`Remove ${label}`} onClick={() => change(x => removeSet(x, entry.id, set.id))}>×</button></td>
+    <td><button className="quiet workouts-remove" type="button" aria-label={`Remove ${label}`} onClick={() => change(x => removeSet(x, entry.id, set.id), `Set ${n} of ${entry.name} removed.`, `Set ${n} of ${entry.name} is back.`)}>×</button></td>
   </tr>{problem && <tr className="workouts-problem"><td colSpan={8}><p role="alert">{problem}</p></td></tr>}</>;
 }
 

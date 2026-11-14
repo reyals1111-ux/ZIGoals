@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
 import {applyTheme} from '../../p6-helpers';
 import {goal, seedGoals} from '../goals/goal-fixtures';
+import {afterGoto} from '../../settings-open';
 
 /**
  * Session AL final fix pass, the shared shell (docs/review/session-al/GROK53_REPLAY_SHELL_3.md, STILL OPEN rows). Each test
@@ -11,7 +12,7 @@ test.beforeEach(async ({page}) => { await offlineApi(page); });
 const desktopOnly = (isMobile: boolean) => test.skip(isMobile, 'A computer window');
 
 async function ready(page: Page, path: string) {
-  await page.goto(path); await hydrated(page);
+  await page.goto(path); await afterGoto(page, path); await hydrated(page);
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('main h1').first()).toBeVisible();
 }

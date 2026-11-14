@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK RB (RELEASE_REVIEW_2 R2-8): Health and Wealth stay short on a phone. The page height at 390×844, as
@@ -34,7 +35,7 @@ test('Health and Wealth at 390×844 stay within their screen-count ceilings (fre
   await page.clock.setFixedTime(FIXED_TIME);
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   const healthFresh = await screens(page, '/app/health'), wealthFresh = await screens(page, '/app/wealth');
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const healthShowcase = await screens(page, '/app/health'), wealthShowcase = await screens(page, '/app/wealth');

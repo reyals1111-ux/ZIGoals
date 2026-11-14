@@ -1,0 +1,32 @@
+{
+ "note": "Recorded-shape fixture for the Session AP service-row replay (scripts/run11/service-rows). Shapes follow the parsers that read them; values are illustrative, not a live capture. Times are relative to recordedAt and are re-based by the harness.",
+ "endpoint": "same as v1; a later load with moved prices (drift rows D-262, D-200)",
+ "recordedAt": "2026-11-14T09:00:00.000Z",
+ "body": {
+  "bitcoin": {
+   "usd": 97588.9,
+   "eur": 91591.27,
+   "last_updated_at": 1794646780
+  },
+  "ethereum": {
+   "usd": 3398.5,
+   "eur": 3189.69,
+   "last_updated_at": 1794646775
+  },
+  "cardano": {
+   "usd": 0.7123,
+   "eur": 0.6685,
+   "last_updated_at": 1794644400
+  },
+  "zignaly": {
+   "usd": 0.08512,
+   "eur": 0.07989,
+   "last_updated_at": 1794646785
+  },
+  "solana": {
+   "usd": 189.07,
+   "eur": 177.45,
+   "last_updated_at": 1794646770
+  }
+ }
+}

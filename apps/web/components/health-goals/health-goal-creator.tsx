@@ -9,6 +9,7 @@ import {INVISIBLE_NAME, isInvisibleName} from '../../lib/visible-text';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {checkGoalTarget} from '../../lib/health-goals/target';
 import {FieldError, useFormErrors} from '../primitives/field-error';
+import {TEXT_LIMITS} from '../../lib/limits/text';
 
 export type HealthUnits = {weightUnit: 'kg' | 'lb'; waterUnit: 'ml' | 'fl-oz-us'};
 const MEASURES: {value: HealthGoalMeasure; label: string}[] = [{value: 'steps', label: 'Steps per day'}, {value: 'water', label: 'Water days'}, {value: 'exercise', label: 'Exercise counter'}, {value: 'activeMinutes', label: 'Active minutes'}, {value: 'weight', label: 'Weight'}];
@@ -58,7 +59,7 @@ export function HealthGoalCreator({goal, startMeasure, counters, units, today, o
   return <section className="panel health-goal-creator" aria-labelledby="health-goal-creator-title">
     <div className="habit-section-heading"><div><p className="eyebrow">Your body, your measure</p><h2 id="health-goal-creator-title">{goal ? 'Edit health goal' : 'New health goal'}</h2></div></div>
     <form onSubmit={submit} noValidate><fieldset disabled={busy} className="habit-form-fields">
-      <label className="field">Name<input autoFocus data-sheet-focus required maxLength={100} {...form.field('name')} value={name} onChange={event => setName(event.target.value)} placeholder="Walk more" /></label><FieldError {...form.message('name')}/>
+      <label className="field">Name<input autoFocus data-sheet-focus required maxLength={TEXT_LIMITS.healthGoalName} {...form.field('name')} value={name} onChange={event => setName(event.target.value)} placeholder="Walk more" /></label><FieldError {...form.message('name')}/>
       <div className="habit-form-grid">
         <label className="field">Measure<select value={measure} onChange={event => setMeasure(event.target.value as HealthGoalMeasure)}>{MEASURES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}</select></label>
         {measure === 'exercise' && <label className="field">Counter<select value={exerciseId} onChange={event => setExerciseId(event.target.value)}><option value="">Choose a counter</option>{counters.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}

@@ -1,10 +1,11 @@
 import {expect, test, type Page} from '@playwright/test';
 import {ALPHA_LABEL, aboutAlpha} from './ab-shell';
+import {openSettings} from './settings-open';
 
 // Session AC ("Polish to zero", ADR-025): the owner's findings on Alpha #41 and decisions of 2026-10-15, one block each.
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toBeVisible();
@@ -178,14 +179,16 @@ test.describe('item 7: a vision tile\'s own image', () => {
     const before = (await tile.boundingBox())!;
     await tile.getByRole('button', {name: /^Options for /}).click();
     const chooser = page.waitForEvent('filechooser');
-    await tile.getByRole('button', {name: 'Change image', exact: true}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await tile.getByRole('menuitem', {name: 'Change image', exact: true}).click();
     await (await chooser).setFiles({name: 'mine.png', mimeType: 'image/png', buffer: png});
     await expect(tile.locator('img[src^="blob:"]')).toHaveCount(1);
     const after = (await tile.boundingBox())!;
     expect(Math.abs(after.width - before.width)).toBeLessThanOrEqual(1); expect(Math.abs(after.height - before.height)).toBeLessThanOrEqual(1);
     expect(await tile.locator('img[src^="blob:"]').evaluate(img => getComputedStyle(img).objectFit)).toBe('cover');
     await tile.getByRole('button', {name: /^Options for /}).click();
-    await tile.getByRole('button', {name: 'Back to the illustration', exact: true}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await tile.getByRole('menuitem', {name: 'Back to the illustration', exact: true}).click();
     await expect(tile.locator('img[src^="blob:"]')).toHaveCount(0);
     await expect(tile.locator('img[src^="/showcase/vision/"]')).toHaveCount(1);
     // ⋯ and "Open Goal →" (shown on hover and focus, always on touch) never cover each other.
@@ -237,7 +240,9 @@ test.describe('item 9d: phone tables', () => {
       expect(box.left).toBeGreaterThanOrEqual(0);
       expect(box.right).toBeLessThanOrEqual(390);
     }
-    await page.setViewportSize({width: 520, height: 844});
+    // Session AO (BUG-051, deliberate): the holdings are cards up to 900 px now (at 768 the table ran 1,310 px inside a
+    // 578 px section), so the table's edge marks are checked where the table returns and still runs past its box: 920 px.
+    await page.setViewportSize({width: 920, height: 844});
     await page.goto('/app/portfolio'); await settled(page);
     const wrap = page.locator('.data-table-wrap').first();
     await expect(wrap).toHaveAttribute('data-more-right', '');

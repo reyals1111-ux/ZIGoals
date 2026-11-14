@@ -139,3 +139,9 @@
 .agenda-filter-change { margin-left: 10px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; color: var(--brand-cyan, var(--cyan)); }
 .agenda-filter[open] .agenda-filter-change { display: none; }
 @media (min-width: 900px) { .agenda-month { max-width: none; width: 100%; } .agenda-cell { min-height: 72px; } }
+
+/* Session AP: each day's load (items at a set time) and the "By the hour" switch (the grid's own CSS loads with it). */
+.agenda-load { margin: 0; font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+.agenda-day-title .agenda-load { margin-left: auto; }
+.agenda-hours-toggle { margin: 0; }
+.agenda-hours-toggle button { min-height: 44px; }

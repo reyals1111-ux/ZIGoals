@@ -49,7 +49,9 @@ test('N-BN-05/D-005: on a phone Earn\'s wider sections are folded rows; the inde
   await page.goto('/app/earn');
   const rows = page.locator('.earn-sections .phone-fold-toggle');
   // Session AL fifth pass (C-BN-07 / N-BN-05, deliberate): the new side-by-side table is the first folded row on a phone.
-  await expect(rows).toHaveText([/^The ways to earn, compared/, /^Shariah-compliant vaults: Nawa/, /^Invoice finance pools: DeFa/, /^Borrow and lend: Permapod/, /^Zignaly is closing: how to withdraw/, /^Have a say: governance/, /^Link stake you already hold to a goal/, /^Stablecoins on ZIGChain: what exists/]);
+  // Session AO (N-BN-05, deliberate): the four ways to earn below Start here, the validator list and the Academy fold too;
+  // the same exact list, in the page's order, now fourteen rows.
+  await expect(rows).toHaveText([/^The ways to earn, compared/, /^Stake ZIG with a validator/, /^Stake and keep a token: stZIG/, /^Lend USDC through a vault/, /^Swap, or earn swap fees in a pool/, /^Shariah-compliant vaults: Nawa/, /^Invoice finance pools: DeFa/, /^Borrow and lend: Permapod/, /^Zignaly is closing: how to withdraw/, /^Have a say: governance/, /^Link stake you already hold to a goal/, /^Stablecoins on ZIGChain: what exists/, /^Choose a validator from facts/, /^Earn Academy: learn it before you earn it/]);
   for (const row of await rows.all()) { await expect(row).toHaveAttribute('aria-expanded', 'false'); expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44); }
   await expect(page.locator('#governance')).toBeHidden();
   // The page is shorter than the 24,092 px the replay measured at 375 with every section open.
@@ -66,7 +68,8 @@ test('N-BN-05/D-005: on a phone Earn\'s wider sections are folded rows; the inde
   // The rows open by hand, every one.
   await page.goto('/app/earn');
   await openEarnFolds(page);
-  for (const id of ['nawa', 'defa', 'permapod', 'zignaly', 'governance', 'goal-vaults', 'stablecoins']) await expect(page.locator(`#${id}`), id).toBeVisible();
+  // Session AO (N-BN-05, deliberate): the rows added this session open by hand too (the same check, more ids).
+  for (const id of ['native-staking', 'valdora', 'valdora-vaults', 'oroswap', 'nawa', 'defa', 'permapod', 'zignaly', 'governance', 'goal-vaults', 'stablecoins', 'validators', 'academy']) await expect(page.locator(`#${id}`), id).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
 });
 

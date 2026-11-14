@@ -1,4 +1,5 @@
 'use client';
+import {removeWithUndo} from '../../ui/remove-with-undo';
 import Link from 'next/link';
 import {useState} from 'react';
 import {deleteSession} from '../../../lib/meditation/engine';
@@ -44,7 +45,8 @@ export default function MeditationView() {
   const summary = meditationSummary(meditation, today), weeks = weeklyBars(meditation, today, 8);
   const recent = [...meditation.sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 14);
   async function remove(id: string) {
-    try { await store.update(m => deleteSession(m, id)); setConfirm(null); setNote('The session is deleted.'); } catch (error) { setNote(plainErrorMessage(error, 'Could not delete.')); }
+    // Session AO (C-LS-20): the app's one Undo toast puts the session back into the latest journal.
+    try { await removeWithUndo(store.update, m => deleteSession(m, id), 'The session is deleted.', 'The session is back.'); setConfirm(null); setNote('The session is deleted.'); } catch (error) { setNote(plainErrorMessage(error, 'Could not delete.')); }
   }
   return <div className="meditation-view">
     <div className="page-heading header-art-host"><div>

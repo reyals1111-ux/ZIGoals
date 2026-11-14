@@ -8,6 +8,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {emptyPlatform, PLATFORM_KEY, privateGoalSchema} from '../lib/positions';
 import {localDate} from '../lib/local-date';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 
 // Session X P2.1: what the fresh-eyes persona round (45 sessions, eight personas; docs/verification/x-cloud/PERSONAS_X.md)
 // found in the app, kept fixed. Fictional records; every /api request is answered by a fixture.
@@ -15,7 +16,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 
 const HABIT = '59a35604-3696-4a78-b455-4015acb66885';
 async function seed(page: Page, records: Record<string, unknown>) {
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, JSON.stringify(v)); }, {[DASHBOARD_SETTINGS_KEY]: {...presetSettings('habits-health'), onboarded: true}, ...records});
 }
 
@@ -69,12 +70,10 @@ test('funding a EUR Goal: a new cash asset starts in euros with a matching name,
   await sheet.getByRole('button', {name: 'EUR', exact: true}).click();
   await expect(sheet.getByLabel('Asset name')).toHaveValue('EUR Cash');
   await sheet.getByLabel('Cash amount', {exact: true}).fill('200');
-  await sheet.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
-  // Session AL (deliberate; DV-010a/DV-101): a new cash asset's amount is not asked twice; this step counts a different amount.
-  await sheet.getByRole('button', {name: 'Change the amount', exact: true}).click();
-  await sheet.getByLabel('Contribution quantity (EUR)', {exact: true}).fill('200');
+  // Session AO (DV-010c, deliberate): new cash previews from its own form; its amount (200 EUR) is the contribution, asked once.
   await sheet.getByRole('button', {name: 'Preview contribution', exact: true}).click();
   await expect(sheet.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
+  await expect(sheet.locator('.funding-preview .picker-selected h3')).toHaveText(/^200(\.00)? EUR$/);
   await expect(sheet.getByRole('alert')).toHaveCount(0);
 });
 
@@ -138,11 +137,11 @@ test('the Goal wizard: each new step takes focus, so the keyboard and a screen r
   await page.getByLabel(/^Target amount/).fill('500');
   await page.getByRole('button', {name: 'Continue →', exact: true}).click();
   await expect(page.locator('.wizard-content')).toBeFocused();
-  await expect(page.locator('.wizard-content')).toContainText('Step 2 of 4');
+  await expect(page.locator('.wizard-content')).toContainText('Step 2 of 3'); // Session AO (T-014, deliberate): three steps
 });
 
 test('the Showcase says that Load or Reset starts its examples fresh (what is added there is cleared then), and Exit returns to Today', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   // Session AB-Design (owner request 8, persona #5): the tiny chip opens the honest wording (Load again resets; Exit returns to your data) with Exit Showcase / Load again.

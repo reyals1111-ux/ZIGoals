@@ -20,6 +20,7 @@ import {AK_STAGE} from './hosted-alpha-ak.mjs';
 import {AL_STAGE} from './hosted-alpha-al.mjs';
 import {EARN_STAGE} from './hosted-alpha-earn.mjs';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal, todayQuickAdd} from './hosted-alpha-goal-stage.mjs';
+import {openSettingsGroups} from './settings-open.mjs';
 
 export const LIVE_ORIGINS = Object.freeze({alpha: 'https://alpha.zigoals.app', fallback: 'https://zigoals-alpha.reyals1111.workers.dev', apex: 'https://zigoals.app'});
 /** The fictional values no request may carry (the privacy check) and no safe diagnostic summary may show. */
@@ -125,7 +126,7 @@ async function identity(page, {base, expect, report}) {
   await page.waitForURL(url => url.pathname === '/app/help');
   await expect(page.locator('#help-z-about')).toHaveAttribute('open', '');
   await expect(page.locator('#help-z-about')).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
-  await page.goto(base + '/app/settings');
+  await page.goto(base + '/app/settings'); await openSettingsGroups(page);
   await expect(page.locator('.about-alpha')).toContainText('PUBLIC_ALPHA_UNDEPLOYED');
   await expect(page.locator('.about-alpha .network-banner')).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
 }
@@ -144,7 +145,7 @@ async function fictionalGoal(page, {base, expect, report}) {
 
 /** Stage 4: opens Settings (in-app navigation to Settings stays checked in stage 5). */
 async function backupAndDiagnostics(page, {base, expect, report, expectedCommit, reviewedVersions, chainFetcher}) {
-  await page.goto(base + '/app/settings'); await hydrated(page);
+  await page.goto(base + '/app/settings'); await openSettingsGroups(page); await hydrated(page);
   // Session AL (D-236, 54e32039; deliberate): Settings' heading and button are sentence case now ("Export goal data"); either
   // case is accepted, so the verifier reads an Alpha deployed before or after that change.
   const exportData = page.getByRole('button', {name: /^Export goal data$/i});

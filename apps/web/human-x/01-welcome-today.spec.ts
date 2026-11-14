@@ -155,7 +155,8 @@ journey('J012', 'Customize Today: hide and show a widget; reload keeps the choic
   const widget = page.locator('.today-page .placed-module[data-kind="widget"]').first();
   const name = (await widget.getAttribute('data-module')) ?? '';
   await widget.getByRole('button', {name: /^Options for/}).click();
-  await widget.getByRole('button', {name: 'Hide widget'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await widget.getByRole('menuitem', {name: 'Hide widget'}).click();
   await expect(widget).toHaveAttribute('data-hidden', 'true');
   await page.getByRole('button', {name: 'Finish customizing'}).click();
   await page.reload();
@@ -164,7 +165,8 @@ journey('J012', 'Customize Today: hide and show a widget; reload keeps the choic
   const again = page.locator(`.today-page .placed-module[data-kind="widget"][data-module="${name}"]`);
   await expect(again).toHaveAttribute('data-hidden', 'true');
   await again.getByRole('button', {name: /^Options for/}).click();
-  await again.getByRole('button', {name: 'Show widget'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await again.getByRole('menuitem', {name: 'Show widget'}).click();
   await page.getByRole('button', {name: 'Finish customizing'}).click();
   await noSideways(page);
 });
@@ -405,8 +407,9 @@ async function fundWithCash(page: Page, amount: string) {
   const sheet = page.getByRole('dialog', {name: 'Fund your Goal'});
   await sheet.getByRole('button', {name: 'Cash', exact: true}).click();
   await sheet.getByLabel('Cash amount', {exact: true}).fill(amount);
-  await sheet.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AO (DV-010c, deliberate): new cash previews from its own form (two screens, the preview still before any write).
   await sheet.getByRole('button', {name: 'Preview contribution', exact: true}).click();
+  await expect(sheet.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
   await sheet.getByRole('button', {name: 'Confirm & fund Goal', exact: true}).click();
   await expect(sheet).toHaveCount(0);
   await expect(page.getByRole('status').filter({hasText: 'Goal funded.'})).toBeVisible();
@@ -450,12 +453,14 @@ journey('J013', 'Customize Today with the keyboard only: move a widget later, hi
   const options = widget(first).getByRole('button', {name: /^Options for /});
   const title = (await options.getAttribute('aria-label'))!.replace(/^Options for /, '');
   await press(options);
-  await press(widget(first).getByRole('button', {name: `Move ${title} down`, exact: true}));
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await press(widget(first).getByRole('menuitem', {name: `Move ${title} down`, exact: true}));
   await expect(page.locator('.dashboard-save-status')).toHaveText(`${title} moved down. Layout saved on this device.`);
   await expect.poll(order).toEqual([second, first, ...before.slice(2)]);
   await expect(widget(first)).toBeFocused();
   await press(options);
-  await press(widget(first).getByRole('button', {name: 'Hide widget', exact: true}));
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await press(widget(first).getByRole('menuitem', {name: 'Hide widget', exact: true}));
   await expect(widget(first)).toHaveAttribute('data-hidden', 'true');
   await press(finish);
   await expect(widget(first)).toHaveCount(0);
