@@ -2,11 +2,9 @@
 import './settings-fold.css';
 import {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {hashId} from '../../lib/hash-id';
-import {SETTINGS_FOLDS_KEY, SETTINGS_GROUP_IDS, allFolded, foldSummary, foldedAtStart, groupForHash, groupForTarget, loadOpen, openOf, saveOpen, showcaseGroupOpen, type SettingsGroupId} from '../../lib/settings-folds';
+import {SETTINGS_FOLDS_KEY, SETTINGS_GROUP_IDS, foldSummary, foldedAtStart, groupForHash, groupForTarget, loadOpen, openOf, saveOpen, showcaseGroupOpen, type SettingsGroupId} from '../../lib/settings-folds';
 import {PHONE_QUERY} from '../phone/use-phone-layout';
 import {isShowcase} from '../../lib/showcase-storage';
-import {loadShowcase} from '../../lib/showcase';
-import {clearShowcasePhotos} from '../../lib/showcase-storage';
 
 /**
  * Session AL (D-088, N-BN-10, DV-266, D-005, N-BN-05): each of Settings' six groups folds from its heading, and "Fold all"
@@ -143,7 +141,7 @@ export function SettingsFoldGroup({id, title, icon, children}: {id: SettingsGrou
     {isFolded && <p className="settings-fold-summary" id={`${id}-summary`}>{foldSummary(id, {chain})}</p>}
     {/* Session AP (D20): Settings → Load Showcase Demo is a new person's first step (the friends' guide says so), so while the
         group that holds the Showcase card is folded its summary carries the same button (only one is ever visible). */}
-    {isFolded && id === 'settings-app' && !showcaseOn && <p className="settings-fold-quick"><button type="button" className="secondary" disabled={loading} onClick={() => { setLoading(true); void loadShowcase().then(() => clearShowcasePhotos()).then(() => window.location.assign('/app'), () => setLoading(false)); }}>Load Showcase Demo</button></p>}
+    {isFolded && id === 'settings-app' && !showcaseOn && <p className="settings-fold-quick"><button type="button" className="secondary" disabled={loading} onClick={() => { setLoading(true); void import('../../lib/showcase').then(m => m.loadShowcase()).then(() => import('../../lib/showcase-storage')).then(m => m.clearShowcasePhotos()).then(() => window.location.assign('/app'), () => setLoading(false)); }}>Load Showcase Demo</button></p>}
     <div className="settings-fold-body" id={bodyId(id)} ref={body}>{children}</div>
   </div>;
 }
@@ -151,14 +149,16 @@ export function SettingsFoldGroup({id, title, icon, children}: {id: SettingsGrou
 /** "Fold all" / "Open all", at the end of the sticky index row. */
 export function SettingsFoldAll() {
   const {folded, setAll} = useFolds();
-  const all = allFolded(folded);
+  // Session AP (D-088 completed): "Open all" while any group is folded (Settings now starts folded, sometimes with one group
+  // open), "Fold all" once every group is open.
+  const some = folded.size > 0;
   const onClick = () => {
-    setAll(!all);
+    setAll(!some);
     // Folding from far down the page: show the six headings from the first, not the page's clamped end.
-    if (!all) requestAnimationFrame(() => {
+    if (!some) requestAnimationFrame(() => {
       const first = document.getElementById(SETTINGS_GROUP_IDS[0]);
       if (first && first.getBoundingClientRect().top < 0) first.scrollIntoView({block: 'start'});
     });
   };
-  return <button type="button" className="quiet settings-fold-all" aria-controls={SETTINGS_GROUP_IDS.map(bodyId).join(' ')} onClick={onClick}>{all ? 'Open all' : 'Fold all'}</button>;
+  return <button type="button" className="quiet settings-fold-all" aria-controls={SETTINGS_GROUP_IDS.map(bodyId).join(' ')} onClick={onClick}>{some ? 'Open all' : 'Fold all'}</button>;
 }

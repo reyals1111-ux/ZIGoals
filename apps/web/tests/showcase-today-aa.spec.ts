@@ -57,13 +57,15 @@ test('arranging Today: the chooser turns a card off and on, kept on this device,
   await expect(updates.locator('#for-you-life-review')).toHaveCount(0);
 });
 
-test('a new device: no cards until chosen; the chooser offers all six', async ({page}) => {
+test('a new device: no cards until chosen; the chooser offers all seven', async ({page}) => {
   await page.goto('/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(cards(page)).toHaveCount(0);
   await page.getByRole('button', {name: /Customize Today/}).first().click();
   const chooser = page.getByRole('group', {name: 'Cards kept on this device'});
-  await expect(chooser.getByRole('button')).toHaveCount(6); // Session AK Part 8.2: the Daily orbit card joined the four; owner follow-up 1 (BUILD list 2 #5): Your first week
+  // Session AP (Part 6, deliberate): "Days until" (the countdowns) joined them (was 6).
+  await expect(chooser.getByRole('button')).toHaveCount(7);
+  await expect(chooser.getByRole('button', {name: /Days until/})).toHaveAttribute('aria-pressed', 'false'); // Session AK Part 8.2: the Daily orbit card joined the four; owner follow-up 1 (BUILD list 2 #5): Your first week
   for (const b of await chooser.getByRole('button').all()) await expect(b).toHaveAttribute('aria-pressed', 'false');
   expect(await page.evaluate(() => localStorage.getItem('zigoals:today-cards:v1'))).toBeNull();
 });
