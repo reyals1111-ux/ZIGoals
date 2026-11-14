@@ -14,7 +14,9 @@ const motionOff = () => { try { return localStorage.getItem(MOTION_PREFERENCE_KE
  * deleted. Nothing is sent, stored or requested here.
  */
 export function SendFeedback() {
-  const [add, setAdd] = useState(false), [details, setDetails] = useState<string | null>(null), id = useId();
+  const [add, setAdd] = useState(false), [details, setDetails] = useState<string | null>(null), [copied, setCopied] = useState(''), id = useId();
+  // Session AP (friends Alpha): the same previewed block can be copied, for a message in another app or a form.
+  const copy = () => { const text = (details ?? '').trim(); if (!text) { setCopied('There is nothing to copy: the details are empty.'); return; } void navigator.clipboard?.writeText(text).then(() => setCopied('Copied. Paste it wherever you write to us.'), () => setCopied('This browser did not allow copying. Select the text above and copy it yourself.')); };
   const toggle = (on: boolean) => { setAdd(on); if (on && details === null) setDetails(deviceDetails(readFeedbackEnvironment(motionOff()))); };
   return <div className="send-feedback">
     <p>Something confusing, broken or missing? We&rsquo;d love to hear it.</p>
@@ -23,9 +25,10 @@ export function SendFeedback() {
       <label htmlFor={`${id}-details`}>Device details: edit or delete anything before you send</label>
       <textarea id={`${id}-details`} value={details ?? ''} onChange={event => setDetails(event.target.value)} rows={6} maxLength={DETAILS_MAX} spellCheck={false} autoComplete="off"/>
       <SecretGuard text={details ?? ''} onRemove={() => setDetails('')} leaves/>
+      <p className="send-feedback-copy"><button type="button" className="secondary" onClick={copy}>Copy these details</button> <span role="status" aria-live="polite">{copied}</span></p>
     </div>}
     <p><a className="primary send-feedback-mail" href={feedbackHref(APP_VERSION_LABEL, add ? details : null)}>Email feedback to {FEEDBACK_ADDRESS}</a></p>
-    <p className="fine">Your mail app opens with the email; nothing is sent until you send it there. ZIGoals adds the app version and, only if you ticked the box, the details above: no account or device id and none of your records. Please leave out codes, your recovery secret, and personal money or health details.</p>
+    <p className="fine">Your mail app opens with the email; nothing is sent until you send it there. ZIGoals adds the app version and, only if you ticked the box, the details above (browser, system, window and screen size, theme, motion, time zone): no account or device id and none of your records. Please leave out codes, your recovery secret, and personal money or health details.</p>
     {/* Session AD (Part 1): the footer's "Private security contact" lives here now, by the same name. */}
     <p className="send-feedback-security">Found a security problem? Write privately: <a className="text-link" href={`mailto:${SECURITY_ADDRESS}`} aria-label={`Private security contact: ${SECURITY_ADDRESS}`}>Private security contact · {SECURITY_ADDRESS}</a></p>
   </div>;

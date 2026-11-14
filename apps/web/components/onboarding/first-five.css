@@ -1,0 +1,11 @@
+/* Session AP (friends Alpha): Today's "Your first five" (components/onboarding/first-five.tsx). 15–16 px words, 44 px rows. */
+.first-five { display: grid; gap: 10px; }
+.first-five h2 { margin: 0; }
+.first-five-steps { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.first-five-steps li { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.first-five-steps li > span:last-child { display: grid; gap: 2px; }
+.first-five-steps strong { font-size: 16px; }
+.first-five-steps small { font-size: 15px; color: var(--text-meta, #c2d0e5); }
+.first-five-mark { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--cyan, #6fd3ff) 70%, transparent); font-size: 15px; }
+.first-five-steps li[data-done] .first-five-mark { background: color-mix(in srgb, var(--cyan, #6fd3ff) 26%, transparent); }
+.first-five-close { justify-self: start; min-height: 44px; font-size: 15px; }
