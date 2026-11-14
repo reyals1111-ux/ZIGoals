@@ -237,6 +237,22 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
 - **D11 (route weights after Parts 2 and 4b):** shell 435.1 → 437.4 kB took four pages over (roving + the rule core +
   chunk overhead); the sidebar's roving code and the rule's reader now load on demand: shell 435.5; every page under its
   budget (goals 476.7/478, settings 530.1/531, agenda 484.1/485, tasks 467.4/468). No budget changed.
+- **D12 (Part 4a, launchers fold into the edge):** `components/launchers/auto-tuck.ts` (loaded after the page shows) reads, on
+  scroll/resize at most once a frame and three times after load, two points per launcher with `elementsFromPoint`; content
+  = a control, text, an image, or a box narrower than 90 % of `#main`. The root attribute changes only after the new state
+  has held 150 ms. CSS slides the column 40 px with the `translate` property (each launcher's own transforms untouched; the
+  centre stays inside the window so every button can still be pressed); `:hover` and `:focus-within` bring it back; no
+  transition under Motion Off or reduced motion; computers only, right side only (side=left untouched); the person's own
+  "tuck away" edge tabs are separate and unaffected. Spec: `tests/ap/launcher-tuck.spec.ts` (fold over Today at 1440, no
+  two changes within 150 ms during a frame-by-frame scroll, focus kept, reduced motion, phones none).
+- **D13 (Part 4c, Bento):** "Layout: List · Bento" (one radio group; its name for assistive tech, 44 px tall) before the lock
+  on Today, Goals, Habits, Health and Wealth, computers only, its own chunk. Bento = the page's main region's cards as tiles
+  (`auto-fill` 340 px columns, `dense`; Today 260 px beside its rail, its cards' own full-row spans reset; the first two
+  large from 1280 px). Today's hero is the same box in both views (spec). Remembered per page in `zigoals:bento:v1`
+  (localStorage, display convenience, erase NOT_RECORDS). AO's header spec now also checks the switch's place.
+- **D14 (verification method):** from Part 4 on, the integrator commits its own files and builds that commit in a separate
+  worktree (`/home/user/ZIGoals-wt`), so the helpers' unfinished files never enter a build and every pushed commit is known
+  to compile on its own (the lesson of c7e77e55).
 
 ## Closing table
 (filled at Part 7)
