@@ -30,7 +30,7 @@ test('This evening: for tonight only, its day untouched; tomorrow the task is ba
   await page.clock.setSystemTime(new Date(`${TOMORROW}T09:00:00Z`));
   await page.reload(); await hydrated(page);
   await expect(page.getByText('Nothing on this evening’s list yet. Choose a task below.')).toBeVisible();
-  await nav(page).getByRole('button', {name: 'Today', exact: true}).click();
+  await nav(page).getByRole('button', {name: /^Today( \d+)?$/}).click();
   await expect(page.locator('#task-ap-rent')).toBeVisible();
 });
 

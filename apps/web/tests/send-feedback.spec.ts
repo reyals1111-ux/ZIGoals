@@ -53,7 +53,9 @@ test('Help: details only when ticked, shown in full, the person\'s to edit, and 
   await expect(details).toBeVisible();
   const text = await details.inputValue();
   for (const line of [/^Browser: \S.*$/m, /^System: \S.*$/m, /^Window: \d+ × \d+ px, pixel ratio [\d.]+$/m, /^Motion: follows the device; the device asks for reduced motion: (yes|no)$/m, /^Installed app: no, in a browser tab$/m, /^Time zone: Europe\/Brussels$/m]) expect(text).toMatch(line);
-  expect(text.split('\n')).toHaveLength(6);
+  // Session AP (friends Alpha, deliberate): three more coarse lines (was 6): the build, the theme and the screen, each by its shape.
+  for (const line of [/^App: \S.*$/m, /^Theme: (Nebula|Light|Dark)$/m, /^Screen: \d+ × \d+ px$/m]) expect(text).toMatch(line);
+  expect(text.split('\n')).toHaveLength(9);
   expect(await body(page, section)).toContain(`Device and browser:\n${text}\n\nApp version: `);
   // Edited, the email carries exactly the person's words; unticked, none of them.
   await details.fill('Browser: mine\nTime zone: not saying');
@@ -109,7 +111,9 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Owner decision 6 (ADR-036, deliberate): Earn's first load, accepted with its measurement (was 33), checked by its words.
   // Session AK Part 13 (ADR-036, deliberate): Studio-4's three "to polish later" items (was 34), each checked by its words.
   // Owner decision 7 (ADR-036, deliberate): ZIGi's box on Safari at the moment it opens (was 37), checked by its words.
-  await expect(items).toHaveCount(38);
+  // Session AP (14 Nov, deliberate): six more for this release (was 38), each checked by its words below.
+  await expect(items).toHaveCount(44);
+  for (const words of ['Weather isn’t on.', 'Mood tags, symptoms and run splits stay private like Health:', 'The Bento view and the buttons that step aside are for computers;', 'Someday tasks also show in Inbox and All,', 'The activity orbits are on Health only;', 'Money insights need history:']) await expect(section).toContainText(words);
   await expect(section).toContainText('On Safari, words typed into ZIGi’s box at the very moment it opens might be lost');
   for (const words of ['ZIGi’s hide move, when you dismiss its knock, always leaves to the right', 'In a browser that can’t play animated WebP, ZIGi’s moves use a fallback at 12 frames a second', 'A few of ZIGi’s new moves aren’t used yet: its glances (at the chat box, at you, at something on the page) and its hello without walking in']) await expect(section).toContainText(words);
   await expect(section).toContainText('Earn takes a few seconds to settle on a slower phone: on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds');

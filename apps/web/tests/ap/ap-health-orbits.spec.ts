@@ -10,7 +10,11 @@ test('the steps orbit follows the daily step target, in words; no calories and n
   await expect(card).toContainText('6,000 of 8,000 steps today');
   await expect(card).toContainText('75% of the way');
   await expect(card).toContainText('Your daily step target (Health → Targets)');
-  await expect(card).not.toContainText(/kcal|calorie|\bMove\b|\bExercise\b|\bStand\b/i);
+  // No calories, and never another app's ring names as names (the plain word "exercise" in a sentence is fine).
+  // No calorie figure (the card says, in words, that none is estimated).
+  await expect(card).not.toContainText(/\d[\d,.]*\s*(kcal|cal\b|calories)/i);
+  await expect(card).toContainText('No calories are estimated.');
+  await expect(card).not.toContainText(/\b(Move|Exercise|Stand)\b/);
   // One planet per goal, side by side: never nested rings.
   await expect(card.locator('.ap-orbit svg')).toHaveCount(1);
 });

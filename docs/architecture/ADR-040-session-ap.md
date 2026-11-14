@@ -253,6 +253,21 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
 - **D14 (verification method):** from Part 4 on, the integrator commits its own files and builds that commit in a separate
   worktree (`/home/user/ZIGoals-wt`), so the helpers' unfinished files never enter a build and every pushed commit is known
   to compile on its own (the lesson of c7e77e55).
+- **D15 (Part 5, Send feedback's place):** feedback stays one tap from Help (#feedback) and Settings → Help & diagnostics.
+  It is not added to the phone's More list (AO's one list for More and its preview, DV-274, pinned by specs) nor to the
+  Alpha notice (a TIER 3 public-safety label the hosted verifier reads). The details add App, Theme and Screen; "Copy these
+  details" copies the previewed text. Today's What's new card keeps its release (shared with the NOVA lane); Help's What's
+  new lists this release's nine answers first (additive), and Known limitations gains six honest lines (14 Nov).
+- **D16 (Part 6, carried):** (a) the priority matrix's mouse drag is not confirmed in headless Chromium after two attempts
+  (dragTo, then a stepped mouse drag); the per-card move button (keyboard, touch) is verified; the drag test is not kept.
+  (b) The orbits as a Today widget: a new widget kind would change the strict synced settings record (older builds refuse
+  it); the orbits are on Health. (c) Someday tasks also show in Inbox/All and the menu shows no counts for the new lists
+  (counting them would put the record's code in /app/tasks' first scripts, 0.2 kB from its budget).
+- **D17 (Part 6, spec expectations moved, deliberate):** AO's send-feedback spec now expects nine detail lines (each new one
+  by its shape) and 44 limitations (each new one by its words); the GPX limit line says what is still true (older runs keep
+  their summary).
+- **D18 (Part 6 weights):** every page under its budget after all 17 features (production build of 060fb196): health
+  529.3/531, wealth 504.1/512, journal 454.2/458, agenda 484.5/485, tasks 467.8/468, shell 435.7/447. No budget changed.
 
 ## Closing table
 (filled at Part 7)

@@ -18,7 +18,7 @@ test('a GPX run comes in with its pace and splits; a file with a DOCTYPE is a fi
   const preview = page.getByRole('group', {name: 'What this file holds'});
   await expect(preview).toContainText('Pace');
   await preview.getByRole('button', {name: 'Add workout'}).click();
-  await page.getByText('Fictional park run', {exact: true}).click();
+  await page.getByRole('region', {name: 'Your workouts'}).getByText('Fictional park run', {exact: true}).click();
   await expect(page.getByRole('table', {name: /Splits of Fictional park run/})).toBeVisible();
   const splits = await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:workout-splits:v1') ?? 'null'));
   expect(Object.values(splits.workouts as Record<string, {splits: unknown[]}>)[0]!.splits).toHaveLength(3);

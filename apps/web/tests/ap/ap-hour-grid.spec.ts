@@ -38,7 +38,7 @@ test('the grid loads on demand; "Move to…" gives a task a time; the load count
   const moved = await task(page, 'ap-report');
   expect([moved.due, moved.time, moved.title]).toEqual([TODAY, '14:00', 'Fictional report draft']);
   // Undo puts the task back without a time.
-  await page.locator('.aa-toast').last().getByRole('button', {name: 'Undo'}).click();
+  await page.getByRole('status').filter({hasText: 'Moved “Fictional report draft”'}).getByRole('button', {name: 'Undo'}).click();
   await expect.poll(async () => (await task(page, 'ap-report')).time).toBeUndefined();
 });
 
