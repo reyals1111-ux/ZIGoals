@@ -319,11 +319,24 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   later, by a same-page address change, left its group folded (zigi-part-boundary, zigi-memory): every jump (arrival, link,
   router, back and forward) now opens its group, waiting for a late target; (d) specs that seed records and then use
   Settings open its groups (LS-025 and seven more of the same shape). **Budget:** after four weight passes on Settings this
-  session, the jump fix left `/app/settings` 31 bytes over; its line is raised by exactly that (531,000 → 531,031 bytes),
-  as the owner's rule allows (≤ 2 kB, the exact overage, reason here). No other line moved.
+  session, the jump fixes (the late target, then the router's redraw below) left `/app/settings` 122 bytes over; its line is
+  raised by exactly that (531,000 → 531,122 bytes), as the owner's rule allows (≤ 2 kB, the exact overage, reason here). No
+  other line moved.
+
+- **D24 (CI 1726 fallout, the complete run after D20 and Part 6):** (a) **Bento's switch moved** from the header cluster to
+  "Arrange this page" (the bar the layout lock opens): in the header it pushed the lock onto a second line at 1280 on Habits
+  (ui-design-pass Part 18.4) and made the header hide its honesty mode strip on Today (honesty-banners). A part that draws
+  nothing stays with the lock and applies the chosen layout; Help, FRIENDS_GUIDE and the demo tour say "Unlock layout →
+  Layout: List · Bento"; header-consistency is back to AO's version. (b) **A same-page Settings jump** (a fragment typed or
+  a link while on Settings) is answered by Next's router drawing Settings again without the fragment; the jump is now kept
+  for the redrawn page (3 s), so its group opens (zigi-part-boundary, zigi-memory, bn-022, bn-114, se2, j06, customize-aj).
+  (c) The activity list's links lost the tablet 44 px rule (`a:not([class])`) when the roving group gave them a class; the
+  group now finds them by position. (d) **Deliberate spec moves:** the sidebar Tab-order specs (page-marks,
+  release-review-2-p2) walk the roving groups (Tab in, Home, arrows; every item still checked in order); run9-2 lists
+  Settings' open groups as a display choice beside Markets' view; seeded specs that reload open Settings' groups.
 
 ## Closing table
-Totals (counted by item, not by row): Fixed 27 · Built 30 · Holds (replayed, already right, now tested) 22 · Owner decision 5 · Not possible 4 · Carried 16.
+Totals (counted by item, not by row): Fixed 30 · Built 30 · Holds (replayed, already right, now tested) 22 · Owner decision 5 · Not possible 4 · Carried 16.
 
 | Area | Row | Outcome | Evidence / cause |
 |---|---|---|---|
@@ -374,3 +387,6 @@ Totals (counted by item, not by row): Fixed 27 · Built 30 · Holds (replayed, a
 | CI 1726 | Health and Wealth phone length | Fixed | D23b (no ceiling moved) |
 | CI 1726 | late Settings jump (zigi-part-boundary, zigi-memory) | Fixed | D23c |
 | CI 1726 | LS-025 and seeded Settings specs | Fixed | D23d |
+| CI 1726 | Bento switch in the header (lock on a second line, mode strip hidden) | Fixed | D24a (moved to "Arrange this page") |
+| CI 1726 | same-page Settings jumps redrawn by the router | Fixed | D24b |
+| CI 1726 | activity links under 44 px on a tablet | Fixed | D24c |
