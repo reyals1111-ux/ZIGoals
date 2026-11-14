@@ -1,5 +1,43 @@
-# Session AP — "READY FOR FRIENDS" (ADR-040) (2026-11-14, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO + AP"; Draft, in progress, not merged, not deployed)
-**Base:** Session AO's head `ca2678d7` on `main` `c65882f3` (PR #101 not merged at the start). **Rules (owner):** the brief, one plan approval (14 Nov) with five additions, verbatim in `docs/architecture/ADR-040-session-ap.md`. Resume file: `docs/handoff/AP_RESUME.md`. The full entry replaces this header as the session's final commit.
+# Session AP — "READY FOR FRIENDS" (ADR-040) (2026-11-14, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO + AP"; Draft, complete, not merged, not deployed)
+**Base:** Session AO's head `ca2678d7` on `main` `c65882f3`. PR #101 (AM-2) was still open and unmerged at the start and again before this entry, so no main merge was needed (owner addition 5). **Rules (owner):** the brief, one plan approval (14 Nov) with five additions, verbatim in `docs/architecture/ADR-040-session-ap.md` (decisions D1–D24, closing table). Resume file: `docs/handoff/AP_RESUME.md`. Demo: `docs/handoff/AP_DEMO_TOUR.md`.
+
+## Parts and their commits (`git log ca2678d7..HEAD`; never rebased, merge commits only)
+| Part | What | Key commits |
+|---|---|---|
+| 0 | records: ADR-040 with the plan and the five additions, AP_RESUME, this header | `7f3c8080` |
+| 1 | CI 1706 at its causes (skip-link list, the quiet card beside the launchers, ZIGi's Send, hydration waits); every route under budget, none raised | `c8063d86`, `c7e77e55` |
+| 2 | what AO left: Settings folded by default (one shared helper; deep links open their group; "Your app" open on a new device and in the Showcase), Today at 89 Tab stops (roving groups), the review step's order, the D17 minors | `51a1b603`, `dbd55e36`, `ac77bdd2`, `169aa0ba`, `bd1fcdff` |
+| 3 | the "needs a service" rows replayed against the repo's own routes and Workers with recorded upstreams (API 15/15, browser 17/17); one real bug fixed (a staking line's raw status and float rate) | `1479d304`, `7e24a448`, `126463bd` |
+| 4 | owner decisions: **a** launchers step aside (hysteresis 150 ms, never move the focus, Motion Off); **b** TIER 3 stored format "A day counts as done at N" (`zigoals:day-goal:v1`, off = the Checklist rule exactly, never re-counts a past day); **c** optional Bento view (chosen in "Arrange this page") | `790fe0f9`, `4450b936`, `0e016bf5` |
+| 5 | friends Alpha: Send feedback's details (app, build, browser, screen, theme; copy), What's new and Known limitations, "Your first five" on Today; FRIENDS_GUIDE, FRIENDS_ALPHA_CHECKLIST, FINAL_ACCTEST_REDEPLOY, Stage 8 run-sheet, `docs/friends-alpha/OWNER_STEPS.md`; TIER 3 Workers `workers/weather-proxy` (OFF until deployed; runbook) | `c66b65c9`, `6e09554e`, `700203ec` |
+| 6 | 17 of the 18 approved features (hour grid, This evening/Someday, priority matrix, countdowns, journal numbers, cash flow/trend/payees, money tags, Ready to assign, age of money, spending pace, bill changes, mood tags, symptoms, orbits, trends, run splits, copy a meal, food-logging days); six additive records, TIER 3 stored format, in every registry | `060fb196`, `4da1d293` |
+| 7 | security delta (D21: no Critical/High; Medium and Lows fixed, TIER 3 `d66bdd9f`), UX review (D22: the Bento Blocker and five Majors fixed), TIER 3 release verifier (`6af92530`, behaviour-preserving), demo tour, closing table; CI 1726 fallout (D23, D24) | `2efd76d4` … `313cff99` |
+
+## Closing table (ADR-040)
+Fixed 31 · Built 30 · Holds 22 · Owner decision 5 · Not possible 4 · Carried 16 (counted by item). Carried, with cause: the priority matrix by mouse drag (not confirmed headless), orbits as a Today widget (the strict synced settings record), Someday counts in the menu (weight), seven UX copy/visual minors and CSV Value/Unit (next pass), three first-sighting CI intermittents (earn-guide-zigi:54, zigi-voice-z:316, j06-data-safety:140, one re-run each).
+
+## Tier 3, in plain words (risk → rollback)
+- **Stored formats** (`790fe0f9`, `060fb196`): seven additive device records (`day-goal`, `task-when`, `mood-tags`, `symptoms`, `money-tags`, `workout-splits`, `countdowns`), each in Export everything, backup format 4, restore, erase and the catalog; older builds ignore them; mood tags and symptoms are health-type and never read by ZIGi or NOVA (owner addition 1). → Revert; the keys are ignored.
+- **Workers** (`c66b65c9`, `d66bdd9f`): `workers/weather-proxy` (MET Norway, caches to Expires, If-Modified-Since, identifies the app, hides the person's IP, per-IP and global limits); not bound, not routed, no app client. → Delete the folder.
+- **Release verifier** (`6af92530`): opens Settings' groups when folded; passes on #54 and this head; the deploy workflow file is unchanged. → Revert.
+- **CI** (`f3cd2a54` … `313cff99`): the Settings line was raised and then put back to 531,000 (owner rule O3); no budget changed in the end.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries a `Session AP (…, deliberate)` comment: Settings reached through one helper (`tests/settings-open.ts`, opening groups as a person does), the sidebar Tab-order specs walking the roving groups (every item still checked in order), Help's What's new (12 → 21) and in-sentence links (72 → 74), A10-10 finding "Open all / Fold all" by its words, run9-2 allowing the opened groups as a display choice, the launcher spec (pointing no longer brings a tucked launcher back), the Bento spec (the switch in "Arrange this page"), 125 seed visits waiting for the page to be live. 15 fenced specs touched by Part 2's move were restored byte for byte (D20c).
+
+## Evidence (final code head)
+- **Local:** tsc clean; eslint 0 errors; vitest 10,330 passed (6 failures are this sandbox's Node 22 baseline, as in AO); theme sheets `--check` clean; **frozen readers #37–#54 PASS**.
+- **Production build, Chromium (2 workers):** the 41 CI-1726 failing files plus AP, AO and Settings specs: 640 + 299 passed, 0 failed locally; Bento 7/7; the first five 17 s at test pace; service rows 17/17 (`AP_SERVICE_ROWS=1`); weather proxy 17/17.
+- **Route weights (gzip -6):** every page under its budget, none raised; Settings 530,803 of 531,000.
+
+## CI on the final head
+[Run 1741](https://github.com/reyals1111-ux/ZIGoals/actions/runs/43610966867) on `313cff99` (the final code head): **21 of 23 jobs green on attempt 1** (checks, contract, integration, the Alpha gate, all three a11y shards, 11 of 12 main shards, 3 of 4 WebKit shards). The two reds are first sightings, each given one re-run: `zigi-memory:175` (WebKit desktop; the shard's dmesg shows a WPEWebKit compositor segfault, class B) is **green on its re-run**; `checklist-launcher:66` (the mark's one-time draw read under load; 12/12 locally) re-run in progress at this writing. This docs-only entry's own run follows on the final head.
+
+## Owner list (merge, deploy, friends Alpha)
+1. Review PR #102 (Draft; AN + AO + AP). PR #101 (AM-2) is still open: both touch `scripts/hosted-alpha-stages.mjs` (stage 13 there, the Settings-group opening here), so whichever merges second takes a merge of `main` (both sides' registry entries, theme sheets regenerated, WebKit shard lists).
+2. Merge, then deploy Alpha #55 from `main` through the Manual Alpha workflow (docs/deployment/MANUAL_ALPHA_WORKFLOW.md); add #55 to the frozen readers.
+3. Friends Alpha: `docs/friends-alpha/OWNER_STEPS.md` (13 ordered steps with times). The weather proxy stays off until you deploy it (`docs/run11/WEATHER_PROXY_ACTIVATION.md`); the app client is the NOVA lane's.
+4. For AM-2: mood tags and symptoms stay out of ZIGi/NOVA until wired behind the Health switches (Q14/Q16); the weather client goes through the proxy.
 
 # Session AO — "EVERYTHING LEFT" (ADR-039) (2026-11-13, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO"; Draft, complete, not merged, not deployed)
 **Base:** Session AN's head `2af55a26` on `main` `c65882f3`. **Rules (owner):** the brief, one plan approval (13 Nov) with two stored-data rules, verbatim in `docs/architecture/ADR-039-session-ao.md`. Resume file: `docs/handoff/AO_RESUME.md`. Demo tour: [`docs/handoff/AO_DEMO_TOUR.md`](handoff/AO_DEMO_TOUR.md).
