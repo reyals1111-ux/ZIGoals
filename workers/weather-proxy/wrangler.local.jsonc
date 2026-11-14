@@ -1,0 +1,23 @@
+{
+  // Local only (docs/run11/WEATHER_PROXY_ACTIVATION.md). No deploy workflow reads this file; the owner deploys a private
+  // copy (*.alpha.owner.jsonc, gitignored) from their own machine. APP_ORIGIN is a local placeholder.
+  "$schema": "../../apps/web/node_modules/wrangler/config-schema.json",
+  "name": "zigoals-weather-proxy-local",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-13",
+  "durable_objects": {
+    "bindings": [
+      { "name": "WEATHER_LIMIT", "class_name": "WeatherLimit" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["WeatherLimit"] }
+  ],
+  "vars": {
+    "APP_ORIGIN": "http://127.0.0.1:3110",
+    "MET_USER_AGENT": "ZIGoals/alpha https://zigoals.app contact@zigoals.app"
+  },
+  "observability": { "enabled": false },
+  "workers_dev": false,
+  "preview_urls": false
+}
