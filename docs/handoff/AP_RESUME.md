@@ -23,11 +23,13 @@ usage pause (weekly reset Sunday): read this file, then the next row below.
 | 4 owner decisions a–c | done | 790fe0f9 (b), 4450b936 (a, c) | — |
 | 5 friends Alpha + weather proxy | done | c66b65c9, 700203ec, Part 5 commits | — |
 | 6 competitor features (18) | 17 built (060fb196, 4da1d293); 1 carried (D16) | | — |
-| 7 reviews, tour, closing, STATUS | in progress: reviews running, tour written | | review fixes, closing table, CI on the final head, STATUS last |
+| 7 reviews, tour, closing, STATUS | reviews fixed (D21, D22), tour written, closing table final | 91dbf68f, d66bdd9f, 2efd76d4 … 05c729ee | CI on the final head, PR #101 check, STATUS last |
 
 ## Local notes
 - Sandbox Node 22 (CI 24.19.0); WebKit not installable here: WebKit rows fixed from logs/spec reading, proven in CI.
 - Production build at :3101 for local browser runs.
 
-## State (14 Nov, 09:00 UTC)
-Head pushed through 5e6dccb6. Worktree build method (ADR-040 D14). Next: fix the reviews' findings, watch CI on the newest head, closing table, check PR #101 before the STATUS commit (owner addition 5).
+## State (14 Nov, 10:20 UTC)
+Head pushed through the ADR-040 D22 commit. Security (D21) and UX (D22) reviews fixed; Bento crash found and fixed
+(2c86e8e1). Next: watch CI on the newest head (≤ 2 attempts per red, one re-run for a known intermittent), check PR #101
+before the STATUS commit (owner addition 5), then the STATUS entry as the final commit and the owner report.

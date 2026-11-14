@@ -292,8 +292,26 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   the weather cache's synthetic path holds a public forecast. AI isolation of the health-type records confirmed (no
   import in lib/ai, components/ai, lib/nova, components/nova). The hosted verifier change confirmed behaviour-preserving.
 
+- **D22 (Part 7, UX review, fresh reviewer: fresh profile + Showcase, 1440 and 390, Nebula/Light/Dark):** one Blocker,
+  five Major, several Minor. **Blocker (Bento):** cards that hold their own multi-column grid (goal cards, holdings, habit
+  cards) were squeezed into 340 px tiles. Fixed (2efd76d4, 4a5a6736, 2c86e8e1, 5a97ff13): the page's own header and every
+  card with its own grid keep the whole row (marked by the switch, measured in the list layout and again once the page
+  settles); only self-contained cards become tiles (480 px, 300 px on Today); the spec checks no card under 300 px, no
+  overlap, the header's width kept, side by side on Today/Habits/Health. While fixing it, reading a grid's columns inside a
+  closed `<details>` (not rendered) crashed Chrome 153's renderer on Goals and Wealth: Bento now asks only laid-out grids,
+  and the tile grid is marked by the switch (no `:has()` over the page). **Major, fixed:** Budgets' Remove wrapped
+  (nowrap); Wealth's chip row cut at 1440 (gap/padding); Earn's path labels at 390 (wrap, scoped); the two "Keep an
+  average" hints (one now; `life-p15b` spec updated on purpose); a skipped setup now leads to the first five (its links
+  44 px; on a phone the meal step opens the meal sheet). **Minor, fixed:** day-goal select width; Today's Showcase card count
+  in `showcase-today-aa` (seven, with Countdowns). **Minor, carried (copy/visual calls for the next pass, no defect):**
+  Health's fold label repeated as the section heading; the category sparkline with fewer than three months; Age of money's
+  explanation order; Agenda by-hour checkbox contrast in Nebula (passes 3:1 for non-text, reviewer asked for more);
+  the "YOUR APP" eyebrow repeated in Settings; Help's "bill changes"/"trends" words vs the cards' "Price changes"/"Trends";
+  the Showcase has no examples yet for mood tags, symptoms, run splits and bill changes; CSV import's Value/Unit as two
+  fields (`weight-csv-import`).
+
 ## Closing table
-Totals: Fixed 14 · Built 30 · Holds (replayed, already right, now tested) 22 · Owner decision 4 · Not possible 4 · Carried 8.
+Totals (counted by item, not by row): Fixed 24 · Built 30 · Holds (replayed, already right, now tested) 22 · Owner decision 4 · Not possible 4 · Carried 16.
 
 | Area | Row | Outcome | Evidence / cause |
 |---|---|---|---|
@@ -309,7 +327,8 @@ Totals: Fixed 14 · Built 30 · Holds (replayed, already right, now tested) 22 �
 | AO D17 | wizard review order | Fixed | summary first, rhythm fold after (51a1b603) |
 | AO D17 | squashed checkboxes | Fixed | global min-width + flex none |
 | AO D17 | Perfect weeks list unlabeled | Fixed | named list, counts named |
-| AO D17 | Wealth chips 1440, Earn path labels 390, two average hints, CSV Value/Unit | see UX review | (Part 7 UX pass) |
+| AO D17 | Wealth chips 1440, Earn path labels 390, two average hints | Fixed | D22 (2efd76d4) |
+| AO D17 | CSV Value/Unit as their own fields | Carried | D22 minor list (copy/field change for the next pass) |
 | AO D16 | BN-022, D-003, D-090, DV-170 | Owner decision | copy/visual calls, unchanged |
 | Service rows | TK 'Current' badge, D-262, D-200, TK-6B-06, TK "Unformatted prices", M10, TK-203, W15, D-052, D-079, D-176, C-DVG-35, MO-007, C-MO-01, C-BN-01, C-DVG-67, C-BN-05, C-DVG-69, C-BN-11, C-BN-12, BN-081, N-BN-17 | Holds | replayed on screen against the real routes/Workers with recorded upstreams (D19) |
 | Service rows | C-BN-06 | Fixed | the validator line's raw status code and float rate (7e24a448) |
@@ -332,3 +351,10 @@ Totals: Fixed 14 · Built 30 · Holds (replayed, already right, now tested) 22 �
 | Part 6 | orbits as a Today widget | Carried | strict synced settings record (D16b) |
 | Part 6 | Someday counts in the menu | Carried | weight (D16c) |
 | Fence | 15 fenced specs touched by the Part 2 move | Fixed | restored byte for byte (D20c) |
+| UX review | Bento squeezes gridded cards (Blocker) | Fixed | D22 (2efd76d4, 4a5a6736, 2c86e8e1, 5a97ff13) |
+| UX review | Chrome renderer crash reading an unrendered grid (found while fixing) | Fixed | D22 (2c86e8e1) |
+| UX review | Budgets' Remove wraps | Fixed | D22 (2efd76d4) |
+| UX review | skipped setup did not lead to the first five | Fixed | D22 (2efd76d4) |
+| UX review | first five on a phone: meal step | Fixed | D22 (2c86e8e1) |
+| UX review | day-goal select width; Today Showcase card count | Fixed | D22 |
+| UX review | seven copy/visual minors (CSV Value/Unit has its own row) | Carried | D22 list (no defect; next pass) |
