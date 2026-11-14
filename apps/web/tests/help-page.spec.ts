@@ -223,7 +223,7 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
     }
     return out;
   });
-  await expect.poll(async () => (await measure()).inline, {timeout: 15_000}).toBe(72);
+  await expect.poll(async () => (await measure()).inline, {timeout: 15_000}).toBe(74);
   const {small, inline, stranded, tall} = await measure();
   expect(small).toEqual([]);
   // Gate C test audit (equal strength restored): the exemption covers exactly the in-sentence links Help has today, so a
@@ -239,7 +239,9 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // Session AL Part 15 (GAP-178, C-DVG-90, deliberate; 2f4f3d9e): the new "Every published version, newest first" section
   // links "What’s new" inside its sentence, and each listed release's "Read more" follows its title and " · " in the same
   // line of text (nine of the ten releases have a Help section): ten more in-sentence links (62 → 72).
-  expect(inline).toBe(72);
+  // Session AP (deliberate): the new answers for the Journal's numbers and the Agenda's hour grid link the Journal and Tasks
+  // inside their sentences (72 → 74).
+  expect(inline).toBe(74);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });
