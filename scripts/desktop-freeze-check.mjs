@@ -18,6 +18,7 @@ import { createRequire } from "node:module";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
+import {openSettingsGroups} from './lib/settings-open.mjs';
 
 export const FIXED_TIME = "2026-09-30T10:00:00.000Z";
 /** The device-only first-run flag (apps/web/lib/onboarding.ts). */
@@ -191,7 +192,7 @@ export async function capture({ base, out, only }) {
       const { context, page } = await openContext(browser, origin, size, { seedOnboarding: true });
       page.on("pageerror", error => errors.push(`${size.name} ${state}: ${error.message}`));
       if (state === "showcase") {
-        await page.goto(`${origin}/app/settings`);
+        await page.goto(`${origin}/app/settings`); await openSettingsGroups(page);
         await page.getByRole("button", { name: "Load Showcase Demo", exact: true }).click();
         await page.waitForURL("**/app");
         await setShowcaseLauncher(page, true);

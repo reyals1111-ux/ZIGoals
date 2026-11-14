@@ -14,7 +14,12 @@ export async function openSettings(page: Page, path = '/app/settings', options?:
 
 /** Presses "Open all" when any Settings group is folded, and waits until none is. */
 export async function openAllSettingsGroups(page: Page) {
-  await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
+  // Without scripts (a no-JavaScript check) the server's page has every group open and never hydrates: nothing to do. With
+  // scripts, Next's inline bootstrap has run (self.__next_f) by the time the page is loaded.
+  const scripts = await page.evaluate(() => typeof (self as unknown as {__next_f?: unknown}).__next_f !== 'undefined').catch(() => false);
+  if (!scripts) return;
+  const hydrated = await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}).then(() => true, () => false);
+  if (!hydrated) throw new Error('Settings did not finish loading (no data-app-hydrated in 20 s).');
   const folded = page.locator('.settings-page .settings-group[data-folded]');
   await expect(async () => {
     if (await folded.count() === 0) return;

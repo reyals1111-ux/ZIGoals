@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {privateAccountRequest} from '../../apps/web/lib/server/private-account';
 import {createPrivateMiniflare,fixtureToken} from './private-runtime.mjs';
+import {openSettingsGroups} from '../lib/settings-open.mjs';
 const require=createRequire(new URL('../../apps/web/package.json',import.meta.url)),{chromium}=require('@playwright/test');
 const A='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const identity=header=>JSON.parse(Buffer.from(header.slice(7).split('.')[1],'base64url').toString()).sub;
@@ -17,7 +18,7 @@ async function withOpenVault(prefix,check,local){
  try{
   await context.route('**/api/private-account*',async route=>{const r=route.request(),headers=await r.allHeaders(),req=new Request(r.url(),{method:r.method(),headers,...(r.postData()?{body:r.postData()}:{})});const result=await privateAccountRequest(req,{authOrigin:'https://fixture.supabase.co',publicKey:'public-fixture',syncOrigin:'https://fixture.workers.dev'},async(url,init)=>{const u=new URL(url);if(u.hostname==='fixture.workers.dev')return mf.dispatchFetch(url,init);if(u.pathname.endsWith('/verify'))return Response.json({access_token:fixtureToken('browser-'+A,A),expires_in:3600,user:{id:A}});if(u.pathname.endsWith('/user'))return Response.json({id:identity(new Headers(init.headers).get('authorization'))});return Response.json({});});await route.fulfill({status:result.status,headers:{...Object.fromEntries(result.headers),...(result.headers.getSetCookie().length?{'set-cookie':result.headers.getSetCookie().join('\n')}:{})},body:await result.text()});});
   await local?.(page,origin);
-  await page.goto(origin+'/app/settings');await page.getByLabel('Email address',{exact:true}).fill('a@example.invalid');await page.getByRole('button',{name:'Send email code',exact:true}).click();await page.getByLabel('Email code',{exact:true}).fill('123456');await page.getByRole('button',{name:'Verify email code',exact:true}).click();
+  await page.goto(origin+'/app/settings'); await openSettingsGroups(page);await page.getByLabel('Email address',{exact:true}).fill('a@example.invalid');await page.getByRole('button',{name:'Send email code',exact:true}).click();await page.getByLabel('Email code',{exact:true}).fill('123456');await page.getByRole('button',{name:'Verify email code',exact:true}).click();
   await page.getByRole('button',{name:'Create encrypted account vault',exact:true}).click();await page.getByLabel('I saved this vault recovery secret separately.').check();await page.getByRole('button',{name:'Confirm and create vault',exact:true}).click();
   await page.getByRole('region',{name:'Encrypted account sync',exact:true}).getByText(/Account records synced and acknowledged/).waitFor();
   await check(page);

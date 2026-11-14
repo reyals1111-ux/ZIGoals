@@ -61,6 +61,24 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
     setFolded(prev => { const next = new Set(prev); next.delete(group); return next; });
     return true;
   }, []);
+  // A jump whose target is drawn a moment later (ZIGi's sections and other parts load on demand) still opens its group and
+  // lands on it once it arrives (watched for up to 10 s, stopped by the person's own scroll or tap).
+  useEffect(() => {
+    const id = hashId(window.location.hash);
+    if (!id || document.getElementById(id) || onPhone()) return;
+    let done = false;
+    const stop = () => { done = true; watch.disconnect(); window.clearTimeout(timer); window.removeEventListener('wheel', stop); window.removeEventListener('pointerdown', stop); window.removeEventListener('keydown', stop); };
+    const watch = new MutationObserver(() => {
+      if (done || !document.getElementById(id)) return;
+      stop();
+      reveal(id);
+      requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({block: 'start', behavior: 'instant'}));
+    });
+    watch.observe(document.body, {childList: true, subtree: true});
+    const timer = window.setTimeout(stop, 10_000);
+    window.addEventListener('wheel', stop, {passive: true}); window.addEventListener('pointerdown', stop); window.addEventListener('keydown', stop);
+    return stop;
+  }, [reveal]);
 
   useEffect(() => {
     const here = (url: URL) => url.pathname === window.location.pathname && url.hash.length > 1;
