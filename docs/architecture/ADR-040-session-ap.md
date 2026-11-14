@@ -1,0 +1,199 @@
+# ADR-040 — Session AP "READY FOR FRIENDS" (2026-11-14 onwards)
+
+**Status:** accepted (owner approved the plan once, 14 Nov, with five additions below). **Branch:**
+`feature/session-an-ci-tooling` ([PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102), retitled "Session AN + AO + AP";
+Draft). PR #101 had not merged at AP's start (main `c65882f3`), so no main merge was needed. **Resume file:**
+`docs/handoff/AP_RESUME.md`.
+
+## Owner additions with the approval (14 Nov, verbatim)
+1. Mood tags, symptoms and any other health-type record stay private like Health: ZIGi and NOVA cannot read them until the NOVA lane wires them behind the existing Health switches (Q14/Q16); record that for AM-2. Export, backup, restore and erase include them.
+2. Borrowed features use ZIGoals' own design and words: no competitor names in the UI, no look-alikes (the activity rings in pillar colours and ZIGoals' own shape, never Apple's three-ring look or the names Move/Exercise/Stand).
+3. GPX/TCX imports: a file size limit, safe parsing (no network, no external entities), field-error messages for bad files; covered by the security review.
+4. Launcher auto-tuck: hysteresis so it never flickers while scrolling (it changes only after the overlap state has held ~150 ms), never moves focus, and costs nothing measurable at CPU 4×.
+5. Before the final STATUS commit: check whether PR #101 has merged; if it has, merge main in first (merge commit; both sides' registry entries; theme sheets regenerated; WebKit shard lists).
+
+Also approved as written: the six new records, `zigoals:day-goal:v1`, the "min(N, the day's dots)" reading and the 18
+competitor features.
+
+## The approved plan (verbatim)
+
+### Context
+PR #102 (AN + AO, head `ca2678d7`) is red on run 1706: five specs and the route-weight check. PR #101 (AM-2, NOVA) has
+**not** merged (main is still `c65882f3`), so there is no main merge to do now. AP continues on
+`feature/session-an-ci-tooling`, retitles #102 to "Session AN + AO + AP" (Draft stays), gets CI green first, finishes
+what AO carried, replays the service rows honestly, builds the three 14 Nov owner decisions, prepares the friends Alpha
+(code and docs only) and builds a ranked set of competitor features. Decisions go to
+`docs/architecture/ADR-040-session-ap.md`; resume state to `docs/handoff/AP_RESUME.md` after every part.
+Lane fence (AM-2) as in the brief. `components/ai/ai-launcher.tsx` is the only `components/ai` file AP edits.
+
+### What approval covers (nothing else needs one)
+- **New dependencies: none. New outside services in the app: none. Wallet, signing, keys: unchanged.**
+- **New Worker (OFF until the owner deploys it):** `workers/weather-proxy` (Part 5). Not bound, not routed, not in any
+  wrangler config the deploy workflow uses; the app client is the NOVA lane's (recorded).
+- **New stored data (all additive, TIER 3 stored format; export, backup format 4, restore, erase, catalog; frozen
+  readers #37–#54 pass, #55 added if deployed meanwhile):**
+  1. `zigoals:day-goal:v1` — the optional "A day counts as done at N" rule as a list of dated changes
+     (`[{from: 'YYYY-MM-DD', need: N | null}]`, null = all, i.e. today's rule). Its own device record, not a field of the
+     `.strict()` settings record (the AO D5 lesson). Each day is judged by the rule in force on that day; days before the
+     first change are judged by "all" forever.
+  2. Competitor features that store something (Part 6, marked **[store]**): `zigoals:task-when:v1`,
+     `zigoals:mood-tags:v1`, `zigoals:symptoms:v1`, `zigoals:money-tags:v1`, `zigoals:workout-splits:v1`,
+     `zigoals:countdowns:v1` — each its own additive record keyed by existing record ids, never a new field in a
+     `.strict()` record.
+- **Interpretation of 4b "N of M":** N is a count of the day's Checklist dots; a day with fewer than N dots is done when
+  all are done (so "4" reads "4 of 6" on a six-dot day and "3 of 3" on a three-dot day).
+- **Branch:** the session's default branch is `claude/focused-cori-0307g6`, but the brief says to continue on
+  `feature/session-an-ci-tooling` (PR #102), so AP commits and pushes there only.
+- **Device-only display conveniences (not records; erase NOT_RECORDS):** Bento choice per page, launchers' auto-fold
+  needs none, Settings open groups (already `settings-folds`, now default-folded).
+- **Budgets:** only where a page is still over after the weight pass, its own line raised by its exact measured overage,
+  ≤ 2 kB, reason in ADR-040 (owner decision 14 Nov). New features load on demand so no other line moves.
+
+### Parts (priority order; commit + push after each part, ≤ 45 min apart)
+
+### Part 0 — records (docs)
+ADR-040 skeleton with this plan; AP_RESUME.md; STATUS AP header; PR #102 retitled.
+
+### Part 1 — green and mergeable (TIER 3 CI where config; spec/app causes otherwise)
+| Row | Cause found | Fix (equally strict) |
+|---|---|---|
+| theme-parity-af:15 /app folded (mobile) | **app**: Today's skip-link list (AO D-028, `components/dashboard/today-skips.tsx`) is filtered by a 1.2 s timer, so which links exist depends on when the page is read (Nebula 4 links, Dark 3: boxes swapped) | list recomputed when the page settles (MutationObserver + ResizeObserver, rAF-batched; still never while focused), so every theme reads the same list once settled |
+| earn-dock:36, :71 (desktop) | **app**: the quiet celebration card (`components/game/celebration.tsx`, `.celebration-quiet` z 70, bottom-right 24 px) sits on top of the launcher column and takes its clicks | the quiet card sits beside the launcher column (right offset = launcher column width + gap at ≥ 901 px), never over it; spec keeps clicking the dock as a person would. Confirm the date dependence with Playwright's clock |
+| earn-guide-zigi:54 (mobile) | after `reload()` the phone folds are opened before hydration (AO N-BN-05), so the Valdora link is not the live one | `openEarnFolds` waits for `data-app-hydrated` (shared helper `hydrated`) before tapping; same popup assertion |
+| zigi-face-z:185 (WebKit mobile) | the composer's fill landed before/while the previous answer reset it: Send disabled | `say()` asserts the typed value and an enabled Send before pressing (re-typed only if the value was lost); if the app clears a person's draft when an answer lands, that is a ZIGi-panel bug → recorded for AM-2 (lane) |
+| route weights (/app/habits +1.9, /app/earn +1.8, /app/agenda +0.7, /app/tasks +1.4 kB) | AO's shell-group chunk split | weight pass: find with the build's chunk map what each page loads for first paint; lazy-load below-the-fold parts, move constants into constants-only modules, avoid new shared chunks in the shell; only a page still over gets its line raised by the exact overage ≤ 2 kB |
+Goal: one full CI run green on attempt 1 on the final head (a known intermittent gets one re-run; class-B WebKit
+segfaults recorded only).
+
+### Part 2 — what AO left (ADR-039 closing table and D16/D17)
+- **D-088/N-BN-10 Settings folded by default:** one shared helper `tests/settings-open.ts` (`openSettings(page, group | anchor)`
+  opens the group by its heading, or goes by a deep link which opens its own group); every spec that reaches into Settings
+  moved to it (mechanical; 307 spec files mention /app/settings, most by deep link which already opens its group). App:
+  `lib/settings-folds.ts` defaults to all folded except the deep link's group; remembered open groups per tab as now.
+- **D-028 Today ≤ 90 Tab stops:** roving focus for the sidebar's link list (one stop; arrow keys; no visual change),
+  habit rows as one roving grid, landmarks named; `tests/ao/today-tab-stops.spec.ts` guard tightened to ≤ 90.
+- **Wizard review step order** (D17): the review step opens with the summary, rhythm fold after it.
+- **D17 minors:** squashed 13–16 px checkboxes in the four older forms → 20 px boxes in 44 px rows; per-area "Perfect
+  weeks" list labelled; Earn's path labels at 390; the two "Keep an average" hints; CSV Value/Unit as their own fields;
+  Wealth chip row cut-off at 1440. (12–13 px notice text stays: T-069 owner decision.)
+- **D-028/D-088 rows close only when reached in the UI** (fresh profile and Showcase, clock set).
+- BN-022, D-003, D-090, DV-170 stay owner decisions (copy/visual calls); NOVA/ZIGi-answer rows stay with AM-2.
+
+### Part 3 — the 32 "Needs a service" rows, replayed honestly
+The helper's map: 16 rows go through the existing Miniflare topology (`scripts/run11/packaged-runtime.test.mjs`
+pattern: the real app worker + market-coordinator + food-lookup with an `outboundService` that answers recorded
+CoinGecko / Open Food Facts responses and refuses every other host); 8 chain rows (validators, positions, governance,
+votes, Net APR, Staking times) through the same pattern extended with recorded `api.zigchain.com` LCD responses; logos
+through a recorded image host. A new `scripts/run11/service-rows.test.mjs` (vitest + Miniflare + real Chrome, as the
+integration job runs) replays each row with its widths/themes and Playwright's clock; fixtures live only under
+`scripts/run11/fixtures/service-rows/`. Each row: Fixed (app change) / Holds (already right, now tested) / Carried.
+Not replayable: DV-089, PR-035 (a model, NOVA/ZIGi lane), "provider inactive" (a deployment setting: runbook line),
+BN-050/N-127/N-153 (nothing to replay), PR-018/NB-114 (on-device; already closed by AO).
+
+### Part 4 — owner decisions (14 Nov)
+- **a. Launchers fold into the edge while covering content** (computer widths ≥ 901 px): one shared watcher
+  (`components/launchers/auto-tuck.ts`) checks, on scroll/resize (rAF, passive), whether the launcher column's box overlaps
+  readable/interactive content under it (Today's right column at 1440 is the guard case); while it does, ZIGi, music,
+  Checklist and Earn dock show their existing edge tabs (same tabs the person can choose today), and they come back when
+  the overlap ends. The person's own "tuck away" choice always wins. Motion Off / reduced motion: no slide, an instant
+  swap. No layout change. `ai-launcher.tsx` gains only the data attribute hook.
+- **b. "A day counts as done at N"** (Settings → Checklist): off by default = today's rule exactly (every dot). On: a day
+  is done at min(N, the day's dots), shown "4 of 6". Read by one helper (`lib/checklist/day-rule.ts`) used by the
+  Checklist streak (`lib/checklist/streak.ts`), the flame, Journey's light and the XP quests. Stored as dated changes
+  (record 1 above): never rewrites or re-counts a past day; applies from the day of the change. A line under the setting
+  says so. Tests: byte-identical results with the setting off over the existing streak tests; a change mid-streak; Tokyo
+  and Brussels with "My day ends at" set.
+- **c. Bento view**: an optional "Bento" layout on the pillar overviews (Goals, Habits, Health, Wealth) and below Today's
+  protected hero (the hero and slogan untouched): the same cards in a responsive tile grid (2–4 columns, large tiles for the
+  first two), chosen with a "Layout: List · Bento" switch in the page header cluster; remembered per page on this device
+  (`zigoals:bento:v1`, display only); default unchanged. Loaded on demand (no weight on the default path).
+
+### Part 5 — friends Alpha readiness (code and docs only)
+- **Send feedback** already exists (Help, Settings → Help & diagnostics; `lib/feedback.ts`). Add: theme, screen size and
+  build commit to the previewed details; a "Copy diagnostics" button (clipboard, the same previewed text); "Send
+  feedback" in the account/More menu so it is one tap from any page. Still never records or personal data (unit test
+  over the block).
+- **What's new for friends** (Help `#whats-new-alpha` and Today's card) rewritten for this release in short lines;
+  **Known limits in this Alpha** (Help `#known-limitations`, last updated 5 Nov) brought up to date and honest
+  (accounts/sync, push, prices, food lookup, model, weather, WebKit/iPhone notes), linked from Help's index and from
+  the feedback block.
+- **First run with zero data:** the existing first-run (Today's "Set up ZIGoals in about a minute" → `/app/welcome`,
+  `components/onboarding/onboarding-flow.tsx`) is kept; after it, Today shows a calm "Your first five" card for a device
+  with no records (a goal, a habit, a meal, a money record, back to Today), each step opening the existing form and
+  ticking itself from the real records, gone once done or dismissed. Empty states on Goals, Habits, Health and Wealth
+  checked to teach in one line and one button (fixed where they do not). Timed in a spec: all five in under two minutes,
+  keyboard at 1440 and taps at 390.
+- **Docs:** FRIENDS_GUIDE.md, FRIENDS_ALPHA_CHECKLIST.md, FINAL_ACCTEST_REDEPLOY.md and STAGE8_OWNER_RUNSHEET.md
+  brought to the current code: NOVA sync section in private-sync `/v1/extras`, the `STEP_UP_REQUIRED` var, push
+  activation, the weather proxy; one ordered owner step list with time estimates (`docs/friends-alpha/OWNER_STEPS.md`).
+- **`workers/weather-proxy`** (TIER 3 Workers): GET `/v1/forecast?lat&lon` with coordinates rounded to 2 decimals
+  (MET's own guidance), forwards to MET Norway Locationforecast `compact` with an identifying `User-Agent`
+  (`ZIGoals/alpha contact@zigoals.app`), caches per rounded point until MET's `Expires`, revalidates with
+  `If-Modified-Since`/`Last-Modified` (304), passes 203/429 honestly, never forwards the person's IP or headers, refuses
+  other paths/methods/origins, CORS only for APP_ORIGIN, small per-IP rate limit (as other workers). Miniflare tests with a
+  recorded MET response; `docs/run11/WEATHER_PROXY_ACTIVATION.md` runbook. OFF: no binding, no route, no app client
+  (the NOVA lane wires the client later; recorded in ADR-040 and for AM-2).
+
+### Part 6 — competitor features (built after approval, in this order)
+A read-only sweep of the code found most of the usual candidates already built: natural-language task dates, recurring
+tasks, p1–p4 and filters, subtasks, Pomodoro and focus, skip/pause/vacation, quit habits, habit stacking, weekly review,
+"On this day", Year in pixels, Wrapped, frequent foods and recipes, micronutrients and net carbs, EWMA weight trend,
+body measurements, gym routines and PRs, budgets with rollover, bill detection, cash forecast, merchant rules, split
+transactions, the command palette, ICS/CSV/JSON export, imports from 20+ apps, streak freezes, challenges and the rewards
+shelf. Left out on purpose: virtual pet (ZIGi is the companion, locked look; AL GAP-111), Notion databases (a product of
+its own), anything with weather/location (NOVA lane), calorie expenditure (owner rule).
+What ZIGoals lacks, ranked by value for a daily user (all on-device, no outside service, no model; **[store]** = a new
+additive record of its own, TIER 3 stored format):
+
+| # | Feature (from) | Where | Notes |
+|---|---|---|---|
+| 1 | **Hour grid with time-blocking** (Todoist, TickTick, Notion Calendar) | Agenda → Day | drag a task or habit to an hour; writes the task's existing due time; each day's load shown |
+| 2 | **This Evening and Someday lists** (Things) | Tasks | **[store]** `zigoals:task-when:v1` (task id → evening date / someday); never edits the task record |
+| 3 | **Eisenhower matrix** (TickTick) | Tasks view | quadrants from priority + due (overdue/≤ 2 days = urgent; p1–p2 = important); moving a card sets its priority |
+| 4 | **Activity tags on moods + "what goes with your good days"** (Daylio, Bearable) | Mood check-in, Insights | **[store]** `zigoals:mood-tags:v1`; insight shows counts and "goes with, not a cause", needs ≥ 5 days each |
+| 5 | **Symptom and factor tracker, severity 0–3** (Bearable) | Health | **[store]** `zigoals:symptoms:v1`; joins the existing cross-pillar insights under the same honesty rules |
+| 6 | **Month-by-month cash flow, 12-month category trend, top payees** (Monarch, Copilot, YNAB reports) | Wealth → Spending | derived from the money log; months without records are gaps |
+| 7 | **Tags on money entries** with filter and totals (Monarch, Copilot) | Money log | **[store]** `zigoals:money-tags:v1` (entry id → tags) |
+| 8 | **"Ready to assign"** zero-based line (YNAB) | Budgets | this month's logged income minus what budgets hold; from records only, never a forecast |
+| 9 | **Age of money** (YNAB) | Budgets | derived (first-in first-out over logged inflows/outflows); "not enough records yet" under 30 days |
+| 10 | **Spending pace vs your usual month** (Copilot) | Spending | "by the 14th you usually have spent X; this month Y"; needs ≥ 3 earlier months; a comparison, not a projection |
+| 11 | **Bill price-change notice** (Copilot, Monarch) | Upcoming bills | "went up 2.00 since March", from detected bills |
+| 12 | **Activity rings from your own goals** — steps, active minutes, workout days (Apple Fitness) | Health, Today widget | derived; no calories (owner rule) |
+| 13 | **Trends: last 90 days vs the last year** — steps, sleep, weight, resting heart rate where recorded (Apple Fitness) | Health | derived; shown only with enough days on both sides |
+| 14 | **Running pace and per-km splits from GPX/TCX** (Strava) | Workouts | **[store]** `zigoals:workout-splits:v1`, computed when a file is imported; earlier imports keep their summary (never back-filled) |
+| 15 | **Copy a meal to any day and meal** (MyFitnessPal) | Health food log | existing write paths (today only "copy yesterday") |
+| 16 | **Food-logging consistency** — days logged this month (MacroFactor) | Health | derived |
+| 17 | **Journal word count, writing streak, words this year** (Day One) | Journal | derived |
+| 18 | **Countdowns: "days until"** (TickTick) | Today widget library, Agenda | **[store]** `zigoals:countdowns:v1` |
+
+Each gets unit tests and a browser spec (fresh profile and Showcase, clock set), Showcase examples labelled as examples,
+help answers, and loads on demand (no first-paint weight). A row that does not fit its stop rule is Carried with cause.
+
+### Part 7 — finish
+Fresh-helper security delta review (new records, the Worker, diagnostics/clipboard, imports) and fresh-helper UX review
+(fresh profile + Showcase at 1440 and 390, Nebula/Light/Dark); fix findings; hosted verifier extended only
+behaviour-preservingly if a new page needs it (TIER 3 release verifier); `docs/handoff/AP_DEMO_TOUR.md`; ADR-040
+closing table; owner step list (merge + deploy + friends Alpha); STATUS entry as the final commit with CI on the final
+head; ≤ 15-line report.
+
+### Working method
+- ≤ 5 helpers with short briefs (code + unit tests in parallel: weather Worker, service-row harness, competitor features
+  by area); I alone run builds and browsers (Chromium, ≤ 2 workers, one production build per integration point).
+- Before every push: lint, typecheck (`NODE_OPTIONS=--max-old-space-size=8192`), focused vitest (+ `vitest run scripts`
+  when copy moves), theme sheets `--check`, frozen readers. New zigi-*/webkit-* specs into the shortest WebKit shard.
+- Stop rules as in the brief. Never merge, auto-merge, dispatch or deploy. Usage pause → resume from AP_RESUME.md.
+
+### Verification
+Unit (`pnpm test`), lint, typecheck; browser specs per row on a production build (PUBLIC_ALPHA_UNDEPLOYED) in a fresh
+profile and the Showcase with Playwright's clock; theme-parity + axe on changed pages; the service-row harness under
+Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check; CI on each pushed head, final head green.
+
+## Decisions (D1…, recorded as they are made)
+- **D1 (branch):** PR #101 not merged at start (main `c65882f3`); AP continues on `feature/session-an-ci-tooling` (the
+  owner's brief names it), not on the session's default branch.
+- **D2 (for AM-2, owner addition 1):** the new health-type records (mood tags, symptoms) are not in any ZIGi/NOVA context
+  builder; the NOVA lane adds them behind the Health switches (Q14/Q16) when it merges.
+- **D3 (for AM-2):** `workers/weather-proxy` is built and OFF; the app client is the NOVA lane's.
+
+## Closing table
+(filled at Part 7)

@@ -1,3 +1,6 @@
+# Session AP — "READY FOR FRIENDS" (ADR-040) (2026-11-14, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO + AP"; Draft, in progress, not merged, not deployed)
+**Base:** Session AO's head `ca2678d7` on `main` `c65882f3` (PR #101 not merged at the start). **Rules (owner):** the brief, one plan approval (14 Nov) with five additions, verbatim in `docs/architecture/ADR-040-session-ap.md`. Resume file: `docs/handoff/AP_RESUME.md`. The full entry replaces this header as the session's final commit.
+
 # Session AO — "EVERYTHING LEFT" (ADR-039) (2026-11-13, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO"; Draft, complete, not merged, not deployed)
 **Base:** Session AN's head `2af55a26` on `main` `c65882f3`. **Rules (owner):** the brief, one plan approval (13 Nov) with two stored-data rules, verbatim in `docs/architecture/ADR-039-session-ao.md`. Resume file: `docs/handoff/AO_RESUME.md`. Demo tour: [`docs/handoff/AO_DEMO_TOUR.md`](handoff/AO_DEMO_TOUR.md).
 
