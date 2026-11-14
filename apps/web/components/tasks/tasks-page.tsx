@@ -50,6 +50,8 @@ if (typeof window !== 'undefined') void loadExtras().catch(() => undefined);
 const FilterSave = lazy(() => loadExtras().then(m => ({default: m.FilterSave})));
 const BulkBar = lazy(() => loadExtras().then(m => ({default: m.BulkBar})));
 const Salvage = lazy(() => loadExtras().then(m => ({default: m.Salvage})));
+// Session AP: This evening, Someday and the Priority matrix, a chunk of their own loaded when one of them is opened.
+const WhenViews = lazy(() => import('./tasks-when-views'));
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
 /** Session AL (P-LS-40, LS-030): a long group shows its first 50 rows; the rest one tap away. */
 const SHOWN_PER_GROUP = 50;
@@ -270,7 +272,10 @@ export function TasksPage() {
   const group = (key: string, title: ReactNode, items: Task[], extra?: ReactNode, drop?: object) => <GroupList key={key} id={key} title={title} items={items} row={row} extra={extra} drop={drop} />;
 
   let body: ReactNode;
-  if (view.kind === 'completed') {
+  const own = view.kind === 'evening' || view.kind === 'someday' || view.kind === 'matrix';
+  if (own) {
+    body = <LoadBoundary label={viewTitle(view, record)}><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><WhenViews kind={view.kind} list={list} goals={goals} shown={shown} /></Suspense></LoadBoundary>;
+  } else if (view.kind === 'completed') {
     // LS-037: the view's window — finished in the last 30 days of this device's days; older ones are only counted.
     const {log, older} = completedInWindow(record, today, list.doneDay), recent = recentlyDone(record, today, list.doneDay);
     body = <section className="tasks-completed" aria-labelledby="tasks-done-title">
@@ -308,7 +313,7 @@ export function TasksPage() {
     body = <>{STATE_GROUPS.map(g => group(g.state, g.title, shown.filter(t => taskState(t, today, clock) === g.state)))}</>;
   }
   const title = viewTitle(view, record);
-  const empty = view.kind !== 'completed' && shown.length === 0 && !tasks.unreadable;
+  const empty = view.kind !== 'completed' && !own && shown.length === 0 && !tasks.unreadable;
   const project = view.kind === 'project' ? projectOf(view.id) : undefined;
 
   return <div className="tasks-page" data-tasks={ready ? 'ready' : 'loading'}>
@@ -334,14 +339,14 @@ export function TasksPage() {
           dropOn={dropOnProject} onRemoveFilter={id => list.change(r => removeFilter(r, id), 'Removed the saved filter.')} />
         <section className="panel tasks-main" aria-labelledby="tasks-view-title">
           <header className="tasks-view-head">
-            <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
+            <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' || own ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
             {project && <ProjectTools project={project} board={board} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
-            {view.kind !== 'completed' && visibleIds.length > 0 && <button type="button" className="secondary tasks-select-mode" aria-pressed={selectMode} onClick={() => { if (selectMode) { setSelected(new Set()); setSelecting(false); } else setSelecting(true); }}>Select</button>}
+            {view.kind !== 'completed' && !own && visibleIds.length > 0 && <button type="button" className="secondary tasks-select-mode" aria-pressed={selectMode} onClick={() => { if (selectMode) { setSelected(new Set()); setSelecting(false); } else setSelecting(true); }}>Select</button>}
             <label className="field tasks-filter"><span>Filter</span><input ref={filterField} type="search" value={query} placeholder="#Home @calls p1 today" aria-describedby="tasks-filter-help" onChange={e => setQuery(e.target.value)} /></label>
             {query.trim() && <LoadBoundary quiet><Suspense fallback={null}><FilterSave onSave={name => list.change(r => saveFilter(r, name, query), `Saved the filter “${name}”.`)} /></Suspense></LoadBoundary>}
             <p id="tasks-filter-help" className="sr-only">Words match titles and notes. Also #project, @label, p1 to p4, today, tomorrow, overdue, no date, due:2026-12-05, recurring; join with & or |; ! before a word leaves it out.</p>
           </header>
-          {view.kind !== 'completed' && view.kind !== 'filter' && <SmartAdd record={record} today={today} onAdd={addFromLine} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
+          {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
           {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : addLocalDays(today, 1))} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => { setSelected(new Set()); setSelecting(false); }} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
           {selectMode && !selected.size && <p className="fine tasks-select-hint" role="status">Tick the tasks to act on together; Escape ends selecting.</p>}
           <TaskStatusLine error={list.error} />

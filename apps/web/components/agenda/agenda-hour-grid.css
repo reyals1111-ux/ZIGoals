@@ -1,0 +1,22 @@
+/* Session AP: the Agenda's day by the hour (agenda-hour-grid.tsx, loaded on demand). No motion of its own. */
+.agenda-hours { display: grid; gap: 8px; min-width: 0; }
+.agenda-hours-title { margin: 0; font-size: 17px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.agenda-hours-title small, .agenda-hours-help { font-size: 14px; font-weight: 500; color: var(--text-secondary, var(--muted)); }
+.agenda-hours-help { margin: 0; }
+.agenda-hours-waiting h4 { margin: 4px 0; font-size: 15px; }
+.agenda-hours-grid, .agenda-hours-items { list-style: none; margin: 0; padding: 0; display: grid; }
+.agenda-hours-grid { border-top: 1px solid var(--line, #ffffff1f); }
+.agenda-hour { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; align-items: start; min-height: 48px; padding: 4px 0; border-bottom: 1px solid var(--line, #ffffff1f); }
+.agenda-hour[data-drop] { outline: 2px dashed var(--cyan, currentColor); outline-offset: -2px; border-radius: 8px; }
+.agenda-hour-clock { padding-top: 12px; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--text-secondary, var(--muted)); }
+.agenda-hours-items { gap: 6px; }
+.agenda-hour-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 2px 8px; min-height: 44px; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--line, #ffffff1f); box-shadow: inset 3px 0 0 var(--agenda-accent, var(--line)); }
+.agenda-hour-item[draggable=true] { cursor: grab; }
+.agenda-hour-item[data-state=done] .agenda-item-title { text-decoration: line-through; text-decoration-thickness: 1px; }
+.agenda-hour-item:not(:has(.agenda-task-tick)) .agenda-hour-text { grid-column: 1 / 3; }
+.agenda-hour-text { display: grid; min-width: 0; overflow-wrap: anywhere; }
+.agenda-hour-text small { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.agenda-hour-move { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; font-size: 15px; }
+.agenda-hour-item .agenda-task-move { grid-column: 1 / -1; }
+.agenda-hour-item .agenda-task-move select { min-height: 44px; font-size: 16px; }
+@media (max-width: 479.98px) { .agenda-hour { grid-template-columns: 56px minmax(0, 1fr); } .agenda-hour-item { grid-template-columns: auto minmax(0, 1fr); } .agenda-hour-move { justify-self: start; grid-column: 1 / -1; } }

@@ -27,6 +27,9 @@ import {MONEY_DRAFT_EVENT, type MoneyDraft} from '../../money-photos/draft-event
 import '../../money-select/money-select.css';
 import {changeWithUndo, removeWithUndo} from '../../ui/remove-with-undo';
 const SpendingMap = lazy(() => import('../../spending-map/spending-map'));
+// Session AP (features 1, 2, 4, 5): Your money over time (month by month, categories over a year, top payees, your usual
+// pace, age of money and tags), its own chunk; each view inside is its own chunk again.
+const SpendingInsights = lazy(() => import('./insights/spending-insights'));
 
 /**
  * Session AI (B3 competitor gap; feature 5's numbers): the expense and income log with a weekly "room to spend". Logged
@@ -187,6 +190,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         {monthTotals.map(t => <p key={t.currency} className="fine">This month in {t.currency}: spent {money(t.expenses, t.currency)}, received {money(t.income, t.currency)}.</p>)}
       </section>
     </div>
+    <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase}/></Suspense>
     {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
     : <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">
       <label className="field"><span>Weekly budget ({chosen}) — leave empty for none</span><input inputMode="decimal" value={budgetDraft ?? (log.data.budget ? fromCents(Math.round(Number(log.data.budget.weekly) * 100)) : '')} onChange={e => setBudgetDraft(e.target.value)} aria-describedby={`${id}-budget-calc`}/></label>

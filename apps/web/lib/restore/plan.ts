@@ -48,6 +48,12 @@ import {HEALTH_EXTRAS} from '../health-extras';
 import {PROFILE_NAME} from '../onboarding-setup';
 import {DAY_ENDS_RECORD} from '../day-boundary';
 import {DAY_GOAL_RECORD} from '../checklist/day-goal';
+import {TASK_WHEN} from '../tasks/when';
+import {COUNTDOWNS} from '../countdowns/schema';
+import {MONEY_TAGS_RECORD} from '../money-tags/schema';
+import {MOOD_TAGS} from '../mood-tags/schema';
+import {SYMPTOMS} from '../symptoms/schema';
+import {WORKOUT_SPLITS} from '../workouts/splits-schema';
 import {WATCHLIST_MORE} from '../markets-watchlist-more';
 import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
@@ -237,6 +243,13 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('dayEnds', 'My day ends at', 'Today and Life', DAY_ENDS_RECORD),
   // Session AP (owner decision 14 Nov): "A day counts as done at N", its dated changes as they were (nothing re-counted).
   dev('dayGoal', 'A day counts as done at', 'Today and Life', DAY_GOAL_RECORD),
+  // Session AP (Part 6): each its own record; the three health-type ones only with the Health choice (owner addition 1).
+  dev('taskWhen', 'This evening and Someday', 'Today and Life', TASK_WHEN),
+  dev('countdowns', 'Days until', 'Today and Life', COUNTDOWNS),
+  dev('moneyTags', 'Tags on money entries', 'Goals and Wealth', MONEY_TAGS_RECORD),
+  dev('moodTags', 'Mood tags', 'Health', MOOD_TAGS, true),
+  dev('symptoms', 'Symptoms and factors', 'Health', SYMPTOMS, true),
+  dev('workoutSplits', 'Run pace and splits', 'Health', WORKOUT_SPLITS, true),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),
   dev('healthNumbers', 'Your numbers (blood pressure and lab values)', 'Health', HEALTH_NUMBERS, true),

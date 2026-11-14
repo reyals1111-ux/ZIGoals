@@ -90,10 +90,17 @@ export function habitShare(habits: HabitData, date: string, today: string): numb
  * eight more pairings; a pairing whose records the person does not keep is not listed at all.
  */
 export type CrossExtras = {spending?: {entries: readonly {kind: string; amount: string; currency: string; date: string}[]}; hidden?: ReadonlySet<string>; localTime?: (iso: string) => {date: string; hour: number};
-  energy?: {days: Readonly<Record<string, {energy: number}>>} | null; workouts?: {workouts: readonly {startedAt: string}[]} | null};
+  energy?: {days: Readonly<Record<string, {energy: number}>>} | null; workouts?: {workouts: readonly {startedAt: string}[]} | null;
+  /** Session AP (feature 2): the symptom and factor tracker (zigoals:symptoms:v1). Health-private: never passed by a ZIGi or NOVA path. */
+  symptoms?: SymptomsLike | null};
+/** The shape of zigoals:symptoms:v1 this module reads (lib/symptoms/schema.ts), without shipping its schema. */
+export type SymptomsLike = {items: readonly {id: string; name: string}[]; days: Readonly<Record<string, Readonly<Record<string, number>>>>};
+/** Session AP: the symptom items paired (the most answered in the window), and an id that does not carry the item's name. */
+export const SYMPTOM_PAIR_ITEMS = 3;
+export const symptomPairKey = (itemId: string) => { let h = 2166136261; for (const c of itemId) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; return h.toString(36); };
 export const LATE_HOUR = 21;
 const GAP: Readonly<Record<CrossUnit, number>> = {'%': 0.1, min: 20, mood: 0.4, energy: 0.4};
-export function crossPillarInsights({habits, health, today, max = 3, spending, hidden, localTime = deviceTime, energy, workouts}: {habits: HabitData; health: HealthData; today: string; max?: number} & CrossExtras): CrossResult {
+export function crossPillarInsights({habits, health, today, max = 3, spending, hidden, localTime = deviceTime, energy, workouts, symptoms}: {habits: HabitData; health: HealthData; today: string; max?: number} & CrossExtras): CrossResult {
   const window = {start: addLocalDays(today, 1 - CROSS_WINDOW_DAYS), end: today}, list = days(window.start, window.end), mid = addLocalDays(window.start, CROSS_WINDOW_DAYS / 2);
   // Sleep by the day a night ends (the "night before" a day), and the night that follows a day (ends the next day).
   const sleepSeries = health.sleep ? dailySeries(health.sleep, addLocalDays(today, 1), CROSS_WINDOW_DAYS + 1) : [];
@@ -101,7 +108,7 @@ export function crossPillarInsights({habits, health, today, max = 3, spending, h
   const target = health.sleep?.goal?.minutes ?? 420, steps = stepThreshold(health, list);
   const active = (d: string) => health.activity.some(a => a.date === d);
   const ready: CrossInsight[] = [], pending: CrossPending[] = [], unclear: CrossUnclear[] = [];
-  const pair = (id: string, title: string, sample: Sample[], unit: CrossUnit, confounder: string, sentence: (a: CrossSide, b: CrossSide) => string, quietWhenEmpty = false) => {
+  const pair = (id: string, title: string, sample: Sample[], unit: CrossUnit, confounder: string, sentence: (a: CrossSide, b: CrossSide) => string, quietWhenEmpty = false, ownWords?: string) => {
     const withA = sample.filter(s => s.a), withoutA = sample.filter(s => !s.a);
     if (quietWhenEmpty && !sample.length) return; // Session AI: a pairing the person keeps no records for (no moods, no spending) is not listed as collecting
     if (withA.length < CROSS_MIN_PER_SIDE || withoutA.length < CROSS_MIN_PER_SIDE) { pending.push({id, title, withA: withA.length, withoutA: withoutA.length, need: CROSS_MIN_PER_SIDE}); return; }
@@ -109,7 +116,7 @@ export function crossPillarInsights({habits, health, today, max = 3, spending, h
     const {label, ps} = confidenceOf(sample, GAP[unit], mid);
     if (!label) { unclear.push({id, title, withA: a, withoutA: b, unit}); return; }
     const text = sentence(a, b);
-    if (FORBIDDEN_INSIGHT_WORDS.some(w => new RegExp(`\\b${w}\\b`, 'i').test(text))) throw Error(`An insight sentence used "${text}".`);
+    if (FORBIDDEN_INSIGHT_WORDS.some(w => new RegExp(`\\b${w}\\b`, 'i').test(ownWords ? text.split(ownWords).join(' ') : text))) /* Session AP: the person's own item name is theirs, not the sentence's claim */ throw Error(`An insight sentence used "${text}".`);
     const contrast = unit === '%' ? Math.abs(a.value - b.value) : unit === 'mood' || unit === 'energy' ? Math.abs(a.value - b.value) / 4 : Math.abs(a.value - b.value) / 120;
     ready.push({id, title, sentence: text, withA: a, withoutA: b, unit, window, contrast, label, ps, confounder});
   };
@@ -173,6 +180,22 @@ export function crossPillarInsights({habits, health, today, max = 3, spending, h
   pair('energy-habits', 'Energy and habits', list.flatMap(d => { const e = energyOn(d), share = habitShare(habits, d, today); return e === undefined || share === null ? [] : [{date: d, a: e >= 4, value: share}]; }), '%',
     'the same busy day can lower both',
     (a, b) => `On days you started with energy of 4 or 5, you completed ${pct(a.value)} of your scheduled habits; on other days, ${pct(b.value)}.`, true);
+
+  // ---- Session AP (feature 2): the symptom and factor tracker, each of its three most answered items under the same rules ----
+  // Only answered days count: a level 1–3 is "noted", a 0 is "none"; a day without an answer is left out, never read as none.
+  if (symptoms?.items.length) {
+    const answered = (id: string) => list.filter(d => symptoms.days[d]?.[id] !== undefined).length;
+    const items = symptoms.items.map(i => ({...i, n: answered(i.id)})).filter(i => i.n > 0).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)).slice(0, SYMPTOM_PAIR_ITEMS);
+    for (const item of items) {
+      const level = (d: string) => symptoms.days[d]?.[item.id], key = symptomPairKey(item.id);
+      pair(`symptom-mood-${key}`, `${item.name} and mood`, list.flatMap(d => { const v = level(d), mood = moods[d]?.mood; return v === undefined || mood === undefined ? [] : [{date: d, a: v >= 1, value: mood}]; }), 'mood',
+        'a busy or hard week can shape both how you feel and what you notice',
+        (a, b) => `On days you noted ${item.name}, your mood that day averaged ${scale(a.value)} of 5; on days you noted none, ${scale(b.value)}.`, true, item.name);
+      pair(`symptom-sleep-${key}`, `${item.name} and the night before`, list.flatMap(d => { const v = level(d), slept = sleepEnding.get(d); return v === undefined || slept === undefined ? [] : [{date: d, a: v >= 1, value: slept}]; }), 'min',
+        'a cold, stress or a change of routine can shape both sleep and what you notice the next day',
+        (a, b) => `On days you noted ${item.name}, you had slept ${hoursMinutes(a.value)} the night before on average; on days you noted none, ${hoursMinutes(b.value)}.`, true, item.name);
+    }
+  }
 
   const order = (x: CrossInsight, y: CrossInsight) => (x.label === y.label ? 0 : x.label === 'consistent' ? -1 : 1) || y.contrast - x.contrast;
   return {ready: ready.filter(i => !hidden?.has(i.id)).sort(order).slice(0, max), pending, unclear: unclear.filter(i => !hidden?.has(i.id))};

@@ -126,7 +126,9 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   ] as const) { await expect(section).toContainText(words); await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href); }
   await expect(section).toContainText('the Finnish Fineli table isn’t in it yet');
   await expect(section).toContainText('It can travel as an optional, encrypted part of your sync once the sync service is updated.');
-  for (const words of ['Price alerts check only while ZIGoals is open', 'A watched Bitcoin wallet shows its confirmed balance', 'Focus Sessions can’t block other apps', 'GPX and TCX imports keep only a summary', 'The food search waits for its service']) await expect(section).toContainText(words);
+  for (const words of ['Price alerts check only while ZIGoals is open', 'A watched Bitcoin wallet shows its confirmed balance', 'Focus Sessions can’t block other apps', 'a run you import gets its pace and kilometre splits', 'The food search waits for its service']) await expect(section).toContainText(words);
+  // Session AP (Part 6, deliberate): GPX/TCX runs now keep pace and splits, so the limit says what is still true (older runs keep their summary).
+  await expect(section).toContainText('runs imported before keep their summary');
   await expect(section).toContainText('ZIGi never stakes, signs or moves money');
   await expect(section).toContainText('Timeline times stay on this device');
   await expect(section).toContainText('Add money opens the providers’ plain sites');

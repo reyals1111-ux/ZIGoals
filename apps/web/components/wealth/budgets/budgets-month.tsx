@@ -1,7 +1,7 @@
 'use client';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import {ShowcaseTag} from '../../ui/showcase-tag';
-import {useId, useMemo, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatMonth} from '../../../lib/visual-format';
@@ -16,6 +16,8 @@ import {CalcHint} from '../../money-calc/calc-hint';
 import '../../money-select/money-select.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import {useMoneyCurrency} from '../use-money-currency';
+// Session AP (feature 3): Ready to assign, its own chunk.
+const ReadyToAssign = lazy(() => import('./ready-to-assign'));
 
 /**
  * Session AK (7.7): category budgets, one month at a time, against the money log. Each row is the month's amount, plus
@@ -55,6 +57,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
       <h3 id={`${id}-month`} aria-live="polite">{formatMonth(month)}</h3>
       <button type="button" className="quiet" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= thisMonth} aria-label="Next month">›</button>
     </div>
+    <Suspense fallback={null}><ReadyToAssign entries={entries} record={record} month={month} current={month === thisMonth}/></Suspense>
     {view.totals.map(t => <p key={t.currency} className="budgets-total"><strong>{t.left >= 0 ? money(t.left, t.currency) : money(-t.left, t.currency)}</strong> {t.left >= 0 ? 'left' : 'over'} of {money(t.available, t.currency)} budgeted{view.daysLeft !== null ? ` · ${view.daysLeft === 1 ? 'last day of the month' : `${view.daysLeft} days to go`}` : ''}</p>)}
     {view.rows.length ? <table className="budgets-table" aria-labelledby={`${id}-month`}>
       <thead><tr><th scope="col">Category</th><th scope="col">Spent</th><th scope="col">Available</th><th scope="col">Left</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>

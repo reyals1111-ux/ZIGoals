@@ -22,6 +22,10 @@ import {CATEGORIES, MEASURES, SET_KINDS, type ExerciseEntry, type Measure, type 
 import {clock, estimateShown, weightPrefillText, fromUnit, readClock, setText, weightShown} from './units';
 import {useWorkouts} from './use-workouts';
 import {WorkoutsImport, importedLine, type ImportChoice} from './workouts-import';
+import {useDeviceRecord} from '../../ai/use-device-record';
+import {WORKOUT_SPLITS, type WorkoutSplits} from '../../../lib/workouts/splits-schema';
+import {withSplits, withoutSplits} from '../../../lib/workouts/splits';
+import {WorkoutSplitsTable} from './workout-splits';
 import './workouts.css';
 import {ArtNote} from '../../illustrations/art-note';
 import {Skeleton} from '../../ui/skeleton';
@@ -49,6 +53,8 @@ const bestWords = (b: PersonalBest, unit: 'kg' | 'lb') => `${b.name}: ${b.what =
 
 export default function WorkoutsView() {
   const record = useWorkouts(), health = useHealth();
+  // Session AP (feature 5): a run's pace and per-km splits, kept at import by workout id (never back-filled).
+  const splitsRecord = useDeviceRecord(WORKOUT_SPLITS);
   const [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now()), [restUntil, setRestUntil] = useState<number | null>(null);
   const [tookMinutes, setTookMinutes] = useState('');
   const [asking, setAsking] = useState<null | 'finish' | 'discard' | {remove: string}>(null), [summary, setSummary] = useState<{workout: Workout; bests: PersonalBest[]} | null>(null);
@@ -117,7 +123,10 @@ export default function WorkoutsView() {
       if (workout) made.push(workout);
       return next;
     }, x); });
-    return addedWords(made.map(x => x.name), await keepMinutes(made));
+    const paced = made.flatMap(x => { const s = list.find(c => c.summary.importId === importInfo(x)?.importId)?.summary.splits; return s ? [[x.id, s] as const] : []; });
+    let splitsMissed = false;
+    if (paced.length) { try { splitsRecord.update(r => paced.reduce((acc, [id, s]) => withSplits(acc, id, s), r)); } catch { splitsMissed = true; } }
+    return `${addedWords(made.map(x => x.name), await keepMinutes(made))}${splitsMissed ? ' Their pace and splits could not be saved on this device.' : ''}`;
   }
   async function addLifts(plan: LiftsPlan): Promise<string> {
     const {addLiftWorkouts} = await import('../../../lib/workouts/import-lifts');
@@ -141,11 +150,13 @@ export default function WorkoutsView() {
     // Session AO (C-LS-20): Undo puts back the workout and the minutes it had added to Health, each into its latest record.
     let wBefore: Workouts | undefined, wAfter: Workouts | undefined;
     if (!change(x => { const next = removeWorkout(x, id); wBefore = x; wAfter = next; return next; })) return;
+    const splitsBack: WorkoutSplits | undefined = splitsRecord.data.workouts[id];
+    if (splitsBack) { try { splitsRecord.update(r => withoutSplits(r, id)); } catch { /* the workout is gone; its splits stay until the next delete */ } }
     let healthBack: Removed[] | null = null;
     if (target.activityId) { try { await health.update(h => { if (!h.activity.some(a => a.id === target.activityId)) return h; const next = removeHealthItem(h, 'activity', target.activityId!); healthBack = removedItems(h, next); return next; }); } catch { /* the workout is gone; its minutes stay in Health */ } }
     const said = `${target.name} on ${formatDate(target.date)} is deleted, with its minutes in Health.`, workoutBack = wBefore && wAfter ? removedItems(wBefore, wAfter) : null, healthItems = healthBack as Removed[] | null;
     setNote(said);
-    if (workoutBack) showUndo({message: said, undone: `${target.name} is back${healthItems ? ', with its minutes in Health' : ''}.`, restore: async () => { record.update(latest => reinsertItems(latest, workoutBack)); if (healthItems) await health.update(latest => reinsertItems(latest, healthItems)); }});
+    if (workoutBack) showUndo({message: said, undone: `${target.name} is back${healthItems ? ', with its minutes in Health' : ''}.`, restore: async () => { record.update(latest => reinsertItems(latest, workoutBack)); if (splitsBack) { try { splitsRecord.update(r => withSplits(r, id, splitsBack)); } catch { /* the workout is back without its splits */ } } if (healthItems) await health.update(latest => reinsertItems(latest, healthItems)); }});
   }
 
   return <div className="workouts-view">{today && <LoggingFor date={logDay} today={today}/>}
@@ -194,6 +205,7 @@ export default function WorkoutsView() {
       {past.length ? <ul className="workouts-past">{past.slice(0, 30).map(x => <li key={x.id}>
         <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
           {importInfo(x) && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
+          {splitsRecord.data.workouts[x.id] && <WorkoutSplitsTable s={splitsRecord.data.workouts[x.id]!} name={x.name}/>}
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unit)}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
             {!current && x.exercises.length > 0 && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}

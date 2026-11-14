@@ -1,4 +1,5 @@
 'use client';
+import {lazy, Suspense} from 'react';
 import {MOOD_WORDS, moodOn, setMood} from '../../lib/wrap-up/engine';
 import {emptyMoods, moodsSchema} from '../../lib/moods/schema';
 import {healthGroupIn, withHealthGroup} from '../../lib/vault/w-homes';
@@ -7,6 +8,7 @@ import {formatDate} from '../../lib/visual-format';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import {useHealth} from './use-health';
 import {PhoneFold} from '../phone/phone-fold';
+const MoodTags = lazy(() => import('./plus/mood-tags')); // Session AP (feature 1): once the day has a mood
 
 /** Puts a day's mood back as it was (or removes it when there was none), in the latest Health record. */
 function restoreMood(health: HealthData, day: string, before: ReturnType<typeof moodOn>): HealthData {
@@ -35,5 +37,6 @@ export function MoodChip({date, today}: {date: string; today: string}) {
     <h2 id="health-mood-title">{title}</h2>
     <div className="health-mood-chips" role="group" aria-label="Mood">{MOOD_WORDS.map((word, i) => <button type="button" key={word} className="secondary" aria-pressed={current?.mood === i + 1} disabled={!store.loaded} onClick={() => void choose(i + 1)}>{word}</button>)}</div>
     <p className="fine">The same answer as the evening wrap-up and your Journal; it stays with your Health records. A word for the day, never a score.</p>
+    {current && <Suspense fallback={null}><MoodTags day={day}/></Suspense>}
   </section></PhoneFold>;
 }

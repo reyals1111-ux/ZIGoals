@@ -114,6 +114,12 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   networthHistory: [AO_CATALOG_LABELS.networthHistory[0], AO_CATALOG_LABELS.networthHistory[1]],
   // Session AP (lib/ap-device-keys.ts).
   dayGoal: [AP_CATALOG_LABELS.dayGoal[0], AP_CATALOG_LABELS.dayGoal[1]],
+  taskWhen: [AP_CATALOG_LABELS.taskWhen[0], AP_CATALOG_LABELS.taskWhen[1]],
+  countdowns: [AP_CATALOG_LABELS.countdowns[0], AP_CATALOG_LABELS.countdowns[1]],
+  moneyTags: [AP_CATALOG_LABELS.moneyTags[0], AP_CATALOG_LABELS.moneyTags[1]],
+  moodTags: [AP_CATALOG_LABELS.moodTags[0], AP_CATALOG_LABELS.moodTags[1]],
+  symptoms: [AP_CATALOG_LABELS.symptoms[0], AP_CATALOG_LABELS.symptoms[1]],
+  workoutSplits: [AP_CATALOG_LABELS.workoutSplits[0], AP_CATALOG_LABELS.workoutSplits[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page
