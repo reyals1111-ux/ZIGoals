@@ -6,6 +6,8 @@
  */
 export const WEATHER_LIMITS=Object.freeze({
  /** Forecast requests per client group (an IPv4 address or an IPv6 /48) per clock minute. */ perMinute:60,
+ /** Security delta (Medium): MET calls across ALL clients per clock minute (5 a second, well inside MET's per-app guidance);
+  *  past it, a kept answer is served stale or the request gets 503, so many clients cannot spend the app's MET identity. */ upstreamPerMinute:300,
  /** How long one MET call may take before it counts as a failure. */ timeoutMs:8000,
  /** The largest MET answer read; a compact forecast is about 30 to 60 kB. */ bodyBytes:1_000_000,
  /** How long past its Expires a kept answer may still be served, marked stale, while MET is unavailable. */ staleMs:2*3_600_000,

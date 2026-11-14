@@ -12,7 +12,7 @@ export const WORKOUT_SPLITS_KEY = 'zigoals:workout-splits:v1';
 export const MAX_SPLIT_WORKOUTS = 3000;
 /** Up to 300 km of splits; a longer workout keeps its pace only. */
 export const MAX_SPLITS = 300;
-const workoutId = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
+const workoutId = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/).refine(k => k !== '__proto__' && k !== 'constructor' && k !== 'prototype', 'Not a workout id.');
 export const splitSchema = z.strictObject({
   /** The kilometre's number, 1 for the first. */
   km: z.number().int().min(1).max(MAX_SPLITS),

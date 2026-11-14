@@ -18,7 +18,7 @@ import type {Task, Tasks} from './schema';
 export const TASK_WHEN_KEY = 'zigoals:task-when:v1';
 export const TASK_WHEN_MAX = 500;
 const day = z.iso.date();
-const id = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
+const id = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/).refine(k => k !== '__proto__' && k !== 'constructor' && k !== 'prototype', 'Not a task id.');
 export const taskWhenEntrySchema = z.union([z.object({evening: day}).strict(), z.object({someday: z.literal(true)}).strict()]);
 export type TaskWhenEntry = z.infer<typeof taskWhenEntrySchema>;
 export const taskWhenSchema = z.object({

@@ -99,3 +99,10 @@ describe('the workout-splits record', () => {
     expect(splitsRecordSchema.safeParse({...r, workouts: {...r.workouts, 'workout-old': {source: 'gpx', paceSecondsPerKm: 20, splits: []}}}).success).toBe(false);
   });
 });
+
+// Security delta (Low, Session AP): points that span far more time than the laps say give no splits, never a thrown error.
+test('an implausible split (one step of 200,000 s) gives no splits instead of failing the import', () => {
+  const start = Date.parse('2026-11-01T08:00:00Z');
+  const seg = [{lat: 50.85, lon: 4.35, t: start}, {lat: 50.8545, lon: 4.35, t: start + 200_000_000}, {lat: 50.859, lon: 4.35, t: start + 200_300_000}];
+  expect(computeSplits([seg as never], (a, b) => Math.abs((b as {lat: number}).lat - (a as {lat: number}).lat) * 111_000, 'tcx')).toBeNull();
+});

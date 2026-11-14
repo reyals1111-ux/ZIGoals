@@ -38,7 +38,10 @@ export function computeSplits(segments: readonly (readonly TrackPoint[])[], dist
     const rest = D - whole * 1000;
     if (rest >= LAST_SPLIT_MIN) splits.push({km: whole + 1, meters: Math.min(1000, Math.round(rest)), seconds: Math.max(1, Math.round(S - before))});
   }
-  return workoutSplitsSchema.parse({source, paceSecondsPerKm: pace, splits});
+  // Security delta (Low): a crafted file whose points span more than its laps say can give an implausible split; then the
+  // workout keeps its summary without splits instead of failing the whole import.
+  const parsed = workoutSplitsSchema.safeParse({source, paceSecondsPerKm: pace, splits});
+  return parsed.success ? parsed.data : null;
 }
 /** "5:32 /km", or "1:02:10 /km" for a very slow pace. */
 export function paceText(secondsPerKm: number): string {
@@ -53,7 +56,7 @@ export function withSplits(record: SplitsRecord, workoutId: string, splits: Work
 }
 /** Drops a deleted workout's splits. */
 export function withoutSplits(record: SplitsRecord, workoutId: string): SplitsRecord {
-  if (!(workoutId in record.workouts)) return record;
+  if (!Object.hasOwn(record.workouts, workoutId)) return record;
   const {[workoutId]: _gone, ...workouts} = record.workouts; void _gone;
   return splitsRecordSchema.parse({...record, workouts});
 }

@@ -133,6 +133,14 @@ const weatherWorker={async fetch(request,env){
  const key=new Request(url.origin+CACHE_PATH+point.lat+'/'+point.lon);
  const kept=await readEntry(await caches.default.match(key));
  if(kept&&now<kept.expires)return serve(kept,'hit',now,cors);
+ // The global MET budget (security delta, Medium): one count per upstream call, across every client, per minute.
+ /** @type {Record<string,string>} */const spend={};if(fixture(env))spend['x-weather-now']=String(now);
+ const budget=await limiter.fetch('https://limit.internal/upstream',{method:'POST',headers:spend});
+ const allowed=budget.status===200;await budget.body?.cancel();
+ if(!allowed){
+  if(kept&&now<kept.expires+L.staleMs)return serve(kept,'stale',now,cors);
+  return reply({error:'UPSTREAM_UNAVAILABLE'},503,{...cors,'Retry-After':'60'});
+ }
  const answer=await askMet(env,point,kept?.lastModified??null,now);
  if(answer?.kind==='not-modified'&&kept){
   const entry={...kept,expires:answer.expires,lastModified:answer.lastModified??kept.lastModified};
@@ -151,12 +159,17 @@ export default weatherWorker;
  */
 export class WeatherLimit{
  /** @param {DurableObjectState} state @param {WeatherEnv} env */
- constructor(state,env){this.state=state;this.env=env;this.minute=-1;/** @type {Map<string,number>} */this.counts=new Map();/** @type {Promise<CryptoKey>|null} */this.key=null;}
+ constructor(state,env){this.state=state;this.env=env;this.minute=-1;this.upstream=0;/** @type {Map<string,number>} */this.counts=new Map();/** @type {Promise<CryptoKey>|null} */this.key=null;}
  /** @param {Request} request */
  async fetch(request){
   const stated=this.env.ISOLATED_FIXTURE==='true'?Number(request.headers.get('x-weather-now')):NaN;
   const now=Number.isSafeInteger(stated)?stated:Date.now(),minute=Math.floor(now/60000);
-  if(minute!==this.minute||!this.key){this.minute=minute;this.counts=new Map();this.key=/** @type {Promise<CryptoKey>} */(crypto.subtle.generateKey({name:'HMAC',hash:'SHA-256'},false,['sign']));}
+  if(minute!==this.minute||!this.key){this.minute=minute;this.counts=new Map();this.upstream=0;this.key=/** @type {Promise<CryptoKey>} */(crypto.subtle.generateKey({name:'HMAC',hash:'SHA-256'},false,['sign']));}
+  if(new URL(request.url).pathname==='/upstream'){
+   // Every client's MET calls this minute, together (security delta, Medium).
+   if(this.upstream>=L.upstreamPerMinute)return Response.json({retryAfter:Math.max(1,Math.ceil(((minute+1)*60000-now)/1000))},{status:429});
+   this.upstream++;return Response.json({ok:true});
+  }
   const counts=this.counts,mac=new Uint8Array(await crypto.subtle.sign('HMAC',await this.key,new TextEncoder().encode(request.headers.get('x-weather-client')??'unknown')));
   const bucket=[...mac.slice(0,8)].map(b=>b.toString(16).padStart(2,'0')).join(''),n=counts.get(bucket)??0;
   if(n>=L.perMinute)return Response.json({retryAfter:Math.max(1,Math.ceil(((minute+1)*60000-now)/1000))},{status:429});

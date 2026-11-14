@@ -252,6 +252,23 @@ test('60 requests per minute per client address (IPv6 by /48); the next waits fo
  const next=await r.get(BRUSSELS);expect(next.status).toBe(200);await next.arrayBuffer();
 },120000);
 
+// Security delta (Medium): many clients asking for many points cannot spend the app's MET identity: at most
+// upstreamPerMinute MET calls a minute across everyone; past it, a new point gets 503 without calling MET.
+test('a global budget of MET calls per minute across all clients; past it, no MET call and a 503',async()=>{
+ const r=await weather();
+ const n=WEATHER_LIMITS.upstreamPerMinute;
+ for(let i=0;i<n;i++){const lat=(40+i*0.01).toFixed(2);const res=await r.get(`?lat=${lat}&lon=4.35`,{headers:{'cf-connecting-ip':`198.51.${Math.floor(i/200)}.${i%200}`}});expect(res.status,String(i)).toBe(200);await res.arrayBuffer();}
+ expect(r.calls).toHaveLength(n);
+ const over=await r.get('?lat=10.00&lon=4.35',{headers:{'cf-connecting-ip':'203.0.113.9'}});
+ expect(over.status).toBe(503);expect(await over.json()).toEqual({error:'UPSTREAM_UNAVAILABLE'});
+ expect(r.calls).toHaveLength(n);
+ // A point already kept is still served from the cache.
+ const kept=await r.get('?lat=40.00&lon=4.35',{headers:{'cf-connecting-ip':'203.0.113.9'}});expect(kept.status).toBe(200);expect(kept.headers.get('x-weather-cache')).toBe('hit');await kept.arrayBuffer();
+ // The next minute has a fresh budget.
+ await r.at(T0+MIN);
+ const next=await r.get('?lat=10.00&lon=4.35',{headers:{'cf-connecting-ip':'203.0.113.9'}});expect(next.status).toBe(200);await next.arrayBuffer();
+},180000);
+
 test('the Worker writes nothing to the console and never reads a client address except to count it',async()=>{
  const source=await readFile(WORKER,'utf8');
  expect(source).not.toMatch(/\bconsole\./);
