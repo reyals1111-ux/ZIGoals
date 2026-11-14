@@ -268,6 +268,15 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   their summary).
 - **D18 (Part 6 weights):** every page under its budget after all 17 features (production build of 060fb196): health
   529.3/531, wealth 504.1/512, journal 454.2/458, agenda 484.5/485, tasks 467.8/468, shell 435.7/447. No budget changed.
+- **D19 (Part 3, the service rows replayed on screen):** `tests/ap/service-rows.spec.ts` with `AP_SERVICE_ROWS=1` on the
+  production build: 17/17 tests, covering TK 'Current' badge, D-262, D-200, TK-6B-06, TK "Unformatted prices", M10,
+  TK-203, W15, D-052, D-079, D-176, C-DVG-35, MO-007, C-MO-01, C-BN-01, C-DVG-67, C-BN-05, C-DVG-69, C-BN-06, C-BN-11,
+  C-BN-12, BN-081, N-BN-17, X3-29 (Staking and Chess). One app bug found and fixed (C-BN-06: the validator line's raw
+  status code and float rate). Spec choices: drift is seen on the load after the device's cached quote ages out (the cache
+  emptied, not the clocks moved: the coordinator judges freshness on the real clock); themes chosen with the app's own
+  theme radios. Not replayable: DV-089, PR-035 (a model; NOVA lane), the barcode provider's activation (a deployment
+  setting; OWNER_STEPS.md). Kept off CI's browser shards (they do not start Miniflare); the API-level test runs in
+  `pnpm test`.
 
 ## Closing table
 (filled at Part 7)

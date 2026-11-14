@@ -30,7 +30,8 @@ test.beforeAll(async ({}, testInfo) => {
   h = await start({bundle: null});
 });
 test.afterAll(async () => { await h?.stop(); h = undefined; });
-test.afterEach(async () => { if (h && variant !== 1) { await h.setQuoteVariant(1); variant = 1; } });
+// A background read (a price refresh) can still be on its way when a test ends: the forwarding stops first, quietly.
+test.afterEach(async ({page}) => { await page.unrouteAll({behavior: 'ignoreErrors'}); if (h && variant !== 1) { await h.setQuoteVariant(1); variant = 1; } });
 
 const harness = () => { if (!h) throw Error('The service-rows harness did not start.'); return h; };
 const local = (url: URL) => url.hostname === '127.0.0.1' || url.hostname === 'localhost';
@@ -91,6 +92,9 @@ test('D-262: a price that moved between two loads moves on every surface, and th
   await expect(card(page, 'Bitcoin').locator('.owned-value strong')).toHaveText('$48,506.17');
   await expect(card(page, 'ZIGChain').locator('.owned-value strong')).toHaveText('$83.41');
   await harness().setQuoteVariant(2); variant = 2;
+  // The next load comes after this device's cached quote has aged out (15 minutes; lib/market-quote-cache.ts): the cache is
+  // emptied rather than the clocks moved, because the coordinator judges freshness on the real clock.
+  await page.evaluate(() => localStorage.removeItem('zigoals:public-market-quotes:v1'));
   await page.reload(); await hydrated(page);
   await expect(card(page, 'Bitcoin').locator('.holding-unit-price strong')).toHaveText('$97,588.90');
   await expect(card(page, 'Bitcoin').locator('.owned-value strong')).toHaveText('$48,794.45');
@@ -105,8 +109,11 @@ test('D-200: a holding valued in EUR moves on reload in EUR', async ({page}) => 
   await page.goto('/app/wealth'); await hydrated(page);
   await expect(card(page, 'Bitcoin').locator('.holding-unit-price strong')).toHaveText('€91,050.12');
   await expect(card(page, 'Bitcoin').locator('.owned-value strong')).toHaveText('€18,210.02');
-  await expect(card(page, 'Bitcoin').locator('.holding-unit-price small')).toHaveText('Current · EUR');
+  await expect(card(page, 'Bitcoin').locator('.holding-unit-price small').filter({hasText: 'EUR'})).toHaveText('Current · EUR');
   await harness().setQuoteVariant(2); variant = 2;
+  // The next load comes after this device's cached quote has aged out (15 minutes; lib/market-quote-cache.ts): the cache is
+  // emptied rather than the clocks moved, because the coordinator judges freshness on the real clock.
+  await page.evaluate(() => localStorage.removeItem('zigoals:public-market-quotes:v1'));
   await page.reload(); await hydrated(page);
   await expect(card(page, 'Bitcoin').locator('.holding-unit-price strong')).toHaveText('€91,591.27');
   await expect(card(page, 'Bitcoin').locator('.owned-value strong')).toHaveText('€18,318.25');
@@ -115,9 +122,11 @@ test('D-200: a holding valued in EUR moves on reload in EUR', async ({page}) => 
 test('TK-6B-06: the 24h change shows with its own as-of time, and an old one says so, in light and dark', async ({page}) => {
   await device(page, platform([], [{ref: ADA.ref, name: 'Cardano', symbol: 'ADA'}]));
   const backgrounds: string[] = [];
-  for (const colorScheme of ['light', 'dark'] as const) {
-    await page.emulateMedia({colorScheme});
+  // ZIGoals' themes are the person's choice (Light, Nebula, Dark), not the device's colour scheme: chosen as a person does.
+  for (const theme of ['Light theme', 'Dark theme'] as const) {
     await page.goto('/app/markets'); await hydrated(page);
+    await page.getByRole('radiogroup', {name: 'Theme'}).getByRole('radio', {name: theme}).click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme === 'Light theme' ? 'light' : 'dark');
     const btc = marketCard(page, 'Bitcoin'), ada = marketCard(page, 'Cardano');
     await expect(btc.locator('.market-change strong')).toHaveText('+2.41%');
     await expect(btc.locator('.market-change span')).toHaveText('24h · Market price');
@@ -205,7 +214,7 @@ test('W15, D-052: Markets → Find a market searches the public catalog; a ninth
 test('D-079: Wealth → Add asset → Find your asset finds bitcoin and gold, and the saved holding is priced', async ({page}) => {
   await device(page);
   await page.goto('/app/wealth'); await hydrated(page);
-  await page.getByRole('button', {name: '+ Add asset'}).click();
+  await page.getByRole('button', {name: '+ Add asset'}).first().click();
   const sheet = page.getByRole('dialog', {name: 'Add to your wealth'});
   await expect(sheet.getByRole('heading', {name: 'Find your asset'})).toBeVisible();
   await sheet.getByLabel('Search assets').fill('bitcoin');
@@ -216,7 +225,7 @@ test('D-079: Wealth → Add asset → Find your asset finds bitcoin and gold, an
   await sheet.getByRole('button', {name: 'Save asset'}).click();
   await expect(page.getByText('Bitcoin added to your wealth.')).toBeVisible();
   await expect(card(page, 'Bitcoin').locator('.holding-unit-price strong')).toHaveText('$97,012.34');
-  await page.getByRole('button', {name: '+ Add asset'}).click();
+  await page.getByRole('button', {name: '+ Add asset'}).first().click();
   await sheet.getByRole('group', {name: 'Asset categories'}).getByRole('button', {name: 'Precious metals'}).click();
   await sheet.getByLabel('Search assets').fill('gold');
   await expect(results.getByRole('button').first()).toContainText('Gold');
@@ -229,6 +238,9 @@ test('D-079: Wealth → Add asset → Find your asset finds bitcoin and gold, an
 test('D-176: Wealth and Markets write the same reference price in the same format', async ({page}) => {
   await device(page, platform([holding(BTC, '0.5'), holding(GOLD, '2')]));
   await page.goto('/app/wealth'); await hydrated(page);
+  // Read once the prices have arrived (the cards show "Unavailable" until the first answer).
+  await expect(card(page, 'Bitcoin').locator('.holding-unit-price strong')).toHaveText('$97,012.34');
+  await expect(card(page, 'Gold').locator('.holding-unit-price strong')).toHaveText('$4,021.15');
   const wealth = {btc: await card(page, 'Bitcoin').locator('.holding-unit-price strong').textContent(), gold: await card(page, 'Gold').locator('.holding-unit-price strong').textContent()};
   await expect(card(page, 'Gold').locator('.holding-unit-price span')).toContainText('Tokenized reference price');
   expect(wealth).toEqual({btc: '$97,012.34', gold: '$4,021.15'});
