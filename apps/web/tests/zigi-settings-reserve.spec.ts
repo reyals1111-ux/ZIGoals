@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session X-Local Phase 2 (P2.8, X-Cloud's H6): Settings → ZIGi reserves its body's height until the body mounts, so a
@@ -9,14 +10,14 @@ import {expect, test} from '@playwright/test';
 const RESERVE_MARGIN = 0.15;
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 async function newDevice(page: import('@playwright/test').Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
 }
 const loaded = (page: import('@playwright/test').Page) => expect.poll(() => page.locator('section#your-ai').evaluate(el => el.children.length > 3 && !el.querySelector('.ai-settings-reserve')), {timeout: 30_000}).toBe(true);
 
 test('the reserved height matches the loaded body on a new device', async ({page}) => {
   await newDevice(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const section = page.locator('section#your-ai');
   const reserve = await section.evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue('--ai-settings-reserve')));
   expect(reserve).toBeGreaterThan(600);
@@ -37,7 +38,7 @@ test('a jump to Help & diagnostics before the body loaded stays put once it has'
     await route.fulfill({status: response.status(), headers, body: text});
   });
   await newDevice(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   // The rest of the page settles first (other sections grow within the first quarter second of a new device's first
   // paint, X-Cloud's lane); the jump then isolates this section.
   await expect(page.locator('section#your-ai')).toBeVisible();

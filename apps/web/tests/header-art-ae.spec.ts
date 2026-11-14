@@ -1,4 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
+import {afterGoto} from './settings-open';
 
 // Session AE (Part 4, ADR-027 G5): the page-header art family. Every page below has its own orbit art in its header (Habits'
 // CSS orbit is the reference): decorative and hidden from assistive tech, in the header's top-right corner and inside its
@@ -7,14 +9,14 @@ import {expect, test, type Page} from '@playwright/test';
 // not at all under reduced motion or Motion Off. Today's hero has none.
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toBeVisible();
 }
 /** The page with its header art at rest (every finite animation over). */
 async function open(page: Page, path: string) {
-  await page.goto(path);
+  await page.goto(path); await afterGoto(page, path);
   await expect(page.locator('main h1').first()).toBeVisible();
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await page.waitForFunction(() => !document.getAnimations().some(a => a.playState === 'running' && a.effect?.getComputedTiming().endTime !== Infinity));
@@ -111,7 +113,7 @@ test('the entrance plays once on each header art (Habits\' orbit too), and never
     if (mode === 'reduced') await page.emulateMedia({reducedMotion: 'reduce'});
     if (mode === 'off') { await page.emulateMedia({reducedMotion: 'no-preference'}); await page.evaluate(() => { localStorage.setItem('zigoals:motion:v1', 'off'); window.dispatchEvent(new Event('zigoals-motion')); }); }
     for (const [path, header] of [...PAGES, HABITS]) {
-      await page.goto(path);
+      await page.goto(path); await afterGoto(page, path);
       await expect(page.locator('main h1').first()).toBeVisible();
       await expect(page.locator(`main ${header} :is(.orbit-art, .habit-constellation)`).first()).toBeAttached();
       if (mode === 'off') await expect(page.locator('html')).toHaveAttribute('data-app-motion', 'off');

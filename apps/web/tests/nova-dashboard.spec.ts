@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {readFile} from 'node:fs/promises';
 import {audit} from './a11y-audit';
 import {defaultAiSettings} from '../lib/ai/settings';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK (owner follow-up 2 N2, follow-up 3 N12; lane NA): NOVA's page. The one-time opening and its skip, reduced
@@ -15,7 +16,7 @@ const NOVA_KEY = 'zigoals:nova:v1';
 const stored = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), NOVA_KEY);
 async function fresh(page: Page, extra: Record<string, string> = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), ...extra});
 }
 const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true, ...more})});

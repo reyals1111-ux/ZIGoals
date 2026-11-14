@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated} from '../../ah-helpers';
 import {NOON, NOVA_KEY, frame, freshNova, panel, storedJson} from './hud-helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL review fixes (lane L8d; docs/review/session-al/NOVA_HUD_REVIEW.md):
@@ -17,9 +18,9 @@ test.use({timezoneId: 'Europe/Brussels'});
 
 async function showcaseNova(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/nova'); await hydrated(page);
@@ -119,7 +120,7 @@ test('M8: a brand-new NOVA opens on the instruments; an empty instrument is draw
   await page.setViewportSize({width: 1440, height: 900});
   await page.clock.install({time: NOON});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   // No NOVA record at all on this device (Motion Off, so the opening does not play and the stage shows at once).
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); localStorage.setItem('zigoals:motion:v1', 'off'); });
   await page.goto('/app/nova'); await hydrated(page);

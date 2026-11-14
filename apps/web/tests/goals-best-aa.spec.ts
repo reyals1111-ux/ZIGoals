@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /** Session AA-Cloud Part 2: Goals best-in-class (G1–G8), in the Showcase and on a new device. */
 test.beforeEach(async ({page}) => {
@@ -6,7 +7,7 @@ test.beforeEach(async ({page}) => {
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
 });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }

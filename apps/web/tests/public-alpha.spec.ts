@@ -8,6 +8,7 @@ import { toBech32 } from "@cosmjs/encoding";
 import { connectSources } from "../lib/csp-compose.mjs";
 import {chooseChain} from "./chain-choice";
 import {pressZigi} from "./zigi-open";
+import {afterGoto} from './settings-open';
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
 
 test("Alpha declares an explicit same-origin icon that resolves", async ({ page, request }) => {
@@ -179,7 +180,7 @@ test("F15: on every app page and after opening ZIGi, every added script is the s
   const errors: string[] = []; page.on("pageerror", e => errors.push(e.message));
   await watchScripts(page);
   for (const route of APP_ROUTES) {
-    const response = await page.goto(route);
+    const response = await page.goto(route); await afterGoto(page, route);
     expect(response!.status(), route).toBeLessThan(400);
     await page.waitForLoadState("networkidle");
     await checkPage(page, route, response);

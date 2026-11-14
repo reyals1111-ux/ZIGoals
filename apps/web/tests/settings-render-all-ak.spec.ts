@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK G2 (RELEASE_REVIEW R11, SESSION_AK_F8 proposal 1): Settings' groups after Data & privacy lay out only when
@@ -12,7 +13,7 @@ const settled = async (page: Page, id: string) => {
 };
 
 test('without a fragment the lower groups wait; the first group, the head and the indexes always render', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
   const groups = await visibility(page);
   // Session AO (owner decision 13 Nov, deliberate): Appearance is now the first group and renders with Data & privacy.
@@ -33,7 +34,7 @@ test('opened on a fragment, every group renders first and the target lands under
 });
 
 test('following a fragment link renders every group before the jump', async ({page, isMobile}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
   const link = isMobile ? page.locator('a[href="#send-feedback"]').first() : page.getByRole('navigation', {name: 'Settings sections'}).getByRole('link', {name: 'Help & diagnostics', exact: true});
   const id = isMobile ? 'send-feedback' : 'settings-help';

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { safeScreenshot, secretFields } from "./safe-screenshot";
+import {openSettings} from './settings-open';
 
 // Session U Part 6 (FIX_PLAN D6, FINDINGS Q-SC-05): a visible recovery secret is painted over in a safe screenshot.
 /** The share of a PNG's pixels that are the mask colour, and how many colours it has, read back through a canvas. */
@@ -17,7 +18,7 @@ const pixels = (page: Page, png: Buffer) => page.evaluate(async b64 => {
 
 test("a safe screenshot paints over the recovery secret that a plain one shows", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop", "One project is enough for a screenshot helper");
-  await page.goto("/app/settings");
+  await openSettings(page);
   await page.getByRole("button", { name: "Prepare encrypted backup", exact: true }).click();
   const field = page.getByLabel("Recovery secret", { exact: true });
   await expect(field).toBeVisible();

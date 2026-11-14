@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {GAME_KEY} from '../lib/aa-device-keys';
 import {CELEBRATIONS_KEY} from '../lib/w-device-keys';
 import {openDeskFold} from './ao/folds';
+import {openSettings} from './settings-open';
 
 /**
  * Session AA-Local Part 2 (H7, S10): the game layer is off by default and shows nothing; on, the Journey page shows the
@@ -26,7 +27,7 @@ function habits(): HabitData {
 async function seed(page: Page, game: Record<string, unknown> | null) {
   await page.clock.install({time: new Date(`${TODAY}T08:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {[HABITS_KEY]: JSON.stringify(habits()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), ...(game ? {[GAME_KEY]: JSON.stringify(game)} : {})});
 }

@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
 import {continueToGoalReview} from '../../goal-name';
+import {openSettings} from '../../settings-open';
 
 /**
  * Release review AL "as if 1.0" (docs/review/session-al/RELEASE_REVIEW_AL.md), the money findings (Wealth, Goals, Life
@@ -97,7 +98,7 @@ test.describe('RR-14', () => {
     await page.setViewportSize({width: 1440, height: 900});
     await offlineApi(page);
     await page.clock.install({time: EVENING});
-    await page.goto('/app/settings');
+    await openSettings(page);
     await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
     await loadShowcase(page);
     const line = page.locator('[data-today-line]');
@@ -117,7 +118,7 @@ test.describe('RR-16', () => {
     await page.setViewportSize({width: 1440, height: 900});
     await offlineApi(page);
     await page.clock.install({time: EVENING});
-    await page.goto('/app/settings');
+    await openSettings(page);
     await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
     await loadShowcase(page);
     await open(page, '/app/wealth');

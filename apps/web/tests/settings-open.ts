@@ -23,3 +23,8 @@ export async function openAllSettingsGroups(page: Page) {
     await expect(folded).toHaveCount(0, {timeout: 2_000});
   }).toPass({timeout: 15_000});
 }
+
+/** True for Settings' own address with no fragment (a fragment opens its own group). */
+export const isPlainSettings = (path: string) => /^\/app\/settings\/?(\?[^#]*)?$/.test(path);
+/** For a spec's own helper that went to `path`: opens every group when that was Settings (see openSettings). */
+export async function afterGoto(page: Page, path: string) { if (isPlainSettings(path)) await openAllSettingsGroups(page); }

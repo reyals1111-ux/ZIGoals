@@ -7,6 +7,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {AI_OPTIONS_KEY, ZIGI_KEY} from '../lib/ai/store/keys';
 import {ZIGI_MANIFEST} from '../components/zigi/manifest';
 import {pressZigi} from './zigi-open';
+import {openSettings} from './settings-open';
 
 /**
  * Session X-Local Phase 2 (P2.5): every one of the manifest's 25 states occurs in realistic use, each driven through the
@@ -44,7 +45,7 @@ async function slowServer(tokens: string[], firstByteMs: number, gapMs: number) 
 }
 async function seed(page: Page, {baseUrl = BASE, settings = {} as Partial<AiSettings>, look = {} as Record<string, unknown>, options = {} as Record<string, unknown>} = {}) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const base = defaultAiSettings();
   const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl, includeHealth: true, pageShare: {...base.pageShare, health: true}, ...settings};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach', ...options}), [ZIGI_KEY]: JSON.stringify({version: 1, animation: 'calm', ...look})});

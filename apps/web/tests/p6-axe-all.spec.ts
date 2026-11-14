@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {axe, loadShowcase, note, offline, settle, THEMES, applyTheme, type Findings} from './p6-helpers';
+import {afterGoto} from './settings-open';
 // CI runs this sweep as its own suite of shards (ADR-036 C3); each test stands alone, so they may split across shards.
 test.describe.configure({mode: 'parallel'});
 
@@ -51,7 +52,7 @@ for (const theme of THEMES) for (const state of ['fresh', 'showcase'] as const) 
     const routes = [...ROUTES, ...await idRoutes(page)];
     const findings: Findings = {};
     for (const path of routes) {
-      await page.goto(path);
+      await page.goto(path); await afterGoto(page, path);
       try { await settle(page); } catch { note(findings, path, ['the page did not settle']); continue; }
       // The theme is on, its sheet loaded (a page from the error shell gets it back after hydration: components/theme-restore.tsx).
       if (theme !== 'nebula') await expect.poll(() => page.evaluate(() => `${document.documentElement.dataset.theme}${(document.getElementById('zigoals-theme-sheet') as HTMLLinkElement | null)?.sheet ? '' : ' (sheet loading)'}`), {message: path}).toBe(theme).catch(() => note(findings, path, [`the ${theme} theme is not on`]));

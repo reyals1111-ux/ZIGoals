@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // Session W Part 24: Settings in six labelled groups, Data & privacy first; every section keeps its id and sits in its
 // group; the chips (computers and tablets) jump to the groups, as the phone's grouped list does on phones.
@@ -20,7 +21,7 @@ const GROUPS: [id: string, title: string, sections: string[]][] = [
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('Settings: six labelled groups in order, each holding its sections; the chips jump to them', async ({page, isMobile}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   const groups = page.locator('.settings-group');
   await expect(groups).toHaveCount(GROUPS.length);

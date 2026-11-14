@@ -4,6 +4,7 @@ import {expectAlphaMode} from "./ab-shell";
 import { navLink, openFold, walletArea } from "./phone-nav";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
 import {chooseChain} from "./chain-choice";
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests local ZIG simulation goals and the wallet buttons.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -221,7 +222,7 @@ test("near-limit Unicode plans export a valid importable backup", async ({
     key: metadataKey,
     raw,
   });
-  await page.goto("/app/settings");
+  await openSettings(page);
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export Goal Data" }).click();
   const stream = await (await download).createReadStream();

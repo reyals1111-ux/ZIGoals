@@ -3,6 +3,7 @@ import {createEmptyHealth, healthSchema, HEALTH_STORAGE_KEY, type HealthData} fr
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {HEALTH_COACH_KEY, MACRO_MODE_KEY, MICRO_TARGETS_KEY, MEASUREMENTS_CUSTOM_KEY} from '../lib/aa-device-keys';
 import {addLocalDays} from '../lib/local-date';
+import {openSettings} from './settings-open';
 
 /**
  * Session AA-Local Part 3 (N1–N12 without the photo plate): the weight trend and the energy estimate from six weeks of
@@ -27,7 +28,7 @@ function health(): HealthData {
 async function seed(page: Page) {
   await page.clock.install({time: new Date(`${TODAY}T08:00:00.000Z`)});
   await page.route('**/api/**', route => route.request().url().includes('/api/recipe-import') ? route.fulfill({status: 400, json: {error: 'PRIVATE_HOST'}}) : route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HEALTH_STORAGE_KEY]: JSON.stringify(health()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
 }
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);

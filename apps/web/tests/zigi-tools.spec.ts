@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY, AI_USAGE_KEY} from '../lib/ai/store/keys';
 import {HABITS_KEY} from '../lib/habits';
 import {pressZigi} from './zigi-open';
+import {openSettings} from './settings-open';
 
 /**
  * Session V Part 6 (native read-only tool calling, owner decision D1), through the real panel against a MOCK local
@@ -43,7 +44,7 @@ async function server(page: Page, reply: (body: Body, n: number) => {status?: nu
 }
 async function seed(page: Page, extra: Record<string, string> = {}) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const settings = {...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(settings), ...extra});
   // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session

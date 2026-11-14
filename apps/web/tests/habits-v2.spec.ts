@@ -4,6 +4,7 @@ import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue, saveHabitTimezon
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {CELEBRATIONS_KEY, W_REMINDERS_KEY} from '../lib/w-device-keys';
 import {closeFormSheet, isPhone} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // Session W Part 10: habit ideas, stacks shown together with a chained reminder, challenges with a calm one-time end,
 // and a habit's patterns. Fictional habits; the clock is fixed in Brussels.
@@ -24,7 +25,7 @@ function habits(): HabitData {
 async function seed(page: Page, extra: Record<string, string> = {}) {
   await page.clock.install({time: new Date(`${TODAY}T08:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {[HABITS_KEY]: JSON.stringify(habits()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), ...extra});
 }

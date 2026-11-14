@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Portfolio.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -163,7 +164,7 @@ test('find a coin you do not hold: its page, with nothing of yours yet', async (
 test('Showcase: the whole page and a coin\'s page from labelled fixtures, and nothing asked of any market', async ({page}) => {
   const asked = await market(page);
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  await page.goto('/app/settings');await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();await page.waitForURL('**/app');
+  await openSettings(page);await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();await page.waitForURL('**/app');
   const before = asked.length;
   await page.goto('/app/portfolio');
   const totals = page.getByLabel('Fictional long-term coins totals');

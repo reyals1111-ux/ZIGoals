@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {buildStoredZip} from '../../../lib/export/zip';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../../lib/dashboard-settings';
 import {APPLE_XML} from '../../../lib/import/switch/test-fixtures';
+import {openSettings} from '../../settings-open';
 
 // Session AL third pass (lane L6 for L2, P-MO-59): Moscow MO-039. After "Undo the import" the old "Imported from Apple
 // Health: …" line stayed above "…was undone."; the preview showed "… of 2 MB" with no word on what the limit is. Fresh
@@ -10,7 +11,7 @@ test.use({viewport: {width: 1280, height: 900}, timezoneId: 'Europe/Moscow'});
 const zip = (entries: Record<string, string>) => Buffer.from(buildStoredZip(Object.entries(entries).map(([name, data]) => ({name, data, modified: new Date('2026-10-06T12:00:00Z')}))));
 async function seed(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(([key, value]) => { localStorage.clear(); localStorage.setItem(key!, value!); }, [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
   await page.reload();
 }

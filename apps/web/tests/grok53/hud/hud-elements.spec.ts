@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated} from '../../ah-helpers';
 import {NOON, NOVA_KEY, panel} from './hud-helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL Part 11, second pass (lane L8): the reference image's elements on the Showcase's NOVA, each on real data with
@@ -14,9 +15,9 @@ test.use({timezoneId: 'Europe/Brussels'});
 
 async function showcaseNova(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   // Keep the Showcase's own NOVA (its widgets); only mark the opening seen so the stage shows at once.

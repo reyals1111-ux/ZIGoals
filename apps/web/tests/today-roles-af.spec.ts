@@ -1,6 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {emptyPlatform} from '../lib/positions';
 import {goal} from './run9-1-fixture';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF (L5a, Part 10.10): "Next step", "What matters today" and the goal cards no longer repeat one goal. The focus
@@ -16,7 +17,7 @@ const read = (page: import('@playwright/test').Page) => page.evaluate(() => {
 
 test('the Showcase: the top goal’s next step, the most urgent other goal, each card its progress — every card kept', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('article', {name: 'Focus: next goal step'})).toBeVisible();
@@ -44,7 +45,7 @@ test('the Showcase: the top goal’s next step, the most urgent other goal, each
 
 test('one goal: the tile’s next step and the panel’s funding facts are different things', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const data = emptyPlatform(); data.goals = [goal()];
   await page.evaluate(d => localStorage.setItem('zigoals:platform:v1', JSON.stringify(d)), data);
   await page.goto('/app');

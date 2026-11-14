@@ -1,5 +1,6 @@
 import {expect,test,type Page} from '@playwright/test';
 import {closeMore,isPhone,navLink} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // Records every arrival mark and every logo intro clip inserted during a page load, even if removed again.
 const RECORDER=()=>{const seen={arrive:[] as string[],intro:0};Object.assign(window,{motionSeen:seen});new MutationObserver(records=>{for(const r of records){if(r.type==='attributes'&&(r.target as Element).hasAttribute('data-arrive'))seen.arrive.push((r.target as Element).tagName+':'+(r.target as HTMLElement).dataset.arrive+((r.target as HTMLElement).dataset.arriveMetric!==undefined?'+metric':''));for(const n of r.addedNodes)if(n instanceof Element&&(n.matches('video.logo-intro')||n.querySelector('video.logo-intro')))seen.intro++;}}).observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:['data-arrive']});};
@@ -8,7 +9,7 @@ const seen=(page:Page)=>page.evaluate(()=>(window as unknown as {motionSeen:Seen
 async function showcase(page:Page){
  await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'Offline fictional motion fixture'}}));
  await page.addInitScript(RECORDER);
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
 /** Layout boxes in the first viewport, where arrivals play, so an in-flight entrance must match the settled page exactly. Transforms are
  * neutralised for one synchronous read (author !important outranks animations) and boxes are compared at sub-pixel precision; summing

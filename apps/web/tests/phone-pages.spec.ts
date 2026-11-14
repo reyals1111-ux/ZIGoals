@@ -1,10 +1,12 @@
 import {expect,test,type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
+import {afterGoto} from './settings-open';
 
 // Session E, Part 3: every page laid out for a phone. Sizes are set explicitly so both projects run these checks.
 const PAGES=['/app','/app/goals','/app/goals/new','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
-async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
-async function open(page:Page,path:string){await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy','true');}
+async function showcase(page:Page){await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
+async function open(page:Page,path:string){await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy','true');}
 
 for(const [width,height] of [[390,844],[360,800],[320,568]] as const)
  test(`${width}x${height}: no page scrolls sideways and every title starts on the first screen, above the tab bar`,async({page})=>{

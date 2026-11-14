@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated} from '../../ah-helpers';
 import {NOON, frame, freshNova, panel} from './hud-helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL lane L8f: guards for the second HUD review's Blocker and Majors (docs/review/session-al/NOVA_HUD_REVIEW_2.md),
@@ -20,9 +21,9 @@ test.use({timezoneId: 'Europe/Brussels'});
 
 async function showcase(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }

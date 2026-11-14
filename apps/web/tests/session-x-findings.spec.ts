@@ -6,6 +6,7 @@ import {createEmptyHealth, HEALTH_STORAGE_KEY} from '../lib/health';
 import {createHabit, emptyHabitData, HABITS_KEY} from '../lib/habits';
 import {NUDGES} from '../lib/coach/copy';
 import {addWater, dailyData, saveHealthPreferences} from '../lib/health-daily';
+import {openSettings} from './settings-open';
 
 // Session X Part 14: what the human-style test (docs/verification/x-cloud/HUMAN_TEST.md) found in the app, kept fixed.
 // Each test names its journey. Fictional records, every /api answered by a fixture unless the test says otherwise.
@@ -23,7 +24,7 @@ const stored = (page: Page) => page.evaluate(k => (JSON.parse(localStorage.getIt
 test('J054: a goal edited in two tabs keeps both changes: the second tab never writes back the name the first changed', async ({page, isMobile}) => {
   test.skip(isMobile, 'Two tabs on a computer; the form is the same on a phone.');
   const goal = privateGoalSchema.parse({id: '7', name: 'Fictional reserve', type: 'VALUE', status: 'active', asset: 'EUR', denom: 'EUR', decimals: 2, target: '600000', targetDate: '2026-12-30', notes: '', createdAt: '2026-06-01T09:00:00.000Z', milestones: []});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [PLATFORM_KEY, JSON.stringify({...emptyPlatform(), goals: [goal]})]);
   const other = await page.context().newPage();
   for (const tab of [page, other]) { await tab.goto('/app/goals/tracked/7'); await tab.locator('#edit-goal > summary').click(); }
@@ -53,7 +54,7 @@ test('J108: the barcode lookup offline says so in plain words, never the browser
 test('J247–J249: Chess in the Showcase hydrates without React\'s mismatch error', async ({page}) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/chess');
@@ -65,7 +66,7 @@ test('J247–J249: Chess in the Showcase hydrates without React\'s mismatch erro
 });
 
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
@@ -124,7 +125,7 @@ test('a page that fails while drawing shows the app\'s error page in the app, ne
 
 test('J201: a Settings section link lands on its section and stays there while a section above loads', async ({page, isMobile}) => {
   test.skip(isMobile, 'The section links are the computer layout; phones use the grouped list (phone-pages).');
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.locator('main h1').first()).toBeVisible();
   // At once, before ZIGi's settings (above Help & diagnostics) have loaded their body and grown.
   await page.getByRole('navigation', {name: 'Settings sections'}).getByRole('link', {name: 'Help & diagnostics', exact: true}).click();
@@ -254,7 +255,7 @@ test('a traveller: Today\'s "Your week" ends on the day of the time zone their j
   test.skip(isMobile, 'The week strip counts the same on a phone; its days are folded there.');
   // The device is in Brussels at 23:30 on 7 October; the journal follows Asia/Tokyo, where it is already 06:30 on the 8th.
   await page.clock.install({time: new Date('2026-10-07T21:30:00Z')});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const tokyo = saveHealthPreferences(createEmptyHealth(), {...dailyData(createEmptyHealth()).preferences, timezone: 'Asia/Tokyo'});
   const withWater = addWater(tokyo, {id: 'health_6b3c1a64-5f43-4f53-9d1e-7a0c2b9e1f10', date: '2026-10-08', amountMilli: 250_000, unit: 'ml'}, '2026-10-07T21:30:00.000Z');
   await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HEALTH_STORAGE_KEY, JSON.stringify(withWater)]);
@@ -284,7 +285,7 @@ test('the Guide\'s "Open habit" shows that habit even when today\'s filter would
   const at = new Date('2026-10-01T08:00:00.000Z'), swimId = '5d9a6e2c-2b0f-4c41-9d6b-3e7a1f2c8b40';
   let habits = createHabit(emptyHabitData(), {title: 'Fictional daily walk', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, measurement: {kind: 'boolean'}, target: 1}, at);
   habits = createHabit(habits, {title: 'Fictional Sunday swim', category: 'Health', description: '', notes: '', schedule: {kind: 'weekdays', days: [0]}, measurement: {kind: 'boolean'}, target: 1}, at, swimId);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HABITS_KEY, JSON.stringify(habits)]);
   await page.goto(`/app/habits#habit-${swimId}`);
   const swim = page.locator(`#habit-${swimId}`);
@@ -296,7 +297,7 @@ test('the Guide\'s "Open habit" shows that habit even when today\'s filter would
 test('J249: Settings going offline right after it opens keeps working; a part that cannot load says so, never the error page', async ({page}) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   await showcase(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   // Offline before the parts that load on demand have arrived (ZIGi's settings load when the browser is idle).
   await page.context().setOffline(true);

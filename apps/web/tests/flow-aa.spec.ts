@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {ONBOARDING_SETUP_KEY, REMINDERS_PLAN_KEY} from '../lib/aa-device-keys';
 import {REMINDERS_KEY} from '../lib/reminders/schema';
 import {isPhone} from './phone-nav';
+import {openSettings} from './settings-open';
 
 /**
  * Session AA-Local Part 4: swipe actions on phones (right completes with the indicator; left only reveals; a fast swipe
@@ -19,7 +20,7 @@ function habits(): HabitData { let d = saveHabitTimezone(emptyHabitData(), 'Euro
 async function seed(page: Page, extra: Record<string, string> = {}, clock = '08:00') {
   await page.clock.install({time: new Date(`${TODAY}T${clock}:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HABITS_KEY]: JSON.stringify(habits()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), ...extra});
 }
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);

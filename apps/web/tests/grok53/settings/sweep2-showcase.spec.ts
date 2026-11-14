@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi, showcaseState} from '../../ah-helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL sweep 2 (INT third pass, the Showcase owner's items). 1280 px, Brussels, a fixed clock at 05:30 local, so
@@ -14,7 +15,7 @@ test.beforeEach(async ({page}) => { await offlineApi(page); await page.clock.ins
 
 test('the Showcase card, the sleep goal, the staking date and chess times', async ({page}) => {
   await freshDevice(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await expect(page.locator('#showcase')).toContainText('The Showcase is a separate copy, in this tab only; your own data and wallet records are untouched.');
   await expect(page.locator('#showcase')).not.toContainText('separate storage');
   await loadShowcase(page);

@@ -7,6 +7,7 @@ import {saveManual} from '../lib/meditation/engine';
 import {withHealthGroup} from '../lib/vault/w-homes';
 import {W_REMINDERS_KEY} from '../lib/w-device-keys';
 import {isPhone, openTodayWidgets} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // Session W Part 5: Meditation, a view of Health (/app/health?view=meditation). The timer is worked out from instants;
 // the bells are made on the device (a MOCK AudioContext records them here); the screen wake lock is a MOCK too. Every
@@ -33,7 +34,7 @@ async function mocks(page: Page) {
 }
 async function seed(page: Page, {health, settings = {}, extra = {}}: {health?: HealthData; settings?: Record<string, unknown>; extra?: Record<string, string>} = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   const records: Record<string, string> = {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true, ...settings}), ...extra};
   if (health) records[HEALTH_STORAGE_KEY] = JSON.stringify(healthSchema.parse(health));
   await page.evaluate(entries => { for (const [key, value] of Object.entries(entries)) localStorage.setItem(key, value); }, records);
@@ -268,7 +269,7 @@ test('Showcase: fictional sessions, and nothing asked of any other site', async 
   const outside: string[] = [];
   page.on('request', request => { if (!request.url().startsWith(baseURL!) && !request.url().startsWith('data:')) outside.push(request.url()); });
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await openMeditation(page);

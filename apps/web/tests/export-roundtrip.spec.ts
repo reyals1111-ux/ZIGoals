@@ -4,6 +4,7 @@ import {presetSettings,DASHBOARD_SETTINGS_KEY} from '../lib/dashboard-settings';
 import {PLATFORM_KEY} from '../lib/positions';
 import {HABITS_KEY} from '../lib/habits';
 import {HEALTH_STORAGE_KEY} from '../lib/health';
+import {openSettings} from './settings-open';
 
 // Local Demo (no Showcase, no account): Settings → encrypted backup → wipe the browser → restore
 // every module through the same UI. Each module's stored data must come back identical.
@@ -12,7 +13,7 @@ test('Local Demo export, wipe and import restores all four modules identically',
  test.setTimeout(90000);
  const {records}=buildShowcase('2026-09-20');
  const seeded:Record<string,string>={...records,[DASHBOARD_SETTINGS_KEY]:JSON.stringify({...presetSettings('habits-health'),onboarded:true})};
- await page.goto('/app/settings');await page.evaluate(values=>{localStorage.clear();for(const [k,v]of Object.entries(values))localStorage.setItem(k,v);},seeded);await page.reload();
+ await openSettings(page);await page.evaluate(values=>{localStorage.clear();for(const [k,v]of Object.entries(values))localStorage.setItem(k,v);},seeded);await page.reload();
  const read=()=>page.evaluate(keys=>Object.fromEntries(Object.entries(keys).map(([d,k])=>[d,localStorage.getItem(k)])),KEYS);
  const before=await read();for(const d of Object.keys(KEYS))expect(before[d],d).toBe(seeded[KEYS[d as keyof typeof KEYS]]);
  await page.getByLabel('Include my Health records in this encrypted download.',{exact:true}).check();

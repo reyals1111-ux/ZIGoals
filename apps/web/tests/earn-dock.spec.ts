@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {earnRoutes, seedShowcase} from './earn-fixtures';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the Earn dock.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -24,7 +25,7 @@ test.describe('on a computer', () => {
     await page.goto('/app');
     await expect(page.locator('.ai-launcher-button')).toBeVisible();
     await expect(page.locator('.earn-dock-button, .earn-dock-edge')).toHaveCount(0);
-    await page.goto('/app/settings');
+    await openSettings(page);
     const on = page.getByRole('switch', {name: /^Earn dock — on this device/});
     await expect(on).not.toBeChecked();
     await on.check();

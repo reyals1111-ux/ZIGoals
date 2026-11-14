@@ -11,53 +11,65 @@ import {rovingCurrent, rovingTarget} from '../../lib/primitives/roving';
  * Items that are hidden (a folded row, a closed <details>) are left out, so Tab never lands on something unseen.
  * `columns`: the items form a grid of that many columns (Up and Down move by a row).
  */
-export function useRovingFocus<T extends HTMLElement>(selector: string, {columns, enabled = true}: {columns?: number; enabled?: boolean} = {}): RefObject<T | null> {
-  const ref = useRef<T | null>(null), last = useRef<HTMLElement | null>(null);
+export function useRovingFocus<T extends HTMLElement>(selector: string, options: {columns?: number; enabled?: boolean} = {}): RefObject<T | null> {
+  const ref = useRef<T | null>(null);
+  useRovingFocusOn(ref, selector, options);
+  return ref;
+}
+/** The same on an element the component already holds a ref to (Session AP: the sidebar's navigation keeps its own ref). */
+export function useRovingFocusOn<T extends HTMLElement>(ref: RefObject<T | null>, selector: string, {columns, enabled = true}: {columns?: number; enabled?: boolean} = {}): void {
   useEffect(() => {
     const root = ref.current;
     if (!root || !enabled) return;
-    const all = () => [...root.querySelectorAll<HTMLElement>(selector)];
-    const items = () => all().filter(item => !(item as HTMLButtonElement).disabled && item.getClientRects().length > 0);
-    const touched = new Set<HTMLElement>();
-    const apply = () => {
-      const shown = items(), current = rovingCurrent(shown, last.current);
-      for (const item of all()) {
-        const tab = item === current ? '0' : '-1';
-        if (item.getAttribute('tabindex') !== tab) { item.setAttribute('tabindex', tab); touched.add(item); }
-      }
-    };
-    let frame = 0;
-    const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(apply); };
-    const onFocus = (event: FocusEvent) => {
-      const item = (event.target as HTMLElement).closest<HTMLElement>(selector);
-      if (!item || !root.contains(item) || last.current === item) return;
-      last.current = item; apply();
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-      const item = (event.target as HTMLElement).closest<HTMLElement>(selector);
-      if (!item || !root.contains(item)) return;
-      const shown = items(), to = rovingTarget(event.key, shown.indexOf(item), shown.length, columns);
-      if (to === null) return;
-      event.preventDefault();
-      const next = shown[to];
-      if (!next || next === item) return;
-      last.current = next; apply(); next.focus();
-    };
-    apply();
-    root.setAttribute('data-roving', selector); // for tests/ao/today-tab-stops.spec.ts: each group's items are reached by the arrows
-    root.addEventListener('focusin', onFocus);
-    root.addEventListener('keydown', onKey);
-    // Items arrive with the stores and leave with a fold; a resize can show or hide one (a phone's folded rows).
-    const watch = new MutationObserver(later);
-    watch.observe(root, {childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'open', 'disabled', 'data-phone-collapsed']});
-    window.addEventListener('resize', later);
-    return () => {
-      cancelAnimationFrame(frame); watch.disconnect(); window.removeEventListener('resize', later);
-      root.removeEventListener('focusin', onFocus); root.removeEventListener('keydown', onKey);
-      for (const item of touched) item.removeAttribute('tabindex');
-      root.removeAttribute('data-roving');
-    };
-  }, [selector, columns, enabled]);
-  return ref;
+    return attachRoving(root, selector, {columns});
+  }, [ref, selector, columns, enabled]);
+}
+/**
+ * Session AP (route weights): the roving tabindex as a plain function, so the shell's sidebar can load it after the page
+ * shows (components/app-nav.tsx imports this module on demand); returns the clean-up.
+ */
+export function attachRoving(root: HTMLElement, selector: string, {columns}: {columns?: number} = {}): () => void {
+  const last: {current: HTMLElement | null} = {current: null};
+  const all = () => [...root.querySelectorAll<HTMLElement>(selector)];
+  const items = () => all().filter(item => !(item as HTMLButtonElement).disabled && item.getClientRects().length > 0);
+  const touched = new Set<HTMLElement>();
+  const apply = () => {
+    const shown = items(), current = rovingCurrent(shown, last.current);
+    for (const item of all()) {
+      const tab = item === current ? '0' : '-1';
+      if (item.getAttribute('tabindex') !== tab) { item.setAttribute('tabindex', tab); touched.add(item); }
+    }
+  };
+  let frame = 0;
+  const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(apply); };
+  const onFocus = (event: FocusEvent) => {
+    const item = (event.target as HTMLElement).closest<HTMLElement>(selector);
+    if (!item || !root.contains(item) || last.current === item) return;
+    last.current = item; apply();
+  };
+  const onKey = (event: KeyboardEvent) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const item = (event.target as HTMLElement).closest<HTMLElement>(selector);
+    if (!item || !root.contains(item)) return;
+    const shown = items(), to = rovingTarget(event.key, shown.indexOf(item), shown.length, columns);
+    if (to === null) return;
+    event.preventDefault();
+    const next = shown[to];
+    if (!next || next === item) return;
+    last.current = next; apply(); next.focus();
+  };
+  apply();
+  root.setAttribute('data-roving', selector); // for tests/ao/today-tab-stops.spec.ts: each group's items are reached by the arrows
+  root.addEventListener('focusin', onFocus);
+  root.addEventListener('keydown', onKey);
+  // Items arrive with the stores and leave with a fold; a resize can show or hide one (a phone's folded rows).
+  const watch = new MutationObserver(later);
+  watch.observe(root, {childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'open', 'disabled', 'data-phone-collapsed']});
+  window.addEventListener('resize', later);
+  return () => {
+    cancelAnimationFrame(frame); watch.disconnect(); window.removeEventListener('resize', later);
+    root.removeEventListener('focusin', onFocus); root.removeEventListener('keydown', onKey);
+    for (const item of touched) item.removeAttribute('tabindex');
+    root.removeAttribute('data-roving');
+  };
 }

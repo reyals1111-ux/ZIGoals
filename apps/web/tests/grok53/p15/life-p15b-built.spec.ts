@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated, offline} from '../l3-helpers';
 import {openModule, project, seedGoals} from '../goals/goal-fixtures';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL Part 15, lane P15-B: the Life items that were already built by earlier passes, proven in the browser
@@ -10,7 +11,7 @@ import {openModule, project, seedGoals} from '../goals/goal-fixtures';
 test.use({timezoneId: 'Europe/Brussels', locale: 'en-GB', viewport: {width: 1280, height: 800}});
 async function showcase(page: Page) {
   await offline(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
   await page.reload(); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();

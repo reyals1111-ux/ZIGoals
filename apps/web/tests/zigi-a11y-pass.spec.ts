@@ -8,6 +8,7 @@ import {audit} from './a11y-audit';
 import {openMealLog} from './phone-nav';
 import {chooseChain} from './chain-choice';
 import {pressZigi} from './zigi-open';
+import {openSettings} from './settings-open';
 
 /**
  * Session V Part 16, the accessibility pass for people using a screen reader and for AI agents that drive a page by
@@ -23,7 +24,7 @@ const answer = (text: string) => [chunk({choices: [{index: 0, delta: {role: 'ass
 const PROPOSALS = 'MOCK: here are your cards.\n```zigoals-action\n{"kind":"log-water","glasses":2}\n```\n```zigoals-action\n{"kind":"check-in","habit":"h4","minutes":5}\n```\n```zigoals-action\n{"kind":"create-habit","title":"Evening stretch","type":"build","measurement":"minutes","target":10,"schedule":"daily","timeOfDay":"evening"}\n```';
 async function seed(page: Page) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const settings = {...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE};
   const values = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(settings), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'})};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);

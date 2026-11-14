@@ -9,6 +9,7 @@ import {reviewWindow} from '../lib/weekly-review/engine';
 import {addLocalDays} from '../lib/local-date';
 import {isPhone} from './phone-nav';
 import {formatDate} from '../lib/visual-format';
+import {openSettings} from './settings-open';
 
 // G1 (Session P): the weekly review on the chosen day; six calm steps with the person's own numbers; device-only.
 const TODAY = '2026-09-15', WEEKDAY = 2; // a Tuesday, chosen as the review day
@@ -32,7 +33,7 @@ async function seed(page: Page) {
   let habits = createHabit(emptyHabitData(), {title: 'Stretch', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1, measurement: {kind: 'count', unit: 'times'}}, new Date('2026-09-01T08:00:00.000Z'), '11111111-1111-4111-8111-111111111111');
   habits = logHabitCount(habits, '11111111-1111-4111-8111-111111111111', '2026-09-14', 1, '', new Date('2026-09-14T08:00:00.000Z'));
   habits = logHabitCount(habits, '11111111-1111-4111-8111-111111111111', TODAY, 1, '', new Date(`${TODAY}T09:00:00.000Z`));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HABITS_KEY]: JSON.stringify(habits), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WEEKLY_REVIEW_KEY]: JSON.stringify({version: 1, weekday: WEEKDAY, reviews: []})});
 }
 /** Next saves the words before the step changes (Session U Part 9: in Health and settings, after their storage lock), so each click waits for its step to change; a click that raced ahead could land on Finish review. */
@@ -120,7 +121,7 @@ test('Escape keeps the draft; skip this week writes a skip and the next review d
 
 test('Showcase: the review is offered on its day, the last fictional intention is shown, and viewing writes nothing', async ({page}) => {
   await page.clock.setSystemTime(new Date('2026-09-13T10:00:00.000Z')); // a Sunday, the Showcase review day
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const before = await homeEntries(page);

@@ -1,4 +1,5 @@
 "use client";
+import { RovingGroup } from "./ui/roving-group"; // Session AP (D-028): the day's events are one Tab stop
 import {EmptyState} from './ui/empty-state';
 import Link from "next/link";
 import { useGoals } from "./goal-provider";
@@ -173,7 +174,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     {(habits.error || health.error) && <p className="fine">Some private history needs attention in Settings; stored data has been preserved.</p>}
     {onQuery && <ActivitySearchField value={query ?? ""} onChange={onQuery}><p className="activity-search-status" role="status" aria-live="polite">{searching ? countText(found.length, "result", "results") : ""}</p>{found.length > 0 && <button type="button" className="secondary activity-export" onClick={exportCsv}>Export CSV</button>}</ActivitySearchField>}
     {showcase && <p className="activity-history-source">Showcase example history: rows marked “Showcase example” are fictional; what you add here is yours.</p>}
-    {entries.length ? <ol>{entries.map((event, index) => {
+    {entries.length ? <RovingGroup contents selector=".activity-item-link"><ol>{entries.map((event, index) => {
       const presentation = presentationOf(event);
       // Session AH (TR12): grouped under the record's own day, newest day first.
       const heading = activityDayHeading(event.dayKey);
@@ -182,14 +183,14 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
         {startsDay && <h3 className="activity-date-heading">{heading}</h3>}
         <article className="activity-event" data-category={event.category} data-tone={presentation.tone}>
           <span className={`timeline-icon timeline-${presentation.tone}`}><AppIcon name={presentation.icon} size={28} /></span>
-          <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : novaById.has(event.id.replace(/^zigi:/, "")) ? " · by NOVA" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link>{event.detail && <p>{event.detail}</p>}<small>{sourceOf(event)}</small></div>
+          <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : novaById.has(event.id.replace(/^zigi:/, "")) ? " · by NOVA" : " · by ZIGi"}</span>}</span><Link href={event.href} className="activity-item-link">{event.title}</Link>{event.detail && <p>{event.detail}</p>}<small>{sourceOf(event)}</small></div>
           {(() => { const time = activityTimeLabel(event.at, zone); return time ? <time dateTime={event.at}>{time}</time> : null; })()}
           {!showcase && event.category === "HABIT" && habitDay(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => removeHabitDay(event.id, event.title)}>Remove</button>}
           {!showcase && (() => { const goal = contributionGoal(event.id); return goal ? <Link className="text-link activity-remove" href={`/app/goals/tracked/${goal}#funding-wealth`} aria-label={`Reverse on its goal: ${event.title}`}>Reverse on its goal →</Link> : null; })()}
           {!showcase && event.category === "HEALTH" && healthKind(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => remove(event.id, event.title)}>Remove</button>}
         </article>
       </li>;
-    })}</ol> : searching ? <EmptyState className="timeline-empty activity-search-empty" zigi="encouraging" title="Nothing matched your search.">{`${category === "ALL" ? "No activity" : category === "ZIGI" ? "No action by ZIGi" : `No ${kindWord(category).toLowerCase()} activity`} shows “${query!.trim()}”. Try other words, or another filter.`}</EmptyState> : (e => <EmptyState className="timeline-empty" zigi="encouraging" title={e.title} action={e.href ? <Link className="text-link" href={e.href}>{e.link}</Link> : undefined}>{e.body}</EmptyState>)(emptyFor(category))}
+    })}</ol></RovingGroup> : searching ? <EmptyState className="timeline-empty activity-search-empty" zigi="encouraging" title="Nothing matched your search.">{`${category === "ALL" ? "No activity" : category === "ZIGI" ? "No action by ZIGi" : `No ${kindWord(category).toLowerCase()} activity`} shows “${query!.trim()}”. Try other words, or another filter.`}</EmptyState> : (e => <EmptyState className="timeline-empty" zigi="encouraging" title={e.title} action={e.href ? <Link className="text-link" href={e.href}>{e.link}</Link> : undefined}>{e.body}</EmptyState>)(emptyFor(category))}
     {onMore && found.length > limit && <button className="quiet" onClick={onMore}>Show more activity</button>}
   </div>;
 }

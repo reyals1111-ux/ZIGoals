@@ -7,6 +7,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {NOVA_SETUP_KEY} from '../lib/nova/setup';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK, owner follow-up 4 (P6, the accessibility sweep): shared steps of tests/p6-*.spec.ts.
@@ -76,7 +77,7 @@ export async function offline(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 }
 export async function loadShowcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
@@ -129,7 +130,7 @@ export async function mockModel(page: Page, replies: readonly string[]) {
 /** The Showcase's fictional records written as the person's own, with the MOCK model connected; `guide` leaves the NOVA guide's example progress out. The theme choice is kept. */
 export async function seedDevice(page: Page, {guide = false} = {}) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const base = defaultAiSettings();
   const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: LOCAL, includeHealth: true, pageShare: {...base.pageShare, health: true}};
   const {[NOVA_SETUP_KEY]: progress, ...records} = buildShowcase(DAY).records;

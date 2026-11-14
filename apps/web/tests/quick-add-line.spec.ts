@@ -3,6 +3,7 @@ import {HABITS_KEY, createHabit, emptyHabitData, type HabitData} from '../lib/ha
 import {HEALTH_STORAGE_KEY, type HealthData} from '../lib/health';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {isPhone} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // A2 (Session P): the Quick-add line: one typed line, an exact preview, nothing saved before Save.
 const TODAY = '2026-09-15';
@@ -11,7 +12,7 @@ test.beforeEach(async ({page}) => {
   await page.clock.install({time: new Date(`${TODAY}T10:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   const habits = createHabit(emptyHabitData(), {title: 'Meditate', category: 'Mind', description: '', notes: '', schedule: {kind: 'daily'}, target: 10, measurement: {kind: 'count', unit: 'times'}}, new Date('2026-09-01T08:00:00.000Z'), '11111111-1111-4111-8111-111111111111');
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HABITS_KEY]: JSON.stringify(habits), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true})}); // the balanced preset keeps the financial domain, whose Today hero carries Quick add on desktop
 });
 const health = async (page: Page) => JSON.parse((await page.evaluate(key => localStorage.getItem(key), HEALTH_STORAGE_KEY)) ?? 'null') as HealthData | null;

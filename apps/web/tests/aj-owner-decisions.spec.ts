@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {loadShowcase} from './ah-helpers';
+import {openSettings} from './settings-open';
 
 /**
  * Session AJ (item 8): the owner's decisions themselves, pinned in the browser (the unit pins I5 and ST5 are in
@@ -13,7 +14,7 @@ import {loadShowcase} from './ah-helpers';
  */
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}})); });
 async function freshDevice(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
 }
 const hydrated = (page: Page) => expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '', {timeout: 20_000});
@@ -48,7 +49,7 @@ test('TO1: bare /app opens Today by default, and Today can be switched off', asy
 
 test('ZI5: the sharing switches and "Include Health" show before any AI is connected', async ({page}) => {
   await freshDevice(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const privacy = page.getByRole('region', {name: 'Privacy & data'});
   await expect(privacy).toContainText('What each page may share', {timeout: 30_000});
   // Session AL (COPY_AUDIT, deliberate): the switches also decide what ZIGi's on-device answers read (MO-052, P-MO-12).

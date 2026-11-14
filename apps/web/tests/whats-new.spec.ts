@@ -3,6 +3,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {EARLIER_LINKS, WHATS_NEW_LINKS} from '../components/for-you/whats-new-card';
+import {openSettings} from './settings-open';
 
 // The one-time "What's new" card (Session P, owner addition 4): once per device, never during onboarding, links to Help.
 // Session AC: the seeded records are the Showcase's for 2026-09-20, so the page's clock is that day too; with the real
@@ -10,7 +11,7 @@ import {EARLIER_LINKS, WHATS_NEW_LINKS} from '../components/for-you/whats-new-ca
 test.beforeEach(async ({page}) => { await page.clock.setFixedTime(new Date('2026-09-20T09:30:00.000Z')); await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 const seed = async (page: import('@playwright/test').Page) => {
   const {records} = buildShowcase('2026-09-20');
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})});
 };
 

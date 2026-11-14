@@ -873,6 +873,9 @@ input[type="checkbox"] {
   width: 18px;
   height: 18px;
   min-height: 18px;
+  /* Session AP (AO D17 minor): never squashed by a long label beside it in a flex row (four older forms drew 13-16 px). */
+  min-width: 18px;
+  flex: none;
   accent-color: #74d5e9;
 }
 .checkbox {

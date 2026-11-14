@@ -5,6 +5,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {ZIGI_KEY} from '../lib/ai/store/keys';
+import {afterGoto, openSettings} from './settings-open';
 
 /**
  * Session X-Local Part 6f: WebKit smoke. Every app page opens with the Showcase records and no page error, in
@@ -23,7 +24,7 @@ const PAGES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/health?
  */
 const settled = (page: Page) => page.waitForLoadState('networkidle', {timeout: 10_000}).catch(() => undefined);
 async function seed(page: Page, extra: Record<string, string> = {}) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   const ai = {...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: 'http://127.0.0.1:1234'};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), ...extra});
   // Session Z-Cloud Gate C: Settings, too, is left only once its network is idle, as every page below is. Its account,
@@ -63,7 +64,7 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
   await seed(page);
   const roLoops: string[] = [], readLoops = async () => { roLoops.push(...await page.evaluate(() => (window as unknown as {__roLoops?: string[]}).__roLoops ?? []).catch(() => [])); };
   for (const path of PAGES) {
-    await page.goto(path);
+    await page.goto(path); await afterGoto(page, path);
     await expect(page.locator('main'), path).toBeVisible();
     // Session AL (owner reading Q6, ADR-037, deliberate; components/ai/use-sensitive-screen.ts): ZIGi opens on Settings too;
     // only an open private step or a focused secret field there is sensitive. So Settings is checked like every other page

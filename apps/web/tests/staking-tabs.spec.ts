@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {goalsPositionsLink} from './ab-shell';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Staking.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -11,7 +12,7 @@ test.beforeEach(async ({page}) => { await chooseChain(page); });
 async function start(page: Page, showcase: boolean) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  if (showcase) { await page.goto('/app/settings'); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app'); }
+  if (showcase) { await openSettings(page); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app'); }
 }
 
 for (const showcase of [true, false]) {

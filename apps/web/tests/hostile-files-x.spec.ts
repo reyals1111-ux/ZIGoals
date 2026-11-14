@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {HEALTH_STORAGE_KEY, healthSchema} from '../lib/health';
 import {habitDataSchema} from '../lib/habits';
 import {APPLE_XML, LOOP} from '../lib/import/switch/test-fixtures';
+import {openSettings} from './settings-open';
 
 // Session X P2.4: hostile and broken files through the import screens a person uses (Settings → Switch to ZIGoals,
 // Health → Import meals). Each is refused in words or imports only what is valid; nothing half-written is left, and no
@@ -17,7 +18,7 @@ test.beforeEach(async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 });
 async function switchCard(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
   await page.reload();
   return page.getByRole('region', {name: 'Bring your history with you.'});

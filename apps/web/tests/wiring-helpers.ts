@@ -1,11 +1,12 @@
 import {expect, type Page} from '@playwright/test';
 import {hydrated} from './journeys/journey-helpers';
+import {openSettings} from './settings-open';
 
 /** Session AK Q1 (WIRING_AUDIT): shared steps of the tests/wiring-*.spec.ts files. */
 /** Loads the Showcase from Settings, as a person does, and waits for Today. */
 export async function loadShowcase(page: Page) {
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toBeVisible();

@@ -5,6 +5,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {HABITS_KEY} from '../lib/habits';
 import {GOAL_EXTRAS_KEY} from '../lib/goal-extras/store';
 import {PROGRESS_PHOTOS_KEY} from '../lib/aa-device-keys';
+import {openSettings} from './settings-open';
 
 /**
  * Session AB-Cloud Part 5 (ADR-023 C22): Settings → Your data → Restore from a backup. A full round trip: Export
@@ -35,7 +36,7 @@ const photoDb = (page: Page, action: 'put' | 'get' | 'clear', bytes?: number[]) 
 }), {action, bytes, id: PHOTO.id});
 
 async function exportZip(page: Page): Promise<Buffer> {
-  await page.goto('/app/settings');
+  await openSettings(page);
   const section = page.getByRole('region', {name: 'Everything you’ve saved, in one file.', exact: true});
   await section.getByLabel('I understand this file is readable and holds my personal records, including Health.').check();
   const waiting = page.waitForEvent('download');
@@ -51,7 +52,7 @@ const restoreStatus = (region: Locator) => region.locator('.restore-backup').get
 
 test('Export everything → lose records → restore from the ZIP gives them back byte for byte; Undo puts the loss back; a photo returns to this device', async ({page}) => {
   const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [PROGRESS_PHOTOS_KEY]: JSON.stringify({version: 1, photos: [PHOTO]}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
   await photoDb(page, 'put', webp());
   const habits = await stored(page, HABITS_KEY), extras = await stored(page, GOAL_EXTRAS_KEY);
@@ -100,7 +101,7 @@ test('Export everything → lose records → restore from the ZIP gives them bac
 });
 
 test('a file that is not an export is refused with a plain sentence and nothing changes; the Showcase cannot restore', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(settings => { localStorage.clear(); localStorage.setItem('zigoals:dashboard-settings:v1', settings); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, JSON.stringify({...presetSettings('balanced'), onboarded: true}));
   await page.goto('/app/settings/data');
   const region = restoreRegion(page), before = await zigoalsKeys(page);
@@ -109,7 +110,7 @@ test('a file that is not an export is refused with a plain sentence and nothing 
   await expect(region.getByLabel('What this backup holds')).toHaveCount(0);
   expect(await zigoalsKeys(page)).toBe(before);
   // The Showcase: no file input, a plain notice.
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
   await page.goto('/app/settings/data');
   await expect(restoreRegion(page)).toContainText('You are in the Showcase. Return to your own data to restore a backup.');
@@ -120,7 +121,7 @@ test('a photo already on this device is never overwritten; Undo survives a reloa
   // Gate C test audit (ADR-023 C22): the restore adds missing photos only. Session AD item 11 (ADR-026, a deliberate
   // change): its Undo no longer ends with the tab; it is kept with the restore's undo record until it is used.
   const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [PROGRESS_PHOTOS_KEY]: JSON.stringify({version: 1, photos: [PHOTO]}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
   await photoDb(page, 'put', webp());
   const habits = await stored(page, HABITS_KEY);
@@ -164,7 +165,7 @@ test('a photo already on this device is never overwritten; Undo survives a reloa
 test('“Keep the restore” ends the Undo, also after a reload; a part changed later ends it too; the restored records stay', async ({page}) => {
   // Session AD item 11 (ADR-026).
   const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
   const habits = await stored(page, HABITS_KEY);
   const zip = await exportZip(page);
@@ -198,7 +199,7 @@ test('“Keep the restore” ends the Undo, also after a reload; a part changed 
 
 test('other ZIGoals files picked by mistake, and a ZIP cut short, are refused with their own sentence; nothing changes', async ({page}) => {
   // Session AD item 11 (ADR-026): foreign and incomplete files.
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(settings => { localStorage.clear(); localStorage.setItem('zigoals:dashboard-settings:v1', settings); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, JSON.stringify({...presetSettings('balanced'), onboarded: true}));
   await page.goto('/app/settings/data');
   const region = restoreRegion(page), before = await zigoalsKeys(page);

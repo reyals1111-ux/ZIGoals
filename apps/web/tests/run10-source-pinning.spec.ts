@@ -2,6 +2,7 @@ import {expect,test} from '@playwright/test';
 import {createHabit,emptyHabitData,HABITS_KEY} from '../lib/habits';
 import {DASHBOARD_SETTINGS_KEY,presetSettings,saveWidget} from '../lib/dashboard-settings';
 import {openTodayWidgets} from './phone-nav';
+import {openSettings} from './settings-open';
 
 test.beforeEach(async({page})=>{await page.route('**/api/market-**',route=>route.fulfill({status:503,json:{error:'Fictional offline fixture'}}));});
 
@@ -35,7 +36,7 @@ test('visual library hides ineligible staking and card menu returns focus on Esc
 });
 
 test('source-card pinning keeps Goal, Habit, asset and research bindings distinct',async({page})=>{
- await page.goto('/app/settings');
+ await openSettings(page);
  await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();
  await page.waitForURL('**/app');
  await page.goto('/app/goals');

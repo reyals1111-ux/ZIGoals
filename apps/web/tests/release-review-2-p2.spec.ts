@@ -2,6 +2,8 @@ import {expect, test, type Page} from '@playwright/test';
 import {chooseChain} from './chain-choice';
 import {ALPHA_LABEL, ALPHA_LABEL_CHOSEN, ALPHA_LINE_PLAIN, ALPHA_MORE_HREF, ALPHA_SENTENCE, aboutAlpha, alphaNotice} from './ab-shell';
 import {hydrated} from './ah-helpers';
+import {openSettings} from './settings-open';
+import {afterGoto} from './settings-open';
 
 /**
  * Session AK P2 (owner follow-up 4: RELEASE_REVIEW_2 to zero; ADR-036 Q31). Desktop only: the phone already folds the
@@ -22,12 +24,12 @@ test.beforeEach(async ({page, isMobile}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 });
 async function ready(page: Page, path: string) {
-  await page.goto(path); await hydrated(page);
+  await page.goto(path); await afterGoto(page, path); await hydrated(page);
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('main h1').first()).toBeVisible();
 }
 async function showcase(page: Page) {
-  await page.goto('/app/settings'); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
+  await openSettings(page); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
 }
 
 test('R2-7: a device that never chose the chain reads the consumer line; the staking sentence is behind More, word for word', async ({page}) => {

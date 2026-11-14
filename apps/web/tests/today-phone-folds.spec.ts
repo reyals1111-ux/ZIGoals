@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session U follow-up F3: on a phone each Today widget card folds to a row named by the widget and opens in place, while
@@ -10,7 +11,7 @@ import {expect, test, type Page} from '@playwright/test';
 test.use({viewport: {width: 390, height: 844}});
 async function showcase(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();

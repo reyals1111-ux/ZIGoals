@@ -8,6 +8,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {emptyPlatform, PLATFORM_KEY, privateGoalSchema} from '../lib/positions';
 import {localDate} from '../lib/local-date';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 
 // Session X P2.1: what the fresh-eyes persona round (45 sessions, eight personas; docs/verification/x-cloud/PERSONAS_X.md)
 // found in the app, kept fixed. Fictional records; every /api request is answered by a fixture.
@@ -15,7 +16,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 
 const HABIT = '59a35604-3696-4a78-b455-4015acb66885';
 async function seed(page: Page, records: Record<string, unknown>) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, JSON.stringify(v)); }, {[DASHBOARD_SETTINGS_KEY]: {...presetSettings('habits-health'), onboarded: true}, ...records});
 }
 
@@ -140,7 +141,7 @@ test('the Goal wizard: each new step takes focus, so the keyboard and a screen r
 });
 
 test('the Showcase says that Load or Reset starts its examples fresh (what is added there is cleared then), and Exit returns to Today', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   // Session AB-Design (owner request 8, persona #5): the tiny chip opens the honest wording (Load again resets; Exit returns to your data) with Exit Showcase / Load again.

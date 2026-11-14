@@ -1,11 +1,16 @@
 import {hashId} from './hash-id';
 
 /**
- * Session AL (D-088, N-BN-10, DV-266, D-005, N-BN-05): Settings' six groups fold from their headings on a computer or a
- * tablet. Every group is open by default; what is folded lasts for this tab only. A display convenience, never a record:
- * it is not exported, synced or catalogued (lib/erase-coverage.test.ts lists it in NOT_RECORDS).
+ * Session AL (D-088, N-BN-10, DV-266, D-005, N-BN-05): Settings' groups fold from their headings on a computer or a
+ * tablet. Session AP (D-088 completed, ADR-040): they start folded, a page of headings with one line each of what they
+ * hold; the groups a person opens stay open on this device (`SETTINGS_OPEN_KEY`, localStorage), and a jump (a deep link,
+ * the index, Search, Help) always opens the group it lands in. Phones keep their own list. A display convenience, never a
+ * record: not exported, synced or catalogued (lib/erase-coverage.test.ts lists both keys in NOT_RECORDS).
  */
+/** AL's tab-only list of folded groups; no longer written, removed when Settings opens (an old tab's leftover). */
 export const SETTINGS_FOLDS_KEY = 'zigoals:settings-folds:v1';
+/** The groups open on this device (group ids only). */
+export const SETTINGS_OPEN_KEY = 'zigoals:settings-open:v1';
 
 /** The groups in page order (app/app/settings/page.tsx renders one per id). */
 // Session AO (owner decision 13 Nov: the theme switch below the fold at 800 px): Appearance is the first group.
@@ -56,6 +61,25 @@ export function groupForTarget(id: string | null | undefined, groupOf: (id: stri
 export function groupForHash(hash: string, groupOf: (id: string) => string | null | undefined): SettingsGroupId | null {
   return groupForTarget(hashId(hash), groupOf);
 }
+
+/** The groups open on this device; anything unreadable reads as none open (every group folded). */
+export function loadOpen(store: Pick<Storage, 'getItem'> | null | undefined): SettingsGroupId[] {
+  try { return parseFolds(store?.getItem(SETTINGS_OPEN_KEY)); } catch { return []; }
+}
+/** Saves the open groups; with none open the key goes. */
+export function saveOpen(store: Store | null | undefined, ids: Iterable<unknown>): void {
+  const open = normaliseFolds(ids);
+  try {
+    if (open.length) store?.setItem(SETTINGS_OPEN_KEY, JSON.stringify(open));
+    else store?.removeItem(SETTINGS_OPEN_KEY);
+  } catch { /* storage blocked or full: the groups stay as they are until reload */ }
+}
+/** What starts folded on a computer or a tablet: every group but the open ones and the one a jump lands in. */
+export function foldedAtStart(open: readonly SettingsGroupId[], target: SettingsGroupId | null): SettingsGroupId[] {
+  return SETTINGS_GROUP_IDS.filter(id => id !== target && !open.includes(id));
+}
+/** The open groups that a set of folded ones leaves. */
+export const openOf = (folded: Iterable<string>): SettingsGroupId[] => { const set = new Set(folded); return SETTINGS_GROUP_IDS.filter(id => !set.has(id)); };
 
 /** The folds a page opening on a jump starts with: the stored ones, less the group the jump lands in. */
 export function foldsForJump(stored: readonly SettingsGroupId[], target: SettingsGroupId | null): SettingsGroupId[] {

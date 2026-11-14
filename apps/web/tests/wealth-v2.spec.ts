@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {ACCOUNTS_KEY, W_REMINDERS_KEY} from '../lib/w-device-keys';
 import {openFold} from './phone-nav';
 import {formatDate} from '../lib/visual-format';
+import {openSettings} from './settings-open';
 
 // Session W Part 12: accounts and debts on this device, net worth per currency (never converted), a debt's payoff from
 // the person's own figures, and a contribution plan's reminder whose "Fund now" opens the Goal's form filled in.
@@ -20,7 +21,7 @@ function platform(): Platform {
 async function seed(page: Page, extra: Record<string, string> = {}, time = `${TODAY}T08:00:00.000Z`) {
   await page.clock.install({time: new Date(time)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {[PLATFORM_KEY]: JSON.stringify(platform()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), ...extra});
 }
@@ -102,7 +103,7 @@ test('Showcase: fictional accounts and debts show net worth and a payoff; nothin
   page.on('request', r => { const url = new URL(r.url()); if (url.protocol.startsWith('http') && url.hostname !== '127.0.0.1' && url.hostname !== 'localhost') outside.push(url.origin); });
   await page.clock.install({time: new Date(`${TODAY}T08:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/wealth');

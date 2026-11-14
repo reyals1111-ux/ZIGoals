@@ -2,6 +2,7 @@ import {expect,test,type Page} from '@playwright/test';
 import {goalsPositionsLink} from './ab-shell';
 import {isPhone,openMore} from './phone-nav';
 import {chooseChain} from './chain-choice';
+import {afterGoto, openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the full navigation, money tools included.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -13,7 +14,7 @@ test.beforeEach(async ({page}) => { await chooseChain(page); });
  */
 async function showcase(page:Page){
  await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'Offline fictional marks fixture'}}));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
 const MARKS:[string,string][]=[
  ['/app','today-swan'],['/app/goals','goals-lotus'],['/app/goals/tracked/9201','goals-lotus'],['/app/habits','habits-butterfly'],['/app/health','health-heart'],
@@ -30,7 +31,7 @@ test('each life page shows its own mark, every other page the Today swan; figure
  await page.emulateMedia({reducedMotion:'reduce'});
  await showcase(page);
  for(const [path,name] of MARKS){
-  await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();
+  await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();
   const mark=page.locator('.sidebar-destination .sidebar-mark');
   await expect(mark,path).toHaveAttribute('data-mark',name);
   if(await isPhone(page))continue;
@@ -58,7 +59,7 @@ test('each life page shows its own mark, every other page the Today swan; figure
 test('the Shape & Fold tagline text is gone from the sidebar, the More sheet and every other place in the app',async({page})=>{
  await showcase(page);
  for(const path of ['/app','/app/goals','/app/settings']){
-  await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();
+  await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.textContent),path).not.toMatch(/Shape\s*&\s*Fold|Your Own Future/i);
   await expect(page.locator('.sidebar-tagline, .phone-more-tagline')).toHaveCount(0);
  }
@@ -111,7 +112,7 @@ for(const [width,height] of DESKTOP_SIZES)test(`figure and words never overlap t
   await page.setViewportSize({width,height});
   let planetOnToday:{x:number;y:number;width:number;height:number}|undefined;
   for(const path of pages){
-   await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();
+   await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();
    await expect.poll(()=>page.locator('.sidebar-mark-words img').evaluate(i=>(i as HTMLImageElement).complete&&(i as HTMLImageElement).currentSrc.includes('/brand/words/'))).toBe(true);
    // Measured with the sidebar scrolled to its end, so the destination is in view even where the sidebar scrolls.
    await page.locator('.app-sidebar').evaluate(e=>{e.scrollTop=e.scrollHeight;});

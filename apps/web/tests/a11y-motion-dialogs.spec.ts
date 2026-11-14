@@ -1,10 +1,11 @@
 import {expect,test,type Page} from '@playwright/test';
 import {openFilm} from './ab-shell';
+import {openSettings} from './settings-open';
 
 // Accessibility follow-ups for the new motion and dialogs (2026-09-29 review).
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
 
 test('every Quick add dialog on Today is named by its own heading',async({page})=>{

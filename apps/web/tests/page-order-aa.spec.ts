@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AA-Cloud Part 1 (docs/product/PAGE_ORDER_AA.md): every page in order. Each test checks the new default order
@@ -9,7 +10,7 @@ const isPhone = (page: Page) => (page.viewportSize()?.width ?? 1280) < 600;
 
 async function showcase(page: Page) {
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toBeVisible();
@@ -163,7 +164,7 @@ test('Markets, Health and Help keep their sections; Settings keeps its six group
   // Diary's meals) and "Faster ways to log" is gone (it advertised the page's own features); the rest keep their order.
   expect(only(await items(page), 'health:')).toEqual(['health:summary', 'health:journal', 'health:sleep', 'health:meditation', 'health:workouts', 'health:fasting', 'health:trends']);
   await expect(page.locator('[data-layout-item="health:nutrition"], [data-layout-item="health:roadmap"]')).toHaveCount(0);
-  await page.goto('/app/settings');
+  await openSettings(page);
   // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant" (ZIGi's and NOVA's settings).
   // Session AK X1 (RELEASE_REVIEW R4, deliberate): the Showcase has chosen the chain, so Account & devices holds the advanced
   // "Wallet & network" group, whose title wears the same group-title style (its own six groups are unchanged).
@@ -175,7 +176,7 @@ test('Markets, Health and Help keep their sections; Settings keeps its six group
 
 test('Settings: the in-page index stays in view while the page scrolls (computers and tablets)', async ({page}) => {
   test.skip(isPhone(page), 'A phone has its own list of rows instead of the index.');
-  await page.goto('/app/settings');
+  await openSettings(page);
   const index = page.getByRole('navigation', {name: 'Settings sections'});
   await expect(index).toBeVisible();
   await page.locator('#settings-help').scrollIntoViewIfNeeded();

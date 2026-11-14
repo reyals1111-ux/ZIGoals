@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {openHabitMoreOptions} from '../../habit-form-helpers';
 import {createHabit, emptyDevice, logWaterOnHealth, open, toast} from '../l3-helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL fourth pass (lane L3, GROK53_REPLAY_L3_1 "exact steps" 2, 5, 6, 7, 8, 9, 15, 20, 21, 22, 23): Habits as the
@@ -15,7 +16,7 @@ async function newHabitForm(page: Page) {
 }
 async function showcase(page: Page) {
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }

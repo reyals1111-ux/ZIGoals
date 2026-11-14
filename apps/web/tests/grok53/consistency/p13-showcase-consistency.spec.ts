@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {emptyDevice, hydrated, offline, open} from '../l3-helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL Part 13 (PR-002, PR-019, PR-023, PR-082; NOVA review 2 M5): one fact, one figure on every page.
@@ -12,9 +13,9 @@ test.use({viewport: {width: 1280, height: 800}, timezoneId: 'Europe/Brussels'});
 test('Showcase: water and the Drink water habit agree on Today, Health and Habits; Goals and Today count 7 active goals', async ({page}) => {
   await page.clock.install({time: new Date('2026-11-04T14:00:00Z')});
   await offline(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app'); await hydrated(page);
   const tile = page.getByRole('article', {name: 'Focus: water today'});

@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {navLink} from './phone-nav';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF (L3; P7.19, P7.20, ADR-028 H65, H68): the Checklist button is ZIGi's and the music button's twin, between
@@ -11,7 +12,7 @@ const box = async (page: Page, selector: string) => (await page.locator(selector
 const centreX = (b: {x: number; width: number}) => b.x + b.width / 2;
 async function showcase(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
@@ -59,7 +60,7 @@ test('between Music and ZIGi, one column, the twins’ circle; tucked and switch
 const firstVisit = async (page: Page) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.locator('.checklist-launcher')).toBeVisible();
 };
 test('the mark’s check draws once per visit', async ({page}, info) => {

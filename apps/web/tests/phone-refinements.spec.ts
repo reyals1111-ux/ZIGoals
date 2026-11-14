@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {openHabitDetails} from './ab-shell';
 import {openFold, openMore} from "./phone-nav";
+import {openSettings} from './settings-open';
 
 // Session G, Part 4: shorter phone pages without removing anything ("Show all N", a folded week with its totals), 44 px
 // Habits calendar days at 360 px, and drag-to-dismiss on sheet grabbers. Sizes are set explicitly so both projects run
@@ -10,7 +11,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/**", (route) => route.fulfill({ status: 503, json: { error: "LOCAL_FIXTURE_ONLY" } }));
 });
 async function showcase(page: Page) {
-  await page.goto("/app/settings");
+  await openSettings(page);
   await page.getByRole("button", { name: "Load Showcase Demo", exact: true }).click();
   await page.waitForURL("**/app");
 }

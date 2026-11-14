@@ -1,11 +1,12 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {openMealLog} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // Session I, Part 9: on a phone the habit editor, Log a meal, and Staking's wallet reader and reward scenario open as
 // bottom sheets (the #52 pattern). Desktop keeps them in the page.
 async function showcase(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'fixture offline'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }

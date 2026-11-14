@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AD (the owner's brief Part 3, ADR-026 F4/F5/F13): the theme bar is real. Nebula (today's look) is the default for
@@ -17,7 +18,7 @@ const violations = (page: Page) => page.addInitScript(() => { const v: string[] 
 const bar = (page: Page) => page.getByRole('radiogroup', {name: 'Theme'}).filter({visible: true}).first();
 
 test('Nebula is the default: no theme attribute, no theme sheet, the middle choice checked', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
   await expect(page.locator('#zigoals-theme-sheet')).toHaveCount(0);
   const group = page.locator('#appearance').getByRole('radiogroup', {name: 'Theme'});
@@ -36,7 +37,7 @@ test('Nebula is the default: no theme attribute, no theme sheet, the middle choi
 for (const theme of ['light', 'dark'] as const) {
   test(`${theme}: chosen at once, kept on this device, on the first paint of the next page, without a CSP violation`, async ({page}) => {
     await violations(page); await firstPaintTheme(page);
-    await page.goto('/app/settings');
+    await openSettings(page);
     await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
     await page.locator('#appearance').getByRole('radio', {name: `${theme === 'light' ? 'Light' : 'Dark'} theme`, exact: true}).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
@@ -69,12 +70,12 @@ for (const theme of ['light', 'dark'] as const) {
 }
 
 test('the Showcase reads the same device theme, and going back to Nebula removes the sheet', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, theme: 'light', heroCollapsed: false})), KEY);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.locator('#appearance').getByRole('radio', {name: 'Nebula theme'}).click();
   await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
   await expect(page.locator('#zigoals-theme-sheet')).toHaveCount(0);

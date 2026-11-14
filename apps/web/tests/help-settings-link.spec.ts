@@ -1,11 +1,12 @@
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // The one link to Help in Settings (Session L): there exactly once, under the page title, 44 px tall, and it opens Help.
 // Session AL (COPY_AUDIT, deliberate): DV-261, the three-part link text is shortened.
 const NAME = 'Help & feedback →';
 
 test('Settings links to Help exactly once, near the top, and back', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   // Session Z-Cloud Part 4.11: Help is also the navigation's last entry (the sidebar, and More on a phone). The page itself
   // still links to it exactly once; every other Help link is a navigation entry named "Help": at most two in the page
   // (the sidebar, and More's row on a phone), exactly one in the sidebar, and one per navigation a person can reach (a

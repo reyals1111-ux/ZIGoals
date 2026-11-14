@@ -4,6 +4,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {mainNav} from './phone-nav';
+import {afterGoto, openSettings} from './settings-open';
 
 /**
  * Session Y Part 6 (ADR-018): the curated phone set for CI's WebKit job. Today, Habits, Health, Wealth, Portfolio,
@@ -20,7 +21,7 @@ test.beforeEach(async ({page, browserName}, info) => {
   test.skip(browserName !== 'webkit', 'The WebKit job\'s phone set; Chrome covers these pages in its own phone specs.');
   test.skip(info.project.name !== 'mobile', 'A phone set: the iPhone project only.');
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]})});
 });
@@ -30,7 +31,7 @@ test('the phone set opens in WebKit at 390 px: a heading, no page error, no side
   page.on('pageerror', e => errors.push({at: Date.now(), message: e.message}));
   page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame()) navigations.push(Date.now()); });
   for (const path of PAGES) {
-    await page.goto(path);
+    await page.goto(path); await afterGoto(page, path);
     await expect(page.locator('main h1').first(), path).toBeVisible();
     await settled(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), `${path}: nothing scrolls sideways`).toBeLessThanOrEqual(0);

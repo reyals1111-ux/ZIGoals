@@ -12,6 +12,7 @@ import {AVERAGE_GOALS_KEY} from '../../../lib/average-goals/store';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../../../lib/af-checklist-keys';
 import {HID, denver, lisbon} from '../../../lib/ai/evals/l7-fourth-fixtures';
 import {nova, sendInNova} from './helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL fifth pass (lane L7-5b): what a person sees for the answer rows GROK53_REPLAY_L7_2 (on 37d2370c) still found
@@ -43,7 +44,7 @@ function records(set: Set): Record<string, string> {
 async function seed(page: Page, set: Set, time = NIGHT) {
   await offline(page);
   await page.clock.install({time});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, records(set));
   await page.waitForLoadState('networkidle');
 }

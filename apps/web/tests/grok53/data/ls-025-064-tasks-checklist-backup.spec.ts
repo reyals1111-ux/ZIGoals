@@ -7,6 +7,7 @@ import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../../../lib/af-checklist-keys'
 import {checklistDaysSchema, checklistSchema, emptyChecklist} from '../../../lib/checklist/schema';
 import {addCustom} from '../../../lib/checklist/store';
 import {RECORD_LABELS} from '../../../lib/vault/backup-records';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL (P-LS-36; LS-025, LS-064): Tasks and the Checklist come back from both backups. Fresh profile, fictional
@@ -49,7 +50,7 @@ test('LS-064: the readable export restores Tasks and the Checklist; the Checklis
 });
 
 test('LS-025: the encrypted backup holds Tasks and the Checklist, previews them and restores each', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, RECORDS);
   await page.reload();
   const vault = page.locator('#private-vault');

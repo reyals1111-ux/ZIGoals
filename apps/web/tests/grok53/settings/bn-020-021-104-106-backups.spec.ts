@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../../ah-helpers';
+import {openSettings} from '../../settings-open';
 
 // Session AL (lane L6, second pass): Berlin BN-020, BN-021, BN-104, BN-106 and Denver D-058/D-219 on Settings' backups.
 // Desktop 1280, a fresh empty profile; fictional files only.
@@ -7,7 +8,7 @@ test.use({viewport: {width: 1280, height: 900}});
 test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(page); });
 
 test('BN-104/BN-020: an export names its file and never claims a save the browser has not made', async ({page}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const habits = page.getByRole('region', {name: 'Habits backup', exact: true});
   await expect(habits).toContainText('In this file:');
   await expect(habits).toContainText('Not in it:');
@@ -21,7 +22,7 @@ test('BN-104/BN-020: an export names its file and never claims a save the browse
 });
 
 test('BN-021/D-219/D-058: only the card used last speaks, and a refused file is explained under its field', async ({page}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const health = page.getByRole('region', {name: 'Health backup', exact: true}), habits = page.getByRole('region', {name: 'Habits backup', exact: true});
   await Promise.all([page.waitForEvent('download'), health.getByRole('button', {name: 'Export Health'}).click()]);
   await expect(health.getByRole('status')).toBeVisible();
@@ -39,13 +40,13 @@ test('BN-021/D-219/D-058: only the card used last speaks, and a refused file is 
 });
 
 test('BN-106: the restore panel says what the file does not bring back', async ({page}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const goals = page.getByRole('region', {name: 'Goals and Wealth backup', exact: true});
   await expect(goals).toContainText('your theme and page switches, Chess, Earn progress, Habits, Health, the Checklist and Tasks');
 });
 
 test('BN-021: the encrypted-backup field answers a picked file at once', async ({page}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const panel = page.locator('#private-vault');
   await panel.getByText('Restore an encrypted backup', {exact: true}).click();
   await panel.getByLabel('Encrypted backup file', {exact: true}).setInputFiles({name: 'notes.json', mimeType: 'application/json', buffer: Buffer.from('{"hello":"world"}')});

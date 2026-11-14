@@ -12,6 +12,7 @@ import {extraClipsOf, skinOf} from '../components/zigi/manifest';
 import {MOVE_GROUPS, MOVE_TEXT} from '../components/zigi/state-gallery';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
 import {pressZigi} from './zigi-open';
+import {openSettings} from './settings-open';
 
 /**
  * Session X-Local Part 4: ZIGi's emotions match what happens, on real pages, with the panel closed. The facts come
@@ -34,7 +35,7 @@ function habits(streak = false): HabitData {
 }
 async function seed(page: Page, extra: Record<string, unknown> = {}, time = EVENING) {
   await page.clock.install({time});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const values = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]))};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);

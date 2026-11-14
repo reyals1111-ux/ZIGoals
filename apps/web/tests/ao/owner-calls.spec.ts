@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from '../ah-helpers';
+import {openSettings} from '../settings-open';
 
 /** Session AO: the owner calls of 13 Nov (ADR-039 Part 2), each where a person meets it. Fictional data only. */
 test.beforeEach(async ({page}) => { await offlineApi(page); });
@@ -44,7 +45,7 @@ test('the theme switch on the first screen at 800 px: Appearance is Settings\' f
   test.skip(isMobile, 'the computer layout');
   await page.setViewportSize({width: 1280, height: 800});
   await freshDevice(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await expect(page.locator('.settings-group').first()).toHaveAttribute('id', 'settings-look');
   const dark = page.locator('#appearance').getByRole('radio', {name: /Dark/});
   await expect(dark).toBeVisible();

@@ -1,10 +1,11 @@
 import {expect,test,type Page} from '@playwright/test';
 import {openFilm} from './ab-shell';
 import {openFold} from './phone-nav';
+import {openSettings} from './settings-open';
 
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
 // Session AK G2 (RELEASE_REVIEW_2 R2-13, deliberate): the most frequent first, and Note is one of the sheet's own rows.
 // Session AL (P-LS-04, DV-163b, deliberate): a Task row after Note, the sheet's way into Tasks.

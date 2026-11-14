@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AE (the owner's brief Parts 3.1, 3.3, 3.5 and 4.1, ADR-027): the theme bar's Nebula choice wears a plain ZG
@@ -42,7 +43,7 @@ async function choose(page: Page, theme: Theme) {
 }
 
 test('Nebula wears the ZG monogram: one plain line in the sun and moon icons’ size and style, its words and tip kept', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await hydrated(page);
   const nebula = appearance(page).getByRole('radio', {name: 'Nebula theme'});
   await expect(nebula).toHaveAttribute('title', 'Nebula'); // Session AH (SE9): no "coming later" in the tooltip
@@ -67,7 +68,7 @@ test('Nebula wears the ZG monogram: one plain line in the sun and moon icons’ 
 
 test('Light, Dark, then Nebula: one cross-fade per switch, one theme sheet at most, and Nebula ends with none', async ({page}) => {
   await watchSwitches(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await hydrated(page);
   for (const theme of ['light', 'dark', 'nebula'] as const) await choose(page, theme);
   const seen = await switches(page);
@@ -82,7 +83,7 @@ for (const mode of ['reduced motion', 'Motion Off'] as const) {
     if (mode === 'reduced motion') await page.emulateMedia({reducedMotion: 'reduce'});
     else await page.addInitScript(() => localStorage.setItem('zigoals:motion:v1', 'off'));
     await watchSwitches(page);
-    await page.goto('/app/settings');
+    await openSettings(page);
     await hydrated(page);
     for (const theme of ['light', 'dark', 'nebula'] as const) await choose(page, theme);
     const seen = await switches(page);

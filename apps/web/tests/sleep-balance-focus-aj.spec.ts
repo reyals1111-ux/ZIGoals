@@ -5,6 +5,7 @@ import {emptySleep, type Sleep} from '../lib/sleep/schema';
 import {saveNight, setSleepGoal} from '../lib/sleep/engine';
 import {addDays, instantAt} from '../lib/zone-time';
 import {withHealthGroup} from '../lib/vault/w-homes';
+import {openSettings} from './settings-open';
 
 // Session AJ (items 26 and 28): the 14-night sleep balance in kind words (never "debt"), and "your best focus window
 // today" from the night that ended today, with its Why?, a link to Focus Sessions and an off switch. Fictional nights;
@@ -16,7 +17,7 @@ const SAVED = new Date('2026-10-29T08:00:00.000Z');
 const night = (s: Sleep, wake: string, bed: string, up: string) => saveNight(s, {kind: 'night', start: instantAt(bed > up ? addDays(wake, -1) : wake, bed, BXL), end: instantAt(wake, up, BXL), timeZone: BXL, latencyMin: 0, awakeMin: 0}, SAVED);
 async function seed(page: Page, sleep: Sleep) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   const health: HealthData = withHealthGroup(createEmptyHealth(), 'sleep', sleep, false);
   await page.evaluate(entries => { for (const [key, value] of Object.entries(entries)) localStorage.setItem(key, value); }, {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [HEALTH_STORAGE_KEY]: JSON.stringify(healthSchema.parse(health))});
 }

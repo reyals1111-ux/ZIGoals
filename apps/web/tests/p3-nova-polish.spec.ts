@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {defaultAiSettings} from '../lib/ai/settings';
 import {novaAndZigi} from '../lib/nova/one-line';
 import {OPEN_DAY} from '../lib/nova/day-line';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK P3 (docs/review/session-ak/NOVA_DESIGN_REVIEW.md, "Fixes"): NOVA's design polish, measured. The stage fits
@@ -20,7 +21,7 @@ const localBrain = () => ({'zigoals:ai:v1': JSON.stringify({...defaultAiSettings
 async function fresh(page: Page, extra: Record<string, string> = {}, theme: Theme = 'nebula') {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.route('http://127.0.0.1:11434/**', route => route.fulfill({json: {models: [{name: 'llama3.2:3b', model: 'llama3.2:3b', details: {family: 'llama'}}]}, headers: {'access-control-allow-origin': '*'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   const values: Record<string, string> = {'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), ...extra};
   if (theme !== 'nebula') values['zigoals:ui-prefs:v1'] = JSON.stringify({version: 1, theme});
   await page.evaluate(v => { localStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);

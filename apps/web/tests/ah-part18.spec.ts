@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from './ah-helpers';
+import {afterGoto} from './settings-open';
 
 // Session AH Part 18 (owner addition 2, pre-approved; ADR-033 M53): the Checklist's top bar (owner exception to the
 // protected Checklist, for the top bar only), the phone's top bar without the page's name, and Health's quick counters
@@ -54,7 +55,7 @@ test('phone: the top bar shows no page name; it stays for screen readers and in 
   test.skip(!isMobile, 'The phone top bar.');
   await freshDevice(page);
   for (const [path, name] of [['/app/habits', 'Habits'], ['/app/settings', 'Settings']] as const) {
-    await page.goto(path); await hydrated(page);
+    await page.goto(path); await afterGoto(page, path); await hydrated(page);
     const title = page.locator('.phone-topbar .phone-title');
     await expect(title).toHaveText(name);
     expect(await title.evaluate(e => { const r = e.getBoundingClientRect(); return r.width <= 1 && r.height <= 1; })).toBe(true);

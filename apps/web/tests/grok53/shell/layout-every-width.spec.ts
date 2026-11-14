@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated, offlineApi} from '../../ah-helpers';
 import {applyTheme, THEMES} from '../../p6-helpers';
+import {afterGoto} from '../../settings-open';
 
 /**
  * Session AL (3c, lane L10a): the shell at every width in all three themes, fresh profile. Nairobi's NB-245 (a small
@@ -14,7 +15,7 @@ const PAGES = ['/app', '/app/habits', '/app/health', '/app/settings'] as const;
 test.beforeEach(async ({page}) => { await offlineApi(page); });
 
 async function ready(page: Page, path: string) {
-  await page.goto(path); await hydrated(page);
+  await page.goto(path); await afterGoto(page, path); await hydrated(page);
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('main h1').first()).toBeVisible();
 }

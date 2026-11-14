@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // Session I, Part 5: storage refusals say what happened and what to do, with a short code (QA-03, QA-18, QA-22).
 const HABITS = 'zigoals:habits:v1';
@@ -53,7 +54,7 @@ test('QA-18: storage the browser denies reads as blocked, never as damaged data'
 
 test('QA-22: each refused backup file says why, and nothing changes', async ({page}) => {
   await oneHabit(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const section = page.getByRole('region', {name: 'Habits backup', exact: true});
   await section.getByText('Restore Habits from a file', {exact: true}).click();
   const before = await page.evaluate(key => localStorage.getItem(key), HABITS);

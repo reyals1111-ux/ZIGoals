@@ -2,6 +2,8 @@ import {expect, test, type Locator, type Page} from '@playwright/test';
 import {audit} from './a11y-audit';
 import {isPhone, openMore} from './phone-nav';
 import {openDeskFold} from './ao/folds';
+import {openSettings} from './settings-open';
+import {afterGoto} from './settings-open';
 
 // Session X Part 12: WCAG 2.2 AA across every page, both projects, empty and with the Showcase. Checks that a browser can
 // decide by itself (names, labels, structure, titles, keyboard, focus, reflow, text spacing, target size, contrast,
@@ -30,12 +32,12 @@ const add = (all: Findings, key: string, items: unknown[]) => { if (items.length
 async function offline(page: Page) { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); }
 async function showcase(page: Page) {
   await offline(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
 async function open(page: Page, path: string, heading?: string) {
-  await page.goto(path);
+  await page.goto(path); await afterGoto(page, path);
   await expect(page.locator('main h1').first()).toBeVisible();
   if (heading) await expect(page.locator('main h1').first()).toHaveText(heading);
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');

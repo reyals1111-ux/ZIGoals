@@ -6,6 +6,7 @@ import {manualSourcePosition} from '../lib/manual-source';
 import {saveAsset} from '../lib/asset-management';
 import {isPhone} from './phone-nav';
 import {openHabitMoreOptions} from './habit-form-helpers';
+import {openSettings} from './settings-open';
 
 /**
  * Session Y Part 8 (owner-approved, ADR-018 Y26–Y28): vacation days cleared later, "−" beside "+" on every measured habit,
@@ -27,7 +28,7 @@ async function addHabit(page: Page, title: string, measure?: {kind: string; targ
 }
 async function motion(page: Page, setting: 'default' | 'reduced' | 'off') {
   if (setting === 'reduced') await page.emulateMedia({reducedMotion: 'reduce'});
-  if (setting === 'off') { await page.goto('/app/settings'); await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off')); }
+  if (setting === 'off') { await openSettings(page); await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off')); }
 }
 
 for (const setting of ['default', 'reduced', 'off'] as const) test(`vacation days marked earlier are listed and cleared later, stretch by stretch (motion ${setting})`, async ({page}) => {
@@ -89,7 +90,7 @@ async function seedGold(page: Page, allocated = false, valued = false) {
   const gold = manualSourcePosition({category: 'Precious metals', name: 'Grandma’s coins', quantity: '100', currency: 'EUR', metal: 'Gold', unit: 'grams', ...(valued ? {value: '7000'} : {})}, '91000000-0000-4000-8000-000000000001', '2026-09-14T10:00:00.000Z');
   let platform = saveAsset(emptyPlatform(), gold);
   if (allocated) platform = {...platform, goals: [privateGoalSchema.parse({id: '1', name: 'Gold reserve', type: 'QUANTITY', status: 'active', asset: 'Gold grams', denom: 'manual:Gold grams', decimals: 18, target: (500n * 10n ** 18n).toString(), notes: '', createdAt: '2026-09-14T10:00:00.000Z', milestones: []})]};
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [PLATFORM_KEY, JSON.stringify(platform)]);
   return gold.id;
 }

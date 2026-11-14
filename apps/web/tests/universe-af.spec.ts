@@ -6,6 +6,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {UNIVERSE_KEY} from '../lib/af-extras-keys';
 import {addLocalDays} from '../lib/local-date';
 import {openDeskFold} from './ao/folds';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF (L5b; P9.1, ADR-028 H55, H77): My Universe on /app/journey, above the game sections and with the game layer
@@ -27,7 +28,7 @@ function habits(): HabitData {
 async function seed(page: Page, extra: Record<string, string> = {}) {
   await page.clock.install({time: new Date(`${TODAY}T09:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
     [HABITS_KEY]: JSON.stringify(habits()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}),
     'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...extra,
@@ -127,7 +128,7 @@ test('reduced motion and Motion Off: the universe is a still and the celebration
 });
 
 test('the Showcase: a universe from the demo records, no celebration over it, and viewing writes nothing', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/journey');

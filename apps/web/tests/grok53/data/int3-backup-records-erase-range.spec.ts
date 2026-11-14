@@ -7,6 +7,7 @@ import {PLATFORM_KEY} from '../../../lib/positions';
 import {ACCOUNTS_KEY} from '../../../lib/w-device-keys';
 import {JOURNAL_KEY} from '../../../lib/journal/schema';
 import {MONEY_LOG_KEY} from '../../../lib/money-log/schema';
+import {afterGoto} from '../../settings-open';
 
 /**
  * Session AL (INT third pass): fresh profile, fictional records, a fixed clock and zone; no request leaves the page.
@@ -21,7 +22,7 @@ const JOURNAL = {version: 1, entries: [{id: 'j_sep', date: '2026-09-30', text: '
 const MONEY = {version: 1, entries: [{id: 'm1', kind: 'expense', amount: '4.50', currency: 'EUR', category: 'Food & drink', date: '2026-10-31', createdAt: AT}], weekStartsOn: 'monday'};
 const RECORDS = {[ACCOUNTS_KEY]: JSON.stringify(ACCOUNTS), [JOURNAL_KEY]: JSON.stringify(JOURNAL), [MONEY_LOG_KEY]: JSON.stringify(MONEY)};
 const stored = async (page: Page, key: string) => JSON.parse((await page.evaluate(k => localStorage.getItem(k), key)) ?? 'null');
-const seed = async (page: Page, path: string, values: Record<string, string>) => { await page.goto(path); await page.evaluate(v => { for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values); await page.reload(); };
+const seed = async (page: Page, path: string, values: Record<string, string>) => { await page.goto(path); await afterGoto(page, path); await page.evaluate(v => { for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values); await page.reload(); };
 test.beforeEach(async ({page}) => {
   await page.clock.install({time: NOW});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));

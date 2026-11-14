@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests every Today fold, the wallet and Staking included.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -8,7 +9,7 @@ test.beforeEach(async ({page}) => { await chooseChain(page); });
 // row opens its module in place, a #link into it opens it, and desktop shows every module as before.
 async function showcase(page: Page) {
   await page.route('**/api/market-**', route => route.fulfill({status: 503, json: {error: 'fixture offline'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }

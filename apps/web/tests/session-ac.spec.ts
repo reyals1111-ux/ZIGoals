@@ -1,10 +1,11 @@
 import {expect, test, type Page} from '@playwright/test';
 import {ALPHA_LABEL, aboutAlpha} from './ab-shell';
+import {openSettings} from './settings-open';
 
 // Session AC ("Polish to zero", ADR-025): the owner's findings on Alpha #41 and decisions of 2026-10-15, one block each.
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toBeVisible();

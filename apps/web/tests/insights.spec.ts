@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {INSIGHTS_KEY} from '../lib/insights/schema';
 import {FORBIDDEN_INSIGHT_WORDS} from '../lib/insights/engine';
+import {openSettings} from './settings-open';
 
 // M3 (Session P): "Something you might notice": pairings in counts from the person's own records, dismissable per card.
 // Session AL (Part 13, deliberate): the Showcase's water habit is 2 liters linked to the water journal, so water is logged on
@@ -25,7 +26,7 @@ async function reveal(page: Page) {
 const sessionInsights = (page: Page) => page.evaluate(key => Object.entries(sessionStorage).filter(([k]) => k.includes(key)).map(([, v]) => v), INSIGHTS_KEY);
 
 test('Showcase: two exact sentences, how they were counted, dismiss one and it stays away', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const region = await reveal(page);

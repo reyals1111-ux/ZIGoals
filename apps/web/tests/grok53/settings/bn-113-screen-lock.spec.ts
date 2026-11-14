@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../../ah-helpers';
+import {openSettings} from '../../settings-open';
 
 // Session AL (lane L6, Part 2): the screen lock (Berlin BN-113 / BN-185, Nairobi NB-145). Berlin typed invalid PINs
 // and the lock ended up on with a PIN nobody chose: the fields silently dropped letters and cut a 9th digit. Fictional
@@ -9,7 +10,7 @@ test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(pa
 const stored = (page: Page) => page.evaluate(() => localStorage.getItem('zigoals:device-lock:v1'));
 
 test('BN-113/NB-145: invalid PINs are refused at the field and never turn the lock on', async ({page}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const card = page.locator('#device-lock'), pin = card.getByLabel('PIN (4 to 8 digits)'), again = card.getByLabel('The same PIN again');
   const turnOn = card.getByRole('button', {name: 'Turn the lock on'});
   for (const [a, b, why] of [['12', '12', /this one has 2/], ['12ab34', '12ab34', /digits only/], ['123456789', '123456789', /this one has 9/]] as const) {
@@ -34,7 +35,7 @@ test('BN-113/NB-145: invalid PINs are refused at the field and never turn the lo
 });
 
 test('BN-113: turning the lock off asks for the PIN; a wrong PIN keeps it on', async ({page}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const card = page.locator('#device-lock');
   await card.getByLabel('PIN (4 to 8 digits)').fill('2468'); await card.getByLabel('The same PIN again').fill('2468');
   await card.getByRole('button', {name: 'Turn the lock on'}).click();
@@ -50,7 +51,7 @@ test('BN-113: turning the lock off asks for the PIN; a wrong PIN keeps it on', a
 });
 
 test('BN-185/NB-145: "Forgot the PIN?" offers erasing this device\'s data, after a typed confirmation', async ({page, context}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const card = page.locator('#device-lock');
   await card.getByLabel('PIN (4 to 8 digits)').fill('2468'); await card.getByLabel('The same PIN again').fill('2468');
   await card.getByRole('button', {name: 'Turn the lock on'}).click();

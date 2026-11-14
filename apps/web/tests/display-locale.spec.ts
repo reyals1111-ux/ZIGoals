@@ -1,11 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
+import {openSettings} from './settings-open';
 
 // Session G, Part 3 (QA-06, QA-29): numbers and money follow the browser's locale; dates with words stay English. The
 // server render and hydration use en-US and the page switches right after hydration, so no locale may log a hydration
 // error. Every other spec pins en-US (playwright.config.ts).
 async function showcase(page: Page) {
   await page.route("**/api/market-**", (route) => route.fulfill({ status: 503, contentType: "application/json", body: '{"error":"fixture offline"}' }));
-  await page.goto("/app/settings");
+  await openSettings(page);
   await page.getByRole("button", { name: "Load Showcase Demo", exact: true }).click();
   await page.waitForURL("**/app");
 }

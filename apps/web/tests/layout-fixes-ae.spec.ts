@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the Staked ZIG card on Today.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -12,12 +13,12 @@ test.beforeEach(async ({page}) => {
   await page.emulateMedia({reducedMotion: 'reduce'});
 });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
 async function newDevice(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
   await page.goto('/app');
 }
@@ -104,7 +105,7 @@ test('Settings: the sticky index hides what scrolls under it, nothing paints ove
   test.setTimeout(90_000);
   for (const [width, height] of [[1024, 800], [1440, 900]] as const) {
     await page.setViewportSize({width, height});
-    await page.goto('/app/settings');
+    await openSettings(page);
     const index = page.getByRole('navigation', {name: 'Settings sections'});
     await expect(index).toBeVisible();
     await expect(page.locator('#your-ai')).toContainText('Which setup fits me?');

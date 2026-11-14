@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // Consent checkboxes in the account/sync flow (2026-09-29 accessibility review).
 // The Health consent logic is PR #37's: disabled until the signed-in account is ready. These checks cover only how it is labelled and announced.
@@ -19,7 +20,7 @@ async function heldSignIn(page:Page){
   if(body.action==='verify'){entered();await held;signedIn=true;return route.fulfill({json:{signedIn:true,accountId:account}});}
   return route.fulfill({json:{message:'Fixture code requested; no email sent.'}});
  });
- await page.goto('/app/settings');
+ await openSettings(page);
  const consent=page.getByRole('region',{name:'Encrypted account sync',exact:true}).getByRole('checkbox',{name:consentName,exact:true});
  await expect(consent).toBeDisabled();
  await page.getByLabel('Email address',{exact:true}).fill('fixture@example.com');await page.getByRole('button',{name:'Send email code',exact:true}).click();

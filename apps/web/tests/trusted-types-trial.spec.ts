@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { TRUSTED_TYPES } from "../lib/security-policy";
+import {openSettings} from './settings-open';
 
 // Trusted Types (docs/security/TRUSTED_TYPES.md). Session U Part 6 built a report-only trial; its first run found that the
 // default policy must hand back a chunk URL unchanged (Turbopack finds a loaded chunk by its script's raw src attribute;
@@ -21,7 +22,7 @@ const violations = (page: Page) => page.evaluate(() => (window as unknown as See
 
 test("Trusted Types are enforced: strings at HTML and script sinks are refused, the framework's chunks load, soft navigation works", async ({ page, isMobile }) => {
   await watch(page);
-  const settings = await page.goto("/app/settings");
+  const settings = await openSettings(page);
   expect(settings!.headers()["content-security-policy"]).toContain(TRUSTED_TYPES);
   await page.getByRole("button", { name: "Load Showcase Demo", exact: true }).click();
   await page.waitForURL("**/app");

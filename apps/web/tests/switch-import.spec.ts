@@ -3,6 +3,7 @@ import {buildStoredZip} from '../lib/export/zip';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {APPLE_XML, GARMIN, LOOP} from '../lib/import/switch/test-fixtures';
 import {isPhone, openFold} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // Session W Part 7: Settings → Switch to ZIGoals with fictional exports (lib/import/switch/test-fixtures.ts). The file is
 // read in the bundled Web Worker on this device; the preview says what would come in; nothing is written before the
@@ -11,7 +12,7 @@ test.use({timezoneId: 'Europe/Brussels'});
 const zip = (entries: Record<string, string>) => Buffer.from(buildStoredZip(Object.entries(entries).map(([name, data]) => ({name, data, modified: new Date('2026-10-06T12:00:00Z')}))));
 async function seed(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
   await page.reload();
 }
@@ -56,7 +57,7 @@ test('Apple Health: read in the worker, checked in the preview, imported with th
   // (two days with entries) is open on a computer, with no fold; a phone keeps its row.
   if (await isPhone(page)) await openFold(page, 'Seven days of care'); else await expect(page.locator('summary').filter({hasText: /^Seven days of care/})).toHaveCount(0);
   await expect(page.getByRole('group', {name: 'Resting heart rate · bpm, last 7 days'})).toContainText('58');
-  await page.goto('/app/settings');
+  await openSettings(page);
   const recent = card(page).getByRole('region', {name: 'Your imports'});
   await recent.getByRole('button', {name: 'Undo this import'}).click();
   await expect(recent.getByText('This removes the 9 records it added that are still here.')).toBeVisible();
@@ -114,10 +115,10 @@ test('Garmin is recognised and not read, with the reason; a MyFitnessPal file go
 
 test('Showcase never imports: it holds fictional records only', async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await page.goto('/app/settings');
+  await openSettings(page);
   await choose(page).setInputFiles({name: 'export.zip', mimeType: 'application/zip', buffer: zip({'apple_health_export/export.xml': APPLE_XML})});
   await expect(card(page).getByRole('alert')).toHaveText('Showcase holds fictional records only, so imports are off here. Leave Showcase to bring in your own export.');
 });

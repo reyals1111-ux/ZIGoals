@@ -18,9 +18,10 @@ const active = (page: Page) => page.evaluate(() => {
   return {key: e.dataset.tabStopKey, name: (e.getAttribute('aria-label') ?? e.textContent ?? '').trim().slice(0, 60)};
 });
 
-// Session AO (D-028, partly fixed; ADR-039): 176 stops in AL; skip links and roving lists bring it to 143 on the Showcase
-// (13 Nov). This pins that (≤ 145) so it cannot grow back; ≤ 90 would need the sidebar and the habit rows changed (carried).
-test('D-028: Showcase Today takes at most 145 Tab stops (was 176), and every control is still reachable by keyboard', async ({page}) => {
+// Session AO (D-028, partly fixed; ADR-039): 176 stops in AL; skip links and roving lists brought it to 143 on the Showcase.
+// Session AP (D-028 completed, ADR-040; tightened): the sidebar's pages and apps, the theme radios, Today's check-in buttons,
+// favourites, pillars, money steps, preset choices and events are one stop each, so the goal of ≤ 90 is pinned.
+test('D-028: Showcase Today takes at most 90 Tab stops (was 176), and every control is still reachable by keyboard', async ({page}) => {
   await offlineApi(page);
   await loadShowcase(page);
   await page.goto('/app'); await hydrated(page);
@@ -40,7 +41,7 @@ test('D-028: Showcase Today takes at most 145 Tab stops (was 176), and every con
     stops.push(now.name);
   }
   test.info().annotations.push({type: 'Tab stops on Showcase Today at 1440', description: `${stops.length}: ${stops.join(' | ')}`});
-  expect(stops.length, stops.join(' | ')).toBeLessThanOrEqual(145);
+  expect(stops.length, stops.join(' | ')).toBeLessThanOrEqual(90);
   expect(stops.length).toBeGreaterThan(10);
   // The Today skip links are one stop.
   expect(stops).toContain('Skip to Your goals');
@@ -51,7 +52,9 @@ test('D-028: Showcase Today takes at most 145 Tab stops (was 176), and every con
   expect(count).toBeGreaterThanOrEqual(3);
   for (let g = 0; g < count; g++) {
     const group = groups.nth(g), selector = (await group.getAttribute('data-roving'))!;
-    const items = group.locator(selector).filter({visible: true});
+    // Session AP (D-028, deliberate): a disabled button is in no Tab order and no arrow reaches it (it never was); every
+    // enabled, visible item is still reached.
+    const items = group.locator(`:is(${selector}):not([disabled])`).filter({visible: true});
     const n = await items.count();
     if (n === 0) continue;
     // exactly one item of the group is in the Tab order

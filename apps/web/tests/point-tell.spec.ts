@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {POINT_TELL_KEY} from '../lib/ab-cloud-device-keys';
+import {openSettings} from './settings-open';
 
 /**
  * Session AB-Cloud Part 6 (ADR-023 C23): Point & tell. Switched on in Settings; a pick by pointer and by keyboard never
@@ -13,14 +14,14 @@ const DAY = '2026-10-14';
 test.beforeEach(async ({page}) => {
   await page.clock.install({time: new Date(`${DAY}T08:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY, 'Europe/Brussels').records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
 });
 const stored = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), POINT_TELL_KEY);
 const launcher = (page: Page) => page.getByRole('button', {name: 'Point & tell: pick a part of this page to comment on'});
 
 test('pick a part by pointer and by keyboard, note it, see its marker, edit, remove and undo, export; the page never receives the pick', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(launcher(page)).toHaveCount(0);
   await page.getByLabel('Show the Point & tell button').check();
   await expect(launcher(page)).toBeVisible();
@@ -92,7 +93,7 @@ test('pick a part by pointer and by keyboard, note it, see its marker, edit, rem
   await expect(list).toHaveCount(0);
 
   // Off again: the button and the markers go; the notes stay on this device.
-  await page.goto('/app/settings');
+  await openSettings(page);
   const toggle = page.getByLabel('Show the Point & tell button');
   await expect(toggle).toBeChecked();
   await expect(launcher(page)).toBeVisible();

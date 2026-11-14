@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {openFold} from './phone-nav';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF Gate C (design critique, money pages 1–3): Wealth classes each holding once. The Showcase's Vanguard S&P 500
@@ -10,7 +11,7 @@ import {openFold} from './phone-nav';
  */
 async function showcase(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/wealth');

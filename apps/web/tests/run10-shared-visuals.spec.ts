@@ -1,10 +1,11 @@
 import {test,expect,type Page} from '@playwright/test';
 import {openHabitDetails} from './ab-shell';
 import {openFold} from './phone-nav';
+import {openSettings} from './settings-open';
 // Session AC (deliberate): Today's habits list is the Balanced habits widget (Daily Habits, its twin, stands down by default).
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
  await expect(page.locator('.placed-module[data-module="preset-balanced-1"] .habits-today')).toBeVisible();
 }
 test('Quick add lives in the mobile header and the Today hero, and Escape returns focus',async({page,isMobile})=>{

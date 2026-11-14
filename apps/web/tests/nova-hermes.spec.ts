@@ -5,6 +5,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY} from '../lib/ai/settings';
 import {NOVA_SETUP_KEY} from '../lib/nova/setup';
 import {NOVA_HERMES_KEY} from '../lib/nova/hermes-record';
+import {openSettings} from './settings-open';
 
 /**
  * "Connect your Hermes Agent" (owner follow-up 3, N11; lane NC) with a MOCK Hermes API server on 127.0.0.1:8642 (the
@@ -40,7 +41,7 @@ async function mockHermes(page: Page, mode: Mode, seen: Seen[] = []) {
 }
 async function seed(page: Page, extra: Record<string, string> = {}) {
   await page.clock.install({time: SHOWCASE_EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase('2026-09-20').records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...extra});
   await page.goto('/app/nova/hermes');
   await expect(page.getByRole('heading', {name: 'Connect your Hermes Agent', level: 1})).toBeVisible();

@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { encryptBackup } from "../lib/vault/backup";
 import { emptyDashboardSettings } from "../lib/dashboard-settings";
 import { emptyHabitData } from "../lib/habits";
+import {openSettings} from './settings-open';
 
 // Session G, Part 5: copy and small UX from Session F's QA backlog (docs/qa/QA_SWEEP_2026-09-30.md): QA-21, QA-26,
 // QA-27 and QA-28.
@@ -23,7 +24,7 @@ test("a habit with a target of 1 reads “1 time per day”, never “1 times”
 });
 
 test("a Goal's next and latest contributions use one date format (QA-27)", async ({ page }) => {
-  await page.goto("/app/settings");
+  await openSettings(page);
   await page.getByRole("button", { name: "Load Showcase Demo", exact: true }).click();
   await page.waitForURL("**/app");
   const dates = page.locator(".today-contribution-dates").first();
@@ -49,7 +50,7 @@ test("a Goal's next and latest contributions use one date format (QA-27)", async
 });
 
 test("plaintext backups share one file-name pattern without spaces (QA-26)", async ({ page }) => {
-  await page.goto("/app/settings");
+  await openSettings(page);
   const names: string[] = [];
   // Session AK G2 (RELEASE_REVIEW_2 R2-16, deliberate): "Goals and Wealth" (it was "Positions and Goals"); its file name is kept.
   for (const name of ["Goals and Wealth", "Habits", "Health"]) {
@@ -66,7 +67,7 @@ test("plaintext backups share one file-name pattern without spaces (QA-26)", asy
 test("one unlock restores several modules: the preview stays, restored modules are marked, names are readable (QA-21)", async ({ page }) => {
   const habits = { ...emptyHabitData(), habits: [] };
   const backup = await encryptBackup({ habits: JSON.stringify(habits), settings: JSON.stringify(emptyDashboardSettings()) });
-  await page.goto("/app/settings");
+  await openSettings(page);
   const panel = page.locator("#private-vault");
   await panel.getByText("Restore an encrypted backup", { exact: true }).click();
   await panel.getByLabel("Encrypted backup file", { exact: true }).setInputFiles({ name: "fictional-two-modules.json", mimeType: "application/json", buffer: Buffer.from(backup.file) });

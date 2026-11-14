@@ -5,6 +5,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {TASKS_KEY} from '../lib/tasks/schema';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK lane WA (WIRING_AUDIT_2 N1, N2, T1, T3, N11): the Duo on NOVA's dashboard while NOVA hands a task to ZIGi
@@ -32,7 +33,7 @@ async function server(page: Page, reply: (body: Body) => string) {
 const settled = {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true})};
 async function seed(page: Page, values: Record<string, string>) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, {...settled, ...values});
 }
 const chat = (page: Page) => page.locator('section.nova-chat');
@@ -113,7 +114,7 @@ test('the Showcase: Tasks and Focus show its labelled examples; the Hermes guide
   await page.goto('/app/nova/hermes');
   await expect(page.getByRole('heading', {name: 'Your Hermes, step by step'})).toBeVisible();
   await expect(page.getByRole('region', {name: 'What a linked Hermes Agent looks like'})).toHaveCount(0);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
   await page.goto('/app/nova');
   await expect(page.getByText('Showcase · fictional example data')).toBeVisible();

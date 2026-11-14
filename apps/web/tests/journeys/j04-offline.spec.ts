@@ -5,6 +5,7 @@ import {CHECKLIST_KEY} from '../../lib/af-checklist-keys';
 import {emptyChecklist} from '../../lib/checklist/schema';
 import {addFavourite} from '../../lib/checklist/store';
 import {emptyPlatform, PLATFORM_KEY, privateGoalSchema} from '../../lib/positions';
+import {openSettings} from '../settings-open';
 
 /**
  * Session AK F2, journey 4: offline. The app's own service worker controls the page (opted in here; the suite blocks
@@ -41,7 +42,7 @@ test('@journey 4 offline: install, every pillar offline, back online, the update
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller), {timeout: 10_000}).toBe(true);
 
   // Install from Settings: the browser's own offer (MOCK of Chromium's event), one tap.
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.evaluate(() => { const e = Object.assign(new Event('beforeinstallprompt', {cancelable: true}), {prompt: async () => undefined, userChoice: Promise.resolve({outcome: 'accepted'})}); window.dispatchEvent(e); });
   const install = page.getByRole('region', {name: 'Install ZIGoals'});
   await expect(install.getByRole('status').first()).toHaveText('Your browser can install ZIGoals now.');

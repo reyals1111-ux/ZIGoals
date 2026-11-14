@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {afterGoto, openSettings} from './settings-open';
 
 /**
  * Session AJ (item 32, D5): Settings → Appearance → Customize. Font (System / Inter), Text size (Standard / Large), Density
@@ -14,7 +15,7 @@ const ATTRS = Object.keys(CHOSEN);
  *  dismissed and Motion is off, so every page is a still. */
 async function openDevice(page: Page, record: Record<string, unknown> = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, contentType: 'application/json', body: '{}'}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(([k, r]) => { localStorage.setItem(k as string, JSON.stringify({version: 1, dismissed: {alphaNotice: true}, ...(r as object)})); localStorage.setItem('zigoals:motion:v1', 'off'); }, [KEY, record] as const);
 }
 /** The <html> attributes when <body> is created, before any app script has run. */
@@ -86,7 +87,7 @@ test('Inter, Large, Compact and Soft: applied at once, kept, on the first paint 
   await expect.poll(() => page.evaluate(() => [...document.fonts].some(f => f.family.replace(/"/g, '') === 'Inter' && f.status === 'loaded'))).toBe(true);
 
   // Back to the defaults: every attribute and sheet goes, and so does the look group.
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.locator('html[data-app-hydrated]')).toBeAttached({timeout: 30_000});
   for (const [legend, choice] of [['Font', 'Inter'], ['Text size', 'Large'], ['Density', 'Compact'], ['Glow', 'Soft']] as const) await expect(card(page).getByRole('group', {name: legend}).getByRole('radio', {name: choice, exact: true})).toBeChecked();
   await card(page).getByRole('button', {name: 'Back to the defaults'}).click();
@@ -123,7 +124,7 @@ for (const route of ROUTES) for (const [project, widths] of Object.entries(WIDTH
     await openDevice(page, {look: {textSize: 'large'}});
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
     await page.waitForURL('**/app');
-    await page.goto(route);
+    await page.goto(route); await afterGoto(page, route);
     await expect(page.locator('html[data-app-hydrated]')).toBeAttached({timeout: 30_000});
     await expect(page.locator('html')).toHaveAttribute('data-text', 'large');
     await expect(page.locator('html')).not.toHaveAttribute('data-look-loading', /.*/);

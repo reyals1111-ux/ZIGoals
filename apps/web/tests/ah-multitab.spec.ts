@@ -2,12 +2,13 @@ import {expect, test, type Page} from '@playwright/test';
 import {continueToGoalReview, typeGoalName} from './goal-name';
 import {HABITS_KEY} from '../lib/habits';
 import {PLATFORM_KEY} from '../lib/positions';
+import {openSettings} from './settings-open';
 
 // Session AH Part 3 (DS1/A1, BUG-075, N-081, M-142): a second tab that was opened earlier never overwrites what
 // another tab saved since. Each tab opens its page first; then both save, the older tab last.
 test.beforeEach(async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
 });
 const hydrated = (page: Page) => page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});

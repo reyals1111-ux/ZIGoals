@@ -5,6 +5,7 @@ import {seedChecklist, settled} from './checklist-fixtures';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist} from '../lib/checklist/schema';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn and Governance.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -258,7 +259,7 @@ async function openForYou(page: Page, card: Locator) {
 }
 test.describe('Today', () => {
   test('My universe: each name under its planet; a lit planet wears a strong halo', async ({page}) => {
-    await page.goto('/app/settings');
+    await openSettings(page);
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
     await page.waitForURL('**/app');
     const card = page.locator('.today-universe-card');
@@ -297,7 +298,7 @@ test.describe('Today', () => {
   });
 
   test('the Day timeline card: a short rail, a node in each block’s colour, and the "Now" pill among the rows', async ({page}) => {
-    await page.goto('/app/settings');
+    await openSettings(page);
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
     await page.waitForURL('**/app');
     const card = page.locator('.today-timeline-card');
@@ -324,7 +325,7 @@ test.describe('Gate C design review', () => {
   const showcase = async (page: Page, width: number) => {
     await page.setViewportSize({width, height: 900});
     await page.clock.setFixedTime(new Date('2026-10-16T09:30:00Z'));
-    await page.goto('/app/settings');
+    await openSettings(page);
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
     await page.waitForURL('**/app');
   };

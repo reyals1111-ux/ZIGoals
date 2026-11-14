@@ -1,6 +1,7 @@
 import {expect,test} from '@playwright/test';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 import {openTodayWidgets} from './phone-nav';
+import {openSettings} from './settings-open';
 
 test('widget insertion, rail placement and encrypted layout recovery keep one binding',async({page})=>{
  const original=presetSettings('balanced');
@@ -36,7 +37,7 @@ test('widget insertion, rail placement and encrypted layout recovery keep one bi
  await card.getByRole('menuitem',{name:'Show widget'}).click();
  await expect(card).not.toHaveAttribute('data-hidden','true');
 
- await page.goto('/app/settings');
+ await openSettings(page);
  const vault=page.locator('#private-vault');
  await vault.getByRole('button',{name:'Prepare encrypted backup'}).click();
  const recovery=await vault.getByRole('textbox',{name:'Recovery secret',exact:true}).inputValue();
@@ -52,7 +53,7 @@ test('widget insertion, rail placement and encrypted layout recovery keep one bi
  // Session AO (DV-040g, deliberate): items are menuitems now
  await card.getByRole('menuitem',{name:'Remove widget'}).click();
  await expect(card).toHaveCount(0);
- await page.goto('/app/settings');
+ await openSettings(page);
  await vault.getByText('Restore an encrypted backup').click();
  await vault.getByLabel('Encrypted backup file').setInputFiles(file!);
  await vault.getByLabel('Backup recovery secret').fill(recovery);

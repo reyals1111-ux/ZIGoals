@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../lib/af-checklist-keys';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF (the lead, after CI's guide.spec "viewing writes nothing" failed by a race): with nothing on the path, looking
@@ -12,7 +13,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 
 test('an empty path: viewing Today and the Checklist writes no Checklist record', async ({page}) => {
   const {records} = buildShowcase('2026-10-19');
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { sessionStorage.clear(); localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true})});
   const keys = () => page.evaluate(([a, b]) => [a, b].filter(k => localStorage.getItem(k!) !== null), [CHECKLIST_KEY, CHECKLIST_DAYS_KEY]);

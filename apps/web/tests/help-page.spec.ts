@@ -1,5 +1,6 @@
 import {LOGO_INTRO_KEY} from '../components/logo-intro-decision';
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // Help (Session L): structure, wording that follows the owner principle, keyboard, motion, phones, and no requests or
 // writes on view.
@@ -251,7 +252,7 @@ test('at phone width the top bar names Help and steps back to Settings', async (
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.locator('.phone-title')).toHaveText('Help');
   await expect(page.locator('.phone-topbar').getByRole('link', {name: 'Back to Settings', exact: true})).toHaveCount(0);
-  await page.goto('/app/settings');await page.getByRole('link', {name: 'Help & feedback →', exact: true}).click();
+  await openSettings(page);await page.getByRole('link', {name: 'Help & feedback →', exact: true}).click();
   await expect(page).toHaveURL(/\/app\/help$/);await expect(page.locator('.phone-title')).toHaveText('Help');
   const back = page.locator('.phone-topbar').getByRole('link', {name: 'Back to Settings', exact: true});
   await expect(back).toBeVisible();

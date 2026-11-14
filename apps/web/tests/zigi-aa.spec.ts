@@ -5,6 +5,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {GAME_KEY} from '../lib/aa-device-keys';
+import {openSettings} from './settings-open';
 
 /**
  * Session AA-Local Part 5 (ADR-022 B37): a device-record kind through the real panel. A MOCK reply proposes
@@ -27,7 +28,7 @@ async function server(page: Page, replies: readonly string[]) {
 }
 async function seed(page: Page) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const base = defaultAiSettings();
   const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, seen: WHATS_NEW_RELEASE}), [AI_SETTINGS_KEY]: JSON.stringify(ai)});

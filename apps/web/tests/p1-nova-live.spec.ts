@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {NOVA_KEY} from '../lib/nova/store';
 import {isPhone} from './phone-nav';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK lane P1 (owner follow-up 2 M3 "live activity chips"; WIRING_AUDIT_2 row M3): NOVA's "Running now". A fresh
@@ -16,7 +17,7 @@ test.beforeEach(async ({page}) => {
   await page.emulateMedia({reducedMotion: 'reduce'});
   await page.clock.install({time: new Date('2026-09-15T10:00:00.000Z')});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
     'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}),
     [NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true}),

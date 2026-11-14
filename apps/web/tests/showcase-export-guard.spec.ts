@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
+import {openSettings} from './settings-open';
 
 // QA-17 (Session F, docs/qa/QA_SWEEP_2026-09-30.md): in Showcase, plaintext exports downloaded the fictional demo data
 // under the normal backup file names, and such a file could later be restored over real data after the usual
@@ -21,10 +22,10 @@ async function exportHabits(page: Page) {
 const today = (page: Page) => page.evaluate(() => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`; });
 
 test("a Showcase export is named showcase-demo, and restoring it into real data needs an explicit demo confirmation", async ({ page }) => {
-  await page.goto("/app/settings");
+  await openSettings(page);
   await page.getByRole("button", { name: "Load Showcase Demo", exact: true }).click();
   await page.waitForURL("**/app");
-  await page.goto("/app/settings");
+  await openSettings(page);
   const demo = await exportHabits(page);
   // Export names carry the local date (QA-26).
   expect(demo.name).toBe(`zigoals-showcase-demo-habits-backup-${await today(page)}.json`);
@@ -49,7 +50,7 @@ test("an ordinary export keeps its name and restores without the demo confirmati
   await page.getByLabel("Habit title", { exact: true }).fill("Evening walk");
   await page.getByRole("button", { name: "Create habit", exact: true }).click();
   await expect(page.getByRole("article", { name: "Evening walk", exact: true })).toBeVisible();
-  await page.goto("/app/settings");
+  await openSettings(page);
   const own = await exportHabits(page);
   expect(own.name).toBe(`zigoals-habits-backup-${await today(page)}.json`);
   const section = page.getByRole("region", { name: "Habits backup", exact: true });

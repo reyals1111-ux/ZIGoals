@@ -8,6 +8,7 @@ import {AI_KEYS_DATABASE} from '../lib/ai/keys';
 import {FAKE_KEY} from '../lib/ai/fixtures/mock-streams';
 import {HABITS_KEY} from '../lib/habits';
 import {NOVA_SETUP_KEY, setPrivacyMode} from '../lib/nova/setup';
+import {openSettings} from './settings-open';
 
 /**
  * ZIGi · your AI (ADR-012), end to end with MOCK providers: every provider call is answered by page.route, nothing
@@ -43,7 +44,7 @@ const connectedLocal = (overrides: Partial<AiSettings> = {}): AiSettings => ({..
 const SHOWCASE_EVENING = '2026-09-20T19:00:00.000Z';
 async function seed(page: Page, settings: AiSettings | null, records = buildShowcase('2026-09-20').records) {
   await page.clock.install({time: SHOWCASE_EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...(settings ? {[AI_SETTINGS_KEY]: JSON.stringify(settings)} : {})});
 }
 /** The Showcase records with the privacy mode the person chose set to Relaxed, as the guide sets it (setPrivacyMode). */
@@ -393,7 +394,7 @@ test('hide with Undo, the Settings switch, ⌘K / Ctrl+K (Ask ZIGi), ⌘/Ctrl+Sh
 test('sensitive screens: the launcher shows beside Settings\' sign-in form, away while its field has the focus and while a sheet is open', async ({page}) => {
   await seed(page, connectedLocal());
   const floats = page.viewportSize()!.width >= 901;
-  await page.goto('/app/settings');
+  await openSettings(page);
   const email = page.locator('#encrypted-sync input[type="email"]');
   await expect(email).toBeVisible();
   if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
@@ -471,7 +472,7 @@ test('phone: a full-height sheet with a 16 px composer, opened from Apps & extra
 
 test('Showcase: keys are session-only and the chat lives in the tab', async ({page}) => {
   await seed(page, null);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: /Load Showcase/}).click();
   // The Showcase loads its records first (Session W Part 22), then opens Today: wait for that before leaving the page.
   await page.waitForURL('**/app');

@@ -1,5 +1,6 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {applyTheme, fence, loadShowcase, mockModel, note, offline, seedDevice, settle, THEMES, type Findings} from './p6-helpers';
+import {afterGoto} from './settings-open';
 // CI runs this sweep as its own suite of shards (ADR-036 C3); each test stands alone, so they may split across shards.
 test.describe.configure({mode: 'parallel'});
 
@@ -78,7 +79,7 @@ const stop = (page: Page) => page.evaluate((): Stop | null => {
   const segmented = el instanceof HTMLInputElement && /^(date|time|datetime-local|month|week)$/.test(el.type);
   return {key: el.dataset.p6, where, visible: r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight, ring, covered, segmented, start: el.matches('a.skip')};
 });
-async function open(page: Page, path: string) { await page.goto(path); await settle(page); }
+async function open(page: Page, path: string) { await page.goto(path); await afterGoto(page, path); await settle(page); }
 /** Marks the page as left once its window loses focus to the browser (not to a frame inside it), before the walk begins. */
 const watchExit = (page: Page) => page.evaluate(() => {
   const w = window as unknown as {p6Out?: boolean};

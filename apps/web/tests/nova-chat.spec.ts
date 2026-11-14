@@ -5,6 +5,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK, owner follow-up 2 (N1/N2/N8, lane NB): NOVA's chat on ZIGi's engine. Every reply here is a MOCK: the spec
@@ -35,7 +36,7 @@ async function server(page: Page, replies: readonly ((body: Body) => string)[], 
 }
 async function seed(page: Page, {model = true}: {model?: boolean} = {}) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const base = defaultAiSettings();
   const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, includeHealth: true, pageShare: {...base.pageShare, health: true}};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },

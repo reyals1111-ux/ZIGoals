@@ -9,6 +9,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings, WIDGET_CATALOG, type DashboardSe
 import {localDate} from '../lib/local-date';
 import {isPhone,mainNav,openMore,openFold} from './phone-nav';
 import {pressZigi} from './zigi-open';
+import {afterGoto, openSettings} from './settings-open';
 
 // Session Z-Cloud Part 4: the owner's persona decisions (docs/product/PERSONA_DECISIONS_Y.md items 1–3 and 5–12; item 4
 // skipped), built. Fictional records; every /api request is answered by a fixture.
@@ -21,7 +22,7 @@ async function seed(page: Page, records: Record<string, unknown>, settings: Dash
 }
 /** "Habits only": the Habits + Health layout with its Health widgets hidden. */
 const habitsOnly = (): DashboardSettings => { const s = presetSettings('habits-health'); return {...s, widgets: s.widgets.map(w => WIDGET_CATALOG[w.kind].domain === 'health' ? {...w, hidden: true} : w)}; };
-async function showcase(page: Page) { await page.goto('/app/settings'); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app'); }
+async function showcase(page: Page) { await openSettings(page); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app'); }
 const habit = (title = 'Stretch') => createHabit(emptyHabitData(), {title, category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, new Date(Date.now() - 3 * 86_400_000), HABIT);
 
 test('1. Habits + Health and Habits only: Today is one centred column at a reading width; the financial layouts keep the rail', async ({page}) => {
@@ -88,7 +89,7 @@ test('2. phones: one compact Alpha notice on the first screen; More → Status &
   await expect(page.locator('.account-panel .account-value')).toHaveText('No balance yet');
   await expect(page.locator('.account-panel')).not.toContainText(/1,000|Simulated balance/);
   for (const path of ['/app', '/app/wealth', '/app/staking', '/app/settings']) {
-    await page.goto(path); await expect(page.locator('main h1').first()).toBeVisible();
+    await page.goto(path); await afterGoto(page, path); await expect(page.locator('main h1').first()).toBeVisible();
     await expect(alphaNotice(page), path).toBeInViewport();
   }
   // Closing the notice keeps it closed on this device; the facts stay in Settings' facts block (the footer until Session AC).

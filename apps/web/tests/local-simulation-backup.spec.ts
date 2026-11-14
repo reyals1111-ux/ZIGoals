@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {seed} from './coherence-fixture';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the local ZIG simulation.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -13,7 +14,7 @@ test('Local simulation Goals survive export, wipe and import through Settings',a
  await seed(page);await page.goto('/app/goals');await expect(page.getByText('Kyoto in spring').first()).toBeVisible();
  const read=()=>page.evaluate(keys=>keys.map(k=>localStorage.getItem(k)),[LEDGER,PLANS,'zigoals:platform:v1']);
  const before=await read();expect(before.every(v=>v!==null)).toBe(true);
- await page.goto('/app/settings');await page.getByRole('button',{name:'Prepare encrypted backup',exact:true}).click();
+ await openSettings(page);await page.getByRole('button',{name:'Prepare encrypted backup',exact:true}).click();
  const secret=await page.getByLabel('Recovery secret',{exact:true}).inputValue();await page.getByLabel('I saved the recovery secret.',{exact:true}).check();
  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Download encrypted backup',exact:true}).click();
  const stream=await(await downloaded).createReadStream();let file='';for await(const chunk of stream)file+=chunk.toString();
@@ -37,7 +38,7 @@ test('a damaged legacy ledger is left out with a visible warning and never block
  test.setTimeout(90000);
  await seed(page);await page.evaluate(key=>localStorage.setItem(key,localStorage.getItem(key)!.replace('"balance":"','"balance":"1')),LEDGER);
  const damaged=await page.evaluate(key=>localStorage.getItem(key),LEDGER),platform=await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Prepare encrypted backup',exact:true}).click();
+ await openSettings(page);await page.getByRole('button',{name:'Prepare encrypted backup',exact:true}).click();
  const warning="Legacy simulation Goals couldn't be included because their stored data is damaged.";
  await expect(page.getByRole('alert').filter({hasText:warning})).toBeVisible();
  const secret=await page.getByLabel('Recovery secret',{exact:true}).inputValue();await page.getByLabel('I saved the recovery secret.',{exact:true}).check();

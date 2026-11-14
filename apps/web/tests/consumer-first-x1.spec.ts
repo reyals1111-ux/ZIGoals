@@ -3,6 +3,7 @@ import {chooseChain} from './chain-choice';
 import {ALPHA_LABEL, ALPHA_LABEL_CHOSEN, alphaNotice} from './ab-shell';
 import {isPhone, mainNav, openMore} from './phone-nav';
 import {continueToGoalReview, typeGoalName} from './goal-name';
+import {afterGoto} from './settings-open';
 
 /**
  * Session AK X1 (RELEASE_REVIEW R2–R5, R8, R14, R22; the owner's non-negotiable "consumer first, chain invisible: crypto
@@ -16,7 +17,7 @@ const CHAIN_WORDS = /\bZIG\b|Keplr|Testnet|Contract|[Ss]imulated|Demo records|St
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 async function ready(page: Page, path: string) {
-  await page.goto(path);
+  await page.goto(path); await afterGoto(page, path);
   await expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '');
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('main h1').first()).toBeVisible();

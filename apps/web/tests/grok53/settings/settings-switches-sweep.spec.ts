@@ -1,6 +1,7 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../../ah-helpers';
 import {chooseChain} from '../../chain-choice';
+import {openSettings} from '../../settings-open';
 
 // Session AL (lane L6, Part 2): "every Settings switch does what it says". Berlin found the page switches work (BN-015,
 // BN-101, BN-169) but tested others by hand. This sweep presses EVERY on/off switch on Settings (checkboxes and
@@ -44,7 +45,7 @@ const PARTS = 3;
 
 for (let part = 0; part < PARTS; part++) test(`Settings: every on/off switch changes at once, survives a reload and goes back (part ${part + 1} of ${PARTS})`, async ({page}) => {
   await offlineApi(page); await chooseChain(page); await freshDevice(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const all = await scan(page);
   expect(all.length, 'switches found on Settings').toBeGreaterThan(10);
   const names = all.filter((_, i) => i % PARTS === part);
@@ -61,7 +62,7 @@ for (let part = 0; part < PARTS; part++) test(`Settings: every on/off switch cha
     const changed = await expect.poll(() => on(box), {timeout: 2_000}).not.toBe(before).then(() => true, () => false);
     if (!changed) { problems.push(`${name}: did not change when pressed`); continue; }
     await page.reload();
-    try { await hydrated(page); } catch { problems.push(`${name}: Settings did not finish loading after a reload`); await page.goto('/app/settings'); await hydrated(page); }
+    try { await hydrated(page); } catch { problems.push(`${name}: Settings did not finish loading after a reload`); await openSettings(page); await hydrated(page); }
     // Session AO (CI 1611, 1669; CI_INTERMITTENTS "settings-switches-sweep:45"): some switches are lazy() chunks with no
     // fallback (Cycle log), drawn a moment after `data-app-hydrated`; the scan is repeated for up to 5 s before the switch
     // is called gone. The same verdict is reached for a switch that never comes back.

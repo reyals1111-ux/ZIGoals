@@ -5,6 +5,7 @@ import {SIDEBAR_APP_IDS} from '../lib/ui-prefs/apps';
 import {isPhone, mainNav, openMore} from './phone-nav';
 import {chooseChain} from './chain-choice';
 import {pressZigi} from './zigi-open';
+import {openSettings} from './settings-open';
 
 // Session W Part 2 (owner decision W4): Settings → "Your pages & buttons". Offline fixture; every network call answers 503.
 // Session AK X1 (RELEASE_REVIEW R3): the money tools (Earn, Markets, Staking, Portfolio, Ecosystem) are in the navigation
@@ -66,7 +67,7 @@ const section = (page: Page) => page.getByRole('region', {name: 'Your pages & bu
 
 test('hiding a page saves a stamped settings v3 choice; the navigation, preview and device mirror follow; showing it brings it back', async ({page}) => {
   await seed(page, {[SETTINGS]: settingsWith()});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const card = section(page), goals = card.getByRole('switch', {name: 'Goals', exact: true});
   await expect(goals).toBeChecked();
   // Session W Part 19: My links has its switch now (shown by default; its Today card appears once a link exists).
@@ -98,7 +99,7 @@ test('hiding a page saves a stamped settings v3 choice; the navigation, preview 
 // column) and, on phones, a shrunken track; each sits on its name's row, before it, at its size, on every screen.
 test('every switch sits on its name\'s row, before the name, at its full size', async ({page}) => {
   await seed(page, {[SETTINGS]: settingsWith()});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const rows = section(page).locator('label.pages-switch');
   // (Session AG Polish 3: and Governance's switch on this device, after Chess. Session AH (ST9): and Earn's, after Wealth.)
   // Session AL (O4 and L10a, 57fb1e5e; deliberate): and the Checklist button under Buttons, and the Apps group's own
@@ -173,7 +174,7 @@ test('the start page: Health opens as a document load; choosing a page or "First
   await expect(page).toHaveURL(/\/app\/health$/);
   // A document load, like every way into Health, so its camera permission holds (lib/health-navigation.ts).
   expect(await page.evaluate(() => (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming).name)).toMatch(/\/app\/health$/);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const select = section(page).getByLabel('Start page', {exact: true});
   await expect(select).toHaveValue('health');
   await select.selectOption('goals');
@@ -188,7 +189,7 @@ test('the start page: Health opens as a document load; choosing a page or "First
 
 test('"Show everything again" asks first: Cancel changes nothing; confirming shows every page and button', async ({page}) => {
   await seed(page, {[SETTINGS]: settingsWith(pages(['goals', 'markets', 'quick-add', 'zigi'], 'habits'))});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const card = section(page), reset = card.getByRole('button', {name: 'Show everything again', exact: true});
   const before = await page.evaluate(k => localStorage.getItem(k), SETTINGS);
   await reset.click();
@@ -232,7 +233,7 @@ test('buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide eve
   await page.waitForTimeout(300);
   await expect(page.getByRole('dialog', {name: /ZIGi/})).toHaveCount(0);
   if (await isPhone(page)) { await expect(page.locator('.phone-wealth')).toHaveCount(0); await expect(page.locator('.phone-quick-add')).toHaveCount(0); }
-  await page.goto('/app/settings');
+  await openSettings(page);
   await section(page).getByRole('switch', {name: 'ZIGi button', exact: true}).click();
   await expect(section(page).getByRole('status')).toHaveText('ZIGi button shows again.');
   await section(page).getByRole('switch', {name: 'Quick add', exact: true}).click();
@@ -250,11 +251,11 @@ test('buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide eve
 
 test('Showcase shows every page but Governance and keeps a choice in the tab, never in this device\'s storage', async ({page}) => {
   await seed(page, {});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expectNav(page, SHOWCASE, {journey: true});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
   await section(page).getByRole('switch', {name: 'Activity', exact: true}).click();
   await expect(section(page)).toContainText('In Showcase these choices last for this tab only.');
@@ -276,7 +277,7 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   await expect(page.getByRole('heading', {level: 1, name: 'Governance'})).toBeVisible();
   await expect(page.getByRole('region', {name: 'Hidden page'})).toHaveCount(0);
   await expectNav(page, ALL);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const card = section(page), governance = card.getByRole('switch', {name: 'Governance', exact: true});
   await expect(governance).not.toBeChecked();
   const names = (await card.locator('fieldset.pages-switches').first().locator('label.pages-switch').allTextContents()).map(name => name.trim());

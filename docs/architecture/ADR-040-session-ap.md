@@ -209,6 +209,34 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   record schema; Tasks and Agenda no longer load the Checklist schemas), a night's readings in `lib/sleep/night.ts` (Habits'
   Health links no longer load Sleep's schemas), the push module loaded by the reminder field only after the page shows,
   and Earn's three wider sections (governance, goal-linked stake, stablecoins) on demand with their anchors in place.
+- **D7 (Part 2, D-088/N-BN-10 Settings folded by default):** on a computer or a tablet every group starts folded (heading +
+  one-line summary); the groups a person opens stay open on this device (`zigoals:settings-open:v1`, localStorage, a display
+  convenience listed in erase's NOT_RECORDS; AL's tab-only `zigoals:settings-folds:v1` is no longer written and is removed
+  when Settings opens); a jump always opens its group. Phones keep their own list (unchanged). Specs: one helper
+  `tests/settings-open.ts` (`openSettings` = go + press "Open all", as a person does; `afterGoto` for specs' own helpers);
+  450 plain Settings visits in 250 spec files moved to it mechanically; deep links unchanged (they open their group).
+  `tests/grok53/settings/d-088-settings-fold.spec.ts` rewritten for the folded start, the same checks (deliberate).
+- **D8 (Part 2, D-028 Today ≤ 90 Tab stops):** Showcase Today at 1440 went 143 → 89. One stop each (roving tabindex,
+  arrows/Home/End; nothing drawn changes): the sidebar's pages, the sidebar's Apps group, the theme radios (the radio
+  pattern: the chosen theme is the stop, the arrows choose), Today's check-in buttons, favourites, the four pillars, the
+  next money steps, the preset choices, Recent activity's events and the pace-forecast goals. The sidebar's roving code
+  loads after the page shows (`components/ui/roving-later.ts`). Spec guard tightened 145 → 90; a disabled button (never
+  in any Tab order) is not counted as an item to reach (deliberate). `o4-sidebar-apps` updated: the group is one stop.
+- **D9 (Part 2, AO D17 minors):** the wizard's review opens with the goal's summary, the rhythm fold after it; checkboxes
+  never squashed (`min-width` + `flex: none` globally); Activity's per-area Perfect weeks list named, each count says what
+  it counts. The visual minors (Wealth chips at 1440, Earn path labels at 390, two "Keep an average" hints, CSV
+  Value/Unit) go to the Part 7 UX pass with screenshots.
+- **D10 (Part 4b, "A day counts as done at N"; TIER 3 stored format):** `zigoals:day-goal:v1` = dated changes
+  (`{from, need|null}`, strictly increasing, ≤ 400; a full list refuses a change rather than dropping one). A day counts
+  when `done ≥ min(N, total)` under the rule in force on that day; days before the first change use every dot forever.
+  Read by the flame (`checklistStreak`), mendable days, and Journey's orbit badges (`checklistOrbitDays`); a Perfect orbit
+  still needs every dot in order; the Checklist awards no XP of its own (AG), so XP is unchanged. "All dots lit" stays
+  literal. The shell reads the record without its schema, and the reader loads only on a device that has the record.
+  Registries: Export everything, backup format 4 (via export), restore ("Today and Life"), erase, catalog, onboarding
+  (a setting: a device with only it is still new) — `lib/ap-device-keys.ts` + test. Spec: Brussels and Tokyo, 2 × pass.
+- **D11 (route weights after Parts 2 and 4b):** shell 435.1 → 437.4 kB took four pages over (roving + the rule core +
+  chunk overhead); the sidebar's roving code and the rule's reader now load on demand: shell 435.5; every page under its
+  budget (goals 476.7/478, settings 530.1/531, agenda 484.1/485, tasks 467.4/468). No budget changed.
 
 ## Closing table
 (filled at Part 7)
