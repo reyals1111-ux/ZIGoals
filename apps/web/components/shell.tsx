@@ -1,6 +1,7 @@
 "use client";
 import "./platform/run92-product.css";
 import "./navigation.css";
+import "./launchers/auto-tuck.css";
 import "./shell/tablet-rail.css";
 import { FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
@@ -92,6 +93,8 @@ function RouteFocusFallback() {
 export function Shell({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   // Session AB-Design: the root says when the shell has hydrated (`<html data-app-hydrated>`). A tap before hydration is replayed by React after it, which toggles a <details> shut again; the specs wait for this mark before opening card details.
   useEffect(() => { document.documentElement.dataset.appHydrated = ""; return () => { delete document.documentElement.dataset.appHydrated; }; }, []);
+  // Session AP (owner decision 14 Nov, 4a): the launchers fold into the edge while they would cover content; the watcher loads after the page shows.
+  useEffect(() => { let stop: (() => void) | null = null, gone = false; void import("./launchers/auto-tuck").then(m => { if (!gone) stop = m.startLauncherAutoTuck(); }, () => undefined); return () => { gone = true; stop?.(); }; }, []);
   // Number, money and date formats follow the browser locale; this remounts the page content once after hydration
   // when that locale is not en-US (components/display-locale.ts, lib/visual-format.ts).
   const localeKey = useDisplayLocaleKey();

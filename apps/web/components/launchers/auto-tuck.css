@@ -1,0 +1,11 @@
+/* Session AP (owner decision 14 Nov, 4a): the launchers' fold into the edge while they would cover content
+   (components/launchers/auto-tuck.ts). A sideways slide only (the `translate` property, so each launcher's own transforms
+   stay as they are); the centre stays inside the window, so every button can still be pressed. Hover or the keyboard
+   focus brings it back at once. Only on a computer, only on the right-hand side. */
+@media (min-width: 901px) {
+  :root { --launcher-tuck: 40px; }
+  :root:not([data-zigi-side=left]) :is(.ai-launcher, .music-launcher-stack, .checklist-launcher-stack, .earn-dock-stack) { transition: translate .28s cubic-bezier(.2, .8, .2, 1); }
+  :root[data-launchers-tucked]:not([data-zigi-side=left]) :is(.ai-launcher, .music-launcher-stack, .checklist-launcher-stack, .earn-dock-stack):not(:hover):not(:focus-within) { translate: var(--launcher-tuck) 0; }
+}
+@media (prefers-reduced-motion: reduce) { :root :is(.ai-launcher, .music-launcher-stack, .checklist-launcher-stack, .earn-dock-stack) { transition: none; } }
+:root[data-app-motion=off] :is(.ai-launcher, .music-launcher-stack, .checklist-launcher-stack, .earn-dock-stack) { transition: none; }

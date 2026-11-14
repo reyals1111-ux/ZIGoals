@@ -1,0 +1,25 @@
+/* Session AP (owner decision 14 Nov, backlog #8): the Bento view (components/bento/bento-switch.tsx). Computers only. The
+   switch sits in the page's header cluster before the layout lock (AO's one cluster order); 44 px targets, 15 px words. */
+.bento-switch { display: none; }
+@media (min-width: 901px) {
+  .bento-switch { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--text, #eef1ff) 18%, transparent); background: color-mix(in srgb, var(--panel, #10162e) 70%, transparent); }
+  .bento-switch-label { padding: 0 8px 0 10px; font-size: 14px; color: var(--text-meta, #c2d0e5); }
+  .bento-switch button { min-height: 44px; min-width: 44px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--text, #eef1ff); font: inherit; font-size: 15px; cursor: pointer; }
+  .bento-switch button[aria-checked="true"] { background: color-mix(in srgb, var(--cyan, #6fd3ff) 22%, transparent); font-weight: 600; }
+  .bento-switch button:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .bento-switch button:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
+
+  /* The cards of the page's main area, as tiles: as many 340 px columns as fit, the gaps filled in order. */
+  :root[data-bento=today] :has(> [data-layout-region="today:main"]),
+  :root[data-bento=goals] :has(> [data-layout-region="goals:body"]),
+  :root[data-bento=habits] :has(> [data-layout-region="habits:body"]),
+  :root[data-bento=health] :has(> [data-layout-region="health:body"]),
+  :root[data-bento=wealth] :has(> [data-layout-region="wealth:body"]) {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); grid-auto-flow: row dense; gap: 20px; align-items: start;
+  }
+  :root[data-bento] :is([data-layout-region="today:main"], [data-layout-region="goals:body"], [data-layout-region="habits:body"], [data-layout-region="health:body"], [data-layout-region="wealth:body"]) { min-width: 0; margin-block: 0; }
+}
+/* Wide windows: the first two tiles are large (two columns each). */
+@media (min-width: 1280px) {
+  :root[data-bento] :is([data-layout-region="today:main"], [data-layout-region="goals:body"], [data-layout-region="habits:body"], [data-layout-region="health:body"], [data-layout-region="wealth:body"]):nth-child(-n+2) { grid-column: span 2; }
+}

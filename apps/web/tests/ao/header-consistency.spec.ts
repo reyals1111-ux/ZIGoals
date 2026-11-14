@@ -21,15 +21,17 @@ const REARRANGEABLE = new Set(['/app', '/app/goals', '/app/habits', '/app/health
 const EXTRAS: Readonly<Record<string, readonly string[]>> = {'/app/habits': ['Vacation']};
 const PAGES = [['Today', '/app'], ['Goals', '/app/goals'], ['Habits', '/app/habits'], ['Health', '/app/health'], ['Wealth', '/app/wealth'], ['Earn', '/app/earn'], ['Portfolio', '/app/portfolio'], ['Help', '/app/help'], ['Governance', '/app/governance'], ['Notes', '/app/notes'], ['Journal', '/app/journal'], ['Tasks', '/app/tasks']] as const;
 
-const expected = (path: string, phone: boolean) => [...(phone ? [] : EXTRAS[path] ?? []), ...(phone ? [] : SHARED), ...(REARRANGEABLE.has(path) ? [LOCK] : [])];
+// Session AP (owner decision 14 Nov, Bento; ADR-040): the five rearrangeable pages also offer "Layout: List · Bento" on a
+// computer, just before the lock (one radio group, counted as one control named "Layout").
+const expected = (path: string, phone: boolean) => [...(phone ? [] : EXTRAS[path] ?? []), ...(phone ? [] : SHARED), ...(!phone && REARRANGEABLE.has(path) ? ['Layout'] : []), ...(REARRANGEABLE.has(path) ? [LOCK] : [])];
 
 /** The cluster's controls in DOM order, with their names ("Game layer: on/off" counts as "Game layer") and boxes. */
 const cluster = (page: Page) => page.evaluate(() => {
   const row = document.querySelector<HTMLElement>('.workspace > .status-row');
   if (!row) return [];
-  const controls = [...row.querySelectorAll<HTMLElement>(':scope > .page-tools-slot button, :scope > .gamify > .gamify-trigger, :scope > .layout-lock-slot > .layout-lock')];
+  const controls = [...row.querySelectorAll<HTMLElement>(':scope > .page-tools-slot button, :scope > .gamify > .gamify-trigger, :scope > .layout-lock-slot > .bento-switch, :scope > .layout-lock-slot > .layout-lock')];
   return controls.filter(el => el.getClientRects().length).map(el => {
-    const name = (el.getAttribute('aria-label') ?? el.textContent ?? '').replace(/\s+/g, ' ').trim().replace(/^Game layer: (on|off)$/, 'Game layer');
+    const name = el.classList.contains('bento-switch') ? 'Layout' : (el.getAttribute('aria-label') ?? el.textContent ?? '').replace(/\s+/g, ' ').trim().replace(/^Game layer: (on|off)$/, 'Game layer');
     const r = el.getBoundingClientRect(), word = el.querySelector<HTMLElement>('.gamify-word, .layout-lock-word');
     const wordBox = word?.getBoundingClientRect();
     return {name, width: r.width, height: r.height, top: r.top, right: r.right, word: word ? {text: word.textContent, shown: !!wordBox && wordBox.width > 1 && getComputedStyle(word).opacity !== '0', size: parseFloat(getComputedStyle(word).fontSize)} : null};

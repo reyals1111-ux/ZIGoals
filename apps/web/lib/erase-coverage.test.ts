@@ -33,6 +33,8 @@ const NOT_RECORDS: Record<string, string> = {
   // Session AL (D-088): lib/settings-folds.ts.
   'zigoals:settings-folds:v1': 'sessionStorage: which Settings groups are folded in this tab (group ids only), a display convenience; gone when the tab closes',
   // Session AP (D-088 completed): Settings starts folded on a computer; the groups opened stay open on this device.
+  // Session AP (owner decision 14 Nov, Bento): which pages show the Bento view on this device.
+  'zigoals:bento:v1': 'localStorage: which pages show the Bento view on this device (page names only), a display convenience (Session AP)',
   'zigoals:settings-open:v1': 'localStorage: which Settings groups are open on this device (group ids only), a display convenience (Session AP, D-088)',
   'zigoals:wealth-folds:v1': 'localStorage: which of Wealth\'s folded sections were opened on this device (section ids only), a display convenience (Session AO, RR-16)',
   'zigoals:welcome-draft:v1': 'sessionStorage: the welcome wizard\'s step and picks kept across a reload in this tab only (Session AL, NB-011); gone when the tab closes',
