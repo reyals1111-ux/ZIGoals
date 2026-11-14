@@ -15,6 +15,18 @@ export const BENTO_KEY = 'zigoals:bento:v1';
 export function readBento(raw: string | null): BentoPage[] {
   try { const v = raw ? JSON.parse(raw) as {version?: unknown; pages?: unknown} : null; return v && v.version === 1 && Array.isArray(v.pages) ? BENTO_PAGES.filter(p => (v.pages as unknown[]).includes(p)) : []; } catch { return []; }
 }
+/** Marks each region card that lays its own content out in columns (in the list view) as wide. */
+function markWide() {
+  for (const item of document.querySelectorAll<HTMLElement>('[data-layout-region]')) {
+    let wide = false;
+    const inner = item.querySelectorAll<HTMLElement>('*');
+    for (let i = 0; i < inner.length && i < 600 && !wide; i++) {
+      const el = inner[i]!, cs = getComputedStyle(el);
+      if (cs.display.includes('grid') && cs.gridTemplateColumns.split(' ').filter(Boolean).length >= 2 && el.getBoundingClientRect().width > 480) wide = true;
+    }
+    item.toggleAttribute('data-bento-wide', wide);
+  }
+}
 const store = (): Storage | null => { try { return window.localStorage; } catch { return null; } };
 
 export default function BentoSwitch({page}: {page: BentoPage}) {
@@ -22,8 +34,16 @@ export default function BentoSwitch({page}: {page: BentoPage}) {
   useEffect(() => { setOn(readBento(store()?.getItem(BENTO_KEY) ?? null).includes(page)); }, [page]);
   useEffect(() => {
     const root = document.documentElement;
-    if (on) root.dataset.bento = page; else if (root.dataset.bento === page) delete root.dataset.bento;
-    return () => { if (root.dataset.bento === page) delete root.dataset.bento; };
+    if (!on) { if (root.dataset.bento === page) delete root.dataset.bento; return; }
+    // UX review (Blocker): a card that holds its own multi-column grid in the list (the holdings, the goal cards, the habit
+    // cards) keeps the whole row as a tile; only self-contained cards become tiles. Measured in the list layout, before the
+    // tiles apply, and again when the window changes size (in one step, never painted in between).
+    const apply = () => { delete root.dataset.bento; markWide(); root.dataset.bento = page; };
+    apply();
+    let frame = 0;
+    const onResize = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(apply); };
+    window.addEventListener('resize', onResize);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', onResize); if (root.dataset.bento === page) delete root.dataset.bento; };
   }, [on, page]);
   const choose = (next: boolean) => {
     setOn(next);

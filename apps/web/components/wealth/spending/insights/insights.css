@@ -40,3 +40,6 @@
 .money-tags-chip{display:inline-block;font-size:14px;padding:2px 8px;margin:2px 4px 2px 0;border-radius:999px;border:1px solid var(--line,rgba(140,160,220,.4))}
 .money-tags-actions{display:flex;flex-wrap:wrap;gap:8px}
 @media (max-width:520px){.money-tags-list li{grid-template-columns:1fr auto}.money-tags-list li > button{grid-column:1 / -1;justify-self:start}}
+/* Session AP (UX review, Minor): by day the "Received" bars (and their legend) measured 1.4:1; a deeper teal keeps 3:1. */
+:root[data-theme=light] .money-insights-chart .bar-in,:root[data-theme=light] .money-insights-legend .in{fill:#0b7f93;background:#0b7f93}
+:root[data-theme=light] .money-insights-spark polyline{stroke:#0b7f93}:root[data-theme=light] .money-insights-spark circle{fill:#0b7f93}

@@ -27,3 +27,5 @@
 /* Session AP (D20): the folded "Your app" group's Load Showcase Demo, under its summary. */
 .settings-page .settings-fold-quick { margin: 0; }
 .settings-page .settings-fold-quick button { min-height: 44px; font-size: 15px; }
+/* Session AP (UX review, Minor): "A day counts as done at" is a short choice; its select does not span the whole card. */
+.settings-page .day-goal-setting select { max-width: 22rem; }

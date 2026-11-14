@@ -9,3 +9,5 @@
 .first-five-mark { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--cyan, #6fd3ff) 70%, transparent); font-size: 15px; }
 .first-five-steps li[data-done] .first-five-mark { background: color-mix(in srgb, var(--cyan, #6fd3ff) 26%, transparent); }
 .first-five-close { justify-self: start; min-height: 44px; font-size: 15px; }
+/* Session AP (UX review, Minor): each step's link is a 44 px target. */
+.first-five-steps strong a { display: inline-flex; align-items: center; min-height: 44px; }

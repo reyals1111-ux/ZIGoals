@@ -41,7 +41,7 @@ export default function CountdownsCard() {
     <span className="countdown-text"><strong>{c.title}</strong><small>{formatDate(c.date, {weekday: true, year: year(c.date)})}{c.note ? ` · ${c.note}` : ''}</small></span>
     <button type="button" className="text-link" aria-label={`Remove the countdown “${c.title}”`} onClick={() => remove(c)}>Remove</button>
   </li>;
-  return <section className="countdowns-card" aria-labelledby={`${id}-title`}>
+  return <section className="panel countdowns-card" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`}>Days until</h3>
     {record.unreadable && <p className="notice" role="status">Your countdowns could not be read on this device; they are not written over.</p>}
     {upcoming.length ? <ul className="countdowns" aria-label="Coming up">{upcoming.map(row)}</ul> : <p className="fine">No countdown yet. Add a day you are looking forward to: a trip, a birthday, a race.</p>}

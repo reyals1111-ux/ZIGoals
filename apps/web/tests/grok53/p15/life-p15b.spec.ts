@@ -149,9 +149,11 @@ test('AL-COMPETITOR-GAP-114: milestones move by a handle (keyboard ↑/↓ or dr
 
 test('AL-COMPETITOR-GAP-118: the goal wizard offers the fourth kind, Keep an average, and habits', async ({page}) => {
   await seedGoals(page, [], '/app/goals/new');
-  const more = page.locator('.goal-type-more');
-  await expect(more).toContainText('Want to keep a daily average instead, like sleep, steps or screen time?');
-  await more.getByRole('link', {name: 'Keep an average'}).click();
+  // Session AP (UX review, deliberate): one hint offers both (there were two saying the same); the same two links.
+  const more = page.locator('.goal-type-average');
+  await expect(more).toContainText('Following a number over time, like sleep, steps or screen time?');
+  await expect(more.getByRole('link', {name: 'Habits', exact: true})).toHaveAttribute('href', '/app/habits');
+  await more.getByRole('link', {name: 'Keep an average instead →'}).click();
   await expect(page).toHaveURL(/\/app\/goals\/average\/new$/);
   await expect(page.locator('main h1').first()).toBeVisible();
 });

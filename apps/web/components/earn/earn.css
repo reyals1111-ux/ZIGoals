@@ -392,3 +392,12 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 
 /* Session AP (route weights): a wider section's place while its code arrives (components/earn/earn-view.tsx). */
 .earn-option-loading{min-height:240px}
+
+/* Session AP (UX review, carried AO minor N-BN-05): on a phone the long step names ("Staking on the real network") ran past
+   the panel's left edge from their lane. Earn's own path only (the shared Path also draws the protected Checklist orbit):
+   a name may wrap within 150 px, so it stays inside the panel. */
+@media (max-width: 480px) {
+  .earn-start-path .path-stage[data-variant=orbit] .path-label.orbit-tab,
+  .earn-start-path .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab { max-width: 150px; white-space: normal; border-radius: 14px; text-align: center; }
+  .earn-start-path .path-stage[data-variant=orbit] .path-label.orbit-tab .path-label-text { white-space: normal; overflow: visible; text-overflow: clip; }
+}

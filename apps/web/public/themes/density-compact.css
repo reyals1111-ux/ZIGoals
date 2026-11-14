@@ -1471,6 +1471,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .countdowns-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-countdowns:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .agenda-countdown:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .countdowns-passed > summary:not(#\-) { row-gap: 6px; }
 /*  components/cycle/cycle.css  */
 :where(:root[data-density=compact]) .cycle-log:not(#\-) { row-gap: 10px; padding-top: 4px; }
 :where(:root[data-density=compact]) .cycle-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -6121,6 +6122,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .wealth-holdings-actions:not(#\-) { row-gap: 8px; }
 @media (min-width: 768px) { :where(:root[data-density=compact]) .wealth-holdings-one .holdings-filters:not(#\-) { row-gap: 5px; padding-top: 10px; padding-bottom: 10px; margin-top: -10px; margin-bottom: -10px; } }
 @media (min-width: 768px) { :where(:root[data-density=compact]) .wealth-holdings-one .holdings-filters:not(#\-) { row-gap: 4px; } }
+@media (min-width: 768px) { :where(:root[data-density=compact]) .wealth-holdings-one .holdings-filters:not(#\-) { row-gap: 3px; } }
 :where(:root[data-density=compact]) .wealth-holdings-one > .phone-fold:not(#\-) { margin-top: 18px; }
 :where(:root[data-density=compact]) .wealth-holdings-one > .accounts-section:not(#\-) { margin-top: 13.5px; }
 :root:where([data-density=compact]) .accounts-row > .actions:not(#\-) { row-gap: 4px; }

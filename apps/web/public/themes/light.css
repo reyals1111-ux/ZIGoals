@@ -20219,6 +20219,16 @@
     .money-tags-chip:not(#\-) {
         border-color: var(--line,rgba(140,160,220,.4))
     }
+    :scope[data-theme=light] .money-insights-chart .bar-in:not(#\-), :scope[data-theme=light] .money-insights-legend .in:not(#\-) {
+        fill: #0b7f93;
+        background: #0b7f93
+    }
+    :scope[data-theme=light] .money-insights-spark polyline:not(#\-) {
+        stroke: #0b7f93
+    }
+    :scope[data-theme=light] .money-insights-spark circle:not(#\-) {
+        fill: #0b7f93
+    }
 }
 /*  components/wealth/spending/spending.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
