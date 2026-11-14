@@ -336,9 +336,10 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   group now finds them by position. (d) **Deliberate spec moves:** the sidebar Tab-order specs (page-marks,
   release-review-2-p2) walk the roving groups (Tab in, Home, arrows; every item still checked in order); run9-2 lists
   Settings' open groups as a display choice beside Markets' view; seeded specs that reload open Settings' groups.
-  (e) **Launchers (4a), a real bug found by earn-dock:72:** pointing at a tucked launcher brought it back, which moved it
-  40 px from under the pointer (instantly with reduced motion), so the press missed and the button could flicker. Pointing
-  now leaves it where it is (it is pressed where it is); the keyboard focus still brings it back. (f) Specs that seed and
+  (e) **Launchers (4a), a real bug found by earn-dock:72:** pointing at a tucked launcher, or pressing it (its focus), brought it
+  back, which moved it 40 px from under the pointer (instantly with reduced motion) between press and release, so the press
+  was lost and the button could flicker. Pointing and pressing now leave it where it is (it is pressed where it is); the
+  keyboard focus (`:focus-visible`) still brings it back. (f) Specs that seed and
   read at once wait for the page to settle (local-simulation-backup reads the restore choices once offered, and its
   "before" once two reads agree); earn-dock presses once the page is live; the shared Settings helper waits for Settings'
   own groups after an in-app link.
