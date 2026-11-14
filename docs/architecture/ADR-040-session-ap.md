@@ -277,6 +277,14 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   theme radios. Not replayable: DV-089, PR-035 (a model; NOVA lane), the barcode provider's activation (a deployment
   setting; OWNER_STEPS.md). Kept off CI's browser shards (they do not start Miniflare); the API-level test runs in
   `pnpm test`.
+- **D20 (Settings folded, two refinements after CI 1711):** (a) the group with the Showcase card ("Your app") starts open
+  while the Showcase is on (its "Return to my data" first, AL's rule) and on a device with no record of its own yet
+  (Settings → Load Showcase Demo is a new person's first step; FRIENDS_GUIDE says so); every other group folds. (b) A deep
+  link whose section loads late (ZIGi's settings) opens its group when the section arrives. (c) **Lane fence:** Part 2's
+  mechanical spec move had touched 15 fenced specs (`tests/zigi-states.spec.ts`, nova-*, p1-/p3-nova-*, grok53/hud/*);
+  all restored byte for byte to `ca2678d7`; (a) keeps their Settings → Load Showcase Demo step working untouched. Seeds
+  that visit Settings only to write storage went back to a plain visit (122 places): opening groups there changed the
+  seeds' timing (ZIGi's settings body loaded before the seeded values).
 
 ## Closing table
 (filled at Part 7)

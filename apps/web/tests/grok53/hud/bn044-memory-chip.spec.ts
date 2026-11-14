@@ -1,6 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
 import {defaultAiSettings} from '../../../lib/ai/settings';
-import {openSettings} from '../../settings-open';
 
 /**
  * Session AL L8 round 2 (BN-044, N-BN-11): NOVA's header chips and Permissions read one source. With a local brain
@@ -12,7 +11,7 @@ const settings = {...defaultAiSettings(), enabled: true, mode: 'local', provider
 async function open(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.route('http://127.0.0.1:11434/**', route => route.fulfill({json: {models: [{name: 'llama3.2:3b', model: 'llama3.2:3b', details: {family: 'llama'}}]}, headers: {'access-control-allow-origin': '*'}}));
-  await openSettings(page);
+  await page.goto('/app/settings');
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
     'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}),
     'zigoals:nova:v1': JSON.stringify({version: 1, openingSeen: true}),

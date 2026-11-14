@@ -1,7 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 /**
  * X-Cloud's H10 (ADR-017 S71): after a mouse click on Send the focus stays in the message box, so Escape still closes the
@@ -17,7 +16,7 @@ test('a mouse click on Send keeps the focus in the message box; Escape then clos
     if (url.endsWith('/v1/chat/completions')) return route.fulfill({status: 200, contentType: 'text/event-stream', body: chunk({role: 'assistant', content: 'You have no habits yet. '}) + chunk({content: 'Tell me one and I will draft it as a card.'}, 'stop') + 'data: [DONE]\n\n'});
     return route.fulfill({status: 404, body: ''});
   });
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem(v.key, v.value); }, {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: 'http://127.0.0.1:1234'})});
   await page.goto('/app/habits');
   await pressZigi(page);

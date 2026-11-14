@@ -7,7 +7,6 @@ import {NOVA_SETUP_KEY} from '../lib/nova/setup';
 import {NOVA_WORKFLOWS_KEY, saveCustom} from '../lib/nova/workflows/schema';
 import {NOVA_KEY} from '../lib/nova/store';
 import {isLocalOrigin} from '../lib/nova/setup-guide';
-import {openSettings} from './settings-open';
 
 /**
  * "Build your own NOVA" (owner follow-up 2, N3; lane NC), end to end with MOCK servers: every planet's check, the privacy
@@ -53,7 +52,7 @@ async function seed(page: Page, extra: Record<string, string> = {}, settings: Ai
     Object.defineProperty(window, 'SpeechSynthesisUtterance', {value: Utterance, configurable: true});
     Object.defineProperty(window, 'speechSynthesis', {value: {getVoices: () => voices, cancel() {}, speak(u: Utterance) { (window as unknown as {__spoken: string[]}).__spoken = [...((window as unknown as {__spoken?: string[]}).__spoken ?? []), u.text]; setTimeout(() => u.onend?.(), 10); }}, configurable: true});
   });
-  await openSettings(page);
+  await page.goto('/app/settings');
   // The Showcase's records as the person's own, WITHOUT the Showcase's labelled guide progress (its first three planets
   // lit): every test here starts the guide where it says, empty unless `extra` brings progress (lane NV; the Showcase
   // example was wired into buildShowcase after this spec was written).

@@ -6,7 +6,6 @@ import {HABIT_EXTRAS_KEY} from '../../../lib/aa-device-keys';
 import {freshHealth, openHealth} from '../health/al-health-helpers';
 import {offline, open, hydrated} from '../l3-helpers';
 import {openModule, project, seedGoals, stored} from '../goals/goal-fixtures';
-import {openSettings} from '../../settings-open';
 
 /**
  * Session AL Part 15, lane P15-B (Life: Health, Habits, Today, Goals): the items built in this part, each from a fresh
@@ -20,7 +19,7 @@ const habit = (extra: Partial<HabitInput> = {}): HabitInput => ({title: 'Fiction
 async function seed(page: Page, records: Record<string, unknown>) {
   await offline(page);
   await page.clock.install({time: new Date(NOW)});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(records => {
     localStorage.clear(); sessionStorage.clear();
     localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true}));

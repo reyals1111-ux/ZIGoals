@@ -4,7 +4,6 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {NOTES_KEY} from '../lib/notes/schema';
-import {openSettings} from './settings-open';
 
 /**
  * Session AK lane WA (owner follow-up 2 B5; WIRING_AUDIT_2 B5): "Ask about my notes" on the Notes page. A fresh start
@@ -20,7 +19,7 @@ const model = () => { const base = defaultAiSettings(); return JSON.stringify({.
 async function seed(page: Page, values: Record<string, string>) {
   await page.clock.install({time: EVENING});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, {...settled, ...values});
 }
 const ask = (page: Page) => page.getByRole('region', {name: 'Ask about my notes'});

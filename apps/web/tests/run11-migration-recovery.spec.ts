@@ -23,7 +23,7 @@ async function state(page:Page,key:string){return page.evaluate(async key=>{
 for(const domain of ['finance','habits','health'] as const)for(const boundary of ['transaction-abort','pointer-publication'] as const)test(`${domain} v1 migration recovers ${boundary} from an already-open second tab`,async({page,context})=>{
  await context.route('**/api/**',r=>r.fulfill({status:503,json:{error:'Offline fictional fixture'}}));
  const key=`zigoals:${domain==='finance'?'platform':domain}:v1`,raw=' '+JSON.stringify(fixtures[domain])+'\n';
- await openSettings(page);await page.evaluate(({key,raw})=>localStorage.setItem(key,raw),{key,raw});await page.reload();
+ await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */await page.evaluate(({key,raw})=>localStorage.setItem(key,raw),{key,raw});await page.reload();
  const other=await context.newPage();await openSettings(other);
  for(const tab of [page,other]){await tab.getByText('Transactional local storage',{exact:true}).click();await tab.getByRole('combobox',{name:/^Module/}).selectOption(domain);}
  await page.evaluate(({key,boundary})=>{

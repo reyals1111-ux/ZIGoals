@@ -5,7 +5,6 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {isPhone} from './phone-nav';
 import {speak, voiceFakes} from './zigi-af';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 // Session AI (J10, ZI11): ONE line for several things: each understood item becomes its own card (ZIGi's cards, made on this
 // device with no AI), each added on its own; nothing is written before Add. The same line works as /log in ZIGi with no AI.
@@ -15,7 +14,7 @@ test.beforeEach(async ({page}) => {
   await page.clock.install({time: new Date(`${TODAY}T10:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   const habits = createHabit(emptyHabitData(), {title: 'Meditate', category: 'Mind', description: '', notes: '', schedule: {kind: 'daily'}, target: 10, measurement: {kind: 'count', unit: 'times'}}, new Date('2026-09-01T08:00:00.000Z'), '11111111-1111-4111-8111-111111111111');
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HABITS_KEY]: JSON.stringify(habits), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true})}); // the balanced preset keeps the financial domain, whose Today hero carries Quick add on desktop
 });
 const health = async (page: Page) => JSON.parse((await page.evaluate(key => localStorage.getItem(key), HEALTH_STORAGE_KEY)) ?? 'null') as HealthData | null;

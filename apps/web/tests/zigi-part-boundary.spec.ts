@@ -1,7 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 /**
  * Session X-Local Phase 2 (P2.8, X-Cloud's H9): a part of ZIGi whose code loads on demand fails as that part alone. The
@@ -25,7 +24,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 test('the Customize panel cannot load: the panel says so, the rest of the ZIGi section and the page keep working', async ({page}) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   await blockChunk(page, 'Edge tab while ZIGi is hidden');
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem(v.key, v.value); }, {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), enabled: true})});
   await page.goto('/app/settings#zigi-look');
   const section = page.locator('section#your-ai');
@@ -54,7 +53,7 @@ test("the chat cannot load: ZIGi's button stays, a note says the chat could not 
   page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame()) navigations.push(Date.now()); });
   page.on('pageerror', e => { const at = Date.now(); if ((/^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) || /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/api\/(?:music-config|push|private-account)(?:\?action=[a-z]+)? due to access control checks\.?$/.test(e.message)) && navigations.some(t => Math.abs(at - t) <= 1500)) prefetchCancels.push(e.message); else errors.push(e.message); });
   await blockChunk(page, 'Message to your AI');
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem(v.key, v.value); }, {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), enabled: true})});
   // Gate B in WebKit (ADR-017 S77): the settings page's own probes (music config, push, the private account's status) were
   // still in flight when the next page was opened, and WebKit reports a fetch cancelled by a navigation as a page error

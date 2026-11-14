@@ -2,7 +2,6 @@ import {expect, test, type Page} from '@playwright/test';
 import {emptyPlatform, PLATFORM_KEY, positionSchema, privateGoalSchema, type Platform} from '../lib/positions';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {CELEBRATIONS_KEY, MILESTONE_DATES_KEY} from '../lib/w-device-keys';
-import {openSettings} from './settings-open';
 
 // Session W Part 11: a Goal's milestones with values and dates, their calm one-time note, "On track?" with zero
 // return and the person's own "what if", and ideas in the Goal creator. Fictional Goal in euros; the clock is fixed.
@@ -18,7 +17,7 @@ function platform(): Platform {
 async function seed(page: Page) {
   await page.clock.install({time: new Date(`${TODAY}T08:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {[PLATFORM_KEY]: JSON.stringify(platform()), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true})});
 }

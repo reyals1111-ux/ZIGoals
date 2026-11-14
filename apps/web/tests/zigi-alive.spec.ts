@@ -18,7 +18,7 @@ import {openSettings} from './settings-open';
 const DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
 async function seed(page: Page, extra: Record<string, unknown> = {}) {
   await page.clock.install({time: EVENING});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   const values = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]))};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);
@@ -299,7 +299,7 @@ test('ZIGi sits on its optical centre at every size, at 1× and 2× pixel densit
     const context = await browser.newContext({baseURL, deviceScaleFactor, reducedMotion: 'reduce', viewport: {width: 1280, height: 800}});
     const page = await context.newPage();
     await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-    await openSettings(page);
+    await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
     await page.evaluate(([k, s]) => { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); localStorage.setItem(k, JSON.stringify({version: 1, size: s})); }, [ZIGI_KEY, size] as const);
     await page.goto('/app');
     await expect(launcher(page)).toBeVisible();

@@ -74,7 +74,7 @@ test("V1 upgrade, explicit module restore and linked Goal reload preserve all pr
 });
 test("damaged private exports retain exact bytes and explicit restore quarantines originals", async ({ page }) => {
   const damaged = "  { damaged HEALTH_PRIVATE_RESTORE\n";
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(({ key, damaged }) => localStorage.setItem(key, damaged), { key: HEALTH_STORAGE_KEY, damaged });
   await page.reload();
   const panel = page.getByRole("region", { name: "Health backup", exact: true });

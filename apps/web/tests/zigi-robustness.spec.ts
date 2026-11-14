@@ -8,7 +8,6 @@ import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {REPAIR_NOTE, REPAIR_PROMPT} from '../lib/ai/actions/repair';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 /**
  * Session X-Local Part 5c, robustness on the wire, through the real panel: a reply whose only block is almost-JSON
@@ -32,7 +31,7 @@ async function server(page: Page, replies: readonly ((body: Body, n: number) => 
 }
 async function seed(page: Page, baseUrl = BASE) {
   await page.clock.install({time: EVENING});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   const base = defaultAiSettings();
   const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl, includeHealth: true, pageShare: {...base.pageShare, health: true}};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'})});

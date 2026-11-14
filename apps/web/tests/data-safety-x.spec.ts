@@ -4,7 +4,6 @@ import {createEmptyHealth, HEALTH_STORAGE_KEY, healthSchema} from '../lib/health
 import {emptyPlatform, PLATFORM_KEY, platformSchema} from '../lib/positions';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, presetSettings} from '../lib/dashboard-settings';
 import {buildShowcase} from '../lib/showcase-data';
-import {openSettings} from './settings-open';
 
 // Session X Part 13 (docs/verification/x-cloud/DATA_SAFETY.md): encrypted backups made by older versions of each module
 // (Health v1, v2 and v3, Today settings v1 and v2, finance v4) restore into this build through Settings, as a person
@@ -45,7 +44,7 @@ for (const [label, domain, key, record] of OLD) {
     // The record is valid for its own version (the fixture is what that version wrote).
     expect(SCHEMAS[domain].safeParse(record).success, `${label} fixture is valid`).toBe(true);
     const {file, recovery} = await encryptBackup({[domain]: JSON.stringify(record)});
-    await openSettings(page);
+    await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
     await page.evaluate(() => localStorage.clear());
     await page.reload();
     await restore(page, file, recovery);
@@ -72,7 +71,7 @@ for (const [label, domain, key] of CURRENT) {
     expect(record.schemaVersion, `${label} is the current version`).toBe(domain === 'health' ? 4 : 3);
     expect(raw).toContain(domain === 'health' ? '"meditation"' : '"links"');
     const {file, recovery} = await encryptBackup({[domain]: raw});
-    await openSettings(page);
+    await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
     await page.evaluate(() => localStorage.clear());
     await page.reload();
     await restore(page, file, recovery);
@@ -86,7 +85,7 @@ for (const [label, domain, key] of CURRENT) {
 
 test('a wrong secret or another file is refused with a plain reason, and nothing changes', async ({page}) => {
   const {file} = await encryptBackup({health: JSON.stringify(healthV1)});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HEALTH_STORAGE_KEY, JSON.stringify(healthV1)]);
   await page.reload();
   const before = await page.evaluate(() => JSON.stringify({...localStorage}));

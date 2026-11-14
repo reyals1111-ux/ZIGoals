@@ -1,7 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {ZIGI_KEY} from '../lib/ai/store/keys';
-import {openSettings} from './settings-open';
 
 // Session X Part 11: "Send feedback" in Help and in Settings → Help & diagnostics. The email opens in the person's own
 // mail app; device details join it only when ticked, shown in full and editable; nothing is sent, stored or requested.
@@ -87,7 +86,7 @@ test('Help: the controls are readable and easy to hit; the checkbox sits beside 
 
 test('Settings → Help & diagnostics: the same email; Motion Off is named when chosen', async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off'));
   await page.reload();
   const panel = page.getByRole('group', {name: 'Help & diagnostics', exact: true}).locator('#send-feedback');

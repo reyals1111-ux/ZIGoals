@@ -4,7 +4,6 @@ import {HEALTH_STORAGE_KEY, createEmptyHealth, healthSchema} from '../../../lib/
 import {dailyData, saveHealthPreferences} from '../../../lib/health-daily';
 import {NOVA_HUD_KEY, presetWidgets, type HudPreset} from '../../../lib/nova/layout';
 import {hydrated} from '../../ah-helpers';
-import {openSettings} from '../../settings-open';
 
 /**
  * Session AL Part 11 (lane L8): NOVA's holographic HUD on a fresh, empty profile (Health and Habits shown on Today's
@@ -29,7 +28,7 @@ export function seedRecords({preset, widgets, layout, waterTarget, motion, theme
 }
 export async function freshNova(page: Page, seed: NovaSeed = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings');
   await page.evaluate(entries => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(entries)) localStorage.setItem(k, v); }, seedRecords(seed));
   await openNova(page);
 }

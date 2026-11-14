@@ -3,7 +3,6 @@ import {audit} from './a11y-audit';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
-import {openSettings} from './settings-open';
 
 /**
  * Session AA-Local Gate B: the accessibility audit (`tests/a11y-audit.ts`: names, labels, ids, aria-hidden focus, nested
@@ -14,7 +13,7 @@ import {openSettings} from './settings-open';
  */
 const DAY = '2026-09-20';
 async function seed(page: Page) {
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, seen: WHATS_NEW_RELEASE}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
 }
 async function clean(page: Page, label: string) {

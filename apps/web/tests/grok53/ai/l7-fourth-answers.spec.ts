@@ -10,7 +10,6 @@ import {PLATFORM_KEY} from '../../../lib/positions';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../../../lib/af-checklist-keys';
 import {denver, lisbon} from '../../../lib/ai/evals/l7-fourth-fixtures';
 import {nova, sendInNova} from './helpers';
-import {openSettings} from '../../settings-open';
 
 /**
  * Session AL fourth pass (lane L7-4b): what a person sees for the replay's open answer rows (GROK53_REPLAY_L7_1, on
@@ -32,7 +31,7 @@ async function seedProfile(page: Page, set: 'L2' | 'DV', {habitsShared = true, h
     ...(healthShared ? {[AI_SETTINGS_KEY]: JSON.stringify({...defaultAiSettings(), includeHealth: true, pageShare: {...defaultAiSettings().pageShare, health: true}})} : {}),
   };
   await page.clock.install({time: NIGHT});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, records);
   await page.waitForLoadState('networkidle');
 }

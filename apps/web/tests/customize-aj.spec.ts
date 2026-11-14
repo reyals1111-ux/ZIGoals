@@ -15,7 +15,7 @@ const ATTRS = Object.keys(CHOSEN);
  *  dismissed and Motion is off, so every page is a still. */
 async function openDevice(page: Page, record: Record<string, unknown> = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, contentType: 'application/json', body: '{}'}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([k, r]) => { localStorage.setItem(k as string, JSON.stringify({version: 1, dismissed: {alphaNotice: true}, ...(r as object)})); localStorage.setItem('zigoals:motion:v1', 'off'); }, [KEY, record] as const);
 }
 /** The <html> attributes when <body> is created, before any app script has run. */

@@ -1,5 +1,4 @@
 import {expect, type Page} from '@playwright/test';
-import {openSettings} from '../settings-open';
 
 /**
  * Session AF (L5a, Part 10.13): the theme specs' shared steps. The device's theme lives in zigoals:ui-prefs:v1 (the
@@ -17,7 +16,7 @@ const KEY = 'zigoals:ui-prefs:v1';
 export async function openDevice(page: Page, {showcase = true}: {showcase?: boolean} = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, contentType: 'application/json', body: '{}'}));
   await page.clock.setFixedTime(new Date());
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(k => { localStorage.setItem(k, JSON.stringify({version: 1, dismissed: {alphaNotice: true}})); localStorage.setItem('zigoals:motion:v1', 'off'); }, KEY);
   if (showcase) {
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();

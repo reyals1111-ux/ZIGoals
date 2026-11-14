@@ -16,7 +16,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 
 const HABIT = '59a35604-3696-4a78-b455-4015acb66885';
 async function seed(page: Page, records: Record<string, unknown>) {
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, JSON.stringify(v)); }, {[DASHBOARD_SETTINGS_KEY]: {...presetSettings('habits-health'), onboarded: true}, ...records});
 }
 

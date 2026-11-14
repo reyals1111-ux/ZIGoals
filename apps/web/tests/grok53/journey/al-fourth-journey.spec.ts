@@ -3,7 +3,6 @@ import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue, saveHabitTimezon
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../../lib/dashboard-settings';
 import {GAME_KEY} from '../../../lib/aa-device-keys';
 import {offline} from '../l3-helpers';
-import {openSettings} from '../../settings-open';
 
 /**
  * Session AL fourth pass (lane L3, GROK53_REPLAY_L3_1 "exact steps" 4 and 24): a level reached away from the page that
@@ -21,7 +20,7 @@ function habits(days: number): HabitData {
 async function seed(page: Page, days: number) {
   await page.clock.install({time: new Date(`${TODAY}T03:30:00.000Z`)});
   await offline(page);
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {[HABITS_KEY]: JSON.stringify(habits(days)), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [GAME_KEY]: JSON.stringify({version: 1, enabled: true, badges: false, levelSeen: 1})});
 }

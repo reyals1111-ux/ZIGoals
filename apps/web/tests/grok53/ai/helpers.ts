@@ -4,7 +4,6 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../../lib/dashboard-set
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../../../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../../../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../../../lib/ai/store/keys';
-import {openSettings} from '../../settings-open';
 
 /** Session AL (lane L7): shared steps for the AI specs (bot widths, an empty profile or the Showcase, a MOCK local model). */
 export const DAY = '2026-11-04', MORNING = '2026-11-04T09:00:00.000Z', BASE = 'http://127.0.0.1:1234';
@@ -27,7 +26,7 @@ export async function mockModel(page: Page, reply = 'MOCK reply.'): Promise<Body
 /** A fresh profile (or the Showcase's records), onboarded, with or without a model. */
 export async function seed(page: Page, {settings = null, showcase = false, extra = {}}: {settings?: AiSettings | null; showcase?: boolean; extra?: Record<string, string>} = {}) {
   await page.clock.install({time: MORNING});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
     ...(showcase ? buildShowcase(DAY).records : {}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'}), ...(settings ? {[AI_SETTINGS_KEY]: JSON.stringify(settings)} : {}), ...extra,

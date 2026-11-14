@@ -18,7 +18,7 @@ async function showcase(page: Page) {
   await page.waitForURL('**/app');
 }
 async function newDevice(page: Page) {
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
   await page.goto('/app');
 }

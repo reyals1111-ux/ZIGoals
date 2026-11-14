@@ -7,7 +7,6 @@ import {AI_MEMORY_KEY, AI_USAGE_KEY} from '../lib/ai/store/keys';
 import {NOVA_SETUP_KEY} from '../lib/nova/setup';
 import {NOVA_BRIEFS_KEY} from '../lib/nova/briefs';
 import {NOVA_WORKFLOWS_KEY} from '../lib/nova/workflows/schema';
-import {openSettings} from './settings-open';
 
 /**
  * Session AK (owner follow-up 2, N6/N7/N2): NOVA's workflows, memory and cost meter end to end with a MOCK local model
@@ -22,7 +21,7 @@ const stream = (text: string) => [chunk({role: 'assistant', content: text}), chu
 const connectedLocal = (): AiSettings => ({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: LOCAL_BASE});
 async function seed(page: Page, extra: Record<string, unknown> = {}) {
   await page.clock.install({time: SHOWCASE_EVENING});
-  await openSettings(page);
+  await page.goto('/app/settings');
   const records = buildShowcase('2026-09-20').records;
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
     ...records,

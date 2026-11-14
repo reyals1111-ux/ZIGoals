@@ -16,7 +16,7 @@ const phoneOnly = () => test.skip(({isMobile}) => !isMobile, 'phone width: runs 
 async function showcase(page: Page) {
   await offlineApi(page);
   await page.clock.install({time: EVENING});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await loadShowcase(page);
 }

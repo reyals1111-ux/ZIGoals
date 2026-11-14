@@ -11,7 +11,6 @@ import {NOVA_SETUP_KEY} from '../../../lib/nova/setup';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../../../lib/af-checklist-keys';
 import {denver, lisbon} from '../../../lib/ai/evals/l7-fourth-fixtures';
 import {nova, sendInNova} from '../ai/helpers';
-import {openSettings} from '../../settings-open';
 
 /**
  * Session AL final fix pass (lane L7; docs/review/session-al/GROK53_REPLAY_ZIGI_3.md, _PILLARS_3.md Z-061/Z-021/Z-025,
@@ -34,7 +33,7 @@ function records(set: Set): Record<string, string> {
 async function seed(page: Page, set: Set, clock = true) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   if (clock) await page.clock.install({time: NIGHT});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, records(set));
   await page.waitForLoadState('networkidle');
 }

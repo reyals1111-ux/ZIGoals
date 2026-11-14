@@ -2,8 +2,9 @@
 import './settings-fold.css';
 import {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {hashId} from '../../lib/hash-id';
-import {SETTINGS_FOLDS_KEY, SETTINGS_GROUP_IDS, allFolded, foldSummary, foldedAtStart, groupForHash, groupForTarget, loadOpen, openOf, saveOpen, type SettingsGroupId} from '../../lib/settings-folds';
+import {SETTINGS_FOLDS_KEY, SETTINGS_GROUP_IDS, allFolded, foldSummary, foldedAtStart, groupForHash, groupForTarget, loadOpen, openOf, saveOpen, showcaseGroupOpen, type SettingsGroupId} from '../../lib/settings-folds';
 import {PHONE_QUERY} from '../phone/use-phone-layout';
+import {isShowcase} from '../../lib/showcase-storage';
 
 /**
  * Session AL (D-088, N-BN-10, DV-266, D-005, N-BN-05): each of Settings' six groups folds from its heading, and "Fold all"
@@ -36,7 +37,7 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
     try { window.sessionStorage.removeItem(SETTINGS_FOLDS_KEY); } catch { /* AL's tab-only key, gone with the tab anyway */ }
     if (onPhone()) return;
     const target = groupForHash(window.location.hash, groupOf);
-    const next = foldedAtStart(loadOpen(deviceStore()), target);
+    const next = foldedAtStart(loadOpen(deviceStore()), target, showcaseGroupOpen(deviceStore(), isShowcase()) ? ['settings-app'] : []);
     if (!next.length) return;
     reanchor.current = target !== null;
     setFolded(new Set(next));

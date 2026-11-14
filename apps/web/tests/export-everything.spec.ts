@@ -32,7 +32,7 @@ async function download(page: Page) {
 
 test('one ZIP with everything.json and nine CSVs; nothing written on view or by the export; no request', async ({page}) => {
   const {records} = buildShowcase('2026-09-20');
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})});
   await page.reload();
   const before = await zigoalsKeys(page);

@@ -2,7 +2,6 @@ import {expect, test, type Page, type Route} from '@playwright/test';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {NOVA_KEY} from '../lib/nova/store';
-import {openSettings} from './settings-open';
 
 /**
  * Session AK, lane WB (WIRING_AUDIT_2.md N8, Z1C-L1, Z1C-L2): NOVA always open, on the UI path.
@@ -155,7 +154,7 @@ test.describe('NOVA always open, on a computer', () => {
 
   test('N8: NOVA\'s mini window opens from the top bar with the orb, the time and today, and closes from the same button', async ({page, context}) => {
     await seed(page);
-    await openSettings(page);
+    await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
     const real = await page.evaluate(() => typeof (window as unknown as {documentPictureInPicture?: {requestWindow?: unknown}}).documentPictureInPicture?.requestWindow === 'function');
     test.info().annotations.push({type: 'mini window', description: real ? "the browser's own Document Picture-in-Picture" : 'the stand-in'});
     if (!real) await page.addInitScript(() => {

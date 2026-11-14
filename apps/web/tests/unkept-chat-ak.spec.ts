@@ -5,7 +5,6 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {ZIGI_CARDS_KEY, ZIGI_SUGGESTIONS_KEY} from '../lib/z-device-keys';
-import {openSettings} from './settings-open';
 
 /**
  * Session AK (G1 #20, "A chat that isn't kept"): ZIGi's panel offers "Don't keep this chat" at an empty start and in "⋯".
@@ -25,7 +24,7 @@ async function seed(page: Page) {
     return route.fulfill({status: 404, body: ''});
   });
   await page.clock.install({time: EVENING});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   const values: Record<string, string> = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     [AI_SETTINGS_KEY]: JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE})};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);

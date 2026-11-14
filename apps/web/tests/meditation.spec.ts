@@ -34,7 +34,7 @@ async function mocks(page: Page) {
 }
 async function seed(page: Page, {health, settings = {}, extra = {}}: {health?: HealthData; settings?: Record<string, unknown>; extra?: Record<string, string>} = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   const records: Record<string, string> = {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true, ...settings}), ...extra};
   if (health) records[HEALTH_STORAGE_KEY] = JSON.stringify(healthSchema.parse(health));
   await page.evaluate(entries => { for (const [key, value] of Object.entries(entries)) localStorage.setItem(key, value); }, records);

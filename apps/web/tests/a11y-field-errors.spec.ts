@@ -6,7 +6,6 @@ import {saveAsset} from '../lib/asset-management';
 import {audit} from './a11y-audit';
 import {openFold} from './phone-nav';
 import {openHabitMoreOptions} from './habit-form-helpers';
-import {openSettings} from './settings-open';
 
 /**
  * Session Y Part 9 (persona row 19, WCAG 3.3.1 and 4.1.2): a refused field says so to assistive technology. It carries
@@ -67,7 +66,7 @@ test('Health: a number that does not read, or the ambiguous "1,234", is marked a
 });
 
 test('accounts: a currency or a balance that does not read marks its own field and takes the focus', async ({page}) => {
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('balanced'), onboarded: true})]);
   await page.goto('/app/wealth');
   await openFold(page, 'Accounts, debts & net worth');
@@ -116,7 +115,7 @@ test('goal wizard: a missing name, then a target that does not read, each mark t
 
 test('asset editor: a quantity that does not read marks the quantity, which takes the focus', async ({page}) => {
   const cash = manualSourcePosition({category: 'Precious metals', name: 'Fictional coins', quantity: '100', currency: 'EUR', metal: 'Gold', unit: 'grams', value: '7000'}, '91000000-0000-4000-8000-000000000002', '2026-09-14T10:00:00.000Z');
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [PLATFORM_KEY, JSON.stringify(saveAsset(emptyPlatform(), cash))]);
   await page.goto(`/app/wealth/asset/${cash.id}`);
   await page.getByRole('button', {name: 'Edit asset', exact: true}).click();

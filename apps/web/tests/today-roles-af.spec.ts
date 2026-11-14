@@ -45,7 +45,7 @@ test('the Showcase: the top goal’s next step, the most urgent other goal, each
 
 test('one goal: the tile’s next step and the panel’s funding facts are different things', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   const data = emptyPlatform(); data.goals = [goal()];
   await page.evaluate(d => localStorage.setItem('zigoals:platform:v1', JSON.stringify(d)), data);
   await page.goto('/app');

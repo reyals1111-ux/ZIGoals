@@ -4,7 +4,6 @@ import {expect, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
-import {openSettings} from './settings-open';
 
 /**
  * Session AF (L1): the Earn page's browser fixtures. Every /api/earn/* answer comes from lib/earn/fixtures/live-2026-10-19.json
@@ -18,7 +17,7 @@ export const validatorsFixture = JSON.parse(readFileSync(join(FIXTURES, 'validat
 export type Family = 'chain' | 'valdora' | 'oroswap' | 'defillama' | 'validators' | 'vaults' | 'measured';
 export const DAY = '2026-10-19';
 export async function seedShowcase(page: Page) {
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
   // Session AE's WebKit lesson: the seed's own page settles before the test's next navigation.

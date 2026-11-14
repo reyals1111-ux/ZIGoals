@@ -5,7 +5,6 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {STORIES_KEY} from '../lib/af-extras-keys';
 import {addLocalDays} from '../lib/local-date';
-import {openSettings} from './settings-open';
 
 /**
  * Session AF (L5b; P9.3, ADR-028 H55, H78): Stories at /app/stories — the week, month and year covers; a story opened by
@@ -26,7 +25,7 @@ function habits(daysBack: number[]): HabitData {
 async function seed(page: Page, daysBack: number[]) {
   await page.clock.install({time: new Date(`${TODAY}T09:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
     [HABITS_KEY]: JSON.stringify(habits(daysBack)), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}),
     'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),

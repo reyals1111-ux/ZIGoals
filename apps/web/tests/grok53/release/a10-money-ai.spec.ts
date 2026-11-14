@@ -1,6 +1,5 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
-import {openSettings} from '../../settings-open';
 
 /**
  * Release review A10, cycle 1 (docs/review/session-al/A10_CYCLE_1.md), the money, AI and Undo findings A10-3, A10-5,
@@ -15,7 +14,7 @@ const phoneOnly = () => test.skip(({isMobile}) => !isMobile, 'phone width: runs 
 async function showcase(page: Page) {
   await offlineApi(page);
   await page.clock.install({time: MONDAY});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await loadShowcase(page);
 }

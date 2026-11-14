@@ -5,7 +5,6 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {AI_ACTIONS_KEY, AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 /**
  * Session X-Local Part 5b ([TIER 3] storage: ai options): auto-accept through the real panel against a MOCK local
@@ -28,7 +27,7 @@ async function server(page: Page, reply: (body: Body) => string) {
 }
 async function seed(page: Page, options: Record<string, unknown>, settings: Partial<AiSettings> = {}) {
   await page.clock.install({time: EVENING});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   const base = defaultAiSettings();
   const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, includeHealth: true, pageShare: {...base.pageShare, health: true}, ...settings};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach', ...options})});

@@ -5,7 +5,6 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_CHATS_SESSION_KEY, AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {createHabit, habitDataSchema, HABITS_KEY, type HabitData} from '../lib/habits';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 /**
  * Session V Part 3: local answers, "Answered on your device · no AI used". Lookups are answered from the records on
@@ -20,7 +19,7 @@ const connectedLocal = (): AiSettings => ({...defaultAiSettings(), enabled: true
 const DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
 async function seed(page: Page, settings: AiSettings | null, records: Record<string, string> = buildShowcase(DAY).records) {
   await page.clock.install({time: EVENING});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...(settings ? {[AI_SETTINGS_KEY]: JSON.stringify(settings)} : {})});
   // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
   // AC's 8e930e93: "internal error" or a load that never ends when a navigation starts while they are in flight; CI on

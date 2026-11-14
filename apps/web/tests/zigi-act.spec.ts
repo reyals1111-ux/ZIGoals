@@ -6,7 +6,6 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {AI_ACTIONS_KEY, AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 /**
  * Session V Part 7: acting by chat, voice and photo, through the real panel against a MOCK local OpenAI-compatible
@@ -34,7 +33,7 @@ async function server(page: Page, reply: (body: Body) => string) {
 }
 async function seed(page: Page, settings: Partial<AiSettings> = {}, extra: Record<string, string> = {}) {
   await page.clock.install({time: EVENING});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   const ai = {...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, ...settings};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'}), ...extra});
   // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session

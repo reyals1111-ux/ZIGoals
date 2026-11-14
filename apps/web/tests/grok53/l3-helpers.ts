@@ -1,5 +1,4 @@
 import {expect, type Page} from '@playwright/test';
-import {openSettings} from '../settings-open';
 
 /**
  * Session AL lane L3 (Habits, Today, Journey, first run): shared steps for the grok53 reproduction specs. Each spec runs in
@@ -14,7 +13,7 @@ export async function offline(page: Page) {
 /** An empty device. `welcomeSeen` marks the first-run welcome as answered ("Not now"), as a returning visit has it. */
 export async function emptyDevice(page: Page, {theme, welcomeSeen = true}: {theme?: 'light' | 'dark' | 'nebula'; welcomeSeen?: boolean} = {}) {
   await offline(page);
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(({theme, welcomeSeen}) => {
     localStorage.clear(); sessionStorage.clear();
     if (welcomeSeen) localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true}));

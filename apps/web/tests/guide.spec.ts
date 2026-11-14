@@ -14,7 +14,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 async function seed(page: Page, time: string) {
   await page.clock.install({time});
   const {records} = buildShowcase('2026-09-20');
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [GUIDE_KEY]: ''});
   await page.evaluate(key => localStorage.removeItem(key), GUIDE_KEY);
 }

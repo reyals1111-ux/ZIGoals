@@ -2,7 +2,6 @@ import {expect, test, type Page} from '@playwright/test';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {MUSIC_KEY} from '../lib/w-device-keys';
 import {isPhone} from './phone-nav';
-import {openSettings} from './settings-open';
 
 // Session W Part 6: ambient focus sounds, made on the device. A MOCK AudioContext records what the page builds and when it
 // starts and stops; nothing is downloaded (the test also proves no request leaves for a sound file).
@@ -27,7 +26,7 @@ async function mocks(page: Page) {
 }
 async function seed(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
 }
 const audio = (page: Page) => page.evaluate(() => (window as unknown as {__audio: {what: string; value?: unknown; at?: number}[]}).__audio);

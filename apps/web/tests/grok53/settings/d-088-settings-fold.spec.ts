@@ -27,7 +27,22 @@ async function open(page: Page, path = '/app/settings') {
 
 for (const width of [1280, 1440]) test.describe(`at ${width} px`, () => {
   test.use({viewport: {width, height: 900}});
-  test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(page); });
+  // A device that holds a record of its own (a money log), so every group folds (D20: a new device keeps the Showcase's
+  // group open; tested below).
+  test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(page); await page.evaluate(() => localStorage.setItem('zigoals:money-log:v1', JSON.stringify({version: 1, entries: [], weekStartsOn: 'monday'}))); });
+
+  test('D-088 (D20): on a device with no record yet, and in the Showcase, the group with the Showcase card starts open', async ({page}) => {
+    await page.evaluate(() => localStorage.removeItem('zigoals:money-log:v1'));
+    await open(page);
+    await expect(toggle(page, 'Your app')).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('button', {name: 'Load Showcase Demo', exact: true})).toBeVisible();
+    for (const [id, title] of GROUPS) if (id !== 'settings-app') await expect(toggle(page, title)).toHaveAttribute('aria-expanded', 'false');
+    await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
+    await page.waitForURL('**/app');
+    await open(page);
+    await expect(toggle(page, 'Your app')).toHaveAttribute('aria-expanded', 'true');
+    await expect(toggle(page, 'Data & privacy')).toHaveAttribute('aria-expanded', 'false');
+  });
 
   test('D-088: every group starts folded, a 44 px button inside the h2 with a one-line summary of what it holds', async ({page}) => {
     await open(page);

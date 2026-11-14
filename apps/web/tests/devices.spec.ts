@@ -2,7 +2,6 @@ import {expect, test, type Page} from '@playwright/test';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {HEALTH_STORAGE_KEY} from '../lib/health';
 import {isPhone} from './phone-nav';
-import {openSettings} from './settings-open';
 
 // Session W Part 8: Health → Devices. Web Bluetooth is a MOCK (navigator.bluetooth replaced before the page loads): a
 // fictional strap and a fictional scale whose characteristics the test drives with bytes laid out as the Bluetooth
@@ -11,7 +10,7 @@ test.use({timezoneId: 'Europe/Brussels'});
 const MORNING = new Date('2026-10-21T05:00:00.000Z');
 async function seed(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
 }
 async function bluetooth(page: Page, policy: boolean | null = true) {

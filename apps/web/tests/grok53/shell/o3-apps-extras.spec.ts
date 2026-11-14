@@ -1,6 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
-import {afterGoto, openSettings} from '../../settings-open';
+import {afterGoto} from '../../settings-open';
 
 /**
  * Session AL (owner decision O3, lane L10a): below 901 px nothing floats over the page. ZIGi, the Earn dock, Music and the
@@ -126,7 +126,7 @@ test('the sheet: every switched-on entry, focus kept inside, Escape and focus ba
 
 test('switched-off entries are absent; fresh defaults hide Earn and Music; the Apps switches remove pages (500, fresh profile)', async ({page}) => {
   await page.setViewportSize({width: 500, height: 900});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
   await ready(page, '/app/settings');
   await button(page).click();

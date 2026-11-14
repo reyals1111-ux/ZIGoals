@@ -4,7 +4,6 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {buildEverythingZip, collectEverything} from '../lib/export/everything';
 import {POINT_TELL_KEY} from '../lib/ab-cloud-device-keys';
-import {openSettings} from './settings-open';
 
 /**
  * Session AB-Cloud Gate B (ADR-023): WCAG 2.2 AA on this session's new surfaces, with the suite's own audit (names,
@@ -19,7 +18,7 @@ const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
 test.beforeEach(async ({page}) => {
   await page.clock.install({time: NOW});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
 });
 /** Visible controls under `scope` smaller than 44 × 44 px (a checkbox counts by its label). */

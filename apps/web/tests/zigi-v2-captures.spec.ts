@@ -9,7 +9,6 @@ import {ZIGI_KEY} from '../lib/ai/store/keys';
 import {createHabit, habitDataSchema, HABITS_KEY, type HabitData} from '../lib/habits';
 import {REMINDERS_KEY} from '../lib/reminders/schema';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 /**
  * ZIGi v2: the owner's screenshot gallery (Session V Part 18, pushed to `review/session-v-screens`). Opt-in:
@@ -52,7 +51,7 @@ function records(): Record<string, string> {
 }
 async function seed(page: Page, {ai = false, zigi}: {ai?: boolean; zigi?: Record<string, unknown>} = {}) {
   await page.clock.install({time: EVENING});
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   const values = {...records(), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     ...(ai ? {[AI_SETTINGS_KEY]: JSON.stringify(connected)} : {}), ...(zigi ? {[ZIGI_KEY]: JSON.stringify({version: 1, ...zigi})} : {})};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);

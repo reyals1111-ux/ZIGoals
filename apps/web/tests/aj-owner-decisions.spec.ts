@@ -14,7 +14,7 @@ import {openSettings} from './settings-open';
  */
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}})); });
 async function freshDevice(page: Page) {
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
 }
 const hydrated = (page: Page) => expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '', {timeout: 20_000});

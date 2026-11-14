@@ -3,7 +3,6 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 /**
  * Session AB-Cloud Part 8 (ADR-023 C26, persona #10): ZIGi's History. Delete and "Delete all chats" hide at once with an
@@ -23,7 +22,7 @@ const AS_STORED = Object.fromEntries(CHATS.map(c => [`local:${c.id}`, c]));
 test.beforeEach(async ({page}) => {
   await page.clock.install({time: NOW});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(({values, chats}) => new Promise<void>((resolve, reject) => {
     localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v);
     const r = indexedDB.open('zigoals-ai-chats-v1', 1);

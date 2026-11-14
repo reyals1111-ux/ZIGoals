@@ -19,7 +19,7 @@ export function showcaseState(page: Page): Promise<Platform> {
 }
 /** A fresh device: no records, the welcome seen. */
 export async function freshDevice(page: Page) {
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
 }
 export const offlineApi = (page: Page) => page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));

@@ -74,9 +74,24 @@ export function saveOpen(store: Store | null | undefined, ids: Iterable<unknown>
     else store?.removeItem(SETTINGS_OPEN_KEY);
   } catch { /* storage blocked or full: the groups stay as they are until reload */ }
 }
-/** What starts folded on a computer or a tablet: every group but the open ones and the one a jump lands in. */
-export function foldedAtStart(open: readonly SettingsGroupId[], target: SettingsGroupId | null): SettingsGroupId[] {
-  return SETTINGS_GROUP_IDS.filter(id => id !== target && !open.includes(id));
+/** What starts folded on a computer or a tablet: every group but the open ones, the one a jump lands in, and `alsoOpen`. */
+export function foldedAtStart(open: readonly SettingsGroupId[], target: SettingsGroupId | null, alsoOpen: readonly SettingsGroupId[] = []): SettingsGroupId[] {
+  return SETTINGS_GROUP_IDS.filter(id => id !== target && !open.includes(id) && !alsoOpen.includes(id));
+}
+/** Keys a device holds before it has any record of its own (display choices and markers, never a person's records). */
+const NOT_A_RECORD = /^zigoals:(onboarding|ui-prefs|settings-open|settings-folds|motion|whats-new|ak-tour|layout|sync-offer|chain-choice|theme|first-five|bento|day-ends|day-goal)(:|$)/;
+/**
+ * Session AP (ADR-040 D20): the group with the Showcase card ("Your app") starts open while the Showcase is on (its
+ * "Return to my data" is wanted first) and on a device that holds no record of its own yet (Settings → Load Showcase Demo
+ * is a new person's first step); every other group folds.
+ */
+export function showcaseGroupOpen(storage: Pick<Storage, 'length' | 'key'> | null | undefined, showcase: boolean): boolean {
+  if (showcase) return true;
+  try {
+    if (!storage) return false;
+    for (let i = 0; i < storage.length; i++) { const key = storage.key(i); if (key?.startsWith('zigoals') && !NOT_A_RECORD.test(key)) return false; }
+    return true;
+  } catch { return false; }
 }
 /** The open groups that a set of folded ones leaves. */
 export const openOf = (folded: Iterable<string>): SettingsGroupId[] => { const set = new Set(folded); return SETTINGS_GROUP_IDS.filter(id => !set.has(id)); };

@@ -6,7 +6,6 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {pressZigi} from './zigi-open';
-import {openSettings} from './settings-open';
 
 /**
  * ZIGi · your AI: the owner's screenshot gallery (ADR-012 follow-up, part B). Opt-in: `ZIGI_CAPTURES=1` writes every
@@ -40,7 +39,7 @@ const SHOWCASE_EVENING = '2026-09-20T19:00:00.000Z';
 async function seed(page: Page, settings: AiSettings | null) {
   await page.clock.install({time: SHOWCASE_EVENING});
   const {records} = buildShowcase('2026-09-20');
-  await openSettings(page);
+  await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...(settings ? {[AI_SETTINGS_KEY]: JSON.stringify(settings)} : {})});
 }
 const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi/});

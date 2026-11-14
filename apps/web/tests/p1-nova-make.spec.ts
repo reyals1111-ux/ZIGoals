@@ -7,7 +7,6 @@ import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {NOVA_KEY} from '../lib/nova/store';
 import {NOVA_SETUP_KEY} from '../lib/nova/setup';
 import {NOVA_WORKFLOWS_KEY} from '../lib/nova/workflows/schema';
-import {openSettings} from './settings-open';
 
 /**
  * Session AK lane P1 (owner message 4, P1; WIRING_AUDIT_2 row N2 gap 3): NOVA's "Make it yours" and its panels, driven on
@@ -37,7 +36,7 @@ test.afterEach(() => { expect(external.filter(u => !/fonts\.g|localhost/.test(u)
 
 /** A fresh device that has seen NOVA's opening once (so nothing plays over the controls). */
 async function fresh(page: Page, extra: Record<string, string> = {}) {
-  await openSettings(page);
+  await page.goto('/app/settings');
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), [NOVA_KEY]: seen(), ...extra});
 }
@@ -159,7 +158,7 @@ test.describe('Make NOVA yours on a computer', () => {
   test('Activity: a card confirmed in NOVA is listed there by NOVA; Remove takes it out and Undo puts it back', async ({page}) => {
     await mockLocal(page, block({kind: 'log-water', millilitres: 300}));
     await page.clock.install({time: EVENING});
-    await openSettings(page);
+    await page.goto('/app/settings');
     const base = defaultAiSettings();
     const ai = {...localAi(), includeHealth: true, pageShare: {...base.pageShare, health: true}};
     await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
