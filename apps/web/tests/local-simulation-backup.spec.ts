@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {seed} from './coherence-fixture';
 import {chooseChain} from './chain-choice';
-import {openSettings} from './settings-open';
+import {openSettings, openAllSettingsGroups} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the local ZIG simulation.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -20,7 +20,7 @@ test('Local simulation Goals survive export, wipe and import through Settings',a
  const stream=await(await downloaded).createReadStream();let file='';for await(const chunk of stream)file+=chunk.toString();
  expect(file).not.toContain('Kyoto');
  await page.evaluate(async()=>{localStorage.clear();sessionStorage.clear();for(const db of await indexedDB.databases())if(db.name)await new Promise(resolve=>{const r=indexedDB.deleteDatabase(db.name!);r.onsuccess=r.onerror=r.onblocked=()=>resolve(null);});});
- await page.reload();expect(await read()).toEqual([null,null,null]);
+ await page.reload(); await openAllSettingsGroups(page);expect(await read()).toEqual([null,null,null]);
  // Restore every module the validated backup offers, one at a time, as a user would.
  await page.getByText('Restore an encrypted backup',{exact:true}).click();
  const unlock=async()=>{await page.getByLabel('Encrypted backup file',{exact:true}).setInputFiles({name:'zigoals-encrypted-backup-v1.json',mimeType:'application/json',buffer:Buffer.from(file)});await page.getByLabel('Backup recovery secret',{exact:true}).fill(secret);await page.getByRole('button',{name:'Unlock and preview',exact:true}).click();};
@@ -32,7 +32,7 @@ test('Local simulation Goals survive export, wipe and import through Settings',a
  }
  const after=await read();expect(after.slice(0,2),'Local simulation ledger and plans are restored byte for byte').toEqual(before.slice(0,2));expect(JSON.parse(after[2]!)).toEqual(JSON.parse(before[2]!));
  await page.goto('/app/goals');await expect(page.getByText('Kyoto in spring').first()).toBeVisible();
- await page.reload();expect(await read()).toEqual(after);
+ await page.reload(); await openAllSettingsGroups(page);expect(await read()).toEqual(after);
 });
 test('a damaged legacy ledger is left out with a visible warning and never blocks the backup',async({page})=>{
  test.setTimeout(90000);
@@ -47,7 +47,7 @@ test('a damaged legacy ledger is left out with a visible warning and never block
  await expect(page.getByRole('status').filter({hasText:warning})).toBeVisible();
  expect(await page.evaluate(key=>localStorage.getItem(key),LEDGER),'the damaged local data is not changed').toBe(damaged);
  await page.evaluate(async()=>{localStorage.clear();sessionStorage.clear();for(const db of await indexedDB.databases())if(db.name)await new Promise(resolve=>{const r=indexedDB.deleteDatabase(db.name!);r.onsuccess=r.onerror=r.onblocked=()=>resolve(null);});});
- await page.reload();await page.getByText('Restore an encrypted backup',{exact:true}).click();
+ await page.reload(); await openAllSettingsGroups(page);await page.getByText('Restore an encrypted backup',{exact:true}).click();
  await page.getByLabel('Encrypted backup file',{exact:true}).setInputFiles({name:'zigoals-encrypted-backup-v1.json',mimeType:'application/json',buffer:Buffer.from(file)});await page.getByLabel('Backup recovery secret',{exact:true}).fill(secret);await page.getByRole('button',{name:'Unlock and preview',exact:true}).click();
  await expect(page.getByLabel('Protected backup inventory').getByText('Legacy simulation Goals were not included in this backup because their stored data was damaged when it was made.',{exact:false})).toBeVisible();
  const offered=await page.getByLabel(/^Module to restore/).locator('option').evaluateAll(options=>options.map(o=>(o as HTMLOptionElement).value));

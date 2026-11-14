@@ -4,7 +4,7 @@ import {expectAlphaMode} from "./ab-shell";
 import { navLink, openFold, walletArea } from "./phone-nav";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
 import {chooseChain} from "./chain-choice";
-import {openSettings} from './settings-open';
+import {openSettings, openAllSettingsGroups} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests local ZIG simulation goals and the wallet buttons.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -54,6 +54,7 @@ test("corrupt metadata recovery preserves the original bytes and restores the pl
     page.getByRole("heading", { name: "Goal #1", exact: true }),
   ).toBeVisible();
   await (await navLink(page, "Settings")).click();
+  await page.waitForURL("**/app/settings"); await openAllSettingsGroups(page); // Session AP (D-088): the group with the restore is opened, as a person does
   await page
     .getByLabel("Or paste backup JSON")
     .fill(JSON.stringify(recoveryPlan));
@@ -113,6 +114,7 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await openFold(page, "Your wallet");
   await expect(page.locator(".account-panel .account-value")).toContainText("0 ZIG");
   await (await navLink(page, "Settings")).click();
+  await page.waitForURL("**/app/settings"); await openAllSettingsGroups(page); // Session AP (D-088): the group with the restore is opened, as a person does
   await expect(
     page.getByRole("heading", { name: "Your data. Your control." }),
   ).toBeVisible();
@@ -294,6 +296,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
     ),
   ).toBe(true);
   await (await navLink(page, "Settings")).click();
+  await page.waitForURL("**/app/settings"); await openAllSettingsGroups(page); // Session AP (D-088): the group with the restore is opened, as a person does
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export Goal Data" }).click();
   expect((await download).suggestedFilename()).toContain("local-simulation");
@@ -319,6 +322,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
     page.getByRole("button", { name: "Close empty goal" }),
   ).toBeEnabled();
   await (await navLink(page, "Settings")).click();
+  await page.waitForURL("**/app/settings"); await openAllSettingsGroups(page); // Session AP (D-088): the group with the restore is opened, as a person does
   await page.getByLabel("Or paste backup JSON").fill(backup);
   await page.getByRole("button", { name: "Import backup" }).click();
   await expect(

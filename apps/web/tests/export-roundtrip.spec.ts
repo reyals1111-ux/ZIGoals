@@ -13,7 +13,7 @@ test('Local Demo export, wipe and import restores all four modules identically',
  test.setTimeout(90000);
  const {records}=buildShowcase('2026-09-20');
  const seeded:Record<string,string>={...records,[DASHBOARD_SETTINGS_KEY]:JSON.stringify({...presetSettings('habits-health'),onboarded:true})};
- await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */await page.evaluate(values=>{localStorage.clear();for(const [k,v]of Object.entries(values))localStorage.setItem(k,v);},seeded);await page.reload(); await openAllSettingsGroups(page);
+ await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); await openAllSettingsGroups(page); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */await page.evaluate(values=>{localStorage.clear();for(const [k,v]of Object.entries(values))localStorage.setItem(k,v);},seeded);await page.reload(); await openAllSettingsGroups(page);
  const read=()=>page.evaluate(keys=>Object.fromEntries(Object.entries(keys).map(([d,k])=>[d,localStorage.getItem(k)])),KEYS);
  const before=await read();for(const d of Object.keys(KEYS))expect(before[d],d).toBe(seeded[KEYS[d as keyof typeof KEYS]]);
  await page.getByLabel('Include my Health records in this encrypted download.',{exact:true}).check();
@@ -24,7 +24,7 @@ test('Local Demo export, wipe and import restores all four modules identically',
  for(const marker of ['Emergency fund','Showcase kitchen','Meditate'])expect(file).not.toContain(marker);
  // Wipe: localStorage, sessionStorage and every IndexedDB database of this origin.
  await page.evaluate(async()=>{localStorage.clear();sessionStorage.clear();for(const db of await indexedDB.databases())if(db.name)await new Promise(resolve=>{const r=indexedDB.deleteDatabase(db.name!);r.onsuccess=r.onerror=r.onblocked=()=>resolve(null);});});
- await page.reload();expect(Object.values(await read()).every(v=>v===null)).toBe(true);
+ await page.reload(); await openAllSettingsGroups(page);expect(Object.values(await read()).every(v=>v===null)).toBe(true);
  await page.getByText('Restore an encrypted backup',{exact:true}).click();
  for(const domain of Object.keys(KEYS)){
   await page.getByLabel('Encrypted backup file',{exact:true}).setInputFiles({name:'zigoals-encrypted-backup-v1.json',mimeType:'application/json',buffer:Buffer.from(file)});
@@ -34,5 +34,5 @@ test('Local Demo export, wipe and import restores all four modules identically',
  }
  const after=await read();
  for(const d of Object.keys(KEYS))expect(JSON.parse(after[d]!),d).toEqual(JSON.parse(before[d]!));
- await page.reload();expect(await read()).toEqual(after);
+ await page.reload(); await openAllSettingsGroups(page);expect(await read()).toEqual(after);
 });

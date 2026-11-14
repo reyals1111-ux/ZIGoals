@@ -1,5 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
-import {afterGoto, openSettings} from './settings-open';
+import {afterGoto, openSettings, openAllSettingsGroups} from './settings-open';
 
 /**
  * Session AJ (item 32, D5): Settings → Appearance → Customize. Font (System / Inter), Text size (Standard / Large), Density
@@ -15,7 +15,7 @@ const ATTRS = Object.keys(CHOSEN);
  *  dismissed and Motion is off, so every page is a still. */
 async function openDevice(page: Page, record: Record<string, unknown> = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, contentType: 'application/json', body: '{}'}));
-  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); await openAllSettingsGroups(page); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(([k, r]) => { localStorage.setItem(k as string, JSON.stringify({version: 1, dismissed: {alphaNotice: true}, ...(r as object)})); localStorage.setItem('zigoals:motion:v1', 'off'); }, [KEY, record] as const);
 }
 /** The <html> attributes when <body> is created, before any app script has run. */
@@ -35,7 +35,7 @@ test('the defaults: every first choice checked, no attribute, no sheet, no font 
   const fonts: string[] = [];
   page.on('request', r => { if (/\/fonts\/inter\/|\/themes\/(text-large|density-compact)\.css/.test(r.url())) fonts.push(r.url()); });
   await openDevice(page);
-  await page.reload();
+  await page.reload(); await openAllSettingsGroups(page);
   await expect(page.locator('html[data-app-hydrated]')).toBeAttached({timeout: 30_000});
   const group = card(page);
   await expect(group.getByRole('heading', {name: 'Customize'})).toBeVisible();
@@ -56,7 +56,7 @@ test('the defaults: every first choice checked, no attribute, no sheet, no font 
 
 test('Inter, Large, Compact and Soft: applied at once, kept, on the first paint of the next page; back to the defaults', async ({page}) => {
   await openDevice(page, {theme: 'dark', heroCollapsed: false});
-  await page.reload();
+  await page.reload(); await openAllSettingsGroups(page);
   await expect(page.locator('html[data-app-hydrated]')).toBeAttached({timeout: 30_000});
   const bodySize = () => page.evaluate(() => parseFloat(getComputedStyle(document.body).fontSize));
   const before = await bodySize();
@@ -95,13 +95,13 @@ test('Inter, Large, Compact and Soft: applied at once, kept, on the first paint 
   expect(await htmlAttrs(page)).toEqual(NONE);
   await expect(page.locator('#zigoals-text-sheet, #zigoals-density-sheet')).toHaveCount(0);
   expect(await stored(page)).toEqual({version: 1, dismissed: {alphaNotice: true}, theme: 'dark', heroCollapsed: false});
-  await page.reload();
+  await page.reload(); await openAllSettingsGroups(page);
   expect(await htmlAttrs(page)).toEqual(NONE);
 });
 
 test('one choice stores only that choice; choosing its default again removes the group', async ({page}) => {
   await openDevice(page);
-  await page.reload();
+  await page.reload(); await openAllSettingsGroups(page);
   await expect(page.locator('html[data-app-hydrated]')).toBeAttached({timeout: 30_000});
   const glow = card(page).getByRole('group', {name: 'Glow'});
   await glow.getByRole('radio', {name: 'Soft', exact: true}).check();
