@@ -11,7 +11,7 @@ const layout = (page: Page) => page.getByRole('radiogroup', {name: 'Layout'});
 const tiles = (page: Page, region: string) => page.evaluate(r => {
   const items = [...document.querySelectorAll<HTMLElement>(`[data-layout-region="${r}"]`)].filter(el => el.getClientRects().length);
   const parent = items[0]?.parentElement;
-  return {display: parent ? getComputedStyle(parent).display : '', template: parent ? getComputedStyle(parent).gridTemplateColumns : '', lefts: new Set(items.map(el => Math.round(el.getBoundingClientRect().left))).size, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth};
+  return {boxes: items.map(el => { const b = el.getBoundingClientRect(); return `${Math.round(b.left)}:${Math.round(b.width)}`; }).join(' '), display: parent ? getComputedStyle(parent).display : '', template: parent ? getComputedStyle(parent).gridTemplateColumns : '', lefts: new Set(items.map(el => Math.round(el.getBoundingClientRect().left))).size, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth};
 }, region);
 
 test.describe('on a computer', () => {
@@ -30,21 +30,21 @@ test.describe('on a computer', () => {
     await expect.poll(async () => (await tiles(page, region)).display).toBe('grid');
     const t = await tiles(page, region);
     // Tiles: the area's own columns (not the list's), cards side by side, nothing scrolls sideways.
-    expect(t.template).not.toBe(list.template);
+    expect(t.boxes, 'the cards are laid out differently from the list').not.toBe(list.boxes);
     expect(t.lefts).toBeGreaterThanOrEqual(2);
     expect(t.overflow, 'no sideways scroll').toBeLessThanOrEqual(0);
     // Today's hero is the same in both views.
     if (hero) expect(await page.locator('.today-hero').boundingBox()).toEqual(hero);
     await page.reload(); await hydrated(page);
     await expect(layout(page).getByRole('radio', {name: 'Bento'})).toHaveAttribute('aria-checked', 'true');
-    await expect.poll(async () => (await tiles(page, region)).template).toBe(t.template);
+    await expect.poll(async () => (await tiles(page, region)).boxes).toBe(t.boxes);
     expect(JSON.parse((await page.evaluate(() => localStorage.getItem('zigoals:bento:v1')))!).pages).toContain(path === '/app' ? 'today' : path.split('/')[2]);
     // Back to the list, with the keyboard: one Tab stop, the arrows choose.
     await layout(page).getByRole('radio', {name: 'Bento'}).focus();
     await page.keyboard.press('ArrowLeft');
     await expect(layout(page).getByRole('radio', {name: 'List'})).toBeFocused();
     await expect(layout(page).getByRole('radio', {name: 'List'})).toHaveAttribute('aria-checked', 'true');
-    await expect.poll(async () => (await tiles(page, region)).template).toBe(list.template);
+    await expect.poll(async () => (await tiles(page, region)).boxes).toBe(list.boxes);
   });
 
   test('a page that offers no Bento shows no switch', async ({page}) => {
