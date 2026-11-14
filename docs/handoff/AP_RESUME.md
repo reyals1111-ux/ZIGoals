@@ -17,11 +17,11 @@ usage pause (weekly reset Sunday): read this file, then the next row below.
 | Part | State | Commits | Next |
 |---|---|---|---|
 | 0 records | done | (this commit) | — |
-| 1 CI green + weights | next | | fix the five specs at their cause; weight pass |
-| 2 AO leftovers | pending | | |
+| 1 CI green + weights | done | c8063d86, c7e77e55 | CI proof on the pushed head |
+| 2 AO leftovers | done (visual minors → Part 7 UX pass) | 51a1b603 | CI fallout from Settings folded / roving |
 | 3 service rows | pending | | |
-| 4 owner decisions a–c | pending | | |
-| 5 friends Alpha + weather proxy | pending | | |
+| 4 owner decisions a–c | b done (790fe0f9); a, c next | | launchers auto-tuck, Bento |
+| 5 friends Alpha + weather proxy | weather proxy done (c66b65c9) | | feedback diagnostics, What's new, Known limits, first five, docs |
 | 6 competitor features (18) | pending | | |
 | 7 reviews, tour, closing, STATUS | pending | | |
 
