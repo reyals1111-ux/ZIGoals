@@ -1,5 +1,4 @@
 import {hashId} from './hash-id';
-import {NON_PERSONAL_KEYS, noExistingData} from './onboarding';
 
 /**
  * Session AL (D-088, N-BN-10, DV-266, D-005, N-BN-05): Settings' groups fold from their headings on a computer or a
@@ -79,14 +78,20 @@ export function saveOpen(store: Store | null | undefined, ids: Iterable<unknown>
 export function foldedAtStart(open: readonly SettingsGroupId[], target: SettingsGroupId | null, alsoOpen: readonly SettingsGroupId[] = []): SettingsGroupId[] {
   return SETTINGS_GROUP_IDS.filter(id => id !== target && !open.includes(id) && !alsoOpen.includes(id));
 }
+/** Keys a device holds before it has any record of its own (display choices and markers, never a person's records). */
+const NOT_A_RECORD = /^zigoals:(onboarding|ui-prefs|settings-open|settings-folds|motion|whats-new|ak-tour|layout|sync-offer|chain-choice|theme|first-five|bento|day-ends|day-goal)(:|$)/;
 /**
  * Session AP (ADR-040 D20): the group with the Showcase card ("Your app") starts open while the Showcase is on (its
  * "Return to my data" is wanted first) and on a device that holds no record of its own yet (Settings → Load Showcase Demo
  * is a new person's first step); every other group folds.
  */
 export function showcaseGroupOpen(storage: Pick<Storage, 'length' | 'key'> | null | undefined, showcase: boolean): boolean {
-  // "No record of its own" is the welcome check's own rule (lib/onboarding.ts), plus this session's display keys.
-  return showcase || noExistingData(storage, [...NON_PERSONAL_KEYS, SETTINGS_OPEN_KEY, SETTINGS_FOLDS_KEY, 'zigoals:bento:v1', 'zigoals:first-five:v1']);
+  if (showcase) return true;
+  try {
+    if (!storage) return false;
+    for (let i = 0; i < storage.length; i++) { const key = storage.key(i); if (key?.startsWith('zigoals') && !NOT_A_RECORD.test(key)) return false; }
+    return true;
+  } catch { return false; }
 }
 /** The open groups that a set of folded ones leaves. */
 export const openOf = (folded: Iterable<string>): SettingsGroupId[] => { const set = new Set(folded); return SETTINGS_GROUP_IDS.filter(id => !set.has(id)); };

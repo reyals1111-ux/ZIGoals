@@ -23,3 +23,7 @@
 @media (forced-colors: active) {
   .settings-page .settings-fold-chevron { color: CanvasText; }
 }
+
+/* Session AP (D20): the folded "Your app" group's Load Showcase Demo, under its summary. */
+.settings-page .settings-fold-quick { margin: 0; }
+.settings-page .settings-fold-quick button { min-height: 44px; font-size: 15px; }

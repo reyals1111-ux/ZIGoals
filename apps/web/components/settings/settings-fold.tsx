@@ -5,6 +5,8 @@ import {hashId} from '../../lib/hash-id';
 import {SETTINGS_FOLDS_KEY, SETTINGS_GROUP_IDS, allFolded, foldSummary, foldedAtStart, groupForHash, groupForTarget, loadOpen, openOf, saveOpen, showcaseGroupOpen, type SettingsGroupId} from '../../lib/settings-folds';
 import {PHONE_QUERY} from '../phone/use-phone-layout';
 import {isShowcase} from '../../lib/showcase-storage';
+import {loadShowcase} from '../../lib/showcase';
+import {clearShowcasePhotos} from '../../lib/showcase-storage';
 
 /**
  * Session AL (D-088, N-BN-10, DV-266, D-005, N-BN-05): each of Settings' six groups folds from its heading, and "Fold all"
@@ -115,7 +117,8 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
  *  it holds shows while it is folded. The group keeps its id, role and name (tests/settings-groups.spec.ts). */
 export function SettingsFoldGroup({id, title, icon, children}: {id: SettingsGroupId; title: string; icon?: ReactNode; children: ReactNode}) {
   const {folded, chain, toggle, reveal} = useFolds();
-  const isFolded = folded.has(id);
+  const isFolded = folded.has(id), [loading, setLoading] = useState(false), [showcaseOn, setShowcaseOn] = useState(false);
+  useEffect(() => { setShowcaseOn(isShowcase()); }, []);
   const body = useRef<HTMLDivElement>(null);
   // `hidden="until-found"`: find in page and the browser's own fragment jumps still reach a folded group's words and open
   // it (where a browser does not know the value, it is plain `hidden`). Set here, not by React, which only knows true/false.
@@ -138,6 +141,9 @@ export function SettingsFoldGroup({id, title, icon, children}: {id: SettingsGrou
       </button>
     </h2>
     {isFolded && <p className="settings-fold-summary" id={`${id}-summary`}>{foldSummary(id, {chain})}</p>}
+    {/* Session AP (D20): Settings → Load Showcase Demo is a new person's first step (the friends' guide says so), so while the
+        group that holds the Showcase card is folded its summary carries the same button (only one is ever visible). */}
+    {isFolded && id === 'settings-app' && !showcaseOn && <p className="settings-fold-quick"><button type="button" className="secondary" disabled={loading} onClick={() => { setLoading(true); void loadShowcase().then(() => clearShowcasePhotos()).then(() => window.location.assign('/app'), () => setLoading(false)); }}>Load Showcase Demo</button></p>}
     <div className="settings-fold-body" id={bodyId(id)} ref={body}>{children}</div>
   </div>;
 }
