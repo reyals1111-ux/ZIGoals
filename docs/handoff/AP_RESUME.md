@@ -17,14 +17,17 @@ usage pause (weekly reset Sunday): read this file, then the next row below.
 | Part | State | Commits | Next |
 |---|---|---|---|
 | 0 records | done | (this commit) | — |
-| 1 CI green + weights | done | c8063d86, c7e77e55 | CI proof on the pushed head |
-| 2 AO leftovers | done (visual minors → Part 7 UX pass) | 51a1b603 | CI fallout from Settings folded / roving |
-| 3 service rows | pending | | |
-| 4 owner decisions a–c | b done (790fe0f9); a, c next | | launchers auto-tuck, Bento |
-| 5 friends Alpha + weather proxy | weather proxy done (c66b65c9) | | feedback diagnostics, What's new, Known limits, first five, docs |
-| 6 competitor features (18) | pending | | |
-| 7 reviews, tour, closing, STATUS | pending | | |
+| 1 CI green + weights | done | c8063d86, c7e77e55 | — |
+| 2 AO leftovers | done | 51a1b603 + CI fallout (dbd55e36, D20 commits) | — |
+| 3 service rows | done (API 15/15, browser 17/17) | 1479d304, 7e24a448 | — |
+| 4 owner decisions a–c | done | 790fe0f9 (b), 4450b936 (a, c) | — |
+| 5 friends Alpha + weather proxy | done | c66b65c9, 700203ec, Part 5 commits | — |
+| 6 competitor features (18) | 17 built (060fb196, 4da1d293); 1 carried (D16) | | — |
+| 7 reviews, tour, closing, STATUS | in progress: reviews running, tour written | | review fixes, closing table, CI on the final head, STATUS last |
 
 ## Local notes
 - Sandbox Node 22 (CI 24.19.0); WebKit not installable here: WebKit rows fixed from logs/spec reading, proven in CI.
 - Production build at :3101 for local browser runs.
+
+## State (14 Nov, 09:00 UTC)
+Head pushed through 5e6dccb6. Worktree build method (ADR-040 D14). Next: fix the reviews' findings, watch CI on the newest head, closing table, check PR #101 before the STATUS commit (owner addition 5).
