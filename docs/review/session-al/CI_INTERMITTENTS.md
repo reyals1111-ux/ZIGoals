@@ -161,3 +161,10 @@ checks.`" (ADR-017 S64, AF16). `webkit-smoke` and `webkit-phone` filter exactly 
 | `webkit-smoke:104` (WebKit phone, CI 1745 re-run) | Not an intermittent: the press on "Apps & extras" came before the page was live | Waits for hydration (as earn-dock) |
 | `progress-glass:60` /app (mobile, shard 10, CI 1747) | First sighting: 45 s timeout on the Showcase's Today; locally 5.7–10 s in 3 runs (`--repeat-each=3`), so the runner's load, most likely in the wait for running animations to settle | Recorded; the run on the next head is its one re-run |
 | `ap-health-splits:10` (CI 1747) | Not an intermittent: strict mode, the run's name is the row's `<strong>` and the opened detail's `<h3>` | The spec presses the row's own summary; same assertions |
+
+## Automatic retry (Session AP, [TIER 3] (CI), owner rule 14 Nov)
+In CI only (the Chromium browser suite, a11y and WebKit jobs set `ZIGOALS_CI_RETRY=1`), Playwright retries a failed test
+once (`retries: 1` in playwright.config.ts and playwright.webkit.config.ts; 0 locally and in every other job). A test that
+passes on its retry counts as **flaky**, not failed: each shard's job summary lists every flaky test (file:line, project,
+shard) through `scripts/ci/flaky-summary.mjs`, and each one is written up here like any intermittent. A test that fails on
+both attempts still fails the job. No assertion, timeout or test was changed for this.

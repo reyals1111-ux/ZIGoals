@@ -140,8 +140,11 @@ jobs:
         run: bash scripts/ci/install-chrome.sh bash scripts/ci/chrome-deps.sh
       - run: pnpm build
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
+      # Session AP ([TIER 3] (CI), owner rule 14 Nov): ZIGOALS_CI_RETRY=1 gives each failed test one retry
+      # (playwright.config.ts); a test that fails twice still fails the job, and the step below lists every flaky one.
       - env:
           PLAYWRIGHT_JSON_OUTPUT_FILE: /tmp/zigoals-web-results.json
+          ZIGOALS_CI_RETRY: '1'
         run: |
           for n in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
@@ -149,6 +152,9 @@ jobs:
           done
           if [ "${{ matrix.suite }}" = a11y ]; then export A11Y_SWEEP=only SHARDS=3; else export A11Y_SWEEP=skip SHARDS=12; fi
           env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 --shard=${{ matrix.shard }}/$SHARDS --reporter=line,json --output=/tmp/zigoals-web-results
+      - name: Flaky tests (passed only on their retry)
+        if: always()
+        run: node scripts/ci/flaky-summary.mjs /tmp/zigoals-web-results.json "${{ matrix.suite }} shard ${{ matrix.shard }}"
       - name: Retain fixture-only browser failures
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -383,12 +389,17 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:3100
           WEBKIT_SHARD: ${{ matrix.shard }}/4
+          PLAYWRIGHT_JSON_OUTPUT_FILE: /tmp/zigoals-webkit-results.json
+          ZIGOALS_CI_RETRY: '1'
         run: |
           for n in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts --workers=2 --reporter=line --output=/tmp/zigoals-webkit-results
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts --workers=2 --reporter=line,json --output=/tmp/zigoals-webkit-results
+      - name: Flaky tests (passed only on their retry)
+        if: always()
+        run: node scripts/ci/flaky-summary.mjs /tmp/zigoals-webkit-results.json "WebKit shard ${{ matrix.shard }}/4"
       # Session AK ([TIER 3] (CI), diagnostic only): a WebKit page that hangs ~30 s and then dies ("Target crashed") left no
       # trace of why. On a failure, the runner's memory and the kernel's kill/crash lines say whether it ran out of memory.
       - name: Runner memory and kernel lines (failures only)

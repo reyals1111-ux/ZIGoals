@@ -10,6 +10,8 @@ import {WEBKIT_TEST_IGNORE, WEBKIT_TEST_MATCH, webkitShardMatch} from './playwri
 export default defineConfig({
   testDir: './tests',
   timeout: 60_000,
+  // Session AP ([TIER 3] (CI)): one retry in CI's WebKit job only, as in playwright.config.ts.
+  retries: process.env.ZIGOALS_CI_RETRY === '1' ? 1 : 0,
   // Session Y Part 6: CI's WebKit job runs this selection; `webkit-phone` is its curated phone set.
   // Session AN ([TIER 3] (CI)): CI's four shards are the duration-balanced lists in playwright.webkit.shards.ts
   // (`WEBKIT_SHARD=n/4`, which first checks that every selected spec is in exactly one list); without it, every spec.

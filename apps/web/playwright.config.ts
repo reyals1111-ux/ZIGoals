@@ -6,6 +6,10 @@ export default defineConfig({
   testDir: "./tests",
   ...(process.env.A11Y_SWEEP === "only" ? { testMatch: A11Y_SWEEP } : process.env.A11Y_SWEEP === "skip" ? { testIgnore: A11Y_SWEEP } : {}),
   timeout: 45000,
+  // Session AP ([TIER 3] (CI), owner rule 14 Nov): in CI's browser suite, a11y and WebKit jobs (ZIGOALS_CI_RETRY=1) a failed
+  // test is retried once; one that passes on its retry is reported "flaky" (scripts/ci/flaky-summary.mjs lists it in the
+  // job summary) and one that fails twice still fails the job. Locally and in every other job: no retry.
+  retries: process.env.ZIGOALS_CI_RETRY === '1' ? 1 : 0,
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100",
     trace: "retain-on-failure",
