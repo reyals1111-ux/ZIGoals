@@ -6294,6 +6294,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .money-tags-list li form:not(#\-) { row-gap: 8px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .money-tags-chip:not(#\-) { padding-top: 2px; padding-bottom: 2px; margin-top: 2px; margin-bottom: 2px; }
 :where(:root[data-density=compact]) .money-tags-actions:not(#\-) { row-gap: 8px; }
+@media (max-width: 600px) { :where(:root[data-density=compact]) .money-insights-views:not(#\-) { padding-bottom: 2px; } }
 /*  components/wealth/spending/spending.css  */
 :where(:root[data-density=compact]) .spending-body:not(#\-) { row-gap: 16px; }
 :where(:root[data-density=compact]) .spending-top:not(#\-) { row-gap: 20px; }

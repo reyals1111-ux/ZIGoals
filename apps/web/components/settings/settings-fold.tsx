@@ -70,8 +70,9 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
   // such a jump). CI 1726: a same-page jump to a part of ZIGi's section that is not drawn yet waits for it too.
   const late = useRef<(() => void) | null>(null), gone = useRef(false);
   const jump = useCallback((id: string | null) => {
-    if (!id || onPhone()) return;
-    if (document.getElementById(id)) { if (reveal(id)) requestAnimationFrame(() => land(id)); return; }
+    // (On a phone nothing is folded, so reveal does nothing there.)
+    if (!id) return;
+    if (document.getElementById(id)) { if (reveal(id)) land(id); return; }
     late.current?.();
     void import('./settings-late-jump').then(m => { if (!gone.current) late.current = m.watchLateJump(id, reveal); }, () => undefined);
   }, [reveal]);

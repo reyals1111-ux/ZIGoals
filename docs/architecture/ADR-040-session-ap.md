@@ -310,8 +310,20 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   the Showcase has no examples yet for mood tags, symptoms, run splits and bill changes; CSV import's Value/Unit as two
   fields (`weight-csv-import`).
 
+- **D23 (CI 1726 fallout, owner rule on budgets):** run 1726 on `f28d25d3` found (a) the UX note "a skipped setup should
+  lead to the first five" contradicts AL's accepted rule (NB-002/NB-033: an empty device that said "Not now" still lands
+  on the setup entry): AL's rule kept, the change reverted, the note answered by it; (b) Health and Wealth on a phone over
+  their screen ceilings (8.36 of 8.2, 10.06 of 10.0) after Part 6: "Copy a meal" now sits with logging a meal (in its sheet
+  on a phone), the symptom tracker with the day's mood (one folded row on a phone), and Wealth's six "Your money over time"
+  views are one sideways row on a phone; no ceiling moved; (c) a Settings jump to a part of ZIGi's section that is drawn
+  later, by a same-page address change, left its group folded (zigi-part-boundary, zigi-memory): every jump (arrival, link,
+  router, back and forward) now opens its group, waiting for a late target; (d) specs that seed records and then use
+  Settings open its groups (LS-025 and seven more of the same shape). **Budget:** after four weight passes on Settings this
+  session, the jump fix left `/app/settings` 31 bytes over; its line is raised by exactly that (531,000 → 531,031 bytes),
+  as the owner's rule allows (≤ 2 kB, the exact overage, reason here). No other line moved.
+
 ## Closing table
-Totals (counted by item, not by row): Fixed 24 · Built 30 · Holds (replayed, already right, now tested) 22 · Owner decision 4 · Not possible 4 · Carried 16.
+Totals (counted by item, not by row): Fixed 27 · Built 30 · Holds (replayed, already right, now tested) 22 · Owner decision 5 · Not possible 4 · Carried 16.
 
 | Area | Row | Outcome | Evidence / cause |
 |---|---|---|---|
@@ -354,7 +366,11 @@ Totals (counted by item, not by row): Fixed 24 · Built 30 · Holds (replayed, a
 | UX review | Bento squeezes gridded cards (Blocker) | Fixed | D22 (2efd76d4, 4a5a6736, 2c86e8e1, 5a97ff13) |
 | UX review | Chrome renderer crash reading an unrendered grid (found while fixing) | Fixed | D22 (2c86e8e1) |
 | UX review | Budgets' Remove wraps | Fixed | D22 (2efd76d4) |
-| UX review | skipped setup did not lead to the first five | Fixed | D22 (2efd76d4) |
+| UX review | skipped setup did not lead to the first five | Owner decision (AL's NB-002/NB-033 kept) | D23: the change reverted |
 | UX review | first five on a phone: meal step | Fixed | D22 (2c86e8e1) |
 | UX review | day-goal select width; Today Showcase card count | Fixed | D22 |
 | UX review | seven copy/visual minors (CSV Value/Unit has its own row) | Carried | D22 list (no defect; next pass) |
+| CI 1726 | first-run specs after "Not now" (5) | Fixed | D23a (UX change reverted) |
+| CI 1726 | Health and Wealth phone length | Fixed | D23b (no ceiling moved) |
+| CI 1726 | late Settings jump (zigi-part-boundary, zigi-memory) | Fixed | D23c |
+| CI 1726 | LS-025 and seeded Settings specs | Fixed | D23d |

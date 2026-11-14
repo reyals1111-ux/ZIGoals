@@ -43,3 +43,6 @@
 /* Session AP (UX review, Minor): by day the "Received" bars (and their legend) measured 1.4:1; a deeper teal keeps 3:1. */
 :root[data-theme=light] .money-insights-chart .bar-in,:root[data-theme=light] .money-insights-legend .in{fill:#0b7f93;background:#0b7f93}
 :root[data-theme=light] .money-insights-spark polyline{stroke:#0b7f93}:root[data-theme=light] .money-insights-spark circle{fill:#0b7f93}
+/* Session AP (CI 1726, pillar-phone-length): on a phone the six views are one row that scrolls sideways (the page stays
+   within its screen count); the last button peeks out at the edge, so the row reads as more. */
+@media (max-width: 600px){.money-insights-views{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;scroll-padding-inline:4px}.money-insights-views button{flex:none}}
