@@ -19,8 +19,9 @@ export function readBento(raw: string | null): BentoPage[] {
 function markWide() {
   for (const item of document.querySelectorAll<HTMLElement>('[data-layout-region]')) {
     let wide = false;
-    const inner = item.querySelectorAll<HTMLElement>('*');
-    for (let i = 0; i < inner.length && i < 600 && !wide; i++) {
+    // Three levels down is where a card lays out its own grid; deeper parts are its contents.
+    const inner = item.querySelectorAll<HTMLElement>(':scope > *, :scope > * > *, :scope > * > * > *');
+    for (let i = 0; i < inner.length && i < 200 && !wide; i++) {
       const el = inner[i]!, cs = getComputedStyle(el);
       if (cs.display.includes('grid') && cs.gridTemplateColumns.split(' ').filter(Boolean).length >= 2 && el.getBoundingClientRect().width > 480) wide = true;
     }
@@ -40,8 +41,9 @@ export default function BentoSwitch({page}: {page: BentoPage}) {
     // tiles apply, and again when the window changes size (in one step, never painted in between).
     const apply = () => { delete root.dataset.bento; markWide(); root.dataset.bento = page; };
     apply();
-    let frame = 0;
-    const onResize = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(apply); };
+    let frame = 0, width = window.innerWidth;
+    // Only a real change of the window's width measures again (never a resize the tiles themselves could cause).
+    const onResize = () => { if (Math.abs(window.innerWidth - width) < 1) return; width = window.innerWidth; cancelAnimationFrame(frame); frame = requestAnimationFrame(apply); };
     window.addEventListener('resize', onResize);
     return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', onResize); if (root.dataset.bento === page) delete root.dataset.bento; };
   }, [on, page]);

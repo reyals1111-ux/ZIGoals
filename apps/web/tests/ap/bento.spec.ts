@@ -6,19 +6,26 @@ import {hydrated, loadShowcase, offlineApi} from '../ah-helpers';
  * (below its protected hero). The list stays the default; "Layout: List · Bento" switches; the choice is remembered per
  * page on this device; the cards sit side by side as tiles; the hero is the same in both; phones show no switch.
  */
-const PAGES = [['/app', 'today:main'], ['/app/goals', 'goals:body'], ['/app/habits', 'habits:body'], ['/app/health', 'health:body'], ['/app/wealth', 'wealth:body']] as const;
+// The pages, and whether their cards stand side by side as tiles (Goals and Wealth keep cards that hold their own grids
+// on the whole row: the goal cards, the holdings).
+const PAGES = [['/app', 'today:main', true], ['/app/goals', 'goals:body', false], ['/app/habits', 'habits:body', true], ['/app/health', 'health:body', true], ['/app/wealth', 'wealth:body', false]] as const;
 const layout = (page: Page) => page.getByRole('radiogroup', {name: 'Layout'});
 const tiles = (page: Page, region: string) => page.evaluate(r => {
   const items = [...document.querySelectorAll<HTMLElement>(`[data-layout-region="${r}"]`)].filter(el => el.getClientRects().length);
   const parent = items[0]?.parentElement;
-  return {boxes: items.map(el => { const b = el.getBoundingClientRect(); return `${Math.round(b.left)}:${Math.round(b.width)}`; }).join(' '), display: parent ? getComputedStyle(parent).display : '', template: parent ? getComputedStyle(parent).gridTemplateColumns : '', lefts: new Set(items.map(el => Math.round(el.getBoundingClientRect().left))).size, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth};
+  const rects = items.map(el => el.getBoundingClientRect());
+  // UX review (Blocker, Session AP): no card squeezed, no two cards over each other, the page's own header full width.
+  const narrowest = Math.min(...rects.map(b => b.width));
+  const overlaps = rects.some((a, i) => rects.some((b, j) => j > i && a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1));
+  const hero = document.querySelector<HTMLElement>('main .pillar-hero, main .page-heading, main .today-hero, main .wealth-hero');
+  return {narrowest, overlaps, heroWidth: hero ? Math.round(hero.getBoundingClientRect().width) : 0, boxes: items.map(el => { const b = el.getBoundingClientRect(); return `${Math.round(b.left)}:${Math.round(b.width)}`; }).join(' '), display: parent ? getComputedStyle(parent).display : '', template: parent ? getComputedStyle(parent).gridTemplateColumns : '', lefts: new Set(items.map(el => Math.round(el.getBoundingClientRect().left))).size, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth};
 }, region);
 
 test.describe('on a computer', () => {
   test.use({viewport: {width: 1440, height: 900}});
   test.beforeEach(async ({page}, info) => { test.skip(info.project.name !== 'desktop', 'computers only'); await offlineApi(page); await loadShowcase(page); });
 
-  for (const [path, region] of PAGES) test(`${path}: List by default; Bento lays the cards out as tiles and is remembered on this device`, async ({page}) => {
+  for (const [path, region, sideBySide] of PAGES) test(`${path}: List by default; Bento lays the cards out as tiles and is remembered on this device`, async ({page}) => {
     await page.goto(path); await hydrated(page);
     const group = layout(page);
     await expect(group).toBeVisible();
@@ -28,10 +35,14 @@ test.describe('on a computer', () => {
     await group.getByRole('radio', {name: 'Bento'}).click();
     await expect(group.getByRole('radio', {name: 'Bento'})).toHaveAttribute('aria-checked', 'true');
     await expect.poll(async () => (await tiles(page, region)).display).toBe('grid');
+    await page.waitForTimeout(300);
     const t = await tiles(page, region);
-    // Tiles: the area's own columns (not the list's), cards side by side, nothing scrolls sideways.
-    expect(t.boxes, 'the cards are laid out differently from the list').not.toBe(list.boxes);
-    expect(t.lefts).toBeGreaterThanOrEqual(2);
+    // Tiles: no card squeezed (300 px at least), none over another, the page's header as wide as in the list, cards side by
+    // side where the page has self-contained cards, nothing scrolls sideways.
+    expect(t.narrowest, 'no card squeezed').toBeGreaterThanOrEqual(300);
+    expect(t.overlaps, 'no card over another').toBe(false);
+    expect(t.heroWidth, 'the header keeps its width').toBe(list.heroWidth);
+    if (sideBySide) { expect(t.lefts).toBeGreaterThanOrEqual(2); expect(t.boxes).not.toBe(list.boxes); }
     expect(t.overflow, 'no sideways scroll').toBeLessThanOrEqual(0);
     // Today's hero is the same in both views.
     if (hero) expect(await page.locator('.today-hero').boundingBox()).toEqual(hero);
