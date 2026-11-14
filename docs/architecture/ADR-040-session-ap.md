@@ -285,6 +285,12 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   all restored byte for byte to `ca2678d7`; (a) keeps their Settings → Load Showcase Demo step working untouched. Seeds
   that visit Settings only to write storage went back to a plain visit (122 places): opening groups there changed the
   seeds' timing (ZIGi's settings body loaded before the seeded values).
+- **D21 (Part 7, security delta, fresh reviewer):** nothing Critical or High. Fixed: Medium (the weather proxy's global
+  MET budget, 300 calls a minute across all clients), Low (a crafted TCX keeps its summary without splits), Info (id
+  hygiene in task-when and workout splits; Copy says so when the browser has no clipboard). Recorded only: impossible
+  day-goal dates compare harmlessly as strings; bidi/zero-width characters in a person's own tags affect only their view;
+  the weather cache's synthetic path holds a public forecast. AI isolation of the health-type records confirmed (no
+  import in lib/ai, components/ai, lib/nova, components/nova). The hosted verifier change confirmed behaviour-preserving.
 
 ## Closing table
 Totals: Fixed 14 · Built 30 · Holds (replayed, already right, now tested) 22 · Owner decision 4 · Not possible 4 · Carried 8.
