@@ -7,6 +7,7 @@ import {keyLabel, moveDock, resetDock, setDockHidden, type DockEntry} from '../.
 import {ACCENT_STOPS, LAYOUT_LABEL, SETUP_FILE_NAME, applySetupShare, buildSetupShare, parseSetupShare, setupFileText, setupSummary, type SetupShare} from '../../lib/nova/share-setup';
 import {NOVA_WORKFLOWS, importSetupWorkflows, workflowsForSetupShare} from '../../lib/nova/workflows';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {PremiumBadge} from '../plans/premium-badge';
 import {NovaIcon} from './icons';
 import {PersonaMark} from './persona-mark';
 import {LookPicker, PresetPicker} from './holo/presets';
@@ -63,6 +64,9 @@ export default function MakeItYours({record, save, entries, onReplay, status, hu
       <form className="nova-inline-form" onSubmit={e => { e.preventDefault(); save(r => setPersona(r, {name}), name.trim() ? `Your assistant is called ${name.trim()} now.` : 'Your assistant is called NOVA again.'); }}>
         <label className="nova-field"><span>Your assistant’s name</span><input value={name} maxLength={MAX_PERSONA_NAME} onChange={e => setName(e.target.value)} placeholder="NOVA" autoComplete="off"/></label>
         <button type="submit" className="nova-btn">Save name</button>
+        {/* Session AM (owner decision O4, ADR-038 D21): renaming is a Premium feature, free during the Alpha and open to
+            everyone. A label and a link to Plans only: there is no gate, and no plan is read before the name is saved. */}
+        <PremiumBadge className="nova-rename-premium"/>
       </form>
       <fieldset className="nova-fieldset"><legend>Avatar</legend><div className="nova-avatar-choices">
         {PERSONA_AVATARS.map(a => <label key={a} className="nova-avatar-choice"><input type="radio" name={`${id}-avatar`} checked={persona.avatar === a} onChange={() => save(r => setPersona(r, {avatar: a}), a === 'zigi' ? 'ZIGi is the face of your assistant now.' : 'The NOVA orb is the face of your assistant now.')}/>

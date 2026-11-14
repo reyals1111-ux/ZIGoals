@@ -13,7 +13,8 @@ import {NOON, frame, freshNova, panel} from './hud-helpers';
  * - M5: the outer band's small panels never cut their own buttons (Tasks' "Add", Focus' Pomodoro, the briefs' link).
  * - M6: each goal's percent on NOVA is the Goals page's.
  * - M7: on the Minimal preset the core's readout is on top, never under the panels.
- * - M8: on a phone the first screen shows the core's readout (the HUD's data) above the command field.
+ * - M8: on a phone the first screen shows the core's readout (the HUD's data) above the command field. Session AM (phone,
+ *   deliberate): the first screen is now the star, its state, the one-tap requests and the command field; the read-outs are not shown.
  */
 test.skip(({isMobile}) => isMobile, 'each case sets the review\'s own viewport (the phone case too); runs in the desktop project');
 test.use({timezoneId: 'Europe/Brussels'});
@@ -150,13 +151,19 @@ test('M6: each goal\'s percent on NOVA is the Goals page\'s (Showcase, 1440)', a
   }
 });
 
-test('M7: on the Minimal preset the core\'s readout is on top, whole above the three panels (Showcase, 1440)', async ({page}) => {
+test('M7: on the Minimal preset the core\'s readout is on top, whole above the three panels (Showcase, 1920; not shown at 1440)', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   await page.clock.install({time: NOON});
   await showcase(page); await openNova(page);
   await preset(page, /^Minimal/);
   await expect(page.locator('.nova-focus-row > .nova-widget')).toHaveCount(3);
   const readout = page.locator('.holo-core-readout');
+  // Session AM (calm stage, deliberate): on a set stage the core's read-outs show only where the stage is wider than
+  // 1240 px (components/nova/holo/holo-parts.css); at 1440 with the left bar open it is 1,164 px, so they are not shown
+  // (and so never under the panels). Where they are shown (1920 × 1080), they are on top and whole above the three panels.
+  await expect(readout).toBeHidden();
+  await page.setViewportSize({width: 1920, height: 1080});
+  await expect(page.locator('.nova-focus-row > .nova-widget')).toHaveCount(3);
   await expect(readout).toBeVisible();
   const covered = await readout.evaluate(ro => { const b = ro.getBoundingClientRect(); return [[b.left + 12, b.top + 6], [b.right - 12, b.top + 6], [b.left + 12, b.bottom - 3], [b.right - 12, b.bottom - 3]].map(([x, y]) => document.elementFromPoint(x!, y!)).filter(h => h && !ro.contains(h) && !ro.closest('.nova-stage')!.contains(h)).map(h => (h as HTMLElement).className); });
   expect(covered, 'nothing lies over the readout').toEqual([]);
@@ -164,14 +171,29 @@ test('M7: on the Minimal preset the core\'s readout is on top, whole above the t
   expect(box.y + box.height, 'the readout ends above the panels').toBeLessThanOrEqual(row.y + 1);
 });
 
-test('M8: a phone\'s first screen shows the HUD\'s data — the core\'s readout above the command field (Showcase, 390 × 844)', async ({page}) => {
+test('M8: a phone\'s first screen is the star, its state, the one-tap requests and the command field; the panels follow under it (Showcase, 390 × 844)', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await page.clock.install({time: NOON});
   await showcase(page); await openNova(page);
   await expect(frame(page)).toHaveAttribute('data-phone', 'true');
-  const readout = (await page.locator('.holo-core-readout').boundingBox())!, foot = (await page.locator('.nova-foot').boundingBox())!;
-  expect(readout.y, 'the readout starts on the first screen').toBeGreaterThanOrEqual(0);
-  expect(readout.y + readout.height, 'the readout is whole above the command field').toBeLessThanOrEqual(foot.y + 1);
+  // Session AM (phone, deliberate): a phone's first screen is the star, its state, the one-tap requests and the command
+  // field; the core's four read-outs are not shown on a phone any more (components/nova/holo/holo-parts.css), and the
+  // app's bottom tab bar gives its row to NOVA. Each of the four is whole on the first screen, the star and its state
+  // above the foot, the requests above the command field.
+  await expect(page.locator('.holo-core-readout')).toBeHidden();
+  await expect(page.locator('.phone-tabbar')).toBeHidden();
+  const foot = (await page.locator('.nova-foot').boundingBox())!;
+  const first: Record<string, {x: number; y: number; width: number; height: number}> = {};
+  for (const sel of ['.nova-orb-button', '.nova-orb-state', '.ns-strip', '.nova-command']) {
+    await expect(page.locator(sel), sel).toBeVisible();
+    const b = (await page.locator(sel).boundingBox())!; first[sel] = b;
+    expect(b.y, `${sel} starts on the first screen`).toBeGreaterThanOrEqual(0);
+    expect(b.y + b.height, `${sel} is whole on the first screen`).toBeLessThanOrEqual(844 + 0.5);
+    expect(b.x, `${sel} left`).toBeGreaterThanOrEqual(0); expect(b.x + b.width, `${sel} right`).toBeLessThanOrEqual(390 + 0.5);
+  }
+  expect(first['.nova-orb-button']!.y + first['.nova-orb-button']!.height, 'the star is above its state').toBeLessThanOrEqual(first['.nova-orb-state']!.y + 1);
+  expect(first['.nova-orb-state']!.y + first['.nova-orb-state']!.height, 'the star\'s state is whole above the foot').toBeLessThanOrEqual(foot.y + 1);
+  expect(first['.ns-strip']!.y + first['.ns-strip']!.height, 'the one-tap requests are above the command field').toBeLessThanOrEqual(first['.nova-command']!.y + 1);
   // The page scrolls as one: the panels follow under the star.
   await page.locator('.nova-centre').evaluate(el => { el.scrollTop = 600; });
   await expect(page.locator('.holo-phone-column .nova-widget').first()).toBeInViewport();

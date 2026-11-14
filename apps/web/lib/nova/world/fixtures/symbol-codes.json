@@ -1,0 +1,254 @@
+{
+ "_fixture": "MET Norway's own list of weather symbols, read on 2026-11-11. `codes`: the WeatherSymbol enum of Locationforecast 2.0's OpenAPI description (https://api.met.no/weatherapi/locationforecast/2.0/swagger), whole and in its order, spelling included (\"lightssnowshowersandthunder\"). `legend`: the symbol ids, English names and whether a symbol has day, night and polar twilight variants, from the legend of MET Norway's weather icons (https://github.com/metno/weathericons, weather/legend.csv); the Weathericon 2.0 pages on api.met.no answered 404 that day.",
+ "codes": [
+  "clearsky_day",
+  "clearsky_night",
+  "clearsky_polartwilight",
+  "fair_day",
+  "fair_night",
+  "fair_polartwilight",
+  "lightssnowshowersandthunder_day",
+  "lightssnowshowersandthunder_night",
+  "lightssnowshowersandthunder_polartwilight",
+  "lightsnowshowers_day",
+  "lightsnowshowers_night",
+  "lightsnowshowers_polartwilight",
+  "heavyrainandthunder",
+  "heavysnowandthunder",
+  "rainandthunder",
+  "heavysleetshowersandthunder_day",
+  "heavysleetshowersandthunder_night",
+  "heavysleetshowersandthunder_polartwilight",
+  "heavysnow",
+  "heavyrainshowers_day",
+  "heavyrainshowers_night",
+  "heavyrainshowers_polartwilight",
+  "lightsleet",
+  "heavyrain",
+  "lightrainshowers_day",
+  "lightrainshowers_night",
+  "lightrainshowers_polartwilight",
+  "heavysleetshowers_day",
+  "heavysleetshowers_night",
+  "heavysleetshowers_polartwilight",
+  "lightsleetshowers_day",
+  "lightsleetshowers_night",
+  "lightsleetshowers_polartwilight",
+  "snow",
+  "heavyrainshowersandthunder_day",
+  "heavyrainshowersandthunder_night",
+  "heavyrainshowersandthunder_polartwilight",
+  "snowshowers_day",
+  "snowshowers_night",
+  "snowshowers_polartwilight",
+  "fog",
+  "snowshowersandthunder_day",
+  "snowshowersandthunder_night",
+  "snowshowersandthunder_polartwilight",
+  "lightsnowandthunder",
+  "heavysleetandthunder",
+  "lightrain",
+  "rainshowersandthunder_day",
+  "rainshowersandthunder_night",
+  "rainshowersandthunder_polartwilight",
+  "rain",
+  "lightsnow",
+  "lightrainshowersandthunder_day",
+  "lightrainshowersandthunder_night",
+  "lightrainshowersandthunder_polartwilight",
+  "heavysleet",
+  "sleetandthunder",
+  "lightrainandthunder",
+  "sleet",
+  "lightssleetshowersandthunder_day",
+  "lightssleetshowersandthunder_night",
+  "lightssleetshowersandthunder_polartwilight",
+  "lightsleetandthunder",
+  "partlycloudy_day",
+  "partlycloudy_night",
+  "partlycloudy_polartwilight",
+  "sleetshowersandthunder_day",
+  "sleetshowersandthunder_night",
+  "sleetshowersandthunder_polartwilight",
+  "rainshowers_day",
+  "rainshowers_night",
+  "rainshowers_polartwilight",
+  "snowandthunder",
+  "sleetshowers_day",
+  "sleetshowers_night",
+  "sleetshowers_polartwilight",
+  "cloudy",
+  "heavysnowshowersandthunder_day",
+  "heavysnowshowersandthunder_night",
+  "heavysnowshowersandthunder_polartwilight",
+  "heavysnowshowers_day",
+  "heavysnowshowers_night",
+  "heavysnowshowers_polartwilight"
+ ],
+ "legend": {
+  "clearsky": {
+   "english": "Clear sky",
+   "variants": true
+  },
+  "fair": {
+   "english": "Fair",
+   "variants": true
+  },
+  "partlycloudy": {
+   "english": "Partly cloudy",
+   "variants": true
+  },
+  "cloudy": {
+   "english": "Cloudy",
+   "variants": false
+  },
+  "lightrainshowers": {
+   "english": "Light rain showers",
+   "variants": true
+  },
+  "rainshowers": {
+   "english": "Rain showers",
+   "variants": true
+  },
+  "heavyrainshowers": {
+   "english": "Heavy rain showers",
+   "variants": true
+  },
+  "lightrainshowersandthunder": {
+   "english": "Light rain showers and thunder",
+   "variants": true
+  },
+  "rainshowersandthunder": {
+   "english": "Rain showers and thunder",
+   "variants": true
+  },
+  "heavyrainshowersandthunder": {
+   "english": "Heavy rain showers and thunder",
+   "variants": true
+  },
+  "lightsleetshowers": {
+   "english": "Light sleet showers",
+   "variants": true
+  },
+  "sleetshowers": {
+   "english": "Sleet showers",
+   "variants": true
+  },
+  "heavysleetshowers": {
+   "english": "Heavy sleet showers",
+   "variants": true
+  },
+  "lightssleetshowersandthunder": {
+   "english": "Light sleet showers and thunder",
+   "variants": true
+  },
+  "sleetshowersandthunder": {
+   "english": "Sleet showers and thunder",
+   "variants": true
+  },
+  "heavysleetshowersandthunder": {
+   "english": "Heavy sleet showers and thunder",
+   "variants": true
+  },
+  "lightsnowshowers": {
+   "english": "Light snow showers",
+   "variants": true
+  },
+  "snowshowers": {
+   "english": "Snow showers",
+   "variants": true
+  },
+  "heavysnowshowers": {
+   "english": "Heavy snow showers",
+   "variants": true
+  },
+  "lightssnowshowersandthunder": {
+   "english": "Light snow showers and thunder",
+   "variants": true
+  },
+  "snowshowersandthunder": {
+   "english": "Snow showers and thunder",
+   "variants": true
+  },
+  "heavysnowshowersandthunder": {
+   "english": "Heavy snow showers and thunder",
+   "variants": true
+  },
+  "lightrain": {
+   "english": "Light rain",
+   "variants": false
+  },
+  "rain": {
+   "english": "Rain",
+   "variants": false
+  },
+  "heavyrain": {
+   "english": "Heavy rain",
+   "variants": false
+  },
+  "lightrainandthunder": {
+   "english": "Light rain and thunder",
+   "variants": false
+  },
+  "rainandthunder": {
+   "english": "Rain and thunder",
+   "variants": false
+  },
+  "heavyrainandthunder": {
+   "english": "Heavy rain and thunder",
+   "variants": false
+  },
+  "lightsleet": {
+   "english": "Light sleet",
+   "variants": false
+  },
+  "sleet": {
+   "english": "Sleet",
+   "variants": false
+  },
+  "heavysleet": {
+   "english": "Heavy sleet",
+   "variants": false
+  },
+  "lightsleetandthunder": {
+   "english": "Light sleet and thunder",
+   "variants": false
+  },
+  "sleetandthunder": {
+   "english": "Sleet and thunder",
+   "variants": false
+  },
+  "heavysleetandthunder": {
+   "english": "Heavy sleet and thunder",
+   "variants": false
+  },
+  "lightsnow": {
+   "english": "Light snow",
+   "variants": false
+  },
+  "snow": {
+   "english": "Snow",
+   "variants": false
+  },
+  "heavysnow": {
+   "english": "Heavy snow",
+   "variants": false
+  },
+  "lightsnowandthunder": {
+   "english": "Light snow and thunder",
+   "variants": false
+  },
+  "snowandthunder": {
+   "english": "Snow and thunder",
+   "variants": false
+  },
+  "heavysnowandthunder": {
+   "english": "Heavy snow and thunder",
+   "variants": false
+  },
+  "fog": {
+   "english": "Fog",
+   "variants": false
+  }
+ }
+}

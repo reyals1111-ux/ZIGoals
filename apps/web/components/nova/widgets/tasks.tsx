@@ -28,7 +28,7 @@ export default function TasksWidget({size}: {size: WidgetSize}) {
   // shortcuts then took the next letter typed).
   return <div className="tasks-widget" data-size={size}>
     {view.state === 'empty'
-      ? <NovaEmpty pillar="goals">Your list starts here. {size === 'S' ? 'Add a task for today, or give a goal its next action.' : 'Add one for today below, or give a goal its next action on its page.'}</NovaEmpty>
+      ? <NovaEmpty pillar="goals" ghost="rows">Your list starts here. {size === 'S' ? 'Add a task for today, or give a goal its next action.' : 'Add one for today below, or give a goal its next action on its page.'}</NovaEmpty>
       : <>
         <p className="nova-line">{tasksHeadline(view)}</p>
         {view.today.length > 0 && <ul className="tasks-list" aria-label="Today’s tasks">{view.today.map(row)}</ul>}

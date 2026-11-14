@@ -218,7 +218,11 @@ async function restorePart(part: PlannedPart, mode: Exclude<RestoreMode, 'leave'
       // (the preview promises this; the modules' own path already does it), so its bytes outlive the Undo.
       // An erase keeps none (SB-1): its Undo record holds these bytes, for its 7 days only.
       const copy = unreadable && before !== null && !session.erase ? `${part.key}:recovery:${crypto.randomUUID()}` : null;
-      try { if (copy) storage.setItem(copy, before!); storage.setItem(part.key, JSON.stringify(next.value)); }
+      // Security review AM-S9: what stays this device's own (the weather switch) is read from the record as stored, not
+      // through the restore's reader, and put back on the value about to be written.
+      let value = next.value;
+      if (part.kind === 'device' && part.local && before !== null) { try { value = part.local(JSON.parse(before), value); } catch { /* an unreadable copy keeps nothing */ } }
+      try { if (copy) storage.setItem(copy, before!); storage.setItem(part.key, JSON.stringify(value)); }
       catch { if (copy && storage.getItem(part.key) === before) try { storage.removeItem(copy); } catch { /* an extra copy is harmless */ } throw Error('This browser’s storage is full, so this part was not restored.'); }
       session.steps.push({kind: 'device', key: part.key, label: part.label, before, after: await sha256(storage.getItem(part.key)!)});
       announceDevice(part.key);

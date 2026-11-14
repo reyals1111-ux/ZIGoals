@@ -4,6 +4,7 @@ import {createHabit, emptyHabitData, HABITS_KEY} from '../../lib/habits';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../../lib/ai/settings';
 import {NOVA_SETUP_KEY} from '../../lib/nova/setup';
 import {TASKS_KEY} from '../../lib/tasks/schema';
+import {openNovaConversation} from '../nova-am';
 
 /**
  * Session AK, lane WB (WIRING_AUDIT_2.md N10 + N11): journey 12, NOVA from a fresh start. A person who has one habit and
@@ -61,10 +62,15 @@ const replies = (page: Page) => chat(page).locator('.nova-turn-assistant');
 /** A message to NOVA: the command field opens the chat; once open, its own box. Returns the new answer. */
 async function ask(page: Page, text: string) {
   const open = await chat(page).isVisible();
-  const before = open ? await replies(page).count() : 0;
+  // Session AM (D7, deliberate): on a computer the conversation is in the page while it is closed (mounted, hidden), so its
+  // replies are counted whether it is open or not, and words sent from the command field no longer always open it: a
+  // request the stage has a widget for is answered under the star, and the person opens the conversation from there.
+  await expect(chat(page)).toBeAttached();
+  const before = await replies(page).count();
   const box = open ? chat(page).getByRole('textbox', {name: /^Message /}) : page.getByRole('textbox', {name: 'Message NOVA'}).first();
   await expect(async () => { await box.fill(text); await expect(box).toHaveValue(text, {timeout: 1_000}); }).toPass({timeout: 15_000});
   await box.press('Enter');
+  if (!open) await openNovaConversation(page);
   await expect(replies(page)).toHaveCount(before + 1, {timeout: 20_000});
   return replies(page).last();
 }

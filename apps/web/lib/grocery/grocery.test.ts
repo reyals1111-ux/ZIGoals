@@ -74,7 +74,9 @@ describe('4.6 ticks survive a rebuilt plan; the pantry leaves the list', () => {
     expect(GROCERY_KEY).toBe('zigoals:grocery:v1');
     expect(groceryRecordSchema.parse({version: 1, later: true})).toMatchObject({later: true});
     expect(groceryName('Crème  fraîche!')).toBe('creme fraiche');
-  });
+  // Session AM (CI 1652; 6.6 s here under load): 2,003 writes, each read back whole, take 3.4 s alone and passed the 5 s limit on a busy
+  // runner; the assertions are unchanged, only the time allowed.
+  }, 30_000);
 });
 
 test('4.6 often logged: three or more times in 28 days, not on the list or in the pantry', () => {

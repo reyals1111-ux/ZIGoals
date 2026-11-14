@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openNovaConversation} from '../../nova-am';
 import {defaultAiSettings} from '../../../lib/ai/settings';
 import {NOVA_HERMES_KEY} from '../../../lib/nova/hermes-record';
 import {NOVA_SETUP_KEY} from '../../../lib/nova/setup';
@@ -59,6 +60,10 @@ test('DV-070: a fast-typed question in NOVA’s field arrives whole (needs L8: t
   await field.click();
   await page.keyboard.type('How far am I on my goals?', {delay: 15});
   await page.keyboard.press('Enter');
+  // Session AM (D7, deliberate): Enter in the dashboard field no longer always opens the conversation (words the stage
+  // has a widget for are answered under the star); it is opened as a person would, from the answer's button when it did
+  // not open by itself, and is then read exactly as before.
+  await openNovaConversation(page);
   await expect(nova(page)).toBeVisible({timeout: 15_000});
   await expect(nova(page)).toContainText('How far am I on my goals?', {timeout: 15_000});
   await expect(nova(page).locator('.nova-turn').filter({hasText: /^far am I/})).toHaveCount(0);

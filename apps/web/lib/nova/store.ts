@@ -10,7 +10,9 @@ import {presetWidgets} from './layout';
  * `zigoals:nova-bridge:v1`, lib/nova/bridge.ts.)
  *
  * A loose object, version 1, every field optional (an absent field reads as its default through the helpers below), every
- * list bounded. Device-only: never synced; in Export everything, restore and erase through the lead's registries. No key,
+ * list bounded. Session AM (ADR-038 D18): the layout and the arranged widgets travel in the encrypted `nova` extras
+ * section, by allow-list (lib/vault/extras-nova.ts); every other field stays on this device, and a field added here
+ * stays on the device too until it is named there. In Export everything, restore and erase through the lead's registries. No key,
  * token, health figure or amount is ever stored here. Reads are tolerant: an enum value a later build adds reads as the
  * default (`.catch`), so an older build shows its own default instead of dropping the whole record.
  */
@@ -32,8 +34,12 @@ export const LEFT_STATES = ['open', 'rail', 'hidden'] as const;
 export type LeftState = (typeof LEFT_STATES)[number];
 export const RIGHT_STATES = ['open', 'hidden'] as const;
 export type RightState = (typeof RIGHT_STATES)[number];
-/** The right panel's numbered sections ("Behind the intelligence"). */
-export const RIGHT_SECTIONS = ['brains', 'voice', 'tools', 'usage', 'memory', 'activity'] as const;
+/**
+ * The right panel's sections ("Behind the intelligence"): the six numbered ones, then (Session AM, added at the end so a
+ * `folded` list stored by an older build reads as it did) what was asked, what is on the stage and the stage's choices,
+ * which show above them.
+ */
+export const RIGHT_SECTIONS = ['brains', 'voice', 'tools', 'usage', 'memory', 'activity', 'requests', 'stage', 'choices'] as const;
 export type RightSection = (typeof RIGHT_SECTIONS)[number];
 export const DEFAULT_PERSONA_NAME = 'NOVA';
 /** A widget or dock id: lowercase words joined by hyphens (an id a later build adds is kept and simply not shown). */
@@ -114,17 +120,22 @@ export function panelsOf(r: NovaRecord, width: number): {left: LeftState; right:
 /** The left panel's next state for its button: open → rail → hidden → open. */
 export const nextLeft = (state: LeftState): LeftState => state === 'open' ? 'rail' : state === 'rail' ? 'hidden' : 'open';
 
-/** The widgets a fresh NOVA starts with: the day first, then health, then money and goals. */
+/**
+ * AK's first eight widgets (the day first, then health, then money and goals). Session AM (ADR-038 D2): no longer what a
+ * NOVA without its own arrangement shows — the stage starts calm and widgets are made on request; the list stays as the
+ * "Everyday" set a person can put on the stage in one tap, and for the tests that arrange it.
+ */
 export const DEFAULT_WIDGETS: readonly NovaWidget[] = [
   {id: 'orbit', size: 'M', slot: 0}, {id: 'next', size: 'M', slot: 1}, {id: 'glance', size: 'M', slot: 2}, {id: 'water', size: 'S', slot: 3},
   {id: 'goal-pace', size: 'M', slot: 4}, {id: 'money', size: 'M', slot: 5}, {id: 'sleep', size: 'S', slot: 6}, {id: 'now-playing', size: 'S', slot: 7},
 ];
 /**
- * The widgets to show, in orbit order: the stored list (or the defaults when the person never arranged any), only ids
- * `known` accepts, each once, renumbered 0, 1, 2… so places never have gaps.
+ * The arranged (pinned) widgets, in orbit order: the stored list, only ids `known` accepts, each once, renumbered
+ * 0, 1, 2… so places never have gaps. Session AM (D2, deliberate): a record without a list has none (it used to read
+ * as AK's eight defaults); the widgets NOVA makes on request live in the stage record (lib/nova/stage/record.ts).
  */
 export function widgetsFor(r: NovaRecord, known: (id: string) => boolean = () => true): NovaWidget[] {
-  const list = r.widgets ?? DEFAULT_WIDGETS, seen = new Set<string>();
+  const list = r.widgets ?? [], seen = new Set<string>();
   return [...list].map((w, i) => ({w, i})).sort((a, b) => a.w.slot - b.w.slot || a.i - b.i)
     .filter(({w}) => { if (!known(w.id) || seen.has(w.id)) return false; seen.add(w.id); return true; })
     .map(({w}, slot) => ({id: w.id, size: w.size, slot}));
@@ -183,8 +194,8 @@ export const setShortcuts = (r: NovaRecord, on: boolean): NovaRecord => novaReco
  */
 export const isBrandNew = (r: NovaRecord): boolean => Object.keys(r).every(k => k === 'version');
 export const FIRST_WIDGETS = (): NovaWidget[] => presetWidgets('command');
-export const markOpeningSeen = (r: NovaRecord): NovaRecord => r.openingSeen ? r
-  : novaRecordSchema.parse({...r, openingSeen: true, ...(isBrandNew(r) ? {widgets: FIRST_WIDGETS()} : {})});
+/** Session AM (D2, deliberate): seeing the opening no longer arranges the Command preset on a brand-new NOVA; the stage starts calm. */
+export const markOpeningSeen = (r: NovaRecord): NovaRecord => r.openingSeen ? r : novaRecordSchema.parse({...r, openingSeen: true});
 /** The persona; a name is trimmed and its inner spaces folded (a blank name means "NOVA" again). */
 export function setPersona(r: NovaRecord, change: Partial<Persona>): NovaRecord {
   const persona = {...r.persona};

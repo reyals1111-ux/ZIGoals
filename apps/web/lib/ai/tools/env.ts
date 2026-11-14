@@ -28,6 +28,7 @@ import type {HealthCoach} from '../../health-aa/coach-schema';
 import type {AkToolSources} from './ak-tools';
 import type {NovaToolSources} from './nova-tools';
 
+import type {StageInfo} from './nova-stage';
 /**
  * The records a tool may read for one reply, built once from the gates (Session V Part 2). `health` and `fasting` are
  * null whenever the Health gate is closed for this purpose (sending to the person's AI, or answering on the device), so
@@ -98,6 +99,8 @@ export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
    * and NOVA with Today on): every tool of an open area runs, as before.
    */
   todayTools?: ReadonlySet<string>;
+  /** Session AM (ADR-038 A4): NOVA's stage, set on NOVA's own environment only (lib/ai/tools/nova-stage.ts). Absent: no stage tool runs. */
+  stage?: StageInfo;
 };
 /** `purpose`: 'provider' when the result may leave the device (the person's AI, a browser agent, the hosted relay), 'local' when it is shown here only. */
 export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' | 'local', handles = new Handles(), limits = {rows: ROWS_DEFAULT, chars: CHARS_DEFAULT}): ToolEnv {

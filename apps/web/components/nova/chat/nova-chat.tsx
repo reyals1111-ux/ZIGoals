@@ -45,6 +45,7 @@ import {buildNovaPack, DEFAULT_NOVA_SCOPES, whatNovaCanSee} from '../../../lib/a
 import {hermesAgent, novaPackInput} from '../../../lib/nova/bridge-pack';
 import {NOVA_HERMES} from '../../../lib/nova/hermes-record';
 import {useChainChoice} from '../../chain/use-chain-choice';
+import {stageGatesOf} from '../stage/stage-gates';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useProposals} from '../../ai/use-proposals';
 import {useSensitiveScreen} from '../../ai/use-sensitive-screen';
@@ -56,6 +57,13 @@ import {DONT_KEEP_LABEL, UnkeptBanner, UnkeptOffer} from '../../ai/unkept-chat';
 import {downloadChat, NovaConversations} from './nova-conversations';
 import {AgentGlyph, PersonaFigure} from './nova-figure';
 import {NovaReplyTurn, NovaUserTurn, type TurnCommon} from './nova-turns';
+import {useSummoner, type StageBridge} from '../stage/use-summoner';
+import {engineLook} from '../../../lib/nova/summon/engine-look';
+import {seesCount} from '../../../lib/nova/summon/lines';
+import {previousQuestion} from '../../../lib/ai/local-answers/followup';
+import {WIDGETS} from '../../../lib/nova/widgets/catalog';
+import {forgetStageAsksOfChats} from '../../../lib/nova/stage/record';
+import {stageWeather} from '../../../lib/nova/world/stage-weather';
 import '../../ai/ai.css';
 import '../../ai/chat-polish.css';
 import '../../ai/safe-text.css';
@@ -84,14 +92,16 @@ export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
  */
 export type NovaChatProps = {layout: 'panel' | 'side' | 'sheet'; onOrbState?: (state: OrbState) => void; onClose?: () => void; collapsed?: boolean; onCollapse?: () => void;
   /** Session AK lane EXF (EX-2): the composer takes the focus when the chat opens (the field that opened it is gone). */
-  focusOnOpen?: boolean};
+  focusOnOpen?: boolean;
+  /** Session AM (ADR-038 D6, D7): NOVA's stage — a request makes its widgets there and the newest reply shows under the star. */
+  stage?: StageBridge};
 export const NOVA_SETUP_HREF = '/app/nova/setup';
 const SETTINGS_HREF = '/app/settings#your-ai';
 /** NOVA's own messages read the day: Today's records and specialist. */
 const NOVA_AREA: PageArea = 'today';
 const NOVA_INSTRUCTIONS_MAX = 2000;
 type Delegation = {before: ReadonlySet<string>; area: PageArea; chatId: string; done: boolean; agent: NovaAgentId};
-export function NovaChat({layout, onOrbState, onClose, collapsed = false, onCollapse, focusOnOpen = false}: NovaChatProps) {
+export function NovaChat({layout, onOrbState, onClose, collapsed = false, onCollapse, focusOnOpen = false, stage}: NovaChatProps) {
   const settings = useAiSettings(), scope = currentAiScope(), sensitive = useSensitiveScreen(), router = useRouter();
   const novaRecord = useDeviceRecord(NOVA_STORE), persona = personaOf(novaRecord.data), instructions = instructionsOf(novaRecord.data);
   // NOVA's own standing instructions join the person's ZIGi instructions for NOVA's messages (inside the same data marks).
@@ -103,6 +113,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const hermesRecord = useDeviceRecord(NOVA_HERMES), hermes = useMemo(() => hermesAgent(hermesRecord.data, scope), [hermesRecord.data, scope]);
   const chainChosen = useChainChoice().chosen;
   const contextRef = useRef(context), hermesRef = useRef(hermes), dataRef = useRef(data), chainRef = useRef(chainChosen);
+  const stageRef = useRef(stage); useEffect(() => { stageRef.current = stage; }, [stage]);
   useEffect(() => { contextRef.current = context; dataRef.current = data; chainRef.current = chainChosen; }, [context, data, chainChosen]);
   useEffect(() => { hermesRef.current = hermes; }, [hermes]);
   /** NOVA's pack input at this moment (lane NE): the same input for the send and for "What NOVA can see". */
@@ -110,7 +121,14 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const nova = useMemo<NovaSurface>(() => ({
     persona: persona.name,
     // Built at the moment of each send, from the records of that moment, under this page's gates and NOVA's scopes.
-    novaPack: (question?: string) => { const input = packInput(); return input ? buildNovaPack({...input, ...(question ? {question} : {})}) : null; },
+    novaPack: (question?: string) => {
+      const input = packInput(); if (!input) return null;
+      const pack = buildNovaPack({...input, ...(question ? {question} : {})});
+      // Session AM (A4): on a computer NOVA's own model may ask the stage for a widget and read the weather this device holds.
+      const st = stageRef.current;
+      if (st && st.device === 'computer') { try { pack.env.stage = {kinds: WIDGETS.map(w => w.id).filter(id => st.available(id)), weather: stageWeather(getAppStorage())}; } catch { /* no stage tools for this message */ } }
+      return pack;
+    },
     // Security review Z1A-4: a task for ZIGi or Hermes meets NOVA → Permissions too (Health off by default), read at the send.
     pack: area => pagePack({area, sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}}),
     taskEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),
@@ -119,7 +137,8 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     moreEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),
     localEnv: () => novaLocalEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}),
     remember: chatId => { rememberNovaChat(getAppStorage(), chatId); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); },
-    forget: chatId => { forgetNovaChats(getAppStorage(), [chatId]); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); }, // G1 #20
+    forget: chatId => { forgetNovaChats(getAppStorage(), [chatId]); forgetStageAsksOfChats(getAppStorage(), [chatId]); // AM-S8: its requests leave the stage record too
+      window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); }, // G1 #20
     agent: name => name === 'hermes' ? hermesRef.current : null,
   }), [persona.name, packInput]);
   /** R2-2: NOVA's on-device environment from this render's records (the welcome's questions, /brief and /log). */
@@ -132,6 +151,12 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   // Session AL fifth pass (BN-047, LA-032): Health is read by NOVA only with NOVA → Permissions → Health AND this device's
   // Health gate; otherwise a Health card or a Quick add line says, in NOVA's name, that saving still saves to Health.
   const novaHealthOff = !(scopesNow.health && context.gates.localHealth);
+  // Session AM (D5): what a made widget may read — the same switches NOVA's on-device answers read under (Q14, Q16).
+  const setStageGates = stage?.setGates, stageAttention = stage?.attention;
+  useEffect(() => {
+    if (!setStageGates) return;
+    setStageGates(stageGatesOf(sensitive ? null : localEnvNow(), sensitive, scopesNow)); // the one rule, also read without the conversation (AM-S2, AM-S12)
+  }, [setStageGates, localEnvNow, sensitive, scopesNow]);
   const session = useChatSession({settings: data, scope, context, nova}), runner = useProposals({surface: 'nova', healthShared: context.gates.localHealth, healthOff: novaHealthOff}), autoAccept = useAutoAccept(context.gates.health);
   // G1 #20: a task handed over in a chat that is not kept is marked in memory only (`unkeptMarks`), never in the bridge record.
   const [unkeptMarks, setUnkeptMarks] = useState<Record<string, DelegatedTurn>>({});
@@ -162,9 +187,29 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   }, [focusOnOpen]);
 
   // ---- Sending ----
-  const ask = useCallback((text: string, options: SendOptions = {}) => { void session.ask(text, {area: NOVA_AREA, ...options}); }, [session]);
   const [seeing, setSeeing] = useState<string | null>(null);
   const say = session.say;
+  // Session AM (D4–D7): which widgets a request makes on NOVA's stage (components/nova/stage/use-summoner.ts).
+  const stageGoals = useCallback(() => { try { return (contextRef.current.toolSources()?.platform?.goals ?? []).map(g => ({id: g.id, name: g.name})); } catch { return []; } }, []);
+  // Design review AM-D2: the stage's words are each made widget's one-line figure summary, from the records the engine read
+  // for this moment (the summoner holds each line back by its widget's own switch); and the engine comes first: the stage
+  // answers by itself only what the on-device engine has no answer of its own for (lib/nova/summon/engine-look.ts).
+  const stageSources = useCallback(() => { try { return contextRef.current.toolSources(); } catch { return null; } }, []);
+  const stageFacts = useRef<{brain: {kind: string; words: string} | null; scopes: Readonly<Record<string, boolean>>; share: typeof data.pageShare; includeHealth: boolean}>({brain: null, scopes: scopesNow, share: data.pageShare, includeHealth: data.includeHealth});
+  const stageExtras = useCallback(() => {
+    const f = stageFacts.current; let weather = false;
+    try { weather = stageWeather(getAppStorage()).on; } catch { weather = false; }
+    return {brain: f.brain, sees: seesCount(f.scopes, f.share, f.includeHealth, weather)};
+  }, []);
+  const askedBefore = session.chat.turns;
+  const stageEngine = useCallback((text: string) => {
+    const c = contextRef.current, brain = stageFacts.current.brain;
+    let env = null;
+    try { env = novaLocalEnv({sources: c.toolSources(), gates: c.gates, scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}); } catch { env = null; }
+    return engineLook(text, env, {previous: previousQuestion([...askedBefore].reverse().filter(t => t.role === 'user').map(t => t.text)), model: connected || (!!brain && brain.kind !== 'none')});
+  }, [askedBefore, connected]);
+  const summon = useSummoner({bridge: stage, session, say, goals: stageGoals, lookupsFor: session.lookupsFor, sources: stageSources, extras: stageExtras, engine: stageEngine});
+  const ask = useCallback((text: string, options: SendOptions = {}) => { if (!options.zigi && !options.agent) summon.note(text); void session.ask(text, {area: NOVA_AREA, ...options}); }, [session, summon]);
   /** The commands NOVA takes as ZIGi does; the views that live in ZIGi's panel are named there. */
   const command = useCallback((typed: string): boolean => {
     const parsed = parseSlash(typed); if (!parsed) return false;
@@ -207,8 +252,10 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     const mark = replace ? marks[replace] : undefined;
     if (mark?.role === 'task') { void runDelegation(text, mark.area, replace, mark.agent ?? 'zigi'); return; }
     if (!replace && command(text)) return;
+    // Session AM (D7): a stage command or a plain "show me …" is answered on the stage itself, on this device.
+    if (!replace && !pasted && summon.direct(text)) return;
     ask(text, {...(replace ? {replace} : {}), ...(pasted ? {pasted: true} : {})});
-  }, [ask, command, marks, runDelegation]);
+  }, [ask, command, marks, runDelegation, summon]);
   const retry = useCallback(() => {
     if (busy) return;
     const last = lastQuestion(session.chat), mark = last ? marks[last.id] : undefined;
@@ -293,6 +340,9 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     return () => window.removeEventListener(NOVA_HANDOFF_EVENT, on);
   }, [ready]);
 
+  // Session AM (D7): while the conversation is folded into the stage, anything that needs the person opens it.
+  const needsPerson = !!(session.failure || session.confirmation || session.spendCheck);
+  useEffect(() => { if (needsPerson && collapsed) stageAttention?.(); }, [needsPerson, collapsed, stageAttention]);
   // ---- The orb, the announcements, reading aloud ----
   const orb: OrbState = listening ? 'listening' : reader.speaking || session.status === 'streaming' ? 'speaking' : session.status === 'pending' ? 'thinking' : 'idle';
   useEffect(() => { onOrbState?.(orb); }, [orb, onOrbState]);
@@ -324,7 +374,9 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const examples = useMemo(() => examplesFor(sensitive ? null : localEnvNow(), 3), [localEnvNow, sensitive]);
   // Session AK P4 (FIRST_RUN_REVIEW FR-22): the first reply from the person's own local model (never Hermes, never an Ollama
   // cloud model) is marked once per device, and planet 4 lights with it (lib/nova/setup.ts noteFirstLocalReply).
-  const {brain: novaBrain} = useBrain(), firstLocalReply = setupRec.loaded && !setupRec.unreadable ? setupRec.data.firstLocalReply ?? null : null;
+  const {brain: novaBrain, loaded: brainLoaded} = useBrain();
+  useEffect(() => { stageFacts.current = {brain: brainLoaded ? novaBrain : null, scopes: scopesNow, share: data.pageShare, includeHealth: data.includeHealth}; }, [brainLoaded, novaBrain, scopesNow, data.pageShare, data.includeHealth]);
+  const firstLocalReply = setupRec.loaded && !setupRec.unreadable ? setupRec.data.firstLocalReply ?? null : null;
   useEffect(() => {
     const t = lastAssistant;
     if (!t || busy || !setupRec.loaded || setupRec.unreadable || setupRec.data.firstLocalReply || marks[t.id]) return;
@@ -340,6 +392,8 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => { const leave = onCollapse ?? onClose; if (event.key === 'Escape' && leave && !event.defaultPrevented) { event.preventDefault(); leave(); } };
 
   return <section className={`nova-chat nova-chat-${layout}`} aria-labelledby={titleId} hidden={collapsed} data-collapsed={collapsed ? '' : undefined} onKeyDown={onKeyDown} onPointerDown={() => { if (reader.speaking) reader.stop(); }}>
+    {/* Session AM-2: the console's inner hairline with its corner marks (decoration; nova.css `.sh-inner`). */}
+    <span className="sh-inner" aria-hidden="true"/>
     <header className="nova-chat-head">
       <PersonaFigure persona={persona} size={layout === 'sheet' ? 34 : 44} state={orb}/>
       <div className="nova-chat-identity">

@@ -15,7 +15,7 @@ export default function WaterWidget() {
   try { sum = waterToday(health.data); } catch { return <NovaUnread what="Today’s water"/>; }
   const unit = sum.unit;
   const share = shareOf(sum.millilitres, sum.targetMl);
-  if (!sum.entries && !sum.targetMl) return <NovaEmpty pillar="health" href="/app/health#water" action="Log a glass">No water logged today yet. One tap on Health adds a glass.</NovaEmpty>;
+  if (!sum.entries && !sum.targetMl) return <NovaEmpty pillar="health" ghost="bars" href="/app/health#water" action="Log a glass">No water logged today yet. One tap on Health adds a glass.</NovaEmpty>;
   return <div className="nova-water">
     {/* Review M5 (lane L8d): nothing logged today is "—", not "0 mL" (unknown is not zero; the HUD's panels say the same). */}
     <p className="nova-big"><span className="nova-figure">{sum.entries ? waterAmount(sum.millilitres, unit) : '—'}</span>{sum.targetMl ? <small> of {waterAmount(sum.targetMl, unit)}</small> : null}</p>

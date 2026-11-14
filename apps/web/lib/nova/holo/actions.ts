@@ -18,6 +18,11 @@ const BY_WIDGET: Readonly<Record<string, readonly QuickAction[]>> = {
   'goals-hud': ['goal', 'task'], 'goal-pace': ['goal', 'task'], tasks: ['task', 'focus'], 'agenda-clock': ['task', 'habit'],
   'wealth-hud': ['goal'], money: ['goal'], markets: ['goal'],
   notes: ['note', 'task'], glance: ['water', 'habit', 'task'], briefs: ['note'], 'now-playing': ['focus'],
+  // Session AM (ADR-038): the widgets NOVA makes on request carry the actions of their part of life (a money widget only
+  // ever opens a goal's own contribution form; nothing financial is written by one tap).
+  weight: ['weight', 'water'], steps: ['habit', 'water'], workouts: ['habit', 'task'], 'habit-week': ['habit', 'focus'], 'goal-focus': ['goal', 'task'],
+  'net-worth': ['goal'], spending: ['goal'], budgets: ['goal'], bills: ['task'], journal: ['note'], time: ['focus', 'task'], weather: ['task'], sun: ['task'],
+  'nova-sees': ['note'], 'nova-brain': ['note'], requests: ['note', 'task'],
 };
 /** A panel's quick actions, in order (every panel has at least one). */
 export const quickActionsFor = (widget: string): readonly QuickAction[] => BY_WIDGET[widget] ?? ['task'];
