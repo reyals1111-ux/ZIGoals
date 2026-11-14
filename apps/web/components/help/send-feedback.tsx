@@ -16,7 +16,7 @@ const motionOff = () => { try { return localStorage.getItem(MOTION_PREFERENCE_KE
 export function SendFeedback() {
   const [add, setAdd] = useState(false), [details, setDetails] = useState<string | null>(null), [copied, setCopied] = useState(''), id = useId();
   // Session AP (friends Alpha): the same previewed block can be copied, for a message in another app or a form.
-  const copy = () => { const text = (details ?? '').trim(); if (!text) { setCopied('There is nothing to copy: the details are empty.'); return; } if (!navigator.clipboard) { setCopied('This browser did not allow copying. Select the text above and copy it yourself.'); return; } void navigator.clipboard.writeText(text).then(() => setCopied('Copied. Paste it wherever you write to us.'), () => setCopied('This browser did not allow copying. Select the text above and copy it yourself.')); };
+  const copy = () => { const text = (details ?? '').trim(), no = () => setCopied('This browser did not allow copying. Select the text and copy it yourself.'); if (!text) setCopied('There is nothing to copy: the details are empty.'); else if (!navigator.clipboard) no(); else void navigator.clipboard.writeText(text).then(() => setCopied('Copied. Paste it wherever you write to us.'), no); };
   const toggle = (on: boolean) => { setAdd(on); if (on && details === null) setDetails(deviceDetails(readFeedbackEnvironment(motionOff()))); };
   return <div className="send-feedback">
     <p>Something confusing, broken or missing? We&rsquo;d love to hear it.</p>
