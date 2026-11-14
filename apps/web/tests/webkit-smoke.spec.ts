@@ -107,6 +107,8 @@ test('reduced motion in WebKit: ZIGi keeps its still, never a clip', async ({pag
   await page.goto('/app');
   // Session AL (owner decision O3, deliberate): below 901 px ZIGi's figure is the "Apps & extras" sheet's (was: the launcher's).
   const compact = page.viewportSize()!.width < 901;
+  // Session AP (CI 1745): pressed once the page is live (a press before hydration is lost, as in earn-dock).
+  await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
   if (compact) await page.getByTestId('apps-extras-button').click();
   const img = compact ? page.getByRole('dialog', {name: 'Apps & extras'}).locator('.apps-extras-zigi img') : page.locator('.ai-launcher-button img').first();
   await expect(img).toBeVisible();
