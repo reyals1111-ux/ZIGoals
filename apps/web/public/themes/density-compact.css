@@ -1063,7 +1063,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/bento/bento.css  */
 @media (min-width: 901px) { :where(:root[data-density=compact]) .bento-switch:not(#\-) { row-gap: 0; padding-top: 0; padding-bottom: 0; } }
 @media (min-width: 901px) { :where(:root[data-density=compact]) .bento-switch button:not(#\-) { padding-top: 0; padding-bottom: 0; } }
-@media (min-width: 901px) { :root:where([data-density=compact])[data-bento=today] :has(> [data-layout-region="today:main"]):not(#\-), :root:where([data-density=compact])[data-bento=goals] :has(> [data-layout-region="goals:body"]):not(#\-), :root:where([data-density=compact])[data-bento=habits] :has(> [data-layout-region="habits:body"]):not(#\-), :root:where([data-density=compact])[data-bento=health] :has(> [data-layout-region="health:body"]):not(#\-), :root:where([data-density=compact])[data-bento=wealth] :has(> [data-layout-region="wealth:body"]):not(#\-) { row-gap: 20px; } }
+@media (min-width: 901px) { :root:where([data-density=compact])[data-bento] [data-bento-grid]:not(#\-) { row-gap: 20px; } }
 @media (min-width: 901px) { :root:where([data-density=compact])[data-bento] :is([data-layout-region="today:main"], [data-layout-region="goals:body"], [data-layout-region="habits:body"], [data-layout-region="health:body"], [data-layout-region="wealth:body"]):not(#\-) { margin-top: 0; margin-bottom: 0; } }
 /*  components/bottom-sections.css  */
 :where(:root[data-density=compact]) .bottom-section:not(#\-) { row-gap: 13.5px; margin-top: 6px; padding-top: clamp(22px,3vw,34px); padding-bottom: clamp(22px,3vw,34px); }
