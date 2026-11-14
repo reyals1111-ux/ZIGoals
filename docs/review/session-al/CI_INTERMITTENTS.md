@@ -156,3 +156,5 @@ checks.`" (ADR-017 S64, AF16). `webkit-smoke` and `webkit-phone` filter exactly 
 | `checklist-launcher:66` (second failure, CI 1743) | Not an intermittent: the shared Settings helper's settle wait outlasted the mark's one-time draw | Spec visits the page plainly (12/12 + 65 with ui-design-pass locally) |
 | `ui-design-pass:106` (desktop, CI 1743) | Ten pages × 1.9 s sweep plus the groups opening passed the 45 s limit | `test.setTimeout(90_000)`; no check changed |
 | `grok53/hud/hud-perf:23` (fenced, CI 1743) | First sighting: median frame 33.2 ms at CPU 4× on that runner (green in CI 1741) | Recorded; one re-run if it recurs on the final head |
+| `zigi-tools:126` (WebKit phone, shard 3/4, CI 1745) | First sighting: the Apps & extras sheet never opened; the shard's dmesg shows a WPEWebKit compositor segfault (class B) | One re-run |
+| `grok53/shell/o3-apps-extras:80` (mobile, shard 9, CI 1745) | First sighting: a row read 43.999996 px while the sheet's opening transform finished (the rows are 44 px fixed; green in 1741) | One re-run |
