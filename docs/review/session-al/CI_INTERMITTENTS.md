@@ -153,3 +153,6 @@ checks.`" (ADR-017 S64, AF16). `webkit-smoke` and `webkit-phone` filter exactly 
 | `zigi-memory:175` (WebKit desktop, shard 2/4, CI 1741) | First sighting; the shard's dmesg shows a WPEWebKit compositor segfault (class B, as in AK–AO); passes on Chromium | One re-run |
 | `checklist-launcher:66` (desktop, shard 1, CI 1741) | First sighting; the mark's one-time draw read under load; passes 12/12 locally (`--repeat-each=4`) | One re-run |
 | `ap-hour-grid:45` (desktop, shard 1, CI 1741 attempt 2) | The drop row was below the fold during the drag | Spec brings it into view, repeats the gesture only until the task shows (8/8 locally) |
+| `checklist-launcher:66` (second failure, CI 1743) | Not an intermittent: the shared Settings helper's settle wait outlasted the mark's one-time draw | Spec visits the page plainly (12/12 + 65 with ui-design-pass locally) |
+| `ui-design-pass:106` (desktop, CI 1743) | Ten pages × 1.9 s sweep plus the groups opening passed the 45 s limit | `test.setTimeout(90_000)`; no check changed |
+| `grok53/hud/hud-perf:23` (fenced, CI 1743) | First sighting: median frame 33.2 ms at CPU 4× on that runner (green in CI 1741) | Recorded; one re-run if it recurs on the final head |

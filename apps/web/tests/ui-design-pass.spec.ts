@@ -104,6 +104,7 @@ test.describe('Part 18.6: quick counters as thin rows',()=>{
 test.describe('Part 18.5: one white→nebula style for titles and topics',()=>{
  const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
  test('every page title and page eyebrow reads white on the left and turns nebula from the middle, from one shared utility',async({page})=>{
+  test.setTimeout(90_000); // Session AP (CI 1743): ten pages, each read after its 1.9 s sweep, plus Settings' groups opening
   await showcase(page);
   for(const path of PAGES){
    await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();await page.waitForTimeout(1900);

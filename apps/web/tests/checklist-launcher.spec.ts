@@ -60,7 +60,9 @@ test('between Music and ZIGi, one column, the twins’ circle; tucked and switch
 const firstVisit = async (page: Page) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  await openSettings(page);
+  // Session AP (CI 1741/1743): a plain visit; the shared Settings helper opens Settings' groups and waits for them to settle,
+  // so the one-time draw of the mark had ended before it was looked for. Nothing here needs a Settings group.
+  await page.goto('/app/settings');
   await expect(page.locator('.checklist-launcher')).toBeVisible();
 };
 test('the mark’s check draws once per visit', async ({page}, info) => {
