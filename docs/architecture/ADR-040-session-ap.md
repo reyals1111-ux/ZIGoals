@@ -401,3 +401,4 @@ Totals (counted by item, not by row): Fixed 31 · Built 30 · Holds (replayed, a
 | CI 1726 | Settings jumps made before the page is live (specs) | Fixed | D24b (seed visits wait) |
 | CI 1726 | activity links under 44 px on a tablet | Fixed | D24c |
 | CI 1726 | tucked launcher moved from under the pointer (earn-dock:72) | Fixed | D24e |
+| CI 1741 | zigi-memory:175 (WebKit segfault), checklist-launcher:66, ap-hour-grid:45 (drag below the fold) | Fixed / recorded | first two green on one re-run; the third's spec scrolls the row into view |

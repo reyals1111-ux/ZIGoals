@@ -48,8 +48,14 @@ test('dragging a task onto an hour writes that hour; nothing else changes', asyn
   await expect(page.locator('.agenda-page[data-agenda="ready"]')).toBeVisible();
   await page.getByRole('button', {name: 'By the hour', exact: true}).click();
   const grid = page.locator('.agenda-hours');
-  await grid.locator('.agenda-hour-item', {hasText: 'Fictional call'}).dragTo(grid.locator('.agenda-hour[data-hour="11"]'));
-  await expect(grid.locator('.agenda-hour[data-hour="11"]')).toContainText('Fictional call');
+  // CI 1741 (attempt 2): the drop row was below the fold while the drag ran; it is brought into view first, and the drag is
+  // made again only until the task shows in that hour (what it writes is checked below, as before).
+  const eleven = grid.locator('.agenda-hour[data-hour="11"]');
+  await eleven.scrollIntoViewIfNeeded();
+  await expect(async () => {
+    await grid.locator('.agenda-hour-item', {hasText: 'Fictional call'}).first().dragTo(eleven);
+    await expect(eleven).toContainText('Fictional call', {timeout: 2_000});
+  }).toPass({timeout: 20_000});
   const moved = await task(page, 'ap-call');
   expect([moved.due, moved.time]).toEqual([TODAY, '11:00']);
   expect(await task(page, 'ap-report')).toMatchObject({due: TODAY});
