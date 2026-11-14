@@ -1,0 +1,6 @@
+{
+ "note": "A 4x4 orange PNG standing in for every CoinGecko logo the markets fixtures name (lib/server/market-logo.ts checks the PNG signature, type and size only).",
+ "endpoint": "GET https://coin-images.coingecko.com/coins/images/{n}/large/{file}.png?{v}",
+ "contentType": "image/png",
+ "base64": "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEUlEQVR4nGP4PlkKjhiI4wAAuKIaQbeCdIkAAAAASUVORK5CYII="
+}

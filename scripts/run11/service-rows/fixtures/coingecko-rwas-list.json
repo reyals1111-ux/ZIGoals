@@ -1,0 +1,37 @@
+{
+ "note": "Recorded-shape fixture for the Session AP service-row replay (scripts/run11/service-rows). Shapes follow the parsers that read them; values are illustrative, not a live capture. Times are relative to recordedAt and are re-based by the harness.",
+ "endpoint": "GET https://api.coingecko.com/api/v3/rwas/list",
+ "recordedAt": "2026-11-14T09:00:00.000Z",
+ "body": [
+  {
+   "id": "gold",
+   "name": "Gold",
+   "symbol": "XAU",
+   "asset_type": "commodity"
+  },
+  {
+   "id": "silver",
+   "name": "Silver",
+   "symbol": "XAG",
+   "asset_type": "commodity"
+  },
+  {
+   "id": "apple",
+   "name": "Apple",
+   "symbol": "AAPL",
+   "asset_type": "stock"
+  },
+  {
+   "id": "nvidia",
+   "name": "NVIDIA",
+   "symbol": "NVDA",
+   "asset_type": "stock"
+  },
+  {
+   "id": "vanguard-s-p-500-etf",
+   "name": "Vanguard S&P 500 ETF",
+   "symbol": "VOO",
+   "asset_type": "etf"
+  }
+ ]
+}

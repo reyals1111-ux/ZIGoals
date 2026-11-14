@@ -1,0 +1,101 @@
+{
+ "note": "Recorded-shape fixture for the Session AP service-row replay (scripts/run11/service-rows). Shapes follow the parsers that read them; values are illustrative, not a live capture. Times are relative to recordedAt and are re-based by the harness.",
+ "endpoint": "GET https://api.coingecko.com/api/v3/coins/list?include_platform=true",
+ "recordedAt": "2026-11-14T09:00:00.000Z",
+ "body": [
+  {
+   "id": "bitcoin",
+   "symbol": "btc",
+   "name": "Bitcoin",
+   "platforms": {}
+  },
+  {
+   "id": "bitcoin-cash",
+   "symbol": "bch",
+   "name": "Bitcoin Cash",
+   "platforms": {}
+  },
+  {
+   "id": "wrapped-bitcoin",
+   "symbol": "wbtc",
+   "name": "Wrapped Bitcoin",
+   "platforms": {
+    "ethereum": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"
+   }
+  },
+  {
+   "id": "batcat",
+   "symbol": "bitcoin",
+   "name": "Batcat",
+   "platforms": {
+    "solana": "EtBc6gkCvsB9c6f5wSbwG8wPjRqXMB5euptK6bqG1R4X"
+   }
+  },
+  {
+   "id": "ethereum",
+   "symbol": "eth",
+   "name": "Ethereum",
+   "platforms": {}
+  },
+  {
+   "id": "tether",
+   "symbol": "usdt",
+   "name": "Tether",
+   "platforms": {
+    "ethereum": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+   }
+  },
+  {
+   "id": "cardano",
+   "symbol": "ada",
+   "name": "Cardano",
+   "platforms": {}
+  },
+  {
+   "id": "cardano-bridged",
+   "symbol": "ada",
+   "name": "Binance-Peg Cardano",
+   "platforms": {
+    "binance-smart-chain": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47"
+   }
+  },
+  {
+   "id": "zignaly",
+   "symbol": "zig",
+   "name": "ZIGChain",
+   "platforms": {
+    "ethereum": "0xb2617246d0c6c0087f18703d576831899ca94f01"
+   }
+  },
+  {
+   "id": "solana",
+   "symbol": "sol",
+   "name": "Solana",
+   "platforms": {}
+  },
+  {
+   "id": "tether-gold",
+   "symbol": "xaut",
+   "name": "Tether Gold",
+   "platforms": {
+    "ethereum": "0x68749665ff8d2d112fa859aa293f07a622782f38"
+   }
+  },
+  {
+   "id": "pax-gold",
+   "symbol": "paxg",
+   "name": "PAX Gold",
+   "platforms": {
+    "ethereum": "0x45804880de22913dafe09f4980848ece6ecbaf78"
+   }
+  },
+  {
+   "id": "goldfinch",
+   "symbol": "gfi",
+   "name": "Goldfinch",
+   "platforms": {
+    "ethereum": "0xdab396ccf3d84cf2d07c4454e10c8a6f5b008d2b"
+   }
+  }
+ ]
+}

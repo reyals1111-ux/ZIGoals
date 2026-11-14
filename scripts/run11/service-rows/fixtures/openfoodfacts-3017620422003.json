@@ -1,0 +1,69 @@
+{
+ "note": "Open Food Facts API v3.4 answer for Nutella 400 g (3017620422003) restricted to the fields the food Worker asks for; per-100 g values as printed on the label.",
+ "endpoint": "GET https://world.openfoodfacts.org/api/v3.4/product/3017620422003?fields=code,product_name,brands_tags,nutrition_data_per,nutriments,nutriscore_grade",
+ "body": {
+  "code": "3017620422003",
+  "product": {
+   "brands_tags": [
+    "nutella",
+    "ferrero"
+   ],
+   "code": "3017620422003",
+   "nutriments": {
+    "carbohydrates": 57.5,
+    "carbohydrates_100g": 57.5,
+    "carbohydrates_unit": "g",
+    "carbohydrates_value": 57.5,
+    "energy": 2252,
+    "energy-kcal": 539,
+    "energy-kcal_100g": 539,
+    "energy-kcal_unit": "kcal",
+    "energy-kcal_value": 539,
+    "energy-kj": 2252,
+    "energy-kj_100g": 2252,
+    "energy-kj_unit": "kJ",
+    "energy-kj_value": 2252,
+    "energy_100g": 2252,
+    "energy_unit": "kJ",
+    "energy_value": 2252,
+    "fat": 30.9,
+    "fat_100g": 30.9,
+    "fat_unit": "g",
+    "fat_value": 30.9,
+    "fiber": 0,
+    "fiber_100g": 0,
+    "proteins": 6.3,
+    "proteins_100g": 6.3,
+    "proteins_unit": "g",
+    "proteins_value": 6.3,
+    "salt": 0.107,
+    "salt_100g": 0.107,
+    "salt_unit": "g",
+    "salt_value": 0.107,
+    "saturated-fat": 10.6,
+    "saturated-fat_100g": 10.6,
+    "saturated-fat_unit": "g",
+    "saturated-fat_value": 10.6,
+    "sodium": 0.0428,
+    "sodium_100g": 0.0428,
+    "sodium_unit": "g",
+    "sodium_value": 0.0428,
+    "sugars": 56.3,
+    "sugars_100g": 56.3,
+    "sugars_unit": "g",
+    "sugars_value": 56.3,
+    "nutrition-score-fr": 26,
+    "nutrition-score-fr_100g": 26
+   },
+   "nutriscore_grade": "e",
+   "nutrition_data_per": "100g",
+   "product_name": "Nutella"
+  },
+  "result": {
+   "id": "product_found",
+   "lc_name": "Product found",
+   "name": "Product found"
+  },
+  "status": "success"
+ }
+}
