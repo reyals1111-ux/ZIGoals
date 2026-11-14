@@ -25,6 +25,9 @@ const useFolds = () => useContext(FoldContext) ?? NONE;
 function deviceStore(): Storage | null { try { return window.localStorage; } catch { return null; } }
 const onPhone = () => { try { return window.matchMedia(PHONE_QUERY).matches; } catch { return false; } };
 /** The id of the Settings group around an element, read from the page. */
+/** A same-page jump the router answers by drawing Settings again without the fragment (CI 1726: a jump to a part of ZIGi's
+ *  section): the new Settings still lands on it, within 3 s. */
+let pending: {id: string; at: number} | null = null;
 /** Lands on a jump's target at once. */
 const land = (id: string | null) => (id ? document.getElementById(id) : null)?.scrollIntoView({block: 'start', behavior: 'instant'});
 const groupOf = (id: string) => document.getElementById(id)?.closest('.settings-page .settings-group')?.id ?? null;
@@ -77,23 +80,24 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
     void import('./settings-late-jump').then(m => { if (!gone.current) late.current = m.watchLateJump(id, reveal); }, () => undefined);
   }, [reveal]);
   // A frame later on arrival, so the folds above are in place before the target's group is opened.
-  useEffect(() => { gone.current = false; const f = requestAnimationFrame(() => jump(hashId(window.location.hash))); return () => { gone.current = true; cancelAnimationFrame(f); late.current?.(); }; }, [jump]);
+  useEffect(() => { gone.current = false; const was = pending && Date.now() - pending.at < 3000 ? pending.id : null; pending = null; const f = requestAnimationFrame(() => jump(hashId(window.location.hash) ?? was)); return () => { gone.current = true; cancelAnimationFrame(f); late.current?.(); }; }, [jump]);
 
   useEffect(() => {
+    const mark = (id: string | null) => { if (id) pending = {id, at: Date.now()}; return id; };
     const here = (url: URL) => url.pathname === window.location.pathname && url.hash.length > 1;
     // Capture: before the link's own scroll (an index link, a Help or Search link to a section, any #anchor here).
     const onClick = (event: MouseEvent) => {
       const link = (event.target as Element | null)?.closest?.('a[href*="#"]') as HTMLAnchorElement | null;
       if (!link) return;
       const url = new URL(link.href, window.location.href);
-      if (here(url)) jump(hashId(url.hash));
+      if (here(url)) jump(mark(hashId(url.hash)));
     };
     // The router's own pushes (Search, a Link) where the browser reports navigations; it fires before the scroll.
     type Nav = {addEventListener: (t: string, f: (e: {destination: {url: string}}) => void) => void; removeEventListener: (t: string, f: (e: {destination: {url: string}}) => void) => void};
     const nav = (window as Window & {navigation?: Nav}).navigation;
-    const onNavigate = (event: {destination: {url: string}}) => { try { const url = new URL(event.destination.url); if (here(url)) jump(hashId(url.hash)); } catch { /* not a URL we handle */ } };
+    const onNavigate = (event: {destination: {url: string}}) => { try { const url = new URL(event.destination.url); if (here(url)) jump(mark(hashId(url.hash))); } catch { /* not a URL we handle */ } };
     // Anything else (back and forward, a typed fragment): the browser already tried to scroll, so scroll once it is open.
-    const onHash = () => jump(hashId(window.location.hash));
+    const onHash = () => jump(mark(hashId(window.location.hash)));
     document.addEventListener('click', onClick, true);
     nav?.addEventListener('navigate', onNavigate);
     window.addEventListener('hashchange', onHash);

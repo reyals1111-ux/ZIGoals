@@ -18,7 +18,7 @@ open "Your app" group, or right under its folded summary).
    this device), or "Open all". A link to a setting (from Help or Search) opens its group.
 5. **Settings → Your app → Checklist → "A day counts as done at"**: choose 4. The Checklist's flame now counts a day at
    4 of its dots (all dots on a shorter day), from today on; past days keep the rule they had.
-6. **Today, Goals, Habits, Health, Wealth → Layout: List · Bento** (beside the lock): the same cards as tiles. Today's
+6. **Today, Goals, Habits, Health, Wealth → Unlock layout → Layout: List · Bento** (in "Arrange this page"): the same cards as tiles. Today's
    welcome header and slogan stay exactly as they are. The choice is remembered per page.
 7. **Scroll Today at 1440**: the round buttons on the right (ZIGi, Checklist, music) slide halfway into the edge while
    they would sit on top of the right-hand column, and come back when nothing is under them; point at them or Tab to them

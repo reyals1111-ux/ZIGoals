@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {openAllSettingsGroups} from './settings-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {presetSettings,DASHBOARD_SETTINGS_KEY} from '../lib/dashboard-settings';
 import {PLATFORM_KEY} from '../lib/positions';
@@ -12,7 +13,7 @@ test('Local Demo export, wipe and import restores all four modules identically',
  test.setTimeout(90000);
  const {records}=buildShowcase('2026-09-20');
  const seeded:Record<string,string>={...records,[DASHBOARD_SETTINGS_KEY]:JSON.stringify({...presetSettings('habits-health'),onboarded:true})};
- await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */await page.evaluate(values=>{localStorage.clear();for(const [k,v]of Object.entries(values))localStorage.setItem(k,v);},seeded);await page.reload();
+ await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */await page.evaluate(values=>{localStorage.clear();for(const [k,v]of Object.entries(values))localStorage.setItem(k,v);},seeded);await page.reload(); await openAllSettingsGroups(page);
  const read=()=>page.evaluate(keys=>Object.fromEntries(Object.entries(keys).map(([d,k])=>[d,localStorage.getItem(k)])),KEYS);
  const before=await read();for(const d of Object.keys(KEYS))expect(before[d],d).toBe(seeded[KEYS[d as keyof typeof KEYS]]);
  await page.getByLabel('Include my Health records in this encrypted download.',{exact:true}).check();

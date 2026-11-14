@@ -39,11 +39,31 @@ function markWide(page: BentoPage): boolean {
   return items.length > 0;
 }
 const store = (): Storage | null => { try { return window.localStorage; } catch { return null; } };
+/** Where storage is refused, the choice lasts until the page reloads. */
+let fallback: BentoPage[] = [];
+const current = (): BentoPage[] => { try { const s = store(); return s ? readBento(s.getItem(BENTO_KEY)) : fallback; } catch { return fallback; } };
 
-export default function BentoSwitch({page}: {page: BentoPage}) {
-  const id = useId(), [on, setOn] = useState(false);
-  useEffect(() => { setOn(readBento(store()?.getItem(BENTO_KEY) ?? null).includes(page)); }, [page]);
+const CHANGED = 'zigoals-bento-change';
+/** The choice for a page on this device, kept current when the switch changes it. */
+function useBentoOn(page: BentoPage): boolean {
+  const [on, setOn] = useState(false);
   useEffect(() => {
+    const read = () => setOn(current().includes(page));
+    read(); window.addEventListener(CHANGED, read); window.addEventListener('storage', read);
+    return () => { window.removeEventListener(CHANGED, read); window.removeEventListener('storage', read); };
+  }, [page]);
+  return on;
+}
+
+/**
+ * `apply` (always mounted with the page, beside the lock, drawing nothing) lays the cards out; the switch itself is in
+ * "Arrange this page" (CI 1726, ADR-040 D24: in the header it pushed the lock to a second line at 1280 and hid the mode
+ * strip). Choosing writes the choice and tells the applier.
+ */
+export default function BentoSwitch({page, apply = false}: {page: BentoPage; apply?: boolean}) {
+  const id = useId(), on = useBentoOn(page);
+  useEffect(() => {
+    if (!apply) return;
     const root = document.documentElement;
     if (!on) { if (root.dataset.bento === page) delete root.dataset.bento; return; }
     // UX review (Blocker): a card that holds its own multi-column grid in the list (the holdings, the goal cards, the habit
@@ -51,22 +71,21 @@ export default function BentoSwitch({page}: {page: BentoPage}) {
     // tiles apply, and again when the window changes size (in one step, never painted in between).
     let frame = 0, width = window.innerWidth, tries = 0, retry = 0;
     // Cards that load after the switch (a slow first paint) are picked up within a few seconds.
-    const apply = () => { delete root.dataset.bento; const found = markWide(page); root.dataset.bento = page; if (!found && tries++ < 10) retry = window.setTimeout(apply, 300); };
-    apply();
+    const run = () => { delete root.dataset.bento; const found = markWide(page); root.dataset.bento = page; if (!found && tries++ < 10) retry = window.setTimeout(run, 300); };
+    run();
     // A page that is still filling in (parts load on demand after a reload) is measured again once it settles.
-    const settle = [600, 2000].map(ms => window.setTimeout(apply, ms));
+    const settle = [600, 2000].map(ms => window.setTimeout(run, ms));
     // Only a real change of the window's width measures again (never a resize the tiles themselves could cause).
-    const onResize = () => { if (Math.abs(window.innerWidth - width) < 1) return; width = window.innerWidth; cancelAnimationFrame(frame); frame = requestAnimationFrame(apply); };
+    const onResize = () => { if (Math.abs(window.innerWidth - width) < 1) return; width = window.innerWidth; cancelAnimationFrame(frame); frame = requestAnimationFrame(run); };
     window.addEventListener('resize', onResize);
     return () => { cancelAnimationFrame(frame); clearTimeout(retry); settle.forEach(clearTimeout); window.removeEventListener('resize', onResize); if (root.dataset.bento === page) delete root.dataset.bento; for (const el of document.querySelectorAll('[data-bento-grid]')) el.removeAttribute('data-bento-grid'); };
-  }, [on, page]);
+  }, [apply, on, page]);
+  if (apply) return null;
   const choose = (next: boolean) => {
-    setOn(next);
-    try {
-      const s = store(), pages = readBento(s?.getItem(BENTO_KEY) ?? null).filter(p => p !== page);
-      const kept = next ? [...pages, page] : pages;
-      if (kept.length) s?.setItem(BENTO_KEY, JSON.stringify({version: 1, pages: kept})); else s?.removeItem(BENTO_KEY);
-    } catch { /* storage refused: the choice lasts until the page reloads */ }
+    const pages = current().filter(p => p !== page), kept = next ? [...pages, page] : pages;
+    fallback = kept;
+    try { const s = store(); if (kept.length) s?.setItem(BENTO_KEY, JSON.stringify({version: 1, pages: kept})); else s?.removeItem(BENTO_KEY); } catch { /* refused: kept for this page's life */ }
+    window.dispatchEvent(new Event(CHANGED));
   };
   const onKey = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;

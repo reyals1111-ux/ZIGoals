@@ -89,9 +89,13 @@ test('R2-10: Tasks, Notes and the Journal are in the desktop sidebar (its Apps g
   // A real destination: aria-current follows it, and the keyboard reaches it in the order seen.
   await apps.getByRole('link', {name: 'Notes', exact: true}).click(); await page.waitForURL('**/app/notes');
   await expect(apps.getByRole('link', {name: 'Notes', exact: true})).toHaveAttribute('aria-current', 'page');
+  // Session AP (D-028, ADR-040 D8; deliberate, as strict): the main links and the Apps group are one Tab stop each (roving
+  // groups): Tab enters a group, Home goes to its first item and the arrow keys walk every item in the order seen.
+  await expect(nav.getByRole('link', {name: 'Goals', exact: true})).toHaveAttribute('tabindex', '-1');
   await page.getByRole('link', {name: 'ZIGoals home', exact: true}).focus();
-  const order: string[] = [];
-  for (let i = 0; i < 21; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '')); }
+  const order: string[] = [], now = () => page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
+  const walk = async (count: number) => { await page.keyboard.press('Tab'); await page.keyboard.press('Home'); order.push(await now()); for (let i = 1; i < count; i++) { await page.keyboard.press('ArrowDown'); order.push(await now()); } };
+  await walk(base.length + 2); await walk(6);
   expect(order).toEqual([...base, 'Settings', 'Help', 'Apps', 'NOVA', 'Tasks', 'Notes', 'Journal', 'Agenda']);
 });
 

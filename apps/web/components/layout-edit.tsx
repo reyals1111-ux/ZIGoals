@@ -63,7 +63,7 @@ export function LayoutPage({page, children, unlocked: controlled, onUnlockedChan
     {mounted && createPortal(<div className="sr-only" aria-live="polite" role="status" data-layout-announcer="">{message}</div>, document.body)}
     {mounted && unlocked && createPortal(<div className="layout-bar" role="region" aria-label="Arrange this page">
       <p><strong>Arrange this page.</strong> <span>Drag a card by its handle, or use its arrow buttons. Saved on this device.</span></p>
-      <div className="layout-bar-actions"><button type="button" className="secondary" onClick={reset}>Reset this page</button>{exit && <button type="button" className="primary" onClick={() => { setUnlocked(false); announce('Layout locked.'); }}>Done</button>}</div>
+      <div className="layout-bar-actions">{/* Session AP (ADR-040 D24): the optional Bento view is chosen here, with the rest of arranging. */}{isBentoPage(page) && <Suspense fallback={null}><BentoSwitch page={page}/></Suspense>}<button type="button" className="secondary" onClick={reset}>Reset this page</button>{exit && <button type="button" className="primary" onClick={() => { setUnlocked(false); announce('Layout locked.'); }}>Done</button>}</div>
     </div>, document.body)}
   </LayoutContext.Provider>;
 }
@@ -88,8 +88,9 @@ export function LayoutLockButton() {
   useEffect(() => { setSlot(document.getElementById(LAYOUT_LOCK_SLOT)); }, []);
   if (!context || !slot) return null;
   const {unlocked, setUnlocked, announce} = context;
-  // Session AP (owner decision 14 Nov): the optional Bento view on the pillar overviews and Today, before the lock (AO's cluster order).
-  return createPortal(<>{isBentoPage(context.page) && <Suspense fallback={null}><BentoSwitch page={context.page}/></Suspense>}<button type="button" className="layout-lock" data-unlocked={unlocked || undefined} aria-label={unlocked ? 'Lock layout' : 'Unlock layout to rearrange'} title={unlocked ? 'Lock layout' : 'Rearrange this page'} onClick={() => { setUnlocked(!unlocked); announce(unlocked ? 'Layout locked.' : 'Layout unlocked. Use the arrow buttons on a card, or drag its handle, to rearrange.'); }}><LockIcon open={unlocked}/><span className="layout-lock-word" aria-hidden="true">{unlocked ? 'Lock layout' : 'Unlock layout'}</span></button></>, slot);
+  // Session AP (owner decision 14 Nov; ADR-040 D24): the optional Bento view is applied with the page (this part draws
+  // nothing); it is chosen in "Arrange this page".
+  return createPortal(<>{isBentoPage(context.page) && <Suspense fallback={null}><BentoSwitch page={context.page} apply/></Suspense>}<button type="button" className="layout-lock" data-unlocked={unlocked || undefined} aria-label={unlocked ? 'Lock layout' : 'Unlock layout to rearrange'} title={unlocked ? 'Lock layout' : 'Rearrange this page'} onClick={() => { setUnlocked(!unlocked); announce(unlocked ? 'Layout locked.' : 'Layout unlocked. Use the arrow buttons on a card, or drag its handle, to rearrange.'); }}><LockIcon open={unlocked}/><span className="layout-lock-word" aria-hidden="true">{unlocked ? 'Lock layout' : 'Unlock layout'}</span></button></>, slot);
 }
 
 export type LayoutEntry = {id: string; label: string; node: ReactNode};

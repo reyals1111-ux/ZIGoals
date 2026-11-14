@@ -183,9 +183,14 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  for(let i=12;i<15;i++)expect(Math.abs(gap(i)-gap(1)),`row ${i}`).toBeLessThan(1);
  await expect(nav.locator('hr, [role=separator], .nav-divider')).toHaveCount(0);
  // Keyboard order follows the visual order.
+ // Session AP (D-028, ADR-040 D8; deliberate, as strict): the sidebar's links are one Tab stop (a roving group): Tab enters
+ // it, Home goes to its first link and the arrow keys walk every link in the order seen; the next Tab leaves the group.
+ await expect(nav.getByRole('link',{name:'Goals',exact:true})).toHaveAttribute('tabindex','-1');
  await page.getByRole('link',{name:'ZIGoals home',exact:true}).focus();
- const order:string[]=[];
- for(let i=0;i<15;i++){await page.keyboard.press('Tab');order.push(await page.evaluate(()=>document.activeElement?.textContent?.trim()??''));}
+ const order:string[]=[],now=()=>page.evaluate(()=>document.activeElement?.textContent?.trim()??'');
+ await page.keyboard.press('Tab');await page.keyboard.press('Home');order.push(await now());
+ for(let i=1;i<15;i++){await page.keyboard.press('ArrowDown');order.push(await now());}
+ await page.keyboard.press('Tab');expect(await page.evaluate(()=>!!document.activeElement?.closest('nav[aria-label="Main navigation"]'))).toBe(false);
  expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']); // Session AL (O4, deliberate): fifteen; NOVA is in the Apps group, which follows Help
  // Owner decision (Session AH, LA2, 26 Oct; replaces Session AF Gate C's grouped header rows, deliberate): from 541 to
  // 900 px the navigation is a rail on the left, in the same order and groups, each link at least 44 px, the groups

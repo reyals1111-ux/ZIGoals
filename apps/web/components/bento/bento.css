@@ -29,3 +29,10 @@
 @media (min-width: 1280px) {
   :root[data-bento=today] .dashboard-layout-grid > .placed-module[data-layout-region="today:main"]:not([data-bento-wide]):nth-child(-n+2) { grid-column: span 2; }
 }
+/* ADR-040 D24: the switch lives in "Arrange this page", the bar's own dark island in every theme (its words as the bar's). */
+@media (min-width: 901px) {
+  .layout-bar .bento-switch { box-shadow: inset 0 0 0 1px #a9c9ff55; background: #ffffff0d; }
+  .layout-bar .bento-switch-label { position: static; width: auto; height: auto; overflow: visible; clip-path: none; padding: 0 6px 0 14px; color: #e3ecfa; font-size: 15px; }
+  .layout-bar .bento-switch button { color: #e3ecfa; }
+  .layout-bar .bento-switch button[aria-checked="true"] { background: #6fd3ff38; color: #fff; }
+}

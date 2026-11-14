@@ -697,6 +697,7 @@
 :where(:root[data-text=large]) .ambient-pill:not(#\-) { font-size: calc(.9375rem * 1.125); }
 /*  components/bento/bento.css  */
 @media (min-width: 901px) { :where(:root[data-text=large]) .bento-switch button:not(#\-) { font-size: calc(15px * 1.125); } }
+@media (min-width: 901px) { :where(:root[data-text=large]) .layout-bar .bento-switch-label:not(#\-) { font-size: calc(15px * 1.125); } }
 /*  components/bottom-sections.css  */
 :where(:root[data-text=large]) .bottom-section-heading h2:not(#\-) { font-size: calc(clamp(24px,2.4vw,32px) * 1.125); }
 :where(:root[data-text=large]) .bottom-section .bottom-section-lede:not(#\-) { font-size: calc(17px * 1.125); }
