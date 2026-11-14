@@ -101,8 +101,25 @@ inside 12 s waits, and a third gets `TRY_LATER`. A cached barcode costs nothing.
 | DV-089 | — | — | **Model / NOVA lane**: not replayable (needs a connected model). | — |
 | PR-035 | — | — | **Model / NOVA lane**: not replayable (needs a connected model to see the cap in use). | — |
 
+## Browser replay spec
+
+`apps/web/tests/ap/service-rows.spec.ts` runs this replay against a running app server. It is skipped unless
+`AP_SERVICE_ROWS=1` and runs on the desktop project only:
+`AP_SERVICE_ROWS=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 pnpm --filter @zigoals/web exec playwright test tests/ap/service-rows.spec.ts --project=desktop --workers=1`.
+The harness finds the checkout from the working directory and does not use `import.meta`, because Playwright compiles the
+module as CommonJS. A bundle run still loads `hermetic-wrangler.mjs` lazily, so it works under node or vitest only.
+
 ## Real app bugs found at API level
 
 None. Every route answered the contract its parser and wire schema define. Two things are fixture choices, not bugs.
 Cardano is deliberately stale, so D-052's added favourite shows "Needs refresh". EUR history is deliberately not
 recorded, which shows refusal.
+
+Found while writing the browser spec (a code read, not an API failure): a tracked wallet's position card on Staking
+writes the validator line as `{p.validator.status} · commission {Number(p.validator.commission)*100}%`
+(apps/web/components/platform/positions-view.tsx:98, in `renderPosition`). It shows the chain's raw status code
+("BOND_STATUS_UNBONDING") and a float product: a 7 % or 14 % rate reads "7.000000000000001%" / "14.000000000000002%".
+The fixture's rates (5 %, 8 %) happen to print cleanly. Proposed fix: the plain status words the validator list uses
+(Active / Jailed / Leaving / Inactive) and the exact decimal formatting it uses (`share()` in
+components/earn/validators-section.tsx, or `percentText` in lib/staking/view.ts). The spec asserts today's text
+(`BOND_STATUS_UNBONDING · commission 8%`), so that assertion changes with the fix.

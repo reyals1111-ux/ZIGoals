@@ -1,10 +1,8 @@
 import {createServer} from 'node:http';
 import {createRequire} from 'node:module';
 import {readFile} from 'node:fs/promises';
-import {realpathSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
-import {resolve} from 'node:path';
-import {hermeticWorkerOptions} from '../hermetic-wrangler.mjs';
+import {existsSync,realpathSync} from 'node:fs';
+import {dirname,join,resolve} from 'node:path';
 /**
  * Session AP Part 3 ("service rows replayed honestly"): the topology behind the carried "Needs a service" rows, with the
  * repo's own server code and recorded-shape upstream answers (./fixtures). Nothing reaches a live provider or Cloudflare.
@@ -31,11 +29,14 @@ import {hermeticWorkerOptions} from '../hermetic-wrangler.mjs';
  * the moment of the request. The default clock is Date.now: an upstream whose last update is always as old as recorded
  * (bitcoin 30 s, cardano 40 min, …). A fixed clock freezes those ages instead.
  */
+// No import.meta: Playwright compiles this file as CommonJS when a spec imports it (apps/web/tests/ap/service-rows.spec.ts),
+// so the repository is found from the working directory (the repo root for vitest and node, apps/web for Playwright).
+function repoRoot(){let dir=process.cwd();for(;;){if(existsSync(join(dir,'pnpm-workspace.yaml'))&&existsSync(join(dir,'scripts/run11/service-rows/harness.mjs')))return dir+'/';const up=dirname(dir);if(up===dir)throw Error('service-rows harness: run it from inside the ZIGoals checkout.');dir=up;}}
+const root=repoRoot();
 // realpath: pnpm links wrangler, and plain `node` (unlike vitest) resolves its esbuild/miniflare next to the real path.
-const require=createRequire(realpathSync(fileURLToPath(new URL('../../../apps/web/node_modules/wrangler/package.json',import.meta.url))));
-const {build}=require('esbuild'),{Miniflare,convertV4MiniflareOptions}=require('miniflare');
-const root=new URL('../../../',import.meta.url).pathname;
-const fixture=async name=>JSON.parse(await readFile(new URL('./fixtures/'+name,import.meta.url),'utf8'));
+const requireTool=createRequire(realpathSync(root+'apps/web/node_modules/wrangler/package.json'));
+const {build}=requireTool('esbuild'),{Miniflare,convertV4MiniflareOptions}=requireTool('miniflare');
+const fixture=async name=>JSON.parse(await readFile(root+'scripts/run11/service-rows/fixtures/'+name,'utf8'));
 export async function loadFixtures(){
  const names={priceV1:'coingecko-simple-price.v1.json',priceV2:'coingecko-simple-price.v2.json',markets:'coingecko-coins-markets.json',rwas:'coingecko-rwas-markets.json',coinsList:'coingecko-coins-list.json',rwasList:'coingecko-rwas-list.json',chart:'coingecko-market-chart.json',logo:'coingecko-logo.json',food:'openfoodfacts-3017620422003.json',lcd:'zigchain-lcd.json'};
  return Object.fromEntries(await Promise.all(Object.entries(names).map(async([key,name])=>[key,await fixture(name)])));
@@ -138,7 +139,8 @@ function upstreams(fx,state,clock){
 // refuse it. The limits themselves are covered by scripts/run11/market-*-policy tests, not here.
 const POLICY={policy:{providerMinuteLimit:1000,providerMonthlyLimit:100000,operating:{minute:900,monthly:90000},monitoringReserve:{minute:20,monthly:2000},monitoringMaximum:{minute:30,monthly:3000},optionalCeiling:{minute:800,monthly:80000},concurrent:2,queueLimit:16,reservationMs:20000,ownershipMs:10000},calendar:{timeZone:'UTC',confirmed:true},quoteCost:3,operationCosts:{catalog:2,history:4,insights:5,token:6,rwa:7},leaseMs:20000,maxAttempts:128,maxWorks:64};
 async function packagedApp(bundlePath){
- const {unstable_getMiniflareWorkerOptions}=require('wrangler');
+ // Loaded only for a bundle (it uses import.meta, which a Playwright-compiled import cannot).
+ const {unstable_getMiniflareWorkerOptions}=requireTool('wrangler'),{hermeticWorkerOptions}=await import('../hermetic-wrangler.mjs');
  const config=hermeticWorkerOptions(unstable_getMiniflareWorkerOptions,resolve(root,'apps/web/wrangler.run11.local.jsonc')).workerOptions;
  return {script:await readFile(bundlePath,'utf8'),name:'zigoals-run11-local',compatibilityDate:config.compatibilityDate,compatibilityFlags:config.compatibilityFlags,assets:config.assets,bindings:config.bindings};
 }
@@ -185,8 +187,10 @@ export async function start({clock=Date.now,port=0,bundle=process.env.RUN11_PACK
  };
 }
 // `node scripts/run11/service-rows/harness.mjs [port]` keeps the origin up for a manual or browser replay.
-if(import.meta.url===`file://${process.argv[1]}`){
- const h=await start({port:Number(process.argv[2]??3190)});
- console.log(`service-rows harness: ${h.origin}/api/* (pages: ${h.servesPages?'served from the OpenNext bundle':'not served; forward /api/** here with page.route'})`);
- process.on('SIGINT',async()=>{console.log('upstream calls:',h.calls.length,'refused:',h.refused.length);await h.stop();process.exit(0);});
+// No top-level await: Playwright specs import this module too (apps/web/tests/ap/service-rows.spec.ts).
+if(/[\\/]service-rows[\\/]harness\.mjs$/.test(process.argv[1]??'')){
+ void start({port:Number(process.argv[2]??3190)}).then(h=>{
+  console.log(`service-rows harness: ${h.origin}/api/* (pages: ${h.servesPages?'served from the OpenNext bundle':'not served; forward /api/** here with page.route'})`);
+  process.on('SIGINT',()=>{console.log('upstream calls:',h.calls.length,'refused:',h.refused.length);void h.stop().then(()=>process.exit(0));});
+ });
 }
