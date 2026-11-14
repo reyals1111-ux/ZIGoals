@@ -1,6 +1,7 @@
 'use client';
 import './settings-fold.css';
-import {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode} from 'react';
+import {Suspense, createContext, lazy, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode} from 'react';
+const FoldedShowcase = lazy(() => import('./settings-folded-showcase'));
 import {hashId} from '../../lib/hash-id';
 import {SETTINGS_FOLDS_KEY, SETTINGS_GROUP_IDS, foldSummary, foldedAtStart, groupForHash, groupForTarget, loadOpen, openOf, saveOpen, showcaseGroupOpen, type SettingsGroupId} from '../../lib/settings-folds';
 import {PHONE_QUERY} from '../phone/use-phone-layout';
@@ -62,23 +63,14 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
     setFolded(prev => { const next = new Set(prev); next.delete(group); return next; });
     return true;
   }, []);
-  // A jump whose target is drawn a moment later (ZIGi's sections and other parts load on demand) still opens its group and
-  // lands on it once it arrives (watched for up to 10 s, stopped by the person's own scroll or tap).
+  // A jump whose target is drawn a moment later (ZIGi's sections load on demand) still opens its group and lands on it once
+  // it arrives (settings-late-jump.ts, loaded only for such a jump).
   useEffect(() => {
     const id = hashId(window.location.hash);
     if (!id || document.getElementById(id) || onPhone()) return;
-    let done = false;
-    const stop = () => { done = true; watch.disconnect(); window.clearTimeout(timer); window.removeEventListener('wheel', stop); window.removeEventListener('pointerdown', stop); window.removeEventListener('keydown', stop); };
-    const watch = new MutationObserver(() => {
-      if (done || !document.getElementById(id)) return;
-      stop();
-      reveal(id);
-      requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({block: 'start', behavior: 'instant'}));
-    });
-    watch.observe(document.body, {childList: true, subtree: true});
-    const timer = window.setTimeout(stop, 10_000);
-    window.addEventListener('wheel', stop, {passive: true}); window.addEventListener('pointerdown', stop); window.addEventListener('keydown', stop);
-    return stop;
+    let stop: (() => void) | null = null, gone = false;
+    void import('./settings-late-jump').then(m => { if (!gone) stop = m.watchLateJump(id, reveal); }, () => undefined);
+    return () => { gone = true; stop?.(); };
   }, [reveal]);
 
   useEffect(() => {
@@ -115,7 +107,7 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
  *  it holds shows while it is folded. The group keeps its id, role and name (tests/settings-groups.spec.ts). */
 export function SettingsFoldGroup({id, title, icon, children}: {id: SettingsGroupId; title: string; icon?: ReactNode; children: ReactNode}) {
   const {folded, chain, toggle, reveal} = useFolds();
-  const isFolded = folded.has(id), [loading, setLoading] = useState(false), [showcaseOn, setShowcaseOn] = useState(false);
+  const isFolded = folded.has(id), [showcaseOn, setShowcaseOn] = useState(false);
   useEffect(() => { setShowcaseOn(isShowcase()); }, []);
   const body = useRef<HTMLDivElement>(null);
   // `hidden="until-found"`: find in page and the browser's own fragment jumps still reach a folded group's words and open
@@ -141,7 +133,7 @@ export function SettingsFoldGroup({id, title, icon, children}: {id: SettingsGrou
     {isFolded && <p className="settings-fold-summary" id={`${id}-summary`}>{foldSummary(id, {chain})}</p>}
     {/* Session AP (D20): Settings → Load Showcase Demo is a new person's first step (the friends' guide says so), so while the
         group that holds the Showcase card is folded its summary carries the same button (only one is ever visible). */}
-    {isFolded && id === 'settings-app' && !showcaseOn && <p className="settings-fold-quick"><button type="button" className="secondary" disabled={loading} onClick={() => { setLoading(true); void import('../../lib/showcase').then(m => m.loadShowcase()).then(() => import('../../lib/showcase-storage')).then(m => m.clearShowcasePhotos()).then(() => window.location.assign('/app'), () => setLoading(false)); }}>Load Showcase Demo</button></p>}
+    {isFolded && id === 'settings-app' && !showcaseOn && <Suspense fallback={null}><FoldedShowcase/></Suspense>}
     <div className="settings-fold-body" id={bodyId(id)} ref={body}>{children}</div>
   </div>;
 }
