@@ -39,11 +39,16 @@ test('the first five: a goal, a habit, a meal and a money record from Today, in 
   // A meal.
   await card(page).getByRole('link', {name: 'Log a meal'}).click();
   await expect(page).toHaveURL(/\/app\/health/);
-  const meal = page.locator('#health-entry-action');
-  await expect(meal).toBeVisible();
-  await meal.getByLabel('Food name').fill('Porridge');
-  for (const [label, value] of [['Serving weight (g)', '200'], ['Calories (kcal)', '300']] as const) { const f = meal.getByLabel(label); if (await f.count()) await f.first().fill(value); }
-  await meal.getByRole('button', {name: /^(Log it|Add to today|Save|Log food|Add)$/}).first().click();
+  // As a person does the first time: the food once (Foods & recipes), then the meal (Diary → Log a meal).
+  await page.getByRole('tab', {name: 'Foods & recipes', exact: true}).click();
+  await page.getByRole('button', {name: 'New food', exact: true}).click();
+  const food = page.getByRole('form', {name: 'Food details'});
+  for (const [label, value] of [['Food name', 'Porridge'], ['Serving weight (g)', '200'], ['Calories (kcal)', '300'], ['Protein (g)', '10'], ['Carbs (g)', '50'], ['Fat (g)', '6']] as const) await food.getByLabel(label).fill(value);
+  await food.getByRole('button', {name: 'Save food', exact: true}).click();
+  await page.getByRole('tab', {name: 'Diary', exact: true}).click();
+  const log = page.getByRole('form', {name: 'Log a meal', exact: true});
+  await log.getByLabel('Food or recipe').selectOption({label: 'Porridge · food'});
+  await log.getByRole('button', {name: 'Log to diary'}).click();
   await today(page);
   await expect(card(page)).toContainText('4 of 5 done');
   // A money record.
