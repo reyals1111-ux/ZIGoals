@@ -25,6 +25,8 @@ const useFolds = () => useContext(FoldContext) ?? NONE;
 function deviceStore(): Storage | null { try { return window.localStorage; } catch { return null; } }
 const onPhone = () => { try { return window.matchMedia(PHONE_QUERY).matches; } catch { return false; } };
 /** The id of the Settings group around an element, read from the page. */
+/** Lands on a jump's target at once. */
+const land = (id: string | null) => (id ? document.getElementById(id) : null)?.scrollIntoView({block: 'start', behavior: 'instant'});
 const groupOf = (id: string) => document.getElementById(id)?.closest('.settings-page .settings-group')?.id ?? null;
 const bodyId = (id: string) => `${id}-body`;
 
@@ -48,7 +50,7 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
     if (!reanchor.current) return;
     reanchor.current = false;
     const id = hashId(window.location.hash);
-    (id ? document.getElementById(id) : null)?.scrollIntoView({block: 'start', behavior: 'instant'});
+    land(id);
   }, [folded]);
   // Saves each change after the first render (the start above saved what it changed itself).
   useEffect(() => { if (saved.current) saveOpen(deviceStore(), openOf(folded)); else saved.current = true; }, [folded]);
@@ -69,7 +71,7 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
     const id = hashId(window.location.hash);
     if (!id || onPhone()) return;
     // Drawn between the fold above and now (CI 1726, zigi-part-boundary / zigi-memory): its group opens and it is landed on.
-    if (document.getElementById(id)) { if (reveal(id)) requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({block: 'start', behavior: 'instant'})); return; }
+    if (document.getElementById(id)) { if (reveal(id)) requestAnimationFrame(() => land(id)); return; }
     let stop: (() => void) | null = null, gone = false;
     void import('./settings-late-jump').then(m => { if (!gone) stop = m.watchLateJump(id, reveal); }, () => undefined);
     return () => { gone = true; stop?.(); };
