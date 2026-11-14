@@ -5,7 +5,7 @@ import {HABITS_KEY} from '../lib/habits';
 import {CSV_FILES} from '../lib/export/everything';
 import {readStoredZip} from '../lib/export/zip-reader';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
-import {openSettings} from './settings-open';
+import {openSettings, openAllSettingsGroups} from './settings-open';
 
 // T4 (Session P): "Export everything (optional)": one readable ZIP, made on the device, nothing written, nothing sent.
 test.use({timezoneId: 'Europe/Brussels'});
@@ -35,6 +35,7 @@ test('one ZIP with everything.json and nine CSVs; nothing written on view or by 
   await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})});
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   const before = await zigoalsKeys(page);
   await expect(page.getByRole('region', {name: 'Everything you’ve saved, in one file.', exact: true})).toBeVisible();
   // Nothing is uploaded: during the export every request stays on this origin and none carries a body.

@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openAllSettingsGroups} from './settings-open';
 import {buildStoredZip} from '../lib/export/zip';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {HEALTH_STORAGE_KEY, healthSchema} from '../lib/health';
@@ -20,6 +21,7 @@ async function switchCard(page: Page) {
   await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   return page.getByRole('region', {name: 'Bring your history with you.'});
 }
 

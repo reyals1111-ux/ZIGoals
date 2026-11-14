@@ -67,7 +67,9 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
   // it arrives (settings-late-jump.ts, loaded only for such a jump).
   useEffect(() => {
     const id = hashId(window.location.hash);
-    if (!id || document.getElementById(id) || onPhone()) return;
+    if (!id || onPhone()) return;
+    // Drawn between the fold above and now (CI 1726, zigi-part-boundary / zigi-memory): its group opens and it is landed on.
+    if (document.getElementById(id)) { if (reveal(id)) requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({block: 'start', behavior: 'instant'})); return; }
     let stop: (() => void) | null = null, gone = false;
     void import('./settings-late-jump').then(m => { if (!gone) stop = m.watchLateJump(id, reveal); }, () => undefined);
     return () => { gone = true; stop?.(); };

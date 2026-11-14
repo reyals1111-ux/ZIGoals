@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openAllSettingsGroups} from './settings-open';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {ZIGI_KEY} from '../lib/ai/store/keys';
 
@@ -89,6 +90,7 @@ test('Settings → Help & diagnostics: the same email; Motion Off is named when 
   await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(() => localStorage.setItem('zigoals:motion:v1', 'off'));
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   const panel = page.getByRole('group', {name: 'Help & diagnostics', exact: true}).locator('#send-feedback');
   await expect(panel.getByRole('heading', {name: 'Tell us what you think', exact: true})).toBeVisible();
   expect(await body(page, panel)).toMatch(/^What happened:\n\nWhat you expected:\n\nDevice and browser:\n\nApp version: .+\n\n\(Please leave out codes/);

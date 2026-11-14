@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { createHabit, emptyHabitData, HABITS_KEY } from "../lib/habits";
 import { createEmptyHealth, HEALTH_STORAGE_KEY, saveFood } from "../lib/health";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
-import {afterGoto, openSettings} from './settings-open';
+import {afterGoto, openSettings, openAllSettingsGroups} from './settings-open';
 const metadataKey = "zigoals:metadata:v1:local-simulation:local-demo-user";
 const ledgerKey = "zigoals:local-ledger:v1";
 const at = new Date("2026-09-15T10:00:00Z");
@@ -77,6 +77,7 @@ test("damaged private exports retain exact bytes and explicit restore quarantine
   await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(({ key, damaged }) => localStorage.setItem(key, damaged), { key: HEALTH_STORAGE_KEY, damaged });
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   const panel = page.getByRole("region", { name: "Health backup", exact: true });
   const download = page.waitForEvent("download");
   await panel.getByRole("button", { name: "Export Health", exact: true }).click();

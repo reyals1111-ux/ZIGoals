@@ -1,5 +1,5 @@
 'use client';
-import {lazy, Suspense} from 'react';
+import {lazy, Suspense, type ReactNode} from 'react';
 import {MOOD_WORDS, moodOn, setMood} from '../../lib/wrap-up/engine';
 import {emptyMoods, moodsSchema} from '../../lib/moods/schema';
 import {healthGroupIn, withHealthGroup} from '../../lib/vault/w-homes';
@@ -20,7 +20,7 @@ function restoreMood(health: HealthData, day: string, before: ReturnType<typeof 
  * Session AL third pass (P-DV-119, DV-141): how the day feels, one tap, on Health: the same mood the evening wrap-up and
  * the Journal read (Health v4 `moods`, one per day, the newer answer wins, a note stays). A word, never a score.
  */
-export function MoodChip({date, today}: {date: string; today: string}) {
+export function MoodChip({date, today, children}: {date: string; today: string; children?: ReactNode}) {
   const store = useHealth(), day = date > today ? today : date, current = store.loaded ? moodOn(store.data, day) : undefined;
   async function choose(mood: number) {
     const before = current;
@@ -38,5 +38,6 @@ export function MoodChip({date, today}: {date: string; today: string}) {
     <div className="health-mood-chips" role="group" aria-label="Mood">{MOOD_WORDS.map((word, i) => <button type="button" key={word} className="secondary" aria-pressed={current?.mood === i + 1} disabled={!store.loaded} onClick={() => void choose(i + 1)}>{word}</button>)}</div>
     <p className="fine">The same answer as the evening wrap-up and your Journal; it stays with your Health records. A word for the day, never a score.</p>
     {current && <Suspense fallback={null}><MoodTags day={day}/></Suspense>}
+    {children}
   </section></PhoneFold>;
 }

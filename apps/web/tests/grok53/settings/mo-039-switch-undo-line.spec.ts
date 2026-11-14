@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openAllSettingsGroups} from '../../settings-open';
 import {buildStoredZip} from '../../../lib/export/zip';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../../lib/dashboard-settings';
 import {APPLE_XML} from '../../../lib/import/switch/test-fixtures';
@@ -13,6 +14,7 @@ async function seed(page: Page) {
   await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([key, value]) => { localStorage.clear(); localStorage.setItem(key!, value!); }, [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
 }
 const card = (page: Page) => page.getByRole('region', {name: 'Bring your history with you.'});
 

@@ -168,9 +168,6 @@ export function TodayDashboard(){
  const [setupMade,setSetupMade]=useState(false);
  const storesReady=settings.loaded&&!settings.error&&platform.loaded&&!platform.error&&habits.loaded&&!habits.error&&health.loaded&&!health.error&&legacy.loaded;
  let brandNew=false;
- // Session AP (UX review, Major): a person who finished or skipped the setup has seen the welcome: Today offers the first five
- // steps instead of "Set up ZIGoals in about a minute" again.
- const welcomeSeen=storesReady&&!showcase&&(()=>{try{return onboardingSeen(window.localStorage);}catch{return false;}})();
  if(!welcomeDismissed&&!showcase&&storesReady&&!settings.data.onboarded&&!platform.data.goals.length&&!platform.data.positions.length&&!habits.data.habits.length&&!legacy.goals.length){try{brandNew=!getAccountScope()&&!onboardingSeen(window.localStorage)&&noExistingData(window.localStorage);}catch{brandNew=false;}}
  // Session AL (P-NB-08; NB-002, NB-033): with nothing recorded and no setup made, the setup entry is Today's one first
  // action (defined here, before the cards that step back for it; fourth pass: the destination panel's link is secondary).
@@ -379,7 +376,7 @@ export function TodayDashboard(){
  // Today after "Not now" (the welcome itself shows once); while it shows, it is the page's one first action.
  // Session AL (TK-148, N-TK-21): with records already kept, the chooser moves after the data and can be put away.
  const hasRecords=storesReady&&!showcase&&(habits.data.habits.length>0||platform.data.goals.length>0||platform.data.positions.length>0||legacy.goals.length>0);
- const makeToday=emptyDevice&&!welcomeSeen?<FirstRunEntry demoAvailable={legacy.mode==='local'}/>:settings.loaded&&!settings.error&&!settings.data.onboarded?<Suspense fallback={<TodayReserve part="make"/>}><MakeToday hasRecords={hasRecords} chosen={settings.data.preset} onChoose={setPreset} onContinue={()=>apply(s=>({...s,onboarded:true}))}/></Suspense>:null;
+ const makeToday=emptyDevice?<FirstRunEntry demoAvailable={legacy.mode==='local'}/>:settings.loaded&&!settings.error&&!settings.data.onboarded?<Suspense fallback={<TodayReserve part="make"/>}><MakeToday hasRecords={hasRecords} chosen={settings.data.preset} onChoose={setPreset} onContinue={()=>apply(s=>({...s,onboarded:true}))}/></Suspense>:null;
  // The For you cards render into three fixed places (portals), so the page's own tree never changes shape when they
  // arrive: the hero and its slogan mount once per visit.
  const layout=(parts:ForYouParts)=><div className="today-page personalized-today" data-interests={settings.data.preset} data-single={single?'':undefined}>
@@ -395,7 +392,7 @@ export function TodayDashboard(){
    {integrityShown&&<p role="alert" className="notice">{integrityWarning} <Link href="/app/wealth">Review saved sources →</Link> <button type="button" className="text-link" aria-label="Dismiss this notice in this tab" onClick={()=>{dismissIntegrity(tabStore(),integritySignature);setIntegrityHidden(integritySignature);}}>Dismiss</button></p>}
    {/* Session AK RB (RELEASE_REVIEW_2 R2-11): "Make Today yours" waits until the welcome above is answered (they asked the same question one after the other). */}
    {!showcase&&!brandNew&&storesReady&&!hasRecords&&makeToday}
-   {/* Session AP (friends Alpha): after setup, the first five steps (its own chunk; nothing stored but its "hide"). */}{!showcase&&!brandNew&&storesReady&&settings.loaded&&(setupMade||settings.data.onboarded||welcomeSeen)&&<Suspense fallback={null}><FirstFive goals={platform.data.goals.length+legacy.goals.length} habits={habits.data.habits.length} meals={health.data.diary.length}/></Suspense>}
+   {/* Session AP (friends Alpha): after setup, the first five steps (its own chunk; nothing stored but its "hide"). */}{!showcase&&!brandNew&&storesReady&&settings.loaded&&(setupMade||settings.data.onboarded)&&<Suspense fallback={null}><FirstFive goals={platform.data.goals.length+legacy.goals.length} habits={habits.data.habits.length} meals={health.data.diary.length}/></Suspense>}
    {!brandNew&&storesReady&&<TodayLine habits={habits.data} health={health.data} platform={platform.data} quotes={market.quotes} now={now} today={today} healthDate={sources.healthDate} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} financial={financial}/>}
    {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{/* Session AL fourth pass (PR-103, C-LS-09): tasks due today and task reminders */}<LoadBoundary quiet><Suspense fallback={null}><TodayTasksDue/></Suspense></LoadBoundary>{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
    {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}

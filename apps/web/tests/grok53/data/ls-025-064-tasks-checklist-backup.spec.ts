@@ -1,4 +1,5 @@
 import {readFileSync} from 'node:fs';
+import {openAllSettingsGroups} from '../../settings-open';
 import {expect, test, type Page} from '@playwright/test';
 import {buildEverythingZip, collectEverything} from '../../../lib/export/everything';
 import {TASKS_KEY, emptyTasks, tasksSchema} from '../../../lib/tasks/schema';
@@ -52,6 +53,7 @@ test('LS-025: the encrypted backup holds Tasks and the Checklist, previews them 
   await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(values => { for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, RECORDS);
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   const vault = page.locator('#private-vault');
   await vault.getByLabel('Include my Health records in this encrypted download.').check();
   await vault.getByRole('button', {name: 'Prepare encrypted backup'}).click();

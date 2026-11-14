@@ -3,7 +3,7 @@ import {buildStoredZip} from '../lib/export/zip';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {APPLE_XML, GARMIN, LOOP} from '../lib/import/switch/test-fixtures';
 import {isPhone, openFold} from './phone-nav';
-import {openSettings} from './settings-open';
+import {openSettings, openAllSettingsGroups} from './settings-open';
 
 // Session W Part 7: Settings → Switch to ZIGoals with fictional exports (lib/import/switch/test-fixtures.ts). The file is
 // read in the bundled Web Worker on this device; the preview says what would come in; nothing is written before the
@@ -15,6 +15,7 @@ async function seed(page: Page) {
   await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
 }
 const card = (page: Page) => page.getByRole('region', {name: 'Bring your history with you.'});
 const choose = (page: Page) => card(page).getByLabel(/^Choose the export/);

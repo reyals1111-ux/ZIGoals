@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openAllSettingsGroups} from './settings-open';
 import {encryptBackup} from '../lib/vault/backup';
 import {createEmptyHealth, HEALTH_STORAGE_KEY, healthSchema} from '../lib/health';
 import {emptyPlatform, PLATFORM_KEY, platformSchema} from '../lib/positions';
@@ -47,6 +48,7 @@ for (const [label, domain, key, record] of OLD) {
     await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
     await page.evaluate(() => localStorage.clear());
     await page.reload();
+    await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
     await restore(page, file, recovery);
     await page.getByLabel(/^Module to restore/).selectOption(domain);
     await page.getByLabel('Replace the selected module with this validated backup.', {exact: true}).check();
@@ -74,6 +76,7 @@ for (const [label, domain, key] of CURRENT) {
     await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
     await page.evaluate(() => localStorage.clear());
     await page.reload();
+    await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
     await restore(page, file, recovery);
     await page.getByLabel(/^Module to restore/).selectOption(domain);
     await page.getByLabel('Replace the selected module with this validated backup.', {exact: true}).check();
@@ -88,6 +91,7 @@ test('a wrong secret or another file is refused with a plain reason, and nothing
   await page.goto('/app/settings'); /* Session AP: a seed only writes storage here; no group needs opening */
   await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HEALTH_STORAGE_KEY, JSON.stringify(healthV1)]);
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   const before = await page.evaluate(() => JSON.stringify({...localStorage}));
   await restore(page, file, 'not the secret');
   await expect(page.getByRole('alert').first()).toBeVisible();
