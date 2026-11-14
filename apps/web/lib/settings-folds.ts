@@ -79,7 +79,7 @@ export function foldedAtStart(open: readonly SettingsGroupId[], target: Settings
   return SETTINGS_GROUP_IDS.filter(id => id !== target && !open.includes(id) && !alsoOpen.includes(id));
 }
 /** Keys a device holds before it has any record of its own (display choices and markers, never a person's records). */
-const NOT_A_RECORD = /^zigoals:(onboarding|ui-prefs|settings-open|settings-folds|motion|whats-new|ak-tour|layout|sync-offer|chain-choice|theme|first-five|bento|day-ends|day-goal)(:|$)/;
+const NOT_A_RECORD = /^zigoals:(onboarding|ui-prefs|settings|settings-open|motion|whats-new|ak-tour|layout|sync-offer|first-five|bento|day-ends|day-goal)(:|$)/;
 /**
  * Session AP (ADR-040 D20): the group with the Showcase card ("Your app") starts open while the Showcase is on (its
  * "Return to my data" is wanted first) and on a device that holds no record of its own yet (Settings → Load Showcase Demo
