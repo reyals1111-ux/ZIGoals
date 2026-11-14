@@ -2887,6 +2887,7 @@
 :where(:root[data-text=large]) .pages-preview-more:not(#\-) { font-size: calc(.875rem * 1.125); }
 /*  components/settings/settings-fold.css  */
 :where(:root[data-text=large]) .settings-page .settings-fold-summary:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .settings-page .settings-fold-quick button:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/share-cards/share-cards.css  */
 :where(:root[data-text=large]) .share-sheet-eyebrow:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .share-sheet-title:not(#\-) { font-size: calc(22px * 1.125); }
