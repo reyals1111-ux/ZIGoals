@@ -11,21 +11,13 @@
   .bento-switch button:hover { text-decoration: underline; text-underline-offset: 4px; }
   .bento-switch button:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
 
-  /* The cards of the page's main area, as tiles: as many 340 px columns as fit, the gaps filled in order. */
-  :root[data-bento=today] :has(> [data-layout-region="today:main"]),
-  :root[data-bento=goals] :has(> [data-layout-region="goals:body"]),
-  :root[data-bento=habits] :has(> [data-layout-region="habits:body"]),
-  :root[data-bento=health] :has(> [data-layout-region="health:body"]),
-  :root[data-bento=wealth] :has(> [data-layout-region="wealth:body"]) {
+  /* The cards of the page's main area, as tiles: as many 480 px columns as fit (300 px on Today), the gaps filled in order. */
+  :root[data-bento] [data-bento-grid] {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); grid-auto-flow: row dense; gap: 20px; align-items: start;
   }
   /* UX review (Blocker): the page's own header and anything that is not one of its cards keep the whole row, and so does a
-     card that lays its own content out in columns (marked by the switch); only self-contained cards become tiles. */
-  :root[data-bento=today] :has(> [data-layout-region="today:main"]) > :not([data-layout-region]),
-  :root[data-bento=goals] :has(> [data-layout-region="goals:body"]) > :not([data-layout-region]),
-  :root[data-bento=habits] :has(> [data-layout-region="habits:body"]) > :not([data-layout-region]),
-  :root[data-bento=health] :has(> [data-layout-region="health:body"]) > :not([data-layout-region]),
-  :root[data-bento=wealth] :has(> [data-layout-region="wealth:body"]) > :not([data-layout-region]),
+     card that lays its own content out in columns (both marked by the switch); only self-contained cards become tiles. */
+  :root[data-bento] [data-bento-grid] > :not([data-layout-region]),
   :root[data-bento] [data-layout-region][data-bento-wide] { grid-column: 1 / -1; }
   :root[data-bento] :is([data-layout-region="today:main"], [data-layout-region="goals:body"], [data-layout-region="habits:body"], [data-layout-region="health:body"], [data-layout-region="wealth:body"]) { min-width: 0; margin-block: 0; }
   /* Today's cards carry their own spans in the list (built-in and wide cards take the whole row); as tiles each takes one,

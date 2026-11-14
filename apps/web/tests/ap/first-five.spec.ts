@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../ah-helpers';
 import {continueToGoalReview, typeGoalName} from '../goal-name';
+import {openMealLog} from '../phone-nav';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../lib/dashboard-settings';
 
 /**
@@ -46,6 +47,8 @@ test('the first five: a goal, a habit, a meal and a money record from Today, in 
   for (const [label, value] of [['Food name', 'Porridge'], ['Serving weight (g)', '200'], ['Calories (kcal)', '300'], ['Protein (g)', '10'], ['Carbs (g)', '50'], ['Fat (g)', '6']] as const) await food.getByLabel(label).fill(value);
   await food.getByRole('button', {name: 'Save food', exact: true}).click();
   await page.getByRole('tab', {name: 'Diary', exact: true}).click();
+  // On a phone the meal form opens in a sheet from "Log a meal" (a tap, as a person does).
+  await openMealLog(page);
   const log = page.getByRole('form', {name: 'Log a meal', exact: true});
   await log.getByLabel('Food or recipe').selectOption({label: 'Porridge · food'});
   await log.getByRole('button', {name: 'Log to diary'}).click();
