@@ -319,8 +319,8 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   later, by a same-page address change, left its group folded (zigi-part-boundary, zigi-memory): every jump (arrival, link,
   router, back and forward) now opens its group, waiting for a late target; (d) specs that seed records and then use
   Settings open its groups (LS-025 and seven more of the same shape). **Budget:** after four weight passes on Settings this
-  session, the jump fix (every jump opens its group, also for a target drawn later) left `/app/settings` 42 bytes over; its
-  line is raised by exactly that (531,000 → 531,042 bytes), as the owner's rule allows (≤ 2 kB, the exact overage, reason
+  session, the jump fix (every jump opens its group, also for a target drawn later) and the launcher wording in Help left `/app/settings` 44 bytes over; its
+  line is raised by exactly that (531,000 → 531,044 bytes), as the owner's rule allows (≤ 2 kB, the exact overage, reason
   here). No other line moved.
 
 - **D24 (CI 1726 fallout, the complete run after D20 and Part 6):** (a) **Bento's switch moved** from the header cluster to

@@ -11,7 +11,7 @@
     "/app/portfolio": {"main": 515751, "budget": 500000},
     "/app/staking": {"main": 534717, "budget": 487000},
     "/app/activity": {"main": 497594, "budget": 457000},
-    "/app/settings": {"main": 525876, "budget": 531042},
+    "/app/settings": {"main": 525876, "budget": 531044},
     "/app/help": {"main": 493600, "budget": 450000},
     "/app/chess": {"main": null, "budget": 459000},
     "/app/earn": {"main": null, "budget": 496000},
