@@ -3,7 +3,7 @@ import {seeded} from './ap-fixtures';
 
 /**
  * Session AP (owner-approved feature list): the Journal's own numbers — each entry's words, the writing streak and the
- * words this year — worked out from the entries; nothing new is stored. Draft for the integrator to run.
+ * words this year — worked out from the entries; nothing new is stored.
  */
 test.use({timezoneId: 'Europe/Brussels'});
 const entry = (id: string, date: string, text: string) => ({id, date, text, createdAt: `${date}T19:00:00.000Z`});

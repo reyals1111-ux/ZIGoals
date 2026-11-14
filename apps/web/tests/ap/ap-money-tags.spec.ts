@@ -3,7 +3,7 @@ import {MONEY_TAGS_KEY} from '../../lib/money-tags/schema';
 import {MONEY_LOG_KEY, entry, moneyLog, openInsight, readRecord, seedDevice, spending} from './ap-money-fixtures';
 
 /**
- * Session AP (feature 2, draft): tags on money entries in their own device record (zigoals:money-tags:v1), never on the
+ * Session AP (feature 2): tags on money entries in their own device record (zigoals:money-tags:v1), never on the
  * money-log entry; filter by a tag, totals per tag and currency; a removed entry's tags are shown nowhere.
  */
 test.use({timezoneId: 'UTC'});

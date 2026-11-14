@@ -4,7 +4,7 @@ import {TODAY, seeded, stored, tasksRecord} from './ap-fixtures';
 /**
  * Session AP (owner-approved feature list, time-blocking): the Agenda's day by the hour. "By the hour" loads the grid on
  * demand; a task moves to an hour by its "Move to…" picker (keyboard) or by dragging it (pointer), which writes the
- * task's existing day and time (and nothing else) with Undo; the day says its load. Draft for the integrator to run.
+ * task's existing day and time (and nothing else) with Undo; the day says its load.
  */
 test.use({timezoneId: 'Europe/Brussels'});
 const TASKS = tasksRecord([

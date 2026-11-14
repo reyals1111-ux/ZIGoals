@@ -2,7 +2,7 @@ import {expect, test} from '@playwright/test';
 import {BUDGETS_KEY} from '../../lib/budgets/schema';
 import {MONEY_LOG_KEY, entry, moneyLog, openWealthSection, seedDevice} from './ap-money-fixtures';
 
-/** Session AP (feature 3, draft): Ready to assign on Budgets, from records only, per currency; said plainly without income. */
+/** Session AP (feature 3): Ready to assign on Budgets, from records only, per currency; said plainly without income. */
 test.use({timezoneId: 'UTC'});
 const BUDGETS = {version: 1, budgets: [
   {id: 'b1', category: 'Groceries', currency: 'EUR', monthly: '300.00', rollover: false, since: '2026-11'},

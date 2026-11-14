@@ -4,7 +4,7 @@ import {TODAY, seeded, stored} from './ap-fixtures';
 /**
  * Session AP (owner-approved feature list): "Days until", the person's own countdowns (`zigoals:countdowns:v1`, at most
  * 50), a Today card kept on this device and on the Agenda's day of the event. A passed one says "N days ago" under
- * Passed, never a negative "days left". Draft for the integrator to run.
+ * Passed, never a negative "days left".
  */
 test.use({timezoneId: 'Europe/Brussels'});
 const KEY = 'zigoals:countdowns:v1';

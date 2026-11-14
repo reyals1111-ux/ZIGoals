@@ -5,7 +5,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../lib/dashboard-settin
 import {MONEY_LOG_KEY, type MoneyEntry} from '../../lib/money-log/schema';
 
 /**
- * Session AP (Wealth money features, draft specs): a fixed clock (Saturday 14 November 2026, 10:00 UTC), the API offline,
+ * Session AP (Wealth money features): a fixed clock (Saturday 14 November 2026, 10:00 UTC), the API offline,
  * an empty device that has seen the welcome, and records written straight into this device's storage before the page loads.
  */
 export const TODAY = '2026-11-14';

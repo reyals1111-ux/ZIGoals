@@ -4,7 +4,7 @@ import {TODAY, seeded, stored, tasksRecord} from './ap-fixtures';
 /**
  * Session AP (owner-approved feature list): Tasks' "Priority matrix". Four boxes from priority and day (urgent: overdue or
  * due within 2 days; important: P1 or P2), the rule said in one line; moving a card changes only its priority level,
- * never its day, and a move across the urgency line is refused with the reason. Draft for the integrator to run.
+ * never its day, and a move across the urgency line is refused with the reason.
  */
 test.use({timezoneId: 'Europe/Brussels'});
 const TASKS = tasksRecord([

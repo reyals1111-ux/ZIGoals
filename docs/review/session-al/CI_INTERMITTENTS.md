@@ -159,3 +159,5 @@ checks.`" (ADR-017 S64, AF16). `webkit-smoke` and `webkit-phone` filter exactly 
 | `zigi-tools:126` (WebKit phone, shard 3/4, CI 1745) | First sighting: the Apps & extras sheet never opened; the shard's dmesg shows a WPEWebKit compositor segfault (class B) | One re-run |
 | `grok53/shell/o3-apps-extras:80` (mobile, shard 9, CI 1745) | First sighting: a row read 43.999996 px while the sheet's opening transform finished (the rows are 44 px fixed; green in 1741) | One re-run |
 | `webkit-smoke:104` (WebKit phone, CI 1745 re-run) | Not an intermittent: the press on "Apps & extras" came before the page was live | Waits for hydration (as earn-dock) |
+| `progress-glass:60` /app (mobile, shard 10, CI 1747) | First sighting: 45 s timeout on the Showcase's Today; locally 5.7–10 s in 3 runs (`--repeat-each=3`), so the runner's load, most likely in the wait for running animations to settle | Recorded; the run on the next head is its one re-run |
+| `ap-health-splits:10` (CI 1747) | Not an intermittent: strict mode, the run's name is the row's `<strong>` and the opened detail's `<h3>` | The spec presses the row's own summary; same assertions |

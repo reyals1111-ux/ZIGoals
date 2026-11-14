@@ -1,7 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {AT, TODAY, health, healthRecord, openHealth, openTab} from './ap-health-fixtures';
 
-// Session AP (feature 3, DRAFT for the integrator): orbits from the person's own goals, in Health → Activity.
+// Session AP (feature 3): orbits from the person's own goals, in Health → Activity.
 test('the steps orbit follows the daily step target, in words; no calories and no other app\'s ring names', async ({page}) => {
   const h = health({targets: {...health().targets, steps: 8000}, activity: [{id: 'health_activity-ap-0001', date: TODAY, name: 'Walk', steps: 6000, minutes: 40, createdAt: AT, updatedAt: AT}]});
   await openHealth(page, healthRecord(h));

@@ -1,7 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {MONEY_LOG_KEY, entry, moneyLog, openInsight, seedDevice} from './ap-money-fixtures';
 
-/** Session AP (feature 4, draft): age of money, first in first out over 90 days; "not enough records yet" before 30 days. */
+/** Session AP (feature 4): age of money, first in first out over 90 days; "not enough records yet" before 30 days. */
 test.use({timezoneId: 'UTC'});
 test('not enough records yet with under 30 days', async ({page}) => {
   await seedDevice(page, {[MONEY_LOG_KEY]: moneyLog([entry('2026-11-01', '100.00', 'Salary', 'income'), entry('2026-11-05', '20.00')])});

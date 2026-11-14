@@ -5,7 +5,7 @@ import {hydrated} from '../ah-helpers';
 /**
  * Session AP (owner-approved feature list): Tasks' "This evening" and "Someday", kept in their own device record
  * `zigoals:task-when:v1`, never in the task record. This evening holds only on its date; a task given a day leaves
- * Someday. Draft for the integrator to run.
+ * Someday.
  */
 test.use({timezoneId: 'Europe/Brussels'});
 const KEY = 'zigoals:task-when:v1';

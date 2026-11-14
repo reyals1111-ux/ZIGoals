@@ -3,7 +3,7 @@ import {SYMPTOMS_KEY} from '../../lib/symptoms/schema';
 import {health, healthRecord, openHealth, stored} from './ap-health-fixtures';
 import {isPhone} from '../phone-nav';
 
-// Session AP (feature 2, DRAFT for the integrator): the symptom and factor tracker in Health → Diary.
+// Session AP (feature 2): the symptom and factor tracker in Health → Diary.
 test('an item is added and given a level today; a bad name is a field error; it stays on this device', async ({page}) => {
   await openHealth(page, healthRecord(health()));
   // It sits with the day's mood, which is one folded row on a phone (CI 1726, pillar-phone-length).

@@ -1,7 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {MONEY_LOG_KEY, entry, moneyLog, openInsight, seedDevice} from './ap-money-fixtures';
 
-/** Session AP (feature 5, draft): spending pace beside your usual month; three earlier months needed; never a forecast. */
+/** Session AP (feature 5): spending pace beside your usual month; three earlier months needed; never a forecast. */
 test.use({timezoneId: 'UTC'});
 test('fewer than three earlier months: it says so', async ({page}) => {
   await seedDevice(page, {[MONEY_LOG_KEY]: moneyLog([entry('2026-10-03', '50.00'), entry('2026-11-02', '10.00')])});

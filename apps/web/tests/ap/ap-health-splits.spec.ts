@@ -1,7 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {health, healthRecord, openHealth} from './ap-health-fixtures';
 
-// Session AP (feature 5, DRAFT for the integrator): pace and per-km splits from a GPX run; a malicious file is refused.
+// Session AP (feature 5): pace and per-km splits from a GPX run; a malicious file is refused.
 const time = (s: number) => new Date(Date.parse('2026-11-13T07:00:00Z') + s * 1000).toISOString();
 const RUN = `<?xml version="1.0"?><gpx version="1.1" creator="Fictional Watch" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>Fictional park run</name><type>running</type><trkseg>${
   Array.from({length: 26}, (_, i) => `<trkpt lat="${(50 + i * 0.0009).toFixed(5)}" lon="20"><time>${time(i * 30)}</time></trkpt>`).join('')}</trkseg></trk></gpx>`;
@@ -18,7 +18,8 @@ test('a GPX run comes in with its pace and splits; a file with a DOCTYPE is a fi
   const preview = page.getByRole('group', {name: 'What this file holds'});
   await expect(preview).toContainText('Pace');
   await preview.getByRole('button', {name: 'Add workout'}).click();
-  await page.getByRole('region', {name: 'Your workouts'}).getByText('Fictional park run', {exact: true}).click();
+  // The row's own control: its summary (the opened detail names the run again in its heading; CI 1747, strict mode).
+  await page.getByRole('region', {name: 'Your workouts'}).locator('details > summary', {hasText: 'Fictional park run'}).click();
   await expect(page.getByRole('table', {name: /Splits of Fictional park run/})).toBeVisible();
   const splits = await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:workout-splits:v1') ?? 'null'));
   expect(Object.values(splits.workouts as Record<string, {splits: unknown[]}>)[0]!.splits).toHaveLength(3);

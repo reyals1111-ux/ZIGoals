@@ -2,7 +2,7 @@ import {expect, test} from '@playwright/test';
 import {MONEY_LOG_KEY, entry, moneyLog, noSideScroll, openInsight, seedDevice} from './ap-money-fixtures';
 
 /**
- * Session AP (feature 1, draft): Wealth → Spending → Your money over time. Month by month for the last 12 months with a
+ * Session AP (feature 1): Wealth → Spending → Your money over time. Month by month for the last 12 months with a
  * record (a month without records is a gap row, never zero), a table beside the chart, each currency on its own;
  * categories over a year; top payees this month beside last month.
  */

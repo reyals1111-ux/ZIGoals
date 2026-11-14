@@ -2,7 +2,7 @@ import {expect, test} from '@playwright/test';
 import {MOOD_TAGS_KEY} from '../../lib/mood-tags/schema';
 import {AT, back, health, healthRecord, openHealth, openTab, stored} from './ap-health-fixtures';
 
-// Session AP (feature 1, DRAFT for the integrator): tags on a mood check-in, and "What goes with your good days".
+// Session AP (feature 1): tags on a mood check-in, and "What goes with your good days".
 test('a tag is added to today\'s mood in its own record, and Insights shows what goes with good days, in counts', async ({page}, info) => {
   test.skip(info.project.name !== 'desktop', 'the mood card is folded on a phone; one project is enough');
   const days: Record<string, {mood: number; at: string}> = {};
