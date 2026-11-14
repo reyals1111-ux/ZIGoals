@@ -3,8 +3,8 @@ import {hydrated, loadShowcase, offlineApi} from '../ah-helpers';
 
 /**
  * Session AP (owner decision 14 Nov, 4a; ADR-040): on a computer the launchers fold into the edge while they would cover
- * content (Today's right column at 1440 as the page scrolls) and come back when nothing is under them; hover or the
- * keyboard focus brings them back; the change waits 150 ms (no flicker), never moves the focus; Motion Off and reduced
+ * content (Today's right column at 1440 as the page scrolls) and come back when nothing is under them; the
+ * keyboard focus brings them back (never the pointer, which they would move away from); the change waits 150 ms (no flicker), never moves the focus; Motion Off and reduced
  * motion slide nothing; phones have no floating launchers to fold.
  */
 const tucked = (page: Page) => page.evaluate(() => document.documentElement.hasAttribute('data-launchers-tucked'));
@@ -26,8 +26,11 @@ test.describe('on a computer', () => {
     await expect.poll(() => slide(page)).toBe(40);
     const box = (await zigi(page).locator('.ai-launcher-button').boundingBox())!;
     expect(box.x + box.width / 2).toBeLessThan(1440);
-    // Hover brings it back at once; the press still works.
+    // Pointing leaves it where it is (it never moves from under the pointer; ADR-040 D24e); the keyboard focus brings it back.
     await zigi(page).locator('.ai-launcher-button').hover();
+    await page.waitForTimeout(200);
+    expect(await slide(page)).toBe(40);
+    await zigi(page).locator('.ai-launcher-button').focus();
     await expect.poll(() => slide(page)).toBe(0);
   });
 

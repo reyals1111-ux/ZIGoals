@@ -78,6 +78,8 @@ test.describe('on a computer', () => {
     await page.route(url => url.pathname === '/api/positions', route => route.fulfill({json: {positions: [{...base, id: `zigchain-1:${address}:stake:a`, sourceType: 'NATIVE_STAKING', quantity: '120000000000000000000', principal: '120000000000000000000', liquidity: 'BONDED'}]}}));
     await page.emulateMedia({reducedMotion: 'reduce'});
     await page.goto('/app');
+    // Session AP (CI 1726): pressed once the page is live (a press before hydration is lost, as in earn-guide-zigi).
+    await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
     await page.getByRole('button', {name: 'Open the Earn dock: ways to earn'}).click();
     const staking = page.getByRole('group', {name: 'Ways to earn'}).getByRole('link', {name: /^ZIGChain staking/});
     await expect(staking).toHaveAccessibleName('ZIGChain staking: you hold 120 ZIG. Opens its part of the Earn page');

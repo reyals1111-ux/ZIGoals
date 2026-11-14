@@ -13,7 +13,7 @@ test('Local simulation Goals survive export, wipe and import through Settings',a
  test.setTimeout(90000);
  await seed(page);await page.goto('/app/goals');await expect(page.getByText('Kyoto in spring').first()).toBeVisible();
  const read=()=>page.evaluate(keys=>keys.map(k=>localStorage.getItem(k)),[LEDGER,PLANS,'zigoals:platform:v1']);
- const before=await read();expect(before.every(v=>v!==null)).toBe(true);
+ /* Session AP (CI 1726): read once the app has settled (the goals page derives contribution records from the ledger a moment later) */let before:(string|null)[]=[];await expect(async()=>{const a=await read();await page.waitForTimeout(400);const b=await read();expect(b).toEqual(a);before=b;}).toPass({timeout:15_000});expect(before.every(v=>v!==null)).toBe(true);
  await openSettings(page);await page.getByRole('button',{name:'Prepare encrypted backup',exact:true}).click();
  const secret=await page.getByLabel('Recovery secret',{exact:true}).inputValue();await page.getByLabel('I saved the recovery secret.',{exact:true}).check();
  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Download encrypted backup',exact:true}).click();
@@ -23,7 +23,7 @@ test('Local simulation Goals survive export, wipe and import through Settings',a
  await page.reload(); await openAllSettingsGroups(page);expect(await read()).toEqual([null,null,null]);
  // Restore every module the validated backup offers, one at a time, as a user would.
  await page.getByText('Restore an encrypted backup',{exact:true}).click();
- const unlock=async()=>{await page.getByLabel('Encrypted backup file',{exact:true}).setInputFiles({name:'zigoals-encrypted-backup-v1.json',mimeType:'application/json',buffer:Buffer.from(file)});await page.getByLabel('Backup recovery secret',{exact:true}).fill(secret);await page.getByRole('button',{name:'Unlock and preview',exact:true}).click();};
+ const unlock=async()=>{await page.getByLabel('Encrypted backup file',{exact:true}).setInputFiles({name:'zigoals-encrypted-backup-v1.json',mimeType:'application/json',buffer:Buffer.from(file)});await page.getByLabel('Backup recovery secret',{exact:true}).fill(secret);await page.getByRole('button',{name:'Unlock and preview',exact:true}).click();await expect(page.getByLabel(/^Module to restore/).locator('option').first()).toBeAttached();};/* Session AP (CI 1726): the modules are read once the preview offers them */
  await unlock();const offered=await page.getByLabel(/^Module to restore/).locator('option').evaluateAll(options=>options.map(o=>(o as HTMLOptionElement).value));
  for(const [index,module] of offered.entries()){
   if(index>0)await unlock();

@@ -20,12 +20,18 @@ export async function openAllSettingsGroups(page: Page) {
   if (!scripts) return;
   const hydrated = await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}).then(() => true, () => false);
   if (!hydrated) throw new Error('Settings did not finish loading (no data-app-hydrated in 20 s).');
+  // Session AP (CI 1726): reached by an in-app link, the page was already live, so Settings' own groups are waited for, and
+  // "none folded" must hold for a moment (the groups fold as Settings mounts).
+  if (/^\/app\/settings\/?$/.test(new URL(page.url()).pathname)) await page.locator('.settings-page .settings-group').first().waitFor({state: 'attached', timeout: 20_000}).catch(() => undefined);
   const folded = page.locator('.settings-page .settings-group[data-folded]');
   await expect(async () => {
-    if (await folded.count() === 0) return;
-    const all = page.locator('.settings-page .settings-fold-all');
-    if ((await all.textContent())?.trim() === 'Open all') await all.click();
-    await expect(folded).toHaveCount(0, {timeout: 2_000});
+    if (await folded.count() > 0) {
+      const all = page.locator('.settings-page .settings-fold-all');
+      if ((await all.textContent())?.trim() === 'Open all') await all.click();
+      await expect(folded).toHaveCount(0, {timeout: 2_000});
+    }
+    await page.waitForTimeout(250);
+    expect(await folded.count()).toBe(0);
   }).toPass({timeout: 15_000});
 }
 

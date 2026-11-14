@@ -21,7 +21,7 @@ open "Your app" group, or right under its folded summary).
 6. **Today, Goals, Habits, Health, Wealth → Unlock layout → Layout: List · Bento** (in "Arrange this page"): the same cards as tiles. Today's
    welcome header and slogan stay exactly as they are. The choice is remembered per page.
 7. **Scroll Today at 1440**: the round buttons on the right (ZIGi, Checklist, music) slide halfway into the edge while
-   they would sit on top of the right-hand column, and come back when nothing is under them; point at them or Tab to them
+   they would sit on top of the right-hand column, and come back when nothing is under them; press them where they are, or Tab to them
    and they are back at once. With Motion Off they move without sliding.
 
 ## New everyday tools (Showcase)

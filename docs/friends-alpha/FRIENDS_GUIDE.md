@@ -168,7 +168,7 @@ All optional, all on your device. Help explains each one.
 - **252 templates:** 130 goals and 122 habits, searchable from the goal creator and the habit form.
 - **Settings starts folded** on a computer or tablet: each group shows its heading and one line. The groups you open stay open on this device, and **Open all** opens everything.
 - **Bento view** (computers): **Unlock layout → Layout: List · Bento** on Today, Goals, Habits, Health and Wealth shows the same cards as tiles. Each page remembers your choice on this device.
-- **Buttons that step aside** (computers): when ZIGi, Music, the Checklist or the Earn dock would cover what you're reading, they slide toward the edge, and come back when you point at them or move on.
+- **Buttons that step aside** (computers): when ZIGi, Music, the Checklist or the Earn dock would cover what you're reading, they slide toward the edge, and come back when you move on (they can be pressed where they are).
 - **Send feedback** has **Copy these details**: copy the device details you previewed, to paste into a message or a form. The details now also name the theme and screen size.
 
 <!-- AP: Part 6 features to add -->
