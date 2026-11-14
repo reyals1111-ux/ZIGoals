@@ -20,8 +20,13 @@
     display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); grid-auto-flow: row dense; gap: 20px; align-items: start;
   }
   :root[data-bento] :is([data-layout-region="today:main"], [data-layout-region="goals:body"], [data-layout-region="habits:body"], [data-layout-region="health:body"], [data-layout-region="wealth:body"]) { min-width: 0; margin-block: 0; }
+  /* Today's cards carry their own spans in the list (built-in and wide cards take the whole row); as tiles each takes one,
+     in narrower columns (Today's main area sits beside its rail). */
+  :root[data-bento=today] .dashboard-layout-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+  :root[data-bento=today] .dashboard-layout-grid > .placed-module[data-layout-region="today:main"] { grid-column: auto; }
 }
 /* Wide windows: the first two tiles are large (two columns each). */
 @media (min-width: 1280px) {
+  :root[data-bento] .dashboard-layout-grid > .placed-module[data-layout-region="today:main"]:nth-child(-n+2),
   :root[data-bento] :is([data-layout-region="today:main"], [data-layout-region="goals:body"], [data-layout-region="habits:body"], [data-layout-region="health:body"], [data-layout-region="wealth:body"]):nth-child(-n+2) { grid-column: span 2; }
 }
