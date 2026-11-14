@@ -145,3 +145,10 @@ checks.`" (ADR-017 S64, AF16). `webkit-smoke` and `webkit-phone` filter exactly 
 | `theme-parity-af:15` /app · folded (mobile, shard 11) | **Not an intermittent: the app.** Today's skip-link list was filtered by a 1.2 s timer, so its links depended on when the page was read. | Fixed at the cause (Session AP Part 1, ADR-040 D4). |
 | `earn-dock:36/:71` (desktop, shard 1) | **Not an intermittent: the app** (date-dependent). A quiet celebration card due on the Showcase that day sat over the launcher column. | Fixed at the cause (D4). |
 | `zigi-face-z:185` (WebKit phone, shard 4/4) | The words were typed while the composer settled after the previous answer; Send stayed off. | Spec waits for the words and an enabled Send (D4). |
+
+## Session AP (CI 1726 and CI 1741 on 313cff99)
+| Item | Reading | Done |
+|---|---|---|
+| CI 1726 (the first complete run after D20 and Part 6): about 100 reds | **Not intermittents:** Settings folded by default met specs that seed and reload, jump before the page is live, or reach Settings by its link; the Bento switch in the header; the activity links' tablet rule; two phone length ceilings | Fixed at their causes (ADR-040 D23, D24) |
+| `zigi-memory:175` (WebKit desktop, shard 2/4, CI 1741) | First sighting; the shard's dmesg shows a WPEWebKit compositor segfault (class B, as in AK–AO); passes on Chromium | One re-run |
+| `checklist-launcher:66` (desktop, shard 1, CI 1741) | First sighting; the mark's one-time draw read under load; passes 12/12 locally (`--repeat-each=4`) | One re-run |
