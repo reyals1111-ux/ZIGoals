@@ -287,4 +287,42 @@ Miniflare; weather-proxy Miniflare tests; frozen readers #37–#54; weight check
   seeds' timing (ZIGi's settings body loaded before the seeded values).
 
 ## Closing table
-(filled at Part 7)
+Totals: Fixed 14 · Built 30 · Holds (replayed, already right, now tested) 22 · Owner decision 4 · Not possible 4 · Carried 8.
+
+| Area | Row | Outcome | Evidence / cause |
+|---|---|---|---|
+| CI 1706 | theme-parity-af:15 (folded) | Fixed | skip-link list follows the page (c8063d86) |
+| CI 1706 | earn-dock:36/:71 | Fixed | quiet celebration beside the launchers (c8063d86) |
+| CI 1706 | zigi-face-z:185 | Fixed | Send pressed once words are in and Send is on (c8063d86) |
+| CI 1706 | earn-guide-zigi:54 | Carried | first sighting, not reproduced; recorded (CI_INTERMITTENTS) |
+| CI 1706 | route weights | Fixed | every page under budget, none raised (D6, D11, D18) |
+| CI 1709 | bn-114:25 | Fixed | waits for the card's check (second sighting) |
+| CI 1709 | zigi-voice-z:316, j06-data-safety:140 | Carried | first sightings, one re-run each |
+| AO carried | D-088 / N-BN-10 Settings folded | Built | D7, D20; specs moved (one helper); deep links open their group |
+| AO carried | D-028 Today ≤ 90 Tab stops | Fixed | 143 → 89 (90 with Bento's switch) (D8) |
+| AO D17 | wizard review order | Fixed | summary first, rhythm fold after (51a1b603) |
+| AO D17 | squashed checkboxes | Fixed | global min-width + flex none |
+| AO D17 | Perfect weeks list unlabeled | Fixed | named list, counts named |
+| AO D17 | Wealth chips 1440, Earn path labels 390, two average hints, CSV Value/Unit | see UX review | (Part 7 UX pass) |
+| AO D16 | BN-022, D-003, D-090, DV-170 | Owner decision | copy/visual calls, unchanged |
+| Service rows | TK 'Current' badge, D-262, D-200, TK-6B-06, TK "Unformatted prices", M10, TK-203, W15, D-052, D-079, D-176, C-DVG-35, MO-007, C-MO-01, C-BN-01, C-DVG-67, C-BN-05, C-DVG-69, C-BN-11, C-BN-12, BN-081, N-BN-17 | Holds | replayed on screen against the real routes/Workers with recorded upstreams (D19) |
+| Service rows | C-BN-06 | Fixed | the validator line's raw status code and float rate (7e24a448) |
+| Service rows | X3-29 | Holds | Staking times and Chess (its own recorded routes) |
+| Service rows | DV-089, PR-035 | Not possible here | need a model (NOVA lane) |
+| Service rows | barcode provider inactive | Not possible here | a deployment setting (OWNER_STEPS.md) |
+| Service rows | BN-050, N-127, N-153 | Not possible | nothing to replay (AL) |
+| Owner 4a | launchers fold into the edge | Built | D12 |
+| Owner 4b | A day counts as done at N | Built | D10 (TIER 3 stored format) |
+| Owner 4c | Bento view | Built | D13 |
+| Part 5 | Send feedback details + copy | Built | D15 |
+| Part 5 | What's new / Known limits | Built | D15 |
+| Part 5 | Your first five | Built | spec: 17 s at test pace |
+| Part 5 | friends docs + OWNER_STEPS.md | Built | 700203ec |
+| Part 5 | weather proxy Worker (off) | Built | c66b65c9, 16/16 |
+| Part 6 | hour grid · This evening/Someday · priority matrix · countdowns · journal numbers | Built | 060fb196 |
+| Part 6 | cash flow/trend/payees · money tags · Ready to assign · age of money · spending pace · bill change | Built | 060fb196 |
+| Part 6 | mood tags · symptoms · orbits · trends · run splits · copy a meal · food-logging days | Built | 060fb196 |
+| Part 6 | priority matrix by mouse drag | Carried | not confirmed headless after 2 attempts (D16a) |
+| Part 6 | orbits as a Today widget | Carried | strict synced settings record (D16b) |
+| Part 6 | Someday counts in the menu | Carried | weight (D16c) |
+| Fence | 15 fenced specs touched by the Part 2 move | Fixed | restored byte for byte (D20c) |
