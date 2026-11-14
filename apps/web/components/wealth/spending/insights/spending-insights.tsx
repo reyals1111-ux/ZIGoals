@@ -2,6 +2,7 @@
 import {Suspense, lazy, useId, useState} from 'react';
 import type {MoneyEntry} from '../../../../lib/money-log/schema';
 import {ShowcaseTag} from '../../../ui/showcase-tag';
+import {PhoneFold} from '../../../phone/phone-fold';
 import './insights.css';
 
 /**
@@ -23,7 +24,8 @@ export type InsightProps = {entries: readonly MoneyEntry[]; today: string; showc
 
 export default function SpendingInsights({entries, today, showcase = false}: InsightProps) {
   const id = useId(), [view, setView] = useState<View | null>(null), Chosen = view ? VIEWS[view].load : null;
-  return <section className="money-insights" aria-labelledby={`${id}-title`}>
+  // On a phone one row, as Wealth's other secondary sections (CI 1726, pillar-phone-length); it opens in place.
+  return <PhoneFold label="Your money over time"><section className="money-insights" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`}>Your money over time</h3>
     <p className="fine">From your own entries, each currency on its own. A month with nothing logged is shown as a gap, not as zero.</p>
     <div className="money-insights-views" role="group" aria-label="Show">
@@ -35,5 +37,5 @@ export default function SpendingInsights({entries, today, showcase = false}: Ins
         <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><Chosen entries={entries} today={today}/></Suspense>
       </>}
     </div>
-  </section>;
+  </section></PhoneFold>;
 }

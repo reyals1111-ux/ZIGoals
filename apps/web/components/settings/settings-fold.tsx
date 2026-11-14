@@ -65,17 +65,18 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
     setFolded(prev => { const next = new Set(prev); next.delete(group); return next; });
     return true;
   }, []);
-  // A jump whose target is drawn a moment later (ZIGi's sections load on demand) still opens its group and lands on it once
-  // it arrives (settings-late-jump.ts, loaded only for such a jump).
-  useEffect(() => {
-    const id = hashId(window.location.hash);
+  // A jump (the address on arrival, a link, the router, back and forward) opens its target's group; a target drawn a moment
+  // later (ZIGi's sections load on demand) opens it and is landed on once it arrives (settings-late-jump.ts, loaded only for
+  // such a jump). CI 1726: a same-page jump to a part of ZIGi's section that is not drawn yet waits for it too.
+  const late = useRef<(() => void) | null>(null), gone = useRef(false);
+  const jump = useCallback((id: string | null) => {
     if (!id || onPhone()) return;
-    // Drawn between the fold above and now (CI 1726, zigi-part-boundary / zigi-memory): its group opens and it is landed on.
     if (document.getElementById(id)) { if (reveal(id)) requestAnimationFrame(() => land(id)); return; }
-    let stop: (() => void) | null = null, gone = false;
-    void import('./settings-late-jump').then(m => { if (!gone) stop = m.watchLateJump(id, reveal); }, () => undefined);
-    return () => { gone = true; stop?.(); };
+    late.current?.();
+    void import('./settings-late-jump').then(m => { if (!gone.current) late.current = m.watchLateJump(id, reveal); }, () => undefined);
   }, [reveal]);
+  // A frame later on arrival, so the folds above are in place before the target's group is opened.
+  useEffect(() => { gone.current = false; const f = requestAnimationFrame(() => jump(hashId(window.location.hash))); return () => { gone.current = true; cancelAnimationFrame(f); late.current?.(); }; }, [jump]);
 
   useEffect(() => {
     const here = (url: URL) => url.pathname === window.location.pathname && url.hash.length > 1;
@@ -84,22 +85,19 @@ export function SettingsFolds({chain, children}: {chain: boolean; children: Reac
       const link = (event.target as Element | null)?.closest?.('a[href*="#"]') as HTMLAnchorElement | null;
       if (!link) return;
       const url = new URL(link.href, window.location.href);
-      if (here(url)) reveal(hashId(url.hash));
+      if (here(url)) jump(hashId(url.hash));
     };
     // The router's own pushes (Search, a Link) where the browser reports navigations; it fires before the scroll.
     type Nav = {addEventListener: (t: string, f: (e: {destination: {url: string}}) => void) => void; removeEventListener: (t: string, f: (e: {destination: {url: string}}) => void) => void};
     const nav = (window as Window & {navigation?: Nav}).navigation;
-    const onNavigate = (event: {destination: {url: string}}) => { try { const url = new URL(event.destination.url); if (here(url)) reveal(hashId(url.hash)); } catch { /* not a URL we handle */ } };
+    const onNavigate = (event: {destination: {url: string}}) => { try { const url = new URL(event.destination.url); if (here(url)) jump(hashId(url.hash)); } catch { /* not a URL we handle */ } };
     // Anything else (back and forward, a typed fragment): the browser already tried to scroll, so scroll once it is open.
-    const onHash = () => {
-      const id = hashId(window.location.hash);
-      if (reveal(id)) (id ? document.getElementById(id) : null)?.scrollIntoView({block: 'start'});
-    };
+    const onHash = () => jump(hashId(window.location.hash));
     document.addEventListener('click', onClick, true);
     nav?.addEventListener('navigate', onNavigate);
     window.addEventListener('hashchange', onHash);
     return () => { document.removeEventListener('click', onClick, true); nav?.removeEventListener('navigate', onNavigate); window.removeEventListener('hashchange', onHash); };
-  }, [reveal]);
+  }, [jump]);
 
   const toggle = useCallback((id: SettingsGroupId) => setFolded(prev => { const next = new Set(prev); if (!next.delete(id)) next.add(id); return next; }), []);
   const setAll = useCallback((fold: boolean) => setFolded(new Set(fold ? SETTINGS_GROUP_IDS : [])), []);

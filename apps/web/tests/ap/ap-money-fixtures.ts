@@ -1,4 +1,5 @@
 import {expect, type Page} from '@playwright/test';
+import {isPhone} from '../phone-nav';
 import {hydrated, offlineApi} from '../ah-helpers';
 import {openDeskFold} from '../ao/folds';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../lib/dashboard-settings';
@@ -26,6 +27,9 @@ export const readRecord = async <T>(page: Page, key: string) => JSON.parse((awai
 /** Wealth → Spending, then one view of "Your money over time". */
 export async function openInsight(page: Page, view: 'Month by month' | 'Categories over a year' | 'Top payees' | 'Your usual pace' | 'Age of money' | 'Tags') {
   await page.goto('/app/wealth'); await hydrated(page);
+  // On a phone the section is one row first (CI 1726, pillar-phone-length): a tap opens it, as a person does.
+  const row = spending(page).getByRole('button', {name: 'Your money over time'});
+  if (await isPhone(page)) await row.click();
   await expect(spending(page).getByRole('heading', {name: 'Your money over time'})).toBeVisible();
   const button = spending(page).getByRole('group', {name: 'Show'}).getByRole('button', {name: view, exact: true});
   await button.click();
