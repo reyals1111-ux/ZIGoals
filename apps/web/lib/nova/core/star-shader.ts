@@ -65,19 +65,21 @@ void main(){
   dens *= mix(1., .2, lane*up(.07,.3,r));
   dens *= .78 + .5*noise(g*64. + vec2(uSpin*.3, 1.7));
   // AM-2 (N3c): the fine structure a real disc has, drawn only at the full detail (a governed or software-drawn star
-  // keeps the cheaper picture): fibres that run along the arms (noise that is fine across an arm and slow along it, in
+  // keeps the cheaper picture, and does not pay for this one: the branch is on a uniform): fibres that run along the arms (noise that is fine across an arm and slow along it, in
   // the spiral's own coordinates: sin and cos of the phase, so there is no seam), wisps of ridged turbulence, and a dark
   // dust lane on each arm's inner edge.
   float fine = step(3.5, uDetail);
-  float alongArm = lr*7.5 + 3., fp = phase*1.5 + 2.2*(gas - .5);
-  float f1 = noise(vec2(sin(fp)*4.6 + 11., alongArm)), f2 = noise(vec2(cos(fp)*4.6 + 5., alongArm - 7.));
-  float fibre = sq(1. - abs(f1 + f2 - 1.));
-  vec2 wg = g + .05*vec2(gas, gas2);
-  float wisp = sq(ridge(wg*19. + vec2(uSpin*.1, 2.))) * (.55 + .9*ridge(wg*41. - vec2(1.7, uSpin*.07)));
-  dens *= mix(1., (.6 + 1.05*fibre) * (.6 + 1.0*wisp), fine*.85);
-  float edge = sq(max(.5+.5*cos(phase + 1.25), 0.)); edge *= edge;
-  float dust = edge * up(.25,.7, fbm(g*15. + vec2(9., 2.) + phase*.2)) * up(.08,.2,r) * dn(.3,.6,r);
-  dens *= 1. - .78*dust*fine;
+  if (fine > .5) {
+    float alongArm = lr*7.5 + 3., fp = phase*1.5 + 2.2*(gas - .5);
+    float f1 = noise(vec2(sin(fp)*4.6 + 11., alongArm)), f2 = noise(vec2(cos(fp)*4.6 + 5., alongArm - 7.));
+    float fibre = sq(1. - abs(f1 + f2 - 1.));
+    vec2 wg = g + .05*vec2(gas, gas2);
+    float wisp = sq(ridge(wg*19. + vec2(uSpin*.1, 2.))) * (.55 + .9*ridge(wg*41. - vec2(1.7, uSpin*.07)));
+    dens *= mix(1., (.6 + 1.05*fibre) * (.6 + 1.0*wisp), .85);
+    float edge = sq(max(.5+.5*cos(phase + 1.25), 0.)); edge *= edge;
+    float dust = edge * up(.25,.7, fbm(g*15. + vec2(9., 2.) + phase*.2)) * up(.08,.2,r) * dn(.3,.6,r);
+    dens *= 1. - .78*dust;
+  }
   vec3 inner = mix(vec3(1.,.97,1.), mix(uA, vec3(1.), .3), up(.0,.12,r));
   vec3 mid = mix(inner, uC, up(.09,.28,r));
   vec3 outer = mix(mid, mix(uA, peach, .5 + .5*up(.35,.75,gas)), up(.24,.5,r));
@@ -123,9 +125,11 @@ void main(){
   vec2 tg = rot(uSpin*.42) * q * 118. + 7.; vec2 ti = floor(tg); float th = hash(ti+2.3);
   float tiny = dn(0., .16, length(fract(tg)-.5 - (vec2(hash(ti+4.1),hash(ti+8.7))-.5)*.6)) * step(.78, th) * dn(.12,.7,r) * (.35 + .65*arms);
   col += mix(vec3(.85,.92,1.), uB, th*.4) * tiny * (.55+.45*sin(uT*2.3+th*60.));
-  vec2 dg = rot(uSpin*.38) * q * 236. + 3.; vec2 di = floor(dg); float dh = hash(di+6.1);
-  float dustStars = exp(-sq(length(fract(dg)-.5 - (vec2(hash(di+2.9),hash(di+7.7))-.5)*.6))*90.) * step(.7, dh) * dn(.1,.66,r) * (.25 + .75*arms) * fine;
-  col += mix(vec3(1.,.95,.98), uC, dh*.35) * dustStars * .55;
+  if (fine > .5) {
+    vec2 dg = rot(uSpin*.38) * q * 236. + 3.; vec2 di = floor(dg); float dh = hash(di+6.1);
+    float dustStars = exp(-sq(length(fract(dg)-.5 - (vec2(hash(di+2.9),hash(di+7.7))-.5)*.6))*90.) * step(.7, dh) * dn(.1,.66,r) * (.25 + .75*arms);
+    col += mix(vec3(1.,.95,.98), uC, dh*.35) * dustStars * .55;
+  }
   for(int k=0;k<3;k++){
     float fk = float(k); float z = fract(uT*(.03+.035*uThink) + fk*.333);
     vec2 pp = uv / (z*1.3+.07) * (4.+fk*1.7) + fk*13.7; vec2 pi = floor(pp); float ph = hash(pi+fk*7.3);
