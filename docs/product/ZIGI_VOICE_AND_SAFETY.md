@@ -57,7 +57,8 @@ When a message matches:
    - for any risk to life, the local emergency number or a crisis line, now.
 3. **What does not change:**
    - HE6's own fasting note stays on every fasting card.
-   - ZIGi's fasting cards stay within 12 to 18 hours.
+   - ZIGi's fasting cards take Health's own range, 1 to 24 hours (one constant, `MAX_TARGET_HOURS`; Session AM-2, ADR-039 D6;
+     it was 12 to 18 until Health's form went to 24 in Session AO).
    - The planner refuses anything longer.
 
 The checks are deliberately simple and lean towards care. A false match costs one kind sentence; a missed one is why

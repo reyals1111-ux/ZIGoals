@@ -9,6 +9,8 @@ import {novaEnvInfo} from './nova-env';
 import {taskIntent} from '../../tasks/intent';
 import {addLocalDays as addDays} from '../../local-date';
 import {checklistAnswer, isChecklistAsk} from './al-fourth';
+import {MAX_TARGET_HOURS} from '../../fasting/schema';
+import {fastTooLong} from '../quick-commands/commands';
 
 /**
  * Session AL second pass (lane L7): what ZIGi's and NOVA's no-model path still answered with the examples list on the bots'
@@ -97,6 +99,7 @@ export function alFirst(question: string, env: ToolEnv | null, lang: Lang): Loca
   const fast = FAST.exec(q);
   if (fast && !/\?\s*$/.test(q)) {
     const hours = Number(fast[1] ?? fast[2] ?? 16);
+    if (hours > MAX_TARGET_HOURS && hours <= 72) return {kind: 'refusal', text: fastTooLong(hours, lang), calls: []}; // Health's own range (Session AM-2)
     if (hours >= 1 && hours <= 72) return {kind: 'answer', text: say(lang, `A ${hours} h fast, to start when you add it. Stop it any time from Health.`, `Een vasten van ${hours} uur, dat begint als je het toevoegt. Stop het wanneer je wilt in Health.`) + block({kind: 'start-fast', targetHours: hours}), calls: []};
   }
   // P-MO-07 (ZP-13, NP-11): "set my protein target to 120 g" is the target card.

@@ -6,7 +6,7 @@
  *  - adds the careful-mode note to what goes to the person's AI with that message: warm and brief, no numbers, targets
  *    or plans, a doctor, a registered dietitian or someone they trust named, emergency services for any risk to life.
  * The checks are deliberately simple and lean towards care; a match is not a diagnosis and nothing is stored about it.
- * HE6's fasting note (ZIGoals' own) stays as it is; ZIGi's own fasting cards stay within 12 to 18 hours.
+ * HE6's fasting note (ZIGoals' own) stays as it is; ZIGi's own fasting cards take Health's own range, 1 to 24 hours (MAX_TARGET_HOURS).
  */
 export type RiskTopic = 'self-harm' | 'eating-disorder' | 'very-low-intake' | 'rapid-weight-loss' | 'extreme-fasting';
 export const RISK_TOPICS: readonly RiskTopic[] = ['self-harm', 'eating-disorder', 'very-low-intake', 'rapid-weight-loss', 'extreme-fasting'];

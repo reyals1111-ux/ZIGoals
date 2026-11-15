@@ -148,7 +148,7 @@ export const L7_FOURTH: FourthCase[] = [
   c('tr-told', 'trust', 'DVR:Z-020', 'Sc+H', 'What did I tell you to remember?', {mustContain: ['Remember that'], mustNot: [NO_LIST]}),
   c('tr-allergic', 'trust', 'ZP-39 NP-31', 'Sc+H', 'What am I allergic to?', {mustNot: [NO_LIST]}),
   c('tr-net', 'trust', 'BN-059 ZIGi #7/#8', 'Sc+H', 'Is this testnet or mainnet?', {mustContain: ['zig-test-2', 'zigchain-1']}),
-  c('tr-settings', 'trust', 'BN-054', 'Sc+H', 'What does the Settings page let me change? Where do I turn the theme to Light?', {mustContain: ['Your app → Theme']}),
+  c('tr-settings', 'trust', 'BN-054', 'Sc+H', 'What does the Settings page let me change? Where do I turn the theme to Light?', {mustContain: ['Appearance → Theme', 'seven groups'], mustNot: ['Your app → Theme', 'six groups']}), // Session AM-2 (ADR-039 D10): Appearance is its own group since Session AO
   c('tr-vote', 'trust', 'BN-058 BN-060 ZIGi-F3', 'Sc+H', 'How much is the deposit for a proposal?', {mustContain: ['open Governance', 'no figure'], noCard: true}),
   c('tr-staking', 'trust', 'ZIGi #14–#17', 'Sc+H', 'What is staking in ZIG and should I do it?', {mustContain: ['I don’t advise']}),
   c('tr-cant', 'small-talk', 'LA-020 LZ-017', 'L2', 'what can\'t you do?', {mustContain: ['never move money']}),

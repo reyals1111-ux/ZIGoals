@@ -1,6 +1,6 @@
 import * as z from 'zod';
 import {GOAL_LIBRARY, searchTemplates} from '../../templates/goal-library';
-import {MAX_CUSTOM_HOURS} from '../../fasting/schema';
+import {MAX_TARGET_HOURS} from '../../fasting/schema';
 import {MAX_NOTE_CHARS, MEMORY_CATEGORIES, MEMORY_KINDS} from '../store/records';
 import {LINK_ICONS} from '../../links/schema';
 import {WIDGET_KINDS_V1, WIDGET_KINDS_V3_ONLY} from '../../dashboard-settings';
@@ -148,7 +148,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
     note: z.string().trim().max(500).optional(), mood: z.enum(HABIT_MOODS).optional(), day: daySchema}).refine(a => [a.value, a.minutes, a.quantity].filter(v => v !== undefined).length <= 1, 'Give one amount: a value, minutes or a quantity.'),
   z.strictObject({kind: z.literal('skip'), habit: habitName, reason: z.string().trim().max(500).optional(), day: daySchema}),
   z.strictObject({kind: z.literal('create-habit'), ...habitFields, ref: refSchema.optional()}),
-  z.strictObject({kind: z.literal('start-fast'), targetHours: z.number().int().min(1).max(MAX_CUSTOM_HOURS)}),
+  z.strictObject({kind: z.literal('start-fast'), targetHours: z.number().int().min(1).max(MAX_TARGET_HOURS)}), // Health's own range (lib/fasting/schema.ts), one constant
   z.strictObject({kind: z.literal('stop-fast')}),
   z.strictObject({kind: z.literal('create-goal'), ...goalFields, milestones: z.array(text(100)).max(10).optional()}).superRefine(goalRules),
   z.strictObject({kind: z.literal('add-goal-note'), goal: goalName, note: text(2000)}),

@@ -78,7 +78,8 @@ test('an edit cannot widen a proposal: wrong numbers, bad enums, lost required v
   expect(applyEdits(weight, {value: ''})).toMatchObject({ok: false, message: expect.stringMatching(/^Weight: /)});
   expect(applyEdits(weight, {unit: 'stone'})).toMatchObject({ok: false, message: expect.stringMatching(/^Unit: /)});
   expect(applyEdits(action({kind: 'log-steps', steps: 10}), {steps: '10.5'})).toEqual({ok: false, message: 'Steps needs a whole number.'});
-  expect(applyEdits(action({kind: 'start-fast', targetHours: 16}), {targetHours: '24'})).toMatchObject({ok: false});
+  expect(applyEdits(action({kind: 'start-fast', targetHours: 16}), {targetHours: '25'})).toMatchObject({ok: false}); // beyond Health's 24 h (was 18)
+  expect(applyEdits(action({kind: 'start-fast', targetHours: 16}), {targetHours: '24'})).toMatchObject({ok: true, action: {kind: 'start-fast', targetHours: 24}});
   expect(applyEdits(action({kind: 'log-water', glasses: 1}), {glasses: '', millilitres: ''})).toMatchObject({ok: false});
   // Values for keys outside the kind's fields are ignored, so a "kind" or "habit" text can never slip in.
   const checkIn = action({kind: 'check-in', habit: 'h1'});

@@ -1,4 +1,5 @@
 import {findItemByName} from '../../checklist/commands';
+import {MAX_HOURS, MAX_TARGET_HOURS} from '../../fasting/schema';
 import {isHealthItem, orderedItems} from '../../checklist/store';
 import {latestHabitRule, habitRuleOn, type Habit} from '../../habits';
 import type {ToolEnv} from '../tools/env';
@@ -156,6 +157,13 @@ function doneToday(env: ToolEnv, named: Named): boolean {
   const r = runTool('list_habits', {}, env);
   return r.ok && (((r as ToolOk).data.habits ?? []) as {title: string; today?: string}[]).some(h => h.title.startsWith(named.habit!.title.slice(0, 40)) && h.today === 'complete');
 }
+/**
+ * Session AM-2 (ADR-039 D6): a fast longer than Health's own form takes (MAX_TARGET_HOURS, the 24 h automatic stop) is
+ * refused in Health's words ("Choose a target from 1 to 24 hours."), never a line that promises a card the planner drops.
+ */
+export const fastTooLong = (hours: number, lang: CommandLang): string => lang === 'nl'
+  ? `Kies een doel van 1 tot ${MAX_TARGET_HOURS} uur. De vastentimer stopt zelf na ${MAX_HOURS} uur, dus er komt geen kaart voor een vasten van ${hours} uur.`
+  : `Choose a target from 1 to ${MAX_TARGET_HOURS} hours. The fasting timer stops itself at ${MAX_HOURS} h, so there is no card for a ${hours} h fast.`;
 /** The device's card for a command, or null when the message is not one (the stop rule). */
 export function quickCommand(text: string, env: ToolEnv): QuickReply | null {
   if (/\?/.test(text)) return null;
@@ -185,7 +193,7 @@ export function quickCommand(text: string, env: ToolEnv): QuickReply | null {
       case 'list': return listAnswer(env, lang);
       case 'sleep-start': return card(say['sleep-start'], {kind: 'start-night'}, 'sleep-start');
       case 'sleep-end': return card(say['sleep-end'], {kind: 'end-night'}, 'sleep-end');
-      case 'fast-start': return parsed.hours && parsed.hours >= 1 && parsed.hours <= 72 ? card(`${say['fast-start']} · ${parsed.hours} h`, {kind: 'start-fast', targetHours: parsed.hours}, 'fast-start') : null;
+      case 'fast-start': return !(parsed.hours && parsed.hours >= 1 && parsed.hours <= 72) ? null : parsed.hours > MAX_TARGET_HOURS ? {kind: 'refusal', command: 'fast-start', text: fastTooLong(parsed.hours, lang)} : card(`${say['fast-start']} · ${parsed.hours} h`, {kind: 'start-fast', targetHours: parsed.hours}, 'fast-start');
       case 'fast-stop': return card(say['fast-stop'], {kind: 'stop-fast'}, 'fast-stop');
       case 'add': {
         const words = parsed.item!; if (words.length > 60) return null;
