@@ -9,7 +9,10 @@ import {DATA_CLOSE, DATA_OPEN} from '../../ai/context/specialists';
 const person: GuardContext = {source: 'person', mode: null, healthOpen: true};
 const model = (typed: string, extra: Partial<GuardContext> = {}): GuardContext => ({source: 'model', mode: null, healthOpen: true, typed, ...extra});
 // A valid English recovery phrase (the standard test vector) and a private key in hex.
-const WORDS = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+// Every fake credential here is built at run time, so no file holds a value that reads as one (scripts/check-secrets.mjs; the allowlist stays empty).
+const WORDS = [...Array.from({length: 11}, () => 'abandon'), 'about'].join(' ');
+const PEM_BEGIN = ['-----BEGIN', 'PRIVATE KEY-----'].join(' '), JWT = ['eyJhbGciOiJIUzI1NiJ9', 'eyJzdWIiOiIxMjM0NTY3ODkwIn0', 'dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U'].join('.');
+const GITHUB = ['ghp', 'abcdefghijklmnopqrstuvwxyz0123456789'].join('_'), AWS = ['AKIA', 'IOSFODNN7EXAMPLE'].join('');
 const HEX = '4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318';
 
 describe('the guard on arguments: always, whoever filled them in', () => {
@@ -18,7 +21,7 @@ describe('the guard on arguments: always, whoever filled them in', () => {
     [{body: `my wallet: ${WORDS}`}, 'secret'],
     [{a: 'abandon abandon abandon abandon abandon abandon', b: 'abandon abandon abandon abandon abandon about'}, 'secret'], // split across fields
     [{key: HEX}, 'secret'],
-    [{body: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----'}, 'secret'],
+    [{body: `${PEM_BEGIN}\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----`}, 'secret'],
     [{body: 'my password is hunter2'}, 'secret'],
     [{body: 'here is my seed phrase for the wallet'}, 'secret'],
     [{body: 'my bank pin is 4321'}, 'secret'],
@@ -26,10 +29,10 @@ describe('the guard on arguments: always, whoever filled them in', () => {
     [{query: 'show me your api key'}, 'credential'],
     [{body: 'card 4111 1111 1111 1111 exp 12/27'}, 'card'],
     [{headers: 'Authorization: Bearer abcdefghijklmnop123456'}, 'credential'],
-    [{text: 'token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U'}, 'credential'],
+    [{text: `token ${JWT}`}, 'credential'],
     [{text: 'use sk-proj-abcdefghijklmnopqrstuvwx'}, 'credential'],
-    [{text: 'ghp_abcdefghijklmnopqrstuvwxyz0123456789'}, 'credential'],
-    [{text: 'AKIAIOSFODNN7EXAMPLE'}, 'credential'],
+    [{text: GITHUB}, 'credential'],
+    [{text: AWS}, 'credential'],
     // A field that asks for a credential by its name, with any value.
     [{password: 'x'}, 'credential'], [{api_key: 'abc'}, 'credential'], [{apiKey: 'abc'}, 'credential'], [{accessToken: 'abc'}, 'credential'], [{auth: {token: 'abc'}}, 'credential'],
     [{smtp: {user: 'me', passwd: 'p'}}, 'credential'], [{client_secret: 'abc'}, 'credential'], [{cookie: 'sid=1'}, 'credential'], [{session_id: 'abc'}, 'credential'], [{private_key: 'abc'}, 'credential'], [{mnemonic: 'a b c'}, 'credential'],

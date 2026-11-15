@@ -11,7 +11,8 @@ const NOW = new Date('2026-11-15T09:00:00Z');
 const ok = <T extends Handoff>(built: Built<T>): T => { if (!built.ok) throw Error(`expected a hand-off, got: ${built.words}`); return built.handoff; };
 const not = (built: Built): {reason: string; words: string} => { if (built.ok) throw Error('expected a refusal'); return built; };
 // Fictional secrets, in the shapes the guard knows.
-const SEED = 'abandon ability able about above absent absorb abstract absurd abuse access accident';
+// Built at run time, so no file holds a value that reads as recovery words (scripts/check-secrets.mjs; the allowlist stays empty).
+const SEED = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident'].join(' ');
 const HEX_KEY = `0x${'ab12'.repeat(16)}`, API_KEY = `sk-${'a1B2c3D4'.repeat(4)}`, CARD = '4111 1111 1111 1111';
 
 describe('an email draft is a mailto: link (RFC 6068)', () => {

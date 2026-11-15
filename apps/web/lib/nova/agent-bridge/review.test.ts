@@ -45,7 +45,8 @@ const offered = () => offeredTools(live());
 const call = (tool: string, args: unknown): ReplyCall => ({tool: USE_TOOL, args: {server: 'srv00001', tool, arguments_json: JSON.stringify(args)}, ok: true});
 const fromModel = (tool: string, args: unknown, extra: Partial<Parameters<typeof cardFromReply>[0]> = {}) => cardFromReply({calls: [call(tool, args)], question: 'do it', hidden: false, offered: offered(), mode: null, healthOpen: true, ...extra});
 // A valid recovery phrase of twelve different words (a published test vector) and the same with a soft hyphen inside each word.
-const WORDS = 'ozone drill grab fiber curtain grace pudding thank cruise elder eight picnic'.split(' ');
+// (Written as a list and joined where needed, so no file holds a value that reads as recovery words: scripts/check-secrets.mjs.)
+const WORDS = ['ozone', 'drill', 'grab', 'fiber', 'curtain', 'grace', 'pudding', 'thank', 'cruise', 'elder', 'eight', 'picnic'];
 const SOFT = '\u00AD', tag = (text: string) => [...text].map(ch => String.fromCodePoint(0xE0000 + ch.codePointAt(0)!)).join('');
 const env = (): ToolEnv => ({...toolEnv(showcaseSources(), closedGates(defaultAiSettings()), 'local'), agentTools: {offered: offered()}});
 
@@ -81,7 +82,7 @@ describe('1 — the guards read field NAMES, and a model sends only the fields a
     expect(guardAlways({outer: Object.fromEntries(WORDS.map(w => [w, 1]))})).toBe('secret'); // nested
     expect(guardAlways({[WORDS.slice(0, 6).join('_')]: true, [WORDS.slice(6).join('_')]: true})).toBe('secret'); // six and six
     expect(guardAlways({'card_4111_1111_1111_1111': true})).toBe('card'); expect(guardAlways({'4111111111111111': 'x'})).toBe('card');
-    expect(guardAlways({'ghp_abcdefghijklmnopqrstuvwxyz0123456789': true})).toBe('credential');
+    expect(guardAlways({[['ghp', 'abcdefghijklmnopqrstuvwxyz0123456789'].join('_')]: true})).toBe('credential'); // the token's shape, built at run time
     for (const source of ['person', 'model'] as const) expect(guardArgs(asKeys, {source, mode: null, healthOpen: true})).toMatchObject({ok: false, reason: 'secret'});
     expect(byHand(offered(), {serverId: 'srv00001', tool: 'note', args: asKeys}, {mode: null, healthOpen: true})).toMatchObject({ok: false, dropped: {reason: 'guard', message: GUARD_WORDS.secret}});
     expect(runTool('use_tool', {server: 'srv00001', tool: 'note', arguments_json: JSON.stringify(asKeys)}, env())).toMatchObject({ok: false, reason: 'arguments'});

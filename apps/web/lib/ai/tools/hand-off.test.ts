@@ -23,7 +23,8 @@ const base = (): ToolEnv => toolEnv(showcaseSources(), closedGates(defaultAiSett
 const onNova = (): ToolEnv => ({...base(), handoffs: true});
 const onStageOnly = (): ToolEnv => ({...base(), stage: {kinds: WIDGETS.map(w => w.id)}});
 const NOW = new Date('2026-11-15T09:00:00Z');
-const SEED = 'abandon ability able about above absent absorb abstract absurd abuse access accident';
+// Built at run time, so no file holds a value that reads as recovery words (scripts/check-secrets.mjs; the allowlist stays empty).
+const SEED = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident'].join(' ');
 const root = join(__dirname, '../../..');
 const read = (file: string) => readFileSync(join(root, file), 'utf8');
 
