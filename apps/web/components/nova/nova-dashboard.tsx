@@ -436,15 +436,17 @@ export default function NovaDashboard() {
   // of stage the star's column is the widest by half (holo.css: 1fr 1.5fr 1fr), and beside widgets the star may be as
   // large as on the calm stage wherever that column holds it.
   const starColumn = hudWide >= 1700 ? (hudWide - 56) * 1.5 / 3.5 : hudWide > 900 ? (hudWide - 40) * 1.1 / 3.1 : hudWide;
-  const starCap = stage.shown.length ? Math.min(starCapWide, Math.max(300, Math.round(starColumn * 1.15))) : starCalm;
+  // Round 7 ("at 1440 the star shrinks to an ornament"): below 1700 px of stage the star may be wider than its column by
+  // almost half; its arms dissolve toward the wings (the shader's uEdge) and its bezel stays inside the column.
+  const starCap = stage.shown.length ? Math.min(starCapWide, Math.max(300, Math.round(starColumn * (hudWide >= 1700 ? 1.15 : hudWide >= 1100 ? 1.45 : 1.15)))) : starCalm;
   const starSize = phone ? 300 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 126 : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.46); // round 7: 0.46 of the star (it was 0.42), so the words under it clear the bezel
-  const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;
+  const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} column={stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;
   const starWhy = starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).
   const answerWidget = lastMade && stage.shown.some(w => w.id === lastMade) ? {id: lastMade, title: widgetSpec(lastMade)?.title ?? 'the widget'} : null;
   const goToWidget = (id: string) => { const el = root.current?.querySelector<HTMLElement>(`article[data-widget="${id}"]`); if (el) { el.scrollIntoView({block: 'nearest'}); el.focus({preventScroll: true}); } };
   const answerLine = answerNow && !chatOpen ? <StageAnswerLine answer={answerNow} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)} widget={answerWidget} onGoTo={goToWidget}/> : undefined;
-  const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={starBox} starSize={starSize} starWhy={starWhy} answer={answerLine}/>;
+  const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={starBox} starSize={starSize} starColumn={stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} starWhy={starWhy} answer={answerLine}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}

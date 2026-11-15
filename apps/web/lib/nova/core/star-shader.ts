@@ -27,7 +27,7 @@ precision highp float;
 #else
 precision mediump float;
 #endif
-uniform vec2 uRes; uniform float uT; uniform float uSpin; uniform float uListen; uniform float uThink; uniform float uSpeak; uniform float uPulse; uniform float uBeam; uniform float uBeamA; uniform float uDetail;
+uniform vec2 uRes; uniform float uT; uniform float uSpin; uniform float uListen; uniform float uThink; uniform float uSpeak; uniform float uPulse; uniform float uBeam; uniform float uBeamA; uniform float uDetail; uniform float uEdge;
 uniform vec3 uA; uniform vec3 uB; uniform vec3 uC;
 float up(float lo, float hi, float x){ return smoothstep(lo, hi, x); }
 float dn(float lo, float hi, float x){ return 1. - smoothstep(lo, hi, x); }
@@ -172,12 +172,16 @@ void main(){
   col += uB * exp(-max(pd-pr, 0.)*70.) * (.16 + .3*max(0., dot(d, -po)/max(pd*length(po), 1e-4))) * (1.-behind) * (1.-body);
   // ---- fade to nothing at the edge; a filmic curve that keeps the colours' own hue ----
   col *= dn(.28,.5, rr);
+  // Beside widgets the star may be wider than its column: its light dissolves toward the wings (uEdge: half the column's
+  // width in the canvas's own units; 1 where the canvas fits) instead of being cut by their glass.
+  float edge = dn(uEdge - .24, uEdge + .01, abs(uv.x));
+  col *= edge;
   float peak = max(col.r, max(col.g, col.b));
   vec3 soft = 1. - exp(-col*1.35);
   vec3 keep = col * ((1. - exp(-peak*1.35)) / max(peak, 1e-4));
   col = mix(keep, soft, up(.5, 2.4, peak)*.9);
-  float alpha = clamp(max(max(col.r, max(col.g, col.b)), solid), 0., 1.);
+  float alpha = clamp(max(max(col.r, max(col.g, col.b)), solid * edge), 0., 1.);
   gl_FragColor = vec4(min(col, vec3(alpha)), alpha);
 }`;
-export const STAR_UNIFORMS = ['uRes', 'uT', 'uSpin', 'uListen', 'uThink', 'uSpeak', 'uPulse', 'uBeam', 'uBeamA', 'uDetail', 'uA', 'uB', 'uC'] as const;
+export const STAR_UNIFORMS = ['uRes', 'uT', 'uSpin', 'uListen', 'uThink', 'uSpeak', 'uPulse', 'uBeam', 'uBeamA', 'uDetail', 'uEdge', 'uA', 'uB', 'uC'] as const;
 export type StarUniform = (typeof STAR_UNIFORMS)[number];

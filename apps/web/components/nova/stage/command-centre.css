@@ -33,7 +33,7 @@
    slot in the stack is taller (nova-dashboard.tsx: 0.46 of the star's size), so the words clear the ring. */
 .nova-orb-button > .cc-bezel { position: absolute; inset: auto; left: 50%; top: 50%; width: calc(var(--star-size, 440px) * .9); height: calc(var(--star-size, 440px) * .9); margin: calc(var(--star-size, 440px) * -.45) 0 0 calc(var(--star-size, 440px) * -.45); z-index: 0; pointer-events: none; opacity: .95; }
 /* Beside widgets the bezel is drawn inside the star's column (the star's haze may lie behind the wings' glass; its bezel may not be cut by them). */
-.nova-frame[data-stage=set] .nova-orb-button > .cc-bezel { width: calc(var(--star-size, 440px) * .86); height: calc(var(--star-size, 440px) * .86); margin: calc(var(--star-size, 440px) * -.43) 0 0 calc(var(--star-size, 440px) * -.43); }
+.nova-frame[data-stage=set] .nova-orb-button > .cc-bezel { --bz: min(calc(var(--star-size, 440px) * .86), calc(var(--star-col, 440px) * .98)); width: var(--bz); height: var(--bz); margin: calc(var(--bz) * -.5) 0 0 calc(var(--bz) * -.5); }
 .cc-bezel > svg { display: block; width: 100%; height: 100%; overflow: visible; fill: none; }
 .cc-bezel-line { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 78%, transparent); stroke-width: .55; }
 .cc-bezel-glow { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 22%, transparent); stroke-width: 2.6; } /* a soft second line: the standby bezel reads as lit, not as a hairline */

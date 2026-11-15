@@ -40,10 +40,12 @@ export type StarReport = {shows: 'star' | 'picture' | 'orb'; why: StarWhy | null
   always: boolean};
 type Probe = {webgl: boolean; software: boolean; renderer: string | null};
 const LOST_GRACE_MS = 2500;
-export function StarSystem({state, hud, accent = 'violet', phone = false, size, beam = null, onReport}: {
+export function StarSystem({state, hud, accent = 'violet', phone = false, size, column, beam = null, onReport}: {
   state: NovaOrbState; hud: HudMotionState; accent?: string; phone?: boolean;
   /** The canvas's box, in CSS pixels (it is square and centred on the orb by its stylesheet). */
   size: number;
+  /** The width of the star's own column beside widgets, in CSS pixels: where the canvas is wider, its light fades toward the wings. */
+  column?: number;
   /** A widget is being made in this direction (radians, 0 = right, counter-clockwise); a new `key` fires the beam again. */
   beam?: StarBeam | null;
   onReport?: (report: StarReport) => void;
@@ -85,10 +87,12 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
   useEffect(() => { if (shows) onReport?.({shows, why, software, details, always: debug.why}); }, [shows, why?.code, software, details, debug.why]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Everything the loop reads lives in refs, so a state change never rebuilds the GL program.
-  const live = useRef({state, hud, phone, accent, beam, size, render, software, hints, debug});
-  live.current = {state, hud, phone, accent, beam, size, render, software, hints, debug};
+  // The half-width of the star's column in the canvas's own units (1: the canvas fits its column, nothing fades).
+  const edge = column && column < size ? Math.max(0.18, column / 2 / size) : 1;
+  const live = useRef({state, hud, phone, accent, beam, size, edge, render, software, hints, debug});
+  live.current = {state, hud, phone, accent, beam, size, edge, render, software, hints, debug};
   const kick = useRef<() => void>(() => undefined);
-  useEffect(() => { kick.current(); }, [state, hud, phone, accent, beam?.key, size, render, software, hints]);
+  useEffect(() => { kick.current(); }, [state, hud, phone, accent, beam?.key, size, edge, render, software, hints]);
 
   // The canvas stays while WebGL may still draw: also while a context is lost (it may be restored).
   const canvasOn = !!probe?.webgl && (failure === null || failure === 'lost');
@@ -144,7 +148,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
       gl.uniform1f(uniforms.uT ?? null, v.t); gl.uniform1f(uniforms.uSpin ?? null, v.spin);
       gl.uniform1f(uniforms.uListen ?? null, v.listen); gl.uniform1f(uniforms.uThink ?? null, v.think); gl.uniform1f(uniforms.uSpeak ?? null, v.speak);
       gl.uniform1f(uniforms.uPulse ?? null, speakPulse(v.t)); gl.uniform1f(uniforms.uBeam ?? null, v.beam); gl.uniform1f(uniforms.uBeamA ?? null, v.beamA);
-      gl.uniform1f(uniforms.uDetail ?? null, detail);
+      gl.uniform1f(uniforms.uDetail ?? null, detail); gl.uniform1f(uniforms.uEdge ?? null, live.current.edge);
       gl.uniform3fv(uniforms.uA ?? null, rgb(ca, [0.57, 0.45, 1])); gl.uniform3fv(uniforms.uB ?? null, rgb(cb, [0.14, 0.92, 1])); gl.uniform3fv(uniforms.uC ?? null, rgb(cc, [0.94, 0.43, 1]));
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       prove();
@@ -224,7 +228,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
   if (!ready) return null;
   return <>
     {canvasOn && <canvas ref={canvas} className="nova-star" aria-hidden="true" data-star="starting" data-star-software={probe.software ? '' : undefined} data-motion-essential="" hidden={render === 'picture'} style={{width: size, height: size}}/>}
-    {render === 'picture' && !pictureFailed && <StarPicture accent={accent} state={state} size={size} onError={() => setPictureFailed(true)}/>}
+    {render === 'picture' && !pictureFailed && <StarPicture accent={accent} state={state} size={size} edge={edge} onError={() => setPictureFailed(true)}/>}
   </>;
 }
 /**
@@ -233,9 +237,11 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
  * cyan rings for listening, a bright arc for thinking, magenta-white rings for speaking. Nothing here moves.
  */
 const PICTURES = new Set(['violet', 'cyan', 'magenta', 'teal', 'gold']);
-function StarPicture({accent, state, size, onError}: {accent: string; state: NovaOrbState; size: number; onError: () => void}) {
+function StarPicture({accent, state, size, edge, onError}: {accent: string; state: NovaOrbState; size: number; edge: number; onError: () => void}) {
   const name = PICTURES.has(accent) ? accent : 'violet';
-  return <span className="nova-star nova-star-picture" aria-hidden="true" data-state={state} style={{width: size, height: size}}>
+  // The same soft edge as the shader's (a static mask on a still picture).
+  const fade = edge < 1 ? `linear-gradient(90deg, transparent ${(50 - edge * 100).toFixed(1)}%, #000 ${(60 - edge * 100).toFixed(1)}%, #000 ${(40 + edge * 100).toFixed(1)}%, transparent ${(50 + edge * 100).toFixed(1)}%)` : undefined;
+  return <span className="nova-star nova-star-picture" aria-hidden="true" data-state={state} style={{width: size, height: size, WebkitMaskImage: fade, maskImage: fade}}>
     {/* eslint-disable-next-line @next/next/no-img-element -- a decoration of a known size, loaded only when WebGL cannot draw the star */}
     <img src={`/nova/star/${name}.webp`} alt="" width={size} height={size} decoding="async" draggable={false} onError={onError}/>
     {state !== 'idle' && <svg viewBox="-100 -100 200 200" focusable="false">

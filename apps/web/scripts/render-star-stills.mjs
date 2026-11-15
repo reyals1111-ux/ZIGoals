@@ -38,7 +38,7 @@ try {
       const u = n => gl.getUniformLocation(p, n), rgb = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
       gl.viewport(0, 0, size, size); gl.uniform2f(u('uRes'), size, size);
       // The component's own first frame: uT 12, uSpin 0.72, standby, every octave.
-      gl.uniform1f(u('uT'), 12); gl.uniform1f(u('uSpin'), 0.72); gl.uniform1f(u('uDetail'), 5);
+      gl.uniform1f(u('uT'), 12); gl.uniform1f(u('uSpin'), 0.72); gl.uniform1f(u('uDetail'), 5); gl.uniform1f(u('uEdge'), 1);
       for (const n of ['uListen', 'uThink', 'uSpeak', 'uPulse', 'uBeam', 'uBeamA']) gl.uniform1f(u(n), 0);
       gl.uniform3fv(u('uA'), rgb(colours[0])); gl.uniform3fv(u('uB'), rgb(colours[1])); gl.uniform3fv(u('uC'), rgb(colours[2]));
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
