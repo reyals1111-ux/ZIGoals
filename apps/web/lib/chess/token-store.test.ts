@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {deviceLockedHere, forgetLichess, LICHESS_DATABASE, lichessAccess, lichessAccessFrom, readLichessConnection, revokeEveryLichess, saveLichessConnection, type LichessAccess, type LichessConnection} from './token-store';
 import {LINK_TOKENS_DATABASE, linkedScopes, readConnection} from '../links/token-store';
 import {eraseDeviceServices} from '../erase-everything';
@@ -27,7 +27,10 @@ function plantLegacy(token = 'lio_LegacyToken99'): Promise<void> {
     r.onerror = () => reject(r.error);
   });
 }
-afterEach(async () => { await drop(LINK_TOKENS_DATABASE); await drop(LICHESS_DATABASE); vi.unstubAllGlobals(); });
+// Session AQ (date-bomb sweep): the fixture's token expires 2027-10-31T12:00Z and a read without `now` uses the clock, so
+// from then on A's own read was null too. Only Date runs at the fixtures' time (connected 2026-10-31); timers stay real.
+beforeEach(() => { vi.useFakeTimers({toFake: ['Date']}); vi.setSystemTime(Date.parse('2026-11-01T00:00:00Z')); });
+afterEach(async () => { vi.useRealTimers(); await drop(LINK_TOKENS_DATABASE); await drop(LICHESS_DATABASE); vi.unstubAllGlobals(); });
 
 describe('the Lichess token store', () => {
   it('keeps and reads one connection per scope, sealed in the sign-in store (nothing readable on disk)', async () => {
