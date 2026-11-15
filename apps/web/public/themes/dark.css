@@ -16337,7 +16337,7 @@
         --holo-grid: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 6.5%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 6.5%, transparent) 1px, transparent 1px) 0 0 / 24px 24px;
         --holo-scan: repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 3px);
         --holo-glass: var(--holo-scan), var(--holo-grid), var(--holo-tint);
-        --holo-bloom: 0 0 9px 1px color-mix(in oklab, var(--neon, #9273ff) 78%, transparent), 0 0 38px 3px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent), 0 0 120px 18px color-mix(in oklab, var(--neon, #9273ff) 10%, transparent), 0 34px 60px -22px #000e;
+        --holo-bloom: 0 0 9px 1px color-mix(in oklab, var(--neon, #9273ff) 78%, transparent), 0 0 38px 3px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent), 0 0 120px 18px color-mix(in oklab, var(--neon, #9273ff) 10%, transparent), 0 34px 60px -22px #000e, 0 64px 50px -46px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent);
         background: var(--holo-glass);
         box-shadow: inset 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 50%, transparent), var(--holo-bloom)
     }
@@ -18229,7 +18229,7 @@
 /*  components/nova/stage/command-centre.css  */
 @scope (:root[data-theme=dark]) {
     .cc-nebula:not(#\-) {
-        background-image: radial-gradient(30% 36% at 50% 44%, color-mix(in oklab, var(--nova-a, #9273ff) 15%, transparent), transparent 72%), radial-gradient(26% 30% at 28% 26%, color-mix(in oklab, var(--nova-c, #f06dff) 8%, transparent), transparent 70%), radial-gradient(30% 26% at 76% 68%, color-mix(in oklab, var(--nova-c, #f06dff) 8%, transparent), transparent 72%), radial-gradient(22% 26% at 80% 20%, color-mix(in oklab, var(--nova-b, #63e7ff) 6%, transparent), transparent 70%), radial-gradient(24% 22% at 18% 76%, color-mix(in oklab, var(--nova-b, #63e7ff) 5%, transparent), transparent 72%), radial-gradient(100% 84% at 50% 46%, transparent 24%, #020205e6 78%, #020205 100%);
+        background-image: radial-gradient(24% 30% at 50% 44%, color-mix(in oklab, var(--nova-a, #9273ff) 7%, transparent), transparent 70%), radial-gradient(26% 30% at 28% 26%, color-mix(in oklab, var(--nova-c, #f06dff) 8%, transparent), transparent 70%), radial-gradient(30% 26% at 76% 68%, color-mix(in oklab, var(--nova-c, #f06dff) 8%, transparent), transparent 72%), radial-gradient(22% 26% at 80% 20%, color-mix(in oklab, var(--nova-b, #63e7ff) 6%, transparent), transparent 70%), radial-gradient(24% 22% at 18% 76%, color-mix(in oklab, var(--nova-b, #63e7ff) 5%, transparent), transparent 72%), radial-gradient(100% 84% at 50% 46%, transparent 24%, #020205e6 78%, #020205 100%);
         background-color: transparent
     }
     .cc-streak:not(#\-) {
@@ -18241,10 +18241,13 @@
         fill: none
     }
     .cc-bezel-line:not(#\-) {
-        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 60%, transparent)
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 78%, transparent)
+    }
+    .cc-bezel-glow:not(#\-) {
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 22%, transparent)
     }
     .cc-bezel-ticks:not(#\-) {
-        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 75%, transparent)
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, transparent)
     }
     .cc-bezel-marks:not(#\-) {
         stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff)
@@ -18260,6 +18263,21 @@
     }
     .cc-state-speaking:not(#\-) {
         stroke: #86f0d6
+    }
+    .nova-frame:not([data-phone]) .nova-orb-button[data-star]:not(#\-) {
+        --core-size: calc(var(--star-size, 440px) * .47)
+    }
+    .cc-pool[data-at=left]:not(#\-) {
+        background-image: radial-gradient(50% 50% at 50% 60%, color-mix(in oklab, var(--nova-b, #63e7ff) 16%, transparent), transparent 72%);
+        background-color: transparent
+    }
+    .cc-pool[data-at=right]:not(#\-) {
+        background-image: radial-gradient(50% 50% at 50% 60%, color-mix(in oklab, var(--nova-c, #f06dff) 14%, transparent), transparent 72%);
+        background-color: transparent
+    }
+    .cc-pool[data-at=star]:not(#\-) {
+        background-image: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 26%, transparent), transparent 70%);
+        background-color: transparent
     }
     .cc-horizon:not(#\-) {
         background-image: radial-gradient(60% 50% at 50% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 22%, transparent), transparent 70%);
