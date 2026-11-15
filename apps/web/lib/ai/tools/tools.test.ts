@@ -38,7 +38,17 @@ test('the registry: unique names, portable JSON-Schema parameters, plain descrip
   // have their own tests (nova-stage.test.ts). Exactly those two are set apart, and here they refuse.
   expect(TOOLS.filter(t => t.surface === 'nova').map(t => t.name)).toEqual(['stage_widget', 'weather']);
   for (const tool of TOOLS.filter(t => t.surface === 'nova')) expect(runTool(tool.name, tool.name === 'stage_widget' ? {action: 'show', widget: 'weight'} : {}, env)).toMatchObject({ok: false, reason: 'area'});
-  for (const tool of TOOLS.filter(t => t.surface !== 'nova')) {
+  // Session AM-2 (step 4b, deliberate): `hand_off` reads no record either, runs only in NOVA's conversation (the environment
+  // carries `handoffs`) and only notes a card for the person to approve; it has its own tests (hand-off.test.ts). Exactly
+  // that one is set apart as well, and here it refuses. Every other tool is checked as before.
+  expect(TOOLS.filter(t => t.surface === 'nova-handoff').map(t => t.name)).toEqual(['hand_off']);
+  for (const tool of TOOLS.filter(t => t.surface === 'nova-handoff')) expect(runTool(tool.name, {kind: 'copy', text: 'Fictional'}, env)).toMatchObject({ok: false, reason: 'area'});
+  // Session AM-2 (step 4c, deliberate): the two lookups that propose a call to a tool of the person's own read no record
+  // either and run only where NOVA's surface carries a switched-on tool (`agentTools`); they have their own tests
+  // (nova-agent.test.ts). Exactly those two are set apart as well, and here they refuse. Every other tool is checked as before.
+  expect(TOOLS.filter(t => t.surface === 'nova-agent').map(t => t.name)).toEqual(['my_tools', 'use_tool']);
+  for (const tool of TOOLS.filter(t => t.surface === 'nova-agent')) expect(runTool(tool.name, tool.name === 'use_tool' ? {tool: 'search'} : {}, env)).toMatchObject({ok: false, reason: 'area'});
+  for (const tool of TOOLS.filter(t => t.surface !== 'nova' && t.surface !== 'nova-agent' && t.surface !== 'nova-handoff')) {
     const result = runTool(tool.name, required[tool.name] ?? {}, env);
     expect(result.ok, `${tool.name}: ${result.ok ? '' : result.refusal}`).toBe(true);
     expect(okData(result).provenance, tool.name).toMatch(/^Fictional Showcase data · From your /);

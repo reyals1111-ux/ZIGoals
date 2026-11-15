@@ -18,8 +18,13 @@ const base64 = z.string().regex(/^[A-Za-z0-9_-]+$/);
 export const sealedKeySchema = z.strictObject({version: z.literal(1), scope: z.string().min(1).max(80), provider: z.string().min(1).max(40), iv: base64.length(16), ciphertext: base64.min(22).max(4000), createdAt: z.iso.datetime()});
 export type SealedKey = z.infer<typeof sealedKeySchema>;
 const memory = new Map<string, string>();
-/** A key's slot: a provider, or the person's own Hermes Agent gateway (owner follow-up 3, N11). */
-export type KeySlot = ProviderId | 'hermes';
+/**
+ * A key's slot: a provider, or the person's own Hermes Agent gateway (owner follow-up 3, N11), or — Session AM-2 (step 4c),
+ * a type only, the store itself is unchanged — the token of one tool server on the person's own computer
+ * (`mcp-<server id>`, lib/nova/agent-bridge/record.ts `tokenSlot`): sealed and bound to its slot like every key, sent only
+ * to that loopback address, forgotten with the server and with the scope.
+ */
+export type KeySlot = ProviderId | 'hermes' | `mcp-${string}`;
 const slot = (scope: string, provider: KeySlot) => `${scope}:${provider}`;
 const encode = (bytes: Uint8Array) => { let s = ''; for (const b of bytes) s += String.fromCharCode(b); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
 const decode = (text: string) => Uint8Array.from(atob(text.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
