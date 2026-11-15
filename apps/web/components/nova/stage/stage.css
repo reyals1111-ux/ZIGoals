@@ -37,9 +37,11 @@
 }
 /* A panel too narrow for the title and the keys on one row: the title takes the first row, the keys the second. */
 @container holo-panel (max-width: 284px) {
-  .nova-widget[data-holo] .nova-widget-head { flex-wrap: wrap; row-gap: 10px; }
-  .nova-widget[data-holo] .nova-widget-head > h3 { flex: 1 0 100%; margin-right: 0; }
-  .nova-widget[data-holo] .nova-widget-head > h3 + * { margin-left: auto; }
+  /* Round 4 (the stage beside an open conversation): the two rows look deliberate. The keys are one group at the right
+     end of the first row (they stood apart: the bolt at the left, a hole, then the rest); the title is the second row. */
+  .nova-widget[data-holo] .nova-widget-head { flex-wrap: wrap; justify-content: flex-end; row-gap: 8px; }
+  .nova-widget[data-holo] .nova-widget-head > h3 { order: 2; flex: 1 0 100%; margin-right: 0; }
+  .nova-frame .nova-widget[data-holo] .nova-widget-head > :is(.holo-act, .ns-actions, .nova-widget-open, .ns-pinned) { margin-left: 0; }
 }
 /* AM-D29: the pinned mark is a pin glyph (with "Pinned" in words for assistive technology), shown while arranging, where
    the keys are put away; everywhere else the Pin key itself is lit. */
@@ -187,6 +189,7 @@
    1440 px "UPCOMING BILLS", "TRACKED WEALTH" and "AGENDA CLOCK" wrapped and neighbouring heads no longer lined up. The
    letters stand a little closer, so more of the title shows; its whole text is still the heading (the widget's
    accessible name, `aria-labelledby`) and its tooltip. */
-@container holo-panel (max-width: 399px) { .nova-frame .nova-widget[data-holo] .nova-widget-head h3 { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .03em; } }
+@container holo-panel (max-width: 399px) { .nova-frame .nova-widget[data-holo] .nova-widget-head h3 { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0; padding-left: 15px; } }
+/* Round 4: with its letters at their own spacing and its marker 4 px closer, "UPCOMING BILLS" (the longest title of the catalogue's first kinds: about 131 px) is whole beside five keys in a 348 px panel (138 px). */
 /* A panel body that scrolls is a keyboard stop (axe scrollable-region-focusable); its ring sits inside the frame. */
 .nova-widget-body:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: -3px; border-radius: 10px; }

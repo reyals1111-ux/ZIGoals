@@ -244,3 +244,6 @@
 .nw-weather[data-size=S] .nw-now-words { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; min-width: 0; }
 .nw-weather[data-size=S] .nw-condition { margin: 0; }
 .nw-sunbody[data-size=S] { gap: 4px; }
+
+/* Round 4: air under the title bar (the day's length sat right against it). */
+.nw-sunbody:is([data-size=M], [data-size=L]) { padding-top: 12px; }

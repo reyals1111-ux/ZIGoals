@@ -123,7 +123,9 @@ export function ArcMark({share, r, w, start = 0, sweep = 360, k}: {share: number
  * A ring gauge (AM-2 D): the lit arc (`ArcMark`) inside a tick bezel (every fifth tick longer), the figure, if any, in the
  * middle (its children). `sweep` under 360 opens the ring (a dial); `spin` adds one slowly turning ornament ring (never
  * the data). Decoration: the words beside it carry the value. `size` is its diameter in px where nothing else decides:
- * the sheets make a hero gauge larger in a larger panel (container queries set `--nc-d`), and its line stays `thick` px.
+ * the sheets make a hero gauge larger in a larger panel (container queries set `--nc-d`, or `--nc-size` as a length), and
+ * its band keeps its share of the diameter. The gauge is a size container (`nc-gauge`), so a figure inside it is sized
+ * from the ring itself and can never be larger than its opening.
  */
 export function Gauge({share, size = 64, sweep = 360, start = 0, bezel, spin = false, thick, ticks, children, className = '', tone, extra, decor}: {
   share: number | null; size?: number; sweep?: number; start?: number; bezel?: boolean; spin?: boolean; thick?: number; ticks?: number; children?: ReactNode; className?: string; tone?: 'over';
@@ -132,9 +134,11 @@ export function Gauge({share, size = 64, sweep = 360, start = 0, bezel, spin = f
   /** More drawing inside the gauge's own box (viewBox −50…50), under its arc: inner ornament rings, milestone marks. */
   extra?: ReactNode;
 }) {
-  const k = 100 / size, rim = bezel ?? size >= 60, px = thick ?? (size >= 100 ? 6 : size >= 60 ? 5.5 : 4.2), w = px * k, r = (rim ? 41 : 46.5) - w / 2;
+  // Round 4 (the references' rings): the arc is a thick band, 11 % of the gauge's diameter inside a bezel and 13 % without
+  // one, whatever size a sheet gives the gauge (`thick` is in the gauge's own 100-unit box, not in px).
+  const rim = bezel ?? size >= 60, w = thick ?? (rim ? 11 : 13), r = (rim ? 41 : 46.5) - w / 2;
   const n = ticks ?? Math.max(2, Math.round(60 * sweep / 360)), full = sweep >= 360;
-  return <span className={`nc-gauge ${className}`.trim()} data-tone={tone} data-rim={rim || undefined} aria-hidden={decor || undefined} style={{'--nc-d0': size, '--nc-w': px} as CSSProperties}>
+  return <span className={`nc-gauge ${className}`.trim()} data-tone={tone} data-rim={rim || undefined} aria-hidden={decor || undefined} style={{'--nc-d0': size, '--nc-t': w} as CSSProperties}>
     <svg viewBox="-50 -50 100 100" aria-hidden="true" focusable="false">
       {rim && <><path className="nc-bezel" d={tickPath(0, 0, 45, 47.5, full ? n : n + 1, start, sweep)}/><path className="nc-bezel nc-bezel-major" d={tickPath(0, 0, 44, 49, full ? Math.round(n / 5) : Math.round(n / 5) + 1, start, sweep)}/></>}
       {extra}
@@ -143,6 +147,16 @@ export function Gauge({share, size = 64, sweep = 360, start = 0, bezel, spin = f
     {spin && rim && <Orn view="-50 -50 100 100"><circle className="nc-gauge-orbit" r="49.4"/></Orn>}
     {children !== undefined && children !== null && <span className="nc-gauge-centre">{children}</span>}
   </span>;
+}
+
+/**
+ * Round 4: the figure that stands INSIDE a gauge (the references' rings carry their figure): the number, and under it a
+ * short unit ("of 3", "days") that shows only where the ring is large enough to hold it. Both are sized from the ring
+ * itself (the gauge is a size container), so the figure is never larger than the ring's opening. Decoration when the
+ * gauge is `decor`: the words beside the ring say the same.
+ */
+export function RingFigure({figure, unit}: {figure: ReactNode; unit?: ReactNode}) {
+  return <span className="nc-ring-words"><b className="nc-ring-figure">{figure}</b>{unit ? <small className="nc-ring-unit">{unit}</small> : null}</span>;
 }
 
 /**

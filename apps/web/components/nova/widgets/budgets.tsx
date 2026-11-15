@@ -6,7 +6,7 @@ import {budgetsAsOf, budgetsCard, budgetsRows} from '../../../lib/nova/cards/bud
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
 import {moreWords} from '../../../lib/nova/cards/whole-rows';
-import {Bars, CardFoot, CardNotice, Fact, Gauge, Hero, type CardProps} from '../cards/kit';
+import {Bars, CardFoot, CardNotice, Fact, Gauge, Hero, RingFigure, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import '../cards/wealth-cards.css';
@@ -31,7 +31,8 @@ export default function BudgetsWidget({size = 'M'}: Partial<CardProps>) {
   const top = card.lines.slice(0, SHOWN[size]), more = card.lines.length - top.length;
   return <div className="nc-body nc-budgets-card" data-size={size}>
     <div className="nc-budgets-top">
-      <Gauge share={card.count ? card.within / card.count : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor className="nc-budgets-ring"/>
+      {/* Round 4: the count stands inside its ring where the ring is large enough to hold it (cards.css RingFigure); the hero beside it then keeps the words. */}
+      <Gauge share={card.count ? card.within / card.count : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor className="nc-budgets-ring">{size === 'S' ? null : <RingFigure figure={card.within} unit={`of ${card.count}`}/>}</Gauge>
       <Hero value={card.hero} label={`${card.count === 1 ? 'budget' : 'budgets'} within plan`}/>
     </div>
     {/* Session AM-2 (whole rows only): the budgets that fit, then "+N more budgets on the Wealth page". */}

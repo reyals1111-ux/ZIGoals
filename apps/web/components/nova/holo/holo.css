@@ -219,6 +219,9 @@
   overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--neon, #9273ff) 55%, transparent) transparent;
   margin-inline: -8px; padding-inline: 8px; }
 .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-fit=scroll] .nova-widget-inner { justify-content: flex-start; padding-block: 8px; }
+/* Round 4 (no half-empty slabs): a list's body that is shorter than its panel stands in the middle of it. Auto margins,
+   not a centred column: when the body is taller than the panel they are 0, so its first row is still at the top. */
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-fit=scroll] .nova-widget-inner > * { margin-block: auto; }
 .nova-widget[data-holo][data-cut] .nova-widget-body { -webkit-mask-image: none; mask-image: none; }
 /* Phones: one column of whole panels (no heights to fit); their insides still answer to their width. */
 .holo-phone-column .nova-widget[data-holo] .nova-widget-body { container: holo-body / inline-size; overflow: visible; }
@@ -333,8 +336,11 @@
    Pomodoro", NOVA briefs' "Set up daily briefs →"). Its body is a width container only, so no row is dropped there. */
 .nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] { height: auto; min-height: var(--h-s); }
 .nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size=M] { min-height: var(--h-m); }
-.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] .nova-widget-body { flex: 1 1 auto; container: holo-body / inline-size; overflow: visible; margin-inline: 0; padding-inline: 0; }
-.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] .nova-widget-inner { min-height: 0; padding-block: 0; justify-content: flex-start; }
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] .nova-widget-body { flex: 1 1 auto; display: flex; flex-direction: column; container: holo-body / inline-size; overflow: visible; margin-inline: 0; padding-inline: 0; }
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-size] .nova-widget-inner { flex: 1 0 auto; min-height: 0; padding-block: 0; justify-content: center; }
+/* Round 4 (the band's panels had ragged heights): the panels of one row of the band are as tall as the tallest of them,
+   and each body stands in the middle of its panel (or fills it, where its instrument stretches). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-band-grid { align-items: stretch; }
 /* p2: a hidden tab holds the idle orb's breath too (O5: everything pauses; a busy orb keeps its working cue). */
 .nova-frame[data-hud-motion=paused] :is(.nova-orb[data-state=idle], .nova-orb[data-state=idle] *) { animation-play-state: paused !important; }
 /* M7: in Focus (the Minimal preset) the star's stack fits its hero, the core's readout whole above the three panels: the

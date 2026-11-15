@@ -19,7 +19,7 @@ import {WholeRows} from '../cards/whole-rows';
 import {useOrbitDay} from '../widgets/use-orbit-day';
 import {NovaEmpty} from '../widgets/empty';
 import TasksWidget from '../widgets/tasks';
-import {GradArc, HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, Lead, NotShared, Orn, OrnMarks, SegMeter} from './parts';
+import {Ghost, GradArc, HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, Lead, NotShared, Orn, OrnMarks, SegMeter} from './parts';
 import {useHealthHud, useHealthShared, usePillarShown} from './use-hud-data';
 import {useAgendaToday} from './use-agenda-today';
 import './holo-parts.css';
@@ -44,10 +44,13 @@ export function HoloWater({size}: {size: WidgetSize}) {
   if (!loaded) return <HoloReading/>;
   if (error || !hud) return <HoloUnread what="Today’s water"/>;
   const w = hud.water;
-  return <div className="holo-water" data-size={size}>
+  // Round 4: with nothing logged yet today the meter's own unlit ring stands beside the figure (decoration; the words say it).
+  return <div className="holo-water" data-size={size} data-empty={w.value === null ? '' : undefined}>
+    {w.value === null && <span className="holo-water-ghost" aria-hidden="true"><Ghost kind="ring"/></span>}
     <p className="holo-big-line"><HoloFigure text={w.text} className="holo-num-big"/>{w.targetText ? <small> of {w.targetText}</small> : null}</p>
     <SegMeter label="Today" share={w.share} text={w.share === null ? '—' : formatPercent(w.share * 100)} note={w.note} count={size === 'S' ? 12 : 20} compact={size === 'S'}/>
     {w.value === null && <p className="sr-only">No water logged yet today.</p>}
+    {w.value === null && size !== 'S' && <Link className="nova-link holo-empty-action" href="/app/health#water" prefetch={false}>Log a glass <span aria-hidden="true">→</span></Link>}
     {!shared && size !== 'S' && <NotShared/>}
     <HoloTable caption="Water today" rows={[['Logged', w.value === null ? '— (no water logged yet today)' : w.text], ['Your target', w.targetText ?? 'No target set']]}/>
   </div>;
@@ -108,7 +111,7 @@ export function HoloNext({size}: {size: WidgetSize}) {
   if (!items) return <HoloReading/>;
   const next = nextItems(items, now, size === 'S' ? 2 : 3);
   if (!next.length) return <NovaEmpty pillar="habits" ghost="rows" href="/app/habits" action="Add a habit">{items.length ? 'Nothing else is due today. A calm orbit.' : 'Nothing is planned yet. A habit, a task or a bill shows up here at its time.'}</NovaEmpty>;
-  return <WholeRows as="ol" className="holo-next holo-next-wide" aria-label="Next in your day" min={1} more={(hidden, shown) => moreWords(hidden, {shown, where: 'your agenda'})}>{next.map(i => <li key={i.id} data-pillar={i.pillar} data-when={i.when}>
+  return <WholeRows as="ol" wrapClassName="holo-next-box" className="holo-next holo-next-wide" aria-label="Next in your day" min={1} more={(hidden, shown) => moreWords(hidden, {shown, where: 'your agenda'})}>{next.map(i => <li key={i.id} data-pillar={i.pillar} data-when={i.when}>
     <span className="holo-next-time">{i.time ? formatClock(i.time) : '—'}</span>
     {i.href ? <Link href={i.href} prefetch={false} title={i.title}>{i.title}</Link> : <span title={i.title}>{i.title}</span>}
     <small>{WHEN[i.when]}</small>

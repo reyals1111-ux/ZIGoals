@@ -21,7 +21,7 @@ export default function GoalPaceWidget({size}: {size: WidgetSize}) {
   if (error) return <NovaUnread what="Your goals"/>;
   const active = goals.filter(g => g.status === 'active');
   if (!active.length) return <NovaEmpty pillar="goals" ghost="bars" href="/app/goals/new" action="Set a goal">No active goals yet. Give your next chapter a target.</NovaEmpty>;
-  const shown = active.slice(0, size === 'S' ? 1 : size === 'M' ? 3 : 5);
+  const shown = active.slice(0, size === 'S' ? 1 : size === 'M' ? 4 : 6);
   // Session AM-2 (whole rows only): the goals that fit, then "+N more on the Goals page" (the head's link opens it).
   return <WholeRows inline className="nova-goals hw-goals" extra={active.length - shown.length} min={1} more={(hidden, rows) => moreWords(hidden, {shown: rows, where: 'the Goals page'})}>{shown.map(g => {
     const pace = paceWords(g.fundingHealth), unknown = g.progressBound === 'unavailable' || !/^\d+(\.\d+)?$/.test(g.progressPct);

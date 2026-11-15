@@ -35,14 +35,16 @@ export default function NovaSeesWidget({size = 'M'}: Partial<CardProps>) {
   // for a part that is not (what NOVA cannot read is the news) — and under it how many are off and on. A cell names its
   // part in one or two words; the table for assistive technology keeps every part's whole name and reason at every size.
   const cells = [...rows.map(r => ({key: r.key as string, name: SHORT[r.key], on: r.on, world: false, realm: REALM[r.key]})), {key: 'weather', name: 'Weather', on: weather, world: true, realm: 'world'}];
-  const off = cells.filter(c => !c.on), on = cells.length - off.length, shown = size === 'S' ? [] : cells;
+  // Round 4: the ring and its sentence count the eight parts of the person's life; the weather is outside data, the ninth
+  // cell. The line under the matrix counts the same eight and names the weather apart (it said "2 off · 7 on" beside "of 8").
+  const off = cells.filter(c => !c.on), shown = size === 'S' ? [] : cells;
   return <div className="nc-body nc-sees" data-size={size}>
     <div className="nc-sees-top">
       <Gauge share={rows.length ? lit / rows.length : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 56} bezel={size !== 'S'} ticks={rows.length * 5} spin={size === 'L'} decor className="nc-sees-ring"/>
       <p className="nc-sees-count"><b>{lit}</b> <span>of {rows.length} parts of your life are open to NOVA</span></p>
     </div>
     {shown.length > 0 && <ul className="nc-sees-grid" aria-hidden="true">{shown.map((c, i) => <li key={c.key} className="nc-rise" data-on={c.on || undefined} data-world={c.world ? '' : undefined} data-realm={c.realm} style={{'--nc-i': Math.min(i, 6)} as CSSProperties}><span className="nc-sees-cell"/><span className="nc-sees-name">{c.name}</span><span className="nc-sees-rule"/><span className="nc-sees-why">{c.on ? 'On' : 'Off'}</span></li>)}</ul>}
-    {size === 'M' && <p className="nc-sees-more" aria-hidden="true">{off.length === 0 ? 'Every part is on, the weather too.' : `${off.length} off · ${on} on`}</p>}
+    {size === 'M' && <p className="nc-sees-more" aria-hidden="true">{off.length === 0 ? 'Every part is on, the weather too.' : `${rows.length - lit} off · ${lit} on · weather ${weather ? 'on' : 'off'}`}</p>}
     <HoloTable caption="What NOVA can see" rows={[...rows.map(r => [r.name, `${r.on ? 'On' : 'Off'} (${r.why})`] as const), ['Weather (outside data)', weather ? 'On: the weather is asked for your rounded place (data from MET Norway)' : 'Off: nothing is fetched']]}/>
     <CardFoot source="Permissions on this device" asOf="now"/>
   </div>;

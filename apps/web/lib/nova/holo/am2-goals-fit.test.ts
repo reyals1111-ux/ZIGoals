@@ -23,41 +23,47 @@ const clamp = (lo: number, v: number, hi: number) => Math.max(lo, Math.min(v, hi
 
 describe('Goals HUD, medium: the pace box shows whenever it fits (Session AM-2)', () => {
   it('finds the sheet\'s hide rules: two for a stacked panel, one for a wide one', () => {
-    expect(HIDES).toEqual(['(max-height: 198.98px) and (max-width: 399.98px)', '(max-height: 175.98px) and (min-width: 400px) and (max-width: 559.98px)', '(max-height: 110.98px) and (min-width: 560px)']);
+    expect(HIDES).toEqual(['(max-height: 220.98px) and (max-width: 399.98px)', '(max-height: 197.98px) and (min-width: 400px) and (max-width: 559.98px)', '(max-height: 110.98px) and (min-width: 560px)']);
+  });
+  it('nothing of the same weight shows the pace box again after a hide rule (round 4: a later "display: flex" undid them)', () => {
+    const shows = [...css.matchAll(/([^{}]*\.holo-pace-box) \{[^}]*display: (?!none)[a-z-]+/g)].map(m => m[1]!.trim());
+    // Each rule that gives the pace box a display weighs one class at most (":where" weighs nothing).
+    for (const selector of shows) expect(selector.replace(/:where\([^)]*(\([^)]*\)[^)]*)*\)/g, '').match(/\.|\[/g)?.length ?? 0, selector).toBeLessThanOrEqual(1);
+    expect(shows.length).toBeGreaterThanOrEqual(2);
   });
   it('hud-fit: at 1440 × 900 the medium body is 316 × 238 px and the pace line is in view (the old rule hid it under 256 px)', () => {
     expect(paceShown({w: 316, h: 238})).toBe(true);
     expect(css).not.toContain('(max-width: 319.98px) and (max-height: 255px)');
   });
   it('the thresholds are where the sums put them', () => {
-    expect([paceShown({w: 316, h: 199}), paceShown({w: 316, h: 198})]).toEqual([true, false]);
-    expect([paceShown({w: 420, h: 176}), paceShown({w: 420, h: 175})]).toEqual([true, false]);
+    expect([paceShown({w: 316, h: 221}), paceShown({w: 316, h: 220})]).toEqual([true, false]);
+    expect([paceShown({w: 420, h: 198}), paceShown({w: 420, h: 197})]).toEqual([true, false]);
     expect([paceShown({w: 730, h: 111}), paceShown({w: 730, h: 110})]).toEqual([true, false]);
   });
   it('stacked, under 400 px wide: with every line that can wrap wrapped, the arcs and the pace box fit in the body', () => {
-    expect(css).toContain('.holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 155px, calc((100cqi - 16px) / 3)), 132px); --pace-h: 36px; }');
-    for (let w = 240; w < 400; w += 4) for (let h = 199; h <= 420; h++) {
-      const arc = clamp(44, Math.min(h - 155, (w - 16) / 3), 132);
-      // the arcs' row (a name of two lines, status words of two) + the gap + the pace box at its smallest (a plot of 18, an estimate of two lines)
-      const tallest = (arc + 28 + 32 + 2) + 6 + (18 + 3 + 18 + 3 + 45);
+    expect(css).toContain('.holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 177px, calc((100cqi - 16px) / 3)), 132px); --pace-h: 36px; }');
+    for (let w = 240; w < 400; w += 4) for (let h = 221; h <= 420; h++) {
+      const arc = clamp(44, Math.min(h - 177, (w - 16) / 3), 132);
+      // the arcs' row (a name of two lines, status words of two) + the gap + the pace box at its smallest (a plot of 40, an estimate of two lines)
+      const tallest = (arc + 28 + 32 + 2) + 6 + (18 + 3 + 40 + 3 + 45);
       expect(tallest, `${w} × ${h}`).toBeLessThanOrEqual(h);
     }
   });
   it('stacked, from 400 px wide: one-line words with 16 px in hand', () => {
-    expect(css).toContain('@container holo-body (min-width: 400px) { .holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 132px, calc((100cqi - 16px) / 3)), 132px); } }');
-    for (let w = 400; w < 560; w += 4) for (let h = 176; h <= 420; h++) {
-      const arc = clamp(44, Math.min(h - 132, (w - 16) / 3), 132);
-      expect((arc + 28 + 16 + 2) + 6 + (18 + 3 + 18 + 3 + 22) + 16, `${w} × ${h}`).toBeLessThanOrEqual(h);
+    expect(css).toContain('@container holo-body (min-width: 400px) { .holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 154px, calc((100cqi - 16px) / 3)), 132px); } }');
+    for (let w = 400; w < 560; w += 4) for (let h = 198; h <= 420; h++) {
+      const arc = clamp(44, Math.min(h - 154, (w - 16) / 3), 132);
+      expect((arc + 28 + 16 + 2) + 6 + (18 + 3 + 40 + 3 + 22) + 16, `${w} × ${h}`).toBeLessThanOrEqual(h);
     }
   });
-  it('at 316 × 238 the arcs are 83 px and the plot gets what is left: 57 px (41 when a status wraps)', () => {
-    const arc = clamp(44, Math.min(238 - 155, (316 - 16) / 3), 132);
-    expect(arc).toBe(83);
-    expect(238 - (arc + 28 + 16 + 2) - 6 - (18 + 3 + 3 + 22)).toBe(57);
-    expect(238 - (arc + 28 + 32 + 2) - 6 - (18 + 3 + 3 + 22)).toBe(41);
+  it('at 316 × 238 the arcs are 61 px and the plot gets what is left: 79 px (63 when a status wraps)', () => {
+    const arc = clamp(44, Math.min(238 - 177, (316 - 16) / 3), 132);
+    expect(arc).toBe(61);
+    expect(238 - (arc + 28 + 16 + 2) - 6 - (18 + 3 + 3 + 22)).toBe(79);
+    expect(238 - (arc + 28 + 32 + 2) - 6 - (18 + 3 + 3 + 22)).toBe(63);
   });
   it('below the thresholds the arcs stand alone and still fit (their tallest: a name and a status of two lines each)', () => {
-    for (const [w, top] of [[316, 198], [420, 175]] as const) for (let h = 119; h <= top; h++) {
+    for (const [w, top] of [[316, 220], [420, 197]] as const) for (let h = 119; h <= top; h++) {
       const arc = clamp(40, Math.min(h - 64, (w - 16) / 3), 132);
       expect(arc + 28 + 32 + 2, `${w} × ${h}`).toBeLessThanOrEqual(Math.max(h, 40 + 62));
     }

@@ -79,6 +79,8 @@
 .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size][data-size]:is([data-locked], [data-notice]) .nova-widget-body { flex: 1 1 auto; container: holo-body / inline-size; overflow: visible; margin-inline: 0; padding-inline: 0; }
 .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size][data-size]:is([data-locked], [data-notice]) .nova-widget-inner { min-height: 0; padding-block: 0; justify-content: flex-start; }
 .nova-widget[data-holo]:is([data-locked], [data-notice]) > :is(.holo-ruler, .holo-sheen) { display: none; }
+/* Round 4: the locked strip sits in the middle of its one-unit panel (no band of empty glass under it). */
+.nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size][data-size][data-locked] .nova-widget-body { display: flex; flex-direction: column; justify-content: center; }
 /* A teaching or locked panel hugs its content: the frame makes it one unit tall once it knows the body is only a notice
    (widget-grid.tsx reads that when the body's size changes). In a fitted panel the notice is therefore one pixel taller
    than its panel: that change of size is what tells the frame, whatever the body held before ("Reading…"). */
@@ -103,6 +105,20 @@
 @container holo-body (min-height: 150px) and (min-width: 480px) { .nc-notice { grid-template-columns: clamp(96px, 58cqh, 150px) minmax(0, 1fr) minmax(160px, 36%); } .nc-notice-ghost { max-width: 420px; max-height: 80cqh; } }
 @container holo-body (min-height: 150px) and (max-width: 420px) { .nc-notice { grid-template-columns: 84px minmax(0, 1fr); column-gap: 14px; } }
 @container holo-body (max-width: 232px) { .nc-notice { grid-template-columns: minmax(0, 1fr); } .nc-notice-glyph { display: none; } .nc-notice-words { grid-column: 1; } }
+/* Round 4 (the critics: seven locked panels read as "a wall of error cards"): a locked widget is quiet. One slim strip,
+   one unit tall at every size: the lock's small dial, which switch is off ("Health is off for NOVA"), and the Permissions
+   key, on one row (under 420 px of body the key is the second row). The sentence that explains the switch stays in the
+   panel for assistive technology and is the strip's tooltip; nothing else is drawn. */
+.nc-notice[data-kind=locked] { grid-template-columns: 40px minmax(0, 1fr) auto; column-gap: 12px; row-gap: 2px; align-items: center; align-content: center; padding: 0; }
+.nc-notice[data-kind=locked] .nc-notice-glyph { width: 40px; height: 40px; aspect-ratio: auto; align-self: center; }
+.nc-notice[data-kind=locked] .nc-notice-words { display: contents; }
+.nc-notice[data-kind=locked] .nc-notice-title { grid-column: 2; grid-row: 1; font-size: 15px; }
+.nc-notice[data-kind=locked] .nc-notice-text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nc-notice[data-kind=locked] .nc-action { grid-column: 3; grid-row: 1; min-height: 44px; margin-top: 0; padding: 0 14px; font-size: 15px; }
+@container holo-body (max-width: 419.98px) {
+  .nc-notice[data-kind=locked] { grid-template-columns: 40px minmax(0, 1fr); }
+  .nc-notice[data-kind=locked] .nc-action { grid-column: 2; grid-row: 2; justify-self: start; }
+}
 
 /* ---- Shared light: gradient stops, bloom layers, glints ---- */
 .nc-g-a { stop-color: var(--neon, #9273ff); }
@@ -177,7 +193,21 @@
    A gauge's diameter is `--nc-d` px (a plain number: the component's own size unless a container query makes it larger),
    and every stroke is set from it in px (`--nc-u` is one px in the gauge's own 100-unit box), so a gauge that grows with
    its panel keeps a 5–6 px line, a 3.5 px track and the same bloom. */
-.nc-gauge { --nc-d: var(--nc-d0, 64); --nc-u: calc(100px / var(--nc-d)); position: relative; flex: none; display: inline-grid; place-items: center; width: calc(var(--nc-d) * 1px); height: calc(var(--nc-d) * 1px); }
+.nc-gauge { --nc-d: var(--nc-d0, 64); --nc-u: calc(100px / var(--nc-d)); position: relative; flex: none; display: inline-grid; place-items: center; width: var(--nc-size, calc(var(--nc-d) * 1px)); height: var(--nc-size, calc(var(--nc-d) * 1px)); container: nc-gauge / size; }
+/* Round 4 (the references' rings: thick gradient arcs with bloom, the figure inside). Inside a gauge every stroke is in
+   the gauge's own 100-unit box (`--nc-t`: 11 with a bezel, 13 without), so the band is the same share of the ring at
+   every size: a dark framed track, the lit band over it, a white-hot cap at its leading end, a static bloom behind. */
+.nc-gauge .nc-gauge-track { stroke: color-mix(in oklab, var(--neon, #9273ff) 15%, #060a20); stroke-width: calc(var(--nc-t, 11) * 1px); }
+.nc-gauge .nc-arcmark[data-unknown] .nc-gauge-track { stroke: #c9d4ea; stroke-width: 1.4px; stroke-dasharray: 2 5; opacity: .55; }
+.nc-gauge .nc-gauge-glow { stroke-width: calc(var(--nc-t, 11) * var(--nc-wk, 1) * 1.5px); opacity: .5; filter: blur(4px); }
+.nc-gauge .nc-gauge-arc { stroke-width: calc(var(--nc-t, 11) * var(--nc-wk, 1) * 1px); }
+.nc-gauge .nc-gauge-glint { stroke-width: calc(var(--nc-t, 11) * var(--nc-wk, 1) * .1px); }
+.nc-gauge .nc-gauge-end { r: calc(var(--nc-t, 11) * var(--nc-wk, 1) * .3px); stroke-width: .7px; }
+/* A figure in a gauge is sized from the ring's own opening (its inner diameter is 60 % of the ring: 26cqi is a 3-character figure at ease). */
+.nc-ring-words { position: relative; display: grid; justify-items: center; gap: 2px; line-height: 1; }
+.nc-ring-words .nc-ring-figure { font-size: clamp(15px, 26cqi, 60px); line-height: 1; }
+.nc-ring-unit { font-size: clamp(14px, 10cqi, 18px); font-weight: 600; color: #d6e0f5; white-space: nowrap; }
+@container nc-gauge (max-width: 87.98px) { .nc-ring-unit { display: none; } }
 .nc-gauge > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .nc-bezel { fill: none; stroke: color-mix(in oklab, var(--neon-2, #c0adff) 34%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
 .nc-bezel-major { stroke: color-mix(in oklab, var(--neon-2, #c0adff) 78%, transparent); }
@@ -252,21 +282,23 @@
 .nc-capsule-track i { position: absolute; left: 0; right: 0; min-height: 10px; border-radius: 5px; background: linear-gradient(to top, var(--neon, #7fb6ff), var(--neon-2, #ffd9a0)); box-shadow: 0 0 10px 1px color-mix(in oklab, var(--neon, #7fb6ff) 62%, transparent), inset 0 2px 0 #ffffffd9, inset 0 -2px 0 #ffffff80; transform-origin: 50% 100%; }
 
 /* ---- Bars: ticked tracks with a lit share and a white-hot leading end ---- */
+/* Round 4 (the references' bars: thick, framed, gradient-filled): a meter is a 12 px dark slot with a hairline rim, the
+   lit bar inside it (a gradient that is brightest at its leading end, under a white-hot cap), its value at the row's end. */
 .nc-bars { display: grid; gap: 9px; min-width: 0; }
 .nc-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; align-items: baseline; }
 .nc-bar-label { position: relative; padding-left: 14px; font-size: 15px; color: #e6edfb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nc-bar-label::before { content: ''; position: absolute; left: 1px; top: 50%; width: 6px; height: 6px; margin-top: -3px; transform: rotate(45deg); background: var(--neon, #ffd27a); box-shadow: 0 0 7px 1px color-mix(in oklab, var(--neon, #ffd27a) 80%, transparent); }
 .nc-bar-value { font-size: 15px; font-weight: 650; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.nc-bar-track { position: relative; grid-column: 1 / -1; height: 8px; border-radius: 2px; background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 20%, transparent) 0 3px, transparent 3px 5px); }
+.nc-bar-track { position: relative; grid-column: 1 / -1; box-sizing: border-box; height: 12px; padding: 2px; border-radius: 3px; background: #050919; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #ffd27a) 38%, transparent), inset 0 2px 4px #000c; }
 .nc-bar-track i { position: relative; display: block; height: 100%; width: calc(var(--nc-share, 0) * 100%); min-width: 3px; border-radius: 2px; background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 42%, #0a1030), var(--neon, #ffd27a) 70%, var(--neon-2, #ffe6b3)); box-shadow: 0 0 12px 1px color-mix(in oklab, var(--neon, #ffd27a) 58%, transparent), inset 0 1px 0 #ffffff66; transform-origin: 0 50%; }
-.nc-bar-track i::after { content: ''; position: absolute; right: -1px; top: -2px; bottom: -2px; width: 3px; border-radius: 2px; background: #fff; box-shadow: 0 0 6px 1px #fff, 0 0 12px 3px var(--neon, #ffd27a); }
+.nc-bar-track i::after { content: ''; position: absolute; right: -1px; top: -1px; bottom: -1px; width: 3px; border-radius: 2px; background: #fff; box-shadow: 0 0 6px 1px #fff, 0 0 12px 3px var(--neon, #ffd27a); }
 .nc-bar[data-over] { --neon: #ff8f7c; --neon-2: #ffd3c9; }
 .nc-bar[data-over] .nc-bar-track i { background: repeating-linear-gradient(135deg, #ff8f7c 0 6px, #ffd27a 6px 12px); }
-.nc-bar[data-unknown] .nc-bar-track { background: repeating-linear-gradient(90deg, #ffffff38 0 6px, transparent 6px 12px) 0 50% / 100% 1px no-repeat; }
+.nc-bar[data-unknown] .nc-bar-track { background: repeating-linear-gradient(90deg, #ffffff38 0 6px, transparent 6px 12px) 0 50% / 100% 1px no-repeat; box-shadow: none; }
 .nc-bar[data-unknown] .nc-bar-track i { display: none; }
 .nc-bar-note { grid-column: 1 / -1; font-size: 14px; color: #c3cfe6; }
 /* One stacked bar: the parts of a whole, each a shade of the realm, the rest of the whole unlit. */
-.nc-stack { display: flex; gap: 3px; height: 14px; min-width: 0; }
+.nc-stack { display: flex; gap: 3px; box-sizing: border-box; height: 18px; padding: 2px; min-width: 0; border-radius: 3px; background: #050919; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #ffd27a) 38%, transparent); }
 .nc-stack i { --nc-c: var(--neon, #ffd27a); flex: 1 1 0; min-width: 3px; border-radius: 2px; background: linear-gradient(180deg, color-mix(in oklab, var(--nc-c) 62%, #fff), var(--nc-c) 52%, color-mix(in oklab, var(--nc-c) 58%, #0a1030)); box-shadow: 0 0 12px 0 color-mix(in oklab, var(--nc-c) 55%, transparent), inset 0 1px 0 #ffffffb0; transform-origin: 0 50%; }
 .nc-stack i[data-i="1"] { --nc-c: color-mix(in oklab, var(--neon, #ffd27a) 76%, #0a1030); } .nc-stack i[data-i="2"] { --nc-c: color-mix(in oklab, var(--neon, #ffd27a) 56%, #0a1030); } .nc-stack i[data-i="3"] { --nc-c: color-mix(in oklab, var(--neon, #ffd27a) 40%, #0a1030); }
 .nc-stack i[data-rest] { background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 24%, transparent) 0 3px, transparent 3px 5px); box-shadow: none; }

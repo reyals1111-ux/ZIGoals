@@ -213,3 +213,20 @@
   .nc-budgets-card[data-size=L] .nc-budgets-ring { --nc-d: 200; }
   .nc-bills-card[data-size=L] .nc-bills-next .nc-bills-dial { --nc-d: 200; }
 }
+
+/* ==== Round 4 (the critics: thick rings with the figure inside; bars with volume; no collisions) ==== */
+/* Budgets: the count stands INSIDE its ring (it stood beside a thin ring at 46 px and ran into the last line of the
+   bars). The hero beside the ring keeps the words; its figure stays for assistive technology. The ring takes the
+   height the panel leaves: stacked, what the rows leave (the body less 158 px: two meters, the foot and the gaps); in
+   a wide body, the body's height less the foot. */
+.nc-budgets-card:is([data-size=M], [data-size=L]) .nc-budgets-top .nc-hero-figure { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nc-budgets-card[data-size=M] .nc-budgets-ring { --nc-size: clamp(68px, calc(100cqh - 158px), 110px); }
+.nc-budgets-card[data-size=L] .nc-budgets-ring { --nc-size: clamp(96px, 22cqh, 150px); }
+@container holo-body (max-width: 250px) { .nc-budgets-card[data-size=M] .nc-budgets-top .nc-hero-figure { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip-path: none; } }
+@container holo-body (min-width: 520px) {
+  .nc-budgets-card[data-size=M] .nc-budgets-ring { --nc-size: clamp(88px, min(100cqh - 38px, 25cqi), 190px); }
+  .nc-budgets-card[data-size=L] .nc-budgets-ring { --nc-size: clamp(120px, min(40cqh, 28cqi), 220px); }
+  .nc-spending-card[data-size=M] .nc-bar-track, .nc-budgets-card[data-size=M] .nc-bar-track { height: 14px; }
+}
+/* Spending: air under the title bar (the stacked bar sat right against it). */
+.nc-body.nc-spending-card:is([data-size=M], [data-size=L]) { padding-top: 6px; }

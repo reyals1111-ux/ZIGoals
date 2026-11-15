@@ -370,3 +370,25 @@
 .nc-time-rows.nc-time-inline .nc-time-row-name { line-height: 1.2; overflow: visible; }
 .nc-time-rows.nc-time-inline .nc-time-row-pct { font-size: 16px; line-height: 1.15; }
 @container holo-body (min-width: 620px) { .nc-time-rows.nc-time-inline { display: grid; } }
+
+/* ==== Round 4 (the critics: thick rings with the figure inside; no cut titles with room beside them) ==== */
+/* Goal: the percent is sized from its ring (it was 38 px in a 136 px ring and sat on the arc): a fifth of the ring's
+   width, inside an opening of more than half of it. The goal's name takes two lines before it is cut. */
+.nc-goal .nc-goal-ring .nc-goal-num { font-size: clamp(15px, 19cqi, 44px); }
+.nc-goal .nc-goal-ring .nc-goal-figure small { font-size: 14px; line-height: 1.1; }
+@container nc-gauge (max-width: 109.98px) { .nc-goal-figure small { display: none; } }
+.nc-goal:not([data-size=S]) .nc-goal-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; box-sizing: border-box; min-height: 44px; padding-block: 2px; line-height: 20px; white-space: normal; overflow-wrap: anywhere; }
+.nc-goal:not([data-size=S]) .nc-goal-name::before { top: 5px; bottom: 5px; }
+@container holo-body (min-width: 520px) { .nc-goal[data-size=M] .nc-goal-ring { --nc-size: clamp(104px, min(100cqh - 36px, 26cqi), 190px); } }
+/* Habits this week: today's count stands inside its ring in a wide or a large panel (the hero beside it keeps the words),
+   and a habit's name has 92 px or more before it is cut ("Exerci…", "Medit…"). */
+/* (Large: a ring of 120 px or more, so "of 7 today" — 64 px — is inside its 60 % opening.) */
+.nc-habitweek[data-size=L] .nc-habitweek-ring { --nc-size: clamp(120px, 34cqh, 180px); }
+.nc-habitweek[data-size=L] .nc-habitweek-top .nc-hero { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@container holo-body (min-width: 520px) {
+  .nc-habitweek[data-size=M] { column-gap: 32px; }
+  .nc-habitweek[data-size=M] .nc-habitweek-ring { --nc-size: clamp(96px, min(100cqh - 36px, 24cqi), 180px); }
+  .nc-habitweek[data-size=M] .nc-habitweek-top .nc-hero { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .nc-habitweek[data-size=M] { grid-template-columns: auto minmax(0, 1fr); }
+  .nc-habitweek[data-size=M] > .nc-lattice :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(92px, 1fr) repeat(7, minmax(14px, 24px)) 44px; gap: 6px; }
+}

@@ -31,9 +31,9 @@ const SWEEP = 270, START = -135;
 function GoalRing({pct, size, children}: {pct: number | null; size: number; children?: ReactNode}) {
   const s = pct === null ? null : Math.max(0, Math.min(1, pct / 100)), rich = size >= 80;
   return <Gauge share={s} size={size} start={START} sweep={SWEEP} bezel={rich} spin={rich} className="nc-goal-ring" extra={rich ? <>
-    <path className="nc-goal-inner" d={arcPath(0, 0, 31.5, START, START + SWEEP)}/>
-    <circle className="nc-goal-inner-dash" r="27.5"/>
-    {MILESTONES.map(m => { const p = polar(0, 0, 31.5, START + SWEEP * m / 100); return <circle key={m} className="nc-goal-stone" data-lit={(pct !== null && pct >= m) || undefined} cx={p.x} cy={p.y} r="2"/>; })}
+    {/* Round 4: the arc is a thick band (30–41 of the box), so the milestone ring sits just inside it. */}
+    <path className="nc-goal-inner" d={arcPath(0, 0, 27, START, START + SWEEP)}/>
+    {MILESTONES.map(m => { const p = polar(0, 0, 27, START + SWEEP * m / 100); return <circle key={m} className="nc-goal-stone" data-lit={(pct !== null && pct >= m) || undefined} cx={p.x} cy={p.y} r="1.8"/>; })}
   </> : undefined}>{children}</Gauge>;
 }
 /**

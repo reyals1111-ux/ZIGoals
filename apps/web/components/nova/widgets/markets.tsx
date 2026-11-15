@@ -21,8 +21,17 @@ export default function MarketsWidget({size}: {size: WidgetSize}) {
   if (!list.length) return <NovaEmpty pillar="wealth" ghost="wave" href="/app/markets" action="Follow a market">You follow no markets yet.</NovaEmpty>;
   // Session AM-2 (whole rows only): the markets that fit, then "+N more on the Markets page".
   const shown = list.slice(0, size === 'S' ? 2 : size === 'M' ? 4 : 8);
-  return <WholeRows inline className="nova-markets hw-markets" extra={list.length - shown.length} min={1} more={(hidden, rows) => moreWords(hidden, {shown: rows, where: 'the Markets page'})}>{shown.map(a => {
-    const key = marketRefKey(a.ref), q = market.quotes.find(x => x.marketRef && marketRefKey(x.marketRef) === key && x.currency === 'USD');
-    return <li key={key} className="hw-row" data-priced={q ? '' : undefined}><span className="nova-market-name">{a.symbol || a.name}</span>{q ? <span className="nova-market-price">{formatPrice(amount(q.price, q.priceDecimals), 'USD')}{q.observedAt ? <small> · {formatTime(q.observedAt)}</small> : null}</span> : <small>Price not in yet</small>}</li>;
-  })}</WholeRows>;
+  // Round 4: each market is a tile (its symbol, its price as a figure, the price's time); a price that is not in is "—" on
+  // an unlit tile, and when none is in the panel says so once (never one "Price not in yet" a row).
+  const quote = (a: (typeof list)[number]) => { const key = marketRefKey(a.ref); return market.quotes.find(x => x.marketRef && marketRefKey(x.marketRef) === key && x.currency === 'USD'); };
+  const none = !shown.some(quote);
+  return <div className="hw-markets-box" data-size={size}>
+    <WholeRows wrapClassName="hw-markets-rows" className="nova-markets hw-markets" extra={list.length - shown.length} min={1} more={(hidden, rows) => moreWords(hidden, {shown: rows, where: 'the Markets page'})}>{shown.map(a => {
+      const q = quote(a);
+      return <li key={marketRefKey(a.ref)} className="hw-row" data-priced={q ? '' : undefined}><span className="nova-market-name">{a.symbol || a.name}</span>
+        {q ? <><span className="nova-market-price">{formatPrice(amount(q.price, q.priceDecimals), 'USD')}</span>{q.observedAt ? <small>{formatTime(q.observedAt)}</small> : null}</>
+          : <><span className="nova-market-price" aria-hidden="true">—</span><small className={none ? 'sr-only' : undefined}>Price not in yet</small></>}</li>;
+    })}</WholeRows>
+    {none && <p className="hw-markets-note" aria-hidden="true">Prices are not in yet. Each shows here with its time once it arrives.</p>}
+  </div>;
 }

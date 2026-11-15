@@ -34,7 +34,7 @@ function useMinute(): Date | null {
 function TimeDial({shares, size, hours}: {shares: readonly number[]; size: number; hours?: boolean}) {
   // Small (a 36 px dial at the head of a one-row widget): three thin arcs alone, no bezel, star or orbit.
   const mini = size < 60, px = mini ? 2.6 : size >= 150 ? 5.5 : 4.6, k = 100 / size, w = px * k, step = w * (mini ? 1.9 : 1.75), outer = mini ? 46.5 : 41;
-  return <span className="nc-gauge nc-time-dial" data-hours={hours || undefined} data-mini={mini || undefined} style={{'--nc-d0': size, '--nc-w': px} as CSSProperties} aria-hidden="true">
+  return <span className="nc-gauge nc-time-dial" data-hours={hours || undefined} data-mini={mini || undefined} style={{'--nc-d0': size, '--nc-w': px, '--nc-t': +w.toFixed(2)} as CSSProperties} aria-hidden="true">
     <svg viewBox="-50 -50 100 100" focusable="false">
       {!mini && <><path className="nc-bezel" d={tickPath(0, 0, 45, 47.5, 96)}/>
         <path className="nc-bezel nc-bezel-major" d={tickPath(0, 0, 44, 49, 24)}/>

@@ -653,7 +653,7 @@
 .holo-health[data-size=S] .holo-ring { --ring: clamp(44px, calc(100cqh - 21px), 64px); }
 .holo-health:is([data-size=M], [data-size=L]) .holo-split { gap: 10px; }
 /* M, stacked, no hearts: max(R + 18, 116 + 3g) + 8 + 22 ≤ h. */
-.holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 206px), 190px); }
+.holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 216px), 190px); }
 .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 150px) / 3), 9px); }
 /* L, stacked: the ring row, the week's chart, then (with heart-rate data) its line; the gaps and the chart share the slack above 380 px. */
 .holo-health[data-size=L] .holo-ring { --ring: clamp(96px, min(32cqh, 100cqi - 206px), 190px); }
@@ -662,7 +662,7 @@
 /* The hearts' row needs 360 px for five tiles that do not touch (63 px each). With it: max(R + 18, 116 + 3g) + 8 + 38 + 8 + 22 ≤ h. */
 @container holo-body (min-width: 360px) {
   .holo-health:is([data-size=M], [data-size=L]) .holo-heartrow { display: block; }
-  .holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 102px - var(--note), 100cqi - 206px), 190px); }
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 102px - var(--note), 100cqi - 216px), 190px); }
   .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 200px) / 3), 9px); }
 }
 /* A medium panel's meters keep their reasons in their tooltips and the table below 300 px (three reasons are 51 px). */
@@ -670,7 +670,7 @@
 /* Below 214 px the stacked hearts go (whole), and the ring and the gaps take their room back. */
 @container holo-body (max-height: 213px) and (max-width: 559.98px) {
   .holo-health[data-size=M] .holo-heartrow { display: none; }
-  .holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 206px), 190px); }
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 216px), 190px); }
   .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 150px) / 3), 9px); }
 }
 /* Wide: the ring at the body's height, the meters, the hearts as a column, the strip under the meters and the hearts.
@@ -756,21 +756,23 @@
    CSS cannot ask what wraps, so A is sized for the tallest case of its width and the plot takes whatever is left (it is
    the elastic row: holo-parts "round 3" below), so the two always fit whichever lines wrap:
    - a body under 400 px wide (the status words and the estimate may each take two lines):
-       A + 28 + 32 + 2 + 6 + 18 + 3 + 18 + 3 + 45 = A + 155 ≤ h   →  A = h − 155; the pace box shows from h = 199 (A = 44);
+       A + 28 + 32 + 2 + 6 + 18 + 3 + 40 + 3 + 45 = A + 177 ≤ h   →  A = h − 177; the pace box shows from h = 221 (A = 44);
    - from 400 px (both on one line; 16 px kept in hand for a status that still wraps):
-       A + 28 + 16 + 2 + 6 + 18 + 3 + 18 + 3 + 22 + 16 = A + 132 ≤ h   →  A = h − 132; the pace box shows from h = 176.
-   At 316 × 238: A = min(238 − 155, (316 − 16) / 3) = 83; the arcs' row is 83 + 28 + 16 + 2 = 129 (145 when the status
-   wraps), so the pace box has 238 − 129 − 6 = 103 (87): head 18, plot 57 (41), estimate 22. Under those heights the pace
+       A + 28 + 16 + 2 + 6 + 18 + 3 + 40 + 3 + 22 + 16 = A + 154 ≤ h   →  A = h − 154; the pace box shows from h = 198.
+   (Round 4: the plot's floor is 40 px, not 18: under that it read as a strip beside an open conversation, where every
+   line wraps; a body too short for a 40 px plot shows the arcs alone, larger.)
+   At 316 × 238: A = min(238 − 177, (316 − 16) / 3) = 61; the arcs' row is 61 + 28 + 16 + 2 = 107 (123 when the status
+   wraps), so the pace box has 238 − 107 − 6 = 125 (109): head 18, plot 79 (63), estimate 22. Under those heights the pace
    box cannot be promised whole and the arcs stand alone: A + 28 + 32 + 2 = A + 62 ≤ h  →  A = h − 64. */
-.holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 155px, calc((100cqi - 16px) / 3)), 132px); --pace-h: 36px; }
-@container holo-body (min-width: 400px) { .holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 132px, calc((100cqi - 16px) / 3)), 132px); } }
+.holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 177px, calc((100cqi - 16px) / 3)), 132px); --pace-h: 36px; }
+@container holo-body (min-width: 400px) { .holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 154px, calc((100cqi - 16px) / 3)), 132px); } }
 .holo-goals[data-size=L] { --arc: clamp(64px, min(19cqh, 30cqi), 132px); --pace-h: clamp(48px, calc(20cqh - 20px), 120px); gap: clamp(6px, 2cqh, 14px); }
 .holo-goals .holo-num-arc { font-size: clamp(14px, calc(var(--arc, 64px) * .25), 36px); }
-@container holo-body (max-height: 198.98px) and (max-width: 399.98px) {
+@container holo-body (max-height: 220.98px) and (max-width: 399.98px) {
   .holo-goals[data-size=M] .holo-pace-box { display: none; }
   .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 64px, calc((100cqi - 16px) / 3)), 132px); }
 }
-@container holo-body (max-height: 175.98px) and (min-width: 400px) and (max-width: 559.98px) {
+@container holo-body (max-height: 197.98px) and (min-width: 400px) and (max-width: 559.98px) {
   .holo-goals[data-size=M] .holo-pace-box { display: none; }
   .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 64px, calc((100cqi - 16px) / 3)), 132px); }
 }
@@ -890,6 +892,9 @@
 /* ---- Teaching states (M8, AM-D22): the instrument's ghost, large and dim, beside the words and the key. A medium or
    large panel's ghost is as large as its body lets it be (96–132 px on a computer); a small panel keeps the 48 px mark. ---- */
 .nova-widget[data-holo]:is([data-size=M], [data-size=L]) :is(.holo-empty, .nova-empty) { --ghost: clamp(64px, min(100cqh - 24px, 30cqi), 132px); grid-template-columns: var(--ghost) minmax(0, 1fr); column-gap: 20px; align-items: center; align-content: center; }
+/* Round 4: a teaching state that is the whole body (nothing under it: no add form, no key of the panel's own) takes a
+   full-size ghost, up to 190 px. */
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) .nova-widget-inner > :is(.holo-empty, .nova-empty) { --ghost: clamp(64px, min(100cqh - 24px, 30cqi), 190px); }
 .nova-widget[data-holo]:is([data-size=M], [data-size=L]) :is(.holo-empty-shape, .nova-empty > .nova-empty-ghost) { width: var(--ghost); height: var(--ghost); align-self: center; opacity: .85; }
 .nova-widget[data-holo]:is([data-size=M], [data-size=L]) .holo-empty-shape :is(.holo-empty-ring, .holo-empty-arc, .holo-empty-frame) { width: var(--ghost); height: var(--ghost); }
 .nova-widget[data-holo]:is([data-size=M], [data-size=L]) .holo-empty-shape b { font-size: clamp(15px, calc(var(--ghost) * .2), 26px); }
@@ -980,9 +985,13 @@
 .holo-goals[data-size=M] { display: flex; flex-direction: column; justify-content: center; max-height: 100cqh; }
 @container holo-body (min-height: 1px) { .holo-goals[data-size=M] { height: 100cqh; } }
 .holo-goals[data-size=M] > .holo-arcs { flex: none; }
-.holo-goals[data-size=M] .holo-pace-box { display: flex; flex-direction: column; justify-content: center; flex: 1 1 auto; min-height: 0; max-height: 100cqh; }
+/* Round 4: "display: flex" is set at the weight of one class, so the rules above that hide the pace box in a body too
+   short for it (three selectors' weight) win. Set with the full selector here, it came later at the same weight and
+   undid them: the pace box stayed in a body sized for the arcs alone and lay over their words. */
+:where(.holo-goals[data-size=M]) .holo-pace-box { display: flex; }
+.holo-goals[data-size=M] .holo-pace-box { flex-direction: column; justify-content: center; flex: 1 1 auto; min-height: 0; max-height: 100cqh; }
 .holo-goals[data-size=M] .holo-pace-box > :is(.holo-pace-head, .holo-estimate) { flex: none; }
-.holo-goals[data-size=M] .holo-pace-chart { flex: 1 1 var(--pace-h, 36px); min-height: 18px; max-height: 110px; }
+.holo-goals[data-size=M] .holo-pace-chart { flex: 1 1 var(--pace-h, 36px); min-height: 40px; max-height: 110px; }
 /* Wide (Session AM-2): the pace column is 45 % of the body and as tall as it. Its title is one line with an ellipsis
    (its whole words are its tooltip and the table's); "Target" is in the plot's right gutter and "Today" in an 18 px row
    under the plot, so neither lies on the drawing; the plot is the elastic row and takes every pixel that is left:
@@ -991,7 +1000,8 @@
    The estimate's note shows from 220 px of height, where three lines still leave a plot of 112 px. */
 @container holo-body (min-width: 560px) {
   .holo-goals[data-size=M] { display: grid; grid-template-rows: minmax(0, 1fr); max-height: none; }
-  .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-box { display: flex; flex-direction: column; justify-content: center; align-self: stretch; flex: none; min-height: 0; max-height: none; }
+  :where(.holo-goals:is([data-size=M], [data-size=L])) .holo-pace-box { display: flex; }
+  .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-box { flex-direction: column; justify-content: center; align-self: stretch; flex: none; min-height: 0; max-height: none; }
   .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-box > :is(.holo-pace-head, .holo-estimate) { flex: none; }
   .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-chart { flex: 1 1 0; height: auto; min-height: 24px; max-height: 420px; margin-bottom: 18px; }
   .holo-goals[data-size=L] .holo-pace-chart { min-height: 64px; }
@@ -1035,3 +1045,70 @@
   .holo-notes:is([data-size=M], [data-size=L]) .holo-notes-head .holo-num-big { font-size: 48px; }
   .holo-streaks li, .holo-streaks .holo-num, .holo-orbit-line { font-size: 16px; }
 }
+
+/* ==== Round 4 (the critics' faults in the HUD parts, and instruments that fill their panel) ==== */
+
+/* Habits HUD, stacked: the 30-day dial and its caption keep clear of the frame's cut corner (18 px). */
+@container holo-body (max-width: 639.98px) { .holo-habits[data-size=M] .holo-week-row { padding-inline-end: 12px; } }
+/* Habits HUD in a body under 300 px: today's ring is under 96 px there, and "today" under its figure ran onto the arc: the figure alone. */
+@container holo-body (max-width: 299.98px) { .holo-habits[data-size=M] .holo-today .holo-ring-centre small { display: none; } }
+
+/* Health HUD in a body under 300 px (the stage beside an open conversation): the ring is never under 80 px, so its
+   figure (five characters at 16 px: 44 px) stays inside its opening (62 % of 80: 50 px) and its caption under the ring;
+   the meters take what is left (about 160 px): each shows its name and its figure whole, and gives up its target
+   ("/ 2,000 mL": the lit segments say the share, the table and any wider panel say the target) rather than cut its name
+   to a letter. From 300 px the ring leaves the meters 206 px: "Water" (40) + 8 + "1,000 mL / 2,000 mL" (150) fit. */
+@container holo-body (max-width: 299.98px) {
+  .holo-health[data-size=M] .holo-ring { --ring: clamp(80px, min(100cqh - 70px - var(--note), 100cqi - 170px), 190px); }
+  .holo-health[data-size=M] .holo-split { gap: 8px; }
+  .holo-health[data-size=M] .holo-meter-value small { display: none; }
+}
+
+/* Today's orbit, stacked (the band, a wing at 1440): the ring's top is level with the first line beside it. */
+@container holo-body (max-width: 559.98px) { .holo-orbit[data-size=M] { align-items: start; } }
+
+/* Next three: a timeline that fills its panel (ref 14). The rows share the body's height (45 to 72 px each), every node
+   sits on one rail at its row's middle, and the time is a figure. */
+.holo-next-box { min-width: 0; }
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .holo-next-box { flex: 1 0 auto; grid-template-rows: minmax(0, 1fr) auto; align-content: stretch; }
+.holo-next-box > .holo-next { grid-auto-rows: minmax(45px, 1fr); align-content: center; }
+@container holo-body (min-width: 560px) {
+  .holo-next-box > .holo-next { grid-auto-rows: minmax(45px, 72px); }
+  .holo-next-box > .holo-next li { grid-template-columns: 108px minmax(0, 1fr) max-content; padding-left: 24px; }
+  .holo-next-box > .holo-next li::before { left: 2px; top: calc(50% - 5px); width: 10px; height: 10px; }
+  .holo-next-box > .holo-next li::after { left: 6.5px; top: calc(50% + 9px); bottom: calc(9px - 50%); }
+  .holo-next-box > .holo-next .holo-next-time { font-size: 18px; line-height: 22px; }
+}
+
+/* Notes inbox, medium and large: the count is the hero (a 56 px figure over its label) beside the rows in a wide body,
+   and the rows share the height the panel leaves (44 to 64 px each), so the panel is full. */
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .holo-notes:is([data-size=M], [data-size=L]) { flex: 1 0 auto; grid-template-rows: auto minmax(0, 1fr); }
+.holo-notes:is([data-size=M], [data-size=L]) > .holo-notes-rows { align-content: center; }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-captures { grid-auto-rows: minmax(44px, 64px); }
+@container holo-body (min-width: 560px) {
+  .nova-frame .nova-widget[data-holo] .nova-widget-inner > .holo-notes:is([data-size=M], [data-size=L]) { grid-template-columns: minmax(150px, auto) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); align-items: center; column-gap: 32px; }
+  .holo-notes:is([data-size=M], [data-size=L]) .holo-notes-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .holo-notes:is([data-size=M], [data-size=L]) .holo-notes-head .holo-num-big { font-size: clamp(48px, 34cqh, 72px); line-height: 1; }
+}
+
+/* Water with nothing logged yet today: the meter's own unlit ring stands beside the figure, so the panel is an
+   instrument waiting, not a dash and a line. */
+.holo-water-ghost { display: none; }
+.holo-water[data-empty] { grid-template-columns: auto minmax(0, 1fr); column-gap: 16px; align-items: center; }
+.holo-water[data-empty] > .holo-water-ghost { display: block; grid-row: 1 / span 5; --ghost: clamp(44px, min(100cqh - 24px, 30cqi), 190px); width: var(--ghost); height: var(--ghost); opacity: .85; }
+.holo-water[data-empty]:is([data-size=M], [data-size=L]) { column-gap: 20px; align-content: center; }
+.holo-water[data-empty]:is([data-size=M], [data-size=L]) .holo-num-big { font-size: 30px; }
+.holo-water[data-empty] > .holo-empty-action { justify-self: start; }
+.holo-water[data-empty] > .holo-water-ghost > svg { display: block; width: 100%; height: 100%; }
+.holo-water[data-empty] > :not(.holo-water-ghost, .sr-only) { grid-column: 2; }
+.nova-frame[data-look=classic] .holo-water-ghost { width: 48px; height: 48px; }
+
+/* Round 4 (bolder instruments): the single HUD ring carries a thick arc — 8 of the 84-unit ring (track r 42 ± 4 = 38…46:
+   clear of the tick bezel from 49.5 and of the inner hairline at 34.6). The clock dials, the orbit of planets, the
+   stacked rings and the Wealth mix ring keep their own widths. */
+.holo-ring:not(.holo-dial, .holo-clock, .holo-orbit-ring, .holo-stack, .holo-stack *, .holo-wealth *) :is(.holo-track:not([data-unknown]), .holo-arc) { stroke-width: 8; }
+
+/* Round 4 (Health HUD, small): the ring is 44–64 px and its caption ("of 2,200 kcal", about 85 px) was centred under
+   it, so its first letters were cut by the panel's edge. It starts at the ring's left edge instead (under the ring and
+   the meter's first segments, 6 px below them). */
+.holo-health[data-size=S] .holo-ring > .holo-ring-centre > small { left: 0; translate: 0 0; }

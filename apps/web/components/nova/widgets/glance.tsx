@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {useMemo} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useHealth} from '../../health/use-health';
@@ -43,10 +44,12 @@ export default function GlanceWidget({size}: {size?: WidgetSize}) {
   if (!glance) return <NovaReading/>;
   const {lines, orbit: o} = glance;
   if (!lines.length) return <NovaEmpty pillar="orbit" ghost="rows">Your day at a glance fills in from your own records: a habit, a glass of water, a night of sleep, a bill.</NovaEmpty>;
-  return <div className="hw-glance" data-size={size}>
+  return <div className="hw-glance" data-size={size} data-unlit={!o || undefined}>
     {/* Round 3: the ring is always there — unlit, with "—", while nothing is counted on the day's orbit yet (never a zero). */}
     <TickRing share={o && o.total > 0 ? o.done / o.total : null} small={size === 'S'} className="hw-mini-ring"><span aria-hidden="true"><HoloFigure text={o && o.total > 0 ? `${o.done}/${o.total}` : '—'} className="holo-num-ring"/></span></TickRing>
     {/* Session AM-2 (whole rows only): the day's lines that fit, then how many more Today holds. */}
     <WholeRows inline className="nova-glance hw-rows" min={1} more={hidden => `+${hidden} more on Today`}>{lines.map(line => <li key={line} className="hw-row">{line}</li>)}</WholeRows>
+    {/* Round 4: with nothing on the day's orbit yet the panel teaches its first step (the same key as Next three). */}
+    {!o && size !== 'S' && <Link className="nova-link holo-empty-action hw-glance-act" href="/app/habits" prefetch={false}>Add a habit <span aria-hidden="true">→</span></Link>}
   </div>;
 }

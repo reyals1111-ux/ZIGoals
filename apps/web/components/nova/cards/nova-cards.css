@@ -184,3 +184,9 @@
    620 px as many 140 px cells as fit, each with its name and "Off" whole. */
 @container holo-body (min-width: 520px) and (max-width: 619px) { .nc-sees[data-size=M] .nc-sees-grid li { min-height: 28px; padding: 0 6px; gap: 6px; } .nc-sees[data-size=M] .nc-sees-name { font-size: 14px; } }
 @container holo-body (min-width: 620px) { .nc-sees[data-size=M] > .nc-sees-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); } }
+
+/* Round 4: the requests stand in the middle of what the panel leaves above its foot (a short list left the lower third blank). */
+.nc-requests:not([data-size=S]) > .nc-requests-rows { margin-block: auto; }
+/* Round 4: in a narrow panel "+2 earlier, in Behind the intelligence → Requests" takes two lines instead of ending in
+   "→ R…" (the rows are measured as they are laid out, so the line's real height is what the list makes room for). */
+.nc-requests-rows > .wr-more { white-space: normal; overflow: visible; text-overflow: clip; }
