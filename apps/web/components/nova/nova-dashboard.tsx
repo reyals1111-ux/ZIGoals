@@ -429,12 +429,15 @@ export default function NovaDashboard() {
   const hudRoom = (hudSize?.height ?? height - 300) - 26, hudWide = hudSize?.width ?? width - 300, starSlot = hudRoom <= 520 ? 204 : hudRoom >= 640 ? 252 : 228, starRoom = (hudRoom - starSlot - 124) / 0.42;
   // Session AM-2 (ADR-038 "AM-2", G3): the star is larger — the hero of a calm stage (up to 940 px on a wide window) and
   // still large beside widgets, where its light now lies behind the widgets' glass instead of stopping at its column.
-  const starCalm = width >= 2200 ? 940 : width >= 1700 ? 760 : width >= 1280 ? 600 : 460, starCapWide = hudWide >= 1900 ? 660 : hudWide >= 1500 ? 560 : hudWide >= 1100 ? 480 : hudWide >= 960 ? 360 : 300;
+  const starCalm = width >= 2200 ? 940 : width >= 1700 ? 760 : width >= 1280 ? 600 : 460, starCapWide = hudWide >= 1100 ? starCalm : hudWide >= 960 ? 360 : 300;
   // Beside widgets the star keeps to its own column (the widest of the three: holo.css), a little over its width, so the
   // galaxy's arms and its bezel are whole between the wings (the second critique: "the rings are cut by the frames").
-  const starColumn = hudWide >= 1700 ? (hudWide - 56) / 3 : hudWide > 900 ? (hudWide - 40) * 1.1 / 3.1 : hudWide;
+  // Session AM-2 (N3a, the third critique: "the star is ~550 px of 2560 with empty bands above and below"): from 1700 px
+  // of stage the star's column is the widest by half (holo.css: 1fr 1.5fr 1fr), and beside widgets the star may be as
+  // large as on the calm stage wherever that column holds it.
+  const starColumn = hudWide >= 1700 ? (hudWide - 56) * 1.5 / 3.5 : hudWide > 900 ? (hudWide - 40) * 1.1 / 3.1 : hudWide;
   const starCap = stage.shown.length ? Math.min(starCapWide, Math.max(300, Math.round(starColumn * 1.15))) : starCalm;
-  const starSize = phone ? 260 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 110 : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.42);
+  const starSize = phone ? 300 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 126 : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.42);
   const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;
   const starWhy = starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).

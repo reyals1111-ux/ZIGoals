@@ -76,9 +76,15 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
       {starOn && persona.avatar !== 'zigi' && <span className="cc-streak" aria-hidden="true"/>}
       {/* Session AM-2 (G4): the star's bezel — a ring of fine ticks in the galaxy's own plane, just outside its arms (static
           decoration; components/nova/stage/command-centre.css). It replaces AK's three orbit rings while the star draws. */}
-      {starOn && persona.avatar !== 'zigi' && <span className="cc-bezel" aria-hidden="true"><svg viewBox="-100 -100 200 200" focusable="false"><g transform="rotate(21.8)">
+      {starOn && persona.avatar !== 'zigi' && <span className="cc-bezel" aria-hidden="true" data-state={orb}><svg viewBox="-100 -100 200 200" focusable="false"><g transform="rotate(21.8)">
         <ellipse rx="97" ry="42.7" className="cc-bezel-line"/><ellipse rx="93" ry="40.9" className="cc-bezel-ticks" pathLength="360" strokeDasharray="0.2 2.8"/><ellipse rx="92.2" ry="40.6" className="cc-bezel-marks" pathLength="360" strokeDasharray="0.45 29.55"/>
         <ellipse rx="99.5" ry="43.8" className="cc-bezel-arc" pathLength="360" strokeDasharray="36 144"/>
+        {/* N3b (the third critique: "the four states read alike in a still"): each state wears its own mark on the bezel,
+            all drawn always and shown by opacity alone — listening a lit ring with ticks pointing in, thinking a ring
+            in segments, speaking ticks pointing out with two rings going outward. The words under the star say the same. */}
+        <g className="cc-state cc-state-listening"><ellipse rx="100.5" ry="44.2" className="cc-state-ring"/><ellipse rx="96.5" ry="42.5" className="cc-state-ticks" pathLength="360" strokeDasharray="0.5 5.5"/><ellipse rx="86" ry="37.8" className="cc-state-faint"/></g>
+        <g className="cc-state cc-state-thinking"><ellipse rx="100.5" ry="44.2" className="cc-state-ring" pathLength="360" strokeDasharray="21 9"/><ellipse rx="105" ry="46.2" className="cc-state-faint" pathLength="360" strokeDasharray="5 25"/></g>
+        <g className="cc-state cc-state-speaking"><ellipse rx="103.5" ry="45.5" className="cc-state-ticks" pathLength="360" strokeDasharray="0.5 3.5"/><ellipse rx="109" ry="48" className="cc-state-ring"/><ellipse rx="115" ry="50.6" className="cc-state-faint"/></g>
       </g></svg></span>}
       {persona.avatar !== 'zigi' && star}
       {persona.avatar === 'zigi' ? <PersonaMark avatar="zigi" size={170} state={orb}/> : <NovaOrb state={orb} size={220}/>}
