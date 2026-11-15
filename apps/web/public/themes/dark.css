@@ -16805,6 +16805,11 @@
             --ring: clamp(80px, min(100cqh - 70px - var(--note), 100cqi - 170px), 190px)
         }
     }
+    @container holo-next (max-width: 439.98px) {
+        :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li small:not(#\-) {
+            color: #c3cfe6
+        }
+    }
 }
 /*  components/nova/holo/holo.css  */
 @scope (:root[data-theme=dark]) {
