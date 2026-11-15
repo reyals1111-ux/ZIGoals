@@ -1,7 +1,7 @@
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {WIDGETS, gallery, isWidgetId, widgetAvailable} from './catalog';
+import {WIDGETS, gallery, isWidgetId, widgetAvailable, widgetSpec} from './catalog';
 import {durationWords, glanceLines, paceWords, shareOf, waterAmount, whenWords, wholePercent, type GlanceFacts} from './words';
 import {DEFAULT_WIDGETS} from '../store';
 
@@ -9,7 +9,24 @@ describe('the widget gallery', () => {
   it('names every widget the brief asks for, each with its page and a way to open it', () => {
     expect(WIDGETS.map(w => w.id)).toEqual(['orbit', 'next', 'tasks', 'glance', 'water', 'focus', 'now-playing', 'money', 'goal-pace', 'sleep', 'briefs', 'notes', 'markets',
       // Session AL Part 11 (lane L8), a deliberate extension: the holographic HUD's five instruments.
-      'health-hud', 'habits-hud', 'goals-hud', 'wealth-hud', 'agenda-clock']);
+      'health-hud', 'habits-hud', 'goals-hud', 'wealth-hud', 'agenda-clock',
+      // Session AM (ADR-038 D1–D5), a deliberate extension: the widgets NOVA makes on request.
+      'weight', 'steps', 'workouts', 'habit-week', 'goal-focus', 'net-worth', 'spending', 'budgets', 'bills', 'journal', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests']);
+    // Session AM (D5): every widget that shows the person's records names the switch a made widget reads under.
+    // Session AM (AM-S2, deliberate): two gates more (was: today|goals|habits|health|wealth). Notes and the Journal read under
+    // their own NOVA permissions, so the whole map is pinned here, gate by gate: nothing but the Notes inbox reads under
+    // 'notes', nothing but the Journal under 'journal', and neither is under 'today' any more.
+    for (const w of WIDGETS) if (!['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests'].includes(w.id)) expect(w.gate, w.id).toMatch(/^(today|goals|habits|health|wealth|notes|journal)$/);
+    expect([widgetSpec('notes')?.gate, widgetSpec('journal')?.gate]).toEqual(['notes', 'journal']); // AM-S2: their own permissions, never Today's
+    const under = (gate: string | undefined) => WIDGETS.filter(w => w.gate === gate).map(w => w.id);
+    expect(under('notes')).toEqual(['notes']);
+    expect(under('journal')).toEqual(['journal']);
+    expect(under('today')).toEqual(['orbit', 'next', 'tasks', 'glance', 'focus', 'briefs', 'agenda-clock']);
+    expect(under('goals')).toEqual(['goal-pace', 'goals-hud', 'goal-focus']);
+    expect(under('habits')).toEqual(['habits-hud', 'habit-week']);
+    expect(under('health')).toEqual(['water', 'sleep', 'health-hud', 'weight', 'steps', 'workouts']);
+    expect(under('wealth')).toEqual(['money', 'markets', 'wealth-hud', 'net-worth', 'spending', 'budgets', 'bills']);
+    expect(under(undefined)).toEqual(['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests']);
     for (const w of WIDGETS) { expect(w.href.startsWith('/app/')).toBe(true); expect(w.open.length).toBeGreaterThan(3); expect(w.about.endsWith('.')).toBe(true); }
     for (const w of DEFAULT_WIDGETS) expect(isWidgetId(w.id)).toBe(true);
   });

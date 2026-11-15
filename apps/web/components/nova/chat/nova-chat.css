@@ -1,48 +1,55 @@
-/* NOVA's chat (Session AK, owner follow-up 2 N1/N2): a large glass panel over NOVA's dashboard on computers and tablets,
-   a bottom sheet on phones. The app's own tokens only (Nebula, Light, Dark and Customize map them), every target 44 px,
-   motion only where the device and the app's Motion setting allow it. The slot NOVA's page gives places the box. */
-.nova-chat{--nova-glass:color-mix(in srgb,var(--panel,#0f1530) 82%,transparent);--nova-edge:color-mix(in srgb,var(--violet,#826cff) 34%,var(--line,#25324a));position:relative;box-sizing:border-box;display:flex;flex-direction:column;min-width:0;max-width:100%;color:var(--text,#f3f6ff);background:linear-gradient(165deg,var(--nova-glass),color-mix(in srgb,var(--bg,#050a18) 88%,transparent));border:1px solid var(--nova-edge);border-radius:26px;box-shadow:0 40px 120px -40px #000000cc,inset 0 1px 0 #ffffff0f;-webkit-backdrop-filter:blur(22px) saturate(140%);backdrop-filter:blur(22px) saturate(140%);overflow:clip}
-.nova-chat::before{content:"";position:absolute;inset:-30% -20% auto auto;width:60%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,color-mix(in srgb,var(--violet,#826cff) 22%,transparent),transparent 72%)}
+/* NOVA's chat (Session AK, owner follow-up 2 N1/N2): a panel over NOVA's dashboard on computers and tablets (a console
+   docked on the right from 1100 px), a bottom sheet on phones. Every target 44 px, motion only where the device and the
+   app's Motion setting allow it. The slot NOVA's page gives places the box.
+   Session AM-2 (ADR-038 "AM-2"): the same language as the stage, lighter. The conversation has no frame of its own (its
+   slot draws the console: nova.css `.nova-talk`; on a phone the sheet does) and no backdrop-filter; a message is a card
+   with a neon edge by speaker (you: NOVA's second colour; NOVA: its first; ZIGi: teal; your Hermes Agent: its third);
+   the composer is a small command instrument; every button is a key (the key recipe of nova.css). */
+.nova-chat{--nova-glass:#0a1030;--nova-edge:color-mix(in srgb,var(--nova-b,#63e7ff) 42%,#ffffff1a);position:relative;box-sizing:border-box;display:flex;flex-direction:column;min-width:0;max-width:100%;color:var(--text,#f3f6ff);background:none;border:0;border-radius:0;overflow:clip}
+.nova-chat::before{content:"";position:absolute;inset:-30% -20% auto auto;width:60%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,color-mix(in srgb,var(--nova-c,#f06dff) 14%,transparent),transparent 72%)}
 .nova-chat>*{position:relative}
 .nova-chat-panel{width:min(1040px,100%);height:min(880px,calc(100dvh - 96px));margin-inline:auto}
-.nova-chat-sheet{width:100%;height:min(88dvh,100%);border-radius:24px 24px 0 0;border-bottom:0;padding-bottom:var(--safe-bottom,env(safe-area-inset-bottom,0px))}
-.nova-chat-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:18px 20px 14px;border-bottom:1px solid var(--line,#25324a)}
+.nova-chat-sheet{width:100%;height:min(88dvh,100%);padding-bottom:var(--safe-bottom,env(safe-area-inset-bottom,0px))}
+.nova-chat-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:18px 20px 14px;border:solid;border-width:0 0 1px;border-image:linear-gradient(90deg,var(--nova-b,#63e7ff) 0,var(--nova-b,#63e7ff) 64px,color-mix(in srgb,var(--nova-a,#9273ff) 46%,transparent) 64px,color-mix(in srgb,var(--nova-c,#f06dff) 30%,transparent) 100%) 1}
 .nova-chat-sheet .nova-chat-head{padding:12px 14px 10px}
 .nova-chat-identity{flex:1 1 180px;min-width:0}
-.nova-chat-eyebrow{margin:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
-.nova-chat-title{margin:2px 0 0;font-size:24px;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
+.nova-chat-eyebrow{margin:0;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
+.nova-chat-title{margin:2px 0 0;font-size:24px;line-height:1.15;font-weight:700;letter-spacing:.18em;overflow-wrap:anywhere;text-shadow:0 0 16px color-mix(in srgb,var(--nova-b,#63e7ff) 70%,transparent)}
 .nova-chat-sheet .nova-chat-title{font-size:20px}
 .nova-chat-status{margin:4px 0 0;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted,#a4b2cd);overflow-wrap:anywhere}
 .nova-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--muted,#a4b2cd)}
-.nova-dot[data-on]{background:var(--cyan,#63e7ff);box-shadow:0 0 10px color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)}
+.nova-dot[data-on]{background:var(--cyan,#63e7ff);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 22%,transparent),0 0 10px color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)}
 .nova-chat-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.nova-chat-tool{min-height:44px;padding:0 14px;border-radius:12px;font-size:14px}
-.nova-close{display:inline-grid;place-items:center;min-width:44px;min-height:44px;border-radius:12px;border:1px solid var(--line,#25324a);background:transparent;color:inherit;cursor:pointer}
-.nova-close:focus-visible,.nova-chat-tool:focus-visible{outline:2px solid var(--cyan,#63e7ff);outline-offset:2px}
+.nova-chat-tool{min-height:44px;padding:0 14px;border-radius:4px;font-size:14px}
+.nova-close{display:inline-grid;place-items:center;min-width:44px;min-height:44px;border:0;border-radius:4px;background:transparent;color:inherit;cursor:pointer;--k-rim:color-mix(in srgb,var(--nova-c,#f06dff) 50%,transparent)}
+.nova-close:focus-visible,.nova-chat-tool:focus-visible{outline:3px solid var(--cyan,#63e7ff);outline-offset:2px}
 .nova-chat-log{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
 .nova-chat-sheet .nova-chat-log{padding:12px 14px}
 .nova-welcome{padding:6px 0 4px}
 .nova-welcome-title{margin:6px 0 4px;font-size:clamp(26px,4vw,38px);line-height:1.1;font-weight:700;background:var(--nebula,linear-gradient(110deg,#63e7ff,#826cff,#c664ff));-webkit-background-clip:text;background-clip:text;color:transparent}
 @media (forced-colors:active){.nova-welcome-title{color:CanvasText;background:none}}
 .nova-welcome-sub{margin:0 0 10px;color:var(--muted,#a4b2cd);max-width:62ch}
-.nova-invite{padding:14px 16px;border-radius:16px;border:1px solid var(--nova-edge);background:color-mix(in srgb,var(--violet,#826cff) 8%,transparent)}
+.nova-invite{padding:14px 16px;--kc:8px;--k-rim:color-mix(in srgb,var(--nova-a,#9273ff) 80%,transparent);--k-rim-2:color-mix(in srgb,var(--nova-b,#63e7ff) 36%,transparent);--k-plate:color-mix(in srgb,var(--nova-a,#9273ff) 16%,#0a1030);--k-plate-2:#060a1c}
 .nova-invite p{margin:0 0 8px}
 .nova-invite a{display:inline-flex;align-items:center;min-height:44px}
-.nova-turn{display:flex;gap:12px;align-items:flex-start;max-width:100%}
+.nova-turn{display:flex;gap:10px;align-items:flex-start;max-width:100%}
 .nova-turn-figure{flex:none;padding-top:2px}
-.nova-turn-body{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
-.nova-turn-who{margin:0 0 4px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
+.nova-turn-body{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;padding:10px 12px 4px 14px;--turn:var(--nova-a,#9273ff);--kc:7px;--kw:1.25px;--k-rim:color-mix(in srgb,var(--turn) 92%,#fff);--k-rim-2:color-mix(in srgb,var(--turn) 20%,transparent);--k-plate:color-mix(in srgb,var(--turn) 13%,#0a1030);--k-plate-2:#060a1c}
+/* Who speaks: an instrument label in the speaker's colour — a lit diamond, tracked capitals, a hairline that runs out. */
+.nova-turn-who{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb,var(--turn,#9273ff) 42%,#fff)}
+.nova-turn-who::before{content:"";flex:none;width:6px;height:6px;margin:0 2px 0 1px;transform:rotate(45deg);background:var(--turn,#9273ff);box-shadow:0 0 0 2px color-mix(in srgb,var(--turn,#9273ff) 26%,transparent),0 0 8px var(--turn,#9273ff)}
+.nova-turn-who::after{content:"";flex:1 1 auto;min-width:8px;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--turn,#9273ff) 70%,transparent),transparent)}
 .nova-turn-user{justify-content:flex-end}
-.nova-turn-user .nova-turn-body{flex:0 1 auto;max-width:min(78%,640px);padding:12px 16px;border-radius:18px;border:1px solid var(--line,#25324a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent)}
+.nova-turn-user .nova-turn-body{flex:0 1 auto;max-width:min(82%,640px);padding:10px 16px;--turn:var(--nova-b,#63e7ff);--kw:1.5px;--k-rim:color-mix(in srgb,var(--turn) 46%,transparent);--k-rim-2:var(--turn);--k-plate:color-mix(in srgb,var(--turn) 14%,#0a1030);--k-plate-2:color-mix(in srgb,var(--turn) 30%,#0a1030);--k-glow:0 0 16px -8px var(--turn)}
 .nova-turn-user .nova-turn-body p{margin:0}
-.nova-turn-zigi .nova-turn-body{padding-left:12px;border-left:2px solid color-mix(in srgb,var(--cyan,#63e7ff) 50%,transparent)}
+.nova-turn-zigi .nova-turn-body{--turn:var(--accent-teal,#86f0d6)}
 .nova-turn-edit{display:flex;justify-content:flex-end;margin:-8px 0 0}
-.nova-turn-body pre{max-width:100%;overflow:auto;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--bg,#050a18) 80%,transparent);border:1px solid var(--line,#25324a)}
-.nova-voice{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border-radius:14px;font-size:14px;color:var(--muted,#a4b2cd);background:color-mix(in srgb,var(--violet,#826cff) 7%,transparent)}
+.nova-turn-body pre{max-width:100%;overflow:auto;padding:12px;border-radius:3px;background:#040716;border:1px solid var(--line,#25324a)}
+.nova-voice{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border-left:2px solid color-mix(in srgb,var(--nova-a,#9273ff) 70%,transparent);font-size:14px;color:var(--muted,#a4b2cd);background:color-mix(in srgb,var(--nova-a,#9273ff) 8%,transparent)}
 .nova-voice p{margin:0}
 .nova-voice strong{color:var(--text,#f3f6ff)}
-.nova-looked{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;font-size:13px;color:var(--muted,#a4b2cd)}
-.nova-chat-steps{margin:0;padding:10px 14px 10px 34px;border-radius:14px;border:1px dashed var(--nova-edge);font-size:14px;color:var(--muted,#a4b2cd)}
+.nova-looked{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;font-size:14px;color:var(--muted,#a4b2cd)}
+.nova-chat-steps{margin:0;padding:10px 14px 10px 34px;border-radius:3px;border:1px dashed var(--nova-edge);font-size:14px;color:var(--muted,#a4b2cd)}
 .nova-chat-steps li{margin:2px 0}
 .nova-chat-steps li[data-done]{color:var(--text,#f3f6ff)}
 .nova-chat-steps li[data-done]::marker{color:var(--cyan,#63e7ff)}
@@ -50,20 +57,20 @@
 .nova-paused{margin:0 20px}
 .nova-composer-wrap{padding:10px 20px 4px;display:flex;flex-direction:column;gap:6px}
 .nova-chat-sheet .nova-composer-wrap{padding:8px 12px 4px}
-.nova-composer{display:flex;align-items:flex-end;gap:8px;padding:8px 8px 8px 16px;border-radius:20px;border:1px solid var(--nova-edge);background:color-mix(in srgb,var(--panel,#0f1530) 60%,transparent)}
-.nova-composer:focus-within{border-color:color-mix(in srgb,var(--cyan,#63e7ff) 60%,var(--line,#25324a));box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 18%,transparent)}
+.nova-composer{display:flex;align-items:flex-end;gap:8px;padding:6px 6px 6px 16px;border:1px solid transparent;--kc:9px;--kw:1.5px;--k-rim:color-mix(in srgb,var(--nova-b,#63e7ff) 80%,transparent);--k-rim-2:color-mix(in srgb,var(--nova-c,#f06dff) 70%,transparent);--k-plate:#0a1030;--k-plate-2:#04071a;--k-glow:0 0 22px -8px var(--nova-a,#9273ff)}
+.nova-composer:focus-within{--kw:2.5px;--k-rim:var(--nova-b,#63e7ff);--k-rim-2:var(--nova-b,#63e7ff);--k-glow:0 0 22px -4px var(--nova-b,#63e7ff)}
 .nova-composer textarea{flex:1 1 auto;min-width:0;min-height:52px;padding:12px 0;border:0;background:transparent;color:inherit;font:inherit;font-size:16px;line-height:24px;resize:none}
 .nova-composer textarea:focus{outline:none}
 .nova-composer-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px}
-.nova-chat-send,.nova-stop,.nova-mic{min-width:44px;min-height:44px;border-radius:14px}
+.nova-chat-send,.nova-stop,.nova-mic{min-width:44px;min-height:44px;border-radius:4px}
 .nova-chat-send{padding:0 18px}
 .nova-mic{display:inline-grid;place-items:center;padding:0;position:relative}
 .nova-mic-on{color:var(--cyan,#63e7ff);border-color:currentColor}
 .nova-mic-off{opacity:.8}
 .nova-live-words{max-width:40ch;font-size:14px;color:var(--muted,#a4b2cd);overflow-wrap:anywhere}
-.nova-speech-note{padding:10px 14px;border-radius:14px;border:1px solid var(--nova-edge);font-size:14px}
+.nova-speech-note{padding:10px 14px;border-radius:3px;border:1px solid var(--nova-edge);font-size:14px}
 .nova-speech-note p{margin:0 0 6px}
-.nova-composer-hint{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;font-size:12px;color:var(--muted,#a4b2cd)}
+.nova-composer-hint{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;font-size:14px;color:var(--muted,#a4b2cd)}
 .nova-zigi-row{display:flex;flex-direction:column;gap:6px}
 .nova-zigi-toggle{align-self:flex-start;min-height:44px}
 .nova-zigi-tools:not([hidden]){display:flex;flex-wrap:wrap;align-items:center;gap:8px}
@@ -71,26 +78,26 @@
 .nova-zigi-tools .ai-note{flex-basis:100%;margin:0}
 .nova-zigi-page{display:inline-flex;align-items:center;gap:8px;font-size:14px}
 .nova-zigi-page select{min-height:44px;padding:0 10px;border-radius:10px;border:1px solid var(--line,#25324a);background:var(--panel,#0f1530);color:var(--text,#f3f6ff);font:inherit}
-.nova-chat-foot{margin:0;padding:2px 20px 14px;text-align:center;font-size:12px;color:var(--muted,#a4b2cd)}
+.nova-chat-foot{margin:0;padding:2px 20px 14px;text-align:center;font-size:14px;color:var(--muted,#a4b2cd)}
 .nova-list{flex:1 1 auto;min-height:0;overflow:auto;padding:16px 20px}
-.nova-list-tools input{box-sizing:border-box;width:100%;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line,#25324a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent);color:inherit;font:inherit}
-.nova-list-heading{margin:14px 0 6px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
-.nova-list-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.nova-list-items li{display:flex;align-items:center;gap:6px;min-width:0;border-radius:14px;border:1px solid transparent}
-.nova-list-items li.nova-list-current{border-color:var(--nova-edge,#3b3f7a)}
-.nova-list-open{flex:1 1 auto;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 12px;border:0;border-radius:12px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nova-list-tools input{box-sizing:border-box;width:100%;min-height:44px;padding:0 14px;border-radius:4px;border:1px solid var(--nova-edge);background:#060a1e;color:inherit;font:inherit}
+.nova-list-heading{margin:14px 0 6px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
+.nova-list-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.nova-list-items li{display:flex;align-items:center;gap:6px;min-width:0;border:solid transparent;border-width:1px 0 1px 2px}
+.nova-list-items li.nova-list-current{border-left-color:var(--nova-b,#63e7ff);background:linear-gradient(90deg,color-mix(in srgb,var(--nova-b,#63e7ff) 14%,transparent),transparent 80%)}
+.nova-list-open{flex:1 1 auto;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 12px;border:0;border-radius:3px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .nova-list-open:hover,.nova-list-open:focus-visible{background:color-mix(in srgb,var(--violet,#826cff) 10%,transparent)}
 .nova-list-open strong,.nova-list-open small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nova-list-open small{color:var(--muted,#a4b2cd);font-size:13px}
+.nova-list-open small{color:var(--muted,#a4b2cd);font-size:14px}
 .nova-list-actions{flex:none;display:flex}
 /* The Duo: NOVA and ZIGi side by side on the dashboard while a task uses both. */
-.nova-duo{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;max-width:100%;padding:12px 16px;border-radius:20px;border:1px solid color-mix(in srgb,var(--violet,#826cff) 34%,var(--line,#25324a));background:color-mix(in srgb,var(--panel,#0f1530) 80%,transparent);color:var(--text,#f3f6ff);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.nova-duo{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;max-width:100%;padding:12px 16px;border-radius:4px;border:1px solid color-mix(in srgb,var(--nova-a,#9273ff) 50%,var(--line,#25324a));background:#080d26;color:var(--text,#f3f6ff)}
 .nova-duo-side{display:flex;align-items:center;gap:10px;min-width:0}
 .nova-duo-side:last-of-type{justify-content:flex-end;flex-direction:row-reverse;text-align:right}
 .nova-duo-side p{margin:0;display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
-.nova-duo-side span{font-size:13px;color:var(--muted,#a4b2cd)}
-.nova-duo-steps{display:flex;gap:6px;margin:0;padding:0;list-style:none;font-size:12px;color:var(--muted,#a4b2cd)}
-.nova-duo-steps li{padding:4px 8px;border-radius:999px;border:1px solid var(--line,#25324a);white-space:nowrap}
+.nova-duo-side span{font-size:14px;color:var(--muted,#a4b2cd)}
+.nova-duo-steps{display:flex;gap:6px;margin:0;padding:0;list-style:none;font-size:14px;color:var(--muted,#a4b2cd)}
+.nova-duo-steps li{padding:4px 8px;border-radius:3px;border:1px solid var(--line,#25324a);white-space:nowrap}
 .nova-duo-steps li[data-done]{color:var(--text,#f3f6ff);border-color:color-mix(in srgb,var(--cyan,#63e7ff) 50%,transparent)}
 /* Session AK WA (N1): where NOVA's dashboard places the Duo: above the conversation on a computer, in the phone's sheet. */
 .nova-duo-slot{display:flex;justify-content:center;padding:4px 20px 0}
@@ -115,9 +122,9 @@
 @keyframes nova-mark-breathe{0%,100%{opacity:.8;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
 @media (max-width:480px){.nova-chat-tool{padding:0 10px}.nova-turn-user .nova-turn-body{max-width:88%}.nova-composer{padding-left:12px}}
 /* Owner follow-up 3 N12: beside the orb on wide screens; folded into the command field (kept mounted, hidden). */
-.nova-chat-side{width:min(560px,100%);height:100%;min-height:min(640px,100%);border-radius:24px}
+.nova-chat-side{width:min(560px,100%);height:100%;min-height:min(640px,100%)}
 .nova-chat[hidden]{display:none}
-.nova-turn-hermes .nova-turn-body{padding-left:12px;border-left:2px solid color-mix(in srgb,var(--pink,#c664ff) 50%,transparent)}
+.nova-turn-hermes .nova-turn-body{--turn:var(--nova-c,#f06dff)}
 .nova-agent{display:inline-grid;place-items:center;flex:none;color:var(--muted,#a4b2cd)}
 .nova-agent svg{display:block}
 
@@ -128,7 +135,8 @@
 /* Session AK lane EXF (EX-19): the reply's icon buttons (Edit, Copy, Read aloud, Retry, More) and the question chips at 44 px.
    Their sizes lived only in ZIGi's panel CSS (components/ai/panel-z.css), which NOVA does not load, so on NOVA they fell
    back to 36 × 33 px and the chips to 40 px. The same values here, scoped to NOVA's chat; the app's own tokens. */
-.nova-chat .ai-chip{min-height:44px}
+.nova-chat .ai-chip:not(#\-):not(#\-){min-height:44px;padding:8px 14px;border:0;border-radius:4px;background:none;color:var(--text,#eef1ff);--kc:6px;--k-rim:color-mix(in srgb,var(--nova-a,#9273ff) 85%,#fff);--k-rim-2:color-mix(in srgb,var(--nova-b,#63e7ff) 40%,transparent);--k-plate:color-mix(in srgb,var(--nova-a,#9273ff) 18%,#0a1030);--k-plate-2:#060a1c}
+.nova-chat .ai-chip:is(:hover,:focus-visible):not(#\-):not(#\-){--k-rim:var(--nova-b,#63e7ff);--k-rim-2:var(--nova-b,#63e7ff);--k-plate:color-mix(in srgb,var(--nova-b,#63e7ff) 26%,#0a1030);--k-glow:0 0 14px -3px var(--nova-b,#63e7ff)}
 .nova-chat .ai-reply-icons{display:inline-flex;flex-wrap:wrap;align-items:center;gap:2px}
 .nova-chat .ai-reply-icon{position:relative;flex:none;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;margin:0;border:0;border-radius:12px;background:transparent;display:inline-grid;place-items:center;cursor:pointer;color:var(--muted,#a1afc8)}
 .nova-chat .ai-reply-icon:hover{color:var(--text,#eef1ff);background:color-mix(in srgb,var(--violet,#8b7cff) 16%,transparent)}
@@ -156,16 +164,116 @@
 .nova-chat .nova-composer textarea:not(#\-):not(#\-){flex:1 1 auto;min-width:0;min-height:44px;margin:0;padding:10px 0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;color:inherit;font:inherit;font-size:16px;line-height:24px}
 .nova-chat .nova-composer{align-items:center}
 .nova-chat .nova-composer-actions{flex:none;flex-wrap:nowrap}
-.nova-chat .nova-chat-send{display:inline-grid;place-items:center;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:50%;background:linear-gradient(120deg,var(--nova-b,#63e7ff),var(--nova-a,#9273ff));color:#0a0f24}
-.nova-chat .nova-chat-send:disabled{opacity:.55}
-.nova-chat .nova-mic{border-radius:50%}
-.nova-chat .nova-composer-hint{font-size:13px}
+.nova-chat .nova-chat-send:not(#\-):not(#\-){display:inline-grid;place-items:center;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:4px;background:none;box-shadow:none;color:#04102a;--kc:7px;--kw:1.5px;--k-rim:#fff;--k-rim-2:color-mix(in srgb,var(--nova-b,#63e7ff) 60%,#fff);--k-plate:var(--nova-b,#63e7ff);--k-plate-2:var(--nova-a,#9273ff);--k-glow:0 0 14px -2px var(--nova-b,#63e7ff)}
+.nova-chat .nova-chat-send:disabled:not(#\-):not(#\-){opacity:.72;--k-glow:none}
+.nova-chat .nova-mic{border-radius:4px}
+.nova-chat .nova-composer-hint{font-size:14px}
 .nova-chat-tool{display:inline-flex;align-items:center;gap:8px}
 .nova-chat-more{position:relative;display:inline-flex}
-.nova-chat-more-list{position:absolute;top:calc(100% + 6px);right:0;z-index:9;display:grid;gap:6px;min-width:220px;padding:8px;border-radius:16px;border:1px solid var(--nova-edge);background:#0d1330;box-shadow:0 22px 50px -18px rgba(0,0,0,.9)}
+.nova-chat-more-list{position:absolute;top:calc(100% + 6px);right:0;z-index:9;display:grid;gap:6px;min-width:220px;padding:8px;border-radius:4px;border:1px solid var(--nova-edge);border-top:2px solid var(--nova-c,#f06dff);background:#070c24;box-shadow:0 22px 50px -18px rgba(0,0,0,.9)}
 .nova-chat-more-list[hidden]{display:none}
 .nova-chat-more-list .nova-chat-tool{justify-content:flex-start;width:100%}
 .nova-chat .nova-see{margin:0 20px}
 .nova-chat .nova-see>summary{display:flex;align-items:center;min-height:44px}
 .nova-chat-sheet .nova-see{margin:0 12px}
-.nova-chat .nova-composer:focus-within{border-color:var(--nova-focus,#63e7ff);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 45%,transparent)}
+
+/* ==== Session AM design review (AM-D17, AM-D26): the docked conversation and the phone's one head ==== */
+/* A computer of 1100 px or more: the conversation is a 420 px column beside the stage (nova.css docks its slot). Its head
+   is one compact block: the figure, NOVA's name and state, then the tools on one row (Conversations as its icon; its name
+   stays for assistive technology and as its tooltip). */
+@media (min-width: 1100px) {
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat { width: 100%; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-head { padding: 14px 14px 10px; gap: 8px 10px; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-eyebrow { display: none; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-title { font-size: 20px; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-tools { flex: 1 1 100%; flex-wrap: nowrap; justify-content: flex-end; gap: 6px; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-tool { padding: 0 12px; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-tools > .nova-chat-tool[aria-pressed] { font-size: 0; gap: 0; min-width: 44px; justify-content: center; padding: 0; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-log { padding: 14px 14px 34px; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-welcome-title { font-size: 26px; }
+  .nova-frame[data-chat]:not([data-phone]) .nova-talk .nova-chat-foot { padding: 2px 14px 10px; }
+}
+/* A phone: the sheet's own head already says "NOVA" and holds Close, so the conversation's head is one slim row under it —
+   NOVA's figure and state, then New chat, Conversations (its icon) and More. The name stays the section's heading for
+   assistive technology. */
+.nova-chat-sheet .nova-chat-head { flex-wrap: nowrap; gap: 8px; padding: 6px 12px 8px; }
+.nova-chat-sheet .nova-chat-eyebrow { display: none; }
+.nova-chat-sheet .nova-chat-title { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.nova-chat-sheet .nova-chat-identity { flex: 1 1 0; }
+.nova-chat-sheet .nova-chat-status { margin: 0; overflow: hidden; }
+.nova-chat-sheet .nova-chat-tools { flex: none; flex-wrap: nowrap; gap: 6px; }
+.nova-chat-sheet .nova-chat-tool { padding: 0 10px; }
+.nova-chat-sheet .nova-chat-tools > .nova-chat-tool[aria-pressed] { font-size: 0; gap: 0; min-width: 44px; justify-content: center; padding: 0; }
+/* Keyboard hints ("Enter to send", "↑ edits your last message") are for a keyboard: a touch device does not show them. */
+@media (pointer: coarse) { .nova-composer-hint { display: none; } }
+/* Session AM (theme parity): NOVA is a night sky in every theme. In Light the islands rule restores the page's own night
+   tokens on NOVA's frame, and its line colour is not NOVA's; the conversation, now always mounted, reads NOVA's line. */
+.nova-frame .nova-chat{--line:#2a3a5c}
+/* ==== Session AM-2: every button in the conversation is a key ==== */
+/* The app's own button classes (`secondary`, `primary`) are redrawn inside NOVA's chat only: no background or border of
+   their own, the key recipe's plate and rim behind their words (nova.css lists them), light words in every theme. */
+.nova-chat :is(.secondary,.primary):not(#\-):not(#\-){border:0;border-radius:4px;background:none;box-shadow:none;color:var(--text,#f3f6ff);text-shadow:none}
+.nova-chat .secondary:is(:hover,:focus-visible):not(:disabled):not(#\-):not(#\-){--k-rim:var(--nova-b,#63e7ff);--k-rim-2:var(--nova-a,#9273ff);--k-plate:color-mix(in srgb,var(--nova-b,#63e7ff) 22%,#0c1335);--k-glow:0 0 14px -3px var(--nova-b,#63e7ff)}
+.nova-chat .secondary[aria-pressed=true]:not(#\-):not(#\-){--k-rim:var(--nova-b,#63e7ff);--k-plate:color-mix(in srgb,var(--nova-a,#9273ff) 38%,#0c1335)}
+.nova-chat .primary:not(.nova-chat-send):not(#\-):not(#\-){color:#fff;--k-rim:#fff;--k-rim-2:var(--nova-b,#63e7ff);--k-plate:color-mix(in srgb,var(--nova-b,#63e7ff) 34%,#0a1232);--k-plate-2:color-mix(in srgb,var(--nova-a,#9273ff) 56%,#0a1232);--k-glow:0 0 14px -2px color-mix(in srgb,var(--nova-b,#63e7ff) 70%,transparent)}
+.nova-chat :is(.secondary,.primary):disabled:not(#\-):not(#\-){opacity:.55}
+.nova-chat .nova-mic-on:not(#\-):not(#\-){color:#fff;--k-rim:var(--nova-b,#63e7ff);--k-plate:color-mix(in srgb,var(--nova-b,#63e7ff) 34%,#0a1232);--k-glow:0 0 14px -2px var(--nova-b,#63e7ff)}
+.nova-chat .nova-chat-send:is(:hover,:focus-visible):not(:disabled):not(#\-):not(#\-){--k-plate:color-mix(in srgb,var(--nova-b,#63e7ff) 70%,#fff);--k-glow:0 0 18px 0 var(--nova-b,#63e7ff)}
+/* A phone's conversation: lighter — thinner rims, no bloom behind the composer. */
+@media (forced-colors:active){.nova-turn-body,.nova-composer,.nova-invite{border:1px solid CanvasText}}
+
+/* ==== Session AM-2, second pass: the conversation is a console ==== */
+/* On a computer it stands in the right bar's place and must read as part of the command centre: its slot (nova.css
+   `.nova-talk`) is the slab — grid and scanline glass, a rim brightest on the edge that faces the stage — and this sheet
+   gives it the inner hairline with corner marks, a head strip with a tick ruler, hairlines between its parts, and under
+   each answer an instrument strip that says who answered. Static; nothing here moves. */
+.nova-chat>.sh-inner{position:absolute;inset:1px;--c1:15px;--c2:3px;--c3:15px;--c4:3px}
+.nova-chat-sheet>.sh-inner{display:none}
+.nova-chat-panel .nova-chat-head{background:linear-gradient(180deg,color-mix(in srgb,var(--nova-c,#f06dff) 16%,transparent),transparent)}
+.nova-chat-head::after{content:"";position:absolute;right:18px;bottom:4px;width:96px;height:6px;pointer-events:none;opacity:.8;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--nova-c,#f06dff) 80%,#fff) 0 1px,transparent 1px 6px)}
+.nova-chat-panel .nova-composer-wrap{padding-top:12px;border-top:1px solid color-mix(in srgb,var(--nova-c,#f06dff) 30%,#ffffff14);background:linear-gradient(180deg,#04071ab3,transparent 85%)}
+.nova-chat-panel .nova-chat-foot{margin-top:6px;padding-top:8px;border-top:1px solid #ffffff12}
+/* Under an answer: who answered, as an instrument strip (a live node, a hairline above). */
+.nova-chat .ai-turn-source{display:flex;align-items:center;gap:9px;min-width:0;margin:10px 0 0;padding:8px 0 0;border-top:1px solid color-mix(in srgb,var(--turn,#9273ff) 38%,transparent);font-size:14px;line-height:1.3;letter-spacing:.03em;color:color-mix(in srgb,var(--accent-teal,#86f0d6) 62%,#fff)}
+.nova-chat .ai-turn-source::before{content:"";flex:none;width:7px;height:7px;margin-left:2px;border-radius:50%;background:var(--accent-teal,#86f0d6);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-teal,#86f0d6) 22%,transparent),0 0 8px var(--accent-teal,#86f0d6)}
+.nova-chat .ai-reply-row{display:flex;flex-wrap:wrap;align-items:center;gap:0 6px;margin-top:2px}
+.nova-chat .ai-reply-row .ai-reply-icons{margin-left:auto}
+.nova-chat .ai-turn-time{font:600 14px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted,#a4b2cd)}
+
+/* A phone (owner: "the chat agent gets the same visual language, lighter"): the sheet is the console. Its head is a strip
+   (NOVA's figure, its state in one line, the tools as keys); messages are glass cards with a neon edge by speaker — the
+   person's on the right in NOVA's second colour, NOVA's on the left beside its figure; the composer is the small command
+   instrument with a lit Send. Room between the parts; scanline glass; no blur, a light bloom only. */
+.nova-sheet[data-place=bottom]:has(.nova-chat-sheet){background:repeating-linear-gradient(0deg,#ffffff05 0 1px,transparent 1px 3px),linear-gradient(180deg,#0e1742 0,#070b22 170px,#050818 100%);box-shadow:0 -12px 36px -20px var(--nova-b,#63e7ff),0 40px 100px -30px #000}
+.nova-sheet-body:has(>.nova-chat-sheet){padding-inline:8px;padding-bottom:8px}
+.nova-sheet-body:has(>.nova-chat-sheet)>.nova-sheet-head{margin-inline:-8px;padding-inline:14px 8px;background:#0b1338}
+.nova-sheet-body:has(>.nova-chat-sheet)>.nova-sheet-head h2[id]{letter-spacing:.2em}
+.nova-chat-sheet .nova-chat-head{margin-top:2px;padding:6px 2px 9px 8px;gap:6px;background:linear-gradient(90deg,color-mix(in srgb,var(--nova-b,#63e7ff) 12%,transparent),transparent 70%)}
+.nova-chat-sheet .nova-chat-status{white-space:nowrap;text-overflow:ellipsis;color:color-mix(in srgb,var(--nova-b,#63e7ff) 30%,#fff)}
+.nova-chat-sheet .nova-chat-tool{padding:0 9px}
+.nova-chat-sheet .nova-chat-log{padding:16px 6px 12px;gap:18px}
+.nova-chat-sheet .nova-turn{gap:8px}
+.nova-chat-sheet .nova-turn-body{padding:12px 14px 6px}
+.nova-chat-sheet .nova-turn-user .nova-turn-body{max-width:86%;padding:11px 16px}
+.nova-chat-sheet .nova-composer-wrap{padding:10px 6px 4px;gap:8px}
+.nova-chat-sheet .nova-composer{min-height:58px;box-sizing:border-box;--k-glow:0 0 18px -8px var(--nova-b,#63e7ff)}
+.nova-chat-sheet .nova-chat-foot{padding:4px 12px 10px}
+
+/* ==== Session AM-2, third pass ==== */
+/* The conversation's last card clears the composer: the log ends in 34 px of room and fades out over its last 30 px, so a
+   card that runs on below reads as "more below", never as sliced (static mask; a computer's panel only). */
+.nova-chat-panel .nova-chat-log{padding-bottom:34px;scroll-padding-bottom:34px;-webkit-mask-image:linear-gradient(#000 calc(100% - 30px),transparent);mask-image:linear-gradient(#000 calc(100% - 30px),transparent)}
+/* "A chat you'd rather not keep?" is its own strip: the question with its link beside it, the rest of the sentence under
+   the question (the same words in the same order; the link keeps its 44 px). */
+.nova-chat .ai-unkept-offer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:0 12px;margin:12px 0;padding:4px 10px 8px 12px;border-left:2px solid color-mix(in srgb,var(--nova-a,#9273ff) 80%,transparent);background:color-mix(in srgb,var(--nova-a,#9273ff) 9%,transparent);font-size:14px;line-height:1.45;text-wrap:balance}
+.nova-chat .ai-unkept-offer>button{display:inline-flex;align-items:center;min-height:44px;white-space:nowrap}
+/* A phone: NOVA is present in its conversation. Its figure (the chat head's own, 34 px) stands 60 px tall in the sheet's
+   head strip beside the title, with a light bloom; the row under it keeps the state and the tools. Only when the
+   conversation follows the sheet's head directly (with the Duo between them the figure stays in its row). */
+.nova-sheet-head+.nova-chat-sheet{overflow:visible}
+.nova-sheet-head+.nova-chat-sheet::before{content:none}
+.nova-sheet-head+.nova-chat-sheet .nova-chat-head>:first-child:not(.nova-chat-identity){position:absolute;left:6px;top:-70px;z-index:3;width:60px!important;height:60px!important;border-radius:50%;box-shadow:0 0 20px -2px var(--nova-b,#63e7ff),0 0 44px -10px var(--nova-a,#9273ff)}
+.nova-sheet-head+.nova-chat-sheet .nova-chat-head>:first-child:not(.nova-chat-identity) :is(svg,img,canvas){width:100%;height:100%}
+.nova-sheet-body:has(>.nova-sheet-head+.nova-chat-sheet)>.nova-sheet-head .nova-eyebrow{margin-left:68px}
+.nova-sheet-body:has(>.nova-sheet-head+.nova-chat-sheet)>.nova-sheet-head h2[id]{margin-left:68px}
+

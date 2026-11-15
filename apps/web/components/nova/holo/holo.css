@@ -14,37 +14,81 @@
   background-image: linear-gradient(color-mix(in oklab, var(--nova-b, #63e7ff) 30%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--nova-a, #9273ff) 30%, transparent) 1px, transparent 1px);
   background-size: 64px 64px; -webkit-mask-image: linear-gradient(to top, #000 0%, #0008 45%, transparent 92%); mask-image: linear-gradient(to top, #000 0%, #0008 45%, transparent 92%); opacity: .4; }
 /* Review m4 (lane L8d): the far grid plane is perceptible — brighter, lower and shallower, under the command field. */
-.nova-frame[data-look=holo] .holo-plane { opacity: .6; height: 34%; bottom: 7%; }
+/* Session AM-2 (G1): the floor is a real plane now — a lit grid that runs from under the command bar to a horizon of
+   light at its far edge (the plane's own top edge, so the line is always where the grid ends). Static. */
+.nova-frame[data-look=holo] .holo-plane { opacity: .62; left: -70%; right: -70%; height: 150%; bottom: 0; background-size: 96px 96px; transform: perspective(900px) rotateX(62deg);
+  border-top: 5px solid color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff);
+  background-image: linear-gradient(color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent) 2px, transparent 2px), linear-gradient(90deg, color-mix(in oklab, var(--nova-a, #9273ff) 70%, transparent) 2px, transparent 2px);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000c 30%, #0007 100%); mask-image: linear-gradient(to top, #000 0%, #000c 30%, #0007 100%); }
 .holo-glow { position: absolute; inset: 0; background: radial-gradient(60% 40% at 50% 108%, color-mix(in oklab, var(--nova-c, #f06dff) 16%, transparent), transparent 70%), radial-gradient(40% 50% at -6% 50%, color-mix(in oklab, var(--nova-b, #63e7ff) 10%, transparent), transparent 70%), radial-gradient(40% 50% at 106% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 12%, transparent), transparent 70%); }
 
-/* ---- The panel ---- */
+/* ---- The panel (Session AM-2, ADR-038 "AM-2" F1: the hologram) ----
+ * A widget is a slab of dark glass lit from its own edge. Five static layers, back to front:
+ *   .holo-aura      the bloom behind the slab: three soft glows in the widget's neon and a shadow under it;
+ *   ::before        the glass: a tinted plate with a head band, a fine grid, scanlines and a reflection along its foot;
+ *   ::after         the rim: one bright line all the way round, white-hot at two corners;
+ *   .holo-brackets  an inner hairline with four bright corner marks (the "double frame");
+ *   .holo-ruler     a tick ruler down the left edge of medium and large widgets.
+ * B2: every glow here is static. Nothing in this block animates; the only moving layer is the sheen's transform and
+ * opacity (below). No backdrop-filter: the glass is its own colour, so a moving star behind it costs the widget nothing.
+ * On a computer the slab has four cut corners (two large, two small); a phone, a dragged panel and the arranging stage
+ * keep a rounded slab with the same glass and rim.
+ */
 .nova-widget[data-holo] {
-  border-radius: 12px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 58%, transparent);
-  /* Review m12 (lane L8d): the kit grows with the panel — S the tinted glass, rim and brackets; M adds the grid; L the
-     scanlines, the left ruler and the magenta outer glow too (below), so the hero reads as the hero. */
-  --holo-tint: linear-gradient(162deg, color-mix(in oklab, var(--neon, #9273ff) 14%, #0a1030e8) 0%, #060a1ce6 46%, #04061299 100%);
-  --holo-grid: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 7%, transparent) 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 7%, transparent) 1px, transparent 1px) 0 0 / 22px 22px;
-  --holo-glass: var(--holo-grid), var(--holo-tint);
+  border-radius: 14px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 78%, transparent);
+  --holo-tint: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 20%, transparent) 0, transparent 46px),
+    linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 13%, transparent) 0, transparent 34%),
+    linear-gradient(165deg, color-mix(in oklab, var(--neon, #9273ff) 17%, #0a1030) 0%, #070b24 44%, #04071a 100%);
+  --holo-grid: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 9%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 9%, transparent) 1px, transparent 1px) 0 0 / 24px 24px;
+  --holo-scan: repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 3px);
+  --holo-glass: var(--holo-scan), var(--holo-grid), var(--holo-tint);
+  --holo-bloom: 0 0 14px 1px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 46px 4px color-mix(in oklab, var(--neon, #9273ff) 26%, transparent), 0 0 120px 18px color-mix(in oklab, var(--neon, #9273ff) 10%, transparent), 0 34px 60px -22px #000e;
   background: var(--holo-glass);
-  box-shadow: inset 0 0 0 1px #ffffff0a, inset 0 1px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 26px 50px -30px #000;
-  -webkit-backdrop-filter: blur(16px) saturate(1.5) brightness(.9); backdrop-filter: blur(16px) saturate(1.5) brightness(.9);
+  box-shadow: inset 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 50%, transparent), var(--holo-bloom);
+  /* B2: no backdrop-filter on the widget plane (the base card's blur is switched off here; tests/nova-stage-am2.spec.ts reads it). */
+  -webkit-backdrop-filter: none; backdrop-filter: none;
 }
 .nova-widget[data-holo] .nova-widget-planet { display: none; }
-.nova-widget[data-holo][data-size=S] { --holo-glass: var(--holo-tint); }
-.nova-widget[data-holo][data-size=L] { --holo-glass: repeating-linear-gradient(0deg, #ffffff05 0 1px, transparent 1px 3px), var(--holo-grid), var(--holo-tint); }
-/* Second pass: a thin bright rim (white at the top-left corner fading into the pillar neon, as glass catches light) and,
-   on a large panel, the reference's soft magenta outer glow. Static decoration. */
-.nova-widget[data-holo]::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
-  background: linear-gradient(162deg, #ffffffd0 0%, var(--neon, #9273ff) 16%, transparent 42%, transparent 72%, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 100%);
+.nova-widget[data-holo][data-size=S] { --holo-glass: var(--holo-scan), var(--holo-tint); }
+/* The rounded slab's rim (a phone, a dragged panel, the arranging stage): the same line, white-hot at two corners. */
+.nova-widget[data-holo]::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: linear-gradient(135deg, #fff 0%, var(--neon, #9273ff) 14%, color-mix(in oklab, var(--neon, #9273ff) 72%, transparent) 50%, var(--neon, #9273ff) 86%, #fff 100%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
-.nova-widget[data-holo][data-size=L] { box-shadow: inset 0 0 0 1px #ffffff0a, inset 0 1px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 0 70px -18px #f06dff8c, 0 26px 50px -30px #000; }
+/* On a computer: the cut slab. The glass moves to a back-plate clipped to the shape, the rim becomes a line along the
+   same outline, and the bloom is its own layer behind the plate (.holo-aura), so nothing of it is clipped. */
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]) { isolation: isolate; background: none; border-color: transparent; box-shadow: none; --cut: 18px; --nick: 7px; --rim: 1.5px;
+  --holo-shape: polygon(var(--cut) 0, calc(100% - var(--nick)) 0, 100% var(--nick), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--nick) 100%, 0 calc(100% - var(--nick)), 0 var(--cut)); }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo][data-size=S]:not([data-dragging]) { --cut: 13px; --nick: 5px; }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging])::before { content: ''; position: absolute; inset: -1px; z-index: -1; pointer-events: none; border: 0; border-radius: 0;
+  background: var(--holo-glass); box-shadow: inset 0 0 30px -8px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent); clip-path: var(--holo-shape); }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging])::after { border-radius: 0; padding: 0; -webkit-mask: none; mask: none;
+  clip-path: polygon(evenodd, var(--cut) 0, calc(100% - var(--nick)) 0, 100% var(--nick), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--nick) 100%, 0 calc(100% - var(--nick)), 0 var(--cut), var(--cut) 0,
+    calc(var(--cut) + var(--rim) * .42) var(--rim), var(--rim) calc(var(--cut) + var(--rim) * .42), var(--rim) calc(100% - var(--nick) - var(--rim) * .42), calc(var(--nick) + var(--rim) * .42) calc(100% - var(--rim)), calc(100% - var(--cut) - var(--rim) * .42) calc(100% - var(--rim)), calc(100% - var(--rim)) calc(100% - var(--cut) - var(--rim) * .42), calc(100% - var(--rim)) calc(var(--nick) + var(--rim) * .42), calc(100% - var(--nick) - var(--rim) * .42) var(--rim), calc(var(--cut) + var(--rim) * .42) var(--rim)); }
+/* A widget under the pointer or holding the focus: its rim is whole and white-hot (a fixed highlight; it does not follow the pointer). */
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):is(:hover, :focus-within)::after { background: linear-gradient(135deg, #fff 0%, color-mix(in oklab, var(--neon, #9273ff) 70%, #fff) 30%, var(--neon, #9273ff) 50%, color-mix(in oklab, var(--neon, #9273ff) 70%, #fff) 70%, #fff 100%); }
+/* The bloom, behind the plate. Static (B2). */
+.holo-aura { position: absolute; inset: 7px; z-index: -2; border-radius: 16px; pointer-events: none; display: none; box-shadow: var(--holo-bloom); }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]) > .holo-aura { display: block; }
+/* A large widget is the hero beside the star: the nebula's magenta joins its bloom. */
+.nova-widget[data-holo][data-size=L] > .holo-aura { box-shadow: var(--holo-bloom), 0 0 90px 10px #f06dff2b; }
+/* Round 1 of the critique ("chrome heavier than content"): the head's keys are quiet at rest (always there, always
+   44 px) and light up with the widget under the pointer or holding the focus (a fixed highlight). */
+.nova-widget[data-holo]:is(:hover, :focus-within) :is(.holo-act, .nova-widget-open)::before { border-color: color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 13%, #060a1c); }
+/* A small panel's head may hold a title of two short lines: it keeps to 34 px (hud-fit M11), its divider on its last pixel. */
+.nova-widget[data-holo][data-size=S] .nova-widget-head { padding-bottom: 1px; }
 /* The tick ruler down the left edge (ornament, never data): fine ticks, a longer one every fifth. */
-.holo-ruler { position: absolute; left: 4px; top: 40px; bottom: 18px; width: 7px; pointer-events: none; opacity: .7;
+.holo-ruler { position: absolute; left: 5px; top: 44px; bottom: 22px; width: 7px; pointer-events: none; opacity: .75;
   background: repeating-linear-gradient(to bottom, color-mix(in oklab, var(--neon, #9273ff) 75%, #fff) 0 1px, transparent 1px 40px) 0 0 / 7px 100% no-repeat,
     repeating-linear-gradient(to bottom, color-mix(in oklab, var(--neon, #9273ff) 45%, transparent) 0 1px, transparent 1px 8px) 0 0 / 4px 100% no-repeat; }
-.nova-widget[data-holo]:not([data-size=L]) .holo-ruler, .nova-widget[data-holo][data-size=S] .holo-sheen { display: none; }
+.nova-widget[data-holo][data-size=S] .holo-ruler, .nova-widget[data-holo][data-size=S] .holo-sheen { display: none; }
 
-.nova-widget[data-holo] .nova-widget-head h3 { color: var(--neon-ink, #eef3ff); letter-spacing: .16em; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); }
+
+.nova-widget[data-holo] .nova-widget-head h3 { color: var(--neon-ink, #eef3ff); font-size: 14px; letter-spacing: .14em; font-weight: 700; text-shadow: 0 0 12px color-mix(in oklab, var(--neon, #9273ff) 75%, transparent); }
+/* AM-2 (F1): the head is an instrument label — a lit marker before the title, and under the head a line that starts
+   bright under the title and runs out toward the keys (static). */
+.nova-widget[data-holo] .nova-widget-head h3 { position: relative; padding-left: 19px; }
+.nova-widget[data-holo] .nova-widget-head h3::before { content: ''; position: absolute; left: 3px; top: .34em; width: 7px; height: 7px; transform: rotate(45deg); background: var(--neon, #9273ff); box-shadow: 0 0 0 2px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent); }
+.nova-widget[data-holo] .nova-widget-head { padding-bottom: 2px; background: linear-gradient(90deg, var(--neon, #9273ff) 0, var(--neon, #9273ff) 54px, color-mix(in oklab, var(--neon, #9273ff) 34%, transparent) 54px, color-mix(in oklab, var(--neon, #9273ff) 10%, transparent) 100%) 0 100% / 100% 1px no-repeat; }
 .nova-widget[data-holo] .nova-widget-open { color: #e6ecfb; font-weight: 500; }
 /* Review p2 (lane L8d): the quick-actions bolt sits right beside the page link (the title leads); M11: the header never
    wraps over the body — the title gives way with an ellipsis, and a small panel's link is an arrow-only 44 px target. */
@@ -54,18 +98,28 @@
 .nova-widget[data-holo] .nova-widget-head > :is(.holo-act, .nova-widget-open) { flex: none; }
 .nova-widget[data-holo] .nova-widget-head h3 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nova-widget[data-holo] .nova-widget-open-arrow { justify-content: center; width: 44px; padding: 0; font-size: 18px; }
+/* The page link is the last key of the head: its words where there is room, its arrow alone on a narrow panel. */
+.nova-widget[data-holo] .nova-widget-open { position: relative; margin-right: -4px; color: var(--neon-ink, #eef3ff); }
+.nova-widget[data-holo] .nova-widget-open::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 6%, #060a1c); transition: background-color .12s, border-color .12s; }
+.nova-widget[data-holo] .nova-widget-open:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
+.nova-widget[data-holo] .nova-widget-open > span { position: relative; }
 .nova-widget[data-holo]:hover { border-color: var(--neon, #9273ff); }
 .nova-widget[data-holo] .nova-figure { background: none; -webkit-text-fill-color: currentColor; color: var(--neon-ink, #eef3ff); text-shadow: 0 0 14px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
 .nova-widget[data-holo] .glass-track { background: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0d); }
 .nova-widget[data-holo] .glass-fill { background: var(--neon, #9273ff); box-shadow: 0 0 8px var(--neon, #9273ff); }
-/* The corner brackets: four L marks just inside the rim. */
-.holo-brackets { position: absolute; inset: 5px; pointer-events: none; border-radius: 8px; opacity: .9;
-  --b: color-mix(in oklab, var(--neon, #9273ff) 90%, #fff); --l: 14px;
+/* The inner hairline (the "double frame"): a faint line 6 px inside the rim with four bright corner marks. On the
+   rounded slab it is four L marks. */
+.holo-brackets { position: absolute; inset: 5px; pointer-events: none; border-radius: 9px; opacity: .95;
+  --b: color-mix(in oklab, var(--neon, #9273ff) 88%, #fff); --l: 16px;
   background:
     linear-gradient(var(--b), var(--b)) top left / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) top left / 1.5px var(--l) no-repeat,
     linear-gradient(var(--b), var(--b)) top right / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) top right / 1.5px var(--l) no-repeat,
     linear-gradient(var(--b), var(--b)) bottom left / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) bottom left / 1.5px var(--l) no-repeat,
     linear-gradient(var(--b), var(--b)) bottom right / var(--l) 1.5px no-repeat, linear-gradient(var(--b), var(--b)) bottom right / 1.5px var(--l) no-repeat; }
+.nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]) > .holo-brackets { inset: 5px; border-radius: 0; --c: calc(var(--cut) - 2px); --n: calc(var(--nick) - 1px); --r: 1px; --dim: color-mix(in oklab, var(--neon, #9273ff) 26%, transparent);
+  background: linear-gradient(135deg, var(--b) 0, var(--b) 34px, transparent 35px, transparent calc(100% - 35px), var(--b) calc(100% - 34px)), linear-gradient(45deg, var(--b) 0, var(--b) 22px, transparent 23px, transparent calc(100% - 23px), var(--b) calc(100% - 22px)), linear-gradient(var(--dim), var(--dim));
+  clip-path: polygon(evenodd, var(--c) 0, calc(100% - var(--n)) 0, 100% var(--n), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--n) 100%, 0 calc(100% - var(--n)), 0 var(--c), var(--c) 0,
+    calc(var(--c) + var(--r) * .42) var(--r), var(--r) calc(var(--c) + var(--r) * .42), var(--r) calc(100% - var(--n) - var(--r) * .42), calc(var(--n) + var(--r) * .42) calc(100% - var(--r)), calc(100% - var(--c) - var(--r) * .42) calc(100% - var(--r)), calc(100% - var(--r)) calc(100% - var(--c) - var(--r) * .42), calc(100% - var(--r)) calc(var(--n) + var(--r) * .42), calc(100% - var(--n) - var(--r) * .42) var(--r), calc(var(--c) + var(--r) * .42) var(--r)); }
 /* The scan shimmer: a soft band crossing the panel once in a while (Full motion, computers, on screen). */
 .holo-sheen { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .holo-sheen::before { content: ''; position: absolute; top: -20%; bottom: -20%; left: 0; width: 38%; transform: translateX(-140%) skewX(-18deg); opacity: 0;
@@ -82,21 +136,14 @@
 /* Review m1 (lane L8d): the Full rule above re-set the shimmer running over an off-screen panel's pause; this one wins. */
 .nova-frame[data-hud-motion] .nova-widget[data-off] .holo-sheen::before { animation-play-state: paused; }
 /* The quick-actions button in the header. */
-.holo-act { display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -10px 0 -10px auto; border-radius: 10px; border: 1px solid transparent; background: none; color: var(--neon-ink, #eef3ff); cursor: pointer; }
-.holo-act:hover { border-color: color-mix(in oklab, var(--neon, #9273ff) 55%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 14%, transparent); }
-.holo-act svg { width: 20px; height: 20px; filter: drop-shadow(0 0 4px var(--neon, #9273ff)); }
+/* AM-2 (F2): a key like the stage's own (stage.css `.ns-act`): a 44 px target with a smaller lit key drawn inside it. */
+.holo-act { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -10px -4px -10px auto; padding: 0; border-radius: 10px; border: 0; background: none; color: var(--neon-ink, #eef3ff); cursor: pointer; }
+.holo-act::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 6%, #060a1c); transition: background-color .12s, border-color .12s; }
+.holo-act:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
+.holo-act svg { position: relative; width: 17px; height: 17px; }
 .holo-instrument { cursor: pointer; }
-/* A gentle, static perspective on a large panel beside the star: its inner edge sits a little further away. Review m13
-   (lane L8d): only the glass tilts — a back-plate (::before) carries the panel's glass, edge and glow, and the rim turns
-   with it — while the figures and words stay flat on top, crisp at any pixel ratio (rotating the panel re-rasterised its
-   text). 3.5°, never pointer-driven. */
-.nova-orbit-side > .nova-widget[data-holo][data-size=L]:not([data-dragging]) { isolation: isolate; background: none; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.nova-orbit-side > .nova-widget[data-holo][data-size=L]:not([data-dragging])::before { content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none;
-  border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 58%, transparent); background: var(--holo-glass);
-  box-shadow: inset 0 0 0 1px #ffffff0a, inset 0 1px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 0 26px -8px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 0 70px -18px #f06dff8c, 0 26px 50px -30px #000;
-  -webkit-backdrop-filter: blur(16px) saturate(1.5) brightness(.9); backdrop-filter: blur(16px) saturate(1.5) brightness(.9); }
-.nova-orbit-side[data-side=left] > .nova-widget[data-holo][data-size=L]:not([data-dragging])::before, .nova-orbit-side[data-side=left] > .nova-widget[data-holo][data-size=L]:not([data-dragging])::after { transform: perspective(1400px) rotateY(3.5deg); transform-origin: 0 50%; }
-.nova-orbit-side[data-side=right] > .nova-widget[data-holo][data-size=L]:not([data-dragging])::before, .nova-orbit-side[data-side=right] > .nova-widget[data-holo][data-size=L]:not([data-dragging])::after { transform: perspective(1400px) rotateY(-3.5deg); transform-origin: 100% 50%; }
+/* Session AM-2 (F1): the large panel beside the star no longer tilts its plate alone (the inner frame and the bloom
+   are layers of their own now, and a plate that turns without them splits the frame); the stage gives the whole wing its depth. */
 .nova-frame[data-editing] .nova-widget[data-holo], .nova-frame[data-editing] .nova-widget[data-holo]::before, .nova-frame[data-editing] .nova-widget[data-holo]::after { transform: none; }
 /* The core's rings sit around the orb, inside its button (decoration; the readout says them in words). */
 .nova-stage[data-holo-core] .nova-orb-button { position: relative; }
@@ -104,7 +151,8 @@
 /* ---- Phones: one column, lighter ---- */
 .holo-phone-column { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 8px 0 24px; }
 .holo-phone-column > .nova-widget { max-height: none; }
-.nova-frame[data-phone] .nova-widget[data-holo] { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: #060a1c; transform: none; }
+/* A phone's slab is lighter: the glass and the rim, a short bloom (hud-look reads `backdrop-filter: none` and `transform: none` here). */
+.nova-frame[data-phone] .nova-widget[data-holo] { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: #060a1c; transform: none; --holo-bloom: 0 0 12px 0 color-mix(in oklab, var(--neon, #9273ff) 40%, transparent), 0 18px 30px -18px #000c; }
 .nova-frame[data-phone] .holo-sheen, .nova-frame[data-phone] .holo-plane, .nova-frame[data-phone] .holo-ruler { display: none; }
 .nova-frame[data-phone][data-look=holo] .nova-centre > .nova-stage-area { align-content: start; }
 
@@ -118,10 +166,11 @@
 /* ---- Calm, Off, reduced motion, Soft glow, forced colours ---- */
 @media (prefers-reduced-motion: reduce) { .holo-sheen::before { animation: none !important; } }
 :root[data-app-motion=off] .holo-sheen::before { animation: none !important; }
-:root[data-glow="soft"] .nova-widget[data-holo] { box-shadow: inset 0 0 0 1px #ffffff0a, 0 20px 40px -30px #000; }
-:root[data-glow="soft"] .nova-widget[data-holo]::after { opacity: .5; }
+:root[data-glow="soft"] .nova-widget[data-holo] { --holo-bloom: 0 20px 40px -24px #000; }
+:root[data-glow="soft"] .nova-widget[data-holo]::after { opacity: .6; }
 @media (forced-colors: active) {
-  .nova-widget[data-holo] { border: 1px solid CanvasText; background: Canvas; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .nova-widget[data-holo] { border: 1px solid CanvasText; background: Canvas; box-shadow: none; }
+  .nova-frame .nova-widget[data-holo]::before, .nova-frame .nova-widget[data-holo] > .holo-aura { display: none; }
   .holo-brackets, .holo-sheen, .holo-depth, .holo-ruler, .nova-widget[data-holo]::after { display: none; }
 }
 
@@ -131,7 +180,7 @@
 .holo-keys { display: grid; gap: 14px; }
 .holo-keys-table { width: 100%; border-collapse: collapse; font-size: 15px; color: var(--nova-ink, #eef3ff); }
 .holo-keys-table th, .holo-keys-table td { padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--nova-edge-soft, #ffffff1f); vertical-align: middle; }
-.holo-keys-table thead th { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
+.holo-keys-table thead th { font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: #cfdaf0; }
 .holo-keys-table tbody th { width: 9em; font-weight: 600; }
 .holo-keys-table tr[data-off] td { color: #c3cfe6; }
 .holo-keys-off { color: #c3cfe6; }
@@ -143,14 +192,14 @@
    so each instrument drops whole rows to fit (holo-parts.css), and no fade ever crosses a chart. */
 .nova-frame:not([data-phone]) [data-holo-fit]:not([data-holo-fit=bento]) .nova-widget[data-holo] {
   --h-s: var(--holo-u, 124px); --h-m: calc(var(--holo-u, 124px) * 2 + 12px); --h-l: calc(var(--holo-u, 124px) * 4 + 36px);
-  height: var(--h-m); max-height: none; padding: 12px 16px 10px; gap: 6px; }
+  height: var(--h-m); max-height: none; padding: 11px 16px 8px; gap: 3px; }
 .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size=S] { height: var(--h-s); }
 .nova-frame:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size=L] { height: var(--h-l); }
 /* Focus: the star first, its three panels one row under it, each a unit and a half. */
 .nova-frame:not([data-phone]) [data-holo-fit] .nova-focus-row > .nova-widget[data-holo] { height: calc(var(--h-s) * 1.5); }
 /* Bento: fixed rows (two units), each tile fills its span. */
 .nova-frame:not([data-phone]) .nova-bento:has(> .nova-widget[data-holo]) { grid-auto-rows: calc(var(--holo-u, 124px) * 2 + 12px); align-items: stretch; }
-.nova-frame:not([data-phone]) .nova-bento > .nova-widget[data-holo] { max-height: none; padding: 12px 16px 10px; gap: 6px; }
+.nova-frame:not([data-phone]) .nova-bento > .nova-widget[data-holo] { max-height: none; padding: 11px 16px 8px; gap: 4px; }
 /* While arranging, a panel keeps its instrument's height and its buttons go under it. */
 .nova-frame[data-editing]:not([data-phone]) .nova-orbit .nova-widget[data-holo] { height: calc(var(--h-m) + 62px); }
 .nova-frame[data-editing]:not([data-phone]) .nova-orbit .nova-widget[data-holo][data-size=S] { height: calc(var(--h-s) + 62px); }
@@ -171,23 +220,37 @@
 .holo-phone-column .nova-widget[data-holo] .nova-widget-body { container: holo-body / inline-size; overflow: visible; }
 
 /* M2: Holo's orbit is wider, and a column holding a large panel widens: the hero beside the star. */
-@container nova-stage (min-width: 800.02px) {
+@container nova-stage (min-width: 900.02px) {
   .nova-frame[data-look=holo] .nova-orbit { max-width: 1560px; }
-  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(250px, 1fr) minmax(300px, .9fr) minmax(250px, 1fr); }
-  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(340px, 1.45fr) minmax(290px, .85fr) minmax(240px, 1fr); }
-  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(240px, 1fr) minmax(290px, .85fr) minmax(340px, 1.45fr); }
-  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(320px, 1.3fr) minmax(280px, .8fr) minmax(320px, 1.3fr); }
+  /* Round 1 of the critique: the star's column is the widest (it was the narrowest: the galaxy sat cropped between the wings). */
+  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(250px, 1fr) minmax(340px, 1.1fr) minmax(250px, 1fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(340px, 1.45fr) minmax(320px, 1.1fr) minmax(240px, 1fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(240px, 1fr) minmax(320px, 1.1fr) minmax(340px, 1.45fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(320px, 1.3fr) minmax(300px, 1fr) minmax(320px, 1.3fr); }
+}
+/* Session AM-2 (ADR-038 "AM-2", G3): a wide window is used, not left empty. From 1700 px of stage the widget wings and
+   the star's column all widen (the orbit was capped at 1560 px, a strip in the middle of a 2560 px screen), and the band
+   below holds four widgets a row. */
+@container nova-stage (min-width: 1700px) {
+  .nova-frame[data-look=holo] .nova-orbit { max-width: 2320px; }
+  .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(380px, 1.1fr) minmax(520px, 1.1fr) minmax(380px, 1.1fr); gap: 28px; }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(460px, 1.5fr) minmax(440px, 1fr) minmax(360px, 1.1fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(360px, 1.1fr) minmax(440px, 1fr) minmax(460px, 1.5fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(440px, 1.35fr) minmax(420px, .9fr) minmax(440px, 1.35fr); }
+  .nova-frame[data-look=holo] .nova-orbit-band-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* "What still feels flat" 1 (lane L8d): each side column is one console wing — a faint glass plate behind its panels with
    a tick rail on the edge toward the star — so the panels read as parts of one instrument, not stickers on the sky. */
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side { position: relative; isolation: isolate; }
-.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side:not(:empty)::before { content: ''; position: absolute; inset: 4px -10px; z-index: -1; border-radius: 22px; pointer-events: none;
-  border: 1px solid #a9b8ff1c; background: linear-gradient(180deg, #8f7bff0d, #2ef2ff06 50%, #f06dff0b); box-shadow: inset 0 0 50px #8f7bff12; }
-.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side:not(:empty)::after { content: ''; position: absolute; top: 18px; bottom: 18px; width: 6px; z-index: -1; pointer-events: none; opacity: .7;
-  background: repeating-linear-gradient(to bottom, #c9d2ff66 0 1px, transparent 1px 12px), linear-gradient(#a9b8ff40, #a9b8ff40) 50% 0 / 1px 100% no-repeat; }
-.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side[data-side=left]:not(:empty)::after { right: -16px; }
-.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side[data-side=right]:not(:empty)::after { left: -16px; }
+/* Session AM (ADR-038 D1, D2; deliberate): the faint glass plate behind a whole column is gone. Widgets are made one at a
+   time on a calm stage, so a column-high plate behind a single widget read as an empty panel; each widget is its own glass,
+   and the tick rail toward the star stays as the wing's edge. */
+/* Design review AM-D23: the two tick rails are a pair. One widget alone has no rail (a single rail read as a stray line). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main:has(> .nova-orbit-side[data-side=left]:not(:empty)):has(> .nova-orbit-side[data-side=right]:not(:empty)) > .nova-orbit-side::after { content: ''; position: absolute; top: 18px; bottom: 18px; width: 6px; z-index: -1; pointer-events: none; opacity: .7;
+  background: repeating-linear-gradient(to bottom, #c9d2ff66 0 1px, transparent 1px 12px), linear-gradient(#7fc8ff40, #7fc8ff40) 50% 0 / 1px 100% no-repeat; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side[data-side=left]::after { right: -16px; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-side[data-side=right]::after { left: -16px; }
 
 /* m4: a floor under the star — the far grid plane, in perspective, reading as the ground of the star system. */
 .nova-orbit-centre { position: relative; isolation: isolate; }
@@ -228,11 +291,11 @@
 .nova-stage[data-holo-core] :is(.nova-name, .nova-orb-state) { text-shadow: 0 0 2px #050818, 0 0 6px #050818, 0 0 18px color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent); }
 
 /* m10: Classic is calm for the instruments too — softer neon, no glow (their motion is already off there). */
-.nova-frame[data-look=classic] .nova-widget[data-pillar=health] { --neon: color-mix(in oklab, #ff4fb8 55%, #cfd8ef); }
-.nova-frame[data-look=classic] .nova-widget[data-pillar=habits] { --neon: color-mix(in oklab, #2ef2ff 55%, #cfd8ef); }
-.nova-frame[data-look=classic] .nova-widget[data-pillar=goals] { --neon: color-mix(in oklab, #a47bff 55%, #cfd8ef); }
-.nova-frame[data-look=classic] .nova-widget[data-pillar=wealth] { --neon: color-mix(in oklab, #ffbf3c 55%, #cfd8ef); }
-.nova-frame[data-look=classic] .nova-widget[data-pillar=orbit] { --neon: color-mix(in oklab, #a9b8ff 55%, #cfd8ef); }
+.nova-frame[data-look=classic] .nova-widget[data-pillar=health] { --neon: color-mix(in oklab, #ff74be 55%, #cfd8ef); }
+.nova-frame[data-look=classic] .nova-widget[data-pillar=habits] { --neon: color-mix(in oklab, #23eaff 55%, #cfd8ef); }
+.nova-frame[data-look=classic] .nova-widget[data-pillar=goals] { --neon: color-mix(in oklab, #9273ff 55%, #cfd8ef); }
+.nova-frame[data-look=classic] .nova-widget[data-pillar=wealth] { --neon: color-mix(in oklab, #ffd27a 55%, #cfd8ef); }
+.nova-frame[data-look=classic] .nova-widget[data-pillar=orbit] { --neon: color-mix(in oklab, #7fc8ff 55%, #cfd8ef); }
 .nova-frame[data-look=classic] .nova-widget .holo-arc,
 .nova-frame[data-look=classic] .nova-widget .holo-arc-end,
 .nova-frame[data-look=classic] .nova-widget .holo-spark-line,
@@ -253,10 +316,9 @@
 .nova-root .nova-widget .task-chip.task-chip-p1 { color: #ffb4b0; background: #5a1418; border-color: #ff8f88; }
 .nova-root .nova-widget .task-chip.task-chip-p2 { color: #ffd4a8; border-color: #ffb469; }
 
-:root[data-glow="soft"] .nova-orbit-side > .nova-widget[data-holo][data-size=L]::before { box-shadow: inset 0 0 0 1px #ffffff0a, 0 20px 40px -30px #000; }
+:root[data-glow="soft"] .nova-widget[data-holo] > .holo-aura { box-shadow: 0 20px 40px -24px #000; }
 @media (forced-colors: active) {
   .holo-floor, .holo-motes, .nova-orbit-side::before, .nova-orbit-side::after { display: none; }
-  .nova-orbit-side > .nova-widget[data-holo][data-size=L]::before { border-color: CanvasText; background: Canvas; }
 }
 
 /* ==== Second review fixes (lane L8f, docs/review/session-al/NOVA_HUD_REVIEW_2.md) ==== */
@@ -292,7 +354,7 @@
 /* M4: a narrow stage (a tablet, ≤ 800 px) shows the star at its own height (it used to take the whole first screen) and the
    panels under it in one column of up to 560 px, each as tall as its content, so the first view holds the HUD and no value
    runs past its panel (two 245 px columns cut them). */
-@container nova-stage (max-width: 800px) {
+@container nova-stage (max-width: 900px) {
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main { grid-template-columns: minmax(0, 560px); justify-content: center; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre { min-height: 0; }
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-band-grid { grid-template-columns: minmax(0, 560px); justify-content: center; }
@@ -336,7 +398,7 @@
 .nova-widget[data-holo][data-size=S] .nova-focus > p { margin: 0; }
 .nova-widget[data-holo][data-size=S] .nova-focus .nova-figure { font-size: 22px; }
 .nova-widget[data-holo][data-size=S] .nova-focus .nova-big { line-height: 1.15; }
-.nova-widget[data-holo][data-size=S] .nova-focus .nova-big small { font-size: 13px; }
+.nova-widget[data-holo][data-size=S] .nova-focus .nova-big small { font-size: 14px; }
 /* M3: on a short window (≤ 800 px high) the star's stack sits high in its column — NOVA's name, the orb, then its state and
    readout — so the readout stays above the command field (at 1280 × 720 it slid under it). */
 @media (max-height: 800px) { .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-centre > .nova-stage[data-holo-core] { grid-template-rows: auto auto minmax(min-content, 1fr); } }

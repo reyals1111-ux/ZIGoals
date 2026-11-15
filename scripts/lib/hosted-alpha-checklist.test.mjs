@@ -16,12 +16,13 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(Object.isFrozen(CHECKLIST_STAGE)).toBe(true);
     // Wired by the lead (Session AF): appended last, exactly once, after the Earn stage 9; stages 1–8 keep their numbers and order.
     const numbers = VERIFIER_STAGES.map(s => s.number);
-    // Session AK appended stage 11 (AK) after it, and Session AL stage 12 (AL); 1–10 keep their numbers and order.
-    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    // Session AK appended stage 11 (AK) after it, Session AL stage 12 (AL) and Session AM stage 13 (NOVA); 1–10 keep their numbers and order.
+    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
     expect(VERIFIER_STAGES.filter(s => s.key === 'checklist')).toEqual([CHECKLIST_STAGE]);
-    expect(VERIFIER_STAGES.at(-3)).toBe(CHECKLIST_STAGE);
-    expect(VERIFIER_STAGES.at(-2)?.key).toBe('ak');
-    expect(VERIFIER_STAGES.at(-1)?.key).toBe('al');
+    expect(VERIFIER_STAGES.at(-4)).toBe(CHECKLIST_STAGE);
+    expect(VERIFIER_STAGES.at(-3)?.key).toBe('ak');
+    expect(VERIFIER_STAGES.at(-2)?.key).toBe('al');
+    expect(VERIFIER_STAGES.at(-1)?.key).toBe('nova');
   });
   test('the sentinel is fictional, unique and never a secret-like value', () => {
     expect(CHECKLIST_SENTINELS.habit).toBe('Verifier orbit sip 7f3e');

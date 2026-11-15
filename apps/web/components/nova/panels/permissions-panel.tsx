@@ -13,6 +13,7 @@ import {useDeviceRecord} from '../../ai/use-device-record';
 import {usePrivateStore} from '../../use-private-store';
 import {useChainChoice} from '../../chain/use-chain-choice';
 import '../../ai/ai.css';
+import {WeatherChoice} from './weather-choice';
 import './panels.css';
 
 /**
@@ -61,5 +62,7 @@ export default function PermissionsPanel() {
     </div>
     <p className="ai-note">Journal sharing (Journal&rsquo;s own switch) is {journal.loaded && journal.data.shareWithAi ? 'on' : 'off'}: {journal.loaded && journal.data.shareWithAi ? 'with Journal allowed above, entries may go to your model.' : 'entries never go to a model; with Journal allowed above, NOVA still reads them on this device.'}</p>
     {message && <p role={message.failed ? 'alert' : 'status'} className="ai-note">{message.text}</p>}
+    {/* Session AM (ADR-038 D13, A2): the one switch for outside data, with what the service sees. */}
+    <WeatherChoice/>
   </div>;
 }

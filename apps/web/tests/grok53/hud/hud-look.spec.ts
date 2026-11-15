@@ -116,6 +116,11 @@ test.describe('computer', () => {
       expect(await act.evaluate(el => getComputedStyle(el).outlineStyle), `${name}: visible focus`).not.toBe('none');
     }
     await expect(panel(page, 'Health HUD').locator('table caption')).toHaveText('Health today, against your targets');
+    // Session AM (calm stage, deliberate): on a set stage the core's read-outs show only where the stage is wider than
+    // 1240 px (components/nova/holo/holo-parts.css). At this project's 1280 px window they are not shown; at 1920 they are.
+    await expect(page.locator('.holo-core-readout')).toBeHidden();
+    await expect(page.getByRole('list', {name: 'Today’s core'})).toHaveCount(0);
+    await page.setViewportSize({width: 1920, height: 1080});
     await expect(page.getByRole('list', {name: 'Today’s core'})).toBeVisible();
   });
 });

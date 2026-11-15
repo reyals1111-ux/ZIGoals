@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {useState} from 'react';
 import {checkNovaScopes} from '../../../../lib/nova/setup-scopes';
 import {setScope} from '../../../../lib/nova/scopes';
+import {WEATHER_LINE} from '../../../../lib/nova/setup-guide';
 import type {NovaScope} from '../../../../lib/ai/context-pack/nova';
 import {deviceSettingFailureMessage} from '../../../../lib/storage-error-copy';
 import {useAiSettings} from '../../../ai/use-ai-settings';
@@ -29,6 +30,8 @@ export default function ScopesStep({setup}: {setup: SetupState}) {
       <label className="ai-check"><input type="checkbox" checked={health} onChange={e => { const on = e.target.checked; set(c => ({...c, includeHealth: on, pageShare: {...c.pageShare, health: on}}), 'health', on); }}/> Health <small>Off unless you choose it. Health also needs Health on your Today layout, and with an account its Health permission.</small></label>
     </fieldset>
     <p className="fine">Notes ({sees.scopes.notes ? 'on' : 'off'} now) and your journal ({sees.scopes.journal ? 'on' : 'off'} now) go to NOVA only when you turn them on in NOVA → Permissions; the journal also needs its own sharing switch in <Link className="text-link" href="/app/journal">Journal</Link>. Earn counts only once you chose the chain.</p>
+    {/* Session AM (ADR-038 D12, D13): the one outside service is no step of its own; its switch is in NOVA → Permissions. */}
+    <p className="fine">{WEATHER_LINE}</p>
     {health && !sees.healthGate && <p className="nova-note" role="note">Health is chosen, but its gate is still closed: add Health to your Today layout (Customize), and with an account allow Health sync on this device.</p>}
     {error && <p role="alert" className="fine">{error}</p>}
     <h3 className="nova-sub">What NOVA can see</h3>

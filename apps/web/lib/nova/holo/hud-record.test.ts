@@ -37,7 +37,8 @@ describe('the HUD record (zigoals:nova-hud:v1)', () => {
     const read = readDeviceRecord(s, NOVA_STORE);
     expect(read.data).toEqual(novaRecordSchema.parse(old));
     expect(widgetsFor(read.data, isWidgetId)).toEqual([{id: 'water', size: 'L', slot: 0}, {id: 'orbit', size: 'M', slot: 1}]);
-    expect(widgetsFor({version: 1}, isWidgetId)).toEqual([...DEFAULT_WIDGETS]);
+    expect(widgetsFor({version: 1}, isWidgetId)).toEqual([]); // Session AM (D2, deliberate): no arrangement, no widgets (it read as the eight defaults)
+    expect(DEFAULT_WIDGETS.length).toBe(8);
     // An older build that does not know a HUD instrument leaves it out (its `known` refuses the id); nothing else moves.
     const withHud = novaRecordSchema.parse({...old, widgets: [...old.widgets, {id: 'health-hud', size: 'L', slot: 2}]});
     expect(widgetsFor(withHud, id => id !== 'health-hud').map(w => w.id)).toEqual(['water', 'orbit']);

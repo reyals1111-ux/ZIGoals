@@ -16,9 +16,9 @@ export default function MarketsWidget({size}: {size: WidgetSize}) {
   const market = useMarketQuotes(list.map(a => ({marketRef: a.ref, currency: 'USD' as const})));
   if (!store.loaded) return <NovaReading/>;
   if (store.error) return <NovaUnread what="Your market watch"/>;
-  if (!list.length) return <NovaEmpty pillar="wealth" href="/app/markets" action="Follow a market">You follow no markets yet.</NovaEmpty>;
-  return <ul className="nova-markets">{list.slice(0, size === 'S' ? 2 : size === 'M' ? 4 : 8).map(a => {
+  if (!list.length) return <NovaEmpty pillar="wealth" ghost="wave" href="/app/markets" action="Follow a market">You follow no markets yet.</NovaEmpty>;
+  return <ul className="nova-markets hw-markets">{list.slice(0, size === 'S' ? 2 : size === 'M' ? 4 : 8).map(a => {
     const key = marketRefKey(a.ref), q = market.quotes.find(x => x.marketRef && marketRefKey(x.marketRef) === key && x.currency === 'USD');
-    return <li key={key}><span className="nova-market-name">{a.symbol || a.name}</span>{q ? <span className="nova-market-price">{formatPrice(amount(q.price, q.priceDecimals), 'USD')}{q.observedAt ? <small> · {formatTime(q.observedAt)}</small> : null}</span> : <small>Price not in yet</small>}</li>;
+    return <li key={key} className="hw-row" data-priced={q ? '' : undefined}><span className="nova-market-name">{a.symbol || a.name}</span>{q ? <span className="nova-market-price">{formatPrice(amount(q.price, q.priceDecimals), 'USD')}{q.observedAt ? <small> · {formatTime(q.observedAt)}</small> : null}</span> : <small>Price not in yet</small>}</li>;
   })}</ul>;
 }

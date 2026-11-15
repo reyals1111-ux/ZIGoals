@@ -20,6 +20,7 @@ import {AK_TOOLS} from './ak-tools';
 import {F9_TOOLS} from './f9-tools';
 import {NOVA_TOOLS} from './nova-tools';
 import {G1_TOOLS} from './g1-tools';
+import {STAGE_TOOLS} from './nova-stage';
 
 /**
  * The one list of ZIGi's read-only tools and the one way to run them (Session V Part 2). Every path calls `runTool`:
@@ -36,7 +37,9 @@ import {G1_TOOLS} from './g1-tools';
 // Owner follow-up 2 (N4): then tasks, focus sessions, workouts, budgets and the notes (NOVA's Notes scope only).
 // Owner follow-up 2 (G8): then BUILD list 2's: your numbers and the cycle log (Health gate), your own scales, cash ahead and the log's total.
 // Session AF (L4): the Earn coach's figures (earn_rates), this page's titles (page_view), the Checklist and ZIGi's plans.
-export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challengesTool, ...HEALTH_TOOLS, ...W_HEALTH_TOOLS, coachCheckinTool, ...GOAL_TOOLS, milestonesTool, ...WEALTH_TOOLS, ...ACCOUNT_TOOLS, ...SKILL_TOOLS, recentActivity, aboutMe, earnRates, ...AF_TOOLS, ...WHY_TOOLS, ...MONEY_TOOLS, ...JOURNAL_TOOLS, ...AK_TOOLS, ...F9_TOOLS, ...NOVA_TOOLS, ...G1_TOOLS] as unknown as readonly AnyTool[];
+export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challengesTool, ...HEALTH_TOOLS, ...W_HEALTH_TOOLS, coachCheckinTool, ...GOAL_TOOLS, milestonesTool, ...WEALTH_TOOLS, ...ACCOUNT_TOOLS, ...SKILL_TOOLS, recentActivity, aboutMe, earnRates, ...AF_TOOLS, ...WHY_TOOLS, ...MONEY_TOOLS, ...JOURNAL_TOOLS, ...AK_TOOLS, ...F9_TOOLS, ...NOVA_TOOLS, ...G1_TOOLS,
+  // Session AM (ADR-038 A4): NOVA's stage (show, pin, hide or close a widget) and the weather reading this device holds; only on NOVA's surface.
+  ...STAGE_TOOLS] as unknown as readonly AnyTool[];
 const BY_NAME = new Map(TOOLS.map(tool => [tool.name, tool]));
 export const toolByName = (name: string): AnyTool | undefined => BY_NAME.get(name);
 /** Release review 2 (lane RA): what a Today tool says on NOVA with Today off in NOVA → Permissions. */
@@ -44,6 +47,8 @@ export const TODAY_CLOSED_FOR_NOVA = 'Today isn\'t shared with NOVA here — tur
 /** Why the tool may not run in this environment (without running anything), or null when it may. */
 export function toolBlocked(tool: AnyTool, env: ToolEnv): ToolRefusal | null {
   const label = tool.title;
+  // Session AM (A4): a stage tool runs only where NOVA's stage is (it reads no record, so no area switch applies to it).
+  if (tool.surface === 'nova') return env.stage ? null : refuse(tool.name, label, 'area', 'NOVA’s stage is not open here.');
   if (tool.area === 'health') return env.health && env.areas.health ? null : refuse(tool.name, label, 'gate', HEALTH_CLOSED);
   if (tool.area === 'memory') return env.notes?.length ? null : refuse(tool.name, label, 'area', 'No notes about the person are shared with ZIGi here ("Use my notes" in What ZIGi knows about me).');
   // Release review 2 (lane RA): NOVA's Today permission off, Notes or the Journal on: only those tools of the Today area.

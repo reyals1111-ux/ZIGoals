@@ -2,14 +2,14 @@
 .nova-bar{box-sizing:border-box;width:min(640px,calc(100vw - 32px));max-width:none;margin:12vh auto auto;padding:0;border:1px solid color-mix(in srgb,var(--violet,#826cff) 38%,var(--line,#25324a));border-radius:22px;color:var(--text,#f3f6ff);background:linear-gradient(165deg,color-mix(in srgb,var(--panel,#0f1530) 86%,transparent),color-mix(in srgb,var(--bg,#050a18) 90%,transparent));box-shadow:0 30px 90px -30px #000000d9,inset 0 1px 0 #ffffff10;-webkit-backdrop-filter:blur(22px) saturate(140%);backdrop-filter:blur(22px) saturate(140%)}
 .nova-bar::backdrop{background:#01050d99}
 .nova-bar-body{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
-.nova-bar-title{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted,#a4b2cd);font-weight:600}
+.nova-bar-title{margin:0;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted,#a4b2cd);font-weight:600}
 .nova-bar-row{display:flex;align-items:center;gap:10px;min-width:0}
 .nova-bar-star{flex:none;color:var(--cyan,#63e7ff)}
 .nova-bar-row input{flex:1 1 auto;min-width:0;min-height:48px;padding:0 4px;border:0;background:transparent;color:inherit;font:inherit;font-size:18px}
 .nova-bar-row input:focus{outline:none}
 .nova-bar-row:focus-within{box-shadow:0 2px 0 color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)}
 .nova-bar-row button,.nova-bar-actions a,.nova-bar-actions button{min-height:44px;border-radius:12px}
-.nova-bar-hint{margin:0;font-size:12px;color:var(--muted,#a4b2cd)}
+.nova-bar-hint{margin:0;font-size:14px;color:var(--muted,#a4b2cd)}
 .nova-bar-actions{display:flex;flex-wrap:wrap;gap:8px}
 .nova-bar-actions a{display:inline-flex;align-items:center}
 @media (max-width:480px){.nova-bar{margin-top:8vh}.nova-bar-row{flex-wrap:wrap}.nova-bar-row input{flex-basis:calc(100% - 40px)}.nova-bar-row button{flex:1 1 100%}}

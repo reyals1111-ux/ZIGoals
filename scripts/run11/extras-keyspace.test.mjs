@@ -116,6 +116,47 @@ test('AK 8.10 (AFL8): the Checklist section is listed only when asked for by nam
  }finally{await r.mf.dispose();}
 },60000);
 
+test('Session AM (ADR-038 D18, A6): the NOVA section is listed only when asked for by name, one `with` per section; one `with` answers as before; a later name is not listed and never an error',async()=>{
+ const {r,vault,json,put}=await setup();
+ try{
+  const four={goals:EMPTY,life:EMPTY,habits:EMPTY,health:EMPTY};
+  // An older client's two requests answer exactly as they did: the four, or the four and the Checklist.
+  expect(await json('/v1/extras')).toEqual({status:200,body:{protocol:1,sections:four}});
+  expect(await json('/v1/extras?with=checklist')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY}}});
+  // This build's request, and NOVA alone.
+  expect(await json('/v1/extras?with=checklist&with=nova')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY,nova:EMPTY}}});
+  expect(await json('/v1/extras?with=nova')).toEqual({status:200,body:{protocol:1,sections:{...four,nova:EMPTY}}});
+  // A later app's request: a section added after this Worker is simply not listed; every section this Worker has is.
+  expect(await json('/v1/extras?with=checklist&with=nova&with=later-section')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY,nova:EMPTY}}});
+  expect(await json('/v1/extras?with=checklist&with=goals')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY}}});
+  // The first name is checked as before; a list in one value, a malformed or repeated name, or more than eight are refused.
+  for(const bad of ['with=later-section','with=later-section&with=checklist','with=goals&with=nova','with=checklist,nova','with=checklist%2Cnova','with=checklist&with=','with=checklist&with=Nova','with=checklist&with=no%20va','with=checklist&with=../vault','with=checklist&with=checklist','with=checklist&with=nova&with=nova','with=checklist&with='+'a'.repeat(33),'with=checklist&with=nova&'+Array.from({length:7},(_,i)=>'with=s'+i).join('&')])
+   expect(await json('/v1/extras?'+bad),bad).toEqual({status:400,body:{error:'INVALID_EXTRAS_REQUEST'}});
+  expect((await json('/v1/extras?with=checklist&with=nova&'+Array.from({length:6},(_,i)=>'with=s'+i).join('&'))).status).toBe(200);
+  // Written, listed, read and deleted like the others, in its own keys.
+  expect(await put('nova',0)).toEqual({status:200,body:{revision:1,generation:0}});
+  expect((await json('/v1/extras?with=checklist&with=nova')).body.sections).toEqual({...four,checklist:EMPTY,nova:{revision:1,generation:0,epoch:vault.manifest.epoch,parts:1}});
+  // An older client still sees none of it.
+  expect(await json('/v1/extras')).toEqual({status:200,body:{protocol:1,sections:four}});
+  expect(await json('/v1/extras?with=checklist')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY}}});
+  const read=extrasSectionCloudSchema.parse((await json('/v1/extras?section=nova')).body);
+  expect(await openSection(vault.key,vault.manifest,read)).toBe(TEXT);
+  await expect(openSection(vault.key,vault.manifest,{...read,section:'checklist'})).rejects.toThrow();
+  expect(await storedKeys(r.persist,'extras-part:nova:')).toEqual(['extras-part:nova:0']);
+  expect(await storedKeys(r.persist,'extras-part:checklist:')).toEqual([]);
+  // A Health deletion does not touch it (nothing in it is Health data); its own deletion counts a generation.
+  const vaultHead=await (await r.call('/v1/vault')).json();
+  expect((await r.call('/v1/domain',{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:vaultHead.revision,generation:0})).status).toBe(200);
+  expect(await storedKeys(r.persist,'extras-part:nova:')).toEqual(['extras-part:nova:0']);
+  expect((await json('/v1/extras',{protocol:1,action:'delete',vault:vault.manifest.vault,operation:crypto.randomUUID(),section:'nova',base:1,generation:0})).body).toEqual({revision:2,generation:1});
+  expect(await storedKeys(r.persist,'extras-part:nova:')).toEqual([]);
+  expect((await put('nova',2,{generation:1})).status).toBe(200);
+  // The account erase removes it with everything else.
+  expect((await json('/v1/account',{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'})).status).toBe(200);
+  expect(await storedKeys(r.persist,'extras-part:nova:')).toEqual([]);
+ }finally{await r.mf.dispose();}
+},60000);
+
 test('receipts are kept for the newest 64 writes across sections (FIX_PLAN B5 horizon)',async()=>{
  const {r,vault,json,put}=await setup();
  try{

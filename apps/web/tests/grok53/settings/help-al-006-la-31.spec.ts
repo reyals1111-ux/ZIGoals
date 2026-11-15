@@ -29,9 +29,10 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   await page.goto('/app/help'); await hydrated(page);
   const list = page.locator('#whats-new-alpha .help-whats-new-now');
   // Session AP (deliberate): this release's nine lines come first (the first five, the day rule, Bento, the floating
-  // buttons, Settings folded, planning, money, Health, Send feedback's details); the twelve before them stay, each still
-  // opening its answer (12 → 21).
-  await expect(list.getByRole('link')).toHaveCount(21);
+  // buttons, Settings folded, planning, money, Health, Send feedback's details); Session AM's NOVA stage line follows;
+  // the twelve before them stay, each still opening its answer (12 → 22 with both sessions).
+  await expect(list.getByRole('link')).toHaveCount(22);
+  await expect(list.getByRole('link', {name: /^NOVA makes a widget for what you ask/})).toHaveAttribute('href', '#help-nova-stage');
   for (const name of [/^NOVA: your private command center/, /^Notes that link/, /^Tasks with a calendar import/, /^The Checklist: your day as one path/]) await expect(list.getByRole('link', {name})).toBeVisible();
   for (const link of await list.getByRole('link').all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await list.getByRole('link', {name: /^Tasks with a calendar import/}).click();

@@ -35,8 +35,9 @@ test('the verifier\'s local stages run in its own order on one page: identity, g
   const report: StageReport = {stages: [], review: [], layouts: [], responses: [], builds: []};
   const ctx: StageContext = {base: new URL(baseURL!).origin, live: false, origins: LIVE_ORIGINS, expectedCommit: null, expect, report, reviewedVersions: REVIEWED_TESTNET_VERSIONS};
   // Session AF (ADR-028 H57): every local browser stage, the appended Earn (9), Checklist (10) and Session AL (12) stages included, after the others.
+  // Session AM (ADR-038): NOVA's stage (13) runs last, on the profile the earlier stages left (no arrangement of NOVA's own).
   const local = VERIFIER_STAGES.filter(stage => stage.browser && !stage.liveOnly);
-  expect(local.map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 9, 10, 11, 12]);
+  expect(local.map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 9, 10, 11, 12, 13]);
   for (const stage of local) {
     expect(stage.browser && !stage.liveOnly, stage.name).toBe(true);
     await test.step(`${stage.number}. ${stage.name}`, () => stage.run(page, ctx));

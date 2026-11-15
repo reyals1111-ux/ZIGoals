@@ -23,7 +23,10 @@ const AF_BALANCES = ' https://cosmos-rest.publicnode.com https://ethereum-rpc.pu
 // Session AK (Part 1a, TIER 3 (CSP)): WalletConnect's relay socket and Verify API between Spotify and the balance hosts, and
 // Verify's attestation pages after the chess frames, with the owner's Reown project id.
 const WALLETCONNECT = ' wss://relay.walletconnect.org https://verify.walletconnect.org https://verify.walletconnect.com';
-const APP_CONNECT = ` https://api.chess.com https://lichess.org https://accounts.spotify.com https://api.spotify.com${WALLETCONNECT}${AF_BALANCES}`, CHESS_FRAMES = 'frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/ https://verify.walletconnect.org/ https://verify.walletconnect.com/';
+// Session AM (TIER 3 (egress), ADR-038 D12, A2): MET Norway's open API between WalletConnect and the balance hosts (the
+// balance hosts stay the tail, lib/wallets/balances/hosts.test.ts), on /app documents only: NOVA's opt-in weather.
+const MET_NORWAY = ' https://api.met.no';
+const APP_CONNECT = ` https://api.chess.com https://lichess.org https://accounts.spotify.com https://api.spotify.com${WALLETCONNECT}${MET_NORWAY}${AF_BALANCES}`, CHESS_FRAMES = 'frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/ https://verify.walletconnect.org/ https://verify.walletconnect.com/';
 // Session AF (ADR-028 H16 (b), `TIER 3 (CSP)`): every document's shared chain origins gain ZIGChain mainnet's RPC right
 // after the testnet RPC (egress-policy.json chainOrigins), the host the browser signs native staking through. Nothing else
 // changes; the mainnet REST host stays server-only.
