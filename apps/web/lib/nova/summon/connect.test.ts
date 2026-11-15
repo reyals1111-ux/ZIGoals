@@ -235,8 +235,8 @@ describe('each new widget’s one line is its own selector’s figures (the Show
     expect(line('tasks-later')).toBe('This evening: 1 task; Someday: 1.');
     expect(line('tasks-later', SHOW, 'nl')).toBe('Vanavond: 1 taak; ooit: 1.');
     const next = countdownsCard(SHOW.countdowns!, SHOW.day).next!;
-    expect(line('countdowns')).toBe(`Days until ${next.title}: 3 (${next.dateText}); 2 more coming up.`);
-    expect(line('countdowns', SHOW, 'nl')).toBe(`Dagen tot ${next.title}: 3 (${next.dateText}); daarna nog 2.`);
+    expect(line('countdowns')).toBe(`Days until ${next.title}: 3 (${next.dateText}); 1 more coming up.`);
+    expect(line('countdowns', SHOW, 'nl')).toBe(`Dagen tot ${next.title}: 3 (${next.dateText}); daarna nog 1.`);
     const numbers = journalNumbersCard(SHOW.journal!, SHOW.day);
     expect(numbers.words).toBeGreaterThan(0);
     expect(line('journal-numbers')).toMatch(/^[\d,]+ words in \d+ entries this year(; writing streak \d+ days?)?\.$/);
