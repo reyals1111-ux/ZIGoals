@@ -1112,3 +1112,18 @@
    it, so its first letters were cut by the panel's edge. It starts at the ring's left edge instead (under the ring and
    the meter's first segments, 6 px below them). */
 .holo-health[data-size=S] .holo-ring > .holo-ring-centre > small { left: 0; translate: 0 0; }
+
+/* Round 4 (Agenda clock, Today's orbit; medium, wide). The list stands beside a dial, so in a body of 600 px it is
+   under 440 px wide, and a one-line row cut its title ("Example · Sketch the g…") while the 84 px time column and
+   "ANY TIME" kept their room. The list knows its own width (a container only in the wide layout, where it fills its
+   column): under 440 px its rows are the two-line rows of a narrow panel — the time and the state, then the title with
+   the whole line. */
+@container holo-body (min-width: 560px) { :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next { container: holo-next / inline-size; } }
+@container holo-next (max-width: 439.98px) {
+  :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li { grid-template-columns: minmax(0, max-content) minmax(0, 1fr); grid-template-areas: "time when" "title title"; align-items: baseline; column-gap: 8px; padding-top: 5px; }
+  :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li::before { top: 10px; }
+  :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li::after { top: 22px; bottom: -8px; }
+  :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li:last-child::after { bottom: 6px; }
+  :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li a, :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li > span:nth-child(2) { margin-top: -12px; margin-bottom: -6px; }
+  :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li small { text-transform: none; letter-spacing: 0; font-weight: 400; color: #c3cfe6; }
+}

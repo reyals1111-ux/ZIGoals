@@ -392,3 +392,6 @@
   .nc-habitweek[data-size=M] { grid-template-columns: auto minmax(0, 1fr); }
   .nc-habitweek[data-size=M] > .nc-lattice :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(92px, 1fr) repeat(7, minmax(14px, 24px)) 44px; gap: 6px; }
 }
+/* Round 4 (large, a narrower wing): a habit's name keeps 96 px before the lattice's cells keep their full size
+   ("Exerci…", "Medit…" and "Contri…" were cut at 72 px beside 28 px cells; the cells give way, down to 14 px). */
+.nc-habitweek[data-size=L] > .nc-lattice :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(96px, 1fr) repeat(7, minmax(14px, var(--nc-cell, 22px))) 46px; }
