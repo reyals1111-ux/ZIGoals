@@ -12765,6 +12765,12 @@
         background-image: none;
         background-color: #f5f7fad9
     }
+    .na-card-title:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .na-card-title:focus-visible:not(#\-) {
+        outline-color: var(--na-b)
+    }
     .na-card-title:not(#\-) {
         color: #0f0f0f
     }
@@ -13285,6 +13291,137 @@
     }
     @media (forced-colors: active) {
         .nc-lattice-row i[data-cell=done]:not(#\-), .nc-bar-track i:not(#\-), .nc-column i:not(#\-), .nc-capsule-track i:not(#\-), .nc-stack i:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            box-shadow: none
+        }
+    }
+}
+/*  components/nova/cards/connect-cards.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .nx-dial-figure b:not(#\-) {
+        color: var(--neon-ink, #0d0f14);
+        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .nx-dial-figure small:not(#\-) {
+        color: #090f1c
+    }
+    .nx-note:not(#\-) {
+        color: #090f1c
+    }
+    .nx-note[data-tone=watch]:not(#\-) {
+        color: #765527
+    }
+    .nx-cap:not(#\-) {
+        color: #090f1c
+    }
+    .nx-cap:not(#\-)::before {
+        background: var(--neon, #9273ff);
+        box-shadow: 0 0 6px var(--neon, #9273ff)
+    }
+    .nx-row:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #9273ff) 16%, transparent)
+    }
+    .nx-row:first-child:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)
+    }
+    .nx-row-node:not(#\-) {
+        background: var(--neon, #9273ff);
+        box-shadow: 0 0 7px 1px color-mix(in oklab, var(--neon, #9273ff) 80%, transparent)
+    }
+    .nx-row-node[data-tone=up]:not(#\-) {
+        background-image: none;
+        background-color: #ffd9a8;
+        box-shadow: 0 0 7px 1px #ffd9a8b3
+    }
+    .nx-row-node[data-tone=down]:not(#\-) {
+        background-image: none;
+        background-color: #a8f5d2;
+        box-shadow: 0 0 7px 1px #a8f5d2b3
+    }
+    .nx-row-name:not(#\-) {
+        color: #0d0f15
+    }
+    .nx-row-value:not(#\-) {
+        color: var(--neon-ink, #0d0f15)
+    }
+    .nx-row-sub:not(#\-) {
+        color: #0a111e
+    }
+    .nx-row-link:not(#\-) {
+        color: inherit
+    }
+    .nx-row-go:not(#\-) {
+        color: color-mix(in srgb, var(--neon-2, #634f99) 42%, #000)
+    }
+    .nx-readout:not(#\-) {
+        border-left-color: color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .nx-readout-label:not(#\-) {
+        color: #090f1c
+    }
+    .nx-readout-value:not(#\-) {
+        color: var(--neon-ink, #0d0f15);
+        text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent)
+    }
+    .nx-readout-sub:not(#\-) {
+        color: #090f1c
+    }
+    .nx-empty-line:not(#\-) {
+        color: #090f1c
+    }
+    .nx-chips li:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 46%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 10%, #f2f4fa);
+        color: #0b0f18
+    }
+    .nx-chips b:not(#\-) {
+        color: var(--neon-ink, #0d0f15)
+    }
+    .nx-key:not(#\-) {
+        color: #0a111e
+    }
+    .nx-key i:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #23eaff) 40%, transparent)
+    }
+    .nx-key i[data-cell=done]:not(#\-) {
+        border-color: var(--neon-2, #8ff6ff);
+        background-image: linear-gradient(150deg, #242424 0%, var(--neon-2, #8ff6ff) 24%, var(--neon, #23eaff) 68%);
+        background-color: transparent;
+        box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #23eaff) 70%, transparent)
+    }
+    .nx-key i[data-cell=part]:not(#\-) {
+        background-image: linear-gradient(to top, var(--neon, #23eaff) 50%, transparent 50%);
+        background-color: transparent;
+        border-color: var(--neon, #23eaff)
+    }
+    .nx-key i[data-cell=missed]:not(#\-) {
+        border-color: #33333385
+    }
+    .nx-key i[data-cell=rest]:not(#\-) {
+        border-color: transparent;
+        background-image: radial-gradient(circle, #24242440 0 1.5px, transparent 2px);
+        background-color: transparent
+    }
+    .nx-month .nc-lattice-label:not(#\-) {
+        color: #0a111e
+    }
+    .nx-quad li:not(#\-) {
+        border-left-color: color-mix(in oklab, var(--neon, #9273ff) 46%, transparent)
+    }
+    .nx-quad li[data-lead]:not(#\-) {
+        border-left-color: var(--neon, #9273ff)
+    }
+    .nx-quad b:not(#\-) {
+        color: var(--neon-ink, #0d0f15);
+        text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 18px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
+    }
+    .nx-quad span:not(#\-) {
+        color: #090f1c
+    }
+    @media (forced-colors: active) {
+        .nx-row-node:not(#\-), .nx-key i[data-cell=done]:not(#\-) {
             background-image: none;
             background-color: transparent;
             box-shadow: none
@@ -14668,6 +14805,9 @@
     }
     .nh-promise:not(#\-) {
         color: #0b0f19
+    }
+    .nh-outside:not(#\-) {
+        color: #71581b
     }
     .nh-fields dt:not(#\-) {
         color: color-mix(in oklab, color-mix(in srgb, var(--nh-b) 42%, #000) 30%, #0a111e)
@@ -18184,6 +18324,18 @@
     .nova-widget[data-holo] .holo-tasks[data-counters] .tasks-headline:not(#\-) {
         border-color: currentcolor
     }
+    .nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters div:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none
+    }
+    @container holo-body (min-width: 560px) {
+        .nova-widget[data-holo] .holo-tasks .holo-counters div:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            box-shadow: none
+        }
+    }
     .nova-widget[data-holo] .tasks-widget .task:not(#\-) {
         border-bottom-color: currentcolor
     }
@@ -18199,6 +18351,14 @@
     .nova-widget[data-holo] .tasks-widget .task-overdue .task-due:not(#\-) {
         color: #1b0a08
     }
+    .nova-widget[data-holo] .tasks-widget .task-overdue .task-done input:not(:checked):not(#\-) {
+        border-color: #ff8f88;
+        box-shadow: 0 0 8px -2px #ff6b5a, inset 0 0 8px -3px #ff6b5a
+    }
+    .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:focus-visible:not(#\-) {
+        background-image: none;
+        background-color: #f0f3fc
+    }
     .nova-widget[data-holo] .tasks-widget .tasks-add :is(.tasks-field-error, .tasks-field-note):not(#\-) {
         border-color: #ff8f88;
         background-image: none;
@@ -18213,11 +18373,6 @@
     }
     .nova-widget[data-holo] .tasks-widget .tasks-status:not([data-empty]):not(#\-) {
         color: #0a0f1b
-    }
-    .nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters div:not(#\-) {
-        background-image: none;
-        background-color: transparent;
-        box-shadow: none
     }
 }
 /*  components/nova/workflows/workflows.css  */
