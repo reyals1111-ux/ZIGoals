@@ -15,7 +15,7 @@ import type {Family} from './connect-families';
 export const MORE_FAMILIES: readonly Family[] = [
   {id: 'priority-matrix', en: /\b(priority matrix|eisenhower|urgent (?:and|or|vs) important|urgent tasks?|whats urgent|what is urgent|most (?:urgent|important) tasks?|important tasks?)\b/,
     nl: /\b(prioriteiten ?matrix|eisenhower|dringend(?:e)? (?:en|of) belangrijk(?:e)?|dringende taken|wat is (?:er )?dringend|belangrijk(?:st)?e taken)\b/},
-  {id: 'hour-grid', en: /\b(hour grid|hour by hour|by the hour|hourly (?:plan|view|schedule)|time ?block(?:s|ing)?|my hours today)\b/, nl: /\b(uurrooster|uur voor uur|per uur|tijdblokken|uurschema|mijn uren vandaag)\b/, stageOnly: true},
+  {id: 'hour-grid', en: /\b(hour grid|hour by hour|by the hour|hourly (?:plan|view|schedule)|time ?block(?:s|ing)?|my hours today|todays hours|hours (?:of|for) today)\b/, nl: /\b(uurrooster|uur voor uur|per uur|tijdblokken|uurschema|mijn uren vandaag)\b/, stageOnly: true},
   {id: 'reviews', en: /\b(weekly review|life review|my reviews?|review (?:due|day)|is my review due|when is my (?:next )?review|week in review)\b/,
     nl: /\b(weekreview|weekoverzicht|wekelijkse (?:review|terugblik)|levensreview|mijn reviews?|wanneer is mijn (?:volgende )?review|is mijn review)\b/},
   {id: 'milestones', en: /\b(milestones?)\b/, nl: /\b(mijlpalen|mijlpaal)\b/},
