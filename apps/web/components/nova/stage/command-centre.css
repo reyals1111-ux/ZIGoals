@@ -9,7 +9,7 @@
    window's edges so the widgets' own glow reads against them. */
 .cc-nebula { position: absolute; inset: -4%; pointer-events: none;
   background:
-    radial-gradient(30% 36% at 50% 44%, color-mix(in oklab, var(--nova-a, #9273ff) 15%, transparent), transparent 72%),
+    radial-gradient(24% 30% at 50% 44%, color-mix(in oklab, var(--nova-a, #9273ff) 7%, transparent), transparent 70%),
     radial-gradient(26% 30% at 28% 26%, color-mix(in oklab, var(--nova-c, #f06dff) 8%, transparent), transparent 70%),
     radial-gradient(30% 26% at 76% 68%, color-mix(in oklab, var(--nova-c, #f06dff) 8%, transparent), transparent 72%),
     radial-gradient(22% 26% at 80% 20%, color-mix(in oklab, var(--nova-b, #63e7ff) 6%, transparent), transparent 70%),
@@ -17,7 +17,8 @@
     radial-gradient(100% 84% at 50% 46%, transparent 24%, #010208e6 78%, #010208 100%); }
 /* Round 1 of the critique: the sky read as mid-lavender, and neon cannot bloom on a mid-tone. The night is near black
    now: AK's diagonal haze steps back under the Holo look, and the colour stays close to the star. */
-.nova-frame[data-look=holo]:not([data-phone]) > .nova-sky { opacity: .5; }
+/* Round 7 (both critics: "a lilac haze instead of black space"): the haze steps back again; the star's own light is the colour. */
+.nova-frame[data-look=holo]:not([data-phone]) > .nova-sky { opacity: .3; }
 /* The star's thin blue light streak, carried across the whole stage (owner screenshot 4): a line through the star's
    centre, inside its button, so it stays at the star's height. The star draws the bright middle itself; this line takes
    over where the star's own canvas fades and runs out toward both edges. */
@@ -27,14 +28,18 @@
 /* G4: the star's bezel — a ring of fine ticks in the galaxy's own plane (the disc's tilt and roll), just outside its
    arms, so it frames the star without crossing NOVA's name above it or its words below. Static. (AK's three orbit
    rings were centred on the words' stack, so they sat off the star; they give way while the star draws.) */
-.nova-orb-button > .cc-bezel { position: absolute; inset: auto; left: 50%; top: 50%; width: calc(var(--star-size, 440px) * 1.06); height: calc(var(--star-size, 440px) * 1.06); margin: calc(var(--star-size, 440px) * -.53) 0 0 calc(var(--star-size, 440px) * -.53); z-index: 0; pointer-events: none; opacity: .85; }
+/* Round 7 (both critics: the bezel and the state marks ran through "SPEAK NOW", "WORKING ON IT", "ANSWERING" and NOVA's
+   name): the bezel hugs the disc (0.9 of the star's box; it was 1.06), every state mark stays inside it, and the star's
+   slot in the stack is taller (nova-dashboard.tsx: 0.46 of the star's size), so the words clear the ring. */
+.nova-orb-button > .cc-bezel { position: absolute; inset: auto; left: 50%; top: 50%; width: calc(var(--star-size, 440px) * .9); height: calc(var(--star-size, 440px) * .9); margin: calc(var(--star-size, 440px) * -.45) 0 0 calc(var(--star-size, 440px) * -.45); z-index: 0; pointer-events: none; opacity: .95; }
 /* Beside widgets the bezel is drawn inside the star's column (the star's haze may lie behind the wings' glass; its bezel may not be cut by them). */
 .nova-frame[data-stage=set] .nova-orb-button > .cc-bezel { width: calc(var(--star-size, 440px) * .86); height: calc(var(--star-size, 440px) * .86); margin: calc(var(--star-size, 440px) * -.43) 0 0 calc(var(--star-size, 440px) * -.43); }
 .cc-bezel > svg { display: block; width: 100%; height: 100%; overflow: visible; fill: none; }
-.cc-bezel-line { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 60%, transparent); stroke-width: .3; }
-.cc-bezel-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 75%, transparent); stroke-width: 1.8; }
-.cc-bezel-marks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff); stroke-width: 3.6; }
-.cc-bezel-arc { stroke: color-mix(in oklab, var(--nova-a, #9273ff) 80%, #fff); stroke-width: .8; }
+.cc-bezel-line { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 78%, transparent); stroke-width: .55; }
+.cc-bezel-glow { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 22%, transparent); stroke-width: 2.6; } /* a soft second line: the standby bezel reads as lit, not as a hairline */
+.cc-bezel-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, transparent); stroke-width: 2.4; }
+.cc-bezel-marks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff); stroke-width: 5; }
+.cc-bezel-arc { stroke: color-mix(in oklab, var(--nova-a, #9273ff) 80%, #fff); stroke-width: 1.3; }
 /* N3b: the state's own mark on the bezel (static drawings; only their opacity changes, once per change of state). */
 .cc-state { opacity: 0; transition: opacity .35s ease-out; }
 .cc-bezel[data-state=listening] .cc-state-listening, .cc-bezel[data-state=thinking] .cc-state-thinking, .cc-bezel[data-state=speaking] .cc-state-speaking { opacity: 1; }
@@ -46,10 +51,21 @@
 .cc-state-speaking { stroke: #86f0d6; }
 @media (prefers-reduced-motion: reduce) { .cc-state { transition: none; } }
 :root[data-app-motion=off] .cc-state { transition: none; }
+/* Round 7 ("the centre telemetry is four hairline bars: make it pillar arcs around the star"): the four pillar rings are a
+   reticle over the galaxy's heart, sized by the star (they were sized by the small orb's box: ~290 px inside a 940 px star). */
+.nova-frame:not([data-phone]) .nova-orb-button[data-star] { --core-size: calc(var(--star-size, 440px) * .47); }
 .nova-stage[data-star] > .nova-rings { display: none; }
 /* A phone's star is small and already wears the four pillar rings: no bezel there. */
 .nova-frame[data-phone] .nova-orb-button > .cc-bezel { display: none; }
 /* A glow along the horizon, where the floor's grid ends (the line itself is the far edge of the grid plane, holo.css). */
+/* Round 7 ("panels all sit on one plane"; the owner's first screenshot: glass floating over a lit floor): pools of light on
+   the floor under the two wings and under the star, as if the panels and the star shone down on the grid. Static. */
+.cc-pool { position: absolute; bottom: 2%; height: 20%; pointer-events: none; }
+.cc-pool[data-at=left] { left: 2%; width: 34%; background: radial-gradient(50% 50% at 50% 60%, color-mix(in oklab, var(--nova-b, #63e7ff) 16%, transparent), transparent 72%); }
+.cc-pool[data-at=right] { right: 2%; width: 34%; background: radial-gradient(50% 50% at 50% 60%, color-mix(in oklab, var(--nova-c, #f06dff) 14%, transparent), transparent 72%); }
+.cc-pool[data-at=star] { left: 30%; width: 40%; bottom: 6%; height: 16%; background: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 26%, transparent), transparent 70%); }
+.nova-frame[data-phone] .cc-pool, .nova-frame[data-look=classic] .cc-pool, .nova-frame[data-stage=calm] .cc-pool:not([data-at=star]) { display: none; }
+@media (forced-colors: active) { .cc-pool { display: none; } }
 .cc-horizon { position: absolute; left: 0; right: 0; bottom: 14%; height: 22%; pointer-events: none;
   background: radial-gradient(60% 50% at 50% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 22%, transparent), transparent 70%); }
 .nova-frame[data-phone] :is(.cc-nebula, .cc-streak, .cc-horizon), .nova-frame[data-look=classic] .cc-streak { display: none; }

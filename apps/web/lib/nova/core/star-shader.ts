@@ -48,7 +48,7 @@ void main(){
   vec2 np = vec2(cos(nw), sin(nw)) * rr;
   float cloud = fbm(np*3.2 + vec2(3.7, uSpin*.05)), cloud2 = fbm(np*6.5 - vec2(1.3, 8.2));
   float neb = up(.4,.84, cloud) * dn(.08,.40, rr) * (.4+.8*cloud2);
-  col += mix(mix(uA, uC, up(.3,.8,cloud2)), peach, up(.5,.9,cloud)*.55) * neb * .6;
+  col += mix(mix(uA, uC, up(.3,.8,cloud2)), peach, up(.5,.9,cloud)*.7) * neb * .34;
   // ---- the disc: tilted, two log-spiral arms with finer spurs, the inner disc turns faster ----
   vec2 q = rot(ROLL) * uv; q.y /= TILT;
   float r = length(q), a = atan(q.y, q.x + 1e-5), lr = log(r+.02);
@@ -60,7 +60,7 @@ void main(){
   vec2 g = rot(uSpin*(.35+.14/(r+.2))) * q;
   float gas = fbm(g*5.5 + vec2(0., uSpin*.2)), gas2 = fbm(g*12. - vec2(uSpin*.15, 3.1));
   float disc = dn(.05,.64, r);
-  float dens = disc * (.10 + 1.1*arms + .26*spur) * (.14 + 1.6*gas*gas) * (.5+1.05*gas2);
+  float dens = disc * (.15 + 1.1*arms + .3*spur) * (.14 + 1.6*gas*gas) * (.5+1.05*gas2);
   float lane = up(.42,.78, fbm(g*8.+vec2(4.,1.)+phase*.12));
   dens *= mix(1., .2, lane*up(.07,.3,r));
   dens *= .78 + .5*noise(g*64. + vec2(uSpin*.3, 1.7));
@@ -80,14 +80,15 @@ void main(){
     float dust = edge * up(.25,.7, fbm(g*15. + vec2(9., 2.) + phase*.2)) * up(.08,.2,r) * dn(.3,.6,r);
     dens *= 1. - .78*dust;
   }
-  vec3 inner = mix(vec3(1.,.97,1.), mix(uA, vec3(1.), .3), up(.0,.12,r));
+  vec3 inner = mix(vec3(1.,.97,1.), mix(uA, vec3(1.), .16), up(.0,.09,r));
   vec3 mid = mix(inner, uC, up(.09,.28,r));
   vec3 outer = mix(mid, mix(uA, peach, .5 + .5*up(.35,.75,gas)), up(.24,.5,r));
   vec3 gasCol = mix(outer, uB, up(.5,.85,gas2)*arms*.8);
   gasCol = mix(gasCol, uA*.55, lane*.5);
-  col += gasCol * dens * 3.3;
+  dens *= .46 + 1.15*up(.06, .7, dens);
+  col += gasCol * dens * 2.6;
   // the arms' crests run hot: a white-violet light where the gas is densest
-  col += mix(vec3(1.), uC, .35) * up(.5, 1.3, dens) * arms * disc * .5 * fine;
+  col += mix(vec3(1.), uC, .55) * up(.55, 1.5, dens) * arms * disc * .26 * fine;
   // bright knots along the arms (star-forming regions)
   vec2 kg = g*30.; vec2 ki = floor(kg); float kh = hash(ki+3.1);
   float kd = length(fract(kg)-.5 - (vec2(hash(ki),hash(ki+9.))-.5)*.5);
@@ -95,16 +96,16 @@ void main(){
   col += mix(mix(uB, uC, step(.87, kh)), vec3(1.), .5) * knot * 1.25;
   // ---- the core: a white heart, a violet bloom, a thin accretion ring ----
   float pulse = 1. + .06*sin(uT*1.1) + .5*uSpeak*uPulse + .12*uThink*sin(uT*5.) + .22*uThink + .08*uListen;
-  float core = exp(-r*r*300./(pulse*pulse)) * 2.6 + exp(-r*16.)*.75*pulse + exp(-r*r*2600.)*1.8;
+  float core = exp(-r*r*560./(pulse*pulse)) * 1.25 + exp(-r*19.)*.34*pulse + exp(-r*r*5200.)*2.6 + exp(-rr*rr*90000.)*3.;
   col += mix(vec3(1.), uA*1.1+.3, up(0.,.18,r)) * core;
   float bulge = exp(-length(uv*vec2(1.,1.3))*7.5);
-  col += (uA*.6 + uC*.34 + .1) * (bulge * .8 + exp(-rr*7.)*.05) * pulse;
+  col += (uA*.6 + uC*.34 + .1) * (bulge * .42 + exp(-rr*7.)*.03) * pulse;
   float ringR = .085*pulse;
   float acc = dn(0.,.006, abs(r-ringR)) * (.55 + .45*cos(a - uSpin*3.)) + dn(0.,.03, abs(r-ringR))*.12;
   col += mix(uB, vec3(1.), .6) * acc * .7;
   // four-point glint
-  vec2 gv = rot(.38)*uv; float glint = exp(-abs(gv.x)*60.)*exp(-abs(gv.y)*8.) + exp(-abs(gv.y)*60.)*exp(-abs(gv.x)*8.);
-  col += vec3(.9,.92,1.) * glint * .3 * pulse;
+  vec2 gv = rot(.38)*uv; float glint = exp(-abs(gv.x)*170.)*exp(-abs(gv.y)*12.) + exp(-abs(gv.y)*170.)*exp(-abs(gv.x)*12.);
+  col += vec3(.92,.94,1.) * glint * .5 * pulse;
   // ---- listening: rings fall inward · speaking: rings travel outward · thinking: a sweep of light turns through the disc ----
   float wIn = .5+.5*sin(r*64. + uT*5.5), wOut = .5+.5*sin(r*44. - uT*7.);
   float ringIn = uListen * dn(.02,.5,r) * sq(sq(wIn)*sq(wIn)) * 1.5 * up(.03,.1,r);
@@ -113,7 +114,7 @@ void main(){
   // Each state also has a look of its own that a single still frame shows: listening is washed in the second colour with a
   // lit rim at the disc's edge; thinking carries two bright arcs that turn inside the disc and a whiter core; speaking is
   // warmed by the third colour.
-  col += uB * uListen * (disc * (.07 + .12*gas) + dn(0.,.010, abs(r-.535)) * .9);
+  col += uB * uListen * (disc * (.07 + .12*gas) + dn(0.,.008, abs(r-.455)) * .7);
   col += mix(uB, vec3(1.), .6) * uThink * dn(0.,.007, abs(r-.31)) * sq(.5+.5*cos(2.*a - uT*2.4)) * 1.3;
   col += uC * uSpeak * disc * (.06 + .10*gas);
   float sw = .5+.5*cos(a + uT*2.6), sw2 = .5+.5*cos(a + uT*2.6 + 3.14159); float sweep = sq(sq(sq(sw))) + sq(sq(sq(sw2)))*.55;
@@ -133,7 +134,7 @@ void main(){
   for(int k=0;k<3;k++){
     float fk = float(k); float z = fract(uT*(.03+.035*uThink) + fk*.333);
     vec2 pp = uv / (z*1.3+.07) * (4.+fk*1.7) + fk*13.7; vec2 pi = floor(pp); float ph = hash(pi+fk*7.3);
-    float sd = length(fract(pp)-.5 - (vec2(hash(pi+1.3),hash(pi+2.7))-.5)*.7); float tw = (dn(0., .05, sd) + dn(0., .014, sd)*1.5) * step(.9, ph);
+    float sd = length(fract(pp)-.5 - (vec2(hash(pi+1.3),hash(pi+2.7))-.5)*.7); float tw = (dn(0., .045, sd) + dn(0., .014, sd)*1.8) * step(.84, ph);
     col += mix(vec3(.8,.88,1.), uA+.4, ph*.5) * tw * up(0.,.3,z) * dn(.75,1.,z) * up(.09,.24,rr);
   }
   // ---- the thin horizontal light streak through the core ----
@@ -164,7 +165,8 @@ void main(){
     float lit = max(0., dot(nrm, L));
     float rim = sq(1.-nz)*sqrt(max(1.-nz, 0.)), facing = max(0., dot(n, -po/max(length(po), 1e-4)));
     // A body in every frame: a dark globe with faint bands, a thin lit limb all the way round, brightest toward the core.
-    vec3 pc = vec3(.012,.016,.045) + uA * .05 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uA, vec3(1.), .7) * lit*sqrt(max(lit, 0.)) * 3.2 + mix(uB, vec3(1.), .35) * rim * (.7 + 3.*facing);
+    float cres = sq(sq(lit)) * lit;
+    vec3 pc = vec3(.006,.008,.026) + uA * .035 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uC, vec3(1.), .78) * (cres * 2.6 + sq(lit)*.35) + mix(uB, vec3(1.), .45) * rim * (.5 + 4.2*facing);
     col = mix(col, pc, solid);
   }
   col += uB * exp(-max(pd-pr, 0.)*70.) * (.16 + .3*max(0., dot(d, -po)/max(pd*length(po), 1e-4))) * (1.-behind) * (1.-body);

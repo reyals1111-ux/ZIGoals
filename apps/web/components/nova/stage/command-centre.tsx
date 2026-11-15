@@ -13,7 +13,7 @@ import './command-centre.css';
  *   device, and the arrangement. It stays in place while the stage scrolls under it and never takes a tap.
  */
 export function StageDepth() {
-  return <><span className="cc-nebula"/><span className="cc-horizon"/></>;
+  return <><span className="cc-nebula"/><span className="cc-horizon"/><span className="cc-pool" data-at="left"/><span className="cc-pool" data-at="right"/><span className="cc-pool" data-at="star"/></>;
 }
 const MOTION_WORD: Record<string, string> = {full: 'Full', calm: 'Calm', still: 'Off', paused: 'Paused'};
 const LAYOUT_WORD: Record<string, string> = {orbit: 'Orbit', bento: 'Bento', focus: 'Focus', minimal: 'Minimal'};
