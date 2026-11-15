@@ -1,5 +1,6 @@
 import type {PathColour} from '../path/colours';
 import type {SetupStepId} from './setup';
+import {WEATHER_PROXY_URL} from './world/proxy';
 
 /**
  * Session AK, owner follow-up 2 (N3, lane NC): the words and facts of "Build your own NOVA". Every command and fact here
@@ -145,7 +146,9 @@ export const HERMES_WAY = {label: 'My Hermes Agent', href: '/app/nova/hermes', n
 /** Session AM-2 (owner's step 4c/4d): any other agent on this computer, and its tools, as a path beside Hermes (the setup hub's second guide). */
 export const OWN_AGENT_WAY = {label: 'Another agent, and my own tools', href: '/app/nova/setup#own-agent', note: 'Any OpenAI-compatible agent on this computer, and tool servers (MCP) that act with their own accounts: step by step, with live checks.'} as const;
 /** Session AM (ADR-038 D12, D13): the one outside service, said once in "What NOVA can see"; its switch is in NOVA → Permissions. */
-export const WEATHER_LINE = 'Weather is the only outside data, off until you turn it on in NOVA → Permissions; MET Norway then sees your network address and your place rounded to about 1 km.';
+/** Session AM-2 (4a): in a build that asks the weather through ZIGoals' weather proxy (lib/nova/world/proxy.ts), the line says who sees what in that case; in every other build it is Session AM's line, word for word. */
+export const WEATHER_LINE_PROXY = 'Weather is the only outside data, off until you turn it on in NOVA → Permissions; ZIGoals’ weather proxy then sees your network address and your place rounded to about 1 km, and MET Norway sees the proxy’s address and that rounded place, not yours.';
+export const WEATHER_LINE = WEATHER_PROXY_URL ? WEATHER_LINE_PROXY : 'Weather is the only outside data, off until you turn it on in NOVA → Permissions; MET Norway then sees your network address and your place rounded to about 1 km.';
 
 /** The ten planets: words and look (four orbits, in the path engine's palette). */
 /** `tab` (Session AK M7, layout audit): the shorter name the planet's tab shows on the path where the full one ran past a 320 px

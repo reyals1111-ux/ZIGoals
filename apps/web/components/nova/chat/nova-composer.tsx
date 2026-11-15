@@ -100,7 +100,7 @@ export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function Nova
     {(() => { if (!text.trim() || !settings.enabled || settings.mode === 'subscription') return null; let mode = null as ReturnType<typeof readPrivacyMode>; try { mode = readPrivacyMode(getAppStorage()); } catch { return null; } const note = noModeCloudNote(mode, settings.provider, settings.provider && settings.provider !== 'local' ? PROVIDERS[settings.provider].name : 'your AI'); return note ? <p className="ai-note nova-no-mode" role="note">{note} <Link className="text-link" href="/app/nova/setup" prefetch={false}>Choose a mode</Link></p> : null; })()}
     <div className="nova-composer">
       <textarea ref={ref} value={text} rows={1} maxLength={MAX_INPUT_CHARS} enterKeyHint="send" autoComplete="off" aria-label={`Message ${persona}`} aria-describedby={hintId} placeholder={`Message ${persona}…`}
-        onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }}
+        onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }} onDrop={() => { pasted.current = true; }}
         onKeyDown={e => {
           if (e.key === 'ArrowUp' && !text && !busy) { const last = lastQuestion(session.chat); if (last) { e.preventDefault(); onEditing({id: last.id, text: last.text, seq: Date.now()}); } return; }
           if (e.key === 'Escape' && editing) { e.preventDefault(); e.stopPropagation(); clear(); return; }

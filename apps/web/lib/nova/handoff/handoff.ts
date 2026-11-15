@@ -1,6 +1,7 @@
 import {cardNumberIn} from '../../ai/safety-guard';
 import {looksSecret as looksKeyOrPassword} from '../../ai/memory';
 import {buildIcs, MAX_DESCRIPTION} from '../../ics/ics';
+import {hasInvisible, stripInvisible} from '../invisible';
 import {looksSecret as looksRecoveryWordsOrKey} from '../../secret-guard/guard';
 
 /**
@@ -37,7 +38,9 @@ export type EmailHandoff = {kind: 'email'; to: string[]; subject: string; body: 
   /** The link the button opens. When the whole draft does not fit a link, this one carries the address and the subject only (`bodyInLink` false). */
   href: string; bodyInLink: boolean;
   /** Who the person named without an address ("Anna"): shown on the card, never put in the link. */
-  named?: string};
+  named?: string;
+  /** Security review (finding 5): the addresses that do not stand in the person's own typed words (a model chose them); the card warns about each. */
+  unverified?: string[]};
 export type CalendarHandoff = {kind: 'calendar'; title: string; date: string; time?: string; minutes?: number; note?: string; fileName: string; ics: string};
 export type ShareHandoff = {kind: 'share'; title?: string; text?: string; url?: string; host?: string};
 export type LinkHandoff = {kind: 'link'; href: string; host: string; secure: boolean;
@@ -52,13 +55,21 @@ export type Handoff = EmailHandoff | CalendarHandoff | ShareHandoff | LinkHandof
 export type Built<T extends Handoff = Handoff> = {ok: true; handoff: T} | {ok: false; reason: 'secret' | 'empty' | 'address' | 'link' | 'date' | 'long'; words: string};
 
 // ── Plain text ──────────────────────────────────────────────────────────────────────────────────────────────────────
-/** Control characters (a line break and a tab aside), the direction overrides and isolates, and the invisible marks. */
-const HIDDEN = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f​-‏‪-‮⁠-⁩﻿]/g;
+/**
+ * Security review (AM-2, finding 2): what a card shows must be exactly what leaves. Every character a person cannot see
+ * (lib/nova/invisible.ts: the Unicode format characters — soft hyphen, zero-width and direction marks, the tag block —
+ * variation selectors, fillers) is removed from every field before the card is built and before the secret checks read
+ * it; it leaves no gap, so a soft hyphen inside a recovery word or between a card number's groups hides nothing.
+ * Control characters (a line break and a tab aside) become a space in one line and are removed in several.
+ */
+const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/g;
 const LONE_SURROGATE = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/g;
-/** One line: what is hidden is removed, every run of white space is one space. */
-export const oneLine = (text: unknown, max: number): string => clip(String(text ?? '').replace(HIDDEN, ' ').replace(LONE_SURROGATE, '').replace(/\s+/g, ' ').trim(), max);
-/** Several lines: line breaks kept (as \n), at most two in a row; what is hidden is removed. */
-export const plainText = (text: unknown, max: number): string => clip(String(text ?? '').replace(/\r\n|\r/g, '\n').replace(HIDDEN, '').replace(LONE_SURROGATE, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim(), max);
+/** One line: what cannot be seen is removed, every run of white space is one space. */
+export const oneLine = (text: unknown, max: number): string => clip(stripInvisible(String(text ?? '')).replace(CONTROL, ' ').replace(LONE_SURROGATE, '').replace(/\s+/g, ' ').trim(), max);
+/** Several lines: line breaks kept (as \n), at most two in a row; what cannot be seen is removed. */
+export const plainText = (text: unknown, max: number): string => clip(stripInvisible(String(text ?? '')).replace(/\r\n|\r|\u2028|\u2029/g, '\n').replace(CONTROL, '').replace(LONE_SURROGATE, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim(), max);
+/** Whether a text holds a character that cannot be seen or a control character (a line break and a tab aside). */
+export const holdsHidden = (text: string): boolean => hasInvisible(text) || text.replace(CONTROL, '') !== text;
 /** Cut on whole characters (never inside a surrogate pair). */
 function clip(text: string, max: number): string { const chars = [...text]; return chars.length <= max ? text : chars.slice(0, max).join('').trimEnd(); }
 const sentence = (text: string): string => text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
@@ -70,8 +81,9 @@ export const SECRET_WORDS: Readonly<Record<HandoffLang, string>> = {
 };
 /** The guard's secret checks (lib/secret-guard, lib/ai/memory, lib/ai/safety-guard) on every part and on the parts together. */
 export function holdsSecret(parts: readonly (string | undefined | null)[]): boolean {
-  const texts = parts.filter((p): p is string => typeof p === 'string' && p.length > 0);
-  const one = (text: string) => looksRecoveryWordsOrKey(text) || looksKeyOrPassword(text) || cardNumberIn(text);
+  // Finding 2: the checks read the text without what cannot be seen, and a card number's groups whatever space or dash stands between them.
+  const texts = parts.filter((p): p is string => typeof p === 'string' && p.length > 0).map(p => stripInvisible(p)).filter(Boolean);
+  const one = (text: string) => looksRecoveryWordsOrKey(text) || looksKeyOrPassword(text) || cardNumberIn(text) || cardNumberIn(text.replace(/(?<=\d)[\s\u2010-\u2015\u2212]+(?=\d)/g, ' '));
   return texts.some(one) || (texts.length > 1 && one(texts.join('\n')));
 }
 const refused = (lang: HandoffLang): Built<never> => ({ok: false, reason: 'secret', words: SECRET_WORDS[lang]});
@@ -94,7 +106,9 @@ export function mailtoLink(to: readonly string[], subject: string, body: string)
   const fields = [subject ? `subject=${mailtoEncode(subject)}` : '', body ? `body=${mailtoEncode(body)}` : ''].filter(Boolean).join('&');
   return `mailto:${who}${fields ? `?${fields}` : ''}`;
 }
-export type EmailInput = {to?: readonly string[]; named?: string; subject?: string; body?: string};
+export type EmailInput = {to?: readonly string[]; named?: string; subject?: string; body?: string;
+  /** For a draft the person did not word themselves: whether an address stands in their own typed words. Absent: the addresses are the person's own. */
+  typedAddress?: (address: string) => boolean};
 export function buildEmail(input: EmailInput, lang: HandoffLang = 'en'): Built<EmailHandoff> {
   const asked = (input.to ?? []).map(a => oneLine(a, MAX_ADDRESS + 1)).filter(Boolean);
   if (asked.length > MAX_TO) return no('address', `An email draft takes at most ${MAX_TO} addresses; add the others in your mail app.`, `Een e-mailconcept neemt hooguit ${MAX_TO} adressen; voeg de andere toe in je mailapp.`, lang);
@@ -107,16 +121,36 @@ export function buildEmail(input: EmailInput, lang: HandoffLang = 'en'): Built<E
   const whole = mailtoLink(to, subject, body), bodyInLink = whole.length <= MAILTO_MAX;
   const href = bodyInLink ? whole : mailtoLink(to, subject, '');
   if (href.length > MAILTO_MAX) return no('long', 'This subject is too long for a mail link. Make it shorter.', 'Dit onderwerp is te lang voor een maillink. Maak het korter.', lang);
-  return {ok: true, handoff: {kind: 'email', to, subject, body, href, bodyInLink, ...(named && !to.length ? {named} : {})}};
+  const unverified = input.typedAddress ? to.filter(a => !input.typedAddress!(a)) : [];
+  return {ok: true, handoff: {kind: 'email', to, subject, body, href, bodyInLink, ...(named && !to.length ? {named} : {}), ...(unverified.length ? {unverified} : {})}};
 }
 
 // ── A link ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 const BARE_HOST = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}(?::\d{1,5})?(?:[/?#][^\s]*)?$/i;
-/** A link in running text: with its scheme, or a bare name with a known shape ("example.com/page"). Trailing sentence punctuation is not part of it. */
-export const URL_IN_TEXT = /\bhttps?:\/\/[^\s<>"'`]+|\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:com|org|net|io|app|dev|nl|be|de|fr|uk|eu|co|info|me|ai|gov|edu)\b(?::\d{1,5})?(?:\/[^\s<>"'`]*)?/gi;
 /** A bare name the person may type for a site ("example.com/page"): only with a common ending, so "notes.txt" is not a link. */
 export const BARE_LINK = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:com|org|net|io|app|dev|nl|be|de|fr|uk|eu|co|info|me|ai|gov|edu)(?::\d{1,5})?(?:[/?#]\S*)?$/i;
-export const trimLink = (found: string): string => found.replace(/[.,;:!?)\]}'"»”’]+$/, '');
+const TRAILING = new Set([...'.,;:!?)]}\'"»”’']), LEADING = new Set([...'([{<\'"`«“‘']);
+/** A word without the sentence punctuation after it (read from the end, one character at a time). */
+export function trimLink(found: string): string { let end = found.length; while (end > 0 && TRAILING.has(found[end - 1]!)) end--; return found.slice(0, end); }
+const bare = (word: string): string => { let start = 0; while (start < word.length && LEADING.has(word[start]!)) start++; return trimLink(word.slice(start)); };
+/**
+ * Security review (finding 12): the links and the mail addresses in running text, read in one pass. The text is split on
+ * white space and each word is read once, from its start (no pattern searches the whole text, so a long run such as
+ * "a.a.a.…" costs its length, not its square). A word longer than a link or an address may be is not read at all.
+ */
+export const TYPED_READ_CHARS = 4000, TYPED_READ_MESSAGES = 20;
+export function linksIn(text: string): string[] {
+  const out: string[] = [];
+  for (const word of text.split(/\s+/)) { if (word.length < 4 || word.length > MAX_URL) continue; const w = bare(word); if (/^https?:\/\/[^/?#]/i.test(w) || BARE_LINK.test(w)) out.push(w); }
+  return out;
+}
+export function addressesIn(text: string): string[] {
+  const out: string[] = [];
+  for (const word of text.split(/[\s,;<>()[\]"']+/)) { if (word.length < 6 || word.length > MAX_ADDRESS + 2) continue; const w = trimLink(word.replace(/^mailto:/i, '')); if (isAddress(w)) out.push(w.toLowerCase()); }
+  return out;
+}
+/** The part of the person's typed words that is read for links and addresses: the newest messages, the end of each. */
+export const recentTyped = (typed: readonly string[] | undefined | null): string[] => (typed ?? []).slice(-TYPED_READ_MESSAGES).map(text => String(text).slice(-TYPED_READ_CHARS));
 export type LinkInput = {url: string; source: HandoffSource; /** A name without a scheme ("example.com") reads as https. Only for the person's own words. */ bare?: boolean};
 /**
  * A link the card may open: http or https only, parsed by the browser's own URL parser, so the host on the card is the
@@ -129,7 +163,7 @@ export function buildLink(input: LinkInput, lang: HandoffLang = 'en'): Built<Lin
   const not = (en: string, nl: string) => no('link', en, nl, lang);
   if (!raw) return not('Which link? Give its whole address, such as https://example.com.', 'Welke link? Geef het hele adres, zoals https://voorbeeld.nl.');
   if (raw.length > MAX_URL) return not('This link is too long to show in full on a card, so I will not open it.', 'Deze link is te lang om volledig op een kaart te tonen, dus open ik hem niet.');
-  if (/[\s\\]/.test(raw) || raw.replace(HIDDEN, '') !== raw || raw.replace(LONE_SURROGATE, '') !== raw) return not('This link holds a space, a backslash or a hidden character. I only open plain web links.', 'Deze link bevat een spatie, een backslash of een verborgen teken. Ik open alleen gewone weblinks.');
+  if (/[\s\\]/.test(raw) || holdsHidden(raw) || raw.replace(LONE_SURROGATE, '') !== raw) return not('This link holds a space, a backslash or a hidden character. I only open plain web links.', 'Deze link bevat een spatie, een backslash of een verborgen teken. Ik open alleen gewone weblinks.');
   const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : input.bare && BARE_HOST.test(raw) ? `https://${raw}` : raw;
   if (!/^https?:\/\/[^/?#]/i.test(withScheme)) return not('I only open web links that start with https:// or http://.', 'Ik open alleen weblinks die met https:// of http:// beginnen.');
   let url: URL;
@@ -151,7 +185,7 @@ export function realDay(date: string): boolean {
   const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
   return Number(m[1]) >= 1970 && Number(m[1]) <= 2200 && d.getUTCFullYear() === Number(m[1]) && d.getUTCMonth() === Number(m[2]) - 1 && d.getUTCDate() === Number(m[3]);
 }
-const slug = (text: string): string => text.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '') || 'event';
+const slug = (text: string): string => text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '') || 'event';
 export type CalendarInput = {title: string; date: string; time?: string | null; minutes?: number | null; note?: string};
 /** One event as an .ics file (RFC 5545 through lib/ics/ics.ts: escaped text, folded lines, a stable UID so adding it twice updates the same event). */
 export function buildCalendar(input: CalendarInput, now: Date, lang: HandoffLang = 'en'): Built<CalendarHandoff> {

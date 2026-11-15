@@ -50,7 +50,7 @@ describe('the event-stream reader', () => {
     expect(parseSse(': keep-alive\n\ndata:x\n\n')).toEqual([{event: 'message', data: 'x'}]);
     expect(parseSse('data:  two spaces\n\n')).toEqual([{event: 'message', data: ' two spaces'}]);
     expect(parseSse('data: a\r\n\r\ndata: b\r\rdata: c\n\n')).toEqual([{event: 'message', data: 'a'}, {event: 'message', data: 'b'}, {event: 'message', data: 'c'}]);
-    expect(parseSse('﻿data: bom\n\n')).toEqual([{event: 'message', data: 'bom'}]);
+    expect(parseSse('\uFEFFdata: bom\n\n')).toEqual([{event: 'message', data: 'bom'}]);
     expect(parseSse('id: 7\nretry: 100\nevent: ping\ndata: x\n\n')).toEqual([{event: 'ping', data: 'x'}]);
     expect(parseSse('data\n\n')).toEqual([{event: 'message', data: ''}]); // a field with no colon has an empty value
     expect(parseSse('event: only\n\n')).toEqual([]); // no data: no event
@@ -156,7 +156,7 @@ describe('the client: connect, list, call', () => {
       const {session} = await connect(ADDRESS, {fetcher: s.fetcher});
       expect(session.protocol).toBe(protocol); expect(headersOf(s.seen[2]!)['mcp-protocol-version']).toBe(protocol);
     }
-    for (const protocol of ['1999-01-01', '2099-01-01', '', 3]) {
+    for (const protocol of ['1999-01-01', '2099-01-01', '2025-11-25', '2025-06-19', '2024-11-5', 'latest', '', 3]) { // any other date is not understood, a later one included
       const s = server(seen => seen.body?.method === 'initialize' ? json({jsonrpc: '2.0', id: 1, result: {protocolVersion: protocol, capabilities: {}}}) : good()(seen, 0));
       await expect(openSession(ADDRESS, {fetcher: s.fetcher})).rejects.toMatchObject({problem: 'version', message: BRIDGE_WORDS.version});
       expect(s.seen).toHaveLength(1); // nothing after the refused version

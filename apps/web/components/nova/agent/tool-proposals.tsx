@@ -1,9 +1,11 @@
 'use client';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {guardLanguage} from '../../../lib/ai/safety-guard';
-import {toolByName} from '../../../lib/ai/tools/registry';
+import {holdsToolResult} from '../../../lib/nova/agent-bridge/plain';
 import {cardFromReply, type ToolCard} from '../../../lib/nova/agent-bridge/propose';
 import {wrapToolResult, type ToolOutcome} from '../../../lib/nova/agent-bridge/untrusted';
+import {healthReadOver, heldOutsideText, type ConversationTurn} from '../../../lib/nova/handoff/health';
+import {OUTSIDE_TEXT_LINE} from '../../../lib/nova/handoff/words';
 import {privacyMode} from '../../../lib/nova/privacy-mode';
 import type {ChatSession} from '../../ai/use-chat-session';
 import {ToolCardDialog} from './tool-card';
@@ -24,12 +26,13 @@ import './agent.css';
  * (`wrapToolResult`) and marked pasted, so no card of that reply is ever auto-accepted and no tool card can follow it.
  * Replies that were already in the conversation when it opened are history: they never bring a card.
  */
-export function ToolProposals({session, connected, healthOpen, onAttention}: {session: ChatSession; /** A model is connected (only then can a result be handed to it). */ connected: boolean; /** NOVA's Health permission and this device's Health gate are both on. */ healthOpen: boolean;
-  /** Opens the conversation when it is folded away, so a dropped proposal's line is read (the card itself is a dialog over the page). */ onAttention?: () => void}) {
+export function ToolProposals({session, connected, healthOpen, onAttention, wasPasted}: {session: ChatSession; /** A model is connected (only then can a result be handed to it). */ connected: boolean; /** NOVA's Health permission and this device's Health gate are both on. */ healthOpen: boolean;
+  /** Opens the conversation when it is folded away, so a dropped proposal's line is read (the card itself is a dialog over the page). */ onAttention?: () => void;
+  /** Whether a message of this visit held pasted, dropped or handed-in words (NOVA's chat keeps the mark it sent with). */ wasPasted?: (text: string) => boolean}) {
   const bridge = useAgentBridge();
-  const [pending, setPending] = useState<{card: ToolCard; typed: string; lang: 'en' | 'nl'} | null>(null), [notes, setNotes] = useState<string[]>([]);
-  const seen = useRef<{chat: string; ids: Set<string>} | null>(null), health = useRef(healthOpen), attention = useRef(onAttention);
-  useEffect(() => { health.current = healthOpen; attention.current = onAttention; }, [healthOpen, onAttention]);
+  const [pending, setPending] = useState<{card: ToolCard; typed: string; lang: 'en' | 'nl'; healthRead: boolean} | null>(null), [notes, setNotes] = useState<string[]>([]);
+  const seen = useRef<{chat: string; ids: Set<string>} | null>(null), health = useRef(healthOpen), attention = useRef(onAttention), pasted = useRef(wasPasted);
+  useEffect(() => { health.current = healthOpen; attention.current = onAttention; pasted.current = wasPasted; }, [healthOpen, onAttention, wasPasted]);
   const turns = session.chat.turns, chatId = session.chat.id, status = session.status, lookupsFor = session.lookupsFor;
   useEffect(() => {
     if (seen.current?.chat !== chatId) { seen.current = {chat: chatId, ids: new Set(turns.map(t => t.id))}; setPending(null); setNotes([]); return; }
@@ -43,14 +46,22 @@ export function ToolProposals({session, connected, healthOpen, onAttention}: {se
     if (!lookups.length) return;
     // The person's own message this reply answers: the last one before it in the conversation.
     const at = turns.findIndex(t => t.id === reply.id), question = [...turns.slice(0, at < 0 ? turns.length : at)].reverse().find(t => t.role === 'user')?.text ?? '';
+    // The conversation as it stands (security review, findings 4, 6 and 11): what each turn read and where its words came from.
+    const conversation: ConversationTurn[] = turns.map(t => ({text: t.text, records: t.records ?? [], tools: [...(t.tools ?? []).map(c => ({tool: c.tool})), ...(lookupsFor(t.id) ?? []).map(l => ({tool: l.result.tool}))],
+      ...(t.role === 'user' && pasted.current?.(t.text) ? {pasted: true} : {})}));
+    const lang = guardLanguage(question), fromOutside = !!pasted.current?.(question) || holdsToolResult(question);
     const out = cardFromReply({
       calls: lookups.map(l => ({tool: l.result.tool, args: l.args, ok: l.result.ok})), question,
+      // Pasted or dropped words are not "typed by you": they satisfy neither Strict nor the card's "you typed it" reading.
+      typed: fromOutside ? '' : question,
       hidden: document.visibilityState !== 'visible', offered: offeredNow(), mode: privacyMode(), healthOpen: health.current,
-      healthLookup: lookups.some(l => l.result.ok && toolByName(l.result.tool)?.area === 'health'),
+      // Any turn of this conversation that read Health, not only this reply.
+      healthLookup: healthReadOver(conversation),
+      ...(heldOutsideText(conversation) ? {notices: [OUTSIDE_TEXT_LINE[lang]]} : {}),
     });
     setNotes(out.dropped.map(d => d.message));
     if (out.dropped.length) attention.current?.();
-    if (out.card) setPending({card: out.card, typed: question, lang: guardLanguage(question)});
+    if (out.card) setPending({card: out.card, typed: fromOutside ? '' : question, lang, healthRead: healthReadOver(conversation)});
   }, [turns, chatId, status, lookupsFor]);
   const handBack = useCallback((card: ToolCard, outcome: ToolOutcome) => {
     void session.send(wrapToolResult({origin: card.origin, tool: card.tool.name, text: outcome.text}), {area: 'today', pasted: true});
@@ -58,7 +69,7 @@ export function ToolProposals({session, connected, healthOpen, onAttention}: {se
   return <>
     {notes.length > 0 && <div className="na-panel na-drop" role="status" data-tool-dropped="">{notes.map(n => <p key={n} className="na-fine">{n}</p>)}
       <div className="na-keys"><button type="button" className="na-key" data-quiet="" onClick={() => setNotes([])}>Dismiss</button></div></div>}
-    {pending && <ToolCardDialog card={pending.card} lang={pending.lang} ctx={{mode: privacyMode(), healthOpen, typed: pending.typed}} run={(card, ctx) => bridge.run(card, ctx, {keep: session.kept})} onClose={() => setPending(null)} {...(connected ? {onHandBack: handBack} : {})}/>}
+    {pending && <ToolCardDialog card={pending.card} lang={pending.lang} ctx={{mode: privacyMode(), healthOpen, typed: pending.typed, ...(pending.healthRead ? {healthLookup: true} : {})}} run={(card, ctx) => bridge.run(card, ctx, {keep: session.kept})} onClose={() => setPending(null)} {...(connected ? {onHandBack: handBack} : {})}/>}
   </>;
 }
 export default ToolProposals;

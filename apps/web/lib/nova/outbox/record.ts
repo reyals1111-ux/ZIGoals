@@ -24,7 +24,7 @@ export type OutboxKind = (typeof OUTBOX_KINDS)[number];
 export type OutboxEntry = {at: string; kind: OutboxKind; what: string; target: string; ok: boolean};
 
 /** Control characters, and the direction overrides and invisible marks that could make a stored target read as another one. */
-const UNSAFE = /[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁩﻿]/;
+const UNSAFE = /[\u0000-\u001f\u007f-\u009f\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/;
 const UNSAFE_ALL = new RegExp(UNSAFE.source, 'g');
 const iso = z.string().min(10).max(40).refine(s => !Number.isNaN(Date.parse(s)), 'A time.');
 const plain = (max: number) => z.string().max(max).refine(s => !UNSAFE.test(s), 'Plain text.');

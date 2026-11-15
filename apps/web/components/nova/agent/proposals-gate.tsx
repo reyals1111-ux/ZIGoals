@@ -10,7 +10,7 @@ const ToolProposals = lazy(() => import('./tool-proposals'));
  * server is connected in this visit — without one no tool is offered to a model, so there is nothing to propose and the
  * conversation carries none of it.
  */
-export function ToolProposalsGate(props: {session: ChatSession; connected: boolean; healthOpen: boolean; /** Opens the conversation when it is folded away (a dropped proposal is said there). */ onAttention?: () => void}) {
+export function ToolProposalsGate(props: {session: ChatSession; connected: boolean; healthOpen: boolean; /** Opens the conversation when it is folded away (a dropped proposal is said there). */ onAttention?: () => void; /** Whether a message of this visit held pasted, dropped or handed-in words. */ wasPasted?: (text: string) => boolean}) {
   const live = useSyncExternalStore(subscribeLive, liveSnapshot, () => EMPTY_LIVE);
   if (!live.size) return null;
   return <LoadBoundary quiet><Suspense fallback={null}><ToolProposals {...props}/></Suspense></LoadBoundary>;

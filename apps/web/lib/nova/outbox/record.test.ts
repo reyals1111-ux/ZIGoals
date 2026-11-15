@@ -39,13 +39,13 @@ describe('NOVA\'s outbox record (zigoals:nova-outbox:v1)', () => {
     expect(JSON.stringify(r)).not.toContain('private');
   });
   test('words are one plain bounded line: control, direction-override and invisible characters never reach the record', () => {
-    const r = appendOutbox(emptyOutbox(), entry(1, {what: `  Email\n\tdraft\u0000 ${'x'.repeat(200)}`, target: `evil‮moc.elpmaxe⁦@​example.com\r\n${'y'.repeat(400)}`}));
+    const r = appendOutbox(emptyOutbox(), entry(1, {what: `  Email\n\tdraft\u0000 ${'x'.repeat(200)}`, target: `evil\u202Emoc.elpmaxe\u2066@\u200Bexample.com\r\n${'y'.repeat(400)}`}));
     const [e] = outboxOf(r);
     expect(e!.what.length).toBeLessThanOrEqual(MAX_OUTBOX_WHAT);
     expect(e!.target.length).toBeLessThanOrEqual(MAX_OUTBOX_TARGET);
     expect(e!.what.startsWith('Email draft x')).toBe(true);
     expect(e!.target.startsWith('evil moc.elpmaxe @ example.com y')).toBe(true);
-    for (const text of [e!.what, e!.target]) expect(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁩﻿]/.test(text)).toBe(false);
+    for (const text of [e!.what, e!.target]) expect(/[\u0000-\u001f\u007f-\u009f\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/.test(text)).toBe(false);
   });
   test('an entry that is not one is not added: no words, no time, an unknown kind; "ok" is true only when it is exactly true', () => {
     const base = appendOutbox(emptyOutbox(), entry(1));
@@ -60,7 +60,7 @@ describe('NOVA\'s outbox record (zigoals:nova-outbox:v1)', () => {
   });
   test('a tolerant, bounded read: an entry a later build wrote is left out, an over-long list keeps its first 200, another version is refused', () => {
     const good = entry(1), later = {at: at(2), kind: 'agent', what: 'later', target: '', ok: true};
-    expect(novaOutboxSchema.parse({version: 1, entries: [later, good, 'text', null, {...good, what: 'x'.repeat(MAX_OUTBOX_WHAT + 1)}, {...good, target: 'a‮b'}]})).toEqual({version: 1, entries: [good]});
+    expect(novaOutboxSchema.parse({version: 1, entries: [later, good, 'text', null, {...good, what: 'x'.repeat(MAX_OUTBOX_WHAT + 1)}, {...good, target: 'a\u202Eb'}]})).toEqual({version: 1, entries: [good]});
     expect(novaOutboxSchema.parse({version: 1, entries: Array.from({length: 500}, (_, i) => entry(i % 60))}).entries).toHaveLength(MAX_OUTBOX);
     for (const refused of [{version: 2}, {entries: []}, {version: 1, entries: 'x'}, null, []]) expect(novaOutboxSchema.safeParse(refused).success, JSON.stringify(refused)).toBe(false);
     // A field a later build adds to an entry or to the record is kept as it is.

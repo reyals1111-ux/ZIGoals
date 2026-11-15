@@ -28,6 +28,7 @@ import {localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} fro
 import {examplesIn, noModelReply, questionLanguage} from '../../lib/ai/local-answers/no-model';
 import {toolEnv, type ToolEnv} from '../../lib/ai/tools/env';
 import {runTool} from '../../lib/ai/tools/registry';
+import {storedToolCall} from '../../lib/ai/tools/nova-agent';
 import {recordsForAi, recordsIn} from '../../lib/ai/local-answers/more';
 import {dataMode, fallbackKey, isToolRejection, readCapability, type Capability, type DataMode} from '../../lib/ai/capabilities';
 import {Handles} from '../../lib/ai/handles';
@@ -265,7 +266,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     text = withHonestClaims(text, guardLanguage(text));
     const made = {...assistantTurn({text, provider: extra.provider ?? (hosted ? null : settings.provider), model: extra.model ?? (hosted ? hosted.model : settings.model), usage, stopped}), ...(hosted ? {source: 'hosted' as const} : {})};
     // What the AI looked at (tool, arguments, label; never the results) and "deep" make the chat a version 2 record.
-    const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(l.args), label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {}), ...(extra.records?.length ? {records: extra.records} : {})};
+    const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(storedToolCall(l.result, l.args)) /* AM-2: a proposed tool call is kept by its tool and server only, never its arguments */, label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {}), ...(extra.records?.length ? {records: extra.records} : {})};
     if (extra.lookups?.length) lookups.current.set(turn.id, extra.lookups);
     // Session AK (N9; review Z1A-2): a reply driven by words the person did not type here is never auto-accepted (lib/ai/untrusted.ts).
     handles.current.set(turn.id, contextHandles); if (!extra.untrusted) fresh.current.add(turn.id);

@@ -1,7 +1,8 @@
 import {redactionSummary, redactText} from '../redact';
 import type {PrivacyMode} from '../setup';
-import {ALWAYS_WORDS, guardAlways, leaves, type Leaf} from './guard-core';
-import type {ToolSchema} from './schema';
+import {ALWAYS_WORDS, argsHaveInvisible, guardAlways, keyNames, keyWords, leaves, type Leaf} from './guard-core';
+import {plainLine} from './plain';
+import {unlistedKeys, type ToolSchema} from './schema';
 
 /**
  * Session AM-2 (step 4c, item 3): the deterministic guard on a tool call's arguments, run before a confirm card is
@@ -15,7 +16,9 @@ import type {ToolSchema} from './schema';
  * - nothing shaped like a token or key, and no field whose NAME asks for one (password, token, api_key, secret …) with a
  *   value: NOVA never hands a credential to a tool. A tool acts with its OWN accounts, set up on the person's computer.
  *
- * For a call a model proposed, the privacy modes hold as well:
+ * For a call a model proposed (security review, findings 1 and 2): no character the person cannot see, in a name or a
+ * value; and only the fields the tool's schema names, at every level — so a tool that allows extra fields, or whose
+ * schema NOVA could not read, gives a model no field NAME to write into. Then the privacy modes hold as well:
  * - Strict: nothing of the person's records is placed into arguments unless the person typed it. Every text and number in
  *   the arguments must appear in the words the person typed for this request (or be one of the tool's own listed
  *   choices, or yes/no). Anything else is refused, with the way out: run the tool by hand.
@@ -26,7 +29,7 @@ import type {ToolSchema} from './schema';
  *   addresses, exact amounts …), so the person sees it before pressing. Nothing is changed silently: the card shows the
  *   exact arguments that would be sent.
  */
-export type GuardReason = 'secret' | 'credential' | 'card' | 'strict' | 'health';
+export type GuardReason = 'secret' | 'credential' | 'card' | 'strict' | 'health' | 'invisible' | 'unlisted';
 export type ArgsGuard = {ok: true; /** Lines for the card: what the arguments hold that the person may want to check. */ notices: string[]} | {ok: false; reason: GuardReason; message: string};
 export type GuardContext = {
   /** Who filled the arguments in. */ source: 'model' | 'person';
@@ -40,6 +43,8 @@ export const GUARD_WORDS: Readonly<Record<GuardReason, string>> = {
   ...ALWAYS_WORDS,
   strict: 'Strict: your model may fill a tool’s fields only with words you typed yourself, so none of your records can leave through a tool. This call holds something else. Run the tool by hand from “Your own agent and tools”, or choose another privacy mode.',
   health: 'Health stays out of tools: NOVA’s Health permission or this device’s Health sharing is off, and this call holds a Health figure you did not type. Run the tool by hand if you want to send it yourself.',
+  invisible: 'Not shown as a card: the arguments your model gave hold characters that cannot be seen. They could carry text past what the card shows you, so NOVA refuses them.',
+  unlisted: 'Not shown as a card: your model added a field this tool does not list. A model may fill in only the fields a tool names, so nothing can be written into a field’s name. Run the tool by hand if you need another field.',
 };
 const HEALTH_FIGURE = /\b\d+(?:[.,]\d+)?\s?(?:kg|kilos?|lbs?|pounds|stone|kcal|calories|bpm|mmhg|mmol(?:\/l)?|mg\/dl|steps|stappen|hours? of sleep|uur slaap|% body ?fat)\b|\b(?:weight|weigh|gewicht|weeg|blood pressure|bloeddruk|heart rate|hartslag|pulse|bmi|body ?fat|calories|kcal|slept|geslapen|fasting|vasten|menstruat\w*|ovulat\w*|medication|medicatie|dosis|glucose|cholesterol)\b[^.\n]{0,24}\d/i;
 
@@ -62,12 +67,18 @@ export function guardArgs(args: Record<string, unknown>, ctx: GuardContext): Arg
   const always = guardAlways(args);
   if (always) return refuse(always);
   if ((redactText(joined).found.secret ?? 0) > 0) return refuse('secret');
-  // ── A model's call: the privacy modes ──
+  // ── A model's call: what it may not send at all, then the privacy modes ──
   if (ctx.source === 'model') {
     const typed = ctx.typed ?? '';
+    // Finding 2: a character the person cannot see, in a name or a value.
+    if (argsHaveInvisible(args)) return refuse('invisible');
+    // Finding 1: only the fields the tool's schema names, at every level (a name is not a place for a model's words).
+    if (ctx.schema) { const extra = unlistedKeys(ctx.schema, args); if (extra.length) return {ok: false, reason: 'unlisted', message: `${GUARD_WORDS.unlisted} (“${plainLine(extra[0], 60)}”)`}; }
     if (!ctx.healthOpen) {
       if (ctx.healthLookup) return refuse('health');
-      if (all.some(l => typeof l.value === 'string' && HEALTH_FIGURE.test(l.value) && !typedByPerson(l, typed, ctx.schema))) return refuse('health');
+      // A figure in a value, in a name, or made by a name and its value together ("weight": 82.4).
+      if (all.some(l => (typeof l.value === 'string' || typeof l.value === 'number') && (HEALTH_FIGURE.test(String(l.value)) || HEALTH_FIGURE.test(`${keyWords(l.key)} ${l.value}`)) && !typedByPerson(l, typed, ctx.schema))) return refuse('health');
+      if (keyNames(args).some(k => HEALTH_FIGURE.test(keyWords(k)))) return refuse('health');
     }
     if (ctx.mode === 'strict' && all.some(l => !typedByPerson(l, typed, ctx.schema))) return refuse('strict');
   }

@@ -1,11 +1,11 @@
 'use client';
-import {useCallback, useEffect, useMemo, useSyncExternalStore} from 'react';
-import {forgetKey, hasRememberedKey, holdKey, readKey, rememberKey, SHOWCASE_SCOPE} from '../../../lib/ai/keys';
+import {useCallback, useEffect, useMemo, useRef, useSyncExternalStore} from 'react';
+import {forgetKey, forgetSlots, hasRememberedKey, holdKey, readKey, rememberKey, SHOWCASE_SCOPE} from '../../../lib/ai/keys';
 import {currentAiScope} from '../../../lib/ai/scope';
 import {callTool, closeSession, connect, failureLine} from '../../../lib/nova/agent-bridge/client';
 import {parseLoopback} from '../../../lib/nova/agent-bridge/loopback';
 import {mayRun, offeredTools, type CardContext, type ToolCard} from '../../../lib/nova/agent-bridge/propose';
-import {addServer, allOff, keepListed, NOVA_AGENT, removeServer, serverById, serverId, serversOf, setToolAsk, tokenSlot, type AgentServer} from '../../../lib/nova/agent-bridge/record';
+import {addServer, allOff, keepListed, NOVA_AGENT, removeServer, serverById, serverId, serversOf, setToolAsk, tokenSlot, tokenSlots, type AgentServer} from '../../../lib/nova/agent-bridge/record';
 import type {ToolOutcome} from '../../../lib/nova/agent-bridge/untrusted';
 import {noteOutbox} from '../../../lib/nova/outbox/record';
 import {getAppStorage} from '../../../lib/showcase-storage';
@@ -26,23 +26,34 @@ export {offeredNow, type LiveEntry} from './live-store';
  * that was sent is noted in the device's history: when, the server's loopback address, the tool's name, ok or failed.
  */
 const visible = () => typeof document === 'undefined' || document.visibilityState === 'visible';
-const tokenFor = async (id: string): Promise<string | null> => { try { return await readKey(currentAiScope(), tokenSlot(id)); } catch { return null; } };
+/** The token typed for THIS server at THIS address (security review, finding 8: the slot is the id and the origin together), or none. */
+const tokenFor = async (id: string, address: string): Promise<string | null> => { const slot = tokenSlot(id, address); if (!slot) return null; try { return await readKey(currentAiScope(), slot); } catch { return null; } };
 export type RunResult = {ok: true; outcome: ToolOutcome; /** The call is in the history (not for a conversation the person chose not to keep). */ noted: boolean} | {ok: false; message: string; /** The call was sent (and failed). */ sent: boolean; noted: boolean};
 
 export function useAgentBridge() {
   const record = useDeviceRecord(NOVA_AGENT), entries = useSyncExternalStore(subscribeLive, liveSnapshot, () => EMPTY_LIVE);
   const servers = serversOf(record.data);
   const offered = useMemo(() => offeredTools(liveServers(servers, entries)), [servers, entries]);
-  // A server removed in another tab: its connection ends here too.
+  // A server whose row is gone, or whose address changed (removed here, in another tab or by a restore): its connection
+  // ends here too, and its token is forgotten on this device — the rows that were here a moment ago by their own slots,
+  // and any other tool-server token that no row points at any more (finding 8). Never while the record cannot be read.
+  const slotsBefore = useRef<ReadonlySet<string> | null>(null);
   useEffect(() => {
-    if (!record.loaded) return;
-    for (const id of liveIds()) if (!serverById(record.data, id)) { const entry = dropLive(id); if (entry) void closeSession(entry.session); }
-  }, [record.loaded, record.data]);
+    if (!record.loaded || record.unreadable) return;
+    for (const id of liveIds()) {
+      const row = serverById(record.data, id), at = row ? parseLoopback(row.address) : null, entry = liveEntry(id);
+      if (!at?.ok || (entry && at.url !== entry.session.url)) { const gone = dropLive(id); if (gone) void closeSession(gone.session); }
+    }
+    const now = tokenSlots(record.data), scope = currentAiScope(), key = [...now].sort().join(' ');
+    for (const slot of slotsBefore.current ?? []) if (!now.has(slot)) void forgetKey(scope, slot as `mcp-${string}`).catch(() => undefined);
+    if (slotsBefore.current === null || [...slotsBefore.current].sort().join(' ') !== key) void forgetSlots(scope, 'mcp-', now).catch(() => undefined);
+    slotsBefore.current = now;
+  }, [record.loaded, record.unreadable, record.data]);
   /** Connects (or connects again) and lists the tools. Returns a plain line for the status. */
   const connectServer = useCallback(async (id: string): Promise<{ok: boolean; line: string}> => {
     const server = serverById(record.data, id);
     if (!server) return {ok: false, line: 'That server is no longer in the list.'};
-    const token = await tokenFor(id);
+    const token = await tokenFor(id, server.address);
     try {
       const before = liveEntry(id);
       if (before) void closeSession(before.session, {token});
@@ -65,33 +76,36 @@ export function useAgentBridge() {
     record.update(r => { const out = addServer(r, {id, address: input.address, label: input.label, at: new Date()}); made = out.server; return out.record; });
     const server = made as AgentServer | null;
     if (!server) throw Error('The server could not be added. Try again.');
-    const scope = currentAiScope(), secret = input.token.trim();
-    if (secret) {
+    const scope = currentAiScope(), secret = input.token.trim(), slot = tokenSlot(server.id, server.address);
+    if (secret && slot) {
       // Sealed only when asked (never in the Showcase); otherwise held for this page, and an older sealed one must not come back.
-      if (input.remember && scope !== SHOWCASE_SCOPE) await rememberKey(scope, tokenSlot(server.id), secret);
-      else { await forgetKey(scope, tokenSlot(server.id)).catch(() => undefined); holdKey(scope, tokenSlot(server.id), secret); }
+      if (input.remember && scope !== SHOWCASE_SCOPE) await rememberKey(scope, slot, secret);
+      else { await forgetKey(scope, slot).catch(() => undefined); holdKey(scope, slot, secret); }
     }
     return {id: server.id, ...(await connectServer(server.id))};
   }, [record, connectServer]);
   const setToken = useCallback(async (id: string, token: string, remember: boolean) => {
-    const scope = currentAiScope(), secret = token.trim();
-    await forgetKey(scope, tokenSlot(id)).catch(() => undefined);
+    const scope = currentAiScope(), secret = token.trim(), server = serverById(record.data, id), slot = server ? tokenSlot(id, server.address) : null;
+    if (!slot) return;
+    await forgetKey(scope, slot).catch(() => undefined);
     if (!secret) return;
-    if (remember && scope !== SHOWCASE_SCOPE) await rememberKey(scope, tokenSlot(id), secret); else holdKey(scope, tokenSlot(id), secret);
-  }, []);
+    if (remember && scope !== SHOWCASE_SCOPE) await rememberKey(scope, slot, secret); else holdKey(scope, slot, secret);
+  }, [record.data]);
   const tokenState = useCallback(async (id: string): Promise<'none' | 'visit' | 'remembered'> => {
-    const scope = currentAiScope();
-    try { if (scope !== SHOWCASE_SCOPE && await hasRememberedKey(scope, tokenSlot(id))) return 'remembered'; return (await readKey(scope, tokenSlot(id))) ? 'visit' : 'none'; } catch { return 'none'; }
-  }, []);
+    const scope = currentAiScope(), server = serverById(record.data, id), slot = server ? tokenSlot(id, server.address) : null;
+    if (!slot) return 'none';
+    try { if (scope !== SHOWCASE_SCOPE && await hasRememberedKey(scope, slot)) return 'remembered'; return (await readKey(scope, slot)) ? 'visit' : 'none'; } catch { return 'none'; }
+  }, [record.data]);
   const disconnect = useCallback((id: string) => {
     const entry = dropLive(id); if (!entry) return;
-    void tokenFor(id).then(token => closeSession(entry.session, {token}));
+    void tokenFor(id, entry.session.url).then(token => closeSession(entry.session, {token}));
   }, []);
   /** Removes the server: its address and switches from the record, its token from this device, its connection from this page. */
   const remove = useCallback(async (id: string) => {
+    const slot = (() => { const server = serverById(record.data, id); return server ? tokenSlot(id, server.address) : null; })();
     disconnect(id);
     record.update(r => removeServer(r, id));
-    await forgetKey(currentAiScope(), tokenSlot(id)).catch(() => undefined);
+    if (slot) await forgetKey(currentAiScope(), slot).catch(() => undefined);
   }, [record, disconnect]);
   const setAsk = useCallback((id: string, tool: string, ask: boolean) => { record.update(r => setToolAsk(r, id, tool, ask)); }, [record]);
   const everythingOff = useCallback(() => { record.update(allOff); }, [record]);
@@ -105,7 +119,7 @@ export function useAgentBridge() {
     if (!look.ok) return {ok: false, message: look.message, sent: false, noted: false};
     const entry = liveEntry(card.serverId);
     if (!entry) return {ok: false, message: 'Nothing was sent: this server is not connected in this visit. Connect it again first.', sent: false, noted: false};
-    const token = await tokenFor(card.serverId), note = (ok: boolean): boolean => options.keep !== false && noteOutbox(getAppStorage(), {at: new Date().toISOString(), kind: 'tool', what: card.tool.name, target: card.origin, ok});
+    const token = await tokenFor(card.serverId, entry.session.url), note = (ok: boolean): boolean => options.keep !== false && noteOutbox(getAppStorage(), {at: new Date().toISOString(), kind: 'tool', what: card.tool.name, target: card.origin, ok});
     try {
       const outcome = await callTool(entry.session, card.tool.name, card.args, {token, visible});
       return {ok: true, outcome, noted: note(!outcome.failed)};

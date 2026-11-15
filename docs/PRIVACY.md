@@ -336,7 +336,11 @@ gains one outside service, and two records on this device.
   instructions). **The tool acts with its own accounts** (your mail, your calendar), which you set up in that program:
   NOVA and ZIGoals never see or store those passwords or tokens. A token for the tool server itself, if it asks for
   one, stays in this browser's memory for the visit, or sealed in this browser if you tick "Remember" (the same store
-  as your model key): never synced, never exported, sent only to that server.
+  as your model key): never synced, never exported, sent only to that server at that address, and forgotten when the
+  server leaves your list. A model may fill a card only with the fields a tool names, never with characters you cannot
+  see, and pasted or dropped words do not count as typed by you. A kept chat stores a proposed call by its tool and
+  server only, never its arguments. Your own agent as NOVA's brain gets the redacted copy in Strict and Guarded until
+  you confirm it answers with a model on this computer, checked on every request as for Hermes.
 - **The own-agent record** (`zigoals:nova-agent:v1`): the loopback addresses and your names for the tool servers and
   the agent you connected, the names of the tools on "Ask every time", the model your agent reported and whether you
   confirmed it answers with a local model. Never a token, a tool's description, an argument or a result. On this device

@@ -53,7 +53,7 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
   const [query, setQuery] = useState(''), id = useId(), rail = state === 'rail';
   // In this page's memory only: Money and More start folded, so the pillars, the day and the agents are in view.
   const [folded, setFolded] = useState<ReadonlySet<SectionId>>(() => new Set<SectionId>(['money', 'more']));
-  const field = useRef<HTMLInputElement>(null), results = useRef<HTMLUListElement>(null);
+  const field = useRef<HTMLInputElement>(null), results = useRef<HTMLUListElement>(null), pasted = useRef(false); // AM-2 (security review, finding 6): pasted or dropped words keep their mark when they are asked of NOVA
   const apps = useDeviceRecord(APPS_PREFS);
   const has = (need: GoToNeed): boolean => need === 'earn' ? earn : need === 'chess' ? chess : need === 'chain' ? chain
     : need === 'governance' ? governance && pages('staking')
@@ -78,7 +78,7 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
   const words = query.trim(), q = foldWords(words);
   const who = q ? agents.filter(a => foldWords(a.label).split(' ').some(w => w.startsWith(q))) : [];
   const found: LeftEntry[] = q ? [...who, ...goToMatches(words, has, 8).filter(e => !who.some(a => a.href === e.href)).map(entryOf)] : [];
-  const ask = () => { if (sendToNova(words)) setQuery(''); };
+  const ask = () => { if (sendToNova(words, {pasted: pasted.current})) { setQuery(''); pasted.current = false; } };
   const links = () => [...(results.current?.querySelectorAll<HTMLElement>('a, button') ?? [])];
   const onFieldKey = (e: ReactKeyboardEvent<HTMLInputElement>) => {
     if (!q) return;
@@ -130,7 +130,7 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
     {today && <Link className="nova-left-life" href={today.href} prefetch={false} aria-label="Your life: all four pillars on Today" title={rail ? 'Today: your life, all four pillars' : undefined}><NovaIcon name="today" size={rail ? 22 : 20}/>{!rail && <span>Today<small>Your life, all four pillars</small></span>}</Link>}
     {!rail && <div className="nova-left-find nb-find"><label htmlFor={`${id}-q`} className="sr-only">Go to a page, a place inside one or an agent</label>
       <span className="nb-find-icon" aria-hidden="true"><NovaIcon name="search" size={18}/></span>
-      <input ref={field} id={`${id}-q`} type="search" value={query} onChange={e => setQuery(e.target.value.slice(0, 60))} onKeyDown={onFieldKey} placeholder="Go to… sleep, bills" autoComplete="off" enterKeyHint="go" aria-describedby={`${id}-hint`}/>
+      <input ref={field} id={`${id}-q`} type="search" value={query} onChange={e => { setQuery(e.target.value.slice(0, 60)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }} onDrop={() => { pasted.current = true; }} onKeyDown={onFieldKey} placeholder="Go to… sleep, bills" autoComplete="off" enterKeyHint="go" aria-describedby={`${id}-hint`}/>
       <span id={`${id}-hint`} className="sr-only">Type a page or a place. Enter opens the first one found; the down arrow moves into the list.</span></div>}
     </div>
     <nav className="nova-left-nav" aria-label="Pages and agents">

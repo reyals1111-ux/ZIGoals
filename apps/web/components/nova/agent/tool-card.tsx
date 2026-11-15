@@ -1,6 +1,7 @@
 'use client';
-import {useEffect, useId, useRef, useState} from 'react';
+import {useEffect, useId, useRef, useState, type MouseEvent} from 'react';
 import {createPortal} from 'react-dom';
+import {ARM_MS, pressCounts} from '../../../lib/nova/agent-bridge/press';
 import type {CardContext, ToolCard} from '../../../lib/nova/agent-bridge/propose';
 import {CARD_WORDS, type CardLang} from '../../../lib/nova/agent-bridge/words';
 import type {ToolOutcome} from '../../../lib/nova/agent-bridge/untrusted';
@@ -11,7 +12,8 @@ import './agent.css';
  * Session AM-2 (step 4c, items 3 and 4): the confirm card for ONE call to a tool of the person's own — a modal dialog.
  * It shows which server (its address on this computer), which tool, the exact arguments as readable fields and, on
  * request, the raw JSON, the guard's notes and the plain warning. Nothing is sent until the person presses "Run this tool
- * once"; "Not now" and Escape close it with nothing sent. It is the same card whether a model proposed the call or the
+ * once" — a real press, at least half a second after the card appeared, once (lib/nova/agent-bridge/press.ts); "Not now"
+ * and Escape close it with nothing sent. It is the same card whether a model proposed the call or the
  * person filled it in by hand.
  *
  * After the press it shows what the tool answered in a quoted, labelled box: plain text only (React text nodes: no
@@ -29,14 +31,21 @@ export function ToolCardDialog({card, ctx, run, onClose, onHandBack, lang = 'en'
   const ref = useRef<HTMLDialogElement>(null), id = useId(), close = useRef(onClose);
   close.current = onClose;
   const [raw, setRaw] = useState(false), [state, setState] = useState<'ask' | 'running' | 'done'>('ask'), [result, setResult] = useState<RunResult | null>(null);
+  // Security review, finding 7: the card may appear by itself, so its button is armed only after a moment, never has the
+  // focus when the card opens (the heading does), takes real presses only, and locks after one.
+  const heading = useRef<HTMLHeadingElement>(null), shownAt = useRef(Number.NaN), pressed = useRef(false), [armed, setArmed] = useState(false);
   useEffect(() => {
     const dialog = ref.current, back = document.activeElement as HTMLElement | null;
     if (!dialog) return;
     if (!dialog.open) dialog.showModal();
-    return () => { if (dialog.open) dialog.close(); requestAnimationFrame(() => back?.isConnected && back.focus({preventScroll: true})); };
+    heading.current?.focus({preventScroll: true});
+    shownAt.current = Date.now();
+    const timer = setTimeout(() => setArmed(true), ARM_MS);
+    return () => { clearTimeout(timer); if (dialog.open) dialog.close(); requestAnimationFrame(() => back?.isConnected && back.focus({preventScroll: true})); };
   }, []);
-  const go = async () => {
-    if (state !== 'ask') return; // one press, one call
+  const go = async (event: MouseEvent<HTMLButtonElement>) => {
+    if (!pressCounts({trusted: event.nativeEvent.isTrusted, shownAt: shownAt.current, now: Date.now(), state, pressed: pressed.current})) return;
+    pressed.current = true; // one press, one call
     setState('running');
     let out: RunResult;
     try { out = await run(card, ctx); } catch { out = {ok: false, message: 'The tool could not be asked. Nothing more was sent.', sent: false, noted: false}; }
@@ -50,7 +59,7 @@ export function ToolCardDialog({card, ctx, run, onClose, onHandBack, lang = 'en'
     <div className="na-card-body">
       <header className="na-card-head"><div>
         <p className="na-eyebrow">{card.source === 'model' ? w.fromModel : w.byHand}</p>
-        <h2 id={`${id}-t`} className="na-card-title">{w.title(card.tool.name)}</h2>
+        <h2 id={`${id}-t`} ref={heading} tabIndex={-1} className="na-card-title">{w.title(card.tool.name)}</h2>
       </div></header>
       <div className="na-card-where">
         <span><b>{w.server}</b> {card.label}</span>
@@ -78,10 +87,10 @@ export function ToolCardDialog({card, ctx, run, onClose, onHandBack, lang = 'en'
     </div>
     <div className="na-card-foot">
       {state !== 'done' ? <>
-        <button type="button" className="na-key" data-primary="" disabled={busy} onClick={() => void go()}>{busy ? w.running : w.run}</button>
+        <button type="button" className="na-key" data-primary="" disabled={busy || !armed} data-armed={armed ? '' : undefined} onClick={event => void go(event)}>{busy ? w.running : w.run}</button>
         <button type="button" className="na-key" disabled={busy} onClick={() => close.current()}>{w.notNow}</button>
       </> : <>
-        {result?.ok && onHandBack && <button type="button" className="na-key" onClick={() => { onHandBack(card, result.outcome); close.current(); }}>{w.handBack}</button>}
+        {result?.ok && onHandBack && <button type="button" className="na-key" onClick={event => { if (!event.nativeEvent.isTrusted) return; onHandBack(card, result.outcome); close.current(); }}>{w.handBack}</button>}
         <button type="button" className="na-key" data-primary="" onClick={() => close.current()}>{w.close}</button>
       </>}
     </div>

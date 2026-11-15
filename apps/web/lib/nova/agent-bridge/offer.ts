@@ -1,5 +1,6 @@
 import {parseLoopback} from './loopback';
 import {toolAsks, type AgentServer} from './record';
+import {plainLine} from './plain';
 import {schemaSummary, type ListedTool} from './schema';
 
 /**
@@ -16,10 +17,14 @@ export type OfferedTool = {serverId: string; label: string; origin: string; tool
 export function offeredTools(live: readonly LiveServer[]): OfferedTool[] {
   return live.flatMap(({server, tools}) => {
     const at = parseLoopback(server.address);
-    return at.ok ? tools.filter(t => toolAsks(server, t.name)).map(tool => ({serverId: server.id, label: server.label, origin: at.origin, tool})) : [];
+    return at.ok ? tools.filter(t => toolAsks(server, t.name)).map(tool => ({serverId: server.id, label: plainLine(server.label, 40) || at.origin, origin: at.origin, tool})) : [];
   });
 }
-/** What a model is told about the offered tools (lib/ai/tools/nova-agent.ts `my_tools`): names and plain words; descriptions marked as the server's own. */
-export function toolsForModel(offered: readonly OfferedTool[], max = 30): {server: string; on: string; tool: string; described_by_server: string; input: string}[] {
-  return offered.slice(0, max).map(o => ({server: o.serverId, on: `${o.label} (${o.origin})`, tool: o.tool.name, described_by_server: o.tool.description, input: schemaSummary(o.tool.schema)}));
+/**
+ * What a model is told about the offered tools (lib/ai/tools/nova-agent.ts `my_tools`): names and plain words. The
+ * description AND the input (its field names and listed choices come from the server's schema) are marked as the
+ * server's own words (security review, finding 3).
+ */
+export function toolsForModel(offered: readonly OfferedTool[], max = 30): {server: string; on: string; tool: string; described_by_server: string; input_described_by_server: string}[] {
+  return offered.slice(0, max).map(o => ({server: o.serverId, on: `${o.label} (${o.origin})`, tool: o.tool.name, described_by_server: o.tool.description, input_described_by_server: schemaSummary(o.tool.schema)}));
 }

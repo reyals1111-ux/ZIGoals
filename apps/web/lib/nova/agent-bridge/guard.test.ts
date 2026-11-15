@@ -187,13 +187,13 @@ describe('one confirm card, and only for a tool on "Ask every time"', () => {
     expect(mayRun(fromModel, {visible: true, offered, mode: 'strict', healthOpen: true, typed: 'mail a'})).toMatchObject({ok: false});
   });
   it('what a model is told about the tools: names and plain words, the description marked as the server’s own', () => {
-    expect(toolsForModel(offeredTools(live(['search'])))).toEqual([{server: 'srv00001', on: 'My tools (http://127.0.0.1:8000)', tool: 'search', described_by_server: 'Search the web', input: 'Takes query (text); limit (a whole number from 1 to 20, optional).'}]);
+    expect(toolsForModel(offeredTools(live(['search'])))).toEqual([{server: 'srv00001', on: 'My tools (http://127.0.0.1:8000)', tool: 'search', described_by_server: 'Search the web', input_described_by_server: 'Takes query (text); limit (a whole number from 1 to 20, optional).'}]); // finding 3 (deliberate): the input is the server's own words too, and is named so
   });
 });
 
 describe('everything a server says is untrusted data', () => {
   it('shown as plain text: no control or invisible marks, one kind of line end, cut with the cut said', () => {
-    expect(plainText('a\r\nb\rc\td\u0000e​f‮g\n\n\n\nh', 100)).toEqual({text: 'a\nb\nc def g\n\nh'.replace(' g', 'g'), cut: false});
+    expect(plainText('a\r\nb\rc\td\u0000e\u200Bf\u202Eg\n\n\n\nh', 100)).toEqual({text: 'a\nb\nc def g\n\nh'.replace(' g', 'g'), cut: false});
     const long = plainText('x'.repeat(RESULT_SHOWN_MAX + 10), RESULT_SHOWN_MAX);
     expect(long.cut).toBe(true); expect(long.text.length).toBeLessThanOrEqual(RESULT_SHOWN_MAX); expect(long.text.endsWith('… [cut]')).toBe(true);
     expect(plainLine('  two\nlines\tand  spaces ', 40)).toBe('two lines and spaces'); expect(plainLine('x'.repeat(50), 10)).toBe(`${'x'.repeat(9)}…`);

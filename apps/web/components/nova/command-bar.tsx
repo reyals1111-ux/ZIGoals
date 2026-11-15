@@ -37,7 +37,7 @@ export function NovaCommandBar({open, onClose, persona = 'NOVA'}: NovaCommandBar
       <h2 id={titleId} className="nova-bar-title">Ask {persona}</h2>
       <div className="nova-bar-row">
         <svg className="nova-bar-star" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 3c.6 4.6 2.4 6.4 7 7-4.6.6-6.4 2.4-7 7-.6-4.6-2.4-6.4-7-7 4.6-.6 6.4-2.4 7-7z" fill="currentColor"/></svg>
-        <input ref={input} value={text} onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind?`} aria-label={`Message ${persona}`} aria-describedby={hintId} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
+        <input ref={input} value={text} onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }} onDrop={() => { pasted.current = true; }} placeholder={`What’s on your mind?`} aria-label={`Message ${persona}`} aria-describedby={hintId} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
         <button type="submit" className="primary" disabled={!text.trim()}>Send</button>
       </div>
       <p id={hintId} className="nova-bar-hint">Enter sends to {persona} · Esc closes · your words stay on this device until you send them</p>

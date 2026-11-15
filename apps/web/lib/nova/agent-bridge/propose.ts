@@ -1,5 +1,6 @@
 import type {PrivacyMode} from '../setup';
 import {guardArgs, type GuardContext} from './guard';
+import {stripArgs} from './guard-core';
 import {USE_TOOL, type OfferedTool} from './offer';
 import {argFields, checkArgs, parseArgs, type ListedTool} from './schema';
 import {holdsToolResult} from './untrusted';
@@ -54,7 +55,8 @@ const find = (offered: readonly OfferedTool[], server: unknown, tool: unknown): 
 export function cardFor(offered: readonly OfferedTool[], call: {server?: unknown; tool: unknown; args: unknown}, source: 'model' | 'person', ctx: CardContext): {ok: true; card: ToolCard} | {ok: false; dropped: Dropped} {
   const hit = find(offered, call.server, call.tool);
   if (!hit) return {ok: false, dropped: {reason: 'off', message: DROP_WORDS.off}};
-  const checked = checkArgs(hit.tool.schema, call.args);
+  // Security review, finding 2: what the person typed by hand loses its invisible characters before the card is built, so the card shows exactly what leaves (a model's call with one is refused by the guard).
+  const checked = checkArgs(hit.tool.schema, source === 'person' ? stripArgs(call.args) : call.args);
   if (!checked.ok) return {ok: false, dropped: {reason: 'arguments', message: `${source === 'model' ? 'No tool card: the arguments your model gave do not fit this tool.' : 'These arguments do not fit this tool.'} ${checked.problems.join(' ')}`}};
   const guardCtx: GuardContext = {source, mode: ctx.mode, healthOpen: ctx.healthOpen, schema: hit.tool.schema, ...(ctx.typed !== undefined ? {typed: ctx.typed} : {}), ...(ctx.healthLookup ? {healthLookup: true} : {})};
   const guard = guardArgs(checked.value, guardCtx);
@@ -63,11 +65,19 @@ export function cardFor(offered: readonly OfferedTool[], call: {server?: unknown
 }
 /** A lookup of a model's reply, as the chat keeps it for the visit: the tool's name, its arguments, whether it ran. */
 export type ReplyCall = {tool: string; args: Record<string, unknown> | null | undefined; ok: boolean};
+/** On a card made while Health is shared, in a conversation that read Health (security review, finding 4). */
+export const HEALTH_NOTICE = 'This conversation read your Health records, and Health is shared with NOVA right now. Check that this card holds only what you want this tool to receive.';
 /**
  * A model's reply → at most one card. `question`: the person's own message this reply answers; `hidden`: the page was
- * not in front of the person when the reply arrived.
+ * not in front of the person when the reply arrived. Security review:
+ * - `healthLookup` (finding 4) is whether ANY turn of the conversation read Health (lib/nova/handoff/health.ts
+ *   `healthReadOver`), not only this reply: with Health closed no card is made; with Health open the card says so;
+ * - `typed` (finding 6): the words the person typed for this request — '' when the message was pasted, dropped or
+ *   handed in from outside (pasted words are not "typed by you": they satisfy neither Strict nor the "you typed it"
+ *   reading); left out, the question itself;
+ * - `notices` (finding 11): lines the conversation adds to the card (text from outside was read earlier in this chat).
  */
-export function cardFromReply(input: {calls: readonly ReplyCall[]; question: string; hidden: boolean; offered: readonly OfferedTool[]} & Omit<CardContext, 'typed'>): {card: ToolCard | null; dropped: Dropped[]} {
+export function cardFromReply(input: {calls: readonly ReplyCall[]; question: string; hidden: boolean; offered: readonly OfferedTool[]; typed?: string; notices?: readonly string[]} & Omit<CardContext, 'typed'>): {card: ToolCard | null; dropped: Dropped[]} {
   const proposals = input.calls.filter(c => c.tool === USE_TOOL && c.ok);
   if (!proposals.length) return {card: null, dropped: []};
   if (holdsToolResult(input.question)) return {card: null, dropped: [{reason: 'chain', message: DROP_WORDS.chain}]};
@@ -79,8 +89,8 @@ export function cardFromReply(input: {calls: readonly ReplyCall[]; question: str
     const a = proposal.args ?? {}, text = typeof a.arguments_json === 'string' ? a.arguments_json : '';
     const parsed = parseArgs(text);
     if (!parsed.ok) { dropped.push({reason: 'arguments', message: `No tool card: ${parsed.problem}`}); continue; }
-    const made = cardFor(input.offered, {server: a.server, tool: a.tool, args: parsed.value}, 'model', {mode: input.mode, healthOpen: input.healthOpen, typed: input.question, ...(input.healthLookup ? {healthLookup: true} : {})});
-    if (made.ok) card = made.card; else dropped.push(made.dropped);
+    const made = cardFor(input.offered, {server: a.server, tool: a.tool, args: parsed.value}, 'model', {mode: input.mode, healthOpen: input.healthOpen, typed: input.typed ?? input.question, ...(input.healthLookup ? {healthLookup: true} : {})});
+    if (made.ok) card = {...made.card, notices: [...made.card.notices, ...(input.healthLookup && input.healthOpen ? [HEALTH_NOTICE] : []), ...(input.notices ?? [])]}; else dropped.push(made.dropped);
   }
   return {card, dropped};
 }

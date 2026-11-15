@@ -14,6 +14,8 @@ import {DESCRIPTION_MAX, plainLine} from './plain';
  * says the whole call is bounded in size, depth and count. Nothing is coerced.
  */
 export const TOOLS_MAX = 100, TOOL_NAME_MAX = 64, SCHEMA_CHARS_MAX = 8000, SCHEMA_DEPTH_MAX = 5, PROPERTIES_MAX = 40;
+/** A listed choice is one plain line of at most this many characters (longer, or not plain: the schema is unread). */
+export const ENUM_CHARS_MAX = 80;
 export const ARGS_CHARS_MAX = 4000, ARGS_DEPTH_MAX = 4, ARGS_STRING_MAX = 2000, ARGS_ITEMS_MAX = 50, ARGS_KEYS_MAX = 40;
 const NAME = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/;
 const KEY = /^[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}$/;
@@ -47,6 +49,10 @@ function fieldOf(raw: unknown, depth: number): Field | null {
   if (description) field.description = description;
   if (values?.length && (type === 'string' || type === 'number' || type === 'integer')) {
     if (values.length !== (raw.enum as unknown[]).length || !values.every(v => typeof v === (type === 'string' ? 'string' : 'number'))) return null;
+    // Security review, finding 3: a choice is a server's string that reaches a model ("one of: …") and the screen. It must
+    // be one plain, short line as it stands; a value that cleaning would change (a line break, an invisible or direction
+    // mark, more than ENUM_CHARS_MAX characters) could not be sent back faithfully, so the schema is not read at all.
+    if (!values.every(v => typeof v !== 'string' || (v !== '' && plainLine(v, ENUM_CHARS_MAX) === v))) return null;
     field.enum = values;
   } else if (Array.isArray(raw.enum)) return null;
   if (type === 'number' || type === 'integer') { const lo = num(raw.minimum), hi = num(raw.maximum); if (lo !== undefined) field.minimum = lo; if (hi !== undefined) field.maximum = hi; }
@@ -191,6 +197,29 @@ export function checkArgs(schema: ToolSchema, raw: unknown): ArgsCheck {
   const problems: string[] = [];
   objectFits(value, schema, '', problems);
   return problems.length ? {ok: false, problems: problems.slice(0, 5)} : {ok: true, value};
+}
+/**
+ * Security review, finding 1: the field names of a call that the tool's schema does not list, at every nesting level
+ * ("a.b" for a nested one). A model may send only fields the schema names: a tool that allows extra fields, or whose
+ * schema NOVA could not read, would otherwise let a model write anything it likes into a NAME ("salary_5400_eur": true).
+ * An unread schema names nothing, so a model can call such a tool only with no arguments; the person can still fill it
+ * in by hand.
+ */
+export function unlistedKeys(schema: ToolSchema, args: unknown): string[] {
+  const out: string[] = [];
+  const walk = (value: unknown, field: Field | {type: 'object'; properties: Record<string, Field>} | undefined, path: string): void => {
+    if (out.length > 20) return;
+    if (Array.isArray(value)) { value.forEach(item => walk(item, field && 'items' in field ? field.items : undefined, path)); return; }
+    if (!isObject(value)) return;
+    const listed = field && field.type === 'object' ? field.properties ?? {} : {};
+    for (const key of Object.keys(value)) {
+      const at = path ? `${path}.${key}` : key;
+      if (!Object.hasOwn(listed, key)) { out.push(at); continue; }
+      walk(value[key], listed[key], at);
+    }
+  };
+  walk(args, schema.unread ? {type: 'object', properties: {}} : {type: 'object', properties: schema.properties}, '');
+  return out;
 }
 /** Raw JSON as the person (or a model) wrote it, as arguments: an object within the size limit, or the reason it is not. */
 export function parseArgs(text: string): {ok: true; value: Record<string, unknown>} | {ok: false; problem: string} {

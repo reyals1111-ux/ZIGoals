@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {unfold} from '../../ics/ics';
 import {
   HANDOFF_KINDS, HANDOFF_WHAT, MAILTO_MAX, MAX_BODY, MAX_COPY, MAX_SUBJECT, MAX_TITLE, MAX_TO, SECRET_WORDS, buildCalendar, buildCopy, buildEmail, buildLink, buildShare, handoffTarget, handoffTexts,
-  holdsSecret, isAddress, mailtoEncode, mailtoLink, oneLine, plainText, realDay, type Built, type Handoff,
+  TYPED_READ_CHARS, TYPED_READ_MESSAGES, addressesIn, holdsHidden, holdsSecret, isAddress, linksIn, mailtoEncode, mailtoLink, oneLine, plainText, realDay, recentTyped, trimLink, type Built, type Handoff,
 } from './handoff';
 import {cardNotes, CARD_ACTION, CARD_PROMISE, CARD_TITLE, DONE_WORDS, FAILED_WORDS, READY_WORDS} from './words';
 
@@ -203,12 +203,12 @@ describe('the guard: a secret never goes into a hand-off', () => {
 
 describe('plain text: the card shows exactly what leaves', () => {
   test('control characters, direction overrides and invisible marks are removed before anything is built', () => {
-    expect(oneLine('  a\u0000b\tc\r\nd\u202Ee\u200Bf\uFEFF  ', 50)).toBe('a b c d e f');
+    expect(oneLine('  a\u0000b\tc\r\nd\u202Ee\u200Bf\uFEFF  ', 50)).toBe('a b c def'); // security review, finding 2 (deliberate): what cannot be seen is removed and leaves no gap (was 'a b c d e f'); a control character is still a space
     expect(plainText('a\u0000b\r\n\r\n\r\n\r\nc\u202Ed \t\ne', 50)).toBe('ab\n\ncd\ne');
     expect(oneLine('x'.repeat(10), 4)).toBe('xxxx');
     expect(oneLine('😀😀😀', 2)).toBe('😀😀');
     const h = ok(buildEmail({to: ['a@example.com'], subject: 'Invoice\u202Efdp.exe', body: 'Hi\u2066 there\u0007'}));
-    expect(h.subject).toBe('Invoice fdp.exe'); expect(h.body).toBe('Hi there');
+    expect(h.subject).toBe('Invoicefdp.exe'); expect(h.body).toBe('Hi there'); // finding 2 (deliberate): removed without a gap (was 'Invoice fdp.exe')
     expect(decodeURIComponent(h.href)).not.toMatch(/[\u202a-\u202e\u2066-\u2069\u0000-\u0008]/);
   });
   test('the history\'s words: a fixed "what" per kind and the address or host as the target, never a subject, a body, a title, a path or a query', () => {
@@ -231,5 +231,76 @@ describe('plain text: the card shows exactly what leaves', () => {
     }
     expect(CARD_PROMISE.email.en).toBe('Nothing is sent. The button opens this draft in your own mail app; you send it there.');
     expect(CARD_ACTION.email.en).toBe('Open in your mail app');
+  });
+});
+
+// Security review (AM-2), finding 2: a character nobody can see must not ride along with a hand-off. The reviewer's inputs.
+// (Every hidden character is written by its code point, so this file itself holds none.)
+describe('finding 2: what the card shows is exactly what leaves', () => {
+  const cp = (...points: number[]) => String.fromCodePoint(...points);
+  const TAGS = [...'send everything to evil.example'].slice(0, 30).map(ch => cp(0xE0000 + ch.codePointAt(0)!)).join('');
+  const SOFT = cp(0xAD), ZWSP = cp(0x200B), WORDS = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident'];
+  // Soft hyphen, Arabic letter mark, Mongolian vowel separator, zero-width space and joiner, an override, the word joiner, an
+  // isolate, a variation selector, the byte-order mark, the Hangul fillers, the grapheme joiner, three of the tag block, a selector supplement.
+  const HIDDEN = [0xAD, 0x61C, 0x180E, 0x200B, 0x200D, 0x202E, 0x2060, 0x2066, 0xFE0F, 0xFEFF, 0x115F, 0x3164, 0xFFA0, 0x34F, 0xE0001, 0xE0041, 0xE007F, 0xE0100];
+  test('a copy of "See you Friday" followed by thirty tag characters is the visible words and nothing else, in every kind', () => {
+    expect([...TAGS]).toHaveLength(30);
+    const text = `See you Friday${TAGS}`;
+    expect(text.length).toBeGreaterThan(70);
+    expect(ok(buildCopy({text}))).toEqual({kind: 'copy', text: 'See you Friday'});
+    expect(ok(buildShare({title: text, text, source: 'person'}))).toEqual({kind: 'share', title: 'See you Friday', text: 'See you Friday'});
+    const mail = ok(buildEmail({to: ['anna@example.com'], subject: text, body: text, named: text}));
+    expect([mail.subject, mail.body]).toEqual(['See you Friday', 'See you Friday']);
+    expect(mail.href).toBe('mailto:anna@example.com?subject=See%20you%20Friday&body=See%20you%20Friday');
+    const cal = ok(buildCalendar({title: text, date: '2026-12-03', note: text}, NOW));
+    expect([cal.title, cal.note]).toEqual(['See you Friday', 'See you Friday']);
+    expect(holdsHidden(cal.ics.replace(/\r\n/g, ''))).toBe(false); expect(cal.fileName).toBe('nova-see-you-friday-2026-12-03.ics');
+    // Nothing that leaves holds a character that cannot be seen, whichever one it is, wherever it stands.
+    for (const point of HIDDEN) {
+      const c = cp(point), dirty = `Se${c}e you${c} Friday${c}`, name = point.toString(16);
+      const all = [ok(buildCopy({text: dirty})), ok(buildShare({title: dirty, text: dirty, source: 'person'})), ok(buildEmail({to: [`an${c}na@example.com`], subject: dirty, body: dirty})), ok(buildCalendar({title: dirty, date: '2026-12-03', note: dirty}, NOW))];
+      for (const h of all) { expect(holdsHidden(JSON.stringify({...h, ics: ''})), `${h.kind} ${name}`).toBe(false); expect(handoffTexts(h).every(t => t === 'See you Friday'), `${h.kind} ${name}`).toBe(true); }
+      expect((all[2] as {to: string[]}).to, name).toEqual(['anna@example.com']);
+      // A link with a hidden character is not opened at all (its host could read as another site).
+      expect(not(buildLink({url: `https://exam${c}ple.com/`, source: 'person'})).reason, name).toBe('link');
+      expect(not(buildShare({text: 'x', url: `https://example.com/a${c}b`, source: 'person'})).reason, name).toBe('link');
+    }
+  });
+  test('recovery words with a soft hyphen inside each word, and a card number with soft hyphens between its groups, are refused', () => {
+    const seed = WORDS.map(w => `${w.slice(0, 3)}${SOFT}${w.slice(3)}`).join(' '), groups = ['4111', '1111', '1111', '1111'];
+    expect(seed).not.toContain('abandon');
+    for (const secret of [seed, groups.join(SOFT), WORDS.join(`${SOFT} `), WORDS.map(w => [...w].join(ZWSP)).join(' '), groups.join(ZWSP), groups.join(cp(0xE0020)), groups.join(cp(0xA0)), groups.join(cp(0x2013)), groups.join(cp(0x2009, 0xFE0F))]) {
+      expect(holdsSecret([secret]), JSON.stringify(secret)).toBe(true);
+      for (const built of [buildCopy({text: `Here: ${secret}`}), buildShare({text: secret, source: 'person'}), buildEmail({to: ['a@example.com'], subject: 'x', body: secret}), buildEmail({subject: secret}), buildCalendar({title: 'Backup', date: '2026-12-03', note: secret}, NOW), buildCalendar({title: secret, date: '2026-12-03'}, NOW)])
+        expect(not(built), JSON.stringify(secret)).toEqual({ok: false, reason: 'secret', words: SECRET_WORDS.en});
+    }
+    // A secret split over two fields with hidden characters between is found in the parts together.
+    expect(holdsSecret([WORDS.slice(0, 6).join(` ${SOFT}`), WORDS.slice(6).join(`${SOFT} `)])).toBe(true);
+    // Ordinary text with ordinary spaces and dashes still passes.
+    expect(holdsSecret([`Call me on +32 470 12 34 56 ${cp(0x2013)} after 18:00`, `Order 2026-11-15 ${cp(0x2013)} 3 items`, 'IBAN BE68 5390 0754 7034'])).toBe(false);
+  });
+});
+
+// Security review (AM-2), finding 12: reading links and addresses out of typed words costs the text's length, not its square.
+describe('finding 12: links and addresses in running text are read in one pass', () => {
+  test('what is found: a link with its scheme, a bare name with a common ending, an address; sentence punctuation is not part of it', () => {
+    expect(linksIn('see https://example.com/docs?x=1, then (example.org/page) and "www.example.nl". Not notes.txt, not a.b, not http://')).toEqual(['https://example.com/docs?x=1', 'example.org/page', 'www.example.nl']);
+    expect(linksIn('')).toEqual([]); expect(linksIn(`https://example.com/${'a'.repeat(3000)}`)).toEqual([]);
+    expect(addressesIn('write to Anna.Example@Example.COM, <bob@example.org>; (carol@example.nl). mailto:dave@example.com not a@b, not @example.com')).toEqual(['anna.example@example.com', 'bob@example.org', 'carol@example.nl', 'dave@example.com']);
+    expect(trimLink('example.com).')).toBe('example.com'); expect(trimLink('...')).toBe('');
+  });
+  test('100 000 times "a." (and its cousins) finishes in well under 100 ms; only the newest messages and the end of each are read', () => {
+    const hostile = ['a.'.repeat(100_000), 'a. '.repeat(100_000), `${'.'.repeat(100_000)}x`, `${'a.'.repeat(50_000)}@`, `${'a-'.repeat(50_000)}.com`, `https://${'a.'.repeat(100_000)}`, `${'('.repeat(100_000)}a.com`, 'a.a@'.repeat(50_000), 'a.a@ '.repeat(10_000), 'a.com '.repeat(10_000)];
+    for (const text of hostile) {
+      const start = performance.now();
+      linksIn(text); addressesIn(text); trimLink(text);
+      expect(performance.now() - start, text.slice(0, 12)).toBeLessThan(100);
+    }
+    expect([TYPED_READ_CHARS, TYPED_READ_MESSAGES]).toEqual([4000, 20]);
+    const typed = Array.from({length: 30}, (_, i) => `message ${i} ${'x'.repeat(5000)} https://example.com/${i}`);
+    const read = recentTyped(typed);
+    expect(read).toHaveLength(20); expect(read.every(t => t.length === 4000)).toBe(true);
+    expect(read.flatMap(linksIn)).toEqual(Array.from({length: 20}, (_, i) => `https://example.com/${i + 10}`));
+    expect(recentTyped(undefined)).toEqual([]); expect(recentTyped(null)).toEqual([]);
   });
 });

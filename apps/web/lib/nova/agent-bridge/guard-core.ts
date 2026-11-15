@@ -1,5 +1,6 @@
 import {cardNumberIn, guardTopic} from '../../ai/safety-guard';
 import {looksSecret} from '../../secret-guard/guard';
+import {hasInvisible, stripInvisible} from '../invisible';
 
 /**
  * Session AM-2 (step 4c, item 3): the part of the arguments guard that holds for every call, whoever filled it in —
@@ -37,13 +38,40 @@ export function leaves(value: unknown, path = '', key = '', out: Leaf[] = []): L
   if (value && typeof value === 'object') for (const [k, v] of Object.entries(value)) leaves(v, path ? `${path}.${k}` : k, k, out);
   return out;
 }
-/** The first rule the arguments break, or null. */
+/** Every field NAME of a call, at every nesting level (bounded). */
+export function keyNames(value: unknown, out: string[] = []): string[] {
+  if (out.length > 400 || !value || typeof value !== 'object') return out;
+  if (Array.isArray(value)) { for (const item of value) keyNames(item, out); return out; }
+  for (const [k, v] of Object.entries(value)) { out.push(k); keyNames(v, out); }
+  return out;
+}
+/** A field name as words: "weight_82.4kg" → "weight 82.4kg", "apiKey" → "api Key". */
+export const keyWords = (key: string): string => snake(stripInvisible(key)).replace(/[_\-]+|\.(?!\d)/g, ' ').trim();
+/** Whether any field name or text value holds a character a person cannot see (lib/nova/invisible.ts). */
+export function argsHaveInvisible(args: unknown): boolean {
+  return keyNames(args).some(hasInvisible) || leaves(args).some(l => typeof l.value === 'string' && hasInvisible(l.value));
+}
+/** The arguments with every invisible character taken out of every text value (the person's own hand-typed call, before its card is built). */
+export function stripArgs<T>(value: T): T {
+  if (typeof value === 'string') return stripInvisible(value) as T;
+  if (Array.isArray(value)) return value.map(item => stripArgs(item)) as T;
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, stripArgs(v)])) as T;
+  return value;
+}
+/**
+ * The first rule the arguments break, or null. Security review: the field NAMES are read as well as the values (finding
+ * 1: twelve recovery words as twelve names, a card number in a name), and every check reads the text without its
+ * invisible characters (finding 2: a soft hyphen inside each recovery word).
+ */
 export function guardAlways(args: Record<string, unknown>): AlwaysReason | null {
-  const all = leaves(args), texts = all.flatMap(l => typeof l.value === 'string' ? [l.value] : []), joined = texts.join('\n');
-  if (looksSecret(joined) || texts.some(t => looksSecret(t))) return 'secret';
-  if (cardNumberIn(joined)) return 'card';
-  for (const text of [...texts, joined]) { const topic = guardTopic(text); if (topic === 'secret') return 'secret'; if (topic === 'credential') return 'credential'; }
-  if (TOKEN_SHAPED.some(p => p.test(joined))) return 'credential';
+  const all = leaves(args), values = all.flatMap(l => typeof l.value === 'string' ? [stripInvisible(l.value)] : []), joined = values.join('\n');
+  const names = keyNames(args).map(k => stripInvisible(k)), words = names.map(keyWords), nameText = words.join(' ');
+  // What looks like a secret or a card number is looked for in the values, in the names, and in both together.
+  if ([...values, ...words, joined, nameText, `${nameText}\n${joined}`].some(t => looksSecret(t))) return 'secret';
+  if (cardNumberIn(joined) || cardNumberIn(nameText) || cardNumberIn(names.join(' '))) return 'card';
+  // What is said ABOUT a secret ("my password is …") is read in the values; a field's name is judged by the rule below.
+  for (const text of [...values, joined]) { const topic = guardTopic(text); if (topic === 'secret') return 'secret'; if (topic === 'credential') return 'credential'; }
+  if (TOKEN_SHAPED.some(p => p.test(joined) || names.some(n => p.test(n)))) return 'credential';
   if (all.some(l => CREDENTIAL_KEY.test(snake(l.key)) && !PAGING_KEY.test(snake(l.key)) && l.value !== null && l.value !== false && String(l.value).trim() !== '')) return 'credential';
   return null;
 }

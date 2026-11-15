@@ -65,10 +65,23 @@ export const PRIVATE_SCREEN_WORDS: Words = {
   en: 'Paused on this private screen: I read nothing here, so I cannot take that from the conversation. Say the words themselves, for example “draft an email to name@example.com about dinner”.',
   nl: 'Gepauzeerd op dit privéscherm: ik lees hier niets, dus ik kan dat niet uit het gesprek halen. Zeg de woorden zelf, bijvoorbeeld “mail naam@voorbeeld.nl over het etentje”.',
 };
+/** Security review (finding 5): Strict mode and a mail address the person did not type themselves. */
+export const STRICT_ADDRESS_WORDS: Words = {
+  en: 'Not made: in Strict mode NOVA drafts mail only to an address you typed yourself. Type the address in your own words, or change the privacy mode in NOVA → Permissions.',
+  nl: 'Niet gemaakt: in de Strict-modus maakt NOVA alleen een mailconcept voor een adres dat je zelf hebt getypt. Typ het adres in je eigen woorden, of wijzig de privacymodus in NOVA → Permissions.',
+};
+/** Security review (finding 11; the same line stands on a card for a tool of the person's own). */
+export const OUTSIDE_TEXT_LINE: Words = {
+  en: 'Earlier in this chat NOVA read text from outside (a tool or a paste). Read this card before you approve.',
+  nl: 'Eerder in deze chat las NOVA tekst van buiten (een tool of geplakte tekst). Lees deze kaart voor je goedkeurt.',
+};
+export const DONE_KEY: Words = {en: 'Done', nl: 'Klaar'};
 /** The honest notes a card carries about its own content. */
 export function cardNotes(h: Handoff, lang: HandoffLang): string[] {
   const nl = lang === 'nl', notes: string[] = [];
   if (h.kind === 'email') {
+    if (h.unverified?.length === 1) notes.push(nl ? 'Dit adres stond niet in je eigen woorden. Controleer het voor je verstuurt.' : 'This address was not in your own words. Check it before you send.');
+    else if (h.unverified?.length) notes.push(nl ? `Deze adressen stonden niet in je eigen woorden: ${h.unverified.join(', ')}. Controleer ze voor je verstuurt.` : `These addresses were not in your own words: ${h.unverified.join(', ')}. Check them before you send.`);
     if (!h.to.length) notes.push(h.named
       ? (nl ? `Geen adres in je woorden: vul het adres van ${h.named} in je mailapp in.` : `No address in your words: fill in ${h.named}’s address in your mail app.`)
       : (nl ? 'Nog geen adres: vul het in je mailapp in.' : 'No address yet: fill it in in your mail app.'));

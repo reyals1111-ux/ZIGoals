@@ -10,6 +10,6 @@
  * the variation selectors (U+FE00–FE0F, U+E0100–E01EF), the Mongolian vowel separator, the Hangul fillers, the
  * combining grapheme joiner and the Braille blank. Line breaks, tabs and ordinary spaces stay (callers bound those).
  */
-const INVISIBLE = /[\p{Cf}͏ᅟᅠ឴឵᠋-᠏⠀ㅤ︀-️ﾠ\u{E0100}-\u{E01EF}]/gu;
+const INVISIBLE = /[\p{Cf}\u034F\u115F\u1160\u17B4\u17B5\u180B-\u180F\u2800\u3164\uFE00-\uFE0F\uFFA0\u{E0100}-\u{E01EF}]/gu;
 export function stripInvisible(text: string): string { return text.replace(INVISIBLE, ''); }
 export function hasInvisible(text: string): boolean { INVISIBLE.lastIndex = 0; const found = INVISIBLE.test(text); INVISIBLE.lastIndex = 0; return found; }

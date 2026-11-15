@@ -1,6 +1,7 @@
 import {cardNumberIn, safetyFirst} from '../../ai/safety-guard';
 import {looksSecret} from '../../secret-guard/guard';
 import {ADDRESS_IN_TEXT, BARE_LINK, MAX_SUBJECT, SECRET_WORDS, holdsSecret, buildCalendar, buildCopy, buildEmail, buildLink, buildShare, clipText, oneLine, sentenceCase, trimLink, type Built, type Handoff, type HandoffLang} from './handoff';
+import {stripInvisible} from '../invisible';
 import {readWhen} from './when';
 import {HEALTH_CLOSED_WORDS, PRIVATE_SCREEN_WORDS, READY_WORDS} from './words';
 
@@ -23,7 +24,7 @@ export type HandoffRecord = {title: string; date: string; time?: string};
 export type HandoffContext = {
   /** The device's local day (YYYY-MM-DD) and this moment. */
   today: string; now: Date;
-  /** NOVA's last answer in this conversation: what "this" and "that" mean. `health`: it read Health records. Absent: there is none. */
+  /** NOVA's last answer in this conversation: what "this" and "that" mean. `health`: the conversation read Health records, in any turn (lib/nova/handoff/health.ts `healthReadOver`; security review, finding 4). Absent: there is none. */
   last?: {text: string; health: boolean} | null;
   /** The person's open tasks with a day and their bills' next due days, as NOVA may read them now (its permissions); absent on a private screen. */
   records?: {tasks?: readonly HandoffRecord[] | null; bills?: readonly HandoffRecord[] | null} | null;
@@ -117,7 +118,7 @@ function lastAnswer(ctx: HandoffContext, lang: HandoffLang, empty: {en: string; 
   if (ctx.paused) return {kind: 'say', lang, words: PRIVATE_SCREEN_WORDS[lang]};
   const text = ctx.last?.text.trim() ?? '';
   if (!text) return {kind: 'say', lang, words: empty[lang]};
-  // Q14, Q16: an answer that read Health records leaves only while NOVA's Health permission and the Health gate are both on.
+  // Q14, Q16: an answer in a conversation that read Health records leaves only while NOVA's Health permission and the Health gate are both on.
   if (ctx.last!.health && !ctx.healthOpen) return {kind: 'say', lang, words: HEALTH_CLOSED_WORDS[lang]};
   return {text};
 }
@@ -149,10 +150,11 @@ function openPlan(text: string): HandoffPlan | null {
 const planOf = (built: Built, lang: HandoffLang): HandoffPlan => built.ok ? {kind: 'card', lang, handoff: built.handoff, say: READY_WORDS[built.handoff.kind][lang]} : {kind: 'say', lang, words: built.words};
 /** The hand-off these words ask for, from the words themselves. `none`: not a hand-off; the engine answers as always. */
 export function handoffFor(raw: string, ctx: HandoffContext): HandoffPlan {
-  const text = String(raw ?? '').replace(/\s+/g, ' ').trim();
+  // Security review (finding 2): the words are read without what cannot be seen, and so is everything built from them.
+  const text = stripInvisible(String(raw ?? '')).replace(/\s+/g, ' ').trim();
   if (!text || text.length > 1200) return NONE;
   // Safety first, exactly as the engine does before anything is answered, kept or sent.
-  if (guardAnswers(raw)) {
+  if (guardAnswers(raw) || guardAnswers(text)) {
     // One narrow case. The guard reads "email … to <address>" as data being sent away ("send my data to x@example.com"), and
     // answers it. A draft the person asks for, to an address they typed themselves, is this feature: it is made only when
     // the words pass the guard whole with the address masked (no other topic, no secret, no overridden rule), the words

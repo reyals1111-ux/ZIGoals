@@ -1,6 +1,6 @@
 import * as z from 'zod';
-import {HANDOFF_KINDS, MAX_ADDRESS, MAX_BODY, MAX_SUBJECT, MAX_TITLE, MAX_TO, MAX_URL, buildCalendar, buildCopy, buildEmail, buildLink, buildShare, trimLink, URL_IN_TEXT, type Built, type Handoff, type HandoffLang} from './handoff';
-import {HEALTH_CLOSED_WORDS} from './words';
+import {HANDOFF_KINDS, MAX_ADDRESS, MAX_BODY, MAX_SUBJECT, MAX_TITLE, MAX_TO, MAX_URL, addressesIn, buildCalendar, buildCopy, buildEmail, buildLink, buildShare, holdsHidden, linksIn, recentTyped, type Built, type Handoff, type HandoffLang} from './handoff';
+import {HEALTH_CLOSED_WORDS, STRICT_ADDRESS_WORDS} from './words';
 
 /**
  * Session AM-2 (owner's step 4b; TIER 3 (AI safety)): what a connected model may ask for with the one closed tool
@@ -9,15 +9,16 @@ import {HEALTH_CLOSED_WORDS} from './words';
  * character. A model's request never does anything: it is turned into the same confirm card the person's own words make
  * (the same builders, the same secret checks), and only the person's press on the card's button hands anything over.
  * - At most one card per reply (`handoffFromCalls` takes the first request that ran and builds; the rest are dropped).
- * - A link a model names is marked as not the person's own unless that exact address stands in words the person typed
- *   themselves in this conversation (pasted text does not count).
+ * - A link or a mail address a model names is marked as not the person's own unless that exact address stands in words
+ *   the person typed themselves in this conversation (pasted text does not count); in Strict such a mail draft is not made.
  * - Q14, Q16: when the conversation read Health records and Health is not open for NOVA now, a model's hand-off is not made.
  */
-const HIDDEN = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f​-‏‪-‮⁠-⁩﻿]/;
+/** Security review (finding 2): a field that holds a character nobody can see (lib/nova/invisible.ts) or a control character is refused, never cleaned: a model's card shows exactly what the model sent. */
+const UNSEEN = 'It holds a character that cannot be seen. Send plain, visible text only.';
 /** Markup: a tag, a comment or a character reference has no place in a mail body, a calendar note, a share or a title. */
 const MARKUP = /<\s*\/?\s*[a-zA-Z!?][^>]*>|<!--|&(?:#\d+|#x[0-9a-f]+|[a-z][a-z0-9]{1,30});/i;
-const line = (max: number) => z.string().max(max).refine(s => !HIDDEN.test(s) && !/[\r\n\t]/.test(s), 'One plain line.').refine(s => !MARKUP.test(s), 'Plain text, no markup.');
-const lines = (max: number) => z.string().max(max).refine(s => !HIDDEN.test(s), 'Plain text.').refine(s => !MARKUP.test(s), 'Plain text, no markup.');
+const line = (max: number) => z.string().max(max).refine(s => !holdsHidden(s), UNSEEN).refine(s => !/[\r\n\t]/.test(s), 'One plain line.').refine(s => !MARKUP.test(s), 'Plain text, no markup.');
+const lines = (max: number) => z.string().max(max).refine(s => !holdsHidden(s), UNSEEN).refine(s => !MARKUP.test(s), 'Plain text, no markup.');
 export const handOffArgs = z.object({
   kind: z.enum(HANDOFF_KINDS),
   /** email: the addresses, separated by commas (at most five). */
@@ -29,7 +30,7 @@ export const handOffArgs = z.object({
   /** calendar: the event's name; share: a title. */
   title: line(MAX_TITLE).optional(),
   /** link and share: an http(s) address. */
-  url: z.string().max(MAX_URL).refine(s => !HIDDEN.test(s) && !/\s/.test(s), 'One address.').optional(),
+  url: z.string().max(MAX_URL).refine(s => !holdsHidden(s), UNSEEN).refine(s => !/\s/.test(s), 'One address.').optional(),
   /** calendar: the day and, optionally, the local clock time and the length. */
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/).optional(),
@@ -44,19 +45,29 @@ export type ModelContext = {
   healthRead?: boolean;
   /** Health may go into a hand-off: NOVA's Health permission and this device's Health gate are both on. */
   healthOpen?: boolean;
+  /** NOVA's privacy mode (lib/nova/privacy-mode.ts). In Strict a model never drafts mail to an address the person did not type themselves (finding 5). */
+  mode?: 'strict' | 'guarded' | 'relaxed' | null;
 };
+/** Finding 12: only the newest typed messages are read, and only the end of each (`recentTyped`), one pass per message. */
 const typedLinks = (typed: readonly string[] | undefined): Set<string> => {
   const out = new Set<string>();
-  for (const text of typed ?? []) for (const m of text.matchAll(URL_IN_TEXT)) { const raw = trimLink(m[0]); try { out.add(new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`).href); } catch { /* not a link */ } }
+  for (const text of recentTyped(typed)) for (const raw of linksIn(text)) { try { out.add(new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`).href); } catch { /* not a link */ } }
   return out;
 };
+const typedAddresses = (typed: readonly string[] | undefined): Set<string> => new Set(recentTyped(typed).flatMap(addressesIn));
 /** A model's request as a card's content, or the plain reason it is not made. The arguments must already fit `handOffArgs`. */
 export function handoffFromArgs(args: HandOffArgs, ctx: ModelContext): Built {
   const lang = ctx.lang ?? 'en';
   if (ctx.healthRead && !ctx.healthOpen) return {ok: false, reason: 'empty', words: HEALTH_CLOSED_WORDS[lang]};
   const mine = (url: string): 'person' | 'other' => { try { return typedLinks(ctx.typed).has(new URL(url).href) ? 'person' : 'other'; } catch { return 'other'; } };
   switch (args.kind) {
-    case 'email': return buildEmail({to: (args.to ?? '').split(/[,;]/).map(a => a.trim()).filter(Boolean), subject: args.subject, body: args.text}, lang);
+    case 'email': {
+      // Finding 5: an address the model names is the person's own only when it stands in words they typed themselves; any
+      // other is marked on the card, and in Strict the draft is not made at all.
+      const known = typedAddresses(ctx.typed);
+      const built = buildEmail({to: (args.to ?? '').split(/[,;]/).map(a => a.trim()).filter(Boolean), subject: args.subject, body: args.text, typedAddress: address => known.has(address.toLowerCase())}, lang);
+      return built.ok && built.handoff.unverified?.length && ctx.mode === 'strict' ? {ok: false, reason: 'address', words: STRICT_ADDRESS_WORDS[lang]} : built;
+    }
     case 'calendar': return buildCalendar({title: args.title ?? '', date: args.date ?? '', time: args.time, minutes: args.minutes, note: args.text}, ctx.now, lang);
     case 'share': return buildShare({title: args.title, text: args.text, url: args.url, source: args.url ? mine(args.url) : 'other'}, lang);
     case 'link': return buildLink({url: args.url ?? '', source: mine(args.url ?? '')}, lang);

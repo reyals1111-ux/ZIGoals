@@ -128,3 +128,43 @@ test('"add my rent bill to my calendar" reads the person\'s open tasks and bills
   // Never an amount, a currency or an id: a title and a day (and a task's time).
   expect(JSON.stringify(handoffRecords(env, '2026-11-15'))).not.toMatch(/950|EUR|"id"|b1|t1/);
 });
+
+// Security review (AM-2), findings 7 and 11.
+test('finding 7: the buttons arm half a second after the card appears, and the card never takes the focus onto a button', async () => {
+  const before = document.activeElement;
+  await act(async () => root.render(h(HandoffCard, {item: item(ok(buildLink({url: 'https://example.com/docs', source: 'person'}))), onRun: vi.fn(), onDismiss: vi.fn()})));
+  const keys = () => [...host.querySelectorAll<HTMLButtonElement>('.nh-actions button')].filter(b => !b.classList.contains('text-link'));
+  expect(keys().map(b => b.disabled)).toEqual([true, true]);
+  expect(document.activeElement).toBe(before); expect(host.contains(document.activeElement)).toBe(false);
+  expect(host.querySelector('[autofocus]')).toBeNull();
+  // "Not now" is never held back: the person can always send the card away.
+  expect(host.querySelector<HTMLButtonElement>('.nh-actions .text-link')!.disabled).toBe(false);
+  await act(async () => { await new Promise(r => setTimeout(r, 300)); });
+  expect(keys().map(b => b.disabled)).toEqual([true, true]);
+  await act(async () => { await new Promise(r => setTimeout(r, 300)); });
+  expect(keys().map(b => b.disabled)).toEqual([false, false]);
+  expect(host.contains(document.activeElement)).toBe(false);
+  // Armed or not, a press that is not the person's own still does nothing.
+  const s = spies();
+  for (const key of keys()) await act(async () => { key.click(); key.click(); });
+  await settle();
+  for (const [name, spy] of Object.entries(s)) expect(spy, name).not.toHaveBeenCalled();
+  expect(keys().map(b => b.textContent)).toEqual(['Open in a new tab', 'Copy the address']);
+});
+
+test('finding 11: a card made after the conversation read text from outside carries the one quiet line; any other card does not', async () => {
+  const line = 'Earlier in this chat NOVA read text from outside (a tool or a paste). Read this card before you approve.';
+  await act(async () => root.render(h(HandoffCard, {item: {...item(ok(buildCopy({text: 'Hello'}))), outside: true}, onRun: vi.fn(), onDismiss: vi.fn()})));
+  expect(host.querySelector('.nh-outside')?.textContent).toBe(line);
+  await act(async () => root.render(h(HandoffCard, {key: 'nl', item: {...item(ok(buildCopy({text: 'Hallo'})), 'device', 'nl'), outside: true}, onRun: vi.fn(), onDismiss: vi.fn()})));
+  expect(host.querySelector('.nh-outside')?.textContent).toBe('Eerder in deze chat las NOVA tekst van buiten (een tool of geplakte tekst). Lees deze kaart voor je goedkeurt.');
+  await act(async () => root.render(h(HandoffCard, {key: 'plain', item: item(ok(buildCopy({text: 'Hello'}))), onRun: vi.fn(), onDismiss: vi.fn()})));
+  expect(host.querySelector('.nh-outside')).toBeNull(); expect(host.textContent).not.toContain('from outside');
+});
+
+test('finding 5: a card for an address that was not in the person\'s own words says so, in the warning colour', async () => {
+  const built = buildEmail({to: ['attacker@evil.example'], subject: 'Your notes', typedAddress: () => false});
+  await act(async () => root.render(h(HandoffCard, {item: item(ok(built), 'model'), onRun: vi.fn(), onDismiss: vi.fn()})));
+  expect([...host.querySelectorAll('.nh-notes li')].map(li => li.textContent)).toEqual(['This address was not in your own words. Check it before you send.']);
+  expect(host.querySelector('.nh-notes li')?.hasAttribute('data-warn')).toBe(true);
+});

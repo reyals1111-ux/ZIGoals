@@ -83,7 +83,7 @@ describe('refused, in plain words, before any request', () => {
     ['http://1ocalhost:8000', 'host', 'a look-alike'],
     ['http://locаlhost:8000', 'characters', 'a Cyrillic а'],
     ['http://ⓛocalhost:8000', 'characters', 'a circled letter the URL parser folds to l'],
-    ['http://localhost​:8000', 'characters', 'a zero-width space'],
+    ['http://localhost\u200B:8000', 'characters', 'a zero-width space'],
     ['http://xn--loclhost-8bg:8000', 'host', 'punycode'],
     // ── the same machine, written another way ──
     ['http://2130706433:8000', 'host', 'decimal'],
@@ -161,7 +161,7 @@ describe('refused, in plain words, before any request', () => {
     ['http://127.0.0.1\n.evil.example', 'characters', 'a line feed the URL parser would drop'],
     ['http://loc\ralhost:8000', 'characters', 'a carriage return'],
     ['http://127.0.0.1:8000/\u0000', 'characters', 'a NUL'],
-    ['http://127.0.0.1:8000/‮evil', 'characters', 'a direction override'],
+    ['http://127.0.0.1:8000/\u202Eevil', 'characters', 'a direction override'],
     ['http://127.0.0.1:8000/é', 'characters', 'a letter outside ASCII'],
     // ── nothing, or too much ──
     ['', 'empty', 'nothing'],

@@ -264,6 +264,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     else await session.ask(text, {area, zigi: true, ...(replace ? {replace} : {}), ...(pasted ? {pasted: true} : {})}); // Z1A-2
     if (delegation.current) { delegation.current.done = true; setTick(t => t + 1); }
   }, [persona.name, session]);
+  const pastedWords = useRef(new Set<string>()), wasPasted = useCallback((text: string) => pastedWords.current.has(text.trim()), []);
   const sendText = useCallback((text: string, replace?: string, pasted = false) => {
     // Editing a task that was ZIGi's keeps it ZIGi's, on the same page.
     const mark = replace ? marks[replace] : undefined;
@@ -273,6 +274,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     if (!replace && outwardDirect(text, pasted)) return;
     // Session AM (D7): a stage command or a plain "show me …" is answered on the stage itself, on this device.
     if (!replace && !pasted && summon.direct(text)) return;
+    if (pasted) pastedWords.current.add(text.trim()); // AM-2 (security review, finding 6): pasted or dropped words are not "typed by you" on a tool card
     ask(text, {...(replace ? {replace} : {}), ...(pasted ? {pasted: true} : {})});
   }, [ask, command, marks, runDelegation, summon, outwardDirect]);
   const retry = useCallback(() => {
@@ -502,7 +504,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
         {seeing === '' ? <p className="ai-note">Nothing is read right now (a private screen, or the records are still loading).</p> : seeing && <pre tabIndex={0}>{seeing}</pre>}
       </details>}
       {/* Session AM-2 (step 4c): a tool NOVA's model proposed becomes ONE confirm card here; nothing is sent without the person's press. */}
-      <ToolProposalsGate session={session} connected={connected} healthOpen={!novaHealthOff} onAttention={stageAttention}/>
+      <ToolProposalsGate session={session} connected={connected} healthOpen={!novaHealthOff} onAttention={stageAttention} wasPasted={wasPasted}/>
       <OutboxHistory persona={persona.name}/>
       <p className="nova-chat-foot">{session.kept ? 'Your conversation stays on this device, in one history with ZIGi, whichever model answers.' : 'This conversation is not kept: it is gone when you close it or start a new chat.'}</p>
     </>}

@@ -27,8 +27,12 @@ import {logLine, outcomeOf, plainLine, type ToolOutcome} from './untrusted';
  * Whatever a server answers is untrusted data: read, bounded, shown as plain text; nothing in it is followed.
  */
 export const PROTOCOL_LATEST = '2025-06-18';
-/** The revisions whose `initialize`, `tools/list` and `tools/call` NOVA reads (they are the same in all of them). */
-export const PROTOCOLS_READ: readonly string[] = ['2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05'];
+/**
+ * The revisions NOVA reads: the specification's dated versions this client was written against (2024-11-05, 2025-03-26,
+ * 2025-06-18), whose `initialize`, `tools/list` and `tools/call` are the same. Any other answer, an earlier or a later
+ * date included, is "not understood": NOVA stops there in plain words rather than guess at a revision it has not read.
+ */
+export const PROTOCOLS_READ: readonly string[] = ['2025-06-18', '2025-03-26', '2024-11-05'];
 export const TIMEOUT_DEFAULT_MS = 15_000, TIMEOUT_MAX_MS = 60_000, TIMEOUT_MIN_MS = 1000, RESPONSE_MAX_BYTES = 1_000_000, LIST_PAGES_MAX = 5;
 export const CLIENT_INFO = {name: 'ZIGoals NOVA', version: '1'} as const;
 export const clampTimeout = (ms: number | null | undefined): number => typeof ms === 'number' && Number.isFinite(ms) ? Math.min(TIMEOUT_MAX_MS, Math.max(TIMEOUT_MIN_MS, Math.round(ms))) : TIMEOUT_DEFAULT_MS;
@@ -44,7 +48,7 @@ export const BRIDGE_WORDS: Readonly<Record<Exclude<BridgeProblem, 'address' | 't
   'wrong-token': 'The server refused the token. Check it in your server’s own settings and type it again.',
   session: 'The server no longer knows this connection (it restarted, or the connection ran out). Connect again.',
   protocol: 'The server answered, but not in a way NOVA can read (it must speak the Model Context Protocol over Streamable HTTP at this exact address).',
-  version: 'The server speaks a version of the Model Context Protocol NOVA does not read. Update the server, or NOVA cannot use it.',
+  version: 'The server answered with a version of the Model Context Protocol that NOVA does not understand (it reads 2024-11-05, 2025-03-26 and 2025-06-18). Nothing more was sent. Set the server to one of those, if it can.',
   stopped: 'Stopped.',
 };
 export class BridgeError extends Error {

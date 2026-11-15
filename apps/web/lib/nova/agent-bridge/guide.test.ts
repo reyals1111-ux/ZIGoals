@@ -94,7 +94,7 @@ describe('the panel’s code: what it never does', () => {
     expect(run.match(/noteOutbox\(/g)).toHaveLength(1);
     // The card: one press, one call; Escape and "Not now" close it with nothing sent.
     const card = code('tool-card.tsx');
-    expect(card).toMatch(/if \(state !== 'ask'\) return;/); expect(card.match(/\brun\(card, ctx\)/g)).toHaveLength(1);
+    expect(card).toMatch(/if \(!pressCounts\(\{trusted: event\.nativeEvent\.isTrusted, shownAt: shownAt\.current, now: Date\.now\(\), state, pressed: pressed\.current\}\)\) return;\s+pressed\.current = true;/); // finding 7 (deliberate): one real press, after the card is armed expect(card.match(/\brun\(card, ctx\)/g)).toHaveLength(1);
     // `run` is only ever handed to the card as its button's action: by the panel as it is, by the chat with "keep" (a chat that is not kept adds no history line).
     expect(files.filter(f => /\bbridge\.run\b/.test(code(f))).sort()).toEqual(['agent-panel.tsx', 'tool-proposals.tsx']);
     expect(code('agent-panel.tsx').match(/bridge\.run\b/g)).toEqual(['bridge.run']); expect(code('agent-panel.tsx')).toMatch(/run=\{bridge\.run\}/);
@@ -103,7 +103,7 @@ describe('the panel’s code: what it never does', () => {
   it('a token is typed into a password field, kept through the device’s key store, and never put in the record, a log or a URL', () => {
     const panel = code('agent-panel.tsx'), bridge = code('use-agent-bridge.ts');
     expect(panel.match(/type="password"/g)!.length).toBeGreaterThanOrEqual(3);
-    expect(bridge).toMatch(/rememberKey\(scope, tokenSlot\(/); expect(bridge).toMatch(/holdKey\(scope, tokenSlot\(/); expect(bridge).toMatch(/forgetKey\(currentAiScope\(\), tokenSlot\(id\)\)/);
+    expect(bridge).toMatch(/slot = tokenSlot\(server\.id, server\.address\)/); expect(bridge).toMatch(/rememberKey\(scope, slot, secret\)/); expect(bridge).toMatch(/holdKey\(scope, slot, secret\)/); expect(bridge).toMatch(/if \(slot\) await forgetKey\(currentAiScope\(\), slot\)/); // finding 8 (deliberate): the slot is the id and the address together
     for (const f of files) { const src = code(f); expect(src, f).not.toMatch(/console\.(log|info|warn|error|debug)/); expect(src, f).not.toMatch(/localStorage|sessionStorage\.setItem|document\.cookie/); expect(src, f).not.toMatch(/[?&]token=|\$\{token\}/); }
     expect(bridge).not.toMatch(/record\.update\([^)]*token/);
   });

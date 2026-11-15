@@ -7,10 +7,10 @@ const SEARCH = {type: 'object', properties: {query: {type: 'string', description
 
 describe('a listed tool is untrusted data', () => {
   it('keeps a plain name, one plain cut line of description, and the schema in NOVA’s subset', () => {
-    const tool = readTool({name: 'web.search', description: `Search‮ the <b>web</b>\n\n[click](https://evil.example) ${'x'.repeat(600)}`, inputSchema: SEARCH})!;
+    const tool = readTool({name: 'web.search', description: `Search\u202E the <b>web</b>\n\n[click](https://evil.example) ${'x'.repeat(600)}`, inputSchema: SEARCH})!;
     expect(tool.name).toBe('web.search');
     expect(tool.description.length).toBeLessThanOrEqual(DESCRIPTION_MAX);
-    expect(tool.description).not.toMatch(/[\n‮]/);
+    expect(tool.description).not.toMatch(/[\n\u202E]/);
     expect(tool.description.startsWith('Search the <b>web</b> [click](https://evil.example)')).toBe(true); // kept as the text it is: never markup, never a link
     expect(tool.schema).toMatchObject({required: ['query'], additional: false, simple: true, unread: false});
     expect(Object.keys(tool.schema.properties)).toEqual(['query', 'limit', 'safe', 'lang', 'tags']);

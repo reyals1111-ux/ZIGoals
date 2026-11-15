@@ -106,6 +106,8 @@
 .na-card-body { display: grid; gap: 12px; padding: 16px; }
 .na-card-body :where(h2, h3, p, dl, dd) { margin: 0; }
 .na-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.na-card-title:focus { outline: none; }
+.na-card-title:focus-visible { outline: 2px solid var(--na-b); outline-offset: 4px; }
 .na-card-title { font-size: 19px; font-weight: 650; line-height: 1.25; color: #fff; overflow-wrap: anywhere; }
 .na-card-where { display: grid; gap: 2px; padding: 10px 12px; border-left: 2px solid var(--na-b); background: #0a112c; font-size: 14px; color: var(--na-ink-2); }
 .na-card-foot { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; background: linear-gradient(180deg, #060a1f00, #060a1f 28%); }
