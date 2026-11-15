@@ -17728,6 +17728,9 @@
         background-color: transparent;
         box-shadow: 0 0 14px 1px #6fb0ff40
     }
+    .nova-frame[data-stage=set] .nova-orb-button > .cc-bezel:not(#\-) {
+        --bz: min(calc(var(--star-size, 440px) * .86), calc(var(--star-col, 440px) * .98))
+    }
     .cc-bezel > svg:not(#\-) {
         fill: none
     }
@@ -17788,6 +17791,11 @@
     .cc-read:not(#\-) {
         color: var(--nova-ink-2, #090f1c);
         text-shadow: 0 0 2px #363c5066, 0 0 8px #363c5066
+    }
+    .cc-read:not(#\-) {
+        background-image: none;
+        background-color: #f3f5faf2;
+        box-shadow: 0 0 0 1px color-mix(in oklab, var(--cc) 22%, transparent)
     }
     .cc-read > b:not(#\-) {
         color: color-mix(in oklab, color-mix(in srgb, var(--cc) 42%, #000) 70%, #0f0f0f)
