@@ -2,6 +2,7 @@
 import {useEffect, useId, useRef, type CSSProperties, type ReactNode} from 'react';
 import {linePath, polar, smoothPath} from '../../../lib/nova/holo/geometry';
 import {condition, MET_CREDIT, MET_LICENCE_URL, MET_SITE_URL, type Condition} from '../../../lib/nova/world/met';
+import {weatherViaProxy} from '../../../lib/nova/world/proxy';
 import type {WorldReading} from '../../../lib/nova/world/record';
 import {clockTime, degrees, umbrella} from '../../../lib/nova/world/words';
 import {formatWeekday} from '../../../lib/visual-format';
@@ -85,7 +86,8 @@ function useSkyOnFrame(sky: Condition | null) {
 }
 export function WeatherOff({what}: {what: string}) {
   return <CardNotice kind="off" ghost="sky" title="Weather is off" href={PERMISSIONS} action="Turn it on in Permissions">
-    {what} Turn it on and this device asks MET Norway, which then sees your network address and your place, rounded to about 1 km. Nothing is asked until then.
+    {/* Who sees the request depends on the build (lib/nova/world/proxy.ts): the widget says the one that is true here. */}
+    {what} {weatherViaProxy() ? 'Turn it on and this device asks ZIGoals’ weather proxy, which sees your network address and your place, rounded to about 1 km, and asks MET Norway for you. Nothing is asked until then.' : 'Turn it on and this device asks MET Norway, which then sees your network address and your place, rounded to about 1 km. Nothing is asked until then.'}
   </CardNotice>;
 }
 /** The foot. Design review AM-D32: the Showcase's is one line; AM-D38: the service's credit and licence stay whole (they may wrap). */
@@ -101,7 +103,7 @@ export default function WeatherWidget({size = 'M'}: Partial<CardProps>) {
   if (w.kind === 'unreadable') return <HoloUnread what="Your weather choice"/>;
   if (w.kind === 'off') return <WeatherOff what="The weather where you are."/>;
   if (w.kind === 'no-place') return <CardNotice kind="empty" ghost="sky" title="Choose your place" href={PERMISSIONS} action="Choose a place">Weather is on. Pick a city from the list, or type a position, and the weather for it shows here.</CardNotice>;
-  if (w.kind === 'asking') return <div ref={frame} className="nc-body"><p className="nova-reading" role="status">Asking MET Norway for {w.place.name}…</p></div>;
+  if (w.kind === 'asking') return <div ref={frame} className="nc-body"><p className="nova-reading" role="status">Asking for the weather in {w.place.name}…</p></div>;
   if (w.kind === 'failed') return <div ref={frame} className="nc-body"><CardNotice kind="empty" ghost="sky" title="No reading yet">{w.words} NOVA asks again in ten minutes, never more often.</CardNotice></div>;
   // Design review AM-D19 (L): precipitation as bars on one scale with one label, on the peak; each day states its lowest
   // AND its highest; wind, humidity and UV on one line; the source line is the body's last line, always in view.

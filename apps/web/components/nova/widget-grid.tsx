@@ -31,6 +31,18 @@ const BODIES: Record<string, Body> = {
   'goal-focus': lazy(() => import('./widgets/goal-focus')), 'net-worth': lazy(() => import('./widgets/net-worth')), spending: lazy(() => import('./widgets/spending')), budgets: lazy(() => import('./widgets/budgets')),
   bills: lazy(() => import('./widgets/bills')), journal: lazy(() => import('./widgets/journal')), time: lazy(() => import('./widgets/time')), weather: lazy(() => import('./widgets/weather')), sun: lazy(() => import('./widgets/sun')),
   'nova-sees': lazy(() => import('./widgets/nova-sees')), 'nova-brain': lazy(() => import('./widgets/nova-brain')), requests: lazy(() => import('./widgets/requests')),
+  // Session AM-2 (step 3, "NOVA connected"): what Sessions AO and AP added to the pages, as widgets on request (cards/connect-cards.css).
+  'net-worth-history': lazy(() => import('./widgets/net-worth-history')), 'ready-to-assign': lazy(() => import('./widgets/ready-to-assign')), 'age-of-money': lazy(() => import('./widgets/age-of-money')),
+  'spending-pace': lazy(() => import('./widgets/spending-pace')), 'bill-changes': lazy(() => import('./widgets/bill-changes')), 'money-tags': lazy(() => import('./widgets/money-tags')),
+  'perfect-days': lazy(() => import('./widgets/perfect-days')), 'day-rules': lazy(() => import('./widgets/day-rules')), 'tasks-later': lazy(() => import('./widgets/tasks-later')),
+  countdowns: lazy(() => import('./widgets/countdowns')), 'journal-numbers': lazy(() => import('./widgets/journal-numbers')), templates: lazy(() => import('./widgets/templates')),
+  'run-splits': lazy(() => import('./widgets/run-splits')), 'mood-tags': lazy(() => import('./widgets/mood-tags')), symptoms: lazy(() => import('./widgets/symptoms')),
+  // Round 2: the pages that still had no widget.
+  'priority-matrix': lazy(() => import('./widgets/priority-matrix')), 'hour-grid': lazy(() => import('./widgets/hour-grid')), reviews: lazy(() => import('./widgets/reviews')),
+  milestones: lazy(() => import('./widgets/milestones')), 'cash-flow': lazy(() => import('./widgets/cash-flow')), accounts: lazy(() => import('./widgets/accounts')),
+  'debt-plan': lazy(() => import('./widgets/debt-plan')), 'savings-challenges': lazy(() => import('./widgets/savings-challenges')), 'price-alerts': lazy(() => import('./widgets/price-alerts')),
+  'health-trends': lazy(() => import('./widgets/health-trends')), 'food-days': lazy(() => import('./widgets/food-days')), fasting: lazy(() => import('./widgets/fasting')),
+  meditation: lazy(() => import('./widgets/meditation')), supplements: lazy(() => import('./widgets/supplements')), cycle: lazy(() => import('./widgets/cycle')),
 };
 /** Session AL Part 11 (lane L8): the Holo look of earlier widgets where an instrument says more (holo/skins.tsx); the rest keep their bodies. */
 const skin = (name: 'HoloWater' | 'HoloSleep' | 'HoloOrbit' | 'HoloNext' | 'HoloTasks' | 'HoloNotes'): Body => lazy(() => import('./holo/skins').then(m => ({default: m[name]})));

@@ -1,0 +1,222 @@
+/*
+ * Session AM-2 (step 3, "NOVA connected"; ADR-038 "AM-2" I1; art direction, the AM-2 design language B–E): the bodies of
+ * the widgets that show what Sessions AO and AP added to the pages (components/nova/widgets/net-worth-history.tsx,
+ * ready-to-assign, age-of-money, spending-pace, bill-changes, money-tags, perfect-days, day-rules, tasks-later,
+ * countdowns, journal-numbers, templates, run-splits, mood-tags, symptoms). They are built from the kit (cards/kit.tsx,
+ * cards.css); this sheet only places them. Every class here is this sheet's own (`nx-`); a kit class is only ever
+ * adjusted inside one of them.
+ *
+ * One layout for all fifteen: a top (the hero figure, with a dial beside it where the widget has one), a main (the
+ * instrument: the elastic row of the body, so a chart fills a tall panel) and the kit's foot (source and as-of), always
+ * whole. A wide medium panel puts the top on the left and the instrument on the right; a large one that is wide does the
+ * same over its whole height. A short panel drops whole rows, never the foot.
+ *
+ * The realm's colour comes from the frame (`--neon`, `--neon-2`, `--neon-ink`). Labels are 14 px, body text 15–16 px, ink
+ * on the night glass (at least 4.5:1). Nothing here animates and nothing uses backdrop-filter (owner rule B2): the kit
+ * draws its instruments once when a widget is made, with transform and opacity only.
+ */
+.nc-body.nx-card { gap: 8px; min-width: 0; }
+.nc-body.nx-card[data-size=S] { gap: 4px; }
+.nc-body.nx-card[data-size=L] { gap: 12px; }
+
+/* ---- The top: the hero, and a dial beside it ---- */
+.nx-top { flex: none; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.nx-top > .nc-hero { flex: 1 1 0; min-width: 0; }
+.nx-card[data-size=L] .nx-top { gap: 16px; }
+.nx-card[data-size=S] .nx-top { gap: 10px; }
+.nx-card[data-size=M] .nc-hero { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.nx-card[data-size=M] .nc-hero-label { order: 0; margin: 0; min-width: 0; }
+.nc-body.nx-card[data-size=M] .nc-hero-num { font-size: 36px; }
+.nc-body.nx-card[data-size=L] .nc-hero-num { font-size: clamp(38px, 3.4vw, 50px); }
+.nova-widget[data-size=S] .nx-card .nc-hero-num { font-size: 36px; }
+.nova-widget[data-size=S] .nx-card .nc-hero-words { flex: 1 1 0; }
+.nx-card .nc-hero-figure { white-space: nowrap; }
+.nx-card .nc-hero[data-len] .nc-hero-num { font-size: 32px; }
+.nx-card[data-size=M] .nx-note { flex-basis: 100%; }
+.nx-dial-figure { position: relative; display: grid; justify-items: center; line-height: 1; }
+.nx-dial-figure b { font-size: 14px; font-weight: 700; color: var(--neon-ink, #f4f7ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nx-dial-figure small { margin-top: 1px; font-size: 14px; font-weight: 600; color: #d6e0f5; }
+.nx-card[data-size=M] .nx-dial-figure small, .nx-card[data-size=S] .nx-dial-figure small { display: none; }
+.nx-card[data-size=S] .nx-dial-figure { display: none; }
+.nx-card[data-size=L] .nx-dial-figure b { font-size: 20px; }
+
+/* ---- Notes and captions ---- */
+.nx-note { margin: 0; font-size: 14px; line-height: 1.4; color: #c9d4ea; }
+.nx-note[data-tone=watch] { color: #ffd9a8; font-weight: 600; }
+.nx-cap { position: relative; flex: none; margin: 0; padding-left: 11px; font-size: 14px; font-weight: 700; letter-spacing: .1em; line-height: 1.3; text-transform: uppercase; color: #cdd8ee; }
+.nx-cap::before { content: ''; position: absolute; left: 0; top: .2em; bottom: .2em; width: 3px; border-radius: 1px; background: var(--neon, #9273ff); box-shadow: 0 0 6px var(--neon, #9273ff); }
+
+/* ---- The main: the instrument, the elastic row of the body ---- */
+.nx-main { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+/* A list or a set of meters keeps its own height (rows drop whole in a short panel; they are never squeezed). */
+.nx-main[data-fit=rows] { flex: none; }
+.nx-card[data-size=M] .nx-main { gap: 6px; }
+.nx-card[data-size=M] .nc-bars { gap: 6px; }
+.nx-card[data-size=M] .nc-bar { row-gap: 2px; }
+.nx-card[data-size=M] .nc-trend-edge { display: none; }
+.nx-card > .nc-facts, .nx-card > .nx-note, .nx-card > .nx-key { flex: none; }
+
+/* ---- Rows: a lit node, a name, a figure, one line of detail ---- */
+.nx-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; min-width: 0; }
+.nx-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; min-width: 0; padding: 5px 0; border-top: 1px solid color-mix(in oklab, var(--neon, #9273ff) 16%, transparent); }
+.nx-row:first-child { border-top-color: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); }
+.nx-card[data-size=M] .nx-row { padding: 2px 0; column-gap: 10px; }
+.nx-row-node { width: 7px; height: 7px; margin: 0 2px; transform: rotate(45deg); background: var(--neon, #9273ff); box-shadow: 0 0 7px 1px color-mix(in oklab, var(--neon, #9273ff) 80%, transparent); }
+.nx-row-node[data-tone=up] { background: #ffd9a8; box-shadow: 0 0 7px 1px #ffd9a8b3; }
+.nx-row-node[data-tone=down] { background: #a8f5d2; box-shadow: 0 0 7px 1px #a8f5d2b3; }
+.nx-row > .nc-gauge { grid-row: 1 / span 2; }
+.nx-row-name { font-size: 15px; font-weight: 600; line-height: 1.35; color: #f2f6ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nx-row-value { font-size: 15px; font-weight: 650; line-height: 1.35; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nx-row-sub { grid-column: 2 / -1; font-size: 14px; line-height: 1.35; color: #c3cfe6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nx-row .nc-ring-figure { font-size: 14px; }
+/* A row that is a link (a template to start from) is a 44 px target; its arrow is decoration. */
+.nx-row-link { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; min-height: 44px; color: inherit; text-decoration: none; }
+.nx-row-link:hover .nx-row-name, .nx-row-link:focus-visible .nx-row-name { text-decoration: underline; text-underline-offset: 3px; }
+.nx-row-link .nx-row-sub { grid-column: 2; }
+.nx-row-go { grid-row: 1 / span 2; grid-column: 3; font-size: 16px; color: var(--neon-2, #c0adff); }
+.nx-row.nx-row-linked { display: block; padding: 0; }
+
+/* ---- Two lists side by side (This evening, Someday) and two read-outs (the day's rules) ---- */
+.nx-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 24px; min-width: 0; align-items: start; }
+.nx-pair > div { min-width: 0; display: grid; gap: 4px; align-content: start; }
+.nx-readout { position: relative; margin: 0; padding: 2px 0 2px 14px; display: grid; gap: 2px; min-width: 0; border-left: 2px solid color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nx-readout-label { font-size: 14px; font-weight: 700; letter-spacing: .08em; line-height: 1.3; text-transform: uppercase; color: #cdd8ee; }
+.nx-readout-value { font-size: 28px; font-weight: 680; line-height: 1.1; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); }
+.nx-readout-sub { font-size: 14px; line-height: 1.4; color: #c9d4ea; }
+.nx-card[data-size=L] .nx-readout-value { font-size: 40px; }
+.nx-card[data-size=S] .nx-readout-value { font-size: 22px; }
+.nx-card[data-size=S] .nx-readout-sub { display: none; }
+.nx-empty-line { margin: 0; font-size: 15px; line-height: 1.4; color: #d6e0f5; }
+
+/* ---- Keys: the links of a read-out or a library, each a 44 px target (the kit's action key) ---- */
+.nx-keys { flex: none; display: flex; flex-wrap: wrap; gap: 8px 10px; min-width: 0; }
+.nx-keys .nc-action { margin-top: 0; }
+
+/* ---- Chips: short words (a tag that waits for more days) ---- */
+.nx-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 8px; min-width: 0; }
+.nx-chips li { padding: 2px 10px; border-radius: 3px 8px 3px 8px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 46%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 10%, #060a1c); font-size: 14px; line-height: 1.5; color: #e6edfb; white-space: nowrap; }
+.nx-chips b { font-weight: 650; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; }
+
+/* ---- The key under a lattice (which cell means what) ---- */
+.nx-key { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
+.nx-key span { display: inline-flex; align-items: center; gap: 6px; }
+.nx-key i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid color-mix(in oklab, var(--neon, #23eaff) 40%, transparent); }
+.nx-key i[data-cell=done] { border-color: var(--neon-2, #8ff6ff); background: linear-gradient(150deg, #fff 0%, var(--neon-2, #8ff6ff) 24%, var(--neon, #23eaff) 68%); box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #23eaff) 70%, transparent); }
+.nx-key i[data-cell=part] { background: linear-gradient(to top, var(--neon, #23eaff) 50%, transparent 50%); border-color: var(--neon, #23eaff); }
+.nx-key i[data-cell=missed] { border-style: dashed; border-color: #ffffff59; }
+.nx-key i[data-cell=rest] { border-color: transparent; background: radial-gradient(circle, #ffffff40 0 1.5px, transparent 2px); }
+/* A month as a lattice: the week's name is short ("W46"), so the cells get the room. */
+.nx-month .nc-lattice-head, .nx-month .nc-lattice-row { grid-template-columns: 44px repeat(7, minmax(14px, var(--nc-cell, 22px))) minmax(0, 1fr); }
+.nx-month .nc-lattice-label { padding-left: 0; font-size: 14px; color: #c3cfe6; }
+.nx-month .nc-lattice-label::before { content: none; }
+.nx-card[data-size=M] .nx-month .nc-lattice { gap: 4px; }
+.nx-card[data-size=M] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 18px; }
+.nx-card[data-size=L] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 26px; }
+
+/* ---- A narrow panel: the dial gives its room to the words; two lists stand one over the other ---- */
+@container holo-body (max-width: 250px) { .nx-card[data-size=M] .nx-top > .nc-gauge { display: none; } }
+@container holo-body (max-width: 330px) { .nx-pair { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- A short medium panel drops whole rows, never the foot (the widget's table keeps each) ---- */
+@container holo-body (max-height: 214px) {
+  .nc-body.nx-card[data-size=M] { gap: 6px; }
+  .nx-card[data-size=M] .nc-trend-dates, .nx-card[data-size=M] .nx-cap { display: none; }
+  .nx-card[data-size=M] .nx-top > .nc-gauge { --nc-d: 44; }
+  .nx-card[data-size=M] .nx-readout-value { font-size: 24px; }
+}
+/* Under 204 px the third meter or row goes, a row keeps its name and figure only, and a list's "+N more" goes. */
+@container holo-body (max-height: 204px) {
+  .nx-card[data-size=M] :is(.nx-rows:not(.wr-list) > .nx-row, .nc-bar):nth-child(n+3), .nx-card[data-size=M] .nx-row-sub, .nx-card[data-size=M] .nx-pair .nx-note { display: none; }
+  .nx-card[data-size=M] .nx-row-link { min-height: 44px; }
+}
+@container holo-body (max-height: 198px) and (max-width: 519px) { .nx-card[data-size=M] .nx-top .nx-note, .nx-card[data-size=M] .nc-lattice-head { display: none; } }
+/* A month's lattice is newest week first at Medium, so the rows that go are the older weeks (the head is its first child). */
+@container holo-body (max-height: 186px) { .nx-card[data-size=M] .nx-month .nc-lattice-row:nth-child(n+4), .nx-card[data-size=M] .nx-top .nc-delta { display: none; } .nx-card[data-size=M] .nx-top > .nc-gauge { --nc-d: 36; } }
+@container holo-body (max-height: 170px) { .nx-card[data-size=M] :is(.nx-rows:not(.wr-list) > .nx-row, .nc-bar):nth-child(n+2), .nx-card[data-size=M] .nx-month .nc-lattice-row:nth-child(n+3), .nx-card[data-size=M] .nx-readout-sub { display: none; } }
+@container holo-body (max-height: 140px) and (max-width: 519px) { .nx-card[data-size=M] .nx-main:not([data-keep]) { display: none; } }
+
+/* ---- A wide medium panel (about 700 × 190): the hero on the left, the instrument filling the right ---- */
+@container holo-body (min-width: 520px) {
+  .nc-body.nx-card[data-size=M]:not([data-flat]) { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: minmax(0, 1fr) auto; gap: 6px 36px; }
+  .nx-card[data-size=M]:not([data-flat]) > .nx-top { grid-area: 1 / 1; align-self: center; }
+  .nx-card[data-size=M]:not([data-flat]) > .nx-main { grid-area: 1 / 2; }
+  .nx-card[data-size=M]:not([data-flat]) > .nx-main[data-fit=rows] { align-self: center; }
+  .nx-card[data-size=M]:not([data-flat]) > .nc-foot { grid-area: 2 / 1 / 3 / 3; margin-top: 0; }
+  .nx-card[data-size=M] .nc-hero { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 0; }
+  .nx-card[data-size=M] .nc-hero-label { order: -1; flex: none; margin: 0 0 6px; }
+  .nc-body.nx-card[data-size=M] .nc-hero-num { font-size: 46px; }
+  .nc-body.nx-card[data-size=M] .nc-hero[data-len] .nc-hero-num { font-size: 38px; }
+  .nc-body.nx-card[data-size=M] .nc-hero[data-len=xl] .nc-hero-num { font-size: 32px; }
+  .nx-card[data-size=M] .nx-top { gap: 20px; }
+  .nx-card[data-size=M] .nx-top > .nc-gauge { --nc-d: 112; --nc-w: 6; }
+  .nx-card[data-size=M] .nx-dial-figure b { font-size: 32px; }
+  .nx-card[data-size=M] .nx-dial-figure small { display: block; }
+  .nx-card[data-size=M] .nc-trend-dates { display: flex; }
+  .nx-card[data-size=M] .nx-cap { display: block; }
+  .nx-card[data-size=M] .nc-trend-edge { display: block; }
+  .nx-card[data-size=M] .nx-row { padding: 5px 0; }
+  .nx-card[data-size=M] .nc-bars { gap: 8px; }
+  .nx-card[data-size=M] .nc-bar-track { height: 10px; }
+  .nx-card[data-size=M] .nx-readout-value { font-size: 36px; }
+  .nx-card[data-size=M] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 22px; }
+}
+@container holo-body (min-width: 520px) and (max-height: 176px) {
+  .nx-card[data-size=M] .nx-top > .nc-gauge { --nc-d: 96; }
+  .nc-body.nx-card[data-size=M] .nc-hero-num { font-size: 38px; }
+  .nx-card[data-size=M] .nx-cap { display: none; }
+}
+
+/* ---- A large panel: a dial of 104 px and more, taller meters, rows with air ---- */
+@container holo-body (min-height: 300px) {
+  .nx-card[data-size=L] .nx-top > .nc-gauge { --nc-d: 104; --nc-w: 6; }
+  .nx-card[data-size=L] .nx-dial-figure b { font-size: 30px; }
+  .nx-card[data-size=L] .nc-trend-plot, .nx-card[data-size=L] .nc-columns-plot { min-height: 96px; }
+  .nx-card[data-size=L] .nx-row { padding: 7px 0; }
+  .nx-card[data-size=L] .nc-bars { gap: 12px; }
+  .nx-card[data-size=L] .nc-bar-track { height: 10px; }
+}
+@container holo-body (min-height: 300px) and (min-width: 520px) {
+  /* The hero and the facts on the left; the instrument the whole height of the right. */
+  .nc-body.nx-card[data-size=L]:not([data-flat]) { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto auto auto minmax(0, 1fr) auto; gap: 10px 44px; }
+  .nx-card[data-size=L]:not([data-flat]) > * { grid-column: 1; }
+  .nx-card[data-size=L]:not([data-flat]) > .nx-main { grid-column: 2; grid-row: 1 / 5; }
+  .nx-card[data-size=L]:not([data-flat]) > .nx-main[data-fit=rows] { align-self: center; }
+  .nx-card[data-size=L]:not([data-flat]) > .nc-foot { grid-column: 1 / -1; grid-row: 5; margin-top: 0; }
+  .nx-card[data-size=L]:not([data-flat]) .nx-top { flex-direction: column; align-items: flex-start; gap: 24px; }
+  .nx-card[data-size=L] .nx-top > .nc-gauge { --nc-d: 150; --nc-w: 6.5; }
+  .nx-card[data-size=L] .nx-dial-figure b { font-size: 42px; }
+  .nc-body.nx-card[data-size=L] .nc-hero-num { font-size: 56px; }
+  .nc-body.nx-card[data-size=L] .nc-hero[data-len] .nc-hero-num { font-size: 46px; }
+  .nc-body.nx-card[data-size=L] .nc-hero[data-len=xl] .nc-hero-num { font-size: 40px; }
+  .nx-card[data-size=L] .nc-bar-track { height: 12px; }
+  .nx-card[data-size=L] .nc-bars { gap: 14px; }
+  .nx-card[data-size=L] .nx-row { padding: 9px 0; }
+  .nx-card[data-size=L] .nx-readout-value { font-size: 52px; }
+  .nx-card[data-size=L] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 30px; }
+}
+@container holo-body (min-width: 640px) and (min-height: 380px) {
+  .nx-card[data-size=L] .nx-top > .nc-gauge { --nc-d: 172; }
+  .nx-card[data-size=L] .nx-dial-figure b { font-size: 48px; }
+  .nc-body.nx-card[data-size=L] .nc-hero:not([data-len]) .nc-hero-num { font-size: 60px; }
+}
+/* A narrow large panel that is short drops whole rows (the table keeps each): the key and the notes first, then the facts, then the last rows. */
+@container holo-body (max-height: 524px) and (max-width: 519px) { .nx-card[data-size=L] > .nx-key, .nx-card[data-size=L] > .nx-note { display: none; } .nx-card[data-size=L] .nx-row { padding: 3px 0; } }
+@container holo-body (max-height: 484px) and (max-width: 519px) { .nx-card[data-size=L] > .nc-facts { display: none; } }
+@container holo-body (max-height: 430px) and (max-width: 519px) { .nx-card[data-size=L] :is(.nx-rows:not(.wr-list) > .nx-row, .nc-bar):nth-child(n+5) { display: none; } }
+@container holo-body (max-height: 380px) and (max-width: 519px) { .nx-card[data-size=L] :is(.nx-rows:not(.wr-list) > .nx-row, .nc-bar):nth-child(n+4), .nx-card[data-size=L] .nx-cap { display: none; } }
+
+/* ---- Round 2 ----
+   A list inside the "whole rows" wrapper (cards/whole-rows.tsx, `.wr-list`) is fitted by measure: the rows that fit are
+   shown whole and one last line counts the rest, so the row-dropping rules above leave those lists alone.
+   Four small read-outs in two columns (the priority matrix's boxes): a count over its box's short name. */
+.nx-quad { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 18px; min-width: 0; }
+.nx-quad li { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; align-items: baseline; min-width: 0; padding: 3px 0 3px 12px; border-left: 2px solid color-mix(in oklab, var(--neon, #9273ff) 46%, transparent); }
+.nx-quad li[data-lead] { border-left-color: var(--neon, #9273ff); }
+.nx-quad b { font-size: 24px; font-weight: 680; line-height: 1.1; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 18px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent); }
+.nx-quad span { font-size: 14px; line-height: 1.3; color: #cdd8ee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nx-card[data-size=L] .nx-quad { gap: 10px 24px; }
+.nx-card[data-size=L] .nx-quad b { font-size: 32px; }
+@container holo-body (max-width: 300px) { .nx-quad { grid-template-columns: minmax(0, 1fr); gap: 2px; } .nx-quad b { font-size: 20px; } }
+@container holo-body (min-width: 520px) { .nx-card[data-size=M] .nx-quad b { font-size: 30px; } }
+
+@media (forced-colors: active) { .nx-row-node, .nx-key i[data-cell=done] { background: Highlight; box-shadow: none; forced-color-adjust: none; } }

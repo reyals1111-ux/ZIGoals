@@ -23,7 +23,7 @@ export default function SunWidget({size = 'S'}: Partial<CardProps>) {
   if (w.kind === 'unreadable') return <HoloUnread what="Your weather choice"/>;
   if (w.kind === 'off') return <WeatherOff what="Sunrise, sunset and the length of the day where you are."/>;
   if (w.kind === 'no-place') return <CardNotice kind="empty" ghost="arc" title="Choose your place" href={PERMISSIONS} action="Choose a place">Pick a city and the sun&rsquo;s times for it show here.</CardNotice>;
-  if (w.kind === 'asking') return <p className="nova-reading" role="status">Asking MET Norway for {w.place.name}…</p>;
+  if (w.kind === 'asking') return <p className="nova-reading" role="status">Reading the sun’s times for {w.place.name}…</p>;
   if (w.kind === 'failed') return <CardNotice kind="empty" ghost="arc" title="No reading yet">{w.words}</CardNotice>;
   const {rise, set} = w.reading.sun ?? {};
   if (!rise || !set) return <div className="nc-body"><CardNotice kind="empty" ghost="arc" title="No sunrise or sunset today">Where you are the sun does not rise or does not set today.</CardNotice><Credit reading={w.reading} place={w.place.name} example={w.example}/></div>;

@@ -2,6 +2,8 @@ import {looksHealth} from '../../ai/memory';
 import {HUD_PRESET_LABEL} from '../layout';
 import {RANGE_WORDS, type MakeRequest, type WidgetRange} from '../stage/record';
 import {widgetSpec} from '../widgets/catalog';
+import {CONNECT_NL_TITLES} from './connect-families';
+import {MORE_NL_TITLES} from './more-families';
 import type {StageCommand, SummonLang} from './summon';
 
 /**
@@ -16,11 +18,13 @@ const NL_TITLES: Readonly<Record<string, string>> = {
   budgets: 'Budgetten', spending: 'Uitgaven', bills: 'Komende rekeningen', money: 'Volgende rekening en bijdrage', 'net-worth': 'Gevolgd vermogen', markets: 'Markten', 'wealth-hud': 'Vermogen in beeld',
   'goals-hud': 'Doelen', 'goal-pace': 'Tempo van je doel', 'goal-focus': 'Doel', 'agenda-clock': 'Agenda', tasks: 'Taken', orbit: 'Checklist', focus: 'Focus', journal: 'Dagboek', notes: 'Notities',
   briefs: 'Briefings', next: 'De volgende drie', sun: 'Zon', weather: 'Weer', time: 'Tijd', 'nova-sees': 'Wat NOVA kan zien', 'nova-brain': 'NOVA’s brein', requests: 'Je vragen', 'now-playing': 'Speelt nu', glance: 'Je dag',
+  ...CONNECT_NL_TITLES, // Session AM-2 (step 3): the widgets of what Sessions AO and AP added
+  ...MORE_NL_TITLES, // round 2: the pages that still had no widget
 };
 const NL_RANGE: Readonly<Record<WidgetRange, string>> = {week: 'de afgelopen 7 dagen', month: 'de afgelopen 30 dagen', quarter: 'de afgelopen 90 dagen', year: 'de afgelopen 12 maanden'};
 export const widgetTitle = (id: string, lang: SummonLang = 'en'): string => (lang === 'nl' ? NL_TITLES[id] : undefined) ?? widgetSpec(id)?.title ?? 'The widget';
 /** A widget's range in words. Spending's month is this calendar month (lib/nova/cards/spending.ts, design review AM-D13), so it is named so. */
-const rangeName = (id: string, range: WidgetRange, lang: SummonLang) => id === 'spending' && range === 'month' ? (lang === 'nl' ? 'deze maand' : 'this month') : lang === 'nl' ? NL_RANGE[range] : RANGE_WORDS[range];
+const rangeName = (id: string, range: WidgetRange, lang: SummonLang) => (id === 'spending' || id === 'money-tags') && range === 'month' ? (lang === 'nl' ? 'deze maand' : 'this month') : lang === 'nl' ? NL_RANGE[range] : RANGE_WORDS[range];
 const named = (w: MakeRequest, lang: SummonLang) => `${widgetTitle(w.id, lang)}${w.params?.range ? ` · ${rangeName(w.id, w.params.range, lang)}` : ''}`;
 const list = (items: readonly string[], lang: SummonLang) => items.length <= 1 ? items[0] ?? '' : `${items.slice(0, -1).join(', ')} ${lang === 'nl' ? 'en' : 'and'} ${items.at(-1)}`;
 

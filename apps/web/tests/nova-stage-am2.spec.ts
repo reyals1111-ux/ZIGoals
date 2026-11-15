@@ -176,7 +176,8 @@ test.describe('AM-2 (F2): Pin, Hide and Close on every widget', () => {
   for (const [width, height] of [[2560, 1440], [1440, 900], [1024, 768], [760, 900]] as const) {
     for (const layout of ['orbit', 'bento'] as const) {
       test(`every kind of the catalogue shows its three keys in its head at ${width} × ${height}, ${layout}`, async ({page}) => {
-        test.setTimeout(120_000);
+        // Session AM-2 (step 3, "NOVA connected"): the catalogue grew from 34 to 49 kinds; the limit follows its size (same assertions).
+        test.setTimeout(Math.max(120_000, KINDS.length * 4_000));
         await page.setViewportSize({width, height});
         const seen = new Set<string>();
         for (const batch of batches(12)) {
@@ -202,7 +203,7 @@ test.describe('AM-2 (F2): Pin, Hide and Close on every widget', () => {
   });
 
   test('each kind’s keys do their work: close (with Undo), hide to the dock and back, unpin and pin', async ({page}) => {
-    test.setTimeout(240_000);
+    test.setTimeout(Math.max(240_000, KINDS.length * 8_000)); // Session AM-2 (step 3): the limit follows the catalogue's size (was sized for 34 kinds)
     await page.setViewportSize({width: 1440, height: 900});
     const widget = (id: string) => page.locator(`.nova-stage-area article.nova-widget[data-widget="${id}"]`);
     for (const batch of batches(12)) {

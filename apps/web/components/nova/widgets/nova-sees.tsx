@@ -43,7 +43,7 @@ export default function NovaSeesWidget({size = 'M'}: Partial<CardProps>) {
     </div>
     {shown.length > 0 && <ul className="nc-sees-grid" aria-hidden="true">{shown.map((c, i) => <li key={c.key} className="nc-rise" data-on={c.on || undefined} data-world={c.world ? '' : undefined} data-realm={c.realm} style={{'--nc-i': Math.min(i, 6)} as CSSProperties}><span className="nc-sees-cell"/><span className="nc-sees-name">{c.name}</span><span className="nc-sees-rule"/><span className="nc-sees-why">{c.on ? 'On' : 'Off'}</span></li>)}</ul>}
     {size === 'M' && <p className="nc-sees-more" aria-hidden="true">{off.length === 0 ? 'Every part is on, the weather too.' : `${off.length} off · ${on} on`}</p>}
-    <HoloTable caption="What NOVA can see" rows={[...rows.map(r => [r.name, `${r.on ? 'On' : 'Off'} (${r.why})`] as const), ['Weather (outside data)', weather ? 'On: MET Norway is asked for your rounded place' : 'Off: nothing is fetched']]}/>
+    <HoloTable caption="What NOVA can see" rows={[...rows.map(r => [r.name, `${r.on ? 'On' : 'Off'} (${r.why})`] as const), ['Weather (outside data)', weather ? 'On: the weather is asked for your rounded place (data from MET Norway)' : 'Off: nothing is fetched']]}/>
     <CardFoot source="Permissions on this device" asOf="now"/>
   </div>;
 }

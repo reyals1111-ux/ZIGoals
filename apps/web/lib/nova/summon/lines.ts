@@ -44,6 +44,8 @@ import {WEATHER_OFF_WORDS, WEATHER_PLACE_WORDS} from '../world/ask';
 import {condition} from '../world/met';
 import type {WorldReading} from '../world/record';
 import {clockTime, degrees, umbrella} from '../world/words';
+import {connectLine, type ConnectData} from './connect-lines';
+import {moreFromSources, moreLine, type MoreData} from './more-lines';
 
 /**
  * Session AM (design review AM-D2, AM-D3, AM-D12): the one-line figure summary of a widget ("stage line") — what NOVA says
@@ -69,8 +71,8 @@ export type LineData = {
   health?: HealthData | null;
   habits?: readonly Habit[] | null;
   workouts?: Workouts | null;
-  journal?: readonly {date: string}[] | null;
-  moneyLog?: Pick<MoneyLog, 'entries'> | null;
+  journal?: readonly {date: string; text?: string}[] | null;
+  moneyLog?: (Pick<MoneyLog, 'entries'> & {currency?: string}) | null;
   bills?: BillsRecord | null;
   budgets?: BudgetsRecord | null;
   tasks?: Tasks | null;
@@ -83,7 +85,8 @@ export type LineData = {
   sees?: {open: number; of: number; weather: boolean} | null;
   /** The requests kept so far, newest first (the person's own words, as kept). */
   asks?: readonly {text: string}[] | null;
-};
+  // Session AM-2 (step 3, "NOVA connected"): the records of what Sessions AO and AP added (lib/nova/summon/connect-lines.ts).
+} & ConnectData & MoreData;
 
 const say = (lang: LineLang, en: string, nl: string) => lang === 'nl' ? nl : en;
 /** AM-D32: the Showcase's label is on the stage once; a name in a line does not repeat it ("Rent · SHOWCASE DATA" → "Rent"). */
@@ -211,7 +214,9 @@ function worldLine(id: string, w: LineWeather | null | undefined, lang: LineLang
   if (!w) return null;
   if (w.kind === 'off') return WEATHER_OFF_WORDS[lang];
   if (w.kind === 'no-place') return WEATHER_PLACE_WORDS[lang];
-  if (w.kind === 'asking') return say(lang, `I am asking MET Norway for ${w.place}; the reading shows in the widget.`, `Ik vraag het aan MET Norway voor ${w.place}; de meting verschijnt in de widget.`);
+  // Who is asked depends on the build (MET Norway directly, or ZIGoals' weather proxy: lib/nova/world/proxy.ts), so the
+  // line names the place and the credit, not a party that sees the request.
+  if (w.kind === 'asking') return say(lang, `I am asking for the weather in ${w.place}; the reading shows in the widget. Data from MET Norway.`, `Ik vraag het weer voor ${w.place} op; de meting verschijnt in de widget. Gegevens van MET Norway.`);
   const example = w.example ? say(lang, 'Showcase example, not a real reading: ', 'Showcase-voorbeeld, geen echte meting: ') : '';
   if (id === 'sun') {
     const {rise, set} = w.reading.sun ?? {};
@@ -300,7 +305,8 @@ export function stageLine(id: string, params: WidgetParams | undefined, data: Li
         const text = last.text.length > 60 ? `${last.text.slice(0, 59)}…` : last.text;
         return say(lang, `${data.asks.length} ${data.asks.length === 1 ? 'request' : 'requests'} kept; the last was “${text}”.`, `${data.asks.length} ${data.asks.length === 1 ? 'vraag' : 'vragen'} bewaard; de laatste was “${text}”.`);
       }
-      default: return null;
+      // Session AM-2 (step 3): the widgets of what Sessions AO and AP added, each from its own selector.
+      default: { const line = connectLine(id, params, data, lang); return line !== undefined ? line : moreLine(id, data, lang, now) ?? null; }
     }
   } catch { return null; } // a record this selector cannot read gives no line; the widget says what is wrong
 }
@@ -325,7 +331,7 @@ export function seesCount(scopes: Readonly<Record<string, boolean>>, share: Read
  * raw records: each line is still held back by its widget's own switch) with the same functions the widgets' hooks use.
  * `extras` are the few records that are not in the sources (read by the caller with the widgets' own reader).
  */
-export function lineData(sources: ToolSources | null, gateOpen: (id: string) => boolean, extras: Pick<LineData, 'workouts' | 'weather' | 'brain' | 'sees' | 'asks'> = {}): LineData | null {
+export function lineData(sources: ToolSources | null, gateOpen: (id: string) => boolean, extras: Pick<LineData, 'workouts' | 'weather' | 'brain' | 'sees' | 'asks' | keyof ConnectData | keyof MoreData> = {}): LineData | null {
   if (!sources) return null;
   const now = sources.now.getTime();
   const tryOr = <T,>(read: () => T): T | null => { try { return read(); } catch { return null; } };
@@ -351,6 +357,6 @@ export function lineData(sources: ToolSources | null, gateOpen: (id: string) => 
     gateOpen, day: sources.habitDay, healthDay: sources.healthDay,
     health: sources.health, habits: sources.habits.habits, journal: sources.journal?.entries ?? null, moneyLog: sources.moneyLog ?? null,
     bills: sources.ak?.bills ?? null, budgets: sources.nova?.budgets ?? null, tasks: sources.nova?.tasks ?? null, notes: sources.nova?.notes ?? null,
-    wealth, goals, ...extras,
+    wealth, goals, ...moreFromSources(sources), ...extras,
   };
 }

@@ -16,6 +16,20 @@ import {buildShowcase} from '../../showcase-data';
 import {formatCurrencyAmount, formatProgressPercent} from '../../visual-format';
 import {wealthOverview} from '../../wealth';
 import {emptyWorkouts, workoutsSchema, WORKOUTS_KEY} from '../../workouts/schema';
+import {emptyDayGoal} from '../../checklist/day-goal-core';
+import {COUNTDOWNS_KEY, countdownsSchema, emptyCountdowns} from '../../countdowns/schema';
+import {emptyDayEnds} from '../../day-boundary';
+import {MONEY_TAGS_KEY, emptyMoneyTags, moneyTagsSchema} from '../../money-tags/schema';
+import {emptyMoodTags} from '../../mood-tags/schema';
+import {NETWORTH_HISTORY_KEY, emptyNetworthHistory, networthHistorySchema} from '../../networth-history';
+import {emptySymptoms} from '../../symptoms/schema';
+import {TASK_WHEN_KEY, emptyTaskWhen, taskWhenSchema} from '../../tasks/when';
+import {emptySplits} from '../../workouts/splits-schema';
+import {TEMPLATE_COUNTS} from '../cards/life-insights';
+import {DEBT_PLANNER_KEY, debtPlannerSchema, emptyDebtPlanner} from '../../debt-planner/store';
+import {PRICE_ALERTS_KEY, emptyPriceAlerts, priceAlertsSchema} from '../../price-alerts/schema';
+import {SAVINGS_CHALLENGES_KEY, emptySavingsChallenges, savingsChallengesSchema} from '../../savings-challenges/challenges';
+import {SUPPLEMENTS_KEY, emptySupplements, supplementsSchema} from '../../supplements/schema';
 import {billsCard} from '../cards/bills';
 import {focusGoal} from '../cards/goal-focus';
 import {habitWeek} from '../cards/habit-week';
@@ -43,11 +57,19 @@ const showcase = (): ToolSources => ({...showcaseSources(DAY), now: NOW, ak: rea
 const empty = (): ToolSources => ({...showcaseSources(DAY), now: NOW, habits: emptyHabitData(), health: createEmptyHealth(), platform: emptyPlatform(), accounts: emptyAccounts(), moneyLog: emptyMoneyLog(), journal: emptyJournal(), fasting: null, weekly: null, energy: null, chess: null, ak: {bills: emptyBills()}, nova: {}, showcase: false});
 const OPEN = () => true, SHUT = () => false;
 const weather = {kind: 'live' as const, place: SHOWCASE_PLACE.name, reading: showcaseReading(DAY), example: true};
-const extras = {workouts: workoutsSchema.parse(JSON.parse(RECORDS[WORKOUTS_KEY]!)), weather, brain: {kind: 'none', words: 'On-device answers'}, sees: seesCount(DEFAULT_NOVA_SCOPES, {today: true, goals: true, habits: true, health: true, wealth: true}, false, false), asks: [{text: 'Show my habits this week'}, {text: 'What’s the weather?'}]};
+// Session AM-2 (step 3, "NOVA connected", deliberate): the records of the newer widgets, as the stage reads them for a line
+// (lib/nova/stage/connect-extras.ts): the Showcase's own where it has one, an empty record where it has none.
+const CONNECT = {networthHistory: networthHistorySchema.parse(JSON.parse(RECORDS[NETWORTH_HISTORY_KEY]!)), moneyTags: moneyTagsSchema.parse(JSON.parse(RECORDS[MONEY_TAGS_KEY]!)), taskWhen: taskWhenSchema.parse(JSON.parse(RECORDS[TASK_WHEN_KEY]!)),
+  countdowns: countdownsSchema.parse(JSON.parse(RECORDS[COUNTDOWNS_KEY]!)), dayGoal: emptyDayGoal(), dayEnds: emptyDayEnds(), splits: emptySplits(), moodTags: emptyMoodTags(), symptoms: emptySymptoms(), templates: TEMPLATE_COUNTS};
+// Round 2 (deliberate): the records lib/nova/stage/more-extras.ts reads for a line — the Showcase's own, and empty ones.
+const MORE = {debtPlanner: debtPlannerSchema.parse(JSON.parse(RECORDS[DEBT_PLANNER_KEY]!)), savingsChallenges: savingsChallengesSchema.parse(JSON.parse(RECORDS[SAVINGS_CHALLENGES_KEY]!)), priceAlerts: priceAlertsSchema.parse(JSON.parse(RECORDS[PRICE_ALERTS_KEY]!)), supplements: supplementsSchema.parse(JSON.parse(RECORDS[SUPPLEMENTS_KEY]!))};
+const MORE_EMPTY = {debtPlanner: emptyDebtPlanner(), savingsChallenges: emptySavingsChallenges(), priceAlerts: emptyPriceAlerts(), supplements: emptySupplements()};
+const CONNECT_EMPTY = {networthHistory: emptyNetworthHistory(), moneyTags: emptyMoneyTags(), taskWhen: emptyTaskWhen(), countdowns: emptyCountdowns(), dayGoal: emptyDayGoal(), dayEnds: emptyDayEnds(), splits: emptySplits(), moodTags: emptyMoodTags(), symptoms: emptySymptoms(), templates: TEMPLATE_COUNTS};
+const extras = {...CONNECT, ...MORE, workouts: workoutsSchema.parse(JSON.parse(RECORDS[WORKOUTS_KEY]!)), weather, brain: {kind: 'none', words: 'On-device answers'}, sees: seesCount(DEFAULT_NOVA_SCOPES, {today: true, goals: true, habits: true, health: true, wealth: true}, false, false), asks: [{text: 'Show my habits this week'}, {text: 'What’s the weather?'}]};
 const SOURCES = showcase(), BUILT = lineData(SOURCES, OPEN, extras)!;
 /** The Showcase's line data, built once (its selectors are the widgets' own; only the switch differs per test). */
 const data = (gate: (id: string) => boolean = OPEN): LineData => ({...BUILT, gateOpen: gate});
-const blank = (): LineData => lineData(empty(), OPEN, {workouts: emptyWorkouts(), weather: {kind: 'off'}, brain: {kind: 'none', words: ''}, asks: []})!;
+const blank = (): LineData => lineData(empty(), OPEN, {...CONNECT_EMPTY, ...MORE_EMPTY, workouts: emptyWorkouts(), weather: {kind: 'off'}, brain: {kind: 'none', words: ''}, asks: []})!;
 const line = (id: string, params?: Parameters<typeof stageLine>[1], lang: 'en' | 'nl' = 'en', d = data()) => stageLine(id, params, d, lang, NOW);
 /** Every widget the summon step can make: its families' widgets and one goal's own. */
 const SUMMONED = [...new Set([...FAMILIES.map(f => f.id), 'goal-focus'])];
@@ -138,8 +160,10 @@ describe('a stage line is the widget’s own figures, in one short line', () => 
     // The made widgets and the HUDs the families map to all speak with the Showcase's records. The rest are named, as
     // before ("On the stage: …"): a day's panels a sentence does not hold, and the notes, which are not read without NOVA's Notes permission.
     const silent = SUMMONED.filter(id => line(id) === null);
-    expect(silent.sort()).toEqual(['agenda-clock', 'briefs', 'focus', 'glance', 'markets', 'next', 'notes', 'now-playing', 'orbit']);
-    for (const id of WIDGETS.filter(w => w.made).map(w => w.id)) expect(line(id), id).not.toBeNull();
+    // Session AM-2 (step 3, round 2, deliberate): one more, "Today by the hour". Like the Agenda clock it shows a day's
+    // agenda, which the line data does not hold (the Agenda's own hooks build it), so it is named and has no line.
+    expect(silent.sort()).toEqual(['agenda-clock', 'briefs', 'focus', 'glance', 'hour-grid', 'markets', 'next', 'notes', 'now-playing', 'orbit']);
+    for (const id of WIDGETS.filter(w => w.made && w.id !== 'hour-grid').map(w => w.id)) expect(line(id), id).not.toBeNull();
   });
 });
 
@@ -164,7 +188,12 @@ describe('a line is held back by the widget’s own switch', () => {
     expect(lineData(null, OPEN)).toBeNull();
     expect(stageLines([{id: 'weight'}], null, 'en', NOW)).toEqual({});
     const unread: LineData = {gateOpen: OPEN, day: DAY, healthDay: DAY};
-    for (const id of SUMMONED.filter(x => x !== 'time')) expect(stageLine(id, undefined, unread, 'en', NOW), id).toBeNull();
+    // Session AM-2 (step 3, round 2, deliberate): the cycle widget's line reads no record at all, so there is nothing to be
+    // unread: it is always the one fixed sentence, and never a figure (pinned in lib/nova/summon/more.test.ts).
+    for (const id of SUMMONED.filter(x => x !== 'time' && x !== 'cycle')) expect(stageLine(id, undefined, unread, 'en', NOW), id).toBeNull();
+    expect(stageLine('cycle', undefined, unread, 'en', NOW)).toBe('Your cycle widget is on the stage.');
+    // Session AM-2 (step 3): the template library's size is a record like any other here: not handed over, no line.
+    expect(stageLine('templates', undefined, {...unread, templates: null}, 'en', NOW)).toBeNull();
     expect(stageLine('no-such-widget', undefined, data(), 'en', NOW)).toBeNull();
   });
 });
@@ -249,6 +278,17 @@ describe('the stage owns the answer when it made a widget and the engine had non
     journal: ['did I journal this month', 'heb ik in mijn dagboek geschreven'], notes: ['my notes', 'mijn notities'], briefs: ['my recap', 'de terugblik'], next: ['what should I do', 'wat moet ik nu'],
     sun: ['when is sunset', 'wanneer is de zonsondergang'], weather: ['do I need an umbrella', 'gaat het regenen'], time: ['what time is it', 'hoe laat is het'], 'nova-sees': ['what can you see', 'wat kun je zien'],
     'nova-brain': ['which model are you using', 'welk model gebruik je'], requests: ['what did I ask before', 'wat heb ik gevraagd'], 'now-playing': ['what music is playing', 'welke muziek speelt er'], glance: ['how is my day', 'hoe gaat mijn dag'],
+    // Session AM-2 (step 3, "NOVA connected", deliberate): the families of what Sessions AO and AP added (connect-families.ts).
+    'net-worth-history': ['show my net worth history', 'toon het verloop van mijn vermogen'], 'ready-to-assign': ['what is ready to assign', 'wat is er nog te verdelen'], 'age-of-money': ['what is the age of my money', 'wat is de leeftijd van mijn geld'],
+    'spending-pace': ['what is my spending pace', 'wat is mijn uitgaventempo'], 'bill-changes': ['show my bill changes', 'toon de prijswijzigingen'], 'money-tags': ['show my spending by tag', 'toon mijn uitgaven per tag'],
+    'perfect-days': ['show my perfect days', 'toon mijn perfecte dagen'], 'day-rules': ['when does my day end', 'wanneer eindigt mijn dag'], 'tasks-later': ['what is on for this evening', 'wat staat er voor vanavond'],
+    countdowns: ['show my countdowns', 'toon mijn aftellingen'], 'journal-numbers': ['show my journal numbers', 'toon mijn dagboek in cijfers'], templates: ['show me goal templates', 'toon de sjablonen'],
+    'run-splits': ['show my run splits', 'toon mijn tussentijden'], 'mood-tags': ['show my mood tags', 'toon mijn stemmingstags'], symptoms: ['show my symptom log', 'toon mijn klachtenlog'],
+    // Round 2 (deliberate): the families of the pages that still had no widget (more-families.ts).
+    'priority-matrix': ['show my priority matrix', 'toon mijn prioriteitenmatrix'], 'hour-grid': ['show my day hour by hour', 'toon mijn dag uur voor uur'], reviews: ['is my weekly review due', 'toon mijn weekreview'],
+    milestones: ['show my milestones', 'toon mijn mijlpalen'], 'cash-flow': ['show my cash flow', 'toon mijn kasstroom'], accounts: ['show my accounts and debts', 'toon mijn schulden'], 'debt-plan': ['show my debt payoff plan', 'toon mijn aflosplan'],
+    'savings-challenges': ['show my savings challenges', 'toon mijn spaaruitdagingen'], 'price-alerts': ['show my price alerts', 'toon mijn prijsalerts'], 'health-trends': ['show my health trends', 'toon mijn gezondheidstrends'],
+    'food-days': ['on how many days did I log food', 'op hoeveel dagen heb ik eten gelogd'], fasting: ['show my fasting', 'toon mijn vasten'], meditation: ['show my meditation', 'toon mijn meditatie'], supplements: ['show my supplements', 'toon mijn supplementen'], cycle: ['show my cycle log', 'toon mijn cyclus'],
   };
   const phrases = FAMILIES.flatMap(f => (SAMPLES[f.id] ?? []).map(text => ({id: f.id, text})));
   it('for every phrase family, the stage’s answer is never the engine’s fallback string', () => {

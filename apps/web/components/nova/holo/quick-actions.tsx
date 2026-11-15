@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useId, useState, type FormEvent} from 'react';
+import {useId, useRef, useState, type FormEvent} from 'react';
 import {useHealth} from '../../health/use-health';
 import {useHabits} from '../../habits/use-habits';
 import {HabitCompletion} from '../../habits/habit-completion';
@@ -20,7 +20,10 @@ import {FOCUS_SESSIONS} from '../../../lib/focus-sessions/schema';
 import {POMODORO_DEFAULTS, cleanSettings} from '../../../lib/focus-sessions/pomodoro';
 import {startPomodoro, stopPomodoro} from '../../../lib/focus-sessions/pomodoro-run';
 import {TASKS} from '../../../lib/tasks/schema';
-import {addTask} from '../../../lib/tasks/engine';
+import {addTask, openTasks} from '../../../lib/tasks/engine';
+import {TASK_WHEN, placeOf, putOnEvening, restorePlace} from '../../../lib/tasks/when';
+import {COUNTDOWNS, COUNTDOWN_TITLE_MAX, addCountdown, countdownWords, removeCountdown} from '../../../lib/countdowns/schema';
+import {useTaskClock} from '../../tasks/use-task-list';
 import {NOTES} from '../../../lib/notes/schema';
 import {captureInto} from '../../../lib/notes/store';
 import {plainErrorMessage} from '../../../lib/plain-error';
@@ -51,6 +54,8 @@ function Action({kind, widget}: {kind: QuickAction; widget: string}) {
     case 'task': return <TaskAction/>;
     case 'goal': return <GoalAction/>;
     case 'note': return <NoteAction/>;
+    case 'evening': return <EveningAction/>;
+    case 'countdown': return <CountdownAction/>;
   }
 }
 const fail = (e: unknown, fallback: string) => showStatus(plainErrorMessage(e, fallback), {tone: 'error'});
@@ -156,5 +161,63 @@ function NoteAction() {
       <button type="submit" className="nova-btn">Capture</button>
     </form>
     {error && <p id={`${id}-e`} className="nova-fine" role="alert">{error}</p>}
+  </section>;
+}
+/**
+ * Session AM-2 (step 3, "NOVA connected"): put an open task on "This evening" — the Tasks page's own write
+ * (lib/tasks/when.ts putOnEvening) and its own Undo (restorePlace puts the task's place back on the latest record). The
+ * task's day stays as it is; tomorrow it is back in its usual place.
+ */
+function EveningAction() {
+  const tasks = useDeviceRecord(TASKS), when = useDeviceRecord(TASK_WHEN), {today} = useTaskClock(), id = useId(), [pick, setPick] = useState(''), [error, setError] = useState('');
+  const latest = useRef(tasks.data); latest.current = tasks.data;
+  if (!tasks.loaded || !when.loaded) return null;
+  const record = tasks.data, unread = tasks.unreadable || when.unreadable;
+  const choices = unread ? [] : openTasks(record, today).filter(t => placeOf(when.data, t, today) !== 'evening').slice(0, 40);
+  const add = (e: FormEvent) => {
+    e.preventDefault(); setError('');
+    if (unread) { setError('Your tasks on this device could not be read, so nothing was changed.'); return; }
+    const task = record.tasks.find(t => t.id === pick);
+    if (!task) { setError('Choose a task first.'); return; }
+    const before = Object.hasOwn(when.data.tasks, task.id) ? when.data.tasks[task.id] : undefined;
+    try { when.update(w => putOnEvening(w, record, today, task.id)); } catch (cause) { setError(plainErrorMessage(cause, 'That could not be kept on this device.')); return; }
+    showUndo({message: `“${task.title}” is on this evening’s list.`, undone: `“${task.title}” is back where it was.`, restore: () => { when.update(w => restorePlace(w, latest.current, today, task.id, before)); }});
+    setPick('');
+  };
+  return <section className="holo-action" data-pillar="goals"><span className="holo-brackets" aria-hidden="true"/><h3>Put a task on this evening</h3>
+    {choices.length ? <form className="holo-inline-form" onSubmit={add}>
+      <label className="nova-field" htmlFor={`${id}-e`}><span>An open task</span>
+        <select id={`${id}-e`} value={pick} onChange={e => setPick(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-x` : undefined}>
+          <option value="">Choose a task…</option>
+          {choices.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+        </select></label>
+      <button type="submit" className="nova-btn">Add to this evening</button>
+    </form> : <p className="nova-fine">{unread ? 'Your tasks on this device could not be read.' : 'No open task is left to put on this evening’s list.'} <Link className="nova-link" href="/app/tasks?view=evening" prefetch={false}>This evening on Tasks</Link></p>}
+    {error && <p id={`${id}-x`} className="nova-fine" role="alert">{error}</p>}
+  </section>;
+}
+/**
+ * Session AM-2 (step 3, "NOVA connected"): add a countdown — the "Days until" card's own write (lib/countdowns/schema.ts
+ * addCountdown, the same checks and the same cap of 50), with Undo (removeCountdown takes exactly that one out again).
+ */
+function CountdownAction() {
+  const record = useDeviceRecord(COUNTDOWNS), {today} = useTaskClock(), id = useId(), [title, setTitle] = useState(''), [date, setDate] = useState(''), [error, setError] = useState('');
+  const add = (e: FormEvent) => {
+    e.preventDefault(); setError('');
+    if (record.unreadable) { setError('Your countdowns could not be read on this device, so nothing was written over them.'); return; }
+    const name = title.trim(), key = `countdown_${crypto.randomUUID()}`;
+    if (!name) { setError('Give the countdown a name.'); return; }
+    if (!date) { setError('Choose its date.'); return; }
+    try { record.update(r => addCountdown(r, {title: name, date}, {id: key, at: new Date()})); } catch (cause) { setError(plainErrorMessage(cause, 'This device refused to keep it.')); return; }
+    showUndo({message: `Added “${name}”: ${countdownWords(date, today).toLowerCase()}.`, undone: `“${name}” removed.`, restore: () => { record.update(r => removeCountdown(r, key)); }});
+    setTitle(''); setDate('');
+  };
+  return <section className="holo-action" data-pillar="orbit"><span className="holo-brackets" aria-hidden="true"/><h3>Add a countdown</h3>
+    <form className="holo-inline-form" onSubmit={add} noValidate>
+      <label className="nova-field" htmlFor={`${id}-n`}><span>Name</span><input id={`${id}-n`} value={title} maxLength={COUNTDOWN_TITLE_MAX} onChange={e => setTitle(e.target.value)} autoComplete="off" aria-invalid={error && !title.trim() ? true : undefined} aria-describedby={error ? `${id}-x` : undefined}/></label>
+      <label className="nova-field" htmlFor={`${id}-d`}><span>Date</span><input id={`${id}-d`} type="date" value={date} onChange={e => setDate(e.target.value)} aria-invalid={error && !!title.trim() && !date ? true : undefined} aria-describedby={error ? `${id}-x` : undefined}/></label>
+      <button type="submit" className="nova-btn">Add countdown</button>
+    </form>
+    {error && <p id={`${id}-x`} className="nova-fine" role="alert">{error}</p>}
   </section>;
 }

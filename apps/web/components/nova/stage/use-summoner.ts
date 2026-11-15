@@ -16,6 +16,8 @@ import {NOVA_WORLD, placeOf, readingOf, worldOn} from '../../../lib/nova/world/r
 import {SHOWCASE_PLACE, showcaseReading} from '../../../lib/nova/world/showcase';
 import {WORKOUTS} from '../../../lib/workouts/schema';
 import type {ChatSession} from '../../ai/use-chat-session';
+import {connectExtras} from '../../../lib/nova/stage/connect-extras';
+import {moreExtras} from '../../../lib/nova/stage/more-extras';
 import type {StageAsk, StageGates} from './use-stage';
 
 /**
@@ -99,7 +101,7 @@ export function useSummoner({bridge, session, say, goals, lookupsFor, sources, e
   /** Each widget's one line, from the records of this moment, under the widget's own switch. */
   const linesFor = useCallback((widgets: SummonPlan['widgets'], lang: SummonLang): Record<string, string> => {
     if (!bridge || !widgets.length) return {};
-    try { return stageLines(widgets, lineData(sources?.() ?? null, bridge.gateOpen, {...deviceExtras(), ...(extras?.() ?? {})}), lang, new Date()); } catch { return {}; }
+    try { return stageLines(widgets, lineData(sources?.() ?? null, bridge.gateOpen, {...deviceExtras(), ...connectExtras(widgets, bridge.gateOpen), ...moreExtras(widgets, bridge.gateOpen), ...(extras?.() ?? {})}), lang, new Date()); } catch { return {}; }
   }, [bridge, sources, extras]);
   /** Before the engine: true when the stage answered the words itself (a command, or a widget request the engine has no answer for). */
   const direct = useCallback((text: string): boolean => {
