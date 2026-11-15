@@ -386,6 +386,19 @@ export default function NovaDashboard() {
   // One bridge object for the whole visit; each call reads this render's stage through a ref (the chat engine keeps a stable handle).
   const bridgeLive = useRef({phone, canShow, stage, applyPreset}); bridgeLive.current = {phone, canShow, stage, applyPreset};
   const gatesKey = useRef('');
+  // Session AM-2 (found by both widget passes: made widgets said "Reading…" for ten seconds and more): on a computer the
+  // gates were published by the conversation alone, and its large chunk mounts seconds after the stage. The small gate
+  // watcher (stage/stage-gates.tsx: the same rule from the same settings, permissions and records; AM-S2, AM-S12) now
+  // publishes them on a computer too until the conversation has published its own. "Not known yet" (null) never
+  // replaces known gates on a computer (there the conversation stays mounted and answers every later change with real
+  // gates); a phone keeps the old order, where its sheet unmounts and the watcher takes over.
+  const [chatHasGates, setChatHasGates] = useState(false);
+  const publishGates = useRef((g: StageGates | null) => { void g; });
+  publishGates.current = (g: StageGates | null) => {
+    if (g === null && !bridgeLive.current.phone && gatesKey.current && gatesKey.current !== 'null') return;
+    const key = JSON.stringify(g); if (key !== gatesKey.current) { gatesKey.current = key; bridgeLive.current.stage.setGates(g); }
+  };
+  const watchGates = useCallback((g: StageGates | null) => publishGates.current(g), []);
   const [bridge] = useState<StageBridge>(() => ({
     get device() { return bridgeLive.current.phone ? 'phone' as const : 'computer' as const; },
     available: id => bridgeLive.current.canShow(id),
@@ -393,7 +406,7 @@ export default function NovaDashboard() {
     command: c => bridgeLive.current.phone ? false : bridgeLive.current.stage.command(c), // a phone has no stage (AM-S6)
     gateOpen: id => { const g = widgetSpec(id)?.gate, gates = bridgeLive.current.stage.gates; return !g || (!!gates && gates[g]); },
     arrangement: preset => bridgeLive.current.applyPreset(preset), noteAsk: (ask, made) => bridgeLive.current.stage.noteAsk(ask, made),
-    setGates: (g: StageGates | null) => { const key = JSON.stringify(g); if (key !== gatesKey.current) { gatesKey.current = key; bridgeLive.current.stage.setGates(g); } },
+    setGates: (g: StageGates | null) => { if (g) setChatHasGates(true); publishGates.current(g); },
     answer: a => { setAnswer(a); if (a?.decision) setChatOpen(true); },
     attention: () => setChatOpen(true),
   }));
@@ -552,7 +565,7 @@ export default function NovaDashboard() {
       <NovaRight folded={panels.folded} onFold={(id, f) => save(rr => foldSection(rr, id, f))} onHide={() => save(rr => setRightPanel(rr, 'hidden'))} persona={persona.name} brain={brain} counts={counts} hermes={hermes}
         onTalk={openChat} wake={wakeOn(r)} onWake={on => save(rr => setWake(rr, on), on ? `${persona.name} listens for its name on this device.` : 'Wake phrase off.')} openPanel={id => setSheet({kind: 'panels', id})} stage={stage}/>
     </Suspense></LoadBoundary>}
-    {phone && !chatOpen && stage.shown.length + stage.docked.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><StageGatesWatch setGates={bridge.setGates}/></Suspense></LoadBoundary>}
+    {(phone ? !chatOpen : !chatHasGates) && stage.shown.length + stage.docked.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><StageGatesWatch setGates={watchGates}/></Suspense></LoadBoundary>}
     {chatOpen && phone && <NovaSheet title={persona.name} eyebrow="Your conversation" place="bottom" onClose={closeChat}>{duoView}{chat}</NovaSheet>}
     {sheet?.kind === 'day' && <NovaSheet title="Your day" eyebrow="Morning brief and evening recap" place="right" onClose={closeSheet}><LoadBoundary label="Your day"><Suspense fallback={<Reading label="Reading your day…"/>}><NovaBriefs/></Suspense></LoadBoundary></NovaSheet>}
     {sheet?.kind === 'panels' && <NovaSheet title={`${persona.name}’s panels`} eyebrow="Memory, permissions, activity, workflows, cost, models" place="right" wide onClose={closeSheet}><LoadBoundary label="The panels"><Suspense fallback={<Reading label="Opening…"/>}><NovaPanels initial={sheet.id}/></Suspense></LoadBoundary></NovaSheet>}
