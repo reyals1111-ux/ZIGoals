@@ -12944,6 +12944,314 @@
         box-shadow: 0 10px 30px rgba(0,0,0,.35)
     }
 }
+/*  components/nova/agent/agent.css  */
+@scope (:root[data-theme=dark]) {
+    .na-panel:not(#\-) {
+        --na-a: var(--nova-a, #9273ff);
+        --na-b: var(--nova-b, #63e7ff);
+        --na-ink: #eef3ff;
+        --na-ink-2: #cdd7ee;
+        --na-ink-3: #b4c0dc;
+        --na-plate: #070c22;
+        --na-plate-2: #0b1230;
+        --na-warn: #ffd27a;
+        --na-bad: #ff9fb0;
+        --na-ok: #8ff0c2;
+        color: var(--na-ink);
+        background-image: linear-gradient(180deg, var(--na-plate-2), var(--na-plate));
+        background-color: transparent;
+        border-color: color-mix(in oklab, var(--na-b) 42%, #ffffff14)
+    }
+    .na-panel:not(#\-)::before {
+        background-image: linear-gradient(90deg, #fff, var(--na-b) 18%, var(--na-a) 60%, transparent);
+        background-color: transparent
+    }
+    .na-eyebrow:not(#\-) {
+        color: var(--na-b)
+    }
+    .na-title:not(#\-) {
+        color: #fff;
+        text-shadow: 0 0 14px color-mix(in oklab, var(--na-b) 55%, transparent)
+    }
+    .na-h:not(#\-) {
+        color: #f4f8ff
+    }
+    .na-h:not(#\-)::after {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--na-b) 60%, transparent), transparent);
+        background-color: transparent
+    }
+    .na-text:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-fine:not(#\-) {
+        color: var(--na-ink-3)
+    }
+    .na-rule > li:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-rule > li:not(#\-)::before {
+        background: var(--na-b)
+    }
+    .na-key:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 50%, #ffffff1f);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--na-a) 14%, #0a0b11);
+        color: var(--na-ink)
+    }
+    .na-key:not(#\-)::after {
+        background-image: linear-gradient(180deg, #ffffff2e, transparent 55%);
+        background-color: transparent
+    }
+    .na-key:focus-visible:not(#\-) {
+        outline-color: #fff
+    }
+    .na-key[data-primary]:not(#\-) {
+        border-color: #fff;
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--na-b) 38%, #0a1232), color-mix(in oklab, var(--na-a) 58%, #0a1232));
+        background-color: transparent;
+        color: #fff;
+        text-shadow: 0 1px 2px #000a
+    }
+    .na-key[data-danger]:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-bad) 70%, transparent);
+        color: #ffe3e8
+    }
+    .na-key[data-quiet]:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in oklab, var(--na-b) 30%, #ffffff14)
+    }
+    .na-field:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-field > :where(input, textarea, select):not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 44%, #ffffff1f);
+        background-image: none;
+        background-color: #080a0f;
+        color: var(--na-ink)
+    }
+    .na-field > :where(input, textarea, select):focus-visible:not(#\-) {
+        outline-color: var(--na-b)
+    }
+    .na-field > :where(input, textarea):not(#\-)::placeholder {
+        color: #93a0be
+    }
+    .na-check:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-check > input:not(#\-) {
+        accent-color: var(--na-b)
+    }
+    .na-status:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-status:not(#\-)::before {
+        background-image: none;
+        background-color: #7f8cab
+    }
+    .na-status[data-ok=true]:not(#\-)::before {
+        background-image: none;
+        background-color: var(--na-ok)
+    }
+    .na-status[data-ok=false]:not(#\-)::before {
+        background-image: none;
+        background-color: var(--na-bad)
+    }
+    .na-status[data-ok=true] > b:not(#\-) {
+        color: var(--na-ok)
+    }
+    .na-status[data-ok=false] > b:not(#\-) {
+        color: var(--na-bad)
+    }
+    .na-pill:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 44%, transparent);
+        color: var(--na-ink-2)
+    }
+    .na-pill[data-on]:not(#\-) {
+        border-color: var(--na-ok);
+        color: var(--na-ok)
+    }
+    .na-server:not(#\-) {
+        background-image: none;
+        background-color: #080a0fcc;
+        border-color: color-mix(in oklab, var(--na-a) 46%, #ffffff14)
+    }
+    .na-server-name:not(#\-) {
+        color: #fff
+    }
+    .na-address:not(#\-) {
+        color: var(--na-b)
+    }
+    .na-tool:not(#\-) {
+        border-left-color: color-mix(in oklab, var(--na-b) 50%, transparent);
+        background-image: none;
+        background-color: #111319
+    }
+    .na-tool[data-ask]:not(#\-) {
+        border-left-color: var(--na-ok)
+    }
+    .na-tool-name:not(#\-) {
+        color: #fff
+    }
+    .na-switch:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--na-ink-2)
+    }
+    .na-switch > span:first-child:not(#\-) {
+        border-color: #ffffff55;
+        background-image: none;
+        background-color: #0a0c11
+    }
+    .na-switch > span:first-child:not(#\-)::after {
+        background-image: none;
+        background-color: var(--na-ink-3)
+    }
+    .na-switch[aria-checked=true] > span:first-child:not(#\-) {
+        border-color: var(--na-ok);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--na-ok) 26%, #13151b)
+    }
+    .na-switch[aria-checked=true] > span:first-child:not(#\-)::after {
+        background-image: none;
+        background-color: #fff
+    }
+    .na-switch:focus-visible:not(#\-) {
+        outline-color: #fff
+    }
+    .na-fields dt:not(#\-) {
+        color: var(--na-b)
+    }
+    .na-fields dd:not(#\-) {
+        color: var(--na-ink)
+    }
+    .na-quote:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-warn) 62%, transparent);
+        background-image: none;
+        background-color: #0f1016
+    }
+    .na-quote-label:not(#\-) {
+        color: var(--na-warn)
+    }
+    .na-quote-text:not(#\-) {
+        color: var(--na-ink)
+    }
+    .na-json:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 34%, transparent);
+        background-image: none;
+        background-color: #07090e;
+        color: var(--na-ink)
+    }
+    .na-warn:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-warn) 70%, transparent);
+        background-image: none;
+        background-color: #191711;
+        color: #ffe9b8
+    }
+    .na-warn:not(#\-)::before {
+        background-image: none;
+        background-color: var(--na-warn);
+        color: #1c1606
+    }
+    .na-notice:not(#\-) {
+        color: var(--na-warn)
+    }
+    .na-history > li:not(#\-) {
+        border-top-color: #ffffff14;
+        color: var(--na-ink-2)
+    }
+    .na-history > li:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .na-details > summary:not(#\-) {
+        color: var(--na-ink)
+    }
+    .na-details > summary:not(#\-)::before {
+        border-right-color: var(--na-b);
+        border-bottom-color: var(--na-b)
+    }
+    .na-details > summary:focus-visible:not(#\-) {
+        outline-color: var(--na-b)
+    }
+    .na-card:not(#\-) {
+        --na-a: var(--nova-a, #9273ff);
+        --na-b: var(--nova-b, #63e7ff);
+        --na-ink: #eef3ff;
+        --na-ink-2: #cdd7ee;
+        --na-ink-3: #b4c0dc;
+        --na-warn: #ffd27a;
+        --na-bad: #ff9fb0;
+        --na-ok: #8ff0c2;
+        border-color: color-mix(in oklab, var(--na-b) 55%, #ffffff1f);
+        border-top-color: #fff;
+        background-image: none;
+        background-color: #0a0c11;
+        color: var(--na-ink);
+        box-shadow: 0 40px 100px -30px #000, 0 0 60px -18px var(--na-a)
+    }
+    .na-card:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #020407d9
+    }
+    .na-card-title:not(#\-) {
+        color: #fff
+    }
+    .na-card-where:not(#\-) {
+        border-left-color: var(--na-b);
+        background-image: none;
+        background-color: #111319;
+        color: var(--na-ink-2)
+    }
+    .na-card-foot:not(#\-) {
+        background-image: linear-gradient(180deg, #0a0c1100, #0a0c11 28%);
+        background-color: transparent
+    }
+    .na-sr:not(#\-) {
+        border-color: currentcolor
+    }
+    .na-step:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-a) 40%, #ffffff14);
+        background-image: none;
+        background-color: #080a0fcc
+    }
+    .na-step:not(#\-)::before {
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--na-b) 44%, #0a1232), color-mix(in oklab, var(--na-a) 60%, #0a1232));
+        background-color: transparent;
+        color: #fff
+    }
+    .na-step-title:not(#\-) {
+        color: #fff
+    }
+    .na-step-list > li:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-shares:not(#\-) {
+        color: var(--na-ink-3);
+        border-top-color: #ffffff14
+    }
+    .na-shares > b:not(#\-) {
+        color: var(--na-b)
+    }
+    .na-cmd-shell:not(#\-) {
+        color: var(--na-ink-3)
+    }
+    .na-cmd > pre:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 34%, transparent);
+        background-image: none;
+        background-color: #07090e;
+        color: var(--na-ink)
+    }
+    .na-cmd > pre:focus-visible:not(#\-) {
+        outline-color: var(--na-b)
+    }
+    .na-link:not(#\-) {
+        color: var(--na-b)
+    }
+    .na-link:focus-visible:not(#\-) {
+        outline-color: #fff
+    }
+}
 /*  components/nova/cards/cards.css  */
 @scope (:root[data-theme=dark]) {
     .nova-widget[data-cut] .nc-body > .nc-foot:not(#\-) {
@@ -13461,9 +13769,6 @@
 }
 /*  components/nova/cards/life-cards.css  */
 @scope (:root[data-theme=dark]) {
-    .nc-habitweek-more:not(#\-) {
-        color: var(--neon-ink, #cfdaf0)
-    }
     .nc-habitweek-key:not(#\-) {
         color: #c3cfe6
     }
@@ -13767,9 +14072,6 @@
         background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c), color-mix(in oklab, var(--neon, #9273ff) 24%, #0a0b11));
         background-color: transparent
     }
-    .nc-requests-more:not(#\-) {
-        color: #c3cfe6
-    }
     .nc-brain-dot:not(#\-) {
         border-color: #c3cfe6
     }
@@ -13926,6 +14228,19 @@
     }
     .nc-bills-row .nc-bills-when[data-over]:not(#\-) {
         color: #ffd9a8
+    }
+}
+/*  components/nova/cards/whole-rows.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-widget .wr-inline > li.wr-more:not(#\-) {
+        border-color: currentcolor;
+        color: #cdd8ee
+    }
+    .wr-more:not(#\-) {
+        color: #c9d4ea
+    }
+    .nova-widget[data-holo] .wr-more:not(#\-) {
+        color: #cdd8ee
     }
 }
 /*  components/nova/cards/world-cards.css  */
@@ -14758,6 +15073,107 @@
         }
     }
 }
+/*  components/nova/handoff/handoff.css  */
+@scope (:root[data-theme=dark]) {
+    .nh-card:not(#\-) {
+        color: #f1f5ff;
+        --nh-a: var(--nova-a, #9273ff);
+        --nh-b: var(--nova-b, #63e7ff);
+        --nh-c: var(--nova-c, #f06dff);
+        --nh-k: calc(var(--nh-w) * .414);
+        --nh-oct: polygon(var(--nh-cut) 0, calc(100% - var(--nh-nick)) 0, 100% var(--nh-nick), 100% calc(100% - var(--nh-cut)), calc(100% - var(--nh-cut)) 100%, var(--nh-nick) 100%, 0 calc(100% - var(--nh-nick)), 0 var(--nh-cut));
+        --nh-ring: polygon(evenodd, var(--nh-cut) 0, calc(100% - var(--nh-nick)) 0, 100% var(--nh-nick), 100% calc(100% - var(--nh-cut)), calc(100% - var(--nh-cut)) 100%, var(--nh-nick) 100%, 0 calc(100% - var(--nh-nick)), 0 var(--nh-cut), var(--nh-cut) 0,
+    calc(var(--nh-cut) + var(--nh-k)) var(--nh-w), var(--nh-w) calc(var(--nh-cut) + var(--nh-k)), var(--nh-w) calc(100% - var(--nh-nick) - var(--nh-k)), calc(var(--nh-nick) + var(--nh-k)) calc(100% - var(--nh-w)), calc(100% - var(--nh-cut) - var(--nh-k)) calc(100% - var(--nh-w)), calc(100% - var(--nh-w)) calc(100% - var(--nh-cut) - var(--nh-k)), calc(100% - var(--nh-w)) calc(var(--nh-nick) + var(--nh-k)), calc(100% - var(--nh-nick) - var(--nh-k)) var(--nh-w), calc(var(--nh-cut) + var(--nh-k)) var(--nh-w))
+    }
+    .nh-card:not(#\-)::before {
+        background-image: repeating-linear-gradient(0deg, #ffffff07 0 1px, transparent 1px 4px), linear-gradient(180deg, color-mix(in oklab, var(--nh-b) 11%, #13151b) 0, #0c0d13 46%, #07090e 100%);
+        background-color: transparent
+    }
+    .nh-card:not(#\-)::after {
+        background-image: linear-gradient(115deg, #fff 0, var(--nh-b) 9%, var(--nh-a) 52%, var(--nh-c) 91%, #fff 100%);
+        background-color: transparent
+    }
+    .nh-card[data-by=model]:not(#\-)::after {
+        background-image: linear-gradient(115deg, #fff 0, var(--nh-c) 12%, var(--nh-a) 55%, var(--pillar-wealth, #ffd27a) 92%, #fff 100%);
+        background-color: transparent
+    }
+    .nh-card-inner:not(#\-) {
+        background-image: radial-gradient(circle 26px at 0 0, color-mix(in oklab, var(--nh-b) 90%, #fff), transparent), radial-gradient(circle 26px at 100% 100%, color-mix(in oklab, var(--nh-c) 90%, #fff), transparent), none;
+        background-color: color-mix(in oklab, var(--nh-b) 16%, #ffffff0d)
+    }
+    .nh-head:not(#\-) {
+        border-color: currentcolor
+    }
+    .nh-title:not(#\-) {
+        color: #fff;
+        text-shadow: 0 0 12px color-mix(in oklab, var(--nh-b) 70%, transparent)
+    }
+    .nh-by:not(#\-) {
+        color: #c3cfe6
+    }
+    .nh-card[data-by=model] .nh-by:not(#\-) {
+        color: #ffe3a6
+    }
+    .nh-promise:not(#\-) {
+        color: #e6ecfb
+    }
+    .nh-fields dt:not(#\-) {
+        color: color-mix(in oklab, var(--nh-b) 30%, #c3cfe6)
+    }
+    .nh-fields dd:not(#\-) {
+        color: #f4f8ff
+    }
+    .nh-target:not(#\-) {
+        color: #fff;
+        text-shadow: 0 0 12px color-mix(in oklab, var(--nh-b) 60%, transparent)
+    }
+    .nh-none:not(#\-) {
+        color: #b9c4dd
+    }
+    .nh-text:not(#\-) {
+        border-color: color-mix(in oklab, var(--nh-b) 26%, #ffffff14);
+        background-image: none;
+        background-color: #06080dcc;
+        color: #f4f8ff
+    }
+    .nh-text:focus-visible:not(#\-) {
+        outline-color: var(--nova-focus, #63e7ff)
+    }
+    .nh-notes:not(#\-) {
+        color: #d7dff2
+    }
+    .nh-notes > li:not(#\-)::before {
+        background: var(--nh-b)
+    }
+    .nh-notes > li[data-warn]:not(#\-) {
+        color: #ffe3a6
+    }
+    .nh-notes > li[data-warn]:not(#\-)::before {
+        background-image: none;
+        background-color: var(--pillar-wealth, #ffd27a)
+    }
+    .nh-outcome:not(#\-) {
+        color: #b8f5e6
+    }
+    .nh-outcome[data-result=failed]:not(#\-), .nh-outcome[data-result=cancelled]:not(#\-) {
+        color: #ffe3a6
+    }
+    .nh-outbox-item:not(#\-) {
+        border-left-color: color-mix(in oklab, var(--nova-b, #63e7ff) 40%, transparent)
+    }
+    .nh-outbox-what:not(#\-) {
+        color: #f4f8ff
+    }
+    .nh-outbox-target:not(#\-) {
+        color: #e6ecfb
+    }
+    .nh-outbox-meta:not(#\-) {
+        color: #b9c4dd
+    }
+    .nh-outbox-item:not([data-ok]) .nh-outbox-what:not(#\-) {
+        color: #ffe3a6
+    }
+}
 /*  components/nova/hermes/hermes-example.css  */
 @scope (:root[data-theme=dark]) {
     .nova-hermes-example-status dd:not(#\-) {
@@ -15197,6 +15613,10 @@
         color: var(--neon-ink, #e2d9ff);
         background-image: none;
         background-color: #0b0d12d9
+    }
+    .holo-chart-tag[data-at=target]:not(#\-) {
+        background-image: none;
+        background-color: transparent
     }
     .holo-estimate:not(#\-) {
         color: #d3ddf1
@@ -15733,6 +16153,12 @@
         background-image: linear-gradient(90deg, var(--neon-2, #c0adff), #fff);
         background-color: transparent;
         box-shadow: 0 0 8px 1px var(--neon, #9273ff), 0 0 18px 2px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
+    }
+    @container holo-body (min-width: 560px) {
+        .holo-goals:is([data-size=M], [data-size=L]) .holo-chart-tag[data-at=today]:not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
     }
     @container holo-body (max-width: 350px) {
         .holo-health[data-size=M] .holo-ring:not(#\-) {
@@ -18263,6 +18689,44 @@
         .nova-widget[data-holo] .hw-facts > div:nth-child(2):not(#\-) {
             border-top-color: currentcolor
         }
+    }
+    .nova-widget[data-holo] .holo-tasks[data-counters] .tasks-headline:not(#\-) {
+        border-color: currentcolor
+    }
+    .nova-widget[data-holo] .tasks-widget .task:not(#\-) {
+        border-bottom-color: currentcolor
+    }
+    .nova-widget[data-holo] .tasks-widget .task + .task:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #9273ff) 16%, transparent)
+    }
+    .nova-widget[data-holo] .tasks-widget .task-title:not(#\-) {
+        color: #eef3ff
+    }
+    .nova-widget[data-holo] .tasks-widget .task-meta:not(#\-) {
+        color: #cdd8ee
+    }
+    .nova-widget[data-holo] .tasks-widget .task-overdue .task-due:not(#\-) {
+        color: #ffd0ca
+    }
+    .nova-widget[data-holo] .tasks-widget .tasks-add :is(.tasks-field-error, .tasks-field-note):not(#\-) {
+        border-color: #ff8f88;
+        background-image: none;
+        background-color: #140e11;
+        color: #ffd0ca
+    }
+    .nova-widget[data-holo] .tasks-widget .tasks-add .tasks-field-note:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 60%, transparent);
+        background-image: none;
+        background-color: #121419;
+        color: #dbe4f6
+    }
+    .nova-widget[data-holo] .tasks-widget .tasks-status:not([data-empty]):not(#\-) {
+        color: #dbe4f6
+    }
+    .nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters div:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none
     }
 }
 /*  components/nova/workflows/workflows.css  */

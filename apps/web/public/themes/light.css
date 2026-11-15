@@ -12515,6 +12515,314 @@
         box-shadow: 0 10px 30px #3d3d3d24
     }
 }
+/*  components/nova/agent/agent.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .na-panel:not(#\-) {
+        --na-a: var(--nova-a, #9273ff);
+        --na-b: var(--nova-b, #63e7ff);
+        --na-ink: #0c0f17;
+        --na-ink-2: #090f1d;
+        --na-ink-3: #151b29;
+        --na-plate: #070c22;
+        --na-plate-2: #0b1230;
+        --na-warn: #ffd27a;
+        --na-bad: #ff9fb0;
+        --na-ok: #8ff0c2;
+        color: var(--na-ink);
+        background-image: linear-gradient(180deg, var(--na-plate-2), var(--na-plate));
+        background-color: transparent;
+        border-color: color-mix(in oklab, var(--na-b) 42%, #ffffff14)
+    }
+    .na-panel:not(#\-)::before {
+        background-image: linear-gradient(90deg, #242424, var(--na-b) 18%, var(--na-a) 60%, transparent);
+        background-color: transparent
+    }
+    .na-eyebrow:not(#\-) {
+        color: color-mix(in srgb, var(--na-b) 42%, #000)
+    }
+    .na-title:not(#\-) {
+        color: #0f0f0f;
+        text-shadow: 0 0 14px color-mix(in oklab, var(--na-b) 55%, transparent)
+    }
+    .na-h:not(#\-) {
+        color: #0d0f14
+    }
+    .na-h:not(#\-)::after {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--na-b) 60%, transparent), transparent);
+        background-color: transparent
+    }
+    .na-text:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-fine:not(#\-) {
+        color: var(--na-ink-3)
+    }
+    .na-rule > li:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-rule > li:not(#\-)::before {
+        background: var(--na-b)
+    }
+    .na-key:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 50%, #ffffff1f);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--na-a) 14%, #f2f4fa);
+        color: var(--na-ink)
+    }
+    .na-key:not(#\-)::after {
+        background-image: linear-gradient(180deg, #2424242e, transparent 55%);
+        background-color: transparent
+    }
+    .na-key:focus-visible:not(#\-) {
+        outline-color: #333333
+    }
+    .na-key[data-primary]:not(#\-) {
+        border-color: #333333;
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--na-b) 38%, #0a1232), color-mix(in oklab, var(--na-a) 58%, #0a1232));
+        background-color: transparent;
+        color: #0f0f0f;
+        text-shadow: 0 1px 2px #3d3d3d44
+    }
+    .na-key[data-danger]:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-bad) 70%, transparent);
+        color: #1a090d
+    }
+    .na-key[data-quiet]:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in oklab, var(--na-b) 30%, #ffffff14)
+    }
+    .na-field:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-field > :where(input, textarea, select):not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 44%, #ffffff1f);
+        background-image: none;
+        background-color: #f3f5fa;
+        color: var(--na-ink)
+    }
+    .na-field > :where(input, textarea, select):focus-visible:not(#\-) {
+        outline-color: var(--na-b)
+    }
+    .na-field > :where(input, textarea):not(#\-)::placeholder {
+        color: #2d3444
+    }
+    .na-check:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-check > input:not(#\-) {
+        accent-color: var(--na-b)
+    }
+    .na-status:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-status:not(#\-)::before {
+        background-image: none;
+        background-color: #1b2338
+    }
+    .na-status[data-ok=true]:not(#\-)::before {
+        background-image: none;
+        background-color: var(--na-ok)
+    }
+    .na-status[data-ok=false]:not(#\-)::before {
+        background-image: none;
+        background-color: var(--na-bad)
+    }
+    .na-status[data-ok=true] > b:not(#\-) {
+        color: color-mix(in srgb, var(--na-ok) 42%, #000)
+    }
+    .na-status[data-ok=false] > b:not(#\-) {
+        color: color-mix(in srgb, var(--na-bad) 42%, #000)
+    }
+    .na-pill:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 44%, transparent);
+        color: var(--na-ink-2)
+    }
+    .na-pill[data-on]:not(#\-) {
+        border-color: var(--na-ok);
+        color: color-mix(in srgb, var(--na-ok) 42%, #000)
+    }
+    .na-server:not(#\-) {
+        background-image: none;
+        background-color: #f3f5facc;
+        border-color: color-mix(in oklab, var(--na-a) 46%, #ffffff14)
+    }
+    .na-server-name:not(#\-) {
+        color: #0f0f0f
+    }
+    .na-address:not(#\-) {
+        color: color-mix(in srgb, var(--na-b) 42%, #000)
+    }
+    .na-tool:not(#\-) {
+        border-left-color: color-mix(in oklab, var(--na-b) 50%, transparent);
+        background-image: none;
+        background-color: #f0f3fb
+    }
+    .na-tool[data-ask]:not(#\-) {
+        border-left-color: var(--na-ok)
+    }
+    .na-tool-name:not(#\-) {
+        color: #0f0f0f
+    }
+    .na-switch:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--na-ink-2)
+    }
+    .na-switch > span:first-child:not(#\-) {
+        border-color: #33333380;
+        background-image: none;
+        background-color: #f2f4fb
+    }
+    .na-switch > span:first-child:not(#\-)::after {
+        background-image: none;
+        background-color: var(--na-ink-3)
+    }
+    .na-switch[aria-checked=true] > span:first-child:not(#\-) {
+        border-color: var(--na-ok);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--na-ok) 26%, #eff2fc)
+    }
+    .na-switch[aria-checked=true] > span:first-child:not(#\-)::after {
+        background-image: none;
+        background-color: #242424
+    }
+    .na-switch:focus-visible:not(#\-) {
+        outline-color: #333333
+    }
+    .na-fields dt:not(#\-) {
+        color: color-mix(in srgb, var(--na-b) 42%, #000)
+    }
+    .na-fields dd:not(#\-) {
+        color: var(--na-ink)
+    }
+    .na-quote:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-warn) 62%, transparent);
+        background-image: none;
+        background-color: #f2f3f8
+    }
+    .na-quote-label:not(#\-) {
+        color: color-mix(in srgb, var(--na-warn) 42%, #000)
+    }
+    .na-quote-text:not(#\-) {
+        color: var(--na-ink)
+    }
+    .na-json:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 34%, transparent);
+        background-image: none;
+        background-color: #f3f5fa;
+        color: var(--na-ink)
+    }
+    .na-warn:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-warn) 70%, transparent);
+        background-image: none;
+        background-color: #f4f2ee;
+        color: #150e02
+    }
+    .na-warn:not(#\-)::before {
+        background-image: none;
+        background-color: var(--na-warn);
+        color: #1c1606
+    }
+    .na-notice:not(#\-) {
+        color: color-mix(in srgb, var(--na-warn) 42%, #000)
+    }
+    .na-history > li:not(#\-) {
+        border-top-color: #3333331e;
+        color: var(--na-ink-2)
+    }
+    .na-history > li:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .na-details > summary:not(#\-) {
+        color: var(--na-ink)
+    }
+    .na-details > summary:not(#\-)::before {
+        border-right-color: var(--na-b);
+        border-bottom-color: var(--na-b)
+    }
+    .na-details > summary:focus-visible:not(#\-) {
+        outline-color: var(--na-b)
+    }
+    .na-card:not(#\-) {
+        --na-a: var(--nova-a, #9273ff);
+        --na-b: var(--nova-b, #63e7ff);
+        --na-ink: #0c0f17;
+        --na-ink-2: #090f1d;
+        --na-ink-3: #151b29;
+        --na-warn: #ffd27a;
+        --na-bad: #ff9fb0;
+        --na-ok: #8ff0c2;
+        border-color: color-mix(in oklab, var(--na-b) 55%, #ffffff1f);
+        border-top-color: #333333;
+        background-image: none;
+        background-color: #f2f4fb;
+        color: var(--na-ink);
+        box-shadow: 0 40px 100px -30px #3d3d3d66, 0 0 60px -18px var(--na-a)
+    }
+    .na-card:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #f5f7fad9
+    }
+    .na-card-title:not(#\-) {
+        color: #0f0f0f
+    }
+    .na-card-where:not(#\-) {
+        border-left-color: var(--na-b);
+        background-image: none;
+        background-color: #f0f3fb;
+        color: var(--na-ink-2)
+    }
+    .na-card-foot:not(#\-) {
+        background-image: linear-gradient(180deg, #f2f4fb00, #f2f4fb 28%);
+        background-color: transparent
+    }
+    .na-sr:not(#\-) {
+        border-color: currentcolor
+    }
+    .na-step:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-a) 40%, #ffffff14);
+        background-image: none;
+        background-color: #f3f5facc
+    }
+    .na-step:not(#\-)::before {
+        background-image: linear-gradient(180deg, color-mix(in oklab, var(--na-b) 44%, #0a1232), color-mix(in oklab, var(--na-a) 60%, #0a1232));
+        background-color: transparent;
+        color: #0f0f0f
+    }
+    .na-step-title:not(#\-) {
+        color: #0f0f0f
+    }
+    .na-step-list > li:not(#\-) {
+        color: var(--na-ink-2)
+    }
+    .na-shares:not(#\-) {
+        color: var(--na-ink-3);
+        border-top-color: #3333331e
+    }
+    .na-shares > b:not(#\-) {
+        color: color-mix(in srgb, var(--na-b) 42%, #000)
+    }
+    .na-cmd-shell:not(#\-) {
+        color: var(--na-ink-3)
+    }
+    .na-cmd > pre:not(#\-) {
+        border-color: color-mix(in oklab, var(--na-b) 34%, transparent);
+        background-image: none;
+        background-color: #f3f5fa;
+        color: var(--na-ink)
+    }
+    .na-cmd > pre:focus-visible:not(#\-) {
+        outline-color: var(--na-b)
+    }
+    .na-link:not(#\-) {
+        color: color-mix(in srgb, var(--na-b) 42%, #000)
+    }
+    .na-link:focus-visible:not(#\-) {
+        outline-color: #333333
+    }
+}
 /*  components/nova/cards/cards.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .nova-widget[data-cut] .nc-body > .nc-foot:not(#\-) {
@@ -13032,9 +13340,6 @@
 }
 /*  components/nova/cards/life-cards.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
-    .nc-habitweek-more:not(#\-) {
-        color: var(--neon-ink, #090f1c)
-    }
     .nc-habitweek-key:not(#\-) {
         color: #0a111e
     }
@@ -13338,9 +13643,6 @@
         background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c), color-mix(in oklab, var(--neon, #9273ff) 24%, #f2f4fa));
         background-color: transparent
     }
-    .nc-requests-more:not(#\-) {
-        color: #0a111e
-    }
     .nc-brain-dot:not(#\-) {
         border-color: #2a3345
     }
@@ -13497,6 +13799,19 @@
     }
     .nc-bills-row .nc-bills-when[data-over]:not(#\-) {
         color: #765527
+    }
+}
+/*  components/nova/cards/whole-rows.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .nova-widget .wr-inline > li.wr-more:not(#\-) {
+        border-color: currentcolor;
+        color: #090f1c
+    }
+    .wr-more:not(#\-) {
+        color: #090f1c
+    }
+    .nova-widget[data-holo] .wr-more:not(#\-) {
+        color: #090f1c
     }
 }
 /*  components/nova/cards/world-cards.css  */
@@ -14310,6 +14625,107 @@
         }
     }
 }
+/*  components/nova/handoff/handoff.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .nh-card:not(#\-) {
+        color: #0d0f16;
+        --nh-a: var(--nova-a, #9273ff);
+        --nh-b: var(--nova-b, #63e7ff);
+        --nh-c: var(--nova-c, #f06dff);
+        --nh-k: calc(var(--nh-w) * .414);
+        --nh-oct: polygon(var(--nh-cut) 0, calc(100% - var(--nh-nick)) 0, 100% var(--nh-nick), 100% calc(100% - var(--nh-cut)), calc(100% - var(--nh-cut)) 100%, var(--nh-nick) 100%, 0 calc(100% - var(--nh-nick)), 0 var(--nh-cut));
+        --nh-ring: polygon(evenodd, var(--nh-cut) 0, calc(100% - var(--nh-nick)) 0, 100% var(--nh-nick), 100% calc(100% - var(--nh-cut)), calc(100% - var(--nh-cut)) 100%, var(--nh-nick) 100%, 0 calc(100% - var(--nh-nick)), 0 var(--nh-cut), var(--nh-cut) 0,
+    calc(var(--nh-cut) + var(--nh-k)) var(--nh-w), var(--nh-w) calc(var(--nh-cut) + var(--nh-k)), var(--nh-w) calc(100% - var(--nh-nick) - var(--nh-k)), calc(var(--nh-nick) + var(--nh-k)) calc(100% - var(--nh-w)), calc(100% - var(--nh-cut) - var(--nh-k)) calc(100% - var(--nh-w)), calc(100% - var(--nh-w)) calc(100% - var(--nh-cut) - var(--nh-k)), calc(100% - var(--nh-w)) calc(var(--nh-nick) + var(--nh-k)), calc(100% - var(--nh-nick) - var(--nh-k)) var(--nh-w), calc(var(--nh-cut) + var(--nh-k)) var(--nh-w))
+    }
+    .nh-card:not(#\-)::before {
+        background-image: repeating-linear-gradient(0deg, #24242407 0 1px, transparent 1px 4px), linear-gradient(180deg, color-mix(in oklab, var(--nh-b) 11%, #eff2fc) 0, #f2f4fb 46%, #f3f5fb 100%);
+        background-color: transparent
+    }
+    .nh-card:not(#\-)::after {
+        background-image: linear-gradient(115deg, #242424 0, var(--nh-b) 9%, var(--nh-a) 52%, var(--nh-c) 91%, #242424 100%);
+        background-color: transparent
+    }
+    .nh-card[data-by=model]:not(#\-)::after {
+        background-image: linear-gradient(115deg, #242424 0, var(--nh-c) 12%, var(--nh-a) 55%, var(--pillar-wealth, #ffd27a) 92%, #242424 100%);
+        background-color: transparent
+    }
+    .nh-card-inner:not(#\-) {
+        background-image: radial-gradient(circle 26px at 0 0, color-mix(in oklab, var(--nh-b) 90%, #fff), transparent), radial-gradient(circle 26px at 100% 100%, color-mix(in oklab, var(--nh-c) 90%, #fff), transparent), none;
+        background-color: color-mix(in oklab, var(--nh-b) 16%, #ffffff0d)
+    }
+    .nh-head:not(#\-) {
+        border-color: currentcolor
+    }
+    .nh-title:not(#\-) {
+        color: #0f0f0f;
+        text-shadow: 0 0 12px color-mix(in oklab, var(--nh-b) 70%, transparent)
+    }
+    .nh-by:not(#\-) {
+        color: #0a111e
+    }
+    .nh-card[data-by=model] .nh-by:not(#\-) {
+        color: #71581b
+    }
+    .nh-promise:not(#\-) {
+        color: #0b0f19
+    }
+    .nh-fields dt:not(#\-) {
+        color: color-mix(in oklab, color-mix(in srgb, var(--nh-b) 42%, #000) 30%, #0a111e)
+    }
+    .nh-fields dd:not(#\-) {
+        color: #0d0f14
+    }
+    .nh-target:not(#\-) {
+        color: #0f0f0f;
+        text-shadow: 0 0 12px color-mix(in oklab, var(--nh-b) 60%, transparent)
+    }
+    .nh-none:not(#\-) {
+        color: #121826
+    }
+    .nh-text:not(#\-) {
+        border-color: color-mix(in oklab, var(--nh-b) 26%, #ffffff14);
+        background-image: none;
+        background-color: #f3f5facc;
+        color: #0d0f14
+    }
+    .nh-text:focus-visible:not(#\-) {
+        outline-color: var(--nova-focus, #63e7ff)
+    }
+    .nh-notes:not(#\-) {
+        color: #0a0f1b
+    }
+    .nh-notes > li:not(#\-)::before {
+        background: var(--nh-b)
+    }
+    .nh-notes > li[data-warn]:not(#\-) {
+        color: #71581b
+    }
+    .nh-notes > li[data-warn]:not(#\-)::before {
+        background-image: none;
+        background-color: var(--pillar-wealth, #ffd27a)
+    }
+    .nh-outcome:not(#\-) {
+        color: #01140f
+    }
+    .nh-outcome[data-result=failed]:not(#\-), .nh-outcome[data-result=cancelled]:not(#\-) {
+        color: #71581b
+    }
+    .nh-outbox-item:not(#\-) {
+        border-left-color: color-mix(in oklab, var(--nova-b, #63e7ff) 40%, transparent)
+    }
+    .nh-outbox-what:not(#\-) {
+        color: #0d0f14
+    }
+    .nh-outbox-target:not(#\-) {
+        color: #0b0f19
+    }
+    .nh-outbox-meta:not(#\-) {
+        color: #121826
+    }
+    .nh-outbox-item:not([data-ok]) .nh-outbox-what:not(#\-) {
+        color: #71581b
+    }
+}
 /*  components/nova/hermes/hermes-example.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .nova-hermes-example-status dd:not(#\-) {
@@ -14749,6 +15165,10 @@
         color: var(--neon-ink, #110c1b);
         background-image: none;
         background-color: #f2f4fad9
+    }
+    .holo-chart-tag[data-at=target]:not(#\-) {
+        background-image: none;
+        background-color: transparent
     }
     .holo-estimate:not(#\-) {
         color: #090f1c
@@ -15285,6 +15705,12 @@
         background-image: linear-gradient(90deg, var(--neon-2, #c0adff), #242424);
         background-color: transparent;
         box-shadow: 0 0 8px 1px var(--neon, #9273ff), 0 0 18px 2px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
+    }
+    @container holo-body (min-width: 560px) {
+        .holo-goals:is([data-size=M], [data-size=L]) .holo-chart-tag[data-at=today]:not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
     }
     @container holo-body (max-width: 350px) {
         .holo-health[data-size=M] .holo-ring:not(#\-) {
@@ -17754,6 +18180,44 @@
         .nova-widget[data-holo] .hw-facts > div:nth-child(2):not(#\-) {
             border-top-color: currentcolor
         }
+    }
+    .nova-widget[data-holo] .holo-tasks[data-counters] .tasks-headline:not(#\-) {
+        border-color: currentcolor
+    }
+    .nova-widget[data-holo] .tasks-widget .task:not(#\-) {
+        border-bottom-color: currentcolor
+    }
+    .nova-widget[data-holo] .tasks-widget .task + .task:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #9273ff) 16%, transparent)
+    }
+    .nova-widget[data-holo] .tasks-widget .task-title:not(#\-) {
+        color: #0c0f17
+    }
+    .nova-widget[data-holo] .tasks-widget .task-meta:not(#\-) {
+        color: #090f1c
+    }
+    .nova-widget[data-holo] .tasks-widget .task-overdue .task-due:not(#\-) {
+        color: #1b0a08
+    }
+    .nova-widget[data-holo] .tasks-widget .tasks-add :is(.tasks-field-error, .tasks-field-note):not(#\-) {
+        border-color: #ff8f88;
+        background-image: none;
+        background-color: #f7f2f4;
+        color: #1b0a08
+    }
+    .nova-widget[data-holo] .tasks-widget .tasks-add .tasks-field-note:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 60%, transparent);
+        background-image: none;
+        background-color: #f0f3fc;
+        color: #0a0f1b
+    }
+    .nova-widget[data-holo] .tasks-widget .tasks-status:not([data-empty]):not(#\-) {
+        color: #0a0f1b
+    }
+    .nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters div:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none
     }
 }
 /*  components/nova/workflows/workflows.css  */

@@ -3751,6 +3751,58 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .notify-times .field:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/notify/notify-sync.css  */
 :where(:root[data-density=compact]) .sw-update:not(#\-) { row-gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+/*  components/nova/agent/agent.css  */
+:where(:root[data-density=compact]) .na-panel:not(#\-) { row-gap: 10.5px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .na-panel :where(h3, h4, p, ul, ol, dl, dd):not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .na-panel :where(ul, ol):not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .na-h:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .na-section:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .na-rule:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .na-key:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .na-keys:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .na-field:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .na-field > :where(input, textarea, select):not(#\-) { padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .na-check:not(#\-) { row-gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .na-check > input:not(#\-) { margin-top: 1px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .na-form:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .na-status:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .na-status:not(#\-)::before { margin-top: .42em; }
+:where(:root[data-density=compact]) .na-pill:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .na-servers:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .na-server:not(#\-) { row-gap: 10px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .na-server-head:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .na-tools:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .na-tool:not(#\-) { row-gap: 6px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .na-tool-head:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .na-switch:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .na-fields:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .na-fields > div:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .na-quote:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .na-quote-text:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .na-json:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .na-warn:not(#\-) { row-gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .na-warn:not(#\-)::before { margin-top: 1px; }
+:where(:root[data-density=compact]) .na-history > li:not(#\-) { row-gap: 3px; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .na-details > summary:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .na-details-body:not(#\-) { row-gap: 10px; padding-top: 4px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .na-card:not(#\-) { margin-top: auto; margin-bottom: auto; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .na-card-body:not(#\-) { row-gap: 9px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .na-card-body :where(h2, h3, p, dl, dd):not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .na-card-head:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .na-card-where:not(#\-) { row-gap: 1.5px; padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .na-card-foot:not(#\-) { row-gap: 6px; padding-top: 9px; padding-bottom: 9px; }
+:where(:root[data-density=compact]) .na-sr:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: -1px; margin-bottom: -1px; }
+:where(:root[data-density=compact]) .na-guide:not(#\-) { row-gap: 14px; margin-top: 24px; }
+:where(:root[data-density=compact]) .na-steps:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .na-step:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .na-step-list:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .na-shares:not(#\-) { padding-top: 6px; }
+:where(:root[data-density=compact]) .na-cmd:not(#\-) { row-gap: 6px; margin-top: 6px; }
+:where(:root[data-density=compact]) .na-cmd > pre:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+@media (max-width: 520px) { :where(:root[data-density=compact]) .na-panel:not(#\-) { padding-top: 9px; padding-bottom: 9px; } }
+@media (max-width: 520px) { :where(:root[data-density=compact]) .na-step:not(#\-) { padding-top: 48px; } }
+:where(:root[data-density=compact]) .na-drop:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .na-entry:not(#\-) { row-gap: 6px; }
 /*  components/nova/cards/cards.css  */
 :where(:root[data-density=compact]) .nc-body:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .nc-foot:not(#\-) { margin-top: auto; margin-bottom: 0; padding-top: 6px; }
@@ -3940,7 +3992,6 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nc-requests .nc-request-again:not(#\-) { margin-top: -9px; margin-bottom: -9px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nc-requests[data-size=M] .nc-request:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .nc-requests[data-size=M]:not(#\-) { row-gap: 6px; }
-:where(:root[data-density=compact]) .nc-requests-more:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nc-brain-head:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .nc-brain-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nc-brain-words:not(#\-) { margin-top: 3px; margin-bottom: 0; }
@@ -4036,6 +4087,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-spending-card[data-size=L] .nc-bars:not(#\-), :where(:root[data-density=compact]) .nc-budgets-card[data-size=L] .nc-bars:not(#\-) { row-gap: 14px; } }
 @container holo-body (max-height: 560px) and (max-width: 519px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=L] .nc-bills-row:not(#\-) { padding-top: 2.25px; padding-bottom: 2.25px; } }
 @container holo-body (min-width: 520px) and (min-height: 300px) and (max-height: 400px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=L] .nc-bills-row:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
+/*  components/nova/cards/whole-rows.css  */
+:where(:root[data-density=compact]) .wr:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nova-widget .wr-inline > li.wr-more:not(#\-) { padding-top: 2.25px; padding-bottom: 0; }
+:where(:root[data-density=compact]) .wr-more:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 3px; padding-bottom: 0; }
 /*  components/nova/cards/world-cards.css  */
 :where(:root[data-density=compact]) .nw-weather:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nw-now:not(#\-) { row-gap: 18px; }
@@ -4198,6 +4253,27 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-root.nova-guide-band:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 14px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-guide-band-back:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-guide-band-progress:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/nova/handoff/handoff.css  */
+:where(:root[data-density=compact]) .nh-card:not(#\-) { margin-top: 7.5px; margin-bottom: 3px; padding-top: 0; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .nh-head:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nh-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nh-by:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nh-promise:not(#\-) { margin-top: 9px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nh-fields:not(#\-) { row-gap: 7px; margin-top: 10px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nh-fields > div:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nh-fields dt:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nh-fields dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nh-address:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nh-text:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nh-notes:not(#\-) { row-gap: 4px; margin-top: 10px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nh-actions:not(#\-) { row-gap: 8px; margin-top: 12px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nh-outcome:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nh-card:not(#\-) { margin-top: 6px; margin-bottom: 3px; padding-top: 0; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nh-head:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 7px; }
+@media (max-width: 420px) { :where(:root[data-density=compact]) .nh-fields > div:not(#\-) { row-gap: 1px; } }
+:where(:root[data-density=compact]) .nh-outbox-list:not(#\-) { row-gap: 1.5px; margin-top: 4.5px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nh-outbox-item:not(#\-) { row-gap: 0; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .nh-outbox-actions:not(#\-) { row-gap: 8px; margin-top: 6px; margin-bottom: 2px; }
 /*  components/nova/hermes/hermes-example.css  */
 :where(:root[data-density=compact]) .nova-hermes-example h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-hermes-example-status:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
@@ -4229,7 +4305,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .holo-streaks:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-streaks li:not(#\-) { row-gap: 2.25px; padding-top: 3.75px; padding-bottom: 4.5px; }
 :where(:root[data-density=compact]) .holo-streaks li:first-child:not(#\-) { padding-top: 0; }
-:where(:root[data-density=compact]) .holo-streaks li:last-child:not(#\-) { padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-streaks li:last-child:not(#\-), :where(:root[data-density=compact]) .holo-streaks li:nth-last-child(2):not(#\-) { padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-week-row:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .holo-goals:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .holo-goals[data-size=S] .holo-arc-name:not(#\-) { margin-top: 0; }
@@ -4244,6 +4320,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .holo-more-link:not(#\-) { margin-top: -14px; margin-bottom: -14px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-pace-dot:not(#\-) { margin-top: -4.5px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .holo-chart-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-chart-tag[data-at=target]:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-estimate:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .holo-sliders:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .holo-wealth:not(#\-) { row-gap: 8px; }
@@ -4329,6 +4406,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @container holo-body (min-width: 640px) { :where(:root[data-density=compact]) .holo-habits[data-size=L] .holo-split:not(#\-) { row-gap: 26px; } }
 @container holo-body (min-width: 640px) { :where(:root[data-density=compact]) .holo-habits[data-size=L] .holo-streaks li:not(#\-) { padding-top: 7.5px; padding-bottom: 8.25px; } }
 :where(:root[data-density=compact]) .holo-goals[data-size=L]:not(#\-) { row-gap: clamp(6px, 2cqh, 14px); }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-goals[data-size=L]:not(#\-) { row-gap: 0; } }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-goals[data-size=L] .holo-sliders:not(#\-) { margin-top: 10px; } }
 @container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-wealth:is([data-size=M], [data-size=L]):not(#\-) { row-gap: 10px; } }
 :where(:root[data-density=compact]) .holo-agenda[data-size=L]:not(#\-) { row-gap: 12px; }
 @container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-next li:not(#\-) { padding-top: 0; } }
@@ -4337,6 +4416,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .holo-orbit-side:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .holo-core-readout li:not(#\-) { row-gap: 1.5px; }
 :where(:root[data-density=compact]) .holo-estimate:not(#\-) { row-gap: 2px; }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-chart:not(#\-) { margin-bottom: 18px; } }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-goals:is([data-size=M], [data-size=L]) .holo-chart-tag[data-at=today]:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 @container holo-body (min-width: 560px) { :where(:root[data-density=compact]) :is(.holo-water, .holo-sleep)[data-size=S] .holo-segs:not(#\-) { row-gap: 3px; } }
 /*  components/nova/holo/holo.css  */
 :where(:root[data-density=compact]) .nova-widget[data-holo]:not(#\-)::after { padding-top: 1.5px; padding-bottom: 1.5px; }
@@ -4741,9 +4822,46 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-reading:not(#\-) { row-gap: 10px; }
 @container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .hw-glance:not(#\-) { row-gap: 28px; } }
 @container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .hw-facts > div:nth-child(2):not(#\-) { padding-top: 0; } }
-:where(:root[data-density=compact]) .hw-focus[data-size=S] > .nova-chip-link:not(#\-) { margin-top: -6px; margin-bottom: -6px; }
+:where(:root[data-density=compact]) .hw-focus[data-size=S] > .nova-chip-link:not(#\-) { margin-top: 2px; margin-bottom: -6px; }
+@container holo-body (max-height: 83.98px) and (max-width: 559.98px) { :where(:root[data-density=compact]) .hw-focus[data-size=S] > .nova-chip-link:not(#\-) { margin-top: -6px; margin-bottom: -6px; } }
 @container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .hw-focus[data-size=S]:not([data-running]):not(#\-) { row-gap: 22px; } }
 @container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .hw-focus[data-size=S] > .nova-chip-link:not(#\-) { margin-top: 0; margin-bottom: 0; } }
+@container holo-body (max-width: 559.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]):not(#\-) { row-gap: 6px; } }
+@container holo-body (max-width: 559.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .nova-chip-link:not(#\-) { margin-top: auto; } }
+:where(:root[data-density=compact]) .nova-widget .tasks-widget .tasks-lists:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-widget=tasks][data-size] .nova-widget-inner:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks > .tasks-widget:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget > .tasks-lists:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget > .tasks-foot:not(#\-) { margin-top: auto; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks[data-counters] .tasks-headline:not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-next .nova-eyebrow:not(#\-) { margin-top: 0; margin-bottom: 1.5px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-list:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task:not(#\-) { row-gap: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta > :is(.task-recur, .task-progress, .task-project, .task-label, .task-reminder, .task-has-notes):not(#\-), :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible):not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; }
+@container holo-body (max-width: 559.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks[data-size=M] .holo-counters div:not(#\-) { padding-top: 2px; padding-bottom: 3px; } }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-add:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-add .field:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-add .field > span:first-child:not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-):not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-):not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-add :is(.tasks-field-error, .tasks-field-note):not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-status:not([data-empty]):not(#\-) { row-gap: 0; margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-status .text-link:not(#\-) { margin-top: -12px; margin-bottom: -12px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks[data-size=S]:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks[data-size=S] > .tasks-widget:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters div:not(#\-) { row-gap: 5px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks[data-size=S] .wr-more:not(#\-) { padding-top: 0; padding-bottom: 0; }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]):not(#\-) { row-gap: 6px; } }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) .tasks-foot:not(#\-) { margin-top: 0; } }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible):not(#\-) { margin-top: 0; margin-bottom: 0; } }
+@container holo-body (min-width: 560px) and (max-height: 149.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .holo-tasks[data-size=M] .holo-counters div:not(#\-) { padding-top: 2px; padding-bottom: 3px; } }
+@container holo-body (max-height: 113.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-playing:not(#\-) { row-gap: 0; } }
+@container holo-body (max-height: 113.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-playing-actions:not(#\-) { row-gap: 4px; } }
+@container holo-body (max-height: 113.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .nova-playing-text .nova-quiet:not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; } }
 /*  components/nova/workflows/workflows.css  */
 :where(:root[data-density=compact]) .nova-workflows:not(#\-), :where(:root[data-density=compact]) .nova-wf-run:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nova-workflows h4:not(#\-), :where(:root[data-density=compact]) .nova-wf-run h3:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit h3:not(#\-) { margin-top: 4px; margin-bottom: 0; }
