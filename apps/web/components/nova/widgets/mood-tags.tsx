@@ -55,7 +55,7 @@ function MoodTagsBody({size}: {size: CardProps['size']}) {
   const rows = card.rows.slice(0, SHOWN[size]);
   return <div className="nc-body nx-card" data-size={size} data-lay="dial">
     <NxDial share={top.share} figure={String(top.good)} caption={`of ${top.days}`} spin={size === 'L'}/>
-    <NxHead pulse label={size === 'S' ? `Good with “${top.tag}”` : `Good or Great with “${top.tag}”`} title={`${top.good} of ${top.days} days`} note={size !== 'M' ? `Other days with a mood: ${top.otherGood} of ${top.otherDays}` : null}/>
+    <NxHead pulse={size === 'L'} label={size === 'S' ? `Good with “${top.tag}”` : `Good or Great with “${top.tag}”`} title={`${top.good} of ${top.days} days`} note={size !== 'M' ? `Other days with a mood: ${top.otherGood} of ${top.otherDays}` : null}/>
     {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Good or Great days, by tag</p>}
       <Bars rows={rows.map(r => ({key: r.tag, label: r.tag, share: r.share, value: `${r.good} of ${r.days}`, ...(size === 'L' ? {note: `Other days with a mood: ${r.otherGood} of ${r.otherDays}`} : {})}))}/>

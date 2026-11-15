@@ -43,7 +43,7 @@ function SymptomsBody({size}: {size: CardProps['size']}) {
   const rows = card.rows.slice(0, SHOWN[size]), more = card.rows.length - rows.length;
   return <div className="nc-body nx-card" data-size={size} data-lay="dial">
     <NxDial share={card.days ? card.answeredDays / card.days : null} figure={String(card.answeredDays)} caption={`of ${card.days}`} spin={size === 'L'}/>
-    <NxHead pulse label={size === 'S' ? 'Days answered' : `Days answered · the last ${card.days} days`} title={`${card.answeredDays} of ${card.days} days`} note={size !== 'M' && card.mostNoted ? `Noted most: ${card.mostNoted.name}` : null}/>
+    <NxHead pulse={size === 'L'} label={size === 'S' ? 'Days answered' : `Days answered · the last ${card.days} days`} title={`${card.answeredDays} of ${card.days} days`} note={size !== 'M' && card.mostNoted ? `Noted most: ${card.mostNoted.name}` : null}/>
     {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">There on the days you answered</p>}
       <Bars extra={more} rows={rows.map(r => ({key: r.id, label: r.name, share: r.share, value: r.answered ? `${r.noted} of ${r.answered}` : 'No answer yet', ...(size === 'L' && r.strong ? {note: `Strong on ${r.strong}`} : {})}))}/>
