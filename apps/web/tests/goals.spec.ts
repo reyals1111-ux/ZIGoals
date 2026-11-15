@@ -144,6 +144,9 @@ test("damaged local funds keep the shell usable and block simulation instead of 
 test("invalid custom scenario preserves baseline funding health and progress", async ({
   page,
 }) => {
+  // Session AQ (date-bomb sweep): "Required monthly" counts the whole months from today to the plan's 2027-09-13; from
+  // 2027-08-14 none is left and it reads "Required now". The page runs at the fixtures' time (ledger made 2026-09-13).
+  await page.clock.install({time: new Date("2026-11-04T10:00:00.000Z")});
   await page.addInitScript(
     ({ metadataKey, ledgerKey, ledger, metadata }) => {
       localStorage.setItem(ledgerKey, ledger);
