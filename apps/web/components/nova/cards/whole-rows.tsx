@@ -18,9 +18,21 @@ import './whole-rows.css';
  * result cannot be off by a few pixels.
  *
  * When it measures. Before the first paint and after every render (a layout effect), when the body's box changes (a
- * ResizeObserver on the body alone: its size never depends on the rows, so there is no loop), when anything is added to or
- * removed from the body (a MutationObserver: a status line, an error under a field), and once the fonts are in. It writes
- * to the page only what changed, and tells React only when a count changed.
+ * ResizeObserver on the body alone: its size never depends on the rows, so there is no loop), when anything inside the
+ * body changes (a MutationObserver: a row's words, a status line, an error under a field), and once the fonts are in. It
+ * writes to the page only what changed, and tells React only when a count changed.
+ *
+ * What a measure costs, and when it is skipped (Session AM-2, regressions). A measure shows every row and then takes rows
+ * away one at a time, and the browser lays the panel out again for each step. NOVA's dashboard renders once a second (its
+ * clock) and many times while it opens, and every list measured after each of those renders: with the Showcase's ten
+ * panels that was about 3 s of the first 6 s and 0.2 s of every second after, on the processor that also draws the page
+ * (the opening ended late, lazy parts and answers arrived seconds late). So the fitter keeps what its last measure read
+ * (the same lists, the same row elements, each box's size and overflow, each list's own size) and its answer: a render or
+ * a resize that changed none of it reads those few numbers and leaves the page alone. A change of content (the
+ * MutationObserver) and the fonts always measure. The fit's own writes (`hidden`, the last line's words) are not content,
+ * nor is an attribute written again with the value it had. (Measured on the Showcase at 1440 x 900: the browser lays the
+ * whole page out for each step, about 40 ms on a processor-drawn page, so the steps a real change still takes are the
+ * cost that is left: about 25 steps while NOVA opens.)
  *
  * Where there is no height to fit (a phone, the band below the fold, a narrow stage, the Classic cards, a test without
  * layout) every row is shown. Rows that are not shown carry `hidden`: they are out of the accessibility tree and cannot
@@ -33,7 +45,20 @@ type Member = {
   wrap: HTMLElement; list: HTMLElement; more: HTMLElement; min: number; keep: 'first' | 'last'; extra: number; collapse: boolean;
   report: (hidden: number, shown: number, line: boolean) => void;
 };
-type Fitter = {members: Set<Member>; measure: () => void};
+type Fitter = {members: Set<Member>;
+  /** Fits the rows. Unless `force` is set, nothing is read twice or written when nothing the last measure read has changed. */
+  measure: (force?: boolean) => void;
+  /**
+   * Whether a change in the page is no change of content: the fit's own writing (a row's, the line's or the box's `hidden`,
+   * the box's short mark, the last line's words), or an attribute written again with the value it had (React writes a
+   * field's `name` and `type` again on every render).
+   */
+  own: (record: MutationRecord) => boolean};
+/** What a measure read and answered: while none of it has changed, the answer stands. */
+type Fitted = {lists: readonly Member[]; rows: readonly (readonly HTMLElement[])[]; boxes: readonly HTMLElement[]; sizes: readonly number[]};
+const sameItems = <T,>(a: readonly T[], b: readonly T[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+/** The numbers a fit depends on, read from the layout as it stands: each box's size and what runs past it, each list's own size. */
+const sizesOf = (boxes: readonly HTMLElement[], lists: readonly Member[]) => [...boxes.flatMap(b => [b.clientHeight, b.clientWidth, b.scrollHeight]), ...lists.flatMap(m => [m.wrap.offsetHeight, m.wrap.offsetWidth])];
 const BODY = '.nova-widget[data-holo] .nova-widget-body';
 const setHidden = (el: HTMLElement, hidden: boolean) => { if (el.hidden !== hidden) el.hidden = hidden; };
 const rowsOf = (list: HTMLElement) => Array.from(list.children).filter((el): el is HTMLElement => el instanceof HTMLElement && !el.hasAttribute('data-wr-keep'));
@@ -41,15 +66,19 @@ const over = (el: HTMLElement) => el.scrollHeight - el.clientHeight;
 
 function createFitter(): Fitter {
   const members = new Set<Member>();
-  let busy = false;
-  const measure = () => {
+  let busy = false, fitted: Fitted | null = null;
+  const measure = (force = false) => {
     if (busy) return;
     const lists = [...members].filter(m => m.wrap.isConnected).sort((a, b) => a.wrap.compareDocumentPosition(b.wrap) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
     const first = lists[0];
-    if (!first) return;
+    if (!first) { fitted = null; return; }
     busy = true;
     try {
       const rows = lists.map(m => rowsOf(m.list)), all = rows.map(r => r.length);
+      const body = first.wrap.closest<HTMLElement>(BODY), fit = !!body && body.clientHeight > 0, boxes = new Set<HTMLElement>(fit ? [body] : []);
+      if (fit) for (const m of lists) for (let el: HTMLElement | null = m.wrap; el && el !== body; el = el.parentElement) if (el.hasAttribute('data-wr-limit')) boxes.add(el);
+      // Nothing the last measure read has changed (the same lists and rows, in the same boxes, of the same sizes): its answer stands.
+      if (!force && fitted && sameItems(fitted.lists, lists) && sameItems(fitted.boxes, [...boxes]) && fitted.rows.length === rows.length && fitted.rows.every((r, i) => sameItems(r, rows[i]!)) && sameItems(fitted.sizes, sizesOf([...boxes], lists))) return;
       // `bare`: no "+N more" line at all (the measure's base, and the last resort below).
       const apply = (shown: readonly number[], bare = false) => lists.forEach((m, i) => {
         const n = all[i]!, k = shown[i]!;
@@ -57,12 +86,9 @@ function createFitter(): Fitter {
         setHidden(m.more, bare || n - k + m.extra <= 0);
         setHidden(m.wrap, m.collapse && k === 0 && n > 0);
       });
-      const body = first.wrap.closest<HTMLElement>(BODY);
       let shown = all, line = true;
       // No fitted panel around the list, or no layout to read (a hidden panel, a test): every row.
-      if (body && body.clientHeight > 0) {
-        const boxes = new Set<HTMLElement>([body]);
-        for (const m of lists) for (let el: HTMLElement | null = m.wrap; el && el !== body; el = el.parentElement) if (el.hasAttribute('data-wr-limit')) boxes.add(el);
+      if (fit) {
         apply(all);
         if ([...boxes].some(b => over(b) > 0)) {
           // Rows leave from the end, so a row of a single list that stays is never hidden and shown again on the way (it
@@ -85,10 +111,17 @@ function createFitter(): Fitter {
         }
       }
       apply(shown, !line);
+      fitted = {lists, rows, boxes: [...boxes], sizes: sizesOf([...boxes], lists)};
       lists.forEach((m, i) => m.report(all[i]! - shown[i]! + m.extra, shown[i]!, line));
     } finally { busy = false; }
   };
-  return {members, measure};
+  const own = (record: MutationRecord) => {
+    const at = record.target, mark = record.type === 'attributes' && (record.attributeName === 'hidden' || record.attributeName === 'data-wr-short');
+    if (record.type === 'attributes' && record.attributeName && at instanceof Element && at.getAttribute(record.attributeName) === record.oldValue) return true;
+    for (const m of members) if (m.more.contains(at) || (mark && (at === m.wrap || at === m.list || at.parentNode === m.list))) return true;
+    return false;
+  };
+  return {members, measure, own};
 }
 
 const GroupContext = createContext<Fitter | null>(null);
@@ -107,15 +140,17 @@ function useFitting(fitter: Fitter, anchor: {current: HTMLElement | null}, on: b
     if (!body) return;
     let live = true, frame = 0;
     const again = () => { if (live) fitter.measure(); };
+    // A change of content always measures: a row's words or state can change its height with no box changing its size.
+    const changed = (records: MutationRecord[]) => { if (live && !records.every(fitter.own)) fitter.measure(true); };
     const resized = () => {
       if (getComputedStyle(body).containerType === 'size') return again();
       cancelAnimationFrame(frame); frame = requestAnimationFrame(again);
     };
     const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resized);
-    const change = typeof MutationObserver === 'undefined' ? null : new MutationObserver(again);
+    const change = typeof MutationObserver === 'undefined' ? null : new MutationObserver(changed);
     resize?.observe(body);
-    change?.observe(body, {childList: true, subtree: true});
-    void document.fonts?.ready.then(again);
+    change?.observe(body, {childList: true, subtree: true, characterData: true, attributes: true, attributeOldValue: true});
+    void document.fonts?.ready.then(() => { if (live) fitter.measure(true); });
     return () => { live = false; cancelAnimationFrame(frame); resize?.disconnect(); change?.disconnect(); };
   }, [fitter, anchor, on]);
 }

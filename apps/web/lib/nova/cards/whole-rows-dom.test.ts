@@ -11,7 +11,7 @@ import {moreWords} from './whole-rows';
  * a row is 44 px, a line 23 px), which is exactly what the component reads in a browser.
  */
 const ROW = 44, LINE = 23;
-let root: Root, host: HTMLElement, height = 0;
+let root: Root, host: HTMLElement, height = 0, reads = 0;
 const shownIn = (el: Element) => { for (let e: Element | null = el; e && e !== host; e = e.parentElement) if ((e as HTMLElement).hidden) return false; return true; };
 const panel = (children: ReactNode, holo = true) => h('article', {className: 'nova-widget', 'data-holo': holo ? '' : undefined}, h('div', {className: 'nova-widget-body'}, children));
 /** The pretend layout: only a panel's body has a height; everything else reads 0, as in jsdom. */
@@ -19,6 +19,7 @@ const isBody = (el: HTMLElement) => el.classList.contains('nova-widget-body');
 const LAYOUT = {
   clientHeight: {configurable: true, get(this: HTMLElement) { return isBody(this) ? height : 0; }},
   scrollHeight: {configurable: true, get(this: HTMLElement) {
+    if (isBody(this)) reads += 1;
     return isBody(this) ? Math.max(height, [...this.querySelectorAll('li')].filter(shownIn).length * ROW + [...this.querySelectorAll('.wr-more')].filter(shownIn).length * LINE
       + [...this.querySelectorAll<HTMLElement>('[data-px]')].reduce((n, el) => n + Number(el.dataset.px), 0)) : 0;
   }},
@@ -137,4 +138,36 @@ test('the very first render shows the size\'s default count; the rest join befor
   await render(panel(list(5, {initial: 2})));
   expect(rows()).toHaveLength(5);
   expect(rows().every(r => !r.hidden)).toBe(true);
+});
+
+test('a render that changed nothing reads the panel once and writes nothing (Session AM-2, regressions: NOVA renders every second)', async () => {
+  height = 130;
+  await render(panel(list(6)));
+  expect(rows().map(r => r.hidden)).toEqual([false, false, true, true, true, true]);
+  const writes: string[] = [], watch = new MutationObserver(records => { for (const r of records) writes.push(`${r.type} ${r.attributeName ?? ''}`); });
+  watch.observe(host, {subtree: true, childList: true, attributes: true, characterData: true});
+  for (let i = 0; i < 5; i++) { const before = reads; await render(panel(list(6))); expect(reads - before).toBe(1); }
+  watch.takeRecords().forEach(r => writes.push(`${r.type} ${r.attributeName ?? ''}`)); watch.disconnect();
+  expect(writes).toEqual([]);
+  expect(rows().map(r => r.hidden)).toEqual([false, false, true, true, true, true]);
+  expect(line().textContent).toBe('+4 more on the Tasks page');
+});
+
+test('a change of content with no render of the list is measured: something added beside it, and something that only changed its size', async () => {
+  height = 4 * ROW;
+  await render(panel([h('div', {key: 'list'}, list(4)), h('div', {key: 'block', 'data-px': 0})]));
+  expect(rows().every(r => !r.hidden)).toBe(true);
+  const body = host.querySelector<HTMLElement>('.nova-widget-body')!, block = host.querySelector<HTMLElement>('[data-px]')!;
+  // The block grows (an attribute, nothing added): two rows and the line (111) fit beside its 50 px, three (155) do not.
+  await act(async () => { block.dataset.px = '50'; });
+  expect(rows().map(r => r.hidden)).toEqual([false, false, true, true]);
+  expect(line().textContent).toBe('+2 more on the Tasks page');
+  // A status line is added to the panel (44 px more): one row and the line are left.
+  await act(async () => { const note = document.createElement('p'); note.dataset.px = '44'; body.append(note); });
+  expect(rows().map(r => r.hidden)).toEqual([false, true, true, true]);
+  expect(line().textContent).toBe('+3 more on the Tasks page');
+  // And it leaves again, with the block back to nothing: every row is back, and the line is gone.
+  await act(async () => { body.querySelector('p[data-px]')!.remove(); block.dataset.px = '0'; });
+  expect(rows().every(r => !r.hidden)).toBe(true);
+  expect(line().hidden).toBe(true);
 });
