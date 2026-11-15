@@ -18,11 +18,16 @@ import {round2, type WorldPlace} from './record';
  * words at the switch said MET Norway would not see the address. The proxy has no route for sunrise and sunset, so those
  * are worked out on the device (lib/nova/world/sun-calc.ts) and nothing is asked for them.
  */
-export const WEATHER_PROXY_URL: string | null = weatherProxyUrl(process.env.NEXT_PUBLIC_WEATHER_PROXY_URL);
+/**
+ * Security review (finding 10a): a local build (the development server, or a LOCAL_DEMO build) may also name a proxy on
+ * this machine, `http://127.0.0.1:<port>/v1/forecast` (`wrangler dev`); no other build accepts that form.
+ */
+export const LOCAL_BUILD: boolean = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'LOCAL_DEMO';
+export const WEATHER_PROXY_URL: string | null = weatherProxyUrl(process.env.NEXT_PUBLIC_WEATHER_PROXY_URL, {local: LOCAL_BUILD});
 export const weatherViaProxy = (proxy: string | null = WEATHER_PROXY_URL): boolean => proxy !== null;
 /** The proxy's one request: the same two decimals the direct request sends, and nothing else. */
 export function proxyForecastUrl(proxy: string, place: Pick<WorldPlace, 'lat' | 'lon'>): string {
-  const base = weatherProxyUrl(proxy);
+  const base = weatherProxyUrl(proxy, {local: LOCAL_BUILD});
   if (!base) throw Error('The weather proxy address is not one this build accepts.');
   if (!Number.isFinite(place.lat) || !Number.isFinite(place.lon) || Math.abs(place.lat) > 90 || Math.abs(place.lon) > 180) throw Error('Use a latitude between -90 and 90 and a longitude between -180 and 180.');
   const two = (n: number): string => (round2(n) + 0).toFixed(2);

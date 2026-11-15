@@ -13,7 +13,7 @@ export declare function documentClass(pathname: string): DocumentClass;
 export declare function connectSources(egress: EgressPolicy, cls?: DocumentClass): string[];
 export declare const WEATHER_PROXY_ENV: "NEXT_PUBLIC_WEATHER_PROXY_URL";
 export declare const WEATHER_PROXY_PATH: "/v1/forecast";
-export declare function weatherProxyUrl(value: unknown): string | null;
+export declare function weatherProxyUrl(value: unknown, options?: {local?: boolean}): string | null;
 export declare function withWeatherProxy<T extends EgressPolicy>(egress: T, value: unknown): T;
 export declare function imgSources(egress: EgressPolicy, cls?: DocumentClass): string[];
 export declare function frameSources(egress: EgressPolicy, cls?: DocumentClass): string[];

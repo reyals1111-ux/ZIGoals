@@ -26,7 +26,15 @@ afterEach(() => { vi.unstubAllEnvs(); vi.resetModules(); });
 describe('the proxy\'s address comes from build configuration, strictly read', () => {
   test('exactly https://<dns name>/v1/forecast (or the Worker\'s own local rule); anything else is no proxy', () => {
     expect([WEATHER_PROXY_ENV, WEATHER_PROXY_PATH]).toEqual(['NEXT_PUBLIC_WEATHER_PROXY_URL', '/v1/forecast']);
-    for (const good of [PROXY, 'https://weather.zigoals.app/v1/forecast', 'https://w.example.co.uk:8443/v1/forecast', 'http://127.0.0.1:8787/v1/forecast']) expect(weatherProxyUrl(good), good).toBe(good);
+    for (const good of [PROXY, 'https://weather.zigoals.app/v1/forecast', 'https://w.example.co.uk:8443/v1/forecast']) { expect(weatherProxyUrl(good), good).toBe(good); expect(weatherProxyUrl(good, {local: true}), good).toBe(good); }
+    // Security review (finding 10a, deliberate): the loopback http form is a proxy only for a local build (was: accepted by every build).
+    const LOOP = 'http://127.0.0.1:8787/v1/forecast';
+    expect(weatherProxyUrl(LOOP)).toBeNull(); expect(weatherProxyUrl(LOOP, {})).toBeNull(); expect(weatherProxyUrl(LOOP, {local: false})).toBeNull();
+    expect(weatherProxyUrl(LOOP, {local: 'yes' as unknown as boolean})).toBeNull();
+    expect(weatherProxyUrl(LOOP, {local: true})).toBe(LOOP);
+    // A local build accepts nothing else that is not https: no other loopback name, no other port-less or private address.
+    for (const bad of ['http://localhost:8787/v1/forecast', 'http://127.0.0.1/v1/forecast', 'http://127.0.0.2:8787/v1/forecast', 'http://0.0.0.0:8787/v1/forecast', 'http://192.168.1.10:8787/v1/forecast', 'http://weather.example.org/v1/forecast', 'http://127.0.0.1:8787/', 'http://127.0.0.1:8787/v1/forecast?x=1'])
+      expect(weatherProxyUrl(bad, {local: true}), bad).toBeNull();
     for (const bad of [undefined, null, '', 0, {}, 'weather.example.org/v1/forecast', 'http://weather.example.org/v1/forecast', 'https://weather.example.org', 'https://weather.example.org/', 'https://weather.example.org/v1/forecast/',
       'https://weather.example.org/v1/forecast?lat=1', 'https://weather.example.org/v1/forecast#x', 'https://user:pw@weather.example.org/v1/forecast', 'https://user@weather.example.org/v1/forecast', 'https://WEATHER.example.org/v1/forecast',
       'https://weather.example.org:443/v1/forecast', 'https://weather.example.org/v1/../v1/forecast', 'https://weather.example.org/V1/forecast', 'https://*.example.org/v1/forecast', 'https://localhost/v1/forecast',
@@ -50,7 +58,11 @@ describe('the proxy\'s address comes from build configuration, strictly read', (
   test('the address is read from the build\'s environment only: no storage, address bar, record or model can set it', () => {
     const read = (file: string) => readFileSync(new URL(file, import.meta.url), 'utf8');
     for (const file of ['./proxy.ts', './met.ts', './sun-calc.ts']) for (const banned of ['localStorage', 'sessionStorage', 'getAppStorage', 'location.', 'searchParams', 'document.', 'window.']) expect(read(file), `${file} ${banned}`).not.toContain(banned);
-    expect(read('./proxy.ts').match(/process\.env\.[A-Z_]+/g)).toEqual(['process.env.NEXT_PUBLIC_WEATHER_PROXY_URL']);
+    // Security review (finding 10a, deliberate): the module now also reads which kind of build this is (was: the one variable
+    // only). The address itself still comes from NEXT_PUBLIC_WEATHER_PROXY_URL alone; the other two only say whether the
+    // loopback test form may be accepted.
+    expect(read('./proxy.ts').match(/process\.env\.[A-Z_]+/g)).toEqual(['process.env.NODE_ENV', 'process.env.NEXT_PUBLIC_APP_ENVIRONMENT', 'process.env.NEXT_PUBLIC_WEATHER_PROXY_URL']);
+    expect(read('./proxy.ts').match(/weatherProxyUrl\(process\.env\.[A-Z_]+/g)).toEqual(['weatherProxyUrl(process.env.NEXT_PUBLIC_WEATHER_PROXY_URL']);
     expect(read('./met.ts')).not.toContain('process.env');
     // A build configured with one: the same reader gives the client its address.
     vi.stubEnv('NEXT_PUBLIC_WEATHER_PROXY_URL', PROXY);
@@ -212,5 +224,44 @@ describe('the words say who sees what in each case', () => {
     const component = readFileSync(new URL('../../../components/nova/panels/weather-choice.tsx', import.meta.url), 'utf8');
     expect(component).toContain('note={switchNote()}');
     expect(component).not.toContain('MET Norway then sees');
+  });
+});
+
+// Security review (AM-2), finding 10a: the loopback http form is a proxy only in a local build.
+describe('finding 10a: http://127.0.0.1:<port> is a proxy only in a development or LOCAL_DEMO build', () => {
+  const LOOP = 'http://127.0.0.1:8787/v1/forecast';
+  test('a production build (the public Alpha, a deployed build, an invalid configuration) reads it as no proxy: MET Norway directly, no words about a proxy', async () => {
+    for (const environment of ['PUBLIC_ALPHA_UNDEPLOYED', 'TESTNET_DEPLOYED', 'INVALID_CONFIGURATION', 'local_demo', '']) {
+      vi.stubEnv('NEXT_PUBLIC_WEATHER_PROXY_URL', LOOP); vi.stubEnv('NEXT_PUBLIC_APP_ENVIRONMENT', environment); vi.stubEnv('NODE_ENV', 'production'); vi.resetModules();
+      const built = await import('./proxy');
+      expect(built.LOCAL_BUILD, environment).toBe(false); expect(built.WEATHER_PROXY_URL, environment).toBeNull(); expect(built.switchNote(), environment).toBe(SWITCH_NOTE_DIRECT);
+      expect(() => built.proxyForecastUrl(LOOP, BRUSSELS), environment).toThrow('The weather proxy address is not one this build accepts.');
+      // And the request such a build makes goes to MET Norway.
+      const {calls, impl} = service(ok(forecast), ok(sunBrussels));
+      await (await import('./met')).fetchWeather({world: chosen(), now: NOW, fetchImpl: impl, timeZone: ZONE});
+      expect(calls.map(c => new URL(c.url).origin), environment).toEqual([MET_HOST, MET_HOST]);
+      // An https proxy is still read in such a build.
+      vi.stubEnv('NEXT_PUBLIC_WEATHER_PROXY_URL', PROXY); vi.resetModules();
+      expect((await import('./proxy')).WEATHER_PROXY_URL, environment).toBe(PROXY);
+    }
+  });
+  test('a LOCAL_DEMO build and the development server accept it, and the policy is not changed by it (connect-src allows 127.0.0.1 already)', async () => {
+    for (const [environment, node] of [['LOCAL_DEMO', 'production'], ['PUBLIC_ALPHA_UNDEPLOYED', 'development']] as const) {
+      vi.stubEnv('NEXT_PUBLIC_WEATHER_PROXY_URL', LOOP); vi.stubEnv('NEXT_PUBLIC_APP_ENVIRONMENT', environment); vi.stubEnv('NODE_ENV', node); vi.resetModules();
+      const built = await import('./proxy');
+      expect(built.LOCAL_BUILD).toBe(true); expect(built.WEATHER_PROXY_URL).toBe(LOOP);
+      expect(built.proxyForecastUrl(LOOP, BRUSSELS)).toBe('http://127.0.0.1:8787/v1/forecast?lat=50.85&lon=4.35');
+      expect((await import('../../security-policy')).BUILD_EGRESS).toBe((await import('../../egress-policy.json')).default);
+    }
+    expect(withWeatherProxy(egress, LOOP)).toBe(egress);
+    expect(connectSources(egress, 'app')).toContain('http://127.0.0.1:*');
+  });
+  test('the setup guide\'s weather line follows the build too: Session AM\'s words without a proxy, who sees what with one', async () => {
+    const plain = await import('../setup-guide');
+    expect(plain.WEATHER_LINE).toBe('Weather is the only outside data, off until you turn it on in NOVA → Permissions; MET Norway then sees your network address and your place rounded to about 1 km.');
+    vi.stubEnv('NEXT_PUBLIC_WEATHER_PROXY_URL', PROXY); vi.resetModules();
+    const built = await import('../setup-guide');
+    expect(built.WEATHER_LINE).toBe(built.WEATHER_LINE_PROXY);
+    for (const words of ['off until you turn it on in NOVA → Permissions', 'ZIGoals’ weather proxy then sees your network address and your place rounded to about 1 km', 'MET Norway sees the proxy’s address and that rounded place, not yours']) expect(built.WEATHER_LINE).toContain(words);
   });
 });
