@@ -26,10 +26,14 @@ async function refusedWith(page: Page, field: Locator, sentence: string | RegExp
   await expect(message).toHaveText(sentence);
   await expect(message).toBeVisible();
   await expect(field).toBeFocused();
-  // under the field: the message starts below the field's top and within 80 px of its bottom
-  const f = (await field.boundingBox())!, m = (await message.boundingBox())!;
-  expect(m.y).toBeGreaterThan(f.y);
-  expect(m.y - (f.y + f.height)).toBeLessThan(80);
+  // under the field: the message starts below the field's top and within 80 px of its bottom.
+  // Session AO (CI 1683, 1686, PR #101's 1678; the DV-029d shape): the two boxes are read until the layout settles (the
+  // message's own entrance and the form's reflow can still be moving when it first shows); the same two bounds must hold.
+  await expect.poll(async () => {
+    const f = await field.boundingBox(), m = await message.boundingBox();
+    if (!f || !m) return 'not laid out';
+    return m.y > f.y && m.y - (f.y + f.height) < 80 ? 'under the field' : `field top ${f.y}, bottom ${f.y + f.height}, message top ${m.y}`;
+  }, {timeout: 5_000}).toBe('under the field');
   await expect(page.getByText(/available browser storage/)).toHaveCount(0);
 }
 

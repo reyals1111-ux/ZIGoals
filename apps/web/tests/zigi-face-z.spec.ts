@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {ZIGI_CARDS_KEY, ZIGI_SUGGESTIONS_KEY} from '../lib/z-device-keys';
 import {HEALTH_STORAGE_KEY} from '../lib/health';
 import {pressZigi} from './zigi-open';
+import {openSettings} from './settings-open';
 
 /**
  * Session Z-Cloud Part 2 (ADR-019): ZIGi's panel, premium and clean, through the real panel on a production build, both
@@ -30,7 +31,7 @@ async function server(page: Page, reply: () => string = () => 'MOCK: noted.') {
 }
 async function seed(page: Page, ai: Partial<AiSettings> | null, showcase = true) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const base = defaultAiSettings();
   const values: Record<string, string> = {...(showcase ? buildShowcase(DAY).records : {}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]})};
   if (ai) values[AI_SETTINGS_KEY] = JSON.stringify({...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, ...ai});
@@ -43,7 +44,18 @@ async function seed(page: Page, ai: Partial<AiSettings> | null, showcase = true)
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page, path = '/app') { await page.goto(path); await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 const box = (page: Page) => panel(page).getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});
-async function say(page: Page, text: string) { await box(page).fill(text); await panel(page).locator('.ai-composer button[type=submit]').click(); }
+// Session AP (CI 1706, WebKit phone, :185): the fill landed while the previous answer was still settling the composer, so
+// Send stayed off and the press waited 60 s. The same press, made once the box holds the words and Send is on (typed
+// again only if the words were lost), as a person who sees their words and then presses Send.
+async function say(page: Page, text: string) {
+  const send = panel(page).locator('.ai-composer button[type=submit]');
+  await expect(async () => {
+    if (await box(page).inputValue() !== text) await box(page).fill(text);
+    await expect(box(page)).toHaveValue(text, {timeout: 1_000});
+    await expect(send).toBeEnabled({timeout: 1_000});
+  }).toPass({timeout: 15_000});
+  await send.click();
+}
 /** Every visible control's box, the header's rows, the composer's centre line, anything outside the panel. */
 async function layout(page: Page) {
   return panel(page).evaluate(root => {

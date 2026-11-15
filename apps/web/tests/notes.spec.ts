@@ -3,6 +3,7 @@ import {HABITS_KEY, createHabit, emptyHabitData} from '../lib/habits';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {NOTES_KEY, type Notes} from '../lib/notes/schema';
 import {isPhone} from './phone-nav';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK (owner follow-up 2, B): notes that connect to your life — capture from Quick add and the search palette,
@@ -87,7 +88,7 @@ test('a [[link]] to a habit with autocomplete, and the backlink in that habit’
 });
 
 test('a [[link]] to a goal shows under the goal’s Notes (Showcase goal)', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/notes?view=notes');

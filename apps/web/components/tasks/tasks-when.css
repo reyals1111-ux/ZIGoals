@@ -1,0 +1,19 @@
+/* Session AP: This evening, Someday and the Priority matrix (tasks-when-views.tsx, a chunk of its own). No motion. */
+.tasks-when, .tasks-matrix-view { display: grid; gap: 10px; min-width: 0; }
+.tasks-when-lede { margin: 0; font-size: 16px; color: var(--text-secondary, var(--muted)); }
+.tasks-when-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: end; gap: 4px 12px; }
+.tasks-when-actions .text-link, .tasks-when-form button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; font-size: 15px; }
+.tasks-when-form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; min-width: 0; }
+.tasks-when-form .field { flex: 1 1 220px; min-width: 0; }
+.tasks-when-form .field span { font-size: 14px; }
+.tasks-when-form select, .tasks-when-form input { min-height: 44px; font-size: 16px; max-width: 100%; }
+.tasks-when-note { flex: 1 0 100%; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.tasks-matrix { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tasks-matrix-box { min-width: 0; padding: 12px; border-radius: 16px; border: 1px solid var(--line, rgba(128, 128, 160, .25)); }
+.tasks-matrix-box[data-drop] { outline: 3px dashed var(--cyan, currentColor); outline-offset: 2px; }
+.tasks-matrix-box[data-quadrant=do] { border-color: var(--warning, #e8a33d); }
+.tasks-matrix-box h3 { margin: 0; font-size: 17px; }
+.tasks-matrix-box h3 small { font-size: 14px; font-weight: 500; color: var(--text-secondary, var(--muted)); }
+.tasks-matrix-hint { margin: 2px 0 8px; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.tasks-matrix-box .task[draggable=true] { cursor: grab; }
+@media (max-width: 767.98px) { .tasks-matrix { grid-template-columns: minmax(0, 1fr); } }

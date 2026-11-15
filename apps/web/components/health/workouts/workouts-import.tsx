@@ -1,5 +1,5 @@
 'use client';
-import {useRef, useState} from 'react';
+import {useId, useRef, useState} from 'react';
 import {formatDate, formatNumber} from '../../../lib/visual-format';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {plural} from '../../../lib/plural';
@@ -7,6 +7,7 @@ import {importInfo, type ImportSummary} from '../../../lib/workouts/import-file'
 import type {LiftsPlan} from '../../../lib/workouts/import-lifts';
 import type {Workouts} from '../../../lib/workouts/schema';
 import {clock} from './units';
+import {paceText} from '../../../lib/workouts/splits';
 
 /**
  * Session AJ (item 27, D12), widened in Session AK (4.7, A15): import a workout file on this device — GPX, TCX, FIT
@@ -25,7 +26,7 @@ export function WorkoutsImport({w, dayOf, zone, unit, onAdd, onAddLifts}: {w: Wo
   onAdd: (list: ImportChoice[]) => Promise<string>; onAddLifts: (plan: LiftsPlan) => Promise<string>}) {
   const [found, setFound] = useState<Found | null>(null), [problem, setProblem] = useState(''), [said, setSaid] = useState(''), [busy, setBusy] = useState(false), [inputKey, setInputKey] = useState(0);
   // Session AK Part 15 (F5): a Stop button while a file is read; a Strava export stops between its files.
-  const stopper = useRef<AbortController | null>(null);
+  const stopper = useRef<AbortController | null>(null), problemId = useId(); // Session AP (feature 5): a bad file is a field error on the file input
   const done = new Set(w.workouts.map(x => importInfo(x)?.importId).filter(Boolean));
   const fresh = found?.kind === 'summaries' ? found.list.filter(c => !done.has(c.summary.importId)) : [];
   const reset = () => { setFound(null); setInputKey(k => k + 1); };
@@ -78,12 +79,12 @@ export function WorkoutsImport({w, dayOf, zone, unit, onAdd, onAddLifts}: {w: Wo
   return <details className="workouts-import">
     <summary>Import a GPX or TCX file, a FIT file, or another app’s export</summary>
     <div className="workouts-import-body">
-      <p className="fine">A GPX, TCX or FIT file from your watch, bike computer or app; Strava’s whole-account ZIP; or a Strong or Hevy workouts CSV. It is read on this device. Only the summary is kept; the route’s points are not stored. From Strong and Hevy, your sets come in as well.</p>
+      <p className="fine">A GPX, TCX or FIT file from your watch, bike computer or app; Strava’s whole-account ZIP; or a Strong or Hevy workouts CSV. It is read on this device. Only the summary is kept; the route’s points are not stored. From a GPX or TCX run, its pace and per-kilometre splits are kept too. From Strong and Hevy, your sets come in as well.</p>
       <label className="field"><span>GPX or TCX file, FIT file, Strava ZIP, or Strong or Hevy CSV</span>
-        <input key={inputKey} type="file" accept=".gpx,.tcx,.fit,.gz,.zip,.csv,application/gpx+xml,application/vnd.garmin.tcx+xml,application/zip,text/csv" disabled={busy} onChange={e => void choose(e.target.files?.[0])}/></label>
+        <input key={inputKey} type="file" accept=".gpx,.tcx,.fit,.gz,.zip,.csv,application/gpx+xml,application/vnd.garmin.tcx+xml,application/zip,text/csv" disabled={busy} aria-invalid={problem ? true : undefined} aria-describedby={problem ? problemId : undefined} onChange={e => void choose(e.target.files?.[0])}/></label>
       {busy && !found && <div className="workouts-row-actions"><p className="fine" role="status">Reading the file…</p><button className="quiet" type="button" onClick={() => stopper.current?.abort()}>Stop</button></div>}
       {said && <p className="fine" role="status">{said}</p>}
-      {problem && <p className="workouts-import-problem" role="alert">{problem}</p>}
+      {problem && <p className="workouts-import-problem field-error" id={problemId} role="alert">{problem}</p>}
       {found?.kind === 'summaries' && <div className="workouts-import-preview" role="group" aria-label="What this file holds">
         {found.notes.length > 0 && <ul className="workouts-import-notes">{found.notes.map(n => <li key={n} className="fine">{n}</li>)}</ul>}
         {found.list.length > SHOWN && <p className="fine">{found.list.length} workouts, from {formatDate(found.list[0]!.day)} to {formatDate(found.list.at(-1)!.day)}. The first {SHOWN} are shown.</p>}
@@ -97,6 +98,7 @@ export function WorkoutsImport({w, dayOf, zone, unit, onAdd, onAddLifts}: {w: Wo
             <div><dt>Distance</dt><dd>{s.distanceKm === null ? '—' : `${formatNumber(s.distanceKm, {maximumFractionDigits: 2})} km`}</dd></div>
             <div><dt>Climb</dt><dd>{s.elevationM === null ? '—' : `${formatNumber(s.elevationM)} m`}</dd></div>
             <div><dt>Average heart rate</dt><dd>{s.avgHr === null ? '—' : `${s.avgHr} bpm`}</dd></div>
+            {s.splits && <div><dt>Pace</dt><dd>{paceText(s.splits.paceSecondsPerKm)} · {s.splits.splits.length} {plural(s.splits.splits.length, 'split')}</dd></div>}
           </dl>
         </article>)}
         <div className="workouts-row-actions">

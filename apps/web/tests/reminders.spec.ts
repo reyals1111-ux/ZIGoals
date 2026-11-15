@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {afterGoto, openSettings} from './settings-open';
 
 // Session I, Part 8: in-app reminders. Times are kept on this device only (zigoals:reminders:v1), follow the device's
 // own clock, and show a card on Today until the habit is done or the card is dismissed for today.
@@ -101,13 +102,13 @@ test('water: a reminder set in the Water journal shows until water is logged', a
 test('viewing pages writes no reminder data, and reminder times never reach a backup', async ({page}) => {
   await start(page, '10:00');
   for (const path of ['/app', '/app/habits', '/app/health', '/app/settings']) {
-    await page.goto(path);
+    await page.goto(path); await afterGoto(page, path);
     await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   }
   await page.clock.runFor(31_000);
   expect(await page.evaluate(() => Object.keys(localStorage).filter(key => key.includes('reminder')))).toEqual([]);
   await habitWithReminder(page, '07:45');
-  await page.goto('/app/settings');
+  await openSettings(page);
   const section = page.getByRole('region', {name: 'Habits backup', exact: true});
   const download = page.waitForEvent('download');
   await section.getByRole('button', {name: 'Export Habits', exact: true}).click();

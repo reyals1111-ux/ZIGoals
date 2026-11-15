@@ -35,5 +35,8 @@ test('BN-114: a blocked permission says where to allow it', async ({page, isMobi
   });
   await page.goto('/app/settings#notifications'); await page.reload(); await hydrated(page);
   if (isMobile) return iphonePath(page);
+  // Session AP (second sighting, CI 1709 shard 3; AO's first, CI 1701): the permission line shows once the card has finished
+  // checking, which can take longer than the assertion's 5 s under load; the first test above waits for that too.
+  await expect(page.locator('#notifications .notify-state')).not.toHaveText('Checking…', {timeout: 20_000});
   await expect(page.locator('#notifications .notify-permission')).toContainText('blocked for ZIGoals');
 });

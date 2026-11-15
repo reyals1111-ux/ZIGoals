@@ -37,3 +37,12 @@ export function draftBlockedBy(fieldValues: readonly string[], draft: Readonly<R
 export function leaveAsks({dirty, kept}: {dirty: boolean; kept: boolean}): boolean {
  return dirty && !kept;
 }
+
+/** Session AO (T-014): the creator has three steps (Your goal · What counts · Review, the rhythm a closed part of the review).
+ * A draft kept by the four-step creator (2 = rhythm, 3 = review) opens on the last step, which holds both; the first step and
+ * anything unreadable give null (the creator opens on step 1). The stored draft keeps its shape: `step` is still a number. */
+export const GOAL_WIZARD_LAST_STEP = 2;
+export function draftStepOf(value: unknown): number | null {
+ const at = Number(value);
+ return Number.isInteger(at) && at >= 1 ? Math.min(at, GOAL_WIZARD_LAST_STEP) : null;
+}

@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {hydrated, loadShowcase} from '../../ah-helpers';
 import {applyTheme, axe} from '../../p6-helpers';
 import {chooseChain} from '../../chain-choice';
+import {afterGoto} from '../../settings-open';
 
 /**
  * Session AL Part 14, lane P14-D (earlier-scope rows of L1 and L10a, and late requests). Each test names its row and ids.
@@ -9,7 +10,7 @@ import {chooseChain} from '../../chain-choice';
  */
 const desktopOnly = (isMobile: boolean) => test.skip(isMobile, 'A computer window');
 async function ready(page: Page, path: string) {
-  await page.goto(path); await hydrated(page);
+  await page.goto(path); await afterGoto(page, path); await hydrated(page);
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('main h1').first()).toBeVisible();
 }

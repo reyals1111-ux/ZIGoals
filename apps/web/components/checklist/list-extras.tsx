@@ -15,6 +15,7 @@ import type {DerivedDot} from '../../lib/checklist/derive';
 import {removeWithUndo} from '../ui/remove-with-undo';
 import {showUndo} from '../ui/undo-toast';
 import type {ChecklistState} from './use-checklist';
+import {TEXT_LIMITS} from '../../lib/limits/text';
 
 /**
  * Session AL (Part 8) additions to the Checklist's List view only (O6: the path, river, labels, top bar and layout are
@@ -112,7 +113,7 @@ export function ListRowTools({state, dot}: {state: ChecklistState; dot: DerivedD
       <button type="button" className="quiet" disabled={at < 0 || at >= mates.length - 1} aria-keyshortcuts="Alt+ArrowDown" onClick={() => move(1)}>Move down</button>
     </span>}
     {(dot.kind === 'custom' || habit) && <form className="checklist-row-rename" noValidate onSubmit={e => { e.preventDefault(); if (habit) { void renameOwnHabit(); return; } if (!name.trim()) { setStatus('An item needs a name.'); return; } write(r => updateItem(r, dot.id, {label: name}), `Renamed to ${name.trim()}.`); }}>
-      <label className="field">Name<input dir="auto" value={name} maxLength={habit ? 100 : 60} onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet">Rename</button></form>}
+      <label className="field">Name<input dir="auto" value={name} maxLength={habit ? TEXT_LIMITS.habitTitle : TEXT_LIMITS.checklistItem} onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet">Rename</button></form>}
     {habitId && <button type="button" className="quiet" onClick={() => void yesterday()}>Done yesterday</button>}
     {dot.kind === 'custom' && <button type="button" className="quiet" onClick={ownYesterday}>Done yesterday</button>}
     {habitId && dot.state !== 'done' && dot.counted && <button type="button" className="quiet" onClick={() => void skipToday()}>Skip today</button>}

@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {zigiPanel} from '../../zigi-open';
 import {seed} from './helpers';
 import {hydrated} from '../../ah-helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL (lane L7, must-haves 4 and 5): AK's D7 (the composer's words survive the switch from on-device answers to a
@@ -14,7 +15,7 @@ test.describe('Settings at 390 px (Q6, BN-064/BN-075/PR-042)', () => {
   test.use({viewport: {width: 390, height: 844}});
   test('ZIGi opens from Apps & extras on Settings; focusing the sign-in email pauses it and says so', async ({page}) => {
     await seed(page);
-    await page.goto('/app/settings');
+    await openSettings(page);
     // After hydration (a click before it was lost: the sheet never opened, run 2), and the sheet's own ZIGi entry.
     await hydrated(page);
     await page.getByTestId('apps-extras-button').click();

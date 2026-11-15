@@ -13,7 +13,8 @@ import {THEME_SHEETS} from '../../lib/ui-prefs/theme-sheets';
 const THEME_NOTE: Readonly<Record<Theme, string>> = {
   nebula: 'Nebula is ZIGoals’ own night-sky look. Light and Dark are the same app by day and by night.',
   light: 'Light is ZIGoals by day: bright pages, the same nebula colours a shade deeper. Nebula and Dark are its night looks.',
-  dark: 'Dark is ZIGoals by night: the nebula deeper and calmer, with less glow. Light is the day look; Nebula the starry one.',
+  // Session AO (DV-203, owner decision 13 Nov): Dark is a true flat dark now.
+  dark: 'Dark is a true dark look: flat near-black surfaces with no stars or mist, and the same colours. Light is the day look; Nebula the starry one.',
 };
 
 const Sun = () => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"/></g></svg>;
@@ -65,7 +66,7 @@ export function ThemeSwitch({compact}: {compact?: boolean}) {
   const choose = (next: Theme) => { if (next === theme) return; try { keepSidebarScroll(); chooseTheme(next); } catch { /* storage refused: the page keeps its theme */ } };
   return <div className={`theme-switch-wrap${compact ? ' theme-switch-wrap-compact' : ''}`}>
     <div className={`theme-switch${compact ? ' theme-switch-compact' : ''}`} role="radiogroup" aria-label="Theme">
-      {OPTIONS.map(o => <button key={o.theme} type="button" role="radio" aria-checked={theme === o.theme} className="theme-option" data-theme-option={o.theme} aria-label={o.label} title={o.tip} onClick={() => choose(o.theme)} onPointerEnter={() => warmSheet(o.theme)} onFocus={() => warmSheet(o.theme)}><o.icon/><span>{o.word}</span></button>)}
+      {OPTIONS.map((o, i) => <button key={o.theme} type="button" role="radio" aria-checked={theme === o.theme} tabIndex={theme === o.theme ? 0 : -1} onKeyDown={event => { /* Session AP (D-028): a radio group is one Tab stop (the chosen theme); the arrows choose the next one, as a radio group does */ const step = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0; if (!step) return; event.preventDefault(); const next = OPTIONS[(i + step + OPTIONS.length) % OPTIONS.length]!; choose(next.theme); (event.currentTarget.parentElement?.querySelector(`[data-theme-option="${next.theme}"]`) as HTMLElement | null)?.focus(); }} className="theme-option" data-theme-option={o.theme} aria-label={o.label} title={o.tip} onClick={() => choose(o.theme)} onPointerEnter={() => warmSheet(o.theme)} onFocus={() => warmSheet(o.theme)}><o.icon/><span>{o.word}</span></button>)}
     </div>
     {/* CI fix (theme parity H75, with TK-183's line per theme): the three lines differ in length, so the other two sit
         hidden in the same grid cell and the slot is always as tall as the longest: switching never moves the page. */}

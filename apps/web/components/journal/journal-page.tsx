@@ -1,13 +1,14 @@
 'use client';
 import Link from 'next/link';
 import {Suspense, lazy, useMemo, useState} from 'react';
-import {formatDate, formatWeekday} from '../../lib/visual-format';
+import {formatDate, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {ENERGY, ENERGY_WORDS} from '../../lib/energy/schema';
 import {JOURNAL, removeJournalEntry, restoreJournalEntry, type JournalEntry} from '../../lib/journal/schema';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import {patternLine, patterns} from '../../lib/journal/reflect';
+import {wordCount, wordsThisYear, writingStreak} from '../../lib/journal/stats';
 import {JournalCompose} from './journal-compose';
 import {weekLines, weekPattern} from '../../lib/checkin/week';
 import {MOOD_WORDS} from '../../lib/wrap-up/engine';
@@ -45,6 +46,9 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   // Session AL Part 14 (RELEASE_REVIEW R18): an entry's day in words ("Mon, Nov 2, 2026"), never "2026-11-02".
   const entryDays = useMemo(() => new Map(journal.data.entries.map(e => [e.date, {long: formatDate(e.date, {weekday: true}), short: formatDate(e.date)}])), [journal.data.entries]);
   const found = useMemo(() => patterns(journal.data, energy.data), [journal.data, energy.data]);
+  // Session AP: words per entry, the writing streak and the words this year, derived from the entries (nothing stored).
+  const words = useMemo(() => new Map(journal.data.entries.map(e => [e.id, wordCount(e.text)])), [journal.data.entries]);
+  const streak = useMemo(() => writingStreak(journal.data.entries, today), [journal.data.entries, today]), year = useMemo(() => wordsThisYear(journal.data.entries, today), [journal.data.entries, today]);
   // Session AL Part 14 (R18): each day with its words ("Mon, Nov 2") for the bars' tooltip and screen-reader text.
   const days = useMemo(() => Array.from({length: 14}, (_, i) => { const d = addLocalDays(today, i - 13); return {d, words: dayWords(d)}; }), [today]);
   // Session AJ (item 10; COMPANIONS.md P2): this week's check-ins, energy and (while Health shows) the day's mood.
@@ -66,9 +70,15 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       <p className="fine journal-notes-link">Longer thoughts and ideas go in <Link className="text-link" href="/app/notes?day=today">today&rsquo;s note</Link>, beside what this day holds. There, type <code>[[</code> and a name to link a goal or a habit, for example <code>[[Run a 10k]]</code>.</p></section>
     {/* Session AL (DV-190b, P-DV-124): your entries right after Write, not below every chart */}
     <section className="panel" aria-labelledby="journal-entries"><h2 id="journal-entries">Entries</h2>
+      {journal.data.entries.length > 0 && <dl className="journal-stats" aria-label="Your writing">
+        <div><dt>Writing streak</dt><dd>{streak.current === 1 ? '1 day' : `${formatNumber(streak.current)} days`}{!streak.writtenToday && streak.current > 0 ? ' · write today to keep it' : ''}</dd></div>
+        <div><dt>Longest streak</dt><dd>{streak.longest === 1 ? '1 day' : `${formatNumber(streak.longest)} days`}</dd></div>
+        <div><dt>Words in {today.slice(0, 4)}</dt><dd>{formatNumber(year.words)} <small>in {year.entries === 1 ? '1 entry' : `${formatNumber(year.entries)} entries`}</small></dd></div>
+      </dl>}
       <label className="field"><span>Search your journal</span><input type="search" value={query} onChange={e => setQuery(e.target.value)}/></label>
       {entries.length ? <ol className="journal-entries">{entries.map(e => <li key={e.id}>
         <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time></p><p className="journal-entry-text">{e.text}</p>
+        <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}</p>
         {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
         <button type="button" className="text-link" aria-label={`Remove the entry of ${entryDays.get(e.date)?.short ?? e.date}`} onClick={() => remove(e)}>Remove</button>
       </li>)}</ol> : query ? <p className="fine">No entry has those words.</p> : <ArtNote pillar="orbit"><p className="fine">No entries yet. Write a few lines above.</p></ArtNote>}

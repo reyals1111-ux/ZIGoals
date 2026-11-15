@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
+import {openSettings} from '../../settings-open';
 
 // Session AL (lane L6, fourth pass): the L6 replay's open Settings, Help and Search rows in the bots' conditions (Lisbon
 // 1280, Berlin 1280/1440/1920 Nebula, Denver 636/445 px, Nairobi's Showcase), a fresh profile unless the row used the
@@ -29,7 +30,7 @@ test('D-159: "Back to Settings" shows only when Help was opened from Settings', 
     await expect(page.locator('main').getByRole('link', {name: '← Back to Settings'})).toHaveCount(0);
   }
   await page.setViewportSize({width: 1280, height: 900});
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.locator('.settings-page .page-heading').getByRole('link', {name: 'Help & feedback →'}).click();
   await expect(page).toHaveURL(/\/app\/help$/);
   await expect(page.locator('main').getByRole('link', {name: '← Back to Settings'})).toBeVisible();
@@ -62,7 +63,7 @@ test('D-236/D-062: no Title Case "Import Goal Data" heading among Settings’ se
   await page.setViewportSize({width: 1920, height: 1080});
   await page.addInitScript(() => { try { if (!localStorage.getItem('zigoals:earn-prefs:v1')) localStorage.setItem('zigoals:earn-prefs:v1', JSON.stringify({version: 1, pageShown: true})); } catch { /* none */ } });
   await offlineApi(page); await freshDevice(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await expect(page.getByRole('heading', {name: 'Import goal data', exact: true})).toBeVisible();
   await expect(page.getByRole('heading', {name: 'Import Goal Data', exact: true})).toHaveCount(0);
 });
@@ -70,18 +71,18 @@ test('D-236/D-062: no Title Case "Import Goal Data" heading among Settings’ se
 test('N-NB-15: the Showcase card says a person’s own app starts with fewer pages, before and inside the demo', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   await offlineApi(page); await freshDevice(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const tryIt = page.getByRole('group', {name: 'Try it'});
   await expect(tryIt).toContainText('Your own ZIGoals starts with fewer pages, and shows only the ones you switch on under Your pages & buttons.');
   await loadShowcase(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await expect(page.locator('#settings-app')).toContainText('The Showcase shows every page. Your own ZIGoals keeps the pages you chose');
 });
 
 test('C-BN-25: a page switch in Settings offers Undo, which puts the switch back', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   await offlineApi(page); await freshDevice(page);
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const pages = page.getByRole('region', {name: 'Your pages & buttons'});
   const goals = pages.getByRole('switch', {name: 'Goals', exact: true});
   await expect(goals).toBeChecked();

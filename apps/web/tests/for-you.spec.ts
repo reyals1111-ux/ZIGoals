@@ -1,12 +1,13 @@
 import {expect, test} from '@playwright/test';
 import {TODAY_FOR_YOU_OPEN} from '../components/for-you/for-you';
 import {isPhone} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // Today's "For you" area (Session P, owner addition 2): at most two cards open, the rest behind one "Show more" row.
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('Showcase: at most two cards are open and the rest fold behind Show more', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const area = page.getByRole('region', {name: 'For you', exact: true});

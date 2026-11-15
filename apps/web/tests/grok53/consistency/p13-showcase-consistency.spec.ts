@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {emptyDevice, hydrated, offline, open} from '../l3-helpers';
+import {openSettings} from '../../settings-open';
 
 /**
  * Session AL Part 13 (PR-002, PR-019, PR-023, PR-082; NOVA review 2 M5): one fact, one figure on every page.
@@ -12,9 +13,9 @@ test.use({viewport: {width: 1280, height: 800}, timezoneId: 'Europe/Brussels'});
 test('Showcase: water and the Drink water habit agree on Today, Health and Habits; Goals and Today count 7 active goals', async ({page}) => {
   await page.clock.install({time: new Date('2026-11-04T14:00:00Z')});
   await offline(page);
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app'); await hydrated(page);
   const tile = page.getByRole('article', {name: 'Focus: water today'});

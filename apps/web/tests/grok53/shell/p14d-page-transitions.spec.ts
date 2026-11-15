@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated, loadShowcase} from '../../ah-helpers';
+import {afterGoto} from '../../settings-open';
 
 /**
  * Session AL Part 14 (lane P14-D), ADR-036 "Page transitions": page fades only played when the page left was under the
@@ -35,7 +36,7 @@ const log = (page: Page) => page.evaluate(() => (window as unknown as {__p14d: E
 const PAGES = ['/app', '/app/wealth', '/app/earn', '/app/settings', '/app/help'];
 
 async function leave(page: Page, path: string) {
-  await page.goto(path);
+  await page.goto(path); await afterGoto(page, path);
   await hydrated(page);
   await expect(page.locator('html')).toHaveAttribute('data-zg-vt', 'on');
   await page.mouse.wheel(0, 900); // somewhere down the page, as a person leaves it

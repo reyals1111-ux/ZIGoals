@@ -9,9 +9,11 @@ import type {BankTransaction, RefusedRow} from '../../bankfiles/types';
  * preview, duplicate marks and money-log entries (lib/bankfiles toMoneyEntries) are shared. The direction comes from
  * an In/out column, else from separate Money out / Money in columns, else from the amount's sign (negative = out).
  * Nothing is guessed: an unreadable date or amount is refused with its reason.
+ * Session AO (C-DVG-51): `positiveIsOut` reads the sign the other way round, for an app that writes spending positive
+ * (Copilot); an In/out column, when matched, still decides.
  */
 const OUT = /^(d|db|dbit|debit|af|out|withdrawal|payment|expense|uitgave|-)$/i, IN = /^(c|cr|crdt|credit|bij|in|deposit|income|inkomst|\+)$/i;
-export function planMoneyRows({rows, mapping, numberStyle, dateFormat, currency = 'EUR'}: {rows: readonly (readonly string[])[]; mapping: Partial<Record<string, number>>; numberStyle: NumberStyle; dateFormat: DateFormat; currency?: string}): {transactions: BankTransaction[]; refused: RefusedRow[]; warnings: string[]} {
+export function planMoneyRows({rows, mapping, numberStyle, dateFormat, currency = 'EUR', positiveIsOut = false}: {rows: readonly (readonly string[])[]; mapping: Partial<Record<string, number>>; numberStyle: NumberStyle; dateFormat: DateFormat; currency?: string; positiveIsOut?: boolean}): {transactions: BankTransaction[]; refused: RefusedRow[]; warnings: string[]} {
   const cell = (row: readonly string[], field: string) => { const i = mapping[field]; return i === undefined ? '' : (row[i] ?? '').trim(); };
   const clean = textCleaner(), transactions: BankTransaction[] = [], refused: RefusedRow[] = [];
   let anyNegative = false, unknownDirection = 0;
@@ -23,7 +25,7 @@ export function planMoneyRows({rows, mapping, numberStyle, dateFormat, currency 
     if (mapping.amount !== undefined && cell(row, 'amount')) {
       const read = readAmount(cell(row, 'amount'), numberStyle);
       if (!read) { refused.push({index, reason: 'The amount could not be read.'}); return; }
-      amount = read.amount; out = read.negative; anyNegative ||= read.negative;
+      amount = read.amount; out = positiveIsOut ? !read.negative : read.negative; anyNegative ||= read.negative;
     } else if (debit || credit) {
       const read = readAmount(debit || credit, numberStyle);
       if (!read) { refused.push({index, reason: 'The amount could not be read.'}); return; }
@@ -42,6 +44,6 @@ export function planMoneyRows({rows, mapping, numberStyle, dateFormat, currency 
   });
   const warnings = [...flaggedWarning(clean.flagged)];
   if (unknownDirection) warnings.push(`${unknownDirection} ${unknownDirection === 1 ? 'row has' : 'rows have'} an in/out value ZIGoals does not know (such as POS or ATM); the amount's sign decided.`);
-  if (transactions.length && mapping.direction === undefined && mapping.debit === undefined && mapping.credit === undefined && !anyNegative) warnings.push('Every amount is positive and no column says in or out, so every row reads as money in. Choose the "In or out" column if the file has one.');
+  if (transactions.length && mapping.direction === undefined && mapping.debit === undefined && mapping.credit === undefined && !anyNegative && !positiveIsOut) warnings.push('Every amount is positive and no column says in or out, so every row reads as money in. Choose the "In or out" column if the file has one.');
   return {transactions: markDuplicateRows(transactions), refused, warnings};
 }

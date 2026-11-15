@@ -98,6 +98,17 @@ describe('what may differ between themes', () => {
     expect(classify('background-image', item({'background-image': night}, {art: true}), item({'background-image': veil}, {art: true}))).toBe('art-calm');
     expect(classify('background-image', item({'background-image': night}, {art: true}), item({'background-image': night.replace('sidebar-stars.svg', 'other.svg')}, {art: true}))).toBe('DISALLOWED');
   });
+  // Session AO (DV-203, owner decision 13 Nov, deliberate): Dark is a true dark theme, so its sidebar is flat (no stars).
+  it('Dark only: the sidebar sky may be drawn flat; never another theme, element or a coloured layer', () => {
+    const night = 'url("http://127.0.0.1:3101/art/v24/sidebar-stars.svg"), linear-gradient(0deg, rgb(3, 10, 27) 0px, rgb(2, 9, 22) 930px), none';
+    const sidebar = {art: true, desc: 'aside.app-sidebar'};
+    expect(classify('background-image', item({'background-image': night}, sidebar), item({'background-image': 'none'}, sidebar), 'dark')).toBe('art-calm');
+    expect(classify('background-image', item({'background-image': night}, sidebar), item({'background-image': 'none'}, sidebar), 'light')).toBe('DISALLOWED');
+    expect(classify('background-image', item({'background-image': night}, {art: true, desc: 'div.today-scene'}), item({'background-image': 'none'}, {art: true, desc: 'div.today-scene'}), 'dark')).toBe('DISALLOWED');
+    const coloured = night.replace('rgb(2, 9, 22)', 'rgb(146, 115, 255)');
+    expect(classify('background-image', item({'background-image': coloured}, sidebar), item({'background-image': 'none'}, sidebar), 'dark')).toBe('DISALLOWED');
+    expect(classify('background-image', item({'background-image': night.replace('sidebar-stars.svg', 'other.svg')}, sidebar), item({'background-image': 'none'}, sidebar), 'dark')).toBe('DISALLOWED');
+  });
   it('by day a gradient word’s coloured stops may take deeper shades of the same hues, at least 4.5:1 on white (H130)', () => {
     const word = (stops, over = {}) => item({'background-image': `linear-gradient(100deg, rgb(20, 24, 33) 42%, ${stops})`, color: 'rgb(20, 24, 33)'}, {clip: true, ...over});
     const nebula = word('rgb(111, 230, 246) 72%, rgb(143, 166, 255) 84%');

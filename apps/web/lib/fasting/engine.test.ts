@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, test} from 'vitest';
 import {createHabit, emptyHabitData, habitDataSchema, type HabitInput} from '../habits';
-import {applyAutoStop, autoStopDue, elapsedMs, fastingHistory, formatFast, habitLogValue, logFastToHabit, removeFast, runningSession, startFast, stopFast} from './engine';
+import {MAX_CUSTOM_HOURS, MAX_HOURS, MAX_TARGET_HOURS, applyAutoStop, autoStopDue, elapsedMs, fastingHistory, formatFast, habitLogValue, logFastToHabit, logPastFast, removeFast, runningSession, startFast, stopFast} from './engine';
 import {FASTING_KEY, MAX_FASTING_SESSIONS, emptyFasting, fastingSchema, type Fasting} from './schema';
 import {readFasting, startOverFasting, updateFasting} from './store';
 
@@ -14,12 +14,14 @@ const INPUT: HabitInput = {title: 'Fast', category: 'Health', description: '', n
 function memoryStorage() { const m = new Map<string, string>(); return {get length() { return m.size; }, key: (i: number) => [...m.keys()][i] ?? null, getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, String(v)); }, removeItem: (k: string) => { m.delete(k); }, clear: () => m.clear()} as Storage; }
 
 describe('starting, elapsed and stopping', () => {
-  test('one fast at a time, a target of 1-18 hours', () => {
+  test('one fast at a time, a target of 1-24 hours', () => {
     const data = started();
     expect(runningSession(data)).toEqual({id: 'fast_1', startedAt: START.toISOString(), endedAt: null, targetHours: 16, timeZone: 'Europe/Brussels'});
     expect(() => startFast(data, {id: 'fast_2', now: plus(1), targetHours: 12, timeZone: 'UTC'})).toThrow('A fast is already running.');
     expect(startFast(emptyFasting(), {id: 'fast_3', now: START, targetHours: 18, timeZone: 'UTC'}).sessions[0]!.targetHours).toBe(18);
-    for (const hours of [19, 0, 24, 1.5]) expect(() => startFast(emptyFasting(), {id: 'x', now: START, targetHours: hours, timeZone: 'UTC'})).toThrow('Choose a target up to 18 hours.');
+    // Session AO (C-MO-36, deliberate): custom targets now run to the 24-hour automatic stop (was 18), never beyond it.
+    for (const hours of [19, 24]) expect(startFast(emptyFasting(), {id: 'x', now: START, targetHours: hours, timeZone: 'UTC'}).sessions[0]!.targetHours).toBe(hours);
+    for (const hours of [25, 0, 48, 1.5, 23.5]) expect(() => startFast(emptyFasting(), {id: 'x', now: START, targetHours: hours, timeZone: 'UTC'})).toThrow('Choose a target from 1 to 24 hours.');
     const full: Fasting = {version: 1, sessions: Array.from({length: MAX_FASTING_SESSIONS}, (_, i) => ({id: `fast_${i}`, startedAt: START.toISOString(), endedAt: START.toISOString(), targetHours: 16, timeZone: 'UTC'}))};
     expect(() => startFast(full, {id: 'x', now: START, targetHours: 16, timeZone: 'UTC'})).toThrow('Your fasting history is full. Remove old sessions to continue.');
   });
@@ -112,5 +114,24 @@ describe('schema and store', () => {
     expect(Array.from({length: storage.length}, (_, i) => storage.key(i)!).some(k => k.startsWith(`${FASTING_KEY}:recovery:`))).toBe(true);
     const written = updateFasting(storage, current => startFast(current, {id: 'fast_9', now: START, targetHours: 12, timeZone: 'UTC'}));
     expect(JSON.parse(storage.getItem(FASTING_KEY)!)).toEqual(written);
+  });
+});
+
+// Session AO (C-MO-36): a custom target from 1 to 24 hours; 24 is the automatic stop itself, never beyond it.
+describe('custom targets up to the 24-hour stop (Session AO, C-MO-36)', () => {
+  test('the custom ceiling is the automatic stop', () => {
+    expect(MAX_TARGET_HOURS).toBe(24); expect(MAX_TARGET_HOURS).toBe(MAX_HOURS); expect(MAX_CUSTOM_HOURS).toBe(18); // ZIGi's cards: the NOVA lane's
+  });
+  test('a 24-hour target is stored in the same shape and stops itself at exactly 24 hours', () => {
+    const data = started({targetHours: 24});
+    expect(fastingSchema.safeParse(data).success).toBe(true);
+    expect(autoStopDue(runningSession(data)!, plus(23, 59))).toBe(false);
+    const stopped = applyAutoStop(data, plus(30));
+    expect(stopped.sessions[0]).toMatchObject({targetHours: 24, endedAt: plus(24).toISOString(), stoppedBy: 'limit'});
+  });
+  test('a past fast takes a 24-hour target too, and refuses 25', () => {
+    const args = {id: 'past', start: plus(-30), end: plus(-10), timeZone: 'UTC', now: START};
+    expect(logPastFast(emptyFasting(), {...args, targetHours: 24}).sessions[0]!.targetHours).toBe(24);
+    expect(() => logPastFast(emptyFasting(), {...args, targetHours: 25})).toThrow('Choose a target from 1 to 24 hours.');
   });
 });

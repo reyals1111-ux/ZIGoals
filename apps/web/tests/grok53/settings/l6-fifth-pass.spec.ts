@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../../ah-helpers';
+import {openSettings} from '../../settings-open';
 
 // Session AL fifth pass (lane L6): D-005 (the open Data & privacy group held about 8,100 characters). Each backup card's
 // "what is in this file" and Export everything's file contents fold under "More about this file"; nothing is removed
@@ -9,7 +10,7 @@ test.skip(({isMobile}) => isMobile, 'The computer\'s Settings page; phones have 
 test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(page); });
 
 test('D-005: the Data & privacy group is shorter open; each file’s contents are one tap away, word for word', async ({page}) => {
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const group = page.locator('#settings-data');
   const habits = page.getByRole('region', {name: 'Habits backup', exact: true});
   await expect(habits.locator('code')).toBeVisible();

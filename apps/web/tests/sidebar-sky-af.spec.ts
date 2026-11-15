@@ -47,7 +47,9 @@ async function at(page: Page, top: number) {
 test.describe('the sidebar sky parallax', () => {
   test.beforeEach(async ({browserName}, info) => { test.skip(info.project.name !== 'desktop' || browserName !== 'chromium', 'The sidebar is the computer’s (phones have the tab bar); Chrome'); });
 
-  for (const theme of ['nebula', 'light', 'dark'] as const) {
+  // Session AO (DV-203, owner decision 13 Nov, deliberate): Dark is a true dark theme, its sidebar flat with no stars layer,
+  // so the parallax is Nebula's and Light's (was: all three themes). Dark's own test below pins the flat sky at equal strength.
+  for (const theme of ['nebula', 'light'] as const) {
     test(`${theme}: the stars move at 45 % of the content’s speed; the mark, the planet and the theme bar move with it`, async ({page}) => {
       await open(page, theme);
       const first = await at(page, 120), second = await at(page, 420);
@@ -69,6 +71,17 @@ test.describe('the sidebar sky parallax', () => {
       const top = await at(page, 0); expect(top.position).toMatch(PINNED); expect(top.drift).toBe(0);
     });
   }
+
+  test('dark: the sidebar is flat — no stars layer at any scroll; the mark, the planet and the theme bar still move with the content', async ({page}) => {
+    await open(page, 'dark');
+    const first = await at(page, 120), second = await at(page, 420);
+    expect(second.scrollTop - first.scrollTop, 'the sidebar scrolls in this window').toBe(300);
+    for (const read of [first, second]) expect(read.image, 'no stars layer').toBe('');
+    const style = await page.locator('aside.app-sidebar').evaluate(s => ({image: getComputedStyle(s).backgroundImage, colour: getComputedStyle(s).backgroundColor}));
+    expect(style).toEqual({image: 'none', colour: 'rgb(6, 9, 14)'});
+    for (const part of ['mark', 'planet', 'bar'] as const) expect(Math.abs(second[part] - first[part] + 300), part).toBeLessThanOrEqual(.5);
+    expect(second.running).toBe(0);
+  });
 
   test('while it scrolls, the scroll-driven animation gives the same drift as the resting value (where the engine has it)', async ({page}) => {
     await open(page, 'nebula');

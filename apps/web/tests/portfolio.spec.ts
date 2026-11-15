@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {navLink} from './phone-nav';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Portfolio.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -80,7 +81,7 @@ test('create a portfolio and record transactions; without prices values stay unk
 
 test('Showcase shows a fictional portfolio with labelled fixture prices and requests no prices for it', async ({page}) => {
   const requests = await start(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const before = requests.length;

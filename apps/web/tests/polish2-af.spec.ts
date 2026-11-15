@@ -1,9 +1,11 @@
+import {openDeskFold} from './ao/folds';
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {earnRoutes, openEarnFolds, seedShowcase} from './earn-fixtures';
 import {seedChecklist, settled} from './checklist-fixtures';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist} from '../lib/checklist/schema';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn and Governance.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -38,7 +40,10 @@ test.describe('Earn', () => {
     const sizes = await page.locator('.earn-option-title h2').evaluateAll(hs => hs.map(h => parseFloat(getComputedStyle(h).fontSize)));
     expect(sizes).toHaveLength(11);
     for (const s of sizes) expect(s).toBeGreaterThanOrEqual(24);
-    const sectionSizes = await page.locator('.earn-sections > .panel > .aa-section-heading h2').evaluateAll(hs => hs.map(h => [h.id, parseFloat(getComputedStyle(h).fontSize)] as const));
+    // Session AO (N-BN-05, deliberate): on a phone Earn folds its validators and Academy sections to rows; they are opened
+    // as a reader would, and each section is found inside its fold (the same titles and the same 24 px rule).
+    if (info.project.name === 'mobile') for (const label of ['Choose a validator from facts', 'Earn Academy: learn it before you earn it']) await openDeskFold(page, label);
+    const sectionSizes = await page.locator('.earn-sections .panel > .aa-section-heading h2').evaluateAll(hs => hs.map(h => [h.id, parseFloat(getComputedStyle(h).fontSize)] as const));
     expect(sectionSizes.map(([id]) => id)).toEqual(expect.arrayContaining(['start-here-title', 'validators-title', 'academy-title', 'calculator-title', 'safety-title']));
     for (const [id, size] of sectionSizes) expect(size, id).toBeGreaterThanOrEqual(24);
     // 9. Eyebrows balance their lines.
@@ -254,7 +259,7 @@ async function openForYou(page: Page, card: Locator) {
 }
 test.describe('Today', () => {
   test('My universe: each name under its planet; a lit planet wears a strong halo', async ({page}) => {
-    await page.goto('/app/settings');
+    await openSettings(page);
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
     await page.waitForURL('**/app');
     const card = page.locator('.today-universe-card');
@@ -293,7 +298,7 @@ test.describe('Today', () => {
   });
 
   test('the Day timeline card: a short rail, a node in each block’s colour, and the "Now" pill among the rows', async ({page}) => {
-    await page.goto('/app/settings');
+    await openSettings(page);
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
     await page.waitForURL('**/app');
     const card = page.locator('.today-timeline-card');
@@ -320,7 +325,7 @@ test.describe('Gate C design review', () => {
   const showcase = async (page: Page, width: number) => {
     await page.setViewportSize({width, height: 900});
     await page.clock.setFixedTime(new Date('2026-10-16T09:30:00Z'));
-    await page.goto('/app/settings');
+    await openSettings(page);
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
     await page.waitForURL('**/app');
   };

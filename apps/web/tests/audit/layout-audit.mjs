@@ -97,7 +97,8 @@ const STATES = [
   {name: 'goals-board', path: '/app/goals?view=board'},
   {name: 'goals-tree', path: '/app/goals?view=tree'},
   {name: 'goal-card-details', path: '/app/goals', steps: async p => click(p, p.locator('.unified-goal-card .goal-card-more > summary'))},
-  {name: 'goal-art-picker', path: '/app/goals', steps: async p => { await click(p, p.locator('.unified-goal-card').getByRole('button', {name: /^Options for/})); await click(p, p.getByRole('button', {name: 'Change artwork'})); }},
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  {name: 'goal-art-picker', path: '/app/goals', steps: async p => { await click(p, p.locator('.unified-goal-card').getByRole('button', {name: /^Options for/})); await click(p, p.getByRole('menuitem', {name: 'Change artwork'})); }},
   {name: 'goal-page', path: '/app/goals/tracked/9201'},
   {name: 'goal-new', path: '/app/goals/new'},
   {name: 'goal-templates', path: '/app/goals/templates'},
@@ -123,7 +124,8 @@ const STATES = [
   {name: 'health-sleep', path: '/app/health?view=sleep'},
   {name: 'health-meditation', path: '/app/health?view=meditation'},
   {name: 'health-devices', path: '/app/health?view=devices'},
-  {name: 'counters-manage', path: '/app/health', steps: async p => { await click(p, p.getByRole('button', {name: 'Options for Quick counters'})); await click(p, p.getByRole('button', {name: /Manage counters/})); }},
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  {name: 'counters-manage', path: '/app/health', steps: async p => { await click(p, p.getByRole('button', {name: 'Options for Quick counters'})); await click(p, p.getByRole('menuitem', {name: /Manage counters/})); }},
   // Wealth and the money pages
   {name: 'wealth', path: '/app/wealth'},
   {name: 'wealth-add', path: '/app/wealth', steps: async p => click(p, p.locator('.wealth-heading .pillar-hero-buttons').getByRole('button', {name: '+ Add asset'}))},

@@ -1,6 +1,7 @@
 import {expect,test,type Page} from '@playwright/test';
 import {typeGoalName} from './goal-name';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
+import {openSettings} from './settings-open';
 
 // Session E, Part 5: the first-run welcome. Fresh browsers here are brand-new users on purpose.
 const KEY='zigoals:onboarding:v1';
@@ -48,7 +49,7 @@ test('never for someone with records or a chosen Today, and never in Showcase',a
  await today(page);await expect(page.locator('.dashboard-welcome')).toBeVisible();await expect(card(page)).toHaveCount(0);
  // Showcase: never.
  await page.evaluate(()=>localStorage.clear());
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
  await expect(page.locator('main h1')).toBeVisible();await expect(card(page)).toHaveCount(0);
  await page.goto('/app/welcome');await expect(page.getByText('You’re exploring Showcase data.')).toBeVisible();
 });
@@ -206,7 +207,7 @@ test('reduced motion and Motion Off: steps change without animation',async({page
 });
 
 test('phones only: Settings offers “Show the welcome again”',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/app/settings');
+ await page.setViewportSize({width:390,height:844});await openSettings(page);
  const row=page.getByRole('link',{name:'Show the welcome again',exact:true});await expect(row).toBeVisible();await expect(row).toHaveAttribute('href','/app/welcome');
  const box=(await row.boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);
  await page.setViewportSize({width:1280,height:800});await page.reload();await expect(page.locator('main h1')).toBeVisible();

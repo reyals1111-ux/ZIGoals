@@ -381,6 +381,15 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-more > :not(summary) { margin-inline: 14px; }
 .earn-more > ol { padding: 0; }
 /* Session AL: later rules sit above the AK G3 block, which stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
+/* Session AP (UX review, carried AO minor N-BN-05): on a phone the long step names ("Staking on the real network") ran past
+   the panel's left edge from their lane. Earn's own path only (the shared Path also draws the protected Checklist orbit):
+   a name may wrap within 150 px, so it stays inside the panel. */
+@media (max-width: 480px) {
+  .earn-start-path .path-stage[data-variant=orbit] .path-label.orbit-tab,
+  .earn-start-path .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab { max-width: 150px; white-space: normal; border-radius: 14px; text-align: center; }
+  .earn-start-path .path-stage[data-variant=orbit] .path-label.orbit-tab .path-label-text { white-space: normal; overflow: visible; text-overflow: clip; }
+}
+
 /* Session AK (G3): richer cards, as the new surfaces (F6). Earn: Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
    fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
@@ -389,3 +398,7 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 @media (hover: hover) and (pointer: fine) { :root :where(.earn-page) .panel:hover { border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent)); } }
 :root :where(.earn-page) .panel:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.earn-page) .panel { box-shadow: none; } }
+
+/* Session AP (route weights): a wider section's place while its code arrives (components/earn/earn-view.tsx). */
+.earn-option-loading{min-height:240px}
+

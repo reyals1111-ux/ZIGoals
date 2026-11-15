@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
+import {continueToGoalReview} from '../../goal-name';
 
 /**
  * Release review AL "as if 1.0" (docs/review/session-al/RELEASE_REVIEW_AL.md), the money findings (Wealth, Goals, Life
@@ -69,9 +70,8 @@ test.describe('RR-11', () => {
     await open(page, '/app/goals/new');
     await page.getByRole('button', {name: 'Start from the idea: Emergency fund'}).click();
     await page.getByLabel('Target amount', {exact: true}).fill('6000');
-    await page.getByRole('button', {name: 'Continue →', exact: true}).click();
-    await page.getByRole('button', {name: 'Continue →', exact: true}).click();
-    await page.getByRole('button', {name: 'Continue →', exact: true}).click();
+    // Session AO (T-014, deliberate): three steps; Continue to the review, which is checked to be the last step.
+    await continueToGoalReview(page);
     await page.getByRole('button', {name: 'Create goal', exact: true}).click();
     await page.waitForURL(/\/app\/goals\/tracked\//);
     const facts = page.locator('.goal-detail-facts').first();
@@ -97,7 +97,7 @@ test.describe('RR-14', () => {
     await page.setViewportSize({width: 1440, height: 900});
     await offlineApi(page);
     await page.clock.install({time: EVENING});
-    await page.goto('/app/settings');
+    await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
     await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
     await loadShowcase(page);
     const line = page.locator('[data-today-line]');
@@ -117,7 +117,7 @@ test.describe('RR-16', () => {
     await page.setViewportSize({width: 1440, height: 900});
     await offlineApi(page);
     await page.clock.install({time: EVENING});
-    await page.goto('/app/settings');
+    await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
     await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
     await loadShowcase(page);
     await open(page, '/app/wealth');

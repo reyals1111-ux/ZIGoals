@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {createVault} from '../lib/vault/crypto';
+import {openSettings} from './settings-open';
 
 // Session M, Part B2 (ADR-008, owner decision M1): "Remember on this device" in Settings → Account & sync. Account
 // requests are answered by fixtures, as in sync-offer-card.spec.ts; the Stage 8 rehearsal
@@ -34,7 +35,7 @@ const deviceDatabase = (page: Page) => page.evaluate(async () => (await indexedD
 
 test('in a browser tab the choice is unticked, always shown with its warning, and an unticked unlock remembers nothing', async ({page}) => {
   const vault = await fixtureAccount(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const box = panel(page).getByRole('checkbox', {name: REMEMBER, exact: true});
   await expect(box).not.toBeChecked();
   await expect(box).toHaveAccessibleDescription(/anyone who can use this browser on this device can open them too\. Forget this device in Settings at any time; locking also forgets it\./);
@@ -51,7 +52,7 @@ test('in the installed app (display-mode standalone) the choice is ticked by def
     window.matchMedia = query => query === '(display-mode: standalone)' ? {matches: true, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false} : real(query);
   });
   await fixtureAccount(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const box = panel(page).getByRole('checkbox', {name: REMEMBER, exact: true});
   await expect(box).toBeChecked();
   await expect(box).toHaveAccessibleDescription(/locking also forgets it/);
@@ -59,7 +60,7 @@ test('in the installed app (display-mode standalone) the choice is ticked by def
 
 test('a remembered device opens again without the secret after a reload and in a new tab, until it is locked or forgotten', async ({page, context}) => {
   const vault = await fixtureAccount(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await unlock(page, vault.recovery, true);
   await expect(panel(page)).toContainText('This device is remembered: ZIGoals opens your account records here without the recovery secret. Locking locks every tab of this browser and forgets this device.');
   await expect(panel(page)).toContainText('On this remembered device the vault stays open until you lock it');
@@ -71,7 +72,7 @@ test('a remembered device opens again without the secret after a reload and in a
   const second = await context.newPage();
   await fixtureAccount(second, vault);
   await second.goto('/app');
-  await second.goto('/app/settings');
+  await openSettings(second);
   await expect(panel(second).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
   await second.close();
   // Settings in a new tab still locks the other tabs, as before (account-browser L72-L74). A remembered tab opens again
@@ -121,7 +122,7 @@ const describeRecord = (page: Page) => page.evaluate(async () => {
 
 test('B1: a new remember stores the root key itself, which this browser cannot export', async ({page}) => {
   const vault = await fixtureAccount(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await unlock(page, vault.recovery, true);
   await expect(panel(page)).toContainText('This device is remembered');
   expect(await describeRecord(page)).toEqual({version: 2, keys: ['account', 'commitment', 'createdAt', 'epoch', 'health', 'id', 'manifest', 'root', 'session', 'vault', 'version'], root: {type: 'secret', extractable: false, algorithm: 'HKDF', usages: ['deriveKey']}, exported: 'refused', migratedFrom: false});
@@ -132,7 +133,7 @@ test('B1: a new remember stores the root key itself, which this browser cannot e
 
 test('B1: a version 1 record from an earlier build opens once more, then is version 2 and nothing can unwrap the root', async ({page}) => {
   const vault = await fixtureAccount(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(panel(page).getByLabel('Vault recovery secret', {exact: true})).toBeVisible();
   // Session AK (CI fix): the record is dated a day ago; a fixed 2026-10-02 aged past the 30 remembered days on 2026-11-01.
   // Write the record an earlier build wrote, and show the finding on it: its key unwraps the root as an extractable key.
@@ -171,11 +172,11 @@ test('B1: a version 1 record from an earlier build opens once more, then is vers
 // Session U Part 5 (B2, FINDINGS Q-SYNC-02): Lock locks every tab of this browser, and a remembered device reopens none.
 test('B2: Lock in one tab locks every tab of this browser, and none of them reopens', async ({page, context}) => {
   const vault = await fixtureAccount(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await unlock(page, vault.recovery, true);
   const second = await context.newPage();
   await fixtureAccount(second, vault);
-  await second.goto('/app/settings');
+  await openSettings(second);
   await expect(panel(second).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
   // Settings in a new tab locks the other tabs, as before; the first tab reopens from the remembered device when used.
   await page.bringToFront();

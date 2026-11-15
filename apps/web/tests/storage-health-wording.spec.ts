@@ -1,11 +1,12 @@
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // Browser storage health (owner follow-up to Session L): a backup is an optional extra; with an account, encrypted sync
 // is the main protection. No message asks for a separate backup any more.
 test('storage health presents a backup as optional and asks for none', async ({page}) => {
   // A browser without the Storage API shows the "cannot report" status.
   await page.addInitScript(() => { Object.defineProperty(Navigator.prototype, 'storage', {configurable: true, get: () => undefined}); });
-  await page.goto('/app/settings');
+  await openSettings(page);
   // Session AK G2 (RELEASE_REVIEW_2 R2-16, deliberate): storage health moved from Backup & restore to Help & diagnostics.
   const panel = page.locator('#storage-internals');
   await panel.getByText('Browser storage health', {exact: true}).click();

@@ -1,0 +1,22 @@
+/* Backlog #15 (AL-COMPETITOR-GAP-118): the template library's search, in the goal creator's ideas and in Habit ideas.
+   Fields 16 px (no zoom on phones), every target at least 44 px, labels and small text at least 14 px. */
+.library-search { display: grid; gap: 10px; margin-top: 10px; min-width: 0; }
+.library-search-toggle { justify-self: start; min-height: 44px; }
+.library-search-panel { display: grid; gap: 10px; min-width: 0; }
+.library-search-field { display: grid; gap: 6px; font-size: 15px; font-weight: 600; }
+.library-search-field input { min-height: 48px; font-size: 16px; width: 100%; box-sizing: border-box; }
+.library-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.library-chips button { min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #8fa6ff55; background: #0d1a2ecc; color: inherit; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.library-chips button[aria-pressed=true] { background: #2c3a6b; border-color: #8fa6ff; }
+.library-chips button:focus-visible, .library-result:focus-visible { outline: 3px solid #86e7ec; outline-offset: 2px; }
+.library-count { margin: 0; font-size: 14px; }
+.library-results { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.library-result { display: grid; gap: 4px; width: 100%; min-height: 44px; box-sizing: border-box; text-align: left; justify-items: start; align-content: start; white-space: normal; padding: 10px 12px; border: 1px solid #a6c1fa26; border-radius: 14px; background: #0d1a2e99; color: inherit; font: inherit; text-decoration: none; cursor: pointer; }
+.library-result strong { font-size: 16px; }
+.library-result small, .library-result-meta { font-size: 14px; opacity: .9; }
+.library-more { justify-self: start; min-height: 44px; }
+@media (max-width: 600px) {
+  .library-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .library-chips button { flex: none; }
+  .library-results { grid-template-columns: 1fr; }
+}

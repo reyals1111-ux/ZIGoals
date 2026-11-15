@@ -42,6 +42,10 @@
      sit a little closer still and all thirteen fit one row at 1440 px, as the twelve did. */
   .wealth-holdings-one .holdings-filters { gap: 4px; }
   .wealth-holdings-one .holdings-filters button { padding-inline: 7px; }
+  /* Session AP (UX review, carried AO minor): with each chip's count (AO) the thirteen came to 1178 px in 1134 at 1440, the last
+     one cut by the fade; slightly tighter chips fit them again (each stays 44 px tall). */
+  .wealth-holdings-one .holdings-filters { gap: 3px; }
+  .wealth-holdings-one .holdings-filters button { padding-inline: 5px; }
 }
 .wealth-holdings-one > .phone-fold, .wealth-holdings-one > .accounts-section{margin-top:18px}
 .what-you-have-count{opacity:.75;font-variant-numeric:tabular-nums}

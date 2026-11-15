@@ -14,7 +14,8 @@ test('adjacent Goal option panels remain inside their cards and accept ordinary 
  const original=await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'));
  for(const goal of goals){
   const card=page.locator('.goal-card').filter({has:page.getByRole('heading',{name:goal.name,exact:true})});await card.getByRole('button',{name:`Options for ${goal.name}`,exact:true}).click();
-  const action=card.getByRole('button',{name:`Add ${goal.name} progress to Today`,exact:true});await expect(action).toBeVisible();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  const action=card.getByRole('menuitem',{name:`Add ${goal.name} progress to Today`,exact:true});await expect(action).toBeVisible();
   const geometry=await card.evaluate(card=>{const panel=card.querySelector('.card-options-panel')!,r=card.getBoundingClientRect(),p=panel.getBoundingClientRect();return {card:{left:r.left,right:r.right},panel:{left:p.left,right:p.right}};});
   await info.attach('goal-option-geometry-'+goal.id,{body:JSON.stringify(geometry),contentType:'application/json'});
   expect(geometry.panel.left).toBeGreaterThanOrEqual(geometry.card.left);expect(geometry.panel.right).toBeLessThanOrEqual(geometry.card.right);

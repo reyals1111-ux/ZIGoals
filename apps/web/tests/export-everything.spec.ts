@@ -5,6 +5,7 @@ import {HABITS_KEY} from '../lib/habits';
 import {CSV_FILES} from '../lib/export/everything';
 import {readStoredZip} from '../lib/export/zip-reader';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
+import {openSettings, openAllSettingsGroups} from './settings-open';
 
 // T4 (Session P): "Export everything (optional)": one readable ZIP, made on the device, nothing written, nothing sent.
 test.use({timezoneId: 'Europe/Brussels'});
@@ -31,9 +32,10 @@ async function download(page: Page) {
 
 test('one ZIP with everything.json and nine CSVs; nothing written on view or by the export; no request', async ({page}) => {
   const {records} = buildShowcase('2026-09-20');
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})});
   await page.reload();
+  await openAllSettingsGroups(page); // Session AP (CI 1726): the seeded records fold Settings' groups
   const before = await zigoalsKeys(page);
   await expect(page.getByRole('region', {name: 'Everything you’ve saved, in one file.', exact: true})).toBeVisible();
   // Nothing is uploaded: during the export every request stays on this origin and none carries a body.
@@ -68,7 +70,7 @@ test('one ZIP with everything.json and nine CSVs; nothing written on view or by 
 
 // Session X Part 7: the consent checkbox sits beside its sentence (it sat above it, centred: ADR-015 S141's open finding).
 test('the consent checkbox sits beside its sentence, top-aligned, 22 px, with a 44 px row', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   const section = page.getByRole('region', {name: 'Everything you’ve saved, in one file.', exact: true});
   const row = section.locator('.export-everything-agree'), box = row.locator('input[type=checkbox]'), text = row.locator('span');
   await row.scrollIntoViewIfNeeded();
@@ -80,10 +82,10 @@ test('the consent checkbox sits beside its sentence, top-aligned, 22 px, with a 
   expect(t!.x + t!.width).toBeLessThanOrEqual(r!.x + r!.width + 0.5);
 });
 test('Showcase: the file name says showcase-demo', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await page.goto('/app/settings');
+  await openSettings(page);
   const {name, bytes} = await download(page);
   expect(name).toBe('zigoals-showcase-demo-export-2026-09-15.zip');
   expect(readStoredZip(bytes).map(e => e.name)).toEqual(['everything.json', 'README.txt', ...CSV_FILES]) /* Session AH (DS6): README.txt says each file's rows */;

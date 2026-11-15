@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
+import {openSettings} from './settings-open';
 
 /**
  * Today stays short on phones (Session P, owner addition 2): the screen count of Today at 390×844, measured as
@@ -31,12 +32,12 @@ test('Today at 390×844 stays within its screen-count ceilings', async ({page}) 
   await page.clock.setFixedTime(FIXED_TIME);
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   const screens = async () => { await expect(page.getByRole('heading', {level: 1})).toBeVisible(); await page.waitForTimeout(800); return (await page.evaluate(() => document.documentElement.scrollHeight)) / 844; };
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const showcase = await screens();
   const {records} = buildShowcase('2026-09-20'); // the fixed clock's own day
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { sessionStorage.clear(); localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})});
   await page.goto('/app');
   const local = await screens();

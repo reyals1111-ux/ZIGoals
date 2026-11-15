@@ -311,7 +311,9 @@ export type {Project, Section, SavedFilter};
 
 export type TaskView =
   | {kind: 'inbox'} | {kind: 'today'} | {kind: 'upcoming'} | {kind: 'all'} | {kind: 'overdue'} | {kind: 'completed'}
-  | {kind: 'project'; id: string} | {kind: 'label'; name: string} | {kind: 'priority'; level: TaskLevel} | {kind: 'filter'; id: string};
+  | {kind: 'project'; id: string} | {kind: 'label'; name: string} | {kind: 'priority'; level: TaskLevel} | {kind: 'filter'; id: string}
+  /** Session AP: "This evening" and "Someday" (their own record, lib/tasks/when.ts) and the Priority matrix (lib/tasks/matrix.ts). */
+  | {kind: 'evening'} | {kind: 'someday'} | {kind: 'matrix'};
 /** The open top-level tasks a view lists (subtasks are shown under their parent), in the order it shows them. */
 export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock?: string): Task[] {
   const open = record.tasks.filter(t => !t.doneAt);
@@ -327,6 +329,9 @@ export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock
     case 'label': return dated(open.filter(t => t.labels?.includes(view.name)));
     case 'priority': return dated(open.filter(t => taskLevel(t) === view.level));
     case 'filter': return [];
+    // Session AP: the matrix sorts every open top-level task into its boxes; the two lists read their own record, in their view.
+    case 'matrix': return dated(top(open));
+    case 'evening': case 'someday': return [];
     case 'completed': return doneTasks(record);
   }
 }

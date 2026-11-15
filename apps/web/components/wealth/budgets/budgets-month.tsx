@@ -1,6 +1,7 @@
 'use client';
+import {removeWithUndo} from '../../ui/remove-with-undo';
 import {ShowcaseTag} from '../../ui/showcase-tag';
-import {useId, useMemo, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatMonth} from '../../../lib/visual-format';
@@ -15,6 +16,8 @@ import {CalcHint} from '../../money-calc/calc-hint';
 import '../../money-select/money-select.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import {useMoneyCurrency} from '../use-money-currency';
+// Session AP (feature 3): Ready to assign, its own chunk.
+const ReadyToAssign = lazy(() => import('./ready-to-assign'));
 
 /**
  * Session AK (7.7): category budgets, one month at a time, against the money log. Each row is the month's amount, plus
@@ -34,6 +37,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
   // Session AK RB (RELEASE_REVIEW_2 R2-8): the form opens from its button (an empty Wealth showed every form in full).
   const [adding, setAdding] = useState(false);
   const view = useMemo(() => monthView(entries, record, month, today), [entries, record, month, today]);
+  // Session AO (C-LS-20): Remove offers the app's one Undo toast (components/ui/remove-with-undo.ts).
   const change = (fn: (r: BudgetsRecord) => BudgetsRecord, done: string) => { setProblem(''); try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); } };
   const save = (event: FormEvent) => {
     event.preventDefault();
@@ -53,6 +57,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
       <h3 id={`${id}-month`} aria-live="polite">{formatMonth(month)}</h3>
       <button type="button" className="quiet" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= thisMonth} aria-label="Next month">›</button>
     </div>
+    <Suspense fallback={null}><ReadyToAssign entries={entries} record={record} month={month} current={month === thisMonth}/></Suspense>
     {view.totals.map(t => <p key={t.currency} className="budgets-total"><strong>{t.left >= 0 ? money(t.left, t.currency) : money(-t.left, t.currency)}</strong> {t.left >= 0 ? 'left' : 'over'} of {money(t.available, t.currency)} budgeted{view.daysLeft !== null ? ` · ${view.daysLeft === 1 ? 'last day of the month' : `${view.daysLeft} days to go`}` : ''}</p>)}
     {view.rows.length ? <table className="budgets-table" aria-labelledby={`${id}-month`}>
       <thead><tr><th scope="col">Category</th><th scope="col">Spent</th><th scope="col">Available</th><th scope="col">Left</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
@@ -61,7 +66,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
         <td>{money(r.spent, r.currency)}</td>
         <td>{money(r.available, r.currency)}{r.carried > 0 && <small className="fine"> incl. {money(r.carried, r.currency)} rolled over</small>}</td>
         <td>{r.left >= 0 ? money(r.left, r.currency) : <>{money(-r.left, r.currency)} over</>}</td>
-        <td><button type="button" className="quiet" onClick={() => change(x => removeBudget(x, r.id), `Budget for ${r.category} removed.`)} aria-label={`Remove the ${r.category} budget in ${r.currency}`}>Remove</button></td>
+        <td><button type="button" className="quiet" onClick={() => { setProblem(''); const said = `Budget for ${r.category} removed.`; void removeWithUndo(onChange, x => removeBudget(x, r.id), said, `The ${r.category} budget is back.`).then(() => setStatus(said), cause => { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); }); }} aria-label={`Remove the ${r.category} budget in ${r.currency}`}>Remove</button></td>
       </tr>)}</tbody>
     </table> : <p className="fine">No budgets for this month yet. Set one, for example Groceries at 300 a month.</p>}
     {view.unbudgeted.length > 0 && <p className="fine">Also spent this month, without a budget: {view.unbudgeted.slice(0, 6).map(u => `${u.category} ${money(u.spent, u.currency)}`).join(' · ')}.</p>}

@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {lastLocal, MORNING, openChat, panel, say, seed, server, box} from './zigi-af';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF (L4, P8.7): page awareness through the real panel on a production build. "What am I looking at?" and
@@ -59,7 +60,7 @@ test('"explain this page" goes to the person\'s AI with the "This page" chip: ti
   // Settings is read: "Explain this page" there brings no "This page" chip and no page view goes anywhere (the page view
   // itself is null there: lib/ai/context/page-view.test.ts). Q11: ⌘/Ctrl+K opens the command menu, not ZIGi's panel;
   // ZIGi's own key is ⌘/Ctrl+Shift+Z.
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await page.keyboard.press('ControlOrMeta+k');
   // Session AL (CI12, CI 1561): the command menu loads at its first open; an Escape sent before it showed reached nothing, the

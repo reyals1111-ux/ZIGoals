@@ -4,7 +4,7 @@ import {showUndo} from '../ui/undo-toast';
 import {timerRuleText, tooShortText, tooShortToSave} from '../../lib/health-timer-rules';
 import {fastingRhythm, fastingRhythmText} from '../../lib/health-fasting-rhythm';
 import {useState} from 'react';
-import {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_HOURS, elapsedMs, fastStartAt, fastingHistory, formatFast, logFastToHabit, logPastFast, removeFast, startFast, stopFast} from '../../lib/fasting/engine';
+import {FASTING_PRESETS, MAX_TARGET_HOURS, MAX_HOURS, elapsedMs, fastStartAt, fastingHistory, formatFast, logFastToHabit, logPastFast, removeFast, startFast, stopFast} from '../../lib/fasting/engine';
 import {instantAt} from '../../lib/zone-time';
 import type {HealthData} from '../../lib/health';
 import {dailyData, healthDay} from '../../lib/health-daily';
@@ -54,7 +54,7 @@ function PastFastForm({fasting, zone, onDone}: {fasting: FastingStore; zone: str
     setIssue('');
     try {
       if (!startTime || !endTime) throw new RangeError('Enter when the fast started and ended.');
-      const t = target.trim(); if (!/^\d+$/.test(t)) throw new RangeError('Enter whole hours, like 16.'); if (Number(t) < 1 || Number(t) > MAX_CUSTOM_HOURS) throw new RangeError(`Choose a target from 1 to ${MAX_CUSTOM_HOURS} hours.`);
+      const t = target.trim(); if (!/^\d+$/.test(t)) throw new RangeError('Enter whole hours, like 16.'); if (Number(t) < 1 || Number(t) > MAX_TARGET_HOURS) throw new RangeError(`Choose a target from 1 to ${MAX_TARGET_HOURS} hours.`);
       const start = new Date(instantAt(startDate, startTime, zone)), end = new Date(instantAt(endDate, endTime, zone));
       await fasting.update(current => logPastFast(current, {id: `fast_${crypto.randomUUID()}`, start, end, targetHours: Number(t), timeZone: zone, now: new Date()}));
       onDone(`Past fast saved: ${formatFast(end.getTime() - start.getTime())}.`); setStartTime(''); setEndTime('');
@@ -64,7 +64,7 @@ function PastFastForm({fasting, zone, onDone}: {fasting: FastingStore; zone: str
     <form aria-label="Log a past fast" noValidate onSubmit={event => { event.preventDefault(); void save(); }}>
       <div className="sleep-form-row"><label className="field">Started (date)<input type="date" max={today} value={startDate} onChange={e => setStartDate(e.target.value)}/></label><label className="field">Started (time)<input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}/></label></div>
       <div className="sleep-form-row"><label className="field">Ended (date)<input type="date" max={today} value={endDate} onChange={e => setEndDate(e.target.value)}/></label><label className="field">Ended (time)<input type="time" value={endTime} aria-invalid={issue ? true : undefined} aria-describedby={issue ? 'past-fast-issue' : undefined} onChange={e => setEndTime(e.target.value)}/></label></div>
-      <label className="field">Its target, in hours (1–{MAX_CUSTOM_HOURS})<input type="text" inputMode="numeric" autoComplete="off" value={target} onChange={e => setTarget(e.target.value)}/></label>
+      <label className="field">Its target, in hours (1–{MAX_TARGET_HOURS})<input type="text" inputMode="numeric" autoComplete="off" value={target} onChange={e => setTarget(e.target.value)}/></label>
       {issue && <p className="field-error" id="past-fast-issue" role="alert">{issue}</p>}
       <button type="submit" className="secondary">Save past fast</button>
     </form>
@@ -88,10 +88,10 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
       // or busy storage ran the updater later, and the fast began then; fasting.spec.ts:66 in CI on c40475e).
       // Session AH (HE7, B-064): each wrong custom target gets its own sentence.
       // Session AL (N-MO-29): a whole number out of the range, negative ones too (−3), gets the range; a decimal the whole-hours line.
-      if (preset === 'custom') { const t = custom.trim(); if (!t) throw new RangeError('Enter a target in whole hours.'); if (/^[-−]\d+$/.test(t)) throw new RangeError(`Choose a target from 1 to ${MAX_CUSTOM_HOURS} hours.`); if (!/^\d+$/.test(t)) throw new RangeError('Enter whole hours, like 16.'); if (Number(t) < 1 || Number(t) > MAX_CUSTOM_HOURS) throw new RangeError(`Choose a target from 1 to ${MAX_CUSTOM_HOURS} hours.`); }
-      const hours = preset === 'custom' ? readFormNumber(custom, {min: 1, max: MAX_CUSTOM_HOURS, whole: true}) : preset, at = startedAt ? fastStartAt(startedAt, Date.now(), zone) : new Date();
+      if (preset === 'custom') { const t = custom.trim(); if (!t) throw new RangeError('Enter a target in whole hours.'); if (/^[-−]\d+$/.test(t)) throw new RangeError(`Choose a target from 1 to ${MAX_TARGET_HOURS} hours.`); if (!/^\d+$/.test(t)) throw new RangeError('Enter whole hours, like 16.'); if (Number(t) < 1 || Number(t) > MAX_TARGET_HOURS) throw new RangeError(`Choose a target from 1 to ${MAX_TARGET_HOURS} hours.`); }
+      const hours = preset === 'custom' ? readFormNumber(custom, {min: 1, max: MAX_TARGET_HOURS, whole: true}) : preset, at = startedAt ? fastStartAt(startedAt, Date.now(), zone) : new Date();
       await fasting.update(current => startFast(current, {id: `fast_${crypto.randomUUID()}`, now: at, targetHours: hours, timeZone: zone, ...(habitId ? {habitId} : {})}));
-    } catch (e) { setError(e instanceof RangeError || (e instanceof Error && /target|running|full/.test(e.message)) ? e.message : preset === 'custom' ? `Choose a target from 1 to ${MAX_CUSTOM_HOURS} hours.` : saveFailureMessage(e)); }
+    } catch (e) { setError(e instanceof RangeError || (e instanceof Error && /target|running|full/.test(e.message)) ? e.message : preset === 'custom' ? `Choose a target from 1 to ${MAX_TARGET_HOURS} hours.` : saveFailureMessage(e)); }
   }
   async function stop() {
     if (!running) return; setError(''); setResult('');
@@ -139,7 +139,7 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
       </>; })()}
     </div> : <div className="fasting-idle">
       <div className="fasting-presets" role="group" aria-label="Fasting target">{FASTING_PRESETS.map(p => <button key={p.hours} type="button" className={preset === p.hours ? 'secondary' : 'quiet'} aria-pressed={preset === p.hours} onClick={() => setPreset(p.hours)}>{p.label}</button>)}<button type="button" className={preset === 'custom' ? 'secondary' : 'quiet'} aria-pressed={preset === 'custom'} onClick={() => setPreset('custom')}>Custom</button></div>
-      {preset === 'custom' && <label className="field">Target hours (1–{MAX_CUSTOM_HOURS}; every fast stops itself at {MAX_HOURS} h)<input type="text" inputMode="numeric" autoComplete="off" value={custom} onChange={event => setCustom(event.target.value)} /></label>}
+      {preset === 'custom' && <label className="field">Target hours (1–{MAX_TARGET_HOURS}; every fast stops itself at {MAX_HOURS} h, so {MAX_HOURS} is the longest)<input type="text" inputMode="numeric" autoComplete="off" value={custom} onChange={event => setCustom(event.target.value)} /></label>}
       {/* Session AL (P-MO-30, MO-097): only when there is a duration habit to log the hours to. */}
       {/* Session AL fourth pass (MO-097): folded, so the page-wide fasting card does not show a habit picker on every view */}{durationHabits.length > 0 && <details className="fasting-habit-fold"><summary>Log the hours to a habit (optional)</summary><label className="field">Habit for the hours<select value={habitId} onChange={event => setHabitId(event.target.value)}><option value="">Don’t log</option>{durationHabits.map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</select></label></details>}
       <label className="field">Started earlier? (optional)<input type="time" value={startedAt} onChange={event => setStartedAt(event.target.value)} aria-describedby="fast-started-hint"/></label>

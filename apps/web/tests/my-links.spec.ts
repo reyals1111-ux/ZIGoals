@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // Session W Part 19: My links. Settings → My links adds, edits, moves and removes the person's own links (settings v3
 // `links`); Today shows them as buttons that open in a new tab with no opener and no referrer, exactly as typed. Every
@@ -14,7 +15,7 @@ const stored = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getIte
 
 test('add, edit, move and remove links in Settings; https only; the icon follows the address until chosen', async ({page}) => {
   await start(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   const links = card(page);
   await links.getByRole('button', {name: 'Add a link'}).click();
   let form = links.getByRole('form', {name: 'Add a link'});
@@ -55,7 +56,7 @@ test('add, edit, move and remove links in Settings; https only; the icon follows
 
 test('Today: one button per link, in order, opening in a new tab with no opener and no referrer, exactly as typed', async ({page, isMobile}) => {
   await start(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   for (const [name, url] of [['Club', 'https://www.example.com/club?utm_source=me'], ['Photos', 'https://photos.example.net/me']] as const) {
     await card(page).getByRole('button', {name: 'Add a link'}).click();
     const form = card(page).getByRole('form', {name: 'Add a link'});
@@ -79,7 +80,7 @@ test('Today: one button per link, in order, opening in a new tab with no opener 
 
 test('hidden under Your pages & buttons, the Today card leaves; the links stay in Settings', async ({page}) => {
   await start(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await card(page).getByRole('button', {name: 'Add a link'}).click();
   const form = card(page).getByRole('form', {name: 'Add a link'});
   await form.getByLabel('Name').fill('Club');await form.getByLabel('Address (https://)').fill('https://www.example.com/club');
@@ -88,13 +89,13 @@ test('hidden under Your pages & buttons, the Today card leaves; the links stay i
   await page.goto('/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.getByRole('region', {name: 'My links'})).toHaveCount(0);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(card(page).getByRole('list', {name: 'Your links'}).locator('strong')).toHaveText(['Club']);
 });
 
 test('Showcase: four fictional links to example addresses on Settings and Today', async ({page, isMobile}) => {
   await start(page);
-  await page.goto('/app/settings');await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();await page.waitForURL('**/app');
+  await openSettings(page);await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();await page.waitForURL('**/app');
   if (isMobile) await page.getByRole('button', {name: /^My links/}).click();
   const links = page.getByRole('region', {name: 'My links'}).getByRole('link', {name: /opens in a new tab/});
   await expect(links).toHaveText(['Running club (opens in a new tab)', 'Book club chat (opens in a new tab)', 'My photos (opens in a new tab)', 'Chess games (opens in a new tab)']);

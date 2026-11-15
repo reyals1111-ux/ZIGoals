@@ -1,6 +1,7 @@
 import {expect, type Locator, type Page} from '@playwright/test';
 import {emptyPlatform, PLATFORM_KEY, positionSchema, privateGoalSchema, type Platform} from '../lib/positions';
 import {journey, open, ready, snap, type Journey} from './kit';
+import {continueToGoalReview} from '../tests/goal-name';
 
 // Session X Part 14, journeys J031–J060: Goals (docs/verification/x-cloud/HUMAN_TEST.md). Local simulation only: no
 // wallet, no chain, nothing that moves funds.
@@ -13,8 +14,8 @@ async function createGoal(j: Journey, name: string, target: string, {start = '',
   await page.getByRole('button', {name: /^Continue/}).click();
   await page.getByLabel('ZIGoals funding / Local simulation', {exact: true}).check();
   if (start) await page.getByLabel('Planned starting amount').fill(start);
-  await page.getByRole('button', {name: /^Continue/}).click();
-  await page.getByRole('button', {name: /^Continue/}).click();
+  // Session AO (T-014, deliberate): one Continue to the review, the last step.
+  await continueToGoalReview(page, 2);
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();
   await page.getByRole('button', {name: 'Confirm simulation'}).click();
   await expect(page).toHaveURL(/\/app\/goals\/\d+$/);
@@ -244,14 +245,14 @@ journey('J034', 'browser Back from the wizard\'s second step asks first; the wiz
   await page.getByLabel('Goal name', {exact: true}).fill('Fictional sailing course');
   await page.getByLabel('Target amount', {exact: true}).fill('800');
   await page.getByRole('button', {name: 'Continue →', exact: true}).click();
-  await expect(page.getByText('Step 2 of 4', {exact: true})).toBeVisible();
+  await expect(page.getByText('Step 2 of 3', {exact: true})).toBeVisible(); // Session AO (T-014, deliberate): three steps
   const asked: string[] = [];
   page.once('dialog', async dialog => { asked.push(dialog.message()); await dialog.dismiss(); });
   await page.evaluate(() => history.back());
   await expect.poll(() => asked).toEqual(['Discard your unsaved Goal changes?']);
-  await expect(page.getByText('Step 2 of 4', {exact: true})).toBeVisible();
+  await expect(page.getByText('Step 2 of 3', {exact: true})).toBeVisible();
   await page.locator('.wizard-actions').getByRole('button', {name: 'Back', exact: true}).click();
-  await expect(page.getByText('Step 1 of 4', {exact: true})).toBeVisible();
+  await expect(page.getByText('Step 1 of 3', {exact: true})).toBeVisible();
   await expect(page.getByLabel('Goal name', {exact: true})).toHaveValue('Fictional sailing course');
   await expect(page.getByLabel('Target amount', {exact: true})).toHaveValue('800');
   page.once('dialog', dialog => dialog.accept());
@@ -267,8 +268,9 @@ async function fundWithCash(page: Page, amount: string) {
   const sheet = page.getByRole('dialog', {name: 'Fund your Goal'});
   await sheet.getByRole('button', {name: 'Cash', exact: true}).click();
   await sheet.getByLabel('Cash amount', {exact: true}).fill(amount);
-  await sheet.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  // Session AO (DV-010c, deliberate): new cash previews from its own form (two screens, the preview still before any write).
   await sheet.getByRole('button', {name: 'Preview contribution', exact: true}).click();
+  await expect(sheet.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
   await sheet.getByRole('button', {name: 'Confirm & fund Goal', exact: true}).click();
   await expect(sheet).toHaveCount(0);
   await expect(page.getByRole('status').filter({hasText: 'Goal funded.'})).toBeVisible();
@@ -423,8 +425,9 @@ journey('J052', 'Goals with the keyboard only: create, open, contribute', {views
   const sheet = page.getByRole('dialog', {name: 'Fund your Goal'});
   await press(sheet.getByRole('button', {name: 'Cash', exact: true}));
   await type(sheet.getByLabel('Cash amount', {exact: true}), '90');
-  await press(sheet.getByRole('button', {name: 'Continue with this asset', exact: true}));
+  // Session AO (DV-010c, deliberate): new cash previews from its own form (two screens, the preview still before any write).
   await press(sheet.getByRole('button', {name: 'Preview contribution', exact: true}));
+  await expect(sheet.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
   await press(sheet.getByRole('button', {name: 'Confirm & fund Goal', exact: true}));
   await expect(sheet).toHaveCount(0);
   await expect(ring(page.getByTestId('tracked-progress'), name)).toHaveAttribute('aria-valuenow', '10');

@@ -17,6 +17,7 @@ import type {Expect} from '../lib/ai/evals/corpus';
 import {estimateCost} from '../lib/ai/pricing';
 import {AI_USAGE_KEY} from '../lib/ai/store/keys';
 import {readKeyFile} from '../lib/ai/evals/key-file';
+import {openSettings} from './settings-open';
 
 /**
  * Shared helpers of the real-model browser specs (Session X-Local Part 6c): the real panel against a real local model
@@ -93,7 +94,7 @@ export async function seedReal(page: Page, {health = true, log = false}: {health
     const key = readKeyFile();
     await sealKeyInApp(page, key);
   }
-  await page.goto('/app/settings');
+  await openSettings(page);
   const base = defaultAiSettings();
   const ai = PROVIDER === 'anthropic'
     ? {...base, enabled: true, mode: 'api', provider: 'anthropic', model: MODEL, localServer: null, baseUrl: null, rememberKey: true, includeHealth: health, pageShare: {...base.pageShare, health}}

@@ -25,9 +25,12 @@ test('D-203 (P-DVR-34): the habit ⋯ menu names the habit once, not on every it
   await emptyDevice(page);
   const card = await createHabit(page, 'Fictional evening walk around the park');
   await card.getByRole('button', {name: 'Options for Fictional evening walk around the park'}).click();
-  const menu = page.getByRole('group', {name: 'Fictional evening walk around the park options'});
-  await expect(menu.getByRole('button', {name: 'Add Fictional evening walk around the park check-in to Today'})).toHaveText('Add check-in to Today');
-  await expect(menu.getByRole('button', {name: 'Add Fictional evening walk around the park streak to Today'})).toHaveText('Add streak to Today');
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  const menu = page.getByRole('menu', {name: 'Fictional evening walk around the park options'});
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(menu.getByRole('menuitem', {name: 'Add Fictional evening walk around the park check-in to Today'})).toHaveText('Add check-in to Today');
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(menu.getByRole('menuitem', {name: 'Add Fictional evening walk around the park streak to Today'})).toHaveText('Add streak to Today');
 });
 
 test('GAP-085 (P-PR-48): each habit has its own page with its history, consistency and actions', async ({page}) => {
@@ -36,7 +39,8 @@ test('GAP-085 (P-PR-48): each habit has its own page with its history, consisten
   const card = await createHabit(page, 'Fictional read');
   await createHabit(page, 'Fictional walk');
   await card.getByRole('button', {name: 'Options for Fictional read'}).click();
-  await page.getByRole('link', {name: 'Open its own page', exact: true}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await page.getByRole('menuitem', {name: 'Open its own page', exact: true}).click();
   await expect(page).toHaveURL(/\/app\/habits\?habit=/);
   await expect(page.getByRole('group', {name: 'One habit'}).getByRole('heading', {name: 'Fictional read'})).toBeVisible();
   await expect(page.getByRole('article', {name: 'Fictional walk'})).toHaveCount(0);

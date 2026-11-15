@@ -41,7 +41,11 @@ overrides:
   # tooling) pins glob to exactly 10.3.3; no 10.3.x or 10.4.x fix exists, 10.5.0
   # is the first fixed release (same major). Remove once @node-minify/core pins
   # >=10.5.0.
-  "@node-minify/core>glob": 10.5.0
+  # Session AN Part 2 (owner-approved option 2 of docs/dependencies/AL_REVIEW.md;
+  # GHSA-3g3m-2fjr-6pw4, moderate, glob >=9.0.0 <=14.0.1): raised from 10.5.0 to
+  # the first fixed major, see docs/dependencies/AN_REVIEW.md. Remove once
+  # @opennextjs/aws's @node-minify/core resolves glob >=14.0.2 (or drops glob).
+  "@node-minify/core>glob": ^14.0.2
   # Session AH Part 1, audit fix (GHSA-27r3-jxmh-p828, high): express 5.2.1
   # (through @opennextjs/aws, build and local tooling) declares body-parser
   # ^2.2.1 and the lock holds 2.3.0; no 2.3.x fix exists, 2.4.0 is the first
@@ -60,3 +64,13 @@ overrides:
   # the lock holds 6.16.0; 6.16.1 is the first fixed patch and is already in the lock
   # (body-parser). Remove once the lock resolves express's qs >=6.16.1 without it.
   "express>qs": 6.16.1
+  # Session AN Part 2 (owner-approved option 2 of docs/dependencies/AL_REVIEW.md;
+  # build and lint tooling only, never in the Worker or the browser; proof in
+  # docs/dependencies/AN_REVIEW.md): GHSA-3g3m-2fjr-6pw4 (moderate): the newest
+  # @opennextjs/cloudflare (1.20.17) still declares glob ^13.0.6, fixed in
+  # 14.0.2. GHSA-g3hv-75wg-m249 (moderate): the newest
+  # @typescript-eslint/typescript-estree (8.72.2) still declares minimatch
+  # ^10.2.2, fixed in 11.0.1 (glob 14 already declares minimatch ^11). Remove
+  # each once upstream resolves the fixed major without it.
+  "@opennextjs/cloudflare>glob": ^14.0.2
+  "@typescript-eslint/typescript-estree>minimatch": ^11.0.1

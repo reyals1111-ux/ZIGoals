@@ -5,6 +5,7 @@ import {marketQuoteSchema,quoteIsStale,quoteValue,quoteMatchesPosition,type Mark
 import {marketAssetRefSchema} from './market-assets';
 import {timeZoneSchema} from './time-zone-schema';
 import {accountsSchema} from './accounts/schema';
+import {TEXT_LIMITS} from './limits/text';
 export const PLATFORM_KEY = 'zigoals:platform:v1';
 export const units = z.string().regex(/^(0|[1-9]\d*)$/).max(78);
 const id = z.string().min(1).max(250);
@@ -91,7 +92,7 @@ export const platformV3Schema=platformBase;
  * device-only key `zigoals:health-goals:v1`; once every device reads finance v4 they can move here unchanged.
  * Progress is never stored: it is computed from the Health records.
  */
-export const healthGoalSchema=z.object({version:z.literal(1),id:z.uuid(),name:z.string().trim().min(1).max(100),measure:z.enum(['weight','steps','water','exercise','activeMinutes']),direction:z.enum(['down','up','at-least']),
+export const healthGoalSchema=z.object({version:z.literal(1),id:z.uuid(),name:z.string().trim().min(1).max(TEXT_LIMITS.healthGoalName),measure:z.enum(['weight','steps','water','exercise','activeMinutes']),direction:z.enum(['down','up','at-least']),
  target:z.object({value:units,decimals}).strict(),unit:z.string().min(1).max(24),window:z.union([z.object({kind:z.literal('by'),date}).strict(),z.object({kind:z.literal('rolling'),weeks:z.number().int().min(1).max(104)}).strict()]),
  exerciseId:z.string().max(100).optional(),status:z.enum(['active','done','closed']),notes:z.string().max(2000).optional(),createdAt:at,updatedAt:at}).strict();
 export type HealthGoal=z.infer<typeof healthGoalSchema>;

@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {openHabitDetails} from './ab-shell';
 import {HABITS_KEY, type HabitData} from '../lib/habits';
 import {isPhone} from './phone-nav';
+import {openSettings} from './settings-open';
 
 // H1 (Session P): planned skips and vacation days; a skipped day never breaks a streak and keeps reminders quiet.
 test.use({timezoneId: 'Europe/Brussels'});
@@ -43,7 +44,7 @@ test('plan a skip for tomorrow, see it in the list and the calendar, then remove
 });
 
 test('Showcase: the Exercise card lists the fictional planned skip and the Walk streak counts its logged days only', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/habits');

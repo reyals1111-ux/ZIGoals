@@ -2,6 +2,7 @@ import {expect, test, type Page, type Route} from '@playwright/test';
 import {createHabit, emptyHabitData} from '../lib/habits';
 import {presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
+import {openSettings} from './settings-open';
 
 // Session W Part 14: Chess, the first skill. chess.com and Lichess are MOCKED with answers shaped like their documented
 // ones (docs/product/CHESS.md); fictional usernames; no request reaches either site. The clock is fixed.
@@ -68,7 +69,7 @@ test('Settings → Chess saves the usernames; the page asks each site one reques
   const seen: Seen[] = [];
   await mockSites(page, seen);
   await seed(page, {[SETTINGS]: settings()});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const card = page.getByRole('region', {name: 'Chess', exact: true});
   await card.getByLabel('chess.com username (optional)').fill('Fictional_Player');
   await card.getByLabel('Lichess username (optional)').fill('fictional-li');
@@ -175,7 +176,7 @@ test('Showcase: fictional ratings and games, and no request to either site', asy
   page.on('request', r => { const u = new URL(r.url()); if (u.hostname !== '127.0.0.1' && u.protocol.startsWith('http')) outside.push(u.origin); });
   await page.clock.install({time: new Date(NOW)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/chess');

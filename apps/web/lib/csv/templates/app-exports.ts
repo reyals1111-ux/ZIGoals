@@ -12,10 +12,14 @@ import type {DateFormat} from '../dates';
  * - Monarch: Date, Merchant, Category, Account, Original Statement, Notes, Amount, Tags; year-month-day dates, spending as a
  *   negative amount.
  * A YNAB register (Outflow and Inflow) is named and pointed to Settings → "Bring your history with you", which reads YNAB
- * with its own categories (lib/import/switch/ynab.ts). Copilot Money is not here: how its export signs spending is not
- * published, and a wrong guess would turn every expense into income.
+ * with its own categories (lib/import/switch/ynab.ts).
+ * Session AO (C-DVG-51): Copilot Money: date, name, amount, status, category, parent category, excluded, tags, type,
+ * account, account mask, note, recurring (lower-case names); year-month-day dates; spending written as a positive amount
+ * and income or a refund with a minus sign (the opposite of Monarch), so the preset says `positiveIsOut` and the preview
+ * shows every row's direction before anything is added. Its type column (regular, income, internal transfer) is not used
+ * as the direction: "regular" says neither in nor out.
  */
-export type MoneyAppExport = {id: 'mint' | 'monarch' | 'ynab'; label: string; note: string; mapping: Partial<Record<string, number>>; dateFormat?: DateFormat};
+export type MoneyAppExport = {id: 'mint' | 'monarch' | 'ynab' | 'copilot'; label: string; note: string; mapping: Partial<Record<string, number>>; dateFormat?: DateFormat; positiveIsOut?: boolean};
 const find = (header: readonly string[], ...names: string[]) => { const wanted = names.map(normalizeHeader); const i = header.findIndex(h => wanted.includes(normalizeHeader(h))); return i < 0 ? undefined : i; };
 const has = (header: readonly string[], ...names: string[]) => names.every(name => find(header, name) !== undefined);
 const clean = (mapping: Record<string, number | undefined>) => Object.fromEntries(Object.entries(mapping).filter(([, v]) => v !== undefined)) as Partial<Record<string, number>>;
@@ -28,5 +32,8 @@ export function detectMoneyAppExport(header: readonly string[]): MoneyAppExport 
   if (has(header, 'Date', 'Merchant', 'Original Statement', 'Amount')) return {id: 'monarch', label: 'Monarch', dateFormat: 'iso', mapping: clean({
     date: find(header, 'Date'), payee: find(header, 'Merchant'), amount: find(header, 'Amount'), category: find(header, 'Category'), note: find(header, 'Notes'),
   }), note: 'This looks like a Monarch export. Its columns are matched by their own names: a minus sign is money out, as Monarch writes spending. Check them before you go on.'};
+  if (has(header, 'date', 'name', 'amount', 'parent category', 'excluded', 'account mask')) return {id: 'copilot', label: 'Copilot', dateFormat: 'iso', positiveIsOut: true, mapping: clean({
+    date: find(header, 'date'), payee: find(header, 'name'), amount: find(header, 'amount'), category: find(header, 'category'), note: find(header, 'note'),
+  }), note: 'This looks like a Copilot export. Its columns are matched by their own names: a positive amount is money out and a minus sign is money in, as Copilot writes them. Check them and the preview before you go on.'};
   return null;
 }

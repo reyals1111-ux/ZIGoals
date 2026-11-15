@@ -7,7 +7,7 @@
 // Goal. Against the build before the fix every variant reports "Conflicting financial changes".
 import {test,expect} from 'vitest';
 import {BROWSER,accountUi,anyCodeProvider,launchChrome,privateWorkers,reviewOrigin,routeAccount} from './stage8-rehearsal/harness.mjs';
-import {typeGoalName} from './goal-name.mjs';
+import {continueToGoalReview,typeGoalName} from './goal-name.mjs';
 
 /** The head (catalog) record id (apps/web/lib/vault/cloud-sync.ts). */
 const HEAD='00000000-0000-4000-8000-000000000001';
@@ -15,7 +15,7 @@ async function createValueGoal(page,ui,name){
  await ui.go('Goals');await page.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();
  await typeGoalName(page,name);await page.getByRole('radio',{name:'Save an amount',exact:true}).check()/* Session AK (ADR-036, deliberate): R5 9ccb860a names the kinds in plain words until the chain is chosen */;
  await page.getByLabel('Target amount',{exact:true}).fill('1000');
- for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue →',exact:true}).click();
+ /* Session AO (T-014, deliberate): three steps; Continue to the review, checked to be the last step */await continueToGoalReview(page);
  await page.getByRole('button',{name:'Create goal',exact:true}).click();
  // Session AH: a stall says where the page was and what it said (CI runs 1212 and 1215 stalled here once each).
  await page.getByTestId('tracked-progress').waitFor().catch(async e=>{const said=await page.locator('[role=alert],[role=status]').allInnerTexts().catch(()=>[]);throw Error(`${e.message}\nat ${page.url()}; said: ${said.join(' | ').slice(0,600)}`);});

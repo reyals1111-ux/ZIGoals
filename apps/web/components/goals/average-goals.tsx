@@ -24,6 +24,7 @@ import './goals.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 import '../skeleton/zg-skeleton.css';
 import {useDefaultCurrency} from '../../lib/default-currency';
+import {TEXT_LIMITS} from '../../lib/limits/text';
 // Session AK (B3, lane B): the notes that link to this goal ([[name]]), their own chunk.
 const NoteBacklinks = lazy(() => import('../notes/note-backlinks'));
 
@@ -80,7 +81,7 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
   }
   return <form className="panel average-goal-form" onSubmit={save} aria-labelledby={`${id}-title`}>
     <SectionHeading id={`${id}-title`} pillar="goals" eyebrow="Keep it steady" title="Keep an average" lede="A rolling average over 7, 14 or 30 days, from Health where it already records the measure, or from your own entries." />
-    <label className="field"><span>Name</span><input value={name} maxLength={100} onChange={e => setName(e.target.value)} placeholder="Sleep 7 hours a night" /></label>
+    <label className="field"><span>Name</span><input value={name} maxLength={TEXT_LIMITS.averageGoalName} onChange={e => setName(e.target.value)} placeholder="Sleep 7 hours a night" /></label>
     <label className="field"><span>Measure</span><select value={metric} onChange={e => { const m = e.target.value as AverageMetric; setMetric(m); setUnit(AVERAGE_METRICS[m].unit); }}>{(Object.keys(AVERAGE_METRICS) as AverageMetric[]).map(m => <option key={m} value={m}>{AVERAGE_METRICS[m].label}{AVERAGE_METRICS[m].source === 'health' ? ' (from Health)' : ''}</option>)}</select></label>
     <div className="average-goal-row">
       <label className="field"><span>Keep it</span><select value={direction} onChange={e => setDirection(e.target.value as 'at-least' | 'at-most')}><option value="at-least">At least</option><option value="at-most">At most</option></select></label>

@@ -1,6 +1,7 @@
 import {afterEach, describe, expect, test} from 'vitest';
 import {emptyMeditation, meditationRunSchema, meditationSchema, type Meditation} from './schema';
-import {bellTimes, clockText, elapsedMs, endedSession, isDone, pauseRun, remainingMs, resumeRun, sessionFrom, startRun, type Run} from './timer';
+import {TIMER_MINIMUM_MS} from '../health-timer-rules';
+import {customMinutesIssue, bellTimes, clockText, elapsedMs, endedSession, isDone, pauseRun, remainingMs, resumeRun, sessionFrom, startRun, type Run} from './timer';
 import {cycleSeconds, phaseAnnouncement, phaseAt} from './breathing';
 import {BELLS, audioReady, peakGain, resetAudioForTests, ring, strike, wakeAudio, type AudioLike} from './bells';
 import {daysInARow, meditationSummary, minutesOn, minutesText, sessionDay, weekStart, weeklyBars} from './stats';
@@ -235,5 +236,15 @@ describe('Showcase meditation', () => {
     expect(s.sessions.filter(x => x.note).map(x => x.note)).toEqual(['SHOWCASE DATA · fictional session']);
     expect(s.goal?.minutesPerWeek).toBe(60);
     expect(s.bells).toMatchObject({sound: 'bowl', volume: 60});
+  });
+});
+
+// Session AO (PR-018): the custom length says why it is refused, at the field: under the one timer minimum, that minimum.
+describe('customMinutesIssue (PR-018)', () => {
+  test('a length under a minute names the one timer minimum; too long names the most; anything else the range', () => {
+    expect(TIMER_MINIMUM_MS.meditation).toBe(60_000);
+    for (const short of ['0', '0.3', '0,5']) expect(customMinutesIssue(short)).toBe('A session lasts at least 1 minute: a timer stopped within its first minute saves nothing. Enter whole minutes from 1 to 240.');
+    for (const long of ['241', '1000']) expect(customMinutesIssue(long)).toBe('A session lasts at most 240 minutes. Enter whole minutes from 1 to 240.');
+    for (const other of ['', 'ten', '2.5', '-3']) expect(customMinutesIssue(other)).toBe('Enter whole minutes from 1 to 240.');
   });
 });

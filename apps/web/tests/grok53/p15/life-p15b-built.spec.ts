@@ -10,7 +10,7 @@ import {openModule, project, seedGoals} from '../goals/goal-fixtures';
 test.use({timezoneId: 'Europe/Brussels', locale: 'en-GB', viewport: {width: 1280, height: 800}});
 async function showcase(page: Page) {
   await offline(page);
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
   await page.reload(); await hydrated(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();

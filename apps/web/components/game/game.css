@@ -177,6 +177,9 @@ label.game-setting-row { display: flex; flex-direction: row; align-items: flex-s
 label.game-setting-row > input { display: inline-block; }
 /* Session AL fourth pass (DV-118, G-031): a celebration found on arrival sits in a corner, never over the page. */
 .celebration-quiet { position: fixed; z-index: 70; right: 24px; bottom: 24px; width: min(340px, calc(100vw - 32px)); }
+/* Session AP (CI 1706, earn-dock:36/:71): on a computer the quiet card sat on the right-edge launcher column (ZIGi, the
+   Earn dock, music, the Checklist) and took their clicks. It now sits beside that column, never over it. */
+@media (min-width: 901px) { .celebration-quiet { right: calc(max(20px, env(safe-area-inset-right, 0px)) + var(--zigi-circle, 56px) + 20px); } }
 .celebration-quiet .celebration-card { width: 100%; gap: 6px; padding: 18px 18px 16px; border-radius: 22px; }
 .celebration-quiet .celebration-symbol { width: 52px; height: 52px; font-size: 26px; }
 .celebration-quiet .celebration-card h2 { font-size: 22px; }
@@ -197,3 +200,5 @@ label.game-setting-row > input { display: inline-block; }
 /* Session AL fifth pass (DV-045e): on a phone the row is one line that scrolls sideways (it wrapped to three), the page itself never. */
 @media (max-width: 640px) { .journey-jump ul { flex-wrap: nowrap; overflow-x: auto; padding: 2px; scrollbar-width: none; } .journey-jump li { flex: none; } }
 .journey-page :is(#universe, #rewards-shelf, [id^="journey-"][id$="-title"]) { scroll-margin-top: 88px; }
+/* Session AO (DV-045e): a folded row beside an open section keeps its own height, never stretched to the section's. */
+.journey-pair > .phone-fold { align-content: start; }

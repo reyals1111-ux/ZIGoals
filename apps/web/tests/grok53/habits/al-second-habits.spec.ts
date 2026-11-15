@@ -15,7 +15,8 @@ test.beforeEach(async ({page}) => { await page.clock.install({time: new Date('20
 test('DV-187/DV-186a: delete for good matches any letter case; the toast Undo restores the stored habit', async ({page}) => {
   const card = await createHabit(page, 'T9 Weekly run');
   await card.getByRole('button', {name: 'Options for T9 Weekly run'}).click();
-  await card.getByRole('group', {name: 'T9 Weekly run options'}).getByRole('button', {name: 'Archive habit…'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await card.getByRole('menu', {name: 'T9 Weekly run options'}).getByRole('menuitem', {name: 'Archive habit…'}).click();
   await expect(card.getByRole('alertdialog')).toContainText('you can restore it later, or delete it for good from Archived.');
   await card.getByRole('alertdialog').getByRole('button', {name: 'Archive habit', exact: true}).click();
   // Fix-up FX-L3: with nothing recorded today the archive starts today, so the habit leaves the Today list at once (by

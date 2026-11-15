@@ -1,6 +1,6 @@
 "use client";
 import { PlanSkip } from "./plan-skip";
-import { Suspense, lazy, useState, type FormEvent } from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type FormEvent } from "react";
 import {moveHabitStart} from "../../lib/habit-actions";
 import { habitDay, habitRuleOn, habitTargetPeriod, latestHabitRule, measurementUnit, scheduleLabel, type Habit } from "../../lib/habits";
 import { addLocalDays, localWeekday } from "../../lib/local-date";
@@ -12,7 +12,7 @@ import { unitFor } from "../../lib/plural";
 import { storageMessageOr } from "../../lib/storage-error-copy";
 import {markDayWithUndo} from './skip-undo';
 import {plainErrorMessage} from "../../lib/plain-error";
-import {DAY_MARK, longDate, moveMonth, plain, statusLabel} from './habit-card-words';
+import {DAY_MARK, askedHistoryDay, keepHistoryDay, longDate, takeHistoryScroll, moveMonth, plain, statusLabel} from './habit-card-words';
 
 /**
  * CI14 (page weights; budgets are never raised): a card's "History & reflection" (the month calendar, the day editor,
@@ -32,7 +32,12 @@ function StartEarlier({ habit, store }: { habit: Habit; store: HabitCardStore })
   </form>;
 }
 export function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore }) {
-  const [month, setMonth] = useState(store.today.slice(0, 7)); const [selectedDate, setSelectedDate] = useState(store.today); const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); const [error, setError] = useState("");
+  // Session AO (CO4): a link with a day (Today's week grid, Perfect days) opens History on that day's check-in.
+  const [asked] = useState(() => askedHistoryDay(habit.id, habit.startDate, store.today));
+  const [month, setMonth] = useState((asked ?? store.today).slice(0, 7)); const [selectedDate, setSelectedDate] = useState(asked ?? store.today);
+  const editorRef = useRef<HTMLFormElement>(null);
+  useEffect(() => { if (asked && takeHistoryScroll()) editorRef.current?.scrollIntoView({ block: "center" }); }, [asked]);
+  const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); const [error, setError] = useState("");
   const first = `${month}-01`; const gridStart = addLocalDays(first, -((localWeekday(first) + 6) % 7)); const day = habitDay(habit, selectedDate, store.today); const rule = habitRuleOn(habit, selectedDate) ?? latestHabitRule(habit);
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = new FormData(event.currentTarget); const mood = String(form.get("mood")) as "energized" | "good" | "neutral" | "difficult" | "calm" | "";
@@ -40,7 +45,7 @@ export function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardS
     setBusy(true); setMessage(""); setError(""); try { await store.setCount(habit.id, selectedDate, count, String(form.get("note")), mood || undefined); setMessage("Day saved."); } catch (error) { setError(storageMessageOr(error, "This day could not be saved. Choose a scheduled active day up to today.")); } finally { setBusy(false); }
   }
   async function mark(status: "skipped" | "failed") { setBusy(true); setMessage(""); setError(""); try { await markDayWithUndo(store.update, habit, selectedDate, store.today, status, day.note); /* Session AL (P-NB-26; PR-044): the toast offers Undo */ setMessage(status === "skipped" ? "Day skipped." : "Day marked failed."); } catch (error) { setError(storageMessageOr(error, "This day could not be changed.")); } finally { setBusy(false); } }
-  function chooseDate(date: string) { if (!date) return; setSelectedDate(date); setMonth(date.slice(0, 7)); setMessage(""); setError(""); }
+  function chooseDate(date: string) { if (!date) return; keepHistoryDay(habit.id, date); setSelectedDate(date); setMonth(date.slice(0, 7)); setMessage(""); setError(""); }
   return <div className="habit-history">
     <div className="habit-calendar-heading"><button className="quiet" aria-label={`Previous month for ${habit.title}`} disabled={month <= habit.startDate.slice(0, 7)} onClick={() => setMonth(moveMonth(month, -1))}>←</button><strong>{formatMonth(first)}</strong><button className="quiet" aria-label={`Next month for ${habit.title}`} disabled={month >= store.today.slice(0, 7)} onClick={() => setMonth(moveMonth(month, 1))}>→</button></div>
     <div className="habit-calendar" role="group" aria-label={`${habit.title} completion calendar`}>{["M", "T", "W", "T", "F", "S", "S"].map((label, index) => <small aria-hidden="true" key={`label-${index}`}>{label}</small>)}{Array.from({ length: 42 }, (_, index) => {
@@ -54,7 +59,7 @@ export function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardS
     <p className="fine habit-streak-legend">Streak: each ✓ adds a day; ○ and ◌ are rest days that keep it; × ends it. A freeze (Journey) can turn one missed day of the last week into a rest day.</p>
     <StartEarlier habit={habit} store={store} />
     <Suspense fallback={null}><Reflections habit={habit} today={store.today} /></Suspense>
-    <form onSubmit={save} className="habit-day-editor" key={`${selectedDate}-${day.count}-${day.note}-${day.mood ?? ""}`}>
+    <form ref={editorRef} onSubmit={save} className="habit-day-editor" key={`${selectedDate}-${day.count}-${day.note}-${day.mood ?? ""}`}>
       <label className="field">Day to review<input type="date" required min={habit.startDate} max={store.today} value={selectedDate} onChange={(event) => chooseDate(event.target.value)} /></label>
       <p className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]} · Target {plain(day.target)} {unitFor(day.target, measurementUnit(rule))}</p>
       <fieldset className="habit-form-fields" disabled={busy || !day.scheduled || selectedDate > store.today}>

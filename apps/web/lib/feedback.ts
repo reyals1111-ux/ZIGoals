@@ -25,6 +25,11 @@ export type FeedbackEnvironment = {
   motionOff: boolean;
   installed: boolean;
   timeZone?: string;
+  /** Session AP (friends Alpha): the build, the theme and the screen, each a coarse, non-identifying line. */
+  appVersion?: string;
+  theme?: 'nebula' | 'light' | 'dark';
+  screenWidth?: number;
+  screenHeight?: number;
 };
 
 const major = (v: string | undefined) => v?.match(/^\d+/)?.[0];
@@ -57,15 +62,20 @@ export function deviceDetails(env: FeedbackEnvironment): string {
     `Motion: ${env.motionOff ? 'Off in ZIGoals' : 'follows the device'}; the device asks for reduced motion: ${env.reducedMotion ? 'yes' : 'no'}`,
     `Installed app: ${env.installed ? 'yes' : 'no, in a browser tab'}`,
     `Time zone: ${env.timeZone || 'unknown'}`,
+    ...(env.appVersion ? [`App: ${env.appVersion}`] : []),
+    ...(env.theme ? [`Theme: ${env.theme[0]!.toUpperCase()}${env.theme.slice(1)}`] : []),
+    ...(env.screenWidth && env.screenHeight ? [`Screen: ${Math.round(env.screenWidth)} × ${Math.round(env.screenHeight)} px`] : []),
   ].join('\n');
 }
+/** The theme on screen now, from the page itself (no record read). */
+function themeNow(): FeedbackEnvironment['theme'] { const t = document.documentElement.dataset.theme; return t === 'light' || t === 'dark' ? t : 'nebula'; }
 /** This browser's environment, read once when the person asks for the details. Reads only, never writes. */
 export function readFeedbackEnvironment(motionOff: boolean): FeedbackEnvironment {
   const nav = window.navigator as Navigator & {userAgentData?: {brands?: {brand: string; version: string}[]; platform?: string}};
   let reducedMotion = false, timeZone: string | undefined;
   try { reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { /* no media queries */ }
   try { timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { /* no Intl time zones */ }
-  return {userAgent: nav.userAgent, brands: nav.userAgentData?.brands, platform: nav.userAgentData?.platform, width: window.innerWidth, height: window.innerHeight, pixelRatio: window.devicePixelRatio || 1, reducedMotion, motionOff, installed: currentInstallContext() === 'installed', timeZone};
+  return {userAgent: nav.userAgent, brands: nav.userAgentData?.brands, platform: nav.userAgentData?.platform, width: window.innerWidth, height: window.innerHeight, pixelRatio: window.devicePixelRatio || 1, reducedMotion, motionOff, installed: currentInstallContext() === 'installed', timeZone, appVersion: APP_VERSION_LABEL, theme: themeNow(), screenWidth: window.screen?.width, screenHeight: window.screen?.height};
 }
 /** The mail link: a short template, the build, and the person's own details block when they chose to add it. */
 export function feedbackHref(version: string, details: string | null): string {

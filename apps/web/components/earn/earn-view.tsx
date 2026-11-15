@@ -27,7 +27,6 @@ import {useEarnLive, useMinuteClock} from './use-earn-live';
 import {ValdoraSection} from './valdora-section';
 import {ValidatorsSection} from './validators-section';
 import {VaultsSection} from './vaults-section';
-import {GoalVaultsSection, GovernanceSection, StablecoinsSection} from './wider-sections';
 import {SourceLine, Unavailable} from './live-figure';
 import {SectionBoundary} from './section-boundary';
 import {PhoneFold} from '../phone/phone-fold';
@@ -45,7 +44,16 @@ const StakingClarity = lazy(() => import('../zigchain-eco/staking-clarity'));
  */
 const Summary = memo(LiveSummary), StartHere = memo(StartHereSection), Native = memo(NativeSection), Valdora = memo(ValdoraSection);
 const Vaults = memo(VaultsSection), Oroswap = memo(OroswapSection), Nawa = memo(NawaSection), Defa = memo(DefaSection), Permapod = memo(PermapodSection);
-const Zignaly = memo(ZignalySection), Governance = memo(GovernanceSection), GoalVaults = memo(GoalVaultsSection), Stablecoins = memo(StablecoinsSection);
+// Session AP (route weights): the three wider sections near the end of the page (governance, goal-linked stake,
+// stablecoins) load after the page shows; their headings and anchors are on the page at once (SectionBoundary).
+const wider = () => import('./wider-sections');
+const GovernanceLazy = lazy(() => wider().then(m => ({default: m.GovernanceSection}))), GoalVaultsLazy = lazy(() => wider().then(m => ({default: m.GoalVaultsSection}))), StablecoinsLazy = lazy(() => wider().then(m => ({default: m.StablecoinsSection})));
+// Until a section arrives its anchor holds its place, so an address such as /app/earn#governance lands on it at once.
+const Holding = ({id}: {id: string}) => <div id={id} className="panel earn-option earn-option-loading" aria-busy="true"/>;
+function GovernanceSlot() { return <Suspense fallback={<Holding id="governance"/>}><GovernanceLazy/></Suspense>; }
+function GoalVaultsSlot({now}: {now: number}) { return <Suspense fallback={<Holding id="goal-vaults"/>}><GoalVaultsLazy now={now}/></Suspense>; }
+function StablecoinsSlot(p: Parameters<typeof StablecoinsLazy>[0]) { return <Suspense fallback={<Holding id="stablecoins"/>}><StablecoinsLazy {...p}/></Suspense>; }
+const Zignaly = memo(ZignalySection), Governance = memo(GovernanceSlot), GoalVaults = memo(GoalVaultsSlot), Stablecoins = memo(StablecoinsSlot);
 const Validators = memo(ValidatorsSection), Academy = memo(AcademySection), Safety = memo(SafetyBlock), Compare = memo(CompareTable);
 
 /**
@@ -92,10 +100,13 @@ export function EarnView() {
             the one topic strip keeps its list); on a phone it folds to one row, as the wider sections do (open, its eight
             cards are about 3,000 px at 375). */}
         <PhoneFold label="The ways to earn, compared"><SectionBoundary id="compare" title="The ways to earn, compared"><Compare valdora={valdora} vaults={vaults}/></SectionBoundary></PhoneFold>
-        <SectionBoundary id="native-staking" title="Stake ZIG with a validator"><Native chain={chain} validators={validators} measured={measured} now={now} reads={reads}/></SectionBoundary>
-        <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><Valdora valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary>
-        <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><Vaults vaults={vaults} valdora={valdora} now={now} shares={shares}/></SectionBoundary>
-        <SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><Oroswap oroswap={oroswap} llama={llama} now={now} shares={shares}/></SectionBoundary>
+        {/* Session AO (N-BN-05): Earn was 15,769 px at 375 with the Showcase (about 19 screens). On a phone the four ways
+            to earn below Start here, the validator list and the Academy fold to one row each too, named as their headings;
+            the topic strip, Start here's links and any #hash open the one they name. Wider screens show them as before. */}
+        <PhoneFold label="Stake ZIG with a validator"><SectionBoundary id="native-staking" title="Stake ZIG with a validator"><Native chain={chain} validators={validators} measured={measured} now={now} reads={reads}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Stake and keep a token: stZIG"><SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><Valdora valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Lend USDC through a vault"><SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><Vaults vaults={vaults} valdora={valdora} now={now} shares={shares}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Swap, or earn swap fees in a pool"><SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><Oroswap oroswap={oroswap} llama={llama} now={now} shares={shares}/></SectionBoundary></PhoneFold>
         {/* Session AL sweep 4 (N-BN-05, D-005): on a phone the wider ways to earn fold to one row each (components/phone/
             phone-fold.tsx), so the page is shorter to scan; the index's links and any #hash open the one they point to.
             Wider screens show them as before. */}
@@ -106,8 +117,8 @@ export function EarnView() {
         <PhoneFold label="Have a say: governance"><SectionBoundary id="governance" title="Have a say: governance"><Governance/></SectionBoundary></PhoneFold>
         <PhoneFold label="Link stake you already hold to a goal"><SectionBoundary id="goal-vaults" title="Link stake you already hold to a goal"><GoalVaults now={now}/></SectionBoundary></PhoneFold>
         <PhoneFold label="Stablecoins on ZIGChain: what exists"><SectionBoundary id="stablecoins" title="Stablecoins on ZIGChain: what exists"><Stablecoins oroswap={oroswap} vaults={vaults} now={now}/></SectionBoundary></PhoneFold>
-        <SectionBoundary id="validators" title="Choose a validator from facts"><Validators validators={validators} now={now}/></SectionBoundary>
-        <SectionBoundary id="academy" title="Earn Academy"><Academy/></SectionBoundary>
+        <PhoneFold label="Choose a validator from facts"><SectionBoundary id="validators" title="Choose a validator from facts"><Validators validators={validators} now={now}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="Earn Academy: learn it before you earn it"><SectionBoundary id="academy" title="Earn Academy"><Academy/></SectionBoundary></PhoneFold>
         <section id="calculator" className="earn-calculator panel" aria-labelledby="calculator-title">
           <SectionHeading id="calculator-title" eyebrow="Planning, not a promise" title="See what a rate could do over time"
             lede="Open the compound interest calculator with today’s native staking rate filled in, as an illustration. Rates move; nothing here is guaranteed."/>

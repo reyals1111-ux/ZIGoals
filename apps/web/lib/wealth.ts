@@ -2,6 +2,7 @@
 import {ASSET_CLASSES,allocate,allocationBalance,goalProgress,positionSync,snapshotIsStale,type AssetClass,type Platform,type Position,type PrivateGoal} from './positions';
 import {isNativeZig,marketQuoteSchema,quoteIsStale,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import {isOwnCountSource} from './goals/goal-units';
+import {shareBasisPoints} from './shares';
 import {marketRequestKey,nativeZigRequest,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from './market-assets';
 /**
  * Session AF Gate C (design critique, money pages 1): the one class map every Wealth view reads. The saved records keep their
@@ -44,10 +45,14 @@ export function goalAssetMix(s:Platform,g:PrivateGoal,now=Date.now(),quotes:read
  if(g.type!=='VALUE')return [];
  const progress=goalProgress(s,g.id,now,quotes),totals=new Map<AssetClass,bigint>();
  for(const b of progress.breakdown){const p=s.positions.find(p=>p.id===b.positionId)!;const c=assetClassOf(p);totals.set(c,(totals.get(c)??0n)+BigInt(b.counted));}
- // Distribute canonical hundredths, so displayed percentages sum exactly to progress.
- let accumulated=0n,previous=0n;
- return ASSET_CLASSES.filter(c=>totals.has(c)).map(c=>{const value=totals.get(c)!;accumulated+=value;const end=accumulated*10000n/BigInt(progress.target);const percent=Number(end-previous)/100;previous=end;return {assetClass:c,value:value.toString(),percent,color:ASSET_COLORS[c]};});
+ // Session AO (L-075): each class's share of the target is rounded, not cut (125 of 300 read 41.66 %): the classes and
+ // what remains share one largest-remainder rounding (lib/shares.ts), so the shown shares add up to exactly 100.00 %.
+ const classes=ASSET_CLASSES.filter(c=>totals.has(c)),target=BigInt(progress.target),counted=classes.reduce((n,c)=>n+totals.get(c)!,0n);
+ const shares=shareBasisPoints([...classes.map(c=>totals.get(c)!),counted<target?target-counted:0n],target);
+ return classes.map((c,i)=>({assetClass:c,value:totals.get(c)!.toString(),percent:shares[i]!/100,color:ASSET_COLORS[c]}));
 }
+/** Session AO (L-075): the share of the target still to go, from the same rounding as the mix (never below 0). */
+export function mixRemainingPercent(mix:readonly AssetMix[]):number{return Math.max(0,10000-mix.reduce((n,m)=>n+Math.round(m.percent*100),0))/100;}
 export function ringSegments(mix:readonly AssetMix[],progressPct:string){
  const total=mix.reduce((n,m)=>n+m.percent,0),filled=Math.max(0,Math.min(100,Number(progressPct)));let offset=0;
  return mix.filter(m=>m.percent>0).map(m=>{const size=total?m.percent/total*filled:0;const segment={...m,size,offset};offset+=size;return segment;});

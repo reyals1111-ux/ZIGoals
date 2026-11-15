@@ -42,3 +42,8 @@
 .spending-actions>button,.spending-form-actions>button,.spending-budget-line>button{min-height:44px}
 .spending-budget-line{margin:0}
 .spending-budget>[role=alert]{grid-column:1 / -1;margin:0}
+/* PR-052: Edit beside Remove on an entry (44 px targets), and the line that names the entry being edited. */
+.spending-entry-actions{display:inline-flex;align-items:center;gap:4px}
+.spending-edit{min-height:44px;min-width:44px}
+.spending-remove{min-width:44px}
+.spending-editing{margin:0;font-size:15px}

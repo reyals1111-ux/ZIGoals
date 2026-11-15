@@ -1,7 +1,9 @@
 import {expect, test, type Page} from '@playwright/test';
 import {emptyDevice, hydrated, open, toast} from '../l3-helpers';
 import {loadShowcase} from '../../ah-helpers';
+import {quietPage} from '../../quiet-page';
 import {project, seedGoals, stored, openModule} from './goal-fixtures';
+import {continueToGoalReview} from '../../goal-name';
 
 // Session AL fourth pass (lane L4): the STILL OPEN and CHANGED rows of GROK53_REPLAY_L4_1.md, through the screens in the
 // bots' conditions (Denver 1920 × 1113 Nebula fresh profile; the Showcase at 1280 × 800 Dark), Europe/Brussels, en-GB.
@@ -116,10 +118,10 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
     await page.getByRole('button', {name: /^Continue/}).first().click();
     const wizard = page.locator('.unified-wizard');
     await expect(wizard).not.toContainText('Count money I already have');
-    await page.getByRole('button', {name: /^Continue/}).first().click();
+    // Session AO (T-014, deliberate): the rhythm is part of the review, so its line and the review's are checked there.
+    await continueToGoalReview(page, 2);
     await expect(wizard).toContainText('only what you add counts toward the target');
     await expect(wizard).not.toContainText('only money you add');
-    await page.getByRole('button', {name: /^Continue/}).first().click();
     await expect(wizard).not.toContainText('BOOKS');
     await page.getByRole('button', {name: 'Create goal', exact: true}).first().click();
     await page.waitForURL('**/app/goals/tracked/**');
@@ -134,6 +136,10 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
     await expect(page.locator('.goal-detail-heading .eyebrow')).toHaveText('Count goal · Your own count');
     await expect(page.locator('main')).not.toContainText(/Market movement can change wealth|From counted wealth/);
     // DV-147: its tally is not offered to a savings goal.
+    // Session AO (DV-010c, local 2-worker run): the Fund sheet closes through a history Back; the next page opens once it
+    // has (ADR-037 lesson: a closing sheet's Back can override the next navigation).
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await quietPage(page);
     await open(page, '/app/goals/new');
     await page.getByLabel('Goal name', {exact: true}).click();
     await page.keyboard.type('Fictional savings', {delay: 20});
@@ -147,7 +153,7 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
   test('G-027/M-046/D-008: a project\'s second step lists its milestones; the steps are named for what they do', async ({page}) => {
     await emptyDevice(page, {theme: 'nebula'});
     await open(page, '/app/goals/new');
-    await expect(page.getByRole('list', {name: 'Goal creation progress'}).getByRole('listitem')).toHaveText([/Your goal$/, /What counts$/, /A rhythm \(optional\)$/, /Review$/]);
+    await expect(page.getByRole('list', {name: 'Goal creation progress'}).getByRole('listitem')).toHaveText([/Your goal$/, /What counts$/, /Review$/]); // Session AO (T-014, deliberate): three steps; the rhythm is part of the review
     await page.getByRole('radio', {name: 'Finish a project', exact: true}).check();
     await page.getByLabel('Goal name', {exact: true}).click();
     await page.keyboard.type('Fictional studio', {delay: 20});
@@ -155,7 +161,8 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
     await page.getByRole('button', {name: /^Continue/}).first().click();
     const wizard = page.locator('.unified-wizard');
     await expect(wizard.locator('.wizard-milestone-list li')).toHaveText(['Plan', 'Build', 'Ship']);
-    await page.getByRole('button', {name: /^Continue/}).first().click();
+    // Session AO (T-014, deliberate): the rhythm is part of the review (closed; its words are still in the page).
+    await continueToGoalReview(page, 2);
     await expect(wizard).not.toContainText(/only money|contribution plan can create/);
   });
 
@@ -184,10 +191,11 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
     const sheet = page.getByRole('dialog');
     await sheet.getByRole('button', {name: 'Cash', exact: true}).click().catch(() => undefined);
     await sheet.getByLabel('Cash amount', {exact: true}).fill('200');
-    await sheet.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+    // Session AO (DV-010c, deliberate): the Cash form previews at once; the amount is asked once and the preview comes before any write.
+    await sheet.getByRole('button', {name: 'Preview contribution', exact: true}).click();
     await expect(sheet.getByLabel(/^Contribution quantity/)).toHaveCount(0);
-    await expect(sheet).toContainText('the amount you entered for this asset');
-    await sheet.getByRole('button', {name: 'Preview contribution'}).click();
+    await expect(sheet.getByText('REVIEW YOUR CONTRIBUTION', {exact: true})).toBeVisible();
+    await expect(sheet.locator('.funding-preview .picker-selected h3')).toHaveText(/^200(\.00)? USD$/);
     await sheet.getByRole('button', {name: 'Confirm & fund Goal'}).click();
     await expect(page.getByTestId('tracked-progress')).toContainText('200');
   });
@@ -195,7 +203,8 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
   test('B-056: the calculator\'s plan comes into the goal\'s review', async ({page}) => {
     await emptyDevice(page, {theme: 'nebula'});
     await open(page, '/app/goals/new?from=calculator&name=Fictional%20growth&target=12000&currency=USD&contribution=600&every=monthly');
-    for (let i = 0; i < 3; i++) await page.getByRole('button', {name: /^Continue/}).first().click();
+    // Session AO (T-014, deliberate): three steps; Continue to the review, which is checked to be the last step.
+    await continueToGoalReview(page);
     await expect(page.locator('.unified-wizard')).toContainText(/Planned contributions.*600/s);
     await expect(page.locator('.unified-wizard')).not.toContainText(/Planned contributions\s*None/);
   });
@@ -210,7 +219,8 @@ test.describe('Denver 1920 Nebula, fresh profile', () => {
     // "Open Goal →" repeats the title link and is not a second stop.
     await expect(card.getByRole('link', {name: 'Open Goal →'})).toHaveAttribute('tabindex', '-1');
     await card.getByRole('button', {name: /^Options for /}).click();
-    await page.getByRole('link', {name: 'Delete…'}).click();
+    // Session AO (DV-040g, deliberate): items are menuitems now
+    await page.getByRole('menuitem', {name: 'Delete…'}).click();
     await page.waitForURL('**/app/goals/tracked/72');
     await expect(page.getByText(/Delete this goal\?/)).toBeVisible();
   });

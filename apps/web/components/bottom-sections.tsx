@@ -5,8 +5,10 @@
 import Link from 'next/link';
 import {useId,useState} from 'react';
 import {usePhoneActive} from './phone/use-phone-layout';
+import {useRovingFocus} from './ui/use-roving-focus';
 import type {LayoutAttrs} from './layout-edit';
 import {weekAcross,weekWealthChange} from '../lib/bottom-week';
+import {habitOnDayWords,habitsOnDay} from '../lib/habits-extras/perfect-days';
 import {wealthHistory} from '../lib/wealth';
 import type {HabitData} from '../lib/habits';
 import type {HealthData} from '../lib/health';
@@ -22,20 +24,34 @@ export function TodayWeek({today,habits,health,platform,financial,...layout}:Lay
  type Row={key:'goalContributions'|'habitCheckins'|'healthRecords';label:string;one:string;tone:string};
  const rows:Row[]=[...(financial?[{key:'goalContributions',label:'Goal contributions',one:'Goal contribution',tone:'goals'} as Row]:[]),{key:'habitCheckins',label:'Habit check-ins',one:'Habit check-in',tone:'habits'},{key:'healthRecords',label:'Health entries',one:'Health entry',tone:'health'}];
  // On a phone the seven-day rows fold into one line of totals (Session G, Part 4); the note below stays in view.
- const phone=usePhoneActive(),[days,setDays]=useState(false),rowsId=useId();
+ const phone=usePhoneActive(),[days,setDays]=useState(false),rowsId=useId(),hintId=useId();
+ // Session AO (CO4, ADR-033 M42 "later"): a Habits cell opens that day's habits, each linking to its own check-in for that
+ // day (Habits' History, with its own rules and Undo). Read only here: nothing is written from this grid.
+ const [habitDay,setHabitDay]=useState<string|null>(null),dayId=useId();
+ const onDay=habitDay?habitsOnDay(habits.habits,habitDay,today):[],dayDue=onDay.filter(h=>h.state!=='rest'),dayRest=onDay.filter(h=>h.state==='rest'&&h.status!=='archived');
+ // Session AO (D-028): the day cells are one Tab stop (a roving tabindex): the arrows move between days, Up and Down between rows.
+ const cells=useRovingFocus<HTMLDivElement>('.bottom-cell-link',{columns:7});
  const totals=rows.map(r=>{const total=week.reduce((n,d)=>n+d[r.key],0);return total?`${formatNumber(total)} ${(total===1?r.one:r.label).toLowerCase()}`:`no ${r.label.toLowerCase()}`;}).join(' · ');
  // Gate C design review (finding 10): the window is named (Today's other "week" cards count other windows) and so is what
  // a habit check-in counts here. Session AH (TR6): one rule everywhere, a scheduled habit day completed.
  const span=week.length?`${formatDate(week[0]!.date,{weekday:true,year:false})} – ${formatDate(week.at(-1)!.date,{weekday:true,year:false})}`:'';
  return <Shell layout={layout} id="bottom-today-week" eyebrow="THE LAST 7 DAYS" title={<>Your week, all in one orbit.</>} lede={`How many records you saved each day${span?`, ${span}`:''} (habit check-ins: habit days completed, as everywhere in the app; Health: meals, water, weight, activity and exercise counters). A dash means nothing was recorded that day.`}>
   {phone&&<p className="bottom-week-totals">Last 7 days: {totals}.</p>}
-  <div className="bottom-rows" id={rowsId} {...(phone&&!days?{'data-phone-collapsed':''}:{})}>{rows.map(r=><div key={r.key} className="bottom-row" data-tone={r.tone} role="group" aria-label={`${r.label}, last 7 days`}><h3><i aria-hidden="true"/>{r.label}</h3><ul>{week.map(d=>{const l=dayLabel(d.date);
-   // Session AI (B3: log from a cell): a Health cell opens that day's diary; a Habits cell opens Habits, where the day is checked in.
-   const href=r.key==='healthRecords'?`/app/health?date=${d.date}`:r.key==='habitCheckins'?'/app/habits':null;
+  <p className="sr-only" id={hintId}>The arrow keys move between the days and the rows.</p>
+  <div className="bottom-rows" id={rowsId} ref={cells} {...(phone&&!days?{'data-phone-collapsed':''}:{})}>{rows.map(r=><div key={r.key} className="bottom-row" data-tone={r.tone} role="group" aria-label={`${r.label}, last 7 days`}><h3><i aria-hidden="true"/>{r.label}</h3><ul>{week.map(d=>{const l=dayLabel(d.date);
+   // Session AI (B3: log from a cell): a Health cell opens that day's diary. Session AO (CO4): a Habits cell opens that day's habits below.
+   const href=r.key==='healthRecords'?`/app/health?date=${d.date}`:null;
    const cell=<><small>{l.weekday} {l.day}</small><Count value={d[r.key]} label={r.label.toLowerCase()}/></>;
-   return <li key={d.date} data-today={d.date===today||undefined}>{href?<Link className="bottom-cell-link" href={href} aria-label={`${r.label}, ${l.weekday} ${l.day}: ${d[r.key]||'none'} — open to log`}>{cell}</Link>:cell}</li>;})}</ul></div>)}
+   const open=habitDay===d.date;
+   return <li key={d.date} data-today={d.date===today||undefined}>{r.key==='habitCheckins'?<button type="button" className="bottom-cell-link" aria-expanded={open} {...(open?{'aria-controls':dayId}:{})} aria-describedby={hintId} aria-label={`${r.label}, ${l.weekday} ${l.day}: ${d[r.key]||'none'} — show that day's habits to log`} onClick={()=>setHabitDay(open?null:d.date)}>{cell}</button>:href?<Link className="bottom-cell-link" href={href} aria-describedby={hintId} aria-label={`${r.label}, ${l.weekday} ${l.day}: ${d[r.key]||'none'} — open to log`}>{cell}</Link>:cell}</li>;})}</ul></div>)}
    {wealth&&<div className="bottom-row" data-tone="wealth" role="group" aria-label={`Tracked wealth change, last 7 days, ${wealth.currency}`}><h3><i aria-hidden="true"/>Wealth change ({wealth.currency})</h3><ul>{week.map((d,i)=>{const l=dayLabel(d.date),c=wealth.changes[i]??null;return <li key={d.date} data-today={d.date===today||undefined}><small>{l.weekday} {l.day}</small>{c===null?<strong className="bottom-none"><span aria-hidden="true">—</span><span className="sr-only">No value recorded</span></strong>:<strong data-sign={c>0?'up':c<0?'down':undefined}>{formatSignedMoney(String(c),wealth.currency)}</strong>}</li>;})}</ul></div>}</div>
+  {habitDay&&<div id={dayId} className="bottom-week-day" role="region" aria-label={`Habits on ${formatDate(habitDay,{weekday:true,year:false})}`}>
+   <h3>Habits on {formatDate(habitDay,{weekday:true,year:false})}{habitDay===today?' · today':''}</h3>
+   {dayDue.length?<ul>{dayDue.map(h=><li key={h.id} data-state={h.state}><span><strong>{h.title}</strong> · {habitOnDayWords(h,habitDay===today)}</span><Link className="text-link" href={`/app/habits?habit=${encodeURIComponent(h.id)}&date=${habitDay}`} aria-label={`${h.state==='done'?'Change the check-in':'Check in'} for ${h.title} on ${formatDate(habitDay,{weekday:true,year:false})}`}>{h.state==='done'?'Change check-in':'Check in'}</Link></li>)}</ul>:<p className="bottom-note">No habit was due that day.</p>}
+   {dayRest.length>0&&<p className="bottom-note">Not counted that day: {dayRest.map(h=>`${h.title} (${habitOnDayWords(h,habitDay===today).toLowerCase()})`).join(', ')}.</p>}
+   <div className="bottom-week-day-actions"><Link className="text-link" href="/app/habits?view=perfect-days">Perfect days on Habits</Link><button type="button" className="quiet" onClick={()=>setHabitDay(null)}>Close</button></div>
+  </div>}
   {phone&&<button type="button" className="secondary phone-show-all" aria-controls={rowsId} aria-expanded={days} onClick={()=>setDays(!days)}>{days?'Hide each day':'Show each day'}</button>}
-  <p className="bottom-note">Counts of saved records on this device’s data. They are not scores and they do not predict anything.</p>
+  <p className="bottom-note">Counts of saved records on this device’s data. They are not scores and they do not predict anything.{wealth?` Wealth change: each day’s last recorded value of your tracked wealth in ${wealth.currency} minus the day before’s, from Wealth’s own history; nothing is converted or projected, and a dash means no value was recorded.`:''}</p>
  </Shell>;
 }

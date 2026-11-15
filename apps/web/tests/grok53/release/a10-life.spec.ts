@@ -104,7 +104,9 @@ test('A10-10: at 768 Settings\' "Fold all" stands beside the section links, over
   await emptyDevice(page, {theme: 'light'});
   await open(page, '/app/settings');
   const index = page.getByRole('navigation', {name: 'Settings sections'});
-  const fold = index.getByRole('button', {name: 'Fold all', exact: true});
+  // Session AP (D-088, deliberate): the button says what it does: "Open all" while a group is folded (a new device opens
+  // with most folded), "Fold all" once all are open; its place beside the links is checked as before.
+  const fold = index.getByRole('button', {name: /^(Open|Fold) all$/});
   await expect(fold).toBeVisible();
   const f = (await fold.boundingBox())!, bar = (await index.boundingBox())!;
   // Every point of the bar from Fold all's left edge to the bar's end is Fold all or the bar itself: no link (or a cut-off

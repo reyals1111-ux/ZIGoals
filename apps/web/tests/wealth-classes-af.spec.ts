@@ -1,4 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openFold} from './phone-nav';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF Gate C (design critique, money pages 1–3): Wealth classes each holding once. The Showcase's Vanguard S&P 500
@@ -9,7 +11,7 @@ import {expect, test, type Page} from '@playwright/test';
  */
 async function showcase(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/wealth');
@@ -30,6 +32,9 @@ test('one class map: the ETF reads ETFs everywhere it is classed, with one share
   await expect(page.locator('.owned-asset-card h3')).toHaveText('Vanguard S&P 500 ETF');
   await chips.getByRole('button', {name: /^All \d+$/}).click();
   // The class cards.
+  // Session AO (RR-16, deliberate): the class view folds by default on a computer; opened from its row first.
+  await openFold(page, 'Your wealth, in perspective');
+  await openFold(page, 'The shape of your wealth');
   const mix = page.getByRole('region', {name: 'Asset mix'});
   await expect(mix.locator('.class-summary').filter({hasText: 'Stocks'})).toContainText('$15,100.00');
   await expect(mix.locator('.class-summary').filter({hasText: 'Stocks'})).toContainText('AAPL · NVDA');
@@ -40,6 +45,7 @@ test('one class map: the ETF reads ETFs everywhere it is classed, with one share
   const legend = await usd.locator('.composition-legend > div').evaluateAll(rows => Object.fromEntries(rows.map(r => [r.querySelector('dt')!.textContent!.trim(), r.querySelector('dd span')!.textContent!.trim()])));
   expect(legend.ETFs).toMatch(/^11\.9\d%$/);
   expect(legend.Stocks).toMatch(/^3\.0\d%$/);
+  await openFold(page, 'Allocation and coverage'); // Session AO (RR-16, deliberate): folded by default on a computer
   const allocation = page.locator('section[aria-labelledby="bottom-wealth-allocation"] .bottom-legend li');
   await expect(allocation.first()).toBeVisible();
   const shares = await allocation.evaluateAll(items => Object.fromEntries(items.map(li => [li.querySelector('span')!.textContent!.trim(), li.querySelector('strong')!.textContent!.trim()])));
@@ -70,6 +76,8 @@ test('plain units: a property and a custom asset in words, and no reference pric
   await expect(camera.locator('.owned-asset-heading p')).toHaveText('Custom');
   await expect(cash.locator('.holding-unit-price')).toHaveCount(0);
   // The class cards name a property or a custom asset, never its stored code.
+  // Session AO (RR-16, deliberate): the class view folds by default on a computer; opened from its row first.
+  await openFold(page, 'Your wealth, in perspective');
   const mix = page.getByRole('region', {name: 'Asset mix'});
   await expect(mix.locator('.class-summary').filter({hasText: 'Property'}).locator('.class-summary-caption')).toHaveText('Riverside apartment');
   await expect(mix.locator('.class-summary').filter({hasText: 'Custom'}).locator('.class-summary-caption')).toHaveText('Collectible camera');

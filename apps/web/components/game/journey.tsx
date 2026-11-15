@@ -16,6 +16,8 @@ import {FocusGarden} from '../universe/focus-garden';
 import {applyFreeze} from '../../lib/game/freeze';
 import {badgesShown, setBadgesShown} from '../../lib/game/schema';
 import {LoadBoundary} from '../load-boundary';
+import {PhoneFold} from '../phone/phone-fold';
+import {DeskFold} from '../phone/desk-fold';
 // Session AK (COMPETITORS item 19, lane X): the opt-in rewards shelf, loaded after the Journey.
 const RewardsShelf = lazy(() => import('../rewards-shelf/rewards-shelf'));
 // Owner follow-up 1 (F5): ZIGoals Wrapped's line on Journey (shown only while Wrapped is available), its own chunk.
@@ -56,9 +58,12 @@ export function JourneyPage() {
     {/* Session AL fourth pass (DV-045e): a long page gets a way around it; each link goes to its section's heading. */}
     {game.loaded && game.enabled && d && <nav className="journey-jump" aria-label="On this page"><ul>{JOURNEY_JUMPS.map(([href, label]) => <li key={href}><a href={href}>{label}</a></li>)}</ul></nav>}
     {/* Session AF (L5b; P9.1, ADR-028 H77): My Universe, the full view, above the game sections — with Gamify on or off. */}
-    <UniverseSection />
+    {/* Session AO (DV-045e): Journey's longer sections fold to a labelled row on every size (a computer remembers the rows
+        the person opened, lib/wealth-folds.ts); "On this page" and every link into a section (#universe, #focus,
+        #rewards-shelf) open it. The hero, the level and today's quests stay open. */}
+    <DeskFold desk="journey:universe" label="My universe"><UniverseSection /></DeskFold>
     {/* Session AJ (item 34, D13): Focus Sessions, with something growing in My Universe while you stay. */}
-    <FocusGarden />
+    <DeskFold desk="journey:focus" label="Focus sessions"><FocusGarden /></DeskFold>
     {!game.loaded ? <p role="status">Loading your journey…</p> : !game.enabled ? <section className="panel journey-off"><p className="eyebrow">Optional</p><h2><NebulaFlow identity="journey-off">The game layer is off.</NebulaFlow></h2><p>Turn it on to see your level, three quests a day and the badge cabinet, all from your own records. Off again whenever you like; nothing is stored but the switch.</p><GameSetting /></section> : d && <>
       <section className="panel journey-level" aria-labelledby="journey-level-title"><div className="journey-orb" aria-hidden="true"/>
         <GlassRing identity="journey-ring" className="journey-ring" arcs={[{key: 'level', end: d.xp.level.share * 100}]} role="img" aria-label={`Level ${d.xp.level.level}, ${d.xp.level.name}: ${d.xp.level.into} of ${d.xp.level.span} XP to level ${d.xp.level.level + 1}`}><strong>{d.xp.level.level}</strong><small>level</small></GlassRing>
@@ -77,32 +82,34 @@ export function JourneyPage() {
           <ul className="journey-challenge-list">{d.challenges.map(c => <li key={c.id}><div><strong>{c.title}</strong><small>{c.thisWeek} this week · {c.lastWeek} last week</small></div><span className={`journey-challenge-mark${c.thisWeek >= c.target ? ' game-quest-done' : ''}`}>{c.thisWeek >= c.target ? '✓' : `${c.thisWeek} / ${c.target}`}</span></li>)}</ul>
           <p className="fine">{keepWords('A week runs Monday to Sunday, and a habit check-in counts once its day is complete. No ranking and no other people: one more than last week is the whole game.')}</p></section>
       </div>
-      <section className="panel journey-badges" aria-labelledby="journey-badges-title"><p className="eyebrow">Earned from your records</p><h2 id="journey-badges-title"><NebulaFlow identity="journey-badges">Badge cabinet</NebulaFlow></h2>
+      <DeskFold desk="journey:badges" label="Badge cabinet" detail={showBadges ? `${formatNumber(d.badges.filter(b => b.earned).length)} of ${formatNumber(d.badges.length)} earned` : 'Badges are off'}><section className="panel journey-badges" aria-labelledby="journey-badges-title"><p className="eyebrow">Earned from your records</p><h2 id="journey-badges-title"><NebulaFlow identity="journey-badges">Badge cabinet</NebulaFlow></h2>
         {/* Session AL fifth pass (DV-045e): the badges earned show; the ones still to earn (most of the cabinet, and the
             page's longest block on a phone) wait in a fold with their count, every one still there and named. */}
         {showBadges ? (() => { const badge = (b: typeof d.badges[number]) => <li key={b.id} data-earned={b.earned || undefined} aria-label={`${b.title}: ${b.earned ? 'earned' : 'not yet'}`}><span className="journey-badge-symbol" aria-hidden="true">{b.symbol}</span><strong>{keepWords(b.title)}</strong><small>{keepWords(b.blurb)}</small></li>;
           const earned = d.badges.filter(b => b.earned), ahead = d.badges.filter(b => !b.earned);
           return <>{earned.length ? <ul className="journey-badge-grid">{earned.map(badge)}</ul> : <p className="fine">No badge yet: your first check-in earns the first.</p>}
             {ahead.length > 0 && <details className="journey-badges-ahead"><summary>Still to earn ({formatNumber(ahead.length)} of {formatNumber(d.badges.length)})</summary><ul className="journey-badge-grid">{ahead.map(badge)}</ul></details>}</>; })() : <p>Badges are off. Turn them on to see the cabinet; the badges you have already earned are there, quietly, with no celebration after the fact.</p>}
-        <label className="game-setting-row"><input type="checkbox" role="switch" aria-label="Badges" aria-checked={showBadges} checked={showBadges} disabled={!game.loaded || game.game.unreadable} onChange={e => toggleBadges(e.target.checked)} /><span><strong>Badges</strong><small>Optional. Off, levels and quests stay; badges leave the cabinet, the path and the celebrations.</small></span></label></section>
+        <label className="game-setting-row"><input type="checkbox" role="switch" aria-label="Badges" aria-checked={showBadges} checked={showBadges} disabled={!game.loaded || game.game.unreadable} onChange={e => toggleBadges(e.target.checked)} /><span><strong>Badges</strong><small>Optional. Off, levels and quests stay; badges leave the cabinet, the path and the celebrations.</small></span></label></section></DeskFold>
       {/* Session AL fourth pass (DV-045e): the path and the freezes side by side on a computer. */}
       <div className="journey-grid journey-pair">
-      <section className="panel journey-path-panel" aria-labelledby="journey-path-title"><p className="eyebrow">The path</p><h2 id="journey-path-title"><NebulaFlow identity="journey-path">Milestones</NebulaFlow></h2>
+      <DeskFold desk="journey:path" label="Milestones" detail={(stop => stop ? `Next: level ${stop.level} · ${stop.name}` : 'Every level reached')(d.path.find(s => !s.reached))}><section className="panel journey-path-panel" aria-labelledby="journey-path-title"><p className="eyebrow">The path</p><h2 id="journey-path-title"><NebulaFlow identity="journey-path">Milestones</NebulaFlow></h2>
         {/* Session AL fourth pass (DV-045e): the path shows the levels reached and the next two; the rest of the twelve is one
             tap away, so the page is not a long scroll of stops far ahead. */}
         <ol className="journey-path" id="journey-path-list">{(wholePath ? d.path : d.path.filter(onShortPath)).map(stop => <li key={stop.level} data-reached={stop.reached || undefined} data-current={stop.current || undefined} style={{'--planet-hue': `${(stop.level * 47) % 360}deg`} as CSSProperties}><span className="journey-path-node" aria-hidden="true">{stop.reached ? '✓' : stop.level}</span><div><strong>Level {stop.level} · {stop.name}</strong><small>{stop.reached ? stop.current ? 'You are here' : 'Reached' : `${stop.xp - d.xp.total} XP to go`}</small>{showBadges && stop.badges.length > 0 && <small className="journey-path-badge">{/* Phase 2 closing pass (design critique): words, not the badge's symbol glyph (it drew as a broken mark here). */}{`${stop.badges.length === 1 ? 'Badge' : 'Badges'} · ${stop.badges.map(b => b.title).join(' · ')}`}</small>}</div></li>)}</ol>
         {d.path.some((stop, i) => !onShortPath(stop, i)) && <button type="button" className="quiet journey-path-more" aria-expanded={wholePath} aria-controls="journey-path-list" onClick={() => setWholePath(v => !v)}>{wholePath ? 'Show fewer levels' : `Show the whole path (${d.path.length} levels)`}</button>}
-        <p className="journey-next"><span className="eyebrow">Next unlock</span>{(() => { const next = showBadges ? d.badges.find(b => !b.earned) : undefined; const stop = d.path.find(s => !s.reached); return <strong>{next ? keepWords(`${next.symbol} ${next.title}: ${next.blurb}`) : stop ? `Level ${stop.level} · ${stop.name}` : 'Everything on the path, reached.'}</strong>; })()}</p></section>
-      <section className="panel journey-freeze" aria-labelledby="journey-freeze-title"><p className="eyebrow">Streak repair</p><h2 id="journey-freeze-title"><NebulaFlow identity="journey-freeze">Freezes</NebulaFlow></h2>
+        <p className="journey-next"><span className="eyebrow">Next unlock</span>{(() => { const next = showBadges ? d.badges.find(b => !b.earned) : undefined; const stop = d.path.find(s => !s.reached); return <strong>{next ? keepWords(`${next.symbol} ${next.title}: ${next.blurb}`) : stop ? `Level ${stop.level} · ${stop.name}` : 'Everything on the path, reached.'}</strong>; })()}</p></section></DeskFold>
+      <DeskFold desk="journey:freezes" label="Freezes" detail={d.freezes > 0 ? `${formatNumber(d.freezes)} in hand` : 'None in hand yet'}><section className="panel journey-freeze" aria-labelledby="journey-freeze-title"><p className="eyebrow">Streak repair</p><h2 id="journey-freeze-title"><NebulaFlow identity="journey-freeze">Freezes</NebulaFlow></h2>
         <p>{d.freezes > 0 ? `You have ${d.freezes} ${d.freezes === 1 ? 'freeze' : 'freezes'}: each turns one missed day of the last week into a rest day.` : 'No freeze in hand yet.'}</p>
         {/* Session AH (HA7, M-115): how a freeze is earned, always said, not only at zero. */}
         <p className="fine">How they are earned: every seven days in a row on a habit earns one (a day a freeze repaired does not count toward it), and you keep at most five.</p>
         {d.freezes > 0 && d.repairable.length > 0 && <ul className="journey-repair-list">{d.repairable.slice(0, 6).map(r => <li key={`${r.habitId}:${r.date}`}><span>{r.title} · {formatDate(r.date, {weekday: true, year: false})}</span><button type="button" className="secondary" disabled={busy} onClick={() => setAsking(`${r.habitId}:${r.date}`)}>Use a freeze</button>{asking === `${r.habitId}:${r.date}` && <ConfirmInline tone="neutral" title={`Use a freeze on ${r.title}, ${formatDate(r.date, {weekday: true, year: false})}?`} confirmLabel="Use a freeze" busy={busy} onConfirm={() => void repair(r.habitId, r.date)} onCancel={() => setAsking(null)}><p>That missed day becomes a rest day and the streak holds. You will have {d.freezes - 1} left.</p></ConfirmInline>}</li>)}</ul>}
         {d.freezes > 0 && d.repairable.length === 0 && <p className="fine">Nothing to repair this week.</p>}
-        {message && <p role="status" className="fine">{message}</p>}</section>
+        {message && <p role="status" className="fine">{message}</p>}</section></DeskFold>
       </div>
       <LoadBoundary quiet><Suspense fallback={null}><JourneyWrappedLink /></Suspense></LoadBoundary>
-      <LoadBoundary quiet><Suspense fallback={null}><RewardsShelf xpTotal={d.xp.total} /></Suspense></LoadBoundary>
+      {/* The address #rewards-shelf names this holder, there from the start, so a link into the folded row opens it before
+          the shelf's own chunk and record have loaded. */}
+      <DeskFold desk="journey:rewards" label="Rewards shelf"><div id="rewards-shelf"><LoadBoundary quiet><Suspense fallback={null}><RewardsShelf xpTotal={d.xp.total} /></Suspense></LoadBoundary></div></DeskFold>
       <section className="panel journey-settings"><GameSetting /></section>
       <CelebrationHost game={game} />
     </>}

@@ -13,7 +13,7 @@ export async function offline(page: Page) {
 /** An empty device. `welcomeSeen` marks the first-run welcome as answered ("Not now"), as a returning visit has it. */
 export async function emptyDevice(page: Page, {theme, welcomeSeen = true}: {theme?: 'light' | 'dark' | 'nebula'; welcomeSeen?: boolean} = {}) {
   await offline(page);
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(({theme, welcomeSeen}) => {
     localStorage.clear(); sessionStorage.clear();
     if (welcomeSeen) localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true}));

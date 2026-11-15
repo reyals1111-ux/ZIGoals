@@ -51,8 +51,12 @@ test('a wrong amount is refused in plain words and nothing is saved', async ({pa
 });
 test('a quick line: "spent 12 euro on lunch" is an expense card that writes the same log', async ({page}, info) => {
   await page.goto('/app');
+  // Session AO (run 1683, a 45 s timeout): a press on Quick add before the shell hydrated opened nothing, and the test then
+  // waited for the dialog's field until its limit. A person's press is made once the app has hydrated.
+  await page.locator('html[data-app-hydrated]').waitFor({state: 'attached'});
   await page.locator(info.project.name === 'mobile' ? '.phone-topbar .quick-add-trigger' : '.today-hero .quick-add-trigger').click();
   const dialog = page.getByRole('dialog', {name: 'What would you like to add?'});
+  await expect(dialog).toBeVisible();
   const field = dialog.getByRole('textbox', {name: 'Type a line'});
   await field.fill('2 glasses of water, spent 12 euro on lunch');
   await field.press('Enter');

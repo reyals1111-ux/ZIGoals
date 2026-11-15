@@ -1,8 +1,9 @@
 'use client';
 import './sidebar-apps.css';
+import {useRovingLater} from '../ui/roving-later';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import {useId, useRef, type KeyboardEvent} from 'react';
+import {useId, useRef} from 'react';
 import {AppIcon} from '../app-icon';
 import {navPrefetch} from '../nav-prefetch';
 import {isNavActive} from '../app-nav';
@@ -22,17 +23,11 @@ export function SidebarApps() {
   const path = usePathname() ?? '', prefs = useDeviceRecord(APPS_PREFS), listId = useId(), group = useRef<HTMLElement>(null);
   // Until the record is read, the server's view: open, every app shown (no layout jump for the usual case).
   const folded = prefs.loaded && sidebarFolded(prefs.data), apps = SIDEBAR_APP_IDS.filter(id => appShown(prefs.data, id));
+  // Session AP (D-028): the group's fold button and its apps are one Tab stop; Up and Down (and Home, End) move between them.
+  useRovingLater(group, '.sidebar-apps-toggle, .sidebar-apps-list a');
   if (!apps.length) return null;
   const toggle = () => { try { prefs.update(p => withSidebarFolded(p, !folded)); } catch { /* storage refused: stays as it is */ } };
-  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-    const items = Array.from(group.current?.querySelectorAll<HTMLElement>('.sidebar-apps-toggle, .sidebar-apps-list a') ?? []).filter(el => el.getClientRects().length);
-    const at = items.indexOf(document.activeElement as HTMLElement);
-    if (at < 0) return;
-    event.preventDefault();
-    items[(at + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus();
-  };
-  return <nav ref={group} className="sidebar-apps" aria-label="Apps" data-testid="sidebar-apps-group" data-folded={folded || undefined} onKeyDown={onKeyDown}>
+  return <nav ref={group} className="sidebar-apps" aria-label="Apps" data-testid="sidebar-apps-group" data-folded={folded || undefined}>
     <button type="button" className="sidebar-apps-toggle" aria-expanded={!folded} aria-controls={listId} onClick={toggle}>
       <span>Apps</span>
       <svg className="sidebar-apps-chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>

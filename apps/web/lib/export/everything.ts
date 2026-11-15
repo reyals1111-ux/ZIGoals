@@ -95,6 +95,8 @@ import {WALLET_EXPORT_KEYS} from '../af-wallet-keys';
 import {AF_ZIGI_EXPORT_KEYS} from '../af-zigi-keys';
 import {AF_EXTRAS_EXPORT_KEYS} from '../af-extras-keys';
 import {AL_EXPORT_KEYS} from '../al-device-keys';
+import {AO_EXPORT_KEYS} from '../ao-device-keys';
+import {AP_EXPORT_KEYS} from '../ap-device-keys';
 import {AM_EXPORT_KEYS} from '../am-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
@@ -221,6 +223,11 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   ...EARN_EXPORT_KEYS, ...AF_CHECKLIST_EXPORT_KEYS, stakingJournal: STAKING_JOURNAL_KEY, stakingPrefs: STAKING_PREFS_KEY, validatorAlerts: VALIDATOR_ALERTS_KEY, ...WALLET_EXPORT_KEYS, ...AF_ZIGI_EXPORT_KEYS, ...AF_EXTRAS_EXPORT_KEYS,
   // Session AL (lib/al-device-keys.ts): the Apps & extras display choices (O3, O4).
   ...AL_EXPORT_KEYS,
+  // Session AO (lib/ao-device-keys.ts): "My day ends at".
+  ...AO_EXPORT_KEYS,
+  // Session AP (lib/ap-device-keys.ts).
+  ...AP_EXPORT_KEYS,
+
   // Session AM (lib/am-device-keys.ts; ADR-038 D16, D17): NOVA's requests and made widgets, and its weather choice and place.
   ...AM_EXPORT_KEYS} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];

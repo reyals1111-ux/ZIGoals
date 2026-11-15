@@ -1,11 +1,13 @@
 import {expect, test, type Page} from '@playwright/test';
 import {emptyDevice, offline, open} from '../l3-helpers';
+import {openDeskFold} from '../../ao/folds';
+import {openSettings} from '../../settings-open';
 
 /** Session AL third pass (lane L3): Journey and game-layer rows. Every /api request answered 503. */
 async function showcase(page: Page) {
   await offline(page);
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
@@ -34,6 +36,7 @@ test('MO-161 (P-MO-49): a shelf price of 0 or below is refused in words under th
     localStorage.setItem('zigoals:rewards-shelf:v1', JSON.stringify({version: 1, on: true}));
   });
   await open(page, '/app/journey');
+  await openDeskFold(page, 'Rewards shelf'); // Session AO (DV-045e, deliberate): a folded row on Journey now; opened first
   const shelf = page.locator('#rewards-shelf');
   await shelf.getByLabel('A treat').fill('Fictional film night');
   for (const price of ['0', '-5']) {

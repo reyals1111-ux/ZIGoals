@@ -8,6 +8,7 @@ import {AI_KEYS_DATABASE} from '../lib/ai/keys';
 import {FAKE_KEY} from '../lib/ai/fixtures/mock-streams';
 import {HABITS_KEY} from '../lib/habits';
 import {NOVA_SETUP_KEY, setPrivacyMode} from '../lib/nova/setup';
+import {openSettings, openAllSettingsGroups} from './settings-open';
 
 /**
  * ZIGi · your AI (ADR-012), end to end with MOCK providers: every provider call is answered by page.route, nothing
@@ -43,7 +44,7 @@ const connectedLocal = (overrides: Partial<AiSettings> = {}): AiSettings => ({..
 const SHOWCASE_EVENING = '2026-09-20T19:00:00.000Z';
 async function seed(page: Page, settings: AiSettings | null, records = buildShowcase('2026-09-20').records) {
   await page.clock.install({time: SHOWCASE_EVENING});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); await openAllSettingsGroups(page); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...(settings ? {[AI_SETTINGS_KEY]: JSON.stringify(settings)} : {})});
 }
 /** The Showcase records with the privacy mode the person chose set to Relaxed, as the guide sets it (setPrivacyMode). */
@@ -85,7 +86,7 @@ test('setup with an API key (MOCK OpenAI): test, pick a model, connect, chat; th
   // Session AK (ADR-036, deliberate; NOVA privacy mode): the Showcase's Strict refuses a cloud model, so a chat with OpenAI
   // is the person's Relaxed choice, set as the guide sets it (Strict's refusal: nova-setup.spec.ts "Check the mode holds").
   await seed(page, null, relaxedShowcase());
-  await page.goto('/app/settings#your-ai');
+  await page.goto('/app/settings#your-ai'); await openAllSettingsGroups(page);
   const section = page.locator('#your-ai');
   await section.getByRole('button', {name: /I have an API key/}).click();
   await expect(section.getByRole('combobox', {name: 'Provider'})).toHaveValue('openai');
@@ -124,7 +125,7 @@ test('setup with an API key (MOCK OpenAI): test, pick a model, connect, chat; th
   expect(body.model).toBe('mock-chat'); expect(body.stream).toBe(true); expect(body.store).toBe(false); expect(body.max_completion_tokens).toBe(2048); // Session Z-Local (ADR-020 L35): the default output cap is 2,048
   expect(body.messages[0]!.role).toBe('system'); expect(body.messages[0]!.content).toContain('⟪'); expect(body.messages.at(-1)).toEqual({role: 'user', content: 'How is my day?'});
   expect(JSON.stringify(body)).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
-  await page.reload();
+  await page.reload(); await openAllSettingsGroups(page);
   await openChat(page);
   await send(page, 'Still there?');
   await expect(panel(page).locator('.ai-failure')).toContainText('Your key is not on this device.');
@@ -135,7 +136,7 @@ test('"Remember on this device" seals the key in the encrypted store without pla
   await mockLocal(page, () => stream('Hello.'));
   await page.route(`${OPENAI}/**`, route => route.fulfill({status: 200, contentType: 'application/json', body: MODELS}));
   await seed(page, null);
-  await page.goto('/app/settings#your-ai');
+  await page.goto('/app/settings#your-ai'); await openAllSettingsGroups(page);
   const section = page.locator('#your-ai');
   await section.getByRole('button', {name: /I have an API key/}).click();
   await section.getByLabel('API key').fill(FAKE_KEY);
@@ -165,7 +166,7 @@ test('Disconnect removes every key this account remembered on the device, an ear
   await page.route(`${OPENAI}/**`, route => route.fulfill({status: 200, contentType: 'application/json', body: MODELS}));
   await page.route('https://api.anthropic.com/**', route => route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({data: [{id: 'claude-mock', type: 'model', display_name: 'Claude mock'}], has_more: false})}));
   await seed(page, null);
-  await page.goto('/app/settings#your-ai');
+  await page.goto('/app/settings#your-ai'); await openAllSettingsGroups(page);
   const section = page.locator('#your-ai');
   const keys = () => page.evaluate(async name => { const db = await new Promise<IDBDatabase>((resolve, reject) => { const r = indexedDB.open(name); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); }); try { if (!db.objectStoreNames.contains('keys')) return 0; return await new Promise<number>((resolve, reject) => { const r = db.transaction('keys', 'readonly').objectStore('keys').count(); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); }); } finally { db.close(); } }, AI_KEYS_DATABASE);
   const connect = async (provider: string, key: string, model: RegExp) => {
@@ -181,7 +182,7 @@ test('Disconnect removes every key this account remembered on the device, an ear
   await connect('openai', FAKE_KEY, /^mock-chat( Suggested)?$/ /* Session AK P4 (FR-11, deliberate): the "Suggested" tag */);
   // The setup record is reset (unreadable, restored from an older copy): the sealed OpenAI key stays behind it.
   await page.evaluate(k => localStorage.removeItem(k), AI_SETTINGS_KEY);
-  await page.reload();
+  await page.reload(); await openAllSettingsGroups(page);
   await connect('anthropic', 'sk-ant-api03-FAKE-Y4-DISCONNECT', /Claude mock/);
   expect(await keys()).toBe(2);
   await section.getByRole('button', {name: 'Disconnect', exact: true}).click();
@@ -360,7 +361,7 @@ test('hide with Undo, the Settings switch, ⌘K / Ctrl+K (Ask ZIGi), ⌘/Ctrl+Sh
   await expect(launcher(page)).toBeVisible();
   await page.getByRole('button', {name: /Hide ZIGi/}).click();
   expect(JSON.parse((await stored(page, AI_SETTINGS_KEY))!).launcherHidden).toBe(true);
-  await page.goto('/app/settings#your-ai');
+  await page.goto('/app/settings#your-ai'); await openAllSettingsGroups(page);
   await page.locator('#your-ai').getByRole('switch', {name: 'Show the ZIGi button'}).click();
   await page.goto('/app');
   await expect(launcher(page)).toBeVisible();
@@ -393,7 +394,7 @@ test('hide with Undo, the Settings switch, ⌘K / Ctrl+K (Ask ZIGi), ⌘/Ctrl+Sh
 test('sensitive screens: the launcher shows beside Settings\' sign-in form, away while its field has the focus and while a sheet is open', async ({page}) => {
   await seed(page, connectedLocal());
   const floats = page.viewportSize()!.width >= 901;
-  await page.goto('/app/settings');
+  await openSettings(page);
   const email = page.locator('#encrypted-sync input[type="email"]');
   await expect(email).toBeVisible();
   if (floats) await expect(launcher(page)).toBeVisible(); else await expect(launcher(page)).toHaveCount(0);
@@ -453,7 +454,7 @@ test('phone: a full-height sheet with a 16 px composer, opened from Apps & extra
   await page.getByRole('button', {name: 'Close More'}).click();
   // Hidden through its device key: still no floating launcher, still in Apps & extras.
   await page.evaluate(k => { const s = JSON.parse(localStorage.getItem(k)!); s.launcherHidden = true; localStorage.setItem(k, JSON.stringify(s)); }, AI_SETTINGS_KEY);
-  await page.reload();
+  await page.reload(); await openAllSettingsGroups(page);
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(launcher(page)).toHaveCount(0);
   await page.getByRole('button', {name: 'More', exact: true}).click();
@@ -471,12 +472,12 @@ test('phone: a full-height sheet with a 16 px composer, opened from Apps & extra
 
 test('Showcase: keys are session-only and the chat lives in the tab', async ({page}) => {
   await seed(page, null);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: /Load Showcase/}).click();
   // The Showcase loads its records first (Session W Part 22), then opens Today: wait for that before leaving the page.
   await page.waitForURL('**/app');
   await expect(page.getByText(/Showcase/).first()).toBeVisible();
-  await page.goto('/app/settings#your-ai');
+  await page.goto('/app/settings#your-ai'); await openAllSettingsGroups(page);
   const section = page.locator('#your-ai');
   await section.getByRole('button', {name: /I have an API key/}).click();
   const remember = section.getByRole('checkbox', {name: /Remember on this device/});
@@ -489,7 +490,7 @@ test('no key anywhere: the rendered DOM, every attribute, both storages, the key
   await mockLocal(page, () => stream('Hello.'));
   await page.route(`${OPENAI}/**`, route => route.fulfill({status: 200, contentType: 'application/json', body: MODELS}));
   await seed(page, null);
-  await page.goto('/app/settings#your-ai');
+  await page.goto('/app/settings#your-ai'); await openAllSettingsGroups(page);
   const section = page.locator('#your-ai');
   await section.getByRole('button', {name: /I have an API key/}).click();
   await section.getByLabel('API key').fill(FAKE_KEY);
@@ -587,7 +588,8 @@ test('"Ask ZIGi about this" on a habit card and on a goal detail opens the chat 
   const card = page.locator('article.habit-card').first();
   const label = (await card.getAttribute('aria-label'))!;
   await card.getByRole('button', {name: `Options for ${label}`, exact: true}).click();
-  const ask = card.getByRole('button', {name: 'Ask ZIGi about this habit', exact: true});
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  const ask = card.getByRole('menuitem', {name: 'Ask ZIGi about this habit', exact: true});
   await expect(ask).toBeVisible();
   await ask.click();
   await expect(panel(page)).toBeVisible();

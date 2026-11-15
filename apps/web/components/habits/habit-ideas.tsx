@@ -3,7 +3,9 @@ import {GuidedJourneysLink} from '../guided/guided-link';
 import {useEffect, useRef, useState} from 'react';
 import {scheduleLabel, type HabitData, type HabitInput} from '../../lib/habits';
 import {addLocalDays} from '../../lib/local-date';
-import {HABIT_GROUP_LABEL, HABIT_TEMPLATE_GROUPS, HABIT_TEMPLATES, habitTemplateInputOf, hasHabitLike, type HabitTemplateGroup} from '../../lib/templates/habits';
+import {HABIT_GROUP_LABEL, HABIT_TEMPLATE_GROUPS, habitTemplateInputOf, hasHabitLike, type HabitTemplateGroup} from '../../lib/templates/habits';
+import {searchCatalogue} from '../../lib/templates/library';
+import '../templates/library-search.css';
 import {CHALLENGE_DAYS} from '../../lib/habits-v2/challenge';
 import {formatDate} from '../../lib/visual-format';
 
@@ -13,7 +15,9 @@ import {formatDate} from '../../lib/visual-format';
  * days). Amounts are common starting points, not advice; an idea already in the list says so instead of adding twice.
  */
 export function HabitIdeas({data, today, onAdd, onClose}: {data: HabitData; today: string; onAdd: (input: HabitInput, words: string) => Promise<void>; onClose: () => void}) {
-  const [group, setGroup] = useState<HabitTemplateGroup>('health'), [busy, setBusy] = useState(false);
+  const [group, setGroup] = useState<HabitTemplateGroup | 'all'>('health'), [busy, setBusy] = useState(false), [query, setQuery] = useState('');
+  // Backlog #15 (AL-COMPETITOR-GAP-118): the template library's habits, searchable by words and narrowed by area (All, or one).
+  const ideas = searchCatalogue(query, {kind: 'habit', area: group === 'all' ? null : group}).flatMap(e => e.kind === 'habit' ? [e.habit] : []);
   const titles = data.habits.map(h => h.title);
   async function add(input: HabitInput, words: string) { setBusy(true); try { await onAdd(input, words); } finally { setBusy(false); } }
   // Session AL fourth pass (NB-072, NB-074): the panel opens under a long form, below the window; it comes into view and
@@ -25,8 +29,14 @@ export function HabitIdeas({data, today, onAdd, onClose}: {data: HabitData; toda
     <p className="fine">Small, common starting points. Add one, then change anything about it. Nothing here compares you with anyone.</p>
     {/* Session AJ (item 34, A7): Guided journeys are reached from Habits, Goals, My Universe and search (no sidebar entry). */}
     <GuidedJourneysLink />
-    <div className="habit-filter-bar" role="group" aria-label="Kinds of habit ideas">{HABIT_TEMPLATE_GROUPS.map(g => <button type="button" className="quiet" key={g} aria-pressed={group === g} onClick={() => setGroup(g)}>{HABIT_GROUP_LABEL[g]}</button>)}</div>
-    <ul className="habit-ideas-list">{HABIT_TEMPLATES.filter(t => t.group === group).map(t => {
+    <label className="library-search-field habit-ideas-search"><span>Search habit ideas</span>
+      <input type="search" value={query} autoComplete="off" placeholder="Water, stretch, sketch, budget…" onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === 'Escape' && query) { e.preventDefault(); e.stopPropagation(); setQuery(''); } }} />
+    </label>
+    <div className="habit-filter-bar" role="group" aria-label="Kinds of habit ideas"><button type="button" className="quiet" aria-pressed={group === 'all'} onClick={() => setGroup('all')}>All</button>{HABIT_TEMPLATE_GROUPS.map(g => <button type="button" className="quiet" key={g} aria-pressed={group === g} onClick={() => setGroup(g)}>{HABIT_GROUP_LABEL[g]}</button>)}</div>
+    <p className="library-count" aria-live="polite">{ideas.length} {ideas.length === 1 ? 'idea' : 'ideas'}{group === 'all' ? '' : ` in ${HABIT_GROUP_LABEL[group]}`}</p>
+    {!ideas.length && <p className="fine">No habit idea matches{query.trim() ? ` “${query.trim()}”` : ''}{group === 'all' ? '' : ` in ${HABIT_GROUP_LABEL[group]}`}.</p>}
+    {!ideas.length && group !== 'all' && <button type="button" className="secondary library-more" onClick={() => setGroup('all')}>Search all areas</button>}
+    <ul className="habit-ideas-list">{ideas.map(t => {
       const added = hasHabitLike(titles, t), input = habitTemplateInputOf(t);
       return <li key={t.id}><div><strong>{t.title}</strong><small>{t.note} · {scheduleLabel(t.schedule)}</small></div>
         {added ? <span className="fine habit-idea-added">Already in your habits</span> : <div className="actions">

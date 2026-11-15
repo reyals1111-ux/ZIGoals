@@ -7,6 +7,7 @@ import {money} from '../components/wealth/money-tools/format';
 import {chooseChain} from './chain-choice';
 import {hydrated, offlineApis, seedRecords, stored} from './journeys/journey-helpers';
 import {loadShowcase, showcaseRecord} from './wiring-helpers';
+import {openFold} from './phone-nav';
 
 /**
  * Session AK Q1 (WIRING_AUDIT 7.2, 7.4, #12, #17, #18, F5): Wealth features that worked in the build but had no browser
@@ -188,6 +189,9 @@ test.describe('on the Showcase', () => {
   test.beforeEach(async ({page}) => { await offlineApis(page); await loadShowcase(page); });
   test('7.4: a target mix is saved and the drift reads back per asset class; it is kept after a reload', async ({page}) => {
     await page.goto('/app/wealth'); await hydrated(page);
+    // Session AO (RR-16, owner decision 13 Nov, deliberate): on a computer this Wealth section folds by default; it is opened from
+    // its row as a reader would (tests/phone-nav.ts openFold), then checked exactly as before.
+    await openFold(page, 'Your target mix');
     const slot = page.locator('#target-mix');
     await slot.scrollIntoViewIfNeeded();
     // One class the person holds a good share of (read from the table as it is now).

@@ -1,13 +1,14 @@
 import {isPathColour, pathColour, type PathColour} from '../path/colours';
 import {cleanPathLabel} from './path-label';
 import {checklistSchema, knownInput, knownKind, type Checklist, type ChecklistHealthItem, type ChecklistItem, type ChecklistSection, type HealthInput} from './schema';
+import {TEXT_LIMITS} from '../limits/text';
 
 /**
  * Pure mutators of `zigoals:checklist:v1` (Session AF, L3): what is on the path, never what was done. Each returns a new
  * record validated by the schema, or the same record when nothing changes; a limit or a missing item throws with the
  * person-facing words, so the caller shows them and nothing is written.
  */
-export const MAX_PATH_ITEMS = 60, MAX_HEALTH_ITEMS = 40, MAX_SECTIONS = 12, MAX_LABEL = 60, MAX_SECTION_LABEL = 30;
+export const MAX_PATH_ITEMS = 60, MAX_HEALTH_ITEMS = 40, MAX_SECTIONS = 12, MAX_LABEL = TEXT_LIMITS.checklistItem /* Session AO (M-011) */, MAX_SECTION_LABEL = 30;
 export const CHECKLIST_LIMIT_MESSAGE = `Your path holds up to ${MAX_PATH_ITEMS} items and ${MAX_HEALTH_ITEMS} Health inputs. Remove one first.`;
 export const CHECKLIST_SECTION_LIMIT_MESSAGE = `Your path holds up to ${MAX_SECTIONS} orbits.`;
 export const CUSTOM_LABEL_MESSAGE = `Give it a name of 1 to ${MAX_LABEL} characters.`;

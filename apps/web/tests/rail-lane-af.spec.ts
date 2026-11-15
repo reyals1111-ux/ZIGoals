@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AF (L5a, Part 10.12): Today's rail keeps its 64 px lane clear of the floating buttons, and in the narrow rail
@@ -9,7 +10,7 @@ test.describe('the rail lane and the reward-reserve heading', () => {
   for (const width of [1024, 1100, 1200, 1279]) {
     test(`${width} px: "ZIG reward reserve" on one line, and the lane kept`, async ({page}) => {
       await page.setViewportSize({width, height: 800});
-      await page.goto('/app/settings');
+      await openSettings(page);
       await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
       await page.waitForURL('**/app');
       const heading = page.locator('.staking-card h2');

@@ -21,7 +21,11 @@ export type LibraryTemplate = {
   /** askTarget: the person writes the target (a money cap is theirs; the library never suggests a sum). */
   average?: {metric: AverageMetric; target: number; direction: 'at-least' | 'at-most'; windowDays: 7 | 14 | 30; unit: string; askTarget?: true};
   keywords?: readonly string[];
+  /** Session AO (DV-053c): a project whose last step names a number the person chooses (a chess rating) asks for it in
+   *  its own field; the number fills the last step's title ({n}), so nothing new is stored. */
+  number?: TemplateNumber;
 };
+export type TemplateNumber = {label: string; hint: string; min: number; max: number; lastStep: string};
 const h = (title: string, schedule: TemplateHabit['schedule'], why: string): TemplateHabit => ({title, schedule, why});
 
 const CORE_LIBRARY: readonly LibraryTemplate[] = [
@@ -68,7 +72,7 @@ const CORE_LIBRARY: readonly LibraryTemplate[] = [
   {id: 'online-course', title: 'Finish an online course', area: 'learning', kind: 'project', summary: 'Start to certificate.', milestones: ['Week 1', 'Halfway', 'Final project', 'Certificate'], habits: [h('One lesson', 'weekdays', 'A lesson a weekday.')], keywords: ['course', 'study', 'skills']},
   {id: 'learn-instrument', title: 'Learn an instrument', area: 'learning', kind: 'project', summary: 'From first notes to a first song.', milestones: ['First chords or scales', 'First full song', 'Play for someone'], habits: [h('Practise 20 minutes', 'daily', 'Short daily practice beats long weekly ones.')], keywords: ['guitar', 'piano', 'music']},
   {id: 'learn-to-code', title: 'Learn to code', area: 'learning', kind: 'project', summary: 'Build something small that works.', milestones: ['Finish a beginner course', 'Build a small tool', 'Share it'], habits: [h('Code for 30 minutes', 'weekdays', 'Typing it yourself is how it sticks.')], keywords: ['programming', 'developer']},
-  {id: 'chess-rating', title: 'Reach a chess rating', area: 'learning', kind: 'project', summary: 'Steps toward the rating you choose; write the number into the last step.', milestones: ['Play 20 rated games', 'Review 10 of my games', 'Reach my target rating'], habits: [h('Solve five puzzles', 'daily', 'Tactics every day.')], keywords: ['chess', 'games']},
+  {id: 'chess-rating', title: 'Reach a chess rating', area: 'learning', kind: 'project', summary: 'Steps toward the rating you choose; type it under Target rating and it becomes the last step.', milestones: ['Play 20 rated games', 'Review 10 of my games', 'Reach my target rating'], number: {label: 'Target rating', hint: 'A whole number from 400 to 3000, like 1500.', min: 400, max: 3000, lastStep: 'Reach a rating of {n}'}, habits: [h('Solve five puzzles', 'daily', 'Tactics every day.')], keywords: ['chess', 'games']},
   // Fun
   {id: 'trip-new-country', title: 'Visit a new country', area: 'fun', kind: 'project', summary: 'Plan it, book it, go.', milestones: ['Choose the place', 'Book the trip', 'Go'], keywords: ['travel', 'holiday', 'adventure']},
   {id: 'cook-30-recipes', title: 'Cook 30 new recipes', area: 'fun', kind: 'project', summary: 'A new dish most weeks.', milestones: ['10 recipes', '20 recipes', '30 recipes'], keywords: ['cooking', 'food', 'kitchen']},
@@ -92,4 +96,26 @@ export function searchTemplates(query: string, area?: BuiltInArea | null): Libra
   const fold = (s: string) => s.toLocaleLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '');
   const words = fold(query).split(/\s+/).filter(Boolean);
   return GOAL_LIBRARY.filter(t => (!area || t.area === area) && words.every(w => fold([t.title, t.summary, ...(t.keywords ?? []), ...(t.milestones ?? [])].join(' ')).includes(w)));
+}
+
+/** Session AO (DV-053c): the template number as typed: null when it reads, else the sentence for its field. */
+export function templateNumberIssue(spec: TemplateNumber, raw: string): string | null {
+  const text = raw.trim(), message = `Enter a whole number from ${spec.min} to ${spec.max}.`;
+  if (!/^\d{1,9}$/.test(text)) return message;
+  const n = Number(text);
+  return n < spec.min || n > spec.max ? message : null;
+}
+/**
+ * Session AO (DV-053c): the milestones with the chosen number in the last step. The last step is replaced while it is
+ * still the template's own ("Reach my target rating") or an earlier number's ("Reach a rating of 1500"); a last step the
+ * person rewrote is kept, and the number's step goes after it.
+ */
+export function withTemplateNumber(milestones: string, spec: TemplateNumber, n: number, templateLast?: string): string {
+  const lines = milestones.split('\n'), step = spec.lastStep.replace('{n}', String(n));
+  const [before, after] = spec.lastStep.split('{n}') as [string, string];
+  const ours = (line: string) => { const t = line.trim(); return t === templateLast?.trim() || (t.startsWith(before) && t.endsWith(after) && /^\d+$/.test(t.slice(before.length, t.length - after.length))); };
+  let last = lines.length - 1;
+  while (last >= 0 && !lines[last]!.trim()) last--;
+  if (last >= 0 && ours(lines[last]!)) { lines[last] = step; return lines.join('\n'); }
+  return [...lines.slice(0, last + 1), step].join('\n');
 }

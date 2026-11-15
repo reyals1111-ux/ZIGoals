@@ -59,7 +59,8 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   await expect(add).toBeFocused();
   // The Health preset already pins water; remove its configuration before choosing our own.
   await activate(page.getByRole('article', { name: 'Water today', exact: true }).getByRole('button', { name: 'Options for Water today' }));
-  await activate(page.getByRole('article', { name: 'Water today', exact: true }).getByRole('button', { name: 'Remove widget' }));
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await activate(page.getByRole('article', { name: 'Water today', exact: true }).getByRole('menuitem', { name: 'Remove widget' }));
   await expect(page.getByRole('article', { name: 'Water today', exact: true })).toHaveCount(0);
   await add.focus();
   await page.keyboard.press('Enter');

@@ -1,6 +1,7 @@
 import {expect, test, type Browser, type Page, type TestInfo} from '@playwright/test';
 import {navLink} from './phone-nav';
 import {chooseChain} from './chain-choice';
+import {afterGoto, openSettings} from './settings-open';
 
 /**
  * Session Y Part 2 (owner edit 1, ADR-018): no page may render one thing on the server and another in the browser when
@@ -26,7 +27,7 @@ async function visit(browser: Browser, info: TestInfo, timezoneId: string, showc
   if (showcase) await loadShowcase(page);
   const day = await page.evaluate(() => new Intl.DateTimeFormat('en-CA', {year: 'numeric', month: '2-digit', day: '2-digit'}).format(new Date()));
   for (const path of PAGES) {
-    await page.goto(path);
+    await page.goto(path); await afterGoto(page, path);
     await expect(page.locator('main h1').first()).toBeVisible();
     await page.waitForLoadState('networkidle', {timeout: 8_000}).catch(() => undefined);
   }
@@ -44,7 +45,7 @@ async function visit(browser: Browser, info: TestInfo, timezoneId: string, showc
   return {errors, day};
 }
 async function loadShowcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }

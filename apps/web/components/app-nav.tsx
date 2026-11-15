@@ -1,5 +1,6 @@
 'use client';
 import { navCompact, useNavExtras } from "./nav-extras";
+import { useRovingLater } from "./ui/roving-later";
 import Link from "next/link";
 import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
@@ -123,6 +124,8 @@ export function AppNav() {
   const isActive = (href: string) => isNavActive(path, href);
   const nav = useRef<HTMLElement>(null), glide = useRef<HTMLSpanElement>(null), previous = useRef<Box | null>(null);
   useFocusRescue(nav, items.map(([href]) => href).join(" "));
+  // Session AP (D-028): the pages are one Tab stop; the arrow keys, Home and End move between them (nothing drawn changes).
+  useRovingLater(nav, "a[href]");
   // The highlight travels from the previous item to the new one; aria-current and focus move immediately.
   useLayoutEffect(() => {
     const el = nav.current, layer = glide.current, active = el?.querySelector('a[aria-current="page"]');

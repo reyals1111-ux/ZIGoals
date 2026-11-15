@@ -11,17 +11,21 @@ test('BN-097: Add, then the menu says On Today and removes it; Undo puts it back
   await page.goto('/app/ecosystem'); await hydrated(page);
   const card = page.locator('#project-valdora');
   await card.getByRole('button', {name: 'Options for Valdora'}).click();
-  await card.getByRole('button', {name: 'Add Valdora research shortcut to Today'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await card.getByRole('menuitem', {name: 'Add Valdora research shortcut to Today'}).click();
   await expect(card.getByRole('status')).toContainText('added to Today');
   expect(await widgets(page)).toBe(1);
   await card.getByRole('button', {name: 'Options for Valdora'}).click();
-  await expect(card.getByRole('button', {name: /Add Valdora research shortcut/})).toHaveCount(0);
-  await card.getByRole('button', {name: 'On Today. Remove Valdora research shortcut from Today'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(card.getByRole('menuitem', {name: /Add Valdora research shortcut/})).toHaveCount(0);
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await card.getByRole('menuitem', {name: 'On Today. Remove Valdora research shortcut from Today'}).click();
   await expect(card.getByRole('status')).toContainText('removed from Today');
   expect(await widgets(page)).toBe(0);
   await page.locator('.aa-toast').getByRole('button', {name: 'Undo'}).click();
   await expect.poll(() => widgets(page)).toBe(1);
   await page.reload(); await hydrated(page);
   await card.getByRole('button', {name: 'Options for Valdora'}).click();
-  await expect(card.getByRole('button', {name: /On Today/})).toBeVisible();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(card.getByRole('menuitem', {name: /On Today/})).toBeVisible();
 });

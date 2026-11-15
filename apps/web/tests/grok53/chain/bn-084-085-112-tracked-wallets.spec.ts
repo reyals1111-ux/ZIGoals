@@ -36,7 +36,8 @@ test('BN-084: the Liquid wallet ⋯ menu opens inside the content, every item re
   const [box, main] = await Promise.all([panel.boundingBox(), page.locator('main').first().boundingBox()]);
   expect(box!.x).toBeGreaterThanOrEqual(main!.x);
   expect(box!.x + box!.width).toBeLessThanOrEqual(1280);
-  const first = panel.getByRole('button').first();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  const first = panel.getByRole('menuitem').first();
   await expect(first).toBeInViewport();
   await first.click();
   await expect(card.locator('.pin-to-today-status')).toContainText('added to Today');

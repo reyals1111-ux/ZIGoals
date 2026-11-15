@@ -5,7 +5,7 @@ import { HabitRhythmSection } from "../bottom-habit-rhythm";
 import { useJournalZone } from "../use-journal-zone";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { openHabitPage } from "./habit-card-full";
+import { leaveHabitPage, openHabitPage } from "./habit-card-full";
 import { readConfirmDelete } from "../../lib/confirm-delete";
 import { useRouter, useSearchParams } from "next/navigation";
 import { hashId } from "../../lib/hash-id";
@@ -80,6 +80,8 @@ import { duplicateHabitInput } from "../../lib/habits-duplicate";
 // Session AA-Local Part 1: the routine player and the year view load when they are opened.
 const RoutinePlayer = lazy(() => import("./routine-player").then((m) => ({ default: m.RoutinePlayer })));
 const YearView = lazy(() => import("./year-view").then((m) => ({ default: m.YearView })));
+// Session AO (C-DVG-19): Perfect days loads when it is opened (or asked for with ?view=perfect-days), as the year view does.
+const PerfectDays = lazy(() => import("./perfect-days"));
 const RoutinesPanel = withPage(() => import("./routines-panel").then((m) => m.RoutinesPanel)); // Gate A (B41): the routines list and its templates in their own chunk; with the page (above)
 // Session Z-Cloud Part 4 (weights, ADR-019 C39): the vacation and ideas panels load when they are opened.
 const VacationPanel = lazy(() => import("./vacation-panel").then((m) => ({ default: m.VacationPanel })));
@@ -165,6 +167,7 @@ export function HabitsWorkspace() {
   const [area, setArea] = useState<string>("all");
   const [routine, setRoutine] = useState<string | null>(null);
   const [yearOpen, setYearOpen] = useState(false);
+  const [perfectOpen, setPerfectOpen] = useState(false);
   // Session AK (5.6): the rules runner hands its state here once it runs; (5.7) the reorder mode.
   const [autoRules, setAutoRules] = useState<AutoRulesApi | null>(null), [rulesOpen, setRulesOpen] = useState(false), [reordering, setReordering] = useState(false);
   const healthApplied = useMemo(() => links.data.applied, [links.data.applied]);
@@ -236,11 +239,13 @@ export function HabitsWorkspace() {
   // Session AL (GAP-085, P-PR-48): one habit's own page, /app/habits?habit=<id> (Today, Activity, Search and Agenda can
   // link it): only that card, its details, History and Consistency open, and a way back to every habit. A query on the
   // Habits route, so no new page weight; an unknown id shows the whole list as before.
-  const pageId = useSearchParams().get("habit");
+  const params = useSearchParams(), pageId = params.get("habit");
+  // Session AO (CO4): a day asked for with the habit (?habit=<id>&date=<day>, from Today's week grid or Perfect days) opens its History on that day.
+  const pageDate = params.get("date"), showPerfect = perfectOpen || params.get("view") === "perfect-days";
   const [reflectionsOpen, setReflectionsOpen] = useState(false);
   const hasReflections = useMemo(() => store.data.habits.some((habit) => habit.entries.some((entry) => entry.disposition === "logged" && (!!entry.note.trim() || !!entry.mood))), [store.data.habits]);
   const pageHabit = pageId && store.loaded ? store.data.habits.find((habit) => habit.id === pageId) : undefined;
-  if (pageHabit) openHabitPage(pageHabit.id);
+  if (pageHabit) openHabitPage(pageHabit.id, pageDate); else leaveHabitPage();
   const visible = pageHabit ? [pageHabit] : yours.filter((habit) => {
     const day = habitDay(habit, store.today, store.today); const archived = habitRuleOn(habit,store.today)?.state === "archived";
     if (filter === "Archived") return archived;
@@ -332,6 +337,7 @@ export function HabitsWorkspace() {
           : visible.length && sectioned ? <section className="habit-grid-sections" aria-label={`${filter} habits`}><HabitSections sections={groupByTimeOfDay(page, store.today)} extras={extras} hour={new Date().getHours()} onNew={() => { setEditor("new"); setMessage(""); }} render={(section) => <section className="habit-grid" aria-label={`${section.label} habits`}><LayoutRegion region={regionOf(`cards:${section.id}`)} grid allIds={section.habits.map((h) => entityLayoutId(h.id))} items={section.habits.map(cardEntry)} /></section>} /></section>
           : visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region={regionOf("cards")} grid allIds={(sort === "yours" ? yours : ordered).map(h => entityLayoutId(h.id))} items={page.map(cardEntry)}/></section> : <EmptyState as="section" level={2} className="panel habit-empty" zigi="encouraging" title={store.data.habits.length === 0 ? "Every rhythm begins with one step." : filter === "Completed" ? "Your next check-in is waiting." : filter === "Archived" ? "No archived habits." : "A little breathing room."} action={filter === "Today" && store.data.habits.length > 0 ? <button className="secondary" onClick={() => setFilter("All")}>View all habits</button> : <><button className="primary" disabled={!!store.error} onClick={() => setEditor("new")}>Create a habit</button>{/* Session AL (C-NB-15, C-NB-30; P-NB-C12): the Loop reader, findable from Habits */}<p className="fine habit-import-link">Coming from Loop Habit Tracker? <Link prefetch={false} className="text-link" href="/app/settings#switch-import">Bring your habits and their history →</Link></p>{store.data.habits.length === 0 && !store.error && <LoadBoundary quiet><Suspense fallback={null}><EmptyHabitIdeas onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); await linkWaterIdea(id, input); setMessage(""); showStatus(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense></LoadBoundary>}</>}>{store.data.habits.length === 0 ? "Choose a small action you want to return to. Keep it simple, make it yours." : filter === "Today" ? "Nothing is scheduled today. View all habits to review your routine or resume a paused habit." : filter === "Completed" ? "Completed habits for today will appear here." : "Your habits stay available for history and future returns."}</EmptyState>}
           {ordered.length > shown && <p className="habit-show-more"><button type="button" className="secondary" onClick={() => setShown(n => n + PAGE)}>Show {Math.min(PAGE, ordered.length - shown)} more of {ordered.length}</button></p>}
+          {store.data.habits.length > 0 && !pageHabit && <LoadBoundary quiet>{showPerfect ? <Suspense fallback={<section className="panel habit-perfect"><Skeleton label="Opening perfect days…" block/></section>}><PerfectDays habits={store.data.habits} today={store.today} /></Suspense> : <section className="panel habit-perfect habit-perfect-closed" aria-labelledby="habit-perfect-title"><div className="habit-section-heading"><div><p className="eyebrow">Every habit due, done</p><h2 id="habit-perfect-title"><NebulaFlow identity="habit-perfect-title">Perfect days</NebulaFlow></h2><p className="fine">Today’s count, your run, and every past day, month by month.</p></div><button type="button" className="secondary" onClick={() => setPerfectOpen(true)}>Open perfect days</button></div></section>}</LoadBoundary>}
           {store.data.habits.length > 0 && <LoadBoundary quiet>{yearOpen ? <Suspense fallback={<section className="panel habit-year"><Skeleton label="Opening the year view…" block/></section>}><YearView habits={store.data.habits} today={store.today} /></Suspense> : <section className="panel habit-year habit-year-closed" aria-labelledby="habit-year-title"><div className="habit-section-heading"><div><p className="eyebrow">The long view</p><h2 id="habit-year-title"><NebulaFlow identity="habit-year-title">Year view</NebulaFlow></h2><p className="fine">A full year per habit, and every habit at once.</p></div><button type="button" className="secondary" onClick={() => setYearOpen(true)}>Open the year view</button></div></section>}</LoadBoundary>}
           {/* Session AL (GAP-086): every note and mood from check-ins, searchable; its chunk loads when the fold opens. */}
           {hasReflections && !pageHabit && <details className="panel habit-reflections-fold" onToggle={e => setReflectionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary className="habit-reflections-summary">Your notes and moods</summary>{reflectionsOpen && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening your notes and moods…" block/>}><HabitReflections data={store.data} /></Suspense></LoadBoundary>}</details>}

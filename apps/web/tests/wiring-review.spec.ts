@@ -5,6 +5,7 @@ import type {HabitData} from '../lib/habits';
 import {JOURNAL_KEY} from '../lib/journal/schema';
 import {browserToday, hydrated, offlineApis, seedRecords, stored} from './journeys/journey-helpers';
 import {loadShowcase, showcaseRecord} from './wiring-helpers';
+import {openDeskFold} from './ao/folds';
 
 /**
  * Session AK Q1 (WIRING_AUDIT 8.2, 8.3, 8.4, 8.8/#16/A16, #14, #19, F5, 1d/#6/#13 discoverability): the review, export and
@@ -105,6 +106,7 @@ test.describe('on the Showcase', () => {
 
   test('#19: a treat added to the rewards shelf is claimed with points from the XP already earned', async ({page}) => {
     await page.goto('/app/journey'); await hydrated(page);
+    await openDeskFold(page, 'Rewards shelf'); // Session AO (DV-045e, deliberate): a folded row on Journey now; opened first
     const shelf = page.getByRole('region', {name: 'Rewards shelf'});
     await shelf.scrollIntoViewIfNeeded();
     const points = async () => Number((await shelf.locator('.rewards-points strong').textContent())!.replace(/[^\d]/g, ''));

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
 import {taskState, viewTasks} from '../../lib/tasks/engine';
 import {dueReminders} from '../../lib/tasks/reminders';
-import {checklistZone} from '../../lib/checklist/day';
+import {checklistZone} from '../../lib/checklist/zone';
 import {formatClock, formatNumber} from '../../lib/visual-format';
 import {useTaskList} from './use-task-list';
 import './today-tasks-due.css';

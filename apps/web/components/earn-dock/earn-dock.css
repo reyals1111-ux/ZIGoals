@@ -51,3 +51,5 @@
 :root[data-app-motion=off] .earn-dock-button { transition: none; }
 :root[data-app-motion=off] :is(.earn-dock-button:hover, .earn-dock-button:focus-visible) { transform: none; }
 @media (forced-colors: active) { .earn-dock-button, .earn-dock-edge, .earn-dock-app { border-color: CanvasText; } .earn-dock-mark { filter: none; } }
+/* Session AO (D-231): the "Tuck away" arrow takes a soft ground under a pointer, as Music's and the Checklist's do. */
+@media (hover: hover) { .earn-dock-fold:hover { background: color-mix(in srgb, var(--cyan, #6fd3ff) 16%, transparent); } }
