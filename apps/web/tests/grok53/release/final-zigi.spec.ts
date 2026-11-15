@@ -33,7 +33,7 @@ function records(set: Set): Record<string, string> {
 async function seed(page: Page, set: Set, clock = true) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   if (clock) await page.clock.install({time: NIGHT});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, records(set));
   await page.waitForLoadState('networkidle');
 }

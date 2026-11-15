@@ -3,6 +3,7 @@ import {hydrated, offlineApi} from '../../ah-helpers';
 import {applyTheme} from '../../p6-helpers';
 import {chooseChain} from '../../chain-choice';
 import {openZigi, zigiPanel} from '../../zigi-open';
+import {afterGoto} from '../../settings-open';
 
 /**
  * Session AL second pass, lane L10a (the shared shell). Each test names the finding ids it reproduces; fresh profile,
@@ -12,7 +13,7 @@ test.beforeEach(async ({page}) => { await offlineApi(page); });
 const desktopOnly = (isMobile: boolean) => test.skip(isMobile, 'A computer window');
 
 async function ready(page: Page, path: string) {
-  await page.goto(path); await hydrated(page);
+  await page.goto(path); await afterGoto(page, path); await hydrated(page);
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('main h1').first()).toBeVisible();
 }
@@ -149,13 +150,20 @@ test('DV-045c, D-249 (AL-NAV-010): the Pages preview shows the sidebar as it is,
   await expect(preview).toContainText('NOVA');
 });
 
-test('TK-6B-05 (P-TK-65): on a phone the Alpha notice keeps "Saved in this browser only" beside its whole label', async ({page}) => {
-  await page.setViewportSize({width: 390, height: 844});
-  await ready(page, '/app/goals');
-  const notice = page.getByRole('complementary', {name: 'Alpha notice'});
-  await expect(notice.locator('.alpha-notice-short')).toBeVisible();
-  await expect(notice.locator('.alpha-notice-short')).toHaveText('Saved in this browser only');
-  expect(await notice.locator('strong').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+// Session AO (T-069, owner decision 13 Nov, deliberate): the fact reads "On this device" (was "Saved in this browser only",
+// cut with "…" at 375/394); it is now also checked whole on one line at 335, 375, 388 and 394 px.
+test('TK-6B-05 (P-TK-65), T-069: on a phone the Alpha notice keeps "On this device" whole, on one line, beside its whole label', async ({page}) => {
+  for (const width of [390, 335, 375, 388, 394]) {
+    await page.setViewportSize({width, height: 844});
+    await ready(page, '/app/goals');
+    const notice = page.getByRole('complementary', {name: 'Alpha notice'}), short = notice.locator('.alpha-notice-short');
+    await expect(short).toBeVisible();
+    await expect(short).toHaveText('On this device');
+    expect(await notice.locator('strong').evaluate(el => el.scrollWidth <= el.clientWidth), `label at ${width}`).toBe(true);
+    const fit = await short.evaluate(el => ({cut: el.scrollWidth > el.clientWidth + 0.5, lines: Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight))}));
+    expect(fit, `"On this device" at ${width}`).toEqual({cut: false, lines: 1});
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), `no sideways scroll at ${width}`).toBeLessThanOrEqual(width);
+  }
 });
 
 test('MO-068, BUG-033 (AL-LAYOUT-375-012): Health in Dark at 375 px in a touch phone profile never pans sideways', async ({browser}) => {

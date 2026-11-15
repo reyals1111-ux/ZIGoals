@@ -11,6 +11,7 @@ import {join} from 'node:path';
 import {privateAccountRequest} from '../../../apps/web/lib/server/private-account.ts';
 import {createPrivateMiniflare,fixtureToken,workerAnswer} from '../private-runtime.mjs';
 import {armSyncCompletion} from '../sync-completion.mjs';
+import {openSettingsGroups} from '../../lib/settings-open.mjs';
 
 const appRequire=createRequire(new URL('../../../apps/web/package.json',import.meta.url));
 const workerRequire=createRequire(new URL('../../../apps/web/node_modules/wrangler/package.json',import.meta.url));
@@ -141,10 +142,11 @@ export function accountUi(page){
  const healthConsent=()=>page.getByLabel('Sync my Health records with this account.',{exact:false});
  const ui={
   access,syncRegion,healthConsent,
-  settings:()=>page.goto(reviewOrigin()+'/app/settings'),
+  // Session AP (D-088): Settings starts folded on a computer; the rehearsal opens its groups as a person does.
+  settings:async()=>{const r=await page.goto(reviewOrigin()+'/app/settings');await openSettingsGroups(page);return r;},
   /** Client-side navigation: a reload would lock the in-memory vault session. */
   /** Session AB-Design (ADR-024 D2): on a phone Settings is a row of the More sheet (top-bar More); the desktop sidebar is unchanged. */
-  go:async name=>{const more=page.locator('.phone-more-top');if(name==='Settings'&&await more.isVisible()){await more.click();await page.getByRole('dialog',{name:'More',exact:true}).getByRole('link',{name,exact:true}).click();return;}await page.getByRole('link',{name,exact:true}).first().click();},
+  go:async name=>{await (async()=>{const more=page.locator('.phone-more-top');if(name==='Settings'&&await more.isVisible()){await more.click();await page.getByRole('dialog',{name:'More',exact:true}).getByRole('link',{name,exact:true}).click();return;}await page.getByRole('link',{name,exact:true}).first().click();})();if(name==='Settings'){await page.waitForURL('**/app/settings**');await openSettingsGroups(page);}},
   async requestCode(email){await page.getByLabel('Email address',{exact:true}).fill(email);await page.getByRole('button',{name:'Send email code',exact:true}).click();},
   async enterCode(code){await page.getByLabel('Email code',{exact:true}).fill(code);await page.getByRole('button',{name:'Verify email code',exact:true}).click();},
   /** Waits until verification finished and the vault controls are shown. */

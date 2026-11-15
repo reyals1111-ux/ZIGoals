@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
+import {openFold} from '../../phone-nav';
 
 // Session AL, lane L1 third pass (CROSS_LANE §b1/§b2 rows for L1). Fresh profile unless the row's bot used the Showcase.
 // Written for the integrator's production-build runs (main on 3102 expected to fail, the branch on 3101 to pass).
@@ -50,6 +51,8 @@ test.describe('desktop 1280, Dark, en-US device', () => {
     const headline = page.locator('.wealth-hero-total .wealth-total-headline');
     await expect.poll(() => headline.ariaSnapshot()).toContain('$150.00');
     const total = await headline.ariaSnapshot();
+    // Session AO (RR-16, deliberate): the class view folds by default on a computer; opened from its row first.
+    await openFold(page, 'Your wealth, in perspective');
     await expect(mix.locator('.class-summary').filter({hasText: 'Stablecoins'})).toContainText('1 asset');
     await mix.getByRole('checkbox', {name: /Count stablecoins as cash/}).check();
     await expect(mix.locator('.class-summary').filter({hasText: 'Stablecoins'})).toHaveCount(0);

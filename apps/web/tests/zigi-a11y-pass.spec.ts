@@ -23,7 +23,7 @@ const answer = (text: string) => [chunk({choices: [{index: 0, delta: {role: 'ass
 const PROPOSALS = 'MOCK: here are your cards.\n```zigoals-action\n{"kind":"log-water","glasses":2}\n```\n```zigoals-action\n{"kind":"check-in","habit":"h4","minutes":5}\n```\n```zigoals-action\n{"kind":"create-habit","title":"Evening stretch","type":"build","measurement":"minutes","target":10,"schedule":"daily","timeOfDay":"evening"}\n```';
 async function seed(page: Page) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   const settings = {...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE};
   const values = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(settings), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'})};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);

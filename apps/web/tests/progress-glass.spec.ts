@@ -1,9 +1,10 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 // Session I, Part 3: every progress bar and ring is the shared liquid-glass primitive (components/progress).
 async function showcase(page: Page) {
   await page.route('**/api/market-**', route => route.fulfill({status: 503, contentType: 'application/json', body: '{"error":"fixture offline"}'}));
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }

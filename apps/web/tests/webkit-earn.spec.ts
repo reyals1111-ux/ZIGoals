@@ -1,6 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {earnRoutes, seedShowcase} from './earn-fixtures';
 import {chooseChain} from './chain-choice';
+import {openFold} from './phone-nav';
 import {webkitCancelled} from './webkit-cancelled';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
@@ -83,6 +84,8 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
   expect(top).toBeGreaterThanOrEqual(0);
   expect(top).toBeLessThan(140);
   // The guide: a sheet at the bottom, above the tab bar, with 44 px buttons.
+  // Session AO (N-BN-05, deliberate): Valdora is a folded row on a phone; it is opened first, as a person would.
+  await openFold(page, 'Stake and keep a token: stZIG');
   const open = page.locator('#valdora').getByRole('link', {name: /^Open Valdora/});
   await open.scrollIntoViewIfNeeded();
   const [tab] = await Promise.all([context.waitForEvent('page'), open.click()]);

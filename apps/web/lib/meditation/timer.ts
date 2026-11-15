@@ -1,3 +1,4 @@
+import {TIMER_MINIMUM_MS} from '../health-timer-rules';
 import {meditationRunSchema, meditationSessionSchema, type MeditationRun, type MeditationSession} from './schema';
 
 /**
@@ -9,6 +10,15 @@ import {meditationRunSchema, meditationSessionSchema, type MeditationRun, type M
 export type Run = NonNullable<MeditationRun['run']>;
 export const PRESET_MINUTES = [1, 3, 5, 10, 20, 30] as const;
 export const MIN_MINUTES = 1, MAX_MINUTES = 240;
+/**
+ * Session AO (PR-018): why a custom length is refused, said at the field. Under the one timer minimum (a minute) the
+ * reason is that minimum, in the same words as the timer rule; otherwise the range.
+ */
+export function customMinutesIssue(text: string): string {
+  const t = text.trim(), n = Number(t);
+  if (/^\d+([.,]\d+)?$/.test(t) && Number(t.replace(',', '.')) * 60_000 < TIMER_MINIMUM_MS.meditation) return `A session lasts at least ${MIN_MINUTES} minute: a timer stopped within its first minute saves nothing. Enter whole minutes from ${MIN_MINUTES} to ${MAX_MINUTES}.`;
+  return /^\d+$/.test(t) && n > MAX_MINUTES ? `A session lasts at most ${MAX_MINUTES} minutes. Enter whole minutes from ${MIN_MINUTES} to ${MAX_MINUTES}.` : `Enter whole minutes from ${MIN_MINUTES} to ${MAX_MINUTES}.`;
+}
 
 export function startRun({now, minutes, kind = 'timer', pattern, moodBefore}: {now: Date; minutes: number; kind?: Run['kind']; pattern?: Run['pattern']; moodBefore?: number}): MeditationRun {
   if (!Number.isInteger(minutes) || minutes < MIN_MINUTES || minutes > MAX_MINUTES) throw Error(`Choose whole minutes from ${MIN_MINUTES} to ${MAX_MINUTES}.`);

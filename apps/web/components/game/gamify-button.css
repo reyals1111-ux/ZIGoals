@@ -17,4 +17,9 @@
 :root[data-app-motion=off] .gamify-trigger, :root[data-app-motion=off] .gamify-word { transition: none; }
 @media (forced-colors: active) { .gamify-trigger, .gamify-menu, .gamify-switch { border-color: CanvasText; } }
 /* Session AL (AL-LAYOUT-375-011): phones show no rocket (gamify-button.tsx); hidden before hydration too, so it never flashes. */
+/* Session AO (D-070/DV-247): on a computer or a tablet the rocket's word shows wherever the row has room
+   (`.status-row[data-words]`, components/shell/header-words.ts); then the word stays, with no widening on hover. */
+.status-row[data-words] .gamify-trigger { gap: 8px; padding-right: 14px; transition: border-color 160ms ease; }
+.status-row[data-words] .gamify-word { max-width: none; opacity: 1; transition: none; }
+/* Session AL (AL-LAYOUT-375-011, owner decision O3): phones show no rocket (Game layer is a row in Apps & extras); kept. */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { .gamify { display: none; } }

@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {loadShowcase, showcaseState} from './ah-helpers';
+import {openSettings} from './settings-open';
 
 // Session AH Part 3 (DS4/A4, BUG-061, D-087, B-081, M-141, D-031): resetting the Showcase asks first, in place, and can be
 // undone right after with what was added to it; the chip's "Load again" asks the same way.
@@ -10,7 +11,7 @@ test('Settings: Reset asks next to the button; Keep changes nothing; Reset then 
   await loadShowcase(page);
   // Something added to this tab's Showcase.
   await page.evaluate(() => { const m = JSON.parse(sessionStorage.getItem('zigoals:showcase:active:v1')!); const k = `zigoals:showcase:v1:${m.generation}:zigoals:platform:v1`; const p = JSON.parse(sessionStorage.getItem(k)!); p.watchlist = p.watchlist.slice(0, 1); sessionStorage.setItem(k, JSON.stringify(p)); });
-  await page.goto('/app/settings');
+  await openSettings(page);
   const button = page.getByRole('button', {name: 'Reset Showcase Demo', exact: true});
   await button.click();
   await expect(reset(page)).toBeVisible();

@@ -1,0 +1,33 @@
+{
+ "note": "Recorded-shape fixture for the Session AP service-row replay (scripts/run11/service-rows). Shapes follow the parsers that read them; values are illustrative, not a live capture. Times are relative to recordedAt and are re-based by the harness.",
+ "endpoint": "GET https://api.coingecko.com/api/v3/simple/price?ids=…&vs_currencies=…&include_last_updated_at=true&precision=full",
+ "recordedAt": "2026-11-14T09:00:00.000Z",
+ "stale": "cardano: last_updated_at is 40 minutes before recordedAt (older than the 15-minute QUOTE_FRESH_MS); every other row is under a minute old.",
+ "body": {
+  "bitcoin": {
+   "usd": 97012.34,
+   "eur": 91050.12,
+   "last_updated_at": 1794646770
+  },
+  "ethereum": {
+   "usd": 3412.0815,
+   "eur": 3202.4417,
+   "last_updated_at": 1794646755
+  },
+  "cardano": {
+   "usd": 0.7123,
+   "eur": 0.6685,
+   "last_updated_at": 1794644400
+  },
+  "zignaly": {
+   "usd": 0.08341,
+   "eur": 0.07828,
+   "last_updated_at": 1794646750
+  },
+  "solana": {
+   "usd": 187.42,
+   "eur": 175.9,
+   "last_updated_at": 1794646765
+  }
+ }
+}

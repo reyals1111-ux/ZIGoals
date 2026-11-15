@@ -39,8 +39,9 @@ export function HistoryHeatmap({days, today, todaySummary, state}: {days: Checkl
     const date = addDays(start, i), day = date === today ? todaySummary : days.days[date] ? {...days.days[date]!, perfect: !!days.days[date]!.perfect} : null;
     if (date > today) return {date, level: 'future', label: `${formatDate(date)}: ahead`};
     if (!day || day.total === 0) return {date, level: 'none', label: `${formatDate(date)}: ${HEAT_WORDS.none} — nothing on the path`};
-    const level: Level = day.done >= day.total ? 'all' : day.done > 0 ? 'some' : 'none', items = day.total === 1 ? 'item' : 'items';
-    const said = level === 'all' ? (day.total === 1 ? 'its one item done' : `all ${day.total} items done`) : level === 'some' ? `${day.done} of ${day.total} ${items} done` : `none of ${day.total} ${items} done`;
+    // Session AO (D-086): one word for one thing: the header counts "planets", so the day line does too (it said "items").
+    const level: Level = day.done >= day.total ? 'all' : day.done > 0 ? 'some' : 'none', items = day.total === 1 ? 'planet' : 'planets';
+    const said = level === 'all' ? (day.total === 1 ? 'its one planet done' : `all ${day.total} planets done`) : level === 'some' ? `${day.done} of ${day.total} ${items} done` : `none of ${day.total} ${items} done`;
     return {date, level, label: `${formatDate(date)}: ${HEAT_WORDS[level]} — ${said}${date === today ? ' so far' : ''}`};
   });
   const results = cells.filter(c => c.level !== 'none' && c.level !== 'future');

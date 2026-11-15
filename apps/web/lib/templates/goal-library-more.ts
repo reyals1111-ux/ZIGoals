@@ -1,4 +1,5 @@
 import type {LibraryTemplate, TemplateHabit} from './goal-library';
+import {LIBRARY_GOALS} from './library-goals';
 
 /**
  * Session AK (F5a, items 2 and 5): more goal templates for the library (lib/templates/goal-library.ts joins them in, in
@@ -36,5 +37,8 @@ export const MORE_TEMPLATES: readonly LibraryTemplate[] = [
   {id: 'give-a-talk', title: 'Give a talk', area: 'career', kind: 'project', summary: 'From a topic you care about to a talk in front of people.', milestones: ['Choose a topic', 'Write the outline', 'Practise in front of a friend', 'Give the talk'], keywords: ['presentation', 'speaking', 'conference', 'meetup']},
 ];
 
-/** EXTENSION POINT for BUILD list 2's winners (see above). Empty until that list is decided. */
-export const BUILD_LIST_2_TEMPLATES: readonly LibraryTemplate[] = [];
+/**
+ * EXTENSION POINT for BUILD list 2's winners (see above). Backlog #15 (AL-COMPETITOR-GAP-118, the curated template
+ * library) fills it with the goals in lib/templates/library-goals.ts.
+ */
+export const BUILD_LIST_2_TEMPLATES: readonly LibraryTemplate[] = LIBRARY_GOALS;

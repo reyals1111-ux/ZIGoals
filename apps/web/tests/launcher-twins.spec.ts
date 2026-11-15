@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AE (Part 2.5, the owner's request, ADR-027): the music player's button is ZIGi's launcher's twin — the same
@@ -7,7 +8,7 @@ import {expect, test} from '@playwright/test';
 test('the music button and ZIGi\'s launcher have the same size, shape, rim, fill and glow', async ({page}, info) => {
   test.skip(info.project.name !== 'desktop', 'on phones ZIGi is the one floating button (the music player opens from its menu)');
   // The Showcase shows the music player's button.
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const music = page.locator('.music-launcher'), zigi = page.locator('.ai-launcher-button');

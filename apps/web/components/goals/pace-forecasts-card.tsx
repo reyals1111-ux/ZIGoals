@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {useMemo} from 'react';
+import {useRovingFocus} from '../ui/use-roving-focus';
 import {forecastWords, paceForecast, privateGoalPoints, type Forecast} from '../../lib/goal-forecast';
 import {privateGoalSummary} from '../../lib/goal-summary';
 import type {MarketQuote} from '../../lib/market-quotes';
@@ -24,9 +25,10 @@ export function PaceForecastsCard({platform, quotes, now, today}: {platform: Pla
     const forecast = paceForecast(privateGoalPoints(goal, platform.contributions ?? [], current, today), current, target, today);
     return [{id: goal.id, name: goal.name, href: summary.href, forecast, words: forecastWords(forecast, formatDay)}];
   }).sort((a, b) => ORDER[a.forecast.state] - ORDER[b.forecast.state] || (a.forecast.date ?? '').localeCompare(b.forecast.date ?? '')).slice(0, 4), [platform, quotes, now, today]);
+  const list = useRovingFocus<HTMLUListElement>('a[href]'); // Session AP (D-028): the forecast goals are one Tab stop
   return <section className="panel pace-forecasts" aria-labelledby="pace-forecasts-title">
     <SectionHeading id="pace-forecasts-title" pillar="goals" eyebrow="Goals · estimates" title="Pace forecasts" level={3} action={<Link className="text-link" href="/app/goals">All goals →</Link>} />
-    {rows.length ? <ul className="pace-list">{rows.map(r => <li key={r.id} data-state={r.forecast.state}>
+    {rows.length ? <ul ref={list} className="pace-list">{rows.map(r => <li key={r.id} data-state={r.forecast.state}>
       <Link href={r.href}>{r.name}</Link>
       <strong>{r.words.headline}</strong>
       {r.forecast.state === 'estimate' && r.forecast.earliest && r.forecast.latest && r.forecast.earliest !== r.forecast.latest && <small>Between {formatDay(r.forecast.earliest)} and {formatDay(r.forecast.latest)}</small>}

@@ -2,6 +2,7 @@ import {expect, test, type Page, type Request} from '@playwright/test';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {closeMore, navLink} from './phone-nav';
 import {pressZigi} from './zigi-open';
+import {openSettings} from './settings-open';
 
 /**
  * Session V Part 17: ZIGoals hosted in the app. In every build without NEXT_PUBLIC_ZIGI_HOSTED=on (today: all of them),
@@ -79,7 +80,7 @@ test('a build without ZIGoals hosted never asks /api/zigi and shows no hosted ch
   const asked: Request[] = [];
   page.on('request', request => { if (new URL(request.url()).pathname === '/api/zigi') asked.push(request); });
   await fixtureAccount(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await signIn(page);
   await page.goto('/app/habits');
   await pressZigi(page);
@@ -96,7 +97,7 @@ test('an invited account: the disclosure first, then ZIGi answers through /api/z
   const outside: string[] = [];
   page.on('request', request => { const host = new URL(request.url()).hostname; if (/openai|anthropic|googleapis|x\.ai|openrouter/.test(host)) outside.push(request.url()); });
   await fixtureAccount(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await expect(page.getByRole('button', {name: 'Send email code', exact: true})).toBeEnabled();
   await expect(page.locator('details#zigi-hosted')).toHaveCount(0);
   await signInAndUnlock(page);
@@ -148,7 +149,7 @@ test('on Claude: "ZIGoals AI · powered by Claude", the person\'s own allowance 
   test.skip(!HOSTED, 'needs a build made with NEXT_PUBLIC_ZIGI_HOSTED=on (ZIGI_HOSTED_BUILD=on)');
   const chats = await relay(page, CLAUDE);
   await fixtureAccount(page);
-  await page.goto('/app/settings');
+  await openSettings(page);
   await signInAndUnlock(page);
   const card = page.locator('details#zigi-hosted');
   await expect(card.locator('summary')).toContainText('ZIGoals AI · powered by Claude');
@@ -180,7 +181,7 @@ test('an account that is not invited, or a paused relay, sees no hosted choice',
     await page.route('**/api/push*', route => route.fulfill({status: 503, json: {error: 'PUSH_UNAVAILABLE'}}));
     await relay(page, answer);
     await fixtureAccount(page);
-    await page.goto('/app/settings');
+    await openSettings(page);
     await signIn(page);
     await settingsAt(page, 'your-ai');
     await expect(page.locator('details#zigi-setup')).toBeAttached();

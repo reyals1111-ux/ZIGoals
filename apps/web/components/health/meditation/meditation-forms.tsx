@@ -6,10 +6,11 @@ import {BELL_SOUNDS, BREATHING_PATTERNS, type MeditationSession} from '../../../
 import {DEFAULT_BELLS, saveManual, setBells, setMeditationGoal} from '../../../lib/meditation/engine';
 import {BELLS, ring, wakeAudio, type BellSound} from '../../../lib/meditation/bells';
 import {PATTERNS, type BreathingPattern} from '../../../lib/meditation/breathing';
-import {MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, startRun} from '../../../lib/meditation/timer';
+import {customMinutesIssue, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, startRun} from '../../../lib/meditation/timer';
 import {instantAt, wallClock} from '../../../lib/zone-time';
 import type {MeditationStore} from './use-meditation';
 import {zigiSignals} from '../../zigi/bus';
+import {FieldError, useFormErrors} from '../../primitives/field-error';
 
 const MOODS = [[1, 'Low'], [2, 'Uneasy'], [3, 'OK'], [4, 'Calm'], [5, 'Very calm']] as const;
 const message = (error: unknown) => error instanceof Error && error.message && !error.message.startsWith('[') ? error.message : 'Check the values and try again.';
@@ -29,11 +30,13 @@ export function MoodPicker({legend, value, onChange}: {legend: string; value: nu
 export function BeginForm({store, onStarted}: {store: MeditationStore; onStarted: () => void}) {
   const [kind, setKind] = useState<'timer' | 'breathing'>('timer'), [pattern, setPattern] = useState<BreathingPattern>('box');
   const [minutes, setMinutes] = useState<number | 'custom'>(kind === 'timer' ? 10 : 3), [custom, setCustom] = useState(''), [mood, setMood] = useState<number | undefined>(), [error, setError] = useState('');
-  const bells = store.meditation.bells ?? {...DEFAULT_BELLS, updatedAt: ''};
+  const bells = store.meditation.bells ?? {...DEFAULT_BELLS, updatedAt: ''}, form = useFormErrors();
   function begin(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); setError('');
+    e.preventDefault(); setError(''); form.clear();
     const chosen = minutes === 'custom' ? Number(custom.trim()) : minutes;
-    if (minutes === 'custom' && (!/^\d{1,3}$/.test(custom.trim()) || chosen < MIN_MINUTES || chosen > MAX_MINUTES)) { setError(`Enter whole minutes from ${MIN_MINUTES} to ${MAX_MINUTES}.`); return; }
+    // Session AO (PR-018): the field says why, at the field (the app's field-error pattern): a session is planned in whole
+    // minutes from the one timer minimum (lib/health-timer-rules.ts), since a shorter one would save nothing.
+    if (minutes === 'custom' && (!/^\d{1,3}$/.test(custom.trim()) || chosen < MIN_MINUTES || chosen > MAX_MINUTES)) { form.fail({minutes: customMinutesIssue(custom)}); return; }
     try {
       store.run.update(() => startRun({now: new Date(), minutes: chosen, kind, ...(kind === 'breathing' ? {pattern} : {}), ...(mood !== undefined ? {moodBefore: mood} : {})}));
     } catch (err) { setError(`This device could not start the session. ${message(err)}`); return; }
@@ -52,7 +55,7 @@ export function BeginForm({store, onStarted}: {store: MeditationStore; onStarted
       {PRESET_MINUTES.map(m => <label key={m}><input type="radio" name="minutes" checked={minutes === m} onChange={() => setMinutes(m)}/><span>{m} min</span></label>)}
       <label><input type="radio" name="minutes" checked={minutes === 'custom'} onChange={() => setMinutes('custom')}/><span>Your own</span></label>
     </fieldset>
-    {minutes === 'custom' && <label className="field meditation-custom">Minutes ({MIN_MINUTES}–{MAX_MINUTES})<input type="text" inputMode="numeric" autoComplete="off" value={custom} onChange={e => setCustom(e.target.value)}/></label>}
+    {minutes === 'custom' && <><label className="field meditation-custom">Minutes ({MIN_MINUTES}–{MAX_MINUTES})<input {...form.field('minutes')} type="text" inputMode="numeric" autoComplete="off" value={custom} onChange={e => { setCustom(e.target.value); form.clear('minutes'); }}/></label><FieldError {...form.message('minutes')}/></>}
     <MoodPicker legend="How do you feel before? (optional)" value={mood} onChange={setMood}/>
     {kind === 'breathing' && <p className="fine">Breathe gently and comfortably. If you feel dizzy or unwell, stop and breathe normally.</p>}
     {error && <p role="alert">{error}</p>}

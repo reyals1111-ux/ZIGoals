@@ -8,7 +8,7 @@
 .budgets-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .budgets-table th,.budgets-table td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line,rgba(140,160,220,.18));vertical-align:middle}
 .budgets-table thead th{font-size:13px;font-weight:500;color:var(--muted,inherit)}
-.budgets-table td button{min-height:44px;min-width:44px}
+.budgets-table td button{min-height:44px;min-width:44px;white-space:nowrap}/* UX review (Major): "Remove" never wraps a letter at a time */
 .budgets-cat{display:block}
 .budgets-bar{display:block;height:8px;margin-top:6px;border-radius:6px;background:color-mix(in srgb,var(--text,#e8eefc) 10%,transparent);overflow:hidden}
 .budgets-bar span{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff))}

@@ -154,7 +154,7 @@ test.describe('NOVA always open, on a computer', () => {
 
   test('N8: NOVA\'s mini window opens from the top bar with the orb, the time and today, and closes from the same button', async ({page, context}) => {
     await seed(page);
-    await page.goto('/app/settings');
+    await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
     const real = await page.evaluate(() => typeof (window as unknown as {documentPictureInPicture?: {requestWindow?: unknown}}).documentPictureInPicture?.requestWindow === 'function');
     test.info().annotations.push({type: 'mini window', description: real ? "the browser's own Document Picture-in-Picture" : 'the stand-in'});
     if (!real) await page.addInitScript(() => {

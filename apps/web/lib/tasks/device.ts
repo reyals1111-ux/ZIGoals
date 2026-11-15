@@ -1,7 +1,7 @@
 import {readDeviceRecord, updateDeviceRecord} from '../device-record';
 import {getAppStorage} from '../showcase-storage';
 import {ZIGI_STORE_EVENT} from '../ai/store/keys';
-import {checklistZone, zonedDay} from '../checklist/day';
+import {checklistZone, zonedDay} from '../checklist/zone';
 import {wallClock} from '../zone-time';
 import {MAX_TASKS, TASKS, TASKS_KEY, taskSchema, tasksSchema, type Task, type Tasks} from './schema';
 import {addProject, addTask as addTo, editTask, projectByName, removeProject, finishTask, removeTask, reopenTask, restoreTask, restoreTasks, skipOccurrence, tasksOnDay, type TaskInput, type TaskPatch} from './engine';

@@ -121,6 +121,8 @@ export const NIGHT_L = 0.4, NIGHT_CHROMA = 0.14;
 export const isNight = c => c.L < NIGHT_L && c.C < NIGHT_CHROMA;
 /** What may change by day besides words: neutral and night colours. */
 export const flips = c => isNeutral(c) || isNight(c);
+/** Session AO (DV-203): the most chroma a neutral night panel keeps in Dark — a breath of Nebula's blue, read as near-black. */
+export const DARK_SURFACE_CHROMA = 0.012;
 /** WCAG 2 contrast of an OKLCH colour (taken as opaque) against white. */
 const relLum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 export const contrastOnWhite = c => 1.05 / (relLum(fromOklch({...c, a: 1})) + 0.05);
@@ -174,8 +176,13 @@ export const MAPS = {
   dark: {
     text: c => c,
     gradientText: c => c,
-    // Session AF (L5a, ADR-028 H75): only the night's neutral panels deepen; a coloured fill keeps Nebula's colour.
-    surface: c => flips(c) && c.L < 0.5 ? {...c, L: c.L * 0.55, C: c.C * 0.7} : c,
+    // Session AF (L5a, ADR-028 H75): only the night's neutral panels change; a coloured fill keeps Nebula's colour.
+    // Session AO (DV-203, DV-226, LS-H39, N-NB-03; the owner's decision of 13 Nov): Dark is a true dark theme — flat
+    // near-black. A neutral night panel keeps Nebula's own lightness (so every word keeps Nebula's contrast on it) and loses
+    // its navy: its chroma is held to DARK_SURFACE_CHROMA (Nebula's cards #0b1327 → #11141b, its ground #020918 → #08090c).
+    // A night panel with a tint of its own (C ≥ NEUTRAL_CHROMA: a selected state's indigo) keeps Nebula's colour, as every
+    // coloured fill does. (Was: the night's panels deepened, lightness × 0.55, chroma × 0.7.)
+    surface: c => isNeutral(c) && c.L < 0.5 ? {...c, C: Math.min(c.C, DARK_SURFACE_CHROMA)} : c,
     border: c => c,
     shadow: c => c,
     graphic: c => c,

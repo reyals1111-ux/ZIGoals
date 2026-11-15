@@ -69,3 +69,11 @@ test('the mail link: the same template as before without details; the person\'s 
   const sneaky = feedbackHref('x', 'line&cc=someone@example.com\r\nbcc: other');
   expect(sneaky.split('&')).toHaveLength(2);
 });
+
+// Session AP (friends Alpha, ADR-040): the build, the theme and the screen join the block, and still nothing identifying.
+test('the details block names the build, the theme and the screen when known, and nothing more', () => {
+  const details = deviceDetails({userAgent: UA.firefoxLinux, width: 1440, height: 900, pixelRatio: 1, reducedMotion: false, motionOff: false, installed: false, timeZone: 'Asia/Tokyo', appVersion: '0.9.0 · abc1234', theme: 'dark', screenWidth: 2560, screenHeight: 1440});
+  expect(details.split('\n').slice(-3)).toEqual(['App: 0.9.0 · abc1234', 'Theme: Dark', 'Screen: 2560 × 1440 px']);
+  expect(details.split('\n')).toHaveLength(9);
+  expect(details).not.toMatch(/@|zig1|0x[0-9a-f]{8}|token|secret|goal|habit/i);
+});

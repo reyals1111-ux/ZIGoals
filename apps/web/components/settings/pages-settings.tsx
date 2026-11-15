@@ -20,6 +20,8 @@ import {useChainChoice} from '../chain/use-chain-choice';
 import {CRYPTO_PAGES, chainChosenFrom} from '../../lib/chain-choice';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
+import {moreSheetLabels, moreSheetRows} from '../../lib/pages/more-rows';
+import {useGameEnabled} from '../game/use-game-enabled';
 import {APPS_EXTRAS, APPS_PREFS, SIDEBAR_APP_HREFS, SIDEBAR_APP_IDS, appShown, withAppShown, type SidebarAppId} from '../../lib/ui-prefs/apps';
 // Session AK (BUILD list 2 #16, lane G1a): the opt-in cycle log's switch, under Health (device-only, off by default).
 const CycleSwitch = lazy(() => import('../cycle/cycle-switch'));
@@ -98,7 +100,10 @@ export function PagesSettings() {
   const visible = visiblePages(view), start = startPage(view);
   // Session AL (AL-NAV-010; DV-045c, D-249, D-217): the preview is the navigation as it really is (the same model the
   // sidebar, the rail and More use: NOVA, the Checklist, the Journey and the Apps group included), not the fixed pages only.
-  const items = useVisibleNav().items, isPage = (href: string) => NAV_ITEMS.some(([h]) => h === href), {tabs, more} = phoneTabs(items, isPage);
+  const nav = useVisibleNav(), items = nav.items, isPage = (href: string) => NAV_ITEMS.some(([h]) => h === href), {tabs, more} = phoneTabs(items, isPage);
+  // Session AO (DV-274, NB-045): "In More" names the More sheet's rows exactly, in its order, from the list the sheet draws
+  // (lib/pages/more-rows.ts): the Journey, "More pages", the soundtrack and "Status & wallet" included.
+  const gameOn = useGameEnabled(), moreRows = moreSheetLabels(moreSheetRows(more, {view: nav.view, gameOn}));
   const chosenStart = view.start && visible.includes(view.start) ? view.start : '';
   // Session AB-Design (owner request 10, D2): five tabs; More is the top bar's button, not a tab.
   // Session AH (ST9, B-174, D-217): the sidebar as it really is, with the pages other parts add (the Checklist, Journey).
@@ -106,7 +111,7 @@ export function PagesSettings() {
   // tall window (Session AK P2, ADR-036 Q31; components/navigation.css), so the summary names them as such.
   // Session AL (O4): the sidebar's main list, then its Apps group (NOVA, Tasks, Notes, the Journal, the Agenda; those shown).
   const sidebar = items.filter(item => !navCompact(item) && !SIDEBAR_APP_HREFS.includes(item[0])), appsGroup = SIDEBAR_APP_IDS.filter(id => appShown(apps.data, id)).map(id => APPS_EXTRAS[id].label);
-  const summary = `Sidebar: ${sidebar.map(([, label]) => label).join(', ')}${appsGroup.length ? `; its Apps group: ${appsGroup.join(', ')}` : ''}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
+  const summary = `Sidebar: ${sidebar.map(([, label]) => label).join(', ')}${appsGroup.length ? `; its Apps group: ${appsGroup.join(', ')}` : ''}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${moreRows.join(', ')}.`;
   return <section className="panel pages-settings" id="your-pages" aria-labelledby="your-pages-title">
     <p className="eyebrow">YOUR APP</p><h2 id="your-pages-title">Your pages & buttons</h2>
     <p>Hide what you don&rsquo;t use; your records stay as they are. Settings and Help always show. A hidden page still opens from a link, with a way to show it again.</p>
@@ -132,7 +137,7 @@ export function PagesSettings() {
                 <input type="checkbox" role="switch" checked={prefsUsable && governance} disabled={!prefsUsable} aria-describedby="pages-note-governance" onChange={e => showGovernance(e.currentTarget.checked)}/>
                 <span>Governance</span>
               </label>
-              <small className="pages-switch-note" id="pages-note-governance">On this device. It shows while Staking shows; Earn links to it either way.</small>
+              <small className="pages-switch-note" id="pages-note-governance">Off until you switch it on, on this device only. Governance sits with Staking: it shows only while Staking shows, and Earn’s “Have a say” section links to it either way.</small>
             </div>}
           </Fragment>)}
         </fieldset>
@@ -176,7 +181,7 @@ export function PagesSettings() {
         <p className="sr-only">{summary}</p>
         <div className="pages-preview-row" aria-hidden="true">
           <div className="pages-preview-sidebar"><span className="pages-preview-title">Sidebar</span><ol>{sidebar.map(([href, label]) => <li key={href}>{label}</li>)}</ol>{appsGroup.length > 0 && <><span className="pages-preview-title pages-preview-apps">Apps</span><ol>{appsGroup.map(label => <li key={label}>{label}</li>)}</ol></>}</div>
-          <div className="pages-preview-phone"><span className="pages-preview-title">Phone tab bar</span><ol className="pages-preview-tabs">{tabs.map(([href, label]) => <li key={href}>{label}</li>)}</ol><span className="pages-preview-more">In More: {more.map(([, label]) => label).join(' · ')}</span></div>
+          <div className="pages-preview-phone"><span className="pages-preview-title">Phone tab bar</span><ol className="pages-preview-tabs">{tabs.map(([href, label]) => <li key={href}>{label}</li>)}</ol><span className="pages-preview-more">In More: {moreRows.join(' · ')}</span></div>
         </div>
       </figure>
       {confirming ? <div className="pages-reset-confirm" role="group" aria-labelledby="pages-reset-question">

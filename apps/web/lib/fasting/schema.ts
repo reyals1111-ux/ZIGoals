@@ -8,8 +8,11 @@ import * as z from 'zod';
  */
 export const FASTING_KEY = 'zigoals:fasting:v1';
 export const MAX_FASTING_SESSIONS = 2000;
-/** The format's room is 24 hours (the automatic stop); the app never offers a target above 18. */
-export const MAX_HOURS = 24, MAX_CUSTOM_HOURS = 18;
+/** The format's room is 24 hours (the automatic stop). Session AO (C-MO-36): a target the person types on Health's
+ *  fasting form goes up to that same 24 h (MAX_TARGET_HOURS, was 18), never beyond; the stored shape is unchanged
+ *  (targetHours was always 1–24 in the schema). MAX_CUSTOM_HOURS (18) is still what ZIGi's and NOVA's fasting cards
+ *  accept (lib/ai/actions, the NOVA lane); that lane adopts 24 when it merges (ADR-039). */
+export const MAX_HOURS = 24, MAX_CUSTOM_HOURS = 18, MAX_TARGET_HOURS = MAX_HOURS;
 export const FASTING_PRESETS = [{label: '12:12', hours: 12}, {label: '14:10', hours: 14}, {label: '16:8', hours: 16}] as const;
 const instant = z.iso.datetime();
 const timeZone = z.string().min(1).max(100).refine(value => { try { new Intl.DateTimeFormat('en', {timeZone: value}).format(); return true; } catch { return false; } }, 'Choose a valid IANA timezone, for example Europe/Brussels.');

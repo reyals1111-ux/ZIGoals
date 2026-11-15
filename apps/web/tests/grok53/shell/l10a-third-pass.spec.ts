@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../../ah-helpers';
 import {applyTheme} from '../../p6-helpers';
+import {afterGoto} from '../../settings-open';
 
 /**
  * Session AL third pass (lanes L10a, L10b, L5). Fresh profile unless said; every /api request answers 503.
@@ -17,7 +18,7 @@ import {applyTheme} from '../../p6-helpers';
  */
 test.beforeEach(async ({page}) => { await offlineApi(page); });
 async function ready(page: Page, path: string) {
-  await page.goto(path); await hydrated(page);
+  await page.goto(path); await afterGoto(page, path); await hydrated(page);
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
 }
 

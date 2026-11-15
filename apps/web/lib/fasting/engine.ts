@@ -1,16 +1,16 @@
 import {habitCalendarDay, habitRuleOn, logHabitValue, type HabitData, type HabitRule} from '../habits';
 import {healthDay} from '../health-daily';
 import {addDays, instantAt} from '../zone-time';
-import {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_FASTING_SESSIONS, MAX_HOURS, type Fasting, type FastingSession} from './schema';
+import {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_FASTING_SESSIONS, MAX_HOURS, MAX_TARGET_HOURS, type Fasting, type FastingSession} from './schema';
 
-export {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_HOURS};
+export {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_HOURS, MAX_TARGET_HOURS};
 const HOUR = 3_600_000;
 export const runningSession = (data: Fasting): FastingSession | undefined => data.sessions.find(s => s.endedAt === null);
 const limitOf = (session: FastingSession) => Date.parse(session.startedAt) + MAX_HOURS * HOUR;
-/** Starts a fast: one at a time, a target of 1–18 hours, the Health journal's zone (else the device's). */
+/** Starts a fast: one at a time, a target of 1–24 hours (Session AO, C-MO-36), the Health journal's zone (else the device's). */
 export function startFast(data: Fasting, {id, now, targetHours, timeZone, habitId}: {id: string; now: Date; targetHours: number; timeZone: string; habitId?: string}): Fasting {
   if (runningSession(data)) throw Error('A fast is already running.');
-  if (!Number.isInteger(targetHours) || targetHours < 1 || targetHours > MAX_CUSTOM_HOURS) throw Error('Choose a target up to 18 hours.');
+  if (!Number.isInteger(targetHours) || targetHours < 1 || targetHours > MAX_TARGET_HOURS) throw Error(`Choose a target from 1 to ${MAX_TARGET_HOURS} hours.`);
   if (data.sessions.length >= MAX_FASTING_SESSIONS) throw Error('Your fasting history is full. Remove old sessions to continue.');
   return {...data, sessions: [...data.sessions, {id, startedAt: now.toISOString(), endedAt: null, targetHours, timeZone, ...(habitId ? {habitId} : {})}]};
 }
@@ -84,7 +84,7 @@ export function logPastFast(data: Fasting, {id, start, end, targetHours, timeZon
   if (e > now.getTime()) throw new RangeError('A past fast ends before now.');
   if (e - s < 10 * 60_000) throw new RangeError('A fast lasts at least ten minutes: check the times.');
   if (e - s > MAX_HOURS * HOUR) throw new RangeError(`A fast lasts at most ${MAX_HOURS} hours: check the dates.`);
-  if (!Number.isInteger(targetHours) || targetHours < 1 || targetHours > MAX_CUSTOM_HOURS) throw new RangeError(`Choose a target from 1 to ${MAX_CUSTOM_HOURS} hours.`);
+  if (!Number.isInteger(targetHours) || targetHours < 1 || targetHours > MAX_TARGET_HOURS) throw new RangeError(`Choose a target from 1 to ${MAX_TARGET_HOURS} hours.`);
   if (data.sessions.length >= MAX_FASTING_SESSIONS) throw Error('Your fasting history is full. Remove old sessions to continue.');
   const clash = data.sessions.find(x => s < (x.endedAt === null ? now.getTime() : Date.parse(x.endedAt)) && Date.parse(x.startedAt) < e);
   if (clash) throw new RangeError('This overlaps another fast. Change the times, or remove that fast first.');

@@ -48,7 +48,7 @@ node scripts/run11/stage7-preflight.mjs            # read only: READY
 Run this from the checkout. It lists each Worker's sources that changed since the Stage 7 deploy:
 ```sh
 for w in "lifecycle:workers/private-sync/lifecycle.mjs" \
-         "private-sync:workers/private-sync/worker.mjs workers/private-sync/sessions.mjs workers/private-sync/rotation.mjs workers/private-sync/portfolio.mjs" \
+         "private-sync:workers/private-sync/worker.mjs workers/private-sync/sessions.mjs workers/private-sync/rotation.mjs workers/private-sync/portfolio.mjs workers/private-sync/extras.mjs workers/private-sync/step-up.mjs" \
          "push-reminders:workers/push-reminders/" \
          "food-lookup:workers/food-lookup/" \
          "auth-abuse:workers/auth-abuse/" \
@@ -65,6 +65,11 @@ pnpm --filter @zigoals/web exec wrangler deploy --config "$PWD/<template>" --dry
 ```
 
 Then compare with `shasum -a 256 /tmp/<name>-*/*.js`. Different bytes mean redeploy.
+
+*14 Nov 2026 (Session AP):* the private-sync line now also lists `extras.mjs` (Session AB-Cloud, AK, and PR #101's NOVA
+section) and `step-up.mjs` (Session Z-Cloud), which `worker.mjs` imports; before, the loop could print 0 for a Worker
+that had changed. `workers/push-device/` (the public Alpha's notifications, PUSH_PUBLIC_ALPHA.md) and
+`workers/weather-proxy/` are not in the loop on purpose: neither is part of this stack (see "Sessions AM, AO and AP" below).
 
 **As of Session S's branch** (re-run at your release SHA; later PRs can add rows):
 
@@ -370,6 +375,53 @@ in the object, unread, and "Delete cloud data" still removes them.
    the copy was deleted on another device and turns extras sync off there; the records stay on both devices.
 4. **Restore** (C22): Settings → Your data → Restore from a backup with a fresh Export everything ZIP: the preview lists
    the parts; nothing changes until "Restore the chosen parts"; Undo puts everything back.
+
+## Sessions AM, AO and AP changes (PR #101 and PR #102; 14 Nov 2026, Session AP)
+Checked against the code on 14 Nov with `git diff --name-only 17069c7d..<branch> -- workers/<name>` (17069c7d = Alpha
+#53, the food Worker's last deploy). Re-run step 2 at your release SHA; this is what to expect.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| private sync (`PrivateVault`) | **Only with PR #101 (Session AM, NOVA):** one file, `workers/private-sync/extras.mjs`: a second optional extras section `nova` (NOVA's requests, made and pinned widgets, layout), asked for by name (`?with=checklist&with=nova`). No new class, migration, secret or var. **`main` and PR #102 do not change private sync** (0 files). | **yes, once #101 is merged** and only then; with #102 alone, no |
+| lifecycle | nothing (it lives in the same folder, but `lifecycle.mjs` is unchanged) | no |
+| food lookup, auth admission, market coordinator, push reminders, ZIGoals hosted relay | nothing since 17069c7d (0 files on `main`, PR #101 and PR #102) | no |
+| weather proxy (`workers/weather-proxy`, new in PR #102) | MET Norway forecasts through ZIGoals' own Worker (ADR-040 Part 5). **OFF:** no binding, no route, no app client yet; the NOVA lane wires the client later | **no**: never by this redeploy; only by [WEATHER_PROXY_ACTIVATION.md](WEATHER_PROXY_ACTIVATION.md), on its own |
+| app | Sessions AN, AO and AP (PR #102) and AM (PR #101): new device records only (for example `zigoals:day-ends:v1`, `zigoals:networth-history:v1`, `zigoals:day-goal:v1`; AM's `zigoals:nova-stage:v1`, `zigoals:nova-world:v1`), all additive | yes, last |
+
+If your acceptance private sync was last deployed before 17069c7d, the same redeploy also brings Session AK's Checklist
+section (STATUS, Session AK Part 8): one deploy covers both.
+
+**Owner steps for this redeploy, in order** (each one inside step 4 or 5 above, with their read-only checks):
+1. **`STEP_UP_REQUIRED` is in your private copy, and "on" (read only, 1 minute).** It is the owner's switch for "the
+   recovery secret is asked again" (ADR-019 C35): with it "on", Delete cloud data, Delete account, Delete a section,
+   Sign out all other devices (and revoking one session) and Rotate need the recovery secret's proof once a vault has a
+   verifier; "off" turns the check off. The committed template (`workers/private-sync/wrangler.local.jsonc`) says `"on"`.
+   ```sh
+   grep -n STEP_UP_REQUIRED workers/private-sync/wrangler.acctest.owner.jsonc   # read only: "STEP_UP_REQUIRED": "on"
+   node scripts/run11/activation-check.mjs --private                            # read only: PASS
+   ```
+   - `private: template var missing: STEP_UP_REQUIRED` → `node scripts/run11/make-private-configs.mjs --add-missing-template-vars`, then the check again.
+   - `private: STEP_UP_REQUIRED must be "on" or "off".` → correct the value in your private copy by hand.
+   - **Set it to "off" only for one case:** rolling the app back to #35 or older (the floor is #32) while vaults already
+     have a verifier. Then "off" first (deploy private sync with it), and the app rollback second. Back to "on" afterwards.
+2. **Private sync** (only if PR #101 is in the release SHA): step 4, with `workers/private-sync/wrangler.acctest.owner.jsonc`.
+   ADR-038 says either order with the app is safe; deploy the Worker first so the first sync carries NOVA.
+3. **The app last** (step 5), then the hostname check (step 6).
+4. **Optional, after the app:** push ("Push activation" below), the hosted relay (below). The weather proxy is not part of
+   this stack: [WEATHER_PROXY_ACTIVATION.md](WEATHER_PROXY_ACTIVATION.md), whenever you choose.
+
+**What to check after the redeploy (plain words):**
+1. **The secret is still asked again** (unchanged since Session Z-Cloud): "Sign out all other devices…" shows
+   "Your recovery secret, to confirm it’s you".
+2. **NOVA syncs** (only with PR #101 and the private-sync redeploy): a widget pinned in NOVA on Desktop A shows on a
+   second computer after both sync. Without the redeploy NOVA keeps it on the device and says so. The proof that the app
+   with NOVA works against the old Worker is PR #101's `scripts/run11/extras-nova-a6.test.mjs`.
+3. **Checklist, Goals, Habits and Health extras still sync** as in rows 15h–15j of the run sheet.
+4. The new Session AO/AP checks: [FRIENDS_ALPHA_CHECKLIST.md](FRIENDS_ALPHA_CHECKLIST.md), "14 Nov 2026 (Session AP)".
+
+**Rollback:** app back to #54 on its own (its requests are answered as before; NOVA's sealed copy stays unread). Private
+sync back: NOVA stays on the device with a note; its keys stay in the object, unread, and "Delete cloud data" still
+removes them (ADR-038 "Rollback", on PR #101).
 
 ## Push activation (optional; Session X Part 8, 2026-10-08)
 Push reminders (ADR-010) can be switched on during this redeploy, on the acceptance stack only. **The public Alpha stays

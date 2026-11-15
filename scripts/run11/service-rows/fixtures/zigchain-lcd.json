@@ -1,0 +1,801 @@
+{
+ "note": "Recorded-shape fixture for the Session AP service-row replay (scripts/run11/service-rows). Shapes follow the parsers that read them; values are illustrative, not a live capture. Times are relative to recordedAt and are re-based by the harness. One coherent LCD at block 12873456 for both api.zigchain.com and testnet-api.zigchain.com: \"{chain}\" becomes zigchain-1 or zig-test-2 by host. Keys are path+query exactly as the readers ask; \"__status\" marks the chain's own error answers (not-found).",
+ "recordedAt": "2026-11-14T09:00:00.000Z",
+ "height": "12873456",
+ "wallet": "zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065",
+ "validators": {
+  "aurora": {
+   "operator": "zigvaloper1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsatcj48",
+   "account": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+   "moniker": "Aurora Stake",
+   "jailed": false
+  },
+  "beacon": {
+   "operator": "zigvaloper15fj75pwsql98pjgxpkd098tz38nx0ljcjnzp6p",
+   "account": "zig15fj75pwsql98pjgxpkd098tz38nx0ljc85w8mc",
+   "moniker": "Beacon Nodes",
+   "jailed": false
+  },
+  "cobalt": {
+   "operator": "zigvaloper15jmk9525gacnztxnfwnnughk6w6cufwqrlpqun",
+   "account": "zig15jmk9525gacnztxnfwnnughk6w6cufwqkcdxa2",
+   "moniker": "Cobalt Validator",
+   "jailed": true
+  },
+  "delta": {
+   "operator": "zigvaloper1szflewqfqnsqna0t6j05jy04h29x0w3a0rmeg9",
+   "account": "zig1szflewqfqnsqna0t6j05jy04h29x0w3a6yhlfu",
+   "moniker": "Delta Labs",
+   "jailed": false
+  }
+ },
+ "routes": {
+  "/cosmos/base/tendermint/v1beta1/blocks/latest": {
+   "block_id": {
+    "hash": "q8Vf3w0fixture0block0hash0AAAAAAAAAAAAAAAAAAAA=",
+    "part_set_header": {
+     "total": 1,
+     "hash": "fixture"
+    }
+   },
+   "block": {
+    "header": {
+     "version": {
+      "block": "11",
+      "app": "0"
+     },
+     "chain_id": "{chain}",
+     "height": "12873456",
+     "time": "2026-11-14T08:59:58.000Z",
+     "last_block_id": {
+      "hash": "",
+      "part_set_header": {
+       "total": 0,
+       "hash": ""
+      }
+     },
+     "proposer_address": "fixture"
+    },
+    "data": {
+     "txs": []
+    },
+    "evidence": {
+     "evidence": []
+    },
+    "last_commit": null
+   }
+  },
+  "/cosmos/base/tendermint/v1beta1/node_info": {
+   "default_node_info": {
+    "protocol_version": {
+     "p2p": "8",
+     "block": "11",
+     "app": "0"
+    },
+    "default_node_id": "fixture",
+    "listen_addr": "tcp://0.0.0.0:26656",
+    "network": "{chain}",
+    "version": "0.38.17",
+    "channels": "40202122233038606100",
+    "moniker": "fixture-lcd",
+    "other": {
+     "tx_index": "on",
+     "rpc_address": "tcp://0.0.0.0:26657"
+    }
+   },
+   "application_version": {
+    "name": "zigchain",
+    "app_name": "zigchaind",
+    "version": "v5.0.1",
+    "git_commit": "fixture",
+    "build_tags": "",
+    "go_version": "go1.23.8",
+    "build_deps": [],
+    "cosmos_sdk_version": "v0.50.13"
+   }
+  },
+  "/cosmos/staking/v1beta1/params": {
+   "params": {
+    "unbonding_time": "1814400s",
+    "max_validators": 100,
+    "max_entries": 7,
+    "historical_entries": 10000,
+    "bond_denom": "azig",
+    "min_commission_rate": "0.000000000000000000"
+   }
+  },
+  "/cosmos/bank/v1beta1/denoms_metadata/azig": {
+   "metadata": {
+    "description": "The native staking token of ZIGChain",
+    "denom_units": [
+     {
+      "denom": "azig",
+      "exponent": 0,
+      "aliases": [
+       "attozig"
+      ]
+     },
+     {
+      "denom": "zig",
+      "exponent": 18,
+      "aliases": []
+     }
+    ],
+    "base": "azig",
+    "display": "zig",
+    "name": "ZIG",
+    "symbol": "ZIG",
+    "uri": "",
+    "uri_hash": ""
+   }
+  },
+  "/cosmos/staking/v1beta1/validators?pagination.limit=100": {
+   "validators": [
+    {
+     "operator_address": "zigvaloper1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsatcj48",
+     "consensus_pubkey": {
+      "@type": "/cosmos.crypto.ed25519.PubKey",
+      "key": "NUG7WksAK1Ri3Nke4qnKbPATCGokEWQRfHLgqe1Ar8s="
+     },
+     "jailed": false,
+     "status": "BOND_STATUS_BONDED",
+     "tokens": "41250000000000000000000000",
+     "delegator_shares": "41250000000000000000000000.000000000000000000",
+     "description": {
+      "moniker": "Aurora Stake",
+      "identity": "",
+      "website": "https://aurora-stake.example",
+      "security_contact": "",
+      "details": ""
+     },
+     "unbonding_height": "0",
+     "unbonding_time": "1970-01-01T00:00:00Z",
+     "commission": {
+      "commission_rates": {
+       "rate": "0.050000000000000000",
+       "max_rate": "0.200000000000000000",
+       "max_change_rate": "0.010000000000000000"
+      },
+      "update_time": "2026-09-12T09:00:00.000Z"
+     },
+     "min_self_delegation": "1",
+     "unbonding_on_hold_ref_count": "0",
+     "unbonding_ids": []
+    },
+    {
+     "operator_address": "zigvaloper15fj75pwsql98pjgxpkd098tz38nx0ljcjnzp6p",
+     "consensus_pubkey": {
+      "@type": "/cosmos.crypto.ed25519.PubKey",
+      "key": "ZjfabUEdygOMdMaugBqw2Dv74eWRGIoKgUkHdeLA9bM="
+     },
+     "jailed": false,
+     "status": "BOND_STATUS_BONDED",
+     "tokens": "18900000000000000000000000",
+     "delegator_shares": "18900000000000000000000000.000000000000000000",
+     "description": {
+      "moniker": "Beacon Nodes",
+      "identity": "",
+      "website": "https://beacon-nodes.example",
+      "security_contact": "",
+      "details": ""
+     },
+     "unbonding_height": "0",
+     "unbonding_time": "1970-01-01T00:00:00Z",
+     "commission": {
+      "commission_rates": {
+       "rate": "0.100000000000000000",
+       "max_rate": "0.250000000000000000",
+       "max_change_rate": "0.020000000000000000"
+      },
+      "update_time": "2026-09-12T09:00:00.000Z"
+     },
+     "min_self_delegation": "1",
+     "unbonding_on_hold_ref_count": "0",
+     "unbonding_ids": []
+    },
+    {
+     "operator_address": "zigvaloper15jmk9525gacnztxnfwnnughk6w6cufwqrlpqun",
+     "consensus_pubkey": {
+      "@type": "/cosmos.crypto.ed25519.PubKey",
+      "key": "1bdcb9ggfDASbJgcyVxfi9sKhpa1xRYwhiHqaoZhIQg="
+     },
+     "jailed": true,
+     "status": "BOND_STATUS_UNBONDING",
+     "tokens": "2310000000000000000000000",
+     "delegator_shares": "2310000000000000000000000.000000000000000000",
+     "description": {
+      "moniker": "Cobalt Validator",
+      "identity": "",
+      "website": "",
+      "security_contact": "",
+      "details": ""
+     },
+     "unbonding_height": "12860211",
+     "unbonding_time": "2026-12-03T09:00:00.000Z",
+     "commission": {
+      "commission_rates": {
+       "rate": "0.080000000000000000",
+       "max_rate": "1.000000000000000000",
+       "max_change_rate": "0.010000000000000000"
+      },
+      "update_time": "2026-09-12T09:00:00.000Z"
+     },
+     "min_self_delegation": "1",
+     "unbonding_on_hold_ref_count": "0",
+     "unbonding_ids": []
+    },
+    {
+     "operator_address": "zigvaloper1szflewqfqnsqna0t6j05jy04h29x0w3a0rmeg9",
+     "consensus_pubkey": {
+      "@type": "/cosmos.crypto.ed25519.PubKey",
+      "key": "bbY3EuTl5DOKSGEEG47KQdUQ22WAyk7aDuFW5AQljEw="
+     },
+     "jailed": false,
+     "status": "BOND_STATUS_BONDED",
+     "tokens": "9800000000000000000000000",
+     "delegator_shares": "9800000000000000000000000.000000000000000000",
+     "description": {
+      "moniker": "Delta Labs",
+      "identity": "",
+      "website": "https://delta-labs.example",
+      "security_contact": "",
+      "details": ""
+     },
+     "unbonding_height": "0",
+     "unbonding_time": "1970-01-01T00:00:00Z",
+     "commission": {
+      "commission_rates": {
+       "rate": "0.030000000000000000",
+       "max_rate": "0.150000000000000000",
+       "max_change_rate": "0.010000000000000000"
+      },
+      "update_time": "2026-09-12T09:00:00.000Z"
+     },
+     "min_self_delegation": "1",
+     "unbonding_on_hold_ref_count": "0",
+     "unbonding_ids": []
+    }
+   ],
+   "pagination": {
+    "next_key": null,
+    "total": "4"
+   }
+  },
+  "/cosmos/slashing/v1beta1/signing_infos?pagination.limit=100": {
+   "info": [
+    {
+     "address": "zigvalcons1uh8s07xu6537ynfltx20fr9ftulp0uljz32hjz",
+     "start_height": "1",
+     "index_offset": "1287345",
+     "jailed_until": "1970-01-01T00:00:00Z",
+     "tombstoned": false,
+     "missed_blocks_counter": "12"
+    },
+    {
+     "address": "zigvalcons1ry8jq32rttqg2g9srrjhy3an6cnu6jlhpj9k7j",
+     "start_height": "1",
+     "index_offset": "1287345",
+     "jailed_until": "1970-01-01T00:00:00Z",
+     "tombstoned": false,
+     "missed_blocks_counter": "450"
+    },
+    {
+     "address": "zigvalcons1yuvdt8aaer7hkjlw7fz727xqnvraz5gzv9p2ek",
+     "start_height": "1",
+     "index_offset": "1287345",
+     "jailed_until": "2026-11-14T09:10:00.000Z",
+     "tombstoned": false,
+     "missed_blocks_counter": "9100"
+    },
+    {
+     "address": "zigvalcons13y85p0ewyjpexfa8q9ks70x2w35ptjhtxuea3w",
+     "start_height": "1",
+     "index_offset": "1287345",
+     "jailed_until": "1970-01-01T00:00:00Z",
+     "tombstoned": false,
+     "missed_blocks_counter": "0"
+    }
+   ],
+   "pagination": {
+    "next_key": null,
+    "total": "4"
+   }
+  },
+  "/cosmos/slashing/v1beta1/params": {
+   "params": {
+    "signed_blocks_window": "10000",
+    "min_signed_per_window": "0.050000000000000000",
+    "downtime_jail_duration": "600s",
+    "slash_fraction_double_sign": "0.050000000000000000",
+    "slash_fraction_downtime": "0.000100000000000000"
+   }
+  },
+  "/cosmos/staking/v1beta1/pool": {
+   "pool": {
+    "not_bonded_tokens": "2410000000000000000000000",
+    "bonded_tokens": "69950000000000000000000000"
+   }
+  },
+  "/cosmos/bank/v1beta1/balances/zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065/by_denom?denom=azig": {
+   "balance": {
+    "denom": "azig",
+    "amount": "42500000000000000000"
+   }
+  },
+  "/cosmos/bank/v1beta1/balances/zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065/by_denom?denom=coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig": {
+   "balance": {
+    "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig",
+    "amount": "0"
+   }
+  },
+  "/cosmos/bank/v1beta1/balances/zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065/by_denom?denom=coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig": {
+   "balance": {
+    "denom": "coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+    "amount": "0"
+   }
+  },
+  "/cosmos/staking/v1beta1/delegations/zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065?pagination.limit=100": {
+   "delegation_responses": [
+    {
+     "delegation": {
+      "delegator_address": "zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065",
+      "validator_address": "zigvaloper1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsatcj48",
+      "shares": "1500000000000000000000.000000000000000000"
+     },
+     "balance": {
+      "denom": "azig",
+      "amount": "1500000000000000000000"
+     }
+    },
+    {
+     "delegation": {
+      "delegator_address": "zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065",
+      "validator_address": "zigvaloper15jmk9525gacnztxnfwnnughk6w6cufwqrlpqun",
+      "shares": "250000000000000000000.000000000000000000"
+     },
+     "balance": {
+      "denom": "azig",
+      "amount": "250000000000000000000"
+     }
+    }
+   ],
+   "pagination": {
+    "next_key": null,
+    "total": "2"
+   }
+  },
+  "/cosmos/staking/v1beta1/delegators/zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065/unbonding_delegations?pagination.limit=100": {
+   "unbonding_responses": [
+    {
+     "delegator_address": "zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065",
+     "validator_address": "zigvaloper15fj75pwsql98pjgxpkd098tz38nx0ljcjnzp6p",
+     "entries": [
+      {
+       "creation_height": "12610002",
+       "completion_time": "2026-11-23T14:00:00.000Z",
+       "initial_balance": "100000000000000000000",
+       "balance": "100000000000000000000",
+       "unbonding_id": "7781",
+       "unbonding_on_hold_ref_count": "0"
+      }
+     ]
+    }
+   ],
+   "pagination": {
+    "next_key": null,
+    "total": "1"
+   }
+  },
+  "/cosmos/distribution/v1beta1/delegators/zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065/rewards": {
+   "rewards": [
+    {
+     "validator_address": "zigvaloper1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsatcj48",
+     "reward": [
+      {
+       "denom": "azig",
+       "amount": "3214567890123456789.123456789012345678"
+      }
+     ]
+    },
+    {
+     "validator_address": "zigvaloper15jmk9525gacnztxnfwnnughk6w6cufwqrlpqun",
+     "reward": [
+      {
+       "denom": "azig",
+       "amount": "412345678901234567.500000000000000000"
+      }
+     ]
+    }
+   ],
+   "total": [
+    {
+     "denom": "azig",
+     "amount": "3626913569024691356.623456789012345678"
+    }
+   ]
+  },
+  "/cosmos/staking/v1beta1/validators/zigvaloper1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsatcj48/delegations/zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557": {
+   "delegation_response": {
+    "delegation": {
+     "delegator_address": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+     "validator_address": "zigvaloper1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsatcj48",
+     "shares": "500000000000000000000000.000000000000000000"
+    },
+    "balance": {
+     "denom": "azig",
+     "amount": "500000000000000000000000"
+    }
+   }
+  },
+  "/cosmos/staking/v1beta1/validators/zigvaloper15fj75pwsql98pjgxpkd098tz38nx0ljcjnzp6p/delegations/zig15fj75pwsql98pjgxpkd098tz38nx0ljc85w8mc": {
+   "delegation_response": {
+    "delegation": {
+     "delegator_address": "zig15fj75pwsql98pjgxpkd098tz38nx0ljc85w8mc",
+     "validator_address": "zigvaloper15fj75pwsql98pjgxpkd098tz38nx0ljcjnzp6p",
+     "shares": "120000000000000000000000.000000000000000000"
+    },
+    "balance": {
+     "denom": "azig",
+     "amount": "120000000000000000000000"
+    }
+   }
+  },
+  "/cosmos/staking/v1beta1/validators/zigvaloper15jmk9525gacnztxnfwnnughk6w6cufwqrlpqun/delegations/zig15jmk9525gacnztxnfwnnughk6w6cufwqkcdxa2": {
+   "delegation_response": {
+    "delegation": {
+     "delegator_address": "zig15jmk9525gacnztxnfwnnughk6w6cufwqkcdxa2",
+     "validator_address": "zigvaloper15jmk9525gacnztxnfwnnughk6w6cufwqrlpqun",
+     "shares": "10000000000000000000000.000000000000000000"
+    },
+    "balance": {
+     "denom": "azig",
+     "amount": "10000000000000000000000"
+    }
+   }
+  },
+  "/cosmos/staking/v1beta1/validators/zigvaloper1szflewqfqnsqna0t6j05jy04h29x0w3a0rmeg9/delegations/zig1szflewqfqnsqna0t6j05jy04h29x0w3a6yhlfu": {
+   "__status": 404,
+   "code": 5,
+   "message": "rpc error: code = NotFound desc = delegation with delegator zig1szflewqfqnsqna0t6j05jy04h29x0w3a6yhlfu not found for validator zigvaloper1szflewqfqnsqna0t6j05jy04h29x0w3a0rmeg9: key not found",
+   "details": []
+  },
+  "/cosmos/gov/v1/params/tallying": {
+   "voting_params": null,
+   "deposit_params": null,
+   "tally_params": null,
+   "params": {
+    "min_deposit": [
+     {
+      "denom": "azig",
+      "amount": "10000000000000000000000"
+     }
+    ],
+    "max_deposit_period": "172800s",
+    "voting_period": "259200s",
+    "quorum": "0.334000000000000000",
+    "threshold": "0.500000000000000000",
+    "veto_threshold": "0.334000000000000000",
+    "min_initial_deposit_ratio": "0.000000000000000000",
+    "proposal_cancel_ratio": "0.500000000000000000",
+    "proposal_cancel_dest": "",
+    "expedited_voting_period": "86400s",
+    "expedited_threshold": "0.667000000000000000",
+    "expedited_min_deposit": [
+     {
+      "denom": "azig",
+      "amount": "50000000000000000000000"
+     }
+    ],
+    "burn_vote_quorum": false,
+    "burn_proposal_deposit_prevote": false,
+    "burn_vote_veto": true,
+    "min_deposit_ratio": "0.010000000000000000"
+   }
+  },
+  "/cosmos/gov/v1/proposals?pagination.reverse=true&pagination.limit=20": {
+   "proposals": [
+    {
+     "id": "44",
+     "messages": [
+      {
+       "@type": "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmq3jzm"
+      }
+     ],
+     "status": "PROPOSAL_STATUS_DEPOSIT_PERIOD",
+     "final_tally_result": {
+      "yes_count": "0",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-11-14T03:00:00.000Z",
+     "deposit_end_time": "2026-11-16T03:00:00.000Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "10000000000000000000000"
+      }
+     ],
+     "voting_start_time": null,
+     "voting_end_time": null,
+     "metadata": "",
+     "title": "Fund the community block explorer",
+     "summary": "Ask the community pool for 25,000 ZIG to run a public block explorer for a year.",
+     "proposer": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "43",
+     "messages": [
+      {
+       "@type": "/cosmos.staking.v1beta1.MsgUpdateParams",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmq3jzm"
+      }
+     ],
+     "status": "PROPOSAL_STATUS_VOTING_PERIOD",
+     "final_tally_result": {
+      "yes_count": "0",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-11-13T07:00:00.000Z",
+     "deposit_end_time": "2026-11-15T07:00:00.000Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "10000000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-11-13T09:00:00.000Z",
+     "voting_end_time": "2026-11-16T09:00:00.000Z",
+     "metadata": "",
+     "title": "Raise the maximum validator set to 125",
+     "summary": "Raise max_validators from 100 to 125 so more operators can join the active set.",
+     "proposer": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "42",
+     "messages": [
+      {
+       "@type": "/cosmos.gov.v1.MsgUpdateParams",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmq3jzm"
+      }
+     ],
+     "status": "PROPOSAL_STATUS_REJECTED",
+     "final_tally_result": {
+      "yes_count": "9100000000000000000000000",
+      "abstain_count": "1200000000000000000000000",
+      "no_count": "21400000000000000000000000",
+      "no_with_veto_count": "300000000000000000000000"
+     },
+     "submit_time": "2026-10-25T09:00:00.000Z",
+     "deposit_end_time": "2026-10-27T09:00:00.000Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "10000000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-10-26T09:00:00.000Z",
+     "voting_end_time": "2026-10-29T09:00:00.000Z",
+     "metadata": "",
+     "title": "Lower the minimum deposit to 1,000 ZIG",
+     "summary": "Make it cheaper to submit governance proposals.",
+     "proposer": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "41",
+     "messages": [
+      {
+       "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmq3jzm"
+      }
+     ],
+     "status": "PROPOSAL_STATUS_PASSED",
+     "final_tally_result": {
+      "yes_count": "48700000000000000000000000",
+      "abstain_count": "800000000000000000000000",
+      "no_count": "1100000000000000000000000",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-10-11T09:00:00.000Z",
+     "deposit_end_time": "2026-10-13T09:00:00.000Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "10000000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-10-12T09:00:00.000Z",
+     "voting_end_time": "2026-10-15T09:00:00.000Z",
+     "metadata": "",
+     "title": "v5.0.1 software upgrade",
+     "summary": "Upgrade the network to zigchaind v5.0.1.",
+     "proposer": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+     "expedited": false,
+     "failed_reason": ""
+    }
+   ],
+   "pagination": {
+    "next_key": null,
+    "total": "44"
+   }
+  },
+  "/cosmos/gov/v1/proposals/44": {
+   "proposal": {
+    "id": "44",
+    "messages": [
+     {
+      "@type": "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+      "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmq3jzm"
+     }
+    ],
+    "status": "PROPOSAL_STATUS_DEPOSIT_PERIOD",
+    "final_tally_result": {
+     "yes_count": "0",
+     "abstain_count": "0",
+     "no_count": "0",
+     "no_with_veto_count": "0"
+    },
+    "submit_time": "2026-11-14T03:00:00.000Z",
+    "deposit_end_time": "2026-11-16T03:00:00.000Z",
+    "total_deposit": [
+     {
+      "denom": "azig",
+      "amount": "10000000000000000000000"
+     }
+    ],
+    "voting_start_time": null,
+    "voting_end_time": null,
+    "metadata": "",
+    "title": "Fund the community block explorer",
+    "summary": "Ask the community pool for 25,000 ZIG to run a public block explorer for a year.",
+    "proposer": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+    "expedited": false,
+    "failed_reason": ""
+   }
+  },
+  "/cosmos/gov/v1/proposals/43": {
+   "proposal": {
+    "id": "43",
+    "messages": [
+     {
+      "@type": "/cosmos.staking.v1beta1.MsgUpdateParams",
+      "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmq3jzm"
+     }
+    ],
+    "status": "PROPOSAL_STATUS_VOTING_PERIOD",
+    "final_tally_result": {
+     "yes_count": "0",
+     "abstain_count": "0",
+     "no_count": "0",
+     "no_with_veto_count": "0"
+    },
+    "submit_time": "2026-11-13T07:00:00.000Z",
+    "deposit_end_time": "2026-11-15T07:00:00.000Z",
+    "total_deposit": [
+     {
+      "denom": "azig",
+      "amount": "10000000000000000000000"
+     }
+    ],
+    "voting_start_time": "2026-11-13T09:00:00.000Z",
+    "voting_end_time": "2026-11-16T09:00:00.000Z",
+    "metadata": "",
+    "title": "Raise the maximum validator set to 125",
+    "summary": "Raise max_validators from 100 to 125 so more operators can join the active set.",
+    "proposer": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+    "expedited": false,
+    "failed_reason": ""
+   }
+  },
+  "/cosmos/gov/v1/proposals/42": {
+   "proposal": {
+    "id": "42",
+    "messages": [
+     {
+      "@type": "/cosmos.gov.v1.MsgUpdateParams",
+      "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmq3jzm"
+     }
+    ],
+    "status": "PROPOSAL_STATUS_REJECTED",
+    "final_tally_result": {
+     "yes_count": "9100000000000000000000000",
+     "abstain_count": "1200000000000000000000000",
+     "no_count": "21400000000000000000000000",
+     "no_with_veto_count": "300000000000000000000000"
+    },
+    "submit_time": "2026-10-25T09:00:00.000Z",
+    "deposit_end_time": "2026-10-27T09:00:00.000Z",
+    "total_deposit": [
+     {
+      "denom": "azig",
+      "amount": "10000000000000000000000"
+     }
+    ],
+    "voting_start_time": "2026-10-26T09:00:00.000Z",
+    "voting_end_time": "2026-10-29T09:00:00.000Z",
+    "metadata": "",
+    "title": "Lower the minimum deposit to 1,000 ZIG",
+    "summary": "Make it cheaper to submit governance proposals.",
+    "proposer": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+    "expedited": false,
+    "failed_reason": ""
+   }
+  },
+  "/cosmos/gov/v1/proposals/41": {
+   "proposal": {
+    "id": "41",
+    "messages": [
+     {
+      "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
+      "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmq3jzm"
+     }
+    ],
+    "status": "PROPOSAL_STATUS_PASSED",
+    "final_tally_result": {
+     "yes_count": "48700000000000000000000000",
+     "abstain_count": "800000000000000000000000",
+     "no_count": "1100000000000000000000000",
+     "no_with_veto_count": "0"
+    },
+    "submit_time": "2026-10-11T09:00:00.000Z",
+    "deposit_end_time": "2026-10-13T09:00:00.000Z",
+    "total_deposit": [
+     {
+      "denom": "azig",
+      "amount": "10000000000000000000000"
+     }
+    ],
+    "voting_start_time": "2026-10-12T09:00:00.000Z",
+    "voting_end_time": "2026-10-15T09:00:00.000Z",
+    "metadata": "",
+    "title": "v5.0.1 software upgrade",
+    "summary": "Upgrade the network to zigchaind v5.0.1.",
+    "proposer": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+    "expedited": false,
+    "failed_reason": ""
+   }
+  },
+  "/cosmos/gov/v1/proposals/43/tally": {
+   "tally": {
+    "yes_count": "21300000000000000000000000",
+    "abstain_count": "400000000000000000000000",
+    "no_count": "3100000000000000000000000",
+    "no_with_veto_count": "50000000000000000000000"
+   }
+  },
+  "/cosmos/gov/v1/proposals/43/votes/zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557": {
+   "vote": {
+    "proposal_id": "43",
+    "voter": "zig1l6wtnnvdcyvmvulkxda8hwadxuqfr2gsgv5557",
+    "options": [
+     {
+      "option": "VOTE_OPTION_YES",
+      "weight": "1.000000000000000000"
+     }
+    ],
+    "metadata": ""
+   }
+  },
+  "/cosmos/gov/v1/proposals/43/votes/zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065": {
+   "__status": 400,
+   "code": 3,
+   "message": "rpc error: code = InvalidArgument desc = voter: zig18td9furcnzh9n0p5c0au8ck350h3h5l4nlh065 not found for proposal: 43: invalid request",
+   "details": []
+  },
+  "/cosmos/gov/v1/proposals/99": {
+   "__status": 404,
+   "code": 5,
+   "message": "rpc error: code = NotFound desc = proposal 99 doesn't exist: key not found",
+   "details": []
+  }
+ }
+}

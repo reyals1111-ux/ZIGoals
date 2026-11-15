@@ -18,6 +18,8 @@ import {WALLET_ERASE_KEYS} from './af-wallet-keys';
 import {AF_ZIGI_ERASE_KEYS} from './af-zigi-keys';
 import {AF_EXTRAS_ERASE_KEYS} from './af-extras-keys';
 import {AL_ERASE_KEYS} from './al-device-keys';
+import {AO_ERASE_KEYS} from './ao-device-keys';
+import {AP_ERASE_KEYS} from './ap-device-keys';
 import {AH_ERASE_KEYS} from './ah-device-keys';
 import {AI_ERASE_KEYS} from './ai-device-keys';
 import {AJ_ERASE_KEYS} from './aj-device-keys';
@@ -34,7 +36,7 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   try { target ??= getAppStorage(); } catch { return; }
   // Session AB-Cloud (ADR-023 C8): AB-Design's display preferences and AB-Cloud's own records go with the account too.
   // Session AE (Part 6, ADR-027): and the wallets linked read-only (public addresses, personal).
-  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS, LINKED_WALLETS_KEY, ...EARN_ERASE_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY, ...WALLET_ERASE_KEYS, ...AK_ERASE_KEYS, ...AF_ZIGI_ERASE_KEYS, ...AF_EXTRAS_ERASE_KEYS, ...AH_ERASE_KEYS, ...AI_ERASE_KEYS, ...AJ_ERASE_KEYS, ...AL_ERASE_KEYS];
+  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS, LINKED_WALLETS_KEY, ...EARN_ERASE_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY, ...WALLET_ERASE_KEYS, ...AK_ERASE_KEYS, ...AF_ZIGI_ERASE_KEYS, ...AF_EXTRAS_ERASE_KEYS, ...AH_ERASE_KEYS, ...AI_ERASE_KEYS, ...AJ_ERASE_KEYS, ...AL_ERASE_KEYS, ...AO_ERASE_KEYS, ...AP_ERASE_KEYS];
   for (const key of keys) { try { target.removeItem(key); } catch { /* kept */ } }
   // Session AL (security delta review B, SB-2): and the recovery copies a restore keeps beside them (`<key>:recovery:<uuid>`,
   // Tasks, the Checklist and the device records since Session AL), so none of their old contents stays on the device.

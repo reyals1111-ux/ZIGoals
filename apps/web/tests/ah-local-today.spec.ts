@@ -1,4 +1,5 @@
 import {test, expect} from '@playwright/test';
+import {afterGoto} from './settings-open';
 
 // Session AH Part 2 (AF6): between 00:00 and 02:00 Brussels the browser's calendar day is one ahead of a UTC server's,
 // and Life review hydrated with a different date than the server rendered (React #418; the hosted verifier's night
@@ -25,7 +26,7 @@ for (const route of ['/app', '/app/habits', '/app/health', '/app/goals', '/app/w
     page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
     page.on('pageerror', e => errors.push(e.message));
     await page.clock.install({time: new Date(Date.now() + 24 * 3_600_000)});
-    await page.goto(route);
+    await page.goto(route); await afterGoto(page, route);
     await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
     await page.clock.runFor(1_000);
     expect(errors.filter(e => /#418|#423|#425|hydrat/i.test(e))).toEqual([]);

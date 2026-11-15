@@ -85,3 +85,14 @@
 .bottom-cell-link:hover, .bottom-cell-link:focus-visible { background: var(--surface-hover, rgba(128, 128, 200, .12)); }
 .bottom-row [data-sign="up"] { color: var(--success, #57c78a); }
 .bottom-row [data-sign="down"] { color: var(--warning, #e8a33d); }
+/* Session AO (CO4): a Habits cell is a button that opens that day's habits below the grid, each with its own check-in link. */
+button.bottom-cell-link { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+button.bottom-cell-link[aria-expanded="true"] { box-shadow: inset 0 0 0 2px #9fe6ff99; }
+.bottom-week-day { display: grid; gap: 8px; margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #ffffff08; border: 1px solid #ffffff1f; }
+.bottom-week-day h3 { margin: 0; font-size: 15px; font-weight: 650; color: #f4f8ff; }
+.bottom-week-day ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.bottom-week-day li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-height: 44px; font-size: 15px; color: var(--text-meta, #c2d0e5); }
+.bottom-week-day li strong { color: #f4f8ff; }
+.bottom-week-day .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+.bottom-week-day-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.bottom-week-day-actions .quiet { min-height: 44px; min-width: 44px; }

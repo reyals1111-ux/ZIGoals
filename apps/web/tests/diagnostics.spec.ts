@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import {openSettings} from './settings-open';
 test("read-only diagnostics keep deployment disabled and display separate public endpoint evidence", async ({ page }) => {
   const errors:string[]=[]; const mutations:string[]=[];
   page.on('pageerror',e=>errors.push(e.message));
@@ -8,7 +9,7 @@ test("read-only diagnostics keep deployment disabled and display separate public
     const body=url.endsWith('/status')?{result:{node_info:{network:'zig-test-2'},sync_info:{catching_up:false,latest_block_height:'77',latest_block_time:new Date().toISOString()}}}:url.includes('node_info')?{default_node_info:{network:'zig-test-2'},application_version:{version:'v5.1.0'}}:url.includes('staking')?{params:{bond_denom:'azig'}}:{metadata:{base:'azig',display:'ZIG',denom_units:[{denom:'ZIG',exponent:18}]}};
     await route.fulfill({json:body});
   });
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByText('Advanced Diagnostics', {exact:true}).click();
   const panel=page.getByRole('region',{name:'Connection diagnostics'});
   await expect(panel.getByText('LOCAL SIMULATION',{exact:true})).toBeVisible();
@@ -24,7 +25,7 @@ test("read-only diagnostics keep deployment disabled and display separate public
 
 test('support preview is explicit and copying sends only the reviewed safe snapshot',async({page})=>{
  await page.addInitScript(()=>{Object.assign(window,{supportCopies:[] as string[]});Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async(text:string)=>{(window as unknown as {supportCopies:string[]}).supportCopies.push(text);}}});});
- await page.goto('/app/settings');await page.getByText('Advanced Diagnostics',{exact:true}).click();
+ await openSettings(page);await page.getByText('Advanced Diagnostics',{exact:true}).click();
  await expect(page.getByRole('button',{name:'Copy reviewed diagnostics'})).toHaveCount(0);await page.getByRole('button',{name:'Preview safe diagnostics'}).click();
  const preview=page.getByLabel('Safe diagnostic summary');await expect(preview).toBeVisible();const reviewed=await preview.inputValue();expect(reviewed).toContain('Vault: local-only');expect(reviewed).toContain('Market provider: not checked');
  expect(await page.evaluate(()=>(window as unknown as {supportCopies:string[]}).supportCopies)).toEqual([]);

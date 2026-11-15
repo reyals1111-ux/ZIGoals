@@ -18,7 +18,8 @@ test('plan edits retain earlier terms, show explicit installments and survive re
  await expect(page.getByRole('region',{name:'Planned payments'})).toContainText('100 USD');
  await page.reload();await expect(history).toContainText('200 USD');
  await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();
- const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Cash',exact:true}).click();await dialog.getByLabel('Cash amount',{exact:true}).fill('40');await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();
+ const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Cash',exact:true}).click();await dialog.getByLabel('Cash amount',{exact:true}).fill('40');
+ /* Session AO (DV-010c, deliberate): new cash previews from its own form, unmatched; Back opens the details form, where the instalment is matched */await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await expect(dialog).toContainText('Not matched to a planned payment.');await dialog.getByRole('button',{name:'Back',exact:true}).click();
  await dialog.getByLabel('Match a retained installment (optional)').selectOption({label:`${formatDate(today)} · 100 USD remaining`}); /* Session AD item 8 (deliberate): the medium date */
  await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await expect(dialog).toHaveCount(0);
  await expect(page.getByRole('region',{name:'Planned payments'})).toContainText('60 USD remaining');

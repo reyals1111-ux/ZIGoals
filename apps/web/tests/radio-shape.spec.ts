@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {afterGoto} from './settings-open';
 
 /**
  * Session Y Part 9 (ADR-018 Y32): radios are drawn in the app's style, so a container's input rule (".form-grid input"
@@ -20,7 +21,7 @@ test('every visible radio is a circle of 20 to 22 px in the Goal wizard, Setting
   await page.getByRole('radio', {name: 'Save an amount', exact: true}).check();
   const seen: {name: string; width: number; height: number; radius: string}[] = [];
   seen.push(...await radios(page));
-  for (const path of ['/app/settings', '/app/health']) { await page.goto(path); await expect(page.locator('main h1').first()).toBeVisible(); seen.push(...await radios(page)); }
+  for (const path of ['/app/settings', '/app/health']) { await page.goto(path); await afterGoto(page, path); await expect(page.locator('main h1').first()).toBeVisible(); seen.push(...await radios(page)); }
   expect(seen.map(r => r.name)).toEqual(expect.arrayContaining(['goal-type', 'goal-currency']));
   for (const r of seen) { expect(r.width, r.name).toBe(r.height); expect(r.radius, r.name).toBe('50%'); expect(r.width, r.name).toBeGreaterThanOrEqual(20); expect(r.width, r.name).toBeLessThanOrEqual(isMobile ? 22 : 20); }
   // Session AK X1 (RELEASE_REVIEW R5): a new device offers three kinds of goal (Reward waits until the chain is chosen).

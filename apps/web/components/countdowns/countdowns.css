@@ -1,0 +1,30 @@
+/* Session AP: Today's "Days until" card (countdowns-card.tsx, loaded only when kept on Today). No motion. */
+.countdowns-card { display: grid; gap: 10px; min-width: 0; }
+.countdowns-card h3 { margin: 0; font-size: 17px; }
+.countdowns { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.countdown { display: grid; grid-template-columns: minmax(96px, auto) minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; min-height: 44px; padding: 4px 0; border-bottom: 1px solid var(--line, rgba(128, 128, 160, .25)); }
+.countdown-days { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.countdown[data-passed] .countdown-days { font-weight: 500; color: var(--text-secondary, var(--muted)); }
+.countdown-text { display: grid; min-width: 0; overflow-wrap: anywhere; }
+.countdown-text small { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.countdown .text-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; font-size: 15px; }
+.countdowns-card summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: 15px; font-weight: 650; }
+.countdowns-card summary:focus-visible { outline: 3px solid var(--cyan, currentColor); outline-offset: 2px; border-radius: 8px; }
+.countdowns-add form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.countdowns-add .field { flex: 1 1 160px; min-width: 0; }
+.countdowns-add .field span { font-size: 14px; }
+.countdowns-add input, .countdowns-add button { min-height: 44px; font-size: 16px; max-width: 100%; }
+.countdowns-add .countdowns-note { flex-basis: 100%; }
+.countdowns-error { flex: 1 0 100%; margin: 0; font-size: 14px; color: var(--danger, currentColor); }
+@media (max-width: 479.98px) { .countdown { grid-template-columns: minmax(0, 1fr) auto; } .countdown-days { grid-column: 1 / -1; } }
+/* The Agenda's day of the event (countdowns-on-day.tsx). */
+.agenda-countdowns { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.agenda-countdown { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 10px; border-radius: 14px; border: 1px dashed var(--line, #ffffff1f); }
+.agenda-countdown small { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+
+/* UX review (Major): "Passed" says it opens. */
+.countdowns-passed > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
+.countdowns-passed > summary::before { content: "\25B8"; transition: transform .15s; }
+.countdowns-passed[open] > summary::before { transform: rotate(90deg); }
+:root[data-app-motion=off] .countdowns-passed > summary::before { transition: none; }
+@media (prefers-reduced-motion: reduce) { .countdowns-passed > summary::before { transition: none; } }

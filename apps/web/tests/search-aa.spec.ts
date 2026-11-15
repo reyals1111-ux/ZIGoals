@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {afterGoto, openSettings} from './settings-open';
 
 /** Session AA-Cloud Part 4: one search over this device's records and the app, from every page. */
 test.beforeEach(async ({page}) => {
@@ -6,7 +7,7 @@ test.beforeEach(async ({page}) => {
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
 });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
@@ -15,7 +16,7 @@ const field = (page: Page) => palette(page).getByRole('combobox');
 
 test('the header button and "/" open search on every page; ⌘K never opens search; Escape returns focus', async ({page, isMobile}) => {
   for (const path of ['/app', '/app/goals', '/app/wealth', '/app/settings', '/app/help']) {
-    await page.goto(path);
+    await page.goto(path); await afterGoto(page, path);
     await expect(page.getByRole('heading', {level: 1}).first()).toBeVisible();
     const button = page.getByRole('button', {name: 'Search'}).filter({visible: true}).first();
     await expect(button).toBeVisible();

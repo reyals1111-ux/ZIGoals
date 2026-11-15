@@ -1,5 +1,6 @@
 import {expect,test} from '@playwright/test';
 import {openFold} from './phone-nav';
+import {openSettings} from './settings-open';
 
 type Sample={kind:string;start:string;mid?:string;end?:string};
 
@@ -23,7 +24,7 @@ test('visible hero and Goal ring move once per visit and settle on real values',
    target.addEventListener('animationend',()=>{sample.end=value();},{once:true});
   },true);
  });
- await page.goto('/app/settings');
+ await openSettings(page);
  await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();
  await page.waitForURL('**/app');
  const hero=page.locator('.slogan-entrance');
@@ -56,7 +57,7 @@ test('reduced motion and Off keep final content visible without entrance',async(
  await page.emulateMedia({reducedMotion:'reduce'});
  await page.goto('/app');
  await expect(page.locator('.slogan-entrance')).not.toHaveAttribute('data-entrance','once');
- await page.goto('/app/settings');
+ await openSettings(page);
  const appearance=page.getByRole('region',{name:'Appearance'});
  await appearance.locator('select').selectOption('off');
  await appearance.getByRole('button',{name:'Preview motion again'}).click();
@@ -83,7 +84,7 @@ test('Wealth and Health bars grow only when visible with real saved values',asyn
    target.addEventListener('animationend',()=>{sample.end=getComputedStyle(target).transform;},{once:true});
   },true);
  });
- await page.goto('/app/settings');
+ await openSettings(page);
  await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();
  await page.waitForURL('**/app');
  await page.goto('/app/wealth');

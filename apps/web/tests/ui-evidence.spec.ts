@@ -1,14 +1,16 @@
 import {expect,test,type Page} from '@playwright/test';
 import {isPhone} from './phone-nav';
+import {openSettings} from './settings-open';
+import {afterGoto} from './settings-open';
 
 // Evidence for the UI design pass checks (Part 12): motion settings, forced colours, keyboard-only layouts,
 // hydration and phone width, on every main page. Showcase (fictional) data only.
 const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
-const open=async(page:Page,path:string)=>{await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();};
+const open=async(page:Page,path:string)=>{await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();};
 /** Running animations, and transitions of anything that moves an element (colour fades are not motion). */
 const MOTION=/^(transform|translate|scale|rotate|top|left|right|bottom|inset|margin.*|width|height|background-position.*)$/;
 const moving=(page:Page)=>page.evaluate(src=>{const motion=new RegExp(src);return document.getAnimations().filter(a=>a.playState==='running'&&Number(a.effect?.getTiming().duration??0)>0&&(!('transitionProperty' in a)||motion.test((a as CSSTransition).transitionProperty))).map(a=>{const t=(a.effect as KeyframeEffect|null)?.target as Element|null;return `${(a as CSSAnimation).animationName??(a as CSSTransition).transitionProperty??'script'} on ${t?.className?.toString().slice(0,40)??t?.tagName}`;});},MOTION.source);
@@ -116,7 +118,7 @@ test('no hydration errors or page errors on a cold load of any main page',async(
  const problems=watchProblems(page);
  await showcase(page);
  // A cold load of each page (no client-side navigation).
- for(const path of PAGES){await page.reload();await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();await page.waitForTimeout(400);}
+ for(const path of PAGES){await page.reload();await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();await page.waitForTimeout(400);}
  expect(problems).toEqual([]);
 });
 

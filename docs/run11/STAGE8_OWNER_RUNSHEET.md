@@ -7,7 +7,7 @@ Everything here needs something only you have:
 
 Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.md](STAGE8_COVERAGE.md) lists which test proves which row: 25 of 36 rows are proven locally, and you don't need to repeat them. Fill their rows in the acceptance sheet as the last step.
 
-**Total time:** about 4¾ hours. It can be split over several days; each part says when it can be done.
+**Total time:** about 4¾ hours. It can be split over several days; each part says when it can be done. *14 Nov 2026 (Session AP):* plus about 35 minutes for Part 4b (new in Sessions AM, AO and AP).
 
 ## Before you start
 - **Stages 1–7 are done** on the isolated acceptance services. Never use the live Alpha.
@@ -55,6 +55,22 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **Accounts, debts and milestone dates now sync** inside the finance section (C6): row 15h covers them.
 - **Restore from a backup** (C22) in Settings → Your data; **Point & tell** (C23) in Settings → Help & diagnostics.
 - **The rollback floor is #32** (owner-approved): finance v5 is read from #32 on.
+
+### Sessions AM, AO and AP changes (what you will notice) — 14 Nov 2026 (Session AP)
+- **The release SHA carries PR #102** (Sessions AN, AO, AP) and, if merged, **PR #101** (Session AM, NOVA). Whichever
+  merged second merged `main` in. Do the "Sessions AM, AO and AP" section of
+  [FINAL_ACCTEST_REDEPLOY.md](FINAL_ACCTEST_REDEPLOY.md) first: private sync is redeployed **only if #101 is in**.
+- **`STEP_UP_REQUIRED` stays "on"** in your private-sync copy (`activation-check --private` PASS). Rows 6c, 13b, 14b
+  and 15e ask for the recovery secret again before those actions; that is this switch.
+- **Settings starts folded on a computer** (D-088): each group shows its heading and one line. Before a row's Settings
+  step, open the group (or press "Open all"); a link such as `/app/settings#reminders` opens its own group. Groups you
+  open stay open on that device. **The phone keeps its own Settings list**, unchanged.
+- **New on the device only, nothing synced:** "My day ends at", "A day counts as done at N", Perfect days, net worth by
+  source, Bento, the first five, launchers stepping aside, "Copy these details". Part 4b checks them.
+- **NOVA sync** (only with #101 and the private-sync redeploy): NOVA's requests, pinned widgets and layout travel in a
+  new optional extras section `nova` (row 15k).
+- **The weather proxy is not part of Stage 8.** It is OFF and the app does not call it yet; if you deploy it, its own
+  checks are in [WEATHER_PROXY_ACTIVATION.md](WEATHER_PROXY_ACTIVATION.md) step 3 (row 15r).
 
 ## Before Stage 8 — owner hardening · about 75 min
 Session U (owner review change 11). Do these once, before Stage 8, in this order. Every click path is from the vendor's
@@ -350,6 +366,7 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 - **Before:** do it outside the quiet hours (22:00–07:00 on the phone, by default), signed in on the Home Screen app.
 - **Do:**
   1. In the Home Screen app, open Settings → "Reminders when closed". The panel "Reminders on this phone, even when ZIGoals is closed." says "Off." Choose "Turn on on this device" and allow notifications when iOS asks.
+     *14 Nov 2026 (Session AP):* the panel's title now reads "Reminders on this device, even when ZIGoals is closed."; the rest is unchanged. (Settings → Notifications is the other kind, for the public Alpha without an account: PUSH_PUBLIC_ALPHA.md.)
   2. Read: "Reminders while ZIGoals is closed are on for this device." and the state line "On · reminder times checked today."
   3. In Health → Water, set "Reminder time — on this device" to two minutes from now and choose "Save reminder time" ("Water reminder set for HH:MM on this device."). The app sends the new time to the server by itself.
   4. Close the app fully from the app switcher and wait for the time.
@@ -365,6 +382,8 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 
 **14b. A revoked session forgets the remembered device (Session Y, A7).**
 - **Do:** with Phone B remembered (row 13), on Desktop A choose "Revoke other sessions". Then open the app on Phone B.
+  *14 Nov 2026 (Session AP):* on the current build the button is Settings → Account & devices → Devices and sessions →
+  "Sign out all other devices…", confirmed with the recovery secret (as in row 6c).
 - **Pass:** Phone B asks for the recovery secret and says it was signed out on another device; after signing in and unlocking with the secret, its records are all there and Export everything works.
 - **Record:** pass.
 
@@ -386,6 +405,60 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 - **Do:** open ZIGi on Desktop A and Phone B; ask "What are my habits today?" with no AI connected.
 - **Pass:** a local answer from your own records, nothing sent anywhere; the launcher rests clear of the first screen's buttons; under Motion Off it is a still image; Settings → ZIGi · your AI shows every auto-accept switch off.
 - **Record:** pass.
+
+## Part 4b: new in Sessions AM, AO and AP (Desktop A, Phone B) · about 35 min
+*Added 14 Nov 2026 (Session AP).* Use Inbox 1's account on both devices, except where a row says "fresh profile".
+Desktop A at about 1440 px wide.
+
+**15k. NOVA syncs (only with PR #101 and the private-sync redeploy).**
+- **Do:** on Desktop A open NOVA, ask for a widget (for example "show my habits this week") and pin it. Sync. On a
+  second computer profile signed in to the same account (or Desktop A after "Forget this device" and unlock), sync.
+- **Pass:** the pinned widget and the request show there. Without the redeploy, NOVA keeps them on the device and says so.
+- **Record:** pass, or "not run: #101 not in the release SHA".
+
+**15l. Send feedback with details.**
+- **Do:** Help → Send feedback → tick "Add details about this device to the email"; read the box; "Copy these details";
+  paste into a note. Then "Email feedback to contact@zigoals.app". On Phone B: Settings → "Send feedback".
+- **Pass:** the box lists browser, system, window, motion, installed app, time zone, app version, theme and screen size,
+  and no account, email, device id or record; "Copied. Paste it wherever you write to us."; the paste matches; your
+  mail app opens and nothing is sent until you send it.
+- **Record:** pass. Never paste the details anywhere public.
+
+**15m. Your first five (fresh profile).**
+- **Do:** a fresh browser profile on Desktop A, the acceptance app, finish the short setup. Add a goal, a habit, a meal
+  and a money record from the card's links. In a second fresh profile, choose "Not now, hide this" and reload.
+- **Pass:** Today shows "YOUR FIRST FIVE", "1 of 5 done"; each step ticks itself; the card leaves at five; the hidden
+  card stays hidden after the reload.
+- **Record:** pass, and the time all five took.
+
+**15n. Settings folded (Desktop A).**
+- **Do:** open Settings; open two groups; reload. Press "Open all", then "Fold all". Open `/app/settings#day-goal`.
+- **Pass:** every group starts folded; the two stay open after the reload; the deep link opens "Your app" at "A day
+  counts as done at". On Phone B, Settings is its usual list.
+
+**15o. Bento (Desktop A).**
+- **Do:** on Today, Goals, Habits, Health and Wealth choose "Bento" in "Layout: List · Bento"; reload; choose "List" on
+  one page.
+- **Pass:** the same cards as tiles; Today's hero and slogan unchanged; each page keeps its own choice. No switch on Phone B.
+
+**15p. Launchers step aside (Desktop A, Showcase).**
+- **Do:** load the Showcase; on Today scroll slowly past the right column; point at the folded ZIGi button; Tab to it.
+  Then Settings → Motion Off and scroll again.
+- **Pass:** ZIGi, Music, the Checklist and the Earn dock slide toward the edge only while they would cover content, with
+  no flicker; pointing or Tab brings each back; focus never jumps; with Motion Off they swap at once.
+
+**15q. A day counts as done at N (Desktop A).**
+- **Do:** Settings → Your app → "A day counts as done at" → 4. On the Checklist, with six planets today, light four.
+  Then set it back to "Every dot (default)".
+- **Pass:** the line says "From today, a day counts as done at 4 dots (or every dot on a shorter day)."; the Checklist
+  says "4 of 6 planets today" and the flame lights; earlier streak days are unchanged; back to the default the line says
+  "A day counts as done when every dot is lit." The setting stays on this device (it does not reach Phone B).
+- **Also (Session AO):** Settings → Your app → "My day ends at" shows midnight as the default.
+
+**15r. Weather proxy (only if you deployed it).**
+- **Do:** [WEATHER_PROXY_ACTIVATION.md](WEATHER_PROXY_ACTIVATION.md) step 3.
+- **Pass:** as written there (a cache hit on the second nearby call, 403 for another origin, 429 after 60 a minute).
+- **Record:** pass, or "not deployed".
 
 ## Part 5: providers (Desktop A) · about 15 min
 **15. One real market refresh (C4).**

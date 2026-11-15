@@ -225,3 +225,12 @@
   :root .phone-actions > .offline-pill { justify-content: center; width: 32px; min-width: 32px; padding-inline: 0; column-gap: 0; font-size: 0; }
   :root .phone-actions > .offline-pill::before { width: 10px; height: 10px; }
 }
+/* Session AO (D-070, owner decision 13 Nov): the wallet shortcut's word, "Wealth", under its icon wherever the bar has room
+   (components/shell/header-words.ts puts `data-words` on the link only when the bar still fits); the target stays 44 px tall
+   and at least 44 px wide, its name "Wealth" as before. Without room, the icon alone. */
+.phone-wealth-word { display: none; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .phone-wealth[data-words] { flex-direction: column; gap: 1px; padding: 0 3px; }
+  :root .phone-wealth[data-words] svg { width: 20px; height: 20px; }
+  :root .phone-wealth[data-words] .phone-wealth-word { display: block; font-size: 14px; font-weight: 600; line-height: 1; letter-spacing: 0; white-space: nowrap; }
+}

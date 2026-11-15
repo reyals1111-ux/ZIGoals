@@ -8,6 +8,8 @@ import type {DayItem, DayWithExtras, TaskAgendaItem} from '../../lib/agenda/time
 import {PRIORITY_WORDS} from '../tasks/task-parts';
 import type {GoalOption} from '../tasks/use-goal-options';
 import {addLocalDays} from '../../lib/local-date';
+import {timedLoad} from '../../lib/agenda/hour-grid';
+import {CountdownsOnDay} from '../countdowns/countdowns-on-day';
 
 /**
  * CI14 (page weights; budgets are never raised): the Agenda's days, rows and month grid, and the task form and status
@@ -22,7 +24,9 @@ const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)}
 export type RowProps = {today: string; goals: ReadonlyMap<string, GoalOption>; onTick: (item: TaskAgendaItem, done: boolean) => void; onMove: (taskId: string, date: string, time?: string | null) => void};
 const DRAG_TYPE = 'application/x-zigoals-task';
 export function DayList({day, today, heading, goals, onTick, onMove}: {day: DayWithExtras; heading: boolean} & RowProps) {
-  const title = <>{formatDate(day.date, {weekday: true, year: false})}{day.date === today && <span className="agenda-today">Today</span>}</>;
+  // Session AP: each day says its load (how many of its items have a time).
+  const load = timedLoad(day), loadWords = load ? `${plural(load, 'item')} at a set time` : '';
+  const title = <>{formatDate(day.date, {weekday: true, year: false})}{day.date === today && <span className="agenda-today">Today</span>}{loadWords && <small className="agenda-load">{loadWords}</small>}</>;
   const [over, setOver] = useState(false);
   const fold = heading ? foldAnytimeHabits(day.items) : {habits: [], rest: day.items};
   const drop = {
@@ -31,7 +35,9 @@ export function DayList({day, today, heading, goals, onTick, onMove}: {day: DayW
     onDrop: (e: DragEvent<HTMLDivElement>) => { const id = e.dataTransfer.getData(DRAG_TYPE); setOver(false); if (id) { e.preventDefault(); onMove(id, day.date); } },
   };
   return <div className="agenda-day" data-today={day.date === today || undefined} data-drop={over || undefined} {...drop}>
-    {heading && <h3 className="agenda-day-title">{title}</h3>}
+    {heading ? <h3 className="agenda-day-title">{title}</h3> : loadWords && <p className="agenda-load">{loadWords}</p>}
+    {/* Session AP ("Days until"): the person's countdowns on their day */}
+    <CountdownsOnDay date={day.date} today={today} />
     {day.items.length ? <ul className="agenda-items">{fold.rest.map(i => i.source === 'task' ? <TaskItemRow key={i.id} item={i} goals={goals} onTick={onTick} onMove={onMove} today={today} /> : i.source === 'event' ? <EventItemRow key={i.id} item={i} /> : <ItemRow key={i.id} item={i} />)}
       {/* Session AL (DV-193, P-DV-125): in the week and month views, habits with no time are one row ("4 habits · any time") */}
       {fold.habits.length > 0 && <li className="agenda-item agenda-habit-group" data-source="habit" data-pillar="habits">

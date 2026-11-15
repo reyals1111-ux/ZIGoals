@@ -34,7 +34,7 @@ Project rules: `apps/web/AGENTS.md` (imported above), CONTRIBUTING.md, SECURITY.
 - One PR per session. Commit and push after each part.
 - Merge commits only: never rebase or force-push. Update from `main` with a merge commit.
 - Risky areas (auth/sync, the deploy workflow, project rules) go in separate commits labelled `TIER 3 (<area>): …`, behaviour-preserving unless stated.
-- A known CI intermittent (docs/STATUS.md, "Known CI intermittents") gets one re-run. A second failure means investigate.
+- CI retries a failed browser test once by itself; a test that passes on its retry is flaky and is listed in the job summary and written up in docs/review/session-al/CI_INTERMITTENTS.md. A test that fails on both attempts fails the job: a known CI intermittent (docs/STATUS.md, "Known CI intermittents") then gets one job re-run. A second failure means investigate.
 - The final commit is a docs/STATUS.md entry with each part's commits and evidence.
 - Never merge the PR, enable auto-merge or deploy; the owner does.
 - Keep reports to the owner short.

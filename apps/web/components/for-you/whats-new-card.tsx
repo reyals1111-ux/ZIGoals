@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
-import {useState} from 'react';
+import {useId, useState} from 'react';
+import {useRovingFocus} from '../ui/use-roving-focus';
 import {TourOffer} from '../tour/tour-offer';
 import {useChainChoice} from '../chain/use-chain-choice';
 import {consumerLines} from '../../lib/whats-new-chain/filter';
@@ -218,13 +219,16 @@ export function WhatsNewCard({links: allLinks = WHATS_NEW_LINKS, earlier: allEar
   const [error, setError] = useState('');
   // Session AK RB (RELEASE_REVIEW_2 R2-6): lines that name the chain wait until the chain is chosen (Earlier updates too).
   const chosen = useChainChoice().chosen, links = consumerLines(allLinks, chosen), earlier = consumerLines(allEarlier, chosen);
+  // Session AO (D-028): each list of links is one Tab stop (a roving tabindex); the arrow keys move along it.
+  const newList = useRovingFocus<HTMLUListElement>('a[href]'), earlierList = useRovingFocus<HTMLUListElement>('a[href]'), hintId = useId();
   return <section className="panel for-you-card whats-new-card" aria-labelledby="whats-new-title">
     <p className="eyebrow">What’s new</p><h2 id="whats-new-title">A few new things.</h2>
     <p className="fine">Each one is optional, and nothing changes until you use it.</p>
-    <ul className="whats-new-links">{links.map((link, i) => <li key={`${i}:${link.href}`}><Link href={link.href}>{link.label}</Link></li>)}</ul>
+    <p className="sr-only" id={hintId}>The arrow keys move along the list.</p>
+    <ul className="whats-new-links" ref={newList}>{links.map((link, i) => <li key={`${i}:${link.href}`}><Link href={link.href} aria-describedby={hintId}>{link.label}</Link></li>)}</ul>
     {/* Session AK (A19): the "New in ZIGoals" tour opens in place under its button; its code loads on the tap. */}
     <TourOffer/>
-    {earlier.length > 0 && <details className="whats-new-earlier"><summary>Earlier updates</summary><ul className="whats-new-links">{earlier.map((link, i) => <li key={`${i}:${link.href}`}><Link href={link.href}>{link.label}</Link></li>)}</ul></details>}
+    {earlier.length > 0 && <details className="whats-new-earlier"><summary>Earlier updates</summary><ul className="whats-new-links" ref={earlierList}>{earlier.map((link, i) => <li key={`${i}:${link.href}`}><Link href={link.href} aria-describedby={hintId}>{link.label}</Link></li>)}</ul></details>}
     <button type="button" className="primary" onClick={() => { if (!onDismiss()) setError('This card could not be hidden on this device; it may show once more.'); }}>Got it</button>
     {error && <p role="alert">{error}</p>}
   </section>;

@@ -2,7 +2,8 @@ import {describe, expect, test} from 'vitest';
 import {habitInputSchema} from '../habits';
 import {pagesSchema} from '../pages/schema';
 import {viewOf} from '../pages/visibility';
-import {HABIT_TEMPLATES, HABIT_TEMPLATE_GROUPS, habitTemplateInputOf, hasHabitLike} from './habits';
+import {HABIT_TEMPLATE_GROUPS, habitTemplateInputOf, hasHabitLike} from './habits';
+import {ALL_HABIT_TEMPLATES} from './library'; // Session AO (route weights): the full set the Habit ideas panel offers
 import {GOAL_TEMPLATES} from './goals';
 import {STEP_TARGETS, WATER_TARGETS_ML} from './health';
 import {EXTRA_PILLARS, MAIN_PILLARS, PILLARS, PILLAR_TEXT, pagesForPillars, pagesShownFor, presetForPillars, starterHabits} from './pillars';
@@ -12,23 +13,23 @@ import {HABIT_TEMPLATE_TITLES} from '../../components/habits/habit-editor';
 const AT = '2026-10-07T09:00:00.000Z';
 describe('starter habits (Session W Part 3)', () => {
   test('at least fifty, in all eight groups, each a complete habit the editor accepts', () => {
-    expect(HABIT_TEMPLATES.length).toBeGreaterThanOrEqual(50);
-    for (const group of HABIT_TEMPLATE_GROUPS) expect(HABIT_TEMPLATES.filter(t => t.group === group).length, group).toBeGreaterThanOrEqual(5);
-    expect(new Set(HABIT_TEMPLATES.map(t => t.id)).size).toBe(HABIT_TEMPLATES.length);
-    expect(new Set(HABIT_TEMPLATES.map(t => t.title.toLowerCase())).size).toBe(HABIT_TEMPLATES.length);
-    for (const t of HABIT_TEMPLATES) expect(habitInputSchema.safeParse(habitTemplateInputOf(t)).success, t.id).toBe(true);
+    expect(ALL_HABIT_TEMPLATES.length).toBeGreaterThanOrEqual(50);
+    for (const group of HABIT_TEMPLATE_GROUPS) expect(ALL_HABIT_TEMPLATES.filter(t => t.group === group).length, group).toBeGreaterThanOrEqual(5);
+    expect(new Set(ALL_HABIT_TEMPLATES.map(t => t.id)).size).toBe(ALL_HABIT_TEMPLATES.length);
+    expect(new Set(ALL_HABIT_TEMPLATES.map(t => t.title.toLowerCase())).size).toBe(ALL_HABIT_TEMPLATES.length);
+    for (const t of ALL_HABIT_TEMPLATES) expect(habitInputSchema.safeParse(habitTemplateInputOf(t)).success, t.id).toBe(true);
   });
   test('calm words: no guilt, urgency or advice, and no money amounts', () => {
     const words = /\b(must|should|never miss|fail|failure|lazy|guilt|shame|hurry|now or never|lose weight|diet|burn)\b/i;
-    for (const t of HABIT_TEMPLATES) { expect(`${t.title} ${t.note}`, t.id).not.toMatch(words); }
-    for (const t of HABIT_TEMPLATES.filter(t => t.group === 'money')) { expect(t.measurement?.kind, t.id).toBe('boolean'); expect(`${t.title} ${t.note}`, t.id).not.toMatch(/[$€£]|\d/); }
+    for (const t of ALL_HABIT_TEMPLATES) { expect(`${t.title} ${t.note}`, t.id).not.toMatch(words); }
+    for (const t of ALL_HABIT_TEMPLATES.filter(t => t.group === 'money')) { expect(t.measurement?.kind, t.id).toBe('boolean'); expect(`${t.title} ${t.note}`, t.id).not.toMatch(/[$€£]|\d/); }
   });
   // Session AH (HA12, N-150): the two money templates are named as the person's own plan, never as an instruction.
   test('the editor\'s own templates: the money ones are named as your own plan', () => {
     expect(HABIT_TEMPLATE_TITLES).toEqual({walk: 'Walk', exercise: 'Exercise', water: 'Drink water', read: 'Read', study: 'Study', buyzig: 'My ZIG plan', budget: 'Review budget', savings: 'My savings plan', nospend: 'No-spend day'});
   });
   test('an existing habit with the same title (any case) is never added twice', () => {
-    const walk = HABIT_TEMPLATES.find(t => t.id === 'walk')!;
+    const walk = ALL_HABIT_TEMPLATES.find(t => t.id === 'walk')!;
     expect(hasHabitLike([' walk '], walk)).toBe(true);
     expect(hasHabitLike(['Walk the dog'], walk)).toBe(false);
   });

@@ -2,6 +2,8 @@ import {expect, test, type Page} from '@playwright/test';
 import {chooseChain} from './chain-choice';
 import {ALPHA_LABEL, ALPHA_LABEL_CHOSEN, ALPHA_LINE_PLAIN, ALPHA_MORE_HREF, ALPHA_SENTENCE, aboutAlpha, alphaNotice} from './ab-shell';
 import {hydrated} from './ah-helpers';
+import {openSettings} from './settings-open';
+import {afterGoto} from './settings-open';
 
 /**
  * Session AK P2 (owner follow-up 4: RELEASE_REVIEW_2 to zero; ADR-036 Q31). Desktop only: the phone already folds the
@@ -22,12 +24,12 @@ test.beforeEach(async ({page, isMobile}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 });
 async function ready(page: Page, path: string) {
-  await page.goto(path); await hydrated(page);
+  await page.goto(path); await afterGoto(page, path); await hydrated(page);
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('main h1').first()).toBeVisible();
 }
 async function showcase(page: Page) {
-  await page.goto('/app/settings'); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
+  await openSettings(page); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
 }
 
 test('R2-7: a device that never chose the chain reads the consumer line; the staking sentence is behind More, word for word', async ({page}) => {
@@ -87,9 +89,13 @@ test('R2-10: Tasks, Notes and the Journal are in the desktop sidebar (its Apps g
   // A real destination: aria-current follows it, and the keyboard reaches it in the order seen.
   await apps.getByRole('link', {name: 'Notes', exact: true}).click(); await page.waitForURL('**/app/notes');
   await expect(apps.getByRole('link', {name: 'Notes', exact: true})).toHaveAttribute('aria-current', 'page');
+  // Session AP (D-028, ADR-040 D8; deliberate, as strict): the main links and the Apps group are one Tab stop each (roving
+  // groups): Tab enters a group, Home goes to its first item and the arrow keys walk every item in the order seen.
+  await expect(nav.getByRole('link', {name: 'Goals', exact: true})).toHaveAttribute('tabindex', '-1');
   await page.getByRole('link', {name: 'ZIGoals home', exact: true}).focus();
-  const order: string[] = [];
-  for (let i = 0; i < 21; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '')); }
+  const order: string[] = [], now = () => page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
+  const walk = async (count: number) => { await page.keyboard.press('Tab'); await page.keyboard.press('Home'); order.push(await now()); for (let i = 1; i < count; i++) { await page.keyboard.press('ArrowDown'); order.push(await now()); } };
+  await walk(base.length + 2); await walk(6);
   expect(order).toEqual([...base, 'Settings', 'Help', 'Apps', 'NOVA', 'Tasks', 'Notes', 'Journal', 'Agenda']);
 });
 

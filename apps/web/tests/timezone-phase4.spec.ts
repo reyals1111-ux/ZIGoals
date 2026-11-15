@@ -4,6 +4,7 @@ import {recordGoalChanges} from '../lib/goal-intelligence';
 import {createHabit, emptyHabitData} from '../lib/habits';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
+import {openSettings} from './settings-open';
 
 // Session W Part 17 (owner decision W2, TIMEZONE_PHASE4_DECISIONS.md): "Your time zone" in Settings, the plan's zone in
 // its form and summary, "due today" on the due day, the one-time card on Today, and Today's Health day. Offline fixture.
@@ -25,7 +26,7 @@ const planGoal = (id: string, plan?: Record<string, unknown>, created = '2026-09
 
 test('Settings → Your time zone: saving writes it once (settings v2), Habits follow it, a wrong name is refused', async ({page}) => {
   await seed(page, {[SETTINGS]: onboarded});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const section = page.getByRole('region', {name: 'Your time zone', exact: true});
   await expect(section).toContainText('Not written down yet: your days follow this device (America/New_York).');
   await section.getByLabel('Your time zone', {exact: true}).fill('Not/AZone');

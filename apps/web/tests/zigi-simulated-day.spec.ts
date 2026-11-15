@@ -8,6 +8,7 @@ import {createHabit, emptyHabitData, HABITS_KEY, type HabitData} from '../lib/ha
 import {REMINDERS_KEY} from '../lib/reminders/schema';
 import {CELEBRATIONS_KEY} from '../lib/w-device-keys';
 import {pressZigi} from './zigi-open';
+import {openSettings} from './settings-open';
 
 /**
  * Session X-Local Phase 2 (P2.5): one simulated day with the knock on, on a fixed clock (Sunday 2026-09-20, UTC):
@@ -27,7 +28,7 @@ function habits(): HabitData {
 }
 async function seed(page: Page, time: string) {
   await page.clock.install({time});
-  await page.goto('/app/settings');
+  await openSettings(page);
   const values = {...buildShowcase(DAY).records, [HABITS_KEY]: JSON.stringify(habits()), [REMINDERS_KEY]: JSON.stringify({version: 1, habits: {[B]: {time: '09:05'}, [C]: {time: '09:20'}}, dismissed: {}}),
     [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: 'http://127.0.0.1:1234'}),
     [ZIGI_KEY]: JSON.stringify({version: 1, animation: 'calm', knock: {enabled: true, offer: 'accepted'}})};

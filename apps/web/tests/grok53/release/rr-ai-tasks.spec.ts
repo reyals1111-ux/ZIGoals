@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated, loadShowcase, offlineApi} from '../../ah-helpers';
 import {openZigi, sendToZigi, zigiPanel} from '../../zigi-open';
+import {openSettings} from '../../settings-open';
 
 /**
  * Release review AL "as if 1.0" (docs/review/session-al/RELEASE_REVIEW_AL.md), the ZIGi, NOVA, Tasks, restore and Undo
@@ -15,7 +16,7 @@ const phoneOnly = () => test.skip(({isMobile}) => !isMobile, 'phone width: runs 
 async function showcase(page: Page) {
   await offlineApi(page);
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await loadShowcase(page);
 }
@@ -167,7 +168,7 @@ test.describe('RR-7', () => {
     await showcase(page);
     // The person's own records (the Showcase lives in this tab's session): copied to the device, as after a welcome.
     await page.evaluate(() => { const marker = JSON.parse(sessionStorage.getItem('zigoals:showcase:active:v1')!); const prefix = `zigoals:showcase:v1:${marker.generation}:`; for (const [k, v] of Object.entries(sessionStorage)) if (k.startsWith(prefix)) localStorage.setItem(k.slice(prefix.length), v); sessionStorage.clear(); });
-    await page.goto('/app/settings'); await hydrated(page);
+    await openSettings(page); await hydrated(page);
     const section = page.getByRole('region', {name: 'Everything you’ve saved, in one file.', exact: true});
     await section.getByLabel('I understand this file is readable and holds my personal records, including Health.').check();
     const waiting = page.waitForEvent('download');

@@ -166,3 +166,13 @@
 @media (hover: hover) and (pointer: fine) { :root :where(.today-page) .today-earn-card:hover, :root :where(.today-page) .for-you-card:hover, :root :where(.today-page) .wrap-up-card:hover, :root :where(.today-page) .today-game-card:hover, :root :where(.today-page) .today-journal-card:hover, :root :where(.today-page) .today-tasks-card:hover { border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent)); } }
 :root :where(.today-page) .today-earn-card:has(:focus-visible), :root :where(.today-page) .for-you-card:has(:focus-visible), :root :where(.today-page) .wrap-up-card:has(:focus-visible), :root :where(.today-page) .today-game-card:has(:focus-visible), :root :where(.today-page) .today-journal-card:has(:focus-visible), :root :where(.today-page) .today-tasks-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.today-page) .today-earn-card, :root :where(.today-page) .for-you-card, :root :where(.today-page) .wrap-up-card, :root :where(.today-page) .today-game-card, :root :where(.today-page) .today-journal-card, :root :where(.today-page) .today-tasks-card { box-shadow: none; } }
+
+/* Session AO (D-028): Today's skip links (components/dashboard/today-skips.tsx): out of sight until one has the focus, as
+   "Skip to content" is; black on white (21:1), 44 px targets, no motion. */
+/* Out of sight by clipping (never off the page, which a layout check reads as overflow) until one link has the focus. */
+.today-skips{position:fixed;left:16px;top:10px;z-index:1000}
+.today-skips:not(:focus-within){clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
+/* Session AO (a11y-wcag-x 2.4.11): on a computer the sidebar sits at the left edge, so the links show beside it, never under it. */
+@media (min-width:901px){.today-skips{left:calc(var(--sidebar-width,216px) + 16px)}}
+.today-skips ul{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.today-skips .today-skip{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;background:var(--text-strong);color:var(--bg);font-size:16px;border-radius:8px}

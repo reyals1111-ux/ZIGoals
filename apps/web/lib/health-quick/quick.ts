@@ -1,6 +1,7 @@
 import {HEALTH_MEALS, healthSchema, logHealthItem, type HealthData, type HealthDiaryEntry} from '../health';
 import {commitMealCopy, dailyData, diaryMealItems, previewMealCopy} from '../health-daily';
 import {addLocalDays} from '../local-date';
+import {diaryDayIssue} from '../health-day';
 import {healthGroupIn, withHealthGroup} from '../vault/w-homes';
 import {DEFAULT_WATER_SIZES_ML, healthQuickSchema, type HealthQuick} from './schema';
 
@@ -28,6 +29,21 @@ export function copyMealFromDayBefore(data: HealthData, date: string, meal: Meal
   const items = diaryMealItems(data, addLocalDays(date, -1), meal);
   if (!items.length) throw Error(`Nothing was logged for ${meal.toLowerCase()} the day before.`);
   return commitMealCopy(data, previewMealCopy(items, [date], meal, operationId, at), operationId);
+}
+/**
+ * Session AP (owner-approved feature 6): one meal of any day into any day and meal slot (the same day's other meal too),
+ * through the same copy write as "Copy yesterday's …": the exact entries, their nutrition snapshots and amounts, added
+ * beside what is there (nothing is replaced), once per operation id. The target day is checked like any diary day (not
+ * after today: food is logged once eaten, a later day is planned in the Planner).
+ */
+export function copyMealTo(data: HealthData, from: {date: string; meal: Meal}, to: {date: string; meal: Meal}, operationId: string, at: string, today: string): HealthData {
+  if (dailyData(data).copyOperations.includes(operationId)) return data;
+  if (from.date === to.date && from.meal === to.meal) throw Error('Choose another day or another meal to copy to.');
+  const issue = diaryDayIssue(to.date, today);
+  if (issue) throw Error(issue);
+  const items = diaryMealItems(data, from.date, from.meal);
+  if (!items.length) throw Error(`Nothing was logged for ${from.meal.toLowerCase()} on that day.`);
+  return commitMealCopy(data, previewMealCopy(items, [to.date], to.meal, operationId, at), operationId);
 }
 /** Every meal of the day before into the same meals of this day, as one copy operation. */
 export function repeatDayBefore(data: HealthData, date: string, operationId: string, at: string): HealthData {

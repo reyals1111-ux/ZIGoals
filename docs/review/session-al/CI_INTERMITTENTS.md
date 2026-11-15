@@ -137,3 +137,34 @@ checks.`" (ADR-017 S64, AF16). `webkit-smoke` and `webkit-phone` filter exactly 
 ## Needed with lane L9's verifier stage 12
 `apps/web/tests/hosted-verifier-order.spec.ts:39` pins the local browser stages: it must read
 `toEqual([2, 3, 4, 5, 6, 9, 10, 11, 12])` (and its title/comment may name "AL"). Stage 12 skips each part a build lacks.
+
+## Session AP (CI 1706 on ca2678d7)
+| Item | Reading | Done |
+|---|---|---|
+| `earn-guide-zigi:54` (mobile, shard 7) | After the reload the folds opened and the click on "Open Valdora" was taken (the CI snapshot shows the link focused) but no tab opened in 45 s; passes locally on the same build. | First sighting: recorded; investigate on a second. |
+| `theme-parity-af:15` /app · folded (mobile, shard 11) | **Not an intermittent: the app.** Today's skip-link list was filtered by a 1.2 s timer, so its links depended on when the page was read. | Fixed at the cause (Session AP Part 1, ADR-040 D4). |
+| `earn-dock:36/:71` (desktop, shard 1) | **Not an intermittent: the app** (date-dependent). A quiet celebration card due on the Showcase that day sat over the launcher column. | Fixed at the cause (D4). |
+| `zigi-face-z:185` (WebKit phone, shard 4/4) | The words were typed while the composer settled after the previous answer; Send stayed off. | Spec waits for the words and an enabled Send (D4). |
+
+## Session AP (CI 1726 and CI 1741 on 313cff99)
+| Item | Reading | Done |
+|---|---|---|
+| CI 1726 (the first complete run after D20 and Part 6): about 100 reds | **Not intermittents:** Settings folded by default met specs that seed and reload, jump before the page is live, or reach Settings by its link; the Bento switch in the header; the activity links' tablet rule; two phone length ceilings | Fixed at their causes (ADR-040 D23, D24) |
+| `zigi-memory:175` (WebKit desktop, shard 2/4, CI 1741) | First sighting; the shard's dmesg shows a WPEWebKit compositor segfault (class B, as in AK–AO); passes on Chromium | One re-run |
+| `checklist-launcher:66` (desktop, shard 1, CI 1741) | First sighting; the mark's one-time draw read under load; passes 12/12 locally (`--repeat-each=4`) | One re-run |
+| `ap-hour-grid:45` (desktop, shard 1, CI 1741 attempt 2) | The drop row was below the fold during the drag | Spec brings it into view, repeats the gesture only until the task shows (8/8 locally) |
+| `checklist-launcher:66` (second failure, CI 1743) | Not an intermittent: the shared Settings helper's settle wait outlasted the mark's one-time draw | Spec visits the page plainly (12/12 + 65 with ui-design-pass locally) |
+| `ui-design-pass:106` (desktop, CI 1743) | Ten pages × 1.9 s sweep plus the groups opening passed the 45 s limit | `test.setTimeout(90_000)`; no check changed |
+| `grok53/hud/hud-perf:23` (fenced, CI 1743) | First sighting: median frame 33.2 ms at CPU 4× on that runner (green in CI 1741) | Recorded; one re-run if it recurs on the final head |
+| `zigi-tools:126` (WebKit phone, shard 3/4, CI 1745) | First sighting: the Apps & extras sheet never opened; the shard's dmesg shows a WPEWebKit compositor segfault (class B) | One re-run |
+| `grok53/shell/o3-apps-extras:80` (mobile, shard 9, CI 1745) | First sighting: a row read 43.999996 px while the sheet's opening transform finished (the rows are 44 px fixed; green in 1741) | One re-run |
+| `webkit-smoke:104` (WebKit phone, CI 1745 re-run) | Not an intermittent: the press on "Apps & extras" came before the page was live | Waits for hydration (as earn-dock) |
+| `progress-glass:60` /app (mobile, shard 10, CI 1747) | First sighting: 45 s timeout on the Showcase's Today; locally 5.7–10 s in 3 runs (`--repeat-each=3`), so the runner's load, most likely in the wait for running animations to settle | Recorded; the run on the next head is its one re-run |
+| `ap-health-splits:10` (CI 1747) | Not an intermittent: strict mode, the run's name is the row's `<strong>` and the opened detail's `<h3>` | The spec presses the row's own summary; same assertions |
+
+## Automatic retry (Session AP, [TIER 3] (CI), owner rule 14 Nov)
+In CI only (the Chromium browser suite, a11y and WebKit jobs set `ZIGOALS_CI_RETRY=1`), Playwright retries a failed test
+once (`retries: 1` in playwright.config.ts and playwright.webkit.config.ts; 0 locally and in every other job). A test that
+passes on its retry counts as **flaky**, not failed: each shard's job summary lists every flaky test (file:line, project,
+shard) through `scripts/ci/flaky-summary.mjs`, and each one is written up here like any intermittent. A test that fails on
+both attempts still fails the job. No assertion, timeout or test was changed for this.

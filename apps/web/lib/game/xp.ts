@@ -6,6 +6,7 @@ import type {WeeklyReview} from '../weekly-review/schema';
 import {addLocalDays, localWeekday} from '../local-date';
 import {levelProgress, type LevelProgress} from './levels';
 import type {ChecklistDays} from '../checklist/schema';
+import {dayCounts, needOn, type DayGoal} from '../checklist/day-goal-core';
 import {ACADEMY_LESSON_IDS, ACADEMY_LESSON_XP} from '../earn/academy-ids';
 import type {EarnAcademy} from '../earn/records';
 
@@ -29,7 +30,7 @@ export const XP_RULES = {
 export type ChecklistDaySummaryXp = {date: string; total: number; done: number; perfect?: boolean};
 /** Session AF chunk 2 (L1): `earnAcademy` is the Earn Academy's device record (`zigoals:earn-academy:v1`); optional, so a store
  *  without it earns no Academy XP, as before. */
-export type GameStores = {habits: HabitData; health: HealthData; platform?: Platform | null; weekly?: WeeklyReview | null; checklist?: ChecklistDays | null; checklistToday?: ChecklistDaySummaryXp | null; earnAcademy?: EarnAcademy | null};
+export type GameStores = {habits: HabitData; health: HealthData; platform?: Platform | null; weekly?: WeeklyReview | null; checklist?: ChecklistDays | null; dayGoal?: DayGoal | null; checklistToday?: ChecklistDaySummaryXp | null; earnAcademy?: EarnAcademy | null};
 export type XpEvent = {id: string; day: string; xp: number; kind: 'habit' | 'health' | 'goal' | 'review' | 'checklist' | 'earn'; title: string};
 /** Session AF chunk 2 (L1): the Academy lessons this build knows, passed on or before `today`, each once (by its first pass). */
 export function earnLessonsPassed(stores: Pick<GameStores, 'earnAcademy'>, today: string): {id: string; day: string}[] {
@@ -37,10 +38,13 @@ export function earnLessonsPassed(stores: Pick<GameStores, 'earnAcademy'>, today
   return ACADEMY_LESSON_IDS.flatMap(id => { const at = lessons[id]?.passedAt; const day = typeof at === 'string' ? at.slice(0, 10) : null; return day && day <= today ? [{id, day}] : []; });
 }
 /** Session AF (L3): the days with every counted Checklist dot lit (sealed days, then today once complete), each with its Perfect orbit flag. */
-export function checklistOrbitDays(stores: Pick<GameStores, 'checklist' | 'checklistToday'>, today: string): {day: string; perfect: boolean}[] {
-  const out = Object.entries(stores.checklist?.days ?? {}).filter(([day, d]) => day < today && d.total > 0 && d.done >= d.total).map(([day, d]) => ({day, perfect: !!d.perfect}));
+// Session AP (owner decision 14 Nov): with "A day counts as done at N" (`dayGoal`), each day counts by its own day's rule; a
+// Perfect orbit still needs every dot lit in path order.
+export function checklistOrbitDays(stores: Pick<GameStores, 'checklist' | 'checklistToday' | 'dayGoal'>, today: string): {day: string; perfect: boolean}[] {
+  const full = (d: {total: number; done: number}) => d.total > 0 && d.done >= d.total;
+  const out = Object.entries(stores.checklist?.days ?? {}).filter(([day, d]) => day < today && dayCounts(d, needOn(stores.dayGoal, day))).map(([day, d]) => ({day, perfect: !!d.perfect && full(d)}));
   const t = stores.checklistToday;
-  if (t && t.date === today && t.total > 0 && t.done >= t.total) out.push({day: today, perfect: !!t.perfect});
+  if (t && t.date === today && dayCounts(t, needOn(stores.dayGoal, today))) out.push({day: today, perfect: !!t.perfect && full(t)});
   return out.sort((a, b) => a.day.localeCompare(b.day));
 }
 const isoDay = (stamp: string) => stamp.slice(0, 10);

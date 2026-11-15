@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from './ah-helpers';
 import {CYCLE_KEY} from '../lib/cycle/store';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK (BUILD list 2 #16, lane G1a): the cycle log is hidden by default; turned on in Settings → Your pages &
@@ -21,7 +22,7 @@ test('hidden by default; on in Settings; log a day; hide keeps the entries', asy
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.getByText('Cycle log', {exact: true})).toHaveCount(0);
 
-  await page.goto('/app/settings');
+  await openSettings(page);
   await hydrated(page);
   const sw = page.locator('#your-pages').getByRole('switch', {name: 'Cycle log'});
   await expect(sw).not.toBeChecked();

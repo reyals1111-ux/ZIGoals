@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated, loadShowcase} from './ah-helpers';
+import {openSettings} from './settings-open';
 
 // Session AK M1–M4 (owner follow-up 2): Motion Full / Calm / Off. Full gets page transitions (React <ViewTransition>,
 // app/app/template.tsx), counting figures and completion moments; Calm keeps short fades only and stops every loop; Off and
@@ -36,7 +37,7 @@ const running = (page: Page) => page.evaluate(() => document.getAnimations().fil
 })));
 
 test('Settings offers Motion: Full, Calm and Off; Calm is saved, mirrored on <html> and survives a reload', async ({page}) => {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await hydrated(page);
   const motion = page.getByRole('region', {name: 'Appearance', exact: true}).getByRole('combobox', {name: /^Motion/});
   await expect(motion.locator('option')).toHaveText(['Full', 'Calm (entrances only)', 'Off']);

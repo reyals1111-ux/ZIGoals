@@ -1,4 +1,5 @@
 import {test, expect, type Browser} from '@playwright/test';
+import {afterGoto, openSettings} from './settings-open';
 
 // Session AB-Design Phase 2 closing pass (owner, 2026-10-14: "tablets are touch devices"): wherever the primary pointer is
 // coarse every standalone control is a 44 × 44 px target, at every width. Phones are held to it by their own specs; this
@@ -10,7 +11,7 @@ const PAGES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth'
 async function tablet(browser: Browser, width: number) {
   const context = await browser.newContext({viewport: {width, height: 900}, hasTouch: true, reducedMotion: 'reduce', locale: 'en-US'});
   const page = await context.newPage();
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   return {context, page};
@@ -24,7 +25,7 @@ for (const width of [768, 1024]) {
     expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches), 'the emulated tablet has a coarse primary pointer').toBe(true);
     const findings: Record<string, string[]> = {};
     for (const path of PAGES) {
-      await page.goto(path);
+      await page.goto(path); await afterGoto(page, path);
       await expect(page.locator('main h1').first()).toBeVisible();
       await page.waitForTimeout(1200);
       const small = await page.evaluate(() => {

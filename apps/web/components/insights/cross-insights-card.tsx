@@ -11,6 +11,7 @@ import type {HealthData} from '../../lib/health';
 import {CROSS_MIN_PER_SIDE, LABEL_WORDS, crossPillarInsights, hoursMinutes, whyText, type CrossUnclear} from '../../lib/insights/cross-pillar';
 import {ENERGY} from '../../lib/energy/schema';
 import {WORKOUTS} from '../../lib/workouts/schema';
+import {SYMPTOMS} from '../../lib/symptoms/schema';
 import {SectionHeading} from '../ui/section-heading';
 import '../life-review/life-review.css';
 import {ArtNote} from '../illustrations/art-note';
@@ -27,16 +28,19 @@ export function CrossInsightsCard({habits, health, today, compact = false}: {hab
   // Session AJ (item 10, D14): the daily check-in's energy and the workouts join the pairings (each only when kept).
   const energyRecord = useDeviceRecord(ENERGY), workoutsRecord = useDeviceRecord(WORKOUTS);
   const energy = energyRecord.loaded && !energyRecord.unreadable ? energyRecord.data : null, workouts = workoutsRecord.loaded && !workoutsRecord.unreadable ? workoutsRecord.data : null;
+  // Session AP (feature 2): the symptom and factor tracker joins under the same rules (counts, "not a cause"). Health-private:
+  // read here on the person's own screen only; no ZIGi or NOVA path gets it, and its pairings never wake ZIGi (below).
+  const symptomsRecord = useDeviceRecord(SYMPTOMS), symptoms = symptomsRecord.loaded && !symptomsRecord.unreadable ? symptomsRecord.data : null;
   const [hidden, setHidden] = useState<ReadonlySet<string>>(() => { try { return hiddenInsights(readInsights(localStorage).data, today); } catch { return new Set(); } });
   const [note, setNote] = useState('');
-  const {ready, pending, unclear} = useMemo(() => crossPillarInsights({habits, health, today, spending, hidden, energy, workouts}), [habits, health, today, spending, hidden, energy, workouts]);
+  const {ready, pending, unclear} = useMemo(() => crossPillarInsights({habits, health, today, spending, hidden, energy, workouts, symptoms}), [habits, health, today, spending, hidden, energy, workouts, symptoms]);
   // Session AJ (item 10; P4 moment 5): a pairing that first turns consistent makes ZIGi show an insight, once per pairing and
   // at most one a day (the celebrations record keeps it; it is not a celebration).
   const celebrations = useDeviceRecord(CELEBRATIONS);
   useEffect(() => {
     if (compact || !celebrations.loaded || celebrations.unreadable) return;
     if (Object.entries(celebrations.data.seen).some(([k, d]) => k.startsWith('insight:') && d === today)) return;
-    const fresh = ready.find(i => i.label === 'consistent' && !celebrations.data.seen[`insight:${i.id}:consistent`]);
+    const fresh = ready.find(i => i.label === 'consistent' && !i.id.startsWith('symptom-') && !celebrations.data.seen[`insight:${i.id}:consistent`]);
     if (!fresh) return;
     try { celebrations.update(n => ({...n, seen: {...n.seen, [`insight:${fresh.id}:consistent`]: today}})); zigiSignals.emit('hint_insight'); zigiSignals.emitValidated('insight_consistent'); /* Session AK Part 12: the Studio-4 reaction, once its art lands */ } catch { /* it plays another day */ }
   }, [compact, celebrations, ready, today]);

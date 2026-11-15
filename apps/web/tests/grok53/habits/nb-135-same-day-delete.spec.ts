@@ -14,10 +14,14 @@ test('NB-135: archive and delete for good the same day, with a check-in today; P
   await card.getByRole('button', {name: 'Complete Typo habbit'}).click();
   await expect(card.locator('.habit-result')).toHaveText('Complete');
   await card.getByRole('button', {name: 'Options for Typo habbit'}).click();
-  const menu = card.getByRole('group', {name: 'Typo habbit options'});
-  await expect(menu.getByRole('button', {name: /^Pause from /})).toBeVisible();
-  await expect(menu.getByRole('button', {name: 'Delete habit…'})).toBeVisible();
-  await menu.getByRole('button', {name: 'Archive habit…'}).click();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  const menu = card.getByRole('menu', {name: 'Typo habbit options'});
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(menu.getByRole('menuitem', {name: /^Pause from /})).toBeVisible();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await expect(menu.getByRole('menuitem', {name: 'Delete habit…'})).toBeVisible();
+  // Session AO (DV-040g, deliberate): items are menuitems now
+  await menu.getByRole('menuitem', {name: 'Archive habit…'}).click();
   await card.getByRole('alertdialog').getByRole('button', {name: 'Archive habit', exact: true}).click();
   await expect(toast(page)).toContainText('Typo habbit is archived from');
   await card.getByRole('button', {name: 'Delete for good…', exact: true}).click();

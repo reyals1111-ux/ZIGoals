@@ -27,3 +27,10 @@ test('navigation pages and the earlier special cases keep their titles', () => {
   expect(phoneRoute('/app/zigi').title).toBe('Meet ZIGi');
   expect(phoneRoute('/app/journey').back).toBeUndefined();
 });
+
+// Session AO (DV-258c/D-013, owner decision 13 Nov): one header on every page. Notes and Tasks show the logo, like the
+// Journal and the navigation's pages: no "Back to Today" there, and each still names itself as its tab title does.
+test.each(['notes', 'tasks', 'journal'])('/app/%s shows the logo (no back link) and names itself', route => {
+  expect(phoneRoute(`/app/${route}`).back).toBeUndefined();
+  expect(phoneRoute(`/app/${route}`).title).toBe(metadataTitle(route));
+});

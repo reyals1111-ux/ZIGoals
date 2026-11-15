@@ -9,7 +9,10 @@
  *                    docs/handoff/af-lanes/L5a.md, the same rule as scripts/themes/build-themes.mjs `flips`);
  *                    The page's own ground (body, the content's sky, the ground under the footer banner) is neutral too.
  *   art-calm       — opacity or filter on a named art layer (the heavy backgrounds calmed by day), and the sidebar sky's
- *                    dawn stars and night veil;
+ *                    dawn stars and night veil; Session AO (DV-203, the owner's decision of 13 Nov, deliberate): in Dark only,
+ *                    the sidebar's sky drawn flat (its background image none) where Nebula's is its stars file over neutral
+ *                    or night colours only (darkSky; Dark is a true dark theme: no starfield, no stars). Any other image,
+ *                    element or theme stays disallowed;
  *   theme-bar      — the theme bar itself (it shows which theme is chosen);
  *   gradient-word  — by day only, a coloured stop of a gradient word (a background clipped to its text) in a deeper shade of
  *                    the same hue (within 12°, lower lightness) that reaches 4.5:1 on white (the owner's decision of 19 Oct,
@@ -86,6 +89,14 @@ export function skyCalm(a: string, b: string) {
   if (x.length !== y.length || (x.join() === layers(a).join() && y.join() === layers(b).join())) return false;
   return x.every((layer, i) => /^url\(/.test(layer) ? layer === y[i] : colours(layer).every(flips) && !/^url\(/.test(y[i]!));
 }
+/** Session AO (DV-203, deliberate): Dark's flat sidebar. Nebula's value is the sidebar's own stars file(s) and layers drawn
+ *  only in neutral or night colours; Dark's is none (its flat ground is the background colour, judged on its own). */
+export const SIDEBAR_STARS = /^url\("?(?:https?:\/\/[^/"]+)?\/art\/v24\/sidebar-stars\.svg"?\)$/;
+export function darkSky(a: string, b: string, desc: string) {
+  if (b !== 'none' || !/\.app-sidebar(\.|$)/.test(desc)) return false;
+  const x = layers(a);
+  return x.some(layer => SIDEBAR_STARS.test(layer)) && x.every(layer => SIDEBAR_STARS.test(layer) || layer === 'none' || (!/url\(/.test(layer) && colours(layer).length > 0 && colours(layer).every(flips)));
+}
 /** Same red, green and blue (any alpha): a colour drawn from the element's own word colour (currentColor, or a
  *  color-mix of it with transparent). */
 const gam = (v: number) => 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055);
@@ -146,6 +157,7 @@ export function classify(prop: string, nebula: Item, other: Item, theme: 'light'
   // the day's ground) and by night a veil of the ground dims them; the stars, their place, size and any coloured stop
   // stay Nebula's.
   if (prop === 'background-image' && nebula.art && skyCalm(a, b)) return 'art-calm';
+  if (theme === 'dark' && prop === 'background-image' && nebula.art && darkSky(a, b, nebula.desc)) return 'art-calm';
   const ca = colours(a), cb = colours(b), ownA = nebula.props.color ?? '', ownB = other.props.color ?? '';
   // A shade made only of neutral or night colours may be softened, added or left out by day (the cards' separation shade).
   if ((prop === 'box-shadow' || prop === 'text-shadow') && [...ca, ...cb].every(flips)) return 'neutral';

@@ -1,6 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {alphaNotice} from './ab-shell';
-import {typeGoalName} from './goal-name';
+import {continueToGoalReview, typeGoalName} from './goal-name';
 
 /**
  * Session AK P4 (docs/review/session-ak/FIRST_RUN_REVIEW.md, "## Fixes"): the first ten minutes of a brand-new person who
@@ -34,8 +34,8 @@ test('FR-1: saving for a holiday on a fresh device stays in plain money words, f
   await expect(tabs.getByRole('button', {name: 'Stablecoins', exact: true})).toHaveCount(0);
   expect(await shown(page)).not.toMatch(CRYPTO);
   await page.getByRole('radio', {name: 'Save toward it from now on'}).check();
-  await page.getByRole('button', {name: 'Continue →', exact: true}).click();
-  await page.getByRole('button', {name: 'Continue →', exact: true}).click();
+  // Session AO (T-014, deliberate): one Continue to the review, the last step.
+  await continueToGoalReview(page, 2);
   await expect(page.getByText('A plan, not a transfer: nothing moves.')).toBeVisible();
   expect(await shown(page)).not.toMatch(CRYPTO);
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();
@@ -98,7 +98,10 @@ test('FR-4, FR-7, FR-8, FR-15, FR-23: the welcome stalls loudly, names its habit
   await page.waitForURL(/\/app$/);
   const set = page.getByRole('heading', {name: 'You’re set.'});
   await expect(set).toBeFocused();
-  await expect(page.locator('.setup-landing')).toContainText('Your goal “Emergency fund”');
+  // Session AO (RR-17, owner decision 13 Nov, deliberate): the goal is named once on Today (Today's focus), not in "You're set".
+  await expect(page.locator('.setup-landing')).toContainText('Your goal is set');
+  await expect(page.locator('.setup-landing')).not.toContainText('Emergency fund');
+  await expect(page.getByRole('article', {name: 'Focus: next goal step'}).locator('strong')).toHaveText('Emergency fund');
   await expect(page.getByText('Your coach', {exact: true})).toHaveCount(0);
   await page.getByRole('button', {name: 'Close “You’re set”'}).click();
   await expect(set).toHaveCount(0);

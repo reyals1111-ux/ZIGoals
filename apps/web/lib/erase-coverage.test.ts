@@ -32,6 +32,12 @@ const NOT_RECORDS: Record<string, string> = {
   'zigoals:integrity-dismissed:v1': 'sessionStorage: a dismissed integrity notice in this tab',
   // Session AL (D-088): lib/settings-folds.ts.
   'zigoals:settings-folds:v1': 'sessionStorage: which Settings groups are folded in this tab (group ids only), a display convenience; gone when the tab closes',
+  // Session AP (D-088 completed): Settings starts folded on a computer; the groups opened stay open on this device.
+  // Session AP (owner decision 14 Nov, Bento): which pages show the Bento view on this device.
+  'zigoals:first-five:v1': 'localStorage: that the person hid Today\'s "Your first five" on this device (no content), a display convenience (Session AP)',
+  'zigoals:bento:v1': 'localStorage: which pages show the Bento view on this device (page names only), a display convenience (Session AP)',
+  'zigoals:settings-open:v1': 'localStorage: which Settings groups are open on this device (group ids only), a display convenience (Session AP, D-088)',
+  'zigoals:wealth-folds:v1': 'localStorage: which of Wealth\'s folded sections were opened on this device (section ids only), a display convenience (Session AO, RR-16)',
   'zigoals:welcome-draft:v1': 'sessionStorage: the welcome wizard\'s step and picks kept across a reload in this tab only (Session AL, NB-011); gone when the tab closes',
   'zigoals:extras-sync-choice:v1': 'this device\'s consent for the encrypted extras sync; consent is asked again on a new device',
   'zigoals:portfolio-sync-choice:v1': 'this device\'s consent for Portfolio sync; asked again on a new device',

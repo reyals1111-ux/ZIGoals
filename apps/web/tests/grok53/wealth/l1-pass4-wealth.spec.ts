@@ -194,12 +194,15 @@ test('TK-6B-09: Light Showcase — the "Hide amounts" edge is at least 3:1 again
   expect(ratio).toBeGreaterThanOrEqual(3);
 });
 
-test('TK-036: the calculator Years field takes at most two digits, so "10100" cannot be typed by a slip', async ({page}) => {
+// Session AO (TK-036, deliberate): years go to 100 now, so the field takes three digits (its limit's): "10100" stops at
+// "101", which the field then refuses in words (was: two digits, "10"). Equally strict: no slip past the limit is accepted.
+test('TK-036: the calculator Years field takes at most three digits, so "10100" cannot be typed by a slip', async ({page}) => {
   await page.goto('/app/wealth/calculator'); await hydrated(page);
   const years = page.getByRole('textbox', {name: 'Years', exact: true});
   await years.fill('');
   await years.pressSequentially('10100');
-  await expect(years).toHaveValue('10');
+  await expect(years).toHaveValue('101');
+  await expect(page.getByText('Whole years from 1 to 100.')).toBeVisible();
 });
 
 test('TK-127: a net worth of a trillion reads short in the hero, exact for screen readers', async ({page}) => {

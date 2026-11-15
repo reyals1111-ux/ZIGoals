@@ -73,6 +73,17 @@ export function readDurationText(raw: string, unit: 'minutes' | 'hours'): number
 }
 
 /**
+ * Session AO (NB-114): the value typed into a habit card's "Set or add a value" form, read in one place: a time habit
+ * takes a time ("1:30", "2,5 min", "1 h 30 min") or a plain number in its own unit, with a
+ * decimal comma or point ("2,5" and "2.5" minutes both read 2.5); a count takes whole numbers; any other value a number.
+ * The result is the entry's existing count (a number in the habit's unit); nothing new is stored.
+ */
+export function readHabitValueText(raw: string, measurement: {kind: string; unit?: string}): number {
+  const time = measurement.kind === 'duration' ? readDurationText(raw, measurement.unit === 'hours' ? 'hours' : 'minutes') : null;
+  return time ?? readHabitNumber(raw, {max: 1_000_000_000, whole: measurement.kind === 'count'});
+}
+
+/**
  * Session AL final pass (B-197, AL-LIMITS-002): the most a habit's target may ask for, from the shared limits table
  * (lib/limits/plausibility.ts): a count up to the table's count row (1,000,000), a time habit up to the hours in its
  * period (1,440 minutes or 24 hours a day), a value kept in a time or steps unit the same; any other unit keeps the

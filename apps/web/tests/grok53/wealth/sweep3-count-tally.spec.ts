@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {emptyDevice, open} from '../l3-helpers';
+import {continueToGoalReview} from '../../goal-name';
 
 /**
  * Session AL sweep 3 (lane SW3): DV-147 (L4) — a count goal's own tally is not wealth — and DV-057b (L4) — Today's
@@ -12,7 +13,8 @@ test('DV-057b/DV-147: a books goal is planned in books on Today, and its tally i
   await page.clock.install({time: new Date('2026-11-05T09:00:00Z')});
   await emptyDevice(page, {theme: 'nebula'});
   await open(page, '/app/goals/new?template=read-12');
-  for (let i = 0; i < 3; i++) await page.getByRole('button', {name: /^Continue/}).first().click();
+  // Session AO (T-014, deliberate): three steps; Continue to the review, which is checked to be the last step.
+  await continueToGoalReview(page);
   await page.getByRole('button', {name: 'Create goal', exact: true}).first().click();
   await page.waitForURL('**/app/goals/tracked/**');
   await open(page, '/app');

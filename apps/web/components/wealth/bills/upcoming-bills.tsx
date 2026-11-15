@@ -1,6 +1,7 @@
 'use client';
+import {removeWithUndo} from '../../ui/remove-with-undo';
 import {ShowcaseTag} from '../../ui/showcase-tag';
-import {useId, useMemo, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatDate} from '../../../lib/visual-format';
@@ -12,6 +13,8 @@ import {BILLS, BILL_CADENCES, type Bill, type BillCadence, type BillsRecord} fro
 import './bills.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import {useMoneyCurrency} from '../use-money-currency';
+// Session AP (feature 6): price changes of bills found in the money log, its own chunk.
+const PriceChanges = lazy(() => import('./price-changes'));
 
 /**
  * Session AK (7.3, COMPETITORS M7): Upcoming bills. Bills come from the person: confirmed from a repeat the money log
@@ -42,7 +45,8 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
   };
   const confirm = (c: BillCandidate) => change(r => confirmCandidate(r, c, crypto.randomUUID(), new Date()), `${c.title} added to your bills.`);
   const dismiss = (c: BillCandidate) => change(r => dismissCandidate(r, c.key, today), `${c.title} will not be suggested again.`);
-  const remove = (bill: Bill) => change(r => removeBill(r, bill.id), `${bill.title} removed from your bills.`);
+  // Session AO (C-LS-20): a removed bill comes back with the app's one Undo toast.
+  const remove = (bill: Bill) => { setProblem(''); const said = `${bill.title} removed from your bills.`; void removeWithUndo(onChange, r => removeBill(r, bill.id), said, `${bill.title} is back in your bills.`).then(() => setStatus(said), cause => { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.'); }); };
   return <div className="bills-body">
     {showcase && <p className="fine"><ShowcaseTag/> Fictional Showcase entries.</p>}
     {unreadable && <p role="alert">This device&rsquo;s bills could not be read; nothing was changed. New bills start a fresh list.</p>}
@@ -56,6 +60,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
       </dl>
     </div>
     {notes.length > 0 && <ul className="bills-notes" aria-label="Notes to self due soon">{notes.map(n => <li key={n.billId}><strong>{n.title}</strong> · {formatDate(n.cancelBy)}: {n.note}</li>)}</ul>}
+    <Suspense fallback={null}><PriceChanges bills={record.bills} candidates={candidates} entries={entries} today={today}/></Suspense>
     <section aria-labelledby={`${id}-list`}>
       <h3 id={`${id}-list`}>Upcoming</h3>
       {occurrences.length ? <ul className="bills-list">{occurrences.map(o => <BillRow key={`${o.billId}-${o.due}`} occurrence={o} bill={record.bills.find(b => b.id === o.billId)!} onRemove={remove} onNote={(bill, note, by) => change(r => setCancelNote(r, bill.id, note, by || undefined), note.trim() ? `Note saved for ${bill.title}.` : `Note removed from ${bill.title}.`)}/>)}</ul>

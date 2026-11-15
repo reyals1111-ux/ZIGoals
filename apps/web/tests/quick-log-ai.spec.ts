@@ -14,7 +14,7 @@ test.beforeEach(async ({page}) => {
   await page.clock.install({time: new Date(`${TODAY}T10:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   const habits = createHabit(emptyHabitData(), {title: 'Meditate', category: 'Mind', description: '', notes: '', schedule: {kind: 'daily'}, target: 10, measurement: {kind: 'count', unit: 'times'}}, new Date('2026-09-01T08:00:00.000Z'), '11111111-1111-4111-8111-111111111111');
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HABITS_KEY]: JSON.stringify(habits), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true})}); // the balanced preset keeps the financial domain, whose Today hero carries Quick add on desktop
 });
 const health = async (page: Page) => JSON.parse((await page.evaluate(key => localStorage.getItem(key), HEALTH_STORAGE_KEY)) ?? 'null') as HealthData | null;

@@ -2,6 +2,7 @@ import {expect,test,type Page} from '@playwright/test';
 import {goalsPositionsLink} from './ab-shell';
 import {isPhone,openMore} from './phone-nav';
 import {chooseChain} from './chain-choice';
+import {afterGoto, openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the full navigation, money tools included.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -13,7 +14,7 @@ test.beforeEach(async ({page}) => { await chooseChain(page); });
  */
 async function showcase(page:Page){
  await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'Offline fictional marks fixture'}}));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
 const MARKS:[string,string][]=[
  ['/app','today-swan'],['/app/goals','goals-lotus'],['/app/goals/tracked/9201','goals-lotus'],['/app/habits','habits-butterfly'],['/app/health','health-heart'],
@@ -30,7 +31,7 @@ test('each life page shows its own mark, every other page the Today swan; figure
  await page.emulateMedia({reducedMotion:'reduce'});
  await showcase(page);
  for(const [path,name] of MARKS){
-  await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();
+  await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();
   const mark=page.locator('.sidebar-destination .sidebar-mark');
   await expect(mark,path).toHaveAttribute('data-mark',name);
   if(await isPhone(page))continue;
@@ -58,7 +59,7 @@ test('each life page shows its own mark, every other page the Today swan; figure
 test('the Shape & Fold tagline text is gone from the sidebar, the More sheet and every other place in the app',async({page})=>{
  await showcase(page);
  for(const path of ['/app','/app/goals','/app/settings']){
-  await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();
+  await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.textContent),path).not.toMatch(/Shape\s*&\s*Fold|Your Own Future/i);
   await expect(page.locator('.sidebar-tagline, .phone-more-tagline')).toHaveCount(0);
  }
@@ -111,7 +112,7 @@ for(const [width,height] of DESKTOP_SIZES)test(`figure and words never overlap t
   await page.setViewportSize({width,height});
   let planetOnToday:{x:number;y:number;width:number;height:number}|undefined;
   for(const path of pages){
-   await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();
+   await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();
    await expect.poll(()=>page.locator('.sidebar-mark-words img').evaluate(i=>(i as HTMLImageElement).complete&&(i as HTMLImageElement).currentSrc.includes('/brand/words/'))).toBe(true);
    // Measured with the sidebar scrolled to its end, so the destination is in view even where the sidebar scrolls.
    await page.locator('.app-sidebar').evaluate(e=>{e.scrollTop=e.scrollHeight;});
@@ -182,9 +183,14 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  for(let i=12;i<15;i++)expect(Math.abs(gap(i)-gap(1)),`row ${i}`).toBeLessThan(1);
  await expect(nav.locator('hr, [role=separator], .nav-divider')).toHaveCount(0);
  // Keyboard order follows the visual order.
+ // Session AP (D-028, ADR-040 D8; deliberate, as strict): the sidebar's links are one Tab stop (a roving group): Tab enters
+ // it, Home goes to its first link and the arrow keys walk every link in the order seen; the next Tab leaves the group.
+ await expect(nav.getByRole('link',{name:'Goals',exact:true})).toHaveAttribute('tabindex','-1');
  await page.getByRole('link',{name:'ZIGoals home',exact:true}).focus();
- const order:string[]=[];
- for(let i=0;i<15;i++){await page.keyboard.press('Tab');order.push(await page.evaluate(()=>document.activeElement?.textContent?.trim()??''));}
+ const order:string[]=[],now=()=>page.evaluate(()=>document.activeElement?.textContent?.trim()??'');
+ await page.keyboard.press('Tab');await page.keyboard.press('Home');order.push(await now());
+ for(let i=1;i<15;i++){await page.keyboard.press('ArrowDown');order.push(await now());}
+ await page.keyboard.press('Tab');expect(await page.evaluate(()=>!!document.activeElement?.closest('nav[aria-label="Main navigation"]'))).toBe(false);
  expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']); // Session AL (O4, deliberate): fifteen; NOVA is in the Apps group, which follows Help
  // Owner decision (Session AH, LA2, 26 Oct; replaces Session AF Gate C's grouped header rows, deliberate): from 541 to
  // 900 px the navigation is a rail on the left, in the same order and groups, each link at least 44 px, the groups

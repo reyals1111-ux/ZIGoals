@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session AK G2 (RELEASE_REVIEW R20): from 1280 px the right-edge launcher column (ZIGi, the Checklist, music) floated over
@@ -30,7 +31,7 @@ for (const width of [1440, 1280]) test(`at ${width} px no line of text runs unde
   test.skip(isMobile, 'Phones keep the lane through scroll padding (phone-shell.css).');
   test.setTimeout(120_000);
   await page.setViewportSize({width, height: 900});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   for (const path of ['/app', '/app/goals', '/app/wealth', '/app/health', '/app/earn']) {

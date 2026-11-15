@@ -2,6 +2,11 @@
 .layout-lock { display:inline-grid;place-items:center;width:44px;height:44px;flex:none;padding:0;border-radius:14px;border:1px solid #8fb6ff40;background:linear-gradient(150deg,#16264299,#1b173499);color:#d7e5fb;box-shadow:inset 0 1px 0 #ffffff14;cursor:pointer;transition:border-color 160ms ease,background-color 160ms ease,color 160ms ease; }
 .layout-lock:hover { border-color:#9fd6ff99;color:#fff; }
 .layout-lock[data-unlocked] { border-color:#7fe3f3;color:#0a1426;background:linear-gradient(120deg,#6fe3f2,#a8a4ff); }
+/* Session AO (D-070, DV-247): the lock's word beside its icon wherever the status row has room (`.status-row[data-words]`). */
+.layout-lock-word { display:none;font-size:14px;font-weight:650;letter-spacing:.02em;line-height:1;white-space:nowrap; }
+.status-row[data-words] .layout-lock { display:inline-flex;align-items:center;gap:8px;width:auto;min-width:44px;padding:0 14px 0 11px; }
+.status-row[data-words] .layout-lock-word { display:inline; }
+.layout-lock > svg { flex:none; }
 /* One place on every page: the Shell's status row, right after the demo balance (or alone at the right when the strip is hidden). */
 .status-row { display:flex;align-items:center;gap:12px; }
 .status-row > .mode-strip { flex:1 1 auto;min-width:0; }

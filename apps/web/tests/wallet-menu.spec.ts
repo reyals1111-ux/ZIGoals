@@ -3,6 +3,7 @@ import {toBech32} from '@cosmjs/encoding';
 import {expectAlphaMode, openStatusSheet} from './ab-shell';
 import {isPhone, openFold} from './phone-nav';
 import {chooseChain} from './chain-choice';
+import {openSettings} from './settings-open';
 // Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the wallet buttons and menu.
 // A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
 test.beforeEach(async ({page}) => { await chooseChain(page); });
@@ -225,7 +226,7 @@ test('Today\'s wallet card: ZIG only, with why other currencies are not shown (n
 
 test('the Showcase keeps its simulated wallet: no menu, no chooser, nothing written; its line stays', async ({page}) => {
   await wallets(page);
-  await page.goto('/app/settings'); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
+  await openSettings(page); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
   await expect(page.locator('main h1').first()).toBeVisible(); await expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '');
   if (await isPhone(page)) {
     const sheet = await openStatusSheet(page);

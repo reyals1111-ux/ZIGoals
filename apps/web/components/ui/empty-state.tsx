@@ -13,7 +13,7 @@ import type {ArtPillar} from '../illustrations/motifs';
 export function EmptyState({title, children, action, zigi = 'peek', className = '', level = 3, as = 'div', label, art}: {title: ReactNode; children?: ReactNode; action?: ReactNode; zigi?: string; className?: string; level?: 2 | 3; as?: 'div' | 'section'; label?: string; art?: ArtPillar | false}) {
   const Root = as, Title = level === 2 ? 'h2' : 'h3';
   return <Root className={`aa-empty empty-state ${className}`.trim()} aria-label={label} data-art={art === false ? undefined : ''}>
-    <div className="empty-state-figure" aria-hidden="true"><ZigiFigure state={zigi}/></div>
+    <div className="empty-state-figure" aria-hidden="true"><ZigiFigure state={zigi} lazy/></div>{/* Session AO (LS-067): the clip (the peek's is 1.71 MB) loads only once the figure is on screen */}
     <div className="empty-state-copy"><Title>{title}</Title>{children && <p>{children}</p>}{action && <div className="empty-state-action">{action}</div>}</div>
     {art !== false && <EmptyArt pillar={art}/>}
   </Root>;

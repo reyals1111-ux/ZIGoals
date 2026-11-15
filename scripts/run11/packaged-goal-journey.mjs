@@ -4,7 +4,7 @@
 import {expect} from 'vitest';
 import {writeFile} from 'node:fs/promises';
 import {armPackagedSync,waitPackagedSync} from './packaged-consumer-journey.mjs';
-import {typeGoalName} from './goal-name.mjs';
+import {continueToGoalReview,openGoalRhythm,typeGoalName} from './goal-name.mjs';
 // Session AB-Design (ADR-024 D2): on a phone Settings is a row of the More sheet; the sidebar link elsewhere.
 const navigate=async(page,name)=>{const more=page.locator('.phone-more-top');if(name==='Settings'&&await more.isVisible()){await more.click();await page.getByRole('dialog',{name:'More',exact:true}).getByRole('link',{name,exact:true}).click();return;}await page.getByRole('link',{name,exact:true}).first().click();};
 /** Session U follow-up F3: on a phone a Today widget card is a row named by it that opens in place; open it there. */
@@ -28,9 +28,9 @@ async function openGoal(page,name,path){await navigate(page,'Goals');await page.
 async function pinGoalAndHabit(page,name,path,habit){
  await navigate(page,'Goals');await page.getByRole('button',{name:'Active',exact:true}).click();const card=page.locator('.goal-card').filter({has:page.getByRole('heading',{name,exact:true})});
  expect(await card.getByRole('link',{name,exact:true}).getAttribute('href')).toBe(path);
- await card.getByRole('button',{name:`Options for ${name}`,exact:true}).click();await card.getByRole('button',{name:`Add ${name} progress to Today`,exact:true}).click();await card.getByText(`${name} progress added to Today.`,{exact:true}).waitFor();
+ await card.getByRole('button',{name:`Options for ${name}`,exact:true}).click();await card.getByRole('menuitem',{name:`Add ${name} progress to Today`,exact:true}).click();await card.getByText(`${name} progress added to Today.`,{exact:true}).waitFor();
  await navigate(page,'Habits');await page.getByRole('button',{name:'All',exact:true}).click();const habitCard=page.locator('.habit-card').filter({has:page.getByRole('heading',{name:habit,exact:true})});
- await habitCard.getByRole('button',{name:`Options for ${habit}`,exact:true}).click();await habitCard.getByRole('button',{name:`Add ${habit} check-in to Today`,exact:true}).click();
+ await habitCard.getByRole('button',{name:`Options for ${habit}`,exact:true}).click();await habitCard.getByRole('menuitem',{name:`Add ${habit} check-in to Today`,exact:true}).click();
  await navigate(page,'Today');await (await todayCard(page,name)).waitFor();await (await todayCard(page,habit)).waitFor();
 }
 /** Session AK X1 (RELEASE_REVIEW R5): until the chain is chosen the kinds of goal read in a person's words; either name is the same choice. */
@@ -44,7 +44,7 @@ async function create(page,type){
  else{await page.getByLabel('Target amount',{exact:true}).fill(type==='Value'?'1000':'10');if(type==='Quantity')await page.getByLabel('Goal asset',{exact:true}).fill('BTC');}
  await page.getByRole('button',{name:'Continue →',exact:true}).click();
  if(type!=='Project'){await page.getByLabel('Add a contribution plan',{exact:true}).check();await page.getByLabel('Planned amount',{exact:true}).fill(type==='Value'?'50':'1');await page.getByLabel('Contribution asset',{exact:true}).fill(type==='Value'?'USD':'BTC');}
- await page.getByRole('button',{name:'Continue →',exact:true}).click();if(type!=='Project')await page.getByLabel('Create supporting Habit',{exact:true}).check();await page.getByRole('button',{name:'Continue →',exact:true}).click();await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();
+ /* Session AO (T-014, deliberate): one Continue to the review, the last step; the habit is in its rhythm, opened with one tap */await continueToGoalReview(page,2);if(type!=='Project'){await openGoalRhythm(page);await page.getByLabel('Create supporting Habit',{exact:true}).check();}await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();
  const path=new URL(page.url()).pathname;expect(path).toMatch(/^\/app\/goals\/tracked\/\d+$/);
  const habit=type==='Project'?`Review ${name}`:type==='Value'?'Contribute 50 USD monthly':'Contribute 1 BTC monthly';const supporting=await openModule(page,'supporting-habits');
  if(type==='Project')await supporting.getByRole('button',{name:'Add weekly goal review habit',exact:true}).click();await supporting.getByRole('heading',{name:habit,exact:true}).waitFor();
@@ -57,7 +57,7 @@ async function fund(page,goal){
     unit (denom manual:BTC, lib/goals/goal-units.ts): Fund adds to that tally with "How many BTC did you add?", with no asset
     picker; its preview says one record is added and no money moves. */
  else await dialog.getByLabel('How many BTC did you add?',{exact:true}).fill('2');
- if(goal.type==='Value')await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();await dialog.getByLabel('Note (optional)',{exact:true}).fill(`Fictional original ${goal.type} receipt`);await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();expect(await dialog.textContent()).toContain(goal.type==='Value'?'One contribution record will be added.':'One record is added; no money moves.');await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await dialog.waitFor({state:'hidden'});
+ /* Session AO (DV-010c, deliberate): new cash previews from its own form; Back opens the details form, where the contribution's note is added */if(goal.type==='Value'){await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByText('REVIEW YOUR CONTRIBUTION',{exact:true}).waitFor();await dialog.getByRole('button',{name:'Back',exact:true}).click();}await dialog.getByLabel('Note (optional)',{exact:true}).fill(`Fictional original ${goal.type} receipt`);await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();expect(await dialog.textContent()).toContain(goal.type==='Value'?'One contribution record will be added.':'One record is added; no money moves.');await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await dialog.waitFor({state:'hidden'});
  /* Session AL (L4 fifth pass DV-034a/DV-104, 4a8543f9, deliberate): a Quantity goal made before the chain is chosen counts its
     own unit, so it has no Wealth allocation module; its progress itself shows the 2 BTC added. A Value goal keeps the check. */
  const own=goal.type==='Quantity';const allocation=own?null:await openModule(page,'allocate');

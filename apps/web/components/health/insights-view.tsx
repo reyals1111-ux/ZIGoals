@@ -7,6 +7,7 @@ import {dailyData} from '../../lib/health-daily';
 import type {HealthData} from '../../lib/health';
 import './health-aa.css';
 import {ArtNote} from '../illustrations/art-note';
+import {FoodMonthCard, GoodDaysCard} from './plus/insights-plus';
 
 // Session AK (lane S, item 2): Compare, its code loaded only when the fold is opened.
 const CompareExplorer = lazy(() => import('../insights/compare/compare-explorer'));
@@ -21,6 +22,8 @@ export function InsightsView({data, today}: {data: HealthData; today: string}) {
     {cards.length === 0 ? <ArtNote pillar="health"><p className="health-empty-inline">Seven logged days of the last twenty-eight make the first cards.</p></ArtNote> : <div className="health-insight-cards">{cards.map(c => <article key={c.id} className="health-aa-card" aria-labelledby={`insight-${c.id}`}><h3 id={`insight-${c.id}`}>{c.title}</h3><p>{c.line}</p>{c.detail.length > 0 && <ul>{c.detail.map(d => <li key={d}>{d}</li>)}</ul>}</article>)}</div>}
     <p className="fine">Read from your diary as it is; nothing is judged and nothing is advised.</p>
   </section>
+  {/* Session AP (features 7 and 1): the food-logging month, and what goes with your good days (mood tags). */}
+  <FoodMonthCard data={data} today={today}/><GoodDaysCard data={data} today={today}/>
   <OnDemandFold className="compare-fold" summary="Compare: does one thing go with another?" label="Compare"><CompareExplorer health={data} today={today}/></OnDemandFold>
   <OnDemandFold className="experiments-fold" summary="Experiments: try one change for 14 days" label="Experiments"><Experiments health={data} today={today}/></OnDemandFold></>;
 }

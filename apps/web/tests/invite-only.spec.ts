@@ -1,4 +1,5 @@
 import {expect,test} from '@playwright/test';
+import {openSettings} from './settings-open';
 
 /**
  * Session U Part 5 (FIX_PLAN A2): the relay gives every code request that passes admission one answer, byte for byte
@@ -19,7 +20,7 @@ test('asking for a code reads the same for every address, and Help says what to 
  });
  const shown:string[]=[];
  for(const address of ['invited@example.com','stranger@example.com']){
-  await page.goto('/app/settings');
+  await openSettings(page);
   const access=page.getByRole('region',{name:'Email account access'});
   await access.getByLabel('Email address',{exact:true}).fill(address);
   await access.getByRole('button',{name:'Send email code',exact:true}).click();
@@ -44,7 +45,7 @@ test('an older relay’s invite-only answer is still shown in its words, and not
   const body=request.postDataJSON();expect(body.action).toBe('send');sends.push(body.email);
   return route.fulfill({status:403,json:{error:'INVITE_ONLY',message:INVITE_ONLY}});
  });
- await page.goto('/app/settings');
+ await openSettings(page);
  const access=page.getByRole('region',{name:'Email account access'});
  await access.getByLabel('Email address',{exact:true}).fill('friend@example.com');
  await access.getByRole('button',{name:'Send email code',exact:true}).click();

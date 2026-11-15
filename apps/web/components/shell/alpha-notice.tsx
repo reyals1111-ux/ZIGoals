@@ -29,8 +29,9 @@ export function AlphaNotice({label, sentence, mode, stalled = false, behindMore 
   const facts = mode === 'local' ? 'Your records stay in this browser and are not a backup.' : 'Connection only · financial actions unavailable · your records stay in this browser.';
   return <aside className="alpha-notice" aria-label="Alpha notice">
     <span className="alpha-notice-dot" aria-hidden="true"/>
-    {/* Session AL (TK-6B-05, P-TK-65): phones keep one short fact beside the label (the full line is hidden there). */}
-    <p><strong>{label}</strong> <span>{behindMore ? facts : `${sentence} ${facts}`}</span><em className="alpha-notice-short">Saved in this browser only</em> <Link className="text-link" href="/app/help#help-z-about" prefetch={false}>More</Link></p>
+    {/* Session AL (TK-6B-05, P-TK-65): phones keep one short fact beside the label (the full line is hidden there). Session AO
+        (T-069, owner decision 13 Nov): the fact is "On this device", whole on one line; the label wraps by words instead. */}
+    <p><strong>{label}</strong> <span>{behindMore ? facts : `${sentence} ${facts}`}</span><em className="alpha-notice-short">On this device</em> <Link className="text-link" href="/app/help#help-z-about" prefetch={false}>More</Link></p>
     {/* Without scripts the page stays hidden (its stores are never read), and a stalled read keeps it hidden: the notice then
         carries the essentials itself. Once the page shows, they are in Settings' facts block and Help, as before. */}
     {stalled ? essentials : <noscript>{essentials}</noscript>}

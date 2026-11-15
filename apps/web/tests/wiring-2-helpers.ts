@@ -46,7 +46,7 @@ export const localModel = () => { const base = defaultAiSettings(); return {...b
 /** A fixed evening; the Showcase's records as the person's own, the welcome and What's new seen, and `extra` on top. */
 export async function seedDevice(page: Page, extra: Record<string, unknown> = {}, {model = true} = {}) {
   await page.clock.install({time: EVENING});
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   const values: Record<string, string> = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...(model ? {[AI_SETTINGS_KEY]: JSON.stringify(localModel())} : {})};
   for (const [k, v] of Object.entries(extra)) values[k] = typeof v === 'string' ? v : JSON.stringify(v);
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);

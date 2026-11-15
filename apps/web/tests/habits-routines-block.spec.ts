@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {isPhone} from './phone-nav';
 import {createHabit, emptyHabitData, HABITS_KEY, saveHabitTimezone} from '../lib/habits';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
+import {openSettings} from './settings-open';
 
 /**
  * Session AE Part 4 (ADR-027), the owner's S3 and S4 on Habits. S4: Routines (with your stacks) is its own movable block,
@@ -11,7 +12,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
  */
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 async function showcase(page: Page) {
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toBeVisible();
@@ -57,7 +58,7 @@ test('with a stack, "Your stacks" and its routine sit together in the Routines b
   let data = saveHabitTimezone(emptyHabitData(), 'Europe/Brussels');
   for (const [id, title, extra] of [[bed, 'Fictional make the bed', {}], [water, 'Fictional drink water', {stackAfterId: bed}]] as const)
     data = createHabit(data, {title, category: 'Home', description: '', notes: '', schedule: {kind: 'daily'}, target: 1, measurement: {kind: 'boolean'}, ...extra} as never, at, id);
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); },
     {[HABITS_KEY]: JSON.stringify(data), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
   await page.goto('/app/habits');

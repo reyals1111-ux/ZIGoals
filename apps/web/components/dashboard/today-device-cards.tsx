@@ -16,6 +16,8 @@ import {LoadBoundary} from '../load-boundary';
 const OrbitCard = lazy(() => import('../orbit-card/orbit-card'));
 // Session AK (BUILD list 2 #5): "Your first week" loads on its own, only when the person keeps it on Today.
 const FirstWeekCard = lazy(() => import('../first-week/first-week-card'));
+// Session AP ("Days until"): the countdowns card loads on its own, only when the person keeps it on Today.
+const CountdownsCard = lazy(() => import('../countdowns/countdowns-card'));
 
 export const TODAY_CARD_LABELS: Record<TodayCardId, {label: string; description: string}> = {
   balance: {label: 'Life balance', description: 'How each life area moved this month'},
@@ -23,6 +25,7 @@ export const TODAY_CARD_LABELS: Record<TodayCardId, {label: string; description:
   calculator: {label: 'Compound interest calculator', description: 'A door to the calculator'},
   review: {label: 'Life review', description: 'Your week at a glance, here instead of in Updates'},
   'first-week': {label: 'Your first week', description: 'One small step a day for seven days, in any order'},
+  countdowns: {label: 'Days until', description: 'Your own countdowns: a trip, a birthday, a race'},
   orbit: {label: 'Daily orbit', description: 'Today across your pillars and what is next, with a door to the Checklist'},
 };
 
@@ -42,6 +45,7 @@ export default function TodayDeviceCards({shown, customize, onToggle, platform, 
       case 'calculator': return <CalculatorCard compact />;
       case 'review': return <LifeReviewTeaser habits={habits} health={health} platform={platform} goals={goals} today={today} />;
       case 'first-week': return <LoadBoundary quiet><Suspense fallback={null}><FirstWeekCard /></Suspense></LoadBoundary>;
+      case 'countdowns': return <LoadBoundary quiet><Suspense fallback={null}><CountdownsCard /></Suspense></LoadBoundary>;
       case 'orbit': return <LoadBoundary quiet><Suspense fallback={null}><OrbitCard /></Suspense></LoadBoundary>;
     }
   };

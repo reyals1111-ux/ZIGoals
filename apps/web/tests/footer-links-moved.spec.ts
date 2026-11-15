@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openAllSettingsGroups} from './settings-open';
 import {isPhone, mainNav, navLink} from './phone-nav';
 
 /**
@@ -68,6 +69,8 @@ test('"Make a backup", "Storage & sync settings" and "Your data" are in Settings
   await today(page);
   expect(await tapNav(page, 'Settings')).toBeLessThanOrEqual(2);
   await page.waitForURL('**/app/settings');
+  // Session AP (D-088): Settings opens folded; its groups are opened, as a person does (no-op on a phone's list).
+  await openAllSettingsGroups(page);
   // The backup is Settings' first group (Session W Part 24: on a phone's first screen).
   await expect(page.locator('#privacy')).toContainText('Keep a copy of your progress.');
   await expect(page.locator('#encrypted-sync')).toBeAttached();

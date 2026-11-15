@@ -63,6 +63,8 @@ import {SAVINGS_CHALLENGES_KEY} from './savings-challenges/challenges';
 import {showcaseSavingsChallenges} from './savings-challenges/showcase';
 import {NETWORTH_MILESTONES_KEY} from './networth-milestones/milestones';
 import {showcaseNetworthMilestones} from './networth-milestones/showcase';
+import {NETWORTH_HISTORY_KEY} from './networth-history';
+import {showcaseNetworthHistory} from './networth-history-showcase';
 import {FOCUS_SESSIONS_KEY} from './focus-sessions/schema';
 import {showcaseFocusSessions} from './wrapped/showcase';
 import {NOTES_KEY} from './notes/schema';
@@ -234,6 +236,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Owner follow-up 1 (F5): the debt planner's figures, a 52-week and a no-spend challenge, net-worth milestones (one already
  // seen), and fictional focus sessions for Wrapped and the focus garden — all labelled example data.
  records[DEBT_PLANNER_KEY]=JSON.stringify(showcaseDebtPlanner(day));records[SAVINGS_CHALLENGES_KEY]=JSON.stringify(showcaseSavingsChallenges(day));
+ // Session AO (backlog #11): the labelled example net-worth history (gaps, one unknown price), in this tab's own storage only.
+ records[NETWORTH_HISTORY_KEY]=JSON.stringify(showcaseNetworthHistory(day));
  records[NETWORTH_MILESTONES_KEY]=JSON.stringify(showcaseNetworthMilestones(day));records[FOCUS_SESSIONS_KEY]=JSON.stringify(withShowcasePomodoro(showcaseFocusSessions(day),day));
  // Owner follow-up 2 (B, T2): labelled example notes (with [[links]] to Showcase goals and habits) and an imported calendar.
  records[NOTES_KEY]=JSON.stringify(showcaseNotes(day));

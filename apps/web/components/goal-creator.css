@@ -13,6 +13,8 @@
 .goal-optional .goal-choice-tiles{padding:.2rem}
 .goal-optional>label{display:grid;gap:.5rem}
 .unified-wizard .wizard-actions{flex-wrap:wrap}
+/* Session AO (T-014): the optional rhythm, closed above the review's summary */
+.unified-wizard .wizard-rhythm{margin:0 0 1.25rem}.unified-wizard .wizard-rhythm>summary{font-size:16px}.unified-wizard .wizard-rhythm .checkbox{min-height:44px}
 /* Session W Part 11: goal ideas in the creator. */
 .goal-ideas { border: 0; padding: 0; margin: 0; }
 .goal-ideas legend { margin-bottom: 8px; }

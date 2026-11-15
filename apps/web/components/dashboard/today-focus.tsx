@@ -112,6 +112,8 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
         {nextGoal ? <>
           <strong>{nextGoal.name}</strong>
           {step ? <p data-step={step.kind}>{stepText(step)}</p> : <p>{nextGoal.progressBound === 'unavailable' ? 'Progress unknown until valued' : `${nextGoal.progressBound === 'at-least' ? 'At least ' : ''}${pct(nextGoal.progressPct)} of ${nextGoal.target ? formatGoalAmount(nextGoal.target, nextGoal.currency) : 'its target'}`}{nextGoal.nextContributionDate ? ` · next contribution ${formatDate(nextGoal.nextContributionDate)}` : ''}</p>}
+          {/* Session AO (RR-17, D-134): this goal has no second card on Today now, so the tile keeps its progress in view. */}
+          {step && <small className="focus-progress">{nextGoal.progressBound === 'unavailable' ? 'Progress unknown until valued' : `${nextGoal.progressBound === 'at-least' ? 'At least ' : ''}${pct(nextGoal.progressPct)} of ${nextGoal.target ? formatGoalAmount(nextGoal.target, nextGoal.currency) : 'its target'}`}</small>}
           <div className="focus-actions"><Link className="text-link" href={nextGoal.href}>Open Goal →</Link></div>
         </> : !goalsReady ? <p className="loading-line" role="status">Reading your goals…</p> : <>
           <strong>No active goal yet</strong>

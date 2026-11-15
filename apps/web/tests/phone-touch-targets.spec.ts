@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {afterGoto, openSettings} from './settings-open';
 
 // Session M, Part A4 (QA2-07): on a phone every link or control a person taps is at least 44 × 44 px. The QA sweep found
 // Activity rows (23 px), Wealth asset rows (28 px), Goal card titles (26 px), the Goal workspace tabs (39 px), a Goal's
@@ -12,7 +13,7 @@ test.skip(({viewport}) => (viewport?.width ?? 1280) > 767, 'phones only: desktop
 async function showcase(page: Page) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); localStorage.setItem('zigoals:motion:v1', 'off'); } catch { /* storage denied */ } });
-  await page.goto('/app/settings'); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
+  await openSettings(page); await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click(); await page.waitForURL('**/app');
 }
 async function firstHref(page: Page, list: string, prefix: string) {
   await page.goto(list);
@@ -42,7 +43,7 @@ test('QA2-07: every standalone tap target on the main phone pages is at least 44
   await showcase(page);
   const detail = await firstHref(page, '/app/goals', '/app/goals/tracked/'), asset = await firstHref(page, '/app/wealth', '/app/wealth/asset/');
   for (const path of ['/app', '/app/goals', detail, '/app/habits', '/app/health', '/app/wealth', asset, '/app/markets', '/app/staking', '/app/portfolio', '/app/ecosystem', '/app/activity', '/app/settings', '/app/help']) {
-    await page.goto(path);
+    await page.goto(path); await afterGoto(page, path);
     await expect(page.locator('main h1').first()).toBeVisible();
     await page.waitForTimeout(400);
     expect(await smallTargets(page), path).toEqual([]);

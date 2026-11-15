@@ -7,6 +7,7 @@ import {desktopOnly, expect, hydrated, offlineApis, seedRecords, stored} from '.
 import {openStatusSheet} from '../ab-shell';
 import {chooseChain} from '../chain-choice';
 import {ME, V1, ZIG as zigOf, fakeChain, openStaking, relay as stakingRelay} from '../staking-chain';
+import {openSettings} from '../settings-open';
 
 /**
  * Session AK F2, journey 7: phone wallets over WalletConnect, MOCKED end to end. The WalletConnect relay
@@ -121,7 +122,7 @@ test('@journey 7 wallet: read-only WalletConnect linking, then Keplr Mobile pair
 
   // Session AK X1 (RELEASE_REVIEW R2–R5): a new device meets no wallet until the person chooses the chain; this journey is
   // about wallets, so the person first switches a money tool on, in Settings → Your pages & buttons (as a person does).
-  await page.goto('/app/settings'); await hydrated(page);
+  await openSettings(page); await hydrated(page);
   const stakingSwitch = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Staking', exact: true});
   await expect(stakingSwitch).not.toBeChecked();
   await stakingSwitch.click(); // the switch shows the saved choice once it is saved (a controlled switch), so no check()

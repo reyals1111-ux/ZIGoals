@@ -1,9 +1,11 @@
 import {test,expect,type Page} from '@playwright/test';
 import {openHabitDetails} from './ab-shell';
+import {openFold} from './phone-nav';
+import {openSettings} from './settings-open';
 // Session AC (deliberate): Today's habits list is the Balanced habits widget (Daily Habits, its twin, stands down by default).
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
- await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
+ await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
  await expect(page.locator('.placed-module[data-module="preset-balanced-1"] .habits-today')).toBeVisible();
 }
 test('Quick add lives in the mobile header and the Today hero, and Escape returns focus',async({page,isMobile})=>{
@@ -48,7 +50,9 @@ test('category rings, exact history and finite route entrance have visible evide
  await page.goto('/app/goals');const card=page.locator('.goal-card').filter({hasText:'Emergency fund'});await expect(card.locator('.flow-ring>span')).toHaveText('45%');
  const colors=await card.evaluate(el=>({composition:[...el.querySelectorAll('.flow-ring .glass-ring-arc')].map(arc=>getComputedStyle(arc).stroke),legend:[...el.querySelectorAll('.goal-mix-legend i')].map(i=>getComputedStyle(i).backgroundColor)}));expect(colors.composition).toHaveLength(colors.legend.length);for(const color of colors.legend)expect(colors.composition).toContain(color);
  await card.scrollIntoViewIfNeeded();await expect(card.locator('.flow-ring')).toHaveAttribute('data-entrance','once');await expect.poll(()=>card.locator('.flow-ring .glass-ring-arc').evaluateAll(arcs=>arcs.every(arc=>Math.abs(parseFloat(getComputedStyle(arc).strokeDashoffset)-parseFloat((arc as SVGElement).style.strokeDashoffset))<.001))).toBe(true);await card.screenshot({animations:'disabled',path:testInfo.outputPath('run10-goal-ring-1440.png')});await page.locator('.app-sidebar').screenshot({animations:'disabled',path:testInfo.outputPath('run10-sidebar-1440.png')});
- await page.goto('/app/wealth');await expect(page.locator('.wealth-history .wealth-history-line').first()).toBeVisible();await expect.poll(()=>page.locator('.wealth-history .wealth-history-line').first().evaluate(el=>getComputedStyle(el).strokeDashoffset)).toBe('0px'); // Session AB-Design (owner request 26): the new chart's total line, drawn once
+ // Session AO (RR-16, owner decision 13 Nov, deliberate): on a computer this Wealth section folds by default; it is opened from
+ // its row as a reader would (tests/phone-nav.ts openFold), then checked exactly as before.
+ await page.goto('/app/wealth');await openFold(page,'Your wealth over time');await expect(page.locator('.wealth-history .wealth-history-line').first()).toBeVisible();await expect.poll(()=>page.locator('.wealth-history .wealth-history-line').first().evaluate(el=>getComputedStyle(el).strokeDashoffset)).toBe('0px'); // Session AB-Design (owner request 26): the new chart's total line, drawn once
  await page.locator('.wealth-history').screenshot({animations:'disabled',path:testInfo.outputPath('run10-history-1440.png')});
  await page.goto('/app');await page.locator('.slogan-entrance').scrollIntoViewIfNeeded();await expect(page.locator('.slogan-entrance')).toHaveAttribute('data-entrance','once');
 });

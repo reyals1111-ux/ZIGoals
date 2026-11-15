@@ -17,6 +17,9 @@ const chat = (page: Page) => page.locator('section.nova-chat');
 async function openNova(page: Page) {
   await page.goto('/app/nova');
   await expect(page.getByRole('button', {name: /^Exit NOVA/})).toBeVisible();
+  // Session AO (CI 1629, CI_INTERMITTENTS "exploratory-round3:66"): the server HTML already shows "Exit NOVA"; text typed
+  // before the page hydrates is replaced by React's state, so a person's typing starts once the app has hydrated.
+  await page.locator('html[data-app-hydrated]').waitFor({state: 'attached'});
 }
 /**
  * Every control of the open chat outside its scrolling conversation (the header's tools, the composer, "Ask ZIGi about a

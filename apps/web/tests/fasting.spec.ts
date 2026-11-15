@@ -4,6 +4,7 @@ import {isPhone} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {HEALTH_STORAGE_KEY} from '../lib/health';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
+import {openSettings} from './settings-open';
 
 // HE6 (Session P): the fasting timer is a clock with a plain safety note; no streaks, no praise; stopped at 24 hours.
 const SAFETY = 'Fasting isn’t for everyone. If you’re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first. Stop if you feel unwell.';
@@ -12,7 +13,7 @@ test.beforeEach(async ({page}) => {
   await page.clock.install({time: new Date('2026-09-15T10:00:00.000Z')});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   // A person who uses Health has been through Today's first-run choice; Today's "For you" area needs that.
-  await page.goto('/app/settings');
+  await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000}); /* Session AP: a seed only writes storage here, once the page is live (a jump made before it is lost to the router's first history write, CI 1726); no group needs opening */
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
 });
 // Session U Part 9: with the sync writes on (lib/vault/sync-writes.ts), fasts live in Health (`fasting`) and the device
@@ -133,7 +134,7 @@ test('a fast starts at the tap, even when its save waits its turn', async ({page
 
 test('Showcase: the fictional fast is labelled and viewing writes nothing; reduced motion keeps the bar still', async ({page}) => {
   await page.emulateMedia({reducedMotion: 'reduce'});
-  await page.goto('/app/settings');
+  await openSettings(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const before = await page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), HOME);

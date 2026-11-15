@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {GAME_KEY} from '../../../lib/aa-device-keys';
 import {emptyDevice, open} from '../l3-helpers';
+import {openDeskFold} from '../../ao/folds';
 
 /**
  * Session AL fifth pass (lane L3, GROK53_REPLAY_L3_2 "STILL OPEN" 2 and "CHANGED" 9): NB-052 (W 340L, a setup with Habits,
@@ -26,6 +27,7 @@ test('NB-052: a person who picked Chess reads on Journey why it has no planet, b
   await page.waitForURL(/\/app$/);
   await page.evaluate(key => localStorage.setItem(key, JSON.stringify({version: 1, enabled: true, badges: false, levelSeen: 1})), GAME_KEY);
   await open(page, '/app/journey');
+  await openDeskFold(page, 'My universe'); // Session AO (DV-045e, deliberate): a folded row on Journey now; opened first
   const planets = page.getByRole('list', {name: 'Your four planets'}).first();
   await expect(planets.locator(':scope > li')).toHaveCount(4);
   await expect(page.locator('.universe-extras-note')).toHaveText('Chess has no planet of its own: the four planets are the four parts of ZIGoals. A game or the daily puzzle that ticks off the habit chosen in Chess lights Habits.');
