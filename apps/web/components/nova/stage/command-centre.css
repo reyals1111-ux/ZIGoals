@@ -35,6 +35,17 @@
 .cc-bezel-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 75%, transparent); stroke-width: 1.8; }
 .cc-bezel-marks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff); stroke-width: 3.6; }
 .cc-bezel-arc { stroke: color-mix(in oklab, var(--nova-a, #9273ff) 80%, #fff); stroke-width: .8; }
+/* N3b: the state's own mark on the bezel (static drawings; only their opacity changes, once per change of state). */
+.cc-state { opacity: 0; transition: opacity .35s ease-out; }
+.cc-bezel[data-state=listening] .cc-state-listening, .cc-bezel[data-state=thinking] .cc-state-thinking, .cc-bezel[data-state=speaking] .cc-state-speaking { opacity: 1; }
+.cc-state-ring { stroke-width: 1; }
+.cc-state-ticks { stroke-width: 4.6; }
+.cc-state-faint { stroke-width: .45; opacity: .6; }
+.cc-state-listening { stroke: #63e7ff; }
+.cc-state-thinking { stroke: #f39bff; }
+.cc-state-speaking { stroke: #86f0d6; }
+@media (prefers-reduced-motion: reduce) { .cc-state { transition: none; } }
+:root[data-app-motion=off] .cc-state { transition: none; }
 .nova-stage[data-star] > .nova-rings { display: none; }
 /* A phone's star is small and already wears the four pillar rings: no bezel there. */
 .nova-frame[data-phone] .nova-orb-button > .cc-bezel { display: none; }
