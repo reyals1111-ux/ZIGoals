@@ -77,6 +77,44 @@ export const WIDGETS: readonly WidgetSpec[] = [
   // Design review AM-D20: NOVA's brain is M by default (its words and the privacy mode do not fit one unit).
   {id: 'nova-brain', title: 'NOVA’s brain', about: 'What answers right now: this device, your local model, your key or your agent.', pillar: 'nova', href: '/app/nova/setup', open: 'Open the setup guide', size: 'M', made: true},
   {id: 'requests', title: 'Your requests', about: 'What you asked NOVA lately, one tap from being shown again.', pillar: 'nova', href: '/app/nova', open: 'Open NOVA', size: 'M', made: true},
+  // Session AM-2 (step 3, "NOVA connected"): what Sessions AO and AP added to the pages, as widgets on request. Every one
+  // is `made` (it reads under its switch whether made or pinned, AM-S1). Run splits, Mood tags and Symptoms read
+  // health-type records: they exist only under the Health gate (NOVA's Health permission and the device's Health switch,
+  // Q14/Q16). Templates is the static library: it reads nothing of the person's, so it has no gate.
+  {id: 'net-worth-history', title: 'Net worth over time', about: 'Your net worth day by day, from the days Wealth recorded: holdings plus accounts minus debts.', pillar: 'wealth', href: '/app/wealth#wealth-history', open: 'Open Wealth', size: 'M', gate: 'wealth', params: ['range'], made: true},
+  {id: 'ready-to-assign', title: 'Ready to assign', about: 'This month’s logged income minus what your budgets hold.', pillar: 'wealth', href: '/app/wealth?view=budgets', open: 'Open Wealth', size: 'M', gate: 'wealth', made: true},
+  {id: 'age-of-money', title: 'Age of money', about: 'How old the money you spend is, on average, over the last 90 days.', pillar: 'wealth', href: '/app/wealth#spending', open: 'Open Wealth', size: 'M', gate: 'wealth', made: true},
+  {id: 'spending-pace', title: 'Spending pace', about: 'This month’s spending so far beside what your earlier months show by the same day.', pillar: 'wealth', href: '/app/wealth#spending', open: 'Open Wealth', size: 'M', gate: 'wealth', made: true},
+  {id: 'bill-changes', title: 'Bill changes', about: 'Bills whose latest payment differs from the one before it.', pillar: 'wealth', href: '/app/wealth?view=bills', open: 'Open Wealth', size: 'M', gate: 'wealth', made: true},
+  {id: 'money-tags', title: 'Spending by tag', about: 'What you logged under each of your own tags, for the month.', pillar: 'wealth', href: '/app/wealth#spending', open: 'Open Wealth', size: 'M', gate: 'wealth', params: ['range'], made: true},
+  {id: 'perfect-days', title: 'Perfect days', about: 'The days this month on which every habit due was done, and your run of them.', pillar: 'habits', href: '/app/habits?view=perfect-days#habit-perfect-title', open: 'Open Habits', size: 'M', gate: 'habits', made: true},
+  {id: 'day-rules', title: 'Your day’s rules', about: 'When a day counts as done, and when your day ends: two settings, read out.', pillar: 'orbit', href: '/app/settings#day-ends', open: 'Open Settings', size: 'M', gate: 'today', made: true},
+  {id: 'tasks-later', title: 'This evening and Someday', about: 'The tasks you put on tonight’s list, and the ones set aside for someday.', pillar: 'goals', href: '/app/tasks?view=evening', open: 'Open your tasks', size: 'M', gate: 'today', made: true},
+  {id: 'countdowns', title: 'Days until', about: 'Your countdowns: the days until each day you are looking forward to.', pillar: 'orbit', href: '/app/today', open: 'Open Today', size: 'M', gate: 'today', made: true},
+  {id: 'journal-numbers', title: 'Journal numbers', about: 'Your writing streak, your words this year and your words month by month.', pillar: 'mind', href: '/app/journal#journal-entries', open: 'Open your journal', size: 'M', gate: 'journal', made: true},
+  {id: 'templates', title: 'Templates', about: 'The library of goal templates and habit ideas, by area.', pillar: 'goals', href: '/app/goals/templates', open: 'Open Goal templates', size: 'M', made: true},
+  {id: 'run-splits', title: 'Run splits', about: 'Your latest run’s pace, kilometre by kilometre, from the file you imported.', pillar: 'health', href: '/app/health?view=workouts', open: 'Open Health', size: 'M', gate: 'health', made: true},
+  {id: 'mood-tags', title: 'Mood tags', about: 'What goes with your good days, from your own mood tags. Counts, never causes.', pillar: 'health', href: '/app/health?view=insights', open: 'Open Health', size: 'M', gate: 'health', made: true},
+  {id: 'symptoms', title: 'Symptoms', about: 'The symptoms and factors you follow, over the last 30 days.', pillar: 'health', href: '/app/health?view=diary', open: 'Open Health', size: 'M', gate: 'health', made: true},
+  // Session AM-2 (step 3, round 2): the pages that still had no widget. All `made` (each reads under its switch whether
+  // made or pinned, AM-S1). The six Health ones exist only under the Health gate (Q14/Q16); the cycle log is the most
+  // sensitive of them: it also needs its own switch on Health, and NOVA's answer never carries one of its figures.
+  // Price alerts follow the Markets widget: Wealth's switch, and only while Markets is in use.
+  {id: 'priority-matrix', title: 'Priority matrix', about: 'Your open tasks in four boxes: urgent and important, and the three others.', pillar: 'goals', href: '/app/tasks?view=matrix', open: 'Open your tasks', size: 'M', gate: 'today', made: true},
+  {id: 'hour-grid', title: 'Today by the hour', about: 'Today’s agenda hour by hour: what sits at which hour, and what has no time yet.', pillar: 'orbit', href: '/app/agenda', open: 'Open your agenda', size: 'M', gate: 'today', made: true},
+  {id: 'reviews', title: 'Reviews', about: 'Your weekly review: whether it is due, the next review day, and your latest Life review focus.', pillar: 'orbit', href: '/app/review', open: 'Open your review', size: 'M', gate: 'today', made: true},
+  {id: 'milestones', title: 'Goal milestones', about: 'The milestones you ticked on your goals, and the next one on each.', pillar: 'goals', href: '/app/goals', open: 'Open Goals', size: 'M', gate: 'goals', made: true},
+  {id: 'cash-flow', title: 'Cash flow', about: 'What you logged coming in and going out this month, month by month, and who you paid.', pillar: 'wealth', href: '/app/wealth#spending', open: 'Open Wealth', size: 'M', gate: 'wealth', made: true},
+  {id: 'accounts', title: 'Accounts and debts', about: 'The balances you entered for your accounts and debts, and what they come to.', pillar: 'wealth', href: '/app/wealth#accounts-title', open: 'Open Wealth', size: 'M', gate: 'wealth', made: true},
+  {id: 'debt-plan', title: 'Debt payoff plan', about: 'When your debts would be cleared with the figures you kept: a projection, not a promise.', pillar: 'wealth', href: '/app/wealth#accounts-title', open: 'Open Wealth', size: 'M', gate: 'wealth', made: true},
+  {id: 'savings-challenges', title: 'Savings challenges', about: 'The savings challenges running on your goals, and how far along each is.', pillar: 'wealth', href: '/app/goals', open: 'Open Goals', size: 'M', gate: 'wealth', made: true},
+  {id: 'price-alerts', title: 'Price alerts', about: 'The price alerts you set: which are waiting and which have fired.', pillar: 'wealth', href: '/app/markets', open: 'Open Markets', size: 'M', gate: 'wealth', needs: 'markets', made: true},
+  {id: 'health-trends', title: 'Health trends', about: 'Your last 90 days beside your last year, for steps, sleep, weight and resting heart rate.', pillar: 'health', href: '/app/health?view=insights', open: 'Open Health', size: 'M', gate: 'health', made: true},
+  {id: 'food-days', title: 'Food-logging days', about: 'On how many days this month you logged food, as a month of days.', pillar: 'health', href: '/app/health?view=diary', open: 'Open Health', size: 'M', gate: 'health', made: true},
+  {id: 'fasting', title: 'Fasting', about: 'Your running fast against its target, and your last fasts.', pillar: 'health', href: '/app/health#fasting', open: 'Open Health', size: 'M', gate: 'health', made: true},
+  {id: 'meditation', title: 'Meditation', about: 'Your meditation minutes this week, week by week, and your days in a row.', pillar: 'health', href: '/app/health?view=meditation', open: 'Open Health', size: 'M', gate: 'health', made: true},
+  {id: 'supplements', title: 'Supplements', about: 'Today’s doses of what you keep track of, and the last two weeks.', pillar: 'health', href: '/app/health#supplements-title', open: 'Open Health', size: 'M', gate: 'health', made: true},
+  {id: 'cycle', title: 'Cycle', about: 'Your cycle log: the day of this cycle and an estimate of the next. On your screen only.', pillar: 'health', href: '/app/health#cycle-log', open: 'Open Health', size: 'M', gate: 'health', made: true},
 ];
 const BY_ID = new Map(WIDGETS.map(w => [w.id, w]));
 export const widgetSpec = (id: string): WidgetSpec | undefined => BY_ID.get(id);

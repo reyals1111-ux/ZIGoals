@@ -8,6 +8,7 @@ import {keptAskWords} from '../summon/words';
 import {WIDGETS, widgetSpec, type WidgetGate} from '../widgets/catalog';
 import {WEATHER_TIMEOUT_MS, weatherAnswer} from '../world/ask';
 import {MAX_ANSWER_CHARS, MET_STOPPED, MET_UNREADABLE, WeatherError, fetchWeather, shouldFetch} from '../world/met';
+import {freshServerIds} from '../agent-bridge/record';
 import {NOVA_WORLD, NOVA_WORLD_KEY, NOVA_WORLD_RESTORE, applyFetched, emptyWorld, keepWorldSwitch, markAsked, novaWorldRestoreSchema, novaWorldSchema, placeOf, readingOf, readingSchema, setPlace, setWorldOn, type NovaWorld, type WorldReading} from '../world/record';
 import {MADE_TTL_MS, NOVA_STAGE_KEY, asksOf, emptyStage, forgetAsksOfChats, forgetStageAsksOfChats, madeAt, novaStageSchema, recordAsk, setKeep, stageWidgets, type NovaStage} from './record';
 
@@ -44,7 +45,8 @@ describe('AM-S1: a model\'s pin never lifts a locked widget', () => {
   it('the gate rule, through stageCalls: every gated widget\'s pin follows its own switch; gates not read yet refuse every gated pin; a widget without a gate is not held back', () => {
     const pinned = (id: string, gates: Readonly<Record<WidgetGate, boolean>> | null) => stageCalls([call('pin', id)], {gateOpen: gateRule(gates)}).commands;
     const gated = WIDGETS.filter(w => w.gate), free = WIDGETS.filter(w => !w.gate);
-    expect(gated.length).toBeGreaterThanOrEqual(27); expect(free.map(w => w.id)).toEqual(['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests']);
+    expect(gated.length).toBeGreaterThanOrEqual(27); // Session AM-2 (step 3, deliberate): Templates, the static library, joins the widgets without a gate (it reads nothing of the person's).
+    expect(free.map(w => w.id)).toEqual(['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests', 'templates']);
     for (const w of gated) {
       expect(pinned(w.id, null), `${w.id}, gates not read`).toEqual([]);
       expect(pinned(w.id, allGates(false)), `${w.id}, all closed`).toEqual([]);
@@ -56,6 +58,13 @@ describe('AM-S1: a model\'s pin never lifts a locked widget', () => {
     for (const w of free) for (const gates of [null, allGates(false)]) expect(pinned(w.id, gates), w.id).toEqual([{kind: 'pin', id: w.id}]);
     // The review's own list: Health and Wealth figures behind a closed switch.
     for (const id of ['weight', 'health-hud', 'net-worth', 'wealth-hud', 'sleep']) expect(pinned(id, {...allGates(true), health: false, wealth: false}), id).toEqual([]);
+    // Session AM-2 (step 3, "NOVA connected"): the health-type records Session AP added follow the Health switch alone, and
+    // the new Wealth widgets the Wealth switch: every other switch open does not pin them.
+    for (const id of ['mood-tags', 'symptoms', 'run-splits', 'net-worth-history', 'money-tags', 'ready-to-assign', 'age-of-money', 'spending-pace', 'bill-changes']) expect(pinned(id, {...allGates(true), health: false, wealth: false}), id).toEqual([]);
+    for (const id of ['mood-tags', 'symptoms', 'run-splits']) expect(pinned(id, {...allGates(false), health: true}), id).toEqual([{kind: 'pin', id}]);
+    // Round 2: the same for the six later Health read-outs (the cycle log among them) and the five later Wealth ones.
+    for (const id of ['health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle', 'cash-flow', 'accounts', 'debt-plan', 'savings-challenges', 'price-alerts']) expect(pinned(id, {...allGates(true), health: false, wealth: false}), id).toEqual([]);
+    for (const id of ['health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle']) expect(pinned(id, {...allGates(false), health: true}), id).toEqual([{kind: 'pin', id}]);
   });
 });
 
@@ -211,7 +220,9 @@ describe('AM-S5: a request about Health is kept by its widgets\' names, never by
   });
   it('a widget that reads under the Health gate is enough, whatever the words say', () => {
     const health = WIDGETS.filter(w => w.gate === 'health');
-    expect(health.map(w => w.id)).toEqual(['water', 'sleep', 'health-hud', 'weight', 'steps', 'workouts']);
+    // Session AM-2 (step 3, "NOVA connected", deliberate): three more, the health-type records Session AP added (was: six).
+    // Round 2 (deliberate): six more Health read-outs, the cycle log among them (was: nine).
+    expect(health.map(w => w.id)).toEqual(['water', 'sleep', 'health-hud', 'weight', 'steps', 'workouts', 'run-splits', 'mood-tags', 'symptoms', 'health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle']);
     for (const w of health) {
       const kept = keptAskWords('Fictional words 12345 that name nothing', [{id: w.id}]);
       expect(kept, w.id).toBe(`Health: ${w.title}`);
@@ -343,7 +354,8 @@ describe('AM-S9 (second pass): a restore never changes this device\'s own weathe
     expect(keepWorldSwitch({version: 1, place: BRUSSELS}, novaWorldRestoreSchema.parse({version: 1, on: true, place: BRUSSELS}))).toEqual({version: 1, place: BRUSSELS});
   });
   it('the restore plan hands the weather part this rule, and no other part has one', () => {
-    expect(DEVICE_PARTS.filter(p => p.local).map(p => [p.key, p.local])).toEqual([[NOVA_WORLD_KEY, keepWorldSwitch]]);
+    // Session AM-2 (security review of step 4c, finding 8; deliberate, additive): the own-agent record has a device-local rule too (new server ids). The weather rule is checked exactly as before.
+    expect(DEVICE_PARTS.filter(p => p.local).map(p => [p.key, p.local])).toEqual([[NOVA_WORLD_KEY, keepWorldSwitch], ['zigoals:nova-agent:v1', freshServerIds]]);
   });
 });
 describe('AM-S9: a restore brings the weather place, never the switch', () => {

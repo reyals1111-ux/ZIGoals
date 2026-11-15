@@ -37,7 +37,7 @@ export const stageWidgetTool: ToolDefinition<StageWidgetArgs> = {
   parameters: {type: 'object', properties: {
     action: {type: 'string', enum: STAGE_ACTIONS, description: 'What to do with the widget.'},
     widget: {type: 'string', enum: KINDS, description: `Which widget: ${WIDGETS.map(w => `${w.id} (${w.title})`).join(', ')}.`},
-    range: {type: 'string', enum: WIDGET_RANGES, description: 'For a widget over time (weight, steps, workouts, net-worth, spending): how far back.'},
+    range: {type: 'string', enum: WIDGET_RANGES, description: 'For a widget over time (weight, steps, workouts, net-worth, net-worth-history, spending, money-tags): how far back.'},
   }, required: ['action', 'widget']},
   args: stageArgs,
   label: args => `${args.action[0]!.toUpperCase()}${args.action.slice(1)} · ${widgetSpec(args.widget)?.title ?? 'a widget'}`,

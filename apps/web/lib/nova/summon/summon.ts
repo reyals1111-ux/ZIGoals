@@ -4,6 +4,8 @@ import {looksSecret} from '../../secret-guard/guard';
 import type {HudPreset} from '../layout';
 import {WIDGET_RANGES, type MakeRequest, type WidgetRange} from '../stage/record';
 import {widgetSpec} from '../widgets/catalog';
+import {CONNECT_FAMILIES, CONNECT_NL_WORDS, connectPrune, standsIn, type Family} from './connect-families';
+import {MORE_FAMILIES, MORE_NL_WORDS, morePrune, moreStandsIn} from './more-families';
 
 /**
  * Session AM (ADR-038 D4, D6, A4): the summon step — which widgets a request makes. Deterministic and on the device: the
@@ -36,15 +38,21 @@ export const unsafeWords = (text: string): boolean => !!safetyFirst(text) || loo
 /** Lowercase, accents folded, punctuation to spaces: what the families match against. */
 export const normal = (text: string): string => text.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[’'`]/g, '').replace(/[^a-z0-9%]+/g, ' ').trim();
 const NL_WORDS = /\b(ik|mijn|mij|hoe|wat|wanneer|welke|vandaag|deze|laat|toon|zien|het|een|niet|geen|heb|ben|gaat|staat|doelen|gewoontes?|gewicht|slaap|geld|weer|sluit|alles|maak|leeg|vast|verberg|afgelopen|maand|jaar|hoeveel|waar|uitgaven|rekening(?:en)?|taken|dagboek|notities)\b/g;
+/** Session AM-2 (step 3): the Dutch words of the newer families' requests count too ("Wat is er nog te verdelen?"). */
+const NL_MORE = new RegExp(`\\b(${CONNECT_NL_WORDS}|${MORE_NL_WORDS})\\b`, 'g');
 /** Dutch when the words are mostly Dutch function words; English otherwise (the app's own language). */
 export function summonLanguage(text: string): SummonLang {
-  const n = normal(text), hits = n.match(NL_WORDS)?.length ?? 0;
+  const n = normal(text), hits = (n.match(NL_WORDS)?.length ?? 0) + (n.match(NL_MORE)?.length ?? 0);
   return hits >= 2 || (hits === 1 && n.split(' ').length <= 3 && !/\b(the|my|show|what|how|is|me)\b/.test(n)) ? 'nl' : 'en';
 }
 
-type Family = {id: string; en: RegExp; nl: RegExp; /** Only NOVA's stage answers this (no on-device lookup exists for it). */ stageOnly?: true};
 /** One family per widget, most specific first. Each pattern runs on `normal(text)`. */
 export const FAMILIES: readonly Family[] = [
+  // Session AM-2 (step 3, "NOVA connected"): what Sessions AO and AP added to the pages (lib/nova/summon/connect-families.ts);
+  // more specific than the families below, so they are matched first.
+  ...CONNECT_FAMILIES,
+  // Round 2: the pages that still had no widget (lib/nova/summon/more-families.ts).
+  ...MORE_FAMILIES,
   {id: 'weight', en: /\b(weight|weigh|weighed|kilos?|kg|pounds|lbs|bmi|scale)\b/, nl: /\b(gewicht|weeg|woog|gewogen|kilos?|kg|weegschaal)\b/},
   {id: 'sleep', en: /\b(sleep|slept|sleeping|bedtime|nights? rest)\b/, nl: /\b(slaap|geslapen|slapen|nachtrust|bedtijd)\b/},
   {id: 'water', en: /\b(water|hydration|hydrated|drank|glasses)\b/, nl: /\b(water|gedronken|drinken|glazen)\b/},
@@ -144,6 +152,8 @@ export function summonFor(question: string, ctx: SummonContext = {}): SummonPlan
   if (ids.some(id => ['spending', 'budgets', 'bills', 'net-worth', 'money', 'markets'].includes(id))) ids = ids.filter(id => id !== 'wealth-hud');
   if (ids.includes('goals-hud')) ids = ids.filter(id => id !== 'goal-pace');
   if (ids.some(id => id !== 'glance') && ids.includes('glance')) ids = ids.filter(id => id !== 'glance');
+  // Session AM-2 (step 3): the specific widget stands in for the general one the same words name ("spending pace", not Spending too).
+  ids = morePrune(connectPrune(ids, n), n);
   if (ids.some(id => id !== 'health-hud' && widgetSpec(id)?.pillar === 'health') && /\bhealth|gezondheid\b/.test(n) === false) ids = ids.filter(id => id !== 'health-hud' || /\b(calories|kcal|protein|macros|nutrition|ate|eaten|food|meals?|calorieen|eiwit|voeding|gegeten|maaltijd)/.test(n));
   for (const [kind, re] of VERB[lang].concat(VERB[lang === 'en' ? 'nl' : 'en'])) if (re.test(n) && ids[0]) return {lang, widgets: [], command: {kind, id: ids[0]}, direct: true};
   const widgets = ids.slice(0, MAX_SUMMON).map(id => {
@@ -164,6 +174,9 @@ const TOOL_WIDGET: Readonly<Record<string, string>> = {
   spending: 'spending', budgets: 'budgets', bills: 'bills', cash_forecast: 'bills',
   tasks: 'tasks', agenda: 'agenda-clock', calendar_events: 'agenda-clock', checklist_today: 'orbit', focus_sessions: 'focus',
   search_notes: 'notes', journal: 'journal', today_summary: 'glance', weather: 'weather',
+  // Session AM-2 (step 3, round 2): lookups that had no widget of their own.
+  debt_plan: 'debt-plan', savings_challenges: 'savings-challenges', price_alerts: 'price-alerts', weekly_review: 'reviews',
+  fasting: 'fasting', meditation_sessions: 'meditation', meditation_summary: 'meditation', supplements: 'supplements', cycle_log: 'cycle',
 };
 const argRange = (args: Record<string, unknown> | null | undefined): WidgetRange | undefined => {
   if (!args) return undefined;
@@ -221,7 +234,10 @@ const GOAL_KIND: ReadonlySet<string> = new Set(['goal-focus', 'goal-pace', 'goal
 export function mergeSummons(first: readonly MakeRequest[], more: readonly MakeRequest[]): MakeRequest[] {
   const out: MakeRequest[] = [];
   const again = (id: string) => GOAL_KIND.has(id) && out.some(x => GOAL_KIND.has(x.id));
-  for (const w of [...first, ...more]) { if (out.length >= MAX_SUMMON) break; if (!out.some(x => x.id === w.id) && !again(w.id)) out.push(w); }
+  // Session AM-2 (step 3): a lookup's general widget is not added beside the specific one that was asked for (the
+  // `spending` lookup's "Spending" beside "Spending pace"): one request, one widget of a kind.
+  const asked = first.map(w => w.id);
+  for (const w of [...first, ...more.filter(m => !standsIn(asked, m.id) && !moreStandsIn(asked, m.id))]) { if (out.length >= MAX_SUMMON) break; if (!out.some(x => x.id === w.id) && !again(w.id)) out.push(w); }
   return out;
 }
 
