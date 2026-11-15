@@ -139,8 +139,17 @@ const keysOnStage = (page: Page, kinds: {id: string; title: string}[]) => page.e
   for (const {id, title} of list) {
     const widget = document.querySelector<HTMLElement>(`.nova-stage-area article.nova-widget[data-widget="${id}"]`), problems: string[] = [];
     if (!widget) { out.push({id, problems: ['not on the stage']}); continue; }
-    widget.scrollIntoView({block: 'start', behavior: 'instant' as ScrollBehavior}); // its head in view (a tall band widget is taller than the stage's window)
-    await new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)));
+    // Its head in view (a tall band widget is taller than the stage's window), measured once the stage stands still.
+    // Session AM-2 (N1, deliberate; the checks below are unchanged): widget bodies load lazily, and a panel that turns out
+    // to be locked, off or a teaching notice becomes one unit tall when its body arrives, so the stage could move between
+    // the scroll and the reading (the Journal's head was read 49 px above the stage's window, "under" the status strip).
+    // The widget is scrolled to again until its top has not moved for six frames in a row.
+    for (let still = 0, last = NaN, frames = 0; still < 6 && frames < 240; frames++) {
+      widget.scrollIntoView({block: 'start', behavior: 'instant' as ScrollBehavior});
+      await new Promise(done => requestAnimationFrame(done));
+      const top = Math.round(widget.getBoundingClientRect().top * 2) / 2;
+      still = top === last ? still + 1 : 0; last = top;
+    }
     const head = widget.querySelector<HTMLElement>('.nova-widget-head')!.getBoundingClientRect(), box = widget.getBoundingClientRect();
     for (const name of [`Unpin ${title}`, `Hide ${title} in the dock`, `Close ${title}`]) {
       const key = [...widget.querySelectorAll<HTMLButtonElement>('.nova-widget-head button')].find(b => b.getAttribute('aria-label') === name);
