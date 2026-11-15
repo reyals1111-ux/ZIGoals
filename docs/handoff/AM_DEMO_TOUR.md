@@ -1,4 +1,4 @@
-# Session AM and AM-2 — demo tour (12 minutes)
+# Session AM, AM-2 and AM-3 — demo tour (20 minutes)
 
 *AM-2 ("NOVA, STUNNING") changed how everything in NOVA looks; what each step does is as in Session AM. Where the look or a step changed, this tour says so.*
 
@@ -54,6 +54,32 @@ Questions to try:
 
 ## 7. Calm and still
 Settings → Motion → **Calm**: the star turns at a third of its speed ("Slow star: Calm motion is on"), widgets fade in. **Off** (or the device's reduced motion): nothing moves; the star is one composed frame per state ("Still star: Motion is Off in ZIGoals") and a made widget is simply there. Everything that glows is static in every mode: only positions and opacity ever animate.
+
+## 8. Everything on request (AM-3, 3 minutes)
+NOVA can now show every pillar and record as a widget, also what Sessions AO and AP added to the pages. In the Showcase, try:
+- **Show my net worth over time**, **What is ready to assign?**, **How old is my money?**, **Am I spending faster than usual?**, **Did any bill change?**, **Show my spending by tag**.
+- **Show my perfect days**, **When does my day end?** (the day's rules: read-only, with a link to the setting), **What is on for this evening?**, **Show my countdowns**, **Show my journal numbers**, **Show the templates**.
+- **Show the priority matrix**, **Show today's hours**, **When is my next review?**, **Show my milestones**, **Show my cash flow**, **Show my accounts and debts**, **Show the debt plan** (a projection, said as one), **Show my savings challenges**, **Show my price alerts**.
+- Health-type widgets (run splits, mood tags, symptoms, health trends, food-logging days, fasting, meditation, supplements, cycle) are made **locked** until NOVA's Health permission and ZIGi's Health gate are both on; the cycle widget is never read out in words.
+- A list shows whole rows only and ends in "+N more"; the arrow in a widget's head opens its page, Back returns to the stage. The bolt's quick actions exist only where the page has a write with Undo (tick a habit, add a task or a note, put a task on this evening, add a countdown). Money never moves from NOVA.
+- Dutch works: **Laat mijn vermogen door de tijd zien**, **Wat staat er voor vanavond?**
+
+## 9. Hand-offs: NOVA prepares, you send (AM-3, 2 minutes)
+Each of these makes a **card** that shows exactly what would leave and to where; nothing happens until you press its button, and NOVA sends nothing itself.
+- **Draft an email to anna@example.com about Friday: I will bring the slides.** → "Open in your mail app" opens your own mail app with to, subject and body filled in; you send it there.
+- **Add dentist to my calendar on 3 December at 10:30** → "Save the calendar file" (.ics).
+- **Share this**, **Copy that** (after an answer), **Open https://www.yr.no** (the real host is shown; the link opens in a new tab only when you press).
+- "Sent out from this device" under the conversation lists what you approved (when, kind, where; never the text).
+- A secret (a recovery phrase, a card number) never goes into a hand-off; Health figures only with both Health switches on; an address a model picked that you did not type is marked on the card.
+
+## 10. Make NOVA your own agent (AM-3, 3 minutes; needs an agent or an MCP server on your computer)
+- **Setup guide → Make NOVA your own agent** (`/app/nova/setup#own-agent`): eight steps for Mac, Windows and Linux with three live checks (your agent answers on its port; an MCP server answers; how many tools were found).
+- **Right bar → Behind the intelligence → Connect your own agent and tools**: type a server's address (only `http://127.0.0.1:<port>` or `http://localhost:<port>`; anything else is refused in plain words). NOVA lists the tools it found, each **Off** or **Ask every time**: there is no "always".
+- With a model connected, NOVA may *propose* a tool call; you get a card with the server, the tool and the exact arguments, and only your press runs it. The result is shown as quoted text "from the tool · untrusted" and can never start another call or change a switch.
+- Your agent and tools act with their own accounts on your computer: ZIGoals never sees or stores your mail password or tokens, and nothing goes through a ZIGoals server.
+
+## 11. Weather through the proxy (owner, later)
+A build with `NEXT_PUBLIC_WEATHER_PROXY_URL=https://<your worker>/v1/forecast` asks your `workers/weather-proxy` instead of MET Norway (the switch then says who sees what); without it nothing changes. Weather stays off until you turn it on. Deploying the Worker is yours (docs/run11/WEATHER_PROXY_ACTIVATION.md).
 
 ## On a phone
 Open NOVA on a phone (or a 390 px window): the star with its four pillar rings, the one-tap requests as a two-column grid of pillar keys, the command field. The conversation is a console: cards edged by speaker and a line under each answer saying who answered. A request opens the conversation and is answered in words; it is kept, with the widgets it would make, for your computer (Requests → Show again; across devices once sync is on for your account, on the public Alpha it stays on the device).
