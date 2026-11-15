@@ -1,5 +1,5 @@
 import egress from "./egress-policy.json";
-import { TRUSTED_TYPES, composeCsp, connectSources } from "./csp-compose.mjs";
+import { TRUSTED_TYPES, composeCsp, connectSources, withWeatherProxy } from "./csp-compose.mjs";
 
 /**
  * Every origin the app may connect to, in one place (egress-policy.json): itself, the two Testnet endpoints, the AI
@@ -9,7 +9,14 @@ import { TRUSTED_TYPES, composeCsp, connectSources } from "./csp-compose.mjs";
  * request. The exfiltration trade-off (a same-origin script could post data to a listed provider with a key of its
  * own) is recorded in docs/security/THREAT_MODEL.md; CSP never stops exfiltration by navigation anyway.
  */
-export const CONNECT_SOURCES: readonly string[] = connectSources(egress, "app");
+/**
+ * Session AM-2 (TIER 3 (CSP/egress), owner's step 4a): the policy of this build. The committed policy, and — only in a
+ * build configured with the weather proxy's address (NEXT_PUBLIC_WEATHER_PROXY_URL, inlined at build time; never read
+ * from storage or the address bar) — that proxy's origin in /app documents' connect-src. Without it, or with a value
+ * lib/csp-compose.mjs `weatherProxyUrl` does not accept, this is the committed policy object itself.
+ */
+export const BUILD_EGRESS = withWeatherProxy(egress, process.env.NEXT_PUBLIC_WEATHER_PROXY_URL);
+export const CONNECT_SOURCES: readonly string[] = connectSources(BUILD_EGRESS, "app");
 
 /**
  * Web Crypto only: runs in Next's edge middleware and workerd. The policy itself comes from lib/csp-compose.mjs (Session
@@ -18,7 +25,7 @@ export const CONNECT_SOURCES: readonly string[] = connectSources(egress, "app");
  */
 export function securityPolicy(development: boolean, https: boolean, pathname = "/app") {
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
-  return { nonce, csp: composeCsp(egress, { nonce, development, https, pathname }) };
+  return { nonce, csp: composeCsp(BUILD_EGRESS, { nonce, development, https, pathname }) };
 }
 /**
  * The Trusted Types directives. Session U Part 6 (FIX_PLAN D4, FINDINGS Q-WEB-04) built them as a report-only trial;

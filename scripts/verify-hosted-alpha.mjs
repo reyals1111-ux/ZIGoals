@@ -11,6 +11,7 @@ import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { reviewedVersionPattern } from '../packages/chain-config/src/index.ts';
 import { hostedStatus } from './lib/hosted-alpha-review.mjs';
+import { withWeatherProxy } from '../apps/web/lib/csp-compose.mjs';
 import { LIVE_ORIGINS, SENTINELS, VERIFIER_STAGES, classifyFailedRequests, isRscRequest, liveOnlySkips, setAsideNotConfigured, setAsideUnboundApi, verifyBase } from './lib/hosted-alpha-stages.mjs';
 // Session AL (TIER 3 (verifier)): --help prints the usage and the stages and exits 0, with no browser and no network. CI
 // runs it under plain Node 24 (.github/workflows/ci.yml), so the import graph above stays loadable without Vitest.
@@ -44,7 +45,8 @@ const { base: alpha, live } = target;
 await mkdir(output);
 // Session T (ADR-012): the reviewed connect-src comes from the app's own data file, never a copy (lib/csp-compose.mjs
 // composes the reviewed sources, Session W Part 1e).
-const egressPolicy = JSON.parse(await readFile(new URL('../apps/web/lib/egress-policy.json', import.meta.url), 'utf8'));
+// Session AM-2 (TIER 3 (CSP/egress)): plus the weather proxy's origin when this run is configured with the build's NEXT_PUBLIC_WEATHER_PROXY_URL (unset: the file as it is).
+const egressPolicy = withWeatherProxy(JSON.parse(await readFile(new URL('../apps/web/lib/egress-policy.json', import.meta.url), 'utf8')), process.env.NEXT_PUBLIC_WEATHER_PROXY_URL);
 const { apex } = LIVE_ORIGINS;
 // Session W Part 1d: with EXPECTED_COMMIT set to a full SHA, every /app answer must name that build (x-zigoals-build).
 const expectedBuild = /^[a-f0-9]{40}$/.test(process.env.EXPECTED_COMMIT ?? '') ? process.env.EXPECTED_COMMIT : null;

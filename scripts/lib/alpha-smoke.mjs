@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 // Session T (ADR-012): the reviewed connect-src and Permissions-Policy values come from the app's own data file, never a copy.
-const egress = JSON.parse(readFileSync(new URL("../../apps/web/lib/egress-policy.json", import.meta.url), "utf8"));
 // Session W Part 1e: the policies themselves come from the app's own composer, the one the middleware uses.
-import { cspDirectives, permissionsPolicyFor } from "../../apps/web/lib/csp-compose.mjs";
+import { cspDirectives, permissionsPolicyFor, withWeatherProxy } from "../../apps/web/lib/csp-compose.mjs";
+// Session AM-2 (TIER 3 (CSP/egress)): plus the weather proxy's origin when this run is configured with the build's NEXT_PUBLIC_WEATHER_PROXY_URL (unset: the file as it is).
+const egress = withWeatherProxy(JSON.parse(readFileSync(new URL("../../apps/web/lib/egress-policy.json", import.meta.url), "utf8")), process.env.NEXT_PUBLIC_WEATHER_PROXY_URL);
 import { probeAlphaMarket } from "./alpha-market-probe.mjs";
 
 export const ALPHA_ORIGIN = "https://alpha.zigoals.app";

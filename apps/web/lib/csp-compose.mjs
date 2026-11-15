@@ -20,6 +20,39 @@ export function documentClass(pathname) { return pathname === "/app" || pathname
 export function connectSources(egress, cls = "app") {
   return ["'self'", ...egress.chainOrigins, ...Object.values(egress.aiProviderOrigins), ...egress.localModelSources, ...egress.csp[cls].connect];
 }
+/**
+ * Session AM-2 (TIER 3 (CSP/egress), owner's step 4a; behaviour-preserving while no proxy is configured): the weather
+ * proxy's address, from build configuration (NEXT_PUBLIC_WEATHER_PROXY_URL; workers/weather-proxy, deployed by the owner,
+ * docs/run11/WEATHER_PROXY_ACTIVATION.md). Accepted only as exactly "https://<dns name>[:port]/v1/forecast" in its
+ * canonical spelling: no credentials, query, fragment, wildcard, IP address or other path; or, for a local test against
+ * `wrangler dev`, "http://127.0.0.1:<port>/v1/forecast" (the Worker's own local rule; connect-src already allows that
+ * loopback origin). Anything else is no proxy at all (null): the weather client then asks MET Norway directly, as before.
+ */
+export const WEATHER_PROXY_ENV = "NEXT_PUBLIC_WEATHER_PROXY_URL";
+export const WEATHER_PROXY_PATH = "/v1/forecast";
+const PROXY_HOST = /^(?=.{4,253}$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z](?:[a-z0-9-]{0,61}[a-z0-9])$/;
+export function weatherProxyUrl(value) {
+  if (typeof value !== "string" || value.length < 12 || value.length > 300) return null;
+  let url;
+  try { url = new URL(value); } catch { return null; }
+  if (url.href !== value || url.username || url.password || url.search || url.hash || url.pathname !== WEATHER_PROXY_PATH) return null;
+  if (url.protocol === "https:") return PROXY_HOST.test(url.hostname) ? url.href : null;
+  return url.protocol === "http:" && url.hostname === "127.0.0.1" && /^\d{2,5}$/.test(url.port) ? url.href : null;
+}
+/**
+ * The egress policy of a build: the committed policy, plus the configured weather proxy's origin in /app documents'
+ * connect-src, right after MET Norway's host (the balance hosts stay the tail). The same object comes back when no proxy
+ * is configured, when the value is not accepted, or when connect-src already allows the origin (a loopback test proxy).
+ */
+export function withWeatherProxy(egress, value) {
+  const url = weatherProxyUrl(value);
+  if (!url) return egress;
+  const origin = new URL(url).origin, connect = egress.csp.app.connect;
+  if (url.startsWith("http://127.0.0.1:") || connectSources(egress, "app").includes(origin)) return egress;
+  const at = connect.indexOf("https://api.met.no");
+  const next = at === -1 ? [...connect, origin] : [...connect.slice(0, at + 1), origin, ...connect.slice(at + 1)];
+  return { ...egress, csp: { ...egress.csp, app: { ...egress.csp.app, connect: next } } };
+}
 export function imgSources(egress, cls = "app") { return ["'self'", "data:", "blob:", ...egress.csp[cls].img]; }
 export function frameSources(egress, cls = "app") { const frames = egress.csp[cls].frame; return frames.length ? [...frames] : ["'none'"]; }
 /** The policy as ordered [directive, sources] pairs: the order and spelling every build since Session V sends. */

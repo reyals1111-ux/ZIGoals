@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { navLink, walletArea } from "./phone-nav";
 import { toBech32 } from "@cosmjs/encoding";
-import { connectSources } from "../lib/csp-compose.mjs";
+import { connectSources, withWeatherProxy } from "../lib/csp-compose.mjs";
 import {chooseChain} from "./chain-choice";
 import {pressZigi} from "./zigi-open";
 import {afterGoto} from './settings-open';
@@ -63,7 +63,8 @@ test("egress capture detects a sentinel carried only in an HttpOnly cookie", asy
 });
 // Permissions-Policy per route (Session T, ADR-012): read from the one data file next.config.ts reads, so the spec
 // proves the effective headers of the running build (next start, and the OpenNext artifact in the integration job).
-const egress = JSON.parse(readFileSync(join(__dirname, "../lib/egress-policy.json"), "utf8")) as Parameters<typeof connectSources>[0];
+// Session AM-2 (TIER 3 (CSP/egress)): plus the weather proxy's origin when this run is configured with the build's NEXT_PUBLIC_WEATHER_PROXY_URL (unset: the file as it is).
+const egress = withWeatherProxy(JSON.parse(readFileSync(join(__dirname, "../lib/egress-policy.json"), "utf8")) as Parameters<typeof connectSources>[0], process.env.NEXT_PUBLIC_WEATHER_PROXY_URL);
 test("the effective Permissions-Policy: the microphone on the app pages, the camera only on Health, everything denied elsewhere", async ({request}) => {
   for (const [path, expected] of [["/app", egress.permissionsPolicy.app], ["/app/habits", egress.permissionsPolicy.app], ["/app/health", egress.permissionsPolicy.health]] as const) {
     const response = await request.get(path);
