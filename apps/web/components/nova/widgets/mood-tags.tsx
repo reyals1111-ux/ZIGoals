@@ -48,13 +48,13 @@ function MoodTagsBody({size}: {size: CardProps['size']}) {
   const top = card.rows[0];
   if (!top) return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={String(card.tags)} unit={card.tags === 1 ? 'tag' : 'tags'} label="Waiting for more days"/></div>
-    {size !== 'S' && <div className="nx-main" data-fit="rows">{pending}<p className="nx-note">A comparison needs {TAG_MIN_DAYS} tagged days and {TAG_MIN_DAYS} other days with a mood. {card.note}</p></div>}
+    {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit="">{pending}<p className="nx-note">A comparison needs {TAG_MIN_DAYS} tagged days and {TAG_MIN_DAYS} other days with a mood. {card.note}</p></div>}
     {foot}{table}
   </div>;
   const rows = card.rows.slice(0, SHOWN[size]);
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={String(top.good)} unit={`of ${top.days} days`} label={size === 'S' ? `Good with “${top.tag}”` : `Good or Great with “${top.tag}”`}/></div>
-    {rows.length > 0 && <div className="nx-main" data-fit="rows">
+    {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Good or Great days, by tag</p>}
       <Bars rows={rows.map(r => ({key: r.tag, label: r.tag, share: r.share, value: `${r.good} of ${r.days}`, ...(size === 'L' ? {note: `Other days with a mood: ${r.otherGood} of ${r.otherDays}`} : {})}))}/>
       {size === 'L' && pending}

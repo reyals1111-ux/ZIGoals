@@ -34,7 +34,7 @@ export default function AccountsWidget({size = 'M'}: Partial<CardProps>) {
         {size !== 'S' && <p className="nx-note">{card.assets} in accounts · {card.debts} owed</p>}
       </Hero>
     </div>
-    {lines.length > 0 && <div className="nx-main" data-fit="rows">
+    {lines.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Balances you entered · {card.currency}</p>}
       <NxRows label="Accounts and debts" where="the Wealth page" extra={card.lines.length - lines.length} rows={lines.map(l => ({key: l.id, name: l.name, value: l.balance ? `${l.debt ? 'Owed ' : ''}${l.balance}` : 'No balance yet', sub: `${l.kind}${l.date ? ` · balance of ${day(l.date)}` : ''}`}))}/>
     </div>}

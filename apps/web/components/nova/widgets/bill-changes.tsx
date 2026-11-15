@@ -27,14 +27,11 @@ export default function BillChangesWidget({size = 'M'}: Partial<CardProps>) {
   if (bills.unreadable || log.unreadable) return <HoloUnread what="Your Wealth records"/>;
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="rows" title="No bills kept yet" href="/app/wealth?view=bills" action="Add a bill">Keep a bill or a subscription on Wealth. When its price changes, it shows here.</CardNotice>;
   const foot = <CardFoot source="Your Wealth records" asOf={`as of today, ${formatDate(today, {year: false})}`}/>, table = <HoloTable caption="Bill changes" rows={billChangesRows(card)}/>;
-  if (card.state === 'none') return <div className="nc-body nx-card" data-size={size}>
-    <CardNotice kind="empty" ghost="rows" title="No price change found" href="/app/wealth?view=bills" action="See your bills">{card.fromLog ? `None of your ${card.fromLog} ${card.fromLog === 1 ? 'bill' : 'bills'} from the money log changed since the payment before.` : 'Only a bill found in your money log has payments to compare; yours were added by hand.'}</CardNotice>
-    {foot}{table}
-  </div>;
+  if (card.state === 'none') return <CardNotice kind="empty" ghost="rows" title="No price change found" href="/app/wealth?view=bills" action="See your bills">{card.fromLog ? `None of your ${card.fromLog} ${card.fromLog === 1 ? 'bill' : 'bills'} from the money log changed since the payment before.` : 'Only a bill found in your money log has payments to compare; yours were added by hand.'}</CardNotice>;
   const lines = card.lines.slice(0, SHOWN[size]), more = card.lines.length - lines.length, n = card.lines.length;
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={String(n)} unit={n === 1 ? 'bill' : 'bills'} label={size === 'S' ? 'Changed price' : 'Changed price since the payment before'}/></div>
-    {lines.length > 0 && <div className="nx-main" data-fit="rows">
+    {lines.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       <ul className="nx-rows">{lines.map((l, i) => <li key={l.id} className="nx-row nc-rise" style={{'--nc-i': i} as CSSProperties}>
         <i className="nx-row-node" data-tone={l.direction} aria-hidden="true"/>
         <span className="nx-row-name" title={l.title}>{l.title}</span>

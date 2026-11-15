@@ -41,13 +41,12 @@ function Doses({size}: {size: CardProps['size']}) {
         {size !== 'S' && card.planned > 0 && <p className="nx-note">{card.notLogged ? `${card.notLogged} not logged yet` : 'Every dose is logged'}{card.skipped ? ` · ${card.skipped} skipped` : ''}</p>}
       </Hero>
     </div>
-    {doses.length > 0 && <div className="nx-main" data-fit="rows">
-      {size === 'L' && <p className="nx-cap">Today</p>}
-      <NxRows label="Today’s doses" where="the Health page" extra={card.today.length - doses.length} rows={doses.map(d => ({key: d.key, name: d.dose ? `${d.name} · ${d.dose}` : d.name, value: d.statusWords, sub: d.slot}))}/>
-    </div>}
-    {size === 'L' && card.summary.length > 0 && <div className="nx-main" data-fit="rows">
-      <p className="nx-cap">The last 14 days</p>
-      <Bars rows={card.summary.slice(0, 4).map(s => ({key: s.id, label: s.name, share: s.share, value: s.words}))}/>
+    {(doses.length > 0 || (size === 'L' && card.summary.length > 0)) && <div className="nx-main" data-fit="rows" data-wr-limit="">
+      {size === 'L' && doses.length > 0 && <p className="nx-cap">Today</p>}
+      {doses.length > 0 && <NxRows label="Today’s doses" where="the Health page" extra={card.today.length - doses.length} rows={doses.map(d => ({key: d.key, name: d.dose ? `${d.name} · ${d.dose}` : d.name, value: d.statusWords, sub: d.slot}))}/>}
+      {/* One column for today's doses and the fortnight under them (two columns of their own lay over each other in a wide Large panel: round 3). */}
+      {size === 'L' && card.summary.length > 0 && <p className="nx-cap">The last 14 days</p>}
+      {size === 'L' && card.summary.length > 0 && <Bars rows={card.summary.slice(0, 4).map(s => ({key: s.id, label: s.name, share: s.share, value: s.words}))}/>}
     </div>}
     {size === 'L' && <p className="nx-note">Not logged is unknown, never missed. Your own log, not medical advice.</p>}
     <CardFoot source="Your Health records" asOf="today"/>

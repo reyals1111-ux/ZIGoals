@@ -29,15 +29,12 @@ export default function DebtPlanWidget({size = 'M'}: Partial<CardProps>) {
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="rows" title="No debt with a balance" href="/app/wealth#accounts-title" action="Add a debt">Add a debt on Wealth with what you owe. The payoff planner then works out when it would be cleared.</CardNotice>;
   const foot = <CardFoot source={card.note ? 'Showcase example figures' : 'Your kept figures'} asOf="a projection, not a promise"/>, table = <HoloTable caption="Debt payoff plan" rows={debtPlanRows(card)}/>;
   const lead = card.plans[0];
-  if (card.state !== 'live' || !lead) return <div className="nc-body nx-card" data-size={size}>
-    <CardNotice kind="empty" ghost="rows" title={card.state === 'unkept' ? 'No figures kept yet' : 'A figure is missing'} href="/app/wealth#accounts-title" action="Open the payoff planner">{card.state === 'unkept' ? `You owe ${card.owed} across ${card.debts} ${card.debts === 1 ? 'debt' : 'debts'}. Enter the minimums in the payoff planner on Wealth and keep them on this device.` : card.issue}</CardNotice>
-    {foot}{table}
-  </div>;
+  if (card.state !== 'live' || !lead) return <CardNotice kind="empty" ghost="rows" title={card.state === 'unkept' ? 'No figures kept yet' : 'A figure is missing'} href="/app/wealth#accounts-title" action="Open the payoff planner">{card.state === 'unkept' ? `You owe ${card.owed} across ${card.debts} ${card.debts === 1 ? 'debt' : 'debts'}. Enter the minimums in the payoff planner on Wealth and keep them on this device.` : card.issue}</CardNotice>;
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={lead.monthName ?? 'Not in 100 years'} label={size === 'S' ? 'Would be cleared by' : 'Debts would be cleared by'}>
       {size !== 'S' && <p className="nx-note">{card.owed} owed · {card.extra} extra a month</p>}
     </Hero></div>
-    {size !== 'S' && <div className="nx-main" data-fit="rows">
+    {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Three ways to pay · {card.currency}</p>}
       <NxRows label="Payoff plans" rows={card.plans.map(p => ({key: p.strategy, name: p.title, value: p.monthName ?? 'Not within 100 years', sub: p.months === null ? null : `${p.months} ${p.months === 1 ? 'month' : 'months'} · ${p.interest} interest`}))}/>
     </div>}

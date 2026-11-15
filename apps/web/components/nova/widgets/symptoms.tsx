@@ -42,7 +42,7 @@ function SymptomsBody({size}: {size: CardProps['size']}) {
   const rows = card.rows.slice(0, SHOWN[size]), more = card.rows.length - rows.length;
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={String(card.answeredDays)} unit={`of ${card.days} days`} label={size === 'S' ? 'Days answered' : `Days answered · the last ${card.days} days`}/></div>
-    {rows.length > 0 && <div className="nx-main" data-fit="rows">
+    {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">There on the days you answered</p>}
       <Bars rows={rows.map(r => ({key: r.id, label: r.name, share: r.share, value: r.answered ? `${r.noted} of ${r.answered}` : 'No answer yet', ...(size === 'L' && r.strong ? {note: `Strong on ${r.strong}`} : {})}))}/>
       {size === 'L' && more > 0 && <p className="nx-note">{more} more on Health.</p>}

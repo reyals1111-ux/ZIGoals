@@ -27,14 +27,14 @@ export default function DayRulesWidget({size = 'M'}: Partial<CardProps>) {
   if (!goal.loaded || !ends.loaded) return <HoloReading/>;
   const g = card.goal, e = card.ends;
   return <div className="nc-body nx-card" data-size={size} data-flat="">
-    <div className="nx-main nx-pair" data-fit="rows" data-keep="">
+    <div className="nx-main nx-pair" data-fit="rows" data-wr-limit="" data-keep="">
       <p className="nx-readout">
-        <span className="nx-readout-label">A day counts as done at</span>
+        <span className="nx-readout-label">{size === 'S' ? 'Day done at' : 'A day counts as done at'}</span>
         <span className="nx-readout-value">{g ? g.words : '—'}</span>
         <span className="nx-readout-sub">{!g ? 'This setting could not be read on this device.' : g.need === null ? 'The default: every dot lit.' : `Or every dot on a shorter day${g.since ? ` · since ${formatDate(g.since, {year: g.since.slice(0, 4) !== today.slice(0, 4)})}` : ''}.`}</span>
       </p>
       <p className="nx-readout">
-        <span className="nx-readout-label">My day ends at</span>
+        <span className="nx-readout-label">{size === 'S' ? 'Day ends at' : 'My day ends at'}</span>
         <span className="nx-readout-value">{e ? e.words : '—'}</span>
         <span className="nx-readout-sub">{!e ? 'This setting could not be read on this device.' : e.minutes === 0 ? 'The default.' : 'Until then it counts for the day before.'}</span>
       </p>

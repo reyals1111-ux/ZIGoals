@@ -25,10 +25,7 @@ export default function CountdownsWidget({size = 'M'}: Partial<CardProps>) {
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="arc" title="No countdown yet" href="/app/agenda" action="See your agenda">Add a day you are looking forward to: a trip, a birthday, a race. This widget’s quick actions add one; it then also shows on its day in your agenda.</CardNotice>;
   const foot = <CardFoot source="Your countdowns" asOf={`as of today, ${formatDate(today, {year: false})}`}/>, table = <HoloTable caption="Days until" rows={countdownsRows(card, Math.max(SHOWN[size] + 1, 3))}/>;
   const next = card.next;
-  if (!next) return <div className="nc-body nx-card" data-size={size}>
-    <CardNotice kind="empty" ghost="arc" title="Nothing ahead" href="/app/agenda" action="See your agenda">{card.passed === 1 ? 'Your one countdown has passed.' : `Your ${card.passed} countdowns have passed.`} Add the next day you are looking forward to from this widget’s quick actions.</CardNotice>
-    {foot}{table}
-  </div>;
+  if (!next) return <CardNotice kind="empty" ghost="arc" title="Nothing ahead" href="/app/agenda" action="See your agenda">{card.passed === 1 ? 'Your one countdown has passed.' : `Your ${card.passed} countdowns have passed.`} Add the next one from this widget’s quick actions.</CardNotice>;
   const after = card.upcoming.slice(1, 1 + SHOWN[size]), more = card.upcoming.length - 1 - after.length;
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top">
@@ -37,7 +34,7 @@ export default function CountdownsWidget({size = 'M'}: Partial<CardProps>) {
         {size !== 'S' && <p className="nx-note">{next.dateText}{next.note ? ` · ${next.note}` : ''}</p>}
       </Hero>
     </div>
-    {after.length > 0 && <div className="nx-main" data-fit="rows">
+    {after.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">After that{more > 0 ? ` · ${more} more` : ''}</p>}
       <ul className="nx-rows">{after.map((l, i) => <li key={l.id} className="nx-row nc-rise" style={{'--nc-i': i} as CSSProperties}>
         <i className="nx-row-node" aria-hidden="true"/><span className="nx-row-name" title={l.title}>{l.title}</span><span className="nx-row-value">{l.words}</span><span className="nx-row-sub">{l.dateText}{l.note ? ` · ${l.note}` : ''}</span>

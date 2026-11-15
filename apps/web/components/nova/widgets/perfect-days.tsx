@@ -39,11 +39,11 @@ export default function PerfectDaysWidget({size = 'M'}: Partial<CardProps>) {
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top">
       <Gauge share={card.dueDays ? card.perfect / card.dueDays : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor/>
-      <Hero value={String(card.perfect)} unit={card.dueDays ? `of ${card.dueDays}` : undefined} label={size === 'S' ? 'Perfect days' : `Perfect days · ${month}`}>
-        {size !== 'S' && <p className="nx-note">{card.run > 0 ? `${card.run} in a row` : 'No run going'}</p>}
+      <Hero value={String(card.perfect)} unit={card.dueDays ? `of ${card.dueDays}` : undefined} label={size === 'L' ? `Perfect days · ${month}` : 'Perfect days'}>
+        {size !== 'S' && <p className="nx-note">{size === 'M' ? `${month} · ` : ''}{card.run > 0 ? `${card.run} in a row` : 'No run going'}</p>}
       </Hero>
     </div>
-    {size !== 'S' && <div className="nx-main nx-month" data-fit="rows">
+    {size !== 'S' && <div className="nx-main nx-month" data-fit="rows" data-wr-limit="">
       <Lattice columns={Array.from({length: 7}, (_, i) => formatWeekday(addLocalDays(card.firstMonday, i)).slice(0, 1))} rows={weeks.map(w => ({key: w.key, label: `W${isoWeek(w.key)}`, cells: w.cells, today: w.today}))}/>
     </div>}
     {size === 'L' && <div className="nc-facts">

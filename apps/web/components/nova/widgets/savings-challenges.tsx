@@ -31,7 +31,7 @@ export default function SavingsChallengesWidget({size = 'M'}: Partial<CardProps>
   const lines = card.lines.slice(0, SHOWN[size]), n = card.lines.length, more = n - lines.length;
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={String(n)} unit={n === 1 ? 'challenge' : 'challenges'} label="Running on your goals"/></div>
-    {lines.length > 0 && <div className="nx-main" data-fit="rows">
+    {lines.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       <Bars rows={lines.map(l => ({key: l.goalId, label: l.goal, share: l.share, value: l.title, note: l.words}))}/>
       {size === 'L' && more > 0 && <p className="nx-note">{more} more on Goals.</p>}
     </div>}

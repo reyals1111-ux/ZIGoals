@@ -57,9 +57,10 @@ function GhostShape({kind}: {kind: Ghost}) {
  * A state that shows no figure (locked, off, nothing yet): never a plain paragraph — a small unlit dial with the state's
  * mark, the dim ghost of the instrument that would be here, one line of words and at most one action, as a key.
  */
-export function CardNotice({kind, title, children, href, action, onAction, ghost = kind === 'locked' ? 'ring' : kind === 'off' ? 'sky' : 'trend'}: {kind: 'locked' | 'off' | 'empty'; title: string; children: ReactNode; href?: string; action?: string; onAction?: () => void; ghost?: Ghost}) {
-  return <div className="nc-notice" data-kind={kind}>
-    <GhostShape kind={ghost}/>
+export function CardNotice({kind, title, children, href, action, onAction, ghost = kind === 'locked' ? 'none' : kind === 'off' ? 'sky' : 'trend'}: {kind: 'locked' | 'off' | 'empty'; title: string; children: ReactNode; href?: string; action?: string; onAction?: () => void;
+  /** The unlit instrument at the far end. A locked widget has none (round 3: an empty dashed ring floated alone beside the words; the lock's own dial is the mark). */ ghost?: Ghost | 'none'}) {
+  return <div className="nc-notice" data-kind={kind} data-bare={ghost === 'none' ? '' : undefined}>
+    {ghost !== 'none' && <GhostShape kind={ghost}/>}
     <svg className="nc-notice-glyph" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
       <path className="nc-notice-ticks" d={tickPath(24, 24, 20.5, 23.5, 36)}/>
       <circle cx="24" cy="24" r="17.5" className="nc-notice-ring"/>

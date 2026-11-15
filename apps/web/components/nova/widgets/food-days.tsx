@@ -38,11 +38,11 @@ function FoodDays({size}: {size: CardProps['size']}) {
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top">
       <Gauge share={card.daysSoFar ? card.logged / card.daysSoFar : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor/>
-      <Hero value={String(card.logged)} unit={`of ${card.daysSoFar}`} label={size === 'S' ? 'Days logged' : `Days with food logged · ${month}`}>
-        {size !== 'S' && <p className="nx-note">{card.run > 0 ? `${card.run} in a row` : 'No run going'}</p>}
+      <Hero value={String(card.logged)} unit={`of ${card.daysSoFar}`} label={size === 'L' ? `Days with food logged · ${month}` : size === 'M' ? 'Days with food' : 'Days logged'}>
+        {size !== 'S' && <p className="nx-note">{size === 'M' ? `${month} · ` : ''}{card.run > 0 ? `${card.run} in a row` : 'No run going'}</p>}
       </Hero>
     </div>
-    {size !== 'S' && <div className="nx-main nx-month" data-fit="rows">
+    {size !== 'S' && <div className="nx-main nx-month" data-fit="rows" data-wr-limit="">
       <Lattice columns={Array.from({length: 7}, (_, i) => formatWeekday(addLocalDays(card.firstMonday, i)).slice(0, 1))} rows={weeks.map(w => { const i = dayInWeek(w.key, day); return {key: w.key, label: `W${isoWeekOf(w.key)}`, cells: w.cells, today: i >= 0 && i < 7 ? i : undefined}; })}/>
     </div>}
     {size === 'L' && <p className="nx-note">A lit day has at least one food logged. A day without a log is just a day without a log.</p>}

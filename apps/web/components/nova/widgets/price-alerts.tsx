@@ -30,7 +30,7 @@ export default function PriceAlertsWidget({size = 'M'}: Partial<CardProps>) {
     <div className="nx-top"><Hero value={String(card.waiting)} unit="waiting" label={size === 'S' ? 'Price alerts' : `Price alerts · ${card.fired} fired`}>
       {size !== 'S' && card.unseen > 0 && <p className="nx-note" data-tone="watch">{card.unseen} fired and not seen yet</p>}
     </Hero></div>
-    {lines.length > 0 && <div className="nx-main" data-fit="rows">
+    {lines.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       <NxRows label="Your price alerts" where="the Markets page" extra={card.lines.length - lines.length} rows={lines.map(l => ({key: l.id, name: l.words, value: l.stateWords, sub: l.at ? `Fired ${day(l.at)}` : null}))}/>
     </div>}
     {size === 'L' && card.last && <p className="nx-note">Last fired, {day(card.last.at)}: {card.last.text}</p>}

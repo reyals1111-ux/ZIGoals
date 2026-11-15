@@ -27,7 +27,7 @@ export default function TemplatesWidget({size = 'M'}: Partial<CardProps>) {
     <div className="nx-top"><Hero value={formatNumber(card.total)} unit="ideas" label="In the library">
       {size === 'L' && <p className="nx-note">{formatNumber(card.goals)} goal templates · {formatNumber(card.habits)} habit ideas</p>}
     </Hero></div>
-    {picks.length > 0 && <div className="nx-main" data-fit="rows">
+    {picks.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Start a goal from one of these</p>}
       <ul className="nx-rows" aria-label="Goal templates to start from">{picks.map(p => <li key={p.id} className="nx-row nx-row-linked">
         <Link className="nx-row-link" href={p.href} prefetch={false} aria-label={`Start a goal from the template ${p.title}`}>

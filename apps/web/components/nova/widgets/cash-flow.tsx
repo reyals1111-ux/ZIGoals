@@ -31,13 +31,12 @@ export default function CashFlowWidget({size = 'M'}: Partial<CardProps>) {
     <div className="nx-top"><Hero value={card.net ?? '—'} label={card.netCents === null ? `Nothing logged in ${card.monthName}` : card.netCents === 0 ? `As much in as out · ${card.monthName}` : `More ${card.netCents > 0 ? 'in than out' : 'out than in'} · ${card.monthName}`}>
       {size !== 'S' && card.income && card.spending && <p className="nx-note">{card.income} in · {card.spending} out</p>}
     </Hero></div>
-    {size !== 'S' && <div className="nx-main">
+    {size !== 'S' && <div className="nx-main" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Spent each month · {card.currency}</p>}
       {chart}
-    </div>}
-    {size === 'L' && card.payees.length > 0 && <div className="nx-main" data-fit="rows">
-      <p className="nx-cap">Paid to, this month</p>
-      <NxRows label="This month’s payees" where="the Wealth page" rows={card.payees.map(p => ({key: p.key, name: p.name, value: p.text, sub: p.last === null ? 'Last month holds no record' : `Last month ${p.last}`}))}/>
+      {/* One column for the chart and the payees under it (two columns of their own lay over each other in a wide Large panel: round 3). */}
+      {size === 'L' && card.payees.length > 0 && <p className="nx-cap">Paid to, this month</p>}
+      {size === 'L' && card.payees.length > 0 && <NxRows label="This month’s payees" where="the Wealth page" min={0} rows={card.payees.map(p => ({key: p.key, name: p.name, value: p.text, sub: p.last === null ? 'Last month holds no record' : `Last month ${p.last}`}))}/>}
     </div>}
     {size === 'L' && card.others.length > 0 && <p className="nx-note">Also logged in {card.others.join(', ')}: never converted, never added.</p>}
     {foot}{table}

@@ -29,14 +29,11 @@ export default function MoneyTagsWidget({size = 'M', params}: Partial<CardProps>
   // The foot is always whole, so it carries the one caveat every size needs: tags overlap.
   const foot = <CardFoot source="Your Wealth records" asOf={card.lastDate ? `tags can overlap · last tagged entry ${formatDate(card.lastDate, {year: false})}` : null}/>, table = <HoloTable caption={`Spending by tag ${card.window.words}${card.currency ? `, in ${card.currency}` : ''}`} rows={moneyTagsRows(card, Math.max(SHOWN[size], 3))}/>;
   const top = card.rows[0];
-  if (card.state === 'quiet' || !top) return <div className="nc-body nx-card" data-size={size}>
-    <CardNotice kind="empty" ghost="bars" title={`No tagged entry ${card.window.words}`} href="/app/wealth#spending" action="Tag an entry">You use {card.tags} {card.tags === 1 ? 'tag' : 'tags'}; none is on an entry in this range.</CardNotice>
-    {foot}{table}
-  </div>;
+  if (card.state === 'quiet' || !top) return <CardNotice kind="empty" ghost="bars" title={`No tagged entry ${card.window.words}`} href="/app/wealth#spending" action="Tag an entry">You use {card.tags} {card.tags === 1 ? 'tag' : 'tags'}; none is on an entry in this range.</CardNotice>;
   const rows = card.rows.slice(0, SHOWN[size]), more = card.rows.length - rows.length;
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={top.text} label={size === 'S' ? `“${top.tag}”` : `Most: “${top.tag}” · ${card.window.words.replace(/^in /, '')}`}/></div>
-    {rows.length > 0 && <div className="nx-main" data-fit="rows">
+    {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Spent under each tag · {card.window.words.replace(/^in /, '')}</p>}
       <Bars rows={rows.map(r => ({key: r.tag, label: r.tag, share: r.cents > 0 ? r.share : null, value: r.cents > 0 ? `${r.text} · ${r.entries}` : r.received ? `${r.received} received` : r.text, ...(size === 'L' && r.cents > 0 && r.received ? {note: `${r.received} received`} : {})}))}/>
       {size === 'L' && more > 0 && <p className="nx-note">{more} more {more === 1 ? 'tag' : 'tags'} on Wealth.</p>}

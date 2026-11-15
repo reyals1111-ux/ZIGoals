@@ -42,7 +42,7 @@ function Fasts({size}: {size: CardProps['size']}) {
       {run ? <Hero value={run.elapsed} label={size === 'S' ? 'Fasting now' : `Fasting now · target ${run.targetHours} h`}>{size !== 'S' && run.reached && <p className="nx-note">The target is reached.</p>}</Hero>
         : <Hero value={last ? last.hoursText : '—'} label={last ? (size === 'S' ? 'Last fast' : `Last fast · ${last.dayText}`) : 'No fast finished yet'}>{size !== 'S' && last && <p className="nx-note">Target {last.targetHours} h · no fast is running</p>}</Hero>}
     </div>
-    {rows.length > 0 && <div className="nx-main" data-fit="rows">
+    {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">{run ? 'Your last fasts' : 'Before that'}</p>}
       <NxRows label="Earlier fasts" where="the Health page" extra={Math.max(0, card.count - (run ? 0 : 1) - rows.length)} rows={rows.map(h => ({key: h.id, name: h.dayText, value: h.hoursText, sub: `Target ${h.targetHours} h`}))}/>
     </div>}

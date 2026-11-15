@@ -56,6 +56,8 @@
 .nc-notice-ghost { display: none; grid-column: 3; grid-row: 1; align-self: center; justify-self: end; width: 100%; max-width: 300px; height: auto; overflow: visible; pointer-events: none; }
 .nc-notice-glyph { grid-column: 1; grid-row: 1; }
 .nc-notice-words { grid-column: 2; grid-row: 1; }
+/* A notice without a ghost (a locked widget): the words take the ghost's column too. */
+@container holo-body (min-width: 233px) { .nc-notice[data-bare] .nc-notice-words { grid-column: 2 / -1; } }
 .nc-ghost-grid { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 24%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
 .nc-ghost-line { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); stroke-width: 1.5px; vector-effect: non-scaling-stroke; stroke-dasharray: 5 5; stroke-linecap: round; }
 .nc-ghost-base { fill: none; stroke: color-mix(in oklab, var(--neon-2, #c0adff) 48%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }

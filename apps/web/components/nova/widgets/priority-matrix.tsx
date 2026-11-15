@@ -27,7 +27,7 @@ export default function PriorityMatrixWidget({size = 'M'}: Partial<CardProps>) {
   return <div className="nc-body nx-card" data-size={size} data-flat="">
     {size !== 'M' && <div className="nx-top"><Hero value={String(first.count)} unit={first.count === 1 ? 'task' : 'tasks'} label={size === 'S' ? 'Urgent, important' : 'Urgent and important'}/></div>}
     {size !== 'S' && <ul className="nx-quad" aria-label="The four boxes">{card.boxes.map((b, i) => <li key={b.id} data-lead={i === 0 || undefined} title={`${b.title}: ${b.hint}`}><b>{b.count}</b><span>{SHORT[b.id]}</span></li>)}</ul>}
-    {size === 'L' && first.top.length > 0 && <div className="nx-main" data-fit="rows">
+    {size === 'L' && first.top.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       <p className="nx-cap">Do these first</p>
       <NxRows label="Urgent and important tasks" where="the Tasks page" extra={first.count - first.top.length} rows={first.top.map(t => ({key: t.id, name: t.title, value: t.dueText}))}/>
     </div>}

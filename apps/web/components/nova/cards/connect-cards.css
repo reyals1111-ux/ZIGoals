@@ -34,7 +34,8 @@
 .nx-card .nc-hero[data-len] .nc-hero-num { font-size: 32px; }
 .nx-card[data-size=M] .nx-note { flex-basis: 100%; }
 .nx-dial-figure { position: relative; display: grid; justify-items: center; line-height: 1; }
-.nx-dial-figure b { font-size: 14px; font-weight: 700; color: var(--neon-ink, #f4f7ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+/* --nx-b / --nx-small: set on the figure by the rules that read the hero beside it (a :has() rule must end in a class: lib/perf/has-invalidation.test.ts). */
+.nx-dial-figure b { font-size: var(--nx-b, 14px); font-weight: 700; color: var(--neon-ink, #f4f7ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
 .nx-dial-figure small { margin-top: 1px; font-size: 14px; font-weight: 600; color: #d6e0f5; }
 .nx-card[data-size=M] .nx-dial-figure small, .nx-card[data-size=S] .nx-dial-figure small { display: none; }
 .nx-card[data-size=S] .nx-dial-figure { display: none; }
@@ -137,10 +138,17 @@
 
 /* ---- A wide medium panel (about 700 × 190): the hero on the left, the instrument filling the right ---- */
 @container holo-body (min-width: 520px) {
-  .nc-body.nx-card[data-size=M]:not([data-flat]) { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: minmax(0, 1fr) auto; gap: 6px 36px; }
+  /* The top's column is never narrower than its figure (a dial and "€1,970.00" need more than 5/12 of 600 px: round 3,
+     the figure lay over the meters); the instrument takes what is left. */
+  .nc-body.nx-card[data-size=M]:not([data-flat]) { display: grid; grid-template-columns: minmax(min-content, 5fr) minmax(0, 7fr); grid-template-rows: minmax(0, 1fr) auto; gap: 6px 36px; }
+  .nx-card[data-size=M] .nx-top:has(> .nc-gauge):has(> .nc-hero[data-len]) { gap: 16px; }
+  .nx-card[data-size=M] .nx-top:has(> .nc-hero[data-len]) > .nc-gauge { --nc-d: 92; }
+  .nx-card[data-size=M] .nx-top:has(> .nc-hero[data-len]) .nx-dial-figure { --nx-b: 26px; }
   .nx-card[data-size=M]:not([data-flat]) > .nx-top { grid-area: 1 / 1; align-self: center; }
   .nx-card[data-size=M]:not([data-flat]) > .nx-main { grid-area: 1 / 2; }
-  .nx-card[data-size=M]:not([data-flat]) > .nx-main[data-fit=rows] { align-self: center; }
+  /* A list or a set of meters stands in the middle of its column, and the column is as tall as the panel leaves (a
+     limit for the whole-rows measure, `data-wr-limit`: its rows drop whole before one could reach the foot). */
+  .nx-card[data-size=M]:not([data-flat]) > .nx-main[data-fit=rows] { align-self: stretch; justify-content: center; }
   .nx-card[data-size=M]:not([data-flat]) > .nc-foot { grid-area: 2 / 1 / 3 / 3; margin-top: 0; }
   .nx-card[data-size=M] .nc-hero { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 0; }
   .nx-card[data-size=M] .nc-hero-label { order: -1; flex: none; margin: 0 0 6px; }
@@ -149,8 +157,8 @@
   .nc-body.nx-card[data-size=M] .nc-hero[data-len=xl] .nc-hero-num { font-size: 32px; }
   .nx-card[data-size=M] .nx-top { gap: 20px; }
   .nx-card[data-size=M] .nx-top > .nc-gauge { --nc-d: 112; --nc-w: 6; }
-  .nx-card[data-size=M] .nx-dial-figure b { font-size: 32px; }
-  .nx-card[data-size=M] .nx-dial-figure small { display: block; }
+  .nx-card[data-size=M] .nx-dial-figure b { font-size: var(--nx-b, 32px); }
+  .nx-card[data-size=M] .nx-dial-figure small { display: var(--nx-small, block); }
   .nx-card[data-size=M] .nc-trend-dates { display: flex; }
   .nx-card[data-size=M] .nx-cap { display: block; }
   .nx-card[data-size=M] .nc-trend-edge { display: block; }
@@ -162,6 +170,8 @@
 }
 @container holo-body (min-width: 520px) and (max-height: 176px) {
   .nx-card[data-size=M] .nx-top > .nc-gauge { --nc-d: 96; }
+  .nx-card[data-size=M] .nx-top:has(> .nc-hero[data-len]) > .nc-gauge { --nc-d: 84; }
+  .nx-card[data-size=M] .nx-top:has(> .nc-hero[data-len]) .nx-dial-figure { --nx-small: none; }
   .nc-body.nx-card[data-size=M] .nc-hero-num { font-size: 38px; }
   .nx-card[data-size=M] .nx-cap { display: none; }
 }
@@ -177,10 +187,10 @@
 }
 @container holo-body (min-height: 300px) and (min-width: 520px) {
   /* The hero and the facts on the left; the instrument the whole height of the right. */
-  .nc-body.nx-card[data-size=L]:not([data-flat]) { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto auto auto minmax(0, 1fr) auto; gap: 10px 44px; }
+  .nc-body.nx-card[data-size=L]:not([data-flat]) { display: grid; grid-template-columns: minmax(min-content, 5fr) minmax(0, 7fr); grid-template-rows: auto auto auto minmax(0, 1fr) auto; gap: 10px 44px; }
   .nx-card[data-size=L]:not([data-flat]) > * { grid-column: 1; }
   .nx-card[data-size=L]:not([data-flat]) > .nx-main { grid-column: 2; grid-row: 1 / 5; }
-  .nx-card[data-size=L]:not([data-flat]) > .nx-main[data-fit=rows] { align-self: center; }
+  .nx-card[data-size=L]:not([data-flat]) > .nx-main[data-fit=rows] { align-self: stretch; justify-content: center; }
   .nx-card[data-size=L]:not([data-flat]) > .nc-foot { grid-column: 1 / -1; grid-row: 5; margin-top: 0; }
   .nx-card[data-size=L]:not([data-flat]) .nx-top { flex-direction: column; align-items: flex-start; gap: 24px; }
   .nx-card[data-size=L] .nx-top > .nc-gauge { --nc-d: 150; --nc-w: 6.5; }
@@ -218,5 +228,35 @@
 .nx-card[data-size=L] .nx-quad b { font-size: 32px; }
 @container holo-body (max-width: 300px) { .nx-quad { grid-template-columns: minmax(0, 1fr); gap: 2px; } .nx-quad b { font-size: 20px; } }
 @container holo-body (min-width: 520px) { .nx-card[data-size=M] .nx-quad b { font-size: 30px; } }
+
+/* ---- Round 3 (from the captures at 600 × 150) ----
+   A teaching notice is a body's only content (the frame then hugs it, as for every other widget: cards.css), never a
+   cell of the two-column grids above, where its sentence stood one word per line. Should one ever share a card again,
+   it takes the card's whole width. */
+.nc-body.nx-card[data-size] > .nc-notice { grid-column: 1 / -1; min-width: 0; }
+/* A fitted list (widgets/nx-rows.tsx on cards/whole-rows.tsx) is its own limit inside its column: it takes the height
+   the column leaves, so its rows drop whole and its "+N more" line stays in view. */
+.nx-main > .nx-wr { flex: 0 1 auto; min-height: 0; }
+/* A read-out whose value is a range of days ("Nov 20 – Nov 26") is set smaller, so it stays on one line in its column. */
+.nx-card[data-size] .nx-readout-value[data-long] { font-size: 22px; }
+.nx-card[data-size=L] .nx-readout-value[data-long] { font-size: 30px; }
+.nx-card[data-size=S] .nx-readout-value[data-long] { font-size: 16px; line-height: 24px; }
+@container holo-body (min-width: 520px) { .nx-card[data-size=M] .nx-readout-value[data-long] { font-size: 26px; } }
+@container holo-body (min-height: 300px) and (min-width: 520px) { .nx-card[data-size=L] .nx-readout-value[data-long] { font-size: 34px; } }
+/* Small: a figure of twelve characters or more takes the dial's room and is set smaller, so its label keeps some words. */
+.nx-card[data-size=S] .nx-top:has(> .nc-hero[data-len=xl]) > .nc-gauge { display: none; }
+.nova-widget[data-size=S] .nx-card .nc-hero[data-len=xl] .nc-hero-num { font-size: 26px; }
+/* A dial gives its room to a figure of twelve characters or more ("−€238,560.00") at Medium. */
+.nx-card[data-size=M] .nx-top:has(> .nc-hero[data-len=xl]) > .nc-gauge { display: none; }
+/* A note directly in a Medium card (the latest focus, in the person's own words) is two lines at most. */
+.nx-card[data-size=M] > .nx-note { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+/* A card with no top (two read-outs, four boxes) stands in the middle of its panel, never under an empty slab. */
+.nx-card[data-flat]:not([data-size=L]) > :is(.nx-main[data-fit=rows], .nx-quad) { margin-block: auto; }
+/* A hero's label is one or two lines at Small and Medium (a long title ends in an ellipsis; the table keeps it whole). */
+.nx-card[data-size=M] .nc-hero-label { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+/* Small: two read-outs stay side by side at every width, each label on one line. */
+.nx-card[data-size=S] .nx-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 16px; }
+.nx-card[data-size=S] .nx-readout-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nx-card[data-size=S] .nx-readout-value { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 @media (forced-colors: active) { .nx-row-node, .nx-key i[data-cell=done] { background: Highlight; box-shadow: none; forced-color-adjust: none; } }

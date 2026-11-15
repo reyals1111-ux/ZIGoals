@@ -32,9 +32,9 @@ export default function ReadyToAssignWidget({size = 'M'}: Partial<CardProps>) {
       <Gauge share={r.share} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} tone={r.over ? 'over' : undefined} decor>
         {r.share !== null ? <span className="nx-dial-figure"><b>{formatPercent(r.share * 100)}</b><small>in budgets</small></span> : null}
       </Gauge>
-      <Hero value={r.ready ?? '—'} label={r.status === 'no-income' ? 'No income logged this month' : r.over ? 'More in budgets than income' : size === 'S' ? 'Ready to assign' : `Ready to assign · ${card.monthName}`}/>
+      <Hero value={r.ready ?? '—'} label={r.status === 'no-income' ? 'No income logged this month' : r.over ? 'More in budgets than income' : size === 'L' ? `Ready to assign · ${card.monthName}` : 'Ready to assign'}/>
     </div>
-    {size !== 'S' && <div className="nx-main" data-fit="rows">
+    {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">This month · {r.currency}</p>}
       <Bars rows={[
         {key: 'income', label: 'Logged as income', share: r.status === 'ok' ? 1 : null, value: r.income ?? 'Nothing logged'},

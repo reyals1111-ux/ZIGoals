@@ -302,32 +302,37 @@
   .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]), .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) > .tasks-widget { gap: 5px; }
 }
 
-/* One-line rows, the TITLE first: the box (its 44 px target), the title at its own width (up to the whole row), then
-   what is left for the priority and the due words at the row's end. Column sizes: the title's track is
-   minmax(0, max-content) and the meta's minmax(chip, 1fr), so the title is cut only when it alone is wider than the row
-   less the box and a priority chip's own width (84 / 104 / 78 px for "P1 · High" / "P2 · Medium" / "P4 · Low"), which
-   is always kept. In the meta, parts that do not fit leave WHOLE, the last first: its goal's link, then the due words
-   (they wrap to a second line that the 44 px row does not show). The rest of a row's facts (repeat, subtasks, project,
-   labels, reminders, notes) are not drawn here. Everything stays in the row's text for assistive technology, and a
-   goal's link that is not in view shows itself at the row's end while it holds the focus. */
-.nova-widget[data-holo] .tasks-widget .tasks-list { display: grid; gap: 0; margin: 0; }
-.nova-widget[data-holo] .tasks-widget .task { --task-chip: 0px; grid-template-columns: 44px minmax(0, max-content) minmax(var(--task-chip), 1fr); grid-template-areas: "done title meta"; align-items: center; gap: 0 8px; min-height: 44px; padding: 0; border-bottom: 0; }
-.nova-widget[data-holo] .tasks-widget .task.task-level-1 { --task-chip: 84px; }
-.nova-widget[data-holo] .tasks-widget .task.task-level-2 { --task-chip: 104px; }
-.nova-widget[data-holo] .tasks-widget .task.task-level-4 { --task-chip: 78px; }
+/* One-line rows: the box (its 44 px target), the title, then the priority chip and the due words at the row's end.
+   Round 3 (hud-review2 M4, a tablet's 370 px column: a goal's link was laid out 38 px under its panel): nothing in a
+   row is ever laid out outside it. What a row shows depends on the row's own width alone (the row is a size container
+   for its width), and a part that has no room is not drawn at all, never wrapped away or run past the row:
+   - the priority chip, always (84 / 104 / 78 px for "P1 · High" / "P2 · Medium" / "P4 · Low");
+   - the due words from 310 px (a row with a chip: from 420 px), never wider than what leaves the title 110 px
+     (twelve characters): the box 44 + two gaps 16 + the title 110 = 170, so at most w − 170 (less the chip and its gap,
+     112), and 160 px;
+   - its goal's link from 640 px (at most 168 px: 640 − 170 − 112 − 168 − 8 − 168 leaves the title its 110).
+   The title takes everything else and ends in an ellipsis. The rest of a row's facts (repeat, subtasks, project,
+   labels, reminders, notes) are not drawn here. Everything stays in the row's text for assistive technology; a goal's
+   link that is not drawn shows itself at the row's end while it holds the focus, and an overdue row whose due words
+   are not drawn keeps the overdue counter's coral on its box. */
+.nova-widget[data-holo] .tasks-widget .tasks-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin: 0; }
+.nova-widget[data-holo] .tasks-widget .task { --task-chip-w: 0px; container: task-row / inline-size; grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "done title meta"; align-items: center; gap: 0 8px; min-width: 0; min-height: 44px; padding: 0; border-bottom: 0; }
+.nova-widget[data-holo] .tasks-widget .task:not(.task-level-3) { --task-chip-w: 112px; }
 .nova-widget[data-holo] .tasks-widget .task + .task { border-top: 1px solid color-mix(in oklab, var(--neon, #9273ff) 16%, transparent); }
 .nova-widget[data-holo] .tasks-widget .task-title { min-width: 0; font-size: 15px; line-height: 20px; color: #eef3ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
-.nova-widget[data-holo] .tasks-widget .task-meta { grid-area: meta; min-width: 0; height: 44px; display: flex; flex-wrap: wrap; align-items: center; align-content: flex-start; justify-content: flex-end; gap: 16px 8px; overflow: hidden; overflow: clip; overflow-clip-margin: 6px; white-space: nowrap; font-size: 14px; line-height: 44px; opacity: 1; color: #cdd8ee; }
+.nova-widget[data-holo] .tasks-widget .task-meta { grid-area: meta; min-width: 0; height: 44px; display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 8px; white-space: nowrap; font-size: 14px; line-height: 20px; opacity: 1; color: #cdd8ee; }
 .nova-widget[data-holo] .tasks-widget .task-meta > * { flex: none; }
-/* A row with no priority chip starts its meta with nothing (a first part can never wrap away; this one is empty), so the due words leave whole too. */
-.nova-widget[data-holo] .tasks-widget .task-level-3 .task-meta::before { content: ''; flex: none; width: 0; height: 44px; margin-right: -8px; }
-.nova-widget[data-holo] .tasks-widget .task-chip { line-height: 20px; margin-block: 11px; }
+.nova-widget[data-holo] .tasks-widget .task-chip { line-height: 20px; }
+.nova-widget[data-holo] .tasks-widget .task-due { display: none; max-width: min(160px, calc(100cqi - 170px - var(--task-chip-w))); overflow: hidden; text-overflow: ellipsis; }
+@container task-row (min-width: 310px) { .nova-widget[data-holo] .tasks-widget .task-level-3 .task-due { display: block; } }
+@container task-row (min-width: 420px) { .nova-widget[data-holo] .tasks-widget .task-due { display: block; } }
 .nova-widget[data-holo] .tasks-widget .task-overdue .task-due { color: #ffd0ca; font-weight: 650; }
-/* An overdue row keeps a sign of it when its due words have left: its box wears the overdue counter's coral. */
 .nova-widget[data-holo] .tasks-widget .task-overdue .task-done input:not(:checked) { border-color: #ff8f88; box-shadow: 0 0 8px -2px #ff6b5a, inset 0 0 8px -3px #ff6b5a; }
-.nova-widget[data-holo] .tasks-widget .task-meta > :is(.task-recur, .task-progress, .task-project, .task-label, .task-reminder, .task-has-notes) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal { max-width: 14em; line-height: 44px; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
-.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:focus-visible { position: absolute; right: 0; top: 0; z-index: 2; max-width: 80%; padding: 0 8px; background: #0a1030; }
+.nova-widget[data-holo] .tasks-widget .task-meta > :is(.task-recur, .task-progress, .task-project, .task-label, .task-reminder, .task-has-notes),
+.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal { max-width: 168px; line-height: 44px; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:focus-visible { position: absolute; right: 0; top: 0; z-index: 2; max-width: calc(100cqi - 52px); padding: 0 8px; background: #0a1030; }
+@container task-row (min-width: 640px) { .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible) { position: static; width: auto; height: 44px; margin: 0; clip-path: none; } }
 
 /* The add form on one row: the title field takes the row, the time field its own width, Add at the end. Each field
    keeps its label as its name (not drawn here: the title field shows its example, the time field its own clock). A

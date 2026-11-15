@@ -33,10 +33,7 @@ export default function NetWorthHistoryWidget({size = 'M', params}: Partial<Card
   const source = card.example ? 'Showcase example history' : 'Your Wealth records';
   const table = <HoloTable caption={`Net worth in ${cur || 'your currency'}, ${card.rangeWords}`} rows={netWorthHistoryRows(card, money, c => changeWords(c, money, percent, on), on)}/>;
   const latest = card.latest;
-  if (card.state === 'quiet' || !latest) return <div className="nc-body nx-card" data-size={size}>
-    <CardNotice kind="empty" ghost="trend" title={`No day recorded in ${card.rangeWords}`} href="/app/wealth#wealth-history" action="Record today on Wealth">The last recorded day is before this range{card.since ? `; the history starts ${on(card.since)}` : ''}.</CardNotice>
-    <CardFoot source={source}/>{table}
-  </div>;
+  if (card.state === 'quiet' || !latest) return <CardNotice kind="empty" ghost="trend" title={`No day recorded in ${card.rangeWords}`} href="/app/wealth#wealth-history" action="Record today on Wealth">The last recorded day is before this range{card.since ? `; the history starts ${on(card.since)}` : ''}.</CardNotice>;
   const known = latest.cents !== null, shownCents = known ? latest.cents : card.latestKnown?.cents ?? null, knownDays = card.points.filter(p => p.cents !== null), first = knownDays[0], last = knownDays.at(-1);
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={shownCents === null ? '—' : money(shownCents)} label={known ? (size === 'S' ? 'Net worth' : `Net worth · ${on(latest.day)}`) : card.latestKnown ? `Last known · ${on(card.latestKnown.day)}` : 'Net worth not known'}>

@@ -25,12 +25,11 @@ export default function HourGridWidget({size = 'M'}: Partial<CardProps>) {
     <div className="nx-top"><Hero value={String(card.timed)} unit={size === 'S' ? 'timed' : 'with a time'} label={size === 'S' ? 'Today' : `Today · ${card.total} ${card.total === 1 ? 'item' : 'items'}`}>
       {size !== 'S' && <p className="nx-note">{next ? `Next: ${formatClock(next.time!)} ${next.title}` : card.untimed ? `${card.untimed} any time today` : 'Nothing more with a time today'}</p>}
     </Hero></div>
-    {size !== 'S' && <div className="nx-main">
+    {size !== 'S' && <div className="nx-main" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Each hour · {card.untimed} any time</p>}
       <Columns values={card.load.map(h => h.count)} labels={card.load.map(h => h.label)} height={size === 'L' ? 72 : 48} mark={card.nowIndex ?? undefined}/>
-    </div>}
-    {size === 'L' && list.length > 0 && <div className="nx-main" data-fit="rows">
-      <NxRows label="Today in time order" where="your agenda" rows={list.map(i => ({key: i.id, name: i.title, value: formatClock(i.time!), sub: i.state === 'done' ? 'Done' : i.state === 'skipped' ? 'Skipped' : null}))}/>
+      {/* One column for the chart and the list under it (two columns of their own lay over each other in a wide Large panel: round 3). */}
+      {size === 'L' && list.length > 0 && <NxRows label="Today in time order" where="your agenda" min={0} rows={list.map(i => ({key: i.id, name: i.title, value: formatClock(i.time!), sub: i.state === 'done' ? 'Done' : i.state === 'skipped' ? 'Skipped' : null}))}/>}
     </div>}
     <CardFoot source="Your agenda" asOf={`today, ${formatClock(now)}`}/>
     <HoloTable caption="Today by the hour" rows={hourGridRows(card)}/>

@@ -30,7 +30,7 @@ export default function MilestonesWidget({size = 'M'}: Partial<CardProps>) {
         {size !== 'S' && card.lead?.next && <p className="nx-note">Next: {card.lead.next}</p>}
       </Hero>
     </div>
-    {rows.length > 0 && <div className="nx-main" data-fit="rows">
+    {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">By goal</p>}
       <Bars rows={rows.map(g => ({key: g.id, label: g.name, share: g.share, value: `${g.done} of ${g.total}`, ...(size === 'L' ? {note: g.next ? `Next: ${g.next}` : 'All ticked'} : {})}))}/>
       {size === 'L' && more > 0 && <p className="nx-note">{more} more {more === 1 ? 'goal' : 'goals'} on Goals.</p>}

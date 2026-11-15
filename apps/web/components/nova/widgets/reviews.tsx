@@ -23,7 +23,7 @@ export default function ReviewsWidget({size = 'M'}: Partial<CardProps>) {
   if (!weekly.loaded || !life.loaded) return <HoloReading/>;
   const w = card.weekly, l = card.life, day = (date: string) => formatDate(date, {year: date.slice(0, 4) !== today.slice(0, 4)});
   return <div className="nc-body nx-card" data-size={size} data-flat="">
-    <div className="nx-main nx-pair" data-fit="rows" data-keep="">
+    <div className="nx-main nx-pair" data-fit="rows" data-wr-limit="" data-keep="">
       <p className="nx-readout">
         <span className="nx-readout-label">Weekly review</span>
         <span className="nx-readout-value">{w ? w.stateWords : '—'}</span>

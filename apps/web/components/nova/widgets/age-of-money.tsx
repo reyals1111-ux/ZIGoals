@@ -26,18 +26,15 @@ export default function AgeOfMoneyWidget({size = 'M'}: Partial<CardProps>) {
   if (log.unreadable) return <HoloUnread what="Your Wealth records"/>;
   const r = card.lead, foot = <CardFoot source="Your Wealth records" asOf={`as of today, ${formatDate(today, {year: false})}`}/>, table = <HoloTable caption={`Age of money, the last ${AGE_WINDOW_DAYS} days`} rows={ageRows(card)}/>;
   if (card.state === 'empty' || !r) return <CardNotice kind="empty" ghost="ring" title="Nothing logged yet" href="/app/wealth#spending" action="Log income or spending">Log what you receive and spend on Wealth. After 30 days the age of your money shows here.</CardNotice>;
-  if (r.status !== 'ok' || r.days === null) return <div className="nc-body nx-card" data-size={size}>
-    <CardNotice kind="empty" ghost="ring" title="Not enough records yet" href="/app/wealth#spending" action="Log income or spending">{r.words.replace(/^Not enough records yet: /, '').replace(/^./, c => c.toUpperCase())} ({r.currency}).</CardNotice>
-    {foot}{table}
-  </div>;
+  if (r.status !== 'ok' || r.days === null) return <CardNotice kind="empty" ghost="ring" title="Not enough records yet" href="/app/wealth#spending" action="Log income or spending">{r.words.replace(/^Not enough records yet: /, '').replace(/^./, c => c.toUpperCase())} ({r.currency}).</CardNotice>;
   const others = card.rows.filter(x => x !== r);
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top">
       <Gauge share={r.share} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} ticks={45} spin={size === 'L'} decor/>
-      <Hero value={formatNumber(r.days, {maximumFractionDigits: 1})} unit={r.days === 1 ? 'day' : 'days'} label={size === 'S' ? 'Age of money' : `Age of money · ${r.currency}`}/>
+      <Hero value={formatNumber(r.days, {maximumFractionDigits: 1})} unit={r.days === 1 ? 'day' : 'days'} label={size === 'L' ? `Age of money · ${r.currency}` : 'Age of money'}/>
     </div>
-    {size !== 'S' && <div className="nx-main" data-fit="rows">
-      <p className="nx-note">On average, over what you spent in the last {AGE_WINDOW_DAYS} days.</p>
+    {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit="">
+      <p className="nx-note">On average, over what you spent in {r.currency} in the last {AGE_WINDOW_DAYS} days.</p>
       {r.uncounted && <p className="nx-note">{r.uncounted}.</p>}
     </div>}
     {size === 'L' && others.length > 0 && <div className="nc-facts">{others.slice(0, 3).map(o => <Fact key={o.currency} label={`In ${o.currency}`} value={o.daysText ?? 'Not enough records yet'}/>)}</div>}

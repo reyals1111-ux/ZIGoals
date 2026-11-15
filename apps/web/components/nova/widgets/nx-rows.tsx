@@ -8,12 +8,14 @@ import {WholeRows} from '../cards/whole-rows';
  * detail per row (cards/connect-cards.css `nx-rows`) — inside the "whole rows" wrapper (cards/whole-rows.tsx): the rows
  * that fit their panel are shown whole, and under them one line says how many more there are and where ("+3 more on the
  * Wealth page"). A row is never cut by the panel's edge; the widget's table for assistive technology keeps every row.
+ * The box is a limit of its own (`limit`): in a column of a two-column card it is as tall as the column leaves, so its
+ * rows never run past the column and over the foot (cards/connect-cards.css `.nx-wr`).
  */
 export type NxRow = {key: string; name: string; value?: string | null; sub?: string | null; /** A direction, said in the row's words too (never colour alone). */ tone?: 'up' | 'down'};
 export function NxRows({rows, label, where, extra = 0, min = 1}: {rows: readonly NxRow[]; label: string;
   /** The page that holds the rest ("the Wealth page"). */ where?: string;
   /** Rows the widget holds beyond the ones given here: they count in "+N more". */ extra?: number; min?: number}) {
-  return <WholeRows className="nx-rows" aria-label={label} extra={Math.max(0, extra)} min={min} more={(hidden, shown) => moreWords(hidden, {shown, ...(where ? {where} : {})})}>
+  return <WholeRows className="nx-rows" wrapClassName="nx-wr" limit aria-label={label} extra={Math.max(0, extra)} min={min} more={(hidden, shown) => moreWords(hidden, {shown, ...(where ? {where} : {})})}>
     {rows.map((r, i) => <li key={r.key} className="nx-row nc-rise" style={{'--nc-i': Math.min(i, 6)} as CSSProperties}>
       <i className="nx-row-node" data-tone={r.tone} aria-hidden="true"/><span className="nx-row-name" title={r.name}>{r.name}</span><span className="nx-row-value">{r.value ?? ''}</span>{r.sub ? <span className="nx-row-sub">{r.sub}</span> : null}
     </li>)}

@@ -26,16 +26,13 @@ export default function SpendingPaceWidget({size = 'M'}: Partial<CardProps>) {
   if (log.unreadable) return <HoloUnread what="Your Wealth records"/>;
   const r = card.lead, foot = <CardFoot source="Your Wealth records" asOf={`as of today, ${formatDate(today, {year: false})}`}/>, table = <HoloTable caption="Your usual spending pace" rows={paceRows(card)}/>;
   if (card.state === 'empty' || !r) return <CardNotice kind="empty" ghost="bars" title="Nothing logged yet" href="/app/wealth#spending" action="Log what you spent">Log what you spend on Wealth. After three months this month stands beside your usual pace here.</CardNotice>;
-  if (r.status !== 'ok' || r.usualCents === null || r.thisCents === null) return <div className="nc-body nx-card" data-size={size}>
-    <CardNotice kind="empty" ghost="bars" title="Not enough months yet" href="/app/wealth#spending" action="Log what you spent">This needs three earlier months with spending logged in {r.currency}; {r.months === 0 ? 'there are none yet' : r.months === 1 ? 'there is 1 so far' : `there are ${r.months} so far`}.</CardNotice>
-    {foot}{table}
-  </div>;
+  if (r.status !== 'ok' || r.usualCents === null || r.thisCents === null) return <CardNotice kind="empty" ghost="bars" title="Not enough months yet" href="/app/wealth#spending" action="Log what you spent">This needs three earlier months with spending logged in {r.currency}; {r.months === 0 ? 'there are none yet' : r.months === 1 ? 'there is 1 so far' : `there are ${r.months} so far`}.</CardNotice>;
   const top = Math.max(1, r.usualCents, r.thisCents), others = card.rows.filter(x => x !== r);
   return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={r.thisMonth ?? '—'} label={size === 'S' ? `By the ${r.dayWords}` : `Spent this month, by the ${r.dayWords}`}>
       {size !== 'S' && r.direction && <Delta text={r.direction === 'flat' ? 'The same as usual' : `${r.difference} ${r.direction === 'up' ? 'more' : 'less'} than usual`} direction={r.direction} good={null}/>}
     </Hero></div>
-    {size !== 'S' && <div className="nx-main" data-fit="rows">
+    {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">From the 1st to the {r.dayWords} · {r.currency}</p>}
       <Bars rows={[
         {key: 'usual', label: 'Usually by now', share: r.usualCents / top, value: r.usual ?? '—'},

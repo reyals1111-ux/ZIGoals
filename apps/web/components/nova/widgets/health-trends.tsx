@@ -38,7 +38,7 @@ function Trends({size}: {size: CardProps['size']}) {
   const waiting = card.waiting.length > 0 && <ul className="nx-chips" aria-label="Measures that wait for more days">{card.waiting.slice(0, 4).map(w => <li key={w.id}>{w.label} · <b>{w.words}</b></li>)}</ul>;
   if (!top) return <div className="nc-body nx-card" data-size={size}>
     <div className="nx-top"><Hero value={String(card.waiting.length)} unit={card.waiting.length === 1 ? 'measure' : 'measures'} label="Waiting for more days"/></div>
-    {size !== 'S' && <div className="nx-main" data-fit="rows">{waiting}</div>}
+    {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit="">{waiting}</div>}
     {foot}{table}
   </div>;
   const rest = card.rows.slice(1, SHOWN[size]);
@@ -46,7 +46,7 @@ function Trends({size}: {size: CardProps['size']}) {
     <div className="nx-top"><Hero value={top.recent} label={size === 'S' ? top.label : `${top.label} · last ${card.recentDays} days`}>
       {size !== 'S' && <Delta text={`${top.words} · your year: ${top.year}`} direction={top.direction === 'same' ? 'flat' : top.direction} good={null}/>}
     </Hero></div>
-    {rest.length > 0 && <div className="nx-main" data-fit="rows">
+    {rest.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       <NxRows label="The other measures" where="the Health page" extra={card.rows.length - 1 - rest.length} rows={rest.map(r => ({key: r.id, name: r.label, value: `${r.words} · ${r.recent}`, sub: `Your year: ${r.year} · ${r.recentDays} recent days recorded`}))}/>
     </div>}
     {size === 'L' && waiting}
