@@ -7,7 +7,7 @@ import {createEmptyHealth, healthSchema} from '../../health';
 import {emptyPlatform} from '../../positions';
 import {emptyReminders} from '../../reminders/schema';
 import {emptyWeeklyReview} from '../../weekly-review/schema';
-import {localAnswer} from '../local-answers/engine';
+import {localAnswer, type LocalReply} from '../local-answers/engine';
 import {noModelReply} from '../local-answers/no-model';
 import {fastTooLong, quickCommand} from '../quick-commands/commands';
 import {SPECIALISTS, ACTION_PROTOCOL} from '../context/specialists';
@@ -31,8 +31,8 @@ const stores: Stores = {habits: {...emptyHabitData(), timeZone: 'UTC'} as HabitD
 const env: Env = {stores, handles: [], now: NOW, habitDay: '2026-09-20', healthDay: '2026-09-20', timeZone: 'UTC'};
 const fence = (hours: number) => `\`\`\`zigoals-action\n{"kind":"start-fast","targetHours":${hours}}\n\`\`\``;
 const healthTakes = (hours: number) => { try { startFast({version: 1, sessions: []}, {id: 'fast_x', now: NOW, targetHours: hours, timeZone: 'UTC'}); return true; } catch { return false; } };
-const textOf = (r: {text?: string}) => r.text ?? '';
-const cardsOf = (r: {text?: string} | null) => r ? parseReply(textOf(r)) : null;
+const textOf = (r: object) => 'text' in r && typeof r.text === 'string' ? r.text : '';
+const cardsOf = (r: LocalReply | null) => r ? parseReply(textOf(r)) : null;
 
 describe('one range, one constant: the card and Health\'s form', () => {
   test('the card\'s ceiling is Health\'s own constant, and the old separate ceiling is gone', () => {

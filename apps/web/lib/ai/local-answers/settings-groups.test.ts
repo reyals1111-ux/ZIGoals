@@ -14,7 +14,7 @@ const GROUPS = [...page.slice(page.indexOf('const SETTINGS_GROUPS'), page.indexO
 /** The page's source between a group's opening tag and its closing one. */
 const groupSource = (id: string) => { const at = page.indexOf(`<SettingsGroup id="${id}"`); return page.slice(at, page.indexOf('</SettingsGroup>', at)); };
 const env = toolEnv(showcaseSources(), gatesFor(true), 'local');
-const textOf = (r: {text?: string}) => r.text ?? '';
+const textOf = (r: object) => 'text' in r && typeof r.text === 'string' ? r.text : '';
 const NUMBER = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
 
 describe('ZIGi names Settings\' groups as the page has them', () => {
