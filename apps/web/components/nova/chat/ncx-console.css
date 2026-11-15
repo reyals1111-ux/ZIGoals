@@ -68,6 +68,7 @@
 .ncx-ring-1 { stop-color: var(--turn-2, #63e7ff); }
 .ncx-ring-lead { fill: #fff; stroke: var(--turn-2, #63e7ff); stroke-width: 1.4; }
 .ncx-ring-figure { position: relative; font-size: 19px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 0 10px var(--turn-2, #63e7ff); }
+.ncx-ring-figure::before { content: attr(data-label); }
 .ncx-ring-figure[data-long] { font-size: 15px; }
 /* What kind of reply it is: an answer needs no tag (the head says who speaks); a proposed change says so above its cards. */
 .nova-chat .ai-turn-kind { margin: 0; }

@@ -45,6 +45,8 @@ export function ReadoutRing({gauge}: {gauge: Gauge}) {
       {part > 0 && <circle className="ncx-ring-arc" cx="50" cy="50" r="36" stroke={`url(#${id})`} pathLength="100" strokeDasharray={`${Math.max(0.5, part * 100)} 100`} transform="rotate(-90 50 50)"/>}
       {part > 0 && part < 1 && <circle className="ncx-ring-lead" cx={Math.round(x * 10) / 10} cy={Math.round(y * 10) / 10} r="4.2"/>}
     </svg>
-    <span className="ncx-ring-figure" data-long={gauge.label.length > 4 ? '' : undefined}>{gauge.label}</span>
+    {/* The figure is drawn from an attribute (ncx-console.css), so the read-out's own text still begins with its words
+        (tests/grok53/ai/l7-fifth-answers.spec.ts reads the turn's text; the ring is decoration and says nothing new). */}
+    <span className="ncx-ring-figure" data-long={gauge.label.length > 4 ? '' : undefined} data-label={gauge.label}/>
   </span>;
 }
