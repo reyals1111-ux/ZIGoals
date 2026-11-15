@@ -174,7 +174,7 @@ void main(){
   col *= dn(.28,.5, rr);
   // Beside widgets the star may be wider than its column: its light dissolves toward the wings (uEdge: half the column's
   // width in the canvas's own units; 1 where the canvas fits) instead of being cut by their glass.
-  float edge = dn(uEdge - .24, uEdge + .01, abs(uv.x));
+  float edge = dn(uEdge - .12, uEdge + .01, abs(uv.x));
   col *= edge;
   float peak = max(col.r, max(col.g, col.b));
   vec3 soft = 1. - exp(-col*1.35);
