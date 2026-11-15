@@ -26,15 +26,16 @@ export default function PriceAlertsWidget({size = 'M'}: Partial<CardProps>) {
   if (record.unreadable || !card) return <HoloUnread what="Your price alerts"/>;
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="rows" title="No price alerts yet" href="/app/markets" action="Set a price alert">Set an alert on Markets for a price you want to hear about. It waits here until it fires.</CardNotice>;
   const day = (at: string) => formatDate(at.slice(0, 10), {year: false}), lines = card.lines.slice(0, SHOWN[size]);
-  return <div className="nc-body nx-card" data-size={size}>
+  return <div className="nc-body nx-card" data-size={size} data-lay="hero">
     <div className="nx-top"><Hero value={String(card.waiting)} unit="waiting" label={size === 'S' ? 'Price alerts' : `Price alerts · ${card.fired} fired`}>
       {size !== 'S' && card.unseen > 0 && <p className="nx-note" data-tone="watch">{card.unseen} fired and not seen yet</p>}
+      {size !== 'S' && card.unseen === 0 && card.last && <p className="nx-note">Last fired {day(card.last.at)}</p>}
     </Hero></div>
     {lines.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
-      <NxRows label="Your price alerts" where="the Markets page" extra={card.lines.length - lines.length} rows={lines.map(l => ({key: l.id, name: l.words, value: l.stateWords, sub: l.at ? `Fired ${day(l.at)}` : null}))}/>
+      <NxRows label="Your price alerts" where="the Markets page" extra={card.lines.length - lines.length} rows={lines.map(l => ({key: l.id, name: l.words, value: l.stateWords, chip: l.state === 'fired' ? 'done' as const : l.state === 'off' ? 'off' as const : 'on' as const, sub: l.at ? `Fired ${day(l.at)}` : null}))}/>
+      {size === 'L' && card.last && <p className="nx-note">Last fired, {day(card.last.at)}: {card.last.text}</p>}
+      {size === 'L' && <p className="nx-note">A read-out of your alerts. Nothing here asks a price, sets an alert or trades.</p>}
     </div>}
-    {size === 'L' && card.last && <p className="nx-note">Last fired, {day(card.last.at)}: {card.last.text}</p>}
-    {size === 'L' && <p className="nx-note">A read-out of your alerts. Nothing here asks a price, sets an alert or trades.</p>}
     <CardFoot source="Your price alerts" asOf="as kept on this device"/>
     <HoloTable caption="Price alerts" rows={priceAlertsRows(card, day, Math.max(SHOWN[size], 3))}/>
   </div>;

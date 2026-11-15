@@ -4,11 +4,12 @@ import {symptomsCard, symptomsRows} from '../../../lib/nova/cards/health-insight
 import {logDayWords} from '../../../lib/nova/cards/weight';
 import {SYMPTOMS} from '../../../lib/symptoms/schema';
 import {useDeviceRecord} from '../../ai/use-device-record';
-import {Bars, CardFoot, CardNotice, Hero, type CardProps} from '../cards/kit';
+import {Bars, CardFoot, CardNotice, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import {WidgetLocked} from '../stage/stage-parts';
 import {useHealthDay, useHealthGate} from './use-health-gate';
+import {NxDial, NxHead} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -40,14 +41,14 @@ function SymptomsBody({size}: {size: CardProps['size']}) {
   if (!card) return <HoloUnread what="Your Health records"/>;
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="bars" title="Nothing followed yet" href="/app/health?view=diary" action="Follow a symptom on Health">{size === 'S' ? null : 'Name what you want to follow on Health, such as “headache” or “pollen”, and give it a level each day.'}</CardNotice>;
   const rows = card.rows.slice(0, SHOWN[size]), more = card.rows.length - rows.length;
-  return <div className="nc-body nx-card" data-size={size}>
-    <div className="nx-top"><Hero value={String(card.answeredDays)} unit={`of ${card.days} days`} label={size === 'S' ? 'Days answered' : `Days answered · the last ${card.days} days`}/></div>
+  return <div className="nc-body nx-card" data-size={size} data-lay="dial">
+    <NxDial share={card.days ? card.answeredDays / card.days : null} figure={String(card.answeredDays)} caption={`of ${card.days}`} spin={size === 'L'}/>
+    <NxHead pulse label={size === 'S' ? 'Days answered' : `Days answered · the last ${card.days} days`} title={`${card.answeredDays} of ${card.days} days`} note={size !== 'M' && card.mostNoted ? `Noted most: ${card.mostNoted.name}` : null}/>
     {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">There on the days you answered</p>}
-      <Bars rows={rows.map(r => ({key: r.id, label: r.name, share: r.share, value: r.answered ? `${r.noted} of ${r.answered}` : 'No answer yet', ...(size === 'L' && r.strong ? {note: `Strong on ${r.strong}`} : {})}))}/>
-      {size === 'L' && more > 0 && <p className="nx-note">{more} more on Health.</p>}
+      <Bars extra={more} rows={rows.map(r => ({key: r.id, label: r.name, share: r.share, value: r.answered ? `${r.noted} of ${r.answered}` : 'No answer yet', ...(size === 'L' && r.strong ? {note: `Strong on ${r.strong}`} : {})}))}/>
+      {size === 'L' && <p className="nx-note">A day without an answer is unknown, never counted as none. These are your own counts, not medical advice.</p>}
     </div>}
-    {size === 'L' && <p className="nx-note">A day without an answer is unknown, never counted as none. These are your own counts, not medical advice.</p>}
     <CardFoot source="Your Health records" asOf={card.lastDay ? `last answer ${logDayWords(card.lastDay, day)}` : 'no answer in this range'}/>
     <HoloTable caption={`Symptoms and factors, the last ${card.days} days`} rows={symptomsRows(card, Math.max(SHOWN[size], 3))}/>
   </div>;

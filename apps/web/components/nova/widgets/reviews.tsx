@@ -6,8 +6,10 @@ import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
 import {useWeeklyReview} from '../../weekly-review/use-weekly-review';
-import {CardFoot, Fact, type CardProps} from '../cards/kit';
+import {CardFoot, type CardProps} from '../cards/kit';
 import {HoloReading, HoloTable} from '../holo/parts';
+import {NxDial, NxHead} from './nx-parts';
+import {NxRows, dayInWeek} from './nx-rows';
 import '../cards/connect-cards.css';
 
 /**
@@ -22,25 +24,20 @@ export default function ReviewsWidget({size = 'M'}: Partial<CardProps>) {
   const card = useMemo(() => reviewsCard(weekly.unreadable ? null : weekly.data, life.unreadable ? null : life.data, today), [weekly.unreadable, weekly.data, life.unreadable, life.data, today]);
   if (!weekly.loaded || !life.loaded) return <HoloReading/>;
   const w = card.weekly, l = card.life, day = (date: string) => formatDate(date, {year: date.slice(0, 4) !== today.slice(0, 4)});
-  return <div className="nc-body nx-card" data-size={size} data-flat="">
-    <div className="nx-main nx-pair" data-fit="rows" data-wr-limit="" data-keep="">
-      <p className="nx-readout">
-        <span className="nx-readout-label">Weekly review</span>
-        <span className="nx-readout-value">{w ? w.stateWords : '—'}</span>
-        <span className="nx-readout-sub">{w ? `For the week of ${day(w.weekStart)} to ${day(w.weekEnd)}.` : 'It could not be read on this device.'}</span>
-      </p>
-      <p className="nx-readout">
-        <span className="nx-readout-label">Next review day</span>
-        <span className="nx-readout-value">{w ? formatDate(w.nextDay, {weekday: true, year: false}) : '—'}</span>
-        <span className="nx-readout-sub">{w ? (w.lastDone ? `Last finished ${day(w.lastDone)}.` : 'None finished yet.') : ''}</span>
-      </p>
-    </div>
-    {size === 'L' && <div className="nc-facts">
-      {w && <Fact label="Reviews finished" value={String(w.finished)}/>}
-      <Fact label="Life review" value={!l ? 'Not read on this device' : l.period === 'month' ? 'By month' : 'By week'}/>
+  const left = w ? Math.max(0, dayInWeek(today, w.nextDay)) : null, open = !!w && (w.state === 'due' || w.state === 'draft');
+  const next = w ? formatDate(w.nextDay, {weekday: true, year: false}) : null;
+  return <div className="nc-body nx-card" data-size={size} data-lay="dial">
+    {/* A countdown ring: full while this week's review is open, otherwise filling as the next review day nears. */}
+    <NxDial share={!w ? null : open ? 1 : left === null ? null : Math.max(0, 1 - left / 7)} figure={!w ? '—' : open ? 'Now' : String(left)} caption={!w || open ? null : left === 1 ? 'day' : 'days'} ticks={28} spin={size === 'L'}/>
+    <NxHead label="Weekly review" title={!w ? 'Not read on this device' : open ? `${w.stateWords} · week of ${day(w.weekStart)}` : `${w.stateWords} · next ${next}`} note={w ? (w.lastDone ? `Last finished ${day(w.lastDone)}` : 'None finished yet') : null}/>
+    {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit="">
+      <NxRows label="Your reviews" min={0} rows={[
+        ...(w ? [{key: 'window', name: 'This review covers', value: `${day(w.weekStart)} – ${day(w.weekEnd)}`}] : []),
+        ...(w && open ? [{key: 'next', name: 'Next review day', value: next}] : []),
+        ...(w ? [{key: 'done', name: 'Reviews finished', value: String(w.finished)}] : []),
+        {key: 'life', name: 'Life review', value: !l ? 'Not read' : l.period === 'month' ? 'By month' : 'By week', sub: l?.focus ? `Your latest focus: ${l.focus.text}` : l ? 'No focus chosen yet' : null},
+      ]}/>
     </div>}
-    {size !== 'S' && l?.focus && <p className="nx-note">Your latest focus: {l.focus.text}</p>}
-    {size === 'L' && l && !l.focus && <p className="nx-note">No focus chosen in the Life review yet.</p>}
     <CardFoot source="Your reviews" asOf="today"/>
     <HoloTable caption="Reviews" rows={reviewsRows(card, day)}/>
   </div>;

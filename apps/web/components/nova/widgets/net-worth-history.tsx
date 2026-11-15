@@ -35,7 +35,7 @@ export default function NetWorthHistoryWidget({size = 'M', params}: Partial<Card
   const latest = card.latest;
   if (card.state === 'quiet' || !latest) return <CardNotice kind="empty" ghost="trend" title={`No day recorded in ${card.rangeWords}`} href="/app/wealth#wealth-history" action="Record today on Wealth">The last recorded day is before this range{card.since ? `; the history starts ${on(card.since)}` : ''}.</CardNotice>;
   const known = latest.cents !== null, shownCents = known ? latest.cents : card.latestKnown?.cents ?? null, knownDays = card.points.filter(p => p.cents !== null), first = knownDays[0], last = knownDays.at(-1);
-  return <div className="nc-body nx-card" data-size={size}>
+  return <div className="nc-body nx-card" data-size={size} data-lay="chart">
     <div className="nx-top"><Hero value={shownCents === null ? '—' : money(shownCents)} label={known ? (size === 'S' ? 'Net worth' : `Net worth · ${on(latest.day)}`) : card.latestKnown ? `Last known · ${on(card.latestKnown.day)}` : 'Net worth not known'}>
       {!known && size !== 'S' && <p className="nx-note" data-tone="watch">Not known on {on(latest.day)}: no value for {latest.missing.slice(0, 2).join(', ')}{latest.missing.length > 2 ? ` and ${latest.missing.length - 2} more` : ''}.</p>}
       {size !== 'S' && card.change && <Delta text={changeWords(card.change, money, percent, on)} direction={card.change.direction} good={card.change.direction === 'up' ? true : card.change.direction === 'down' ? false : null}/>}
@@ -45,7 +45,7 @@ export default function NetWorthHistoryWidget({size = 'M', params}: Partial<Card
     {size !== 'S' && <div className="nx-main">
       {size === 'L' && <p className="nx-cap">Recorded days · {card.rangeWords}</p>}
       {knownDays.length > 1 && first && last
-        ? <TrendArea values={card.series} height={size === 'L' ? 112 : 44} labels={[on(first.day), on(last.day)]} {...(card.high && card.low && card.high.cents !== card.low.cents ? {maxLabel: money(card.high.cents), minLabel: money(card.low.cents)} : {})}/>
+        ? <TrendArea values={card.series} height={size === 'L' ? 112 : 64} labels={[on(first.day), on(last.day)]} {...(card.high && card.low && card.high.cents !== card.low.cents ? {maxLabel: money(card.high.cents), minLabel: money(card.low.cents)} : {})}/>
         : <p className="nx-note">One day with a known net worth in {card.rangeWords}. A line shows once there are two.</p>}
     </div>}
     {size === 'L' && <div className="nc-facts">

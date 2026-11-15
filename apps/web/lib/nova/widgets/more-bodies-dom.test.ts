@@ -15,6 +15,7 @@ import {SHOWCASE_MARKER} from '../../showcase-storage';
 const IDS = ['net-worth-history', 'ready-to-assign', 'age-of-money', 'spending-pace', 'bill-changes', 'money-tags', 'perfect-days', 'day-rules', 'tasks-later', 'countdowns', 'journal-numbers', 'templates', 'run-splits', 'mood-tags', 'symptoms',
   'priority-matrix', 'hour-grid', 'reviews', 'milestones', 'cash-flow', 'accounts', 'debt-plan', 'savings-challenges', 'price-alerts', 'health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle'] as const;
 const DAY = '2026-11-11', RECORDS = buildShowcase(DAY, 'UTC').records;
+const DIALS = ['ready-to-assign', 'age-of-money', 'perfect-days', 'countdowns', 'milestones', 'reviews', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle'] as const;
 type Body = ComponentType<{size: 'S' | 'M' | 'L'}>;
 const bodies = import.meta.glob<{default: Body}>('../../../components/nova/widgets/*.tsx');
 const load = async (id: string) => (await bodies[`../../../components/nova/widgets/${id}.tsx`]!()).default;
@@ -82,11 +83,22 @@ describe('round 3: what the captures at 2560 × 1440 showed', () => {
     expect(notice.querySelector('.nc-notice-glyph')).not.toBeNull(); // the lock's own dial stays
     expect(notice.textContent).toContain('Health is off for NOVA');
   });
-  it('Medium labels are short; a wide Large card has one column for its instrument, never two over each other', async () => {
+  it('a ring kind is one dial with its words; a wide Large card has one column for its instrument, never two over each other', async () => {
     showcase();
-    expect((await draw('ready-to-assign', 'M')).querySelector('.nc-hero-label')!.textContent).toBe('Ready to assign');
-    expect((await draw('perfect-days', 'M')).querySelector('.nc-hero-label')!.textContent).toBe('Perfect days');
-    expect((await draw('age-of-money', 'M')).querySelector('.nc-hero-label')!.textContent).toBe('Age of money');
+    // Round 4: a ring kind is one thick dial with its figure inside, the words beside it (the figure in words too).
+    const ready = await draw('ready-to-assign', 'M');
+    expect(ready.querySelectorAll('.nx-dial').length).toBe(1);
+    expect(ready.querySelector('.nx-dial-figure b')!.textContent).toMatch(/^\d+%$/);
+    expect(ready.querySelector('.nx-head .nx-title')!.textContent).toMatch(/\d/);
+    for (const id of DIALS) for (const size of ['S', 'M', 'L'] as const) {
+      const el = await draw(id, size);
+      if (el.querySelector('.nc-notice')) continue; // a teaching or locked state has no dial
+      expect(el.querySelector('.nx-card')!.getAttribute('data-lay'), `${id} ${size}`).toBe('dial');
+      expect(el.querySelectorAll('.nx-dial').length, `${id} ${size}`).toBe(1);
+      expect(el.querySelector('.nx-dial')!.getAttribute('aria-hidden'), id).toBe('true'); // decoration: the words carry the figure
+      expect((el.querySelector('.nx-head .nx-title')!.textContent ?? '').length, `${id} ${size}`).toBeGreaterThan(0);
+      expect(el.querySelector('.nc-foot'), `${id} ${size}`).not.toBeNull(); // source and as-of, always
+    }
     for (const id of IDS) for (const size of ['M', 'L'] as const) expect((await draw(id, size)).querySelectorAll('.nc-body > .nx-main').length, `${id} ${size}`).toBeLessThanOrEqual(1);
     // This evening and Someday at Medium: one list, each row with its whole name and the list it is on.
     const later = await draw('tasks-later', 'M');

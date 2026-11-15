@@ -3,11 +3,12 @@ import {useMemo} from 'react';
 import {meditationCard, meditationRows} from '../../../lib/nova/cards/health-more';
 import {healthGroupIn} from '../../../lib/vault/w-homes';
 import {useHealth} from '../../health/use-health';
-import {CardFoot, CardNotice, Columns, Fact, Gauge, Hero, type CardProps} from '../cards/kit';
+import {CardFoot, CardNotice, Columns, Fact, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import {WidgetLocked} from '../stage/stage-parts';
 import {useHealthDay, useHealthGate} from './use-health-gate';
+import {NxDial, NxHead} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -31,21 +32,18 @@ function Minutes({size}: {size: CardProps['size']}) {
   if (!health.loaded) return <HoloReading/>;
   if (!card) return <HoloUnread what="Your Health records"/>;
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="columns" title="No meditation logged yet" href="/app/health?view=meditation" action="Go to Meditation">{size === 'S' ? null : 'Time a session or log one on Health. Your minutes then add up here, week by week.'}</CardNotice>;
-  return <div className="nc-body nx-card" data-size={size}>
-    <div className="nx-top">
-      {card.goal !== null && <Gauge share={card.share} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor/>}
-      <Hero value={card.thisWeekText} label={size === 'S' ? 'This week' : card.goal ? `This week · of your ${card.goal} min` : 'Meditated this week'}>
-        {size !== 'S' && <p className="nx-note">{card.daysInARow > 0 ? `${card.daysInARow} ${card.daysInARow === 1 ? 'day' : 'days'} in a row` : 'No run going'}</p>}
-      </Hero>
-    </div>
-    {size !== 'S' && <div className="nx-main">
+  const run = card.daysInARow > 0 ? `${card.daysInARow} ${card.daysInARow === 1 ? 'day' : 'days'} in a row` : 'No run going';
+  return <div className="nc-body nx-card" data-size={size} data-lay="dial">
+    <NxDial share={card.share} figure={String(card.thisWeek)} caption="min" spin={size === 'L'}/>
+    <NxHead pulse label={size === 'S' ? 'Meditated this week' : card.goal ? `Meditated this week · of your ${card.goal} min` : 'Meditated this week'} title={card.thisWeekText} note={run}/>
+    {size !== 'S' && <div className="nx-main" data-keep="">
       {size === 'L' && <p className="nx-cap">Minutes each week</p>}
-      <Columns values={card.weeks.map(w => w.minutes)} labels={card.weeks.map(w => w.label)} height={size === 'L' ? 96 : 52} mark={card.weeks.length - 1}/>
-    </div>}
-    {size === 'L' && <div className="nc-facts">
-      <Fact label="Sessions in all" value={String(card.sessions)}/>
-      <Fact label="Time in all" value={card.totalText}/>
-      <Fact label="Longest session" value={card.longestText}/>
+      <Columns values={card.weeks.map(w => w.minutes)} labels={card.weeks.map(w => w.label)} height={size === 'L' ? 110 : 72} mark={card.weeks.length - 1}/>
+      {size === 'L' && <div className="nc-facts">
+        <Fact label="Sessions in all" value={String(card.sessions)}/>
+        <Fact label="Time in all" value={card.totalText}/>
+        <Fact label="Longest session" value={card.longestText}/>
+      </div>}
     </div>}
     <CardFoot source="Your Health records" asOf="this week so far"/>
     <HoloTable caption="Meditation" rows={meditationRows(card, day)}/>

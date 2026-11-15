@@ -5,9 +5,10 @@ import type {WeekCell} from '../../../lib/nova/cards/habit-week';
 import {perfectDaysCard, perfectDaysRows} from '../../../lib/nova/cards/life-insights';
 import {formatMonth, formatWeekday} from '../../../lib/visual-format';
 import {useHabits} from '../../habits/use-habits';
-import {CardFoot, CardNotice, Fact, Gauge, Hero, Lattice, type CardProps} from '../cards/kit';
+import {CardFoot, CardNotice, Fact, Lattice, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
+import {NxDial, NxHead} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -36,22 +37,16 @@ export default function PerfectDaysWidget({size = 'M'}: Partial<CardProps>) {
   // first, so a short panel drops the older weeks and keeps this one (cards/connect-cards.css).
   const upTo = card.weeks.findIndex(w => w.today !== undefined), weeks = size === 'L' ? card.weeks : card.weeks.slice(Math.max(0, (upTo < 0 ? card.weeks.length : upTo + 1) - 3), upTo < 0 ? undefined : upTo + 1).reverse();
   const used = new Set(weeks.flatMap(w => w.cells)), month = formatMonth(card.month);
-  return <div className="nc-body nx-card" data-size={size}>
-    <div className="nx-top">
-      <Gauge share={card.dueDays ? card.perfect / card.dueDays : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor/>
-      <Hero value={String(card.perfect)} unit={card.dueDays ? `of ${card.dueDays}` : undefined} label={size === 'L' ? `Perfect days · ${month}` : 'Perfect days'}>
-        {size !== 'S' && <p className="nx-note">{size === 'M' ? `${month} · ` : ''}{card.run > 0 ? `${card.run} in a row` : 'No run going'}</p>}
-      </Hero>
-    </div>
+  const run = card.run > 0 ? `${card.run} in a row` : 'No run going';
+  return <div className="nc-body nx-card" data-size={size} data-lay="dial">
+    <NxDial share={card.dueDays ? card.perfect / card.dueDays : null} figure={String(card.perfect)} caption={card.dueDays ? `of ${card.dueDays}` : null} spin={size === 'L'}/>
+    <NxHead label={size === 'S' ? 'Perfect days' : `Perfect days · ${month}`} title={card.dueDays ? `${card.perfect} of ${card.dueDays} days` : 'Nothing due yet'} note={size === 'L' ? `${run} · today: ${card.todayWords.replace(/^./, c => c.toLowerCase())}` : size === 'S' ? run : null}/>
     {size !== 'S' && <div className="nx-main nx-month" data-fit="rows" data-wr-limit="">
       <Lattice columns={Array.from({length: 7}, (_, i) => formatWeekday(addLocalDays(card.firstMonday, i)).slice(0, 1))} rows={weeks.map(w => ({key: w.key, label: `W${isoWeek(w.key)}`, cells: w.cells, today: w.today}))}/>
+      {size === 'L' && <div className="nc-facts"><Fact label="Days with something due" value={String(card.dueDays)}/></div>}
+      {size === 'L' && <p className="nx-key" aria-hidden="true">{KEY.filter(([cell]) => used.has(cell)).map(([cell, words]) => <span key={cell}><i data-cell={cell}/>{words}</span>)}</p>}
     </div>}
-    {size === 'L' && <div className="nc-facts">
-      <Fact label="Today" value={card.todayWords}/>
-      <Fact label="Days with something due" value={String(card.dueDays)}/>
-    </div>}
-    {size === 'L' && <p className="nx-key" aria-hidden="true">{KEY.filter(([cell]) => used.has(cell)).map(([cell, words]) => <span key={cell}><i data-cell={cell}/>{words}</span>)}</p>}
-    <CardFoot source="Your habits" asOf="today"/>
+    <CardFoot source="Your habits" asOf={`today · ${run.replace(/^./, c => c.toLowerCase())}`}/>
     <HoloTable caption={`Perfect days, ${month}`} rows={perfectDaysRows(card)}/>
   </div>;
 }

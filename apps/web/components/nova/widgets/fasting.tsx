@@ -2,12 +2,12 @@
 import {useMemo} from 'react';
 import {fastingCard, fastingRows} from '../../../lib/nova/cards/health-more';
 import {useFasting} from '../../health/use-fasting';
-import {CardFoot, CardNotice, Gauge, Hero, type CardProps} from '../cards/kit';
+import {Bars, CardFoot, CardNotice, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import {WidgetLocked} from '../stage/stage-parts';
-import {NxRows} from './nx-rows';
 import {useHealthDay, useHealthGate} from './use-health-gate';
+import {NxDial, NxHead} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -36,15 +36,15 @@ function Fasts({size}: {size: CardProps['size']}) {
   if (!card) return <HoloUnread what="Your fasts"/>;
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="ring" title="No fast logged yet" href="/app/health#fasting" action="Go to the fasting timer">{size === 'S' ? null : 'Start a fast on Health, or ask NOVA “start a 16 hour fast” for a card to confirm. Its hours show here.'}</CardNotice>;
   const run = card.running, last = card.history[0], rows = card.history.slice(run ? 0 : 1, (run ? 0 : 1) + SHOWN[size]);
-  return <div className="nc-body nx-card" data-size={size}>
-    <div className="nx-top">
-      {run && <Gauge share={run.share} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} ticks={run.targetHours * 2} spin={size === 'L'} decor/>}
-      {run ? <Hero value={run.elapsed} label={size === 'S' ? 'Fasting now' : `Fasting now · target ${run.targetHours} h`}>{size !== 'S' && run.reached && <p className="nx-note">The target is reached.</p>}</Hero>
-        : <Hero value={last ? last.hoursText : '—'} label={last ? (size === 'S' ? 'Last fast' : `Last fast · ${last.dayText}`) : 'No fast finished yet'}>{size !== 'S' && last && <p className="nx-note">Target {last.targetHours} h · no fast is running</p>}</Hero>}
-    </div>
+  const clock = (ms: number) => `${Math.floor(ms / 3_600_000)}:${String(Math.floor(ms % 3_600_000 / 60_000)).padStart(2, '0')}`;
+  return <div className="nc-body nx-card" data-size={size} data-lay="dial">
+    {run ? <NxDial share={run.share} figure={clock(run.elapsedMs)} caption={`of ${run.targetHours} h`} ticks={run.targetHours * 2} spin={size === 'L'}/>
+      : <NxDial share={last ? Math.min(1, last.hours / Math.max(1, last.targetHours)) : null} figure={last ? last.hoursText.replace(/\s*h$/, '') : '—'} caption={last ? `of ${last.targetHours} h` : null}/>}
+    {run ? <NxHead pulse label="Fasting now" title={run.elapsed} note={run.reached ? `The target of ${run.targetHours} h is reached.` : `Target ${run.targetHours} h`}/>
+      : <NxHead pulse label={last ? `Last fast · ${last.dayText}` : 'Fasting'} title={last ? last.hoursText : 'No fast finished yet'} note={last ? `Target ${last.targetHours} h · no fast is running` : null}/>}
     {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">{run ? 'Your last fasts' : 'Before that'}</p>}
-      <NxRows label="Earlier fasts" where="the Health page" extra={Math.max(0, card.count - (run ? 0 : 1) - rows.length)} rows={rows.map(h => ({key: h.id, name: h.dayText, value: h.hoursText, sub: `Target ${h.targetHours} h`}))}/>
+      <Bars extra={Math.max(0, card.count - (run ? 0 : 1) - rows.length)} rows={rows.map(h => ({key: h.id, label: h.dayText, share: Math.min(1, h.hours / Math.max(1, h.targetHours)), value: `${h.hoursText} of ${h.targetHours} h`}))}/>
     </div>}
     <CardFoot source="Your Health records" asOf={run ? 'the clock updates each minute' : 'hours and a target only'}/>
     <HoloTable caption="Fasting" rows={fastingRows(card)}/>

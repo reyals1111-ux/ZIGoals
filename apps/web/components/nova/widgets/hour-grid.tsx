@@ -2,10 +2,11 @@
 import {useMemo} from 'react';
 import {hourGridCard, hourGridRows} from '../../../lib/nova/cards/plan-insights';
 import {formatClock} from '../../../lib/visual-format';
-import {CardFoot, CardNotice, Columns, Hero, type CardProps} from '../cards/kit';
+import {CardFoot, CardNotice, Hero, type CardProps} from '../cards/kit';
 import {HoloReading, HoloTable} from '../holo/parts';
 import {useAgendaToday} from '../holo/use-agenda-today';
 import {NxRows} from './nx-rows';
+import {NxHours} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -21,14 +22,13 @@ export default function HourGridWidget({size = 'M'}: Partial<CardProps>) {
   if (!items || !card) return <HoloReading/>;
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="columns" title="Nothing on today yet" href="/app/habits?add=habit" action="Add a habit">A habit with a time, a task, a bill or a plan shows here at its hour.</CardNotice>;
   const list = card.rows.flatMap(r => r.items), next = card.next;
-  return <div className="nc-body nx-card" data-size={size}>
+  return <div className="nc-body nx-card" data-size={size} data-lay="chart">
     <div className="nx-top"><Hero value={String(card.timed)} unit={size === 'S' ? 'timed' : 'with a time'} label={size === 'S' ? 'Today' : `Today · ${card.total} ${card.total === 1 ? 'item' : 'items'}`}>
       {size !== 'S' && <p className="nx-note">{next ? `Next: ${formatClock(next.time!)} ${next.title}` : card.untimed ? `${card.untimed} any time today` : 'Nothing more with a time today'}</p>}
     </Hero></div>
-    {size !== 'S' && <div className="nx-main" data-wr-limit="">
+    {size !== 'S' && <div className="nx-main" data-wr-limit="" data-keep="">
       {size === 'L' && <p className="nx-cap">Each hour · {card.untimed} any time</p>}
-      <Columns values={card.load.map(h => h.count)} labels={card.load.map(h => h.label)} height={size === 'L' ? 72 : 48} mark={card.nowIndex ?? undefined}/>
-      {/* One column for the chart and the list under it (two columns of their own lay over each other in a wide Large panel: round 3). */}
+      <NxHours hours={card.load} now={card.nowIndex} cap={size === 'L' ? 5 : 4}/>
       {size === 'L' && list.length > 0 && <NxRows label="Today in time order" where="your agenda" min={0} rows={list.map(i => ({key: i.id, name: i.title, value: formatClock(i.time!), sub: i.state === 'done' ? 'Done' : i.state === 'skipped' ? 'Skipped' : null}))}/>}
     </div>}
     <CardFoot source="Your agenda" asOf={`today, ${formatClock(now)}`}/>

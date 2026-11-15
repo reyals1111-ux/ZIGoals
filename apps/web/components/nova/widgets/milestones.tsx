@@ -2,9 +2,10 @@
 import {useMemo} from 'react';
 import {milestonesCard, milestonesRows} from '../../../lib/nova/cards/plan-insights';
 import {usePlatform} from '../../platform/use-platform';
-import {Bars, CardFoot, CardNotice, Gauge, Hero, type CardProps} from '../cards/kit';
+import {Bars, CardFoot, CardNotice, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
+import {NxDial, NxHead} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -23,17 +24,12 @@ export default function MilestonesWidget({size = 'M'}: Partial<CardProps>) {
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="bars" title="No goals yet" href="/app/goals/new" action="Set a goal">Give a goal a few milestones and tick them off as you go. They add up here.</CardNotice>;
   if (card.state === 'none') return <CardNotice kind="empty" ghost="bars" title="No milestones yet" href="/app/goals" action="Add a milestone on a goal">None of your open goals has a milestone yet. Add one on a goal’s page and tick it when you get there.</CardNotice>;
   const rows = card.goals.slice(0, SHOWN[size]), more = card.goals.length - rows.length;
-  return <div className="nc-body nx-card" data-size={size}>
-    <div className="nx-top">
-      <Gauge share={card.total ? card.done / card.total : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor/>
-      <Hero value={String(card.done)} unit={`of ${card.total}`} label={size === 'S' ? 'Ticked' : 'Milestones ticked'}>
-        {size !== 'S' && card.lead?.next && <p className="nx-note">Next: {card.lead.next}</p>}
-      </Hero>
-    </div>
+  return <div className="nc-body nx-card" data-size={size} data-lay="dial">
+    <NxDial share={card.total ? card.done / card.total : null} figure={String(card.done)} caption={`of ${card.total}`} spin={size === 'L'}/>
+    <NxHead label="Milestones ticked" title={`${card.done} of ${card.total}`} note={card.lead?.next ? `Next: ${card.lead.next}` : 'Every milestone is ticked.'}/>
     {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">By goal</p>}
-      <Bars rows={rows.map(g => ({key: g.id, label: g.name, share: g.share, value: `${g.done} of ${g.total}`, ...(size === 'L' ? {note: g.next ? `Next: ${g.next}` : 'All ticked'} : {})}))}/>
-      {size === 'L' && more > 0 && <p className="nx-note">{more} more {more === 1 ? 'goal' : 'goals'} on Goals.</p>}
+      <Bars extra={more} rows={rows.map(g => ({key: g.id, label: g.name, share: g.share, value: `${g.done} of ${g.total}`, ...(size === 'L' ? {note: g.next ? `Next: ${g.next}` : 'All ticked'} : {})}))}/>
     </div>}
     <CardFoot source="Your goals" asOf="your own ticks"/>
     <HoloTable caption="Goal milestones" rows={milestonesRows(card, Math.max(SHOWN[size], 3))}/>

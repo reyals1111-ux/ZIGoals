@@ -11,6 +11,7 @@ import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import {WidgetLocked} from '../stage/stage-parts';
 import {useHealthDay, useHealthGate} from './use-health-gate';
+import {NxDial, NxHead} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -46,20 +47,21 @@ function MoodTagsBody({size}: {size: CardProps['size']}) {
   const foot = <CardFoot source="Your Health records" asOf={`the last ${card.windowDays} days · goes with, not a cause`}/>, table = <HoloTable caption="Mood tags: what goes with your good days" rows={moodTagsRows(card)}/>;
   const pending = card.pending.length > 0 && <ul className="nx-chips" aria-label="Tags that wait for more days">{card.pending.slice(0, size === 'L' ? 6 : 3).map(p => <li key={p.tag}>{p.tag} · <b>{p.days} of {p.need}</b> days</li>)}</ul>;
   const top = card.rows[0];
-  if (!top) return <div className="nc-body nx-card" data-size={size}>
+  if (!top) return <div className="nc-body nx-card" data-size={size} data-lay="hero">
     <div className="nx-top"><Hero value={String(card.tags)} unit={card.tags === 1 ? 'tag' : 'tags'} label="Waiting for more days"/></div>
     {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit="">{pending}<p className="nx-note">A comparison needs {TAG_MIN_DAYS} tagged days and {TAG_MIN_DAYS} other days with a mood. {card.note}</p></div>}
     {foot}{table}
   </div>;
   const rows = card.rows.slice(0, SHOWN[size]);
-  return <div className="nc-body nx-card" data-size={size}>
-    <div className="nx-top"><Hero value={String(top.good)} unit={`of ${top.days} days`} label={size === 'S' ? `Good with “${top.tag}”` : `Good or Great with “${top.tag}”`}/></div>
+  return <div className="nc-body nx-card" data-size={size} data-lay="dial">
+    <NxDial share={top.share} figure={String(top.good)} caption={`of ${top.days}`} spin={size === 'L'}/>
+    <NxHead pulse label={size === 'S' ? `Good with “${top.tag}”` : `Good or Great with “${top.tag}”`} title={`${top.good} of ${top.days} days`} note={size !== 'M' ? `Other days with a mood: ${top.otherGood} of ${top.otherDays}` : null}/>
     {rows.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Good or Great days, by tag</p>}
       <Bars rows={rows.map(r => ({key: r.tag, label: r.tag, share: r.share, value: `${r.good} of ${r.days}`, ...(size === 'L' ? {note: `Other days with a mood: ${r.otherGood} of ${r.otherDays}`} : {})}))}/>
       {size === 'L' && pending}
+      {size === 'L' && <p className="nx-note">{card.note} A tag needs {TAG_MIN_DAYS} days before it is compared.</p>}
     </div>}
-    {size === 'L' && <p className="nx-note">{card.note} A tag needs {TAG_MIN_DAYS} days before it is compared.</p>}
     {foot}{table}
   </div>;
 }

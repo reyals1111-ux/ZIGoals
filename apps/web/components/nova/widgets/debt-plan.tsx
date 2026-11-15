@@ -5,10 +5,9 @@ import {DEBT_PLANNER} from '../../../lib/debt-planner/store';
 import {PLAN_RULE, debtPlanCard, debtPlanRows} from '../../../lib/nova/cards/money-more';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
-import {CardFoot, CardNotice, Hero, type CardProps} from '../cards/kit';
+import {Bars, CardFoot, CardNotice, Hero, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
-import {NxRows} from './nx-rows';
 import '../cards/connect-cards.css';
 
 /**
@@ -30,16 +29,18 @@ export default function DebtPlanWidget({size = 'M'}: Partial<CardProps>) {
   const foot = <CardFoot source={card.note ? 'Showcase example figures' : 'Your kept figures'} asOf="a projection, not a promise"/>, table = <HoloTable caption="Debt payoff plan" rows={debtPlanRows(card)}/>;
   const lead = card.plans[0];
   if (card.state !== 'live' || !lead) return <CardNotice kind="empty" ghost="rows" title={card.state === 'unkept' ? 'No figures kept yet' : 'A figure is missing'} href="/app/wealth#accounts-title" action="Open the payoff planner">{card.state === 'unkept' ? `You owe ${card.owed} across ${card.debts} ${card.debts === 1 ? 'debt' : 'debts'}. Enter the minimums in the payoff planner on Wealth and keep them on this device.` : card.issue}</CardNotice>;
-  return <div className="nc-body nx-card" data-size={size}>
-    <div className="nx-top"><Hero value={lead.monthName ?? 'Not in 100 years'} label={size === 'S' ? 'Would be cleared by' : 'Debts would be cleared by'}>
+  const longest = Math.max(1, ...card.plans.map(p => p.months ?? 0));
+  return <div className="nc-body nx-card" data-size={size} data-lay="hero">
+    <div className="nx-top"><Hero value={lead.monthName ?? '100+ years'} label={size === 'S' ? 'Would be cleared by' : 'Debts would be cleared by'}>
       {size !== 'S' && <p className="nx-note">{card.owed} owed · {card.extra} extra a month</p>}
     </Hero></div>
     {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Three ways to pay · {card.currency}</p>}
-      <NxRows label="Payoff plans" rows={card.plans.map(p => ({key: p.strategy, name: p.title, value: p.monthName ?? 'Not within 100 years', sub: p.months === null ? null : `${p.months} ${p.months === 1 ? 'month' : 'months'} · ${p.interest} interest`}))}/>
+      {/* A payoff timeline: one bar a plan on one scale of months (the longest is the full width); a projection, said as one. */}
+      <Bars rows={card.plans.map(p => ({key: p.strategy, label: p.title, share: p.months === null ? null : p.months / longest, value: p.months === null ? 'Not within 100 years' : `${p.monthName} · ${p.months} ${p.months === 1 ? 'month' : 'months'}`, ...(size === 'L' && p.months !== null ? {note: `${p.interest} interest on the way`} : {})}))}/>
+      {size === 'L' && card.first && <p className="nx-note">The first debt cleared would be {card.first.name}, by {card.first.monthName}.</p>}
+      {size === 'L' && <p className="nx-note">{PLAN_RULE}</p>}
     </div>}
-    {size === 'L' && card.first && <p className="nx-note">The first debt cleared would be {card.first.name}, by {card.first.monthName}.</p>}
-    {size === 'L' && <p className="nx-note">{PLAN_RULE}</p>}
     {foot}{table}
   </div>;
 }

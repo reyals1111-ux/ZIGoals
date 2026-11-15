@@ -4,7 +4,7 @@ import {runSplitsCard, runSplitsRows} from '../../../lib/nova/cards/health-insig
 import {WORKOUT_SPLITS} from '../../../lib/workouts/splits-schema';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useWorkouts} from '../../health/workouts/use-workouts';
-import {CardFoot, CardNotice, Columns, Fact, HeartMark, Hero, type CardProps} from '../cards/kit';
+import {CardFoot, CardNotice, Columns, Fact, HeartMark, HeartTrace, Hero, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import {WidgetLocked} from '../stage/stage-parts';
@@ -35,17 +35,18 @@ function RunSplits({size}: {size: CardProps['size']}) {
   const run = card.run;
   if (!run) return <CardNotice kind="empty" ghost="columns" title="No run with a pace yet" href="/app/health?view=workouts" action="Import a run">{size === 'S' ? null : 'Import a GPX or TCX file of a run on Health, under Workouts. Its pace for each kilometre shows here.'}</CardNotice>;
   const many = run.splits.length > 12, mark = run.fastest ? run.splits.findIndex(s => s.km === run.fastest!.km) : undefined;
-  return <div className="nc-body nx-card" data-size={size}>
+  return <div className="nc-body nx-card" data-size={size} data-lay="chart">
     <div className="nx-top">
       <Hero value={run.paceText.replace(/ \/km$/, '')} unit="/km" label={size === 'S' ? 'Average pace' : `${run.name} · ${run.dateText}`}>
         {size !== 'S' && run.distanceText && <p className="nx-note">Average pace over {run.distanceText}</p>}
+        {size !== 'S' && <HeartTrace className="nx-pulse"/>}
       </Hero>
       {size === 'S' && <span className="nc-mini" aria-hidden="true"><HeartMark size={36}/></span>}
     </div>
     {size !== 'S' && <div className="nx-main">
       {size === 'L' && run.splits.length > 0 && <p className="nx-cap">Each kilometre · taller is faster</p>}
       {run.splits.length > 0
-        ? <Columns values={run.splits.map(s => s.speed)} labels={run.splits.map((s, i) => !many || i === 0 || i === run.splits.length - 1 || s.km % 5 === 0 ? s.label : '')} height={size === 'L' ? 96 : 52} mark={mark !== undefined && mark >= 0 ? mark : undefined}/>
+        ? <Columns values={run.splits.map(s => s.speed)} labels={run.splits.map((s, i) => !many || i === 0 || i === run.splits.length - 1 || s.km % 5 === 0 ? s.label : '')} height={size === 'L' ? 110 : 64} mark={mark !== undefined && mark >= 0 ? mark : undefined}/>
         : <p className="nx-note">This run is too long to keep every kilometre; its average pace is kept.</p>}
     </div>}
     {size === 'L' && <div className="nc-facts">

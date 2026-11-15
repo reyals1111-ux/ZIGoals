@@ -5,7 +5,7 @@ import {cashFlowCard, cashFlowRows} from '../../../lib/nova/cards/money-more';
 import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
-import {CardFoot, CardNotice, Columns, Hero, type CardProps} from '../cards/kit';
+import {Bars, CardFoot, CardNotice, Columns, Hero, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import {NxRows} from './nx-rows';
@@ -27,18 +27,24 @@ export default function CashFlowWidget({size = 'M'}: Partial<CardProps>) {
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="columns" title="Nothing logged yet" href="/app/wealth#spending" action="Log income or spending">Log what comes in and what goes out on Wealth. Each month then stands here beside the others.</CardNotice>;
   const foot = <CardFoot source="Your Wealth records" asOf={`as of today, ${formatDate(today, {year: false})}`}/>, table = <HoloTable caption={`Cash flow${card.currency ? `, in ${card.currency}` : ''}`} rows={cashFlowRows(card)}/>;
   const chart = <Columns values={card.months.map(m => m.spending === null ? null : m.spending / 100)} labels={card.months.map(m => m.label)} height={size === 'L' ? 84 : 48} mark={card.months.length - 1}/>;
-  return <div className="nc-body nx-card" data-size={size}>
+  const month = card.months.at(-1), inCents = month?.income ?? null, outCents = month?.spending ?? null, top = Math.max(1, inCents ?? 0, outCents ?? 0);
+  const payees = card.payees.slice(0, size === 'L' ? 6 : 2);
+  return <div className="nc-body nx-card" data-size={size} data-lay="hero">
     <div className="nx-top"><Hero value={card.net ?? '—'} label={card.netCents === null ? `Nothing logged in ${card.monthName}` : card.netCents === 0 ? `As much in as out · ${card.monthName}` : `More ${card.netCents > 0 ? 'in than out' : 'out than in'} · ${card.monthName}`}>
-      {size !== 'S' && card.income && card.spending && <p className="nx-note">{card.income} in · {card.spending} out</p>}
+      {size === 'L' && card.others.length > 0 && <p className="nx-note">Also logged in {card.others.join(', ')}: never converted, never added.</p>}
     </Hero></div>
-    {size !== 'S' && <div className="nx-main" data-wr-limit="">
+    {size !== 'S' && <div className="nx-main" data-fit="rows" data-wr-limit={size === 'M' ? '' : undefined}>
+      {/* In and out on one scale; then who this month's spending went to; at Large the months beside each other. */}
+      <Bars rows={[
+        {key: 'in', label: 'In', share: inCents === null ? null : inCents / top, value: card.income ?? 'Nothing logged'},
+        {key: 'out', label: 'Out', share: outCents === null ? null : outCents / top, value: card.spending ?? 'Nothing logged'},
+      ]}/>
       {size === 'L' && <p className="nx-cap">Spent each month · {card.currency}</p>}
-      {chart}
-      {/* One column for the chart and the payees under it (two columns of their own lay over each other in a wide Large panel: round 3). */}
-      {size === 'L' && card.payees.length > 0 && <p className="nx-cap">Paid to, this month</p>}
-      {size === 'L' && card.payees.length > 0 && <NxRows label="This month’s payees" where="the Wealth page" min={0} rows={card.payees.map(p => ({key: p.key, name: p.name, value: p.text, sub: p.last === null ? 'Last month holds no record' : `Last month ${p.last}`}))}/>}
+      {size === 'L' && chart}
+      {size === 'M' && payees.length > 0 && <p className="nx-note">Most to {payees.map(p => `${p.name} (${p.text})`).join(' and ')}.</p>}
+      {size === 'L' && payees.length > 0 && <p className="nx-cap">Paid to, this month</p>}
+      {size === 'L' && payees.length > 0 && <NxRows label="This month’s payees" where="the Wealth page" min={0} extra={card.payees.length - payees.length} rows={payees.map(p => ({key: p.key, name: p.name, value: p.text, ...(size === 'L' ? {sub: p.last === null ? 'Last month holds no record' : `Last month ${p.last}`} : {})}))}/>}
     </div>}
-    {size === 'L' && card.others.length > 0 && <p className="nx-note">Also logged in {card.others.join(', ')}: never converted, never added.</p>}
     {foot}{table}
   </div>;
 }

@@ -5,7 +5,7 @@ import {accountsCard, accountsRows} from '../../../lib/nova/cards/money-more';
 import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
-import {CardFoot, CardNotice, Gauge, Hero, type CardProps} from '../cards/kit';
+import {CardFoot, CardNotice, Hero, StackBar, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import {NxRows} from './nx-rows';
@@ -27,18 +27,18 @@ export default function AccountsWidget({size = 'M'}: Partial<CardProps>) {
   if (accounts.unreadable || !card) return <HoloUnread what="Your accounts and debts"/>;
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="rows" title="No account or debt yet" href="/app/wealth#accounts-title" action="Add an account">Add an account or a debt on Wealth with its balance. What they come to shows here.</CardNotice>;
   const day = (date: string) => formatDate(date, {year: date.slice(0, 4) !== today.slice(0, 4)}), lines = card.lines.slice(0, SHOWN[size]);
-  return <div className="nc-body nx-card" data-size={size}>
-    <div className="nx-top">
-      <Gauge share={card.owedShare} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor/>
-      <Hero value={`${card.netNegative ? '−' : ''}${card.net ?? '—'}`} label={size === 'S' ? 'Accounts − debts' : 'Accounts minus debts'}>
-        {size !== 'S' && <p className="nx-note">{card.assets} in accounts · {card.debts} owed</p>}
-      </Hero>
-    </div>
+  const owed = card.owedShare, parts = owed === null ? null : [{key: 'accounts', share: 1 / (1 + owed)}, {key: 'debts', share: owed / (1 + owed)}];
+  return <div className="nc-body nx-card" data-size={size} data-lay="hero">
+    <div className="nx-top"><Hero value={`${card.netNegative ? '−' : ''}${card.net ?? '—'}`} label={size === 'S' ? 'Accounts − debts' : 'Accounts minus debts'}>
+      {/* One bar: what the accounts hold beside what is owed (decoration; the line under it says both). */}
+      {size !== 'S' && parts && <StackBar parts={parts}/>}
+      {size !== 'S' && <p className="nx-note">{card.assets} in accounts · {card.debts} owed</p>}
+    </Hero></div>
     {lines.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
       {size === 'L' && <p className="nx-cap">Balances you entered · {card.currency}</p>}
       <NxRows label="Accounts and debts" where="the Wealth page" extra={card.lines.length - lines.length} rows={lines.map(l => ({key: l.id, name: l.name, value: l.balance ? `${l.debt ? 'Owed ' : ''}${l.balance}` : 'No balance yet', sub: `${l.kind}${l.date ? ` · balance of ${day(l.date)}` : ''}`}))}/>
+      {size === 'L' && <p className="nx-note">Wealth’s holdings are not in this figure{card.noBalance ? `; ${card.noBalance} ${card.noBalance === 1 ? 'account has' : 'accounts have'} no balance yet` : ''}{card.others.length ? `. Also kept in ${card.others.join(', ')}, never converted` : ''}. Nothing is paid or moved from here.</p>}
     </div>}
-    {size === 'L' && <p className="nx-note">Wealth’s holdings are not in this figure{card.noBalance ? `; ${card.noBalance} ${card.noBalance === 1 ? 'account has' : 'accounts have'} no balance yet` : ''}{card.others.length ? `. Also kept in ${card.others.join(', ')}, never converted` : ''}. Nothing is paid or moved from here.</p>}
     <CardFoot source="Your Wealth records" asOf={card.lastDate ? `newest balance ${day(card.lastDate)}` : 'no balance entered yet'}/>
     <HoloTable caption="Accounts and debts" rows={accountsRows(card, day, Math.max(SHOWN[size], 4))}/>
   </div>;

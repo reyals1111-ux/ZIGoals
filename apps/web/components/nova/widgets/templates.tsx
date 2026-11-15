@@ -22,21 +22,22 @@ const PICKS = {S: 0, M: 2, L: 3} as const;
 export default function TemplatesWidget({size = 'M'}: Partial<CardProps>) {
   const today = useLocalToday();
   const card = useMemo(() => templatesCard(TEMPLATE_CATALOGUE.map(e => ({kind: e.kind, id: e.id, area: e.area, title: e.title, ...(e.kind === 'goal' ? {goalKind: e.goal.kind} : {})})), CATALOGUE_AREAS, today, 3), [today]);
-  const picks = card.picks.slice(0, PICKS[size]), areas = card.areas.slice(0, 5);
-  return <div className="nc-body nx-card" data-size={size}>
+  const picks = card.picks.slice(0, PICKS[size]), areas = card.areas.slice(0, size === 'L' ? 8 : 6);
+  return <div className="nc-body nx-card" data-size={size} data-lay="hero">
     <div className="nx-top"><Hero value={formatNumber(card.total)} unit="ideas" label="In the library">
-      {size === 'L' && <p className="nx-note">{formatNumber(card.goals)} goal templates · {formatNumber(card.habits)} habit ideas</p>}
+      {size !== 'S' && <p className="nx-note">{formatNumber(card.goals)} goal templates · {formatNumber(card.habits)} habit ideas</p>}
     </Hero></div>
-    {picks.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
-      {size === 'L' && <p className="nx-cap">Start a goal from one of these</p>}
-      <ul className="nx-rows" aria-label="Goal templates to start from">{picks.map(p => <li key={p.id} className="nx-row nx-row-linked">
+    {size !== 'S' && <div className="nx-main nx-grid2" data-fit="rows" data-wr-limit="">
+      {size === 'L' && <p className="nx-cap">Ideas in each area</p>}
+      <Bars extra={Math.max(0, card.areas.length - areas.length)} more={(hidden, shown) => `+${hidden} more ${hidden === 1 ? 'area' : 'areas'}${shown ? '' : ' in the library'}`} rows={areas.map(a => ({key: a.id, label: a.label, share: a.share, value: String(a.total)}))}/>
+      {size === 'L' && picks.length > 0 && <p className="nx-cap">Start a goal from one of these</p>}
+      {size === 'L' && picks.length > 0 && <ul className="nx-rows" aria-label="Goal templates to start from">{picks.map(p => <li key={p.id} className="nx-row nx-row-linked">
         <Link className="nx-row-link" href={p.href} prefetch={false} aria-label={`Start a goal from the template ${p.title}`}>
           <i className="nx-row-node" aria-hidden="true"/><span className="nx-row-name">{p.title}</span><span className="nx-row-sub">{p.area}</span><span className="nx-row-go" aria-hidden="true">→</span>
         </Link>
-      </li>)}</ul>
-      {size === 'L' && <Bars rows={areas.map(a => ({key: a.id, label: a.label, share: a.share, value: `${a.total}`}))}/>}
+      </li>)}</ul>}
+      {size === 'L' && <div className="nx-keys"><Link className="nc-action" href="/app/habits?add=habit" prefetch={false}>Browse habit ideas<span aria-hidden="true"> →</span></Link></div>}
     </div>}
-    {size === 'L' && <div className="nx-keys"><Link className="nc-action" href="/app/habits?add=habit" prefetch={false}>Browse habit ideas<span aria-hidden="true"> →</span></Link></div>}
     <CardFoot source="The ZIGoals library" asOf="ships with the app"/>
     <HoloTable caption="Templates" rows={templatesRows(card, 5)}/>
   </div>;

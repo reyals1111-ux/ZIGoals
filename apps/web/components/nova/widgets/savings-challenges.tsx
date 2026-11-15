@@ -7,9 +7,10 @@ import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {usePlatform} from '../../platform/use-platform';
 import {useLocalToday} from '../../use-local-today';
-import {Bars, CardFoot, CardNotice, Hero, type CardProps} from '../cards/kit';
+import {CardFoot, CardNotice, Hero, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
+import {NxRingCards} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -29,14 +30,17 @@ export default function SavingsChallengesWidget({size = 'M'}: Partial<CardProps>
   if (!card) return <HoloUnread what="Your savings challenges"/>;
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="bars" title="No savings challenge running" href="/app/goals/templates" action="Start one from a template">A 52-week challenge, no-spend days or round-ups start from a goal template. Their progress then shows here.</CardNotice>;
   const lines = card.lines.slice(0, SHOWN[size]), n = card.lines.length, more = n - lines.length;
-  return <div className="nc-body nx-card" data-size={size}>
+  const foot = <CardFoot source={card.lines.some(l => l.note) ? 'Your goals · example challenges' : 'Your goals and money log'} asOf={`as of today, ${formatDate(today, {year: false})}`}/>, table = <HoloTable caption="Savings challenges" rows={savingsChallengesRows(card)}/>;
+  const percent = (share: number | null) => share === null ? '—' : `${Math.round(share * 100)}%`;
+  if (size === 'S') return <div className="nc-body nx-card" data-size={size} data-lay="hero">
     <div className="nx-top"><Hero value={String(n)} unit={n === 1 ? 'challenge' : 'challenges'} label="Running on your goals"/></div>
-    {lines.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
-      <Bars rows={lines.map(l => ({key: l.goalId, label: l.goal, share: l.share, value: l.title, note: l.words}))}/>
-      {size === 'L' && more > 0 && <p className="nx-note">{more} more on Goals.</p>}
-    </div>}
+    {foot}{table}
+  </div>;
+  return <div className="nc-body nx-card" data-size={size} data-lay="full">
+    {size === 'L' && <p className="nx-cap">{n} {n === 1 ? 'challenge' : 'challenges'} running on your goals</p>}
+    <NxRingCards label="Savings challenges" items={lines.map(l => ({key: l.goalId, share: l.share, figure: percent(l.share), name: l.goal, kind: l.title, words: l.words}))}/>
+    {more > 0 && <p className="nx-note">+{more} more on Goals.</p>}
     {size === 'L' && <p className="nx-note">A challenge follows what you record toward its goal. Nothing here moves money or records anything.</p>}
-    <CardFoot source={card.lines.some(l => l.note) ? 'Your goals · example challenges' : 'Your goals and money log'} asOf={`as of today, ${formatDate(today, {year: false})}`}/>
-    <HoloTable caption="Savings challenges" rows={savingsChallengesRows(card)}/>
+    {foot}{table}
   </div>;
 }

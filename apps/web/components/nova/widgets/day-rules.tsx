@@ -7,8 +7,9 @@ import {DAY_ENDS_RECORD} from '../../../lib/day-boundary';
 import {dayRulesCard, dayRulesRows} from '../../../lib/nova/cards/life-insights';
 import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
-import {CardFoot, type CardProps} from '../cards/kit';
+import {CardFoot, Gauge, type CardProps} from '../cards/kit';
 import {HoloReading, HoloTable} from '../holo/parts';
+import {NxDots, NxInstrument} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -26,18 +27,16 @@ export default function DayRulesWidget({size = 'M'}: Partial<CardProps>) {
   const card = useMemo(() => dayRulesCard(goal.unreadable ? null : goal.data, ends.unreadable ? null : ends.data, today), [goal.unreadable, goal.data, ends.unreadable, ends.data, today]);
   if (!goal.loaded || !ends.loaded) return <HoloReading/>;
   const g = card.goal, e = card.ends;
-  return <div className="nc-body nx-card" data-size={size} data-flat="">
-    <div className="nx-main nx-pair" data-fit="rows" data-wr-limit="" data-keep="">
-      <p className="nx-readout">
-        <span className="nx-readout-label">{size === 'S' ? 'Day done at' : 'A day counts as done at'}</span>
-        <span className="nx-readout-value">{g ? g.words : '—'}</span>
-        <span className="nx-readout-sub">{!g ? 'This setting could not be read on this device.' : g.need === null ? 'The default: every dot lit.' : `Or every dot on a shorter day${g.since ? ` · since ${formatDate(g.since, {year: g.since.slice(0, 4) !== today.slice(0, 4)})}` : ''}.`}</span>
-      </p>
-      <p className="nx-readout">
-        <span className="nx-readout-label">{size === 'S' ? 'Day ends at' : 'My day ends at'}</span>
-        <span className="nx-readout-value">{e ? e.words : '—'}</span>
-        <span className="nx-readout-sub">{!e ? 'This setting could not be read on this device.' : e.minutes === 0 ? 'The default.' : 'Until then it counts for the day before.'}</span>
-      </p>
+  const need = g?.need ?? null, lit = need === null ? 6 : Math.min(need, 8), of = need === null ? 6 : Math.max(6, Math.min(need, 8));
+  const minutes = e?.minutes ?? 0, clock = `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  return <div className="nc-body nx-card" data-size={size} data-lay="full">
+    <div className="nx-duo">
+      {/* A dot meter: the dots a day needs, lit (every dot by default). */}
+      <NxInstrument art={<NxDots lit={g ? lit : 0} of={of}/>} label={size === 'S' ? 'Day done at' : 'A day counts as done at'} value={g ? g.words : '—'}
+        sub={!g ? 'This setting could not be read on this device.' : g.need === null ? 'The default: every dot lit.' : `Or every dot on a shorter day${g.since ? ` · since ${formatDate(g.since, {year: g.since.slice(0, 4) !== today.slice(0, 4)})}` : ''}.`}/>
+      {/* A 24-hour dial (midnight at the top): the lit point is where the day ends. */}
+      <NxInstrument art={<Gauge share={e ? 1 : null} size={100} thick={13} bezel ticks={24} start={minutes / 1440 * 360} decor className="nx-ring"><span className="nx-dial-figure" data-len="l"><b>{e ? clock : '—'}</b></span></Gauge>}
+        label={size === 'S' ? 'Day ends at' : 'My day ends at'} value={e ? e.words : '—'} sub={!e ? 'This setting could not be read on this device.' : e.minutes === 0 ? 'The default.' : 'Until then it counts for the day before.'}/>
     </div>
     {size === 'L' && <p className="nx-note">Your streak flame and your habits follow these two rules. A change applies from that day on and never recounts a past day, so they are changed in Settings, not from here.</p>}
     {size === 'L' && <div className="nx-keys">

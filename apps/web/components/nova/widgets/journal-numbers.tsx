@@ -25,13 +25,13 @@ export default function JournalNumbersWidget({size = 'M'}: Partial<CardProps>) {
   if (journal.unreadable || !card) return <HoloUnread what="Your journal"/>;
   if (!card.total) return <CardNotice kind="empty" ghost="columns" title="No entries yet" href="/app/journal" action="Write today’s entry">Your words add up here, month by month, with your writing streak.</CardNotice>;
   const n = card.streak.current, streak = n > 0 ? `${formatNumber(n)} ${plural(n, 'day')} in a row${card.streak.writtenToday ? '' : ' · write today to keep it'}` : 'No streak running';
-  return <div className="nc-body nx-card" data-size={size}>
+  return <div className="nc-body nx-card" data-size={size} data-lay="chart">
     <div className="nx-top"><Hero value={formatNumber(card.words)} unit={plural(card.words, 'word')} label={size === 'S' ? `In ${card.year}` : `Written in ${card.year}`}>
       {size !== 'S' && <p className="nx-note">{streak}</p>}
     </Hero></div>
     {size !== 'S' && <div className="nx-main">
       {size === 'L' && <p className="nx-cap">Words each month</p>}
-      <Columns values={card.months.map(m => m.words)} labels={card.months.map(m => m.label)} height={size === 'L' ? 96 : 52} mark={card.months.length - 1}/>
+      <Columns values={card.months.map(m => m.words)} labels={card.months.map(m => m.label)} height={size === 'L' ? 110 : 64} mark={card.months.length - 1}/>
     </div>}
     {size === 'L' && <div className="nc-facts">
       <Fact label="Longest streak" value={`${formatNumber(card.streak.longest)} ${plural(card.streak.longest, 'day')}`}/>
