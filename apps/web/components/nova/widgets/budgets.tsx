@@ -5,6 +5,7 @@ import {MONEY_LOG} from '../../../lib/money-log/schema';
 import {budgetsAsOf, budgetsCard, budgetsRows} from '../../../lib/nova/cards/budgets';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
+import {moreWords} from '../../../lib/nova/cards/whole-rows';
 import {Bars, CardFoot, CardNotice, Fact, Gauge, Hero, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
@@ -33,10 +34,11 @@ export default function BudgetsWidget({size = 'M'}: Partial<CardProps>) {
       <Gauge share={card.count ? card.within / card.count : null} size={size === 'L' ? 76 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} decor className="nc-budgets-ring"/>
       <Hero value={card.hero} label={`${card.count === 1 ? 'budget' : 'budgets'} within plan`}/>
     </div>
-    {top.length > 0 && <div className="nc-budgets-bars">
+    {/* Session AM-2 (whole rows only): the budgets that fit, then "+N more budgets on the Wealth page". */}
+    {top.length > 0 && <div className="nc-budgets-bars" data-wr-limit="">
       {size === 'L' && <p className="nc-budgets-caption">Spent this month · of each budget</p>}
-      <Bars rows={top.map(l => ({key: l.id, label: l.category, share: l.share, over: l.over, value: size === 'L' ? `${l.spent} of ${l.available}` : l.words, ...(size === 'L' && (l.over || top.length <= 4) ? {note: l.words} : {})}))}/>
-      {size === 'L' && more > 0 && <p className="nc-budgets-note">{more} more {more === 1 ? 'budget' : 'budgets'} on Wealth.</p>}
+      <Bars rows={top.map(l => ({key: l.id, label: l.category, share: l.share, over: l.over, value: size === 'L' ? `${l.spent} of ${l.available}` : l.words, ...(size === 'L' && (l.over || top.length <= 4) ? {note: l.words} : {})}))}
+        extra={Math.max(0, more)} more={(hidden, shown) => moreWords(hidden, {shown, what: ['more budget', 'more budgets'], where: 'the Wealth page'})}/>
     </div>}
     {size === 'L' && (card.daysLeft !== null || card.unbudgeted.length > 0) && <div className="nc-facts">
       {card.daysLeft !== null && <Fact label="Left in this month" value={card.daysLeft === 1 ? 'the last day' : `${card.daysLeft} days`}/>}

@@ -205,7 +205,8 @@
 .holo-streaks { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; min-width: 0; }
 .holo-streaks li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 8px; row-gap: 3px; padding: 5px 0 6px; font-size: 15px; line-height: 18px; color: #e3ebfa; border-top: 1px solid color-mix(in oklab, var(--neon, #23eaff) 16%, transparent); }
 .holo-streaks li:first-child { border-top: 0; padding-top: 0; }
-.holo-streaks li:last-child { padding-bottom: 0; }
+/* The list's last child is its "+N more" line (cards/whole-rows.tsx, hidden while every streak shows): the row before it is the last row. */
+.holo-streaks li:last-child, .holo-streaks li:nth-last-child(2) { padding-bottom: 0; }
 .holo-streak-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .holo-streaks .holo-num { font-size: 15px; white-space: nowrap; }
 .holo-streaks .holo-gauge { grid-column: 1 / -1; height: 4px; }
@@ -238,14 +239,16 @@
 .holo-more a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: var(--nova-hi, #cbbfff); font-weight: 600; }
 .holo-pace-box { display: grid; gap: 3px; }
 .holo-pace-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
-.holo-pace-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.holo-pace-name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .holo-more-link { display: inline-flex; align-items: center; flex: none; min-height: 44px; min-width: 44px; margin: -14px -6px; padding: 0 6px; border-radius: 8px; color: var(--neon-ink, #e2d9ff); font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; }
-/* The pace chart's own names, placed over it (Target on its line, Today at its x). The chart keeps them inside its box. */
-.holo-pace-chart { position: relative; overflow-x: clip; overflow-clip-margin: 4px; border-left: 1px solid color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); }
+/* The pace chart's own names. Session AM-2: "Target" stands at the end of its line, in a 64 px gutter the plot leaves at
+   its right (it used to lie on the line and cut it); "Today" is at its x, inside the plot's foot in a stacked panel and
+   under the plot in a wide one (holo-body ≥ 560 px, below). */
+.holo-pace-chart { position: relative; margin-right: 64px; border-left: 1px solid color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); }
 .holo-pace-chart .holo-pace { height: var(--pace-h, 52px); }
 .holo-pace-dot { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px var(--neon, #9273ff), 0 0 9px 2px var(--neon, #9273ff), 0 0 20px 4px color-mix(in oklab, var(--neon, #9273ff) 45%, transparent); pointer-events: none; }
 .holo-chart-tag { position: absolute; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: .06em; color: var(--neon-ink, #e2d9ff); background: #070b1fd9; padding: 0 4px; border-radius: 3px; pointer-events: none; white-space: nowrap; }
-.holo-chart-tag[data-at=target] { right: 3px; transform: translateY(18%); }
+.holo-chart-tag[data-at=target] { left: calc(100% + 6px); top: max(7px, var(--y, 10%)); transform: translateY(-50%); padding: 0; background: none; }
 .holo-chart-tag[data-at=today] { bottom: 1px; transform: translateX(-50%); }
 .holo-estimate { margin: 0; display: flex; align-items: center; min-width: 0; font-size: 14px; color: #d3ddf1; white-space: nowrap; overflow: hidden; }
 .holo-estimate-words { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -730,23 +733,46 @@
 @container holo-body (max-width: 300px) { .holo-habits .holo-streaks .holo-gauge { display: none; } }
 
 /* ---- Goals. Rows: the arcs (A + 28 for a name of two lines + 16 for the pace words + 2), the pace box (P + 47). ---- */
-/* M, stacked: (A + 50) + 6 + (36 + 42) ≤ h, from 190 px (the pace line stays in view at a laptop's height); below that the arcs alone, as large as the body lets them be. */
-.holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 140px, calc((100cqi - 16px) / 3)), 132px); --pace-h: 36px; }
+/* M, stacked (a body under 560 px wide). Session AM-2, re-derived (hud-fit: the pace line is in view in a medium panel at
+   1440 × 900, where the body is 316 × 238 px, and the old rule hid it there). The heights:
+     the arcs' row = A + N + W + 2   (N, the name: one or two 17 px lines less the 6 px it overlaps the arc: 11 or 28;
+                                      W, the status words: one or two 16 px lines: 16 or 32)
+     a gap of 6
+     the pace box  = 18 (its head) + 3 + P (the plot, never under 18) + 3 + E (the estimate: 22 on one line, 45 on two).
+   CSS cannot ask what wraps, so A is sized for the tallest case of its width and the plot takes whatever is left (it is
+   the elastic row: holo-parts "round 3" below), so the two always fit whichever lines wrap:
+   - a body under 400 px wide (the status words and the estimate may each take two lines):
+       A + 28 + 32 + 2 + 6 + 18 + 3 + 18 + 3 + 45 = A + 155 ≤ h   →  A = h − 155; the pace box shows from h = 199 (A = 44);
+   - from 400 px (both on one line; 16 px kept in hand for a status that still wraps):
+       A + 28 + 16 + 2 + 6 + 18 + 3 + 18 + 3 + 22 + 16 = A + 132 ≤ h   →  A = h − 132; the pace box shows from h = 176.
+   At 316 × 238: A = min(238 − 155, (316 − 16) / 3) = 83; the arcs' row is 83 + 28 + 16 + 2 = 129 (145 when the status
+   wraps), so the pace box has 238 − 129 − 6 = 103 (87): head 18, plot 57 (41), estimate 22. Under those heights the pace
+   box cannot be promised whole and the arcs stand alone: A + 28 + 32 + 2 = A + 62 ≤ h  →  A = h − 64. */
+.holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 155px, calc((100cqi - 16px) / 3)), 132px); --pace-h: 36px; }
+@container holo-body (min-width: 400px) { .holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 132px, calc((100cqi - 16px) / 3)), 132px); } }
 .holo-goals[data-size=L] { --arc: clamp(64px, min(19cqh, 30cqi), 132px); --pace-h: clamp(48px, calc(20cqh - 20px), 120px); gap: clamp(6px, 2cqh, 14px); }
 .holo-goals .holo-num-arc { font-size: clamp(14px, calc(var(--arc, 64px) * .25), 36px); }
-@container holo-body (max-height: 189px) and (max-width: 559.98px) {
+@container holo-body (max-height: 198.98px) and (max-width: 399.98px) {
   .holo-goals[data-size=M] .holo-pace-box { display: none; }
-  .holo-goals[data-size=M] { --arc: clamp(44px, min(100cqh - 54px, calc((100cqi - 16px) / 3)), 132px); }
+  .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 64px, calc((100cqi - 16px) / 3)), 132px); }
 }
-/* Wide: the arcs at the body's height (A + 46 ≤ h) beside the pace line at the body's height (P + 47 ≤ h). */
+@container holo-body (max-height: 175.98px) and (min-width: 400px) and (max-width: 559.98px) {
+  .holo-goals[data-size=M] .holo-pace-box { display: none; }
+  .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 64px, calc((100cqi - 16px) / 3)), 132px); }
+}
+/* Wide (Session AM-2): the arcs take 55 % of the body and the pace column 45 % (it was whatever the arcs left: a plot
+   of about 190 × 60 px at 2560). The arcs: three equal columns of 55 % of the body less the 26 px gap, 6 px between them
+   and 4 px of padding each: ((100cqi − 26) × .55 − 12) / 3 − 4 = 18.3cqi − 13 wide, and A + 28 + 32 + 2 ≤ h (A = h − 64).
+   The pace column is as tall as the body and its plot is its elastic row (round 3, below). */
 @container holo-body (min-width: 560px) {
-  .holo-goals[data-size=M] { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 26px; --arc: clamp(44px, min(100cqh - 54px, 17cqi), 140px); --pace-h: clamp(40px, calc(100cqh - 56px), 150px); }
-  .holo-goals[data-size=M] .holo-arcs { grid-template-columns: repeat(var(--n, 3), calc(var(--arc) + 22px)); }
+  .holo-goals[data-size=M] { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); align-items: center; column-gap: 26px; --arc: clamp(44px, min(100cqh - 64px, calc(18.3cqi - 13px)), 140px); }
+  .holo-goals[data-size=M] .holo-arcs { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); }
   .holo-goals[data-size=M] .holo-estimate-note { display: none; }
-  /* L, wide: the arcs over the next goals' sliders (A + 46 + 10 + 180 ≤ h), the pace line beside them. */
-  .holo-goals[data-size=L] { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "arcs pace" "sliders pace"; align-items: center; align-content: center; column-gap: 28px; --arc: clamp(64px, min(100cqh - 250px, 16cqi), 140px); --pace-h: clamp(64px, calc(100cqh - 120px), 200px); }
+  /* L, wide: the arcs over the next goals' sliders (A + 46 + 10 + 180 ≤ h), centred as one group; the pace column beside
+     them at the body's whole height (the two outer rows are what is left above and below the group). */
+  .holo-goals[data-size=L] { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr); grid-template-areas: ". pace" "arcs pace" "sliders pace" ". pace"; align-items: center; gap: 0 28px; --arc: clamp(64px, min(100cqh - 250px, 16cqi), 140px); }
   .holo-goals[data-size=L] .holo-arcs { grid-area: arcs; }
-  .holo-goals[data-size=L] .holo-sliders { grid-area: sliders; }
+  .holo-goals[data-size=L] .holo-sliders { grid-area: sliders; margin-top: 10px; }
   .holo-goals[data-size=L] :is(.holo-pace-box, .holo-more) { grid-area: pace; }
 }
 /* Below 119 px the pace words go (A + 30 ≤ h). */
@@ -754,8 +780,9 @@
   .holo-goals[data-size=M] .holo-arcs .holo-pace-words { display: none; }
   .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 38px, calc((100cqi - 16px) / 3)), 132px); }
 }
-@container holo-body (max-height: 118px) and (min-width: 560px) { .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 38px, 17cqi), 140px); } }
-@container holo-body (max-height: 103px) and (min-width: 560px) { .holo-goals[data-size=M] .holo-pace-box { display: none; } }
+@container holo-body (max-height: 118px) and (min-width: 560px) { .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 38px, calc(18.3cqi - 13px)), 140px); } }
+/* A wide body under 111 px cannot hold the pace column whole (head 18 + 3 + a plot of 24 + "Today" 18 + 3 + an estimate of two lines 45 = 111): the arcs alone. */
+@container holo-body (max-height: 110.98px) and (min-width: 560px) { .holo-goals[data-size=M] .holo-pace-box { display: none; } }
 
 /* ---- Wealth. Rows: the head (label 18, the figure F × 1.04, a note 17), the frame (W + 44), the set-aside meter (33). ---- */
 .holo-wealth-head .holo-label, .holo-wealth-head .holo-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -813,8 +840,7 @@
 .holo-agenda[data-size=L] .holo-clock { --ring: clamp(120px, min(46cqh, 54cqi), 260px); }
 .holo-agenda[data-size=L] { grid-template-columns: minmax(0, 1fr); justify-items: center; row-gap: 12px; }
 .holo-agenda[data-size=L] .holo-agenda-side { width: 100%; }
-@container holo-body (max-height: 190px) and (max-width: 559.98px) { .holo-agenda[data-size=M] .holo-next li:nth-child(3) { display: none; } }
-@container holo-body (max-height: 140px) and (max-width: 559.98px) { .holo-agenda[data-size=M] .holo-next li:nth-child(2) { display: none; } }
+/* Session AM-2: which rows show is measured on the real layout (cards/whole-rows.tsx: whole rows, then "+N more"), no longer counted by height here. */
 @container holo-body (max-width: 300px) { .holo-agenda[data-size=M] .holo-clock { --ring: clamp(72px, min(100cqh - 10px, 38cqi), 190px); } .holo-agenda { column-gap: 10px; } }
 /* Wide: every row of a "next" list is one line — its time, its title, and its state at the row's end. */
 @container holo-body (min-width: 560px) {
@@ -828,8 +854,6 @@
   .holo-agenda[data-size=L] { grid-template-columns: auto minmax(0, 1fr); justify-items: stretch; }
   .holo-agenda[data-size=L] .holo-clock { --ring: clamp(120px, min(100cqh - 20px, 40cqi), 300px); }
 }
-@container holo-body (max-height: 172px) and (min-width: 560px) { .holo-agenda[data-size=M] .holo-next li:nth-child(3) { display: none; } }
-@container holo-body (max-height: 126px) and (min-width: 560px) { .holo-agenda[data-size=M] .holo-next li:nth-child(2) { display: none; } }
 
 /* ---- Today's orbit. The dial at the body's height; beside it the day's line (two lines, 44) and what is still open as rows (50 each; wide: 45). ---- */
 .holo-orbit[data-size=S] { column-gap: 14px; }
@@ -840,9 +864,6 @@
 .holo-orbit-side { display: grid; gap: 6px; min-width: 0; }
 .holo-orbit:is([data-size=M], [data-size=L]) .holo-orbit-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; line-height: 22px; }
 .holo-orbit[data-size=S] .holo-orbit-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; line-height: 22px; }
-@container holo-body (max-height: 208px) and (max-width: 559.98px) { .holo-orbit[data-size=M] .holo-orbit-next li:nth-child(3) { display: none; } }
-@container holo-body (max-height: 156px) and (max-width: 559.98px) { .holo-orbit[data-size=M] .holo-orbit-next li:nth-child(2) { display: none; } }
-@container holo-body (max-height: 106px) and (max-width: 559.98px) { .holo-orbit[data-size=M] .holo-orbit-next { display: none; } }
 @container holo-body (min-width: 560px) {
   .holo-orbit[data-size=M] .holo-orbit-ring { --ring: clamp(84px, min(100cqh - 10px, 30cqi), 190px); }
   .holo-orbit:is([data-size=M], [data-size=L]) { column-gap: 28px; }
@@ -850,9 +871,6 @@
   .holo-orbit[data-size=L] { grid-template-columns: auto minmax(0, 1fr); justify-items: stretch; }
   .holo-orbit[data-size=L] .holo-orbit-ring { --ring: clamp(120px, min(100cqh - 20px, 40cqi), 300px); }
 }
-@container holo-body (max-height: 170px) and (min-width: 560px) { .holo-orbit[data-size=M] .holo-orbit-next li:nth-child(3) { display: none; } }
-@container holo-body (max-height: 124px) and (min-width: 560px) { .holo-orbit[data-size=M] .holo-orbit-next li:nth-child(2) { display: none; } }
-@container holo-body (max-height: 78px) and (min-width: 560px) { .holo-orbit[data-size=M] .holo-orbit-next { display: none; } }
 
 /* ---- Teaching states (M8, AM-D22): the instrument's ghost, large and dim, beside the words and the key. A medium or
    large panel's ghost is as large as its body lets it be (96–132 px on a computer); a small panel keeps the 48 px mark. ---- */
@@ -930,31 +948,37 @@
 }
 
 /* ==== AM-2 round 3 (after the third captures) ==== */
-/* Goals. The pace chart is a box of its own height with its drawing laid over it, so in a medium panel it can give way
-   (down to 18 px) when a status or the estimate takes a second line: whole rows, never half a row. "Today" stays inside
-   the chart at either end. */
+/* Goals. The pace chart is a box of its own height with its drawing laid over it, so in a medium panel it is the
+   elastic row: it gives way (down to 18 px) when a status or the estimate takes a second line, and takes what is left
+   when they do not (up to 110 px): whole rows, never half a row. "Today" stays inside the chart at either end.
+   Session AM-2: a fitted medium panel is exactly its body's height (only there does a height query match), so what the
+   arcs leave is the pace box's to share out; a phone and the band keep the plot's own 36 px. */
 .holo-pace-chart { height: var(--pace-h, 52px); }
 .holo-pace-chart > .holo-wipe { position: absolute; inset: 0; }
 .holo-pace-chart .holo-pace { position: absolute; inset: 0; width: 100%; height: 100%; }
 .holo-chart-tag[data-at=today] { left: clamp(28px, var(--x, 0%), calc(100% - 28px)); }
-.holo-goals[data-size=M] { display: flex; flex-direction: column; max-height: 100cqh; }
+.holo-goals[data-size=M] { display: flex; flex-direction: column; justify-content: center; max-height: 100cqh; }
+@container holo-body (min-height: 1px) { .holo-goals[data-size=M] { height: 100cqh; } }
 .holo-goals[data-size=M] > .holo-arcs { flex: none; }
-.holo-goals[data-size=M] .holo-pace-box { display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; max-height: 100cqh; }
+.holo-goals[data-size=M] .holo-pace-box { display: flex; flex-direction: column; justify-content: center; flex: 1 1 auto; min-height: 0; max-height: 100cqh; }
 .holo-goals[data-size=M] .holo-pace-box > :is(.holo-pace-head, .holo-estimate) { flex: none; }
-.holo-goals[data-size=M] .holo-pace-chart { flex: 0 1 auto; min-height: 18px; }
-/* A body under 320 px wraps the status words (16 more): the arcs alone below 256 px. */
-@container holo-body (max-width: 319.98px) and (max-height: 255px) {
-  .holo-goals[data-size=M] .holo-pace-box { display: none; }
-  .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 72px, calc((100cqi - 16px) / 3)), 132px); }
-}
-/* Wide: the pace column is wider (the arcs' columns are A + 14), its title may take two lines beside "+N more", and the
-   estimate is whole on up to three: 36 + 3 + P + 4 + 60 ≤ h. */
+.holo-goals[data-size=M] .holo-pace-chart { flex: 1 1 var(--pace-h, 36px); min-height: 18px; max-height: 110px; }
+/* Wide (Session AM-2): the pace column is 45 % of the body and as tall as it. Its title is one line with an ellipsis
+   (its whole words are its tooltip and the table's); "Target" is in the plot's right gutter and "Today" in an 18 px row
+   under the plot, so neither lies on the drawing; the plot is the elastic row and takes every pixel that is left:
+     P = h − 18 (the title) − 3 − 18 ("Today") − 3 − E (the estimate: 22, 45 on two lines, 66 with its note on three).
+   At 2560 × 1440 a medium body is about 730 × 195: the column is 317 wide, the plot 253 × 108 (it was about 190 × 60).
+   The estimate's note shows from 220 px of height, where three lines still leave a plot of 112 px. */
 @container holo-body (min-width: 560px) {
-  .holo-goals[data-size=M] { display: grid; max-height: none; --pace-h: clamp(40px, calc(100cqh - 114px), 150px); }
-  .holo-goals[data-size=M] .holo-arcs { grid-template-columns: repeat(var(--n, 3), calc(var(--arc) + 14px)); }
-  .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-name { white-space: normal; overflow: visible; text-overflow: clip; }
+  .holo-goals[data-size=M] { display: grid; grid-template-rows: minmax(0, 1fr); max-height: none; }
+  .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-box { display: flex; flex-direction: column; justify-content: center; align-self: stretch; flex: none; min-height: 0; max-height: none; }
+  .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-box > :is(.holo-pace-head, .holo-estimate) { flex: none; }
+  .holo-goals:is([data-size=M], [data-size=L]) .holo-pace-chart { flex: 1 1 0; height: auto; min-height: 24px; max-height: 420px; margin-bottom: 18px; }
+  .holo-goals[data-size=L] .holo-pace-chart { min-height: 64px; }
+  .holo-goals:is([data-size=M], [data-size=L]) .holo-chart-tag[data-at=today] { top: calc(100% + 3px); bottom: auto; padding: 0; background: none; }
 }
-@container holo-body (min-width: 640px) { .holo-goals[data-size=M] .holo-estimate-note { display: inline; } }
+@container holo-body (min-width: 560px) and (min-height: 1px) { .holo-goals[data-size=L] { height: 100cqh; } }
+@container holo-body (min-width: 640px) and (min-height: 220px) { .holo-goals[data-size=M] .holo-estimate-note { display: inline; } }
 
 /* Health in a body of 350 px or less: the privacy strip may take two lines (18 more). */
 @container holo-body (max-width: 350px) {
@@ -968,13 +992,13 @@
 }
 @container holo-body (max-width: 350px) and (max-height: 130px) { .holo-health[data-size=M] { --mgap: 3px; } }
 
-/* Small panels in a wide body (a 2560 px screen: about 700 × 60): the figure and its instrument share the row. */
-.holo-notes[data-size=S] .holo-captures li:nth-child(n + 2) { display: none; }
+/* Small panels in a wide body (a 2560 px screen: about 700 × 60): the figure and its instrument share the row.
+   Session AM-2: a note's row takes the row's whole width (one note beside 400 px of free space was cut to half of it);
+   where two fit side by side (260 px each) they do. Which rows show is measured (cards/whole-rows.tsx), not counted here. */
 @container holo-body (min-width: 560px) {
   :is(.holo-water, .holo-sleep, .holo-notes)[data-size=S] { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 28px; }
   :is(.holo-water, .holo-sleep)[data-size=S] .holo-segs { height: 12px; gap: 3px; }
-  .holo-notes[data-size=S] .holo-captures { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
-  .holo-notes[data-size=S] .holo-captures li:nth-child(2) { display: grid; }
+  .holo-notes[data-size=S] .holo-captures { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); column-gap: 28px; }
   .nova-widget[data-size=S] .holo-notes-head .holo-num-big { font-size: 32px; }
 }
 

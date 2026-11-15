@@ -5,6 +5,7 @@ import {HEART_PATH, arcPath, clamp01, linePath, polar, smoothPath, tickPath} fro
 import type {WidgetParams} from '../../../lib/nova/stage/record';
 import type {WidgetSize} from '../../../lib/nova/store';
 import {HoloFigure, Orn} from '../holo/parts';
+import {WholeRows} from './whole-rows';
 import '../holo/holo-parts.css';
 import './cards.css';
 
@@ -188,17 +189,20 @@ export function TrendArea({values, labels, minLabel, maxLabel, height = 96, mark
 /**
  * A lattice: rows (a habit, a week) of cells (days). A cell is done, missed, not due or still to come; the row's name is
  * text beside it and the whole is described by the widget's table, so the cells are decoration.
+ * Session AM-2 (whole rows only): the lattice shows the rows that fit its panel and then one last line ("+N more",
+ * `more`; `extra` counts rows the widget holds beyond these). A calendar keeps its latest weeks (`keep="last"`).
  */
 export type LatticeCell = 'done' | 'missed' | 'rest' | 'ahead' | 'part';
-export function Lattice({rows, columns}: {rows: readonly {key: string; label: string; cells: readonly LatticeCell[]; note?: string; /** The cell that is today (a ring around it), if it is in this row. */ today?: number}[]; columns: readonly string[]}) {
-  return <div className="nc-lattice" style={{'--nc-cols': columns.length} as CSSProperties}>
-    <div className="nc-lattice-head" aria-hidden="true"><span/>{columns.map((c, i) => <span key={i}>{c}</span>)}<span/></div>
+export function Lattice({rows, columns, keep, extra, more}: {rows: readonly {key: string; label: string; cells: readonly LatticeCell[]; note?: string; /** The cell that is today (a ring around it), if it is in this row. */ today?: number}[]; columns: readonly string[];
+  keep?: 'first' | 'last'; extra?: number; more?: (hidden: number, shown: number) => string}) {
+  return <WholeRows as="div" inline limit className="nc-lattice" style={{'--nc-cols': columns.length} as CSSProperties} keep={keep} extra={extra} min={1} more={more}
+    head={<div className="nc-lattice-head" aria-hidden="true" data-wr-keep=""><span/>{columns.map((c, i) => <span key={i}>{c}</span>)}<span/></div>}>
     {rows.map((r, n) => <div key={r.key} className="nc-lattice-row">
       <span className="nc-lattice-label" title={r.label}>{r.label}</span>
       {r.cells.map((c, i) => <i key={i} data-cell={c} data-today={r.today === i || undefined} style={{'--nc-i': n * 2 + i} as CSSProperties} aria-hidden="true"/>)}
       <span className="nc-lattice-note">{r.note ?? ''}</span>
     </div>)}
-  </div>;
+  </WholeRows>;
 }
 
 /** Vertical capsules for a range per column (a day's lowest to highest), on one shared scale; labels above and below. */
@@ -217,13 +221,14 @@ export function Capsules({items, lo, hi}: {items: readonly {key: string; top: Re
  * Horizontal meters (a budget, a category): a lit node and a label, the value in words, and under them a ticked track
  * with the lit share and a white-hot leading end; over 100 % reads as over, in words too. Unknown is a dashed, unlit track.
  */
-export function Bars({rows, keyed}: {rows: readonly {key: string; label: string; share: number | null; value: string; over?: boolean; note?: string}[]; /** The rows are the parts of a `StackBar` above them: each node wears its part's shade. */ keyed?: boolean}) {
-  return <div className="nc-bars" data-keyed={keyed || undefined}>{rows.map((r, i) => <div key={r.key} className="nc-bar" data-i={i % 4} data-over={r.over || undefined} data-unknown={r.share === null || undefined}>
+export function Bars({rows, keyed, extra, more}: {rows: readonly {key: string; label: string; share: number | null; value: string; over?: boolean; note?: string}[]; /** The rows are the parts of a `StackBar` above them: each node wears its part's shade. */ keyed?: boolean;
+  /** Session AM-2 (whole rows only): the meters that fit show, then one last line (`more`; `extra` counts rows the widget holds beyond these). */ extra?: number; more?: (hidden: number, shown: number) => string}) {
+  return <WholeRows as="div" inline className="nc-bars" data-keyed={keyed || undefined} extra={extra} min={1} more={more}>{rows.map((r, i) => <div key={r.key} className="nc-bar" data-i={i % 4} data-over={r.over || undefined} data-unknown={r.share === null || undefined}>
     <span className="nc-bar-label" title={r.label}>{r.label}</span>
     <span className="nc-bar-value">{r.value}</span>
     <span className="nc-bar-track" aria-hidden="true"><i style={{'--nc-share': r.share === null ? 0 : clamp01(r.share), '--nc-i': i} as CSSProperties}/></span>
     {r.note && <small className="nc-bar-note">{r.note}</small>}
-  </div>)}</div>;
+  </div>)}</WholeRows>;
 }
 /** One stacked bar: the parts of a whole side by side (each a share 0–1, in order), what is left of the whole unlit. Decoration over the rows that name each part. */
 export function StackBar({parts}: {parts: readonly {key: string; share: number}[]}) {

@@ -23,11 +23,13 @@
 .nc-requests[data-size=M] .nc-request { padding-block: 4px; }
 .nc-requests[data-size=M] { gap: 6px; }
 .nc-request-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nc-requests-more { margin: 0; padding-left: 22px; font-size: 14px; color: #c3cfe6; }
+/* Session AM-2 (whole rows only): the list's box and its last line ("+N earlier, in Behind the intelligence → Requests"); which rows show is measured (cards/whole-rows.tsx). */
+.nc-requests-rows { flex: none; }
+.nc-requests-rows > .wr-more { padding-left: 22px; }
 
 /* ---- NOVA's brain: a status read-out ---- */
 .nc-brain-head { flex: none; display: flex; align-items: center; gap: 14px; min-width: 0; }
-.nc-brain > .nc-brain-text, .nc-brain > .nc-facts, .nc-sees-top, .nc-sees-grid, .nc-sees-more, .nc-requests-more { flex: none; }
+.nc-brain > .nc-brain-text, .nc-brain > .nc-facts, .nc-sees-top, .nc-sees-grid, .nc-sees-more { flex: none; }
 .nc-brain-head > div { min-width: 0; }
 .nc-brain-dot { display: block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #c3cfe6; box-sizing: border-box; }
 .nc-brain-dot[data-on] { border-color: #fff; background: radial-gradient(circle, #fff 0 30%, #a8f5d2 70%); box-shadow: 0 0 0 4px #a8f5d233, 0 0 14px 3px #a8f5d2; }
@@ -90,15 +92,11 @@
 .nc-requests[data-size=S] .nc-request-text { grid-column: 1; -webkit-line-clamp: 1; line-clamp: 1; line-height: 1.25; }
 .nc-requests[data-size=S] .nc-request-meta { line-height: 1.2; }
 .nc-requests[data-size=S] .nc-request-again { grid-row: 1 / span 2; margin: -4px 0; }
-.nc-requests[data-size=S] .nc-requests-more { display: none; }
 
 /* ---- Fit: a body drops whole rows, never its foot ---- */
 @container holo-body (max-height: 182px) { .nc-brain[data-size=M] > .nc-brain-text { display: none; } }
-@container holo-body (max-height: 176px) { .nc-requests[data-size=M] .nc-requests-more { display: none; } }
-@container holo-body (max-height: 150px) { .nc-requests[data-size=M] .nc-request:nth-child(n+2) { display: none; } }
 /* A large panel under 500 px keeps each request to one line; a short one lets the last rows go (and the count that would then be wrong). */
 @container holo-body (max-height: 500px) { .nc-requests[data-size=L] .nc-request-text { -webkit-line-clamp: 1; line-clamp: 1; } }
-@container holo-body (max-height: 400px) { .nc-requests[data-size=L] .nc-request:nth-child(n+5), .nc-requests[data-size=L] .nc-requests-more { display: none; } }
 @container holo-body (max-height: 480px) { .nc-sees[data-size=L] .nc-sees-grid li { min-height: 30px; } .nc-sees[data-size=L] { gap: 6px; } }
 @container holo-body (max-height: 400px) { .nc-sees[data-size=L] .nc-sees-grid li { min-height: 27px; } .nc-sees[data-size=L] .nc-sees-ring { --nc-d: 56; } }
 @container holo-body (max-height: 420px) { .nc-brain[data-size=L] .nc-facts > .nc-brain-text { display: none; } }

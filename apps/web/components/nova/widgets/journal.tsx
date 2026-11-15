@@ -3,6 +3,7 @@ import {useMemo} from 'react';
 import {JOURNAL} from '../../../lib/journal/schema';
 import {addLocalDays, localDate} from '../../../lib/local-date';
 import {journalMonth} from '../../../lib/nova/cards/journal';
+import {moreWords} from '../../../lib/nova/cards/whole-rows';
 import {countText, plural} from '../../../lib/plural';
 import {formatDate, formatMonth, formatRelativeDay, formatWeekday} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
@@ -41,8 +42,10 @@ export default function JournalWidget({size}: {size: CardProps['size']; params?:
     ? <Hero value={`${month.streak}`} unit={`${plural(month.streak, 'day')} in a row`} label={size === 'S' ? `${month.entries} this month` : `${entries} this month`}/>
     : <Hero value={`${month.entries}`} unit={plural(month.entries, 'entry', 'entries')} label="This month"/>;
   const thisWeek = month.weeks.find(w => { const at = dayIndex(w.key, today); return at >= 0 && at < 7; });
+  // Session AM-2 (whole rows only): a panel too low for the whole month keeps its latest weeks whole and says how many came before.
   const calendar = <Lattice columns={Array.from({length: 7}, (_, i) => formatWeekday(addLocalDays(month.firstMonday, i)).slice(0, 1))}
-    rows={month.weeks.map(w => { const at = dayIndex(w.key, today); return {key: w.key, label: `W${isoWeek(w.key)}`, cells: w.cells, today: at >= 0 && at < 7 ? at : undefined}; })}/>;
+    rows={month.weeks.map(w => { const at = dayIndex(w.key, today); return {key: w.key, label: `W${isoWeek(w.key)}`, cells: w.cells, today: at >= 0 && at < 7 ? at : undefined}; })}
+    keep="last" more={(hidden, shown) => moreWords(hidden, {shown, what: ['earlier week', 'earlier weeks']})}/>;
   return <div className="nc-body nc-journal" data-size={size}>
     {size === 'S' ? <div className="nc-row">{hero}{thisWeek && <span className="nc-mini nc-journal-strip" aria-hidden="true">{thisWeek.cells.map((c, i) => <i key={i} data-cell={c} data-today={dayIndex(thisWeek.key, today) === i || undefined}/>)}</span>}</div> : size === 'M' ? <div className="nc-journal-main">
       <div className="nc-journal-side">{hero}{last && <Fact label="Last entry" value={last}/>}</div>

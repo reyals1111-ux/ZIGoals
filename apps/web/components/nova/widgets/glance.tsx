@@ -13,6 +13,7 @@ import {daysBetween, glanceLines, type GlanceFacts} from '../../../lib/nova/widg
 import type {WidgetSize} from '../../../lib/nova/store';
 import {HoloFigure, TickRing} from '../holo/parts';
 import {useOrbitDay} from './use-orbit-day';
+import {WholeRows} from '../cards/whole-rows';
 import {NovaEmpty, NovaReading} from './empty';
 
 /**
@@ -45,6 +46,7 @@ export default function GlanceWidget({size}: {size?: WidgetSize}) {
   return <div className="hw-glance" data-size={size}>
     {/* Round 3: the ring is always there — unlit, with "—", while nothing is counted on the day's orbit yet (never a zero). */}
     <TickRing share={o && o.total > 0 ? o.done / o.total : null} small={size === 'S'} className="hw-mini-ring"><span aria-hidden="true"><HoloFigure text={o && o.total > 0 ? `${o.done}/${o.total}` : '—'} className="holo-num-ring"/></span></TickRing>
-    <ul className="nova-glance hw-rows">{lines.map(line => <li key={line} className="hw-row">{line}</li>)}</ul>
+    {/* Session AM-2 (whole rows only): the day's lines that fit, then how many more Today holds. */}
+    <WholeRows inline className="nova-glance hw-rows" min={1} more={hidden => `+${hidden} more on Today`}>{lines.map(line => <li key={line} className="hw-row">{line}</li>)}</WholeRows>
   </div>;
 }

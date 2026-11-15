@@ -5,6 +5,8 @@ import {amount} from '../../platform/common';
 import {marketRefKey} from '../../../lib/market-assets';
 import {formatPrice, formatTime} from '../../../lib/visual-format';
 import type {WidgetSize} from '../../../lib/nova/store';
+import {moreWords} from '../../../lib/nova/cards/whole-rows';
+import {WholeRows} from '../cards/whole-rows';
 import {NovaEmpty, NovaReading, NovaUnread} from './empty';
 
 /**
@@ -17,8 +19,10 @@ export default function MarketsWidget({size}: {size: WidgetSize}) {
   if (!store.loaded) return <NovaReading/>;
   if (store.error) return <NovaUnread what="Your market watch"/>;
   if (!list.length) return <NovaEmpty pillar="wealth" ghost="wave" href="/app/markets" action="Follow a market">You follow no markets yet.</NovaEmpty>;
-  return <ul className="nova-markets hw-markets">{list.slice(0, size === 'S' ? 2 : size === 'M' ? 4 : 8).map(a => {
+  // Session AM-2 (whole rows only): the markets that fit, then "+N more on the Markets page".
+  const shown = list.slice(0, size === 'S' ? 2 : size === 'M' ? 4 : 8);
+  return <WholeRows inline className="nova-markets hw-markets" extra={list.length - shown.length} min={1} more={(hidden, rows) => moreWords(hidden, {shown: rows, where: 'the Markets page'})}>{shown.map(a => {
     const key = marketRefKey(a.ref), q = market.quotes.find(x => x.marketRef && marketRefKey(x.marketRef) === key && x.currency === 'USD');
     return <li key={key} className="hw-row" data-priced={q ? '' : undefined}><span className="nova-market-name">{a.symbol || a.name}</span>{q ? <span className="nova-market-price">{formatPrice(amount(q.price, q.priceDecimals), 'USD')}{q.observedAt ? <small> · {formatTime(q.observedAt)}</small> : null}</span> : <small>Price not in yet</small>}</li>;
-  })}</ul>;
+  })}</WholeRows>;
 }

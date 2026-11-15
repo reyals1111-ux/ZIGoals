@@ -6,13 +6,16 @@ import {balanceWords, sleepBalance} from '../../../lib/sleep/engine';
 import {durationWords} from '../../../lib/nova/widgets/words';
 import {polar, tickPath} from '../../../lib/nova/holo/geometry';
 import {nextItems} from '../../../lib/nova/holo/agenda';
-import {recentNotes, tasksHud} from '../../../lib/nova/holo/lists';
+import {noteRowWhen, recentNotes, tasksHud} from '../../../lib/nova/holo/lists';
+import {moreWords} from '../../../lib/nova/cards/whole-rows';
 import {NOTES} from '../../../lib/notes/schema';
 import {TASKS} from '../../../lib/tasks/schema';
 import {deviceDay} from '../../../lib/tasks/device';
-import {formatClock, formatPercent, formatTime} from '../../../lib/visual-format';
+import {formatClock, formatPercent} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useTaskClock} from '../../tasks/use-task-list';
+import {useLocalToday} from '../../use-local-today';
+import {WholeRows} from '../cards/whole-rows';
 import {useOrbitDay} from '../widgets/use-orbit-day';
 import {NovaEmpty} from '../widgets/empty';
 import TasksWidget from '../widgets/tasks';
@@ -33,6 +36,7 @@ import './holo-parts.css';
  * Session AM-2 (art direction D): each is a hologram of its own — a hero figure over a wide segmented meter (Water, Sleep),
  * the orbit as a bezelled ring whose lit planets ride a gradient arc, the day's next steps as a timeline of lit nodes,
  * the tasks' counters as three lit read-outs, the newest notes as rows with nodes.
+ * Session AM-2 (whole rows only): every list here shows the rows that fit its panel and then "+N more" (cards/whole-rows.tsx).
  */
 export function HoloWater({size}: {size: WidgetSize}) {
   const shown = usePillarShown('health'), shared = useHealthShared(), {hud, loaded, error} = useHealthHud();
@@ -88,11 +92,11 @@ export function HoloOrbit({size}: {size: WidgetSize}) {
     <div className="holo-orbit-side">
       <p className="holo-orbit-line">{summary.line}</p>
       {/* Round 2: what is still open on the orbit, as lit rows (the summary's own next items: lib/orbit-card/summary.ts). */}
-      {size !== 'S' && summary.next.length > 0 && <ol className="holo-next holo-orbit-next" aria-label="Next on your orbit">{summary.next.map(i => <li key={i.key} data-pillar={i.pillar}>
+      {size !== 'S' && summary.next.length > 0 && <WholeRows as="ol" wrapClassName="holo-orbit-rows" className="holo-next holo-orbit-next" aria-label="Next on your orbit" collapse>{summary.next.map(i => <li key={i.key} data-pillar={i.pillar}>
         <span className="holo-next-time">{i.time ? formatClock(i.time) : '—'}</span>
         <Link href={i.href} prefetch={false} title={i.label}>{i.label}</Link>
         <small>{WHEN[i.when]}</small>
-      </li>)}</ol>}
+      </li>)}</WholeRows>}
     </div>
     <HoloTable caption="Today’s orbit" rows={[['Done', `${summary.done} of ${summary.total} ${unit}`]]}/>
   </div>;
@@ -104,18 +108,18 @@ export function HoloNext({size}: {size: WidgetSize}) {
   if (!items) return <HoloReading/>;
   const next = nextItems(items, now, size === 'S' ? 2 : 3);
   if (!next.length) return <NovaEmpty pillar="habits" ghost="rows" href="/app/habits" action="Add a habit">{items.length ? 'Nothing else is due today. A calm orbit.' : 'Nothing is planned yet. A habit, a task or a bill shows up here at its time.'}</NovaEmpty>;
-  return <ol className="holo-next holo-next-wide" aria-label="Next in your day">{next.map(i => <li key={i.id} data-pillar={i.pillar} data-when={i.when}>
+  return <WholeRows as="ol" className="holo-next holo-next-wide" aria-label="Next in your day" min={1} more={(hidden, shown) => moreWords(hidden, {shown, where: 'your agenda'})}>{next.map(i => <li key={i.id} data-pillar={i.pillar} data-when={i.when}>
     <span className="holo-next-time">{i.time ? formatClock(i.time) : '—'}</span>
-    {i.href ? <Link href={i.href} prefetch={false}>{i.title}</Link> : <span>{i.title}</span>}
+    {i.href ? <Link href={i.href} prefetch={false} title={i.title}>{i.title}</Link> : <span title={i.title}>{i.title}</span>}
     <small>{WHEN[i.when]}</small>
-  </li>)}</ol>;
+  </li>)}</WholeRows>;
 }
 /** Tasks: the due, overdue and open counters (taskCounts) over the Tasks page's own rows and quick add. */
 export function HoloTasks({size}: {size: WidgetSize}) {
   // Release review AL (RR-8): the Tasks page's own day and clock (the app's zone), so a task late today counts as overdue here too.
   const record = useDeviceRecord(TASKS), {today, clock} = useTaskClock();
   const hud = useMemo(() => record.loaded && !record.unreadable ? tasksHud(record.data, today, deviceDay, 4, clock) : null, [record.loaded, record.unreadable, record.data, today, clock]);
-  return <div className="holo-tasks" data-size={size}>
+  return <div className="holo-tasks" data-size={size} data-counters={hud && hud.total > 0 ? '' : undefined}>
     {hud && hud.total > 0 && <dl className="holo-counters">
       <div data-tone={hud.overdue ? 'attention' : undefined}><dt>Overdue</dt><dd>{hud.overdue > 0 && <span className="holo-attention-mark" aria-hidden="true">!</span>}<HoloFigure text={String(hud.overdue)}/></dd></div>
       {/* Second review m5 (lane L8f): due today only — the line under it and the Tasks page's Today tab also count what was
@@ -126,15 +130,21 @@ export function HoloTasks({size}: {size: WidgetSize}) {
     <TasksWidget size={size}/>
   </div>;
 }
-/** Notes: the newest captures (any kind) and how many wait in the inbox. */
+/**
+ * Notes: the newest captures (any kind) and how many wait in the inbox. Session AM-2: a row is the note's name at the
+ * row's whole width (a daily note by its date in the app's format, an untitled one by its first line or "Untitled note")
+ * and when it was captured (the time today, else the date; never raw ISO); the rows that fit, then "+N more".
+ */
 export function HoloNotes({size}: {size: WidgetSize}) {
-  const record = useDeviceRecord(NOTES);
+  const record = useDeviceRecord(NOTES), today = useLocalToday();
   if (!record.loaded) return <HoloReading/>;
   if (record.unreadable) return <HoloUnread what="Your notes"/>;
-  const r = recentNotes(record.data, size === 'L' ? 5 : size === 'M' ? 3 : 2); // a small panel shows its second note only where it is wide (holo-parts.css)
+  const r = recentNotes(record.data, size === 'L' ? 8 : size === 'M' ? 4 : 2);
   if (!r.total) return <NovaEmpty pillar="orbit" ghost="rows">Your notes start here. A quick capture from anywhere lands in your inbox.</NovaEmpty>;
   return <div className="holo-notes" data-size={size}>
     <p className="holo-label holo-notes-head"><HoloFigure text={String(r.inbox)} className="holo-num-big"/> <span>in your inbox</span></p>
-    <ol className="holo-captures" aria-label="Recent captures">{r.recent.map(n => <li key={n.id}><Link href="/app/notes" prefetch={false}>{n.name}</Link><small>{formatTime(n.at)}</small></li>)}</ol>
+    <WholeRows as="ol" wrapClassName="holo-notes-rows" className="holo-captures" aria-label="Recent captures" extra={r.total - r.recent.length} min={1} more={(hidden, shown) => moreWords(hidden, {shown, ...(size === 'S' ? {} : {where: 'the Notes page'})})}>
+      {r.recent.map(n => <li key={n.id}><Link href="/app/notes" prefetch={false} title={n.label}>{n.label}</Link><small>{noteRowWhen(n.at, today)}</small></li>)}
+    </WholeRows>
   </div>;
 }

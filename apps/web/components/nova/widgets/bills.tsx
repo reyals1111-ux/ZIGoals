@@ -5,6 +5,8 @@ import {NEAR_DAYS, billsCard, billsRows, type BillLine} from '../../../lib/nova/
 import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
+import {moreWords} from '../../../lib/nova/cards/whole-rows';
+import {WholeRows} from '../cards/whole-rows';
 import {CardFoot, CardNotice, Fact, Gauge, Hero, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
@@ -44,14 +46,15 @@ export default function BillsWidget({size = 'M'}: Partial<CardProps>) {
         <p className="nc-bills-when" data-over={next.overdue || undefined}>{size === 'S' ? next.when : `${next.date} · ${next.when}`}</p>
       </Hero>
     </div>
-    {rest.length > 0 && <div className="nc-bills-after">
-      {size === 'L' && <p className="nc-bills-caption">After that{more > 0 ? ` · ${more} more on Wealth` : ''}</p>}
-      <ul className="nc-bills-list">{rest.map((l, i) => <li key={l.id} className="nc-bills-row nc-rise" data-over={l.overdue || undefined} style={{'--nc-i': i} as CSSProperties}>
+    {/* Session AM-2 (whole rows only): the bills after the next one that fit, then "+N more on the Wealth page" (measured; the box is the rows' own place in the panel). */}
+    {rest.length > 0 && <div className="nc-bills-after" data-wr-limit="">
+      {size === 'L' && <p className="nc-bills-caption">After that</p>}
+      <WholeRows className="nc-bills-list" extra={Math.max(0, more)} min={size === 'S' ? 0 : 1} more={(hidden, shown) => moreWords(hidden, {shown, where: 'the Wealth page'})}>{rest.map((l, i) => <li key={l.id} className="nc-bills-row nc-rise" data-over={l.overdue || undefined} style={{'--nc-i': i} as CSSProperties}>
         <Countdown line={l} size={size === 'L' ? 40 : 34}/>
         <span className="nc-bills-name" title={l.title}>{l.title}</span>
         <span className="nc-bills-amount">{l.amount}</span>
         <span className="nc-bills-when" data-over={l.overdue || undefined}>{l.date} · {l.when}</span>
-      </li>)}</ul>
+      </li>)}</WholeRows>
     </div>}
     {size === 'L' && <div className="nc-facts">
       {/* Each currency is its own figure, side by side: never converted, never added. */}

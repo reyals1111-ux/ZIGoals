@@ -199,17 +199,170 @@
 /* ==== AM-2 round 3: small panels in a wide body, and larger figures in a very large one ==== */
 .hw-mini-ring[data-small] { --ring: clamp(36px, calc(100cqh - 22px), 56px); }
 .nova-frame[data-look=classic] .hw-mini-ring[data-small] { --ring: 48px; }
-/* Focus, small: the week's columns join the row only where the body is wide; the key overlaps the row's own space. */
+/* Focus, small: the week's columns join the row only where the body is wide. Session AM-2: the key has air above it
+   (2 px of margin and the row gap over the key's own 6 px inset: 10 px to the lit key) wherever the body can hold it:
+   figure line 25.3 + row gap 2 + key (2 + 44 − 6) + the panel's 16 px of padding = 83.3 px. A lower fitted body keeps the
+   key in the row's own space, as before (60 + 16 px). The band and a phone have no height to fit: there the key has its air. */
 .hw-focus[data-size=S] > .holo-cols { display: none; }
-.hw-focus[data-size=S] > .nova-chip-link { margin-block: -6px; }
+.hw-focus[data-size=S] > .nova-chip-link { margin-block: 2px -6px; }
+@container holo-body (max-height: 83.98px) and (max-width: 559.98px) { .hw-focus[data-size=S] > .nova-chip-link { margin-block: -6px; } }
+/* Wide: one row. The week's columns carry their weekday letters (the app's own short weekdays, two letters): a column is
+   its slot, 2 px and a 16 px letter line, so the slots are the body's height less 36 px (18 for the letters, 16 for the
+   panel's padding, 2 to spare); under 54 px of body the letters give way (the slots would be under 20 px). */
 @container holo-body (min-width: 560px) {
-  .hw-focus[data-size=S]:not([data-running]) { display: flex; align-items: center; gap: 22px; }
-  .hw-focus[data-size=S]:not([data-running]) > .holo-cols { display: grid; order: 3; flex: none; width: 210px; max-width: none; margin-left: auto; --cols-h: clamp(24px, calc(100cqh - 30px), 60px); }
-  .hw-focus[data-size=S] .holo-cols-day small { display: none; }
+  .hw-focus[data-size=S]:not([data-running]) { display: flex; align-items: center; align-content: center; gap: 22px; }
+  .hw-focus[data-size=S]:not([data-running]) > .holo-cols { display: grid; order: 3; flex: none; width: 210px; max-width: none; margin-left: auto; --cols-h: clamp(20px, calc(100cqh - 36px), 60px); }
   .hw-focus[data-size=S] > .nova-chip-link { margin-block: 0; }
+}
+@container holo-body (min-width: 560px) and (max-height: 53.98px) {
+  .hw-focus[data-size=S] .holo-cols-day small { display: none; }
+  .hw-focus[data-size=S]:not([data-running]) > .holo-cols { --cols-h: clamp(16px, calc(100cqh - 18px), 60px); }
 }
 @container holo-body (min-width: 640px) {
   .nova-widget[data-holo]:is([data-size=M], [data-size=L]) .nova-big .nova-figure { font-size: clamp(26px, min(8cqi, 30cqh), 56px); }
   .nova-widget[data-holo] .hw-goals .nova-goal-pct { font-size: 24px; }
   .nova-widget[data-holo] .hw-rows > .hw-row, .nova-widget[data-holo] .hw-facts dd { font-size: 16px; }
 }
+
+/* ==== Session AM-2 (the critic's faults in the bodies) ==== */
+
+/* ---- Focus: the Pomodoro key rests on the panel's foot, with air above it ----
+   The week's body fills its panel (also in the band below the fold, whose panels are at least their size's height: the
+   body there is a column so its inside can fill it), and the key is its last line: pushed to the foot, never closer to
+   the words above than 12 px (a 6 px gap and the key's own 6 px inset). */
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .hw-focus:not([data-running]) { flex: 1 0 auto; }
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-widget=focus][data-size] .nova-widget-body { display: flex; flex-direction: column; }
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-widget=focus][data-size] .nova-widget-inner { flex: 1 0 auto; }
+.nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { align-content: space-between; }
+@container holo-body (max-width: 559.98px) {
+  .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) { display: flex; flex-direction: column; gap: 6px; }
+  .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .nova-chip-link { margin-top: auto; align-self: flex-start; }
+}
+@container holo-body (min-width: 560px) {
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { align-content: center; }
+  .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) { grid-template-rows: auto auto minmax(0, 1fr); }
+  .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .nova-chip-link { align-self: end; }
+}
+
+/* ---- Notes inbox (the Classic body): a row is the note's name at the row's whole width, one line ---- */
+.nova-notes .nova-notes-list li a { display: block; line-height: 44px; min-height: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Tasks: the lists and the foot (both looks) ---- */
+.nova-widget .tasks-widget .tasks-lists { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; }
+.nova-widget .tasks-widget .tasks-foot { min-width: 0; }
+
+/* ---- Tasks on the Holo stage: a compact holographic layout, never taller than its panel ----
+   The rows are the Tasks page's own (components/tasks); only their layout changes here. Top to bottom: the three counters,
+   as many whole rows as fit, "+N more on the Tasks page", and the add form as the panel's foot. A fitted body is exactly
+   its panel's height (as the made widgets' are, cards.css), so the lists' box is what is left between the counters and
+   the foot; the rows are measured against it (cards/whole-rows.tsx).
+   Medium at 1440 × 900 (a body of 316 × 238 px): counters 47, gap 6, the lists, gap 6, the form 44, so the lists have
+   238 − 47 − 6 − 6 − 44 = 135 px: three rows (44 + 45 + 45 = 134: a 44 px target each and a hairline between) when
+   there are exactly three, else two rows and the last line (89 + 23 = 112). It was 633 px. */
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-widget=tasks][data-size] .nova-widget-inner { padding-block: 0; justify-content: flex-start; }
+.nova-widget[data-holo] .holo-tasks { position: relative; display: flex; flex-direction: column; gap: 6px; }
+@container holo-body (min-height: 1px) { .nova-widget[data-holo] .holo-tasks { height: 100cqh; } }
+.nova-widget[data-holo] .holo-tasks > .holo-counters { flex: none; }
+.nova-widget[data-holo] .holo-tasks > .tasks-widget { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.nova-widget[data-holo] .tasks-widget > .tasks-lists { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.nova-widget[data-holo] .tasks-widget > .tasks-lists > .wr, .nova-widget[data-holo] .tasks-widget > .nova-empty { flex: none; }
+.nova-widget[data-holo] .tasks-widget > .tasks-foot { flex: none; margin-top: auto; }
+/* The counters say what the headline says (overdue, due today, open): the line stays for assistive technology. */
+.nova-widget[data-holo] .holo-tasks[data-counters] .tasks-headline { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nova-widget[data-holo] .tasks-widget .tasks-next .nova-eyebrow { margin: 0 0 2px; line-height: 18px; }
+/* One-line rows: the box (its 44 px target), the title with an ellipsis, then the priority and the due words at the
+   row's end. The rest of a row's facts (repeat, subtasks, project, labels, reminders, notes, its goal) are not drawn here
+   and stay in the row's text for assistive technology; a goal's link shows itself while it holds the focus, and on the
+   row itself where the panel is wide. */
+.nova-widget[data-holo] .tasks-widget .tasks-list { display: grid; gap: 0; margin: 0; }
+.nova-widget[data-holo] .tasks-widget .task { grid-template-columns: 44px minmax(0, 1fr) fit-content(54%); grid-template-areas: "done title meta"; align-items: center; gap: 0 8px; min-height: 44px; padding: 0; border-bottom: 0; }
+.nova-widget[data-holo] .tasks-widget .task + .task { border-top: 1px solid color-mix(in oklab, var(--neon, #9273ff) 16%, transparent); }
+.nova-widget[data-holo] .tasks-widget .task-title { min-width: 0; font-size: 15px; line-height: 20px; color: #eef3ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.nova-widget[data-holo] .tasks-widget .task-meta { grid-area: meta; min-width: 0; display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 6px; white-space: nowrap; font-size: 14px; line-height: 20px; opacity: 1; color: #cdd8ee; }
+.nova-widget[data-holo] .tasks-widget .task-chip { flex: none; }
+.nova-widget[data-holo] .tasks-widget .task-due { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.nova-widget[data-holo] .tasks-widget .task-overdue .task-due { color: #ffd0ca; font-weight: 650; }
+.nova-widget[data-holo] .tasks-widget .task-meta > :is(.task-recur, .task-progress, .task-project, .task-label, .task-reminder, .task-has-notes),
+.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal { flex: 0 1 auto; min-width: 0; line-height: 44px; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+/* The counters, compact (a medium panel that is not wide): 2 + 26 + 16 + 3 = 47 px. */
+.nova-widget[data-holo] .holo-tasks .holo-counters dt { line-height: 16px; }
+@container holo-body (max-width: 559.98px) {
+  .nova-widget[data-holo] .holo-tasks[data-size=M] .holo-counters div { padding: 2px 4px 3px 10px; }
+  .nova-widget[data-holo] .holo-tasks[data-size=M] .holo-counters dd { font-size: 24px; line-height: 26px; }
+}
+/* The add form on one row: the title, the time, Add. Each field keeps its label as its name (not drawn here: the title
+   field shows its example, the time field its own clock). A message under the title field ("Type a task first.") is
+   laid over the row above it, so the form's height never changes. */
+.nova-widget[data-holo] .tasks-widget .tasks-add { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto) auto; align-items: end; gap: 6px; }
+.nova-widget[data-holo] .tasks-widget .tasks-add .field { position: relative; display: block; flex: none; min-width: 0; margin: 0; }
+.nova-widget[data-holo] .tasks-widget .tasks-add .field > span:first-child { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-) { display: block; box-sizing: border-box; width: 100%; min-width: 0; height: 44px; min-height: 44px; margin: 0; padding: 0 10px; font-size: 16px; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-) { width: auto; max-width: 100%; padding: 0 6px; }
+.nova-widget[data-holo] .tasks-widget .tasks-add button { box-sizing: border-box; height: 44px; min-height: 44px; min-width: 44px; margin: 0; padding: 0 13px; font-size: 15px; }
+.nova-widget[data-holo] .tasks-widget .tasks-add :is(.tasks-field-error, .tasks-field-note) { position: absolute; left: 0; bottom: calc(100% + 4px); z-index: 2; width: max-content; max-width: min(300px, 92cqi); margin: 0; padding: 3px 8px; border-radius: 3px; border: 1px solid #ff8f88; background: #1a0a12; color: #ffd0ca; font-size: 14px; font-weight: 600; line-height: 18px; white-space: normal; }
+.nova-widget[data-holo] .tasks-widget .tasks-add .tasks-field-note { border-color: color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); background: #0a1030; color: #dbe4f6; }
+/* A body under 300 px: the title on its own row, the time and Add under it. */
+@container holo-body (max-width: 299.98px) {
+  .nova-widget[data-holo] .tasks-widget .tasks-add { grid-template-columns: minmax(0, 1fr) auto; }
+  .nova-widget[data-holo] .tasks-widget .tasks-add .tasks-add-title { grid-column: 1 / -1; }
+}
+/* The status line ("Marked … done. Undo") is one 20 px line; Undo's 44 px target overlaps the line's own space. */
+.nova-widget[data-holo] .tasks-widget .tasks-status:not([data-empty]) { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-height: 0; margin: 4px 0 0; font-size: 14px; line-height: 20px; color: #dbe4f6; }
+.nova-widget[data-holo] .tasks-widget .tasks-status .text-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; margin-block: -12px; }
+/* Small: the counters as one line (24 px), then the rows; "+N more" sits at the row's end, so it costs no height:
+   24 + 4 + 44 = 72 px. No add form, no second list. */
+.nova-widget[data-holo] .holo-tasks[data-size=S] { gap: 4px; justify-content: center; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] > .tasks-widget { flex: 0 1 auto; gap: 0; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters { grid-template-columns: repeat(3, minmax(0, auto)); justify-content: start; gap: 6px; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters div { display: flex; align-items: baseline; gap: 5px; min-width: 0; padding: 0 2px 0 9px; background: none; box-shadow: none; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters dd { flex: none; font-size: 20px; line-height: 24px; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters dt { flex: 0 1 auto; min-width: 0; line-height: 24px; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .wr { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 10px; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .wr-more { padding: 0; }
+@container holo-body (min-width: 560px) {
+  /* Wide: the counters and the form on the left, the lists at the body's height on the right. */
+  .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); grid-template-rows: auto minmax(0, 1fr); gap: 6px 28px; }
+  .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) > .holo-counters { grid-area: 1 / 1; align-self: start; }
+  .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) > .tasks-widget { display: contents; }
+  .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) .tasks-lists { grid-area: 1 / 2 / 3 / 3; align-self: start; max-height: 100%; }
+  .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) .tasks-foot { grid-area: 2 / 1; align-self: end; margin-top: 0; }
+  .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) .tasks-widget > .nova-empty { grid-area: 1 / 1 / 2 / 3; }
+  .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible) { position: static; width: auto; height: auto; margin: 0; clip-path: none; max-width: 14em; }
+  /* Small and wide: the counters, then the rows, on one line. */
+  .nova-widget[data-holo] .holo-tasks[data-size=S] { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; align-content: center; column-gap: 28px; }
+}
+/* Wide and low (under 150 px): the counters stay compact, so they and the form (47 + 6 + 44) share the left column. */
+@container holo-body (min-width: 560px) and (max-height: 149.98px) {
+  .nova-widget[data-holo] .holo-tasks[data-size=M] .holo-counters div { padding: 2px 4px 3px 10px; }
+  .nova-widget[data-holo] .holo-tasks[data-size=M] .holo-counters dd { font-size: 24px; line-height: 26px; }
+}
+/* ---- Next bill and contribution: the runway under the two facts is an ornament and leaves first ----
+   A fact is its label (21), its name (22.5) and its date line (21) with 2 px between and 6 to 11 px of padding: about
+   73 and 78 px. Two facts, the panel's padding (16), the gap (10) and the runway (33) are about 210 px, so the runway
+   shows from 220 px of body (10 px in hand); side by side in a wide body, from 140 px. Under that the facts alone, and
+   where even they do not both fit the first one whole (cards/whole-rows.tsx measures it). A phone and the band have no
+   height to fit: there the runway always shows. */
+@container holo-body (max-height: 219.98px) and (max-width: 559.98px) { .hw-money > .hw-runway { display: none; } }
+@container holo-body (max-height: 139.98px) and (min-width: 560px) { .hw-money > .hw-runway { display: none; } }
+/* ---- Now playing: its keys are never cut ----
+   The disc beside two lines of words is one row (44 px), the keys the next (44): 44 + 10 + 44 and the panel's padding
+   (16) = 114 px. A lower body (a small panel beside the star is about 88 px) is one row instead: the words on one line,
+   then the keys (44 + 16 = 60 px); the status line stays for assistive technology (the play key's name and the level
+   meter say the same), and under 360 px of width the meter (an ornament) leaves so the words keep their room. */
+.nova-playing-text { min-width: 0; }
+@container holo-body (max-height: 113.98px) {
+  .nova-widget[data-holo] .nova-playing { grid-template-columns: auto minmax(0, 1fr) auto; gap: 0 10px; }
+  .nova-widget[data-holo] .nova-playing-actions { grid-column: auto; flex-wrap: nowrap; gap: 4px; }
+  .nova-widget[data-holo] .nova-playing-text .nova-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nova-widget[data-holo] .nova-playing-text .nova-quiet { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+}
+@container holo-body (max-height: 113.98px) and (max-width: 359.98px) {
+  .nova-widget[data-holo] .nova-playing { grid-template-columns: minmax(0, 1fr) auto; }
+  .nova-widget[data-holo] .nova-playing > .nova-disc { display: none; }
+}
+/* ---- NOVA briefs, small: the settings key gives way in a low fitted body ----
+   The heading (21), one line of the brief (33) and the panel's padding (16) are 74 px; with the key under them (4 + 44)
+   it is 122 px and the key was cut. Under 122 px of body the key is not drawn (the head's own link opens the briefs and
+   Set-up holds their settings); a phone and the band have no height to fit and keep it. */
+@container holo-body (max-height: 121.98px) { .nova-widget[data-holo] .hw-briefs[data-size=S] > .nova-chip-link { display: none; } }

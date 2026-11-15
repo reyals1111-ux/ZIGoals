@@ -1,7 +1,8 @@
-import {noteName, type Notes} from '../../notes/schema';
+import {noteName, type Note, type Notes} from '../../notes/schema';
 import {inboxOf} from '../../notes/store';
 import {openTasks, taskCounts, tasksOnDay} from '../../tasks/engine';
 import type {Task, Tasks} from '../../tasks/schema';
+import {calendarDay, formatDate, formatTime} from '../../visual-format';
 
 /**
  * Session AL Part 11 (lane L8): the Tasks and Notes panels' figures, from their own engines.
@@ -17,8 +18,23 @@ export function tasksHud(record: Tasks, today: string, doneDay: (iso: string) =>
   const rest = day.length < queue ? openTasks(record, today).filter(t => !day.some(d => d.id === t.id) && !t.due).slice(0, queue - day.length) : [];
   return {...c, queue: [...day, ...rest].slice(0, queue), total: record.tasks.length};
 }
-export type NoteLine = {id: string; name: string; at: string; kind: string};
+export type NoteLine = {id: string; name: string; /** The name a widget row shows (`noteRowName`). */ label: string; at: string; kind: string};
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+/**
+ * Session AM-2: a note's name in a widget row. A daily note is titled with its day ("2026-11-11", lib/notes/schema.ts):
+ * it reads as that date in the app's own format (as the Notes page heads it), never as raw ISO; so does any other title
+ * that is only a day. Every other note keeps `noteName`: its title, else its first line, else "Untitled note".
+ */
+export function noteRowName(note: Pick<Note, 'title' | 'body' | 'kind' | 'day'>, date: (day: string) => string = day => formatDate(day, {weekday: true})): string {
+  if (note.kind === 'daily' && note.day && ISO_DAY.test(note.day)) return date(note.day);
+  const name = noteName(note);
+  return ISO_DAY.test(name) ? date(name) : name;
+}
+/** When a note was captured, for a widget row: the time for one captured today, else its date (the app's formats; never raw ISO). */
+export function noteRowWhen(at: string, today: string): string {
+  return calendarDay(at) === today ? formatTime(at) : formatDate(at, {year: at.slice(0, 4) !== today.slice(0, 4)});
+}
 export function recentNotes(record: Notes, count = 3): {recent: NoteLine[]; inbox: number; total: number} {
-  const recent = [...record.notes].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, count).map(n => ({id: n.id, name: noteName(n), at: n.createdAt, kind: n.kind}));
+  const recent = [...record.notes].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, count).map(n => ({id: n.id, name: noteName(n), label: noteRowName(n), at: n.createdAt, kind: n.kind}));
   return {recent, inbox: inboxOf(record).length, total: record.notes.length};
 }

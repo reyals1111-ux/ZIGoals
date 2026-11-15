@@ -5,6 +5,7 @@ import {spendingAsOf, spendingCard, spendingRows} from '../../../lib/nova/cards/
 import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {useLocalToday} from '../../use-local-today';
+import {moreWords} from '../../../lib/nova/cards/whole-rows';
 import {Bars, CardFoot, CardNotice, Fact, Hero, StackBar, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
@@ -40,11 +41,12 @@ export default function SpendingWidget({size = 'M', params}: Partial<CardProps>)
       {/* Small: the categories as one stacked bar at the row's end (decoration; the medium and large sizes name them). */}
       {size === 'S' && card.categories.length > 0 && <span className="nc-mini"><StackBar parts={card.categories.slice(0, 4).map(c => ({key: c.category, share: c.share}))}/></span>}
     </div>
-    {top.length > 0 && <div className="nc-spending-bars">
+    {/* Session AM-2 (whole rows only): the categories that fit, then "+N more categories on the Wealth page". */}
+    {top.length > 0 && <div className="nc-spending-bars" data-wr-limit="">
       {size === 'L' && <p className="nc-spending-caption">By category · share of the total</p>}
       <StackBar parts={top.map(c => ({key: c.category, share: c.share}))}/>
-      <Bars keyed rows={top.map(c => ({key: c.category, label: c.category, share: c.share, value: `${c.text} · ${c.percent}`}))}/>
-      {size === 'L' && more > 0 && <p className="nc-spending-note">{more} more {more === 1 ? 'category' : 'categories'} on Wealth.</p>}
+      <Bars keyed rows={top.map(c => ({key: c.category, label: c.category, share: c.share, value: `${c.text} · ${c.percent}`}))}
+        extra={Math.max(0, more)} more={(hidden, shown) => moreWords(hidden, {shown, what: ['more category', 'more categories'], where: 'the Wealth page'})}/>
     </div>}
     {size === 'L' && <div className="nc-facts">
       {card.largest && <Fact label="Largest entry" value={`${card.largest.text} · ${formatDate(card.largest.date, {year: false})}`}/>}

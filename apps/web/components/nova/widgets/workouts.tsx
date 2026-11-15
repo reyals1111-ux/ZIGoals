@@ -7,6 +7,7 @@ import {dailyData} from '../../../lib/health-daily';
 import {workoutsCard, workoutsRows} from '../../../lib/nova/cards/workouts';
 import {formatNumber} from '../../../lib/visual-format';
 import {CardFoot, CardNotice, Columns, HeartMark, HeartTrace, Hero, type CardProps} from '../cards/kit';
+import {WholeRows} from '../cards/whole-rows';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread, NotShared} from '../holo/parts';
 import {useHealthShared, usePillarShown} from '../holo/use-hud-data';
 import '../cards/health-cards.css';
@@ -44,9 +45,10 @@ export default function WorkoutsWidget({size = 'M', params}: Partial<CardProps>)
       <Columns values={card.buckets.map(b => b.count || null)} labels={card.buckets.map(b => b.label)} height={size === 'L' ? 96 : 52} mark={card.buckets.length - 1}/>
       {card.by === 'week' && !dated && <p className="nc-trend-dates" aria-hidden="true"><span>{card.edges[0]}</span><span>{card.edges[1]}</span></p>}
     </div>}
-    {size === 'L' && card.recent.length > 0 && <ul className="nc-workouts-list" aria-label="Your last workouts">
+    {/* Session AM-2 (whole rows only): the last workouts that fit, then how many more of them Health keeps. */}
+    {size === 'L' && card.recent.length > 0 && <WholeRows inline className="nc-workouts-list" aria-label="Your last workouts" min={1} more={hidden => `+${hidden} more on the Health page`}>
       {card.recent.map((w, i) => <li key={w.id} className="nc-workouts-row nc-rise" style={{'--nc-i': i} as CSSProperties}><span className="nc-workouts-name" title={w.name}>{w.name}</span><span className="nc-workouts-date">{w.dateText}</span><span className="nc-workouts-minutes">{w.minutesText}</span></li>)}
-    </ul>}
+    </WholeRows>}
     {!shared && size !== 'S' && <NotShared/>}
     <HoloTable caption={`Your workouts, ${card.window.words}`} rows={workoutsRows(card)}/>
     <CardFoot source="Your Health records" asOf={card.asOf}/>

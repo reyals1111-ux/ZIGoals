@@ -6,6 +6,8 @@ import {formatDate, formatWeekday} from '../../../lib/visual-format';
 import {plural} from '../../../lib/plural';
 import {Columns, Dial, GlowBar, HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, RingStack} from '../holo/parts';
 import {useHabitsHud, usePillarShown} from '../holo/use-hud-data';
+import {moreWords} from '../../../lib/nova/cards/whole-rows';
+import {WholeRows} from '../cards/whole-rows';
 import '../holo/holo-parts.css';
 
 /**
@@ -37,7 +39,8 @@ export default function HabitsHudWidget({size}: {size: WidgetSize}) {
         <div className="holo-ring-centre"><HoloFigure text={`${hud.done}/${hud.due}`} className="holo-num-ring"/><small>today</small></div>
       </div>
       {size !== 'S' && <div className="holo-stack-list">
-        <ol className="holo-streaks" aria-label="Longest streaks now">{hud.rings.map((r, i) => <li key={r.id} style={{'--i': i} as CSSProperties}><span className="holo-dot" aria-hidden="true"/><span className="holo-streak-name">{r.title}</span><b className="holo-num">{streakWords(r.streak, r.unit)}</b><GlowBar share={r.share}/></li>)}</ol>
+        {/* Session AM-2 (whole rows only): the streaks that fit beside the ring, then "+N more on the Habits page". */}
+        <WholeRows as="ol" inline className="holo-streaks" aria-label="Longest streaks now" min={1} more={(hidden, shown) => moreWords(hidden, {shown, where: 'the Habits page'})}>{hud.rings.map((r, i) => <li key={r.id} style={{'--i': i} as CSSProperties}><span className="holo-dot" aria-hidden="true"/><span className="holo-streak-name">{r.title}</span><b className="holo-num">{streakWords(r.streak, r.unit)}</b><GlowBar share={r.share}/></li>)}</WholeRows>
         {!hud.rings.length && <p className="holo-note holo-note-line">A streak starts with your next check-in.</p>}
       </div>}
       {/* A small panel: today's ring and the week's columns (no words to fit; the table says them). */}

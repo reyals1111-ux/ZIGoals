@@ -7,6 +7,7 @@ import {upcomingBills} from '../../../lib/bills/store';
 import {formatDate} from '../../../lib/visual-format';
 import {daysBetween, whenWords} from '../../../lib/nova/widgets/words';
 import {useGoalSummaries} from './use-goal-summaries';
+import {WholeRows} from '../cards/whole-rows';
 import {NovaEmpty, NovaReading} from './empty';
 
 /**
@@ -30,12 +31,13 @@ export default function MoneyWidget() {
   const next = goals.goals.filter(g => g.status === 'active' && g.nextContributionDate && g.nextContributionDate >= today)
     .sort((a, b) => a.nextContributionDate!.localeCompare(b.nextContributionDate!))[0] ?? null;
   if (!bill && !next) return <NovaEmpty pillar="wealth" ghost="rows" href="/app/wealth?view=bills" action="Add a bill">{bills.unreadable ? 'Your bills could not be read right now. ' : ''}No bill or planned contribution in the next two months. Add a bill, or give a goal a plan.</NovaEmpty>;
-  return <div className="hw-money"><dl className="nova-facts hw-facts">
+  // Session AM-2 (whole rows only): a panel too low for both facts shows the first whole (the runway under them is an ornament and leaves first: widgets.css).
+  return <div className="hw-money"><WholeRows as="dl" className="nova-facts hw-facts" min={1} more={hidden => `+${hidden} more on the Wealth page`}>
     {bill ? <div data-kind="bill"><dt>Next bill</dt><dd><strong>{bill.title}</strong> · <span data-private-amount="">{bill.amount}</span><small>{formatDate(bill.due, {weekday: true, year: false})}, {whenWords(daysBetween(today, bill.due))}</small></dd></div>
       : <div><dt>Next bill</dt><dd><small>{bills.unreadable ? 'Your bills could not be read right now.' : 'None in the next two months.'}</small></dd></div>}
     {next ? <div data-kind="contribution"><dt>Next contribution</dt><dd><Link href={next.href} prefetch={false}><strong>{next.name}</strong></Link><small>{formatDate(next.nextContributionDate!, {weekday: true, year: false})}, {whenWords(daysBetween(today, next.nextContributionDate!))}</small></dd></div>
       : <div><dt>Next contribution</dt><dd><small>No contribution is planned yet.</small></dd></div>}
-  </dl>
+  </WholeRows>
   <Runway bill={bill ? daysBetween(today, bill.due) : null} contribution={next ? daysBetween(today, next.nextContributionDate!) : null}/>
   </div>;
 }

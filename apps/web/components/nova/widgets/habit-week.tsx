@@ -3,7 +3,7 @@ import {useMemo, type CSSProperties} from 'react';
 import {cellWords, habitWeek, streakNote, type WeekCell} from '../../../lib/nova/cards/habit-week';
 import {streakWords} from '../../../lib/nova/holo/habits';
 import {formatWeekday} from '../../../lib/visual-format';
-import {plural} from '../../../lib/plural';
+import {moreWords} from '../../../lib/nova/cards/whole-rows';
 import {useHabits} from '../../habits/use-habits';
 import {CardFoot, CardNotice, Gauge, Hero, Lattice, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
@@ -34,13 +34,15 @@ export default function HabitWeekWidget({size}: {size: CardProps['size']; params
       <Gauge share={week.due ? week.done / week.due : 0} size={size === 'L' ? 64 : size === 'S' ? 36 : 50} bezel={size !== 'S'} spin={size === 'L'} className="nc-habitweek-ring"/>
       <Hero value={`${week.done}`} unit={`of ${week.due}`} label={!week.due ? 'Nothing due today' : week.done >= week.due ? 'All done today' : 'Done today'}/>
     </div>
-    {size !== 'S' && <Lattice columns={week.days.map(d => formatWeekday(d).slice(0, 1))} rows={week.rows.map(r => ({key: r.id, label: r.title, cells: r.cells, note: streakNote(r.streak, r.unit)}))}/>}
+    {/* Session AM-2 (whole rows only): the habits that fit, then "+N more on the Habits page" (N counts the rows not shown and the habits beyond these). */}
+    {size !== 'S' && <Lattice columns={week.days.map(d => formatWeekday(d).slice(0, 1))} rows={week.rows.map(r => ({key: r.id, label: r.title, cells: r.cells, note: streakNote(r.streak, r.unit)}))}
+      extra={week.more} more={(hidden, shown) => moreWords(hidden, {shown, where: 'the Habits page'})}/>}
     {size === 'L' && <div className="nc-habitweek-stats">
       <p className="nc-habitweek-stat nc-rise"><Gauge share={week.weekDue ? week.weekDone / week.weekDue : null} size={34} bezel={false}/><span className="nc-habitweek-stat-label">Last seven days</span><b>{week.weekDue ? `${week.weekDone} of ${week.weekDue} done` : 'Nothing was due'}</b></p>
       <p className="nc-habitweek-stat nc-rise" style={{'--nc-i': 1} as CSSProperties}><svg className="nc-habitweek-streak" viewBox="-24 -24 48 48" aria-hidden="true" focusable="false"><circle r="20"/><circle r="13.5"/><circle r="7"/><circle className="nc-habitweek-streak-core" r="2.6"/></svg><span className="nc-habitweek-stat-label">Longest streak</span><b>{week.longest ? `${week.longest.title} · ${streakWords(week.longest.streak, week.longest.unit)}` : 'Starts with your next check-in'}</b></p>
     </div>}
     {size === 'L' && <p className="nc-habitweek-key" aria-hidden="true">{KEY.filter(([cell]) => used.has(cell)).map(([cell, words]) => <span key={cell}><i data-cell={cell}/>{words}</span>)}</p>}
-    <CardFoot source="Your habits" asOf="today">{size !== 'S' && week.more > 0 && <span className="nc-habitweek-more">+{week.more} more<span className="sr-only"> {plural(week.more, 'habit')}</span></span>}</CardFoot>
+    <CardFoot source="Your habits" asOf="today"/>
     <HoloTable caption="Habits this week (the last seven days, ending today)" rows={[
       ['Done today', week.due ? `${week.done} of ${week.due} due` : 'Nothing due today'],
       ...week.rows.map(r => [r.title, `${week.days.map((d, i) => `${formatWeekday(d)} ${cellWords(r.cells[i]!)}`).join(', ')}. ${r.streak > 0 ? `Current streak: ${streakWords(r.streak, r.unit)}` : 'No streak running'}`] as const),

@@ -5,6 +5,8 @@ import type {WidgetSize} from '../../../lib/nova/store';
 import {clockAngle, polar, tickPath} from '../../../lib/nova/holo/geometry';
 import {clockItems, dayCounts, nextItems} from '../../../lib/nova/holo/agenda';
 import {formatClock} from '../../../lib/visual-format';
+import {moreWords} from '../../../lib/nova/cards/whole-rows';
+import {WholeRows} from '../cards/whole-rows';
 import {GradArc, HoloFigure, HoloReading, HoloTable, Orn, OrnMarks} from '../holo/parts';
 import {useAgendaToday} from '../holo/use-agenda-today';
 import '../holo/holo-parts.css';
@@ -25,15 +27,16 @@ const HOURS = [['00', 0], ['06', 90], ['12', 180], ['18', 270]] as const;
 export default function AgendaClockWidget({size}: {size: WidgetSize}) {
   const {items, now} = useAgendaToday();
   if (!items) return <HoloReading/>;
-  const marks = clockItems(items).filter(i => i.angle !== null), counts = dayCounts(items), next = nextItems(items, now, size === 'S' ? 1 : 3);
+  // Session AM-2 (whole rows only): the rows that fit beside the dial, then "+N more on your agenda" (N: every open item not shown).
+  const marks = clockItems(items).filter(i => i.angle !== null), counts = dayCounts(items), coming = nextItems(items, now, items.length), next = coming.slice(0, size === 'S' ? 1 : size === 'L' ? 6 : 3);
   // Second review m3 (lane L8f): the hand stops short of the hour words (r 30) and a bright tip marks the time on the track,
   // so the line never runs through "06" like a strike-through.
   const angle = clockAngle(now) ?? 0, hand = polar(0, 0, 19, angle), tipIn = polar(0, 0, 37, angle), tipOut = polar(0, 0, 47, angle), dial = size === 'S' ? 64 : undefined;
-  const rows = <ol className="holo-next" aria-label="Next on today’s clock">{next.map(i => <li key={i.id} data-pillar={i.pillar}>
+  const rows = <WholeRows as="ol" className="holo-next" aria-label="Next on today’s clock" extra={size === 'S' ? 0 : coming.length - next.length} min={1} more={(hidden, shown) => moreWords(hidden, {shown, where: 'your agenda'})}>{next.map(i => <li key={i.id} data-pillar={i.pillar}>
     <span className="holo-next-time">{i.time ? formatClock(i.time) : '—'}</span>
     {i.href ? <Link href={i.href} prefetch={false} title={i.title}>{i.title}</Link> : <span title={i.title}>{i.title}</span>}
     <small>{WHEN[i.when]}</small>
-  </li>)}</ol>;
+  </li>)}</WholeRows>;
   return <div className="holo-agenda" data-size={size} data-empty={items.length ? undefined : ''}>
     <div className="holo-ring holo-clock" data-small={size === 'S' || undefined} style={dial ? {'--ring': `${dial}px`} as CSSProperties : undefined}>
       <svg viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">

@@ -182,7 +182,11 @@
 .ns-answer-close:hover { color: #fff; --k-rim: #ff8fa3; --k-plate: #4a1830; }
 .ns-answer-close:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: -3px; }
 .ns-answer-text, .ns-answer-asked { padding-right: 0; }
-/* A long title beside five controls takes two short lines instead of an ellipsis (the head is 44 px tall either way). */
-@container holo-panel (max-width: 399px) { .nova-frame .nova-widget[data-holo] .nova-widget-head h3 { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; line-height: 1.15; letter-spacing: .06em; } }
+/* Session AM-2 (after the critic): a long title beside five controls stays on ONE line and ends in an ellipsis. This rule
+   used to give it two short lines (`white-space: normal` and a two-line clamp), which undid holo.css's one-line rule: at
+   1440 px "UPCOMING BILLS", "TRACKED WEALTH" and "AGENDA CLOCK" wrapped and neighbouring heads no longer lined up. The
+   letters stand a little closer, so more of the title shows; its whole text is still the heading (the widget's
+   accessible name, `aria-labelledby`) and its tooltip. */
+@container holo-panel (max-width: 399px) { .nova-frame .nova-widget[data-holo] .nova-widget-head h3 { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .03em; } }
 /* A panel body that scrolls is a keyboard stop (axe scrollable-region-focusable); its ring sits inside the frame. */
 .nova-widget-body:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: -3px; border-radius: 10px; }

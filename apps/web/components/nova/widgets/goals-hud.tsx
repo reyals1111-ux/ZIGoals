@@ -22,6 +22,9 @@ import '../holo/holo-parts.css';
  * Session AM-2 (art direction D, Goals: violet arcs): each goal's arc is a thick gradient with a white core and a lit end
  * inside a fine tick scale (its milestones the longer marks); the pace line glows over a fine grid, its target a dashed
  * rule, its estimate a soft cone toward the forecast's dates, today a lit point.
+ * Session AM-2 (after the critic): the pace chart's names stand outside the drawing ("Target" at the end of its line,
+ * "Today" under the plot in a wide panel), its title is one line, and the plot is the elastic row of its column (the
+ * arithmetic is in holo-parts.css, "Goals").
  */
 const SWEEP = 270, START = -135;
 function GoalArc({pct}: {pct: number | null}) {
@@ -65,7 +68,8 @@ function PaceLine({chart, label}: {chart: PaceChart; label: string}) {
   <i className="holo-pace-dot" style={{left: pct(nx, W), top: pct(ny, H)}} aria-hidden="true"/>
   {/* The chart's own names, in place (decoration over the words below, which say the same). Second review M1, p8 (lane
       L8f): the band's "Estimate" is said once, by the chip under the chart; its tag on the band ran past the panel's edge. */}
-  <span className="holo-chart-tag" data-at="target" style={{top: pct(ty, H)}} aria-hidden="true">Target</span>
+  {/* Session AM-2: "Target" stands at the end of its line, in the plot's right gutter (its height is `--y`; holo-parts.css keeps it inside the chart's box). */}
+  <span className="holo-chart-tag" data-at="target" style={{'--y': pct(ty, H)} as CSSProperties} aria-hidden="true">Target</span>
   <span className="holo-chart-tag" data-at="today" style={{'--x': pct(nx, W)} as CSSProperties} aria-hidden="true">Today</span>
   </div>;
 }
@@ -92,7 +96,7 @@ export default function GoalsHudWidget({size}: {size: WidgetSize}) {
       <b className="holo-num">{a.text}</b>
     </li>)}</ul>}
     {pace && words ? <div className="holo-pace-box" data-state={pace.chart.state}>
-      <p className="holo-label holo-pace-head"><span className="holo-pace-name">Pace · {pace.name}</span>{moreLink}</p>
+      <p className="holo-label holo-pace-head"><span className="holo-pace-name" title={`Pace · ${pace.name}`}>Pace · {pace.name}</span>{moreLink}</p>
       <PaceLine chart={pace.chart} label={`${words.headline}. ${words.detail}`}/>
       <p className="holo-estimate">{pace.chart.band ? <span className="holo-tag holo-tag-estimate" title="A projection from your recorded pace, not a promise">Estimate</span> : null}<span className="holo-estimate-words">{words.headline}{pace.chart.band ? <span className="holo-estimate-note"> · projection, not a promise</span> : null}</span></p>
     </div> : moreLink && <p className="holo-more">{moreLink}</p>}

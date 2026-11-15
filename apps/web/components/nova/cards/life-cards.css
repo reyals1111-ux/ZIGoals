@@ -20,7 +20,6 @@
 .nc-habitweek .nc-foot { display: flex; align-items: baseline; }
 .nc-habitweek .nc-foot-dot { align-self: center; flex: none; }
 .nc-habitweek .nc-foot-asof { white-space: pre; }
-.nc-habitweek-more { margin-left: auto; padding-left: 12px; color: var(--neon-ink, #cfdaf0); font-weight: 600; white-space: nowrap; }
 .nc-habitweek :is(.nc-lattice-label, .nc-lattice-note) { line-height: 20px; }
 .nc-habitweek .nc-lattice-head span { line-height: 18px; }
 .nc-habitweek-key { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
@@ -56,8 +55,8 @@
 }
 @container holo-body (max-height: 206px) { .nc-habitweek[data-size=M] { gap: 4px; } .nc-habitweek[data-size=M] .nc-lattice { gap: 4px; } .nc-habitweek[data-size=M] .nc-habitweek-ring { --nc-d: 36; } }
 @container holo-body (max-height: 194px) { .nc-habitweek[data-size=M] .nc-lattice-head { display: none; } }
-@container holo-body (max-height: 168px) { .nc-habitweek[data-size=M] .nc-lattice-row:nth-child(n+5), .nc-habitweek[data-size=M] .nc-habitweek-more { display: none; } }
-@container holo-body (max-height: 146px) { .nc-habitweek[data-size=M] .nc-lattice-row:nth-child(n+4) { display: none; } }
+/* Session AM-2 (whole rows only): which rows show is measured on the real layout (cards/whole-rows.tsx, through the
+   kit's Lattice: the rows that fit, then "+N more on the Habits page"), no longer counted by height here. */
 @container holo-body (max-width: 300px) { .nc-habitweek-stat { grid-template-columns: 34px minmax(0, 1fr); } .nc-habitweek-stat b { grid-column: 2; text-align: left; } .nc-habitweek-stat > :first-child { grid-row: 1 / span 2; } }
 @container holo-body (max-height: 462px) { .nc-habitweek[data-size=L] .nc-habitweek-key { display: none; } }
 @container holo-body (max-height: 428px) and (max-width: 519px) { .nc-habitweek[data-size=L] .nc-habitweek-stats { display: none; } }

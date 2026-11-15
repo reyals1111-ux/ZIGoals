@@ -6,6 +6,7 @@ import {showAgain} from '../../../lib/nova/stage/events';
 import {formatRelativeDay, formatTime} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {CardFoot, CardNotice, type CardProps} from '../cards/kit';
+import {WholeRows} from '../cards/whole-rows';
 import {HoloReading, HoloUnread} from '../holo/parts';
 import '../cards/nova-cards.css';
 
@@ -23,12 +24,13 @@ export default function RequestsWidget({size = 'M'}: Partial<CardProps>) {
   const asks = asksNewestFirst(stage.data), shown = asks.slice(0, size === 'S' ? 1 : size === 'M' ? 2 : 5);
   if (!asks.length) return <CardNotice kind="empty" ghost="rows" title="Nothing asked yet">Ask NOVA something, or tap one of the requests above the command bar. What you ask is kept here.</CardNotice>;
   return <div className="nc-body nc-requests" data-size={size}>
-    <ul className="nc-requests-list" aria-label="Your recent requests">{shown.map((a, i) => <li key={a.id} className="nc-request nc-rise" style={{'--nc-i': Math.min(i, 6)} as CSSProperties}>
+    {/* Session AM-2 (whole rows only): the requests that fit, then how many earlier ones the right panel keeps. */}
+    <WholeRows wrapClassName="nc-requests-rows" className="nc-requests-list" aria-label="Your recent requests" extra={asks.length - shown.length} min={1}
+      more={hidden => size === 'S' ? `+${hidden} earlier` : `+${hidden} earlier, in Behind the intelligence → Requests`}>{shown.map((a, i) => <li key={a.id} className="nc-request nc-rise" style={{'--nc-i': Math.min(i, 6)} as CSSProperties}>
       <p className="nc-request-text">“{a.text}”</p>
       <p className="nc-request-meta">{formatRelativeDay(a.at, now)} · {formatTime(a.at)}{a.device === 'phone' ? ' · from your phone' : ''}{a.by === 'model' ? ' · your AI' : ' · on this device'}</p>
       {a.widgets?.length ? <button type="button" className="nc-action nc-request-again" onClick={() => showAgain(a.id)} aria-label={`Show again: ${a.text}`}>Show again</button> : null}
-    </li>)}</ul>
-    {asks.length > shown.length && <p className="nc-requests-more">+{asks.length - shown.length} earlier, in Behind the intelligence → Requests</p>}
+    </li>)}</WholeRows>
     <CardFoot source="Your requests on this device" asOf={`latest ${formatRelativeDay(asks[0]!.at, now).toLowerCase()}`}/>
   </div>;
 }
