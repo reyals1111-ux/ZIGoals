@@ -13768,12 +13768,10 @@
         color: #d6e0f5
     }
     .nx-dial:not(#\-) {
-        --nc-d: var(--nx-d);
-        --nc-w: calc(var(--nx-d) * .13) !important
+        --nc-d: var(--nx-d)
     }
     .nx-ring:not(#\-) {
-        --nc-d: var(--nx-art);
-        --nc-w: calc(var(--nx-art) * .13) !important
+        --nc-d: var(--nx-art)
     }
     .nx-dial-figure b:not(#\-) {
         color: var(--neon-ink, #f4f7ff);
@@ -13846,7 +13844,7 @@
         color: #c9d4ea
     }
     .nx-duo:not(#\-) {
-        --nx-art: calc(var(--nx-d) * .9)
+        --nx-art: calc(var(--nx-d) * .76)
     }
     .nx-dots:not(#\-) {
         --nx-box: calc(var(--nx-art) * 1px);

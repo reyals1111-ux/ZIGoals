@@ -3900,6 +3900,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nx-month .nc-lattice:not(#\-) { row-gap: 5px; }
 :where(:root[data-density=compact]) .nx-matrix:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .nx-matrix li:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; }
+@container holo-body (max-width: 519px) { :where(:root[data-density=compact]) .nx-matrix:not(#\-) { row-gap: 5px; } }
+@container holo-body (max-width: 519px) { :where(:root[data-density=compact]) .nx-matrix li:not(#\-) { padding-top: 1.5px; padding-bottom: 1.5px; } }
 :where(:root[data-density=compact]) .nx-card[data-size=L] .nx-matrix:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nx-hours-plot:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .nx-hour:not(#\-) { row-gap: 3px; padding-bottom: 3px; }
@@ -3913,6 +3915,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nc-body.nx-card[data-lay=dial]:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nc-body.nx-card[data-lay=dial][data-size=S]:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .nx-card[data-lay=dial] > .nc-foot:not(#\-) { margin-top: 0; }
+@container holo-body (max-width: 519px) { :where(:root[data-density=compact]) .nx-card[data-size=M] .nx-month .nc-lattice:not(#\-) { row-gap: 3px; } }
 @container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-body.nx-card[data-lay=dial]:is([data-size=M], [data-size=L]):not(#\-) { row-gap: 0; } }
 @container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nx-card[data-lay=dial]:is([data-size=M], [data-size=L]) > .nx-head:not(#\-) { margin-bottom: 6px; } }
 @container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nx-card[data-lay=dial]:is([data-size=M], [data-size=L]) > .nc-foot:not(#\-) { margin-top: 6px; } }

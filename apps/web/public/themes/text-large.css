@@ -2011,6 +2011,7 @@
 :where(:root[data-text=large]) .nx-matrix b:not(#\-) { font-size: calc(34px * 1.125); }
 :where(:root[data-text=large]) .nx-matrix-title:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nx-matrix-task:not(#\-) { font-size: calc(15px * 1.125); }
+@container holo-body (max-width: 519px) { :where(:root[data-text=large]) .nx-matrix b:not(#\-) { font-size: calc(26px * 1.125); } }
 :where(:root[data-text=large]) .nx-card[data-size=L] .nx-matrix b:not(#\-) { font-size: calc(46px * 1.125); }
 :where(:root[data-text=large]) .nx-hours-axis span:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nx-card[data-size=L] .nx-ringcard-words b:not(#\-) { font-size: calc(19px * 1.125); }
