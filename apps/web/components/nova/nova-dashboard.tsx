@@ -1,6 +1,6 @@
 'use client';
 import {useRouter} from 'next/navigation';
-import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {useShowcase} from '../showcase-controls';
 import {useChainChoice} from '../chain/use-chain-choice';
@@ -124,11 +124,40 @@ function useStarColumn(frame: {current: HTMLElement | null}, on: boolean): numbe
   return width;
 }
 /**
+ * Session AM-2 (conversation console): how wide the stage's right wing is, measured from its inner edge to the centre's
+ * right edge, while the console stands over it. The console takes exactly that wing's place, so the left wing and the
+ * star keep their boxes and nothing is cut by the console's edge. Null while there is no wing to read.
+ */
+function useWingWidth(frame: {current: HTMLElement | null}, on: boolean): number | null {
+  const [wing, setWing] = useState<number | null>(null);
+  useLayoutEffect(() => { // before the paint, so the console opens at its measured width
+    const centre = frame.current?.querySelector<HTMLElement>('.nova-centre'), main = frame.current?.querySelector<HTMLElement>('.nova-orbit-main');
+    if (!on || !centre || !main || typeof ResizeObserver === 'undefined') { setWing(null); return; }
+    const read = () => {
+      const side = main.querySelector<HTMLElement>(':scope > .nova-orbit-side[data-side=right]'), star = main.querySelector<HTMLElement>(':scope > .nova-orbit-centre');
+      if (!side || !star) { setWing(null); return; }
+      // From the middle of the gap between the star's column and the wing to the centre's right edge.
+      const starRight = star.getBoundingClientRect().right, wingLeft = side.getBoundingClientRect().left;
+      if (wingLeft < starRight) { setWing(null); return; } // the wing is not beside the star (one column): the console keeps its own width
+      const from = (starRight + wingLeft) / 2, next = Math.round(centre.getBoundingClientRect().right - from);
+      setWing(was => was === next ? was : next);
+    };
+    read();
+    const observer = new ResizeObserver(read); observer.observe(main); observer.observe(centre);
+    return () => observer.disconnect();
+  }, [frame, on]);
+  return wing;
+}
+/** The console's width in the wing's place: the wing's own width, never narrower than a conversation needs or wider than it reads well. */
+const CONSOLE_MIN = 400, CONSOLE_MAX = 680;
+/**
  * Session AM (design review AM-D7): under 1600 px of window only one side bar is open at a time (with both open at 1440 the
  * stage was 815 px and a made widget landed under the fold). Opening one folds the other (the left to its rail, the right
  * away), and that is saved as the person's choice; a record that still says both are open shows the left bar as its rail.
  */
 const ONE_BAR_BELOW = 1600;
+/** Session AM-2 (conversation console): from this window width the open conversation is the docked console. */
+const CONSOLE_FROM = 1280;
 function barsAt(r: NovaRecord, width: number) {
   const p = panelsOf(r, width);
   return {...p, left: p.left === 'open' && p.right === 'open' && width < ONE_BAR_BELOW ? 'rail' as const : p.left};
@@ -188,7 +217,14 @@ export default function NovaDashboard() {
   const entries = useMemo(() => dockEntries(r, {pageShown: page => isShown(pagesView, page), earn: chain.earnShown}), [r, pagesView, chain.earnShown]);
   // Design review AM-D17: from 1100 px the open conversation is a column docked on the right, in the right bar's place; under
   // 1600 px the left bar shows as its rail while it is open (one open bar at a time; the stored choice is untouched).
-  const panels = barsAt(r, width), chatDocked = chatOpen && !phone && width >= 1100;
+  // Session AM-2 (conversation console, deliberate): the docked conversation is a console from 1280 px of window (it was a
+  // 420 px column from 1100 px that squeezed the stage's three columns). On the orbit with widgets it stands OVER the
+  // stage in the right wing's place (`over`): the left wing and the star keep their boxes, the wing under it rests. On
+  // every other stage (calm, Bento, Focus, Minimal) the stage steps aside for it (`beside`).
+  const panels = barsAt(r, width), chatDocked = chatOpen && !phone && width >= CONSOLE_FROM;
+  const consoleOver = chatDocked && layout === 'orbit' && stage.shown.length > 0 && !editing, wing = useWingWidth(root, consoleOver);
+  const consoleMode = !chatDocked ? undefined : consoleOver ? 'over' : 'beside';
+  const consoleStyle = consoleMode === 'over' && wing !== null ? {'--ncx-w': `${Math.max(CONSOLE_MIN, Math.min(CONSOLE_MAX, wing!))}px`} as CSSProperties : undefined;
   const left = phone ? 'hidden' : chatDocked && width < ONE_BAR_BELOW && panels.left === 'open' ? 'rail' : panels.left, right = phone ? 'hidden' : panels.right;
 
   const hour = now ? now.getHours() : 12, base = greetingFor(hour, persona.name, brain.kind !== 'none'); // Session AK P4 (FR-12)
@@ -457,7 +493,10 @@ export default function NovaDashboard() {
   // Round 7 ("at 1440 the star shrinks to an ornament"): below 1700 px of stage the star may be wider than its column by
   // almost half; its arms dissolve toward the wings (the shader's uEdge) and its bezel stays inside the column.
   const starCap = stage.shown.length ? Math.min(starCapWide, Math.max(300, Math.round(starColumn * (hudWide >= 1700 ? 1.15 : hudWide >= 1100 ? 1.45 : 1.15)))) : starCalm;
-  const starSize = phone ? 300 : Math.round(Math.max(240, Math.min(starCap, starRoom))), starBox = phone ? 126 : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.46); // round 7: 0.46 of the star (it was 0.42), so the words under it clear the bezel
+  // Session AM-2 (conversation console): beside the console the star keeps to its own column (the console is not glass:
+  // nothing of the star may lie behind it), so its ellipse is whole beside the console.
+  const starCapNow = consoleMode === 'over' ? Math.min(starCap, Math.max(300, Math.round(starColumn * 1.06))) : starCap;
+  const starSize = phone ? 300 : Math.round(Math.max(240, Math.min(starCapNow, starRoom))), starBox = phone ? 126 : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.46); // round 7: 0.46 of the star (it was 0.42), so the words under it clear the bezel
   const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} column={stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;
   const starWhy = starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).
@@ -466,9 +505,10 @@ export default function NovaDashboard() {
   const answerLine = answerNow && !chatOpen ? <StageAnswerLine answer={answerNow} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)} widget={answerWidget} onGoTo={goToWidget}/> : undefined;
   const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={starBox} starSize={starSize} starColumn={stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} starWhy={starWhy} answer={answerLine}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
-  const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}/></Suspense></LoadBoundary>;
+  const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}
+    requests={<OneTap available={canShow} onAsk={askInPlace}/>}/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
-    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined} data-soft={soft || undefined}>
+    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-console={consoleMode} style={consoleStyle} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined} data-soft={soft || undefined}>
     {/* Second review m8 (lane L8f): the first stop, past the left panel and the top bar (43 stops) to the HUD itself. */}
     <a className="nova-skip" href="#nova-hud" onClick={e => { e.preventDefault(); root.current?.querySelector<HTMLElement>('#nova-hud')?.focus({preventScroll: true}); }}>Skip to the HUD</a>
     <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion && !resting && !soft} accent={accent}/></Suspense></LoadBoundary></div>

@@ -29,6 +29,28 @@ export function PersonaFigure({persona, size = 28, state = 'idle'}: {persona: No
   return persona.avatar === 'zigi' ? <ZigiAvatar state={state} size={size} decorative/> : <NovaMark size={size} state={state}/>;
 }
 /**
+ * Session AM-2 (conversation console): the speaker at the console's head. NOVA's figure as the person chose it (the star
+ * mark, or ZIGi unchanged) inside a state bezel: a ring of sixty ticks (every fifth longer), a faint track, and one arc in
+ * the state's colour (standby violet, listening cyan, thinking magenta, speaking teal). Decoration: the words beside it
+ * name NOVA and say the state. Only the arc's group turns, by transform, where motion is allowed (ncx-console.css).
+ */
+const BEZEL_TICKS = Array.from({length: 60}, (_, i) => i);
+export function NovaSpeaker({persona, size = 64, state = 'idle'}: {persona: NovaPersona; size?: number; state?: FigureState}) {
+  const id = `ncx-sp-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`, inner = Math.round(size * 0.62);
+  return <span className="ncx-speaker" data-state={state} data-avatar={persona.avatar} style={{width: size, height: size}} aria-hidden="true">
+    <svg className="ncx-speaker-bezel" viewBox="0 0 100 100" width={size} height={size} focusable="false">
+      <defs><linearGradient id={`${id}-arc`} x1="0" x2="1" y1="0" y2="1"><stop offset="0" className="ncx-speaker-arc-0"/><stop offset="1" className="ncx-speaker-arc-1"/></linearGradient></defs>
+      <g className="ncx-speaker-ticks">{BEZEL_TICKS.map(i => <line key={i} x1="50" y1={i % 5 ? 3.2 : 1.2} x2="50" y2="6" transform={`rotate(${i * 6} 50 50)`}/>)}</g>
+      <circle className="ncx-speaker-track" cx="50" cy="50" r="40.5"/>
+      <g className="ncx-speaker-turn">
+        <circle className="ncx-speaker-arc" cx="50" cy="50" r="40.5" stroke={`url(#${id}-arc)`} pathLength="100"/>
+        <circle className="ncx-speaker-lead" cx="50" cy="9.5" r="3.4"/>
+      </g>
+    </svg>
+    <span className="ncx-speaker-face"><PersonaFigure persona={persona} size={inner} state={state}/></span>
+  </span>;
+}
+/**
  * The person's own agent (Hermes Agent, owner follow-up 3 N11): a neutral glyph of our own (a node with three links in the
  * app's stroke), never another project's logo or branding.
  */

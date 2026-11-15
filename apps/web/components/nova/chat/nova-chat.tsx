@@ -55,7 +55,9 @@ import {NovaComposer, type Editing} from './nova-composer';
 // Session AK (G1 #20): "Don't keep this chat" (one engine with ZIGi: use-chat-session `kept`).
 import {DONT_KEEP_LABEL, UnkeptBanner, UnkeptOffer} from '../../ai/unkept-chat';
 import {downloadChat, NovaConversations} from './nova-conversations';
-import {AgentGlyph, PersonaFigure} from './nova-figure';
+import {AgentGlyph, NovaSpeaker, PersonaFigure} from './nova-figure';
+import {ORB_STATE_LABEL} from '../../../lib/nova/orb';
+import {useWholeRows} from '../whole-rows';
 import {NovaReplyTurn, NovaUserTurn, type TurnCommon} from './nova-turns';
 import {useSummoner, type StageBridge} from '../stage/use-summoner';
 import {engineLook} from '../../../lib/nova/summon/engine-look';
@@ -74,6 +76,7 @@ import '../../ai/ai.css';
 import '../../ai/chat-polish.css';
 import '../../ai/safe-text.css';
 import './nova-chat.css';
+import './ncx-console.css';
 
 /**
  * NOVA's chat (Session AK, owner follow-up 2 N1/N2, ADR-036 Q28): ZIGi's engine on NOVA's surface. The same chat store
@@ -100,14 +103,18 @@ export type NovaChatProps = {layout: 'panel' | 'side' | 'sheet'; onOrbState?: (s
   /** Session AK lane EXF (EX-2): the composer takes the focus when the chat opens (the field that opened it is gone). */
   focusOnOpen?: boolean;
   /** Session AM (ADR-038 D6, D7): NOVA's stage — a request makes its widgets there and the newest reply shows under the star. */
-  stage?: StageBridge};
+  stage?: StageBridge;
+  /** Session AM-2 (conversation console): the stage's one-tap requests, shown in a row above the composer (NOVA's page gives them). */
+  requests?: ReactNode};
 export const NOVA_SETUP_HREF = '/app/nova/setup';
 const SETTINGS_HREF = '/app/settings#your-ai';
 /** NOVA's own messages read the day: Today's records and specialist. */
 const NOVA_AREA: PageArea = 'today';
 const NOVA_INSTRUCTIONS_MAX = 2000;
+/** Session AM-2 (conversation console): the log's rows that its bottom edge never cuts at rest. */
+const LOG_ROWS = '.nova-welcome > :not(.ai-chips), .ai-chips > .ai-chip, .nova-invite, .nova-turn, .nova-turn-edit, .nova-voice, .nova-pending, .nova-chat-steps, .nh-card, .ai-unkept, .nova-chat-log > .ai-note';
 type Delegation = {before: ReadonlySet<string>; area: PageArea; chatId: string; done: boolean; agent: NovaAgentId};
-export function NovaChat({layout, onOrbState, onClose, collapsed = false, onCollapse, focusOnOpen = false, stage}: NovaChatProps) {
+export function NovaChat({layout, onOrbState, onClose, collapsed = false, onCollapse, focusOnOpen = false, stage, requests}: NovaChatProps) {
   const settings = useAiSettings(), scope = currentAiScope(), sensitive = useSensitiveScreen(), router = useRouter();
   const novaRecord = useDeviceRecord(NOVA_STORE), persona = personaOf(novaRecord.data), instructions = instructionsOf(novaRecord.data);
   // NOVA's own standing instructions join the person's ZIGi instructions for NOVA's messages (inside the same data marks).
@@ -388,6 +395,21 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   useEffect(() => { const el = log.current; if (!el) return; const grew = session.chat.turns.length > lastTurns.current, mine = grew && session.chat.turns.at(-1)?.role === 'user'; lastTurns.current = session.chat.turns.length;
     if (mine || wasAtEnd.current || el.scrollHeight - el.scrollTop - el.clientHeight < 200) { toLatest(el); wasAtEnd.current = true; } }, [session.chat.turns.length, session.draft]); // eslint-disable-line react-hooks/exhaustive-deps -- the turns' count and the draft
 
+  // Session AM-2 (conversation console): opened, or back from Conversations, the log shows its newest read-out just above the dock.
+  // An empty conversation opens at its first words.
+  const anyTurns = session.chat.turns.length > 0;
+  useEffect(() => { if (collapsed || view !== 'chat' || !anyTurns) return; const el = log.current; if (el) { el.scrollTop = el.scrollHeight; wasAtEnd.current = true; } }, [collapsed, view, anyTurns]);
+  // The dock under the log can grow or shrink (a note, a second row of keys, a disclosure): a log that stood at its end stays there.
+  useEffect(() => {
+    const el = log.current; if (!el || collapsed || view !== 'chat' || !anyTurns || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => { if (wasAtEnd.current) el.scrollTop = el.scrollHeight; });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [collapsed, view, anyTurns]);
+  // At rest the log's bottom edge never cuts a short row (a question chip, a line of the opening words, a short card): it
+  // waits under the edge until it fits (components/nova/whole-rows.ts). A long answer is read by scrolling, as before.
+  useWholeRows(() => log.current, LOG_ROWS, `${session.chat.id}|${session.chat.turns.length}|${view}|${collapsed}|${busy}`);
+
   const shownDraft = useMemo(() => { if (!session.draft) return ''; const draft = stripHint(session.draft); if (hasOpenFence(draft)) { const at = draft.search(/(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals/i); return at >= 0 ? draft.slice(0, at) : draft; } return parseReply(draft).text; }, [session.draft]);
   const lastAssistant = [...session.chat.turns].reverse().find(t => t.role === 'assistant'), lastAsked = lastQuestion(session.chat);
   const latestCards = useMemo(() => [...session.chat.turns].reverse().find(t => t.role === 'assistant' && (session.parsed.get(t.id) ?? parseReply(t.text)).proposals.length > 0)?.id ?? null, [session.chat.turns, session.parsed]);
@@ -412,20 +434,23 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const failureRetry = session.failure && !['blocked', 'full', 'not-connected', 'missing-key'].includes(session.failure.kind) && session.chat.turns.at(-1)?.role === 'user';
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => { const leave = onCollapse ?? onClose; if (event.key === 'Escape' && leave && !event.defaultPrevented) { event.preventDefault(); leave(); } };
 
-  return <section className={`nova-chat nova-chat-${layout}`} aria-labelledby={titleId} hidden={collapsed} data-collapsed={collapsed ? '' : undefined} onKeyDown={onKeyDown} onPointerDown={() => { if (reader.speaking) reader.stop(); }}>
+  return <section className={`nova-chat nova-chat-${layout}`} aria-labelledby={titleId} hidden={collapsed} data-collapsed={collapsed ? '' : undefined} data-state={orb} data-empty={view === 'chat' && session.chat.turns.length === 0 && !busy ? '' : undefined} onKeyDown={onKeyDown} onPointerDown={() => { if (reader.speaking) reader.stop(); }}>
     {/* Session AM-2: the console's inner hairline with its corner marks (decoration; nova.css `.sh-inner`). */}
     <span className="sh-inner" aria-hidden="true"/>
+    {/* Session AM-2 (conversation console): the head — the speaker is the star (its figure in a state bezel), NOVA's name,
+        its state in words, the brain line, then the tools as framed keys. */}
     <header className="nova-chat-head">
-      <PersonaFigure persona={persona} size={layout === 'sheet' ? 34 : 44} state={orb}/>
+      <NovaSpeaker persona={persona} size={layout === 'sheet' ? 54 : 80} state={orb}/>
       <div className="nova-chat-identity">
         <p className="nova-chat-eyebrow" aria-hidden="true">Your private intelligence</p>
         <h2 id={titleId} className="nova-chat-title">{persona.name}</h2>
+        <p className="ncx-state" data-state={orb}>{ORB_STATE_LABEL[orb]}</p>
         <p className="nova-chat-status"><span className="nova-dot" data-on={connected ? '' : undefined} aria-hidden="true"/>{status}{sensitive ? ' · paused on a private screen' : ''}</p>
       </div>
       <div className="nova-chat-tools" role="toolbar" aria-label="Chat tools">
         {/* Session AK P3 (ND-7): New chat, Conversations (icon and name) and close stay in the header; keeping and saving
             wait in "More" (the same buttons, one tap further). */}
-        <button type="button" className="secondary nova-chat-tool" onClick={startNew}>New chat</button>
+        <button type="button" className="secondary nova-chat-tool" onClick={startNew}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 5.5v13M5.5 12h13" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"/></svg>New chat</button>
         <button type="button" className="secondary nova-chat-tool" aria-pressed={view === 'list'} onClick={() => setView(v => v === 'list' ? 'chat' : 'list')}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M5 6.5h14M5 12h14M5 17.5h9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>Conversations</button>
         <ChatMore>
           <button type="button" className="secondary nova-chat-tool" aria-pressed={!session.kept} onClick={() => { session.setKept(!session.kept); setNote(session.kept ? 'This chat is not kept. Nothing of it is saved on this device.' : 'This chat is kept again, in Conversations.'); }}>{DONT_KEEP_LABEL}</button>
@@ -492,7 +517,11 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
         </div>}
         {session.saveNote && <p className="ai-note" role="status">{session.saveNote}</p>}
       </div>
+      {/* Session AM-2 (conversation console): everything under the log is one dock on the console's bottom edge — the
+          one-tap requests, the composer, then one strip of quiet keys and the line that says where the conversation stays. */}
+      <div className="ncx-dock">
       {sensitive && <p className="ai-note nova-paused">Paused on this private screen: nothing is read from your records.</p>}
+      {requests && <div className="ncx-requests">{requests}</div>}
       <NovaComposer ref={composer} session={session} persona={persona.name} settings={data} sensitive={sensitive} editing={editing} onEditing={setEditing}
         onSend={sendText} onDelegate={(text, area, replace, pasted) => void runDelegation(text, area, replace, 'zigi', !!pasted)} onOpenZigi={openZigi} onHermes={hermes ? (text, area) => void runDelegation(text, area, undefined, 'hermes') : undefined}
         hermesPack={hermes ? area => { try { return nova.pack(area)?.text ?? ''; } catch { return ''; } } : undefined}
@@ -507,6 +536,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
       <ToolProposalsGate session={session} connected={connected} healthOpen={!novaHealthOff} onAttention={stageAttention} wasPasted={wasPasted}/>
       <OutboxHistory persona={persona.name}/>
       <p className="nova-chat-foot">{session.kept ? 'Your conversation stays on this device, in one history with ZIGi, whichever model answers.' : 'This conversation is not kept: it is gone when you close it or start a new chat.'}</p>
+      </div>
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
   </section>;

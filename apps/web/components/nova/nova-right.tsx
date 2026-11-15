@@ -18,6 +18,7 @@ import type {RightSection} from '../../lib/nova/store';
 import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
 import {useVaultControls, useVaultStatus} from '../vault-sync-controls';
 import type {NovaPanelId} from './panels/nova-panels';
+import {useWholeRows} from './whole-rows';
 import {NovaIcon} from './icons';
 import {StageChoices, StageList, StageRequests} from './stage/right-stage';
 import {AgentEntry} from './agent/agent-entry';
@@ -44,6 +45,11 @@ const HermesCard = lazy(() => import('./hermes/hermes-card').then(m => ({default
 const TRAVELLED: readonly string[] = ['unchanged', 'pushed', 'pulled', 'merged'];
 const TITLES: Record<RightSection, string> = {requests: 'Requests', stage: 'On the stage', choices: 'Your choices', brains: 'Brains', voice: 'Voice', tools: 'Your pages and tools', usage: 'Models and usage', memory: 'Memory and scopes', activity: 'Activity'};
 type Probe = {state: 'idle' | 'asking' | 'done'; results: ScanResult[]; loaded: Record<string, LoadedModel[] | null>; at: Date | null};
+/**
+ * Session AM-2 (the right bar shows whole rows; components/nova/whole-rows.ts): what counts as a row here — a request
+ * with its keys, a stage row, a section's head, a list's line, a block of a section.
+ */
+const WHOLE_ROWS = '.nova-right-section > h3, .nb-ask, .nb-group, .nb-asks-foot, .nb-stage-row, .nova-tools > li, .nova-right-list > li, .nova-fact-tiles, .nova-row, .nova-switch-row, .nova-fine, .nova-right-actions, .nova-btn, .nova-tech > summary, .nb-lives';
 export default function NovaRight({folded, onFold, onHide, persona, brain, counts, hermes, onTalk, wake, onWake, openPanel, stage}: {
   folded: readonly RightSection[]; onFold: (id: RightSection, folded: boolean) => void; onHide: () => void; persona: string; brain: Brain; counts: NovaCounts; hermes: HermesStatus | null;
   onTalk: () => void; wake: boolean; onWake: (on: boolean) => void; openPanel: (id: NovaPanelId) => void;
@@ -91,6 +97,8 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
   const today = dayKey(new Date()), day = usage.loaded && !usage.unreadable ? usage.data.days?.[today] ?? {} : null;
   const actionsList = actions.loaded && !actions.unreadable ? [...(actions.data.actions ?? [])].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3) : null;
   const notes = memory.loaded && !memory.unreadable ? memory.data.notes?.length ?? 0 : null;
+  const scroller = useRef<HTMLDivElement>(null);
+  useWholeRows(() => scroller.current, WHOLE_ROWS, `${folded.join(' ')}|${stage ? 1 : 0}`);
   const section = (id: RightSection, n: number | string, body: ReactNode) => <Section key={id} id={id} n={n} title={TITLES[id]} folded={folded.includes(id)} onFold={onFold}>{body}</Section>;
   // Session AL sweep 2 (LA-024 / N-LS-05): a named region inside the shell's <main> (see nova-left.tsx).
   return <aside role="region" className="nova-right" aria-label="Behind the intelligence">
@@ -99,7 +107,7 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
       <div><p className="nova-eyebrow"><span className="nova-on-dot" aria-hidden="true"/>Live, on this device</p><h2>Behind the intelligence</h2></div>
       <button type="button" className="nova-icon-btn" onClick={onHide} aria-label="Hide the right panel"><NovaIcon name="close"/></button>
     </header>
-    <div className="nova-right-scroll">
+    <div ref={scroller} className="nova-right-scroll">
       {section('requests', 'review', <StageRequests record={stageRecord} persona={persona}/>)}
       {stage && section('stage', 'widgets', <StageList stage={stage} persona={persona}/>)}
       {section('choices', 'yours', <StageChoices record={stageRecord} persona={persona} travels={travels}/>)}

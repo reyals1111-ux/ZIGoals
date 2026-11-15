@@ -190,7 +190,7 @@ test.describe('NOVA polish on a computer', () => {
     expect(segments).toBe(1);
   });
 
-  test('ND-7: the open conversation is one docked column — no widget behind it, one frame around the composer', async ({page}) => {
+  test('ND-7: the open conversation is one console over the right wing — no widget behind it, one frame around the composer', async ({page}) => {
     await page.setViewportSize({width: 1440, height: 900});
     await fresh(page, seen());
     await openNova(page);
@@ -202,28 +202,52 @@ test.describe('NOVA polish on a computer', () => {
     await openNovaConversation(page);
     const talk = page.getByRole('region', {name: 'Conversation with NOVA'});
     await expect(talk.locator('section.nova-chat')).toBeVisible();
-    // Session AM (AM-D17, deliberate): from 1100 px of window the open conversation is a 420 px column docked on the right
-    // (it used to be one panel over a hidden stage). The star and the widgets stay; "no widget behind it" is now: no widget
-    // lies under the column, the column is whole inside the window at its right edge, the right bar gives way, and the
-    // foot (the command field's row) takes no height while the conversation is open.
+    // Session AM-2 (conversation console, deliberate; replaces AM-D17's docked 420 px column, which squeezed the stage's
+    // three columns beside it): from 1280 px of window the open conversation is a console in the right bar's place that
+    // stands OVER the stage's right wing. What AM-D17 measured still holds (whole inside the window at its right edge, as
+    // tall as the centre, no widget under it, the right bar gives way, the foot takes no height, no command field), and
+    // the rest is stricter: the console is as wide as the wing it replaces (it was a fixed 420 px); the stage keeps the
+    // centre's whole width under it instead of giving way; the wing under it rests (not drawn, nothing in it can take
+    // the focus) and is covered whole, so nothing is sliced by the console's edge; the star is whole beside it; and no
+    // widget of the left wing is narrower beside the console than with the conversation closed.
     const {width: winW, height: winH} = page.viewportSize()!;
     await atRest(page, '.nova-talk');
+    await expect(page.locator('.nova-frame')).toHaveAttribute('data-console', 'over');
     const col = await box(page, '.nova-talk');
     inWindow(page, col, 'the conversation');
-    expect(Math.abs(col.width - 420), 'the docked column is 420 px wide').toBeLessThanOrEqual(1);
-    expect(Math.abs(col.x + col.width - winW), 'the column is at the window\'s right edge').toBeLessThanOrEqual(1);
-    const centre = await box(page, '.nova-centre');
-    expect(Math.abs(col.y - centre.y) + Math.abs(col.height - centre.height), 'the column is as tall as the stage\'s column').toBeLessThanOrEqual(1);
-    expect(col.height, 'the column fills the window\'s height under the app\'s own chrome').toBeGreaterThanOrEqual(winH - 120);
+    expect(col.width, 'the console is at least as wide as a conversation needs').toBeGreaterThanOrEqual(400);
+    expect(col.width, 'and no wider than it reads well').toBeLessThanOrEqual(680);
+    expect(Math.abs(col.x + col.width - winW), 'the console is at the window\'s right edge').toBeLessThanOrEqual(1);
+    const centre = await box(page, '.nova-centre'), hud = await box(page, '.nova-stage-area');
+    expect(Math.abs(col.y - centre.y) + Math.abs(col.height - centre.height), 'the console is as tall as the stage\'s column').toBeLessThanOrEqual(1);
+    expect(col.height, 'the console fills the window\'s height under the app\'s own chrome').toBeGreaterThanOrEqual(winH - 120);
+    expect(Math.abs(hud.x - centre.x) + Math.abs(hud.width - centre.width), 'the stage keeps the centre\'s whole width under the console: it does not give way').toBeLessThanOrEqual(1);
     await expect(page.locator('.nova-stage-area')).toBeVisible();
     await expect(page.locator('.nova-orb-button')).toBeVisible();
-    const shown = await page.locator('.nova-widget').evaluateAll(els => els.filter(el => el.checkVisibility({visibilityProperty: true})).map(el => { const r = el.getBoundingClientRect(); return {id: (el as HTMLElement).dataset.widget, right: r.right}; }));
+    const widgetBoxes = () => page.locator('.nova-widget').evaluateAll(els => els.filter(el => el.checkVisibility({visibilityProperty: true})).map(el => { const r = el.getBoundingClientRect(); return {id: (el as HTMLElement).dataset.widget, side: (el as HTMLElement).dataset.side, right: r.right, width: r.width}; }));
+    const shown = await widgetBoxes();
     expect(shown.length, 'the widgets stay on the stage').toBeGreaterThan(0);
     for (const w of shown) expect(w.right, `${w.id} is beside the conversation, not under it`).toBeLessThanOrEqual(col.x + 0.5);
+    const wing = await page.locator('.nova-orbit-side[data-side=right]').evaluate(el => ({rests: getComputedStyle(el).visibility === 'hidden', left: el.getBoundingClientRect().left, width: el.getBoundingClientRect().width, reachable: [...el.querySelectorAll('button, a, [tabindex]')].filter(n => n.checkVisibility({visibilityProperty: true})).length}));
+    expect(wing.rests, 'the wing under the console rests').toBe(true);
+    expect(wing.reachable, 'nothing under the console can take the focus').toBe(0);
+    expect(wing.left, 'the console covers the whole wing: nothing is sliced by its edge').toBeGreaterThanOrEqual(col.x - 0.5);
+    expect(col.width - wing.width, 'the console is as wide as the wing it replaces (plus the stage\'s edge and half the gap to the star)').toBeLessThanOrEqual(64);
+    const star = await box(page, '.nova-orb-button');
+    expect(star.x + star.width, 'the star is whole beside the console').toBeLessThanOrEqual(col.x + 0.5);
     expect(await page.locator('.nova-right').evaluateAll(els => els.filter(el => el.checkVisibility()).length), 'the right bar gives way to the conversation').toBe(0);
     expect((await box(page, '.nova-foot')).height, 'the foot takes no height while the conversation is open').toBe(0);
     await expect(page.locator('.nova-command')).toHaveCount(0);
-    // Under 1100 px the conversation is still the one panel over the stage: no widget shows behind it.
+    // Not squeezed: closed, no widget of the left wing is wider than it was beside the console.
+    await talk.getByRole('button', {name: 'Close NOVA’s chat'}).click();
+    await expect(talk).toBeHidden();
+    await expect(page.locator('.nova-frame')).not.toHaveAttribute('data-console', /./);
+    const leftWing = (await widgetBoxes()).filter(c => c.side === 'left');
+    expect(leftWing.length, 'the left wing holds widgets with the conversation closed').toBeGreaterThan(0);
+    for (const was of leftWing) { const w = shown.find(x => x.id === was.id); expect(w, `${was.id} stays on the stage beside the console`).toBeTruthy(); expect(w!.width, `${was.id} is not narrower beside the console than with the conversation closed`).toBeGreaterThanOrEqual(was.width - 1); }
+    await page.locator('.nova-orb-button').click();
+    await expect(talk.locator('section.nova-chat')).toBeVisible();
+    // Under 1280 px (Session AM-2, deliberate: it was 1100 px) the conversation is still the one panel over the stage: no widget shows behind it.
     await page.setViewportSize({width: 1024, height: 900});
     await expect(talk.locator('section.nova-chat')).toBeVisible();
     inWindow(page, await box(page, '.nova-talk'), 'the conversation at 1024 px');

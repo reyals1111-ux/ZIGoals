@@ -7,21 +7,27 @@ import './safe-text.css';
  * with rel="noopener noreferrer" and show their full address when the words differ from it. No images, no scripts.
  */
 function host(href: string): string { try { return new URL(href).host; } catch { return href; } }
-function renderInline(nodes: readonly Inline[]): ReactNode[] {
+/**
+ * `mark` (Session AM-2, NOVA's conversation console): how plain words are shown, for the eye only (NOVA lights the
+ * figures in them). The characters stay the same; code and a link's own words are never marked. Without it nothing changes.
+ */
+type Mark = (text: string) => ReactNode;
+function renderInlineWith(nodes: readonly Inline[], mark?: Mark): ReactNode[] {
   return nodes.map((node, i) => {
     switch (node.type) {
-      case 'text': return <Fragment key={i}>{node.text}</Fragment>;
+      case 'text': return <Fragment key={i}>{mark ? mark(node.text) : node.text}</Fragment>;
       case 'code': return <code key={i}>{node.text}</code>;
-      case 'strong': return <strong key={i}>{renderInline(node.children)}</strong>;
-      case 'em': return <em key={i}>{renderInline(node.children)}</em>;
+      case 'strong': return <strong key={i}>{renderInlineWith(node.children, mark)}</strong>;
+      case 'em': return <em key={i}>{renderInlineWith(node.children, mark)}</em>;
       case 'link': {
         const label = node.children.map(c => c.type === 'text' ? c.text : '').join('');
-        return <a key={i} href={node.href} target="_blank" rel="noopener noreferrer">{renderInline(node.children)}{label !== node.href && <span className="ai-link-address"> ({host(node.href)})</span>}</a>;
+        return <a key={i} href={node.href} target="_blank" rel="noopener noreferrer">{renderInlineWith(node.children)}{label !== node.href && <span className="ai-link-address"> ({host(node.href)})</span>}</a>;
       }
     }
   });
 }
-function renderBlock(block: Block, i: number): ReactNode {
+function renderBlock(block: Block, i: number, mark?: Mark): ReactNode {
+  const renderInline = (nodes: readonly Inline[]) => renderInlineWith(nodes, mark);
   switch (block.type) {
     case 'paragraph': return <p key={i}>{renderInline(block.children)}</p>;
     case 'heading': return block.level === 1 ? <h3 key={i}>{renderInline(block.children)}</h3> : block.level === 2 ? <h4 key={i}>{renderInline(block.children)}</h4> : <h5 key={i}>{renderInline(block.children)}</h5>;
@@ -38,7 +44,7 @@ function renderBlock(block: Block, i: number): ReactNode {
     }
   }
 }
-export function SafeText({text, className}: {text: string; className?: string}) {
+export function SafeText({text, className, mark}: {text: string; className?: string; mark?: Mark}) {
   const blocks = useMemo(() => parseBlocks(text), [text]);
-  return <div className={className}>{blocks.map(renderBlock)}</div>;
+  return <div className={className}>{blocks.map((block, i) => renderBlock(block, i, mark))}</div>;
 }

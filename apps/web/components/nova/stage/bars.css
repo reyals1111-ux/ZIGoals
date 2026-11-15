@@ -44,6 +44,12 @@
 .nb-sec-icon { display: inline-grid; place-items: center; width: 30px; height: 24px; flex: none; color: color-mix(in oklab, var(--nova-c, #f06dff) 34%, #fff); --kc: 3.5px; --kw: 1px; --k-rim: color-mix(in oklab, var(--nova-c, #f06dff) 62%, transparent); --k-rim-2: color-mix(in oklab, var(--nova-a, #9273ff) 50%, transparent); --k-plate: #101842; --k-plate-2: #080d26; }
 .nova-right-section h3 button .nb-sec-icon .nova-icon { margin-left: 0; color: inherit; }
 
+/* ---- Right bar: whole rows (Session AM-2; components/nova/whole-rows.ts) ---- */
+/* The bar scrolls inside itself and never cuts a row at its bottom edge; while more waits below, a small lit chevron
+   stands over the foot's line (static). */
+.nova-right-scroll[data-cut] + .nova-right-foot { position: relative; }
+.nova-right-scroll[data-cut] + .nova-right-foot::before { content: ''; position: absolute; left: 50%; top: -15px; width: 7px; height: 7px; margin-left: -4px; pointer-events: none; border: solid var(--nova-c, #f06dff); border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); filter: drop-shadow(0 0 4px var(--nova-c, #f06dff)); }
+
 /* ---- Right bar: Requests ---- */
 .nb-asks { display: grid; gap: 6px; }
 .nb-group { margin: 4px 0 0; font-size: 14px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--nova-ink-3); }
