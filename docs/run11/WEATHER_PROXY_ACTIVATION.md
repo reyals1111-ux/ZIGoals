@@ -74,8 +74,14 @@ for i in $(seq 61); do curl -s -o /dev/null -w '%{http_code}\n' "$W/v1/forecast?
 ```
 If the second call says `miss` again, the cache is not working (most likely a `workers.dev` address): turn the proxy off (below) and fix the domain before the app uses it. After MET's `Expires` (usually about 30 minutes), the next call should say `revalidated`.
 
-### 4. Hand over to the NOVA lane
-Tell the NOVA lane the proxy's origin. Its PR wires the app client, allows that origin in the app's `connect-src` and keeps a fallback for 429/503. Until then the deployed proxy only answers curl.
+### 4. Build the app with the proxy's address (Session AM-2, 15 Nov 2026)
+The app client is wired (`apps/web/lib/nova/world/proxy.ts`, `met.ts`). It uses the proxy only in a build made with
+```sh
+NEXT_PUBLIC_WEATHER_PROXY_URL=https://weather.<your zone>/v1/forecast
+```
+exactly that shape: https, a DNS name, the path `/v1/forecast`, nothing else (`apps/web/lib/csp-compose.mjs` `weatherProxyUrl`; anything else reads as "no proxy" and the app asks MET Norway directly, as before). The same value adds the proxy's origin to `/app` documents' `connect-src` at build time (`withWeatherProxy`; `lib/egress-policy.json` is unchanged). Setting it for the public Alpha is a deploy-workflow change that needs your review; **set the same variable for the build step and for the post-upload smoke and the hosted verifier** (`scripts/lib/alpha-smoke.mjs`, `scripts/verify-hosted-alpha.mjs`, `scripts/run11/alpha-packaged-headers.test.mjs`, `apps/web/tests/public-alpha.spec.ts` read it), or their `connect-src` check fails. The Worker's `APP_ORIGIN` must be the app's origin exactly.
+
+What the app does with it: one plain GET per place (two decimals), no cookie, no Referer, no header of its own; the reading is kept until the proxy's `Cache-Control: max-age` (never under 10 minutes, never over a day); 429 and 503 leave the last reading in place and are asked again after 10 minutes; the app never falls back to asking MET Norway directly (the words at the switch say MET Norway sees the proxy's address, not the person's). The proxy serves Locationforecast **compact**, so the UV index is not shown in such a build, and it has no Sunrise route, so sunrise and sunset are worked out on the device (`lib/nova/world/sun-calc.ts`, within about two minutes of MET Norway's times). For a local test: `wrangler dev` on `http://127.0.0.1:<port>` and `NEXT_PUBLIC_WEATHER_PROXY_URL=http://127.0.0.1:<port>/v1/forecast` (the only non-https form accepted).
 
 ## Turning it off
 - **Fastest (about 1 minute):** Cloudflare dashboard → Workers & Pages → the proxy → Settings → Domains & Routes → remove the custom domain. Requests stop reaching the Worker; the app shows its no-weather state.

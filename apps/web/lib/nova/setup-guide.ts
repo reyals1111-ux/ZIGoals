@@ -142,6 +142,8 @@ export const STAGE_NO_BRAIN = 'All of this works before any brain is connected: 
 export const brainNowLine = (kind: string, words: string): string => `Right now: ${kind === 'none' ? 'on-device answers, no AI connected' : words}`;
 /** Session AM: the person's own Hermes Agent is a path of its own beside the four ways, with its own guide. */
 export const HERMES_WAY = {label: 'My Hermes Agent', href: '/app/nova/hermes', note: 'Already run Hermes Agent, Nous Research’s open-source agent? It has its own guide.'} as const;
+/** Session AM-2 (owner's step 4c/4d): any other agent on this computer, and its tools, as a path beside Hermes (the setup hub's second guide). */
+export const OWN_AGENT_WAY = {label: 'Another agent, and my own tools', href: '/app/nova/setup#own-agent', note: 'Any OpenAI-compatible agent on this computer, and tool servers (MCP) that act with their own accounts: step by step, with live checks.'} as const;
 /** Session AM (ADR-038 D12, D13): the one outside service, said once in "What NOVA can see"; its switch is in NOVA → Permissions. */
 export const WEATHER_LINE = 'Weather is the only outside data, off until you turn it on in NOVA → Permissions; MET Norway then sees your network address and your place rounded to about 1 km.';
 

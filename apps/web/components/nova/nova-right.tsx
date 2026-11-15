@@ -20,6 +20,7 @@ import {useVaultControls, useVaultStatus} from '../vault-sync-controls';
 import type {NovaPanelId} from './panels/nova-panels';
 import {NovaIcon} from './icons';
 import {StageChoices, StageList, StageRequests} from './stage/right-stage';
+import {AgentEntry} from './agent/agent-entry';
 import type {StageApi} from './stage/use-stage';
 import type {Brain} from './status-chips';
 import type {NovaCounts} from './use-counts';
@@ -120,6 +121,8 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
         {/* EX3 left-over 1: the same words as the guide's check (a refused key was reached). */}
         {hermes?.connected && (() => { const p = hermesPanel(hermes); return <p className="nova-row"><span className="nova-status" data-on={p.on || undefined}>{p.pill}</span><span>{p.line}{hermes.model ? ` · ${hermes.model}` : ''}{hermes.lastMs !== undefined ? ` · answered in ${formatNumber(hermes.lastMs)} ms` : ''}{hermes.checkedAt ? ` · ${formatDateTime(hermes.checkedAt)}` : ''}</span></p>; })()}
         <div className="nova-right-actions"><Link className="nova-btn" href="/app/nova/setup" prefetch={false}>Brain setup</Link></div>
+        {/* Session AM-2 (step 4c): the person's own agent and tool servers on this computer; its panel loads when opened. */}
+        <AgentEntry/>
         {/* Release review 2 (R2-3): the technical rows wait behind this disclosure (local servers, Hermes, this device). */}
         <Tech label="Technical details: local servers, Hermes Agent, this device">
           <div className="nova-right-actions"><button type="button" className="nova-btn" disabled={probe.state === 'asking'} onClick={() => void ask(LOCAL_SERVERS)}>Look for local servers</button></div>

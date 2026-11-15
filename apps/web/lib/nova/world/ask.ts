@@ -2,6 +2,7 @@ import {readDeviceRecord, updateDeviceRecord} from '../../device-record';
 import {fetchWeather, shouldFetch, WeatherError, MET_CREDIT, MET_CREDIT_NL} from './met';
 import {applyFetched, NOVA_WORLD, placeOf, readingOf, worldOn} from './record';
 import {umbrella, weatherSentence} from './words';
+import {WEATHER_OFF_WORDS_PROXY, WEATHER_PROXY_URL} from './proxy';
 
 /**
  * Session AM (ADR-038 D13–D15, D19): the weather in words, for a phone (where NOVA is a chat agent and no widget is
@@ -12,10 +13,12 @@ import {umbrella, weatherSentence} from './words';
 type Lang = 'en' | 'nl';
 export const WEATHER_TIMEOUT_MS = 15_000;
 type Store = Pick<Storage, 'getItem' | 'setItem'>;
-export const WEATHER_OFF_WORDS: Readonly<Record<Lang, string>> = {
+export const WEATHER_OFF_WORDS_DIRECT: Readonly<Record<Lang, string>> = {
   en: 'Weather is off. Turn on “Weather (outside data)” in NOVA → Permissions and choose your place; then I ask MET Norway, which sees your network address and that place, rounded to about 1 km. Until then I don’t guess the weather.',
   nl: 'Het weer staat uit. Zet “Weather (outside data)” aan in NOVA → Permissions en kies je plaats; dan vraag ik het aan MET Norway, dat je netwerkadres en die plaats (afgerond op ongeveer 1 km) ziet. Tot dan gok ik niet naar het weer.',
 };
+/** AM-2: in a build that asks through the weather proxy, the words say who sees what in that case (lib/nova/world/proxy.ts); in every other build these are Session AM's words. */
+export const WEATHER_OFF_WORDS: Readonly<Record<Lang, string>> = WEATHER_PROXY_URL ? WEATHER_OFF_WORDS_PROXY : WEATHER_OFF_WORDS_DIRECT;
 export const WEATHER_PLACE_WORDS: Readonly<Record<Lang, string>> = {
   en: 'Weather is on, but no place is chosen yet. Choose one in NOVA → Permissions.',
   nl: 'Het weer staat aan, maar er is nog geen plaats gekozen. Kies er een in NOVA → Permissions.',

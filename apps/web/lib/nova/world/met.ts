@@ -1,4 +1,6 @@
 import {MAX_DAYS, MAX_HOURS, MAX_SYMBOL, markAsked, placeOf, readingOf, readingSchema, round2, setReading, worldOn, type NovaWorld, type WorldPlace, type WorldReading} from './record';
+import {PROXY_BUSY, PROXY_REFUSED, PROXY_SILENT, WEATHER_PROXY_URL, proxyExpires, proxyForecastUrl} from './proxy';
+import {sunTimes} from './sun-calc';
 
 /**
  * Session AM (ADR-038 D12–D15, A2): the MET Norway client behind NOVA's opt-in weather. One host, two products
@@ -226,7 +228,17 @@ export class WeatherError extends Error {
  *   is set from the kept reading's `lastModified`, with `cache: 'no-store'`; a 304 keeps the reading.
  */
 export type Revalidate = 'browser' | 'header';
-export type FetchWeatherOptions = {world: NovaWorld; now: Date; fetchImpl?: typeof fetch; signal?: AbortSignal; timeZone?: string; revalidate?: Revalidate};
+/**
+ * Session AM-2 (owner's step 4a): `proxy` is the weather proxy's address this build was configured with, or null (the
+ * default comes from the build, lib/nova/world/proxy.ts; null in every build without one, and then nothing below differs
+ * from Session AM). With a proxy the one request goes to it and never to api.met.no: the same two decimals, the same
+ * plain GET without a cookie or a header of ours, the same size cap, a redirect still an error. It carries no Referer
+ * (the proxy knows the app by the Origin header the browser adds). The reading is kept until the moment the proxy's
+ * `Cache-Control: max-age` names (MET Norway's own Expires, passed on), under the same ten-minute floor and one-day
+ * ceiling. No request is made for the sun: its times are worked out on the device. A proxy that does not answer leaves
+ * the last reading in place; MET Norway is never asked directly instead.
+ */
+export type FetchWeatherOptions = {world: NovaWorld; now: Date; fetchImpl?: typeof fetch; signal?: AbortSignal; timeZone?: string; revalidate?: Revalidate; proxy?: string | null};
 function keepUntil(header: string | null, now: Date): string {
   const t = now.getTime(), said = header ? Date.parse(header) : Number.NaN;
   return new Date(Math.min(t + MAX_KEEP_MS, Math.max(t + MIN_ASK_GAP_MS, Number.isNaN(said) ? t + DEFAULT_KEEP_MS : said))).toISOString();
@@ -250,7 +262,7 @@ async function boundedJson(response: Response): Promise<unknown> {
   if (body.length > MAX_ANSWER_CHARS) throw Error('too large');
   return JSON.parse(body);
 }
-export async function fetchWeather({world, now, fetchImpl = fetch, signal, timeZone = deviceZone(), revalidate = 'browser'}: FetchWeatherOptions): Promise<NovaWorld> {
+export async function fetchWeather({world, now, fetchImpl = fetch, signal, timeZone = deviceZone(), revalidate = 'browser', proxy = WEATHER_PROXY_URL}: FetchWeatherOptions): Promise<NovaWorld> {
   if (!worldOn(world)) throw new WeatherError(WEATHER_OFF, world);
   const place = placeOf(world);
   if (!place) throw new WeatherError(WEATHER_NO_PLACE, world);
@@ -258,28 +270,35 @@ export async function fetchWeather({world, now, fetchImpl = fetch, signal, timeZ
   const fail = (words: string) => new WeatherError(`${words}${kept ? LAST_STAYS : ''}`, asked);
   const init = (headers?: Record<string, string>): RequestInit => ({
     // Security review AM-S10: a redirect is an error (the answer comes from api.met.no or not at all).
-    method: 'GET', credentials: 'omit', redirect: 'error', cache: revalidate === 'header' ? 'no-store' : 'no-cache', referrerPolicy: MET_REFERRER_POLICY,
+    method: 'GET', credentials: 'omit', redirect: 'error', cache: revalidate === 'header' ? 'no-store' : 'no-cache', referrerPolicy: proxy ? 'no-referrer' : MET_REFERRER_POLICY,
     ...(headers ? {headers} : {}), ...(signal ? {signal} : {}),
   });
   let response: Response;
-  try { response = await fetchImpl(forecastUrl(place), init(revalidate === 'header' && kept?.lastModified ? {'If-Modified-Since': kept.lastModified} : undefined)); }
-  catch { throw fail(signal?.aborted ? MET_STOPPED : MET_SILENT); }
-  const expires = keepUntil(response.headers.get('expires'), now);
+  try {
+    // AM-2: through the proxy the request never carries a header of ours (the proxy revalidates with MET Norway itself).
+    response = proxy ? await fetchImpl(proxyForecastUrl(proxy, place), {...init(), cache: 'no-cache'})
+      : await fetchImpl(forecastUrl(place), init(revalidate === 'header' && kept?.lastModified ? {'If-Modified-Since': kept.lastModified} : undefined));
+  }
+  catch { throw fail(signal?.aborted ? MET_STOPPED : proxy ? PROXY_SILENT : MET_SILENT); }
+  const expires = keepUntil(proxy ? proxyExpires(response.headers.get('cache-control'), now) : response.headers.get('expires'), now);
   let reading: WorldReading;
+  if (proxy && !answered(response.status)) throw fail(response.status === 429 ? PROXY_BUSY : response.status >= 500 ? PROXY_SILENT : PROXY_REFUSED);
   if (response.status === 304 && kept) reading = {...kept, expires};
   else if (answered(response.status)) {
     let json: unknown;
     try { json = await boundedJson(response); } catch { throw fail(signal?.aborted ? MET_STOPPED : MET_UNREADABLE); }
     let parts: ForecastParts;
     try { parts = parseForecast(json, place, now, timeZone); } catch (error) { throw fail(error instanceof Error && error.message === MET_NO_CURRENT ? MET_NO_CURRENT : MET_UNREADABLE); }
-    reading = known({...parts, fetchedAt: now.toISOString(), expires, lastModified: plainHeader(response.headers.get('last-modified'))});
+    reading = known({...parts, fetchedAt: now.toISOString(), expires, lastModified: proxy ? undefined : plainHeader(response.headers.get('last-modified'))});
   } else throw fail(response.status === 429 || response.status >= 500 ? MET_SILENT : response.status === 304 ? MET_UNREADABLE : MET_REFUSED);
 
   // The sun of today, on the device's clock. Its times hold all day: asked once a day per place, best effort.
   const today = localTime(now.getTime(), timeZone);
   const sunDay = (sun: {rise?: string; set?: string} | undefined): string | undefined => { const time = sun?.rise ?? sun?.set; return time ? localTime(Date.parse(time), timeZone).date : undefined; };
   let sun: {rise?: string; set?: string} | undefined = sunDay(kept?.sun) === today.date ? known({rise: kept?.sun?.rise, set: kept?.sun?.set}) : undefined;
-  if (!sun) {
+  // AM-2: with a proxy nothing is asked for the sun (the proxy has no route for it, and api.met.no is never asked): it is worked out here.
+  if (!sun && proxy) sun = sunTimes(place, today.date, today.offset);
+  else if (!sun) {
     try {
       const answer = await fetchImpl(sunUrl(place, today.date, today.offset), init());
       if (answered(answer.status)) sun = parseSun(await boundedJson(answer));

@@ -12,7 +12,7 @@ import {brainWayTag, keyRefused, NOVA_PHONE_QUERY} from '../../../../lib/nova/ph
 import {setPrivacyMode} from '../../../../lib/nova/setup';
 import {localDate} from '../../../../lib/local-date';
 import {checkBrain} from '../../../../lib/nova/setup-checks';
-import {brainNowLine, CONTEXT_NOTE, CPU_NOTE, defaultBudget, detectOs, HERMES_WAY, KEY_NOTES, llamaCppSteps, lmStudioSteps, MAX_PARAMS, MODEL_PICKS, MODEL_RULE, OLLAMA_STRICT_NOTE, ollamaSteps, OPENROUTER_NOTE, OS_LABELS, pickFor, SERVER_LABELS, SPENDING_ADVICE, SUBSCRIPTION_DETAILS, SUBSCRIPTION_NOTE, type GuideStep, type KeyProvider, type MemoryBudget, type Os, type ServerId} from '../../../../lib/nova/setup-guide';
+import {brainNowLine, CONTEXT_NOTE, CPU_NOTE, defaultBudget, detectOs, HERMES_WAY, KEY_NOTES, OWN_AGENT_WAY, llamaCppSteps, lmStudioSteps, MAX_PARAMS, MODEL_PICKS, MODEL_RULE, OLLAMA_STRICT_NOTE, ollamaSteps, OPENROUTER_NOTE, OS_LABELS, pickFor, SERVER_LABELS, SPENDING_ADVICE, SUBSCRIPTION_DETAILS, SUBSCRIPTION_NOTE, type GuideStep, type KeyProvider, type MemoryBudget, type Os, type ServerId} from '../../../../lib/nova/setup-guide';
 import {readDeviceRecord} from '../../../../lib/device-record';
 import {getAppStorage} from '../../../../lib/showcase-storage';
 import {AiSetup} from '../../../ai/ai-setup';
@@ -75,6 +75,8 @@ export default function BrainStep({setup}: {setup: SetupState}) {
     <Choice label="Choose NOVA’s brain" value={way} options={waysFor(phone)} onChange={setWay}/>
     {/* Session AM: the person's own Hermes Agent is a path beside the four (a link: it has its own guide and its own checks). */}
     <div className="ai-card-actions" role="group" aria-label="Or your own agent"><Link className="secondary" href={HERMES_WAY.href}>{HERMES_WAY.label}</Link><span className="fine">{HERMES_WAY.note}</span></div>
+    {/* Session AM-2 (step 4c): any other agent on this computer, and the person's own tools, beside Hermes ("Make NOVA your own agent", below the planets). */}
+    <div className="ai-card-actions" role="group" aria-label="Or another agent and your own tools"><Link className="secondary" href={OWN_AGENT_WAY.href} prefetch={false}>{OWN_AGENT_WAY.label}</Link><span className="fine">{OWN_AGENT_WAY.note}</span></div>
     <details className="nova-more"><summary>Have a ChatGPT, Claude, Gemini or Grok subscription?</summary><p className="nova-honest">{SUBSCRIPTION_NOTE}</p><ul>{SUBSCRIPTION_DETAILS.map(d => <li key={d}>{d}</li>)}</ul></details>
     {way === 'local' && <section className="nova-way" aria-labelledby={`${id}-local`}>
       <h3 id={`${id}-local`}>A model on this computer</h3>
