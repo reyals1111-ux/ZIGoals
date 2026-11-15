@@ -238,9 +238,10 @@
 @container nova-stage (min-width: 1700px) {
   .nova-frame[data-look=holo] .nova-orbit { max-width: 2320px; }
   .nova-frame[data-look=holo] .nova-orbit-main { grid-template-columns: minmax(380px, 1fr) minmax(560px, 1.5fr) minmax(380px, 1fr); gap: 28px; } /* N3a: the star's column is the widest by half (nova-dashboard.tsx `starColumn` follows this) */
-  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(460px, 1.5fr) minmax(440px, 1fr) minmax(360px, 1.1fr); }
-  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(360px, 1.1fr) minmax(440px, 1fr) minmax(460px, 1.5fr); }
-  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(440px, 1.35fr) minmax(420px, .9fr) minmax(440px, 1.35fr); }
+  /* Round 7: a wing that holds a wide panel takes a little more, and the star's column stays the widest. */
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=left] { grid-template-columns: minmax(460px, 1.25fr) minmax(520px, 1.4fr) minmax(360px, 1fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=right] { grid-template-columns: minmax(360px, 1fr) minmax(520px, 1.4fr) minmax(460px, 1.25fr); }
+  .nova-frame[data-look=holo] .nova-orbit-main[data-wide=both] { grid-template-columns: minmax(440px, 1.15fr) minmax(520px, 1.3fr) minmax(440px, 1.15fr); }
   .nova-frame[data-look=holo] .nova-orbit-band-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 

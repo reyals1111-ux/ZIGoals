@@ -73,7 +73,10 @@
 /* ---- G2: the HUD frame ---- */
 /* A zero-height strip that sticks to the top of the stage's own window; its frame is as tall as that window (the stage
    area is a size container), so it stays put while the widgets scroll under it. */
-.cc-hud { position: sticky; top: 0; height: 0; z-index: 0; pointer-events: none; }
+/* Round 7 (critic A: "VIEW ORBIT touches the Focus panel, SHOWCASE EXAMPLE DATA is hidden behind the left column"): the
+   frame lies over the widget plane, and each read-out has a small dark plate, so a panel that scrolls under one is not
+   run into by its words. It still takes no pointer events. */
+.cc-hud { position: sticky; top: 0; height: 0; z-index: 2; pointer-events: none; }
 .cc-hud-frame { position: absolute; left: -12px; right: -12px; top: -6px; height: calc(100cqb + 14px); --cc: color-mix(in oklab, var(--nova-b, #63e7ff) 62%, var(--nova-a, #9273ff)); }
 .cc-corner { position: absolute; width: 34px; height: 34px; opacity: .85;
   background: linear-gradient(var(--cc), var(--cc)) 0 0 / 100% 1.5px no-repeat, linear-gradient(var(--cc), var(--cc)) 0 0 / 1.5px 100% no-repeat,
@@ -90,6 +93,7 @@
 .cc-rule[data-at=r] { right: 0; transform: scaleX(-1); }
 /* The four read-outs: a tracked label and its value, beside each corner. */
 .cc-read { position: absolute; display: inline-flex; align-items: baseline; gap: 8px; font-size: 14px; line-height: 1; letter-spacing: .12em; text-transform: uppercase; color: var(--nova-ink-2, #cdd8ee); white-space: nowrap; text-shadow: 0 0 2px #050818, 0 0 8px #050818; }
+.cc-read { padding: 4px 9px 3px; border-radius: 3px; background: #040716f2; box-shadow: 0 0 0 1px color-mix(in oklab, var(--cc) 22%, transparent); }
 .cc-read > b { font-weight: 700; color: color-mix(in oklab, var(--cc) 70%, #fff); }
 .cc-read[data-at=tl] { left: 46px; top: 2px; }
 .cc-read[data-at=tr] { right: 46px; top: 2px; }

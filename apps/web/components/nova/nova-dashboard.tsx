@@ -107,6 +107,23 @@ function useHudSize(frame: {current: HTMLElement | null}, ready: boolean): {heig
   return hud;
 }
 /**
+ * Round 7 (critic B: "the star's ring and arms are cut by the panels; column widths differ"): the width of the star's own
+ * column as it is drawn. A wing that holds a wide panel takes more of the row (holo.css `data-wide`), so the column is
+ * measured, not assumed; null until the three-column stage is there.
+ */
+function useStarColumn(frame: {current: HTMLElement | null}, on: boolean): number | null {
+  const [width, setWidth] = useState<number | null>(null);
+  useEffect(() => {
+    const el = on ? frame.current?.querySelector<HTMLElement>('.nova-orbit-centre') : null;
+    if (!el || typeof ResizeObserver === 'undefined') { setWidth(null); return; }
+    const read = () => setWidth(was => was === el.clientWidth ? was : el.clientWidth);
+    read();
+    const observer = new ResizeObserver(read); observer.observe(el);
+    return () => observer.disconnect();
+  }, [frame, on]);
+  return width;
+}
+/**
  * Session AM (design review AM-D7): under 1600 px of window only one side bar is open at a time (with both open at 1440 the
  * stage was 815 px and a made widget landed under the fold). Opening one folds the other (the left to its rail, the right
  * away), and that is saved as the person's choice; a record that still says both are open shows the left bar as its rail.
@@ -163,6 +180,7 @@ export default function NovaDashboard() {
   const canShow = useCallback((id: string) => widgetAvailable(id, ctx), [ctx]);
   // Session AM (ADR-038 D1–D7): the live stage — the pinned widgets above and the widgets NOVA makes on request, one list.
   const stage = useStage({nova: r, save, canShow, announce: setStatus, arranging: editing});
+  const measuredColumn = useStarColumn(root, nova.loaded && stage.shown.length > 0);
   const [answer, setAnswer] = useState<StageAnswer | null>(null), [beam, setBeam] = useState<StarBeam | null>(null), inPlace = useRef(false);
   const [beamLine, setBeamLine] = useState<{x: number; y: number; length: number; turn: number; key: number} | null>(null), beamTimer = useRef(0), beamRuns = useRef(false), [stageOrb, setStageOrb] = useState<NovaOrbState | null>(null), [lastMade, setLastMade] = useState<string | null>(null);
   // Design review AM-D30: an answer that speaks for widgets is gone once none of them is on the stage (closed, cleared, expired).
@@ -435,7 +453,7 @@ export default function NovaDashboard() {
   // Session AM-2 (N3a, the third critique: "the star is ~550 px of 2560 with empty bands above and below"): from 1700 px
   // of stage the star's column is the widest by half (holo.css: 1fr 1.5fr 1fr), and beside widgets the star may be as
   // large as on the calm stage wherever that column holds it.
-  const starColumn = hudWide >= 1700 ? (hudWide - 56) * 1.5 / 3.5 : hudWide > 900 ? (hudWide - 40) * 1.1 / 3.1 : hudWide;
+  const starColumn = measuredColumn && measuredColumn > 120 && hudWide > 900 ? measuredColumn : hudWide >= 1700 ? (hudWide - 56) * 1.5 / 3.5 : hudWide > 900 ? (hudWide - 40) * 1.1 / 3.1 : hudWide;
   // Round 7 ("at 1440 the star shrinks to an ornament"): below 1700 px of stage the star may be wider than its column by
   // almost half; its arms dissolve toward the wings (the shader's uEdge) and its bezel stays inside the column.
   const starCap = stage.shown.length ? Math.min(starCapWide, Math.max(300, Math.round(starColumn * (hudWide >= 1700 ? 1.15 : hudWide >= 1100 ? 1.45 : 1.15)))) : starCalm;
