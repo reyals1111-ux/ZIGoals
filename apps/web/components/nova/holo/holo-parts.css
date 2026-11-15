@@ -209,7 +209,11 @@
 .holo-streaks li:last-child, .holo-streaks li:nth-last-child(2) { padding-bottom: 0; }
 .holo-streak-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .holo-streaks .holo-num { font-size: 15px; white-space: nowrap; }
-.holo-streaks .holo-gauge { grid-column: 1 / -1; height: 4px; }
+/* Round 2: a streak's bar reads as a bar: 7 px, the gauge's own gradient and white-hot cap (it was a 4 px hairline under a
+     row 600 px wide). A stacked medium panel under 200 px of body keeps 4 px: three rows of 7 px are 109 px, and
+     max(R, 109) + 8 + 79 ≤ h needs h ≥ 196 (R = h − 94 is never the taller); 200 leaves 4 px in hand. */
+.holo-streaks .holo-gauge { grid-column: 1 / -1; height: 7px; border-radius: 4px; }
+.holo-streaks .holo-gauge-fill { border-radius: 4px; }
 .holo-stack-list { min-width: 0; flex: 1 1 0; }
 .holo-week-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 
@@ -239,7 +243,13 @@
 .holo-more a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: var(--nova-hi, #cbbfff); font-weight: 600; }
 .holo-pace-box { display: grid; gap: 3px; }
 .holo-pace-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
-.holo-pace-name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Round 2: the title is one 18 px line that gives "Pace ·" up WHOLE before the goal's name is cut. It is a wrapping row
+   laid from its end (in the markup the name comes first, on screen the word stands before it): where the two do not fit
+   on the line together the word goes to a second line, which the 18 px box does not show; only then may the name end in
+   an ellipsis. Its whole words are its tooltip, and in order for assistive technology (goals-hud.tsx). */
+.holo-pace-title { position: relative; flex: 1 1 0; min-width: 0; height: 18px; display: flex; flex-flow: row-reverse wrap; justify-content: flex-end; align-content: flex-start; column-gap: .5em; overflow: hidden; }
+.holo-pace-name { flex: 0 1 auto; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.holo-pace-word { flex: none; white-space: nowrap; }
 .holo-more-link { display: inline-flex; align-items: center; flex: none; min-height: 44px; min-width: 44px; margin: -14px -6px; padding: 0 6px; border-radius: 8px; color: var(--neon-ink, #e2d9ff); font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; }
 /* The pace chart's own names. Session AM-2: "Target" stands at the end of its line, in a 64 px gutter the plot leaves at
    its right (it used to lie on the line and cut it); "Today" is at its x, inside the plot's foot in a stacked panel and
@@ -730,7 +740,11 @@
   .holo-habits[data-size=L] .holo-dial { --ring: 112px; }
 }
 @container holo-body (max-height: 110px) { .holo-habits[data-size=M] .holo-streaks .holo-gauge { display: none; } }
+@container holo-body (max-height: 199.98px) and (max-width: 639.98px) { .holo-habits[data-size=M] .holo-streaks .holo-gauge { height: 4px; } }
 @container holo-body (max-width: 300px) { .holo-habits .holo-streaks .holo-gauge { display: none; } }
+/* Round 2 (a wing of about 270 px beside the open conversation): the streaks' names were cut ("Contrib…", "Drink w…").
+   The ring takes 32 % of such a body instead of 40 %, which gives a name about 22 px more (88 px: "Drink water" whole). */
+@container holo-body (max-width: 300px) { .holo-habits[data-size=M] .holo-today { --ring: clamp(64px, min(100cqh - 94px, 32cqi), 190px); } }
 
 /* ---- Goals. Rows: the arcs (A + 28 for a name of two lines + 16 for the pace words + 2), the pace box (P + 47). ---- */
 /* M, stacked (a body under 560 px wide). Session AM-2, re-derived (hud-fit: the pace line is in view in a medium panel at
@@ -810,7 +824,8 @@
 }
 /* Wide: the head over the set-aside meter on the left (18 + F + 17 + 10 + 33 ≤ h), the frame at the body's height on the right. */
 @container holo-body (min-width: 560px) {
-  .holo-wealth:is([data-size=M], [data-size=L]) .holo-wealth-head .holo-label { letter-spacing: .06em; }
+  /* Round 2: beside the chart the label has 44–48 % of the body: "Tracked wealth · known so far" was cut to "KNOWN SO…". It may take a second line (18 px: the head's sum above still holds from 132 px). */
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-wealth-head .holo-label { letter-spacing: .06em; white-space: normal; overflow: visible; text-overflow: clip; }
   .holo-wealth:is([data-size=M], [data-size=L]) { grid-template-columns: minmax(0, 44%) minmax(0, 1fr); grid-template-areas: "head wave" "lower wave"; grid-template-rows: auto auto; align-content: center; column-gap: 26px; row-gap: 10px; }
   .holo-wealth:is([data-size=M], [data-size=L]) .holo-wealth-head { grid-area: head; }
   .holo-wealth:is([data-size=M], [data-size=L]) .holo-wave { grid-area: wave; align-self: center; }
@@ -957,6 +972,11 @@
 .holo-pace-chart > .holo-wipe { position: absolute; inset: 0; }
 .holo-pace-chart .holo-pace { position: absolute; inset: 0; width: 100%; height: 100%; }
 .holo-chart-tag[data-at=today] { left: clamp(28px, var(--x, 0%), calc(100% - 28px)); }
+/* Round 2: a plot under 34 px (a narrow panel whose words all wrap leaves it 18) has no room for "Today" inside it: the
+   word lay over the line. The plot knows its own height (a size container: its drawing is laid over it, so nothing in
+   it sizes it), and under 34 px today is the lit point alone (the estimate under the plot says the rest). */
+.holo-pace-chart { container: holo-pace / size; }
+@container holo-pace (max-height: 33.98px) { .holo-goals[data-size=M] .holo-chart-tag[data-at=today] { display: none; } }
 .holo-goals[data-size=M] { display: flex; flex-direction: column; justify-content: center; max-height: 100cqh; }
 @container holo-body (min-height: 1px) { .holo-goals[data-size=M] { height: 100cqh; } }
 .holo-goals[data-size=M] > .holo-arcs { flex: none; }

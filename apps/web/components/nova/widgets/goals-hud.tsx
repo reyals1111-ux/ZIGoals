@@ -96,7 +96,8 @@ export default function GoalsHudWidget({size}: {size: WidgetSize}) {
       <b className="holo-num">{a.text}</b>
     </li>)}</ul>}
     {pace && words ? <div className="holo-pace-box" data-state={pace.chart.state}>
-      <p className="holo-label holo-pace-head"><span className="holo-pace-name" title={`Pace · ${pace.name}`}>Pace · {pace.name}</span>{moreLink}</p>
+      <p className="holo-label holo-pace-head">{/* Round 2: the title gives "Pace ·" up whole before the goal's name is cut (holo-parts.css lays the two from the line's end; the words in order are for assistive technology). */}
+        <span className="holo-pace-title" title={`Pace · ${pace.name}`}><span className="sr-only">Pace · {pace.name}</span><span className="holo-pace-name" aria-hidden="true">{pace.name}</span><span className="holo-pace-word" aria-hidden="true">Pace ·</span></span>{moreLink}</p>
       <PaceLine chart={pace.chart} label={`${words.headline}. ${words.detail}`}/>
       <p className="holo-estimate">{pace.chart.band ? <span className="holo-tag holo-tag-estimate" title="A projection from your recorded pace, not a promise">Estimate</span> : null}<span className="holo-estimate-words">{words.headline}{pace.chart.band ? <span className="holo-estimate-note"> · projection, not a promise</span> : null}</span></p>
     </div> : moreLink && <p className="holo-more">{moreLink}</p>}

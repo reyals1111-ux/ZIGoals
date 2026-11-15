@@ -6,7 +6,7 @@ import {balanceWords, sleepBalance} from '../../../lib/sleep/engine';
 import {durationWords} from '../../../lib/nova/widgets/words';
 import {polar, tickPath} from '../../../lib/nova/holo/geometry';
 import {nextItems} from '../../../lib/nova/holo/agenda';
-import {noteRowWhen, recentNotes, tasksHud} from '../../../lib/nova/holo/lists';
+import {noteRowWhen, notesPanel, tasksHud} from '../../../lib/nova/holo/lists';
 import {moreWords} from '../../../lib/nova/cards/whole-rows';
 import {NOTES} from '../../../lib/notes/schema';
 import {TASKS} from '../../../lib/tasks/schema';
@@ -139,12 +139,13 @@ export function HoloNotes({size}: {size: WidgetSize}) {
   const record = useDeviceRecord(NOTES), today = useLocalToday();
   if (!record.loaded) return <HoloReading/>;
   if (record.unreadable) return <HoloUnread what="Your notes"/>;
-  const r = recentNotes(record.data, size === 'L' ? 8 : size === 'M' ? 4 : 2);
+  // Round 2: the rows are the inbox itself while notes wait there, so "+N more" counts what the figure counts (lib/nova/holo/lists.ts notesPanel).
+  const r = notesPanel(record.data, size === 'L' ? 8 : size === 'M' ? 4 : 2);
   if (!r.total) return <NovaEmpty pillar="orbit" ghost="rows">Your notes start here. A quick capture from anywhere lands in your inbox.</NovaEmpty>;
   return <div className="holo-notes" data-size={size}>
     <p className="holo-label holo-notes-head"><HoloFigure text={String(r.inbox)} className="holo-num-big"/> <span>in your inbox</span></p>
-    <WholeRows as="ol" wrapClassName="holo-notes-rows" className="holo-captures" aria-label="Recent captures" extra={r.total - r.recent.length} min={1} more={(hidden, shown) => moreWords(hidden, {shown, ...(size === 'S' ? {} : {where: 'the Notes page'})})}>
-      {r.recent.map(n => <li key={n.id}><Link href="/app/notes" prefetch={false} title={n.label}>{n.label}</Link><small>{noteRowWhen(n.at, today)}</small></li>)}
+    <WholeRows as="ol" wrapClassName="holo-notes-rows" className="holo-captures" aria-label={r.of === 'inbox' ? 'Waiting in your inbox' : 'Recent captures'} extra={r.more} min={1} more={(hidden, shown) => moreWords(hidden, {shown, ...(size === 'S' ? {} : {where: 'the Notes page'})})}>
+      {r.rows.map(n => <li key={n.id}><Link href="/app/notes" prefetch={false} title={n.label}>{n.label}</Link><small>{noteRowWhen(n.at, today)}</small></li>)}
     </WholeRows>
   </div>;
 }

@@ -27,7 +27,7 @@ import './whole-rows.css';
  * take the focus. Nothing here animates. A widget's table for assistive technology keeps every row.
  *
  * `WholeRowsGroup` joins the lists of one widget: they are fitted together, the first list first (the last gives its rows
- * up first).
+ * up first, and gets back the ones that turn out to fit: lists side by side do not share their height).
  */
 type Member = {
   wrap: HTMLElement; list: HTMLElement; more: HTMLElement; min: number; keep: 'first' | 'last'; extra: number; collapse: boolean;
@@ -65,8 +65,8 @@ function createFitter(): Fitter {
         for (const m of lists) for (let el: HTMLElement | null = m.wrap; el && el !== body; el = el.parentElement) if (el.hasAttribute('data-wr-limit')) boxes.add(el);
         apply(all);
         if ([...boxes].some(b => over(b) > 0)) {
-          // Rows leave from the end, so a row that stays is never hidden and shown again on the way (it would start its
-          // one arrival animation again while its widget is being made).
+          // Rows leave from the end, so a row of a single list that stays is never hidden and shown again on the way (it
+          // would start its one arrival animation again while its widget is being made).
           const base = new Map<HTMLElement, number>([...boxes].map(b => [b, 0])), fits = () => [...boxes].every(b => over(b) <= base.get(b)!);
           const specs = lists.map((m, i) => ({rows: all[i]!, min: m.min})), search = () => fitWholeRows(specs, counts => { apply(counts); return fits(); });
           shown = search();

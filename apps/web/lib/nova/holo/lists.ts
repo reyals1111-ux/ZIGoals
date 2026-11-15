@@ -38,3 +38,15 @@ export function recentNotes(record: Notes, count = 3): {recent: NoteLine[]; inbo
   const recent = [...record.notes].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, count).map(n => ({id: n.id, name: noteName(n), label: noteRowName(n), at: n.createdAt, kind: n.kind}));
   return {recent, inbox: inboxOf(record).length, total: record.notes.length};
 }
+/**
+ * Session AM-2 round 2: what the "Notes inbox" panel lists. Its figure counts the inbox, so while notes wait there the
+ * rows ARE the inbox (newest first) and `more` is the inbox's notes beyond these rows: the figure, the rows and "+N more"
+ * count one thing (the line said "+7 more" under "2 in your inbox": it counted every other note on the device). With an
+ * empty inbox the rows are the newest notes of any kind, and `more` counts the notes beyond them.
+ */
+export function notesPanel(record: Notes, count = 3): {rows: NoteLine[]; of: 'inbox' | 'notes'; inbox: number; total: number; more: number} {
+  const inbox = inboxOf(record), line = (n: Note): NoteLine => ({id: n.id, name: noteName(n), label: noteRowName(n), at: n.createdAt, kind: n.kind});
+  if (inbox.length) { const rows = inbox.slice(0, Math.max(0, count)).map(line); return {rows, of: 'inbox', inbox: inbox.length, total: record.notes.length, more: inbox.length - rows.length}; }
+  const rows = recentNotes(record, count).recent;
+  return {rows, of: 'notes', inbox: 0, total: record.notes.length, more: record.notes.length - rows.length};
+}

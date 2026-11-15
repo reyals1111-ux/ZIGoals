@@ -6,18 +6,26 @@
  * The lists are in priority order (the first matters most). Every row is shown when that fits. Otherwise rows leave from
  * the end of the LAST list first, down to its `min`, then from the list before it, and so on, until the counts fit. If
  * nothing fits even at every list's minimum, the minimums are returned (the caller's panel then scrolls, never cuts).
- * `fits` is asked at most once for each step (never more than the number of rows plus one).
+ * Then rows are given back, the first list first, while the counts still fit: lists that stand side by side do not
+ * share their height, so a list that gave its rows up for nothing gets them back (two columns: today | next).
+ * `fits` is asked at most twice for each row, plus once.
  */
 export type RowsList = {/** The rows this list holds. */ rows: number; /** Never fewer than this many (default 0). */ min?: number};
 export function fitWholeRows(lists: readonly RowsList[], fits: (shown: readonly number[]) => boolean): number[] {
-  const shown = lists.map(l => Math.max(0, Math.floor(l.rows)));
+  const all = lists.map(l => Math.max(0, Math.floor(l.rows))), shown = [...all];
   if (!shown.some(n => n > 0) || fits(shown)) return shown;
-  for (let j = lists.length - 1; j >= 0; j--) {
+  let fitted = false;
+  for (let j = lists.length - 1; j >= 0 && !fitted; j--) {
     const min = Math.min(shown[j]!, Math.max(0, Math.floor(lists[j]!.min ?? 0)));
-    while (shown[j]! > min) {
+    while (shown[j]! > min && !fitted) {
       shown[j] = shown[j]! - 1;
-      if (fits(shown)) return shown;
+      fitted = fits(shown);
     }
+  }
+  if (!fitted) return shown;
+  for (let j = 0; j < lists.length; j++) while (shown[j]! < all[j]!) {
+    shown[j] = shown[j]! + 1;
+    if (!fits(shown)) { shown[j] = shown[j]! - 1; break; }
   }
   return shown;
 }

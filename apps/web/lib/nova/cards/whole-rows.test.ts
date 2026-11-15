@@ -43,10 +43,18 @@ describe('whole rows only: how many rows fit (Session AM-2)', () => {
     // The second list may leave whole (minimum 0) before the first loses a row.
     expect(fitWholeRows([{rows: 3, min: 1}, {rows: 2}], panel([3, 2], 3 * 44 + 26).fits)).toEqual([3, 0]);
   });
-  it('asks at most once per step, and nothing for empty lists', () => {
+  it('two lists side by side (two columns): a list that gave its rows up for nothing gets them back', () => {
+    // Each column has its own height (130 px): the first list keeps two rows and its line; the second, whole, fits beside it.
+    const columns = (totals: readonly number[], room: number) => (shown: readonly number[]) => shown.every((n, i) => n * 44 + (n < totals[i]! ? 26 : 0) <= room);
+    expect(fitWholeRows([{rows: 4, min: 1}, {rows: 2}], columns([4, 2], 130))).toEqual([2, 2]);
+    expect(fitWholeRows([{rows: 4, min: 1}, {rows: 5}], columns([4, 5], 130))).toEqual([2, 2]);
+    // Stacked in one column (130 px for both lists and their two lines) nothing comes back: one row of the first, the second out.
+    expect(fitWholeRows([{rows: 4, min: 1}, {rows: 2}], panel([4, 2], 130).fits)).toEqual([1, 0]);
+  });
+  it('asks at most twice per row and once more, and nothing for empty lists', () => {
     const p = panel([6, 3], 0);
     fitWholeRows([{rows: 6}, {rows: 3}], p.fits);
-    expect(p.asked()).toBeLessThanOrEqual(10);
+    expect(p.asked()).toBeLessThanOrEqual(19);
     const none = panel([0], 0);
     expect(fitWholeRows([{rows: 0}], none.fits)).toEqual([0]);
     expect(none.asked()).toBe(0);
