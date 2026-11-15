@@ -12986,6 +12986,18 @@
         --nc-d: var(--nc-d0, 64);
         --nc-u: calc(100px / var(--nc-d))
     }
+    .nc-gauge .nc-gauge-track:not(#\-) {
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 15%, #060a20)
+    }
+    .nc-gauge .nc-arcmark[data-unknown] .nc-gauge-track:not(#\-) {
+        stroke: #2a3344
+    }
+    .nc-gauge .nc-gauge-glow:not(#\-) {
+        filter: blur(4px)
+    }
+    .nc-ring-unit:not(#\-) {
+        color: #090f1c
+    }
     .nc-bezel:not(#\-) {
         fill: none;
         stroke: color-mix(in oklab, var(--neon-2, #c0adff) 34%, transparent)
@@ -13171,8 +13183,9 @@
         color: var(--neon-ink, #0d0f15)
     }
     .nc-bar-track:not(#\-) {
-        background-image: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 20%, transparent) 0 3px, transparent 3px 5px);
-        background-color: transparent
+        background-image: none;
+        background-color: #f3f5fa;
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #ffd27a) 38%, transparent), inset 0 2px 4px #3d3d3d52
     }
     .nc-bar-track i:not(#\-) {
         background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 42%, #0a1030), var(--neon, #ffd27a) 70%, var(--neon-2, #ffe6b3));
@@ -13194,10 +13207,16 @@
     }
     .nc-bar[data-unknown] .nc-bar-track:not(#\-) {
         background-image: repeating-linear-gradient(90deg, #24242438 0 6px, transparent 6px 12px);
-        background-color: transparent
+        background-color: transparent;
+        box-shadow: none
     }
     .nc-bar-note:not(#\-) {
         color: #0a111e
+    }
+    .nc-stack:not(#\-) {
+        background-image: none;
+        background-color: #f3f5fa;
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #ffd27a) 38%, transparent)
     }
     .nc-stack i:not(#\-) {
         --nc-c: var(--neon, #ffd27a);
@@ -13299,13 +13318,6 @@
 }
 /*  components/nova/cards/connect-cards.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
-    .nx-dial-figure b:not(#\-) {
-        color: var(--neon-ink, #0d0f14);
-        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
-    }
-    .nx-dial-figure small:not(#\-) {
-        color: #090f1c
-    }
     .nx-note:not(#\-) {
         color: #090f1c
     }
@@ -13318,6 +13330,28 @@
     .nx-cap:not(#\-)::before {
         background: var(--neon, #9273ff);
         box-shadow: 0 0 6px var(--neon, #9273ff)
+    }
+    .nx-title:not(#\-) {
+        color: var(--neon-ink, #0d0f15);
+        text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 36%, transparent), 0 0 20px color-mix(in oklab, var(--neon, #9273ff) 52%, transparent)
+    }
+    .nx-empty-line:not(#\-) {
+        color: #090f1c
+    }
+    .nx-dial:not(#\-) {
+        --nc-d: var(--nx-d);
+        --nc-w: calc(var(--nx-d) * .13) !important
+    }
+    .nx-ring:not(#\-) {
+        --nc-d: var(--nx-art);
+        --nc-w: calc(var(--nx-art) * .13) !important
+    }
+    .nx-dial-figure b:not(#\-) {
+        color: var(--neon-ink, #0d0f14);
+        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .nx-dial-figure small:not(#\-) {
+        color: #090f1c
     }
     .nx-row:not(#\-) {
         border-top-color: color-mix(in oklab, var(--neon, #9273ff) 16%, transparent)
@@ -13348,14 +13382,29 @@
     .nx-row-sub:not(#\-) {
         color: #0a111e
     }
+    .nx-row-value[data-chip]:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 60%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 12%, #f2f4fa);
+        color: #0d0f15
+    }
+    .nx-row-value[data-chip=done]:not(#\-) {
+        border-color: #333333;
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 26%, #f2f4fa);
+        box-shadow: 0 0 10px -2px var(--neon, #9273ff)
+    }
+    .nx-row-value[data-chip=off]:not(#\-) {
+        border-color: #33333385;
+        background-image: none;
+        background-color: transparent;
+        color: #090f1c
+    }
     .nx-row-link:not(#\-) {
         color: inherit
     }
     .nx-row-go:not(#\-) {
         color: color-mix(in srgb, var(--neon-2, #634f99) 42%, #000)
-    }
-    .nx-readout:not(#\-) {
-        border-left-color: color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
     }
     .nx-readout-label:not(#\-) {
         color: #090f1c
@@ -13367,8 +13416,24 @@
     .nx-readout-sub:not(#\-) {
         color: #090f1c
     }
-    .nx-empty-line:not(#\-) {
-        color: #090f1c
+    .nx-duo:not(#\-) {
+        --nx-art: calc(var(--nx-d) * .9)
+    }
+    .nx-dots:not(#\-) {
+        --nx-box: calc(var(--nx-art) * 1px);
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 46%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 7%, #f3f5fa);
+        box-shadow: inset 0 0 18px -6px var(--neon, #9273ff)
+    }
+    .nx-dots i:not(#\-) {
+        border-color: #33333399
+    }
+    .nx-dots i[data-on]:not(#\-) {
+        border-color: var(--neon-2, #c0adff);
+        background-image: radial-gradient(circle at 34% 30%, #242424 0, var(--neon-2, #c0adff) 26%, var(--neon, #9273ff) 68%, color-mix(in oklab, var(--neon, #9273ff) 60%, #0a1030) 100%);
+        background-color: transparent;
+        box-shadow: 0 0 10px 1px color-mix(in oklab, var(--neon, #9273ff) 75%, transparent)
     }
     .nx-chips li:not(#\-) {
         border-color: color-mix(in oklab, var(--neon, #9273ff) 46%, transparent);
@@ -13407,21 +13472,84 @@
     .nx-month .nc-lattice-label:not(#\-) {
         color: #0a111e
     }
-    .nx-quad li:not(#\-) {
-        border-left-color: color-mix(in oklab, var(--neon, #9273ff) 46%, transparent)
+    .nx-matrix li:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) calc(34% + var(--nx-lit, 0) * 50%), transparent);
+        background-image: none;
+        background-color: #f2f4fa
     }
-    .nx-quad li[data-lead]:not(#\-) {
-        border-left-color: var(--neon, #9273ff)
+    .nx-matrix li:not(#\-)::before {
+        background-image: linear-gradient(135deg, var(--neon, #9273ff), color-mix(in oklab, var(--neon, #9273ff) 30%, #f2f4fa) 70%);
+        background-color: transparent
     }
-    .nx-quad b:not(#\-) {
-        color: var(--neon-ink, #0d0f15);
-        text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 18px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
+    .nx-matrix li:not(#\-)::after {
+        background: var(--neon-2, #c0adff);
+        box-shadow: 0 0 10px 1px var(--neon, #9273ff)
     }
-    .nx-quad span:not(#\-) {
+    .nx-matrix li[data-none]:not(#\-) {
+        border-color: #33333360
+    }
+    .nx-matrix b:not(#\-) {
+        color: #0f0f0f;
+        text-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 0 20px var(--neon, #9273ff)
+    }
+    .nx-matrix li[data-none] b:not(#\-) {
+        color: #090f1c;
+        text-shadow: none
+    }
+    .nx-matrix-title:not(#\-) {
+        color: #0b0f18
+    }
+    .nx-matrix-task:not(#\-) {
+        color: #0d0f15
+    }
+    .nx-matrix li[data-none] .nx-matrix-task:not(#\-) {
+        color: #0a111e
+    }
+    .nx-hours-plot:not(#\-) {
+        border-bottom-color: color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
+    }
+    .nx-hour:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 7%, transparent)
+    }
+    .nx-hour[data-empty]:not(#\-) {
+        background-image: repeating-linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 16%, transparent) 0 1px, transparent 1px 7px);
+        background-color: transparent
+    }
+    .nx-hour[data-now]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 20%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)
+    }
+    .nx-hour i:not(#\-) {
+        border-color: var(--neon-2, #c0adff);
+        background-image: linear-gradient(180deg, #242424 0, var(--neon-2, #c0adff) 18%, var(--neon, #9273ff) 62%, color-mix(in oklab, var(--neon, #9273ff) 55%, #0a1030) 100%);
+        background-color: transparent;
+        box-shadow: 0 0 10px 0 color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .nx-hour i[data-more]:not(#\-) {
+        background-image: repeating-linear-gradient(135deg, var(--neon-2, #c0adff) 0 3px, var(--neon, #9273ff) 3px 6px);
+        background-color: transparent
+    }
+    .nx-hours-axis span:not(#\-) {
+        color: #0a111e
+    }
+    .nx-ringcard:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 6%, #f2f4fa)
+    }
+    .nx-ringcard-words b:not(#\-) {
+        color: #0d0f15
+    }
+    .nx-ringcard-kind:not(#\-) {
+        color: var(--neon-ink, #0d0f15)
+    }
+    .nx-ringcard-sub:not(#\-) {
         color: #090f1c
     }
     @media (forced-colors: active) {
-        .nx-row-node:not(#\-), .nx-key i[data-cell=done]:not(#\-) {
+        .nx-row-node:not(#\-), .nx-key i[data-cell=done]:not(#\-), .nx-dots i[data-on]:not(#\-), .nx-hour i:not(#\-) {
             background-image: none;
             background-color: transparent;
             box-shadow: none
@@ -14229,6 +14357,355 @@
         }
     }
 }
+/*  components/nova/chat/ncx-console.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .nova-chat .ai-reply-icon:not(#\-), .nova-chat .text-link:not(#\-), .nova-chat .ai-card:not(#\-), .nova-chat .ai-confirm:not(#\-), .nova-chat .ai-failure:not(#\-), .nova-chat .ai-unkept:not(#\-), .nova-chat .ai-stat:not(#\-), .nova-chat .nova-pending:not(#\-), .nova-chat .nova-voice:not(#\-), .nova-chat .nova-chat-steps:not(#\-), .nova-chat .ncx-well:not(#\-), .nova-chat .nova-speech-note:not(#\-), .ncx-dock > details > summary:not(#\-) {
+        --kl: calc(var(--kc) * 1.4142);
+        --k-rim: color-mix(in srgb, var(--nova-hi, #cbbfff) 40%, transparent);
+        --k-rim-2: var(--k-rim);
+        --k-plate: #0c1335f2;
+        --k-plate-2: #070b20f2
+    }
+    .nova-chat .ai-reply-icon:not(#\-)::before, .nova-chat .text-link:not(#\-)::before, .nova-chat .ai-card:not(#\-)::before, .nova-chat .ai-confirm:not(#\-)::before, .nova-chat .ai-failure:not(#\-)::before, .nova-chat .ai-unkept:not(#\-)::before, .nova-chat .ai-stat:not(#\-)::before, .nova-chat .nova-pending:not(#\-)::before, .nova-chat .nova-voice:not(#\-)::before, .nova-chat .nova-chat-steps:not(#\-)::before, .nova-chat .ncx-well:not(#\-)::before, .nova-chat .nova-speech-note:not(#\-)::before, .ncx-dock > details > summary:not(#\-)::before {
+        box-shadow: var(--k-glow);
+        background: linear-gradient(90deg, var(--k-rim), var(--k-rim-2)) var(--kl) 0 / calc(100% - var(--kl)) var(--kw) no-repeat,
+    linear-gradient(90deg, var(--k-rim-2), var(--k-rim)) 0 100% / calc(100% - var(--kl)) var(--kw) no-repeat,
+    linear-gradient(var(--k-rim), var(--k-rim-2)) 0 var(--kl) / var(--kw) calc(100% - var(--kl)) no-repeat,
+    linear-gradient(var(--k-rim-2), var(--k-rim)) 100% 0 / var(--kw) calc(100% - var(--kl)) no-repeat,
+    linear-gradient(135deg, transparent calc(var(--kc) - .5px), var(--k-rim) var(--kc), var(--k-rim) calc(var(--kc) + var(--kw) - .45px), var(--k-plate) calc(var(--kc) + var(--kw) + .05px), var(--k-plate-2) calc(100% - var(--kc) - var(--kw) - .05px), var(--k-rim) calc(100% - var(--kc) - var(--kw) + .45px), var(--k-rim) calc(100% - var(--kc)), transparent calc(100% - var(--kc) + .5px))
+    }
+    .ncx-speaker:not(#\-) {
+        --sp: var(--nova-hi, #cbbfff);
+        --sp-2: var(--nova-a, #9273ff)
+    }
+    .ncx-speaker[data-state=listening]:not(#\-) {
+        --sp: #63e7ff;
+        --sp-2: #9ee8f8
+    }
+    .ncx-speaker[data-state=thinking]:not(#\-) {
+        --sp: #f39bff;
+        --sp-2: #f06dff
+    }
+    .ncx-speaker[data-state=speaking]:not(#\-) {
+        --sp: #86f0d6;
+        --sp-2: #63e7ff
+    }
+    .ncx-speaker:not(#\-)::before {
+        background-image: radial-gradient(closest-side, color-mix(in srgb, var(--sp) 20%, #f2f4fb) 0, #f3f5fa 78%);
+        background-color: transparent;
+        box-shadow: 0 0 16px 0 color-mix(in srgb, var(--sp) 58%, transparent), 0 0 38px 2px color-mix(in srgb, var(--sp-2) 30%, transparent), inset 0 0 12px color-mix(in srgb, var(--sp) 34%, transparent)
+    }
+    .ncx-speaker-ticks line:not(#\-) {
+        stroke: color-mix(in srgb, var(--sp) 62%, #ffffff40)
+    }
+    .ncx-speaker-track:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--sp) 22%, transparent)
+    }
+    .ncx-speaker-arc:not(#\-) {
+        fill: none
+    }
+    .ncx-speaker-arc-0:not(#\-) {
+        stop-color: var(--sp)
+    }
+    .ncx-speaker-arc-1:not(#\-) {
+        stop-color: var(--sp-2)
+    }
+    .ncx-speaker-lead:not(#\-) {
+        fill: #333333;
+        stroke: var(--sp)
+    }
+    .ncx-state:not(#\-) {
+        color: color-mix(in srgb, var(--nova-hi, #60548c) 42%, #000)
+    }
+    .ncx-state[data-state=listening]:not(#\-) {
+        color: var(--accent-cyan-ink)
+    }
+    .ncx-state[data-state=thinking]:not(#\-) {
+        color: var(--accent-magenta-ink)
+    }
+    .ncx-state[data-state=speaking]:not(#\-) {
+        color: var(--accent-teal-ink)
+    }
+    .ncx-rx-words:not(#\-) {
+        color: #0d0f14
+    }
+    .ncx-fig:not(#\-) {
+        color: color-mix(in srgb, color-mix(in srgb, var(--turn-2, #0b6674) 42%, #000) 58%, #0f0f0f);
+        text-shadow: 0 0 14px color-mix(in srgb, var(--turn-2, #63e7ff) 85%, transparent)
+    }
+    .nova-turn-local .ncx-rx-words:not([data-gauge]) > div > p:first-child > .ncx-fig:first-of-type:not(#\-) {
+        color: #0f0f0f;
+        text-shadow: 0 0 10px var(--turn-2, #63e7ff), 0 0 24px color-mix(in srgb, var(--turn-2, #63e7ff) 70%, transparent)
+    }
+    .ncx-ring:not(#\-)::before {
+        box-shadow: 0 0 18px 0 color-mix(in srgb, var(--turn-2, #63e7ff) 42%, transparent), inset 0 0 14px color-mix(in srgb, var(--turn-2, #63e7ff) 26%, transparent)
+    }
+    .ncx-ring-ticks line:not(#\-) {
+        stroke: color-mix(in srgb, var(--turn-2, #63e7ff) 60%, #ffffff40)
+    }
+    .ncx-ring-track:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--turn-2, #63e7ff) 18%, transparent)
+    }
+    .ncx-ring-arc:not(#\-) {
+        fill: none
+    }
+    .ncx-ring-0:not(#\-) {
+        stop-color: var(--turn, #9273ff)
+    }
+    .ncx-ring-1:not(#\-) {
+        stop-color: var(--turn-2, #63e7ff)
+    }
+    .ncx-ring-lead:not(#\-) {
+        fill: #333333;
+        stroke: var(--turn-2, #63e7ff)
+    }
+    .ncx-ring-figure:not(#\-) {
+        color: #0f0f0f;
+        text-shadow: 0 0 10px var(--turn-2, #63e7ff)
+    }
+    .nova-chat .ai-turn-kind[data-kind=change]:not(#\-)::before {
+        color: #71581b
+    }
+    .ncx-rx-strip:not(#\-) {
+        border-top-color: color-mix(in srgb, var(--turn-2, #63e7ff) 34%, transparent)
+    }
+    .nova-chat .ai-turn-source:not(#\-) {
+        border-color: currentcolor;
+        color: color-mix(in srgb, var(--accent-teal-ink) 62%, #0f0f0f)
+    }
+    .nova-chat .ai-turn-source:not(#\-)::before {
+        background-image: none;
+        background-color: var(--accent-teal, #86f0d6);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-teal, #86f0d6) 22%, transparent), 0 0 8px var(--accent-teal, #86f0d6)
+    }
+    .nova-chat .ai-turn-time:not(#\-) {
+        color: color-mix(in srgb, color-mix(in srgb, var(--turn-2, #0b6674) 42%, #000) 40%, #0a0f1a)
+    }
+    .nova-chat .ai-turn-records:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .nova-chat .nova-first-local:not(#\-) {
+        color: var(--accent-teal-ink)
+    }
+    .nova-chat .ai-turn-stopped:not(#\-) {
+        color: #71581b
+    }
+    .nova-chat .ai-reply-icon:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: color-mix(in srgb, color-mix(in srgb, var(--turn-2, var(--nova-b, #0b6674)) 42%, #000) 26%, #0b0f19);
+        --k-rim: color-mix(in srgb, var(--turn-2, var(--nova-b, #63e7ff)) 46%, transparent);
+        --k-plate: color-mix(in srgb, var(--turn-2, var(--nova-b, #63e7ff)) 9%, #060a1c);
+        --k-plate-2: #060a1c
+    }
+    .nova-chat .ai-reply-icon:is(:hover, :focus-visible):not(#\-) {
+        color: #0f0f0f;
+        --k-rim: var(--turn-2, var(--nova-b, #63e7ff));
+        --k-plate: color-mix(in srgb, var(--turn-2, var(--nova-b, #63e7ff)) 30%, #060a1c);
+        --k-glow: 0 0 12px -3px var(--turn-2, var(--nova-b, #63e7ff))
+    }
+    .nova-chat .ai-reply-icon:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #63e7ff)
+    }
+    .nova-chat .ai-reply-icon:is([aria-pressed=true], [aria-expanded=true]):not(#\-) {
+        color: #0f0f0f;
+        --k-rim: var(--nova-b, #63e7ff);
+        --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 34%, #060a1c);
+        --k-glow: 0 0 12px -3px var(--nova-b, #63e7ff)
+    }
+    .nova-chat .ai-reply-icon[data-tip]:not(#\-)::after {
+        background-image: none;
+        background-color: #eff2fb;
+        border-color: color-mix(in srgb, var(--nova-b, #63e7ff) 40%, #2a325a);
+        color: var(--text, #0d0f18)
+    }
+    .nova-chat .ai-reply-more-list:not(#\-) {
+        border-color: color-mix(in srgb, var(--nova-b, #63e7ff) 40%, #2a325a);
+        border-top-color: var(--nova-b, #63e7ff);
+        background-image: none;
+        background-color: #f0f3fc;
+        box-shadow: 0 22px 50px -18px #3d3d3d5c
+    }
+    .nova-chat .ai-reply-more-info:not(#\-) {
+        color: var(--muted, #202938)
+    }
+    .nova-chat .ai-more-item:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text, #0d0f18)
+    }
+    .nova-chat .ai-more-item:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--nova-b, #63e7ff) 16%, transparent)
+    }
+    .nova-chat .ai-more-item:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #6fd3ff)
+    }
+    .nova-chat .ai-stat:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        --k-rim: color-mix(in srgb, var(--turn-2, #63e7ff) 60%, transparent);
+        --k-rim-2: color-mix(in srgb, var(--turn, #9273ff) 30%, transparent);
+        --k-plate: color-mix(in srgb, var(--turn-2, #63e7ff) 10%, #0a1030);
+        --k-plate-2: #060a1c
+    }
+    .nova-chat .ai-stat-value:not(#\-) {
+        color: #0f0f0f;
+        text-shadow: 0 0 10px var(--turn-2, #63e7ff), 0 0 26px color-mix(in srgb, var(--turn-2, #63e7ff) 60%, transparent)
+    }
+    .nova-chat .ai-stat-label:not(#\-) {
+        color: color-mix(in srgb, color-mix(in srgb, var(--turn-2, #0b6674) 42%, #000) 30%, #0b0f19)
+    }
+    .nova-chat .ai-stat-source:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .nova-chat .ai-viz svg:not(#\-) {
+        filter: drop-shadow(0 0 5px color-mix(in srgb, var(--turn-2, #63e7ff) 70%, transparent))
+    }
+    .nova-chat .ai-viz-bar:not(#\-) {
+        fill: color-mix(in srgb, var(--turn-2, #63e7ff) 82%, #fff)
+    }
+    .nova-chat .ai-card:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none;
+        --k-rim: color-mix(in srgb, var(--nova-b, #63e7ff) 80%, #fff);
+        --k-rim-2: color-mix(in srgb, var(--nova-c, #f06dff) 60%, transparent);
+        --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 9%, #0a1232);
+        --k-plate-2: #050818
+    }
+    .nova-chat .ai-card-refused:not(#\-):not(#\-) {
+        --k-rim: color-mix(in srgb, var(--pillar-wealth, #ffd27a) 60%, transparent)
+    }
+    .nova-chat :is(.ai-confirm, .ai-failure):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        --k-rim: color-mix(in srgb, var(--nova-c, #f06dff) 85%, #fff);
+        --k-rim-2: color-mix(in srgb, var(--pillar-wealth, #ffd27a) 60%, transparent);
+        --k-plate: color-mix(in srgb, var(--nova-c, #f06dff) 10%, #0a1030);
+        --k-plate-2: #060a1c
+    }
+    .nova-chat .ai-unkept:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        --k-rim: color-mix(in srgb, var(--nova-a, #9273ff) 85%, #fff);
+        --k-rim-2: color-mix(in srgb, var(--nova-a, #9273ff) 30%, transparent);
+        --k-plate: color-mix(in srgb, var(--nova-a, #9273ff) 13%, #0a1030);
+        --k-plate-2: #060a1c
+    }
+    .nova-chat .nova-speech-note:not(#\-) {
+        border-color: currentcolor;
+        --k-rim: color-mix(in srgb, var(--nova-b, #63e7ff) 60%, transparent);
+        --k-plate: #0a1030;
+        --k-plate-2: #060a1c
+    }
+    .nova-chat .ai-note:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .nova-chat .text-link:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: color-mix(in srgb, var(--nova-hi, #60548c) 42%, #000);
+        --k-rim: color-mix(in srgb, var(--nova-hi, #cbbfff) 42%, transparent);
+        --k-rim-2: color-mix(in srgb, var(--nova-hi, #cbbfff) 18%, transparent);
+        --k-plate: #0b1130;
+        --k-plate-2: #070b20
+    }
+    .nova-chat .text-link:is(:hover, :focus-visible):not(#\-):not(#\-) {
+        color: #0f0f0f;
+        --k-rim: var(--nova-b, #63e7ff);
+        --k-rim-2: var(--nova-a, #9273ff);
+        --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 20%, #0b1130);
+        --k-glow: 0 0 12px -3px var(--nova-b, #63e7ff)
+    }
+    .nova-chat .text-link[aria-expanded=true]:not(#\-):not(#\-), .nova-chat .text-link[aria-pressed=true]:not(#\-):not(#\-) {
+        color: #0f0f0f;
+        --k-rim: var(--nova-b, #63e7ff);
+        --k-plate: color-mix(in srgb, var(--nova-a, #9273ff) 30%, #0b1130)
+    }
+    .ncx-dock:not(#\-) {
+        border-color: currentcolor
+    }
+    .nova-chat-log[data-cut] + .ncx-dock:not(#\-)::before {
+        border-color: var(--nova-b, #63e7ff)
+    }
+    .ncx-well:not(#\-) {
+        color: color-mix(in srgb, color-mix(in srgb, var(--nova-b, #0b6674) 42%, #000) 34%, #0f0f0f);
+        --k-rim: color-mix(in srgb, var(--nova-b, #63e7ff) 62%, transparent);
+        --k-rim-2: color-mix(in srgb, var(--nova-a, #9273ff) 50%, transparent);
+        --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 16%, #0a1232);
+        --k-plate-2: #060a1e
+    }
+    .ncx-well > svg:not(#\-) {
+        filter: drop-shadow(0 0 5px var(--nova-b, #63e7ff))
+    }
+    .nova-composer:focus-within .ncx-well:not(#\-) {
+        color: #0f0f0f;
+        --k-rim: var(--nova-b, #63e7ff);
+        --k-glow: 0 0 12px -2px var(--nova-b, #63e7ff)
+    }
+    .ncx-dock > details > summary:not(#\-) {
+        color: color-mix(in srgb, var(--nova-hi, #60548c) 42%, #000);
+        --k-rim: color-mix(in srgb, var(--nova-hi, #cbbfff) 42%, transparent);
+        --k-rim-2: color-mix(in srgb, var(--nova-hi, #cbbfff) 18%, transparent);
+        --k-plate: #0b1130;
+        --k-plate-2: #070b20
+    }
+    .ncx-dock > details > summary:is(:hover, :focus-visible):not(#\-), .ncx-dock > details[open] > summary:not(#\-) {
+        color: #0f0f0f;
+        --k-rim: var(--nova-b, #63e7ff);
+        --k-rim-2: var(--nova-a, #9273ff);
+        --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 20%, #0b1130)
+    }
+    .ncx-dock > details > summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #63e7ff)
+    }
+    .ncx-dock > details > summary:not(#\-)::after, .ncx-dock .nova-zigi-toggle:not(#\-)::after {
+        border-color: currentColor
+    }
+    .nova-chat-sheet .ncx-fig:not(#\-) {
+        text-shadow: 0 0 8px color-mix(in srgb, var(--turn-2, #63e7ff) 60%, transparent)
+    }
+    .nova-chat-sheet .ncx-ring:not(#\-)::before {
+        box-shadow: 0 0 10px 0 color-mix(in srgb, var(--turn-2, #63e7ff) 34%, transparent)
+    }
+    .nova-chat-sheet .ncx-speaker:not(#\-)::before {
+        box-shadow: 0 0 12px 0 color-mix(in srgb, var(--sp) 50%, transparent), inset 0 0 10px color-mix(in srgb, var(--sp) 30%, transparent)
+    }
+    :scope[data-glow="soft"] .nova-chat :is(.ncx-speaker, .ncx-ring, .nova-turn-assistant):not(#\-)::before {
+        box-shadow: none
+    }
+    :scope[data-glow="soft"] .nova-chat .ncx-fig:not(#\-) {
+        text-shadow: none
+    }
+    @media (forced-colors: active) {
+        .nova-chat :is(summary, ol, article, section):not(#\-)::before, .nova-chat :is(summary, ol, article, section):not(#\-)::after {
+            background-image: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important
+        }
+    }
+    @media (forced-colors: active) {
+        .nova-chat :is(.ai-card, .ai-confirm, .ai-failure, .ai-unkept, .ai-stat, .text-link, .ai-reply-icon):not(#\-), .ncx-dock > details > summary:not(#\-) {
+            border-color: currentcolor
+        }
+    }
+    @media (forced-colors: active) {
+        .ncx-fig:not(#\-) {
+            color: inherit;
+            text-shadow: none
+        }
+    }
+}
 /*  components/nova/chat/nova-chat.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .nova-chat:not(#\-) {
@@ -14240,8 +14717,11 @@
         border-color: currentcolor
     }
     .nova-chat:not(#\-)::before {
-        background-image: radial-gradient(closest-side,color-mix(in srgb,var(--nova-c,#f06dff) 14%,transparent),transparent 72%);
+        background-image: radial-gradient(circle at var(--at),transparent 0 57px,color-mix(in srgb,var(--nova-b,#63e7ff) 30%,transparent) 58px,transparent 59.5px 99px,color-mix(in srgb,var(--nova-b,#63e7ff) 20%,transparent) 100px,transparent 101.5px 153px,color-mix(in srgb,var(--nova-a,#9273ff) 16%,transparent) 154px,transparent 155.5px 221px,color-mix(in srgb,var(--nova-a,#9273ff) 11%,transparent) 222px,transparent 223.5px 305px,color-mix(in srgb,var(--nova-c,#f06dff) 8%,transparent) 306px,transparent 307.5px), radial-gradient(340px 260px at var(--at),color-mix(in srgb,var(--nova-b,#63e7ff) 15%,transparent),transparent 72%);
         background-color: transparent
+    }
+    .nova-frame .nova-chat:not(#\-) {
+        --line: #c0cbe0
     }
     .nova-chat-head:not(#\-) {
         border-color: currentcolor
@@ -14250,10 +14730,11 @@
         color: var(--muted,#1e2635)
     }
     .nova-chat-title:not(#\-) {
+        color: #0f0f0f;
         text-shadow: 0 0 16px color-mix(in srgb,var(--nova-b,#63e7ff) 70%,transparent)
     }
     .nova-chat-status:not(#\-) {
-        color: var(--muted,#1e2635)
+        color: color-mix(in srgb,color-mix(in srgb, var(--nova-b,#0b6674) 42%, #000) 22%,#0a0f1a)
     }
     .nova-dot:not(#\-) {
         background-image: none;
@@ -14264,15 +14745,54 @@
         background-color: var(--cyan,#63e7ff);
         box-shadow: 0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 22%,transparent),0 0 10px color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)
     }
+    .nova-chat-tools:not(#\-)::after {
+        background-image: repeating-linear-gradient(90deg,color-mix(in srgb,var(--nova-b,#63e7ff) 78%,#fff) 0 1px,transparent 1px 6px), linear-gradient(color-mix(in srgb,var(--nova-b,#63e7ff) 50%,transparent) 0 0);
+        background-color: transparent
+    }
+    .nova-chat-tool>svg:not(#\-) {
+        color: color-mix(in srgb,color-mix(in srgb, var(--nova-b,#0b6674) 42%, #000) 60%,#0f0f0f)
+    }
+    .nova-chat-tools>.nova-chat-tool:not(#\-):not(#\-):not(#\-) {
+        --k-rim: color-mix(in srgb,var(--nova-b,#63e7ff) 72%,transparent);
+        --k-rim-2: color-mix(in srgb,var(--nova-a,#9273ff) 60%,transparent);
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 13%,#0a1030);
+        --k-plate-2: color-mix(in srgb,var(--nova-a,#9273ff) 14%,#060a1c)
+    }
     .nova-close:not(#\-) {
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
         color: inherit;
-        --k-rim: color-mix(in srgb,var(--nova-c,#f06dff) 50%,transparent)
+        --k-rim: color-mix(in srgb,var(--nova-c,#f06dff) 56%,transparent);
+        --k-plate: color-mix(in srgb,var(--nova-c,#f06dff) 9%,#0a1030);
+        --k-plate-2: #060a1c
+    }
+    .nova-close:is(:hover,:focus-visible,[aria-expanded=true]):not(#\-) {
+        --k-rim: var(--nova-c,#f06dff);
+        --k-plate: color-mix(in srgb,var(--nova-c,#f06dff) 28%,#0a1030);
+        --k-glow: 0 0 12px -3px var(--nova-c,#f06dff)
     }
     .nova-close:focus-visible:not(#\-), .nova-chat-tool:focus-visible:not(#\-) {
         outline-color: var(--cyan,#63e7ff)
+    }
+    .nova-chat-more-list:not(#\-) {
+        border-color: var(--nova-edge);
+        border-top-color: var(--nova-c,#f06dff);
+        background-image: none;
+        background-color: #f1f4fb;
+        box-shadow: 0 22px 50px -18px #3d3d3d5c
+    }
+    .nova-welcome .nova-chat-eyebrow:not(#\-) {
+        color: color-mix(in srgb,color-mix(in srgb, var(--nova-b,#0b6674) 42%, #000) 34%,#0f0f0f)
+    }
+    .nova-welcome .nova-chat-eyebrow:not(#\-)::before {
+        background-image: none;
+        background-color: var(--nova-b,#63e7ff);
+        box-shadow: 0 0 0 2px color-mix(in srgb,var(--nova-b,#63e7ff) 26%,transparent),0 0 8px var(--nova-b,#63e7ff)
+    }
+    .nova-welcome .nova-chat-eyebrow:not(#\-)::after {
+        background-image: linear-gradient(90deg,color-mix(in srgb,var(--nova-b,#63e7ff) 70%,transparent),transparent);
+        background-color: transparent
     }
     .nova-welcome-title:not(#\-) {
         background-image: linear-gradient(110deg, #156f79, #0b65ba 36%, #6d49d2 68%, #a91eb8);
@@ -14287,7 +14807,7 @@
         }
     }
     .nova-welcome-sub:not(#\-) {
-        color: var(--muted,#1e2635)
+        color: var(--text-secondary,#09101a)
     }
     .nova-invite:not(#\-) {
         --k-rim: color-mix(in srgb,var(--nova-a,#9273ff) 80%,transparent);
@@ -14297,43 +14817,83 @@
     }
     .nova-turn-body:not(#\-) {
         --turn: var(--nova-a,#9273ff);
-        --k-rim: color-mix(in srgb,var(--turn) 92%,#fff);
-        --k-rim-2: color-mix(in srgb,var(--turn) 20%,transparent);
-        --k-plate: color-mix(in srgb,var(--turn) 13%,#0a1030);
-        --k-plate-2: #060a1c
-    }
-    .nova-turn-who:not(#\-) {
-        color: color-mix(in srgb,color-mix(in srgb, var(--turn,#6741c9) 42%, #000) 42%,#0f0f0f)
-    }
-    .nova-turn-who:not(#\-)::before {
-        background: var(--turn,#9273ff);
-        box-shadow: 0 0 0 2px color-mix(in srgb,var(--turn,#9273ff) 26%,transparent),0 0 8px var(--turn,#9273ff)
-    }
-    .nova-turn-who:not(#\-)::after {
-        background-image: linear-gradient(90deg,color-mix(in srgb,var(--turn,#9273ff) 70%,transparent),transparent);
-        background-color: transparent
-    }
-    .nova-turn-user .nova-turn-body:not(#\-) {
-        --turn: var(--nova-b,#63e7ff);
-        --k-rim: color-mix(in srgb,var(--turn) 46%,transparent);
-        --k-rim-2: var(--turn);
-        --k-plate: color-mix(in srgb,var(--turn) 14%,#0a1030);
-        --k-plate-2: color-mix(in srgb,var(--turn) 30%,#0a1030);
-        --k-glow: 0 0 16px -8px var(--turn)
-    }
-    .nova-turn-zigi .nova-turn-body:not(#\-) {
-        --turn: var(--accent-teal,#86f0d6)
+        --turn-2: var(--nova-b,#63e7ff);
+        --turn-3: var(--nova-c,#f06dff)
     }
     .nova-turn-body pre:not(#\-) {
         background-image: none;
         background-color: #f3f5fa;
         border-color: var(--line,#c2cbda)
     }
+    .nova-turn-who:not(#\-) {
+        color: color-mix(in srgb,color-mix(in srgb, var(--turn,#6741c9) 42%, #000) 38%,#0f0f0f)
+    }
+    .nova-turn-user .nova-turn-body:not(#\-) {
+        --turn: var(--nova-b,#63e7ff)
+    }
+    .nova-turn-user .nova-turn-body:not(#\-)::before {
+        box-shadow: none;
+        background-image: linear-gradient(#242424,var(--turn) 22%,var(--turn) 78%,color-mix(in srgb,var(--turn) 30%,transparent)), linear-gradient(270deg,color-mix(in srgb,var(--turn) 17%,transparent),transparent 92%);
+        background-color: transparent
+    }
+    .nova-turn-user .nova-turn-body:not(#\-)::after {
+        box-shadow: 0 0 14px 2px color-mix(in srgb,var(--turn) 80%,transparent)
+    }
+    .nova-turn-user .nova-turn-who:not(#\-)::before {
+        background: var(--turn);
+        box-shadow: 0 0 0 2px color-mix(in srgb,var(--turn) 26%,transparent),0 0 8px var(--turn)
+    }
+    .nova-turn-user .nova-turn-who:not(#\-)::after {
+        background-image: linear-gradient(270deg,color-mix(in srgb,var(--turn) 70%,transparent),transparent);
+        background-color: transparent
+    }
+    .nova-turn-user .nova-turn-body p:not(#\-) {
+        color: #0d0f14
+    }
+    .nova-turn-assistant:not(#\-)::before {
+        box-shadow: 0 0 16px 0 color-mix(in srgb,var(--nova-b,#63e7ff) 26%,transparent),0 0 44px 2px color-mix(in srgb,var(--nova-a,#9273ff) 22%,transparent),0 20px 34px -18px #3d3d3d66
+    }
+    .nova-turn-zigi:not(#\-)::before {
+        box-shadow: 0 0 16px 0 color-mix(in srgb,var(--accent-teal,#86f0d6) 26%,transparent),0 20px 34px -18px #3d3d3d66
+    }
+    .nova-turn-assistant .nova-turn-body:not(#\-) {
+        --rk: calc(var(--rw)*.414);
+        --r-oct: polygon(var(--rc) 0,calc(100% - var(--rn)) 0,100% var(--rn),100% calc(100% - var(--rc)),calc(100% - var(--rc)) 100%,var(--rn) 100%,0 calc(100% - var(--rn)),0 var(--rc));
+        --r-ring: polygon(evenodd,var(--rc) 0,calc(100% - var(--rn)) 0,100% var(--rn),100% calc(100% - var(--rc)),calc(100% - var(--rc)) 100%,var(--rn) 100%,0 calc(100% - var(--rn)),0 var(--rc),var(--rc) 0,calc(var(--rc) + var(--rk)) var(--rw),var(--rw) calc(var(--rc) + var(--rk)),var(--rw) calc(100% - var(--rn) - var(--rk)),calc(var(--rn) + var(--rk)) calc(100% - var(--rw)),calc(100% - var(--rc) - var(--rk)) calc(100% - var(--rw)),calc(100% - var(--rw)) calc(100% - var(--rc) - var(--rk)),calc(100% - var(--rw)) calc(var(--rn) + var(--rk)),calc(100% - var(--rn) - var(--rk)) var(--rw),calc(var(--rc) + var(--rk)) var(--rw))
+    }
+    .nova-turn-assistant .nova-turn-body:not(#\-)::before {
+        box-shadow: none;
+        background-image: linear-gradient(color-mix(in srgb,var(--turn-2) 90%,#fff) 0 0), linear-gradient(color-mix(in srgb,var(--turn-2) 90%,#fff) 0 0), linear-gradient(color-mix(in srgb,var(--turn-3) 90%,#fff) 0 0), linear-gradient(color-mix(in srgb,var(--turn-3) 90%,#fff) 0 0), repeating-linear-gradient(0deg,#24242408 0 1px,transparent 1px 3px), linear-gradient(180deg,color-mix(in srgb,var(--turn-2) 22%,#eff2fc) 0,color-mix(in srgb,var(--turn) 15%,#f1f4fb) 40px,#f2f4fb 40px,#f3f5fb 100%);
+        background-color: transparent
+    }
+    .nova-turn-assistant .nova-turn-body:not(#\-)::after {
+        background-image: linear-gradient(115deg,#242424 0,var(--turn-2) 9%,var(--turn) 52%,var(--turn-3) 91%,#242424 100%);
+        background-color: transparent
+    }
+    .nova-turn-assistant .nova-turn-who:not(#\-) {
+        color: #081114;
+        text-shadow: 0 0 12px color-mix(in srgb,var(--turn-2) 70%,transparent);
+        border-color: currentcolor
+    }
+    .nova-turn-assistant .nova-turn-who:not(#\-)::after {
+        background-image: repeating-linear-gradient(90deg,color-mix(in srgb,var(--turn-2) 80%,#fff) 0 1px,transparent 1px 6px), linear-gradient(color-mix(in srgb,var(--turn-2) 60%,transparent) 0 0);
+        background-color: transparent
+    }
+    .nova-turn-zigi .nova-turn-body:not(#\-) {
+        --turn: var(--accent-teal,#86f0d6);
+        --turn-2: var(--accent-teal,#86f0d6);
+        --turn-3: var(--nova-b,#63e7ff)
+    }
+    .nova-turn-hermes .nova-turn-body:not(#\-) {
+        --turn: var(--nova-c,#f06dff);
+        --turn-2: var(--nova-c,#f06dff);
+        --turn-3: var(--pillar-wealth,#ffd27a)
+    }
     .nova-voice:not(#\-) {
-        border-left-color: color-mix(in srgb,var(--nova-a,#9273ff) 70%,transparent);
-        color: var(--muted,#1e2635);
-        background-image: none;
-        background-color: color-mix(in srgb,var(--nova-a,#9273ff) 8%,transparent)
+        color: var(--text-secondary,#09101a);
+        --k-rim: color-mix(in srgb,var(--nova-a,#9273ff) 50%,transparent);
+        --k-plate: color-mix(in srgb,var(--nova-a,#9273ff) 10%,#070b22);
+        --k-plate-2: #060a1c
     }
     .nova-voice strong:not(#\-) {
         color: var(--text,#0d0f15)
@@ -14342,8 +14902,11 @@
         color: var(--muted,#1e2635)
     }
     .nova-chat-steps:not(#\-) {
-        border-color: var(--nova-edge);
-        color: var(--muted,#1e2635)
+        color: var(--muted,#1e2635);
+        --k-rim: color-mix(in srgb,var(--accent-teal,#86f0d6) 50%,transparent);
+        --k-rim-2: color-mix(in srgb,var(--nova-a,#9273ff) 30%,transparent);
+        --k-plate: #070b22;
+        --k-plate-2: #050818
     }
     .nova-chat-steps li[data-done]:not(#\-) {
         color: var(--text,#0d0f15)
@@ -14352,20 +14915,24 @@
         color: var(--cyan-ink)
     }
     .nova-pending:not(#\-) {
-        color: var(--muted,#1e2635)
+        color: var(--text-secondary,#09101a);
+        --k-rim: color-mix(in srgb,var(--nova-c,#f06dff) 80%,#fff);
+        --k-rim-2: color-mix(in srgb,var(--nova-a,#9273ff) 40%,transparent);
+        --k-plate: color-mix(in srgb,var(--nova-c,#f06dff) 12%,#0a1030);
+        --k-plate-2: #060a1c
     }
     .nova-composer:not(#\-) {
         border-color: transparent;
-        --k-rim: color-mix(in srgb,var(--nova-b,#63e7ff) 80%,transparent);
-        --k-rim-2: color-mix(in srgb,var(--nova-c,#f06dff) 70%,transparent);
-        --k-plate: #0a1030;
+        --k-rim: color-mix(in srgb,var(--nova-b,#63e7ff) 86%,#fff);
+        --k-rim-2: color-mix(in srgb,var(--nova-c,#f06dff) 80%,transparent);
+        --k-plate: color-mix(in srgb,var(--nova-a,#9273ff) 13%,#0a1232);
         --k-plate-2: #04071a;
-        --k-glow: 0 0 22px -8px var(--nova-a,#9273ff)
+        --k-glow: 0 0 24px -8px var(--nova-b,#63e7ff),0 0 44px -14px var(--nova-a,#9273ff)
     }
     .nova-composer:focus-within:not(#\-) {
-        --k-rim: var(--nova-b,#63e7ff);
+        --k-rim: #fff;
         --k-rim-2: var(--nova-b,#63e7ff);
-        --k-glow: 0 0 22px -4px var(--nova-b,#63e7ff)
+        --k-glow: 0 0 22px -3px var(--nova-b,#63e7ff),0 0 50px -12px var(--nova-a,#9273ff)
     }
     .nova-composer textarea:not(#\-) {
         border-color: currentcolor;
@@ -14376,9 +14943,47 @@
     .nova-composer textarea:focus:not(#\-) {
         outline-color: currentcolor
     }
+    .nova-chat .nova-composer textarea:not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none;
+        outline-color: currentcolor;
+        color: inherit
+    }
+    .nova-composer textarea:not(#\-)::placeholder {
+        color: var(--text-meta,#08111e)
+    }
     .nova-mic-on:not(#\-) {
         color: var(--cyan-ink);
         border-color: currentColor
+    }
+    .nova-chat .nova-chat-send:not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none;
+        color: #04102a;
+        --k-rim: #fff;
+        --k-rim-2: color-mix(in srgb,var(--nova-b,#63e7ff) 60%,#fff);
+        --k-plate: var(--nova-b,#63e7ff);
+        --k-plate-2: var(--nova-a,#9273ff);
+        --k-glow: 0 0 14px -2px var(--nova-b,#63e7ff)
+    }
+    .nova-chat .nova-chat-send:is(:hover,:focus-visible):not(:disabled):not(#\-):not(#\-):not(#\-) {
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 70%,#fff);
+        --k-glow: 0 0 18px 0 var(--nova-b,#63e7ff)
+    }
+    .nova-chat .nova-mic:not(#\-):not(#\-):not(#\-) {
+        --k-rim: color-mix(in srgb,var(--nova-b,#63e7ff) 52%,transparent);
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 11%,#060a1c);
+        --k-plate-2: #060a1c
+    }
+    .nova-chat .nova-mic-on:not(#\-):not(#\-):not(#\-) {
+        color: #0f0f0f;
+        --k-rim: var(--nova-b,#63e7ff);
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 34%,#0a1232);
+        --k-glow: 0 0 14px -2px var(--nova-b,#63e7ff)
     }
     .nova-live-words:not(#\-) {
         color: var(--muted,#1e2635)
@@ -14387,7 +14992,7 @@
         border-color: var(--nova-edge)
     }
     .nova-composer-hint:not(#\-) {
-        color: var(--muted,#1e2635)
+        color: var(--text-meta,#08111e)
     }
     .nova-zigi-page select:not(#\-) {
         border-color: var(--line,#c2cbda);
@@ -14396,7 +15001,12 @@
         color: var(--text,#0d0f15)
     }
     .nova-chat-foot:not(#\-) {
-        color: var(--muted,#1e2635)
+        color: var(--text-meta,#08111e)
+    }
+    .nova-chat-foot:not(#\-)::before {
+        background-image: none;
+        background-color: var(--accent-teal,#86f0d6);
+        box-shadow: 0 0 0 3px color-mix(in srgb,var(--accent-teal,#86f0d6) 22%,transparent),0 0 8px var(--accent-teal,#86f0d6)
     }
     .nova-list-tools input:not(#\-) {
         border-color: var(--nova-edge);
@@ -14405,10 +15015,13 @@
         color: inherit
     }
     .nova-list-heading:not(#\-) {
-        color: var(--muted,#1e2635)
+        color: color-mix(in srgb,color-mix(in srgb, var(--nova-b,#0b6674) 42%, #000) 26%,var(--muted,#1e2635))
     }
     .nova-list-items li:not(#\-) {
         border-color: transparent
+    }
+    .nova-list-items li+li:not(#\-) {
+        border-top-color: #3333331b
     }
     .nova-list-items li.nova-list-current:not(#\-) {
         border-left-color: var(--nova-b,#63e7ff);
@@ -14469,105 +15082,8 @@
     .nova-mark-star:not(#\-) {
         fill: #333333
     }
-    .nova-turn-hermes .nova-turn-body:not(#\-) {
-        --turn: var(--nova-c,#f06dff)
-    }
     .nova-agent:not(#\-) {
         color: var(--muted,#1e2635)
-    }
-    .nova-chat .ai-chip:not(#\-):not(#\-):not(#\-) {
-        border-color: currentcolor;
-        background-image: none;
-        background-color: transparent;
-        color: var(--text,#0d0f18);
-        --k-rim: color-mix(in srgb,var(--nova-a,#9273ff) 85%,#fff);
-        --k-rim-2: color-mix(in srgb,var(--nova-b,#63e7ff) 40%,transparent);
-        --k-plate: color-mix(in srgb,var(--nova-a,#9273ff) 18%,#0a1030);
-        --k-plate-2: #060a1c
-    }
-    .nova-chat .ai-chip:is(:hover,:focus-visible):not(#\-):not(#\-):not(#\-) {
-        --k-rim: var(--nova-b,#63e7ff);
-        --k-rim-2: var(--nova-b,#63e7ff);
-        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 26%,#0a1030);
-        --k-glow: 0 0 14px -3px var(--nova-b,#63e7ff)
-    }
-    .nova-chat .ai-reply-icon:not(#\-) {
-        border-color: currentcolor;
-        background-image: none;
-        background-color: transparent;
-        color: var(--muted,#202938)
-    }
-    .nova-chat .ai-reply-icon:hover:not(#\-) {
-        color: var(--text,#0d0f18);
-        background-image: none;
-        background-color: color-mix(in srgb,var(--violet,#8b7cff) 16%,transparent)
-    }
-    .nova-chat .ai-reply-icon:focus-visible:not(#\-) {
-        outline-color: var(--cyan,#6fd3ff);
-        color: var(--text,#0d0f18)
-    }
-    .nova-chat .ai-reply-icon:is([aria-pressed=true],[aria-expanded=true]):not(#\-) {
-        color: var(--brand-cyan-ink);
-        background-image: none;
-        background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 14%,transparent)
-    }
-    .nova-chat .ai-reply-icon[data-tip]:not(#\-)::after {
-        background-image: none;
-        background-color: #eff2fb;
-        border-color: var(--line,#c3cae3);
-        color: var(--text,#0d0f18)
-    }
-    .nova-chat .ai-reply-more-list:not(#\-) {
-        border-color: color-mix(in srgb,var(--violet,#8b7cff) 40%,var(--line,#2a325a));
-        background-image: none;
-        background-color: #eff2fb;
-        box-shadow: 0 22px 50px -18px #3d3d3d5c
-    }
-    .nova-chat .ai-reply-more-info:not(#\-) {
-        color: var(--muted,#202938)
-    }
-    .nova-chat .ai-more-item:not(#\-) {
-        border-color: currentcolor;
-        background-image: none;
-        background-color: transparent;
-        color: var(--text,#0d0f18)
-    }
-    .nova-chat .ai-more-item:hover:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in srgb,var(--violet,#8b7cff) 18%,transparent)
-    }
-    .nova-chat .ai-more-item:focus-visible:not(#\-) {
-        outline-color: var(--cyan,#6fd3ff)
-    }
-    .nova-chat .nova-composer textarea:not(#\-):not(#\-):not(#\-) {
-        border-color: currentcolor;
-        background-image: none;
-        background-color: transparent;
-        box-shadow: none;
-        outline-color: currentcolor;
-        color: inherit
-    }
-    .nova-chat .nova-chat-send:not(#\-):not(#\-):not(#\-) {
-        border-color: currentcolor;
-        background-image: none;
-        background-color: transparent;
-        box-shadow: none;
-        color: #04102a;
-        --k-rim: #fff;
-        --k-rim-2: color-mix(in srgb,var(--nova-b,#63e7ff) 60%,#fff);
-        --k-plate: var(--nova-b,#63e7ff);
-        --k-plate-2: var(--nova-a,#9273ff);
-        --k-glow: 0 0 14px -2px var(--nova-b,#63e7ff)
-    }
-    .nova-chat-more-list:not(#\-) {
-        border-color: var(--nova-edge);
-        border-top-color: var(--nova-c,#f06dff);
-        background-image: none;
-        background-color: #f1f4fb;
-        box-shadow: 0 22px 50px -18px #3d3d3d5c
-    }
-    .nova-frame .nova-chat:not(#\-) {
-        --line: #c0cbe0
     }
     .nova-chat :is(.secondary,.primary):not(#\-):not(#\-):not(#\-) {
         border-color: currentcolor;
@@ -14595,75 +15111,46 @@
         --k-plate-2: color-mix(in srgb,var(--nova-a,#9273ff) 56%,#0a1232);
         --k-glow: 0 0 14px -2px color-mix(in srgb,var(--nova-b,#63e7ff) 70%,transparent)
     }
-    .nova-chat .nova-mic-on:not(#\-):not(#\-):not(#\-) {
-        color: #0f0f0f;
-        --k-rim: var(--nova-b,#63e7ff);
-        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 34%,#0a1232);
-        --k-glow: 0 0 14px -2px var(--nova-b,#63e7ff)
+    .nova-chat .ai-chip:not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text,#0d0f18);
+        --k-rim: color-mix(in srgb,var(--nova-a,#9273ff) 85%,#fff);
+        --k-rim-2: color-mix(in srgb,var(--nova-b,#63e7ff) 40%,transparent);
+        --k-plate: color-mix(in srgb,var(--nova-a,#9273ff) 18%,#0a1030);
+        --k-plate-2: #060a1c
     }
-    .nova-chat .nova-chat-send:is(:hover,:focus-visible):not(:disabled):not(#\-):not(#\-):not(#\-) {
-        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 70%,#fff);
-        --k-glow: 0 0 18px 0 var(--nova-b,#63e7ff)
+    .nova-chat .ai-chip:is(:hover,:focus-visible):not(#\-):not(#\-):not(#\-) {
+        --k-rim: var(--nova-b,#63e7ff);
+        --k-rim-2: var(--nova-b,#63e7ff);
+        --k-plate: color-mix(in srgb,var(--nova-b,#63e7ff) 26%,#0a1030);
+        --k-glow: 0 0 14px -3px var(--nova-b,#63e7ff)
+    }
+    .nova-chat .ai-unkept-offer:not(#\-) {
+        border-left-color: color-mix(in srgb,var(--nova-a,#9273ff) 80%,transparent);
+        background-image: none;
+        background-color: transparent
     }
     @media (forced-colors:active) {
         .nova-turn-body:not(#\-), .nova-composer:not(#\-), .nova-invite:not(#\-) {
             border-color: currentcolor
         }
     }
-    .nova-chat-panel .nova-chat-head:not(#\-) {
-        background-image: linear-gradient(180deg,color-mix(in srgb,var(--nova-c,#f06dff) 16%,transparent),transparent);
-        background-color: transparent
-    }
-    .nova-chat-head:not(#\-)::after {
-        background-image: repeating-linear-gradient(90deg,color-mix(in srgb,var(--nova-c,#f06dff) 80%,#fff) 0 1px,transparent 1px 6px);
-        background-color: transparent
-    }
-    .nova-chat-panel .nova-composer-wrap:not(#\-) {
-        border-top-color: color-mix(in srgb,var(--nova-c,#f06dff) 30%,#ffffff14);
-        background-image: linear-gradient(180deg,#f3f5fbb3,transparent 85%);
-        background-color: transparent
-    }
-    .nova-chat-panel .nova-chat-foot:not(#\-) {
-        border-top-color: #3333331b
-    }
-    .nova-chat .ai-turn-source:not(#\-) {
-        border-top-color: color-mix(in srgb,var(--turn,#9273ff) 38%,transparent);
-        color: color-mix(in srgb,var(--accent-teal-ink) 62%,#0f0f0f)
-    }
-    .nova-chat .ai-turn-source:not(#\-)::before {
-        background-image: none;
-        background-color: var(--accent-teal,#86f0d6);
-        box-shadow: 0 0 0 3px color-mix(in srgb,var(--accent-teal,#86f0d6) 22%,transparent),0 0 8px var(--accent-teal,#86f0d6)
-    }
-    .nova-chat .ai-turn-time:not(#\-) {
-        color: var(--muted,#1e2635)
-    }
     .nova-sheet[data-place=bottom]:has(.nova-chat-sheet):not(#\-) {
-        background-image: repeating-linear-gradient(0deg,#24242405 0 1px,transparent 1px 3px), linear-gradient(180deg,#edf1fd 0,#f2f4fb 170px,#f3f5fa 100%);
+        background-image: repeating-linear-gradient(0deg,#24242405 0 1px,transparent 1px 3px), linear-gradient(180deg,#edf1fd 0,#f2f4fb 190px,#f3f5fa 100%);
         background-color: transparent;
-        box-shadow: 0 -12px 36px -20px var(--nova-b,#63e7ff),0 40px 100px -30px #3d3d3d66
+        box-shadow: none
     }
     .nova-sheet-body:has(>.nova-chat-sheet)>.nova-sheet-head:not(#\-) {
         background-image: none;
-        background-color: #eef2fc
-    }
-    .nova-chat-sheet .nova-chat-head:not(#\-) {
-        background-image: linear-gradient(90deg,color-mix(in srgb,var(--nova-b,#63e7ff) 12%,transparent),transparent 70%);
         background-color: transparent
     }
-    .nova-chat-sheet .nova-chat-status:not(#\-) {
-        color: color-mix(in srgb,color-mix(in srgb, var(--nova-b,#0b6674) 42%, #000) 30%,#0f0f0f)
+    .nova-chat-sheet .nova-turn-user .nova-turn-body:not(#\-)::after {
+        box-shadow: 0 0 8px 0 color-mix(in srgb,var(--turn) 70%,transparent)
     }
     .nova-chat-sheet .nova-composer:not(#\-) {
-        --k-glow: 0 0 18px -8px var(--nova-b,#63e7ff)
-    }
-    .nova-chat .ai-unkept-offer:not(#\-) {
-        border-left-color: color-mix(in srgb,var(--nova-a,#9273ff) 80%,transparent);
-        background-image: none;
-        background-color: color-mix(in srgb,var(--nova-a,#9273ff) 9%,transparent)
-    }
-    .nova-sheet-head+.nova-chat-sheet .nova-chat-head>:first-child:not(.nova-chat-identity):not(#\-) {
-        box-shadow: 0 0 20px -2px var(--nova-b,#63e7ff),0 0 44px -10px var(--nova-a,#9273ff)
+        --k-glow: 0 0 16px -8px var(--nova-b,#63e7ff)
     }
 }
 /*  components/nova/command-bar.css  */
@@ -15788,16 +16275,16 @@
         color: #090f1c
     }
     .holo-health[data-size=M] .holo-ring:not(#\-) {
-        --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 206px), 190px)
+        --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 216px), 190px)
     }
     @container holo-body (min-width: 360px) {
         .holo-health[data-size=M] .holo-ring:not(#\-) {
-            --ring: clamp(64px, min(100cqh - 102px - var(--note), 100cqi - 206px), 190px)
+            --ring: clamp(64px, min(100cqh - 102px - var(--note), 100cqi - 216px), 190px)
         }
     }
     @container holo-body (max-height: 213px) and (max-width: 559.98px) {
         .holo-health[data-size=M] .holo-ring:not(#\-) {
-            --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 206px), 190px)
+            --ring: clamp(64px, min(100cqh - 52px - var(--note), 100cqi - 216px), 190px)
         }
     }
     @container holo-body (min-width: 560px) {
@@ -15865,6 +16352,11 @@
     @container holo-body (min-width: 640px) {
         .holo-health[data-size=M] .holo-ring:not(#\-) {
             --ring: clamp(64px, calc(100cqh - 22px - var(--note)), 220px)
+        }
+    }
+    @container holo-body (max-width: 299.98px) {
+        .holo-health[data-size=M] .holo-ring:not(#\-) {
+            --ring: clamp(80px, min(100cqh - 70px - var(--note), 100cqi - 170px), 190px)
         }
     }
 }
@@ -16836,12 +17328,22 @@
         background-color: transparent
     }
     .nova-talk:not(#\-)::before {
-        background-image: repeating-linear-gradient(0deg, #24242407 0 1px, transparent 1px 3px), linear-gradient(color-mix(in oklab, var(--sh-c) 9%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--sh-c) 9%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--sh-c) 10%, transparent), transparent 40%), linear-gradient(180deg, color-mix(in oklab, var(--sh-c) 18%, #eff2fc) 0, color-mix(in oklab, var(--sh-a) 10%, #f2f4fb) 150px, #f3f5fb 100%);
+        background-image: repeating-linear-gradient(0deg, #24242406 0 1px, transparent 1px 3px), linear-gradient(color-mix(in oklab, var(--sh-b) 7%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--sh-b) 7%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--sh-b) 9%, transparent), transparent 46%), linear-gradient(180deg, color-mix(in oklab, var(--sh-b) 12%, #eef2fc) 0, color-mix(in oklab, var(--sh-a) 7%, #f2f4fb) 190px, #f3f5fb 100%);
         background-color: transparent
     }
     .nova-talk:not(#\-)::after {
-        background-image: linear-gradient(200deg, #242424 0, var(--sh-c) 8%, var(--sh-a) 50%, color-mix(in oklab, var(--sh-b) 60%, transparent) 100%);
+        background-image: linear-gradient(112deg, #242424 0, var(--sh-b) 7%, var(--sh-a) 46%, color-mix(in oklab, var(--sh-c) 72%, transparent) 88%, #242424 100%);
         background-color: transparent
+    }
+    .nova-frame[data-console] .nova-centre > .nova-foot:not(#\-)::before {
+        background-image: linear-gradient(90deg, transparent, #f5f7fa99);
+        background-color: transparent
+    }
+    .nova-frame[data-console] .nova-centre > .nova-foot:not(#\-)::after {
+        box-shadow: 0 0 20px 2px color-mix(in oklab, var(--sh-b) 34%, transparent), 0 0 64px 10px color-mix(in oklab, var(--sh-a) 30%, transparent), 0 30px 60px -20px #3d3d3d66
+    }
+    :scope[data-glow="soft"] .nova-frame[data-console] .nova-centre > .nova-foot:not(#\-)::after {
+        box-shadow: none
     }
     .nova-left:not(#\-) {
         border-color: currentcolor;
@@ -17623,6 +18125,10 @@
     .nova-right-section h3 button .nb-sec-icon .nova-icon:not(#\-) {
         color: inherit
     }
+    .nova-right-scroll[data-cut] + .nova-right-foot:not(#\-)::before {
+        border-color: var(--nova-c, #f06dff);
+        filter: drop-shadow(0 0 4px var(--nova-c, #f06dff))
+    }
     .nb-group:not(#\-) {
         color: var(--nova-ink-3)
     }
@@ -18399,6 +18905,57 @@
     }
     .nova-widget[data-holo] .tasks-widget .tasks-status:not([data-empty]):not(#\-) {
         color: #0a0f1b
+    }
+    .nova-widget[data-holo] .nova-playing > .nova-disc:not(#\-) {
+        background-image: none;
+        background-color: #f3f5fa;
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), inset 0 2px 5px #3d3d3d52
+    }
+    .nova-widget[data-holo] .nova-playing .nova-disc i:not(#\-) {
+        box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent)
+    }
+    .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not(#\-) {
+        border-color: currentcolor;
+        background-color: #f1f4fb;
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #ffd27a) 26%, transparent)
+    }
+    .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not(#\-)::before {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #ffd27a) 36%, transparent);
+        box-shadow: none
+    }
+    .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row[data-priced]:not(#\-)::before {
+        background: var(--neon, #ffd27a);
+        box-shadow: 0 0 8px 1px var(--neon, #ffd27a)
+    }
+    .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not([data-priced]):not(#\-)::after {
+        background-image: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent) 0 6px, transparent 6px 12px);
+        background-color: transparent
+    }
+    .nova-widget[data-holo] .hw-markets-box .hw-row:not([data-priced]) .nova-market-price:not(#\-) {
+        color: #090f1c;
+        text-shadow: none
+    }
+    .hw-markets-note:not(#\-) {
+        color: #090f1c
+    }
+    .nova-widget[data-holo] .hw-goals .holo-gauge:not(#\-) {
+        background-image: none;
+        background-color: #f3f5fa;
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 38%, transparent), inset 0 2px 4px #3d3d3d52
+    }
+    .nova-widget[data-holo] .hw-goals .holo-gauge[data-unknown]:not(#\-) {
+        box-shadow: none
+    }
+    @container holo-body (min-width: 560px) {
+        .nova-widget[data-holo] .hw-goals > .hw-row:nth-child(2):not(#\-) {
+            border-top-color: currentcolor
+        }
+    }
+    .nova-widget[data-holo] .hw-runway-track:not(#\-) {
+        background-image: linear-gradient(color-mix(in oklab, var(--neon, #ffd27a) 70%, transparent), color-mix(in oklab, var(--neon, #ffd27a) 70%, transparent)), repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent) 0 1px, transparent 1px calc(100% * 7 / 60));
+        background-color: transparent
     }
 }
 /*  components/nova/workflows/workflows.css  */
