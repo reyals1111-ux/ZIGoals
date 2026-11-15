@@ -16948,12 +16948,10 @@
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan, #6fd3ff) 24%, transparent), 0 0 8px var(--cyan, #6fd3ff)
     }
     .nova-online:not(#\-) {
-        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a));
-        border-top-color: var(--cyan, #6fd3ff)
+        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a))
     }
     .nova-guide-card:not(#\-) {
         border-color: color-mix(in srgb, var(--violet, #8b7cff) 45%, var(--line, #2a325a));
-        border-top-color: var(--cyan, #6fd3ff);
         background-image: none;
         background-color: color-mix(in srgb, var(--panel, #eff2fa) 85%, transparent);
         color: var(--text, #0d0f18)

@@ -74,7 +74,7 @@
 .nova-badge { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 4px 12px; border-radius: 3px 10px 3px 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   color: var(--text, #eef1ff); border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 60%, transparent); background: color-mix(in srgb, var(--violet, #8b7cff) 18%, transparent); }
 .nova-badge-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--cyan, #6fd3ff); box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan, #6fd3ff) 24%, transparent), 0 0 8px var(--cyan, #6fd3ff); }
-.nova-online { display: grid; gap: 8px; justify-items: start; padding: 14px 16px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a)); border-top: 2px solid var(--cyan, #6fd3ff); }
+.nova-online { display: grid; gap: 8px; justify-items: start; padding: 14px 16px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a)); }
 .nova-online p { margin: 0; }
 @media (prefers-reduced-motion: no-preference) {
   :root:not([data-app-motion=off]) .nova-online-new { animation: nova-online-glow 2.4s ease-out 1 both; }
@@ -85,7 +85,7 @@
 
 /* The setup card on NOVA (lane NA's slot). */
 .nova-guide-card { display: grid; gap: 10px; padding: 16px 18px; border-radius: 6px; min-width: 0;
-  border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 45%, var(--line, #2a325a)); border-top: 2px solid var(--cyan, #6fd3ff); background: color-mix(in srgb, var(--panel, #0d1430) 85%, transparent); color: var(--text, #eef1ff); }
+  border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 45%, var(--line, #2a325a)); background: color-mix(in srgb, var(--panel, #0d1430) 85%, transparent); color: var(--text, #eef1ff); }
 .nova-guide-card h2 { margin: 0; font-size: 18px; }
 .nova-guide-card p { margin: 0; }
 .nova-guide-card-done { padding: 10px 12px; }
