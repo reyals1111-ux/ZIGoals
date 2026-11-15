@@ -30,7 +30,7 @@ describe('zigoals:nova-agent:v1', () => {
   it('holds no token, description, schema, argument or result — only an id, the address, a label, a time and the switched tools', () => {
     const full = setToolAsk(one().record, 'srv00001', 'search', true);
     expect(Object.keys(full.servers![0]!).sort()).toEqual(['addedAt', 'address', 'ask', 'id', 'label']);
-    expect(tokenSlot('srv00001')).toBe('mcp-srv00001'); expect(JSON.stringify(full)).not.toMatch(/token|secret|password|description|schema|arguments|result/i);
+    expect(tokenSlot('srv00001', 'http://127.0.0.1:8000/mcp')).toBe('mcp-srv00001-i8000'); /* finding 8 (deliberate): the slot is the id and the origin */ expect(JSON.stringify(full)).not.toMatch(/token|secret|password|description|schema|arguments|result/i);
   });
   it('only a loopback address can be stored, by a change or by hand', () => {
     for (const address of ['https://example.com/mcp', 'http://192.168.1.10:8000', 'http://2130706433:8000', 'http://user:pw@127.0.0.1:8000', 'http://127.0.0.1:8000/mcp?token=abc', 'http://localhost.evil.example']) {
@@ -56,7 +56,7 @@ describe('zigoals:nova-agent:v1', () => {
     expect(JSON.parse(JSON.stringify(novaAgentSchema.parse({version: 1, servers: [{id: 'srv00001', address: 'http://127.0.0.1:8000', label: 'a', ask: 'all'}]}))).servers[0]).toEqual({id: 'srv00001', address: 'http://127.0.0.1:8000', label: 'a'}); // not a list: Off
     for (const bad of [{version: 2}, {servers: []}, {version: 1, servers: 'x'}, null, 'x']) expect(novaAgentSchema.safeParse(bad).success, JSON.stringify(bad)).toBe(false);
     expect(novaAgentSchema.parse({version: 1, later: {kept: true}})).toEqual({version: 1, later: {kept: true}}); // a later build's field survives
-    expect(renameServer(one().record, 'srv00001', '  Mail‮ and\ncalendar  ').servers![0]!.label).toBe('Mail and calendar');
+    expect(renameServer(one().record, 'srv00001', '  Mail\u202E and\ncalendar  ').servers![0]!.label).toBe('Mail and calendar');
     expect(() => renameServer(one().record, 'srv00001', '   ')).toThrow();
     expect(removeServer(one().record, 'srv00001')).toEqual({version: 1});
     expect(serverId(new Uint8Array([0, 1, 2, 25, 26, 35, 36, 255]))).toBe('abcz09ad'); expect(serverId(new Uint8Array(8))).toMatch(/^[a-z0-9]{8}$/);

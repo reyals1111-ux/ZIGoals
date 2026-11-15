@@ -1,5 +1,6 @@
 import * as z from 'zod';
 import type {DeviceRecordSpec} from '../../device-record';
+import {stripInvisible} from '../invisible';
 import {baseOf, parseLoopback} from './loopback';
 
 /**
@@ -11,17 +12,18 @@ import {baseOf, parseLoopback} from './loopback';
  * - `agent`: the person's own OpenAI-compatible agent on this computer: its loopback address, the model it reported, the
  *   last live check, and whether the person confirmed it answers with a model on this computer.
  * It never holds a token, a password, a tool's description or schema (those are read from the server each visit), an
- * argument or a result. A token the person asks to remember is sealed in the device's key store (lib/ai/keys.ts, slot
- * `mcp-<id>`), never here.
+ * argument or a result. A token the person asks to remember is sealed in the device's key store (lib/ai/keys.ts, a slot
+ * made from the server's id and its loopback origin, `tokenSlot`), never here.
  *
  * A loose object, version 1, every field optional, every list bounded. Reads are tolerant: a server whose address is not
  * one of the three loopback forms (./loopback.ts) is left out, so a hand-edited or crafted record can never hold another
  * host. Exported, restored and erased; never synced. A restore brings the addresses and labels and nothing else: every
- * tool comes back Off and the agent comes back unconfirmed (`novaAgentRestoreSchema`).
+ * tool comes back Off and the agent comes back unconfirmed (`novaAgentRestoreSchema`), and on a device that already
+ * holds this record each restored server gets a new id (`freshServerIds`).
  */
 export const NOVA_AGENT_KEY = 'zigoals:nova-agent:v1';
 export const MAX_SERVERS = 8, MAX_ASK = 100, MAX_LABEL = 40, MAX_MODEL = 200;
-const UNSAFE = /[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁯﻿]/;
+const UNSAFE = /[\u0000-\u001f\u007f-\u009f\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/;
 const plain = (max: number) => z.string().max(max).refine(s => !UNSAFE.test(s), 'Plain text.');
 const iso = z.string().min(10).max(40).refine(s => !Number.isNaN(Date.parse(s)), 'A time.');
 const loopback = z.string().max(300).refine(s => parseLoopback(s).ok, 'An address on this computer.');
@@ -69,6 +71,21 @@ export const novaAgentRestoreSchema = novaAgentSchema.transform((r): NovaAgentRe
   if (next.agent) { const kept = {...next.agent}; delete kept.localConfirmed; delete kept.checkedAt; next.agent = kept; }
   return next;
 });
+const randomBytes = (n: number): Uint8Array => { const bytes = new Uint8Array(n); try { crypto.getRandomValues(bytes); } catch { for (let i = 0; i < n; i++) bytes[i] = Math.floor(Math.random() * 256); } return bytes; };
+/**
+ * Security review, finding 8: a restore into a device that already holds this record gives every restored server a NEW
+ * id — never one the device has, never one the file named — so a file cannot name an id this device keeps a token for
+ * (lib/restore/apply.ts applies a part's `local` at the moment of writing; the reader itself stays the same for the
+ * same bytes). With the slot made from the id AND the origin (`tokenSlot`), an old token is out of reach twice over, and
+ * the rows the restore replaced have their tokens forgotten (components/nova/agent/use-agent-bridge.ts).
+ */
+export function freshServerIds(currentRaw: unknown, next: unknown): unknown {
+  const theirs = novaAgentSchema.safeParse(next);
+  if (!theirs.success || !theirs.data.servers?.length) return next;
+  const mine = novaAgentSchema.safeParse(currentRaw), taken = new Set([...(mine.success ? serversOf(mine.data as NovaAgentRecord) : []), ...theirs.data.servers].map(s => s.id));
+  const servers = theirs.data.servers.map(s => { let id = serverId(randomBytes(8)); while (taken.has(id)) id = serverId(randomBytes(8)); taken.add(id); return {...s, id}; });
+  return {...theirs.data, servers};
+}
 export const NOVA_AGENT_RESTORE: DeviceRecordSpec<NovaAgentRecord> = {key: NOVA_AGENT_KEY, schema: novaAgentRestoreSchema as unknown as z.ZodType<NovaAgentRecord>, empty: emptyAgentRecord};
 
 // ---- Reading ----
@@ -78,12 +95,24 @@ export const serverById = (r: NovaAgentRecord, id: string): AgentServer | null =
 export const toolAsks = (server: Pick<AgentServer, 'ask'>, tool: string): boolean => (server.ask ?? []).includes(tool);
 export const askCount = (r: NovaAgentRecord): number => serversOf(r).reduce((n, s) => n + (s.ask?.length ?? 0), 0);
 export const ownAgentOf = (r: NovaAgentRecord): OwnAgent | null => r.agent ?? null;
-/** The key store slot of a server's token (lib/ai/keys.ts): never part of the record. */
-export const tokenSlot = (id: string) => `mcp-${id}` as const;
+const HOST_CODE: Readonly<Record<string, string>> = {'127.0.0.1': 'i', localhost: 'l', '[::1]': 'v'};
+/**
+ * The key store slot of a server's token (lib/ai/keys.ts): never part of the record. Security review, finding 8: the
+ * slot is made from the server's id AND its loopback origin (host and port, written out, so two origins never share a
+ * slot): "mcp-abcdefgh-i8000". A row whose address was changed — by hand, or by a crafted backup that points a known id
+ * at another port — therefore never finds the token that was typed for the old address. Null when the address is not a
+ * loopback address (no token is ever read for it).
+ */
+export function tokenSlot(id: string, address: string): `mcp-${string}` | null {
+  const at = parseLoopback(address);
+  return at.ok && SERVER_ID.test(id) ? `mcp-${id}-${HOST_CODE[at.host]}${at.port}` : null;
+}
+/** The slots of every server in the record: the ones `forgetSlots` keeps. */
+export const tokenSlots = (r: NovaAgentRecord): Set<string> => new Set(serversOf(r).flatMap(s => { const slot = tokenSlot(s.id, s.address); return slot ? [slot] : []; }));
 
 // ---- Changes (pure; each returns a record the schema accepts, or throws a plain sentence) ----
 const parse = (r: NovaAgentRecord): NovaAgentRecord => novaAgentSchema.parse(r) as NovaAgentRecord;
-const cleanLabel = (text: string): string => text.replace(new RegExp(UNSAFE.source, 'g'), ' ').replace(/\s+/g, ' ').trim().slice(0, MAX_LABEL).trim();
+const cleanLabel = (text: string): string => stripInvisible(text).replace(new RegExp(UNSAFE.source, 'g'), ' ').replace(/\s+/g, ' ').trim().slice(0, MAX_LABEL).trim();
 /** A new id from random bytes (the caller's `crypto.getRandomValues`): eight of a–z and 0–9. */
 export function serverId(bytes: Uint8Array): string {
   const letters = 'abcdefghijklmnopqrstuvwxyz0123456789';

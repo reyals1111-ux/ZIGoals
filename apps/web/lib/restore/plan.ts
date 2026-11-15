@@ -74,7 +74,7 @@ import {NOVA_STORE} from '../nova/store';
 import {NOVA_STAGE} from '../nova/stage/record';
 import {keepWorldSwitch, NOVA_WORLD_RESTORE} from '../nova/world/record';
 import {NOVA_OUTBOX} from '../nova/outbox/record';
-import {NOVA_AGENT_RESTORE} from '../nova/agent-bridge/record';
+import {freshServerIds, NOVA_AGENT_RESTORE} from '../nova/agent-bridge/record';
 import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
 import {NETWORTH_MILESTONES} from '../networth-milestones/milestones';
@@ -274,7 +274,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AM-2 (TIER 3 (stored format), additive): "Sent out from this device" — when, what kind and the target shown, never a body.
   dev('novaOutbox', 'NOVA sent-out history', 'Today and Life', NOVA_OUTBOX),
   // Session AM-2 (step 4c; TIER 3 (stored format), additive): the addresses and labels are restored, never a switch — every tool comes back Off.
-  dev('novaAgent', 'NOVA own agent and tool server addresses', 'Today and Life', NOVA_AGENT_RESTORE),
+  // Security review (finding 8): on a device that already holds the record, each restored server gets a new id.
+  {...dev('novaAgent', 'NOVA own agent and tool server addresses', 'Today and Life', NOVA_AGENT_RESTORE), local: freshServerIds},
   dev('calendarImport', 'Imported calendars', 'Today and Life', CALENDAR_IMPORT),
   dev('notes', 'Notes', 'Today and Life', NOTES),
   // Session AK WA (N7): ZIGi's and NOVA's one memory; its health and diet notes only with the Health choice.
