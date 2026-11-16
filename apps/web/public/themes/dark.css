@@ -19274,6 +19274,9 @@
     .cc-read > b:not(#\-) {
         color: color-mix(in oklab, var(--cc) 70%, #fff)
     }
+    .nova-frame[data-soft] .holo-core *:not(#\-) {
+        filter: none !important
+    }
 }
 /*  components/nova/stage/phone-stage.css  */
 @scope (:root[data-theme=dark]) {
