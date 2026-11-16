@@ -3479,6 +3479,13 @@
 :where(:root[data-text=large]) .today-timeline-open:not(#\-) { font-size: calc(16px * 1.125); }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .timeline-time:not(#\-) { font-size: calc(14px * 1.125); } }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .today-timeline-next > li:not(#\-) { font-size: calc(15px * 1.125); } }
+/*  components/today-orbits/today-orbits.css  */
+:where(:root[data-text=large]) .today-orbits h3:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .today-orbits-head > a.today-orbits-link:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .today-orbit h4:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .today-orbit p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .today-orbits .fine:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .today-orbits-empty p:not(#\-), :where(:root[data-text=large]) .today-orbits-empty li:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/tour/tour.css  */
 :where(:root[data-text=large]) .ak-tour-head h3:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .ak-tour-stop h4:not(#\-) { font-size: calc(16px * 1.125); }

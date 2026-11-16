@@ -4659,9 +4659,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-deck > .nova-chips:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-deck > .nova-live:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-deck > .nova-setup-banner:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 2px; padding-bottom: 2px; }
-@container nova-centre (min-width: 900.02px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) .nova-showcase:not(#\-) { padding-top: 2px; padding-bottom: 2px; } }
-@container nova-centre (min-width: 900.02px) { :where(:root[data-density=compact]) :has(> [data-kind=scopes])) > .nova-chip:not(#\-) { padding-top: 2px; padding-bottom: 2px; } }
-@container nova-centre (min-width: 900.02px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) > li:is(.nova-chip-narrow:not(#\-) { padding-top: 1.5px; padding-bottom: 1.5px; } }
+@container nova-centre (min-width: 700.02px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) .nova-showcase:not(#\-) { padding-top: 2px; padding-bottom: 2px; } }
+@container nova-centre (min-width: 700.02px) { :where(:root[data-density=compact]) :has(> [data-kind=scopes])) > .nova-chip:not(#\-) { padding-top: 2px; padding-bottom: 2px; } }
+@container nova-centre (min-width: 700.02px) { :where(:root[data-density=compact]) .nova-frame:not([data-phone]) .nova-deck > .nova-chips:not(.nova-live) > li:is(.nova-chip-narrow:not(#\-) { padding-top: 1.5px; padding-bottom: 1.5px; } }
 :where(:root[data-density=compact]) .nova-stage-area:not(#\-) { padding-top: 10px; padding-bottom: 16px; }
 :where(:root[data-density=compact]) .nova-stage:not(#\-) { row-gap: 6px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-stage-below:not(#\-) { row-gap: 4px; }
@@ -6844,6 +6844,18 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .timeline-block:not(#\-) { padding-top: 8px; padding-bottom: 8px; } }
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .timeline-block:not(#\-) { row-gap: 8px; } }
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .today-timeline-card:not(#\-) { row-gap: 3px; padding-top: 9px; padding-bottom: 9px; } }
+/*  components/today-orbits/today-orbits.css  */
+:where(:root[data-density=compact]) .today-orbits:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .today-orbits-head:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .today-orbits h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .today-orbits-list:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .today-orbit:not(#\-) { row-gap: 10px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .today-orbit-words:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .today-orbit h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .today-orbit p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .today-orbits .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .today-orbits-empty p:not(#\-) { margin-top: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .today-orbits-empty ul:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
 /*  components/tour/tour.css  */
 :where(:root[data-density=compact]) .tour-offer:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 10px; }
 :where(:root[data-density=compact]) .ak-tour:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }

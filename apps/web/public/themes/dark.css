@@ -24806,6 +24806,9 @@
     .tasks-matrix-hint:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .tasks-matrix .task[data-dragging]:not(#\-) {
+        outline-color: currentColor
+    }
 }
 /*  components/tasks/tasks.css  */
 @scope (:root[data-theme=dark]) {
@@ -25141,6 +25144,43 @@
     .today-timeline-skeleton:not(#\-) {
         background-image: none;
         background-color: #ffffff0d
+    }
+}
+/*  components/today-orbits/today-orbits.css  */
+@scope (:root[data-theme=dark]) {
+    .today-orbit:not(#\-) {
+        border-color: var(--line, rgba(128, 128, 160, .25))
+    }
+    .today-orbits .fine:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .today-orbit[data-orbit="steps"]:not(#\-) {
+        --ap-orbit: var(--pillar-health, #ff74be)
+    }
+    .today-orbit[data-orbit="minutes"]:not(#\-) {
+        --ap-orbit: var(--pillar-habits, #23eaff)
+    }
+    .today-orbit[data-orbit="workouts"]:not(#\-) {
+        --ap-orbit: var(--pillar-goals, #9273ff)
+    }
+    .today-orbit .ap-orbit-track:not(#\-) {
+        fill: none;
+        stroke: currentColor
+    }
+    .today-orbit .ap-orbit-arc:not(#\-) {
+        fill: none;
+        stroke: var(--ap-orbit)
+    }
+    .today-orbit .ap-orbit-planet:not(#\-) {
+        fill: var(--ap-orbit);
+        stroke: var(--panel, #0b1a2c)
+    }
+    .today-orbit .ap-orbit-sun:not(#\-) {
+        fill: var(--ap-orbit)
+    }
+    .today-orbit[data-known="false"] .ap-orbit-planet:not(#\-) {
+        fill: none;
+        stroke: var(--ap-orbit)
     }
 }
 /*  components/tour/tour.css  */
