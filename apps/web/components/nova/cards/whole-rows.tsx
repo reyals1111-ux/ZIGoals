@@ -40,7 +40,9 @@ import './whole-rows.css';
  * Showcase's stage opened that was twelve layouts of about 50 ms each, outside any frame (the opening ended after the
  * 5 s its spec allows). At the frame the browser lays the page out anyway, so the read costs nothing more, every list
  * shares that one layout, and the frame is still painted with whole rows only. A change of content (the
- * MutationObserver) is still answered at once, before the paint. Without frames (a test without layout) it stays at once.
+ * MutationObserver) and the fonts' arrival wait for the same frame (round 7: on a phone, where every panel is as tall as
+ * its content, each of those measures still read the layout at once, about 1.4 s of the stage's load, and two phone specs
+ * timed out on CI); the frame after a change is painted with whole rows only, as before. Without frames it stays at once.
  *
  * Where there is no height to fit (a phone, the band below the fold, a narrow stage, the Classic cards, a test without
  * layout) every row is shown. Rows that are not shown carry `hidden`: they are out of the accessibility tree and cannot
@@ -54,8 +56,8 @@ type Member = {
   report: (hidden: number, shown: number, line: boolean) => void;
 };
 type Fitter = {members: Set<Member>;
-  /** The check after a render: one measure at the next animation frame, however many renders ask (at once where there are no frames). */
-  soon: () => void;
+  /** One measure at the next animation frame, however many renders and changes ask for it (at once where there are no frames); `force` as in `measure`. */
+  soon: (force?: boolean) => void;
   /** Fits the rows. Unless `force` is set, nothing is read twice or written when nothing the last measure read has changed. */
   measure: (force?: boolean) => void;
   /**
@@ -131,10 +133,12 @@ function createFitter(): Fitter {
     for (const m of members) if (m.more.contains(at) || (mark && (at === m.wrap || at === m.list || at.parentNode === m.list))) return true;
     return false;
   };
-  let frame = 0;
-  const soon = () => {
-    if (typeof requestAnimationFrame !== 'function') return measure();
-    if (!frame) frame = requestAnimationFrame(() => { frame = 0; measure(); });
+  let frame = 0, forced = false;
+  const soon = (force = false) => {
+    forced ||= force;
+    const run = () => { frame = 0; const f = forced; forced = false; measure(f); };
+    if (typeof requestAnimationFrame !== 'function') return run();
+    if (!frame) frame = requestAnimationFrame(run);
   };
   return {members, measure, soon, own};
 }
@@ -164,7 +168,7 @@ function useFitting(fitter: Fitter, anchor: {current: HTMLElement | null}, on: b
     let live = true, frame = 0;
     const again = () => { if (live) fitter.measure(); };
     // A change of content always measures: a row's words or state can change its height with no box changing its size.
-    const changed = (records: MutationRecord[]) => { if (live && !records.every(fitter.own)) fitter.measure(true); };
+    const changed = (records: MutationRecord[]) => { if (live && !records.every(fitter.own)) fitter.soon(true); };
     const resized = () => {
       if (getComputedStyle(body).containerType === 'size') return again();
       cancelAnimationFrame(frame); frame = requestAnimationFrame(again);
@@ -173,7 +177,7 @@ function useFitting(fitter: Fitter, anchor: {current: HTMLElement | null}, on: b
     const change = typeof MutationObserver === 'undefined' ? null : new MutationObserver(changed);
     resize?.observe(body);
     change?.observe(body, {childList: true, subtree: true, characterData: true, attributes: true, attributeOldValue: true});
-    void document.fonts?.ready.then(() => { if (live) fitter.measure(true); });
+    void document.fonts?.ready.then(() => { if (live) fitter.soon(true); });
     return () => { live = false; cancelAnimationFrame(frame); resize?.disconnect(); change?.disconnect(); };
   }, [fitter, anchor, on]);
 }

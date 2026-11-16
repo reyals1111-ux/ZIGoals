@@ -30,6 +30,9 @@ const list = (n: number, props: Record<string, unknown> = {}) => h(WholeRows, {'
 // unchanged: what is shown after a render, how often the panel is read for it (once), and that nothing is written.
 const frame = () => new Promise<void>(done => requestAnimationFrame(() => done()));
 const render = async (node: ReactNode) => { await act(async () => { root.render(node); }); await act(async () => { await frame(); }); };
+// Session AM-3 (round 7, deliberate): a change of content with no render is fitted at the next animation frame too (it was
+// at once); a change made here lets that frame pass. The assertions on what is then shown are unchanged.
+const change = async (make: () => void) => { await act(async () => { make(); }); await act(async () => { await frame(); }); };
 const rows = (label = 'Rows') => [...host.querySelectorAll<HTMLElement>(`[aria-label="${label}"] > li`)];
 const line = (at = 0) => host.querySelectorAll<HTMLElement>('.wr-more')[at]!;
 
@@ -163,15 +166,15 @@ test('a change of content with no render of the list is measured: something adde
   expect(rows().every(r => !r.hidden)).toBe(true);
   const body = host.querySelector<HTMLElement>('.nova-widget-body')!, block = host.querySelector<HTMLElement>('[data-px]')!;
   // The block grows (an attribute, nothing added): two rows and the line (111) fit beside its 50 px, three (155) do not.
-  await act(async () => { block.dataset.px = '50'; });
+  await change(() => { block.dataset.px = '50'; });
   expect(rows().map(r => r.hidden)).toEqual([false, false, true, true]);
   expect(line().textContent).toBe('+2 more on the Tasks page');
   // A status line is added to the panel (44 px more): one row and the line are left.
-  await act(async () => { const note = document.createElement('p'); note.dataset.px = '44'; body.append(note); });
+  await change(() => { const note = document.createElement('p'); note.dataset.px = '44'; body.append(note); });
   expect(rows().map(r => r.hidden)).toEqual([false, true, true, true]);
   expect(line().textContent).toBe('+3 more on the Tasks page');
   // And it leaves again, with the block back to nothing: every row is back, and the line is gone.
-  await act(async () => { body.querySelector('p[data-px]')!.remove(); block.dataset.px = '0'; });
+  await change(() => { body.querySelector('p[data-px]')!.remove(); block.dataset.px = '0'; });
   expect(rows().every(r => !r.hidden)).toBe(true);
   expect(line().hidden).toBe(true);
 });
