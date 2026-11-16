@@ -111,12 +111,18 @@ export function HoloNext({size}: {size: WidgetSize}) {
   if (!items) return <HoloReading/>;
   const next = nextItems(items, now, size === 'S' ? 2 : 3);
   if (!next.length) return <NovaEmpty pillar="habits" ghost="rows" href="/app/habits" action="Add a habit">{items.length ? 'Nothing else is due today. A calm orbit.' : 'Nothing is planned yet. A habit, a task or a bill shows up here at its time.'}</NovaEmpty>;
-  return <WholeRows as="ol" wrapClassName="holo-next-box" className="holo-next holo-next-wide" aria-label="Next in your day" min={1} more={(hidden, shown) => moreWords(hidden, {shown, where: 'your agenda'})}>{next.map(i => <li key={i.id} data-pillar={i.pillar} data-when={i.when}>
+  // Session AM-3 (round 6): a timeline rail (ref 14) — one lit rail the height of the panel, a node per step (the first
+  // white-hot), a hexagon with the step's state drawn in it (decoration: the words at the row's end say it), the time as a
+  // figure. The rows share the panel's height, so three always stand where there is room for three.
+  return <WholeRows as="ol" wrapClassName="holo-next-box" className="holo-next holo-next-wide holo-rail" aria-label="Next in your day" min={1} more={(hidden, shown) => moreWords(hidden, {shown, where: 'your agenda'})}>{next.map((i, k) => <li key={i.id} data-pillar={i.pillar} data-when={i.when} data-lead={k === 0 || undefined}>
     <span className="holo-next-time">{i.time ? formatClock(i.time) : '—'}</span>
     {i.href ? <Link href={i.href} prefetch={false} title={i.title}>{i.title}</Link> : <span title={i.title}>{i.title}</span>}
     <small>{WHEN[i.when]}</small>
+    <svg className="holo-rail-hex" viewBox="-18 -18 36 36" aria-hidden="true" focusable="false"><path className="holo-rail-hex-rim" d="M0 -15.5L13.4 -7.75V7.75L0 15.5L-13.4 7.75V-7.75Z"/><path className="holo-rail-hex-in" d="M0 -11.6L10 -5.8V5.8L0 11.6L-10 5.8V-5.8Z"/><path className="holo-rail-hex-glyph" data-fill={i.when === 'next' || undefined} d={HEX_GLYPH[i.when]}/></svg>
   </li>)}</WholeRows>;
 }
+/** What the hexagon draws for a step's state: a play mark (next), a clock (later), a turn back (earlier), a small sun (any time). */
+const HEX_GLYPH = {next: 'M-2.8 -4.6L4.8 0L-2.8 4.6Z', later: 'M0 -6A6 6 0 1 0 0 6A6 6 0 1 0 0 -6M0 -3.4V0L2.6 1.7', earlier: 'M-4.2 -4.2A6 6 0 1 1 -6 0M-4.4 -7.4V-4H-1', anytime: 'M0 -2.8A2.8 2.8 0 1 0 0 2.8A2.8 2.8 0 1 0 0 -2.8M0 -7V-5.2M0 5.2V7M-7 0H-5.2M5.2 0H7M-5 -5L-3.7 -3.7M3.7 3.7L5 5M5 -5L3.7 -3.7M-3.7 3.7L-5 5'} as const;
 /** Tasks: the due, overdue and open counters (taskCounts) over the Tasks page's own rows and quick add. */
 export function HoloTasks({size}: {size: WidgetSize}) {
   // Release review AL (RR-8): the Tasks page's own day and clock (the app's zone), so a task late today counts as overdue here too.
@@ -146,7 +152,9 @@ export function HoloNotes({size}: {size: WidgetSize}) {
   const r = notesPanel(record.data, size === 'L' ? 8 : size === 'M' ? 4 : 2);
   if (!r.total) return <NovaEmpty pillar="orbit" ghost="rows">Your notes start here. A quick capture from anywhere lands in your inbox.</NovaEmpty>;
   return <div className="holo-notes" data-size={size}>
-    <p className="holo-label holo-notes-head"><HoloFigure text={String(r.inbox)} className="holo-num-big"/> <span>in your inbox</span></p>
+    {/* Session AM-3 (round 6): the count is an instrument — the figure over a strip of pips, one lit for each note that waits (eight drawn; the figure counts them all). */}
+    <p className="holo-label holo-notes-head"><HoloFigure text={String(r.inbox)} className="holo-num-big"/> <span>in your inbox</span>
+      <span className="holo-notes-pips" aria-hidden="true">{Array.from({length: 8}, (_, i) => <i key={i} data-lit={i < r.inbox || undefined} data-lead={i === Math.min(8, r.inbox) - 1 || undefined}/>)}</span></p>
     <WholeRows as="ol" wrapClassName="holo-notes-rows" className="holo-captures" aria-label={r.of === 'inbox' ? 'Waiting in your inbox' : 'Recent captures'} extra={r.more} min={1} more={(hidden, shown) => moreWords(hidden, {shown, ...(size === 'S' ? {} : {where: 'the Notes page'})})}>
       {r.rows.map(n => <li key={n.id}><Link href="/app/notes" prefetch={false} title={n.label}>{n.label}</Link><small>{noteRowWhen(n.at, today)}</small></li>)}
     </WholeRows>

@@ -302,26 +302,30 @@ export function FlowRibbons({shares, width = 260, height = 64}: {shares: readonl
   </svg>;
 }
 
-/** AM-2: the hearts' wire and each heart's own beat (ornaments: the same lines whatever the figures). */
-const BEAT = 'M3.4 12.6h4.2l1.5-2.6 2.2 6 2.3-8.2 1.9 4.8h5.1';
 /**
- * Hearts that fill by the share of a target, each named under it (never meaning by colour alone). Review m6 (lane L8d): each
+ * Hearts that fill by the share of a target, each named beside it (never meaning by colour alone). Review m6 (lane L8d): each
  * says its share in figures too ("90%", "110%"; second review p7: NOVA's one percent style, the format layer's half-up rounding: a heart is full at its target, the words say how far past), and the
  * unfilled part of the shell is a faint pink, so 90 % and 100 % read apart.
- * AM-2: each heart carries a beat line, its figure beside it and its name under both (a row), or beside both (a column in a wide panel).
+ * Session AM-3 (round 6): each heart is a drawn instrument, not a pictogram — a small ring gauge (a dark track, a gradient
+ * arc for the share with a lit end, four quarter ticks) around a heart in outline whose level rises with the share.
  */
 export function Hearts({hearts}: {hearts: readonly {key: string; label: string; share: number}[]}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   if (!hearts.length) return null;
   return <div className="holo-heartrow">
     <ul className="holo-hearts" aria-label="Targets as hearts: each fills by its share of your target">{hearts.map(h => {
-      const s = clamp01(h.share), pct = Math.max(0, h.share) * 100;
+      const s = clamp01(h.share), pct = Math.max(0, h.share) * 100, end = polar(0, 0, 13, s * 360);
       return <li key={h.key} data-full={s >= 1 || undefined}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg viewBox="-17 -17 34 34" aria-hidden="true" focusable="false">
           <defs><clipPath id={`${id}${h.key}`}><rect x="0" y={24 - 24 * s} width="24" height={24 * s}/></clipPath></defs>
-          <path className="holo-heart-shell" d={HEART_PATH}/>
-          <path className="holo-heart-fill" d={HEART_PATH} clipPath={`url(#${id}${h.key})`}/>
-          <path className="holo-heart-beat" d={BEAT}/>
+          <path className="holo-heart-ticks" d={tickPath(0, 0, 15.6, 16.8, 4)}/>
+          <circle className="holo-heart-track" r="13"/>
+          {s > 0 && <g className="holo-arc-g"><GradArc r={13} from={0} to={s * 360}/></g>}
+          {s > 0 && s < 1 && <circle className="holo-heart-end" cx={end.x} cy={end.y} r="1.7"/>}
+          <g transform="translate(-7.2 -7.7) scale(.6)">
+            <path className="holo-heart-shell" d={HEART_PATH}/>
+            <path className="holo-heart-fill" d={HEART_PATH} clipPath={`url(#${id}${h.key})`}/>
+          </g>
         </svg>
         <small>{h.label}</small>
         <small className="holo-heart-pct">{formatPercent(pct)}<span className="sr-only"> of your target</span></small>

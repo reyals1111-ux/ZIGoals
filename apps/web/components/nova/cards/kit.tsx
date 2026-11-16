@@ -84,7 +84,7 @@ export function CardNotice({kind, title, children, href, action, onAction, behin
 export function Hero({value, unit, label, children}: {value: string; unit?: string; label: string; children?: ReactNode}) {
   return <div className="nc-hero" data-len={value.length > 11 ? 'xl' : value.length > 8 ? 'l' : undefined}>
     <p className="nc-hero-figure"><HoloFigure text={value} className="nc-hero-num"/>{unit ? <span className="nc-hero-unit"> {unit}</span> : null}</p>
-    <div className="nc-hero-words"><p className="nc-hero-label">{label}</p>{children}</div>
+    <div className="nc-hero-words"><p className="nc-hero-label" title={label}>{label}</p>{children}</div>
   </div>;
 }
 /** A change over a range, in words, with its direction as a glyph in a small lit key (never colour alone; `good` picks the tone). */

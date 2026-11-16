@@ -8,7 +8,7 @@ import {useLocalToday} from '../../use-local-today';
 import {moreWords} from '../../../lib/nova/cards/whole-rows';
 import {WholeRows} from '../cards/whole-rows';
 import {CardFoot, CardNotice, Fact, Gauge, Hero, type CardProps} from '../cards/kit';
-import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
+import {GlowBar, HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
 import '../cards/wealth-cards.css';
 
@@ -21,6 +21,8 @@ import '../cards/wealth-cards.css';
  * anything: these are reminders, and the one link opens Wealth.
  * AM-2: the next bill beside its countdown ring (a thirty-tick bezel, the days inside), the ones after it as rows with
  * small countdown rings.
+ * AM-3 (round 6): the rows are status rows (a ring, the name and the amount on one line, then a countdown meter and the
+ * date), they share the panel's height, and no name wraps (a long one ends in an ellipsis; its whole words are its tooltip).
  */
 const SHOWN = {S: 1, M: 3, L: 6} as const;
 /** The countdown dial (the kit's ring gauge; a bezel of thirty ticks, one a day): the days to the due date inside, lit by how near it is. Decoration over the row's words. */
@@ -53,6 +55,8 @@ export default function BillsWidget({size = 'M'}: Partial<CardProps>) {
         <Countdown line={l} size={size === 'L' ? 40 : 34}/>
         <span className="nc-bills-name" title={l.title}>{l.title}</span>
         <span className="nc-bills-amount">{l.amount}</span>
+        {/* Session AM-3 (round 6): a meter in every row — how near the due date is over its last thirty days (decoration; the words beside it say the date and the days). */}
+        <GlowBar share={l.near} className="nc-bills-meter"/>
         <span className="nc-bills-when" data-over={l.overdue || undefined}>{l.date} · {l.when}</span>
       </li>)}</WholeRows>
     </div>}

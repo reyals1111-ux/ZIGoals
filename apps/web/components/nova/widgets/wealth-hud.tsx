@@ -58,7 +58,8 @@ export default function WealthHudWidget({size}: {size: WidgetSize}) {
     ...(hud.purpose.available > 0n ? [{key: 'free', free: true, share: Number(hud.purpose.available * 10000n / hud.purpose.total) / 10000}] : [])] : [];
   return <div className="holo-wealth" data-size={size}>
     <div className="holo-wealth-head">
-      <span className="holo-label">Tracked wealth{hud.incomplete && p ? ' · known so far' : ''}</span>
+      {/* Session AM-3 (round 6): "known so far" is a plate beside the label (the same words, in order: the dot between them is kept for a reader and not drawn), so the label never breaks inside it. */}
+      <span className="holo-label">Tracked wealth{hud.incomplete && p ? <span className="holo-label-chip"><span className="sr-only"> · </span>known so far</span> : null}</span>
       <HoloFigure text={total} className="holo-num-big"/>
       {!p && <small className="holo-note">{hud.missingValue ? 'Your holdings have no known value yet.' : 'No value yet.'}</small>}
       {hud.otherCurrencies.length > 0 && <small className="holo-note">+ held in {hud.otherCurrencies.join(', ')} · never converted</small>}

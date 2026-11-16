@@ -496,3 +496,68 @@
 }
 /* Round 4: a large Now playing gives its level strip the height the panel has (it stopped at 170 px over a hole). */
 .nova-widget[data-holo] .nova-playing[data-size=L] > .nova-disc { max-height: 380px; }
+
+/* ==== Session AM-3 (round 6): the list instruments (see holo/holo-parts.css) ==== */
+
+/* Tasks: the quick add is an instrument's key row, not a web form — one lit slot with a plus mark at its head, the
+   words and the time as fields without boxes, a lit rule under them, and "Add" as a key at its end. Every field and
+   the button keep their 44 px, their names and their focus ring. */
+.nova-widget[data-holo] .tasks-widget .tasks-add { position: relative; gap: 0; align-items: stretch; padding-left: 40px; border-radius: 3px 10px 3px 10px; background-color: #050919cc;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 50%, transparent), 0 0 16px -6px var(--neon, #9273ff); }
+.nova-widget[data-holo] .tasks-widget .tasks-add::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 40px; pointer-events: none; filter: drop-shadow(0 0 4px var(--neon, #9273ff));
+  background: linear-gradient(var(--neon-2, #c0adff), var(--neon-2, #c0adff)) 50% 50% / 14px 2px no-repeat, linear-gradient(var(--neon-2, #c0adff), var(--neon-2, #c0adff)) 50% 50% / 2px 14px no-repeat; }
+.nova-widget[data-holo] .tasks-widget .tasks-add::after { content: ''; position: absolute; left: 40px; right: 10px; bottom: 5px; height: 2px; border-radius: 2px; pointer-events: none;
+  background: linear-gradient(90deg, var(--neon, #9273ff), color-mix(in oklab, var(--neon, #9273ff) 18%, transparent)); box-shadow: 0 0 8px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-) { border: 0; border-radius: 0; background: transparent; color: #f2f6ff; padding: 0 10px 0 2px; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-):not(:focus-visible) { box-shadow: none; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-)::placeholder { color: #b9c6e2; opacity: 1; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-) { padding: 0 8px 0 10px; border-left: 1px solid color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); font-variant-numeric: tabular-nums; letter-spacing: .04em; color-scheme: dark; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-) { position: relative; z-index: 1; border: 0; border-left: 1px solid color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); border-radius: 0 9px 0 9px; padding: 0 18px;
+  background: color-mix(in oklab, var(--neon, #9273ff) 26%, #060a1c); color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):not(:focus-visible) { box-shadow: inset 0 1px 0 #ffffff33, inset 0 0 16px -4px var(--neon, #9273ff), 0 0 12px -4px var(--neon, #9273ff); }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):hover { background: color-mix(in oklab, var(--neon, #9273ff) 40%, #060a1c); }
+/* A narrow panel (a wing at 1440) keeps the words' field wide enough for its hint: no plus mark, a tighter key. */
+@container holo-body (max-width: 420px) {
+  .nova-widget[data-holo] .tasks-widget .tasks-add { padding-left: 10px; }
+  .nova-widget[data-holo] .tasks-widget .tasks-add::before { content: none; }
+  .nova-widget[data-holo] .tasks-widget .tasks-add::after { left: 10px; }
+  .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-) { padding: 0 2px 0 6px; letter-spacing: 0; }
+  .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-) { padding: 0 12px; letter-spacing: .08em; }
+}
+
+/* Day at a glance: every line is a status plate (a lit bar at its head, the node on it), not a bare line of words. */
+.nova-widget[data-holo] .hw-glance .hw-rows { gap: 5px; }
+.nova-widget[data-holo] .hw-glance .hw-rows > .hw-row::before { left: 11px; top: 12px; }
+.nova-widget[data-holo] .hw-glance > .hw-rows > .hw-row:nth-child(n) { padding: 5px 10px 5px 27px; border: 1px solid color-mix(in oklab, var(--neon, #7fc8ff) 24%, transparent); border-radius: 3px 9px 3px 9px; background-color: color-mix(in oklab, var(--neon, #7fc8ff) 6%, #060a1c80); box-shadow: inset 3px 0 0 color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent); }
+
+/* Goal pace: the meter is a slot with weight (14 px, was 12) and the figure is larger. */
+.nova-widget[data-holo] .hw-goals .holo-gauge { height: 14px; }
+
+/* Now playing, at rest: the level strip is lit (its columns at 90 %, white caps, a centre line), not a dim grey strip. */
+.nova-widget[data-holo] .nova-playing .nova-disc i { opacity: .92; box-shadow: inset 0 2px 0 #ffffffd9, inset 0 -2px 0 #ffffff73, 0 0 9px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nova-widget[data-holo] .nova-playing > .nova-disc { position: relative; background: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)) 0 50% / 100% 1px no-repeat, #050919; }
+.nova-widget[data-holo] .nova-playing .nova-round { box-shadow: 0 0 0 1px var(--neon, #7fc8ff), 0 0 14px -2px var(--neon, #7fc8ff), inset 0 0 12px -4px var(--neon, #7fc8ff); }
+
+/* Focus, at rest: the week's columns are a lit instrument (brighter slots, today's slot ringed), and the figure glows. */
+.nova-widget[data-holo] .hw-focus .holo-cols-slot { background: color-mix(in oklab, var(--neon, #7fc8ff) 10%, #050919); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #7fc8ff) 40%, transparent); }
+.nova-widget[data-holo] .hw-focus .holo-cols-day[data-today] .holo-cols-slot { box-shadow: inset 0 0 0 1.5px var(--neon-2, #c4e6ff), 0 0 12px -1px var(--neon, #7fc8ff); }
+.nova-widget[data-holo] .hw-focus .holo-cols-slot::after { content: ''; position: absolute; left: 3px; right: 3px; bottom: 3px; height: 2px; border-radius: 1px; background: color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent); }
+/* The band (1440: a small Focus under the fold) keeps its week of columns: beside the figure where there is room, else under it. */
+.nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols { display: grid; --cols-h: 40px; max-width: none; }
+@container holo-body (min-width: 300px) {
+  .nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { grid-template-columns: minmax(0, 1fr) minmax(120px, 42%); grid-template-rows: auto auto; column-gap: 16px; }
+  .nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-big { grid-area: 1 / 1 / 2 / 3; }
+  .nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-chip-link { grid-area: 2 / 1 / 3 / 3; justify-self: start; }
+  .nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols { grid-area: 3 / 1 / 4 / 3; margin-top: 4px; }
+}
+
+/* Market watch (round 6): a tile whose price is not in yet is a sparkline tile waiting (ref 15), not an empty slab: the
+   ghost of a trace — a dim zigzag over the dashed baseline — along its foot (an ornament, never data; the words say
+   the price is not in). Only where the tile has the height for it under its words. */
+@container holo-body (min-height: 150px) {
+  .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not([data-priced])::after { height: 17px; opacity: .6;
+    background: linear-gradient(135deg, transparent calc(33.33% - .8px), var(--neon, #ffd27a) calc(33.33% - .8px) calc(33.33% + .8px), transparent calc(33.33% + .8px)) 0 0 / 32px 16px repeat-x,
+      linear-gradient(225deg, transparent calc(33.33% - .8px), var(--neon, #ffd27a) calc(33.33% - .8px) calc(33.33% + .8px), transparent calc(33.33% + .8px)) 0 0 / 32px 16px repeat-x,
+      repeating-linear-gradient(90deg, var(--neon, #ffd27a) 0 6px, transparent 6px 12px) 0 100% / 100% 1px no-repeat; }
+  .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not([data-priced]) { align-content: start; padding-top: 12px; }
+}

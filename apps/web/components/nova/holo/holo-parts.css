@@ -1102,6 +1102,12 @@
 .holo-water[data-empty] > .holo-water-ghost > svg { display: block; width: 100%; height: 100%; }
 .holo-water[data-empty] > :not(.holo-water-ghost, .sr-only) { grid-column: 2; }
 .nova-frame[data-look=classic] .holo-water-ghost { width: 48px; height: 48px; }
+/* Session AM-3 (round 6): Small with nothing logged. The unlit ring spanned five rows of a one-row strip and was cut by it,
+   with the figure and the meter stacked beside it. It now stands in the strip's one row, as tall as the strip allows,
+   with the figure and the meter beside it; a narrow strip keeps the figure and the meter alone. */
+.holo-water[data-empty][data-size=S] > .holo-water-ghost { grid-row: 1; --ghost: clamp(28px, 100cqh - 10px, 44px); }
+@container holo-body (min-width: 560px) { .holo-water[data-empty][data-size=S] { grid-template-columns: auto auto minmax(0, 1fr); column-gap: 20px; } .holo-water[data-empty][data-size=S] > .holo-big-line { grid-column: 2; grid-row: 1; } .holo-water[data-empty][data-size=S] > .holo-meter { grid-column: 3; grid-row: 1; } }
+@container holo-body (max-width: 559.98px) { .holo-water[data-empty][data-size=S] { grid-template-columns: minmax(0, 1fr); } .holo-water[data-empty][data-size=S] > .holo-water-ghost { display: none; } .holo-water[data-empty][data-size=S] > :not(.holo-water-ghost, .sr-only) { grid-column: 1; } }
 
 /* Round 4 (bolder instruments): the single HUD ring carries a thick arc — 8 of the 84-unit ring (track r 42 ± 4 = 38…46:
    clear of the tick bezel from 49.5 and of the inner hairline at 34.6). The clock dials, the orbit of planets, the
@@ -1126,4 +1132,131 @@
   :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li:last-child::after { bottom: 6px; }
   :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li a, :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li > span:nth-child(2) { margin-top: -12px; margin-bottom: -6px; }
   :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li small { text-transform: none; letter-spacing: 0; font-weight: 400; color: #c3cfe6; }
+}
+
+/* ==== Session AM-3 (round 6): the list instruments, redrawn (references 14, 15 and 18) ====
+   A list is an instrument: one lit rail or a stack of status rows that takes the whole panel, never three lines over
+   a dark half. Every glow here is static; nothing new moves. */
+
+/* Next three: a timeline rail (ref 14). The box is the body's own height, so its rows share it (48 px at least, 96 at
+   most) and three stand wherever three fit: at 72 px each they used to overflow, and the third left for "+1 more". */
+.holo-next-box > .holo-rail { grid-auto-rows: minmax(48px, auto); isolation: isolate; }
+@container holo-body (min-height: 1px) {
+  .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .holo-next-box { height: 100cqh; }
+  .holo-next-box > .holo-rail { height: 100%; grid-auto-rows: minmax(48px, 96px); align-content: center; }
+}
+/* The rail: one lit line down the list, its nodes on it (the first white-hot, the rest dark with a lit ring). */
+.holo-next-box > .holo-rail::before { content: ''; position: absolute; z-index: 0; left: 4px; top: 4px; bottom: 4px; width: 2px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--neon-2, #c4e6ff), var(--neon, #7fc8ff) 45%, color-mix(in oklab, var(--neon, #7fc8ff) 24%, transparent)); box-shadow: 0 0 8px 1px color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent); }
+.holo-next-box > .holo-rail > li { border-top-color: color-mix(in oklab, var(--neon, #7fc8ff) 22%, transparent); }
+.holo-next-box > .holo-rail > li::before { z-index: 1; left: 0; width: 10px; height: 10px; background: #070b22; box-shadow: 0 0 0 2px var(--node), 0 0 9px 1px var(--node); }
+.holo-next-box > .holo-rail > li[data-lead]::before { background: #fff; box-shadow: 0 0 0 2px var(--node), 0 0 0 5px color-mix(in oklab, var(--node) 30%, transparent), 0 0 14px 3px var(--node); }
+/* The row's own link to the next node is the rail now; its place is the first row's wash (a pseudo-element under the words). */
+.holo-next-box > .holo-rail > li::after { content: none; }
+.holo-next-box > .holo-rail > li[data-lead]::after { content: ''; position: absolute; z-index: -1; inset: 3px 0 3px 20px; top: 3px; bottom: 3px; left: 20px; width: auto; opacity: 1; border-radius: 4px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--node) 15%, transparent), transparent 78%); box-shadow: inset 2px 0 0 color-mix(in oklab, var(--node) 80%, transparent); }
+.holo-rail-hex { display: none; }
+.holo-rail-hex-rim { fill: color-mix(in oklab, var(--node, #7fc8ff) 9%, #060a1c); stroke: var(--node, #7fc8ff); stroke-width: 1.4; stroke-linejoin: round; filter: drop-shadow(0 0 3px color-mix(in oklab, var(--node, #7fc8ff) 75%, transparent)); }
+.holo-rail-hex-in { fill: none; stroke: color-mix(in oklab, var(--node, #7fc8ff) 38%, transparent); stroke-width: .7; }
+.holo-rail-hex-glyph { fill: none; stroke: #f2f7ff; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.holo-rail-hex-glyph[data-fill] { fill: #fff; stroke: #fff; stroke-width: 1; }
+@container holo-body (min-width: 560px) {
+  .holo-next-box > .holo-rail > li { grid-template-columns: 44px 104px minmax(0, 1fr) max-content; grid-template-areas: "hex time title when"; column-gap: 14px; padding-left: 28px; padding-right: 4px; }
+  .holo-next-box > .holo-rail > li::before { left: -1px; top: calc(50% - 6px); width: 12px; height: 12px; }
+  .holo-next-box > .holo-rail > li[data-lead]::after { left: 22px; }
+  .holo-next-box > .holo-rail .holo-rail-hex { display: block; grid-area: hex; width: 42px; height: 42px; overflow: visible; }
+  .holo-next-box > .holo-rail .holo-next-time { font-size: 20px; line-height: 24px; letter-spacing: .01em; text-shadow: 0 0 12px color-mix(in oklab, var(--node) 55%, transparent); }
+  .holo-next-box > .holo-rail > li a, .holo-next-box > .holo-rail > li > span:nth-child(2) { font-size: 17px; }
+  /* The state at the row's end is a plate: lit for the step that is next, an outline for the rest. */
+  .holo-next-box > .holo-rail > li small { padding: 3px 10px; border-radius: 3px; border: 1px solid color-mix(in oklab, var(--node) 50%, transparent); background-color: #060a1cb3; font-size: 14px; line-height: 18px; color: #e6eefc; }
+  .holo-next-box > .holo-rail > li[data-when=next] small { border-color: var(--node); background-color: color-mix(in oklab, var(--node) 20%, #060a1c); color: #fff; box-shadow: 0 0 10px -2px var(--node); }
+}
+
+/* Notes inbox: status rows (ref 18). The count is an instrument (the figure over a strip of pips, one lit for each note
+   that waits); every note is a plate with a lit bar and a diamond at its head, and the plates share the panel's height. */
+.holo-notes-pips { display: none; }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-notes-pips { display: grid; grid-auto-flow: column; grid-auto-columns: 13px; gap: 3px; height: 7px; margin-left: auto; align-self: center; }
+.holo-notes-pips i { border-radius: 1px; transform: skewX(-22deg); background-color: color-mix(in oklab, var(--neon, #7fc8ff) 13%, #ffffff0a); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #7fc8ff) 24%, transparent); }
+.holo-notes-pips i[data-lit] { background-color: var(--neon, #7fc8ff); box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #7fc8ff) 72%, transparent); }
+.holo-notes-pips i[data-lead] { background-color: #fff; box-shadow: 0 0 8px 1px var(--neon, #7fc8ff), 0 0 18px 2px color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent); }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-captures { gap: 6px; }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-captures li { padding: 0 12px 0 34px; border: 1px solid color-mix(in oklab, var(--neon, #7fc8ff) 26%, transparent); border-radius: 3px 10px 3px 10px;
+  background-color: color-mix(in oklab, var(--neon, #7fc8ff) 6%, #060a1c80); box-shadow: inset 3px 0 0 color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent); }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-captures li:first-child { border-color: color-mix(in oklab, var(--neon, #7fc8ff) 48%, transparent); box-shadow: inset 3px 0 0 var(--neon-2, #c4e6ff), 0 0 14px -6px var(--neon, #7fc8ff); }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-captures li::before { left: 15px; width: 8px; height: 8px; margin-top: -4px; border-radius: 1px; transform: rotate(45deg); background: #070b22; box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 1px var(--neon, #7fc8ff); }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-captures li:first-child::before { background: #fff; }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-captures a { font-weight: 600; }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-captures small { color: var(--neon-ink, #e3f3ff); font-weight: 600; }
+@container holo-body (min-height: 1px) {
+  .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .holo-notes:is([data-size=M], [data-size=L]) { height: 100cqh; }
+  /* The rows' box is a column that centres them; the list may shrink (its rows from 76 px down to 44) before a row leaves. */
+  .holo-notes:is([data-size=M], [data-size=L]) > .holo-notes-rows { align-self: stretch; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+  .holo-notes:is([data-size=M], [data-size=L]) > .holo-notes-rows > .holo-captures { flex: 0 1 auto; min-height: 0; grid-auto-rows: minmax(44px, 76px); }
+  .holo-notes:is([data-size=M], [data-size=L]) > .holo-notes-rows > .wr-more { flex: none; }
+}
+@container holo-body (min-width: 560px) {
+  .holo-notes:is([data-size=M], [data-size=L]) .holo-notes-pips { margin: 8px 0 0; grid-auto-columns: 16px; height: 8px; }
+  .holo-notes:is([data-size=M], [data-size=L]) .holo-captures a { font-size: 16px; }
+}
+
+/* Health's hearts: drawn gauges. A ring for the share (a dark track, the gradient arc, a lit end, quarter ticks) around
+   a heart in outline whose level rises with it. */
+.holo-heart-track { fill: color-mix(in oklab, #ff74be 7%, #04071a); stroke: color-mix(in oklab, #ff74be 22%, #ffffff10); stroke-width: 3; }
+.holo-hearts .holo-arc { stroke-width: 3; }
+.holo-heart-ticks { fill: none; stroke: #ffa9d8; stroke-width: 1; opacity: .8; }
+.holo-heart-end { fill: #fff; stroke: #ff74be; stroke-width: .6; }
+.holo-hearts .holo-heart-shell { fill: #14061c; stroke: #ffa9d8; stroke-width: 1.6; stroke-linejoin: round; }
+.holo-hearts .holo-heart-fill { fill: #ff74be; stroke: #ffd3ea; stroke-width: 1.2; filter: drop-shadow(0 0 2px #ff4fb8); }
+.holo-hearts li[data-full] .holo-heart-track { stroke: color-mix(in oklab, #ff74be 40%, #ffffff10); }
+/* The gauges are 28 px where the hearts are a column beside the meters and the body has the height for five of them; 22 px elsewhere (as the hearts were). */
+@container holo-body (min-width: 560px) and (min-height: 160px) {
+  .holo-health:is([data-size=M], [data-size=L]) .holo-hearts svg { width: 28px; height: 28px; }
+  .holo-health:is([data-size=M], [data-size=L]) .holo-hearts li { grid-template-columns: 28px 44px auto; }
+}
+
+/* The Health ring's figure leaves the ring's well clear: at most 86 % of the well's width for its characters
+   ("1,970" in an 84 px ring is 14 px, not 17.6: it touched the arc at 1440 and 1024). */
+.holo-health .holo-ring .holo-num-ring, .nova-widget[data-size] .holo-health .holo-ring .holo-num-ring { font-size: clamp(14px, min(calc(var(--ring, 104px) * .2), calc(var(--ring, 104px) * .86 / var(--chars, 5))), 44px); }
+
+/* Wealth: "known so far" is a plate of its own beside the label (it used to break in the middle: "known so / far"). */
+.holo-label-chip { display: inline-block; margin-left: 8px; padding: 0 6px; border: 1px dashed color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent); border-radius: 3px; line-height: 16px; letter-spacing: .06em; white-space: nowrap; color: var(--neon-ink, #fff0cf); }
+@container holo-body (min-width: 560px) {
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-wealth-head .holo-label { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; white-space: nowrap; }
+  .holo-wealth:is([data-size=M], [data-size=L]) .holo-wealth-head .holo-label-chip { margin-left: 0; }
+}
+/* The wave's frame: its four labels stand in two strips of their own (22 px, a hairline between each strip and the
+   plot), so no label touches the plot, its ruler or the frame; the key inside the plot is a plate with an edge. */
+.holo-frame.holo-wave { padding-block: 22px; }
+.holo-wave .holo-frame-label[data-at=top], .holo-wave .holo-frame-label[data-at=title] { top: 3px; }
+.holo-wave .holo-frame-label[data-at=bottom], .holo-wave .holo-frame-label[data-at=from] { bottom: 3px; }
+.holo-wave .holo-wave-plot { box-shadow: 0 -1px 0 #ffd27a3d, 0 1px 0 #ffd27a3d; }
+.holo-wave .holo-wave-plot svg { height: calc(var(--wave-h, 48px) - 6px); }
+.holo-wave .holo-wave-tag { background: #070b1f; box-shadow: inset 0 0 0 1px #ffd27a52; padding: 1px 6px; }
+.holo-wave .holo-wave-legend[data-corner=top] { top: 5px; } .holo-wave .holo-wave-legend[data-corner=bottom] { bottom: 9px; }
+
+/* ---- Thicker instruments (round 6) ---- */
+/* Goals HUD: each goal's arc is a band (10 of the 100-unit dial, was 6) over a dark well with a lit rim. */
+.holo-arc-box::before { content: ''; position: absolute; inset: 19%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in oklab, var(--neon, #9273ff) 16%, #04071a), #04071a); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), 0 0 12px -2px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); }
+.holo-arc-box > .holo-num-arc { z-index: 1; }
+.holo-arc-box .holo-track-path:not([data-unknown]), .holo-arc-box .holo-arc { stroke-width: 10; }
+.holo-arc-box .holo-track-path:not([data-unknown]) { stroke: color-mix(in oklab, var(--neon, #9273ff) 24%, #0a0f2c); }
+.holo-arc-box .holo-glint { stroke-width: 1.8; }
+.holo-arc-box .holo-lead { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; }
+.holo-pace-chart .holo-band-mid { stroke-width: 2; }
+/* Today's orbit: the orbit is a track with weight (5, was 2), its lit stretch a band, its planets a third larger. */
+.holo-orbit-ring .holo-track { stroke-width: 5; stroke: color-mix(in oklab, var(--neon, #7fc8ff) 22%, #0a0f2c); }
+.holo-orbit-arc .holo-arc { stroke-width: 5.6; }
+.holo-orbit-ring .holo-planet { transform-box: fill-box; transform-origin: 50% 50%; transform: scale(1.3); stroke-width: 1.4; }
+.holo-orbit-ring .holo-planet[data-lit] { stroke-width: 1.8; }
+/* The Agenda clock: the day's arc and its track are bands (6, was 3), the hand is brighter. */
+.holo-clock .holo-track { stroke-width: 6; stroke: color-mix(in oklab, var(--neon, #7fc8ff) 20%, #0a0f2c); }
+.holo-clock-day .holo-arc { stroke-width: 6; opacity: 1; }
+.holo-clock .holo-hand { stroke-width: 1.8; }
+.holo-clock .holo-hand-tip { stroke-width: 3; }
+/* The band under the fold (1440): a medium Agenda clock or Today's orbit stacks — the dial over its rows, larger — so
+   the panel is as full as the Tasks panel beside it (the dial stood in a third of a tall, empty panel). */
+@container holo-body (max-width: 559.98px) {
+  .nova-orbit-band-grid :is(.holo-agenda, .holo-orbit)[data-size=M] { grid-template-columns: minmax(0, 1fr); justify-items: center; row-gap: 10px; }
+  .nova-orbit-band-grid .holo-agenda[data-size=M] .holo-clock, .nova-orbit-band-grid .holo-orbit[data-size=M] .holo-orbit-ring { --ring: clamp(120px, 50cqi, 176px); }
+  .nova-orbit-band-grid .holo-agenda[data-size=M] .holo-agenda-side, .nova-orbit-band-grid .holo-orbit[data-size=M] .holo-orbit-side { width: 100%; }
 }

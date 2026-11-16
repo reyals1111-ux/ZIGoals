@@ -190,3 +190,18 @@
 /* Round 4: in a narrow panel "+2 earlier, in Behind the intelligence → Requests" takes two lines instead of ending in
    "→ R…" (the rows are measured as they are laid out, so the line's real height is what the list makes room for). */
 .nc-requests-rows > .wr-more { white-space: normal; overflow: visible; text-overflow: clip; }
+
+/* Session AM-3 (round 6): Your requests is a timeline that fills its panel — the rail has weight (2 px, lit), the nodes
+   are larger, and the rows share the height the panel leaves (to 76 px each) instead of standing over a dark half. */
+.nc-requests:not([data-size=S]) .nc-requests-list::before { left: 4px; width: 2px; border-radius: 2px; box-shadow: 0 0 8px 1px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent); }
+.nc-requests:not([data-size=S]) .nc-request::before { width: 12px; height: 12px; left: -1px; }
+@container holo-body (min-height: 1px) {
+  .nc-requests:not([data-size=S]) > .nc-requests-rows { flex: 1 1 0; min-height: 0; margin-block: 0; grid-template-rows: minmax(0, 1fr) auto; }
+  .nc-requests:not([data-size=S]) > .nc-requests-rows > .nc-requests-list { height: 100%; grid-auto-rows: minmax(min-content, 76px); align-content: center; }
+  .nc-requests:not([data-size=S]) .nc-request { align-content: center; }
+}
+/* The words keep the row's whole width (they were cut at "Show my habits this…" beside the time); when and where is the line under them, and "Show again" is the key at the row's end. */
+.nc-requests:not([data-size=S]) .nc-request { grid-template-columns: minmax(0, 1fr) auto; }
+.nc-requests:not([data-size=S]) .nc-request-text { grid-column: 1; grid-row: 1; }
+.nc-requests:not([data-size=S]) .nc-request-meta { grid-column: 1; grid-row: 2; align-self: start; }
+.nc-requests:not([data-size=S]) .nc-request-again { grid-column: 2; grid-row: 1 / span 2; }

@@ -395,3 +395,10 @@
 /* Round 4 (large, a narrower wing): a habit's name keeps 96 px before the lattice's cells keep their full size
    ("Exerci…", "Medit…" and "Contri…" were cut at 72 px beside 28 px cells; the cells give way, down to 14 px). */
 .nc-habitweek[data-size=L] > .nc-lattice :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(96px, 1fr) repeat(7, minmax(14px, var(--nc-cell, 22px))) 46px; }
+
+/* Session AM-3 (round 6): the pace line's names are axis labels, never over the line. "Target" stands at the end of
+   its dashed line in a gutter the plot leaves at its right (as on the Goals HUD); "Today" stands under the plot at
+   today's place (it used to lie on the plot, over the line and the band). */
+.nc-goal[data-size] > .nc-goal-chart { margin-right: 62px; }
+.nc-goal-tag[data-at=target] { right: auto; left: calc(100% + 8px); transform: translateY(-50%); padding: 0; border-left: 0; background: none; }
+.nc-goal-tag[data-at=today] { top: calc(100% + 5px) !important; margin-top: 0; border-left: 0; padding: 0 2px; background: none; }
