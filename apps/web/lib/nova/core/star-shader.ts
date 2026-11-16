@@ -98,7 +98,7 @@ void main(){
   col += mix(mix(uB, uC, step(.87, kh)), vec3(1.), .5) * knot * 1.25;
   // ---- the core: a white heart, a violet bloom, a thin accretion ring ----
   float pulse = 1. + .06*sin(uT*1.1) + .5*uSpeak*uPulse + .12*uThink*sin(uT*5.) + .22*uThink + .08*uListen;
-  float core = exp(-r*r*560./(pulse*pulse)) * 1.25 + exp(-r*13.)*.46*pulse + exp(-r*r*5200.)*2.6 + exp(-rr*rr*90000.)*3.;
+  float core = exp(-r*r*420./(pulse*pulse)) * 1.9 + exp(-r*13.)*.46*pulse + exp(-r*r*5200.)*2.6 + exp(-rr*rr*90000.)*3.;
   col += mix(vec3(1.), uA*1.1+.3, up(0.,.18,r)) * core;
   float bulge = exp(-length(uv*vec2(1.,1.3))*7.5);
   col += (uA*.6 + uC*.34 + .1) * (bulge * .62 + exp(-rr*7.)*.03) * pulse;
@@ -149,13 +149,16 @@ void main(){
   col += mix(uB, vec3(1.), .5) * uBeam * (line*1.5 + spark*1.2);
   // ---- the orbits, the moon and the planet, rim-lit from the core ----
   float oa = uT*(.10+.12*uThink) + 1.1, ma = -uT*(.23+.2*uThink) + 4.;
-  float trace = dn(0.,.0035, abs(r-ORBIT)), trace2 = dn(0.,.003, abs(r-MOON));
+  // Round 6 ("the planet is cut to a half disc by the column's edge"): where the star is wider than its column (uEdge < 1)
+  // the planet's orbit is drawn inside the column, so the planet is always whole; where the canvas fits, the orbit is its own.
+  float orbit = min(ORBIT, max(MOON + .04, (uEdge - .075) / .943));
+  float trace = dn(0.,.0035, abs(r-orbit)), trace2 = dn(0.,.003, abs(r-MOON));
   col += uB * trace * (.16 + .4*(.5+.5*cos(a - oa))) + uA * trace2 * (.10 + .3*(.5+.5*cos(a - ma)));
   vec2 mo = rot(-ROLL) * vec2(cos(ma)*MOON, sin(ma)*MOON*TILT);
   float mr = .011 * (1. - .16*sin(ma)), md = length(uv - mo);
   float moonBehind = step(0., sin(ma)) * dn(.05,.12, length(mo));
   col += mix(uC, vec3(1.), .7) * (dn(mr*.5, mr, md)*1.3 + exp(-md*120.)*.25) * (1.-moonBehind);
-  vec2 po = rot(-ROLL) * vec2(cos(oa)*ORBIT, sin(oa)*ORBIT*TILT);
+  vec2 po = rot(-ROLL) * vec2(cos(oa)*orbit, sin(oa)*orbit*TILT);
   float pr = .05 * (1. - .16*sin(oa));
   vec2 d = uv - po; float pd = length(d);
   float body = dn(pr-.0035, pr, pd);
@@ -168,7 +171,7 @@ void main(){
     float rim = sq(1.-nz)*sqrt(max(1.-nz, 0.)), facing = max(0., dot(n, -po/max(length(po), 1e-4)));
     // A body in every frame: a dark globe with faint bands, a thin lit limb all the way round, brightest toward the core.
     float cres = sq(sq(lit)) * lit;
-    vec3 pc = vec3(.006,.008,.026) + uA * .035 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uC, vec3(1.), .78) * (cres * 2.6 + sq(lit)*.35) + mix(uB, vec3(1.), .45) * rim * (.5 + 4.2*facing);
+    vec3 pc = vec3(.008,.011,.034) + uA * .075 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uC, vec3(1.), .78) * (cres * 2.6 + sq(lit)*.35) + mix(uB, vec3(1.), .5) * rim * (1.1 + 5.6*facing);
     col = mix(col, pc, solid);
   }
   col += uB * exp(-max(pd-pr, 0.)*70.) * (.16 + .3*max(0., dot(d, -po)/max(pd*length(po), 1e-4))) * (1.-behind) * (1.-body);
