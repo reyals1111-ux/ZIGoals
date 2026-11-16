@@ -74,6 +74,7 @@ import {NOVA_STORE} from '../nova/store';
 import {NOVA_STAGE} from '../nova/stage/record';
 import {keepWorldSwitch, NOVA_WORLD_RESTORE} from '../nova/world/record';
 import {NOVA_OUTBOX} from '../nova/outbox/record';
+import {TODAY_ORBITS} from '../today-orbits/record';
 import {freshServerIds, NOVA_AGENT_RESTORE} from '../nova/agent-bridge/record';
 import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
@@ -252,6 +253,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AP (Part 6): each its own record; the three health-type ones only with the Health choice (owner addition 1).
   dev('taskWhen', 'This evening and Someday', 'Today and Life', TASK_WHEN),
   dev('countdowns', 'Days until', 'Today and Life', COUNTDOWNS),
+  // Session AR (6b; TIER 3 (stored format), additive): whether "Your orbits" shows on Today (a display choice).
+  dev('todayOrbits', 'Your orbits on Today', 'Today and Life', TODAY_ORBITS),
   dev('moneyTags', 'Tags on money entries', 'Goals and Wealth', MONEY_TAGS_RECORD),
   dev('moodTags', 'Mood tags', 'Health', MOOD_TAGS, true),
   dev('symptoms', 'Symptoms and factors', 'Health', SYMPTOMS, true),
