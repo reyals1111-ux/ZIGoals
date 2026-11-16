@@ -1,5 +1,5 @@
 'use client';
-import {useId, useMemo, useRef, useState, type DragEvent} from 'react';
+import {useEffect, useId, useMemo, useRef, useState, type HTMLAttributes, type PointerEvent as ReactPointerEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import {TaskRow} from './task-parts';
@@ -19,6 +19,10 @@ import './tasks-when.css';
  *   Both live in their own device record, `zigoals:task-when:v1` (lib/tasks/when.ts), never in the task record.
  * - "Priority matrix": the open tasks in four boxes from priority and day (lib/tasks/matrix.ts); moving a card (drag,
  *   or its button: the keyboard way) changes only its priority level, through the task's own edit, with Undo.
+ *   Session AR (6c): the drag is a pointer drag for a mouse or pen (HTML5 drag-and-drop could not be confirmed in headless
+ *   Chromium): a press that moves less than DRAG_SLOP_PX stays a click; past it the card follows the pointer (a
+ *   transform, so nothing else moves), the box under it is outlined, and the release makes the same move as the card's
+ *   button (the same write, announcement and Undo). Escape cancels. Touch and the keyboard keep the button.
  */
 type List = ReturnType<typeof useTaskList>;
 type Goals = ReturnType<typeof useGoalOptions>;
@@ -82,11 +86,14 @@ function WhenList({kind, list, goals}: {kind: 'evening' | 'someday'; list: List;
   </section>;
 }
 
-const MATRIX_DRAG = 'application/x-zigoals-matrix';
+/** A press that moves this little is a click, not a drag (the Checklist's rows use the same distance). */
+const DRAG_SLOP_PX = 8;
+type PointerDrag = {id: string; el: HTMLElement; x: number; y: number; active: boolean; pointer: number};
 function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: Task[]}) {
   const {today, clock, tasks} = list, record = tasks.data, id = useId();
   const boxes = useMemo(() => matrix(shown, today), [shown, today]);
-  const dragging = useRef<string | null>(null), [over, setOver] = useState<Quadrant | null>(null);
+  const [over, setOver] = useState<Quadrant | null>(null), [dragging, setDragging] = useState<string | null>(null);
+  const pointer = useRef<PointerDrag | null>(null), stop = useRef<() => void>(() => undefined);
   const move = (task: Task, target: Quadrant) => {
     let level;
     try { level = levelForMove(task, target, today); } catch (e) { showStatus(e instanceof Error ? e.message : 'That box is for another day.', {tone: 'error'}); return; }
@@ -95,26 +102,69 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
     list.change(r => editTask(r, task.id, {level}, today, {allowPast: true}), `“${task.title}” moved to “${QUADRANT_WORDS[target].title}”: ${LEVEL_WORDS[level]}.`, `“${task.title}” is back at ${was}.`);
     requestAnimationFrame(() => document.querySelector<HTMLElement>(`#task-${CSS.escape(task.id)} .tasks-matrix-move`)?.focus());
   };
-  const drop = (q: Quadrant) => ({
-    onDragOver: (e: DragEvent<HTMLElement>) => { if (dragging.current || e.dataTransfer.types.includes(MATRIX_DRAG)) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setOver(q); } },
-    onDragLeave: () => setOver(o => o === q ? null : o),
-    onDrop: (e: DragEvent<HTMLElement>) => {
-      e.preventDefault(); e.stopPropagation(); setOver(null);
-      const from = dragging.current ?? e.dataTransfer.getData(MATRIX_DRAG); dragging.current = null;
-      const task = from ? record.tasks.find(t => t.id === from) : undefined;
-      if (task) move(task, q);
-    },
-  });
+  // The latest move and record, for the window listeners of a drag in progress.
+  const latest = useRef({move, record});
+  useEffect(() => { latest.current = {move, record}; });
+  useEffect(() => () => stop.current(), []);
+  const boxAt = (x: number, y: number): Quadrant | null => {
+    const q = document.elementFromPoint(x, y)?.closest<HTMLElement>('.tasks-matrix-box')?.dataset.quadrant;
+    return (QUADRANTS as readonly string[]).includes(q ?? '') ? q as Quadrant : null;
+  };
+  const startDrag = (taskId: string) => (e: ReactPointerEvent<HTMLElement>) => {
+    // A mouse or a pen, the main button, not in a field being typed in; touch keeps scrolling and the card's button.
+    if (e.pointerType === 'touch' || e.button !== 0 || pointer.current) return;
+    if ((e.target as HTMLElement).closest('input, textarea, select, [contenteditable="true"]')) return;
+    pointer.current = {id: taskId, el: e.currentTarget, x: e.clientX, y: e.clientY, active: false, pointer: e.pointerId};
+    const end = () => {
+      const d = pointer.current; pointer.current = null;
+      window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', end); window.removeEventListener('keydown', onKey, true);
+      if (d) Object.assign(d.el.style, {transform: '', pointerEvents: '', position: '', zIndex: ''});
+      setOver(null); setDragging(null); stop.current = () => undefined;
+    };
+    const onMove = (ev: PointerEvent) => {
+      const d = pointer.current;
+      if (!d || ev.pointerId !== d.pointer) return;
+      const dx = ev.clientX - d.x, dy = ev.clientY - d.y;
+      if (!d.active) {
+        if (Math.hypot(dx, dy) <= DRAG_SLOP_PX) return;
+        d.active = true; setDragging(d.id);
+        window.getSelection()?.removeAllRanges();
+        // The card is drawn above the boxes and lets the pointer find the box beneath it; its place in the list stays.
+        Object.assign(d.el.style, {pointerEvents: 'none', position: 'relative', zIndex: '5'});
+      }
+      ev.preventDefault();
+      d.el.style.transform = `translate(${dx}px, ${dy}px)`;
+      setOver(boxAt(ev.clientX, ev.clientY));
+    };
+    const onUp = (ev: PointerEvent) => {
+      const d = pointer.current;
+      if (!d || ev.pointerId !== d.pointer) return;
+      const active = d.active, target = active ? boxAt(ev.clientX, ev.clientY) : null;
+      end();
+      if (!active) return; // a click: the button or title under it does its own work
+      // The click that follows a drag's release is not a press on the card's own buttons.
+      const swallow = (c: MouseEvent) => { c.preventDefault(); c.stopPropagation(); };
+      window.addEventListener('click', swallow, {capture: true, once: true});
+      setTimeout(() => window.removeEventListener('click', swallow, {capture: true}), 0);
+      const task = latest.current.record.tasks.find(t => t.id === d.id);
+      if (task && target) latest.current.move(task, target);
+    };
+    const onKey = (ev: KeyboardEvent) => { if (ev.key === 'Escape' && pointer.current?.active) { ev.preventDefault(); ev.stopPropagation(); end(); } };
+    window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', end); window.addEventListener('keydown', onKey, true);
+    stop.current = end;
+  };
   return <section className="tasks-matrix-view" aria-labelledby={`${id}-rule`}>
     <p id={`${id}-rule`} className="tasks-when-lede">{MATRIX_RULE}</p>
-    <div className="tasks-matrix">{QUADRANTS.map(q => {
+    <div className="tasks-matrix" data-dragging={dragging ? '' : undefined}>{QUADRANTS.map(q => {
       const words = QUADRANT_WORDS[q], items = boxes[q], partner = partnerOf(q);
-      return <section key={q} className="tasks-matrix-box" data-quadrant={q} data-drop={over === q || undefined} aria-labelledby={`${id}-${q}`} {...drop(q)}>
+      return <section key={q} className="tasks-matrix-box" data-quadrant={q} data-drop={over === q || undefined} aria-labelledby={`${id}-${q}`}>
         <h3 id={`${id}-${q}`}>{words.title} <small>{formatNumber(items.length)}</small></h3>
         <p className="tasks-matrix-hint">{words.hint}</p>
         {items.length ? <ul className="tasks-list" aria-label={words.title}>{items.map(t => <TaskRow key={t.id} task={t} today={today} nowClock={clock} record={record}
           goal={t.goal ? goals.byKey.get(t.goal) : undefined} goals={goals.open} onToggle={done => list.toggle(t, done)}
-          drag={{draggable: true, onDragStart: (e: DragEvent<HTMLElement>) => { e.stopPropagation(); dragging.current = t.id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData(MATRIX_DRAG, t.id); e.dataTransfer.setData('text/plain', t.title); }, onDragEnd: () => { dragging.current = null; setOver(null); }}}>
+          drag={{onPointerDown: startDrag(t.id), ...(dragging === t.id ? {'data-dragging': ''} : {})} as HTMLAttributes<HTMLElement>}>
           <div className="tasks-when-actions">
             <button type="button" className="text-link tasks-matrix-move" aria-label={`Move “${t.title}” to “${QUADRANT_WORDS[partner].title}”`} onClick={() => { if (quadrantOf(t, today) === q) move(t, partner); }}>
               {q === 'do' || q === 'plan' ? 'Not important' : 'Important'}
@@ -123,6 +173,6 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
         </TaskRow>)}</ul> : <p className="fine">Nothing here.</p>}
       </section>;
     })}</div>
-    <p className="fine">Drag a card to the box beside it, or use its button. Only the priority changes (to P1, P2 or P3); to make a task urgent or not, change its day.</p>
+    <p className="fine">Drag a card to the box beside it with a mouse, or use its button. Only the priority changes (to P1, P2 or P3); to make a task urgent or not, change its day.</p>
   </section>;
 }
