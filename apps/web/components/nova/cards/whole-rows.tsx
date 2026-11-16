@@ -87,10 +87,24 @@ function createFitter(): Fitter {
     busy = true;
     try {
       const rows = lists.map(m => rowsOf(m.list)), all = rows.map(r => r.length);
-      const body = first.wrap.closest<HTMLElement>(BODY), fit = !!body && body.clientHeight > 0, boxes = new Set<HTMLElement>(fit ? [body] : []);
+      // Round 7: a panel as tall as its content (a phone, the band, a narrow stage) has nothing to fit, and is known by its
+      // style alone (a fitted body is a size container; holo.css). There the layout is never read: on a phone every list
+      // used to read its panel on each measure, about a second of the stage's load, for an answer that is always "every row".
+      // (Where the browser says nothing about containers, a test without layout, the body's height decides as before.)
+      const body = first.wrap.closest<HTMLElement>(BODY), kind = body ? getComputedStyle(body).containerType : undefined, sized = kind !== 'inline-size' && kind !== 'normal';
+      const fit = !!body && sized && body.clientHeight > 0, boxes = new Set<HTMLElement>(fit ? [body] : []);
       if (fit) for (const m of lists) for (let el: HTMLElement | null = m.wrap; el && el !== body; el = el.parentElement) if (el.hasAttribute('data-wr-limit')) boxes.add(el);
       // Nothing the last measure read has changed (the same lists and rows, in the same boxes, of the same sizes): its answer stands.
-      if (!force && fitted && sameItems(fitted.lists, lists) && sameItems(fitted.boxes, [...boxes]) && fitted.rows.length === rows.length && fitted.rows.every((r, i) => sameItems(r, rows[i]!)) && sameItems(fitted.sizes, sizesOf([...boxes], lists))) return;
+      const sameRows = () => !!fitted && sameItems(fitted.lists, lists) && sameItems(fitted.boxes, [...boxes]) && fitted.rows.length === rows.length && fitted.rows.every((r, i) => sameItems(r, rows[i]!));
+      if (body && !sized) {
+        // Nothing to fit: every row, no "+N more" beyond what the widget holds elsewhere, and no layout read.
+        if (!force && fitted && !fitted.sizes.length && sameRows()) return;
+        lists.forEach((m, i) => { rows[i]!.forEach(el => setHidden(el, false)); setHidden(m.more, m.extra <= 0); setHidden(m.wrap, false); });
+        fitted = {lists, rows, boxes: [], sizes: []};
+        lists.forEach((m, i) => m.report(m.extra, all[i]!, true));
+        return;
+      }
+      if (!force && sameRows() && sameItems(fitted!.sizes, sizesOf([...boxes], lists))) return;
       // `bare`: no "+N more" line at all (the measure's base, and the last resort below).
       const apply = (shown: readonly number[], bare = false) => lists.forEach((m, i) => {
         const n = all[i]!, k = shown[i]!;
