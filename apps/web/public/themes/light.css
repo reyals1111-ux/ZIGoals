@@ -15474,6 +15474,14 @@
         background-image: radial-gradient(7px 7px at 100% 50%, #242424 0, color-mix(in srgb, var(--nova-b, #23eaff) 80%, #fff) 45%, transparent 100%);
         background-color: transparent
     }
+    .nova-star-standin[data-kind=starting]:not(#\-)::before {
+        background-image: radial-gradient(closest-side, color-mix(in srgb, var(--nova-c, #f06dff) 34%, transparent) 0, color-mix(in srgb, var(--nova-a, #9273ff) 22%, transparent) 38%, color-mix(in srgb, var(--nova-b, #23eaff) 8%, transparent) 72%, transparent 100%);
+        background-color: transparent
+    }
+    .nova-star-standin[data-kind=starting]:not(#\-)::after {
+        background-image: radial-gradient(closest-side, #242424d1 0, color-mix(in srgb, var(--nova-c, #f06dff) 46%, transparent) 42%, transparent 100%);
+        background-color: transparent
+    }
 }
 /*  components/nova/guide-band.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
