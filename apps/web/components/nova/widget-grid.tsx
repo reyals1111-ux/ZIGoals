@@ -4,6 +4,7 @@ import {useRouter} from 'next/navigation';
 import {Suspense, lazy, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ComponentType, type KeyboardEvent, type PointerEvent, type MouseEvent, type ReactNode, type RefObject} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {BENTO_SPAN, HOLO_ROWS, ROWS as ROWS_AK, MAX_LEAN, dropPlace, holoRowsFit, holoUnit, phoneColumn, placeOrbit, placeWords, rowsFit, swapPartner, visibleFor, wideSides, type HudLook, type Placed} from '../../lib/nova/layout';
+import {composeStage, composedWords, wingCapacity, wingOrder, TIER_GAP, type Composed} from '../../lib/nova/compose';
 import {settleDelay} from '../../lib/nova/orb';
 import {WIDGET_SIZES, type NovaLayout, type NovaWidget, type WidgetSize} from '../../lib/nova/store';
 import type {StageWidget, WidgetParams} from '../../lib/nova/stage/record';
@@ -62,19 +63,24 @@ export type GridActions = {move: (id: string, to: number) => void; nudge: (id: s
   swap?: (a: string, b: string) => void; announce?: (words: string) => void};
 /** Session AK P3 (ND-1): the stage area's own height (its content box), read before paint and on every resize. */
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
-function useStageHeight(ref: RefObject<HTMLElement | null>): number | null {
-  const [height, setHeight] = useState<number | null>(null);
+function useStageSize(ref: RefObject<HTMLElement | null>): {height: number | null; width: number | null} {
+  const [size, setSize] = useState<{height: number | null; width: number | null}>({height: null, width: null});
   useIsoLayoutEffect(() => {
-    const area = ref.current?.parentElement;
-    if (!area) return;
-    const read = () => { const css = getComputedStyle(area); setHeight(area.clientHeight - (parseFloat(css.paddingTop) || 0) - (parseFloat(css.paddingBottom) || 0)); };
+    const area = ref.current?.parentElement, box = ref.current;
+    if (!area || !box) return;
+    const read = () => {
+      const css = getComputedStyle(area), height = area.clientHeight - (parseFloat(css.paddingTop) || 0) - (parseFloat(css.paddingBottom) || 0), width = box.clientWidth;
+      setSize(was => was.height === height && was.width === width ? was : {height, width});
+    };
     read();
     if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(read); observer.observe(area);
+    const observer = new ResizeObserver(read); observer.observe(area); observer.observe(box);
     return () => observer.disconnect();
   }, [ref]);
-  return height;
+  return size;
 }
+/** Session AR (ADR-041): the composed stage needs three columns with room for a hero beside the star (the same line as nova.css's 1040 px). */
+const COMPOSE_FROM = 1040;
 
 /**
  * Session AK (owner follow-up 2 N2, follow-up 3 N12; lane NA): the widgets floating on the orbit rings around the star.
@@ -83,14 +89,17 @@ function useStageHeight(ref: RefObject<HTMLElement | null>): number | null {
  * alone. While arranging, each panel has Move earlier / Move later, its size and Remove as buttons, and a grip that
  * drags it (pointer) or moves it with the arrow keys (keyboard): the same change three ways.
  */
-export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false, motes = false, live}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean;
+export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false, motes = false, live, starColumn}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean;
   /** Session AM (ADR-038 D1–D5): NOVA's live stage — which widgets are pinned or just made, their parameters and gates, and Pin / Hide / Close. */
   live?: StageApi;
   /** Lane L8e: the HUD's floating motes (Full motion, Holo, a computer), drawn in the star's column behind the star. */
-  motes?: boolean}) {
+  motes?: boolean;
+  /** Session AR (ADR-041 S1, S2): the width of the star's own column (px), set by how full the stage is; with it the
+   *  Holo orbit on a computer is composed in tiers (lib/nova/compose.ts). */
+  starColumn?: number}) {
   const shown = phone ? phoneColumn(layout, widgets) : visibleFor(layout, widgets), order = shown.map(w => w.id), holo = look === 'holo';
   const [drag, setDrag] = useState<{id: string; target: string | null; dx: number; dy: number} | null>(null);
-  const start = useRef<{x: number; y: number}>({x: 0, y: 0}), box = useRef<HTMLDivElement>(null), stageHeight = useStageHeight(box);
+  const start = useRef<{x: number; y: number}>({x: 0, y: 0}), box = useRef<HTMLDivElement>(null), {height: stageHeight, width: stageWidth} = useStageSize(box);
   // Review fixes (lane L8d, B1, M2): the Holo look's own rows — S one unit, M two, L four — as many as the stage holds, the
   // unit grown to fill its height; AK's cards keep their rows and caps.
   const fit = holo ? holoRowsFit(stageHeight) : rowsFit(stageHeight), unit = holo ? holoUnit(stageHeight, fit) : 0;
@@ -99,20 +108,30 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
   // a preset: the list changes by more than a few) is placed afresh.
   const standing = useRef<{fit: number; side: ReadonlyMap<string, 'left' | 'right' | 'band'>}>({fit: 0, side: new Map()});
   // A locked widget is a short notice whatever size was asked: in the orbit it takes the rows of S (design review AM-D21).
-  const rowsOfShown = live ? shown.map(w => { const on = live.shown.find(x => x.id === w.id); return on && live.gateOpen(on) === false && w.size !== 'S' ? {...w, size: 'S' as const} : w; }) : shown;
+  const lockedIds = new Set(live ? shown.filter(w => { const on = live.shown.find(x => x.id === w.id); return !!on && live.gateOpen(on) === false; }).map(w => w.id) : []);
+  const rowsOfShown = shown.map(w => lockedIds.has(w.id) && w.size !== 'S' ? {...w, size: 'S' as const} : w);
   const before = standing.current, ids = new Set(shown.map(w => w.id));
   const changed = shown.filter(w => !before.side.has(w.id)).length + [...before.side.keys()].filter(id => !ids.has(id)).length;
-  // The memory holds for the same stage height only (another height is another set of rows) and for a change of a few widgets.
-  const keepSides = !editing && before.side.size > 0 && before.fit === fit && changed <= 3;
-  const placed = layout === 'orbit' && !phone ? placeOrbit(rowsOfShown, fit, holo ? HOLO_ROWS : ROWS_AK, keepSides ? id => before.side.get(id) : undefined).map((p, i) => ({...p, size: shown[i]!.size})) : [];
-  standing.current = {fit, side: new Map(placed.map(p => [p.id, p.side] as const))};
+  // Session AR (ADR-041 P3, S1–S3): the Holo orbit on a computer is composed in tiers — a hero, supporting panels and
+  // compact plates a wing, around a star whose column follows how full the stage is. While arranging, the panels show in
+  // their stored sizes on AM's rows, so a place means the same before and after a move (D23).
+  const gap = stageWidth !== null && stageWidth >= 1700 ? 28 : 20;
+  const composing = holo && layout === 'orbit' && !phone && !editing && shown.length > 0 && typeof starColumn === 'number' && stageWidth !== null && stageWidth > COMPOSE_FROM;
+  const wingWidth = composing ? Math.max(0, (stageWidth - starColumn - 2 * gap) / 2) : 0, capacity = composing ? wingCapacity(stageHeight, wingWidth) : 0;
+  // The memory holds for the same stage (another height or capacity is another set of rows) and for a change of a few widgets.
+  const mark = composing ? 100 + capacity : fit;
+  const keepSides = !editing && before.side.size > 0 && before.fit === mark && changed <= 3;
+  const prefer = keepSides ? (id: string) => before.side.get(id) : undefined;
+  const composed: Composed[] = composing ? composeStage(shown, {height: stageHeight, wingWidth, prefer, slim: id => lockedIds.has(id), made: live ? id => { const on = live.shown.find(x => x.id === id); return !!on && !on.pinned; } : undefined}) : [];
+  const placed = layout === 'orbit' && !phone && !composing ? placeOrbit(rowsOfShown, fit, holo ? HOLO_ROWS : ROWS_AK, prefer).map((p, i) => ({...p, size: shown[i]!.size})) : [];
+  standing.current = {fit: mark, side: new Map((composing ? composed : placed).map(p => [p.id, p.side] as const))};
   // Review m9: after a move from the keyboard, the status line says where the panel is now ("2 of 9, right column").
   const moved = useRef<string | null>(null), announce = actions.announce;
   useEffect(() => {
     const id = moved.current;
     if (!id || !announce) return;
     moved.current = null;
-    const words = placed.length ? placeWords(placed, id) : `${order.indexOf(id) + 1} of ${order.length}`;
+    const words = composed.length ? composedWords(composed, id) : placed.length ? placeWords(placed, id) : `${order.indexOf(id) + 1} of ${order.length}`;
     if (words) announce(`${widgetSpec(id)?.title ?? 'The widget'} is now ${words}.`);
   }, [order.join(' '), announce]); // eslint-disable-line react-hooks/exhaustive-deps
   const grip = (w: NovaWidget) => ({
@@ -135,7 +154,7 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); moved.current = w.id; actions.nudge(w.id, 1); }
     },
   });
-  const frame = (w: NovaWidget, index: number, style: CSSProperties, place?: Placed) => <WidgetFrame key={w.id} widget={w} index={index} count={shown.length} style={style} side={place?.side}
+  const frame = (w: NovaWidget, index: number, style: CSSProperties, place?: {side: Placed['side']}, tier?: Composed['tier']) => <WidgetFrame key={w.id} widget={w} index={index} count={shown.length} style={style} side={place?.side} tier={tier}
     editing={editing} opening={opening} dragging={drag?.id === w.id ? drag : null} dropTarget={drag?.target === w.id} grip={grip(w)} actions={actions} holo={holo} live={live}/>;
   const unitStyle = holo ? {'--holo-u': `${unit}px`} as CSSProperties : undefined, fitMark = (kind: 'orbit' | 'bento' | 'focus') => holo ? kind : undefined;
   // Lane L8e: the motes live with the star, in the open sky no glass panel lies over (never on the sky canvas under the glass).
@@ -146,6 +165,24 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
     // Session AK P3 (ND-1, ND-2, ND-16): the star owns the stage's whole height (its middle is the window's optical middle);
     // the side columns hold what fits beside it, each centred on the star and sized to its content, and lean in by their
     // inner edge only (the outer edges stay in line); what does not fit rests on the outer band, below the fold.
+    if (composing) {
+      // The wings in the order they are drawn (top to bottom; the right wing's hero stands at its foot), so Tab follows the eye.
+      // A panel's body is drawn at its tier's size (`show`); its stored size is untouched.
+      const wing = (which: 'left' | 'right') => wingOrder(composed, which).map(c => frame({...c, size: c.show}, c.order, {'--tier-h': `${c.height}px`, '--tier-span': c.span, '--tier-row': c.row} as CSSProperties, c, c.tier));
+      const rest = composed.filter(c => c.side === 'band'), large = (which: 'left' | 'right') => composed.some(c => c.side === which && c.tier === 'hero' && c.show === 'L');
+      const wide = large('left') && large('right') ? 'both' : large('left') ? 'left' : large('right') ? 'right' : undefined;
+      return <div ref={box} className="nova-orbit" style={unitStyle} data-holo-fit={fitMark('orbit')} data-compose="">
+        <div className="nova-orbit-main" data-compose="" data-wide={wide} style={{'--star-col': `${Math.round(starColumn)}px`, '--tier-gap': `${TIER_GAP}px`} as CSSProperties}>
+          <div className="nova-orbit-centre"><span className="holo-floor" aria-hidden="true"/>{dust}{stage}</div>
+          <div className="nova-orbit-side" data-side="left">{wing('left')}</div>
+          <div className="nova-orbit-side" data-side="right">{wing('right')}</div>
+        </div>
+        {rest.length > 0 && <div className="nova-orbit-band" role="group" aria-label="More on your orbit">
+          <p className="nova-eyebrow nova-orbit-band-title" aria-hidden="true">More on your orbit</p>
+          <div className="nova-orbit-band-grid">{rest.map(c => frame(c, c.order, {}, c))}</div>
+        </div>}
+      </div>;
+    }
     const band = placed.filter(p => p.side === 'band');
     const side = (which: 'left' | 'right') => placed.filter(p => p.side === which).map(p => frame(p, p.order, {'--inset': `${MAX_LEAN - p.lean}px`} as CSSProperties, p));
     return <div ref={box} className="nova-orbit" style={unitStyle} data-holo-fit={fitMark('orbit')}>
@@ -165,8 +202,8 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
   return <div ref={box} className="nova-minimal">{stage}</div>;
 }
 
-function WidgetFrame({widget, index, count, style, side, editing, opening, dragging, dropTarget, grip, actions, holo, live}: {
-  widget: NovaWidget; index: number; count: number; style: CSSProperties; side?: Placed['side']; editing: boolean; opening: boolean;
+function WidgetFrame({widget, index, count, style, side, tier, editing, opening, dragging, dropTarget, grip, actions, holo, live}: {
+  widget: NovaWidget; index: number; count: number; style: CSSProperties; side?: Placed['side']; tier?: Composed['tier']; editing: boolean; opening: boolean;
   dragging: {dx: number; dy: number} | null; dropTarget: boolean; grip: Record<string, unknown>; actions: GridActions; holo: boolean; live?: StageApi;
 }) {
   // Session AM (D3, D5): pinned or made, just made (it materialises once), its parameters, and whether its switch is open.
@@ -206,7 +243,7 @@ function WidgetFrame({widget, index, count, style, side, editing, opening, dragg
   // link, button or field inside it does what that control does.
   const tap = holo && !editing && actions.quick && gate === true ? (e: MouseEvent<HTMLDivElement>) => { if (!(e.target as Element).closest('a, button, input, textarea, select, label, summary')) actions.quick!(widget.id); } : undefined;
   const stageActions = live ? {pinned, onPin: () => live.pin(widget.id), onUnpin: () => live.unpin(widget.id), onHide: () => live.hide(widget.id), onClose: () => live.close(widget.id)} : null;
-  return <article ref={panel} className="nova-widget" data-widget={widget.id} data-size={widget.size} data-pillar={spec.pillar} data-side={side} data-holo={holo ? '' : undefined} data-fit={fitKind}
+  return <article ref={panel} className="nova-widget" data-widget={widget.id} data-size={widget.size} data-pillar={spec.pillar} data-side={side} data-tier={tier} data-holo={holo ? '' : undefined} data-fit={fitKind}
     data-made={live ? (fresh ? 'fresh' : pinned ? undefined : 'made') : undefined} data-pinned={live && pinned ? '' : undefined} data-locked={gate === false ? '' : undefined} data-notice={notice && gate !== false ? '' : undefined} data-dragging={dragging ? '' : undefined} data-drop={dropTarget ? '' : undefined} data-cut={cut && !editing ? '' : undefined} style={css} aria-labelledby={`${id}-t`} tabIndex={-1}>
     <span className="nova-widget-planet" aria-hidden="true"/>
     {holo && <><span className="holo-aura" aria-hidden="true"/><span className="holo-brackets" aria-hidden="true"/><span className="holo-ruler" aria-hidden="true"/><span className="holo-sheen" aria-hidden="true"/></>}

@@ -160,3 +160,22 @@
   /* On a very wide stage each step of an ornament's spin recomposes several megapixels on the processor: there the ornaments rest too (at 1440 px they keep turning). */
   .nova-frame[data-soft] .holo-orn, .nova-frame[data-soft] .holo-lens { animation: none !important; }
 }
+
+/* ==== Session AR (ADR-041 P3, S1–S3): the composed stage — "a star with satellites" ====
+   The Holo orbit on a computer from 1040 px of stage (lib/nova/compose.ts, components/nova/widget-grid.tsx). The star's
+   column is set in px by how full the stage is (`--star-col`: S2, "the star makes room"); each wing is a grid of six
+   columns whose rows are the tiers — a hero across the wing, supporting panels (two side by side in a wide wing), compact
+   plates — with the heights the composition worked out (`--tier-h`). The right wing is the left one upside down, so the
+   heroes stand on the galaxy's long axis. Nothing here moves: the star's one-time change of size is a transform
+   (nova-dashboard.tsx). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose]:not(#\-) { grid-template-columns: minmax(0, var(--wing-l, 1fr)) var(--star-col, 420px) minmax(0, var(--wing-r, 1fr)); }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose]:is([data-wide=left], [data-wide=both]) { --wing-l: 1.3fr; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose]:is([data-wide=right], [data-wide=both]) { --wing-r: 1.3fr; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: max-content; align-content: center; gap: var(--tier-gap, 12px); }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side > .nova-widget[data-holo][data-tier] { grid-column: span var(--tier-span, 6); grid-row: var(--tier-row, auto); height: var(--tier-h, var(--h-m)); min-height: 0; }
+/* The bezel is nine tenths of the star's canvas wherever its column holds it (it was .86: the column is the bezel's own now). */
+.nova-frame[data-stage=set] .nova-orbit-main[data-compose] .nova-orb-button[data-star] { --bz: min(calc(var(--star-size, 440px) * .9), calc(var(--star-col, 440px) * .98)); }
+/* The large star's box: the name's row really takes 88 px of the stage (124 px were kept for it). */
+@container nova-stage (min-width: 1040.02px) {
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit .nova-orb-button[data-star] { min-height: min(var(--star-box, 0px), max(96px, calc(100cqb - var(--ns-slot) - 88px))); }
+}
