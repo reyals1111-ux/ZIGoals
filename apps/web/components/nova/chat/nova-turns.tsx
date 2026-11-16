@@ -32,7 +32,7 @@ import type {useReadAloud} from '../../ai/use-voice';
 import type {useProposals} from '../../ai/use-proposals';
 import {ZigiAvatar} from '../../zigi/zigi-avatar';
 import {AgentGlyph, PersonaFigure, type NovaPersona} from './nova-figure';
-import {countOf, gaugeOf, gaugeWords, litFigures, ReadoutInstrument} from './nova-readout';
+import {countOf, gaugeOf, gaugeWords, readoutFigures, ReadoutInstrument} from './nova-readout';
 const QuickAddLine = lazy(() => import('../../quick-add-line').then(m => ({default: m.QuickAddLine})));
 
 /**
@@ -110,7 +110,7 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
       <div className="nova-turn-body">
         <p className="nova-turn-who" aria-hidden="true">{who}</p>
         {(parsed.text || parsed.proposals.length > 0) && <TurnKind cards={parsed.proposals.length > 0}/>}
-        {parsed.text && !(cardShown && reply?.kind === 'examples') && <div className="ncx-rx-words" data-gauge={gauge ? '' : undefined} data-inst={instrument ? '' : undefined}>{instrument && <ReadoutInstrument gauge={instrument.gauge} caption={instrument.caption} count={instrument.count}/>}<SafeText className={local ? 'ai-local-answer' : undefined} text={parsed.text} mark={litFigures}/></div>}
+        {parsed.text && !(cardShown && reply?.kind === 'examples') && <div className="ncx-rx-words" data-gauge={gauge ? '' : undefined} data-inst={instrument ? '' : undefined}>{instrument && <ReadoutInstrument gauge={instrument.gauge} caption={instrument.caption} count={instrument.count}/>}<SafeText className={local ? 'ai-local-answer' : undefined} text={parsed.text} mark={readoutFigures}/></div>}
         {!local && turn.tools && turn.tools.length > 0 && <p className="nova-looked"><span>{zigi ? 'ZIGi looked at:' : 'Looked at:'}</span> {turn.tools.map((t, i) => <span key={i} className="ai-source-chip">{t.label}</span>)}</p>}
         <DataViz results={local ? info?.results : session.lookupsFor(turn.id)?.map(l => l.result)}/>
         {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList onDevice={local} proposals={parsed.proposals} rejected={parsed.rejected} handles={local ? localHandles : session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}

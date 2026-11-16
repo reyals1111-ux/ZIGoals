@@ -9,7 +9,9 @@ const wing = (c: Composed[], side: 'left' | 'right') => wingOrder(c, side).map(x
 describe('Session AR (ADR-041): the composed stage', () => {
   it('a wing holds the rows its height allows, each unit at least TIER_UNIT_MIN', () => {
     expect(wingTiers(300)).toEqual(['hero']);
-    expect(wingTiers(430)).toEqual(['hero', 'compact']);
+    expect(wingTiers(430)).toEqual(['hero']);
+    expect(wingTiers(470)).toEqual(['hero', 'compact']);
+    expect(wingTiers(650)).toEqual(['hero', 'supporting']); // beside the conversation's console with a two-row status strip: no 104 px plate
     expect(wingTiers(587)).toEqual(['hero', 'supporting']); // 1440 × 900
     expect(wingTiers(726)).toEqual(['hero', 'supporting', 'compact']); // 1920 × 1080
     expect(wingTiers(1083)).toEqual(['hero', 'supporting', 'compact']); // 2560 × 1440
@@ -22,7 +24,8 @@ describe('Session AR (ADR-041): the composed stage', () => {
     expect(tierCells('supporting', 420)).toBe(1);
     expect(tierCells('supporting', 744)).toBe(2);
     expect(tierCells('compact', 350)).toBe(1);
-    expect(tierCells('compact', 620)).toBe(2);
+    expect(tierCells('compact', 625)).toBe(1); // 2560 with the left bar open: one wide plate, not two cramped ones
+    expect(tierCells('compact', 744)).toBe(2);
     expect(tierCells('compact', 2000)).toBe(3);
     expect(wingCapacity(587, 350)).toBe(2);
     expect(wingCapacity(726, 418)).toBe(3);

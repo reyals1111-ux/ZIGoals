@@ -25,10 +25,10 @@ export type Tier = 'hero' | 'supporting' | 'compact';
 export const TIER_WEIGHT: Record<Tier, number> = {hero: 3, supporting: 2, compact: 1};
 /** A hero the person made Large weighs four units (AL's "a side column of its own"). */
 export const LARGE_HERO_WEIGHT = 4;
-/** One unit of a wing, px: never under 104 (a compact plate still holds its figure), never over 176 (a hero is at most 528, a Large one 704). */
-export const TIER_UNIT_MIN = 104, TIER_UNIT_MAX = 176, TIER_GAP = 12;
+/** One unit of a wing, px: never under 112 (a compact plate still holds its figure and a supporting panel its instrument: at 104 a Medium body was cut), never over 176 (a hero is at most 528, a Large one 704). */
+export const TIER_UNIT_MIN = 112, TIER_UNIT_MAX = 176, TIER_GAP = 12;
 /** A wing this wide holds two supporting panels side by side; a compact plate needs this much width. */
-export const TWO_UP_MIN = 720, COMPACT_MIN = 300, COMPACT_MAX_CELLS = 3;
+export const TWO_UP_MIN = 720, COMPACT_MIN = 340, COMPACT_MAX_CELLS = 3;
 /** The size a body is drawn at: a hero is the Large body from this height on, a supporting panel the Medium one from this height on. */
 export const HERO_LARGE_FROM = 500, SUPPORTING_MEDIUM_FROM = 196;
 /** A hero is the Large body only in a wing at least this wide (or when the person made it Large); a Medium-bodied hero is at most this tall. */

@@ -1,4 +1,5 @@
 import {useId, type ReactNode} from 'react';
+import {formatDate, formatMoney, formatMonth} from '../../../lib/visual-format';
 
 /**
  * Session AM-2 (conversation console): what makes an answer in NOVA's conversation a read-out, in the language of the
@@ -15,6 +16,25 @@ import {useId, type ReactNode} from 'react';
  */
 const FIGURE = /((?:[$€£]\s?)?\d(?:[\d.,:]*\d)?(?:\s?%)?)/;
 export const litFigures = (words: string): ReactNode => words.split(FIGURE).map((part, i) => i % 2 ? <b key={i} className="ncx-fig">{part}</b> : part);
+
+/**
+ * Session AR (ADR-041; ADR-038 Q12, round 7: "the console repeats dates and amounts in their stored form beside a widget
+ * that says Tue, Dec 1 · €950.00"): in NOVA's read-out an amount in dollars or euros and a date in its stored form are
+ * written the way the app's pages and the widget beside them write them — "435.59 EUR" as "€435.59", "2026-12-01" as
+ * "Tue, Dec 1", "2026-11" as "Nov 2026". For the eye and the ear only: the turn's own text (what is kept, copied and
+ * shared with ZIGi) is unchanged, the value is the same to the cent and the day, and anything that is not exactly one of
+ * these three shapes — another currency, a token amount, a number — stays as it is written.
+ */
+const STORED_AMOUNT = /(?<![\d.,])(\d{1,3}(?:,\d{3})*|\d+)\.(\d{2}) (USD|EUR)\b/g, STORED_DAY = /(?<![\d-])(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(?![\d-])/g, STORED_MONTH = /(?<![\d-])(\d{4})-(0[1-9]|1[0-2])(?![\d-])/g;
+export function writtenFigures(words: string): string {
+  if (!/\d/.test(words)) return words;
+  return words
+    .replace(STORED_AMOUNT, (all, whole: string, cents: string, code: string) => { const out = formatMoney(`${whole.replace(/,/g, '')}.${cents}`, code); return out === 'Unavailable' ? all : out; })
+    .replace(STORED_DAY, (all, y: string, m: string, d: string) => { const day = new Date(Number(y), Number(m) - 1, Number(d), 12); return day.getDate() === Number(d) ? formatDate(day, {weekday: true, year: day.getFullYear() !== new Date().getFullYear()}) : all; })
+    .replace(STORED_MONTH, (_, y: string, m: string) => formatMonth(new Date(Number(y), Number(m) - 1, 1, 12)));
+}
+/** The read-out's mark: stored shapes written as the pages write them, then the figures lit. */
+export const readoutFigures = (words: string): ReactNode => litFigures(writtenFigures(words));
 
 export type Gauge = {part: number; label: string};
 // "4 of 7", "46.31 EUR of 200.00 EUR", "3 van 5": a number, at most one short unit word, "of", a number.
