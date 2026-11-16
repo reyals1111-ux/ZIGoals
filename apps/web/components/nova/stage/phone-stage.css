@@ -71,7 +71,7 @@
 .ps-card::after { inset: 1.5px; z-index: -1; clip-path: polygon(calc(var(--cut) - .6px) 0, 100% 0, 100% calc(100% - var(--cut) + .6px), calc(100% - var(--cut) + .6px) 100%, 0 100%, 0 calc(var(--cut) - .6px));
   background: radial-gradient(150px 70px at 0 0, color-mix(in oklab, var(--neon) 24%, transparent), transparent 72%), linear-gradient(150deg, color-mix(in oklab, var(--neon) 12%, #0a1030) 0, #070b22 56%, #050818 100%); }
 .nova-frame .ps-card:focus-visible { outline-offset: -4px; }
-.ps-card-name { grid-area: name; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 700; line-height: 1.25; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--neon) 36%, #fff); }
+.ps-card-name { grid-area: name; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 700; line-height: 1.25; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--neon) 36%, #fff); /* in srgb: the contrast walk reads the computed colour (color(srgb …)); a mix in oklab computes to oklab(), which it cannot */ }
 .ps-card-figure { grid-area: figure; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 23px; font-weight: 700; line-height: 1.15; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: #fff; }
 .ps-card-caption { grid-area: caption; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; line-height: 1.25; color: #cdd7ec; }
 .ps-card-caption[data-alone] { grid-row: 2 / 4; align-self: center; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; font-size: 15px; }
