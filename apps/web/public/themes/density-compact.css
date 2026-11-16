@@ -4859,8 +4859,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nb-lives svg:not(#\-) { margin-top: 1px; }
 /*  components/nova/stage/command-centre.css  */
 :where(:root[data-density=compact]) .cc-streak:not(#\-) { margin-top: -.5px; margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-orb-button > .cc-bezel:not(#\-) { margin-top: calc(var(--star-size, 440px) * -.45); margin-bottom: 0; }
-:where(:root[data-density=compact]) .nova-frame[data-stage=set] .nova-orb-button > .cc-bezel:not(#\-) { margin-top: calc(var(--bz) * -.5); margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-orb-button > .cc-bezel:not(#\-) { margin-top: calc(var(--bz) * -.5); margin-bottom: 0; }
 :where(:root[data-density=compact]) .cc-read:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .cc-read:not(#\-) { padding-top: 4px; padding-bottom: 3px; }
 @media (min-height: 1000px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-stage-area:not(#\-) { padding-top: 34px; padding-bottom: 36px; } }
