@@ -938,6 +938,15 @@
    leading segment is white-hot. */
 .holo-core-readout .holo-core-name { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #cdd8ee; }
 .holo-core-readout .holo-num { font-size: 16px; }
+/* Session AM-3 (round 7, "the SET ASIDE bar touches the headline below it" and "the line under the star runs to within a
+   few px of the next frame"). The read-outs keep 10 px of air under their last bars. The slot under the star has a fixed
+   height (nova.css `--ns-slot`), so that air is taken from inside the read-outs, never added: no margin above them (it
+   was 2 px), 4 px between their two rows (6), 1 px between a read-out's own lines (2) — the block is as tall as before
+   or 2 px shorter. NOVA's day line under the star balances its two lines on a computer, so a line that wraps stands
+   clear of the neighbouring frames at both sides instead of running up to one (the same lines, the same height). */
+.holo-core-readout { margin: 0 0 10px; row-gap: 4px; }
+.holo-core-readout li { row-gap: 1px; }
+.nova-frame:not([data-phone]) .nova-stage[data-holo-core] .nova-stage-below > .nova-dayline { text-wrap: balance; }
 .holo-core-bar { height: 7px; }
 .holo-core-bar i { transform: skewX(-22deg); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 20%, transparent); }
 .holo-core-bar i[data-lit] { background: linear-gradient(90deg, var(--neon, #9273ff), var(--neon-2, #c0adff)); box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 72%, transparent); }

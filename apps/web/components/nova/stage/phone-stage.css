@@ -53,7 +53,13 @@
 .ps-strip { display: flex; gap: 10px; min-width: 0; margin: 0 -16px; padding: 3px 16px 5px; list-style: none; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory; scroll-padding-inline: 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .ps-strip::-webkit-scrollbar { display: none; }
-.ps-item { flex: 0 0 min(216px, 62vw); min-width: 0; scroll-snap-align: start; --neon: #7fc8ff; --neon-2: #cfe9ff; }
+/* Session AM-3 (round 7, "the cards are cut at the right edge with no sign that the strip scrolls"): a card is as wide as
+   the window less 100 px, so the next card always peeks by the same deliberate 74 px — its dial, whole, and none of its
+   words — and the strip's last 26 px dissolve (a static mask): the peeking dial fades out toward the edge, which reads
+   as "more this way". One card alone takes the whole row and nothing fades. No script, nothing tracks a finger. */
+.ps-item { flex: 0 0 clamp(216px, calc(100vw - 100px), 340px); min-width: 0; scroll-snap-align: start; --neon: #7fc8ff; --neon-2: #cfe9ff; }
+.ps-item:only-child { flex-basis: 100%; }
+.ps-strip:has(> .ps-item + .ps-item) { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); }
 .ps-item[data-pillar=goals] { --neon: #9273ff; --neon-2: #c0adff; }
 .ps-item[data-pillar=habits] { --neon: #23eaff; --neon-2: #8ff6ff; }
 .ps-item[data-pillar=health] { --neon: #ff74be; --neon-2: #ffa9d8; }

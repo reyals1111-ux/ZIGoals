@@ -408,7 +408,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   }, [collapsed, view, anyTurns]);
   // At rest the log's bottom edge never cuts a short row (a question chip, a line of the opening words, a short card): it
   // waits under the edge until it fits (components/nova/whole-rows.ts). A long answer is read by scrolling, as before.
-  useWholeRows(() => log.current, LOG_ROWS, `${session.chat.id}|${session.chat.turns.length}|${view}|${collapsed}|${busy}`);
+  useWholeRows(() => log.current, LOG_ROWS, `${session.chat.id}|${session.chat.turns.length}|${view}|${collapsed}|${busy}`, true);
 
   const shownDraft = useMemo(() => { if (!session.draft) return ''; const draft = stripHint(session.draft); if (hasOpenFence(draft)) { const at = draft.search(/(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals/i); return at >= 0 ? draft.slice(0, at) : draft; } return parseReply(draft).text; }, [session.draft]);
   const lastAssistant = [...session.chat.turns].reverse().find(t => t.role === 'assistant'), lastAsked = lastQuestion(session.chat);
