@@ -90,8 +90,8 @@ function createFitter(): Fitter {
       // Round 7: a panel as tall as its content (a phone, the band, a narrow stage) has nothing to fit, and is known by its
       // style alone (a fitted body is a size container; holo.css). There the layout is never read: on a phone every list
       // used to read its panel on each measure, about a second of the stage's load, for an answer that is always "every row".
-      // (Where the browser says nothing about containers, a test without layout, the body's height decides as before.)
-      const body = first.wrap.closest<HTMLElement>(BODY), kind = body ? getComputedStyle(body).containerType : undefined, sized = kind !== 'inline-size' && kind !== 'normal';
+      // (holo.css declares such a body an inline-size container; any other body, and a test without layout, is decided by its height as before.)
+      const body = first.wrap.closest<HTMLElement>(BODY), kind = body ? getComputedStyle(body).containerType : undefined, sized = kind !== 'inline-size';
       const fit = !!body && sized && body.clientHeight > 0, boxes = new Set<HTMLElement>(fit ? [body] : []);
       if (fit) for (const m of lists) for (let el: HTMLElement | null = m.wrap; el && el !== body; el = el.parentElement) if (el.hasAttribute('data-wr-limit')) boxes.add(el);
       // Nothing the last measure read has changed (the same lists and rows, in the same boxes, of the same sizes): its answer stands.
