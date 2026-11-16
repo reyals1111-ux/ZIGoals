@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
-import {drewSomething, GOVERNOR_GRACE_MS, governorStep, rgb, softwareRenderer, speakPulse, STAR_ACCENT, STAR_STATE, starPace, starPixels, starRender, starWhy, type StarFailure, type StarWhy} from '../../../lib/nova/core/governor';
+import {drewSomething, GOVERNOR_GRACE_MS, governorStep, rgb, SOFTWARE_PACE, softwareRenderer, speakPulse, STAR_ACCENT, STAR_STATE, starPace, starPixels, starRender, starWhy, type StarFailure, type StarWhy} from '../../../lib/nova/core/governor';
 import {STAR_DETAILS, starDebug} from '../../../lib/nova/core/star-debug';
 import {STAR_FRAG, STAR_UNIFORMS, STAR_VERT, type StarUniform} from '../../../lib/nova/core/star-shader';
 import type {HudMotionState} from '../../../lib/nova/holo/motion';
@@ -122,7 +122,12 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
     const v = {t: 12, spin: 0.72, rate: 0.06, listen: 0, think: 0, speak: 0, beam: 0, beamA: 0, beamKey: live.current.beam?.key ?? 0, beamAt: -1e9};
     let frame = 0, timer = 0, lostTimer = 0, last = 0, lastDraw = 0, tierNow = 0, late = 0, graceUntil = 0, losses = 0, stopped = false, activeAt = performance.now(), focused = true; // the focus is read from focus and blur events only (a page that never had it still starts active)
     let checks = 0, proven = false, said = '';
-    const pixels = (scale: number) => { const want = starPixels(live.current.size, window.devicePixelRatio, scale); if (el.width !== want) { el.width = want; el.height = want; } };
+    // A processor-drawn star is at most SOFTWARE_PACE.pixels across in its own pixels, whatever its box (a 940 px star at
+    // half scale was 470 px: four times the work of the 2560 px proof's first star, for a page drawn on the same processor).
+    const pixels = (scale: number) => { const full = starPixels(live.current.size, window.devicePixelRatio, scale), want = live.current.software ? Math.min(full, SOFTWARE_PACE.pixels) : full; if (el.width !== want) { el.width = want; el.height = want; } };
+    // The canvas's marks are written only when they change: an attribute written again every frame is a change of the
+    // page every frame (every observer of the page is told, 8 to 30 times a second).
+    const mark = (key: 'star' | 'starTier' | 'starFps', value: string) => { if (el.dataset[key] !== value) el.dataset[key] = value; };
     const say = (mode: string, fps: number) => { const words = `${mode} · ${fps} fps · tier ${tierNow} · ${el.width} px`; if (words !== said) { said = words; setInfo(words); } };
     /** The first two frames are read back at the core: a frame with no light in it is a failure, said as one. */
     const prove = () => {
@@ -175,7 +180,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
       if (pace.mode === 'active' && !held && lastDraw && now >= graceUntil) { const g = governorStep(tierNow, late, now - lastDraw, pace.fps); late = g.late; if (g.tier !== tierNow) { tierNow = g.tier; setTier(tierNow); } }
       lastDraw = now;
       pixels(pace.scale); draw(now, dt, pace.speed, pace.detail);
-      el.dataset.star = pace.mode; el.dataset.starTier = String(tierNow); el.dataset.starFps = String(pace.fps);
+      mark('star', pace.mode); mark('starTier', String(tierNow)); mark('starFps', String(pace.fps));
       say(pace.mode, pace.fps);
       schedule(pace.fps);
     };

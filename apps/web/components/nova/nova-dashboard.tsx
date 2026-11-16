@@ -31,7 +31,7 @@ import {NovaSetupBanner, NovaStage} from './nova-stage';
 import {NovaTop, QuickTile} from './nova-top';
 import {StatusChips, useBrain} from './status-chips';
 import {useNovaCounts} from './use-counts';
-import {useClock, useNova, useNovaMotionLevel} from './use-nova';
+import {useMinuteClock, useNova, useNovaMotionLevel} from './use-nova';
 import {useOpening} from './use-opening';
 import {useWakePhrase} from './use-wake';
 import {WidgetGrid, type GridActions} from './widget-grid';
@@ -173,7 +173,7 @@ function barsAt(r: NovaRecord, width: number) {
  */
 export default function NovaDashboard() {
   const nova = useNova(), r = nova.data, router = useRouter();
-  const motionLevel = useNovaMotionLevel(), motion = loopRuns(motionLevel), now = useClock(), width = useWidth(), height = useHeight(), phone = width <= 640;
+  const motionLevel = useNovaMotionLevel(), motion = loopRuns(motionLevel), now = useMinuteClock(), width = useWidth(), height = useHeight(), phone = width <= 640;
   const persona = personaOf(r), you = yourNameOf(r), layout = layoutOf(r), accent = accentOf(r), shortcuts = shortcutsOn(r);
   const hermesRecord = useDeviceRecord(NOVA_HERMES), hermes = hermesRecord.loaded && !hermesRecord.unreadable ? hermesStatus(hermesRecord.data) : null;
   const showcase = useShowcase(), chain = useChainChoice(), pagesView = usePagesView(), {brain} = useBrain(), counts = useNovaCounts();

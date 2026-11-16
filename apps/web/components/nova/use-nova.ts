@@ -42,6 +42,24 @@ export function useClock(): Date | null {
   }, []);
   return now;
 }
+/**
+ * Session AM-2 (B2, found on the 2560 px proof): the dashboard's own clock, by the minute. The dashboard read the
+ * per-second clock for a top bar that shows hours and minutes and for the greeting's hour, so the whole stage rendered
+ * again every second; with the stage's widgets that was a layout pass of the whole page each second (about 0.2 s of
+ * every second at 2560 x 1440 on a processor-drawn page). It wakes at each minute's start and when the tab is shown.
+ */
+export function useMinuteClock(): Date | null {
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    let timer = 0;
+    const tick = () => { setNow(new Date()); timer = window.setTimeout(tick, 60_000 - (Date.now() % 60_000) + 5); };
+    const visible = () => { window.clearTimeout(timer); if (document.visibilityState !== 'hidden') tick(); };
+    tick();
+    document.addEventListener('visibilitychange', visible);
+    return () => { window.clearTimeout(timer); document.removeEventListener('visibilitychange', visible); };
+  }, []);
+  return now;
+}
 /** Whether the browser says it is online (true before mount). */
 export function useOnline(): boolean {
   return useSyncExternalStore(change => { window.addEventListener('online', change); window.addEventListener('offline', change); return () => { window.removeEventListener('online', change); window.removeEventListener('offline', change); }; }, () => navigator.onLine !== false, () => true);
