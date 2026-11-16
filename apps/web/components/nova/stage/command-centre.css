@@ -151,6 +151,10 @@
    their tick scale's turn repainted that whole tilted layer (at 1920 px the Showcase's opening ended late and one frame in
    thirteen took over 50 ms). There the scale rests at every width; with graphics hardware it turns as before. */
 .nova-frame[data-soft] .holo-core :is(.holo-orn, .holo-lens) { animation: none !important; }
+/* Round 7 (B2 at 2560 x 1440): the arcs of the pillar rings carry a drop-shadow glow; over the star, on a processor-drawn
+   page, that filter was drawn again with every frame of the star (one frame in seven over 50 ms with the processor slowed
+   four times; one in fifty without it). There the arcs keep their gradient and their lit ends and lose only that filter. */
+.nova-frame[data-soft] .holo-core * { filter: none !important; }
 @container nova-stage (min-width: 1700px) {
   .nova-frame[data-soft][data-look=holo]:not([data-phone]):not([data-editing]) .nova-orbit-side:is([data-side=left], [data-side=right]) { transform: none; }
   /* On a very wide stage each step of an ornament's spin recomposes several megapixels on the processor: there the ornaments rest too (at 1440 px they keep turning). */

@@ -520,7 +520,10 @@ export default function NovaDashboard() {
   // 320 px) and as tall as the first screen leaves after NOVA's words and the strip of instrument cards under it; the
   // first screen is measured (stage/use-phone-first.ts), so nothing is left empty between the words and the keys.
   const phoneIds = new Set(phone && holo ? phoneColumn(layout, stage.shown).map(w => w.id) : []), phoneWidgets = stage.shown.filter(w => phoneIds.has(w.id)), phoneSays = !!answerNow && !chatOpen;
-  const phoneUnder = (phoneSays ? 197 : width < 360 ? 99 : 75) + (showcase ? 38 : 0) + (starReport && (starReport.why || starReport.always) ? 22 : 0) + (phoneWidgets.length ? 102 : 0) + 6;
+  // Round 7 (hud-motion, "reduced motion: the HUD is fully still (phone)"): a still star always says why (Motion Off, reduced
+  // motion), so its line's room is kept from the first render; the star's own report used to shrink the star a moment after
+  // its still frame was drawn, and the frame was drawn again.
+  const phoneUnder = (phoneSays ? 197 : width < 360 ? 99 : 75) + (showcase ? 38 : 0) + (hudMove.state === 'still' || (starReport && (starReport.why || starReport.always)) ? 22 : 0) + (phoneWidgets.length ? 102 : 0) + 6;
   const phoneD = Math.round(Math.max(150, Math.min(width * .8, 320, (phoneFirst ?? height - (height >= 740 ? 290 : 205)) - phoneUnder)));
   const starSize = phone ? (holo ? Math.min(340, Math.round(phoneD * 1.12)) : 300) : Math.round(Math.max(240, Math.min(starCapNow, starRoom))), starBox = phone ? (holo ? phoneD : 126) : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.46); // round 7: 0.46 of the star (it was 0.42), so the words under it clear the bezel
   const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} column={stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;

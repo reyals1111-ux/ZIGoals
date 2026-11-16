@@ -117,7 +117,8 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
         <dl className="nova-fact-tiles" aria-label="This device">{tiles.map(t => <div key={t.label} title={t.title}><dt>{t.label}</dt><dd data-unknown={t.value === 'unknown' || undefined}>{t.value}</dd></div>)}</dl>
         {settings.loaded && s.enabled && s.mode === 'api' && s.provider && isProviderId(s.provider) && <p className="nova-row"><span className="nova-chip-dot" data-kind="cloud" aria-hidden="true"/><span>{PROVIDERS[s.provider].name}: configured, the key kept on this device{s.model ? ` · ${s.model}` : ''}</span></p>}
         <ul className="nova-right-list" aria-live="polite">
-          {probe.state === 'asking' && <li role="status">Asking this computer…</li>}
+          {/* Round 7 (axe, "list has direct children that are not allowed"): the status is inside the list item, which stays a list item. */}
+          {probe.state === 'asking' && <li><span role="status">Asking this computer…</span></li>}
           {/* EX3 left-over 2: a server that answered but refused, wanted a key or sent an unreadable list is running. */}
           {probe.results.filter(r => r.found || r.reason !== 'unreachable').map(r => { const st = scanStatus(r); return <li key={r.server.id + r.server.baseUrl}>
             <span className="nova-status" data-on={st.on || undefined}>{st.word}</span> {scanLine(r)}
