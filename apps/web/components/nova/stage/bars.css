@@ -95,3 +95,9 @@
   .nb-lives, .nb-enter, .nb-find { border: 1px solid CanvasText; }
   .nb-results .nova-left-row[data-first] { outline: 1px solid CanvasText; }
 }
+
+/* ==== Session AM-3 (round 6; right-chat-1440: "the collapsed rail's last icon is cut") ====
+   The rail's list scrolls inside the bar; an icon was cut hard at the bar's bottom edge. The list now dissolves over its
+   last 44 px (a static mask: more waits below) and keeps that much room under its last icon, so the last one is whole
+   when the list is scrolled to its end. */
+.nova-left[data-state=rail] .nova-left-nav { padding-bottom: 44px; -webkit-mask-image: linear-gradient(#000 calc(100% - 46px), transparent calc(100% - 4px)); mask-image: linear-gradient(#000 calc(100% - 46px), transparent calc(100% - 4px)); }

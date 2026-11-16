@@ -17,7 +17,7 @@ import {greetingFor, openingSkippedNote, type NovaOrbState} from '../../lib/nova
 import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full / Calm / Off
 import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, resizeWidget, restoreWidgets, swapWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
-import {HUD_PRESET_LABEL, HUD_PRESET_PLAN, presetShown, presetWidgets, setHudLook, setHudPreset, type HudLook, type HudPreset} from '../../lib/nova/layout';
+import {HUD_PRESET_LABEL, HUD_PRESET_PLAN, phoneColumn, presetShown, presetWidgets, setHudLook, setHudPreset, type HudLook, type HudPreset} from '../../lib/nova/layout';
 import {BURST_MS, isTextEntry, shortcutKind, typedLetter} from '../../lib/nova/holo/keys';
 import {useHudRecord} from './holo/hud-record';
 import {useHudMotion} from './holo/use-hud-motion';
@@ -37,6 +37,7 @@ import {useWakePhrase} from './use-wake';
 import {WidgetGrid, type GridActions} from './widget-grid';
 import {OneTap, StageAnswerLine, StageDock} from './stage/stage-parts';
 import {useStage, type StageGates} from './stage/use-stage';
+import {usePhoneFirst} from './stage/use-phone-first';
 import type {StageAnswer, StageBridge} from './stage/use-summoner';
 import type {StarBeam} from './core/star-system';
 import {useResting} from './core/use-resting';
@@ -74,6 +75,8 @@ const ShortcutList = lazy(() => import('./holo/shortcut-list'));
 const StarSystem = lazy(() => import('./core/star-system'));
 // Security review AM-S12: the made widgets' gates while the conversation is not mounted (a phone with its sheet closed).
 const StageGatesWatch = lazy(() => import('./stage/stage-gates'));
+/** Session AM-3 (round 6): a phone's stage — the star's bezel with the four pillar arcs and the strip of instrument cards (its own chunk; only a phone loads it). */
+const PhoneStage = lazy(() => import('./stage/phone-stage'));
 
 type Sheet = {kind: 'day'} | {kind: 'panels'; id: NovaPanelId} | {kind: 'yours'} | {kind: 'quick'} | {kind: 'actions'; id: string} | {kind: 'keys'};
 const PANEL_HASH = /^#nova-(memory|permissions|activity|workflows|cost|models)$/;
@@ -192,6 +195,8 @@ export default function NovaDashboard() {
   // Session AM (D11): at rest (the window not focused, or a minute without a key, tap or request) the scripted loops stop.
   const resting = useResting();
   const hudSize = useHudSize(root, nova.loaded);
+  // Session AM-3 (round 6; the phone's stage): what the window leaves for a phone's first screen (stage/use-phone-first.ts).
+  const phoneFirst = usePhoneFirst(root, phone && holo && nova.loaded);
   // Session AM-2 (ADR-038 "AM-2", E3, E4): what stands in the centre (the star, its still picture, or the SVG orb) and the honest line under it.
   const [starReport, setStarReport] = useState<StarReport | null>(null), starDraws = !!starReport && starReport.shows !== 'orb';
   const onStarReport = useCallback((report: StarReport) => setStarReport(report), []);
@@ -484,7 +489,7 @@ export default function NovaDashboard() {
   const soft = !!starReport?.software;
   const hudState = holo ? ((modelBusy || resting) && (hudMove.state === 'full' || hudMove.state === 'calm') ? 'paused' : hudMove.state) : undefined;
   if (!nova.loaded) return <div className="nova-frame nova-waiting" data-accent="violet" data-opening="waiting"><span className="nova-waiting-star" aria-hidden="true"/><Reading label={`${persona.name} is starting…`}/></div>;
-  const core = holo ? {rings: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="rings"/></Suspense></LoadBoundary>, readout: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="readout"/></Suspense></LoadBoundary>} : undefined;
+  const core = holo ? {rings: <LoadBoundary quiet><Suspense fallback={null}>{phone ? <PhoneStage part="bezel" state={shownOrb}/> : <HoloCore part="rings"/>}</Suspense></LoadBoundary>, readout: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="readout"/></Suspense></LoadBoundary>} : undefined;
   // The star's box: as large as the window's height allows (its disc is about half as tall as it is wide).
   // On the calm stage it is the hero; beside widgets it steps back so the centre column keeps room for NOVA's words.
   // Design review AM-D5, AM-D6, AM-D14: the star gives way first. Its disc (0.46 of its box since round 7; it was 0.42) gets what the stage's height
@@ -509,7 +514,14 @@ export default function NovaDashboard() {
   // Session AM-2 (conversation console): beside the console the star keeps to its own column (the console is not glass:
   // nothing of the star may lie behind it), so its ellipse is whole beside the console.
   const starCapNow = consoleMode === 'over' ? Math.min(starCap, Math.max(300, Math.round(starColumn * 1.06))) : starCap;
-  const starSize = phone ? 300 : Math.round(Math.max(240, Math.min(starCapNow, starRoom))), starBox = phone ? 126 : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.46); // round 7: 0.46 of the star (it was 0.42), so the words under it clear the bezel
+  // Session AM-3 (round 6; the phone's stage, deliberate): on a phone the star is the hero inside its own bezel (the tick
+  // ring and the four pillar arcs, stage/phone-stage.tsx), as wide as the phone allows (four fifths of its width, up to
+  // 320 px) and as tall as the first screen leaves after NOVA's words and the strip of instrument cards under it; the
+  // first screen is measured (stage/use-phone-first.ts), so nothing is left empty between the words and the keys.
+  const phoneIds = new Set(phone && holo ? phoneColumn(layout, stage.shown).map(w => w.id) : []), phoneWidgets = stage.shown.filter(w => phoneIds.has(w.id)), phoneSays = !!answerNow && !chatOpen;
+  const phoneUnder = (phoneSays ? 197 : width < 360 ? 99 : 75) + (showcase ? 38 : 0) + (starReport && (starReport.why || starReport.always) ? 22 : 0) + (phoneWidgets.length ? 102 : 0) + 6;
+  const phoneD = Math.round(Math.max(150, Math.min(width * .8, 320, (phoneFirst ?? height - (height >= 740 ? 290 : 205)) - phoneUnder)));
+  const starSize = phone ? (holo ? Math.min(340, Math.round(phoneD * 1.12)) : 300) : Math.round(Math.max(240, Math.min(starCapNow, starRoom))), starBox = phone ? (holo ? phoneD : 126) : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.46); // round 7: 0.46 of the star (it was 0.42), so the words under it clear the bezel
   const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} column={stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;
   const starWhy = starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).
@@ -517,11 +529,15 @@ export default function NovaDashboard() {
   const goToWidget = (id: string) => { const el = root.current?.querySelector<HTMLElement>(`article[data-widget="${id}"]`); if (el) { el.scrollIntoView({block: 'nearest'}); el.focus({preventScroll: true}); } };
   const answerLine = answerNow && !chatOpen ? <StageAnswerLine answer={answerNow} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)} widget={answerWidget} onGoTo={goToWidget}/> : undefined;
   const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={starBox} starSize={starSize} starColumn={stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} starWhy={starWhy} answer={answerLine}/>;
+  // Session AM-3 (round 6): a phone's first screen is the star with its words and, under them, the widgets on the stage as
+  // one strip of instrument cards that swipes sideways; the full panels follow under the fold, as before.
+  const phoneStage = phone && holo ? <div className="ps-first">{stageNode}<LoadBoundary quiet><Suspense fallback={null}><PhoneStage part="strip" widgets={phoneWidgets} gateOpen={stage.gateOpen} counts={counts}/></Suspense></LoadBoundary></div> : stageNode;
+  const frameStyle = phone && holo ? {'--ps-d': `${phoneD}px`, ...(phoneFirst !== null ? {'--ps-first': `${phoneFirst}px`} : {})} as CSSProperties : consoleStyle;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}
     requests={<OneTap available={canShow} onAsk={askInPlace}/>}/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
-    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-console={consoleMode} style={consoleStyle} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined} data-soft={soft || undefined}>
+    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-console={consoleMode} style={frameStyle} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined} data-soft={soft || undefined}>
     {/* Second review m8 (lane L8f): the first stop, past the left panel and the top bar (43 stops) to the HUD itself. */}
     <a className="nova-skip" href="#nova-hud" onClick={e => { e.preventDefault(); root.current?.querySelector<HTMLElement>('#nova-hud')?.focus({preventScroll: true}); }}>Skip to the HUD</a>
     <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion && !resting && !soft} accent={accent}/></Suspense></LoadBoundary></div>
@@ -544,7 +560,7 @@ export default function NovaDashboard() {
         {!chatOpen && stage.shown.length === 0 && !answerNow && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={stageNode} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting && !soft}/>}</div>
+      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={phoneStage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting && !soft}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">

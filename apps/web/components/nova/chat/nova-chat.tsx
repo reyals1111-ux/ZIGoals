@@ -440,7 +440,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     {/* Session AM-2 (conversation console): the head — the speaker is the star (its figure in a state bezel), NOVA's name,
         its state in words, the brain line, then the tools as framed keys. */}
     <header className="nova-chat-head">
-      <NovaSpeaker persona={persona} size={layout === 'sheet' ? 54 : 80} state={orb}/>
+      <NovaSpeaker persona={persona} size={80} state={orb}/>
       <div className="nova-chat-identity">
         <p className="nova-chat-eyebrow" aria-hidden="true">Your private intelligence</p>
         <h2 id={titleId} className="nova-chat-title">{persona.name}</h2>

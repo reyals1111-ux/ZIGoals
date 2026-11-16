@@ -202,3 +202,18 @@
 /* Round 4: with its letters at their own spacing and its marker 4 px closer, "UPCOMING BILLS" (the longest title of the catalogue's first kinds: about 131 px) is whole beside five keys in a 348 px panel (138 px). */
 /* A panel body that scrolls is a keyboard stop (axe scrollable-region-focusable); its ring sits inside the frame. */
 .nova-widget-body:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: -3px; border-radius: 10px; }
+
+/* ==== Session AM-3 (round 6; asks-1440: "the answer's header and its buttons wrap and the answer ends in which…") ====
+   The answer read-out in a narrow column (the star's column at 1440 px, a phone): its head stays one line (the tick
+   ruler takes only the room the words leave; the words end in an ellipsis only when the head cannot hold them), its keys keep their words on one line (without their
+   glyphs; two rows only when both cannot share one), and its words are 16 px with one more line, in the same slot. */
+.ns-answer { container: ns-answer / inline-size; }
+.ns-answer-head .ns-answer-by { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ns-answer-head::after { flex: 1 1 0; max-width: 72px; }
+.ns-answer-meta .ns-link { white-space: nowrap; }
+@container ns-answer (max-width: 430px) {
+  .ns-answer-meta { flex-wrap: wrap; }
+  .ns-answer-meta .ns-link { flex: 1 1 auto; padding: 0 8px; }
+  .ns-answer-meta .ns-link > svg { display: none; }
+  .ns-answer-text { font-size: 16px; line-height: 1.4; -webkit-line-clamp: calc(var(--ns-lines, 3) + 1); line-clamp: calc(var(--ns-lines, 3) + 1); }
+}

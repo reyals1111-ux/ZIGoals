@@ -64,7 +64,9 @@
 .nova-chat-log>:first-child{margin-top:auto}
 .nova-chat[data-empty] .nova-chat-log>:last-child{margin-bottom:auto}
 /* A conversation scrolled on: what went up fades out under the head over 16 px (a static mask), so nothing reads as cut there. */
-.nova-chat:not([data-empty]) .nova-chat-log{-webkit-mask-image:linear-gradient(transparent,#000 16px);mask-image:linear-gradient(transparent,#000 16px)}
+/* Session AM-3 (round 6, "YOU is clipped under the console's header"): what has scrolled up dissolves over 36 px under the
+   head (it was 16 px: a turn's label stood half cut at the head's edge). */
+.nova-chat:not([data-empty]) .nova-chat-log{-webkit-mask-image:linear-gradient(transparent,#000 36px);mask-image:linear-gradient(transparent,#000 36px)}
 /* The empty console: NOVA's opening words as an instrument label, a lit title and a quiet line. */
 .nova-welcome{padding:2px 0}
 .nova-welcome .nova-chat-eyebrow{display:flex;align-items:center;gap:9px;font-weight:700;color:color-mix(in srgb,var(--nova-b,#63e7ff) 34%,#fff)}
@@ -275,7 +277,12 @@
    the Duo between them the speaker stays in its own row). */
 .nova-sheet-head+.nova-chat-sheet{overflow:visible}
 .nova-chat-sheet .nova-chat-head>.ncx-speaker{grid-row:auto}
-.nova-sheet-head+.nova-chat-sheet .nova-chat-head>.ncx-speaker{position:absolute;left:12px;top:-64px;z-index:3}
-.nova-sheet-body:has(>.nova-sheet-head+.nova-chat-sheet)>.nova-sheet-head :is(.nova-eyebrow,h2[id]){margin-left:68px}
+/* Session AM-3 (round 6): on a phone the star is the sheet's header — an 80 px star in its state bezel that stands across
+   the sheet's title and the conversation's state line; the words of both start to its right. */
+.nova-sheet-head+.nova-chat-sheet .nova-chat-head>.ncx-speaker{position:absolute;left:6px;top:-50px;z-index:3}
+.nova-sheet-head+.nova-chat-sheet .nova-chat-identity{margin-left:74px}
+.nova-sheet-head+.nova-chat-sheet .nova-chat-head{padding-right:6px}
+.nova-sheet-head+.nova-chat-sheet .nova-chat-tools{gap:2px}
+.nova-sheet-body:has(>.nova-sheet-head+.nova-chat-sheet)>.nova-sheet-head :is(.nova-eyebrow,h2[id]){margin-left:74px}
 .nova-sheet-body:has(>.nova-duo+.nova-chat-sheet) .nova-chat-head{grid-template-columns:auto minmax(0,1fr) auto}
 @media (max-width:480px){.nova-composer{padding-left:6px}}

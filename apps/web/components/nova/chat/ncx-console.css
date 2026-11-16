@@ -151,7 +151,7 @@
 .ncx-requests:empty { display: none; }
 @container ncx-dock (max-width: 470px) { .ncx-requests .ns-chip-dot { display: none; } }
 @container ncx-dock (min-width: 760px) { .ncx-requests .ns-onetap:not(#\-):not(#\-) { grid-template-columns: repeat(6, minmax(0, auto)); } }
-.ncx-requests .ns-onetap:not(#\-) { display: grid; grid-template-columns: repeat(3, minmax(0, auto)); justify-content: stretch; gap: 0 6px; width: 100%; max-width: none; margin: 0; padding: 0; overflow: visible; scroll-snap-type: none; }
+.ncx-requests .ns-onetap:not(#\-) { display: grid; grid-template-columns: repeat(3, minmax(0, auto)); justify-content: stretch; align-items: stretch; gap: 0 6px; width: 100%; max-width: none; margin: 0; padding: 0; overflow: visible; scroll-snap-type: none; }
 .ncx-requests .ns-onetap > .ns-chip:not(#\-) { width: 100%; min-width: 0; margin: 0; justify-content: flex-start; gap: 8px; padding: 0 8px 0 11px; font-size: 14px; line-height: 1.15; white-space: normal; text-align: left; --k-inset: 3px 0; }
 /* The star's well at the composer's left end. */
 .ncx-well { display: grid; place-items: center; flex: none; width: 38px; height: 44px; color: color-mix(in srgb, var(--nova-b, #63e7ff) 34%, #fff); --kc: 6px; --k-rim: color-mix(in srgb, var(--nova-b, #63e7ff) 62%, transparent); --k-rim-2: color-mix(in srgb, var(--nova-a, #9273ff) 50%, transparent); --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 16%, #0a1232); --k-plate-2: #060a1e; }
@@ -175,6 +175,20 @@
 
 /* ---- A phone: the same console, lighter (thin rims, no bloom behind the read-outs, a small glow on figures) ---- */
 .nova-chat-sheet .ncx-dock { padding: 8px 10px 10px 12px; }
+/* Session AM-3 (round 6, "the chips have unequal heights"): on a phone the six one-tap keys are three equal columns and
+   two rows of one height (a key whose words take two lines sets the height of all six). */
+.nova-chat-sheet .ncx-requests .ns-onetap:not(#\-):not(#\-) { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; align-items: stretch; gap: 0 6px; }
+.nova-chat-sheet .ncx-requests .ns-onetap > .ns-chip:not(#\-) { height: 100%; }
+/* The sheet's star: NOVA's galaxy (the star's own still picture, in the person's accent) inside the state bezel, with
+   the mark's four-point spark at its core. A still picture: only the bezel's arc turns, where motion is allowed. */
+.nova-chat-sheet .ncx-speaker[data-avatar=orb]::after { content: ''; position: absolute; inset: 12%; border-radius: 50%; pointer-events: none; background: url(/nova/star/violet.webp) 50% 50% / 138% auto no-repeat; }
+.nova-frame[data-accent=cyan] .nova-chat-sheet .ncx-speaker[data-avatar=orb]::after { background-image: url(/nova/star/cyan.webp); }
+.nova-frame[data-accent=magenta] .nova-chat-sheet .ncx-speaker[data-avatar=orb]::after { background-image: url(/nova/star/magenta.webp); }
+.nova-frame[data-accent=teal] .nova-chat-sheet .ncx-speaker[data-avatar=orb]::after { background-image: url(/nova/star/teal.webp); }
+.nova-frame[data-accent=gold] .nova-chat-sheet .ncx-speaker[data-avatar=orb]::after { background-image: url(/nova/star/gold.webp); }
+.nova-chat-sheet .ncx-speaker[data-avatar=orb] .ncx-speaker-face { z-index: 1; }
+.nova-chat-sheet .ncx-speaker[data-avatar=orb] .nova-mark svg > circle { opacity: 0; }
+.nova-chat-sheet .ncx-speaker[data-avatar=orb] .nova-mark svg { transform: scale(.62); }
 .nova-chat-sheet .nova-chat-log { flex-shrink: 1000; }
 .nova-chat-sheet .ncx-fig { text-shadow: 0 0 8px color-mix(in srgb, var(--turn-2, #63e7ff) 60%, transparent); }
 .nova-chat-sheet .ncx-ring::before { box-shadow: 0 0 10px 0 color-mix(in srgb, var(--turn-2, #63e7ff) 34%, transparent); }
