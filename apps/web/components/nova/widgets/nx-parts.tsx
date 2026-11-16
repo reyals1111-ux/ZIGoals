@@ -16,7 +16,7 @@ import {Gauge, HeartTrace} from '../cards/kit';
  * height), the figure inside it with a word under it. `share` null is an unlit ring (unknown, never zero).
  */
 export function NxDial({share, figure, caption, tone, ticks, start, spin}: {share: number | null; figure: string; caption?: string | null; tone?: 'over'; ticks?: number; start?: number; spin?: boolean}) {
-  return <Gauge share={share} size={100} thick={13} bezel ticks={ticks} start={start} spin={spin} tone={tone} decor className="nx-dial">
+  return <Gauge share={share} size={100} thick={16} bezel ticks={ticks} start={start} spin={spin} tone={tone} decor className="nx-dial">
     <span className="nx-dial-figure" data-len={figure.length > 4 ? 'xl' : figure.length > 2 ? 'l' : undefined}><b>{figure}</b>{caption ? <small>{caption}</small> : null}</span>
   </Gauge>;
 }
@@ -48,9 +48,10 @@ export function NxMatrix({boxes, label}: {boxes: readonly {key: string; count: n
  * its words name every item.
  */
 export function NxHours({hours, now, cap = 4}: {hours: readonly {hour: number; count: number | null}[]; now?: number | null; cap?: number}) {
-  return <div className="nx-hours" aria-hidden="true" style={{'--nx-n': hours.length} as CSSProperties}>
+  // Round 6: a lattice. Every hour is a column of `cap` cells, lit from the bottom for what sits in it (the top one hatched when there is more).
+  return <div className="nx-hours" aria-hidden="true" style={{'--nx-n': hours.length, '--nx-cap': cap} as CSSProperties}>
     <div className="nx-hours-plot">{hours.map((h, i) => { const n = h.count ?? 0; return <span key={h.hour} className="nx-hour" data-now={now === i || undefined} data-empty={n === 0 || undefined}>
-      {Array.from({length: Math.min(n, cap)}, (_, k) => <i key={k} className="nc-rise" data-more={k === cap - 1 && n > cap ? '' : undefined} style={{'--nc-i': Math.min(i, 8)} as CSSProperties}/>)}
+      {Array.from({length: cap}, (_, k) => k < Math.min(n, cap) ? <i key={k} className="nc-rise" data-on="" data-more={k === cap - 1 && n > cap ? '' : undefined} style={{'--nc-i': Math.min(i, 8)} as CSSProperties}/> : <i key={k}/>)}
     </span>; })}</div>
     <div className="nx-hours-axis">{hours.map((h, i) => h.hour % 3 === 0 && i <= hours.length - 2 ? <span key={h.hour} style={{gridColumn: `${i + 1} / span ${Math.min(3, hours.length - i)}`}}>{String(h.hour).padStart(2, '0')}</span> : null)}</div>
   </div>;
@@ -72,7 +73,45 @@ export function NxInstrument({art, label, value, sub}: {art: ReactNode; label: s
 /** Ring cards (savings challenges): a ring with its share inside, a name that stays whole, what it is and where it stands. */
 export function NxRingCards({items, label}: {items: readonly {key: string; share: number | null; figure: string; name: string; kind: string; words: string}[]; label: string}) {
   return <ul className="nx-ringcards" aria-label={label}>{items.map((it, i) => <li key={it.key} className="nx-ringcard nc-rise" style={{'--nc-i': i} as CSSProperties}>
-    <Gauge share={it.share} size={100} thick={13} bezel decor className="nx-ring"><span className="nx-dial-figure" data-len={it.figure.length > 2 ? 'l' : undefined}><b>{it.figure}</b></span></Gauge>
+    <Gauge share={it.share} size={100} thick={16} bezel decor className="nx-ring"><span className="nx-dial-figure" data-len={it.figure.length > 2 ? 'l' : undefined}><b>{it.figure}</b></span></Gauge>
     <span className="nx-ringcard-words"><b>{it.name}</b><span className="nx-ringcard-kind">{it.kind}</span><span className="nx-ringcard-sub">{it.words}</span></span>
+    <NxSegs share={it.share} n={20}/>
   </li>)}</ul>;
+}
+
+/**
+ * Round 6: a segmented meter (the references' status rows): `n` cells, lit to the share, the leading cell white-hot.
+ * `share` null is an unlit dashed track (unknown, never zero). Decoration: the words beside it carry the figure.
+ */
+export function NxSegs({share, n = 16, className = ''}: {share: number | null; n?: number; className?: string}) {
+  const lit = share === null ? 0 : Math.max(share > 0 ? 1 : 0, Math.round(Math.min(1, Math.max(0, share)) * n));
+  return <span className={`nx-segs ${className}`.trim()} aria-hidden="true" data-unknown={share === null || undefined} style={{'--nx-n': n} as CSSProperties}>{Array.from({length: n}, (_, i) => <i key={i} data-on={i < lit || undefined} data-lead={i === lit - 1 || undefined}/>)}</span>;
+}
+
+/** A lit state mark (a status row's lamp): 'on' is a ring with a lit core (waiting, planned), 'done' a lit disc with a tick (fired, taken), 'off' an unlit dashed ring. The row's words say the state. */
+export function NxMark({state}: {state: 'on' | 'done' | 'off'}) {
+  return <svg className="nx-mark" data-state={state} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <circle className="nx-mark-ring" cx="12" cy="12" r="9"/>
+    {state === 'done' ? <path className="nx-mark-glyph" d="M7.6 12.4l3 3 5.8-6.6"/> : state === 'on' ? <circle className="nx-mark-core" cx="12" cy="12" r="3.6"/> : <path className="nx-mark-glyph" d="M8.5 12h7"/>}
+  </svg>;
+}
+
+/** A row of lamps, one for each item in its state (up to `cap`): a tally that reads at a glance. Decoration beside the count in words. */
+export function NxPips({items, cap = 10}: {items: readonly ('on' | 'done' | 'off')[]; cap?: number}) {
+  return <span className="nx-pips" aria-hidden="true">{items.slice(0, cap).map((state, i) => <NxMark key={i} state={state}/>)}</span>;
+}
+
+/** A scale: a segmented meter over a named range, with its marks under it ("0", "30", "60", "90 days"). Decoration: the figure is in the words. */
+export function NxScale({share, marks, n = 30}: {share: number | null; marks: readonly string[]; n?: number}) {
+  return <div className="nx-scale" aria-hidden="true"><NxSegs share={share} n={n}/><div className="nx-scale-marks">{marks.map(m => <span key={m}>{m}</span>)}</div></div>;
+}
+
+/** The unlit plot of a chart that has no figures yet (prices that are not in): a grid, a dashed trace and an open end. A fixed drawing: no value is read. */
+export function NxGhostPlot() {
+  return <svg className="nx-ghostplot" viewBox="0 0 320 80" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path className="nx-ghostplot-grid" d="M0 20H320M0 40H320M0 60H320M40 0V80M80 0V80M120 0V80M160 0V80M200 0V80M240 0V80M280 0V80"/>
+    <path className="nx-ghostplot-glow" d="M4 58L28 50 44 56 66 38 84 46 104 30 122 42 146 24 166 36 186 20 208 34 230 16 252 30 276 14 300 24"/>
+    <path className="nx-ghostplot-line" d="M4 58L28 50 44 56 66 38 84 46 104 30 122 42 146 24 166 36 186 20 208 34 230 16 252 30 276 14 300 24"/>
+    <path className="nx-ghostplot-base" d="M0 79.5H320"/>
+  </svg>;
 }

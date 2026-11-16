@@ -5,6 +5,7 @@ import type {StageWidget} from '../../../lib/nova/stage/record';
 import {ONE_TAP, widgetTitle} from '../../../lib/nova/summon/words';
 import {widgetSpec, type WidgetGate} from '../../../lib/nova/widgets/catalog';
 import {CardNotice} from '../cards/kit';
+import {NxLockGhost} from '../widgets/nx-lock-ghost';
 import type {StageAnswer} from './use-summoner';
 import './stage.css';
 
@@ -52,7 +53,8 @@ const GATE_WORDS: Readonly<Record<WidgetGate, {title: string; text: string}>> = 
 /** A made widget whose switch is off (D5): which switch, and nothing else. */
 export function WidgetLocked({id}: {id: string}) {
   const gate = widgetSpec(id)?.gate ?? 'today', words = GATE_WORDS[gate];
-  return <CardNotice kind="locked" title={words.title} href="/app/nova#nova-permissions" action="Open Permissions">{words.text}</CardNotice>;
+  // Round 6: behind the lock, a faint fixed drawing of the kind's instrument (decoration; it reads no data).
+  return <CardNotice kind="locked" title={words.title} href="/app/nova#nova-permissions" action="Open Permissions" behind={<NxLockGhost id={id}/>}>{words.text}</CardNotice>;
 }
 
 /** The dock: hidden widgets as chips; a tap brings one back to the stage. */

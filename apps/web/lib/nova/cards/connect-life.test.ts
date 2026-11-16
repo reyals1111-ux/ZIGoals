@@ -127,6 +127,11 @@ describe('journal numbers: the Journal page’s own streak and words', () => {
     expect([c.total, c.year, c.words, c.average, c.lastDate]).toEqual([4, '2026', 7, 2, TODAY]);
     expect(c.months.map(m => [m.key, m.words])).toEqual([['2026-06', null], ['2026-07', null], ['2026-08', null], ['2026-09', 1], ['2026-10', null], ['2026-11', 6]]);
     expect(journalNumbersRows(c).find(r => r[1] === 'No entry')).toBeTruthy();
+    // Session AM-3 (round 6): the last fourteen days, today last; a day without an entry is a gap (null), never a zero, and the future is not read.
+    expect(c.days.length).toBe(14);
+    expect(c.days[13]!.date).toBe(TODAY);
+    expect(c.days.filter(d => d.words !== null).map(d => [d.date, d.words])).toEqual([['2026-11-11', 4], ['2026-11-12', 2]]);
+    expect(c.days.every(d => d.date <= TODAY)).toBe(true);
   });
   it('the months cross a year’s end; entries without text count as written with no words; nothing written teaches', () => {
     const c = journalNumbersCard([{date: '2026-01-02'}, {date: '2025-11-30', text: 'a b'}], '2026-02-10');

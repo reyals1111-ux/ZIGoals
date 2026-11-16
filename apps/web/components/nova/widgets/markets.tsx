@@ -8,6 +8,8 @@ import type {WidgetSize} from '../../../lib/nova/store';
 import {moreWords} from '../../../lib/nova/cards/whole-rows';
 import {WholeRows} from '../cards/whole-rows';
 import {NovaEmpty, NovaReading, NovaUnread} from './empty';
+import {NxGhostPlot} from './nx-parts';
+import '../cards/connect-cards.css';
 
 /**
  * "Market watch" (only once the person chose markets): the markets they follow (Wealth's watch list) with each price and
@@ -25,6 +27,15 @@ export default function MarketsWidget({size}: {size: WidgetSize}) {
   // an unlit tile, and when none is in the panel says so once (never one "Price not in yet" a row).
   const quote = (a: (typeof list)[number]) => { const key = marketRefKey(a.ref); return market.quotes.find(x => x.marketRef && marketRefKey(x.marketRef) === key && x.currency === 'USD'); };
   const none = !shown.some(quote);
+  // Round 6: while no price is in, the panel is one unlit plot with the markets as its keys and one line (four tiles of "—" were
+  // four empty slabs). Each market still says "Price not in yet" to assistive technology; the plot is a fixed drawing.
+  if (none) return <div className="nx-mk" data-size={size}>
+    <p className="nx-mk-head"><span className="nx-cap">Watching</span><b className="nx-mk-figure">{list.length}</b><span className="nx-mk-unit">{list.length === 1 ? 'market' : 'markets'}</span></p>
+    <NxGhostPlot/>
+    <WholeRows wrapClassName="nx-mk-rows" className="nx-mk-keys" extra={list.length - shown.length} min={1} more={(hidden, rows) => moreWords(hidden, {shown: rows, where: 'the Markets page'})}>{shown.map(a =>
+      <li key={marketRefKey(a.ref)} className="nx-mk-key"><span className="nx-mk-name">{a.symbol || a.name}</span><small className="sr-only">Price not in yet</small></li>)}</WholeRows>
+    <p className="nx-mk-note" aria-hidden="true">Prices are not in yet. Each shows here with its time once it arrives.</p>
+  </div>;
   return <div className="hw-markets-box" data-size={size}>
     <WholeRows wrapClassName="hw-markets-rows" className="nova-markets hw-markets" extra={list.length - shown.length} min={1} more={(hidden, rows) => moreWords(hidden, {shown: rows, where: 'the Markets page'})}>{shown.map(a => {
       const q = quote(a);

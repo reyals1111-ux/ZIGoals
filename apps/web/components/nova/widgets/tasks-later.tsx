@@ -7,6 +7,7 @@ import {useDeviceRecord} from '../../ai/use-device-record';
 import {useTaskClock} from '../../tasks/use-task-list';
 import {CardFoot, CardNotice, Hero, type CardProps} from '../cards/kit';
 import {HoloReading, HoloTable, HoloUnread} from '../holo/parts';
+import {NxPips} from './nx-parts';
 import {NxRows} from './nx-rows';
 import '../cards/connect-cards.css';
 
@@ -41,10 +42,12 @@ export default function TasksLaterWidget({size = 'M'}: Partial<CardProps>) {
   return <div className="nc-body nx-card" data-size={size} data-lay="hero">
     <div className="nx-top"><Hero value={String(e)} unit={e === 1 ? 'task' : 'tasks'} label="This evening">
       <p className="nx-note">Someday: {s}</p>
+      {/* Round 6: one lamp a task, this evening's lit first (a tally; the rows and the table name each). */}
+      {size !== 'S' && <NxPips items={both.map(l => l.list === 'Someday' ? 'off' as const : 'on' as const)}/>}
     </Hero></div>
     {/* Medium: one list, this evening's tasks first, each row saying which list it is on. Large: the two lists, each with its own heading. */}
     {size === 'M' && <div className="nx-main" data-fit="rows" data-wr-limit="">
-      <NxRows label="This evening, then Someday" where="the Tasks page" rows={both.map(l => ({key: `${l.list}-${l.id}`, name: l.title, value: l.list, chip: l.list === 'Someday' ? 'off' as const : 'on' as const, sub: l.dueText}))}/>
+      <NxRows rail label="This evening, then Someday" where="the Tasks page" rows={both.map(l => ({key: `${l.list}-${l.id}`, name: l.title, value: l.list, chip: l.list === 'Someday' ? 'off' as const : 'on' as const, sub: l.dueText}))}/>
     </div>}
     {size === 'L' && <div className="nx-main" data-fit="rows">
       <div className="nx-pair">

@@ -3,6 +3,7 @@ import {act, createElement, type ComponentType} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {WidgetLocked} from '../../../components/nova/stage/stage-parts';
+import {NxLockGhost} from '../../../components/nova/widgets/nx-lock-ghost';
 import {buildShowcase} from '../../showcase-data';
 import {SHOWCASE_MARKER} from '../../showcase-storage';
 
@@ -82,6 +83,21 @@ describe('round 3: what the captures at 2560 × 1440 showed', () => {
     expect(notice.querySelector('.nc-notice-ghost')).toBeNull();
     expect(notice.querySelector('.nc-notice-glyph')).not.toBeNull(); // the lock's own dial stays
     expect(notice.textContent).toContain('Health is off for NOVA');
+  });
+  it('Session AM-3 (round 6): the silhouette behind a locked strip is a fixed drawing, hidden from assistive technology, with no words and no figure', async () => {
+    const drawn: string[] = [];
+    for (const id of ['cycle', 'meditation', 'food-days', 'water', 'weight', 'supplements', 'symptoms', 'not-a-widget']) {
+      await act(async () => root.render(createElement(NxLockGhost, {id})));
+      const ghost = host.querySelector('.nx-lockghost')!;
+      expect(ghost.getAttribute('aria-hidden'), id).toBe('true');
+      expect(ghost.textContent, id).toBe(''); // a drawing only: nothing of the person's is read or shown
+      expect(ghost.querySelector('svg')!.childElementCount, id).toBeGreaterThan(0);
+      expect(host.querySelector('a, button, [tabindex]'), id).toBeNull();
+      drawn.push(ghost.innerHTML);
+    }
+    // The same kind always draws the same picture (it is chosen by the kind, never by data).
+    await act(async () => root.render(createElement(NxLockGhost, {id: 'cycle'})));
+    expect(host.querySelector('.nx-lockghost')!.innerHTML).toBe(drawn[0]);
   });
   it('a ring kind is one dial with its words; a wide Large card has one column for its instrument, never two over each other', async () => {
     showcase();

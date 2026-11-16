@@ -115,6 +115,8 @@ export type JournalNumbersCard = {
   average: number | null;
   /** The last six calendar months, oldest first. */
   months: JournalMonthWords[];
+  /** Round 6: the last fourteen days, oldest first, today last: the words written on each; null on a day without an entry (a gap, never a zero). */
+  days: {date: string; label: string; name: string; words: number | null}[];
   lastDate: string | null;
 };
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -125,7 +127,9 @@ export function journalNumbersCard(entries: readonly {date: string; text?: strin
     const index = y * 12 + (m - 1) - i, key = `${String(Math.floor(index / 12)).padStart(4, '0')}-${String(index % 12 + 1).padStart(2, '0')}`, rows = own.filter(e => e.date.startsWith(key));
     months.push({key, label: formatMonth(key, {year: false}).slice(0, 3), name: formatMonth(key), words: rows.length ? rows.reduce((n, e) => n + wordCount(e.text), 0) : null, entries: rows.length});
   }
-  return {total: own.length, streak: writingStreak(own, today), year: today.slice(0, 4), words: year.words, entries: year.entries, average: year.entries ? Math.round(year.words / year.entries) : null, months,
+  const days = Array.from({length: 14}, (_, i) => { const date = addLocalDays(today, i - 13), rows = own.filter(e => e.date === date);
+    return {date, label: String(Number(date.slice(8, 10))), name: formatDate(date, {year: false}), words: rows.length ? rows.reduce((n, e) => n + wordCount(e.text), 0) : null}; });
+  return {total: own.length, streak: writingStreak(own, today), year: today.slice(0, 4), words: year.words, entries: year.entries, average: year.entries ? Math.round(year.words / year.entries) : null, months, days,
     lastDate: own.reduce<string | null>((latest, e) => !latest || e.date > latest ? e.date : latest, null)};
 }
 export function journalNumbersRows(card: JournalNumbersCard): [string, string][] {

@@ -7,6 +7,7 @@ import {useDeviceRecord} from '../../ai/use-device-record';
 import {CardFoot, CardNotice, Hero, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
+import {NxPips} from './nx-parts';
 import {NxRows} from './nx-rows';
 import '../cards/connect-cards.css';
 
@@ -18,6 +19,8 @@ import '../cards/connect-cards.css';
  * while Markets is in use.
  */
 const SHOWN = {S: 0, M: 2, L: 6} as const;
+/** An alert's lamp: lit once it fired, a lit core while it waits, unlit when it is switched off. Its meter is the same in two steps: set and waiting (half), fired (full). */
+const chipOf = (l: {state: 'waiting' | 'fired' | 'off'}) => l.state === 'fired' ? 'done' as const : l.state === 'off' ? 'off' as const : 'on' as const;
 export default function PriceAlertsWidget({size = 'M'}: Partial<CardProps>) {
   const shown = usePillarShown('wealth'), record = useDeviceRecord(PRICE_ALERTS);
   const card = useMemo(() => { try { return priceAlertsCard(record.data); } catch { return null; } }, [record.data]);
@@ -30,9 +33,11 @@ export default function PriceAlertsWidget({size = 'M'}: Partial<CardProps>) {
     <div className="nx-top"><Hero value={String(card.waiting)} unit="waiting" label={size === 'S' ? 'Price alerts' : `Price alerts · ${card.fired} fired`}>
       {size !== 'S' && card.unseen > 0 && <p className="nx-note" data-tone="watch">{card.unseen} fired and not seen yet</p>}
       {size !== 'S' && card.unseen === 0 && card.last && <p className="nx-note">Last fired {day(card.last.at)}</p>}
+      {/* Round 6: one lamp for each alert in its state (a tally; the rows and the table say each in words). */}
+      {size !== 'S' && <NxPips items={card.lines.map(chipOf)}/>}
     </Hero></div>
     {lines.length > 0 && <div className="nx-main" data-fit="rows" data-wr-limit="">
-      <NxRows label="Your price alerts" where="the Markets page" extra={card.lines.length - lines.length} rows={lines.map(l => ({key: l.id, name: l.words, value: l.stateWords, chip: l.state === 'fired' ? 'done' as const : l.state === 'off' ? 'off' as const : 'on' as const, sub: l.at ? `Fired ${day(l.at)}` : null}))}/>
+      <NxRows label="Your price alerts" where="the Markets page" extra={card.lines.length - lines.length} rows={lines.map(l => ({key: l.id, name: l.words, value: l.stateWords, chip: chipOf(l), sub: l.at ? `Fired ${day(l.at)}` : null, meter: l.state === 'fired' ? 1 : l.state === 'off' ? null : .5}))}/>
       {size === 'L' && card.last && <p className="nx-note">Last fired, {day(card.last.at)}: {card.last.text}</p>}
       {size === 'L' && <p className="nx-note">A read-out of your alerts. Nothing here asks a price, sets an alert or trades.</p>}
     </div>}

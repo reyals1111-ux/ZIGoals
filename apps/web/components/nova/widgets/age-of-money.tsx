@@ -9,7 +9,7 @@ import {useLocalToday} from '../../use-local-today';
 import {CardFoot, CardNotice, Fact, type CardProps} from '../cards/kit';
 import {HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {usePillarShown} from '../holo/use-hud-data';
-import {NxDial, NxHead} from './nx-parts';
+import {NxDial, NxHead, NxScale} from './nx-parts';
 import '../cards/connect-cards.css';
 
 /**
@@ -33,7 +33,9 @@ export default function AgeOfMoneyWidget({size = 'M'}: Partial<CardProps>) {
   return <div className="nc-body nx-card" data-size={size} data-lay="dial">
     <NxDial share={r.share} figure={days} caption={unit} ticks={45} spin={size === 'L'}/>
     <NxHead label={size === 'S' ? 'Age of money' : `Age of money · ${r.currency}`} title={`${days} ${unit}`} note={`On average, over what you spent in the last ${AGE_WINDOW_DAYS} days.`}/>
-    {size !== 'S' && (r.uncounted || size === 'L') && <div className="nx-main" data-fit="rows">
+    {size !== 'S' && <div className="nx-main" data-fit="rows">
+      {/* Round 6: the age on the scale it is read over (decoration: the days are in the words). */}
+      <NxScale share={r.share} marks={['0', '30', '60', `${AGE_WINDOW_DAYS} days`]}/>
       {r.uncounted && <p className="nx-note">{r.uncounted}.</p>}
       {size === 'L' && others.length > 0 && <div className="nc-facts">{others.slice(0, 3).map(o => <Fact key={o.currency} label={`In ${o.currency}`} value={o.daysText ?? 'Not enough records yet'}/>)}</div>}
       {size === 'L' && <p className="nx-note">{AGE_RULE} From your records only: nothing is projected.</p>}
