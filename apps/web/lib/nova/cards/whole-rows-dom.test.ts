@@ -25,7 +25,11 @@ const LAYOUT = {
   }},
 };
 const list = (n: number, props: Record<string, unknown> = {}) => h(WholeRows, {'aria-label': 'Rows', more: (hidden: number, shown: number) => moreWords(hidden, {shown, where: 'the Tasks page'}), ...props, children: Array.from({length: n}, (_, i) => h('li', {key: i}, h('a', {href: '#'}, `Row ${i + 1}`)))});
-const render = async (node: ReactNode) => { await act(async () => root.render(node)); };
+// Session AM-3 (round 6, deliberate): after a later render the list is checked at the next animation frame (the browser lays
+// the page out there anyway; whole-rows.tsx, "Round 6"), so a render here lets that one frame pass. Every assertion below is
+// unchanged: what is shown after a render, how often the panel is read for it (once), and that nothing is written.
+const frame = () => new Promise<void>(done => requestAnimationFrame(() => done()));
+const render = async (node: ReactNode) => { await act(async () => { root.render(node); }); await act(async () => { await frame(); }); };
 const rows = (label = 'Rows') => [...host.querySelectorAll<HTMLElement>(`[aria-label="${label}"] > li`)];
 const line = (at = 0) => host.querySelectorAll<HTMLElement>('.wr-more')[at]!;
 

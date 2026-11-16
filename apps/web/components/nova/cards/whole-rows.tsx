@@ -17,7 +17,8 @@ import './whole-rows.css';
  * rectangles: a tilted wing or a widget that is still arriving (a transform) reads the same. Nothing is estimated, so the
  * result cannot be off by a few pixels.
  *
- * When it measures. Before the first paint and after every render (a layout effect), when the body's box changes (a
+ * When it measures. Before the first paint (a layout effect, once), after a later render at the next animation frame
+ * (round 6, below), when the body's box changes (a
  * ResizeObserver on the body alone: its size never depends on the rows, so there is no loop), when anything inside the
  * body changes (a MutationObserver: a row's words, a status line, an error under a field), and once the fonts are in. It
  * writes to the page only what changed, and tells React only when a count changed.
@@ -34,6 +35,13 @@ import './whole-rows.css';
  * whole page out for each step, about 40 ms on a processor-drawn page, so the steps a real change still takes are the
  * cost that is left: about 25 steps while NOVA opens.)
  *
+ * Round 6 (AM-3): the check after a render waits for the next animation frame. Even a check that changes nothing must
+ * read the layout, and a read straight after a render makes the browser lay the page out there and then: while the
+ * Showcase's stage opened that was twelve layouts of about 50 ms each, outside any frame (the opening ended after the
+ * 5 s its spec allows). At the frame the browser lays the page out anyway, so the read costs nothing more, every list
+ * shares that one layout, and the frame is still painted with whole rows only. A change of content (the
+ * MutationObserver) is still answered at once, before the paint. Without frames (a test without layout) it stays at once.
+ *
  * Where there is no height to fit (a phone, the band below the fold, a narrow stage, the Classic cards, a test without
  * layout) every row is shown. Rows that are not shown carry `hidden`: they are out of the accessibility tree and cannot
  * take the focus. Nothing here animates. A widget's table for assistive technology keeps every row.
@@ -46,6 +54,8 @@ type Member = {
   report: (hidden: number, shown: number, line: boolean) => void;
 };
 type Fitter = {members: Set<Member>;
+  /** The check after a render: one measure at the next animation frame, however many renders ask (at once where there are no frames). */
+  soon: () => void;
   /** Fits the rows. Unless `force` is set, nothing is read twice or written when nothing the last measure read has changed. */
   measure: (force?: boolean) => void;
   /**
@@ -121,20 +131,33 @@ function createFitter(): Fitter {
     for (const m of members) if (m.more.contains(at) || (mark && (at === m.wrap || at === m.list || at.parentNode === m.list))) return true;
     return false;
   };
-  return {members, measure, own};
+  let frame = 0;
+  const soon = () => {
+    if (typeof requestAnimationFrame !== 'function') return measure();
+    if (!frame) frame = requestAnimationFrame(() => { frame = 0; measure(); });
+  };
+  return {members, measure, soon, own};
 }
 
 const GroupContext = createContext<Fitter | null>(null);
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 /**
- * Measure after every render, and whenever the panel's body changes size or content. `anchor` is any element inside the
+ * Measure before the first paint, check again at the frame after every later render, and measure whenever the panel's body changes size or content. `anchor` is any element inside the
  * widget. A fitted body is a size container (its size cannot depend on its rows), so a resize is answered at once, before
  * the paint; a body as tall as its content (a panel moving to the band) is answered at the next frame instead, because
  * showing its rows again changes the very box that was observed (a ResizeObserver must not do that inside its callback).
  */
 function useFitting(fitter: Fitter, anchor: {current: HTMLElement | null}, on: boolean) {
-  useIsoLayoutEffect(() => { if (on) fitter.measure(); });
+  // The first measure, before the first paint; a later render asks for a check at the next frame (see "Round 6" above).
+  const mounted = useRef(false);
+  useIsoLayoutEffect(() => { if (on) { mounted.current = true; fitter.measure(); } else mounted.current = false; }, [fitter, on]);
+  const rendered = useRef(false);
+  useIsoLayoutEffect(() => {
+    if (!on || !mounted.current) return;
+    if (!rendered.current) { rendered.current = true; return; } // the mount's own render was measured above
+    fitter.soon();
+  });
   useEffect(() => {
     const body = on ? anchor.current?.closest<HTMLElement>(BODY) : null;
     if (!body) return;
