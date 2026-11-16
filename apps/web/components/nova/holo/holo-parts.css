@@ -1351,6 +1351,16 @@
   .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meter { grid-template-columns: minmax(0, 1fr); grid-template-areas: "label" "value" "segs"; }
   .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meter-value { justify-self: start; justify-content: flex-start; }
 }
+/* M in a body of 400 px and more (1920): the ring beside the four meters (one column), the strip under both.
+   R + 18 + 8 + 22 + 10 ≤ h and R + 20 + 200 ≤ w (the meters' figures); their targets show from 470 px. */
+@container holo-body (min-width: 400px) {
+  .nova-widget[data-tier=hero] .holo-health[data-size=M] { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "ring meters" "tag tag"; align-items: center; column-gap: 22px; }
+  .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring-col { grid-area: ring; }
+  .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meters { grid-area: meters; grid-template-columns: minmax(0, 1fr); row-gap: 10px; align-content: center; }
+  .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-tag { grid-area: tag; }
+  .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring { --ring: clamp(110px, min(calc(100cqh - 62px - var(--note)), calc(100cqi - 222px)), 210px); }
+}
+@container holo-body (min-width: 470px) { .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meter-value small { display: inline; } }
 /* L: the ring beside the six meters, the week's calories under both, the strip. The heart line and the hearts go to the
    table (two supports at most). R + 18 + 12 + (18 + 4 + H + 2 + 21) + 12 + 22 = R + H + 109 ≤ h (22 px kept in hand). */
 .nova-widget[data-tier=hero] .holo-health[data-size=L] { --hR: clamp(150px, min(calc(100cqh - 236px - var(--note)), 46cqi), 290px);
@@ -1463,6 +1473,7 @@
 .nova-widget[data-tier=compact] .holo-tasks[data-size=S] { gap: 0; }
 .nova-widget[data-tier=compact] .holo-tasks[data-size=S] .holo-counters :is(dd, dt) { line-height: 22px; }
 @container holo-body (min-width: 560px) {
-  .nova-widget[data-tier=compact] .holo-tasks[data-size=S][data-counters] { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 18px; }
-  .nova-widget[data-tier=compact] .holo-tasks[data-size=S] .holo-counters { grid-template-columns: repeat(3, auto); gap: 6px; }
+  .nova-widget[data-tier=compact] .holo-tasks[data-size=S][data-counters] { display: grid; grid-template-columns: max-content minmax(0, 1fr); justify-content: stretch; align-items: center; column-gap: 22px; }
+  .nova-widget[data-tier=compact] .holo-tasks[data-size=S] .holo-counters { display: grid; grid-auto-flow: row; gap: 2px; }
+  .nova-widget[data-tier=compact] .holo-tasks[data-size=S] .holo-counters dd { font-size: 22px; }
 }
