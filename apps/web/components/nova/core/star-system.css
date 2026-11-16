@@ -51,3 +51,17 @@
  * words (the state line, the answer and its links stay their own targets); only the star's own empty sky answers a tap.
  */
 .nova-orb-button[data-star]::before { content: ''; position: absolute; left: 50%; top: 50%; z-index: -1; width: min(calc(var(--star-box, 180px) * 1.3), 100cqi); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; }
+
+/*
+ * Session AR (ADR-041 P4; ADR-038 Q12, carried): what stands in the star's place until it reports. 'starting' is the
+ * star's own bezel (the stage draws it from the first paint) around a dim core lying in the disc's plane: the same object
+ * as the galaxy, unlit — the small SVG orb stood here before, a different object. 'picture' is the galaxy's still picture
+ * for a star whose code did not load (the line under its state says so). Nothing here moves.
+ */
+.nova-star-standin[data-kind=starting]::before { content: ''; position: absolute; left: 50%; top: 50%; width: 74%; height: 33%; transform: translate(-50%, -50%) rotate(21.8deg); border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--nova-c, #f06dff) 34%, transparent) 0, color-mix(in srgb, var(--nova-a, #9273ff) 22%, transparent) 38%, color-mix(in srgb, var(--nova-b, #23eaff) 8%, transparent) 72%, transparent 100%); }
+.nova-star-standin[data-kind=starting]::after { content: ''; position: absolute; left: 50%; top: 50%; width: 9%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 255 255 / .82) 0, color-mix(in srgb, var(--nova-c, #f06dff) 46%, transparent) 42%, transparent 100%); }
+.nova-star-standin[data-kind=picture] > img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* The bezel is dim until the star is lit. */
+.nova-orb-button[data-star-standin=starting] > .cc-bezel { opacity: .55; }

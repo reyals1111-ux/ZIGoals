@@ -1,6 +1,7 @@
 import type {HudMotionState} from '../holo/motion';
 import type {NovaOrbState} from '../orb';
 import type {DeviceHints} from '../orb-starfield';
+import {STAR_NO_CODE_TEXT} from './no-code';
 
 /**
  * Session AM (ADR-038 D11, A7; art direction §9), rewritten in Session AM-2 (ADR-038 "AM-2", E1–E4): how hard NOVA's star
@@ -86,10 +87,12 @@ export function starPixels(css: number, dpr: number, paceScale: number): number 
  * The honest line (AM-2 E4): why the star is still, slower than usual or a picture; null while it runs at its full pace
  * (rest is not said: the person is not looking). One sentence each, the cause after the colon.
  */
-export type StarWhy = {kind: 'still' | 'slow' | 'picture'; code: 'no-webgl' | 'compile' | 'empty' | 'lost' | 'motion-off' | 'reduced-motion' | 'calm' | 'software' | 'battery' | 'device' | 'late'; text: string};
+export type StarWhy = {kind: 'still' | 'slow' | 'picture'; code: 'no-webgl' | 'compile' | 'empty' | 'lost' | 'no-code' | 'motion-off' | 'reduced-motion' | 'calm' | 'software' | 'battery' | 'device' | 'late'; text: string};
 export const STAR_WHY: Readonly<Record<StarWhy['code'], string>> = {
   'no-webgl': 'Still picture: this browser has no WebGL',
   compile: 'Still picture: the star’s shader did not start in this browser',
+  // Session AR (ADR-041 P4): the star's own code never arrived (offline after an update, a blocked file); the stage draws the picture itself.
+  'no-code': STAR_NO_CODE_TEXT,
   empty: 'Still picture: the graphics driver drew an empty frame',
   lost: 'Still picture: the graphics context was lost',
   'motion-off': 'Still star: Motion is Off in ZIGoals',

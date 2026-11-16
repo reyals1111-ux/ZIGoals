@@ -40,7 +40,7 @@ export type StarReport = {shows: 'star' | 'picture' | 'orb'; why: StarWhy | null
   always: boolean};
 type Probe = {webgl: boolean; software: boolean; renderer: string | null};
 const LOST_GRACE_MS = 2500;
-export function StarSystem({state, hud, accent = 'violet', phone = false, size, column, beam = null, onReport}: {
+export function StarSystem({state, hud, accent = 'violet', phone = false, size, column, beam = null, onReport, onMount}: {
   state: NovaOrbState; hud: HudMotionState; accent?: string; phone?: boolean;
   /** The canvas's box, in CSS pixels (it is square and centred on the orb by its stylesheet). */
   size: number;
@@ -49,6 +49,8 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
   /** A widget is being made in this direction (radians, 0 = right, counter-clockwise); a new `key` fires the beam again. */
   beam?: StarBeam | null;
   onReport?: (report: StarReport) => void;
+  /** Session AR (ADR-041 P4): the star's code has arrived (the stage stops waiting for it; its report follows once the device is read). */
+  onMount?: () => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [debug] = useState(starDebug);
@@ -85,6 +87,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
   const shows: StarReport['shows'] | null = render === null ? null : render !== 'picture' ? 'star' : pictureFailed ? 'orb' : 'picture';
   const details = STAR_DETAILS && ready && shows ? [shows === 'star' ? (render === 'still' ? 'one still frame' : info || 'starting') : shows === 'picture' ? 'the still picture' : 'the SVG orb', probe.renderer ?? (probe.webgl ? 'renderer not named' : 'no WebGL'), probe.software ? 'software rendering' : null, debug.live ? 'held live (?star=live)' : null].filter(Boolean).join(' · ') : null;
   useEffect(() => { if (shows) onReport?.({shows, why, software, details, always: debug.why}); }, [shows, why?.code, software, details, debug.why]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { onMount?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Everything the loop reads lives in refs, so a state change never rebuilds the GL program.
   // The half-width of the star's column in the canvas's own units (1: the canvas fits its column, nothing fades).

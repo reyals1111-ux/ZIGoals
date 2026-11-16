@@ -18,6 +18,7 @@ import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full 
 import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, resizeWidget, restoreWidgets, swapWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
 import {starPlan} from '../../lib/nova/compose';
+import {STAR_NO_CODE_TEXT, STAR_WAIT_MS} from '../../lib/nova/core/no-code';
 import {HUD_PRESET_LABEL, HUD_PRESET_PLAN, phoneColumn, presetShown, presetWidgets, setHudLook, setHudPreset, type HudLook, type HudPreset} from '../../lib/nova/layout';
 import {BURST_MS, isTextEntry, shortcutKind, typedLetter} from '../../lib/nova/holo/keys';
 import {useHudRecord} from './holo/hud-record';
@@ -201,6 +202,17 @@ export default function NovaDashboard() {
   // Session AM-2 (ADR-038 "AM-2", E3, E4): what stands in the centre (the star, its still picture, or the SVG orb) and the honest line under it.
   const [starReport, setStarReport] = useState<StarReport | null>(null), starDraws = !!starReport && starReport.shows !== 'orb';
   const onStarReport = useCallback((report: StarReport) => setStarReport(report), []);
+  // Session AR (ADR-041 P4; ADR-038 Q12, carried): while the star starts, its stand-in is the star's own bezel with a dim
+  // core (it was the small SVG orb, a different object). A star whose code fails to load, or has not arrived after
+  // STAR_WAIT_MS, is the galaxy's still picture with its honest line; if it arrives after all, the star takes over.
+  const [starMounted, setStarMounted] = useState(false), [starFailed, setStarFailed] = useState(false), [starWaited, setStarWaited] = useState(false);
+  const onStarMount = useCallback(() => setStarMounted(true), []), onStarFail = useCallback(() => setStarFailed(true), []);
+  useEffect(() => {
+    if (starMounted || starFailed) return;
+    const timer = window.setTimeout(() => setStarWaited(true), STAR_WAIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [starMounted, starFailed]);
+  const starLost = !starReport && (starFailed || (starWaited && !starMounted)), starStandIn = starReport ? undefined : starLost ? 'picture' as const : 'starting' as const;
   const [starHold] = useState(() => starDebug().hold);
 
   const novaUpdate = nova.update;
@@ -554,13 +566,13 @@ export default function NovaDashboard() {
   const calmSize = Math.round(Math.max(240, Math.min(starCalm, holo && !phone && layout === 'orbit' && hudWide - 40 > 1040 ? starRoomLarge : starRoom)));
   const starSize = phone ? (holo ? Math.min(340, Math.round(phoneD * 1.12)) : 300) : plan ? plan.size : stage.shown.length ? Math.round(Math.max(240, Math.min(starCapNow, starRoom))) : calmSize, starBox = phone ? (holo ? phoneD : 126) : plan ? Math.round(plan.size * 0.46) : Math.round(Math.max(240, Math.min(hudWide > 900 ? (stage.shown.length ? starCalm : calmSize) : starCap, stage.shown.length ? starRoom : calmSize)) * 0.46); // round 7: 0.46 of the star (it was 0.42), so the words under it clear the bezel
   starNow.current = {size: starSize, count: stage.shown.length, move: !phone && !!plan && hudMove.state === 'full'};
-  const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} column={plan ? plan.column : stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;
-  const starWhy = starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
+  const star = <LoadBoundary quiet onFail={onStarFail}><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} column={plan ? plan.column : stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} beam={beam} onReport={onStarReport} onMount={onStarMount}/></Suspense></LoadBoundary>;
+  const starWhy = starLost ? {kind: 'picture', text: STAR_NO_CODE_TEXT} : starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).
   const answerWidget = lastMade && stage.shown.some(w => w.id === lastMade) ? {id: lastMade, title: widgetSpec(lastMade)?.title ?? 'the widget'} : null;
   const goToWidget = (id: string) => { const el = root.current?.querySelector<HTMLElement>(`article[data-widget="${id}"]`); if (el) { el.scrollIntoView({block: 'nearest'}); el.focus({preventScroll: true}); } };
   const answerLine = answerNow && !chatOpen ? <StageAnswerLine answer={answerNow} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)} widget={answerWidget} onGoTo={goToWidget}/> : undefined;
-  const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={starBox} starSize={starSize} starColumn={plan ? plan.column : stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} starWhy={starWhy} answer={answerLine}/>;
+  const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starStandIn={starStandIn} accent={accent} starBox={starBox} starSize={starSize} starColumn={plan ? plan.column : stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} starWhy={starWhy} answer={answerLine}/>;
   // Session AM-3 (round 6): a phone's first screen is the star with its words and, under them, the widgets on the stage as
   // one strip of instrument cards that swipes sideways; the full panels follow under the fold, as before.
   const phoneStage = phone && holo ? <div className="ps-first">{stageNode}<LoadBoundary quiet><Suspense fallback={null}><PhoneStage part="strip" widgets={phoneWidgets} gateOpen={stage.gateOpen} counts={counts}/></Suspense></LoadBoundary></div> : stageNode;
