@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useId, useMemo, useRef, useState, type HTMLAttributes, type PointerEvent as ReactPointerEvent} from 'react';
+import {useEffect, useId, useMemo, useRef, useState, type ComponentProps, type PointerEvent as ReactPointerEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import {TaskRow} from './task-parts';
@@ -164,7 +164,7 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
         <p className="tasks-matrix-hint">{words.hint}</p>
         {items.length ? <ul className="tasks-list" aria-label={words.title}>{items.map(t => <TaskRow key={t.id} task={t} today={today} nowClock={clock} record={record}
           goal={t.goal ? goals.byKey.get(t.goal) : undefined} goals={goals.open} onToggle={done => list.toggle(t, done)}
-          drag={{onPointerDown: startDrag(t.id), ...(dragging === t.id ? {'data-dragging': ''} : {})} as HTMLAttributes<HTMLElement>}>
+          drag={{onPointerDown: startDrag(t.id), ...(dragging === t.id ? {'data-dragging': ''} : {})} as ComponentProps<typeof TaskRow>['drag']}>
           <div className="tasks-when-actions">
             <button type="button" className="text-link tasks-matrix-move" aria-label={`Move “${t.title}” to “${QUADRANT_WORDS[partner].title}”`} onClick={() => { if (quadrantOf(t, today) === q) move(t, partner); }}>
               {q === 'do' || q === 'plan' ? 'Not important' : 'Important'}
