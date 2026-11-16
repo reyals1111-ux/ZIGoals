@@ -240,7 +240,7 @@
   .nc-journal[data-size=M] :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(50px, auto) repeat(7, 34px); gap: 4px 6px; }
   /* Round 7 (an empty lower half): the weeks' cells take the height the panel leaves (15–24 px), and the figure stands level with the month. */
   .nc-journal[data-size=M] .nc-lattice-row i { aspect-ratio: auto; height: clamp(15px, calc((100cqh - 78px) / 6), 24px); border-radius: 4px; }
-  .nc-journal[data-size=M] .nc-journal-main { flex: 1 1 auto; min-height: 0; align-content: center; }
+  .nc-journal[data-size=M] .nc-journal-main { flex: 1 1 auto; min-height: 0; align-content: safe center; }
   .nc-journal[data-size=M] .nc-lattice-label, .nc-journal[data-size=M] .nc-lattice-head span { line-height: 15px; }
   .nc-journal[data-size=M] .nc-lattice { gap: 4px; }
   .nc-journal[data-size=M] .nc-lattice-head { display: grid; }

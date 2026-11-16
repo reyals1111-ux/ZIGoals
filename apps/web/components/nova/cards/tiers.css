@@ -49,6 +49,10 @@
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-trend-plot,
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-columns-plot { flex: 1 1 0; min-height: 60px; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nx-main > :is(.nc-trend, .nc-columns) { flex: 1 1 0; }
+/* A chart card's explanation under its facts gives its room to the chart in a hero (the foot and the table say it); in a
+   wide hero the facts stand in two columns, so the chart keeps most of the height. */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=chart] > [data-extra] { display: none; }
+@container holo-body (min-width: 520px) { .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body.nx-card > .nc-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; } }
 /* Meters in a hero are the instrument: thicker tubes, the rows spread over the height they have. */
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-bar-track { height: clamp(16px, 4.2cqi, 24px); }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-bars { gap: 12px; }
