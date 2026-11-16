@@ -1307,3 +1307,162 @@
   .nova-orbit-band-grid .holo-agenda[data-size=M] .holo-clock, .nova-orbit-band-grid .holo-orbit[data-size=M] .holo-orbit-ring { --ring: clamp(120px, 50cqi, 176px); }
   .nova-orbit-band-grid .holo-agenda[data-size=M] .holo-agenda-side, .nova-orbit-band-grid .holo-orbit[data-size=M] .holo-orbit-side { width: 100%; }
 }
+
+/* ==== Session AR (Part 2, ADR-041 P3): tiers in the bodies ====
+   On the composed stage every panel beside the star carries its tier (`data-tier` on `.nova-widget`, worked out by
+   lib/nova/compose.ts, never stored) and its body is drawn at the tier's size. These rules size each body for its tier,
+   from the body's own measures (the `holo-body` size container: cqh, cqi), so they hold at every window:
+   - HERO: one dominant instrument (a ring of 150–200 px in a 316 × 295 body, 220–300 px in a 591 × 478 one) and its
+     figure (36–44 px at 1440, 48–64 px at 2560), with at most two supports; in a narrow hero the instrument stands above
+     its rows.
+   - SUPPORTING: the instrument and its figure fill the box (no empty third).
+   - COMPACT: the figure and one micro-instrument on one line (a dial, a strip of read-outs, a meter).
+   Outside the composed stage (Bento, Focus, Minimal, arranging, the band, a phone) there is no tier and nothing here applies.
+   The heights in the comments are the sums each formula keeps (whole rows only; the body never holds more than it shows). */
+
+/* ---- Shared: the figures ---- */
+.nova-widget[data-tier=hero] .holo-num-big { font-size: clamp(36px, min(calc(100cqi / (var(--chars, 6) * .58)), 15cqh), 64px); }
+.nova-widget[data-tier=supporting] .holo-num-big { font-size: clamp(28px, min(calc(100cqi / (var(--chars, 6) * .58)), 19cqh), 52px); }
+.nova-widget[data-tier=compact] .holo-num-big { font-size: clamp(24px, min(calc(60cqi / (var(--chars, 6) * .58)), 40cqh), 44px); line-height: 1; }
+/* A compact plate's figure beside its dial (agenda-clock.tsx, skins.tsx HoloOrbit): drawn only on a compact plate. */
+.holo-sfig { display: none; }
+.nova-widget[data-tier=compact] .holo-sfig { display: flex; flex-direction: column; align-items: flex-start; margin: 0; line-height: 1; white-space: nowrap; }
+.nova-widget[data-tier=compact] .holo-sfig small { font-size: 14px; line-height: 18px; color: #cdd8ee; }
+
+/* ---- Health HUD, hero ---- */
+/* M (any width): stacked — the ring over the meters (two by two), the foot strip. The meters keep their figures and give
+   their targets to the table and to a wider panel (as a body under 300 px did before). Hearts and reasons in the table.
+   R + 18 (its caption) + 8 + 64 (two rows of meters: 29 + 6 + 29) + 8 + 22 (the strip) + 10 (measured: the strip's border
+   and the meters' line boxes) = R + 130 ≤ h; 4 px kept in hand. */
+.nova-widget[data-tier=hero] .holo-health[data-size=M] { --tagh: 22px; --mrow: 29px; grid-template-columns: minmax(0, 1fr); align-content: center; row-gap: 8px; }
+.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-split { display: contents; }
+.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring-col { justify-self: center; max-width: none; }
+.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring { --ring: clamp(110px, min(calc(100cqh - 72px - 2 * var(--mrow) - var(--tagh) - var(--note)), 72cqi), 200px); }
+.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meters { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; row-gap: 6px; align-content: start; }
+.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meter .holo-note,
+.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meter-value small,
+.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-heartrow { display: none; }
+.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-tag { justify-self: center; }
+/* A body under 300 px: a meter's figure goes under its name (never cut), and the strip may take two lines. */
+@container holo-body (max-width: 299.98px) {
+  .nova-widget[data-tier=hero] .holo-health[data-size=M] { --mrow: 47px; --tagh: 40px; }
+  /* (measured at 246 × 321: the stacked meters' line boxes leave 26 px of the sum above unused) */
+  .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring { --ring: clamp(110px, min(calc(100cqh - 50px - 2 * var(--mrow) - var(--tagh) - var(--note)), 72cqi), 200px); }
+  .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meter { grid-template-columns: minmax(0, 1fr); grid-template-areas: "label" "value" "segs"; }
+  .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meter-value { justify-self: start; justify-content: flex-start; }
+}
+/* L: the ring beside the six meters, the week's calories under both, the strip. The heart line and the hearts go to the
+   table (two supports at most). R + 18 + 12 + (18 + 4 + H + 2 + 21) + 12 + 22 = R + H + 109 ≤ h (22 px kept in hand). */
+.nova-widget[data-tier=hero] .holo-health[data-size=L] { --hR: clamp(150px, min(calc(100cqh - 236px - var(--note)), 46cqi), 290px);
+  grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "ring meters" "week week" "tag tag"; align-items: center; align-content: center; column-gap: 28px; row-gap: 12px;
+  --mgap: clamp(4px, calc((var(--hR) + 18px - 174px) / 5), 16px); --histo-h: clamp(48px, calc(100cqh - var(--hR) - 132px - var(--note)), 200px); }
+.nova-widget[data-tier=hero] .holo-health[data-size=L]:has(.holo-ring-note) { --note: 40px; }
+.nova-widget[data-tier=hero] .holo-health[data-size=L] .holo-split { display: contents; }
+.nova-widget[data-tier=hero] .holo-health[data-size=L] .holo-ring-col { grid-area: ring; max-width: none; }
+.nova-widget[data-tier=hero] .holo-health[data-size=L] .holo-ring { --ring: var(--hR); }
+.nova-widget[data-tier=hero] .holo-health[data-size=L] .holo-meters { grid-area: meters; }
+.nova-widget[data-tier=hero] .holo-health[data-size=L] .holo-week-kcal { grid-area: week; }
+.nova-widget[data-tier=hero] .holo-health[data-size=L] .holo-tag { grid-area: tag; }
+.nova-widget[data-tier=hero] .holo-health[data-size=L] :is(.holo-heartrow, .holo-heartline) { display: none; }
+/* The ring's figure in a hero: as large as the well lets its characters be ("1,970" at 36.5 px in a 169 px ring, 54 px in 250). */
+.nova-widget[data-tier=hero] .holo-health .holo-ring .holo-num-ring { font-size: clamp(16px, min(calc(var(--ring, 104px) * .23), calc(var(--ring, 104px) * 1.02 / var(--chars, 5))), 64px); }
+.nova-widget[data-tier=hero] .holo-health .holo-ring > .holo-ring-centre > small { font-size: 15px; }
+
+/* ---- Habits HUD, hero ---- */
+/* M: today's ring with the week's columns beside it, the streaks under both (whole rows, measured); the 30-day dial goes
+   to the table. R + 12 + the streaks (35 a row) ≤ h. */
+.nova-widget[data-tier=hero] .holo-habits[data-size=M] { --hR: clamp(120px, min(calc(100cqh - 118px), calc(100cqi - 120px)), 200px);
+  grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "ring week" "list list"; align-items: center; align-content: center; column-gap: 18px; row-gap: 12px; }
+.nova-widget[data-tier=hero] .holo-habits:is([data-size=M], [data-size=L]) :is(.holo-split, .holo-week-row) { display: contents; }
+.nova-widget[data-tier=hero] .holo-habits:is([data-size=M], [data-size=L]) .holo-today { grid-area: ring; --ring: var(--hR); justify-self: center; }
+.nova-widget[data-tier=hero] .holo-habits:is([data-size=M], [data-size=L]) .holo-stack-list { grid-area: list; align-self: stretch; }
+.nova-widget[data-tier=hero] .holo-habits:is([data-size=M], [data-size=L]) .holo-cols { grid-area: week; align-self: center; }
+.nova-widget[data-tier=hero] .holo-habits:is([data-size=M], [data-size=L]) .holo-dial { display: none; }
+.nova-widget[data-tier=hero] .holo-habits[data-size=M] .holo-cols { --cols-h: clamp(48px, calc(var(--hR) * .6), 120px); }
+/* Narrow columns: one letter a day (the table says the day). */
+.nova-widget[data-tier=hero] .holo-habits[data-size=M] .holo-cols-l2 { display: none; }
+.nova-widget[data-tier=hero] .holo-habits .holo-today .holo-ring-centre small { display: block; font-size: 15px; }
+.nova-widget[data-tier=hero] .holo-habits .holo-today .holo-num-ring { font-size: clamp(16px, min(calc(var(--ring, 108px) * .23), calc(var(--ring, 108px) * .66 / var(--chars, 3))), 64px); }
+/* A body under 300 px (a 280 px hero): the ring stands above the week and the streaks. R + 12 + 66 + 12 + 90 (three
+   streaks as measured) ≤ h, 5 px in hand; a streak that does not fit leaves whole for "+N more". */
+@container holo-body (max-width: 299.98px) {
+  .nova-widget[data-tier=hero] .holo-habits[data-size=M] { --hR: clamp(120px, min(calc(100cqh - 175px), calc(100cqi - 40px)), 200px); grid-template-columns: minmax(0, 1fr); grid-template-areas: "ring" "week" "list"; }
+  .nova-widget[data-tier=hero] .holo-habits[data-size=M] .holo-cols { --cols-h: 48px; }
+}
+/* L: the ring beside the streaks, the week's columns under both at the body's width. R + 12 + C + 20 ≤ h. */
+.nova-widget[data-tier=hero] .holo-habits[data-size=L] { --hR: clamp(160px, min(calc(100cqh - 150px), 50cqi), 300px);
+  grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "ring list" "week week"; align-items: center; align-content: center; column-gap: 28px; row-gap: 12px; }
+.nova-widget[data-tier=hero] .holo-habits[data-size=L] .holo-stack-list { align-self: center; }
+.nova-widget[data-tier=hero] .holo-habits[data-size=L] .holo-cols { --cols-h: clamp(56px, calc(100cqh - var(--hR) - 40px), 130px); width: 100%; }
+
+/* ---- Goals HUD ---- */
+/* Stacked (under 560 px): breathing room from the frame line and between the goals (ADR-038 Q12: the content sat on the
+   frame's line and the names touched). A + 28 + 32 + 2 + 12 (padding) ≤ h while the pace box is not shown. */
+.nova-widget[data-tier] .holo-goals[data-size=M] { box-sizing: border-box; padding-block: 4px 8px; }
+.nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs { column-gap: 10px; }
+@container holo-body (max-height: 220.98px) and (max-width: 399.98px) { .nova-widget[data-tier] .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 78px, calc((100cqi - 36px) / 3)), 132px); } }
+@container holo-body (max-height: 197.98px) and (min-width: 400px) and (max-width: 559.98px) { .nova-widget[data-tier] .holo-goals[data-size=M] { --arc: clamp(40px, min(100cqh - 78px, calc((100cqi - 36px) / 3)), 132px); } }
+/* Wide (560 px and more): the lead goal's arc is the instrument (up to 210 px, its figure up to 50), the next two are
+   rows beside it (a small arc, the name and its status), the pace column beside them. Lead: L + 46 ≤ h. */
+@container holo-body (min-width: 560px) {
+  .nova-widget[data-tier] .holo-goals[data-size=M] { grid-template-columns: minmax(0, 13fr) minmax(0, 7fr); column-gap: 24px; --lead: clamp(110px, min(calc(100cqh - 62px), 25cqi), 210px); --arc: clamp(52px, calc((100cqh - 40px) / 2 - 30px), 60px); }
+  .nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs:not([data-count="1"]) { grid-template-columns: var(--lead) minmax(0, 1fr); grid-auto-rows: auto; align-items: center; align-content: center; column-gap: 16px; row-gap: 12px; }
+  .nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs:not([data-count="1"]) > li:first-child { grid-row: 1 / span 2; }
+  .nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs > li:first-child .holo-arc-box { width: var(--lead); height: var(--lead); }
+  .nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs > li:first-child .holo-num-arc { font-size: clamp(20px, calc(var(--lead) * .24), 50px); }
+  .nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs > li:first-child .holo-arc-name { font-size: 15px; }
+  .nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs > li:not(:first-child) .holo-arc-link { grid-template-columns: var(--arc) minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; align-content: center; column-gap: 12px; text-align: left; }
+  .nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs > li:not(:first-child) .holo-arc-box { grid-row: 1 / span 2; }
+  .nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs > li:not(:first-child) .holo-arc-name { margin-top: 0; align-self: end; text-align: left; }
+  .nova-widget[data-tier] .holo-goals[data-size=M] .holo-arcs > li:not(:first-child) .holo-pace-words { align-self: start; text-align: left; }
+}
+
+/* ---- Wealth HUD ---- */
+/* The chart's key ("now" and today's figure) lay on the line (ADR-038 Q12). Under 520 px of frame the hollow point says
+   "now" alone (the head's figure is today's total, and the table says both); from 520 px the key stands in the frame's
+   top strip, clear of the plot. */
+.holo-wealth .holo-frame.holo-wave { container: holo-wave / inline-size; }
+@container holo-wave (max-width: 519.98px) { .nova-widget[data-tier] .holo-wave-tag[data-at=now] { display: none; } }
+@container holo-wave (min-width: 520px) and (max-width: 799.98px) { .nova-widget[data-tier] .holo-wave .holo-wave-legend[data-corner] { top: -20px; bottom: auto; left: 10px; display: flex; gap: 8px; } }
+/* A body under 300 px: the label and its "known so far" plate take two lines (never cut), and the frame's lower strip
+   two lines too, so the dates and "MIN" never touch. Both come out of the plot's height, so the panel's sum holds. */
+.holo-wave .holo-wave-plot svg { height: calc(var(--wave-h, 48px) - 6px - var(--wave-cut, 0px)); }
+@container holo-body (max-width: 299.98px) {
+  .nova-widget[data-tier] .holo-wealth .holo-wealth-head .holo-label { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; white-space: normal; overflow: visible; }
+  .nova-widget[data-tier] .holo-wealth .holo-wealth-head .holo-label-chip { margin-left: 0; }
+  .nova-widget[data-tier] .holo-wealth { --wave-cut: 36px; }
+  .nova-widget[data-tier] .holo-wealth .holo-frame.holo-wave { padding-bottom: 40px; }
+  .nova-widget[data-tier] .holo-wealth .holo-wave .holo-frame-label[data-at=from] { bottom: 21px; }
+}
+/* Hero: the total is the dominant figure, the line takes what is left. */
+.nova-widget[data-tier=hero] .holo-wealth .holo-wealth-head .holo-num-big { font-size: clamp(30px, min(calc(100cqi / (var(--chars, 6) * .58)), 15cqh), 64px); }
+
+/* ---- Water, Sleep balance (M and L): the figure and its meter share the panel's height (Q12: an empty lower third). ---- */
+.nova-widget[data-tier] :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]) { box-sizing: border-box; min-height: 100cqh; align-content: space-evenly; }
+.nova-widget[data-tier] :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]) .holo-num-big { font-size: clamp(36px, min(calc(100cqi / (var(--chars, 6) * .58)), 15cqh), 72px); }
+.nova-widget[data-tier] :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]):not([data-empty]) .holo-segs { height: clamp(16px, 11cqh, 40px); gap: 4px; }
+.nova-widget[data-tier] :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]):not([data-empty]) :is(.holo-meter-label, .holo-meter-value) { font-size: 16px; line-height: 20px; }
+.nova-widget[data-tier] :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]) .holo-note-line { font-size: 16px; line-height: 1.4; }
+
+/* ---- Compact plates: the figure and one micro-instrument on one line ---- */
+/* Agenda clock, Today's orbit: the dial at the plate's height (52–116 px), the figure beside it, then the one next row or
+   the day's line where there is room. The figure inside the dial steps aside (the one beside it says the same). */
+.nova-widget[data-tier=compact] :is(.holo-agenda, .holo-orbit)[data-size=S] { grid-template-columns: auto auto minmax(0, 1fr); align-items: center; column-gap: 16px; }
+/* (width and height, not --ring: a small dial carries its 64 px as an inline --ring) */
+.nova-widget[data-tier=compact] :is(.holo-agenda, .holo-orbit)[data-size=S] .holo-ring[data-small] { width: clamp(52px, calc(100cqh - 4px), 116px); height: clamp(52px, calc(100cqh - 4px), 116px); }
+.nova-widget[data-tier=compact] :is(.holo-agenda, .holo-orbit)[data-size=S] .holo-ring[data-small] > .holo-ring-centre { display: none; }
+@container holo-body (max-width: 339.98px) { .nova-widget[data-tier=compact] :is(.holo-agenda, .holo-orbit)[data-size=S] :is(.holo-agenda-side, .holo-orbit-side) { display: none; } }
+/* Notes, Water, Sleep: the figure beside its rows or its meter from 360 px. */
+@container holo-body (min-width: 360px) {
+  .nova-widget[data-tier=compact] :is(.holo-water, .holo-sleep, .holo-notes)[data-size=S] { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 24px; }
+  .nova-widget[data-tier=compact] .holo-notes[data-size=S] .holo-notes-head .holo-num-big { font-size: clamp(26px, 42cqh, 48px); }
+}
+/* Tasks: the read-outs' line (22 px) over today's row (44): 66 px, inside the 68–70 px of a compact plate at 1920. From
+   560 px the three read-outs stand beside today's rows (the read-outs are the figure, the rows its instrument; every row
+   keeps its controls and their names, and the rows that do not fit leave whole for "+N more"). */
+.nova-widget[data-tier=compact] .holo-tasks[data-size=S] { gap: 0; }
+.nova-widget[data-tier=compact] .holo-tasks[data-size=S] .holo-counters :is(dd, dt) { line-height: 22px; }
+@container holo-body (min-width: 560px) {
+  .nova-widget[data-tier=compact] .holo-tasks[data-size=S][data-counters] { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 18px; }
+  .nova-widget[data-tier=compact] .holo-tasks[data-size=S] .holo-counters { grid-template-columns: repeat(3, auto); gap: 6px; }
+}
