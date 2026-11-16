@@ -1,3 +1,13 @@
+# Session AR — "NOVA, COMPOSED" (ADR-041) (2026-11-16, `feature/session-ar-nova-composed`; Draft PR, in progress, not merged, not deployed)
+**Base:** `main` `7106630107b97cb1c131756263a97384cb719546` (Merge #101, Sessions AM, AM-2, AM-3; live as Alpha #56). **Rules (owner):** the brief for Session AR (NOVA's new composition, a bounded critique, the leftovers that need judgement), one approved plan with four approval items and the owner's change "the star makes room" (verbatim in `docs/architecture/ADR-041-session-ar.md`). Resume file: `docs/handoff/AR_RESUME.md`.
+
+## Part 0 — records (owner-reported, 16 Nov)
+- **[PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) (Sessions AN, AO, AP)** merged into `main` as `2474dcd8`. **Alpha #55** = Manual Alpha deployment run 58, from `main` `18055795c3b2525d8e58646b8380b957d9a8e241` (which includes [PR #104](https://github.com/reyals1111-ux/ZIGoals/pull/104), Session AQ's hotfix): version `e17f1cc0-92b9-4f1a-8b89-5cec5725a572`, rollback `1333dc2c-15b5-49f8-87d1-545b5a8b114d` (#54).
+- **[PR #101](https://github.com/reyals1111-ux/ZIGoals/pull/101) (Sessions AM, AM-2, AM-3)** merged into `main` as `7106630107b97cb1c131756263a97384cb719546`; main CI run 1808 green on attempt 2. **Alpha #56** = Manual Alpha deployment run 59 (16 Nov): version `064ff8bc-8cc3-4ae7-8be4-783225ae75dd`, rollback `e17f1cc0-92b9-4f1a-8b89-5cec5725a572` (#55); **VERIFIED**, prices verified.
+- **Rehearsal [PR #103](https://github.com/reyals1111-ux/ZIGoals/pull/103)** (`rehearsal/am-plus-an`) closed unmerged.
+- **Owner's Mac check:** the galaxy star runs.
+- **Frozen readers** are #37–#56 from now on (`scripts/frozen-readers.mjs`: #55 = `18055795`, #56 = `7106630`); both new releases pass (98 of 98 each, this head's fixtures).
+
 # Session AP — "READY FOR FRIENDS" (ADR-040) (2026-11-14, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO + AP"; Draft, complete, not merged, not deployed)
 **Base:** Session AO's head `ca2678d7` on `main` `c65882f3`. PR #101 (AM-2) was still open and unmerged at the start and again before this entry, so no main merge was needed (owner addition 5). **Rules (owner):** the brief, one plan approval (14 Nov) with five additions, verbatim in `docs/architecture/ADR-040-session-ap.md` (decisions D1–D24, closing table). Resume file: `docs/handoff/AP_RESUME.md`. Demo: `docs/handoff/AP_DEMO_TOUR.md`.
 
