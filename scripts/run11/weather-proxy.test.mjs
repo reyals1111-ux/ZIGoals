@@ -175,9 +175,20 @@ test('only APP_ORIGIN gets CORS headers; another Origin is refused 403 before an
  expect(preflight.headers.get('access-control-allow-origin')).toBe(APP);
  expect(preflight.headers.get('access-control-allow-methods')).toBe('GET, OPTIONS');
  expect(r.calls).toHaveLength(0);
- // No Origin at all (curl, a server): served, without CORS headers.
- const plain=await r.get(BRUSSELS,{headers:{origin:null}});
- expect(plain.status).toBe(200);expect(plain.headers.get('access-control-allow-origin')).toBeNull();await plain.arrayBuffer();
+ // Security review (AM-2, finding 10b, deliberate): no Origin at all (curl, a server, a script outside a browser) is
+ // refused 403 before any MET call or count (was: served 200 without CORS headers, so any script could spend the shared
+ // MET budget). The preflight without an Origin still answers 204 without CORS headers, as before.
+ for(const method of ['GET','POST','HEAD']){
+  const plain=await r.get(BRUSSELS,{method,headers:{origin:null}});
+  expect(plain.status).toBe(403);if(method!=='HEAD')expect(await plain.json()).toEqual({error:'ORIGIN_REQUIRED'});else await plain.arrayBuffer();
+  expect(plain.headers.get('access-control-allow-origin')).toBeNull();
+ }
+ const bare=await r.get(BRUSSELS,{method:'OPTIONS',headers:{origin:null}});
+ expect(bare.status).toBe(204);expect(bare.headers.get('access-control-allow-origin')).toBeNull();
+ expect(r.calls).toHaveLength(0);
+ // The app's own origin is served, with its CORS header.
+ const own=await r.get(BRUSSELS);
+ expect(own.status).toBe(200);expect(own.headers.get('access-control-allow-origin')).toBe(APP);await own.arrayBuffer();
  expect(r.calls).toHaveLength(1);
 },60000);
 

@@ -1,7 +1,7 @@
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {WIDGETS, gallery, isWidgetId, widgetAvailable} from './catalog';
+import {WIDGETS, gallery, isWidgetId, widgetAvailable, widgetSpec} from './catalog';
 import {durationWords, glanceLines, paceWords, shareOf, waterAmount, whenWords, wholePercent, type GlanceFacts} from './words';
 import {DEFAULT_WIDGETS} from '../store';
 
@@ -9,7 +9,38 @@ describe('the widget gallery', () => {
   it('names every widget the brief asks for, each with its page and a way to open it', () => {
     expect(WIDGETS.map(w => w.id)).toEqual(['orbit', 'next', 'tasks', 'glance', 'water', 'focus', 'now-playing', 'money', 'goal-pace', 'sleep', 'briefs', 'notes', 'markets',
       // Session AL Part 11 (lane L8), a deliberate extension: the holographic HUD's five instruments.
-      'health-hud', 'habits-hud', 'goals-hud', 'wealth-hud', 'agenda-clock']);
+      'health-hud', 'habits-hud', 'goals-hud', 'wealth-hud', 'agenda-clock',
+      // Session AM (ADR-038 D1–D5), a deliberate extension: the widgets NOVA makes on request.
+      'weight', 'steps', 'workouts', 'habit-week', 'goal-focus', 'net-worth', 'spending', 'budgets', 'bills', 'journal', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests',
+      // Session AM-2 (step 3, "NOVA connected"), a deliberate extension: what Sessions AO and AP added to the pages, as widgets on request.
+      'net-worth-history', 'ready-to-assign', 'age-of-money', 'spending-pace', 'bill-changes', 'money-tags', 'perfect-days', 'day-rules', 'tasks-later', 'countdowns', 'journal-numbers', 'templates', 'run-splits', 'mood-tags', 'symptoms',
+      // Round 2, a deliberate extension: the pages that still had no widget.
+      'priority-matrix', 'hour-grid', 'reviews', 'milestones', 'cash-flow', 'accounts', 'debt-plan', 'savings-challenges', 'price-alerts', 'health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle']);
+    // Session AM (D5): every widget that shows the person's records names the switch a made widget reads under.
+    // Session AM (AM-S2, deliberate): two gates more (was: today|goals|habits|health|wealth). Notes and the Journal read under
+    // their own NOVA permissions, so the whole map is pinned here, gate by gate: nothing but the Notes inbox reads under
+    // 'notes', nothing but the Journal under 'journal', and neither is under 'today' any more.
+    // Session AM-2 (step 3, deliberate): Templates joins the widgets without a gate (was: seven). It is the static library that
+    // ships with the app and reads nothing of the person's; every other new widget names its switch below.
+    for (const w of WIDGETS) if (!['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests', 'templates'].includes(w.id)) expect(w.gate, w.id).toMatch(/^(today|goals|habits|health|wealth|notes|journal)$/);
+    expect([widgetSpec('notes')?.gate, widgetSpec('journal')?.gate]).toEqual(['notes', 'journal']); // AM-S2: their own permissions, never Today's
+    const under = (gate: string | undefined) => WIDGETS.filter(w => w.gate === gate).map(w => w.id);
+    expect(under('notes')).toEqual(['notes']);
+    // Session AM-2 (step 3, "NOVA connected", deliberate): each list below grows by the new widgets of its gate, and by nothing
+    // else. The Journal's numbers read under the Journal's own gate (AM-S2), never Today's; the three health-type records of
+    // Session AP (run splits, mood tags, symptoms) read under Health and under no other gate (Q14, Q16).
+    expect(under('journal')).toEqual(['journal', 'journal-numbers']);
+    // Round 2 (deliberate): each list grows again by its own new widgets only. Six more read under Health and under no other gate.
+    expect(under('today')).toEqual(['orbit', 'next', 'tasks', 'glance', 'focus', 'briefs', 'agenda-clock', 'day-rules', 'tasks-later', 'countdowns', 'priority-matrix', 'hour-grid', 'reviews']);
+    expect(under('goals')).toEqual(['goal-pace', 'goals-hud', 'goal-focus', 'milestones']);
+    expect(under('habits')).toEqual(['habits-hud', 'habit-week', 'perfect-days']);
+    expect(under('health')).toEqual(['water', 'sleep', 'health-hud', 'weight', 'steps', 'workouts', 'run-splits', 'mood-tags', 'symptoms', 'health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle']);
+    expect(under('wealth')).toEqual(['money', 'markets', 'wealth-hud', 'net-worth', 'spending', 'budgets', 'bills', 'net-worth-history', 'ready-to-assign', 'age-of-money', 'spending-pace', 'bill-changes', 'money-tags', 'cash-flow', 'accounts', 'debt-plan', 'savings-challenges', 'price-alerts']);
+    // Price alerts show only while Markets is in use, as Market watch does.
+    expect([widgetSpec('price-alerts')?.needs, widgetSpec('markets')?.needs]).toEqual(['markets', 'markets']);
+    expect(under(undefined)).toEqual(['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests', 'templates']);
+    // Every widget of this step is `made`: it reads under its switch whether it was made or pinned (AM-S1).
+    for (const id of ['net-worth-history', 'ready-to-assign', 'age-of-money', 'spending-pace', 'bill-changes', 'money-tags', 'perfect-days', 'day-rules', 'tasks-later', 'countdowns', 'journal-numbers', 'templates', 'run-splits', 'mood-tags', 'symptoms', 'priority-matrix', 'hour-grid', 'reviews', 'milestones', 'cash-flow', 'accounts', 'debt-plan', 'savings-challenges', 'price-alerts', 'health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle']) expect(widgetSpec(id)?.made, id).toBe(true);
     for (const w of WIDGETS) { expect(w.href.startsWith('/app/')).toBe(true); expect(w.open.length).toBeGreaterThan(3); expect(w.about.endsWith('.')).toBe(true); }
     for (const w of DEFAULT_WIDGETS) expect(isWidgetId(w.id)).toBe(true);
   });

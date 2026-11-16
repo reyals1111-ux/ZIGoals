@@ -3,6 +3,8 @@ import {useMemo} from 'react';
 import {noteTexts} from '../../../lib/ai/privacy-mode';
 import type {ProviderId} from '../../../lib/ai/providers';
 import {isHermesBase, localModelStillConfirmed, NOVA_HERMES} from '../../../lib/nova/hermes-record';
+import {ownAgentIsUnconfirmed} from '../../../lib/nova/agent-bridge/own-agent-record';
+import {NOVA_AGENT} from '../../../lib/nova/agent-bridge/record';
 import {previewFor, type PrivacyMode} from '../../../lib/nova/privacy-mode';
 import {knownNamesFrom} from '../../../lib/nova/redact';
 import {useDeviceRecord} from '../../ai/use-device-record';
@@ -18,8 +20,10 @@ import {useDeviceRecord} from '../../ai/use-device-record';
 export function AboutToSend({message, context = '', mode, provider, model = null, baseUrl = null, hosted = false, hermesUnconfirmed, knownNames, assistant = 'NOVA', contextLabel = 'With it, the context', hideWhenSent = false}: {message: string; context?: string; mode: PrivacyMode | null; provider: ProviderId | null | undefined; model?: string | null; baseUrl?: string | null; hosted?: boolean; hermesUnconfirmed?: boolean; knownNames?: readonly string[]; assistant?: string; contextLabel?: string; hideWhenSent?: boolean}) {
   const hermes = useDeviceRecord(NOVA_HERMES);
   const names = useMemo(() => knownNames ?? knownNamesFrom(noteTexts()), [knownNames]);
-  const unconfirmed = hermesUnconfirmed ?? (provider === 'local' && !hosted && !!baseUrl && isHermesBase(baseUrl, hermes.data) && (hermes.unreadable || !localModelStillConfirmed(hermes.data, baseUrl))); // SA-1: as the engine, for this address
-  const preview = useMemo(() => previewFor({message, context, mode, provider, model, hosted, hermesUnconfirmed: unconfirmed, knownNames: names, assistant}), [message, context, mode, provider, model, hosted, unconfirmed, names, assistant]);
+  // Session AM-2: the person's own agent (not Hermes) is read as the engine reads it too, and named as what it is.
+  const ownAgent = useDeviceRecord(NOVA_AGENT), own = hermesUnconfirmed === undefined && provider === 'local' && !hosted && !isHermesBase(baseUrl, hermes.data) && !ownAgent.unreadable && ownAgentIsUnconfirmed(ownAgent.data, baseUrl);
+  const unconfirmed = hermesUnconfirmed ?? ((provider === 'local' && !hosted && !!baseUrl && isHermesBase(baseUrl, hermes.data) && (hermes.unreadable || !localModelStillConfirmed(hermes.data, baseUrl))) || own); // SA-1: as the engine, for this address
+  const preview = useMemo(() => previewFor({message, context, mode, provider, model, hosted, hermesUnconfirmed: unconfirmed, knownNames: names, assistant, ...(own ? {agentName: 'your own agent'} : {})}), [message, context, mode, provider, model, hosted, unconfirmed, names, assistant, own]);
   if (hideWhenSent && preview.decision === 'send') return null;
   return <div className="nova-guide-send" data-decision={preview.decision} aria-live="polite">
     <p className="nova-guide-send-line"><b>{preview.line}</b>{preview.summary && <> Taken out or rounded: {preview.summary}.</>}</p>

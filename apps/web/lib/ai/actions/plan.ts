@@ -2,7 +2,7 @@ import {evaluateAmount, isExpression} from '../../money-calc/expression';
 import {parseAmountInput} from '../../amount-input';
 import {saveMeasurement} from '../../body-measurements';
 import {applyAutoStop, fastingHistory, removeFast, runningSession, startFast, stopFast} from '../../fasting/engine';
-import {FASTING_PRESETS, MAX_CUSTOM_HOURS, fastingSchema, type Fasting} from '../../fasting/schema';
+import {FASTING_PRESETS, MAX_TARGET_HOURS, fastingSchema, type Fasting} from '../../fasting/schema';
 import {earliestHabitChange} from '../../habit-actions';
 import {clearVacation, createHabit, editHabit, habitDataSchema, habitInputSchema, latestHabitRule, logHabitValue, measurementUnit, planSkip, setHabitEntryStatus, setHabitState, setVacation, smartDoneValue, unplanSkip, type Habit, type HabitData, type HabitInput} from '../../habits';
 import {recipeRef} from './refs';
@@ -402,7 +402,7 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'start-fast': {
       if (runningSession(applyAutoStop(stores.fasting, env.now))) return refuse('A fast is already running; stop it first.');
       const id = `fast_${healthId().slice(7)}`, preset = FASTING_PRESETS.find(p => p.hours === action.targetHours);
-      return {ok: true, plan: {target: 'fasting', card: {kind: action.kind, title: 'Start a fast', lines: [`Target ${action.targetHours} h${preset ? ` (${preset.label})` : ` (custom, up to ${MAX_CUSTOM_HOURS} h)`}`, 'Stops by itself at 24 h; stop it any time from Health'], where: 'Health · Fasting timer', day: null, estimate: false, safety: HE6_NOTE},
+      return {ok: true, plan: {target: 'fasting', card: {kind: action.kind, title: 'Start a fast', lines: [`Target ${action.targetHours} h${preset ? ` (${preset.label})` : ` (custom, up to ${MAX_TARGET_HOURS} h)`}`, 'Stops by itself at 24 h; stop it any time from Health'], where: 'Health · Fasting timer', day: null, estimate: false, safety: HE6_NOTE},
         write: s => ({fasting: startFast(applyAutoStop(s.fasting, env.now), {id, now: env.now, targetHours: action.targetHours, timeZone: env.timeZone})}),
         undo: {label: 'Discard this fast', write: s => ({fasting: removeFast(s.fasting, id)}), unchanged: (after, current) => same(after.fasting.sessions.find(f => f.id === id), current.fasting.sessions.find(f => f.id === id))}, activity: {id, title: `Fast started (${action.targetHours} h target)`}}};
     }

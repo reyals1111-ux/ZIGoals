@@ -28,6 +28,8 @@ import type {HealthCoach} from '../../health-aa/coach-schema';
 import type {AkToolSources} from './ak-tools';
 import type {NovaToolSources} from './nova-tools';
 
+import type {StageInfo} from './nova-stage';
+import type {AgentToolsInfo} from './nova-agent';
 /**
  * The records a tool may read for one reply, built once from the gates (Session V Part 2). `health` and `fasting` are
  * null whenever the Health gate is closed for this purpose (sending to the person's AI, or answering on the device), so
@@ -98,6 +100,12 @@ export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
    * and NOVA with Today on): every tool of an open area runs, as before.
    */
   todayTools?: ReadonlySet<string>;
+  /** Session AM (ADR-038 A4): NOVA's stage, set on NOVA's own environment only (lib/ai/tools/nova-stage.ts). Absent: no stage tool runs. */
+  stage?: StageInfo;
+  /** Session AM-2 (step 4c): the person's own tools on "Ask every time", set on NOVA's own environment only (lib/ai/tools/nova-agent.ts). Absent: neither lookup runs. */
+  agentTools?: AgentToolsInfo;
+  /** Session AM-2 (step 4b): NOVA's conversation can show a hand-off card (an email draft, a calendar file, a share, a link, a copy) for the person to approve; set on NOVA's own environment only (lib/ai/tools/hand-off.ts). Absent: `hand_off` does not run. */
+  handoffs?: true;
 };
 /** `purpose`: 'provider' when the result may leave the device (the person's AI, a browser agent, the hosted relay), 'local' when it is shown here only. */
 export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' | 'local', handles = new Handles(), limits = {rows: ROWS_DEFAULT, chars: CHARS_DEFAULT}): ToolEnv {

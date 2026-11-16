@@ -4,7 +4,9 @@ import {CACHE_PATH,COORDINATE,HTTP_DATE,MET_FORECAST,USER_AGENT,WEATHER_LIMITS a
  * for a forecast instead of asking MET Norway itself, so MET never sees the person's address, browser headers or cookies:
  * it sees one Cloudflare address, this Worker's own User-Agent and a point rounded to 2 decimals (about 1 km).
  * - One route: GET /v1/forecast?lat=<-90..90>&lon=<-180..180> (and its CORS preflight). Other parameters are ignored.
- * - Origin: a request with an Origin header must come from APP_ORIGIN exactly; only APP_ORIGIN gets CORS headers.
+ * - Origin: a forecast request must carry an Origin header and it must be APP_ORIGIN exactly (a request with none is
+ *   refused 403, security review AM-2 finding 10b: a page's own fetch always sends it, so only scripts outside a browser
+ *   are turned away, before they can spend the shared MET budget); only APP_ORIGIN gets CORS headers.
  * - Cache: one entry per rounded point in the Workers Cache (caches.default), served until MET's Expires; after it, one
  *   conditional request (If-Modified-Since: MET's Last-Modified); a 304 extends the entry. While MET is unavailable (429,
  *   5xx, a timeout, an oversized or broken answer) an entry less than 2 h past its Expires is served marked stale.
@@ -116,6 +118,8 @@ const weatherWorker={async fetch(request,env){
  if(origin!==null&&origin!==env.APP_ORIGIN)return reply({error:'ORIGIN_DENIED'},403);
  /** @type {Record<string,string>} */const cors=origin===null?{}:{'Access-Control-Allow-Origin':origin,'Access-Control-Expose-Headers':EXPOSED};
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...cors,...(origin===null?{}:{'Access-Control-Allow-Methods':'GET, OPTIONS','Access-Control-Max-Age':'86400'}),Allow:'GET, OPTIONS','Cache-Control':'no-store',Vary:'Origin'}});
+ // Security review (AM-2, finding 10b): no Origin, no forecast. The preflight above is unchanged.
+ if(origin===null)return reply({error:'ORIGIN_REQUIRED'},403);
  if(request.method!=='GET')return reply({error:'METHOD_NOT_ALLOWED'},405,{...cors,Allow:'GET, OPTIONS'});
  const point=pointOf(url.searchParams);if(!point)return reply({error:'INVALID_COORDINATES'},400,cors);
  if(!USER_AGENT.test(env.MET_USER_AGENT??''))return reply({error:'PROVIDER_SETUP_REQUIRED'},503,cors);

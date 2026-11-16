@@ -56,7 +56,7 @@ test('the protocol the AI reads names every kind the schema accepts, and the sch
   for (const kind of ACTION_KINDS) expect(offered(kind), kind).toBe(true);
   for (const kind of [...ak, ...nova, ...g1]) expect(ACTION_PROTOCOL, kind).not.toContain(`"kind":"${kind}"`);
   for (const forbidden of ['contribute', 'allocate', 'stake', 'transfer', 'delete-goal', 'export', 'sync', 'settings', 'wallet']) expect(actionSchema.safeParse({kind: forbidden}).success, forbidden).toBe(false);
-  expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 24}).success).toBe(false); expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 16}).success).toBe(true);
+  expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 25}).success).toBe(false); expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 24}).success).toBe(true); expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 16}).success).toBe(true); // Health's own range, 1–24 (was 1–18)
   expect(actionSchema.safeParse({kind: 'log-water', day: 'today'}).success).toBe(false);
   expect(actionSchema.safeParse({kind: 'create-goal', name: 'Trip', target: 1200, currency: 'eur'}).success).toBe(true);
   // Session X-Local Part 6d: a habit may be named by its exact title as the context lists it (resolved on the device, refused when it matches none or two); a handle-shaped invention stays refused here.

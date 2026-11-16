@@ -97,6 +97,8 @@ import {AF_EXTRAS_EXPORT_KEYS} from '../af-extras-keys';
 import {AL_EXPORT_KEYS} from '../al-device-keys';
 import {AO_EXPORT_KEYS} from '../ao-device-keys';
 import {AP_EXPORT_KEYS} from '../ap-device-keys';
+import {AM_EXPORT_KEYS} from '../am-device-keys';
+import {AM2_EXPORT_KEYS} from '../am2-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -225,7 +227,12 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AO (lib/ao-device-keys.ts): "My day ends at".
   ...AO_EXPORT_KEYS,
   // Session AP (lib/ap-device-keys.ts).
-  ...AP_EXPORT_KEYS} as const;
+  ...AP_EXPORT_KEYS,
+
+  // Session AM (lib/am-device-keys.ts; ADR-038 D16, D17): NOVA's requests and made widgets, and its weather choice and place.
+  ...AM_EXPORT_KEYS,
+  // Session AM-2 (lib/am2-device-keys.ts): NOVA's "Sent out from this device" history.
+  ...AM2_EXPORT_KEYS} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',

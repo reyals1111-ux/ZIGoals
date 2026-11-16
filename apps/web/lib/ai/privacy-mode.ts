@@ -1,5 +1,6 @@
 import {readDeviceRecord} from '../device-record';
 import {hermesNeedsRedaction, isHermesBase, localModelStillConfirmed, readHermes} from '../nova/hermes-record';
+import {ownAgentUnconfirmed} from '../nova/agent-bridge/own-agent-record';
 import {NOVA_SETUP, readPrivacyMode, type PrivacyMode} from '../nova/setup';
 import {isKnownCloudModel} from '../nova/cloud-models';
 import {getAppStorage} from '../showcase-storage';
@@ -125,7 +126,10 @@ export async function guardRequest<R extends ChatRequest>(request: R, options: {
   const savedHermes = !!hermes && isHermesBase(request.baseUrl, hermes.data);
   // Z1A-6 (AL Part 14): an OpenAI-compatible server on this computer whose /health says it is Hermes counts as an unconfirmed Hermes.
   const probedHermes = !!hermes && !savedHermes && request.localServer !== 'ollama' && !!options.probes?.hermes && await options.probes.hermes(request.baseUrl!).catch(() => false);
-  const hermesUnconfirmed = probedHermes || (savedHermes && (hermes!.unreadable || !localModelStillConfirmed(hermes!.data, request.baseUrl))); // SA-1: for this request's own address
+  // Session AM-2 (security review of step 4c): the person's own OpenAI-compatible agent on this computer is asked about on
+  // every request too, as Hermes is: until they confirm it answers with a local model, Strict and Guarded redact what goes to it.
+  const ownAgent = !!hermes && !savedHermes && !probedHermes && ownAgentUnconfirmed(store(), request.baseUrl);
+  const hermesUnconfirmed = probedHermes || (savedHermes && (hermes!.unreadable || !localModelStillConfirmed(hermes!.data, request.baseUrl))) || ownAgent; // SA-1: for this request's own address
   // Z1A-7: a local model Ollama's list marked as running in its cloud (read only when a mode would refuse or redact it).
   let knownCloud = request.provider === 'local' && !hosted && !!mode && mode !== 'relaxed' && (() => { try { return isKnownCloudModel(readDeviceRecord(store(), NOVA_SETUP).data, request.model); } catch { return false; } })();
   // Z1A-7 alternative (AL Part 14): a model the listing never showed, asked once of Ollama itself (/api/show).

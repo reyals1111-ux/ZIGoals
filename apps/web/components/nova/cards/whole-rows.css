@@ -1,0 +1,22 @@
+/*
+ * Session AM-2 (whole rows only; components/nova/cards/whole-rows.tsx). A list inside a widget shows the rows that fit and,
+ * under them, one last line: "+N more". The box (`.wr`) takes the list's place in the widget's layout; a row that is not
+ * shown carries `hidden` (so does the line while every row shows). Nothing here moves.
+ */
+.wr { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 0; min-width: 0; }
+/* `hidden` wins over a list's own `display` (rows are grids and flex boxes in their own sheets). */
+.wr[hidden], .wr > [hidden], .wr-list > [hidden] { display: none !important; }
+/* A box with a height of its own (a column, a grid cell): it is never taller than its place, so what it cannot hold shows as overflow to the measure. */
+.wr[data-wr-limit], .wr-inline[data-wr-limit] { min-height: 0; max-height: 100%; }
+/* A list with no box around it (`inline`): the last line is its own last child, across every column, with no marker of a row. */
+.wr-inline[hidden] { display: none !important; }
+/* It never widens its list (a calendar's column is as wide as its cells): it takes the list's width and ends in an ellipsis. */
+.wr-inline > .wr-more { grid-column: 1 / -1; list-style: none; contain: inline-size; }
+/* Lists that style their rows by element (`li`) would dress the last line as a row: it stays a plain line (no node, no rule, no row grid). */
+.nova-widget .wr-inline > li.wr-more { display: block; min-height: 0; padding: 3px 0 0; border: 0; font-size: 14px; line-height: 20px; color: #cdd8ee; }
+.nova-widget .wr-inline > li.wr-more::before, .nova-widget .wr-inline > li.wr-more::after { content: none; }
+/* The last line: one line of plain words, 14 px, never wrapped (its height is the same for every count). */
+.wr-more { margin: 0; padding: 3px 0 0; font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: .01em; color: #c9d4ea; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nova-widget[data-holo] .wr-more { color: #cdd8ee; }
+/* The line never takes part in a widget's arrival (stage.css F3 moves the head and the body; rows may rise once). */
+.nova-widget[data-made=fresh] .wr-more:not(#\-) { animation: none; }

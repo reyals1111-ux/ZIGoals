@@ -5,6 +5,7 @@ import {setPrivacyMode} from '../../../../lib/nova/setup';
 import {NOVA_PHONE_QUERY} from '../../../../lib/nova/phone-path';
 import {checkMeet} from '../../../../lib/nova/setup-checks';
 import {novaAndZigi} from '../../../../lib/nova/one-line';
+import {STAGE_EXAMPLES, STAGE_INTRO, STAGE_KEEP, STAGE_NO_BRAIN} from '../../../../lib/nova/setup-guide';
 import {localDate} from '../../../../lib/local-date';
 import {getAppStorage} from '../../../../lib/showcase-storage';
 import {CheckRow} from '../check-row';
@@ -35,6 +36,12 @@ export default function MeetStep({setup}: {setup: SetupState}) {
     <p>NOVA is your own assistant inside ZIGoals: it reads your goals, habits, health and money records with your permission and helps you act on them. You build its brain yourself.</p>
     {/* Release review 2 (R2-4): the one sentence that tells NOVA and ZIGi apart, the same words everywhere. */}
     <p>{novaAndZigi()} They share one engine, one history and one memory.</p>
+    {/* Session AM (ADR-038 D2, D3, D6): the stage as it is now: ask, an answer and a widget made for it; pin, hide, close. */}
+    <p><b>Ask, and NOVA shows you.</b> {STAGE_INTRO}</p>
+    <p>Three to try:</p>
+    <ul className="nova-promises">{STAGE_EXAMPLES.map(q => <li key={q}>“{q}”</li>)}</ul>
+    <p>{STAGE_KEEP} {STAGE_NO_BRAIN}</p>
+    <p><b>What NOVA keeps private:</b></p>
     <ul className="nova-promises">
       <li><b>Everything stays on this device.</b> Your records, chats, memory and settings live in this browser. ZIGoals has no server for NOVA.</li>
       <li><b>Keys never leave it.</b> An API key is sealed in this browser’s own key store, never synced and never sent to ZIGoals; only your provider receives it, with each request.</li>

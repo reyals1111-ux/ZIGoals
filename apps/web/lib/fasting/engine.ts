@@ -1,9 +1,9 @@
 import {habitCalendarDay, habitRuleOn, logHabitValue, type HabitData, type HabitRule} from '../habits';
 import {healthDay} from '../health-daily';
 import {addDays, instantAt} from '../zone-time';
-import {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_FASTING_SESSIONS, MAX_HOURS, MAX_TARGET_HOURS, type Fasting, type FastingSession} from './schema';
+import {FASTING_PRESETS, MAX_FASTING_SESSIONS, MAX_HOURS, MAX_TARGET_HOURS, type Fasting, type FastingSession} from './schema';
 
-export {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_HOURS, MAX_TARGET_HOURS};
+export {FASTING_PRESETS, MAX_HOURS, MAX_TARGET_HOURS};
 const HOUR = 3_600_000;
 export const runningSession = (data: Fasting): FastingSession | undefined => data.sessions.find(s => s.endedAt === null);
 const limitOf = (session: FastingSession) => Date.parse(session.startedAt) + MAX_HOURS * HOUR;

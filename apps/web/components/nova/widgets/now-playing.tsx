@@ -1,5 +1,5 @@
 'use client';
-import {useSyncExternalStore} from 'react';
+import {useSyncExternalStore, type CSSProperties} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {usePagesView} from '../../pages/use-pages-view';
 import {isShown} from '../../../lib/pages/visibility';
@@ -11,6 +11,7 @@ import {APPLE_MUSIC_HOME} from '../../../lib/music/brand';
 import {MUSIC} from '../../../lib/music/schema';
 import {openMusicPlayer} from '../../music/music-events';
 import {useMusicMix} from '../../music/use-music-mix';
+import type {WidgetSize} from '../../../lib/nova/store';
 import {NovaReading} from './empty';
 
 /**
@@ -18,7 +19,9 @@ import {NovaReading} from './empty';
  * as the music mini-bar has them (components/music/music-mini.tsx: the same functions, the same saved choices). Spotify and
  * Apple Music play in their own apps; NOVA opens the player for them and asks Spotify for nothing.
  */
-export default function NowPlayingWidget() {
+/** Round 4: the level strip's columns (an ornament: a fixed shape, the same for every sound; share of the strip's height). */
+const LEVELS = Array.from({length: 28}, (_, i) => Math.round((0.28 + 0.62 * Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.45))) * 100) / 100);
+export default function NowPlayingWidget({size}: {size?: WidgetSize}) {
   const prefs = useDeviceRecord(MUSIC), mixRecord = useMusicMix(), ambient = useSyncExternalStore(subscribeAmbient, ambientState, serverAmbientState);
   const playerShown = isShown(usePagesView(), 'music');
   if (!prefs.loaded || !mixRecord.loaded) return <NovaReading/>;
@@ -28,8 +31,9 @@ export default function NowPlayingWidget() {
   // Session AK lane EXF (EX-14): the widget's own link already reads "Open Music" (lib/nova/widgets/catalog.ts); the player
   // button is the one extra door, and only where the player is shown.
   const open = playerShown ? <button type="button" className="nova-chip-link" onClick={openMusicPlayer}>Open the player</button> : null;
-  return <div className="nova-playing" data-playing={source === 'ambient' && ambient.playing || undefined}>
-    <span className="nova-disc" aria-hidden="true"/>
+  return <div className="nova-playing" data-size={size} data-playing={source === 'ambient' && ambient.playing || undefined}>
+    {/* Session AM-2: a small level meter (five columns; an ornament: it moves only while this device's own sound plays, under Full motion). */}
+    <span className="nova-disc" aria-hidden="true">{LEVELS.map((h, i) => <i key={i} style={{'--h': h} as CSSProperties}/>)}</span>
     <div className="nova-playing-text">
       <p className="nova-line"><strong>{label}</strong></p>
       <p className="nova-line nova-quiet" role="status">{source === 'ambient' ? (ambient.playing ? 'Playing, made on this device.' : 'Stopped.') : source === 'spotify' ? 'Plays in Spotify; the player has its controls.' : 'Plays in Apple Music.'}</p>

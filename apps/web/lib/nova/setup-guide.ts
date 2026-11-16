@@ -1,5 +1,6 @@
 import type {PathColour} from '../path/colours';
 import type {SetupStepId} from './setup';
+import {WEATHER_PROXY_URL} from './world/proxy';
 
 /**
  * Session AK, owner follow-up 2 (N3, lane NC): the words and facts of "Build your own NOVA". Every command and fact here
@@ -127,6 +128,27 @@ export const KEY_NOTES: Readonly<Record<KeyProvider, {free: string}>> = {
 };
 export const SPENDING_ADVICE = 'Before you paste a key, set a monthly spending limit in that provider’s billing settings. NOVA’s own cost meter is an estimate; the provider’s limit is the one that stops spending.';
 export const OPENROUTER_NOTE = 'OpenRouter: one sign-in for many models, with its own page to see and revoke the key. Models whose name ends in “:free” cost nothing, with limits (20 a minute; 50 a day until you buy 10 credits). Check OpenRouter’s training setting for free models.';
+
+/**
+ * Session AM (ADR-038 D2, D3, D6, D29): the stage as it is now, for the guide's first step. NOVA starts calm; a request
+ * (typed, tapped or spoken) is answered and a widget is made for the answer; widgets are pinned, hidden to the dock or
+ * closed; all of it works with no brain connected. The three examples are requests the on-device step understands in
+ * English and Dutch (lib/nova/summon/summon.test.ts), on areas NOVA may read from the start.
+ */
+export const STAGE_INTRO = 'NOVA opens calm: a star, a greeting and one field to ask in. Ask in your own words (type, tap a one-tap request, or speak once you turn voice on) and NOVA answers and makes a widget for that answer, from your own records.';
+export const STAGE_EXAMPLES: readonly string[] = ['Show my habits this week', 'How are my goals?', 'What’s on my agenda?'];
+export const STAGE_KEEP = 'Pin a widget to keep it, hide it in the dock, or close it (with Undo). Say “Clear the stage” to start calm again; what you pinned stays.';
+export const STAGE_NO_BRAIN = 'All of this works before any brain is connected: NOVA answers on this device, in English and Dutch. On a phone NOVA answers in a chat; the stage is on a computer.';
+/** Session AM: the brain step's first line, what answers right now, in the words of NOVA's Brain chip (components/nova/status-chips.tsx). */
+export const brainNowLine = (kind: string, words: string): string => `Right now: ${kind === 'none' ? 'on-device answers, no AI connected' : words}`;
+/** Session AM: the person's own Hermes Agent is a path of its own beside the four ways, with its own guide. */
+export const HERMES_WAY = {label: 'My Hermes Agent', href: '/app/nova/hermes', note: 'Already run Hermes Agent, Nous Research’s open-source agent? It has its own guide.'} as const;
+/** Session AM-2 (owner's step 4c/4d): any other agent on this computer, and its tools, as a path beside Hermes (the setup hub's second guide). */
+export const OWN_AGENT_WAY = {label: 'Another agent, and my own tools', href: '/app/nova/setup#own-agent', note: 'Any OpenAI-compatible agent on this computer, and tool servers (MCP) that act with their own accounts: step by step, with live checks.'} as const;
+/** Session AM (ADR-038 D12, D13): the one outside service, said once in "What NOVA can see"; its switch is in NOVA → Permissions. */
+/** Session AM-2 (4a): in a build that asks the weather through ZIGoals' weather proxy (lib/nova/world/proxy.ts), the line says who sees what in that case; in every other build it is Session AM's line, word for word. */
+export const WEATHER_LINE_PROXY = 'Weather is the only outside data, off until you turn it on in NOVA → Permissions; ZIGoals’ weather proxy then sees your network address and your place rounded to about 1 km, and MET Norway sees the proxy’s address and that rounded place, not yours.';
+export const WEATHER_LINE = WEATHER_PROXY_URL ? WEATHER_LINE_PROXY : 'Weather is the only outside data, off until you turn it on in NOVA → Permissions; MET Norway then sees your network address and your place rounded to about 1 km.';
 
 /** The ten planets: words and look (four orbits, in the path engine's palette). */
 /** `tab` (Session AK M7, layout audit): the shorter name the planet's tab shows on the path where the full one ran past a 320 px

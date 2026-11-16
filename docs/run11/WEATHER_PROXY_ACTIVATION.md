@@ -4,7 +4,7 @@
 
 ## What it does
 - The app asks this Worker, not MET Norway, for a forecast: `GET /v1/forecast?lat=<n>&lon=<n>`. MET sees one Cloudflare address, the Worker's own User-Agent and a point rounded to 2 decimals (about 1 km). It never sees the person's IP address, browser headers, cookies or the exact location.
-- Only the app's origin (`APP_ORIGIN`, exact match) gets CORS headers; a request with any other `Origin` is refused 403. A request with no `Origin` (curl) is served without CORS headers.
+- Only the app's origin (`APP_ORIGIN`, exact match) gets CORS headers; a request with any other `Origin` is refused 403 `ORIGIN_DENIED`. A request with no `Origin` at all is refused 403 `ORIGIN_REQUIRED` (security review AM-2, finding 10b, 15 Nov 2026: was served without CORS headers, so any script could spend the shared MET budget of 300 calls a minute). A page's own fetch always sends `Origin`, so the app is not affected; a client outside a browser can still write the header by hand, which the per-client limit and the global budget bound. A preflight (`OPTIONS`) without an `Origin` still answers 204 without CORS headers.
 - Answers are MET's Locationforecast 2.0 **compact** JSON, byte for byte (at most 1 MB). MET's 203 (deprecation notice) keeps its status and adds `x-weather-upstream-status: 203`.
 - Each answer to the app says `x-weather-cache: hit | miss | revalidated | stale` and `Cache-Control: public, max-age=<seconds until MET's Expires>`.
 - MET 429, 5xx, a timeout (8 s), a redirect, a non-JSON or oversized body → `503 {"error":"UPSTREAM_UNAVAILABLE"}`, unless the point has a kept answer less than 2 h past its Expires: that is served with `x-weather-stale: 1`.
@@ -66,16 +66,24 @@ curl -si "$W/v1/forecast?lat=50.8549&lon=4.3451" -H "Origin: $APP" -o /dev/null 
 # Another origin: 403 {"error":"ORIGIN_DENIED"}
 curl -s "$W/v1/forecast?lat=50.85&lon=4.35" -H 'Origin: https://example.com'; echo
 # Bad coordinates: 400 {"error":"INVALID_COORDINATES"}; another path: 404; POST: 405
-curl -s "$W/v1/forecast?lat=91&lon=0"; echo
+curl -s "$W/v1/forecast?lat=91&lon=0" -H "Origin: $APP"; echo
 curl -s -o /dev/null -w '%{http_code}\n' "$W/"
-curl -s -o /dev/null -w '%{http_code}\n' -X POST "$W/v1/forecast?lat=50.85&lon=4.35"
+curl -s -o /dev/null -w '%{http_code}\n' -X POST "$W/v1/forecast?lat=50.85&lon=4.35" -H "Origin: $APP"
+# No Origin at all: 403 {"error":"ORIGIN_REQUIRED"}
+curl -s "$W/v1/forecast?lat=50.85&lon=4.35"; echo
 # The per-client limit: 60 answers of 200, then 429
-for i in $(seq 61); do curl -s -o /dev/null -w '%{http_code}\n' "$W/v1/forecast?lat=50.85&lon=4.35"; done | sort | uniq -c
+for i in $(seq 61); do curl -s -o /dev/null -w '%{http_code}\n' "$W/v1/forecast?lat=50.85&lon=4.35" -H "Origin: $APP"; done | sort | uniq -c
 ```
 If the second call says `miss` again, the cache is not working (most likely a `workers.dev` address): turn the proxy off (below) and fix the domain before the app uses it. After MET's `Expires` (usually about 30 minutes), the next call should say `revalidated`.
 
-### 4. Hand over to the NOVA lane
-Tell the NOVA lane the proxy's origin. Its PR wires the app client, allows that origin in the app's `connect-src` and keeps a fallback for 429/503. Until then the deployed proxy only answers curl.
+### 4. Build the app with the proxy's address (Session AM-2, 15 Nov 2026)
+The app client is wired (`apps/web/lib/nova/world/proxy.ts`, `met.ts`). It uses the proxy only in a build made with
+```sh
+NEXT_PUBLIC_WEATHER_PROXY_URL=https://weather.<your zone>/v1/forecast
+```
+exactly that shape: https, a DNS name, the path `/v1/forecast`, nothing else (`apps/web/lib/csp-compose.mjs` `weatherProxyUrl`; anything else reads as "no proxy" and the app asks MET Norway directly, as before). The same value adds the proxy's origin to `/app` documents' `connect-src` at build time (`withWeatherProxy`; `lib/egress-policy.json` is unchanged). Setting it for the public Alpha is a deploy-workflow change that needs your review; **set the same variable for the build step and for the post-upload smoke and the hosted verifier** (`scripts/lib/alpha-smoke.mjs`, `scripts/verify-hosted-alpha.mjs`, `scripts/run11/alpha-packaged-headers.test.mjs`, `apps/web/tests/public-alpha.spec.ts` read it), or their `connect-src` check fails. The Worker's `APP_ORIGIN` must be the app's origin exactly.
+
+What the app does with it: one plain GET per place (two decimals), no cookie, no Referer, no header of its own; the reading is kept until the proxy's `Cache-Control: max-age` (never under 10 minutes, never over a day); 429 and 503 leave the last reading in place and are asked again after 10 minutes; the app never falls back to asking MET Norway directly (the words at the switch say MET Norway sees the proxy's address, not the person's). The proxy serves Locationforecast **compact**, so the UV index is not shown in such a build, and it has no Sunrise route, so sunrise and sunset are worked out on the device (`lib/nova/world/sun-calc.ts`, within about two minutes of MET Norway's times). For a local test: `wrangler dev` on `http://127.0.0.1:<port>` and `NEXT_PUBLIC_WEATHER_PROXY_URL=http://127.0.0.1:<port>/v1/forecast`. That loopback form is accepted only by a local build (the development server, or a build made with `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO`); every other build, the public Alpha included, reads it as "no proxy" and asks MET Norway directly (security review AM-2, finding 10a).
 
 ## Turning it off
 - **Fastest (about 1 minute):** Cloudflare dashboard → Workers & Pages → the proxy → Settings → Domains & Routes → remove the custom domain. Requests stop reaching the Worker; the app shows its no-weather state.

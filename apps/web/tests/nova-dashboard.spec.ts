@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openNovaConversation, withEarlierWidgets} from './nova-am';
 import {readFile} from 'node:fs/promises';
 import {audit} from './a11y-audit';
 import {defaultAiSettings} from '../lib/ai/settings';
@@ -18,7 +19,9 @@ async function fresh(page: Page, extra: Record<string, string> = {}) {
   await page.goto('/app/settings');
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}), ...extra});
 }
-const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true, ...more})});
+// Session AM (D2, deliberate): a record without a widget list used to read as AK's eight "Everyday" widgets; the stage now
+// starts empty, so the record these tests start from arranges that same list first (tests/nova-am.ts), and each assertion stays.
+const seen = (more: Record<string, unknown> = {}) => ({[NOVA_KEY]: JSON.stringify(withEarlierWidgets({version: 1, openingSeen: true, ...more}))});
 const frame = (page: Page) => page.locator('.nova-frame');
 async function noSideScroll(page: Page) { expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0); }
 
@@ -41,13 +44,17 @@ test.describe('NOVA on a computer', () => {
 
   test('reduced motion and Motion Off show the finished dashboard at once', async ({page}) => {
     await page.emulateMedia({reducedMotion: 'reduce'});
-    await fresh(page);
+    // Session AM (D2, deliberate): a brand-new NOVA was given the Command arrangement once its opening was seen; the stage
+    // now starts empty, so the finished dashboard this test reads is arranged first (the Command list, from the app's own
+    // code: tests/nova-am.ts). The opening is still unseen, so reduced motion and Motion Off are what finish it.
+    const arranged = {[NOVA_KEY]: JSON.stringify(withEarlierWidgets({version: 1}))};
+    await fresh(page, arranged);
     await page.goto('/app/nova');
     await expect(frame(page)).toHaveAttribute('data-opening', 'done');
     await expect(page.locator('.nova-widget').first()).toBeVisible();
     await expect(page.locator('.nova-sky-canvas')).not.toHaveAttribute('data-sky', 'running');
     await page.emulateMedia({reducedMotion: 'no-preference'});
-    await fresh(page, {'zigoals:motion:v1': 'off'});
+    await fresh(page, {'zigoals:motion:v1': 'off', ...arranged});
     await page.goto('/app/nova');
     await expect(frame(page)).toHaveAttribute('data-opening', 'done');
   });
@@ -98,8 +105,18 @@ test.describe('NOVA on a computer', () => {
     await expect(right).toHaveCount(0);
     await page.getByRole('button', {name: 'Show Behind the intelligence'}).click();
     await expect(right).toBeVisible();
+    // Session AM (AM-D7, deliberate): under 1600 px of window only one side bar is open at a time. Opening the right bar
+    // folds the left to its rail, and that is saved as the person's choice; hiding the right bar leaves the rail as it is.
+    await expect(left).toHaveAttribute('data-state', 'rail');
+    expect((await stored(page)).panels).toMatchObject({left: 'rail', right: 'open'});
     await right.getByRole('button', {name: 'Hide the right panel'}).click();
     await expect(right).toHaveCount(0);
+    await expect(left).toHaveAttribute('data-state', 'rail');
+    // The left bar's own fold button, from open (the rail's button hides the bar; "Show the left panel" opens it again).
+    await left.getByRole('button', {name: 'Hide the left panel'}).click();
+    await expect(left).toHaveCount(0);
+    await page.getByRole('button', {name: 'Show the left panel'}).click();
+    await expect(left).toHaveAttribute('data-state', 'open');
     await left.getByRole('button', {name: 'Fold the left panel to icons'}).click();
     await expect(left).toHaveAttribute('data-state', 'rail');
     await page.reload();
@@ -112,10 +129,18 @@ test.describe('NOVA on a computer', () => {
     await expect(page.locator('aside.nova-left')).toHaveAttribute('data-state', 'open');
     await page.locator('body').press(']');
     await expect(page.getByRole('region', {name: 'Behind the intelligence'})).toBeVisible();
+    await expect(page.locator('aside.nova-left')).toHaveAttribute('data-state', 'rail'); // AM-D7 (deliberate): the right bar opened, the left folded
     // Each numbered section folds on its own, by keyboard too.
     const voice = page.getByRole('region', {name: 'Behind the intelligence'}).getByRole('button', {name: 'Voice', exact: true});
     await voice.focus(); await page.keyboard.press('Enter');
     await expect(voice).toHaveAttribute('aria-expanded', 'false');
+    // AM-D7: from 1600 px of window both bars stay open side by side.
+    await page.setViewportSize({width: 1920, height: 1080});
+    await page.locator('aside.nova-left').getByRole('button', {name: 'Hide the left panel'}).click();
+    await page.getByRole('button', {name: 'Show the left panel'}).click();
+    await expect(page.locator('aside.nova-left')).toHaveAttribute('data-state', 'open');
+    await expect(page.getByRole('region', {name: 'Behind the intelligence'})).toBeVisible();
+    expect((await stored(page)).panels).toMatchObject({left: 'open', right: 'open'});
   });
 
   test('widgets: add, move, resize and remove with the keyboard; Undo puts one back', async ({page}) => {
@@ -267,6 +292,15 @@ test.describe('Release review 2 on NOVA (R2-4, R2-5, R2-22)', () => {
     // Session AK P3 (NOVA_DESIGN_REVIEW.md ND-23), a deliberate move: the stage's card became a one-line banner, and the line
     // that tells NOVA and ZIGi apart is said on the guide's first planet, "Meet NOVA" (tests/p3-nova-polish.spec.ts checks it
     // there), and in the conversation's welcome.
+    // Session AM (calm stage, deliberate): the invitation shows on the calm stage only; once widgets or an answer are up it
+    // steps aside (components/nova/nova-dashboard.tsx). On this arranged stage it is not there; on a stage with no widgets
+    // it is, with the same line.
+    await expect(page.locator('.nova-widget').first()).toBeVisible();
+    await expect(page.getByRole('region', {name: 'Give NOVA a brain of its own'})).toHaveCount(0);
+    await fresh(page, {[NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true})});
+    await page.goto('/app/nova');
+    await expect(frame(page)).toHaveAttribute('data-stage', 'calm');
+    await expect(page.getByRole('region', {name: 'Give NOVA a brain of its own'})).toBeVisible();
     await expect(page.getByRole('region', {name: 'Give NOVA a brain of its own'})).toContainText('It already answers simple questions on this device.');
   });
   test('in Light, the phone\'s bottom bar wears NOVA\'s night while NOVA is open, and turns light again after', async ({page}) => {
@@ -335,6 +369,10 @@ test.describe('EX-1: the command field and the open chat are inside the window',
     await inside(page, 'the command field', await field.boundingBox());
     await field.getByRole('textbox', {name: 'Message NOVA'}).fill('What is next today?');
     await field.getByRole('textbox', {name: 'Message NOVA'}).press('Enter');
+    // Session AM (D7, deliberate): Enter in the dashboard field no longer always opens the conversation (words the stage
+    // has a widget for are answered under the star); it is opened as a person would, from the answer's button when it did
+    // not open by itself, and is then read exactly as before.
+    await openNovaConversation(page);
     const talk = page.getByRole('region', {name: 'Conversation with NOVA'});
     await expect(talk.locator('section.nova-chat')).toBeVisible();
     await inside(page, 'the conversation panel', await talk.boundingBox());

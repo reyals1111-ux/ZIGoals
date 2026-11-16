@@ -1,0 +1,417 @@
+/*
+ * Session AM-2 (step 3, "NOVA connected"; ADR-038 "AM-2" I1; art direction, the AM-2 design language B–E): the bodies of
+ * the thirty widgets that show what Sessions AO and AP added to the pages (components/nova/widgets: net-worth-history …
+ * cycle). They are built from the kit (cards/kit.tsx, cards.css) and from the instruments in widgets/nx-parts.tsx; this
+ * sheet places them and draws the few instruments the kit does not hold. Every class here is this sheet's own (`nx-`); a
+ * kit class is only ever adjusted inside one of them.
+ *
+ * Round 4 (the owner's bar: one real instrument per kind, sized to its panel). A card stands in one of four ways
+ * (`data-lay`):
+ *   dial  — one thick ring as large as the panel allows, its figure inside; beside it the words, under them the
+ *           instrument's rows (meters, a month of days, a list);
+ *   hero  — the figure and its words on the left (never wider than it needs), the instrument taking the rest;
+ *   chart — the same with a wider left, for a chart that reads against its figure;
+ *   full  — one instrument over the whole panel (four lit boxes, ring cards, two read-outs).
+ * A wide panel (520 px and more) puts the two side by side; a narrow one stacks them; a small one keeps the dial or the
+ * figure and its words. The foot (source and as-of) is always the last line, whole. Rows drop whole when a panel is
+ * short (widgets/nx-rows.tsx on cards/whole-rows.tsx); a name is never cut while there is room beside it.
+ *
+ * The realm's colour comes from the frame (`--neon`, `--neon-2`, `--neon-ink`). Labels are 14 px, body text 15–16 px, ink
+ * on the night glass (at least 4.5:1; no gradient sits behind words: lit faces are pseudo-elements). Nothing here
+ * animates and nothing uses backdrop-filter (owner rule B2): the kit draws its instruments once when a widget is made,
+ * with transform and opacity only.
+ */
+.nc-body.nx-card { gap: 8px; min-width: 0; }
+.nc-body.nx-card[data-size=S] { gap: 4px; }
+.nc-body.nx-card[data-size=L] { gap: 12px; }
+
+/* ---- Words ---- */
+.nx-note { margin: 0; font-size: 14px; line-height: 1.4; color: #c9d4ea; }
+.nx-note[data-tone=watch] { color: #ffd9a8; font-weight: 600; }
+.nx-cap { position: relative; flex: none; margin: 0; padding-left: 11px; font-size: 14px; font-weight: 700; letter-spacing: .1em; line-height: 1.3; text-transform: uppercase; color: #cdd8ee; }
+.nx-cap::before { content: ''; position: absolute; left: 0; top: .2em; bottom: .2em; width: 3px; border-radius: 1px; background: var(--neon, #9273ff); box-shadow: 0 0 6px var(--neon, #9273ff); }
+.nx-title { margin: 0; font-size: 22px; font-weight: 680; line-height: 1.2; letter-spacing: -.008em; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 36%, transparent), 0 0 20px color-mix(in oklab, var(--neon, #9273ff) 52%, transparent); }
+.nx-card[data-size=L] .nx-title { font-size: 26px; }
+.nx-card[data-size=S] .nx-title { font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nx-head { min-width: 0; display: grid; gap: 3px; align-content: center; }
+.nx-card[data-size=S] .nx-head { gap: 1px; }
+.nx-card[data-size=S] .nx-head > :is(.nx-note, .nx-pulse) { display: none; }
+.nx-card[data-size=S] .nx-head > .nx-cap { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nx-head > .nx-pulse { width: min(100%, 180px); height: 18px; margin-top: 2px; }
+.nx-empty-line { margin: 0; font-size: 15px; line-height: 1.4; color: #d6e0f5; }
+
+/* ---- The top: a figure with its words (the kit's hero), and at Small a dial beside it ---- */
+.nx-top { flex: none; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.nx-top > .nc-hero { flex: 1 1 0; min-width: 0; }
+.nx-card[data-size=S] .nx-top { gap: 10px; }
+.nx-card .nc-hero-figure { white-space: nowrap; }
+.nc-body.nx-card[data-size=M] .nc-hero-num { font-size: 34px; }
+.nc-body.nx-card[data-size=M] .nc-hero[data-len] .nc-hero-num { font-size: 30px; }
+.nc-body.nx-card[data-size=M] .nc-hero[data-len=xl] .nc-hero-num { font-size: 26px; }
+.nc-body.nx-card[data-size=L] .nc-hero-num { font-size: clamp(38px, 3.4vw, 50px); }
+.nc-body.nx-card[data-size=L] .nc-hero[data-len] .nc-hero-num { font-size: 36px; }
+.nc-body.nx-card[data-size=L] .nc-hero[data-len=xl] .nc-hero-num { font-size: 30px; }
+.nova-widget[data-size=S] .nx-card .nc-hero-num { font-size: 34px; }
+.nova-widget[data-size=S] .nx-card .nc-hero[data-len] .nc-hero-num { font-size: 30px; }
+.nova-widget[data-size=S] .nx-card .nc-hero[data-len=xl] .nc-hero-num { font-size: 24px; }
+.nova-widget[data-size=S] .nx-card .nc-hero-words { flex: 1 1 0; }
+/* Medium and Large: the label over the figure, the notes under it. */
+.nx-card:is([data-size=M], [data-size=L]) .nc-hero { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 0; }
+.nx-card:is([data-size=M], [data-size=L]) .nc-hero-label { order: -1; flex: none; margin: 0 0 5px; }
+.nx-top .nx-note { margin-top: 3px; }
+.nx-top .nc-stack { width: 100%; height: 14px; margin-top: 8px; }
+.nx-top .nx-pulse { width: min(100%, 180px); height: 18px; margin-top: 4px; }
+.nx-card[data-size=S] .nx-top .nx-pulse { display: none; }
+
+/* ---- The dial: one thick ring, its figure inside ----
+   The kit's gauge takes its diameter (`--nc-d`, px) from here: the card sets `--nx-d` (the dial) and `--nx-art` (a
+   smaller instrument: a ring card, a dot meter, a clock) in steps with its panel. The band's width is the kit's (a share
+   of the diameter at every size; widgets/nx-parts.tsx asks for 13 %). */
+.nx-card { --nx-d: 88; --nx-art: 76; }
+.nx-card[data-size=S] { --nx-d: 52; --nx-art: 52; }
+.nx-card[data-size=L] { --nx-d: 116; --nx-art: 92; }
+.nx-dial { --nc-d: var(--nx-d); }
+.nx-ring { --nc-d: var(--nx-art); }
+/* Round 7 (refs 12, 27): a clean gradient arc. The band is 10 % of the diameter (nx-parts.tsx) on a dark glass tube with
+   a hairline rim; no dashed grey track and no haze behind the figure, so a small share reads as a short lit arc. */
+.nx-card :is(.nx-dial, .nx-ring) .nc-arcmark:not([data-unknown]) .nc-gauge-track { stroke: color-mix(in oklab, var(--neon, #9273ff) 16%, #070b1f); }
+.nx-card :is(.nx-dial, .nx-ring)::before { content: ''; position: absolute; inset: 14.5%; border-radius: 50%; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); }
+.nx-dial-figure { position: relative; display: grid; justify-items: center; line-height: 1; }
+.nx-dial-figure b { font-size: calc(var(--nx-d) * .27px); font-weight: 400; letter-spacing: .01em; color: var(--neon-ink, #f4f7ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nx-dial-figure[data-len] b { font-size: calc(var(--nx-d) * .2px); }
+.nx-dial-figure[data-len=xl] b { font-size: calc(var(--nx-d) * .155px); }
+.nx-ring .nx-dial-figure b { font-size: calc(var(--nx-art) * .24px); }
+.nx-ring .nx-dial-figure[data-len] b { font-size: calc(var(--nx-art) * .19px); }
+.nx-dial-figure small { display: none; margin-top: 2px; font-size: 14px; font-weight: 600; line-height: 1.1; color: #d6e0f5; }
+.nx-card[data-size=S] .nx-dial-figure { display: none; }
+
+/* ---- The main: the instrument, the elastic part of the body ---- */
+.nx-main { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+/* A list or a set of meters keeps its own height (rows drop whole in a short panel; they are never squeezed). */
+.nx-main[data-fit=rows] { flex: none; }
+/* A column that limits a fitted list (whole-rows.tsx) holds a meter's lit cap, which stands 2 px past its track. */
+.nx-main[data-wr-limit] { padding-bottom: 3px; }
+.nx-card > .nc-facts, .nx-card > .nx-note, .nx-card > .nx-key { flex: none; }
+.nx-card .nc-bars { gap: 10px; }
+.nx-card .nc-bar-track { height: 14px; }
+.nx-card[data-size=L] .nc-bars { gap: 13px; }
+.nx-card .nc-bar-label { white-space: normal; overflow-wrap: anywhere; }
+/* A grid of meters, two across where the panel is wide (the library's areas). */
+@container holo-body (min-width: 520px) { .nx-grid2 .nc-bars { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; } }
+/* A fitted list (widgets/nx-rows.tsx) is its own limit inside its column: it takes the height the column leaves. */
+.nx-main > .nx-wr { flex: 0 1 auto; min-height: 0; }
+/* Round 7: the last line ("+N more") is never squeezed by the rows above it (its own 3 px of air and its 20 px line). */
+.nx-main > .nx-wr > .wr-more { box-sizing: border-box; min-height: 23px; }
+/* Round 6: beside a figure (a wide panel) the list takes the column's whole height, and its rows share it. */
+/* Round 7 (a cut "+3 more" line in Accounts and debts): the rows' tracks are elastic from their own height (they were
+   78 px at least to the box's sum, so the box never shrank and the last line was squeezed under the foot's rule). Now
+   the box is at least the rows at their own height plus the whole last line: rows that fit share the column (up to
+   78 px each), and rows that do not fit run past the box, which the measure sees. */
+@container holo-body (min-width: 520px) { .nx-card:is([data-lay=hero], [data-lay=chart]) > .nx-main[data-fit=rows] > .nx-wr { flex: 1 1 auto; grid-template-rows: minmax(min-content, 1fr) auto; align-content: stretch; } .nx-card:is([data-lay=hero], [data-lay=chart]) > .nx-main[data-fit=rows] > .nx-wr > .nx-rows { grid-auto-rows: minmax(min-content, 1fr); align-content: stretch; } }
+@container holo-body (min-width: 520px) and (min-height: 196px) { .nx-card:is([data-lay=hero], [data-lay=chart]) .nx-rows { gap: 6px; } .nx-card:is([data-lay=hero], [data-lay=chart]):is([data-size=M], [data-size=L]) .nx-row { padding-block: 6px; } }
+/* Under a ring's words, and in a narrow panel, the rows are slim (as many whole rows as before round 6): the lamps stay, a row's meter and the tally under the figure need the room a wide panel has. */
+.nx-card[data-lay=dial][data-size=M] .nx-rows { gap: 2px; }
+.nx-card[data-lay=dial][data-size=M] .nx-row { padding-block: 2px; }
+@container holo-body (max-width: 519.98px) { .nx-card[data-size=M] .nx-rows { gap: 2px; } .nx-card[data-size=M] .nx-row { padding-block: 2px; } .nx-card[data-size=M] .nx-row > .nx-row-meter, .nx-card[data-size=M] .nx-pips { display: none; } }
+
+/* ---- Rows: status rows (round 6; the references' status and alert rows) ----
+   Each row is a lit slab: a state mark or a node, a name that keeps its room, a figure or a state key, one line of detail
+   and, where the kind has one, a segmented meter. The lit face and the edge light are layers behind the words (never a
+   gradient under text). In a column with a height of its own the rows share that height (up to 78 px each), so a short
+   list fills its panel instead of leaving it dark; rows still drop whole when the panel is short (whole-rows.tsx reads
+   the same boxes: a track is never smaller than its row). A list as tall as its rows keeps each row its own height. */
+.nx-rows { position: relative; list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; min-width: 0; }
+.nx-row { position: relative; isolation: isolate; box-sizing: border-box; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; align-content: center; align-self: center; min-width: 0; height: 100%; max-height: 78px; padding: 4px 12px 4px 10px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); border-radius: 3px 12px 3px 12px; background: #060a1c; }
+.nx-row::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 22%, transparent), transparent 64%); }
+.nx-row::after { content: ''; position: absolute; left: -1px; top: 22%; bottom: 22%; width: 3px; border-radius: 2px; background: var(--neon-2, #c0adff); box-shadow: 0 0 10px 1px var(--neon, #9273ff); }
+.nx-card[data-size=L] .nx-row { padding-block: 7px; }
+.nx-row-node { align-self: center; width: 8px; height: 8px; margin: 0 5px 0 4px; transform: rotate(45deg); background: var(--neon, #9273ff); box-shadow: 0 0 0 2px #060a1c, 0 0 0 3px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent), 0 0 10px 3px color-mix(in oklab, var(--neon, #9273ff) 80%, transparent); }
+.nx-row-node[data-tone=up] { background: #ffd9a8; box-shadow: 0 0 0 2px #060a1c, 0 0 0 3px #ffd9a8b3, 0 0 10px 3px #ffd9a8b3; }
+.nx-row-node[data-tone=down] { background: #a8f5d2; box-shadow: 0 0 0 2px #060a1c, 0 0 0 3px #a8f5d2b3, 0 0 10px 3px #a8f5d2b3; }
+.nx-row-name { font-size: 15px; font-weight: 600; line-height: 1.35; color: #f2f6ff; overflow-wrap: anywhere; }
+.nx-row-value { font-size: 15px; font-weight: 650; line-height: 1.35; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nx-row-sub { grid-column: 2 / -1; font-size: 14px; line-height: 1.35; color: #c3cfe6; overflow-wrap: anywhere; }
+.nx-row > .nx-row-meter { grid-column: 2 / -1; margin-top: 4px; }
+/* A lit state mark (a status row's lamp): the row's words say the state; the lamp only shows it at a glance. */
+.nx-mark { flex: none; align-self: center; width: 22px; height: 22px; overflow: visible; }
+.nx-mark-ring { fill: #060a1c; stroke: var(--neon, #9273ff); stroke-width: 1.8px; }
+.nx-mark[data-state=on] .nx-mark-ring { filter: drop-shadow(0 0 3px var(--neon, #9273ff)); }
+.nx-mark-core { fill: var(--neon-2, #c0adff); filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 6px var(--neon, #9273ff)); }
+.nx-mark[data-state=done] .nx-mark-ring { fill: var(--neon, #9273ff); stroke: #fff; stroke-width: 1.4px; filter: drop-shadow(0 0 5px var(--neon, #9273ff)); }
+.nx-mark-glyph { fill: none; stroke: #060a1c; stroke-width: 2.6px; stroke-linecap: round; stroke-linejoin: round; }
+.nx-mark[data-state=off] .nx-mark-ring { stroke: #ffffff73; stroke-dasharray: 3 3.4; }
+.nx-mark[data-state=off] .nx-mark-glyph { stroke: #c9d4ea; stroke-width: 1.8px; }
+/* A tally of lamps under a figure (one for each alert or task, in its state). */
+.nx-pips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; min-width: 0; }
+.nx-pips .nx-mark { width: 22px; height: 22px; }
+/* The rows on one lit rail (a timeline: this evening, then someday): the rail runs behind the lamps and fades at its ends. */
+.nx-rail::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; border-radius: 1px; background: linear-gradient(180deg, transparent 0, var(--neon, #9273ff) 16%, var(--neon, #9273ff) 84%, transparent 100%); box-shadow: 0 0 8px 0 color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nx-rail > .nx-row { border-color: transparent; border-top-color: color-mix(in oklab, var(--neon, #9273ff) 22%, transparent); border-radius: 0; background: none; }
+.nx-rail > .nx-row:first-child { border-top-color: transparent; }
+.nx-rail > .nx-row::before, .nx-rail > .nx-row::after { content: none; }
+/* A segmented meter: lit cells, the leading one white-hot; unknown is an unlit dashed track (never zero). */
+.nx-segs { display: grid; grid-template-columns: repeat(var(--nx-n, 16), minmax(0, 1fr)); gap: 2px; height: 9px; min-width: 0; }
+.nx-segs i { border-radius: 1.5px; background: color-mix(in oklab, var(--neon, #9273ff) 15%, #060a20); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent); }
+.nx-segs i[data-on] { background: linear-gradient(180deg, color-mix(in oklab, var(--neon-2, #c0adff) 70%, #fff), var(--neon, #9273ff) 58%, color-mix(in oklab, var(--neon, #9273ff) 60%, #0a1030)); box-shadow: 0 0 8px 0 color-mix(in oklab, var(--neon, #9273ff) 65%, transparent); }
+.nx-segs i[data-lead] { background: linear-gradient(180deg, #fff, var(--neon-2, #c0adff)); box-shadow: 0 0 6px 1px #fff, 0 0 12px 2px var(--neon, #9273ff); }
+.nx-segs[data-unknown] i { box-sizing: border-box; border: 1px dashed #ffffff4d; background: none; box-shadow: none; }
+/* A scale: the meter over a named range, its marks under it. */
+.nx-scale { display: grid; gap: 4px; min-width: 0; }
+.nx-scale > .nx-segs { height: 18px; gap: 3px; }
+.nx-scale-marks { display: flex; justify-content: space-between; font-size: 14px; line-height: 1.3; color: #c3cfe6; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* A row's state as a small key (waiting, fired, taken): its words say it; the rim only sets it apart. */
+.nx-row-value[data-chip] { align-self: center; padding: 1px 9px; border-radius: 3px 8px 3px 8px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 12%, #060a1c); font-size: 14px; font-weight: 650; line-height: 1.5; color: #f2f6ff; }
+.nx-row-value[data-chip=done] { border-color: #ffffffb3; background: color-mix(in oklab, var(--neon, #9273ff) 26%, #060a1c); box-shadow: 0 0 10px -2px var(--neon, #9273ff); }
+.nx-row-value[data-chip=off] { border-style: dashed; border-color: #ffffff59; background: none; color: #d6e0f5; }
+/* A row that is a link (a template to start from) is a 44 px target; its arrow is decoration. */
+.nx-row-link { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; min-height: 44px; padding: 0 12px 0 10px; color: inherit; text-decoration: none; }
+.nx-row-link:hover .nx-row-name, .nx-row-link:focus-visible .nx-row-name { text-decoration: underline; text-underline-offset: 3px; }
+.nx-row-link .nx-row-sub { grid-column: 2; }
+.nx-row-go { grid-row: 1 / span 2; grid-column: 3; font-size: 16px; color: var(--neon-2, #c0adff); }
+.nx-row.nx-row-linked { display: block; padding: 0; max-height: none; }
+
+/* ---- Two lists side by side (This evening, Someday at Large) ---- */
+.nx-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 24px; min-width: 0; align-items: start; }
+.nx-pair > div { min-width: 0; display: grid; gap: 4px; align-content: start; }
+@container holo-body (max-width: 330px) { .nx-pair { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- A read-out: a tracked label, a value, one line under it ---- */
+.nx-readout { position: relative; margin: 0; display: grid; gap: 2px; min-width: 0; align-content: center; }
+.nx-readout-label { font-size: 14px; font-weight: 700; letter-spacing: .08em; line-height: 1.3; text-transform: uppercase; color: #cdd8ee; }
+.nx-readout-value { font-size: 26px; font-weight: 680; line-height: 1.12; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); }
+.nx-readout-sub { font-size: 14px; line-height: 1.4; color: #c9d4ea; }
+.nx-card[data-size=L] .nx-readout-value { font-size: 34px; }
+.nx-card[data-size=S] .nx-readout-value { font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nx-card[data-size=S] .nx-readout-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nx-card[data-size=S] .nx-readout-sub { display: none; }
+
+/* ---- Two instruments, each with its read-out (the day's two rules) ---- */
+.nx-duo { --nx-art: calc(var(--nx-d) * .76); flex: 1 1 auto; min-height: 0; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 28px; align-items: center; }
+.nx-inst { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 16px; align-items: center; }
+.nx-card[data-size=S] .nx-inst { column-gap: 10px; }
+@container holo-body (max-width: 519px) { .nx-card:is([data-size=M], [data-size=L]) .nx-duo { grid-template-columns: minmax(0, 1fr); } }
+/* A dot meter: lit dots in a framed square the size of the dial beside it. */
+.nx-dots { --nx-box: calc(var(--nx-art) * 1px); box-sizing: border-box; flex: none; width: var(--nx-box); height: var(--nx-box); padding: calc(var(--nx-box) * .1); display: grid; grid-template-columns: repeat(var(--nx-cols, 3), minmax(0, 1fr)); gap: calc(var(--nx-box) * .09); align-content: center; border-radius: 6px 16px 6px 16px;
+  background: linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)) 0 0 / 12px 1.5px no-repeat, linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)) 0 0 / 1.5px 12px no-repeat, linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)) 100% 100% / 12px 1.5px no-repeat, linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)) 100% 100% / 1.5px 12px no-repeat; }
+/* Round 7 (ref 24): each dot is a neon line glyph: a thin lit ring with a small white-hot core; an unlit dot is a dim dashed ring. */
+.nx-dots i { aspect-ratio: 1; border-radius: 50%; border: 1.5px dashed #ffffff5c; }
+.nx-dots i[data-on] { border: 1.5px solid var(--neon-2, #c0adff); background: radial-gradient(circle, #fff 0 15%, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 19% 30%, transparent 44%); box-shadow: 0 0 9px 0 color-mix(in oklab, var(--neon, #9273ff) 80%, transparent), inset 0 0 6px 0 color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); }
+.nx-card[data-size=S] .nx-dots { border-radius: 4px 10px 4px 10px; }
+
+/* A narrow small panel: the read-outs alone (their drawings need the room the words need more). */
+@container holo-body (max-width: 400px) { .nx-card[data-size=S] .nx-inst > :is(.nx-dots, .nx-ring) { display: none; } .nx-card[data-size=S] .nx-inst { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- Keys: the links of a read-out or a library, each a 44 px target (the kit's action key) ---- */
+.nx-keys { flex: none; display: flex; flex-wrap: wrap; gap: 8px 10px; min-width: 0; }
+.nx-keys .nc-action { margin-top: 0; }
+
+/* ---- Chips: short words (a tag that waits for more days) ---- */
+.nx-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 8px; min-width: 0; }
+.nx-chips li { max-width: 100%; box-sizing: border-box; padding: 2px 10px; border-radius: 3px 8px 3px 8px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 46%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 10%, #060a1c); font-size: 14px; line-height: 1.5; color: #e6edfb; overflow-wrap: anywhere; }
+.nx-chips b { font-weight: 650; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; }
+
+/* ---- The key under a lattice (which cell means what) ---- */
+.nx-key { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
+.nx-key span { display: inline-flex; align-items: center; gap: 6px; }
+.nx-key i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid color-mix(in oklab, var(--neon, #23eaff) 40%, transparent); }
+.nx-key i[data-cell=done] { border-color: var(--neon-2, #8ff6ff); background: linear-gradient(150deg, #fff 0%, var(--neon-2, #8ff6ff) 24%, var(--neon, #23eaff) 68%); box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #23eaff) 70%, transparent); }
+.nx-key i[data-cell=part] { background: linear-gradient(to top, var(--neon, #23eaff) 50%, transparent 50%); border-color: var(--neon, #23eaff); }
+.nx-key i[data-cell=missed] { border-style: dashed; border-color: #ffffff59; }
+.nx-key i[data-cell=rest] { border-color: transparent; background: radial-gradient(circle, #ffffff40 0 1.5px, transparent 2px); }
+/* A month as a lattice: the week's name is short ("W46"), so the cells get the room. */
+.nx-month .nc-lattice-head, .nx-month .nc-lattice-row { grid-template-columns: 44px repeat(7, minmax(14px, var(--nc-cell, 22px))) minmax(0, 1fr); }
+.nx-month .nc-lattice-label { padding-left: 0; font-size: 14px; color: #c3cfe6; }
+.nx-month .nc-lattice-label::before { content: none; }
+.nx-month .nc-lattice { gap: 5px; }
+.nx-card[data-size=L] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 28px; }
+
+/* ---- Four lit boxes, two by two (the priority matrix) ---- */
+.nx-matrix { flex: 1 1 auto; min-height: 0; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-rows: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.nx-matrix li { position: relative; isolation: isolate; min-width: 0; min-height: 44px; overflow: hidden; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; align-content: center; padding: 6px 12px; border-radius: 4px 14px 4px 14px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) calc(34% + var(--nx-lit, 0) * 50%), transparent); background: #060a1c; }
+/* The lit face is a layer behind the words (never a gradient under text): brighter for a fuller box. */
+.nx-matrix li::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: calc(.1 + var(--nx-lit, 0) * .34); background: linear-gradient(135deg, var(--neon, #9273ff), color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c) 70%); }
+.nx-matrix li::after { content: ''; position: absolute; left: 0; top: 18%; bottom: 18%; width: 3px; border-radius: 2px; background: var(--neon-2, #c0adff); box-shadow: 0 0 10px 1px var(--neon, #9273ff); opacity: calc(.35 + var(--nx-lit, 0) * .65); }
+.nx-matrix li[data-none] { border-style: dashed; border-color: #ffffff40; }
+.nx-matrix li[data-none]::before, .nx-matrix li[data-none]::after { opacity: 0; }
+.nx-matrix b { grid-row: 1 / span 2; align-self: center; min-width: 1.2em; font-size: 34px; font-weight: 700; line-height: 1; text-align: center; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent), 0 0 20px var(--neon, #9273ff); }
+.nx-matrix li[data-none] b { color: #d6e0f5; text-shadow: none; }
+.nx-matrix-title { align-self: end; font-size: 14px; font-weight: 700; letter-spacing: .06em; line-height: 1.25; text-transform: uppercase; color: #e6edfb; }
+.nx-matrix-task { align-self: start; font-size: 15px; line-height: 1.3; color: #f2f6ff; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.nx-matrix li[data-none] .nx-matrix-task { color: #c3cfe6; }
+/* A narrow panel: the four boxes one under the other, each a count and its name on one line (the first task of a box
+   needs the width a wide panel has; the widget's table keeps it). */
+@container holo-body (max-width: 519px) {
+  .nx-matrix { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .nx-matrix li { grid-template-rows: auto; min-height: 0; padding: 2px 12px; }
+  .nx-matrix b { grid-row: 1; font-size: 26px; }
+  .nx-matrix-title { align-self: center; }
+  .nx-card[data-size=M] .nx-matrix-task { display: none; }
+  .nx-card[data-size=L] .nx-matrix-task { grid-column: 2; }
+}
+.nx-card[data-size=L] .nx-matrix { gap: 12px; }
+.nx-card[data-size=L] .nx-matrix b { font-size: 46px; }
+.nx-card[data-size=L] .nx-matrix-task { -webkit-line-clamp: 4; }
+
+/* ---- A day as a lattice of hours (round 6) ----
+   One column an hour, each a stack of cells that share the plot's height: a cell is lit for an item at that hour (from
+   the bottom; the top one hatched when there are more), unlit glass otherwise. The hour of now stands in a lit frame. */
+.nx-hours { flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.nx-hours-plot { position: relative; flex: 1 1 72px; min-height: 48px; display: grid; grid-template-columns: repeat(var(--nx-n, 18), minmax(0, 1fr)); gap: 3px; padding: 3px 2px 5px; border-bottom: 1px solid color-mix(in oklab, var(--neon, #9273ff) 55%, transparent); }
+.nx-hour { position: relative; min-width: 0; display: flex; flex-direction: column-reverse; gap: 3px; }
+.nx-hour i { flex: 1 1 0; min-height: 7px; border-radius: 3px; background: color-mix(in oklab, var(--neon, #9273ff) 14%, #060a1c); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); }
+.nx-hour[data-empty] i { background: color-mix(in oklab, var(--neon, #9273ff) 8%, #060a1c); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 22%, transparent); }
+.nx-hour i[data-on] { background: linear-gradient(180deg, #fff 0, var(--neon-2, #c0adff) 20%, var(--neon, #9273ff) 64%, color-mix(in oklab, var(--neon, #9273ff) 55%, #0a1030) 100%); box-shadow: inset 0 0 0 1px var(--neon-2, #c0adff), 0 0 12px 1px color-mix(in oklab, var(--neon, #9273ff) 72%, transparent); }
+.nx-hour i[data-more] { background: repeating-linear-gradient(135deg, #fff 0 2px, var(--neon-2, #c0adff) 2px 4px, var(--neon, #9273ff) 4px 7px); }
+.nx-hour[data-now]::before { content: ''; position: absolute; inset: -3px -2px -5px; border-radius: 4px 4px 0 0; border: 1px solid var(--neon-2, #c0adff); border-bottom-width: 3px; background: color-mix(in oklab, var(--neon, #9273ff) 16%, transparent); box-shadow: 0 0 12px -2px var(--neon, #9273ff); }
+.nx-hour[data-now] i { position: relative; }
+.nx-hours-axis { flex: none; display: grid; grid-template-columns: repeat(var(--nx-n, 18), minmax(0, 1fr)); gap: 3px; margin-top: 4px; padding: 0 2px; }
+.nx-hours-axis span { font-size: 14px; line-height: 1.25; color: #c3cfe6; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* ---- Ring cards (savings challenges) ---- */
+.nx-ringcards { flex: 1 1 auto; min-height: 0; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 20px; align-content: center; min-width: 0; }
+.nx-ringcard { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-items: center; padding: 6px 12px 6px 8px; border-radius: 4px 14px 4px 14px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 6%, #060a1c); }
+.nx-card[data-size=L] .nx-ringcards { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.nx-card[data-size=L] .nx-ringcard { padding: 12px 16px 12px 12px; column-gap: 20px; }
+.nx-card[data-size=L] .nx-ringcard-words b { font-size: 19px; }
+.nx-card[data-size=L] .nx-ringcard-sub { font-size: 15px; }
+.nx-ringcard-words { min-width: 0; display: grid; gap: 1px; }
+.nx-ringcard > .nx-segs { grid-column: 1 / -1; margin-top: 7px; height: 8px; }
+.nx-ringcard-words b { font-size: 16px; font-weight: 680; line-height: 1.25; color: #f2f6ff; overflow-wrap: anywhere; }
+.nx-ringcard-kind { font-size: 14px; font-weight: 700; letter-spacing: .06em; line-height: 1.3; text-transform: uppercase; color: var(--neon-ink, #f2f6ff); }
+.nx-ringcard-sub { font-size: 14px; line-height: 1.35; color: #c9d4ea; overflow-wrap: anywhere; }
+
+/* ================= The four ways a card stands ================= */
+
+/* ---- dial: narrow (the ring and its words on top, the instrument under them) ---- */
+.nc-body.nx-card[data-lay=dial] { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "dial head" "main main" "foot foot"; gap: 8px 14px; }
+.nc-body.nx-card[data-lay=dial][data-size=S] { grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: "dial head" "foot foot"; gap: 4px 12px; }
+.nx-card[data-lay=dial] > .nx-dial { grid-area: dial; align-self: center; }
+.nx-card[data-lay=dial] > .nx-head { grid-area: head; }
+.nx-card[data-lay=dial] > .nx-main { grid-area: main; justify-content: flex-start; }
+.nx-card[data-lay=dial] > .nc-foot { grid-area: foot; margin-top: 0; }
+@container holo-body (min-height: 200px) and (max-width: 519px) { .nx-card[data-size=M] { --nx-d: 104; --nx-art: 84; } }
+@container holo-body (min-height: 300px) and (max-width: 519px) { .nx-card[data-size=L] { --nx-d: 128; --nx-art: 96; } }
+/* A narrow medium panel: a month's cells are 20 px, so three weeks stand whole under the ring. */
+@container holo-body (max-width: 519px) { .nx-card[data-size=M] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 19px; } .nx-card[data-size=M] .nx-month .nc-lattice { gap: 3px; } }
+/* A narrow panel too short for the instrument under the ring keeps the ring and its words. */
+@container holo-body (max-height: 168px) and (max-width: 519px) { .nx-card[data-lay=dial][data-size=M] > .nx-main:not([data-keep]) { display: none; } }
+@container holo-body (max-width: 250px) { .nx-card:is([data-size=M], [data-size=L]) { --nx-d: 64; --nx-art: 60; } }
+
+/* ---- hero and chart: narrow (the figure and its words, the instrument under them) ---- */
+.nx-card:is([data-lay=hero], [data-lay=chart]) > .nx-main { justify-content: center; }
+@container holo-body (max-height: 150px) and (max-width: 519px) { .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=M] > .nx-main:not([data-keep]) { display: none; } }
+
+/* ---- A wide panel: side by side ---- */
+@container holo-body (min-width: 520px) {
+  .nx-card:is([data-size=M], [data-size=L]) { --nx-d: 132; --nx-art: 96; }
+  /* dial: the ring over the panel's height on the left; on the right its words and, under them, the instrument, the
+     two standing together in the middle of the panel's height. */
+  .nc-body.nx-card[data-lay=dial]:is([data-size=M], [data-size=L]) { grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr) auto; grid-template-areas: "dial ." "dial head" "dial main" "dial ." "foot foot"; gap: 0 26px; }
+  .nx-card[data-lay=dial]:is([data-size=M], [data-size=L]) > .nx-head { margin-bottom: 6px; }
+  .nx-card[data-lay=dial]:is([data-size=M], [data-size=L]) > .nc-foot { margin-top: 6px; }
+  .nx-card[data-lay=dial]:is([data-size=M], [data-size=L]) .nx-dial-figure small { display: block; }
+  /* hero and chart: the figure on the left in a column of its own, the instrument in the rest. */
+  .nc-body.nx-card:is([data-lay=hero], [data-lay=chart])[data-size=M] { display: grid; grid-template-columns: minmax(0, 36%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 6px 28px; }
+  .nc-body.nx-card[data-lay=chart][data-size=M] { grid-template-columns: minmax(0, 40%) minmax(0, 1fr); }
+  .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=M] > .nx-top { grid-area: 1 / 1; align-self: center; }
+  .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=M] > .nx-main { grid-area: 1 / 2; align-self: stretch; }
+  .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=M] > .nc-foot { grid-area: 2 / 1 / 3 / 3; margin-top: 0; }
+  .nc-body.nx-card[data-size=M] .nc-hero-num { font-size: clamp(28px, 6.4cqw, 42px); }
+  .nc-body.nx-card[data-size=M] .nc-hero[data-len] .nc-hero-num { font-size: clamp(22px, 5.1cqw, 32px); }
+  .nc-body.nx-card[data-size=M] .nc-hero[data-len=xl] .nc-hero-num { font-size: clamp(19px, 4.2cqw, 26px); }
+  .nc-body.nx-card[data-lay=chart][data-size=M] .nc-hero[data-len] .nc-hero-num { font-size: clamp(24px, 5.7cqw, 36px); }
+  .nx-card[data-size=M] .nc-bar-track { height: 15px; }
+  .nx-card[data-size=M] .nx-readout-value { font-size: 30px; }
+  .nx-card[data-size=M] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 24px; }
+}
+/* A small wide panel: the note stands at the right of the words, so the panel's width is used. */
+@container holo-body (min-width: 520px) {
+  .nx-card[data-size=S] .nx-head { grid-template-columns: minmax(0, auto) minmax(0, 1fr); column-gap: 24px; }
+  .nx-card[data-size=S] .nx-head > :is(.nx-cap, .nx-title) { grid-column: 1; }
+  .nx-card[data-size=S] .nx-head > .nx-note { display: block; grid-column: 2; grid-row: 1 / span 2; align-self: center; text-align: right; }
+}
+/* The instruments follow the panel's height in steps (the body's height less the foot). */
+@container holo-body (min-width: 520px) and (min-height: 1px) and (max-height: 149px) {
+  .nx-card[data-size=M] { --nx-d: 92; --nx-art: 84; }
+  .nx-card[data-lay=dial][data-size=M] .nx-dial-figure small { display: none; }
+}
+@container holo-body (min-width: 520px) and (min-height: 150px) and (max-height: 171px) { .nx-card[data-size=M] { --nx-d: 112; --nx-art: 92; } }
+/* Round 7 (larger hero rings): a medium panel of 180–195 px (2560 × 1440) no longer keeps the 132 px dial of a 172 px one. */
+@container holo-body (min-width: 520px) and (min-height: 180px) and (max-height: 195.98px) { .nx-card[data-size=M] { --nx-d: 148; --nx-art: 104; } }
+@container holo-body (min-width: 520px) and (min-height: 196px) {
+  .nx-card:is([data-size=M], [data-size=L]) { --nx-d: 152; --nx-art: 112; }
+  .nx-card[data-size=M] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 28px; }
+}
+@container holo-body (min-width: 520px) and (min-height: 222px) { .nx-card:is([data-size=M], [data-size=L]) { --nx-d: 176; --nx-art: 128; } }
+@container holo-body (min-width: 520px) and (min-height: 320px) {
+  .nx-card[data-size=L] { --nx-d: 216; --nx-art: 148; }
+  .nx-card[data-size=L] .nx-dial-figure small { font-size: 16px; }
+}
+/* A short wide panel: the words beside the ring drop their note before a row of the instrument would. */
+@container holo-body (min-width: 520px) and (max-height: 171px) { .nx-card[data-lay=dial][data-size=M] > .nx-head > .nx-note, .nx-card[data-size=M] .nx-head > .nx-pulse, .nx-card[data-size=M] .nx-readout-sub { display: none; } .nx-card[data-size=M] .nx-title { font-size: 20px; } }
+
+/* ---- A large wide panel: the figure and the facts on the left, the instrument the whole height of the right ---- */
+@container holo-body (min-height: 300px) and (min-width: 520px) {
+  .nc-body.nx-card:is([data-lay=hero], [data-lay=chart])[data-size=L] { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto auto minmax(0, 1fr) auto; gap: 0 36px; }
+  /* The left column: the figure, then the facts, then one note, standing together in the middle of the panel's height. */
+  .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=L] > * { grid-column: 1; }
+  .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=L] > .nx-top { grid-row: 2; }
+  .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=L] > .nc-facts { grid-row: 3; margin-top: 12px; }
+  .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=L] > :is(.nx-note, .nx-key, .nx-keys) { grid-row: 4; margin-top: 12px; }
+  .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=L] > .nx-main { grid-column: 2; grid-row: 1 / 6; align-self: stretch; }
+  .nx-card:is([data-lay=hero], [data-lay=chart])[data-size=L] > .nc-foot { grid-column: 1 / -1; grid-row: 6; margin-top: 10px; }
+  .nc-body.nx-card[data-size=L] .nc-hero-num { font-size: clamp(34px, 7cqw, 52px); }
+  .nc-body.nx-card[data-size=L] .nc-hero[data-len] .nc-hero-num { font-size: clamp(26px, 5.4cqw, 40px); }
+  .nc-body.nx-card[data-size=L] .nc-hero[data-len=xl] .nc-hero-num { font-size: clamp(22px, 4.5cqw, 32px); }
+  .nx-card[data-size=L] .nc-bar-track { height: 16px; }
+  .nx-card[data-size=L] .nc-trend-plot, .nx-card[data-size=L] .nc-columns-plot { min-height: 96px; }
+  .nx-card[data-size=L] .nx-row { padding-block: 9px; }
+  .nx-card[data-size=L] .nx-readout-value { font-size: 36px; }
+  .nx-card[data-size=L] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 32px; }
+}
+
+/* A read-out whose value is a range of days ("Nov 20 – Nov 26") is set smaller, so it stays on one line. */
+.nx-card[data-size] .nx-readout-value[data-long] { font-size: 22px; }
+.nx-card[data-size=L] .nx-readout-value[data-long] { font-size: 28px; }
+
+/* A teaching notice is a body's only content (the frame then hugs it, as for every other widget: cards.css). Should one
+   ever share a card, it takes the card's whole width. */
+.nc-body.nx-card[data-size] > .nc-notice { grid-column: 1 / -1; min-width: 0; }
+
+@media (forced-colors: active) { .nx-row-node, .nx-key i[data-cell=done], .nx-dots i[data-on], .nx-hour i[data-on], .nx-segs i[data-on] { background: Highlight; box-shadow: none; forced-color-adjust: none; } }
+
+/* ---- Journal numbers by day (round 6): fourteen columns, each wide enough to read as a bar ---- */
+.nx-journal[data-by=day] :is(.nc-columns-plot, .nc-columns-labels) { gap: 4px; }
+.nx-journal[data-by=day] .nc-column::before, .nx-journal[data-by=day] .nc-column i { width: clamp(8px, 78%, 30px); }
+.nx-journal[data-by=day] .nc-columns-labels span { overflow: visible; }
+
+/* ---- Market watch while no price is in (round 6): one unlit plot, the markets as its keys, one line ---- */
+.nx-mk { box-sizing: border-box; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; grid-template-areas: "head plot" "keys keys" "note note"; gap: 6px 22px; min-width: 0; padding-top: 6px; }
+@container holo-body (min-height: 1px) { .nova-widget[data-holo] .nx-mk { height: 100cqh; } }
+.nx-mk-head { grid-area: head; margin: 0; display: grid; grid-template-columns: auto auto; justify-content: start; align-content: center; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.nx-mk-head > .nx-cap { grid-column: 1 / -1; }
+.nx-mk-figure { font-size: 40px; font-weight: 680; line-height: 1; letter-spacing: -.012em; color: var(--neon-ink, #fff0cf); font-variant-numeric: tabular-nums; text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #ffd27a) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #ffd27a) 62%, transparent); }
+.nx-mk-unit { font-size: 16px; font-weight: 600; color: var(--neon-2, #ffe6b3); }
+.nx-ghostplot { grid-area: plot; align-self: stretch; width: 100%; height: 100%; min-height: 30px; overflow: visible; }
+.nx-ghostplot-grid { fill: none; stroke: color-mix(in oklab, var(--neon, #ffd27a) 20%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.nx-ghostplot-glow { fill: none; stroke: var(--neon, #ffd27a); stroke-width: 10px; stroke-linejoin: round; vector-effect: non-scaling-stroke; opacity: .2; filter: blur(5px); }
+.nx-ghostplot-line { fill: none; stroke: color-mix(in oklab, var(--neon, #ffd27a) 80%, #fff); stroke-width: 2.6px; stroke-dasharray: 9 7; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.nx-ghostplot-base { fill: none; stroke: color-mix(in oklab, var(--neon, #ffd27a) 55%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.nx-mk > .nx-mk-rows { grid-area: keys; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; }
+.nx-mk-keys { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.nx-mk-key { position: relative; padding: 2px 10px 2px 24px; border-radius: 3px 8px 3px 8px; border: 1px dashed color-mix(in oklab, var(--neon, #ffd27a) 55%, transparent); background: #060a1c; font-size: 14px; font-weight: 700; letter-spacing: .1em; line-height: 1.5; text-transform: uppercase; color: #e6edfb; white-space: nowrap; }
+.nx-mk-key::before { content: ''; position: absolute; left: 9px; top: 50%; width: 7px; height: 7px; margin-top: -4.5px; border-radius: 50%; border: 1.5px solid color-mix(in oklab, var(--neon, #ffd27a) 80%, transparent); }
+.nx-mk > .nx-mk-rows > .wr-more { padding-top: 0; }
+.nx-mk-note { grid-area: note; margin: 0; font-size: 14px; line-height: 20px; color: #cdd8ee; }
+.nx-mk[data-size=S] { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: minmax(0, 1fr); grid-template-areas: "head plot keys"; padding-top: 0; align-items: center; }
+.nx-mk[data-size=S] .nx-mk-head > .nx-cap, .nx-mk[data-size=S] .nx-mk-note { display: none; }
+.nx-mk[data-size=S] .nx-mk-figure { font-size: 30px; }
+@container holo-body (max-height: 139.98px) { .nx-mk:not([data-size=S]) .nx-mk-note { display: none; } }
+@container holo-body (max-width: 330px) { .nx-mk[data-size=S] .nx-ghostplot { display: none; } }
+
+/* ---- A locked widget's own instrument, powered down (round 6; redrawn at real size in round 7) ----
+   A fixed drawing (widgets/nx-lock-ghost.tsx): no value is read or shown. It is the notice's first column (cards.css
+   lays the notice out and gives the height, `--un-h`); under 296 px of body there is no room for it. */
+.nx-lockghost { display: none; flex: none; pointer-events: none; }
+.nx-lockghost > svg { height: 100%; width: auto; }
+@container holo-body (min-width: 296px) { .nx-lockghost { display: block; grid-column: 1; grid-row: 1 / span 2; align-self: center; justify-self: center; height: var(--un-h, 60px); } .nx-lockghost:not([data-shape=ring], [data-shape=arcs], [data-shape=stack]) { height: calc(var(--un-h, 60px) * .82); } }

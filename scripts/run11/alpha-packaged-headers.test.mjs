@@ -3,7 +3,7 @@ import {createRequire} from 'node:module';
 import {readFile,readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {hermeticWorkerOptions} from './hermetic-wrangler.mjs';
-import {connectSources,permissionsPolicyFor,staticMissHeaders} from '../../apps/web/lib/csp-compose.mjs';
+import {connectSources,permissionsPolicyFor,staticMissHeaders,withWeatherProxy} from '../../apps/web/lib/csp-compose.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {Miniflare,convertV4MiniflareOptions}=require('miniflare'),{unstable_getMiniflareWorkerOptions}=require('wrangler');
 const root=new URL('../../',import.meta.url).pathname;
@@ -17,7 +17,8 @@ const root=new URL('../../',import.meta.url).pathname;
 const enabled=process.env.ALPHA_PACKAGED==='1';
 let script,app,egress;
 beforeAll(async()=>{
- egress=JSON.parse(await readFile(resolve(root,'apps/web/lib/egress-policy.json'),'utf8'));
+ // Session AM-2 (TIER 3 (CSP/egress)): plus the weather proxy's origin when this run is configured with the build's NEXT_PUBLIC_WEATHER_PROXY_URL (unset: the file as it is).
+ egress=withWeatherProxy(JSON.parse(await readFile(resolve(root,'apps/web/lib/egress-policy.json'),'utf8')),process.env.NEXT_PUBLIC_WEATHER_PROXY_URL);
  if(!enabled)return;
  script=await readFile(process.env.ALPHA_PACKAGE_BUNDLE??'/tmp/zigoals-alpha-dry/worker.js','utf8');
  app=hermeticWorkerOptions(unstable_getMiniflareWorkerOptions,resolve(root,'apps/web/wrangler.alpha.jsonc')).workerOptions;

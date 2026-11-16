@@ -181,7 +181,7 @@ test('fasting: start shows the HE6 note and the 24 h limit, stop needs a running
   expect(refusal({kind: 'stop-fast'})).toBe('No fast is running right now.');
   const start = plan({kind: 'start-fast', targetHours: 16});
   expect(start.card).toMatchObject({title: 'Start a fast', where: 'Health · Fasting timer', safety: HE6_NOTE}); expect(start.card.lines).toEqual(['Target 16 h (16:8)', 'Stops by itself at 24 h; stop it any time from Health']);
-  expect(plan({kind: 'start-fast', targetHours: 13}).card.lines[0]).toBe('Target 13 h (custom, up to 18 h)');
+  expect(plan({kind: 'start-fast', targetHours: 13}).card.lines[0]).toBe('Target 13 h (custom, up to 24 h)'); // Health's own ceiling (MAX_TARGET_HOURS)
   const running = roundTrip(start);
   expect(runningSession(running.fasting)).toMatchObject({targetHours: 16, timeZone: 'UTC'});
   expect(refusal({kind: 'start-fast', targetHours: 12}, env({stores: running}))).toBe('A fast is already running; stop it first.');

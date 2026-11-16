@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, test} from 'vitest';
 import {createHabit, emptyHabitData, habitDataSchema, type HabitInput} from '../habits';
-import {MAX_CUSTOM_HOURS, MAX_HOURS, MAX_TARGET_HOURS, applyAutoStop, autoStopDue, elapsedMs, fastingHistory, formatFast, habitLogValue, logFastToHabit, logPastFast, removeFast, runningSession, startFast, stopFast} from './engine';
+import {MAX_HOURS, MAX_TARGET_HOURS, applyAutoStop, autoStopDue, elapsedMs, fastingHistory, formatFast, habitLogValue, logFastToHabit, logPastFast, removeFast, runningSession, startFast, stopFast} from './engine';
 import {FASTING_KEY, MAX_FASTING_SESSIONS, emptyFasting, fastingSchema, type Fasting} from './schema';
 import {readFasting, startOverFasting, updateFasting} from './store';
 
@@ -120,7 +120,7 @@ describe('schema and store', () => {
 // Session AO (C-MO-36): a custom target from 1 to 24 hours; 24 is the automatic stop itself, never beyond it.
 describe('custom targets up to the 24-hour stop (Session AO, C-MO-36)', () => {
   test('the custom ceiling is the automatic stop', () => {
-    expect(MAX_TARGET_HOURS).toBe(24); expect(MAX_TARGET_HOURS).toBe(MAX_HOURS); expect(MAX_CUSTOM_HOURS).toBe(18); // ZIGi's cards: the NOVA lane's
+    expect(MAX_TARGET_HOURS).toBe(24); expect(MAX_TARGET_HOURS).toBe(MAX_HOURS); // ZIGi's cards take this same ceiling (lib/ai/actions/fast-range.test.ts)
   });
   test('a 24-hour target is stored in the same shape and stops itself at exactly 24 hours', () => {
     const data = started({targetHours: 24});

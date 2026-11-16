@@ -1,4 +1,5 @@
 import {expect, type Page} from '@playwright/test';
+import {withEarlierWidgets} from '../../nova-am';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../../lib/dashboard-settings';
 import {HEALTH_STORAGE_KEY, createEmptyHealth, healthSchema} from '../../../lib/health';
 import {dailyData, saveHealthPreferences} from '../../../lib/health-daily';
@@ -18,7 +19,9 @@ export function seedRecords({preset, widgets, layout, waterTarget, motion, theme
   const records: Record<string, string> = {
     'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}),
     [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}),
-    [NOVA_KEY]: JSON.stringify({version: 1, openingSeen: true, ...(list ? {widgets: list} : {}), ...(layout ? {layout} : {})}),
+    // Session AM (D2, deliberate): a seed with no preset and no list used to read as AK's eight "Everyday" widgets; the stage
+    // now starts empty, so that same list is arranged first (tests/nova-am.ts) and the specs' assertions stay as they were.
+    [NOVA_KEY]: JSON.stringify(withEarlierWidgets({version: 1, openingSeen: true, ...(list ? {widgets: list} : {}), ...(layout ? {layout} : {})})),
   };
   if (waterTarget) { const h = createEmptyHealth(); records[HEALTH_STORAGE_KEY] = JSON.stringify(healthSchema.parse(saveHealthPreferences(h, {...dailyData(h).preferences, waterTargetMl: 2000}))); }
   if (motion) records['zigoals:motion:v1'] = motion;

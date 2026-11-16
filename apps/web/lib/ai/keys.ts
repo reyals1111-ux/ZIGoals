@@ -18,8 +18,14 @@ const base64 = z.string().regex(/^[A-Za-z0-9_-]+$/);
 export const sealedKeySchema = z.strictObject({version: z.literal(1), scope: z.string().min(1).max(80), provider: z.string().min(1).max(40), iv: base64.length(16), ciphertext: base64.min(22).max(4000), createdAt: z.iso.datetime()});
 export type SealedKey = z.infer<typeof sealedKeySchema>;
 const memory = new Map<string, string>();
-/** A key's slot: a provider, or the person's own Hermes Agent gateway (owner follow-up 3, N11). */
-export type KeySlot = ProviderId | 'hermes';
+/**
+ * A key's slot: a provider, or the person's own Hermes Agent gateway (owner follow-up 3, N11), or — Session AM-2 (step 4c)
+ * — the token of one tool server on the person's own computer (`mcp-<server id>-<its loopback host and port>`,
+ * lib/nova/agent-bridge/record.ts `tokenSlot`): sealed and bound to its slot like every key, so a row whose address
+ * changed never finds the old address's token (security review, finding 8); sent only to that loopback address,
+ * forgotten with the server (`forgetSlots`) and with the scope.
+ */
+export type KeySlot = ProviderId | 'hermes' | `mcp-${string}`;
 const slot = (scope: string, provider: KeySlot) => `${scope}:${provider}`;
 const encode = (bytes: Uint8Array) => { let s = ''; for (const b of bytes) s += String.fromCharCode(b); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
 const decode = (text: string) => Uint8Array.from(atob(text.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
@@ -117,6 +123,21 @@ export async function forgetAiKeys(scope: string): Promise<void> {
   try {
     const t = db.transaction(KEYS, 'readwrite'), store = t.objectStore(KEYS), keys = await answer(store.getAllKeys());
     for (const key of keys) if (typeof key === 'string' && key.startsWith(`${scope}:`)) store.delete(key);
+    await finished(t);
+  } finally { db.close(); }
+}
+/**
+ * Session AM-2 (security review, finding 8): forgets every key of one scope whose slot starts with `prefix`, except the
+ * slots in `keep` — the tokens of tool servers (`mcp-…`) whose row is no longer in the person's list (removed by a
+ * restore or in another tab), so none stays sealed on the device with nothing pointing at it. Held and remembered alike.
+ */
+export async function forgetSlots(scope: string, prefix: 'mcp-', keep: ReadonlySet<string>): Promise<void> {
+  const lead = `${scope}:${prefix}`, gone = (key: unknown): key is string => typeof key === 'string' && key.startsWith(lead) && !keep.has(key.slice(scope.length + 1));
+  for (const key of [...memory.keys()]) if (gone(key)) memory.delete(key);
+  const db = await existing(); if (!db) return;
+  try {
+    const t = db.transaction(KEYS, 'readwrite'), store = t.objectStore(KEYS), keys = await answer(store.getAllKeys());
+    for (const key of keys) if (gone(key)) store.delete(key);
     await finished(t);
   } finally { db.close(); }
 }

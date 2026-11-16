@@ -39,11 +39,20 @@
 .nova-chip-link:hover { background: color-mix(in oklab, var(--nova-a) 18%, transparent); }
 .nova-playing { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 12px; align-items: center; }
 .nova-playing-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.nova-disc { width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle, #0a1028 18%, transparent 19%), conic-gradient(from 0deg, var(--nova-b), var(--nova-a), var(--nova-c, #f06dff), var(--nova-b)); box-shadow: 0 0 14px color-mix(in oklab, var(--nova-a) 50%, transparent); }
-.nova-playing[data-playing] .nova-disc { animation: nova-disc 6s linear infinite; }
-@keyframes nova-disc { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .nova-playing[data-playing] .nova-disc { animation: none; } }
-:root[data-app-motion=off] .nova-playing .nova-disc { animation: none; }
+.nova-disc { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: 3px; width: 46px; height: 44px; padding: 5px 5px 6px; border-radius: 4px; box-sizing: border-box; background: color-mix(in oklab, var(--neon, #9273ff) 7%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); }
+.nova-disc i { height: 28%; border-radius: 1.5px; transform-origin: 50% 100%; background: linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), var(--neon, #9273ff) 80%, var(--neon-2, #c0adff)); box-shadow: inset 0 2px 0 #fff, 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 65%, transparent); opacity: .55; }
+.nova-disc i:nth-child(2) { height: 46%; } .nova-disc i:nth-child(3) { height: 34%; } .nova-disc i:nth-child(4) { height: 52%; } .nova-disc i:nth-child(5) { height: 30%; }
+.nova-playing[data-playing] .nova-disc i { height: 100%; opacity: 1; transform: scaleY(.5); }
+.nova-playing[data-playing] .nova-disc i:nth-child(2) { transform: scaleY(.85); } .nova-playing[data-playing] .nova-disc i:nth-child(3) { transform: scaleY(.62); } .nova-playing[data-playing] .nova-disc i:nth-child(4) { transform: scaleY(.95); } .nova-playing[data-playing] .nova-disc i:nth-child(5) { transform: scaleY(.45); }
+/* The level meter moves only while this device's own sound plays, under Full motion (transform only, in steps); it holds still in a hidden tab, off screen, under Calm, Off and reduced motion. */
+@keyframes nova-level { 0% { transform: scaleY(.35); } 30% { transform: scaleY(1); } 55% { transform: scaleY(.5); } 80% { transform: scaleY(.82); } 100% { transform: scaleY(.35); } }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i { animation: nova-level 1.9s steps(9) infinite; will-change: transform; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(2) { animation-duration: 1.5s; animation-delay: -.6s; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(3) { animation-duration: 2.3s; animation-delay: -1.1s; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(4) { animation-duration: 1.7s; animation-delay: -.3s; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(5) { animation-duration: 2.1s; animation-delay: -1.4s; }
+@media (prefers-reduced-motion: reduce) { .nova-playing .nova-disc i { animation: none !important; } }
+:root[data-app-motion=off] .nova-playing .nova-disc i { animation: none !important; }
 .nova-round { display: grid; place-items: center; width: 44px; height: 44px; margin-top: 6px; border-radius: 50%; border: 0; background: linear-gradient(120deg, var(--nova-b), var(--nova-a)); color: #0a0f24; cursor: pointer; }
 .nova-markets li { display: flex; justify-content: space-between; gap: 8px; min-height: 32px; align-items: baseline; }
 .nova-market-name { font-weight: 600; }
@@ -65,3 +74,517 @@
 /* Session AL Part 11 (lane L8; N-049, P-DV-102): Goal pace in Bento held 2 of 9 goals with no way to the rest — a cut list
    now scrolls inside its card (its links take the keyboard there), and its "N more" link stays at the end. */
 .nova-widget[data-widget=goal-pace][data-cut] .nova-widget-body { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+
+/* ==== Session AM-2 ("NOVA, stunning"; art direction D): the earlier widgets as holograms ====
+   Rows with a lit node and a hairline between them, hero figures in the realm's ink with a static bloom, 14 px tracked
+   capitals for labels, small actions as lit keys (stage.css `.ns-act`'s recipe), and one small instrument each, built
+   from holo/parts.tsx. Scoped to the Holo stage; the Classic cards keep AK's look. Only transform and opacity move. */
+.hw-rows { display: grid; gap: 0; margin: 0; list-style: none; min-width: 0; }
+.nova-glance.hw-rows { padding: 0; }
+.hw-row { position: relative; }
+.nova-widget[data-holo] .hw-rows > .hw-row { padding: 6px 0 6px 18px; font-size: 15px; line-height: 1.4; color: #dbe4f6; border-top: 1px solid color-mix(in oklab, var(--neon, #7fc8ff) 15%, transparent); }
+.nova-widget[data-holo] .hw-rows > .hw-row:first-child { border-top: 0; }
+.nova-widget[data-holo] .hw-rows > .hw-row::before { content: ''; position: absolute; left: 1px; top: 13px; width: 7px; height: 7px; border-radius: 50%; background: color-mix(in oklab, #fff 50%, var(--neon, #7fc8ff)); box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 1px var(--neon, #7fc8ff); }
+.nova-widget[data-holo] .hw-rows > .hw-row a { color: #eef3ff; }
+/* Words and figures on the Holo stage. */
+.nova-widget[data-holo] .nova-line { color: #dbe4f6; }
+.nova-widget[data-holo] .nova-quiet { color: #c3cfe6; }
+.nova-widget[data-holo] .nova-big { align-items: baseline; gap: 2px 8px; }
+.nova-widget[data-holo] .nova-big small { font-size: 15px; color: #cdd8ee; }
+.nova-widget[data-holo] .nova-big .nova-figure { font-size: clamp(26px, 11cqi, 40px); font-weight: 680; letter-spacing: -.012em; line-height: 1.04; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 28px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); }
+.nova-widget[data-holo] .nova-big .nova-figure-words { font-size: clamp(20px, 7cqi, 26px); line-height: 1.2; }
+.nova-widget[data-holo] .nova-count { display: inline-block; margin-left: 8px; padding: 0 7px; border-radius: 3px; border: 1px solid color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent); background: color-mix(in oklab, var(--neon, #7fc8ff) 14%, transparent); color: var(--neon-ink, #e3f3ff); font-size: 14px; font-weight: 700; }
+/* A small action inside a widget: a lit key (a 44 px target; the key itself is its inner 32 px). */
+.nova-widget[data-holo] .nova-chip-link { position: relative; min-height: 44px; margin-top: 0; padding: 0 13px; border: 0; border-radius: 0; background: none; color: var(--neon-ink, #eef3ff); font-size: 15px; font-weight: 650; isolation: isolate; }
+.nova-widget[data-holo] .nova-chip-link::before { content: ''; position: absolute; inset: 6px 0; z-index: -1; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 13%, #060a1c); clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px); box-shadow: inset 0 0 12px -4px var(--neon, #9273ff); transition: background-color .12s, border-color .12s; }
+.nova-widget[data-holo] .nova-chip-link:hover { background: none; }
+.nova-widget[data-holo] .nova-chip-link:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
+.nova-widget[data-holo] .nova-round { margin-top: 0; background: color-mix(in oklab, var(--neon, #9273ff) 14%, #060a1c); color: var(--neon-ink, #eef3ff); box-shadow: inset 0 0 0 1.5px var(--neon, #9273ff), 0 0 12px -2px var(--neon, #9273ff), inset 0 0 14px -4px var(--neon, #9273ff); }
+.nova-widget[data-holo] .nova-round:hover { background: color-mix(in oklab, var(--neon, #9273ff) 32%, #060a1c); }
+/* An unlit instrument in a teaching state: the Holo stage shows the widget's ghost, the Classic cards the pillar's art. */
+.nova-empty-ghost { display: none; }
+.nova-empty-ghost > svg { display: block; width: 100%; height: 100%; aspect-ratio: auto; overflow: visible; }
+.nova-widget[data-holo] .nova-empty > .nova-empty-ghost { display: block; grid-column: 1; grid-row: 1 / span 2; align-self: start; width: 48px; height: 48px; }
+.nova-widget[data-holo] .nova-empty > .nova-empty-art { display: none; }
+/* A small ring gauge beside words (Day at a glance, a running focus phase). */
+.hw-mini-ring { flex: none; --ring: clamp(72px, min(100cqh - 24px, 26cqi), 150px); }
+.nova-frame[data-look=classic] .hw-mini-ring { --ring: 76px; }
+.hw-mini-ring .holo-num-ring, .nova-widget[data-size] .hw-mini-ring .holo-num-ring { font-size: clamp(14px, calc(var(--ring, 76px) * .26), 24px); }
+.hw-glance { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.hw-glance > .hw-rows { flex: 1 1 0; }
+/* Focus: a running phase beside its ring, with one pip a block; a week as seven columns. */
+.hw-focus { display: grid; gap: 6px; min-width: 0; }
+.hw-focus[data-running] { grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-items: center; }
+.hw-focus[data-running] > .hw-mini-ring { grid-row: 1 / span 3; }
+.hw-focus[data-running] > :not(.hw-mini-ring) { grid-column: 2; }
+.hw-focus[data-running] > :is(.nova-focus-actions, [role=alert]) { grid-column: 1 / -1; }
+.hw-pips { display: flex; gap: 5px; }
+.hw-pips i { width: 16px; height: 5px; border-radius: 2px; transform: skewX(-22deg); background: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0a); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent); }
+.hw-pips i[data-lit] { background: var(--neon, #9273ff); box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.hw-pips i[data-now] { background: linear-gradient(90deg, var(--neon-2, #c0adff), #fff); box-shadow: 0 0 8px 1px var(--neon, #9273ff); }
+.hw-focus .holo-cols { --cols-h: 44px; max-width: 320px; }
+.hw-focus > .nova-chip-link { justify-self: start; }
+/* NOVA briefs: the brief's kind beside a small dial of the day. */
+.hw-briefs { display: grid; gap: 4px; min-width: 0; }
+.hw-briefs > .nova-chip-link { justify-self: start; }
+.hw-head { display: flex; align-items: center; flex-wrap: wrap; gap: 0 8px; }
+.nova-widget[data-holo] .hw-head strong { font-size: 14px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--neon-ink, #e3f3ff); }
+.hw-dayglyph { position: relative; flex: none; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #7fc8ff) 60%, transparent), inset 0 0 0 4px #04071a, inset 0 0 0 5px color-mix(in oklab, var(--neon, #7fc8ff) 28%, transparent); background: linear-gradient(#0000 49%, color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent) 49% 51%, #0000 51%); }
+.hw-dayglyph i { position: absolute; top: 50%; left: 0; width: 7px; height: 7px; margin: -3.5px 0 0 -2px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 2px var(--neon, #7fc8ff); }
+.hw-briefs[data-kind=evening] .hw-dayglyph i { left: auto; right: 0; margin-right: -2px; }
+/* Goal pace: each goal a row with its percent as a figure and a lit meter. */
+.nova-widget[data-holo] .hw-goals { gap: 0; }
+.nova-widget[data-holo] .hw-goals > .hw-row { gap: 0; padding: 0 0 7px; border-top: 1px solid color-mix(in oklab, var(--neon, #9273ff) 15%, transparent); }
+.nova-widget[data-holo] .hw-goals > .hw-row:first-child { border-top: 0; }
+.nova-widget[data-holo] .hw-goals .nova-goal-head a { color: #eef3ff; font-size: 15px; }
+.nova-widget[data-holo] .hw-goals .nova-goal-pct { color: var(--neon-ink, #e2d9ff); font-size: 20px; font-weight: 700; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 28px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); }
+.nova-widget[data-holo] .hw-goals .holo-gauge { margin: -6px 0 5px; }
+.nova-widget[data-holo] .hw-goals .nova-goal-pace { color: #c9d4ea; }
+.nova-widget[data-holo] .hw-goals li[data-tone=good] .nova-goal-pace { color: #9ff3dc; }
+.nova-widget[data-holo] .hw-goals li[data-tone=attention] .nova-goal-pace { color: #ffe2a8; }
+.nova-widget[data-holo] .hw-goals .nova-more a { color: var(--neon-ink, #e2d9ff); font-weight: 600; }
+/* Market watch: each market a row with a lit node (dim until its price is in), the price as a figure. */
+.nova-widget[data-holo] .hw-markets { gap: 0; }
+.nova-widget[data-holo] .hw-markets > .hw-row { min-height: 34px; align-items: center; padding: 5px 0 5px 18px; border-top: 1px solid #ffd27a26; }
+.nova-widget[data-holo] .hw-markets > .hw-row:first-child { border-top: 0; }
+.nova-widget[data-holo] .hw-markets > .hw-row::before { content: ''; position: absolute; left: 1px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; border: 1.5px solid color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent); box-sizing: border-box; }
+.nova-widget[data-holo] .hw-markets > .hw-row[data-priced]::before { border: 0; background: color-mix(in oklab, #fff 50%, var(--neon, #ffd27a)); box-shadow: 0 0 0 1.5px var(--neon, #ffd27a), 0 0 8px 1px var(--neon, #ffd27a); }
+.nova-widget[data-holo] .hw-markets .nova-market-name { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #dfe7f8; }
+.nova-widget[data-holo] .hw-markets .nova-market-price { color: var(--neon-ink, #fff0cf); font-size: 16px; font-weight: 700; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ffd27a) 55%, transparent); }
+.nova-widget[data-holo] .hw-markets small { font-size: 14px; font-weight: 500; color: #c3cfe6; text-shadow: none; }
+/* Next bill and contribution: the two facts as rows with lit nodes, over a runway of the next two months. */
+.hw-money { display: grid; gap: 10px; min-width: 0; }
+.nova-widget[data-holo] .hw-facts { gap: 0; }
+.nova-widget[data-holo] .hw-facts > div { position: relative; padding: 5px 0 6px 18px; border-top: 1px solid #ffd27a26; }
+.nova-widget[data-holo] .hw-facts > div:first-child { border-top: 0; padding-top: 0; }
+.nova-widget[data-holo] .hw-facts > div::before { content: ''; position: absolute; left: 1px; top: 11px; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid #ffd27a99; box-sizing: border-box; }
+.nova-widget[data-holo] .hw-facts > div:first-child::before { top: 6px; }
+.nova-widget[data-holo] .hw-facts > div[data-kind]::before { border: 0; background: color-mix(in oklab, #fff 50%, var(--mark, #ffd27a)); box-shadow: 0 0 0 1.5px var(--mark, #ffd27a), 0 0 8px 1px var(--mark, #ffd27a); }
+.hw-facts > div[data-kind=contribution], .hw-runway-mark[data-kind=contribution] { --mark: #a98fff; }
+.nova-widget[data-holo] .hw-facts dt { color: #cdd8ee; font-weight: 700; letter-spacing: .12em; }
+.nova-widget[data-holo] .hw-facts dd { color: #eef3ff; font-size: 15px; }
+.nova-widget[data-holo] .hw-facts dd small { color: #c9d4ea; }
+.hw-runway { display: grid; gap: 3px; }
+.hw-runway-track { position: relative; display: block; height: 14px; margin: 0 5px;
+  background: linear-gradient(color-mix(in oklab, var(--neon, #ffd27a) 34%, transparent), color-mix(in oklab, var(--neon, #ffd27a) 34%, transparent)) 0 50% / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 55%, transparent) 0 1px, transparent 1px calc(100% * 7 / 60)) 0 50% / 100% 7px no-repeat; }
+.hw-runway-now { position: absolute; left: 0; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px var(--neon, #ffd27a), 0 0 9px 2px var(--neon, #ffd27a); }
+.hw-runway-mark { --mark: #ffd27a; position: absolute; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; transform: rotate(45deg); border-radius: 1.5px; background: color-mix(in oklab, #fff 45%, var(--mark)); box-shadow: 0 0 0 1.5px var(--mark), 0 0 9px 2px var(--mark); }
+.hw-runway-ends { display: flex; justify-content: space-between; }
+.hw-runway-ends small { font-size: 14px; line-height: 16px; color: #c3cfe6; }
+.nova-frame[data-look=classic] .hw-runway, .nova-frame[data-look=classic] .hw-dayglyph { display: none; }
+/* The Tasks rows on the Holo stage: the box is a lit key (its 44 px target is the row's own label, components/tasks). */
+.nova-widget[data-holo] .tasks-widget .task-done input { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; margin: 0; border-radius: 3px; border: 1.5px solid color-mix(in oklab, var(--neon, #9273ff) 80%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 10%, #060a1c); box-shadow: 0 0 8px -2px var(--neon, #9273ff), inset 0 0 8px -3px var(--neon, #9273ff); cursor: pointer; }
+.nova-widget[data-holo] .tasks-widget .task-done input:checked { border-color: var(--neon-2, #c0adff); background: radial-gradient(circle, #fff 0 30%, var(--neon, #9273ff) 36%); box-shadow: 0 0 10px 1px var(--neon, #9273ff); }
+.nova-widget[data-holo] .tasks-widget .task-done input:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: 2px; }
+/* Reading and unreadable states on the Holo stage: one quiet instrument line (a dim scale before the words). */
+.nova-widget[data-holo] .nova-reading { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #cdd8ee; }
+.nova-widget[data-holo] .nova-reading::before { content: ''; flex: none; width: 34px; height: 8px; background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 0 2px, transparent 2px 6px); opacity: .8; }
+.nova-widget[data-holo] .nova-unread { padding-left: 12px; border-left: 2px solid #ffe2a8; font-size: 15px; line-height: 1.4; }
+
+/* ==== AM-2 round 2 (the scale rule): in a wide body (a 2560 px screen gives a medium panel about 730 px) the earlier
+   widgets use the width — two columns of rows, a larger instrument beside the words. ==== */
+@container holo-body (min-width: 560px) {
+  .hw-glance { gap: 28px; }
+  .hw-glance > .hw-rows, .nova-widget[data-holo] .hw-markets { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+  .nova-widget[data-holo] .hw-glance > .hw-rows > .hw-row:nth-child(2), .nova-widget[data-holo] .hw-markets > .hw-row:nth-child(2) { border-top: 0; }
+  .nova-widget[data-holo] .hw-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+  .nova-widget[data-holo] .hw-facts > div:nth-child(2) { border-top: 0; padding-top: 0; }
+  .nova-widget[data-holo] .hw-facts > div:nth-child(2)::before { top: 6px; }
+  .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; column-gap: 28px; }
+  .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .holo-cols { grid-column: 2; grid-row: 1 / span 3; --cols-h: clamp(44px, calc(100cqh - 60px), 130px); max-width: none; }
+  .hw-focus[data-running] { column-gap: 24px; }
+}
+
+/* ==== AM-2 round 3: small panels in a wide body, and larger figures in a very large one ==== */
+.hw-mini-ring[data-small] { --ring: clamp(36px, calc(100cqh - 22px), 56px); }
+.nova-frame[data-look=classic] .hw-mini-ring[data-small] { --ring: 48px; }
+/* Focus, small. A small panel's body has no padding of its own here (the rule under "Focus: the Pomodoro key", below),
+   so its whole height is the instrument's. Stacked, the figure's line (25.3), the row gap (2) and the key (2 + 44 − 6:
+   2 px of margin over the key's own 6 px inset, so 10 px of air to the lit key) are 67.3 px; a body under 68 px keeps
+   the key in the row's own space (59.3 px). The band and a phone have no height to fit: there the key has its air. */
+.hw-focus[data-size=S] > .holo-cols { display: none; }
+/* Round 7: in a small panel the days are one letter each (two-letter names touched: "WeTh"). */
+.hw-focus[data-size=S] .holo-cols-l2 { display: none; }
+.hw-focus .holo-cols-day small { max-width: 100%; overflow: hidden; white-space: nowrap; }
+.hw-focus[data-size=S] > .nova-chip-link { margin-block: 2px -6px; }
+@container holo-body (max-height: 67.98px) { .hw-focus[data-size=S] > .nova-chip-link { margin-block: -6px; } }
+/* From 420 px of body (round 2: at 2560 the columns sat on a second line, cut by the panel's edge, with no letters in
+   view): two columns. Left, the figure over the key; right, the week's seven columns at the body's free height with
+   their weekday letters under them (the app's own short weekdays, two letters). A column is its slot, 2 px and a 16 px
+   letter line, so a slot is the body's height less 22 px (18 for the letters, 4 to spare), 18 to 64 px; the columns are
+   36 % of the body wide (150 to 250 px), which leaves the key its width (about 215 px) from 420 px. */
+@container holo-body (min-width: 420px) {
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; align-content: center; gap: 2px 22px; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-big { grid-area: 1 / 1; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-chip-link { grid-area: 2 / 1; justify-self: start; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > [role=alert] { grid-area: 3 / 1 / 4 / 3; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols { display: grid; grid-area: 1 / 2 / 3 / 3; align-self: center; width: clamp(150px, 36cqi, 250px); max-width: none; --cols-h: clamp(18px, calc(100cqh - 22px), 64px); }
+}
+/* Round 7 (a blank middle at 1024): a small Focus panel under 420 px of body keeps its week too: seven short columns
+   beside the figure, without letters (the days are named where the panel is wider, and on the Focus page). */
+@container holo-body (min-width: 250px) and (max-width: 419.98px) {
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; column-gap: 12px; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-big { grid-area: 1 / 1; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-chip-link { grid-area: 2 / 1 / 3 / 3; justify-self: start; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > [role=alert] { grid-area: 3 / 1 / 4 / 3; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols { display: grid; grid-area: 1 / 2; width: 98px; gap: 3px; --cols-h: 26px; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols small { display: none; }
+}
+@container holo-body (min-width: 640px) {
+  .nova-widget[data-holo]:is([data-size=M], [data-size=L]) .nova-big .nova-figure { font-size: clamp(26px, min(8cqi, 30cqh), 56px); }
+  .nova-widget[data-holo] .hw-goals .nova-goal-pct { font-size: 24px; }
+  .nova-widget[data-holo] .hw-rows > .hw-row, .nova-widget[data-holo] .hw-facts dd { font-size: 16px; }
+}
+
+/* ==== Session AM-2 (the critic's faults in the bodies) ==== */
+
+/* ---- Focus: the Pomodoro key rests on the panel's foot, with air above it ----
+   The week's body fills its panel (also in the band below the fold, whose panels are at least their size's height: the
+   body there is a column so its inside can fill it), and the key is its last line: pushed to the foot, never closer to
+   the words above than 12 px (a 6 px gap and the key's own 6 px inset). */
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .hw-focus:not([data-running]) { flex: 1 0 auto; }
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-widget=focus][data-size] .nova-widget-body { display: flex; flex-direction: column; }
+.nova-frame:not([data-phone]) .nova-orbit .nova-orbit-band .nova-widget[data-holo][data-widget=focus][data-size] .nova-widget-inner { flex: 1 0 auto; }
+/* A small Focus panel's instrument takes its body's whole height (a list's 8 px of padding above and below are for rows that scroll). */
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-widget=focus][data-size=S] .nova-widget-inner { padding-block: 0; }
+.nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { align-content: space-between; }
+@container holo-body (max-width: 559.98px) {
+  .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) { display: flex; flex-direction: column; gap: 6px; }
+  .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .nova-chip-link { margin-top: auto; align-self: flex-start; }
+  /* Round 7: in a narrow medium panel the week's columns stand in the middle at the height the panel leaves (they had no height of their own there: a blank band). */
+  .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .holo-cols { flex: none; width: 100%; max-width: none; --cols-h: clamp(40px, calc(100cqh - 172px), 120px); }
+}
+@container holo-body (min-width: 420px) { .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { align-content: center; } }
+@container holo-body (min-width: 560px) {
+  .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) { grid-template-rows: auto auto minmax(0, 1fr); }
+  .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .nova-chip-link { align-self: end; }
+}
+
+/* ---- Notes inbox (the Classic body): a row is the note's name at the row's whole width, one line ---- */
+.nova-notes .nova-notes-list li a { display: block; line-height: 44px; min-height: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Tasks: the lists and the foot (both looks) ---- */
+.nova-widget .tasks-widget .tasks-lists { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; }
+.nova-widget .tasks-widget .tasks-foot { min-width: 0; }
+
+/* ---- Tasks on the Holo stage: a compact holographic layout, never taller than its panel ----
+   The rows are the Tasks page's own (components/tasks); only their layout changes here. At every width, top to bottom:
+   the three counters on one row, the lists, and the add form as the panel's foot. A fitted body is exactly its panel's
+   height (as the made widgets' are, cards.css), so the lists' box is what is left between the counters and the foot; the
+   rows are measured against it (cards/whole-rows.tsx).
+   Round 2 (the captures at 2560, a body of about 600 × 150–240 px): the two columns are the two LISTS (today | next for
+   your goals; from 748 px, where each has 360 px: round 4, in 225 px columns every title was cut), never the counters beside the lists: that layout cut the counters'
+   labels, left the title field 30 px and gave each row's title less room than its meta.
+   Medium at 1440 × 900 (316 × 238 px): counters 47, gap 6, the lists, gap 6, the form 44, so the lists have 135 px:
+   three rows (44 + 45 + 45 = 134) when there are exactly three, else two rows and the last line (89 + 23 = 112). */
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-widget=tasks][data-size] .nova-widget-inner { padding-block: 0; justify-content: flex-start; }
+.nova-widget[data-holo] .holo-tasks { position: relative; display: flex; flex-direction: column; gap: 6px; }
+@container holo-body (min-height: 1px) { .nova-widget[data-holo] .holo-tasks { height: 100cqh; } }
+.nova-widget[data-holo] .holo-tasks > .holo-counters { flex: none; }
+.nova-widget[data-holo] .holo-tasks > .tasks-widget { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+/* The lists: side by side where each has 360 px, else one under the other; a list that left whole leaves no empty column. */
+.nova-widget[data-holo] .tasks-widget > .tasks-lists { flex: 0 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); align-items: start; align-content: start; gap: 6px 28px; }
+/* Round 7 (a dead band above the add field): in a medium or large panel the rows stand in the middle of the room between the counters and the field. */
+.nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) .tasks-widget > .tasks-lists { flex: 1 1 auto; align-content: safe center; }
+.nova-widget[data-holo] .tasks-widget > .nova-empty { flex: none; }
+.nova-widget[data-holo] .tasks-widget > .tasks-foot { flex: none; margin-top: auto; }
+/* The counters say what the headline says (overdue, due today, open): the line stays for assistive technology. */
+.nova-widget[data-holo] .holo-tasks[data-counters] .tasks-headline { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nova-widget[data-holo] .tasks-widget .tasks-next .nova-eyebrow { margin: 0 0 2px; line-height: 18px; }
+
+/* The counters: one row, and a label is never cut. Each is at least 84 px ("OVERDUE" and its padding), a label of two
+   words may take two lines ("DUE / TODAY") before anything is cut, and a body too narrow for three (under 264 px)
+   puts the third under the first two. */
+.nova-widget[data-holo] .holo-tasks .holo-counters { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 6px; }
+.nova-widget[data-holo] .holo-tasks .holo-counters dt { max-width: none; line-height: 16px; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: normal; }
+/* Compact (a medium panel that is not wide): the figure over its label, 2 + 26 + 16 + 3 = 47 px; the label's letters
+   stand closer so "DUE TODAY" (about 94 px with its padding) is one line in a third of 316 px (101). */
+@container holo-body (max-width: 559.98px) {
+  .nova-widget[data-holo] .holo-tasks[data-size=M] .holo-counters div { padding: 2px 4px 3px 10px; }
+  .nova-widget[data-holo] .holo-tasks[data-size=M] .holo-counters dd { font-size: 24px; line-height: 26px; }
+  .nova-widget[data-holo] .holo-tasks[data-size=M] .holo-counters dt { letter-spacing: 0; }
+}
+/* On one line (a small panel; any panel from 560 px): each counter is its figure and its whole label side by side, 26 px
+   high; counters that do not fit the line go to a second one, whole. */
+.nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters div { display: flex; align-items: baseline; gap: 6px; padding: 0 2px 0 10px; background: none; box-shadow: none; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters dd { flex: none; font-size: 20px; line-height: 24px; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .holo-counters dt { flex: none; line-height: 24px; white-space: nowrap; }
+@container holo-body (min-width: 560px) {
+  .nova-widget[data-holo] .holo-tasks .holo-counters { display: flex; flex-wrap: wrap; gap: 0 22px; }
+  .nova-widget[data-holo] .holo-tasks .holo-counters div { display: flex; align-items: baseline; gap: 7px; padding: 0 2px 0 11px; background: none; box-shadow: none; }
+  .nova-widget[data-holo] .holo-tasks .holo-counters dd { flex: none; font-size: 22px; line-height: 26px; }
+  .nova-widget[data-holo] .holo-tasks .holo-counters dt { flex: none; line-height: 26px; white-space: nowrap; }
+  .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]), .nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) > .tasks-widget { gap: 5px; }
+}
+
+/* One-line rows: the box (its 44 px target), the title, then the priority chip and the due words at the row's end.
+   Round 3 (hud-review2 M4, a tablet's 370 px column: a goal's link was laid out 38 px under its panel): nothing in a
+   row is ever laid out outside it. What a row shows depends on the row's own width alone (the row is a size container
+   for its width), and a part that has no room is not drawn at all, never wrapped away or run past the row:
+   - the priority chip, always (84 / 104 / 78 px for "P1 · High" / "P2 · Medium" / "P4 · Low");
+   - the due words from 310 px (a row with a chip: from 420 px), never wider than what leaves the title 110 px
+     (twelve characters): the box 44 + two gaps 16 + the title 110 = 170, so at most w − 170 (less the chip and its gap,
+     112), and 160 px;
+   - its goal's link from 640 px (at most 168 px: 640 − 170 − 112 − 168 − 8 − 168 leaves the title its 110).
+   The title takes everything else and ends in an ellipsis. The rest of a row's facts (repeat, subtasks, project,
+   labels, reminders, notes) are not drawn here. Everything stays in the row's text for assistive technology; a goal's
+   link that is not drawn shows itself at the row's end while it holds the focus, and an overdue row whose due words
+   are not drawn keeps the overdue counter's coral on its box. */
+.nova-widget[data-holo] .tasks-widget .tasks-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin: 0; }
+.nova-widget[data-holo] .tasks-widget .task { --task-chip-w: 0px; container: task-row / inline-size; grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "done title meta"; align-items: center; gap: 0 8px; min-width: 0; min-height: 44px; padding: 0; border-bottom: 0; }
+.nova-widget[data-holo] .tasks-widget .task:not(.task-level-3) { --task-chip-w: 112px; }
+.nova-widget[data-holo] .tasks-widget .task + .task { border-top: 1px solid color-mix(in oklab, var(--neon, #9273ff) 16%, transparent); }
+.nova-widget[data-holo] .tasks-widget .task-title { min-width: 0; font-size: 15px; line-height: 20px; color: #eef3ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.nova-widget[data-holo] .tasks-widget .task-meta { grid-area: meta; min-width: 0; height: 44px; display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 8px; white-space: nowrap; font-size: 14px; line-height: 20px; opacity: 1; color: #cdd8ee; }
+.nova-widget[data-holo] .tasks-widget .task-meta > * { flex: none; }
+.nova-widget[data-holo] .tasks-widget .task-chip { line-height: 20px; }
+.nova-widget[data-holo] .tasks-widget .task-due { display: none; max-width: min(160px, calc(100cqi - 170px - var(--task-chip-w))); overflow: hidden; text-overflow: ellipsis; }
+@container task-row (min-width: 310px) { .nova-widget[data-holo] .tasks-widget .task-level-3 .task-due { display: block; } }
+@container task-row (min-width: 420px) { .nova-widget[data-holo] .tasks-widget .task-due { display: block; } }
+.nova-widget[data-holo] .tasks-widget .task-overdue .task-due { color: #ffd0ca; font-weight: 650; }
+.nova-widget[data-holo] .tasks-widget .task-overdue .task-done input:not(:checked) { border-color: #ff8f88; box-shadow: 0 0 8px -2px #ff6b5a, inset 0 0 8px -3px #ff6b5a; }
+.nova-widget[data-holo] .tasks-widget .task-meta > :is(.task-recur, .task-progress, .task-project, .task-label, .task-reminder, .task-has-notes),
+.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal { max-width: 168px; line-height: 44px; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:focus-visible { position: absolute; right: 0; top: 0; z-index: 2; max-width: calc(100cqi - 52px); padding: 0 8px; background: #0a1030; }
+@container task-row (min-width: 640px) { .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible) { position: static; width: auto; height: 44px; margin: 0; clip-path: none; } }
+
+/* The add form on one row: the title field takes the row, the time field its own width, Add at the end. Each field
+   keeps its label as its name (not drawn here: the title field shows its example, the time field its own clock). A
+   message under the title field ("Type a task first.") is laid over the row above it, so the form's height never changes. */
+.nova-widget[data-holo] .tasks-widget .tasks-add { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 6px; }
+.nova-widget[data-holo] .tasks-widget .tasks-add .field { position: relative; display: block; flex: none; min-width: 0; margin: 0; }
+.nova-widget[data-holo] .tasks-widget .tasks-add .field > span:first-child { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-) { display: block; box-sizing: border-box; width: 100%; min-width: 0; height: 44px; min-height: 44px; margin: 0; padding: 0 10px; font-size: 16px; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-) { width: auto; max-width: 100%; padding: 0 6px; }
+.nova-widget[data-holo] .tasks-widget .tasks-add button { box-sizing: border-box; height: 44px; min-height: 44px; min-width: 44px; margin: 0; padding: 0 13px; font-size: 15px; }
+.nova-widget[data-holo] .tasks-widget .tasks-add :is(.tasks-field-error, .tasks-field-note) { position: absolute; left: 0; bottom: calc(100% + 4px); z-index: 2; width: max-content; max-width: min(300px, 92cqi); margin: 0; padding: 3px 8px; border-radius: 3px; border: 1px solid #ff8f88; background: #1a0a12; color: #ffd0ca; font-size: 14px; font-weight: 600; line-height: 18px; white-space: normal; }
+.nova-widget[data-holo] .tasks-widget .tasks-add .tasks-field-note { border-color: color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); background: #0a1030; color: #dbe4f6; }
+/* A body under 312 px (the title field would be under 120 px beside the time and Add): the title on its own row, the time and Add under it. */
+@container holo-body (max-width: 311.98px) {
+  .nova-widget[data-holo] .tasks-widget .tasks-add { grid-template-columns: minmax(0, 1fr) auto; }
+  .nova-widget[data-holo] .tasks-widget .tasks-add .tasks-add-title { grid-column: 1 / -1; }
+}
+/* The status line ("Marked … done. Undo") is one 20 px line; Undo's 44 px target overlaps the line's own space. */
+.nova-widget[data-holo] .tasks-widget .tasks-status:not([data-empty]) { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-height: 0; margin: 4px 0 0; font-size: 14px; line-height: 20px; color: #dbe4f6; }
+.nova-widget[data-holo] .tasks-widget .tasks-status .text-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; margin-block: -12px; }
+/* Small: the counters' line (24 px), then the rows at the body's whole width; "+N more" sits at the row's end, so it
+   costs no height: 24 + 4 + 44 = 72 px. No add form, no second list. */
+.nova-widget[data-holo] .holo-tasks[data-size=S] { gap: 4px; justify-content: center; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] > .tasks-widget { flex: 0 1 auto; gap: 0; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .wr { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 10px; }
+.nova-widget[data-holo] .holo-tasks[data-size=S] .wr-more { padding: 0; }
+/* ---- Next bill and contribution: the runway under the two facts is an ornament and leaves first ----
+   A fact is its label (21), its name (22.5) and its date line (21) with 2 px between and 6 to 11 px of padding: about
+   73 and 78 px. Two facts, the panel's padding (16), the gap (10) and the runway (33) are about 210 px, so the runway
+   shows from 220 px of body (10 px in hand); side by side in a wide body, from 140 px. Under that the facts alone, and
+   where even they do not both fit the first one whole (cards/whole-rows.tsx measures it). A phone and the band have no
+   height to fit: there the runway always shows. */
+@container holo-body (max-height: 219.98px) and (max-width: 559.98px) { .hw-money > .hw-runway { display: none; } }
+@container holo-body (max-height: 139.98px) and (min-width: 560px) { .hw-money > .hw-runway { display: none; } }
+/* ---- Now playing: its keys are never cut ----
+   The disc beside two lines of words is one row (44 px), the keys the next (44): 44 + 10 + 44 and the panel's padding
+   (16) = 114 px. A lower body (a small panel beside the star is about 88 px) is one row instead: the words on one line,
+   then the keys (44 + 16 = 60 px); the status line stays for assistive technology (the play key's name and the level
+   meter say the same), and under 360 px of width the meter (an ornament) leaves so the words keep their room. */
+.nova-playing-text { min-width: 0; }
+@container holo-body (max-height: 113.98px) {
+  .nova-widget[data-holo] .nova-playing { grid-template-columns: auto minmax(0, 1fr) auto; gap: 0 10px; }
+  .nova-widget[data-holo] .nova-playing-actions { grid-column: auto; flex-wrap: nowrap; gap: 4px; }
+  .nova-widget[data-holo] .nova-playing-text .nova-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nova-widget[data-holo] .nova-playing-text .nova-quiet { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+}
+@container holo-body (max-height: 113.98px) and (max-width: 359.98px) {
+  .nova-widget[data-holo] .nova-playing { grid-template-columns: minmax(0, 1fr) auto; }
+  .nova-widget[data-holo] .nova-playing > .nova-disc { display: none; }
+}
+/* ---- NOVA briefs, small: the settings key gives way in a low fitted body ----
+   The heading (21), one line of the brief (33) and the panel's padding (16) are 74 px; with the key under them (4 + 44)
+   it is 122 px and the key was cut. Under 122 px of body the key is not drawn (the head's own link opens the briefs and
+   Set-up holds their settings); a phone and the band have no height to fit and keep it. */
+@container holo-body (max-height: 121.98px) { .nova-widget[data-holo] .hw-briefs[data-size=S] > .nova-chip-link { display: none; } }
+
+/* ==== Round 4 (the critics: "one instrument sized to the panel" for the long tail; bars with volume; no half-empty slabs) ==== */
+
+/* ---- Now playing: a level strip as wide as the panel and as tall as it leaves ----
+   Twenty-eight columns in a framed slot (an ornament: a fixed shape; it moves only while this device's own sound plays,
+   under Full motion: transform only, in steps). Under it the words and the keys on one row. A body under 114 px is one
+   row: the strip, the words, the keys. The Classic card keeps its five-column disc. */
+.nova-disc i:nth-child(n + 6) { display: none; }
+.nova-widget[data-holo] .nova-playing { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: minmax(44px, 1fr) auto; gap: 8px 14px; align-items: center; }
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .nova-playing { flex: 1 0 auto; }
+.nova-widget[data-holo] .nova-playing > .nova-disc { grid-area: 1 / 1 / 2 / 3; align-self: stretch; align-items: center; width: auto; height: auto; min-height: 44px; max-height: 170px; gap: 4px; padding: 6px 8px; border-radius: 3px; background: #050919; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), inset 0 2px 5px #000c; }
+.nova-widget[data-holo] .nova-playing .nova-disc i { display: block; height: calc(var(--h, .4) * 100%); min-height: 4px; border-radius: 2px; opacity: .5; transform-origin: 50% 50%; box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); }
+.nova-widget[data-holo] .nova-playing[data-playing] .nova-disc i { height: calc(var(--h, .4) * 100%); opacity: 1; transform: none; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-holo]:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(3n) { animation-duration: 1.5s; animation-delay: -.6s; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-holo]:not([data-off]) .nova-playing[data-playing] .nova-disc i:nth-child(4n + 1) { animation-duration: 2.3s; animation-delay: -1.1s; }
+.nova-widget[data-holo] .nova-playing > .nova-playing-text { grid-area: 2 / 1; }
+.nova-widget[data-holo] .nova-playing > .nova-playing-actions { grid-area: 2 / 2; flex-wrap: nowrap; }
+@container holo-body (max-height: 113.98px) {
+  .nova-widget[data-holo] .nova-playing { grid-template-columns: minmax(72px, 30%) minmax(0, 1fr) auto; grid-template-rows: minmax(0, 1fr); gap: 0 12px; }
+  .nova-widget[data-holo] .nova-playing > .nova-disc { grid-area: 1 / 1; align-self: center; height: 44px; }
+  .nova-widget[data-holo] .nova-playing > .nova-playing-text { grid-area: 1 / 2; }
+  .nova-widget[data-holo] .nova-playing > .nova-playing-actions { grid-area: 1 / 3; }
+}
+@container holo-body (max-height: 113.98px) and (max-width: 359.98px) {
+  .nova-widget[data-holo] .nova-playing { grid-template-columns: minmax(0, 1fr) auto; }
+  .nova-widget[data-holo] .nova-playing > .nova-playing-text { grid-area: 1 / 1; }
+  .nova-widget[data-holo] .nova-playing > .nova-playing-actions { grid-area: 1 / 2; }
+}
+
+/* ---- Market watch: tiles that fill the panel ----
+   Each market is a framed tile: a lit bar at its edge (dim until its price is in), its symbol in tracked capitals, its
+   price as a figure and the price's time under it. The tiles share the panel's width (at least 128 px each) and its
+   height. With no price in at all the tiles stay unlit, each "—", and one line under them says so (it was four "Price
+   not in yet" lines over an empty slab). */
+.hw-markets-box { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 6px; min-width: 0; }
+/* A fitted body is the panel's own height (as the made widgets' are, cards.css; a list's 8 px of padding is not kept here), so the tiles' rows have a height to share. */
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-widget=markets][data-size] .nova-widget-inner { padding-block: 0; }
+@container holo-body (min-height: 1px) { .nova-widget[data-holo] .hw-markets-box { height: 100cqh; } }
+.nova-widget[data-holo] .hw-markets-rows { grid-template-rows: minmax(0, 1fr) auto; align-content: stretch; min-height: 0; }
+.nova-widget[data-holo] .hw-markets-rows > .hw-markets { grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); grid-auto-rows: minmax(58px, 1fr); gap: 8px; align-content: stretch; min-height: 0; }
+.nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row { position: relative; display: grid; align-content: center; justify-items: start; gap: 1px; min-height: 58px; padding: 6px 10px 6px 14px; border: 0; border-radius: 3px; background-color: #070b24; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #ffd27a) 26%, transparent); }
+.nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row::before { left: 0; top: 6px; bottom: 6px; width: 3px; height: auto; margin: 0; border: 0; border-radius: 2px; background: color-mix(in oklab, var(--neon, #ffd27a) 36%, transparent); box-shadow: none; }
+.nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row[data-priced]::before { background: var(--neon, #ffd27a); box-shadow: 0 0 8px 1px var(--neon, #ffd27a); }
+/* An unlit tile carries the ghost of its price's line: a dashed trace along its foot (an ornament, never data). */
+.nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not([data-priced])::after { content: ''; position: absolute; left: 14px; right: 10px; bottom: 9px; height: 1px; background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent) 0 6px, transparent 6px 12px); pointer-events: none; }
+.nova-widget[data-holo] .hw-markets-box .nova-market-price { font-size: clamp(20px, 5cqi, 30px); line-height: 1.1; white-space: nowrap; }
+.nova-widget[data-holo] .hw-markets-box .hw-row:not([data-priced]) .nova-market-price { color: #c9d4ea; text-shadow: none; }
+.hw-markets-note { margin: 0; font-size: 14px; line-height: 20px; color: #cdd8ee; }
+@container holo-body (max-height: 113.98px) { .hw-markets-note { display: none; } .nova-widget[data-holo] .hw-markets-rows > .hw-markets { grid-auto-rows: minmax(52px, 1fr); } .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row { min-height: 52px; padding-block: 2px; } }
+
+/* ---- Goal pace: bars with volume ----
+   Each goal's meter is a 12 px framed slot (a dark track with a hairline rim) holding the lit bar and its white-hot cap;
+   a row is the goal's name with its percent, the bar, and the plan's word. A wide panel holds two goals a row. */
+.nova-widget[data-holo] .hw-goals .holo-gauge { height: 12px; margin: -4px 0 4px; border-radius: 3px; background: #050919; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 38%, transparent), inset 0 2px 4px #000c; }
+.nova-widget[data-holo] .hw-goals .holo-gauge-fill { inset: 2px auto 2px 2px; width: max(6px, calc(var(--at) * (100% - 4px))); border-radius: 2px; }
+.nova-widget[data-holo] .hw-goals .holo-gauge-fill::after { top: -1px; bottom: -1px; }
+.nova-widget[data-holo] .hw-goals .holo-gauge[data-unknown] { box-shadow: none; }
+.nova-widget[data-holo] .hw-goals .nova-goal-head a { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; display: block; line-height: 44px; }
+@container holo-body (min-width: 560px) {
+  .nova-widget[data-holo] .hw-goals { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+  .nova-widget[data-holo] .hw-goals > .hw-row:nth-child(2) { border-top: 0; }
+}
+
+/* ---- Next bill and contribution: a runway with volume ---- */
+.nova-widget[data-holo] .hw-runway-track { height: 22px; margin: 0 6px; border-radius: 3px;
+  background: linear-gradient(color-mix(in oklab, var(--neon, #ffd27a) 70%, transparent), color-mix(in oklab, var(--neon, #ffd27a) 70%, transparent)) 0 50% / 100% 2px no-repeat,
+    repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent) 0 1px, transparent 1px calc(100% * 7 / 60)) 0 50% / 100% 12px no-repeat; }
+.nova-widget[data-holo] .hw-runway-now { width: 12px; height: 12px; margin: -6px 0 0 -6px; }
+.nova-widget[data-holo] .hw-runway-mark { width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px; }
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .hw-money { flex: 1 0 auto; align-content: space-evenly; }
+/* ---- The small ring gauges beside words (Day at a glance, a running focus phase): a band, not a hairline ---- */
+.nova-widget[data-holo] .hw-mini-ring :is(.holo-track, .holo-arc) { stroke-width: 8; }
+.nova-widget[data-holo] .hw-mini-ring .holo-glint { stroke-width: 1.4; }
+
+/* Round 4: Day at a glance with nothing on the orbit yet keeps its first step as a key after the lines (wraps under them
+   in a narrow panel). */
+.hw-glance[data-unlit] { flex-wrap: wrap; }
+.hw-glance > .hw-glance-act { flex: none; }
+
+/* Round 4: the Market watch tiles start a little under the title bar. */
+.nova-widget[data-holo] .hw-markets-box { padding-top: 6px; box-sizing: border-box; }
+
+/* Round 4 (Tasks, a narrow row: the band, a wing at 1440, the stage beside an open conversation). Under 420 px a row
+   could not hold its title and its facts on one line: the title was cut ("Example · Sketch t…") while "Overdue · Nov 14"
+   kept its room. Such a row is two lines: the title has the whole line and the priority and the due words sit under it
+   (a row of 46 px; the box spans both lines). A row with no facts drawn stays one line of 44 px. The due words are the
+   part that gives way (an ellipsis) in a row too narrow even for them. */
+@container task-row (max-width: 419.98px) {
+  .nova-widget[data-holo] .tasks-widget .task-done { grid-area: 1 / 1 / 3 / 2; align-self: center; }
+  .nova-widget[data-holo] .tasks-widget .task-title { grid-area: 1 / 2 / 2 / 4; align-self: end; padding-top: 3px; }
+  .nova-widget[data-holo] .tasks-widget .task-meta { grid-area: 2 / 2 / 3 / 4; align-self: start; height: auto; justify-content: flex-start; padding-bottom: 3px; }
+  .nova-widget[data-holo] .tasks-widget .task .task-meta > .task-due { display: block; flex: 0 1 auto; min-width: 0; max-width: none; }
+}
+/* Round 4: Focus in the band is as tall as its row's tallest panel; its figure and its key stay together in the middle. */
+.nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { align-content: center; row-gap: 10px; }
+
+/* Round 4 (Market watch, small: a body of about 58 px). A 52 px tile and the "+N more" line cannot both fit, and the
+   line lay over the tiles' feet. Each tile is one line there (its symbol, then its price) of 30 px, with no ghost trace. */
+@container holo-body (max-height: 79.98px) {
+  .nova-widget[data-holo] .hw-markets-rows > .hw-markets { grid-auto-rows: minmax(30px, 1fr); gap: 6px; }
+  .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row { display: flex; align-items: center; gap: 10px; min-height: 30px; padding-block: 0; }
+  .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not([data-priced])::after { content: none; }
+  .nova-widget[data-holo] .hw-markets-box .nova-market-price { font-size: 16px; }
+  .nova-widget[data-holo] .hw-markets-box .hw-row > small:not(.sr-only) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .nova-widget[data-holo] .hw-markets-box { gap: 2px; padding-top: 2px; }
+}
+/* Round 4: a large Now playing gives its level strip the height the panel has (it stopped at 170 px over a hole). */
+.nova-widget[data-holo] .nova-playing[data-size=L] > .nova-disc { max-height: 380px; }
+
+/* ==== Session AM-3 (round 6): the list instruments (see holo/holo-parts.css) ==== */
+
+/* Tasks: the quick add is an instrument's key row, not a web form — one lit slot with a plus mark at its head, the
+   words and the time as fields without boxes, a lit rule under them, and "Add" as a key at its end. Every field and
+   the button keep their 44 px, their names and their focus ring. */
+.nova-widget[data-holo] .tasks-widget .tasks-add { position: relative; gap: 0; align-items: stretch; padding-left: 40px; border-radius: 3px 10px 3px 10px; background-color: #050919cc;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 50%, transparent), 0 0 16px -6px var(--neon, #9273ff); }
+.nova-widget[data-holo] .tasks-widget .tasks-add::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 40px; pointer-events: none; filter: drop-shadow(0 0 4px var(--neon, #9273ff));
+  background: linear-gradient(var(--neon-2, #c0adff), var(--neon-2, #c0adff)) 50% 50% / 14px 2px no-repeat, linear-gradient(var(--neon-2, #c0adff), var(--neon-2, #c0adff)) 50% 50% / 2px 14px no-repeat; }
+.nova-widget[data-holo] .tasks-widget .tasks-add::after { content: ''; position: absolute; left: 40px; right: 10px; bottom: 5px; height: 2px; border-radius: 2px; pointer-events: none;
+  background: linear-gradient(90deg, var(--neon, #9273ff), color-mix(in oklab, var(--neon, #9273ff) 18%, transparent)); box-shadow: 0 0 8px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-) { border: 0; border-radius: 0; background: transparent; color: #f2f6ff; padding: 0 10px 0 2px; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-):not(:focus-visible) { box-shadow: none; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-)::placeholder { color: #b9c6e2; opacity: 1; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-) { padding: 0 8px 0 10px; border-left: 1px solid color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); font-variant-numeric: tabular-nums; letter-spacing: .04em; color-scheme: dark; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-) { position: relative; z-index: 1; border: 0; border-left: 1px solid color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); border-radius: 0 9px 0 9px; padding: 0 18px;
+  background: color-mix(in oklab, var(--neon, #9273ff) 26%, #060a1c); color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):not(:focus-visible) { box-shadow: inset 0 1px 0 #ffffff33, inset 0 0 16px -4px var(--neon, #9273ff), 0 0 12px -4px var(--neon, #9273ff); }
+.nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):hover { background: color-mix(in oklab, var(--neon, #9273ff) 40%, #060a1c); }
+/* A narrow panel (a wing at 1440) keeps the words' field wide enough for its hint: no plus mark, a tighter key. */
+@container holo-body (max-width: 420px) {
+  .nova-widget[data-holo] .tasks-widget .tasks-add { padding-left: 10px; }
+  .nova-widget[data-holo] .tasks-widget .tasks-add::before { content: none; }
+  .nova-widget[data-holo] .tasks-widget .tasks-add::after { left: 10px; }
+  .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-) { padding: 0 2px 0 6px; letter-spacing: 0; }
+  .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-) { padding: 0 12px; letter-spacing: .08em; }
+}
+
+/* Day at a glance: every line is a status plate (a lit bar at its head, the node on it), not a bare line of words. */
+.nova-widget[data-holo] .hw-glance .hw-rows { gap: 5px; }
+.nova-widget[data-holo] .hw-glance .hw-rows > .hw-row::before { left: 11px; top: 12px; }
+.nova-widget[data-holo] .hw-glance > .hw-rows > .hw-row:nth-child(n) { padding: 5px 10px 5px 27px; border: 1px solid color-mix(in oklab, var(--neon, #7fc8ff) 24%, transparent); border-radius: 3px 9px 3px 9px; background-color: color-mix(in oklab, var(--neon, #7fc8ff) 6%, #060a1c80); box-shadow: inset 3px 0 0 color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent); }
+
+/* Goal pace: the meter is a slot with weight (14 px, was 12) and the figure is larger. */
+.nova-widget[data-holo] .hw-goals .holo-gauge { height: 14px; }
+
+/* Now playing, at rest: the level strip is lit (its columns at 90 %, white caps, a centre line), not a dim grey strip. */
+.nova-widget[data-holo] .nova-playing .nova-disc i { opacity: .92; box-shadow: inset 0 2px 0 #ffffffd9, inset 0 -2px 0 #ffffff73, 0 0 9px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nova-widget[data-holo] .nova-playing > .nova-disc { position: relative; background: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)) 0 50% / 100% 1px no-repeat, #050919; }
+/* Session AM-3 (round 7; refs 33, 06): the level strip is a row of lit tubes standing on a floor. Each column is dark
+   glass at its edges with a white core, a white-hot cap, and the strip's floor carries their light (static layers; a
+   playing column still only scales, now from its foot). */
+.nova-widget[data-holo] .nova-playing > .nova-disc { align-items: end; padding: 8px 10px 12px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent) 12%, color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent) 88%, transparent) 0 calc(100% - 11px) / 100% 1px no-repeat,
+    radial-gradient(60% 26px at 50% calc(100% - 11px), color-mix(in oklab, var(--neon, #9273ff) 46%, transparent), transparent) 0 0 / 100% 100% no-repeat,
+    repeating-linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 10%, transparent) 0 1px, transparent 1px 25%), #040716; }
+.nova-widget[data-holo] .nova-playing .nova-disc i { opacity: 1; border-radius: 3px 3px 0 0; transform-origin: 50% 100%;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #070b22) 0, var(--neon, #9273ff) 24%, var(--neon-2, #c0adff) 42%, #fff 50%, var(--neon-2, #c0adff) 58%, var(--neon, #9273ff) 76%, color-mix(in oklab, var(--neon, #9273ff) 46%, #070b22) 100%);
+  box-shadow: inset 0 3px 0 #fff, 0 -2px 8px 0 #ffffff8c, 0 0 12px 0 color-mix(in oklab, var(--neon, #9273ff) 75%, transparent); }
+.nova-widget[data-holo] .nova-playing .nova-round { box-shadow: 0 0 0 1px var(--neon, #7fc8ff), 0 0 14px -2px var(--neon, #7fc8ff), inset 0 0 12px -4px var(--neon, #7fc8ff); }
+
+/* Focus, at rest: the week's columns are a lit instrument (brighter slots, today's slot ringed), and the figure glows. */
+.nova-widget[data-holo] .hw-focus .holo-cols-slot { background: color-mix(in oklab, var(--neon, #7fc8ff) 10%, #050919); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #7fc8ff) 40%, transparent); }
+.nova-widget[data-holo] .hw-focus .holo-cols-day[data-today] .holo-cols-slot { box-shadow: inset 0 0 0 1.5px var(--neon-2, #c4e6ff), 0 0 12px -1px var(--neon, #7fc8ff); }
+.nova-widget[data-holo] .hw-focus .holo-cols-slot::after { content: ''; position: absolute; left: 3px; right: 3px; bottom: 3px; height: 2px; border-radius: 1px; background: color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent); }
+/* The band (1440: a small Focus under the fold) keeps its week of columns: beside the figure where there is room, else under it. */
+.nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols { display: grid; --cols-h: 40px; max-width: none; }
+@container holo-body (min-width: 300px) {
+  .nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { grid-template-columns: minmax(0, 1fr) minmax(120px, 42%); grid-template-rows: auto auto; column-gap: 16px; }
+  .nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-big { grid-area: 1 / 1 / 2 / 3; }
+  .nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-chip-link { grid-area: 2 / 1 / 3 / 3; justify-self: start; }
+  .nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols { grid-area: 3 / 1 / 4 / 3; margin-top: 4px; }
+}
+
+/* Market watch (round 6): a tile whose price is not in yet is a sparkline tile waiting (ref 15), not an empty slab: the
+   ghost of a trace — a dim zigzag over the dashed baseline — along its foot (an ornament, never data; the words say
+   the price is not in). Only where the tile has the height for it under its words. */
+@container holo-body (min-height: 150px) {
+  .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not([data-priced])::after { height: 17px; opacity: .6;
+    background: linear-gradient(135deg, transparent calc(33.33% - .8px), var(--neon, #ffd27a) calc(33.33% - .8px) calc(33.33% + .8px), transparent calc(33.33% + .8px)) 0 0 / 32px 16px repeat-x,
+      linear-gradient(225deg, transparent calc(33.33% - .8px), var(--neon, #ffd27a) calc(33.33% - .8px) calc(33.33% + .8px), transparent calc(33.33% + .8px)) 0 0 / 32px 16px repeat-x,
+      repeating-linear-gradient(90deg, var(--neon, #ffd27a) 0 6px, transparent 6px 12px) 0 100% / 100% 1px no-repeat; }
+  .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not([data-priced]) { align-content: start; padding-top: 12px; }
+}

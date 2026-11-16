@@ -13,10 +13,16 @@ import {LOCAL_SERVERS, probeServer, scanLocalServers, scanLine, scanStatus, type
 import {deviceFacts, factLines, loadedLine, ollamaLoaded, wakeSupport, type LoadedModel, type WakeSupport} from '../../lib/nova/widgets/telemetry';
 import {waterAmount} from '../../lib/nova/widgets/words';
 import {factTiles, notRunningLine} from '../../lib/nova/right-facts';
+import {NOVA_STAGE} from '../../lib/nova/stage/record';
 import type {RightSection} from '../../lib/nova/store';
 import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
+import {useVaultControls, useVaultStatus} from '../vault-sync-controls';
 import type {NovaPanelId} from './panels/nova-panels';
+import {useWholeRows} from './whole-rows';
 import {NovaIcon} from './icons';
+import {StageChoices, StageList, StageRequests} from './stage/right-stage';
+import {AgentEntry} from './agent/agent-entry';
+import type {StageApi} from './stage/use-stage';
 import type {Brain} from './status-chips';
 import type {NovaCounts} from './use-counts';
 
@@ -27,16 +33,37 @@ import type {NovaCounts} from './use-counts';
  * device facts the browser really gives), 02 Voice, 03 Your pages and tools, 04 Models and usage, 05 Memory and scopes,
  * 06 Activity. Every value comes from what answered; unknown is said as unknown. A local server is asked only when the
  * person connected it or presses "Look for local servers" (the browser may ask once to let this site reach this computer).
+ *
+ * Session AM (ADR-038 D3, D16, D19, A5; art direction §3 "behind the intelligence, and what was asked"): three sections
+ * stand above the numbered ones and fold like them — Requests (the history of what was asked, from the stage record, each
+ * one tap from being shown again), On the stage (every widget on the stage and in the dock) and Your choices (keep made
+ * widgets, gentle cards from the briefs, and where this lives). components/nova/stage/right-stage.tsx draws them.
  */
 /** NC's Hermes card (lane NC, components/nova/hermes): the guide's progress or the gateway's status; loaded with this panel. */
 const HermesCard = lazy(() => import('./hermes/hermes-card').then(m => ({default: m.NovaHermesCard})));
-const TITLES: Record<RightSection, string> = {brains: 'Brains', voice: 'Voice', tools: 'Your pages and tools', usage: 'Models and usage', memory: 'Memory and scopes', activity: 'Activity'};
+/** The outcomes of an extras sync run that mean a section's records are with the account (lib/vault/extras-sync.ts). */
+const TRAVELLED: readonly string[] = ['unchanged', 'pushed', 'pulled', 'merged'];
+const TITLES: Record<RightSection, string> = {requests: 'Requests', stage: 'On the stage', choices: 'Your choices', brains: 'Brains', voice: 'Voice', tools: 'Your pages and tools', usage: 'Models and usage', memory: 'Memory and scopes', activity: 'Activity'};
 type Probe = {state: 'idle' | 'asking' | 'done'; results: ScanResult[]; loaded: Record<string, LoadedModel[] | null>; at: Date | null};
-export default function NovaRight({folded, onFold, onHide, persona, brain, counts, hermes, onTalk, wake, onWake, openPanel}: {
+/**
+ * Session AM-2 (the right bar shows whole rows; components/nova/whole-rows.ts): what counts as a row here — a request
+ * with its keys, a stage row, a section's head, a list's line, a block of a section.
+ */
+const WHOLE_ROWS = '.nova-right-section > h3, .nb-ask, .nb-group, .nb-asks-foot, .nb-stage-row, .nova-tools > li, .nova-right-list > li, .nova-fact-tiles, .nova-row, .nova-switch-row, .nova-fine, .nova-right-actions, .nova-btn, .nova-tech > summary, .nb-lives';
+export default function NovaRight({folded, onFold, onHide, persona, brain, counts, hermes, onTalk, wake, onWake, openPanel, stage}: {
   folded: readonly RightSection[]; onFold: (id: RightSection, folded: boolean) => void; onHide: () => void; persona: string; brain: Brain; counts: NovaCounts; hermes: HermesStatus | null;
   onTalk: () => void; wake: boolean; onWake: (on: boolean) => void; openPanel: (id: NovaPanelId) => void;
+  /** The dashboard's stage (components/nova/stage/use-stage.ts): its record, what is on it and what a person can do to a widget. */
+  stage?: StageApi;
 }) {
   const settings = useAiSettings(), voice = useDeviceRecord(ZIGI_VOICE), usage = useDeviceRecord(AI_USAGE), memory = useDeviceRecord(AI_MEMORY), actions = useDeviceRecord(AI_ACTIONS);
+  // The stage record: the dashboard's own reader when it is given, else this panel's (the same record, read after mount).
+  const ownStage = useDeviceRecord(NOVA_STAGE), stageRecord = stage?.record ?? ownStage;
+  // Where NOVA's requests and arrangement live: with the account only when this tab's last sync really carried NOVA's
+  // section for an unlocked account (a sync service that does not list the section yet, extras sync off, no account or
+  // the Showcase: this device only). Never guessed.
+  const vault = useVaultControls(), vaultOpen = useVaultStatus().opened, extras = vault?.extras ?? null;
+  const travels = vaultOpen && extras?.state === 'synced' && extras.outcomes.some(o => o.section === 'nova' && TRAVELLED.includes(o.state));
   const [probe, setProbe] = useState<Probe>({state: 'idle', results: [], loaded: {}, at: null});
   const [battery, setBattery] = useState<{level: number; charging: boolean} | null>(null), [support, setSupport] = useState<WakeSupport | null>(null), [refreshed, setRefreshed] = useState(0);
   // Session AK lane EXF (EX-4): the browser is asked about on-device speech recognition only when the person asks (the
@@ -70,21 +97,28 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
   const today = dayKey(new Date()), day = usage.loaded && !usage.unreadable ? usage.data.days?.[today] ?? {} : null;
   const actionsList = actions.loaded && !actions.unreadable ? [...(actions.data.actions ?? [])].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3) : null;
   const notes = memory.loaded && !memory.unreadable ? memory.data.notes?.length ?? 0 : null;
-  const section = (id: RightSection, n: number, body: ReactNode) => <Section key={id} id={id} n={n} title={TITLES[id]} folded={folded.includes(id)} onFold={onFold}>{body}</Section>;
+  const scroller = useRef<HTMLDivElement>(null);
+  useWholeRows(() => scroller.current, WHOLE_ROWS, `${folded.join(' ')}|${stage ? 1 : 0}`);
+  const section = (id: RightSection, n: number | string, body: ReactNode) => <Section key={id} id={id} n={n} title={TITLES[id]} folded={folded.includes(id)} onFold={onFold}>{body}</Section>;
   // Session AL sweep 2 (LA-024 / N-LS-05): a named region inside the shell's <main> (see nova-left.tsx).
   return <aside role="region" className="nova-right" aria-label="Behind the intelligence">
+    <span className="sh-inner" aria-hidden="true"/>
     <header className="nova-right-head">
       <div><p className="nova-eyebrow"><span className="nova-on-dot" aria-hidden="true"/>Live, on this device</p><h2>Behind the intelligence</h2></div>
       <button type="button" className="nova-icon-btn" onClick={onHide} aria-label="Hide the right panel"><NovaIcon name="close"/></button>
     </header>
-    <div className="nova-right-scroll">
+    <div ref={scroller} className="nova-right-scroll">
+      {section('requests', 'review', <StageRequests record={stageRecord} persona={persona}/>)}
+      {stage && section('stage', 'widgets', <StageList stage={stage} persona={persona}/>)}
+      {section('choices', 'yours', <StageChoices record={stageRecord} persona={persona} travels={travels}/>)}
       {section('brains', 1, <>
         <p className="nova-row"><span className="nova-chip-dot" data-kind={brain.kind} aria-hidden="true"/><span><strong>{persona}’s brain:</strong> {brain.words}</span></p>
         {/* Session AK P3 (ND-13): this device at a glance, always shown; each unknown says so. */}
         <dl className="nova-fact-tiles" aria-label="This device">{tiles.map(t => <div key={t.label} title={t.title}><dt>{t.label}</dt><dd data-unknown={t.value === 'unknown' || undefined}>{t.value}</dd></div>)}</dl>
         {settings.loaded && s.enabled && s.mode === 'api' && s.provider && isProviderId(s.provider) && <p className="nova-row"><span className="nova-chip-dot" data-kind="cloud" aria-hidden="true"/><span>{PROVIDERS[s.provider].name}: configured, the key kept on this device{s.model ? ` · ${s.model}` : ''}</span></p>}
         <ul className="nova-right-list" aria-live="polite">
-          {probe.state === 'asking' && <li role="status">Asking this computer…</li>}
+          {/* Round 7 (axe, "list has direct children that are not allowed"): the status is inside the list item, which stays a list item. */}
+          {probe.state === 'asking' && <li><span role="status">Asking this computer…</span></li>}
           {/* EX3 left-over 2: a server that answered but refused, wanted a key or sent an unreadable list is running. */}
           {probe.results.filter(r => r.found || r.reason !== 'unreachable').map(r => { const st = scanStatus(r); return <li key={r.server.id + r.server.baseUrl}>
             <span className="nova-status" data-on={st.on || undefined}>{st.word}</span> {scanLine(r)}
@@ -96,6 +130,8 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
         {/* EX3 left-over 1: the same words as the guide's check (a refused key was reached). */}
         {hermes?.connected && (() => { const p = hermesPanel(hermes); return <p className="nova-row"><span className="nova-status" data-on={p.on || undefined}>{p.pill}</span><span>{p.line}{hermes.model ? ` · ${hermes.model}` : ''}{hermes.lastMs !== undefined ? ` · answered in ${formatNumber(hermes.lastMs)} ms` : ''}{hermes.checkedAt ? ` · ${formatDateTime(hermes.checkedAt)}` : ''}</span></p>; })()}
         <div className="nova-right-actions"><Link className="nova-btn" href="/app/nova/setup" prefetch={false}>Brain setup</Link></div>
+        {/* Session AM-2 (step 4c): the person's own agent and tool servers on this computer; its panel loads when opened. */}
+        <AgentEntry/>
         {/* Release review 2 (R2-3): the technical rows wait behind this disclosure (local servers, Hermes, this device). */}
         <Tech label="Technical details: local servers, Hermes Agent, this device">
           <div className="nova-right-actions"><button type="button" className="nova-btn" disabled={probe.state === 'asking'} onClick={() => void ask(LOCAL_SERVERS)}>Look for local servers</button></div>
@@ -145,10 +181,10 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
     <footer className="nova-right-foot"><span>{probe.at ? `Read ${formatDateTime(probe.at)}` : 'Read on this device'}</span><button type="button" className="nova-btn" onClick={() => setRefreshed(n => n + 1)}>Refresh</button></footer>
   </aside>;
 }
-function Section({id, n, title, folded, onFold, children}: {id: RightSection; n: number; title: string; folded: boolean; onFold: (id: RightSection, folded: boolean) => void; children: ReactNode}) {
+function Section({id, n, title, folded, onFold, children}: {id: RightSection; /** Its number (01–06), or the icon of a section that has none. */ n: number | string; title: string; folded: boolean; onFold: (id: RightSection, folded: boolean) => void; children: ReactNode}) {
   const body = useId();
   return <section className="nova-right-section" data-folded={folded || undefined} aria-labelledby={`${body}-h`}>
-    <h3 id={`${body}-h`}><button type="button" aria-expanded={!folded} aria-controls={body} onClick={() => onFold(id, !folded)}><span className="nova-num" aria-hidden="true">{String(n).padStart(2, '0')}</span>{title}<NovaIcon name={folded ? 'down' : 'up'} size={18}/></button></h3>
+    <h3 id={`${body}-h`}><button type="button" aria-expanded={!folded} aria-controls={body} onClick={() => onFold(id, !folded)}>{typeof n === 'number' ? <span className="nova-num" aria-hidden="true">{String(n).padStart(2, '0')}</span> : <span className="nb-sec-icon" aria-hidden="true"><NovaIcon name={n} size={18}/></span>}{title}<NovaIcon name={folded ? 'down' : 'up'} size={18}/></button></h3>
     <div id={body} className="nova-right-body" hidden={folded}>{children}</div>
   </section>;
 }

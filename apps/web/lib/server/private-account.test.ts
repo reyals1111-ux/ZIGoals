@@ -126,6 +126,22 @@ test('the extras sections (Session AB-Cloud Part 2, ADR-023 C1): GET (heads or o
   expect(res.status,bad).toBe(400);expect(fetcher).not.toHaveBeenCalled();
  }
 });
+test('the NOVA extras section (Session AM, ADR-038 D18, A6): asked for as a second `with` after the Checklist and read by name; every other form is refused before any call',async()=>{
+ const id='10000000-0000-4000-8000-000000000001',cookie='__Host-zigoals_session=fixture-token';
+ const get=async(query:string)=>{const calls:string[]=[];const res=await privateAccountRequest(new Request(`https://app.test/api/private-account?action=extras${query}`,{headers:{cookie,'x-zigoals-account':id}}),config,async url=>{calls.push(String(url));return Response.json({protocol:1,sections:{}});});return {status:res.status,calls};};
+ // What the app sends (lib/vault/extras-sync.ts EXTRAS_HEADS_QUERY), forwarded in the same order: the Checklist first,
+ // because a private sync from before NOVA reads the first `with` only.
+ const {EXTRAS_HEADS_QUERY}=await import('../vault/extras-sync');
+ expect(EXTRAS_HEADS_QUERY).toBe('&with=checklist&with=nova');
+ expect(await get(EXTRAS_HEADS_QUERY)).toEqual({status:200,calls:[config.syncOrigin+'/v1/extras?with=checklist&with=nova']});
+ expect(await get('&section=nova')).toEqual({status:200,calls:[config.syncOrigin+'/v1/extras?section=nova']});
+ // What Session AK's build sends is forwarded exactly as before.
+ expect(await get('&with=checklist')).toEqual({status:200,calls:[config.syncOrigin+'/v1/extras?with=checklist']});
+ expect(await get('')).toEqual({status:200,calls:[config.syncOrigin+'/v1/extras']});
+ // Never: NOVA alone or first (that service would refuse it), a list in one value, a repeat, a third name, another case.
+ for(const bad of ['&with=nova','&with=nova&with=checklist','&with=checklist,nova','&with=checklist%20nova','&with=checklist&with=checklist','&with=checklist&with=nova&with=nova','&with=checklist&with=nova&with=goals','&with=checklist&with=Nova','&with=checklist&with=','&with=&with=nova','&section=Nova','&section=nova-stage'])
+  expect(await get(bad),bad).toEqual({status:400,calls:[]});
+});
 test('refresh rotates durable session access before exposing new cookies and never sends refresh material to the browser body',async()=>{
  const id='10000000-0000-4000-8000-000000000001';
  const req=()=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:'__Host-zigoals_session=old-token; __Host-zigoals_refresh=refresh-secret'},body:'{"action":"refresh"}'});

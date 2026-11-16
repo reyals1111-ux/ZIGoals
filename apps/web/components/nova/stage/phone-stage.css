@@ -1,0 +1,103 @@
+/*
+ * Session AM-3 (round 6; the phone's stage, redrawn): a phone's first screen is one instrument — NOVA's star as the hero
+ * inside its bezel (a ring of ticks and the four pillar arcs), its state and words under it, then the widgets on the
+ * stage as one strip of small instrument cards that swipes sideways, then the one-tap keys and the command bar (the
+ * foot, nova.css and stage.css). The first screen is exactly as tall as the window leaves (`--ps-first`, measured by
+ * stage/use-phone-first.ts) and the bezel takes what the words and the strip leave (`--ps-d`, nova-dashboard.tsx), so
+ * there is no empty band between the words and the keys; the full panels follow under the fold as before.
+ *
+ * A phone stays light: nothing here blurs, blooms or moves — static strokes and gradients only (no backdrop-filter, no
+ * filter, no animation). Everything drawn is decoration over words (the cards' words carry the figures).
+ * Only `ps-` classes are styled here directly; NOVA's own classes are styled inside `.ps-first` only
+ * (lib/nova/css-collisions.test.ts: one sheet per class).
+ */
+
+/* ---- The first screen ---- */
+.ps-first { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; row-gap: 10px; box-sizing: border-box; min-width: 0; min-height: var(--ps-first, calc(100svh - 205px)); }
+@media (min-height: 740px) { .ps-first { min-height: var(--ps-first, calc(100svh - 290px)); } }
+.ps-first > .nova-stage:not(#\-) { grid-template-rows: auto auto auto; align-content: center; gap: 0; min-height: 0; padding: 0; }
+/* NOVA's name stands in the bezel's top opening and its state in the bottom one. The star's button is the bezel's width
+   and 36 px less than its height (the bezel is drawn 18 px past the button's box above and below), so the name and the
+   state lie inside the bezel's circle and still outside the button: the star is above its state, as before. */
+.ps-first .nova-stage-above:not(#\-) { position: relative; z-index: 2; align-self: end; height: 22px; margin-bottom: -4px; padding: 0; }
+.ps-first .nova-stage-above .nova-name { line-height: 22px; }
+.ps-first .nova-orb-button:not(#\-) { position: relative; width: var(--ps-d, 280px); height: calc(var(--ps-d, 280px) - 36px); min-height: 0; margin: 0; }
+.ps-first .nova-stage-below:not(#\-) { position: relative; z-index: 2; margin-top: 3px; gap: 3px; }
+.ps-first .nova-stage-below .nova-showcase { margin-top: 5px; }
+
+/* ---- The star's bezel ---- */
+.ps-bezel { position: absolute; inset: -18px 0; z-index: -1; display: block; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, #050818d9 0, #050818b3 58%, #05081866 72%, transparent 80%); }
+.ps-bezel > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; fill: none; }
+.ps-bezel-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 58%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.ps-bezel-majors { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 78%, #fff); stroke-width: 1.8px; vector-effect: non-scaling-stroke; }
+.ps-bezel-inner { stroke: color-mix(in oklab, var(--nova-a, #9273ff) 70%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.ps-bezel-node { fill: color-mix(in oklab, var(--nova-b, #63e7ff) 60%, #fff); }
+/* The state wears the tick ring's longer marks (a colour, not a motion; the words under the star say the same). */
+.ps-bezel[data-state=listening] .ps-bezel-majors { stroke: #63e7ff; }
+.ps-bezel[data-state=thinking] .ps-bezel-majors { stroke: #f39bff; }
+.ps-bezel[data-state=speaking] .ps-bezel-majors { stroke: #86f0d6; }
+.ps-arc[data-pillar=goals] { --neon: #9273ff; --neon-2: #c0adff; }
+.ps-arc[data-pillar=habits] { --neon: #23eaff; --neon-2: #8ff6ff; }
+.ps-arc[data-pillar=health] { --neon: #ff74be; --neon-2: #ffa9d8; }
+.ps-arc[data-pillar=wealth] { --neon: #ffd27a; --neon-2: #ffe6b3; }
+.ps-arc-rule { stroke: color-mix(in oklab, var(--neon) 50%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.ps-arc-track { stroke: color-mix(in oklab, var(--neon) 24%, #141d4a); stroke-width: 3.2; stroke-linecap: round; }
+.ps-arc[data-unknown] .ps-arc-track { stroke: color-mix(in oklab, var(--neon) 62%, transparent); stroke-width: 1.5; stroke-dasharray: 1.4 4.2; }
+.ps-arc-halo { stroke: var(--neon); stroke-width: 10.5; stroke-linecap: round; opacity: .22; }
+.ps-arc-lit { stroke: var(--neon); stroke-width: 4.6; stroke-linecap: round; }
+.ps-arc-core { stroke: #fff; stroke-width: 1; stroke-linecap: round; opacity: .78; }
+.ps-arc-end { fill: #fff; stroke: var(--neon-2); stroke-width: 1.3; }
+
+/* ---- The strip of instrument cards ---- */
+.ps-strip { display: flex; gap: 10px; min-width: 0; margin: 0 -16px; padding: 3px 16px 5px; list-style: none; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-padding-inline: 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.ps-strip::-webkit-scrollbar { display: none; }
+/* Session AM-3 (round 7, "the cards are cut at the right edge with no sign that the strip scrolls"): a card is as wide as
+   the window less 100 px, so the next card always peeks by the same deliberate 74 px — its dial, whole, and none of its
+   words — and the strip's last 26 px dissolve (a static mask): the peeking dial fades out toward the edge, which reads
+   as "more this way". One card alone takes the whole row and nothing fades. No script, nothing tracks a finger. */
+.ps-item { flex: 0 0 clamp(216px, calc(100vw - 100px), 340px); min-width: 0; scroll-snap-align: start; --neon: #7fc8ff; --neon-2: #cfe9ff; }
+.ps-item:only-child { flex-basis: 100%; }
+.ps-strip:has(> .ps-item + .ps-item) { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); }
+.ps-item[data-pillar=goals] { --neon: #9273ff; --neon-2: #c0adff; }
+.ps-item[data-pillar=habits] { --neon: #23eaff; --neon-2: #8ff6ff; }
+.ps-item[data-pillar=health] { --neon: #ff74be; --neon-2: #ffa9d8; }
+.ps-item[data-pillar=wealth] { --neon: #ffd27a; --neon-2: #ffe6b3; }
+.ps-item[data-pillar=mind] { --neon: #cbbfff; --neon-2: #e6dfff; }
+.ps-item[data-pillar=nova] { --neon: #9273ff; --neon-2: #c0adff; }
+.ps-item[data-state=locked] { --neon: #8fa0c4; --neon-2: #c3cfe6; }
+/* A card is a cut-corner plate with a lit rim (two static layers behind the words), a dial at the left, then the
+   widget's name, its one figure and what the figure counts. */
+.ps-card { position: relative; isolation: isolate; display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: auto auto auto; grid-template-areas: "dial name" "dial figure" "dial caption";
+  align-content: center; column-gap: 11px; box-sizing: border-box; height: 88px; padding: 8px 12px 8px 11px; color: #f4f7ff; text-decoration: none; --cut: 12px; }
+.ps-card::before, .ps-card::after { content: ''; position: absolute; pointer-events: none; }
+.ps-card::before { inset: 0; z-index: -2; clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  background: linear-gradient(135deg, var(--neon) 0, color-mix(in oklab, var(--neon) 34%, #141c44) 34%, color-mix(in oklab, var(--neon) 24%, #141c44) 66%, var(--neon-2) 100%); }
+.ps-card::after { inset: 1.5px; z-index: -1; clip-path: polygon(calc(var(--cut) - .6px) 0, 100% 0, 100% calc(100% - var(--cut) + .6px), calc(100% - var(--cut) + .6px) 100%, 0 100%, 0 calc(var(--cut) - .6px));
+  background: radial-gradient(150px 70px at 0 0, color-mix(in oklab, var(--neon) 24%, transparent), transparent 72%), linear-gradient(150deg, color-mix(in oklab, var(--neon) 12%, #0a1030) 0, #070b22 56%, #050818 100%); }
+.nova-frame .ps-card:focus-visible { outline-offset: -4px; }
+.ps-card-name { grid-area: name; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 700; line-height: 1.25; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--neon) 36%, #fff); /* in srgb: the contrast walk reads the computed colour (color(srgb …)); a mix in oklab computes to oklab(), which it cannot */ }
+.ps-card-figure { grid-area: figure; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 23px; font-weight: 700; line-height: 1.15; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: #fff; }
+.ps-card-caption { grid-area: caption; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; line-height: 1.25; color: #cdd7ec; }
+.ps-card-caption[data-alone] { grid-row: 2 / 4; align-self: center; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; font-size: 15px; }
+.ps-dial { grid-area: dial; align-self: center; position: relative; display: block; width: 56px; height: 56px; }
+.ps-dial > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; fill: none; }
+.ps-dial-ticks { stroke: color-mix(in oklab, var(--neon-2) 56%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.ps-dial-track { stroke: color-mix(in oklab, var(--neon) 26%, #0a1030); stroke-width: 7.5; }
+.ps-dial[data-unknown] .ps-dial-track { stroke: color-mix(in oklab, var(--neon-2) 60%, transparent); stroke-width: 2; stroke-dasharray: 2.5 6; }
+.ps-dial-halo { stroke: var(--neon); stroke-width: 14; stroke-linecap: round; opacity: .2; }
+.ps-dial-lit { stroke: var(--neon); stroke-width: 7.5; stroke-linecap: round; }
+.ps-dial-end { fill: #fff; stroke: var(--neon-2); stroke-width: 2; }
+.ps-dial-pip { stroke: color-mix(in oklab, var(--neon) 26%, #0a1030); stroke-width: 7.5; }
+.ps-dial-pip[data-lit] { stroke: var(--neon); }
+.ps-dial-heart { fill: color-mix(in oklab, var(--neon) 55%, #fff); }
+.ps-dial[data-unknown] .ps-dial-heart { fill: none; stroke: color-mix(in oklab, var(--neon-2) 70%, transparent); stroke-width: 1.5; }
+
+@media (forced-colors: active) {
+  .ps-card { border: 1px solid CanvasText; }
+  .ps-card::before, .ps-card::after, .ps-bezel { background: none; }
+}
+
+/* NOVA's answer under the star on a phone: two lines (the whole reply is one tap away, in the conversation). */
+.ps-first .ns-answer .ns-answer-text:not(#\-) { -webkit-line-clamp: 2; line-clamp: 2; }

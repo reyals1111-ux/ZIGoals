@@ -1,0 +1,257 @@
+/*
+ * Session AM-2 (conversation console; ADR-038 "AM-2", art direction "AM-2" B–E): the parts that make NOVA's conversation
+ * an instrument of the star. This sheet owns the `ncx-` classes (the speaker's bezel, the state in words, a read-out's
+ * words, ring and strip, the dock with its request keypad and its strip of quiet keys) and gives the pieces NOVA shares
+ * with ZIGi's panel (`ai-` classes: reply keys, cards, stat and chart, notes, disclosures) NOVA's frame language inside
+ * `.nova-chat` only. nova-chat.css owns the conversation's own classes.
+ * Rules kept: labels 14 px and up, 44 px targets, plates and rims as static pseudo-element layers (never a gradient
+ * behind words on the element itself), no backdrop-filter, nothing follows the pointer; only `transform` and `opacity`
+ * move, never under Motion Off, Calm or reduced motion (the rules at the end).
+ */
+
+/* ---- The key recipe for the pieces nova.css does not list (the same one layer: a cut plate with a lit rim) ---- */
+.nova-chat .ai-reply-icon, .nova-chat .text-link, .nova-chat .ai-card, .nova-chat .ai-confirm, .nova-chat .ai-failure, .nova-chat .ai-unkept, .nova-chat .ai-stat, .nova-chat .nova-pending, .nova-chat .nova-voice, .nova-chat .nova-chat-steps, .nova-chat .ncx-well, .nova-chat .nova-speech-note, .ncx-dock > details > summary {
+  position: relative; isolation: isolate; --kc: 5px; --kw: 1px; --kl: calc(var(--kc) * 1.4142);
+  --k-rim: color-mix(in srgb, var(--nova-hi, #cbbfff) 40%, transparent); --k-rim-2: var(--k-rim); --k-plate: #0c1335f2; --k-plate-2: #070b20f2; --k-glow: none; }
+.nova-chat .ai-reply-icon::before, .nova-chat .text-link::before, .nova-chat .ai-card::before, .nova-chat .ai-confirm::before, .nova-chat .ai-failure::before, .nova-chat .ai-unkept::before, .nova-chat .ai-stat::before, .nova-chat .nova-pending::before, .nova-chat .nova-voice::before, .nova-chat .nova-chat-steps::before, .nova-chat .ncx-well::before, .nova-chat .nova-speech-note::before, .ncx-dock > details > summary::before {
+  content: ''; position: absolute; inset: var(--k-inset, 0); z-index: -1; pointer-events: none; border-radius: 1.5px; box-shadow: var(--k-glow);
+  background:
+    linear-gradient(90deg, var(--k-rim), var(--k-rim-2)) var(--kl) 0 / calc(100% - var(--kl)) var(--kw) no-repeat,
+    linear-gradient(90deg, var(--k-rim-2), var(--k-rim)) 0 100% / calc(100% - var(--kl)) var(--kw) no-repeat,
+    linear-gradient(var(--k-rim), var(--k-rim-2)) 0 var(--kl) / var(--kw) calc(100% - var(--kl)) no-repeat,
+    linear-gradient(var(--k-rim-2), var(--k-rim)) 100% 0 / var(--kw) calc(100% - var(--kl)) no-repeat,
+    linear-gradient(135deg, transparent calc(var(--kc) - .5px), var(--k-rim) var(--kc), var(--k-rim) calc(var(--kc) + var(--kw) - .45px), var(--k-plate) calc(var(--kc) + var(--kw) + .05px), var(--k-plate-2) calc(100% - var(--kc) - var(--kw) - .05px), var(--k-rim) calc(100% - var(--kc) - var(--kw) + .45px), var(--k-rim) calc(100% - var(--kc)), transparent calc(100% - var(--kc) + .5px)); }
+
+/* ---- The speaker: NOVA's figure in its state bezel ---- */
+/* Sixty ticks, a faint track and one arc in the state's colour with a lit dot at its head; a static bloom behind it.
+   Standby: a quiet whole ring. Listening: the ring in cyan, its dot going round slowly. Thinking: a third of the ring in
+   magenta, turning. Speaking: the whole ring in teal, breathing. Under Calm, Off and reduced motion: the same, still. */
+.ncx-speaker { position: relative; display: inline-grid; place-items: center; flex: none; --sp: var(--nova-hi, #cbbfff); --sp-2: var(--nova-a, #9273ff); }
+.ncx-speaker[data-state=listening] { --sp: #63e7ff; --sp-2: #9ee8f8; }
+.ncx-speaker[data-state=thinking] { --sp: #f39bff; --sp-2: #f06dff; }
+.ncx-speaker[data-state=speaking] { --sp: #86f0d6; --sp-2: #63e7ff; }
+.ncx-speaker::before { content: ''; position: absolute; inset: 11%; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, color-mix(in srgb, var(--sp) 20%, #070b22) 0, #050818 78%); box-shadow: 0 0 16px 0 color-mix(in srgb, var(--sp) 58%, transparent), 0 0 38px 2px color-mix(in srgb, var(--sp-2) 30%, transparent), inset 0 0 12px color-mix(in srgb, var(--sp) 34%, transparent); }
+.ncx-speaker-bezel { position: absolute; inset: 0; display: block; overflow: visible; }
+.ncx-speaker-ticks line { stroke: color-mix(in srgb, var(--sp) 62%, #ffffff40); stroke-width: .9; }
+.ncx-speaker-track { fill: none; stroke: color-mix(in srgb, var(--sp) 22%, transparent); stroke-width: 3; }
+.ncx-speaker-turn { transform-origin: 50% 50%; }
+.ncx-speaker-arc { fill: none; stroke-width: 3.4; stroke-linecap: round; stroke-dasharray: 100 0; opacity: .6; }
+.ncx-speaker:is([data-state=listening], [data-state=speaking]) .ncx-speaker-arc { opacity: 1; }
+.ncx-speaker[data-state=thinking] .ncx-speaker-arc { stroke-dasharray: 34 66; opacity: 1; transform: rotate(-90deg); transform-origin: 50% 50%; }
+.ncx-speaker-arc-0 { stop-color: var(--sp); }
+.ncx-speaker-arc-1 { stop-color: var(--sp-2); }
+.ncx-speaker-lead { fill: #fff; stroke: var(--sp); stroke-width: 1.2; }
+.ncx-speaker-face { position: relative; display: grid; place-items: center; }
+/* NOVA's state in words, in the state's colour (the stage's own four colours). */
+.ncx-state { margin: 0; min-width: 0; font-size: 14px; line-height: 1.2; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--nova-hi, #cbbfff); }
+.ncx-state[data-state=listening] { color: var(--accent-cyan, #9ee8f8); }
+.ncx-state[data-state=thinking] { color: var(--accent-magenta, #f3b0e6); }
+.ncx-state[data-state=speaking] { color: var(--accent-teal, #86f0d6); }
+
+/* ---- A read-out's words: 16 px, the figures lit; one figure of an on-device answer as a ring beside them ---- */
+.ncx-rx-words { padding: 10px 0 0; font-size: 16px; line-height: 1.5; color: #f4f8ff; }
+.ncx-rx-words :is(p, ul, ol, blockquote) { margin: 0 0 6px; }
+.ncx-rx-words :is(ul, ol) { padding-left: 20px; }
+.ncx-rx-words > div > :last-child { margin-bottom: 0; }
+.ncx-fig { font-weight: 700; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--turn-2, #63e7ff) 58%, #fff); text-shadow: 0 0 14px color-mix(in srgb, var(--turn-2, #63e7ff) 85%, transparent); }
+/* An on-device answer's first figure leads when no ring speaks for it: larger, white-hot (the line's height is unchanged). */
+.nova-turn-local .ncx-rx-words:not([data-gauge]) > div > p:first-child > .ncx-fig:first-of-type { font-size: 22px; line-height: 1; color: #fff; text-shadow: 0 0 10px var(--turn-2, #63e7ff), 0 0 24px color-mix(in srgb, var(--turn-2, #63e7ff) 70%, transparent); }
+/* The ring (art direction D; round 7 — the references' weight: a tick bezel, a hairline orbit, a thick track, the value
+   arc in two tones with a lit dot at its end, the figure in light, wide numerals with its unit small beside it). A count
+   stands in a whole dial: the orbit, a full thin ring and a dashed inner ring, no arc. */
+.ncx-ring { position: relative; display: grid; place-items: center; width: 92px; height: 92px; flex: none; }
+.ncx-ring::before { content: ''; position: absolute; inset: 15%; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, color-mix(in srgb, var(--turn-2, #63e7ff) 13%, #050818) 0, #03061a 82%); box-shadow: 0 0 20px 0 color-mix(in srgb, var(--turn-2, #63e7ff) 46%, transparent), 0 0 44px 4px color-mix(in srgb, var(--turn, #9273ff) 28%, transparent), inset 0 0 14px color-mix(in srgb, var(--turn-2, #63e7ff) 30%, transparent); }
+.ncx-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+.ncx-ring-ticks line { stroke: color-mix(in srgb, var(--turn-2, #63e7ff) 60%, #ffffff40); stroke-width: .8; }
+.ncx-ring-orbit { fill: none; stroke: color-mix(in srgb, var(--turn-2, #63e7ff) 50%, transparent); stroke-width: .6; }
+.ncx-ring-track { fill: none; stroke: color-mix(in srgb, var(--turn-2, #63e7ff) 15%, #0b1436); stroke-width: 7; }
+.ncx-ring-arc { fill: none; stroke-width: 7; stroke-linecap: round; }
+.ncx-ring[data-kind=count] .ncx-ring-track { stroke-width: 1; stroke: color-mix(in srgb, var(--turn, #9273ff) 40%, transparent); }
+.ncx-ring-whole { fill: none; stroke-width: 2.6; }
+.ncx-ring-dash { fill: none; stroke: color-mix(in srgb, var(--turn-3, #f06dff) 80%, #fff); stroke-width: 1.3; stroke-dasharray: 1.4 5.06; stroke-linecap: round; }
+.ncx-ring-0 { stop-color: var(--turn, #9273ff); }
+.ncx-ring-1 { stop-color: var(--turn-2, #63e7ff); }
+.ncx-ring-lead { fill: #fff; stroke: var(--turn-2, #63e7ff); stroke-width: 1.4; }
+.ncx-ring-figure { position: relative; display: inline-flex; align-items: baseline; font-size: 27px; line-height: 1; font-weight: 300; letter-spacing: .02em; font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 0 12px var(--turn-2, #63e7ff), 0 0 2px color-mix(in srgb, var(--turn-2, #63e7ff) 60%, transparent); }
+.ncx-ring-figure::before { content: attr(data-label); }
+.ncx-ring-figure[data-unit]::after { content: attr(data-unit); margin-left: 1px; font-size: 14px; font-weight: 500; letter-spacing: 0; color: color-mix(in srgb, var(--turn-2, #63e7ff) 50%, #fff); }
+.ncx-ring-figure[data-long] { font-size: 20px; }
+.ncx-ring[data-kind=count] .ncx-ring-figure { font-size: 32px; }
+.ncx-ring[data-kind=count] .ncx-ring-figure[data-long] { font-size: 22px; }
+/* The instrument (round 7): the ring or the dial at the left; beside it the words the figure was read from as a caption
+   in tracked capitals, a bar of slanted segments (a share lights its part with a white-hot cap; a count is a tally of
+   its own pips) and a tick ruler. A dashed rule parts it from the words under it. All of it is decoration. */
+.ncx-inst { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0 16px; margin: 0 0 10px; padding: 0 0 10px; border-bottom: 1px dashed color-mix(in srgb, var(--turn-2, #63e7ff) 30%, transparent); }
+.ncx-inst-scale { display: grid; gap: 8px; min-width: 0; }
+.ncx-inst-cap { min-width: 0; font-size: 14px; line-height: 1.25; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; overflow-wrap: anywhere; color: color-mix(in srgb, var(--turn-2, #63e7ff) 34%, #fff); text-shadow: 0 0 10px color-mix(in srgb, var(--turn-2, #63e7ff) 50%, transparent); }
+.ncx-inst-cap::before { content: attr(data-label); }
+.ncx-bar { display: flex; gap: 3px; height: 13px; min-width: 0; padding: 0 3px; }
+.ncx-bar > i { flex: 1 1 0; min-width: 2px; max-width: 16px; border-radius: 1px; transform: skewX(-20deg); background: color-mix(in srgb, var(--turn-2, #63e7ff) 13%, #0b1436); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--turn-2, #63e7ff) 16%, transparent); }
+.ncx-bar > i[data-lit] { background: linear-gradient(180deg, #fff -30%, var(--turn-2, #63e7ff) 42%, var(--turn, #9273ff) 130%); box-shadow: 0 0 9px -1px var(--turn-2, #63e7ff), 0 8px 10px -8px var(--turn-2, #63e7ff); }
+.ncx-bar > i[data-cap] { background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--turn-2, #63e7ff) 40%, #fff)); box-shadow: 0 0 12px 1px var(--turn-2, #63e7ff); }
+.ncx-inst[data-kind=count] .ncx-bar > i { flex: 0 1 11px; }
+.ncx-inst[data-kind=count] .ncx-bar > i[data-cap] { background: linear-gradient(180deg, #fff -30%, var(--turn-2, #63e7ff) 42%, var(--turn, #9273ff) 130%); box-shadow: 0 0 9px -1px var(--turn-2, #63e7ff), 0 8px 10px -8px var(--turn-2, #63e7ff); }
+.ncx-inst-ruler { height: 8px; opacity: .8; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--turn-2, #63e7ff) 80%, #fff) 0 1px, transparent 1px 30px) 0 0 / 100% 8px no-repeat, repeating-linear-gradient(90deg, color-mix(in srgb, var(--turn-2, #63e7ff) 60%, transparent) 0 1px, transparent 1px 6px) 0 100% / 100% 4px no-repeat, linear-gradient(color-mix(in srgb, var(--turn-2, #63e7ff) 50%, transparent) 0 0) 0 100% / 100% 1px no-repeat; -webkit-mask-image: linear-gradient(90deg, #000 60%, transparent); mask-image: linear-gradient(90deg, #000 60%, transparent); }
+/* What kind of reply it is: an answer needs no tag (the head says who speaks); a proposed change says so above its cards. */
+.nova-chat .ai-turn-kind { margin: 0; }
+.nova-chat .ai-turn-kind[data-kind=change]::before { content: attr(data-label); display: block; margin: 10px 0 0; font-size: 14px; line-height: 1.3; font-weight: 650; letter-spacing: .02em; color: #ffe3a6; }
+/* The instrument strip under the words: a live node, who answered, the time as a small figure. */
+.ncx-rx-strip { display: flex; align-items: center; gap: 10px; min-width: 0; margin: 10px -14px 0; padding: 8px 14px 9px; border-top: 1px solid color-mix(in srgb, var(--turn-2, #63e7ff) 34%, transparent); }
+.nova-chat .ai-turn-source { display: flex; flex: 1 1 auto; align-items: center; gap: 9px; min-width: 0; margin: 0; padding: 0; border: 0; font-size: 14px; line-height: 1.3; letter-spacing: .03em; color: color-mix(in srgb, var(--accent-teal, #86f0d6) 62%, #fff); }
+.nova-chat .ai-turn-source::before { content: ''; flex: none; width: 7px; height: 7px; margin-left: 2px; border-radius: 50%; background: var(--accent-teal, #86f0d6); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-teal, #86f0d6) 22%, transparent), 0 0 8px var(--accent-teal, #86f0d6); }
+.nova-chat .ai-turn-time { flex: none; font: 600 14px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--turn-2, #63e7ff) 40%, #dfe7f8); }
+.nova-chat .ai-turn-records { margin: 6px 0 0; font-size: 14px; color: var(--text-meta, #c2d0e5); }
+.nova-chat .nova-first-local { margin: 8px 0 0; font-size: 14px; color: var(--accent-teal, #86f0d6); }
+/* The turn's keys (copy, read aloud, retry, the two notes, more): 44 px targets, each with a lit key drawn inside.
+   Session AM-3 (round 7): they stand at the right end of the read-out's head rail (the same row of the same buttons,
+   last in the document as before; the read-out's grid places the row). Where a pointer can hover they are quiet glyphs
+   at rest — no plate, no rim, a dimmer stroke, still visible, still 44 px, still named — and light as keys when the
+   pointer or the focus is in that answer; a pressed or an open key stays lit. Without hover (touch) they keep a thin rim. */
+.nova-chat .ai-reply-row { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 0 6px; min-height: 44px; margin: 0 -10px 0 0; }
+.nova-chat .nova-turn-assistant .nova-turn-body > .ai-reply-row { grid-column: 2; grid-row: 1; }
+@container ncx-log (max-width: 470px) { .nova-chat .nova-turn-assistant:is(.nova-turn-zigi, .nova-turn-hermes) .nova-turn-body > .ai-reply-row { grid-column: 1 / -1; grid-row: auto; margin-top: -4px; } }
+@media (hover: hover) {
+  .nova-chat .nova-turn:not(:hover):not(:focus-within) .ai-reply-icon:not([aria-pressed=true]):not([aria-expanded=true]) { color: color-mix(in srgb, var(--turn-2, var(--nova-b, #63e7ff)) 24%, #97a6c8); --k-rim: transparent; --k-rim-2: transparent; --k-plate: transparent; --k-plate-2: transparent; }
+}
+@media (hover: none) { .nova-chat .nova-turn .ai-reply-icon:not([aria-pressed=true]):not([aria-expanded=true]) { --k-rim: color-mix(in srgb, var(--turn-2, var(--nova-b, #63e7ff)) 16%, transparent); --k-rim-2: transparent; --k-plate: transparent; --k-plate-2: transparent; } }
+.nova-chat .ai-turn-stopped { margin-right: auto; font-size: 14px; color: #ffe3a6; }
+.nova-chat .ai-reply-icons { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0; margin-left: auto; }
+.nova-chat .ai-feedback { display: inline-flex; }
+.nova-chat .ai-reply-icon { flex: none; width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; margin: 0; border: 0; border-radius: 4px; background: transparent; display: inline-grid; place-items: center; cursor: pointer; color: color-mix(in srgb, var(--turn-2, var(--nova-b, #63e7ff)) 26%, #e6ecfb);
+  --k-inset: 6px 4px; --k-rim: color-mix(in srgb, var(--turn-2, var(--nova-b, #63e7ff)) 46%, transparent); --k-plate: color-mix(in srgb, var(--turn-2, var(--nova-b, #63e7ff)) 9%, #060a1c); --k-plate-2: #060a1c; }
+.nova-chat .ai-reply-icon:is(:hover, :focus-visible) { color: #fff; --k-rim: var(--turn-2, var(--nova-b, #63e7ff)); --k-plate: color-mix(in srgb, var(--turn-2, var(--nova-b, #63e7ff)) 30%, #060a1c); --k-glow: 0 0 12px -3px var(--turn-2, var(--nova-b, #63e7ff)); }
+.nova-chat .ai-reply-icon:focus-visible { outline: 3px solid var(--cyan, #63e7ff); outline-offset: -1px; }
+.nova-chat .ai-reply-icon:is([aria-pressed=true], [aria-expanded=true]) { color: #fff; --k-rim: var(--nova-b, #63e7ff); --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 34%, #060a1c); --k-glow: 0 0 12px -3px var(--nova-b, #63e7ff); }
+.nova-chat .ai-reply-icon[data-tip]::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 2px); right: 0; z-index: 8; padding: 5px 10px; border-radius: 3px; background: #0d1330; border: 1px solid color-mix(in srgb, var(--nova-b, #63e7ff) 40%, #2a325a); color: var(--text, #eef1ff); font-size: 14px; line-height: 1.3; white-space: nowrap; pointer-events: none; opacity: 0; }
+.nova-chat .ai-reply-icon:is(:hover, :focus-visible)::after { opacity: 1; }
+.nova-chat .ai-reply-icon[aria-expanded=true]::after { opacity: 0; }
+.nova-chat .ai-reply-more { position: relative; flex: none; display: inline-flex; }
+.nova-chat .ai-reply-more-list { position: absolute; right: 0; top: calc(100% + 4px); z-index: 9; min-width: 220px; display: grid; gap: 2px; padding: 6px; border-radius: 4px; border: 1px solid color-mix(in srgb, var(--nova-b, #63e7ff) 40%, #2a325a); border-top: 2px solid var(--nova-b, #63e7ff); background: #0a1030; box-shadow: 0 22px 50px -18px rgba(0, 0, 0, .9); }
+.nova-chat .ai-reply-more-list[hidden] { display: none; }
+.nova-chat .ai-reply-more-list[data-up] { top: auto; bottom: calc(100% + 4px); }
+.nova-chat .ai-reply-more-info { padding: 6px 14px; font-size: 14px; line-height: 1.4; color: var(--muted, #a1afc8); }
+.nova-chat .ai-more-item { display: flex; align-items: center; min-height: 44px; padding: 0 14px; border: 0; border-radius: 3px; background: transparent; color: var(--text, #eef1ff); font: inherit; font-size: 15px; text-align: left; text-decoration: none; cursor: pointer; }
+.nova-chat .ai-more-item:hover { background: color-mix(in srgb, var(--nova-b, #63e7ff) 16%, transparent); }
+.nova-chat .ai-more-item:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: -2px; }
+/* The person's line has its one key (Edit) under its lit edge. */
+.nova-turn-edit .ai-reply-icon { margin: 0; }
+
+/* ---- Figures from the records under an answer: a lit figure and a neon chart, in the read-out ---- */
+.nova-chat .ai-data-viz { display: grid; gap: 10px; margin-top: 10px; }
+.nova-chat .ai-stat { display: grid; gap: 1px; max-width: none; padding: 10px 14px 9px; border: 0; border-radius: 0; background: none; --kc: 8px; --k-rim: color-mix(in srgb, var(--turn-2, #63e7ff) 60%, transparent); --k-rim-2: color-mix(in srgb, var(--turn, #9273ff) 30%, transparent); --k-plate: color-mix(in srgb, var(--turn-2, #63e7ff) 10%, #0a1030); --k-plate-2: #060a1c; }
+.nova-chat .ai-stat-value { font-size: 30px; line-height: 1.1; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 0 10px var(--turn-2, #63e7ff), 0 0 26px color-mix(in srgb, var(--turn-2, #63e7ff) 60%, transparent); }
+.nova-chat .ai-stat-label { font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--turn-2, #63e7ff) 30%, #e6ecfb); }
+.nova-chat .ai-stat-source { font-size: 14px; color: var(--text-meta, #c2d0e5); }
+.nova-chat .ai-viz svg { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--turn-2, #63e7ff) 70%, transparent)); }
+.nova-chat .ai-viz-bar { fill: color-mix(in srgb, var(--turn-2, #63e7ff) 82%, #fff); }
+.nova-chat .ai-viz-table summary { min-height: 44px; }
+
+/* ---- Cards and notes in the log keep their mechanics and sit in the same frame language ---- */
+.nova-chat .ai-card:not(#\-) { margin-top: 10px; padding: 12px 14px; border: 0; border-radius: 0; background: none; box-shadow: none; --kc: 10px; --kw: 1.25px; --k-rim: color-mix(in srgb, var(--nova-b, #63e7ff) 80%, #fff); --k-rim-2: color-mix(in srgb, var(--nova-c, #f06dff) 60%, transparent); --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 9%, #0a1232); --k-plate-2: #050818; }
+.nova-chat .ai-card-refused:not(#\-) { --k-rim: color-mix(in srgb, var(--pillar-wealth, #ffd27a) 60%, transparent); --k-rim-2: transparent; }
+.nova-chat :is(.ai-confirm, .ai-failure):not(#\-) { padding: 12px 14px; border: 0; border-radius: 0; background: none; --kc: 10px; --kw: 1.25px; --k-rim: color-mix(in srgb, var(--nova-c, #f06dff) 85%, #fff); --k-rim-2: color-mix(in srgb, var(--pillar-wealth, #ffd27a) 60%, transparent); --k-plate: color-mix(in srgb, var(--nova-c, #f06dff) 10%, #0a1030); --k-plate-2: #060a1c; }
+.nova-chat .ai-unkept:not(#\-) { padding: 12px 14px; border: 0; border-radius: 0; background: none; --kc: 10px; --k-rim: color-mix(in srgb, var(--nova-a, #9273ff) 85%, #fff); --k-rim-2: color-mix(in srgb, var(--nova-a, #9273ff) 30%, transparent); --k-plate: color-mix(in srgb, var(--nova-a, #9273ff) 13%, #0a1030); --k-plate-2: #060a1c; }
+.nova-chat .nova-speech-note { border: 0; border-radius: 0; padding: 10px 14px; --kc: 8px; --k-rim: color-mix(in srgb, var(--nova-b, #63e7ff) 60%, transparent); --k-plate: #0a1030; --k-plate-2: #060a1c; }
+.nova-chat .ai-note { color: var(--text-meta, #c2d0e5); }
+.nova-chat .ai-card-actions { gap: 8px; }
+/* A text link in the conversation is a quiet framed key (the same words, the same role). */
+.nova-chat .text-link:not(#\-) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 0; border-radius: 4px; background: none; color: var(--nova-hi, #cbbfff); font-size: 14px; font-weight: 600; line-height: 1.2; text-decoration: none; cursor: pointer; vertical-align: middle;
+  --k-inset: 5px 0; --k-rim: color-mix(in srgb, var(--nova-hi, #cbbfff) 42%, transparent); --k-rim-2: color-mix(in srgb, var(--nova-hi, #cbbfff) 18%, transparent); --k-plate: #0b1130; --k-plate-2: #070b20; }
+.nova-chat .text-link:is(:hover, :focus-visible):not(#\-) { color: #fff; text-decoration: none; --k-rim: var(--nova-b, #63e7ff); --k-rim-2: var(--nova-a, #9273ff); --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 20%, #0b1130); --k-glow: 0 0 12px -3px var(--nova-b, #63e7ff); }
+.nova-chat .text-link[aria-expanded=true]:not(#\-), .nova-chat .text-link[aria-pressed=true]:not(#\-) { color: #fff; --k-rim: var(--nova-b, #63e7ff); --k-plate: color-mix(in srgb, var(--nova-a, #9273ff) 30%, #0b1130); }
+
+/* ---- The dock: everything under the log, on the console's bottom edge ---- */
+/* One wrapping row layout with one left edge: the request keypad, the notes that come and go, the composer, its keyboard
+   hints, then one strip of quiet keys (Ask ZIGi about a page, What NOVA can see, Sent out from this device; an opened
+   one takes the row under the strip) and the line that says where the conversation stays. In a short window the dock
+   scrolls inside itself after the log has given way (lane P7, EX3-1): every control stays reachable. */
+.ncx-dock { position: relative; container: ncx-dock / inline-size; flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; display: flex; flex-wrap: wrap; align-items: center; align-content: flex-start; gap: 6px; padding: 10px 12px 12px 14px;
+  border: solid; border-width: 1px 0 0; border-image: linear-gradient(90deg, var(--nova-b, #63e7ff) 0, var(--nova-b, #63e7ff) 72px, color-mix(in srgb, var(--nova-a, #9273ff) 46%, transparent) 72px, color-mix(in srgb, var(--nova-c, #f06dff) 26%, transparent) 100%) 1; }
+.ncx-dock > * { flex: 0 0 100%; min-width: 0; box-sizing: border-box; }
+.ncx-dock > .nova-composer-wrap { display: contents; }
+.ncx-dock > .nova-composer-wrap > * { flex: 0 0 100%; min-width: 0; box-sizing: border-box; }
+.ncx-dock > .nova-composer-wrap > .nova-zigi-row { display: contents; }
+.ncx-dock .nova-zigi-toggle:not(#\-) { flex: 0 0 auto; align-self: center; gap: 7px; padding: 0 9px 0 10px; }
+.ncx-dock .nova-zigi-tools:not([hidden]) { flex: 0 0 100%; order: 5; padding: 2px 0 4px; }
+.ncx-dock > details { flex: 0 1 auto; margin: 0; font-size: 14px; }
+.ncx-dock > details[open] { flex: 0 0 100%; }
+.ncx-dock > .nova-chat-foot { order: 6; }
+/* More waits under the log's bottom edge (components/nova/whole-rows.ts marks the log): a small lit chevron on the dock's top line. */
+.nova-chat-log[data-cut] + .ncx-dock::before { content: ''; position: absolute; left: 50%; top: 1px; width: 6px; height: 6px; margin-left: -3px; pointer-events: none; border: solid var(--nova-b, #63e7ff); border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); }
+/* The request keypad: the stage's one-tap requests as three columns of whole keys, each column as wide as its longest
+   label needs (a label takes two short lines only where even that does not fit; a narrow dock drops the keys' dots). */
+.ncx-requests:empty { display: none; }
+@container ncx-dock (max-width: 470px) { .ncx-requests .ns-chip-dot { display: none; } }
+@container ncx-dock (min-width: 760px) { .ncx-requests .ns-onetap:not(#\-):not(#\-) { grid-template-columns: repeat(6, minmax(0, auto)); } }
+.ncx-requests .ns-onetap:not(#\-) { display: grid; grid-template-columns: repeat(3, minmax(0, auto)); justify-content: stretch; align-items: stretch; gap: 0 6px; width: 100%; max-width: none; margin: 0; padding: 0; overflow: visible; scroll-snap-type: none; }
+.ncx-requests .ns-onetap > .ns-chip:not(#\-) { width: 100%; min-width: 0; margin: 0; justify-content: flex-start; gap: 8px; padding: 0 8px 0 11px; font-size: 14px; line-height: 1.15; white-space: normal; text-align: left; --k-inset: 3px 0; }
+/* The star's well at the composer's left end. */
+.ncx-well { display: grid; place-items: center; flex: none; width: 38px; height: 44px; color: color-mix(in srgb, var(--nova-b, #63e7ff) 34%, #fff); --kc: 6px; --k-rim: color-mix(in srgb, var(--nova-b, #63e7ff) 62%, transparent); --k-rim-2: color-mix(in srgb, var(--nova-a, #9273ff) 50%, transparent); --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 16%, #0a1232); --k-plate-2: #060a1e; }
+.ncx-well > svg { filter: drop-shadow(0 0 5px var(--nova-b, #63e7ff)); }
+.nova-composer:focus-within .ncx-well { color: #fff; --k-rim: var(--nova-b, #63e7ff); --k-glow: 0 0 12px -2px var(--nova-b, #63e7ff); }
+/* The strip's keys: a disclosure's summary and the "Ask ZIGi" key look the same, each with a small chevron that turns when open. */
+.ncx-dock > details > summary { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; box-sizing: border-box; padding: 0 9px 0 10px; list-style: none; cursor: pointer; font-size: 14px; font-weight: 600; line-height: 1.2; color: var(--nova-hi, #cbbfff);
+  --k-inset: 5px 0; --k-rim: color-mix(in srgb, var(--nova-hi, #cbbfff) 42%, transparent); --k-rim-2: color-mix(in srgb, var(--nova-hi, #cbbfff) 18%, transparent); --k-plate: #0b1130; --k-plate-2: #070b20; }
+.ncx-dock > details > summary::-webkit-details-marker { display: none; }
+.ncx-dock > details > summary:is(:hover, :focus-visible), .ncx-dock > details[open] > summary { color: #fff; --k-rim: var(--nova-b, #63e7ff); --k-rim-2: var(--nova-a, #9273ff); --k-plate: color-mix(in srgb, var(--nova-b, #63e7ff) 20%, #0b1130); }
+.ncx-dock > details > summary:focus-visible { outline: 3px solid var(--cyan, #63e7ff); outline-offset: -2px; }
+.ncx-dock > details > summary::after, .ncx-dock .nova-zigi-toggle::after { content: ''; flex: none; width: 6px; height: 6px; margin: -3px 2px 0 0; border: solid currentColor; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); }
+.ncx-dock > details[open] > summary::after, .ncx-dock .nova-zigi-toggle[aria-expanded=true]::after { margin-top: 3px; transform: rotate(225deg); }
+/* A narrow dock keeps the strip's two keys in one row: their chevrons step aside (aria-expanded still says open or closed). */
+@container ncx-dock (max-width: 392px) { .ncx-dock > details > summary::after, .ncx-dock .nova-zigi-toggle::after { content: none; } }
+.ncx-dock > details > :not(summary) { margin-top: 6px; }
+.ncx-dock > details pre { max-height: 180px; border-radius: 3px; }
+
+/* A hand-off card stands in the log at the read-outs' width. */
+.nova-chat-log > .nh-card { margin: 0; }
+
+/* ---- A phone: the same console, lighter (thin rims, no bloom behind the read-outs, a small glow on figures) ---- */
+.nova-chat-sheet .ncx-dock { padding: 8px 10px 10px 12px; }
+/* Session AM-3 (round 6, "the chips have unequal heights"; round 7, "they wrap to two lines"): on a phone the six
+   one-tap keys are a tidy grid of two equal columns and three rows of one height, each key's words on one line with its
+   dot (a very narrow phone, under 340 px of dock, lets the words take two lines again). */
+.nova-chat-sheet .ncx-requests .ns-onetap:not(#\-):not(#\-) { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; align-items: stretch; gap: 0 8px; }
+.nova-chat-sheet .ncx-requests .ns-onetap > .ns-chip:not(#\-) { height: 100%; white-space: nowrap; }
+.nova-chat-sheet .ncx-requests .ns-chip-dot { display: inline-block; }
+@container ncx-dock (max-width: 340px) { .nova-chat-sheet .ncx-requests .ns-onetap > .ns-chip:not(#\-):not(#\-) { white-space: normal; } .nova-chat-sheet .ncx-requests .ns-chip-dot:not(#\-) { display: none; } }
+/* The console's star (round 6 on the phone's sheet; round 7 on a computer too): NOVA's galaxy (the star's own still
+   picture, in the person's accent) inside the state bezel, with the mark's four-point spark at its core. A still
+   picture: only the bezel's arc turns, where motion is allowed. */
+.nova-chat .ncx-speaker[data-avatar=orb]::after { content: ''; position: absolute; inset: 12%; border-radius: 50%; pointer-events: none; background: url(/nova/star/violet.webp) 50% 50% / 138% auto no-repeat; }
+.nova-frame[data-accent=cyan] .nova-chat .ncx-speaker[data-avatar=orb]::after { background-image: url(/nova/star/cyan.webp); }
+.nova-frame[data-accent=magenta] .nova-chat .ncx-speaker[data-avatar=orb]::after { background-image: url(/nova/star/magenta.webp); }
+.nova-frame[data-accent=teal] .nova-chat .ncx-speaker[data-avatar=orb]::after { background-image: url(/nova/star/teal.webp); }
+.nova-frame[data-accent=gold] .nova-chat .ncx-speaker[data-avatar=orb]::after { background-image: url(/nova/star/gold.webp); }
+.nova-chat .ncx-speaker[data-avatar=orb] .ncx-speaker-face { z-index: 1; }
+.nova-chat .ncx-speaker[data-avatar=orb] .nova-mark svg > circle { opacity: 0; }
+.nova-chat .ncx-speaker[data-avatar=orb] .nova-mark svg { transform: scale(.62); }
+.nova-chat-sheet .nova-chat-log { flex-shrink: 1000; }
+.nova-chat-sheet .ncx-fig { text-shadow: 0 0 8px color-mix(in srgb, var(--turn-2, #63e7ff) 60%, transparent); }
+.nova-chat-sheet .ncx-ring::before { box-shadow: 0 0 10px 0 color-mix(in srgb, var(--turn-2, #63e7ff) 34%, transparent), inset 0 0 10px color-mix(in srgb, var(--turn-2, #63e7ff) 24%, transparent); }
+.nova-chat-sheet .ncx-speaker::before { box-shadow: 0 0 12px 0 color-mix(in srgb, var(--sp) 50%, transparent), inset 0 0 10px color-mix(in srgb, var(--sp) 30%, transparent); }
+.nova-chat-sheet .ncx-ring { width: 80px; height: 80px; }
+.nova-chat-sheet .ncx-inst { gap: 0 12px; }
+.nova-chat-sheet .ncx-ring-figure { font-size: 23px; }
+.nova-chat-sheet .ncx-ring-figure[data-long] { font-size: 17px; }
+.nova-chat-sheet .ncx-bar > i[data-lit] { box-shadow: 0 0 6px -1px var(--turn-2, #63e7ff); }
+
+/* ---- Motion (art direction E): only the bezel's arc group turns or breathes — transform and opacity, Full only ---- */
+@keyframes ncx-turn { to { transform: rotate(360deg); } }
+@keyframes ncx-breathe { from { opacity: .55; } to { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-app-motion=off]):not([data-app-motion=calm]) .ncx-speaker[data-state=listening] .ncx-speaker-turn { animation: ncx-turn 7s linear infinite; }
+  :root:not([data-app-motion=off]):not([data-app-motion=calm]) .ncx-speaker[data-state=thinking] .ncx-speaker-turn { animation: ncx-turn 1.8s linear infinite; }
+  :root:not([data-app-motion=off]):not([data-app-motion=calm]) .ncx-speaker[data-state=speaking] .ncx-speaker-turn { animation: ncx-breathe .72s ease-in-out infinite alternate; }
+}
+.nova-frame[data-hud-motion=paused] .ncx-speaker-turn { animation: none; }
+/* Customize → Glow: Soft drops the blooms (the rims stay). */
+:root[data-glow="soft"] .nova-chat :is(.ncx-speaker, .ncx-ring, .nova-turn-assistant)::before { box-shadow: none; }
+:root[data-glow="soft"] .nova-chat .ncx-fig { text-shadow: none; }
+:root[data-glow="soft"] .nova-chat .ncx-bar > i { box-shadow: none; }
+/* Forced colours: the system's own colours and plain edges; the drawn plates and rims step aside. */
+@media (forced-colors: active) {
+  .nova-chat :is(summary, ol, article, section)::before, .nova-chat :is(summary, ol, article, section)::after { background: none !important; clip-path: none !important; box-shadow: none !important; }
+  .nova-chat :is(.ai-card, .ai-confirm, .ai-failure, .ai-unkept, .ai-stat, .text-link, .ai-reply-icon), .ncx-dock > details > summary { border: 1px solid CanvasText; }
+  .ncx-fig { color: inherit; text-shadow: none; }
+  .ncx-bar > i { border: 1px solid CanvasText; } .ncx-bar > i[data-lit] { background: CanvasText; }
+}

@@ -264,3 +264,85 @@ device".
   not shown and not exported; "Erase everything" and the account's erase remove it at once.
 - **Unsaved forms in this tab** (the welcome's first name and goal, a new habit's title, the Goal wizard): kept in this
   tab's session storage across a reload only, gone when the tab closes, and cleared by Sign out and the account's erase.
+
+**Session AM (11 Nov 2026): weather in NOVA from MET Norway (off until you turn it on), and NOVA's stage record.** NOVA
+gains one outside service, and two records on this device.
+- **Weather (outside data): MET Norway** (`https://api.met.no`, Locationforecast 2.0 and Sunrise 3.0). It is off until
+  you turn on "Weather (outside data)" in NOVA → Permissions and choose a place: a city from a list that ships with the
+  app, or a position you type. No geocoding service is asked, and the browser's location is never requested.
+- **What MET Norway receives:** when weather is on, and only while a weather widget is on NOVA's stage (or, on a phone, when
+  you ask NOVA about the weather) and the page is visible, your own browser asks `api.met.no` directly for the forecast
+  at that place, rounded to two decimals (about 1 km). MET Norway therefore sees your network (IP) address and that rounded place, and keeps both in its logs
+  ([MET Norway's privacy statement](https://www.met.no/en/About-us/privacy)). No account, no key, no cookie, no other
+  data. ZIGoals has no server in between and receives nothing.
+- **How often:** at most one request per place per 10 minutes, and not before the previous reading's expiry time.
+- **The weather record** (`zigoals:nova-world:v1`): the last reading (temperatures, symbols, sun times) is kept on this
+  device only; it is in "Export everything", restore and erase. The reading may also sit in the browser's own HTTP
+  cache until it expires.
+- **Credit:** Data from MET Norway, licence [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- **A connected AI model** can read the reading this device already holds only through NOVA's `weather` lookup: the
+  place's name and the reading, which then go to that model like the rest of the answer (to a cloud provider when the
+  model is one and the privacy mode is Guarded or Relaxed). It can ask for the weather widget, which follows your
+  switch and the ten-minute rule. It cannot turn weather on or choose the place.
+- **Carried, not built:** a caching proxy that would hide your IP address from MET Norway. It is required before a
+  wider launch.
+- **NOVA's stage record** (`zigoals:nova-stage:v1`): the requests you made to NOVA (your own words, at most 200), the
+  widgets NOVA made, the dock and two choices. On the public Alpha, which has no accounts, it stays on this device.
+  With an account it travels end-to-end encrypted in a new optional sync section, together with NOVA's layout and
+  pinned widgets.
+
+**Session AM-2 (15 Nov 2026): the weather proxy (only in a build configured with it), hand-offs you approve, and the
+"Sent out from this device" history.**
+- **The weather proxy.** A build can be made with the address of ZIGoals' weather proxy (`workers/weather-proxy`, a
+  small caching service the owner deploys; build setting `NEXT_PUBLIC_WEATHER_PROXY_URL`). No build has it until then,
+  and without it nothing above changes. With it, weather is still off until you turn on "Weather (outside data)" and
+  choose a place, and the same rules hold (only while a weather widget is on the stage or you ask about the weather, the
+  page visible, at most one request per place per 10 minutes, not before the reading's expiry time). What changes is who
+  sees what: your browser asks the proxy, never `api.met.no`. **The proxy sees your network (IP) address and the place
+  rounded to two decimals (about 1 km)**; it uses the address only to count requests for one minute, in memory, and
+  writes no log of either. **MET Norway sees the proxy's address, the proxy's own User-Agent and that rounded place,
+  never yours.** No account, no key, no cookie. If the proxy does not answer, the last reading stays: your browser never
+  asks MET Norway directly instead. Sunrise and sunset are worked out on your device in such a build; nothing is asked
+  for them. The switch in NOVA → Permissions and Help say which of the two cases your build is. The credit stays "Data
+  from MET Norway", licence [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- **Hand-offs (NOVA never sends anything by itself).** NOVA can prepare five things for outside ZIGoals, each as a card
+  that shows exactly what would leave and to where, and does nothing until you press its button: an **email draft** (a
+  `mailto:` link that opens your own mail app with the address, subject and text filled in; you send it there; ZIGoals
+  makes no SMTP or API call and never sees a mailbox, a password or a token), a **calendar file** (an .ics file saved on
+  this device; you open it with your calendar app), a **share** (your device's own share sheet; you choose the app), a
+  **link** (http or https only, shown in full with its real site, opened in a new tab without a referrer; a link that
+  did not come from your own typed words is marked) and a **copy** (the text the card shows, to your clipboard).
+  Nothing goes through a ZIGoals server. Without an AI model the card is made on this device from your own words; with
+  one, the model can only ask for a card (the `hand_off` lookup returns nothing of yours to it) and can never press it.
+  Text that looks like recovery words, a private key, a password or a card number is never put on a card. An answer
+  that read Health records is shared or copied, and a model's hand-off is made in a conversation that read Health, only
+  while NOVA's Health permission and this device's Health switch are both on.
+- **The "Sent out from this device" record** (`zigoals:nova-outbox:v1`): one line for each hand-off, or each call to a
+  tool of your own agent, that you approved: when, what kind (for example "Email draft"), the address or site the card
+  showed, and whether it went through. Never the subject, the text, a note, a link's path or a tool's arguments or
+  result. At most 200 lines, on this device only: never synced; in "Export everything", restore and erase, and you can
+  forget it in NOVA's conversation. A hand-off made in a chat that is not kept adds no line.
+- **Your own agent and tools (NOVA → Behind the intelligence → "Your own agent and tools").** You may connect an
+  agent and tool servers (Model Context Protocol) that run **on your own computer**. NOVA accepts only a loopback
+  address — `http://127.0.0.1:<port>`, `http://localhost:<port>` or `http://[::1]:<port>` — and refuses every other host,
+  a redirect included; your browser talks to that program directly and nothing goes through a ZIGoals server. NOVA lists
+  the tools a server reports, each with the server's own description shown as untrusted plain text. Every tool starts
+  **Off**; one you switch on is **Ask every time**: a card that shows the server's address, the tool and the exact
+  arguments, and sends nothing until you press it. There is no "always allow", at most one card per reply, none from a
+  tool's result and none while the page is hidden. Arguments that look like recovery words, a private key, a password,
+  a token or a card number are never put on a card; in Strict a model may fill a card only with words you typed
+  yourself; Health figures only while NOVA's Health permission and this device's Health switch are both on. What a tool
+  answers is shown as plain, untrusted text; you choose whether your model may read it (marked as data, never
+  instructions). **The tool acts with its own accounts** (your mail, your calendar), which you set up in that program:
+  NOVA and ZIGoals never see or store those passwords or tokens. A token for the tool server itself, if it asks for
+  one, stays in this browser's memory for the visit, or sealed in this browser if you tick "Remember" (the same store
+  as your model key): never synced, never exported, sent only to that server at that address, and forgotten when the
+  server leaves your list. A model may fill a card only with the fields a tool names, never with characters you cannot
+  see, and pasted or dropped words do not count as typed by you. A kept chat stores a proposed call by its tool and
+  server only, never its arguments. Your own agent as NOVA's brain gets the redacted copy in Strict and Guarded until
+  you confirm it answers with a model on this computer, checked on every request as for Hermes.
+- **The own-agent record** (`zigoals:nova-agent:v1`): the loopback addresses and your names for the tool servers and
+  the agent you connected, the names of the tools on "Ask every time", the model your agent reported and whether you
+  confirmed it answers with a local model. Never a token, a tool's description, an argument or a result. On this device
+  only: never synced; in "Export everything", restore and erase. A restore brings the addresses and names; every tool
+  comes back Off and the agent unconfirmed.

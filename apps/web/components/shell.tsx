@@ -48,7 +48,10 @@ import { LogoIntro } from "./logo-intro";
 import { PageMark } from "./page-mark";
 import { PageArrival } from "./page-arrival";
 import { LiquidGlass } from "./liquid-glass";
-import { LAYOUT_LOCK_SLOT, PAGE_TOOLS_SLOT } from "./layout-edit";
+// The slot ids alone (components/layout-slots.ts): the layout code itself loads with the pages that can be rearranged.
+// Its stylesheet stays here, in the same place in the order: it also lays out the status row on every page.
+import { LAYOUT_LOCK_SLOT, PAGE_TOOLS_SLOT } from "./layout-slots";
+import "./layout-edit.css";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice, OfflinePill } from "./offline-notice";
 import { UndoToastHost } from "./ui/undo-toast";

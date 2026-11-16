@@ -9,8 +9,11 @@
  * - task: add a task for today (the Tasks engine)
  * - goal: add to a goal (opens that goal's contribution form)
  * - note: capture a note into the inbox (the Notes engine)
+ * Session AM-2 (step 3, "NOVA connected"):
+ * - evening: put an open task on "This evening" (the Tasks page's own write, lib/tasks/when.ts, with its Undo)
+ * - countdown: add a countdown (Today's "Days until" card's own write, lib/countdowns/schema.ts, with Undo)
  */
-export const QUICK_ACTIONS = ['water', 'weight', 'habit', 'focus', 'task', 'goal', 'note'] as const;
+export const QUICK_ACTIONS = ['water', 'weight', 'habit', 'focus', 'task', 'goal', 'note', 'evening', 'countdown'] as const;
 export type QuickAction = (typeof QUICK_ACTIONS)[number];
 const BY_WIDGET: Readonly<Record<string, readonly QuickAction[]>> = {
   'health-hud': ['water', 'weight', 'habit'], water: ['water', 'weight'], sleep: ['water', 'weight'],
@@ -18,6 +21,21 @@ const BY_WIDGET: Readonly<Record<string, readonly QuickAction[]>> = {
   'goals-hud': ['goal', 'task'], 'goal-pace': ['goal', 'task'], tasks: ['task', 'focus'], 'agenda-clock': ['task', 'habit'],
   'wealth-hud': ['goal'], money: ['goal'], markets: ['goal'],
   notes: ['note', 'task'], glance: ['water', 'habit', 'task'], briefs: ['note'], 'now-playing': ['focus'],
+  // Session AM (ADR-038): the widgets NOVA makes on request carry the actions of their part of life (a money widget only
+  // ever opens a goal's own contribution form; nothing financial is written by one tap).
+  weight: ['weight', 'water'], steps: ['habit', 'water'], workouts: ['habit', 'task'], 'habit-week': ['habit', 'focus'], 'goal-focus': ['goal', 'task'],
+  'net-worth': ['goal'], spending: ['goal'], budgets: ['goal'], bills: ['task'], journal: ['note'], time: ['focus', 'task'], weather: ['task'], sun: ['task'],
+  'nova-sees': ['note'], 'nova-brain': ['note'], requests: ['note', 'task'],
+  // Session AM-2 (step 3): the widgets of what Sessions AO and AP added. A money widget still only opens a goal's own
+  // contribution form; the day's rules and the Health read-outs have no write of their own here (a task, a habit tick).
+  'net-worth-history': ['goal'], 'ready-to-assign': ['goal'], 'age-of-money': ['goal'], 'spending-pace': ['goal'], 'money-tags': ['goal'], 'bill-changes': ['task'],
+  'perfect-days': ['habit', 'focus'], 'day-rules': ['task'], 'tasks-later': ['evening', 'task'], countdowns: ['countdown', 'task'], 'journal-numbers': ['note'], templates: ['task'],
+  'run-splits': ['habit', 'water'], 'mood-tags': ['habit'], symptoms: ['habit'],
+  // Round 2. Accounts, debts, the payoff plan, challenges and alerts are read-outs: the only money action stays the goal's
+  // own contribution form. A fast is started on Health or by asking NOVA in words (the usual card to confirm), never by a tap here.
+  'priority-matrix': ['task', 'focus'], 'hour-grid': ['task', 'habit'], reviews: ['note'], milestones: ['goal', 'task'],
+  'cash-flow': ['goal'], accounts: ['goal'], 'debt-plan': ['goal'], 'savings-challenges': ['goal'], 'price-alerts': ['goal'],
+  'health-trends': ['weight', 'water'], 'food-days': ['water'], fasting: ['water'], meditation: ['focus'], supplements: ['water'], cycle: ['note'],
 };
 /** A panel's quick actions, in order (every panel has at least one). */
 export const quickActionsFor = (widget: string): readonly QuickAction[] => BY_WIDGET[widget] ?? ['task'];

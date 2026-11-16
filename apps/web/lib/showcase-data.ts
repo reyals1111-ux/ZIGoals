@@ -69,6 +69,7 @@ import {FOCUS_SESSIONS_KEY} from './focus-sessions/schema';
 import {showcaseFocusSessions} from './wrapped/showcase';
 import {NOTES_KEY} from './notes/schema';
 import {NOVA_KEY, showcaseNova} from './nova/store';
+import {NOVA_STAGE_KEY, showcaseStage} from './nova/stage/record';
 import {NOVA_SETUP_KEY, showcaseNovaSetup} from './nova/setup';
 import {SHOWCASE_NOVA_BRIDGE_KEY, showcaseNovaChat} from './nova/bridge-showcase';
 import {AI_CHATS_SESSION_KEY} from './ai/settings';
@@ -76,7 +77,12 @@ import {SHOWCASE_SCOPE} from './ai/keys';
 import {NOVA_WORKFLOWS_KEY} from './nova/workflows/schema';
 import {showcaseNovaWorkflows} from './nova/workflows/showcase';
 import {TASKS_KEY} from './tasks/schema';
-import {showcaseTasks} from './tasks/showcase';
+import {showcaseTasks, showcaseTaskWhen} from './tasks/showcase';
+import {TASK_WHEN_KEY} from './tasks/when';
+import {COUNTDOWNS_KEY} from './countdowns/schema';
+import {showcaseCountdowns} from './countdowns/showcase';
+import {MONEY_TAGS_KEY} from './money-tags/schema';
+import {showcaseMoneyTags} from './money-tags/showcase';
 import {showcaseNotes} from './notes/showcase';
 import {CALENDAR_IMPORT_KEY} from './ics/calendar';
 import {showcaseCalendarImport} from './ics/showcase';
@@ -244,9 +250,14 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Owner follow-up 2 (N2, N3, N6): NOVA's example layout, its setup progress and two saved workflows (labelled).
  // N1: one labelled NOVA conversation with a Health task handed to ZIGi (two voices), in the tab's Showcase chats.
  {const duo=showcaseNovaChat(SHOWCASE_SCOPE,new Date(`${day}T08:00:00.000Z`));records[AI_CHATS_SESSION_KEY]=JSON.stringify({version:1,chats:[duo.chat]});records[SHOWCASE_NOVA_BRIDGE_KEY]=JSON.stringify(duo.bridge);}
- records[NOVA_KEY]=JSON.stringify(showcaseNova(day));records[NOVA_SETUP_KEY]=JSON.stringify(showcaseNovaSetup(day,`${day}T08:00:00.000Z`));records[NOVA_WORKFLOWS_KEY]=JSON.stringify(showcaseNovaWorkflows(day));records[TASKS_KEY]=JSON.stringify(showcaseTasks(day,platform.goals.map(g=>g.id)));records[CALENDAR_IMPORT_KEY]=JSON.stringify(showcaseCalendarImport(day));
+ records[NOVA_KEY]=JSON.stringify(showcaseNova(day));records[NOVA_STAGE_KEY]=JSON.stringify(showcaseStage(day));records[NOVA_SETUP_KEY]=JSON.stringify(showcaseNovaSetup(day,`${day}T08:00:00.000Z`));records[NOVA_WORKFLOWS_KEY]=JSON.stringify(showcaseNovaWorkflows(day));records[TASKS_KEY]=JSON.stringify(showcaseTasks(day,platform.goals.map(g=>g.id)));records[CALENDAR_IMPORT_KEY]=JSON.stringify(showcaseCalendarImport(day));
  records[EXPERIMENTS_KEY]=JSON.stringify(showcaseExperiments(day,habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!))));
  records[BUDGETS_KEY]=JSON.stringify(showcaseBudgets(day));
+ // Session AM-2 (step 3, "NOVA connected"): labelled examples of three records Session AP added, so the Showcase's NOVA
+ // widgets (Spending by tag, Days until, This evening and Someday) and their pages have something to show. Each is the
+ // record's own format, in this tab's Showcase storage only: example tags on that log's own fictional entries, four
+ // "Example · " countdowns, and two of the fictional tasks on tonight's list and in Someday.
+ records[MONEY_TAGS_KEY]=JSON.stringify(showcaseMoneyTags(showcaseMoneyLog(day)));records[COUNTDOWNS_KEY]=JSON.stringify(showcaseCountdowns(day));records[TASK_WHEN_KEY]=JSON.stringify(showcaseTaskWhen(day));
  // Session AK (lane M): two fictional money rules that match only that log's own entries (lib/money-rules/showcase.ts).
  records[MONEY_RULES_KEY]=JSON.stringify(showcaseMoneyRules(day));
  // Session AK (8.6, item 8): the rewards shelf on with two fictional treats (the game layer is on in the Showcase), and

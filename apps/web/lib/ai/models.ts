@@ -14,10 +14,16 @@ export type ListRequest = {provider: ProviderId; key: string | null; baseUrl?: s
 const NOT_CHAT = /embed|embedding|tts|whisper|transcri|dall-e|image|moderation|realtime|audio|sora|veo|imagen|aqa|rerank|guard|computer-use|speech|vision-preview$/i;
 const TRANSCRIPTION = /whisper|transcri/i;
 export function kindOf(id: string): ModelInfo['kind'] { if (TRANSCRIPTION.test(id)) return 'transcription'; return NOT_CHAT.test(id) ? 'other' : 'chat'; }
+/**
+ * Session AM-2 (security review, finding 9): a server on this computer is asked with `redirect: 'error'` and no referrer,
+ * so a local program can never pass the listing (and the key that goes with it) on to another host. Only the local path:
+ * a remote provider's request is exactly as before.
+ */
+const LOOPBACK_ONLY = {redirect: 'error', referrerPolicy: 'no-referrer'} as const;
 const fetcherOf = (request: Pick<ListRequest, 'fetcher'>) => request.fetcher ?? ((input: RequestInfo | URL, init?: RequestInit) => fetch(input, init));
 async function getJson(request: ListRequest, url: string, headers: Record<string, string>, local: boolean): Promise<unknown> {
   let response: Response;
-  try { response = await fetcherOf(request)(url, {headers, signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}); }
+  try { response = await fetcherOf(request)(url, {headers, signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors', ...(local ? LOOPBACK_ONLY : {})}); }
   catch (error) { throw mapNetworkError(request.provider, error, {local, online: typeof navigator === 'undefined' ? undefined : navigator.onLine}); }
   if (!response.ok) throw mapHttpError(request.provider, response.status, await response.text().catch(() => ''), response.headers);
   try { return await response.json() as unknown; } catch { throw new AiError('unreadable', 'The model list could not be read.', {provider: request.provider}); }
@@ -83,7 +89,7 @@ export async function listModels(request: ListRequest): Promise<ModelInfo[]> {
 /** Which wire a local server speaks: Ollama answers `GET /api/version`; otherwise an OpenAI-compatible `/v1/models` must answer. */
 export async function detectLocalServer(request: Pick<ListRequest, 'baseUrl' | 'key' | 'signal' | 'fetcher'>): Promise<'ollama' | 'openai-compatible'> {
   const fetcher = fetcherOf(request), base = request.baseUrl ?? '';
-  const probe = async (url: string, headers: Record<string, string>) => { try { return await fetcher(url, {headers, signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}); } catch (error) { throw mapNetworkError('local', error, {local: true, online: typeof navigator === 'undefined' ? undefined : navigator.onLine}); } };
+  const probe = async (url: string, headers: Record<string, string>) => { try { return await fetcher(url, {headers, signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors', ...LOOPBACK_ONLY}); } catch (error) { throw mapNetworkError('local', error, {local: true, online: typeof navigator === 'undefined' ? undefined : navigator.onLine}); } };
   const version = await probe(`${base}/api/version`, {});
   if (version.ok) { const value = await version.json().catch(() => null) as {version?: unknown} | null; if (value && typeof value.version === 'string') return 'ollama'; }
   const models = await probe(`${base}/v1/models`, request.key ? {authorization: `Bearer ${request.key}`} : {});

@@ -4,6 +4,8 @@ import {buildContextPack, type ContextPack} from '../../../lib/ai/context-pack/b
 import {buildNovaPack, DEFAULT_NOVA_SCOPES, type NovaPack, type NovaScopes} from '../../../lib/ai/context-pack/nova';
 import type {AiSettings} from '../../../lib/ai/settings';
 import {hermesNeedsRedaction, isHermesBase, localModelStillConfirmed, NOVA_HERMES} from '../../../lib/nova/hermes-record';
+import {ownAgentIsUnconfirmed} from '../../../lib/nova/agent-bridge/own-agent-record';
+import {NOVA_AGENT} from '../../../lib/nova/agent-bridge/record';
 import {previewFor, type PrivacyMode} from '../../../lib/nova/privacy-mode';
 import {novaPackInput} from '../../../lib/nova/bridge-pack';
 import {scopesOf} from '../../../lib/nova/scopes';
@@ -38,13 +40,15 @@ export type NovaSees = {pack: NovaPack | null; scopes: NovaScopes; chainChosen: 
 export function useNovaSees(settings: AiSettings, mode: PrivacyMode | null): NovaSees {
   const context = useAiContext(settings, 'your AI', false), hermes = useDeviceRecord(NOVA_HERMES), chain = useChainChoice(), setup = useDeviceRecord(NOVA_SETUP);
   const provider = settings.enabled && settings.mode !== 'subscription' ? settings.provider : null;
-  const hermesUnconfirmed = provider === 'local' && isHermesBase(settings.baseUrl, hermes.data) && hermesNeedsRedaction(mode, localModelStillConfirmed(hermes.data, settings.baseUrl)); // SA-1: as the engine, for this address
+  // Session AM-2: the person's own agent (not Hermes) is read as the engine reads it too, and named as what it is.
+  const ownAgent = useDeviceRecord(NOVA_AGENT), own = provider === 'local' && !isHermesBase(settings.baseUrl, hermes.data) && !ownAgent.unreadable && ownAgentIsUnconfirmed(ownAgent.data, settings.baseUrl) && hermesNeedsRedaction(mode, false);
+  const hermesUnconfirmed = (provider === 'local' && isHermesBase(settings.baseUrl, hermes.data) && hermesNeedsRedaction(mode, localModelStillConfirmed(hermes.data, settings.baseUrl))) || own; // SA-1: as the engine, for this address
   const input = useMemo(() => { try { return novaPackInput({sources: context.toolSources(), gates: context.gates, storage: getAppStorage(), target: {provider, model: settings.model, baseUrl: settings.baseUrl}, chainChosen: chain.chosen}); } catch { return null; } },
     // The record's scopes and mode, Hermes's confirmation and the chain choice are read again whenever one changes.
-    [context, provider, settings.model, settings.baseUrl, chain.chosen, setup.data, hermes.data, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+    [context, provider, settings.model, settings.baseUrl, chain.chosen, setup.data, hermes.data, ownAgent.data, mode]); // eslint-disable-line react-hooks/exhaustive-deps
   const pack = useMemo(() => input ? buildNovaPack(input) : null, [input]);
   const scopes = input?.scopes ?? scopesOf(setup.unreadable ? {version: 1} : setup.data);
-  const preview = previewFor({message: '', mode, provider, model: settings.model, hermesUnconfirmed});
+  const preview = previewFor({message: '', mode, provider, model: settings.model, hermesUnconfirmed, ...(own ? {agentName: 'your own agent'} : {})});
   return {pack, scopes, chainChosen: chain.chosen, healthGate: context.gates.localHealth, line: preview.line, refused: preview.decision === 'refuse', connected: context.gates.connected};
 }
 export function WhatNovaSees({sees}: {sees: NovaSees}) {

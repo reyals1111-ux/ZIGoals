@@ -20,7 +20,7 @@ test('every prompt carries the guardrails: data marks are data, no advice, no in
     expect(prompt).toContain('never move money, contribute, allocate, stake, connect a wallet, sync, export, delete or change settings');
     expect(prompt).toMatch(/never shame/);
   }
-  expect(SPECIALISTS.health.prompt).toContain('talk to a doctor first'); expect(SPECIALISTS.health.prompt).toContain('12 to 18 hours');
+  expect(SPECIALISTS.health.prompt).toContain('talk to a doctor first'); expect(SPECIALISTS.health.prompt).toContain('up to 24 hours, stopped automatically at 24'); // Health's own range (was '12 to 18 hours')
   expect(SPECIALISTS.goals.prompt).toContain('Never suggest contributing more'); expect(SPECIALISTS.wealth.prompt).toContain('never converted between currencies'); expect(SPECIALISTS.wealth.prompt).toContain('Real or Hypothetical');
   expect(ACTION_PROTOCOL).toContain('at most 10');
 });

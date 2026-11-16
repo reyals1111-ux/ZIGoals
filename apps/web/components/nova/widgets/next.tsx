@@ -18,7 +18,7 @@ export default function NextWidget() {
   const {items, now} = useAgendaToday();
   if (!items) return <NovaReading/>;
   const next = nextItems(items, now, 3);
-  if (!next.length) return <NovaEmpty pillar="habits" href="/app/habits" action="Add a habit">{items.length ? 'Nothing else is due today. A calm orbit.' : 'Nothing is planned yet. A habit, a task or a bill shows up here at its time.'}</NovaEmpty>;
+  if (!next.length) return <NovaEmpty pillar="habits" ghost="rows" href="/app/habits" action="Add a habit">{items.length ? 'Nothing else is due today. A calm orbit.' : 'Nothing is planned yet. A habit, a task or a bill shows up here at its time.'}</NovaEmpty>;
   return <ol className="nova-next" aria-label="Next in your day">{next.map(item => <li key={item.id} data-pillar={item.pillar}>
     {PILLARS.has(item.pillar) ? <PillarMark pillar={item.pillar as Pillar} size={14}/> : <span aria-hidden="true"/>}
     {item.href ? <Link href={item.href} prefetch={false}>{item.title}</Link> : <span>{item.title}</span>}

@@ -1,0 +1,145 @@
+/*
+ * Session AM (ADR-038; art direction §2, §4) and AM-2 (design language D, Themes: "Health: magenta, hearts, a heartbeat
+ * trace"): the three Health widgets NOVA makes on request (widgets/weight.tsx, steps.tsx, workouts.tsx), built on the kit
+ * (cards/kit.tsx, cards.css). Only what the kit does not draw is here: where the glass heart and its heartbeat sit, the
+ * row of hearts for the days logged, the ring of today's steps, and the rail of the last workouts. Neon is the panel's
+ * own `--neon` (Health: magenta); words are ink, 14 px or more. The only motion is the kit's (drawn once when made); the
+ * heart and its trace are still.
+ *
+ * AM-2 round 2, the scale rule: the chart is each body's elastic row (it takes what the panel has left and gives way
+ * first); a wide medium panel puts the hero beside the chart; a large one grows the ring and the heart with it.
+ */
+/* The body: tighter than the kit's below Large, the foot at the bottom, the "on your screen only" tag at its own width. */
+.nc-body.nc-weight, .nc-body.nc-steps, .nc-body.nc-workouts { gap: 8px; }
+.nova-widget[data-size=L] .nc-body.nc-weight, .nova-widget[data-size=L] .nc-body.nc-steps, .nova-widget[data-size=L] .nc-body.nc-workouts { gap: 12px; }
+.nc-weight .nc-foot, .nc-steps .nc-foot, .nc-workouts .nc-foot { margin-top: auto; }
+.nc-weight .holo-tag, .nc-steps .holo-tag, .nc-workouts .holo-tag { align-self: flex-start; flex: none; }
+
+/* ---- The top row: the hero figure, and beside it Health's mark — the heartbeat running into a glass heart ---- */
+.nc-weight-top, .nc-workouts-top { flex: none; display: grid; grid-template-columns: minmax(0, auto) minmax(56px, 1fr); align-items: start; gap: 6px 14px; min-width: 0; }
+.nc-weight-side, .nc-workouts-side { display: flex; align-items: center; justify-content: flex-end; gap: 2px; min-width: 0; padding-top: 2px; }
+.nc-weight-side .nc-pulse, .nc-workouts-side .nc-pulse { flex: 1 1 0; min-width: 0; max-width: 190px; height: 30px;
+  -webkit-mask: linear-gradient(90deg, transparent 0, #000 45%); mask: linear-gradient(90deg, transparent 0, #000 45%); }
+.nc-weight-note, .nc-steps-note, .nc-workouts-note { margin: 5px 0 0; font-size: 15px; line-height: 1.35; color: #d6e0f5; }
+.nc-steps-note[data-tone=good] { color: #a8f5d2; font-weight: 600; }
+/* The chart is the elastic row. */
+.nc-weight-chart, .nc-steps-chart, .nc-workouts-chart { display: flex; flex-direction: column; flex: 1 1 auto; gap: 6px; min-width: 0; min-height: 0; }
+.nc-weight-chart > p, .nc-steps-chart > p, .nc-workouts-chart > p { flex: none; }
+/* The heartbeat as a rule between two instruments (ornament). */
+.nc-pulse.nc-health-rule { flex: none; height: 22px; opacity: .9; -webkit-mask: linear-gradient(90deg, transparent 0, #000 18%, #000 82%, transparent 100%); mask: linear-gradient(90deg, transparent 0, #000 18%, #000 82%, transparent 100%); }
+/* Small: one row. The figure, its label over its one line, and Health's mark (or today's ring) at the row's end. */
+.nova-widget[data-size=S] :is(.nc-weight-top, .nc-workouts-top) { display: flex; align-items: center; gap: 12px; }
+.nova-widget[data-size=S] .nc-weight .nc-delta { margin-top: 0; padding: 0 8px 0 2px; border: 0; background: none; font-size: 14px; line-height: 1.25; white-space: nowrap; }
+.nova-widget[data-size=S] .nc-weight .nc-delta svg { width: 16px; height: 16px; padding: 3px; }
+.nova-widget[data-size=S] :is(.nc-steps-note, .nc-workouts-note) { margin: 0; font-size: 14px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Weight: the days logged, as hearts ---- */
+.nc-weight-logged { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; min-width: 0; }
+.nc-weight-hearts { display: flex; gap: 4px; }
+.nc-weight-hearts svg { width: 17px; height: 17px; overflow: visible; }
+.nc-weight-logged-text { font-size: 14px; line-height: 1.3; color: #d6e0f5; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- Steps: today against the target as a ring with a heart in it, the figure beside it ---- */
+.nc-steps-top { flex: none; display: flex; align-items: center; gap: 16px; min-width: 0; }
+.nc-steps-top .nc-hero { flex: 1 1 0; }
+.nc-steps-heart { flex: none; display: inline-grid; place-items: center; width: 96px; height: 96px; }
+.nc-steps[data-size=L] .nc-steps-heart { width: 124px; height: 124px; }
+.nc-steps[data-size=S] .nc-steps-heart { width: 36px; height: 36px; }
+.nc-steps[data-size=S] .nc-steps-top { gap: 12px; }
+.nc-steps .nc-hero-unit { font-size: 15px; }
+.nc-steps-cap, .nc-workouts-cap { margin: 0; font-size: 14px; line-height: 1.35; color: #c3cfe6; }
+.nc-steps-cap b, .nc-workouts-cap b { font-weight: 650; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; }
+
+/* ---- Workouts: the last ones as rows on a rail (a lit node each) ---- */
+.nc-workouts-list { flex: none; position: relative; display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.nc-workouts-list::before { content: ''; position: absolute; left: 3.5px; top: 12px; bottom: 12px; width: 1px; background: color-mix(in oklab, var(--neon, #ff74be) 45%, transparent); }
+.nc-workouts-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: baseline; padding: 5px 0 5px 18px; font-size: 15px; line-height: 1.4; border-top: 1px solid color-mix(in oklab, var(--neon, #ff74be) 14%, transparent); }
+.nc-workouts-row:first-child { border-top: 0; }
+.nc-workouts-row::before { content: ''; position: absolute; left: 0; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--neon, #ff74be), 0 0 9px 2px var(--neon, #ff74be); }
+.nc-workouts-name { color: #e6edfb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-workouts-date { color: #c3cfe6; white-space: nowrap; }
+.nc-workouts-minutes { min-width: 64px; font-weight: 650; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+
+/* ---- A narrow medium panel: the hero is one row (the figure, then its label), so the chart keeps the height ---- */
+@container holo-body (max-width: 519px) {
+  .nc-weight[data-size=M] .nc-hero, .nc-workouts[data-size=M] .nc-hero { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 12px; }
+  .nc-weight[data-size=M] .nc-hero-label, .nc-workouts[data-size=M] .nc-hero-label { order: 0; margin: 0; }
+  .nc-weight[data-size=M] .nc-delta, .nc-workouts[data-size=M] .nc-workouts-note { flex-basis: 100%; margin: 0; }
+  .nc-workouts[data-size=M] .nc-workouts-note { font-size: 14px; line-height: 20px; }
+  .nc-weight[data-size=M] .nc-weight-side, .nc-workouts[data-size=M] .nc-workouts-side .nc-pulse { display: none; }
+  .nc-weight[data-size=M] .nc-weight-top { grid-template-columns: minmax(0, 1fr); }
+  .nc-workouts[data-size=M] .nc-workouts-top { grid-template-columns: minmax(0, 1fr) auto; }
+}
+/* ---- A narrow medium panel that is short drops whole rows, never half of one, and never the foot ---- */
+@container holo-body (max-height: 214px) and (max-width: 519px) { .nc-weight[data-size=M] .nc-weight-logged { display: none; } }
+@container holo-body (max-height: 200px) { .nc-steps[data-size=M] .nc-steps-ring { --nc-d: 76; } .nc-steps[data-size=M] .nc-steps-ring .nc-heart { width: 30px; height: auto; } }
+@container holo-body (max-height: 185px) {
+  .nc-workouts[data-size=M] .nc-workouts-side { display: none; }
+  .nc-workouts[data-size=M] .nc-workouts-top { grid-template-columns: minmax(0, 1fr); }
+  .nc-steps[data-size=M] .nc-steps-ring { --nc-d: 60; }
+  .nc-steps[data-size=M] .nc-steps-ring .nc-heart { width: 24px; height: auto; }
+  .nc-steps[data-size=M] .nc-steps-note, .nc-workouts[data-size=M] .nc-workouts-note { margin: 0; flex-basis: 100%; }
+}
+@container holo-body (max-height: 170px) and (max-width: 519px) {
+  .nc-weight[data-size=M] .nc-weight-chart, .nc-steps[data-size=M] .nc-steps-chart, .nc-workouts[data-size=M] .nc-workouts-chart { display: none; }
+}
+@container holo-body (max-width: 250px) {
+  :is(.nc-weight, .nc-workouts):not([data-size=S]) :is(.nc-weight-side, .nc-workouts-side) { display: none; }
+  :is(.nc-weight-top, .nc-workouts-top) { grid-template-columns: minmax(0, 1fr); }
+  .nc-steps:not([data-size=S]) .nc-steps-ring { display: none; }
+}
+
+/* ---- A wide medium panel (about 700 × 190): the hero on the left, the chart filling the right ---- */
+@container holo-body (min-width: 520px) {
+  .nc-weight[data-size=M], .nc-steps[data-size=M], .nc-workouts[data-size=M] { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: minmax(0, 1fr) auto auto auto; gap: 6px 32px; }
+  .nc-steps[data-size=M] { grid-template-columns: auto minmax(0, 1fr); }
+  .nc-weight[data-size=M] > .nc-weight-top, .nc-steps[data-size=M] > .nc-steps-top, .nc-workouts[data-size=M] > .nc-workouts-top { grid-area: 1 / 1; align-self: center; }
+  .nc-weight[data-size=M] > .nc-weight-logged { grid-area: 2 / 1; }
+  .nc-weight[data-size=M] > .nc-weight-chart, .nc-steps[data-size=M] > .nc-steps-chart, .nc-workouts[data-size=M] > .nc-workouts-chart { grid-area: 1 / 2 / 3 / 3; }
+  .nc-steps[data-size=M] > .nc-steps-note { grid-area: 1 / 2 / 3 / 3; align-self: center; }
+  .nc-weight[data-size=M] > .holo-tag, .nc-steps[data-size=M] > .holo-tag, .nc-workouts[data-size=M] > .holo-tag { grid-area: 3 / 1 / 4 / 3; justify-self: start; }
+  .nc-weight[data-size=M] > .nc-foot, .nc-steps[data-size=M] > .nc-foot, .nc-workouts[data-size=M] > .nc-foot { grid-area: 4 / 1 / 5 / 3; margin-top: 0; }
+  .nc-weight[data-size=M] .nc-hero-num, .nc-workouts[data-size=M] .nc-hero-num, .nc-steps[data-size=M] .nc-hero-num { font-size: 48px; }
+  .nc-steps[data-size=M] .nc-steps-ring { --nc-d: 128; --nc-w: 6; }
+  .nc-steps[data-size=M] .nc-steps-ring .nc-heart { width: 50px; height: auto; }
+  .nc-steps[data-size=M] .nc-steps-top { gap: 22px; }
+  .nc-weight[data-size=M] .nc-heart, .nc-workouts[data-size=M] .nc-heart { width: 56px; height: auto; }
+}
+@container holo-body (min-width: 520px) and (max-height: 176px) {
+  .nc-steps[data-size=M] .nc-steps-ring { --nc-d: 104; }
+  .nc-weight[data-size=M] .nc-hero-num, .nc-workouts[data-size=M] .nc-hero-num, .nc-steps[data-size=M] .nc-hero-num { font-size: 40px; }
+  .nc-weight[data-size=M] > .nc-weight-logged { display: none; }
+}
+/* ---- A large panel: the ring and the heart grow with it (a wide one more) ---- */
+@container holo-body (min-height: 300px) and (min-width: 520px) {
+  /* The hero, the hearts and the facts on the left; the chart the whole height of the right (more than half the body). */
+  .nc-weight[data-size=L], .nc-steps[data-size=L], .nc-workouts[data-size=L] { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto auto auto auto minmax(0, 1fr) auto; gap: 10px 44px; }
+  .nc-weight[data-size=L] > *, .nc-steps[data-size=L] > *, .nc-workouts[data-size=L] > * { grid-column: 1; }
+  .nc-weight[data-size=L] > .nc-weight-chart, .nc-steps[data-size=L] > .nc-steps-chart, .nc-workouts[data-size=L] > .nc-workouts-chart { grid-column: 2; grid-row: 1 / 6; }
+  .nc-steps[data-size=L] > .nc-steps-note { grid-column: 2; grid-row: 1 / 6; align-self: center; }
+  .nc-weight[data-size=L] > .nc-foot, .nc-steps[data-size=L] > .nc-foot, .nc-workouts[data-size=L] > .nc-foot { grid-column: 1 / -1; grid-row: 6; margin-top: 0; }
+  .nc-steps[data-size=L] .nc-steps-top { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .nc-steps[data-size=L] .nc-steps-ring { --nc-d: 168; --nc-w: 6.5; }
+  .nc-steps[data-size=L] .nc-steps-ring .nc-heart { width: 66px; height: auto; }
+  .nc-weight[data-size=L] .nc-heart, .nc-workouts[data-size=L] .nc-heart { width: 76px; height: auto; }
+  .nc-weight[data-size=L] .nc-weight-side .nc-pulse, .nc-workouts[data-size=L] .nc-workouts-side .nc-pulse { max-width: 320px; height: 40px; }
+  .nc-weight[data-size=L] .nc-weight-hearts svg { width: 22px; height: 22px; }
+}
+@container holo-body (min-height: 300px) and (min-width: 520px) and (max-height: 400px) { .nc-steps[data-size=L] .nc-steps-ring { --nc-d: 132; } .nc-steps[data-size=L] .nc-steps-ring .nc-heart { width: 52px; } .nc-steps[data-size=L] > .nc-health-rule { display: none; } }
+/* A narrow large panel that is short: the facts go (the table keeps them), the chart keeps its height. */
+@container holo-body (max-height: 400px) and (max-width: 519px) { .nc-weight[data-size=L] > .nc-facts, .nc-steps[data-size=L] > .nc-facts, .nc-steps[data-size=L] > .nc-health-rule { display: none; } }
+/* ---- Very large panels (a body 640 px or wider): the ring and the figure step up again, where the height allows ---- */
+@container holo-body (min-width: 640px) and (min-height: 186px) {
+  .nc-steps[data-size=M] .nc-steps-ring { --nc-d: 142; }
+  .nc-steps[data-size=M] .nc-steps-ring .nc-heart { width: 56px; }
+  .nc-weight[data-size=M] .nc-hero-num, .nc-workouts[data-size=M] .nc-hero-num, .nc-steps[data-size=M] .nc-hero-num { font-size: 54px; }
+}
+@container holo-body (min-width: 640px) and (min-height: 380px) {
+  .nc-steps[data-size=L] .nc-steps-ring { --nc-d: 176; }
+  .nc-steps[data-size=L] .nc-steps-ring .nc-heart { width: 70px; }
+  .nc-steps[data-size=L] > .nc-health-rule { display: none; }
+}
+@container holo-body (min-width: 640px) and (min-height: 460px) {
+  .nc-steps[data-size=L] .nc-steps-ring { --nc-d: 208; --nc-w: 7; }
+  .nc-steps[data-size=L] .nc-steps-ring .nc-heart { width: 84px; }
+}

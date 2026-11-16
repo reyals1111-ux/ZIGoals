@@ -32,6 +32,7 @@ import type {useReadAloud} from '../../ai/use-voice';
 import type {useProposals} from '../../ai/use-proposals';
 import {ZigiAvatar} from '../../zigi/zigi-avatar';
 import {AgentGlyph, PersonaFigure, type NovaPersona} from './nova-figure';
+import {countOf, gaugeOf, gaugeWords, litFigures, ReadoutInstrument} from './nova-readout';
 const QuickAddLine = lazy(() => import('../../quick-add-line').then(m => ({default: m.QuickAddLine})));
 
 /**
@@ -39,6 +40,11 @@ const QuickAddLine = lazy(() => import('../../quick-add-line').then(m => ({defau
  * parsed tree (never HTML), proposals as confirm cards with Undo (components/ai/proposal-list.tsx, unchanged), who answered
  * in one short line, copy, read aloud, retry and the person's own note. A page task NOVA handed to ZIGi reads as a short
  * exchange in two voices: NOVA hands it over, ZIGi (its own figure, unchanged) answers from that page, NOVA closes the loop.
+ * Session AM-2 (conversation console): an answer is a read-out, not a bubble (nova-chat.css, ncx-console.css): a head
+ * strip with the speaker, the words with their figures lit, one figure of an on-device answer drawn as a ring, an
+ * instrument strip that says who answered and when, then the turn's keys. The person's own words are a slim line with a
+ * lit edge. The same elements, names and roles as before; only their order inside the answer changed (the time moved
+ * from the keys' row to the source strip).
  */
 /** NOVA's panels open on Permissions from this hash (components/nova/nova-dashboard.tsx `PANEL_HASH`). */
 const PERMISSIONS_HASH = 'nova-permissions';
@@ -48,10 +54,12 @@ export type TurnCommon = {session: ChatSession; runner: ReturnType<typeof usePro
   /** Session AL fifth pass (LA-032): Health is not read by NOVA (NOVA → Permissions or this device's gate). */ healthOff?: boolean};
 export function NovaUserTurn({turn, mark, persona, onEdit}: {turn: ChatTurn; mark?: DelegatedTurn; persona: NovaPersona; onEdit?: () => void}) {
   return <>
+    {/* Session AM-3 (round 7): the person's words are one transmission line on the log's spine (a lit tick, the label,
+        the words, a hairline that runs out); the last one carries its Edit key at the line's end. */}
     <article className="nova-turn nova-turn-user" aria-label="You">
       <div className="nova-turn-body"><p className="nova-turn-who" aria-hidden="true">You</p><LongText text={turn.text}/><CareNote text={turn.text} inChat/></div>
+      {onEdit && <p className="nova-turn-edit"><ReplyIcon glyph="edit" label="Edit your last message" tip="Edit" onClick={onEdit}/></p>}
     </article>
-    {onEdit && <p className="nova-turn-edit"><ReplyIcon glyph="edit" label="Edit your last message" tip="Edit" onClick={onEdit}/></p>}
     {mark?.role === 'task' && (mark.agent === 'hermes'
       ? <div className="nova-voice nova-voice-nova" role="note" aria-label={`${persona.name} hands this to your Hermes Agent`}>
         <PersonaFigure persona={persona} size={24}/>
@@ -85,6 +93,14 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
   const short = turn.source === 'on-device' ? 'Chrome’s on-device model' : local ? 'On-device answers · no AI used' : hermes ? 'From your Hermes Agent' : `From your AI · ${providerLabel}`;
   const who = hermes ? 'Hermes · your agent' : zigi ? `ZIGi · ${AREA_LABELS[mark!.area]} page` : persona.name;
   const usage = usageLine(turn.usage ?? null);
+  // The read-out's ring: only for an answer ZIGoals made on this device from the person's records (never a model's words).
+  // Session AM-3 (round 7): the instrument — that ring with the words it was read from, or the count the answer opens with.
+  const figures = useMemo(() => {
+    if (turn.source !== 'local' || reply?.kind === 'refusal' || reply?.kind === 'examples') return null;
+    const words = plainText(parseBlocks(parsed.text)), gauge = gaugeOf(words);
+    return gauge ? {gauge, caption: gaugeWords(words), count: null} : {gauge: null, caption: null, count: countOf(words)};
+  }, [turn.source, reply?.kind, parsed.text]);
+  const gauge = figures?.gauge ?? null, instrument = figures && (figures.gauge || figures.count) ? figures : null;
   const copy = () => { copyText(`${plainText(parseBlocks(parsed.text))}\n\n${full}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
   const chips = isLast && !busy && reply ? reply.kind === 'choices' || (reply.kind === 'refusal' && reply.choices) ? (reply.kind === 'choices' ? reply.choices : reply.choices ?? []).map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'examples' ? reply.examples.map(e => ({label: e, run: () => onAsk(e)})) : [] : [];
@@ -94,7 +110,7 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
       <div className="nova-turn-body">
         <p className="nova-turn-who" aria-hidden="true">{who}</p>
         {(parsed.text || parsed.proposals.length > 0) && <TurnKind cards={parsed.proposals.length > 0}/>}
-        {parsed.text && !(cardShown && reply?.kind === 'examples') && <SafeText className={local ? 'ai-local-answer' : undefined} text={parsed.text}/>}
+        {parsed.text && !(cardShown && reply?.kind === 'examples') && <div className="ncx-rx-words" data-gauge={gauge ? '' : undefined} data-inst={instrument ? '' : undefined}>{instrument && <ReadoutInstrument gauge={instrument.gauge} caption={instrument.caption} count={instrument.count}/>}<SafeText className={local ? 'ai-local-answer' : undefined} text={parsed.text} mark={litFigures}/></div>}
         {!local && turn.tools && turn.tools.length > 0 && <p className="nova-looked"><span>{zigi ? 'ZIGi looked at:' : 'Looked at:'}</span> {turn.tools.map((t, i) => <span key={i} className="ai-source-chip">{t.label}</span>)}</p>}
         <DataViz results={local ? info?.results : session.lookupsFor(turn.id)?.map(l => l.result)}/>
         {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList onDevice={local} proposals={parsed.proposals} rejected={parsed.rejected} handles={local ? localHandles : session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
@@ -111,10 +127,9 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
           {/* Session AL fifth pass (LA-032, #280–289d): with Health not read by NOVA, the preview says first that Save still saves to Health. */}
           {cardShown && common.healthOff && HEALTH_LINE.test(asked) && <p className="ai-note">{healthOffQuickAdd('NOVA')}</p>}</div>}
         {!local && <MoneyNote text={parsed.text}/>}
-        <SourceLine short={short} full={full}/>
+        <div className="ncx-rx-strip"><SourceLine short={short} full={full}/><TurnTime at={turn.at}/></div>
         {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
         <div className={`ai-reply-row${isLast ? ' ai-reply-row-latest' : ''}`}>
-          <TurnTime at={turn.at}/>
           {turn.stopped && <span className="ai-turn-stopped" title={turn.stopped}>{turn.stopped}</span>}
           <span className="ai-reply-icons">
             <ReplyIcon glyph={copied ? 'copied' : 'copy'} label={copied ? 'Copied' : 'Copy'} onClick={copy}/>

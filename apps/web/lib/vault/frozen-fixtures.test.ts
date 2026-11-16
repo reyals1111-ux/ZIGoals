@@ -48,6 +48,10 @@ import {NOVA_WORKFLOWS_KEY} from '../nova/workflows/schema';
 import {NOVA_BRIEFS_KEY} from '../nova/briefs';
 import {NOVA_BRIDGE_KEY} from '../nova/bridge';
 import {NOVA_KEY} from '../nova/store';
+import {NOVA_STAGE_KEY} from '../nova/stage/record';
+import {NOVA_WORLD_KEY} from '../nova/world/record';
+import {NOVA_OUTBOX_KEY} from '../nova/outbox/record';
+import {NOVA_AGENT_KEY} from '../nova/agent-bridge/record';
 import {CALENDAR_IMPORT_KEY} from '../ics/calendar';
 import {NOTES_KEY} from '../notes/schema';
 import {NETWORTH_MILESTONES_KEY} from '../networth-milestones/milestones';
@@ -94,6 +98,9 @@ const FROZEN_READERS: Record<string, {module: string; spec: string}> = {
   'zigoals:macro-mode:v1': {module: './health-aa/macro-mode', spec: 'MACRO_MODE'}, 'zigoals:aisles:v1': {module: './health-aa/aisles', spec: 'AISLES_RECORD'},
   'zigoals:measurements-custom:v1': {module: './health-aa/measurements-custom', spec: 'MEASUREMENTS_CUSTOM'},
   'zigoals:health-vitamins:v1': {module: './health-vitamins/schema', spec: 'HEALTH_VITAMINS'},
+  // Session AM (ADR-038 D18; TIER 3 (sync)): the NOVA section's two records (#52 and later read NOVA's own record; the
+  // stage record is this session's, absent before it).
+  [NOVA_KEY]: {module: './nova/store', spec: 'NOVA_STORE'}, [NOVA_STAGE_KEY]: {module: './nova/stage/record', spec: 'NOVA_STAGE'},
 };
 export function frozenFixture() {
   const v4 = platformSchema.parse({...financeV4(), goals: financeV4().goals.map(g => ({...g, milestones: [{id: 'm1', title: 'Flights booked', done: false, target: '150000'}]}))});
@@ -325,7 +332,23 @@ export function frozenFixture() {
   { const f = JSON.parse(records[FOCUS_SESSIONS_KEY] ?? '{"version":1}') as Record<string, unknown>; records[FOCUS_SESSIONS_KEY] = JSON.stringify({...f, pomodoro: {work: 25, shortBreak: 5, longBreak: 15, cycles: 4, sound: true, tickTask: true}}); }
   // Owner follow-up 2 (N2, N12): NOVA layout, widgets, quick access, persona and panels.
   records[NOVA_KEY] = JSON.stringify({version: 1, openingSeen: true, layout: "bento", widgets: [{id: "orbit", size: "M", slot: 0}], persona: {name: "Fictional NOVA", avatar: "orb"}, accent: "cyan", panels: {left: "rail", right: "hidden"}});
-  checks.push({key: NOVA_KEY, module: './nova/store', spec: 'NOVA_STORE', expect: {"persona.name": "Fictional NOVA"}});
+  // Session AM (D18, deliberate): both NOVA records are carried by the `nova` extras section now, so the Showcase's went
+  // through the extras merge above and each has its check already (one check per key, as before); the records below
+  // replace them and the checks take the same expectations as before.
+  const novaCheck = (key: string, expect: Record<string, unknown>) => { const held = checks.filter(c => c.key === key); if (held.length !== 1) throw Error(`${key}: one check from the extras merge was expected, found ${held.length}.`); held[0]!.expect = expect; };
+  novaCheck(NOVA_KEY, {"persona.name": "Fictional NOVA"});
+  // Session AM (ADR-038 D16; TIER 3 (stored format), additive key): NOVA's stage record — a made widget, its parameters and one request.
+  records[NOVA_STAGE_KEY] = JSON.stringify({version: 1, made: [{id: "weight", at: "2026-11-11T09:00:00.000Z"}], params: {weight: {range: "month"}}, asks: [{id: "a1", at: "2026-11-11T09:00:00.000Z", text: "What is my weight progress this month?", widgets: ["weight"], device: "computer", by: "device"}]});
+  novaCheck(NOVA_STAGE_KEY, {"made.0.id": "weight", "params.weight.range": "month", "asks.0.text": "What is my weight progress this month?"});
+  // Session AM (ADR-038 D17; TIER 3 (stored format), additive key): NOVA's outside-data record — the weather switch and a fictional place.
+  records[NOVA_WORLD_KEY] = JSON.stringify({version: 1, on: true, place: {name: "Brussels", lat: 50.85, lon: 4.35}});
+  checks.push({key: NOVA_WORLD_KEY, module: './nova/world/record', spec: 'NOVA_WORLD', expect: {"on": true, "place.name": "Brussels", "place.lat": 50.85}});
+  // Session AM-2 (TIER 3 (stored format), additive key): NOVA's outbox record — one approved hand-off and one approved agent tool call (fictional; never a body).
+  records[NOVA_OUTBOX_KEY] = JSON.stringify({version: 1, entries: [{at: "2026-11-15T09:05:00.000Z", kind: "tool", what: "search_notes", target: "127.0.0.1:8765", ok: true}, {at: "2026-11-15T09:00:00.000Z", kind: "handoff", what: "Email draft", target: "fictional@example.com", ok: true}]});
+  checks.push({key: NOVA_OUTBOX_KEY, module: './nova/outbox/record', spec: 'NOVA_OUTBOX', expect: {"entries.0.kind": "tool", "entries.1.what": "Email draft", "entries.1.target": "fictional@example.com"}});
+  // Session AM-2 (step 4c; TIER 3 (stored format), additive key): the person's own agent and one tool server on this computer, with one tool on "Ask every time" (fictional; never a token).
+  records[NOVA_AGENT_KEY] = JSON.stringify({version: 1, servers: [{id: "srvfix01", address: "http://127.0.0.1:8765/mcp", label: "Fictional tools", addedAt: "2026-11-15T09:00:00.000Z", ask: ["search_notes"]}], agent: {address: "http://127.0.0.1:8000", model: "fictional-agent", checkedAt: "2026-11-15T09:00:00.000Z"}});
+  checks.push({key: NOVA_AGENT_KEY, module: './nova/agent-bridge/record', spec: 'NOVA_AGENT', expect: {"servers.0.address": "http://127.0.0.1:8765/mcp", "servers.0.ask.0": "search_notes", "agent.model": "fictional-agent"}});
   // Owner follow-up 2 (N1): which chats started in NOVA and which turns were delegated (no message text).
   records[NOVA_BRIDGE_KEY] = JSON.stringify({version: 1, origins: {"chat-fixture-1": "2026-11-01T09:00:00.000Z"}, delegated: {"turn-fixture-1": {chat: "chat-fixture-1", area: "goals", role: "task", agent: "zigi"}}, speechInput: false});
   checks.push({key: NOVA_BRIDGE_KEY, module: './nova/bridge', spec: 'NOVA_BRIDGE', expect: {"origins.chat-fixture-1": "2026-11-01T09:00:00.000Z"}});
@@ -391,7 +414,7 @@ test('the frozen-reader fixture is read by this build', async () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY, INSIGHT_FEEDBACK_KEY, FOCUS_ROUNDS_KEY, CYCLE_KEY, SCALES_KEY, HEALTH_NUMBERS_KEY, NOVA_HERMES_KEY, NOVA_SETUP_KEY, NOVA_WORKFLOWS_KEY, NOVA_BRIEFS_KEY, NOVA_BRIDGE_KEY, NOVA_KEY, CALENDAR_IMPORT_KEY, NOTES_KEY, NETWORTH_MILESTONES_KEY, SAVINGS_CHALLENGES_KEY, DEBT_PLANNER_KEY, WRAPPED_KEY, AGENDA_KEY, JOURNAL_DISPLAY_KEY, FIRST_WEEK_KEY, EXPERIMENTS_KEY, NETWORTH_HISTORY_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY, INSIGHT_FEEDBACK_KEY, FOCUS_ROUNDS_KEY, CYCLE_KEY, SCALES_KEY, HEALTH_NUMBERS_KEY, NOVA_HERMES_KEY, NOVA_SETUP_KEY, NOVA_WORKFLOWS_KEY, NOVA_BRIEFS_KEY, NOVA_BRIDGE_KEY, /* Session AM (D18, deliberate): NOVA_KEY and NOVA_STAGE_KEY are in `carried` now (the nova extras section), once each as before */ NOVA_WORLD_KEY, /* Session AM-2: the outbox record, device only */ NOVA_OUTBOX_KEY, /* Session AM-2 (step 4c): the own-agent record, device only */ NOVA_AGENT_KEY, CALENDAR_IMPORT_KEY, NOTES_KEY, NETWORTH_MILESTONES_KEY, SAVINGS_CHALLENGES_KEY, DEBT_PLANNER_KEY, WRAPPED_KEY, AGENDA_KEY, JOURNAL_DISPLAY_KEY, FIRST_WEEK_KEY, EXPERIMENTS_KEY, NETWORTH_HISTORY_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');
